@@ -7,12 +7,19 @@
 import { Tracer as OtelTracer } from '@effect/opentelemetry';
 import { trace } from '@opentelemetry/api';
 import * as Effect from 'effect/Effect';
-import type { ExtensionContext } from 'vscode';
+import * as Option from 'effect/Option';
+import * as Schema from 'effect/Schema';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
+import { window, type ExtensionContext } from 'vscode';
+import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
+import * as cliTelemetryModule from '../../../src/observability/cliTelemetry';
+import { CliId } from '../../../src/observability/cliTelemetry';
 import { getSpanCreationIdentity, setSpanCreationIdentity } from '../../../src/observability/spanTransformProcessor';
 import {
   buildLegacySpanAttributes,
   createLegacyTelemetrySpan,
   getLegacyTelemetrySender,
+  prepareLegacyTelemetrySender,
   LEGACY_DEFAULT_AI_CONNECTION_STRING,
   LEGACY_O11Y_ENABLED_ATTR,
   LEGACY_O11Y_ENDPOINT_ATTR,
@@ -34,6 +41,15 @@ const baseIdentity = {
   devHubId: '00Dhub0000000000',
   orgEdition: 'Developer Edition',
   telemetryClassification: 'nonGov' as const
+};
+
+const captureOtelSpan = () => {
+  const attributes = new Map<string, string | number>();
+  const span = {
+    setAttribute: jest.fn((key: string, value: string | number) => attributes.set(key, value))
+  };
+  jest.replaceProperty(OtelTracer, 'currentOtelSpan', Effect.succeed(span as never));
+  return { span, attributes };
 };
 
 describe('resolveLegacyConnectionString', () => {
@@ -105,15 +121,6 @@ describe('createLegacyTelemetrySpan', () => {
 
   afterEach(() => jest.restoreAllMocks());
 
-  const captureOtelSpan = () => {
-    const attributes = new Map<string, string | number>();
-    const span = {
-      setAttribute: jest.fn((key: string, value: string | number) => attributes.set(key, value))
-    };
-    jest.replaceProperty(OtelTracer, 'currentOtelSpan', Effect.succeed(span as never));
-    return { span, attributes };
-  };
-
   it('stamps send-time identity on the current Effect span', async () => {
     const { span, attributes } = captureOtelSpan();
     await Effect.runPromise(
@@ -175,16 +182,87 @@ describe('createLegacyTelemetrySpan', () => {
   });
 });
 
-describe('getLegacyTelemetrySender', () => {
+describe('legacy telemetry senders', () => {
+  const originalPlatform = process.env.ESBUILD_PLATFORM;
+
+  beforeEach(async () => {
+    process.env.ESBUILD_PLATFORM = 'web';
+    const ref = await Effect.runPromise(getDefaultOrgRef());
+    await Effect.runPromise(SubscriptionRef.set(ref, {}));
+  });
+
+  afterEach(() => {
+    if (originalPlatform === undefined) delete process.env.ESBUILD_PLATFORM;
+    else process.env.ESBUILD_PLATFORM = originalPlatform;
+    jest.restoreAllMocks();
+  });
+
+  const contextFor = (name = 'test-ext') =>
+    ({
+      extension: { packageJSON: { name, version: '1.0.0' } },
+      extensionMode: 1
+    }) as unknown as ExtensionContext;
+
   it('does not use the process-global OTel tracer API', async () => {
     const getTracer = jest.spyOn(trace, 'getTracer');
-    const context = {
-      extension: { packageJSON: { name: 'test-ext', version: '1.0.0' } },
-      extensionMode: 1
-    } as unknown as ExtensionContext;
-
-    await getLegacyTelemetrySender(context)({ kind: 'event', name: 'e', identity: baseIdentity });
+    await getLegacyTelemetrySender(contextFor())({ kind: 'event', name: 'e', identity: baseIdentity });
 
     expect(getTracer).not.toHaveBeenCalled();
+  });
+
+  it('keeps the org identity captured before deferred execution', async () => {
+    const { span, attributes } = captureOtelSpan();
+    const ref = await Effect.runPromise(getDefaultOrgRef());
+    await Effect.runPromise(
+      SubscriptionRef.set(ref, {
+        cliId: baseIdentity.cliId as never,
+        webUserId: baseIdentity.webUserId,
+        orgId: baseIdentity.orgId as never,
+        devHubOrgId: baseIdentity.devHubId as never,
+        isScratch: true,
+        orgEdition: baseIdentity.orgEdition,
+        instanceName: 'usa9102'
+      })
+    );
+
+    const sender = await prepareLegacyTelemetrySender(contextFor());
+    const deferredSend = sender({ kind: 'event', name: 'e' });
+    await Effect.runPromise(
+      SubscriptionRef.set(ref, {
+        cliId: 'later-cli' as never,
+        webUserId: 'later-web',
+        orgId: 'later-org' as never,
+        instanceName: 'stg9402s'
+      })
+    );
+    await deferredSend();
+
+    expect(attributes.get('orgId')).toBe(baseIdentity.orgId);
+    expect(attributes.get('cliId')).toBe(baseIdentity.cliId);
+    expect(attributes.get('webUserId')).toBe(baseIdentity.webUserId);
+    expect(attributes.get('orgShape')).toBe('Scratch');
+    expect(getSpanCreationIdentity(span as never).telemetryClassification).toBe('nonGov');
+  });
+
+  it('warns in the caller channel when the CLI telemetry command returns no ID', async () => {
+    delete process.env.ESBUILD_PLATFORM;
+    jest.spyOn(cliTelemetryModule, 'getCliId').mockReturnValue(Effect.succeed(Option.none()));
+    const appendLine = jest.fn();
+    jest.spyOn(window, 'createOutputChannel').mockReturnValue({ appendLine } as never);
+
+    await prepareLegacyTelemetrySender(contextFor('no-cli-seed-ext'));
+
+    expect(appendLine).toHaveBeenCalledWith('telemetry seed missing — degraded session');
+  });
+
+  it('does not warn when the CLI telemetry command provides an ID', async () => {
+    delete process.env.ESBUILD_PLATFORM;
+    const cliId = Schema.decodeSync(CliId)('22222222-2222-4222-8222-222222222222');
+    jest.spyOn(cliTelemetryModule, 'getCliId').mockReturnValue(Effect.succeed(Option.some(cliId)));
+    const createOutputChannel = jest.spyOn(window, 'createOutputChannel');
+
+    await prepareLegacyTelemetrySender(contextFor('has-cli-seed-ext'));
+
+    expect(createOutputChannel).not.toHaveBeenCalled();
   });
 });

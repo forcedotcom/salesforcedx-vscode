@@ -5,14 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Tracer as OtelTracer } from '@effect/opentelemetry';
+import { classifyOrgForTelemetry } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import { isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { workspace, type ExtensionContext } from 'vscode';
 import { SFDX_CORE_SECTION } from '../constants';
+import { getDefaultOrgRef } from '../core/defaultOrgRef';
+import { DefaultOrgInfoSchema } from '../core/schemas/defaultOrgInfo';
+import { ChannelService, ChannelServiceLayer } from '../vscode/channelService';
+import { getCliId } from './cliTelemetry';
 import { runOnServicesRuntime } from './redactingConsoleLogger';
 import { getSdkLayerConfigFromContext, resolveConnectionString } from './sdkLayerConfig';
 import { setSpanCreationIdentity } from './spanTransformProcessor';
+import { UNAUTHENTICATED_USER } from './webUserId';
 
 // legacy install-stats key fallback, not services span default
 export const LEGACY_DEFAULT_AI_CONNECTION_STRING = 'InstrumentationKey=ec3632a4-df47-47a4-98dc-8134cacbaf7e';
@@ -54,6 +62,35 @@ export type LegacyTelemetryPayload = {
   measurements?: Readonly<Record<string, number>>;
   identity: LegacyTelemetryIdentity;
 };
+
+type LegacyTelemetryEvent = Omit<LegacyTelemetryPayload, 'identity'>;
+export type LegacyTelemetrySender = (payload: LegacyTelemetryPayload) => Promise<void>;
+export type PreparedLegacyTelemetrySender = (event: LegacyTelemetryEvent) => () => Promise<void>;
+
+type OrgShape = 'Scratch' | 'Sandbox' | 'Production' | 'Undefined';
+
+const orgShapeFrom = (info: typeof DefaultOrgInfoSchema.Type): OrgShape => {
+  if (info.isScratch) return 'Scratch';
+  if (info.isSandbox) return 'Sandbox';
+  if (info.alias ?? info.username) return 'Production';
+  return 'Undefined';
+};
+
+const identityFromDefaultOrgInfo = ({
+  instanceName,
+  ...info
+}: typeof DefaultOrgInfoSchema.Type): LegacyTelemetryIdentity => ({
+  cliId: info.cliId,
+  webUserId: info.webUserId ?? UNAUTHENTICATED_USER,
+  orgId: info.orgId,
+  orgShape: orgShapeFrom(info),
+  devHubId: info.devHubOrgId,
+  orgEdition: info.orgEdition,
+  telemetryClassification: classifyOrgForTelemetry(info.orgId, instanceName)
+});
+
+const snapshotIdentity = () =>
+  Effect.runSync(getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get), Effect.map(identityFromDefaultOrgInfo)));
 
 // otelConnectionString as-is, aiKey normalized, else legacy default; precedence shared with sdkLayerConfig
 export const resolveLegacyConnectionString = (packageJSON?: {
@@ -170,12 +207,9 @@ export const createLegacyTelemetrySpan = (config: LegacyTelemetrySenderConfig, p
   );
 };
 
-// cached sender, built once per TelemetryService instance
-export const getLegacyTelemetrySender = (
-  context: ExtensionContext
-): ((payload: LegacyTelemetryPayload) => Promise<void>) => {
+const senderConfigFromContext = (context: ExtensionContext): LegacyTelemetrySenderConfig => {
   const { extensionName, extensionVersion, o11yEndpoint, productFeatureId } = getSdkLayerConfigFromContext(context);
-  const config = {
+  return {
     extensionName,
     extensionVersion,
     callerO11y: {
@@ -184,5 +218,31 @@ export const getLegacyTelemetrySender = (
       productFeatureId
     }
   };
+};
+
+/** Build the backwards-compatible sender for callers that provide a complete identity. */
+export const getLegacyTelemetrySender = (context: ExtensionContext): LegacyTelemetrySender => {
+  const config = senderConfigFromContext(context);
   return payload => createLegacyTelemetrySpan(config, payload).pipe(runOnServicesRuntime, Effect.runPromise);
+};
+
+/** Prepare legacy telemetry events from shared identity and send them in the services runtime. */
+export const prepareLegacyTelemetrySender = async (
+  context: ExtensionContext
+): Promise<PreparedLegacyTelemetrySender> => {
+  const config = senderConfigFromContext(context);
+  const { extensionName } = config;
+  if (process.env.ESBUILD_PLATFORM !== 'web') {
+    await Effect.gen(function* () {
+      if (Option.isNone(yield* getCliId())) {
+        yield* (yield* ChannelService).appendToChannel('telemetry seed missing — degraded session');
+      }
+    }).pipe(Effect.provide(ChannelServiceLayer(extensionName)), runOnServicesRuntime, Effect.runPromise);
+  }
+
+  return event => {
+    // Capture identity now; the returned work may run after the caller's telemetry gate awaits.
+    const payload: LegacyTelemetryPayload = { ...event, identity: Object.freeze(snapshotIdentity()) };
+    return () => createLegacyTelemetrySpan(config, payload).pipe(runOnServicesRuntime, Effect.runPromise);
+  };
 };

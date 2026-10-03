@@ -10,4 +10,3 @@ export const SFDX_CORE_CONFIGURATION_NAME = 'salesforcedx-vscode-core';
 export const SFDX_CORE_EXTENSION_NAME = SFDX_CORE_CONFIGURATION_NAME;
 export const SFDX_EXTENSION_PACK_NAME = 'salesforcedx-vscode';
 export const INTERNAL_FILTER = 'internal.salesforce.com';
-export const UNAUTHENTICATED_USER = 'UNAUTHENTICATED_USER';

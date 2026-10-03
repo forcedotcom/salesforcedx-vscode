@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as os from 'node:os';
 import { extensions, window, workspace } from 'vscode';
 import { TELEMETRY_GLOBAL_VALUE, TELEMETRY_INTERNAL_VALUE, TELEMETRY_OPT_OUT_LINK } from '../../../src/constants';
@@ -20,16 +19,11 @@ describe('Telemetry', () => {
   beforeEach(() => {
     mShowInformation = jest.spyOn(window, 'showInformationMessage').mockResolvedValue(undefined);
     jest.spyOn(telemetryService, 'checkCliTelemetry').mockResolvedValue(true);
-    jest.spyOn(telemetryService as TelemetryService, 'getIdentityFromServices').mockResolvedValue({
-      cliId: 'cli',
-      webUserId: 'web',
-      telemetryClassification: 'nonGov'
-    });
     jest.spyOn(extensions, 'getExtension').mockReturnValue({
       isActive: true,
       exports: {
         services: {
-          getLegacyTelemetrySender: () => jest.fn().mockResolvedValue(undefined)
+          prepareLegacyTelemetrySender: () => Promise.resolve(jest.fn(() => jest.fn().mockResolvedValue(undefined)))
         }
       }
     } as unknown as ReturnType<typeof extensions.getExtension>);
@@ -40,17 +34,6 @@ describe('Telemetry', () => {
       onDidCreate: jest.fn(),
       onDidDelete: jest.fn(),
       dispose: jest.fn()
-    } as any);
-    // Telemetry now sources identity from services API; mock the degraded-session channel write.
-    jest.spyOn(window, 'createOutputChannel').mockReturnValue({
-      appendLine: jest.fn(),
-      append: jest.fn(),
-      show: jest.fn(),
-      hide: jest.fn(),
-      clear: jest.fn(),
-      dispose: jest.fn(),
-      replace: jest.fn(),
-      name: 'mock'
     } as any);
   });
 
