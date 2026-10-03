@@ -13,7 +13,7 @@
   "activationEvents": [
     "onStartupFinished"
   ],
-  "main": "./extension",
+  "main": "./extension.js",
   "contributes": {
     "commands": [
       {

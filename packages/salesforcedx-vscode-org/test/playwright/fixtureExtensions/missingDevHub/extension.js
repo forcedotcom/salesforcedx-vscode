@@ -59,7 +59,10 @@ const activate = async extensionContext => {
       delete process.env.SFDX_DEFAULTDEVHUBUSERNAME;
       await clearConfigCaches();
       const targetDevHub = await Effect.runPromise(configService.getTargetDevHub());
-      await vscode.workspace.fs.writeFile(stateUri, Buffer.from(JSON.stringify({ targetDevHub: targetDevHub ?? null })));
+      await vscode.workspace.fs.writeFile(
+        stateUri,
+        Buffer.from(JSON.stringify({ targetDevHub: targetDevHub ?? null }))
+      );
     }),
     vscode.commands.registerCommand(RESTORE_SF_HOME_COMMAND, restoreSfHome)
   );
