@@ -91,7 +91,7 @@ export const generateManifestCommand = Effect.fn('generateManifest')(function* (
 
   // Resolve URIs
   const resolvedUris = uris?.length ? [resolvedSourceUri, ...uris] : [resolvedSourceUri];
-  if (resolvedUris.some(uri => uri.scheme !== 'file')) {
+  if (!(yield* Effect.all(resolvedUris.map(uri => api.services.FsService.fileOrFolderExists(uri)))).every(Boolean)) {
     yield* Effect.promise(() =>
       vscode.window.showErrorMessage(nls.localize('generate_manifest_select_file_or_directory'))
     );
