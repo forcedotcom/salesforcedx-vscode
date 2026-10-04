@@ -7,6 +7,7 @@
 import type { AttributeValue, Attributes } from '@opentelemetry/api';
 import { NoopSpanProcessor, type Span } from '@opentelemetry/sdk-trace-base';
 import { isNotUndefined, isNullable, isString, isUndefined } from 'effect/Predicate';
+import { toEntries } from 'effect/Record';
 import { redactSensitiveData } from './redactSensitiveData';
 
 const isStringArray = (value: AttributeValue): value is (string | null | undefined)[] =>
@@ -26,7 +27,7 @@ const redactAttributeValue = (value: AttributeValue): AttributeValue => {
 
 /** Rewrite string / string[] leaves. Does not recurse into objects. */
 const redactAttributes = (attributes: Attributes): void => {
-  Object.entries(attributes).forEach(([key, value]) => {
+  toEntries(attributes).forEach(([key, value]) => {
     if (isUndefined(value)) return;
     const redacted = redactAttributeValue(value);
     if (redacted !== value) attributes[key] = redacted;

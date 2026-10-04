@@ -9,6 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isNotUndefined, isUndefined } from 'effect/Predicate';
+import { toEntries } from 'effect/Record';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
@@ -82,7 +83,7 @@ const normalizeUrl = (value: string): string | undefined => {
 
 const buildOrgTypes = (projectUrl: string | undefined): Record<string, vscode.QuickPickItem> =>
   Object.fromEntries(
-    Object.entries({
+    toEntries({
       production: { label: 'auth_prod_label', detail: 'auth_prod_detail' },
       sandbox: { label: 'auth_sandbox_label', detail: 'auth_sandbox_detail' },
       custom: { label: 'auth_custom_label', detail: 'auth_custom_detail' }
