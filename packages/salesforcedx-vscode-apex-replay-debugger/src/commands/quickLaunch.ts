@@ -97,3 +97,12 @@ export const setupAndDebugTests = async (className: string, methodName?: string)
     void vscode.window.showErrorMessage(nls.localize('debug_test_failed', String(error)));
   }
 };
+
+export const debugTestsCommand = Effect.fn('debugTestsCommand')(function* (test: { name: string }) {
+  yield* Effect.promise(() => setupAndDebugTests(test.name));
+});
+
+export const debugSingleTestCommand = Effect.fn('debugSingleTestCommand')(function* (test: { name: string }) {
+  const [method, className, namespace] = test.name.split('.').toReversed();
+  yield* Effect.promise(() => setupAndDebugTests(namespace ? `${namespace}.${className}` : className, method));
+});
