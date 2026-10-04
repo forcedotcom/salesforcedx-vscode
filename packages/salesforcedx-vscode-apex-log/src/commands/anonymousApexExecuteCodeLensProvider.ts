@@ -10,13 +10,13 @@ import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import {
-  CancellationToken,
+  type CancellationToken,
   CodeLens,
   EventEmitter,
-  ExtensionContext,
+  type ExtensionContext,
   languages,
   Range,
-  TextDocument,
+  type TextDocument,
   Disposable
 } from 'vscode';
 import { nls } from '../messages';
