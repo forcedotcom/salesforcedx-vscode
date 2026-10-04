@@ -769,7 +769,7 @@ describe('ConnectionService.getConnection (Web Console)', () => {
     else process.env.ESBUILD_PLATFORM = originalPlatform;
   });
 
-  it('supplies the raw access token to AuthInfo.create and preserves cache hits', async () => {
+  it('discovers the namespace and sandbox status while preserving Web connection cache hits', async () => {
     const home = await mkdtemp(join(tmpdir(), 'web-connection-test-'));
     await mkdir(join(home, '.sfdx'));
     await writeFile(join(home, '.sfdx', 'alias.json'), '{"orgs":{}}');
@@ -812,7 +812,12 @@ describe('ConnectionService.getConnection (Web Console)', () => {
           username: 'web-console-auth-flags@example.com',
           organizationId: '00D000000000001'
         });
-        const organizationQuery = jest.fn().mockResolvedValue({ IsSandbox: true, TrialExpirationDate: undefined });
+        const organizationQuery = jest.fn().mockResolvedValue({
+          IsSandbox: true,
+          TrialExpirationDate: undefined,
+          NamespacePrefix: 'ExampleNamespace',
+          OrganizationType: 'Developer Edition'
+        });
         const orgConnection = jest.spyOn(RealConnection, 'create').mockResolvedValue({
           singleRecordQuery: organizationQuery
         } as unknown as Connection);
@@ -848,8 +853,13 @@ describe('ConnectionService.getConnection (Web Console)', () => {
             WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer))
           );
 
-          expect(connection.getAuthInfoFields()).toMatchObject({ isDevHub: false, isScratch: false, isSandbox: false });
-          expect(orgConnection).not.toHaveBeenCalled();
+          expect(connection.getAuthInfoFields()).toMatchObject({
+            isDevHub: false,
+            isScratch: false,
+            isSandbox: true,
+            namespacePrefix: 'ExampleNamespace'
+          });
+          expect(orgConnection).toHaveBeenCalledTimes(1);
           expect(WebAuthInfo.create).toHaveBeenCalledWith({
             accessTokenOptions: {
               accessToken,
@@ -857,11 +867,10 @@ describe('ConnectionService.getConnection (Web Console)', () => {
               instanceUrl: INSTANCE_URL,
               isDevHub: false,
               isScratch: false,
-              isSandbox: false,
-              namespacePrefix: ''
+              isSandbox: false
             }
           });
-          expect(organizationQuery).not.toHaveBeenCalled();
+          expect(organizationQuery).toHaveBeenCalledTimes(1);
           expect(cached).toBe(connection);
           expect(WebAuthInfo.create).toHaveBeenCalledTimes(1);
         } finally {

@@ -32,7 +32,7 @@ describe('AuthInfo access token options', () => {
           instanceUrl: 'https://example.my.salesforce.com',
           username: 'web-console-auth-flags@example.com',
           orgId: '00D000000000001',
-          namespacePrefix: '',
+          namespacePrefix: 'ExampleNamespace',
           isDevHub: false,
           isScratch: false,
           isSandbox: false

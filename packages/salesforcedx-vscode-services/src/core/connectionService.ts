@@ -138,9 +138,7 @@ const createWebAuthInfo = (instanceUrl: string, accessToken: Redacted.Redacted<s
           instanceUrl,
           isDevHub: false,
           isScratch: false,
-          isSandbox: false,
-          // Core skips the Organization query when namespacePrefix is supplied; that query would overwrite these flags.
-          namespacePrefix: ''
+          isSandbox: false
         }
       }),
     catch: error => {
