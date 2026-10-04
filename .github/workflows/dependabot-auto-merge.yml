@@ -36,3 +36,5 @@ jobs:
     with:
       mergeMethod: squash
       skipCI: ${{ github.event.inputs.skipCI == 'true' }}
+      package-manager: pnpm
+      cache-dependency-path: pnpm-lock.yaml
