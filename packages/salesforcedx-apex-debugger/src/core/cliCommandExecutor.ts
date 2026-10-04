@@ -4,9 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TELEMETRY_HEADER, CancellationToken, Command } from '@salesforce/salesforcedx-utils';
-import * as crossSpawn from 'cross-spawn';
-import { ChildProcess, SpawnOptions } from 'node:child_process';
+import type { CancellationToken } from '../types/cancellationToken';
+import type { Command } from '../types/command';
+import * as cross_spawn from 'cross-spawn';
+import type { ChildProcess, SpawnOptions } from 'node:child_process';
+import { TELEMETRY_HEADER } from '../constants';
 import { CliCommandExecution } from './cliCommandExecution';
 
 type CrossSpawnFunction = (command: string, args: readonly string[], options: SpawnOptions) => ChildProcess;
@@ -18,7 +20,7 @@ export class CliCommandExecutor {
   constructor(
     command: Command,
     options: SpawnOptions,
-    private readonly crossSpawnFunction: CrossSpawnFunction = crossSpawn
+    private readonly crossSpawnFunction: CrossSpawnFunction = cross_spawn
   ) {
     this.command = command;
     // children inherit the extension host env; SFDX_TOOL attributes the invocation to these extensions

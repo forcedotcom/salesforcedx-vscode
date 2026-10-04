@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as ExecutionStrategy from 'effect/ExecutionStrategy';
 import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
-import { isNotUndefined } from 'effect/Predicate';
+import { isNotNullable, isNotUndefined } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
@@ -273,6 +273,8 @@ const provideCodeLenses = async (
     getRuntime().runPromise(getNamespaces()),
     next(document, token)
   ]);
-  const rewritten = lenses?.map(rewriteNamespaceLens(nsFromOrg)(nsFromProject));
+  const rewritten = isNotNullable(lenses)
+    ? await Effect.forEach(lenses, rewriteNamespaceLens(nsFromOrg)(nsFromProject)).pipe(getRuntime().runPromise)
+    : undefined;
   return rewritten === undefined ? undefined : dropLsAnonymousApexExecuteLenses(rewritten);
 };

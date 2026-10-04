@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect, Page } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import { APEX_TRACE_FLAG_STATUS_BAR } from '@salesforce/playwright-vscode-ext';
 
 /**

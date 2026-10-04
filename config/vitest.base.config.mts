@@ -13,6 +13,10 @@ export const vitestSetupFiles = [repositoryFile('scripts/setupVitest.ts')];
 export default defineConfig({
   resolve: {
     alias: [
+      {
+        find: /^@vscode\/extension-telemetry$/,
+        replacement: repositoryFile('config/__mocks__/vscodeExtensionTelemetry.ts')
+      },
       { find: /^vscode$/, replacement: repositoryFile('scripts/setupVitest.ts') },
       {
         find: /^@salesforce\/effect-ext-utils$/,

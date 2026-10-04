@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/eslint-plugin-vscode-extensions",
-  "version": "65.13.1",
+  "version": "65.14.0",
   "versionedIndependently": true,
   "description": "Custom ESLint rules for Salesforce VSCode extensions",
   "author": "Salesforce",
@@ -76,7 +76,8 @@
         "../../config/vitest.base.config.mts",
         "../../config/__mocks__/o11y_schema_sf_pdp.js",
         "../../scripts/setupVitest.ts",
-        "../../scripts/vscodeMock.ts"
+        "../../scripts/vscodeMock.ts",
+        "test/fixtures/no-raw-duration/tsconfig.json"
       ],
       "output": []
     },

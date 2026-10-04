@@ -21,6 +21,7 @@ import {
   validateNoCriticalErrors,
   verifyCommandExists,
   waitForExtensionsActivated,
+  waitForNotification,
   waitForOutputChannelText,
   waitForQuickInputFirstOption
 } from '@salesforce/playwright-vscode-ext';
@@ -170,6 +171,34 @@ test('SOQL Builder: build query, run, get plan, toggle round-trip', async ({ pag
     await resultsTab.click();
     await closeEditor(page);
     await expect(resultsTab, 'SOQL Query Results tab should be closed').not.toBeVisible({ timeout: 10_000 });
+  });
+
+  await test.step('toast when SOQL Builder Run Query fails', async () => {
+    const builderTab = page.locator('[role="tab"]').filter({ hasText: `${SOQL_FILE}.soql` });
+    await builderTab.first().click();
+    const whereSection = soqlFrame.locator('querybuilder-where');
+    await whereSection.locator('[data-el-where-add-btn]').click();
+    const badCondition = whereSection.locator('querybuilder-where-modifier-group').nth(1);
+    await badCondition.getByPlaceholder('Search fields...').click();
+    await badCondition.locator('p.option[data-option-value="Id"]').click();
+    await badCondition.locator('[data-el-where-criteria-input]').fill('not-an-id');
+    await badCondition.locator('[data-el-where-criteria-input]').press('Tab');
+    await expect(
+      soqlFrame.locator('.query-preview-container pre'),
+      'query preview should include the id filter the org rejects'
+    ).toContainText("Id = 'not-an-id'");
+    await saveScreenshot(page, 'step3b.invalid-id-filter.png');
+
+    await soqlFrame.getByRole('button', { name: 'Run Query' }).click();
+    await waitForNotification(page, /We can't run the SOQL query\./, { timeout: 30_000 });
+    await saveScreenshot(page, 'step3b.run-query-error-toast.png');
+
+    await badCondition.locator('[data-el-where-delete]').click();
+    await expect(
+      soqlFrame.locator('.query-preview-container pre'),
+      'query preview should drop the rejected id filter'
+    ).not.toContainText("Id = 'not-an-id'");
+    await saveScreenshot(page, 'step3b.invalid-id-filter-removed.png');
   });
 
   await test.step('get query plan from SOQL Builder', async () => {

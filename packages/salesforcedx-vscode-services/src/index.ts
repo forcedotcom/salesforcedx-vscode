@@ -36,6 +36,7 @@ import { MetadataDescribeService } from './core/metadataDescribeService';
 import { MetadataRegistryService } from './core/metadataRegistryService';
 import { MetadataRetrieveService } from './core/metadataRetrieveService';
 import { ProjectService } from './core/projectService';
+import { QueryService } from './core/queryService';
 import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { TraceFlagItemStruct } from './core/schemas/traceFlagSchemas';
 import { watchSfProjectFile } from './core/sfProjectFileWatcher';
@@ -62,7 +63,7 @@ import { TerminalService } from './terminal/terminalService';
 import { isItReadOnlyLayer } from './virtualFsProvider/fileSystemProvider';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
 import { IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStorage';
-import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
+import { ChannelDisposalLayer, ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { watchSettingsService } from './vscode/configWatcher';
 import { watchDefaultOrgContext } from './vscode/context';
 import { watchEsrDecomposedContext, watchMuleDxApiInactiveContext } from './vscode/contextKeyWatchers';
@@ -94,6 +95,7 @@ type PrebuiltServicesDependencies =
   | LightningComponentService
   | ConfigService
   | ConnectionService
+  | QueryService
   | EditorService
   | ErrorHandlerService
   | ExecuteAnonymousService
@@ -137,6 +139,7 @@ export type SalesforceVSCodeServicesApi = {
     LightningComponentService: typeof LightningComponentService;
     ConfigService: typeof ConfigService;
     ConnectionService: typeof ConnectionService;
+    QueryService: typeof QueryService;
     preventOrgChanges: typeof preventOrgChanges;
     registerCommandWithRuntime: typeof registerCommandWithRuntime;
     ExecuteAnonymousService: typeof ExecuteAnonymousService;
@@ -244,6 +247,10 @@ export {
   TemplateService,
   type ApexClassCreateOptions,
   type ApexTriggerCreateOptions,
+  type LightningAppCreateOptions,
+  type LightningComponentCreateOptions,
+  type LightningEventCreateOptions,
+  type LightningInterfaceCreateOptions,
   type CreateOutput,
   type CreateParams,
   type TemplateOptionsFor,
@@ -311,7 +318,7 @@ export {
 } from './core/schemas/sObject';
 export type { ExecuteAnonymousResult } from './core/executeAnonymousService';
 export type { ExecuteAnonymousError } from './errors/executeAnonymousErrors';
-export type { ApexLogBodyFetchError, ApexLogQueryError } from './errors/apexLogErrors';
+export type { ApexLogBodyFetchError } from './errors/apexLogErrors';
 export type {
   DebugLevelCreateError,
   DebugLevelDeleteError,
@@ -503,6 +510,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       }
     }
     const internalLayers = Layer.mergeAll(
+      ChannelDisposalLayer,
       FileWatcherLayer,
       ServicesSdkLayer(),
       SettingsWatcherLayer,
@@ -552,6 +560,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         LightningComponentService,
         ConfigService,
         ConnectionService,
+        QueryService,
         preventOrgChanges,
         ExecuteAnonymousService,
         registerCommandWithRuntime,
@@ -605,20 +614,24 @@ export const deactivate = async (): Promise<void> => {
 };
 
 const deactivateEffect = Effect.gen(function* () {
+  // closeExtensionScope disposes output channels, so the goodbye must be written first.
   yield* Effect.log('Salesforce Services extension is now deactivated!').pipe(runOnServicesRuntime);
+  yield* ChannelService.pipe(
+    Effect.flatMap(svc => svc.appendToChannel('Salesforce Services extension is now deactivated!'))
+  );
   // dispose the runtime (interrupting in-flight fibers) BEFORE closing the scope that owns the services
   // those fibers touch, so nothing runs against a torn-down service.
   yield* disposeServicesRuntime();
   yield* closeExtensionScope();
-  yield* ChannelService.pipe(
-    Effect.flatMap(svc => svc.appendToChannel('Salesforce Services extension is now deactivated!'))
-  );
 }).pipe(Effect.provide(ChannelService.Default));
 
 export { type DefaultOrgInfoSchema } from './core/schemas/defaultOrgInfo';
 export { type ChannelService, type ChannelServiceLayer } from './vscode/channelService';
 export { type ConfigService } from './core/configService';
 export { type ConnectionService } from './core/connectionService';
+export { type QueryService } from './core/queryService';
+export type { QueryOptions, QueryServiceResult } from './core/queryExecute';
+export { FieldError, SoqlError } from './errors/queryErrors';
 export { type ErrorHandlerService } from './vscode/errorHandlerService';
 export { type ExtensionContextService, type ExtensionContextServiceLayer } from './vscode/extensionContextService';
 export { ExtensionContextNotAvailableError } from './vscode/extensionContextErrors';

@@ -94,7 +94,8 @@
         "../../config/vitest.base.config.mts",
         "../../config/__mocks__/o11y_schema_sf_pdp.js",
         "../../scripts/setupVitest.ts",
-        "../../scripts/vscodeMock.ts"
+        "../../scripts/vscodeMock.ts",
+        "test/**/*.snap"
       ],
       "output": [
         "coverage"

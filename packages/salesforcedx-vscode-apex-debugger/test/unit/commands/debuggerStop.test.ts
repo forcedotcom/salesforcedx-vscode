@@ -9,10 +9,11 @@ import type { Mock as VitestMock } from 'vitest';
 import { AuthInfo, Connection } from '@salesforce/core';
 import * as effectExtUtils from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
 import * as Layer from 'effect/Layer';
 import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
 import * as vscode from 'vscode';
-import { debuggerStop, DebuggerSessionQueryError } from '../../../src/commands/debuggerStop';
+import { debuggerStop } from '../../../src/commands/debuggerStop';
 
 vi.mock('@salesforce/core', () => ({
   AuthInfo: { create: vi.fn() },
@@ -42,8 +43,10 @@ const makeConfigService = (isvSid?: string, isvUrl?: string) => ({
     })
 });
 
+type ToolingQueryConn = { tooling: { query: (soql: string) => Promise<QueryResult> } };
+
 // Provide the real effectExtUtils.ExtensionProviderService tag with a mock services api.
-const providerLayer = (conn: unknown, isvSid?: string, isvUrl?: string) =>
+const providerLayer = (conn: ToolingQueryConn | undefined, isvSid?: string, isvUrl?: string) =>
   Layer.mergeAll(
     Layer.succeed(effectExtUtils.ExtensionProviderService, {
       getServicesApi: Effect.succeed({
@@ -58,7 +61,22 @@ const providerLayer = (conn: unknown, isvSid?: string, isvUrl?: string) =>
               <A, E, R>(self: Effect.Effect<A, E, R>) =>
                 self
           }),
-          NotificationModeService
+          NotificationModeService,
+          QueryService: Effect.succeed({
+            query: (_options: { soql: string }) =>
+              Effect.tryPromise({
+                try: () => {
+                  if (!conn) return Promise.reject(new Error('missing connection'));
+                  return conn.tooling.query(_options.soql);
+                },
+                catch: (error: unknown) => (error instanceof Error ? error : new Error(String(error)))
+              }).pipe(
+                Effect.map(result => ({
+                  totalSize: result.records.length,
+                  records: Stream.fromIterable(result.records)
+                }))
+              )
+          })
         }
       })
     } as unknown as effectExtUtils.ExtensionProviderService),
@@ -67,12 +85,12 @@ const providerLayer = (conn: unknown, isvSid?: string, isvUrl?: string) =>
 
 // providerLayer satisfies ConnectionService/ChannelService at runtime, but the api's typed accessors re-add
 // them to the effect's R channel; cast R away since the layer fully provides them.
-const run = (conn: unknown, isvSid?: string, isvUrl?: string) =>
+const run = (conn: ToolingQueryConn | undefined, isvSid?: string, isvUrl?: string) =>
   Effect.runPromise(
     debuggerStop().pipe(Effect.provide(providerLayer(conn, isvSid, isvUrl))) as Effect.Effect<void, unknown, never>
   );
 
-const runFlipped = (conn: unknown) =>
+const runFlipped = (conn: ToolingQueryConn | undefined) =>
   Effect.runPromise(
     debuggerStop().pipe(Effect.provide(providerLayer(conn)), Effect.flip) as Effect.Effect<unknown, never, never>
   );
@@ -109,10 +127,11 @@ describe('debuggerStop', () => {
     expect(vscode.window.showInformationMessage).not.toHaveBeenCalledWith('Apex Debugger session stopped.');
   });
 
-  it('surfaces a DebuggerSessionQueryError (not swallowed) when the query rejects', async () => {
+  it('surfaces the query rejection (not swallowed) when the query rejects', async () => {
     const { conn, update } = makeConnection(() => Promise.reject(new Error('boom')));
     const error = await runFlipped(conn);
-    expect(error).toBeInstanceOf(DebuggerSessionQueryError);
+    expect(error).toBeInstanceOf(Error);
+    expect((error as Error).message).toBe('boom');
     expect(update).not.toHaveBeenCalled();
   });
 

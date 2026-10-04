@@ -7,6 +7,7 @@
 
 import { CodeCoverageResult } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Record from 'effect/Record';
@@ -196,7 +197,7 @@ export class CodeCoverageService extends Effect.Service<CodeCoverageService>()('
         ),
         Effect.map(coverageByName => [...coverageByName.values()]),
         Effect.filterOrFail(
-          coverage => coverage.length > 0,
+          Arr.isNonEmptyReadonlyArray,
           () =>
             new StaleResultsError({
               message: nls.localize('colorizer_no_code_coverage_in_recent_results')

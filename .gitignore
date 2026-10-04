@@ -37,6 +37,7 @@ xunit.xml
 xunit-unitTests.xml
 xunit-integrationTests.xml
 xunit-vscodeIntegrationTests.xml
+junit-custom-unitTests.xml
 junit-aggregate
 junit-custom.xml
 junit-custom-*-unitTests.xml

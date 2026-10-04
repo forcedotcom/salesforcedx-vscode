@@ -1,3 +1,173 @@
+---
+lockfileVersion: '9.0'
+
+importers:
+  .:
+    configDependencies: {}
+    packageManagerDependencies:
+      pnpm:
+        specifier: 12.8.2
+        version: 12.8.2
+
+packages:
+  '@pnpm/exe.android-arm64@12.8.2':
+    resolution:
+      { integrity: sha512-b0gzsJQuxYCX1Pokkf9z+lvajgb5bqBExjmw4kj8H4Bwd2AfH8TkQVxDtrHGptEdkuwokEUSERdpNbRok2cc6Q== }
+    cpu: [arm64]
+    os: [android]
+
+  '@pnpm/exe.android-x64@12.8.2':
+    resolution:
+      { integrity: sha512-j7dzfFMc0XxwhbFvslb06r51tdIlaQQpHUcIrpM7b4ACRYr+LgrpQIB7fI8SdlqPLvsFrrzNYIZXLQN6Kc+xbQ== }
+    cpu: [x64]
+    os: [android]
+
+  '@pnpm/exe.darwin-arm64@12.8.2':
+    resolution:
+      { integrity: sha512-J3cmPRwOVXnPspYeQ3OwwrR8Di9GWRA1aBWD/T1go/4KiD5dvwmE1Q0nW7+F2vAz7FRDRt/91/ZaAujdLX8PIA== }
+    cpu: [arm64]
+    os: [darwin]
+
+  '@pnpm/exe.darwin-x64@12.8.2':
+    resolution:
+      { integrity: sha512-+6UGMD/E7CfzYPqePOkVtWSpDeP7YV5L2k2IwDJykYZ4HH17aYUNGH1FHJSiBTZ/GjLAtdxy0X625sj/wm0w8w== }
+    cpu: [x64]
+    os: [darwin]
+
+  '@pnpm/exe.freebsd-x64@12.8.2':
+    resolution:
+      { integrity: sha512-5fg6lDYuxaPSZawglnhtZMUJI+tgJxybI1DbrKDpQ1v6jitEOptzyMIsrisKVg1sWwO9lbIW+OnQC7OC29ZbOA== }
+    cpu: [x64]
+    os: [freebsd]
+
+  '@pnpm/exe.linux-arm64-musl@12.8.2':
+    resolution:
+      { integrity: sha512-HLOlwfubM+29gs++BDUFejTb09E9aN+4EVzOANU1V9BtoUpY0itBKXeLcxUVTtWwtfAdTUJwmgK6sNgZHC8xBg== }
+    cpu: [arm64]
+    os: [linux]
+    libc: [musl]
+
+  '@pnpm/exe.linux-arm64@12.8.2':
+    resolution:
+      { integrity: sha512-Q7wIusa83KRHg8MV4hbZq1Ua8pgiET2hJc6U49cd1BWxqob3lwiPg90WLZ5qqYvXM4yytLUSxsMTQlsTWjgsrA== }
+    cpu: [arm64]
+    os: [linux]
+    libc: [glibc]
+
+  '@pnpm/exe.linux-ppc64@12.8.2':
+    resolution:
+      { integrity: sha512-QQhbXz7q/YK/xkTarU4wv4++aZjVOTZ8BrgLopuJkGdFNtJHJWeXA8cm/SLXir4KTb+pMyc/+Ece44pobEMbkA== }
+    cpu: [ppc64]
+    os: [linux]
+    libc: [glibc]
+
+  '@pnpm/exe.linux-riscv64@12.8.2':
+    resolution:
+      { integrity: sha512-gfoFW48o3SHMM6hsTKYwobtGKzMR8y+8A9fuXcc0YMdJubR3BmCtzyUa98IWcxM+kE0mKwQYvzxjeaAVppX7qA== }
+    cpu: [riscv64]
+    os: [linux]
+    libc: [glibc]
+
+  '@pnpm/exe.linux-s390x@12.8.2':
+    resolution:
+      { integrity: sha512-O786sSXtm9Qs5BiUQMKaOGU9n7/UwGzYSTAP2+ltaNMeOTrJSkl9QszOMzlK31/JfTnV4F5dg9PQN2pWdW4aOQ== }
+    cpu: [s390x]
+    os: [linux]
+    libc: [glibc]
+
+  '@pnpm/exe.linux-x64-musl@12.8.2':
+    resolution:
+      { integrity: sha512-GJ9ZkN9RVlu1LGRYTFjp7c/QAbSYaaVzplP00m4ijKdiv+fGeINeIETBR5MdUZ8biPZf7MJFoKHhMnz88JIj5A== }
+    cpu: [x64]
+    os: [linux]
+    libc: [musl]
+
+  '@pnpm/exe.linux-x64@12.8.2':
+    resolution:
+      { integrity: sha512-2rjP1HbpSMeSyfbP2CcGG0L2+r+9gHKAjYCZZQj/3SdQBywugJ9aa5OWyPp6yz0Z5xd7tKdUtQJh09TnZOUhwA== }
+    cpu: [x64]
+    os: [linux]
+    libc: [glibc]
+
+  '@pnpm/exe.win32-arm64@12.8.2':
+    resolution:
+      { integrity: sha512-B1bszoDtTn4o6VGHAE/wrcjceW0zUsxIakTguK3vgbZZ4t6oCv+0d100gJzjmynxg9mHmBXH35JT87SGzyXE2g== }
+    cpu: [arm64]
+    os: [win32]
+
+  '@pnpm/exe.win32-x64@12.8.2':
+    resolution:
+      { integrity: sha512-rOZPUUTU1PHop5dsBQcdQZCnRp7Nz5/v0fnRJkL/4kgKPRONwzD809YwQ/s4mBdSgRY5CcGaYrzwOerp+pFbRg== }
+    cpu: [x64]
+    os: [win32]
+
+  pnpm@12.8.2:
+    resolution:
+      { integrity: sha512-pZQWeWY9lSxfDsw4upivmLTcAblXgDVPaJTy+HOXPO8vfimJ19s+5Tk5OK4h9i/ga832hdR13a2CmmIJXSuLEQ== }
+    engines: { node: '>=18.*' }
+    hasBin: true
+
+snapshots:
+  '@pnpm/exe.android-arm64@12.8.2':
+    optional: true
+
+  '@pnpm/exe.android-x64@12.8.2':
+    optional: true
+
+  '@pnpm/exe.darwin-arm64@12.8.2':
+    optional: true
+
+  '@pnpm/exe.darwin-x64@12.8.2':
+    optional: true
+
+  '@pnpm/exe.freebsd-x64@12.8.2':
+    optional: true
+
+  '@pnpm/exe.linux-arm64-musl@12.8.2':
+    optional: true
+
+  '@pnpm/exe.linux-arm64@12.8.2':
+    optional: true
+
+  '@pnpm/exe.linux-ppc64@12.8.2':
+    optional: true
+
+  '@pnpm/exe.linux-riscv64@12.8.2':
+    optional: true
+
+  '@pnpm/exe.linux-s390x@12.8.2':
+    optional: true
+
+  '@pnpm/exe.linux-x64-musl@12.8.2':
+    optional: true
+
+  '@pnpm/exe.linux-x64@12.8.2':
+    optional: true
+
+  '@pnpm/exe.win32-arm64@12.8.2':
+    optional: true
+
+  '@pnpm/exe.win32-x64@12.8.2':
+    optional: true
+
+  pnpm@12.8.2:
+    optionalDependencies:
+      '@pnpm/exe.android-arm64': 12.8.2
+      '@pnpm/exe.android-x64': 12.8.2
+      '@pnpm/exe.darwin-arm64': 12.8.2
+      '@pnpm/exe.darwin-x64': 12.8.2
+      '@pnpm/exe.freebsd-x64': 12.8.2
+      '@pnpm/exe.linux-arm64': 12.8.2
+      '@pnpm/exe.linux-arm64-musl': 12.8.2
+      '@pnpm/exe.linux-ppc64': 12.8.2
+      '@pnpm/exe.linux-riscv64': 12.8.2
+      '@pnpm/exe.linux-s390x': 12.8.2
+      '@pnpm/exe.linux-x64': 12.8.2
+      '@pnpm/exe.linux-x64-musl': 12.8.2
+      '@pnpm/exe.win32-arm64': 12.8.2
+      '@pnpm/exe.win32-x64': 12.8.2
+
+---
 lockfileVersion: '9.0'
 
 settings:
@@ -28,12 +198,6 @@ importers:
       memfs:
         specifier: ^4.32.0
         version: 4.74.0
-      node:
-        specifier: ^22.19.0
-        version: 22.23.2
-      npm:
-        specifier: ^11
-        version: 11.19.1
       semver:
         specifier: ^7.5.4
         version: 7.8.5
@@ -59,12 +223,21 @@ importers:
       '@commitlint/config-conventional':
         specifier: ^19.8.1
         version: 19.8.1
+      '@cursor/sdk':
+        specifier: 1.0.32
+        version: 1.0.32
       '@effect/eslint-plugin':
         specifier: 0.3.2
         version: 0.3.2
       '@effect/language-service':
         specifier: ^0.87.2
         version: 0.87.2
+      '@effect/platform':
+        specifier: 0.96.1
+        version: 0.96.1(effect@3.22.2)
+      '@effect/platform-node':
+        specifier: 0.106.0
+        version: 0.106.0(@effect/cluster@0.58.2(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/workflow@0.18.2(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(@effect/rpc@0.75.1(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/sql@0.51.1(@effect/experimental@0.60.0(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(@effect/platform@0.96.1(effect@3.22.2))(effect@3.22.2))(effect@3.22.2)
       '@eslint/json':
         specifier: ^0.14.0
         version: 0.14.0
@@ -101,6 +274,9 @@ importers:
       '@salesforce/dev-config':
         specifier: ^4.3.2
         version: 4.3.3
+      '@salesforce/effect-octokit':
+        specifier: '*'
+        version: link:packages/effect-octokit
       '@secretlint/node':
         specifier: 11.7.1
         version: 11.7.1(supports-color@8.1.1)
@@ -379,6 +555,27 @@ importers:
         specifier: '*'
         version: link:../salesforcedx-vscode-services
 
+  packages/effect-octokit:
+    dependencies:
+      '@octokit/core':
+        specifier: ^7.0.6
+        version: 7.0.8
+      '@octokit/graphql':
+        specifier: ^9.0.3
+        version: 9.0.5
+      '@octokit/plugin-paginate-rest':
+        specifier: ^14.0.0
+        version: 14.0.0(@octokit/core@7.0.8)
+      '@octokit/request-error':
+        specifier: ^7.0.2
+        version: 7.1.2
+      '@octokit/types':
+        specifier: ^16.0.0
+        version: 16.0.0
+      effect:
+        specifier: ^3.21.2
+        version: 3.22.2
+
   packages/eslint-local-rules:
     dependencies:
       '@eslint/json':
@@ -468,9 +665,6 @@ importers:
       '@jsforce/jsforce-node':
         specifier: ^3.10.18
         version: 3.10.25
-      '@salesforce/ts-types':
-        specifier: ^3.0.0
-        version: 3.2.0
       '@types/istanbul-lib-coverage':
         specifier: ^2.0.6
         version: 2.0.6
@@ -743,11 +937,7 @@ importers:
         specifier: 1.2.2
         version: 1.2.2
 
-  packages/salesforcedx-utils:
-    devDependencies:
-      rxjs:
-        specifier: ^7.8.2
-        version: 7.8.2
+  packages/salesforcedx-utils: {}
 
   packages/salesforcedx-utils-vscode:
     dependencies:
@@ -1065,9 +1255,6 @@ importers:
 
   packages/salesforcedx-vscode-core:
     dependencies:
-      '@salesforce/core':
-        specifier: ^9.1.9
-        version: 9.1.11
       '@salesforce/effect-ext-utils':
         specifier: '*'
         version: link:../effect-ext-utils
@@ -1096,6 +1283,9 @@ importers:
         specifier: ^3.1.0
         version: 3.2.0
     devDependencies:
+      '@salesforce/core':
+        specifier: ^9.1.9
+        version: 9.1.11
       '@salesforce/playwright-vscode-ext':
         specifier: '*'
         version: link:../playwright-vscode-ext
@@ -1358,8 +1548,8 @@ importers:
         specifier: ^8.0.0
         version: 8.1.3(supports-color@8.1.1)
       '@salesforce/templates':
-        specifier: ^66.16.0
-        version: 66.16.0
+        specifier: ^66.16.3
+        version: 66.16.3
       '@salesforce/vscode-i18n':
         specifier: '*'
         version: link:../salesforcedx-vscode-i18n
@@ -1555,9 +1745,6 @@ importers:
       '@salesforce/playwright-vscode-ext':
         specifier: '*'
         version: link:../playwright-vscode-ext
-      '@salesforce/ts-types':
-        specifier: ^3.0.0
-        version: 3.2.0
       '@types/debounce':
         specifier: ^1.2.0
         version: 1.2.4
@@ -2126,6 +2313,9 @@ packages:
     resolution: {integrity: sha512-6zABk/ECA/QYSCQ1NGiVwwbQerUCZ+TQbp64Q3AgmfNvurHH0j8TtXa1qbShXA6qqkpAj4V5W8pP6mLe1mcMqA==}
     engines: {node: '>=18'}
 
+  '@bufbuild/protobuf@1.10.0':
+    resolution: {integrity: sha512-QDdVFLoN93Zjg36NoQPZfsVH9tZew7wKDKyV5qRdj8ntT4wQCOradQjRaTdwMhWUYsgKsvCINKKm87FdEk96Ag==}
+
   '@cacheable/memory@2.2.0':
     resolution: {integrity: sha512-CTLKqLItRCEixEAewD3/j9DB3/o96gpTPD4eJ1v+DGOlxZRZncRQkGYqqnAGCscYd6RNeXfGeiuCphsPtqyIfQ==}
 
@@ -2225,6 +2415,24 @@ packages:
     resolution: {integrity: sha512-7zVFCDB2reMvJH5dmbKnOQPjZEvjdJTH8jc0U/PIPU1r3/+vf5pD1HlfitV2MWsWXrvu7u39iY1lyLUPOaN0Gw==}
     engines: {node: '>=22.12.0'}
 
+  '@connectrpc/connect-node@1.7.0':
+    resolution: {integrity: sha512-6vaPIkG/NyhxlYgytLoR9KYbPhczEboFB2OYWkA9qvUz1K7efXfeGrlRxoLtpa+r8VxyIOw73w5ktNe743nD+A==}
+    engines: {node: '>=16.0.0'}
+    peerDependencies:
+      '@bufbuild/protobuf': ^1.10.0
+      '@connectrpc/connect': 1.7.0
+
+  '@connectrpc/connect-web@1.7.0':
+    resolution: {integrity: sha512-qyP0YOnUPRWwCc/VfsoydMJvkb7EyUPr2q9sHgBuJzbADjiqck1gKH5V5ZPzPhTLBvmz5UvG+wiZ5sMRQHU1MQ==}
+    peerDependencies:
+      '@bufbuild/protobuf': ^1.10.0
+      '@connectrpc/connect': 1.7.0
+
+  '@connectrpc/connect@1.7.0':
+    resolution: {integrity: sha512-iNKdJRi69YP3mq6AePRT8F/HrxWCewrhxnLMNm0vpqXAR8biwzRtO6Hjx80C6UvtKJ5sFmffQT7I4Baecz389w==}
+    peerDependencies:
+      '@bufbuild/protobuf': ^1.10.0
+
   '@cspotcode/source-map-support@0.8.1':
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
     engines: {node: '>=12'}
@@ -2264,6 +2472,40 @@ packages:
   '@csstools/css-tokenizer@4.0.2':
     resolution: {integrity: sha512-OoKoR0f76dCY666JlcbhmVTs2drYj1GUXZTYTcbUgJjh9Nv41aFfZ21bPQTERm5+L5cBDo466NltB2lplS5GBw==}
     engines: {node: '>=20.19.0'}
+
+  '@cursor/sdk-darwin-arm64@1.0.32':
+    resolution: {integrity: sha512-72EYr7Bmc1clgt5YVNdUdClCz461P3Fw91BUHebLMqI35A2suCMNo+99Yy7CDAv3SIqqh3kskPUuFCinVEqZhg==}
+    cpu: [arm64]
+    os: [darwin]
+    hasBin: true
+
+  '@cursor/sdk-darwin-x64@1.0.32':
+    resolution: {integrity: sha512-9vmxqb4y2xR5wGBrbygcqhmejMgNfsADpBMb+t9QorKH7qIRo6ItzhqrP5rSDB30UO9pcefAsQyVNjWy0hSnoA==}
+    cpu: [x64]
+    os: [darwin]
+    hasBin: true
+
+  '@cursor/sdk-linux-arm64@1.0.32':
+    resolution: {integrity: sha512-Ii74pL4KMquRwMhD+/X+HYpsMe9Vf2WwwL46TwJPhwH85h4X3dm450QG8geTD4L4aXtzDY4fsTf/BVTdw5ulfQ==}
+    cpu: [arm64]
+    os: [linux]
+    hasBin: true
+
+  '@cursor/sdk-linux-x64@1.0.32':
+    resolution: {integrity: sha512-cvCuD+pb52DNHV1Nmb6Pv1XnzcSmREekhCtz+zNFz1VWWYrTbPwLGlA9Ou9rEY1KMHxPq9shkvRmrjDVCK+cXQ==}
+    cpu: [x64]
+    os: [linux]
+    hasBin: true
+
+  '@cursor/sdk-win32-x64@1.0.32':
+    resolution: {integrity: sha512-Ltqal7hG2KKgz8ZHgy0KLJvkFWtJCL5wbEUHOaMHJe1gC+eXuVYA89DXijdoFHkrZNzYo9tt4AW2nszqVKz3Mw==}
+    cpu: [x64]
+    os: [win32]
+    hasBin: true
+
+  '@cursor/sdk@1.0.32':
+    resolution: {integrity: sha512-aimGfsgu4Mp/cZNGT34pY8X4FGTzUPAEnYocYK2o3JqCBiO2RsT9TIrdX9r5gfZ81qkapc66CxatxAN0UZky5A==}
+    engines: {node: '>=22.13'}
 
   '@dprint/formatter@0.4.1':
     resolution: {integrity: sha512-IB/GXdlMOvi0UhQQ9mcY15Fxcrc2JPadmo6tqefCNV0bptFq7YBpggzpqYXldBXDa04CbKJ+rDwO2eNRPE2+/g==}
@@ -2594,6 +2836,10 @@ packages:
   '@eslint/plugin-kit@0.7.3':
     resolution: {integrity: sha512-IkO+/KEUvwbVpiURZg+P7zF74z5Jxe0UgJxVni+RtoHQ6IZieXaO02kmadomap/q+l6bc/jdPGGqTjhuZnuz1Q==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
+
+  '@fastify/busboy@2.1.1':
+    resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
+    engines: {node: '>=14'}
 
   '@hono/node-server@2.1.1':
     resolution: {integrity: sha512-ELuehkj5VCBdgEw9zs+ivkKwyzzUCSQuE96YmiPvn1ECBoZCczbFXJLeEGMTYjphP6gydh4pHMqEYPVMYUVgQg==}
@@ -4342,8 +4588,8 @@ packages:
     resolution: {integrity: sha512-wOFos8lh/xsswuRs7z3o6D8pCtmScC0LJ0Jzbzz6SxZGxYKoI09NpgXwvCOzZkLRqyCYNUknQi0UplOP2PaIOw==}
     engines: {node: '>=22.0.0'}
 
-  '@salesforce/templates@66.16.0':
-    resolution: {integrity: sha512-eJyqw9x0gAIl+rhKKeyOJ0lmQrYSHaz932EErn84pugewSYUjvomTgDUjKHqUrqgJA4yOciav8lQ/gkK2sC3AQ==}
+  '@salesforce/templates@66.16.3':
+    resolution: {integrity: sha512-NSE62PuLlK/aDryiYxjzn26nu4XWx/6haJy5xcmNI+yIBKhU7m1vEIIJRvpe3SP+549tzEJymZk2drCEpPGVLg==}
     engines: {node: '>=22.0.0'}
 
   '@salesforce/ts-types@3.2.0':
@@ -4520,6 +4766,12 @@ packages:
 
   '@standard-schema/spec@1.1.0':
     resolution: {integrity: sha512-l2aFy5jALhniG5HgqrD6jXLi/rUWrKvqN/qJx6yoJsgKhblVd+iqqU4RCXavm/jPityDo5TCvKMnpjKnOriy0w==}
+
+  '@statsig/client-core@3.31.0':
+    resolution: {integrity: sha512-SuxQD6TmVszPG7FoMKwTk/uyBuVFk7XnxI3T/E0uyb7PL7GNjONtfsoh+NqBBVUJVse0CUeSFfgJPoZy1ZOslQ==}
+
+  '@statsig/js-client@3.31.0':
+    resolution: {integrity: sha512-LFa5E0LjT6sTfZv3sNGoyRLSZ1078+agdgOA+Vm1ecjG+KbSOfBLTW7hMwimrJ29slRwbYDzbtKaPJo/R37N2g==}
 
   '@stoplight/better-ajv-errors@1.0.3':
     resolution: {integrity: sha512-0p9uXkuB22qGdNfy3VeEhxkU5uwvp/KrBTAbrLBURv6ilxIVwanKwjMc41lQfIVgPGcOkmLbTolfFrSsueu7zA==}
@@ -9045,9 +9297,6 @@ packages:
   node-addon-api@7.1.1:
     resolution: {integrity: sha512-5m3bsyrjFWE1xf7nz7YXdN4udnVtXK6/Yfgn5qnahL6bCkf2yKt4k3nuTKAtT4r3IG8JNR2ncsIMdZuAzJjHQQ==}
 
-  node-bin-setup@1.1.4:
-    resolution: {integrity: sha512-vWNHOne0ZUavArqPP5LJta50+S8R261Fr5SvGul37HbEDcowvLjwdvd0ZeSr0r2lTSrPxl6okq9QUw8BFGiAxA==}
-
   node-domexception@1.0.0:
     resolution: {integrity: sha512-/jKZoMpw0F8GRwl4/eLROPA3cfcXtLApP0QzLmUT/HuPCZWyB7IY9ZrMeKw2O/nFIqPQB3PVM9aYm0F312AXDQ==}
     engines: {node: '>=10.5.0'}
@@ -9106,11 +9355,6 @@ packages:
     resolution: {integrity: sha512-IWqZF6u0EI/07HTBm+zZ+MgXgWl09dnSJRGaDCPBSlOqilDcx6pj3Mpb3HvPN8V2Gr+ISw7ZrMsL7STWs1F++w==}
     engines: {node: '>=20'}
 
-  node@22.23.2:
-    resolution: {integrity: sha512-OGbbJ0gJCDJ+wEw+VkMxVgdfqYI81k3xaXof3dF2zX078bOttW7ZyMdxJYzJn3hvTwMyYEw/SvnqKqOCiA1C4w==}
-    engines: {npm: '>=5.0.0'}
-    hasBin: true
-
   nopt@8.1.0:
     resolution: {integrity: sha512-ieGu42u/Qsa4TFktmaKEwM6MQH0pOWnaB3htzh0JRtx84+Mebc0cbZYN5bC+6WTZ4+77xrL9Pn5m7CV6VIkV7A==}
     engines: {node: ^18.17.0 || >=20.5.0}
@@ -9138,77 +9382,6 @@ packages:
   npm-run-path@4.0.1:
     resolution: {integrity: sha512-S48WzZW777zhNIrn7gxOlISNAqi9ZC/uQFnRdbeIHhZhCA6UqpkOT8T1G7BvfdgP4Er8gF4sUbaS0i7QvIfCWw==}
     engines: {node: '>=8'}
-
-  npm@11.19.1:
-    resolution: {integrity: sha512-ztsxKxt/kkIaAs+2i0GU6I+DRmUdrNasxTZKJe9TCdSjKxlhah/4r/hl5ygMD6XAg1qZ9c2TNomR4qgOydp10g==}
-    engines: {node: ^20.17.0 || >=22.9.0}
-    hasBin: true
-    bundledDependencies:
-      - '@isaacs/string-locale-compare'
-      - '@npmcli/arborist'
-      - '@npmcli/config'
-      - '@npmcli/fs'
-      - '@npmcli/map-workspaces'
-      - '@npmcli/metavuln-calculator'
-      - '@npmcli/package-json'
-      - '@npmcli/promise-spawn'
-      - '@npmcli/redact'
-      - '@npmcli/run-script'
-      - '@sigstore/tuf'
-      - abbrev
-      - archy
-      - cacache
-      - chalk
-      - ci-info
-      - fastest-levenshtein
-      - fs-minipass
-      - glob
-      - graceful-fs
-      - hosted-git-info
-      - ini
-      - init-package-json
-      - is-cidr
-      - json-parse-even-better-errors
-      - libnpmaccess
-      - libnpmdiff
-      - libnpmexec
-      - libnpmfund
-      - libnpmorg
-      - libnpmpack
-      - libnpmpublish
-      - libnpmsearch
-      - libnpmteam
-      - libnpmversion
-      - make-fetch-happen
-      - minimatch
-      - minipass
-      - minipass-pipeline
-      - ms
-      - node-gyp
-      - nopt
-      - npm-audit-report
-      - npm-install-checks
-      - npm-package-arg
-      - npm-pick-manifest
-      - npm-profile
-      - npm-registry-fetch
-      - npm-user-validate
-      - p-map
-      - pacote
-      - parse-conflict-json
-      - proc-log
-      - qrcode-terminal
-      - read
-      - semver
-      - spdx-expression-parse
-      - ssri
-      - supports-color
-      - tar
-      - text-table
-      - tiny-relative-date
-      - treeverse
-      - validate-npm-package-name
-      - which
 
   nth-check@2.1.1:
     resolution: {integrity: sha512-lqjrjmaOoAnWfMmBPL+XNnynZh2+swxiX3WUE0s4yEHI6m+AwrK2UZOimIRl3X/4QctVqS8AiZjFqyOGrMXb/w==}
@@ -10946,6 +11119,10 @@ packages:
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
+  undici@5.29.0:
+    resolution: {integrity: sha512-raqeBD6NQK4SkWhQzeYKd1KmIG6dllBOTt55Rmkt4HtI9mwdWtJljnrXjAFUBLTSN67HWrOIZ3EPF4kjUw80Bg==}
+    engines: {node: '>=14.0'}
+
   undici@6.28.1:
     resolution: {integrity: sha512-zWpdTVD54H48CIybL0rWQ3ukpb9d23wM7eH5RtfdmeP70cWHNjtfo7P4vZX+5CoDcO53J4Pu5uXp7lNfjc6DRA==}
     engines: {node: '>=18.17'}
@@ -11435,6 +11612,9 @@ packages:
     resolution: {integrity: sha512-O/PgfnpT1xKSDeQYSCfRI5Gy3hPf91mKVDuYLUHZJMiDFptvP41MSnWofm8dnCm0256ZNfZIM7DSzuSMAFnjHA==}
     peerDependencies:
       zod: ^3.25.28 || ^4
+
+  zod@3.25.76:
+    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
   zod@4.6.1:
     resolution: {integrity: sha512-341aRWQsve0rvronKNTqZpjmzdbUDlFuzHaI/XLg/Ej82qffDJRRfBTCuv7+9q/rMjB6LSLyEBnW4InJeMtt/Q==}
@@ -12295,6 +12475,8 @@ snapshots:
 
   '@bcoe/v8-coverage@1.0.2': {}
 
+  '@bufbuild/protobuf@1.10.0': {}
+
   '@cacheable/memory@2.2.0':
     dependencies:
       '@cacheable/utils': 2.5.0
@@ -12460,6 +12642,21 @@ snapshots:
       picocolors: 1.1.1
     optional: true
 
+  '@connectrpc/connect-node@1.7.0(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.7.0(@bufbuild/protobuf@1.10.0))':
+    dependencies:
+      '@bufbuild/protobuf': 1.10.0
+      '@connectrpc/connect': 1.7.0(@bufbuild/protobuf@1.10.0)
+      undici: 5.29.0
+
+  '@connectrpc/connect-web@1.7.0(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.7.0(@bufbuild/protobuf@1.10.0))':
+    dependencies:
+      '@bufbuild/protobuf': 1.10.0
+      '@connectrpc/connect': 1.7.0(@bufbuild/protobuf@1.10.0)
+
+  '@connectrpc/connect@1.7.0(@bufbuild/protobuf@1.10.0)':
+    dependencies:
+      '@bufbuild/protobuf': 1.10.0
+
   '@cspotcode/source-map-support@0.8.1':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
@@ -12487,6 +12684,36 @@ snapshots:
       css-tree: 3.2.1
 
   '@csstools/css-tokenizer@4.0.2': {}
+
+  '@cursor/sdk-darwin-arm64@1.0.32':
+    optional: true
+
+  '@cursor/sdk-darwin-x64@1.0.32':
+    optional: true
+
+  '@cursor/sdk-linux-arm64@1.0.32':
+    optional: true
+
+  '@cursor/sdk-linux-x64@1.0.32':
+    optional: true
+
+  '@cursor/sdk-win32-x64@1.0.32':
+    optional: true
+
+  '@cursor/sdk@1.0.32':
+    dependencies:
+      '@bufbuild/protobuf': 1.10.0
+      '@connectrpc/connect': 1.7.0(@bufbuild/protobuf@1.10.0)
+      '@connectrpc/connect-node': 1.7.0(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.7.0(@bufbuild/protobuf@1.10.0))
+      '@connectrpc/connect-web': 1.7.0(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.7.0(@bufbuild/protobuf@1.10.0))
+      '@statsig/js-client': 3.31.0
+      zod: 3.25.76
+    optionalDependencies:
+      '@cursor/sdk-darwin-arm64': 1.0.32
+      '@cursor/sdk-darwin-x64': 1.0.32
+      '@cursor/sdk-linux-arm64': 1.0.32
+      '@cursor/sdk-linux-x64': 1.0.32
+      '@cursor/sdk-win32-x64': 1.0.32
 
   '@dprint/formatter@0.4.1': {}
 
@@ -12780,6 +13007,8 @@ snapshots:
     dependencies:
       '@eslint/core': 1.2.1
       levn: 0.4.1
+
+  '@fastify/busboy@2.1.1': {}
 
   '@hono/node-server@2.1.1(hono@4.13.7)':
     dependencies:
@@ -14587,7 +14816,7 @@ snapshots:
       tar: 7.5.22
       tslib: 2.8.1
 
-  '@salesforce/templates@66.16.0':
+  '@salesforce/templates@66.16.3':
     dependencies:
       '@salesforce/kit': 4.0.0
       ejs: 3.1.10
@@ -14845,6 +15074,12 @@ snapshots:
   '@sinonjs/text-encoding@0.7.3': {}
 
   '@standard-schema/spec@1.1.0': {}
+
+  '@statsig/client-core@3.31.0': {}
+
+  '@statsig/js-client@3.31.0':
+    dependencies:
+      '@statsig/client-core': 3.31.0
 
   '@stoplight/better-ajv-errors@1.0.3(ajv@8.20.0)':
     dependencies:
@@ -20293,8 +20528,6 @@ snapshots:
 
   node-addon-api@7.1.1: {}
 
-  node-bin-setup@1.1.4: {}
-
   node-domexception@1.0.0: {}
 
   node-email-verifier@4.0.0:
@@ -20364,10 +20597,6 @@ snapshots:
       '@types/sarif': 2.1.7
       fs-extra: 11.4.0
 
-  node@22.23.2:
-    dependencies:
-      node-bin-setup: 1.1.4
-
   nopt@8.1.0:
     dependencies:
       abbrev: 3.0.1
@@ -20396,8 +20625,6 @@ snapshots:
   npm-run-path@4.0.1:
     dependencies:
       path-key: 3.1.1
-
-  npm@11.19.1: {}
 
   nth-check@2.1.1:
     dependencies:
@@ -22544,6 +22771,10 @@ snapshots:
 
   undici-types@6.21.0: {}
 
+  undici@5.29.0:
+    dependencies:
+      '@fastify/busboy': 2.1.1
+
   undici@6.28.1: {}
 
   undici@7.29.1: {}
@@ -23012,5 +23243,7 @@ snapshots:
   zod-to-json-schema@3.25.2(zod@4.6.1):
     dependencies:
       zod: 4.6.1
+
+  zod@3.25.76: {}
 
   zod@4.6.1: {}

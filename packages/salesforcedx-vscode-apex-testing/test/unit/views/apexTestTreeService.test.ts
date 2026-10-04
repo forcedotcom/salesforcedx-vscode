@@ -59,6 +59,7 @@ import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
 import * as Layer from 'effect/Layer';
 import * as Logger from 'effect/Logger';
 import * as Option from 'effect/Option';
@@ -90,6 +91,11 @@ const mockSettingsService = {
 // `new TestService(conn)`, which the module mock below intercepts.
 let getConnectionImpl: () => Effect.Effect<unknown, unknown> = () => Effect.succeed({});
 const mockConnectionService = { getConnection: () => getConnectionImpl() };
+let queryImpl = () =>
+  Effect.succeed({
+    totalSize: 0,
+    records: Stream.empty as Stream.Stream<{ Name: string; NamespacePrefix: string | null }>
+  });
 
 // Minimal ambient services: discovery reaches getServicesApi; the no-classes path never touches FsService.
 // SettingsService is yielded as an instance (yield* api.services.SettingsService), so wrap in Effect.succeed.
@@ -100,6 +106,7 @@ const mockServicesApi = {
   services: {
     SettingsService: Effect.succeed(mockSettingsService),
     ConnectionService: mockConnectionService,
+    QueryService: Effect.succeed({ query: () => queryImpl() }),
     OrgMetadataCatalog: Effect.succeed({
       resolveComponents: (references: readonly { type: string; fullName: string }[]) => {
         if (!mockOrgInfo.orgId) return Effect.fail(new Error('No default org'));
@@ -222,6 +229,7 @@ describe('ApexTestTreeService', () => {
     mockDiscoverTests.mockReturnValue(undefined);
     restorePreviousResultsValue = false;
     getConnectionImpl = () => Effect.succeed({});
+    queryImpl = () => Effect.succeed({ totalSize: 0, records: Stream.empty });
     activeTestService = { retrieveAllSuites: () => Promise.resolve([]) };
     mockOrgInfo = { orgId: 'org123', username: 'user@example.com' };
     mockClassNameToUri = new Map<string, URI>();
@@ -771,10 +779,8 @@ describe('ApexTestTreeService', () => {
         retrieveAllSuites: () => Promise.resolve([]),
         getTestsInSuite: () => Promise.resolve([{ ApexClassId: '01pAAA' }])
       };
-      getConnectionImpl = () =>
-        Effect.succeed({
-          tooling: { query: () => Promise.resolve({ records: [{ Name: 'Member', NamespacePrefix: null }] }) }
-        });
+      queryImpl = () =>
+        Effect.succeed({ totalSize: 1, records: Stream.make({ Name: 'Member', NamespacePrefix: null }) });
       const { ctx } = makeMutationContext();
       const suiteItem = richTestItem('suite:MySuite', 'MySuite');
 

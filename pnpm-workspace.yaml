@@ -4,8 +4,10 @@ packages:
 engineStrict: true
 linkWorkspacePackages: true
 preferWorkspacePackages: true
-pmOnFail: ignore
 saveExact: true
+
+minimumReleaseAgeExclude:
+  - '@salesforce/*'
 
 overrides:
   '@azure/monitor-opentelemetry-exporter': 1.0.0-beta.43
@@ -32,7 +34,6 @@ allowBuilds:
   husky: true
   keytar: true
   msgpackr-extract: true
-  node: true
   protobufjs: true
   ttf2woff2: true
   unrs-resolver: true

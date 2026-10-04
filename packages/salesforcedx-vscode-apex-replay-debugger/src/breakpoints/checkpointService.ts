@@ -11,8 +11,11 @@ import type { Connection } from '@salesforce/core';
 import { code2ProtocolConverter, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
+import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import { isError, isNotUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
@@ -80,9 +83,21 @@ const clearExistingCheckpoints = async (): Promise<boolean> => {
       return false;
     }
 
-    // Query for existing overlay actions
-    const queryResult = await connection.tooling.query<{ Id: string }>(
-      `SELECT Id FROM ApexExecutionOverlayAction WHERE ScopeId = '${userId}'`
+    const queryResult = await ExtensionProviderService.pipe(
+      Effect.flatMap(provider => provider.getServicesApi),
+      Effect.flatMap(api => api.services.QueryService),
+      Effect.flatMap(queryService =>
+        queryService.query(
+          {
+            soql: `SELECT Id FROM ApexExecutionOverlayAction WHERE ScopeId = '${userId}'`,
+            tooling: true
+          },
+          Schema.Struct({ Id: Schema.String })
+        )
+      ),
+      Effect.flatMap(({ records }) => Stream.runCollect(records)),
+      Effect.map(chunk => ({ records: Chunk.toReadonlyArray(chunk) })),
+      getRuntime().runPromise
     );
 
     if (queryResult.records.length === 0) {
@@ -528,7 +543,7 @@ const setTypeRefsForEnabledCheckpoints = (): boolean => {
 let creatingCheckpoints = false;
 
 /** Creates checkpoints in the org by uploading enabled checkpoint nodes */
-export const sfCreateCheckpoints = async (): Promise<boolean> => {
+const createCheckpoints = async (): Promise<boolean> => {
   // In-spite of waiting for the lock, we still want subsequent calls to immediately return
   // from this if checkpoints are already being created instead of stacking them up.
   if (!creatingCheckpoints) {
@@ -672,6 +687,17 @@ export const sfCreateCheckpoints = async (): Promise<boolean> => {
   return !updateError;
 };
 
+class CreateCheckpointsError extends Schema.TaggedError<CreateCheckpointsError>()('CreateCheckpointsError', {
+  message: Schema.String
+}) {}
+
+export const sfCreateCheckpointsCommand = Effect.fn('sfCreateCheckpointsCommand')(() =>
+  Effect.tryPromise({
+    try: createCheckpoints,
+    catch: error => new CreateCheckpointsError({ message: isError(error) ? error.message : String(error) })
+  })
+);
+
 // A couple of important notes about this command's processing
 // 1. There is no way to invoke a breakpoint change through vscode.debug
 //    there is only add/delete.
@@ -683,7 +709,7 @@ export const sfCreateCheckpoints = async (): Promise<boolean> => {
 //    that may be on the checkpoint are the condition (which needs to get set to Checkpoint)
 //    and the logMessage. The logMessage is scrapped since this ends up being taken over by
 //    checkpoints for user input SOQL or Apex.
-export const sfToggleCheckpoint = () => {
+const toggleCheckpoint = () => {
   if (creatingCheckpoints) {
     writeToDebuggerOutputWindow(nls.localize('checkpoint_upload_in_progress'), 'warning');
     return;
@@ -724,10 +750,12 @@ export const sfToggleCheckpoint = () => {
   }
 };
 
-// This methods was broken out of sfToggleCheckpoint for testing purposes.
+export const sfToggleCheckpointCommand = Effect.fn('sfToggleCheckpointCommand')(() => Effect.sync(toggleCheckpoint));
+
+// This methods was broken out of sfToggleCheckpointCommand for testing purposes.
 const fetchActiveEditorUri = (): URI | undefined => vscode.window.activeTextEditor?.document.uri;
 
-// This methods was broken out of sfToggleCheckpoint for testing purposes.
+// This methods was broken out of sfToggleCheckpointCommand for testing purposes.
 const fetchActiveSelectionLineNumber = (): number | undefined => vscode.window.activeTextEditor?.selection?.start.line;
 
 const fetchExistingBreakpointForUriAndLineNumber = (uriInput: URI, lineInput: number): vscode.Breakpoint | undefined =>

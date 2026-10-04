@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { JsonObject } from '../json';
 import type { MessageType } from '../soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
 import type { QueryResult } from '../types';
 import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
-import type { JsonMap } from '@salesforce/ts-types';
 import debounce = require('debounce');
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
@@ -22,7 +22,7 @@ import { SOQL_CONFIGURATION_NAME } from '../constants';
 import { nls } from '../messages';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
 import { getSoqlRuntime } from '../services/extensionProvider';
-import { getConnection, isDefaultOrgSet } from '../services/org';
+import { isDefaultOrgSet } from '../services/org';
 import { listSObjectNamesEffect } from '../services/sObjects';
 import { TelemetryModelJson } from '../telemetry';
 import { type ProgressOnlyCommandKey } from '../utils/notificationMode';
@@ -99,7 +99,7 @@ type SoqlEditorEvent =
 const runBuilderQueryEffect = Effect.fn('SOQLEditor.runBuilderQuery')(function* (
   document: vscode.TextDocument,
   maxRows: number | undefined,
-  openQueryDataView: (data: QueryResult<JsonMap>) => Promise<void>,
+  openQueryDataView: (data: QueryResult<JsonObject>) => Promise<void>,
   runQueryDone: () => Effect.Effect<void>
 ) {
   const isOrgSet = yield* Effect.promise(() => isDefaultOrgSet());
@@ -111,7 +111,6 @@ const runBuilderQueryEffect = Effect.fn('SOQLEditor.runBuilderQuery')(function* 
     return;
   }
   const queryText = document.getText();
-  const conn = yield* Effect.promise(() => getConnection());
   const api = yield* getServicesApi;
   const notificationMode = yield* api.services.NotificationModeService;
   const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
@@ -122,7 +121,7 @@ const runBuilderQueryEffect = Effect.fn('SOQLEditor.runBuilderQuery')(function* 
         location: progressLocation,
         title: nls.localize('progress_running_query')
       },
-      () => runQuery(conn)(queryText, { maxRows })
+      () => getSoqlRuntime().runPromise(runQuery(queryText, { maxRows }))
     )
   );
   yield* Effect.promise(() => openQueryDataView(queryData));
@@ -271,7 +270,7 @@ export class SOQLEditorInstance {
       }
 
       case 'run_query': {
-        const openQueryDataView = (data: QueryResult<JsonMap>) => this.openQueryDataView(data);
+        const openQueryDataView = (data: QueryResult<JsonObject>) => this.openQueryDataView(data);
         const runQueryDone = () => this.runQueryDone();
         const { document } = this;
         return Effect.promise(() =>
@@ -285,9 +284,15 @@ export class SOQLEditorInstance {
               yield* runBuilderQueryEffect(document, maxRows, openQueryDataView, runQueryDone).pipe(
                 Effect.catchAllCause(cause => {
                   const err = Cause.squash(cause);
-                  return appendToChannel(
-                    nls.localize('error_run_soql_query', isError(err) ? err.message : String(err))
-                  ).pipe(Effect.andThen(runQueryDone()));
+                  const message = nls.localize('error_run_soql_query', isError(err) ? err.message : String(err));
+                  return appendToChannel(message).pipe(
+                    Effect.tap(() =>
+                      Effect.sync(() => {
+                        void vscode.window.showErrorMessage(message);
+                      })
+                    ),
+                    Effect.andThen(runQueryDone())
+                  );
                 })
               );
             })
@@ -345,7 +350,7 @@ export class SOQLEditorInstance {
     ).pipe(Effect.asVoid);
   }
 
-  protected async openQueryDataView(queryData: QueryResult<JsonMap>): Promise<void> {
+  protected async openQueryDataView(queryData: QueryResult<JsonObject>): Promise<void> {
     const webview = new QueryDataView(this.subscriptions, queryData, this.document);
     await webview.createOrShowWebView();
   }

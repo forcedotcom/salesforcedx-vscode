@@ -11,7 +11,7 @@ import * as Option from 'effect/Option';
 import { isString } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { TraceFlagItem } from 'salesforcedx-vscode-services';
-import { CancellationToken, CodeLens, ExtensionContext, languages, Range, TextDocument } from 'vscode';
+import { type CancellationToken, CodeLens, type ExtensionContext, languages, Range, type TextDocument } from 'vscode';
 import { nls } from '../messages';
 import { buildTraceFlagsSchemas } from '../schemas/traceFlagsSchema';
 import { getRuntime } from '../services/runtime';
