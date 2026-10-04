@@ -12,5 +12,4 @@ export { type OrgUserInfo } from './context/orgUserInfo';
 export { shapeFrom, type OrgShape } from './context/workspaceOrgShape';
 export { TelemetryService } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
-export { errorToString } from '@salesforce/salesforcedx-utils';
 export { updateUserIDOnTelemetryReporters as refreshAllExtensionReporters } from './helpers/telemetryUtils';
