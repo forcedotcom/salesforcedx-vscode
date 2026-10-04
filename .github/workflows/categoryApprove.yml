@@ -35,21 +35,21 @@ jobs:
         with:
           ref: ${{ github.event.check_run.head_sha || github.event.pull_request.head.sha }}
           fetch-depth: 0
-      # The approver must run from the trusted base branch, not the PR head.
-      # PR branches predate approver fixes (e.g. --trust for Cursor workspace
-      # trust), so old PRs would keep failing on the stale copy. A PR must
-      # also not be able to rewrite its own approver to self-approve.
-      # The diff under review still comes from the PR head (see the git
-      # fetch/diff inside scripts/category-approve.ts); only the approver
-      # code below is pinned to develop.
-      - name: Use trusted approver from develop
+      # Keep HEAD on the PR for the diff. Install and run the approver from
+      # develop in its own checkout so its package.json and lockfile agree.
+      - name: Check out trusted approver from develop
         run: |
-          git fetch origin develop --depth 1
-          git checkout origin/develop -- scripts/category-approve.ts scripts/shared/categoryDecision.ts scripts/shared/scriptErrors.ts packages/effect-octokit
+          git fetch origin develop
+          git worktree add --detach "$RUNNER_TEMP/trusted-approver" "$(git rev-parse origin/develop)"
       - uses: ./.github/actions/setup-pnpm
         with:
           node-version: 24
+          install: 'false'
+      - name: Install trusted approver dependencies
+        working-directory: ${{ runner.temp }}/trusted-approver
+        run: pnpm install --frozen-lockfile
       - name: Compile effect-octokit
+        working-directory: ${{ runner.temp }}/trusted-approver
         run: pnpm --filter @salesforce/effect-octokit compile
       - name: Install Cursor CLI
         run: curl https://cursor.com/install -fsS | bash
@@ -60,4 +60,4 @@ jobs:
           GITHUB_EVENT_PATH: ${{ github.event_path }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
-        run: node scripts/category-approve.ts
+        run: node "$RUNNER_TEMP/trusted-approver/scripts/category-approve.ts"
