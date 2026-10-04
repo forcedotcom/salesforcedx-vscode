@@ -306,8 +306,16 @@ test('CLI skips approval when a check run has no app', () => {
   assert.match(runCli({ workflows, checkRuns }), /decision: skip \(CI is not green on head\)/);
 });
 
+test('CLI skips when the bot already approved the head', () => {
+  const workflows = [{ id: 1, path: '.github/workflows/ci.yml', status: 'completed', conclusion: 'success' }];
+  const reviews = [{ user: { login: 'svc-idee-bot' }, state: 'APPROVED', commit_id: 'abc123' }];
+  const output = runCli({ workflows, checkRuns: [], reviews });
+  assert.match(output, /decision: skip \(bot already approved this head\)/);
+  assert.doesNotMatch(output, /approved forcedotcom\/salesforcedx-vscode#8303/);
+});
+
 test('skips when bot already approved this head', () => {
-  const reviews = [{ authorLogin: 'svc-idee-bot', state: 'APPROVED', commitOid: 'abc123' }];
+  const reviews = [{ user: { login: 'svc-idee-bot' }, state: 'APPROVED', commit_id: 'abc123' }];
   assert.equal(hasBotApprovalOnHead(reviews, 'abc123'), true);
   assert.equal(hasBotApprovalOnHead(reviews, 'other'), false);
   assert.equal(decideAiAutoApprove({ ...base, reviews }).action, 'skip');

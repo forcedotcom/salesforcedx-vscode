@@ -18,7 +18,7 @@ import * as Redacted from 'effect/Redacted';
 import * as Schema from 'effect/Schema';
 
 export { actionsEnvironment } from './actionsEnvironment.js';
-export { CheckEvent, IssueCommentEvent, PullRequestEvent, readActionsEvent } from './actionsEvent.js';
+export { type CheckEvent, readCheckEvent, readIssueCommentEvent, readPullRequestEvent } from './actionsEvent.js';
 
 const PaginatedOctokit = Octokit.plugin(paginateRest);
 const requestTimeout = Duration.toMillis(Duration.seconds(30));

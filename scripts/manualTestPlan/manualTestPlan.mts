@@ -10,7 +10,7 @@ import * as Command from '@effect/platform/Command';
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
 import * as NodeContext from '@effect/platform-node/NodeContext';
-import { actionsEnvironment, GitHub, PullRequestEvent, readActionsEvent } from '@salesforce/effect-octokit';
+import { actionsEnvironment, GitHub, readPullRequestEvent } from '@salesforce/effect-octokit';
 import { Config, Effect, Either, Exit, Layer, Logger, Option, pipe, Redacted, Schema, Stream } from 'effect';
 import { pathToFileURL } from 'node:url';
 import { CommandFailed, CursorRunFailed, InvalidBaseRef, Judgment, type Item } from './schema.mts';
@@ -272,9 +272,7 @@ export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(functio
         ? Effect.succeed(ref)
         : Effect.fail(new InvalidBaseRef({ ref, message: `refused base ref ${ref}` }))
   });
-  const pr = yield* readActionsEvent(env.eventPath, PullRequestEvent).pipe(
-    Effect.map(event => event.pull_request.number)
-  );
+  const pr = yield* readPullRequestEvent(env.eventPath).pipe(Effect.map(event => event.pull_request.number));
   const cwd =
     deps?.cwd ?? (yield* git(process.cwd(), ['rev-parse', '--show-toplevel']).pipe(Effect.map(root => root.trim())));
   yield* Effect.annotateCurrentSpan('pr', String(pr));

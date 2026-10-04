@@ -31,7 +31,7 @@ export const allChecksGreen = checks => checks.length > 0 && checks.every(isChec
 export const hasBotApprovalOnHead = (reviews, headSha, botLogin = BOT_LOGIN) =>
   Boolean(headSha) &&
   reviews.some(
-    review => review.authorLogin === botLogin && review.state === 'APPROVED' && review.commitOid === headSha
+    review => review.user?.login === botLogin && review.state === 'APPROVED' && review.commit_id === headSha
   );
 
 /**

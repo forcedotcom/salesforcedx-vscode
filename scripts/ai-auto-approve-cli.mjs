@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import * as NodeContext from '@effect/platform-node/NodeContext';
-import { actionsEnvironment, GitHub, IssueCommentEvent, readActionsEvent } from '@salesforce/effect-octokit';
+import { actionsEnvironment, GitHub, readIssueCommentEvent } from '@salesforce/effect-octokit';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -18,7 +18,7 @@ const logDecision = decision =>
 
 export const aiAutoApproveProgram = Effect.fn('aiAutoApprove.program')(function* () {
   const env = yield* actionsEnvironment;
-  const { comment, issue } = yield* readActionsEvent(env.eventPath, IssueCommentEvent);
+  const { comment, issue } = yield* readIssueCommentEvent(env.eventPath);
   if (isNullable(comment) || isNullable(issue)) {
     yield* Effect.log('skip: no comment/issue on event');
     return;
@@ -77,11 +77,7 @@ export const aiAutoApproveProgram = Effect.fn('aiAutoApprove.program')(function*
         prDraft: pull.isDraft,
         headSha,
         checks,
-        reviews: reviews.map(review => ({
-          authorLogin: review.user?.login,
-          state: review.state,
-          commitOid: review.commit_id
-        })),
+        reviews,
         botLogin: BOT_LOGIN
       })
     )

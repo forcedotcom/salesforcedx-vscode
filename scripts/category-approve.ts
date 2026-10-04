@@ -12,7 +12,7 @@ import * as Option from 'effect/Option';
 import { isNumber, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { actionsEnvironment, CheckEvent, GitHub, readActionsEvent } from '@salesforce/effect-octokit';
+import { actionsEnvironment, type CheckEvent, GitHub, readCheckEvent } from '@salesforce/effect-octokit';
 import { AgentError, GitError } from './shared/scriptErrors.ts';
 import {
   BASE_BRANCH,
@@ -239,7 +239,7 @@ const pullActions = new Set(['opened', 'ready_for_review', 'reopened', 'edited',
 const pullNumbers = Effect.fn('categoryApprove.pullNumbers')(function* (
   owner: string,
   repo: string,
-  event: typeof CheckEvent.Type
+  event: CheckEvent
 ) {
   if (!isUndefined(event.pull_request) && !isUndefined(event.action) && pullActions.has(event.action)) {
     return [event.pull_request.number];
@@ -261,7 +261,7 @@ const pullNumbers = Effect.fn('categoryApprove.pullNumbers')(function* (
 
 const categoryApprove = Effect.fn('categoryApprove')(function* () {
   const env = yield* actionsEnvironment;
-  const event = yield* readActionsEvent(env.eventPath, CheckEvent);
+  const event = yield* readCheckEvent(env.eventPath);
   if (event.check_run?.name === 'category-approve') {
     yield* Effect.log('skip: own check run');
     return;

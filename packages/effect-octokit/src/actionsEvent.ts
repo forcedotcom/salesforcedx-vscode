@@ -16,14 +16,14 @@ const CheckPayload = Schema.Struct({
   pull_requests: Schema.Array(PullRequestNumber).pipe(Schema.optional)
 });
 
-export const CheckEvent = Schema.Struct({
+const CheckEventSchema = Schema.Struct({
   action: Schema.optional(Schema.String),
   check_run: Schema.optional(CheckPayload),
   check_suite: Schema.optional(CheckPayload),
   pull_request: Schema.optional(PullRequestNumber)
 });
 
-export const IssueCommentEvent = Schema.Struct({
+const IssueCommentEventSchema = Schema.Struct({
   comment: Schema.NullOr(
     Schema.Struct({
       body: Schema.NullOr(Schema.String).pipe(Schema.optional),
@@ -37,10 +37,12 @@ export const IssueCommentEvent = Schema.Struct({
   )
 });
 
-export const PullRequestEvent = Schema.Struct({ pull_request: PullRequestNumber });
+const PullRequestEventSchema = Schema.Struct({ pull_request: PullRequestNumber });
+
+export type CheckEvent = typeof CheckEventSchema.Type;
 
 /** Read and validate the JSON payload at GITHUB_EVENT_PATH. */
-export const readActionsEvent = Effect.fn('GitHub.readActionsEvent')(function* <A, I>(
+const readActionsEvent = Effect.fn('GitHub.readActionsEvent')(function* <A, I>(
   eventPath: string,
   schema: Schema.Schema<A, I>
 ) {
@@ -49,3 +51,7 @@ export const readActionsEvent = Effect.fn('GitHub.readActionsEvent')(function* <
     Effect.flatMap(Schema.decodeUnknown(Schema.parseJson(schema)))
   );
 });
+
+export const readCheckEvent = (eventPath: string) => readActionsEvent(eventPath, CheckEventSchema);
+export const readIssueCommentEvent = (eventPath: string) => readActionsEvent(eventPath, IssueCommentEventSchema);
+export const readPullRequestEvent = (eventPath: string) => readActionsEvent(eventPath, PullRequestEventSchema);
