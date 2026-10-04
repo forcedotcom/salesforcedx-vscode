@@ -7,9 +7,53 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { promptForVfTypeName } from './vfTemplateProjectHelpers';
+
+const VF_COMPONENT_TEMPLATE_DESCRIPTIONS: Record<string, string> = {
+  DefaultVFComponent: nls.localize('vf_component_default_template_description')
+};
+
+const promptForTemplate = Effect.fn('promptForVisualforceComponentTemplate')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+
+  const customTemplateNames = yield* api.services.TemplateService.getCustomTemplateNames(
+    'visualforcecomponent',
+    '.component'
+  );
+  if (customTemplateNames.length === 0) {
+    return 'DefaultVFComponent';
+  }
+
+  const promptService = yield* api.services.PromptService;
+  const builtInNames = yield* api.services.TemplateService.getBuiltInTemplateNames(
+    'visualforcecomponent',
+    /\.component$/
+  );
+  const builtInItems = builtInNames.map(label => ({
+    label,
+    description: VF_COMPONENT_TEMPLATE_DESCRIPTIONS[label] ?? ''
+  }));
+  const customItems = customTemplateNames.map(label => ({ label, description: '' }));
+  const customNameSet = new Set(customTemplateNames);
+  const nonOverriddenBuiltInItems = builtInItems.filter(item => !customNameSet.has(item.label));
+
+  const items: vscode.QuickPickItem[] = [
+    { kind: vscode.QuickPickItemKind.Separator, label: nls.localize('vf_builtin_templates_label') },
+    ...nonOverriddenBuiltInItems,
+    { kind: vscode.QuickPickItemKind.Separator, label: nls.localize('vf_custom_templates_label') },
+    ...customItems
+  ];
+
+  return yield* Effect.promise(() =>
+    vscode.window.showQuickPick<vscode.QuickPickItem>(items, { placeHolder: nls.localize('template_type_prompt') })
+  ).pipe(
+    Effect.flatMap(choice => promptService.considerUndefinedAsCancellation(choice)),
+    Effect.map(selected => selected.label)
+  );
+});
 
 export const createVisualforceComponentCommand = Effect.fn('createVisualforceComponentCommand')(function* (arg?: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -17,6 +61,7 @@ export const createVisualforceComponentCommand = Effect.fn('createVisualforceCom
   const project = yield* api.services.ProjectService.getSfProject();
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 
+  const template = yield* promptForTemplate();
   const componentName = yield* promptForVfTypeName(nls.localize('vf_component_name_prompt'));
 
   const defaultUri = Utils.joinPath(
@@ -44,7 +89,7 @@ export const createVisualforceComponentCommand = Effect.fn('createVisualforceCom
     cwd: yield* api.services.FsService.uriToPath(workspaceInfo.uri),
     templateType: api.services.TemplateType.VisualforceComponent,
     outputdir: outputDirUri,
-    options: { componentname: componentName, label: componentName, template: 'DefaultVFComponent' }
+    options: { componentname: componentName, label: componentName, template }
   });
 
   const channelService = yield* api.services.ChannelService;
