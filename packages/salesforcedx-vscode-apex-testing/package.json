@@ -238,7 +238,7 @@
       "dependencies": [
         "vscode:package",
         "../salesforcedx-vscode-services:vscode:package",
-        "../salesforcedx-vscode-core:vscode:package:legacy",
+        "../salesforcedx-vscode-core:vscode:package",
         "../salesforcedx-vscode-org:vscode:package",
         "../salesforcedx-vscode-metadata:vscode:package",
         "../salesforcedx-vscode-apex-log:vscode:package",
@@ -338,7 +338,7 @@
       "dependencies": [
         "vscode:package",
         "../salesforcedx-vscode-services:vscode:package",
-        "../salesforcedx-vscode-core:vscode:package:legacy",
+        "../salesforcedx-vscode-core:vscode:package",
         "../salesforcedx-vscode-org:vscode:package",
         "../salesforcedx-vscode-metadata:vscode:package",
         "../salesforcedx-vscode-apex-log:vscode:package",
@@ -366,7 +366,7 @@
       "dependencies": [
         "vscode:package",
         "../salesforcedx-vscode-services:vscode:package",
-        "../salesforcedx-vscode-core:vscode:package:legacy",
+        "../salesforcedx-vscode-core:vscode:package",
         "../salesforcedx-vscode-org:vscode:package",
         "../salesforcedx-vscode-metadata:vscode:package",
         "../salesforcedx-vscode-apex-log:vscode:package",
@@ -394,7 +394,7 @@
       "dependencies": [
         "vscode:package",
         "../salesforcedx-vscode-services:vscode:package",
-        "../salesforcedx-vscode-core:vscode:package:legacy",
+        "../salesforcedx-vscode-core:vscode:package",
         "../salesforcedx-vscode-org:vscode:package",
         "../salesforcedx-vscode-metadata:vscode:package",
         "../salesforcedx-vscode-apex-log:vscode:package",

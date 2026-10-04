@@ -44,7 +44,7 @@ jobs:
       # code below is pinned to develop.
       - name: Use trusted approver from develop
         run: |
-          git fetch origin develop --depth 1
+          git fetch origin develop
           git checkout origin/develop -- scripts/category-approve.ts scripts/shared/categoryDecision.ts scripts/shared/scriptErrors.ts packages/effect-octokit
       - uses: ./.github/actions/setup-pnpm
         with:

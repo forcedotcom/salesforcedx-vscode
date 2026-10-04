@@ -167,7 +167,7 @@
         "../salesforcedx-vscode-services:spans:server",
         "../salesforcedx-vscode-apex:vscode:package",
         "../salesforcedx-vscode-apex-log:vscode:package",
-        "../salesforcedx-vscode-core:vscode:package:legacy",
+        "../salesforcedx-vscode-core:vscode:package",
         "../salesforcedx-vscode-metadata:vscode:package",
         "../playwright-vscode-ext:compile"
       ],

@@ -357,7 +357,6 @@
     },
     "vscode:package:legacy": {
       "dependencies": [
-        "./packages/salesforcedx-vscode-core:vscode:package:legacy",
         "./packages/salesforcedx-vscode-lightning:vscode:package:legacy",
         "./packages/salesforcedx-vscode-apex-debugger:vscode:package:legacy",
         "./packages/salesforcedx-vscode-apex-oas:vscode:package:legacy"
@@ -365,7 +364,6 @@
     },
     "vscode:package:legacy:prerelease": {
       "dependencies": [
-        "./packages/salesforcedx-vscode-core:vscode:package:legacy:prerelease",
         "./packages/salesforcedx-vscode-lightning:vscode:package:legacy:prerelease",
         "./packages/salesforcedx-vscode-apex-debugger:vscode:package:legacy:prerelease",
         "./packages/salesforcedx-vscode-apex-oas:vscode:package:legacy:prerelease"
@@ -373,6 +371,7 @@
     },
     "vscode:package:modern": {
       "dependencies": [
+        "./packages/salesforcedx-vscode-core:vscode:package",
         "./packages/salesforcedx-vscode:vscode:package",
         "./packages/salesforcedx-vscode-expanded:vscode:package",
         "./packages/salesforcedx-vscode-apex:vscode:package",
@@ -390,6 +389,7 @@
     },
     "vscode:package:modern:prerelease": {
       "dependencies": [
+        "./packages/salesforcedx-vscode-core:vscode:package:prerelease",
         "./packages/salesforcedx-vscode:vscode:package:prerelease",
         "./packages/salesforcedx-vscode-expanded:vscode:package:prerelease",
         "./packages/salesforcedx-vscode-apex:vscode:package:prerelease",
