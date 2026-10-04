@@ -76,7 +76,7 @@ const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass
   return true;
 });
 
-export const setupAndDebugTests = async (className: string, methodName?: string): Promise<void> => {
+const setupAndDebugTests = async (className: string, methodName?: string): Promise<void> => {
   const progressLocation = await getRuntime().runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
