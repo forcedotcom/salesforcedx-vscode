@@ -80,45 +80,6 @@ test('treats skipped and neutral as green', () => {
   assert.equal(allChecksGreen([{ status: 'completed', conclusion: 'NEUTRAL' }]), true);
 });
 
-test('latest success supersedes a cancelled workflow run', () => {
-  const checks = [
-    { key: 'workflow:.github/workflows/e2e.yml', id: 10, status: 'completed', conclusion: 'CANCELLED' },
-    { key: 'workflow:.github/workflows/e2e.yml', id: 11, status: 'completed', conclusion: 'SUCCESS' }
-  ];
-  assert.equal(decideAiAutoApprove({ ...base, checks }).action, 'approve');
-});
-
-test('latest cancelled workflow run blocks approval', () => {
-  const checks = [
-    { key: 'workflow:.github/workflows/e2e.yml', id: 11, status: 'completed', conclusion: 'CANCELLED' },
-    { key: 'workflow:.github/workflows/e2e.yml', id: 10, status: 'completed', conclusion: 'SUCCESS' }
-  ];
-  assert.equal(decideAiAutoApprove({ ...base, checks }).action, 'skip');
-  assert.equal(decideAiAutoApprove({ ...base, checks: [checks[0]] }).action, 'skip');
-});
-
-test('same job name in another workflow does not hide its cancellation', () => {
-  const checks = [
-    {
-      key: 'workflow:.github/workflows/metadataE2E.yml',
-      name: 'e2e-web',
-      id: 10,
-      status: 'completed',
-      conclusion: 'CANCELLED'
-    },
-    { ...green, key: 'workflow:.github/workflows/e2e.yml', name: 'e2e-web', id: 11 }
-  ];
-  assert.equal(decideAiAutoApprove({ ...base, checks }).action, 'skip');
-});
-
-test('latest in-progress workflow run after cancellation blocks approval', () => {
-  const checks = [
-    { key: 'workflow:.github/workflows/e2e.yml', id: 10, status: 'completed', conclusion: 'CANCELLED' },
-    { key: 'workflow:.github/workflows/e2e.yml', id: 11, status: 'in_progress', conclusion: null }
-  ];
-  assert.equal(decideAiAutoApprove({ ...base, checks }).action, 'skip');
-});
-
 const runCli = ({ workflows, checkRuns, reviews = [], membershipState = 'active' }) => {
   const directory = mkdtempSync(join(tmpdir(), 'ai-auto-approve-'));
   const eventPath = join(directory, 'event.json');
@@ -266,6 +227,15 @@ test('CLI pages workflow runs and ignores cancelled Actions jobs from superseded
   assert.match(output, /\/actions\/runs\?.*page=2/);
   assert.match(output, /\/check-runs\?.*filter=all.*page=2/);
   assert.match(output, /decision: approve \(gates passed\)/);
+});
+
+test('CLI blocks approval when the latest run for a workflow was cancelled', () => {
+  const path = '.github/workflows/ci.yml';
+  const workflows = [
+    { id: 11, path, status: 'completed', conclusion: 'cancelled' },
+    { id: 10, path, status: 'completed', conclusion: 'success' }
+  ];
+  assert.match(runCli({ workflows, checkRuns: [] }), /decision: skip \(CI is not green on head\)/);
 });
 
 test('CLI sees a failing non-Actions check on the second page', () => {

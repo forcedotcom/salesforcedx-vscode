@@ -1,82 +1,14 @@
 #!/usr/bin/env node
-import * as FileSystem from '@effect/platform/FileSystem';
 import * as NodeContext from '@effect/platform-node/NodeContext';
-import { actionsEnvironment, GitHub } from '@salesforce/effect-octokit';
+import { actionsEnvironment, GitHub, IssueCommentEvent, readActionsEvent } from '@salesforce/effect-octokit';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
 import * as Logger from 'effect/Logger';
 import { isNullable } from 'effect/Predicate';
-import * as Schema from 'effect/Schema';
 import { pathToFileURL } from 'node:url';
 import { decideAiAutoApprove, isStandaloneAiAutoApprove, BOT_LOGIN, TEAM_ORG, TEAM_SLUG } from './ai-auto-approve.mjs';
-
-const CommentUser = Schema.Struct({ login: Schema.String.pipe(Schema.NullOr, Schema.optional) });
-const Comment = Schema.Struct({
-  body: Schema.String.pipe(Schema.NullOr, Schema.optional),
-  user: CommentUser.pipe(Schema.NullOr, Schema.optional)
-});
-const Issue = Schema.Struct({
-  number: Schema.Number,
-  pull_request: Schema.Unknown.pipe(Schema.optional)
-});
-const IssueCommentEvent = Schema.Struct({
-  comment: Comment.pipe(Schema.NullOr, Schema.optional),
-  issue: Issue.pipe(Schema.NullOr, Schema.optional)
-});
-
-const readEvent = Effect.fn('aiAutoApprove.readEvent')(function* (eventPath) {
-  return yield* FileSystem.FileSystem.pipe(
-    Effect.flatMap(fs => fs.readFileString(eventPath)),
-    Effect.flatMap(Schema.decodeUnknown(Schema.parseJson(IssueCommentEvent)))
-  );
-});
-
-const checksForHead = Effect.fn('aiAutoApprove.checksForHead')(function* (owner, repo, headSha) {
-  const github = yield* GitHub;
-  return yield* Effect.all(
-    [
-      github.combinedStatus(owner, repo, headSha),
-      github.paginate('GET /repos/{owner}/{repo}/actions/runs', { owner, repo, head_sha: headSha }),
-      github.paginate('GET /repos/{owner}/{repo}/commits/{ref}/check-runs', {
-        owner,
-        repo,
-        ref: headSha,
-        filter: 'all'
-      })
-    ],
-    { concurrency: 'unbounded' }
-  ).pipe(
-    Effect.map(([combined, workflowRuns, checkRuns]) => [
-      ...combined.statuses.map(status => ({
-        key: `status:${status.context}`,
-        id: status.id,
-        state: status.state,
-        conclusion: status.state
-      })),
-      ...workflowRuns.map(run => ({
-        key: `workflow:${run.path}`,
-        id: run.id,
-        name: run.path,
-        status: run.status,
-        conclusion: run.conclusion
-      })),
-      ...checkRuns
-        .filter(run => run.app?.slug !== 'github-actions')
-        .map(run => {
-          const appIdMissing = isNullable(run.app?.id);
-          return {
-            key: `check:${run.app?.id ?? `missing-app-${run.id}`}:${run.name}`,
-            id: run.id,
-            name: run.name,
-            status: appIdMissing ? 'pending' : run.status,
-            conclusion: run.conclusion
-          };
-        })
-    ])
-  );
-});
 
 const logDecision = decision =>
   Effect.log(`decision: ${decision.action} (${decision.reason})`, {
@@ -86,7 +18,7 @@ const logDecision = decision =>
 
 export const aiAutoApproveProgram = Effect.fn('aiAutoApprove.program')(function* () {
   const env = yield* actionsEnvironment;
-  const { comment, issue } = yield* readEvent(env.eventPath);
+  const { comment, issue } = yield* readActionsEvent(env.eventPath, IssueCommentEvent);
   if (isNullable(comment) || isNullable(issue)) {
     yield* Effect.log('skip: no comment/issue on event');
     return;
@@ -130,7 +62,7 @@ export const aiAutoApproveProgram = Effect.fn('aiAutoApprove.program')(function*
     [
       github.teamMembership(TEAM_ORG, TEAM_SLUG, commenterLogin),
       github.pullReviews(env.owner, env.repo, issue.number),
-      headSha.length === 0 ? Effect.succeed([]) : checksForHead(env.owner, env.repo, headSha)
+      headSha.length === 0 ? Effect.succeed([]) : github.headChecks(env.owner, env.repo, headSha)
     ],
     { concurrency: 'unbounded' }
   ).pipe(

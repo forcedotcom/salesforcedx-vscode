@@ -13,15 +13,34 @@ import { type Endpoints } from '@octokit/types';
 import * as Config from 'effect/Config';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import { isError } from 'effect/Predicate';
+import { isError, isNullable } from 'effect/Predicate';
 import * as Redacted from 'effect/Redacted';
 import * as Schema from 'effect/Schema';
 
 export { actionsEnvironment } from './actionsEnvironment.js';
+export { CheckEvent, IssueCommentEvent, PullRequestEvent, readActionsEvent } from './actionsEvent.js';
 
 const PaginatedOctokit = Octokit.plugin(paginateRest);
 const requestTimeout = Duration.toMillis(Duration.seconds(30));
 const maxRateLimitWait = Duration.toMillis(Duration.seconds(60));
+
+type HeadCheck = {
+  readonly key: string;
+  readonly id: number;
+  readonly status?: string;
+  readonly state?: string;
+  readonly conclusion: string | null;
+};
+
+const latestChecks = (checks: readonly HeadCheck[]): readonly HeadCheck[] => [
+  ...checks
+    .reduce((byKey, check) => {
+      const previous = byKey.get(check.key);
+      if (previous === undefined || check.id > previous.id) byKey.set(check.key, check);
+      return byKey;
+    }, new Map<string, HeadCheck>())
+    .values()
+];
 
 export class GitHubRequestError extends Schema.TaggedError<GitHubRequestError>()('GitHubRequestError', {
   message: Schema.String,
@@ -192,6 +211,45 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
       );
     });
 
+    /** Latest commit status, workflow run, and non-Actions check per identity on a head SHA. */
+    const headChecks = Effect.fn('GitHub.headChecks')(function* (owner: string, repo: string, sha: string) {
+      const [combined, workflows, runs] = yield* Effect.all(
+        [
+          combinedStatus(owner, repo, sha),
+          paginate<Endpoints['GET /repos/{owner}/{repo}/actions/runs']['response']['data']['workflow_runs'][number]>(
+            'GET /repos/{owner}/{repo}/actions/runs',
+            { owner, repo, head_sha: sha }
+          ),
+          paginate<
+            Endpoints['GET /repos/{owner}/{repo}/commits/{ref}/check-runs']['response']['data']['check_runs'][number]
+          >('GET /repos/{owner}/{repo}/commits/{ref}/check-runs', { owner, repo, ref: sha, filter: 'all' })
+        ],
+        { concurrency: 'unbounded' }
+      );
+      return latestChecks([
+        ...combined.statuses.map(status => ({
+          key: `status:${status.context}`,
+          id: status.id,
+          state: status.state,
+          conclusion: status.state
+        })),
+        ...workflows.map(workflow => ({
+          key: `workflow:${workflow.path}`,
+          id: workflow.id,
+          status: workflow.status ?? undefined,
+          conclusion: workflow.conclusion
+        })),
+        ...runs
+          .filter(checkRun => checkRun.app?.slug !== 'github-actions')
+          .map(checkRun => ({
+            key: `check:${checkRun.app?.id ?? `missing-app-${checkRun.id}`}:${checkRun.name}`,
+            id: checkRun.id,
+            status: isNullable(checkRun.app?.id) ? 'pending' : checkRun.status,
+            conclusion: checkRun.conclusion
+          }))
+      ]);
+    });
+
     const createReview = Effect.fn('GitHub.createReview')(function* (
       owner: string,
       repo: string,
@@ -304,6 +362,7 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
       pullReviews,
       checkRuns,
       combinedStatus,
+      headChecks,
       createReview,
       dismissReview,
       pullsForCommit,

@@ -26,19 +26,7 @@ const isCheckGreen = check => {
   return o === 'SUCCESS' || o === 'SKIPPED' || o === 'NEUTRAL';
 };
 
-const latestChecks = checks => {
-  const byKey = new Map();
-  for (const check of checks) {
-    const previous = byKey.get(check.key);
-    if (!previous || check.id > previous.id) byKey.set(check.key, check);
-  }
-  return [...byKey.values()];
-};
-
-export const allChecksGreen = checks => {
-  const latest = latestChecks(checks);
-  return latest.length > 0 && latest.every(isCheckGreen);
-};
+export const allChecksGreen = checks => checks.length > 0 && checks.every(isCheckGreen);
 
 export const hasBotApprovalOnHead = (reviews, headSha, botLogin = BOT_LOGIN) =>
   Boolean(headSha) &&

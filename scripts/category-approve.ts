@@ -12,7 +12,7 @@ import * as Option from 'effect/Option';
 import { isNumber, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { actionsEnvironment, GitHub } from '@salesforce/effect-octokit';
+import { actionsEnvironment, CheckEvent, GitHub, readActionsEvent } from '@salesforce/effect-octokit';
 import { AgentError, GitError } from './shared/scriptErrors.ts';
 import {
   BASE_BRANCH,
@@ -61,23 +61,6 @@ const gitText = (args: ReadonlyArray<string>) =>
     ),
     Effect.map(([stdout]) => stdout)
   );
-
-const PullRequestNumber = Schema.Struct({
-  number: Schema.Number
-});
-
-const CheckPayload = Schema.Struct({
-  name: Schema.optional(Schema.String),
-  head_sha: Schema.optional(Schema.String),
-  pull_requests: Schema.optional(Schema.Array(PullRequestNumber))
-});
-
-const CheckEvent = Schema.Struct({
-  action: Schema.optional(Schema.String),
-  check_run: Schema.optional(CheckPayload),
-  check_suite: Schema.optional(CheckPayload),
-  pull_request: Schema.optional(PullRequestNumber)
-});
 
 const listChecks = Effect.fn('categoryApprove.listChecks')(function* (
   owner: string,
@@ -278,10 +261,7 @@ const pullNumbers = Effect.fn('categoryApprove.pullNumbers')(function* (
 
 const categoryApprove = Effect.fn('categoryApprove')(function* () {
   const env = yield* actionsEnvironment;
-  const event = yield* FileSystem.FileSystem.pipe(
-    Effect.flatMap(fs => fs.readFileString(env.eventPath)),
-    Effect.flatMap(Schema.decodeUnknown(Schema.parseJson(CheckEvent)))
-  );
+  const event = yield* readActionsEvent(env.eventPath, CheckEvent);
   if (event.check_run?.name === 'category-approve') {
     yield* Effect.log('skip: own check run');
     return;
