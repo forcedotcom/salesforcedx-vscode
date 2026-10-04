@@ -76,7 +76,7 @@ export class SpanTransformProcessor extends BatchSpanProcessor {
         ]) // it seems to want a key
       );
       // Rec.filter's refinement overload drops the undefined-valued attributes and narrows the rest to string
-      Object.entries(Rec.filter({ ...permanent, ...dynamic }, isString)).map(([k, v]) => span.setAttribute(k, v));
+      Rec.toEntries(Rec.filter({ ...permanent, ...dynamic }, isString)).map(([k, v]) => span.setAttribute(k, v));
     }
     super.onStart(span, parentContext);
   }

@@ -6,6 +6,7 @@
  */
 import { fileOrFolderExists, readFile } from '@salesforce/salesforcedx-utils-vscode';
 import { isString } from 'effect/Predicate';
+import { toEntries } from 'effect/Record';
 import { XMLParser } from 'fast-xml-parser';
 import * as path from 'node:path';
 
@@ -344,7 +345,7 @@ export class MetadataDocumentationService {
       number: { type: 'int', description: `The numeric value for ${fieldName.replace('Number', '').toLowerCase()}.` }
     };
 
-    for (const [pattern, info] of Object.entries(patterns)) {
+    for (const [pattern, info] of toEntries(patterns)) {
       if (fieldName.toLowerCase().includes(pattern)) {
         return {
           name: fieldName,

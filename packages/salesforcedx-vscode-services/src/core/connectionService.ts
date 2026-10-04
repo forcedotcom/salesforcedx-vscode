@@ -537,6 +537,7 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
       : (existingOrgInfo.webUserId ?? UNAUTHENTICATED_USER);
 
   const updates = Object.fromEntries(
+    // eslint-disable-next-line no-restricted-syntax -- optional cliId/orgEdition; not a total ReadonlyRecord
     Object.entries({
       orgId,
       instanceName,

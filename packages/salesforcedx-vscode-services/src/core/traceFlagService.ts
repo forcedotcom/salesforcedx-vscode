@@ -14,6 +14,7 @@ import * as Option from 'effect/Option';
 import * as ParseResult from 'effect/ParseResult';
 import { isString } from 'effect/Predicate';
 import * as PubSub from 'effect/PubSub';
+import { keys as recordKeys, toEntries } from 'effect/Record';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -147,7 +148,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       );
 
       // Query only the misses, per prefix; populate cache as rows arrive.
-      yield* Stream.fromIterable(Object.entries(missesByPrefix)).pipe(
+      yield* Stream.fromIterable(toEntries(missesByPrefix)).pipe(
         Stream.mapConcatEffect(([prefix, ids]) =>
           Match.value(prefix).pipe(
             Match.when('005', () =>
@@ -188,7 +189,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
 
     const getDebugLevels = Effect.fn('TraceFlagService.getDebugLevels')(function* () {
       const conn = yield* connectionService.getConnection();
-      const query = `SELECT ${Object.keys(ToolingDebugLevelStruct.fields).join(', ')} FROM DebugLevel`;
+      const query = `SELECT ${recordKeys(ToolingDebugLevelStruct.fields).join(', ')} FROM DebugLevel`;
       const result = yield* Effect.tryPromise({
         try: () => conn.tooling.query<ToolingDebugLevelRecord>(query),
         catch: error => {

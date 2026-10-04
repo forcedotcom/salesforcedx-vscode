@@ -274,6 +274,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
         const previous = yield* state.getSObjectDescription(orgId, sobject.name);
         const previousComparable = previous
           ? Object.fromEntries(
+              // eslint-disable-next-line no-restricted-syntax -- OrgSObjectDescription.remoteLastModifiedDate is optional
               Object.entries(previous).filter(
                 ([key]) => !['orgId', 'observedAt', 'provenance', 'remoteLastModifiedDate'].includes(key)
               )
