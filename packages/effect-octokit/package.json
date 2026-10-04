@@ -93,6 +93,7 @@
     }
   },
   "dependencies": {
+    "@effect/platform": "0.96.1",
     "@octokit/core": "^7.0.6",
     "@octokit/graphql": "^9.0.3",
     "@octokit/plugin-paginate-rest": "^14.0.0",

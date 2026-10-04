@@ -545,6 +545,9 @@ importers:
 
   packages/effect-octokit:
     dependencies:
+      '@effect/platform':
+        specifier: 0.96.1
+        version: 0.96.1(effect@3.22.2)
       '@octokit/core':
         specifier: ^7.0.6
         version: 7.0.8

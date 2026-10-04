@@ -1,14 +1,14 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
+import { withoutWorkflowRun } from '@salesforce/effect-octokit';
 import {
   BOT_LOGIN,
   buildPrompt,
   categoryIdsFromPolicy,
   decideCategoryApprove,
   deniedFile,
-  parseAgentResult,
-  withoutOwnRun
+  parseAgentResult
 } from '../scripts/shared/categoryDecision.ts';
 
 const policy = readFileSync(new URL('../APPROVAL_POLICY.md', import.meta.url), 'utf8');
@@ -146,7 +146,7 @@ test('drops this workflow run from the rollup', () => {
     { details_url: 'https://github.com/acme/repo/actions/runs/9/job/1', html_url: null },
     { details_url: 'https://github.com/acme/repo/actions/runs/4/job/2', html_url: null }
   ];
-  assert.equal(withoutOwnRun(runs, '9').length, 1);
+  assert.equal(withoutWorkflowRun(runs, '9').length, 1);
 });
 
 test('parses categories from the agent json envelope', () => {
