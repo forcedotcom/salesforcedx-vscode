@@ -1,11 +1,15 @@
 .vscode/**
 .vscode-test/**
 .wireit/**
-node_modules
+node_modules/**
 out/**
 src/**
 test/**
+playwright-report/**
+test-results/**
 extension/**
+coverage/**
+.nyc_output/**
 .circular-deps.json
 .eslintcache
 **/*.map

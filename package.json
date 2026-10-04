@@ -406,9 +406,12 @@
       ]
     },
     "vscode:package": {
+      "command": "pnpm vscode:package:legacy",
+      "env": {
+        "WIREIT_PARALLEL": "1"
+      },
       "dependencies": [
-        "vscode:package:modern",
-        "vscode:package:legacy"
+        "vscode:package:modern"
       ]
     },
     "vscode:package:prerelease": {
