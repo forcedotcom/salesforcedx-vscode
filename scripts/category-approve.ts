@@ -12,7 +12,13 @@ import * as Option from 'effect/Option';
 import { isNumber, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { actionsEnvironment, type CheckEvent, GitHub, readCheckEvent } from '@salesforce/effect-octokit';
+import {
+  actionsEnvironment,
+  type CheckEvent,
+  GitHub,
+  readCheckEvent,
+  withoutWorkflowRun
+} from '@salesforce/effect-octokit';
 import { AgentError, GitError } from './shared/scriptErrors.ts';
 import {
   BASE_BRANCH,
@@ -25,8 +31,7 @@ import {
   buildPrompt,
   categoryIdsFromPolicy,
   decideCategoryApprove,
-  parseAgentResult,
-  withoutOwnRun
+  parseAgentResult
 } from './shared/categoryDecision.ts';
 
 // Command.env merges over process.env (NodeCommandExecutor). Blank inherited values so the agent only sees its allowlist.
@@ -73,7 +78,7 @@ const listChecks = Effect.fn('categoryApprove.listChecks')(function* (
     [github.combinedStatus(owner, repo, headSha), github.checkRuns(owner, repo, headSha)],
     { concurrency: 'unbounded' }
   );
-  return { statuses: status.statuses, checkRuns: withoutOwnRun(runs, runId) };
+  return { statuses: status.statuses, checkRuns: withoutWorkflowRun(runs, runId) };
 });
 
 const classify = Effect.fn('categoryApprove.classify')(function* (policy: string, diffPath: string) {
@@ -145,11 +150,6 @@ const dismiss = Effect.fn('categoryApprove.dismiss')(function* (
   );
 });
 
-const botReview = (reviews: Facts['reviews'], headSha: string) =>
-  reviews.find(
-    review => review.user?.login === BOT_LOGIN && review.state === 'APPROVED' && review.commit_id === headSha
-  );
-
 const act = (
   decision: Decision,
   owner: string,
@@ -163,7 +163,7 @@ const act = (
     Match.tag('Dismiss', dismissed =>
       Effect.log(`#${pullNumber} dismiss (${dismissed.reason})`).pipe(
         Effect.andThen(
-          Option.match(Option.fromNullable(botReview(reviews, headSha)), {
+          Option.match(Option.fromNullable(findApprovedReviewOnHead(reviews, headSha, BOT_LOGIN)), {
             onNone: () => Effect.void,
             onSome: review => dismiss(owner, repo, pullNumber, review.id)
           })

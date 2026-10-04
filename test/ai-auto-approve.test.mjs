@@ -4,12 +4,8 @@ import { mkdtempSync, rmdirSync, unlinkSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import test from 'node:test';
-import {
-  allChecksGreen,
-  decideAiAutoApprove,
-  hasBotApprovalOnHead,
-  isStandaloneAiAutoApprove
-} from '../scripts/ai-auto-approve.mjs';
+import { allGitHubChecksSuccessful as allChecksGreen, findApprovedReviewOnHead } from '@salesforce/effect-octokit';
+import { decideAiAutoApprove, isStandaloneAiAutoApprove } from '../scripts/ai-auto-approve.mjs';
 
 const green = { key: 'workflow:.github/workflows/ci.yml', id: 1, status: 'completed', conclusion: 'SUCCESS' };
 const base = {
@@ -316,7 +312,7 @@ test('CLI skips when the bot already approved the head', () => {
 
 test('skips when bot already approved this head', () => {
   const reviews = [{ user: { login: 'svc-idee-bot' }, state: 'APPROVED', commit_id: 'abc123' }];
-  assert.equal(hasBotApprovalOnHead(reviews, 'abc123'), true);
-  assert.equal(hasBotApprovalOnHead(reviews, 'other'), false);
+  assert.equal(findApprovedReviewOnHead(reviews, 'abc123', 'svc-idee-bot'), reviews[0]);
+  assert.equal(findApprovedReviewOnHead(reviews, 'other', 'svc-idee-bot'), undefined);
   assert.equal(decideAiAutoApprove({ ...base, reviews }).action, 'skip');
 });

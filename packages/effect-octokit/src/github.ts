@@ -20,6 +20,44 @@ import * as Schema from 'effect/Schema';
 export { actionsEnvironment } from './actionsEnvironment.js';
 export { type CheckEvent, readCheckEvent, readIssueCommentEvent, readPullRequestEvent } from './actionsEvent.js';
 
+export type PullReview = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews']['response']['data'][number];
+export type CommitStatus =
+  Endpoints['GET /repos/{owner}/{repo}/commits/{ref}/status']['response']['data']['statuses'][number];
+export type CheckRun =
+  Endpoints['GET /repos/{owner}/{repo}/commits/{ref}/check-runs']['response']['data']['check_runs'][number];
+export type PullFile = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}/files']['response']['data'][number];
+
+type Check = {
+  readonly state?: string;
+  readonly status?: string | null;
+  readonly conclusion?: string | null;
+};
+
+const failed = new Set(['failure', 'cancelled', 'timed_out', 'error', 'action_required', 'startup_failure']);
+const running = new Set(['in_progress', 'queued', 'pending', 'waiting', 'requested', 'expected']);
+const successful = new Set(['success', 'skipped', 'neutral']);
+
+const outcome = (check: Check) => (check.conclusion ?? check.state ?? 'pending').toLowerCase();
+
+export const hasFailedGitHubCheck = (checks: readonly Check[]) => checks.some(check => failed.has(outcome(check)));
+
+export const allGitHubChecksSuccessful = (checks: readonly Check[]) =>
+  checks.length > 0 &&
+  checks.every(check => {
+    const conclusion = outcome(check);
+    return !running.has(conclusion) && !running.has((check.status ?? '').toLowerCase()) && successful.has(conclusion);
+  });
+
+export const findApprovedReviewOnHead = (reviews: readonly PullReview[], headSha: string, login: string) =>
+  headSha.length === 0
+    ? undefined
+    : reviews.find(
+        review => review.user?.login === login && review.state === 'APPROVED' && review.commit_id === headSha
+      );
+
+export const withoutWorkflowRun = (runs: readonly CheckRun[], runId: string) =>
+  runs.filter(checkRun => !(checkRun.details_url ?? checkRun.html_url ?? '').includes(`/actions/runs/${runId}/`));
+
 const PaginatedOctokit = Octokit.plugin(paginateRest);
 const requestTimeout = Duration.toMillis(Duration.seconds(30));
 const maxRateLimitWait = Duration.toMillis(Duration.seconds(60));
