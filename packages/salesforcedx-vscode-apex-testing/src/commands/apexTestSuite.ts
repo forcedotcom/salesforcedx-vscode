@@ -182,20 +182,15 @@ const gatherEditOptions = Effect.fn('apexTestSuite.gatherEditOptions')(function*
   if (isUndefined(selection)) {
     return yield* new api.services.UserCancellationError();
   }
-  if (selection.length === 0) {
-    // Empty array means user accepted with nothing checked — remove all current members
-    const allMembershipIds = editableItems.filter(item => item.membershipId).map(item => item.membershipId!);
-    return { suitename, toAdd: [], toRemove: allMembershipIds };
-  }
-
   // Diff: newly checked → add, unchecked → remove.
   // Key on fullClassName/label (unique per class), NOT description (namespace prefix — empty for all local classes,
   // which would make every class appear "selected" and prevent any removals).
-  const selectedClassNames = new Set(selection.map(item => item.fullClassName ?? item.label));
-  const toAdd = selection.filter(item => !item.membershipId).map(item => item.fullClassName ?? item.label);
-  const toRemove = editableItems
-    .filter(item => item.membershipId && !selectedClassNames.has(item.fullClassName ?? item.label))
-    .map(item => item.membershipId!);
+  const currentMembers = editableItems.filter(item => item.membershipId);
+  const sameClass = (left: EditableSuiteClassItem, right: EditableSuiteClassItem) =>
+    (left.fullClassName ?? left.label) === (right.fullClassName ?? right.label);
+  const differenceByClassName = Arr.differenceWith(sameClass);
+  const toAdd = differenceByClassName(selection, currentMembers).map(item => item.fullClassName ?? item.label);
+  const toRemove = differenceByClassName(currentMembers, selection).map(item => item.membershipId!);
 
   return { suitename, toAdd, toRemove };
 });
