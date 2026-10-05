@@ -6,7 +6,7 @@
  */
 import * as Effect from 'effect/Effect';
 import { oasReorderStep } from '../../../../src/oas/documentProcessorPipeline/oasReorderStep';
-import { ProcessorInputOutput } from '../../../../src/oas/documentProcessorPipeline/processorStep';
+import { type ProcessorInputOutput } from '../../../../src/oas/documentProcessorPipeline/processorStep';
 
 describe('oasReorderStep', () => {
   it('reorders info section attributes', async () => {

@@ -10,6 +10,7 @@ import * as vscode from 'vscode';
 import { SymbolKind } from 'vscode-languageserver-protocol';
 import { URI } from 'vscode-uri';
 import { nls } from '../../../../src/messages/nls';
+import type * as methodValidationModule from '../../../../src/oas/documentProcessorPipeline/methodValidationStep';
 import type { ProcessorInputOutput } from '../../../../src/oas/documentProcessorPipeline/processorStep';
 
 Object.assign(vscode, { DiagnosticSeverity: { Error: 0 } });
@@ -17,9 +18,9 @@ jest.mocked(vscode.languages.createDiagnosticCollection).mockReturnValue({
   clear: jest.fn()
 } as unknown as vscode.DiagnosticCollection);
 
-const { methodValidationStep } = jest.requireActual<
-  typeof import('../../../../src/oas/documentProcessorPipeline/methodValidationStep')
->('../../../../src/oas/documentProcessorPipeline/methodValidationStep');
+const { methodValidationStep } = jest.requireActual<typeof methodValidationModule>(
+  '../../../../src/oas/documentProcessorPipeline/methodValidationStep'
+);
 
 describe('methodValidationStep', () => {
   it('preserves source order for multiple method mismatches', async () => {
