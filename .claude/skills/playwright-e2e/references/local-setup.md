@@ -1,5 +1,6 @@
 ---
 description: Local scratch org setup for E2E tests
+review: never
 ---
 
 # Local Setup

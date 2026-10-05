@@ -6,7 +6,7 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { annotateRootSpan, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
   MetricError,
   MetricGeneral,
@@ -15,7 +15,6 @@ import {
   SEND_METRIC_ERROR_EVENT,
   SEND_METRIC_LAUNCH_EVENT
 } from '@salesforce/salesforcedx-apex-replay-debugger';
-import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -32,7 +31,7 @@ import { getDebuggerOutputChannel } from './channels';
 import { anonApexDebug } from './commands/anonApexDebug';
 import { launchApexReplayDebuggerWithCurrentFile } from './commands/launchApexReplayDebuggerWithCurrentFile';
 import { launchFromLogFile } from './commands/launchFromLogFile';
-import { setupAndDebugTests } from './commands/quickLaunch';
+import { debugSingleTestCommand, debugTestsCommand } from './commands/quickLaunch';
 import {
   DEBUGGER_TYPE,
   LAST_OPENED_LOG_KEY,
@@ -90,6 +89,29 @@ export const getDebuggerType = async (session: vscode.DebugSession): Promise<str
   return type;
 };
 
+export const emitLaunchMetric = Effect.fn('apexReplayDebugger.launch', { root: true })(function* (
+  metric: MetricLaunch
+) {
+  yield* annotateRootSpan({
+    logSize: metric.logSize.toString(),
+    errorSubject: metric.error.subject
+  });
+});
+
+export const emitErrorMetric = Effect.fn('apexReplayDebugger.error', { root: true })(function* (metric: MetricError) {
+  yield* annotateRootSpan({ subject: metric.subject, callstack: metric.callstack });
+});
+
+export const emitGeneralMetric = Effect.fn('apexReplayDebugger.general', { root: true })(function* (
+  metric: MetricGeneral
+) {
+  yield* annotateRootSpan({
+    subject: metric.subject,
+    type: metric.type,
+    qty: metric.qty?.toString() ?? 'undefined'
+  });
+});
+
 const registerDebugHandlers = (): vscode.Disposable => {
   const customEventHandler = vscode.debug.onDidReceiveDebugSessionCustomEvent(async event => {
     if (event?.session) {
@@ -99,24 +121,11 @@ const registerDebugHandlers = (): vscode.Disposable => {
       }
 
       if (event.event === SEND_METRIC_LAUNCH_EVENT && event.body) {
-        const metricLaunchArgs = event.body as MetricLaunch;
-        TelemetryService.getInstance().sendEventData('apexReplayDebugger.launch', {
-          logSize: metricLaunchArgs.logSize.toString(),
-          errorSubject: metricLaunchArgs.error.subject
-        });
+        await getRuntime().runPromise(emitLaunchMetric(event.body as MetricLaunch));
       } else if (event.event === SEND_METRIC_ERROR_EVENT && event.body) {
-        const metricErrorArgs = event.body as MetricError;
-        TelemetryService.getInstance().sendEventData('apexReplayDebugger.error', {
-          subject: metricErrorArgs.subject,
-          callstack: metricErrorArgs.callstack
-        });
+        await getRuntime().runPromise(emitErrorMetric(event.body as MetricError));
       } else if (event.event === SEND_METRIC_GENERAL_EVENT && event.body) {
-        const metricGeneralArgs = event.body as MetricGeneral;
-        TelemetryService.getInstance().sendEventData('apexReplayDebugger.general', {
-          subject: metricGeneralArgs.subject,
-          type: metricGeneralArgs.type,
-          qty: metricGeneralArgs.qty?.toString() ?? 'undefined'
-        });
+        await getRuntime().runPromise(emitGeneralMetric(event.body as MetricGeneral));
       }
     }
   });
@@ -137,6 +146,8 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
   );
   yield* registerCommand('sf.create.checkpoints', sfCreateCheckpointsCommand);
   yield* registerCommand('sf.toggle.checkpoint', sfToggleCheckpointCommand);
+  yield* registerCommand('sf.test.view.debugTests', debugTestsCommand);
+  yield* registerCommand('sf.test.view.debugSingleTest', debugSingleTestCommand);
 
   const commands = registerCommands(extensionContext);
   const debugHandlers = registerDebugHandlers();
@@ -155,38 +166,20 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
     yield* Effect.promise(() => salesforceApexExtension.activate());
   }
 
-  // Debug Tests command
-  const debugTests = vscode.commands.registerCommand('sf.test.view.debugTests', async (test: { name: string }) => {
-    await setupAndDebugTests(test.name);
-  });
-
-  // Debug Single Test command
-  const debugTest = vscode.commands.registerCommand('sf.test.view.debugSingleTest', async (test: { name: string }) => {
-    const [method, className, namespace] = test.name.split('.').toReversed();
-    await setupAndDebugTests(namespace ? `${namespace}.${className}` : className, method);
-  });
-
   extensionContext.subscriptions.push(
     debuggerChannel,
     commands,
     debugHandlers,
     debugConfigProvider,
     checkpointsView,
-    breakpointsSub,
-    debugTests,
-    debugTest
+    breakpointsSub
   );
-
-  // Telemetry
-  yield* Effect.promise(() => TelemetryService.getInstance().initializeService(extensionContext));
 });
 
-export const deactivate = async () => {
-  await Promise.resolve()
-    .then(() => {
-      console.log('Apex Replay Debugger Extension Deactivated');
-      // Send deactivation event using shared service
-      TelemetryService.getInstance().sendExtensionDeactivationEvent();
-    })
-    .finally(disposeRuntime);
+export const deactivate = async (): Promise<void> => {
+  await getRuntime().runPromise(deactivateEffect()).finally(disposeRuntime);
 };
+
+export const deactivateEffect = Effect.fn('deactivation:salesforcedx-vscode-apex-replay-debugger')(function* () {
+  yield* Effect.sync(() => console.log('Apex Replay Debugger Extension Deactivated'));
+});

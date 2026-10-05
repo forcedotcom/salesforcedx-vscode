@@ -10,7 +10,7 @@
   ],
   "main": "out/src",
   "dependencies": {
-    "@salesforce/core": "^9.1.9",
+    "@salesforce/core": "^9.3.0",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/vscode-service-provider": "^1.5.0",

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { getServicesApi, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
+import { errorToString } from '@salesforce/salesforcedx-utils';
 import {
   Properties,
   Measurements,
@@ -17,7 +18,6 @@ import * as Effect from 'effect/Effect';
 import { isNotUndefined, isString } from 'effect/Predicate';
 import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import { SFDX_CORE_CONFIGURATION_NAME, SFDX_CORE_EXTENSION_NAME, SFDX_EXTENSION_PACK_NAME } from '../constants';
-import { errorToString } from '../helpers/errorUtils';
 import { isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
 import { extensionPackageJsonSchema } from '../telemetry/schema';
 import { isInternalHost } from '../telemetry/utils/isInternal';

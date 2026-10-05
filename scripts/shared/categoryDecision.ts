@@ -1,5 +1,12 @@
-import type { Endpoints } from '@octokit/types';
-import { PullRequest } from '@salesforce/effect-octokit';
+import {
+  type CheckRun,
+  type CommitStatus,
+  type PullFile,
+  type PullReview,
+  PullRequest,
+  findApprovedReviewOnHead,
+  hasFailedGitHubCheck
+} from '@salesforce/effect-octokit';
 import * as Option from 'effect/Option';
 import { isNull, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
@@ -10,18 +17,7 @@ export const BOT_LOGIN = 'svc-idee-bot';
 export const TEAM_ORG = 'forcedotcom';
 export const TEAM_SLUG = 'ide-experience';
 
-const FAIL_CONCLUSIONS = new Set(['failure', 'cancelled', 'timed_out', 'error', 'action_required', 'startup_failure']);
-
-const RUNNING = new Set(['in_progress', 'queued', 'pending', 'waiting', 'requested', 'expected']);
-
-const DENYLIST = [
-  /(^|\/)CODEOWNERS$/,
-  /^APPROVAL_POLICY\.md$/,
-  /^\.github\/workflows\/.+/,
-  /^\.cursor\/rules\/.+/,
-  /^\.cursor\/commands\/.+/,
-  /(^|\/)out\//
-];
+const DENYLIST = [/(^|\/)CODEOWNERS$/, /^APPROVAL_POLICY\.md$/, /^\.github\/workflows\/.+/, /(^|\/)out\//];
 
 const Skip = Schema.TaggedStruct('Skip', { reason: Schema.String });
 const Classify = Schema.TaggedStruct('Classify', { reason: Schema.String });
@@ -32,12 +28,6 @@ const Approve = Schema.TaggedStruct('Approve', {
 const Dismiss = Schema.TaggedStruct('Dismiss', { reason: Schema.String });
 
 export type Decision = typeof Skip.Type | typeof Classify.Type | typeof Approve.Type | typeof Dismiss.Type;
-
-type PullReview = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews']['response']['data'][number];
-type CommitStatus = Endpoints['GET /repos/{owner}/{repo}/commits/{ref}/status']['response']['data']['statuses'][number];
-type CheckRun =
-  Endpoints['GET /repos/{owner}/{repo}/commits/{ref}/check-runs']['response']['data']['check_runs'][number];
-type PullFile = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}/files']['response']['data'][number];
 
 type SharedFacts = {
   readonly pull: typeof PullRequest.Type | undefined;
@@ -58,36 +48,11 @@ export type Facts = (SharedFacts & { readonly categories?: undefined }) | GatedF
 
 const isGated = (input: Facts): input is GatedFacts => !isUndefined(input.categories);
 
-const settled = (concluded: string, phase: string) =>
-  !FAIL_CONCLUSIONS.has(concluded) &&
-  !RUNNING.has(phase) &&
-  !RUNNING.has(concluded) &&
-  (concluded === 'success' || concluded === 'skipped' || concluded === 'neutral');
-
-const runConclusion = (run: CheckRun) => run.conclusion ?? 'pending';
-
-const allChecksGreen = (statuses: ReadonlyArray<CommitStatus>, runs: ReadonlyArray<CheckRun>) =>
-  statuses.length + runs.length > 0 &&
-  statuses.every(entry => settled(entry.state, '')) &&
-  runs.every(run => settled(runConclusion(run), run.status));
-
-const hasFailingCheck = (statuses: ReadonlyArray<CommitStatus>, runs: ReadonlyArray<CheckRun>) =>
-  statuses.some(entry => FAIL_CONCLUSIONS.has(entry.state)) ||
-  runs.some(run => FAIL_CONCLUSIONS.has(runConclusion(run)));
-
-const hasBotApprovalOnHead = (reviews: ReadonlyArray<PullReview>, headSha: string, botLogin: string) =>
-  reviews.some(
-    review => review.user?.login === botLogin && review.state === 'APPROVED' && review.commit_id === headSha
-  );
-
 export const categoryIdsFromPolicy = (markdown: string) =>
   [...markdown.matchAll(/^### ([a-z0-9-]+)\s*$/gm)].map(match => match[1] ?? '');
 
 export const deniedFile = (files: ReadonlyArray<PullFile>) =>
   files.map(file => file.filename).find(filename => DENYLIST.some(pattern => pattern.test(filename)));
-
-export const withoutOwnRun = (runs: ReadonlyArray<CheckRun>, runId: string) =>
-  runs.filter(run => !(run.details_url ?? run.html_url ?? '').includes(`/actions/runs/${runId}/`));
 
 export const buildPrompt = (policy: string, diffPath: string) =>
   `${policy}\n\nThe diff file is ${diffPath}. Read that file and no other file. Reply with only the JSON object.`;
@@ -125,11 +90,13 @@ export const decideCategoryApprove = (input: Facts): Decision => {
   if (!Schema.is(Schema.NonEmptyString)(pull.headRefOid)) return Skip.make({ reason: 'missing head sha' });
   const denied = deniedFile(input.files);
   if (!isUndefined(denied)) return Skip.make({ reason: `denylist ${denied}` });
-  const approved = hasBotApprovalOnHead(input.reviews, pull.headRefOid, input.botLogin);
-  if (hasFailingCheck(input.statuses, input.checkRuns) && approved) {
+  const approved = findApprovedReviewOnHead(input.reviews, pull.headRefOid, input.botLogin);
+  if (hasFailedGitHubCheck([...input.statuses, ...input.checkRuns]) && approved) {
     return Dismiss.make({ reason: 'a check failed after approval' });
   }
-  if (!allChecksGreen(input.statuses, input.checkRuns)) return Skip.make({ reason: 'rollup is not settled' });
+  if (hasFailedGitHubCheck([...input.statuses, ...input.checkRuns])) {
+    return Skip.make({ reason: 'a check failed' });
+  }
   if (approved) return Skip.make({ reason: 'bot already approved this head' });
   if (!isGated(input)) return Classify.make({ reason: 'gates passed' });
   const allowed = new Set(input.allowedCategories);
