@@ -1,3 +1,8 @@
+---
+description: Create epics and bulk-populate work items in Gus. Companion to gus-cli SKILL.md.
+review: never
+---
+
 # Epics (ADM_Epic\_\_c): create & bulk-populate
 
 Companion to [SKILL.md](./SKILL.md). Safety rules apply: **don't write until user confirms.**
