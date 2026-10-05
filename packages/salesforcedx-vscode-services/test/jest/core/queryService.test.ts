@@ -10,11 +10,9 @@ import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as ParseResult from 'effect/ParseResult';
-import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { ConnectionService } from '../../../src/core/connectionService';
-import { executeQuery } from '../../../src/core/queryExecute';
 import { QueryService } from '../../../src/core/queryService';
 import { FieldError, SoqlError } from '../../../src/errors/queryErrors';
 
@@ -47,29 +45,13 @@ const withConnection = (connection: Connection) => {
       listAllAuthorizations: () => Effect.succeed([])
     } as never)
   );
-  const queryLayer = Layer.effect(
-    QueryService,
-    Effect.gen(function* () {
-      const connectionService = yield* ConnectionService;
-      return QueryService.make({
-        query: Effect.fn('QueryService.query')(function* <A, I>(
-          options: { soql: string; tooling?: boolean; scanAll?: boolean; orgId?: string },
-          recordSchema: Schema.Schema<A, I, never>
-        ) {
-          const conn = yield* isUndefined(options.orgId)
-            ? connectionService.getConnection()
-            : connectionService.getConnectionForOrg(options.orgId);
-          return yield* executeQuery(conn, options, recordSchema);
-        })
-      } as never);
-    })
-  ).pipe(Layer.provide(connectionLayer));
+  const queryLayer = QueryService.DefaultWithoutDependencies.pipe(Layer.provide(connectionLayer));
   return Layer.merge(connectionLayer, queryLayer);
 };
 
 const collect = <A, I>(
   connection: Connection,
-  options: { soql: string; tooling?: boolean; scanAll?: boolean; orgId?: string },
+  options: Parameters<InstanceType<typeof QueryService>['query']>[0],
   schema: Schema.Schema<A, I, never>
 ) =>
   QueryService.pipe(
@@ -97,6 +79,14 @@ const fail = <A, I>(
 const Account = Schema.Struct({ Id: Schema.String, Name: Schema.String });
 
 describe('QueryService.query', () => {
+  it('uses an explicit connection instead of the configured target org', async () => {
+    const query = jest.fn(() => Promise.resolve({ totalSize: 1, done: true, records: [{ Id: '001' }] }));
+    const explicitConnection = connectionWith({ query });
+    const result = await collect(connectionWith({}), { soql: SOQL, connection: explicitConnection }, Schema.Unknown);
+    expect(query).toHaveBeenCalledWith(SOQL, { scanAll: false });
+    expect(result.records).toEqual([{ Id: '001' }]);
+  });
+
   it('paginates until done and keeps page-1 totalSize', async () => {
     const query = jest.fn(() =>
       Promise.resolve({

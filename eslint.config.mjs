@@ -50,6 +50,14 @@ const noNullCompare = {
   message:
     "Do not use x == null / x != null. Use the 'effect/Predicate' guard matching the declared type: T | undefined -> isUndefined / isNotUndefined; T | null -> isNull / isNotNull; T | null | undefined -> isNullable / isNotNullable."
 };
+const noJsforceQuery = {
+  selector: "CallExpression[callee.property.name='query']:not([callee.object.name='queryService'])",
+  message: 'Use QueryService.query instead of calling a jsforce connection/tooling query directly.'
+};
+const noJsforceQueryMore = {
+  selector: "CallExpression[callee.property.name='queryMore']",
+  message: 'Use QueryService.query for pagination instead of calling jsforce queryMore directly.'
+};
 
 export default [
   {
@@ -527,7 +535,7 @@ export default [
       'no-invalid-this': 'off',
       'no-new-wrappers': 'error',
       'no-param-reassign': 'error',
-      'no-restricted-syntax': ['error', noHrtime],
+      'no-restricted-syntax': ['error', noHrtime, noJsforceQuery, noJsforceQueryMore],
       'no-shadow': 'off',
       'no-self-assign': 'error',
       'no-self-compare': 'error',
@@ -603,7 +611,14 @@ export default [
       'packages/**/playwright*.ts'
     ],
     rules: {
-      // repeat noHrtime: flat config replaces the whole array, so re-specify to keep the hrtime guard
+      // flat config replaces the whole array, so re-specify the base guards
+      'no-restricted-syntax': ['error', noHrtime, noJsforceQuery, noJsforceQueryMore, noInstanceofError, noNullCompare]
+    }
+  },
+  {
+    // Only queryExecute calls jsforce query/queryMore; keep the other syntax guards here.
+    files: ['packages/salesforcedx-vscode-services/src/core/queryExecute.ts'],
+    rules: {
       'no-restricted-syntax': ['error', noHrtime, noInstanceofError, noNullCompare]
     }
   },
@@ -712,6 +727,8 @@ export default [
     // Surface shrinks as later refactors (methods->functions, Effect) land.
     files: ['packages/salesforcedx-apex/**/*.ts'],
     rules: {
+      // apex-node does not depend on the services extension.
+      'no-restricted-syntax': ['error', noHrtime],
       // upstream style: avoid restyling imported, history-tracked code
       '@typescript-eslint/consistent-type-assertions': 'off',
       '@typescript-eslint/explicit-member-accessibility': 'off',

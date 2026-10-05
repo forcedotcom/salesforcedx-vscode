@@ -77,27 +77,16 @@ export const debuggerStop = Effect.fn('debuggerStop')(function* () {
       })
     : api.services.ConnectionService.getConnection();
 
-  // ISV uses a sid/url connection QueryService cannot resolve; default-org path uses QueryService.
-  const sessionRecords =
-    isvSid && isvUrl
-      ? Effect.tryPromise({
-          try: () => Promise.resolve(conn.tooling.query(SESSION_SOQL)),
-          catch: queryError
-        }).pipe(
-          Effect.flatMap(page =>
-            Schema.decodeUnknown(Schema.Struct({ records: Schema.Array(SessionRow) }))(page).pipe(
-              Effect.map(decoded => decoded.records),
-              Effect.mapError(queryError)
-            )
-          )
-        )
-      : Effect.flatMap(api.services.QueryService, queryService =>
-          queryService.query({ soql: SESSION_SOQL, tooling: true }, SessionRow).pipe(
-            Effect.flatMap(({ records }) => Stream.runCollect(records)),
-            Effect.map(Chunk.toReadonlyArray),
-            Effect.mapError(queryError)
-          )
-        );
+  // ISV's sid/url connection is not the configured target org; pass it to QueryService explicitly.
+  const sessionRecords = Effect.flatMap(api.services.QueryService, queryService =>
+    queryService
+      .query({ soql: SESSION_SOQL, tooling: true, ...(isvSid && isvUrl ? { connection: conn } : {}) }, SessionRow)
+      .pipe(
+        Effect.flatMap(({ records }) => Stream.runCollect(records)),
+        Effect.map(Chunk.toReadonlyArray),
+        Effect.mapError(queryError)
+      )
+  );
 
   yield* Effect.all({
     progressLocation: notificationMode.getProgressLocation(COMMAND),
