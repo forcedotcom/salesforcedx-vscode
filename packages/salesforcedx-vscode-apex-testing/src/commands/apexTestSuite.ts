@@ -11,7 +11,6 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
-import { pipe } from 'effect/Function';
 import * as Option from 'effect/Option';
 import * as Order from 'effect/Order';
 import { isUndefined, not } from 'effect/Predicate';
@@ -211,25 +210,17 @@ const gatherEditOptions = Effect.fn('apexTestSuite.gatherEditOptions')(function*
   if (isUndefined(selection)) {
     return yield* new api.services.UserCancellationError();
   }
-  if (selection.length === 0) {
-    // Empty array means user accepted with nothing checked — remove all current members
-    return {
-      suitename,
-      toAdd: [],
-      toRemove: editableItems.filter(item => item.membershipId).map(item => item.membershipId!)
-    };
-  }
-
   // Diff: newly checked → add, unchecked → remove.
   // Key on fullClassName/label (unique per class), NOT description (namespace prefix — empty for all local classes,
   // which would make every class appear "selected" and prevent any removals).
-  return pipe(new Set(selection.map(item => item.fullClassName ?? item.label)), selectedClassNames => ({
-    suitename,
-    toAdd: selection.filter(item => !item.membershipId).map(item => item.fullClassName ?? item.label),
-    toRemove: editableItems
-      .filter(item => item.membershipId && !selectedClassNames.has(item.fullClassName ?? item.label))
-      .map(item => item.membershipId!)
-  }));
+  const currentMembers = editableItems.filter(item => item.membershipId);
+  const sameClass = (left: EditableSuiteClassItem, right: EditableSuiteClassItem) =>
+    (left.fullClassName ?? left.label) === (right.fullClassName ?? right.label);
+  const differenceByClassName = Arr.differenceWith(sameClass);
+  const toAdd = differenceByClassName(selection, currentMembers).map(item => item.fullClassName ?? item.label);
+  const toRemove = differenceByClassName(currentMembers, selection).map(item => item.membershipId!);
+
+  return { suitename, toAdd, toRemove };
 });
 
 /** Build (or extend) a suite via the apex-node TestService, with cancellable progress + completion sentinel. */
