@@ -4,7 +4,6 @@ import {
   type PullFile,
   type PullReview,
   PullRequest,
-  allGitHubChecksSuccessful,
   findApprovedReviewOnHead,
   hasFailedGitHubCheck
 } from '@salesforce/effect-octokit';
@@ -102,8 +101,9 @@ export const decideCategoryApprove = (input: Facts): Decision => {
   if (hasFailedGitHubCheck([...input.statuses, ...input.checkRuns]) && approved) {
     return Dismiss.make({ reason: 'a check failed after approval' });
   }
-  if (!allGitHubChecksSuccessful([...input.statuses, ...input.checkRuns]))
-    return Skip.make({ reason: 'rollup is not settled' });
+  if (hasFailedGitHubCheck([...input.statuses, ...input.checkRuns])) {
+    return Skip.make({ reason: 'a check failed' });
+  }
   if (approved) return Skip.make({ reason: 'bot already approved this head' });
   if (!isGated(input)) return Classify.make({ reason: 'gates passed' });
   const allowed = new Set(input.allowedCategories);

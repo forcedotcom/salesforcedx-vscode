@@ -30,6 +30,10 @@ These paths have no category. A hunk on one of them means `categories` is `[]`:
 
 Every file under `.claude/`.
 
+### cursor
+
+Every file under `.cursor/`, except `.cursor/rules/**` and `.cursor/commands/**` (those have no category — see cover rules).
+
 ### eslint
 
 Every ESLint config: `eslint.config.*`, `.eslintrc`, `.eslintrc.*`. Every file under `packages/eslint-local-rules/`.
