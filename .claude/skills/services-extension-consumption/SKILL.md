@@ -78,6 +78,7 @@ Two patterns exist depending on whether the extension adds services beyond the s
 
 ## Runtime vs provide
 
+- `buildAllServicesLayer` merges `suppressVersionMismatchWarning`. Extension code keeps `ManagedRuntime.make(AllServicesLayer)`; do not wrap it. The services activation runtime inlines `Layer.setVersionMismatchErrorLogLevel(Option.none())` because it cannot import effect-ext-utils.
 - **Do**: Build `ManagedRuntime.make(AllServicesLayer)` and export `getRuntime()`.
 - **Do**: Export runtime disposal, clear the memo, and call it during extension deactivation.
 - **Do**: Use `getRuntime().runPromise(effect)` / `runFork(effect)` for ad-hoc execution.
