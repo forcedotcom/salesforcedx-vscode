@@ -182,6 +182,7 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     await waitForOutputChannelText(page, { expectedText: '=== Test Summary', timeout: TEST_RUN_TIMEOUT });
     await waitForOutputChannelText(page, { expectedText: `${testClassName}.shouldDiscoverThisTest` });
     await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
+    await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.rerun-last-method.done.png');
   });
 

@@ -10,7 +10,7 @@ import {
   executeCommandWithCommandPalette,
   TEST_EXPLORER_PANEL,
   TEST_EXPLORER_TREE_ITEM,
-  verifyCommandDoesNotExist
+  verifyNoTestRunInProgress
 } from '@salesforce/playwright-vscode-ext';
 import { messages } from '../../../src/messages/i18n';
 
@@ -19,7 +19,8 @@ export {
   TEST_EXPLORER_PANEL,
   TEST_EXPLORER_TREE_ITEM,
   focusAndTypeInFilter,
-  clearFilter
+  clearFilter,
+  verifyNoTestRunInProgress
 } from '@salesforce/playwright-vscode-ext';
 export const TEST_RESULTS_TAB = 'a.action-label[aria-label="Test Results"]';
 const LOCAL_NAMESPACE_LABEL = messages.test_explorer_local_namespace_label;
@@ -30,8 +31,6 @@ const CMD_FOCUS_TEST_EXPLORER = 'Testing: Focus on Test Explorer View';
 const CMD_REFRESH_TESTS = 'Test: Refresh Tests';
 export const CMD_RUN_ALL_TESTS = 'Test: Run All Tests';
 export const CMD_TOGGLE_MAXIMIZED_PANEL = 'View: Toggle Maximized Panel';
-// VS Code lists this only while a test run is in progress (`testing.isRunning` context key).
-const CMD_CANCEL_TEST_RUN = 'Test: Cancel Test Run';
 
 // Test Controller ID matches `TEST_CONTROLLER_ID` in `src/views/testController.ts`.
 const APEX_TEST_CONTROLLER_ID = 'sf.apex.testController';
@@ -105,7 +104,7 @@ export const openTestExplorerAndDiscover = async (page: Page): Promise<Locator> 
 
 /**
  * Runs all tests via the command palette and waits until the Test Results panel
- * shows a pass-rate summary. The Test Results panel shows "Pass Rate" / "Tests Ran"
+ * shows a pass-rate summary and the TestRun has ended. The Test Results panel shows "Pass Rate" / "Tests Ran"
  * statistics once a run completes; the prior `/passed|Passed/i` text match never
  * matched (only aria-labels carry "(Passed)") and caused the test to hang to timeout.
  */
@@ -114,16 +113,8 @@ export const runAllTestsAndWaitForCompletion = async (page: Page, timeout: numbe
   const testResultsTab = page.locator(TEST_RESULTS_TAB);
   await testResultsTab.waitFor({ state: 'visible', timeout: 30_000 });
   await expect(page.getByText(/Pass Rate/i)).toBeVisible({ timeout });
+  await verifyNoTestRunInProgress(page);
 };
-
-/**
- * Asserts every test run has ended (Test Explorer / Test Results spinners stopped). Results, tree
- * decorations, and the `Ended …` channel sentinel can all land while the TestRun is still open, so
- * they don't prove this. Don't click or dismiss the success toast first: that would end a run that
- * was blocked on it and mask the regression.
- */
-export const verifyNoTestRunInProgress = async (page: Page, timeout?: number): Promise<void> =>
-  verifyCommandDoesNotExist(page, CMD_CANCEL_TEST_RUN, timeout);
 
 /**
  * Expands the "Apex Test Suites" section and the named suite within it.
