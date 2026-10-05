@@ -29,10 +29,10 @@ const safeRegex = (pattern: string): RegExp | undefined => {
 };
 
 /**
- * Tests if a string matches a pattern (exact match, wildcard, or regex).
+ * Tests if a string matches a pattern (substring, wildcard, or regex).
  * Regex mode: pattern is a string extracted from /pattern/ delimiters
  * Wildcard mode: pattern may contain * wildcards
- * Exact mode: pattern has no wildcards
+ * Plain-text mode: pattern has no wildcards and matches any substring
  */
 export const matchesPattern = (text: string, pattern: string, isRegex = false): boolean => {
   if (isRegex) {
@@ -41,7 +41,7 @@ export const matchesPattern = (text: string, pattern: string, isRegex = false): 
   }
 
   if (!pattern.includes('*')) {
-    return text.toLowerCase() === pattern.toLowerCase();
+    return text.toLowerCase().includes(pattern.toLowerCase());
   }
   return wildcardToRegex(pattern).test(text);
 };

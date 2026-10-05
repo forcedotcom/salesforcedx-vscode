@@ -4,12 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import type { OrgMetadataCatalogEntry } from 'salesforcedx-vscode-services';
+import { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
 import * as vscode from 'vscode';
 import {
   MetadataTypeTreeProvider,
   passesTypeFilter,
   applyViewModeChildFilter,
+  filterTypesWithCachedComponents,
   suppressInactiveOrgOperation
 } from '../../src/tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from '../../src/tree/orgBrowserNode';
@@ -27,9 +31,9 @@ describe('passesTypeFilter', () => {
     expect(passesTypeFilter(typeNode('ApexTrigger'), provider)).toBe(true);
   });
 
-  it('exact-matches (case-insensitive) without wildcards', () => {
+  it('matches type names by case-insensitive substring without wildcards', () => {
     const provider = new MetadataTypeTreeProvider();
-    provider.setTextFilter('ApexClass', undefined);
+    provider.setTextFilter('apexc', undefined);
     expect(passesTypeFilter(typeNode('ApexClass'), provider)).toBe(true);
     expect(passesTypeFilter(typeNode('ApexTrigger'), provider)).toBe(false);
     expect(passesTypeFilter(typeNode('CustomObject'), provider)).toBe(false);
@@ -155,12 +159,23 @@ describe('applyViewModeChildFilter with component filter', () => {
     expect(applyViewModeChildFilter(nodes, provider)).toEqual(nodes);
   });
 
-  it('exact-matches componentName case-insensitively when componentFilter is set without wildcards', () => {
+  it('matches componentName by case-insensitive substring without wildcards', () => {
     const provider = new MetadataTypeTreeProvider();
-    provider.setTextFilter('ApexClass', 'FooBar');
+    provider.setTextFilter('ApexClass', 'oObA');
     const foo = componentNode('ApexClass', 'FooBar');
     const baz = componentNode('ApexClass', 'Baz');
     expect(applyViewModeChildFilter([foo, baz], provider)).toEqual([foo]);
+  });
+
+  it.each([
+    ['apexc', false],
+    ['Apex*', false],
+    ['^apexc', true]
+  ])('keeps all components when global pattern %s matches the metadata type name', (pattern, isRegex) => {
+    const provider = new MetadataTypeTreeProvider();
+    provider.setTextFilter(undefined, pattern, false, isRegex);
+    const nodes = [componentNode('ApexClass', 'FooBar'), componentNode('ApexClass', 'Baz')];
+    expect(applyViewModeChildFilter(nodes, provider)).toEqual(nodes);
   });
 
   it('wildcard-matches componentName when componentFilter contains *', () => {
@@ -176,5 +191,37 @@ describe('applyViewModeChildFilter with component filter', () => {
     provider.setTextFilter('ApexClass', '');
     const nodes = [componentNode('ApexClass', 'FooBar'), componentNode('ApexClass', 'Baz')];
     expect(applyViewModeChildFilter(nodes, provider)).toEqual(nodes);
+  });
+});
+
+describe('broad component search after cache invalidation', () => {
+  it('reloads a browsed type when the catalog cache no longer has its component', async () => {
+    const provider = new MetadataTypeTreeProvider();
+    provider.setTextFilter(undefined, 'broker');
+    const lightningBundles = typeNode('LightningComponentBundle');
+    const component = {
+      kind: 'component',
+      reference: { type: 'LightningComponentBundle', fullName: 'broker' }
+    } as OrgMetadataCatalogEntry;
+    const getChildren = jest.fn((_reference: unknown, options: { consistency?: string }) =>
+      Effect.succeed(options.consistency === 'cache-only' ? [] : [component])
+    );
+    const api = {
+      services: { OrgMetadataCatalog }
+    } as unknown as SalesforceVSCodeServicesApi;
+    const service = { getServicesApi: Effect.succeed(api) };
+    const search = (orgId: string) =>
+      Effect.runPromise(
+        filterTypesWithCachedComponents([lightningBundles], provider, orgId).pipe(
+          Effect.provideService(ExtensionProviderService, service),
+          Effect.provideService(OrgMetadataCatalog, { getChildren } as unknown as OrgMetadataCatalog)
+        )
+      );
+
+    expect(await search('org-one')).toEqual([]);
+    provider.markTypeBrowsed('org-one', 'LightningComponentBundle');
+    expect(await search('org-one')).toEqual([lightningBundles]);
+    expect(await search('org-two')).toEqual([]);
+    expect(getChildren).toHaveBeenNthCalledWith(2, { type: 'LightningComponentBundle' }, {});
   });
 });

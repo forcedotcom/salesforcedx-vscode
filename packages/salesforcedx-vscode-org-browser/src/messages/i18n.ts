@@ -11,6 +11,6 @@ export const messages = {
   no_button: 'No',
   retrieve_metadata_text: 'Retrieve Metadata',
   command_succeeded_text: '%s succeeded.',
-  filter_text_placeholder: 'Filter: Apex*, *:*Test* (wildcards) or /Apex.*/:/.*(Test|Spec)/ (regex), empty to clear',
+  filter_text_placeholder: 'Search names (Broker or Apex*), or filter types (Apex*:); empty to clear',
   filter_fetch_confirmation: '%s metadata types matched. Fetch components for all of them?'
 } as const;

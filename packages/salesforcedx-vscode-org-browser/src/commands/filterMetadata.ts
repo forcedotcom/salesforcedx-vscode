@@ -10,6 +10,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Deferred from 'effect/Deferred';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Fiber from 'effect/Fiber';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Queue from 'effect/Queue';
 import * as Runtime from 'effect/Runtime';
@@ -26,7 +27,7 @@ const parsePattern = (input: string): { pattern: string; isRegex: boolean } => {
   return { pattern: input, isRegex: false };
 };
 
-const parseFilterValue = (
+export const parseFilterValue = (
   value: string
 ): {
   typeFilter: string | undefined;
@@ -45,7 +46,7 @@ const parseFilterValue = (
   const colonIdx = value.indexOf(':');
   if (colonIdx === -1) {
     const { pattern, isRegex } = parsePattern(value.trim());
-    return { typeFilter: pattern, componentFilter: undefined, typeIsRegex: isRegex, componentIsRegex: false };
+    return { typeFilter: undefined, componentFilter: pattern, typeIsRegex: false, componentIsRegex: isRegex };
   }
 
   const typeParsed = parsePattern(value.substring(0, colonIdx).trim());
@@ -66,15 +67,13 @@ export const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')
   const previousComponentFilter = treeProvider.componentFilter;
   const previousTypeIsRegex = treeProvider.typeIsRegex;
   const previousComponentIsRegex = treeProvider.componentIsRegex;
+  const previousUserApprovedBroadFetch = treeProvider.userApprovedBroadFetch;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const orgMetadataCatalog = yield* api.services.OrgMetadataCatalog;
   const runtime = yield* Effect.runtime();
   const run = Runtime.runFork(runtime);
   const queue = yield* Queue.unbounded<string>();
   const deferred = yield* Deferred.make<void>();
-  // VS Code may hide the picker immediately after acceptance, so this must update synchronously.
-  // eslint-disable-next-line functional/no-let
-  let accepted = false;
 
   const picker = vscode.window.createQuickPick<vscode.QuickPickItem>();
   picker.placeholder = nls.localize('filter_text_placeholder');
@@ -87,85 +86,75 @@ export const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')
       : previousTypeIsRegex
         ? `/${previousTypeFilter}/`
         : previousTypeFilter
-    : '';
+    : previousComponentIsRegex
+      ? `/${previousComponentFilter ?? ''}/`
+      : (previousComponentFilter ?? '');
+  const initialValue = picker.value;
   picker.items = [];
 
   const updateFilterContext = (active: boolean) =>
     Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.textFilterActive', active));
 
-  const commit = (value: string) =>
+  const applyFilter = (filter: ReturnType<typeof parseFilterValue>, userApprovedBroadFetch = false) =>
     Effect.gen(function* () {
-      const { typeFilter, componentFilter, typeIsRegex, componentIsRegex } = parseFilterValue(value);
-      const userApprovedBroadFetch =
-        componentFilter && componentFilter !== '' && typeFilter
-          ? yield* Effect.gen(function* () {
-              const types = yield* orgMetadataCatalog.getChildren();
-              const matchedCount = types.filter(
-                entry =>
-                  entry.kind === 'type' &&
-                  entry.reference.type &&
-                  matchesPattern(entry.reference.type, typeFilter, typeIsRegex)
-              ).length;
-              if (matchedCount <= MAX_TYPES_FOR_COMPONENT_PREFETCH) return false;
-              return yield* Effect.promise(
-                async () =>
-                  (await vscode.window.showInformationMessage(
-                    nls.localize('filter_fetch_confirmation', matchedCount.toString()),
-                    nls.localize('yes_button'),
-                    nls.localize('no_button')
-                  )) === nls.localize('yes_button')
-              );
-            })
-          : false;
-
+      const { typeFilter, componentFilter, typeIsRegex, componentIsRegex } = filter;
       treeProvider.setTextFilter(typeFilter, componentFilter, typeIsRegex, componentIsRegex, userApprovedBroadFetch);
-      yield* Effect.all(
-        [
-          Effect.promise(() => context.workspaceState.update('orgBrowser.typeFilter', typeFilter)),
-          Effect.promise(() => context.workspaceState.update('orgBrowser.componentFilter', componentFilter)),
-          Effect.promise(() => context.workspaceState.update('orgBrowser.typeIsRegex', typeIsRegex)),
-          Effect.promise(() => context.workspaceState.update('orgBrowser.componentIsRegex', componentIsRegex)),
-          updateFilterContext(isNotUndefined(typeFilter) || isNotUndefined(componentFilter))
-        ],
-        { concurrency: 'unbounded' }
-      );
-      picker.dispose();
-      yield* Deferred.succeed(deferred, undefined);
+      yield* Effect.promise(() => context.workspaceState.update('orgBrowser.typeFilter', typeFilter));
+      yield* Effect.promise(() => context.workspaceState.update('orgBrowser.componentFilter', componentFilter));
+      yield* Effect.promise(() => context.workspaceState.update('orgBrowser.typeIsRegex', typeIsRegex));
+      yield* Effect.promise(() => context.workspaceState.update('orgBrowser.componentIsRegex', componentIsRegex));
+      yield* updateFilterContext(isNotUndefined(typeFilter) || isNotUndefined(componentFilter));
     });
 
+  const liveFilterFiber = yield* Stream.fromQueue(queue).pipe(
+    Stream.debounce(Duration.millis(150)),
+    Stream.runForEach(value => applyFilter(parseFilterValue(value)).pipe(Effect.uninterruptible)),
+    Effect.fork
+  );
+
   picker.onDidChangeValue(value => run(Queue.offer(queue, value)));
-  picker.onDidAccept(() => {
-    accepted = true;
-    run(commit(picker.value));
-  });
+  picker.onDidAccept(() => picker.hide());
   picker.onDidHide(() =>
     run(
       Effect.gen(function* () {
-        if (!accepted) {
-          treeProvider.setTextFilter(
-            previousTypeFilter,
-            previousComponentFilter,
-            previousTypeIsRegex,
-            previousComponentIsRegex
-          );
-          yield* updateFilterContext(isNotUndefined(previousTypeFilter) || isNotUndefined(previousComponentFilter));
-        }
-        picker.dispose();
-        yield* Deferred.succeed(deferred, undefined);
-      })
-    )
-  );
+        yield* Fiber.interrupt(liveFilterFiber);
+        const filter = parseFilterValue(picker.value);
+        const unchanged = picker.value === initialValue;
+        yield* applyFilter(filter, unchanged && previousUserApprovedBroadFetch);
 
-  yield* Stream.fromQueue(queue).pipe(
-    Stream.debounce(Duration.millis(150)),
-    Stream.runForEach(value =>
-      Effect.gen(function* () {
-        const { typeFilter, componentFilter, typeIsRegex, componentIsRegex } = parseFilterValue(value);
-        treeProvider.setTextFilter(typeFilter, componentFilter, typeIsRegex, componentIsRegex);
-        yield* updateFilterContext(isNotUndefined(typeFilter) || isNotUndefined(componentFilter));
-      })
-    ),
-    Effect.fork
+        if (!unchanged && filter.componentFilter) {
+          const types = yield* orgMetadataCatalog.getChildren();
+          const matchedCount = types.filter(
+            entry =>
+              entry.kind === 'type' &&
+              entry.reference.type &&
+              (!filter.typeFilter || matchesPattern(entry.reference.type, filter.typeFilter, filter.typeIsRegex))
+          ).length;
+          if (matchedCount > MAX_TYPES_FOR_COMPONENT_PREFETCH) {
+            const approved = yield* Effect.promise(
+              async () =>
+                (await vscode.window.showInformationMessage(
+                  nls.localize('filter_fetch_confirmation', matchedCount.toString()),
+                  nls.localize('yes_button'),
+                  nls.localize('no_button')
+                )) === nls.localize('yes_button')
+            );
+            if (approved)
+              treeProvider.setTextFilter(
+                filter.typeFilter,
+                filter.componentFilter,
+                filter.typeIsRegex,
+                filter.componentIsRegex,
+                true
+              );
+          }
+        }
+      }).pipe(
+        Effect.ensuring(
+          Effect.sync(() => picker.dispose()).pipe(Effect.ensuring(Deferred.succeed(deferred, undefined)))
+        )
+      )
+    )
   );
 
   picker.show();
