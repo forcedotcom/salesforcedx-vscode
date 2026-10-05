@@ -7,7 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { extractAnonApexSource, type HeapDumpResult } from '@salesforce/salesforcedx-apex-replay-debugger';
-import { errorToString } from '@salesforce/salesforcedx-utils-vscode';
+import { errorToString } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isString, isUndefined } from 'effect/Predicate';
