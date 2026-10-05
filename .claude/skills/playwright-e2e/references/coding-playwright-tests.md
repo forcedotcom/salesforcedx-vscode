@@ -85,7 +85,7 @@ await page.keyboard.press('Escape');
 - Prefer `aria` (getByRole) over css selectors
 - `expect` assertions need clear error messages. Import `expect` from playwright
 - `playwright/expect-expect` error (`eslint.config.mjs`) — `test()`: `assert*`/`expect*`/`verify*` or a named helper. outer-helper `expect`: ignored
-- `playwright/no-conditional-expect` error — `expect` outside `if` / `catch` / `?:` / `&&` / `||` / `??` / `switch`, off `.catch()`. assert outcome
+- `playwright/no-conditional-expect` error — `expect` outside conditionals (`if`, `catch`, `?:`, `&&`, `||`, `??`, `switch`). When branching on runtime conditions (e.g., `isContainer`), split into separate helpers: `const verifyDesktop = async () => { await expect(…) }` and `const verifyContainer = async () => { await expect(…) }`, then dispatch via `await (isContainer ? verifyContainer : verifyDesktop)()`. Keeps assertions unconditional while allowing environment-specific logic.
 - Fail early, avoid fallbacks/retries
 - Reusable locators belong in `locators.ts` - check before creating new ones
 
