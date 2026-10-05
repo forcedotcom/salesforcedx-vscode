@@ -1,6 +1,7 @@
 ---
 name: manual-test-plan-judgment
 description: Manual test plan JSON for one PR. Only caller is the manual test plan script.
+review: never
 disable-model-invocation: true
 ---
 
