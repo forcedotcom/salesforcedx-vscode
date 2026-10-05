@@ -84,7 +84,7 @@ test('Deploy Source Path: deploys via command palette (active editor)', async ({
   });
 
   await test.step('Command palette (active editor)', async () => {
-    if (isContainer) {
+    const prepareActiveEditorContainer = async (): Promise<void> => {
       // Use the seeded fixture class rather than mutating the shared workbench with a new one.
       // The Explorer tree open can transiently flake on the shared workbench (virtual scrolling /
       // focus), so retry the open+focus as a unit.
@@ -95,7 +95,8 @@ test('Deploy Source Path: deploys via command palette (active editor)', async ({
         await editor.click();
       }).toPass({ timeout: 90_000, intervals: [1000, 2000, 5000] });
       await verifyCommandExists(page, packageNls.deploy_this_source_text, 60_000);
-    } else {
+    };
+    const prepareActiveEditorDesktop = async (): Promise<void> => {
       const className = `DeploySourcePathTest${Date.now()}`;
       await createApexClass(page, className);
       await saveScreenshot(page, 'step1.after-create-class.png');
@@ -103,7 +104,8 @@ test('Deploy Source Path: deploys via command palette (active editor)', async ({
       // Verify local count increments to 1
       await statusBarPage.waitForCounts({ local: 1 }, 60_000);
       await saveScreenshot(page, 'step1.after-local-count-1.png');
-    }
+    };
+    await (isContainer ? prepareActiveEditorContainer : prepareActiveEditorDesktop)();
 
     // Execute via command palette
     await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);

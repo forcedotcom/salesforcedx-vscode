@@ -15,7 +15,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "67.25.1",
+  "version": "67.27.1",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -57,8 +57,8 @@
     "test:compile": "wireit",
     "test:container": "wireit",
     "test:desktop": "wireit",
-    "test:desktop:debug": "npm run test:desktop -- --debug",
-    "test:desktop:ui": "VSCODE_DESKTOP=1 npm run test:desktop -- --headed",
+    "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-lightning test:desktop --debug",
+    "test:desktop:ui": "VSCODE_DESKTOP=1 pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-lightning test:desktop --headed",
     "vscode:bundle": "wireit",
     "vscode:package:legacy": "wireit",
     "vscode:prepublish": "npm prune --production",

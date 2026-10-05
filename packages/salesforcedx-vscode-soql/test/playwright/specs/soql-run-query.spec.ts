@@ -47,6 +47,8 @@ test.beforeEach(async ({ page }) => {
 });
 
 test('SOQL Run Query: code lens, current file, selected text via command palette', async ({ page }) => {
+  // Shared across desktop/web/container (isContainer branch below); container's browser round-trip
+  // needs more budget than desktop alone, matching the sibling soql-query-plan.spec.ts timeout.
   test.setTimeout(5 * 60 * 1000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);

@@ -122,7 +122,7 @@ export default [
     }
   },
   {
-    files: ['**/*.ts'],
+    files: ['**/*.ts', '**/*.mts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -177,7 +177,10 @@ export default [
         }
       ],
       'local/no-effect-fn-wrapper': 'error',
+      'local/no-nested-effect-gen-catch-tags': 'error',
+      'local/no-nested-effect-ternary': 'error',
       'local/require-effect-fn-span-name': 'error',
+      'local/no-raw-duration': 'error',
       'local/no-duplicate-i18n-values': 'error',
       'local/no-unused-i18n-messages': 'error',
       'local/no-vscode-message-literals': 'error',
@@ -569,6 +572,7 @@ export default [
     // effect/Predicate, so applying it there would point at an unimportable API.
     files: [
       'packages/effect-ext-utils/**/*.ts',
+      'packages/effect-octokit/**/*.ts',
       'packages/salesforcedx-lightning-lsp-common/**/*.ts',
       'packages/salesforcedx-utils-vscode/**/*.ts',
       'packages/salesforcedx-vscode-apex/**/*.ts',
@@ -625,6 +629,7 @@ export default [
       'packages/soql-model/test/**/*',
       'packages/salesforcedx-apex/test/**/*',
       'packages/effect-ext-utils/test/**/*',
+      'packages/effect-octokit/test/**/*',
       'packages/playwright-vscode-ext/**/*.ts'
     ],
     ignores: ['**/locators.ts'],
@@ -754,6 +759,7 @@ export default [
       'packages/salesforcedx-vscode-lightning/src/commands/**/*.ts',
       'packages/drivable-vscode/**/*.ts',
       'packages/effect-ext-utils/**/*.ts',
+      'packages/effect-octokit/**/*.ts',
       'packages/soql-builder-ui/src/domain.ts',
       'packages/soql-builder-ui/src/effect/**/*.ts',
       'packages/soql-builder-ui/src/testing/**/*.ts',
@@ -773,6 +779,7 @@ export default [
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       'local/no-explicit-effect-return-type': 'error',
       'local/no-effect-service-accessor-calls': 'error',
+      'local/no-effect-service-promise-return': 'error',
       'local/no-successive-annotate-current-span': 'error',
 
       // Effect code should always handle promises properly
@@ -831,7 +838,7 @@ export default [
   },
   {
     // consistent-type-imports for effect-ext-utils (inline to avoid no-duplicate-imports)
-    files: ['packages/effect-ext-utils/**/*.ts'],
+    files: ['packages/effect-ext-utils/**/*.ts', 'packages/effect-octokit/**/*.ts'],
     rules: {
       '@typescript-eslint/consistent-type-imports': [
         'error',
@@ -870,6 +877,16 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-vscode-apex-debugger (inline to avoid no-duplicate-imports; W-23371053)
+    files: ['packages/salesforcedx-vscode-apex-debugger/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // consistent-type-imports for playwright-vscode-ext (inline to avoid no-duplicate-imports; W-23370906)
     files: ['packages/playwright-vscode-ext/**/*.ts'],
     rules: {
@@ -880,13 +897,29 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-aura-language-server (inline to avoid no-duplicate-imports; W-23371054)
+    files: ['packages/salesforcedx-aura-language-server/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // class-methods-use-this for packages not yet using Effect
     // (apex-oas + apex-testing omitted: covered by the Effect-services block above, which sets both rules)
-    files: ['packages/salesforcedx-vscode-soql/**/*.ts', 'packages/soql-common/**/*.ts', 'packages/soql-model/**/*.ts'],
+    files: [
+      'packages/salesforcedx-vscode-apex/**/*.ts',
+      'packages/salesforcedx-vscode-soql/**/*.ts',
+      'packages/soql-common/**/*.ts',
+      'packages/soql-model/**/*.ts'
+    ],
     rules: {
       'class-methods-use-this': 'error',
       'local/no-explicit-effect-return-type': 'error',
       'local/no-effect-service-accessor-calls': 'error',
+      'local/no-effect-service-promise-return': 'error',
       'local/no-successive-annotate-current-span': 'error'
     }
   },
@@ -929,6 +962,14 @@ export default [
     ignores: ['packages/salesforcedx-vscode-services/**/*.ts'],
     rules: {
       'local/no-direct-services-imports': 'error'
+    }
+  },
+  {
+    // vscode-apex is not in the Effect-services block. Only no-throw-statements.
+    // Before the test override so packages/**/test/**/*.ts stays off.
+    files: ['packages/salesforcedx-vscode-apex/**/*.ts'],
+    rules: {
+      'functional/no-throw-statements': 'error'
     }
   },
   {
@@ -986,9 +1027,15 @@ export default [
     }
   },
   {
-    files: ['scripts/validateActions.ts'],
+    files: ['scripts/validateActions.ts', 'scripts/changelogBody/changelogBody.mts', 'scripts/manualTestPlan/**/*.mts'],
     rules: {
       'no-restricted-imports': 'off'
+    }
+  },
+  {
+    files: ['scripts/manualTestPlan/test/**/*.mts'],
+    rules: {
+      '@typescript-eslint/no-floating-promises': 'off'
     }
   },
   // ESLint plugin rules for eslint-local-rules package only
@@ -1081,7 +1128,30 @@ export default [
     files: ['packages/salesforcedx**/test/playwright/**/*.ts', 'packages/playwright-vscode-ext/**/*.ts'],
     plugins: { playwright: eslintPluginPlaywright },
     rules: {
-      'playwright/no-force-option': 'error'
+      'playwright/no-force-option': 'error',
+      'playwright/no-conditional-expect': 'error',
+      // Helpers that assert or throw outside test() and do not match the prefix pattern.
+      'playwright/expect-expect': [
+        'error',
+        {
+          assertFunctionPatterns: ['^(assert|expect|verify)'],
+          assertFunctionNames: [
+            'continueDebugSession',
+            'createAuraTemplate',
+            'createVisualforceTemplate',
+            'runRefreshAndVerify',
+            'triggerLspRestart',
+            'upsertSettings',
+            'waitForEsrFile',
+            'waitForItem',
+            'waitForJestResults',
+            'waitForLwcLspReady',
+            'waitForNotification',
+            'waitForOutputChannelText',
+            'waitForTab'
+          ]
+        }
+      ]
     }
   },
   eslintConfigPrettier

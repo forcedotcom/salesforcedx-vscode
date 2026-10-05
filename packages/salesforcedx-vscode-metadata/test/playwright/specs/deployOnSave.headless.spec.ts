@@ -75,7 +75,7 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
 
     // Enable deploy-on-save using settings UI
     // Note: useMetadataExtensionCommands is set in desktop fixtures to ensure deploy-on-save service processes saves
-    if (isContainer) {
+    const enableDeployOnSaveContainer = async (): Promise<void> => {
       // push-or-deploy-on-save.enabled is the ONLY setting the deploy-on-save service reads: its save
       // stream filters on getDeployOnSaveEnabled() per save (deployOnSaveService.ts), and the metadata
       // extension registers that service unconditionally at activation. The service is created once at
@@ -98,7 +98,8 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
           [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_IGNORE_CONFLICTS}`]: 'true'
         });
       }).toPass({ timeout: 90_000, intervals: [1000, 2000, 5000] });
-    } else {
+    };
+    const enableDeployOnSaveDesktop = async (): Promise<void> => {
       await upsertSettings(page, {
         [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'true'
       });
@@ -107,11 +108,12 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
       await ensureOutputPanelOpen(page);
       await selectOutputChannel(page, 'Salesforce Metadata');
       await waitForOutputChannelText(page, { expectedText: 'Deploy on save service initialized', timeout: 30_000 });
-    }
+    };
+    await (isContainer ? enableDeployOnSaveContainer : enableDeployOnSaveDesktop)();
   });
 
   await test.step('edit class and save to trigger deploy', async () => {
-    if (isContainer) {
+    const editAndSaveContainer = async (): Promise<void> => {
       // The Explorer tree open can transiently flake on the shared workbench (virtual scrolling /
       // focus), so retry the open+focus as a unit before editing.
       await expect(async () => {
@@ -136,12 +138,14 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
       await clearOutputChannel(page);
       await editOpenFile(page, `// Deploy on save container test ${Date.now()}`);
       await saveScreenshot(page, 'deployOnSave.02-after-edit-and-save.png');
-    } else {
+    };
+    const editAndSaveDesktop = async (): Promise<void> => {
       const className = `DeployOnSaveTest${Date.now()}`;
       await createApexClass(page, className);
       await editOpenFile(page, 'Deploy on save test comment');
       await saveScreenshot(page, 'after-edit-and-save.png');
-    }
+    };
+    await (isContainer ? editAndSaveContainer : editAndSaveDesktop)();
   });
 
   await test.step('verify deploy triggers and completes', async () => {

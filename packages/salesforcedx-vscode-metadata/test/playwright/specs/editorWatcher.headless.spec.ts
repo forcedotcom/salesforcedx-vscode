@@ -79,7 +79,7 @@ test('EditorWatcher: deploy commands show/hide based on active editor location',
   });
 
   await test.step('open in-package editor', async () => {
-    if (isContainer) {
+    const openInPackageEditorContainer = async (): Promise<void> => {
       // Use the seeded fixture class rather than mutating the shared workbench with a new one.
       // The Explorer tree open can transiently flake on the shared workbench (virtual scrolling /
       // focus), so retry the open as a unit.
@@ -89,14 +89,16 @@ test('EditorWatcher: deploy commands show/hide based on active editor location',
         await expect(editor).toBeVisible();
         await expect(editor).toHaveAttribute('data-uri', /PagedResult\.cls/);
       }).toPass({ timeout: 90_000, intervals: [1000, 2000, 5000] });
-    } else {
+    };
+    const openInPackageEditorDesktop = async (): Promise<void> => {
       className = `EditorWatcherTest${Date.now()}`;
       await createApexClass(page, className);
 
       const editor = page.locator(EDITOR_WITH_URI).first();
       await expect(editor).toBeVisible();
       await expect(editor).toHaveAttribute('data-uri', new RegExp(`${className}\\.cls`));
-    }
+    };
+    await (isContainer ? openInPackageEditorContainer : openInPackageEditorDesktop)();
   });
 
   await test.step('verify deploy/retrieve commands are in command palette', async () => {

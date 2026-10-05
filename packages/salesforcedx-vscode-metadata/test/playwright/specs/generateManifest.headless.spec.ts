@@ -80,7 +80,7 @@ test('Generate Manifest: generates via context menu entry points', async ({ page
   });
 
   await test.step('1. Editor context menu', async () => {
-    if (isContainer) {
+    const prepareManifestEditorContextMenuContainer = async (): Promise<void> => {
       // Use the seeded fixture class rather than mutating the shared workbench with a new one.
       // The Explorer tree open can transiently flake on the shared workbench (virtual scrolling /
       // focus), so retry the open+focus as a unit.
@@ -102,7 +102,8 @@ test('Generate Manifest: generates via context menu entry points', async ({ page
         await quickInput.waitFor({ state: 'attached', timeout: 10_000 });
         await quickInput.getByText(messages.manifest_input_save_prompt).waitFor({ state: 'attached', timeout: 10_000 });
       }).toPass({ timeout: 60_000, intervals: [2000, 5000] });
-    } else {
+    };
+    const prepareManifestEditorContextMenuDesktop = async (): Promise<void> => {
       // Create apex class (opens editor automatically)
       className = `GenerateManifestTest${Date.now()}`;
       await createApexClass(page, className);
@@ -117,7 +118,8 @@ test('Generate Manifest: generates via context menu entry points', async ({ page
       await quickInput.waitFor({ state: 'attached', timeout: 10_000 });
       await quickInput.getByText(messages.manifest_input_save_prompt).waitFor({ state: 'attached', timeout: 10_000 });
       await saveScreenshot(page, 'step1.manifest-prompt-visible.png');
-    }
+    };
+    await (isContainer ? prepareManifestEditorContextMenuContainer : prepareManifestEditorContextMenuDesktop)();
 
     if (isContainer) {
       await page.keyboard.type(editorManifestBase);

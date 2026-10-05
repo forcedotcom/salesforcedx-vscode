@@ -637,9 +637,9 @@ const main = async () => {
 Salesforce Metadata Scraper
 
 Usage:
-  npm run scrape:all:pages                          # Headless mode
-  npm run scrape:all:pages -- --visible             # Visible browser (for debugging)
-  npm run scrape:all:pages -- --output file.json    # Custom output
+  pnpm scrape:all:pages                       # Headless mode
+  pnpm scrape:all:pages --visible             # Visible browser (for debugging)
+  pnpm scrape:all:pages --output file.json    # Custom output
 
 Options:
   --visible        Run with visible browser (useful for debugging)
@@ -664,9 +664,9 @@ Work Distribution:
   This maximizes throughput and eliminates idle time.
 
 Examples:
-  NUM_BROWSERS=5 BATCH_SIZE=20 npm run scrape:all:pages     # 100 total workers (5 × 20)
-  NUM_BROWSERS=10 BATCH_SIZE=10 npm run scrape:all:pages    # 100 total workers (10 × 10)
-  NUM_BROWSERS=1 BATCH_SIZE=50 npm run scrape:all:pages     # 50 workers in single browser
+  NUM_BROWSERS=5 BATCH_SIZE=20 pnpm scrape:all:pages     # 100 total workers (5 × 20)
+  NUM_BROWSERS=10 BATCH_SIZE=10 pnpm scrape:all:pages    # 100 total workers (10 × 10)
+  NUM_BROWSERS=1 BATCH_SIZE=50 pnpm scrape:all:pages     # 50 workers in single browser
     `);
     return;
   }

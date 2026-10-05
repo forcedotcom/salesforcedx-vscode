@@ -93,7 +93,7 @@ test('Retrieve In Manifest: retrieves via all entry points', async ({ page }) =>
     }
   });
 
-  if (isContainer) {
+  const prepareManifestContainer = async (): Promise<void> => {
     await test.step('deploy the fixture class so it exists in the org to retrieve', async () => {
       // A prior spec may have left a different sidebar view (e.g. Search) focused; the Files Explorer
       // tree needs to be the active view before locating items in it.
@@ -134,7 +134,8 @@ test('Retrieve In Manifest: retrieves via all entry points', async ({ page }) =>
       await manifestEditor.waitFor({ state: 'visible', timeout: 15_000 });
       await saveScreenshot(page, 'retrieveInManifest.03-manifest.png');
     });
-  } else {
+  };
+  const prepareManifestDesktop = async (): Promise<void> => {
     await test.step('create apex class', async () => {
       // Create apex class (opens editor automatically)
       className = `RetrieveManifestTest${Date.now()}`;
@@ -188,7 +189,8 @@ test('Retrieve In Manifest: retrieves via all entry points', async ({ page }) =>
         throw new Error(`Deploy failed with error notification: ${errorText}`);
       }
     });
-  }
+  };
+  await (isContainer ? prepareManifestContainer : prepareManifestDesktop)();
 
   await test.step('1. Editor context menu', async () => {
     if (isContainer) {

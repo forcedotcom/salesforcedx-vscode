@@ -83,7 +83,7 @@ describe('metadata XML support — showSchemaDocumentationType suppression', () 
         ExtensionContextService,
         new ExtensionContextService({ getContext: Effect.succeed(extensionContext) } as never)
       ),
-      Layer.succeed(SettingsService, new SettingsService({ getValue, setValue } as never))
+      Layer.succeed(SettingsService, new SettingsService({ getValue, getValueOrElse: getValue, setValue } as never))
     );
 
     await Effect.runPromise(initializeMetadataSupport().pipe(Effect.provide(layer)));

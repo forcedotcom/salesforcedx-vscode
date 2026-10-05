@@ -50,14 +50,15 @@ test('New LWC bundle updates .sfdx/indexes/lwc/custom-components.json without re
   await test.step('custom-components.json lists the new module path', async () => {
     await openSfdxCustomComponentsJson(page);
     const posix = `lwc/${bundleCamel}/${bundleCamel}.js`;
-    if (isContainer) {
+    const assertCustomComponentsIndexContainer = async (): Promise<void> => {
       // The container is Linux, so the index stores a posix module path. Search the full editor model via
       // the Find widget rather than `.view-lines` textContent: the shared workbench accumulates many bundles,
       // so this index file is large and Monaco virtualizes the viewport, keeping the new entry off-screen.
       // Pass `openSfdxCustomComponentsJson` as the reopen hook: the LSP rewrites the index asynchronously
       // after bundle creation, so each poll attempt reloads the file from disk until the new entry lands.
       await assertOpenEditorContainsText(page, posix, openSfdxCustomComponentsJson);
-    } else {
+    };
+    const assertCustomComponentsIndexDesktop = async (): Promise<void> => {
       // Desktop CI can run on Windows, where the index stores a backslash module path instead.
       const editor = page.locator(`${EDITOR_WITH_URI}[data-uri*="custom-components.json"]`);
       const winish = `lwc\\${bundleCamel}\\${bundleCamel}.js`;
@@ -65,7 +66,8 @@ test('New LWC bundle updates .sfdx/indexes/lwc/custom-components.json without re
         const text = (await editor.locator('.view-lines').textContent()) ?? '';
         expect(text.includes(posix) || text.includes(winish)).toBe(true);
       }).toPass({ timeout: 90_000 });
-    }
+    };
+    await (isContainer ? assertCustomComponentsIndexContainer : assertCustomComponentsIndexDesktop)();
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

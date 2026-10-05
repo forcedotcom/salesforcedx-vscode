@@ -12,6 +12,7 @@ import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
+import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as PubSub from 'effect/PubSub';
 import * as Queue from 'effect/Queue';
@@ -32,6 +33,7 @@ import {
 import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
 import { MetadataRetrieveService } from '../../../src/core/metadataRetrieveService';
 import { ProjectService } from '../../../src/core/projectService';
+import { QueryService } from '../../../src/core/queryService';
 import { TransmogrifierService } from '../../../src/core/transmogrifierService';
 import { OrgId } from '../../../src/core/schemas/salesforceId';
 import type { SObject } from '../../../src/core/schemas/sObject';
@@ -125,19 +127,24 @@ const makeHarness = (options: HarnessOptions = {}) => {
 
   const describe = jest.fn(() => Effect.succeed([]));
   const listMetadata = jest.fn((xmlName: string, _folder?: string, _expectedOrgId?: string) =>
-    options.listMetadataError
-      ? setOrg(options.listMetadataError.observedOrgId ?? '00D000000000002').pipe(
-          Effect.andThen(options.listMetadataError)
+    Match.value({
+      error: options.listMetadataError,
+      failType: options.failListMetadataTypes?.includes(xmlName) === true
+    }).pipe(
+      Match.when({ error: Match.defined }, ({ error }) =>
+        setOrg(error.observedOrgId ?? '00D000000000002').pipe(Effect.andThen(error))
+      ),
+      Match.when({ failType: true }, () =>
+        Effect.fail(
+          new ListMetadataError({
+            cause: new Error(`listMetadata ${xmlName} failed`),
+            metadataType: xmlName,
+            message: `Failed to list metadata type ${xmlName}`
+          })
         )
-      : options.failListMetadataTypes?.includes(xmlName)
-        ? Effect.fail(
-            new ListMetadataError({
-              cause: new Error(`listMetadata ${xmlName} failed`),
-              metadataType: xmlName,
-              message: `Failed to list metadata type ${xmlName}`
-            })
-          )
-        : Effect.sleep('5 millis').pipe(Effect.as([...(metadataByType[xmlName] ?? [])]))
+      ),
+      Match.orElse(() => Effect.sleep('5 millis').pipe(Effect.as([...(metadataByType[xmlName] ?? [])])))
+    )
   );
   const listSObjects = jest.fn(() => Effect.succeed([...(options.sobjects ?? [])]));
   const describeCustomObject = jest.fn((apiName: string) =>
@@ -240,7 +247,7 @@ const makeHarness = (options: HarnessOptions = {}) => {
         return artifact;
       })
   );
-  const toolingQuery = jest.fn(async () => ({
+  const toolingQuery = jest.fn(async (_soql: string) => ({
     records: [{ Body: 'public class RemoteTest {}', LastModifiedDate: 'tooling-revision' }]
   }));
   const buildComponentSetFromSource = jest.fn(() =>
@@ -285,6 +292,15 @@ const makeHarness = (options: HarnessOptions = {}) => {
       getConnection,
       getConnectionForOrg
     } as unknown as InstanceType<typeof ConnectionService>),
+    Layer.succeed(QueryService, {
+      query: (queryOptions: { soql: string }) =>
+        Effect.promise(() => toolingQuery(queryOptions.soql)).pipe(
+          Effect.map(result => ({
+            totalSize: result.records.length,
+            records: Stream.fromIterable(result.records)
+          }))
+        )
+    } as unknown as InstanceType<typeof QueryService>),
     Layer.succeed(FsService, {
       readFile: (uri: URI) => Effect.succeed(shadowFiles.get(uri.toString()) ?? ''),
       readDirectoryWithTypes,

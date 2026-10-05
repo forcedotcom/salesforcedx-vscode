@@ -228,17 +228,19 @@ test('Debug Apex Tests: CodeLens and Test Explorer entry points', async ({ page 
   });
 
   await test.step('wait for CodeLens in test class', async () => {
-    if (isContainer) {
+    const openTestClassContainer = async (): Promise<void> => {
       // The desktop "Indexing complete" status-bar button never renders in the code-server image, so
       // gate on the real indexing signal instead: the test class' CodeLens only appears once the LS
       // has indexed it.
       await openFileByName(page, `${class1Test}.cls`);
-    } else {
+    };
+    const openTestClassDesktop = async (): Promise<void> => {
       // Apex LS must finish indexing before CodeLens appear; CI is slower
       const indexingComplete = page.getByRole('button', { name: /Indexing complete/ });
       await expect(indexingComplete).toBeVisible({ timeout: 120_000 });
       await openFileByName(page, `${class1Test}.cls`);
-    }
+    };
+    await (isContainer ? openTestClassContainer : openTestClassDesktop)();
     const codelens = page.locator('.codelens-decoration a').filter({ hasText: /Run Test|Debug Test/ });
     await expect(codelens.first()).toBeVisible({ timeout: isContainer ? 120_000 : 90_000 });
     await saveScreenshot(page, 'step.codelens-visible.png');

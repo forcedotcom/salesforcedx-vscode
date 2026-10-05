@@ -70,14 +70,16 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
 
     // Step 3: Select output directory (click first option instead of Enter)
     await waitForQuickInputFirstOption(page);
-    if (isContainer) {
+    const selectOutputDirectoryContainer = async (): Promise<void> => {
       // eslint-disable-next-line playwright/no-force-option -- quick-pick row re-renders on filter/highlight, invalidating the hover/actionability check
       await activeQuickInputWidget(page).getByRole('option').first().click({ force: true });
-    } else {
+    };
+    const selectOutputDirectoryDesktop = async (): Promise<void> => {
       const outputDirectory = activeQuickInputWidget(page).getByRole('option').first();
       await expect(outputDirectory).toBeVisible({ timeout: 10_000 });
       await outputDirectory.click();
-    }
+    };
+    await (isContainer ? selectOutputDirectoryContainer : selectOutputDirectoryDesktop)();
 
     // Step 4: Wait for editor to open with the new component
     await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 20_000 });

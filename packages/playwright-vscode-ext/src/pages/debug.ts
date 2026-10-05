@@ -141,9 +141,10 @@ export const continueDebugSession = async (page: Page, maxContinues = 2): Promis
     await page.locator(`${WORKBENCH} .editor-instance .view-lines`).first().click({ force: true });
     await page.keyboard.press('Escape');
     await page.keyboard.press('F5');
-    // Catch intentionally swallows rejection to detect debug session end (pre-existing pattern)
-    const sessionEnded = await expect(toolbar)
-      .not.toBeVisible({ timeout: 30_000 })
+    // waitFor (not expect) because this is a probe, not an assertion: not ending here just means
+    // another F5 is needed, not a test failure.
+    const sessionEnded = await toolbar
+      .waitFor({ state: 'hidden', timeout: 30_000 })
       .then(() => true)
       .catch(() => false);
     if (sessionEnded) break;
@@ -161,8 +162,7 @@ export const stopDebugSession = async (page: Page, timeout = 30_000): Promise<vo
   const toolbar = page.locator(DEBUG_TOOLBAR);
   if (await toolbar.isVisible().catch(() => false)) {
     await executeCommandWithCommandPalette(page, 'Debug: Stop').catch(() => {});
-    await expect(toolbar)
-      .not.toBeVisible({ timeout })
-      .catch(() => {});
+    // waitFor (not expect): best-effort teardown must never throw.
+    await toolbar.waitFor({ state: 'hidden', timeout }).catch(() => {});
   }
 };

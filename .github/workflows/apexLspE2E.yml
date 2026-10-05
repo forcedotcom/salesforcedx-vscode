@@ -20,26 +20,108 @@ on:
   push:
     branches-ignore: [ main, develop ]
     paths-ignore:
-      - '.claude/**'
-      - '.cursor/**'
-      - 'contributing/**'
-      - 'CONTRIBUTING.md'
-      - 'docs/**'
-      - 'CONTEXT.md'
-      - 'CONTEXT-MAP.md'
+      - CONTEXT.md
+      - CONTEXT-MAP.md
       - '**/CONTEXT.md'
-      - '**/docs/**/*.md'
-      - '**/README*'
-      - 'SECURITY*'
-      - 'CODE_OF_CONDUCT*'
-      - 'CHANGELOG*'
-      - '**/CHANGELOG*'
+      - 'docs/**.md'
+      - '**/docs/**.md'
+      - '.claude/**.md'
+      - 'plans/**.md'
+      - '.cursor/**.md'
 
 concurrency:
   group: ci-${{ github.ref }}-apexLspE2E
   cancel-in-progress: true
 
 jobs:
+  # Web runs the shared outline spec (*.desktop.spec.ts stays on the desktop job).
+  e2e-web:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
+        inputs.vscode_version != '' && inputs.vscode_version ||
+        vars.PLAYWRIGHT_VSCODE_VERSION }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Setup E2E
+        uses: ./.github/actions/setup-e2e
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+
+      # Try E2E tests first. On wireit cache hit, the command is skipped — we never need Playwright browsers.
+      # E2E_NO_RETRIES=1 disables Playwright retries in config so failures are fast on a cache miss.
+      - name: Try E2E tests
+        id: try-run
+        continue-on-error: true
+        timeout-minutes: 5
+        env:
+          CI: 1
+          E2E_NO_RETRIES: 1
+        run: pnpm --filter salesforcedx-vscode-apex test:web
+
+      - name: Kill process on port 3001
+        if: steps.try-run.outcome == 'failure'
+        run: lsof -ti :3001 | xargs --no-run-if-empty kill -9
+
+      - uses: ./.github/actions/cache-vscode-web
+        if: steps.try-run.outcome == 'failure'
+        with:
+          vscode-version: ${{ env.PLAYWRIGHT_VSCODE_VERSION }}
+
+      - name: Install Playwright browsers and OS deps
+        if: steps.try-run.outcome == 'failure'
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          max_attempts: 3
+          command: pnpm exec playwright install chromium --with-deps
+          retry_wait_seconds: 60
+
+      - name: Run Apex LSP E2E tests (web)
+        if: steps.try-run.outcome == 'failure'
+        id: parallel-run
+        continue-on-error: true
+        env:
+          CI: 1
+        run: pnpm --filter salesforcedx-vscode-apex test:web
+
+      - name: Retry failed tests (sequential)
+        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
+          'failure'
+        env:
+          CI: 1
+          PLAYWRIGHT_WORKERS: 1
+        run: pnpm --filter salesforcedx-vscode-apex test:web -- --last-failed
+
+      - name: Copy span files to test-results
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p packages/salesforcedx-vscode-apex/test-results/spans
+          cp -r ~/.sf/vscode-spans/. packages/salesforcedx-vscode-apex/test-results/spans/ 2>/dev/null || true
+
+      - name: Upload Playwright HTML report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-apex-web
+          path: packages/salesforcedx-vscode-apex/playwright-report
+          if-no-files-found: ignore
+          retention-days: 14
+
+      - name: Upload Playwright Test Results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-test-results-apex-web
+          path: packages/salesforcedx-vscode-apex/test-results
+          if-no-files-found: ignore
+          retention-days: 14
+
   e2e-desktop:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
@@ -82,7 +164,7 @@ jobs:
           CI: 1
           VSCODE_DESKTOP: 1
           E2E_NO_RETRIES: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-apex test:desktop
 
       # Only install Playwright on cache miss. apex LSP specs do not exercise an org, so no CLI/scratch-org setup is required.
       - name: Install Playwright browsers and OS deps
@@ -90,7 +172,7 @@ jobs:
         uses: salesforcecli/github-workflows/.github/actions/retry@main
         with:
           max_attempts: 3
-          command: npx playwright install chromium --with-deps
+          command: pnpm exec playwright install chromium --with-deps
           retry_wait_seconds: 60
 
       - name: Run Apex LSP E2E tests (parallel)
@@ -100,7 +182,7 @@ jobs:
         env:
           CI: 1
           VSCODE_DESKTOP: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-apex test:desktop
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -108,7 +190,7 @@ jobs:
         env:
           CI: 1
           VSCODE_DESKTOP: 1
-        run: ${{ matrix.test_runner_prefix }}npm run test:desktop -w salesforcedx-vscode-apex -- --last-failed
+        run: ${{ matrix.test_runner_prefix }}pnpm --filter salesforcedx-vscode-apex test:desktop -- --last-failed
 
       - name: Copy span files to test-results
         if: always()

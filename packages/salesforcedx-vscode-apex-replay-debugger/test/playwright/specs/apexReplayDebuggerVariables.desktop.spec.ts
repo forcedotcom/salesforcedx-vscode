@@ -100,7 +100,7 @@ test('Apex Replay Debugger Variables: nested related-object VARIABLES expand (no
     await saveScreenshot(page, 'setup.class-deployed.png');
   });
 
-  if (isContainer) {
+  const setupNestedExampleContainer = async (): Promise<void> => {
     // Drives the anon debug delegate directly: "Launch Apex Replay Debugger with Selected File" on a
     // `.apex` script execs the anon apex at Apex_code=Finest (full VARIABLE_ASSIGNMENT detail), writes
     // the log, and launches replay in one command — no manual trace-flag setup needed.
@@ -108,7 +108,8 @@ test('Apex Replay Debugger Variables: nested related-object VARIABLES expand (no
       await createAndOpenApexScript(page, { name: scriptName, content: `${className}.build();` });
       await saveScreenshot(page, 'setup.run-script-open.png');
     });
-  } else {
+  };
+  const setupNestedExampleDesktop = async (): Promise<void> => {
     await test.step('remove all debug levels so ReplayDebuggerLevels is auto-created', async () => {
       await removeAllDebugLevels(page);
     });
@@ -145,19 +146,22 @@ test('Apex Replay Debugger Variables: nested related-object VARIABLES expand (no
       await expect(logTab).toBeVisible({ timeout: 10_000 });
       await saveScreenshot(page, 'step.nested-exec-anon-done.png');
     });
-  }
+  };
+  await (isContainer ? setupNestedExampleContainer : setupNestedExampleDesktop)();
 
   await test.step('set breakpoint on the System.debug line in the class', async () => {
     await openFileByName(page, `${className}.cls`);
     const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${className}.cls"]`);
     await editor.waitFor({ state: 'visible', timeout: 15_000 });
-    if (isContainer) {
+    const waitForIndexingCompleteContainer = async (): Promise<void> => {
       // The breakpoint only BINDS (and replay pauses on it) once the Apex LS has indexed the class and
       // can supply its line-breakpoint typeRefs. On a cold code-server the LS is still indexing, so gate
       // on the Apex language-status "Indexing complete" button — it renders only while an Apex editor is
       // active (the .cls above is), which is why it must be waited on here, not after a deploy.
       await expect(page.getByRole('button', { name: /Indexing complete/ })).toBeVisible({ timeout: 120_000 });
-    }
+    };
+    const waitForIndexingCompleteDesktop = async (): Promise<void> => {};
+    await (isContainer ? waitForIndexingCompleteContainer : waitForIndexingCompleteDesktop)();
     const debugLine = editor.locator('.view-line').filter({ hasText: 'System.debug(c);' }).first();
     await expect(debugLine).toBeVisible({ timeout: 15_000 });
     await debugLine.click();
@@ -167,7 +171,7 @@ test('Apex Replay Debugger Variables: nested related-object VARIABLES expand (no
     await expect(breakpointGlyph.first()).toBeVisible({ timeout: 15_000 });
   });
 
-  if (isContainer) {
+  const launchReplayAndPauseContainer = async (): Promise<void> => {
     await test.step('launch replay via the anon script and pause at the breakpoint', async () => {
       await openFileByName(page, `${scriptName}.apex`);
       await executeCommandWithCommandPalette(page, packageNls.launch_apex_replay_debugger_with_selected_file as string);
@@ -181,7 +185,8 @@ test('Apex Replay Debugger Variables: nested related-object VARIABLES expand (no
       await expect(stackFrame.first()).toBeVisible({ timeout: 30_000 });
       await saveScreenshot(page, 'step.replay-paused.png');
     });
-  } else {
+  };
+  const launchReplayAndPauseDesktop = async (): Promise<void> => {
     await test.step('launch replay debugger with selected log file and pause at breakpoint', async () => {
       const logTab = page.locator('.tab').filter({ hasText: /\.log$/ });
       await expect(logTab).toBeVisible({ timeout: 10_000 });
@@ -197,7 +202,8 @@ test('Apex Replay Debugger Variables: nested related-object VARIABLES expand (no
       await expect(stackFrame.first()).toBeVisible({ timeout: 30_000 });
       await saveScreenshot(page, 'step.replay-paused.png');
     });
-  }
+  };
+  await (isContainer ? launchReplayAndPauseContainer : launchReplayAndPauseDesktop)();
 
   await test.step('assert nested local expands and renders no [object Object]', async () => {
     const variablesView = await openVariablesView(page);
@@ -206,17 +212,15 @@ test('Apex Replay Debugger Variables: nested related-object VARIABLES expand (no
     // The Contact local `c` carries the nested Account relationship.
     const nestedRow = getVariableRow(variablesView, page, 'c');
     await expect(nestedRow).toBeVisible({ timeout: 30_000 });
-    // Symptom assertion: nested value must not render as [object Object]
+    // This is the symptom this test exists to catch.
     await expect(nestedRow).not.toContainText('[object Object]');
 
-    // Expand twistie present (collapsible affordance)
     const twistie = nestedRow.locator('.monaco-tl-twistie');
     await expect(twistie).toBeVisible({ timeout: 10_000 });
 
     // Expand `c` and confirm a child property row (LastName/Account) becomes visible.
     await expandNestedVariable(page, variablesView, nestedRow, /LastName|Account/);
 
-    // No row anywhere renders [object Object]
     await expect(variablesView.locator('.monaco-list-row', { hasText: '[object Object]' })).toHaveCount(0);
     await saveScreenshot(page, 'step.nested-variables-expanded.png');
   });
@@ -235,7 +239,7 @@ test('Apex Replay Debugger Variables: nested related-object VARIABLES expand (no
     await expect(page.locator('.debug-toolbar')).not.toBeVisible({ timeout: 45_000 });
   });
 
-  if (!isContainer) {
+  const turnOffTraceFlagDesktop = async (): Promise<void> => {
     await test.step('turn off trace flag', async () => {
       await executeCommandWithCommandPalette(
         page,
@@ -244,7 +248,9 @@ test('Apex Replay Debugger Variables: nested related-object VARIABLES expand (no
       const statusBar = page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /No Tracing/ });
       await expect(statusBar).toBeVisible({ timeout: 30_000 });
     });
-  }
+  };
+  const turnOffTraceFlagContainer = async (): Promise<void> => {};
+  await (isContainer ? turnOffTraceFlagContainer : turnOffTraceFlagDesktop)();
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });

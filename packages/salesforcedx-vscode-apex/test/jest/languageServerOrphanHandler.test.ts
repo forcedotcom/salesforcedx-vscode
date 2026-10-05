@@ -74,7 +74,7 @@ const makeSettingsStub = (opts: { getValueResult?: unknown; setValueFail?: boole
 });
 
 const makeSettingsService = (stub: SettingsStub) => ({
-  getValue: (section: string, key: string, defaultValue?: unknown) => {
+  getValueOrElse: (section: string, key: string, defaultValue?: unknown) => {
     stub.getValueCalls.push({ section, key, defaultValue });
     return Effect.succeed(stub.getValueResult);
   },
@@ -158,7 +158,7 @@ const run = (
   const { checkAndResolveOrphanedLanguageServers, Provider } = loadHandler('darwin');
   return Effect.runPromise(
     (
-      checkAndResolveOrphanedLanguageServers(3, 0).pipe(
+      checkAndResolveOrphanedLanguageServers(3, Duration.millis(0)).pipe(
         provide(Provider, responses, settingsStub)
       ) as Effect.Effect<void>
     ).pipe(captureRoot(holder))
@@ -187,7 +187,7 @@ const runWithClock = (
     Effect.gen(function* () {
       holder.root = yield* Effect.currentSpan;
       const fiber = yield* Effect.fork(
-        checkAndResolveOrphanedLanguageServers(3, 0).pipe(provide(Provider, responses, settingsStub))
+        checkAndResolveOrphanedLanguageServers(3, Duration.millis(0)).pipe(provide(Provider, responses, settingsStub))
       );
       yield* TestClock.adjust(Duration.seconds(KILL_RETRY_TOTAL_SECONDS + 1));
       return yield* Fiber.join(fiber);
@@ -284,7 +284,7 @@ describe('languageServerOrphanHandler', () => {
       }
     };
     await Effect.runPromise(
-      checkAndResolveOrphanedLanguageServers(3, 0).pipe(
+      checkAndResolveOrphanedLanguageServers(3, Duration.millis(0)).pipe(
         Effect.provideService(Provider, { getServicesApi: Effect.succeed(api) } as unknown as ExtensionProviderService)
       ) as Effect.Effect<void>
     );

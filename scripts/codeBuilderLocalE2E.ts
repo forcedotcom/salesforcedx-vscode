@@ -327,14 +327,14 @@ const brewOr = (formula: string, other: string): string => (onMac ? `brew instal
 
 const has = (file: string): boolean => spawnSync(file, ['--version'], { stdio: 'ignore' }).status === 0;
 
-/* sf is npx-able (@salesforce/cli), so a missing global install is a warning, not a blocker for the
- * calls this script makes directly (resolveOrgBootEnv, via sfRunner below) — fall back to
- * `npx @salesforce/cli`. Note: the toolkit's createMinimalOrg invokes `sf` directly, so org
- * create/reuse still needs a real sf install. docker and gh are not npx-able and must be installed. */
+/* sf can run through pnpm dlx (@salesforce/cli), so a missing global install is a warning, not a
+ * blocker for the calls this script makes directly (resolveOrgBootEnv, via sfRunner below). Note:
+ * the toolkit's createMinimalOrg invokes `sf` directly, so org create/reuse still needs a real sf
+ * install. docker and gh must be installed. */
 const sfInstalled = has('sf');
-const sfCmd = (): [string, string[]] => (sfInstalled ? ['sf', []] : ['npx', ['-y', '@salesforce/cli']]);
+const sfCmd = (): [string, string[]] => (sfInstalled ? ['sf', []] : ['pnpm', ['dlx', '@salesforce/cli']]);
 /*
- * A CommandRunner (the toolkit's injection seam) that routes `sf` through the npx fallback when sf
+ * A CommandRunner (the toolkit's injection seam) that routes `sf` through the pnpm fallback when sf
  * isn't on PATH, so resolveOrgBootEnv works on a box without a global sf install — the same
  * convenience the scratch-org helpers below rely on. Non-`sf` files pass straight through.
  */
@@ -380,7 +380,7 @@ if (!process.env.CB_SKIP_GHCR_LOGIN && !process.env.CR_PAT) {
 }
 
 if (!sfInstalled) {
-  log('sf CLI not found on PATH — falling back to `npx @salesforce/cli` (slower; consider a global install).');
+  log('sf CLI not found on PATH — falling back to `pnpm dlx @salesforce/cli` (slower; consider a global install).');
 }
 
 if (problems.length > 0) {
@@ -513,8 +513,8 @@ const acquireVsix = async (): Promise<string[]> => {
     );
     logRunProvenance(opts.runId);
   } else {
-    log('Building VSIX from your working tree (npm run vscode:package) — running alongside docker + org setup');
-    await runAsync('npm', ['run', 'vscode:package'], { cwd: REPO_ROOT, timeoutMs: BUILD_TIMEOUT_MS });
+    log('Building VSIX from your working tree (pnpm vscode:package) — running alongside docker + org setup');
+    await runAsync('pnpm', ['vscode:package'], { cwd: REPO_ROOT, timeoutMs: BUILD_TIMEOUT_MS });
     // vscode:package drops a .vsix in each package dir; gather them the way CI's Build All does,
     // keeping only each package's own-version (modern) VSIX (see modernVsixName).
     const packagesDir = join(REPO_ROOT, 'packages');
@@ -643,7 +643,7 @@ const setUpInfra = async (): Promise<BootEnv> => {
 
   // Boot env for the container's start-time org login. resolveOrgBootEnv reads the REAL access token
   // from `sf org auth show-access-token` (not the redacted `org display`) — the #7718 lesson, now
-  // encapsulated in the toolkit. Routed through sfRunner for the npx-sf fallback.
+  // encapsulated in the toolkit. Routed through sfRunner for the pnpm dlx fallback.
   return resolveOrgBootEnv(ORG_ALIAS, { runner: sfRunner });
 };
 

@@ -89,7 +89,7 @@ test('Project Deploy Start: deploys source to org', async ({ page }) => {
   });
 
   await test.step('create local change and deploy to org', async () => {
-    if (isContainer) {
+    const createLocalChangeContainer = async (): Promise<void> => {
       // The Explorer tree open can transiently flake on the shared workbench (virtual scrolling /
       // focus), so retry the open+focus as a unit before editing.
       await expect(async () => {
@@ -100,7 +100,8 @@ test('Project Deploy Start: deploys source to org', async ({ page }) => {
       }).toPass({ timeout: 90_000, intervals: [1000, 2000, 5000] });
       await editOpenFile(page, `// Project deploy start container test ${Date.now()}`);
       await saveScreenshot(page, 'projectDeployStart.02-after-edit.png');
-    } else {
+    };
+    const createLocalChangeDesktop = async (): Promise<void> => {
       // Create a new Apex class to deploy
       className = `ProjectDeployTest${Date.now()}`;
       await createApexClass(page, className);
@@ -112,7 +113,8 @@ test('Project Deploy Start: deploys source to org', async ({ page }) => {
         page,
         `step1.initial-counts-${initialCounts.local}-${initialCounts.remote}-${initialCounts.conflicts}.png`
       );
-    }
+    };
+    await (isContainer ? createLocalChangeContainer : createLocalChangeDesktop)();
 
     // Prepare output channel before triggering command
     await ensureOutputPanelOpen(page);

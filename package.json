@@ -1,16 +1,11 @@
 {
   "name": "@salesforce/salesforcedx-vscode",
+  "packageManager": "pnpm@12.8.2",
   "repository": "forcedotcom/salesforcedx-vscode",
   "license": "BSD-3-Clause",
   "workspaces": [
     "packages/*"
   ],
-  "overrides": {
-    "wireit": {
-      "brace-expansion": "4.0.1"
-    },
-    "playwright-core": "1.60.0"
-  },
   "engines": {
     "node": ">=22.15.1"
   },
@@ -19,8 +14,6 @@
     "@salesforce/vscode-service-provider": "1.5.0",
     "jsforce": "^3.10.24",
     "memfs": "^4.32.0",
-    "node": "^22.19.0",
-    "npm": "^11",
     "semver": "^7.5.4",
     "ts-node": "10.9.2",
     "url": "0.11.4"
@@ -31,16 +24,24 @@
     "@actions/github": "^8.0.1",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
+    "@cursor/sdk": "1.0.32",
     "@effect/eslint-plugin": "0.3.2",
     "@effect/language-service": "^0.87.2",
+    "@effect/platform": "0.96.1",
+    "@effect/platform-node": "0.106.0",
     "@eslint/json": "^0.14.0",
     "@html-eslint/eslint-plugin": "0.59.0",
     "@html-eslint/parser": "0.59.0",
+    "@lwc/engine-dom": "8.26.2",
+    "@lwc/synthetic-shadow": "9.1.2",
+    "@lwc/wire-service": "2.50.0",
     "@octokit/core": "^7",
     "@octokit/webhooks-types": "7.6.1",
-    "@playwright/test": "^1.60.0",
+    "@playwright/test": "1.60.0",
     "@salesforce/apex-tmlanguage": "^2.0.3",
+    "@salesforce/core": "9.1.11",
     "@salesforce/dev-config": "^4.3.2",
+    "@salesforce/effect-octokit": "*",
     "@secretlint/node": "11.7.1",
     "@stylistic/eslint-plugin-ts": "2.13.0",
     "@tony.ganchev/eslint-plugin-header": "3.4.4",
@@ -59,7 +60,7 @@
     "acorn": "8.15.0",
     "assert": "2.1.0",
     "browserify-zlib": "0.2.0",
-    "check-peer-dependencies": "4.3.4",
+    "buffer": "6.0.3",
     "crypto-browserify": "3.12.1",
     "cz-conventional-changelog": "3.3.0",
     "dpdm": "^3.14.0",
@@ -83,6 +84,7 @@
     "eslint-plugin-prefer-arrow": "1.2.3",
     "eslint-plugin-unicorn": "68.0.0",
     "eslint-plugin-workspaces": "0.12.1",
+    "events": "3.3.0",
     "glob": "11.1.0",
     "globals": "^15.14.0",
     "https-browserify": "1.0.0",
@@ -90,18 +92,19 @@
     "jest": "^30.4.1",
     "jscpd": "^4.0.5",
     "jsonwebtoken-esm": "^2.0.1",
-    "knip": "^6.29.0",
+    "knip": "6.35.1",
     "markdown-link-check": "^3.14.2",
     "nyc": "18.0.0",
     "os-browserify": "0.3.0",
     "ovsx": "0.10.12",
     "path-browserify": "^1.0.1",
-    "playwright": "^1.60.0",
+    "playwright": "1.60.0",
     "prettier": "3.8.3",
     "pretty-quick": "4.2.2",
     "process": "0.11.10",
     "querystring-es3": "0.2.1",
     "readable-stream": "^4.7.0",
+    "run-node": "1.0.0",
     "shx": "0.4.0",
     "stream-http": "3.2.0",
     "timers-browserify": "2.0.12",
@@ -111,31 +114,31 @@
     "typescript": "6.0.3",
     "typescript-eslint": "^8.67.0",
     "util": "0.12.5",
-    "wireit": "^0.14.12",
+    "wireit": "0.14.12",
     "xml2js": "0.6.2",
     "yaml": "^2.9.0"
   },
   "scripts": {
-    "build": "npm run compile",
+    "build": "pnpm compile",
     "postinstall": "wireit",
-    "bootstrap": "npm install",
+    "bootstrap": "pnpm install",
     "changelog": "ts-node ./scripts/create-release-notes.ts",
-    "changelog:delta": "ts-node ./scripts/generate-release-delta-changelog.ts",
-    "clean": "npm run clean -ws --if-present && git clean -xfd",
+    "clean": "pnpm --recursive --if-present run clean && git clean -xfd",
     "clean:build": "node scripts/clean-build-artifacts.js",
     "clean:wireit-cache": "node scripts/clean-wireit-cache.js",
     "clean:spans": "shx rm -rf ~/.sf/vscode-spans && shx mkdir -p ~/.sf/vscode-spans",
-    "reinstall": "git checkout -- package-lock.json && npm run clean && npm install",
+    "reinstall": "git checkout -- pnpm-lock.yaml && pnpm clean && pnpm install",
     "compile": "wireit",
     "compile:github-actions": "wireit",
     "lint": "wireit",
     "test": "wireit",
     "test:ai-safeguards": "wireit",
+    "test:manual-test-plan": "wireit",
     "test:scripts": "wireit",
     "test-vsix": "ts-node scripts/installVSIXFromBranch.ts code",
     "test:container:local": "wireit",
-    "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 npx markdown-link-check --quiet --alive 200,206,429",
-    "check:dupes": "npx jscpd",
+    "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 pnpm exec markdown-link-check --quiet --alive 200,206,429",
+    "check:dupes": "pnpm exec jscpd",
     "check:actions": "wireit",
     "check:format:staged": "wireit",
     "check:knip": "wireit",
@@ -150,14 +153,14 @@
     "vscode:package:prerelease": "wireit",
     "vscode:package:modern:prerelease": "wireit",
     "vscode:package:legacy:prerelease": "wireit",
-    "package:packages": "npm run vscode:package",
-    "package:packages:prerelease": "npm run vscode:package:prerelease",
+    "package:packages": "pnpm vscode:package",
+    "package:packages:prerelease": "pnpm vscode:package:prerelease",
     "run:web": "wireit",
     "vsix:install": "find ./packages -name '*.vsix' -exec code --install-extension {} --force \\;",
     "vsix:install-insiders": "find ./packages -name '*.vsix' -exec code-insiders --install-extension {} --force \\;",
     "vscode:sha256": "node ./scripts/generate-sha256.js >> ./SHA256",
-    "vscode:publish": "npm run vscode:publish -ws --if-present",
-    "watch": "npm run compile --watch",
+    "vscode:publish": "pnpm --recursive --if-present run vscode:publish",
+    "watch": "pnpm compile --watch",
     "report:installs": "ts-node scripts/reportInstalls.ts",
     "scrape:all:pages": "ts-node scripts/xsd/scrape-all-metadata-pages.ts",
     "scrape:single:page": "ts-node scripts/xsd/scrape-single-page.ts",
@@ -180,6 +183,7 @@
         "./packages/salesforcedx-apex-debugger:compile",
         "./packages/salesforcedx-apex-replay-debugger:compile",
         "./packages/effect-ext-utils:compile",
+        "./packages/effect-octokit:compile",
         "./packages/salesforcedx-aura-language-server:compile",
         "./packages/salesforcedx-lwc-language-server:compile",
         "./packages/salesforcedx-visualforce-language-server:compile",
@@ -215,6 +219,7 @@
         "./packages/salesforcedx-apex-debugger:lint",
         "./packages/salesforcedx-apex-replay-debugger:lint",
         "./packages/effect-ext-utils:lint",
+        "./packages/effect-octokit:lint",
         "./packages/salesforcedx-visualforce-language-server:lint",
         "./packages/salesforcedx-vscode-core:lint",
         "./packages/salesforcedx-vscode-apex:lint",
@@ -241,6 +246,7 @@
     "test": {
       "dependencies": [
         "test:ai-safeguards",
+        "test:manual-test-plan",
         "test:scripts",
         "./packages/eslint-local-rules:test",
         "./packages/salesforcedx-utils:test",
@@ -272,11 +278,12 @@
         "./packages/salesforcedx-vscode-org-browser:test",
         "./packages/drivable-vscode:test",
         "./packages/salesforcedx-vscode-apex-log:test",
-        "./packages/effect-ext-utils:test"
+        "./packages/effect-ext-utils:test",
+        "./packages/effect-octokit:test"
       ]
     },
     "test:ai-safeguards": {
-      "command": "node --test test/ai-safeguards.test.mjs test/ai-auto-approve.test.mjs",
+      "command": "node --test test/ai-safeguards.test.mjs test/ai-auto-approve.test.mjs test/category-approve.test.ts",
       "files": [
         ".claude/hooks/block-no-verify.sh",
         ".claude/hooks/block-push-no-deps.sh",
@@ -288,8 +295,25 @@
         "scripts/ai-safeguards-cli.mjs",
         "scripts/ai-auto-approve.mjs",
         "scripts/ai-auto-approve-cli.mjs",
+        "scripts/category-approve.ts",
+        "scripts/shared/categoryDecision.ts",
+        "scripts/shared/scriptErrors.ts",
+        "APPROVAL_POLICY.md",
         "test/ai-safeguards.test.mjs",
-        "test/ai-auto-approve.test.mjs"
+        "test/ai-auto-approve.test.mjs",
+        "test/category-approve.test.ts"
+      ],
+      "output": []
+    },
+    "test:manual-test-plan": {
+      "command": "node --test scripts/manualTestPlan/test/unit/manualTestPlan.test.mts",
+      "dependencies": [
+        "./packages/effect-octokit:compile"
+      ],
+      "files": [
+        "scripts/manualTestPlan/**/*.mts",
+        "scripts/manualTestPlan/tsconfig.json",
+        ".github/workflows/manual-test-plan.yml"
       ],
       "output": []
     },
@@ -382,7 +406,7 @@
       ]
     },
     "vscode:package": {
-      "command": "npm run vscode:package:legacy",
+      "command": "pnpm vscode:package:legacy",
       "env": {
         "WIREIT_PARALLEL": "1"
       },
@@ -397,7 +421,7 @@
       ]
     },
     "run:web": {
-      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath packages/salesforcedx-vscode-services --extensionPath packages/salesforcedx-vscode-apex-log --extensionPath packages/salesforcedx-vscode-org-browser --extensionPath packages/salesforcedx-vscode-lwc --extensionPath packages/salesforcedx-vscode-metadata --extensionPath packages/salesforcedx-vscode-apex-testing --extensionPath packages/salesforcedx-vscode-soql --extensionPath packages/salesforcedx-vscode-visualforce --open-devtools --port 3001 --quality stable --verbose --printServerLog",
+      "command": "pnpm exec vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath packages/salesforcedx-vscode-services --extensionPath packages/salesforcedx-vscode-apex-log --extensionPath packages/salesforcedx-vscode-org-browser --extensionPath packages/salesforcedx-vscode-lwc --extensionPath packages/salesforcedx-vscode-metadata --extensionPath packages/salesforcedx-vscode-apex-testing --extensionPath packages/salesforcedx-vscode-soql --extensionPath packages/salesforcedx-vscode-visualforce --open-devtools --port 3001 --quality stable --verbose --printServerLog",
       "service": true,
       "dependencies": [
         "./packages/salesforcedx-vscode-services:vscode:bundle:local",
@@ -424,27 +448,20 @@
       ]
     },
     "check:peer-deps": {
-      "command": "check-peer-dependencies --ignore picomatch",
+      "command": "pnpm peers check --lockfile-only",
       "files": [
         "package.json",
         "packages/*/package.json"
       ],
       "output": []
     },
-    "check:package-lock": {
-      "command": "ts-node --project scripts/tsconfig.json scripts/package-lock.validation.ts",
-      "files": [
-        "package-lock.json",
-        "scripts/package-lock.validation.ts",
-        "scripts/tsconfig.json"
-      ],
-      "output": []
-    },
     "check:lock-sync": {
-      "command": "npm ci --dry-run",
+      "command": "pnpm install --lockfile-only --frozen-lockfile --ignore-scripts",
       "files": [
         "package.json",
-        "package-lock.json"
+        "packages/*/package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml"
       ],
       "output": []
     },
@@ -459,7 +476,7 @@
       "output": []
     },
     "check:knip": {
-      "command": "./node_modules/.bin/knip --cache --include exports,types,nsExports,nsTypes --no-config-hints",
+      "command": "pnpm exec knip --cache --include exports,types,nsExports,nsTypes --no-config-hints",
       "dependencies": [
         "compile"
       ],
@@ -501,7 +518,6 @@
         "lint",
         "check:format:staged",
         "check:peer-deps",
-        "check:package-lock",
         "check:lock-sync",
         "check:actions",
         "check:knip",
@@ -509,7 +525,7 @@
       ]
     },
     "prepush": {
-      "command": "npm run test",
+      "command": "pnpm test",
       "env": {
         "WIREIT_PARALLEL": "1"
       },
@@ -527,8 +543,8 @@
   "husky": {
     "hooks": {
       "commit-msg": "commitlint -E HUSKY_GIT_PARAMS",
-      "pre-commit": "npm run precommit",
-      "pre-push": "npm run prepush"
+      "pre-commit": "pnpm precommit",
+      "pre-push": "pnpm prepush"
     }
   }
 }

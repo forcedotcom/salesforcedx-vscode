@@ -117,17 +117,19 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log file, last lo
   });
 
   await test.step('wait for CodeLens in test class', async () => {
-    if (isContainer) {
+    const openTestClassContainer = async (): Promise<void> => {
       // The desktop "Indexing complete" status-bar button never renders in the code-server image, so
       // gate on the real indexing signal instead: the test class' CodeLens only appears once the LS
       // has indexed it.
       await openFileByName(page, `${exampleTestClass}.cls`);
-    } else {
+    };
+    const openTestClassDesktop = async (): Promise<void> => {
       // Apex LS must finish indexing before CodeLens appear; CI is slower
       const indexingComplete = page.getByRole('button', { name: /Indexing complete/ });
       await expect(indexingComplete).toBeVisible({ timeout: 120_000 });
       await openFileByName(page, `${exampleTestClass}.cls`);
-    }
+    };
+    await (isContainer ? openTestClassContainer : openTestClassDesktop)();
     const codelens = page.locator('.codelens-decoration a').filter({ hasText: /Run Test|Debug Test/ });
     await expect(codelens.first()).toBeVisible({ timeout: isContainer ? 120_000 : 90_000 });
     await saveScreenshot(page, 'step.codelens-visible.png');
@@ -146,7 +148,7 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log file, last lo
     await expect(statusBar).toBeVisible({ timeout: 60_000 });
   });
 
-  if (isContainer) {
+  const execAnonContainer = async (): Promise<void> => {
     // Container drives the anon-script + "execute document" entry point to produce the log used by
     // the replay launches below — no manual line-selection needed. Desktop additionally exercises the
     // "execute selected text" entry point (see below) so both exec-anon paths get coverage.
@@ -168,7 +170,8 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log file, last lo
       await expect(logTab).toBeVisible({ timeout: 10_000 });
       await saveScreenshot(page, 'step.exec-anon-done.png');
     });
-  } else {
+  };
+  const execAnonDesktop = async (): Promise<void> => {
     await test.step('exec anon with selected text', async () => {
       await ensureOutputPanelOpen(page);
       await selectOutputChannel(page, 'Salesforce Apex Log');
@@ -201,7 +204,8 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log file, last lo
       await expect(logTab).toBeVisible({ timeout: 10_000 });
       await saveScreenshot(page, 'step.exec-anon-done.png');
     });
-  }
+  };
+  await (isContainer ? execAnonContainer : execAnonDesktop)();
 
   await test.step('launch replay debugger with current file (log)', async () => {
     // Click the debug.log tab directly to make it the active editor.
@@ -234,7 +238,7 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log file, last lo
     await saveScreenshot(page, 'step.replay-from-test-class.png');
   });
 
-  if (!isContainer) {
+  const execAnonWithEditorContentsDesktop = async (): Promise<void> => {
     // Container already exercised the "execute document" entry point above (its sole exec-anon
     // step); this covers it separately here so desktop gets both exec-anon paths.
     await test.step('exec anon with editor contents', async () => {
@@ -256,7 +260,9 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log file, last lo
       await expect(docLogTab).toBeVisible({ timeout: 10_000 });
       await saveScreenshot(page, 'step.exec-anon-document-done.png');
     });
-  }
+  };
+  const execAnonWithEditorContentsContainer = async (): Promise<void> => {};
+  await (isContainer ? execAnonWithEditorContentsContainer : execAnonWithEditorContentsDesktop)();
 
   await test.step('turn off trace flag', async () => {
     await executeCommandWithCommandPalette(

@@ -9,16 +9,19 @@ import { AuthInfo, Connection, OrgConfigProperties, StateAggregator } from '@sal
 
 import * as Arr from 'effect/Array';
 import * as Cache from 'effect/Cache';
+import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Either from 'effect/Either';
 import * as Equal from 'effect/Equal';
 import * as Exit from 'effect/Exit';
 import * as Hash from 'effect/Hash';
+import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import { isNotUndefined, isRecord, isString, isUndefined } from 'effect/Predicate';
 import * as Redacted from 'effect/Redacted';
 import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
@@ -30,6 +33,7 @@ import { NoWorkspaceOpenError } from '../vscode/workspaceService';
 import { AliasService } from './alias';
 import { ConfigService, FailedToCreateConfigAggregatorError } from './configService';
 import { getDefaultOrgRef } from './defaultOrgRef';
+import { executeQuery } from './queryExecute';
 import { authFieldsFromConnection, orgIdFrom, orgIdFromConnection } from './schemas/authFields';
 import { DefaultOrgInfoSchema } from './schemas/defaultOrgInfo';
 import { OrgId } from './schemas/salesforceId';
@@ -248,10 +252,14 @@ const identityCache = Effect.runSync(
       onFailure: () => Duration.zero
     }),
     lookup: ({ orgId, username, conn }: IdentityCacheKey) =>
-      Effect.tryPromise(() =>
-        conn.query<{ Id: string; Username: string }>(`SELECT Id, Username FROM User WHERE Username = '${username}'`)
+      executeQuery(
+        conn,
+        { soql: `SELECT Id, Username FROM User WHERE Username = '${username}'` },
+        Schema.Struct({ Id: Schema.String, Username: Schema.String })
       ).pipe(
-        Effect.map(r => r.records),
+        Effect.flatMap(result =>
+          Stream.runCollect(result.records).pipe(Effect.map(chunk => Chunk.toReadonlyArray(chunk)))
+        ),
         Effect.map(Arr.head),
         Effect.map(Option.map(record => ({ username: record.Username, userId: record.Id }))),
         Effect.tapError(e => Effect.logWarning('User query failed', { orgId, cause: String(e) })),
@@ -487,13 +495,18 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
   const orgIdChanged = previousOrgId !== orgId;
   const [{ username: queriedUsername, userId: queriedUserId }, devHubOrgId, cliId] = yield* Effect.all(
     [
-      orgIdChanged || isUndefined(existingOrgInfo.username) || isUndefined(existingOrgInfo.userId)
-        ? orgId
-          ? getUserFromUserSobject(orgId, conn).pipe(
-              Effect.map(identity => identity ?? { username: undefined, userId: undefined })
-            )
-          : Effect.succeed({ username: undefined, userId: undefined })
-        : Effect.succeed({ username: existingOrgInfo.username, userId: existingOrgInfo.userId }),
+      Match.value({
+        refresh: orgIdChanged || isUndefined(existingOrgInfo.username) || isUndefined(existingOrgInfo.userId),
+        orgId
+      }).pipe(
+        Match.when({ refresh: true, orgId: Match.defined }, ({ orgId: id }) =>
+          getUserFromUserSobject(id, conn).pipe(
+            Effect.map(identity => identity ?? { username: undefined, userId: undefined })
+          )
+        ),
+        Match.when({ refresh: true }, () => Effect.succeed({ username: undefined, userId: undefined })),
+        Match.orElse(() => Effect.succeed({ username: existingOrgInfo.username, userId: existingOrgInfo.userId }))
+      ),
       existingOrgInfo.devHubOrgId ? Effect.succeed(existingOrgInfo.devHubOrgId) : getDevHubId(devHubUsername),
       existingOrgInfo.cliId
         ? Effect.succeed(existingOrgInfo.cliId)

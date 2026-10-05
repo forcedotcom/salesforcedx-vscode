@@ -116,12 +116,13 @@ test('Delete Source: deletes file from project and org via command palette', asy
     await executeCommandWithCommandPalette(page, messages.deploy_this_source_text);
     await saveScreenshot(page, 'step1.after-deploy-command.png');
 
-    if (isContainer) {
+    const verifyDeployCompleteContainer = async (): Promise<void> => {
       // The transient "Deploying" toast can be missed on a fast container deploy; assert completion via
       // the output channel instead.
       await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
       await saveScreenshot(page, 'step1.deploy-complete.png');
-    } else {
+    };
+    const verifyDeployCompleteDesktop = async (): Promise<void> => {
       // Verify deploy starts and completes
       const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
       await saveScreenshot(page, 'step1.deploy-notification-appeared.png');
@@ -131,7 +132,8 @@ test('Delete Source: deletes file from project and org via command palette', asy
       // Verify local count returns to 0
       await statusBarPage!.waitForCounts({ local: 0 }, 60_000);
       await saveScreenshot(page, 'step1.after-deploy-count-0.png');
-    }
+    };
+    await (isContainer ? verifyDeployCompleteContainer : verifyDeployCompleteDesktop)();
   });
 
   await test.step('delete source file from project and org', async () => {

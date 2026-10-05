@@ -88,7 +88,7 @@ test('Retrieve Source Path: retrieves file via explorer context menu', async ({ 
   });
 
   await test.step('deploy source to org', async () => {
-    if (isContainer) {
+    const deploySourceToOrgContainer = async (): Promise<void> => {
       // Path-based deploy of the unmodified seeded class: guarantees the ApexClass is present in the
       // boot org regardless of suite ordering, without editing the shared fixture on disk.
       // The Explorer tree open can transiently flake on the shared workbench (virtual scrolling /
@@ -110,7 +110,8 @@ test('Retrieve Source Path: retrieves file via explorer context menu', async ({ 
       // assert deploy completion via the output channel instead.
       await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
       await saveScreenshot(page, 'retrieveSourcePath.02-deployed.png');
-    } else {
+    };
+    const deploySourceToOrgDesktop = async (): Promise<void> => {
       // Create apex class locally
       className = `RetrieveSourcePathTest${Date.now()}`;
       await createApexClass(page, className);
@@ -138,7 +139,8 @@ test('Retrieve Source Path: retrieves file via explorer context menu', async ({ 
       await editOpenFile(page, 'Remote change simulation');
       await statusBarPage.waitForCounts({ local: 1 }, 60_000);
       await saveScreenshot(page, 'step1.after-edit.png');
-    }
+    };
+    await (isContainer ? deploySourceToOrgContainer : deploySourceToOrgDesktop)();
   });
 
   await test.step('retrieve file via explorer context menu', async () => {

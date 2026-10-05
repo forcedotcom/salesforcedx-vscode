@@ -124,7 +124,7 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
   });
 
   await test.step('verify suite appears in Testing sidebar', async () => {
-    if (isContainer) {
+    const assertSuiteVisibleInSidebarContainer = async (): Promise<void> => {
       // The "Apex Test Suites" parent and its suite children are populated from an org Tooling API
       // query (retrieveAllSuites) that only runs on each "Test: Refresh Tests". A just-created suite
       // can lag org read-consistency, so a single discovery right after creation often returns zero
@@ -147,7 +147,8 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
           { timeout: 120_000, intervals: [3000] }
         )
         .toBe(true);
-    } else {
+    };
+    const assertSuiteVisibleInSidebarDesktop = async (): Promise<void> => {
       const panel = await openTestExplorerAndDiscover(page);
 
       // The "Apex Test Suites" parent item should be visible
@@ -160,7 +161,8 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
       // The specific suite name should be visible as a baseline before deletion
       const suiteItem = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: testSuiteName });
       await expect(suiteItem).toBeVisible({ timeout: 15_000 });
-    }
+    };
+    await (isContainer ? assertSuiteVisibleInSidebarContainer : assertSuiteVisibleInSidebarDesktop)();
     await saveScreenshot(page, 'step.suite-visible-in-sidebar.png');
   });
 
@@ -183,7 +185,7 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
     await executeCommandWithCommandPalette(page, 'SFDX: Delete from Project and Org');
     await saveScreenshot(page, 'step.delete-command-executed.png');
 
-    if (isContainer) {
+    const confirmDeleteContainer = async (): Promise<void> => {
       // The delete confirmation surfaces as a notification toast with a "Delete Source" button
       const deleteConfirmation = page
         .locator(NOTIFICATION_LIST_ITEM)
@@ -191,14 +193,16 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
         .first();
       await expect(deleteConfirmation).toBeVisible({ timeout: 15_000 });
       await deleteConfirmation.getByRole('button', { name: 'Delete Source' }).click();
-    } else {
+    };
+    const confirmDeleteDesktop = async (): Promise<void> => {
       const deleteConfirmation = page.locator('.monaco-dialog-box, .dialog-shadow').first();
       await expect(deleteConfirmation, 'delete source confirmation modal').toContainText(
         /Deleting source files deletes the files from your computer/,
         { timeout: 15_000 }
       );
       await clickModalDialogButton(page, 'Delete Source', 15_000);
-    }
+    };
+    await (isContainer ? confirmDeleteContainer : confirmDeleteDesktop)();
     await saveScreenshot(page, 'step.delete-confirmed.png');
   });
 

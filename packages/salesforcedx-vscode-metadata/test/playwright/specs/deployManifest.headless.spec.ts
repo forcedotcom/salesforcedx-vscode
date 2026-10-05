@@ -107,7 +107,7 @@ test('Deploy Manifest: deploys via all entry points', async ({ page }) => {
   });
 
   await test.step('prepare source file for manifest generation', async () => {
-    if (isContainer) {
+    const prepareApexClassContainer = async (): Promise<void> => {
       // Use the seeded fixture class rather than mutating the shared workbench with a new one.
       // The Explorer tree open can transiently flake on the shared workbench (virtual scrolling /
       // focus), so retry the open+focus as a unit.
@@ -117,7 +117,8 @@ test('Deploy Manifest: deploys via all entry points', async ({ page }) => {
         await editor.waitFor({ state: 'visible', timeout: 15_000 });
         await editor.click();
       }).toPass({ timeout: 90_000, intervals: [1000, 2000, 5000] });
-    } else {
+    };
+    const prepareApexClassDesktop = async (): Promise<void> => {
       // Get initial counts
       const initialCounts = await statusBarPage.getCounts();
       initialLocalCount = initialCounts.local;
@@ -128,7 +129,8 @@ test('Deploy Manifest: deploys via all entry points', async ({ page }) => {
 
       // Verify local count incremented by 1
       await statusBarPage.waitForCounts({ local: initialLocalCount + 1 }, 60_000);
-    }
+    };
+    await (isContainer ? prepareApexClassContainer : prepareApexClassDesktop)();
   });
 
   await test.step('generate manifest from apex class', async () => {

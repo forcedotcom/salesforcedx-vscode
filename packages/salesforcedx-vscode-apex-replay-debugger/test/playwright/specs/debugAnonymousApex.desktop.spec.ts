@@ -88,7 +88,7 @@ test('Debug Anonymous Apex: Debug code lens, Launch with Selected File, and Debu
   await test.step('"Launch Apex Replay Debugger with Selected File" on .apex — debugger must launch and complete', async () => {
     await openFileByName(page, `${scriptName}.apex`);
     await executeCommandWithCommandPalette(page, packageNls.launch_apex_replay_debugger_with_selected_file as string);
-    if (isContainer) {
+    const assertDebugViewRenderedContainer = async (): Promise<void> => {
       // This grew out of the spike that first proved a live apex-replay DAP session runs through
       // code-server, so it keeps that spike's debug-view render assertions here.
       await assertDebugToolbarVisible(page);
@@ -97,7 +97,9 @@ test('Debug Anonymous Apex: Debug code lens, Launch with Selected File, and Debu
       await expect(callStackRow.first()).toBeVisible({ timeout: 30_000 });
       await expect(variablesView).toBeVisible({ timeout: 30_000 });
       await saveScreenshot(page, 'step.debug-view-rendered.png');
-    }
+    };
+    const assertDebugViewRenderedDesktop = async (): Promise<void> => {};
+    await (isContainer ? assertDebugViewRenderedContainer : assertDebugViewRenderedDesktop)();
     await continueDebugSession(page);
     await saveScreenshot(page, 'step.launch-selected.session-ended.png');
   });

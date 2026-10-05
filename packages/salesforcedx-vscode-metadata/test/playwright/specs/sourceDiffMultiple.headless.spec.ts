@@ -150,7 +150,7 @@ test('Source Diff (multiple files): opens first diff and populates conflict tree
   });
 
   await test.step('first diff opens automatically', async () => {
-    if (isContainer) {
+    const verifyFirstDiffAutoOpenContainer = async (): Promise<void> => {
       // Parity with the headless twin's "first diff opens automatically" assertion: the multi-file
       // diff auto-opens the first component's diff before any tree interaction. Because the shared
       // workbench may hold other locally changed classes, the first component is not necessarily
@@ -160,10 +160,12 @@ test('Source Diff (multiple files): opens first diff and populates conflict tree
         'A diff editor tab should open automatically after invoking multi-file diff'
       ).toBeVisible({ timeout: 30_000 });
       await saveScreenshot(page, 'sourceDiffMultiple.055-first-diff-auto-open.png');
-    } else {
+    };
+    const verifyFirstDiffAutoOpenDesktop = async (): Promise<void> => {
       await diff.waitForTab(classNameA);
       await saveScreenshot(page, 'diff-multi-5-first-diff-open.png');
-    }
+    };
+    await (isContainer ? verifyFirstDiffAutoOpenContainer : verifyFirstDiffAutoOpenDesktop)();
   });
 
   await test.step('conflict tree shows both files', async () => {

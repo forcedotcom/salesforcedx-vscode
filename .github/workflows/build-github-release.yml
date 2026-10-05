@@ -49,9 +49,10 @@ jobs:
           token: ${{ secrets.IDEE_GH_TOKEN }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+          install: 'false'
 
       - name: Detect source ref
         id: detect-tag
@@ -286,7 +287,7 @@ jobs:
         run: |
           # Commit the version changes to the isolated branch
           # This is a release-only commit that will NOT be merged to develop
-          git add packages/*/package.json package-lock.json
+          git add packages/*/package.json pnpm-lock.yaml
 
           git commit -m "chore: bump versions to ${RELEASE_VERSION} for stable release
 
@@ -330,8 +331,9 @@ jobs:
           echo "✓ Tag points to: $(git rev-parse $RELEASE_TAG)"
 
       - name: Install dependencies with updated versions
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
-
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          command: pnpm install --frozen-lockfile
       - name: Relabel this week's changelog for stable release
         # promote-to-prerelease.yml already generated and committed this week's
         # delta to develop (labeled with the prerelease version); pull that exact content
@@ -364,9 +366,9 @@ jobs:
           IS_EMERGENCY_PRERELEASE: ${{ steps.calculate-version.outputs.is_emergency_prerelease }}
         run: |
           if [ "$IS_EMERGENCY_PRERELEASE" = "true" ]; then
-            npm run vscode:package:prerelease
+            pnpm vscode:package:prerelease
           else
-            npm run vscode:package
+            pnpm vscode:package
           fi
 
       - name: Collect VSIXs
@@ -374,7 +376,7 @@ jobs:
 
       - name: Generate SHA256 checksums
         run: |
-          npm run vscode:sha256
+          pnpm vscode:sha256
           scripts/concatenate-sha256.js
           rm ./SHA256
 
@@ -449,9 +451,10 @@ jobs:
           token: ${{ secrets.IDEE_GH_TOKEN }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+          install: 'false'
 
       - uses: ./.github/actions/gitConfig
         with:
@@ -491,7 +494,7 @@ jobs:
       - uses: ./.github/actions/commitAndPushToDevelop
         if: steps.guard.outputs.skip != 'true'
         with:
-          files: packages/*/package.json package-lock.json
+          files: packages/*/package.json pnpm-lock.yaml
           message: |
             chore: bump nightly minor to ${{ steps.next-odd.outputs.version }} after v${{ needs.build-release.outputs.release_version }} stable release [skip ci]
 

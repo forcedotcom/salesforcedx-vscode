@@ -48,13 +48,15 @@ test('LWC Rename: renames an existing bundle via explorer context menu', async (
     await quickInput.waitFor({ state: 'attached', timeout: 30_000 });
     await waitForQuickInputFirstOption(page);
     const componentType = activeQuickInputWidget(page).getByRole('option').first();
-    if (isContainer) {
+    const clickComponentTypeContainer = async (): Promise<void> => {
       // eslint-disable-next-line playwright/no-force-option -- quick-pick row re-renders on filter/highlight, invalidating the hover/actionability check
       await componentType.click({ force: true });
-    } else {
+    };
+    const clickComponentTypeDesktop = async (): Promise<void> => {
       await expect(componentType).toBeVisible({ timeout: 10_000 });
       await componentType.click();
-    }
+    };
+    await (isContainer ? clickComponentTypeContainer : clickComponentTypeDesktop)();
     await activeQuickInputWidget(page)
       .getByText(/Enter Lightning Web Component name/i)
       .waitFor({ state: 'attached', timeout: 10_000 });
@@ -62,13 +64,15 @@ test('LWC Rename: renames an existing bundle via explorer context menu', async (
     await page.keyboard.press('Enter');
     await waitForQuickInputFirstOption(page);
     const outputDirectory = activeQuickInputWidget(page).getByRole('option').first();
-    if (isContainer) {
+    const clickOutputDirectoryContainer = async (): Promise<void> => {
       // eslint-disable-next-line playwright/no-force-option -- quick-pick row re-renders on filter/highlight, invalidating the hover/actionability check
       await outputDirectory.click({ force: true });
-    } else {
+    };
+    const clickOutputDirectoryDesktop = async (): Promise<void> => {
       await expect(outputDirectory).toBeVisible({ timeout: 10_000 });
       await outputDirectory.click();
-    }
+    };
+    await (isContainer ? clickOutputDirectoryContainer : clickOutputDirectoryDesktop)();
     await page
       .locator('[role="tab"]')
       .filter({ hasText: new RegExp(`${oldName}\\.js`, 'i') })

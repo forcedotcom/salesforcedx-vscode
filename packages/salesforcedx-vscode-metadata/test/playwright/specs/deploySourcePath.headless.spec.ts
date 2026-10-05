@@ -107,7 +107,7 @@ test('Deploy Source Path: deploys via all entry points', async ({ page }) => {
   });
 
   await test.step('1. Editor context menu', async () => {
-    if (isContainer) {
+    const prepareEditorContextMenuContainer = async (): Promise<void> => {
       // The Explorer tree open can transiently flake on the shared workbench (virtual scrolling /
       // focus), so retry the open+focus as a unit.
       await expect(async () => {
@@ -117,7 +117,8 @@ test('Deploy Source Path: deploys via all entry points', async ({ page }) => {
         await editor.click();
       }).toPass({ timeout: 90_000, intervals: [1000, 2000, 5000] });
       await verifyCommandExists(page, packageNls.deploy_this_source_text, 60_000);
-    } else {
+    };
+    const prepareEditorContextMenuDesktop = async (): Promise<void> => {
       className = `DeploySourcePathTest${Date.now()}`;
       await createApexClass(page, className);
       await saveScreenshot(page, 'step1.after-create-class.png');
@@ -143,7 +144,8 @@ test('Deploy Source Path: deploys via all entry points', async ({ page }) => {
       await focusedEditor.waitFor({ state: 'visible', timeout: 10_000 });
       await focusedEditor.click();
       await saveScreenshot(page, 'step1.before-context-menu.png');
-    }
+    };
+    await (isContainer ? prepareEditorContextMenuContainer : prepareEditorContextMenuDesktop)();
 
     if (isContainer) {
       // Each entry point in this spec deploys the same already-synced content, so repeated deploys can
@@ -157,11 +159,12 @@ test('Deploy Source Path: deploys via all entry points', async ({ page }) => {
     // Right-click editor → "SFDX: Deploy This Source to Org"
     await executeEditorContextMenuCommand(page, packageNls.deploy_this_source_text, `${className}.cls`);
 
-    if (isContainer) {
+    const verifyEditorDeployCompleteContainer = async (): Promise<void> => {
       await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
       await assertNoDeployError(page);
       await saveScreenshot(page, 'deploySourcePath.03-editor-deployed.png');
-    } else {
+    };
+    const verifyEditorDeployCompleteDesktop = async (): Promise<void> => {
       await saveScreenshot(page, 'step1.after-context-menu-command.png');
 
       // Verify deploy completes
@@ -170,7 +173,8 @@ test('Deploy Source Path: deploys via all entry points', async ({ page }) => {
       await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
       await statusBarPage.waitForCounts({ local: 0 }, 60_000);
       await saveScreenshot(page, 'step1.deploy-complete.png');
-    }
+    };
+    await (isContainer ? verifyEditorDeployCompleteContainer : verifyEditorDeployCompleteDesktop)();
   });
 
   await test.step('2. Explorer context menu (file)', async () => {
@@ -235,11 +239,12 @@ test('Deploy Source Path: deploys via all entry points', async ({ page }) => {
       packageNls.deploy_this_source_text
     );
 
-    if (isContainer) {
+    const verifyExplorerFileDeployCompleteContainer = async (): Promise<void> => {
       await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
       await assertNoDeployError(page);
       await saveScreenshot(page, 'deploySourcePath.05-explorer-file-deployed.png');
-    } else {
+    };
+    const verifyExplorerFileDeployCompleteDesktop = async (): Promise<void> => {
       await saveScreenshot(page, 'step2.after-explorer-context-menu-command.png');
 
       // Check for deploy-related error notifications before waiting for deploying notification
@@ -261,7 +266,8 @@ test('Deploy Source Path: deploys via all entry points', async ({ page }) => {
       await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
       await statusBarPage.waitForCounts({ local: 0 }, 60_000);
       await saveScreenshot(page, 'step2.deploy-complete.png');
-    }
+    };
+    await (isContainer ? verifyExplorerFileDeployCompleteContainer : verifyExplorerFileDeployCompleteDesktop)();
   });
 
   await test.step('3. Explorer context menu (directory)', async () => {
@@ -304,11 +310,12 @@ test('Deploy Source Path: deploys via all entry points', async ({ page }) => {
     // Right-click "classes" folder → "SFDX: Deploy This Source to Org"
     await executeExplorerContextMenuCommand(page, /classes/i, packageNls.deploy_this_source_text);
 
-    if (isContainer) {
+    const verifyExplorerDirDeployCompleteContainer = async (): Promise<void> => {
       await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
       await assertNoDeployError(page);
       await saveScreenshot(page, 'deploySourcePath.07-explorer-dir-deployed.png');
-    } else {
+    };
+    const verifyExplorerDirDeployCompleteDesktop = async (): Promise<void> => {
       await saveScreenshot(page, 'step3.after-explorer-context-menu-command.png');
 
       // Check for deploy-related error notifications before waiting for deploying notification
@@ -330,7 +337,8 @@ test('Deploy Source Path: deploys via all entry points', async ({ page }) => {
       await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
       await statusBarPage.waitForCounts({ local: 0 }, 60_000);
       await saveScreenshot(page, 'step3.deploy-complete.png');
-    }
+    };
+    await (isContainer ? verifyExplorerDirDeployCompleteContainer : verifyExplorerDirDeployCompleteDesktop)();
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

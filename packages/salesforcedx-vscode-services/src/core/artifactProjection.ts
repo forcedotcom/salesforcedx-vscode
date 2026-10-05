@@ -9,7 +9,7 @@ import * as Schema from 'effect/Schema';
 import { URI } from 'vscode-uri';
 import { ArtifactIdentitySchema, SObjectArtifactIdentitySchema } from './artifactIdentity';
 
-const UriTypeSchema = Schema.declare((value): value is URI => value instanceof URI, {
+const UriTypeSchema = Schema.declare((value): value is URI => URI.isUri(value), {
   identifier: 'URI',
   description: 'vscode-uri URI'
 });

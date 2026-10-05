@@ -95,21 +95,23 @@ test('Source Tracking Status Bar: tracks remote and local changes through full d
   const baseline = await test.step('verify initial state', async () => {
     const initialCounts = await statusBarPage.getCounts();
 
-    if (isContainer) {
+    const verifyInitialStateContainer = async (): Promise<void> => {
       // Shared session — absolute values not assumed. The always-true invariant: the red/error
       // background appears exactly when there are conflicts.
       const hasError = await statusBarPage.hasErrorBackground();
       expect(hasError, 'Status bar error background should be present iff there are conflicts').toBe(
         initialCounts.conflicts > 0
       );
-    } else {
+    };
+    const verifyInitialStateDesktop = async (): Promise<void> => {
       expect(initialCounts.remote, 'Remote changes should be > 0 after dreamhouse deployment').toBeGreaterThan(0);
       expect(initialCounts.local, 'Local changes should be 0 initially').toBe(0);
       expect(initialCounts.conflicts, 'Conflicts should be 0 initially').toBe(0);
 
       const hasError = await statusBarPage.hasErrorBackground();
       expect(hasError, 'Status bar should not have error background when conflicts = 0').toBe(false);
-    }
+    };
+    await (isContainer ? verifyInitialStateContainer : verifyInitialStateDesktop)();
 
     return initialCounts;
   });
