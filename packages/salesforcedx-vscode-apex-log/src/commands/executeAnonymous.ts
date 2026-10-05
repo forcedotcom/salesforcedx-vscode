@@ -56,7 +56,7 @@ export const executeAnonymousCommand = Effect.fn('ApexLog.Command.executeAnonymo
   const command: ProgressAndSuccessCommandKey = selectionOnly
     ? "SFDX: Execute Anonymous Apex with Editor's Selected Text"
     : 'SFDX: Execute Anonymous Apex with Currently Open Editor';
-  // progress dismisses once execution+save resolve; success toast + open-log handled after so the spinner doesn't linger on user interaction
+  // progress dismisses once execution+save resolve; the success toast (with its open-log action) follows
   yield* api.services.EditorService.getActiveEditorContext(selectionOnly).pipe(
     Effect.flatMap(executeAnonymous),
     promptService.withProgress(
