@@ -4,7 +4,6 @@ import {
   type PullFile,
   type PullReview,
   PullRequest,
-  allGitHubChecksSuccessful,
   findApprovedReviewOnHead,
   hasFailedGitHubCheck
 } from '@salesforce/effect-octokit';
@@ -18,14 +17,7 @@ export const BOT_LOGIN = 'svc-idee-bot';
 export const TEAM_ORG = 'forcedotcom';
 export const TEAM_SLUG = 'ide-experience';
 
-const DENYLIST = [
-  /(^|\/)CODEOWNERS$/,
-  /^APPROVAL_POLICY\.md$/,
-  /^\.github\/workflows\/.+/,
-  /^\.cursor\/rules\/.+/,
-  /^\.cursor\/commands\/.+/,
-  /(^|\/)out\//
-];
+const DENYLIST = [/(^|\/)CODEOWNERS$/, /^APPROVAL_POLICY\.md$/, /^\.github\/workflows\/.+/, /(^|\/)out\//];
 
 const Skip = Schema.TaggedStruct('Skip', { reason: Schema.String });
 const Classify = Schema.TaggedStruct('Classify', { reason: Schema.String });
@@ -102,8 +94,9 @@ export const decideCategoryApprove = (input: Facts): Decision => {
   if (hasFailedGitHubCheck([...input.statuses, ...input.checkRuns]) && approved) {
     return Dismiss.make({ reason: 'a check failed after approval' });
   }
-  if (!allGitHubChecksSuccessful([...input.statuses, ...input.checkRuns]))
-    return Skip.make({ reason: 'rollup is not settled' });
+  if (hasFailedGitHubCheck([...input.statuses, ...input.checkRuns])) {
+    return Skip.make({ reason: 'a check failed' });
+  }
   if (approved) return Skip.make({ reason: 'bot already approved this head' });
   if (!isGated(input)) return Classify.make({ reason: 'gates passed' });
   const allowed = new Set(input.allowedCategories);
