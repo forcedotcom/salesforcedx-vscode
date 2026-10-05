@@ -153,6 +153,7 @@ export default [
       'local/no-vscode-uri': 'error',
       'local/no-vscode-show-text-document': 'warn',
       'local/no-inline-esbuild-platform': 'error',
+      'local/no-legacy-telemetry-service': 'error',
       'local/command-must-be-in-package-json': [
         'error',
         {
