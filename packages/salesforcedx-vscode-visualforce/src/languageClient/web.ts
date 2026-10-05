@@ -8,7 +8,7 @@
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import { window } from 'vscode';
-import { LanguageClient, LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient/browser';
+import { LanguageClient, type LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient/browser';
 import {
   buildDocumentSelector,
   buildSchemes,

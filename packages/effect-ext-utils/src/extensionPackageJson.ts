@@ -10,6 +10,7 @@ import * as Schema from 'effect/Schema';
 /** Fields from extension package.json used for channel, Sdk, o11y */
 export const ExtensionPackageJsonSchema = Schema.Struct({
   name: Schema.optional(Schema.String),
+  publisher: Schema.optional(Schema.String),
   version: Schema.optional(Schema.String),
   displayName: Schema.optional(Schema.String),
   o11yUploadEndpoint: Schema.optional(Schema.String),

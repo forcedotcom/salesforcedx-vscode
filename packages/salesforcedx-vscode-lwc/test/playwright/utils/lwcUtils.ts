@@ -7,6 +7,7 @@
 import { expect, type Locator, type Page } from '@playwright/test';
 import {
   closeWelcomeTabs,
+  disableMonacoAutoClosing,
   DIRTY_EDITOR,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
@@ -14,7 +15,6 @@ import {
   focusOnFilesExplorer,
   isDesktop,
   openFileByName,
-  paste,
   QUICK_INPUT_LIST_ROW,
   QUICK_INPUT_WIDGET,
   saveFile,
@@ -35,12 +35,12 @@ const replaceEditorContentAndSave = async (
   editor: ReturnType<Page['locator']>,
   content: string
 ): Promise<void> => {
+  await disableMonacoAutoClosing(page);
   await editor.click();
   await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
   await selectAll(page);
   await page.keyboard.press('Delete');
-  await page.evaluate((t: string) => navigator.clipboard.writeText(t), content);
-  await paste(page);
+  await page.keyboard.type(content);
   await saveFile(page);
   await expect(page.locator(DIRTY_EDITOR).first(), 'editor should be saved (no dirty indicator)').not.toBeVisible({
     timeout: 10_000
@@ -176,14 +176,15 @@ export const createLwcViaSfdxCommand = async (page: Page, componentName: string)
   const quickInput = page.locator(QUICK_INPUT_WIDGET);
   await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
 
-  // Step 1 (optional): Select component type (JavaScript / TypeScript) — newer extension versions skip this picker.
-  const hasTypePicker = await quickInput
+  // Step 1: Select template — picker is skipped when sfdx-project.json sets defaultLwcLanguage with no custom templates;
+  // otherwise, 'default' is pinned first in the built-in/custom template picker.
+  const hasTemplatePicker = await quickInput
     .locator(QUICK_INPUT_LIST_ROW)
     .first()
     .waitFor({ state: 'visible', timeout: 2000 })
     .then(() => true)
     .catch(() => false);
-  if (hasTypePicker) {
+  if (hasTemplatePicker) {
     await page.keyboard.press('Enter');
   }
 

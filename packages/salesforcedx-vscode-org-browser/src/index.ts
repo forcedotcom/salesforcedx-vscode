@@ -17,7 +17,12 @@ import * as vscode from 'vscode';
 import { openFilterTextPicker } from './commands/filterMetadata';
 import { retrieveEffect } from './commands/retrieveMetadata';
 import { EXTENSION_NAME, TREE_VIEW_ID } from './constants';
-import { buildAllServicesLayer, getOrgBrowserRuntime, setAllServicesLayer } from './services/extensionProvider';
+import {
+  buildAllServicesLayer,
+  disposeOrgBrowserRuntime,
+  getOrgBrowserRuntime,
+  setAllServicesLayer
+} from './services/extensionProvider';
 import { coalesceTreeRefreshes } from './tree/catalogChange';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
@@ -28,39 +33,23 @@ export const activate = async (context: vscode.ExtensionContext): Promise<void> 
   await getOrgBrowserRuntime().runPromise(activateEffect(context).pipe(Scope.extend(extensionScope)));
 };
 
-export const deactivate = async (): Promise<void> => getOrgBrowserRuntime().runPromise(deactivateEffect());
+export const deactivate = async (): Promise<void> => {
+  await getOrgBrowserRuntime().runPromise(deactivateEffect()).finally(disposeOrgBrowserRuntime);
+};
 
 // export for testing
 export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (context: vscode.ExtensionContext) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel('Salesforce Org Browser extension activating');
-
-  // get a connection to initiate the ref
-  yield* api.services.ConnectionService.getConnection();
-  // wait for the target org ref to have an orgId
-  const targetOrgRef = yield* api.services.TargetOrgRef();
-  yield* Effect.repeat(SubscriptionRef.get(targetOrgRef), {
-    until: org => isNotUndefined(org.orgId),
-    schedule: Schedule.exponential(Duration.millis(10))
-  });
+  yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.initialized', false));
 
   const treeProvider = new MetadataTypeTreeProvider();
   // Register the tree provider
-  vscode.window.registerTreeDataProvider(TREE_VIEW_ID, treeProvider);
-  const orgMetadataChanges = yield* api.services.OrgMetadataCatalogChangePubSub;
-  const extensionScope = yield* getExtensionScope();
-  yield* Effect.forkIn(
-    orgMetadataChanges.pipe(
-      changes => Stream.fromPubSub(changes),
-      coalesceTreeRefreshes,
-      Stream.runForEach(() => Effect.sync(() => treeProvider.fireChangeEvent()))
-    ),
-    extensionScope
-  );
+  context.subscriptions.push(vscode.window.registerTreeDataProvider(TREE_VIEW_ID, treeProvider));
 
   // --- Filter state: persistence, migration, and initial context keys ---
-  // Legacy migration: convert old viewMode to boolean flags
+  // Legacy migration: convert old viewMode to boolean type
   const legacyViewMode = context.workspaceState.get<string>('orgBrowser.viewMode');
   if (isNotUndefined(legacyViewMode)) {
     const migratedShowLocal = legacyViewMode !== 'orgOnly';
@@ -181,6 +170,28 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       registerCommand(`${TREE_VIEW_ID}.filterText.active`, () => openFilterTextPicker(treeProvider, context))
     ],
     { concurrency: 'unbounded' }
+  );
+
+  yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.initialized', true));
+
+  // get a connection to initiate the ref
+  yield* api.services.ConnectionService.getConnection();
+  // wait for the target org ref to have an orgId
+  const targetOrgRef = yield* api.services.TargetOrgRef();
+  yield* Effect.repeat(SubscriptionRef.get(targetOrgRef), {
+    until: org => isNotUndefined(org.orgId),
+    schedule: Schedule.exponential(Duration.millis(10))
+  });
+
+  const orgMetadataChanges = yield* api.services.OrgMetadataCatalogChangePubSub;
+  const extensionScope = yield* getExtensionScope();
+  yield* Effect.forkIn(
+    orgMetadataChanges.pipe(
+      changes => Stream.fromPubSub(changes),
+      coalesceTreeRefreshes,
+      Stream.runForEach(() => Effect.sync(() => treeProvider.fireChangeEvent()))
+    ),
+    extensionScope
   );
 
   yield* Effect.forkDaemon(

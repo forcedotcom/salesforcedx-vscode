@@ -9,15 +9,12 @@ import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
 import { build } from 'esbuild';
 import { writeFile } from 'fs/promises';
 import { resolve } from 'path';
-import { fileURLToPath } from 'url';
-
-const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 // Node.js build (desktop VS Code)
 const nodeBuild = await build({
   ...nodeConfig,
   loader: { '.node': 'file' },
-  external: [...nodeConfig.external, '@babel/preset-typescript/package.json', 'jest-editor-support', '@babel/core'],
+  external: nodeConfig.external,
   entryPoints: ['./src/index.ts'],
   outdir: 'dist',
   metafile: true
@@ -40,12 +37,7 @@ const browserBuild = await build({
 await build({
   ...nodeConfig,
   loader: { '.node': 'file', '.json': 'json' },
-  external: [
-    'vscode',
-    '@salesforce/lightning-lsp-common',
-    '@babel/preset-typescript/package.json',
-    'jest-editor-support'
-  ],
+  external: ['vscode'],
   entryPoints: ['../salesforcedx-lwc-language-server/out/src/server.js'],
   outfile: './dist/lwcServer.js',
   bundle: true,
@@ -63,14 +55,14 @@ await build({
         build.onResolve({ filter: /^\.\.\/parser\/htmlScanner$/ }, args => {
           if (args.importer.includes('vscode-html-languageservice')) {
             return {
-              path: resolve(__dirname, '../../node_modules/vscode-html-languageservice/lib/esm/parser/htmlScanner.js')
+              path: resolve(args.resolveDir, `${args.path}.js`)
             };
           }
         });
         build.onResolve({ filter: /^\.\/parser\/htmlScanner$/ }, args => {
           if (args.importer.includes('vscode-html-languageservice')) {
             return {
-              path: resolve(__dirname, '../../node_modules/vscode-html-languageservice/lib/esm/parser/htmlScanner.js')
+              path: resolve(args.resolveDir, `${args.path}.js`)
             };
           }
         });
@@ -89,7 +81,6 @@ await build({
   loader: { '.json': 'json' },
   external: [
     'vscode',
-    '@salesforce/lightning-lsp-common',
     '@babel/preset-typescript/package.json',
     'jest-editor-support'
     // @babel/core is NOT external - it needs to be bundled for browser to avoid dynamic require errors
@@ -114,19 +105,13 @@ await build({
         build.onResolve({ filter: /^\.\.\/parser\/htmlScanner$/ }, args => {
           if (args.importer.includes('vscode-html-languageservice')) {
             // Resolve to ESM version to avoid dynamic requires
-            const htmlScannerPath = resolve(
-              __dirname,
-              '../../node_modules/vscode-html-languageservice/lib/esm/parser/htmlScanner.js'
-            );
+            const htmlScannerPath = resolve(args.resolveDir, `${args.path}.js`);
             return { path: htmlScannerPath };
           }
         });
         build.onResolve({ filter: /^\.\/parser\/htmlScanner$/ }, args => {
           if (args.importer.includes('vscode-html-languageservice')) {
-            const htmlScannerPath = resolve(
-              __dirname,
-              '../../node_modules/vscode-html-languageservice/lib/esm/parser/htmlScanner.js'
-            );
+            const htmlScannerPath = resolve(args.resolveDir, `${args.path}.js`);
             return { path: htmlScannerPath };
           }
         });

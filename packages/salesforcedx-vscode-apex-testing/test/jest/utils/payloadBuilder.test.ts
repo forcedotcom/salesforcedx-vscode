@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AsyncTestConfiguration, TestLevel, TestService } from '@salesforce/apex-node';
+import { AsyncTestConfiguration, TestService } from '@salesforce/apex-node';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { buildTestPayload as buildTestPayloadEffect } from '../../../src/utils/payloadBuilder';
@@ -47,7 +47,7 @@ describe('payloadBuilder', () => {
     it('should build payload for suite', async () => {
       const suiteItem = createMockTestItem('suite:MyTestSuite', 'MyTestSuite');
       const mockPayload: AsyncTestConfiguration = {
-        testLevel: TestLevel.RunSpecifiedTests
+        testLevel: 'RunSpecifiedTests'
       } as AsyncTestConfiguration;
 
       (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
@@ -58,7 +58,7 @@ describe('payloadBuilder', () => {
       expect(result.hasClass).toBe(false);
       expect(result.payload).toBe(mockPayload);
       expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
-        TestLevel.RunSpecifiedTests,
+        'RunSpecifiedTests',
         undefined,
         undefined,
         'MyTestSuite',
@@ -70,7 +70,7 @@ describe('payloadBuilder', () => {
     it('should build payload for single class', async () => {
       const classItem = createMockTestItem('class:MyTestClass', 'MyTestClass');
       const mockPayload: AsyncTestConfiguration = {
-        testLevel: TestLevel.RunSpecifiedTests
+        testLevel: 'RunSpecifiedTests'
       } as AsyncTestConfiguration;
 
       (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
@@ -81,7 +81,7 @@ describe('payloadBuilder', () => {
       expect(result.hasClass).toBe(true);
       expect(result.payload).toBe(mockPayload);
       expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
-        TestLevel.RunSpecifiedTests,
+        'RunSpecifiedTests',
         undefined,
         'MyTestClass',
         undefined,
@@ -94,7 +94,7 @@ describe('payloadBuilder', () => {
       const method1 = createMockTestItem('method:MyClass.testMethod1', 'testMethod1');
       const method2 = createMockTestItem('method:MyClass.testMethod2', 'testMethod2');
       const mockPayload: AsyncTestConfiguration = {
-        testLevel: TestLevel.RunSpecifiedTests
+        testLevel: 'RunSpecifiedTests'
       } as AsyncTestConfiguration;
 
       (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
@@ -110,7 +110,7 @@ describe('payloadBuilder', () => {
       expect(result.hasClass).toBe(false);
       expect(result.payload).toBe(mockPayload);
       expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
-        TestLevel.RunSpecifiedTests,
+        'RunSpecifiedTests',
         'MyClass.testMethod1,MyClass.testMethod2',
         undefined,
         undefined,
@@ -123,7 +123,7 @@ describe('payloadBuilder', () => {
       const method1 = createMockTestItem('method:Class1.testMethod1', 'testMethod1');
       const method2 = createMockTestItem('method:Class2.testMethod2', 'testMethod2');
       const mockPayload: AsyncTestConfiguration = {
-        testLevel: TestLevel.RunSpecifiedTests
+        testLevel: 'RunSpecifiedTests'
       } as AsyncTestConfiguration;
 
       (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
@@ -139,7 +139,7 @@ describe('payloadBuilder', () => {
       expect(result.hasClass).toBe(false);
       expect(result.payload).toBe(mockPayload);
       expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
-        TestLevel.RunSpecifiedTests,
+        'RunSpecifiedTests',
         'Class1.testMethod1,Class2.testMethod2',
         undefined,
         undefined,
@@ -151,7 +151,7 @@ describe('payloadBuilder', () => {
     it('should handle code coverage enabled', async () => {
       const classItem = createMockTestItem('class:MyTestClass', 'MyTestClass');
       const mockPayload: AsyncTestConfiguration = {
-        testLevel: TestLevel.RunSpecifiedTests
+        testLevel: 'RunSpecifiedTests'
       } as AsyncTestConfiguration;
 
       (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
@@ -159,7 +159,7 @@ describe('payloadBuilder', () => {
       await buildTestPayload(mockTestService, [classItem], ['MyTestClass'], true);
 
       expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
-        TestLevel.RunSpecifiedTests,
+        'RunSpecifiedTests',
         undefined,
         'MyTestClass',
         undefined,
@@ -172,7 +172,7 @@ describe('payloadBuilder', () => {
       const suite1 = createMockTestItem('suite:MySuite1', 'MySuite1');
       const suite2 = createMockTestItem('suite:MySuite2', 'MySuite2');
       const mockPayload: AsyncTestConfiguration = {
-        testLevel: TestLevel.RunSpecifiedTests
+        testLevel: 'RunSpecifiedTests'
       } as AsyncTestConfiguration;
 
       (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
@@ -184,7 +184,7 @@ describe('payloadBuilder', () => {
       expect(result.payload).toBe(mockPayload);
       // Multiple suites should be passed as comma-separated string
       expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
-        TestLevel.RunSpecifiedTests,
+        'RunSpecifiedTests',
         undefined,
         undefined,
         'MySuite1,MySuite2',
@@ -218,7 +218,7 @@ describe('payloadBuilder', () => {
     it('should handle empty test names array', async () => {
       const suiteItem = createMockTestItem('suite:MySuite', 'MySuite');
       const mockPayload: AsyncTestConfiguration = {
-        testLevel: TestLevel.RunSpecifiedTests
+        testLevel: 'RunSpecifiedTests'
       } as AsyncTestConfiguration;
 
       (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
@@ -233,7 +233,7 @@ describe('payloadBuilder', () => {
       const classItem = createMockTestItem('class:MyClass', 'MyClass');
       const methodItem = createMockTestItem('method:OtherClass.testMethod', 'testMethod');
       const mockPayload: AsyncTestConfiguration = {
-        testLevel: TestLevel.RunSpecifiedTests
+        testLevel: 'RunSpecifiedTests'
       } as AsyncTestConfiguration;
 
       (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
@@ -248,7 +248,7 @@ describe('payloadBuilder', () => {
       expect(result.hasClass).toBe(false);
       // When method names are present, always use them
       expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
-        TestLevel.RunSpecifiedTests,
+        'RunSpecifiedTests',
         'OtherClass.testMethod',
         undefined,
         undefined,
@@ -262,7 +262,7 @@ describe('payloadBuilder', () => {
       const method1 = createMockTestItem('method:CodeBuilder.ApplicationTest.testMethod1', 'testMethod1');
       const method2 = createMockTestItem('method:CodeBuilder.ApplicationTest.testMethod2', 'testMethod2');
       const mockPayload: AsyncTestConfiguration = {
-        testLevel: TestLevel.RunSpecifiedTests
+        testLevel: 'RunSpecifiedTests'
       } as AsyncTestConfiguration;
 
       (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
@@ -279,7 +279,7 @@ describe('payloadBuilder', () => {
       expect(result.payload).toBe(mockPayload);
       // Now delegates to buildAsyncPayload which correctly handles namespaces
       expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
-        TestLevel.RunSpecifiedTests,
+        'RunSpecifiedTests',
         'CodeBuilder.ApplicationTest.testMethod1,CodeBuilder.ApplicationTest.testMethod2',
         undefined,
         undefined,
@@ -292,7 +292,7 @@ describe('payloadBuilder', () => {
       const method1 = createMockTestItem('method:FooTest.testFoo', 'testFoo');
       const method2 = createMockTestItem('method:CodeBuilder.ApplicationTest.testApp', 'testApp');
       const mockPayload: AsyncTestConfiguration = {
-        testLevel: TestLevel.RunSpecifiedTests
+        testLevel: 'RunSpecifiedTests'
       } as AsyncTestConfiguration;
 
       (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
@@ -309,7 +309,7 @@ describe('payloadBuilder', () => {
       expect(result.payload).toBe(mockPayload);
       // Now delegates to buildAsyncPayload which correctly handles namespaces
       expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
-        TestLevel.RunSpecifiedTests,
+        'RunSpecifiedTests',
         'FooTest.testFoo,CodeBuilder.ApplicationTest.testApp',
         undefined,
         undefined,
@@ -322,7 +322,7 @@ describe('payloadBuilder', () => {
       const class1 = createMockTestItem('class:Class1', 'Class1');
       const class2 = createMockTestItem('class:Class2', 'Class2');
       const mockPayload: AsyncTestConfiguration = {
-        testLevel: TestLevel.RunSpecifiedTests
+        testLevel: 'RunSpecifiedTests'
       } as AsyncTestConfiguration;
 
       (mockTestService.buildAsyncPayload as jest.Mock).mockResolvedValue(mockPayload);
@@ -334,7 +334,7 @@ describe('payloadBuilder', () => {
       expect(result.payload).toBe(mockPayload);
       // Now delegates to buildAsyncPayload with comma-separated class names
       expect(mockTestService.buildAsyncPayload).toHaveBeenCalledWith(
-        TestLevel.RunSpecifiedTests,
+        'RunSpecifiedTests',
         undefined,
         'Class1,Class2',
         undefined,

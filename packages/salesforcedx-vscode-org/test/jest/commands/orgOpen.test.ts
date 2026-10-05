@@ -87,7 +87,8 @@ describe('orgOpenCommand', () => {
     expect(Exit.isSuccess(exit)).toBe(true);
     // simpleExec injects SF_JSON_TO_STDOUT + FORCE_COLOR for sf commands; orgOpen no longer passes env
     expect(simpleExec).toHaveBeenCalledWith({
-      command: 'sf org open --url-only --json --target-org me@scratch.org',
+      executable: 'sf',
+      args: ['org', 'open', '--url-only', '--json', '--target-org', 'me@scratch.org'],
       parse: expect.any(Function)
     });
   });
@@ -119,7 +120,9 @@ describe('orgOpenCommand', () => {
     const exit = await run({ isProject: true, orgInfo: {}, simpleExec, appendToChannel, show });
 
     expect(Exit.isSuccess(exit)).toBe(true);
-    expect(simpleExec).toHaveBeenCalledWith(expect.objectContaining({ command: 'sf org open --url-only --json' }));
+    expect(simpleExec).toHaveBeenCalledWith(
+      expect.objectContaining({ executable: 'sf', args: ['org', 'open', '--url-only', '--json'] })
+    );
   });
 
   it('fails (getSfProject) and does not exec or open when not in a project', async () => {

@@ -12,12 +12,14 @@ import {
 import { isError } from 'effect/Predicate';
 import { window, workspace } from 'vscode';
 import { LanguageClient, LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient/browser';
+import type { URI } from 'vscode-uri';
 import { appendToChannel } from '../channel';
 import { buildDocumentSelector, getBaseClientOptions, type LwcInitializationOptions } from './clientOptions';
 
 export const createLanguageClient = (
   serverPath: string,
-  initializationOptions: LwcInitializationOptions
+  initializationOptions: LwcInitializationOptions,
+  packageDirectoryUris?: URI[]
 ): LanguageClient => {
   // Browser mode: use web worker
   // Create a web worker for the language server
@@ -64,7 +66,7 @@ export const createLanguageClient = (
   }
 
   const clientOptions: LanguageClientOptions = {
-    ...getBaseClientOptions(initializationOptions),
+    ...getBaseClientOptions(initializationOptions, packageDirectoryUris),
     documentSelector: buildDocumentSelector(Array.from(schemes)),
     outputChannel,
     revealOutputChannelOn: RevealOutputChannelOn.Error,

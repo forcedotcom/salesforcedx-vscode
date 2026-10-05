@@ -19,7 +19,12 @@ import {
   gatherAccessTokenParams,
   gatherAuthParams
 } from '../../../../src/commands/auth/authParamsGatherer';
-import { getOrgRuntime, resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../../src/extensionProvider';
+import {
+  buildAllServicesLayer,
+  getOrgRuntime,
+  resetOrgRuntimeForTesting,
+  setAllServicesLayer
+} from '../../../../src/extensionProvider';
 import { nls } from '../../../../src/messages';
 import {
   considerUndefinedAsCancellation,
@@ -39,6 +44,10 @@ describe('AuthParamsGatherer', () => {
               retrieveSfProjectJson: () => Promise.resolve({ get: () => projectLoginUrl })
             })
         },
+        NotificationModeService: Effect.succeed({
+          getProgressLocation: () => Effect.succeed(1),
+          showSuccessNotification: () => Effect.void
+        }),
         UserCancellationError
       }
     } as unknown as SalesforceVSCodeServicesApi;
@@ -49,11 +58,7 @@ describe('AuthParamsGatherer', () => {
 
   const useLayer = (confirm = true, projectLoginUrl?: string): void => {
     resetOrgRuntimeForTesting();
-    setAllServicesLayer(
-      buildLayer(confirm, projectLoginUrl) as ReturnType<
-        typeof import('@salesforce/effect-ext-utils').buildAllServicesLayer
-      >
-    );
+    setAllServicesLayer(buildLayer(confirm, projectLoginUrl) as ReturnType<typeof buildAllServicesLayer>);
   };
 
   beforeEach(() => {

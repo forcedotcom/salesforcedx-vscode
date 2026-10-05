@@ -50,7 +50,7 @@ const buildServices = (opts: {
   PromptService: Effect.succeed({
     considerUndefinedAsCancellation: (value: unknown) =>
       value === undefined ? Effect.fail({ _tag: 'UserCancellationError' as const }) : Effect.succeed(value),
-    withCancellableProgress: (title: string) => {
+    withCancellableProgress: (title: string, _location?: unknown) => {
       opts.captureProgressTitle(title);
       return identity;
     }
@@ -64,6 +64,10 @@ const buildServices = (opts: {
     showChannel: Effect.sync(() => {
       opts.showChannel();
     })
+  }),
+  NotificationModeService: Effect.succeed({
+    getProgressLocation: () => Effect.succeed(1),
+    showSuccessNotification: () => Effect.void
   }),
   UserCancellationError: class {
     public readonly _tag = 'UserCancellationError';
@@ -115,8 +119,18 @@ describe('orgLoginWebCommand', () => {
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(simpleExec).toHaveBeenCalledWith(
       expect.objectContaining({
-        command:
-          'sf org login web --alias "vscodeOrg" --instance-url "https://login.salesforce.com" --set-default --json'
+        executable: 'sf',
+        args: [
+          'org',
+          'login',
+          'web',
+          '--alias',
+          'vscodeOrg',
+          '--instance-url',
+          'https://login.salesforce.com',
+          '--set-default',
+          '--json'
+        ]
       })
     );
   });
@@ -150,8 +164,7 @@ describe('orgLoginWebCommand', () => {
     const simpleExec = jest.fn(() =>
       Effect.fail({
         _tag: 'TerminalServiceError' as const,
-        message: 'EADDRINUSE: port 1717 already in use',
-        command: 'sf org login web'
+        message: 'EADDRINUSE: port 1717 already in use'
       })
     );
     const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel, captureProgressTitle });
@@ -173,8 +186,7 @@ describe('orgLoginWebCommand', () => {
     const simpleExec = jest.fn(() =>
       Effect.fail({
         _tag: 'TerminalServiceError' as const,
-        message: 'Cannot start the OAuth redirect server on port 1717',
-        command: 'sf org login web'
+        message: 'Cannot start the OAuth redirect server on port 1717'
       })
     );
     const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel, captureProgressTitle });
@@ -188,8 +200,7 @@ describe('orgLoginWebCommand', () => {
     const simpleExec = jest.fn(() =>
       Effect.fail({
         _tag: 'TerminalServiceError' as const,
-        message: 'some other CLI failure',
-        command: 'sf org login web'
+        message: 'some other CLI failure'
       })
     );
     const exit = await run({ isProject: true, simpleExec, appendToChannel, showChannel, captureProgressTitle });

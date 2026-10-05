@@ -4,12 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ApexTestResultOutcome } from '../../src';
 import { TestResultStringifyStream } from '../../src/streaming';
 import { CodeCoverageResult, TestResult } from '../../src/tests';
 import { PerClassCoverage } from '../../src/tests/types';
 
-const tests = [
+const tests: TestResult['tests'] = [
   {
     id: 'testId1',
     queueItemId: 'queueItemId1',
@@ -17,7 +16,7 @@ const tests = [
     message: null,
     asyncApexJobId: 'asyncApexJobId1',
     methodName: 'testMethod1',
-    outcome: ApexTestResultOutcome.Pass,
+    outcome: 'Pass',
     apexLogId: null,
     apexClass: {
       id: 'classId1',
@@ -37,7 +36,7 @@ const tests = [
     message: 'Null pointer exception',
     asyncApexJobId: 'asyncApexJobId2',
     methodName: 'testMethod2',
-    outcome: ApexTestResultOutcome.Fail,
+    outcome: 'Fail',
     apexLogId: 'logId2',
     apexClass: {
       id: 'classId2',

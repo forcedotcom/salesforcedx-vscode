@@ -36,7 +36,9 @@ import {
   TestRunIdResult,
   TestSuiteMembershipRecord
 } from './types';
-import { getBufferSize, getJsonIndent, isFlowTest, queryNamespaces } from './utils';
+import { isFlowTest, queryNamespaces } from './utils';
+
+const validResultFormats = new Set<ResultFormat>(['junit', 'tap', 'json', 'human', 'markdown', 'text']);
 
 /**
  * Standalone function for writing test result files - easier to test
@@ -50,7 +52,7 @@ export const writeResultFiles = async (
   const filesWritten: string[] = [];
   const { dirPath, resultFormats, fileInfos } = outputDirConfig;
 
-  if (resultFormats && !resultFormats.every(format => format in ResultFormat)) {
+  if (resultFormats && !resultFormats.every(format => validResultFormats.has(format))) {
     throw new Error(nls.localize('resultFormatErr'));
   }
 
@@ -70,36 +72,28 @@ export const writeResultFiles = async (
       let filePath;
       let readable;
       switch (format) {
-        case ResultFormat.json:
+        case 'json':
           filePath = join(dirPath, `test-result-${testRunId || 'default'}.json`);
-          readable = TestResultStringifyStream.fromTestResult(result, {
-            bufferSize: getBufferSize()
-          });
+          readable = TestResultStringifyStream.fromTestResult(result);
           break;
-        case ResultFormat.tap:
+        case 'tap':
           filePath = join(dirPath, `test-result-${testRunId}-tap.txt`);
-          readable = new TapFormatTransformer(result, undefined, {
-            bufferSize: getBufferSize()
-          });
+          readable = new TapFormatTransformer(result);
           break;
-        case ResultFormat.junit:
+        case 'junit':
           filePath = join(dirPath, `test-result-${testRunId || 'default'}-junit.xml`);
-          readable = new JUnitFormatTransformer(result, {
-            bufferSize: getBufferSize()
-          });
+          readable = new JUnitFormatTransformer(result);
           break;
-        case ResultFormat.markdown:
+        case 'markdown':
           filePath = join(dirPath, `test-result-${testRunId || 'default'}.md`);
           readable = new MarkdownTextFormatTransformer(result, {
-            bufferSize: getBufferSize(),
             format: 'markdown',
             codeCoverage
           });
           break;
-        case ResultFormat.text:
+        case 'text':
           filePath = join(dirPath, `test-result-${testRunId || 'default'}.txt`);
           readable = new MarkdownTextFormatTransformer(result, {
-            bufferSize: getBufferSize(),
             format: 'text',
             codeCoverage
           });
@@ -116,7 +110,7 @@ export const writeResultFiles = async (
   if (codeCoverage && isTestResult(result)) {
     const filePath = join(dirPath, `test-result-${testRunId}-codecoverage.json`);
     const c = result.tests.map(record => record.perClassCoverage).filter(pcc => pcc?.length);
-    filesWritten.push(await runPipeline(new JsonStreamStringify(c, undefined, getJsonIndent()), filePath));
+    filesWritten.push(await runPipeline(new JsonStreamStringify(c), filePath));
   }
 
   if (fileInfos) {
@@ -125,7 +119,7 @@ export const writeResultFiles = async (
       const readable =
         typeof fileInfo.content === 'string'
           ? Readable.from([fileInfo.content])
-          : new JsonStreamStringify(fileInfo.content, undefined, getJsonIndent());
+          : new JsonStreamStringify(fileInfo.content);
       filesWritten.push(await runPipeline(readable, filePath));
     }
   }
@@ -168,7 +162,7 @@ const apexClassIdQueryForTestSuiteMember = (testClass: string): string => {
 
 export class TestService {
   private readonly connection: Connection;
-  public readonly asyncService: AsyncTests;
+  private readonly asyncService: AsyncTests;
   private readonly syncService: SyncTests;
 
   constructor(connection: Connection) {
@@ -228,6 +222,7 @@ export class TestService {
    * @param suitename name of suite
    * @param suiteId id of suite
    * @returns list of test classes in the suite
+   * @internal Used by the co-repo Apex Testing extension; not part of the supported npm API.
    */
   @elapsedTime()
   public async getTestsInSuite(suitename?: string, suiteId?: string): Promise<TestSuiteMembershipRecord[]> {
@@ -254,7 +249,7 @@ export class TestService {
    * @returns the associated ids for each Apex class
    */
   @elapsedTime()
-  public async getApexClassIds(testClasses: string[]): Promise<string[]> {
+  private async getApexClassIds(testClasses: string[]): Promise<string[]> {
     const classIds = testClasses.map(async testClass => {
       const soql = apexClassIdQueryForTestSuiteMember(testClass);
       const apexClass = (await this.connection.tooling.query(soql)) as QueryResult;
@@ -270,6 +265,7 @@ export class TestService {
    * Builds a test suite with the given test classes. Creates the test suite if it doesn't exist already
    * @param suitename name of suite
    * @param testClasses
+   * @internal Used by the co-repo Apex Testing extension; not part of the supported npm API.
    */
   @elapsedTime()
   public async buildSuite(suitename: string, testClasses: string[]): Promise<void> {
@@ -508,7 +504,7 @@ export class TestService {
 
     return {
       tests: classItems,
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage
     };
   }
@@ -518,7 +514,7 @@ export class TestService {
     const classItems = classNames.split(',').map((item): TestItem => ({ className: item }));
     return {
       tests: classItems,
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage
     };
   }
@@ -549,7 +545,7 @@ export class TestService {
 
     return {
       tests: testItems,
-      testLevel: TestLevel.RunSpecifiedTests,
+      testLevel: 'RunSpecifiedTests',
       skipCodeCoverage
     };
   }
@@ -689,7 +685,7 @@ export class TestService {
     return filePath;
   }
 
-  public createStream(filePath: string): Writable {
+  private createStream(filePath: string): Writable {
     return createWriteStream(filePath, 'utf8');
   }
   private hasCategory(category?: string): category is string {

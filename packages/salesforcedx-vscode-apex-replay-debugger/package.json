@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.15.3",
+  "version": "67.27.3",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -32,17 +32,17 @@
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-apex-replay-debugger": "*",
     "@salesforce/salesforcedx-utils": "*",
-    "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
     "salesforcedx-vscode-apex-log": "*",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@playwright/test": "*",
-    "@salesforce/core": "^9.0.0",
+    "@playwright/test": "1.60.0",
+    "@salesforce/core": "^9.3.0",
     "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-apex": "*",
+    "salesforcedx-vscode-apex-testing": "*",
     "salesforcedx-vscode-metadata": "*",
     "salesforcedx-vscode-services": "*"
   },
@@ -61,7 +61,8 @@
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "wireit",
     "lint": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
+    "check:circular-deps": "wireit",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache .circular-deps.json *.vsix",
     "test": "wireit",
     "vscode:package:prerelease": "wireit"
   },
@@ -73,7 +74,6 @@
         "../salesforcedx-apex:compile",
         "../salesforcedx-apex-replay-debugger:compile",
         "../salesforcedx-utils:compile",
-        "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-apex-log:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-apex:compile",
@@ -132,10 +132,25 @@
         "coverage"
       ]
     },
+    "check:circular-deps": {
+      "command": "dpdm -T --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json --exclude \"/node_modules/|/out/|/dist/\" 'src/**/*.ts'",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        ".circular-deps.json"
+      ]
+    },
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
         "../eslint-local-rules:compile",
+        "check:circular-deps",
         "compile"
       ],
       "files": [
@@ -148,7 +163,7 @@
       "output": []
     },
     "vscode:package": {
-      "command": "vsce package --allow-package-all-secrets",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies",
       "dependencies": [
         "vscode:bundle"
       ],
@@ -179,7 +194,7 @@
       "dependencies": [
         "vscode:package",
         "../salesforcedx-vscode-services:vscode:package",
-        "../salesforcedx-vscode-core:vscode:package:legacy",
+        "../salesforcedx-vscode-core:vscode:package",
         "../salesforcedx-vscode-apex:vscode:package",
         "../salesforcedx-vscode-apex-log:vscode:package",
         "../salesforcedx-vscode-apex-testing:vscode:package",
@@ -194,7 +209,7 @@
       "output": []
     },
     "vscode:package:prerelease": {
-      "command": "vsce package --allow-package-all-secrets --pre-release",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies --pre-release",
       "dependencies": [
         "vscode:bundle"
       ],
@@ -214,9 +229,8 @@
   },
   "activationEvents": [
     "onDebugResolve:apex",
-    "onCommand:extension.replay-debugger.getLogFileName",
+    "onDebugResolve:apex-replay",
     "onCommand:sf.launch.replay.debugger.logfile",
-    "onCommand:sf.launch.replay.debugger.logfile.path",
     "onCommand:sf.anon.apex.debug.delegate",
     "onCommand:sf.launch.apex.replay.debugger.with.current.file"
   ],
@@ -354,9 +368,6 @@
         "languages": [
           "apex"
         ],
-        "variables": {
-          "AskForLogFileName": "extension.replay-debugger.getLogFileName"
-        },
         "configurationSnippets": [
           {
             "label": "%launch_snippet_label_text%",
@@ -399,6 +410,78 @@
           }
         }
       }
-    ]
+    ],
+    "configuration": {
+      "title": "%apexReplayDebugger.configuration.title%",
+      "properties": {
+        "salesforcedx-vscode-apex-replay-debugger.extensionLevelNotifications": {
+          "type": "string",
+          "enum": [
+            "progressToastSuccessToast",
+            "progressToastSuccessOff",
+            "progressStatusBarSuccessStatusBar",
+            "progressStatusBarSuccessOff"
+          ],
+          "enumDescriptions": [
+            "%notifications.progressToastSuccessToast.description%",
+            "%notifications.progressToastSuccessOff.description%",
+            "%notifications.progressStatusBarSuccessStatusBar.description%",
+            "%notifications.progressStatusBarSuccessOff.description%"
+          ],
+          "description": "%extension_level_notifications_description%"
+        },
+        "salesforcedx-vscode-apex-replay-debugger.commandLevelNotifications": {
+          "type": "object",
+          "description": "%command_level_notifications_description%",
+          "properties": {
+            "Debug Apex Test Class": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
+              ],
+              "description": "%notifications_apex_test_class_description%"
+            },
+            "Debug Anonymous Apex": {
+              "type": "string",
+              "enum": [
+                "progressToastSuccessToast",
+                "progressToastSuccessOff",
+                "progressStatusBarSuccessStatusBar",
+                "progressStatusBarSuccessOff"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToastSuccessToast.description%",
+                "%notifications.progressToastSuccessOff.description%",
+                "%notifications.progressStatusBarSuccessStatusBar.description%",
+                "%notifications.progressStatusBarSuccessOff.description%"
+              ],
+              "description": "%notifications_anonymous_apex_description%"
+            },
+            "Update Checkpoints in Org": {
+              "type": "string",
+              "enum": [
+                "progressToast",
+                "progressStatusBar"
+              ],
+              "enumDescriptions": [
+                "%notifications.progressToast.description%",
+                "%notifications.progressStatusBar.description%"
+              ],
+              "description": "%notifications_update_checkpoints_description%"
+            }
+          },
+          "additionalProperties": false
+        }
+      }
+    }
   }
 }

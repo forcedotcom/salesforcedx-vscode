@@ -56,7 +56,9 @@ const runRefreshAndVerify = async (
   const quickInput = activeQuickInputWidget(page);
   await quickInput.waitFor({ state: 'attached', timeout: 10_000 });
   const row = quickInput.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: quickPickOption });
-  await row.click({ force: true });
+  await expect(row).toBeVisible({ timeout: 10_000 });
+  await expect(row).toBeEnabled({ timeout: 10_000 });
+  await row.click();
 
   await waitForOutputChannelText(page, { expectedText: expectedOutputText, timeout });
 };
@@ -161,10 +163,10 @@ failureTest(
         await executeCommandWithCommandPalette(page, packageNls.sobjects_refresh);
         const quickInput = activeQuickInputWidget(page);
         await quickInput.waitFor({ state: 'attached', timeout: 10_000 });
-        await quickInput
-          .locator(QUICK_INPUT_LIST_ROW)
-          .filter({ hasText: packageNls.sobject_refresh_custom })
-          .click({ force: true });
+        const row = quickInput.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: packageNls.sobject_refresh_custom });
+        await expect(row).toBeVisible({ timeout: 10_000 });
+        await expect(row).toBeEnabled({ timeout: 10_000 });
+        await row.click();
       });
 
       await test.step('real permission error is shown, generic string is not', async () => {

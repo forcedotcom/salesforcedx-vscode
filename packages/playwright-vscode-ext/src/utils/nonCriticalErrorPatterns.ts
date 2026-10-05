@@ -46,7 +46,7 @@ export const NON_CRITICAL_ERROR_PATTERNS = [
   'Ignoring terminal.integrated.initialHint', // VS Code terminal hint configuration conflicts (non-critical)
   // these are known issue with apex test ext.  They need to be fixed, but might involve the library code.
   // Apex code-lens provider (provideCodeLenses) fires on file open even in headless/no-org tests; VS Code surfaces two console errors for the same underlying cause:
-  'No default org is set', // specific message from WorkspaceContextUtil.getConnection
+  'No default org is set', // target-org errors from Apex, Metadata, and Services packages
   'No target org configured', // NoTargetOrgConfiguredError from salesforcedx-vscode-services (no-org workspace)
   'An unknown error occurred. Please consult the log for more details.', // VS Code workbench generic wrapper around the same no-org error
   'Failed to write JSON test result file', // Web filesystem limitations when writing test results (non-critical)

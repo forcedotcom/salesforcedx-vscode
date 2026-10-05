@@ -10,13 +10,7 @@ import { Duration } from '@salesforce/kit';
 import { Client } from 'faye';
 import { Progress } from '../common';
 import { nls } from '../i18n';
-import {
-  ApexTestProgressValue,
-  ApexTestQueueItem,
-  ApexTestQueueItemRecord,
-  ApexTestQueueItemStatus,
-  TestRunIdResult
-} from '../tests/types';
+import { ApexTestProgressValue, ApexTestQueueItem, ApexTestQueueItemRecord, TestRunIdResult } from '../tests/types';
 import { queryAll } from '../tests/utils';
 import { elapsedTime, refreshAuth } from '../utils';
 import { RetrieveResultsInterval, StreamMessage, StreamingErrors, TestResultMessage } from './types';
@@ -288,10 +282,10 @@ export class StreamingClient {
     if (
       result.records.some(
         item =>
-          item.Status === ApexTestQueueItemStatus.Queued ||
-          item.Status === ApexTestQueueItemStatus.Holding ||
-          item.Status === ApexTestQueueItemStatus.Preparing ||
-          item.Status === ApexTestQueueItemStatus.Processing
+          item.Status === 'Queued' ||
+          item.Status === 'Holding' ||
+          item.Status === 'Preparing' ||
+          item.Status === 'Processing'
       )
     ) {
       return null;

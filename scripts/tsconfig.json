@@ -3,6 +3,7 @@
   "compilerOptions": {
     "outDir": "./dist",
     "noEmit": true,
+    "isolatedModules": true,
     "strictNullChecks": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
@@ -12,5 +13,6 @@
     "lib": ["ES2023", "DOM"],
     "types": ["node"]
   },
-  "include": ["*.ts"]
+  "include": ["*.ts"],
+  "exclude": ["category-approve.ts"]
 }

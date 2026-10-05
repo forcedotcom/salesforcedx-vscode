@@ -1,0 +1,104 @@
+{
+  "name": "@salesforce/effect-octokit",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Effect service over Octokit for GitHub REST and GraphQL",
+  "author": "Salesforce",
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "bugs": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode/issues"
+  },
+  "homepage": "https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/effect-octokit",
+  "main": "out/src/github.js",
+  "types": "out/src/github.d.ts",
+  "scripts": {
+    "compile": "wireit",
+    "lint": "wireit",
+    "clean": "shx rm -rf node_modules out coverage .wireit .eslintcache .circular-deps.json",
+    "test": "wireit",
+    "test:compile": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --pretty",
+      "clean": "if-file-deleted",
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
+        "package.json"
+      ],
+      "output": [
+        "out/**"
+      ]
+    },
+    "test:compile": {
+      "command": "tsc -p test/tsconfig.json",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "test/tsconfig.json"
+      ],
+      "output": []
+    },
+    "test": {
+      "command": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
+      "dependencies": [
+        "test:compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "jest.config.cjs",
+        "../../config/jest.base.config.js"
+      ],
+      "output": [
+        "coverage"
+      ]
+    },
+    "check:circular-deps": {
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json 'src/**/*.ts'",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        ".circular-deps.json"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile",
+        "check:circular-deps",
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "../../eslint.config.mjs",
+        "package.json"
+      ],
+      "output": []
+    }
+  },
+  "dependencies": {
+    "@effect/platform": "0.96.1",
+    "@octokit/core": "^7.0.6",
+    "@octokit/graphql": "^9.0.3",
+    "@octokit/plugin-paginate-rest": "^14.0.0",
+    "@octokit/request-error": "^7.0.2",
+    "@octokit/types": "^16.0.0",
+    "effect": "^3.21.2"
+  }
+}

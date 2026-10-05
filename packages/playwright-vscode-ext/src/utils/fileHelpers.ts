@@ -14,7 +14,6 @@ import {
   goToFile,
   goToLineColumn,
   newUntitledTextFile,
-  paste,
   saveFile,
   selectAll
 } from '../pages/nativeCommands';
@@ -26,6 +25,7 @@ import {
 } from '../pages/outputChannel';
 import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
 import { saveScreenshot } from '../shared/screenshotUtils';
+import { focusMonacoInput } from './focusMonacoInput';
 import {
   closeSettingsTab,
   closeWelcomeTabs,
@@ -43,7 +43,7 @@ import {
   QUICK_INPUT_WIDGET,
   WORKBENCH
 } from './locators';
-import { activeQuickInputWidget } from './quickInput';
+import { activeQuickInputWidget, waitForActiveQuickInputTextField } from './quickInput';
 import { disableMonacoAutoClosing, ensureSecondarySideBarHidden } from './workflows';
 
 /** Default timeout for deploy to complete (10 minutes, matches metadata deploy tests). */
@@ -127,23 +127,25 @@ export const createApexClass = async (page: Page, className: string, content?: s
   if (content !== undefined && content.length > 0) {
     // Close secondary sidebar (Chat/Agent) so keystrokes go to the editor, not the chat input
     await ensureSecondarySideBarHidden(page);
+    await disableMonacoAutoClosing(page);
 
-    // Focus the editor - click and verify it's ready for input by checking view lines are present
+    // Click activates this editor group so Select All hits this file, not Output or the Test Explorer filter.
+    // Do not focus again after Select All — a second focus collapses the selection.
     await editor.click();
     await editor.locator('.view-line').first().waitFor({ state: 'visible', timeout: 5000 });
+    await focusMonacoInput(editor);
 
     // Select all (template) via command palette so it runs in the active editor (keyboard shortcut can miss on web)
     await selectAll(page);
-
-    // Delete the selected content
     await page.keyboard.press('Delete');
-
-    // Write to clipboard (evaluate completes when write is done)
-    // Note: Clipboard permissions are granted globally in playwright config (createWebConfig.ts & createDesktopConfig.ts)
-    await page.evaluate((text: string) => navigator.clipboard.writeText(text), content);
-
-    // Paste the content
-    await paste(page);
+    // insertText, not type: per-key typing drops characters on Windows and deploys invalid Apex.
+    await page.keyboard.insertText(content);
+    const marker =
+      content
+        .split('\n')
+        .map(line => line.trim())
+        .find(line => line.length > 0 && !line.startsWith('public with sharing class ') && line !== '}') ?? content;
+    await expect(editor.locator('.view-lines')).toContainText(marker);
 
     // Save so the file is persisted and can be deployed / discovered by the test controller
     await saveFile(page);
@@ -228,9 +230,7 @@ export const openFileFromExplorerTree = async (
     if (expanded) continue;
     // Single click expands a folder; double-click expands then immediately collapses (two toggles).
     await folderItem.click({ timeout: 5000 }).catch(() => {});
-    await expect(folderItem)
-      .toHaveAttribute('aria-expanded', 'true', { timeout: 5000 })
-      .catch(() => {});
+    await expect(folderItem).toHaveAttribute('aria-expanded', 'true', { timeout: 5000 });
   }
 
   const fileItem = tree.getByRole('treeitem', { name: new RegExp(`^${escapeRegExp(fileName)}$`) }).first();
@@ -261,9 +261,8 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
 
     // Wait for Quick Open widget to be visible and ready
     await expect(widget).toBeVisible({ timeout: 10_000 });
-    const input = widget.locator('input.input');
-    await input.waitFor({ state: 'attached', timeout: 5000 });
-    await input.click({ force: true, timeout: 5000 });
+    const input = await waitForActiveQuickInputTextField(page);
+    await input.click({ timeout: 5000 });
 
     // Clear any existing text and ensure input is focused
     await page.keyboard.press('Control+a');
@@ -273,9 +272,8 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
     await page.locator(WORKBENCH).click();
     await page.keyboard.press('Control+p');
     await widget.waitFor({ state: 'visible', timeout: 10_000 });
-    const input = widget.locator('input.input');
-    await input.waitFor({ state: 'attached', timeout: 5000 });
-    await input.click({ force: true, timeout: 5000 });
+    const input = await waitForActiveQuickInputTextField(page);
+    await input.click({ timeout: 5000 });
   }
 
   // Type the filename
@@ -317,7 +315,8 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
   const matchingText = resultTexts[matchingIndex];
   const matchingResult = results.filter({ hasText: new RegExp(`^${escapeRegExp(matchingText)}$`) }).first();
   await expect(matchingResult).toBeVisible({ timeout: 5000 });
-  await matchingResult.click({ force: true });
+  await expect(matchingResult).toBeEnabled({ timeout: 5000 });
+  await matchingResult.click();
 
   // Wait for editor to open with the file
   await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 10_000 });
@@ -333,9 +332,7 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
     const selected = await sourceTab.getAttribute('aria-selected').catch(() => null);
     if (selected !== 'true') {
       await sourceTab.click({ timeout: 5000 }).catch(() => {});
-      await expect(sourceTab)
-        .toHaveAttribute('aria-selected', 'true', { timeout: 5000 })
-        .catch(() => {});
+      await expect(sourceTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 });
     }
   }
 };
@@ -467,8 +464,6 @@ export const setupLogoutTestOrgAndAuth = async (page: Page, checkWelcomeTabs = t
 
 /** Create an Apex test class and deploy it to the org. */
 export const createAndDeployApexTestClass = async (page: Page, className: string, content: string): Promise<void> => {
-  // Disable auto-closing brackets temporarily to avoid duplicates when typing
-  await disableMonacoAutoClosing(page);
   await createApexClass(page, className, content);
 
   // On web, saving the file auto-deploys via push-or-deploy-on-save, so we just wait for completion

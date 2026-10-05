@@ -24,7 +24,7 @@ import {
   selectOutputChannel,
   clearOutputChannel,
   waitForOutputChannelText,
-  NOTIFICATION_LIST_ITEM,
+  clickModalDialogButton,
   ensureSecondarySideBarHidden
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
@@ -112,19 +112,14 @@ test('Delete Source: deletes file from project and org via command palette', asy
     await executeCommandWithCommandPalette(page, messages.delete_source_text);
     await saveScreenshot(page, 'step2.after-delete-command.png');
 
-    // Wait for confirmation notification with "Delete Source" button
-    const deleteConfirmation = page
-      .locator(NOTIFICATION_LIST_ITEM)
-      .filter({ hasText: messages.delete_source_confirmation_message })
-      .first();
+    // Wait for the destructive confirmation modal
+    const deleteConfirmation = page.locator('.monaco-dialog-box, .dialog-shadow').first();
     await expect(deleteConfirmation).toBeVisible({ timeout: 10_000 });
-    await saveScreenshot(page, 'step2.confirmation-notification-visible.png');
+    await expect(deleteConfirmation).toContainText(messages.delete_source_confirmation_message);
+    await saveScreenshot(page, 'step2.confirmation-modal-visible.png');
 
     // Click "Delete Source" button to confirm
-    const deleteButton = deleteConfirmation.getByRole('button', {
-      name: messages.confirm_delete_source_button_text
-    });
-    await deleteButton.click();
+    await clickModalDialogButton(page, messages.confirm_delete_source_button_text);
     await saveScreenshot(page, 'step2.after-confirm-deletion.png');
 
     // Wait for delete operation to complete via output channel

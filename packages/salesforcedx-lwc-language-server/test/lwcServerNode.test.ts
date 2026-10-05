@@ -120,6 +120,7 @@ import {
   SFDX_WORKSPACE_STRUCTURE,
   sfdxFileSystemAccessor
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
+import { isNotNull } from 'effect/Predicate';
 import * as path from 'node:path';
 import { getLanguageService } from 'vscode-html-languageservice';
 import {
@@ -638,7 +639,7 @@ describe('lwcServerNode', () => {
         // Note: hover might be null if test_component isn't found or doesn't have the expected structure
         // This test expects info and icon-name from test_component, but it might not be indexed correctly
         // For now, we'll skip the assertion if hover is null (known issue with test_component)
-        if (hover !== null) {
+        if (isNotNull(hover)) {
           const contents = hover.contents as MarkupContent;
           expect(contents.value).toContain('**info**');
           expect(contents.value).toContain('**icon-name**');
@@ -1349,5 +1350,15 @@ describe('lwcServerNode', () => {
     it('Should not throw during intialization', async () => {
       await server.onInitialize(initializeParams);
     });
+  });
+
+  // Several tests above call onInitialize() directly (not through setupServerForTest's
+  // stub-drain-restore helper), which schedules a real performDelayedInitialization via
+  // setTimeout(0). Any still-pending one can log after this file's afterAll hooks finish,
+  // hitting an already-restored, torn-down console.info and failing the whole suite with
+  // "Cannot log after tests are done". Registered last so it runs first (Jest's afterAll
+  // hooks run LIFO), draining stragglers while console.info is still mocked above.
+  afterAll(async () => {
+    await new Promise(resolve => setTimeout(resolve, 500));
   });
 });

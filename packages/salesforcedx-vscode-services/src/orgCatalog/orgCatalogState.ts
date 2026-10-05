@@ -10,13 +10,17 @@ import type {
   MetadataListingObservation,
   MetadataTypeObservation,
   PersistedInventoryCache,
-  RemoteTrackingObservation,
+  RemoteTrackingObservations,
   TypeInventory
 } from './orgCatalogInternalTypes';
 import type { OrgSObjectDescription, OrgSObjectSummary } from './orgMetadataCatalogTypes';
+import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import { pipe } from 'effect/Function';
+import * as HashMap from 'effect/HashMap';
 import * as HashSet from 'effect/HashSet';
+import * as Option from 'effect/Option';
 import * as Order from 'effect/Order';
 import * as Queue from 'effect/Queue';
 import * as Ref from 'effect/Ref';
@@ -47,19 +51,19 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
   dependencies: [OrgMetadataCatalogStore.Default],
   scoped: Effect.gen(function* () {
     const catalogStore = yield* OrgMetadataCatalogStore;
-    const inventoryCache = yield* Ref.make<InventoryCache>(new Map());
-    const persistedInventoryCache = yield* Ref.make<PersistedInventoryCache>(new Map());
-    const inventorySemaphores = yield* Ref.make<ReadonlyMap<string, Effect.Semaphore>>(new Map());
-    const remoteTrackingCache = yield* Ref.make<ReadonlyMap<string, ReadonlyMap<string, RemoteTrackingObservation>>>(
-      new Map()
+    const inventoryCache = yield* Ref.make<InventoryCache>(HashMap.empty());
+    const persistedInventoryCache = yield* Ref.make<PersistedInventoryCache>(HashMap.empty());
+    const inventorySemaphores = yield* Ref.make<HashMap.HashMap<string, Effect.Semaphore>>(HashMap.empty());
+    const remoteTrackingCache = yield* Ref.make<HashMap.HashMap<string, RemoteTrackingObservations>>(HashMap.empty());
+    const metadataTypeCache = yield* Ref.make<HashMap.HashMap<string, readonly MetadataTypeObservation[]>>(
+      HashMap.empty()
     );
-    const metadataTypeCache = yield* Ref.make<ReadonlyMap<string, readonly MetadataTypeObservation[]>>(new Map());
-    const metadataListingCache = yield* Ref.make<ReadonlyMap<string, MetadataListingObservation>>(new Map());
-    const workspaceTypeCache = yield* Ref.make<ReadonlyMap<string, ReadonlySet<string>>>(new Map());
-    const sobjectListCache = yield* Ref.make<ReadonlyMap<string, readonly OrgSObjectSummary[]>>(new Map());
-    const sobjectDescriptionCache = yield* Ref.make<ReadonlyMap<string, OrgSObjectDescription>>(new Map());
+    const metadataListingCache = yield* Ref.make<HashMap.HashMap<string, MetadataListingObservation>>(HashMap.empty());
+    const workspaceTypeCache = yield* Ref.make<HashMap.HashMap<string, ReadonlySet<string>>>(HashMap.empty());
+    const sobjectListCache = yield* Ref.make<HashMap.HashMap<string, readonly OrgSObjectSummary[]>>(HashMap.empty());
+    const sobjectDescriptionCache = yield* Ref.make<HashMap.HashMap<string, OrgSObjectDescription>>(HashMap.empty());
     const hydratedOrgIds = yield* Ref.make<HashSet.HashSet<string>>(HashSet.empty());
-    const persistedGenerations = yield* Ref.make<ReadonlyMap<string, number>>(new Map());
+    const persistedGenerations = yield* Ref.make<HashMap.HashMap<string, number>>(HashMap.empty());
     const hydrateSemaphore = yield* Effect.makeSemaphore(1);
     const persistenceRequests = yield* Queue.unbounded<void>();
     const dirtyOrgIds = yield* Ref.make<HashSet.HashSet<string>>(HashSet.empty());
@@ -82,60 +86,87 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
         Ref.get(metadataTypeCache),
         Ref.get(metadataListingCache)
       ]);
-      const inventory = new Map<string, PersistedTypeInventory>();
-      restoredInventory.forEach((value, key) => {
-        if (key.startsWith(`${orgId}\0`)) inventory.set(value.xmlName, value);
-      });
-      loadedInventory.forEach((value, key) => {
-        if (!key.startsWith(`${orgId}\0`)) return;
-        const xmlName = key.slice(orgId.length + 1);
-        const remoteComponents = [...value.components.values()].filter(component => component.inOrg);
-        inventory.set(xmlName, {
-          xmlName,
-          observedAt: value.observedAt,
-          complete: value.complete,
-          components: remoteComponents.map(component => ({
-            fullName: isOrgMetadataComponentReference(component.reference)
-              ? component.reference.fullName
-              : component.name,
-            namespacePrefix: component.namespacePrefix,
-            manageableState: component.manageableState,
-            fileName: component.fileName,
-            lastModifiedByName: component.lastModifiedByName,
-            lastModifiedDate: component.lastModifiedDate
-          })),
-          folders: [...value.folders.values()]
-        });
-      });
+      const inventory = HashMap.reduce(
+        loadedInventory,
+        HashMap.reduce(
+          restoredInventory,
+          HashMap.empty<string, PersistedTypeInventory>(),
+          (restoredCache, value, key) =>
+            key.startsWith(`${orgId}\0`) ? HashMap.set(restoredCache, value.xmlName, value) : restoredCache
+        ),
+        (current, value, key) => {
+          if (!key.startsWith(`${orgId}\0`)) return current;
+          const xmlName = key.slice(orgId.length + 1);
+          const remoteComponents = value.componentIdentityOrder.flatMap(identity =>
+            Option.match(HashMap.get(value.components, identity), {
+              onNone: () => [],
+              onSome: component => (component.inOrg ? [component] : [])
+            })
+          );
+          return HashMap.set(current, xmlName, {
+            xmlName,
+            observedAt: value.observedAt,
+            complete: value.complete,
+            components: remoteComponents.map(component => ({
+              fullName: isOrgMetadataComponentReference(component.reference)
+                ? component.reference.fullName
+                : component.name,
+              namespacePrefix: component.namespacePrefix,
+              manageableState: component.manageableState,
+              fileName: component.fileName,
+              lastModifiedByName: component.lastModifiedByName,
+              lastModifiedDate: component.lastModifiedDate
+            })),
+            folders: value.folderFullNameOrder.flatMap(fullName =>
+              Option.match(HashMap.get(value.folders, fullName), {
+                onNone: () => [],
+                onSome: folder => [folder]
+              })
+            )
+          });
+        }
+      );
       const generation = yield* Ref.modify(persistedGenerations, generations => {
-        const next = (generations.get(orgId) ?? 0) + 1;
-        return [next, new Map(generations).set(orgId, next)];
+        const next = Option.getOrElse(HashMap.get(generations, orgId), () => 0) + 1;
+        return [next, HashMap.set(generations, orgId, next)];
       });
       const snapshot: OrgMetadataCatalogSnapshot = {
         version: 2,
         orgId,
         writtenAt: new Date().toISOString(),
         generation,
-        inventory: [...inventory.values()].toSorted(byXmlName),
+        inventory: pipe(inventory, HashMap.toValues, Arr.sort(byXmlName)),
         sobjects: {
-          list: sobjectLists.get(orgId),
-          descriptions: [...sobjectDescriptions]
-            .filter(([key]) => key.startsWith(`${orgId}\0`))
-            .map(([, description]) => description)
-            .toSorted(byName)
+          list: Option.getOrUndefined(HashMap.get(sobjectLists, orgId)),
+          descriptions: pipe(
+            sobjectDescriptions,
+            HashMap.toEntries,
+            Arr.filter(([key]) => key.startsWith(`${orgId}\0`)),
+            Arr.map(([, description]) => description),
+            Arr.sort(byName)
+          )
         },
-        tracking: [...(trackingByOrg.get(orgId) ?? new Map()).values()]
-          .map(observation => ({
+        tracking: pipe(
+          Option.getOrElse(HashMap.get(trackingByOrg, orgId), () => ({
+            byIdentity: HashMap.empty(),
+            identityOrder: []
+          })).byIdentity,
+          HashMap.toValues,
+          Arr.map(observation => ({
             xmlName: observation.reference.xmlName,
             fullName: observation.reference.fullName,
             signature: observation.signature
-          }))
-          .toSorted(byMetadataIdentity),
-        metadataTypes: [...(metadataTypesByOrg.get(orgId) ?? [])],
-        metadataListings: [...metadataListings]
-          .filter(([key]) => key.startsWith(`${orgId}\0`))
-          .map(([, observation]) => observation)
-          .toSorted(byMetadataListing)
+          })),
+          Arr.sort(byMetadataIdentity)
+        ),
+        metadataTypes: [...Option.getOrElse(HashMap.get(metadataTypesByOrg, orgId), () => [])],
+        metadataListings: pipe(
+          metadataListings,
+          HashMap.toEntries,
+          Arr.filter(([key]) => key.startsWith(`${orgId}\0`)),
+          Arr.map(([, observation]) => observation),
+          Arr.sort(byMetadataListing)
+        )
       };
       yield* catalogStore
         .save(snapshot)
@@ -177,68 +208,80 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
 
     const ensureHydrated = Effect.fn('OrgCatalogState.ensureHydrated')(function* (orgId: string) {
       if (HashSet.has(yield* Ref.get(hydratedOrgIds), orgId)) return;
-      yield* hydrateSemaphore.withPermits(1)(
-        Effect.gen(function* () {
-          if (HashSet.has(yield* Ref.get(hydratedOrgIds), orgId)) return;
-          const snapshot = yield* catalogStore
-            .load(orgId)
-            .pipe(
-              Effect.catchAll(error =>
-                Effect.logWarning('Failed to hydrate org metadata catalog', error).pipe(Effect.as(undefined))
+      yield* Effect.gen(function* () {
+        if (HashSet.has(yield* Ref.get(hydratedOrgIds), orgId)) return;
+        const snapshot = yield* catalogStore
+          .load(orgId)
+          .pipe(
+            Effect.catchAll(error =>
+              Effect.logWarning('Failed to hydrate org metadata catalog', error).pipe(Effect.as(undefined))
+            )
+          );
+        if (snapshot) {
+          yield* Ref.update(persistedInventoryCache, current =>
+            HashMap.union(
+              current,
+              HashMap.fromIterable(
+                snapshot.inventory.map(inventory => [typeCacheKey(orgId, inventory.xmlName), inventory] as const)
               )
-            );
-          if (snapshot) {
-            yield* Ref.update(persistedInventoryCache, current => {
-              const next = new Map(current);
-              snapshot.inventory.forEach(inventory => next.set(typeCacheKey(orgId, inventory.xmlName), inventory));
-              return next;
-            });
-            if (snapshot.sobjects.list) {
-              yield* Ref.update(sobjectListCache, current => new Map(current).set(orgId, snapshot.sobjects.list ?? []));
-            }
-            yield* Ref.update(sobjectDescriptionCache, current => {
-              const next = new Map(current);
-              snapshot.sobjects.descriptions.forEach(description =>
-                next.set(sobjectDescriptionKey(orgId, description.name), description)
-              );
-              return next;
-            });
-            yield* Ref.update(remoteTrackingCache, current =>
-              new Map(current).set(
-                orgId,
-                new Map(
-                  snapshot.tracking.map(observation => [
-                    componentIdentity({ xmlName: observation.xmlName, fullName: observation.fullName }),
-                    {
-                      reference: { xmlName: observation.xmlName, fullName: observation.fullName },
-                      signature: observation.signature
-                    }
-                  ])
+            )
+          );
+          if (snapshot.sobjects.list) {
+            yield* Ref.update(sobjectListCache, current => HashMap.set(current, orgId, snapshot.sobjects.list ?? []));
+          }
+          yield* Ref.update(sobjectDescriptionCache, current =>
+            HashMap.union(
+              current,
+              HashMap.fromIterable(
+                snapshot.sobjects.descriptions.map(
+                  description => [sobjectDescriptionKey(orgId, description.name), description] as const
                 )
               )
-            );
-            yield* Ref.update(metadataTypeCache, current => new Map(current).set(orgId, snapshot.metadataTypes));
-            yield* Ref.update(metadataListingCache, current => {
-              const next = new Map(current);
-              snapshot.metadataListings.forEach(observation =>
-                next.set(metadataListingKey(orgId, observation.xmlName, observation.folder), observation)
-              );
-              return next;
-            });
-            yield* Ref.update(persistedGenerations, current => new Map(current).set(orgId, snapshot.generation));
-          }
-          yield* Ref.update(hydratedOrgIds, current => HashSet.add(current, orgId));
-        })
-      );
+            )
+          );
+          yield* Ref.update(remoteTrackingCache, current =>
+            HashMap.set(current, orgId, {
+              byIdentity: HashMap.fromIterable(
+                snapshot.tracking.map(observation => [
+                  componentIdentity({ xmlName: observation.xmlName, fullName: observation.fullName }),
+                  {
+                    reference: { xmlName: observation.xmlName, fullName: observation.fullName },
+                    signature: observation.signature
+                  }
+                ])
+              ),
+              identityOrder: snapshot.tracking.map(observation =>
+                componentIdentity({ xmlName: observation.xmlName, fullName: observation.fullName })
+              )
+            })
+          );
+          yield* Ref.update(metadataTypeCache, current => HashMap.set(current, orgId, snapshot.metadataTypes));
+          yield* Ref.update(metadataListingCache, current =>
+            HashMap.union(
+              current,
+              HashMap.fromIterable(
+                snapshot.metadataListings.map(
+                  observation =>
+                    [metadataListingKey(orgId, observation.xmlName, observation.folder), observation] as const
+                )
+              )
+            )
+          );
+          yield* Ref.update(persistedGenerations, current => HashMap.set(current, orgId, snapshot.generation));
+        }
+        yield* Ref.update(hydratedOrgIds, current => HashSet.add(current, orgId));
+      }).pipe(hydrateSemaphore.withPermits(1));
     });
 
     const getInventorySemaphore = Effect.fn('OrgCatalogState.getInventorySemaphore')(function* (key: string) {
-      const existing = (yield* Ref.get(inventorySemaphores)).get(key);
-      if (existing) return existing;
+      const existing = HashMap.get(yield* Ref.get(inventorySemaphores), key);
+      if (Option.isSome(existing)) return existing.value;
       const candidate = yield* Effect.makeSemaphore(1);
       return yield* Ref.modify(inventorySemaphores, current => {
-        const concurrent = current.get(key);
-        return concurrent ? [concurrent, current] : [candidate, new Map(current).set(key, candidate)];
+        const concurrent = HashMap.get(current, key);
+        return Option.isSome(concurrent)
+          ? [concurrent.value, current]
+          : [candidate, HashMap.set(current, key, candidate)];
       });
     });
 
@@ -247,46 +290,50 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
       <A, E, R>(effect: Effect.Effect<A, E, R>) =>
         semaphores.reduceRight((guarded, semaphore) => guarded.pipe(semaphore.withPermits(1)), effect);
 
-    const getInventory = Effect.fn('OrgCatalogState.getInventory')(function* (orgId: string, xmlName: string) {
-      return (yield* Ref.get(inventoryCache)).get(typeCacheKey(orgId, xmlName));
-    });
-    const getPersistedInventory = Effect.fn('OrgCatalogState.getPersistedInventory')(function* (
-      orgId: string,
-      xmlName: string
-    ) {
-      return (yield* Ref.get(persistedInventoryCache)).get(typeCacheKey(orgId, xmlName));
-    });
-    const setInventory = Effect.fn('OrgCatalogState.setInventory')(function* (
-      orgId: string,
-      xmlName: string,
-      inventory: TypeInventory
-    ) {
-      yield* Ref.update(inventoryCache, current => new Map(current).set(typeCacheKey(orgId, xmlName), inventory));
-    });
+    const getInventory = Effect.fn('OrgCatalogState.getInventory')((orgId: string, xmlName: string) =>
+      Ref.get(inventoryCache).pipe(
+        Effect.map(HashMap.get(typeCacheKey(orgId, xmlName))),
+        Effect.map(Option.getOrUndefined)
+      )
+    );
+    const getPersistedInventory = Effect.fn('OrgCatalogState.getPersistedInventory')((orgId: string, xmlName: string) =>
+      Ref.get(persistedInventoryCache).pipe(
+        Effect.map(HashMap.get(typeCacheKey(orgId, xmlName))),
+        Effect.map(Option.getOrUndefined)
+      )
+    );
+    const setInventory = Effect.fn('OrgCatalogState.setInventory')(
+      (orgId: string, xmlName: string, inventory: TypeInventory) =>
+        Ref.update(inventoryCache, current => HashMap.set(current, typeCacheKey(orgId, xmlName), inventory))
+    );
     const updateInventories = (update: (current: InventoryCache) => InventoryCache) =>
       Ref.update(inventoryCache, update);
 
-    const invalidateOrgInventories = Effect.fn('OrgCatalogState.invalidateOrgInventories')(function* (orgId: string) {
-      const activeTypeSemaphores = [...(yield* Ref.get(inventorySemaphores))]
-        .filter(([key]) => key.startsWith(`${orgId}\0`))
-        .toSorted(([left], [right]) => left.localeCompare(right))
-        .map(([, semaphore]) => semaphore);
-      yield* Effect.all(
-        [
-          Ref.update(inventoryCache, current => new Map([...current].filter(([key]) => !key.startsWith(`${orgId}\0`)))),
-          Ref.update(
-            persistedInventoryCache,
-            current => new Map([...current].filter(([key]) => !key.startsWith(`${orgId}\0`)))
-          ),
-          Ref.update(workspaceTypeCache, current => {
-            const next = new Map(current);
-            next.delete(orgId);
-            return next;
-          })
-        ],
-        { discard: true }
-      ).pipe(withInventorySemaphores(activeTypeSemaphores));
-    });
+    const invalidateOrgInventories = Effect.fn('OrgCatalogState.invalidateOrgInventories')((orgId: string) =>
+      Ref.get(inventorySemaphores).pipe(
+        Effect.map(HashMap.toEntries),
+        Effect.map(entries =>
+          entries
+            .filter(([key]) => key.startsWith(`${orgId}\0`))
+            .toSorted(([left], [right]) => left.localeCompare(right))
+            .map(([, semaphore]) => semaphore)
+        ),
+        Effect.flatMap(activeTypeSemaphores =>
+          Effect.all(
+            [
+              Ref.update(inventoryCache, current =>
+                HashMap.filter(current, (_value, key) => !key.startsWith(`${orgId}\0`))
+              ),
+              Ref.update(persistedInventoryCache, current =>
+                HashMap.filter(current, (_value, key) => !key.startsWith(`${orgId}\0`))
+              ),
+              Ref.update(workspaceTypeCache, current => HashMap.remove(current, orgId))
+            ],
+            { discard: true }
+          ).pipe(withInventorySemaphores(activeTypeSemaphores))
+        )
+      )
+    );
 
     const invalidateTypes = Effect.fn('OrgCatalogState.invalidateTypes')(function* (
       orgId: string,
@@ -297,132 +344,124 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
       );
       yield* Effect.all(
         [
-          Ref.update(inventoryCache, current => {
-            const next = new Map(current);
-            xmlNames.forEach(xmlName => next.delete(typeCacheKey(orgId, xmlName)));
-            return next;
-          }),
-          Ref.update(persistedInventoryCache, current => {
-            const next = new Map(current);
-            xmlNames.forEach(xmlName => next.delete(typeCacheKey(orgId, xmlName)));
-            return next;
-          })
+          Ref.update(inventoryCache, current =>
+            HashMap.removeMany(
+              current,
+              [...xmlNames].map(xmlName => typeCacheKey(orgId, xmlName))
+            )
+          ),
+          Ref.update(persistedInventoryCache, current =>
+            HashMap.removeMany(
+              current,
+              [...xmlNames].map(xmlName => typeCacheKey(orgId, xmlName))
+            )
+          )
         ],
         { discard: true }
       ).pipe(withInventorySemaphores(semaphores));
     });
 
-    const getWorkspaceTypes = Effect.fn('OrgCatalogState.getWorkspaceTypes')(function* (orgId: string) {
-      return (yield* Ref.get(workspaceTypeCache)).get(orgId);
-    });
-    const setWorkspaceTypes = Effect.fn('OrgCatalogState.setWorkspaceTypes')(function* (
-      orgId: string,
-      types: ReadonlySet<string>
-    ) {
-      yield* Ref.update(workspaceTypeCache, current => new Map(current).set(orgId, types));
-    });
-    const getSObjectList = Effect.fn('OrgCatalogState.getSObjectList')(function* (orgId: string) {
-      return (yield* Ref.get(sobjectListCache)).get(orgId);
-    });
+    const getWorkspaceTypes = Effect.fn('OrgCatalogState.getWorkspaceTypes')((orgId: string) =>
+      Ref.get(workspaceTypeCache).pipe(Effect.map(HashMap.get(orgId)), Effect.map(Option.getOrUndefined))
+    );
+    const setWorkspaceTypes = Effect.fn('OrgCatalogState.setWorkspaceTypes')(
+      (orgId: string, types: ReadonlySet<string>) =>
+        Ref.update(workspaceTypeCache, current => HashMap.set(current, orgId, types))
+    );
+    const getSObjectList = Effect.fn('OrgCatalogState.getSObjectList')((orgId: string) =>
+      Ref.get(sobjectListCache).pipe(Effect.map(HashMap.get(orgId)), Effect.map(Option.getOrUndefined))
+    );
     const setSObjectList = Effect.fn('OrgCatalogState.setSObjectList')(function* (
       orgId: string,
       observations: readonly OrgSObjectSummary[]
     ) {
       return yield* Ref.modify(sobjectListCache, current => {
-        const previous = current.get(orgId);
+        const previous = Option.getOrUndefined(HashMap.get(current, orgId));
         const changed = JSON.stringify(previous) !== JSON.stringify(observations);
-        return [changed, changed ? new Map(current).set(orgId, observations) : current];
+        return [changed, changed ? HashMap.set(current, orgId, observations) : current];
       });
     });
-    const getSObjectDescription = Effect.fn('OrgCatalogState.getSObjectDescription')(function* (
-      orgId: string,
-      apiName: string
-    ) {
-      return (yield* Ref.get(sobjectDescriptionCache)).get(sobjectDescriptionKey(orgId, apiName));
-    });
-    const getSObjectDescriptions = Effect.fn('OrgCatalogState.getSObjectDescriptions')(function* (
-      orgId: string,
-      apiNames: readonly string[]
-    ) {
-      const descriptions = yield* Ref.get(sobjectDescriptionCache);
-      return new Map(
-        apiNames.flatMap(apiName => {
-          const description = descriptions.get(sobjectDescriptionKey(orgId, apiName));
-          return description ? [[apiName, description] as const] : [];
-        })
-      );
-    });
+    const getSObjectDescription = Effect.fn('OrgCatalogState.getSObjectDescription')((orgId: string, apiName: string) =>
+      Ref.get(sobjectDescriptionCache).pipe(
+        Effect.map(HashMap.get(sobjectDescriptionKey(orgId, apiName))),
+        Effect.map(Option.getOrUndefined)
+      )
+    );
     const setSObjectDescription = Effect.fn('OrgCatalogState.setSObjectDescription')(function* (
       orgId: string,
       description: OrgSObjectDescription
     ) {
       return yield* Ref.modify(sobjectDescriptionCache, current => {
         const key = sobjectDescriptionKey(orgId, description.name);
-        const changed = JSON.stringify(current.get(key)) !== JSON.stringify(description);
-        return [changed, changed ? new Map(current).set(key, description) : current];
+        const changed =
+          JSON.stringify(Option.getOrUndefined(HashMap.get(current, key))) !== JSON.stringify(description);
+        return [changed, changed ? HashMap.set(current, key, description) : current];
       });
     });
     const removeSObjectDescriptions = Effect.fn('OrgCatalogState.removeSObjectDescriptions')(function* (
       orgId: string,
       apiNames?: ReadonlySet<string>
     ) {
-      yield* Ref.update(sobjectDescriptionCache, current => {
-        const next = new Map(current);
-        if (apiNames) {
-          apiNames.forEach(apiName => next.delete(sobjectDescriptionKey(orgId, apiName)));
-        } else {
-          [...next.keys()].filter(key => key.startsWith(`${orgId}\0`)).forEach(key => next.delete(key));
-        }
-        return next;
-      });
+      yield* Ref.update(sobjectDescriptionCache, current =>
+        apiNames
+          ? HashMap.removeMany(
+              current,
+              [...apiNames].map(apiName => sobjectDescriptionKey(orgId, apiName))
+            )
+          : HashMap.filter(current, (_value, key) => !key.startsWith(`${orgId}\0`))
+      );
     });
     const invalidateSObjects = Effect.fn('OrgCatalogState.invalidateSObjects')(function* (
       orgId: string,
       apiNames?: ReadonlySet<string>
     ) {
-      yield* Ref.update(sobjectListCache, current => {
-        const next = new Map(current);
-        next.delete(orgId);
-        return next;
-      });
+      yield* Ref.update(sobjectListCache, current => HashMap.remove(current, orgId));
       yield* removeSObjectDescriptions(orgId, apiNames);
     });
-    const getTracking = Effect.fn('OrgCatalogState.getTracking')(function* (orgId: string) {
-      return (yield* Ref.get(remoteTrackingCache)).get(orgId) ?? new Map<string, RemoteTrackingObservation>();
-    });
-    const setTracking = Effect.fn('OrgCatalogState.setTracking')(function* (
-      orgId: string,
-      observations: ReadonlyMap<string, RemoteTrackingObservation>
-    ) {
-      yield* Ref.update(remoteTrackingCache, current => new Map(current).set(orgId, observations));
-    });
-    const getMetadataTypes = Effect.fn('OrgCatalogState.getMetadataTypes')(function* (orgId: string) {
-      return (yield* Ref.get(metadataTypeCache)).get(orgId);
-    });
+    const getTracking = Effect.fn('OrgCatalogState.getTracking')((orgId: string) =>
+      Ref.get(remoteTrackingCache).pipe(
+        Effect.map(HashMap.get(orgId)),
+        Effect.map(
+          Option.getOrElse(() => ({
+            byIdentity: HashMap.empty(),
+            identityOrder: []
+          }))
+        )
+      )
+    );
+    const setTracking = Effect.fn('OrgCatalogState.setTracking')(
+      (orgId: string, observations: RemoteTrackingObservations) =>
+        Ref.update(remoteTrackingCache, current => HashMap.set(current, orgId, observations))
+    );
+    const getMetadataTypes = Effect.fn('OrgCatalogState.getMetadataTypes')((orgId: string) =>
+      Ref.get(metadataTypeCache).pipe(Effect.map(HashMap.get(orgId)), Effect.map(Option.getOrUndefined))
+    );
     const setMetadataTypes = Effect.fn('OrgCatalogState.setMetadataTypes')(function* (
       orgId: string,
       observations: readonly MetadataTypeObservation[]
     ) {
       return yield* Ref.modify(metadataTypeCache, current => {
-        const changed = JSON.stringify(current.get(orgId)) !== JSON.stringify(observations);
-        return [changed, changed ? new Map(current).set(orgId, observations) : current];
+        const changed =
+          JSON.stringify(Option.getOrUndefined(HashMap.get(current, orgId))) !== JSON.stringify(observations);
+        return [changed, changed ? HashMap.set(current, orgId, observations) : current];
       });
     });
-    const getMetadataListing = Effect.fn('OrgCatalogState.getMetadataListing')(function* (
-      orgId: string,
-      xmlName: string,
-      folder?: string
-    ) {
-      return (yield* Ref.get(metadataListingCache)).get(metadataListingKey(orgId, xmlName, folder));
-    });
+    const getMetadataListing = Effect.fn('OrgCatalogState.getMetadataListing')(
+      (orgId: string, xmlName: string, folder?: string) =>
+        Ref.get(metadataListingCache).pipe(
+          Effect.map(HashMap.get(metadataListingKey(orgId, xmlName, folder))),
+          Effect.map(Option.getOrUndefined)
+        )
+    );
     const setMetadataListing = Effect.fn('OrgCatalogState.setMetadataListing')(function* (
       orgId: string,
       observation: MetadataListingObservation
     ) {
       return yield* Ref.modify(metadataListingCache, current => {
         const key = metadataListingKey(orgId, observation.xmlName, observation.folder);
-        const changed = JSON.stringify(current.get(key)) !== JSON.stringify(observation);
-        return [changed, changed ? new Map(current).set(key, observation) : current];
+        const changed =
+          JSON.stringify(Option.getOrUndefined(HashMap.get(current, key))) !== JSON.stringify(observation);
+        return [changed, changed ? HashMap.set(current, key, observation) : current];
       });
     });
     const removeTracking = Effect.fn('OrgCatalogState.removeTracking')(function* (
@@ -430,10 +469,16 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
       identities: ReadonlySet<string>
     ) {
       yield* Ref.update(remoteTrackingCache, cache => {
-        const observations = cache.get(orgId);
-        if (!observations) return cache;
-        const remaining = new Map([...observations].filter(([identity]) => !identities.has(identity)));
-        return new Map(cache).set(orgId, remaining);
+        const observations = HashMap.get(cache, orgId);
+        return Option.isSome(observations)
+          ? HashMap.set(cache, orgId, {
+              byIdentity: HashMap.filter(
+                observations.value.byIdentity,
+                (_value, identity) => !identities.has(identity)
+              ),
+              identityOrder: observations.value.identityOrder.filter(identity => !identities.has(identity))
+            })
+          : cache;
       });
     });
 
@@ -446,7 +491,6 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
       getMetadataTypes,
       getPersistedInventory,
       getSObjectDescription,
-      getSObjectDescriptions,
       getSObjectList,
       getTracking,
       getWorkspaceTypes,
@@ -456,7 +500,6 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
       persistOrg,
       queuePersist,
       removeTracking,
-      removeSObjectDescriptions,
       setInventory,
       setMetadataListing,
       setMetadataTypes,

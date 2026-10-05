@@ -24,14 +24,20 @@ const deny = reason =>
     })
   );
 
-if (action === 'block-no-verify' || action === 'block-push-no-deps') {
+if (action === 'block-no-verify' || action === 'block-push-no-deps' || action === 'block-tracked-base-branch') {
+  const policy =
+    action === 'block-no-verify'
+      ? 'no-verify'
+      : action === 'block-push-no-deps'
+        ? 'push-dependencies'
+        : 'tracked-base-branch';
   deny(
     commandDenial(
       {
         command: input.tool_input?.command ?? input.command ?? '',
         cwd: input.cwd ?? process.cwd()
       },
-      action === 'block-no-verify' ? 'no-verify' : 'push-dependencies'
+      policy
     )
   );
 } else if (action === 'verify-edit') {

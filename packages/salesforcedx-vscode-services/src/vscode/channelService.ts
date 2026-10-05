@@ -38,7 +38,7 @@ export class ChannelService extends Effect.Service<ChannelService>()('ChannelSer
  * Usage:
  * Layer.provide(ChannelServiceLayer('My Channel'))
  */
-export const ChannelServiceLayer = (channelName: string): Layer.Layer<ChannelService> =>
+export const ChannelServiceLayer = (channelName: string) =>
   Layer.succeed(
     ChannelService,
     new ChannelService({
@@ -68,4 +68,14 @@ const cache = Effect.runSync(
     timeToLive: Duration.infinity,
     lookup: (channelName: string) => Effect.sync(() => vscode.window.createOutputChannel(channelName))
   })
+);
+
+export const ChannelDisposalLayer = Layer.scopedDiscard(
+  Effect.addFinalizer(() =>
+    cache.values.pipe(
+      Effect.flatMap(channels =>
+        Effect.forEach(channels, channel => Effect.sync(() => channel.dispose()), { discard: true })
+      )
+    )
+  )
 );

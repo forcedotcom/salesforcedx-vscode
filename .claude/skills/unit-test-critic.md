@@ -1,10 +1,10 @@
 ---
-description: Flag low-value unit tests (type system, framework wrappers, pass-throughs). Recommend refactors when 3+ mocks = poor code structure.
+description: Flag low-value unit tests (type system, framework wrappers, pass-throughs, absent behavior). Recommend refactors when 3+ mocks = poor code structure.
 ---
 
 # Unit Test Critic
 
-Flag tests verifying compiler/framework behavior vs logic. Flag testability issues (heavy mocking = code smell).
+Flag tests verifying compiler/framework behavior vs logic, or asserting removed behavior stays absent. Flag testability issues (heavy mocking = code smell).
 
 ## Flag as low-value
 
@@ -27,6 +27,9 @@ No edge cases, error branches, state transitions. Brittle, low signal.
 
 ### 6. Trivial getters/setters
 No computed logic.
+
+### 7. Absent behavior
+Asserts a removed feature stays gone (deleted env, flag, arg). Code already deleted. Delete the test with the feature.
 
 ## Valuable (don't flag)
 

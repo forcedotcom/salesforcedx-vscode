@@ -17,6 +17,7 @@ import * as ExecutionStrategy from 'effect/ExecutionStrategy';
 import * as Exit from 'effect/Exit';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
+import { isNull } from 'effect/Predicate';
 import * as Queue from 'effect/Queue';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
@@ -40,6 +41,7 @@ import {
   DrivableVscodeObservation,
   DrivableVscodeRendererConsoleEntry,
   type DrivableVscodeAction,
+  type Within,
   type DrivableVscodeExtension,
   type DrivableVscodeFinding,
   type DrivableVscodeLaunchOptions
@@ -235,7 +237,7 @@ const closeSessionScope = (scope: Scope.CloseableScope, exit: Exit.Exit<unknown,
 const closeElectron = Effect.fn('SessionService.closeElectron')(function* (app: ElectronApplication) {
   const child = app.process();
   const kill = Effect.suspend(() =>
-    typeof child.pid === 'number' && child.exitCode === null
+    typeof child.pid === 'number' && isNull(child.exitCode)
       ? Effect.try({
           try: () => process.kill(process.platform === 'win32' ? child.pid! : -child.pid!, 'SIGKILL'),
           catch: cause =>
@@ -263,17 +265,27 @@ const closeElectron = Effect.fn('SessionService.closeElectron')(function* (app: 
   );
 });
 
+const roleLocator = (
+  page: Page,
+  role: string,
+  name: string,
+  exact: boolean | undefined,
+  within: Option.Option<Within>
+) =>
+  Option.match(within, {
+    onNone: () => page,
+    onSome: scope => page.getByRole(decodeRole(scope.role) satisfies AriaRole, { name: scope.name })
+  }).getByRole(decodeRole(role) satisfies AriaRole, { name, exact });
+
 const executeAction = (page: Page, action: DrivableVscodeAction) =>
   Effect.tryPromise({
     try: () =>
       Match.value(action).pipe(
         Match.when({ kind: 'click' }, value =>
-          page.getByRole(decodeRole(value.role) satisfies AriaRole, { name: value.name, exact: value.exact }).click()
+          roleLocator(page, value.role, value.name, value.exact, Option.fromNullable(value.within)).click()
         ),
         Match.when({ kind: 'fill' }, value =>
-          page
-            .getByRole(decodeRole(value.role) satisfies AriaRole, { name: value.name, exact: value.exact })
-            .fill(value.value)
+          roleLocator(page, value.role, value.name, value.exact, Option.fromNullable(value.within)).fill(value.value)
         ),
         Match.when({ kind: 'type' }, value => page.keyboard.type(value.text)),
         Match.when({ kind: 'press' }, value => page.keyboard.press(value.key)),

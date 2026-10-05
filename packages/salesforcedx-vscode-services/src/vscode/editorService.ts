@@ -10,7 +10,6 @@ import * as PubSub from 'effect/PubSub';
 import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
 
 export class NoActiveEditorError extends Schema.TaggedError<NoActiveEditorError>()('NoActiveEditorError', {
   message: Schema.String
@@ -35,7 +34,7 @@ export class EditorService extends Effect.Service<EditorService>()('EditorServic
     const getActiveEditorUri = Effect.fn('EditorService.getActiveEditorUri')(function* () {
       const editor = vscode.window.activeTextEditor;
       return editor
-        ? URI.parse(editor.document.uri.toString())
+        ? editor.document.uri
         : yield* new NoActiveEditorError({ message: 'No active text editor is currently open' });
     });
 
@@ -50,7 +49,7 @@ export class EditorService extends Effect.Service<EditorService>()('EditorServic
         : editor.document.getText();
     });
 
-    /** Get text, URI, and optional selection range from active editor. Use selection=true to get selection + offset. */
+    /** Get text, URI, and optional selection details from the active editor. */
     const getActiveEditorContext = Effect.fn('EditorService.getActiveEditorContext')(function* (selection: boolean) {
       const editor = vscode.window.activeTextEditor;
       if (!editor) {
@@ -60,11 +59,14 @@ export class EditorService extends Effect.Service<EditorService>()('EditorServic
       const documentUri = editor.document.uri;
       return {
         text: useSelection ? editor.document.getText(editor.selection) : editor.document.getText(),
-        uri: URI.parse(documentUri.toString()),
         documentUri,
-        selectionRange: useSelection
-          ? { startLine: editor.selection.start.line, startCharacter: editor.selection.start.character }
-          : undefined
+        selectionStart: selection
+          ? { line: editor.selection.start.line, character: editor.selection.start.character }
+          : undefined,
+        selectionRange:
+          selection && !editor.selection.isEmpty
+            ? { startLine: editor.selection.start.line, startCharacter: editor.selection.start.character }
+            : undefined
       };
     });
 

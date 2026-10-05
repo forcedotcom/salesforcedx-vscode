@@ -5,14 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-enum LogLevel {
-  trace = 'trace',
-  debug = 'debug',
-  info = 'info',
-  warn = 'warn',
-  error = 'error',
-  fatal = 'fatal'
-}
+export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 
 export const xmlCharMap: { [index: string]: string } = {
   '<': '&lt;',

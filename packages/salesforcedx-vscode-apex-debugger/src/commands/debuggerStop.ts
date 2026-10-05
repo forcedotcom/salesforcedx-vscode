@@ -8,23 +8,22 @@ import { AuthInfo, Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { SF_CONFIG_ISV_DEBUGGER_SID, SF_CONFIG_ISV_DEBUGGER_URL } from '@salesforce/salesforcedx-apex-debugger';
 import * as Array from 'effect/Array';
+import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import * as vscode from 'vscode';
+import * as Stream from 'effect/Stream';
 import { nls } from '../messages';
+import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 
 /**
  * Raised when the `ApexDebuggerSession` tooling query fails. Previously the executor swallowed this in a
  * bare `catch {}`; now it flows to ErrorHandlerService for user-facing rendering.
  */
-export class DebuggerSessionQueryError extends Schema.TaggedError<DebuggerSessionQueryError>()(
-  'DebuggerSessionQueryError',
-  {
-    message: Schema.String
-  }
-) {}
+class DebuggerSessionQueryError extends Schema.TaggedError<DebuggerSessionQueryError>()('DebuggerSessionQueryError', {
+  message: Schema.String
+}) {}
 
 /**
  * Raised when the `ApexDebuggerSession` Status='Detach' tooling update fails.
@@ -46,9 +45,16 @@ export class DebuggerSessionUpdateError extends Schema.TaggedError<DebuggerSessi
  * check needed. A single progress notification wraps the whole command; query/update failures surface as
  * tagged errors (rendered by ErrorHandlerService) rather than being swallowed.
  */
+const COMMAND: ProgressAndSuccessCommandKey = 'SFDX: Stop Apex Debugger Session';
+
+const SessionRow = Schema.Struct({ Id: Schema.String });
+const SESSION_SOQL = "SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1";
+
+const queryError = (e: unknown) => new DebuggerSessionQueryError({ message: isError(e) ? e.message : String(e) });
+
 export const debuggerStop = Effect.fn('debuggerStop')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const notificationMode = yield* api.services.NotificationModeService;
 
   // precondition: getSfProject sets the sf:project_opened context and fails with a typed
   // FailedToResolveSfProjectError (rendered by ErrorHandlerService) when there's no project (parity
@@ -67,26 +73,61 @@ export const debuggerStop = Effect.fn('debuggerStop')(function* () {
           AuthInfo.create({ accessTokenOptions: { accessToken: isvSid, loginUrl: isvUrl, instanceUrl: isvUrl } }).then(
             authInfo => Connection.create({ authInfo })
           ),
-        catch: e => new DebuggerSessionQueryError({ message: isError(e) ? e.message : String(e) })
+        catch: queryError
       })
     : api.services.ConnectionService.getConnection();
 
-  // LIMIT 1 → Array.head is None (nothing to stop) or Some(the session to detach).
-  yield* Effect.tryPromise({
-    try: () => conn.tooling.query<{ Id: string }>("SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1"),
-    catch: e => new DebuggerSessionQueryError({ message: isError(e) ? e.message : String(e) })
+  // ISV uses a sid/url connection QueryService cannot resolve; default-org path uses QueryService.
+  const sessionRecords =
+    isvSid && isvUrl
+      ? Effect.tryPromise({
+          try: () => Promise.resolve(conn.tooling.query(SESSION_SOQL)),
+          catch: queryError
+        }).pipe(
+          Effect.flatMap(page =>
+            Schema.decodeUnknown(Schema.Struct({ records: Schema.Array(SessionRow) }))(page).pipe(
+              Effect.map(decoded => decoded.records),
+              Effect.mapError(queryError)
+            )
+          )
+        )
+      : Effect.flatMap(api.services.QueryService, queryService =>
+          queryService.query({ soql: SESSION_SOQL, tooling: true }, SessionRow).pipe(
+            Effect.flatMap(({ records }) => Stream.runCollect(records)),
+            Effect.map(Chunk.toReadonlyArray),
+            Effect.mapError(queryError)
+          )
+        );
+
+  yield* Effect.all({
+    progressLocation: notificationMode.getProgressLocation(COMMAND),
+    promptService: api.services.PromptService
   }).pipe(
-    Effect.flatMap(({ records }) =>
-      Option.match(Array.head(records), {
-        onNone: () => Effect.succeed(nls.localize('debugger_stop_none_found_text')),
-        onSome: ({ Id }) =>
-          Effect.tryPromise({
-            try: () => conn.tooling.sobject('ApexDebuggerSession').update({ Id, Status: 'Detach' }),
-            catch: e => new DebuggerSessionUpdateError({ message: isError(e) ? e.message : String(e) })
-          }).pipe(Effect.as(nls.localize('debugger_stop_success_text')))
-      })
-    ),
-    Effect.tap(message => Effect.sync(() => void vscode.window.showInformationMessage(message))),
-    promptService.withProgress(nls.localize('debugger_stop_text'))
+    Effect.flatMap(({ progressLocation, promptService }) =>
+      sessionRecords.pipe(
+        // LIMIT 1 → Array.head is None (nothing to stop) or Some(the session to detach).
+        Effect.flatMap(records =>
+          Option.match(Array.head(records), {
+            onNone: () => Effect.succeed(false as const),
+            onSome: ({ Id }) =>
+              Effect.as(
+                Effect.tryPromise({
+                  try: () => conn.tooling.sobject('ApexDebuggerSession').update({ Id, Status: 'Detach' }),
+                  catch: e => new DebuggerSessionUpdateError({ message: isError(e) ? e.message : String(e) })
+                }),
+                true as const
+              )
+          })
+        ),
+        Effect.tap(stopped =>
+          notificationMode.showSuccessNotification(
+            COMMAND,
+            nls.localize(stopped ? 'debugger_stop_success_text' : 'debugger_stop_none_found_text'),
+            false
+          )
+        ),
+        promptService.withProgress(nls.localize('debugger_stop_text'), progressLocation)
+      )
+    )
   );
 });

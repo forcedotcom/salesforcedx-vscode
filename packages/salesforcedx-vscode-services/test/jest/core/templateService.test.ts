@@ -8,8 +8,10 @@
 import { OrgConfigProperties } from '@salesforce/core';
 import type { ConfigAggregator } from '@salesforce/core/configAggregator';
 import * as SfTemplates from '@salesforce/templates';
+import { isNull } from 'effect/Predicate';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as Stream from 'effect/Stream';
 import { URI } from 'vscode-uri';
 import { ConfigService } from '../../../src/core/configService';
 import { ConnectionService } from '../../../src/core/connectionService';
@@ -27,7 +29,7 @@ const mockExtensionUri = URI.file('/ext');
 
 const ORG_CUSTOM_METADATA_TEMPLATES_KEY: string = OrgConfigProperties.ORG_CUSTOM_METADATA_TEMPLATES;
 
-const createMockConfigService = (templateDir?: string): Layer.Layer<ConfigService> =>
+const createMockConfigService = (templateDir?: string) =>
   Layer.succeed(
     ConfigService,
     ConfigService.make({
@@ -49,7 +51,7 @@ const createMockConfigService = (templateDir?: string): Layer.Layer<ConfigServic
     })
   );
 
-const createFailingConfigService = (): Layer.Layer<ConfigService> =>
+const createFailingConfigService = () =>
   Layer.succeed(
     ConfigService,
     ConfigService.make({
@@ -71,7 +73,7 @@ const createFailingConfigService = (): Layer.Layer<ConfigService> =>
     })
   );
 
-const createMockProjectService = (): Layer.Layer<ProjectService> => {
+const createMockProjectService = () => {
   const mockSfProject = {
     retrieveSfProjectJson: () => Promise.resolve({ get: () => '60.0' })
   } as unknown as import('@salesforce/core').SfProject;
@@ -81,7 +83,8 @@ const createMockProjectService = (): Layer.Layer<ProjectService> => {
       isSalesforceProject: () => Effect.succeed(true),
       getSfProject: () => Effect.succeed(mockSfProject),
       getProjectNamespace: () => Effect.succeed(null),
-      isArtifactNamespaceWorkspaceEligible: namespace => Effect.succeed(namespace === null),
+      isArtifactNamespaceWorkspaceEligible: namespace => Effect.succeed(isNull(namespace)),
+      projectConfigChanges: Stream.empty,
       isInPackageDirectories: () => Effect.succeed(true),
       ensureInPackageDirectories: () => Effect.void,
       getSoqlMetadataPath: () => Effect.succeed(URI.file('/test/soql')),
@@ -98,7 +101,7 @@ const createMockProjectService = (): Layer.Layer<ProjectService> => {
   );
 };
 
-const createMockConnectionService = (): Layer.Layer<ConnectionService> =>
+const createMockConnectionService = () =>
   Layer.succeed(
     ConnectionService,
     ConnectionService.make({
@@ -172,5 +175,70 @@ describe('TemplateService', () => {
       expect.objectContaining({ classname: 'MyClass' }),
       undefined
     );
+  });
+
+  describe('getBuiltInTemplateSubdirNames', () => {
+    it('delegates to CreateUtil.getCommandTemplatesInSubdirs', async () => {
+      (SfTemplates.CreateUtil.getCommandTemplatesInSubdirs as jest.Mock).mockReturnValue(['default', 'typeScript']);
+      const layer = createTestLayer(createMockConfigService(undefined));
+
+      const result = await Effect.runPromise(
+        TemplateService.getBuiltInTemplateSubdirNames('lightningcomponent', 'lwc', /\.html$/).pipe(
+          Effect.provide(layer)
+        )
+      );
+
+      expect(result).toEqual(['default', 'typeScript']);
+      expect(SfTemplates.CreateUtil.getCommandTemplatesInSubdirs).toHaveBeenCalledWith(
+        'lightningcomponent',
+        { filetype: /\.html$/, subdir: 'lwc' },
+        expect.anything(),
+        expect.anything()
+      );
+    });
+  });
+
+  describe('getCustomTemplateSubdirNames', () => {
+    it('returns [] when ORG_CUSTOM_METADATA_TEMPLATES is not set', async () => {
+      const layer = createTestLayer(createMockConfigService(undefined));
+
+      const result = await Effect.runPromise(
+        TemplateService.getCustomTemplateSubdirNames('lightningcomponent', 'lwc', /\.(js|ts)$/).pipe(
+          Effect.provide(layer)
+        )
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns only subdirectories containing a matching file', async () => {
+      const layer = createTestLayer(createMockConfigService('/my/custom/templates'));
+      // Compare against uri.path (always forward-slash) rather than uri.fsPath, which is
+      // backslash-separated on Windows and would never match these POSIX-style keys there.
+      vscode.workspace.fs.readDirectory.mockImplementation((uri: { path: string }) => {
+        if (uri.path === '/my/custom/templates/lightningcomponent/lwc') {
+          return Promise.resolve([
+            ['myCustomTemplate', vscode.FileType.Directory],
+            ['notATemplate', vscode.FileType.Directory],
+            ['stray.txt', vscode.FileType.File]
+          ]);
+        }
+        if (uri.path === '/my/custom/templates/lightningcomponent/lwc/myCustomTemplate') {
+          return Promise.resolve([['myCustomTemplate.js', vscode.FileType.File]]);
+        }
+        if (uri.path === '/my/custom/templates/lightningcomponent/lwc/notATemplate') {
+          return Promise.resolve([['readme.md', vscode.FileType.File]]);
+        }
+        return Promise.resolve([]);
+      });
+
+      const result = await Effect.runPromise(
+        TemplateService.getCustomTemplateSubdirNames('lightningcomponent', 'lwc', /\.(js|ts)$/).pipe(
+          Effect.provide(layer)
+        )
+      );
+
+      expect(result).toEqual(['myCustomTemplate']);
+    });
   });
 });

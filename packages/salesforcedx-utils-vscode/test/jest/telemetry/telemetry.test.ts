@@ -7,6 +7,7 @@
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 
 import { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ExtensionContext, extensions, workspace } from 'vscode';
 import { SFDX_CORE_EXTENSION_NAME } from '../../../src/constants';
 import { TelemetryService, TelemetryServiceProvider } from '../../../src/services/telemetry';
@@ -214,7 +215,7 @@ describe('Telemetry', () => {
         isActive: true,
         exports: {
           services: {
-            TelemetryIdentitySnapshot: () => ({ cliId: 'cli', webUserId: 'web' })
+            TargetOrgRef: () => SubscriptionRef.make({ cliId: 'cli', webUserId: 'web' })
           }
         }
       } as any);
@@ -411,7 +412,7 @@ describe('Telemetry', () => {
       beforeEach(() => {
         jest.spyOn(extensions, 'getExtension').mockReturnValue({
           isActive: true,
-          exports: { services: { TelemetryIdentitySnapshot: snapshot } }
+          exports: { services: { TargetOrgRef: () => SubscriptionRef.make(snapshot()) } }
         } as any);
         snapshot.mockReturnValue({
           cliId: 'cli',
@@ -420,7 +421,7 @@ describe('Telemetry', () => {
           isScratch: true,
           devHubOrgId: '00Dhub',
           orgEdition: 'Developer Edition',
-          telemetryClassification: 'nonGov'
+          instanceName: 'usa9102'
         });
         jest.spyOn(instance, 'getIdentityFromServices').mockResolvedValue({
           cliId: 'cli',
@@ -485,7 +486,7 @@ describe('Telemetry', () => {
           isSandbox: true,
           devHubOrgId: `${invocationOrgId}-hub`,
           orgEdition: `${invocationOrgId}-edition`,
-          telemetryClassification: invocationOrgId === 'gov' ? 'gov' : 'nonGov'
+          instanceName: invocationOrgId === 'gov' ? 'stg9402s' : 'usa9102'
         });
 
         instance.sendEventData('switch');

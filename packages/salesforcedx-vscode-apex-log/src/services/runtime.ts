@@ -7,7 +7,7 @@
 
 // type-only import: TS strips this, no runtime cycle
 import type { buildAllServicesLayer } from './extensionProvider';
-import * as Layer from 'effect/Layer';
+import type * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 
 type ServicesLayer = ReturnType<typeof buildAllServicesLayer>;
@@ -27,3 +27,10 @@ export const setAllServicesLayer = (layer: ServicesLayer): void => {
 let _apexLogRuntime: ApexLogRuntime | undefined;
 
 export const getRuntime = (): ApexLogRuntime => (_apexLogRuntime ??= ManagedRuntime.make(allServicesLayer));
+
+export const disposeRuntime = async (): Promise<void> => {
+  if (_apexLogRuntime) {
+    await _apexLogRuntime.dispose();
+    _apexLogRuntime = undefined;
+  }
+};

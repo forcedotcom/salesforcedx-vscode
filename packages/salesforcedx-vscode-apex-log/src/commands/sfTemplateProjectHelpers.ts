@@ -8,6 +8,7 @@
 import { ExtensionProviderService, LetterStartNameSchema } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
+import * as String from 'effect/String';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
@@ -33,10 +34,11 @@ const validateApexTypeName = (
   options?: { readonly maxLength?: number }
 ): string | undefined => {
   const maxLen = options?.maxLength ?? APEX_NAME_MAX_LENGTH;
-  if (!value || value.trim().length === 0) return messages.empty;
-  if (value.toLowerCase() === 'default') return messages.reservedDefault;
-  if (!Schema.is(LetterStartNameSchema)(value)) return messages.invalidFormat;
-  return value.length > maxLen ? messages.maxLength : undefined;
+  const normalized = String.trim(value);
+  if (!normalized) return messages.empty;
+  if (normalized.toLowerCase() === 'default') return messages.reservedDefault;
+  if (!Schema.is(LetterStartNameSchema)(normalized)) return messages.invalidFormat;
+  return normalized.length > maxLen ? messages.maxLength : undefined;
 };
 
 type PromptForApexTypeNameParams = {
@@ -58,8 +60,5 @@ export const promptForApexTypeName = Effect.fn('promptForApexTypeName')(function
           maxLength: APEX_NAME_MAX_LENGTH
         })
     })
-  ).pipe(
-    Effect.map(raw => raw?.trim()),
-    Effect.flatMap(promptService.considerUndefinedAsCancellation)
-  );
+  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation), Effect.map(String.trim));
 });

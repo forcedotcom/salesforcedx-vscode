@@ -5,16 +5,16 @@
 'use strict';
 
 import {
-  CompilerOptions,
+  type CompilerOptions,
   createLanguageService,
   displayPartsToString,
   flattenDiagnosticMessageText,
-  FormatCodeOptions,
+  type FormatCodeOptions,
   getDefaultLibFilePath,
   IndentStyle,
-  LanguageServiceHost,
+  type LanguageServiceHost,
   ModuleResolutionKind,
-  NavigationBarItem,
+  type NavigationBarItem,
   ScriptKind,
   ScriptTarget,
   sys,
@@ -23,31 +23,31 @@ import {
 } from 'typescript';
 import type { TextDocument } from 'vscode-languageserver-textdocument';
 import {
-  CompletionItem,
+  type CompletionItem,
   CompletionItemKind,
-  CompletionList,
-  Definition,
-  Diagnostic,
+  type CompletionList,
+  type Definition,
+  type Diagnostic,
   DiagnosticSeverity,
-  DocumentHighlight,
+  type DocumentHighlight,
   DocumentHighlightKind,
-  FormattingOptions,
-  Hover,
-  Location,
+  type FormattingOptions,
+  type Hover,
+  type Location,
   MarkedString,
-  ParameterInformation,
+  type ParameterInformation,
   Position,
   Range,
-  SignatureHelp,
-  SignatureInformation,
-  SymbolInformation,
+  type SignatureHelp,
+  type SignatureInformation,
+  type SymbolInformation,
   SymbolKind,
   TextEdit
 } from 'vscode-languageserver-types';
-import { getLanguageModelCache, LanguageModelCache } from '../languageModelCache';
+import { getLanguageModelCache, type LanguageModelCache } from '../languageModelCache';
 import { getWordAtText, isWhitespaceOnly, repeat, startsWith } from '../utils/strings';
-import { HTMLDocumentRegions } from './embeddedSupport';
-import { LanguageMode, Settings } from './languageModes';
+import { type HTMLDocumentRegions } from './embeddedSupport';
+import { type LanguageMode, type Settings } from './languageModes';
 
 const FILE_NAME = 'vscode://javascript/1'; // the same 'file' is used for all contents
 const JS_WORD_REGEX = /(-?\d*\.\d\w*)|([^\`\~\!\@\#\%\^\&\*\(\)\-\=\+\[\{\]\}\\\|\;\:\'\"\,\.\<\>\/\?\s]+)/g;

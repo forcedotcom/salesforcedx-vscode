@@ -8,11 +8,8 @@
 import {
   ApexCodeCoverageAggregateRecord,
   ApexCodeCoverageRecord,
-  ApexTestResultOutcome,
   ApexTestResultRecord,
-  ApexTestRunResultStatus,
   SyncTestResult,
-  TestCategory,
   TestResult
 } from '../src/tests/types';
 
@@ -95,7 +92,7 @@ export const testRunId = '707xx0000AGQ3jbQQD';
 export const syncResult: TestResult = {
   // @ts-ignore
   summary: {
-    outcome: ApexTestRunResultStatus.Passed,
+    outcome: 'Passed',
     testsRan: 1,
     passing: 1,
     failing: 0,
@@ -118,7 +115,7 @@ export const syncResult: TestResult = {
       message: '',
       asyncApexJobId: '',
       methodName: 'testMethod',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01pxx00000O6tXZQAZ',
@@ -161,7 +158,7 @@ export const testResultData: TestResult = {
       message: null as unknown as string,
       asyncApexJobId: testRunId,
       methodName: 'testLoggerLog',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01pxx00000O6tXZQAZ',
@@ -204,9 +201,9 @@ export const flowTestResultData: TestResult = {
       stackTrace: '',
       message: '',
       asyncApexJobId: '7092M000000Vt94QAC',
-      category: TestCategory.Flow,
+      category: 'Flow',
       methodName: 'FlowName_FlowTestName',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: '',
       apexClass: {
         id: '7092M000000Vt94QAC',
@@ -250,9 +247,9 @@ export const missingTimeTestData: TestResult = {
       stackTrace: null as unknown as string,
       message: null as unknown as string,
       asyncApexJobId: testRunId,
-      category: TestCategory.Apex,
+      category: 'Apex',
       methodName: 'testLoggerLog',
-      outcome: ApexTestResultOutcome.Pass,
+      outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01pxx00000O6tXZQAZ',
@@ -296,9 +293,9 @@ export const skippedTestData: TestResult = {
       stackTrace: null as unknown as string,
       message: null as unknown as string,
       asyncApexJobId: testRunId,
-      category: TestCategory.Apex,
+      category: 'Apex',
       methodName: 'testLoggerLog',
-      outcome: ApexTestResultOutcome.Skip,
+      outcome: 'Skip',
       apexLogId: null,
       apexClass: {
         id: '7092M000000Vt94QAC',
@@ -344,9 +341,9 @@ export const diagnosticResult: TestResult = {
       stackTrace: 'Class.LIFXControllerTest.makeData: line 6, column 1',
       message: 'System.AssertException: Assertion Failed',
       asyncApexJobId: testRunId,
-      category: TestCategory.Apex,
+      category: 'Apex',
       methodName: 'testLoggerLog',
-      outcome: ApexTestResultOutcome.Fail,
+      outcome: 'Fail',
       apexLogId: null,
       apexClass: {
         id: '01pxx00000O6tXZQAZ',
@@ -381,9 +378,9 @@ export const diagnosticFailure: TestResult = {
       stackTrace: 'Class.LIFXControllerTest.makeData',
       message: 'System.AssertException: Assertion Failed',
       asyncApexJobId: testRunId,
-      category: TestCategory.Apex,
+      category: 'Apex',
       methodName: 'testLoggerLog',
-      outcome: ApexTestResultOutcome.Fail,
+      outcome: 'Fail',
       apexLogId: null,
       apexClass: {
         id: '01pxx00000O6tXZQAZ',
@@ -488,7 +485,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     TestTimestamp: testStartTime,
     AsyncApexJobId: '707xx0000ASIPB5QQP',
     MethodName: 'testAssignOnFuture',
-    Outcome: ApexTestResultOutcome.Pass,
+    Outcome: 'Pass',
     ApexLogId: null,
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',
@@ -506,7 +503,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     TestTimestamp: '2020-08-18T02:04:51.000+0000',
     AsyncApexJobId: '707xxM0000ASIPB5QQP',
     MethodName: 'testAssignOnInsert',
-    Outcome: ApexTestResultOutcome.Pass,
+    Outcome: 'Pass',
     ApexLogId: null,
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',
@@ -524,7 +521,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     TestTimestamp: '2020-08-18T02:04:52.000+0000',
     AsyncApexJobId: '707xx0000ASIPB5QQP',
     MethodName: 'testAssignOnUpdate',
-    Outcome: ApexTestResultOutcome.Skip,
+    Outcome: 'Skip',
     ApexLogId: null,
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',
@@ -542,7 +539,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     TestTimestamp: '2020-08-18T02:04:53.000+0000',
     AsyncApexJobId: '707xx0000ASIPB5QQP',
     MethodName: 'testAssignContains',
-    Outcome: ApexTestResultOutcome.Pass,
+    Outcome: 'Pass',
     ApexLogId: null,
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',
@@ -558,7 +555,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     Message: 'System.AssertException: Assertion Failed: Expected: 1, Actual: 11',
     AsyncApexJobId: '707xx0000ASIRYXQQ5',
     MethodName: 'testAssignRuleContains',
-    Outcome: ApexTestResultOutcome.Fail,
+    Outcome: 'Fail',
     ApexLogId: null,
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',
@@ -576,7 +573,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     Message: 'System.AssertException: Assertion Failed: Expected: 1, Actual: 0',
     AsyncApexJobId: '707xx0000ASIRYXQQ5',
     MethodName: 'testAssignRuleContainsV2',
-    Outcome: ApexTestResultOutcome.Fail,
+    Outcome: 'Fail',
     ApexLogId: null,
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',

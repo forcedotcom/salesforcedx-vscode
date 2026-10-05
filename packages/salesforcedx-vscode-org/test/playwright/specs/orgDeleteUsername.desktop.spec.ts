@@ -105,7 +105,8 @@ const toggleMultiPickRow = async (page: Page, alias: string): Promise<void> => {
     .filter({ hasNotText: 'SFDX:' })
     .first();
   await row.waitFor({ state: 'visible', timeout: 10_000 });
-  await row.click({ force: true });
+  await expect(row).toBeEnabled({ timeout: 10_000 });
+  await row.click();
 };
 
 /** Click a modal-dialog button by its label. `window.dialogStyle: custom` (fixture) renders the modal as

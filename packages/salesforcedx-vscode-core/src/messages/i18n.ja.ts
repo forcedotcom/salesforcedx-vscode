@@ -27,6 +27,5 @@ export const messages: Partial<Record<MessageKey, string>> = {
   apex_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/apex/writing',
   soql_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/soql/soql-builder',
   lwc_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/lwc/writing',
-  functions_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/functions/overview',
   default_doc_url: 'https://developer.salesforce.com/tools/vscode/ja'
 };

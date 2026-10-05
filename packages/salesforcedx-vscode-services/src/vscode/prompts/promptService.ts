@@ -5,12 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Arr from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Equal from 'effect/Equal';
 import * as Exit from 'effect/Exit';
-import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
+import { isNotUndefined, isString } from 'effect/Predicate';
 import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -61,8 +62,12 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
           )
         );
 
-        if (choice !== nls.localize('overwrite_button'))
-          return yield* new UserCancellationError({ message: 'User cancelled overwrite' });
+        yield* Effect.succeed(choice).pipe(
+          Effect.filterOrFail(
+            selectedChoice => selectedChoice === nls.localize('overwrite_button'),
+            () => new UserCancellationError({ message: 'User cancelled overwrite' })
+          )
+        );
       }
     );
 
@@ -76,26 +81,36 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
       const choice = yield* Effect.promise(() =>
         vscode.window.showWarningMessage(params.message, { modal: true, detail: params.detail }, params.confirmLabel)
       );
-      if (choice !== params.confirmLabel)
-        return yield* new UserCancellationError({ message: 'User cancelled confirmation' });
+      yield* Effect.succeed(choice).pipe(
+        Effect.filterOrFail(
+          selectedChoice => selectedChoice === params.confirmLabel,
+          () => new UserCancellationError({ message: 'User cancelled confirmation' })
+        )
+      );
     });
 
     /** If `value` is undefined (or an empty trimmed string), fail with {@link UserCancellationError}.
      * Otherwise, return `value` with `undefined` removed from its type. */
-    const considerUndefinedAsCancellation: <T>(
-      value: T | undefined
-    ) => Effect.Effect<T, UserCancellationError, never> = value =>
-      isUndefined(value) || (isString(value) && value.trim().length === 0)
-        ? Effect.fail(new UserCancellationError())
-        : Effect.succeed(value);
+    const considerUndefinedAsCancellation = <T>(value: T | undefined) =>
+      Effect.succeed(value).pipe(
+        Effect.filterOrFail(
+          (candidateValue): candidateValue is T =>
+            isNotUndefined(candidateValue) && (!isString(candidateValue) || candidateValue.trim().length > 0),
+          () => new UserCancellationError()
+        )
+      );
 
     /** Multi-pick sibling of {@link considerUndefinedAsCancellation}: treats `undefined` (Esc) AND an empty
      * selection array (picked nothing then accepted) as cancellation. `canPickMany` quick picks resolve to
      * `[]` on pick-nothing, which `considerUndefinedAsCancellation` would let through. */
-    const considerEmptySelectionAsCancellation: <T>(
-      value: readonly T[] | undefined
-    ) => Effect.Effect<readonly T[], UserCancellationError, never> = value =>
-      isUndefined(value) || value.length === 0 ? Effect.fail(new UserCancellationError()) : Effect.succeed(value);
+    const considerEmptySelectionAsCancellation = <T>(value: readonly T[] | undefined) =>
+      Effect.succeed(value).pipe(
+        Effect.filterOrFail(
+          (candidateValue): candidateValue is Arr.NonEmptyReadonlyArray<T> =>
+            isNotUndefined(candidateValue) && Arr.isNonEmptyReadonlyArray(candidateValue),
+          () => new UserCancellationError()
+        )
+      );
 
     /** BFS search for all directories named `folderName` under `rootUri`. Swallows read errors on any subtree. */
     const findFoldersByName = (rootUri: URI, folderName: string) => {
@@ -193,14 +208,11 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
 
     /** Pipeable operator: ties a vscode progress notification lifetime to an Effect. */
     const withProgress =
-      (title: string) =>
+      (title: string, location: vscode.ProgressLocation = vscode.ProgressLocation.Notification) =>
       <A, E, R>(self: Effect.Effect<A, E, R>) =>
         Effect.suspend(() => {
           const { promise, resolve } = Promise.withResolvers<void>();
-          void vscode.window.withProgress(
-            { location: vscode.ProgressLocation.Notification, title, cancellable: false },
-            () => promise
-          );
+          void vscode.window.withProgress({ location, title, cancellable: false }, () => promise);
           return self.pipe(Effect.ensuring(Effect.sync(resolve)));
         });
 
@@ -249,9 +261,9 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
      * progress/token. Thin wrapper over {@link withCancellableProgressReporting}. Clicking Cancel
      * interrupts the inner effect and surfaces a {@link UserCancellationError}. */
     const withCancellableProgress =
-      (title: string) =>
+      (title: string, location: vscode.ProgressLocation = vscode.ProgressLocation.Notification) =>
       <A, E, R>(self: Effect.Effect<A, E, R>) =>
-        withCancellableProgressReporting(title)(() => self);
+        withCancellableProgressReporting(title, location)(() => self);
 
     return {
       /** If any of `uris` exists, prompt to overwrite; on cancel fail with {@link UserCancellationError}.
@@ -267,7 +279,8 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
       considerEmptySelectionAsCancellation,
       /** Prompt user to select output directory from available package directories, or choose a custom one. */
       promptForOutputDir,
-      /** Pipeable operator: ties a vscode progress notification lifetime to an Effect. */
+      /** Pipeable operator: ties a vscode progress notification lifetime to an Effect.
+       * Accepts `location` (default: `Notification`) to control where the progress is shown. */
       withProgress,
       /** Pipeable operator: ties a cancellable vscode progress notification lifetime to an Effect.
        * Clicking Cancel interrupts the inner effect and surfaces a {@link UserCancellationError}. */

@@ -14,29 +14,30 @@ import { queryPlan, queryPlanDocument } from './commands/queryPlan';
 import { soqlBuilderToggle } from './commands/soqlBuilderToggle';
 import { registerSoqlCodeLensProvider } from './commands/soqlCodeLensProvider';
 import { soqlOpenNewBuilder, soqlOpenNewTextEditor } from './commands/soqlFileCreate';
+import { SOQL_CONFIGURATION_NAME } from './constants';
 import { SOQLEditorProvider } from './editor/soqlEditorProvider';
 import { startLanguageClient, stopLanguageClient } from './lspClient/client';
 import { QueryDataViewService } from './queryDataView/queryDataViewService';
 import {
-  AllServicesLayer,
   buildAllServicesLayer,
+  disposeSoqlRuntime,
   getSoqlRuntime,
   setAllServicesLayer
 } from './services/extensionProvider';
 
-const EXTENSION_NAME = 'salesforcedx-vscode-soql';
-
 export const activate = async (extensionContext: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(extensionContext));
-  await Effect.runPromise(
-    activateEffect(extensionContext).pipe(Effect.provide(AllServicesLayer), Scope.extend(extensionScope))
-  );
+  await getSoqlRuntime().runPromise(activateEffect(extensionContext).pipe(Scope.extend(extensionScope)));
 };
 
-export const deactivate = async (): Promise<void> => getSoqlRuntime().runPromise(deactivateEffect());
+export const deactivate = async (): Promise<void> => {
+  await getSoqlRuntime().runPromise(deactivateEffect()).finally(disposeSoqlRuntime);
+};
 
-export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function* (context: vscode.ExtensionContext) {
+export const activateEffect = Effect.fn(`activation:${SOQL_CONFIGURATION_NAME}`)(function* (
+  context: vscode.ExtensionContext
+) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const svc = yield* api.services.ChannelService;
   yield* svc.appendToChannel(`SOQL Extension Initializing in mode ${context.extensionMode}`);
@@ -70,11 +71,11 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     { concurrency: 'unbounded' }
   );
 
-  yield* Effect.promise(() => startLanguageClient(context));
+  yield* startLanguageClient(context);
   yield* svc.appendToChannel('SOQL Extension Activated');
 });
 
-export const deactivateEffect = Effect.fn(`deactivation:${EXTENSION_NAME}`)(function* () {
+export const deactivateEffect = Effect.fn(`deactivation:${SOQL_CONFIGURATION_NAME}`)(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const svc = yield* api.services.ChannelService;
   yield* closeExtensionScope();

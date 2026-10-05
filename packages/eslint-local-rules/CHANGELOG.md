@@ -1,3 +1,30 @@
+# [65.14.0](https://github.com/forcedotcom/salesforcedx-vscode/compare/eslint-plugin-vscode-extensions-v65.13.1...eslint-plugin-vscode-extensions-v65.14.0) (2026-10-03)
+
+
+### Features
+
+* **lwc:** add support for custom templates for SFDX: Create Lightning Web Component - W-23950041 ([#8289](https://github.com/forcedotcom/salesforcedx-vscode/issues/8289)) ([091daa2](https://github.com/forcedotcom/salesforcedx-vscode/commit/091daa24df91be71f3eba269315530157a5f40d3))
+
+
+
+## [65.13.1](https://github.com/forcedotcom/salesforcedx-vscode/compare/eslint-plugin-vscode-extensions-v65.13.0...eslint-plugin-vscode-extensions-v65.13.1) (2026-09-16)
+
+
+### Bug Fixes
+
+* **security:** execute CLI commands shell-free to prevent OS command injection - W-24161260 ([#8184](https://github.com/forcedotcom/salesforcedx-vscode/issues/8184)) ([001cc96](https://github.com/forcedotcom/salesforcedx-vscode/commit/001cc96f4b8466fe413cd25b65487a92046dea43)), closes [#8187](https://github.com/forcedotcom/salesforcedx-vscode/issues/8187)
+
+
+
+# 65.13.0 (2026-08-29)
+
+
+### Features
+
+* **notifications:** user-configurable notifications system at the system, extension, and command levels - W-24026732 ([#8073](https://github.com/forcedotcom/salesforcedx-vscode/issues/8073)) ([063bd8c](https://github.com/forcedotcom/salesforcedx-vscode/commit/063bd8cf3a56700c8c3c466ce83eff1f6af675dc)), closes [#7444](https://github.com/forcedotcom/salesforcedx-vscode/issues/7444)
+
+
+
 ## [65.12.2](https://github.com/forcedotcom/salesforcedx-vscode/compare/eslint-plugin-vscode-extensions-v65.12.1...eslint-plugin-vscode-extensions-v65.12.2) (2026-08-26)
 
 

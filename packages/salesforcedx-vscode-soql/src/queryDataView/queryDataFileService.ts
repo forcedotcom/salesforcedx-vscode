@@ -5,15 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { JsonObject } from '../json';
 import type { QueryResult } from '../types';
 import { getServicesApi } from '@salesforce/effect-ext-utils';
-import type { JsonMap } from '@salesforce/ts-types';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { getDocumentName } from '../commonUtils';
 import { nls } from '../messages';
+import { messages } from '../messages/i18n';
 import { getSoqlRuntime } from '../services/extensionProvider';
+import { type SuccessOnlyCommandKey } from '../utils/notificationMode';
 import { CsvDataProvider, DataProvider, JsonDataProvider } from './dataProviders';
 
 export enum FileFormat {
@@ -69,23 +71,29 @@ const validateExportResultsFileNameInput = (value: string, fileExtension: string
 const normalizeExportResultsFileBaseName = (value: string, fileExtension: string): string =>
   stripTrailingExtension(value.trim(), fileExtension);
 
+const SAVE_COMMAND: SuccessOnlyCommandKey = messages.save_query_results_text;
+
 const writeQueryResultsAndNotify = Effect.fn('queryDataFileService.writeQueryResultsAndNotify')(function* (params: {
   fileUri: URI;
   fileContentString: string;
 }) {
   const { fileUri, fileContentString } = params;
   const api = yield* getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
   yield* api.services.FsService.writeFile(fileUri, fileContentString);
   const { fsPath } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
   showFileInExplorer(fileUri, fsPath);
-  showSaveSuccessMessage(Utils.basename(fileUri));
+  yield* notificationMode.showSuccessNotification(
+    SAVE_COMMAND,
+    nls.localize('info_file_save_success', Utils.basename(fileUri))
+  );
   return fileUri;
 });
 
 const saveQueryResultsViaMemfsPrompts = Effect.fn('queryDataFileService.saveQueryResultsViaMemfsPrompts')(
   function* (params: {
     queryText: string;
-    queryData: QueryResult<JsonMap>;
+    queryData: QueryResult<JsonObject>;
     dataProvider: DataProvider;
     document: vscode.TextDocument;
   }) {
@@ -130,7 +138,7 @@ export class QueryDataFileService {
 
   constructor(
     private queryText: string,
-    private queryData: QueryResult<JsonMap>,
+    private queryData: QueryResult<JsonObject>,
     private format: FileFormat,
     private document: vscode.TextDocument
   ) {
@@ -183,8 +191,4 @@ const showFileInExplorer = (fileUri: URI, workspacePath: string): void => {
   if (fileUri.fsPath.startsWith(workspacePath)) {
     vscode.commands.executeCommand('revealInExplorer', fileUri);
   }
-};
-
-const showSaveSuccessMessage = (savedFileName: string) => {
-  vscode.window.showInformationMessage(nls.localize('info_file_save_success', savedFileName));
 };

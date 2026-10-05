@@ -33,7 +33,8 @@ import {
   EVENT_VF_APEX_CALL_START,
   EXEC_ANON_SIGNATURE
 } from '../../../src/constants';
-import { LogContext, LogContextUtil } from '../../../src/core';
+import { LogContext } from '../../../src/core';
+import * as logContextUtil from '../../../src/core/logContextUtil';
 import {
   FrameEntryState,
   FrameExitState,
@@ -60,9 +61,9 @@ describe('LogContext', () => {
 
   beforeEach(() => {
     readLogFileSpy = jest
-      .spyOn(LogContextUtil.prototype, 'readLogFileFromContents')
+      .spyOn(logContextUtil, 'readLogFileFromContents')
       .mockReturnValue(['43.0 APEX_CODE,FINEST;...;VISUALFORCE,FINER;..', 'line1', 'line2']);
-    getFileSizeSpy = jest.spyOn(LogContextUtil.prototype, 'getFileSizeFromContents').mockReturnValue(123);
+    getFileSizeSpy = jest.spyOn(logContextUtil, 'getFileSizeFromContents').mockReturnValue(123);
     shouldTraceLogFileStub = jest.fn().mockReturnValue(true);
     printToDebugConsoleSpy = jest.spyOn(ApexReplayDebug.prototype, 'printToDebugConsole').mockImplementation(() => {});
     revertStateAfterHeapDumpSpy = jest.spyOn(LogContext.prototype, 'revertStateAfterHeapDump');
@@ -97,7 +98,7 @@ describe('LogContext', () => {
 
   it('Should not have log lines', () => {
     readLogFileSpy.mockRestore();
-    readLogFileSpy = jest.spyOn(LogContextUtil.prototype, 'readLogFileFromContents').mockReturnValue([]);
+    readLogFileSpy = jest.spyOn(logContextUtil, 'readLogFileFromContents').mockReturnValue([]);
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
 
     expect(context.hasLogLines()).toBe(false);
@@ -108,7 +109,7 @@ describe('LogContext', () => {
 
     readLogFileSpy.mockRestore();
     readLogFileSpy = jest
-      .spyOn(LogContextUtil.prototype, 'readLogFileFromContents')
+      .spyOn(logContextUtil, 'readLogFileFromContents')
       .mockReturnValue(['43.0 APEX_CODE,DEBUG;...;VISUALFORCE,DEBUG;..', 'line1', 'line2']);
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
 
@@ -157,7 +158,7 @@ describe('LogContext', () => {
     readLogFileSpy.mockRestore();
     // Provide two log lines to ensure two calls to printToDebugConsole
     readLogFileSpy = jest
-      .spyOn(LogContextUtil.prototype, 'readLogFileFromContents')
+      .spyOn(logContextUtil, 'readLogFileFromContents')
       .mockReturnValue(['43.0 APEX_CODE,FINEST;...;VISUALFORCE,FINER;..', 'line1', 'line2']);
     context = new LogContext(launchRequestArgs, new ApexReplayDebug());
     jest.spyOn(context.getSession(), 'shouldTraceLogFile').mockReturnValue(true);
@@ -193,7 +194,7 @@ describe('LogContext', () => {
   it('Should detect and parse HEAP_DUMP log entries', () => {
     readLogFileSpy.mockRestore();
     readLogFileSpy = jest
-      .spyOn(LogContextUtil.prototype, 'readLogFileFromContents')
+      .spyOn(logContextUtil, 'readLogFileFromContents')
       .mockReturnValue([
         '43.0 APEX_CODE,FINEST;...;VISUALFORCE,FINER;..',
         '<TimeInfo>|HEAP_DUMP|[11]|<HeapDumpId1>|<ClassName1>|<Namespace1>|11',
@@ -217,7 +218,7 @@ describe('LogContext', () => {
   it('Should not find heapdump with incorrect line', () => {
     readLogFileSpy.mockRestore();
     readLogFileSpy = jest
-      .spyOn(LogContextUtil.prototype, 'readLogFileFromContents')
+      .spyOn(logContextUtil, 'readLogFileFromContents')
       .mockReturnValue([
         '43.0 APEX_CODE,FINEST;...;VISUALFORCE,FINER;..',
         '<TimeInfo>|HEAP_DUMP|[11]|<HeapDumpId1>|ClassName1|Namespace1|11'
@@ -233,7 +234,7 @@ describe('LogContext', () => {
   it('Should not find heapdump with incorrect class name', () => {
     readLogFileSpy.mockRestore();
     readLogFileSpy = jest
-      .spyOn(LogContextUtil.prototype, 'readLogFileFromContents')
+      .spyOn(logContextUtil, 'readLogFileFromContents')
       .mockReturnValue([
         '43.0 APEX_CODE,FINEST;...;VISUALFORCE,FINER;..',
         '<TimeInfo>|HEAP_DUMP|[11]|<HeapDumpId1>|ClassName1|Namespace1|11'
@@ -249,7 +250,7 @@ describe('LogContext', () => {
   it('Should have heapdump for top frame', () => {
     readLogFileSpy.mockRestore();
     readLogFileSpy = jest
-      .spyOn(LogContextUtil.prototype, 'readLogFileFromContents')
+      .spyOn(logContextUtil, 'readLogFileFromContents')
       .mockReturnValue([
         '43.0 APEX_CODE,FINEST;...;VISUALFORCE,FINER;..',
         `<TimeInfo>|${EVENT_HEAP_DUMP}|[11]|<HeapDumpId1>|ClassName1|Namespace1|11`
@@ -268,7 +269,7 @@ describe('LogContext', () => {
   it('Should not have heapdump for top frame', () => {
     readLogFileSpy.mockRestore();
     readLogFileSpy = jest
-      .spyOn(LogContextUtil.prototype, 'readLogFileFromContents')
+      .spyOn(logContextUtil, 'readLogFileFromContents')
       .mockReturnValue([
         '43.0 APEX_CODE,FINEST;...;VISUALFORCE,FINER;..',
         `<TimeInfo>|${EVENT_HEAP_DUMP}|[11]|<HeapDumpId1>|ClassName1|Namespace1|11`
@@ -296,7 +297,7 @@ describe('LogContext', () => {
 
     it('Should apply a success result onto the matching heap dump by id', () => {
       readLogFileSpy.mockRestore();
-      readLogFileSpy = jest.spyOn(LogContextUtil.prototype, 'readLogFileFromContents').mockReturnValue(twoDumpLog);
+      readLogFileSpy = jest.spyOn(logContextUtil, 'readLogFileFromContents').mockReturnValue(twoDumpLog);
       context = new LogContext(launchRequestArgs, new ApexReplayDebug());
       context.scanLogForHeapDumpLines();
 
@@ -309,7 +310,7 @@ describe('LogContext', () => {
 
     it('Should apply results for every heap dump (multi-dump regression)', () => {
       readLogFileSpy.mockRestore();
-      readLogFileSpy = jest.spyOn(LogContextUtil.prototype, 'readLogFileFromContents').mockReturnValue(twoDumpLog);
+      readLogFileSpy = jest.spyOn(logContextUtil, 'readLogFileFromContents').mockReturnValue(twoDumpLog);
       context = new LogContext(launchRequestArgs, new ApexReplayDebug());
       context.scanLogForHeapDumpLines();
 
@@ -325,7 +326,7 @@ describe('LogContext', () => {
 
     it('Should send an error entry to the debug console', () => {
       readLogFileSpy.mockRestore();
-      readLogFileSpy = jest.spyOn(LogContextUtil.prototype, 'readLogFileFromContents').mockReturnValue(twoDumpLog);
+      readLogFileSpy = jest.spyOn(logContextUtil, 'readLogFileFromContents').mockReturnValue(twoDumpLog);
       context = new LogContext(launchRequestArgs, new ApexReplayDebug());
       const errorToDebugConsoleSpy = jest
         .spyOn(context.getSession(), 'errorToDebugConsole')

@@ -6,13 +6,18 @@
  */
 
 import type { Connection } from '@salesforce/core';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
+import * as Schema from 'effect/Schema';
 import * as Scope from 'effect/Scope';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ConnectionService } from '../../../src/core/connectionService';
 import { getDefaultOrgRef, clearDefaultOrgRef } from '../../../src/core/defaultOrgRef';
+import { QueryService } from '../../../src/core/queryService';
+import { OrgId } from '../../../src/core/schemas/salesforceId';
 import { TraceFlagService } from '../../../src/core/traceFlagService';
 
 type IdName = { Id: string; Name: string };
@@ -40,7 +45,22 @@ const makeTraceFlagRow = (id: string, tracedEntityId: string): TraceFlagRow => (
   TracedEntityId: tracedEntityId
 });
 
-const buildConnectionServiceLayer = (connection: unknown): Layer.Layer<ConnectionService> =>
+const queryServiceFromSpies = (toolingSpy: QuerySpy, restSpy: QuerySpy) =>
+  Layer.succeed(
+    QueryService,
+    QueryService.make({
+      query: (options: { soql: string; tooling?: boolean }) =>
+        Effect.tryPromise({
+          try: () => (options.tooling === false ? restSpy : toolingSpy)(options.soql),
+          catch: (error: unknown) => error
+        }).pipe(Effect.map(result => ({ totalSize: result.totalSize, records: Stream.fromIterable(result.records) })))
+    } as never)
+  );
+
+const withQueryService = (connectionLayer: Layer.Layer<ConnectionService>, toolingSpy: QuerySpy, restSpy: QuerySpy) =>
+  Layer.merge(connectionLayer, queryServiceFromSpies(toolingSpy, restSpy));
+
+const buildConnectionServiceLayer = (connection: unknown) =>
   Layer.succeed(
     ConnectionService,
     ConnectionService.make({
@@ -56,7 +76,7 @@ const buildMockConnectionLayer = (opts: {
   traceFlagRowsBySequence: TraceFlagRow[][];
   toolingNameRowsBySoql: Map<string, IdName[]>;
   userNameRowsBySoql: Map<string, IdName[]>;
-}): { layer: Layer.Layer<ConnectionService>; toolingSpy: QuerySpy; querySpy: QuerySpy } => {
+}): { layer: Layer.Layer<ConnectionService | QueryService>; toolingSpy: QuerySpy; querySpy: QuerySpy } => {
   let traceFlagCallIndex = 0;
   const toolingSpy: QuerySpy = jest.fn(async (soql: string) => {
     if (soql.includes('FROM TraceFlag')) {
@@ -71,11 +91,19 @@ const buildMockConnectionLayer = (opts: {
     const nameRows = opts.userNameRowsBySoql.get(soql) ?? [];
     return { records: nameRows, totalSize: nameRows.length };
   });
-  const layer = buildConnectionServiceLayer({ tooling: { query: toolingSpy }, query: querySpy });
+  const layer = withQueryService(
+    buildConnectionServiceLayer({ tooling: { query: toolingSpy }, query: querySpy }),
+    toolingSpy,
+    querySpy
+  );
   return { layer, toolingSpy, querySpy };
 };
 
-const setOrg = (info: { orgId?: string; username?: string; alias?: string }) =>
+const brandedOrgId = (value: string) => Schema.decodeSync(OrgId)(value);
+const ORG_A = brandedOrgId('00D000000000001');
+const ORG_B = brandedOrgId('00D000000000002');
+
+const setOrg = (info: { orgId?: OrgId; username?: string; alias?: string }) =>
   Effect.gen(function* () {
     const ref = yield* getDefaultOrgRef();
     yield* SubscriptionRef.set(ref, info);
@@ -88,11 +116,12 @@ const apexTriggerIdInClause = (ids: string[]) =>
   `SELECT Id, Name FROM ApexTrigger WHERE Id IN (${ids.map(i => `'${i}'`).join(',')})`;
 
 const runScoped = <A, E>(
-  prog: Effect.Effect<A, E, TraceFlagService | Scope.Scope>,
-  layer: Layer.Layer<ConnectionService>
+  prog: Effect.Effect<A, E, TraceFlagService | QueryService | ConnectionService | Scope.Scope>,
+  layer: Layer.Layer<ConnectionService | QueryService>
 ) =>
   prog.pipe(
     Effect.scoped,
+    Effect.provide(layer),
     Effect.provide(Layer.provide(TraceFlagService.DefaultWithoutDependencies, layer)),
     Effect.runPromise
   );
@@ -114,7 +143,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
 
     const result = await runScoped(
       Effect.gen(function* () {
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com' });
         const svc = yield* TraceFlagService;
         const first = yield* svc.getTraceFlags();
         const second = yield* svc.getTraceFlags();
@@ -150,7 +179,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
 
     const result = await runScoped(
       Effect.gen(function* () {
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com' });
         const svc = yield* TraceFlagService;
         yield* svc.getTraceFlags();
         return yield* svc.getTraceFlags();
@@ -177,7 +206,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
 
     await runScoped(
       Effect.gen(function* () {
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com' });
         const svc = yield* TraceFlagService;
         yield* svc.getTraceFlags();
         return yield* svc.getTraceFlags();
@@ -201,12 +230,12 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
 
     await runScoped(
       Effect.gen(function* () {
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com' });
         const svc = yield* TraceFlagService;
         yield* svc.getTraceFlags();
-        yield* setOrg({ orgId: 'org-B', username: 'b@example.com' });
+        yield* setOrg({ orgId: ORG_B, username: 'b@example.com' });
         // Yield once to let the org-change subscription fiber process the invalidation.
-        yield* Effect.sleep(0);
+        yield* Effect.sleep(Duration.millis(0));
         return yield* svc.getTraceFlags();
       }),
       layer
@@ -226,11 +255,11 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
 
     await runScoped(
       Effect.gen(function* () {
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com' });
         const svc = yield* TraceFlagService;
         yield* svc.getTraceFlags();
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com', alias: 'changed-alias' });
-        yield* Effect.sleep(0);
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com', alias: 'changed-alias' });
+        yield* Effect.sleep(Duration.millis(0));
         return yield* svc.getTraceFlags();
       }),
       layer
@@ -250,7 +279,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
 
     const result = await runScoped(
       Effect.gen(function* () {
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com' });
         const svc = yield* TraceFlagService;
         return yield* svc.getTraceFlags();
       }),
@@ -278,7 +307,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
 
     const result = await runScoped(
       Effect.gen(function* () {
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com' });
         const svc = yield* TraceFlagService;
         return yield* svc.getTraceFlags();
       }),
@@ -300,7 +329,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
 
     const result = await runScoped(
       Effect.gen(function* () {
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com' });
         const svc = yield* TraceFlagService;
         return yield* svc.getTraceFlags();
       }),
@@ -323,7 +352,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
 
     const result = await runScoped(
       Effect.gen(function* () {
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com' });
         const svc = yield* TraceFlagService;
         return yield* svc.getTraceFlags();
       }),
@@ -349,7 +378,7 @@ describe('TraceFlagService.getTraceFlagForUser', () => {
 
     const result = await runScoped(
       Effect.gen(function* () {
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com' });
         const svc = yield* TraceFlagService;
         return yield* svc.getTraceFlagForUser('005000000000001');
       }),
@@ -369,7 +398,7 @@ describe('TraceFlagService.getTraceFlagForUser', () => {
 
     const result = await runScoped(
       Effect.gen(function* () {
-        yield* setOrg({ orgId: 'org-A', username: 'a@example.com' });
+        yield* setOrg({ orgId: ORG_A, username: 'a@example.com' });
         const svc = yield* TraceFlagService;
         return yield* svc.getTraceFlagForUser('005000000000001');
       }),
@@ -386,13 +415,17 @@ type DebugLevelQuerySpy = jest.Mock<Promise<{ records: { Id?: string }[]; totalS
 
 const buildGetOrCreateLayer = (opts: {
   debugLevelRows: { Id?: string }[];
-}): { layer: Layer.Layer<ConnectionService>; querySpy: DebugLevelQuerySpy; createSpy: CreateSpy } => {
+}): { layer: Layer.Layer<ConnectionService | QueryService>; querySpy: DebugLevelQuerySpy; createSpy: CreateSpy } => {
   const querySpy: DebugLevelQuerySpy = jest.fn(async (_soql: string) => ({
     records: opts.debugLevelRows,
     totalSize: opts.debugLevelRows.length
   }));
   const createSpy: CreateSpy = jest.fn(async (_type, _payload) => ({ success: true, id: 'dl-created' }));
-  const layer = buildConnectionServiceLayer({ tooling: { query: querySpy, create: createSpy } });
+  const layer = withQueryService(
+    buildConnectionServiceLayer({ tooling: { query: querySpy, create: createSpy } }),
+    querySpy,
+    querySpy
+  );
   return { layer, querySpy, createSpy };
 };
 
@@ -441,10 +474,20 @@ type DeleteSpy = jest.Mock<Promise<{ success: boolean }>, [string, string]>;
 const buildToolingMutationLayer = (opts: {
   create?: CreateSpy;
   delete?: DeleteSpy;
-}): { layer: Layer.Layer<ConnectionService>; createSpy: CreateSpy; deleteSpy: DeleteSpy } => {
+}): { layer: Layer.Layer<ConnectionService | QueryService>; createSpy: CreateSpy; deleteSpy: DeleteSpy } => {
   const createSpy: CreateSpy = opts.create ?? jest.fn(async (_type, _payload) => ({ success: true, id: 'dl-new' }));
   const deleteSpy: DeleteSpy = opts.delete ?? jest.fn(async (_type, _id) => ({ success: true }));
-  const layer = buildConnectionServiceLayer({ tooling: { create: createSpy, delete: deleteSpy } });
+  const layer = withQueryService(
+    buildConnectionServiceLayer({ tooling: { create: createSpy, delete: deleteSpy } }),
+    jest.fn<Promise<{ records: unknown[]; totalSize: number }>, [string]>(async () => ({
+      records: [],
+      totalSize: 0
+    })),
+    jest.fn<Promise<{ records: unknown[]; totalSize: number }>, [string]>(async () => ({
+      records: [],
+      totalSize: 0
+    }))
+  );
   return { layer, createSpy, deleteSpy };
 };
 
@@ -507,6 +550,7 @@ describe('TraceFlagService.createDebugLevel', () => {
       });
     }).pipe(
       Effect.scoped,
+      Effect.provide(layer),
       Effect.provide(Layer.provide(TraceFlagService.DefaultWithoutDependencies, layer)),
       Effect.runPromiseExit
     );
@@ -539,6 +583,7 @@ describe('TraceFlagService.createDebugLevel', () => {
       });
     }).pipe(
       Effect.scoped,
+      Effect.provide(layer),
       Effect.provide(Layer.provide(TraceFlagService.DefaultWithoutDependencies, layer)),
       Effect.runPromiseExit
     );
@@ -578,6 +623,7 @@ describe('TraceFlagService.deleteDebugLevel', () => {
       yield* svc.deleteDebugLevel('dl-9');
     }).pipe(
       Effect.scoped,
+      Effect.provide(layer),
       Effect.provide(Layer.provide(TraceFlagService.DefaultWithoutDependencies, layer)),
       Effect.runPromiseExit
     );

@@ -4,7 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CancellationToken, CommandExecution, Command } from '@salesforce/salesforcedx-utils';
+import type { CancellationToken } from '../types/cancellationToken';
+import type { Command } from '../types/command';
+import type { CommandExecution } from '../types/commandExecution';
 import { ChildProcess } from 'node:child_process';
 import { fromEvent, interval, Observable, Subscription } from 'rxjs';
 

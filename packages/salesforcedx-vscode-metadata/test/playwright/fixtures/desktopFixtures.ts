@@ -25,7 +25,8 @@ export const desktopTest = createDesktopTest({
   orgAlias: MINIMAL_ORG_ALIAS,
   additionalExtensionDirs: ['salesforcedx-vscode-apex-log'],
   userSettings: {
-    'salesforcedx-vscode-core.useMetadataExtensionCommands': true
+    'salesforcedx-vscode-core.useMetadataExtensionCommands': true,
+    'window.dialogStyle': 'custom'
   }
 });
 export const dreamhouseDesktopTest = createDesktopTest({
@@ -42,7 +43,8 @@ export const nonTrackingDesktopTest = createDesktopTest({
   // salesforcedx-vscode-lwc contributes "SFDX: Create Lightning Web Component" (used by deleteBundleSource spec).
   additionalExtensionDirs: ['salesforcedx-vscode-apex-log', 'salesforcedx-vscode-lwc'],
   userSettings: {
-    'salesforcedx-vscode-core.useMetadataExtensionCommands': true
+    'salesforcedx-vscode-core.useMetadataExtensionCommands': true,
+    'window.dialogStyle': 'custom'
   }
 });
 export const emptyWorkspaceDesktopTest = createDesktopTest({
@@ -77,6 +79,11 @@ export const trackingConflictTest = createDesktopTest({
     ...playwrightDialogSettings
   }
 }).extend<{ helperProject: HelperProject; statusBarPage: SourceTrackingStatusBarPage }>({
+  // Match web template: ignore profiles before SourceTracking caches .forceignore (Apex deploy updates Profile: Admin).
+  workspaceDir: async ({ workspaceDir }: { workspaceDir: string }, use: (dir: string) => Promise<void>) => {
+    await fs.appendFile(path.join(workspaceDir, '.forceignore'), '\n# Profiles\n**/profiles/**\n');
+    await use(workspaceDir);
+  },
   helperProject: async ({}: any, use: any) => {
     const dir = path.join(os.tmpdir(), `conflict-helper-${Date.now()}-${randomUUID()}`);
 

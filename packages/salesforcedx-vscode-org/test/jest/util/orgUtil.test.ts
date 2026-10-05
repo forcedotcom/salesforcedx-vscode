@@ -7,17 +7,15 @@
 
 import { AuthInfo, StateAggregator } from '@salesforce/core';
 import {
-  buildAllServicesLayer,
   ExtensionProviderService,
   type ExtensionProviderService as ExtensionProviderServiceType
 } from '@salesforce/effect-ext-utils';
-import { ConfigUtil } from '@salesforce/salesforcedx-utils-vscode';
 import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
-import { resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../src/extensionProvider';
+import { buildAllServicesLayer, resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../src/extensionProvider';
 import { nls } from '../../../src/messages';
 import { checkForSoonToBeExpiredOrgs, updateConfigAndStateAggregators } from '../../../src/util/orgUtil';
 
@@ -29,7 +27,6 @@ describe('orgUtil tests', () => {
   let showChannelMock: jest.Mock;
   let listAllAuthorizationsSpy: jest.SpyInstance;
   let authInfoCreateSpy: jest.SpyInstance;
-  let getUsernameMock: jest.SpyInstance;
   let mockWatcher: any;
 
   // ChannelService entry provided in every seeded ExtensionProviderService layer.
@@ -101,7 +98,6 @@ describe('orgUtil tests', () => {
     showChannelMock = jest.fn();
     listAllAuthorizationsSpy = jest.spyOn(AuthInfo, 'listAllAuthorizations');
     authInfoCreateSpy = jest.spyOn(AuthInfo, 'create');
-    getUsernameMock = jest.spyOn(ConfigUtil, 'getUsername');
   });
 
   afterEach(() => {
@@ -175,7 +171,6 @@ describe('orgUtil tests', () => {
         expirationDate: `${yesterday.getFullYear()}-${yesterday.getMonth() + 1}-${yesterday.getDate()}`
       })
     });
-    getUsernameMock.mockResolvedValue('foo');
     const mockServicesApi = {
       services: {
         TargetOrgRef: createMockTargetOrgRef('foo'),
@@ -335,7 +330,6 @@ describe('orgUtil tests', () => {
         expirationDate: `${expiredDate.getFullYear()}-${expiredDate.getMonth() + 1}-${expiredDate.getDate()}`
       })
     });
-    getUsernameMock.mockResolvedValue('expired-org@salesforce.com');
     const mockServicesApi = {
       services: {
         TargetOrgRef: createMockTargetOrgRef('expired-org@salesforce.com'),
@@ -387,7 +381,11 @@ describe('updateConfigAndStateAggregators', () => {
         ConnectionService: {
           getConnection: getConnectionMock,
           invalidateCachedConnections: invalidateCachedConnectionsMock
-        }
+        },
+        NotificationModeService: Effect.succeed({
+          getProgressLocation: () => Effect.succeed(1),
+          showSuccessNotification: () => Effect.void
+        })
       }
     } as unknown as SalesforceVSCodeServicesApi;
 

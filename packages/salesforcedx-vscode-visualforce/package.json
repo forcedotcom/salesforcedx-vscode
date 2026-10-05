@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.15.3",
+  "version": "67.27.3",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -39,7 +39,6 @@
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "*",
     "@salesforce/salesforcedx-visualforce-language-server": "*",
-    "@salesforce/salesforcedx-visualforce-markup-language-server": "*",
     "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
@@ -48,15 +47,16 @@
   "scripts": {
     "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
-    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache .circular-deps.json *.vsix",
     "compile": "wireit",
     "lint": "wireit",
+    "check:circular-deps": "wireit",
     "test": "wireit",
     "test:compile": "wireit",
     "test:desktop": "wireit",
-    "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-visualforce test:desktop --debug",
     "test:web": "wireit",
-    "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
+    "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-visualforce test:web --headed",
     "run:web": "wireit",
     "vscode:package": "wireit",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
@@ -69,7 +69,6 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../salesforcedx-visualforce-language-server:compile",
-        "../salesforcedx-visualforce-markup-language-server:compile",
         "../salesforcedx-vscode-services:compile",
         "../effect-ext-utils:compile",
         "../salesforcedx-vscode-i18n:compile"
@@ -103,6 +102,24 @@
         "dist"
       ]
     },
+    "vscode:bundle:local": {
+      "command": "node ./esbuild.config.mjs",
+      "dependencies": [
+        "compile",
+        "../salesforcedx-vscode-services:vscode:bundle:local"
+      ],
+      "files": [
+        "esbuild.config.mjs",
+        "../../scripts/bundling/node.mjs",
+        "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/fs-polyfill.js",
+        "../../scripts/bundling/assert-web-safe.mjs",
+        "out/**"
+      ],
+      "output": [
+        "dist"
+      ]
+    },
     "test": {
       "command": "jest --passWithNoTests",
       "dependencies": [
@@ -118,10 +135,25 @@
         "coverage"
       ]
     },
+    "check:circular-deps": {
+      "command": "dpdm -T --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json --exclude \"/node_modules/|/out/|/dist/\" 'src/**/*.ts'",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        ".circular-deps.json"
+      ]
+    },
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
       "dependencies": [
         "../eslint-local-rules:compile",
+        "check:circular-deps",
         "compile"
       ],
       "files": [
@@ -178,7 +210,7 @@
       "output": []
     },
     "run:web": {
-      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --verbose --printServerLog --quality stable",
+      "command": "vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --verbose --printServerLog --quality stable",
       "service": true,
       "dependencies": [
         "vscode:bundle",
@@ -199,7 +231,7 @@
       "output": []
     },
     "vscode:package": {
-      "command": "vsce package --allow-package-all-secrets",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies",
       "dependencies": [
         "vscode:bundle"
       ],
@@ -217,7 +249,7 @@
       ]
     },
     "vscode:package:prerelease": {
-      "command": "vsce package --allow-package-all-secrets --pre-release",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies --pre-release",
       "dependencies": [
         "vscode:bundle"
       ],

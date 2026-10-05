@@ -15,6 +15,11 @@ export const messages = {
   vf_component_name_prompt: 'Enter Visualforce component name',
   vf_generate_page_success: 'Visualforce page created successfully',
   vf_generate_component_success: 'Visualforce component created successfully',
+  template_type_prompt: 'Select template type',
+  vf_builtin_templates_label: 'Built-In Templates',
+  vf_custom_templates_label: 'Custom Templates',
+  vf_page_default_template_description: 'Standard Visualforce page',
+  vf_component_default_template_description: 'Standard Visualforce component',
   visualforce_generate_page_text: 'SFDX: Create Visualforce Page',
   visualforce_generate_component_text: 'SFDX: Create Visualforce Component'
 } as const;

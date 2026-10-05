@@ -1,8 +1,8 @@
 ---
 name: effect-best-practices
-description: Enforces Effect-TS patterns for services, errors, layers, and atoms. Use when writing code with Effect.Service, Schema.TaggedError, Layer composition, or effect-atom React components.
+description: Enforces Effect-TS patterns for services, errors, layers, atoms, and Effect.pipe composition. Use when writing Effect.Service, Schema.TaggedError, Layer, effect-atom, Effect.fn/`.pipe`, or `yield*` pipelines.
 review: always
-version: 1.5.0
+version: 1.6.1
 ---
 
 For diff/plan review against these patterns, invoke the `effect-advocate` subagent (`.claude/agents/effect-advocate.md`).
@@ -30,21 +30,23 @@ npx effect-language-service diagnostics --project tsconfig.json
 | Services          | `Effect.Service` with `accessors: true`                  | `Context.Tag` for business logic                                 |
 | Dependencies      | `dependencies: [Dep.Default]` in service                 | Manual `Layer.provide` at usage sites                            |
 | Errors            | `Schema.TaggedError` with `message` field                | Plain classes or generic Error                                   |
-| Error Specificity | `UserNotFoundError`, `SessionExpiredError`               | Generic `NotFoundError`, `BadRequestError`                       |
+| Error Specificity | Split tags when catch arms or field shapes differ; telemetry dimensions are fields on one tag | Extra tags that all print `message` / fire the same span |
 | Error Handling    | `catchTag`/`catchTags`; catch only when needed           | `catchAll`; swallowing; catching "just in case"                  |
-| IDs               | `Schema.UUID.pipe(Schema.brand("@App/EntityId"))`        | Plain `string` for entity IDs                                    |
-| Functions         | `Effect.fn` over `Effect.gen`; `.gen` only for shared pipes | Anonymous generators; `.gen` for business logic                   |
+| IDs               | Salesforce record/org: `SalesforceId`/`OrgId` (`core/schemas/salesforceId.ts`). `DefaultOrgInfoSchema.orgId`/`devHubOrgId`: `Schema.optional(OrgId)` like `cliId`. Else `Schema.UUID.pipe(Schema.brand("@App/EntityId"))` | Plain `string`; `getAuthInfoFields().orgId` ad hoc; `optionalWith` as Option on DefaultOrgInfo |
+| Functions         | `Effect.fn` over `Effect.gen`; `.gen` only for shared pipes | Anonymous generators; nested `Effect.gen` to attach recovery; `.gen` for business logic |
+| Composition       | `.pipe`; `const` only if read ≥2×. Details: `references/composition-style.md` | single-use `const x = yield*` then `f(x)` |
 | Params vs deps    | Params = runtime data; dependencies = yield from context | Passing Ref/PubSub/service as params                             |
 | Naming            | `FooCommand` for commands, domain names for helpers      | `FooEffect` suffix (redundant; TS/Effect.fn already convey type) |
 | Logging           | `Effect.log` with structured data                        | `console.log`                                                    |
 | Config            | `Config.*` with validation                               | `process.env` directly (except build-time vars like `ESBUILD_*`) |
-| Time values       | `Duration.seconds(30)`, `Duration.millis(5000)`; params as `Duration.DurationInput` | Numeric milliseconds as `number` params or `TIMEOUT_MS = 30_000` constants |
+| Time values       | `Duration.seconds(30)`, `Duration.millis(5000)`; params as `Duration.DurationInput`. Enforced by `local/no-raw-duration` for a numeric arg/prop in `Duration` / `DurationInput` position only. `bigint`, template strings, `number` params, and `TIMEOUT_MS` constants stay outside the rule. | Numeric milliseconds as `number` params or `TIMEOUT_MS = 30_000` constants |
 | Options           | `Option.match` with both cases                           | `Option.getOrThrow`                                              |
 | Nullability       | `Option<T>` in domain types                              | `null`/`undefined`                                               |
 | Atoms             | `Atom.make` outside components                           | Creating atoms inside render                                     |
 | Atom State        | `Atom.keepAlive` for global state                        | Forgetting keepAlive for persistent state                        |
 | Atom Updates      | `useAtomSet` in React components                         | `Atom.update` imperatively from React                            |
 | Atom Cleanup      | `get.addFinalizer()` for side effects                    | Missing cleanup for event listeners                              |
+| Resource Cleanup  | Scoped service/layer + `Effect.addFinalizer`             | Returning `dispose`; delegating Effect-owned resources to callers |
 | Atom Results      | `Result.builder` with `onErrorTag`                       | Ignoring loading/error states                                    |
 | Grouping          | `Arr.groupBy` (effect/Array)                             | `Object.groupBy`, whose `Partial<Record>` forces a filter        |
 
@@ -82,10 +84,7 @@ export class UserService extends Effect.Service<UserService>()('UserService', {
 }) {}
 
 // Usage - dependencies are already wired
-const program = Effect.gen(function* () {
-  const user = yield* UserService.findById(userId);
-  return user;
-});
+const program = UserService.findById(userId);
 
 // At app root
 const MainLive = Layer.mergeAll(UserService.Default, OtherService.Default);
@@ -179,11 +178,13 @@ yield *
 - **Genuinely ignore** – accept failure and continue (e.g. optional pre-create)
 - **Better message** – default vague; map to clearer domain error
 
+Expected skip (missing optional plugin, incompatible version): write nls on the success path (guard / Match branch). `fail`+`catchTag` is for unexpected recovery — a handler that isn't "print this string."
+
 Catch sparingly. No `catchAll` or "swallow to be safe." Use `catchTag`/`catchTags`; log or fail with improved error.
 
 ### Prefer Explicit Over Generic Errors
 
-**Every distinct failure reason deserves its own error type** with rich context (`userId`, `channelId`, `expiredAt`), not one generic `NotFoundError` everything maps to. A generic `{ _tag: 'NotFoundError', message: 'Not found' }` can't tell the frontend which resource failed or how to recover; explicit tags drive specific UI. See `references/error-patterns.md` for the WRONG/CORRECT contrast and naming conventions.
+Split tags when **catch arms or field shapes** differ — e.g. `message`+`cause` vs `message`+`cause`+`setting`. Same catch work (print `message`, one span) → one tag; telemetry dimensions are fields, not tags. nls variance lives in `message`. Frontend/RPC still splits when the UI branches (`UserNotFoundError` vs `ChannelNotFoundError`). See `references/error-patterns.md`.
 
 ### Accumulating Errors Across a Collection
 
@@ -193,7 +194,9 @@ See `references/error-patterns.md` for the accumulation/interruption nuance, err
 
 ## Schema & Branded Types Pattern
 
-**Brand all entity IDs** for type safety across service boundaries:
+**Brand all entity IDs** for type safety across service boundaries.
+
+This repo — Salesforce record/org ids are not UUIDs. Use `SalesforceId`/`OrgId` and `orgIdFrom`/`orgIdFromConnection` (`getFields()` / Connection; `Option`; `references/schema-patterns.md`). Other AuthFields: `authFieldsFrom`/`authFieldsFromConnection`. `DefaultOrgInfoSchema.orgId`/`devHubOrgId`: `Schema.optional(OrgId)` like `cliId` — not Option.
 
 ```typescript
 import { Schema } from 'effect';
@@ -202,15 +205,15 @@ import { Schema } from 'effect';
 export const UserId = Schema.UUID.pipe(Schema.brand('@App/UserId'));
 export type UserId = Schema.Schema.Type<typeof UserId>;
 
-export const OrganizationId = Schema.UUID.pipe(Schema.brand('@App/OrganizationId'));
-export type OrganizationId = Schema.Schema.Type<typeof OrganizationId>;
+export const TenantId = Schema.UUID.pipe(Schema.brand('@App/TenantId'));
+export type TenantId = Schema.Schema.Type<typeof TenantId>;
 
 // Domain types - use Schema.Struct
 export const User = Schema.Struct({
   id: UserId,
   email: Schema.String,
   name: Schema.String,
-  organizationId: OrganizationId,
+  tenantId: TenantId,
   createdAt: Schema.DateTimeUtc
 });
 export type User = Schema.Schema.Type<typeof User>;
@@ -219,7 +222,7 @@ export type User = Schema.Schema.Type<typeof User>;
 export const CreateUserInput = Schema.Struct({
   email: Schema.String.pipe(Schema.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)),
   name: Schema.String.pipe(Schema.minLength(1)),
-  organizationId: OrganizationId
+  tenantId: TenantId
 });
 export type CreateUserInput = Schema.Schema.Type<typeof CreateUserInput>;
 ```
@@ -241,8 +244,7 @@ See `references/schema-patterns.md` for transforms and advanced patterns.
 // CORRECT - Effect.fn with descriptive name
 const findById = Effect.fn('UserService.findById')(function* (id: UserId) {
   yield* Effect.annotateCurrentSpan('userId', id);
-  const user = yield* repo.findById(id);
-  return user;
+  return yield* repo.findById(id);
 });
 
 // CORRECT - Effect.fn with multiple parameters
@@ -275,7 +277,7 @@ const openedOk = Effect.gen(function* () {
 // CORRECT: logGetCommand, executeAnonymousCommand, executeAnonymous (helper), activation (lifecycle)
 ```
 
-See `references/composition-style.md` for how to compose these: flat build-then-run pipes, terminal runner, point-free safety, Match dispatch, guard clauses.
+See `references/composition-style.md`: `.pipe`, `const` only if read ≥2×, terminal runner, point-free safety, Match dispatch, guard clauses, recovery on a subsequence.
 
 ## Layer Composition
 
@@ -304,6 +306,25 @@ const AppLive = Layer.mergeAll(
 ```
 
 See `references/layer-patterns.md` for testing layers and config-dependent layers.
+
+### Effect-Owned Resources
+
+Resources created inside an Effect service/layer belong to its scope. Prefer `scoped` plus
+`Effect.addFinalizer` or `Effect.acquireRelease`; don't expose `dispose` or delegate cleanup to a host lifecycle.
+
+```typescript
+export class StatusService extends Effect.Service<StatusService>()('StatusService', {
+  accessors: true,
+  scoped: Effect.gen(function* () {
+    const item = vscode.window.createStatusBarItem();
+    yield* Effect.addFinalizer(() => Effect.sync(() => item.dispose()));
+    return { show: Effect.sync(() => item.show()) };
+  })
+}) {}
+```
+
+The layer owner must close its scope. A `ManagedRuntime` owns its layers' scopes; dispose it during extension
+deactivation. Use `context.subscriptions` only for resources created outside Effect ownership.
 
 ## Option Handling
 
@@ -350,8 +371,6 @@ function UserProfile() {
     .render();
 }
 ```
-
-See `references/effect-atom-patterns.md` for families, React hooks, side-effect atoms with finalizers, localStorage, and anti-patterns.
 
 ## SubscriptionRef
 
@@ -409,11 +428,17 @@ union shape, no exceptions:
 | `T \| null \| undefined` | `isNullable` / `isNotNullable` |
 
 ```typescript
+import * as Schema from 'effect/Schema';
 import { isNotNull, isNotUndefined, isNullable, isUndefined } from 'effect/Predicate';
 
 // T | undefined — the common case (Optional<T>, optional props, ?? sources)
 if (isUndefined(maybeValue)) return;
 Effect.filterOrFail(isNotUndefined, () => new NotFoundError({ message: '...' }));
+
+// non-id string that must be non-blank — not `isNotUndefined && length > 0`
+Effect.filterOrFail(Schema.is(Schema.NonEmptyString), () => new NotFoundError({ message: '...' }));
+// AuthFields org id: `orgIdFrom` / `orgIdFromConnection` → `Option<OrgId>`; fail-if-missing via `Option.match`
+// DefaultOrgInfo orgId: already `OrgId | undefined` (`Schema.optional(OrgId)` like cliId)
 
 // T | null — e.g. RegExp.exec, JSON payload fields
 const match = scriptRegex.exec(html);
@@ -494,13 +519,11 @@ See `references/observability-patterns.md` for metrics and tracing patterns.
 
 For detailed patterns, consult these reference files in the `references/` directory:
 
-- `composition-style.md` - Effects as flat build-then-run pipes: terminal runner, point-free safety, keep side effects (even terminal) in tap, Match dispatch, guard clauses, linear body as point-free pipe vs generator
+- `composition-style.md` - `.pipe`; `const` only if read ≥2×; terminal runner; point-free safety; tap for side effects; Match dispatch; guard clauses; linear body as point-free pipe vs generator; recovery on a subsequence (pipe from the first Effect — not a nested `Effect.gen`)
 - `service-patterns.md` - Service definition, Effect.fn, Context.Tag exceptions
 - `error-patterns.md` - Schema.TaggedError, error remapping, retry patterns
 - `schema-patterns.md` - Branded types, transforms, Schema.Class
 - `layer-patterns.md` - Dependency composition, testing layers
-- `rpc-cluster-patterns.md` - RpcGroup, Workflow, Activity patterns
-- `effect-atom-patterns.md` - Atom, families, React hooks, Result handling
 - `anti-patterns.md` - Complete list of forbidden patterns
 - `diagnostics-findings.md` - Effect LS finding → fix, per rule
 - `observability-patterns.md` - Logging, metrics, config patterns

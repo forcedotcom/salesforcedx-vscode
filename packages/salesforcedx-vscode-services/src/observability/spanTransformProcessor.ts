@@ -7,13 +7,16 @@
 import type { DefaultOrgInfoSchema } from '../core/schemas/defaultOrgInfo';
 import { Context } from '@opentelemetry/api';
 import { Span, BatchSpanProcessor, SpanExporter, BufferConfig, ReadableSpan } from '@opentelemetry/sdk-trace-base';
+import { classifyOrgForTelemetry, type TelemetryClassification } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isString } from 'effect/Predicate';
 // aliased to Rec so the global `Record<K, V>` utility type stays usable in this file
 import * as Rec from 'effect/Record';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as os from 'node:os';
 import { env, UIKind, version, workspace } from 'vscode';
-import { getTelemetryIdentitySnapshot, type TelemetryIdentitySnapshot } from '../core/defaultOrgRef';
+import { SFDX_CORE_SECTION } from '../constants';
+import { getDefaultOrgRef } from '../core/defaultOrgRef';
 
 type SpanCreationIdentity = Readonly<
   Pick<
@@ -27,8 +30,7 @@ type SpanCreationIdentity = Readonly<
     | 'isScratch'
     | 'tracksSource'
     | 'orgEdition'
-  > &
-    Pick<TelemetryIdentitySnapshot, 'telemetryClassification'>
+  > & { telemetryClassification: TelemetryClassification }
 >;
 
 const creationIdentities = new WeakMap<object, SpanCreationIdentity>();
@@ -36,22 +38,27 @@ const creationIdentities = new WeakMap<object, SpanCreationIdentity>();
 export const getSpanCreationIdentity = (span: Span | ReadableSpan): SpanCreationIdentity =>
   creationIdentities.get(span) ?? { telemetryClassification: 'unknown' };
 
+const getCurrentSpanCreationIdentity = (): SpanCreationIdentity => {
+  const { instanceName, ...identity } = Effect.runSync(getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get)));
+  return { ...identity, telemetryClassification: classifyOrgForTelemetry(identity.orgId, instanceName) };
+};
+
 /** Custom span processor that transforms spans before they're exported */
 export class SpanTransformProcessor extends BatchSpanProcessor {
   constructor({
     exporter,
     options,
-    getIdentitySnapshot = getTelemetryIdentitySnapshot
+    getIdentitySnapshot = getCurrentSpanCreationIdentity
   }: {
     exporter: SpanExporter;
     options?: BufferConfig;
-    getIdentitySnapshot?: () => TelemetryIdentitySnapshot;
+    getIdentitySnapshot?: () => SpanCreationIdentity;
   }) {
     super(exporter, options);
     this.getIdentitySnapshot = getIdentitySnapshot;
   }
 
-  private readonly getIdentitySnapshot: () => TelemetryIdentitySnapshot;
+  private readonly getIdentitySnapshot: () => SpanCreationIdentity;
 
   public onStart(span: Span, parentContext: Context): void {
     if (!creationIdentities.has(span)) {
@@ -106,7 +113,7 @@ const getAdditionalAttributes = (
     cliId,
     webUserId,
     orgEdition,
-    telemetryTag: workspace.getConfiguration('salesforcedx-vscode-core')?.get('telemetry-tag')
+    telemetryTag: workspace.getConfiguration(SFDX_CORE_SECTION)?.get('telemetry-tag')
   });
 
 export const isInternalUser = (uiKindString: string | undefined): string | undefined => {

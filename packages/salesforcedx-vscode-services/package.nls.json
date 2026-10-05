@@ -11,7 +11,12 @@
   "configuration.otelLocal.description": "Enable local OpenTelemetry traces for debugging and performance monitoring. Start the trace viewer using docker run -p 3000:3000 -p 4317:4317 -p 4318:4318 --rm -it docker.io/grafana/otel-lgtm",
   "configuration.otelConsole.description": "Send OpenTelemetry traces for debugging and performance monitoring to the console (browser or electron).",
   "configuration.otelOtlpFile.description": "Export spans and log records in OTLP JSON format to ~/.sf/vscode-spans/ for support troubleshooting. Send the file to support for import into Grafana. Enable this, reproduce the issue, then disable.",
-  "configuration.logLevel.description": "Minimum log level for Effect log records exported via OpenTelemetry.",
+  "configuration.logLevel.description": "Minimum log level for Effect log records exported via OpenTelemetry. Initialized from SF_LOG_LEVEL if set (fatal maps to error).",
+  "notifications.description": "Global default notification style for all Salesforce extension commands. Can be overridden per extension or per command. Warnings and failures are always shown as toasts.",
+  "notifications.progressToastSuccessToast.description": "Show progress and success as toast notifications.",
+  "notifications.progressToastSuccessOff.description": "Show progress as a cancellable toast, but suppress the success notification.",
+  "notifications.progressStatusBarSuccessStatusBar.description": "Show progress spinner and success message in the status bar.",
+  "notifications.progressStatusBarSuccessOff.description": "Show progress spinner in the status bar, but suppress the success notification.",
   "configuration.NODE_EXTRA_CA_CERTS.description": "NODE_EXTRA_CA_CERTS CLI environment variable value",
   "configuration.SF_LOG_LEVEL.description": "SF_LOG_LEVEL CLI environment variable value"
 }

@@ -12,15 +12,15 @@ Prereq: authenticated Dev Hub (`sf org login web --set-default-dev-hub` or simil
 - **Used by:** org-browser, metadata (org picker tests); also the recommended org for `ESBUILD_WEB_ORG_ALIAS` web bundle testing
 - **Script:** `./packages/salesforcedx-vscode-org-browser/scripts/create-e2e-scratch-org.sh` (from repo root)
 - **Custom alias:** `DREAMHOUSE_ORG_ALIAS=myAlias ./packages/salesforcedx-vscode-org-browser/scripts/create-e2e-scratch-org.sh`
-- **Run org-browser tests:** `DREAMHOUSE_ORG_ALIAS=myAlias npm run test:web -w salesforcedx-vscode-org-browser`
-- **Web bundle local dev:** `ESBUILD_WEB_ORG_ALIAS=orgBrowserDreamhouseTestOrg npm run run:web -w packages/salesforcedx-vscode-services`
+- **Run org-browser tests:** `DREAMHOUSE_ORG_ALIAS=myAlias pnpm --filter salesforcedx-vscode-org-browser test:web`
+- **Web bundle local dev:** `ESBUILD_WEB_ORG_ALIAS=orgBrowserDreamhouseTestOrg pnpm --filter ./packages/salesforcedx-vscode-services run:web`
 - Script clones dreamhouse-lwc, creates scratch org, deploys metadata, assigns permset. Matches `.github/workflows/orgBrowserE2E.yml`.
 - **Recreate:** just re-run the script — it creates a fresh org each time. Previous org is not deleted automatically.
 
 ## Minimal
 
 - **Alias:** `minimalTestOrg` (override: `MINIMAL_ORG_ALIAS`)
-- **Used by:** services, core, apex-log, apex-replay-debugger, metadata
+- **Used by:** services, core, apex-log, apex-replay-debugger, metadata, apex-testing (`apexTestSuiteDelete` / ride-along lane)
 - **No script.** Tests call `createMinimalOrg()` — creates org on first run if missing. Or create manually:
 
 ```bash
@@ -32,7 +32,7 @@ cd /tmp/minimal-project && sf org create scratch -d -w 10 -a minimalTestOrg --ed
 ## Non-tracking
 
 - **Alias:** `nonTrackingTestOrg` (override: `NON_TRACKING_ORG_ALIAS`)
-- **Used by:** apex-testing, metadata (non-tracking UI tests)
+- **Used by:** apex-testing (org-wide + class-scoped lanes), metadata (non-tracking UI tests)
 - **No script.** Tests call `createNonTrackingOrg()` — creates org on first run if missing. Or create manually (same as minimal + `--no-track-source`):
 
 ```bash

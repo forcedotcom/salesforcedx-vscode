@@ -15,7 +15,6 @@ import { formatTestErrors, getDiagnostic } from './diagnosticUtil';
 import {
   ApexTestResultDataRaw,
   ApexTestResultOutcome,
-  ApexTestRunResultStatus,
   SyncTestConfiguration,
   SyncTestFailure,
   SyncTestResult,
@@ -82,7 +81,7 @@ export class SyncTests {
       const globalTestPassed = apiTestResult.successes.length;
       const rawResult: TestResultRaw = {
         summary: {
-          outcome: globalTestFailed === 0 ? ApexTestRunResultStatus.Passed : ApexTestRunResultStatus.Failed,
+          outcome: globalTestFailed === 0 ? 'Passed' : 'Failed',
           testsRan: apiTestResult.numTestsRun,
           passing: globalTestPassed,
           failing: globalTestFailed,
@@ -121,11 +120,11 @@ export class SyncTests {
       const testResults: ApexTestResultDataRaw[] = [];
 
       apiTestResult.successes.forEach(item => {
-        testResults.push(this.processTestResult(item, apiTestResult, apexTestClassIdSet, ApexTestResultOutcome.Pass));
+        testResults.push(this.processTestResult(item, apiTestResult, apexTestClassIdSet, 'Pass'));
       });
 
       apiTestResult.failures.forEach(item => {
-        testResults.push(this.processTestResult(item, apiTestResult, apexTestClassIdSet, ApexTestResultOutcome.Fail));
+        testResults.push(this.processTestResult(item, apiTestResult, apexTestClassIdSet, 'Fail'));
       });
 
       return { apexTestClassIdSet, testResults };
@@ -172,7 +171,7 @@ export class SyncTests {
       category: computeTestCategory(item.namespace)
     };
 
-    if (outcome === ApexTestResultOutcome.Fail) {
+    if (outcome === 'Fail') {
       const diagnostic = item.message || item.stackTrace ? getDiagnostic(item as SyncTestFailure) : null;
       if (diagnostic) {
         testResult.diagnostic = diagnostic;

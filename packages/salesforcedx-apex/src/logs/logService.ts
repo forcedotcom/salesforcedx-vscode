@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { JsonObject } from '../json';
 import { Connection, Logger, Org, StatusResult, StreamingClient } from '@salesforce/core';
 import { Duration } from '@salesforce/kit';
-import type { AnyJson, JsonMap } from '@salesforce/ts-types';
 import * as path from 'node:path';
 import { nls } from '../i18n';
 import { elapsedTime } from '../utils/elapsedTime';
@@ -21,7 +21,7 @@ type StreamingLogMessage = {
 };
 
 export class LogService {
-  public readonly connection: Connection;
+  private readonly connection: Connection;
   private logger!: Logger;
   private logTailer?: (log: string) => void;
 
@@ -30,7 +30,7 @@ export class LogService {
   }
 
   @elapsedTime()
-  public async getLogIds(options: ApexLogGetOptions): Promise<string[]> {
+  private async getLogIds(options: ApexLogGetOptions): Promise<string[]> {
     if (!(typeof options.logId === 'string' || typeof options.numberOfLogs === 'number')) {
       throw new Error(nls.localize('missingInfoLogError'));
     }
@@ -65,11 +65,11 @@ export class LogService {
   }
 
   @elapsedTime()
-  public async getLogById(logId: string): Promise<LogResult> {
+  private async getLogById(logId: string): Promise<LogResult> {
     const baseUrl = this.connection.tooling._baseUrl();
     const url = `${baseUrl}/sobjects/ApexLog/${logId}/Body`;
     const response = await this.toolingRequest(url);
-    return { log: response?.toString() || '' };
+    return { log: typeof response === 'string' ? response : String(response ?? '') };
   }
 
   @elapsedTime()
@@ -107,7 +107,7 @@ export class LogService {
   }
 
   @elapsedTime()
-  public async createStreamingClient(org: Org): Promise<StreamingClient> {
+  private async createStreamingClient(org: Org): Promise<StreamingClient> {
     const options = new StreamingClient.DefaultOptions(org, STREAMING_LOG_TOPIC, this.streamingCallback.bind(this));
     options.setSubscribeTimeout(Duration.minutes(LOG_TIMER_LENGTH_MINUTES));
 
@@ -115,7 +115,7 @@ export class LogService {
   }
 
   @elapsedTime()
-  public async logCallback(message: StreamingLogMessage): Promise<void> {
+  private async logCallback(message: StreamingLogMessage): Promise<void> {
     if (message.sobject?.Id) {
       const log = await this.getLogById(message.sobject.Id);
       if (log && this.logTailer) {
@@ -125,7 +125,7 @@ export class LogService {
   }
 
   @elapsedTime()
-  private streamingCallback(rawMessage: JsonMap): StatusResult {
+  private streamingCallback(rawMessage: JsonObject): StatusResult {
     const message = rawMessage as unknown as StreamingLogMessage;
     if (message.errorName === LISTENER_ABORTED_ERROR_NAME) {
       return { completed: true };
@@ -144,8 +144,7 @@ export class LogService {
   }
 
   @elapsedTime()
-  public async toolingRequest(url: string): Promise<AnyJson> {
-    const log = (await this.connection.tooling.request(url)) as AnyJson;
-    return log;
+  private async toolingRequest(url: string): Promise<unknown> {
+    return this.connection.tooling.request(url);
   }
 }
