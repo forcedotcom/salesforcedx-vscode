@@ -20,8 +20,6 @@ These paths have no category. A hunk on one of them means `categories` is `[]`:
 - `.github/workflows/**`
 - `CODEOWNERS`
 - `APPROVAL_POLICY.md`
-- `.cursor/rules/**`
-- `.cursor/commands/**`
 - `out/**`
 
 ## Categories
@@ -29,6 +27,10 @@ These paths have no category. A hunk on one of them means `categories` is `[]`:
 ### claude
 
 Every file under `.claude/`.
+
+### cursor
+
+Every file under `.cursor/`.
 
 ### eslint
 
