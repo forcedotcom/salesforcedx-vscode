@@ -32,7 +32,7 @@ import { getDebuggerOutputChannel } from './channels';
 import { anonApexDebug } from './commands/anonApexDebug';
 import { launchApexReplayDebuggerWithCurrentFile } from './commands/launchApexReplayDebuggerWithCurrentFile';
 import { launchFromLogFile } from './commands/launchFromLogFile';
-import { setupAndDebugTests } from './commands/quickLaunch';
+import { debugSingleTestCommand, debugTestsCommand } from './commands/quickLaunch';
 import {
   DEBUGGER_TYPE,
   LAST_OPENED_LOG_KEY,
@@ -137,6 +137,8 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
   );
   yield* registerCommand('sf.create.checkpoints', sfCreateCheckpointsCommand);
   yield* registerCommand('sf.toggle.checkpoint', sfToggleCheckpointCommand);
+  yield* registerCommand('sf.test.view.debugTests', debugTestsCommand);
+  yield* registerCommand('sf.test.view.debugSingleTest', debugSingleTestCommand);
 
   const commands = registerCommands(extensionContext);
   const debugHandlers = registerDebugHandlers();
@@ -155,26 +157,13 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
     yield* Effect.promise(() => salesforceApexExtension.activate());
   }
 
-  // Debug Tests command
-  const debugTests = vscode.commands.registerCommand('sf.test.view.debugTests', async (test: { name: string }) => {
-    await setupAndDebugTests(test.name);
-  });
-
-  // Debug Single Test command
-  const debugTest = vscode.commands.registerCommand('sf.test.view.debugSingleTest', async (test: { name: string }) => {
-    const [method, className, namespace] = test.name.split('.').toReversed();
-    await setupAndDebugTests(namespace ? `${namespace}.${className}` : className, method);
-  });
-
   extensionContext.subscriptions.push(
     debuggerChannel,
     commands,
     debugHandlers,
     debugConfigProvider,
     checkpointsView,
-    breakpointsSub,
-    debugTests,
-    debugTest
+    breakpointsSub
   );
 
   // Telemetry
