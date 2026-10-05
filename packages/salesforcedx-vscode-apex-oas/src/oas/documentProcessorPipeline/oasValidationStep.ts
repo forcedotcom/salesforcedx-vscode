@@ -6,7 +6,7 @@
  */
 
 import type { ProcessorInputOutput } from './processorStep';
-import { ISpectralDiagnostic, Spectral } from '@stoplight/spectral-core';
+import { type ISpectralDiagnostic, Spectral } from '@stoplight/spectral-core';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { stringify } from 'yaml';
