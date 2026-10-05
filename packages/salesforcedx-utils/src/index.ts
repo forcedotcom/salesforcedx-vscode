@@ -8,4 +8,5 @@
 export type { LineBreakpointInfo } from './types/debugger';
 
 export { classifyOrgForTelemetry, type TelemetryClassification } from './helpers/classifyOrgForTelemetry';
+export { errorToString } from './helpers/errorToString';
 export { isLoopbackHttpEndpoint } from './helpers/isLoopbackHttpEndpoint';

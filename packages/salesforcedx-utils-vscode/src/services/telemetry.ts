@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { getServicesApi, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
-import { classifyOrgForTelemetry, isLoopbackHttpEndpoint } from '@salesforce/salesforcedx-utils';
+import { classifyOrgForTelemetry, errorToString, isLoopbackHttpEndpoint } from '@salesforce/salesforcedx-utils';
 import {
   Properties,
   Measurements,
@@ -27,7 +27,6 @@ import {
   UNAUTHENTICATED_USER
 } from '../constants';
 import { shapeFrom } from '../context/workspaceOrgShape';
-import { errorToString } from '../helpers/errorUtils';
 import { isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
 import { AppInsights } from '../telemetry/reporters/appInsights';
 import {
