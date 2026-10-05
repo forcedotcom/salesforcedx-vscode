@@ -17,14 +17,7 @@ export const BOT_LOGIN = 'svc-idee-bot';
 export const TEAM_ORG = 'forcedotcom';
 export const TEAM_SLUG = 'ide-experience';
 
-const DENYLIST = [
-  /(^|\/)CODEOWNERS$/,
-  /^APPROVAL_POLICY\.md$/,
-  /^\.github\/workflows\/.+/,
-  /^\.cursor\/rules\/.+/,
-  /^\.cursor\/commands\/.+/,
-  /(^|\/)out\//
-];
+const DENYLIST = [/(^|\/)CODEOWNERS$/, /^APPROVAL_POLICY\.md$/, /^\.github\/workflows\/.+/, /(^|\/)out\//];
 
 const Skip = Schema.TaggedStruct('Skip', { reason: Schema.String });
 const Classify = Schema.TaggedStruct('Classify', { reason: Schema.String });

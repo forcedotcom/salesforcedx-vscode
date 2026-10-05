@@ -108,8 +108,8 @@ test('skips denylist paths before classify', () => {
     'Classify'
   );
   assert.equal(decideCategoryApprove({ ...base, files: [file('APPROVAL_POLICY.md')] })._tag, 'Skip');
-  assert.equal(decideCategoryApprove({ ...base, files: [file('.cursor/rules/wireit.mdc')] })._tag, 'Skip');
-  assert.equal(decideCategoryApprove({ ...base, files: [file('.cursor/commands/analyze-e2e.md')] })._tag, 'Skip');
+  assert.equal(decideCategoryApprove({ ...base, files: [file('.cursor/rules/wireit.mdc')] })._tag, 'Classify');
+  assert.equal(decideCategoryApprove({ ...base, files: [file('.cursor/commands/analyze-e2e.md')] })._tag, 'Classify');
   assert.equal(
     decideCategoryApprove({ ...base, files: [file('.cursor/skills/changelog-judgment/SKILL.md')] })._tag,
     'Classify'
