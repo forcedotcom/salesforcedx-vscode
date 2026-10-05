@@ -7,7 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 import { createApexAction } from './commands/apexActionController';
 import { validateOpenApiDocument } from './commands/oasDocumentChecker';

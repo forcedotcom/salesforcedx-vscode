@@ -6,6 +6,7 @@
  */
 
 import { containerTest } from './containerFixtures';
+import type * as desktopFixturesType from './desktopFixtures';
 
 // Exported so a spec shared across desktop and container can branch on the one thing container
 // genuinely can't share: its org is boot-authed by the orchestrator, so specs that need a real,
@@ -25,4 +26,4 @@ export const isContainer = process.env.VSCODE_CONTAINER === '1';
  */
 export const oasTest = isContainer
   ? containerTest
-  : (require('./desktopFixtures') as typeof import('./desktopFixtures')).oasDesktopTest;
+  : (require('./desktopFixtures') as typeof desktopFixturesType).oasDesktopTest;

@@ -153,6 +153,7 @@ export default [
       'local/no-vscode-uri': 'error',
       'local/no-vscode-show-text-document': 'warn',
       'local/no-inline-esbuild-platform': 'error',
+      'local/no-legacy-telemetry-service': 'error',
       'local/command-must-be-in-package-json': [
         'error',
         {
@@ -879,6 +880,26 @@ export default [
   {
     // consistent-type-imports for salesforcedx-vscode-apex-debugger (inline to avoid no-duplicate-imports; W-23371053)
     files: ['packages/salesforcedx-vscode-apex-debugger/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-vscode-apex-log (inline to avoid no-duplicate-imports; W-23371055)
+    files: ['packages/salesforcedx-vscode-apex-log/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-vscode-apex-oas (inline to avoid no-duplicate-imports; W-23371058)
+    files: ['packages/salesforcedx-vscode-apex-oas/**/*.ts'],
     rules: {
       '@typescript-eslint/consistent-type-imports': [
         'error',

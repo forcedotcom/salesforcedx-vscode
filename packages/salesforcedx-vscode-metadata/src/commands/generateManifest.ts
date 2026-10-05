@@ -89,11 +89,17 @@ export const generateManifestCommand = Effect.fn('generateManifest')(function* (
     return;
   }
 
-  // Get workspace info for manifest directory
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-
   // Resolve URIs
   const resolvedUris = uris?.length ? [resolvedSourceUri, ...uris] : [resolvedSourceUri];
+  if (!(yield* Effect.all(resolvedUris.map(uri => api.services.FsService.fileOrFolderExists(uri)))).every(Boolean)) {
+    yield* Effect.promise(() =>
+      vscode.window.showErrorMessage(nls.localize('generate_manifest_select_file_or_directory'))
+    );
+    return;
+  }
+
+  // Get workspace info for manifest directory
+  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 
   // Prompt for filename and generate package XML in parallel so it's ready as soon as the user responds
   const [fileName, packageXML] = yield* Effect.all([promptForFileName(), generateManifestFromUris(resolvedUris)], {
