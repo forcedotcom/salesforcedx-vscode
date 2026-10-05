@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.27.1",
+  "version": "67.27.4",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,7 +28,6 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/core": "^9.1.9",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/o11y-reporter": "^1.8.5",
     "@salesforce/salesforcedx-utils-vscode": "*",
@@ -40,39 +39,17 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
+    "@salesforce/core": "^9.3.0",
     "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-services": "*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
   ],
-  "packaging": {
-    "assets": [
-      "LICENSE.txt",
-      "package.nls.ja.json",
-      "package.nls.json",
-      "README.md",
-      ".vscodeignore",
-      "OSSREADME.json",
-      "resources",
-      "syntaxes",
-      "images",
-      "dist"
-    ],
-    "packageUpdates": {
-      "main": "dist/src/index.js",
-      "dependencies": {
-        "applicationinsights": "1.8.10",
-        "@salesforce/o11y-reporter": "^1.8.5"
-      },
-      "devDependencies": {}
-    }
-  },
   "scripts": {
     "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
-    "vscode:prepublish": "npm prune --production",
-    "vscode:package:legacy": "wireit",
+    "vscode:package": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "wireit",
@@ -84,7 +61,7 @@
     "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-core test:desktop --debug",
     "test:container": "wireit",
     "test:compile": "wireit",
-    "vscode:package:legacy:prerelease": "wireit"
+    "vscode:package:prerelease": "wireit"
   },
   "wireit": {
     "compile": {
@@ -176,10 +153,24 @@
       ],
       "output": []
     },
-    "vscode:package:legacy": {
-      "command": "ts-node ../../scripts/vsce-bundled-extension.ts",
+    "vscode:package": {
+      "command": "vsce package --allow-package-all-secrets --no-dependencies",
       "dependencies": [
         "vscode:bundle"
+      ],
+      "files": [
+        "package.json",
+        "package.nls*.json",
+        "README.md",
+        "LICENSE.txt",
+        "OSSREADME.json",
+        "images/**",
+        "resources/**",
+        "syntaxes/**",
+        ".vscodeignore"
+      ],
+      "output": [
+        "*.vsix"
       ]
     },
     "test:desktop": {
@@ -194,7 +185,7 @@
         }
       },
       "dependencies": [
-        "vscode:package:legacy",
+        "vscode:package",
         "../salesforcedx-vscode-services:vscode:package",
         "../salesforcedx-vscode-org:vscode:package",
         "../salesforcedx-vscode-metadata:vscode:package",
@@ -236,20 +227,31 @@
       ],
       "output": []
     },
-    "vscode:package:legacy:prerelease": {
-      "command": "ts-node ../../scripts/vsce-bundled-extension.ts",
+    "vscode:package:prerelease": {
+      "command": "vsce package --allow-package-all-secrets --no-dependencies --pre-release",
       "dependencies": [
         "vscode:bundle"
       ],
-      "env": {
-        "VSCE_PRE_RELEASE": "true"
-      }
+      "files": [
+        "package.json",
+        "package.nls*.json",
+        "README.md",
+        "LICENSE.txt",
+        "OSSREADME.json",
+        "images/**",
+        "resources/**",
+        "syntaxes/**",
+        ".vscodeignore"
+      ],
+      "output": [
+        "*.vsix"
+      ]
     }
   },
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
   ],
-  "main": "./out/src",
+  "main": "./dist/src/index.js",
   "contributes": {
     "menus": {
       "commandPalette": [

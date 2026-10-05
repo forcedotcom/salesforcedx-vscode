@@ -10,7 +10,7 @@ import * as Command from '@effect/platform/Command';
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
 import * as NodeContext from '@effect/platform-node/NodeContext';
-import { actionsEnvironment, GitHub } from '@salesforce/effect-octokit';
+import { actionsEnvironment, GitHub, readPullRequestEvent } from '@salesforce/effect-octokit';
 import { Config, Effect, Either, Exit, Layer, Logger, Option, pipe, Redacted, Schema, Stream } from 'effect';
 import { pathToFileURL } from 'node:url';
 import { CommandFailed, CursorRunFailed, InvalidBaseRef, Judgment, type Item } from './schema.mts';
@@ -20,6 +20,25 @@ const startMarker = '<!-- manual-test-plan -->';
 const endMarker = '<!-- /manual-test-plan -->';
 const excludedWorkflows = new Set(['e2e.yml', 'playwrightE2EFullSuite.yml', 'rerunPushE2E.yml']);
 const tools: ToolName[] = ['read', 'grep', 'glob', 'ls'];
+// Git hooks export these for their own worktree. This script's git calls use
+// an explicit cwd and must not inherit another worktree's repository or index.
+const gitLocalEnv = {
+  GIT_ALTERNATE_OBJECT_DIRECTORIES: undefined,
+  GIT_CONFIG: undefined,
+  GIT_CONFIG_PARAMETERS: undefined,
+  GIT_CONFIG_COUNT: undefined,
+  GIT_OBJECT_DIRECTORY: undefined,
+  GIT_DIR: undefined,
+  GIT_WORK_TREE: undefined,
+  GIT_IMPLICIT_WORK_TREE: undefined,
+  GIT_GRAFT_FILE: undefined,
+  GIT_INDEX_FILE: undefined,
+  GIT_NO_REPLACE_OBJECTS: undefined,
+  GIT_REPLACE_REF_BASE: undefined,
+  GIT_PREFIX: undefined,
+  GIT_SHALLOW_FILE: undefined,
+  GIT_COMMON_DIR: undefined
+};
 
 type Outcome = { readonly edited: boolean };
 export type PromptInput = { readonly skill: string; readonly diff: string; readonly correction?: string };
@@ -89,6 +108,7 @@ const git = Effect.fn('manualTestPlan.git')(function* (cwd: string, args: readon
   const [text, code] = yield* pipe(
     Command.make('git', ...args),
     Command.workingDirectory(cwd),
+    Command.env(gitLocalEnv),
     Command.start,
     Effect.flatMap(proc =>
       Effect.all(
@@ -196,10 +216,6 @@ const cursorPrompt = Effect.fn('manualTestPlan.cursorPrompt')(function* (cwd: st
   }).pipe(Effect.flatMap(finishedText));
 });
 
-const PullRequestEvent = Schema.Struct({
-  pull_request: Schema.Struct({ number: Schema.Number })
-});
-
 const readPrBody = Effect.fn('manualTestPlan.readPrBody')(function* (owner: string, repo: string, pr: number) {
   return yield* GitHub.pullBody(owner, repo, pr);
 });
@@ -256,11 +272,7 @@ export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(functio
         ? Effect.succeed(ref)
         : Effect.fail(new InvalidBaseRef({ ref, message: `refused base ref ${ref}` }))
   });
-  const pr = yield* FileSystem.FileSystem.pipe(
-    Effect.flatMap(fs => fs.readFileString(env.eventPath)),
-    Effect.flatMap(Schema.decodeUnknown(Schema.parseJson(PullRequestEvent))),
-    Effect.map(event => event.pull_request.number)
-  );
+  const pr = yield* readPullRequestEvent(env.eventPath).pipe(Effect.map(event => event.pull_request.number));
   const cwd =
     deps?.cwd ?? (yield* git(process.cwd(), ['rev-parse', '--show-toplevel']).pipe(Effect.map(root => root.trim())));
   yield* Effect.annotateCurrentSpan('pr', String(pr));

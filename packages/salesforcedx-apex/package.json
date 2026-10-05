@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@effect/platform": "^0.96.1",
-    "@salesforce/core": "^9.1.9",
+    "@salesforce/core": "^9.3.0",
     "@salesforce/kit": "^4.0.0",
     "effect": "^3.21.2",
     "fast-glob": "^3.3.2",

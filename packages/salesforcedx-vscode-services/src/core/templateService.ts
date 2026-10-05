@@ -47,21 +47,21 @@ export type TemplateOptionsFor<T extends SfTemplates.TemplateType> =
       : T extends SfTemplates.TemplateType.ApexTrigger
         ? ApexTriggerCreateOptions
         : T extends SfTemplates.TemplateType.LightningApp
-          ? SfTemplates.LightningAppOptions
+          ? LightningAppCreateOptions
           : T extends SfTemplates.TemplateType.LightningComponent
-            ? SfTemplates.LightningComponentOptions
+            ? LightningComponentCreateOptions
             : T extends SfTemplates.TemplateType.LightningEvent
-              ? SfTemplates.LightningEventOptions
+              ? LightningEventCreateOptions
               : T extends SfTemplates.TemplateType.LightningInterface
-                ? SfTemplates.LightningInterfaceOptions
+                ? LightningInterfaceCreateOptions
                 : T extends SfTemplates.TemplateType.LightningTest
                   ? SfTemplates.LightningTestOptions
                   : T extends SfTemplates.TemplateType.Project
                     ? ProjectCreateOptions
                     : T extends SfTemplates.TemplateType.VisualforceComponent
-                      ? SfTemplates.VisualforceComponentOptions
+                      ? VisualforceComponentCreateOptions
                       : T extends SfTemplates.TemplateType.VisualforcePage
-                        ? SfTemplates.VisualforcePageOptions
+                        ? VisualforcePageCreateOptions
                         : T extends SfTemplates.TemplateType.StaticResource
                           ? SfTemplates.StaticResourceOptions
                           : T extends SfTemplates.TemplateType.UIBundle
@@ -95,6 +95,42 @@ export type ApexTriggerCreateOptions = {
   readonly triggerevents: string;
   readonly apiversion?: string;
   readonly outputdir?: string;
+};
+
+/** Lightning component options with `template` typed as `string` to support custom template names
+ * from `org-custom-metadata-templates` in addition to the built-in literal union. */
+export type LightningComponentCreateOptions = Omit<SfTemplates.LightningComponentOptions, 'template'> & {
+  readonly template: string;
+};
+
+/** Lightning app options with `template` typed as `string` to support custom template names
+ * from `org-custom-metadata-templates` in addition to the built-in literal union. */
+export type LightningAppCreateOptions = Omit<SfTemplates.LightningAppOptions, 'template'> & {
+  readonly template: string;
+};
+
+/** Lightning event options with `template` typed as `string` to support custom template names
+ * from `org-custom-metadata-templates` in addition to the built-in literal union. */
+export type LightningEventCreateOptions = Omit<SfTemplates.LightningEventOptions, 'template'> & {
+  readonly template: string;
+};
+
+/** Lightning interface options with `template` typed as `string` to support custom template names
+ * from `org-custom-metadata-templates` in addition to the built-in literal union. */
+export type LightningInterfaceCreateOptions = Omit<SfTemplates.LightningInterfaceOptions, 'template'> & {
+  readonly template: string;
+};
+
+/** Visualforce component options with `template` typed as `string` to support custom template names
+ * from `org-custom-metadata-templates` in addition to the built-in literal union. */
+export type VisualforceComponentCreateOptions = Omit<SfTemplates.VisualforceComponentOptions, 'template'> & {
+  readonly template: string;
+};
+
+/** Visualforce page options with `template` typed as `string` to support custom template names
+ * from `org-custom-metadata-templates` in addition to the built-in literal union. */
+export type VisualforcePageCreateOptions = Omit<SfTemplates.VisualforcePageOptions, 'template'> & {
+  readonly template: string;
 };
 
 export class TemplatesRootPathNotAvailableError extends Schema.TaggedError<TemplatesRootPathNotAvailableError>()(
@@ -233,6 +269,22 @@ const resolveOptionsWithApiVersion = Effect.fn('TemplateService.resolveOptionsWi
   return apiversion ? { ...params.options, apiversion } : params.options;
 });
 
+/** Read a directory, treating a missing directory as empty rather than an error. */
+const readDirectoryOrEmpty = (uri: URI) =>
+  Effect.tryPromise(() => vscode.workspace.fs.readDirectory(uri)).pipe(
+    Effect.catchAll(e => {
+      // Effect.tryPromise wraps thrown values in UnknownException; the original error is on .error
+      const cause = e.error;
+      const isNotFound =
+        cause instanceof vscode.FileSystemError && (cause.code === 'FileNotFound' || cause.code === 'ENOENT');
+      return isNotFound
+        ? Effect.succeed<[string, vscode.FileType][]>([])
+        : Effect.logWarning(
+            `Failed to read custom templates from ${uri.fsPath}: ${isError(cause) ? cause.message : String(cause)}`
+          ).pipe(Effect.as<[string, vscode.FileType][]>([]));
+    })
+  );
+
 /** @salesforce/templates requires ns/loginurl as strings; fill defaults so callers can omit them. */
 const PROJECT_OPTION_DEFAULTS = {
   ns: '',
@@ -310,22 +362,47 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
       const customPath = yield* resolveCustomTemplatesPath().pipe(Effect.orElseSucceed(() => undefined));
       if (!customPath) return [];
       const subdirUri = Utils.joinPath(URI.file(customPath), templateDir);
-      const entries = yield* Effect.tryPromise(() => vscode.workspace.fs.readDirectory(subdirUri)).pipe(
-        Effect.catchAll(e => {
-          // Effect.tryPromise wraps thrown values in UnknownException; the original error is on .error
-          const cause = e.error;
-          const isNotFound =
-            cause instanceof vscode.FileSystemError && (cause.code === 'FileNotFound' || cause.code === 'ENOENT');
-          return isNotFound
-            ? Effect.succeed<[string, vscode.FileType][]>([])
-            : Effect.logWarning(
-                `Failed to read custom templates from ${subdirUri.fsPath}: ${isError(cause) ? cause.message : String(cause)}`
-              ).pipe(Effect.as<[string, vscode.FileType][]>([]));
-        })
-      );
+      const entries = yield* readDirectoryOrEmpty(subdirUri);
       return entries
         .filter(([name, type]) => type === vscode.FileType.File && name.endsWith(ext))
         .map(([name]) => name.slice(0, -ext.length));
+    });
+
+    const getBuiltInTemplateSubdirNames = Effect.fn('TemplateService.getBuiltInTemplateSubdirNames')(function* (
+      templateDir: string,
+      subdir: string,
+      filetype: RegExp
+    ) {
+      const { templatesRootPath } = yield* getTemplatesRootCached;
+      yield* ensureTemplatesInFsOnce;
+      return yield* Effect.try(() =>
+        SfTemplates.CreateUtil.getCommandTemplatesInSubdirs(
+          templateDir,
+          { filetype, subdir },
+          nodeFs,
+          templatesRootPath
+        )
+      );
+    });
+
+    const getCustomTemplateSubdirNames = Effect.fn('TemplateService.getCustomTemplateSubdirNames')(function* (
+      templateDir: string,
+      subdir: string,
+      filetype: RegExp
+    ) {
+      const customPath = yield* resolveCustomTemplatesPath().pipe(Effect.orElseSucceed(() => undefined));
+      if (!customPath) return [];
+      const subdirUri = Utils.joinPath(URI.file(customPath), templateDir, subdir);
+      const entries = yield* readDirectoryOrEmpty(subdirUri);
+      const dirNames = entries.filter(([, type]) => type === vscode.FileType.Directory).map(([name]) => name);
+      const matches = yield* Effect.forEach(dirNames, name =>
+        readDirectoryOrEmpty(Utils.joinPath(subdirUri, name)).pipe(
+          Effect.map(files =>
+            files.some(([fileName, type]) => type === vscode.FileType.File && filetype.test(fileName))
+          )
+        )
+      );
+      return dirNames.filter((_, i) => matches[i]);
     });
 
     const create = Effect.fn('TemplateService.create')(function* (params: CreateParams<SfTemplates.TemplateType>) {
@@ -348,6 +425,12 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
         templateService.create(params.templateType, templateOptions, customTemplatesPath)
       );
     });
-    return { create, getBuiltInTemplateNames, getCustomTemplateNames };
+    return {
+      create,
+      getBuiltInTemplateNames,
+      getCustomTemplateNames,
+      getBuiltInTemplateSubdirNames,
+      getCustomTemplateSubdirNames
+    };
   })
 }) {}
