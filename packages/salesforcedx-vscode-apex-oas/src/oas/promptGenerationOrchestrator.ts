@@ -12,8 +12,8 @@ import * as Schema from 'effect/Schema';
 import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
 import { EXTENSION_NAME } from '../constants';
 import { nls } from '../messages/nls';
-import { GenerationStrategyType, initializeAndBid } from './generationStrategy/generationStrategyFactory';
-import { PromptGenerationStrategyBid } from './schemas';
+import { type GenerationStrategyType, initializeAndBid } from './generationStrategy/generationStrategyFactory';
+import { type PromptGenerationStrategyBid } from './schemas';
 
 /** @ExportTaggedError */
 export class StrategyNotQualified extends Data.TaggedError('StrategyNotQualified')<{

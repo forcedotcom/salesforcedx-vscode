@@ -153,6 +153,7 @@ export default [
       'local/no-vscode-uri': 'error',
       'local/no-vscode-show-text-document': 'warn',
       'local/no-inline-esbuild-platform': 'error',
+      'local/no-legacy-telemetry-service': 'error',
       'local/command-must-be-in-package-json': [
         'error',
         {
@@ -181,6 +182,7 @@ export default [
       'local/no-nested-effect-ternary': 'error',
       'local/require-effect-fn-span-name': 'error',
       'local/no-raw-duration': 'error',
+      'local/effect-fn-catch-middleware-last': 'error',
       'local/no-duplicate-i18n-values': 'error',
       'local/no-unused-i18n-messages': 'error',
       'local/no-vscode-message-literals': 'error',
@@ -889,6 +891,36 @@ export default [
   {
     // consistent-type-imports for salesforcedx-vscode-apex-log (inline to avoid no-duplicate-imports; W-23371055)
     files: ['packages/salesforcedx-vscode-apex-log/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-vscode-apex-oas (inline to avoid no-duplicate-imports; W-23371058)
+    files: ['packages/salesforcedx-vscode-apex-oas/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-vscode-apex-replay-debugger (inline to avoid no-duplicate-imports; W-23371059)
+    files: ['packages/salesforcedx-vscode-apex-replay-debugger/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-vscode-lightning (inline to avoid no-duplicate-imports; W-23371060)
+    files: ['packages/salesforcedx-vscode-lightning/**/*.ts'],
     rules: {
       '@typescript-eslint/consistent-type-imports': [
         'error',

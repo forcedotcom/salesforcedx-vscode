@@ -133,7 +133,14 @@ const createWebAuthInfo = (instanceUrl: string, accessToken: Redacted.Redacted<s
   Effect.tryPromise({
     try: () =>
       AuthInfo.create({
-        accessTokenOptions: { accessToken: Redacted.value(accessToken), loginUrl: instanceUrl, instanceUrl }
+        accessTokenOptions: {
+          accessToken: Redacted.value(accessToken),
+          loginUrl: instanceUrl,
+          instanceUrl,
+          isDevHub: false,
+          isScratch: false,
+          isSandbox: false
+        }
       }),
     catch: error => {
       const { cause } = unknownToErrorCause(error);

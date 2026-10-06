@@ -1,5 +1,6 @@
 ---
 description: Compilation commands; TS4023 and TS1261 fixes
+review: never
 ---
 
 # Compile

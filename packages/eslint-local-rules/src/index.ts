@@ -7,6 +7,7 @@
 
 import { TSESLint } from '@typescript-eslint/utils';
 import { commandMustBeInPackageJson } from './commandMustBeInPackageJson';
+import { effectFnCatchMiddlewareLast } from './effectFnCatchMiddlewareLast';
 import { noDirectServicesImports } from './noDirectServicesImports';
 import { noDuplicateI18nValues } from './noDuplicateI18nValues';
 import { noDuplicatePlaywrightLocators } from './noDuplicatePlaywrightLocators';
@@ -16,6 +17,7 @@ import { noEffectServicePromiseReturn } from './noEffectServicePromiseReturn';
 import { noExplicitEffectReturnType } from './noExplicitEffectReturnType';
 import { noExportTaggedErrorInServices } from './noExportTaggedErrorInServices';
 import { noInlineEsbuildPlatform } from './noInlineEsbuildPlatform';
+import { noLegacyTelemetryService } from './noLegacyTelemetryService';
 import { noNestedEffectGenCatchTags } from './noNestedEffectGenCatchTags';
 import { noNestedEffectTernary } from './noNestedEffectTernary';
 import { noRawDuration } from './noRawDuration';
@@ -60,11 +62,13 @@ const plugin: TSESLint.FlatConfig.Plugin = {
     'no-successive-annotate-current-span': noSuccessiveAnnotateCurrentSpan,
     'no-export-tagged-error-in-services': noExportTaggedErrorInServices,
     'no-runtime-vscode-import': noRuntimeVscodeImport,
+    'effect-fn-catch-middleware-last': effectFnCatchMiddlewareLast,
     'require-effect-fn-span-name': requireEffectFnSpanName,
     'no-effect-service-accessor-calls': noEffectServiceAccessorCalls,
     'no-effect-service-promise-return': noEffectServicePromiseReturn,
     'no-explicit-effect-return-type': noExplicitEffectReturnType,
     'no-inline-esbuild-platform': noInlineEsbuildPlatform,
+    'no-legacy-telemetry-service': noLegacyTelemetryService,
     'no-nested-effect-gen-catch-tags': noNestedEffectGenCatchTags,
     'no-nested-effect-ternary': noNestedEffectTernary,
     'no-raw-duration': noRawDuration,

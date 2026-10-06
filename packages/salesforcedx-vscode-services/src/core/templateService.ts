@@ -59,9 +59,9 @@ export type TemplateOptionsFor<T extends SfTemplates.TemplateType> =
                   : T extends SfTemplates.TemplateType.Project
                     ? ProjectCreateOptions
                     : T extends SfTemplates.TemplateType.VisualforceComponent
-                      ? SfTemplates.VisualforceComponentOptions
+                      ? VisualforceComponentCreateOptions
                       : T extends SfTemplates.TemplateType.VisualforcePage
-                        ? SfTemplates.VisualforcePageOptions
+                        ? VisualforcePageCreateOptions
                         : T extends SfTemplates.TemplateType.StaticResource
                           ? SfTemplates.StaticResourceOptions
                           : T extends SfTemplates.TemplateType.UIBundle
@@ -118,6 +118,18 @@ export type LightningEventCreateOptions = Omit<SfTemplates.LightningEventOptions
 /** Lightning interface options with `template` typed as `string` to support custom template names
  * from `org-custom-metadata-templates` in addition to the built-in literal union. */
 export type LightningInterfaceCreateOptions = Omit<SfTemplates.LightningInterfaceOptions, 'template'> & {
+  readonly template: string;
+};
+
+/** Visualforce component options with `template` typed as `string` to support custom template names
+ * from `org-custom-metadata-templates` in addition to the built-in literal union. */
+export type VisualforceComponentCreateOptions = Omit<SfTemplates.VisualforceComponentOptions, 'template'> & {
+  readonly template: string;
+};
+
+/** Visualforce page options with `template` typed as `string` to support custom template names
+ * from `org-custom-metadata-templates` in addition to the built-in literal union. */
+export type VisualforcePageCreateOptions = Omit<SfTemplates.VisualforcePageOptions, 'template'> & {
   readonly template: string;
 };
 
