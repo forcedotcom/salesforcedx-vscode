@@ -19,7 +19,11 @@ import * as Record from 'effect/Record';
 import * as S from 'effect/Schema';
 import type * as AST from 'effect/SchemaAST';
 import { URI } from 'vscode-uri';
-import { SObjectArtifactIdentitySchema, type SObjectArtifactIdentity } from './artifactIdentity';
+import {
+  artifactIdentitiesEqual,
+  SObjectArtifactIdentitySchema,
+  type SObjectArtifactIdentity
+} from './artifactIdentity';
 import { SObjectPicklistValueSchema, SObjectSemanticModelSchema } from './artifactProjection';
 import { SObjectSchema } from './schemas/sObject';
 
@@ -27,7 +31,7 @@ type RawDescribeSObjectResult = Awaited<ReturnType<Connection['describe']>>;
 
 export type DescribeSObjectResult = RawDescribeSObjectResult;
 
-type RestSObjectDescribeTransmogrifierInput = {
+export type RestSObjectDescribeTransmogrifierInput = {
   readonly source: 'rest-sobject-describe';
   readonly identity: SObjectArtifactIdentity;
   readonly value: DescribeSObjectResult;
@@ -51,10 +55,20 @@ type WorkspaceSObjectMetadataTransmogrifierInput = {
   readonly value: WorkspaceSObjectMetadata;
 };
 
-type TransmogrifierInput = RestSObjectDescribeTransmogrifierInput | WorkspaceSObjectMetadataTransmogrifierInput;
+type PersistedSObjectSemanticModelTransmogrifierInput = {
+  readonly source: 'persisted-semantic-model';
+  readonly identity: SObjectArtifactIdentity;
+  readonly value: unknown;
+};
+
+/** Provider-native SObject inputs normalized into the canonical semantic model. */
+type TransmogrifierInput =
+  | RestSObjectDescribeTransmogrifierInput
+  | WorkspaceSObjectMetadataTransmogrifierInput
+  | PersistedSObjectSemanticModelTransmogrifierInput;
 
 export class TransmogrifierError extends S.TaggedError<TransmogrifierError>()('TransmogrifierError', {
-  source: S.Literal('rest-sobject-describe', 'workspace-sobject-metadata'),
+  source: S.Literal('rest-sobject-describe', 'workspace-sobject-metadata', 'persisted-semantic-model'),
   message: S.String,
   cause: S.optional(S.Unknown)
 }) {}
@@ -531,8 +545,29 @@ export class TransmogrifierService extends Effect.Service<TransmogrifierService>
       return yield* S.decodeUnknown(SObjectSchema)(input);
     });
 
-    const toSemanticModel = Effect.fn('TransmogrifierService.toSemanticModel')((input: TransmogrifierInput) =>
-      S.decodeUnknown(SemanticModelFromTransmogrifierInput)(input).pipe(
+    const toSemanticModel = Effect.fn('TransmogrifierService.toSemanticModel')(function* (input: TransmogrifierInput) {
+      if (input.source === 'persisted-semantic-model') {
+        const persistedModel = yield* S.decodeUnknown(SObjectSemanticModelSchema)(input.value).pipe(
+          Effect.catchTag('ParseError', cause =>
+            Effect.fail(
+              new TransmogrifierError({
+                source: input.source,
+                message: 'Failed to validate the persisted canonical semantic model',
+                cause
+              })
+            )
+          )
+        );
+        if (!artifactIdentitiesEqual(input.identity, persistedModel.value.identity)) {
+          return yield* new TransmogrifierError({
+            source: input.source,
+            message: 'Persisted semantic model identity does not match the requested artifact identity',
+            cause: { requested: input.identity, received: persistedModel.value.identity }
+          });
+        }
+        return persistedModel;
+      }
+      return yield* S.decodeUnknown(SemanticModelFromTransmogrifierInput)(input).pipe(
         Effect.mapError(
           cause =>
             new TransmogrifierError({
@@ -541,8 +576,8 @@ export class TransmogrifierService extends Effect.Service<TransmogrifierService>
               cause
             })
         )
-      )
-    );
+      );
+    });
 
     return { toMinimalSObject, decodeSObject, toSemanticModel, SObjectSchema };
   })
