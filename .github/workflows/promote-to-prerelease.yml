@@ -331,14 +331,21 @@ jobs:
   # actual 'failure' status among `needs` -- jobs skipped because an earlier gate
   # (e.g. gate-check) failed don't themselves count, but that earlier job's own
   # 'failure' status does, so this still catches the real failure.
+  #
+  # Posts directly to a Slack Workflow Builder webhook trigger (hooks.slack.com/triggers/...),
+  # not a classic incoming webhook -- the payload must be the flat set of input variables
+  # defined on that trigger (title, run_url, repository), not a free-form Block Kit message.
   notify-on-failure:
     needs: [find-nightly, gate-check, compute-changelog-range, changelog-body, write-changelog, promote, mark-release-published]
     if: failure()
-    uses: ./.github/workflows/slackNotification.yml
-    secrets: inherit
-    with:
-      result: 'failure'
-      title: 'Promote to Pre-release'
-      type: 'deployment'
-      failedEvent: 'Promote to Pre-release pipeline failed'
-      workflow: 'promote-to-prerelease.yml'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_PROMOTE_FAILURE_WEBHOOK }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          curl --fail -sS -X POST "$SLACK_WEBHOOK_URL" \
+            -H 'Content-Type: application/json' \
+            --data "$(jq -n --arg title '❌ Promote to Pre-release pipeline failed' --arg run_url "$RUN_URL" --arg repository "$REPOSITORY" '{title: $title, run_url: $run_url, repository: $repository}')"
