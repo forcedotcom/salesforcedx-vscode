@@ -20,6 +20,7 @@
     "globalFetchInEffect",
     "globalTimersInEffect",
     "missedPipeableOpportunity",
-    "schemaUnionOfLiterals"
+    "schemaUnionOfLiterals",
+    "unsupportedServiceAccessors"
   ]
 }

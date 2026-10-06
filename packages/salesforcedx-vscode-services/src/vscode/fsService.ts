@@ -251,5 +251,8 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
         )
     };
   })
-}) {}
+}) {
+  public static readJSON = <A>(filePath: string, schema: S.Schema<A>) =>
+    Effect.flatMap(FsService, service => service.readJSON(filePath, schema));
+}
 const UriOrStringToString = (uri: URI | string) => (isString(uri) ? uri : uri.toString());

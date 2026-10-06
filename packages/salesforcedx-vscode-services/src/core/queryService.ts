@@ -34,4 +34,7 @@ export class QueryService extends Effect.Service<QueryService>()('QueryService',
 
     return { query };
   })
-}) {}
+}) {
+  public static query = <A, I>(options: QueryOptions, recordSchema: Schema.Schema<A, I, never>) =>
+    Effect.flatMap(QueryService, service => service.query(options, recordSchema));
+}

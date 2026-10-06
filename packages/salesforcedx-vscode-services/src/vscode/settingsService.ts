@@ -245,4 +245,17 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
       getInternalDev
     };
   })
-}) {}
+}) {
+  public static getValue = <T>(section: string, key: string) =>
+    Effect.flatMap(SettingsService, service => service.getValue<T>(section, key));
+
+  public static getValueOrElse = <T>(section: string, key: string, defaultValue: T) =>
+    Effect.flatMap(SettingsService, service => service.getValueOrElse(section, key, defaultValue));
+
+  public static setValue = <T>(
+    section: string,
+    key: string,
+    value: T,
+    target: vscode.ConfigurationTarget = vscode.ConfigurationTarget.Global
+  ) => Effect.flatMap(SettingsService, service => service.setValue(section, key, value, target));
+}
