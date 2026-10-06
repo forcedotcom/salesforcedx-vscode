@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { annotateRootSpan, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import {
   Color,
@@ -109,5 +109,10 @@ export const startLanguageServer = Effect.fn('startLanguageServer')(function* (c
       'visualforce.autoClosingTags'
     );
     context.subscriptions.push(tagDisposable);
-  }).pipe(Effect.ignore);
+  }).pipe(
+    Effect.matchEffect({
+      onFailure: () => annotateRootSpan('colorAndTagClosingInitialized', false),
+      onSuccess: () => annotateRootSpan('colorAndTagClosingInitialized', true)
+    })
+  );
 });

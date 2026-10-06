@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { annotateRootSpan, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
@@ -56,6 +56,7 @@ const promptForTemplate = Effect.fn('promptForVisualforceComponentTemplate')(fun
 });
 
 export const createVisualforceComponentCommand = Effect.fn('createVisualforceComponentCommand')(function* (arg?: URI) {
+  yield* annotateRootSpan('overwriteOccurred', false);
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
   const project = yield* api.services.ProjectService.getSfProject();
@@ -78,19 +79,30 @@ export const createVisualforceComponentCommand = Effect.fn('createVisualforceCom
       defaultUri,
       pickerPlaceHolder: nls.localize('output_dir_prompt')
     }));
+  yield* annotateRootSpan({
+    templateType: api.services.TemplateType.VisualforceComponent,
+    outputDirSource: arg ? 'arg' : 'prompt'
+  });
 
   const uris = [`${componentName}.component`, `${componentName}.component-meta.xml`].map(f =>
     Utils.joinPath(outputDirUri, f)
   );
   const fsService = yield* api.services.FsService;
-  yield* promptService.ensureMetadataOverwriteOrThrow({ uris });
-
-  yield* api.services.TemplateService.create({
-    cwd: yield* api.services.FsService.uriToPath(workspaceInfo.uri),
-    templateType: api.services.TemplateType.VisualforceComponent,
-    outputdir: outputDirUri,
-    options: { componentname: componentName, label: componentName, template }
-  });
+  yield* promptService.ensureMetadataOverwriteOrThrow({ uris }).pipe(
+    Effect.flatMap(overwriteConfirmed =>
+      fsService.uriToPath(workspaceInfo.uri).pipe(
+        Effect.flatMap(cwd =>
+          api.services.TemplateService.create({
+            cwd,
+            templateType: api.services.TemplateType.VisualforceComponent,
+            outputdir: outputDirUri,
+            options: { componentname: componentName, label: componentName, template }
+          })
+        ),
+        Effect.tap(() => annotateRootSpan('overwriteOccurred', overwriteConfirmed))
+      )
+    )
+  );
 
   const channelService = yield* api.services.ChannelService;
   yield* channelService.appendToChannel(nls.localize('vf_generate_component_success'));

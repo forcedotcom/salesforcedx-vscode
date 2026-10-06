@@ -41,8 +41,8 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
     const projectService = yield* ProjectService;
     const workspaceService = yield* WorkspaceService;
 
-    /** If any of `uris` exists, prompt to overwrite; on cancel fail with {@link UserCancellationError}.
-     * This is shared across metadata types (Apex, SOQL, LWC, Manifest, etc). */
+    /** If any of `uris` exists, prompt to overwrite; return whether an overwrite was confirmed.
+     * On cancel fail with {@link UserCancellationError}. Shared across metadata types (Apex, SOQL, LWC, Manifest, etc). */
     const ensureMetadataOverwriteOrThrow = Effect.fn('PromptService.ensureMetadataOverwriteOrThrow')(
       function* (params: { readonly uris: readonly URI[] }) {
         const firstExistingUri = yield* Effect.forEach(
@@ -50,7 +50,7 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
           uri => fsService.fileOrFolderExists(uri).pipe(Effect.map(exists => (exists ? uri : undefined))),
           { concurrency: 'unbounded' }
         ).pipe(Effect.map(matches => matches.find(isNotUndefined)));
-        if (!firstExistingUri) return;
+        if (!firstExistingUri) return false;
 
         const placeholder = yield* fsService.uriToPath(firstExistingUri);
 
@@ -68,6 +68,7 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
             () => new UserCancellationError({ message: 'User cancelled overwrite' })
           )
         );
+        return true;
       }
     );
 
