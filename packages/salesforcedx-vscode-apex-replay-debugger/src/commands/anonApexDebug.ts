@@ -8,7 +8,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { format } from 'node:util';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { getRuntime } from '../services/runtime';
 import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';

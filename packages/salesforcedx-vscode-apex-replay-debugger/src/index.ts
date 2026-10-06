@@ -8,16 +8,16 @@
 
 import { annotateRootSpan, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
-  MetricError,
-  MetricGeneral,
-  MetricLaunch,
+  type MetricError,
+  type MetricGeneral,
+  type MetricLaunch,
   SEND_METRIC_GENERAL_EVENT,
   SEND_METRIC_ERROR_EVENT,
   SEND_METRIC_LAUNCH_EVENT
 } from '@salesforce/salesforcedx-apex-replay-debugger';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { updateLastOpened } from './activation/getDialogStartingPath';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
 import { salesforceApexExtension } from './apexExtension';

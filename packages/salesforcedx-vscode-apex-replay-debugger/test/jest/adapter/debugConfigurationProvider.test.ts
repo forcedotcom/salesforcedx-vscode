@@ -13,7 +13,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { DebugConfigurationProvider } from '../../../src/adapter/debugConfigurationProvider';
 import { LAST_OPENED_LOG_FOLDER_KEY, LAST_OPENED_LOG_KEY } from '../../../src/debuggerConstants';
-import { buildAllServicesLayer, setAllServicesLayer } from '../../../src/services/extensionProvider';
+import { type buildAllServicesLayer, setAllServicesLayer } from '../../../src/services/extensionProvider';
 import { disposeRuntime } from '../../../src/services/runtime';
 
 describe('DebugConfigurationProvider log-file prompt', () => {
