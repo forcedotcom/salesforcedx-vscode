@@ -161,12 +161,11 @@ export const orgLogoutDefaultCommand = Effect.fn('orgLogoutDefaultCommand')(
     yield* removeAuth(authRemover, username);
     yield* updateConfigAndStateAggregatorsEffect();
 
-    // removeAuth writes config.json but updateConfigAndStateAggregatorsEffect swallows the post-logout
-    // getConnection failure and never clears the in-process defaultOrgRef; clear it here deterministically
-    // (W-23069610). Only when the logged-out org was the target — logging out another org must not clear it.
-    // unsetTargetOrg unsets local target-org + clears defaultOrgRef synchronously (configService.ts).
+    // AuthRemover already unsets the project's target-org. The failed post-logout connection refresh
+    // does not clear the in-process ref; reset it without writing config again from the extension-host cwd.
+    // Only clear it when the logged-out org was the target.
     if (wasTargetOrg) {
-      yield* api.services.ConfigService.unsetTargetOrg();
+      yield* api.services.ClearDefaultOrgRef();
     }
   },
   // Declined scratch confirm is intentional; swallow it. All other errors surface to ErrorHandlerService.
