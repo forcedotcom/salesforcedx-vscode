@@ -225,6 +225,19 @@ jobs:
           WIREIT_CACHE: none
         run: pnpm --filter ./packages/playwright-vscode-ext run compile
 
+      # Diagnostic: the compile step above now genuinely runs (not cache-skipped), but the orchestrator
+      # step right after it still fails with TS2307 on this exact module. Confirm whether the pnpm
+      # workspace symlink and compiled output actually exist at this point before guessing again.
+      - name: Debug playwright-vscode-ext resolution
+        run: |
+          echo "--- node_modules/@salesforce/playwright-vscode-ext ---"
+          ls -la node_modules/@salesforce/ 2>&1 || true
+          readlink -f node_modules/@salesforce/playwright-vscode-ext 2>&1 || true
+          echo "--- packages/playwright-vscode-ext/out ---"
+          ls -la packages/playwright-vscode-ext/out 2>&1 || true
+          echo "--- packages/playwright-vscode-ext/package.json main/types ---"
+          node -p "require('./packages/playwright-vscode-ext/package.json').main + ' / ' + require('./packages/playwright-vscode-ext/package.json').types"
+
       # The orchestrator does the rest: download the VSIX for RUN_ID, pull the image, REUSE the scratch
       # org created above (via createMinimalOrg), auth any CB_EXTRA_ORG_ALIASES into the container, run +
       # seed + swap + restart + verify gate, then run the container specs and tear the container down.
