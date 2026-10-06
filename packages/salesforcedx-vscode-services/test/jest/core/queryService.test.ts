@@ -79,14 +79,6 @@ const fail = <A, I>(
 const Account = Schema.Struct({ Id: Schema.String, Name: Schema.String });
 
 describe('QueryService.query', () => {
-  it('uses an explicit connection instead of the configured target org', async () => {
-    const query = jest.fn(() => Promise.resolve({ totalSize: 1, done: true, records: [{ Id: '001' }] }));
-    const explicitConnection = connectionWith({ query });
-    const result = await collect(connectionWith({}), { soql: SOQL, connection: explicitConnection }, Schema.Unknown);
-    expect(query).toHaveBeenCalledWith(SOQL, { scanAll: false });
-    expect(result.records).toEqual([{ Id: '001' }]);
-  });
-
   it('paginates until done and keeps page-1 totalSize', async () => {
     const query = jest.fn(() =>
       Promise.resolve({

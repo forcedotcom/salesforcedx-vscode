@@ -28,11 +28,14 @@ const notificationMode = {
   showSuccessNotification
 } as unknown as NotificationModeService;
 
-// Fake jsforce Connection: `tooling.sobject(...).update` is a spy.
-const makeConnection = () => {
+// Fake jsforce Connection: `tooling.query` and `tooling.sobject(...).update` are spies.
+const makeConnection = (
+  queryImpl: () => Promise<QueryResult> = () => Promise.reject(new Error('unexpected tooling.query'))
+) => {
   const update = jest.fn(() => Promise.resolve({ success: true }));
   const sobject = jest.fn(() => ({ update }));
-  return { conn: { tooling: { sobject } }, update, sobject };
+  const toolingQuery = jest.fn(queryImpl);
+  return { conn: { tooling: { query: toolingQuery, sobject } }, toolingQuery, update, sobject };
 };
 
 const makeConfigService = (isvSid?: string, isvUrl?: string) => ({
@@ -68,7 +71,7 @@ const providerLayer = (
           }),
           NotificationModeService,
           QueryService: Effect.succeed({
-            query: (options: { soql: string; tooling: boolean; connection?: ToolingConnection }) =>
+            query: (options: { soql: string; tooling: boolean }) =>
               Effect.tryPromise({
                 try: () => {
                   query(options);
@@ -122,12 +125,13 @@ describe('debuggerStop', () => {
   });
 
   it('shows "none found" and does NOT update when the query returns 0 records', async () => {
-    const { conn, update } = makeConnection();
+    const { conn, toolingQuery, update } = makeConnection();
     await run(conn, () => Promise.resolve({ records: [] }));
     expect(query).toHaveBeenCalledWith({
       soql: "SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1",
       tooling: true
     });
+    expect(toolingQuery).not.toHaveBeenCalled();
     expect(update).not.toHaveBeenCalled();
     expect(showSuccessNotification).toHaveBeenCalledWith(
       'SFDX: Stop Apex Debugger Session',
@@ -137,8 +141,9 @@ describe('debuggerStop', () => {
   });
 
   it('detaches the session and shows the success toast when the query returns a record', async () => {
-    const { conn, sobject, update } = makeConnection();
+    const { conn, toolingQuery, sobject, update } = makeConnection();
     await run(conn, () => Promise.resolve({ records: [{ Id: '07aXX0000000001' }] }));
+    expect(toolingQuery).not.toHaveBeenCalled();
     expect(sobject).toHaveBeenCalledWith('ApexDebuggerSession');
     expect(update).toHaveBeenCalledTimes(1);
     expect(update).toHaveBeenCalledWith({ Id: '07aXX0000000001', Status: 'Detach' });
@@ -159,14 +164,16 @@ describe('debuggerStop', () => {
   });
 
   it('builds an ISV connection from org-isv-debugger-sid/url when present instead of using target-org', async () => {
-    const { conn, sobject, update } = makeConnection();
+    const { conn, toolingQuery, sobject, update } = makeConnection(() =>
+      Promise.resolve({ records: [{ Id: '07aXX0000000002' }] })
+    );
     const mockAuthInfo = {};
     (AuthInfo.create as jest.Mock).mockResolvedValue(mockAuthInfo);
     (Connection.create as jest.Mock).mockResolvedValue(conn);
 
     await run(
       undefined,
-      () => Promise.resolve({ records: [{ Id: '07aXX0000000002' }] }),
+      () => Promise.reject(new Error('QueryService should not be used for ISV')),
       'fakeSessionId',
       'https://na1.salesforce.com'
     );
@@ -179,11 +186,8 @@ describe('debuggerStop', () => {
       }
     });
     expect(Connection.create).toHaveBeenCalledWith({ authInfo: mockAuthInfo });
-    expect(query).toHaveBeenCalledWith({
-      soql: "SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1",
-      tooling: true,
-      connection: conn
-    });
+    expect(query).not.toHaveBeenCalled();
+    expect(toolingQuery).toHaveBeenCalledWith("SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1");
     expect(sobject).toHaveBeenCalledWith('ApexDebuggerSession');
     expect(update).toHaveBeenCalledWith({ Id: '07aXX0000000002', Status: 'Detach' });
     expect(showSuccessNotification).toHaveBeenCalledWith(
