@@ -342,7 +342,7 @@ jobs:
     steps:
       - name: Notify Slack
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_PROMOTE_FAILURE_WEBHOOK }}
+          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_PROMOTE_PRERELEASE_WEBHOOK }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           REPOSITORY: ${{ github.repository }}
         run: |
@@ -361,7 +361,7 @@ jobs:
     steps:
       - name: Notify Slack
         env:
-          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_PROMOTE_FAILURE_WEBHOOK }}
+          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_PROMOTE_PRERELEASE_WEBHOOK }}
           RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           REPOSITORY: ${{ github.repository }}
         run: |
