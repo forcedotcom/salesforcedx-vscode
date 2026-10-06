@@ -25,6 +25,7 @@ import {
   setupNetworkMonitoring,
   setupNonTrackingOrgAndAuth,
   validateNoCriticalErrors,
+  verifyNoTestRunInProgress,
   waitForNotification,
   waitForOutputChannelText,
   waitForRunApexTestsProgressNotificationGone
@@ -134,8 +135,10 @@ const runAccountServiceTestViaPalette = async (page: Page): Promise<void> => {
       await saveScreenshot(page, 'step.fail.assert-failed.png');
       // Restore panel before continuing
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
-      // Clear all notifications so the failing run's success notification doesn't
-      // get re-matched (and possibly re-clicked) when we verify the passing-run notification.
+      await verifyNoTestRunInProgress(page);
+      // A run with failing tests still completes, so it shows the same "successfully ran" toast as a passing
+      // run. Clear it so it isn't re-matched (and possibly re-clicked) when we verify the passing run's toast.
+      // TODO: This should be a failure notification instead. Will fix in W-24417592.
       await clearAllNotifications(page);
     });
 
@@ -202,6 +205,7 @@ const runAccountServiceTestViaPalette = async (page: Page): Promise<void> => {
       await waitForOutputChannelText(page, { expectedText: 'Pass Rate            100%' });
       await waitForOutputChannelText(page, { expectedText: 'AccountServiceTest.should_create_account  Pass' });
       await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
+      await verifyNoTestRunInProgress(page);
       await saveScreenshot(page, 'step.pass.results-visible.png');
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
     });

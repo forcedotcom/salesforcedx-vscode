@@ -9,7 +9,8 @@ import { expect, type Locator, type Page } from '@playwright/test';
 import {
   executeCommandWithCommandPalette,
   TEST_EXPLORER_PANEL,
-  TEST_EXPLORER_TREE_ITEM
+  TEST_EXPLORER_TREE_ITEM,
+  verifyNoTestRunInProgress
 } from '@salesforce/playwright-vscode-ext';
 import { messages } from '../../../src/messages/i18n';
 
@@ -18,7 +19,8 @@ export {
   TEST_EXPLORER_PANEL,
   TEST_EXPLORER_TREE_ITEM,
   focusAndTypeInFilter,
-  clearFilter
+  clearFilter,
+  verifyNoTestRunInProgress
 } from '@salesforce/playwright-vscode-ext';
 export const TEST_RESULTS_TAB = 'a.action-label[aria-label="Test Results"]';
 const LOCAL_NAMESPACE_LABEL = messages.test_explorer_local_namespace_label;
@@ -102,7 +104,7 @@ export const openTestExplorerAndDiscover = async (page: Page): Promise<Locator> 
 
 /**
  * Runs all tests via the command palette and waits until the Test Results panel
- * shows a pass-rate summary. The Test Results panel shows "Pass Rate" / "Tests Ran"
+ * shows a pass-rate summary and the TestRun has ended. The Test Results panel shows "Pass Rate" / "Tests Ran"
  * statistics once a run completes; the prior `/passed|Passed/i` text match never
  * matched (only aria-labels carry "(Passed)") and caused the test to hang to timeout.
  */
@@ -111,6 +113,7 @@ export const runAllTestsAndWaitForCompletion = async (page: Page, timeout: numbe
   const testResultsTab = page.locator(TEST_RESULTS_TAB);
   await testResultsTab.waitFor({ state: 'visible', timeout: 30_000 });
   await expect(page.getByText(/Pass Rate/i)).toBeVisible({ timeout });
+  await verifyNoTestRunInProgress(page);
 };
 
 /**
