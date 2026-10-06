@@ -13,6 +13,7 @@ import * as Equal from 'effect/Equal';
 import * as HashSet from 'effect/HashSet';
 import * as Option from 'effect/Option';
 import * as Order from 'effect/Order';
+import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
@@ -66,6 +67,10 @@ export class OrgMetadataShadowStore extends Effect.Service<OrgMetadataShadowStor
   dependencies: [FsService.Default, WorkspaceService.Default],
   effect: Effect.gen(function* () {
     const [fsService, workspaceService] = yield* Effect.all([FsService, WorkspaceService]);
+    const lastMaterializedAtMs = yield* Ref.make(0);
+    const nextMaterializedAt = Ref.updateAndGet(lastMaterializedAtMs, last => Math.max(Date.now(), last + 1)).pipe(
+      Effect.map(value => new Date(value).toISOString())
+    );
 
     const getRootUri = Effect.fn('OrgMetadataShadowStore.getRootUri')(function* (
       orgId: string,
@@ -252,7 +257,7 @@ export class OrgMetadataShadowStore extends Effect.Service<OrgMetadataShadowStor
         primaryPath,
         files,
         remoteLastModifiedDate,
-        materializedAt: new Date().toISOString()
+        materializedAt: yield* nextMaterializedAt
       };
       yield* fsService.safeWriteFile(
         Utils.joinPath(stagingUri, MANIFEST_FILE),

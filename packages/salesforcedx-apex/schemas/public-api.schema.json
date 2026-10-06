@@ -380,6 +380,35 @@
       },
       "additionalProperties": false
     },
+    "ApexOperationError": {
+      "type": "object",
+      "required": ["operation", "message", "_tag"],
+      "properties": {
+        "operation": { "$ref": "#/$defs/NonEmptyTrimmedString" },
+        "message": { "type": "string" },
+        "cause": { "type": "string" },
+        "_tag": { "type": "string", "enum": ["ApexOperationError"] }
+      },
+      "additionalProperties": false
+    },
+    "NonEmptyTrimmedString": {
+      "type": "string",
+      "description": "a non empty string",
+      "title": "nonEmptyString",
+      "pattern": "^\\S[\\s\\S]*\\S$|^\\S$|^$",
+      "minLength": 1
+    },
+    "ApexResponseDecodeError": {
+      "type": "object",
+      "required": ["operation", "message", "_tag"],
+      "properties": {
+        "operation": { "$ref": "#/$defs/NonEmptyTrimmedString" },
+        "message": { "type": "string" },
+        "cause": { "type": "string" },
+        "_tag": { "type": "string", "enum": ["ApexResponseDecodeError"] }
+      },
+      "additionalProperties": false
+    },
     "AsyncTestArrayConfiguration": {
       "type": "object",
       "required": ["tests", "testLevel"],
@@ -451,6 +480,88 @@
       "required": [],
       "properties": { "json": { "type": "boolean" }, "loglevel": { "$ref": "#/$defs/LogLevel" } },
       "additionalProperties": false
+    },
+    "ExecuteAnonymousOptions": {
+      "type": "object",
+      "required": ["apexCode"],
+      "properties": { "apexCode": { "type": "string" } },
+      "additionalProperties": false
+    },
+    "ExecuteAnonymousResult": {
+      "anyOf": [
+        {
+          "type": "object",
+          "required": [
+            "compileProblem",
+            "line",
+            "column",
+            "exceptionMessage",
+            "exceptionStackTrace",
+            "logBody",
+            "compiled",
+            "success"
+          ],
+          "properties": {
+            "compileProblem": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+            "line": { "type": "number" },
+            "column": { "type": "number" },
+            "exceptionMessage": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+            "exceptionStackTrace": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+            "logBody": { "type": "string" },
+            "compiled": { "type": "boolean", "enum": [false] },
+            "success": { "type": "boolean", "enum": [false] }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "compileProblem",
+            "line",
+            "column",
+            "exceptionMessage",
+            "exceptionStackTrace",
+            "logBody",
+            "compiled",
+            "success"
+          ],
+          "properties": {
+            "compileProblem": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+            "line": { "type": "number" },
+            "column": { "type": "number" },
+            "exceptionMessage": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+            "exceptionStackTrace": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+            "logBody": { "type": "string" },
+            "compiled": { "type": "boolean", "enum": [true] },
+            "success": { "type": "boolean", "enum": [false] }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": [
+            "compileProblem",
+            "line",
+            "column",
+            "exceptionMessage",
+            "exceptionStackTrace",
+            "logBody",
+            "compiled",
+            "success"
+          ],
+          "properties": {
+            "compileProblem": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+            "line": { "type": "number" },
+            "column": { "type": "number" },
+            "exceptionMessage": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+            "exceptionStackTrace": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+            "logBody": { "type": "string" },
+            "compiled": { "type": "boolean", "enum": [true] },
+            "success": { "type": "boolean", "enum": [true] }
+          },
+          "additionalProperties": false
+        }
+      ]
     },
     "ExecuteAnonymousResponse": {
       "type": "object",
@@ -692,10 +803,14 @@
     { "$ref": "#/$defs/ApexTestResultOutcome" },
     { "$ref": "#/$defs/ApexTestRunResultStatus" },
     { "$ref": "#/$defs/ApexTestSetupData" },
+    { "$ref": "#/$defs/ApexOperationError" },
+    { "$ref": "#/$defs/ApexResponseDecodeError" },
     { "$ref": "#/$defs/AsyncTestArrayConfiguration" },
     { "$ref": "#/$defs/AsyncTestConfiguration" },
     { "$ref": "#/$defs/CodeCoverageResult" },
     { "$ref": "#/$defs/CommonOptions" },
+    { "$ref": "#/$defs/ExecuteAnonymousOptions" },
+    { "$ref": "#/$defs/ExecuteAnonymousResult" },
     { "$ref": "#/$defs/ExecuteAnonymousResponse" },
     { "$ref": "#/$defs/LogLevel" },
     { "$ref": "#/$defs/LogRecord" },

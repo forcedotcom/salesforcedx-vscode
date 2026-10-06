@@ -62,7 +62,7 @@ const terminalServiceLayer =
  * Global service Defaults (same for all extensions). Leaf module to avoid circular dependency
  * when deriving runtime type from `typeof globalLayers`.
  */
-export const globalLayers = Layer.mergeAll(
+const baseGlobalLayers = Layer.mergeAll(
   AliasService.Default,
   TemplateService.Default,
   ExtensionContextService.Default,
@@ -102,3 +102,5 @@ export const globalLayers = Layer.mergeAll(
   WorkspaceService.Default,
   redactingConsoleLoggerLayer
 );
+
+export const globalLayers = baseGlobalLayers;

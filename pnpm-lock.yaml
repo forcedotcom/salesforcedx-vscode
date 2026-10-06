@@ -625,6 +625,9 @@ importers:
 
   packages/salesforcedx-apex:
     dependencies:
+      '@effect/platform':
+        specifier: ^0.96.1
+        version: 0.96.1(effect@3.22.2)
       '@salesforce/core':
         specifier: ^9.3.0
         version: 9.3.0
@@ -1530,6 +1533,9 @@ importers:
       '@opentelemetry/sdk-trace-web':
         specifier: 2.8.0
         version: 2.8.0(@opentelemetry/api@1.9.1)
+      '@salesforce/apex-node':
+        specifier: '*'
+        version: link:../salesforcedx-apex
       '@salesforce/core':
         specifier: ^9.3.0
         version: 9.3.0
