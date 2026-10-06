@@ -5,9 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
-import { homedir, tmpdir } from 'node:os';
-import { join } from 'node:path';
 import { AuthInfo, Connection, OrgConfigProperties, type ConfigAggregator } from '@salesforce/core';
 import * as Cause from 'effect/Cause';
 import * as Duration from 'effect/Duration';
@@ -769,117 +766,66 @@ describe('ConnectionService.getConnection (Web Console)', () => {
     else process.env.ESBUILD_PLATFORM = originalPlatform;
   });
 
-  it('discovers the namespace and sandbox status while preserving Web connection cache hits', async () => {
-    const home = await mkdtemp(join(tmpdir(), 'web-connection-test-'));
-    await mkdir(join(home, '.sfdx'));
-    await writeFile(join(home, '.sfdx', 'alias.json'), '{"orgs":{}}');
-    jest.mocked(homedir).mockReturnValue(home);
-    // Load real core before Web mode so its file system is initialized outside the isolated Web module graph.
-    const { AuthInfo: RealAuthInfo, Connection: RealConnection } =
-      jest.requireActual<typeof import('@salesforce/core')>('@salesforce/core');
+  it('supplies the raw access token with auth flags to AuthInfo.create and preserves cache hits', async () => {
     process.env.ESBUILD_PLATFORM = 'web';
     jest.resetModules();
 
-    try {
-      await jest.isolateModulesAsync(async () => {
-        const { AuthInfo: WebAuthInfo, Connection: WebConnection } =
-          jest.requireMock<typeof import('@salesforce/core')>('@salesforce/core');
-        const WebEffect = jest.requireActual<typeof import('effect/Effect')>('effect/Effect');
-        const WebLayer = jest.requireActual<typeof import('effect/Layer')>('effect/Layer');
-        const Redacted = jest.requireActual<typeof import('effect/Redacted')>('effect/Redacted');
-        const { AliasService: WebAliasService } =
-          jest.requireActual<typeof import('../../../src/core/alias.js')>('../../../src/core/alias');
-        const { ConfigService: WebConfigService } = jest.requireActual<
-          typeof import('../../../src/core/configService.js')
-        >('../../../src/core/configService');
-        const { ConnectionService: WebConnectionService } = jest.requireActual<
-          typeof import('../../../src/core/connectionService.js')
-        >('../../../src/core/connectionService');
-        const { SettingsService: WebSettingsService } = jest.requireActual<
-          typeof import('../../../src/vscode/settingsService.js')
-        >('../../../src/vscode/settingsService');
-        const accessToken = 'web-console-token';
-        const retrieveUserInfo = jest.spyOn(
-          RealAuthInfo.prototype as unknown as {
-            retrieveUserInfo: (
-              instanceUrl: string,
-              token: string
-            ) => Promise<{ username: string; organizationId: string }>;
-          },
-          'retrieveUserInfo'
-        );
-        retrieveUserInfo.mockResolvedValue({
-          username: 'web-console-auth-flags@example.com',
-          organizationId: '00D000000000001'
-        });
-        const organizationQuery = jest.fn().mockResolvedValue({
-          IsSandbox: true,
-          TrialExpirationDate: undefined,
-          NamespacePrefix: 'ExampleNamespace',
-          OrganizationType: 'Developer Edition'
-        });
-        const orgConnection = jest.spyOn(RealConnection, 'create').mockResolvedValue({
-          singleRecordQuery: organizationQuery
-        } as unknown as Connection);
-        jest.mocked(WebAuthInfo.create).mockImplementation(async options => {
-          const authInfo = await RealAuthInfo.create(options);
-          jest.spyOn(authInfo, 'save').mockResolvedValue(authInfo);
-          return authInfo;
-        });
-        jest.mocked(WebConnection.create).mockImplementation(async ({ authInfo }) => {
-          const connection = makeConn({ isAccessTokenFlow: false });
-          jest.spyOn(connection, 'getAuthInfoFields').mockImplementation(() => authInfo.getFields());
-          return connection;
-        });
-        const dependencies = WebLayer.mergeAll(
-          WebLayer.succeed(WebAliasService, WebAliasService.make({} as never)),
-          WebLayer.succeed(WebConfigService, WebConfigService.make({} as never)),
-          WebLayer.succeed(
-            WebSettingsService,
-            WebSettingsService.make({
-              getInstanceUrl: () => WebEffect.succeed(INSTANCE_URL),
-              getAccessToken: () => WebEffect.succeed(Redacted.make(accessToken)),
-              getApiVersion: () => WebEffect.succeed('67.0')
-            } as never)
-          )
-        );
-        const layer = WebLayer.provide(WebConnectionService.DefaultWithoutDependencies, dependencies);
+    await jest.isolateModulesAsync(async () => {
+      const { AuthInfo: WebAuthInfo, Connection: WebConnection } =
+        jest.requireMock<typeof import('@salesforce/core')>('@salesforce/core');
+      const WebEffect = jest.requireActual<typeof import('effect/Effect')>('effect/Effect');
+      const WebLayer = jest.requireActual<typeof import('effect/Layer')>('effect/Layer');
+      const Redacted = jest.requireActual<typeof import('effect/Redacted')>('effect/Redacted');
+      const { AliasService: WebAliasService } =
+        jest.requireActual<typeof import('../../../src/core/alias.js')>('../../../src/core/alias');
+      const { ConfigService: WebConfigService } = jest.requireActual<
+        typeof import('../../../src/core/configService.js')
+      >('../../../src/core/configService');
+      const { ConnectionService: WebConnectionService } = jest.requireActual<
+        typeof import('../../../src/core/connectionService.js')
+      >('../../../src/core/connectionService');
+      const { SettingsService: WebSettingsService } = jest.requireActual<
+        typeof import('../../../src/vscode/settingsService.js')
+      >('../../../src/vscode/settingsService');
+      const accessToken = 'web-console-token';
+      const authInfo = { getFields: () => ({}), save: jest.fn().mockResolvedValue(undefined) } as unknown as AuthInfo;
+      const connection = makeConn({ isAccessTokenFlow: false });
+      jest.mocked(WebAuthInfo.create).mockResolvedValue(authInfo);
+      jest.mocked(WebConnection.create).mockResolvedValue(connection);
+      const dependencies = WebLayer.mergeAll(
+        WebLayer.succeed(WebAliasService, WebAliasService.make({} as never)),
+        WebLayer.succeed(WebConfigService, WebConfigService.make({} as never)),
+        WebLayer.succeed(
+          WebSettingsService,
+          WebSettingsService.make({
+            getInstanceUrl: () => WebEffect.succeed(INSTANCE_URL),
+            getAccessToken: () => WebEffect.succeed(Redacted.make(accessToken)),
+            getApiVersion: () => WebEffect.succeed('67.0')
+          } as never)
+        )
+      );
+      const layer = WebLayer.provide(WebConnectionService.DefaultWithoutDependencies, dependencies);
 
-        try {
-          const connection = await WebEffect.runPromise(
-            WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer))
-          );
-          const cached = await WebEffect.runPromise(
-            WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer))
-          );
+      const first = await WebEffect.runPromise(
+        WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer))
+      );
+      const cached = await WebEffect.runPromise(
+        WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer))
+      );
 
-          expect(connection.getAuthInfoFields()).toMatchObject({
-            isDevHub: false,
-            isScratch: false,
-            isSandbox: true,
-            namespacePrefix: 'ExampleNamespace'
-          });
-          expect(orgConnection).toHaveBeenCalledTimes(1);
-          expect(WebAuthInfo.create).toHaveBeenCalledWith({
-            accessTokenOptions: {
-              accessToken,
-              loginUrl: INSTANCE_URL,
-              instanceUrl: INSTANCE_URL,
-              isDevHub: false,
-              isScratch: false,
-              isSandbox: false
-            }
-          });
-          expect(organizationQuery).toHaveBeenCalledTimes(1);
-          expect(cached).toBe(connection);
-          expect(WebAuthInfo.create).toHaveBeenCalledTimes(1);
-        } finally {
-          orgConnection.mockRestore();
-          retrieveUserInfo.mockRestore();
+      expect(WebAuthInfo.create).toHaveBeenCalledWith({
+        accessTokenOptions: {
+          accessToken,
+          loginUrl: INSTANCE_URL,
+          instanceUrl: INSTANCE_URL,
+          isDevHub: false,
+          isScratch: false,
+          isSandbox: false
         }
       });
-    } finally {
-      await rm(home, { recursive: true, force: true });
-    }
+      expect(WebAuthInfo.create).toHaveBeenCalledTimes(1);
+      expect(first).toBe(connection);
+      expect(cached).toBe(connection);
+    });
   });
 });

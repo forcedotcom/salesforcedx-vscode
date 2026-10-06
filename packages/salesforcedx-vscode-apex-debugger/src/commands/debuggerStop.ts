@@ -77,10 +77,12 @@ export const debuggerStop = Effect.fn('debuggerStop')(function* () {
       })
     : api.services.ConnectionService.getConnection();
 
-  // ISV uses a sid/url connection QueryService cannot resolve; default-org path uses QueryService.
+  // Keep the ISV sid/url exception here: QueryService resolves configured orgs, not caller-supplied connections.
+  // All other debugger sessions still query through QueryService.
   const sessionRecords =
     isvSid && isvUrl
       ? Effect.tryPromise({
+          // eslint-disable-next-line local/no-jsforce-query -- ISV sid/url connection QueryService cannot resolve
           try: () => Promise.resolve(conn.tooling.query(SESSION_SOQL)),
           catch: queryError
         }).pipe(
