@@ -325,3 +325,20 @@ jobs:
             gh release edit "$NIGHTLY_TAG" --repo "${{ github.repository }}" --title "$CURRENT_TITLE - published"
             echo "Renamed release title to: $CURRENT_TITLE - published"
           fi
+
+  # Step 6: Notify Slack if any job above failed, so a broken promotion doesn't go
+  # unnoticed until someone happens to check Actions. failure() only fires for an
+  # actual 'failure' status among `needs` -- jobs skipped because an earlier gate
+  # (e.g. gate-check) failed don't themselves count, but that earlier job's own
+  # 'failure' status does, so this still catches the real failure.
+  notify-on-failure:
+    needs: [find-nightly, gate-check, compute-changelog-range, changelog-body, write-changelog, promote, mark-release-published]
+    if: failure()
+    uses: ./.github/workflows/slackNotification.yml
+    secrets: inherit
+    with:
+      result: 'failure'
+      title: 'Promote to Pre-release'
+      type: 'deployment'
+      failedEvent: 'Promote to Pre-release pipeline failed'
+      workflow: 'promote-to-prerelease.yml'
