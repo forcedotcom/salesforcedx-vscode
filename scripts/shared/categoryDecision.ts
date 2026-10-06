@@ -1,58 +1,32 @@
-import {
-  type CheckRun,
-  type CommitStatus,
-  type PullFile,
-  type PullReview,
-  PullRequest,
-  findApprovedReviewOnHead,
-  hasFailedGitHubCheck
-} from '@salesforce/effect-octokit';
 import * as Option from 'effect/Option';
-import { isNull, isUndefined } from 'effect/Predicate';
+import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
+import { BASE_BRANCH, BOT_LOGIN, deniedFile, preClassifyDecision, type PreClassifyFacts } from './categoryGates.cjs';
 
 export const MODEL = 'grok-4.7-xhigh';
-export const BASE_BRANCH = 'develop';
-export const BOT_LOGIN = 'svc-idee-bot';
+export { BASE_BRANCH, BOT_LOGIN, deniedFile };
 export const TEAM_ORG = 'forcedotcom';
 export const TEAM_SLUG = 'ide-experience';
 
-const DENYLIST = [/(^|\/)CODEOWNERS$/, /^APPROVAL_POLICY\.md$/, /^\.github\/workflows\/.+/, /(^|\/)out\//];
-
 const Skip = Schema.TaggedStruct('Skip', { reason: Schema.String });
-const Classify = Schema.TaggedStruct('Classify', { reason: Schema.String });
 const Approve = Schema.TaggedStruct('Approve', {
   reason: Schema.String,
   categories: Schema.Array(Schema.String)
 });
-const Dismiss = Schema.TaggedStruct('Dismiss', { reason: Schema.String });
 
-export type Decision = typeof Skip.Type | typeof Classify.Type | typeof Approve.Type | typeof Dismiss.Type;
+export type Decision = ReturnType<typeof preClassifyDecision> | typeof Approve.Type;
 
-type SharedFacts = {
-  readonly pull: typeof PullRequest.Type | undefined;
-  readonly files: ReadonlyArray<PullFile>;
-  readonly statuses: ReadonlyArray<CommitStatus>;
-  readonly checkRuns: ReadonlyArray<CheckRun>;
-  readonly reviews: ReadonlyArray<PullReview>;
-  readonly teamMembershipState: string;
-  readonly botLogin: string;
-};
-
-type GatedFacts = SharedFacts & {
+type GatedFacts = PreClassifyFacts & {
   readonly categories: ReadonlyArray<string>;
   readonly allowedCategories: ReadonlyArray<string>;
 };
 
-export type Facts = (SharedFacts & { readonly categories?: undefined }) | GatedFacts;
+export type Facts = (PreClassifyFacts & { readonly categories?: undefined }) | GatedFacts;
 
 const isGated = (input: Facts): input is GatedFacts => !isUndefined(input.categories);
 
 export const categoryIdsFromPolicy = (markdown: string) =>
   [...markdown.matchAll(/^### ([a-z0-9-]+)\s*$/gm)].map(match => match[1] ?? '');
-
-export const deniedFile = (files: ReadonlyArray<PullFile>) =>
-  files.map(file => file.filename).find(filename => DENYLIST.some(pattern => pattern.test(filename)));
 
 export const buildPrompt = (policy: string, diffPath: string) =>
   `${policy}\n\nThe diff file is ${diffPath}. Read that file and no other file. Reply with only the JSON object.`;
@@ -74,31 +48,9 @@ export const parseAgentResult = (stdout: string): ReadonlyArray<string> | undefi
 };
 
 export const decideCategoryApprove = (input: Facts): Decision => {
-  const { pull } = input;
-  if (isUndefined(pull)) return Skip.make({ reason: 'not a pull request' });
-  if (pull.baseRefName !== BASE_BRANCH) return Skip.make({ reason: 'base branch is not develop' });
-  if (pull.state.toLowerCase() !== 'open') return Skip.make({ reason: 'pull request is not open' });
-  if (pull.isDraft) return Skip.make({ reason: 'pull request is a draft' });
-  if (pull.reviewDecision === 'CHANGES_REQUESTED') return Skip.make({ reason: 'review is CHANGES_REQUESTED' });
-  if (pull.author?.login === 'dependabot[bot]') return Skip.make({ reason: 'author is dependabot' });
-  if (isNull(pull.headRepository) || pull.headRepository.nameWithOwner !== pull.baseRepository?.nameWithOwner) {
-    return Skip.make({ reason: 'pull request is from a fork' });
-  }
-  if (input.teamMembershipState !== 'active') {
-    return Skip.make({ reason: 'author is not an active @forcedotcom/ide-experience member' });
-  }
-  if (!Schema.is(Schema.NonEmptyString)(pull.headRefOid)) return Skip.make({ reason: 'missing head sha' });
-  const denied = deniedFile(input.files);
-  if (!isUndefined(denied)) return Skip.make({ reason: `denylist ${denied}` });
-  const approved = findApprovedReviewOnHead(input.reviews, pull.headRefOid, input.botLogin);
-  if (hasFailedGitHubCheck([...input.statuses, ...input.checkRuns]) && approved) {
-    return Dismiss.make({ reason: 'a check failed after approval' });
-  }
-  if (hasFailedGitHubCheck([...input.statuses, ...input.checkRuns])) {
-    return Skip.make({ reason: 'a check failed' });
-  }
-  if (approved) return Skip.make({ reason: 'bot already approved this head' });
-  if (!isGated(input)) return Classify.make({ reason: 'gates passed' });
+  const gated = preClassifyDecision(input);
+  if (gated._tag !== 'Classify') return gated;
+  if (!isGated(input)) return gated;
   const allowed = new Set(input.allowedCategories);
   if (input.categories.length === 0) return Skip.make({ reason: 'no covering categories' });
   const unknown = input.categories.find(category => !allowed.has(category));

@@ -15,6 +15,7 @@ import * as Stream from 'effect/Stream';
 import {
   actionsEnvironment,
   type CheckEvent,
+  findApprovedReviewOnHead,
   GitHub,
   readCheckEvent,
   withoutWorkflowRun

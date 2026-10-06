@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { withoutWorkflowRun } from '@salesforce/effect-octokit';
+import { preClassifyDecision } from '../scripts/shared/categoryGates.cjs';
 import {
   BOT_LOGIN,
   buildPrompt,
@@ -69,6 +70,20 @@ test('prompt names the diff file and carries no pull request body', () => {
 
 test('classifies when the gates pass', () => {
   assert.equal(decideCategoryApprove(base)._tag, 'Classify');
+});
+
+test('preflight and approver use the same pre-classify decision', () => {
+  const approved = { user: { login: BOT_LOGIN }, state: 'APPROVED', commit_id: pull.headRefOid };
+  for (const changes of [
+    {},
+    { files: [file('APPROVAL_POLICY.md')] },
+    { checkRuns: [{ conclusion: 'failure' }] },
+    { reviews: [approved] },
+    { reviews: [approved], checkRuns: [{ conclusion: 'failure' }] }
+  ]) {
+    const facts = { ...base, ...changes };
+    assert.deepEqual(decideCategoryApprove(facts), preClassifyDecision(facts));
+  }
 });
 
 test('approves a non-empty known category union', () => {
