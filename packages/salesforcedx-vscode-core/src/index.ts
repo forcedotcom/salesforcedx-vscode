@@ -11,7 +11,6 @@ import {
   getServicesApi
 } from '@salesforce/effect-ext-utils';
 import { ChannelService, SFDX_CORE_CONFIGURATION_NAME, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
-import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import { isError, isString } from 'effect/Predicate';
 import * as os from 'node:os';
@@ -30,7 +29,6 @@ import { getRuntime } from './services/runtime';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
 import { getEnableAllExceptionCatcher } from './settings/salesforceCoreSettings';
 import { showTelemetryMessage, telemetryService } from './telemetry';
-import { getUserId } from './util/orgAuthInfoExtensions';
 import { ensureCurrentWorkingDirIsProjectPath } from './util/workingDirectory';
 
 /** Customer-facing commands */
@@ -46,11 +44,8 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   await getRuntime().runPromise(activateEffect(extensionContext));
 
   const api: SalesforceVSCodeCoreApi = {
-    getUserId,
-    telemetryService,
     workspaceContextUtils,
     services: {
-      RegistryAccess,
       ChannelService,
       TelemetryService,
       WorkspaceContext,
@@ -66,10 +61,8 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
 ) {
   yield* ensureCurrentWorkingDirIsProjectPath();
 
-  // Dispose the services-owned output channel with the extension context.
+  // Lifecycle is owned by services (ChannelDisposalLayer); core only borrows the channel.
   const servicesApi = yield* getServicesApi;
-  const coreChannel = yield* (yield* servicesApi.services.ChannelService).getChannel;
-  extensionContext.subscriptions.push(coreChannel);
 
   yield* Effect.promise(() => telemetryService.initializeService(extensionContext));
   void showTelemetryMessage(extensionContext);
@@ -207,11 +200,8 @@ const handleTheUnhandled = (): void => {
 };
 
 export type SalesforceVSCodeCoreApi = {
-  getUserId: typeof getUserId;
-  telemetryService: typeof telemetryService;
   workspaceContextUtils: typeof workspaceContextUtils;
   services: {
-    RegistryAccess: typeof RegistryAccess;
     ChannelService: typeof ChannelService;
     TelemetryService: typeof TelemetryService;
     WorkspaceContext: typeof WorkspaceContext;

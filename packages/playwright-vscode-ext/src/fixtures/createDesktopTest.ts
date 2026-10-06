@@ -130,6 +130,11 @@ type CreateDesktopTestOptions = {
   testExtensionPaths?: string[];
   /** Marketplace extension IDs (publisher.name) installed via `code --install-extension` once per worker. Use for hard `extensionDependencies` not built locally. */
   marketplaceExtensions?: string[];
+  /**
+   * Omit the fixture package (`--extensionDevelopmentPath` and VSIX cache). Marketplace ids still install.
+   * Set `disableOtherExtensions: false`; `--disable-extensions` blocks that install.
+   */
+  skipCurrentPackage?: boolean;
   /** When false, do not pass --disable-extensions (needed when loading multiple dev extensions). Default true. */
   disableOtherExtensions?: boolean;
   /** Optional user settings to write to User/settings.json (e.g. to reduce GitHub/Git prompts). */
@@ -180,6 +185,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     additionalExtensionDirs = [],
     testExtensionPaths = [],
     marketplaceExtensions = [],
+    skipCurrentPackage = false,
     disableOtherExtensions = true,
     userSettings,
     beforeLaunch
@@ -214,7 +220,9 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         const repoRoot = resolveRepoRoot(fixturesDir);
         const { extensionsDir } = await prepareVsixExtensions({
           repoRoot,
-          packageDirs: ['salesforcedx-vscode-services', packageDir, ...additionalExtensionDirs],
+          packageDirs: ['salesforcedx-vscode-services', packageDir, ...additionalExtensionDirs].filter(
+            dir => !(skipCurrentPackage && dir === packageDir)
+          ),
           vscodeExecutable,
           marketplaceExtensions
         });
@@ -319,7 +327,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           installMarketplaceExtensions(extensionsDir, userDataDir, marketplaceExtensions, vscodeExecutable);
           const extensionArgs = [
             // Extension path is the package root (contains package.json and bundled dist/index.js)
-            packageRoot,
+            ...(skipCurrentPackage ? [] : [packageRoot]),
             ...additionalExtensionDirs
               .concat(['salesforcedx-vscode-services'])
               .map(dir => path.resolve(packageRoot, '..', dir))

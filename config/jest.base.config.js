@@ -11,9 +11,9 @@ module.exports = {
     '^vscode$': '<rootDir>/../../scripts/setup-jest.ts',
     '^o11y_schema/sf_pdp$': '<rootDir>/../../config/__mocks__/o11y_schema_sf_pdp.js'
   },
-  // Ignore .vscode-test and out directories to prevent Haste module map conflicts
-  modulePathIgnorePatterns: ['/.vscode-test/', '<rootDir>/out/'],
-  testPathIgnorePatterns: ['/.vscode-test/', '<rootDir>/out/'],
+  // Ignore .vscode-test, out, and wireit caches to prevent Haste module map conflicts
+  modulePathIgnorePatterns: ['/.vscode-test/', '<rootDir>/out/', '<rootDir>/.wireit/'],
+  testPathIgnorePatterns: ['/.vscode-test/', '<rootDir>/out/', '<rootDir>/.wireit/'],
   transform: {
     '^.+\\.tsx?$': ['ts-jest', { isolatedModules: true }]
   }

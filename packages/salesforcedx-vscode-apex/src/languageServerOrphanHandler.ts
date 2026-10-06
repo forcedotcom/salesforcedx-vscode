@@ -103,10 +103,10 @@ const findOrphanedProcesses = Effect.fn('apex.orphan.findOrphaned')(function* ()
 
   // Web (or any exec failure listing processes) → no orphan work.
   const candidates = yield* terminal
-    .simpleExec({ ...listProcessesCmd, parse: parseProcessList, timeout: 60_000 })
+    .simpleExec({ ...listProcessesCmd, parse: parseProcessList, timeout: Duration.millis(60_000) })
     .pipe(Effect.catchTag('TerminalServiceError', () => Effect.succeed<ProcessDetail[]>([])));
 
-  const checkParent = (processInfo: ProcessDetail): Effect.Effect<ProcessDetail> =>
+  const checkParent = (processInfo: ProcessDetail) =>
     !isWindows && processInfo.ppid === 1
       ? Effect.succeed({ ...processInfo, orphaned: true })
       : terminal.simpleExec({ ...parentCheckCmd(processInfo.ppid), parse: s => s }).pipe(
@@ -308,10 +308,10 @@ const alwaysAutoTerminateConfirmation = Effect.fn('apex.orphan.alwaysAutoTermina
   }
   // Persist the setting, then kill. Any failure — write error or services unavailable — is recorded
   // but non-fatal: the user already confirmed, so the kill proceeds regardless of whether the write stuck.
-  yield* Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    yield* (yield* api.services.SettingsService).setValue(APEX_SETTINGS_SECTION, AUTO_TERMINATE_KEY, true);
-  }).pipe(
+  yield* ExtensionProviderService.pipe(
+    Effect.flatMap(provider => provider.getServicesApi),
+    Effect.flatMap(api => api.services.SettingsService),
+    Effect.flatMap(settings => settings.setValue(APEX_SETTINGS_SECTION, AUTO_TERMINATE_KEY, true)),
     Effect.catchTags({
       MissingSettingsError: e => annotateRootSpan('settingsWriteError', e.message),
       ServicesExtensionNotFoundError: e => annotateRootSpan('settingsWriteError', String(e)),

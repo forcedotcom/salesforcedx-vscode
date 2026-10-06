@@ -1,5 +1,5 @@
 name: Setup E2E
-description: Set up Node.js, Wireit caching, and dependencies
+description: Set up Node.js, pnpm, Wireit caching, and dependencies
 inputs:
   node-version:
     description: Node.js version passed by the calling workflow
@@ -8,11 +8,8 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Setup Node.js
-      uses: actions/setup-node@v7
+    - name: Setup pnpm
+      uses: ./.github/actions/setup-pnpm
       with:
         node-version: ${{ inputs.node-version }}
-        cache: npm
     - uses: google/wireit@setup-github-actions-caching/v2
-    - name: Install dependencies
-      uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
