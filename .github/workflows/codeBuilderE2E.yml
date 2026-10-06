@@ -215,6 +215,14 @@ jobs:
             *) echo "CB_EXTRA_ORG_ALIASES=" >> "$GITHUB_ENV" ;;
           esac
 
+      # test:container:local's wireit config depends on playwright-vscode-ext:compile, but across this
+      # many concurrent matrix shards hitting wireit's GitHub Actions remote cache for the first time,
+      # that dependency can report done without actually restoring `out/**` to disk, so the orchestrator's
+      # own `tsc`/ts-node step then fails to resolve the package. Compile it directly first so the
+      # orchestrator step never depends on that cache lookup succeeding.
+      - name: Compile playwright-vscode-ext
+        run: pnpm --filter ./packages/playwright-vscode-ext run compile
+
       # The orchestrator does the rest: download the VSIX for RUN_ID, pull the image, REUSE the scratch
       # org created above (via createMinimalOrg), auth any CB_EXTRA_ORG_ALIASES into the container, run +
       # seed + swap + restart + verify gate, then run the container specs and tear the container down.
