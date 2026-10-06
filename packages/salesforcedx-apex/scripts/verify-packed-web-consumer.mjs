@@ -19,11 +19,15 @@ const consumerRoot = mkdtempSync(join(tempParent, 'packed-web-consumer-'));
 
 try {
   const packResult = JSON.parse(
-    execFileSync('npm', ['pack', '--json', '--pack-destination', consumerRoot], {
-      cwd: packageRoot,
-      encoding: 'utf8',
-      env: { ...process.env, npm_config_cache: join(consumerRoot, '.npm-cache') }
-    })
+    execFileSync(
+      process.platform === 'win32' ? 'npm.cmd' : 'npm',
+      ['pack', '--json', '--pack-destination', consumerRoot],
+      {
+        cwd: packageRoot,
+        encoding: 'utf8',
+        env: { ...process.env, npm_config_cache: join(consumerRoot, '.npm-cache') }
+      }
+    )
   );
   const tarballPath = join(consumerRoot, packResult[0].filename);
   const installedPackage = join(consumerRoot, 'node_modules', '@salesforce', 'apex-node');
