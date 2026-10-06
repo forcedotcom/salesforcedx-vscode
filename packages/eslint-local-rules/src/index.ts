@@ -7,6 +7,7 @@
 
 import { TSESLint } from '@typescript-eslint/utils';
 import { commandMustBeInPackageJson } from './commandMustBeInPackageJson';
+import { effectFnCatchMiddlewareLast } from './effectFnCatchMiddlewareLast';
 import { noDirectServicesImports } from './noDirectServicesImports';
 import { noDuplicateI18nValues } from './noDuplicateI18nValues';
 import { noDuplicatePlaywrightLocators } from './noDuplicatePlaywrightLocators';
@@ -61,6 +62,7 @@ const plugin: TSESLint.FlatConfig.Plugin = {
     'no-successive-annotate-current-span': noSuccessiveAnnotateCurrentSpan,
     'no-export-tagged-error-in-services': noExportTaggedErrorInServices,
     'no-runtime-vscode-import': noRuntimeVscodeImport,
+    'effect-fn-catch-middleware-last': effectFnCatchMiddlewareLast,
     'require-effect-fn-span-name': requireEffectFnSpanName,
     'no-effect-service-accessor-calls': noEffectServiceAccessorCalls,
     'no-effect-service-promise-return': noEffectServicePromiseReturn,

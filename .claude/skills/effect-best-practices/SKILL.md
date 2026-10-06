@@ -236,7 +236,7 @@ See `references/schema-patterns.md` for transforms and advanced patterns.
 
 ## Function Pattern: Prefer Effect.fn over Effect.gen
 
-**Prefer `Effect.fn`** for effectful code. Provides automatic tracing with proper span names. Span name required; enforced by `local/require-effect-fn-span-name`.
+**Prefer `Effect.fn`** for effectful code. Provides automatic tracing with proper span names. Span name required; enforced by `local/require-effect-fn-span-name`. `Effect.tap` / `*SuccessNotification` middleware before catch middleware: `local/effect-fn-catch-middleware-last` (later catch and non-success guards stay valid). Details: services-extension-consumption Success handling.
 
 **Use `Effect.gen` only when** you need a shared effect with common `.pipe` attached so multiple consumers don't each pipe the same things — e.g. provided dependencies, common error handlers, retries. (Less common with Runtimes.) Service definition bodies are a valid use (shared wiring).
 

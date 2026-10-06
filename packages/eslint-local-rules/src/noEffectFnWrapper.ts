@@ -8,7 +8,7 @@
 import { AST_NODE_TYPES, TSESTree } from '@typescript-eslint/utils';
 import { RuleCreator } from '@typescript-eslint/utils/eslint-utils';
 
-const isEffectFnCall = (node: TSESTree.CallExpression): TSESTree.FunctionExpression | undefined => {
+export const isEffectFnCall = (node: TSESTree.CallExpression): TSESTree.FunctionExpression | undefined => {
   const callee = node.callee;
   if (callee.type !== AST_NODE_TYPES.CallExpression) return undefined;
 

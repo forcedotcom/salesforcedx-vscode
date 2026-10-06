@@ -182,6 +182,7 @@ export default [
       'local/no-nested-effect-ternary': 'error',
       'local/require-effect-fn-span-name': 'error',
       'local/no-raw-duration': 'error',
+      'local/effect-fn-catch-middleware-last': 'error',
       'local/no-duplicate-i18n-values': 'error',
       'local/no-unused-i18n-messages': 'error',
       'local/no-vscode-message-literals': 'error',

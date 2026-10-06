@@ -118,6 +118,46 @@ const persist = Effect.fn('Example.persist')(function* () {
 
 This monorepo enables the rule as `error` for `**/*.ts` in `eslint.config.mjs`, next to `local/no-effect-fn-wrapper`.
 
+### effect-fn-catch-middleware-last
+
+`Effect.fn` applies middleware after the generator from left to right, so a later argument wraps the earlier ones. A success combinator after a catch runs on the recovered value and treats that recovery as success. Put `Effect.tap` and success-notification calls, such as `withConfigurableSuccessNotification(...)`, before `Effect.catch`, `Effect.catchTag`, `Effect.catchAll`, and the rest of the catch family. A later catch stays allowed. A later guard such as `preventOrgChanges` stays allowed, because it races the command and is not a success tap.
+
+The rule walks `Effect.fn('span')(function* () {}, ...middleware)` and `Effect.fn('name', options)(...)`. It does not flag `Effect.fnUntraced`, `Effect.gen`, a catch inside the generator, or a catch on `.pipe`.
+
+**Bad:**
+
+```typescript
+const deploy = Effect.fn('deploySourcePath.deployActiveEditor')(
+  function* () {
+    yield* deployUris();
+  },
+  Effect.catchTag('NoActiveEditorError', () => Effect.void),
+  withConfigurableSuccessNotification('Deployed')
+);
+```
+
+**Good:**
+
+```typescript
+const deploy = Effect.fn('deploySourcePath.deployActiveEditor')(
+  function* () {
+    yield* deployUris();
+  },
+  withConfigurableSuccessNotification('Deployed'),
+  Effect.catchTag('NoActiveEditorError', () => Effect.void)
+);
+
+const deployActiveEditor = Effect.fn('deploySourcePath.deployActiveEditor')(
+  function* () {
+    yield* deployUris();
+  },
+  Effect.catchTag('NoActiveEditorError', () => Effect.void),
+  preventOrgChanges
+);
+```
+
+This monorepo enables the rule as `error` for `**/*.ts` in `eslint.config.mjs`, next to `local/require-effect-fn-span-name`.
+
 ### no-nested-effect-ternary
 
 Disallows nested ternaries (three or more branches) whose type is Effect's `Effect`. Use `Match.value`, `Match.when`, and `Match.orElse` instead. A single Effect ternary stays allowed, and so do nested ternaries that do not produce an `Effect`. For a no-op branch, use `Match.orElse(() => Effect.void)`.
