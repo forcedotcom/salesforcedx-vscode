@@ -42,6 +42,7 @@
     "@salesforce/core": "9.3.0",
     "@salesforce/dev-config": "^4.3.2",
     "@salesforce/effect-octokit": "*",
+    "@salesforce/playwright-vscode-ext": "*",
     "@secretlint/node": "11.7.1",
     "@stylistic/eslint-plugin-ts": "2.13.0",
     "@tony.ganchev/eslint-plugin-header": "3.4.4",
