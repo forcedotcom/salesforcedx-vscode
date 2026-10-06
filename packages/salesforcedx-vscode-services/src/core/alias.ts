@@ -43,7 +43,7 @@ export class AliasService extends Effect.Service<AliasService>()('AliasService',
     const getAliasesFromUsername = Effect.fn('AliasService.getAliasesFromUsername')(function* (username: string) {
       return yield* readAliasFile().pipe(
         Effect.map(aliasContents => aliasContents.orgs),
-        Effect.map(orgs => Record.keys(Record.filter(orgs, value => value === username))),
+        Effect.map(orgs => Record.keys(orgs).filter(alias => orgs[alias] === username)),
         Effect.catchAll(() => Effect.succeed([]))
       );
     });

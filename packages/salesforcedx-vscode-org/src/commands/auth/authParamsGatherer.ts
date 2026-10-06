@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isNotUndefined, isUndefined } from 'effect/Predicate';
-import { toEntries } from 'effect/Record';
+import * as Rec from 'effect/Record';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
@@ -81,31 +81,25 @@ const normalizeUrl = (value: string): string | undefined => {
   }
 };
 
-const buildOrgTypes = (projectUrl: string | undefined): Record<string, vscode.QuickPickItem> =>
-  Object.fromEntries(
-    toEntries({
+const buildOrgTypes = (projectUrl: string | undefined): Record<string, vscode.QuickPickItem> => {
+  const orgTypes = Rec.map(
+    {
       production: { label: 'auth_prod_label', detail: 'auth_prod_detail' },
       sandbox: { label: 'auth_sandbox_label', detail: 'auth_sandbox_detail' },
       custom: { label: 'auth_custom_label', detail: 'auth_custom_detail' }
-    } as const)
-      .map(([key, value]): [string, vscode.QuickPickItem] => [
-        key,
-        { label: nls.localize(value.label), detail: nls.localize(value.detail) }
-      ])
-      .concat(
-        projectUrl
-          ? [
-              [
-                'project',
-                {
-                  label: nls.localize('auth_project_label'),
-                  detail: `${nls.localize('auth_project_detail')} (${projectUrl})`
-                } as const
-              ]
-            ]
-          : []
-      )
+    } as const,
+    value => ({ label: nls.localize(value.label), detail: nls.localize(value.detail) })
   );
+  return projectUrl
+    ? {
+        ...orgTypes,
+        project: {
+          label: nls.localize('auth_project_label'),
+          detail: `${nls.localize('auth_project_detail')} (${projectUrl})`
+        }
+      }
+    : orgTypes;
+};
 
 // QuickPick (org-type) → optional custom-URL InputBox. Reachable only when no instanceUrl is
 // pre-supplied; extracted so it carries its own trace span instead of an anonymous generator.

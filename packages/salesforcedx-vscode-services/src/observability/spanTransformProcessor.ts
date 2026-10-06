@@ -75,8 +75,11 @@ export class SpanTransformProcessor extends BatchSpanProcessor {
           memoized('everySpanIsTheSame')
         ]) // it seems to want a key
       );
-      // Rec.filter's refinement overload drops the undefined-valued attributes and narrows the rest to string
-      Rec.toEntries(Rec.filter({ ...permanent, ...dynamic }, isString)).map(([k, v]) => span.setAttribute(k, v));
+      const attributes = { ...permanent, ...dynamic };
+      Rec.keys(attributes).forEach(key => {
+        const value = attributes[key];
+        if (isString(value)) span.setAttribute(key, value);
+      });
     }
     super.onStart(span, parentContext);
   }

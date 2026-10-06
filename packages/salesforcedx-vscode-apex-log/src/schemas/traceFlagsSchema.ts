@@ -128,11 +128,8 @@ export const buildTraceFlagsSchemas = <A, I>(itemStruct: Schema.Schema<A, I, nev
     if (!traceFlags || !isRecord(traceFlags) || Array.isArray(traceFlags)) return encoded;
     return {
       ...encoded,
-      traceFlags: Rec.fromEntries(
-        Rec.toEntries(traceFlags).map(([k, arr]) => [
-          k,
-          Array.isArray(arr) ? arr.map(item => (isRecord(item) ? reorderTraceFlagItem(item) : item)) : arr
-        ])
+      traceFlags: Rec.map(traceFlags, arr =>
+        Array.isArray(arr) ? arr.map(item => (isRecord(item) ? reorderTraceFlagItem(item) : item)) : arr
       )
     };
   };
