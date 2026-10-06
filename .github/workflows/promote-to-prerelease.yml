@@ -348,4 +348,23 @@ jobs:
         run: |
           curl --fail -sS -X POST "$SLACK_WEBHOOK_URL" \
             -H 'Content-Type: application/json' \
-            --data "$(jq -n --arg title '❌ Promote to Pre-release pipeline failed' --arg run_url "$RUN_URL" --arg repository "$REPOSITORY" '{title: $title, run_url: $run_url, repository: $repository}')"
+            --data "$(jq -n --arg title ':x: Prerelease publishing failed' --arg run_url "$RUN_URL" --arg repository "$REPOSITORY" '{title: $title, run_url: $run_url, repository: $repository}')"
+
+  # Mirrors notify-on-failure above, but for the happy path. Gated on dry-run != true as well
+  # as success() -- mark-release-published (the real "did this actually publish" signal) is
+  # itself skipped during dry-run, and a skipped need doesn't count against success(), so without
+  # this guard a dry-run would falsely announce success despite publishing nothing for real.
+  notify-on-success:
+    needs: [find-nightly, gate-check, compute-changelog-range, changelog-body, write-changelog, promote, mark-release-published]
+    if: success() && inputs.dry-run != true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_PROMOTE_FAILURE_WEBHOOK }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          curl --fail -sS -X POST "$SLACK_WEBHOOK_URL" \
+            -H 'Content-Type: application/json' \
+            --data "$(jq -n --arg title ':check-green: Prerelease publishing succeeded :rocket:' --arg run_url "$RUN_URL" --arg repository "$REPOSITORY" '{title: $title, run_url: $run_url, repository: $repository}')"
