@@ -17,6 +17,7 @@ import { noEffectServicePromiseReturn } from './noEffectServicePromiseReturn';
 import { noExplicitEffectReturnType } from './noExplicitEffectReturnType';
 import { noExportTaggedErrorInServices } from './noExportTaggedErrorInServices';
 import { noInlineEsbuildPlatform } from './noInlineEsbuildPlatform';
+import { noJsforceQuery } from './noJsforceQuery';
 import { noLegacyTelemetryService } from './noLegacyTelemetryService';
 import { noNestedEffectGenCatchTags } from './noNestedEffectGenCatchTags';
 import { noNestedEffectTernary } from './noNestedEffectTernary';
@@ -66,6 +67,7 @@ const plugin: TSESLint.FlatConfig.Plugin = {
     'require-effect-fn-span-name': requireEffectFnSpanName,
     'no-effect-service-accessor-calls': noEffectServiceAccessorCalls,
     'no-effect-service-promise-return': noEffectServicePromiseReturn,
+    'no-jsforce-query': noJsforceQuery,
     'no-explicit-effect-return-type': noExplicitEffectReturnType,
     'no-inline-esbuild-platform': noInlineEsbuildPlatform,
     'no-legacy-telemetry-service': noLegacyTelemetryService,

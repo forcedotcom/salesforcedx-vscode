@@ -28,11 +28,14 @@ const notificationMode = {
   showSuccessNotification
 } as unknown as NotificationModeService;
 
-// Fake jsforce Connection: `tooling.query` returns the seeded records; `tooling.sobject(...).update` is a spy.
-const makeConnection = (queryImpl: () => Promise<QueryResult>) => {
+// Fake jsforce Connection: `tooling.query` and `tooling.sobject(...).update` are spies.
+const makeConnection = (
+  queryImpl: () => Promise<QueryResult> = () => Promise.reject(new Error('unexpected tooling.query'))
+) => {
   const update = jest.fn(() => Promise.resolve({ success: true }));
   const sobject = jest.fn(() => ({ update }));
-  return { conn: { tooling: { query: queryImpl, sobject } }, update, sobject };
+  const toolingQuery = jest.fn(queryImpl);
+  return { conn: { tooling: { query: toolingQuery, sobject } }, toolingQuery, update, sobject };
 };
 
 const makeConfigService = (isvSid?: string, isvUrl?: string) => ({
@@ -42,10 +45,16 @@ const makeConfigService = (isvSid?: string, isvUrl?: string) => ({
     })
 });
 
-type ToolingQueryConn = { tooling: { query: (soql: string) => Promise<QueryResult> } };
+type ToolingConnection = ReturnType<typeof makeConnection>['conn'];
+const query = jest.fn();
 
 // Provide the real effectExtUtils.ExtensionProviderService tag with a mock services api.
-const providerLayer = (conn: ToolingQueryConn | undefined, isvSid?: string, isvUrl?: string) =>
+const providerLayer = (
+  conn: ToolingConnection | undefined,
+  queryImpl: () => Promise<QueryResult>,
+  isvSid?: string,
+  isvUrl?: string
+) =>
   Layer.mergeAll(
     Layer.succeed(effectExtUtils.ExtensionProviderService, {
       getServicesApi: Effect.succeed({
@@ -62,11 +71,11 @@ const providerLayer = (conn: ToolingQueryConn | undefined, isvSid?: string, isvU
           }),
           NotificationModeService,
           QueryService: Effect.succeed({
-            query: (_options: { soql: string }) =>
+            query: (options: { soql: string; tooling: boolean }) =>
               Effect.tryPromise({
                 try: () => {
-                  if (!conn) return Promise.reject(new Error('missing connection'));
-                  return conn.tooling.query(_options.soql);
+                  query(options);
+                  return queryImpl();
                 },
                 catch: (error: unknown) => (error instanceof Error ? error : new Error(String(error)))
               }).pipe(
@@ -84,26 +93,45 @@ const providerLayer = (conn: ToolingQueryConn | undefined, isvSid?: string, isvU
 
 // providerLayer satisfies ConnectionService/ChannelService at runtime, but the api's typed accessors re-add
 // them to the effect's R channel; cast R away since the layer fully provides them.
-const run = (conn: ToolingQueryConn | undefined, isvSid?: string, isvUrl?: string) =>
+const run = (
+  conn: ToolingConnection | undefined,
+  queryImpl: () => Promise<QueryResult>,
+  isvSid?: string,
+  isvUrl?: string
+) =>
   Effect.runPromise(
-    debuggerStop().pipe(Effect.provide(providerLayer(conn, isvSid, isvUrl))) as Effect.Effect<void, unknown, never>
+    debuggerStop().pipe(Effect.provide(providerLayer(conn, queryImpl, isvSid, isvUrl))) as Effect.Effect<
+      void,
+      unknown,
+      never
+    >
   );
 
-const runFlipped = (conn: ToolingQueryConn | undefined) =>
+const runFlipped = (conn: ToolingConnection | undefined, queryImpl: () => Promise<QueryResult>) =>
   Effect.runPromise(
-    debuggerStop().pipe(Effect.provide(providerLayer(conn)), Effect.flip) as Effect.Effect<unknown, never, never>
+    debuggerStop().pipe(Effect.provide(providerLayer(conn, queryImpl)), Effect.flip) as Effect.Effect<
+      unknown,
+      never,
+      never
+    >
   );
 
 describe('debuggerStop', () => {
   beforeEach(() => {
+    query.mockClear();
     (vscode.window.showInformationMessage as jest.Mock) = jest.fn();
     getProgressLocation.mockReturnValue(Effect.succeed(15 /* vscode.ProgressLocation.Notification */));
     showSuccessNotification.mockReturnValue(Effect.void);
   });
 
   it('shows "none found" and does NOT update when the query returns 0 records', async () => {
-    const { conn, update } = makeConnection(() => Promise.resolve({ records: [] }));
-    await run(conn);
+    const { conn, toolingQuery, update } = makeConnection();
+    await run(conn, () => Promise.resolve({ records: [] }));
+    expect(query).toHaveBeenCalledWith({
+      soql: "SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1",
+      tooling: true
+    });
+    expect(toolingQuery).not.toHaveBeenCalled();
     expect(update).not.toHaveBeenCalled();
     expect(showSuccessNotification).toHaveBeenCalledWith(
       'SFDX: Stop Apex Debugger Session',
@@ -113,8 +141,9 @@ describe('debuggerStop', () => {
   });
 
   it('detaches the session and shows the success toast when the query returns a record', async () => {
-    const { conn, sobject, update } = makeConnection(() => Promise.resolve({ records: [{ Id: '07aXX0000000001' }] }));
-    await run(conn);
+    const { conn, toolingQuery, sobject, update } = makeConnection();
+    await run(conn, () => Promise.resolve({ records: [{ Id: '07aXX0000000001' }] }));
+    expect(toolingQuery).not.toHaveBeenCalled();
     expect(sobject).toHaveBeenCalledWith('ApexDebuggerSession');
     expect(update).toHaveBeenCalledTimes(1);
     expect(update).toHaveBeenCalledWith({ Id: '07aXX0000000001', Status: 'Detach' });
@@ -127,20 +156,27 @@ describe('debuggerStop', () => {
   });
 
   it('surfaces the query rejection (not swallowed) when the query rejects', async () => {
-    const { conn, update } = makeConnection(() => Promise.reject(new Error('boom')));
-    const error = await runFlipped(conn);
+    const { conn, update } = makeConnection();
+    const error = await runFlipped(conn, () => Promise.reject(new Error('boom')));
     expect(error).toBeInstanceOf(Error);
     expect((error as Error).message).toBe('boom');
     expect(update).not.toHaveBeenCalled();
   });
 
   it('builds an ISV connection from org-isv-debugger-sid/url when present instead of using target-org', async () => {
-    const { conn, sobject, update } = makeConnection(() => Promise.resolve({ records: [{ Id: '07aXX0000000002' }] }));
+    const { conn, toolingQuery, sobject, update } = makeConnection(() =>
+      Promise.resolve({ records: [{ Id: '07aXX0000000002' }] })
+    );
     const mockAuthInfo = {};
     (AuthInfo.create as jest.Mock).mockResolvedValue(mockAuthInfo);
     (Connection.create as jest.Mock).mockResolvedValue(conn);
 
-    await run(undefined, 'fakeSessionId', 'https://na1.salesforce.com');
+    await run(
+      undefined,
+      () => Promise.reject(new Error('QueryService should not be used for ISV')),
+      'fakeSessionId',
+      'https://na1.salesforce.com'
+    );
 
     expect(AuthInfo.create).toHaveBeenCalledWith({
       accessTokenOptions: {
@@ -150,6 +186,8 @@ describe('debuggerStop', () => {
       }
     });
     expect(Connection.create).toHaveBeenCalledWith({ authInfo: mockAuthInfo });
+    expect(query).not.toHaveBeenCalled();
+    expect(toolingQuery).toHaveBeenCalledWith("SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1");
     expect(sobject).toHaveBeenCalledWith('ApexDebuggerSession');
     expect(update).toHaveBeenCalledWith({ Id: '07aXX0000000002', Status: 'Detach' });
     expect(showSuccessNotification).toHaveBeenCalledWith(
