@@ -50,15 +50,6 @@ const noNullCompare = {
   message:
     "Do not use x == null / x != null. Use the 'effect/Predicate' guard matching the declared type: T | undefined -> isUndefined / isNotUndefined; T | null -> isNull / isNotNull; T | null | undefined -> isNullable / isNotNullable."
 };
-const noJsforceQuery = {
-  selector: "CallExpression[callee.property.name='query']:not([callee.object.name='queryService'])",
-  message: 'Use QueryService.query instead of calling a jsforce connection/tooling query directly.'
-};
-const noJsforceQueryMore = {
-  selector: "CallExpression[callee.property.name='queryMore']",
-  message: 'Use QueryService.query for pagination instead of calling jsforce queryMore directly.'
-};
-
 export default [
   {
     ignores: [
@@ -159,6 +150,7 @@ export default [
     },
     rules: {
       'local/no-vscode-uri': 'error',
+      'local/no-jsforce-query': 'error',
       'local/no-vscode-show-text-document': 'warn',
       'local/no-inline-esbuild-platform': 'error',
       'local/no-legacy-telemetry-service': 'error',
@@ -536,7 +528,7 @@ export default [
       'no-invalid-this': 'off',
       'no-new-wrappers': 'error',
       'no-param-reassign': 'error',
-      'no-restricted-syntax': ['error', noHrtime, noJsforceQuery, noJsforceQueryMore],
+      'no-restricted-syntax': ['error', noHrtime],
       'no-shadow': 'off',
       'no-self-assign': 'error',
       'no-self-compare': 'error',
@@ -613,13 +605,14 @@ export default [
     ],
     rules: {
       // flat config replaces the whole array, so re-specify the base guards
-      'no-restricted-syntax': ['error', noHrtime, noJsforceQuery, noJsforceQueryMore, noInstanceofError, noNullCompare]
+      'no-restricted-syntax': ['error', noHrtime, noInstanceofError, noNullCompare]
     }
   },
   {
     // Only queryExecute calls jsforce query/queryMore; keep the other syntax guards here.
     files: ['packages/salesforcedx-vscode-services/src/core/queryExecute.ts'],
     rules: {
+      'local/no-jsforce-query': 'off',
       'no-restricted-syntax': ['error', noHrtime, noInstanceofError, noNullCompare]
     }
   },
@@ -730,6 +723,7 @@ export default [
     rules: {
       // apex-node does not depend on the services extension.
       'no-restricted-syntax': ['error', noHrtime],
+      'local/no-jsforce-query': 'off',
       // upstream style: avoid restyling imported, history-tracked code
       '@typescript-eslint/consistent-type-assertions': 'off',
       '@typescript-eslint/explicit-member-accessibility': 'off',

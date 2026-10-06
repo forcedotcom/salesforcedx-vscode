@@ -82,7 +82,7 @@ export const debuggerStop = Effect.fn('debuggerStop')(function* () {
   const sessionRecords =
     isvSid && isvUrl
       ? Effect.tryPromise({
-          // eslint-disable-next-line no-restricted-syntax -- ISV sid/url connection QueryService cannot resolve
+          // eslint-disable-next-line local/no-jsforce-query -- ISV sid/url connection QueryService cannot resolve
           try: () => Promise.resolve(conn.tooling.query(SESSION_SOQL)),
           catch: queryError
         }).pipe(
