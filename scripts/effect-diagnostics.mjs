@@ -6,8 +6,8 @@ import { glob } from 'glob';
 
 // Effect LS diagnostics ratchet.
 // Runs @effect/language-service `diagnostics` on every Effect-adopting package,
-// then fails ONLY on findings whose rule name is listed in config/effect-diagnostics.json
-// `enforcedRules` (any severity). Everything else is reported informationally.
+// enables config/effect-diagnostics.json `enforcedRules` at error severity, then fails
+// ONLY on those findings. Everything else is reported informationally.
 // Decoupled from the CLI exit code (which counts errors) so per-rule gating is uniform.
 // A CLI invocation that can't be parsed as JSON for any reason other than an empty-package
 // NoFilesToCheckError fails the gate — a broken run must never silently drop enforced findings.
@@ -26,6 +26,9 @@ if (!Array.isArray(enforcedRules)) {
   process.exit(1);
 }
 const enforcedSet = new Set(enforcedRules);
+// --lspconfig replaces the project's Effect plugin config; enable off-by-default rules
+// here without pinning them in tsconfig.common.json (which also affects editor/tsc).
+const lspConfig = JSON.stringify({ diagnosticSeverity: Object.fromEntries(enforcedRules.map(name => [name, 'error'])) });
 
 // Per-package CLI budget: bound a hung/runaway invocation instead of hanging the whole CI job.
 const perPackageTimeoutMs = 5 * 60 * 1000;
@@ -53,7 +56,7 @@ const discoveredPackages = packageJsonPaths.flatMap(relPkgJson => {
 // - Anything else (crash, timeout, maxBuffer overflow, non-JSON output) -> hard failure
 //   that fails the gate, so a broken invocation can never silently drop enforced findings.
 const runPackage = ({ name, tsconfig }) => {
-  const result = spawnSync('node', [cli, 'diagnostics', '--project', tsconfig, '--format', 'json'], {
+  const result = spawnSync('node', [cli, 'diagnostics', '--project', tsconfig, '--format', 'json', '--lspconfig', lspConfig], {
     cwd: repoRoot,
     encoding: 'utf8',
     maxBuffer: 64 * 1024 * 1024,
