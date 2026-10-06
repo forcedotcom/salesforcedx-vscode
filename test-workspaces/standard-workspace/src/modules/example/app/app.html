@@ -5,7 +5,7 @@
 
     <ol>
         <template for:each={state.todos} for:item="todo">
-            <li>{todo.text}</li>
+            <li key={todo.text}>{todo.text}</li>
         </template>
     </ol>
 
