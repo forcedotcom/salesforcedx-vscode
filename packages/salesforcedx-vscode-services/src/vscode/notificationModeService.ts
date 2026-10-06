@@ -41,15 +41,16 @@ export type ProgressOnlyMode = 'progressToast' | 'progressStatusBar';
 /** Notification mode for commands that produce only a success notification. */
 export type SuccessOnlyMode = 'successToast' | 'successStatusBar' | 'successOff';
 
-const AnyModeSchema = Schema.Union(
-  Schema.Literal(
-    'progressToastSuccessToast',
-    'progressToastSuccessOff',
-    'progressStatusBarSuccessStatusBar',
-    'progressStatusBarSuccessOff'
-  ),
-  Schema.Literal('progressToast', 'progressStatusBar'),
-  Schema.Literal('successToast', 'successStatusBar', 'successOff')
+const AnyModeSchema = Schema.Literal(
+  'progressToastSuccessToast',
+  'progressToastSuccessOff',
+  'progressStatusBarSuccessStatusBar',
+  'progressStatusBarSuccessOff',
+  'progressToast',
+  'progressStatusBar',
+  'successToast',
+  'successStatusBar',
+  'successOff'
 );
 type AnyMode = Schema.Schema.Type<typeof AnyModeSchema>;
 
