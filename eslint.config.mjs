@@ -920,6 +920,16 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-vscode-org-browser (inline to avoid no-duplicate-imports; W-23371063)
+    files: ['packages/salesforcedx-vscode-org-browser/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // consistent-type-imports for salesforcedx-vscode-apex-replay-debugger (inline to avoid no-duplicate-imports; W-23371059)
     files: ['packages/salesforcedx-vscode-apex-replay-debugger/**/*.ts'],
     rules: {
