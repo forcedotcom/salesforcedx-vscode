@@ -20,6 +20,7 @@ import type {
 } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { getOrgBrowserRuntime } from '../services/extensionProvider';
+import { preloadMetadataTypes } from '../services/metadataTypePreload';
 import { matchesPattern, MAX_TYPES_FOR_COMPONENT_PREFETCH } from '../utils/wildcardPattern';
 import { createCustomFieldNode } from './customField';
 import { isFolderListingNode, isFolderNode, isFolderType, OrgBrowserTreeItem } from './orgBrowserNode';
@@ -117,7 +118,9 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
    */
   public async refreshType(node?: OrgBrowserTreeItem): Promise<void> {
     if (!node) this.fullDiscoveryOrgIds.clear();
-    await getOrgBrowserRuntime().runPromise(invalidateForNode(node));
+    await getOrgBrowserRuntime().runPromise(
+      invalidateForNode(node).pipe(Effect.zipRight(node ? Effect.void : preloadConfiguredMetadataTypes))
+    );
     this._onDidChangeTreeData.fire(node);
   }
 
@@ -178,6 +181,17 @@ const invalidateForNode = Effect.fn('invalidateForNode')(function* (node?: OrgBr
     Match.orElse(n => ({ type: n?.xmlName }))
   );
   yield* catalog.getChildren(reference, { consistency: 'refresh' });
+});
+
+const preloadConfiguredMetadataTypes = Effect.gen(function* () {
+  const svcProvider = yield* ExtensionProviderService;
+  const api = yield* svcProvider.getServicesApi;
+  const { orgId } = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+  if (!orgId) return;
+  const catalog = yield* api.services.OrgMetadataCatalog;
+  yield* preloadMetadataTypes(catalog).pipe(
+    Effect.catchAll(error => Effect.logWarning('Failed to preload Org Browser metadata types', error))
+  );
 });
 
 export const passesTypeFilter = (node: OrgBrowserTreeItem, provider: MetadataTypeTreeProvider): boolean => {

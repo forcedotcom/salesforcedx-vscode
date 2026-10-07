@@ -182,7 +182,6 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     until: org => isNotUndefined(org.orgId),
     schedule: Schedule.exponential(Duration.millis(10))
   });
-
   const orgMetadataChanges = yield* api.services.OrgMetadataCatalogChangePubSub;
   const extensionScope = yield* getExtensionScope();
   yield* Effect.forkIn(
@@ -201,7 +200,20 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       // we do want a change to "no org" to trigger the refresh so it shows the empty state.
       Stream.tap(orgId => svc.appendToChannel(`Target org changed to ${orgId ?? '<NOT SET>'}`)),
       Stream.tap(() => svc.appendToChannel('Org changed, will try to update OrgBrowser')),
-      Stream.runForEach(() => Effect.promise(() => treeProvider.refreshType()))
+      Stream.runForEach(orgId =>
+        orgId
+          ? Effect.tryPromise(() => treeProvider.refreshType()).pipe(
+              Effect.catchAll(error =>
+                Effect.logWarning('Failed to refresh Org Browser after an org change', error).pipe(
+                  Effect.zipRight(Effect.sync(() => treeProvider.fireChangeEvent()))
+                )
+              )
+            )
+          : Effect.tryPromise(() => treeProvider.updateTreeEmptyContext(true)).pipe(
+              Effect.zipRight(Effect.sync(() => treeProvider.fireChangeEvent())),
+              Effect.catchAll(error => Effect.logWarning('Failed to clear the Org Browser tree', error))
+            )
+      )
     )
   );
 
