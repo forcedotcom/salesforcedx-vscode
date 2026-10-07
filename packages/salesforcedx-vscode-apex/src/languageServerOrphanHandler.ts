@@ -177,15 +177,18 @@ export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.che
   // (e.g. a previous session's LSP completing its own graceful shutdown, which can take a second
   // or more). The delay gives that shutdown time to finish so an already-exiting server isn't
   // mistaken for a confirmed orphan. Runs on a background fiber, so the wait never blocks activation.
-  const initialState: { attempt: number; orphans: ProcessDetail[] } = { attempt: 0, orphans: [] };
-  const { orphans: confirmedOrphans } = yield* Effect.iterate(initialState, {
-    while: ({ attempt, orphans }) => attempt < numTries && (attempt === 0 || orphans.length > 0),
-    body: ({ attempt }) =>
-      (attempt === 0
-        ? findOrphanedProcessesSafe()
-        : Effect.sleep(delayBetweenTries).pipe(Effect.zipRight(findOrphanedProcessesSafe()))
-      ).pipe(Effect.map(orphans => ({ attempt: attempt + 1, orphans })))
-  });
+  // Effect.repeat runs the initial check before the schedule, so recurs bounds only later checks.
+  const confirmedOrphans = yield* numTries <= 0
+    ? Effect.succeed<ProcessDetail[]>([])
+    : findOrphanedProcessesSafe().pipe(
+        Effect.repeat(
+          Schedule.recurWhile((orphans: ProcessDetail[]) => orphans.length > 0).pipe(
+            Schedule.intersect(Schedule.recurs(numTries - 1)),
+            Schedule.map(([orphans]) => orphans),
+            Schedule.addDelay(() => delayBetweenTries)
+          )
+        )
+      );
   yield* annotateRootSpan('orphanCount', confirmedOrphans.length);
   if (confirmedOrphans.length === 0) return;
 
