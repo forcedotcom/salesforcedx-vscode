@@ -4,11 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService, getExtensionScope, getServicesApi } from '@salesforce/effect-ext-utils';
+import {
+  ExtensionProviderService,
+  getExtensionScope,
+  getMessageFromError,
+  getServicesApi
+} from '@salesforce/effect-ext-utils';
 import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
-import { isError, isNotUndefined } from 'effect/Predicate';
+import { isNotUndefined } from 'effect/Predicate';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
@@ -87,8 +92,6 @@ export const toolsDirsToDelete = (entries: readonly ToolsEntry[]): URI[] =>
 
 const telemetryError = (cause: unknown): { error?: unknown } =>
   typeof cause === 'object' && cause !== null && 'error' in cause ? { error: cause.error } : { error: cause };
-
-const formatErrorMessage = (error: unknown): string => (isError(error) ? error.message : String(error));
 
 const removeApexDbEffect = Effect.fn('LanguageClientManager.removeApexDB')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -294,7 +297,7 @@ export class LanguageClientManager {
     if (isNotUndefined(alc)) {
       statusBarInstance.restarting();
       await getRuntime().runPromise(
-        Effect.tryPromise({ try: () => alc.stop(), catch: formatErrorMessage }).pipe(
+        Effect.tryPromise({ try: () => alc.stop(), catch: getMessageFromError }).pipe(
           Effect.catchAll(message =>
             Effect.sync(() => {
               void vscode.window.showWarningMessage(
@@ -331,7 +334,7 @@ export class LanguageClientManager {
             await alc.dispose();
             await this.createLanguageClient(extensionContext, statusBarInstance);
           },
-          catch: error => ({ error, message: formatErrorMessage(error) })
+          catch: error => ({ error, message: getMessageFromError(error) })
         }).pipe(
           Effect.catchAll(({ error, message }) =>
             Effect.logError('Error creating language client', { error }).pipe(
