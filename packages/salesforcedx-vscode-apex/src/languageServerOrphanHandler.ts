@@ -177,18 +177,17 @@ export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.che
   // (e.g. a previous session's LSP completing its own graceful shutdown, which can take a second
   // or more). The delay gives that shutdown time to finish so an already-exiting server isn't
   // mistaken for a confirmed orphan. Runs on a background fiber, so the wait never blocks activation.
-  let confirmedOrphans: ProcessDetail[] = [];
-  for (let i = 1; i <= numTries; i++) {
-    if (i > 1) {
-      yield* Effect.sleep(delayBetweenTries);
-    }
-    confirmedOrphans = yield* findOrphanedProcessesSafe();
-    if (confirmedOrphans.length === 0) {
-      yield* annotateRootSpan('orphanCount', 0);
-      return;
-    }
-  }
+  const initialState: { attempt: number; orphans: ProcessDetail[] } = { attempt: 0, orphans: [] };
+  const { orphans: confirmedOrphans } = yield* Effect.iterate(initialState, {
+    while: ({ attempt, orphans }) => attempt < numTries && (attempt === 0 || orphans.length > 0),
+    body: ({ attempt }) =>
+      (attempt === 0
+        ? findOrphanedProcessesSafe()
+        : Effect.sleep(delayBetweenTries).pipe(Effect.zipRight(findOrphanedProcessesSafe()))
+      ).pipe(Effect.map(orphans => ({ attempt: attempt + 1, orphans })))
+  });
   yield* annotateRootSpan('orphanCount', confirmedOrphans.length);
+  if (confirmedOrphans.length === 0) return;
 
   // When auto-terminate is enabled, kill silently; otherwise ask the user.
   const shouldTerminate = (yield* isAutoTerminateEnabled())
