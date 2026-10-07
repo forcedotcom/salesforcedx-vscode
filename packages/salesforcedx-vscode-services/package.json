@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.27.4",
+  "version": "67.27.6",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -42,6 +42,7 @@
     "@opentelemetry/sdk-trace-base": "2.10.0",
     "@opentelemetry/sdk-trace-node": "2.8.0",
     "@opentelemetry/sdk-trace-web": "2.8.0",
+    "@salesforce/apex-node": "*",
     "@salesforce/core": "^9.3.0",
     "@salesforce/o11y-reporter": "^1.8.5",
     "@salesforce/salesforcedx-utils": "*",
@@ -103,6 +104,7 @@
       "dependencies": [
         "build:icons",
         "generate-types",
+        "../salesforcedx-apex:compile",
         "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-i18n:compile"
       ],

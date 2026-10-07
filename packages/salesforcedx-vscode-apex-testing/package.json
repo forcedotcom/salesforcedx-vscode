@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.27.4",
+  "version": "67.27.6",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -238,7 +238,6 @@
       "dependencies": [
         "vscode:package",
         "../salesforcedx-vscode-services:vscode:package",
-        "../salesforcedx-vscode-core:vscode:package",
         "../salesforcedx-vscode-org:vscode:package",
         "../salesforcedx-vscode-metadata:vscode:package",
         "../salesforcedx-vscode-apex-log:vscode:package",
@@ -338,7 +337,6 @@
       "dependencies": [
         "vscode:package",
         "../salesforcedx-vscode-services:vscode:package",
-        "../salesforcedx-vscode-core:vscode:package",
         "../salesforcedx-vscode-org:vscode:package",
         "../salesforcedx-vscode-metadata:vscode:package",
         "../salesforcedx-vscode-apex-log:vscode:package",
@@ -366,7 +364,6 @@
       "dependencies": [
         "vscode:package",
         "../salesforcedx-vscode-services:vscode:package",
-        "../salesforcedx-vscode-core:vscode:package",
         "../salesforcedx-vscode-org:vscode:package",
         "../salesforcedx-vscode-metadata:vscode:package",
         "../salesforcedx-vscode-apex-log:vscode:package",
@@ -394,7 +391,6 @@
       "dependencies": [
         "vscode:package",
         "../salesforcedx-vscode-services:vscode:package",
-        "../salesforcedx-vscode-core:vscode:package",
         "../salesforcedx-vscode-org:vscode:package",
         "../salesforcedx-vscode-metadata:vscode:package",
         "../salesforcedx-vscode-apex-log:vscode:package",

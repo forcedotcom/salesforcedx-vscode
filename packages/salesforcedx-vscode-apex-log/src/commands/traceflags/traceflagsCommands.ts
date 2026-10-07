@@ -9,6 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import * as Record from 'effect/Record';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { type DebugLevelItem, type TraceFlagItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
@@ -164,7 +165,7 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
   ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
 
   const levels = useDefaultsPick.value
-    ? Object.fromEntries(DEBUG_LEVEL_CATEGORIES.map(c => [c.key, c.default]))
+    ? Record.fromIterableWith(DEBUG_LEVEL_CATEGORIES, category => [category.key, category.default])
     : yield* Effect.all(
         DEBUG_LEVEL_CATEGORIES.map(cat =>
           Effect.promise(() => pickLogLevel(cat, cat.default)).pipe(
@@ -172,7 +173,7 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
           )
         ),
         { concurrency: 1 }
-      ).pipe(Effect.map(picked => Object.fromEntries(DEBUG_LEVEL_CATEGORIES.map((c, i) => [c.key, picked[i]]))));
+      ).pipe(Effect.map(picked => Record.fromEntries(DEBUG_LEVEL_CATEGORIES.map((c, i) => [c.key, picked[i]]))));
 
   const payload = {
     MasterLabel: masterLabel.trim(),

@@ -9,7 +9,7 @@ import { Column, createTable, ExtensionProviderService, Row } from '@salesforce/
 import * as Cause from 'effect/Cause';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
-import { isNull, isNullable, isRecord, isUndefined } from 'effect/Predicate';
+import { isBoolean, isDate, isNull, isNullable, isNumber, isRecord, isUndefined } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import { Utils } from 'vscode-uri';
 import { SFDX_CORE_SECTION, SOQL_CONFIGURATION_NAME } from '../constants';
@@ -114,19 +114,10 @@ export const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: 
           queryResult.records.length
         )
       : nls.localize('data_query_complete', queryResult.totalSize);
-    // showChannel runs concurrently, not after: saveResultsToCSV awaits a
-    // showInformationMessage prompt that never resolves without user action,
-    // so gating show behind this Effect.all (e.g. via ensuring) never reveals
-    // the panel.
-    yield* Effect.all(
-      [
-        displayTableResults(queryResult),
-        channelService.appendToChannel(statusMessage),
-        saveResultsToCSV(queryResult),
-        channelService.showChannel
-      ],
-      { concurrency: 'unbounded' }
-    );
+    yield* displayTableResults(queryResult);
+    yield* channelService.appendToChannel(statusMessage);
+    yield* channelService.showChannel;
+    yield* saveResultsToCSV(queryResult);
   }).pipe(
     Effect.catchAllCause(cause =>
       cause.pipe(
@@ -205,7 +196,7 @@ const isSubQueryResult = (value: unknown): value is { totalSize: number; done: b
   if (!isRecord(value)) {
     return false;
   }
-  return typeof value.totalSize === 'number' && typeof value.done === 'boolean' && Array.isArray(value.records);
+  return isNumber(value.totalSize) && isBoolean(value.done) && Array.isArray(value.records);
 };
 
 const RELATIONSHIP_FLATTEN_MAX_DEPTH = 10;
@@ -562,7 +553,7 @@ const formatNestedDisplayValue = (value: unknown, depthRemaining: number): strin
   if (isUndefined(value)) {
     return 'undefined';
   }
-  if (value instanceof Date) {
+  if (isDate(value)) {
     const dateStr = String(value);
     return dateStr.length > 50 ? `${dateStr.substring(0, 47)}...` : dateStr;
   }
