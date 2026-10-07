@@ -147,4 +147,35 @@ describe('NotificationModeService.Default', () => {
 
     expect(vscode.window.showInformationMessage).toHaveBeenCalledWith('done');
   });
+
+  it('returns before the user responds to a success toast with actions', async () => {
+    makeConfig({ extGlobal: 'progressToastSuccessToast' });
+    // Never resolves: if showSuccessNotification awaited this, the test would hang/timeout.
+    (vscode.window.showInformationMessage as jest.Mock).mockReturnValue(new Promise(() => {}));
+    const run = jest.fn();
+
+    await NotificationModeService.showSuccessNotification('Command', 'done', false, [{ label: 'Open', run }]).pipe(
+      runWithService
+    );
+
+    expect(vscode.window.showInformationMessage).toHaveBeenCalledWith('done', 'Open');
+    expect(run).not.toHaveBeenCalled();
+  });
+
+  it('runs the selected toast action after showSuccessNotification has returned', async () => {
+    makeConfig({ extGlobal: 'progressToastSuccessToast' });
+    const { promise: selection, resolve: select } = Promise.withResolvers<string | undefined>();
+    (vscode.window.showInformationMessage as jest.Mock).mockReturnValue(selection);
+    const run = jest.fn();
+    const ran = new Promise<void>(resolve => run.mockImplementation(resolve));
+
+    await Effect.gen(function* () {
+      yield* NotificationModeService.showSuccessNotification('Command', 'done', false, [{ label: 'Open', run }]);
+      expect(run).not.toHaveBeenCalled();
+      select('Open');
+      yield* Effect.promise(() => ran);
+    }).pipe(runWithService);
+
+    expect(run).toHaveBeenCalledTimes(1);
+  });
 });

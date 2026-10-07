@@ -25,6 +25,7 @@ import {
   setupNonTrackingOrgAndAuth,
   upsertSettings,
   validateNoCriticalErrors,
+  verifyNoTestRunInProgress,
   waitForOutputChannelText,
   waitForRunApexTestsProgressNotificationGone
 } from '@salesforce/playwright-vscode-ext';
@@ -150,6 +151,7 @@ test('Code coverage colorizer: green covered + red uncovered lines, cleared on t
     await selectOutputChannel(page, 'Apex Testing');
     await waitForOutputChannelText(page, { expectedText: '=== Test Summary', timeout: TEST_RUN_TIMEOUT });
     await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
+    await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.test-run-complete.png');
   });
 

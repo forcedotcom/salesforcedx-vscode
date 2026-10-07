@@ -23,6 +23,7 @@ import {
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   verifyCommandExists,
+  verifyNoTestRunInProgress,
   waitForOutputChannelText,
   waitForRunApexTestsProgressNotificationGone
 } from '@salesforce/playwright-vscode-ext';
@@ -120,6 +121,7 @@ test.beforeEach(async ({ page }) => {
         await waitForOutputChannelText(page, { expectedText: `${testClassName}.validateSayHello  Pass` });
       }
       await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
+      await verifyNoTestRunInProgress(page);
       await saveScreenshot(page, 'step.run-all.done.png');
       // Restore panel before next step
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
@@ -151,6 +153,7 @@ test.beforeEach(async ({ page }) => {
         await waitForOutputChannelText(page, { expectedText: `${testClassName}.validateSayHello  Pass` });
       }
       await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
+      await verifyNoTestRunInProgress(page);
       await saveScreenshot(page, 'step.run-single.done.png');
       // Restore panel before next step
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
@@ -187,6 +190,7 @@ test.beforeEach(async ({ page }) => {
         await waitForOutputChannelText(page, { expectedText: `${testClassName}.validateSayHello  Pass` });
       }
       await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
+      await verifyNoTestRunInProgress(page);
       await saveScreenshot(page, 'step.rerun-last-class.done.png');
       // Restore panel before next step
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
@@ -220,6 +224,7 @@ test.beforeEach(async ({ page }) => {
         await waitForOutputChannelText(page, { expectedText: `${testClassName}.validateSayHello  Pass` });
       }
       await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
+      await verifyNoTestRunInProgress(page);
       await saveScreenshot(page, 'step.rerun-last-method.done.png');
     });
 

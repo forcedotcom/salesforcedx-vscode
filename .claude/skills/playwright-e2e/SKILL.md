@@ -145,6 +145,7 @@ When testing native Test Controller surfaces (Test Explorer, Test Results panel)
 - **Test Results panel**: Wait for tab visibility, then assert Pass Rate text (e.g., `getByText(/Pass Rate/i)`)
 - **Tree items**: Assert aria-label contains expected decoration (e.g., `toHaveAttribute('aria-label', /Passed/i)` for completed tests)
 - **Locators**: Use `TEST_RESULTS_TAB = 'a.action-label[aria-label="Test Results"]'` to target panel tab reliably
+- **Test run completion**: Call `verifyNoTestRunInProgress` (playwright-vscode-ext) after every Apex test run — sidebar, code lens, palette, suite, debug. Results/tree decorations/`Ended …` sentinel appear while TestRun still open; absence of 'Test: Cancel Test Run' command proves run ended. Sidebar (Test Explorer) runs: call before dismissing/clicking the success toast—that would end a run blocked on it, masking regressions. Palette/code lens runs have no TestRun tied to the toast, so order vs. toast doesn't matter.
 
 ## Reliable Assertions for Async Operations
 

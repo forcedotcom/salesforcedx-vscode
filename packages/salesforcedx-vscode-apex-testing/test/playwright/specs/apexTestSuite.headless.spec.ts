@@ -24,6 +24,7 @@ import {
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   verifyCommandExists,
+  verifyNoTestRunInProgress,
   waitForNotification,
   waitForOutputChannelText,
   waitForRunApexTestsProgressNotificationGone
@@ -225,6 +226,7 @@ test('Apex Test Suite: create, verify creation, edit tests, run suite', async ({
     await waitForOutputChannelText(page, { expectedText: testClassName1, timeout: 60_000 });
     await waitForOutputChannelText(page, { expectedText: testClassName2, timeout: 60_000 });
     await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests', timeout: 60_000 });
+    await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.verify-run.done.png');
     if (isContainer) {
       // Restore panel before next step
@@ -295,6 +297,7 @@ test('Apex Test Suite: create, verify creation, edit tests, run suite', async ({
     // Verify removed class does NOT appear in test results (use retry-capable assertion)
     const outputPanel = page.locator('.output-view .view-lines');
     await expect(outputPanel).not.toContainText(testClassName2, { timeout: 30_000 });
+    await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.rerun-suite.done.png');
   });
 

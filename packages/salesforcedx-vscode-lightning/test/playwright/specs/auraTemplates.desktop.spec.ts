@@ -6,7 +6,7 @@
  */
 
 import { isContainer, test } from '../fixtures';
-import { expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import {
   clearAllNotifications,
   setupConsoleMonitoring,
@@ -44,12 +44,7 @@ test.describe('Aura Templates', () => {
     }
   });
 
-  const createAuraTemplate = async (
-    page: import('@playwright/test').Page,
-    command: string,
-    name: string,
-    expectedFiles: string[]
-  ) => {
+  const createAuraTemplate = async (page: Page, command: string, name: string, expectedFiles: string[]) => {
     await test.step(`Create Aura ${name}`, async () => {
       await verifyCommandExists(page, command, 30_000);
       await executeCommandWithCommandPalette(page, command);

@@ -22,6 +22,7 @@ import {
   setupNetworkMonitoring,
   stopDebugSession,
   validateNoCriticalErrors,
+  verifyNoTestRunInProgress,
   waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
 
@@ -251,6 +252,7 @@ test('Debug Apex Tests: CodeLens and Test Explorer entry points', async ({ page 
     await clickCodeLens(page, 'Debug All Tests', { timeout: 180_000 });
     await waitForSuccessNotification(page);
     await continueDebugSession(page);
+    await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.debug-all-tests.png');
   });
 
@@ -259,6 +261,7 @@ test('Debug Apex Tests: CodeLens and Test Explorer entry points', async ({ page 
     await clickCodeLens(page, 'Debug Test', { timeout: 180_000 });
     await waitForSuccessNotification(page);
     await continueDebugSession(page);
+    await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.debug-single-test.png');
   });
 
@@ -270,6 +273,7 @@ test('Debug Apex Tests: CodeLens and Test Explorer entry points', async ({ page 
     await debugTestFromTreeItem(page, new RegExp(class1Test, 'i'));
     await waitForSuccessNotification(page);
     await continueDebugSession(page);
+    await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.debug-test-explorer-class.png');
   });
 
@@ -283,6 +287,7 @@ test('Debug Apex Tests: CodeLens and Test Explorer entry points', async ({ page 
     await debugTestFromTreeItem(page, /validateSayHelloTwo/i);
     await waitForSuccessNotification(page);
     await continueDebugSession(page);
+    await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.debug-test-explorer-method.png');
   });
 
