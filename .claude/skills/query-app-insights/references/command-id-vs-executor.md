@@ -23,7 +23,6 @@
 ## Commands Without Telemetry
 
 Simple functions that don't use executors **never send telemetry**:
-- `sf.open.documentation` - opens URLs
 - `sf.task.stop` - terminates tasks
 - `sf.conflict.open` - opens resources
 
