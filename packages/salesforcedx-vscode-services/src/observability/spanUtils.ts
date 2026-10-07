@@ -9,6 +9,7 @@ import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import * as Option from 'effect/Option';
 import { isNotNullable, isNotUndefined, isUndefined } from 'effect/Predicate';
 import * as Rec from 'effect/Record';
+import { LEGACY_TELEMETRY_SOURCE_ATTR, LEGACY_TELEMETRY_SOURCE_VALUE } from './legacyTelemetrySender';
 
 /** Check if a span is a top-level span (has no parent) */
 const isTopLevelSpan = (span: ReadableSpan): boolean => isUndefined(span.parentSpanContext);
@@ -32,8 +33,36 @@ export const convertAttributes = (attributes: Attributes): Attributes =>
   );
 
 /** Calculate span duration in milliseconds */
-export const spanDuration = (span: ReadableSpan): number =>
+const spanDuration = (span: ReadableSpan): number =>
   span.duration ? span.duration[0] * 1000 + span.duration[1] / 1_000_000 : 0;
+
+/**
+ * Numeric measurements for legacy TelemetryService spans. The sender merges the
+ * legacy payload's numeric measurements into span attributes, where exporters
+ * otherwise stringify everything into properties. Copy finite numerics back into
+ * measurements so App Insights customMeasurements / O11y keep numeric values.
+ * Non-legacy spans return {} (existing duration-only behavior unchanged).
+ */
+export const legacyNumericMeasurements = (attributes: Attributes): Record<string, number> => {
+  if (attributes[LEGACY_TELEMETRY_SOURCE_ATTR] !== LEGACY_TELEMETRY_SOURCE_VALUE) return {};
+  return Object.fromEntries(
+    Object.entries(attributes).filter(
+      (entry): entry is [string, number] => typeof entry[1] === 'number' && Number.isFinite(entry[1])
+    )
+  );
+};
+
+/** Preserve the legacy timing measurement as the exported span duration. */
+export const telemetrySpanDuration = (span: ReadableSpan): number => {
+  if (span.attributes[LEGACY_TELEMETRY_SOURCE_ATTR] !== LEGACY_TELEMETRY_SOURCE_VALUE) return spanDuration(span);
+  const measurements = legacyNumericMeasurements(span.attributes);
+  const candidate =
+    measurements.executionTime ??
+    measurements.startupTime ??
+    measurements.extensionActivationTime ??
+    measurements.duration;
+  return candidate !== undefined && candidate > 0 ? candidate : 0;
+};
 
 export const getExtensionNameAndVersionAttributes = (
   attributes: Attributes
