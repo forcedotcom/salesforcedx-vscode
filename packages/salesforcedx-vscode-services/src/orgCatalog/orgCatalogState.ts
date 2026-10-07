@@ -45,6 +45,7 @@ const byMetadataListing = Order.combine(
   Order.mapInput(Order.string, (value: PersistedMetadataListingObservation) => value.xmlName),
   Order.mapInput(Order.string, (value: PersistedMetadataListingObservation) => value.folder ?? '')
 );
+const hierarchyGenerationKey = (orgId: string, xmlName?: string): string => `${orgId}\0${xmlName ?? ''}`;
 
 export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatalogState', {
   accessors: true,
@@ -52,6 +53,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
   scoped: Effect.gen(function* () {
     const catalogStore = yield* OrgMetadataCatalogStore;
     const inventoryCache = yield* Ref.make<InventoryCache>(HashMap.empty());
+    const hierarchyGenerations = yield* Ref.make<HashMap.HashMap<string, number>>(HashMap.empty());
     const persistedInventoryCache = yield* Ref.make<PersistedInventoryCache>(HashMap.empty());
     const inventorySemaphores = yield* Ref.make<HashMap.HashMap<string, Effect.Semaphore>>(HashMap.empty());
     const remoteTrackingCache = yield* Ref.make<HashMap.HashMap<string, RemoteTrackingObservations>>(HashMap.empty());
@@ -308,6 +310,26 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
     );
     const updateInventories = (update: (current: InventoryCache) => InventoryCache) =>
       Ref.update(inventoryCache, update);
+    const getHierarchyGeneration = Effect.fn('OrgCatalogState.getHierarchyGeneration')(
+      (orgId: string, xmlName?: string) =>
+        Ref.get(hierarchyGenerations).pipe(
+          Effect.map(generations =>
+            Option.getOrElse(HashMap.get(generations, hierarchyGenerationKey(orgId, xmlName)), () => 0)
+          )
+        )
+    );
+    const invalidateHierarchyGenerations = (orgId: string, xmlNames?: ReadonlySet<string>) =>
+      Ref.update(hierarchyGenerations, current => {
+        const keys = [
+          hierarchyGenerationKey(orgId),
+          ...(xmlNames ? [...xmlNames].map(xmlName => hierarchyGenerationKey(orgId, xmlName)) : [])
+        ];
+        return keys.reduce(
+          (generations, key) =>
+            HashMap.set(generations, key, Option.getOrElse(HashMap.get(generations, key), () => 0) + 1),
+          current
+        );
+      });
 
     const invalidateOrgInventories = Effect.fn('OrgCatalogState.invalidateOrgInventories')((orgId: string) =>
       Ref.get(inventorySemaphores).pipe(
@@ -321,6 +343,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
         Effect.flatMap(activeTypeSemaphores =>
           Effect.all(
             [
+              invalidateHierarchyGenerations(orgId),
               Ref.update(inventoryCache, current =>
                 HashMap.filter(current, (_value, key) => !key.startsWith(`${orgId}\0`))
               ),
@@ -344,6 +367,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
       );
       yield* Effect.all(
         [
+          invalidateHierarchyGenerations(orgId, xmlNames),
           Ref.update(inventoryCache, current =>
             HashMap.removeMany(
               current,
@@ -485,6 +509,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
     return {
       ensureHydrated,
       flushOrg,
+      getHierarchyGeneration,
       getInventory,
       getInventorySemaphore,
       getMetadataListing,

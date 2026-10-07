@@ -12,5 +12,8 @@ export const messages = {
   retrieve_metadata_text: 'Retrieve Metadata',
   command_succeeded_text: '%s succeeded.',
   filter_text_placeholder: 'Search names (Broker or Apex*), or filter types (Apex*:); empty to clear',
-  filter_fetch_confirmation: '%s metadata types matched. Fetch components for all of them?'
+  filter_fetch_confirmation: '%s metadata types matched. Fetch components for all of them?',
+  filter_discovery_confirmation:
+    'Results may be incomplete because %s metadata types have not been loaded. Discover all metadata in the org in the background?',
+  full_discovery_failed: 'Org metadata discovery failed. Search results may be incomplete.'
 } as const;

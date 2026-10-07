@@ -8,7 +8,6 @@ import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import {
-  acceptNotification,
   closeWelcomeTabs,
   createDreamhouseOrg,
   ensureSecondarySideBarHidden,
@@ -27,25 +26,19 @@ test.beforeEach(async ({ page }) => {
   await ensureSecondarySideBarHidden(page);
 });
 
-test('Org Browser finds partial file names across metadata types without wildcard syntax', async ({ page }) => {
+test('Org Browser retains an expanded custom object when a plain search matches one of its fields', async ({
+  page
+}) => {
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
-  await Promise.all([
-    orgBrowserPage.applyTextFilter('bRoK'),
-    acceptNotification(page, /metadata types matched\. Fetch components for all of them\?/i, 'Yes', {
-      timeout: 60_000
-    })
-  ]);
+  const customObjects = await orgBrowserPage.findMetadataType('CustomObject');
+  await customObjects.locator('.monaco-tl-twistie').click();
+  const broker = await orgBrowserPage.getMetadataItem('CustomObject', 'Broker__c');
+  await broker.locator('.monaco-tl-twistie').click();
+  await orgBrowserPage.applyTextFilter('Email');
 
-  const roots = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
-  await expect(roots.filter({ hasText: 'CustomObject' }).first()).toBeVisible({ timeout: 120_000 });
-  await expect(roots.filter({ hasText: 'CustomTab' }).first()).toBeVisible({ timeout: 120_000 });
-
-  await orgBrowserPage.expandFolder('CustomObject');
-  const brokerItems = orgBrowserPage.sidebar.getByRole('treeitem', { name: /Broker__c/i, level: 2 });
-  await expect(brokerItems.first()).toBeVisible();
-
-  await orgBrowserPage.expandFolder('CustomTab');
-  await expect(brokerItems).toHaveCount(2);
+  await expect(orgBrowserPage.sidebar.getByRole('treeitem', { name: /CustomObject/i, level: 1 })).toBeVisible();
+  await expect(orgBrowserPage.sidebar.getByRole('treeitem', { name: /Broker__c/i, level: 2 })).toBeVisible();
+  await expect(orgBrowserPage.sidebar.getByRole('treeitem', { name: /Email/i, level: 3 })).toBeVisible();
 });

@@ -473,7 +473,22 @@ describe('OrgMetadataCatalog contract', () => {
 
     const keys = await runWithCatalog(layer, catalog => Effect.succeed(Object.keys(catalog).toSorted()));
 
-    expect(keys).toEqual(['getChildren', 'getEntries', 'resolveComponents']);
+    expect(keys).toEqual(['getChildren', 'getEntries', 'hasTypeInventory', 'resolveComponents']);
+  });
+
+  it('reports whether a direct type inventory has been loaded', async () => {
+    const { layer } = makeHarness();
+
+    const result = await runWithCatalog(layer, catalog =>
+      Effect.gen(function* () {
+        const before = yield* catalog.hasTypeInventory('ApexClass');
+        yield* catalog.getChildren({ type: 'ApexClass' });
+        const after = yield* catalog.hasTypeInventory('ApexClass');
+        return { after, before };
+      })
+    );
+
+    expect(result).toEqual({ before: false, after: true });
   });
 
   it('keeps the metadata document provider alive across org changes when no workspace is open', async () => {
@@ -1027,6 +1042,30 @@ describe('OrgMetadataCatalog contract', () => {
       inWorkspace: false,
       field: { name: 'RuntimeOnly__c', type: 'textarea' }
     });
+  });
+
+  it('returns an already loaded custom object hierarchy without acquiring it again', async () => {
+    const { layer, mocks } = makeHarness({
+      metadataByType: {
+        CustomObject: [{ fullName: 'Account' }],
+        CustomField: [{ fullName: 'Account.Rating__c' }]
+      },
+      descriptions: { Account: { ...emptySObject('Account'), fields: [customStringField('Rating__c')] } }
+    });
+
+    const result = await runWithCatalog(layer, catalog =>
+      catalog.getChildren({ type: 'CustomObject' }).pipe(
+        Effect.andThen(() => catalog.getChildren({ type: 'CustomObject', fullName: 'Account' })),
+        Effect.flatMap(loaded =>
+          catalog
+            .getChildren({ type: 'CustomObject', fullName: 'Account' }, { consistency: 'cache-only' })
+            .pipe(Effect.map(cached => ({ cached, loaded })))
+        )
+      )
+    );
+
+    expect(result.cached).toEqual(result.loaded);
+    expect(mocks.listMetadata).toHaveBeenCalledTimes(2);
   });
 
   it('uses Custom Field inventory when the SObject description has no matching fields', async () => {

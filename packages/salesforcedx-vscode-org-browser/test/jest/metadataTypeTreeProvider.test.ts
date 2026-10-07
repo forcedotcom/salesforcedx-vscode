@@ -14,6 +14,7 @@ import {
   passesTypeFilter,
   applyViewModeChildFilter,
   filterTypesWithCachedComponents,
+  matchesGlobalSearch,
   suppressInactiveOrgOperation
 } from '../../src/tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from '../../src/tree/orgBrowserNode';
@@ -100,6 +101,18 @@ describe('MetadataTypeTreeProvider text filter state', () => {
     expect(provider.typeFilter).toBeUndefined();
     expect(provider.componentFilter).toBeUndefined();
     expect(listener).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('full discovery org scope', () => {
+  it('resets the discovery allowance on a top-level refresh', async () => {
+    const provider = new MetadataTypeTreeProvider();
+    provider.markFullDiscoveryStarted('org-one');
+
+    // The catalog call is exercised by integration tests; this unit test verifies session state.
+    await expect(provider.refreshType()).rejects.toThrow();
+
+    expect(provider.hasStartedFullDiscovery('org-one')).toBe(false);
   });
 });
 
@@ -194,8 +207,62 @@ describe('applyViewModeChildFilter with component filter', () => {
   });
 });
 
+describe('matchesGlobalSearch', () => {
+  it('matches a custom field by its field name rather than its parent object name', () => {
+    const provider = new MetadataTypeTreeProvider();
+    provider.setTextFilter(undefined, 'AccountNumber');
+
+    expect(matchesGlobalSearch(componentNode('CustomField', 'Account.AccountNumber'), provider)).toBe(true);
+    expect(matchesGlobalSearch(componentNode('CustomField', 'Account.Industry'), provider)).toBe(false);
+  });
+});
+
+describe('full discovery state', () => {
+  it('tracks one discovery per org', () => {
+    const provider = new MetadataTypeTreeProvider();
+
+    provider.markFullDiscoveryStarted('org-one');
+
+    expect(provider.hasStartedFullDiscovery('org-one')).toBe(true);
+    expect(provider.hasStartedFullDiscovery('org-two')).toBe(false);
+  });
+});
+
 describe('broad component search after cache invalidation', () => {
-  it('reloads a browsed type when the catalog cache no longer has its component', async () => {
+  it('retains CustomObject when an expanded object has a matching cached field', async () => {
+    const provider = new MetadataTypeTreeProvider();
+    const customObject = typeNode('CustomObject');
+    const broker = {
+      kind: 'component',
+      reference: { type: 'CustomObject', fullName: 'Broker__c' }
+    } as OrgMetadataCatalogEntry;
+    provider.setTextFilter(undefined, 'AccountNumber');
+    const getChildren = jest.fn((reference: { fullName?: string }) =>
+      reference.fullName === 'Broker__c'
+        ? Effect.succeed([
+            {
+              kind: 'component',
+              reference: { type: 'CustomField', fullName: 'Broker__c.AccountNumber__c' }
+            } as OrgMetadataCatalogEntry
+          ])
+        : Effect.succeed([broker])
+    );
+    const api = {
+      services: { OrgMetadataCatalog }
+    } as unknown as SalesforceVSCodeServicesApi;
+    const service = { getServicesApi: Effect.succeed(api) };
+
+    const result = await Effect.runPromise(
+      filterTypesWithCachedComponents([customObject], provider, 'org-one').pipe(
+        Effect.provideService(ExtensionProviderService, service),
+        Effect.provideService(OrgMetadataCatalog, { getChildren } as unknown as OrgMetadataCatalog)
+      )
+    );
+
+    expect(result).toEqual([customObject]);
+  });
+
+  it('does not acquire a browsed type when a plain search has no loaded match', async () => {
     const provider = new MetadataTypeTreeProvider();
     provider.setTextFilter(undefined, 'broker');
     const lightningBundles = typeNode('LightningComponentBundle');
@@ -220,8 +287,9 @@ describe('broad component search after cache invalidation', () => {
 
     expect(await search('org-one')).toEqual([]);
     provider.markTypeBrowsed('org-one', 'LightningComponentBundle');
-    expect(await search('org-one')).toEqual([lightningBundles]);
+    expect(await search('org-one')).toEqual([]);
     expect(await search('org-two')).toEqual([]);
-    expect(getChildren).toHaveBeenNthCalledWith(2, { type: 'LightningComponentBundle' }, {});
+    expect(getChildren).toHaveBeenCalledTimes(3);
+    expect(getChildren).toHaveBeenCalledWith({ type: 'LightningComponentBundle' }, { consistency: 'cache-only' });
   });
 });

@@ -15,8 +15,11 @@ import { isNotUndefined } from 'effect/Predicate';
 import * as Queue from 'effect/Queue';
 import * as Runtime from 'effect/Runtime';
 import * as Stream from 'effect/Stream';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { getOrgBrowserRuntime } from '../services/extensionProvider';
+import { discoverFullOrgMetadata } from '../services/fullOrgDiscovery';
 import { matchesPattern, MAX_TYPES_FOR_COMPONENT_PREFETCH } from '../utils/wildcardPattern';
 
 const parsePattern = (input: string): { pattern: string; isRegex: boolean } => {
@@ -106,6 +109,23 @@ export const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')
       yield* updateFilterContext(isNotUndefined(typeFilter) || isNotUndefined(componentFilter));
     });
 
+  const startFullDiscovery = (orgId: string) => {
+    treeProvider.markFullDiscoveryStarted(orgId);
+    const status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
+    context.subscriptions.push(status);
+    status.show();
+    void getOrgBrowserRuntime().runPromise(
+      discoverFullOrgMetadata(orgMetadataCatalog, ({ completed, total }) => {
+        status.text = `$(sync~spin) Discovering org metadata ${completed}/${total}`;
+      }).pipe(
+        Effect.ensuring(Effect.sync(() => status.dispose())),
+        Effect.catchAllCause(() =>
+          Effect.sync(() => vscode.window.showErrorMessage(nls.localize('full_discovery_failed')))
+        )
+      )
+    );
+  };
+
   const liveFilterFiber = yield* Stream.fromQueue(queue).pipe(
     Stream.debounce(Duration.millis(150)),
     Stream.runForEach(value => applyFilter(parseFilterValue(value)).pipe(Effect.uninterruptible)),
@@ -122,30 +142,51 @@ export const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')
         const unchanged = picker.value === initialValue;
         yield* applyFilter(filter, unchanged && previousUserApprovedBroadFetch);
 
-        if (!unchanged && filter.componentFilter) {
+        if (filter.componentFilter) {
           const types = yield* orgMetadataCatalog.getChildren();
-          const matchedCount = types.filter(
+          const { orgId } = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+          const matchingTypes = types.filter(
             entry =>
               entry.kind === 'type' &&
               entry.reference.type &&
               (!filter.typeFilter || matchesPattern(entry.reference.type, filter.typeFilter, filter.typeIsRegex))
-          ).length;
-          if (matchedCount > MAX_TYPES_FOR_COMPONENT_PREFETCH) {
+          );
+          const unfetchedTypes = yield* Effect.filter(matchingTypes, entry =>
+            orgMetadataCatalog.hasTypeInventory(entry.reference.type!).pipe(Effect.map(loaded => !loaded))
+          );
+          if (orgId && unfetchedTypes.length > 0 && !treeProvider.hasStartedFullDiscovery(orgId)) {
             const approved = yield* Effect.promise(
               async () =>
                 (await vscode.window.showInformationMessage(
-                  nls.localize('filter_fetch_confirmation', matchedCount.toString()),
+                  nls.localize('filter_discovery_confirmation', unfetchedTypes.length.toString()),
+                  nls.localize('yes_button'),
+                  nls.localize('no_button')
+                )) === nls.localize('yes_button')
+            );
+            if (approved) startFullDiscovery(orgId);
+          } else if (
+            !unchanged &&
+            filter.typeFilter &&
+            matchingTypes.length > MAX_TYPES_FOR_COMPONENT_PREFETCH &&
+            !treeProvider.userApprovedBroadFetch
+          ) {
+            const approved = yield* Effect.promise(
+              async () =>
+                (await vscode.window.showInformationMessage(
+                  nls.localize('filter_fetch_confirmation', matchingTypes.length.toString()),
                   nls.localize('yes_button'),
                   nls.localize('no_button')
                 )) === nls.localize('yes_button')
             );
             if (approved)
-              treeProvider.setTextFilter(
-                filter.typeFilter,
-                filter.componentFilter,
-                filter.typeIsRegex,
-                filter.componentIsRegex,
-                true
+              yield* Effect.sync(() =>
+                treeProvider.setTextFilter(
+                  filter.typeFilter,
+                  filter.componentFilter,
+                  filter.typeIsRegex,
+                  filter.componentIsRegex,
+                  true
+                )
               );
           }
         }
