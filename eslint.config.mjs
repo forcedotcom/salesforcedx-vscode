@@ -870,7 +870,7 @@ export default [
     }
   },
   {
-    // consistent-type-imports for salesforcedx-visualforce-language-server (inline to avoid no-duplicate-imports; W-23371047)
+    // consistent-type-imports for salesforcedx-visualforce-language-server (inline to avoid no-duplicate-imports; W-23371067)
     files: ['packages/salesforcedx-visualforce-language-server/**/*.ts'],
     rules: {
       '@typescript-eslint/consistent-type-imports': [
