@@ -15,6 +15,7 @@ import * as Option from 'effect/Option';
 import * as ParseResult from 'effect/ParseResult';
 import { isString } from 'effect/Predicate';
 import * as PubSub from 'effect/PubSub';
+import { keys as recordKeys, toEntries } from 'effect/Record';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -144,7 +145,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
         concurrency: 'unbounded',
         negate: true
       }).pipe(
-        Effect.map(misses => Object.entries(Arr.groupBy(misses, id => id.slice(0, 3)))),
+        Effect.map(misses => toEntries(Arr.groupBy(misses, id => id.slice(0, 3)))),
         Effect.flatMap(groups =>
           Stream.fromIterable(groups).pipe(
             Stream.mapConcatEffect(([prefix, ids]) =>
@@ -189,7 +190,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
 
     const getDebugLevels = Effect.fn('TraceFlagService.getDebugLevels')(function* () {
       return yield* queryRows(
-        `SELECT ${Object.keys(ToolingDebugLevelStruct.fields).join(', ')} FROM DebugLevel`,
+        `SELECT ${recordKeys(ToolingDebugLevelStruct.fields).join(', ')} FROM DebugLevel`,
         ToolingDebugLevelStruct
       ).pipe(
         Effect.flatMap(debugLevelRecords =>
