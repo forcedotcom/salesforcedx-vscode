@@ -277,6 +277,9 @@ importers:
       '@salesforce/effect-octokit':
         specifier: '*'
         version: link:packages/effect-octokit
+      '@salesforce/playwright-vscode-ext':
+        specifier: '*'
+        version: link:packages/playwright-vscode-ext
       '@secretlint/node':
         specifier: 11.7.1
         version: 11.7.1(supports-color@8.1.1)

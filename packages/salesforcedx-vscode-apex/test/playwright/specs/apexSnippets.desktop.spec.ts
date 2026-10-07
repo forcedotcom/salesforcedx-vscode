@@ -24,7 +24,7 @@ import {
   waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
 
-import { snippetTest as test } from '../fixtures';
+import { isContainer, sharedSnippetTest as test } from '../fixtures';
 
 /** Monaco may use NBSP; snippets can be one line or multiline — collapse for assertions. */
 const collapseEditorWhitespace = (text: string): string =>
@@ -48,6 +48,18 @@ const dismissEditorOverlays = async (page: Page): Promise<void> => {
 };
 
 test('Apex snippets: Insert Snippet applies System Debug in .cls', async ({ page }) => {
+  // fixme, not skip: NOT-WORKABLE — packaging gap, confirmed. The `System Debug` snippet is an
+  // apex.json snippet contributed ONLY by the marketplace extension
+  // `salesforce.apex-language-server-extension`; no package in this monorepo declares
+  // `contributes.snippets` for apex, which is why the desktop path injects that marketplace
+  // extension via `snippetDesktopTest`'s `marketplaceExtensions` fixture. The Code Builder swap
+  // wipes every `salesforce.*` extension by publisher glob and reinstalls only monorepo-built
+  // VSIXes, so after the swap that extension (and its apex.json snippet) is absent from the image —
+  // "Snippets: Insert Snippet" opens no apex picker (15s waitFor timeout). Cannot pass until either
+  // the snippet ships from an extension built in this repo or the swap preserves/installs
+  // salesforce.apex-language-server-extension.
+  test.fixme(isContainer, 'apex-language-server-extension (and its apex.json snippet) is not in the CB image');
+
   // timeout comes from playwright.config.desktop.ts (timeout: 360_000)
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);

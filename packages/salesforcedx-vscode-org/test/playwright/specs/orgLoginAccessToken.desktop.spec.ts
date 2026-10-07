@@ -8,15 +8,21 @@
 import { expect } from '@playwright/test';
 import {
   activeQuickInputWidget,
+  closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
   QUICK_INPUT_WIDGET,
+  resetContainerWorkbench,
+  saveScreenshot,
+  setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
+  setupNetworkMonitoring,
+  validateNoCriticalErrors,
   verifyCommandExists
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
-import { orgDesktopMinimalDefaultTest as test } from '../fixtures/desktopFixtures';
+import { isContainer, sharedMinimalDefaultTest as test } from '../fixtures';
 
 // e2e-COVERED: `sf.org.login.access.token` (Effect command, CLI/simpleExec) activation + prompt-appears + Esc cancel.
 // Real session-ID auth can't run in e2e (no live session ID), so this proves: the command is registered
@@ -26,10 +32,20 @@ import { orgDesktopMinimalDefaultTest as test } from '../fixtures/desktopFixture
 // Note: this command requires sf:project_opened (project gate); the spec depends on an sfdx-project being open.
 test('org extension: Authorize an Org using Session ID prompts then cancels cleanly on Esc', async ({ page }) => {
   test.setTimeout(120_000);
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
 
-  await test.step('setup scratch default org', async () => {
-    await setupMinimalOrgAndAuth(page);
+  await test.step('setup', async () => {
+    if (isContainer) {
+      // Shared, persistent workbench: reset editor + notification state rather than assuming a clean
+      // slate. No org creation — the container's boot org is the shared tracking scratch org.
+      await resetContainerWorkbench(page);
+    } else {
+      await setupMinimalOrgAndAuth(page);
+    }
+    await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
+    await saveScreenshot(page, 'orgLoginAccessToken.01-ready.png');
   });
 
   // Gate on an always-present activation command so we don't false-negative on slow startup.
@@ -41,6 +57,7 @@ test('org extension: Authorize an Org using Session ID prompts then cancels clea
     await executeCommandWithCommandPalette(page, packageNls.org_login_access_token_text);
     // first prompt of gatherAccessTokenParams is the instance URL input box
     await expect(activeQuickInputWidget(page)).toBeVisible({ timeout: 30_000 });
+    await saveScreenshot(page, 'orgLoginAccessToken.02-prompt.png');
   });
 
   await test.step('Esc cancels the prompt (UserCancellationError -> silent cancel, no error toast)', async () => {
@@ -51,4 +68,6 @@ test('org extension: Authorize an Org using Session ID prompts then cancels clea
       'a cancelled session-ID auth must not surface an error notification'
     ).toHaveCount(0);
   });
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });

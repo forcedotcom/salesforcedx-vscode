@@ -4,29 +4,44 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { test } from '../fixtures';
 import { expect } from '@playwright/test';
-import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import {
   closeWelcomeTabs,
   createDreamhouseOrg,
   ensureSecondarySideBarHidden,
+  resetContainerWorkbench,
+  setupConsoleMonitoring,
+  setupNetworkMonitoring,
   upsertScratchOrgAuthFieldsToSettings,
+  validateNoCriticalErrors,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
+import { OrgBrowserPage } from '../pages/orgBrowserPage';
+import { isContainer, sharedTest as test } from '../fixtures';
+import { normalizeOrgBrowserFilters } from './container/containerHelpers';
 
 test.setTimeout(600_000);
 
 test.beforeEach(async ({ page }) => {
-  const createResult = await createDreamhouseOrg();
-  await waitForVSCodeWorkbench(page);
-  await closeWelcomeTabs(page);
   const orgBrowserPage = new OrgBrowserPage(page);
-  await upsertScratchOrgAuthFieldsToSettings(page, createResult, () => orgBrowserPage.waitForProject());
-  await ensureSecondarySideBarHidden(page);
+  if (isContainer) {
+    // Shared, persistent workbench: reset editors, notifications, and the persisted Org Browser
+    // filter state rather than assuming a clean slate. No per-test org setup — the container's
+    // boot-authed org is shared across the whole spec file.
+    await resetContainerWorkbench(page);
+    await normalizeOrgBrowserFilters(orgBrowserPage);
+  } else {
+    const createResult = await createDreamhouseOrg();
+    await waitForVSCodeWorkbench(page);
+    await closeWelcomeTabs(page);
+    await upsertScratchOrgAuthFieldsToSettings(page, createResult, () => orgBrowserPage.waitForProject());
+    await ensureSecondarySideBarHidden(page);
+  }
 });
 
 test('Org Browser - text filter: toolbar icon visible and swaps to filled state on commit', async ({ page }) => {
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
@@ -41,9 +56,13 @@ test('Org Browser - text filter: toolbar icon visible and swaps to filled state 
   await expect(activeFilterButton, 'filled filter icon should appear once a filter is committed').toBeVisible({
     timeout: 10_000
   });
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
 
 test('Org Browser - text filter: exact type name filters tree on commit', async ({ page }) => {
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
@@ -55,9 +74,16 @@ test('Org Browser - text filter: exact type name filters tree on commit', async 
   await orgBrowserPage.waitForRootTypeCount(1);
   await expect(narrowedItems.first()).toHaveAccessibleName(/^ApexClass/);
   expect(beforeCount).toBeGreaterThan(1);
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
 
 test('Org Browser - text filter: Type:component filters expanded children', async ({ page }) => {
+  // Dreamhouse-specific (Broker__c): the bare container boot org doesn't have this CustomObject.
+  // Covered there instead by orgBrowserTextFilterDreamhouse.container.spec.ts, which switches the
+  // shared session's default org to Dreamhouse first.
+  test.skip(isContainer, 'Broker__c coverage moved to orgBrowserTextFilterDreamhouse.container.spec.ts');
+
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
@@ -79,6 +105,8 @@ test('Org Browser - text filter: Type:component filters expanded children', asyn
 });
 
 test('Org Browser - text filter: unresolved type name empties the tree', async ({ page }) => {
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
@@ -87,9 +115,13 @@ test('Org Browser - text filter: unresolved type name empties the tree', async (
   await expect(orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 })).toHaveCount(0, { timeout: 10_000 });
 
   await page.keyboard.press('Escape');
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
 
 test('Org Browser - text filter: Escape cancels without applying filter', async ({ page }) => {
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
@@ -101,9 +133,13 @@ test('Org Browser - text filter: Escape cancels without applying filter', async 
   // Tree should remain unfiltered since we cancelled
   await orgBrowserPage.waitForRootTypeCount(beforeCount);
   await expect(page.locator('[aria-label="Filter by Type/Component"]').first()).toBeVisible({ timeout: 10_000 });
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
 
 test('Org Browser - text filter: clearing the text and pressing Enter clears the filter', async ({ page }) => {
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
@@ -118,9 +154,13 @@ test('Org Browser - text filter: clearing the text and pressing Enter clears the
 
   await expect(page.locator('[aria-label="Filter by Type/Component"]').first()).toBeVisible({ timeout: 10_000 });
   await orgBrowserPage.waitForRootTypeCount(beforeCount);
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
 
 test('Org Browser - text filter: composes with an active showLocal/showOrg toggle', async ({ page }) => {
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
@@ -134,9 +174,13 @@ test('Org Browser - text filter: composes with an active showLocal/showOrg toggl
   const items = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
   await orgBrowserPage.waitForRootTypeCount(1);
   await expect(items.first()).toHaveAccessibleName(/^ApexClass/);
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
 
 test('Org Browser - text filter: wildcard type pattern Apex* matches multiple types', async ({ page }) => {
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
@@ -156,9 +200,13 @@ test('Org Browser - text filter: wildcard type pattern Apex* matches multiple ty
   await Promise.all(
     (await items.filter({ visible: true }).all()).map(item => expect(item).toHaveAccessibleName(/^Apex/))
   );
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
 
 test('Org Browser - text filter: wildcard component pattern *Test* filters children', async ({ page }) => {
+  const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
@@ -176,9 +224,14 @@ test('Org Browser - text filter: wildcard component pattern *Test* filters child
     const item = componentsLocator.nth(i);
     await expect(item).toHaveAccessibleName(/Test/i);
   }
+
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
 
 test('Org Browser - text filter: combined wildcard *Object:*Broker* works', async ({ page }) => {
+  // Dreamhouse-specific (Broker__c): see the skip note above.
+  test.skip(isContainer, 'Broker__c coverage moved to orgBrowserTextFilterDreamhouse.container.spec.ts');
+
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 

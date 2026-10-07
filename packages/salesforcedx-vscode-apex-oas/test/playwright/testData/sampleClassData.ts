@@ -41,32 +41,3 @@ export const ineligibleApexClassText = [
   '  public IneligibleApexClass() {}',
   '}'
 ].join('\n');
-
-// Has @RestResource but no @Http___ method and no @AuraEnabled — passes eligibility + mixed-frameworks
-// checks but no generation strategy qualifies, so it must fail early with strategy_not_qualified.
-export const restResourceNoHttpMethodClassText = [
-  "@RestResource(urlMapping='/apex-rest-examples/v1/noHttp/*')",
-  'global with sharing class RestResourceNoHttpMethod {',
-  '  global static Account getAccount(Id accountId) {',
-  '    return [SELECT Id, Name, Phone, Website FROM Account WHERE Id = :accountId];',
-  '  }',
-  '}'
-].join('\n');
-
-// Mixes Apex REST (@RestResource + @HttpGet) with an @AuraEnabled method — not allowed for OAS generation.
-export const mixedFrameworksClassText = [
-  "@RestResource(urlMapping='/apex-rest-examples/v1/mixed/*')",
-  'global with sharing class MixedFrameworksClass {',
-  '  @HttpGet',
-  '  global static Account getAccount() {',
-  '    RestRequest req = RestContext.request;',
-  "    String accountId = req.requestURI.substring(req.requestURI.lastIndexOf('/')+1);",
-  '    return [SELECT Id, Name, Phone, Website FROM Account WHERE Id = :accountId];',
-  '  }',
-  '',
-  '  @AuraEnabled',
-  '  public static Account getAccountForAura(Id accountId) {',
-  '    return [SELECT Id, Name, Phone, Website FROM Account WHERE Id = :accountId];',
-  '  }',
-  '}'
-].join('\n');

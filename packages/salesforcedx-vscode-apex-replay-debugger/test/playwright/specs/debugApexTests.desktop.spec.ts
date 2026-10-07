@@ -7,17 +7,20 @@
 import { expect, type Page } from '@playwright/test';
 import {
   clickCodeLens,
+  continueDebugSession,
   createApexClass,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
   openFileByName,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
+  stopDebugSession,
   validateNoCriticalErrors,
   verifyNoTestRunInProgress,
   waitForOutputChannelText
@@ -25,24 +28,24 @@ import {
 
 import apexTestingNls from 'salesforcedx-vscode-apex-testing/package.nls.json';
 import metadataNls from 'salesforcedx-vscode-metadata/package.nls.json';
-import { test } from '../fixtures';
-import { continueDebugSession } from '../helpers/debugHelpers';
+import { isContainer, sharedTest as test } from '../fixtures';
 
 /**
  * Clicks a Test Explorer tree row's "Debug Test" action button using a bounded stale-row retry.
  * Clicking a tree row re-renders the tree (selection highlight + action buttons), invalidating element
- * refs, so retry the normal actions to tolerate stale refs.
+ * refs, so retry the normal actions (force-clicking on the container's browser-served workbench, which
+ * can intercept pointer events) to tolerate stale refs.
  */
 const debugTestFromTreeItem = async (page: Page, name: RegExp): Promise<void> => {
   const item = page.getByRole('treeitem', { name });
   await item.waitFor({ state: 'visible', timeout: 30_000 });
   await expect(async () => {
-    await item.click();
-    await item.hover();
+    await item.click({ force: isContainer });
+    await item.hover({ force: isContainer });
     const debugButton = item.getByRole('button', { name: /^Debug Test/ });
     await debugButton.waitFor({ state: 'visible', timeout: 3000 });
     await expect(debugButton).toBeEnabled({ timeout: 3000 });
-    await debugButton.click();
+    await debugButton.click({ force: isContainer });
   }).toPass({ timeout: 30_000 });
 };
 
@@ -59,8 +62,15 @@ const expandTreeRow = async (page: Page, rowLabel: string): Promise<void> => {
   const twistie = row.locator('.monaco-tl-twistie');
   const collapsed = await twistie.evaluate(el => el.classList.contains('collapsed')).catch(() => false);
   if (!collapsed) return;
-  await expect(twistie).toBeVisible({ timeout: 5000 });
-  await twistie.click();
+  if (isContainer) {
+    // Twistie glyph is a zero-size pseudo-element on the container's browser-served workbench; the row
+    // intercepts pointer events at its coordinates.
+    // eslint-disable-next-line playwright/no-force-option -- see comment above
+    await twistie.click({ force: true });
+  } else {
+    await expect(twistie).toBeVisible({ timeout: 5000 });
+    await twistie.click();
+  }
   await page.waitForTimeout(400);
 };
 
@@ -105,83 +115,140 @@ const waitForSuccessNotification = async (page: Page): Promise<void> => {
   await expect(successNotification).toBeVisible({ timeout: 60_000 });
 };
 
-const class1Content = [
-  'public with sharing class ExampleApexClass1 {',
-  '  public static void SayHello(string name){',
-  "    System.debug('Hello, ' + name + '!');",
-  '  }',
-  '}'
-].join('\n');
+// No org setup on the container's shared, persistent workbench — every test uses the boot (default)
+// org, and editors/notifications are reset before each test rather than assuming a clean slate.
+test.beforeEach(async ({ page }) => {
+  if (isContainer) {
+    await resetContainerWorkbench(page);
+  }
+});
 
-const class1TestContent = [
-  '@IsTest',
-  'public class ExampleApexClass1Test {',
-  '  @IsTest',
-  '  static void validateSayHello() {',
-  "    System.debug('Starting validate');",
-  "    ExampleApexClass1.SayHello('Cody');",
-  '',
-  "    System.assertEquals(1, 1, 'all good');",
-  '  }',
-  '}'
-].join('\n');
+// A leaked session would poison the next test on the container's shared workbench. Best-effort.
+test.afterEach(async ({ page }) => {
+  if (isContainer) {
+    await stopDebugSession(page);
+  }
+});
 
-const class2Content = [
-  'public with sharing class ExampleApexClass2 {',
-  '  public static void SayHello(string name){',
-  "    System.debug('Hello, ' + name + '!');",
-  '  }',
-  '}'
-].join('\n');
-
-// Distinct method name from ExampleApexClass1Test so the Test Explorer treeitem label is unique
-// (both classes nest under the same Namespace/Package parents; a shared method name would match
-// two virtualized treeitem rows and trip Playwright strict mode).
-const class2TestContent = [
-  '@IsTest',
-  'public class ExampleApexClass2Test {',
-  '  @IsTest',
-  '  static void validateSayHelloTwo() {',
-  "    System.debug('Starting validate');",
-  "    ExampleApexClass2.SayHello('Cody');",
-  '',
-  "    System.assertEquals(1, 1, 'all good');",
-  '  }',
-  '}'
-].join('\n');
-
-test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page }) => {
+test('Debug Apex Tests: CodeLens and Test Explorer entry points', async ({ page }) => {
   test.setTimeout(600_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
-  await test.step('setup minimal org with two Apex classes and their tests', async () => {
-    await setupMinimalOrgAndAuth(page);
+  // Unique per-run names so the container's shared, persistent workbench never collides with a class
+  // left by a prior run.
+  const uid = Date.now().toString(36);
+  const class1 = isContainer ? `ExampleApexClass1_${uid}` : 'ExampleApexClass1';
+  const class1Test = isContainer ? `ExampleApexClass1_${uid}Test` : 'ExampleApexClass1Test';
+  const class2 = isContainer ? `ExampleApexClass2_${uid}` : 'ExampleApexClass2';
+  const class2Test = isContainer ? `ExampleApexClass2_${uid}Test` : 'ExampleApexClass2Test';
+
+  const class1Content = [
+    `public with sharing class ${class1} {`,
+    '  public static void SayHello(string name){',
+    "    System.debug('Hello, ' + name + '!');",
+    '  }',
+    '}'
+  ].join('\n');
+
+  // Annotations kept INLINE with their declarations: once the Apex LS is warm, a bare `@IsTest` line
+  // typed into the code-server editor can have its trailing newline swallowed by a completion-accept,
+  // merging it into the next line and producing invalid Apex.
+  const class1TestContent = isContainer
+    ? [
+        `@IsTest public class ${class1Test} {`,
+        '  @IsTest static void validateSayHello() {',
+        "    System.debug('Starting validate');",
+        `    ${class1}.SayHello('Cody');`,
+        "    System.assertEquals(1, 1, 'all good');",
+        '  }',
+        '}'
+      ].join('\n')
+    : [
+        '@IsTest',
+        `public class ${class1Test} {`,
+        '  @IsTest',
+        '  static void validateSayHello() {',
+        "    System.debug('Starting validate');",
+        `    ${class1}.SayHello('Cody');`,
+        '',
+        "    System.assertEquals(1, 1, 'all good');",
+        '  }',
+        '}'
+      ].join('\n');
+
+  const class2Content = [
+    `public with sharing class ${class2} {`,
+    '  public static void SayHello(string name){',
+    "    System.debug('Hello, ' + name + '!');",
+    '  }',
+    '}'
+  ].join('\n');
+
+  // Distinct method name from class1Test so the Test Explorer treeitem label is unique (both classes
+  // nest under the same Namespace/Package parents; a shared method name would match two virtualized
+  // treeitem rows and trip Playwright strict mode).
+  const class2TestContent = isContainer
+    ? [
+        `@IsTest public class ${class2Test} {`,
+        '  @IsTest static void validateSayHelloTwo() {',
+        "    System.debug('Starting validate');",
+        `    ${class2}.SayHello('Cody');`,
+        "    System.assertEquals(1, 1, 'all good');",
+        '  }',
+        '}'
+      ].join('\n')
+    : [
+        '@IsTest',
+        `public class ${class2Test} {`,
+        '  @IsTest',
+        '  static void validateSayHelloTwo() {',
+        "    System.debug('Starting validate');",
+        `    ${class2}.SayHello('Cody');`,
+        '',
+        "    System.assertEquals(1, 1, 'all good');",
+        '  }',
+        '}'
+      ].join('\n');
+
+  await test.step('setup with two Apex classes and their tests', async () => {
+    if (!isContainer) {
+      await setupMinimalOrgAndAuth(page);
+    }
     await ensureSecondarySideBarHidden(page);
-    await createApexClass(page, 'ExampleApexClass1', class1Content);
-    await createApexClass(page, 'ExampleApexClass1Test', class1TestContent);
-    await createApexClass(page, 'ExampleApexClass2', class2Content);
-    await createApexClass(page, 'ExampleApexClass2Test', class2TestContent);
+    await createApexClass(page, class1, class1Content);
+    await createApexClass(page, class1Test, class1TestContent);
+    await createApexClass(page, class2, class2Content);
+    await createApexClass(page, class2Test, class2TestContent);
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata');
     await executeCommandWithCommandPalette(page, metadataNls.project_deploy_start_ignore_conflicts_default_org_text);
-    await waitForOutputChannelText(page, { expectedText: 'Starting metadata deployment', timeout: 30_000 });
+    await waitForOutputChannelText(page, { expectedText: 'Starting metadata deployment', timeout: 90_000 });
     await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: 120_000 });
     await saveScreenshot(page, 'setup.classes-created.png');
   });
 
   await test.step('wait for CodeLens in test class', async () => {
-    // Apex LS must finish indexing before CodeLens appear; CI is slower
-    const indexingComplete = page.getByRole('button', { name: /Indexing complete/ });
-    await expect(indexingComplete).toBeVisible({ timeout: 120_000 });
-    await openFileByName(page, 'ExampleApexClass1Test.cls');
+    const openTestClassContainer = async (): Promise<void> => {
+      // The desktop "Indexing complete" status-bar button never renders in the code-server image, so
+      // gate on the real indexing signal instead: the test class' CodeLens only appears once the LS
+      // has indexed it.
+      await openFileByName(page, `${class1Test}.cls`);
+    };
+    const openTestClassDesktop = async (): Promise<void> => {
+      // Apex LS must finish indexing before CodeLens appear; CI is slower
+      const indexingComplete = page.getByRole('button', { name: /Indexing complete/ });
+      await expect(indexingComplete).toBeVisible({ timeout: 120_000 });
+      await openFileByName(page, `${class1Test}.cls`);
+    };
+    await (isContainer ? openTestClassContainer : openTestClassDesktop)();
     const codelens = page.locator('.codelens-decoration a').filter({ hasText: /Run Test|Debug Test/ });
-    await expect(codelens.first()).toBeVisible({ timeout: 90_000 });
+    await expect(codelens.first()).toBeVisible({ timeout: isContainer ? 120_000 : 90_000 });
     await saveScreenshot(page, 'step.codelens-visible.png');
   });
 
   await test.step('Debug All Tests via class-level CodeLens', async () => {
-    await openFileByName(page, 'ExampleApexClass1Test.cls');
+    await openFileByName(page, `${class1Test}.cls`);
     await clickCodeLens(page, 'Debug All Tests', { timeout: 180_000 });
     await waitForSuccessNotification(page);
     await continueDebugSession(page);
@@ -190,7 +257,7 @@ test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page 
   });
 
   await test.step('Debug Test via method-level CodeLens', async () => {
-    await openFileByName(page, 'ExampleApexClass2Test.cls');
+    await openFileByName(page, `${class2Test}.cls`);
     await clickCodeLens(page, 'Debug Test', { timeout: 180_000 });
     await waitForSuccessNotification(page);
     await continueDebugSession(page);
@@ -203,7 +270,7 @@ test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page 
     // Refresh rebuilds the tree async; wait for rebuild then expand parents so class rows render
     await refreshTestsAndWaitForRebuild(page);
     await expandNamespaceAndPackage(page);
-    await debugTestFromTreeItem(page, /ExampleApexClass1Test/i);
+    await debugTestFromTreeItem(page, new RegExp(class1Test, 'i'));
     await waitForSuccessNotification(page);
     await continueDebugSession(page);
     await verifyNoTestRunInProgress(page);
@@ -214,7 +281,7 @@ test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page 
     await executeCommandWithCommandPalette(page, 'Testing: Focus on Test Explorer View');
     await expandNamespaceAndPackage(page);
     // Expand the class node to reveal its method, then debug the method row
-    await expandTreeRow(page, 'ExampleApexClass2Test');
+    await expandTreeRow(page, class2Test);
     const methodItem = page.getByRole('treeitem', { name: /validateSayHelloTwo/i });
     await methodItem.waitFor({ state: 'visible', timeout: 30_000 });
     await debugTestFromTreeItem(page, /validateSayHelloTwo/i);

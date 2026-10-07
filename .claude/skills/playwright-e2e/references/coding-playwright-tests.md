@@ -63,6 +63,7 @@ VS Code API (tree views, editors, output panels) only contains visible DOM lines
 - Don't rely on `scrollTo` - target element won't exist
 - `scrollIntoViewIfNeeded` probably won't help
 - **Tree item count:** Use `aria-setsize` (VS Code's tree model count) instead of `.count()` (DOM nodes). Reads full child count regardless of viewport. Pattern: `getByRole('treeitem', { level: 1 }).first().getAttribute('aria-setsize')`. See `OrgBrowserPage` helpers: `getRootTypeCount()`, `waitForRootTypeCount(expected)`, `getStableRootTypeCount()` (tolerates scroll/unmount race)
+- **Monaco editors after `insertText`:** `page.keyboard.insertText(content)` leaves the cursor — and therefore Monaco's scroll position — at the end of the pasted content, so `.view-lines` no longer renders line 1. If you then assert `.view-lines` contains text from near the top of the file (e.g. an `@IsTest` annotation), press `Control+Home` first to scroll back to the start before checking.
 
 ## Modal Dialog Buttons
 
@@ -85,7 +86,7 @@ await page.keyboard.press('Escape');
 - Prefer `aria` (getByRole) over css selectors
 - `expect` assertions need clear error messages. Import `expect` from playwright
 - `playwright/expect-expect` error (`eslint.config.mjs`) — `test()`: `assert*`/`expect*`/`verify*` or a named helper. outer-helper `expect`: ignored
-- `playwright/no-conditional-expect` error — `expect` outside `if` / `catch` / `?:` / `&&` / `||` / `??` / `switch`, off `.catch()`. assert outcome
+- `playwright/no-conditional-expect` error — `expect` outside conditionals (`if`, `catch`, `?:`, `&&`, `||`, `??`, `switch`). When branching on runtime conditions (e.g., `isContainer`), split into separate helpers: `const verifyDesktop = async () => { await expect(…) }` and `const verifyContainer = async () => { await expect(…) }`, then dispatch via `await (isContainer ? verifyContainer : verifyDesktop)()`. Keeps assertions unconditional while allowing environment-specific logic.
 - Fail early, avoid fallbacks/retries
 - Reusable locators belong in `locators.ts` - check before creating new ones
 
@@ -174,6 +175,20 @@ await clickCodeLens(page, 'Debug'); // or run debug command
 ```
 
 Use `ensureOutputPanelOpen(page)` to prepare output during setup; close before each debug trigger to prevent interference.
+
+**Commands with active editor context:** Commands that fall back to the active editor's URI (e.g., `generateManifest` when invoked with no explorer selection) silently fail if the active view isn't the editor. Output-panel operations (`ensureOutputPanelOpen`, `selectOutputChannel`, `clearOutputChannel`) shift the active view away from the editor, so commands that need it must re-focus the editor first:
+
+```typescript
+// Output panel work shifts active view
+await ensureOutputPanelOpen(page);
+await selectOutputChannel(page, 'Output Channel');
+await clearOutputChannel(page);
+
+// Editor-context command now needs editor re-focused
+const editor = page.locator(`[data-uri*="MyFile.apex"]`).first();
+await editor.click(); // Re-focus the editor tab
+await executeCommandWithCommandPalette(page, editorContextCommand);
+```
 
 ## Notifications and Toast Messages
 

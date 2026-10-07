@@ -8,6 +8,8 @@
 import { expect } from '@playwright/test';
 
 import {
+  clearOutputChannel,
+  createApexClass,
   createAndDeployApexTestClass,
   deployCurrentSourceToOrg,
   editOpenFile,
@@ -15,6 +17,7 @@ import {
   ensureSecondarySideBarHidden,
   isDesktop,
   openFileByName,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -24,7 +27,7 @@ import {
   waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
 
-import { test } from '../fixtures';
+import { isContainer, sharedTest as test } from '../fixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
 import {
   STALE_FILTER_TAG,
@@ -36,31 +39,72 @@ import {
   runAllTestsAndWaitForCompletion
 } from '../helpers/testExplorerHelpers';
 
+test.beforeEach(async ({ page }) => {
+  if (isContainer) {
+    await resetContainerWorkbench(page);
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await clearOutputChannel(page);
+  }
+});
+
 test('Stale tag is applied on class redeploy and removed by running tests', async ({ page }) => {
   test.setTimeout(TEST_RUN_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
-  let testClassName: string;
+  // Both desktop/web and the container stamp a unique name so this doesn't collide with a prior
+  // run's leftover class (container's org/workbench is shared and persistent).
+  const testClassName = `StaleTestClass${Date.now()}`;
 
-  await test.step('setup non-tracking org with Apex test class', async () => {
-    await setupNonTrackingOrgAndAuth(page);
-    await ensureSecondarySideBarHidden(page);
-    testClassName = `StaleTestClass${Date.now()}`;
-    const testClassContent = [
-      '@isTest',
-      `public class ${testClassName} {`,
-      '\t@isTest',
-      '\tstatic void testMethodOne() {',
-      "\t\tSystem.assertEquals(1, 1, 'test one');",
-      '\t}',
-      '\t@isTest',
-      '\tstatic void testMethodTwo() {',
-      "\t\tSystem.assertEquals(2, 2, 'test two');",
-      '\t}',
-      '}'
-    ].join('\n');
-    await createAndDeployApexTestClass(page, testClassName, testClassContent);
+  // Deploy the currently open editor to the boot org, waiting on the Salesforce Metadata channel.
+  // Container-only helper.
+  const deployActiveEditor = async (label: string): Promise<void> => {
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata');
+    await clearOutputChannel(page);
+    // TEMP DIAGNOSTIC (remove once the "Command not found yet" flake in this spec is root-caused):
+    // capture focus/active-tab state right before the editor-context-gated deploy command check, to
+    // compare the setup call (never fails in CI) against the redeploy call (fails ~2/2 CI runs).
+    const diag = await page.evaluate(() => ({
+      activeElementTag: document.activeElement?.tagName ?? null,
+      activeElementClass: document.activeElement?.className ?? null,
+      activeTabLabel:
+        document.querySelector('.tab.active .label-name')?.textContent ??
+        document.querySelector('.tab.active')?.getAttribute('aria-label') ??
+        null,
+      focusedPart: document.querySelector('.part.editor.active, .part.editor:focus-within') ? 'editor' : null
+    }));
+    console.log(`[diag:${label}]`, JSON.stringify(diag));
+    await saveScreenshot(page, `stale.diag.${label}.png`);
+    await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
+  };
+
+  const testClassContent = [
+    '@isTest',
+    `public class ${testClassName} {`,
+    '\t@isTest',
+    '\tstatic void testMethodOne() {',
+    "\t\tSystem.assertEquals(1, 1, 'test one');",
+    '\t}',
+    '\t@isTest',
+    '\tstatic void testMethodTwo() {',
+    "\t\tSystem.assertEquals(2, 2, 'test two');",
+    '\t}',
+    '}'
+  ].join('\n');
+
+  await test.step('setup Apex test class', async () => {
+    if (isContainer) {
+      await ensureSecondarySideBarHidden(page);
+      await createApexClass(page, testClassName, testClassContent);
+      await deployActiveEditor('setup');
+      await saveScreenshot(page, 'stale.setup.class-deployed.png');
+    } else {
+      await setupNonTrackingOrgAndAuth(page);
+      await ensureSecondarySideBarHidden(page);
+      await createAndDeployApexTestClass(page, testClassName, testClassContent);
+    }
   });
 
   await test.step('discover and run tests to generate result files', async () => {
@@ -79,9 +123,12 @@ test('Stale tag is applied on class redeploy and removed by running tests', asyn
     await openFileByName(page, `${testClassName}.cls`);
     await ensureSecondarySideBarHidden(page);
     await editOpenFile(page, 'touched');
-    // Web: saving a source file in the workspace auto-deploys via push-or-deploy-on-save.
-    // Desktop: no auto-deploy on save, so we explicitly invoke "SFDX: Deploy This Source to Org".
-    if (isDesktop()) {
+    if (isContainer) {
+      // The container runs the desktop build with no push-or-deploy-on-save, so deploy explicitly.
+      await deployActiveEditor('redeploy');
+    } else if (isDesktop()) {
+      // Web: saving a source file in the workspace auto-deploys via push-or-deploy-on-save.
+      // Desktop: no auto-deploy on save, so we explicitly invoke "SFDX: Deploy This Source to Org".
       await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
     }
     await ensureOutputPanelOpen(page);

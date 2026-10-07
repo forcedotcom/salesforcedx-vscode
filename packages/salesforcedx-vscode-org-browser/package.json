@@ -49,6 +49,7 @@
     "test:web": "wireit",
     "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-org-browser test:web --headed",
     "test:web:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-org-browser test:web --debug",
+    "test:container": "wireit",
     "test:desktop": "wireit",
     "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-org-browser test:desktop --debug",
     "test:e2e": "wireit",
@@ -207,6 +208,23 @@
         "test/playwright/**/*.ts",
         "package*.json",
         "../../.github/**"
+      ],
+      "output": []
+    },
+    "test:container": {
+      "command": "playwright test --config=test/playwright/playwright.config.container.ts",
+      "env": {
+        "VSCODE_CONTAINER": "1",
+        "CODE_BUILDER_URL": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**",
+        "package*.json"
       ],
       "output": []
     },

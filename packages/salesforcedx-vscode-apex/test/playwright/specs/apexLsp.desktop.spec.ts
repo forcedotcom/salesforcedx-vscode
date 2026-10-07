@@ -9,8 +9,6 @@ import { expect } from '@playwright/test';
 import {
   EDITOR_WITH_URI,
   goToLineColumn,
-  openFileByName,
-  openFileFromExplorerTree,
   saveFile,
   saveScreenshot,
   setupConsoleMonitoring,
@@ -18,11 +16,18 @@ import {
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 
-import { test } from '../fixtures';
-import { waitForApexLspReady } from '../utils/apexLspUtils';
+import { isContainer, sharedTest as test } from '../fixtures';
+import { openApexFileFromExplorerTree, waitForApexLspReady } from '../utils/containerApexLspUtils';
 
-test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, workspaceDir }) => {
-  // timeout comes from playwright.config.desktop.ts (timeout: 360_000)
+// force-app/main/default/classes on desktop (fixtures/desktopFixtures.ts seeds it there); the
+// container's bind-mounted fixture project uses the same layout, so the path is shared.
+const CLASSES_DIR = ['force-app', 'main', 'default', 'classes'];
+
+test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page }) => {
+  if (isContainer) {
+    test.setTimeout(6 * 60 * 1000);
+  }
+  // else: timeout comes from playwright.config.desktop.ts (timeout: 360_000)
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -31,17 +36,20 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
   const completionRows = page.locator('div.monaco-list-row.show-file-icons');
 
   await test.step('open ExampleClass.cls and wait for indexing complete', async () => {
-    // Files were pre-seeded onto disk before Electron launched (see fixtures/desktopFixtures.ts);
-    // jorje picks them up during its startup scan, so no reloadWindow workaround is needed.
-    await openFileByName(page, 'ExampleClass.cls');
-    await waitForApexLspReady(page, workspaceDir);
+    // Files were pre-seeded onto disk before Electron launched (see fixtures/desktopFixtures.ts) /
+    // are already in the container's bind-mounted fixture, so no reloadWindow workaround is needed.
+    // openApexFileFromExplorerTree retries the whole open — load-bearing in the container, where
+    // the Explorer tree hydrates progressively over a browser round-trip; harmless on desktop.
+    await openApexFileFromExplorerTree(page, 'ExampleClass.cls', CLASSES_DIR);
+    // UI-only readiness (the "Indexing complete" language-status button) — sufficient for initial
+    // load; the disk-based StandardApexLibrary check that matters for a clean-DB *restart* lives in
+    // apexLspRestart.desktop.spec.ts instead, which needs `workspaceDir` and stays desktop-only.
+    await waitForApexLspReady(page);
     await saveScreenshot(page, 'step.indexing-complete.png');
   });
 
   await test.step('Go to Definition from ExampleClassTest into ExampleClass', async () => {
-    // Use Explorer tree instead of Quick Open — VS Code's file-search index may not have
-    // discovered the pre-seeded file yet (only "recently opened" files appear reliably).
-    await openFileFromExplorerTree(page, 'ExampleClassTest.cls', ['classes']);
+    await openApexFileFromExplorerTree(page, 'ExampleClassTest.cls', CLASSES_DIR);
     // Wait for ExampleClassTest.cls to become the active tab before issuing editor commands;
     // openFileFromExplorerTree resolves on any visible editor, which may be the previously-opened
     // ExampleClass.cls — causing Go to Line and Go to Definition to target the wrong file.
@@ -70,8 +78,9 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
     ).toBeVisible({ timeout: 60_000 });
 
     // Ctrl+Click (Cmd+Click on macOS) triggers Go to Definition on the hovered token. The
-    // `editor.gotoLocation.*: 'goto'` settings (fixtures/desktopFixtures.ts) make this navigate
-    // directly to the definition tab instead of opening a peek widget.
+    // `editor.gotoLocation.*: 'goto'` settings (fixtures/desktopFixtures.ts / mounted
+    // `.vscode/settings.json` in the container) make this navigate directly to the definition tab
+    // instead of opening a peek widget.
     await exampleClassToken.click({ modifiers: ['ControlOrMeta'] });
 
     const exampleClassTab = page.getByRole('tab', { name: 'ExampleClass.cls', exact: true }).first();
@@ -80,7 +89,7 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
   });
 
   await test.step('Autocompletion suggests SayHello and inserts call', async () => {
-    await openFileFromExplorerTree(page, 'ExampleClassTest.cls', ['classes']);
+    await openApexFileFromExplorerTree(page, 'ExampleClassTest.cls', CLASSES_DIR);
     // Wait for ExampleClassTest.cls to become the active tab (same race as Go to Definition step).
     const testTab = page.getByRole('tab', { name: 'ExampleClassTest.cls', exact: true }).first();
     await expect(testTab).toHaveAttribute('aria-selected', 'true', { timeout: 10_000 });
@@ -112,11 +121,10 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page, work
   });
 
   await test.step('Anonymous Apex autocompletion', async () => {
-    // ExampleAnon.apex is pre-seeded at workspace-root scripts/apex (desktopFixtures.ts) — open via
-    // Explorer tree since Quick Open's file-search index may not have discovered it yet. The
-    // ['scripts', 'apex'] path tolerates VS Code compact-folder rendering (missing intermediate
-    // rows are skipped, leaf still reached).
-    await openFileFromExplorerTree(page, 'ExampleAnon.apex', ['scripts', 'apex']);
+    // ExampleAnon.apex is pre-seeded at workspace-root scripts/apex (desktopFixtures.ts) / already
+    // in the container's bind-mounted fixture. The ['scripts', 'apex'] path tolerates VS Code
+    // compact-folder rendering (missing intermediate rows are skipped, leaf still reached).
+    await openApexFileFromExplorerTree(page, 'ExampleAnon.apex', ['scripts', 'apex']);
     const anonTab = page.getByRole('tab', { name: 'ExampleAnon.apex', exact: true }).first();
     await expect(anonTab).toHaveAttribute('aria-selected', 'true', { timeout: 10_000 });
 

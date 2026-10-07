@@ -13,8 +13,10 @@ import {
   trackingConflictTest as trackingConflictDesktopTest
 } from './desktopFixtures';
 import { webTrackingConflictTest } from './webConflictFixtures';
+import { containerTest } from './containerFixtures';
 
 const isDesktop = process.env.VSCODE_DESKTOP === '1';
+export const isContainer = process.env.VSCODE_CONTAINER === '1';
 
 // Keep browser open on test failure when in debug mode
 webTest.afterEach(async ({ page }, testInfo) => {
@@ -28,7 +30,11 @@ webTest.afterEach(async ({ page }, testInfo) => {
 // Export the appropriate test based on environment (fixtures differ)
 // expect is the same for both, so just re-export it directly
 export const test = isDesktop ? desktopTest : webTest;
-export const dreamhouseTest = isDesktop ? dreamhouseDesktopTest : webTest;
 export const nonTrackingTest = isDesktop ? nonTrackingDesktopTest : webTest;
 export const trackingConflictTest = isDesktop ? trackingConflictDesktopTest : webTrackingConflictTest;
 export { emptyWorkspaceDesktopTest, desktopTest } from './desktopFixtures';
+
+/** For specs unified across desktop, web, and the Code Builder container. */
+export const sharedTest = isContainer ? containerTest : isDesktop ? desktopTest : webTest;
+export const sharedDreamhouseTest = isContainer ? containerTest : isDesktop ? dreamhouseDesktopTest : webTest;
+export const sharedNonTrackingTest = isContainer ? containerTest : isDesktop ? nonTrackingDesktopTest : webTest;
