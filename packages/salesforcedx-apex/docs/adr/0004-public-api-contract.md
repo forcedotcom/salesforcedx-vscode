@@ -3,14 +3,15 @@
 The next `@salesforce/apex-node` major protects the package root used by known
 CLI and public GitHub consumers. The baseline intentionally excludes unused
 runtime exports, public implementation helpers, VS Code-only reporters, and the
-legacy `lib/src/tests/types.js` path.
+legacy `lib/src/tests/types.js` path. New Effect APIs are published separately
+from `@salesforce/apex-node/effect`.
 
 Effect schemas record the JSON-representable contracts under `schemas/`.
 Package lint fails when the generated JSON Schema differs from the checked-in
 contract, and build-time type assertions keep the schemas aligned with the
 exported TypeScript types. A focused test protects the target runtime exports
-and root-only package `exports` map. Co-repo TypeScript consumers continue to
-compile against the class and callback APIs that JSON Schema cannot represent.
+and package `exports` map. Co-repo TypeScript consumers continue to compile
+against class, capability, and callback APIs that JSON Schema cannot represent.
 
 Intentional API changes require review plus an explicit schema update. Internal
 modules can otherwise move or change without altering the approved schema.
