@@ -6,6 +6,7 @@
  */
 
 import * as Either from 'effect/Either';
+import * as Rec from 'effect/Record';
 import * as Schema from 'effect/Schema';
 
 /** Apex debug level verbosity */
@@ -116,12 +117,10 @@ export const buildTraceFlagsSchemas = <A, I>(itemStruct: Schema.Schema<A, I, nev
   const ORDER_SET = new Set<string>(TRACE_FLAG_ORDER);
 
   const reorderTraceFlagItem = (obj: Record<string, unknown>): Record<string, unknown> =>
-    Object.fromEntries([
-      ...TRACE_FLAG_ORDER.filter(k => k in obj).map(k => [k, obj[k]]),
-      ...Object.keys(obj)
-        .filter(k => !ORDER_SET.has(k))
-        .map(k => [k, obj[k]])
-    ]);
+    Rec.fromIterableWith(
+      [...TRACE_FLAG_ORDER.filter(k => k in obj), ...Rec.keys(obj).filter(k => !ORDER_SET.has(k))],
+      key => [key, obj[key]]
+    );
 
   const reorderTraceFlagsInConfig = (encoded: unknown): unknown => {
     if (!isRecord(encoded)) return encoded;
@@ -129,11 +128,8 @@ export const buildTraceFlagsSchemas = <A, I>(itemStruct: Schema.Schema<A, I, nev
     if (!traceFlags || !isRecord(traceFlags) || Array.isArray(traceFlags)) return encoded;
     return {
       ...encoded,
-      traceFlags: Object.fromEntries(
-        Object.entries(traceFlags).map(([k, arr]) => [
-          k,
-          Array.isArray(arr) ? arr.map(item => (isRecord(item) ? reorderTraceFlagItem(item) : item)) : arr
-        ])
+      traceFlags: Rec.map(traceFlags, arr =>
+        Array.isArray(arr) ? arr.map(item => (isRecord(item) ? reorderTraceFlagItem(item) : item)) : arr
       )
     };
   };

@@ -6,6 +6,7 @@
  */
 import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
+import * as Rec from 'effect/Record';
 import * as vscode from 'vscode';
 
 export const runWebAuthEffect = Effect.fn('runWebAuthEffect')(function* () {
@@ -21,7 +22,7 @@ export const runWebAuthEffect = Effect.fn('runWebAuthEffect')(function* () {
     if (configMap) {
       const config = vscode.workspace.getConfiguration();
       yield* Effect.all(
-        Object.entries(configMap).map(([k, v]) =>
+        Rec.collect(configMap, (k, v) =>
           Effect.promise(() => config.update(k, v, vscode.ConfigurationTarget.Workspace))
         )
       );

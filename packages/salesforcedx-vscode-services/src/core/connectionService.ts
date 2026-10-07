@@ -19,6 +19,7 @@ import * as Hash from 'effect/Hash';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import { isNotUndefined, isRecord, isString, isUndefined } from 'effect/Predicate';
+import * as Rec from 'effect/Record';
 import * as Redacted from 'effect/Redacted';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -556,8 +557,8 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
         yield* setWebUserId(orgId, userId).pipe(Effect.provide(ExtensionContextService.Default))
       : (existingOrgInfo.webUserId ?? UNAUTHENTICATED_USER);
 
-  const updates = Object.fromEntries(
-    Object.entries({
+  const updates = Rec.filter(
+    {
       orgId,
       instanceName,
       devHubUsername,
@@ -570,9 +571,10 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
       aliases,
       username,
       alias,
-      ...(isString(cliId) ? { cliId } : {}),
-      ...(isString(orgEdition) ? { orgEdition } : {})
-    } satisfies typeof DefaultOrgInfoSchema.Type).filter(([, v]) => isNotUndefined(v))
+      cliId: isString(cliId) ? cliId : undefined,
+      orgEdition: isString(orgEdition) ? orgEdition : undefined
+    } satisfies typeof DefaultOrgInfoSchema.Type,
+    isNotUndefined
   );
 
   const updated = { ...existingOrgInfo, ...updates, alias };
