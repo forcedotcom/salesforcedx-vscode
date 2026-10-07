@@ -24,7 +24,7 @@
     "@actions/github": "^8.0.1",
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
-    "@cursor/sdk": "1.0.32",
+    "@cursor/sdk": "1.0.35",
     "@effect/eslint-plugin": "0.3.2",
     "@effect/language-service": "^0.87.2",
     "@effect/platform": "0.96.1",
