@@ -14,7 +14,7 @@ import { nls } from '../messages';
 import { messages } from '../messages/i18n';
 import { preventOrgChanges } from '../services/extensionProvider';
 import { OrgBrowserRetrieveService } from '../services/orgBrowserMetadataRetrieveService';
-import { OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
+import { type OrgBrowserTreeItem, getIconPath } from '../tree/orgBrowserNode';
 import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { isMemberPresentInProject } from './componentPresence';
 
