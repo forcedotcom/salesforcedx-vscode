@@ -120,7 +120,13 @@ test('Retrieve In Manifest: retrieves via all entry points', async ({ page }) =>
     });
 
     await test.step('generate a manifest from the fixture class', async () => {
-      // The fixture class editor is still active from the deploy step; generate the manifest from it.
+      // The deploy step's output-channel work (ensureOutputPanelOpen/selectOutputChannel) left the
+      // Output panel active, not the fixture class editor — "Generate Manifest File" falls back to the
+      // active editor's URI when invoked with no explorer selection, so without re-focusing it here the
+      // command finds no active editor and silently no-ops (shows an error message, never opens the
+      // filename prompt).
+      const editor = page.locator(`[data-uri*="${FIXTURE_CLASS}.cls"]`).first();
+      await editor.click();
       await executeCommandWithCommandPalette(page, packageNls.project_generate_manifest_text);
 
       const quickInput = activeQuickInputWidget(page);
