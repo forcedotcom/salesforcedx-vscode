@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 import { withoutWorkflowRun } from '@salesforce/effect-octokit';
+import { preClassifyDecision } from '../scripts/shared/categoryGates.cjs';
 import {
   BOT_LOGIN,
   buildPrompt,
@@ -40,6 +41,7 @@ const base = {
 test('policy category ids match the headings', () => {
   assert.deepEqual(allowed, [
     'claude',
+    'cursor',
     'eslint',
     'vscode',
     'metadata-types',
@@ -68,6 +70,20 @@ test('prompt names the diff file and carries no pull request body', () => {
 
 test('classifies when the gates pass', () => {
   assert.equal(decideCategoryApprove(base)._tag, 'Classify');
+});
+
+test('preflight and approver use the same pre-classify decision', () => {
+  const approved = { user: { login: BOT_LOGIN }, state: 'APPROVED', commit_id: pull.headRefOid };
+  for (const changes of [
+    {},
+    { files: [file('APPROVAL_POLICY.md')] },
+    { checkRuns: [{ conclusion: 'failure' }] },
+    { reviews: [approved] },
+    { reviews: [approved], checkRuns: [{ conclusion: 'failure' }] }
+  ]) {
+    const facts = { ...base, ...changes };
+    assert.deepEqual(decideCategoryApprove(facts), preClassifyDecision(facts));
+  }
 });
 
 test('approves a non-empty known category union', () => {
@@ -107,10 +123,15 @@ test('skips denylist paths before classify', () => {
     'Classify'
   );
   assert.equal(decideCategoryApprove({ ...base, files: [file('APPROVAL_POLICY.md')] })._tag, 'Skip');
-  assert.equal(decideCategoryApprove({ ...base, files: [file('.cursor/rules/wireit.mdc')] })._tag, 'Skip');
+  assert.equal(decideCategoryApprove({ ...base, files: [file('.cursor/rules/wireit.mdc')] })._tag, 'Classify');
+  assert.equal(decideCategoryApprove({ ...base, files: [file('.cursor/commands/analyze-e2e.md')] })._tag, 'Classify');
+  assert.equal(
+    decideCategoryApprove({ ...base, files: [file('.cursor/skills/changelog-judgment/SKILL.md')] })._tag,
+    'Classify'
+  );
 });
 
-test('skips forks, drafts, dependabot, changes requested, and a quiet rollup', () => {
+test('skips forks, drafts, dependabot, changes requested, and a failed check', () => {
   assert.equal(
     decideCategoryApprove({
       ...base,
@@ -124,10 +145,17 @@ test('skips forks, drafts, dependabot, changes requested, and a quiet rollup', (
     'Skip'
   );
   assert.equal(decideCategoryApprove({ ...base, pull: { ...pull, reviewDecision: 'CHANGES_REQUESTED' } })._tag, 'Skip');
-  assert.equal(decideCategoryApprove({ ...base, checkRuns: [] })._tag, 'Skip');
+  assert.equal(
+    decideCategoryApprove({ ...base, checkRuns: [{ status: 'completed', conclusion: 'failure' }] })._tag,
+    'Skip'
+  );
+});
+
+test('classifies while the rollup is still settling', () => {
+  assert.equal(decideCategoryApprove({ ...base, checkRuns: [] })._tag, 'Classify');
   assert.equal(
     decideCategoryApprove({ ...base, checkRuns: [{ status: 'in_progress', conclusion: null }] })._tag,
-    'Skip'
+    'Classify'
   );
 });
 

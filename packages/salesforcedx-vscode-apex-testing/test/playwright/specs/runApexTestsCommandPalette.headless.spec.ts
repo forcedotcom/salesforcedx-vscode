@@ -20,6 +20,7 @@ import {
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   verifyCommandExists,
+  verifyNoTestRunInProgress,
   waitForOutputChannelText,
   waitForRunApexTestsProgressNotificationGone
 } from '@salesforce/playwright-vscode-ext';
@@ -91,6 +92,7 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
     await saveScreenshot(page, 'step.run-single.results-visible.png');
     await waitForOutputChannelText(page, { expectedText: testClassName });
     await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
+    await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.run-single.done.png');
   });
 
@@ -106,6 +108,7 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
     await waitForOutputChannelText(page, { expectedText: '=== Test Summary', timeout: TEST_RUN_TIMEOUT });
     await waitForOutputChannelText(page, { expectedText: testClassName });
     await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
+    await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.rerun-last-class.done.png');
   });
 
@@ -134,6 +137,7 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
     await waitForOutputChannelText(page, { expectedText: testClassName });
     await waitForOutputChannelText(page, { expectedText: testClassName2 });
     await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
+    await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.run-all.done.png');
   });
 

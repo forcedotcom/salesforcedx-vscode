@@ -283,7 +283,10 @@
       ]
     },
     "test:ai-safeguards": {
-      "command": "node --test test/ai-safeguards.test.mjs test/ai-auto-approve.test.mjs test/category-approve.test.ts",
+      "command": "node --test test/ai-safeguards.test.mjs test/ai-auto-approve.test.mjs test/category-approve.test.ts test/category-approve-preflight.test.cjs",
+      "dependencies": [
+        "./packages/effect-octokit:compile"
+      ],
       "files": [
         ".claude/hooks/block-no-verify.sh",
         ".claude/hooks/block-push-no-deps.sh",
@@ -296,12 +299,17 @@
         "scripts/ai-auto-approve.mjs",
         "scripts/ai-auto-approve-cli.mjs",
         "scripts/category-approve.ts",
+        "scripts/category-approve-preflight.cjs",
+        "scripts/shared/categoryGates.cjs",
+        "scripts/shared/categoryGates.d.cts",
         "scripts/shared/categoryDecision.ts",
         "scripts/shared/scriptErrors.ts",
+        ".github/workflows/categoryApprove.yml",
         "APPROVAL_POLICY.md",
         "test/ai-safeguards.test.mjs",
         "test/ai-auto-approve.test.mjs",
-        "test/category-approve.test.ts"
+        "test/category-approve.test.ts",
+        "test/category-approve-preflight.test.cjs"
       ],
       "output": []
     },

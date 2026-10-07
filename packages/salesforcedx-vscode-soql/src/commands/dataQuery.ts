@@ -114,19 +114,10 @@ export const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: 
           queryResult.records.length
         )
       : nls.localize('data_query_complete', queryResult.totalSize);
-    // showChannel runs concurrently, not after: saveResultsToCSV awaits a
-    // showInformationMessage prompt that never resolves without user action,
-    // so gating show behind this Effect.all (e.g. via ensuring) never reveals
-    // the panel.
-    yield* Effect.all(
-      [
-        displayTableResults(queryResult),
-        channelService.appendToChannel(statusMessage),
-        saveResultsToCSV(queryResult),
-        channelService.showChannel
-      ],
-      { concurrency: 'unbounded' }
-    );
+    yield* displayTableResults(queryResult);
+    yield* channelService.appendToChannel(statusMessage);
+    yield* channelService.showChannel;
+    yield* saveResultsToCSV(queryResult);
   }).pipe(
     Effect.catchAllCause(cause =>
       cause.pipe(

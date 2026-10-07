@@ -18,11 +18,16 @@ import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
-import { Event, EventEmitter, TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
-import { URI } from 'vscode-uri';
+import { type Event, EventEmitter, type TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
+import { type URI } from 'vscode-uri';
 import { retrieveLineBreakpointInfo } from '../apexExtension';
 import { writeToDebuggerOutputWindow } from '../channels';
-import { ActionScriptType, CHECKPOINT, FIELD_INTEGRITY_EXCEPTION, MAX_ALLOWED_CHECKPOINTS } from '../debuggerConstants';
+import {
+  type ActionScriptType,
+  CHECKPOINT,
+  FIELD_INTEGRITY_EXCEPTION,
+  MAX_ALLOWED_CHECKPOINTS
+} from '../debuggerConstants';
 import { nls } from '../messages';
 import { getRuntime } from '../services/runtime';
 import { type ProgressOnlyCommandKey } from '../utils/notificationMode';
