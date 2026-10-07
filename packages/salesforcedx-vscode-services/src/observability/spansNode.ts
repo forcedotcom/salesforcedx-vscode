@@ -18,10 +18,12 @@ import * as Layer from 'effect/Layer';
 import * as Logger from 'effect/Logger';
 import { join } from 'node:path';
 import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
+import { AppInsightsRoutingExporter } from './appInsightsRoutingExporter';
 import { ApplicationInsightsNodeExporter } from './applicationInsightsNodeExporter';
 import { GatedSpanExporter } from './gatedSpanExporter';
 import { makeLocalEnvelopeSender } from './localEnvelopeSender';
 import { getConsoleTracesEnabled, getFileTracesEnabled, getLocalTracesEnabled, getLogLevel } from './localTracing';
+import { O11yRoutingExporter } from './o11yRoutingExporter';
 import { O11ySpanExporter } from './o11ySpanExporter';
 import { OtlpFileLogExporterNode } from './otlpFileLogExporterNode';
 import { OtlpFileSpanExporterNode } from './otlpFileSpanExporterNode';
@@ -87,18 +89,24 @@ export const NodeSdkLayerFor = ({
           // disabled session runs no delegate ctor (no Azure Statsbeat/network setup).
           new SpanTransformProcessor({
             exporter: new GatedSpanExporter({
+              // legacy spans (telemetrySource=legacy) route to per-caller keys inside the router
               make: () =>
-                enableCustomEventsFromSpans
-                  ? // customEvents path (LogRecord-based); localIngestionEndpoint diverts to local server in dev/test
-                    new ApplicationInsightsNodeExporter(effectiveConnectionString, localIngestionEndpoint)
-                  : // dependencies path; localIngestionEndpoint diverts to local server in dev/test
-                    new FilteredAzureMonitorTraceExporter(
-                      {
-                        connectionString: effectiveConnectionString,
-                        storageDirectory: join(Global.SF_DIR, 'vscode-extensions-telemetry')
-                      },
-                      localIngestionEndpoint
-                    ),
+                new AppInsightsRoutingExporter({
+                  makeDefault: () =>
+                    enableCustomEventsFromSpans
+                      ? // customEvents path (LogRecord-based); localIngestionEndpoint diverts to local server in dev/test
+                        new ApplicationInsightsNodeExporter(effectiveConnectionString, localIngestionEndpoint)
+                      : // dependencies path; localIngestionEndpoint diverts to local server in dev/test
+                        new FilteredAzureMonitorTraceExporter(
+                          {
+                            connectionString: effectiveConnectionString,
+                            storageDirectory: join(Global.SF_DIR, 'vscode-extensions-telemetry')
+                          },
+                          localIngestionEndpoint
+                        ),
+                  makeLegacy: (legacyConnectionString: string) =>
+                    new ApplicationInsightsNodeExporter(legacyConnectionString, localIngestionEndpoint)
+                }),
               bypassGovernance: Boolean(localIngestionEndpoint)
             }),
             options:
@@ -109,22 +117,26 @@ export const NodeSdkLayerFor = ({
                     maxQueueSize: 1000
                   }
           }),
-          // O11y processor present whenever an endpoint is configured; the gate (localhost bypass +
-          // telemetry setting) now lives in GatedSpanExporter and is re-checked per export.
-          ...(o11yEndpoint
-            ? [
-                new SpanTransformProcessor({
-                  exporter: new GatedSpanExporter({
-                    // localIngestionEndpoint (dev/test) diverts O11y events to the local span file server's
-                    // /o11y route instead of uploading through the org connection — mirrors the AI divert.
-                    make: () =>
-                      new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId, localIngestionEndpoint),
-                    o11yEndpoint,
-                    bypassGovernance: Boolean(localIngestionEndpoint)
-                  })
-                })
-              ]
-            : []),
+          // O11y processor always present; O11yRoutingExporter restores per-caller
+          // endpoint/PFT for legacy spans and drops rest spans when the host
+          // configured no endpoint. The gate (localhost bypass + telemetry
+          // setting) now lives in GatedSpanExporter and is re-checked per export.
+          new SpanTransformProcessor({
+            exporter: new GatedSpanExporter({
+              // localIngestionEndpoint (dev/test) diverts O11y events to the local span file server's
+              // /o11y route instead of uploading through the org connection — mirrors the AI divert.
+              make: () =>
+                new O11yRoutingExporter({
+                  makeDefault: o11yEndpoint
+                    ? () => new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId, localIngestionEndpoint)
+                    : undefined,
+                  makeLegacy: (endpoint, legacyProductFeatureId, legacyExtensionName) =>
+                    new O11ySpanExporter(legacyExtensionName, endpoint, legacyProductFeatureId, localIngestionEndpoint)
+                }),
+              o11yEndpoint,
+              bypassGovernance: Boolean(localIngestionEndpoint)
+            })
+          }),
           ...(getLocalTracesEnabled() ? [new SpanTransformProcessor({ exporter: new OTLPTraceExporter() })] : []),
           ...(getFileTracesEnabled() ? [new SpanTransformProcessor({ exporter: new OtlpFileSpanExporterNode() })] : [])
         ],

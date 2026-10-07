@@ -6,7 +6,11 @@
  */
 
 import * as os from 'node:os';
-import { isInternalUser } from '../../../src/observability/spanTransformProcessor';
+import {
+  isInternalUser,
+  setSpanCreationIdentity,
+  SpanTransformProcessor
+} from '../../../src/observability/spanTransformProcessor';
 
 describe('isInternalUser', () => {
   let hostnameSpy: jest.SpyInstance;
@@ -37,5 +41,32 @@ describe('isInternalUser', () => {
     hostnameSpy.mockReturnValue('machine.internal.salesforce.com');
     expect(isInternalUser(undefined)).toBeUndefined();
     expect(hostnameSpy).not.toHaveBeenCalled();
+  });
+});
+
+describe('SpanTransformProcessor legacy identity', () => {
+  it('removes live identity that is absent from the frozen send-time snapshot', () => {
+    const attributes: Record<string, string | number> = { telemetrySource: 'legacy' };
+    const span = {
+      parentSpanContext: undefined,
+      resource: { attributes: { 'extension.name': 'caller-ext', 'extension.version': '1.0.0' } },
+      attributes,
+      setAttribute: jest.fn((key: string, value: string | number) => {
+        attributes[key] = value;
+      })
+    } as unknown as Parameters<SpanTransformProcessor['onStart']>[0];
+    const processor = new SpanTransformProcessor({
+      exporter: {} as never,
+      getIdentitySnapshot: () => ({ orgId: 'live-org', telemetryClassification: 'nonGov' }) as never
+    });
+
+    processor.onStart(span, {} as Parameters<SpanTransformProcessor['onStart']>[1]);
+    setSpanCreationIdentity(span, { telemetryClassification: 'unknown' });
+    processor.onEnding(span);
+
+    expect(attributes.orgId).toBeUndefined();
+    expect(attributes.userId).toBeUndefined();
+    expect(attributes.isSandbox).toBeUndefined();
+    expect(attributes['common.vscodemachineid']).toEqual(expect.any(String));
   });
 });

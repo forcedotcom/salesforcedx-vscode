@@ -33,7 +33,8 @@ import {
   convertAttributes,
   getExtensionNameAndVersionAttributes,
   isSpanValidForProductionTelemetry,
-  spanDuration
+  legacyNumericMeasurements,
+  telemetrySpanDuration
 } from './spanUtils';
 
 const getSpanKindName = (kind: SpanKind): string =>
@@ -121,7 +122,9 @@ const sendSpan = Effect.fn('sendSpan')(function* (
     // body.measurements into baseData.measurements (logUtils.getLegacyApplicationInsightsMeasurements).
     // duration is ALSO kept in attributes → properties (string) so existing properties consumers
     // keep working; measurements gives the queryable numeric copy.
-    body: { measurements: { duration: spanDuration(span) } },
+    // Duration as a measurement, plus legacy numeric measurements restored as numbers
+    // (exporters stringify span attributes into properties; legacy payloads were numeric).
+    body: { measurements: { ...legacyNumericMeasurements(span.attributes), duration: telemetrySpanDuration(span) } },
     attributes: {
       // Magic attribute: routes this LogRecord to the customEvents table
       'microsoft.custom_event.name': span.name,
@@ -142,7 +145,7 @@ const sendSpan = Effect.fn('sendSpan')(function* (
       startTime: String(span.startTime[0] * 1000 + span.startTime[1] / 1_000_000),
       endTime: String(span.endTime[0] * 1000 + span.endTime[1] / 1_000_000),
       // Duration as a measurement
-      duration: spanDuration(span),
+      duration: telemetrySpanDuration(span),
       // User context
       ...(userId ? { userId } : {}),
       ...(webUserId ? { webUserId } : {}),

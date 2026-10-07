@@ -9,7 +9,15 @@ import { type Attributes } from '@opentelemetry/api';
 import { type ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { workspace } from 'vscode';
 import { isProductionTelemetryExportEnabled } from '../../../src/observability/appInsights';
-import { isSpanValidForProductionTelemetry } from '../../../src/observability/spanUtils';
+import {
+  isSpanValidForProductionTelemetry,
+  legacyNumericMeasurements,
+  telemetrySpanDuration
+} from '../../../src/observability/spanUtils';
+import {
+  LEGACY_TELEMETRY_SOURCE_ATTR,
+  LEGACY_TELEMETRY_SOURCE_VALUE
+} from '../../../src/observability/legacyTelemetrySender';
 
 // isTelemetryExtensionConfigurationEnabled reads config.get; spy explicitly each test so results are
 // independent of the shared default mock (resetMocks clears the spy between tests).
@@ -36,6 +44,54 @@ describe('isSpanValidForProductionTelemetry', () => {
     expect(isSpanValidForProductionTelemetry(makeSpan({ command: 'sf.some.command', telemetryIgnore: true }))).toBe(
       false
     );
+  });
+});
+
+describe('legacyNumericMeasurements', () => {
+  it('returns {} for non-legacy spans', () => {
+    expect(legacyNumericMeasurements({ executionTime: 50 })).toEqual({});
+  });
+
+  it('restores finite numerics on legacy spans and drops non-numerics', () => {
+    expect(
+      legacyNumericMeasurements({
+        [LEGACY_TELEMETRY_SOURCE_ATTR]: LEGACY_TELEMETRY_SOURCE_VALUE,
+        executionTime: 50,
+        customMetric: 42,
+        commandName: 'myCommand',
+        flag: true,
+        missing: undefined,
+        bad: NaN,
+        huge: Infinity
+      })
+    ).toEqual({ executionTime: 50, customMetric: 42 });
+  });
+});
+
+describe('telemetrySpanDuration', () => {
+  it('uses the legacy timing measurement instead of the span wrapper duration', () => {
+    expect(
+      telemetrySpanDuration({
+        attributes: {
+          [LEGACY_TELEMETRY_SOURCE_ATTR]: LEGACY_TELEMETRY_SOURCE_VALUE,
+          executionTime: 50
+        },
+        duration: [1, 0]
+      } as unknown as ReadableSpan)
+    ).toBe(50);
+  });
+
+  it('uses the legacy duration fallback when no timing measurement was supplied', () => {
+    expect(
+      telemetrySpanDuration({
+        attributes: { [LEGACY_TELEMETRY_SOURCE_ATTR]: LEGACY_TELEMETRY_SOURCE_VALUE },
+        duration: [1, 0]
+      } as unknown as ReadableSpan)
+    ).toBe(0);
+  });
+
+  it('keeps normal span duration for non-legacy telemetry', () => {
+    expect(telemetrySpanDuration({ attributes: {}, duration: [1, 0] } as unknown as ReadableSpan)).toBe(1000);
   });
 });
 

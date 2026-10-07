@@ -5,6 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ApplicationInsightsWebExporter } from '../../../src/observability/applicationInsightsWebExporter';
+import {
+  LEGACY_TELEMETRY_SOURCE_ATTR,
+  LEGACY_TELEMETRY_SOURCE_VALUE
+} from '../../../src/observability/legacyTelemetrySender';
 import { ExportResultCode } from '@opentelemetry/core';
 import { SpanKind, SpanStatusCode } from '@opentelemetry/api';
 import type { ReadableSpan } from '@opentelemetry/sdk-trace-base';
@@ -51,5 +55,34 @@ describe('ApplicationInsightsWebExporter', () => {
     expect(reporter.sendDangerousTelemetryEvent).toHaveBeenCalledTimes(1);
     await exporter.shutdown();
     expect(reporter.dispose).toHaveBeenCalledTimes(1);
+  });
+
+  it('passes legacy numeric measurements through as numbers', async () => {
+    const reporter = {
+      sendDangerousTelemetryEvent: jest.fn(),
+      sendDangerousTelemetryErrorEvent: jest.fn(),
+      dispose: jest.fn().mockResolvedValue(undefined)
+    };
+    const exporter = new ApplicationInsightsWebExporter(jest.fn(() => reporter) as never);
+    const legacy = {
+      ...span,
+      attributes: {
+        [LEGACY_TELEMETRY_SOURCE_ATTR]: LEGACY_TELEMETRY_SOURCE_VALUE,
+        executionTime: 50,
+        commandName: 'myCommand'
+      }
+    } as unknown as ReadableSpan;
+    await new Promise<void>(resolve =>
+      exporter.export([legacy], result => {
+        expect(result.code).toBe(ExportResultCode.SUCCESS);
+        resolve();
+      })
+    );
+
+    expect(reporter.sendDangerousTelemetryEvent).toHaveBeenCalledWith(
+      'web-span',
+      expect.anything(),
+      expect.objectContaining({ executionTime: 50, duration: 50 })
+    );
   });
 });

@@ -27,7 +27,8 @@ import {
   convertAttributes,
   getExtensionNameAndVersionAttributes,
   isSpanValidForProductionTelemetry,
-  spanDuration
+  legacyNumericMeasurements,
+  telemetrySpanDuration
 } from './spanUtils';
 
 const getSpanKindName = (kind: SpanKind): string =>
@@ -102,7 +103,8 @@ const exportSpan = Effect.fn('exportSpan')(function* (span: ReadableSpan, getRep
   };
 
   const measurements = {
-    duration: spanDuration(span)
+    ...legacyNumericMeasurements(span.attributes),
+    duration: telemetrySpanDuration(span)
   };
 
   yield* Effect.try({

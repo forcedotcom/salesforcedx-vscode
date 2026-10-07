@@ -28,7 +28,9 @@ if (!Array.isArray(enforcedRules)) {
 const enforcedSet = new Set(enforcedRules);
 // --lspconfig replaces the project's Effect plugin config; enable off-by-default rules
 // here without pinning them in tsconfig.common.json (which also affects editor/tsc).
-const lspConfig = JSON.stringify({ diagnosticSeverity: Object.fromEntries(enforcedRules.map(name => [name, 'error'])) });
+const lspConfig = JSON.stringify({
+  diagnosticSeverity: Object.fromEntries(enforcedRules.map(name => [name, 'error']))
+});
 
 // Per-package CLI budget: bound a hung/runaway invocation instead of hanging the whole CI job.
 const perPackageTimeoutMs = 5 * 60 * 1000;
@@ -56,12 +58,16 @@ const discoveredPackages = packageJsonPaths.flatMap(relPkgJson => {
 // - Anything else (crash, timeout, maxBuffer overflow, non-JSON output) -> hard failure
 //   that fails the gate, so a broken invocation can never silently drop enforced findings.
 const runPackage = ({ name, tsconfig }) => {
-  const result = spawnSync('node', [cli, 'diagnostics', '--project', tsconfig, '--format', 'json', '--lspconfig', lspConfig], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 64 * 1024 * 1024,
-    timeout: perPackageTimeoutMs
-  });
+  const result = spawnSync(
+    'node',
+    [cli, 'diagnostics', '--project', tsconfig, '--format', 'json', '--lspconfig', lspConfig],
+    {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      maxBuffer: 64 * 1024 * 1024,
+      timeout: perPackageTimeoutMs
+    }
+  );
   const parsed = (() => {
     try {
       return JSON.parse(result.stdout);

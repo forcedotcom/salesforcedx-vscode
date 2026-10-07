@@ -7,7 +7,8 @@
 import { promisify } from 'node:util';
 import { exec } from 'node:child_process';
 import * as appInsights from 'applicationinsights';
-import { DEFAULT_AIKEY } from '../packages/salesforcedx-utils-vscode/src/constants';
+
+const DEFAULT_AIKEY = 'ec3632a4-df47-47a4-98dc-8134cacbaf7e';
 
 const promisifiedExec = promisify(exec);
 

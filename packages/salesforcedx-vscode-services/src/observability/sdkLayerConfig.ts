@@ -35,13 +35,16 @@ export type SdkLayerConfig = {
  * Resolves the OTEL connection string from packageJSON with precedence:
  * 1. otelConnectionString — dedicated OTEL field, full format, used as-is
  * 2. aiKey — legacy field; normalized from bare UUID to InstrumentationKey= format if needed
- * 3. undefined — NodeSdkLayerFor falls back to DEFAULT_AI_CONNECTION_STRING
+ * 3. fallback — callers pass their default (span layers: services default; legacy sender: ec3632 key)
  */
-const resolveConnectionString = (packageJSON: ExtensionPackageJSON): string | undefined => {
+export const resolveConnectionString = (
+  packageJSON: Pick<ExtensionPackageJSON, 'otelConnectionString' | 'aiKey'> | undefined,
+  fallback: string
+): string => {
   const otelConnectionString = packageJSON?.otelConnectionString;
   if (otelConnectionString) return otelConnectionString;
   const aiKey = packageJSON?.aiKey;
-  if (!aiKey) return undefined;
+  if (!aiKey) return fallback;
   return aiKey.includes('InstrumentationKey=') ? aiKey : `InstrumentationKey=${aiKey}`;
 };
 
@@ -83,7 +86,7 @@ export const getSdkLayerConfigFromPackageJSON = (
       : packageJSON?.o11yUploadEndpoint,
   productFeatureId: packageJSON?.productFeatureId,
   enableCustomEventsFromSpans: packageJSON?.enableCustomEventsFromSpans,
-  connectionString: resolveConnectionString(packageJSON) ?? DEFAULT_AI_CONNECTION_STRING,
+  connectionString: resolveConnectionString(packageJSON, DEFAULT_AI_CONNECTION_STRING),
   localIngestionEndpoint: resolveLocalIngestionEndpoint(isDevOrTest)
 });
 
