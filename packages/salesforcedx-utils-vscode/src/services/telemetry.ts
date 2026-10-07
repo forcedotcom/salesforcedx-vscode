@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { getServicesApi, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
-import { classifyOrgForTelemetry, errorToString, isLoopbackHttpEndpoint } from '@salesforce/salesforcedx-utils';
+import { errorToString } from '@salesforce/salesforcedx-utils';
 import {
   Properties,
   Measurements,
@@ -15,63 +15,12 @@ import {
   ActivationInfo
 } from '@salesforce/vscode-service-provider';
 import * as Effect from 'effect/Effect';
-import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { ExtensionContext, ExtensionMode, extensions, workspace } from 'vscode';
-import { ChannelService } from '../commands/channelService';
-import {
-  DEFAULT_AIKEY,
-  SFDX_CORE_CONFIGURATION_NAME,
-  SFDX_CORE_EXTENSION_NAME,
-  SFDX_EXTENSION_PACK_NAME,
-  UNAUTHENTICATED_USER
-} from '../constants';
-import { shapeFrom } from '../context/workspaceOrgShape';
+import { isNotUndefined, isString } from 'effect/Predicate';
+import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
+import { SFDX_CORE_CONFIGURATION_NAME, SFDX_CORE_EXTENSION_NAME, SFDX_EXTENSION_PACK_NAME } from '../constants';
 import { isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
-import { AppInsights } from '../telemetry/reporters/appInsights';
-import {
-  determineLocalReporters,
-  determineReporters,
-  initializeO11yReporter
-} from '../telemetry/reporters/determineReporters';
-import { LogStream } from '../telemetry/reporters/logStream';
-import { O11yReporter } from '../telemetry/reporters/o11yReporter';
-import { TelemetryFile } from '../telemetry/reporters/telemetryFile';
-import { OrgIdentity, TelemetryReporterConfig } from '../telemetry/reporters/telemetryReporterConfig';
 import { extensionPackageJsonSchema } from '../telemetry/schema';
 import { isInternalHost } from '../telemetry/utils/isInternal';
-
-type IdentityFromServices = {
-  cliId: string | undefined;
-  webUserId: string;
-  telemetryClassification: 'gov' | 'nonGov' | 'unknown';
-} & OrgIdentity;
-
-type ServicesTargetOrgRef = Effect.Effect.Success<ReturnType<SalesforceVSCodeServicesApi['services']['TargetOrgRef']>>;
-type DefaultOrgInfo = ServicesTargetOrgRef extends SubscriptionRef.SubscriptionRef<infer Info> ? Info : never;
-
-const identityFromDefaultOrgInfo = ({ instanceName, ...identity }: DefaultOrgInfo): IdentityFromServices => ({
-  cliId: identity.cliId,
-  webUserId: identity.webUserId ?? UNAUTHENTICATED_USER,
-  orgId: identity.orgId,
-  orgShape: shapeFrom(identity),
-  devHubId: identity.devHubOrgId,
-  orgEdition: identity.orgEdition,
-  telemetryClassification: classifyOrgForTelemetry(identity.orgId, instanceName)
-});
-
-const readIdentity = (api: SalesforceVSCodeServicesApi) =>
-  api.services.TargetOrgRef().pipe(Effect.flatMap(SubscriptionRef.get), Effect.map(identityFromDefaultOrgInfo));
-
-const getIdentitySnapshotFromServices = (): IdentityFromServices => {
-  const extension = extensions.getExtension<SalesforceVSCodeServicesApi>('salesforce.salesforcedx-vscode-services');
-  if (!extension?.isActive) throw new Error('Salesforce VS Code Services extension is not active');
-  return Effect.runSync(readIdentity(extension.exports));
-};
-
-/** Pull telemetry identity from the services extension. */
-const fetchIdentityFromServices = (): Promise<IdentityFromServices> =>
-  Effect.runPromise(getServicesApi.pipe(Effect.flatMap(readIdentity)));
 
 type CommandMetric = {
   extensionName: string;
@@ -79,19 +28,8 @@ type CommandMetric = {
   executionTime?: string;
 };
 
-type TelemetryPayload = Readonly<{
-  kind: 'event' | 'exception';
-  name: string;
-  message?: string;
-  properties?: Readonly<Properties>;
-  measurements?: Readonly<Measurements>;
-  identity: Readonly<IdentityFromServices>;
-}>;
-
-const sendToReporter = (reporter: TelemetryReporter, payload: TelemetryPayload): void =>
-  payload.kind === 'event'
-    ? reporter.sendTelemetryEvent(payload.name, payload.properties, payload.measurements)
-    : reporter.sendExceptionEvent(payload.name, payload.message ?? '', payload.measurements);
+type TelemetrySender = ReturnType<SalesforceVSCodeServicesApi['services']['getLegacyTelemetrySender']>;
+type TelemetryPayload = Parameters<TelemetrySender>[0];
 
 // export only for unit test
 export class TelemetryServiceProvider {
@@ -109,14 +47,9 @@ export class TelemetryServiceProvider {
 }
 
 export class TelemetryService implements TelemetryServiceInterface {
-  private extensionContext: ExtensionContext | undefined;
-  private localReporters: TelemetryReporter[] = [];
-  private remoteReporters: (AppInsights | O11yReporter)[] = [];
-  private sendProductionTelemetry: ((payload: TelemetryPayload) => Promise<void>) | undefined;
+  private sendProductionTelemetry: TelemetrySender | undefined;
   private disposed = false;
   private pendingTelemetry = new Set<Promise<void>>();
-  private aiKey = DEFAULT_AIKEY;
-  private version: string = '';
   public isInternal: boolean = false;
   public isDevMode: boolean = false;
 
@@ -158,31 +91,12 @@ export class TelemetryService implements TelemetryServiceInterface {
   }
 
   /**
-   * Fetch telemetry identity from the services extension.
-   * @internal Public only as a jest spy hook; do not invoke from outside this file.
-   */
-  public getIdentityFromServices(): Promise<IdentityFromServices> {
-    return fetchIdentityFromServices();
-  }
-
-  private warnDegradedSession(cliId: string | undefined): void {
-    if (isUndefined(cliId)) {
-      ChannelService.getInstance(this.extensionName).appendLine('telemetry seed missing — degraded session');
-    }
-  }
-
-  /**
    * Initialize Telemetry Service during extension activation.
    * @param extensionContext extension context
    */
   public async initializeService(extensionContext: ExtensionContext): Promise<void> {
-    const { name, version, aiKey, o11yUploadEndpoint, enableO11y, productFeatureId } = extensionPackageJsonSchema.parse(
-      extensionContext.extension.packageJSON
-    );
-    this.extensionContext = extensionContext;
+    const { name } = extensionPackageJsonSchema.parse(extensionContext.extension.packageJSON);
     this.extensionName = name;
-    this.version = version;
-    this.aiKey ??= aiKey ?? DEFAULT_AIKEY;
     this.isInternal = isInternalHost();
     this.isDevMode = extensionContext.extensionMode !== ExtensionMode.Production;
 
@@ -191,43 +105,10 @@ export class TelemetryService implements TelemetryServiceInterface {
       console.log(`Error initializing telemetry service: ${errorToString(error)}`);
     });
 
-    if (this.localReporters.length === 0 && !this.sendProductionTelemetry && (await this.isTelemetryEnabled())) {
-      const identity = await this.getIdentityFromServices();
-      const { cliId, webUserId } = identity;
-      this.warnDegradedSession(cliId);
-      const userId = cliId ?? '';
-      const reporterConfig: TelemetryReporterConfig = {
-        extName: this.extensionName,
-        version: this.version,
-        aiKey: this.aiKey,
-        userId,
-        reporterName: this.getTelemetryReporterName(),
-        isDevMode: this.isDevMode,
-        webUserId
-      };
-
-      const localO11yEndpoint =
-        this.isDevMode && isLoopbackHttpEndpoint(process.env.O11Y_ENDPOINT) ? process.env.O11Y_ENDPOINT : undefined;
-      const resolvedO11yEndpoint = localO11yEndpoint ?? o11yUploadEndpoint;
-      if (this.isDevMode && enableO11y && resolvedO11yEndpoint) {
-        await initializeO11yReporter(
-          reporterConfig.extName,
-          resolvedO11yEndpoint,
-          userId,
-          version,
-          webUserId,
-          productFeatureId,
-          Boolean(localO11yEndpoint)
-        );
-      }
-      this.localReporters.push(
-        ...(this.isDevMode ? determineReporters(reporterConfig) : determineLocalReporters(reporterConfig))
-      );
-      if (!this.isDevMode) {
-        this.sendProductionTelemetry = await Effect.runPromise(
-          this.makeProductionSender(reporterConfig, enableO11y ? resolvedO11yEndpoint : undefined, productFeatureId)
-        );
-      }
+    if (!this.sendProductionTelemetry && (await this.isTelemetryEnabled())) {
+      // sender built once per instance from ExtensionContext, cached exporters live in services
+      const api = await Effect.runPromise(getServicesApi);
+      this.sendProductionTelemetry = api.services.getLegacyTelemetrySender(extensionContext);
     }
     if (!extensionContext.subscriptions.includes(this)) extensionContext.subscriptions.push(this);
   }
@@ -243,55 +124,7 @@ export class TelemetryService implements TelemetryServiceInterface {
   }
 
   public getReporters(): TelemetryReporter[] {
-    return [...this.localReporters, ...this.remoteReporters];
-  }
-
-  /**
-   * Refreshes telemetry reporters with the latest user ID and webUserId field when org authorization changes.
-   * This ensures that telemetry events use the correct webUserId field (hashed orgId + userId)
-   * while maintaining the original user ID calculation.
-   *
-   * extensionContext is used to access globalState
-   */
-  public async updateReporters(extensionContext: ExtensionContext): Promise<void> {
-    if (
-      !this.extensionContext ||
-      (this.localReporters.length === 0 && !this.sendProductionTelemetry) ||
-      !(await this.isTelemetryEnabled())
-    ) {
-      return;
-    }
-
-    // Sourced from services-owned identity; webUserId always defined (UNAUTHENTICATED_USER until auth).
-    const { cliId, webUserId, orgId, orgShape, devHubId, orgEdition } = await this.getIdentityFromServices();
-    this.warnDegradedSession(cliId);
-    const userId = cliId ?? '';
-    const orgIdentity = { orgId, orgShape, devHubId, orgEdition };
-
-    // priority: extension specific one, OR core default one, OR original one
-    const { productFeatureId: thisExtensionPftId } = extensionPackageJsonSchema.parse(
-      this.extensionContext!.extension.packageJSON
-    );
-    const { productFeatureId: coreEtensionPftId } = extensionPackageJsonSchema.parse(
-      extensionContext.extension.packageJSON
-    );
-    // fresh object per reporter — avoid aliasing one shared-mutable orgIdentity across instances
-    this.localReporters
-      .filter(r => r instanceof TelemetryFile || r instanceof LogStream)
-      // TelemetryFile/LogStream lack userId/webUserId — cache org identity only.
-      .forEach(r => (r.orgIdentity = { ...orgIdentity }));
-    this.localReporters
-      .filter(r => r instanceof AppInsights || r instanceof O11yReporter)
-      .forEach(r => {
-        r.userId = userId;
-        r.webUserId = webUserId;
-        r.orgIdentity = { ...orgIdentity };
-      });
-    this.localReporters
-      .filter(r => r instanceof O11yReporter)
-      // don't overwrite PFT if already set
-      .filter(r => isUndefined(r.productFeatureId))
-      .forEach(r => (r.productFeatureId = thisExtensionPftId ?? coreEtensionPftId));
+    return [];
   }
 
   public async isTelemetryEnabled(): Promise<boolean> {
@@ -425,14 +258,7 @@ export class TelemetryService implements TelemetryServiceInterface {
   public dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
-    void Promise.allSettled(this.pendingTelemetry)
-      .then(() =>
-        Promise.allSettled([
-          ...this.localReporters.map(reporter => Promise.resolve().then(() => reporter.dispose())),
-          ...this.remoteReporters.map(reporter => reporter.dispose())
-        ])
-      )
-      .catch(err => console.log(err));
+    void Promise.allSettled(this.pendingTelemetry).catch(err => console.log(err));
   }
 
   /**
@@ -441,24 +267,19 @@ export class TelemetryService implements TelemetryServiceInterface {
    *
    * @param callback function to call if telemetry is enabled
    */
-  private sendTelemetryItem(item: Omit<TelemetryPayload, 'identity'>): void {
-    const identity = getIdentitySnapshotFromServices();
+  private sendTelemetryItem(item: TelemetryPayload): void {
+    if (this.disposed || !this.sendProductionTelemetry) return;
     const payload: TelemetryPayload = Object.freeze({
       ...item,
       properties: item.properties ? Object.freeze({ ...item.properties }) : undefined,
-      measurements: item.measurements ? Object.freeze({ ...item.measurements }) : undefined,
-      identity: Object.freeze({ ...identity })
+      measurements: item.measurements ? Object.freeze({ ...item.measurements }) : undefined
     });
+    // Services captures its DefaultOrgInfo snapshot synchronously here, before
+    // telemetry opt-in checks can yield or the target org can change.
+    const send = this.sendProductionTelemetry(payload);
     const pending = Promise.resolve(
       this.validateTelemetry(async () => {
-        this.localReporters.map(reporter => {
-          try {
-            sendToReporter(reporter, payload);
-          } catch (error) {
-            console.error(error);
-          }
-        });
-        await this.sendProductionTelemetry?.(payload);
+        await send();
       })
     );
     this.pendingTelemetry.add(pending);
@@ -466,84 +287,12 @@ export class TelemetryService implements TelemetryServiceInterface {
   }
 
   private async validateTelemetry(callback: () => void | Promise<void>): Promise<void> {
-    if (this.disposed || (this.localReporters.length === 0 && !this.sendProductionTelemetry)) return;
+    if (this.disposed || !this.sendProductionTelemetry) return;
     try {
       if (await this.isTelemetryEnabled()) await callback();
     } catch (err) {
       console.error(err);
     }
-  }
-
-  private makeProductionSender(
-    config: TelemetryReporterConfig,
-    o11yUploadEndpoint: string | undefined,
-    productFeatureId: string | undefined
-  ): Effect.Effect<(payload: TelemetryPayload) => Promise<void>> {
-    return Effect.gen(this, function* () {
-      const service = this;
-      const initializeAppInsights = yield* Effect.cached(
-        Effect.try(
-          () =>
-            new AppInsights(config.reporterName, config.version, config.aiKey, config.userId, config.webUserId, true)
-        )
-      );
-      const initializeO11y = o11yUploadEndpoint
-        ? yield* Effect.cached(
-            Effect.tryPromise(async () => {
-              const reporter = new O11yReporter(
-                config.extName,
-                config.version,
-                o11yUploadEndpoint,
-                config.userId,
-                config.webUserId,
-                productFeatureId
-              );
-              await reporter.initialize(config.extName);
-              return reporter;
-            })
-          )
-        : undefined;
-      const sendWith = Effect.fn('TelemetryService.sendWith')(function* (
-        label: string,
-        initialize: Effect.Effect<AppInsights | O11yReporter, unknown> | undefined,
-        payload: TelemetryPayload
-      ) {
-        if (!initialize) return;
-        yield* initialize.pipe(
-          Effect.flatMap(reporter =>
-            Effect.try(() => {
-              if (!service.remoteReporters.includes(reporter)) service.remoteReporters.push(reporter);
-              const { identity } = payload;
-              reporter.userId = identity.cliId ?? '';
-              reporter.webUserId = identity.webUserId;
-              reporter.orgIdentity = {
-                orgId: identity.orgId,
-                orgShape: identity.orgShape,
-                devHubId: identity.devHubId,
-                orgEdition: identity.orgEdition
-              };
-              if (reporter instanceof O11yReporter) reporter.productFeatureId = productFeatureId;
-              sendToReporter(reporter, payload);
-            })
-          ),
-          Effect.catchAll(error => Effect.sync(() => console.error(`${label} telemetry failed:`, error)))
-        );
-      });
-      return (payload: TelemetryPayload) =>
-        Effect.runPromise(
-          Effect.gen(this, function* () {
-            if (
-              payload.identity.telemetryClassification !== 'nonGov' ||
-              !(yield* Effect.tryPromise(() => service.isTelemetryEnabled()))
-            )
-              return;
-            yield* Effect.all(
-              [sendWith('App Insights', initializeAppInsights, payload), sendWith('O11y', initializeO11y, payload)],
-              { concurrency: 'unbounded', discard: true }
-            );
-          })
-        );
-    }).pipe(Effect.withSpan('TelemetryService.makeProductionSender'));
   }
 }
 
