@@ -342,6 +342,31 @@
           "default": "67.0",
           "description": "%configuration.apiVersion.description%"
         },
+        "salesforce-web-console.sessionContext": {
+          "type": "object",
+          "default": {},
+          "description": "%configuration.sessionContext.description%",
+          "properties": {
+            "username": {
+              "type": "string"
+            },
+            "orgId": {
+              "type": "string"
+            },
+            "userId": {
+              "type": "string"
+            },
+            "isDevHub": {
+              "type": "boolean"
+            },
+            "isScratch": {
+              "type": "boolean"
+            },
+            "isSandbox": {
+              "type": "boolean"
+            }
+          }
+        },
         "salesforce-web-console.retrieveOnLoad": {
           "type": "string",
           "default": "",
