@@ -9,7 +9,7 @@ import { Column, createTable, ExtensionProviderService, Row } from '@salesforce/
 import * as Cause from 'effect/Cause';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
-import { isNull, isNullable, isRecord, isUndefined } from 'effect/Predicate';
+import { isBoolean, isDate, isNull, isNullable, isNumber, isRecord, isUndefined } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import { Utils } from 'vscode-uri';
 import { SFDX_CORE_SECTION, SOQL_CONFIGURATION_NAME } from '../constants';
@@ -196,7 +196,7 @@ const isSubQueryResult = (value: unknown): value is { totalSize: number; done: b
   if (!isRecord(value)) {
     return false;
   }
-  return typeof value.totalSize === 'number' && typeof value.done === 'boolean' && Array.isArray(value.records);
+  return isNumber(value.totalSize) && isBoolean(value.done) && Array.isArray(value.records);
 };
 
 const RELATIONSHIP_FLATTEN_MAX_DEPTH = 10;
@@ -553,7 +553,7 @@ const formatNestedDisplayValue = (value: unknown, depthRemaining: number): strin
   if (isUndefined(value)) {
     return 'undefined';
   }
-  if (value instanceof Date) {
+  if (isDate(value)) {
     const dateStr = String(value);
     return dateStr.length > 50 ? `${dateStr.substring(0, 47)}...` : dateStr;
   }
