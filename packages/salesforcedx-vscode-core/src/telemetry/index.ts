@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TelemetryService, isInternalHost } from '@salesforce/salesforcedx-utils-vscode';
-import { ExtensionContext } from 'vscode';
+import { type ExtensionContext } from 'vscode';
 import { TELEMETRY_GLOBAL_VALUE, TELEMETRY_INTERNAL_VALUE } from '../constants';
 import { internalTelemetryMessage, telemetryWithOptOutMessage } from './telemetryMessages';
 
