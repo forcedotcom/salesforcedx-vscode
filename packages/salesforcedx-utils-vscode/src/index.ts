@@ -12,4 +12,3 @@ export { type OrgUserInfo } from './context/orgUserInfo';
 export { shapeFrom, type OrgShape } from './context/workspaceOrgShape';
 export { TelemetryService } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
-export { updateUserIDOnTelemetryReporters as refreshAllExtensionReporters } from './helpers/telemetryUtils';
