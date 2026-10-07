@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Locale } from './config';
+import { type Locale } from './config';
 
 export type AdvancedMessageBundle = {
   messages: Record<string, string>;
