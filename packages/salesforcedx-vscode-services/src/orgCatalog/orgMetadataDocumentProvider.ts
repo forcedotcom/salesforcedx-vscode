@@ -25,7 +25,7 @@ import { OrgId } from '../core/schemas/salesforceId';
 import { FileChangePubSub, type FileChangeEvent } from '../vscode/fileChangePubSub';
 import { isUriEqualOrWithin } from '../vscode/uriContainment';
 import { WorkspaceService } from '../vscode/workspaceService';
-import { OrgCatalogDocuments } from './orgCatalogDocuments';
+import { OrgCatalogRemoteSource } from './orgCatalogRemoteSource';
 import { OrgCatalogState } from './orgCatalogState';
 import { OrgMetadataCatalogChangePubSub, type OrgMetadataCatalogChange } from './orgMetadataCatalogChangePubSub';
 import { ORG_METADATA_SCHEME, orgIdFromOrgMetadataUri } from './orgMetadataReference';
@@ -111,7 +111,7 @@ export const closeInactiveOrgDocuments = Effect.fn('closeInactiveOrgDocuments')(
  */
 export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentProvider')(function* () {
   const [
-    documents,
+    remoteSource,
     catalogState,
     catalogChanges,
     fileChanges,
@@ -120,7 +120,7 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
     activeOperationRef,
     workspaceService
   ] = yield* Effect.all([
-    OrgCatalogDocuments,
+    OrgCatalogRemoteSource,
     OrgCatalogState,
     OrgMetadataCatalogChangePubSub,
     FileChangePubSub,
@@ -137,7 +137,7 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
           Effect.map(({ orgId }) => orgId),
           Effect.filterOrFail(Schema.is(OrgId), () => vscode.FileSystemError.FileNotFound(uri))
         );
-        return yield* documents.readDocumentUri(activeOrgId, uri);
+        return yield* remoteSource.readDocumentUri(activeOrgId, uri);
       })
     )
   );

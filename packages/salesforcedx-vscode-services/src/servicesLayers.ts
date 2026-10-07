@@ -28,7 +28,7 @@ import { TemplateService } from './core/templateService';
 import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
 import { redactingConsoleLoggerLayer } from './observability/redactingConsoleLogger';
-import { OrgCatalogDocuments } from './orgCatalog/orgCatalogDocuments';
+import { OrgCatalogRemoteSource } from './orgCatalog/orgCatalogRemoteSource';
 import { OrgCatalogState } from './orgCatalog/orgCatalogState';
 import { OrgMetadataCatalog } from './orgCatalog/orgMetadataCatalog';
 import { OrgMetadataCatalogChangePubSub } from './orgCatalog/orgMetadataCatalogChangePubSub';
@@ -84,7 +84,7 @@ const baseGlobalLayers = Layer.mergeAll(
   OrgMetadataCatalog.Default,
   OrgMetadataCatalogChangePubSub.Default,
   OrgMetadataCatalogStore.Default,
-  OrgCatalogDocuments.Default,
+  OrgCatalogRemoteSource.Default,
   OrgCatalogState.Default,
   OrgMetadataReferenceService.Default,
   MetadataDeleteService.Default,

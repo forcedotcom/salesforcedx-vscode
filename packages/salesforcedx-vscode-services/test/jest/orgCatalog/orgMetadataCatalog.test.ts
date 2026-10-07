@@ -38,9 +38,7 @@ import { TransmogrifierService } from '../../../src/core/transmogrifierService';
 import { OrgId } from '../../../src/core/schemas/salesforceId';
 import type { SObject } from '../../../src/core/schemas/sObject';
 import { OrgMetadataCatalog } from '../../../src/orgCatalog/orgMetadataCatalog';
-import { OrgCatalogDocuments } from '../../../src/orgCatalog/orgCatalogDocuments';
 import { OrgCatalogInventory } from '../../../src/orgCatalog/orgCatalogInventory';
-import { OrgCatalogRemoteRetrieve } from '../../../src/orgCatalog/orgCatalogRemoteRetrieve';
 import { OrgCatalogRemoteSource } from '../../../src/orgCatalog/orgCatalogRemoteSource';
 import { OrgCatalogState } from '../../../src/orgCatalog/orgCatalogState';
 import { OrgCatalogTreeProjection } from '../../../src/orgCatalog/orgCatalogTreeProjection';
@@ -363,15 +361,11 @@ const makeHarness = (options: HarnessOptions = {}) => {
   const foundation = Layer.mergeAll(dependencies, stateLayer, referenceLayer);
   const recorderLayer = OrgMetadataCatalogRecorder.DefaultWithoutDependencies.pipe(Layer.provide(foundation));
   const workspaceLayer = OrgCatalogWorkspace.DefaultWithoutDependencies.pipe(Layer.provide(foundation));
-  const remoteRetrieveLayer = OrgCatalogRemoteRetrieve.DefaultWithoutDependencies.pipe(Layer.provide(foundation));
   const inventoryRequirements = Layer.mergeAll(foundation, workspaceLayer);
   const inventoryLayer = OrgCatalogInventory.DefaultWithoutDependencies.pipe(Layer.provide(inventoryRequirements));
-  const remoteSourceRequirements = Layer.mergeAll(inventoryRequirements, inventoryLayer, remoteRetrieveLayer);
+  const remoteSourceRequirements = Layer.mergeAll(inventoryRequirements, inventoryLayer);
   const remoteSourceLayer = OrgCatalogRemoteSource.DefaultWithoutDependencies.pipe(
     Layer.provide(remoteSourceRequirements)
-  );
-  const documentsLayer = OrgCatalogDocuments.DefaultWithoutDependencies.pipe(
-    Layer.provide(Layer.mergeAll(remoteSourceRequirements, remoteSourceLayer))
   );
   const treeProjectionLayer = OrgCatalogTreeProjection.DefaultWithoutDependencies.pipe(
     Layer.provide(Layer.mergeAll(inventoryRequirements, inventoryLayer))
@@ -382,16 +376,14 @@ const makeHarness = (options: HarnessOptions = {}) => {
     referenceLayer,
     workspaceLayer,
     inventoryLayer,
-    remoteRetrieveLayer,
     remoteSourceLayer,
-    documentsLayer,
     recorderLayer,
     treeProjectionLayer
   );
 
   return {
     catalogChanges,
-    internalLayer: Layer.mergeAll(stateLayer, documentsLayer),
+    internalLayer: Layer.mergeAll(stateLayer, remoteSourceLayer),
     layer: Layer.mergeAll(
       Layer.provide(OrgMetadataCatalog.DefaultWithoutDependencies, catalogRequirements),
       referenceLayer
@@ -1193,6 +1185,41 @@ describe('OrgMetadataCatalog contract', () => {
     expect(orgTwo?.documentUri.toString()).not.toBe(orgOne?.documentUri.toString());
   });
 
+  it('reads an active-org Apex document from Tooling and reuses its revisioned shadow artifact', async () => {
+    const { mocks, remoteSourceLayer } = makeHarness({
+      metadataByType: { ApexClass: [{ fullName: 'RemoteTest', lastModifiedDate: 'revision-1' }] }
+    });
+    const documentUri = URI.parse('sf-org-metadata:/orgs/00D000000000001/ApexClass/RemoteTest.cls');
+
+    const [first, second] = await Effect.runPromise(
+      Effect.gen(function* () {
+        const remoteSource = yield* OrgCatalogRemoteSource;
+        return [
+          yield* remoteSource.readDocumentUri('00D000000000001', documentUri),
+          yield* remoteSource.readDocumentUri('00D000000000001', documentUri)
+        ];
+      }).pipe(Effect.provide(remoteSourceLayer))
+    );
+
+    expect(first).toBe('public class RemoteTest {}');
+    expect(second).toBe(first);
+    expect(mocks.toolingQuery).toHaveBeenCalledTimes(1);
+    expect(mocks.shadowPrepare).toHaveBeenCalledWith(
+      '00D000000000001',
+      expect.objectContaining({ xmlName: 'ApexClass', fullName: 'RemoteTest' }),
+      'revision-1'
+    );
+    expect(mocks.shadowPublish).toHaveBeenCalledTimes(1);
+    const inactiveOrgRead = await Effect.runPromiseExit(
+      OrgCatalogRemoteSource.readDocumentUri('00D000000000002', documentUri).pipe(Effect.provide(remoteSourceLayer))
+    );
+    expect(Exit.isFailure(inactiveOrgRead)).toBe(true);
+    if (Exit.isFailure(inactiveOrgRead)) {
+      expect(Option.getOrUndefined(Cause.failureOption(inactiveOrgRead.cause))).toBeInstanceOf(vscode.FileSystemError);
+    }
+    expect(mocks.toolingQuery).toHaveBeenCalledTimes(1);
+  });
+
   it('materializes decomposed metadata represented only by a metadata XML file', async () => {
     const { layer, mocks, remoteSourceLayer } = makeHarness({
       metadataByType: { ListView: [{ fullName: 'Broker__c.All', lastModifiedDate: 'revision-1' }] }
@@ -1273,5 +1300,99 @@ describe('OrgMetadataCatalog contract', () => {
 
     expect(artifact.primaryUri.path.endsWith('/prompts/Property.prompt-meta.xml')).toBe(true);
     expect(artifact.fileUris).toEqual([artifact.primaryUri]);
+  });
+
+  it('retrieves multiple components once and publishes separate revisioned shadow artifacts', async () => {
+    const { mocks, remoteSourceLayer } = makeHarness();
+    const requests = [
+      { reference: { xmlName: 'Prompt', fullName: 'Property' }, expectedRemoteLastModifiedDate: 'revision-1' },
+      { reference: { xmlName: 'ListView', fullName: 'Broker__c.All' } }
+    ];
+    mocks.retrieveComponentSetToDirectory.mockImplementation((_componentSet: unknown, stagingUri: URI) =>
+      Effect.succeed({
+        components: {
+          getSourceComponents: () => [],
+          getComponentFilenamesByNameAndType: ({ type }: { type: string }) => [
+            Utils.joinPath(stagingUri, type, type === 'Prompt' ? 'Property.prompt-meta.xml' : 'All.listView-meta.xml')
+              .fsPath
+          ]
+        },
+        getFileResponses: () => [],
+        response: {
+          fileProperties: [
+            { type: 'Prompt', fullName: 'Property', lastModifiedDate: 'response-revision' },
+            { type: 'ListView', fullName: 'Broker__c.All', lastModifiedDate: 'revision-2' }
+          ]
+        }
+      })
+    );
+
+    const artifacts = await Effect.runPromise(
+      OrgCatalogRemoteSource.materializeRetrievedComponents('00D000000000001', requests).pipe(
+        Effect.provide(remoteSourceLayer)
+      )
+    );
+
+    expect(mocks.buildComponentSet).toHaveBeenCalledWith([
+      { type: 'Prompt', fullName: 'Property' },
+      { type: 'ListView', fullName: 'Broker__c.All' }
+    ]);
+    expect(mocks.retrieveComponentSetToDirectory).toHaveBeenCalledTimes(1);
+    expect(mocks.shadowPrepareBatch).toHaveBeenCalledTimes(1);
+    expect(mocks.shadowPrepare).toHaveBeenCalledWith('00D000000000001', requests[0]!.reference, 'revision-1');
+    expect(mocks.shadowPrepare).toHaveBeenCalledWith('00D000000000001', requests[1]!.reference, 'revision-2');
+    expect(artifacts.map(({ artifact, reference }) => [reference, artifact.remoteLastModifiedDate])).toEqual([
+      [requests[0]!.reference, 'revision-1'],
+      [requests[1]!.reference, 'revision-2']
+    ]);
+    expect(artifacts[0]?.artifact.primaryUri.path).toMatch(/\/Prompt\/Property\.prompt-meta\.xml$/);
+    expect(artifacts[1]?.artifact.primaryUri.path).toMatch(/\/ListView\/All\.listView-meta\.xml$/);
+  });
+
+  it('serializes primary document and batch materialization through the same semaphore', async () => {
+    const { mocks, remoteSourceLayer } = makeHarness({
+      metadataByType: { Prompt: [{ fullName: 'Property', lastModifiedDate: 'revision-1' }] }
+    });
+    const result = await Effect.scoped(
+      Effect.gen(function* () {
+        const firstRetrieveStarted = yield* Deferred.make<void>();
+        const finishFirstRetrieve = yield* Deferred.make<void>();
+        mocks.retrieveComponentSetToDirectory.mockImplementation((_componentSet: unknown, stagingUri: URI) =>
+          Deferred.succeed(firstRetrieveStarted, undefined).pipe(
+            Effect.andThen(Deferred.await(finishFirstRetrieve)),
+            Effect.as({
+              components: {
+                getSourceComponents: () => [],
+                getComponentFilenamesByNameAndType: () => [
+                  Utils.joinPath(stagingUri, 'Property.prompt-meta.xml').fsPath
+                ]
+              },
+              getFileResponses: () => [],
+              response: { fileProperties: [] }
+            })
+          )
+        );
+        const remoteSource = yield* OrgCatalogRemoteSource;
+        const primary = yield* Effect.forkScoped(
+          remoteSource.materializePrimaryDocument('00D000000000001', { xmlName: 'Prompt', fullName: 'Property' })
+        );
+        yield* Deferred.await(firstRetrieveStarted);
+        const batch = yield* Effect.forkScoped(
+          remoteSource.materializeRetrievedComponents('00D000000000001', [
+            { reference: { xmlName: 'ListView', fullName: 'Broker__c.All' } },
+            { reference: { xmlName: 'Prompt', fullName: 'Other' } }
+          ])
+        );
+        yield* Effect.yieldNow();
+        const callsBeforeRelease = mocks.retrieveComponentSetToDirectory.mock.calls.length;
+        yield* Deferred.succeed(finishFirstRetrieve, undefined);
+        yield* Fiber.join(primary);
+        yield* Fiber.join(batch);
+        return callsBeforeRelease;
+      })
+    ).pipe(Effect.provide(remoteSourceLayer), Effect.timeout('2 seconds'), Effect.runPromise);
+
+    expect(result).toBe(1);
+    expect(mocks.retrieveComponentSetToDirectory).toHaveBeenCalledTimes(2);
   });
 });
