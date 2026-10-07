@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ApexTestResultData, LogService, TestResult, TestService } from '@salesforce/apex-node';
+import { type ApexTestResultData, LogService, type TestResult, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
@@ -76,7 +76,7 @@ const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass
   return true;
 });
 
-export const setupAndDebugTests = async (className: string, methodName?: string): Promise<void> => {
+const setupAndDebugTests = async (className: string, methodName?: string): Promise<void> => {
   const progressLocation = await getRuntime().runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -97,3 +97,12 @@ export const setupAndDebugTests = async (className: string, methodName?: string)
     void vscode.window.showErrorMessage(nls.localize('debug_test_failed', String(error)));
   }
 };
+
+export const debugTestsCommand = Effect.fn('debugTestsCommand')(function* (test: { name: string }) {
+  yield* Effect.promise(() => setupAndDebugTests(test.name));
+});
+
+export const debugSingleTestCommand = Effect.fn('debugSingleTestCommand')(function* (test: { name: string }) {
+  const [method, className, namespace] = test.name.split('.').toReversed();
+  yield* Effect.promise(() => setupAndDebugTests(namespace ? `${namespace}.${className}` : className, method));
+});

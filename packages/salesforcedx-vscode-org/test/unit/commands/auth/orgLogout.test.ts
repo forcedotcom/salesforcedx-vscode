@@ -27,7 +27,7 @@ const buildServices = (opts: {
   confirm: boolean;
   orgInfo: OrgSnapshot;
   isCurrentTargetOrg: boolean;
-  unsetTargetOrg: VitestMock;
+  clearDefaultOrgRef: VitestMock;
 }) => ({
   ProjectService: {
     getSfProject: () =>
@@ -38,9 +38,9 @@ const buildServices = (opts: {
     getWorkspaceInfoOrThrow: () => Effect.succeed({ fsPath: '/workspace' })
   },
   ConfigService: {
-    isCurrentTargetOrg: () => Effect.succeed(opts.isCurrentTargetOrg),
-    unsetTargetOrg: opts.unsetTargetOrg
+    isCurrentTargetOrg: () => Effect.succeed(opts.isCurrentTargetOrg)
   },
+  ClearDefaultOrgRef: opts.clearDefaultOrgRef,
   TargetOrgRef: () => SubscriptionRef.make(opts.orgInfo),
   UserCancellationError
 });
@@ -50,7 +50,7 @@ const run = (opts: {
   confirm: boolean;
   orgInfo: OrgSnapshot;
   isCurrentTargetOrg?: boolean;
-  unsetTargetOrg: VitestMock;
+  clearDefaultOrgRef: VitestMock;
 }) =>
   Effect.runPromiseExit(
     orgLogoutDefaultCommand().pipe(
@@ -62,7 +62,7 @@ const run = (opts: {
 
 describe('orgLogoutDefaultCommand', () => {
   let removeAuthMock: VitestMock;
-  let unsetTargetOrgMock: VitestMock;
+  let clearDefaultOrgRefMock: VitestMock;
   let showInformationMessageMock: VitestMock;
 
   beforeEach(() => {
@@ -71,7 +71,7 @@ describe('orgLogoutDefaultCommand', () => {
     vi.spyOn(AuthRemover, 'create').mockResolvedValue({
       removeAuth: removeAuthMock
     } as unknown as AuthRemover);
-    unsetTargetOrgMock = vi.fn().mockReturnValue(Effect.void);
+    clearDefaultOrgRefMock = vi.fn().mockReturnValue(Effect.void);
     mockUpdateConfigAndStateAggregatorsEffect.mockReturnValue(Effect.void);
     showInformationMessageMock = vscode.window.showInformationMessage as unknown as VitestMock;
     showInformationMessageMock.mockResolvedValue(undefined);
@@ -87,7 +87,7 @@ describe('orgLogoutDefaultCommand', () => {
       isProject: true,
       confirm: true,
       orgInfo: { username, aliases: ['myOrg'] },
-      unsetTargetOrg: unsetTargetOrgMock
+      clearDefaultOrgRef: clearDefaultOrgRefMock
     });
 
     expect(Exit.isSuccess(exit)).toBe(true);
@@ -95,7 +95,7 @@ describe('orgLogoutDefaultCommand', () => {
     expect(removeAuthMock).toHaveBeenCalledWith(username);
     expect(mockUpdateConfigAndStateAggregatorsEffect).toHaveBeenCalledTimes(1);
     // in-process ref clear (not the async config-file watcher) is what clears the apex-testing tree (#7624)
-    expect(unsetTargetOrgMock).toHaveBeenCalledTimes(1);
+    expect(clearDefaultOrgRefMock).toHaveBeenCalledTimes(1);
   });
 
   it('does not clear the ref when the logged-out org was not the current target', async () => {
@@ -105,14 +105,14 @@ describe('orgLogoutDefaultCommand', () => {
       confirm: true,
       orgInfo: { username },
       isCurrentTargetOrg: false,
-      unsetTargetOrg: unsetTargetOrgMock
+      clearDefaultOrgRef: clearDefaultOrgRefMock
     });
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(removeAuthMock).toHaveBeenCalledWith(username);
     expect(mockUpdateConfigAndStateAggregatorsEffect).toHaveBeenCalledTimes(1);
     // logging out a non-target org must leave the current target-org (and its ref) intact
-    expect(unsetTargetOrgMock).not.toHaveBeenCalled();
+    expect(clearDefaultOrgRefMock).not.toHaveBeenCalled();
   });
 
   it('logs out a scratch default org after the confirm prompt is accepted', async () => {
@@ -121,13 +121,13 @@ describe('orgLogoutDefaultCommand', () => {
       isProject: true,
       confirm: true,
       orgInfo: { username, isScratch: true, aliases: ['myScratch'] },
-      unsetTargetOrg: unsetTargetOrgMock
+      clearDefaultOrgRef: clearDefaultOrgRefMock
     });
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(removeAuthMock).toHaveBeenCalledWith(username);
     expect(mockUpdateConfigAndStateAggregatorsEffect).toHaveBeenCalledTimes(1);
-    expect(unsetTargetOrgMock).toHaveBeenCalledTimes(1);
+    expect(clearDefaultOrgRefMock).toHaveBeenCalledTimes(1);
   });
 
   it('cancels (no removeAuth/refresh/ref-clear) when the scratch confirm modal is declined', async () => {
@@ -135,14 +135,14 @@ describe('orgLogoutDefaultCommand', () => {
       isProject: true,
       confirm: false,
       orgInfo: { username: 'scratch@example.com', isScratch: true },
-      unsetTargetOrg: unsetTargetOrgMock
+      clearDefaultOrgRef: clearDefaultOrgRefMock
     });
 
     // cancellation is caught and turned into a no-op success
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(removeAuthMock).not.toHaveBeenCalled();
     expect(mockUpdateConfigAndStateAggregatorsEffect).not.toHaveBeenCalled();
-    expect(unsetTargetOrgMock).not.toHaveBeenCalled();
+    expect(clearDefaultOrgRefMock).not.toHaveBeenCalled();
   });
 
   it('shows an info message (no removeAuth/refresh/ref-clear) when there is no default org', async () => {
@@ -150,14 +150,14 @@ describe('orgLogoutDefaultCommand', () => {
       isProject: true,
       confirm: true,
       orgInfo: {},
-      unsetTargetOrg: unsetTargetOrgMock
+      clearDefaultOrgRef: clearDefaultOrgRefMock
     });
 
     expect(Exit.isSuccess(exit)).toBe(true);
     expect(showInformationMessageMock).toHaveBeenCalledTimes(1);
     expect(removeAuthMock).not.toHaveBeenCalled();
     expect(mockUpdateConfigAndStateAggregatorsEffect).not.toHaveBeenCalled();
-    expect(unsetTargetOrgMock).not.toHaveBeenCalled();
+    expect(clearDefaultOrgRefMock).not.toHaveBeenCalled();
   });
 
   it('fails the precondition (no removeAuth) when not in a project', async () => {
@@ -165,14 +165,14 @@ describe('orgLogoutDefaultCommand', () => {
       isProject: false,
       confirm: true,
       orgInfo: { username: 'user@example.com' },
-      unsetTargetOrg: unsetTargetOrgMock
+      clearDefaultOrgRef: clearDefaultOrgRefMock
     });
 
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('FailedToResolveSfProjectError');
     expect(removeAuthMock).not.toHaveBeenCalled();
     expect(mockUpdateConfigAndStateAggregatorsEffect).not.toHaveBeenCalled();
-    expect(unsetTargetOrgMock).not.toHaveBeenCalled();
+    expect(clearDefaultOrgRefMock).not.toHaveBeenCalled();
   });
 
   it('fails with OrgLogoutError (no refresh/ref-clear) when removeAuth rejects', async () => {
@@ -181,12 +181,12 @@ describe('orgLogoutDefaultCommand', () => {
       isProject: true,
       confirm: true,
       orgInfo: { username: 'user@example.com' },
-      unsetTargetOrg: unsetTargetOrgMock
+      clearDefaultOrgRef: clearDefaultOrgRefMock
     });
 
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('OrgLogoutError');
     expect(mockUpdateConfigAndStateAggregatorsEffect).not.toHaveBeenCalled();
-    expect(unsetTargetOrgMock).not.toHaveBeenCalled();
+    expect(clearDefaultOrgRefMock).not.toHaveBeenCalled();
   });
 });

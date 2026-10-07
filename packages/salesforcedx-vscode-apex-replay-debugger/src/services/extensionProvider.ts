@@ -24,7 +24,6 @@ export const buildAllServicesLayer = (context: ExtensionContext, fallbackDisplay
     )
   );
 
-// eslint-disable-next-line functional/no-let -- Module-level mutable for setAllServicesLayer (tests/debug)
 export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
 
 export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {

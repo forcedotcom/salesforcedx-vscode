@@ -789,7 +789,7 @@ describe('ConnectionService.getConnection (Web Console)', () => {
     else process.env.ESBUILD_PLATFORM = originalPlatform;
   });
 
-  it('supplies the raw access token to AuthInfo.create and preserves cache hits', async () => {
+  it('supplies the raw access token with auth flags to AuthInfo.create and preserves cache hits', async () => {
     process.env.ESBUILD_PLATFORM = 'web';
     vi.resetModules();
 
@@ -820,12 +820,25 @@ describe('ConnectionService.getConnection (Web Console)', () => {
     );
     const layer = WebLayer.provide(WebConnectionService.DefaultWithoutDependencies, dependencies);
 
-    await WebEffect.runPromise(WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer)));
-    await WebEffect.runPromise(WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer)));
+    const first = await WebEffect.runPromise(
+      WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer))
+    );
+    const cached = await WebEffect.runPromise(
+      WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer))
+    );
 
     expect(WebAuthInfo.create).toHaveBeenCalledWith({
-      accessTokenOptions: { accessToken, loginUrl: INSTANCE_URL, instanceUrl: INSTANCE_URL }
+      accessTokenOptions: {
+        accessToken,
+        loginUrl: INSTANCE_URL,
+        instanceUrl: INSTANCE_URL,
+        isDevHub: false,
+        isScratch: false,
+        isSandbox: false
+      }
     });
     expect(WebAuthInfo.create).toHaveBeenCalledTimes(1);
+    expect(first).toBe(connection);
+    expect(cached).toBe(connection);
   });
 });

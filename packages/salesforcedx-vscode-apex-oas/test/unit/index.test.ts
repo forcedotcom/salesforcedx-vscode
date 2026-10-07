@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import type * as IndexModule from '../../src/index';
 import * as pkg from '../../package.json';
 
 const registerCommandWithRuntime = vi.fn(() => () => Effect.succeed({ dispose: vi.fn() }));
@@ -24,7 +25,7 @@ vi.mock('@salesforce/effect-ext-utils', () => ({
 
 // Provide ExtensionProviderService via Effect.gen yield* — return shape matching (yield* ExtensionProviderService).getServicesApi
 vi.mock('../../src/index', async () => {
-  const actual = await vi.importActual<typeof import('../../src/index')>('../../src/index');
+  const actual = (await vi.importActual('../../src/index')) as typeof IndexModule;
   return actual;
 });
 

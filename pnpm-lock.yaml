@@ -269,8 +269,8 @@ importers:
         specifier: ^2.0.3
         version: 2.0.3
       '@salesforce/core':
-        specifier: 9.1.11
-        version: 9.1.11
+        specifier: 9.3.0
+        version: 9.3.0
       '@salesforce/dev-config':
         specifier: ^4.3.2
         version: 4.3.3
@@ -557,6 +557,9 @@ importers:
 
   packages/effect-octokit:
     dependencies:
+      '@effect/platform':
+        specifier: 0.96.1
+        version: 0.96.1(effect@3.22.2)
       '@octokit/core':
         specifier: ^7.0.6
         version: 7.0.8
@@ -629,14 +632,17 @@ importers:
         version: 3.22.2
     devDependencies:
       '@salesforce/core':
-        specifier: ^9.1.9
-        version: 9.1.11
+        specifier: ^9.3.0
+        version: 9.3.0
 
   packages/salesforcedx-apex:
     dependencies:
+      '@effect/platform':
+        specifier: ^0.96.1
+        version: 0.96.1(effect@3.22.2)
       '@salesforce/core':
-        specifier: ^9.1.9
-        version: 9.1.11
+        specifier: ^9.3.0
+        version: 9.3.0
       '@salesforce/kit':
         specifier: ^4.0.0
         version: 4.0.0
@@ -687,8 +693,8 @@ importers:
   packages/salesforcedx-apex-debugger:
     dependencies:
       '@salesforce/core':
-        specifier: ^9.1.9
-        version: 9.1.11
+        specifier: ^9.3.0
+        version: 9.3.0
       '@salesforce/salesforcedx-utils':
         specifier: '*'
         version: link:../salesforcedx-utils
@@ -942,8 +948,8 @@ importers:
   packages/salesforcedx-utils-vscode:
     dependencies:
       '@salesforce/core':
-        specifier: ^9.1.9
-        version: 9.1.11
+        specifier: ^9.3.0
+        version: 9.3.0
       '@salesforce/effect-ext-utils':
         specifier: '*'
         version: link:../effect-ext-utils
@@ -1035,8 +1041,8 @@ importers:
         version: 3.2.0
     devDependencies:
       '@salesforce/core':
-        specifier: ^9.1.9
-        version: 9.1.11
+        specifier: ^9.3.0
+        version: 9.3.0
       '@salesforce/playwright-vscode-ext':
         specifier: '*'
         version: link:../playwright-vscode-ext
@@ -1047,8 +1053,8 @@ importers:
   packages/salesforcedx-vscode-apex-debugger:
     dependencies:
       '@salesforce/core':
-        specifier: ^9.1.9
-        version: 9.1.11
+        specifier: ^9.3.0
+        version: 9.3.0
       '@salesforce/effect-ext-utils':
         specifier: '*'
         version: link:../effect-ext-utils
@@ -1100,8 +1106,8 @@ importers:
         version: 3.2.0
     devDependencies:
       '@salesforce/core':
-        specifier: ^9.1.9
-        version: 9.1.11
+        specifier: ^9.3.0
+        version: 9.3.0
       '@salesforce/playwright-vscode-ext':
         specifier: '*'
         version: link:../playwright-vscode-ext
@@ -1181,9 +1187,6 @@ importers:
       '@salesforce/salesforcedx-utils':
         specifier: '*'
         version: link:../salesforcedx-utils
-      '@salesforce/salesforcedx-utils-vscode':
-        specifier: '*'
-        version: link:../salesforcedx-utils-vscode
       '@salesforce/vscode-i18n':
         specifier: '*'
         version: link:../salesforcedx-vscode-i18n
@@ -1201,8 +1204,8 @@ importers:
         specifier: 1.60.0
         version: 1.60.0
       '@salesforce/core':
-        specifier: ^9.1.9
-        version: 9.1.11
+        specifier: ^9.3.0
+        version: 9.3.0
       '@salesforce/playwright-vscode-ext':
         specifier: '*'
         version: link:../playwright-vscode-ext
@@ -1241,8 +1244,8 @@ importers:
         version: 3.2.0
     devDependencies:
       '@salesforce/core':
-        specifier: ^9.1.9
-        version: 9.1.11
+        specifier: ^9.3.0
+        version: 9.3.0
       '@salesforce/playwright-vscode-ext':
         specifier: '*'
         version: link:../playwright-vscode-ext
@@ -1284,8 +1287,8 @@ importers:
         version: 3.2.0
     devDependencies:
       '@salesforce/core':
-        specifier: ^9.1.9
-        version: 9.1.11
+        specifier: ^9.3.0
+        version: 9.3.0
       '@salesforce/playwright-vscode-ext':
         specifier: '*'
         version: link:../playwright-vscode-ext
@@ -1377,8 +1380,8 @@ importers:
         version: 1.3.1
     devDependencies:
       '@salesforce/core':
-        specifier: ^9.1.9
-        version: 9.1.11
+        specifier: ^9.3.0
+        version: 9.3.0
       '@salesforce/playwright-vscode-ext':
         specifier: '*'
         version: link:../playwright-vscode-ext
@@ -1429,8 +1432,8 @@ importers:
   packages/salesforcedx-vscode-org:
     dependencies:
       '@salesforce/core':
-        specifier: ^9.1.9
-        version: 9.1.11
+        specifier: ^9.3.0
+        version: 9.3.0
       '@salesforce/effect-ext-utils':
         specifier: '*'
         version: link:../effect-ext-utils
@@ -1452,7 +1455,7 @@ importers:
     devDependencies:
       '@effect/opentelemetry':
         specifier: 0.63.0
-        version: 0.63.0(@effect/platform@0.96.1(effect@3.22.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.2)
+        version: 0.63.0(@effect/platform@0.96.1(effect@3.22.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.11.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.2)
       '@salesforce/playwright-vscode-ext':
         specifier: '*'
         version: link:../playwright-vscode-ext
@@ -1476,8 +1479,8 @@ importers:
         version: 3.2.0
     devDependencies:
       '@salesforce/core':
-        specifier: ^9.1.9
-        version: 9.1.11
+        specifier: ^9.3.0
+        version: 9.3.0
       '@salesforce/playwright-vscode-ext':
         specifier: '*'
         version: link:../playwright-vscode-ext
@@ -1495,7 +1498,7 @@ importers:
         version: 1.0.0-beta.43(supports-color@8.1.1)
       '@effect/opentelemetry':
         specifier: 0.63.0
-        version: 0.63.0(@effect/platform@0.96.1(effect@3.22.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.2)
+        version: 0.63.0(@effect/platform@0.96.1(effect@3.22.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.11.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.2)
       '@effect/platform':
         specifier: ^0.96.1
         version: 0.96.1(effect@3.22.2)
@@ -1515,8 +1518,8 @@ importers:
         specifier: 0.219.0
         version: 0.219.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/resources':
-        specifier: 2.8.0
-        version: 2.8.0(@opentelemetry/api@1.9.1)
+        specifier: 2.11.0
+        version: 2.11.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-logs':
         specifier: 0.219.0
         version: 0.219.0(@opentelemetry/api@1.9.1)
@@ -1532,9 +1535,12 @@ importers:
       '@opentelemetry/sdk-trace-web':
         specifier: 2.8.0
         version: 2.8.0(@opentelemetry/api@1.9.1)
+      '@salesforce/apex-node':
+        specifier: '*'
+        version: link:../salesforcedx-apex
       '@salesforce/core':
-        specifier: ^9.1.9
-        version: 9.1.11
+        specifier: ^9.3.0
+        version: 9.3.0
       '@salesforce/o11y-reporter':
         specifier: ^1.8.5
         version: 1.8.5
@@ -1595,7 +1601,7 @@ importers:
         version: 1.0.0-beta.43(supports-color@8.1.1)
       '@effect/opentelemetry':
         specifier: 0.63.0
-        version: 0.63.0(@effect/platform@0.96.1(effect@3.22.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.2)
+        version: 0.63.0(@effect/platform@0.96.1(effect@3.22.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.11.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.2)
       '@opentelemetry/api':
         specifier: 1.9.1
         version: 1.9.1
@@ -1621,8 +1627,8 @@ importers:
         specifier: 2.8.0
         version: 2.8.0(@opentelemetry/api@1.9.1)
       '@salesforce/core':
-        specifier: ^9.1.9
-        version: 9.1.11
+        specifier: ^9.3.0
+        version: 9.3.0
       '@salesforce/source-deploy-retrieve':
         specifier: ^13.2.0
         version: 13.3.1(supports-color@8.1.1)
@@ -1734,8 +1740,8 @@ importers:
         specifier: ^1.0.0
         version: 1.0.0(rollup@4.63.1)
       '@salesforce/core':
-        specifier: ^9.1.9
-        version: 9.1.11
+        specifier: ^9.3.0
+        version: 9.3.0
       '@salesforce/eslint-config-lwc':
         specifier: ^4.1.2
         version: 4.1.2(a3c60563e89b01b00683c7a7982a3e92)
@@ -3702,6 +3708,12 @@ packages:
     peerDependencies:
       '@opentelemetry/api': '>=1.0.0 <1.10.0'
 
+  '@opentelemetry/core@2.11.0':
+    resolution: {integrity: sha512-7YP44XH0tV6+Mb54x2YGf84i7yi+31MBZlE8JwvozkxyTvXbSp10X7cI7YE49ChJ3shMJoBmCJF3+1QFBJctGA==}
+    engines: {node: ^18.19.0 || >=20.6.0}
+    peerDependencies:
+      '@opentelemetry/api': '>=1.0.0 <1.10.0'
+
   '@opentelemetry/core@2.8.0':
     resolution: {integrity: sha512-hd1Lfh8p545nNz+jq1Ejfz+Mn1hyLuxYn1YzTfFNrxr8urEWMNQLPf1Th8kjOH+HxwawCrtgBp8JpBUR4ZSgww==}
     engines: {node: ^18.19.0 || >=20.6.0}
@@ -3728,6 +3740,12 @@ packages:
 
   '@opentelemetry/resources@2.10.0':
     resolution: {integrity: sha512-q6MMm2zhggzsHVNbabYwut+a6nbuQQe3URUoxaojM/8K1IBfwwPzvxIjNi2/lI1TFe+fMHMW9MWhrtDLEXEnkA==}
+    engines: {node: ^18.19.0 || >=20.6.0}
+    peerDependencies:
+      '@opentelemetry/api': '>=1.3.0 <1.10.0'
+
+  '@opentelemetry/resources@2.11.0':
+    resolution: {integrity: sha512-Ie7+8q8MDF4FAEQCKVMTx3ReUvxiIAgIiiW3c9JdmP8+HMcDy20puT+AHjexnExgnbvBxjQ9fjkFDWrikJ2jQA==}
     engines: {node: ^18.19.0 || >=20.6.0}
     peerDependencies:
       '@opentelemetry/api': '>=1.3.0 <1.10.0'
@@ -4533,8 +4551,8 @@ packages:
   '@salesforce/apex@0.0.21':
     resolution: {integrity: sha512-sRQ7eHDzgjCN2FEDZgyDK35TonKT9MWC3Qb1dsOqpmc4icdTIpGxzKd8IZ8JlMIH1TkvJ1VfksFRV9zdn+D+eg==}
 
-  '@salesforce/core@9.1.11':
-    resolution: {integrity: sha512-EE4oGYsoKThank4dQ1mVIzJjS9yP6C6s7JzKDx+ki8AFAxgpposzLc6GYwZZq1tS0XaOfBL2x+8RrgEgZvXwnw==}
+  '@salesforce/core@9.3.0':
+    resolution: {integrity: sha512-ouDf96KpZHdm81LUKVbPMFBKvyPpmW8+37nhSsYBUL1PSQ+98PJTUxzcuQekglgYBuqiaoETBclz75NYJfdEOw==}
     engines: {node: '>=22.0.0'}
 
   '@salesforce/dev-config@4.3.3':
@@ -9202,8 +9220,8 @@ packages:
   mlly@1.8.2:
     resolution: {integrity: sha512-d+ObxMQFmbt10sretNDytwt85VrbkhhUA/JBGm1MPaWJ65Cl4wOgLaB1NYvJSZ0Ef03MMEU/0xpPMXUIQ29UfA==}
 
-  morgan@1.12.0:
-    resolution: {integrity: sha512-OHpTRQwn2ezasILW8iKe+Yww1XsfWsZIpUOLF7RDb2g5GwO3trPaRwi7+8BDiJ7HFx2Kg2mfUdCBcVhwYlOz2g==}
+  morgan@1.12.1:
+    resolution: {integrity: sha512-tljKC0ex20AjO58Ob/eZ53JloycbVswbVNCHx6V6VLGzqt/w8dIynVGL0G8qVjNKwiA7sYSogCrN6QtJ82IV+g==}
     engines: {node: '>= 0.8.0'}
 
   mri@1.2.0:
@@ -11777,7 +11795,7 @@ snapshots:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/api-logs': 0.219.0
       '@opentelemetry/core': 2.8.0(@opentelemetry/api@1.9.1)
-      '@opentelemetry/resources': 2.8.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/resources': 2.11.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-logs': 0.219.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-metrics': 2.10.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-trace-base': 2.10.0(@opentelemetry/api@1.9.1)
@@ -12742,24 +12760,11 @@ snapshots:
 
   '@effect/language-service@0.87.2': {}
 
-  '@effect/opentelemetry@0.63.0(@effect/platform@0.96.1(effect@3.22.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.2)':
+  '@effect/opentelemetry@0.63.0(@effect/platform@0.96.1(effect@3.22.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.11.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.2)':
     dependencies:
       '@effect/platform': 0.96.1(effect@3.22.2)
       '@opentelemetry/api': 1.9.1
-      '@opentelemetry/resources': 2.10.0(@opentelemetry/api@1.9.1)
-      '@opentelemetry/sdk-logs': 0.219.0(@opentelemetry/api@1.9.1)
-      '@opentelemetry/sdk-metrics': 2.10.0(@opentelemetry/api@1.9.1)
-      '@opentelemetry/sdk-trace-base': 2.10.0(@opentelemetry/api@1.9.1)
-      '@opentelemetry/sdk-trace-node': 2.8.0(@opentelemetry/api@1.9.1)
-      '@opentelemetry/sdk-trace-web': 2.8.0(@opentelemetry/api@1.9.1)
-      '@opentelemetry/semantic-conventions': 1.43.0
-      effect: 3.22.2
-
-  '@effect/opentelemetry@0.63.0(@effect/platform@0.96.1(effect@3.22.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.2)':
-    dependencies:
-      '@effect/platform': 0.96.1(effect@3.22.2)
-      '@opentelemetry/api': 1.9.1
-      '@opentelemetry/resources': 2.8.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/resources': 2.11.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-logs': 0.219.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-metrics': 2.10.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-trace-base': 2.10.0(@opentelemetry/api@1.9.1)
@@ -14159,6 +14164,11 @@ snapshots:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/semantic-conventions': 1.43.0
 
+  '@opentelemetry/core@2.11.0(@opentelemetry/api@1.9.1)':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/semantic-conventions': 1.43.0
+
   '@opentelemetry/core@2.8.0(@opentelemetry/api@1.9.1)':
     dependencies:
       '@opentelemetry/api': 1.9.1
@@ -14193,6 +14203,12 @@ snapshots:
     dependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/core': 2.10.0(@opentelemetry/api@1.9.1)
+      '@opentelemetry/semantic-conventions': 1.43.0
+
+  '@opentelemetry/resources@2.11.0(@opentelemetry/api@1.9.1)':
+    dependencies:
+      '@opentelemetry/api': 1.9.1
+      '@opentelemetry/core': 2.11.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/semantic-conventions': 1.43.0
 
   '@opentelemetry/resources@2.8.0(@opentelemetry/api@1.9.1)':
@@ -14701,7 +14717,7 @@ snapshots:
 
   '@salesforce/apex@0.0.21': {}
 
-  '@salesforce/core@9.1.11':
+  '@salesforce/core@9.3.0':
     dependencies:
       '@jsforce/jsforce-node': 3.10.25
       '@salesforce/kit': 4.0.0
@@ -14775,7 +14791,7 @@ snapshots:
 
   '@salesforce/source-deploy-retrieve@13.3.1(supports-color@8.1.1)':
     dependencies:
-      '@salesforce/core': 9.1.11
+      '@salesforce/core': 9.3.0
       '@salesforce/kit': 4.0.0
       '@salesforce/ts-types': 3.2.0
       '@salesforce/types': 1.8.0
@@ -14794,7 +14810,7 @@ snapshots:
 
   '@salesforce/source-tracking@8.1.3(supports-color@8.1.1)':
     dependencies:
-      '@salesforce/core': 9.1.11
+      '@salesforce/core': 9.3.0
       '@salesforce/kit': 4.0.0
       '@salesforce/source-deploy-retrieve': 13.3.1(supports-color@8.1.1)
       '@salesforce/ts-types': 3.2.0
@@ -19914,7 +19930,7 @@ snapshots:
 
   koa-morgan@1.0.1(supports-color@8.1.1):
     dependencies:
-      morgan: 1.12.0(supports-color@8.1.1)
+      morgan: 1.12.1(supports-color@8.1.1)
     transitivePeerDependencies:
       - supports-color
 
@@ -20420,7 +20436,7 @@ snapshots:
       pkg-types: 1.3.1
       ufo: 1.6.4
 
-  morgan@1.12.0(supports-color@8.1.1):
+  morgan@1.12.1(supports-color@8.1.1):
     dependencies:
       basic-auth: 2.0.1
       debug: 2.6.9(supports-color@8.1.1)

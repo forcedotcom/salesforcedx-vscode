@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/playwright-vscode-ext",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "versionedIndependently": true,
   "description": "Shared Playwright utilities, fixtures, and page objects for end-to-end testing of Salesforce DX VS Code extensions.",
   "author": "Salesforce",
@@ -39,7 +39,7 @@
     "effect": "^3.21.2"
   },
   "devDependencies": {
-    "@salesforce/core": "^9.1.9"
+    "@salesforce/core": "^9.3.0"
   },
   "scripts": {
     "check:circular-deps": "wireit",

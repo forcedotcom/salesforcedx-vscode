@@ -12,6 +12,7 @@ import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isError, isNotUndefined, isString, not } from 'effect/Predicate';
+import * as Record from 'effect/Record';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -367,10 +368,10 @@ const readAliasesByUsernameFromDiskEffect = Effect.fn('OrgUtil.readAliasesByUser
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const aliasService = yield* api.services.AliasService;
   const orgs = yield* aliasService.getAllAliases();
-  return Object.entries(orgs).reduce((result, [alias, username]) => {
+  return Record.reduce(orgs, new Map<string, string[]>(), (result, username, alias) => {
     result.set(username, [...(result.get(username) ?? []), alias]);
     return result;
-  }, new Map<string, string[]>());
+  });
 });
 
 /**

@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.27.2",
+  "version": "67.27.5",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -32,7 +32,6 @@
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-apex-replay-debugger": "*",
     "@salesforce/salesforcedx-utils": "*",
-    "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
     "salesforcedx-vscode-apex-log": "*",
@@ -40,7 +39,7 @@
   },
   "devDependencies": {
     "@playwright/test": "1.60.0",
-    "@salesforce/core": "^9.1.9",
+    "@salesforce/core": "^9.3.0",
     "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-apex": "*",
     "salesforcedx-vscode-apex-testing": "*",
@@ -75,7 +74,6 @@
         "../salesforcedx-apex:compile",
         "../salesforcedx-apex-replay-debugger:compile",
         "../salesforcedx-utils:compile",
-        "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-apex-log:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-apex:compile",
@@ -199,7 +197,7 @@
       "dependencies": [
         "vscode:package",
         "../salesforcedx-vscode-services:vscode:package",
-        "../salesforcedx-vscode-core:vscode:package:legacy",
+        "../salesforcedx-vscode-core:vscode:package",
         "../salesforcedx-vscode-apex:vscode:package",
         "../salesforcedx-vscode-apex-log:vscode:package",
         "../salesforcedx-vscode-apex-testing:vscode:package",
