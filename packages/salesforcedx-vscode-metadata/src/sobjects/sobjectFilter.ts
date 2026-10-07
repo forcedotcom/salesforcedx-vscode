@@ -10,16 +10,10 @@ import { SObjectCategory, SObjectRefreshSource } from './types/general';
 
 /** filter out standard or custom if necessary and handle the "required" sobject types */
 export const sobjectTypeFilter =
-  (category: SObjectCategory, source: SObjectRefreshSource) => (sobject: SObjectShortDescription) => {
-    const isCustomObject = sobject.custom && category === 'CUSTOM';
-    const isStandardObject = !sobject.custom && category === 'STANDARD';
-
-    return (
-      (category === 'ALL' && source === 'manual') ||
-      (category === 'ALL' && (source === 'startupmin' || source === 'startup') && isRequiredSObject(sobject.name)) ||
-      ((isCustomObject || isStandardObject) && source === 'manual' && isRequiredSObject(sobject.name))
-    );
-  };
+  (category: SObjectCategory, source: SObjectRefreshSource) => (sobject: SObjectShortDescription) =>
+    (category === 'ALL' && source === 'manual') ||
+    (category === 'ALL' && (source === 'startupmin' || source === 'startup') && isRequiredSObject(sobject.name)) ||
+    (category === (sobject.custom ? 'CUSTOM' : 'STANDARD') && source === 'manual' && isRequiredSObject(sobject.name));
 
 /* Ignore all sobjects that end with Share or History or Feed or Event */
 const isRequiredSObject = (sobject: string): boolean => !/Share$|History$|Feed$|.+Event$/.test(sobject);
