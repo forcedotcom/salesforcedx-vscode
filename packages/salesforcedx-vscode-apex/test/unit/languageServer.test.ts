@@ -62,13 +62,11 @@ describe('languageServer client span', () => {
     // resetMocks:true wipes module-scope implementations before each test — re-establish them here.
     (resolveRequirements as VitestMock).mockReturnValue(Effect.succeed({ java_home: '/mock/java', java_memory: 4096 }));
     (buildMetadataRegistryScanConfig as VitestMock).mockResolvedValue(undefined);
-    (ApexLanguageClient as unknown as VitestMock).mockImplementation(function () {
-      return {
-        onTelemetry: (cb: (data: TelemetryData) => void) => {
-          capturedOnTelemetry = cb;
-        }
-      };
-    });
+    (ApexLanguageClient as unknown as VitestMock).mockImplementation(() => ({
+      onTelemetry: (cb: (data: TelemetryData) => void) => {
+        capturedOnTelemetry = cb;
+      }
+    }));
     // Return the caller-supplied default so array settings stay iterable and boolean settings stay boolean.
     (vscode.workspace.getConfiguration as VitestMock) = vi.fn().mockReturnValue({
       get: (_key: string, def?: unknown) => def

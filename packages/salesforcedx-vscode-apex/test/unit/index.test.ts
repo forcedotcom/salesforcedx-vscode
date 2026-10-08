@@ -9,6 +9,7 @@ import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vit
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
+import type * as LanguageClientManagerModule from '../../src/languageUtils/languageClientManager';
 
 // Mock vscode.extensions.getExtension before any imports that trigger src/index.ts
 (vi.spyOn(vscode.extensions, 'getExtension') as any).mockImplementation(() => ({ isActive: true, exports: {} }));
@@ -18,7 +19,7 @@ vi.spyOn(vscode.commands, 'executeCommand').mockImplementation(() => Promise.res
 
 vi.mock('./../../src/apexLspStatusBarItem');
 vi.mock('../../src/languageUtils/languageClientManager', async importOriginal => ({
-  ...(await importOriginal<typeof import('../../src/languageUtils/languageClientManager')>()),
+  ...(await importOriginal<typeof LanguageClientManagerModule>()),
   createLanguageClient: vi.fn().mockResolvedValue(undefined)
 }));
 
