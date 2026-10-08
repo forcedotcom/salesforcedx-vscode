@@ -99,7 +99,7 @@
   "dependencies": {
     "@effect/platform": "0.96.1",
     "@effect/platform-node": "0.106.0",
-    "@modelcontextprotocol/sdk": "1.30.0",
+    "@modelcontextprotocol/sdk": "1.31.0",
     "@playwright/test": "1.60.0",
     "@salesforce/playwright-vscode-ext": "workspace:*",
     "@vscode/test-electron": "3.1.0",
