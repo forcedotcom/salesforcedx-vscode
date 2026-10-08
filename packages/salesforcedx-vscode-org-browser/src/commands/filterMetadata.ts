@@ -56,10 +56,7 @@ export const isCompleteSearchTerm = (value: string): boolean => {
 
 export const isInvalidStructuredSearchTerm = (value: string): boolean => {
   const colonIdx = value.indexOf(':');
-  return (
-    (value.startsWith('/') || colonIdx !== -1) &&
-    (!isCompleteSearchTerm(value) || (colonIdx > 0 && value.substring(colonIdx + 1).trim() === ''))
-  );
+  return (value.startsWith('/') || colonIdx !== -1) && !isCompleteSearchTerm(value);
 };
 
 type ParsedFilter = ReturnType<typeof parseFilterValue>;

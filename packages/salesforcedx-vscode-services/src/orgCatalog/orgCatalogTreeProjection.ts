@@ -66,12 +66,20 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
     const loadedChildren = yield* Ref.make<HashMap.HashMap<string, LoadedProjection>>(HashMap.empty());
     const getCustomFieldChildren = Effect.fn('OrgCatalogTreeProjection.getCustomFieldChildren')(function* (
       orgId: string,
-      objectEntry: OrgMetadataCatalogEntry
+      objectEntry: OrgMetadataCatalogEntry,
+      cacheOnly = false
     ) {
       if (!isOrgMetadataComponentReference(objectEntry.reference)) return [];
       const objectApiName = objectEntry.namespacePrefix
         ? `${objectEntry.namespacePrefix}__${objectEntry.reference.fullName}`
         : objectEntry.reference.fullName;
+      yield* state.ensureHydrated(orgId);
+      const [cachedFieldInventory, persistedFieldInventory, existingDescription] = yield* Effect.all([
+        state.getInventory(orgId, 'CustomField'),
+        state.getPersistedInventory(orgId, 'CustomField'),
+        state.getSObjectDescription(orgId, objectApiName)
+      ]);
+      if (cacheOnly && !(cachedFieldInventory?.complete || persistedFieldInventory?.complete)) return [];
       const fieldInventory = yield* inventories
         .loadType(orgId, 'CustomField')
         .pipe(
@@ -79,8 +87,9 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
             Effect.logWarning('Failed to list CustomField inventory', error).pipe(Effect.as(emptyCustomFieldInventory))
           )
         );
-      yield* state.ensureHydrated(orgId);
-      const acquireDescription = metadataDescribeService.describeCustomObject(objectApiName, orgId).pipe(
+      const acquireDescription = Effect.suspend(() =>
+        metadataDescribeService.describeCustomObject(objectApiName, orgId)
+      ).pipe(
         Effect.flatMap(transmogrifier.toMinimalSObject),
         Effect.map(sobject => ({
           ...sobject,
@@ -89,11 +98,12 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
           provenance: 'rest-api' as const
         }))
       );
-      const cachedDescription = yield* state
-        .getSObjectDescription(orgId, objectApiName)
-        .pipe(Effect.flatMap(description => (description ? Effect.succeed(description) : acquireDescription)));
+      const cachedDescription = existingDescription ?? (cacheOnly ? undefined : yield* acquireDescription);
       const describedObject =
-        fieldInventory.complete && Date.parse(fieldInventory.observedAt) > Date.parse(cachedDescription.observedAt)
+        cachedDescription &&
+        !cacheOnly &&
+        fieldInventory.complete &&
+        Date.parse(fieldInventory.observedAt) > Date.parse(cachedDescription.observedAt)
           ? yield* metadataDescribeService.invalidateSObjectDescribe(objectApiName, orgId).pipe(
               Effect.andThen(metadataDescribeService.describeCustomObject(objectApiName, orgId)),
               Effect.flatMap(transmogrifier.toMinimalSObject),
@@ -116,7 +126,7 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
         const separator = entry.reference.fullName.lastIndexOf('.');
         return separator > 0 && parentNames.has(entry.reference.fullName.slice(0, separator));
       });
-      const describedFields = describedObject.fields.filter(field => field.custom);
+      const describedFields = describedObject?.fields.filter(field => field.custom) ?? [];
       const describedByName = describedFields.reduce(
         (byName, field) =>
           objectEntry.namespacePrefix
@@ -269,10 +279,24 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
       reference: OrgMetadataReference
     ) {
       const generation = yield* state.getHierarchyGeneration(orgId);
-      return HashMap.get(yield* Ref.get(loadedChildren), loadedChildrenKey(orgId, reference)).pipe(
-        Option.filter(loaded => loaded.generation === generation),
-        Option.map(loaded => loaded.children),
+      const loaded = HashMap.get(yield* Ref.get(loadedChildren), loadedChildrenKey(orgId, reference)).pipe(
+        Option.filter(projection => projection.generation === generation),
+        Option.map(projection => projection.children),
         Option.getOrUndefined
+      );
+      if (loaded || !reference.xmlName) return loaded;
+      yield* state.ensureHydrated(orgId);
+      const xmlName = reference.xmlName;
+      const cached =
+        (yield* state.getInventory(orgId, xmlName)) ?? (yield* state.getPersistedInventory(orgId, xmlName));
+      if (!cached?.complete) return undefined;
+      const inventory = yield* inventories.loadType(orgId, xmlName);
+      const component = reference.fullName
+        ? findInventoryComponent(inventory.components, { xmlName, fullName: reference.fullName })
+        : undefined;
+      if (component && xmlName === 'CustomObject') return yield* getCustomFieldChildren(orgId, component, true);
+      return yield* projectChildren(orgId, xmlName, reference.fullName, inventory).pipe(
+        Effect.provideService(OrgMetadataReferenceService, references)
       );
     });
 

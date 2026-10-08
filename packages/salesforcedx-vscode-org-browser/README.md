@@ -58,7 +58,6 @@ Structured searches are not sent to the org until they are complete and valid. E
 
 - `/Apex` because the regular expression is missing its closing `/`
 - `ApexClass:/Broker` because the component regular expression is incomplete
-- `ApexClass:` because a component-search clause is incomplete
 - `ApexClass:/[/` because the regular expression is invalid
 
 For these expressions, Org Browser shows an empty-tree message explaining that the expression must be completed or corrected before searching the org. Correct the expression and pause typing to resume search behavior.

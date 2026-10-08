@@ -297,6 +297,39 @@ describe('matchesGlobalSearch', () => {
   });
 });
 
+describe('loaded-results global search', () => {
+  it('keeps a type with a cached matching custom field without fetching other types', async () => {
+    const provider = new MetadataTypeTreeProvider();
+    provider.setTextFilter(undefined, 'Email');
+    const getChildren = jest.fn(
+      (reference: { type: string; fullName?: string }, options?: { consistency?: string }) => {
+        expect(options).toEqual({ consistency: 'cache-only' });
+        if (reference.type === 'CustomObject' && !reference.fullName)
+          return Effect.succeed([
+            { kind: 'component', reference: { type: 'CustomObject', fullName: 'Broker__c' }, inOrg: true }
+          ] as OrgMetadataCatalogEntry[]);
+        if (reference.type === 'CustomObject' && reference.fullName === 'Broker__c')
+          return Effect.succeed([
+            { kind: 'component', reference: { type: 'CustomField', fullName: 'Broker__c.Email__c' }, inOrg: true }
+          ] as OrgMetadataCatalogEntry[]);
+        return Effect.succeed([] as OrgMetadataCatalogEntry[]);
+      }
+    );
+    const api = { services: { OrgMetadataCatalog } } as unknown as SalesforceVSCodeServicesApi;
+    const service = { getServicesApi: Effect.succeed(api) };
+
+    const result = await Effect.runPromise(
+      filterTypesWithMatchingComponents([typeNode('CustomObject'), typeNode('ApexClass')], provider).pipe(
+        Effect.provideService(ExtensionProviderService, service),
+        Effect.provideService(OrgMetadataCatalog, { getChildren } as unknown as OrgMetadataCatalog)
+      )
+    );
+
+    expect(result.map(node => node.xmlName)).toEqual(['CustomObject']);
+    expect(getChildren).toHaveBeenCalledTimes(3);
+  });
+});
+
 describe('full discovery state', () => {
   it('tracks one discovery per org', () => {
     const provider = new MetadataTypeTreeProvider();

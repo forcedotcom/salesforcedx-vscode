@@ -32,10 +32,15 @@ test('Org Browser retains an expanded custom object when a plain search matches 
   const orgBrowserPage = new OrgBrowserPage(page);
   await orgBrowserPage.openOrgBrowser();
 
-  const customObjects = await orgBrowserPage.findMetadataType('CustomObject');
+  await orgBrowserPage.applyTextFilter('CustomObject:');
+  const customObjects = orgBrowserPage.sidebar.getByRole('treeitem', { name: /^CustomObject(,|$)/, level: 1 });
+  await expect(customObjects).toBeVisible();
   await customObjects.locator('.monaco-tl-twistie').click();
   const broker = await orgBrowserPage.getMetadataItem('CustomObject', 'Broker__c');
   await broker.locator('.monaco-tl-twistie').click();
+  await expect(orgBrowserPage.sidebar.getByRole('treeitem', { name: /Email/i, level: 3 })).toBeVisible({
+    timeout: 30_000
+  });
   await orgBrowserPage.applyTextFilter('Email');
 
   await expect(orgBrowserPage.sidebar.getByRole('treeitem', { name: /CustomObject/i, level: 1 })).toBeVisible();

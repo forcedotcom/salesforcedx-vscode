@@ -728,8 +728,19 @@ describe('OrgMetadataCatalog contract', () => {
       catalogSnapshots,
       workspaceComponents: [{ type: { name: 'ApexClass' }, fullName: 'LocalOnly', content: '/workspace/LocalOnly.cls' }]
     });
-    const restored = await runWithCatalog(restarted.layer, catalog => catalog.getChildren({ type: 'ApexClass' }));
+    const { cached, restored } = await runWithCatalog(restarted.layer, catalog =>
+      catalog
+        .getChildren({ type: 'ApexClass' }, { consistency: 'cache-only' })
+        .pipe(
+          Effect.flatMap(cachedEntries =>
+            catalog
+              .getChildren({ type: 'ApexClass' })
+              .pipe(Effect.map(restoredEntries => ({ cached: cachedEntries, restored: restoredEntries })))
+          )
+        )
+    );
 
+    expect(cached.map(entry => entry.name)).toEqual(['LocalOnly', 'RemoteTest']);
     expect(restored.map(entry => [entry.name, entry.inOrg, entry.inWorkspace])).toEqual([
       ['LocalOnly', false, true],
       ['RemoteTest', true, false]
@@ -737,6 +748,32 @@ describe('OrgMetadataCatalog contract', () => {
     expect(restored.find(entry => entry.name === 'RemoteTest')?.observedAt).toBe(persistedObservedAt);
     expect(restarted.mocks.storeLoad).toHaveBeenCalledWith('00D000000000001');
     expect(restarted.mocks.listMetadata).not.toHaveBeenCalled();
+  });
+
+  it('searches persisted custom fields without acquiring them again', async () => {
+    const catalogSnapshots = new Map<string, OrgMetadataCatalogSnapshot>();
+    const first = makeHarness({
+      catalogSnapshots,
+      metadataByType: {
+        CustomObject: [{ fullName: 'Broker__c' }],
+        CustomField: [{ fullName: 'Broker__c.Email__c' }]
+      },
+      descriptions: { Broker__c: { ...emptySObject('Broker__c'), fields: [customStringField('Email__c')] } }
+    });
+    await runWithCatalog(first.layer, catalog =>
+      catalog
+        .getChildren({ type: 'CustomObject' })
+        .pipe(Effect.andThen(catalog.getChildren({ type: 'CustomObject', fullName: 'Broker__c' })))
+    );
+
+    const restarted = makeHarness({ catalogSnapshots });
+    const fields = await runWithCatalog(restarted.layer, catalog =>
+      catalog.getChildren({ type: 'CustomObject', fullName: 'Broker__c' }, { consistency: 'cache-only' })
+    );
+
+    expect(fields.map(field => field.name)).toEqual(['Email__c']);
+    expect(restarted.mocks.listMetadata).not.toHaveBeenCalled();
+    expect(restarted.mocks.describeCustomObject).not.toHaveBeenCalled();
   });
 
   it('persists metadata components in listing order', async () => {

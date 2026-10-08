@@ -63,7 +63,7 @@ describe('Org Browser filter input', () => {
     ['broker', false],
     ['ApexClass:Broker', false],
     [':Broker', false],
-    ['ApexClass:', true],
+    ['ApexClass:', false],
     ['/Apex', true],
     ['ApexClass:/Broker', true],
     ['ApexClass:/[/', true]

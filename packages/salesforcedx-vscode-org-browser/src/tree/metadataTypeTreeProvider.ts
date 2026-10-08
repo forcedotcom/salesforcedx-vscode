@@ -394,7 +394,8 @@ const retainMatchingSubtree: (
 });
 
 /**
- * Types with ≥1 component matching filter. Live-fetches components.
+ * Types with ≥1 component matching filter. Global searches use loaded catalog data;
+ * structured component searches fetch matching type inventories.
  * AND logic: type:component returns types with matching components only.
  */
 export const filterTypesWithMatchingComponents = Effect.fn('filterTypesWithMatchingComponents')(function* (
@@ -406,7 +407,7 @@ export const filterTypesWithMatchingComponents = Effect.fn('filterTypesWithMatch
   return yield* Effect.all(
     typeNodes.map(typeNode =>
       (isGlobalSearch(provider)
-        ? retainMatchingSubtree(typeNode, provider, catalog)
+        ? retainMatchingSubtree(typeNode, provider, catalog, 'cache-only', true)
         : provider
             .trackOrgRequest('Discovering org metadata', catalog.getChildren({ type: typeNode.xmlName }))
             .pipe(
@@ -485,14 +486,21 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
       yield* Effect.promise(() => provider.updateTreeEmptyContext(result.length === 0));
       return result;
     }
-    const unfilteredChildren = yield* loadVisibleChildren(element, provider, orgMetadataCatalog, undefined);
+    const browseMatchingBranch =
+      typeNameMatchesGlobalSearch(element, provider) || matchesGlobalSearch(element, provider);
+    const unfilteredChildren = yield* loadVisibleChildren(
+      element,
+      provider,
+      orgMetadataCatalog,
+      isGlobalSearch(provider) && !browseMatchingBranch ? 'cache-only' : undefined
+    );
     const children = isGlobalSearch(provider)
-      ? matchesGlobalSearch(element, provider)
+      ? browseMatchingBranch
         ? unfilteredChildren
         : yield* Effect.forEach(
             unfilteredChildren,
             child =>
-              retainMatchingSubtree(child, provider, orgMetadataCatalog).pipe(
+              retainMatchingSubtree(child, provider, orgMetadataCatalog, 'cache-only', true).pipe(
                 Effect.map(matches => (matches ? Option.some(child) : Option.none<OrgBrowserTreeItem>()))
               ),
             { concurrency: 10, discard: false }
