@@ -113,7 +113,11 @@ export const runAllTestsAndWaitForCompletion = async (page: Page, timeout: numbe
   const testResultsTab = page.locator(TEST_RESULTS_TAB);
   await testResultsTab.waitFor({ state: 'visible', timeout: 30_000 });
   await expect(page.getByText(/Pass Rate/i)).toBeVisible({ timeout });
-  await verifyNoTestRunInProgress(page);
+  // "Cancel Test Run"'s palette visibility (gated on a context key) can lag a few seconds behind the
+  // Pass Rate UI update under CI's loaded, parallel runners — confirmed via repeated CI failures
+  // ("Command 'Test: Cancel Test Run' still visible") hitting the 10s default in verifyCommandDoesNotExist.
+  // These are two separate completion signals; give the second the same generous slack as the first.
+  await verifyNoTestRunInProgress(page, 30_000);
 };
 
 /**
