@@ -9,6 +9,7 @@ import * as ManagedRuntime from 'effect/ManagedRuntime';
 import { AllServicesLayer } from './extensionProvider';
 
 const createApexRuntime = () => ManagedRuntime.make(AllServicesLayer);
+// eslint-disable-next-line functional/no-let -- Lazy singleton runtime
 let _apexRuntime: ReturnType<typeof createApexRuntime> | undefined;
 export const getRuntime = () => {
   _apexRuntime ??= createApexRuntime();
