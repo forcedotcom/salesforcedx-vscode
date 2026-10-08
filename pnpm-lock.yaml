@@ -263,8 +263,8 @@ importers:
         specifier: 7.6.1
         version: 7.6.1
       '@playwright/test':
-        specifier: 1.60.0
-        version: 1.60.0
+        specifier: 1.63.0
+        version: 1.63.0
       '@salesforce/apex-tmlanguage':
         specifier: ^2.0.3
         version: 2.0.3
@@ -512,8 +512,8 @@ importers:
         specifier: 1.30.0
         version: 1.30.0(supports-color@8.1.1)(zod@4.6.1)
       '@playwright/test':
-        specifier: 1.60.0
-        version: 1.60.0
+        specifier: 1.63.0
+        version: 1.63.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
@@ -607,8 +607,8 @@ importers:
   packages/playwright-vscode-ext:
     dependencies:
       '@playwright/test':
-        specifier: 1.60.0
-        version: 1.60.0
+        specifier: 1.63.0
+        version: 1.63.0
       '@vscode/test-electron':
         specifier: 3.1.0
         version: 3.1.0(supports-color@8.1.1)
@@ -1187,8 +1187,8 @@ importers:
         version: 3.2.0
     devDependencies:
       '@playwright/test':
-        specifier: 1.60.0
-        version: 1.60.0
+        specifier: 1.63.0
+        version: 1.63.0
       '@salesforce/core':
         specifier: ^9.3.0
         version: 9.3.0
@@ -4241,9 +4241,9 @@ packages:
     resolution: {integrity: sha512-m2daAx2QmBFeO8iqVjeCrYlihlhw1FchLQayCCZsZ2IdvA7Uk7sFsjNm7RleAt2rDARH/ZEtXQi7e65WB1VGPQ==}
     engines: {node: '>=20'}
 
-  '@playwright/test@1.60.0':
-    resolution: {integrity: sha512-O71yZIbAh/PxDMNGns37GHBIfrVkEVyn+AXyIa5dOTfb4/xNvRWV+Vv/NMbNCtODB/pO7vLlF2OTmMVLhmr7Ag==}
-    engines: {node: '>=18'}
+  '@playwright/test@1.63.0':
+    resolution: {integrity: sha512-oxMK4vllB9RK5NQ2l1pq1IfOf2AvnEuj/vYGDj0H2nMtmtZpKtCwt/l00GEO6xjGfpBNAvjovvYdCm50dRQkpQ==}
+    engines: {node: '>=20'}
     hasBin: true
 
   '@protobufjs/aspromise@1.1.2':
@@ -14715,9 +14715,9 @@ snapshots:
     dependencies:
       playwright-core: 1.63.0
 
-  '@playwright/test@1.60.0':
+  '@playwright/test@1.63.0':
     dependencies:
-      playwright: 1.60.0
+      playwright: 1.63.0
 
   '@protobufjs/aspromise@1.1.2': {}
 

@@ -37,7 +37,7 @@
     "@lwc/wire-service": "2.50.0",
     "@octokit/core": "^7",
     "@octokit/webhooks-types": "7.6.1",
-    "@playwright/test": "1.60.0",
+    "@playwright/test": "1.63.0",
     "@salesforce/apex-tmlanguage": "^2.0.3",
     "@salesforce/core": "9.3.0",
     "@salesforce/dev-config": "^4.3.2",
