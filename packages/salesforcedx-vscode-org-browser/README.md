@@ -88,6 +88,10 @@ While discovering all metadata types:
 - Results refresh periodically as discovery progresses.
 - A metadata type that cannot be listed is skipped and logged; it does not prevent results from other metadata types from appearing.
 
+When Org Browser lazily loads metadata for the initial tree, an expanded node, or a regular tree refresh, the status bar uses the same `Discovering org metadata` text. It appears only when the request lasts longer than 300 ms, so cached results do not flash a status item. Concurrent requests are shown as `Discovering org metadata (N requests)`.
+
+The lightweight request count is not a completion total. Full filter discovery can show `n/m` progress because it first enumerates the metadata types and nested branches it will acquire. Ordinary tree loading is demand-driven: expanding a node or applying a filter can reveal further folders and fields, so Org Browser reports active requests rather than an inaccurate completion percentage.
+
 Discovery acquires every metadata branch that Org Browser supports for the active org, including nested folders and Custom Object fields. It does not change the active text filter or local/org visibility toggles. Each periodic tree refresh applies the current visibility mode and text filter to whatever metadata has been discovered so far.
 
 This means the tree can grow, shrink, or remain empty while discovery continues:

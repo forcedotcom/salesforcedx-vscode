@@ -40,6 +40,59 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   private _componentIsRegex = false;
   private _hideResults = false;
   private treeEmpty = false;
+  private rootProjectionStarted: (() => void) | undefined;
+  private rootProjectionFinished: (() => void) | undefined;
+  private orgRequestCount = 0;
+  private orgRequestLabel = '';
+  private orgRequestStatus: vscode.StatusBarItem | undefined;
+  private orgRequestStatusTimer: ReturnType<typeof setTimeout> | undefined;
+
+  /** Shows slow, uncached org requests without flashing for catalog cache hits. */
+  public trackOrgRequest<A, E, R>(label: string, request: Effect.Effect<A, E, R>) {
+    return Effect.sync(() => this.startOrgRequest(label)).pipe(
+      Effect.zipRight(request),
+      Effect.ensuring(Effect.sync(() => this.finishOrgRequest()))
+    );
+  }
+
+  private startOrgRequest(label: string): void {
+    this.orgRequestCount += 1;
+    this.orgRequestLabel = label;
+    if (this.orgRequestStatus || this.orgRequestStatusTimer) return;
+    this.orgRequestStatusTimer = setTimeout(() => {
+      this.orgRequestStatusTimer = undefined;
+      if (this.orgRequestCount === 0) return;
+      this.orgRequestStatus = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 99);
+      this.updateOrgRequestStatus();
+      this.orgRequestStatus.show();
+    }, 300);
+  }
+
+  private finishOrgRequest(): void {
+    this.orgRequestCount -= 1;
+    if (this.orgRequestCount > 0) {
+      this.updateOrgRequestStatus();
+      return;
+    }
+    if (this.orgRequestStatusTimer) clearTimeout(this.orgRequestStatusTimer);
+    this.orgRequestStatusTimer = undefined;
+    this.orgRequestStatus?.dispose();
+    this.orgRequestStatus = undefined;
+  }
+
+  private updateOrgRequestStatus(): void {
+    if (!this.orgRequestStatus) return;
+    const suffix = this.orgRequestCount === 1 ? '' : ` (${this.orgRequestCount} requests)`;
+    this.orgRequestStatus.text = `$(sync~spin) ${this.orgRequestLabel}${suffix}`;
+  }
+
+  public setRootProjectionStartedHandler(handler: () => void): void {
+    this.rootProjectionStarted = handler;
+  }
+
+  public setRootProjectionFinishedHandler(handler: () => void): void {
+    this.rootProjectionFinished = handler;
+  }
 
   public get showLocal(): boolean {
     return this._showLocal;
@@ -113,11 +166,6 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     this._onDidChangeTreeData.fire(node);
   }
 
-  /** Refreshes the root so VS Code shows its native tree busy indicator during discovery. */
-  public setDiscoveryInProgress(_value: boolean): void {
-    this._onDidChangeTreeData.fire(undefined);
-  }
-
   /**
    * Invalidates cache for the node, then fires change event so VS Code calls getChildren (which re-fetches).
    */
@@ -135,7 +183,10 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   }
 
   public async getChildren(element?: OrgBrowserTreeItem): Promise<OrgBrowserTreeItem[]> {
-    return await getOrgBrowserRuntime().runPromise(getChildrenOfTreeItem(element, this));
+    if (!element) this.rootProjectionStarted?.();
+    return await getOrgBrowserRuntime()
+      .runPromise(getChildrenOfTreeItem(element, this))
+      .finally(() => !element && this.rootProjectionFinished?.());
   }
 
   /** Preserve root element identity across filtering and catalog-driven refreshes. */
@@ -257,16 +308,19 @@ const loadVisibleChildren = Effect.fn('loadVisibleChildren')(function* (
               : { type: element.xmlName },
           { consistency: 'cache-only' }
         )
-      : yield* Match.value(element).pipe(
-          Match.when({ kind: 'customObject' }, el =>
-            catalog.getChildren({ type: 'CustomObject', fullName: el.componentName! }, { consistency })
-          ),
-          Match.when(isFolderListingNode, el => catalog.getChildren({ type: el.xmlName }, { consistency })),
-          Match.when({ kind: 'type' }, el => catalog.getChildren({ type: el.xmlName }, { consistency })),
-          Match.when(isFolderNode, el =>
-            catalog.getChildren({ type: el.xmlName, fullName: el.folderName }, { consistency })
-          ),
-          Match.orElse(() => Effect.succeed<OrgMetadataCatalogEntry[]>([]))
+      : yield* provider.trackOrgRequest(
+          'Discovering org metadata',
+          Match.value(element).pipe(
+            Match.when({ kind: 'customObject' }, el =>
+              catalog.getChildren({ type: 'CustomObject', fullName: el.componentName! }, { consistency })
+            ),
+            Match.when(isFolderListingNode, el => catalog.getChildren({ type: el.xmlName }, { consistency })),
+            Match.when({ kind: 'type' }, el => catalog.getChildren({ type: el.xmlName }, { consistency })),
+            Match.when(isFolderNode, el =>
+              catalog.getChildren({ type: el.xmlName, fullName: el.folderName }, { consistency })
+            ),
+            Match.orElse(() => Effect.succeed<OrgMetadataCatalogEntry[]>([]))
+          )
         );
   const children = Match.value(element).pipe(
     Match.when({ kind: 'customObject' }, () =>
@@ -353,8 +407,8 @@ export const filterTypesWithMatchingComponents = Effect.fn('filterTypesWithMatch
     typeNodes.map(typeNode =>
       (isGlobalSearch(provider)
         ? retainMatchingSubtree(typeNode, provider, catalog)
-        : catalog
-            .getChildren({ type: typeNode.xmlName })
+        : provider
+            .trackOrgRequest('Discovering org metadata', catalog.getChildren({ type: typeNode.xmlName }))
             .pipe(
               Effect.map(entries =>
                 entries.some(
@@ -407,7 +461,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
         return [];
       }
 
-      const typeEntries = yield* orgMetadataCatalog.getChildren();
+      const typeEntries = yield* provider.trackOrgRequest('Discovering org metadata', orgMetadataCatalog.getChildren());
       const allNodes = typeEntries
         .flatMap(entry =>
           entry.kind === 'type' && entry.reference.type ? [provider.getTypeNode(entry.reference.type)] : []

@@ -13,6 +13,8 @@ import { isFolderType } from '../tree/orgBrowserNode';
 export type FullOrgDiscoveryProgress = {
   readonly completed: number;
   readonly total: number;
+  readonly componentCompleted: number;
+  readonly componentTotal: number;
 };
 
 const componentEntries = (entries: readonly OrgMetadataCatalogEntry[]) =>
@@ -39,21 +41,45 @@ export const discoverFullOrgMetadata = (
         entry.kind === 'type' && Boolean(entry.reference.type)
     );
     const completed = yield* Ref.make(0);
+    const componentCompleted = yield* Ref.make(0);
+    const componentTotal = yield* Ref.make(0);
     const report = () =>
-      Ref.get(completed).pipe(
-        Effect.tap(current => Effect.sync(() => reportProgress({ completed: current, total: types.length })))
+      Effect.all([Ref.get(completed), Ref.get(componentCompleted), Ref.get(componentTotal)]).pipe(
+        Effect.tap(([current, nestedCompleted, nestedTotal]) =>
+          Effect.sync(() =>
+            reportProgress({
+              completed: current,
+              total: types.length,
+              componentCompleted: nestedCompleted,
+              componentTotal: nestedTotal
+            })
+          )
+        )
       );
     const continueAfterFailure = (error: unknown) =>
       Effect.logWarning('Failed to discover Org Browser metadata branch', error);
-    const discoverFolder: (type: string, fullName: string) => Effect.Effect<void, unknown, never> = Effect.fn(
-      'discoverFullOrgMetadata.folder'
-    )(function* (type: string, fullName: string) {
+    const discoverFolder: (
+      type: string,
+      fullName: string,
+      reportFolderCompleted: () => Effect.Effect<void>
+    ) => Effect.Effect<void, unknown, never> = Effect.fn('discoverFullOrgMetadata.folder')(function* (
+      type: string,
+      fullName: string,
+      reportFolderCompleted: () => Effect.Effect<void>
+    ) {
       const children = yield* catalog.getChildren({ type, fullName });
+      const folders = folderEntries(children);
+      yield* Ref.update(componentTotal, current => current + folders.length);
+      yield* report();
       yield* Effect.forEach(
-        folderEntries(children),
-        folder => discoverFolder(type, folder.reference.fullName).pipe(Effect.catchAll(continueAfterFailure)),
+        folders,
+        folder =>
+          discoverFolder(type, folder.reference.fullName, reportFolderCompleted).pipe(
+            Effect.catchAll(continueAfterFailure)
+          ),
         { concurrency: 5, discard: true }
       );
+      yield* reportFolderCompleted();
     });
     yield* report();
 
@@ -63,21 +89,34 @@ export const discoverFullOrgMetadata = (
         Effect.gen(function* () {
           const children = yield* catalog.getChildren({ type: type.reference.type });
           if (isFolderType(type.reference.type)) {
+            const folders = folderEntries(children);
+            const reportFolderCompleted = () =>
+              Ref.update(componentCompleted, current => current + 1).pipe(Effect.zipRight(report()));
+            yield* Ref.update(componentTotal, current => current + folders.length);
+            yield* report();
             yield* Effect.forEach(
-              folderEntries(children),
+              folders,
               folder =>
-                discoverFolder(type.reference.type, folder.reference.fullName).pipe(
+                discoverFolder(type.reference.type, folder.reference.fullName, reportFolderCompleted).pipe(
                   Effect.catchAll(continueAfterFailure)
                 ),
               { concurrency: 5, discard: true }
             );
           } else if (type.reference.type === 'CustomObject') {
+            const customObjects = componentEntries(children);
+            yield* Ref.update(componentTotal, current => current + customObjects.length);
+            yield* report();
             yield* Effect.forEach(
-              componentEntries(children),
+              customObjects,
               component =>
                 catalog
                   .getChildren({ type: 'CustomObject', fullName: component.reference.fullName })
-                  .pipe(Effect.catchAll(continueAfterFailure)),
+                  .pipe(
+                    Effect.catchAll(continueAfterFailure),
+                    Effect.ensuring(
+                      Ref.update(componentCompleted, current => current + 1).pipe(Effect.zipRight(report()))
+                    )
+                  ),
               { concurrency: 5, discard: true }
             );
           }
@@ -87,4 +126,7 @@ export const discoverFullOrgMetadata = (
         ),
       { concurrency: 10, discard: true }
     );
-  });
+  }).pipe(
+    Effect.catchAll(error => Effect.logWarning('Failed to discover Org Browser metadata branch', error)),
+    Effect.withSpan('OrgBrowser.fullMetadataDiscovery')
+  );

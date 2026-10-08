@@ -29,12 +29,11 @@ describe('discoverFullOrgMetadata', () => {
       if (reference.type === 'CustomObject' && !reference.fullName) return Effect.succeed([component('Broker__c')]);
       return Effect.succeed([]);
     });
-    const progress: string[] = [];
+    const progress: Array<{ completed: number; total: number; componentCompleted: number; componentTotal: number }> =
+      [];
 
     await Effect.runPromise(
-      discoverFullOrgMetadata({ getChildren } as unknown as OrgMetadataCatalog, ({ completed, total }) => {
-        progress.push(`${completed}/${total}`);
-      })
+      discoverFullOrgMetadata({ getChildren } as unknown as OrgMetadataCatalog, update => progress.push(update))
     );
 
     expect(getChildren).toHaveBeenCalledWith({ type: 'ApexClass' });
@@ -43,7 +42,9 @@ describe('discoverFullOrgMetadata', () => {
     expect(getChildren).toHaveBeenCalledWith({ type: 'Report', fullName: 'unfiled$public/Regional' });
     expect(getChildren).toHaveBeenCalledWith({ type: 'CustomObject' });
     expect(getChildren).toHaveBeenCalledWith({ type: 'CustomObject', fullName: 'Broker__c' });
-    expect(progress).toContain('0/3');
-    expect(progress).toContain('3/3');
+    expect(progress).toContainEqual({ completed: 0, total: 3, componentCompleted: 0, componentTotal: 0 });
+    expect(progress).toContainEqual(expect.objectContaining({ componentCompleted: 0, componentTotal: 1 }));
+    expect(progress).toContainEqual(expect.objectContaining({ componentCompleted: 1, componentTotal: 3 }));
+    expect(progress).toContainEqual({ completed: 3, total: 3, componentCompleted: 3, componentTotal: 3 });
   });
 });

@@ -22,7 +22,7 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { getOrgBrowserRuntime } from '../services/extensionProvider';
 import { saveFilterState } from '../services/filterState';
-import { discoverFullOrgMetadata } from '../services/fullOrgDiscovery';
+import { discoverFullOrgMetadata, type FullOrgDiscoveryProgress } from '../services/fullOrgDiscovery';
 import { matchesPattern } from '../utils/wildcardPattern';
 
 const parsePattern = (input: string): { pattern: string; isRegex: boolean } => {
@@ -64,24 +64,39 @@ export const isInvalidStructuredSearchTerm = (value: string): boolean => {
 
 type ParsedFilter = ReturnType<typeof parseFilterValue>;
 
+const formatDiscoveryProgress = ({
+  completed,
+  total,
+  componentCompleted,
+  componentTotal
+}: FullOrgDiscoveryProgress): string =>
+  componentTotal === 0
+    ? `$(sync~spin) Discovering org metadata types ${completed}/${total}`
+    : `$(sync~spin) Discovering org metadata types ${completed}/${total} components ${componentCompleted}/${componentTotal}`;
+
 const promptRestoredFilterDiscovery = (
   treeProvider: MetadataTypeTreeProvider,
   context: vscode.ExtensionContext,
   catalog: OrgMetadataCatalog,
   orgId: string,
-  filter: ParsedFilter
+  filter: ParsedFilter,
+  requestTreeRefresh: (immediate?: boolean) => void
 ) =>
   Effect.gen(function* () {
-    const refreshScheduled = yield* Ref.make(false);
-    const releaseFilterProjection = () => {
-      treeProvider.setTextFilter(
-        filter.typeFilter,
-        filter.componentFilter,
-        filter.typeIsRegex,
-        filter.componentIsRegex
-      );
-    };
-    if (!filter.componentFilter) return;
+    const releaseFilterProjection = (decision: string) =>
+      Effect.gen(function* () {
+        yield* Effect.annotateCurrentSpan({ decision, projectionReleased: true });
+        treeProvider.setTextFilter(
+          filter.typeFilter,
+          filter.componentFilter,
+          filter.typeIsRegex,
+          filter.componentIsRegex
+        );
+      });
+    if (!filter.componentFilter) {
+      yield* Effect.annotateCurrentSpan({ decision: 'no-component-filter', projectionReleased: false });
+      return;
+    }
     const matchingTypes = (yield* catalog.getChildren()).filter(
       entry =>
         entry.kind === 'type' &&
@@ -92,62 +107,64 @@ const promptRestoredFilterDiscovery = (
       catalog.hasTypeInventory(entry.reference.type!).pipe(Effect.map(loaded => !loaded))
     );
     if (unfetchedTypes.length === 0 || treeProvider.hasStartedFullDiscovery(orgId)) {
-      releaseFilterProjection();
+      yield* releaseFilterProjection(unfetchedTypes.length === 0 ? 'loaded-results' : 'discovery-already-started');
       return;
     }
 
-    const approved = yield* Effect.promise(
+    yield* Effect.annotateCurrentSpan({ notificationShown: true, unfetchedTypeCount: unfetchedTypes.length });
+    const response = yield* Effect.promise(
       async () =>
-        (await vscode.window.showInformationMessage(
+        await vscode.window.showInformationMessage(
           nls.localize('filter_discovery_confirmation', unfetchedTypes.length),
           nls.localize('search_all_types_button'),
           nls.localize('use_loaded_results_button')
-        )) === nls.localize('search_all_types_button')
+        )
     );
-    if (!approved) {
-      releaseFilterProjection();
+    if (response !== nls.localize('search_all_types_button')) {
+      yield* releaseFilterProjection(
+        response === nls.localize('use_loaded_results_button') ? 'use-loaded-results' : 'dismissed'
+      );
       return;
     }
 
     treeProvider.markFullDiscoveryStarted(orgId);
-    releaseFilterProjection();
-    treeProvider.setDiscoveryInProgress(true);
+    yield* Effect.annotateCurrentSpan({ decision: 'search-all-types', fullDiscoveryStarted: true });
+    yield* releaseFilterProjection('search-all-types');
+    requestTreeRefresh(true);
     const status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
     context.subscriptions.push(status);
     status.show();
     void getOrgBrowserRuntime().runPromise(
-      discoverFullOrgMetadata(catalog, ({ completed, total }) => {
-        status.text = `$(sync~spin) Discovering org metadata ${completed}/${total}`;
-        void getOrgBrowserRuntime().runPromise(
-          Ref.modify(refreshScheduled, scheduled => [!scheduled, true]).pipe(
-            Effect.flatMap(shouldRefresh =>
-              shouldRefresh
-                ? Effect.sleep(Duration.millis(500)).pipe(
-                    Effect.zipRight(Effect.sync(() => treeProvider.fireChangeEvent())),
-                    Effect.ensuring(Ref.set(refreshScheduled, false))
-                  )
-                : Effect.void
-            )
-          )
-        );
+      discoverFullOrgMetadata(catalog, progress => {
+        status.text = formatDiscoveryProgress(progress);
+        requestTreeRefresh();
       }).pipe(
         Effect.ensuring(
           Effect.sync(() => {
             status.dispose();
-            treeProvider.setDiscoveryInProgress(false);
+            requestTreeRefresh();
           })
-        ),
-        Effect.catchAllCause(error => Effect.logWarning('Full org metadata discovery failed', error))
+        )
       )
     );
-    treeProvider.fireChangeEvent();
-  });
+  }).pipe(
+    Effect.withSpan('OrgBrowser.restoreFilterDiscovery', {
+      attributes: {
+        orgId,
+        typeFilter: filter.typeFilter,
+        componentFilter: filter.componentFilter,
+        typeIsRegex: filter.typeIsRegex,
+        componentIsRegex: filter.componentIsRegex
+      }
+    })
+  );
 
 /** Evaluates a restored component filter after the Org Browser runtime is fully initialized. */
 export const requestRestoredFilterDiscovery = (
   treeProvider: MetadataTypeTreeProvider,
   context: vscode.ExtensionContext,
-  filter: ParsedFilter
+  filter: ParsedFilter,
+  requestTreeRefresh: (immediate?: boolean) => void
 ): void => {
   void getOrgBrowserRuntime().runPromise(
     Effect.gen(function* () {
@@ -155,7 +172,7 @@ export const requestRestoredFilterDiscovery = (
       const catalog = yield* api.services.OrgMetadataCatalog;
       const { orgId } = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
       if (!orgId) return;
-      yield* promptRestoredFilterDiscovery(treeProvider, context, catalog, orgId, filter);
+      yield* promptRestoredFilterDiscovery(treeProvider, context, catalog, orgId, filter, requestTreeRefresh);
     })
   );
 };
@@ -194,7 +211,8 @@ export const parseFilterValue = (
 
 export const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')(function* (
   treeProvider: MetadataTypeTreeProvider,
-  context: vscode.ExtensionContext
+  context: vscode.ExtensionContext,
+  requestTreeRefresh: (immediate?: boolean) => void
 ) {
   const previousTypeFilter = treeProvider.typeFilter;
   const previousComponentFilter = treeProvider.componentFilter;
@@ -207,7 +225,6 @@ export const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')
   const queue = yield* Queue.unbounded<string>();
   const deferred = yield* Deferred.make<void>();
   const discoveryPromptOpen = yield* Ref.make(false);
-  const discoveryRefreshScheduled = yield* Ref.make(false);
 
   const picker = vscode.window.createQuickPick<vscode.QuickPickItem>();
   picker.placeholder = nls.localize('filter_text_placeholder');
@@ -239,31 +256,20 @@ export const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')
 
   const startFullDiscovery = (orgId: string) => {
     treeProvider.markFullDiscoveryStarted(orgId);
-    treeProvider.setDiscoveryInProgress(true);
+    requestTreeRefresh(true);
     const status = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left, 100);
     context.subscriptions.push(status);
     status.show();
     void getOrgBrowserRuntime().runPromise(
-      discoverFullOrgMetadata(orgMetadataCatalog, ({ completed, total }) => {
-        status.text = `$(sync~spin) Discovering org metadata ${completed}/${total}`;
-        void getOrgBrowserRuntime().runPromise(
-          Ref.modify(discoveryRefreshScheduled, scheduled => [!scheduled, true]).pipe(
-            Effect.flatMap(shouldRefresh =>
-              shouldRefresh
-                ? Effect.sleep(Duration.millis(500)).pipe(
-                    Effect.zipRight(Effect.sync(() => treeProvider.fireChangeEvent())),
-                    Effect.ensuring(Ref.set(discoveryRefreshScheduled, false))
-                  )
-                : Effect.void
-            )
-          )
-        );
+      discoverFullOrgMetadata(orgMetadataCatalog, progress => {
+        status.text = formatDiscoveryProgress(progress);
+        requestTreeRefresh();
       }).pipe(
         // Release the status indicator and ensure the final discovered type is projected.
         Effect.ensuring(
           Effect.sync(() => {
             status.dispose();
-            treeProvider.setDiscoveryInProgress(false);
+            requestTreeRefresh();
           })
         ),
         Effect.catchAllCause(error => Effect.logWarning('Full org metadata discovery failed', error))

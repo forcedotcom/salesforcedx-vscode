@@ -6,6 +6,7 @@
  */
 import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Fiber from 'effect/Fiber';
 import type { OrgMetadataCatalogEntry } from 'salesforcedx-vscode-services';
 import { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
 import * as vscode from 'vscode';
@@ -71,6 +72,58 @@ describe('passesTypeFilter', () => {
   });
 });
 
+describe('org request status', () => {
+  const statusItem = {
+    text: '',
+    show: jest.fn(),
+    dispose: jest.fn()
+  } as unknown as vscode.StatusBarItem;
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+    jest.spyOn(vscode.window, 'createStatusBarItem').mockReturnValue(statusItem);
+  });
+
+  afterEach(() => {
+    jest.useRealTimers();
+    jest.restoreAllMocks();
+    jest.mocked(statusItem.show).mockClear();
+    jest.mocked(statusItem.dispose).mockClear();
+  });
+
+  it('does not show a status item for a request that resolves before the delay', async () => {
+    const provider = new MetadataTypeTreeProvider();
+
+    await Effect.runPromise(provider.trackOrgRequest('Discovering org metadata', Effect.void));
+    jest.advanceTimersByTime(300);
+
+    expect(vscode.window.createStatusBarItem).not.toHaveBeenCalled();
+  });
+
+  it('shows and disposes one aggregate status item for overlapping org requests', async () => {
+    const provider = new MetadataTypeTreeProvider();
+    const first = await Effect.runPromise(
+      provider.trackOrgRequest('Discovering org metadata', Effect.never).pipe(Effect.forkDaemon)
+    );
+    const second = await Effect.runPromise(
+      provider.trackOrgRequest('Discovering org metadata', Effect.never).pipe(Effect.forkDaemon)
+    );
+
+    await Promise.resolve();
+    jest.advanceTimersByTime(300);
+
+    expect(vscode.window.createStatusBarItem).toHaveBeenCalledWith(vscode.StatusBarAlignment.Left, 99);
+    expect(statusItem.text).toBe('$(sync~spin) Discovering org metadata (2 requests)');
+    expect(statusItem.show).toHaveBeenCalledTimes(1);
+
+    await Effect.runPromise(first.pipe(Fiber.interrupt));
+    expect(statusItem.text).toBe('$(sync~spin) Discovering org metadata');
+    await Effect.runPromise(second.pipe(Fiber.interrupt));
+
+    expect(statusItem.dispose).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe('MetadataTypeTreeProvider text filter state', () => {
   it('defaults to no text filter', () => {
     const provider = new MetadataTypeTreeProvider();
@@ -120,15 +173,14 @@ describe('MetadataTypeTreeProvider text filter state', () => {
     expect(provider.hideResults).toBe(true);
   });
 
-  it('refreshes the root when full-org discovery starts or completes', () => {
+  it('leaves root refresh ownership to the coordinator during full-org discovery', () => {
     const provider = new MetadataTypeTreeProvider();
     const listener = jest.fn();
     provider.onDidChangeTreeData(listener);
 
-    provider.setDiscoveryInProgress(true);
-    provider.setDiscoveryInProgress(false);
+    provider.markFullDiscoveryStarted('org-one');
 
-    expect(listener).toHaveBeenCalledTimes(2);
+    expect(listener).not.toHaveBeenCalled();
   });
 });
 

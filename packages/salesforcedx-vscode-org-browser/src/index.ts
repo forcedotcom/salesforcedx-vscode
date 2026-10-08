@@ -24,9 +24,11 @@ import {
   setAllServicesLayer
 } from './services/extensionProvider';
 import { getFilterState, saveFilterState, type OrgBrowserFilterState } from './services/filterState';
-import { coalesceTreeRefreshes } from './tree/catalogChange';
+import { preloadMetadataTypes } from './services/metadataTypePreload';
+import { shouldRefreshTreeForCatalogChange } from './tree/catalogChange';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
+import { makeTreeRefreshCoordinator } from './tree/treeRefreshCoordinator';
 
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
@@ -46,6 +48,18 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.initialized', false));
 
   const treeProvider = new MetadataTypeTreeProvider();
+  const treeRefreshCoordinator = yield* makeTreeRefreshCoordinator(() => treeProvider.fireChangeEvent());
+  treeProvider.setRootProjectionStartedHandler(() => {
+    void getOrgBrowserRuntime().runPromise(treeRefreshCoordinator.projectionStarted());
+  });
+  treeProvider.setRootProjectionFinishedHandler(() => {
+    void getOrgBrowserRuntime().runPromise(treeRefreshCoordinator.projectionFinished());
+  });
+  const requestTreeRefresh = (immediate = false): void => {
+    void getOrgBrowserRuntime().runPromise(treeRefreshCoordinator.requestRefresh(immediate));
+  };
+  // Do not let VS Code request the initial tree before restored component-filter discovery is approved.
+  treeProvider.setTextFilter(undefined, undefined, false, false, true, false);
   // Register the tree provider
   context.subscriptions.push(vscode.window.registerTreeDataProvider(TREE_VIEW_ID, treeProvider));
 
@@ -160,8 +174,12 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
           treeProvider.setShowOrg(false);
         })
       ),
-      registerCommand(`${TREE_VIEW_ID}.filterText`, () => openFilterTextPicker(treeProvider, context)),
-      registerCommand(`${TREE_VIEW_ID}.filterText.active`, () => openFilterTextPicker(treeProvider, context))
+      registerCommand(`${TREE_VIEW_ID}.filterText`, () =>
+        openFilterTextPicker(treeProvider, context, requestTreeRefresh)
+      ),
+      registerCommand(`${TREE_VIEW_ID}.filterText.active`, () =>
+        openFilterTextPicker(treeProvider, context, requestTreeRefresh)
+      )
     ],
     { concurrency: 'unbounded' }
   );
@@ -248,18 +266,30 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   yield* Effect.forkIn(
     orgMetadataChanges.pipe(
       changes => Stream.fromPubSub(changes),
-      coalesceTreeRefreshes,
-      Stream.runForEach(() => Effect.sync(() => treeProvider.fireChangeEvent()))
+      Stream.filter(shouldRefreshTreeForCatalogChange),
+      Stream.runForEach(() => Effect.sync(() => requestTreeRefresh()))
     ),
     extensionScope
   );
   if (initialFilter?.componentFilter) {
     yield* Effect.sync(() =>
-      requestRestoredFilterDiscovery(treeProvider, context, {
-        ...initialFilter
-      })
+      requestRestoredFilterDiscovery(
+        treeProvider,
+        context,
+        {
+          ...initialFilter
+        },
+        requestTreeRefresh
+      )
     );
   } else {
+    if (!initialFilter?.typeFilter) {
+      const catalog = yield* api.services.OrgMetadataCatalog;
+      yield* treeProvider.trackOrgRequest('Discovering org metadata', catalog.getChildren());
+      yield* treeProvider
+        .trackOrgRequest('Discovering org metadata', preloadMetadataTypes(catalog))
+        .pipe(Effect.catchAll(error => Effect.logWarning('Failed to preload Org Browser metadata types', error)));
+    }
     treeProvider.fireChangeEvent();
   }
 
@@ -272,20 +302,27 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
       Stream.tap(() => svc.appendToChannel('Org changed, will try to update OrgBrowser')),
       Stream.runForEach(orgId =>
         Effect.gen(function* () {
-          if (orgId) yield* restoreFilter(orgId);
-          else treeProvider.clearTextFilter();
-          return yield* orgId
-            ? Effect.tryPromise(() => treeProvider.refreshType()).pipe(
-                Effect.catchAll(error =>
-                  Effect.logWarning('Failed to refresh Org Browser after an org change', error).pipe(
-                    Effect.zipRight(Effect.sync(() => treeProvider.fireChangeEvent()))
-                  )
-                )
+          if (!orgId) {
+            treeProvider.clearTextFilter();
+            return yield* Effect.tryPromise(() => treeProvider.updateTreeEmptyContext(true)).pipe(
+              Effect.zipRight(Effect.sync(() => treeProvider.fireChangeEvent())),
+              Effect.catchAll(error => Effect.logWarning('Failed to clear the Org Browser tree', error))
+            );
+          }
+          const filter = yield* restoreFilter(orgId, false, true);
+          if (filter?.componentFilter) {
+            yield* Effect.sync(() =>
+              requestRestoredFilterDiscovery(treeProvider, context, { ...filter }, requestTreeRefresh)
+            );
+            return;
+          }
+          return yield* Effect.tryPromise(() => treeProvider.refreshType()).pipe(
+            Effect.catchAll(error =>
+              Effect.logWarning('Failed to refresh Org Browser after an org change', error).pipe(
+                Effect.zipRight(Effect.sync(() => treeProvider.fireChangeEvent()))
               )
-            : Effect.tryPromise(() => treeProvider.updateTreeEmptyContext(true)).pipe(
-                Effect.zipRight(Effect.sync(() => treeProvider.fireChangeEvent())),
-                Effect.catchAll(error => Effect.logWarning('Failed to clear the Org Browser tree', error))
-              );
+            )
+          );
         })
       )
     )
