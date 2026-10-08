@@ -217,6 +217,42 @@ describe('ApexTestExecutionService', () => {
       expect(appendToChannel).toHaveBeenCalledWith('Ended SFDX: Run Apex Tests');
     });
 
+    const runWithOutcome = (outcome: string, failing = 0) => {
+      const method = fakeItem('method:MyClass.testA', 'testA');
+      const { run } = fakeRun();
+      setTestService(
+        makeTestService({
+          runTestAsynchronous: jest.fn().mockResolvedValue({ tests: [], summary: { outcome, testsRan: 1, failing } })
+        })
+      );
+      (vscode.window.showErrorMessage as jest.Mock).mockClear().mockResolvedValue(undefined);
+      return runEff(
+        ApexTestExecutionService.executeTests({
+          testNames: ['MyClass.testA'],
+          outputDir: URI.file('/tmp'),
+          codeCoverage: false,
+          token: cancellationToken,
+          run,
+          testsToRun: [method],
+          runAllTestsInOrg: false
+        })
+      );
+    };
+
+    it('shows the success notification when the run passed', async () => {
+      await runWithOutcome('Passed');
+      expect(showSuccessNotification).toHaveBeenCalledTimes(1);
+      expect(vscode.window.showErrorMessage).not.toHaveBeenCalled();
+    });
+
+    it('shows the failing-tests notification instead of success when the run has failing tests', async () => {
+      await runWithOutcome('Failed', 2);
+      expect(showSuccessNotification).not.toHaveBeenCalled();
+      expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
+        'SFDX: Run Apex Tests completed with 2 failing test(s). Check the output for details.'
+      );
+    });
+
     it('uses the RunAllTestsInOrg payload (no buildAsyncPayload) when runAllTestsInOrg', async () => {
       const buildAsyncPayload = jest.fn();
       const runTestAsynchronous = jest.fn().mockResolvedValue({ tests: [], summary: { testsRan: 1 } });

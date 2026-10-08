@@ -20,7 +20,7 @@ import { messages } from '../messages/i18n';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
 import { DebugDispatchError, TestExecutionError, TestTempFolderError } from '../utils/apexTestExecutionErrors';
-import { showRunSuccessNotification } from '../utils/notificationHelpers';
+import { showRunOutcomeNotification } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { buildTestPayload } from '../utils/payloadBuilder';
 import {
@@ -293,10 +293,11 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       if (totalCount > 0) {
         const notificationMode = yield* api.services.NotificationModeService;
         const runtime = yield* Effect.runtime<Effect.Effect.Context<ReturnType<typeof openTestReport>>>();
-        yield* showRunSuccessNotification(
+        yield* showRunOutcomeNotification(
           notificationMode,
           command,
           executionName,
+          result,
           reportUri,
           outputFormat,
           (uri, format) => Runtime.runPromise(runtime)(openTestReport(uri, format))

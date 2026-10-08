@@ -88,6 +88,7 @@ export const messages = {
   apex_test_successful_execution_message: '%s successfully ran',
   apex_test_successful_execution_with_report_message: '%s successfully ran. Apex test report is ready: %s',
   apex_test_failed_execution_message: '%s failed to run',
+  apex_test_completed_with_failures_message: '%s completed with %d failing test(s). Check the output for details.',
   test_explorer_local_namespace_label: '(Local Namespace)',
   test_explorer_unpackaged_metadata_label: '(Unpackaged Metadata)',
   test_explorer_1gp_package_label: '%s (1GP)',
