@@ -13,7 +13,7 @@ import {
   waitForOutputChannelText
 } from '../../../src/pages/outputChannel';
 import { saveScreenshot } from '../../../src/shared/screenshotUtils';
-import { waitForVSCodeWorkbench, closeWelcomeTabs } from '../../../src/utils/helpers';
+import { waitForVSCodeWorkbench, closeWelcomeTabs, isDesktop } from '../../../src/utils/helpers';
 import { ensureSecondarySideBarHidden } from '../../../src/utils/workflows';
 import { EDITOR } from '../../../src/utils/locators';
 import { test } from '../fixtures/index';
@@ -69,6 +69,40 @@ test.describe('Output Channel', () => {
       // Salesforce Services channel should have service initialization messages
       await waitForOutputChannelText(page, { expectedText: 'Salesforce', timeout: 10_000 });
     });
+  });
+
+  test('fails on a channel marker even when the same line contains the expected text', async ({ page }) => {
+    const desktop = isDesktop();
+    const testPage = desktop ? page : await page.context().newPage();
+    if (desktop) {
+      // Electron cannot create another page or use document.write (TrustedHTML). Add a line to the visible panel.
+      await ensureOutputPanelOpen(testPage);
+      await selectOutputChannel(testPage, 'Window');
+      await testPage.getByRole('button', { name: 'Maximize Panel' }).click();
+      await outputPanelViewLines(testPage).evaluate(element => {
+        const line = document.createElement('div');
+        line.textContent = 'Ended SFDX: Run Apex Tests[UnknownException] other side closed';
+        element.appendChild(line);
+      });
+    } else {
+      await testPage.setContent(`
+        <div id="workbench.panel.output">
+          <div class="monaco-editor">
+            <div class="view-lines" tabindex="0">Ended SFDX: Run Apex Tests[UnknownException] other side closed</div>
+          </div>
+        </div>
+        <input aria-label="Filter (e.g. text)" />
+      `);
+    }
+
+    await expect(
+      waitForOutputChannelText(testPage, {
+        expectedText: 'Ended SFDX: Run Apex Tests',
+        timeout: 5000,
+        failIfChannelIncludes: ['UnknownException', 'other side closed']
+      })
+    ).rejects.toThrow(/other side closed/);
+    if (!desktop) await testPage.close();
   });
 
   test('should check if output contains text', async ({ page }) => {

@@ -4,7 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+export const TEST_SETUP_TIMEOUT = 300_000;
 export const TEST_RUN_TIMEOUT = 600_000;
+/** Socket-close substrings. A success sentinel can sit inside the same channel line. */
+export const APEX_RUN_CHANNEL_FAILURES = ['UnknownException', 'other side closed'] as const;
 
 // Code-coverage colorizer (codeCoverageColorizer.headless.spec.ts):
 // Theme is pinned so testing.coveredBackground / testing.uncoveredBackground resolve to fixed

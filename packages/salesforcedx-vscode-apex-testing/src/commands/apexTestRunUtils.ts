@@ -7,6 +7,8 @@
 import { AsyncTestConfiguration, HumanReporter, TestResult, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { isError } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { CancellationTokenSource } from 'vscode';
 import { URI } from 'vscode-uri';
@@ -82,6 +84,21 @@ const appendTestOutput = Effect.fn('runApexTests.appendTestOutput')(function* (
   );
 });
 
+/** Span `status.message` is this `message` (cause chain). Nested `.cause` is stack only; keep the rejection there so the channel shows the innermost message. @ExportTaggedError */
+export class ApexTestRunError extends Schema.TaggedError<ApexTestRunError>()('ApexTestRunError', {
+  message: Schema.String,
+  cause: Schema.Unknown
+}) {}
+
+const rejectionMessages = (error: unknown): readonly string[] =>
+  isError(error)
+    ? [
+        error.message,
+        ...(isError(error.cause) ? rejectionMessages(error.cause) : []),
+        ...(error instanceof AggregateError ? error.errors.flatMap((nested: unknown) => rejectionMessages(nested)) : [])
+      ]
+    : [String(error)];
+
 /** Runs Apex tests and writes results. Returns the completed (or soft-failed) test result plus the
  * generated report's location/format for callers to wire into a success toast's "Open Report" action.
  * `result` is undefined when the run produced no usable result (timeout / no summary); `reportUri` is
@@ -102,9 +119,11 @@ export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTe
   const tokenSource = new CancellationTokenSource();
 
   // TODO: fix in apex-node W-18453221
-  const result = yield* Effect.tryPromise(() =>
-    testService.runTestAsynchronous(options.payload, options.codeCoverage, false, undefined, tokenSource.token)
-  ).pipe(
+  const result = yield* Effect.tryPromise({
+    try: () =>
+      testService.runTestAsynchronous(options.payload, options.codeCoverage, false, undefined, tokenSource.token),
+    catch: error => new ApexTestRunError({ message: rejectionMessages(error).join(': '), cause: error })
+  }).pipe(
     Effect.onInterrupt(() => Effect.sync(() => tokenSource.cancel())),
     Effect.ensuring(Effect.sync(() => tokenSource.dispose()))
   );
