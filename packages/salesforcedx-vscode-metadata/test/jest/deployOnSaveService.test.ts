@@ -7,7 +7,7 @@
 
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { URI } from 'vscode-uri';
 import { shouldDeploy } from '../../src/services/deployOnSaveService';
