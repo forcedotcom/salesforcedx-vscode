@@ -1,9 +1,12 @@
 import { ParserHelper } from '../parserHelper';
+import { ErrorCode } from '../parserError';
 import { ATN } from "antlr4ts/atn/ATN";
 import { Parser } from "antlr4ts/Parser";
 import { ParserRuleContext } from "antlr4ts/ParserRuleContext";
+import { RecognitionException } from "antlr4ts/RecognitionException";
 import { RuleContext } from "antlr4ts/RuleContext";
 import { TerminalNode } from "antlr4ts/tree/TerminalNode";
+import { Token } from "antlr4ts/Token";
 import { TokenStream } from "antlr4ts/TokenStream";
 import { Vocabulary } from "antlr4ts/Vocabulary";
 import { SoqlParserListener } from "./SoqlParserListener";
@@ -17,165 +20,224 @@ export declare class SoqlParser extends Parser {
     static readonly LPAREN = 6;
     static readonly RPAREN = 7;
     static readonly COMMA = 8;
-    static readonly UNDERSCORE = 9;
-    static readonly AND = 10;
-    static readonly OR = 11;
-    static readonly TRUE = 12;
-    static readonly FALSE = 13;
-    static readonly WITH = 14;
-    static readonly DATA = 15;
-    static readonly CATEGORY = 16;
-    static readonly CATEGORY_AT = 17;
-    static readonly CATEGORY_ABOVE = 18;
-    static readonly CATEGORY_BELOW = 19;
-    static readonly CATEGORY_ABOVE_OR_BELOW = 20;
-    static readonly SOQL_OFFSET = 21;
-    static readonly FOR = 22;
-    static readonly VIEW = 23;
-    static readonly LIMIT = 24;
-    static readonly REFERENCE = 25;
-    static readonly TYPEOF = 26;
-    static readonly WHEN = 27;
-    static readonly WHERE = 28;
-    static readonly THEN = 29;
-    static readonly ELSE = 30;
-    static readonly END = 31;
+    static readonly ABSTRACT = 9;
+    static readonly AFTER = 10;
+    static readonly AND = 11;
+    static readonly AS = 12;
+    static readonly ASC = 13;
+    static readonly BEFORE = 14;
+    static readonly BIND = 15;
+    static readonly BREAK = 16;
+    static readonly BULK = 17;
+    static readonly BY = 18;
+    static readonly CATCH = 19;
+    static readonly CATEGORY_ABOVE = 20;
+    static readonly CATEGORY_ABOVE_OR_BELOW = 21;
+    static readonly CATEGORY_AT = 22;
+    static readonly CATEGORY_BELOW = 23;
+    static readonly CATEGORY = 24;
+    static readonly CLASS = 25;
+    static readonly CONTINUE = 26;
+    static readonly COUNT = 27;
+    static readonly CUBE = 28;
+    static readonly DATA = 29;
+    static readonly DELETE = 30;
+    static readonly DESC = 31;
     static readonly DISTANCE = 32;
-    static readonly GEOLOCATION = 33;
-    static readonly GROUP = 34;
-    static readonly ROLLUP = 35;
-    static readonly CUBE = 36;
-    static readonly HAVING = 37;
-    static readonly INCLUDES = 38;
-    static readonly EXCLUDES = 39;
-    static readonly ORDER = 40;
-    static readonly IN = 41;
-    static readonly NOT = 42;
-    static readonly BY = 43;
-    static readonly ASC = 44;
-    static readonly DESC = 45;
-    static readonly NULLS = 46;
-    static readonly CASE = 47;
-    static readonly FIELDS = 48;
-    static readonly SELECT = 49;
-    static readonly COUNT = 50;
-    static readonly FROM = 51;
-    static readonly LOOKUP = 52;
-    static readonly SCOPE = 53;
-    static readonly AS = 54;
-    static readonly USING = 55;
-    static readonly NULL = 56;
-    static readonly UPDATE = 57;
-    static readonly FIRST = 58;
-    static readonly LAST = 59;
-    static readonly LIKE = 60;
-    static readonly BIND = 61;
-    static readonly HIERARCHICAL = 62;
-    static readonly FLAT = 63;
-    static readonly IDENTIFIER = 64;
-    static readonly COMMENT = 65;
-    static readonly DOT = 66;
-    static readonly COLON = 67;
-    static readonly WS = 68;
-    static readonly EQ = 69;
-    static readonly LT = 70;
-    static readonly GT = 71;
-    static readonly NOT_EQ = 72;
-    static readonly ALT_NOT_EQ = 73;
-    static readonly INTEGER_LITERAL = 74;
-    static readonly DECIMAL_LITERAL = 75;
-    static readonly STR_START = 76;
-    static readonly DATE = 77;
-    static readonly DATETIME = 78;
-    static readonly TIME = 79;
-    static readonly CURRENCY = 80;
-    static readonly ESCAPE_CHAR = 81;
-    static readonly VALID_CHARS = 82;
-    static readonly NEW_LINE = 83;
-    static readonly STR_END = 84;
-    static readonly VALID_ESCAPE_CHAR = 85;
-    static readonly VALID_ESCAPE_LIKE_CHAR = 86;
-    static readonly INVALID_ESCAPE_CHAR = 87;
-    static readonly INVALID_ESCAPE_UNICODE = 88;
-    static readonly ESCAPE_UNICODE = 89;
-    static readonly HEX_DIGIT_1 = 90;
-    static readonly HIERARCHAL = 91;
-    static readonly RULE_parseReservedForFieldName = 0;
-    static readonly RULE_soqlIdentifier = 1;
-    static readonly RULE_soqlIdentifierNoReserved = 2;
-    static readonly RULE_soqlIdentifiers = 3;
-    static readonly RULE_soqlField = 4;
-    static readonly RULE_soqlTypeofOperand = 5;
-    static readonly RULE_soqlWhenOperand = 6;
-    static readonly RULE_soqlResultExpr = 7;
-    static readonly RULE_soqlWhenExpr = 8;
-    static readonly RULE_soqlElseExpr = 9;
-    static readonly RULE_soqlTypeofExpr = 10;
-    static readonly RULE_soqlAlias = 11;
-    static readonly RULE_soqlInteger = 12;
-    static readonly RULE_soqlIntegerValue = 13;
-    static readonly RULE_soqlNumber = 14;
-    static readonly RULE_soqlNumberValue = 15;
-    static readonly RULE_soqlGeolocationValue = 16;
-    static readonly RULE_soqlDistanceExpr = 17;
-    static readonly RULE_soqlWhereClause = 18;
-    static readonly RULE_soqlWhereExprs = 19;
-    static readonly RULE_soqlAndWhere = 20;
-    static readonly RULE_soqlOrWhere = 21;
-    static readonly RULE_soqlWhereExpr = 22;
-    static readonly RULE_soqlCalcOperator = 23;
-    static readonly RULE_soqlLiteralValues = 24;
-    static readonly RULE_soqlIncludesOperator = 25;
-    static readonly RULE_soqlInOperator = 26;
-    static readonly RULE_soqlComparisonOperator = 27;
-    static readonly RULE_soqlCommonOperator = 28;
-    static readonly RULE_soqlLikeValue = 29;
-    static readonly RULE_soqlLikeLiteral = 30;
-    static readonly RULE_soqlCommonLiterals = 31;
-    static readonly RULE_soqlLiteralValue = 32;
-    static readonly RULE_soqlCurrencyLiteral = 33;
-    static readonly RULE_soqlColonExpr = 34;
-    static readonly RULE_soqlLiteral = 35;
-    static readonly RULE_nonValidatedEscapeStringLiteral = 36;
-    static readonly RULE_nonValidatedEscapeStringLiteralElement = 37;
-    static readonly RULE_validatedEscapeStringLiteral = 38;
-    static readonly RULE_validatedEscapeStringLiteralElement = 39;
-    static readonly RULE_validatedEscapeLikeStringLiteral = 40;
-    static readonly RULE_validatedEscapeLikeStringLiteralElements = 41;
-    static readonly RULE_validatedCommonSoqlStringLiteralElements = 42;
-    static readonly RULE_soqlSelectExpr = 43;
-    static readonly RULE_soqlSelectExprs = 44;
-    static readonly RULE_soqlFromClause = 45;
-    static readonly RULE_soqlFromExprs = 46;
-    static readonly RULE_soqlFromExpr = 47;
-    static readonly RULE_soqlUsingClause = 48;
-    static readonly RULE_soqlUsingPre192Expr = 49;
-    static readonly RULE_soqlUsingExprs = 50;
-    static readonly RULE_soqlUsingExpr = 51;
-    static readonly RULE_soqlDataCategoryOperator = 52;
-    static readonly RULE_soqlDataCategoryExpr = 53;
-    static readonly RULE_soqlWithValue = 54;
-    static readonly RULE_soqlWithKeyValue = 55;
-    static readonly RULE_soqlWithClause = 56;
-    static readonly RULE_soqlWithIdentifierClause = 57;
-    static readonly RULE_soqlLimitClause = 58;
-    static readonly RULE_soqlOffsetClause = 59;
-    static readonly RULE_soqlGroupByExprs = 60;
-    static readonly RULE_soqlGroupByClause = 61;
-    static readonly RULE_soqlHavingClause = 62;
-    static readonly RULE_soqlOrderByClauseField = 63;
-    static readonly RULE_soqlOrderByClauseExpr = 64;
-    static readonly RULE_soqlOrderByClauseExprs = 65;
-    static readonly RULE_soqlOrderByClause = 66;
-    static readonly RULE_soqlBindClauseExpr = 67;
-    static readonly RULE_soqlBindClauseExprs = 68;
-    static readonly RULE_soqlBindClause = 69;
-    static readonly RULE_soqlRecordTrackingType = 70;
-    static readonly RULE_soqlUpdateStatsClause = 71;
-    static readonly RULE_soqlSelectClause = 72;
-    static readonly RULE_soqlSemiJoin = 73;
-    static readonly RULE_soqlInnerQuery = 74;
-    static readonly RULE_soqlQuery = 75;
+    static readonly DIVISION = 33;
+    static readonly DO = 34;
+    static readonly ELSE = 35;
+    static readonly END = 36;
+    static readonly ENUM = 37;
+    static readonly EXCLUDES = 38;
+    static readonly EXTENDS = 39;
+    static readonly FALSE = 40;
+    static readonly FIELDS = 41;
+    static readonly FINAL = 42;
+    static readonly FINALLY = 43;
+    static readonly FIND = 44;
+    static readonly FIRST = 45;
+    static readonly FLAT = 46;
+    static readonly FOR = 47;
+    static readonly FORMULA = 48;
+    static readonly FROM = 49;
+    static readonly GEOLOCATION = 50;
+    static readonly GET = 51;
+    static readonly GLOBAL = 52;
+    static readonly GROUP = 53;
+    static readonly GROUPID = 54;
+    static readonly HAVING = 55;
+    static readonly HIERARCHICAL = 56;
+    static readonly IF = 57;
+    static readonly IMPLEMENTS = 58;
+    static readonly INCLUDES = 59;
+    static readonly IN = 60;
+    static readonly INSERT = 61;
+    static readonly INSTANCEOF = 62;
+    static readonly INTERFACE = 63;
+    static readonly IS_TEST = 64;
+    static readonly JAVA = 65;
+    static readonly LAST = 66;
+    static readonly LIKE = 67;
+    static readonly LIMIT = 68;
+    static readonly LIST = 69;
+    static readonly LOOKUP = 70;
+    static readonly MAP = 71;
+    static readonly MERGE = 72;
+    static readonly NEW = 73;
+    static readonly NOT = 74;
+    static readonly NULL = 75;
+    static readonly NULLS = 76;
+    static readonly ON = 77;
+    static readonly ORDER = 78;
+    static readonly OR = 79;
+    static readonly OPTIONS = 80;
+    static readonly OVERRIDE = 81;
+    static readonly PRIVATE = 82;
+    static readonly PROTECTED = 83;
+    static readonly PUBLIC = 84;
+    static readonly REFERENCE = 85;
+    static readonly RETURNING = 86;
+    static readonly RETURN = 87;
+    static readonly ROLLUP = 88;
+    static readonly RUNAS = 89;
+    static readonly SCOPE = 90;
+    static readonly SELECT = 91;
+    static readonly SET = 92;
+    static readonly SHARING = 93;
+    static readonly SOQL_OFFSET = 94;
+    static readonly STATIC = 95;
+    static readonly THEN = 96;
+    static readonly THROW = 97;
+    static readonly TRANSIENT = 98;
+    static readonly TRIGGER = 99;
+    static readonly TRUE = 100;
+    static readonly TRY = 101;
+    static readonly TYPEOF = 102;
+    static readonly UNDELETE = 103;
+    static readonly UPDATE = 104;
+    static readonly UPSERT = 105;
+    static readonly USERID = 106;
+    static readonly USING = 107;
+    static readonly VIEW = 108;
+    static readonly VIRTUAL = 109;
+    static readonly WEB_SERVICE = 110;
+    static readonly WHEN = 111;
+    static readonly WHERE = 112;
+    static readonly WHILE = 113;
+    static readonly WITHOUT = 114;
+    static readonly WITH = 115;
+    static readonly SECURITY_ENFORCED = 116;
+    static readonly USER_MODE = 117;
+    static readonly SYSTEM_MODE = 118;
+    static readonly IDENTIFIER = 119;
+    static readonly COLON = 120;
+    static readonly WS = 121;
+    static readonly EQ = 122;
+    static readonly LT = 123;
+    static readonly GT = 124;
+    static readonly NOT_EQ = 125;
+    static readonly ALT_NOT_EQ = 126;
+    static readonly INTEGER_LITERAL = 127;
+    static readonly DECIMAL_LITERAL = 128;
+    static readonly STR_START = 129;
+    static readonly DATE = 130;
+    static readonly DATETIME = 131;
+    static readonly TIME = 132;
+    static readonly CURRENCY = 133;
+    static readonly ESCAPE_CHAR = 134;
+    static readonly VALID_CHARS = 135;
+    static readonly STR_END = 136;
+    static readonly VALID_ESCAPE_CHAR = 137;
+    static readonly VALID_ESCAPE_LIKE_CHAR = 138;
+    static readonly INVALID_ESCAPE_CHAR = 139;
+    static readonly INVALID_ESCAPE_UNICODE = 140;
+    static readonly ESCAPE_UNICODE = 141;
+    static readonly HEX_DIGIT_1 = 142;
+    static readonly RULE_allowedKeyword = 0;
+    static readonly RULE_allowedKeywordForFunctions = 1;
+    static readonly RULE_allowedSoqlKeyword = 2;
+    static readonly RULE_identifier = 3;
+    static readonly RULE_soqlIdentifier = 4;
+    static readonly RULE_identifierNoKeyword = 5;
+    static readonly RULE_functionIdentifier = 6;
+    static readonly RULE_soqlField = 7;
+    static readonly RULE_soqlTypeofOperand = 8;
+    static readonly RULE_soqlWhenOperand = 9;
+    static readonly RULE_soqlResultExpr = 10;
+    static readonly RULE_soqlWhenExpr = 11;
+    static readonly RULE_soqlElseExpr = 12;
+    static readonly RULE_soqlTypeofExpr = 13;
+    static readonly RULE_soqlAlias = 14;
+    static readonly RULE_soqlInteger = 15;
+    static readonly RULE_soqlIntegerValue = 16;
+    static readonly RULE_soqlNumber = 17;
+    static readonly RULE_soqlNumberValue = 18;
+    static readonly RULE_soqlGeolocation = 19;
+    static readonly RULE_soqlGeolocationValue = 20;
+    static readonly RULE_soqlDistanceExpr = 21;
+    static readonly RULE_soqlFormulaExpr = 22;
+    static readonly RULE_soqlWhereClause = 23;
+    static readonly RULE_soqlWhereExprs = 24;
+    static readonly RULE_soqlAndWhere = 25;
+    static readonly RULE_soqlOrWhere = 26;
+    static readonly RULE_soqlWhereExpr = 27;
+    static readonly RULE_soqlCalcOperator = 28;
+    static readonly RULE_soqlLiteralValues = 29;
+    static readonly RULE_soqlIncludesOperator = 30;
+    static readonly RULE_soqlInOperator = 31;
+    static readonly RULE_soqlComparisonOperator = 32;
+    static readonly RULE_soqlCommonOperator = 33;
+    static readonly RULE_soqlLikeValue = 34;
+    static readonly RULE_soqlLikeLiteral = 35;
+    static readonly RULE_soqlCommonLiterals = 36;
+    static readonly RULE_soqlLiteralValue = 37;
+    static readonly RULE_soqlCurrencyLiteral = 38;
+    static readonly RULE_soqlColonExpr = 39;
+    static readonly RULE_soqlLiteral = 40;
+    static readonly RULE_nonValidatedEscapeStringLiteral = 41;
+    static readonly RULE_nonValidatedEscapeStringLiteralElement = 42;
+    static readonly RULE_validatedEscapeStringLiteral = 43;
+    static readonly RULE_validatedEscapeStringLiteralElement = 44;
+    static readonly RULE_validatedEscapeLikeStringLiteral = 45;
+    static readonly RULE_validatedEscapeLikeStringLiteralElements = 46;
+    static readonly RULE_validatedCommonSoqlStringLiteralElements = 47;
+    static readonly RULE_soqlSelectExpr = 48;
+    static readonly RULE_soqlSelectExprs = 49;
+    static readonly RULE_soqlFromClause = 50;
+    static readonly RULE_soqlFromExprs = 51;
+    static readonly RULE_soqlFromExpr = 52;
+    static readonly RULE_soqlUsingClause = 53;
+    static readonly RULE_soqlUsingPre192Expr = 54;
+    static readonly RULE_soqlUsingExprs = 55;
+    static readonly RULE_soqlUsingExpr = 56;
+    static readonly RULE_soqlDataCategoryOperator = 57;
+    static readonly RULE_soqlDataCategoryExpr = 58;
+    static readonly RULE_soqlWithValue = 59;
+    static readonly RULE_soqlWithKeyValue = 60;
+    static readonly RULE_soqlWithClause = 61;
+    static readonly RULE_soqlWithIdentifierClause = 62;
+    static readonly RULE_soqlSetOptionsClause = 63;
+    static readonly RULE_soqlLimitClause = 64;
+    static readonly RULE_soqlOffsetClause = 65;
+    static readonly RULE_soqlGroupByExprs = 66;
+    static readonly RULE_soqlGroupByClause = 67;
+    static readonly RULE_soqlHavingClause = 68;
+    static readonly RULE_soqlOrderByClauseField = 69;
+    static readonly RULE_soqlOrderByClauseExpr = 70;
+    static readonly RULE_soqlOrderByClauseExprs = 71;
+    static readonly RULE_soqlOrderByClause = 72;
+    static readonly RULE_soqlBindClauseExpr = 73;
+    static readonly RULE_soqlBindClauseExprs = 74;
+    static readonly RULE_soqlBindClause = 75;
+    static readonly RULE_soqlRecordTrackingType = 76;
+    static readonly RULE_soqlUpdateStatsClause = 77;
+    static readonly RULE_soqlSelectClause = 78;
+    static readonly RULE_soqlSemiJoin = 79;
+    static readonly RULE_soqlInnerQuery = 80;
+    static readonly RULE_soqlOption = 81;
+    static readonly RULE_soqlQuery = 82;
+    static readonly RULE_soqlStandaloneLiteral = 83;
     static readonly ruleNames: string[];
     private static readonly _LITERAL_NAMES;
     private static readonly _SYMBOLIC_NAMES;
@@ -188,11 +250,18 @@ get serializedATN(): string;
     _helper: ParserHelper;
     get helper(): ParserHelper;
     set helper(helper: ParserHelper);
+    notifyErrorListeners(msg: string): void;
+    notifyErrorListeners(msg: string, error: ErrorCode): void;
+    notifyErrorListeners(msg: string, offendingToken: Token | null, e: RecognitionException | undefined): void;
+    isFormulaAllowed(): boolean;
     constructor(input: TokenStream);
-    parseReservedForFieldName(): ParseReservedForFieldNameContext;
+    allowedKeyword(): AllowedKeywordContext;
+    allowedKeywordForFunctions(): AllowedKeywordForFunctionsContext;
+    allowedSoqlKeyword(): AllowedSoqlKeywordContext;
+    identifier(): IdentifierContext;
     soqlIdentifier(): SoqlIdentifierContext;
-    soqlIdentifierNoReserved(): SoqlIdentifierNoReservedContext;
-    soqlIdentifiers(): SoqlIdentifiersContext;
+    identifierNoKeyword(): IdentifierNoKeywordContext;
+    functionIdentifier(): FunctionIdentifierContext;
     soqlField(): SoqlFieldContext;
     soqlTypeofOperand(): SoqlTypeofOperandContext;
     soqlWhenOperand(): SoqlWhenOperandContext;
@@ -205,8 +274,10 @@ get serializedATN(): string;
     soqlIntegerValue(): SoqlIntegerValueContext;
     soqlNumber(): SoqlNumberContext;
     soqlNumberValue(): SoqlNumberValueContext;
+    soqlGeolocation(): SoqlGeolocationContext;
     soqlGeolocationValue(): SoqlGeolocationValueContext;
     soqlDistanceExpr(): SoqlDistanceExprContext;
+    soqlFormulaExpr(): SoqlFormulaExprContext;
     soqlWhereClause(): SoqlWhereClauseContext;
     soqlWhereExprs(): SoqlWhereExprsContext;
     soqlAndWhere(): SoqlAndWhereContext;
@@ -247,6 +318,7 @@ get serializedATN(): string;
     soqlWithKeyValue(): SoqlWithKeyValueContext;
     soqlWithClause(): SoqlWithClauseContext;
     soqlWithIdentifierClause(): SoqlWithIdentifierClauseContext;
+    soqlSetOptionsClause(): SoqlSetOptionsClauseContext;
     soqlLimitClause(): SoqlLimitClauseContext;
     soqlOffsetClause(): SoqlOffsetClauseContext;
     soqlGroupByExprs(): SoqlGroupByExprsContext;
@@ -264,9 +336,12 @@ get serializedATN(): string;
     soqlSelectClause(): SoqlSelectClauseContext;
     soqlSemiJoin(): SoqlSemiJoinContext;
     soqlInnerQuery(): SoqlInnerQueryContext;
+    soqlOption(): SoqlOptionContext;
     soqlQuery(): SoqlQueryContext;
+    soqlStandaloneLiteral(): SoqlStandaloneLiteralContext;
     sempred(_localctx: RuleContext, ruleIndex: number, predIndex: number): boolean;
     private soqlIntegerValue_sempred;
+    private soqlNumberValue_sempred;
     private soqlGeolocationValue_sempred;
     private soqlWhereExpr_sempred;
     private soqlLikeValue_sempred;
@@ -274,6 +349,8 @@ get serializedATN(): string;
     private soqlLiteralValue_sempred;
     private soqlUsingClause_sempred;
     private soqlWithValue_sempred;
+    private soqlSetOptionsClause_sempred;
+    private soqlOption_sempred;
     private static readonly _serializedATNSegments;
     private static readonly _serializedATNSegment0;
     private static readonly _serializedATNSegment1;
@@ -281,30 +358,84 @@ get serializedATN(): string;
     static __ATN: ATN;
     static get _ATN(): ATN;
 }
-export declare class ParseReservedForFieldNameContext extends ParserRuleContext {
-    ORDER(): TerminalNode | undefined;
-    DATA(): TerminalNode | undefined;
-    CATEGORY(): TerminalNode | undefined;
-    CATEGORY_AT(): TerminalNode | undefined;
-    CATEGORY_ABOVE(): TerminalNode | undefined;
-    CATEGORY_BELOW(): TerminalNode | undefined;
-    CATEGORY_ABOVE_OR_BELOW(): TerminalNode | undefined;
-    SOQL_OFFSET(): TerminalNode | undefined;
-    VIEW(): TerminalNode | undefined;
-    REFERENCE(): TerminalNode | undefined;
-    TYPEOF(): TerminalNode | undefined;
-    WHEN(): TerminalNode | undefined;
-    THEN(): TerminalNode | undefined;
-    SCOPE(): TerminalNode | undefined;
-    END(): TerminalNode | undefined;
-    DISTANCE(): TerminalNode | undefined;
-    GEOLOCATION(): TerminalNode | undefined;
-    GROUP(): TerminalNode | undefined;
-    CASE(): TerminalNode | undefined;
-    FIELDS(): TerminalNode | undefined;
+export declare class AllowedKeywordContext extends ParserRuleContext {
+    allowedKeywordForFunctions(): AllowedKeywordForFunctionsContext | undefined;
+    CUBE(): TerminalNode | undefined;
+    ROLLUP(): TerminalNode | undefined;
+    constructor(parent: ParserRuleContext | undefined, invokingState: number);
+    /* @ts-ignore */
+get ruleIndex(): number;
+    enterRule(listener: SoqlParserListener): void;
+    exitRule(listener: SoqlParserListener): void;
+    accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
+}
+export declare class AllowedKeywordForFunctionsContext extends ParserRuleContext {
+    allowedSoqlKeyword(): AllowedSoqlKeywordContext | undefined;
+    AFTER(): TerminalNode | undefined;
+    BEFORE(): TerminalNode | undefined;
+    BIND(): TerminalNode | undefined;
     COUNT(): TerminalNode | undefined;
-    HIERARCHAL(): TerminalNode | undefined;
+    EXCLUDES(): TerminalNode | undefined;
+    FIELDS(): TerminalNode | undefined;
+    FIND(): TerminalNode | undefined;
+    FIRST(): TerminalNode | undefined;
+    GET(): TerminalNode | undefined;
+    GROUP(): TerminalNode | undefined;
+    INCLUDES(): TerminalNode | undefined;
+    JAVA(): TerminalNode | undefined;
+    LAST(): TerminalNode | undefined;
+    RETURNING(): TerminalNode | undefined;
+    SET(): TerminalNode | undefined;
+    SHARING(): TerminalNode | undefined;
+    TRANSIENT(): TerminalNode | undefined;
+    WITH(): TerminalNode | undefined;
+    WITHOUT(): TerminalNode | undefined;
+    constructor(parent: ParserRuleContext | undefined, invokingState: number);
+    /* @ts-ignore */
+get ruleIndex(): number;
+    enterRule(listener: SoqlParserListener): void;
+    exitRule(listener: SoqlParserListener): void;
+    accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
+}
+export declare class AllowedSoqlKeywordContext extends ParserRuleContext {
+    CATEGORY(): TerminalNode | undefined;
+    CATEGORY_ABOVE(): TerminalNode | undefined;
+    CATEGORY_ABOVE_OR_BELOW(): TerminalNode | undefined;
+    CATEGORY_AT(): TerminalNode | undefined;
+    CATEGORY_BELOW(): TerminalNode | undefined;
+    DATA(): TerminalNode | undefined;
+    DISTANCE(): TerminalNode | undefined;
+    DIVISION(): TerminalNode | undefined;
+    END(): TerminalNode | undefined;
     FLAT(): TerminalNode | undefined;
+    FORMULA(): TerminalNode | undefined;
+    GEOLOCATION(): TerminalNode | undefined;
+    GROUPID(): TerminalNode | undefined;
+    HIERARCHICAL(): TerminalNode | undefined;
+    LOOKUP(): TerminalNode | undefined;
+    OPTIONS(): TerminalNode | undefined;
+    ORDER(): TerminalNode | undefined;
+    REFERENCE(): TerminalNode | undefined;
+    SCOPE(): TerminalNode | undefined;
+    SOQL_OFFSET(): TerminalNode | undefined;
+    THEN(): TerminalNode | undefined;
+    TYPEOF(): TerminalNode | undefined;
+    USERID(): TerminalNode | undefined;
+    VIEW(): TerminalNode | undefined;
+    WHEN(): TerminalNode | undefined;
+    SECURITY_ENFORCED(): TerminalNode | undefined;
+    USER_MODE(): TerminalNode | undefined;
+    SYSTEM_MODE(): TerminalNode | undefined;
+    constructor(parent: ParserRuleContext | undefined, invokingState: number);
+    /* @ts-ignore */
+get ruleIndex(): number;
+    enterRule(listener: SoqlParserListener): void;
+    exitRule(listener: SoqlParserListener): void;
+    accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
+}
+export declare class IdentifierContext extends ParserRuleContext {
+    IDENTIFIER(): TerminalNode | undefined;
+    allowedKeyword(): AllowedKeywordContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     /* @ts-ignore */
 get ruleIndex(): number;
@@ -314,7 +445,7 @@ get ruleIndex(): number;
 }
 export declare class SoqlIdentifierContext extends ParserRuleContext {
     IDENTIFIER(): TerminalNode | undefined;
-    parseReservedForFieldName(): ParseReservedForFieldNameContext | undefined;
+    allowedSoqlKeyword(): AllowedSoqlKeywordContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     /* @ts-ignore */
 get ruleIndex(): number;
@@ -322,7 +453,7 @@ get ruleIndex(): number;
     exitRule(listener: SoqlParserListener): void;
     accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
 }
-export declare class SoqlIdentifierNoReservedContext extends ParserRuleContext {
+export declare class IdentifierNoKeywordContext extends ParserRuleContext {
     IDENTIFIER(): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     /* @ts-ignore */
@@ -331,12 +462,9 @@ get ruleIndex(): number;
     exitRule(listener: SoqlParserListener): void;
     accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
 }
-export declare class SoqlIdentifiersContext extends ParserRuleContext {
-    _i: SoqlIdentifierContext | undefined;
-    soqlIdentifier(): SoqlIdentifierContext[];
-    soqlIdentifier(i: number): SoqlIdentifierContext;
-    COMMA(): TerminalNode[];
-    COMMA(i: number): TerminalNode;
+export declare class FunctionIdentifierContext extends ParserRuleContext {
+    IDENTIFIER(): TerminalNode | undefined;
+    allowedKeywordForFunctions(): AllowedKeywordForFunctionsContext | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     /* @ts-ignore */
 get ruleIndex(): number;
@@ -345,8 +473,9 @@ get ruleIndex(): number;
     accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
 }
 export declare class SoqlFieldContext extends ParserRuleContext {
-    soqlIdentifier(): SoqlIdentifierContext[];
-    soqlIdentifier(i: number): SoqlIdentifierContext;
+    soqlIdentifier(): SoqlIdentifierContext;
+    functionIdentifier(): FunctionIdentifierContext[];
+    functionIdentifier(i: number): FunctionIdentifierContext;
     LPAREN(): TerminalNode[];
     LPAREN(i: number): TerminalNode;
     RPAREN(): TerminalNode[];
@@ -368,7 +497,7 @@ get ruleIndex(): number;
     accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
 }
 export declare class SoqlWhenOperandContext extends ParserRuleContext {
-    soqlIdentifier(): SoqlIdentifierContext;
+    identifier(): IdentifierContext;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     /* @ts-ignore */
 get ruleIndex(): number;
@@ -492,6 +621,27 @@ export declare class SoqlLiteralNumberValueContext extends SoqlNumberValueContex
     exitRule(listener: SoqlParserListener): void;
     accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
 }
+export declare class SoqlColonExprNumberValueContext extends SoqlNumberValueContext {
+    soqlColonExpr(): SoqlColonExprContext;
+    constructor(ctx: SoqlNumberValueContext);
+    enterRule(listener: SoqlParserListener): void;
+    exitRule(listener: SoqlParserListener): void;
+    accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
+}
+export declare class SoqlGeolocationContext extends ParserRuleContext {
+    GEOLOCATION(): TerminalNode;
+    LPAREN(): TerminalNode;
+    soqlNumberValue(): SoqlNumberValueContext[];
+    soqlNumberValue(i: number): SoqlNumberValueContext;
+    COMMA(): TerminalNode;
+    RPAREN(): TerminalNode;
+    constructor(parent: ParserRuleContext | undefined, invokingState: number);
+    /* @ts-ignore */
+get ruleIndex(): number;
+    enterRule(listener: SoqlParserListener): void;
+    exitRule(listener: SoqlParserListener): void;
+    accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
+}
 export declare class SoqlGeolocationValueContext extends ParserRuleContext {
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     /* @ts-ignore */
@@ -499,12 +649,7 @@ get ruleIndex(): number;
     copyFrom(ctx: SoqlGeolocationValueContext): void;
 }
 export declare class SoqlLiteralGeolocationValueContext extends SoqlGeolocationValueContext {
-    GEOLOCATION(): TerminalNode;
-    LPAREN(): TerminalNode;
-    soqlNumberValue(): SoqlNumberValueContext[];
-    soqlNumberValue(i: number): SoqlNumberValueContext;
-    COMMA(): TerminalNode;
-    RPAREN(): TerminalNode;
+    soqlGeolocation(): SoqlGeolocationContext;
     constructor(ctx: SoqlGeolocationValueContext);
     enterRule(listener: SoqlParserListener): void;
     exitRule(listener: SoqlParserListener): void;
@@ -533,16 +678,24 @@ get ruleIndex(): number;
     exitRule(listener: SoqlParserListener): void;
     accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
 }
-export declare class SoqlWhereClauseContext extends ParserRuleContext {
+export declare class SoqlFormulaExprContext extends ParserRuleContext {
+    FORMULA(): TerminalNode;
+    LPAREN(): TerminalNode;
+    validatedEscapeStringLiteral(): ValidatedEscapeStringLiteralContext;
+    RPAREN(): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     /* @ts-ignore */
 get ruleIndex(): number;
-    copyFrom(ctx: SoqlWhereClauseContext): void;
+    enterRule(listener: SoqlParserListener): void;
+    exitRule(listener: SoqlParserListener): void;
+    accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
 }
-export declare class SoqlWhereClauseMethodContext extends SoqlWhereClauseContext {
+export declare class SoqlWhereClauseContext extends ParserRuleContext {
     WHERE(): TerminalNode;
     soqlWhereExprs(): SoqlWhereExprsContext;
-    constructor(ctx: SoqlWhereClauseContext);
+    constructor(parent: ParserRuleContext | undefined, invokingState: number);
+    /* @ts-ignore */
+get ruleIndex(): number;
     enterRule(listener: SoqlParserListener): void;
     exitRule(listener: SoqlParserListener): void;
     accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
@@ -622,6 +775,15 @@ export declare class CalculatedWhereExprContext extends SoqlWhereExprContext {
 }
 export declare class DistanceWhereExprContext extends SoqlWhereExprContext {
     soqlDistanceExpr(): SoqlDistanceExprContext;
+    soqlComparisonOperator(): SoqlComparisonOperatorContext;
+    soqlLiteralValue(): SoqlLiteralValueContext;
+    constructor(ctx: SoqlWhereExprContext);
+    enterRule(listener: SoqlParserListener): void;
+    exitRule(listener: SoqlParserListener): void;
+    accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
+}
+export declare class FormulaWhereExprContext extends SoqlWhereExprContext {
+    soqlFormulaExpr(): SoqlFormulaExprContext;
     soqlComparisonOperator(): SoqlComparisonOperatorContext;
     soqlLiteralValue(): SoqlLiteralValueContext;
     constructor(ctx: SoqlWhereExprContext);
@@ -822,14 +984,7 @@ export declare class SoqlTimeLiteralContext extends SoqlCommonLiteralsContext {
     accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
 }
 export declare class SoqlNumberLiteralContext extends SoqlCommonLiteralsContext {
-    soqlNumberValue(): SoqlNumberValueContext;
-    constructor(ctx: SoqlCommonLiteralsContext);
-    enterRule(listener: SoqlParserListener): void;
-    exitRule(listener: SoqlParserListener): void;
-    accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
-}
-export declare class SoqlNullLiteralContext extends SoqlCommonLiteralsContext {
-    NULL(): TerminalNode;
+    soqlNumber(): SoqlNumberContext;
     constructor(ctx: SoqlCommonLiteralsContext);
     enterRule(listener: SoqlParserListener): void;
     exitRule(listener: SoqlParserListener): void;
@@ -843,10 +998,17 @@ export declare class SoqlBooleanLiteralContext extends SoqlCommonLiteralsContext
     exitRule(listener: SoqlParserListener): void;
     accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
 }
-export declare class SoqlDateFormulaLiteralContext extends SoqlCommonLiteralsContext {
+export declare class SoqlFixedRangeDateFormulaLiteralContext extends SoqlCommonLiteralsContext {
     IDENTIFIER(): TerminalNode;
-    COLON(): TerminalNode | undefined;
-    INTEGER_LITERAL(): TerminalNode | undefined;
+    constructor(ctx: SoqlCommonLiteralsContext);
+    enterRule(listener: SoqlParserListener): void;
+    exitRule(listener: SoqlParserListener): void;
+    accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
+}
+export declare class SoqlVariableRangeDateFormulaLiteralContext extends SoqlCommonLiteralsContext {
+    IDENTIFIER(): TerminalNode;
+    COLON(): TerminalNode;
+    INTEGER_LITERAL(): TerminalNode;
     constructor(ctx: SoqlCommonLiteralsContext);
     enterRule(listener: SoqlParserListener): void;
     exitRule(listener: SoqlParserListener): void;
@@ -891,7 +1053,7 @@ get ruleIndex(): number;
 }
 export declare class SoqlColonExprContext extends ParserRuleContext {
     COLON(): TerminalNode;
-    IDENTIFIER(): TerminalNode;
+    identifier(): IdentifierContext;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     /* @ts-ignore */
 get ruleIndex(): number;
@@ -919,6 +1081,13 @@ export declare class SoqlLiteralCommonLiteralsContext extends SoqlLiteralContext
     exitRule(listener: SoqlParserListener): void;
     accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
 }
+export declare class SoqlNullLiteralContext extends SoqlLiteralContext {
+    NULL(): TerminalNode;
+    constructor(ctx: SoqlLiteralContext);
+    enterRule(listener: SoqlParserListener): void;
+    exitRule(listener: SoqlParserListener): void;
+    accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
+}
 export declare class NonValidatedEscapeStringLiteralContext extends ParserRuleContext {
     STR_START(): TerminalNode;
     STR_END(): TerminalNode;
@@ -932,7 +1101,6 @@ get ruleIndex(): number;
     accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
 }
 export declare class NonValidatedEscapeStringLiteralElementContext extends ParserRuleContext {
-    NEW_LINE(): TerminalNode | undefined;
     ESCAPE_CHAR(): TerminalNode | undefined;
     INVALID_ESCAPE_CHAR(): TerminalNode | undefined;
     VALID_ESCAPE_LIKE_CHAR(): TerminalNode | undefined;
@@ -994,7 +1162,6 @@ get ruleIndex(): number;
     accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
 }
 export declare class ValidatedCommonSoqlStringLiteralElementsContext extends ParserRuleContext {
-    NEW_LINE(): TerminalNode | undefined;
     ESCAPE_CHAR(): TerminalNode | undefined;
     INVALID_ESCAPE_CHAR(): TerminalNode | undefined;
     VALID_ESCAPE_CHAR(): TerminalNode | undefined;
@@ -1083,10 +1250,10 @@ get ruleIndex(): number;
     accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
 }
 export declare class SoqlFromExprContext extends ParserRuleContext {
-    soqlIdentifier(): SoqlIdentifierContext[];
-    soqlIdentifier(i: number): SoqlIdentifierContext;
-    AS(): TerminalNode | undefined;
+    identifier(): IdentifierContext;
+    soqlIdentifier(): SoqlIdentifierContext | undefined;
     soqlUsingClause(): SoqlUsingClauseContext | undefined;
+    AS(): TerminalNode | undefined;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     /* @ts-ignore */
 get ruleIndex(): number;
@@ -1113,7 +1280,7 @@ get ruleIndex(): number;
 }
 export declare class SoqlUsingPre192ExprWithScopeContext extends SoqlUsingPre192ExprContext {
     SCOPE(): TerminalNode;
-    soqlIdentifierNoReserved(): SoqlIdentifierNoReservedContext;
+    identifierNoKeyword(): IdentifierNoKeywordContext;
     constructor(ctx: SoqlUsingPre192ExprContext);
     enterRule(listener: SoqlParserListener): void;
     exitRule(listener: SoqlParserListener): void;
@@ -1121,14 +1288,14 @@ export declare class SoqlUsingPre192ExprWithScopeContext extends SoqlUsingPre192
 }
 export declare class SoqlUsingPre192ExprDefaultContext extends SoqlUsingPre192ExprContext {
     soqlIdentifier(): SoqlIdentifierContext;
-    soqlIdentifierNoReserved(): SoqlIdentifierNoReservedContext;
+    identifierNoKeyword(): IdentifierNoKeywordContext;
     constructor(ctx: SoqlUsingPre192ExprContext);
     enterRule(listener: SoqlParserListener): void;
     exitRule(listener: SoqlParserListener): void;
     accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
 }
 export declare class SoqlUsingPre192ExprWithNoScopeContext extends SoqlUsingPre192ExprContext {
-    soqlIdentifierNoReserved(): SoqlIdentifierNoReservedContext;
+    identifierNoKeyword(): IdentifierNoKeywordContext;
     constructor(ctx: SoqlUsingPre192ExprContext);
     enterRule(listener: SoqlParserListener): void;
     exitRule(listener: SoqlParserListener): void;
@@ -1154,7 +1321,7 @@ get ruleIndex(): number;
 }
 export declare class SoqlUsingScopeContext extends SoqlUsingExprContext {
     SCOPE(): TerminalNode;
-    soqlIdentifierNoReserved(): SoqlIdentifierNoReservedContext;
+    identifierNoKeyword(): IdentifierNoKeywordContext;
     constructor(ctx: SoqlUsingExprContext);
     enterRule(listener: SoqlParserListener): void;
     exitRule(listener: SoqlParserListener): void;
@@ -1162,7 +1329,7 @@ export declare class SoqlUsingScopeContext extends SoqlUsingExprContext {
 }
 export declare class SoqlUsingLookupContext extends SoqlUsingExprContext {
     LOOKUP(): TerminalNode;
-    soqlIdentifierNoReserved(): SoqlIdentifierNoReservedContext;
+    identifierNoKeyword(): IdentifierNoKeywordContext;
     constructor(ctx: SoqlUsingExprContext);
     enterRule(listener: SoqlParserListener): void;
     exitRule(listener: SoqlParserListener): void;
@@ -1181,12 +1348,14 @@ get ruleIndex(): number;
     accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
 }
 export declare class SoqlDataCategoryExprContext extends ParserRuleContext {
-    soqlIdentifier(): SoqlIdentifierContext[];
-    soqlIdentifier(i: number): SoqlIdentifierContext;
+    soqlIdentifier(): SoqlIdentifierContext;
     soqlDataCategoryOperator(): SoqlDataCategoryOperatorContext;
     LPAREN(): TerminalNode | undefined;
-    soqlIdentifiers(): SoqlIdentifiersContext | undefined;
+    identifier(): IdentifierContext[];
+    identifier(i: number): IdentifierContext;
     RPAREN(): TerminalNode | undefined;
+    COMMA(): TerminalNode[];
+    COMMA(i: number): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     /* @ts-ignore */
 get ruleIndex(): number;
@@ -1215,7 +1384,7 @@ export declare class SoqlColonExprWithValueContext extends SoqlWithValueContext 
     accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
 }
 export declare class SoqlWithKeyValueContext extends ParserRuleContext {
-    soqlIdentifier(): SoqlIdentifierContext;
+    identifier(): IdentifierContext;
     EQ(): TerminalNode;
     validatedEscapeStringLiteral(): ValidatedEscapeStringLiteralContext | undefined;
     INTEGER_LITERAL(): TerminalNode | undefined;
@@ -1249,7 +1418,7 @@ export declare class SoqlWithDataCategoryClauseContext extends SoqlWithClauseCon
 }
 export declare class SoqlWithEqualsClauseContext extends SoqlWithClauseContext {
     WITH(): TerminalNode;
-    soqlIdentifier(): SoqlIdentifierContext;
+    identifier(): IdentifierContext;
     EQ(): TerminalNode;
     soqlWithValue(): SoqlWithValueContext;
     constructor(ctx: SoqlWithClauseContext);
@@ -1265,7 +1434,7 @@ get ruleIndex(): number;
 }
 export declare class SoqlWithIdentifierTupleClauseContext extends SoqlWithIdentifierClauseContext {
     WITH(): TerminalNode;
-    soqlIdentifier(): SoqlIdentifierContext;
+    identifier(): IdentifierContext;
     LPAREN(): TerminalNode;
     soqlWithKeyValue(): SoqlWithKeyValueContext[];
     soqlWithKeyValue(i: number): SoqlWithKeyValueContext;
@@ -1279,8 +1448,37 @@ export declare class SoqlWithIdentifierTupleClauseContext extends SoqlWithIdenti
 }
 export declare class SoqlWithSingleIdentifierClauseContext extends SoqlWithIdentifierClauseContext {
     WITH(): TerminalNode;
-    soqlIdentifier(): SoqlIdentifierContext;
+    identifier(): IdentifierContext;
     constructor(ctx: SoqlWithIdentifierClauseContext);
+    enterRule(listener: SoqlParserListener): void;
+    exitRule(listener: SoqlParserListener): void;
+    accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
+}
+export declare class SoqlSetOptionsClauseContext extends ParserRuleContext {
+    constructor(parent: ParserRuleContext | undefined, invokingState: number);
+    /* @ts-ignore */
+get ruleIndex(): number;
+    copyFrom(ctx: SoqlSetOptionsClauseContext): void;
+}
+export declare class SoqlSetOptionsKeyValuesClauseContext extends SoqlSetOptionsClauseContext {
+    SET(): TerminalNode;
+    OPTIONS(): TerminalNode;
+    LPAREN(): TerminalNode;
+    soqlWithKeyValue(): SoqlWithKeyValueContext[];
+    soqlWithKeyValue(i: number): SoqlWithKeyValueContext;
+    RPAREN(): TerminalNode;
+    COMMA(): TerminalNode[];
+    COMMA(i: number): TerminalNode;
+    constructor(ctx: SoqlSetOptionsClauseContext);
+    enterRule(listener: SoqlParserListener): void;
+    exitRule(listener: SoqlParserListener): void;
+    accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
+}
+export declare class SoqlSetOptionsColonClauseContext extends SoqlSetOptionsClauseContext {
+    SET(): TerminalNode;
+    OPTIONS(): TerminalNode;
+    soqlColonExpr(): SoqlColonExprContext;
+    constructor(ctx: SoqlSetOptionsClauseContext);
     enterRule(listener: SoqlParserListener): void;
     exitRule(listener: SoqlParserListener): void;
     accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
@@ -1526,8 +1724,42 @@ get ruleIndex(): number;
     exitRule(listener: SoqlParserListener): void;
     accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
 }
+export declare class SoqlOptionContext extends ParserRuleContext {
+    constructor(parent: ParserRuleContext | undefined, invokingState: number);
+    /* @ts-ignore */
+get ruleIndex(): number;
+    copyFrom(ctx: SoqlOptionContext): void;
+}
+export declare class SoqlForUpdateOptionContext extends SoqlOptionContext {
+    FOR(): TerminalNode;
+    UPDATE(): TerminalNode;
+    constructor(ctx: SoqlOptionContext);
+    enterRule(listener: SoqlParserListener): void;
+    exitRule(listener: SoqlParserListener): void;
+    accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
+}
+export declare class SoqlGenericOptionContext extends SoqlOptionContext {
+    IDENTIFIER(): TerminalNode[];
+    IDENTIFIER(i: number): TerminalNode;
+    constructor(ctx: SoqlOptionContext);
+    enterRule(listener: SoqlParserListener): void;
+    exitRule(listener: SoqlParserListener): void;
+    accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
+}
 export declare class SoqlQueryContext extends ParserRuleContext {
     soqlInnerQuery(): SoqlInnerQueryContext;
+    EOF(): TerminalNode;
+    soqlSetOptionsClause(): SoqlSetOptionsClauseContext | undefined;
+    soqlOption(): SoqlOptionContext | undefined;
+    constructor(parent: ParserRuleContext | undefined, invokingState: number);
+    /* @ts-ignore */
+get ruleIndex(): number;
+    enterRule(listener: SoqlParserListener): void;
+    exitRule(listener: SoqlParserListener): void;
+    accept<Result>(visitor: SoqlParserVisitor<Result>): Result;
+}
+export declare class SoqlStandaloneLiteralContext extends ParserRuleContext {
+    soqlLiteral(): SoqlLiteralContext;
     EOF(): TerminalNode;
     constructor(parent: ParserRuleContext | undefined, invokingState: number);
     /* @ts-ignore */

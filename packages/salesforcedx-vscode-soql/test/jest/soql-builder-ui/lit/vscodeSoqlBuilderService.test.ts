@@ -103,6 +103,16 @@ const lastSavedState = (states: readonly unknown[]): SoqlBuilderState =>
   Schema.decodeUnknownSync(SoqlBuilderStateSchema)(states.at(-1));
 
 describe('VscodeSoqlBuilderService', () => {
+  it('shows primary and independent parse errors without secondary recovery errors', () => {
+    expect(
+      parseSoqlBuilderQuery('SELECT field1 FROM object1 WHERE field IN').parseErrors.map(error => error.type)
+    ).toEqual(['NOCOMPAREVALUE']);
+    expect(parseSoqlBuilderQuery('SELECT A FROM B LIMIT X OFFSET Y').parseErrors.map(error => error.type)).toEqual([
+      'INCOMPLETELIMIT',
+      'UNKNOWN'
+    ]);
+  });
+
   it('round-trips every supported query clause through the typed model adapter', () => {
     const statement =
       "// retained comment\nSELECT Name, Id FROM Account WHERE Name = 'Acme' AND Id != NULL ORDER BY Name DESC NULLS LAST LIMIT 10 ALL ROWS";

@@ -1,1 +1,3 @@
-This directory is a copy of the `lib/` output folder of the (private) @salesforce/soql-parser package
+This directory contains the packaged `lib/` artifacts of the internal soql-parser project.
+
+See ../../README.md, "Updating the bundled SOQL parser", for build and copy instructions.
