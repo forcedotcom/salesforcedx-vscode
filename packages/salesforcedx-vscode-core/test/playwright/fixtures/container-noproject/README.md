@@ -12,3 +12,13 @@ commands must NOT be contributed.
 
 Keep it trivial: its only job is to be a folder code-server can open that is not a DX project. Do
 NOT add `sfdx-project.json` or any `force-app` metadata here — that would defeat its purpose.
+
+## `scratch/`
+
+An empty, checked-in-only-as-a-placeholder (`.gitkeep`) subfolder. The `createProject`/
+`createProjectWithManifest` container specs (metadata) target THIS subfolder as the parent dir for
+"SFDX: Create Project [with Manifest]" — scaffolding a project here, not at this fixture's root,
+keeps the mount's own root free of `sfdx-project.json` for every other no-project spec. Each spec
+removes its own scaffolded project in `afterEach` (`removePathsInContainer`, since the files are
+owned by the container's `codebuilder` user); `scratch/` itself is never deleted so the mount
+doesn't need to be re-created between runs.

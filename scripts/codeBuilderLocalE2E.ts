@@ -934,12 +934,22 @@ const main = async (): Promise<number> => {
   // create-template) writes them as the image's `codebuilder` user, so a host-side node:fs remove
   // fails with EACCES; such a spec cleans up with `docker exec -u codebuilder` against these two,
   // deleting inside the container as the owning user (see removePathsInContainer in the toolkit).
+  //
+  // CB_NOPROJECT_HOST_DIR + CB_NOPROJECT_CONTAINER_DIR: the same host/container split, for the
+  // non-project mount (NOPROJECT_FIXTURE_HOST_DIR / NOPROJECT_MOUNT_PATH). The createProject* specs
+  // (test:container:noproject / :nofolder) scaffold a brand-new SFDX project under this mount's
+  // checked-in `scratch/` subfolder — a sibling of workspaceDir doesn't exist as a bind mount in the
+  // container, so they need an ALREADY-mounted, writable folder to target instead. Reusing the
+  // no-project mount (rather than adding a fourth mount) means no lifecycle/chmod changes: it's
+  // already bind-mounted and already chmod'd a+rwX for every phase (see the two chmod loops below).
   const testEnv: NodeJS.ProcessEnv = {
     ...process.env,
     CODE_BUILDER_URL,
     CB_FIXTURE_HOST_DIR: FIXTURE_HOST_DIR,
     CB_CONTAINER_NAME: CONTAINER_NAME,
-    CB_FIXTURE_CONTAINER_DIR: FIXTURE_MOUNT_PATH
+    CB_FIXTURE_CONTAINER_DIR: FIXTURE_MOUNT_PATH,
+    CB_NOPROJECT_HOST_DIR: NOPROJECT_FIXTURE_HOST_DIR,
+    CB_NOPROJECT_CONTAINER_DIR: NOPROJECT_MOUNT_PATH
   };
   if (opts.debug) {
     testEnv.PWDEBUG = '1';

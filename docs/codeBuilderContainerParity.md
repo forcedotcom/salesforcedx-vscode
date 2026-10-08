@@ -42,7 +42,7 @@ Per [PR #8102 review feedback](https://github.com/forcedotcom/salesforcedx-vscod
 81 of the original 108 container specs have been merged this way; 27 remain standalone. See "Adding a
 container suite to a package" below for both patterns.
 
-## Coverage summary — 102 specs across 15 packages
+## Coverage summary — 105 specs across 15 packages
 
 Includes multi-org / Dreamhouse ports (see "Multi-org container support" below): 13 previously
 org-blocked specs now run by authing extra orgs + switching default with save/restore; 2 ported but
@@ -50,16 +50,18 @@ org-blocked specs now run by authing extra orgs + switching default with save/re
 DAP replay session driven through code-server. Includes the **reachable-with-work** ports run via
 orchestrator re-seed phases that boot a different workspace shape at a phase boundary (verify-gate
 re-run after each restart): **no-project** (phase 2), **no-folder** (phase 3), **multi-package** (phase
-4), and **no-org** (phase 5, an org-less container boot). All verified green.
+4), and **no-org** (phase 5, an org-less container boot). Also includes the 3 `createProject*` specs
+(see "Workspace-shape portability assessment" below) — they target the no-project mount's checked-in
+`scratch/` subfolder rather than a new mount or phase. All verified green.
 
-Count is container-covered **specs** (scenarios), not separate files: 100 active + 2 `test.fixme`. Most
+Count is container-covered **specs** (scenarios), not separate files: 103 active + 2 `test.fixme`. Most
 of these now live merged into their desktop/web twin rather than as a standalone file — see "Two
 implementation patterns" above; the spec names/counts below are unaffected by which pattern a given
 spec uses.
 
 | Package | Specs | Container specs |
 | --- | --: | --- |
-| `salesforcedx-vscode-metadata` | 29 | deploy (Source/Path/Palette/Manifest/OnSave), retrieve (Source/Manifest/StaleApiVersion), deleteSource, sourceDiff(+Multiple), viewChangesCommands, generateManifest, editorWatcher, projectDeployStart, projectInfo, packageInstall, nonTrackingOrgDeployRetrieve(Manifest/Operations), refreshSObjectDefinitions, sourceTrackingStatusBar, manifestCommandVisibility, noProjectCommandsHidden, **analyticsTemplates, taggedErrorChannelOutput, emptyWorkspaceSfdxCommands (no-project + no-folder)** + nonTrackingOrgTracking(Commands/UI)Hidden (`fixme`) |
+| `salesforcedx-vscode-metadata` | 32 | deploy (Source/Path/Palette/Manifest/OnSave), retrieve (Source/Manifest/StaleApiVersion), deleteSource, sourceDiff(+Multiple), viewChangesCommands, generateManifest, editorWatcher, projectDeployStart, projectInfo, packageInstall, nonTrackingOrgDeployRetrieve(Manifest/Operations), refreshSObjectDefinitions, sourceTrackingStatusBar, manifestCommandVisibility, noProjectCommandsHidden, **analyticsTemplates, taggedErrorChannelOutput, emptyWorkspaceSfdxCommands (no-project + no-folder), createProject, createProjectWithManifest, createProjectEmptyWindow** + nonTrackingOrgTracking(Commands/UI)Hidden (`fixme`) |
 | `salesforcedx-vscode-lwc` | 10 | generateComponent, rename, snippets, customComponentsIndex + LSP (autocomplete, goToDefinition Html/Js, hover, indexing, sfdxTypings) |
 | `salesforcedx-vscode-apex-testing` | 14 | testExplorer(+Run), runApexTests (CodeLens/CommandPalette/FailAndFix), apexTestSuite(+Delete), clearApexTestResults, codeCoverageColorizer, staleTestResultsRestoration, orgOnlyClassRetrieve, inWorkspaceFilter, **noProjectVisibility, noOrgVisibility** |
 | `salesforcedx-vscode-org-browser` | 8 | orgBrowser (types), orgBrowser.describe, orgBrowser.filterToggle, orgBrowser.textFilter, **orgBrowserCustomObject, orgBrowserCustomTab, orgBrowserFolderedReport, orgBrowserTextFilterDreamhouse** |
@@ -90,7 +92,7 @@ from container-only splits/additions (`seededWorkspace`, `testExplorerRun`, meta
 
 | Package | Origin | Ported | Not ported |
 | --- | --: | --: | --: |
-| `salesforcedx-vscode-metadata` | 32 | 27 | 5 |
+| `salesforcedx-vscode-metadata` | 32 | 30 | 2 |
 | `salesforcedx-vscode-apex-testing` | 14 | 13 | 1 |
 | `salesforcedx-vscode-lwc` | 13 | 10 | 3 |
 | `salesforcedx-vscode-apex-log` | 12 | 11 | 1 |
@@ -105,30 +107,29 @@ from container-only splits/additions (`seededWorkspace`, `testExplorerRun`, meta
 | `salesforcedx-vscode-core` | 3 | 3 | 0 |
 | `salesforcedx-vscode-apex-debugger` | 2 | 1 | 1 |
 | `salesforcedx-vscode-visualforce` | 2 | 2 | 0 |
-| **Total** | **132** | **102 (77%)** | **30** |
+| **Total** | **132** | **105 (80%)** | **27** |
 
-The 30 not-ported specs by blocking constraint — **all now hard-blocked** (every reachable-with-work
-spec has been ported):
+The 27 not-ported specs by blocking constraint — **all now hard-blocked** (every reachable-with-work
+spec, including the three `createProject*` specs, has now been ported):
 
 | Blocking constraint | Count |
 | --- | --: |
 | Rate-limited A4V/Einstein LLM (apex-oas) | 6 |
 | Destructive org lifecycle / second org user | 6 |
 | Reads span/telemetry files | 5 |
-| Different workspace shape — create-project on disk (host-fs + `openFolder`) | 3 |
 | Interactive debug session / DAP — hard-blocked (`isvDebugBootstrap` live org session, `lwcDebugTests` jest dep + debug) | 2 |
 | Webview-only surface | 2 |
 | Slow/mutating positive retrieve | 2 |
 | Reload-flakiness in web / native file-watch event not delivered | 2 |
 | Dev/Test-only internal command | 1 |
 | Needs a fixture dev-dependency (`sfdx-lwc-jest`) | 1 |
-| **Total** | **30** |
+| **Total** | **27** |
 
-All 30 remaining specs are hard-blocked by the container model (below). The reachable-with-work set —
+All 27 remaining specs are hard-blocked by the container model (below). The reachable-with-work set —
 the 2 metadata "reachable" specs, the no-project / no-folder visibility specs, the multi-package spec,
-and the no-org-boot specs — has all been ported via the re-seed phases and verified green. The only
-workspace-shape specs still out are the three `createProject*` (scaffold on disk + `openFolder`), which
-remain hard-blocked.
+the no-org-boot specs, and the three `createProject*` specs — has all been ported via the re-seed
+phases (or, for `createProject*`, the existing no-project/no-folder phases plus a dedicated scratch
+target) and verified green.
 
 ## Not ported (and why)
 
@@ -153,15 +154,6 @@ mutate or destroy org auth on the ONE shared serial session (or need a second us
 multi-org capability below deliberately does not provide. (Non-tracking, org-picker, org-switch, and
 Dreamhouse-metadata specs that only READ or SWITCH between pre-provisioned orgs ARE now ported — see
 "Multi-org container support".)
-
-**Requires a different workspace shape — create-project on disk (hard-blocked)** — metadata:
-`createProject`, `createProjectEmptyWindow`, `createProjectWithManifest`. These scaffold a new project
-to disk and end with `vscode.openFolder`; they assert files via host `node:fs` (the container FS isn't
-visible unless under the bind mount) and re-navigate the workbench, so they stay desktop-only. Every
-other workspace-shape spec is now ported via the re-seed phases: `manifestCommandVisibility`,
-`noProjectCommandsHidden`, `emptyWorkspaceSfdxCommands` (no-project + no-folder), apex-log/apex-testing
-`noProjectVisibility` and `noOrgVisibility`, and apex-log `apexGenerateClassMultiPackageDirs` — see
-"Workspace-shape portability assessment" below.
 
 **Reads local span/telemetry files or needs the spans:server** — apex: `apexTelemetrySpans`;
 metadata: `cliEnvSpans`; lightning: `telemetryOutput`, `spanRedaction`; org: `telemetryIdentitySeeding`.
@@ -229,7 +221,7 @@ None — both formerly-reachable specs are now ported and green:
 - **metadata `taggedErrorChannelOutput`** — deploy-in-manifest with no manifest asserts the tagged
   `[ManifestSelectionRequiredError]` on the channel; rewired off `createMinimalOrg` to the boot org.
 
-With these done, **every reachable-with-work spec has been ported** — the 30 remaining not-ported specs
+With these done, **every reachable-with-work spec has been ported** — the 27 remaining not-ported specs
 are all hard-blocked by the container model.
 
 ## Debug / DAP portability assessment
@@ -294,10 +286,12 @@ helpers** in `playwright-vscode-ext`; specs hand-roll it plus a local `continueD
 
 ## Workspace-shape portability assessment
 
-The 9 remaining "different workspace shape" specs are blocked by harness constraints. Every shape change
-must occur at a **phase boundary** (re-seed `coder.json` + `restart()` at suite transitions), never
-mid-suite—mutating the shared serial session corrupts the workbench for downstream specs. This is a
-shared-session integrity cost, not a code-server limit; `restart()` at phase boundaries works fully.
+The 9 "different workspace shape" specs each need a harness-level accommodation — all are now **DONE**.
+Most shape changes occur at a **phase boundary** (re-seed `coder.json` + `restart()` at suite
+transitions, never mid-suite — mutating the shared serial session would corrupt the workbench for
+downstream specs). The `createProject*` specs are the exception: they reuse an EXISTING phase's seeded
+shape (no-project / no-folder) and target a dedicated writable subfolder on that phase's mount, rather
+than needing a mount or phase of their own — see the row below.
 
 | Spec(s) | Shape needed | Verdict |
 | --- | --- | --- |
@@ -306,7 +300,8 @@ shared-session integrity cost, not a code-server limit; `restart()` at phase bou
 | apex-log/apex-testing `noProjectVisibility`, metadata `emptyWorkspaceSfdxCommands` | folder open, no `sfdx-project.json` / no folder open | **DONE** — ported; org-agnostic palette-visibility checks via phase 2 (`test:container:noproject`) + a new phase 3 (`test:container:nofolder`) for the no-folder case |
 | apex-log `apexGenerateClassMultiPackageDirs` | multi-`packageDirectories` project | **DONE** — ported via a new phase 4 + a separate `container-multipackage` mount (2 `packageDirectories`, each with a `classes` dir); shared fixture left single-package |
 | apex-log/apex-testing `noOrgVisibility` | DX project, **no org** | **DONE** — ported via a new phase 5: `bootEnv` made optional, org-less container boot (tears down + fresh `run()` without org env, since `restart()` reuses baked env), re-gates cleanly; default org-boot unchanged |
-| metadata `createProject`, `createProjectEmptyWindow`, `createProjectWithManifest` | scaffold new project on disk | **BLOCKED** — container FS invisible outside bind mounts; `vscode.openFolder` (harder than reload, re-navigates workbench); low value-to-cost |
+| metadata `createProject`, `createProjectWithManifest` | folder open, no `sfdx-project.json` (reuses phase 2's no-project mount) | **DONE** — ported as standalone `*.container.spec.ts` in `specs/container-noproject/`; scaffold into that mount's checked-in `scratch/` subfolder (host path via new `CB_NOPROJECT_HOST_DIR`/`CB_NOPROJECT_CONTAINER_DIR` env vars, no new mount); `vscode.openFolder`'s trailing navigation is untracked by the spec since the verify step is pure host `node:fs` and the next test's own `page.goto('/')` lands back on the seeded shape regardless |
+| metadata `createProjectEmptyWindow` | no folder open (reuses phase 3's no-folder seed) | **DONE** — ported the same way, in `specs/container-nofolder/`; the file dialog browses the scratch mount regardless of what workspace is open |
 
 **Phased re-seed infrastructure:** after the standard org-authed suites (phase 1), the orchestrator
 runs a sequence of shape-change phases, each re-seeding `coder.json` to a different mounted workspace,
@@ -318,7 +313,9 @@ baked env), re-running the verify gate, then running that shape's auto-discovere
 - **Phase 5 — no-org** (`bootEnv` optional → org-less boot on the standard DX fixture, `test:container:noorg`)
 
 New env vars: `CB_FIXTURE_HOST_DIR` (host path of the DX fixture bind mount, for specs writing files),
-`CB_GREP` (grep passed via env, not CLI arg, to preserve shell quoting through wireit/npm). Plumbing:
+`CB_GREP` (grep passed via env, not CLI arg, to preserve shell quoting through wireit/npm),
+`CB_NOPROJECT_HOST_DIR`/`CB_NOPROJECT_CONTAINER_DIR` (the same host/container split for the no-project
+mount, so the `createProject*` specs can target its checked-in `scratch/` subfolder). Plumbing:
 `discoverPackagesWithScript()` generalized for any script name; extra bind mounts in the container
 config; `RunSpec.bootEnv` optional (default org-boot argv byte-identical when present).
 
