@@ -6,8 +6,8 @@
  */
 
 import type { MockInstance as VitestMockInstance } from 'vitest';
-import { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
-import { window, workspace } from 'vscode';
+import { extensions, window, workspace } from 'vscode';
+import type * as SalesforcedxUtilsVscode from '@salesforce/salesforcedx-utils-vscode';
 import { TELEMETRY_GLOBAL_VALUE, TELEMETRY_INTERNAL_VALUE, TELEMETRY_OPT_OUT_LINK } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 import { showTelemetryMessage, telemetryService } from '../../../src/telemetry';
@@ -15,7 +15,7 @@ import { MockExtensionContext } from './MockExtensionContext';
 
 const { mockIsInternalHost } = vi.hoisted(() => ({ mockIsInternalHost: vi.fn() }));
 vi.mock('@salesforce/salesforcedx-utils-vscode', async importOriginal => ({
-  ...(await importOriginal<typeof import('@salesforce/salesforcedx-utils-vscode')>()),
+  ...(await importOriginal<typeof SalesforcedxUtilsVscode>()),
   isInternalHost: mockIsInternalHost
 }));
 
@@ -26,11 +26,14 @@ describe('Telemetry', () => {
   beforeEach(() => {
     mShowInformation = vi.spyOn(window, 'showInformationMessage').mockResolvedValue(undefined);
     vi.spyOn(telemetryService, 'checkCliTelemetry').mockResolvedValue(true);
-    vi.spyOn(telemetryService as TelemetryService, 'getIdentityFromServices').mockResolvedValue({
-      cliId: 'cli',
-      webUserId: 'web',
-      telemetryClassification: 'nonGov'
-    });
+    vi.spyOn(extensions, 'getExtension').mockReturnValue({
+      isActive: true,
+      exports: {
+        services: {
+          getLegacyTelemetrySender: () => vi.fn(() => vi.fn().mockResolvedValue(undefined))
+        }
+      }
+    } as unknown as ReturnType<typeof extensions.getExtension>);
 
     // Mock createFileSystemWatcher to return a proper mock object
     vi.spyOn(workspace, 'createFileSystemWatcher').mockReturnValue({
@@ -38,17 +41,6 @@ describe('Telemetry', () => {
       onDidCreate: vi.fn(),
       onDidDelete: vi.fn(),
       dispose: vi.fn()
-    } as any);
-    // Telemetry now sources identity from services API; mock the degraded-session channel write.
-    vi.spyOn(window, 'createOutputChannel').mockReturnValue({
-      appendLine: vi.fn(),
-      append: vi.fn(),
-      show: vi.fn(),
-      hide: vi.fn(),
-      clear: vi.fn(),
-      dispose: vi.fn(),
-      replace: vi.fn(),
-      name: 'mock'
     } as any);
   });
 

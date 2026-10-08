@@ -8,7 +8,7 @@
 import type { Mock as VitestMock } from 'vitest';
 import * as vscode from 'vscode';
 import { isNotNull } from 'effect/Predicate';
-import { MetadataDocumentationService } from '../../../src/metadataSupport/metadataDocumentationService';
+import { type MetadataDocumentationService } from '../../../src/metadataSupport/metadataDocumentationService';
 import {
   MetadataHoverProvider,
   isMetadataFile,

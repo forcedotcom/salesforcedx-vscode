@@ -4,9 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type ApexLSPStatusBarItem from '../apexLspStatusBarItem';
 import * as Effect from 'effect/Effect';
-import * as vscode from 'vscode';
-import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
+import type * as vscode from 'vscode';
 import { languageClientManager } from './languageClientManager';
 
 export const getLineBreakpointInfo = async () => languageClientManager.getLineBreakpointInfo();

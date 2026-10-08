@@ -11,9 +11,3 @@ export const TELEMETRY_INTERNAL_VALUE = 'sfdxTelemetryMessageInternal';
 // sfdxCore setting config values
 export const ALL_EXCEPTION_CATCHER_ENABLED = 'allExceptionCatcherEnabled';
 export const ENABLE_SOBJECT_REFRESH_ON_STARTUP = 'enable-sobject-refresh-on-startup';
-
-export const APEX_FILE_NAME_EXTENSION = '.apex';
-export const SOQL_FILE_NAME_EXTENSION = '.soql';
-export const AURA_PATH = '/force-app/main/default/aura/';
-export const APEX_CLASSES_PATH = '/force-app/main/default/classes/';
-export const LWC_PATH = '/force-app/main/default/lwc/';

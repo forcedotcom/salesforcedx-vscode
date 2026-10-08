@@ -29,14 +29,14 @@ vi.mock('../../src/services/extensionProvider', () => ({
 
 vi.mock('../../src/services/runtime', () => ({
   getRuntime: () => ({
-    runPromise: (eff: import('effect/Effect').Effect<unknown, unknown, never>) =>
-      (require('effect/Effect') as typeof import('effect/Effect')).runPromise(eff)
+    runPromise: (eff: Effect.Effect<unknown, unknown, never>) =>
+      (require('effect/Effect') as typeof Effect).runPromise(eff)
   }),
   disposeRuntime: () => Promise.resolve()
 }));
 
 import { URI } from 'vscode-uri';
-import { ApexLanguageClient } from '../../src/apexLanguageClient';
+import { type ApexLanguageClient } from '../../src/apexLanguageClient';
 import { API } from '../../src/constants';
 import * as index from '../../src/index';
 import { languageClientManager } from '../../src/languageUtils';

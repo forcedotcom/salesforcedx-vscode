@@ -12,6 +12,7 @@ import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import { SettingsError, SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import { fail } from 'node:assert';
 import * as cp from 'node:child_process';
+import type * as os from 'node:os';
 import * as path from 'node:path';
 import { SET_JAVA_DOC_LINK } from '../../../src/constants';
 import { nls } from '../../../src/messages';
@@ -78,12 +79,12 @@ vi.mock('find-java-home', () =>
 );
 
 vi.mock('node:os', async importOriginal => ({
-  ...(await importOriginal<typeof import('node:os')>()),
+  ...(await importOriginal<typeof os>()),
   homedir: vi.fn().mockReturnValue('/mock/home/directory')
 }));
 
 vi.mock('node:child_process', async importOriginal => ({
-  ...(await importOriginal<typeof import('node:child_process')>()),
+  ...(await importOriginal<typeof cp>()),
   execFile: vi.fn()
 }));
 

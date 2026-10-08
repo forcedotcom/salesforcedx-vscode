@@ -24,7 +24,7 @@ vi.mock('../../../src/services/runtime', async () => {
   };
   return {
     getRuntime: () => ({
-      runFork: (eff: import('effect/Effect').Effect<unknown, unknown>) =>
+      runFork: (eff: Effect.Effect<unknown, unknown>) =>
         effect.runFork(
           eff.pipe(
             effect.provideService(ExtensionProviderService, {

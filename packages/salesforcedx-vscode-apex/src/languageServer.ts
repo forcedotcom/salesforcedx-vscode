@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as ExecutionStrategy from 'effect/ExecutionStrategy';
 import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
-import { isNotNullable, isNotUndefined } from 'effect/Predicate';
+import { isNotNullable, isNotUndefined, isNumber } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
@@ -19,9 +19,9 @@ import type * as Tracer from 'effect/Tracer';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import {
-  Executable,
-  LanguageClientOptions,
-  ProvideCodeLensesSignature,
+  type Executable,
+  type LanguageClientOptions,
+  type ProvideCodeLensesSignature,
   RevealOutputChannelOn
 } from 'vscode-languageclient/node';
 import { URI } from 'vscode-uri';
@@ -107,7 +107,7 @@ const createServer = Effect.fn('apex.lsp.createServer')(
           '-Dlwc.typegeneration.disabled=true'
         ];
 
-        if (jvmMaxHeap && typeof jvmMaxHeap === 'number') {
+        if (jvmMaxHeap && isNumber(jvmMaxHeap)) {
           args.push(`-Xmx${jvmMaxHeap}M`);
         }
         fireSpan('apex.lsp.settings', { maxHeapSize: jvmMaxHeap ?? 0 });

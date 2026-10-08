@@ -15,7 +15,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "67.27.5",
+  "version": "68.1.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -30,10 +30,10 @@
   "activationEvents": [],
   "main": "./out/src",
   "dependencies": {
-    "@salesforce/effect-ext-utils": "*",
-    "@salesforce/salesforcedx-aura-language-server": "*",
-    "@salesforce/salesforcedx-lightning-lsp-common": "*",
-    "@salesforce/vscode-i18n": "*",
+    "@salesforce/effect-ext-utils": "workspace:*",
+    "@salesforce/salesforcedx-aura-language-server": "workspace:*",
+    "@salesforce/salesforcedx-lightning-lsp-common": "workspace:*",
+    "@salesforce/vscode-i18n": "workspace:*",
     "acorn": "^6.0.0",
     "acorn-loose": "^6.0.0",
     "acorn-walk": "^6.0.0",
@@ -44,8 +44,8 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/playwright-vscode-ext": "*",
-    "salesforcedx-vscode-services": "*"
+    "@salesforce/playwright-vscode-ext": "workspace:*",
+    "salesforcedx-vscode-services": "workspace:*"
   },
   "scripts": {
     "preinstall": "node ../../scripts/require-root-install.js",

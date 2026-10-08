@@ -6,7 +6,7 @@
  */
 
 import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
@@ -280,7 +280,9 @@ describe('languageServerOrphanHandler', () => {
     };
     await Effect.runPromise(
       checkAndResolveOrphanedLanguageServers(3, Duration.millis(0)).pipe(
-        Effect.provideService(Provider, { getServicesApi: Effect.succeed(api) } as unknown as ExtensionProviderService)
+        Effect.provideService(Provider, {
+          getServicesApi: Effect.succeed(api)
+        } as unknown as ExtensionProviderService)
       ) as Effect.Effect<void>
     );
     expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();

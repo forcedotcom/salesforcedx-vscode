@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.27.5",
+  "version": "68.1.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -29,18 +29,18 @@
   ],
   "dependencies": {
     "@salesforce/core": "^9.3.0",
-    "@salesforce/effect-ext-utils": "*",
-    "@salesforce/salesforcedx-apex-debugger": "*",
-    "@salesforce/vscode-i18n": "*",
+    "@salesforce/effect-ext-utils": "workspace:*",
+    "@salesforce/salesforcedx-apex-debugger": "workspace:*",
+    "@salesforce/vscode-i18n": "workspace:*",
     "effect": "^3.21.2",
     "sanitize-filename": "^1.6.1",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/playwright-vscode-ext": "*",
+    "@salesforce/playwright-vscode-ext": "workspace:*",
     "@vscode/debugprotocol": "1.68.0",
-    "salesforcedx-vscode-apex": "*",
-    "salesforcedx-vscode-services": "*"
+    "salesforcedx-vscode-apex": "workspace:*",
+    "salesforcedx-vscode-services": "workspace:*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"

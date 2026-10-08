@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionProviderService, closeExtensionScope } from '@salesforce/effect-ext-utils';
-import { refreshAllExtensionReporters } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
@@ -14,16 +13,8 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
 import { ConnectionService } from 'salesforcedx-vscode-services/src/core/connectionService';
 import { OrgId } from 'salesforcedx-vscode-services/src/core/schemas/salesforceId';
-import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode/extensionContextService';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';
 import { WorkspaceContextService } from '../../../src/context/workspaceContextService';
-
-vi.mock('@salesforce/salesforcedx-utils-vscode', async () => ({
-  ...(await vi.importActual<typeof import('@salesforce/salesforcedx-utils-vscode')>(
-    '@salesforce/salesforcedx-utils-vscode'
-  )),
-  refreshAllExtensionReporters: vi.fn().mockResolvedValue(undefined)
-}));
 
 const brandedOrgId = (value: string) => Schema.decodeSync(OrgId)(value);
 const ORG_DEFAULT = brandedOrgId('00D000000000001');
@@ -49,8 +40,7 @@ let getConnection: () => Effect.Effect<typeof connection> = connectDefaultOrg;
 const servicesApi = {
   services: {
     ConnectionService: { getConnection: () => getConnection() },
-    TargetOrgRef: () => getTargetOrgRef(),
-    ExtensionContextService
+    TargetOrgRef: () => getTargetOrgRef()
   }
 };
 const coreContext = {
@@ -64,15 +54,8 @@ const replayContext = {
 const providerLayer = Layer.succeed(ExtensionProviderService, {
   getServicesApi: Effect.succeed(servicesApi)
 } as never);
-const extensionContextLayer = Layer.succeed(
-  ExtensionContextService,
-  new ExtensionContextService({
-    getContext: Effect.succeed(coreContext as never),
-    getDisplayName: Effect.succeed('Salesforce CLI')
-  })
-);
 const connectionServiceLayer = Layer.succeed(ConnectionService, servicesApi.services.ConnectionService as never);
-const dependencies = Layer.mergeAll(providerLayer, extensionContextLayer, connectionServiceLayer);
+const dependencies = Layer.mergeAll(providerLayer, connectionServiceLayer);
 const createRuntime = () =>
   ManagedRuntime.make(Layer.merge(dependencies, Layer.provide(WorkspaceContextService.Default, dependencies)));
 let runtime = createRuntime();
@@ -124,7 +107,6 @@ describe('WorkspaceContext', () => {
       orgId: ORG_INITIAL
     });
     expect(listener).not.toHaveBeenCalled();
-    expect(refreshAllExtensionReporters).not.toHaveBeenCalled();
   });
 
   it('does not require a connection to initialize from an empty target-org snapshot', async () => {
@@ -151,7 +133,6 @@ describe('WorkspaceContext', () => {
     await context.initialize(coreContext as never);
 
     expect(listener).not.toHaveBeenCalled();
-    expect(refreshAllExtensionReporters).not.toHaveBeenCalled();
     expect({ username: context.username, alias: context.alias, orgId: context.orgId }).toEqual({
       username: undefined,
       alias: undefined,
@@ -159,7 +140,7 @@ describe('WorkspaceContext', () => {
     });
   });
 
-  it('fires once per distinct identity after updating getters and refreshes telemetry', async () => {
+  it('fires once per distinct identity after updating getters', async () => {
     const context = WorkspaceContext.getInstance(true);
     const observedGetters: object[] = [];
     context.onOrgChange(() =>
@@ -174,27 +155,6 @@ describe('WorkspaceContext', () => {
     await flushEffects();
 
     expect(observedGetters).toEqual([{ username: switched.username, alias: switched.alias, orgId: switched.orgId }]);
-    expect(refreshAllExtensionReporters).toHaveBeenCalledWith(coreContext);
-  });
-
-  it('serializes telemetry refreshes across target-org changes', async () => {
-    const firstRefresh = Promise.withResolvers<void>();
-    vi.mocked(refreshAllExtensionReporters).mockImplementationOnce(() => firstRefresh.promise);
-    const context = WorkspaceContext.getInstance(true);
-    await context.initialize(coreContext as never);
-    vi.clearAllMocks();
-    vi.mocked(refreshAllExtensionReporters).mockImplementationOnce(() => firstRefresh.promise);
-
-    await setTargetOrg({ username: 'first@example.com', orgId: ORG_FIRST });
-    await flushEffects();
-    await setTargetOrg({ username: 'second@example.com', orgId: ORG_SECOND });
-    await flushEffects();
-
-    expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(1);
-    firstRefresh.resolve();
-    await flushEffects();
-    await flushEffects();
-    expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(2);
   });
 
   it('fires when orgId changes and suppresses an exact duplicate snapshot', async () => {
@@ -211,7 +171,6 @@ describe('WorkspaceContext', () => {
 
     expect(context.orgId).toBe(ORG_CHANGED);
     expect(listener).toHaveBeenCalledTimes(1);
-    expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(1);
   });
 
   it('fires when only the configured alias changes', async () => {
@@ -227,7 +186,6 @@ describe('WorkspaceContext', () => {
 
     expect(context.alias).toBe('second');
     expect(listener).toHaveBeenCalledWith({ username: 'initial@example.com', alias: 'second' });
-    expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(1);
   });
 
   it('normalizes no-org values to undefined', async () => {
@@ -245,7 +203,6 @@ describe('WorkspaceContext', () => {
       alias: undefined,
       orgId: undefined
     });
-    expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(1);
   });
 
   it('initializes once and keeps connection delegation unchanged', async () => {
@@ -293,7 +250,6 @@ describe('WorkspaceContext', () => {
 
     expect(firstListener).toHaveBeenCalledTimes(1);
     expect(replacementListener).toHaveBeenCalledTimes(1);
-    expect(refreshAllExtensionReporters).toHaveBeenCalledTimes(1);
     expect({ username: first.username, alias: first.alias, orgId: first.orgId }).toEqual({
       username: switched.username,
       alias: switched.alias,
@@ -329,6 +285,5 @@ describe('WorkspaceContext', () => {
     await flushEffects();
 
     expect(listener).not.toHaveBeenCalled();
-    expect(refreshAllExtensionReporters).not.toHaveBeenCalled();
   });
 });

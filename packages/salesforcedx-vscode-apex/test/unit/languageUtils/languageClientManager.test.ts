@@ -11,7 +11,7 @@ import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/p
 import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
-import { ApexLanguageClient } from '../../../src/apexLanguageClient';
+import { type ApexLanguageClient } from '../../../src/apexLanguageClient';
 import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
 import { createLanguageServer } from '../../../src/languageServer';
 import { languageClientManager } from '../../../src/languageUtils';
@@ -19,6 +19,7 @@ import { ClientStatus, toolsDirsToDelete } from '../../../src/languageUtils/lang
 import { nls } from '../../../src/messages';
 import { getRuntime } from '../../../src/services/runtime';
 import { retrieveEnableSyncInitJobs } from '../../../src/settings';
+import type * as settings from '../../../src/settings';
 import type { RecordedSpan } from '../testUtils/recordingTracer';
 
 // Typed view of the private isRestarting flag, avoiding `as any` widening in each assertion.
@@ -38,12 +39,9 @@ const spanAttributes = (name: string): Record<string, unknown> | undefined => {
   return hit ? Object.fromEntries(hit.attributes) : undefined;
 };
 
-// forkSync: this suite asserts restart-span attrs synchronously right after runFork, so run the fork
-// on the calling stack (runSync) rather than detaching a fiber.
 vi.mock('../../../src/services/runtime', async () => {
   const { createRecordingRuntimeMock } = await import('../testUtils/recordingTracer.js');
   return createRecordingRuntimeMock(() => mockRecordedSpans, {
-    forkSync: true,
     settingsGetValue: (...args: [string, string, unknown?]) => mockGetSetting(...args)
   });
 });
@@ -64,7 +62,7 @@ vi.mock('../../../src/languageServer', () => ({
 }));
 
 vi.mock('../../../src/settings', async importOriginal => ({
-  ...(await importOriginal<typeof import('../../../src/settings')>()),
+  ...(await importOriginal<typeof settings>()),
   retrieveEnableSyncInitJobs: vi.fn()
 }));
 
@@ -333,9 +331,8 @@ describe('Language Client Manager', () => {
       // Verify status bar was updated
       expect(mockStatusBar.restarting).toHaveBeenCalled();
 
-      // Fast-forward timers and wait for promises to resolve
-      vi.runAllTimers();
-      await Promise.resolve();
+      // Drain the timer callback's async dispose → create chain.
+      await vi.runAllTimersAsync();
 
       // Verify createLanguageClient was called
       expect(languageClientManager.createLanguageClient).toHaveBeenCalled();
@@ -401,9 +398,8 @@ describe('Language Client Manager', () => {
       const deletedPaths = safeDelete.mock.calls.map(([uri]) => (uri as URI).path).toSorted();
       expect(deletedPaths).toEqual(['/workspace/.sfdx/tools/123', '/workspace/.sfdx/tools/456']);
 
-      // Fast-forward timers and wait for promises to resolve
-      vi.runAllTimers();
-      await Promise.resolve();
+      // Drain the timer callback's async dispose → create chain.
+      await vi.runAllTimersAsync();
 
       // Verify createLanguageClient was called
       expect(languageClientManager.createLanguageClient).toHaveBeenCalled();
@@ -472,9 +468,8 @@ describe('Language Client Manager', () => {
         `${nls.localize('apex_language_server_restart_dialog_restart_only')} - ${errorMessage}`
       );
 
-      // Fast-forward timers and wait for promises to resolve
-      vi.runAllTimers();
-      await Promise.resolve();
+      // Drain the timer callback's async dispose → create chain.
+      await vi.runAllTimersAsync();
 
       // Verify createLanguageClient was called
       expect(languageClientManager.createLanguageClient).toHaveBeenCalled();
@@ -592,9 +587,8 @@ describe('Language Client Manager', () => {
         // Verify status bar was updated
         expect(mockStatusBar.restarting).toHaveBeenCalled();
 
-        // Fast-forward timers and wait for promises to resolve
-        vi.runAllTimers();
-        await Promise.resolve();
+        // Drain the timer callback's async dispose → create chain.
+        await vi.runAllTimersAsync();
 
         // Verify createLanguageClient was called
         expect(languageClientManager.createLanguageClient).toHaveBeenCalled();

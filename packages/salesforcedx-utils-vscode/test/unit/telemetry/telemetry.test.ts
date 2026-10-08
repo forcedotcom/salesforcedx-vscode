@@ -8,14 +8,9 @@
 
 import type { MockInstance as VitestMockInstance } from 'vitest';
 import { TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { ExtensionContext, extensions, workspace } from 'vscode';
+import { ExtensionContext, workspace } from 'vscode';
 import { SFDX_CORE_EXTENSION_NAME } from '../../../src/constants';
 import { TelemetryService, TelemetryServiceProvider } from '../../../src/services/telemetry';
-import { AppInsights } from '../../../src/telemetry/reporters/appInsights';
-import { LogStream } from '../../../src/telemetry/reporters/logStream';
-import { O11yReporter } from '../../../src/telemetry/reporters/o11yReporter';
-import { TelemetryFile } from '../../../src/telemetry/reporters/telemetryFile';
 
 describe('Telemetry', () => {
   describe('Telemetry Service Provider', () => {
@@ -191,40 +186,23 @@ describe('Telemetry', () => {
 
   describe('Telemetry Service - Backwards Compatibility', () => {
     let instance: TelemetryService;
-    let mockReporter: any;
+    let senderMock: ReturnType<typeof vi.fn>;
+    let preparedSenderMock: ReturnType<typeof vi.fn>;
 
     beforeEach(() => {
       // Clear instances to get fresh instance
       TelemetryServiceProvider.instances.clear();
       instance = TelemetryServiceProvider.getInstance() as TelemetryService;
 
-      // Mock reporters to avoid actual telemetry sends
-      mockReporter = {
-        sendTelemetryEvent: vi.fn(),
-        sendExceptionEvent: vi.fn(),
-        sendEventData: vi.fn(),
-        dispose: vi.fn()
-      };
-
-      // Replace the local reporters array with our mock
-      (instance as any).localReporters = [mockReporter];
+      // Mock production sender to avoid actual telemetry sends
+      preparedSenderMock = vi.fn().mockResolvedValue(undefined);
+      senderMock = vi.fn().mockReturnValue(preparedSenderMock);
+      (instance as any).sendProductionTelemetry = senderMock;
 
       // Set the extension name properly for testing
       (instance as any).extensionName = 'salesforcedx-vscode-core';
 
-      vi.spyOn(extensions, 'getExtension').mockReturnValue({
-        isActive: true,
-        exports: {
-          services: {
-            TargetOrgRef: () => SubscriptionRef.make({ cliId: 'cli', webUserId: 'web' })
-          }
-        }
-      } as any);
-
-      // Enable telemetry for testing by mocking the validation method to call the callback directly
-      (instance as any).validateTelemetry = vi.fn((callback: () => void) => {
-        callback(); // Call immediately for testing
-      });
+      vi.spyOn(instance, 'isTelemetryEnabled').mockResolvedValue(true);
     });
 
     afterEach(() => {
@@ -233,6 +211,8 @@ describe('Telemetry', () => {
     });
 
     describe('sendExtensionActivationEvent timing parameter compatibility', () => {
+      const lastPayload = (): any => senderMock.mock.calls.at(-1)?.[0];
+
       it('should work with number startTime (new format)', () => {
         // Use a recent timestamp that won't cause negative time issues
         const startTime = Date.now() - 50; // 50ms ago
@@ -241,11 +221,10 @@ describe('Telemetry', () => {
           instance.sendExtensionActivationEvent(startTime);
         }).not.toThrow();
 
-        expect(mockReporter.sendTelemetryEvent).toHaveBeenCalledWith(
-          'activationEvent',
-          expect.objectContaining({ extensionName: 'salesforcedx-vscode-core' }),
-          expect.objectContaining({ startupTime: expect.any(Number) })
-        );
+        const payload = lastPayload();
+        expect(payload.name).toBe('activationEvent');
+        expect(payload.properties).toEqual(expect.objectContaining({ extensionName: 'salesforcedx-vscode-core' }));
+        expect(payload.measurements).toEqual(expect.objectContaining({ startupTime: expect.any(Number) }));
       });
 
       it('should work with hrtime tuple startTime (legacy format)', () => {
@@ -258,11 +237,10 @@ describe('Telemetry', () => {
           instance.sendExtensionActivationEvent(hrtime);
         }).not.toThrow();
 
-        expect(mockReporter.sendTelemetryEvent).toHaveBeenCalledWith(
-          'activationEvent',
-          expect.objectContaining({ extensionName: 'salesforcedx-vscode-core' }),
-          expect.objectContaining({ startupTime: expect.any(Number) })
-        );
+        const payload = lastPayload();
+        expect(payload.name).toBe('activationEvent');
+        expect(payload.properties).toEqual(expect.objectContaining({ extensionName: 'salesforcedx-vscode-core' }));
+        expect(payload.measurements).toEqual(expect.objectContaining({ startupTime: expect.any(Number) }));
       });
 
       it('should work with undefined startTime', () => {
@@ -270,11 +248,10 @@ describe('Telemetry', () => {
           instance.sendExtensionActivationEvent(undefined, 100);
         }).not.toThrow();
 
-        expect(mockReporter.sendTelemetryEvent).toHaveBeenCalledWith(
-          'activationEvent',
-          expect.objectContaining({ extensionName: 'salesforcedx-vscode-core' }),
-          expect.objectContaining({ startupTime: 100 })
-        );
+        const payload = lastPayload();
+        expect(payload.name).toBe('activationEvent');
+        expect(payload.properties).toEqual(expect.objectContaining({ extensionName: 'salesforcedx-vscode-core' }));
+        expect(payload.measurements).toEqual(expect.objectContaining({ startupTime: 100 }));
       });
 
       it('should use markEndTime when provided, regardless of startTime format', () => {
@@ -283,15 +260,16 @@ describe('Telemetry', () => {
 
         instance.sendExtensionActivationEvent(startTime, markEndTime);
 
-        expect(mockReporter.sendTelemetryEvent).toHaveBeenCalledWith(
-          'activationEvent',
-          expect.objectContaining({ extensionName: 'salesforcedx-vscode-core' }),
-          expect.objectContaining({ startupTime: markEndTime })
-        );
+        const payload = lastPayload();
+        expect(payload.name).toBe('activationEvent');
+        expect(payload.properties).toEqual(expect.objectContaining({ extensionName: 'salesforcedx-vscode-core' }));
+        expect(payload.measurements).toEqual(expect.objectContaining({ startupTime: markEndTime }));
       });
     });
 
     describe('sendCommandEvent timing parameter compatibility', () => {
+      const lastPayload = (): any => senderMock.mock.calls.at(-1)?.[0];
+
       it('should work with number startTime (new format)', () => {
         const startTime = Date.now() - 50; // 50ms ago
 
@@ -299,15 +277,16 @@ describe('Telemetry', () => {
           instance.sendCommandEvent('test_command', startTime, { testProp: 'value' });
         }).not.toThrow();
 
-        expect(mockReporter.sendTelemetryEvent).toHaveBeenCalledWith(
-          'commandExecution',
+        const payload = lastPayload();
+        expect(payload.name).toBe('commandExecution');
+        expect(payload.properties).toEqual(
           expect.objectContaining({
             extensionName: 'salesforcedx-vscode-core',
             commandName: 'test_command',
             testProp: 'value'
-          }),
-          expect.objectContaining({ executionTime: expect.any(Number) })
+          })
         );
+        expect(payload.measurements).toEqual(expect.objectContaining({ executionTime: expect.any(Number) }));
       });
 
       it('should work with hrtime tuple startTime (legacy format)', () => {
@@ -320,15 +299,16 @@ describe('Telemetry', () => {
           instance.sendCommandEvent('test_command', hrtime, { testProp: 'value' });
         }).not.toThrow();
 
-        expect(mockReporter.sendTelemetryEvent).toHaveBeenCalledWith(
-          'commandExecution',
+        const payload = lastPayload();
+        expect(payload.name).toBe('commandExecution');
+        expect(payload.properties).toEqual(
           expect.objectContaining({
             extensionName: 'salesforcedx-vscode-core',
             commandName: 'test_command',
             testProp: 'value'
-          }),
-          expect.objectContaining({ executionTime: expect.any(Number) })
+          })
         );
+        expect(payload.measurements).toEqual(expect.objectContaining({ executionTime: expect.any(Number) }));
       });
 
       it('should work with undefined startTime', () => {
@@ -336,16 +316,17 @@ describe('Telemetry', () => {
           instance.sendCommandEvent('test_command', undefined, { testProp: 'value' });
         }).not.toThrow();
 
-        expect(mockReporter.sendTelemetryEvent).toHaveBeenCalledWith(
-          'commandExecution',
+        const payload = lastPayload();
+        expect(payload.name).toBe('commandExecution');
+        expect(payload.properties).toEqual(
           expect.objectContaining({
             extensionName: 'salesforcedx-vscode-core',
             commandName: 'test_command',
             testProp: 'value'
-          }),
-          // No measurements object at all when startTime is undefined and none were passed
-          undefined
+          })
         );
+        // No measurements object at all when startTime is undefined and none were passed
+        expect(payload.measurements).toBeUndefined();
       });
 
       it('should include measurements when provided with timing', () => {
@@ -354,13 +335,16 @@ describe('Telemetry', () => {
 
         instance.sendCommandEvent('test_command', startTime, { testProp: 'value' }, measurements);
 
-        expect(mockReporter.sendTelemetryEvent).toHaveBeenCalledWith(
-          'commandExecution',
+        const payload = lastPayload();
+        expect(payload.name).toBe('commandExecution');
+        expect(payload.properties).toEqual(
           expect.objectContaining({
             extensionName: 'salesforcedx-vscode-core',
             commandName: 'test_command',
             testProp: 'value'
-          }),
+          })
+        );
+        expect(payload.measurements).toEqual(
           expect.objectContaining({
             executionTime: expect.any(Number),
             customMetric: 42
@@ -369,145 +353,40 @@ describe('Telemetry', () => {
       });
     });
 
-    describe('updateReporters caches org identity', () => {
-      const orgIdentity = {
-        orgId: '00Dxx',
-        orgShape: 'Scratch' as const,
-        devHubId: '00Dhub',
-        orgEdition: 'Developer Edition'
-      };
-      // Object.create(prototype) so `instanceof` matches without running heavy constructors.
-      const appInsights = Object.assign(Object.create(AppInsights.prototype), { userId: '', webUserId: '' });
-      const o11y = Object.assign(Object.create(O11yReporter.prototype), { userId: '', webUserId: '' });
-      const telemetryFile = Object.create(TelemetryFile.prototype);
-      const logStream = Object.create(LogStream.prototype);
-      const extensionContext = {
-        extension: { packageJSON: { name: 'salesforcedx-vscode-core', version: '1.0.0' } }
-      } as unknown as ExtensionContext;
-
-      beforeEach(() => {
-        (instance as any).localReporters = [appInsights, o11y, telemetryFile, logStream];
-        (instance as any).extensionContext = extensionContext;
-        vi.spyOn(instance, 'isTelemetryEnabled').mockResolvedValue(true);
-        vi.spyOn(instance, 'getIdentityFromServices').mockResolvedValue({
-          cliId: 'cli',
-          webUserId: 'sha',
-          ...orgIdentity,
-          telemetryClassification: 'nonGov'
-        });
-      });
-
-      it('sets orgIdentity on every reporter class', async () => {
-        await instance.updateReporters(extensionContext);
-
-        expect(appInsights.orgIdentity).toEqual(orgIdentity);
-        expect(o11y.orgIdentity).toEqual(orgIdentity);
-        expect(telemetryFile.orgIdentity).toEqual(orgIdentity);
-        expect(logStream.orgIdentity).toEqual(orgIdentity);
-      });
-    });
-
-    describe('governed production telemetry boundary', () => {
-      const snapshot = vi.fn();
-
-      beforeEach(() => {
-        vi.spyOn(extensions, 'getExtension').mockReturnValue({
-          isActive: true,
-          exports: { services: { TargetOrgRef: () => SubscriptionRef.make(snapshot()) } }
-        } as any);
-        snapshot.mockReturnValue({
-          cliId: 'cli',
-          webUserId: 'web',
-          orgId: '00D',
-          isScratch: true,
-          devHubOrgId: '00Dhub',
-          orgEdition: 'Developer Edition',
-          instanceName: 'usa9102'
-        });
-        vi.spyOn(instance, 'getIdentityFromServices').mockResolvedValue({
-          cliId: 'cli',
-          webUserId: 'web',
-          orgId: '00D',
-          orgShape: 'Scratch',
-          devHubId: '00Dhub',
-          orgEdition: 'Developer Edition',
-          telemetryClassification: 'nonGov'
-        });
-      });
-
-      it('dispatches production telemetry when a local reporter throws', async () => {
-        mockReporter.sendTelemetryEvent.mockImplementation(() => {
-          throw new Error('local failure');
-        });
-        const sendProductionTelemetry = vi.fn().mockResolvedValue(undefined);
-        (instance as any).sendProductionTelemetry = sendProductionTelemetry;
+    describe('production sender boundary', () => {
+      it('dispatches production telemetry', async () => {
+        const send = vi.fn().mockResolvedValue(undefined);
+        const prepareSend = vi.fn(() => send);
+        (instance as any).sendProductionTelemetry = prepareSend;
 
         instance.sendEventData('event');
         await new Promise(resolve => setTimeout(resolve, 0));
 
-        expect(sendProductionTelemetry).toHaveBeenCalledTimes(1);
+        expect(prepareSend).toHaveBeenCalledTimes(1);
+        expect(send).toHaveBeenCalledTimes(1);
       });
 
-      it('captures a complete immutable envelope identity at send time', async () => {
-        const sendProductionTelemetry = vi.fn().mockResolvedValue(undefined);
-        (instance as any).sendProductionTelemetry = sendProductionTelemetry;
+      it('freezes the event and prepares identity before async telemetry gating', async () => {
+        const { promise: telemetryGate, resolve: enableTelemetry } = Promise.withResolvers<boolean>();
+        vi.spyOn(instance, 'isTelemetryEnabled').mockReturnValue(telemetryGate);
+        const send = vi.fn().mockResolvedValue(undefined);
+        const prepareSend = vi.fn((payload: unknown) => send);
+        (instance as any).sendProductionTelemetry = prepareSend;
         const properties = { key: 'before' };
 
         instance.sendEventData('event', properties);
         properties.key = 'after';
-        snapshot.mockReturnValue({ orgId: 'later', cliId: 'later-cli', webUserId: 'later-web' });
+        const submittedPayload = prepareSend.mock.calls[0]?.[0] as any;
+        expect(submittedPayload.properties).toEqual({ key: 'before' });
+        expect(Object.isFrozen(submittedPayload)).toBe(true);
+        expect(Object.isFrozen(submittedPayload.properties)).toBe(true);
+        expect(submittedPayload).not.toHaveProperty('identity');
+        expect(send).not.toHaveBeenCalled();
+
+        enableTelemetry(true);
         await new Promise(resolve => setTimeout(resolve, 0));
 
-        const payload = sendProductionTelemetry.mock.calls[0]?.[0] as any;
-        expect(payload.identity).toEqual({
-          cliId: 'cli',
-          webUserId: 'web',
-          orgId: '00D',
-          orgShape: 'Scratch',
-          devHubId: '00Dhub',
-          orgEdition: 'Developer Edition',
-          telemetryClassification: 'nonGov'
-        });
-        expect(payload.properties).toEqual({ key: 'before' });
-        expect(Object.isFrozen(payload)).toBe(true);
-        expect(Object.isFrozen(payload.identity)).toBe(true);
-        expect(Object.isFrozen(payload.properties)).toBe(true);
-      });
-
-      it.each([
-        ['Gov to nonGov delayed enablement', 'gov', 'nonGov'],
-        ['nonGov to Gov delayed enablement', 'nonGov', 'gov']
-      ])('retains invocation identity during %s', async (_case, invocationOrgId, laterOrgId) => {
-        const sendProductionTelemetry = vi.fn().mockResolvedValue(undefined);
-        (instance as any).sendProductionTelemetry = sendProductionTelemetry;
-        snapshot.mockReturnValue({
-          cliId: `${invocationOrgId}-cli`,
-          webUserId: `${invocationOrgId}-web`,
-          orgId: invocationOrgId,
-          isSandbox: true,
-          devHubOrgId: `${invocationOrgId}-hub`,
-          orgEdition: `${invocationOrgId}-edition`,
-          instanceName: invocationOrgId === 'gov' ? 'stg9402s' : 'usa9102'
-        });
-
-        instance.sendEventData('switch');
-        snapshot.mockReturnValue({
-          cliId: `${laterOrgId}-cli`,
-          webUserId: `${laterOrgId}-web`,
-          orgId: laterOrgId
-        });
-        await new Promise(resolve => setTimeout(resolve, 0));
-
-        const submitted = sendProductionTelemetry.mock.calls[0]?.[0] as any;
-        expect(submitted.identity).toEqual({
-          cliId: `${invocationOrgId}-cli`,
-          webUserId: `${invocationOrgId}-web`,
-          orgId: invocationOrgId,
-          orgShape: 'Sandbox',
-          devHubId: `${invocationOrgId}-hub`,
-          orgEdition: `${invocationOrgId}-edition`,
-          telemetryClassification: invocationOrgId === 'gov' ? 'gov' : 'nonGov'
-        });
+        expect(send).toHaveBeenCalledTimes(1);
       });
     });
 
@@ -549,6 +428,31 @@ describe('Telemetry', () => {
       it('should handle undefined by defaulting to [0, 0]', () => {
         const result = (instance as any).hrTimeToMilliseconds(undefined);
         expect(result).toBe(0); // [0, 0] converts to 0 milliseconds
+      });
+    });
+
+    describe('production sender contract', () => {
+      it('commandExecution payload carries commandName for span attribute command', async () => {
+        const sendProductionTelemetry = vi.fn().mockReturnValue(vi.fn().mockResolvedValue(undefined));
+        (instance as any).sendProductionTelemetry = sendProductionTelemetry;
+        instance.sendCommandEvent('myCommand', undefined, { extra: 'x' });
+        await new Promise(resolve => setTimeout(resolve, 0));
+        const payload = sendProductionTelemetry.mock.calls[0]?.[0] as any;
+        expect(payload.name).toBe('commandExecution');
+        expect(payload.properties.commandName).toBe('myCommand');
+        // services buildLegacySpanAttributes sets attribute command = properties.commandName
+        expect(payload.properties.commandName).toBe('myCommand');
+      });
+
+      it('exception payload preserves name and message for span', async () => {
+        const sendProductionTelemetry = vi.fn().mockReturnValue(vi.fn().mockResolvedValue(undefined));
+        (instance as any).sendProductionTelemetry = sendProductionTelemetry;
+        instance.sendException('myError', 'boom');
+        await new Promise(resolve => setTimeout(resolve, 0));
+        const payload = sendProductionTelemetry.mock.calls[0]?.[0] as any;
+        expect(payload.kind).toBe('exception');
+        expect(payload.name).toBe('myError');
+        expect(payload.message).toBe('boom');
       });
     });
   });
