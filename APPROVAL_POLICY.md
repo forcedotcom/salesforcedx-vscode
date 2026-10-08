@@ -48,6 +48,10 @@ Every file under `.vscode/`.
 
 `config/effect-diagnostics.json`.
 
+### git2gus-config
+
+Only a modified `.git2gus/config.json`, with no other changed files. The only edit is a newer, positive, safe-integer `defaultBuild` number in `offcore.tooling.<number>`; the rest of the JSON must be unchanged and valid. This category is checked against the base and head file contents by `scripts/category-approve.ts`. Other config edits, additions, deletions, or mixed diffs are uncovered.
+
 ### changelog-constants
 
 `scripts/change-log-constants.*`.

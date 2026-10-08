@@ -7,12 +7,18 @@ import {
   BOT_LOGIN,
   buildPrompt,
   categoryIdsFromPolicy,
+  classifyGit2GusConfig,
   decideCategoryApprove,
   deniedFile,
   parseAgentResult
 } from '../scripts/shared/categoryDecision.ts';
 
 const policy = readFileSync(new URL('../APPROVAL_POLICY.md', import.meta.url), 'utf8');
+const config = readFileSync(new URL('../.git2gus/config.json', import.meta.url), 'utf8');
+const buildNumber = Number(config.match(/"defaultBuild": "offcore\.tooling\.(\d+)"/)?.[1]);
+const configWithBuild = (value: string) =>
+  config.replace(/"defaultBuild": "offcore\.tooling\.\d+"/, `"defaultBuild": "${value}"`);
+const nextConfig = configWithBuild(`offcore.tooling.${buildNumber + 1}`);
 const allowed = categoryIdsFromPolicy(policy);
 const file = (filename: string) => ({ filename });
 const pull = {
@@ -46,6 +52,7 @@ test('policy category ids match the headings', () => {
     'vscode',
     'metadata-types',
     'effect-diagnostics',
+    'git2gus-config',
     'changelog-constants',
     'plans',
     'prose',
@@ -90,6 +97,60 @@ test('approves a non-empty known category union', () => {
   const decision = decideCategoryApprove({ ...base, categories: ['prose', 'tests-only'] });
   assert.equal(decision._tag, 'Approve');
   assert.match(decision.reason, /prose, tests-only/);
+});
+
+test('rejects an agent git2gus-config classification for a non-config diff', () => {
+  assert.equal(decideCategoryApprove({ ...base, categories: ['git2gus-config'] })._tag, 'Skip');
+  assert.equal(decideCategoryApprove({ ...base, categories: ['prose', 'git2gus-config'] })._tag, 'Skip');
+});
+
+test('approves only a newer git2gus defaultBuild in an otherwise unchanged config-only PR', () => {
+  const files = [{ filename: '.git2gus/config.json', status: 'modified' }] as const;
+  const categories = classifyGit2GusConfig(files, config, nextConfig);
+  assert.deepEqual(categories, ['git2gus-config']);
+  assert.equal(decideCategoryApprove({ ...base, files, categories })._tag, 'Approve');
+});
+
+test('rejects git2gus edits mixed with another file, even if that file has a category', () => {
+  const files = [
+    { filename: '.git2gus/config.json', status: 'modified' },
+    { filename: 'README.md', status: 'modified' }
+  ] as const;
+  assert.deepEqual(classifyGit2GusConfig(files, config, nextConfig), []);
+  assert.equal(decideCategoryApprove({ ...base, files, categories: [] })._tag, 'Skip');
+});
+
+test('rejects unsupported git2gus config changes', () => {
+  const files = [{ filename: '.git2gus/config.json', status: 'modified' }] as const;
+  const cases = [
+    config,
+    configWithBuild(`offcore.tooling.${buildNumber - 1}`),
+    configWithBuild('offcore.tooling.other'),
+    configWithBuild(`other.tooling.${buildNumber + 1}`),
+    configWithBuild('offcore.tooling.9007199254740992'),
+    config.replace('"statusWhenClosed": "CLOSED"', '"statusWhenClosed": "FIXED"'),
+    config.replace('"area:apex":', '"area:new":'),
+    config.replace('"type:bug":', '"type:new":'),
+    nextConfig.replace('"hideWorkItemUrl": "true"', '"hideWorkItemUrl": "false"'),
+    nextConfig.replace('"statusWhenClosed":', '"unknownField":'),
+    nextConfig.replace(/}\s*$/, '')
+  ];
+  for (const candidate of cases) {
+    assert.deepEqual(classifyGit2GusConfig(files, config, candidate), [], candidate);
+  }
+  assert.deepEqual(classifyGit2GusConfig([{ filename: '.git2gus/config.json', status: 'added' }], config, config), []);
+  assert.deepEqual(
+    classifyGit2GusConfig([{ filename: '.git2gus/config.json', status: 'removed' }], config, nextConfig),
+    []
+  );
+  assert.deepEqual(
+    classifyGit2GusConfig(
+      [{ filename: 'README.md', previous_filename: '.git2gus/config.json', status: 'renamed' }],
+      config,
+      nextConfig
+    ),
+    []
+  );
 });
 
 test('skips an empty union and an unknown category', () => {
@@ -180,5 +241,7 @@ test('drops this workflow run from the rollup', () => {
 test('parses categories from the agent json envelope', () => {
   const stdout = JSON.stringify({ result: 'looks fine\n{"categories":["prose","lockfile"]}\n' });
   assert.deepEqual(parseAgentResult(stdout), ['prose', 'lockfile']);
+  assert.deepEqual(parseAgentResult('{"categories":["git2gus-config"]}'), []);
+  assert.deepEqual(parseAgentResult('{"categories":["prose","git2gus-config"]}'), []);
   assert.equal(parseAgentResult('not json'), undefined);
 });
