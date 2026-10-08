@@ -3,7 +3,7 @@ name: Cleanup Deleted Scratch Orgs
 on:
   workflow_dispatch: # Allow manual trigger
   schedule:
-    - cron: '0 2 * * *' # Run at 2 AM UTC (10 PM EST) every day
+    - cron: '0 * * * *' # Run hourly to drain the backlog
 
 jobs:
   cleanup-scratch-orgs:
@@ -11,6 +11,7 @@ jobs:
 
     env:
       SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
+      SF_ORG_MAX_QUERY_LIMIT: 50000
 
     steps:
       - name: Checkout code
@@ -38,59 +39,53 @@ jobs:
           command: bash -c 'echo "Authenticating with Salesforce org..." && echo "$SFDX_AUTH_URL" | sf org login sfdx-url --alias vscodeOrg --set-default --sfdx-url-stdin'
           retry_wait_seconds: 30
 
-      - name: Query existing deleted scratch orgs
-        id: query-deleted
-        run: |
-          echo "Querying for deleted scratch orgs..."
-          DELETED_RECORDS=$(sf data query \
-            --query "SELECT Id FROM ScratchOrgInfo WHERE Status = 'Deleted'" \
-            --target-org vscodeOrg \
-            --json)
-          DELETED_COUNT=$(echo "$DELETED_RECORDS" | jq -r '.result.totalSize')
-          echo "Found $DELETED_COUNT deleted scratch org records to clean up"
-          echo "deleted_count=$DELETED_COUNT" >> $GITHUB_OUTPUT
-          echo "deleted_records<<EOF" >> $GITHUB_OUTPUT
-          echo "$DELETED_RECORDS" >> $GITHUB_OUTPUT
-          echo "EOF" >> $GITHUB_OUTPUT
-
       - name: Export and delete scratch org records
-        if: steps.query-deleted.outputs.deleted_count > 0
+        id: cleanup
         run: |
-          echo "Exporting ${{ steps.query-deleted.outputs.deleted_count }} deleted scratch org records to CSV..."
+          CUTOFF=$(date -u -d '24 hours ago' '+%Y-%m-%dT%H:%M:%SZ')
+          echo "cutoff=$CUTOFF" >> "$GITHUB_OUTPUT"
 
-          # Write records to CSV file
-          echo '${{ steps.query-deleted.outputs.deleted_records }}' | \
-            jq -r '.result.records[] | [.Id] | @csv' > deleted_scratch_orgs.csv
+          sf data query \
+            --query "SELECT Id FROM ScratchOrgInfo WHERE Status = 'Deleted' AND LastModifiedDate < $CUTOFF LIMIT 50000" \
+            --target-org vscodeOrg \
+            --result-format csv \
+            --output-file deleted_scratch_orgs.csv
 
-          # Add CSV header
-          sed -i '1i"Id"' deleted_scratch_orgs.csv
+          RECORD_COUNT=$(awk 'END { print NR ? NR - 1 : 0 }' deleted_scratch_orgs.csv)
+          echo "candidate_count=$RECORD_COUNT" >> "$GITHUB_OUTPUT"
+          if [ "$RECORD_COUNT" -eq 0 ]; then
+            echo "No deleted scratch org records older than $CUTOFF to clean up"
+            echo "processed_count=0" >> "$GITHUB_OUTPUT"
+            echo "failed_count=0" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
 
-          echo "✅ Exported records to deleted_scratch_orgs.csv"
-          echo "CSV file contents:"
-          cat deleted_scratch_orgs.csv
-
-          echo "Deleting ${{ steps.query-deleted.outputs.deleted_count }} deleted scratch org records..."
+          echo "Deleting $RECORD_COUNT deleted scratch org records older than $CUTOFF"
+          DELETE_STATUS=0
           sf data delete bulk \
             --sobject ScratchOrgInfo \
             --target-org vscodeOrg \
             --file deleted_scratch_orgs.csv \
-            --wait 10
-          echo "✅ Successfully deleted scratch org records"
+            --wait 10 \
+            --json > delete_result.json || DELETE_STATUS=$?
 
-      - name: No records to delete
-        if: steps.query-deleted.outputs.deleted_count == 0
-        run: |
-          echo "ℹ️ No deleted scratch org records found to clean up"
-
-      - name: Logout from Salesforce
-        if: always()
-        run: |
-          sf org logout --target-org vscodeOrg --no-prompt || true
+          PROCESSED=$(jq -er '.result.jobInfo.numberRecordsProcessed' delete_result.json)
+          FAILED=$(jq -er '.result.jobInfo.numberRecordsFailed' delete_result.json)
+          echo "processed_count=$PROCESSED" >> "$GITHUB_OUTPUT"
+          echo "failed_count=$FAILED" >> "$GITHUB_OUTPUT"
+          echo "Processed: $PROCESSED, failed: $FAILED"
+          jq -e '.result.jobInfo.state == "JobComplete"' delete_result.json > /dev/null
+          if [ "$DELETE_STATUS" -ne 0 ] || [ "$PROCESSED" -ne "$RECORD_COUNT" ] || [ "$FAILED" -ne 0 ]; then
+            exit 1
+          fi
 
       - name: Workflow summary
         if: always()
         run: |
-          echo "## Scratch Org Cleanup Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- **Deleted Records:** ${{ steps.query-deleted.outputs.deleted_count || '0' }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Status:** ${{ job.status }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Timestamp:** $(date -u)" >> $GITHUB_STEP_SUMMARY
+          echo "## Scratch Org Cleanup Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Cutoff (UTC):** ${{ steps.cleanup.outputs.cutoff || 'not available' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **CSV Records:** ${{ steps.cleanup.outputs.candidate_count || 'not available' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Processed Records:** ${{ steps.cleanup.outputs.processed_count || 'not available' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Failed Records:** ${{ steps.cleanup.outputs.failed_count || 'not available' }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Status:** ${{ job.status }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- **Timestamp:** $(date -u)" >> "$GITHUB_STEP_SUMMARY"
