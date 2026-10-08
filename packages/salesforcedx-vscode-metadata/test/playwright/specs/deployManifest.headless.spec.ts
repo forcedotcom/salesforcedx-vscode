@@ -19,12 +19,14 @@ import { expect } from '@playwright/test';
 import {
   activeQuickInputWidget,
   captureOutputChannelDetails,
+  clearOutputChannel,
   closeAllEditors,
   closeWelcomeTabs,
   createApexClass,
   createMinimalOrg,
   editOpenFile,
   EDITOR,
+  ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   executeEditorContextMenuCommand,
@@ -34,11 +36,13 @@ import {
   openFileFromExplorerTree,
   resetContainerWorkbench,
   saveScreenshot,
+  selectOutputChannel,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   upsertScratchOrgAuthFieldsToSettings,
   upsertSettings,
   validateNoCriticalErrors,
+  waitForOutputChannelText,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
@@ -83,6 +87,11 @@ test('Deploy Manifest: deploys via all entry points', async ({ page }) => {
       await captureOutputChannelDetails(page, packageJson.displayName, screenshot);
       throw new Error(`Deploy failed with error notification: ${errorText}`);
     }
+  };
+
+  const assertDeployingNotificationGone = async (timeoutMs: number): Promise<void> => {
+    const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
+    await expect(deployingNotification).not.toBeVisible({ timeout: timeoutMs });
   };
 
   await test.step('setup', async () => {
@@ -175,6 +184,12 @@ test('Deploy Manifest: deploys via all entry points', async ({ page }) => {
     await manifestEditor.waitFor({ state: 'visible', timeout: 10_000 });
     await manifestEditor.click(); // Click to ensure focus
 
+    if (isContainer) {
+      await ensureOutputPanelOpen(page);
+      await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
+      await clearOutputChannel(page);
+    }
+
     // Right-click the manifest editor
     await executeEditorContextMenuCommand(page, packageNls.deploy_in_manifest_text, `manifest/${manifestBaseName}.xml`);
 
@@ -192,18 +207,17 @@ test('Deploy Manifest: deploys via all entry points', async ({ page }) => {
       }
     }
 
-    // Verify deploy completes - look for deploying notification
-    const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
     if (isContainer) {
+      // The transient "Deploying" toast can flash past too fast to catch on a fast container deploy;
+      // assert completion via the output channel instead.
+      await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
       await saveScreenshot(page, 'deployManifest.03-editor-deploying.png');
-    }
-    await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
-
-    await assertNoPostDeployError('deploy-error-metadata-output.png');
-
-    if (isContainer) {
+      await assertNoPostDeployError('deploy-error-metadata-output.png');
       await saveScreenshot(page, 'deployManifest.04-editor-deployed.png');
     } else {
+      // Verify deploy completes - look for deploying notification
+      await assertDeployingNotificationGone(DEPLOY_TIMEOUT);
+      await assertNoPostDeployError('deploy-error-metadata-output.png');
       await statusBarPage.waitForCounts({ local: initialLocalCount }, 60_000);
     }
   });
@@ -213,11 +227,18 @@ test('Deploy Manifest: deploys via all entry points', async ({ page }) => {
     await closeAllEditors(page);
 
     if (isContainer) {
+      await ensureOutputPanelOpen(page);
+      await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
+      await clearOutputChannel(page);
       await executeExplorerContextMenuCommand(
         page,
         new RegExp(`${escapeRegex(manifestBaseName)}\\.xml`),
         packageNls.deploy_in_manifest_text
       );
+      // The transient "Deploying" toast can flash past too fast to catch on a fast container deploy;
+      // assert completion via the output channel instead.
+      await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
+      await saveScreenshot(page, 'deployManifest.05-explorer-deploying.png');
     } else {
       // Edit apex class again to create new local change
       await openFileFromExplorerTree(page, `${className}.cls`, ['force-app', 'main', 'default', 'classes']);
@@ -230,14 +251,10 @@ test('Deploy Manifest: deploys via all entry points', async ({ page }) => {
 
       // Right-click manifest in explorer → "SFDX: Deploy Source in Manifest to Org"
       await executeExplorerContextMenuCommand(page, /package\.xml/i, packageNls.deploy_in_manifest_text);
-    }
 
-    // Verify deploy completes
-    const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
-    if (isContainer) {
-      await saveScreenshot(page, 'deployManifest.05-explorer-deploying.png');
+      // Verify deploy completes
+      await assertDeployingNotificationGone(DEPLOY_TIMEOUT);
     }
-    await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
 
     await assertNoPostDeployError('deploy-error-metadata-output-step2.png');
 

@@ -717,6 +717,41 @@ const authExtraOrgsIntoContainer = (containerName: string): void => {
       }
     }
   }
+
+  // `org login access-token` sets the newly-authed org as the project's default when none is set yet
+  // (confirmed: not an explicit flag here, just the CLI's own behavior) — so authing N extra orgs can
+  // silently hand the project default to one of THEM instead of the boot org, and because
+  // `.sf/config.json` lives in the bind-mounted fixture, that sticks for every spec in this run (and,
+  // without the pre-boot reset above, every future run too). Force it back to the boot org explicitly
+  // rather than relying on login-ordering side effects.
+  //
+  // The boot org has NO alias registered inside the container (sfdx-org-auth.sh logs it in via the
+  // injected token/username, not `sf alias set`) — `sf config set target-org minimalTestOrg` would
+  // fail with an unresolvable-reference error. Resolve its username on the HOST (where the alias IS
+  // registered) and target the username instead, which resolves inside the container too.
+  let bootUsername: string | undefined;
+  try {
+    const display = JSON.parse(sfRunner('sf', ['org', 'display', '-o', ORG_ALIAS, '--json']));
+    bootUsername = display.result?.username;
+  } catch (err) {
+    console.warn(
+      `    WARNING: could not resolve '${ORG_ALIAS}'s username on the host — skipping default-org restore. ${
+        err instanceof Error ? err.message : String(err)
+      }`
+    );
+  }
+  if (bootUsername) {
+    const restore = execInContainer(`cd ${FIXTURE_MOUNT_PATH} && sf config set target-org ${bootUsername}`);
+    if (restore.status !== 0) {
+      console.warn(`    WARNING: could not restore '${ORG_ALIAS}' as the project default after extra-org auth:`);
+      if (restore.stderr?.trim()) {
+        console.warn(`      stderr: ${restore.stderr.trim()}`);
+      }
+      if (restore.stdout?.trim()) {
+        console.warn(`      stdout: ${restore.stdout.trim()}`);
+      }
+    }
+  }
 };
 
 /*
@@ -765,6 +800,40 @@ const main = async (): Promise<number> => {
   // and the org internally), and none blocks the event loop, so the loop's expensive halves overlap
   // instead of running back-to-back. Collect both results together.
   const [vsixPaths, bootEnv] = await Promise.all([acquireVsix(), setUpInfra()]);
+
+  // Multi-org specs switch the mounted project's default org and restore it in a `finally`. That
+  // restore doesn't run if the process dies mid-test (crash, --keep-org abort, host reboot) — and
+  // because `.sf/` lives in the bind-mounted fixture, not inside the ephemeral container, a leftover
+  // non-boot default (config.json) or a stale source-tracking cache (orgs/<id>/maxRevision.json,
+  // localSourceTracking/) silently survives every future "fresh" container. The container's own boot
+  // script only sets a default if none exists ("preserves existing default if set"), so once poisoned
+  // this never self-heals — confirmed: tracking data for 7 different org IDs had piled up, several for
+  // orgs recreated under the same alias earlier today and long gone. None of `.sf/` is meant to persist
+  // here; it's regenerated fresh on first org interaction. Wipe it before every run.
+  rmSync(join(FIXTURE_HOST_DIR, '.sf'), { recursive: true, force: true });
+
+  // Specs that scaffold a throwaway artifact (unique Date.now()-suffixed classes/components, so a
+  // single run never collides with itself) rely on each PACKAGE's own cleanup to remove it — but
+  // nothing removes it ACROSS runs, and this fixture is bind-mounted, so every throwaway file from
+  // every run ever executed here accumulates forever (confirmed: 78 stray files vs. 8 seeded ones
+  // after a day of runs). A classes/ directory that large plausibly contributes to the Explorer-tree
+  // timeouts seen in unrelated specs. The fixture's own .gitignore already encodes exactly which
+  // paths are the intentional seed set (everything else under force-app/**, scripts/** is ignored) —
+  // reuse that distinction instead of hardcoding every spec's naming convention: `git clean -X` only
+  // removes IGNORED files, never a tracked seed file, so this can't delete something intentional even
+  // if the ignore list is wrong. `manifest/` isn't ignored (it's just untracked), so remove it plainly.
+  spawnSync('git', ['clean', '-fdX', 'force-app', 'scripts'], { cwd: FIXTURE_HOST_DIR, stdio: 'ignore' });
+  rmSync(join(FIXTURE_HOST_DIR, 'manifest'), { recursive: true, force: true });
+
+  // A different flavor of the same problem: deployOnSave/projectDeployStart edit the SEEDED
+  // PagedResult.cls in place (appending a comment) to create a local change to deploy, with no
+  // revert — confirmed twice, hours apart, as the identical two-line diff. Because that edit lands in
+  // the bind-mounted fixture, the next run's boot org (deployed from an EARLIER, now-stale edit of
+  // this file) and the next run's local copy (a DIFFERENT accumulated edit) genuinely diverge, so a
+  // plain unmodified-file deploy in deploySource.container correctly reports a real conflict. `git
+  // clean` only touches ignored/untracked paths, so it can't fix a tracked file; restore every tracked
+  // file in the fixture to its committed state too.
+  spawnSync('git', ['checkout', '--', '.'], { cwd: FIXTURE_HOST_DIR, stdio: 'ignore' });
 
   log(`Starting container ${CONTAINER_NAME}`);
   // A stale container from a prior --no-teardown run would collide on the name; clear it first.
