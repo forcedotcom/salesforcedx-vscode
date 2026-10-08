@@ -11,6 +11,7 @@ import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import { SettingsError, SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import { fail } from 'node:assert';
 import * as cp from 'node:child_process';
+import type * as os from 'node:os';
 import * as path from 'node:path';
 import { SET_JAVA_DOC_LINK } from '../../../src/constants';
 import { nls } from '../../../src/messages';
@@ -78,7 +79,7 @@ jest.mock('find-java-home', () =>
 
 // Mock os module
 jest.mock('node:os', () => ({
-  ...(jest.requireActual('node:os') as typeof import('node:os')),
+  ...(jest.requireActual('node:os') as typeof os),
   homedir: jest.fn().mockReturnValue('/mock/home/directory')
 }));
 

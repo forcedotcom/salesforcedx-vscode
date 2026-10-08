@@ -4,8 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { ExtensionProviderService as ExtensionProviderServiceType } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
+import type { SettingsService as SettingsServiceType } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
@@ -16,20 +18,20 @@ const mockGetRestartBehavior = jest.fn((_section: string, _key: string, defaultV
   Effect.succeed(defaultValue)
 );
 jest.mock('../../../src/services/runtime', () => {
-  const effect = require('effect/Effect') as typeof import('effect/Effect');
-  const { ExtensionProviderService } =
-    require('@salesforce/effect-ext-utils') as typeof import('@salesforce/effect-ext-utils');
-  const { SettingsService } =
-    require('salesforcedx-vscode-services/src/vscode/settingsService') as typeof import('salesforcedx-vscode-services/src/vscode/settingsService');
+  const effect = require('effect/Effect') as typeof Effect;
+  const { ExtensionProviderService } = require('@salesforce/effect-ext-utils') as {
+    ExtensionProviderService: typeof ExtensionProviderServiceType;
+  };
+  const { SettingsService } = require('salesforcedx-vscode-services/src/vscode/settingsService') as {
+    SettingsService: typeof SettingsServiceType;
+  };
   const settingsService = {
-    getValue: (...args: [string, string, unknown?]): import('effect/Effect').Effect<unknown> =>
-      mockGetRestartBehavior(...args),
-    getValueOrElse: (...args: [string, string, unknown?]): import('effect/Effect').Effect<unknown> =>
-      mockGetRestartBehavior(...args)
+    getValue: (...args: [string, string, unknown?]) => mockGetRestartBehavior(...args),
+    getValueOrElse: (...args: [string, string, unknown?]) => mockGetRestartBehavior(...args)
   };
   return {
     getRuntime: () => ({
-      runFork: (eff: import('effect/Effect').Effect<unknown, unknown>) =>
+      runFork: (eff: Effect.Effect<unknown, unknown>) =>
         effect.runFork(
           eff.pipe(
             effect.provideService(ExtensionProviderService, {

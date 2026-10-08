@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionProviderService, getExtensionScope, getServicesApi } from '@salesforce/effect-ext-utils';
-import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
+import { type LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
 import { isError, isNotUndefined } from 'effect/Predicate';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
-import { ApexLanguageClient } from '../apexLanguageClient';
+import { type ApexLanguageClient } from '../apexLanguageClient';
 import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
 import {
   API,
