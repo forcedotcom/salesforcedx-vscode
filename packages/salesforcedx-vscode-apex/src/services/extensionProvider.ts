@@ -7,6 +7,7 @@
 
 import { type buildAllServicesLayer } from '@salesforce/effect-ext-utils';
 
+// eslint-disable-next-line functional/no-let -- Module-level mutable; set during activation, read by getRuntime
 export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
 
 export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {

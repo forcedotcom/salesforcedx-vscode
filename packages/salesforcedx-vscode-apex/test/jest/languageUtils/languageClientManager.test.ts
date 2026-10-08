@@ -39,13 +39,10 @@ const spanAttributes = (name: string): Record<string, unknown> | undefined => {
   return hit ? Object.fromEntries(hit.attributes) : undefined;
 };
 
-// forkSync: this suite asserts restart-span attrs synchronously right after runFork, so run the fork
-// on the calling stack (runSync) rather than detaching a fiber.
 jest.mock('../../../src/services/runtime', () =>
   (
     require('../testUtils/recordingTracer') as { createRecordingRuntimeMock: typeof createRecordingRuntimeMock }
   ).createRecordingRuntimeMock(() => mockRecordedSpans, {
-    forkSync: true,
     settingsGetValue: (...args: [string, string, unknown?]) => mockGetSetting(...args)
   })
 );
@@ -334,9 +331,8 @@ describe('Language Client Manager', () => {
       // Verify status bar was updated
       expect(mockStatusBar.restarting).toHaveBeenCalled();
 
-      // Fast-forward timers and wait for promises to resolve
-      jest.runAllTimers();
-      await Promise.resolve();
+      // Drain the timer callback's async dispose → create chain.
+      await jest.runAllTimersAsync();
 
       // Verify createLanguageClient was called
       expect(languageClientManager.createLanguageClient).toHaveBeenCalled();
@@ -402,9 +398,8 @@ describe('Language Client Manager', () => {
       const deletedPaths = safeDelete.mock.calls.map(([uri]: [URI]) => uri.path).toSorted();
       expect(deletedPaths).toEqual(['/workspace/.sfdx/tools/123', '/workspace/.sfdx/tools/456']);
 
-      // Fast-forward timers and wait for promises to resolve
-      jest.runAllTimers();
-      await Promise.resolve();
+      // Drain the timer callback's async dispose → create chain.
+      await jest.runAllTimersAsync();
 
       // Verify createLanguageClient was called
       expect(languageClientManager.createLanguageClient).toHaveBeenCalled();
@@ -473,9 +468,8 @@ describe('Language Client Manager', () => {
         `${nls.localize('apex_language_server_restart_dialog_restart_only')} - ${errorMessage}`
       );
 
-      // Fast-forward timers and wait for promises to resolve
-      jest.runAllTimers();
-      await Promise.resolve();
+      // Drain the timer callback's async dispose → create chain.
+      await jest.runAllTimersAsync();
 
       // Verify createLanguageClient was called
       expect(languageClientManager.createLanguageClient).toHaveBeenCalled();
@@ -593,9 +587,8 @@ describe('Language Client Manager', () => {
         // Verify status bar was updated
         expect(mockStatusBar.restarting).toHaveBeenCalled();
 
-        // Fast-forward timers and wait for promises to resolve
-        jest.runAllTimers();
-        await Promise.resolve();
+        // Drain the timer callback's async dispose → create chain.
+        await jest.runAllTimersAsync();
 
         // Verify createLanguageClient was called
         expect(languageClientManager.createLanguageClient).toHaveBeenCalled();

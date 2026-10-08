@@ -21,8 +21,8 @@ type MetadataType = {
 };
 
 type RegistryAccessLike = {
-  getRegistry(): MetadataRegistry;
-  getTypeByName(typeName: string): MetadataType;
+  getRegistry: () => MetadataRegistry;
+  getTypeByName: (typeName: string) => MetadataType;
 };
 
 type ApexLspScanConfig = {
@@ -48,16 +48,13 @@ export const deriveExcludedMetadataFolders = (
     .toSorted(folderNameOrder);
 };
 
-const getApexFolderNames = (registryAccess: RegistryAccessLike): Set<string> => {
-  const folderNames = new Set<string>();
-  for (const typeName of DEFAULT_APEX_TYPE_NAMES) {
-    const mdType = registryAccess.getTypeByName(typeName);
-    if (isString(mdType?.directoryName) && mdType.directoryName.trim().length > 0) {
-      folderNames.add(toNormalizedFolderName(mdType.directoryName));
-    }
-  }
-  return folderNames;
-};
+const getApexFolderNames = (registryAccess: RegistryAccessLike): Set<string> =>
+  new Set(
+    DEFAULT_APEX_TYPE_NAMES.map(typeName => registryAccess.getTypeByName(typeName)?.directoryName)
+      .filter(isString)
+      .filter(folderName => folderName.trim().length > 0)
+      .map(toNormalizedFolderName)
+  );
 
 export const buildMetadataRegistryScanConfig = async (): Promise<ApexLspScanConfig | undefined> => {
   const excludes = await Effect.runPromise(
