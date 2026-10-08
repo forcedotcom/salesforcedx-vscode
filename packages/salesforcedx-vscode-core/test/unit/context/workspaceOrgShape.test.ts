@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { Mock as VitestMock } from 'vitest';
+import type * as ContextModule from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import { getDefaultOrgInfo } from '../../../src/context/defaultOrgInfo';
 import { getOrgShape } from '../../../src/context/workspaceOrgShape';
@@ -13,8 +14,8 @@ import { getOrgShape } from '../../../src/context/workspaceOrgShape';
 const mockWorkspaceInfo = { isEmpty: false };
 
 vi.mock('@salesforce/effect-ext-utils', async () => {
-  const EffectLib = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
-  const Context = await vi.importActual<typeof import('effect/Context')>('effect/Context');
+  const EffectLib = await vi.importActual<typeof Effect>('effect/Effect');
+  const Context = await vi.importActual<typeof ContextModule>('effect/Context');
   const MockExtensionProviderService = Context.GenericTag('ExtensionProviderService');
   const mockServicesApi = {
     services: {
@@ -38,7 +39,7 @@ vi.mock('../../../src/context/defaultOrgInfo', () => ({
 // Real runtime: runs the actual getOrgShapeEffect (WorkspaceService -> getDefaultOrgInfo -> shapeFrom)
 // and its catchAll, providing the mocked ExtensionProviderService tag.
 vi.mock('../../../src/services/runtime', async () => {
-  const EffectLib = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
+  const EffectLib = await vi.importActual<typeof Effect>('effect/Effect');
   const { ExtensionProviderService } = await import('@salesforce/effect-ext-utils');
   return {
     getRuntime: () => ({
