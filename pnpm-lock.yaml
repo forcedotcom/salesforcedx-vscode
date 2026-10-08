@@ -224,8 +224,8 @@ importers:
         specifier: ^19.8.1
         version: 19.8.1
       '@cursor/sdk':
-        specifier: 1.0.32
-        version: 1.0.32
+        specifier: 1.0.35
+        version: 1.0.35
       '@effect/eslint-plugin':
         specifier: 0.3.2
         version: 0.3.2
@@ -275,7 +275,7 @@ importers:
         specifier: ^4.3.2
         version: 4.3.3
       '@salesforce/effect-octokit':
-        specifier: '*'
+        specifier: workspace:*
         version: link:packages/effect-octokit
       '@secretlint/node':
         specifier: 11.7.1
@@ -515,7 +515,7 @@ importers:
         specifier: 1.60.0
         version: 1.60.0
       '@salesforce/playwright-vscode-ext':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../playwright-vscode-ext
       '@vscode/test-electron':
         specifier: 3.1.0
@@ -527,7 +527,7 @@ importers:
   packages/effect-ext-utils:
     dependencies:
       '@salesforce/vscode-i18n':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       '@types/vscode':
         specifier: ^1.90.0
@@ -540,7 +540,7 @@ importers:
         version: 3.2.0
     devDependencies:
       salesforcedx-vscode-services:
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-services
 
   packages/effect-octokit:
@@ -684,10 +684,10 @@ importers:
         specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/salesforcedx-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-utils
       '@salesforce/vscode-i18n':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       '@vscode/debugadapter':
         specifier: 1.68.0
@@ -730,10 +730,10 @@ importers:
   packages/salesforcedx-apex-replay-debugger:
     dependencies:
       '@salesforce/salesforcedx-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-utils
       '@salesforce/vscode-i18n':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       '@vscode/debugadapter':
         specifier: 1.68.0
@@ -758,13 +758,13 @@ importers:
   packages/salesforcedx-aura-language-server:
     dependencies:
       '@salesforce/salesforcedx-lightning-lsp-common':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-lightning-lsp-common
       '@salesforce/salesforcedx-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-utils
       '@salesforce/vscode-i18n':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       acorn:
         specifier: ^6.0.0
@@ -807,13 +807,13 @@ importers:
   packages/salesforcedx-lightning-lsp-common:
     dependencies:
       '@salesforce/effect-ext-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../effect-ext-utils
       '@salesforce/salesforcedx-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-utils
       '@salesforce/vscode-i18n':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
         specifier: ^3.21.2
@@ -880,13 +880,13 @@ importers:
         specifier: ^0.0.21
         version: 0.0.21
       '@salesforce/salesforcedx-lightning-lsp-common':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-lightning-lsp-common
       '@salesforce/schema':
         specifier: ^0.0.21
         version: 0.0.21
       '@salesforce/vscode-i18n':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       babel-types:
         specifier: ^6.26.0
@@ -949,10 +949,10 @@ importers:
         specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/effect-ext-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../effect-ext-utils
       '@salesforce/salesforcedx-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-utils
       '@salesforce/vscode-service-provider':
         specifier: ^1.5.0
@@ -999,16 +999,16 @@ importers:
   packages/salesforcedx-vscode-apex:
     dependencies:
       '@salesforce/apex-node':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-apex
       '@salesforce/effect-ext-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../effect-ext-utils
       '@salesforce/salesforcedx-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-utils
       '@salesforce/vscode-i18n':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
         specifier: ^3.21.2
@@ -1030,10 +1030,10 @@ importers:
         specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/playwright-vscode-ext':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../playwright-vscode-ext
       salesforcedx-vscode-services:
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-services
 
   packages/salesforcedx-vscode-apex-debugger:
@@ -1042,13 +1042,13 @@ importers:
         specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/effect-ext-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../effect-ext-utils
       '@salesforce/salesforcedx-apex-debugger':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-apex-debugger
       '@salesforce/vscode-i18n':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
         specifier: ^3.21.2
@@ -1061,28 +1061,28 @@ importers:
         version: 3.2.0
     devDependencies:
       '@salesforce/playwright-vscode-ext':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../playwright-vscode-ext
       '@vscode/debugprotocol':
         specifier: 1.68.0
         version: 1.68.0
       salesforcedx-vscode-apex:
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-apex
       salesforcedx-vscode-services:
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-services
 
   packages/salesforcedx-vscode-apex-log:
     dependencies:
       '@salesforce/effect-ext-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../effect-ext-utils
       '@salesforce/types':
         specifier: ^1.8.0
         version: 1.8.0
       '@salesforce/vscode-i18n':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
         specifier: ^3.21.2
@@ -1095,19 +1095,19 @@ importers:
         specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/playwright-vscode-ext':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../playwright-vscode-ext
       salesforcedx-vscode-services:
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-services
 
   packages/salesforcedx-vscode-apex-oas:
     dependencies:
       '@salesforce/effect-ext-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../effect-ext-utils
       '@salesforce/vscode-i18n':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       '@salesforce/vscode-service-provider':
         specifier: ^1.5.0
@@ -1141,7 +1141,7 @@ importers:
         version: 2.9.0
     devDependencies:
       '@salesforce/playwright-vscode-ext':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../playwright-vscode-ext
       '@types/ejs':
         specifier: 3.1.5
@@ -1150,10 +1150,10 @@ importers:
         specifier: 12.1.3
         version: 12.1.3
       salesforcedx-vscode-apex:
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-apex
       salesforcedx-vscode-services:
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-services
       vscode-languageserver-protocol:
         specifier: 3.17.5
@@ -1162,25 +1162,25 @@ importers:
   packages/salesforcedx-vscode-apex-replay-debugger:
     dependencies:
       '@salesforce/apex-node':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-apex
       '@salesforce/effect-ext-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../effect-ext-utils
       '@salesforce/salesforcedx-apex-replay-debugger':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-apex-replay-debugger
       '@salesforce/salesforcedx-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-utils
       '@salesforce/vscode-i18n':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
         specifier: ^3.21.2
         version: 3.22.2
       salesforcedx-vscode-apex-log:
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-apex-log
       vscode-uri:
         specifier: ^3.1.0
@@ -1193,34 +1193,34 @@ importers:
         specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/playwright-vscode-ext':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../playwright-vscode-ext
       salesforcedx-vscode-apex:
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-apex
       salesforcedx-vscode-apex-testing:
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-apex-testing
       salesforcedx-vscode-metadata:
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-metadata
       salesforcedx-vscode-services:
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-services
 
   packages/salesforcedx-vscode-apex-testing:
     dependencies:
       '@salesforce/apex-node':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-apex
       '@salesforce/effect-ext-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../effect-ext-utils
       '@salesforce/types':
         specifier: ^1.8.0
         version: 1.8.0
       '@salesforce/vscode-i18n':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
         specifier: ^3.21.2
@@ -1233,25 +1233,25 @@ importers:
         specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/playwright-vscode-ext':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../playwright-vscode-ext
       '@salesforce/source-deploy-retrieve':
         specifier: ^13.2.0
         version: 13.3.1(supports-color@8.1.1)
       salesforcedx-vscode-services:
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-services
 
   packages/salesforcedx-vscode-core:
     dependencies:
       '@salesforce/effect-ext-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../effect-ext-utils
       '@salesforce/salesforcedx-utils-vscode':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-utils-vscode
       '@salesforce/vscode-i18n':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       '@salesforce/vscode-service-provider':
         specifier: ^1.5.0
@@ -1270,10 +1270,10 @@ importers:
         specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/playwright-vscode-ext':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../playwright-vscode-ext
       salesforcedx-vscode-services:
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-services
 
   packages/salesforcedx-vscode-expanded: {}
@@ -1283,16 +1283,16 @@ importers:
   packages/salesforcedx-vscode-lightning:
     dependencies:
       '@salesforce/effect-ext-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../effect-ext-utils
       '@salesforce/salesforcedx-aura-language-server':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-aura-language-server
       '@salesforce/salesforcedx-lightning-lsp-common':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-lightning-lsp-common
       '@salesforce/vscode-i18n':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       acorn:
         specifier: ^6.0.0
@@ -1320,22 +1320,22 @@ importers:
         version: 3.2.0
     devDependencies:
       '@salesforce/playwright-vscode-ext':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../playwright-vscode-ext
       salesforcedx-vscode-services:
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-services
 
   packages/salesforcedx-vscode-lwc:
     dependencies:
       '@salesforce/effect-ext-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../effect-ext-utils
       '@salesforce/salesforcedx-lightning-lsp-common':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-lightning-lsp-common
       '@salesforce/vscode-i18n':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
         specifier: ^3.21.2
@@ -1363,25 +1363,25 @@ importers:
         specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/playwright-vscode-ext':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../playwright-vscode-ext
       '@salesforce/salesforcedx-lwc-language-server':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-lwc-language-server
       '@types/which':
         specifier: ^1.3.1
         version: 1.3.2
       salesforcedx-vscode-services:
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-services
 
   packages/salesforcedx-vscode-metadata:
     dependencies:
       '@salesforce/effect-ext-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../effect-ext-utils
       '@salesforce/vscode-i18n':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
         specifier: ^3.21.2
@@ -1391,7 +1391,7 @@ importers:
         version: 3.2.0
     devDependencies:
       '@salesforce/playwright-vscode-ext':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../playwright-vscode-ext
       '@salesforce/source-deploy-retrieve':
         specifier: ^13.2.0
@@ -1400,13 +1400,13 @@ importers:
         specifier: ^8.0.0
         version: 8.1.3(supports-color@8.1.1)
       '@salesforce/templates':
-        specifier: ^66.16.2
-        version: 66.16.2
+        specifier: ^66.16.3
+        version: 66.16.3
       '@salesforce/types':
         specifier: ^1.8.0
         version: 1.8.0
       salesforcedx-vscode-services:
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-services
 
   packages/salesforcedx-vscode-org:
@@ -1415,16 +1415,16 @@ importers:
         specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/effect-ext-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../effect-ext-utils
       '@salesforce/salesforcedx-utils-vscode':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-utils-vscode
       '@salesforce/vscode-i18n':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       '@salesforce/vscode-services':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-services-types
       effect:
         specifier: ^3.21.2
@@ -1437,19 +1437,19 @@ importers:
         specifier: 0.63.0
         version: 0.63.0(@effect/platform@0.96.1(effect@3.22.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.11.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.2)
       '@salesforce/playwright-vscode-ext':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../playwright-vscode-ext
       salesforcedx-vscode-services:
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-services
 
   packages/salesforcedx-vscode-org-browser:
     dependencies:
       '@salesforce/effect-ext-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../effect-ext-utils
       '@salesforce/vscode-i18n':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
         specifier: ^3.21.2
@@ -1462,13 +1462,13 @@ importers:
         specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/playwright-vscode-ext':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../playwright-vscode-ext
       '@salesforce/source-deploy-retrieve':
         specifier: ^13.2.0
         version: 13.3.1(supports-color@8.1.1)
       salesforcedx-vscode-services:
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-services
 
   packages/salesforcedx-vscode-services:
@@ -1516,7 +1516,7 @@ importers:
         specifier: 2.8.0
         version: 2.8.0(@opentelemetry/api@1.9.1)
       '@salesforce/apex-node':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-apex
       '@salesforce/core':
         specifier: ^9.3.0
@@ -1525,7 +1525,7 @@ importers:
         specifier: ^1.8.5
         version: 1.8.5
       '@salesforce/salesforcedx-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-utils
       '@salesforce/source-deploy-retrieve':
         specifier: ^13.2.0
@@ -1537,7 +1537,7 @@ importers:
         specifier: ^66.16.3
         version: 66.16.3
       '@salesforce/vscode-i18n':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       '@vscode/extension-telemetry':
         specifier: ^1.0.0
@@ -1562,7 +1562,7 @@ importers:
         specifier: 30.4.1
         version: 30.4.1(supports-color@8.1.1)
       '@salesforce/playwright-vscode-ext':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../playwright-vscode-ext
       jest-mock:
         specifier: 30.4.1
@@ -1641,25 +1641,25 @@ importers:
         specifier: ^3.10.24
         version: 3.10.25
       '@salesforce/effect-ext-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../effect-ext-utils
       '@salesforce/soql-builder-ui':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../soql-builder-ui
       '@salesforce/soql-common':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../soql-common
       '@salesforce/soql-language-server':
         specifier: ^1.1.0
         version: 1.1.0
       '@salesforce/soql-model':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../soql-model
       '@salesforce/vscode-i18n':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       '@salesforce/vscode-services':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-services-types
       antlr4ts:
         specifier: ^0.5.0-alpha.3
@@ -1729,7 +1729,7 @@ importers:
         specifier: ^2.0.0
         version: 2.0.0(eslint@10.12.0(jiti@2.7.0)(supports-color@8.1.1))
       '@salesforce/playwright-vscode-ext':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../playwright-vscode-ext
       '@types/debounce':
         specifier: ^1.2.0
@@ -1744,16 +1744,16 @@ importers:
         specifier: ^4.0.0
         version: 4.63.1
       salesforcedx-vscode-services:
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-services
 
   packages/salesforcedx-vscode-visualforce:
     dependencies:
       '@salesforce/effect-ext-utils':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../effect-ext-utils
       '@salesforce/vscode-i18n':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
         specifier: ^3.21.2
@@ -1772,19 +1772,19 @@ importers:
         version: 3.2.0
     devDependencies:
       '@salesforce/playwright-vscode-ext':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../playwright-vscode-ext
       '@salesforce/salesforcedx-visualforce-language-server':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-visualforce-language-server
       salesforcedx-vscode-services:
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-services
 
   packages/soql-builder-ui:
     dependencies:
       '@salesforce/vscode-services':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../salesforcedx-vscode-services-types
       '@vscode-elements/elements':
         specifier: ^2.5.1
@@ -1805,7 +1805,7 @@ importers:
   packages/soql-model:
     dependencies:
       '@salesforce/soql-common':
-        specifier: '*'
+        specifier: workspace:*
         version: link:../soql-common
       antlr4ts:
         specifier: ^0.5.0-alpha.3
@@ -2406,13 +2406,6 @@ packages:
     resolution: {integrity: sha512-7zVFCDB2reMvJH5dmbKnOQPjZEvjdJTH8jc0U/PIPU1r3/+vf5pD1HlfitV2MWsWXrvu7u39iY1lyLUPOaN0Gw==}
     engines: {node: '>=22.12.0'}
 
-  '@connectrpc/connect-node@1.7.0':
-    resolution: {integrity: sha512-6vaPIkG/NyhxlYgytLoR9KYbPhczEboFB2OYWkA9qvUz1K7efXfeGrlRxoLtpa+r8VxyIOw73w5ktNe743nD+A==}
-    engines: {node: '>=16.0.0'}
-    peerDependencies:
-      '@bufbuild/protobuf': ^1.10.0
-      '@connectrpc/connect': 1.7.0
-
   '@connectrpc/connect-web@1.7.0':
     resolution: {integrity: sha512-qyP0YOnUPRWwCc/VfsoydMJvkb7EyUPr2q9sHgBuJzbADjiqck1gKH5V5ZPzPhTLBvmz5UvG+wiZ5sMRQHU1MQ==}
     peerDependencies:
@@ -2456,38 +2449,38 @@ packages:
     resolution: {integrity: sha512-Vd/9EVDiu6PPJt9yAh6roZP6El1xHrdvIVGjyBsHR0RYwNHgL7FJPyIIW4fANJNG6FtyZfvlRPpFI4ZM/lubvw==}
     engines: {node: '>=18'}
 
-  '@cursor/sdk-darwin-arm64@1.0.32':
-    resolution: {integrity: sha512-72EYr7Bmc1clgt5YVNdUdClCz461P3Fw91BUHebLMqI35A2suCMNo+99Yy7CDAv3SIqqh3kskPUuFCinVEqZhg==}
+  '@cursor/sdk-darwin-arm64@1.0.35':
+    resolution: {integrity: sha512-q9/y2NHTGnE0iwMfJ+FIHmj2gDGDRy45fH3rF3SAFGEGzM4xh726r64n6hH4OQYwKhcMqhqxbPGBpXHd5lRW4A==}
     cpu: [arm64]
     os: [darwin]
     hasBin: true
 
-  '@cursor/sdk-darwin-x64@1.0.32':
-    resolution: {integrity: sha512-9vmxqb4y2xR5wGBrbygcqhmejMgNfsADpBMb+t9QorKH7qIRo6ItzhqrP5rSDB30UO9pcefAsQyVNjWy0hSnoA==}
+  '@cursor/sdk-darwin-x64@1.0.35':
+    resolution: {integrity: sha512-0IGwzNr3Lq9IrcIRU4AlT7kTkwwVhRpQyjHqhvnKdgtn+WFYShr9gqTb44leihi/Cbf7a76yEdCgpfScBCPtxQ==}
     cpu: [x64]
     os: [darwin]
     hasBin: true
 
-  '@cursor/sdk-linux-arm64@1.0.32':
-    resolution: {integrity: sha512-Ii74pL4KMquRwMhD+/X+HYpsMe9Vf2WwwL46TwJPhwH85h4X3dm450QG8geTD4L4aXtzDY4fsTf/BVTdw5ulfQ==}
+  '@cursor/sdk-linux-arm64@1.0.35':
+    resolution: {integrity: sha512-AAx2DBqOc21kIwKuHRLl+4bCbuU7Su/BWY+TzXMgMsxAOHvLDGg7SGVvHOMV4ENczbOEcO4zc3XDbmQB4x3rdw==}
     cpu: [arm64]
     os: [linux]
     hasBin: true
 
-  '@cursor/sdk-linux-x64@1.0.32':
-    resolution: {integrity: sha512-cvCuD+pb52DNHV1Nmb6Pv1XnzcSmREekhCtz+zNFz1VWWYrTbPwLGlA9Ou9rEY1KMHxPq9shkvRmrjDVCK+cXQ==}
+  '@cursor/sdk-linux-x64@1.0.35':
+    resolution: {integrity: sha512-3PABXvbT/Ue3jN+ytWcNDPBWptAiJv4qzxL0m2rma3e7kyx/Q1/8FYRYunIpX21HfPGgDSURlWztEov1xdZs3Q==}
     cpu: [x64]
     os: [linux]
     hasBin: true
 
-  '@cursor/sdk-win32-x64@1.0.32':
-    resolution: {integrity: sha512-Ltqal7hG2KKgz8ZHgy0KLJvkFWtJCL5wbEUHOaMHJe1gC+eXuVYA89DXijdoFHkrZNzYo9tt4AW2nszqVKz3Mw==}
+  '@cursor/sdk-win32-x64@1.0.35':
+    resolution: {integrity: sha512-zADtORY6QRMCBTckxTieAKxcthRiefNNHxVhX2RtO3pQGa4iQwTrHjmjUw0nqCF6sJlCrQ58DTgkrz+BZhLEcw==}
     cpu: [x64]
     os: [win32]
     hasBin: true
 
-  '@cursor/sdk@1.0.32':
-    resolution: {integrity: sha512-aimGfsgu4Mp/cZNGT34pY8X4FGTzUPAEnYocYK2o3JqCBiO2RsT9TIrdX9r5gfZ81qkapc66CxatxAN0UZky5A==}
+  '@cursor/sdk@1.0.35':
+    resolution: {integrity: sha512-CJQR4ocRFm74N1miSqSSrhWyEbvTRIJGyMfHQvZlcBIYzLMXCVPmb1bV82L4NJ8mG9TyvbckEjERjbnzpG5akQ==}
     engines: {node: '>=22.13'}
 
   '@dprint/formatter@0.4.1':
@@ -2819,10 +2812,6 @@ packages:
   '@eslint/plugin-kit@0.7.3':
     resolution: {integrity: sha512-IkO+/KEUvwbVpiURZg+P7zF74z5Jxe0UgJxVni+RtoHQ6IZieXaO02kmadomap/q+l6bc/jdPGGqTjhuZnuz1Q==}
     engines: {node: ^20.19.0 || ^22.13.0 || >=24}
-
-  '@fastify/busboy@2.1.1':
-    resolution: {integrity: sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA==}
-    engines: {node: '>=14'}
 
   '@hono/node-server@2.1.1':
     resolution: {integrity: sha512-ELuehkj5VCBdgEw9zs+ivkKwyzzUCSQuE96YmiPvn1ECBoZCczbFXJLeEGMTYjphP6gydh4pHMqEYPVMYUVgQg==}
@@ -4554,10 +4543,6 @@ packages:
 
   '@salesforce/source-tracking@8.1.3':
     resolution: {integrity: sha512-xQy/l2ZVMx9DXJMFAFLs7cmEiQG2AZLZJZrLGscA8E5oMeg14tH4BMpyoFNXpYlmQlyX+1RF9CMzUrIdN9V5Rg==}
-    engines: {node: '>=22.0.0'}
-
-  '@salesforce/templates@66.16.2':
-    resolution: {integrity: sha512-DW0Fgysyh/BXu+GF2JdnxTZWE5JVAOiZljagNs4HmRmTzma6d/px3PSkmLbaG/qGYjAZWVkjGglBbptwhV0tuw==}
     engines: {node: '>=22.0.0'}
 
   '@salesforce/templates@66.16.3':
@@ -11360,10 +11345,6 @@ packages:
   undici-types@6.21.0:
     resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
 
-  undici@5.29.0:
-    resolution: {integrity: sha512-raqeBD6NQK4SkWhQzeYKd1KmIG6dllBOTt55Rmkt4HtI9mwdWtJljnrXjAFUBLTSN67HWrOIZ3EPF4kjUw80Bg==}
-    engines: {node: '>=14.0'}
-
   undici@6.28.1:
     resolution: {integrity: sha512-zWpdTVD54H48CIybL0rWQ3ukpb9d23wM7eH5RtfdmeP70cWHNjtfo7P4vZX+5CoDcO53J4Pu5uXp7lNfjc6DRA==}
     engines: {node: '>=18.17'}
@@ -12805,12 +12786,6 @@ snapshots:
       picocolors: 1.1.1
     optional: true
 
-  '@connectrpc/connect-node@1.7.0(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.7.0(@bufbuild/protobuf@1.10.0))':
-    dependencies:
-      '@bufbuild/protobuf': 1.10.0
-      '@connectrpc/connect': 1.7.0(@bufbuild/protobuf@1.10.0)
-      undici: 5.29.0
-
   '@connectrpc/connect-web@1.7.0(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.7.0(@bufbuild/protobuf@1.10.0))':
     dependencies:
       '@bufbuild/protobuf': 1.10.0
@@ -12844,35 +12819,34 @@ snapshots:
 
   '@csstools/css-tokenizer@3.0.4': {}
 
-  '@cursor/sdk-darwin-arm64@1.0.32':
+  '@cursor/sdk-darwin-arm64@1.0.35':
     optional: true
 
-  '@cursor/sdk-darwin-x64@1.0.32':
+  '@cursor/sdk-darwin-x64@1.0.35':
     optional: true
 
-  '@cursor/sdk-linux-arm64@1.0.32':
+  '@cursor/sdk-linux-arm64@1.0.35':
     optional: true
 
-  '@cursor/sdk-linux-x64@1.0.32':
+  '@cursor/sdk-linux-x64@1.0.35':
     optional: true
 
-  '@cursor/sdk-win32-x64@1.0.32':
+  '@cursor/sdk-win32-x64@1.0.35':
     optional: true
 
-  '@cursor/sdk@1.0.32':
+  '@cursor/sdk@1.0.35':
     dependencies:
       '@bufbuild/protobuf': 1.10.0
       '@connectrpc/connect': 1.7.0(@bufbuild/protobuf@1.10.0)
-      '@connectrpc/connect-node': 1.7.0(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.7.0(@bufbuild/protobuf@1.10.0))
       '@connectrpc/connect-web': 1.7.0(@bufbuild/protobuf@1.10.0)(@connectrpc/connect@1.7.0(@bufbuild/protobuf@1.10.0))
       '@statsig/js-client': 3.31.0
       zod: 3.25.76
     optionalDependencies:
-      '@cursor/sdk-darwin-arm64': 1.0.32
-      '@cursor/sdk-darwin-x64': 1.0.32
-      '@cursor/sdk-linux-arm64': 1.0.32
-      '@cursor/sdk-linux-x64': 1.0.32
-      '@cursor/sdk-win32-x64': 1.0.32
+      '@cursor/sdk-darwin-arm64': 1.0.35
+      '@cursor/sdk-darwin-x64': 1.0.35
+      '@cursor/sdk-linux-arm64': 1.0.35
+      '@cursor/sdk-linux-x64': 1.0.35
+      '@cursor/sdk-win32-x64': 1.0.35
 
   '@dprint/formatter@0.4.1': {}
 
@@ -13153,8 +13127,6 @@ snapshots:
     dependencies:
       '@eslint/core': 1.2.1
       levn: 0.4.1
-
-  '@fastify/busboy@2.1.1': {}
 
   '@hono/node-server@2.1.1(hono@4.13.7)':
     dependencies:
@@ -15016,17 +14988,6 @@ snapshots:
       ts-retry-promise: 0.8.1
     transitivePeerDependencies:
       - supports-color
-
-  '@salesforce/templates@66.16.2':
-    dependencies:
-      '@salesforce/kit': 4.0.0
-      ejs: 3.1.10
-      got: 11.8.6
-      hpagent: 1.2.0
-      mime-types: 3.0.2
-      proxy-from-env: 1.1.0
-      tar: 7.5.22
-      tslib: 2.8.1
 
   '@salesforce/templates@66.16.3':
     dependencies:
@@ -23405,10 +23366,6 @@ snapshots:
   underscore@1.13.8: {}
 
   undici-types@6.21.0: {}
-
-  undici@5.29.0:
-    dependencies:
-      '@fastify/busboy': 2.1.1
 
   undici@6.28.1: {}
 

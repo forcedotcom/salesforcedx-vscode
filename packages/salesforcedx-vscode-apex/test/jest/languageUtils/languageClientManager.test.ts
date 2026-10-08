@@ -10,7 +10,7 @@ import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/p
 import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
-import { ApexLanguageClient } from '../../../src/apexLanguageClient';
+import { type ApexLanguageClient } from '../../../src/apexLanguageClient';
 import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
 import { createLanguageServer } from '../../../src/languageServer';
 import { languageClientManager } from '../../../src/languageUtils';
@@ -18,7 +18,7 @@ import { ClientStatus, toolsDirsToDelete } from '../../../src/languageUtils/lang
 import { nls } from '../../../src/messages';
 import { getRuntime } from '../../../src/services/runtime';
 import { retrieveEnableSyncInitJobs } from '../../../src/settings';
-import type { RecordedSpan } from '../testUtils/recordingTracer';
+import type { createRecordingRuntimeMock, RecordedSpan } from '../testUtils/recordingTracer';
 
 // Typed view of the private isRestarting flag, avoiding `as any` widening in each assertion.
 const restartFlag = languageClientManager as unknown as { isRestarting: boolean };
@@ -40,12 +40,11 @@ const spanAttributes = (name: string): Record<string, unknown> | undefined => {
 };
 
 jest.mock('../../../src/services/runtime', () =>
-  (require('../testUtils/recordingTracer') as typeof import('../testUtils/recordingTracer')).createRecordingRuntimeMock(
-    () => mockRecordedSpans,
-    {
-      settingsGetValue: (...args: [string, string, unknown?]) => mockGetSetting(...args)
-    }
-  )
+  (
+    require('../testUtils/recordingTracer') as { createRecordingRuntimeMock: typeof createRecordingRuntimeMock }
+  ).createRecordingRuntimeMock(() => mockRecordedSpans, {
+    settingsGetValue: (...args: [string, string, unknown?]) => mockGetSetting(...args)
+  })
 );
 
 // Mock ApexLSPStatusBarItem class
@@ -64,7 +63,7 @@ jest.mock('../../../src/languageServer', () => ({
 }));
 
 jest.mock('../../../src/settings', () => ({
-  ...(jest.requireActual('../../../src/settings') as typeof import('../../../src/settings')),
+  ...(jest.requireActual('../../../src/settings') as { retrieveEnableSyncInitJobs: typeof retrieveEnableSyncInitJobs }),
   retrieveEnableSyncInitJobs: jest.fn()
 }));
 

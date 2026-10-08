@@ -6,7 +6,7 @@
  */
 
 import type { DocumentSymbol, Position } from 'vscode-languageserver-protocol';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 
 type ApexOASSymbolEligibility = {
   isEligible: boolean;

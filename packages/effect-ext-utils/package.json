@@ -103,12 +103,12 @@
     }
   },
   "dependencies": {
-    "@salesforce/vscode-i18n": "*",
+    "@salesforce/vscode-i18n": "workspace:*",
     "effect": "^3.21.2",
     "@types/vscode": "^1.90.0",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "salesforcedx-vscode-services": "*"
+    "salesforcedx-vscode-services": "workspace:*"
   }
 }

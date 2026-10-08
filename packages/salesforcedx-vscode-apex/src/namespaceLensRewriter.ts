@@ -6,7 +6,7 @@
  */
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isUndefined } from 'effect/Predicate';
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 
 const singleTest = new Set(['Run Test', 'Debug Test']);
 const allTests = new Set(['Run All Tests', 'Debug All Tests']);
