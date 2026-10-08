@@ -10,7 +10,7 @@ import { type NamedPackageDir } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isUndefined } from 'effect/Predicate';
+import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
@@ -19,7 +19,7 @@ import { messages } from '../messages/i18n';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { apexTestingDiagnostics } from '../utils/diagnostics';
-import { notificationService, showRunSuccessNotification } from '../utils/notificationHelpers';
+import { showRunOutcomeNotification } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { openTestReport } from '../utils/testReportGenerator';
 import { getRunCommandContext, resolveRunInputs, runApexTests } from './apexTestRunUtils';
@@ -74,24 +74,18 @@ const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (
   );
 
   yield* channelService.showChannel;
-  if (isUndefined(result)) {
-    notificationService.showFailedExecution(executionName);
-    return;
+  if (isNotUndefined(result)) {
+    yield* handleDiagnostics(result);
   }
-
-  yield* handleDiagnostics(result);
-  if (result.summary.outcome === 'Passed') {
-    yield* showRunSuccessNotification(
-      notificationMode,
-      COMMAND,
-      executionName,
-      reportUri,
-      outputFormat,
-      (uri, format) => getApexTestingRuntime().runPromise(openTestReport(uri, format))
-    );
-  } else {
-    notificationService.showFailedExecution(executionName);
-  }
+  yield* showRunOutcomeNotification(
+    notificationMode,
+    COMMAND,
+    executionName,
+    result,
+    reportUri,
+    outputFormat,
+    (uri, format) => getApexTestingRuntime().runPromise(openTestReport(uri, format))
+  );
 });
 
 const handleDiagnostics = Effect.fn('apexTestRunCodeAction.handleDiagnostics')(function* (result: TestResult) {

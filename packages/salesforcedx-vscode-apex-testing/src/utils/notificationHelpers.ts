@@ -6,8 +6,10 @@
  */
 
 import type { ProgressAndSuccessCommandKey } from './notificationMode';
-import type { OutputFormat } from '@salesforce/apex-node';
+import type { OutputFormat, TestResult } from '@salesforce/apex-node';
 import type { Context } from 'effect';
+import * as Effect from 'effect/Effect';
+import * as Match from 'effect/Match';
 import type { NotificationModeService } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
@@ -29,19 +31,16 @@ export const notificationService = {
   }
 };
 
-/**
- * Shared success toast for the run-tests flows: a single combined message (plus an "Open Report"
- * action when report generation succeeded). `openReport` is injected rather than imported so this
- * stays usable from apexTestExecutionService.ts, which resolves its own runtime to avoid a circular
- * import through services/extensionProvider.ts.
- */
-export const showRunSuccessNotification = (
+type OpenReport = (reportUri: URI, outputFormat: OutputFormat) => void | Promise<void>;
+
+/** Success toast: a combined message plus an "Open Report" action when report generation succeeded. */
+const showRunSuccessNotification = (
   notificationMode: Context.Tag.Service<typeof NotificationModeService>,
   command: ProgressAndSuccessCommandKey,
   executionName: string,
   reportUri: URI | undefined,
   outputFormat: OutputFormat,
-  openReport: (reportUri: URI, outputFormat: OutputFormat) => void | Promise<void>
+  openReport: OpenReport
 ) =>
   notificationMode.showSuccessNotification(
     command,
@@ -57,4 +56,50 @@ export const showRunSuccessNotification = (
           }
         ]
       : []
+  );
+
+/** Error toast for a run that completed with failing tests, plus an "Open Report" action when report
+ * generation succeeded. Fire-and-forget: the click is handled without blocking the run. */
+const showTestFailuresNotification = (
+  executionName: string,
+  failing: number,
+  reportUri: URI | undefined,
+  outputFormat: OutputFormat,
+  openReport: OpenReport
+): void => {
+  const openReportLabel = nls.localize('apex_test_report_open_action');
+  void vscode.window
+    .showErrorMessage(
+      nls.localize('apex_test_completed_with_failures_message', executionName, failing),
+      ...(reportUri ? [openReportLabel] : [])
+    )
+    .then(choice => (reportUri && choice === openReportLabel ? openReport(reportUri, outputFormat) : undefined));
+};
+
+/**
+ * Terminal toast for the run-tests flows, keyed on the run's outcome: success when tests passed, a
+ * "completed with failing tests" error when some failed, and `showFailedExecution` when the run produced
+ * no usable result (timeout / no summary) or ended in any other state. `openReport` is injected rather
+ * than imported so this stays usable from apexTestExecutionService.ts, which resolves its own runtime to
+ * avoid a circular import through services/extensionProvider.ts.
+ */
+export const showRunOutcomeNotification = (
+  notificationMode: Context.Tag.Service<typeof NotificationModeService>,
+  command: ProgressAndSuccessCommandKey,
+  executionName: string,
+  result: TestResult | undefined,
+  reportUri: URI | undefined,
+  outputFormat: OutputFormat,
+  openReport: OpenReport
+) =>
+  Match.value(result).pipe(
+    Match.when({ summary: { outcome: 'Passed' } }, () =>
+      showRunSuccessNotification(notificationMode, command, executionName, reportUri, outputFormat, openReport)
+    ),
+    Match.when({ summary: { outcome: 'Failed' } }, failed =>
+      Effect.sync(() =>
+        showTestFailuresNotification(executionName, failed.summary.failing, reportUri, outputFormat, openReport)
+      )
+    ),
+    Match.orElse(() => Effect.sync(() => notificationService.showFailedExecution(executionName)))
   );
