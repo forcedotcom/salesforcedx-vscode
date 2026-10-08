@@ -79,11 +79,6 @@ jobs:
             exit 1
           fi
 
-      - name: Logout from Salesforce
-        if: always()
-        run: |
-          sf org logout --target-org vscodeOrg --no-prompt || true
-
       - name: Workflow summary
         if: always()
         run: |
