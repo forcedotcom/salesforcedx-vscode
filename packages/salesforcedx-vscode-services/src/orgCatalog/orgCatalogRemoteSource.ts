@@ -6,8 +6,12 @@
  */
 
 import type { OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry } from './orgMetadataCatalogTypes';
+import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Arr from 'effect/Array';
+import * as Cache from 'effect/Cache';
 import * as Chunk from 'effect/Chunk';
+import * as Data from 'effect/Data';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as HashMap from 'effect/HashMap';
 import * as Option from 'effect/Option';
@@ -39,7 +43,26 @@ type RetrieveRequest = {
   readonly expectedRemoteLastModifiedDate?: string;
 };
 
+type PrimaryDocumentCacheKey = {
+  readonly orgId: string;
+  readonly xmlName: string;
+  readonly fullName: string;
+  readonly remoteLastModifiedDate: string | undefined;
+};
+
 const uniqueHashableUris = (uris: readonly URI[]): readonly HashableUri[] => Arr.dedupe(uris.map(HashableUri.fromUri));
+
+const findPrimaryUri = (fileUris: readonly HashableUri[], basenames: ReadonlySet<string>) =>
+  fileUris.find(uri => basenames.has(Utils.basename(uri.uri))) ??
+  fileUris.find(uri => !uri.uri.path.endsWith('-meta.xml'));
+
+const remoteLastModifiedDateFor = (result: RetrieveResult, request: RetrieveRequest) =>
+  request.expectedRemoteLastModifiedDate ??
+  (Array.isArray(result.response.fileProperties)
+    ? result.response.fileProperties
+    : [result.response.fileProperties]
+  ).find(property => property?.type === request.reference.xmlName && property.fullName === request.reference.fullName)
+    ?.lastModifiedDate;
 
 const sourceComponentFilePaths = (sourceComponent?: {
   readonly content?: string;
@@ -130,12 +153,18 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
     ) {
       const logicalBasename = Utils.basename(yield* references.documentUri({ orgId, ...reference }));
       const leafName = reference.fullName.split(/[/.]/).at(-1) ?? reference.fullName;
-      const suffix = yield* references.getTypeSuffix(reference.xmlName);
-      return new Set<string>([
-        logicalBasename,
-        `${logicalBasename}-meta.xml`,
-        ...(suffix ? [`${leafName}.${suffix}`, `${leafName}.${suffix}-meta.xml`] : [])
-      ]);
+      return yield* references
+        .getTypeSuffix(reference.xmlName)
+        .pipe(
+          Effect.map(
+            suffix =>
+              new Set<string>([
+                logicalBasename,
+                `${logicalBasename}-meta.xml`,
+                ...(suffix ? [`${leafName}.${suffix}`, `${leafName}.${suffix}-meta.xml`] : [])
+              ])
+          )
+        );
     });
 
     const retrieveToDirectory = Effect.fn('OrgCatalogRemoteSource.retrieveToDirectory')(function* (
@@ -155,14 +184,30 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
       Effect.forEach(Arr.dedupe(paths), path => fsService.toUri(path), { concurrency: 'unbounded' })
     );
 
+    const publishRetrievedArtifact = Effect.fn('OrgCatalogRemoteSource.publishRetrievedArtifact')(
+      (input: Parameters<typeof shadowStore.publish>[0]) =>
+        shadowStore.publish(input).pipe(
+          Effect.filterOrFail(
+            isNotUndefined,
+            () =>
+              new OrgMetadataCatalogError({
+                cause: new Error('Published shadow artifact could not be resolved'),
+                message: `Failed to publish ${input.reference.xmlName} '${input.reference.fullName}'`,
+                reference: input.reference
+              })
+          )
+        )
+    );
+
     const materializeOne = Effect.fn('OrgCatalogRemoteSource.materializeOne')(function* (
       orgId: string,
       request: RetrieveRequest
     ) {
       const { reference } = request;
       const { stagingUri } = yield* shadowStore.prepare(orgId, reference, request.expectedRemoteLastModifiedDate);
-      const member = { type: reference.xmlName, fullName: reference.fullName };
-      return yield* retrieveToDirectory(orgId, stagingUri, [member]).pipe(
+      return yield* retrieveToDirectory(orgId, stagingUri, [
+        { type: reference.xmlName, fullName: reference.fullName }
+      ]).pipe(
         Effect.flatMap(result =>
           Effect.gen(function* () {
             const sourceComponent = [...result.components.getSourceComponents()].find(
@@ -171,166 +216,169 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
             const responsePaths = result
               .getFileResponses()
               .flatMap(response => (response.filePath ? [response.filePath] : []));
-            const stagedFiles = yield* listStagedFiles(stagingUri);
-            const reportedUris = yield* reportedFileUris([
-              ...result.components.getComponentFilenamesByNameAndType(member),
-              ...responsePaths
-            ]);
-            const basenames = yield* sourceBasenames(orgId, reference);
-            const sourceContentUri = sourceComponent?.content
-              ? yield* fsService.toUri(sourceComponent.content)
-              : undefined;
-            const fileUris = uniqueHashableUris([...reportedUris, ...stagedFiles]);
-            const primaryUri =
-              fileUris.find(uri => basenames.has(Utils.basename(uri.uri))) ??
-              fileUris.find(uri => !uri.uri.path.endsWith('-meta.xml')) ??
-              (sourceContentUri ? HashableUri.fromUri(sourceContentUri) : undefined) ??
-              fileUris[0];
+            const fileUris = yield* Effect.all(
+              [
+                reportedFileUris([
+                  ...result.components.getComponentFilenamesByNameAndType({
+                    type: reference.xmlName,
+                    fullName: reference.fullName
+                  }),
+                  ...responsePaths
+                ]),
+                listStagedFiles(stagingUri)
+              ],
+              { concurrency: 'unbounded' }
+            ).pipe(Effect.map(([reportedUris, stagedFiles]) => uniqueHashableUris([...reportedUris, ...stagedFiles])));
+            const primaryUri = yield* Effect.all(
+              [
+                sourceBasenames(orgId, reference),
+                sourceComponent?.content
+                  ? fsService.toUri(sourceComponent.content).pipe(Effect.map(Option.some))
+                  : Effect.succeed(Option.none<URI>())
+              ],
+              { concurrency: 'unbounded' }
+            ).pipe(
+              Effect.map(
+                ([basenames, sourceContentUri]) =>
+                  findPrimaryUri(fileUris, basenames) ??
+                  Option.getOrUndefined(Option.map(sourceContentUri, HashableUri.fromUri)) ??
+                  fileUris[0]
+              )
+            );
             yield* Effect.annotateCurrentSpan({
               discoveredFileCount: fileUris.length,
               responsePathCount: responsePaths.length,
               selectedPrimaryPath: primaryUri?.uri.toString()
             });
             if (!primaryUri) return yield* missingSourceFile(reference);
-            const sourceComponentUris = yield* Effect.forEach(
-              sourceComponentFilePaths(sourceComponent),
-              path => fsService.toUri(path),
-              { concurrency: 'unbounded' }
+            return yield* Effect.forEach(sourceComponentFilePaths(sourceComponent), path => fsService.toUri(path), {
+              concurrency: 'unbounded'
+            }).pipe(
+              Effect.flatMap(sourceComponentUris =>
+                publishRetrievedArtifact({
+                  orgId,
+                  reference,
+                  stagingUri,
+                  primaryUri: primaryUri.uri,
+                  fileUris: Arr.dedupe([...fileUris, ...sourceComponentUris.map(HashableUri.fromUri)]).map(
+                    uri => uri.uri
+                  ),
+                  remoteLastModifiedDate: remoteLastModifiedDateFor(result, request)
+                })
+              )
             );
-            const artifactFileUris = Arr.dedupe([...fileUris, ...sourceComponentUris.map(HashableUri.fromUri)]);
-            const fileProperties = Array.isArray(result.response.fileProperties)
-              ? result.response.fileProperties
-              : [result.response.fileProperties];
-            const remoteLastModifiedDate = fileProperties.find(
-              property => property?.type === reference.xmlName && property.fullName === reference.fullName
-            )?.lastModifiedDate;
-            const artifact = yield* shadowStore.publish({
-              orgId,
-              reference,
-              stagingUri,
-              primaryUri: primaryUri.uri,
-              fileUris: artifactFileUris.map(uri => uri.uri),
-              remoteLastModifiedDate: request.expectedRemoteLastModifiedDate ?? remoteLastModifiedDate
-            });
-            if (artifact) return artifact;
-            return yield* new OrgMetadataCatalogError({
-              cause: new Error('Published shadow artifact could not be resolved'),
-              message: `Failed to publish ${reference.xmlName} '${reference.fullName}'`,
-              reference
-            });
           })
         ),
         Effect.ensuring(fsService.safeDelete(stagingUri, { recursive: true }))
       );
     });
 
-    const materializeBatch = Effect.fn('OrgCatalogRemoteSource.materializeBatch')(function* (
-      orgId: string,
-      requests: readonly RetrieveRequest[]
-    ) {
-      const stagingUri = yield* shadowStore.prepareBatch(orgId);
-      return yield* retrieveToDirectory(
-        orgId,
-        stagingUri,
-        requests.map(({ reference }) => ({ type: reference.xmlName, fullName: reference.fullName }))
-      ).pipe(
-        Effect.flatMap(result =>
-          Effect.gen(function* () {
-            const sourceComponents = [...result.components.getSourceComponents()];
-            const responses = result.getFileResponses();
-            const stagedFiles = yield* listStagedFiles(stagingUri);
-            const fileProperties = Array.isArray(result.response.fileProperties)
-              ? result.response.fileProperties
-              : [result.response.fileProperties];
-            return yield* Effect.forEach(
-              requests,
-              request =>
-                Effect.gen(function* () {
-                  const { reference } = request;
-                  const member = { type: reference.xmlName, fullName: reference.fullName };
-                  const sourceComponent = sourceComponents.find(
-                    component => component.type.name === reference.xmlName && component.fullName === reference.fullName
-                  );
-                  const responsePaths = responses.flatMap(response =>
-                    response.type === reference.xmlName && response.fullName === reference.fullName && response.filePath
-                      ? [response.filePath]
-                      : []
-                  );
-                  const reportedUris = yield* reportedFileUris([
-                    ...result.components.getComponentFilenamesByNameAndType(member),
-                    ...responsePaths
-                  ]);
-                  const basenames = yield* sourceBasenames(orgId, reference);
-                  const discoveredUris = stagedFiles.filter(uri => basenames.has(Utils.basename(uri)));
-                  const sourceComponentUris = yield* Effect.forEach(
-                    sourceComponentFilePaths(sourceComponent),
-                    path => fsService.toUri(path),
-                    { concurrency: 'unbounded' }
-                  );
-                  const fileUris = uniqueHashableUris([...reportedUris, ...discoveredUris, ...sourceComponentUris]);
-                  const primaryUri =
-                    fileUris.find(uri => basenames.has(Utils.basename(uri.uri))) ??
-                    fileUris.find(uri => !uri.uri.path.endsWith('-meta.xml')) ??
-                    fileUris[0];
-                  if (!primaryUri) return yield* missingSourceFile(reference);
-                  const remoteLastModifiedDate =
-                    request.expectedRemoteLastModifiedDate ??
-                    fileProperties.find(
-                      property => property?.type === reference.xmlName && property.fullName === reference.fullName
-                    )?.lastModifiedDate;
-                  const { stagingUri: componentStagingUri } = yield* shadowStore.prepare(
-                    orgId,
-                    reference,
-                    remoteLastModifiedDate
-                  );
-                  const copiedUris = yield* Effect.forEach(
-                    fileUris,
-                    hashable => {
-                      const uri = hashable.uri;
-                      const relative = pathSuffixWithin(stagingUri, uri) ?? Utils.basename(uri);
-                      const targetUri = Utils.joinPath(componentStagingUri, ...relative.split('/'));
-                      return fsService.readFile(uri).pipe(
-                        Effect.flatMap(content => fsService.safeWriteFile(targetUri, content)),
-                        Effect.as([hashable, targetUri] as const)
-                      );
-                    },
-                    { concurrency: 10 }
-                  );
-                  const copiedPrimaryUri = yield* Option.match(
-                    HashMap.get(HashMap.fromIterable(copiedUris), primaryUri),
-                    {
+    const materializeBatch = Effect.fn('OrgCatalogRemoteSource.materializeBatch')(
+      (orgId: string, requests: readonly RetrieveRequest[]) =>
+        Effect.acquireUseRelease(
+          shadowStore.prepareBatch(orgId),
+          stagingUri =>
+            Effect.gen(function* () {
+              const result = yield* retrieveToDirectory(
+                orgId,
+                stagingUri,
+                requests.map(({ reference }) => ({ type: reference.xmlName, fullName: reference.fullName }))
+              );
+              const sourceComponents = [...result.components.getSourceComponents()];
+              const responses = result.getFileResponses();
+              const stagedFiles = yield* listStagedFiles(stagingUri);
+              return yield* Effect.forEach(
+                requests,
+                request =>
+                  Effect.gen(function* () {
+                    const { reference } = request;
+                    const { fileUris, primaryUri } = yield* Effect.all(
+                      [
+                        reportedFileUris([
+                          ...result.components.getComponentFilenamesByNameAndType({
+                            type: reference.xmlName,
+                            fullName: reference.fullName
+                          }),
+                          ...responses.flatMap(response =>
+                            response.type === reference.xmlName &&
+                            response.fullName === reference.fullName &&
+                            response.filePath
+                              ? [response.filePath]
+                              : []
+                          )
+                        ]),
+                        sourceBasenames(orgId, reference),
+                        Effect.forEach(
+                          sourceComponentFilePaths(
+                            sourceComponents.find(
+                              component =>
+                                component.type.name === reference.xmlName && component.fullName === reference.fullName
+                            )
+                          ),
+                          path => fsService.toUri(path),
+                          { concurrency: 'unbounded' }
+                        )
+                      ],
+                      { concurrency: 'unbounded' }
+                    ).pipe(
+                      Effect.map(([reportedUris, basenames, sourceComponentUris]) => {
+                        const componentFileUris = uniqueHashableUris([
+                          ...reportedUris,
+                          ...stagedFiles.filter(uri => basenames.has(Utils.basename(uri))),
+                          ...sourceComponentUris
+                        ]);
+                        return {
+                          fileUris: componentFileUris,
+                          primaryUri: findPrimaryUri(componentFileUris, basenames) ?? componentFileUris[0]
+                        };
+                      })
+                    );
+                    if (!primaryUri) return yield* missingSourceFile(reference);
+                    const remoteLastModifiedDate = remoteLastModifiedDateFor(result, request);
+                    const { stagingUri: componentStagingUri } = yield* shadowStore.prepare(
+                      orgId,
+                      reference,
+                      remoteLastModifiedDate
+                    );
+                    const copiedUris = yield* Effect.forEach(
+                      fileUris,
+                      hashable => {
+                        const uri = hashable.uri;
+                        const relative = pathSuffixWithin(stagingUri, uri) ?? Utils.basename(uri);
+                        const targetUri = Utils.joinPath(componentStagingUri, ...relative.split('/'));
+                        return fsService.readFile(uri).pipe(
+                          Effect.flatMap(content => fsService.safeWriteFile(targetUri, content)),
+                          Effect.as([hashable, targetUri] as const)
+                        );
+                      },
+                      { concurrency: 10 }
+                    );
+                    return yield* Option.match(HashMap.get(HashMap.fromIterable(copiedUris), primaryUri), {
                       onNone: () =>
-                        new OrgMetadataCatalogError({
-                          cause: new Error(`Failed to stage ${reference.xmlName} '${reference.fullName}'`),
-                          message: `Failed to stage ${reference.xmlName} '${reference.fullName}'`,
-                          reference
-                        }),
-                      onSome: Effect.succeed
-                    }
-                  );
-                  const artifact = yield* shadowStore.publish({
-                    orgId,
-                    reference,
-                    stagingUri: componentStagingUri,
-                    primaryUri: copiedPrimaryUri,
-                    fileUris: copiedUris.map(([, targetUri]) => targetUri),
-                    remoteLastModifiedDate
-                  });
-                  return artifact
-                    ? { reference, artifact }
-                    : yield* new OrgMetadataCatalogError({
-                        cause: new Error('Published shadow artifact could not be resolved'),
-                        message: `Failed to publish ${reference.xmlName} '${reference.fullName}'`,
-                        reference
-                      });
-                }),
-              { concurrency: 1 }
-            );
-          })
-        ),
-        Effect.ensuring(fsService.safeDelete(stagingUri, { recursive: true }))
-      );
-    });
+                        Effect.fail(
+                          new OrgMetadataCatalogError({
+                            cause: new Error(`Failed to stage ${reference.xmlName} '${reference.fullName}'`),
+                            message: `Failed to stage ${reference.xmlName} '${reference.fullName}'`,
+                            reference
+                          })
+                        ),
+                      onSome: copiedPrimaryUri =>
+                        publishRetrievedArtifact({
+                          orgId,
+                          reference,
+                          stagingUri: componentStagingUri,
+                          primaryUri: copiedPrimaryUri,
+                          fileUris: copiedUris.map(([, targetUri]) => targetUri),
+                          remoteLastModifiedDate
+                        }).pipe(Effect.map(artifact => ({ reference, artifact })))
+                    });
+                  }),
+                { concurrency: 1 }
+              );
+            }),
+          stagingUri => fsService.safeDelete(stagingUri, { recursive: true })
+        )
+    );
 
     const materializeRetrievedComponents = Effect.fn('OrgCatalogRemoteSource.materializeComponents')(function* (
       orgId: string,
@@ -402,18 +450,15 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
       return { content: body, lastModifiedDate: record.LastModifiedDate };
     });
 
-    const materializePrimaryDocumentUnserialized = Effect.fn('OrgCatalogRemoteSource.materializePrimaryDocument')(
-      function* (orgId: string, reference: OrgMetadataComponentReference) {
-        const entry = yield* getEntryInOrg(orgId, reference);
-        const cached = yield* shadowStore.get(orgId, reference, entry.lastModifiedDate);
-        if (cached) return cached;
+    const materializePrimaryDocumentOnMiss = Effect.fn('OrgCatalogRemoteSource.materializePrimaryDocumentOnMiss')(
+      function* (orgId: string, reference: OrgMetadataComponentReference, remoteLastModifiedDate?: string) {
         if (reference.xmlName !== 'ApexClass') {
-          return yield* materializeOne(orgId, { reference, expectedRemoteLastModifiedDate: entry.lastModifiedDate });
+          return yield* materializeOne(orgId, { reference, expectedRemoteLastModifiedDate: remoteLastModifiedDate });
         }
 
         const { content, lastModifiedDate } = yield* fetchApexClass(orgId, reference);
-        const shadowRevision = isString(entry.lastModifiedDate)
-          ? entry.lastModifiedDate
+        const shadowRevision = isString(remoteLastModifiedDate)
+          ? remoteLastModifiedDate
           : isString(lastModifiedDate)
             ? lastModifiedDate
             : undefined;
@@ -447,8 +492,38 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
       }
     );
 
-    const materializePrimaryDocument = (orgId: string, reference: OrgMetadataComponentReference) =>
-      materializePrimaryDocumentUnserialized(orgId, reference).pipe(materializationSemaphore.withPermits(1));
+    const lookupPrimaryDocument = Effect.fn('OrgCatalogRemoteSource.lookupPrimaryDocument')(function* (
+      key: PrimaryDocumentCacheKey
+    ) {
+      const reference = { xmlName: key.xmlName, fullName: key.fullName };
+      const cached = yield* shadowStore.get(key.orgId, reference, key.remoteLastModifiedDate);
+      if (cached) return cached;
+
+      return yield* Effect.gen(function* () {
+        const currentEntry = yield* getEntryInOrg(key.orgId, reference);
+        const currentCached = yield* shadowStore.get(key.orgId, reference, currentEntry.lastModifiedDate);
+        if (currentCached) return currentCached;
+        return yield* materializePrimaryDocumentOnMiss(key.orgId, reference, currentEntry.lastModifiedDate);
+      }).pipe(materializationSemaphore.withPermits(1));
+    });
+
+    // Coalesce concurrent reads of one document; the shadow store remains the durable cache.
+    const primaryDocumentCache = yield* Cache.makeWith({
+      capacity: 1000,
+      timeToLive: () => Duration.zero,
+      lookup: lookupPrimaryDocument
+    });
+
+    const materializePrimaryDocument = Effect.fn('OrgCatalogRemoteSource.materializePrimaryDocument')(function* (
+      orgId: string,
+      reference: OrgMetadataComponentReference
+    ) {
+      return yield* getEntryInOrg(orgId, reference).pipe(
+        Effect.flatMap(entry =>
+          primaryDocumentCache.get(Data.struct({ orgId, ...reference, remoteLastModifiedDate: entry.lastModifiedDate }))
+        )
+      );
+    });
 
     const readDocumentUri = Effect.fn('OrgCatalogRemoteSource.readDocumentUri')(function* (
       activeOrgId: string,
@@ -461,8 +536,9 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
           () => vscode.FileSystemError.FileNotFound(uri)
         )
       );
-      const artifact = yield* materializePrimaryDocument(activeOrgId, location);
-      return yield* fsService.readFile(artifact.primaryUri);
+      return yield* materializePrimaryDocument(activeOrgId, location).pipe(
+        Effect.flatMap(artifact => fsService.readFile(artifact.primaryUri))
+      );
     });
 
     return { materializePrimaryDocument, materializeRetrievedComponents, readDocumentUri } as const;
