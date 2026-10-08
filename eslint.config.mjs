@@ -900,6 +900,16 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-vscode-apex (inline to avoid no-duplicate-imports; W-23371071)
+    files: ['packages/salesforcedx-vscode-apex/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // consistent-type-imports for salesforcedx-vscode-core (inline to avoid no-duplicate-imports; W-23371068)
     files: ['packages/salesforcedx-vscode-core/**/*.ts'],
     rules: {
