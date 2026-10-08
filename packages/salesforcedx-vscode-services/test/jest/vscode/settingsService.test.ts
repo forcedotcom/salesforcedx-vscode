@@ -62,6 +62,9 @@ describe('SettingsService.getSessionContext', () => {
       username: ' user@example.com ',
       orgId: ' 00D000000000001 ',
       userId: ' 005000000000001 ',
+      instanceName: 'utf8',
+      orgEdition: 'Enterprise Edition',
+      namespacePrefix: '',
       isDevHub: true,
       isScratch: false,
       isSandbox: true
@@ -71,6 +74,9 @@ describe('SettingsService.getSessionContext', () => {
       username: 'user@example.com',
       orgId: '00D000000000001',
       userId: '005000000000001',
+      instanceName: 'utf8',
+      orgEdition: 'Enterprise Edition',
+      namespacePrefix: '',
       isDevHub: true,
       isScratch: false,
       isSandbox: true

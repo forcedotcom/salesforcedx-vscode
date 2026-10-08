@@ -29,6 +29,9 @@ const RawWebSessionContextSchema = S.Struct({
   username: S.optional(S.Unknown),
   orgId: S.optional(S.Unknown),
   userId: S.optional(S.Unknown),
+  instanceName: S.optional(S.Unknown),
+  orgEdition: S.optional(S.Unknown),
+  namespacePrefix: S.optional(S.Unknown),
   isDevHub: S.optional(S.Unknown),
   isScratch: S.optional(S.Unknown),
   isSandbox: S.optional(S.Unknown)
@@ -36,6 +39,7 @@ const RawWebSessionContextSchema = S.Struct({
 
 const decodeSessionContextValue = (value: unknown) =>
   Option.flatten(S.decodeUnknownOption(S.OptionFromNonEmptyTrimmedString)(value));
+const decodeSessionContextString = S.decodeUnknownOption(S.String);
 const decodeSessionContextBoolean = S.decodeUnknownOption(S.Boolean);
 
 const WebSessionContextSchema = S.transform(
@@ -44,6 +48,9 @@ const WebSessionContextSchema = S.transform(
     username: S.optional(S.String),
     orgId: S.optional(S.String),
     userId: S.optional(S.String),
+    instanceName: S.optional(S.String),
+    orgEdition: S.optional(S.String),
+    namespacePrefix: S.optional(S.String),
     isDevHub: S.Boolean,
     isScratch: S.Boolean,
     isSandbox: S.Boolean
@@ -55,7 +62,10 @@ const WebSessionContextSchema = S.transform(
         {
           username: Option.getOrUndefined(decodeSessionContextValue(sessionContext.username)),
           orgId: Option.getOrUndefined(decodeSessionContextValue(sessionContext.orgId)),
-          userId: Option.getOrUndefined(decodeSessionContextValue(sessionContext.userId))
+          userId: Option.getOrUndefined(decodeSessionContextValue(sessionContext.userId)),
+          instanceName: Option.getOrUndefined(decodeSessionContextString(sessionContext.instanceName)),
+          orgEdition: Option.getOrUndefined(decodeSessionContextString(sessionContext.orgEdition)),
+          namespacePrefix: Option.getOrUndefined(decodeSessionContextString(sessionContext.namespacePrefix))
         },
         isNotUndefined
       ),

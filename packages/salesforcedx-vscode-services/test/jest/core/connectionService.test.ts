@@ -792,6 +792,9 @@ describe('ConnectionService.getConnection (Web Console)', () => {
         username?: string;
         orgId?: string;
         userId?: string;
+        instanceName?: string;
+        orgEdition?: string;
+        namespacePrefix?: string;
         isDevHub?: boolean;
         isScratch?: boolean;
         isSandbox?: boolean;
@@ -799,6 +802,9 @@ describe('ConnectionService.getConnection (Web Console)', () => {
         username: 'user@example.com',
         orgId: '00D000000000001',
         userId: '005000000000001',
+        instanceName: 'utf8',
+        orgEdition: 'Enterprise Edition',
+        namespacePrefix: '',
         isDevHub: true,
         isScratch: false,
         isSandbox: true
@@ -843,7 +849,10 @@ describe('ConnectionService.getConnection (Web Console)', () => {
           isSandbox: true,
           username: 'user@example.com',
           orgId: '00D000000000001',
-          userId: '005000000000001'
+          userId: '005000000000001',
+          instanceName: 'utf8',
+          orgEdition: 'Enterprise Edition',
+          namespacePrefix: ''
         }
       });
       expect(WebAuthInfo.create).toHaveBeenCalledTimes(1);

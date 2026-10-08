@@ -350,6 +350,15 @@
             "username": {
               "type": "string"
             },
+            "instanceName": {
+              "type": "string"
+            },
+            "orgEdition": {
+              "type": "string"
+            },
+            "namespacePrefix": {
+              "type": "string"
+            },
             "orgId": {
               "type": "string"
             },
