@@ -171,7 +171,7 @@ describe('ProjectService.isInPackageDirectories', () => {
   const windowsWorkspace = URI.file('/w24232208-windows-pkg');
 
   beforeEach(() => {
-    jest.spyOn(SfProject, 'resolve').mockImplementation(
+    vi.spyOn(SfProject, 'resolve').mockImplementation(
       async (fsPath?: string) =>
         ({
           getPackageDirectories: () =>
@@ -181,7 +181,7 @@ describe('ProjectService.isInPackageDirectories', () => {
   });
 
   afterEach(() => {
-    jest.restoreAllMocks();
+    vi.restoreAllMocks();
   });
 
   const contained = (workspace: URI, uri: URI) =>
