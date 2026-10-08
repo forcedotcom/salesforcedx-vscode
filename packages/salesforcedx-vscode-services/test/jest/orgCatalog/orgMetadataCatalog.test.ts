@@ -39,12 +39,9 @@ import { OrgId } from '../../../src/core/schemas/salesforceId';
 import type { SObject } from '../../../src/core/schemas/sObject';
 import { OrgMetadataCatalog } from '../../../src/orgCatalog/orgMetadataCatalog';
 import { OrgCatalogDocuments } from '../../../src/orgCatalog/orgCatalogDocuments';
-import { OrgCatalogInventory } from '../../../src/orgCatalog/orgCatalogInventory';
 import { OrgCatalogRemoteRetrieve } from '../../../src/orgCatalog/orgCatalogRemoteRetrieve';
 import { OrgCatalogRemoteSource } from '../../../src/orgCatalog/orgCatalogRemoteSource';
 import { OrgCatalogState } from '../../../src/orgCatalog/orgCatalogState';
-import { OrgCatalogTreeProjection } from '../../../src/orgCatalog/orgCatalogTreeProjection';
-import { OrgCatalogWorkspace } from '../../../src/orgCatalog/orgCatalogWorkspace';
 import { OrgMetadataCatalogRecorder } from '../../../src/orgCatalog/orgMetadataCatalogRecorder';
 import {
   OrgMetadataCatalogChangePubSub,
@@ -58,7 +55,6 @@ import {
   OrgMetadataDocumentProvider,
   runOrgMetadataDocumentProvider
 } from '../../../src/orgCatalog/orgMetadataDocumentProvider';
-import { OrgMetadataReferenceService } from '../../../src/orgCatalog/orgMetadataReference';
 import { OrgMetadataShadowStore } from '../../../src/orgCatalog/orgMetadataShadowStore';
 import { FileChangePubSub } from '../../../src/vscode/fileChangePubSub';
 import { FsService } from '../../../src/vscode/fsService';
@@ -359,43 +355,29 @@ const makeHarness = (options: HarnessOptions = {}) => {
     } as unknown as InstanceType<typeof TransmogrifierService>)
   );
   const stateLayer = OrgCatalogState.DefaultWithoutDependencies.pipe(Layer.provide(dependencies));
-  const referenceLayer = OrgMetadataReferenceService.DefaultWithoutDependencies.pipe(Layer.provide(dependencies));
-  const foundation = Layer.mergeAll(dependencies, stateLayer, referenceLayer);
+  const foundation = Layer.mergeAll(dependencies, stateLayer);
   const recorderLayer = OrgMetadataCatalogRecorder.DefaultWithoutDependencies.pipe(Layer.provide(foundation));
-  const workspaceLayer = OrgCatalogWorkspace.DefaultWithoutDependencies.pipe(Layer.provide(foundation));
   const remoteRetrieveLayer = OrgCatalogRemoteRetrieve.DefaultWithoutDependencies.pipe(Layer.provide(foundation));
-  const inventoryRequirements = Layer.mergeAll(foundation, workspaceLayer);
-  const inventoryLayer = OrgCatalogInventory.DefaultWithoutDependencies.pipe(Layer.provide(inventoryRequirements));
-  const remoteSourceRequirements = Layer.mergeAll(inventoryRequirements, inventoryLayer, remoteRetrieveLayer);
+  const remoteSourceRequirements = Layer.mergeAll(foundation, remoteRetrieveLayer);
   const remoteSourceLayer = OrgCatalogRemoteSource.DefaultWithoutDependencies.pipe(
     Layer.provide(remoteSourceRequirements)
   );
   const documentsLayer = OrgCatalogDocuments.DefaultWithoutDependencies.pipe(
     Layer.provide(Layer.mergeAll(remoteSourceRequirements, remoteSourceLayer))
   );
-  const treeProjectionLayer = OrgCatalogTreeProjection.DefaultWithoutDependencies.pipe(
-    Layer.provide(Layer.mergeAll(inventoryRequirements, inventoryLayer))
-  );
   const catalogRequirements = Layer.mergeAll(
     dependencies,
     stateLayer,
-    referenceLayer,
-    workspaceLayer,
-    inventoryLayer,
     remoteRetrieveLayer,
     remoteSourceLayer,
     documentsLayer,
-    recorderLayer,
-    treeProjectionLayer
+    recorderLayer
   );
 
   return {
     catalogChanges,
     internalLayer: Layer.mergeAll(stateLayer, documentsLayer),
-    layer: Layer.mergeAll(
-      Layer.provide(OrgMetadataCatalog.DefaultWithoutDependencies, catalogRequirements),
-      referenceLayer
-    ),
+    layer: Layer.provide(OrgMetadataCatalog.DefaultWithoutDependencies, catalogRequirements),
     remoteSourceLayer,
     mocks: {
       buildComponentSetFromSource,
@@ -430,7 +412,7 @@ const setOrg = (orgId: string) =>
   getDefaultOrgRef().pipe(Effect.flatMap(ref => SubscriptionRef.set(ref, { orgId: Schema.decodeSync(OrgId)(orgId) })));
 
 const runWithCatalog = <A, E, LayerError>(
-  layer: Layer.Layer<OrgMetadataCatalog | OrgMetadataReferenceService, LayerError>,
+  layer: Layer.Layer<OrgMetadataCatalog, LayerError>,
   body: (catalog: InstanceType<typeof OrgMetadataCatalog>) => Effect.Effect<A, E>
 ): Promise<A> =>
   Effect.runPromise(
@@ -454,7 +436,7 @@ const materializePrimaryDocument = (
 ) => remoteSource.materializePrimaryDocument('00D000000000001', reference);
 
 const runWithCatalogAndRemoteSource = <A, E, LayerError>(
-  layer: Layer.Layer<OrgMetadataCatalog | OrgCatalogRemoteSource | OrgMetadataReferenceService, LayerError>,
+  layer: Layer.Layer<OrgMetadataCatalog | OrgCatalogRemoteSource, LayerError>,
   body: (
     catalog: InstanceType<typeof OrgMetadataCatalog>,
     remoteSource: InstanceType<typeof OrgCatalogRemoteSource>
@@ -497,12 +479,11 @@ describe('OrgMetadataCatalog contract', () => {
       getWorkspaceInfoOrThrow: () => Effect.fail(noWorkspace)
     } as unknown as InstanceType<typeof WorkspaceService>);
     const registryLayer = MetadataRegistryService.DefaultWithoutDependencies.pipe(Layer.provide(workspaceLayer));
-    const referenceLayer = OrgMetadataReferenceService.DefaultWithoutDependencies.pipe(Layer.provide(registryLayer));
     const providerLayer = Layer.mergeAll(
       internalLayer,
       MetadataChangeNotificationService.Default,
       FileChangePubSub.Default,
-      referenceLayer,
+      registryLayer,
       Layer.succeed(
         OrgMetadataCatalogChangePubSub,
         catalogChanges as unknown as InstanceType<typeof OrgMetadataCatalogChangePubSub>
@@ -634,18 +615,21 @@ describe('OrgMetadataCatalog contract', () => {
       ]
     });
 
-    const [first, second, cached] = await runWithCatalog(layer, catalog =>
+    const [first, second, cached, catalogEntry] = await runWithCatalog(layer, catalog =>
       Effect.gen(function* () {
         const concurrent = yield* Effect.all(
           [catalog.getChildren({ type: 'ApexClass' }), catalog.getChildren({ type: 'ApexClass' })],
           { concurrency: 'unbounded' }
         );
-        return [...concurrent, yield* catalog.getChildren({ type: 'ApexClass' })] as const;
+        const cachedChildren = yield* catalog.getChildren({ type: 'ApexClass' });
+        const [matchedEntry] = yield* catalog.getEntries([{ type: 'ApexClass', fullName: 'BothTest' }]);
+        return [...concurrent, cachedChildren, matchedEntry] as const;
       })
     );
 
     expect(first).toEqual(second);
     expect(cached).toEqual(first);
+    expect(catalogEntry).toMatchObject({ name: 'BothTest', inOrg: true, inWorkspace: true });
     expect(mocks.listMetadata).toHaveBeenCalledTimes(1);
     expect(mocks.buildComponentSetFromSource).toHaveBeenCalledTimes(1);
     expect(first.map(entry => entry.name)).toEqual(['BothTest', 'LocalTest', 'RemoteTest']);
@@ -875,7 +859,6 @@ describe('OrgMetadataCatalog contract', () => {
       internalLayer,
       MetadataChangeNotificationService.Default,
       FileChangePubSub.Default,
-      OrgMetadataReferenceService.Default,
       Layer.succeed(
         OrgMetadataCatalogChangePubSub,
         catalogChanges as unknown as InstanceType<typeof OrgMetadataCatalogChangePubSub>

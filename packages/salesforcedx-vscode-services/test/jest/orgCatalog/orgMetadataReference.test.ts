@@ -14,27 +14,26 @@ import {
   isOrgMetadataComponentReference,
   ORG_METADATA_SCHEME,
   orgIdFromOrgMetadataUri,
-  OrgMetadataReferenceService
+  documentUri,
+  parseDocumentUri,
+  getTypeSuffix
 } from '../../../src/orgCatalog/orgMetadataReference';
 
 describe('org metadata document references', () => {
   const registryAccess = new RegistryAccess();
-  const referenceLayer = OrgMetadataReferenceService.DefaultWithoutDependencies.pipe(
-    Layer.provide(
-      Layer.succeed(MetadataRegistryService, {
-        getRegistryAccess: () => Effect.succeed(registryAccess)
-      } as unknown as InstanceType<typeof MetadataRegistryService>)
-    )
-  );
+  const registryLayer = Layer.succeed(MetadataRegistryService, {
+    getRegistryAccess: () => Effect.succeed(registryAccess)
+  } as unknown as InstanceType<typeof MetadataRegistryService>);
 
   const run = <A, E extends Error>(
-    body: (service: InstanceType<typeof OrgMetadataReferenceService>) => Effect.Effect<A, E>
+    body: (references: {
+      documentUri: typeof documentUri;
+      parseDocumentUri: typeof parseDocumentUri;
+      getTypeSuffix: typeof getTypeSuffix;
+    }) => Effect.Effect<A, E, MetadataRegistryService>
   ): A =>
     Effect.runSync(
-      OrgMetadataReferenceService.pipe(
-        Effect.flatMap(service => body(service).pipe(Effect.orDie)),
-        Effect.provide(referenceLayer)
-      )
+      body({ documentUri, parseDocumentUri, getTypeSuffix }).pipe(Effect.orDie, Effect.provide(registryLayer))
     );
 
   it('round-trips an Apex class with an editor-friendly extension', () => {

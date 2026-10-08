@@ -81,37 +81,23 @@ const parseDocumentUriFromPath = (uri: URI, extension: string | undefined): OrgM
 
 export const isOrgMetadataComponentReference = Schema.is(OrgMetadataComponentReference);
 
-export class OrgMetadataReferenceService extends Effect.Service<OrgMetadataReferenceService>()(
-  'OrgMetadataReferenceService',
-  {
-    accessors: false,
-    dependencies: [MetadataRegistryService.Default],
-    effect: Effect.gen(function* () {
-      const metadataRegistryService = yield* MetadataRegistryService;
-      const typeSuffix = Effect.fn('OrgMetadataReferenceService.typeSuffix')((xmlName: string) =>
-        metadataRegistryService
-          .getRegistryAccess()
-          .pipe(
-            Effect.map(access =>
-              Option.getOrUndefined(Option.liftThrowable(() => access.getTypeByName(xmlName).suffix)())
-            )
-          )
-      );
+export const getTypeSuffix = Effect.fn('OrgMetadataReferenceService.typeSuffix')(function* (xmlName: string) {
+  return yield* (yield* MetadataRegistryService)
+    .getRegistryAccess()
+    .pipe(
+      Effect.map(access => Option.getOrUndefined(Option.liftThrowable(() => access.getTypeByName(xmlName).suffix)()))
+    );
+});
 
-      return {
-        documentUri: Effect.fn('OrgMetadataReferenceService.documentUri')(function* (
-          location: OrgMetadataDocumentLocation
-        ) {
-          return makeDocumentUri(location, suffixToExtension(yield* typeSuffix(location.xmlName)));
-        }),
-        parseDocumentUri: Effect.fn('OrgMetadataReferenceService.parseDocumentUri')(function* (uri: URI) {
-          if (uri.scheme !== ORG_METADATA_SCHEME) return undefined;
-          const [, root, encodedOrgId, encodedXmlName] = uri.path.split('/');
-          if (root !== 'orgs' || !encodedOrgId || !encodedXmlName) return undefined;
-          return parseDocumentUriFromPath(uri, suffixToExtension(yield* typeSuffix(encodedXmlName)));
-        }),
-        getTypeSuffix: typeSuffix
-      } as const;
-    })
-  }
-) {}
+export const documentUri = Effect.fn('OrgMetadataReferenceService.documentUri')(function* (
+  location: OrgMetadataDocumentLocation
+) {
+  return makeDocumentUri(location, suffixToExtension(yield* getTypeSuffix(location.xmlName)));
+});
+
+export const parseDocumentUri = Effect.fn('OrgMetadataReferenceService.parseDocumentUri')(function* (uri: URI) {
+  if (uri.scheme !== ORG_METADATA_SCHEME) return undefined;
+  const [, root, encodedOrgId, encodedXmlName] = uri.path.split('/');
+  if (root !== 'orgs' || !encodedOrgId || !encodedXmlName) return undefined;
+  return parseDocumentUriFromPath(uri, suffixToExtension(yield* getTypeSuffix(encodedXmlName)));
+});

@@ -14,11 +14,15 @@ import * as vscode from 'vscode';
 import { ConnectionService } from '../core/connectionService';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { FOLDERED_METADATA_TYPES, MetadataDescribeService } from '../core/metadataDescribeService';
+import { MetadataRegistryService } from '../core/metadataRegistryService';
+import { MetadataRetrieveService } from '../core/metadataRetrieveService';
+import { ProjectService } from '../core/projectService';
 import { orgIdFromConnection } from '../core/schemas/authFields';
-import { OrgCatalogInventory } from './orgCatalogInventory';
+import { TransmogrifierService } from '../core/transmogrifierService';
+import { makeOrgCatalogInventory } from './orgCatalogInventory';
 import { OrgCatalogState } from './orgCatalogState';
-import { OrgCatalogTreeProjection } from './orgCatalogTreeProjection';
-import { OrgCatalogWorkspace } from './orgCatalogWorkspace';
+import { makeOrgCatalogTreeProjection } from './orgCatalogTreeProjection';
+import { makeOrgCatalogWorkspace } from './orgCatalogWorkspace';
 import { OrgMetadataCatalogRecorder } from './orgMetadataCatalogRecorder';
 import {
   type OrgMetadataCatalogComponentReference,
@@ -53,21 +57,22 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
   dependencies: [
     ConnectionService.Default,
     MetadataDescribeService.Default,
-    OrgCatalogInventory.Default,
+    MetadataRegistryService.Default,
+    MetadataRetrieveService.Default,
+    ProjectService.Default,
     OrgCatalogState.Default,
-    OrgCatalogTreeProjection.Default,
-    OrgCatalogWorkspace.Default,
-    OrgMetadataCatalogRecorder.Default
+    OrgMetadataCatalogRecorder.Default,
+    TransmogrifierService.Default
   ],
   effect: Effect.gen(function* () {
     const [connectionService, metadataDescribeService, inventories, state, treeProjection, workspace, recorder] =
       yield* Effect.all([
         ConnectionService,
         MetadataDescribeService,
-        OrgCatalogInventory,
+        makeOrgCatalogInventory,
         OrgCatalogState,
-        OrgCatalogTreeProjection,
-        OrgCatalogWorkspace,
+        makeOrgCatalogTreeProjection,
+        makeOrgCatalogWorkspace,
         OrgMetadataCatalogRecorder
       ]);
     const getActiveOrgId = Effect.fn('OrgMetadataCatalog.getActiveOrgId')(function* () {
