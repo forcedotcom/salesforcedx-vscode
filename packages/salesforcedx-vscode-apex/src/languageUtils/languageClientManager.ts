@@ -4,11 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService, getExtensionScope, getServicesApi } from '@salesforce/effect-ext-utils';
+import {
+  ExtensionProviderService,
+  getExtensionScope,
+  getMessageFromError,
+  getServicesApi
+} from '@salesforce/effect-ext-utils';
 import { type LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
-import { isError, isNotUndefined } from 'effect/Predicate';
+import { isNotUndefined } from 'effect/Predicate';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
@@ -61,9 +66,9 @@ class LanguageClientStatus {
   }
 }
 
-interface RestartQuickPickItem extends vscode.QuickPickItem {
+type RestartQuickPickItem = vscode.QuickPickItem & {
   type: 'restart' | 'reset';
-}
+};
 
 const promptForRestartOption = Effect.fn('LanguageClientManager.promptForRestartOption')(function* (
   items: RestartQuickPickItem[]
@@ -291,25 +296,27 @@ export class LanguageClientManager {
 
     if (isNotUndefined(alc)) {
       statusBarInstance.restarting();
-      try {
-        await alc.stop();
-      } catch (error) {
-        const errorMessage = isError(error) ? error.message : String(error);
-        vscode.window.showWarningMessage(
-          `${nls.localize('apex_language_server_restart_dialog_restart_only')} - ${errorMessage}`
-        );
-      }
+      await getRuntime().runPromise(
+        Effect.tryPromise({ try: () => alc.stop(), catch: getMessageFromError }).pipe(
+          Effect.catchAll(message =>
+            Effect.sync(() => {
+              void vscode.window.showWarningMessage(
+                `${nls.localize('apex_language_server_restart_dialog_restart_only')} - ${message}`
+              );
+            })
+          )
+        )
+      );
 
       if (selectedOption === nls.localize('apex_language_server_restart_dialog_clean_and_restart')) {
-        try {
-          await removeApexDB();
-        } catch (error) {
-          // Guards an unexpected defect thrown inside the effect gen body (not the typed errors,
-          // which are already caught via catchTags). Swallow so a failed DB cleanup can never
-          // strand this.isRestarting = true.
-          const errorMessage = isError(error) ? error.message : String(error);
-          console.log(`Error, failed to remove apex db: ${errorMessage}`);
-        }
+        // Guards an unexpected defect thrown inside the effect gen body (not the typed errors,
+        // which are already caught via catchTags). Swallow so a failed DB cleanup can never
+        // strand this.isRestarting = true.
+        await getRuntime().runPromise(
+          Effect.tryPromise({ try: removeApexDB, catch: error => ({ error }) }).pipe(
+            Effect.catchAll(({ error }) => Effect.logWarning('Failed to remove Apex DB', { error }))
+          )
+        );
       }
 
       // Clear any existing timeout
@@ -319,24 +326,36 @@ export class LanguageClientManager {
 
       // Set a new timeout for the restart
       this.restartTimeout = setTimeout(() => {
-        void (async () => {
-          try {
+        Effect.tryPromise({
+          try: async () => {
             // Dispose the old client after stopping but before creating the new one.
             // This deregisters providers, watchers, and middleware that would otherwise
             // attempt to use the closed channel during the restart gap.
             await alc.dispose();
             await this.createLanguageClient(extensionContext, statusBarInstance);
-          } catch (error) {
-            // Log any errors that occur during client creation
-            const errorMessage = isError(error) ? error.message : String(error);
-            console.error('Error creating language client:', errorMessage);
-            vscode.window.showErrorMessage(`${nls.localize('apex_language_server_failed_activate')} - ${errorMessage}`);
-          } finally {
-            // Reset the restarting flag and clear the timeout reference
-            this.isRestarting = false;
-            this.restartTimeout = undefined;
-          }
-        })();
+          },
+          catch: error => ({ error, message: getMessageFromError(error) })
+        }).pipe(
+          Effect.catchAll(({ error, message }) =>
+            Effect.logError('Error creating language client', { error }).pipe(
+              Effect.zipRight(
+                Effect.sync(() => {
+                  void vscode.window.showErrorMessage(
+                    `${nls.localize('apex_language_server_failed_activate')} - ${message}`
+                  );
+                })
+              )
+            )
+          ),
+          Effect.ensuring(
+            Effect.sync(() => {
+              // Reset the restarting flag and clear the timeout reference
+              this.isRestarting = false;
+              this.restartTimeout = undefined;
+            })
+          ),
+          getRuntime().runFork
+        );
       }, 500);
     } else {
       // Reset the restarting flag if there's no client instance
@@ -424,10 +443,9 @@ export class LanguageClientManager {
 
   private reportLanguageClientSetupError(message: string, languageServerStatusBarItem: ApexLSPStatusBarItem) {
     return Effect.sync(() => {
-      let errorMessage = message;
-      if (errorMessage.includes(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK))) {
-        errorMessage = nls.localize('wrong_java_version_short');
-      }
+      const errorMessage = message.includes(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK))
+        ? nls.localize('wrong_java_version_short')
+        : message;
       this.setStatus(ClientStatus.Error, errorMessage);
       languageServerStatusBarItem.error(`${nls.localize('apex_language_server_failed_activate')} - ${errorMessage}`);
     });
