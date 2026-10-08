@@ -765,6 +765,7 @@ export default [
       'packages/salesforcedx-vscode-services/**/*.ts',
       'packages/salesforcedx-vscode-org-browser/**/*.ts',
       'packages/salesforcedx-vscode-metadata/**/*.ts',
+      'packages/salesforcedx-vscode-apex/**/*.ts',
       'packages/salesforcedx-vscode-apex-log/**/*.ts',
       'packages/salesforcedx-vscode-apex-oas/**/*.ts',
       'packages/salesforcedx-vscode-apex-testing/**/*.ts',
@@ -991,13 +992,8 @@ export default [
   },
   {
     // class-methods-use-this for packages not yet using Effect
-    // (apex-oas + apex-testing omitted: covered by the Effect-services block above, which sets both rules)
-    files: [
-      'packages/salesforcedx-vscode-apex/**/*.ts',
-      'packages/salesforcedx-vscode-soql/**/*.ts',
-      'packages/soql-common/**/*.ts',
-      'packages/soql-model/**/*.ts'
-    ],
+    // (apex, apex-oas + apex-testing omitted: covered by the Effect-services block above, which sets both rules)
+    files: ['packages/salesforcedx-vscode-soql/**/*.ts', 'packages/soql-common/**/*.ts', 'packages/soql-model/**/*.ts'],
     rules: {
       'class-methods-use-this': 'error',
       'local/no-explicit-effect-return-type': 'error',
@@ -1048,14 +1044,6 @@ export default [
     }
   },
   {
-    // vscode-apex is not in the Effect-services block. Only no-throw-statements.
-    // Before the test override so packages/**/test/**/*.ts stays off.
-    files: ['packages/salesforcedx-vscode-apex/**/*.ts'],
-    rules: {
-      'functional/no-throw-statements': 'error'
-    }
-  },
-  {
     // Relaxed rules for test files
     files: [
       'packages/**/test/**/*.ts',
@@ -1092,6 +1080,7 @@ export default [
       'functional/no-loop-statements': 'off',
       'functional/prefer-property-signatures': 'off',
       'import/no-extraneous-dependencies': 'off',
+      '@typescript-eslint/consistent-type-definitions': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/array-type': 'off'
     }
