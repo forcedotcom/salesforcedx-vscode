@@ -21,7 +21,7 @@ import type {
 import * as vscode from 'vscode';
 import { getOrgBrowserRuntime } from '../services/extensionProvider';
 import { preloadMetadataTypes } from '../services/metadataTypePreload';
-import { matchesPattern, MAX_TYPES_FOR_COMPONENT_PREFETCH } from '../utils/wildcardPattern';
+import { matchesPattern } from '../utils/wildcardPattern';
 import { createCustomFieldNode } from './customField';
 import { isFolderListingNode, isFolderNode, isFolderType, OrgBrowserTreeItem } from './orgBrowserNode';
 
@@ -30,7 +30,6 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   public readonly onDidChangeTreeData: vscode.Event<OrgBrowserTreeItem | undefined | void> =
     this._onDidChangeTreeData.event;
   private readonly typeNodes = new Map<string, OrgBrowserTreeItem>();
-  private readonly browsedTypesByOrg = new Map<string, Set<string>>();
   private readonly fullDiscoveryOrgIds = new Set<string>();
 
   private _showLocal = true;
@@ -39,7 +38,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   private _componentFilter: string | undefined;
   private _typeIsRegex = false;
   private _componentIsRegex = false;
-  private _userApprovedBroadFetch = false;
+  private _hideResults = false;
   private treeEmpty = false;
 
   public get showLocal(): boolean {
@@ -78,8 +77,8 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     return this._componentIsRegex;
   }
 
-  public get userApprovedBroadFetch(): boolean {
-    return this._userApprovedBroadFetch;
+  public get hideResults(): boolean {
+    return this._hideResults;
   }
 
   public setTextFilter(
@@ -87,14 +86,15 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     componentFilter: string | undefined,
     typeIsRegex = false,
     componentIsRegex = false,
-    userApprovedBroadFetch = false
+    hideResults = false,
+    refresh = true
   ): void {
     this._typeFilter = typeFilter;
     this._componentFilter = componentFilter;
     this._typeIsRegex = typeIsRegex;
     this._componentIsRegex = componentIsRegex;
-    this._userApprovedBroadFetch = userApprovedBroadFetch;
-    this._onDidChangeTreeData.fire(undefined);
+    this._hideResults = hideResults;
+    if (refresh) this._onDidChangeTreeData.fire(undefined);
   }
 
   public clearTextFilter(): void {
@@ -111,6 +111,11 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
   /** fire the onDidChangeTreeData event for the node to cause vscode ui to update */
   public fireChangeEvent(node?: OrgBrowserTreeItem): void {
     this._onDidChangeTreeData.fire(node);
+  }
+
+  /** Refreshes the root so VS Code shows its native tree busy indicator during discovery. */
+  public setDiscoveryInProgress(_value: boolean): void {
+    this._onDidChangeTreeData.fire(undefined);
   }
 
   /**
@@ -140,16 +145,6 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     const node = mdapiDescribeToOrgBrowserNode({ xmlName });
     this.typeNodes.set(xmlName, node);
     return node;
-  }
-
-  public markTypeBrowsed(orgId: string, xmlName: string): void {
-    const types = this.browsedTypesByOrg.get(orgId) ?? new Set<string>();
-    types.add(xmlName);
-    this.browsedTypesByOrg.set(orgId, types);
-  }
-
-  public wasTypeBrowsed(orgId: string, xmlName: string): boolean {
-    return this.browsedTypesByOrg.get(orgId)?.has(xmlName) ?? false;
   }
 
   public hasStartedFullDiscovery(orgId: string): boolean {
@@ -348,7 +343,7 @@ const retainMatchingSubtree: (
  * Types with ≥1 component matching filter. Live-fetches components.
  * AND logic: type:component returns types with matching components only.
  */
-const filterTypesWithMatchingComponents = Effect.fn('filterTypesWithMatchingComponents')(function* (
+export const filterTypesWithMatchingComponents = Effect.fn('filterTypesWithMatchingComponents')(function* (
   typeNodes: OrgBrowserTreeItem[],
   provider: MetadataTypeTreeProvider
 ) {
@@ -357,7 +352,7 @@ const filterTypesWithMatchingComponents = Effect.fn('filterTypesWithMatchingComp
   return yield* Effect.all(
     typeNodes.map(typeNode =>
       (isGlobalSearch(provider)
-        ? retainMatchingSubtree(typeNode, provider, catalog, 'cache-only')
+        ? retainMatchingSubtree(typeNode, provider, catalog)
         : catalog
             .getChildren({ type: typeNode.xmlName })
             .pipe(
@@ -369,51 +364,15 @@ const filterTypesWithMatchingComponents = Effect.fn('filterTypesWithMatchingComp
                 )
               )
             )
-      ).pipe(Effect.map(matches => (matches ? Option.some(typeNode) : Option.none<OrgBrowserTreeItem>())))
-    ),
-    { concurrency: 10 }
-  ).pipe(Effect.map(Arr.getSomes));
-});
-
-/** Search cached types and reload types the user has already opened if their inventory was invalidated. */
-export const filterTypesWithCachedComponents = Effect.fn('filterTypesWithCachedComponents')(function* (
-  typeNodes: OrgBrowserTreeItem[],
-  provider: MetadataTypeTreeProvider,
-  orgId: string
-) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const catalog = yield* api.services.OrgMetadataCatalog;
-  return yield* Effect.all(
-    typeNodes.map(typeNode => {
-      const retained = (matches: boolean) => (matches ? Option.some(typeNode) : Option.none<OrgBrowserTreeItem>());
-      return Match.value({
-        global: isGlobalSearch(provider),
-        typeMatches: typeNameMatchesGlobalSearch(typeNode, provider)
-      }).pipe(
-        Match.when({ typeMatches: true }, () => Effect.succeed(Option.some(typeNode))),
-        Match.when({ global: true }, () =>
-          retainMatchingSubtree(typeNode, provider, catalog, 'cache-only').pipe(Effect.map(retained))
-        ),
-        Match.orElse(() =>
-          catalog
-            .getChildren(
-              { type: typeNode.xmlName },
-              provider.wasTypeBrowsed(orgId, typeNode.xmlName) ? {} : { consistency: 'cache-only' }
-            )
-            .pipe(
-              Effect.map(entries =>
-                retained(
-                  entries.some(
-                    entry =>
-                      entry.kind !== 'type' &&
-                      matchesPattern(entry.reference.fullName, provider.componentFilter!, provider.componentIsRegex)
-                  )
-                )
-              )
-            )
+      ).pipe(
+        Effect.map(matches => (matches ? Option.some(typeNode) : Option.none<OrgBrowserTreeItem>())),
+        Effect.catchAll(error =>
+          Effect.logWarning(`Failed to search Org Browser metadata type ${typeNode.xmlName}`, error).pipe(
+            Effect.as(Option.none<OrgBrowserTreeItem>())
+          )
         )
-      );
-    }),
+      )
+    ),
     { concurrency: 10 }
   ).pipe(Effect.map(Arr.getSomes));
 });
@@ -421,13 +380,10 @@ export const filterTypesWithCachedComponents = Effect.fn('filterTypesWithCachedC
 /** If a component filter is active, narrow types to those with matching components; else pass through. */
 const applyComponentFilter = Effect.fn('applyComponentFilter')(function* (
   typeFilteredNodes: OrgBrowserTreeItem[],
-  provider: MetadataTypeTreeProvider,
-  orgId: string
+  provider: MetadataTypeTreeProvider
 ) {
   if (!provider.componentFilter || provider.componentFilter === '') return typeFilteredNodes;
-  return typeFilteredNodes.length <= MAX_TYPES_FOR_COMPONENT_PREFETCH || provider.userApprovedBroadFetch
-    ? yield* filterTypesWithMatchingComponents(typeFilteredNodes, provider)
-    : yield* filterTypesWithCachedComponents(typeFilteredNodes, provider, orgId);
+  return yield* filterTypesWithMatchingComponents(typeFilteredNodes, provider);
 });
 
 const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider: MetadataTypeTreeProvider) => {
@@ -441,6 +397,10 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
       return yield* Effect.succeed([]);
     }
     if (!element) {
+      if (provider.hideResults) {
+        yield* Effect.promise(() => provider.updateTreeEmptyContext(true));
+        return [];
+      }
       // Both OFF = empty tree (explicit "show nothing" state)
       if (!provider.showLocal && !provider.showOrg) {
         yield* Effect.promise(() => provider.updateTreeEmptyContext(true));
@@ -460,7 +420,7 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
         return entry ? inventoryEntryMatchesViewMode(entry, provider) : false;
       });
       const typeFilteredNodes = presenceFilteredNodes.filter(node => passesTypeFilter(node, provider));
-      const result = yield* applyComponentFilter(typeFilteredNodes, provider, orgId);
+      const result = yield* applyComponentFilter(typeFilteredNodes, provider);
 
       yield* Effect.annotateCurrentSpan({
         resultCount: result.length,
@@ -471,19 +431,14 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
       yield* Effect.promise(() => provider.updateTreeEmptyContext(result.length === 0));
       return result;
     }
-    const unfilteredChildren = yield* loadVisibleChildren(
-      element,
-      provider,
-      orgMetadataCatalog,
-      isGlobalSearch(provider) ? 'cache-only' : undefined
-    );
+    const unfilteredChildren = yield* loadVisibleChildren(element, provider, orgMetadataCatalog, undefined);
     const children = isGlobalSearch(provider)
       ? matchesGlobalSearch(element, provider)
         ? unfilteredChildren
         : yield* Effect.forEach(
             unfilteredChildren,
             child =>
-              retainMatchingSubtree(child, provider, orgMetadataCatalog, 'cache-only').pipe(
+              retainMatchingSubtree(child, provider, orgMetadataCatalog).pipe(
                 Effect.map(matches => (matches ? Option.some(child) : Option.none<OrgBrowserTreeItem>()))
               ),
             { concurrency: 10, discard: false }
@@ -491,9 +446,6 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
       : isFolderListingNode(element)
         ? unfilteredChildren
         : applyViewModeChildFilter(unfilteredChildren, provider);
-    if (element.kind === 'type' || element.kind === 'folderType') {
-      provider.markTypeBrowsed(orgId, element.xmlName);
-    }
     return children;
   });
 

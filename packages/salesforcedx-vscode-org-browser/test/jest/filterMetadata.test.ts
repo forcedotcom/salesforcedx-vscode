@@ -4,7 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { parseFilterValue } from '../../src/commands/filterMetadata';
+import {
+  isCompleteSearchTerm,
+  isInvalidStructuredSearchTerm,
+  parseFilterValue
+} from '../../src/commands/filterMetadata';
 
 describe('Org Browser filter input', () => {
   it.each([
@@ -40,5 +44,30 @@ describe('Org Browser filter input', () => {
       typeIsRegex: false,
       componentIsRegex: true
     });
+  });
+
+  it.each([
+    ['broker', true],
+    ['ApexClass:Broker', true],
+    ['/Apex.*/:/Broker.*/', true],
+    ['/Apex', false],
+    ['ApexClass:/Broker', false],
+    ['/Apex(/:Broker', false],
+    ['ApexClass:/[/', false],
+    ['/Apex/x', false]
+  ])('treats %s as complete=%s for discovery prompting', (value, expected) => {
+    expect(isCompleteSearchTerm(value)).toBe(expected);
+  });
+
+  it.each([
+    ['broker', false],
+    ['ApexClass:Broker', false],
+    [':Broker', false],
+    ['ApexClass:', true],
+    ['/Apex', true],
+    ['ApexClass:/Broker', true],
+    ['ApexClass:/[/', true]
+  ])('treats %s as invalid structured search=%s', (value, expected) => {
+    expect(isInvalidStructuredSearchTerm(value)).toBe(expected);
   });
 });

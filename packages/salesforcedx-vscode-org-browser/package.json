@@ -334,8 +334,13 @@
       },
       {
         "view": "sfdxOrgBrowser",
+        "contents": "%org_browser_filters_invalid_search%",
+        "when": "sf:orgBrowser.initialized == true && sf:orgBrowser.invalidStructuredSearch == true && sf:orgBrowser.treeEmpty"
+      },
+      {
+        "view": "sfdxOrgBrowser",
         "contents": "%org_browser_filters_empty%",
-        "when": "sf:orgBrowser.initialized == true && ((sf:orgBrowser.showLocal == true && sf:orgBrowser.showOrg == false && sf:orgBrowser.treeEmpty) || (sf:orgBrowser.textFilterActive && sf:orgBrowser.treeEmpty))"
+        "when": "sf:orgBrowser.initialized == true && sf:orgBrowser.invalidStructuredSearch != true && ((sf:orgBrowser.showLocal == true && sf:orgBrowser.showOrg == false && sf:orgBrowser.treeEmpty) || (sf:orgBrowser.textFilterActive && sf:orgBrowser.treeEmpty))"
       },
       {
         "view": "sfdxOrgBrowser",

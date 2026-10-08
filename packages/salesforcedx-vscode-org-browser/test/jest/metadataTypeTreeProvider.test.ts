@@ -13,7 +13,7 @@ import {
   MetadataTypeTreeProvider,
   passesTypeFilter,
   applyViewModeChildFilter,
-  filterTypesWithCachedComponents,
+  filterTypesWithMatchingComponents,
   matchesGlobalSearch,
   suppressInactiveOrgOperation
 } from '../../src/tree/metadataTypeTreeProvider';
@@ -90,6 +90,16 @@ describe('MetadataTypeTreeProvider text filter state', () => {
     expect(listener).toHaveBeenCalledTimes(1);
   });
 
+  it('can restore a filter without immediately refreshing the tree', () => {
+    const provider = new MetadataTypeTreeProvider();
+    const listener = jest.fn();
+    provider.onDidChangeTreeData(listener);
+
+    provider.setTextFilter(undefined, 'Broker', false, false, false, false);
+
+    expect(listener).not.toHaveBeenCalled();
+  });
+
   it('clearTextFilter resets both values and fires a change event', () => {
     const provider = new MetadataTypeTreeProvider();
     provider.setTextFilter('ApexClass', 'Foo');
@@ -101,6 +111,24 @@ describe('MetadataTypeTreeProvider text filter state', () => {
     expect(provider.typeFilter).toBeUndefined();
     expect(provider.componentFilter).toBeUndefined();
     expect(listener).toHaveBeenCalledTimes(1);
+  });
+
+  it('records that results should be hidden for an incomplete structured search', () => {
+    const provider = new MetadataTypeTreeProvider();
+    provider.setTextFilter(undefined, '/Apex', false, false, true);
+
+    expect(provider.hideResults).toBe(true);
+  });
+
+  it('refreshes the root when full-org discovery starts or completes', () => {
+    const provider = new MetadataTypeTreeProvider();
+    const listener = jest.fn();
+    provider.onDidChangeTreeData(listener);
+
+    provider.setDiscoveryInProgress(true);
+    provider.setDiscoveryInProgress(false);
+
+    expect(listener).toHaveBeenCalledTimes(2);
   });
 });
 
@@ -228,68 +256,32 @@ describe('full discovery state', () => {
   });
 });
 
-describe('broad component search after cache invalidation', () => {
-  it('retains CustomObject when an expanded object has a matching cached field', async () => {
+describe('component filtering failures', () => {
+  it('keeps successful types when another metadata type cannot be listed', async () => {
     const provider = new MetadataTypeTreeProvider();
-    const customObject = typeNode('CustomObject');
-    const broker = {
-      kind: 'component',
-      reference: { type: 'CustomObject', fullName: 'Broker__c' }
-    } as OrgMetadataCatalogEntry;
-    provider.setTextFilter(undefined, 'AccountNumber');
-    const getChildren = jest.fn((reference: { fullName?: string }) =>
-      reference.fullName === 'Broker__c'
-        ? Effect.succeed([
+    const apexClass = typeNode('ApexClass');
+    const contentWorkspace = typeNode('ContentWorkspace');
+    provider.setTextFilter('*', 'Broker');
+    const getChildren = jest.fn((reference: { type?: string }) =>
+      reference.type === 'ContentWorkspace'
+        ? Effect.fail(new Error('Metadata API list is unsupported'))
+        : Effect.succeed([
             {
               kind: 'component',
-              reference: { type: 'CustomField', fullName: 'Broker__c.AccountNumber__c' }
+              reference: { type: 'ApexClass', fullName: 'BrokerService' }
             } as OrgMetadataCatalogEntry
           ])
-        : Effect.succeed([broker])
     );
-    const api = {
-      services: { OrgMetadataCatalog }
-    } as unknown as SalesforceVSCodeServicesApi;
+    const api = { services: { OrgMetadataCatalog } } as unknown as SalesforceVSCodeServicesApi;
     const service = { getServicesApi: Effect.succeed(api) };
 
     const result = await Effect.runPromise(
-      filterTypesWithCachedComponents([customObject], provider, 'org-one').pipe(
+      filterTypesWithMatchingComponents([apexClass, contentWorkspace], provider).pipe(
         Effect.provideService(ExtensionProviderService, service),
         Effect.provideService(OrgMetadataCatalog, { getChildren } as unknown as OrgMetadataCatalog)
       )
     );
 
-    expect(result).toEqual([customObject]);
-  });
-
-  it('does not acquire a browsed type when a plain search has no loaded match', async () => {
-    const provider = new MetadataTypeTreeProvider();
-    provider.setTextFilter(undefined, 'broker');
-    const lightningBundles = typeNode('LightningComponentBundle');
-    const component = {
-      kind: 'component',
-      reference: { type: 'LightningComponentBundle', fullName: 'broker' }
-    } as OrgMetadataCatalogEntry;
-    const getChildren = jest.fn((_reference: unknown, options: { consistency?: string }) =>
-      Effect.succeed(options.consistency === 'cache-only' ? [] : [component])
-    );
-    const api = {
-      services: { OrgMetadataCatalog }
-    } as unknown as SalesforceVSCodeServicesApi;
-    const service = { getServicesApi: Effect.succeed(api) };
-    const search = (orgId: string) =>
-      Effect.runPromise(
-        filterTypesWithCachedComponents([lightningBundles], provider, orgId).pipe(
-          Effect.provideService(ExtensionProviderService, service),
-          Effect.provideService(OrgMetadataCatalog, { getChildren } as unknown as OrgMetadataCatalog)
-        )
-      );
-
-    expect(await search('org-one')).toEqual([]);
-    provider.markTypeBrowsed('org-one', 'LightningComponentBundle');
-    expect(await search('org-one')).toEqual([]);
-    expect(await search('org-two')).toEqual([]);
-    expect(getChildren).toHaveBeenCalledTimes(3);
-    expect(getChildren).toHaveBeenCalledWith({ type: 'LightningComponentBundle' }, { consistency: 'cache-only' });
+    expect(result).toEqual([apexClass]);
   });
 });

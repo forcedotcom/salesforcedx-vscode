@@ -1,161 +1,195 @@
 # Salesforce Org Browser
 
+Browse metadata in an authenticated Salesforce org, inspect its contents, and retrieve components into the current Salesforce project.
+
+## Requirements
+
+- VS Code 1.90.0 or later
+- An authenticated Salesforce org
+- A selected default org
+- Salesforce Extension Pack for Visual Studio Code, which installs the required Salesforce Services extension
+
+A Salesforce DX project is typical when retrieving metadata, but it is not required to browse an org.
+
+## Use Org Browser
+
+1. Select the **Org Browser** icon in the Activity Bar.
+2. Expand metadata types and components to inspect the default org's metadata.
+3. Select a component or metadata type and use retrieve commands when you want to add it to a local project.
+
+## Filter Metadata
+
+Use **Filter by Type/Component** in the Org Browser toolbar to search metadata types and component names. When a filter is active, the toolbar icon changes to **Edit Filter (active)**.
+
+| Input | Searches |
+| --- | --- |
+| `Broker` | Metadata type names and component names containing `Broker` |
+| `Apex*` | Type and component names matching the wildcard expression |
+| `ApexClass:` | Metadata type names matching `ApexClass` |
+| `ApexClass:Broker` | Components containing `Broker` within matching metadata types |
+| `:Broker` | Components containing `Broker` across all metadata types |
+| `/Apex.*/` | Type and component names matching a regular expression |
+| `ApexClass:/Broker.*/` | Components matching a regular expression within `ApexClass` |
+
+Plain-text searches are case-insensitive substring searches. Use `*` for wildcard matching.
+
+## Local And Org Visibility
+
+The Org Browser toolbar also has **Show Local Types** and **Show Org Types** toggles. They control which metadata is eligible to appear before a text filter is applied.
+
+| Show Local Types | Show Org Types | Visible results |
+| --- | --- | --- |
+| On | On | All available local and org metadata. |
+| On | Off | Only metadata with a corresponding source file in the workspace. |
+| Off | On | Only metadata known to exist in the active org, including components that also exist locally. |
+| Off | Off | No results. This is an explicit "show nothing" state. |
+
+The visibility toggles and the text filter combine as an intersection: a component must be visible under the selected local/org mode and match the text filter to appear. For example, with **Show Local Types** enabled and **Show Org Types** disabled, a component search returns only matching components that have local source files.
+
+The toggles are stored per org ID with the text and regular-expression filters. Changing the default org restores that org's saved local/org visibility mode.
+
+## Search Timing
+
+Org Browser applies a filter after you stop typing for 300 ms. Pressing Enter closes the filter input and applies its current value immediately.
+
+## Incomplete Search Expressions
+
+Structured searches are not sent to the org until they are complete and valid. Examples that need correction include:
+
+- `/Apex` because the regular expression is missing its closing `/`
+- `ApexClass:/Broker` because the component regular expression is incomplete
+- `ApexClass:` because a component-search clause is incomplete
+- `ApexClass:/[/` because the regular expression is invalid
+
+For these expressions, Org Browser shows an empty-tree message explaining that the expression must be completed or corrected before searching the org. Correct the expression and pause typing to resume search behavior.
+
+## Search All Metadata Types
+
+Org Browser initially searches metadata that is already loaded for the active org. When relevant metadata types have not been loaded, it shows a non-modal notification:
+
+> Search all N metadata types in the org? This may take longer and make additional requests.
+
+| Action | Result |
+| --- | --- |
+| **Search All Types** | Discovers metadata across the org and expands results as matching types become available. |
+| **Use Loaded Results** | Searches currently loaded metadata only. Results can be incomplete until additional metadata is loaded. |
+| Dismiss notification | Uses loaded results for the current search. |
+
+The notification appears after a valid term remains unchanged for the debounce interval. It is not shown for incomplete or invalid structured expressions. If it disappears while editing, pause on a valid expression again to show a new notification. Org Browser prevents duplicate notifications while one is already active.
+
+When Org Browser starts with a restored component filter, it waits for this choice before beginning the filtered tree projection. This prevents metadata loading from starting before you choose the search scope.
+
+## Discovery Progress
+
+While discovering all metadata types:
+
+- The Org Browser tree uses its normal busy indicator during refreshes.
+- The status bar shows progress, for example `Discovering org metadata 24/172`.
+- Results refresh periodically as discovery progresses.
+- A metadata type that cannot be listed is skipped and logged; it does not prevent results from other metadata types from appearing.
+
+Discovery acquires every metadata branch that Org Browser supports for the active org, including nested folders and Custom Object fields. It does not change the active text filter or local/org visibility toggles. Each periodic tree refresh applies the current visibility mode and text filter to whatever metadata has been discovered so far.
+
+This means the tree can grow, shrink, or remain empty while discovery continues:
+
+| Current UI state | What to expect during discovery |
+| --- | --- |
+| A matching type or component has been discovered | It appears at the next periodic tree refresh. |
+| No matching metadata has been discovered yet | The tree remains empty while the status bar continues to show discovery progress. |
+| Local-only or org-only visibility is selected | Newly discovered metadata still has to satisfy that visibility mode before it appears. |
+| The filter or visibility toggle changes | The tree immediately reapplies the new state; discovery continues for the active org. |
+| A metadata type cannot be listed | That type may not contribute results, but discovery and results for other types continue. |
+
+The discovery prompt is non-modal, so you can keep editing the filter or change visibility toggles while it is visible. The status item is removed and a final tree refresh occurs when discovery ends. A manual root refresh resets the completed-discovery marker for the active view, so a later component search can ask to discover again if inventory data is no longer available.
+
+## Stored State
+
+| Data | Scope |
+| --- | --- |
+| Show Local Types setting | Per org ID |
+| Show Org Types setting | Per org ID |
+| Filter text and regular-expression settings | Per org ID |
+| Metadata inventories and catalog observations | Per org ID |
+
+A new scratch org starts without a saved filter. Switching back to an earlier org restores that org's previous filter and can reuse persisted metadata inventories and catalog observations to warm the new session. Org Browser rebuilds its tree projections and refreshes metadata when required. Filters from one org are not applied to another org.
+
+## Restoration Lifecycle
+
+### When The Target Org Changes
+
+When you change the default org while VS Code remains open, Org Browser:
+
+- Restores the filter text, regular-expression settings, and local/org visibility mode saved for the newly active org.
+- Clears the filter if there is no active org.
+- Keeps in-memory catalog data for previously used orgs available during the current session.
+- Refreshes the tree for the newly active org. The tree projection is recreated for that org; it is not transferred from the previously active org.
+
+Metadata inventories and catalog observations already acquired for the newly active org can be reused from the current session. A type is fetched again only when the catalog needs fresh data or its cached data has been invalidated.
+
+### When Org Browser Initializes
+
+At extension activation, Org Browser waits until the default org has an org ID, then restores that org's filter state before displaying the tree. Existing workspaces with the earlier, workspace-wide filter settings are migrated once to the initial org's per-org filter state.
+
+Catalog snapshots are loaded lazily when Org Browser or another catalog consumer first needs metadata for the active org. The snapshot can restore persisted type inventories and catalog observations, but Org Browser still recreates its tree projection and obtains root metadata types for the new session. It may make additional org requests when data is missing, stale, or invalidated.
+
+## Installation
+
+This extension is part of the Salesforce Extension Pack for Visual Studio Code.
+
 ## Development
 
 ### Testing
 
-This extension includes comprehensive Playwright tests for both web and desktop (Electron) environments with shared test logic.
+This extension includes Playwright tests for both web and desktop (Electron) environments with shared test logic.
 
 #### Quick Test Commands
 
-Run from project level (salesforcedx-vscode directory) using `--filter`:
+Run from the repository root:
 
 ```bash
-# Install dependencies (includes Playwright)
 pnpm install
-
-# Compile the extension
 pnpm --filter salesforcedx-vscode-org-browser compile
-
-# Run web tests (headless by default)
 pnpm --filter salesforcedx-vscode-org-browser test:web
-
-# Run desktop tests (Electron UI always visible)
 pnpm --filter salesforcedx-vscode-org-browser test:desktop
-
-# Run all e2e tests (web + desktop)
 pnpm --filter salesforcedx-vscode-org-browser test:e2e
-
-# Run web tests with headed browser for debugging
 pnpm --filter salesforcedx-vscode-org-browser test:web:ui
 ```
 
 #### Environment Setup
 
-Tests use the `DREAMHOUSE_ORG_ALIAS` environment variable to locate a pre-configured Salesforce org:
+Tests use `DREAMHOUSE_ORG_ALIAS` to locate a pre-configured Salesforce org:
 
 ```bash
-# Set the org alias (defaults to orgBrowserDreamhouseTestOrg)
 export DREAMHOUSE_ORG_ALIAS=myTestOrg
-
-# Verify org exists and is authenticated
 sf org display -o myTestOrg
 ```
 
-In CI, the org is created automatically. For local development, reuse an existing org to avoid creating a new scratch org for each test run.
+In CI, the org is created automatically. For local development, reuse an existing org to avoid creating a scratch org for each test run.
 
-#### Manual Testing for Debugging
+#### Manual Testing
 
 ```bash
-ppnpm run run:web
+pnpm run run:web
 ```
 
-Opens VS Code web in Chrome with DevTools. For org credentials and settings injection, see [docs/QA.md](../../docs/QA.md).
-
-**Manual test workflow:** Explorer tab → Org Browser tab → check console for errors.
-
-#### Automated Testing Architecture
-
-**Playwright Tests with CDP Support:**
-
-- Tests attempt CDP connection to existing Chrome browser first
-- Falls back to isolated Playwright if CDP unavailable
-- More realistic testing with CDP, predictable testing with fallback
-- Captures console errors from browser session
-
-**Test Flow:**
-
-1. Tests attempt CDP connection to existing browser first
-2. Falls back to isolated Playwright if CDP unavailable
-3. Verifies Explorer loads → switches to Org Browser → checks for errors
-4. Captures and reports console errors, especially EventEmitter issues
+This opens VS Code web in Chrome with DevTools. For org credentials and settings injection, see [docs/QA.md](../../docs/QA.md). Check the Explorer's Org Browser view and the browser console for errors.
 
 #### Test Structure
 
 ```text
 test/playwright/
-├── specs/                     # Test specs (shared between web & desktop)
-│   ├── orgBrowser.customObject.headless.spec.ts
-│   ├── orgBrowser.customTab.headless.spec.ts
-│   ├── orgBrowser.describe.scratch.spec.ts
-│   ├── orgBrowser.filterToggle.headless.spec.ts
-│   ├── orgBrowser.folderedReport.headless.spec.ts
-│   └── orgBrowser.textFilter.headless.spec.ts
-├── fixtures/                  # Platform-specific test fixtures
-│   ├── webFixtures.ts        # Web test setup
-│   ├── desktopFixtures.ts    # Desktop/Electron test setup
-│   └── desktopWorkspace.ts   # Workspace creation for desktop
-├── pages/                     # Page objects (shared)
-├── utils/                     # Test utilities (shared)
-└── web/                       # Web-only infrastructure
-    └── headlessServer.ts     # VS Code web server
-
-playwright.config.web.ts       # Web test configuration
-playwright.config.desktop.ts   # Desktop test configuration
+├── specs/       # Shared web and desktop test specs
+├── fixtures/    # Platform-specific setup
+├── pages/       # Shared page objects
+├── utils/       # Test utilities
+└── web/         # Web-only infrastructure
 ```
 
-**Key Design:**
-
-- Same test files run on both web and desktop platforms
-- Platform-specific setup via Playwright fixtures
-- Desktop uses worker-scoped VS Code download (cached)
-- Each test gets fresh Electron instance with isolated workspace
-
-#### Troubleshooting
-
-**"No tests found":** `pnpm --filter salesforcedx-vscode-org-browser test:web -- --list` or `--grep "should verify org browser"`
-
-**Extension not activating:** Check Services extension activated first; verify bundle compiled.
-
-**Port conflicts, polyfills, auth:** See [docs/QA.md](../../docs/QA.md), [docs/Build.md](../../docs/Build.md), [contributing/developing.md](../../contributing/developing.md).
-
-Based on the [VS Code web extensions guide](https://code.visualstudio.com/api/extension-guides/web-extensions).
-
-This extension provides org browsing capabilities for Salesforce development in VS Code.
-
-## Features
-
-- Browse Salesforce org metadata
-- Retrieve components from org
-- Interactive org navigation
-- Real-time text filter with plain text, wildcard, and regex support (persisted across reload)
-  - Clean text input with live tree filtering (150ms debounce); empty-tree message appears in real-time without requiring commit
-  - **No colon:** Search type and component names with the same case-insensitive pattern; `broker` finds `Broker__c` across metadata types
-    - `ApexClass:` filters to that type; `ApexClass:broker` limits component matches to Apex classes; `:broker` searches component names across types
-  - **Wildcard mode:** Filter types and components using `*` (matches any characters)
-    - Examples: `Apex*` (type or component names starting with Apex), `Apex*:` (types starting with Apex), `ApexClass:*Test*` (classes containing Test)
-  - **Regex mode (opt-in):** Use `/pattern/` delimiters for full regular expression support
-    - Syntax: `/pattern/` searches types and components, `/typePattern/:` searches types only, and `/typePattern/:/componentPattern/` filters both
-    - Examples: `/Apex.*/` (type or component names starting with Apex), `/Apex.*/:/File.*/` (types starting with Apex with components starting with File)
-    - Supports full regex syntax: `.` (any char), `*` (0+ repetitions), `?` (0-1), `|` (alternation), `[]` (character classes)
-    - Invalid regex patterns return no matches instead of errors
-  - **AND logic:** Both modes use AND logic when combining type and component filters
-    - `Apex*:File*` shows types matching `Apex*` that have at least one component matching `File*`
-    - Types with no matching components are hidden
-  - **Confirmation prompt for broad filters:** When a search spans more than 25 types, previously opened types are searched again if their cached entries were invalidated. A prompt appears when the input closes to ask before fetching components from all matched types (can be performance intensive)
-  - **Filter persistence:** The filter saves as you type and persists across reload; component-only filters (`:MyComponent`) are recognized as active
-  - **Context key synchronization:** `sf:orgBrowser.textFilterActive` updates live as you type, keeping the toolbar icon in sync with the filter state
-  - The tree updates as you type; Enter or Escape closes the input without clearing the filter. Clear the input to remove the filter. Broad component searches ask for fetch approval when the input closes.
-
-## Requirements
-
-- VS Code 1.90.0 or higher
-- Salesforce CLI
-- Authenticated Salesforce org
-
-## Installation
-
-This extension is part of the Salesforce Extensions for VS Code package.
-
-## Usage
-
-1. Open a Salesforce project
-2. Authenticate with your org
-3. Use the Org Browser to navigate and retrieve metadata
+Desktop tests use a worker-scoped VS Code download and each test receives a fresh Electron instance with an isolated workspace. See [docs/QA.md](../../docs/QA.md), [docs/Build.md](../../docs/Build.md), and [contributing/developing.md](../../contributing/developing.md) for troubleshooting.
 
 ## Contributing
 
-Please see the [contributing guide](../../CONTRIBUTING.md) for details on how to contribute to this project.
+See the [contributing guide](../../CONTRIBUTING.md).
 
 ## License
 

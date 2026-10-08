@@ -14,7 +14,7 @@ import * as Scope from 'effect/Scope';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
-import { openFilterTextPicker } from './commands/filterMetadata';
+import { openFilterTextPicker, requestRestoredFilterDiscovery } from './commands/filterMetadata';
 import { retrieveEffect } from './commands/retrieveMetadata';
 import { EXTENSION_NAME, TREE_VIEW_ID } from './constants';
 import {
@@ -23,6 +23,7 @@ import {
   getOrgBrowserRuntime,
   setAllServicesLayer
 } from './services/extensionProvider';
+import { getFilterState, saveFilterState, type OrgBrowserFilterState } from './services/filterState';
 import { coalesceTreeRefreshes } from './tree/catalogChange';
 import { MetadataTypeTreeProvider } from './tree/metadataTypeTreeProvider';
 import { OrgBrowserTreeItem } from './tree/orgBrowserNode';
@@ -64,36 +65,29 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     );
   }
 
-  // Read persisted filter state
   const showLocal = context.workspaceState.get<boolean>('orgBrowser.showLocal') ?? true;
   const showOrg = context.workspaceState.get<boolean>('orgBrowser.showOrg') ?? true;
-  const typeFilter = context.workspaceState.get<string | undefined>('orgBrowser.typeFilter');
-  const componentFilter = context.workspaceState.get<string | undefined>('orgBrowser.componentFilter');
-  const typeIsRegex = context.workspaceState.get<boolean>('orgBrowser.typeIsRegex') ?? false;
-  const componentIsRegex = context.workspaceState.get<boolean>('orgBrowser.componentIsRegex') ?? false;
 
   treeProvider.setShowLocal(showLocal);
   treeProvider.setShowOrg(showOrg);
-  if (isNotUndefined(typeFilter) || isNotUndefined(componentFilter)) {
-    treeProvider.setTextFilter(typeFilter, componentFilter, typeIsRegex, componentIsRegex);
-  }
 
   // Set initial context keys
   yield* Effect.all(
     [
       Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showLocal', showLocal)),
       Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showOrg', showOrg)),
-      Effect.promise(() =>
-        vscode.commands.executeCommand(
-          'setContext',
-          'sf:orgBrowser.textFilterActive',
-          isNotUndefined(typeFilter) || isNotUndefined(componentFilter)
-        )
-      ),
-      Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.treeEmpty', false))
+      Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.textFilterActive', false)),
+      Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.treeEmpty', false)),
+      Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.invalidStructuredSearch', false))
     ],
     { concurrency: 'unbounded' }
   );
+
+  const saveActiveFilterState = (filter: Partial<OrgBrowserFilterState>) =>
+    Effect.gen(function* () {
+      const { orgId } = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+      if (orgId) yield* Effect.promise(() => saveFilterState(context, orgId, filter));
+    });
 
   const registerCommand = api.services.registerCommandWithRuntime(getOrgBrowserRuntime());
 
@@ -122,7 +116,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
         Effect.gen(function* () {
           yield* Effect.all(
             [
-              Effect.promise(() => context.workspaceState.update('orgBrowser.showLocal', true)),
+              saveActiveFilterState({ showLocal: true }),
               Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showLocal', true))
             ],
             { concurrency: 'unbounded' }
@@ -134,7 +128,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
         Effect.gen(function* () {
           yield* Effect.all(
             [
-              Effect.promise(() => context.workspaceState.update('orgBrowser.showLocal', false)),
+              saveActiveFilterState({ showLocal: false }),
               Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showLocal', false))
             ],
             { concurrency: 'unbounded' }
@@ -146,7 +140,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
         Effect.gen(function* () {
           yield* Effect.all(
             [
-              Effect.promise(() => context.workspaceState.update('orgBrowser.showOrg', true)),
+              saveActiveFilterState({ showOrg: true }),
               Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showOrg', true))
             ],
             { concurrency: 'unbounded' }
@@ -158,7 +152,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
         Effect.gen(function* () {
           yield* Effect.all(
             [
-              Effect.promise(() => context.workspaceState.update('orgBrowser.showOrg', false)),
+              saveActiveFilterState({ showOrg: false }),
               Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showOrg', false))
             ],
             { concurrency: 'unbounded' }
@@ -182,6 +176,73 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     until: org => isNotUndefined(org.orgId),
     schedule: Schedule.exponential(Duration.millis(10))
   });
+  const legacyFilter: OrgBrowserFilterState | undefined = (() => {
+    const typeFilter = context.workspaceState.get<string | undefined>('orgBrowser.typeFilter');
+    const componentFilter = context.workspaceState.get<string | undefined>('orgBrowser.componentFilter');
+    return isNotUndefined(typeFilter) || isNotUndefined(componentFilter)
+      ? {
+          typeFilter,
+          componentFilter,
+          typeIsRegex: context.workspaceState.get<boolean>('orgBrowser.typeIsRegex') ?? false,
+          componentIsRegex: context.workspaceState.get<boolean>('orgBrowser.componentIsRegex') ?? false,
+          showLocal,
+          showOrg
+        }
+      : undefined;
+  })();
+  const restoreFilter = (orgId: string, refresh = true, deferComponentFilter = false) =>
+    Effect.gen(function* () {
+      const persistedFilter = getFilterState(context, orgId);
+      const filter = persistedFilter ?? (orgId === initialOrgId ? legacyFilter : undefined);
+      if (legacyFilter && orgId === initialOrgId && !persistedFilter) {
+        yield* Effect.promise(() => saveFilterState(context, orgId, legacyFilter));
+        yield* Effect.all(
+          [
+            Effect.promise(() => context.workspaceState.update('orgBrowser.typeFilter', undefined)),
+            Effect.promise(() => context.workspaceState.update('orgBrowser.componentFilter', undefined)),
+            Effect.promise(() => context.workspaceState.update('orgBrowser.typeIsRegex', undefined)),
+            Effect.promise(() => context.workspaceState.update('orgBrowser.componentIsRegex', undefined)),
+            Effect.promise(() => context.workspaceState.update('orgBrowser.showLocal', undefined)),
+            Effect.promise(() => context.workspaceState.update('orgBrowser.showOrg', undefined))
+          ],
+          { concurrency: 'unbounded', discard: true }
+        );
+      }
+      treeProvider.setTextFilter(
+        filter?.typeFilter,
+        filter?.componentFilter,
+        filter?.typeIsRegex,
+        filter?.componentIsRegex,
+        deferComponentFilter && Boolean(filter?.componentFilter),
+        refresh
+      );
+      treeProvider.setShowLocal(filter?.showLocal ?? true);
+      treeProvider.setShowOrg(filter?.showOrg ?? true);
+      yield* Effect.all(
+        [
+          Effect.promise(() =>
+            vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showLocal', filter?.showLocal ?? true)
+          ),
+          Effect.promise(() =>
+            vscode.commands.executeCommand('setContext', 'sf:orgBrowser.showOrg', filter?.showOrg ?? true)
+          ),
+          Effect.promise(() =>
+            vscode.commands.executeCommand(
+              'setContext',
+              'sf:orgBrowser.textFilterActive',
+              isNotUndefined(filter?.typeFilter) || isNotUndefined(filter?.componentFilter)
+            )
+          ),
+          Effect.promise(() =>
+            vscode.commands.executeCommand('setContext', 'sf:orgBrowser.invalidStructuredSearch', false)
+          )
+        ],
+        { concurrency: 'unbounded', discard: true }
+      );
+      return filter;
+    });
+  const { orgId: initialOrgId } = yield* SubscriptionRef.get(targetOrgRef);
+  const initialFilter = initialOrgId ? yield* restoreFilter(initialOrgId, false, true) : undefined;
   const orgMetadataChanges = yield* api.services.OrgMetadataCatalogChangePubSub;
   const extensionScope = yield* getExtensionScope();
   yield* Effect.forkIn(
@@ -192,27 +253,40 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     ),
     extensionScope
   );
+  if (initialFilter?.componentFilter) {
+    yield* Effect.sync(() =>
+      requestRestoredFilterDiscovery(treeProvider, context, {
+        ...initialFilter
+      })
+    );
+  } else {
+    treeProvider.fireChangeEvent();
+  }
 
   yield* Effect.forkDaemon(
     targetOrgRef.changes.pipe(
       Stream.map(org => org.orgId),
+      Stream.drop(1),
       Stream.changes,
-      // we do want a change to "no org" to trigger the refresh so it shows the empty state.
       Stream.tap(orgId => svc.appendToChannel(`Target org changed to ${orgId ?? '<NOT SET>'}`)),
       Stream.tap(() => svc.appendToChannel('Org changed, will try to update OrgBrowser')),
       Stream.runForEach(orgId =>
-        orgId
-          ? Effect.tryPromise(() => treeProvider.refreshType()).pipe(
-              Effect.catchAll(error =>
-                Effect.logWarning('Failed to refresh Org Browser after an org change', error).pipe(
-                  Effect.zipRight(Effect.sync(() => treeProvider.fireChangeEvent()))
+        Effect.gen(function* () {
+          if (orgId) yield* restoreFilter(orgId);
+          else treeProvider.clearTextFilter();
+          return yield* orgId
+            ? Effect.tryPromise(() => treeProvider.refreshType()).pipe(
+                Effect.catchAll(error =>
+                  Effect.logWarning('Failed to refresh Org Browser after an org change', error).pipe(
+                    Effect.zipRight(Effect.sync(() => treeProvider.fireChangeEvent()))
+                  )
                 )
               )
-            )
-          : Effect.tryPromise(() => treeProvider.updateTreeEmptyContext(true)).pipe(
-              Effect.zipRight(Effect.sync(() => treeProvider.fireChangeEvent())),
-              Effect.catchAll(error => Effect.logWarning('Failed to clear the Org Browser tree', error))
-            )
+            : Effect.tryPromise(() => treeProvider.updateTreeEmptyContext(true)).pipe(
+                Effect.zipRight(Effect.sync(() => treeProvider.fireChangeEvent())),
+                Effect.catchAll(error => Effect.logWarning('Failed to clear the Org Browser tree', error))
+              );
+        })
       )
     )
   );
