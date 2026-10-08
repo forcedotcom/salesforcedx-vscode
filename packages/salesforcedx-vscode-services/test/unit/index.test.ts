@@ -248,6 +248,17 @@ describe('Extension', () => {
     });
     // Mock the updateWorkspaceFolders method that's called in the index.ts
     vscode.workspace.updateWorkspaceFolders = vi.fn();
+    // resetMocks clears the vscode stub, and ChannelDisposalLayer calls dispose() on every cached channel.
+    vscode.window.createOutputChannel = vi.fn(() => ({
+      name: 'test',
+      append: vi.fn(),
+      clear: vi.fn(),
+      appendLine: vi.fn(),
+      replace: vi.fn(),
+      show: vi.fn(),
+      hide: vi.fn(),
+      dispose: vi.fn()
+    })) as unknown as typeof vscode.window.createOutputChannel;
   });
 
   it('activates with shared services and an external span SDK', async () => {

@@ -5,24 +5,38 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { Connection } from '@salesforce/core';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
 import { runQuery } from '../../../src/editor/queryRunner';
 
 describe('runQuery ALL ROWS handling', () => {
-  const makeConn = () => {
-    const query = vi.fn().mockResolvedValue({ records: [], totalSize: 0, done: true });
-    return { conn: { query } as unknown as Connection, query };
+  const run = (queryText: string) => {
+    const query = vi.fn(() => Effect.succeed({ records: Stream.empty, totalSize: 0 }));
+    return Effect.runPromise(
+      runQuery(queryText).pipe(
+        Effect.provideService(ExtensionProviderService, {
+          getServicesApi: Effect.succeed({
+            services: { QueryService: Effect.succeed({ query }) }
+          } as never)
+        })
+      ) as Effect.Effect<unknown, unknown, never>
+    ).then(() => query);
   };
 
-  it('strips trailing ALL ROWS and passes scanAll true to conn.query', async () => {
-    const { conn, query } = makeConn();
-    await runQuery(conn)('SELECT Id FROM Account ALL ROWS', { showErrors: false });
-    expect(query).toHaveBeenCalledWith('SELECT Id FROM Account', expect.objectContaining({ scanAll: true }));
+  it('strips trailing ALL ROWS and passes scanAll true', async () => {
+    const query = await run('SELECT Id FROM Account ALL ROWS');
+    expect(query).toHaveBeenCalledWith(
+      expect.objectContaining({ soql: 'SELECT Id FROM Account', scanAll: true }),
+      expect.anything()
+    );
   });
 
   it('passes scanAll false and unchanged text when ALL ROWS is absent', async () => {
-    const { conn, query } = makeConn();
-    await runQuery(conn)('SELECT Id FROM Account', { showErrors: false });
-    expect(query).toHaveBeenCalledWith('SELECT Id FROM Account', expect.objectContaining({ scanAll: false }));
+    const query = await run('SELECT Id FROM Account');
+    expect(query).toHaveBeenCalledWith(
+      expect.objectContaining({ soql: 'SELECT Id FROM Account', scanAll: false }),
+      expect.anything()
+    );
   });
 });

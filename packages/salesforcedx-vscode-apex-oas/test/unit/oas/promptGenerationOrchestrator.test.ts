@@ -4,20 +4,21 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
-import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import type { GenerationStrategy } from '../../../src/oas/generationStrategy/generationStrategy';
 import * as factory from '../../../src/oas/generationStrategy/generationStrategyFactory';
-import { GenerationStrategyType } from '../../../src/oas/generationStrategy/generationStrategyFactory';
+import { type GenerationStrategyType } from '../../../src/oas/generationStrategy/generationStrategyFactory';
 import {
   applyRule,
   getLeastCallsStrategy,
   getMostCallsStrategy,
   selectStrategyByBidRule
 } from '../../../src/oas/promptGenerationOrchestrator';
-import { PromptGenerationStrategyBid } from '../../../src/oas/schemas';
+import { type PromptGenerationStrategyBid } from '../../../src/oas/schemas';
 
 const buildBids = (entries: Array<[GenerationStrategyType, number]>) =>
   new Map<GenerationStrategyType, PromptGenerationStrategyBid>(
@@ -157,15 +158,25 @@ describe('selectStrategyByBidRule', () => {
   };
 
   // initializeAndBid is mocked, so the `R` channel is empty at runtime; cast away the static service requirements.
-  const runSelect = (rule: 'LEAST_CALLS' | 'MOST_CALLS') => {
-    vi.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue({
-      get: () => rule,
-      update: vi.fn()
-    } as unknown as vscode.WorkspaceConfiguration);
-    return Effect.runPromise(
-      selectStrategyByBidRule(mockMetadata, mockContext) as Effect.Effect<GenerationStrategy, unknown, never>
+  const runSelect = (rule: 'LEAST_CALLS' | 'MOST_CALLS') =>
+    Effect.runPromise(
+      selectStrategyByBidRule(mockMetadata, mockContext).pipe(
+        Effect.provideService(ExtensionProviderService, {
+          getServicesApi: Effect.succeed({
+            services: {
+              SettingsService
+            }
+          } as never)
+        }),
+        Effect.provideService(
+          SettingsService,
+          SettingsService.make({
+            getValue: () => Effect.succeed(rule),
+            getValueOrElse: () => Effect.succeed(rule)
+          } as never)
+        )
+      ) as Effect.Effect<GenerationStrategy, unknown, never>
     );
-  };
 
   afterEach(() => {
     vi.restoreAllMocks();

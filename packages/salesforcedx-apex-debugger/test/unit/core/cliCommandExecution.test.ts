@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { MockInstance as VitestMockInstance } from 'vitest';
-import type { Command, CancellationToken } from '@salesforce/salesforcedx-utils';
+import type { CancellationToken } from '../../../src/types/cancellationToken';
+import type { Command } from '../../../src/types/command';
 import * as rxjs from 'rxjs';
 import {
   CANCELLATION_INTERVAL,

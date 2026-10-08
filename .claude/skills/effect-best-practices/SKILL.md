@@ -39,7 +39,7 @@ npx effect-language-service diagnostics --project tsconfig.json
 | Naming            | `FooCommand` for commands, domain names for helpers      | `FooEffect` suffix (redundant; TS/Effect.fn already convey type) |
 | Logging           | `Effect.log` with structured data                        | `console.log`                                                    |
 | Config            | `Config.*` with validation                               | `process.env` directly (except build-time vars like `ESBUILD_*`) |
-| Time values       | `Duration.seconds(30)`, `Duration.millis(5000)`; params as `Duration.DurationInput` | Numeric milliseconds as `number` params or `TIMEOUT_MS = 30_000` constants |
+| Time values       | `Duration.seconds(30)`, `Duration.millis(5000)`; params as `Duration.DurationInput`. Enforced by `local/no-raw-duration` for a numeric arg/prop in `Duration` / `DurationInput` position only. `bigint`, template strings, `number` params, and `TIMEOUT_MS` constants stay outside the rule. | Numeric milliseconds as `number` params or `TIMEOUT_MS = 30_000` constants |
 | Options           | `Option.match` with both cases                           | `Option.getOrThrow`                                              |
 | Nullability       | `Option<T>` in domain types                              | `null`/`undefined`                                               |
 | Atoms             | `Atom.make` outside components                           | Creating atoms inside render                                     |
@@ -236,7 +236,7 @@ See `references/schema-patterns.md` for transforms and advanced patterns.
 
 ## Function Pattern: Prefer Effect.fn over Effect.gen
 
-**Prefer `Effect.fn`** for effectful code. Provides automatic tracing with proper span names. Span name required; enforced by `local/require-effect-fn-span-name`.
+**Prefer `Effect.fn`** for effectful code. Provides automatic tracing with proper span names. Span name required; enforced by `local/require-effect-fn-span-name`. `Effect.tap` / `*SuccessNotification` middleware before catch middleware: `local/effect-fn-catch-middleware-last` (later catch and non-success guards stay valid). Details: services-extension-consumption Success handling.
 
 **Use `Effect.gen` only when** you need a shared effect with common `.pipe` attached so multiple consumers don't each pipe the same things — e.g. provided dependencies, common error handlers, retries. (Less common with Runtimes.) Service definition bodies are a valid use (shared wiring).
 

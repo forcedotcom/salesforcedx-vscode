@@ -19,21 +19,21 @@ Related: `@salesforce/apex` (LWC module resolver; repo not in metadata). `@sales
 1. **Build the library** — In the library repo, run its build script (usually `yarn build` or `npm run build`).
 
 1. **Copy output to node_modules** — Copy the library's output folder (e.g. `lib` from salesforcedx-templates) into the corresponding `node_modules` folder in this project.
-   - Target: `node_modules/@salesforce/<package-name>/` (repo root; npm workspaces hoists deps).
-   - Alternative: `npm link` if you're comfortable with it; copy is simpler and avoids symlink quirks.
+   - Target: `node_modules/@salesforce/<package-name>/` (repo root or the consuming package's `node_modules` under pnpm).
+   - Alternative: `pnpm link` if you're comfortable with it; copy is simpler and avoids symlink quirks.
 
-1. **Bundle** — Run `npm run vscode:bundle`. See [Build](./Build.md) for bundling details.
+1. **Bundle** — Run `pnpm run vscode:bundle`. See [Build](./Build.md) for bundling details.
    - **Wireit cache:** Wireit only watches `node_modules` paths listed in `wireit.files`. `salesforcedx-vscode-services` tracks `node_modules/@salesforce/templates/lib/**`; for other copied libraries, use `WIREIT_CACHE=none` so the bundle runs with your changes instead of a cached result:
 
      ```bash
-     WIREIT_CACHE=none npm run vscode:bundle
+     WIREIT_CACHE=none pnpm run vscode:bundle
      ```
 
 1. **Launch** -
    - Desktop: from the Launch dropdown, click "Launch extensions without compile" (the `vscode:bundle` command does the compilation for you)
-   - Web: `npm run run:web`
+   - Web: `pnpm run run:web`
 1. **Repeat** — After any change to the library: build → copy → bundle -> Launch.
-1. **Restore (optional)** — When done, run `npm install` to restore the published versions from the lockfile.
+1. **Restore (optional)** — When done, run `pnpm install` to restore the published versions from `pnpm-lock.yaml`.
 
 ## Consumer Library Verification in CI
 

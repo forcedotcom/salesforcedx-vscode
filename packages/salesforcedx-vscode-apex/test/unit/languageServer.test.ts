@@ -19,13 +19,20 @@ const clientSpans = (): RecordedSpan[] => mockRecordedSpans.filter(s => s.name =
 
 vi.mock('../../src/services/runtime', async () => {
   const { createRecordingRuntimeMock } = await import('./testUtils/recordingTracer.js');
-  return createRecordingRuntimeMock(() => mockRecordedSpans);
+  const { succeed } = await import('effect/Effect');
+  return createRecordingRuntimeMock(() => mockRecordedSpans, {
+    provideExtensionProvider: true,
+    settingsGetValue: (_section: string, _key: string, defaultValue?: unknown) => succeed(defaultValue)
+  });
 });
 
 // Stub the java/requirements resolution so createServer doesn't touch the filesystem/JDK.
-vi.mock('../../src/requirements', () => ({
-  resolveRequirements: vi.fn().mockResolvedValue({ java_home: '/mock/java', java_memory: 4096 })
-}));
+vi.mock('../../src/requirements', async () => {
+  const { succeed } = await import('effect/Effect');
+  return {
+    resolveRequirements: vi.fn(() => succeed({ java_home: '/mock/java', java_memory: 4096 }))
+  };
+});
 
 // No services extension → no scan config.
 vi.mock('../../src/languageServerScanConfig', () => ({
@@ -37,6 +44,7 @@ type TelemetryData = { properties?: Record<string, string>; measures?: Record<st
 let capturedOnTelemetry: ((data: TelemetryData) => void) | undefined;
 vi.mock('../../src/apexLanguageClient', () => ({ ApexLanguageClient: vi.fn() }));
 
+import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import { ApexLanguageClient } from '../../src/apexLanguageClient';
 import { createLanguageServer } from '../../src/languageServer';
 import { resolveRequirements } from '../../src/requirements';
@@ -52,7 +60,7 @@ describe('languageServer client span', () => {
     mockRecordedSpans.length = 0;
     capturedOnTelemetry = undefined;
     // resetMocks:true wipes module-scope implementations before each test — re-establish them here.
-    (resolveRequirements as VitestMock).mockResolvedValue({ java_home: '/mock/java', java_memory: 4096 });
+    (resolveRequirements as VitestMock).mockReturnValue(Effect.succeed({ java_home: '/mock/java', java_memory: 4096 }));
     (buildMetadataRegistryScanConfig as VitestMock).mockResolvedValue(undefined);
     (ApexLanguageClient as unknown as VitestMock).mockImplementation(function () {
       return {
@@ -65,7 +73,18 @@ describe('languageServer client span', () => {
     (vscode.workspace.getConfiguration as VitestMock) = vi.fn().mockReturnValue({
       get: (_key: string, def?: unknown) => def
     });
-    (vscode.extensions.getExtension as VitestMock).mockReturnValue(undefined);
+    (vscode.extensions.getExtension as VitestMock).mockImplementation((id: string) =>
+      id === 'salesforce.salesforcedx-vscode-services'
+        ? {
+            isActive: true,
+            exports: {
+              services: {
+                SettingsService
+              }
+            }
+          }
+        : undefined
+    );
   });
 
   const mockContext = {
@@ -97,7 +116,7 @@ describe('languageServer client span', () => {
   });
 
   it('fails createServer with a requirements-phase setup error', async () => {
-    (resolveRequirements as VitestMock).mockRejectedValue({ error: 'no java found' });
+    (resolveRequirements as VitestMock).mockReturnValue(Effect.fail({ error: 'no java found' }));
     const error = await getRuntime().runPromise(createLanguageServer(mockContext).pipe(Effect.flip));
     expect(error).toMatchObject({
       _tag: 'ApexLanguageClientSetupError',

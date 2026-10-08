@@ -20,20 +20,14 @@ on:
   push:
     branches-ignore: [ main, develop ]
     paths-ignore:
-      - '.claude/**'
-      - '.cursor/**'
-      - 'contributing/**'
-      - 'CONTRIBUTING.md'
-      - 'docs/**'
-      - 'CONTEXT.md'
-      - 'CONTEXT-MAP.md'
+      - CONTEXT.md
+      - CONTEXT-MAP.md
       - '**/CONTEXT.md'
-      - '**/docs/**/*.md'
-      - '**/README*'
-      - 'SECURITY*'
-      - 'CODE_OF_CONDUCT*'
-      - 'CHANGELOG*'
-      - '**/CHANGELOG*'
+      - 'docs/**.md'
+      - '**/docs/**.md'
+      - '.claude/**.md'
+      - 'plans/**.md'
+      - '.cursor/**.md'
 
 concurrency:
   group: ci-${{ github.ref }}-orgE2E
@@ -80,7 +74,7 @@ jobs:
 
       # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need CLI, orgs, or Playwright.
       # When cache misses, tests fail on missing org/chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
-      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
+      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the pnpm command).
       - name: Try E2E tests
         id: try-run
         continue-on-error: true
@@ -90,7 +84,7 @@ jobs:
           VSCODE_DESKTOP: 1
           E2E_NO_RETRIES: 1
         run: |
-          npm run test:desktop -w salesforcedx-vscode-org
+          pnpm --filter salesforcedx-vscode-org test:desktop
 
       # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
       - name: Install Salesforce CLI
@@ -126,7 +120,7 @@ jobs:
             return 1
           }
 
-          retry 60 npx playwright install chromium --with-deps &
+          retry 60 pnpm exec playwright install chromium --with-deps &
           playwright_pid=$!
 
           (
@@ -153,7 +147,7 @@ jobs:
           CI: 1
           VSCODE_DESKTOP: 1
         run: |
-          npm run test:desktop -w salesforcedx-vscode-org
+          pnpm --filter salesforcedx-vscode-org test:desktop
 
       - name: Retry failed tests (sequential)
         if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
@@ -163,7 +157,7 @@ jobs:
           VSCODE_DESKTOP: 1
           PLAYWRIGHT_WORKERS: 1
         run: |
-          npm run test:desktop -w salesforcedx-vscode-org -- --last-failed
+          pnpm --filter salesforcedx-vscode-org test:desktop -- --last-failed
 
       - name: Copy span files to test-results
         if: always()

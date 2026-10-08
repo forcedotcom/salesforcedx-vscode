@@ -5,12 +5,39 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { MockInstance as VitestMockInstance } from 'vitest';
+import * as Effect from 'effect/Effect';
+import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
+import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import ApexLSPStatusBarItem from '../../../src/apexLspStatusBarItem';
 import { nls } from '../../../src/messages';
 
 vi.mock('vscode');
+const { mockGetRestartBehavior } = vi.hoisted(() => ({ mockGetRestartBehavior: vi.fn() }));
+vi.mock('../../../src/services/runtime', async () => {
+  const effect = await import('effect/Effect');
+  const { ExtensionProviderService } = await import('@salesforce/effect-ext-utils');
+  const settingsService = {
+    getValue: (...args: [string, string, unknown?]) => mockGetRestartBehavior(...args),
+    getValueOrElse: (...args: [string, string, unknown?]) => mockGetRestartBehavior(...args)
+  };
+  return {
+    getRuntime: () => ({
+      runFork: (eff: import('effect/Effect').Effect<unknown, unknown>) =>
+        effect.runFork(
+          eff.pipe(
+            effect.provideService(ExtensionProviderService, {
+              getServicesApi: effect.succeed({
+                services: { SettingsService }
+              } as SalesforceVSCodeServicesApi)
+            }),
+            effect.provideService(SettingsService, SettingsService.make(settingsService as never))
+          )
+        )
+    })
+  };
+});
 
 describe('ApexLSPStatusBarItem', () => {
   let statusBarItem: ApexLSPStatusBarItem;
@@ -19,6 +46,7 @@ describe('ApexLSPStatusBarItem', () => {
   let mockRestartStatusItem: vscode.LanguageStatusItem;
 
   beforeEach(() => {
+    mockGetRestartBehavior.mockImplementation((_section, _key, defaultValue) => Effect.succeed(defaultValue));
     mockLanguageStatusItem = {
       text: '',
       severity: vscode.LanguageStatusSeverity.Information,
@@ -44,10 +72,6 @@ describe('ApexLSPStatusBarItem', () => {
       set: vi.fn(() => Promise.resolve()),
       dispose: vi.fn()
     } as unknown as vscode.DiagnosticCollection);
-
-    vi.mocked(vscode.workspace.getConfiguration).mockReturnValue({
-      get: vi.fn().mockReturnValue('off')
-    } as unknown as vscode.WorkspaceConfiguration);
 
     vi.spyOn(URI, 'file').mockReturnValue({
       fsPath: '/ApexLSP'

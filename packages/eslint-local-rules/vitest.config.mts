@@ -11,7 +11,6 @@ export default defineConfig({
   ...baseConfig,
   test: {
     ...baseConfig.test,
-    include: ['test/**/*.test.ts'],
-    reporters: 'verbose'
+    include: ['test/**/*.test.ts']
   }
 });

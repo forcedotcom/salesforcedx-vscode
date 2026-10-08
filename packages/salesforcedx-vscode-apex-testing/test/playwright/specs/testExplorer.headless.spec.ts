@@ -35,7 +35,8 @@ import {
   TEST_RESULTS_TAB,
   clickTreeItemAction,
   findTestExplorerItem,
-  openTestExplorerAndDiscover
+  openTestExplorerAndDiscover,
+  verifyNoTestRunInProgress
 } from '../helpers/testExplorerHelpers';
 
 test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page }) => {
@@ -92,6 +93,8 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     // Test Results panel renders "Pass Rate" / "Tests Ran" once the run completes.
     // (Tree items have aria-label "(Passed)" but no visible "passed" text.)
     await expect(page.getByText(/Pass Rate/i)).toBeVisible({ timeout: 60_000 });
+    // Results render before the TestRun ends; the run must also end without the user touching the toast.
+    await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.run-done.png');
   });
 
@@ -129,13 +132,16 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     // Explorer run path must emit the completion sentinel to the Apex Testing channel.
     await selectOutputChannel(page, 'Apex Testing');
     await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests', timeout: TEST_RUN_TIMEOUT });
+    await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.class-run-done.png');
   });
 
   await test.step('run a single test method via Test Explorer tree-item action', async () => {
     // Expand the class row to reveal its test methods.
     const classRow = findTestExplorerItem(page, testClassName);
-    await classRow.locator('.monaco-tl-twistie').click({ force: true });
+    const twistie = classRow.locator('.monaco-tl-twistie');
+    await expect(twistie).toBeVisible({ timeout: 10_000 });
+    await twistie.click();
     const methodRow = findTestExplorerItem(page, 'shouldDiscoverThisTest');
     await methodRow.waitFor({ state: 'visible', timeout: 15_000 });
 
@@ -158,6 +164,7 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     await expect(findTestExplorerItem(page, 'shouldDiscoverThisTest')).toHaveAttribute('aria-label', /Passed/i, {
       timeout: TEST_RUN_TIMEOUT
     });
+    await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.method-run-done.png');
   });
 
@@ -175,6 +182,7 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     await waitForOutputChannelText(page, { expectedText: '=== Test Summary', timeout: TEST_RUN_TIMEOUT });
     await waitForOutputChannelText(page, { expectedText: `${testClassName}.shouldDiscoverThisTest` });
     await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
+    await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.rerun-last-method.done.png');
   });
 

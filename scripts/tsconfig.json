@@ -14,5 +14,6 @@
     "types": ["jest", "node", "vitest/globals"],
     "skipLibCheck": true
   },
-  "include": ["*.ts"]
+  "include": ["*.ts"],
+  "exclude": ["category-approve.ts"]
 }

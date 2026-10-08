@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/playwright-vscode-ext",
-  "version": "1.7.0",
+  "version": "1.7.1",
   "versionedIndependently": true,
   "description": "Shared Playwright utilities, fixtures, and page objects for end-to-end testing of Salesforce DX VS Code extensions.",
   "author": "Salesforce",
@@ -33,13 +33,13 @@
     "access": "public"
   },
   "dependencies": {
-    "@playwright/test": "^1.60.0",
+    "@playwright/test": "1.60.0",
     "@vscode/test-electron": "3.1.0",
     "@vscode/test-web": "^0.0.81",
     "effect": "^3.21.2"
   },
   "devDependencies": {
-    "@salesforce/core": "^9.1.9"
+    "@salesforce/core": "^9.3.0"
   },
   "scripts": {
     "check:circular-deps": "wireit",
@@ -47,10 +47,10 @@
     "clean": "shx rm -rf node_modules .wireit out .eslintcache tsconfig.tsbuildinfo .circular-deps.json",
     "lint": "wireit",
     "test:web": "wireit",
-    "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
-    "test:web:debug": "npm run test:web -- --debug",
+    "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/playwright-vscode-ext test:web --headed",
+    "test:web:debug": "pnpm --dir ../.. --filter ./packages/playwright-vscode-ext test:web --debug",
     "test:desktop": "wireit",
-    "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/playwright-vscode-ext test:desktop --debug",
     "test": "wireit"
   },
   "wireit": {

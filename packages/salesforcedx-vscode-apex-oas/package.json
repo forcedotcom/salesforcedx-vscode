@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.25.1",
+  "version": "67.27.5",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -66,7 +66,7 @@
     "test": "wireit",
     "test:compile": "wireit",
     "test:desktop": "wireit",
-    "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-apex-oas test:desktop --debug",
     "vscode:package:legacy:prerelease": "wireit"
   },
   "wireit": {
@@ -170,7 +170,7 @@
         "../salesforcedx-vscode-services:spans:server",
         "../salesforcedx-vscode-apex:vscode:package",
         "../salesforcedx-vscode-apex-log:vscode:package",
-        "../salesforcedx-vscode-core:vscode:package:legacy",
+        "../salesforcedx-vscode-core:vscode:package",
         "../salesforcedx-vscode-metadata:vscode:package",
         "../playwright-vscode-ext:compile"
       ],

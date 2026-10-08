@@ -6,6 +6,7 @@
  */
 
 import type { Mock as VitestMock } from 'vitest';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
@@ -61,10 +62,10 @@ describe('watchAliasFile', () => {
 
         const fiber = yield* Effect.provide(Effect.scoped(watchAliasFile()), layer).pipe(Effect.fork);
 
-        yield* Effect.sleep(0);
+        yield* Effect.sleep(Duration.millis(0));
 
         yield* PubSub.publish(fileChanges, { type: 'change' as const, uri: URI.file(ALIAS_FILE_PATH) });
-        yield* Effect.sleep(200);
+        yield* Effect.sleep(Duration.millis(200));
 
         const result = yield* SubscriptionRef.get(ref);
 

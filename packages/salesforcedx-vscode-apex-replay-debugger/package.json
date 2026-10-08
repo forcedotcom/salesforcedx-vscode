@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.25.1",
+  "version": "67.27.5",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -32,17 +32,17 @@
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-apex-replay-debugger": "*",
     "@salesforce/salesforcedx-utils": "*",
-    "@salesforce/salesforcedx-utils-vscode": "*",
     "@salesforce/vscode-i18n": "*",
     "effect": "^3.21.2",
     "salesforcedx-vscode-apex-log": "*",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@playwright/test": "*",
-    "@salesforce/core": "^9.1.9",
+    "@playwright/test": "1.60.0",
+    "@salesforce/core": "^9.3.0",
     "@salesforce/playwright-vscode-ext": "*",
     "salesforcedx-vscode-apex": "*",
+    "salesforcedx-vscode-apex-testing": "*",
     "salesforcedx-vscode-metadata": "*",
     "salesforcedx-vscode-services": "*"
   },
@@ -74,7 +74,6 @@
         "../salesforcedx-apex:compile",
         "../salesforcedx-apex-replay-debugger:compile",
         "../salesforcedx-utils:compile",
-        "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-apex-log:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-apex:compile",
@@ -167,7 +166,7 @@
       "output": []
     },
     "vscode:package": {
-      "command": "vsce package --allow-package-all-secrets",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies",
       "dependencies": [
         "vscode:bundle"
       ],
@@ -198,7 +197,7 @@
       "dependencies": [
         "vscode:package",
         "../salesforcedx-vscode-services:vscode:package",
-        "../salesforcedx-vscode-core:vscode:package:legacy",
+        "../salesforcedx-vscode-core:vscode:package",
         "../salesforcedx-vscode-apex:vscode:package",
         "../salesforcedx-vscode-apex-log:vscode:package",
         "../salesforcedx-vscode-apex-testing:vscode:package",
@@ -213,7 +212,7 @@
       "output": []
     },
     "vscode:package:prerelease": {
-      "command": "vsce package --allow-package-all-secrets --pre-release",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies --pre-release",
       "dependencies": [
         "vscode:bundle"
       ],

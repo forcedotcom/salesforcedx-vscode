@@ -9,6 +9,8 @@ import type { TypeInventory } from './orgCatalogInternalTypes';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as HashMap from 'effect/HashMap';
+import * as Match from 'effect/Match';
+import { isNotUndefined } from 'effect/Predicate';
 import { FOLDERED_METADATA_TYPES, MetadataDescribeService } from '../core/metadataDescribeService';
 import { componentIdentity, findInventoryComponent, typeCacheKey } from './orgCatalogKeys';
 import { mergeInventory, projectChildren } from './orgCatalogProjection';
@@ -46,20 +48,25 @@ export class OrgCatalogInventory extends Effect.Service<OrgCatalogInventory>()('
         if (coalesced?.complete) return coalesced;
         const restored = yield* state.getPersistedInventory(orgId, xmlName);
         const listOrgComponents =
-          restored && restored.complete !== false
+          isNotUndefined(restored) && restored.complete !== false
             ? Effect.succeed({ components: restored.components, folders: restored.folders })
-            : FOLDERED_METADATA_TYPES.has(xmlName)
-              ? Effect.gen(function* () {
-                  const folders = yield* metadataDescribeService.listMetadata(`${xmlName}Folder`, undefined, orgId);
-                  const folderComponents = yield* Effect.all(
-                    folders.map(folder => metadataDescribeService.listMetadata(xmlName, folder.fullName, orgId)),
-                    { concurrency: 10 }
-                  );
-                  return { components: folderComponents.flat(), folders };
-                })
-              : metadataDescribeService
-                  .listMetadata(xmlName, undefined, orgId)
-                  .pipe(Effect.map(components => ({ components, folders: [] })));
+            : Match.value(FOLDERED_METADATA_TYPES.has(xmlName)).pipe(
+                Match.when(true, () =>
+                  Effect.gen(function* () {
+                    const folders = yield* metadataDescribeService.listMetadata(`${xmlName}Folder`, undefined, orgId);
+                    const folderComponents = yield* Effect.all(
+                      folders.map(folder => metadataDescribeService.listMetadata(xmlName, folder.fullName, orgId)),
+                      { concurrency: 10 }
+                    );
+                    return { components: folderComponents.flat(), folders };
+                  })
+                ),
+                Match.orElse(() =>
+                  metadataDescribeService
+                    .listMetadata(xmlName, undefined, orgId)
+                    .pipe(Effect.map(components => ({ components, folders: [] })))
+                )
+              );
         const [orgListing, workspaceInventory] = yield* Effect.all(
           [listOrgComponents, workspace.scanWorkspaceInventory(xmlName)],
           { concurrency: 'unbounded' }

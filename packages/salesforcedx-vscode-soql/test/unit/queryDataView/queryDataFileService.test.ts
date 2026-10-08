@@ -6,7 +6,7 @@
  */
 import type { Mock as VitestMock } from 'vitest';
 import type { QueryResult } from '../../../src/types';
-import type { JsonMap } from '@salesforce/ts-types';
+import type { JsonObject } from '../../../src/json';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { FileFormat, QueryDataFileService } from '../../../src/queryDataView/queryDataFileService';
@@ -19,7 +19,7 @@ vi.mock('../../../src/services/extensionProvider', () => ({
 
 describe('Query Data File Service', () => {
   const queryText = 'SELECT Id, Name FROM Account';
-  const queryData: QueryResult<JsonMap> = {
+  const queryData: QueryResult<JsonObject> = {
     done: true,
     totalSize: 1,
     records: [{ Id: '123' }]

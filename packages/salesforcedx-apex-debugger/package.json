@@ -13,7 +13,7 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/core": "^9.1.9",
+    "@salesforce/core": "^9.3.0",
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/vscode-i18n": "*",
     "@vscode/debugadapter": "1.68.0",
@@ -94,7 +94,8 @@
         "../../config/vitest.base.config.mts",
         "../../config/__mocks__/o11y_schema_sf_pdp.js",
         "../../scripts/setupVitest.ts",
-        "../../scripts/vscodeMock.ts"
+        "../../scripts/vscodeMock.ts",
+        "test/**/*.snap"
       ],
       "output": [
         "coverage"

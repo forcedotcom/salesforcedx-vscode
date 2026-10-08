@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ApexTestResultData, LogService, TestResult, TestService } from '@salesforce/apex-node';
+import { type ApexTestResultData, LogService, type TestResult, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
-import { checkpointService, sfCreateCheckpoints } from '../breakpoints/checkpointService';
+import { checkpointService, sfCreateCheckpointsCommand } from '../breakpoints/checkpointService';
 import { nls } from '../messages';
 import { ensureTraceFlagsForCurrentUser } from '../services/ensureTraceFlags';
 import { getRuntime } from '../services/runtime';
@@ -29,21 +29,22 @@ const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass
   if (isEmpty) return false;
   const connection = yield* api.services.ConnectionService.getConnection();
 
-  if (!(yield* Effect.promise(() => ensureTraceFlagsForCurrentUser()))) return false;
+  if (!(yield* ensureTraceFlagsForCurrentUser())) return false;
 
   if (checkpointService.hasOneOrMoreActiveCheckpoints()) {
-    if (!(yield* Effect.promise(() => sfCreateCheckpoints()))) return false;
+    if (!(yield* sfCreateCheckpointsCommand())) return false;
   }
 
   const testService = new TestService(connection);
   const singleTestName = testName ? `${testClass}.${testName}` : undefined;
+  const retrieveCodeCoverage = yield* retrieveTestCodeCoverage();
   const payload = yield* Effect.promise(() =>
     testService.buildSyncPayload(
       'RunSpecifiedTests',
       singleTestName,
       singleTestName ? undefined : testClass,
       undefined,
-      !retrieveTestCodeCoverage() // the setting enables code coverage, so we need to pass false to disable it
+      !retrieveCodeCoverage // the setting enables code coverage, so we need to pass false to disable it
     )
   );
   // W-18453221
@@ -51,7 +52,7 @@ const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass
   const result: TestResult = (yield* Effect.promise(() => testService.runTestSynchronous(payload, true))) as TestResult;
   const dirPath = (yield* api.services.ProjectService.getApexTestResultsFolder()).fsPath;
   yield* Effect.promise(() =>
-    testService.writeResultFiles(result, { dirPath, resultFormats: ['json'] }, retrieveTestCodeCoverage())
+    testService.writeResultFiles(result, { dirPath, resultFormats: ['json'] }, retrieveCodeCoverage)
   );
 
   const tests: ApexTestResultData[] = result.tests;
@@ -75,7 +76,7 @@ const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass
   return true;
 });
 
-export const setupAndDebugTests = async (className: string, methodName?: string): Promise<void> => {
+const setupAndDebugTests = async (className: string, methodName?: string): Promise<void> => {
   const progressLocation = await getRuntime().runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -96,3 +97,12 @@ export const setupAndDebugTests = async (className: string, methodName?: string)
     void vscode.window.showErrorMessage(nls.localize('debug_test_failed', String(error)));
   }
 };
+
+export const debugTestsCommand = Effect.fn('debugTestsCommand')(function* (test: { name: string }) {
+  yield* Effect.promise(() => setupAndDebugTests(test.name));
+});
+
+export const debugSingleTestCommand = Effect.fn('debugSingleTestCommand')(function* (test: { name: string }) {
+  const [method, className, namespace] = test.name.split('.').toReversed();
+  yield* Effect.promise(() => setupAndDebugTests(namespace ? `${namespace}.${className}` : className, method));
+});

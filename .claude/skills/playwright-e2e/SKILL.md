@@ -85,7 +85,7 @@ Look for the required org aliases (e.g., `minimalTestOrg`, `nonTrackingTestOrg`,
 
 ## Running tests (AI behavior)
 
-When running Playwright tests (`npm run test:web`, `test:desktop`, etc.), never block >30s. Use `is_background: true` so tests run while the AI continues. Check terminal output or `output_file` later.
+When running Playwright tests (`pnpm … test:web`, `test:desktop`, etc.), never block >30s. Use `is_background: true` so tests run while the AI continues. Check terminal output or `output_file` later.
 
 ## Apex OAS E2E Tests
 
@@ -99,7 +99,7 @@ Playwright desktop tests live in `packages/salesforcedx-vscode-apex-oas/test/pla
 
 Set content directly instead:
 
-- type via `page.keyboard.type(text)` (after Select All + Delete), or
+- type via `page.keyboard.type(text)` after `focusMonacoInput` + Select All + Delete ([editor selection](references/coding-playwright-tests.md#commands-with-editor-selection)), or
 - write the file on disk (desktop fs / web memfs), or
 - set the editor model value through a VS Code command.
 
@@ -125,6 +125,7 @@ When testing native Test Controller surfaces (Test Explorer, Test Results panel)
 - **Test Results panel**: Wait for tab visibility, then assert Pass Rate text (e.g., `getByText(/Pass Rate/i)`)
 - **Tree items**: Assert aria-label contains expected decoration (e.g., `toHaveAttribute('aria-label', /Passed/i)` for completed tests)
 - **Locators**: Use `TEST_RESULTS_TAB = 'a.action-label[aria-label="Test Results"]'` to target panel tab reliably
+- **Test run completion**: Call `verifyNoTestRunInProgress` (playwright-vscode-ext) after every Apex test run — sidebar, code lens, palette, suite, debug. Results/tree decorations/`Ended …` sentinel appear while TestRun still open; absence of 'Test: Cancel Test Run' command proves run ended. Sidebar (Test Explorer) runs: call before dismissing/clicking the success toast—that would end a run blocked on it, masking regressions. Palette/code lens runs have no TestRun tied to the toast, so order vs. toast doesn't matter.
 
 ## Reliable Assertions for Async Operations
 

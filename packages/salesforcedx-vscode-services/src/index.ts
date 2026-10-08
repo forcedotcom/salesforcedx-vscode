@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Tracer as OtelTracer, type Resource } from '@effect/opentelemetry';
+import * as Cause from 'effect/Cause';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -35,6 +36,7 @@ import { MetadataDescribeService } from './core/metadataDescribeService';
 import { MetadataRegistryService } from './core/metadataRegistryService';
 import { MetadataRetrieveService } from './core/metadataRetrieveService';
 import { ProjectService } from './core/projectService';
+import { QueryService } from './core/queryService';
 import { retrieveOnLoadEffect } from './core/retrieveOnLoad';
 import { TraceFlagItemStruct } from './core/schemas/traceFlagSchemas';
 import { watchSfProjectFile } from './core/sfProjectFileWatcher';
@@ -45,7 +47,7 @@ import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
 import { nls } from './messages';
 import { annotateExtensionPackType } from './observability/extensionPackStatus';
-import { redactingConsoleLoggerLayer } from './observability/redactingConsoleLogger';
+import { redactingConsoleLoggerLayer, runOnServicesRuntime } from './observability/redactingConsoleLogger';
 import { getSdkLayerConfigFromContext } from './observability/sdkLayerConfig';
 import { seedTelemetryIdentities } from './observability/seedTelemetryIdentities';
 import { SdkLayerFor, ServicesSdkLayer } from './observability/spans';
@@ -61,7 +63,7 @@ import { TerminalService } from './terminal/terminalService';
 import { isItReadOnlyLayer } from './virtualFsProvider/fileSystemProvider';
 import { fileSystemSetup } from './virtualFsProvider/fileSystemSetup';
 import { IndexedDBStorageServiceShared } from './virtualFsProvider/indexedDbStorage';
-import { ChannelServiceLayer, ChannelService } from './vscode/channelService';
+import { ChannelDisposalLayer, ChannelServiceLayer, ChannelService } from './vscode/channelService';
 import { watchSettingsService } from './vscode/configWatcher';
 import { watchDefaultOrgContext } from './vscode/context';
 import { watchEsrDecomposedContext, watchMuleDxApiInactiveContext } from './vscode/contextKeyWatchers';
@@ -93,6 +95,7 @@ type PrebuiltServicesDependencies =
   | LightningComponentService
   | ConfigService
   | ConnectionService
+  | QueryService
   | EditorService
   | ErrorHandlerService
   | ExecuteAnonymousService
@@ -136,6 +139,7 @@ export type SalesforceVSCodeServicesApi = {
     LightningComponentService: typeof LightningComponentService;
     ConfigService: typeof ConfigService;
     ConnectionService: typeof ConnectionService;
+    QueryService: typeof QueryService;
     preventOrgChanges: typeof preventOrgChanges;
     registerCommandWithRuntime: typeof registerCommandWithRuntime;
     ExecuteAnonymousService: typeof ExecuteAnonymousService;
@@ -243,6 +247,12 @@ export {
   TemplateService,
   type ApexClassCreateOptions,
   type ApexTriggerCreateOptions,
+  type LightningAppCreateOptions,
+  type LightningComponentCreateOptions,
+  type LightningEventCreateOptions,
+  type LightningInterfaceCreateOptions,
+  type VisualforceComponentCreateOptions,
+  type VisualforcePageCreateOptions,
   type CreateOutput,
   type CreateParams,
   type TemplateOptionsFor,
@@ -310,7 +320,7 @@ export {
 } from './core/schemas/sObject';
 export type { ExecuteAnonymousResult } from './core/executeAnonymousService';
 export type { ExecuteAnonymousError } from './errors/executeAnonymousErrors';
-export type { ApexLogBodyFetchError, ApexLogQueryError } from './errors/apexLogErrors';
+export type { ApexLogBodyFetchError } from './errors/apexLogErrors';
 export type {
   DebugLevelCreateError,
   DebugLevelDeleteError,
@@ -502,6 +512,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       }
     }
     const internalLayers = Layer.mergeAll(
+      ChannelDisposalLayer,
       FileWatcherLayer,
       ServicesSdkLayer(),
       SettingsWatcherLayer,
@@ -526,16 +537,17 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       onSome: otelTracer =>
         OtelTracer.layerWithoutOtelTracer.pipe(Layer.provide(Layer.succeed(OtelTracer.OtelTracer, otelTracer)))
     });
-    const runtime = ManagedRuntime.make(Layer.merge(prebuiltServicesLayer, tracerFiberRefLayer));
+    // Same policy as effect-ext-utils suppressVersionMismatchWarning; services cannot import effect-ext-utils.
+    const runtime = ManagedRuntime.make(
+      Layer.mergeAll(prebuiltServicesLayer, tracerFiberRefLayer, Layer.setVersionMismatchErrorLogLevel(Option.none()))
+    );
     setServicesRuntime(runtime);
 
-    await runtime.runPromise(
-      activationEffect(context).pipe(
-        Effect.tapError(error => Effect.sync(() => console.error('❌ [Services] Activation failed:', error)))
-      )
+    await activationEffect(context).pipe(
+      Effect.tapError(error => Effect.logError('❌ [Services] Activation failed:', Cause.fail(error))),
+      Effect.tap(() => Effect.log('Salesforce Services extension is now active!')),
+      runtime.runPromise
     );
-
-    console.log('Salesforce Services extension is now active!');
 
     // Return API for other extensions to consume
     return {
@@ -553,6 +565,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         LightningComponentService,
         ConfigService,
         ConnectionService,
+        QueryService,
         preventOrgChanges,
         ExecuteAnonymousService,
         registerCommandWithRuntime,
@@ -603,23 +616,27 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
 /** Deactivates the Salesforce Services extension */
 export const deactivate = async (): Promise<void> => {
   await Effect.runPromise(deactivateEffect);
-  console.log('Salesforce Services extension is now deactivated!');
 };
 
 const deactivateEffect = Effect.gen(function* () {
+  // closeExtensionScope disposes output channels, so the goodbye must be written first.
+  yield* Effect.log('Salesforce Services extension is now deactivated!').pipe(runOnServicesRuntime);
+  yield* ChannelService.pipe(
+    Effect.flatMap(svc => svc.appendToChannel('Salesforce Services extension is now deactivated!'))
+  );
   // dispose the runtime (interrupting in-flight fibers) BEFORE closing the scope that owns the services
   // those fibers touch, so nothing runs against a torn-down service.
   yield* disposeServicesRuntime();
   yield* closeExtensionScope();
-  yield* ChannelService.pipe(
-    Effect.flatMap(svc => svc.appendToChannel('Salesforce Services extension is now deactivated!'))
-  );
 }).pipe(Effect.provide(ChannelService.Default));
 
 export { type DefaultOrgInfoSchema } from './core/schemas/defaultOrgInfo';
 export { type ChannelService, type ChannelServiceLayer } from './vscode/channelService';
 export { type ConfigService } from './core/configService';
 export { type ConnectionService } from './core/connectionService';
+export { type QueryService } from './core/queryService';
+export type { QueryOptions, QueryServiceResult } from './core/queryExecute';
+export { FieldError, SoqlError } from './errors/queryErrors';
 export { type ErrorHandlerService } from './vscode/errorHandlerService';
 export { type ExtensionContextService, type ExtensionContextServiceLayer } from './vscode/extensionContextService';
 export { ExtensionContextNotAvailableError } from './vscode/extensionContextErrors';

@@ -16,7 +16,7 @@ Pipeline: src → out (tsc) → dist (esbuild). Shared configs: [scripts/bundlin
 
 ## Monorepo Management
 
-This repo uses npm workspaces with wireit for task orchestration. You don't have to use the same setup if it's not necessary for your project
+This repo uses [pnpm](./adr/0022-pnpm-cutover.md) workspaces with wireit for task orchestration. You don't have to use the same setup if it's not necessary for your project
 
 ## Versioning
 
@@ -117,7 +117,7 @@ You'll need a `.vscodeignore` file (to keep unwanted code out of the package).
 
 **vscode:package**
 
-**Good:** `vsce package --allow-package-all-secrets`; Wireit deps run in parallel. No `packaging` stanza — package.json is not mutated at package time. Example: [soql](../packages/salesforcedx-vscode-soql/package.json).
+**Good:** `vsce package --allow-package-all-secrets --no-dependencies`; Wireit deps run in parallel. No `packaging` stanza — package.json is not mutated at package time. Example: [soql](../packages/salesforcedx-vscode-soql/package.json).
 
 - downside: managing that ignore file. An alternative might be to ignore `*` and the unignore
 

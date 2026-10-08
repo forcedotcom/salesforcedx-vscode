@@ -39,6 +39,28 @@ vi.mock('@salesforce/core', async () => ({
   Connection: { create: vi.fn() }
 }));
 
+// getCliId runs `sf telemetry --json` once per process. Under a full suite that
+// exceeds the 5s test timeout before the default-org ref is published.
+vi.mock('node:child_process', async () => {
+  const actual = await vi.importActual<typeof import('node:child_process')>('node:child_process');
+  const stdout = JSON.stringify({
+    status: 0,
+    result: { cliId: '11111111-1111-4111-8111-111111111111' }
+  });
+  return {
+    ...actual,
+    exec: (
+      _command: string,
+      options: unknown,
+      callback?: (error: null, result: { stdout: string; stderr: string }) => void
+    ) => {
+      const done = typeof options === 'function' ? options : callback;
+      done?.(null, { stdout, stderr: '' });
+      return undefined as unknown as ReturnType<typeof actual.exec>;
+    }
+  };
+});
+
 const brandedOrgId = (value: string) => Schema.decodeSync(OrgId)(value);
 
 const USERNAME = 'expired@test.com';
@@ -93,9 +115,11 @@ const makeConn = ({ isAccessTokenFlow = true, identity, username = USERNAME, org
   ({
     getAuthInfo: () => ({ isAccessTokenFlow: () => isAccessTokenFlow }),
     getUsername: () => username,
+    getApiVersion: () => '66.0',
     getAuthInfoFields: () => ({ username, orgId }),
     instanceUrl: INSTANCE_URL,
-    identity: identity ?? vi.fn().mockResolvedValue({ user_id: '005' })
+    identity: identity ?? vi.fn().mockResolvedValue({ user_id: '005' }),
+    request: async () => ({ totalSize: 0, done: true, records: [] as { Id: string; Username: string }[] })
   }) as unknown as Connection;
 
 describe('ConnectionService.getConnectionForOrg', () => {
@@ -364,14 +388,18 @@ const makeDesktopConn = (
   username: string,
   {
     orgId = '00D000000000005',
-    query = async () => ({ records: [] as { Id: string; Username: string }[], totalSize: 0 })
+    query = async () => ({ records: [] as { Id: string; Username: string }[], totalSize: 0, done: true })
   }: {
     orgId?: string;
-    query?: (soql: string) => Promise<{ records: { Id: string; Username: string }[]; totalSize: number }>;
+    query?: (
+      soql: string
+    ) => Promise<{ records: { Id: string; Username: string }[]; totalSize: number; done: boolean }>;
   } = {}
 ): Connection =>
   ({
     getUsername: () => username,
+    instanceUrl: 'https://example.my.salesforce.com',
+    getApiVersion: () => '66.0',
     getAuthInfoFields: () => ({
       username,
       orgId,
@@ -382,7 +410,11 @@ const makeDesktopConn = (
     }),
     getFields: () => ({ username }),
     getAuthInfo: () => ({ isAccessTokenFlow: () => false }),
-    query
+    query,
+    request: async () => {
+      const result = await query('');
+      return { totalSize: result.totalSize, done: true, records: result.records };
+    }
   }) as unknown as Connection;
 
 const MockConfigServiceLayer = Layer.succeed(
@@ -436,7 +468,11 @@ const defaultOrgWhen = (pred: (info: typeof DefaultOrgInfoSchema.Type) => boolea
     Effect.timeout(Duration.seconds(2))
   );
 
-const userRecord = (id: string, username: string) => ({ records: [{ Id: id, Username: username }], totalSize: 1 });
+const userRecord = (id: string, username: string) => ({
+  records: [{ Id: id, Username: username }],
+  totalSize: 1,
+  done: true
+});
 
 describe('updateDefaultOrgIdentity', () => {
   it('does not publish when the org identity is unchanged', async () => {
@@ -529,7 +565,7 @@ describe('ConnectionService.getConnection (desktop)', () => {
       getAuthInfoFields: getAuthInfoFieldsSpy,
       getFields: () => ({ username: 'given@example.com' }),
       getAuthInfo: () => ({ isAccessTokenFlow: () => false }),
-      query: async () => ({ records: [], totalSize: 0 })
+      query: async () => ({ records: [], totalSize: 0, done: true })
     } as unknown as Connection);
 
     await run(ConnectionService.getConnection('given@example.com'));
@@ -618,22 +654,13 @@ describe('ConnectionService.getConnection (desktop)', () => {
 
   it('shares one User sObject query across concurrent default-org getConnection calls', async () => {
     getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? USERNAME : undefined));
-    const gate = Promise.withResolvers<{ records: { Id: string; Username: string }[]; totalSize: number }>();
+    const gate = Promise.withResolvers<{
+      records: { Id: string; Username: string }[];
+      totalSize: number;
+      done: boolean;
+    }>();
     const query = vi.fn().mockReturnValue(gate.promise);
-    connectionCreateMock.mockResolvedValue({
-      getUsername: () => USERNAME,
-      getAuthInfoFields: () => ({
-        username: USERNAME,
-        orgId: '00D000000000005',
-        instanceName: 'USA9S',
-        tracksSource: false,
-        isScratch: false,
-        isSandbox: false
-      }),
-      getFields: () => ({ username: USERNAME }),
-      getAuthInfo: () => ({ isAccessTokenFlow: () => false }),
-      query
-    } as unknown as Connection);
+    connectionCreateMock.mockResolvedValue(makeDesktopConn(USERNAME, { query }));
 
     const running = run(
       Effect.all([ConnectionService.getConnection(), ConnectionService.getConnection()], {
@@ -652,7 +679,7 @@ describe('ConnectionService.getConnection (desktop)', () => {
     await Duration.millis(50).pipe(Effect.sleep, Effect.runPromise);
     expect(query).toHaveBeenCalledTimes(1);
 
-    gate.resolve({ records: [{ Id: '005000000000001AAA', Username: USERNAME }], totalSize: 1 });
+    gate.resolve({ records: [{ Id: '005000000000001AAA', Username: USERNAME }], totalSize: 1, done: true });
     await running;
   });
 
@@ -762,7 +789,7 @@ describe('ConnectionService.getConnection (Web Console)', () => {
     else process.env.ESBUILD_PLATFORM = originalPlatform;
   });
 
-  it('supplies the raw access token to AuthInfo.create and preserves cache hits', async () => {
+  it('supplies the raw access token with auth flags to AuthInfo.create and preserves cache hits', async () => {
     process.env.ESBUILD_PLATFORM = 'web';
     vi.resetModules();
 
@@ -793,12 +820,25 @@ describe('ConnectionService.getConnection (Web Console)', () => {
     );
     const layer = WebLayer.provide(WebConnectionService.DefaultWithoutDependencies, dependencies);
 
-    await WebEffect.runPromise(WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer)));
-    await WebEffect.runPromise(WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer)));
+    const first = await WebEffect.runPromise(
+      WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer))
+    );
+    const cached = await WebEffect.runPromise(
+      WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer))
+    );
 
     expect(WebAuthInfo.create).toHaveBeenCalledWith({
-      accessTokenOptions: { accessToken, loginUrl: INSTANCE_URL, instanceUrl: INSTANCE_URL }
+      accessTokenOptions: {
+        accessToken,
+        loginUrl: INSTANCE_URL,
+        instanceUrl: INSTANCE_URL,
+        isDevHub: false,
+        isScratch: false,
+        isSandbox: false
+      }
     });
     expect(WebAuthInfo.create).toHaveBeenCalledTimes(1);
+    expect(first).toBe(connection);
+    expect(cached).toBe(connection);
   });
 });

@@ -10,7 +10,6 @@ import baseConfig from '../../config/vitest.base.config.mts';
 export default defineConfig({
   ...baseConfig,
   test: {
-    ...baseConfig.test,
-    include: ['**/unit/**/*.{spec,test}.{ts,tsx}']
+    ...baseConfig.test
   }
 });

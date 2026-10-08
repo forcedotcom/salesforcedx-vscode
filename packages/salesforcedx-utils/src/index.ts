@@ -5,20 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// Types
-export type { CancellationToken } from './types/cancellationToken';
-export type { CommandExecution } from './types/commandExecution';
-export type { Command } from './types/command';
 export type { LineBreakpointInfo } from './types/debugger';
 
-// Constants
-export { TELEMETRY_HEADER } from './constants';
-
-// CLI
-export { CommandBuilder } from './cli/commandBuilder';
-export { CommandOutput } from './cli/commandOutput';
-export { SfCommandBuilder } from './cli/sfCommandBuilder';
-
-// Helpers
 export { classifyOrgForTelemetry, type TelemetryClassification } from './helpers/classifyOrgForTelemetry';
+export { errorToString } from './helpers/errorToString';
 export { isLoopbackHttpEndpoint } from './helpers/isLoopbackHttpEndpoint';

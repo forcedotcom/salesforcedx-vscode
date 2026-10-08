@@ -74,7 +74,7 @@ test('Checkpoints: Toggle Checkpoint and Update Checkpoints in Org', async ({ pa
   await test.step('toggle checkpoint at the `return newAcct;` line of AccountService.cls', async () => {
     await openFileByName(page, 'AccountService.cls');
 
-    // Click directly on the `return newAcct;` line text — `sfToggleCheckpoint` reads
+    // Click directly on the `return newAcct;` line text — `sfToggleCheckpointCommand` reads
     // `vscode.window.activeTextEditor.selection.start.line`, so the caret must sit on a valid
     // Apex statement (not the closing `}` on line 10). Scope to the AccountService editor so
     // the click can't land in a different editor's view-lines.
@@ -165,7 +165,8 @@ test('Checkpoints: Toggle Checkpoint and Update Checkpoints in Org', async ({ pa
     await clearOutputChannel(page);
 
     const logTab = page.locator('.tab').filter({ hasText: /\.log$/ });
-    await logTab.click({ force: true });
+    await expect(logTab).toBeVisible({ timeout: 10_000 });
+    await logTab.click();
     await executeCommandWithCommandPalette(page, packageNls.launch_apex_replay_debugger_with_selected_file as string);
     // Replay pauses on entry first (debug toolbar appears), then continue through the heap-dump line.
     await expect(page.locator('.debug-toolbar')).toBeVisible({ timeout: 30_000 });

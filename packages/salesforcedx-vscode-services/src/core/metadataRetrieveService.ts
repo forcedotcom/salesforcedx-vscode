@@ -240,11 +240,12 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
           );
           return retrieveResult;
         },
-        catch: e => {
-          console.error(e);
-          return new MetadataRetrieveError(unknownToErrorCause(e));
-        }
-      }).pipe(Effect.withSpan('retrieve (API call)'), Effect.fork);
+        catch: e => new MetadataRetrieveError(unknownToErrorCause(e))
+      }).pipe(
+        Effect.tapError(e => e.pipe(Cause.fail, Effect.logError)),
+        Effect.withSpan('retrieve (API call)'),
+        Effect.fork
+      );
 
       const retrieveOutcome = yield* Effect.matchCauseEffect(Fiber.join(retrieveFiber), {
         onFailure: cause =>

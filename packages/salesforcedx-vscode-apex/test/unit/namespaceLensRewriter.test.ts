@@ -5,8 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { rewriteNamespaceLens } from '../../src/namespaceLensRewriter';
+
+vi.mock('../../src/services/runtime', () => ({
+  getRuntime: () => ({ runFork: () => undefined })
+}));
 
 describe('rewriteNamespaceLens Unit Tests', () => {
   const createMockCodeLens = (title: string, args?: string[]): vscode.CodeLens => ({
@@ -23,7 +28,7 @@ describe('rewriteNamespaceLens Unit Tests', () => {
     it('should return lens unchanged', () => {
       const lens = createMockCodeLens('Run Test', ['MyNamespace.MyClass.testMethod']);
       const rewriter = rewriteNamespaceLens('MyNamespace')('MyNamespace');
-      const result = rewriter(lens);
+      const result = Effect.runSync(rewriter(lens));
 
       expect(result).toBe(lens);
       expect(result.command?.arguments).toEqual(['MyNamespace.MyClass.testMethod']);
@@ -32,7 +37,7 @@ describe('rewriteNamespaceLens Unit Tests', () => {
     it('should return lens with no project namespace', () => {
       const lens = createMockCodeLens('Run Test', ['MyNamespace.MyClass.testMethod']);
       const rewriter = rewriteNamespaceLens('MyNamespace')();
-      const result = rewriter(lens);
+      const result = Effect.runSync(rewriter(lens));
 
       expect(result).toBe(lens);
       expect(result.command?.arguments).toEqual(['MyNamespace.MyClass.testMethod']);
@@ -42,7 +47,7 @@ describe('rewriteNamespaceLens Unit Tests', () => {
       const lens = createMockCodeLens('Run Test', ['OtherNamespace.MyClass.testMethod']);
       const rewriter = rewriteNamespaceLens()('MyNamespace');
 
-      const result = rewriter(lens);
+      const result = Effect.runSync(rewriter(lens));
 
       expect(result.command?.arguments).toEqual(['OtherNamespace.MyClass.testMethod']);
     });
@@ -56,7 +61,7 @@ describe('rewriteNamespaceLens Unit Tests', () => {
       };
       const rewriter = rewriteNamespaceLens()();
 
-      const result = rewriter(lens);
+      const result = Effect.runSync(rewriter(lens));
 
       expect(result).toBe(lens);
     });
@@ -72,7 +77,7 @@ describe('rewriteNamespaceLens Unit Tests', () => {
       };
       const rewriter = rewriteNamespaceLens()();
 
-      const result = rewriter(lens);
+      const result = Effect.runSync(rewriter(lens));
 
       expect(result).toBe(lens);
     });
@@ -81,7 +86,7 @@ describe('rewriteNamespaceLens Unit Tests', () => {
       const lens = createMockCodeLens('Run Test', ['MyNamespace.MyClass.testMethod']);
       const rewriter = rewriteNamespaceLens()();
 
-      const result = rewriter(lens);
+      const result = Effect.runSync(rewriter(lens));
 
       expect(result).toBe(lens);
       expect(result.command?.arguments).toEqual(['MyNamespace.MyClass.testMethod']);
@@ -97,7 +102,7 @@ describe('rewriteNamespaceLens Unit Tests', () => {
         it('should rewrite namespace.class.method to class.method', () => {
           const lens = createMockCodeLens(title, ['MyNamespace.MyClass.testMethod']);
 
-          const result = rewriter(lens);
+          const result = Effect.runSync(rewriter(lens));
 
           expect(result.command?.arguments).toEqual(['MyClass.testMethod']);
         });
@@ -108,7 +113,7 @@ describe('rewriteNamespaceLens Unit Tests', () => {
             'MyNamespace.AnotherClass.testMethod2'
           ]);
 
-          const result = rewriter(lens);
+          const result = Effect.runSync(rewriter(lens));
 
           expect(result.command?.arguments).toEqual(['MyClass.testMethod1', 'AnotherClass.testMethod2']);
         });
@@ -120,19 +125,19 @@ describe('rewriteNamespaceLens Unit Tests', () => {
             'SomeOtherArg'
           ]);
 
-          const result = rewriter(lens);
+          const result = Effect.runSync(rewriter(lens));
           expect(result.command?.arguments).toEqual(['MyClass.testMethod', 'MyNamespace.MyClass', 'SomeOtherArg']);
         });
 
         it('should handle empty arguments array', () => {
           const lens = createMockCodeLens(title, []);
-          const result = rewriter(lens);
+          const result = Effect.runSync(rewriter(lens));
           expect(result.command?.arguments).toEqual([]);
         });
 
         it('should handle undefined arguments', () => {
           const lens = createMockCodeLens(title);
-          const result = rewriter(lens);
+          const result = Effect.runSync(rewriter(lens));
           expect(result.command?.arguments).toBeUndefined();
         });
       });
@@ -148,7 +153,7 @@ describe('rewriteNamespaceLens Unit Tests', () => {
         it('should rewrite namespace.class to class', () => {
           const lens = createMockCodeLens(title, ['MyNamespace.MyClass']);
 
-          const result = rewriter(lens);
+          const result = Effect.runSync(rewriter(lens));
 
           expect(result.command?.arguments).toEqual(['MyClass']);
         });
@@ -156,7 +161,7 @@ describe('rewriteNamespaceLens Unit Tests', () => {
         it('should handle multiple arguments', () => {
           const lens = createMockCodeLens(title, ['MyNamespace.MyClass', 'MyNamespace.AnotherClass']);
 
-          const result = rewriter(lens);
+          const result = Effect.runSync(rewriter(lens));
 
           expect(result.command?.arguments).toEqual(['MyClass', 'AnotherClass']);
         });
@@ -167,7 +172,7 @@ describe('rewriteNamespaceLens Unit Tests', () => {
             'SomeOtherArg'
           ]);
 
-          const result = rewriter(lens);
+          const result = Effect.runSync(rewriter(lens));
 
           expect(result.command?.arguments).toEqual(['MyClass', 'SomeOtherArg']);
         });
@@ -175,7 +180,7 @@ describe('rewriteNamespaceLens Unit Tests', () => {
         it('should handle empty arguments array', () => {
           const lens = createMockCodeLens(title, []);
 
-          const result = rewriter(lens);
+          const result = Effect.runSync(rewriter(lens));
 
           expect(result.command?.arguments).toEqual([]);
         });
@@ -183,7 +188,7 @@ describe('rewriteNamespaceLens Unit Tests', () => {
         it('should handle undefined arguments', () => {
           const lens = createMockCodeLens(title);
 
-          const result = rewriter(lens);
+          const result = Effect.runSync(rewriter(lens));
 
           expect(result.command?.arguments).toBeUndefined();
         });
@@ -196,7 +201,7 @@ describe('rewriteNamespaceLens Unit Tests', () => {
       const lens = createMockCodeLens('Some Other Command', ['MyNamespace.MyClass.testMethod']);
       const rewriter = rewriteNamespaceLens()('MyNamespace');
 
-      const result = rewriter(lens);
+      const result = Effect.runSync(rewriter(lens));
 
       expect(result.command?.arguments).toEqual(['MyNamespace.MyClass.testMethod']);
     });
@@ -214,7 +219,7 @@ describe('rewriteNamespaceLens Unit Tests', () => {
       };
       const rewriter = rewriteNamespaceLens()('MyNamespace');
 
-      const result = rewriter(lens);
+      const result = Effect.runSync(rewriter(lens));
 
       expect(result.range).toBe(originalRange);
       expect(result.command?.title).toBe('Run Test');
@@ -230,7 +235,7 @@ describe('rewriteNamespaceLens Unit Tests', () => {
       ]);
       const rewriter = rewriteNamespaceLens()('MyNamespace');
 
-      const result = rewriter(lens);
+      const result = Effect.runSync(rewriter(lens));
 
       expect(result.command?.arguments).toEqual([
         'TestClass.testMethod',
@@ -243,7 +248,7 @@ describe('rewriteNamespaceLens Unit Tests', () => {
       const lens = createMockCodeLens('Run Test', ['VeryDeepNamespace.MyClass.testMethod']);
       const rewriter = rewriteNamespaceLens()('VeryDeepNamespace');
 
-      const result = rewriter(lens);
+      const result = Effect.runSync(rewriter(lens));
 
       expect(result.command?.arguments).toEqual(['MyClass.testMethod']);
     });
@@ -253,8 +258,8 @@ describe('rewriteNamespaceLens Unit Tests', () => {
       const allTestsLens = createMockCodeLens('Run All Tests', ['MyNamespace.TestClass']);
       const rewriter = rewriteNamespaceLens()('MyNamespace');
 
-      const singleResult = rewriter(singleTestLens);
-      const allResult = rewriter(allTestsLens);
+      const singleResult = Effect.runSync(rewriter(singleTestLens));
+      const allResult = Effect.runSync(rewriter(allTestsLens));
 
       expect(singleResult.command?.arguments).toEqual(['TestClass.testMethod']);
       expect(allResult.command?.arguments).toEqual(['TestClass']);

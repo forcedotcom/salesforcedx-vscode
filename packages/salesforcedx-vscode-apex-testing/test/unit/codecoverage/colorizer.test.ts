@@ -31,6 +31,10 @@ vi.mock('../../../src/services/extensionProvider', async () => {
     getValue: (_section: string, key: string, _default: unknown) =>
       EffectActual.succeed(
         key === 'restore-previous-results' ? settingsValues.restorePrevious : settingsValues.disableWarnings
+      ),
+    getValueOrElse: (_section: string, key: string, _default: unknown) =>
+      EffectActual.succeed(
+        key === 'restore-previous-results' ? settingsValues.restorePrevious : settingsValues.disableWarnings
       )
   };
   const mockChannelService = {

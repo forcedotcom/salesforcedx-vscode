@@ -15,6 +15,7 @@ import * as Rec from 'effect/Record';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as os from 'node:os';
 import { env, UIKind, version, workspace } from 'vscode';
+import { SFDX_CORE_SECTION } from '../constants';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 
 type SpanCreationIdentity = Readonly<
@@ -74,8 +75,11 @@ export class SpanTransformProcessor extends BatchSpanProcessor {
           memoized('everySpanIsTheSame')
         ]) // it seems to want a key
       );
-      // Rec.filter's refinement overload drops the undefined-valued attributes and narrows the rest to string
-      Object.entries(Rec.filter({ ...permanent, ...dynamic }, isString)).map(([k, v]) => span.setAttribute(k, v));
+      const attributes = { ...permanent, ...dynamic };
+      Rec.keys(attributes).forEach(key => {
+        const value = attributes[key];
+        if (isString(value)) span.setAttribute(key, value);
+      });
     }
     super.onStart(span, parentContext);
   }
@@ -112,7 +116,7 @@ const getAdditionalAttributes = (
     cliId,
     webUserId,
     orgEdition,
-    telemetryTag: workspace.getConfiguration('salesforcedx-vscode-core')?.get('telemetry-tag')
+    telemetryTag: workspace.getConfiguration(SFDX_CORE_SECTION)?.get('telemetry-tag')
   });
 
 export const isInternalUser = (uiKindString: string | undefined): string | undefined => {

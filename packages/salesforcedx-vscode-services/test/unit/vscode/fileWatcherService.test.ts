@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
@@ -27,7 +28,7 @@ describe('FileWatcherLayer', () => {
       Layer.provide(Layer.mergeAll(FileChangePubSub.Default, ChannelService.Default))
     );
     const fiber = layer.pipe(Layer.launch, Effect.runFork);
-    await Effect.runPromise(Effect.sleep(10));
+    await Duration.millis(10).pipe(Effect.sleep, Effect.runPromise);
 
     const patterns = vi.mocked(vscode.workspace.createFileSystemWatcher).mock.calls.map(([pattern]) => pattern);
     await fiber.pipe(Fiber.interrupt, Effect.runPromise);

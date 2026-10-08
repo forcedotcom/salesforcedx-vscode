@@ -4,6 +4,12 @@ Custom ESLint rules for Salesforce VSCode extensions.
 
 ## Rules
 
+### no-legacy-telemetry-service
+
+Disallows value imports of `TelemetryService` and value namespace imports from `@salesforce/salesforcedx-utils-vscode`, calls to `TelemetryService.getInstance()`, and identifiers named `telemetryService`. Namespace imports are rejected because they can access the legacy service via members or destructuring. Wrap work in Effect and use `annotateRootSpan` ([ADR-0012](../../docs/adr/0012-spans-only-observability.md)); `fireSpan` is a last resort, not the default. Type-only imports remain allowed.
+
+The only exemptions preserve the frozen core API: `salesforcedx-utils-vscode/src/services/telemetry.ts`, `src/helpers/telemetryUtils.ts`, and `test/jest/telemetry/**`; `salesforcedx-vscode-core/src/telemetry/index.ts`, `src/index.ts`, `src/services/telemetry/telemetryServiceProvider.ts`, and `test/jest/telemetry/**`. The rule is enabled as an error for TypeScript files in `eslint.config.mjs`.
+
 ### no-duplicate-i18n-values
 
 Disallows English text in translation files that should be localized. This rule checks i18n locale files (e.g., `i18n.ja.ts`) and flags any translations that appear to be in English or duplicate the English source text.
@@ -75,6 +81,168 @@ const findById = Effect.fn('UserService.findById')(function* (id: UserId) {
 ```
 
 Note: Immediately-invoked `Effect.fn` calls (e.g. `Effect.fn('x')(function* (){})()`) are flagged by the Effect Language Service rule `effectFnIife` (config-enforced in `config/effect-diagnostics.json`), not this rule. Use `Effect.gen(...).pipe(Effect.withSpan(...))` for one-shot effects.
+
+### no-nested-effect-gen-catch-tags
+
+Inside an `Effect.fn` generator, do not wrap a span in `Effect.gen` just so `.pipe` can attach `Effect.catchTags`. Pipe from that span's first Effect and keep `catchTags` on that pipe. `catchTags` after other `.pipe` steps is the same shape. An `Effect.gen` service body, an `Effect.gen` inside `Effect.fn` with no `catchTags`, and `Effect.catchTags` on a non-`Effect.gen` receiver stay allowed. The rule is AST-only: it matches an `Effect` identifier, the same way `no-effect-fn-wrapper` does.
+
+**Bad:**
+
+```typescript
+const persist = Effect.fn('Example.persist')(function* () {
+  yield* Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    yield* (yield* api.services.SettingsService).setValue('section', 'key', true);
+  }).pipe(
+    Effect.catchTags({
+      MissingSettingsError: error => Effect.logWarning(error.message)
+    })
+  );
+});
+```
+
+**Good:**
+
+```typescript
+const persist = Effect.fn('Example.persist')(function* () {
+  yield* ExtensionProviderService.pipe(
+    Effect.flatMap(provider => provider.getServicesApi),
+    Effect.flatMap(api => api.services.SettingsService),
+    Effect.flatMap(settings => settings.setValue('section', 'key', true)),
+    Effect.catchTags({
+      MissingSettingsError: error => Effect.logWarning(error.message)
+    })
+  );
+});
+```
+
+This monorepo enables the rule as `error` for `**/*.ts` in `eslint.config.mjs`, next to `local/no-effect-fn-wrapper`.
+
+### effect-fn-catch-middleware-last
+
+`Effect.fn` applies middleware after the generator from left to right, so a later argument wraps the earlier ones. A success combinator after a catch runs on the recovered value and treats that recovery as success. Put `Effect.tap` and success-notification calls, such as `withConfigurableSuccessNotification(...)`, before `Effect.catch`, `Effect.catchTag`, `Effect.catchAll`, and the rest of the catch family. A later catch stays allowed. A later guard such as `preventOrgChanges` stays allowed, because it races the command and is not a success tap.
+
+The rule walks `Effect.fn('span')(function* () {}, ...middleware)` and `Effect.fn('name', options)(...)`. It does not flag `Effect.fnUntraced`, `Effect.gen`, a catch inside the generator, or a catch on `.pipe`.
+
+**Bad:**
+
+```typescript
+const deploy = Effect.fn('deploySourcePath.deployActiveEditor')(
+  function* () {
+    yield* deployUris();
+  },
+  Effect.catchTag('NoActiveEditorError', () => Effect.void),
+  withConfigurableSuccessNotification('Deployed')
+);
+```
+
+**Good:**
+
+```typescript
+const deploy = Effect.fn('deploySourcePath.deployActiveEditor')(
+  function* () {
+    yield* deployUris();
+  },
+  withConfigurableSuccessNotification('Deployed'),
+  Effect.catchTag('NoActiveEditorError', () => Effect.void)
+);
+
+const deployActiveEditor = Effect.fn('deploySourcePath.deployActiveEditor')(
+  function* () {
+    yield* deployUris();
+  },
+  Effect.catchTag('NoActiveEditorError', () => Effect.void),
+  preventOrgChanges
+);
+```
+
+This monorepo enables the rule as `error` for `**/*.ts` in `eslint.config.mjs`, next to `local/require-effect-fn-span-name`.
+
+### no-nested-effect-ternary
+
+Disallows nested ternaries (three or more branches) whose type is Effect's `Effect`. Use `Match.value`, `Match.when`, and `Match.orElse` instead. A single Effect ternary stays allowed, and so do nested ternaries that do not produce an `Effect`. For a no-op branch, use `Match.orElse(() => Effect.void)`.
+
+The rule is type-aware. It reports only when the conditional expression's type is `Effect` (including a union or intersection that is entirely `Effect`).
+
+**Bad:**
+
+```typescript
+const effect =
+  kind === 'a' ? doA : kind === 'b' ? doB : Effect.void;
+```
+
+**Good:**
+
+```typescript
+const effect = Match.value(kind).pipe(
+  Match.when('a', () => doA),
+  Match.when('b', () => doB),
+  Match.orElse(() => Effect.void)
+);
+```
+
+This monorepo enables the rule as `error` for `**/*.ts` in `eslint.config.mjs`, next to `local/no-effect-fn-wrapper`.
+
+### no-raw-duration
+
+Disallows a numeric literal or `number`-typed argument or object property whose contextual type includes Effect's `Duration` or `Duration.DurationInput`, including an optional `DurationInput`. A bare `number` in that position is milliseconds. Wrap it with `Duration.millis`. A parameter whose declared type is plain `number` or `number | undefined` stays allowed, so `Duration.millis(5000)` and a `factor?: number` argument are not flagged. Still-legal `DurationInput` values the rule does not cover: `bigint` nanos (`Effect.sleep(1n)`) and template-string inputs (`Effect.sleep("2 seconds")`).
+
+**Bad:**
+
+```typescript
+Effect.sleep(30_000);
+
+const ms: number = 30_000;
+Effect.sleep(ms);
+
+const opts: { timeout?: Duration.DurationInput } = { timeout: 1 };
+```
+
+**Good:**
+
+```typescript
+Effect.sleep(Duration.millis(30_000));
+
+Duration.millis(5000);
+
+const opts: { timeout: number } = { timeout: 30_000 };
+
+Schedule.exponential(Duration.seconds(1), 2);
+```
+
+This monorepo enables the rule as `error` for `**/*.ts` in `eslint.config.mjs`, next to `local/require-effect-fn-span-name`.
+
+### no-effect-service-promise-return
+
+Disallows methods that return `Promise` on the object returned from the `effect` or `scoped` callback of a class that extends `Effect.Service<…>()(…)`. That includes `async` methods and methods whose return type is inferred as `Promise`. Return an `Effect` instead, for example `Effect.fn`. An `Effect` or `Effect.fn` method stays allowed, and so does a function that returns `Promise` outside an `Effect.Service`.
+
+The rule is type-aware. It reports when a method on that returned object has a call signature whose return type is `Promise` (including a union or intersection that contains `Promise`).
+
+**Bad:**
+
+```typescript
+class UserService extends Effect.Service<UserService>()('UserService', {
+  effect: Effect.gen(function* () {
+    const findById = async (id: string): Promise<string> => id;
+    return { findById };
+  })
+}) {}
+```
+
+**Good:**
+
+```typescript
+class UserService extends Effect.Service<UserService>()('UserService', {
+  effect: Effect.gen(function* () {
+    const findById = Effect.fn('UserService.findById')(function* (id: string) {
+      return id;
+    });
+    return { findById };
+  })
+}) {}
+```
+
+This monorepo enables the rule as `error` in `eslint.config.mjs`, in the same two blocks as `local/no-effect-service-accessor-calls`: the Effect-services files list, and the apex / soql / soql-common / soql-model files list.
 
 ### notification-slot-matches-package-json
 

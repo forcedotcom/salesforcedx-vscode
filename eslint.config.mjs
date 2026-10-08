@@ -50,7 +50,6 @@ const noNullCompare = {
   message:
     "Do not use x == null / x != null. Use the 'effect/Predicate' guard matching the declared type: T | undefined -> isUndefined / isNotUndefined; T | null -> isNull / isNotNull; T | null | undefined -> isNullable / isNotNullable."
 };
-
 export default [
   {
     ignores: [
@@ -121,7 +120,7 @@ export default [
     }
   },
   {
-    files: ['**/*.{ts,mts}'],
+    files: ['**/*.ts', '**/*.mts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -157,8 +156,10 @@ export default [
     },
     rules: {
       'local/no-vscode-uri': 'error',
+      'local/no-jsforce-query': 'error',
       'local/no-vscode-show-text-document': 'warn',
       'local/no-inline-esbuild-platform': 'error',
+      'local/no-legacy-telemetry-service': 'error',
       'local/command-must-be-in-package-json': [
         'error',
         {
@@ -183,7 +184,11 @@ export default [
         }
       ],
       'local/no-effect-fn-wrapper': 'error',
+      'local/no-nested-effect-gen-catch-tags': 'error',
+      'local/no-nested-effect-ternary': 'error',
       'local/require-effect-fn-span-name': 'error',
+      'local/no-raw-duration': 'error',
+      'local/effect-fn-catch-middleware-last': 'error',
       'local/no-duplicate-i18n-values': 'error',
       'local/no-unused-i18n-messages': 'error',
       'local/no-vscode-message-literals': 'error',
@@ -575,6 +580,7 @@ export default [
     // effect/Predicate, so applying it there would point at an unimportable API.
     files: [
       'packages/effect-ext-utils/**/*.ts',
+      'packages/effect-octokit/**/*.ts',
       'packages/salesforcedx-lightning-lsp-common/**/*.ts',
       'packages/salesforcedx-utils-vscode/**/*.ts',
       'packages/salesforcedx-vscode-apex/**/*.ts',
@@ -604,7 +610,15 @@ export default [
       'packages/**/playwright*.ts'
     ],
     rules: {
-      // repeat noHrtime: flat config replaces the whole array, so re-specify to keep the hrtime guard
+      // flat config replaces the whole array, so re-specify the base guards
+      'no-restricted-syntax': ['error', noHrtime, noInstanceofError, noNullCompare]
+    }
+  },
+  {
+    // Only queryExecute calls jsforce query/queryMore; keep the other syntax guards here.
+    files: ['packages/salesforcedx-vscode-services/src/core/queryExecute.ts'],
+    rules: {
+      'local/no-jsforce-query': 'off',
       'no-restricted-syntax': ['error', noHrtime, noInstanceofError, noNullCompare]
     }
   },
@@ -630,6 +644,8 @@ export default [
       'packages/soql-model/test/**/*',
       'packages/salesforcedx-apex/test/**/*',
       'packages/effect-ext-utils/test/**/*',
+      'packages/playwright-vscode-ext/**/*.ts',
+      'packages/effect-octokit/test/**/*',
       'packages/playwright-vscode-ext/**/*.ts',
       'scripts/**/*.test.ts'
     ],
@@ -719,6 +735,9 @@ export default [
     // Surface shrinks as later refactors (methods->functions, Effect) land.
     files: ['packages/salesforcedx-apex/**/*.ts'],
     rules: {
+      // apex-node does not depend on the services extension.
+      'no-restricted-syntax': ['error', noHrtime],
+      'local/no-jsforce-query': 'off',
       // upstream style: avoid restyling imported, history-tracked code
       '@typescript-eslint/consistent-type-assertions': 'off',
       '@typescript-eslint/explicit-member-accessibility': 'off',
@@ -767,6 +786,7 @@ export default [
       'packages/salesforcedx-vscode-lightning/src/commands/**/*.ts',
       'packages/drivable-vscode/**/*.ts',
       'packages/effect-ext-utils/**/*.ts',
+      'packages/effect-octokit/**/*.ts',
       'packages/soql-builder-ui/src/domain.ts',
       'packages/soql-builder-ui/src/effect/**/*.ts',
       'packages/soql-builder-ui/src/testing/**/*.ts',
@@ -786,6 +806,7 @@ export default [
       '@typescript-eslint/consistent-type-definitions': ['error', 'type'],
       'local/no-explicit-effect-return-type': 'error',
       'local/no-effect-service-accessor-calls': 'error',
+      'local/no-effect-service-promise-return': 'error',
       'local/no-successive-annotate-current-span': 'error',
 
       // Effect code should always handle promises properly
@@ -844,7 +865,7 @@ export default [
   },
   {
     // consistent-type-imports for effect-ext-utils (inline to avoid no-duplicate-imports)
-    files: ['packages/effect-ext-utils/**/*.ts'],
+    files: ['packages/effect-ext-utils/**/*.ts', 'packages/effect-octokit/**/*.ts'],
     rules: {
       '@typescript-eslint/consistent-type-imports': [
         'error',
@@ -883,6 +904,56 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-vscode-apex-debugger (inline to avoid no-duplicate-imports; W-23371053)
+    files: ['packages/salesforcedx-vscode-apex-debugger/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-vscode-apex-log (inline to avoid no-duplicate-imports; W-23371055)
+    files: ['packages/salesforcedx-vscode-apex-log/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-vscode-apex-oas (inline to avoid no-duplicate-imports; W-23371058)
+    files: ['packages/salesforcedx-vscode-apex-oas/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-vscode-apex-replay-debugger (inline to avoid no-duplicate-imports; W-23371059)
+    files: ['packages/salesforcedx-vscode-apex-replay-debugger/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-vscode-lightning (inline to avoid no-duplicate-imports; W-23371060)
+    files: ['packages/salesforcedx-vscode-lightning/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // consistent-type-imports for playwright-vscode-ext (inline to avoid no-duplicate-imports; W-23370906)
     files: ['packages/playwright-vscode-ext/**/*.ts'],
     rules: {
@@ -893,13 +964,29 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-aura-language-server (inline to avoid no-duplicate-imports; W-23371054)
+    files: ['packages/salesforcedx-aura-language-server/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // class-methods-use-this for packages not yet using Effect
     // (apex-oas + apex-testing omitted: covered by the Effect-services block above, which sets both rules)
-    files: ['packages/salesforcedx-vscode-soql/**/*.ts', 'packages/soql-common/**/*.ts', 'packages/soql-model/**/*.ts'],
+    files: [
+      'packages/salesforcedx-vscode-apex/**/*.ts',
+      'packages/salesforcedx-vscode-soql/**/*.ts',
+      'packages/soql-common/**/*.ts',
+      'packages/soql-model/**/*.ts'
+    ],
     rules: {
       'class-methods-use-this': 'error',
       'local/no-explicit-effect-return-type': 'error',
       'local/no-effect-service-accessor-calls': 'error',
+      'local/no-effect-service-promise-return': 'error',
       'local/no-successive-annotate-current-span': 'error'
     }
   },
@@ -942,6 +1029,14 @@ export default [
     ignores: ['packages/salesforcedx-vscode-services/**/*.ts'],
     rules: {
       'local/no-direct-services-imports': 'error'
+    }
+  },
+  {
+    // vscode-apex is not in the Effect-services block. Only no-throw-statements.
+    // Before the test override so packages/**/test/**/*.ts stays off.
+    files: ['packages/salesforcedx-vscode-apex/**/*.ts'],
+    rules: {
+      'functional/no-throw-statements': 'error'
     }
   },
   {
@@ -999,9 +1094,15 @@ export default [
     }
   },
   {
-    files: ['scripts/validateActions.ts'],
+    files: ['scripts/validateActions.ts', 'scripts/changelogBody/changelogBody.mts', 'scripts/manualTestPlan/**/*.mts'],
     rules: {
       'no-restricted-imports': 'off'
+    }
+  },
+  {
+    files: ['scripts/manualTestPlan/test/**/*.mts'],
+    rules: {
+      '@typescript-eslint/no-floating-promises': 'off'
     }
   },
   // ESLint plugin rules for eslint-local-rules package only
@@ -1089,12 +1190,35 @@ export default [
     }
   },
   {
-    // Register eslint-plugin-playwright for the e2e specs but enable NO rules yet.
-    // Individual playwright/* rules are turned on (and their violations fixed) in
-    // separate follow-up WIs, one rule at a time.
+    // Register eslint-plugin-playwright for the e2e specs. Individual playwright/*
+    // rules are turned on (and their violations fixed) one rule at a time.
     files: ['packages/salesforcedx**/test/playwright/**/*.ts', 'packages/playwright-vscode-ext/**/*.ts'],
     plugins: { playwright: eslintPluginPlaywright },
-    rules: {}
+    rules: {
+      'playwright/no-force-option': 'error',
+      'playwright/no-conditional-expect': 'error',
+      // Helpers that assert or throw outside test() and do not match the prefix pattern.
+      'playwright/expect-expect': [
+        'error',
+        {
+          assertFunctionPatterns: ['^(assert|expect|verify)'],
+          assertFunctionNames: [
+            'continueDebugSession',
+            'createAuraTemplate',
+            'createVisualforceTemplate',
+            'runRefreshAndVerify',
+            'upsertSettings',
+            'waitForEsrFile',
+            'waitForItem',
+            'waitForJestResults',
+            'waitForLwcLspReady',
+            'waitForNotification',
+            'waitForOutputChannelText',
+            'waitForTab'
+          ]
+        }
+      ]
+    }
   },
   {
     files: ['**/vitest*.config.mts'],

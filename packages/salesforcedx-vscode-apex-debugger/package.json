@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.25.1",
+  "version": "67.27.5",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,7 +28,7 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/core": "^9.1.9",
+    "@salesforce/core": "^9.3.0",
     "@salesforce/effect-ext-utils": "*",
     "@salesforce/salesforcedx-apex-debugger": "*",
     "@salesforce/vscode-i18n": "*",
@@ -61,7 +61,7 @@
     "test:compile": "wireit",
     "vscode:package:legacy:prerelease": "wireit",
     "test:desktop": "wireit",
-    "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-apex-debugger test:desktop --debug",
     "test:e2e": "wireit"
   },
   "wireit": {

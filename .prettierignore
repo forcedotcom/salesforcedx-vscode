@@ -1,6 +1,8 @@
 **/*.md
+pnpm-lock.yaml
 **/snippets/
 SHA256.md
+pnpm-lock.yaml
 .claude/
 !.claude/worktrees/**
 .cursor/

@@ -10,6 +10,7 @@ import type { ResolvedPackageInfo } from '../../../src/testDiscovery/schemas';
 import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -17,7 +18,7 @@ import { PackageResolutionService } from '../../../src/testDiscovery/packageReso
 
 // PackageResolutionService.resolve resolves the connection via ConnectionService.getConnection() and the
 // org key via TargetOrgRef, both reached ambiently through ExtensionProviderService. The tests drive the
-// service through a stub ExtensionProviderService layer; connection.tooling.query is the controllable seam.
+// service through a stub ExtensionProviderService layer; QueryService.query is the controllable seam.
 // buildLayer() constructs a fresh service instance (fresh Ref state) per run, so cache/unavailable state
 // never leaks between tests. runWith resolves the service once and runs the whole program in one runtime,
 // so multiple resolve() calls in one test share that instance's cache.
@@ -36,6 +37,18 @@ describe('PackageResolutionService', () => {
     const mockApi = {
       services: {
         ConnectionService: { getConnection: () => Effect.succeed(mockConnection as Connection) },
+        QueryService: Effect.succeed({
+          query: (options: { soql: string }) =>
+            Effect.tryPromise({
+              try: () => mockToolingQuery(options.soql) as Promise<{ records?: unknown[]; totalSize?: number }>,
+              catch: (error: unknown) => error
+            }).pipe(
+              Effect.map(result => ({
+                totalSize: result.totalSize ?? result.records?.length ?? 0,
+                records: Stream.fromIterable(result.records ?? [])
+              }))
+            )
+        }),
         TargetOrgRef: () => SubscriptionRef.make(orgInfo)
       }
     };
@@ -161,7 +174,11 @@ describe('PackageResolutionService', () => {
   it('resolves from InstalledSubscriberPackage when Package2Member is unavailable and namespace map is provided', async () => {
     const classId = '01p000000000001AAA';
     mockToolingQuery
-      .mockRejectedValueOnce(new Error("sObject type 'Package2Member' is not supported."))
+      .mockRejectedValueOnce({
+        _tag: 'SoqlError',
+        message: "sObject type 'Package2Member' is not supported.",
+        errorCode: 'INVALID_TYPE'
+      })
       .mockResolvedValueOnce({
         records: [
           {
@@ -187,7 +204,11 @@ describe('PackageResolutionService', () => {
   it('resolves no-namespace classes to the single no-namespace package (Skyline resolveNoNamespaceInstalledItem)', async () => {
     const classId = '01p000000000001AAA';
     mockToolingQuery
-      .mockRejectedValueOnce(new Error("sObject type 'Package2Member' is not supported."))
+      .mockRejectedValueOnce({
+        _tag: 'SoqlError',
+        message: "sObject type 'Package2Member' is not supported.",
+        errorCode: 'INVALID_TYPE'
+      })
       .mockResolvedValueOnce({
         records: [
           {
@@ -214,7 +235,11 @@ describe('PackageResolutionService', () => {
     const installedId = '01p000000000001AAA';
     const unpackagedId = '01p000000000002AAA';
     mockToolingQuery
-      .mockRejectedValueOnce(new Error("sObject type 'Package2Member' is not supported."))
+      .mockRejectedValueOnce({
+        _tag: 'SoqlError',
+        message: "sObject type 'Package2Member' is not supported.",
+        errorCode: 'INVALID_TYPE'
+      })
       .mockResolvedValueOnce({
         records: [
           {
@@ -243,7 +268,11 @@ describe('PackageResolutionService', () => {
   it('serves cached resolution and does not re-query once the org is marked unavailable', async () => {
     const classId = '01p000000000001AAA';
     mockToolingQuery
-      .mockRejectedValueOnce(new Error("sObject type 'Package2Member' is not supported."))
+      .mockRejectedValueOnce({
+        _tag: 'SoqlError',
+        message: "sObject type 'Package2Member' is not supported.",
+        errorCode: 'INVALID_TYPE'
+      })
       .mockResolvedValueOnce({
         records: [
           {

@@ -7,14 +7,21 @@
 
 import { TSESLint } from '@typescript-eslint/utils';
 import { commandMustBeInPackageJson } from './commandMustBeInPackageJson';
+import { effectFnCatchMiddlewareLast } from './effectFnCatchMiddlewareLast';
 import { noDirectServicesImports } from './noDirectServicesImports';
 import { noDuplicateI18nValues } from './noDuplicateI18nValues';
 import { noDuplicatePlaywrightLocators } from './noDuplicatePlaywrightLocators';
 import { noEffectFnWrapper } from './noEffectFnWrapper';
 import { noEffectServiceAccessorCalls } from './noEffectServiceAccessorCalls';
+import { noEffectServicePromiseReturn } from './noEffectServicePromiseReturn';
 import { noExplicitEffectReturnType } from './noExplicitEffectReturnType';
 import { noExportTaggedErrorInServices } from './noExportTaggedErrorInServices';
 import { noInlineEsbuildPlatform } from './noInlineEsbuildPlatform';
+import { noJsforceQuery } from './noJsforceQuery';
+import { noLegacyTelemetryService } from './noLegacyTelemetryService';
+import { noNestedEffectGenCatchTags } from './noNestedEffectGenCatchTags';
+import { noNestedEffectTernary } from './noNestedEffectTernary';
+import { noRawDuration } from './noRawDuration';
 import { noRuntimeVscodeImport } from './noRuntimeVscodeImport';
 import { noSelfBarrelImport } from './noSelfBarrelImport';
 import { noSuccessiveAnnotateCurrentSpan } from './noSuccessiveAnnotateCurrentSpan';
@@ -56,10 +63,17 @@ const plugin: TSESLint.FlatConfig.Plugin = {
     'no-successive-annotate-current-span': noSuccessiveAnnotateCurrentSpan,
     'no-export-tagged-error-in-services': noExportTaggedErrorInServices,
     'no-runtime-vscode-import': noRuntimeVscodeImport,
+    'effect-fn-catch-middleware-last': effectFnCatchMiddlewareLast,
     'require-effect-fn-span-name': requireEffectFnSpanName,
     'no-effect-service-accessor-calls': noEffectServiceAccessorCalls,
+    'no-effect-service-promise-return': noEffectServicePromiseReturn,
+    'no-jsforce-query': noJsforceQuery,
     'no-explicit-effect-return-type': noExplicitEffectReturnType,
     'no-inline-esbuild-platform': noInlineEsbuildPlatform,
+    'no-legacy-telemetry-service': noLegacyTelemetryService,
+    'no-nested-effect-gen-catch-tags': noNestedEffectGenCatchTags,
+    'no-nested-effect-ternary': noNestedEffectTernary,
+    'no-raw-duration': noRawDuration,
     'no-unused-i18n-messages': noUnusedI18nMessages,
     'query-builder-html-i18n-keys': queryBuilderHtmlI18nKeys,
     'no-vscode-message-literals': noVscodeMessageLiterals,
