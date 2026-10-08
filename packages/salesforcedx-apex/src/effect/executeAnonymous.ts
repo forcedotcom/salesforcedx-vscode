@@ -112,7 +112,7 @@ export const executeAnonymous = Effect.fn('Apex.executeAnonymous')(function* (
     ),
     Effect.retry({ times: 1, while: isInvalidSessionRequestError }),
     Effect.mapError(error =>
-      error instanceof ApexOperationError
+      Schema.is(ApexOperationError)(error)
         ? error
         : isInvalidSession(error.cause)
           ? operationError(error.cause, AUTH_FAILURE_MESSAGE)
