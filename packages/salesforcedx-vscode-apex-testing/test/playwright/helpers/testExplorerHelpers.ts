@@ -7,7 +7,10 @@
 
 import { expect, type Locator, type Page } from '@playwright/test';
 import {
+  activeQuickInputTextField,
   executeCommandWithCommandPalette,
+  openCommandPalette,
+  QUICK_INPUT_LIST_ROW,
   TEST_EXPLORER_PANEL,
   TEST_EXPLORER_TREE_ITEM,
   verifyNoTestRunInProgress
@@ -113,11 +116,20 @@ export const runAllTestsAndWaitForCompletion = async (page: Page, timeout: numbe
   const testResultsTab = page.locator(TEST_RESULTS_TAB);
   await testResultsTab.waitFor({ state: 'visible', timeout: 30_000 });
   await expect(page.getByText(/Pass Rate/i)).toBeVisible({ timeout });
-  // "Cancel Test Run"'s palette visibility (gated on a context key) can lag a few seconds behind the
-  // Pass Rate UI update under CI's loaded, parallel runners — confirmed via repeated CI failures
-  // ("Command 'Test: Cancel Test Run' still visible") hitting the 10s default in verifyCommandDoesNotExist.
-  // These are two separate completion signals; give the second the same generous slack as the first.
-  await verifyNoTestRunInProgress(page, 30_000);
+  try {
+    await verifyNoTestRunInProgress(page);
+  } catch (err) {
+    // TEMP DIAGNOSTIC (remove once root-caused): a 30s timeout bump here didn't help — confirmed via
+    // CI that this genuinely never clears within 30s, not a brief settling lag. List what "Test:"
+    // commands ARE visible when this happens, to see if "Cancel Test Run" is truly stuck or something
+    // else (e.g. a second overlapping run) is going on.
+    await openCommandPalette(page);
+    await activeQuickInputTextField(page).fill('>Test:');
+    const rows = await page.locator(QUICK_INPUT_LIST_ROW).allTextContents();
+    console.log('[diag:test-commands-on-cancel-stuck]', JSON.stringify(rows));
+    await page.keyboard.press('Escape');
+    throw err;
+  }
 };
 
 /**
