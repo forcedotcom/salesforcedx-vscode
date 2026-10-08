@@ -17,6 +17,7 @@ import { getSpanCreationIdentity, setSpanCreationIdentity } from '../../../src/o
 import {
   buildLegacySpanAttributes,
   createLegacyTelemetrySpan,
+  getLegacyCallerFalcon,
   getLegacyTelemetrySender,
   LEGACY_DEFAULT_AI_CONNECTION_STRING,
   LEGACY_O11Y_ENABLED_ATTR,
@@ -231,5 +232,59 @@ describe('getLegacyTelemetrySender', () => {
     await getLegacyTelemetrySender(context)({ kind: 'event', name: 'e' });
 
     expect(getTracer).not.toHaveBeenCalled();
+  });
+
+  it('registers caller falcon opt-in in memory without stamping it on span attributes', async () => {
+    const context = {
+      extension: {
+        packageJSON: { name: 'falcon-ext', version: '1.0.0', falconApiKey: 'test-key', falconEnvironment: 'dev' }
+      },
+      extensionMode: 1
+    } as unknown as ExtensionContext;
+    const { attributes } = captureOtelSpan();
+
+    await getLegacyTelemetrySender(context)({ kind: 'event', name: 'e' })();
+
+    expect(getLegacyCallerFalcon('falcon-ext')).toEqual({ apiKey: 'test-key', environment: 'dev' });
+    expect([...attributes.values()].map(String)).not.toContain('test-key');
+  });
+
+  it('does not register falcon when the caller has no falconApiKey', () => {
+    const context = {
+      extension: { packageJSON: { name: 'plain-ext', version: '1.0.0' } },
+      extensionMode: 1
+    } as unknown as ExtensionContext;
+
+    getLegacyTelemetrySender(context);
+
+    expect(getLegacyCallerFalcon('plain-ext')).toBeUndefined();
+  });
+
+  it('inherits the host falcon opt-in when the caller has none of its own', () => {
+    const hostFalcon = { apiKey: 'host-key', environment: 'prod' as const };
+    const context = {
+      extension: { packageJSON: { name: 'inheriting-ext', version: '1.0.0' } },
+      extensionMode: 1
+    } as unknown as ExtensionContext;
+
+    getLegacyTelemetrySender(context);
+
+    expect(getLegacyCallerFalcon('inheriting-ext', hostFalcon)).toEqual(hostFalcon);
+  });
+
+  it("prefers the caller's own falcon opt-in over the host's", async () => {
+    const context = {
+      extension: {
+        packageJSON: { name: 'own-falcon-ext', version: '1.0.0', falconApiKey: 'caller-key', falconEnvironment: 'dev' }
+      },
+      extensionMode: 1
+    } as unknown as ExtensionContext;
+
+    await getLegacyTelemetrySender(context)({ kind: 'event', name: 'e' })();
+
+    expect(getLegacyCallerFalcon('own-falcon-ext', { apiKey: 'host-key', environment: 'prod' })).toEqual({
+      apiKey: 'caller-key',
+      environment: 'dev'
+    });
   });
 });

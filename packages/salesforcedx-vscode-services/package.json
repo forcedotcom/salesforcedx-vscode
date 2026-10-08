@@ -44,7 +44,7 @@
     "@opentelemetry/sdk-trace-web": "2.8.0",
     "@salesforce/apex-node": "workspace:*",
     "@salesforce/core": "^9.3.0",
-    "@salesforce/o11y-reporter": "^1.8.5",
+    "@salesforce/o11y-reporter": "^1.11.0",
     "@salesforce/salesforcedx-utils": "workspace:*",
     "@salesforce/source-deploy-retrieve": "^13.2.0",
     "@salesforce/source-tracking": "^8.0.0",
