@@ -155,7 +155,7 @@ export const parseSoqlBuilderQuery = (statement: string): SoqlBuilderQuery => {
         : []
     ),
     originalSoqlStatement: statement,
-    parseErrors: (model.errors ?? []).map(error => ({ ...error })),
+    parseErrors: (model.errors ?? []).filter(error => !error.isSecondaryRecovery).map(error => ({ ...error })),
     ...(model.from?.sobjectName ? { sObject: model.from.sobjectName } : {}),
     unsupportedSyntax,
     where: {
