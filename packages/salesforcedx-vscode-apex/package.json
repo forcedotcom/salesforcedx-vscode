@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.27.6",
+  "version": "68.1.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,10 +28,10 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "*",
-    "@salesforce/effect-ext-utils": "*",
-    "@salesforce/salesforcedx-utils": "*",
-    "@salesforce/vscode-i18n": "*",
+    "@salesforce/apex-node": "workspace:*",
+    "@salesforce/effect-ext-utils": "workspace:*",
+    "@salesforce/salesforcedx-utils": "workspace:*",
+    "@salesforce/vscode-i18n": "workspace:*",
     "effect": "^3.21.2",
     "find-java-home": "1.2.2",
     "vscode-languageclient": "^9.0.1",
@@ -40,8 +40,8 @@
   },
   "devDependencies": {
     "@salesforce/core": "^9.3.0",
-    "@salesforce/playwright-vscode-ext": "*",
-    "salesforcedx-vscode-services": "*"
+    "@salesforce/playwright-vscode-ext": "workspace:*",
+    "salesforcedx-vscode-services": "workspace:*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"

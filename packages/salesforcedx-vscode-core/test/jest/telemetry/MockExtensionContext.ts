@@ -6,17 +6,17 @@
  */
 import * as path from 'node:path';
 import {
-  EnvironmentVariableCollection,
-  EnvironmentVariableMutator,
-  EnvironmentVariableScope,
+  type EnvironmentVariableCollection,
+  type EnvironmentVariableMutator,
+  type EnvironmentVariableScope,
   EventEmitter,
-  Extension,
-  ExtensionContext,
+  type Extension,
+  type ExtensionContext,
   ExtensionMode,
-  LanguageModelAccessInformation,
-  LanguageModelChat,
-  Memento,
-  SecretStorage
+  type LanguageModelAccessInformation,
+  type LanguageModelChat,
+  type Memento,
+  type SecretStorage
 } from 'vscode';
 import { URI } from 'vscode-uri';
 
