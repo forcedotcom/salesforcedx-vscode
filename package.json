@@ -122,7 +122,6 @@
     "build": "pnpm compile",
     "postinstall": "wireit",
     "bootstrap": "pnpm install",
-    "changelog": "ts-node ./scripts/create-release-notes.ts",
     "clean": "pnpm --recursive --if-present run clean && git clean -xfd",
     "clean:build": "node scripts/clean-build-artifacts.js",
     "clean:wireit-cache": "node scripts/clean-wireit-cache.js",
