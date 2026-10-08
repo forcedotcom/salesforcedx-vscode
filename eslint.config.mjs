@@ -951,6 +951,16 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-vscode-metadata (inline to avoid no-duplicate-imports; W-23371074)
+    files: ['packages/salesforcedx-vscode-metadata/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // consistent-type-imports for salesforcedx-vscode-apex-replay-debugger (inline to avoid no-duplicate-imports; W-23371059)
     files: ['packages/salesforcedx-vscode-apex-replay-debugger/**/*.ts'],
     rules: {
