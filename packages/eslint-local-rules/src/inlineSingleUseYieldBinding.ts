@@ -29,7 +29,8 @@ export const inlineSingleUseYieldBinding = RuleCreator.withoutDocs({
     fixable: 'code',
     schema: [],
     messages: {
-      inlineSingleUseYieldBinding: 'Remove this single-use yield* binding without changing evaluation order.'
+      inlineSingleUseYieldBinding:
+        'Inline this single-use yield* binding as a pipe step (Effect.map for pure, Effect.flatMap for Effect-returning); do not nest it as f(yield* e).'
     }
   },
   defaultOptions: [],

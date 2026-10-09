@@ -94,7 +94,7 @@ const runWithService = <A>(
 ) =>
   Effect.runPromise(
     Effect.gen(function* () {
-      return yield* body(yield* SoqlBuilderService);
+      return yield* SoqlBuilderService.pipe(Effect.flatMap(body));
     }).pipe(Effect.provide(VscodeSoqlBuilderServiceLive.pipe(Layer.provide(messageLayer))), Effect.scoped)
   );
 

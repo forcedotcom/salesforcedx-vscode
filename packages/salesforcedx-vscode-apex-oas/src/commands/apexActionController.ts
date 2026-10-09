@@ -120,7 +120,9 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
 
         // Step 9: Write OpenAPI Document to File
         yield* report(nls.localize('generating_oas_progress_writing'));
-        yield* generateEsrMD(yield* checkIfESRIsDecomposed(), result, fullPath);
+        yield* checkIfESRIsDecomposed().pipe(
+          Effect.flatMap(isDecomposed => generateEsrMD(isDecomposed, result, fullPath))
+        );
         return result;
       }),
     progressLocation

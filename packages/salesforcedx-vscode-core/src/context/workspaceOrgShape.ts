@@ -15,7 +15,7 @@ const getOrgShapeEffect = Effect.fn('workspaceOrgShape.getOrgShape')(function* (
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const { isEmpty } = yield* api.services.WorkspaceService.getWorkspaceInfo();
   if (isEmpty) return 'Undefined';
-  return shapeFrom(yield* getDefaultOrgInfo());
+  return yield* getDefaultOrgInfo().pipe(Effect.map(shapeFrom));
 });
 
 export const getOrgShape = async (_username: string): Promise<OrgShape> =>

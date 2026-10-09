@@ -99,7 +99,7 @@ const executeRefresh = Effect.fn('executeRefresh')(function* (
 
 const runRefresh = Effect.fn('runRefresh')(function* (source?: SObjectRefreshSource) {
   if (!source || source === 'manual') {
-    yield* executeRefresh(yield* gatherCategory(), source);
+    yield* gatherCategory().pipe(Effect.flatMap(picked => executeRefresh(picked, source)));
   } else {
     yield* executeRefresh('ALL', source);
   }
