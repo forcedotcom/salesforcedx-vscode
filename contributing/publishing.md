@@ -145,23 +145,6 @@ After a release, run the [`/shipped-issues`](../.claude/skills/shipped-issues/SK
 
 ---
 
-# Publishing a Beta Pre-Release
-
-For high-risk or large-scale changes, publish a pre-release to allow advanced users to test early. VSIX artifacts uploaded to GitHub release (no NPM or VS Code Marketplace publish yet).
-
-## Steps
-
-1. Create release branch, increment version per `create-release-branch.js`
-2. Version format: keep minor, set patch to `YYYYMMDDHHMM` (e.g., v55.11.202208260522)
-3. Push to remote
-4. GitHub Actions tab → 'Publish Beta Release to GitHub Only' workflow
-5. Select 'Run Workflow' from beta branch (requires write access)
-6. Workflow creates git tag, release, and attaches individual VSIX files for download/test
-
-Note: beta branch (unique versioning) should not merge back to develop; use regular release process when ready.
-
----
-
 # Manual Publish
 
 The steps used to publish to the VS Code Marketplace can be found in the associated GitHub Actions.
