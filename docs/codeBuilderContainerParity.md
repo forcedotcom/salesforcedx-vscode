@@ -188,7 +188,7 @@ org to pick/switch between, or Dreamhouse custom metadata, the harness now authe
 pre-created orgs into the running container:
 
 - The CI workflow (`codeBuilderE2E.yml`) provisions the extra org(s) per package — a `--no-track-source`
-  scratch org (`nonTrackingTestOrg`) and/or a Dreamhouse org (`orgBrowserDreamhouseTestOrg`, cloned +
+  scratch org (`nonTrackingTestOrg`) and/or a Dreamhouse org (`dreamhouseTestOrg`, cloned +
   deployed + permset) — and passes their aliases via `CB_EXTRA_ORG_ALIASES`.
 - The orchestrator (`scripts/codeBuilderLocalE2E.ts`, `authExtraOrgsIntoContainer`) resolves each org's
   access token + instance URL on the host (un-redacted, via `resolveOrgBootEnv`) and runs

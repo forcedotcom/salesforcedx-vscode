@@ -15,7 +15,7 @@
  *
  * THE SPIKE QUESTION: Org Browser always browses the DEFAULT org's metadata. The container boots ONE
  * org (minimalTestOrg, unaliased — see orgPicker.container.spec.ts). CI additionally auths a Dreamhouse
- * scratch org aliased `orgBrowserDreamhouseTestOrg` into the container via CB_EXTRA_ORG_ALIASES
+ * scratch org aliased `dreamhouseTestOrg` into the container via CB_EXTRA_ORG_ALIASES
  * (.github/workflows/codeBuilderE2E.yml). The unknown: after the Org Browser has already opened against
  * the boot org (caching its describe), does SWITCHING the default to the Dreamhouse org make the panel
  * surface THAT org's custom objects — WITHOUT the window reload the code-server web container can't do?
@@ -86,7 +86,7 @@ test('Org Browser (Code Builder): surfaces the switched Dreamhouse org custom ob
   const bootOrgUsername = await resolveOrgUsername(MINIMAL_ORG_ALIAS).catch(() => undefined);
   const dreamhouseAuthed = await resolveOrgUsername(DREAMHOUSE_ORG_ALIAS).catch(() => undefined);
 
-  // The Dreamhouse multi-org capability is CI-only (CB_EXTRA_ORG_ALIASES=orgBrowserDreamhouseTestOrg for
+  // The Dreamhouse multi-org capability is CI-only (CB_EXTRA_ORG_ALIASES=dreamhouseTestOrg for
   // this package). Skip — never false-fail — when the host lacks either org, i.e. a local run without it.
   test.skip(
     !bootOrgUsername || !dreamhouseAuthed,

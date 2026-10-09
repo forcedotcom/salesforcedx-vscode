@@ -79,7 +79,7 @@ If you aren't sure if orgs are set up locally,
 sf org list
 ```
 
-Look for the required org aliases (e.g., `minimalTestOrg`, `nonTrackingTestOrg`, `orgBrowserDreamhouseTestOrg`). If missing, create them using the appropriate setup commands from `references/local-setup.md`.
+Look for the required org aliases (e.g., `minimalTestOrg`, `nonTrackingTestOrg`, `dreamhouseTestOrg`). If missing, create them using the appropriate setup commands from `references/local-setup.md`.
 
 **Pro tip**: Use `sf org list --json | jq '.result.scratchOrgs[] | select(.alias) | .alias'` to list only scratch org aliases.
 

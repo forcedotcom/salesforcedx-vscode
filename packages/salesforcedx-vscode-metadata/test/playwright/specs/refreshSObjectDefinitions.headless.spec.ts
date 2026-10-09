@@ -13,7 +13,7 @@
  * Container: the container image boots ONE minimal org (minimalTestOrg) that has NO custom objects, so
  * a refresh against it would do no meaningful custom work. This leans on the multi-org capability
  * (W-23898526): the orchestrator auths a second, REAL-metadata Dreamhouse org
- * (orgBrowserDreamhouseTestOrg, CB_EXTRA_ORG_ALIASES) into the running container. It switches the
+ * (dreamhouseTestOrg, CB_EXTRA_ORG_ALIASES) into the running container. It switches the
  * DEFAULT to that org through the status-bar picker, runs ONLY the CUSTOM-SObjects case (Standard/All
  * would add runtime cost not currently budgeted for the container phase — this is intentionally
  * reduced coverage vs. desktop/web's three cases), confirms completion via the output channel, then

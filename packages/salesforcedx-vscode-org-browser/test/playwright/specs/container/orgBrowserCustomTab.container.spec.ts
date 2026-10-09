@@ -11,7 +11,7 @@
  * `Broker__c` CustomTab from a per-test Dreamhouse scratch org; the boot minimal org the container
  * boots has no such tab. This spec opens the Org Browser against the boot org FIRST (so the switch
  * below re-targets an already-populated panel — the actual spike question), SWITCHES the default to
- * the Dreamhouse org (aliased `orgBrowserDreamhouseTestOrg`, authed via CB_EXTRA_ORG_ALIASES), forces
+ * the Dreamhouse org (aliased `dreamhouseTestOrg`, authed via CB_EXTRA_ORG_ALIASES), forces
  * a CustomTab re-query with "Refresh Type", and asserts the Dreamhouse `Broker__c` CustomTab node.
  * RESTORES the default to the boot org in `finally` so later serial specs run against the right org.
  *

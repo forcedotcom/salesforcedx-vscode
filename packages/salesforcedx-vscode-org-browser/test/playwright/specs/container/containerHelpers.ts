@@ -76,7 +76,7 @@ const resolveOrgUsername = async (alias: string): Promise<string | undefined> =>
 /**
  * Resolve the boot org's in-container label (its username) and confirm the Dreamhouse extra org is
  * authed. Container Dreamhouse specs `test.skip` when either is missing (CI-only capability via
- * CB_EXTRA_ORG_ALIASES=orgBrowserDreamhouseTestOrg for this package).
+ * CB_EXTRA_ORG_ALIASES=dreamhouseTestOrg for this package).
  */
 export const resolveMultiOrgLabels = async (): Promise<{ bootOrgUsername?: string; dreamhouseAuthed?: string }> => {
   const bootOrgUsername = await resolveOrgUsername(MINIMAL_ORG_ALIAS).catch(() => undefined);

@@ -15,7 +15,7 @@
  * to surface a foldered Report against the SWITCHED default org, not Dreamhouse-authored report metadata.
  *
  * Opens the Org Browser against the boot org FIRST (so the switch re-targets an already-populated
- * panel), SWITCHES the default to the Dreamhouse org (aliased `orgBrowserDreamhouseTestOrg`, authed via
+ * panel), SWITCHES the default to the Dreamhouse org (aliased `dreamhouseTestOrg`, authed via
  * CB_EXTRA_ORG_ALIASES), forces a Report re-query with "Refresh Type", then navigates
  * Report -> unfiled$public -> the report node. RESTORES the default to the boot org in `finally`.
  *

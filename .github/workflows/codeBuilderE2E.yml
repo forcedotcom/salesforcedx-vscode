@@ -202,15 +202,15 @@ jobs:
         with:
           max_attempts: 3
           retry_wait_seconds: 30
-          command: bash -c 'rm -rf cb-e2e-dh && git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc cb-e2e-dh && cd cb-e2e-dh && sf org create scratch -y 1 -f config/project-scratch-def.json -a orgBrowserDreamhouseTestOrg --json --wait 30 && sf project deploy start -o orgBrowserDreamhouseTestOrg && sf org assign permset -n dreamhouse -o orgBrowserDreamhouseTestOrg'
+          command: bash -c 'rm -rf cb-e2e-dh && git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc cb-e2e-dh && cd cb-e2e-dh && sf org create scratch -y 1 -f config/project-scratch-def.json -a dreamhouseTestOrg --json --wait 30 && sf project deploy start -o dreamhouseTestOrg && sf org assign permset -n dreamhouse -o dreamhouseTestOrg'
 
       # Resolve which extra orgs the orchestrator auths into the container for THIS package (comma-sep).
       # org/core switch to a non-tracking org; org-browser browses a Dreamhouse org; metadata uses both.
       - name: Resolve extra org aliases (per package)
         run: |
           case "$PACKAGE" in
-            salesforcedx-vscode-metadata) echo "CB_EXTRA_ORG_ALIASES=nonTrackingTestOrg,orgBrowserDreamhouseTestOrg" >> "$GITHUB_ENV" ;;
-            salesforcedx-vscode-org-browser) echo "CB_EXTRA_ORG_ALIASES=orgBrowserDreamhouseTestOrg" >> "$GITHUB_ENV" ;;
+            salesforcedx-vscode-metadata) echo "CB_EXTRA_ORG_ALIASES=nonTrackingTestOrg,dreamhouseTestOrg" >> "$GITHUB_ENV" ;;
+            salesforcedx-vscode-org-browser) echo "CB_EXTRA_ORG_ALIASES=dreamhouseTestOrg" >> "$GITHUB_ENV" ;;
             salesforcedx-vscode-org | salesforcedx-vscode-core) echo "CB_EXTRA_ORG_ALIASES=nonTrackingTestOrg" >> "$GITHUB_ENV" ;;
             *) echo "CB_EXTRA_ORG_ALIASES=" >> "$GITHUB_ENV" ;;
           esac
@@ -266,4 +266,4 @@ jobs:
       - name: Cleanup Dreamhouse scratch org
         if: always() && contains(fromJSON('["salesforcedx-vscode-org-browser", "salesforcedx-vscode-metadata"]'), matrix.package)
         continue-on-error: true
-        run: sf org delete scratch -o orgBrowserDreamhouseTestOrg --no-prompt || true
+        run: sf org delete scratch -o dreamhouseTestOrg --no-prompt || true

@@ -11,7 +11,7 @@
  * Dreamhouse `Broker__c` CustomObject). Kept in a SEPARATE spec — rather than mixing switch/non-switch
  * subtests into the boot-org textFilter container spec — using the PROVEN Dreamhouse multi-org pattern
  * (orgBrowserCustomObject.container.spec.ts): each test opens the Org Browser against the boot org,
- * SWITCHES the default to the Dreamhouse org (aliased `orgBrowserDreamhouseTestOrg`, authed via
+ * SWITCHES the default to the Dreamhouse org (aliased `dreamhouseTestOrg`, authed via
  * CB_EXTRA_ORG_ALIASES), forces a CustomObject re-query with "Refresh Type", applies the text filter,
  * asserts against `Broker__c`, and RESTORES the default to the boot org in `finally`.
  *
