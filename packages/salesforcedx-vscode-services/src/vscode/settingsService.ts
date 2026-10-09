@@ -6,6 +6,9 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
+import { isNotUndefined } from 'effect/Predicate';
+import * as Rec from 'effect/Record';
 import * as Redacted from 'effect/Redacted';
 import * as S from 'effect/Schema';
 import * as vscode from 'vscode';
@@ -14,12 +17,68 @@ import {
   INSTANCE_URL_KEY,
   ACCESS_TOKEN_KEY,
   API_VERSION_KEY,
+  SESSION_CONTEXT_KEY,
   RETRIEVE_ON_LOAD_KEY,
   SFDX_CORE_SECTION
 } from '../constants';
 import { unknownToErrorCause } from '../core/shared';
 
 const FALLBACK_API_VERSION = '67.0';
+
+const RawWebSessionContextSchema = S.Struct({
+  username: S.optional(S.Unknown),
+  orgId: S.optional(S.Unknown),
+  userId: S.optional(S.Unknown),
+  instanceName: S.optional(S.Unknown),
+  orgEdition: S.optional(S.Unknown),
+  namespacePrefix: S.optional(S.Unknown),
+  isDevHub: S.optional(S.Unknown),
+  isScratch: S.optional(S.Unknown),
+  isSandbox: S.optional(S.Unknown)
+});
+
+const decodeSessionContextValue = (value: unknown) =>
+  Option.flatten(S.decodeUnknownOption(S.OptionFromNonEmptyTrimmedString)(value));
+const decodeSessionContextString = S.decodeUnknownOption(S.String);
+const decodeSessionContextBoolean = S.decodeUnknownOption(S.Boolean);
+
+const WebSessionContextSchema = S.transform(
+  RawWebSessionContextSchema,
+  S.Struct({
+    username: S.optional(S.String),
+    orgId: S.optional(S.String),
+    userId: S.optional(S.String),
+    instanceName: S.optional(S.String),
+    orgEdition: S.optional(S.String),
+    namespacePrefix: S.optional(S.String),
+    isDevHub: S.Boolean,
+    isScratch: S.Boolean,
+    isSandbox: S.Boolean
+  }),
+  {
+    strict: true,
+    decode: sessionContext => ({
+      ...Rec.filter(
+        {
+          username: Option.getOrUndefined(decodeSessionContextValue(sessionContext.username)),
+          orgId: Option.getOrUndefined(decodeSessionContextValue(sessionContext.orgId)),
+          userId: Option.getOrUndefined(decodeSessionContextValue(sessionContext.userId)),
+          instanceName: Option.getOrUndefined(decodeSessionContextString(sessionContext.instanceName)),
+          orgEdition: Option.getOrUndefined(decodeSessionContextString(sessionContext.orgEdition)),
+          namespacePrefix: Option.getOrUndefined(decodeSessionContextString(sessionContext.namespacePrefix))
+        },
+        isNotUndefined
+      ),
+      isDevHub: Option.getOrElse(decodeSessionContextBoolean(sessionContext.isDevHub), () => false),
+      isScratch: Option.getOrElse(decodeSessionContextBoolean(sessionContext.isScratch), () => false),
+      isSandbox: Option.getOrElse(decodeSessionContextBoolean(sessionContext.isSandbox), () => false)
+    }),
+    encode: sessionContext => sessionContext
+  }
+);
+
+export type WebSessionContext = S.Schema.Type<typeof WebSessionContextSchema>;
+const defaultWebSessionContext = S.decodeUnknownSync(WebSessionContextSchema)({});
 
 export class SettingsError extends S.TaggedError<SettingsError>()('MissingSettingsError', {
   cause: S.Unknown,
@@ -144,6 +203,11 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
       });
     });
 
+    const getSessionContext = Effect.fn('SettingsService.getSessionContext')(function* () {
+      const value = yield* getValue<unknown>(CODE_BUILDER_WEB_SECTION, SESSION_CONTEXT_KEY);
+      return Option.getOrElse(S.decodeUnknownOption(WebSessionContextSchema)(value), () => defaultWebSessionContext);
+    });
+
     const setInstanceUrl = Effect.fn('SettingsService.setInstanceUrl')(function* (url: string) {
       return yield* Effect.tryPromise({
         try: async () => {
@@ -233,6 +297,8 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
       getAccessToken,
       /** Get the Salesforce API version from settings. In the form of '67.0' */
       getApiVersion,
+      /** Get the optional Web Console session identity values as one object. */
+      getSessionContext,
       /** Set the Salesforce instance URL in settings */
       setInstanceUrl,
       /** Set the Salesforce access token in settings */
