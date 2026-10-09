@@ -120,16 +120,16 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
         if (components.length === 0) return;
         yield* state.ensureHydrated(orgId);
         const observedAt = new Date().toISOString();
-        const documentUris = yield* Effect.forEach(
+        const componentsWithDocumentUris = yield* Effect.forEach(
           components,
           component =>
             referenceService
               .documentUri({ orgId, xmlName: component.type, fullName: component.fullName })
-              .pipe(Effect.map(documentUri => [`${component.type}\0${component.fullName}`, documentUri] as const)),
+              .pipe(Effect.map(documentUri => ({ component, documentUri }))),
           { concurrency: 'unbounded' }
-        ).pipe(Effect.map(HashMap.fromIterable));
+        );
         yield* state.updateInventories(current =>
-          components.reduce((inventories, component) => {
+          componentsWithDocumentUris.reduce((inventories, { component, documentUri }) => {
             const reference = { xmlName: component.type, fullName: component.fullName };
             const key = typeCacheKey(orgId, component.type);
             const inventory = Option.getOrUndefined(HashMap.get(inventories, key));
@@ -145,9 +145,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
                   ? 'metadata-api+workspace'
                   : provenance,
               reference,
-              documentUri:
-                Option.getOrUndefined(HashMap.get(documentUris, `${component.type}\0${component.fullName}`)) ??
-                previous!.documentUri,
+              documentUri,
               name: previous?.name ?? component.fullName.split('/').at(-1) ?? component.fullName,
               kind: 'component',
               namespacePrefix: component.namespacePrefix ?? previous?.namespacePrefix,

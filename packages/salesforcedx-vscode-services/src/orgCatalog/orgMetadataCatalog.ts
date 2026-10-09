@@ -119,6 +119,7 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
       } else {
         yield* metadataDescribeService.invalidateListMetadata(reference.xmlName, undefined, orgId);
       }
+      yield* treeProjection.clearLoadedChildren(orgId, reference);
       yield* state.ensureHydrated(orgId);
       yield* reference.xmlName
         ? state.invalidateTypes(orgId, new Set([reference.xmlName]))
@@ -142,6 +143,17 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
       }
       if (options.consistency === 'refresh') yield* invalidateHierarchy(orgId, internalReference);
       return yield* treeProjection.getChildren(orgId, internalReference).pipe(Effect.map(Arr.map(toCatalogEntry)));
+    });
+
+    /** Whether the direct component inventory for a type is already available without an API call. */
+    const hasTypeInventory = Effect.fn('OrgMetadataCatalog.hasTypeInventory')(function* (type: string) {
+      const orgId = yield* getActiveOrgId();
+      yield* state.ensureHydrated(orgId);
+      const [loaded, persisted] = yield* Effect.all([
+        state.getInventory(orgId, type),
+        state.getPersistedInventory(orgId, type)
+      ]);
+      return Boolean(loaded?.complete ?? persisted?.complete);
     });
 
     const getEntries = Effect.fn('OrgMetadataCatalog.getEntries')(function* (
@@ -172,6 +184,7 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
     return {
       getChildren,
       getEntries,
+      hasTypeInventory,
       resolveComponents
     };
   })

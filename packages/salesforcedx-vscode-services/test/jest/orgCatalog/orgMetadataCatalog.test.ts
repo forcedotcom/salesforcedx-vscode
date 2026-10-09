@@ -473,7 +473,22 @@ describe('OrgMetadataCatalog contract', () => {
 
     const keys = await runWithCatalog(layer, catalog => Effect.succeed(Object.keys(catalog).toSorted()));
 
-    expect(keys).toEqual(['getChildren', 'getEntries', 'resolveComponents']);
+    expect(keys).toEqual(['getChildren', 'getEntries', 'hasTypeInventory', 'resolveComponents']);
+  });
+
+  it('reports whether a direct type inventory has been loaded', async () => {
+    const { layer } = makeHarness();
+
+    const result = await runWithCatalog(layer, catalog =>
+      Effect.gen(function* () {
+        const before = yield* catalog.hasTypeInventory('ApexClass');
+        yield* catalog.getChildren({ type: 'ApexClass' });
+        const after = yield* catalog.hasTypeInventory('ApexClass');
+        return { after, before };
+      })
+    );
+
+    expect(result).toEqual({ before: false, after: true });
   });
 
   it('keeps the metadata document provider alive across org changes when no workspace is open', async () => {
@@ -713,8 +728,19 @@ describe('OrgMetadataCatalog contract', () => {
       catalogSnapshots,
       workspaceComponents: [{ type: { name: 'ApexClass' }, fullName: 'LocalOnly', content: '/workspace/LocalOnly.cls' }]
     });
-    const restored = await runWithCatalog(restarted.layer, catalog => catalog.getChildren({ type: 'ApexClass' }));
+    const { cached, restored } = await runWithCatalog(restarted.layer, catalog =>
+      catalog
+        .getChildren({ type: 'ApexClass' }, { consistency: 'cache-only' })
+        .pipe(
+          Effect.flatMap(cachedEntries =>
+            catalog
+              .getChildren({ type: 'ApexClass' })
+              .pipe(Effect.map(restoredEntries => ({ cached: cachedEntries, restored: restoredEntries })))
+          )
+        )
+    );
 
+    expect(cached.map(entry => entry.name)).toEqual(['LocalOnly', 'RemoteTest']);
     expect(restored.map(entry => [entry.name, entry.inOrg, entry.inWorkspace])).toEqual([
       ['LocalOnly', false, true],
       ['RemoteTest', true, false]
@@ -722,6 +748,32 @@ describe('OrgMetadataCatalog contract', () => {
     expect(restored.find(entry => entry.name === 'RemoteTest')?.observedAt).toBe(persistedObservedAt);
     expect(restarted.mocks.storeLoad).toHaveBeenCalledWith('00D000000000001');
     expect(restarted.mocks.listMetadata).not.toHaveBeenCalled();
+  });
+
+  it('searches persisted custom fields without acquiring them again', async () => {
+    const catalogSnapshots = new Map<string, OrgMetadataCatalogSnapshot>();
+    const first = makeHarness({
+      catalogSnapshots,
+      metadataByType: {
+        CustomObject: [{ fullName: 'Broker__c' }],
+        CustomField: [{ fullName: 'Broker__c.Email__c' }]
+      },
+      descriptions: { Broker__c: { ...emptySObject('Broker__c'), fields: [customStringField('Email__c')] } }
+    });
+    await runWithCatalog(first.layer, catalog =>
+      catalog
+        .getChildren({ type: 'CustomObject' })
+        .pipe(Effect.andThen(catalog.getChildren({ type: 'CustomObject', fullName: 'Broker__c' })))
+    );
+
+    const restarted = makeHarness({ catalogSnapshots });
+    const fields = await runWithCatalog(restarted.layer, catalog =>
+      catalog.getChildren({ type: 'CustomObject', fullName: 'Broker__c' }, { consistency: 'cache-only' })
+    );
+
+    expect(fields.map(field => field.name)).toEqual(['Email__c']);
+    expect(restarted.mocks.listMetadata).not.toHaveBeenCalled();
+    expect(restarted.mocks.describeCustomObject).not.toHaveBeenCalled();
   });
 
   it('persists metadata components in listing order', async () => {
@@ -864,7 +916,12 @@ describe('OrgMetadataCatalog contract', () => {
       }
     ];
     const { catalogChanges, internalLayer, layer } = makeHarness({
-      metadataByType: { ApexClass: [{ fullName: 'FileUtilitiesTest' }] },
+      metadataByType: {
+        ApexClass: [{ fullName: 'FileUtilitiesTest' }],
+        CustomObject: [{ fullName: 'Broker__c' }],
+        CustomField: [{ fullName: 'Broker__c.Email__c' }]
+      },
+      descriptions: { Broker__c: { ...emptySObject('Broker__c'), fields: [customStringField('Email__c')] } },
       workspaceComponents
     });
     jest.mocked(vscode.workspace.registerTextDocumentContentProvider).mockReturnValue({
@@ -911,10 +968,10 @@ describe('OrgMetadataCatalog contract', () => {
         const catalog = yield* OrgMetadataCatalog;
         const fileChanges = yield* FileChangePubSub;
         const subscription = yield* PubSub.subscribe(catalogChanges);
-        const before = yield* getEntry(catalog, { xmlName: 'ApexClass', fullName: 'FileUtilitiesTest' });
-
         yield* Effect.forkScoped(runOrgMetadataDocumentProvider());
         yield* Queue.take(subscription); // provider's initial active-org observation
+        const before = yield* getEntry(catalog, { xmlName: 'ApexClass', fullName: 'FileUtilitiesTest' });
+        yield* catalog.getChildren({ type: 'CustomObject', fullName: 'Broker__c' });
         const sourceUri = URI.file('/workspace/force-app/main/default/classes/FileUtilitiesTest.cls');
         const metadataUri = URI.file('/workspace/force-app/main/default/classes/FileUtilitiesTest.cls-meta.xml');
         yield* Effect.sync(() => workspaceComponents.splice(0));
@@ -928,13 +985,23 @@ describe('OrgMetadataCatalog contract', () => {
         });
 
         const event = yield* Queue.take(subscription);
+        const inventoryAvailable = yield* Effect.all([
+          catalog.hasTypeInventory('CustomObject'),
+          catalog.hasTypeInventory('CustomField')
+        ]);
+        const cachedFields = yield* catalog.getChildren(
+          { type: 'CustomObject', fullName: 'Broker__c' },
+          { consistency: 'cache-only' }
+        );
         const after = yield* getEntry(catalog, { xmlName: 'ApexClass', fullName: 'FileUtilitiesTest' });
-        return { after, before, event };
+        return { after, before, cachedFields, event, inventoryAvailable };
       })
     ).pipe(Effect.provide(providerLayer), Effect.timeout('2 seconds'), Effect.runPromise);
 
     expect(result.before).toMatchObject({ inOrg: true, inWorkspace: true });
     expect(result.after).toMatchObject({ inOrg: true, inWorkspace: false });
+    expect(result.inventoryAvailable).toEqual([true, true]);
+    expect(result.cachedFields.map(field => field.name)).toEqual(['Email__c']);
     expect(result.event).toMatchObject({ kind: 'workspace' });
   });
 
@@ -1027,6 +1094,30 @@ describe('OrgMetadataCatalog contract', () => {
       inWorkspace: false,
       field: { name: 'RuntimeOnly__c', type: 'textarea' }
     });
+  });
+
+  it('returns an already loaded custom object hierarchy without acquiring it again', async () => {
+    const { layer, mocks } = makeHarness({
+      metadataByType: {
+        CustomObject: [{ fullName: 'Account' }],
+        CustomField: [{ fullName: 'Account.Rating__c' }]
+      },
+      descriptions: { Account: { ...emptySObject('Account'), fields: [customStringField('Rating__c')] } }
+    });
+
+    const result = await runWithCatalog(layer, catalog =>
+      catalog.getChildren({ type: 'CustomObject' }).pipe(
+        Effect.andThen(() => catalog.getChildren({ type: 'CustomObject', fullName: 'Account' })),
+        Effect.flatMap(loaded =>
+          catalog
+            .getChildren({ type: 'CustomObject', fullName: 'Account' }, { consistency: 'cache-only' })
+            .pipe(Effect.map(cached => ({ cached, loaded })))
+        )
+      )
+    );
+
+    expect(result.cached).toEqual(result.loaded);
+    expect(mocks.listMetadata).toHaveBeenCalledTimes(2);
   });
 
   it('uses Custom Field inventory when the SObject description has no matching fields', async () => {

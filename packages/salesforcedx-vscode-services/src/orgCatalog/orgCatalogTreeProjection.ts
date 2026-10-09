@@ -12,6 +12,7 @@ import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
 import * as HashMap from 'effect/HashMap';
 import * as Option from 'effect/Option';
+import * as Ref from 'effect/Ref';
 import * as vscode from 'vscode';
 import { MetadataDescribeService } from '../core/metadataDescribeService';
 import { TransmogrifierService } from '../core/transmogrifierService';
@@ -25,6 +26,14 @@ import {
   OrgMetadataReferenceService,
   type OrgMetadataReference
 } from './orgMetadataReference';
+
+const loadedChildrenKey = (orgId: string, reference: OrgMetadataReference): string =>
+  `${orgId}\0${reference.xmlName ?? ''}\0${reference.fullName ?? ''}`;
+
+type LoadedProjection = {
+  readonly generation: number;
+  readonly children: readonly OrgMetadataCatalogEntry[];
+};
 
 const emptyCustomFieldInventory: TypeInventory = {
   observedAt: '1970-01-01T00:00:00.000Z',
@@ -54,14 +63,23 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
       MetadataDescribeService,
       TransmogrifierService
     ]);
+    const loadedChildren = yield* Ref.make<HashMap.HashMap<string, LoadedProjection>>(HashMap.empty());
     const getCustomFieldChildren = Effect.fn('OrgCatalogTreeProjection.getCustomFieldChildren')(function* (
       orgId: string,
-      objectEntry: OrgMetadataCatalogEntry
+      objectEntry: OrgMetadataCatalogEntry,
+      cacheOnly = false
     ) {
       if (!isOrgMetadataComponentReference(objectEntry.reference)) return [];
       const objectApiName = objectEntry.namespacePrefix
         ? `${objectEntry.namespacePrefix}__${objectEntry.reference.fullName}`
         : objectEntry.reference.fullName;
+      yield* state.ensureHydrated(orgId);
+      const [cachedFieldInventory, persistedFieldInventory, existingDescription] = yield* Effect.all([
+        state.getInventory(orgId, 'CustomField'),
+        state.getPersistedInventory(orgId, 'CustomField'),
+        state.getSObjectDescription(orgId, objectApiName)
+      ]);
+      if (cacheOnly && !(cachedFieldInventory?.complete || persistedFieldInventory?.complete)) return [];
       const fieldInventory = yield* inventories
         .loadType(orgId, 'CustomField')
         .pipe(
@@ -69,8 +87,9 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
             Effect.logWarning('Failed to list CustomField inventory', error).pipe(Effect.as(emptyCustomFieldInventory))
           )
         );
-      yield* state.ensureHydrated(orgId);
-      const acquireDescription = metadataDescribeService.describeCustomObject(objectApiName, orgId).pipe(
+      const acquireDescription = Effect.suspend(() =>
+        metadataDescribeService.describeCustomObject(objectApiName, orgId)
+      ).pipe(
         Effect.flatMap(transmogrifier.toMinimalSObject),
         Effect.map(sobject => ({
           ...sobject,
@@ -79,11 +98,12 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
           provenance: 'rest-api' as const
         }))
       );
-      const cachedDescription = yield* state
-        .getSObjectDescription(orgId, objectApiName)
-        .pipe(Effect.flatMap(description => (description ? Effect.succeed(description) : acquireDescription)));
+      const cachedDescription = existingDescription ?? (cacheOnly ? undefined : yield* acquireDescription);
       const describedObject =
-        fieldInventory.complete && Date.parse(fieldInventory.observedAt) > Date.parse(cachedDescription.observedAt)
+        cachedDescription &&
+        !cacheOnly &&
+        fieldInventory.complete &&
+        Date.parse(fieldInventory.observedAt) > Date.parse(cachedDescription.observedAt)
           ? yield* metadataDescribeService.invalidateSObjectDescribe(objectApiName, orgId).pipe(
               Effect.andThen(metadataDescribeService.describeCustomObject(objectApiName, orgId)),
               Effect.flatMap(transmogrifier.toMinimalSObject),
@@ -106,7 +126,7 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
         const separator = entry.reference.fullName.lastIndexOf('.');
         return separator > 0 && parentNames.has(entry.reference.fullName.slice(0, separator));
       });
-      const describedFields = describedObject.fields.filter(field => field.custom);
+      const describedFields = describedObject?.fields.filter(field => field.custom) ?? [];
       const describedByName = describedFields.reduce(
         (byName, field) =>
           objectEntry.namespacePrefix
@@ -194,68 +214,103 @@ export class OrgCatalogTreeProjection extends Effect.Service<OrgCatalogTreeProje
       orgId: string,
       reference: OrgMetadataReference = {}
     ) {
-      if (!reference.xmlName) {
-        const [metadataTypes, workspaceTypes] = yield* Effect.all(
-          [metadataDescribeService.describe(orgId), workspace.getWorkspaceMetadataTypes(orgId)],
-          { concurrency: 'unbounded' }
-        );
-        const orgTypes = new Set(metadataTypes.map(type => type.xmlName));
-        return yield* Effect.forEach(
-          Arr.dedupe([...orgTypes, ...workspaceTypes]),
-          xmlName =>
-            references.documentUri({ orgId, xmlName, fullName: '__type__' }).pipe(
-              Effect.map(documentUri => ({
-                orgId,
-                observedAt: new Date().toISOString(),
-                provenance:
-                  orgTypes.has(xmlName) && workspaceTypes.has(xmlName)
-                    ? ('metadata-api+workspace' as const)
-                    : orgTypes.has(xmlName)
-                      ? ('metadata-api' as const)
-                      : ('workspace' as const),
-                reference: { xmlName },
-                documentUri,
-                name: xmlName,
-                kind: 'type' as const,
-                inOrg: orgTypes.has(xmlName),
-                inWorkspace: workspaceTypes.has(xmlName)
-              }))
-            ),
-          { concurrency: 'unbounded' }
-        ).pipe(Effect.map(entries => entries.toSorted((left, right) => left.name.localeCompare(right.name))));
-      }
-      const inventory = yield* inventories.loadType(orgId, reference.xmlName);
-      const component = reference.fullName
-        ? findInventoryComponent(inventory.components, { xmlName: reference.xmlName, fullName: reference.fullName })
-        : undefined;
-      if (component && reference.xmlName === 'CustomObject') {
-        return yield* getCustomFieldChildren(orgId, component);
-      }
-      const children = yield* projectChildren(orgId, reference.xmlName, reference.fullName, inventory).pipe(
-        Effect.provideService(OrgMetadataReferenceService, references)
+      const loadedProjection = !reference.xmlName
+        ? yield* Effect.gen(function* () {
+            const [metadataTypes, workspaceTypes] = yield* Effect.all(
+              [metadataDescribeService.describe(orgId), workspace.getWorkspaceMetadataTypes(orgId)],
+              { concurrency: 'unbounded' }
+            );
+            const orgTypes = new Set(metadataTypes.map(type => type.xmlName));
+            return yield* Effect.forEach(
+              Arr.dedupe([...orgTypes, ...workspaceTypes]),
+              xmlName =>
+                references.documentUri({ orgId, xmlName, fullName: '__type__' }).pipe(
+                  Effect.map(documentUri => ({
+                    orgId,
+                    observedAt: new Date().toISOString(),
+                    provenance:
+                      orgTypes.has(xmlName) && workspaceTypes.has(xmlName)
+                        ? ('metadata-api+workspace' as const)
+                        : orgTypes.has(xmlName)
+                          ? ('metadata-api' as const)
+                          : ('workspace' as const),
+                    reference: { xmlName },
+                    documentUri,
+                    name: xmlName,
+                    kind: 'type' as const,
+                    inOrg: orgTypes.has(xmlName),
+                    inWorkspace: workspaceTypes.has(xmlName)
+                  }))
+                ),
+              { concurrency: 'unbounded' }
+            ).pipe(Effect.map(entries => entries.toSorted((left, right) => left.name.localeCompare(right.name))));
+          })
+        : yield* Effect.gen(function* () {
+            const xmlName = reference.xmlName!;
+            const inventory = yield* inventories.loadType(orgId, xmlName);
+            const component = reference.fullName
+              ? findInventoryComponent(inventory.components, { xmlName, fullName: reference.fullName })
+              : undefined;
+            if (component && xmlName === 'CustomObject') {
+              return yield* getCustomFieldChildren(orgId, component);
+            }
+            const childEntries = yield* projectChildren(orgId, xmlName, reference.fullName, inventory).pipe(
+              Effect.provideService(OrgMetadataReferenceService, references)
+            );
+            return yield* Effect.succeed(childEntries).pipe(
+              Effect.filterOrFail(
+                projectedChildren =>
+                  projectedChildren.length > 0 ||
+                  !reference.fullName ||
+                  HashMap.has(inventory.folders, reference.fullName),
+                () => vscode.FileSystemError.FileNotADirectory(`${reference.xmlName}/${reference.fullName}`)
+              )
+            );
+          });
+      const generation = yield* state.getHierarchyGeneration(orgId);
+      yield* Ref.update(loadedChildren, current =>
+        HashMap.set(current, loadedChildrenKey(orgId, reference), { children: loadedProjection, generation })
       );
-      return yield* Effect.succeed(children).pipe(
-        Effect.filterOrFail(
-          projectedChildren =>
-            projectedChildren.length > 0 || !reference.fullName || HashMap.has(inventory.folders, reference.fullName),
-          () => vscode.FileSystemError.FileNotADirectory(`${reference.xmlName}/${reference.fullName}`)
-        )
-      );
+      return loadedProjection;
     });
 
     const getChildrenCached = Effect.fn('OrgCatalogTreeProjection.getChildrenCached')(function* (
       orgId: string,
       reference: OrgMetadataReference
     ) {
-      if (!reference.xmlName) return undefined;
-      const inventory = yield* inventories.getCachedInventory(orgId, reference.xmlName);
-      return inventory
-        ? yield* projectChildren(orgId, reference.xmlName, reference.fullName, inventory).pipe(
-            Effect.provideService(OrgMetadataReferenceService, references)
-          )
+      const generation = yield* state.getHierarchyGeneration(orgId);
+      const loaded = HashMap.get(yield* Ref.get(loadedChildren), loadedChildrenKey(orgId, reference)).pipe(
+        Option.filter(projection => projection.generation === generation),
+        Option.map(projection => projection.children),
+        Option.getOrUndefined
+      );
+      if (loaded || !reference.xmlName) return loaded;
+      yield* state.ensureHydrated(orgId);
+      const xmlName = reference.xmlName;
+      const cached =
+        (yield* state.getInventory(orgId, xmlName)) ?? (yield* state.getPersistedInventory(orgId, xmlName));
+      if (!cached?.complete) return undefined;
+      const inventory = yield* inventories.loadType(orgId, xmlName);
+      const component = reference.fullName
+        ? findInventoryComponent(inventory.components, { xmlName, fullName: reference.fullName })
         : undefined;
+      if (component && xmlName === 'CustomObject') return yield* getCustomFieldChildren(orgId, component, true);
+      return yield* projectChildren(orgId, xmlName, reference.fullName, inventory).pipe(
+        Effect.provideService(OrgMetadataReferenceService, references)
+      );
     });
 
-    return { getChildren, getChildrenCached } as const;
+    const clearLoadedChildren = Effect.fn('OrgCatalogTreeProjection.clearLoadedChildren')(function* (
+      orgId: string,
+      reference: OrgMetadataReference
+    ) {
+      yield* Ref.update(loadedChildren, current =>
+        HashMap.filter(current, (_children, key) =>
+          reference.xmlName ? !key.startsWith(`${orgId}\0${reference.xmlName}\0`) : !key.startsWith(`${orgId}\0`)
+        )
+      );
+    });
+
+    return { clearLoadedChildren, getChildren, getChildrenCached } as const;
   })
 }) {}
