@@ -17,5 +17,11 @@ export const extensionPackageJsonSchema = z.object({
   enableO11y: z.stringbool().optional(),
   productFeatureId: z.string().startsWith('aJC').optional(),
   // Enable routing Effect spans to App Insights customEvents table via LogRecords
-  enableCustomEventsFromSpans: z.boolean().optional()
+  enableCustomEventsFromSpans: z.boolean().optional(),
+  // opt-in Falcon publishing for O11y (consumed by services sdkLayerConfig); absent = existing upload path.
+  // falconApiKey must be a provisioned write-only client key; never commit ad-hoc/personal keys.
+  falconApiKey: z.string().optional(),
+  // 'dev' | 'prod'; kept loose so a typo can't fail parse (services drops unrecognized values → dev)
+  falconEnvironment: z.string().optional(),
+  falconEndpoint: z.string().optional()
 });

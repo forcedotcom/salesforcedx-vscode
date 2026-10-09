@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { FalconUploadOptions } from '@salesforce/o11y-reporter';
 import { isLoopbackHttpEndpoint } from '@salesforce/salesforcedx-utils';
 import * as vscode from 'vscode';
 import { ExtensionContext, ExtensionMode } from 'vscode';
@@ -29,6 +30,12 @@ export type SdkLayerConfig = {
    * endpoint cannot be carried inside it). Undefined in production = normal Azure export.
    */
   localIngestionEndpoint?: string;
+  /**
+   * Opt-in Falcon publishing for O11y. Set only when the extension's package.json provides
+   * falconApiKey; undefined keeps the existing org/static upload path unchanged.
+   * Holds a secret: never log it or stamp it on span attributes.
+   */
+  falcon?: FalconUploadOptions;
 };
 
 /**
@@ -72,6 +79,27 @@ type ExtensionPackageJSON = {
   enableCustomEventsFromSpans?: boolean;
   otelConnectionString?: string;
   aiKey?: string;
+  falconApiKey?: string;
+  falconEnvironment?: string;
+  falconEndpoint?: string;
+};
+
+/**
+ * Builds Falcon upload options from packageJSON; undefined (no opt-in) unless falconApiKey is set.
+ * Unrecognized falconEnvironment values are dropped so o11y-reporter applies its 'dev' default.
+ */
+export const resolveFalconConfig = (
+  packageJSON: Pick<ExtensionPackageJSON, 'falconApiKey' | 'falconEnvironment' | 'falconEndpoint'> | undefined
+): FalconUploadOptions | undefined => {
+  const apiKey = packageJSON?.falconApiKey;
+  if (!apiKey) return undefined;
+  return {
+    apiKey,
+    ...(packageJSON.falconEnvironment === 'prod' || packageJSON.falconEnvironment === 'dev'
+      ? { environment: packageJSON.falconEnvironment }
+      : {}),
+    ...(packageJSON.falconEndpoint ? { endpoint: packageJSON.falconEndpoint } : {})
+  };
 };
 
 export const getSdkLayerConfigFromPackageJSON = (
@@ -87,7 +115,8 @@ export const getSdkLayerConfigFromPackageJSON = (
   productFeatureId: packageJSON?.productFeatureId,
   enableCustomEventsFromSpans: packageJSON?.enableCustomEventsFromSpans,
   connectionString: resolveConnectionString(packageJSON, DEFAULT_AI_CONNECTION_STRING),
-  localIngestionEndpoint: resolveLocalIngestionEndpoint(isDevOrTest)
+  localIngestionEndpoint: resolveLocalIngestionEndpoint(isDevOrTest),
+  falcon: resolveFalconConfig(packageJSON)
 });
 
 export const getSdkLayerConfigFromContext = (context: ExtensionContext): SdkLayerConfig =>

@@ -8,7 +8,8 @@
 import { DEFAULT_AI_CONNECTION_STRING } from '../../../src/observability/appInsights';
 import {
   getSdkLayerConfigFromContext,
-  getSdkLayerConfigFromPackageJSON
+  getSdkLayerConfigFromPackageJSON,
+  resolveFalconConfig
 } from '../../../src/observability/sdkLayerConfig';
 import type { ExtensionContext } from 'vscode';
 
@@ -100,5 +101,33 @@ describe('O11Y_ENDPOINT override', () => {
   it('does not apply a loopback override in production', () => {
     process.env.O11Y_ENDPOINT = 'http://localhost:3002';
     expect(getSdkLayerConfigFromPackageJSON(packageJSON).o11yEndpoint).toBe(packageJSON.o11yUploadEndpoint);
+  });
+});
+
+describe('falcon opt-in', () => {
+  it('leaves falcon undefined when falconApiKey is absent (existing upload path)', () => {
+    const config = getSdkLayerConfigFromContext(
+      makeContext({ name: 'ext', version: '1.0.0', falconEnvironment: 'prod', falconEndpoint: 'https://falcon.test' })
+    );
+    expect(config.falcon).toBeUndefined();
+  });
+
+  it('maps falcon fields from packageJSON when falconApiKey is set', () => {
+    const config = getSdkLayerConfigFromContext(
+      makeContext({
+        name: 'ext',
+        version: '1.0.0',
+        falconApiKey: 'test-key',
+        falconEnvironment: 'prod',
+        falconEndpoint: 'https://falcon.test'
+      })
+    );
+    expect(config.falcon).toEqual({ apiKey: 'test-key', environment: 'prod', endpoint: 'https://falcon.test' });
+  });
+
+  it('drops an unrecognized falconEnvironment so o11y-reporter defaults to dev', () => {
+    expect(resolveFalconConfig({ falconApiKey: 'test-key', falconEnvironment: 'production' })).toEqual({
+      apiKey: 'test-key'
+    });
   });
 });

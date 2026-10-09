@@ -7,7 +7,7 @@
 import { SpanStatusCode } from '@opentelemetry/api';
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
-import { O11yService } from '@salesforce/o11y-reporter';
+import { O11yService, type FalconUploadOptions } from '@salesforce/o11y-reporter';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import { isError, isString } from 'effect/Predicate';
@@ -79,7 +79,9 @@ export class O11ySpanExporter implements SpanExporter {
     // pipelines are inspectable locally. The real o11y-reporter upload goes THROUGH the org connection
     // (getConnectionMethod().requestPost), so it can't be diverted by endpoint alone — we short-circuit
     // logEvent here instead. See sdkLayerConfig.resolveLocalIngestionEndpoint.
-    private localIngestionEndpoint?: string
+    private localIngestionEndpoint?: string,
+    // Opt-in Falcon publishing (see SdkLayerConfig.falcon); undefined keeps the org/static upload path
+    private falcon?: FalconUploadOptions
   ) {
     this.o11yService = O11yService.getInstance(extensionName);
   }
@@ -92,7 +94,12 @@ export class O11ySpanExporter implements SpanExporter {
       return this.initPromise;
     }
     this.initPromise = (async () => {
-      await this.o11yService.initialize(this.extensionName, this.endpoint, getConnection);
+      await this.o11yService.initialize(
+        this.extensionName,
+        this.endpoint,
+        getConnection,
+        this.falcon ? { falcon: this.falcon } : undefined
+      );
       this.o11yService.enableAutoBatching({ flushInterval: 30_000, enableShutdownHook: true });
       this.initialized = true;
     })();

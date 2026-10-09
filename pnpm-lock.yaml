@@ -187,8 +187,8 @@ importers:
   .:
     dependencies:
       '@salesforce/o11y-reporter':
-        specifier: ^1.8.5
-        version: 1.8.5
+        specifier: ^1.11.0
+        version: 1.11.0
       '@salesforce/vscode-service-provider':
         specifier: 1.5.0
         version: 1.5.0
@@ -1522,8 +1522,8 @@ importers:
         specifier: ^9.3.0
         version: 9.3.0
       '@salesforce/o11y-reporter':
-        specifier: ^1.8.5
-        version: 1.8.5
+        specifier: ^1.11.0
+        version: 1.11.0
       '@salesforce/salesforcedx-utils':
         specifier: workspace:*
         version: link:../salesforcedx-utils
@@ -4524,8 +4524,8 @@ packages:
   '@salesforce/label@0.0.21':
     resolution: {integrity: sha512-11qXsGrA8fuMA3E0JShkpVp5wCidEpM5Lx16w7sLAa57AYI5jQ6EphgI1wQzI0daUL2GPgMEFdNF7tEOAXFT2g==}
 
-  '@salesforce/o11y-reporter@1.8.5':
-    resolution: {integrity: sha512-XYtfHHwa/z9jFC3P1QU1hE3mhT5WsMB7hpC9um3Av9Iz74K8sGPaMVFQdkZ/Wy44t4dmGLum4pTtCbfmW42i0w==}
+  '@salesforce/o11y-reporter@1.11.0':
+    resolution: {integrity: sha512-ujP7d4Vb2dd1+WLFBW2gTGUG11dGdwbSRA6wBkbohDCnJIZ7qEoMENHrbn6KdZ46TaTDbbAc9GT+UPDS+jCoKg==}
     engines: {node: '>=20'}
 
   '@salesforce/schema@0.0.21':
@@ -9548,8 +9548,8 @@ packages:
     engines: {node: 20 || >=22}
     hasBin: true
 
-  o11y@264.26.0:
-    resolution: {integrity: sha512-2O5K+x57FUxCK9Rh1g77eljhWXVafsxMO4h3xBu6sXJe3tDNYXjXqDJMvwB7b/yi4C6p8PgLqyA+iM+qvN2fgw==}
+  o11y@266.18.0:
+    resolution: {integrity: sha512-z+0Ow0R+HBTJfh2cvAaS24VFr/tbT0fvU5kwqsVhQzsowSaFu0a6FeLnVwMVirvHe/sFN7FcmpKWfCA1qTj0Pg==}
 
   o11y_schema@264.105.0:
     resolution: {integrity: sha512-HwbCh3tUUVDE9nj/YIuDE76Kf5rRptTlS0ju5yQ9nWaLXNEFGhxOHqDZbivhtpTfwzWAYk6BYhRZqp+M2v1LBQ==}
@@ -14935,9 +14935,9 @@ snapshots:
 
   '@salesforce/label@0.0.21': {}
 
-  '@salesforce/o11y-reporter@1.8.5':
+  '@salesforce/o11y-reporter@1.11.0':
     dependencies:
-      o11y: 264.26.0
+      o11y: 266.18.0
       o11y_schema: 264.124.0
 
   '@salesforce/schema@0.0.21': {}
@@ -21175,7 +21175,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  o11y@264.26.0:
+  o11y@266.18.0:
     dependencies:
       o11y_schema: 264.105.0
       protobufjs: 7.5.6

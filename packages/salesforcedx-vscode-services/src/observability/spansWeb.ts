@@ -11,6 +11,7 @@ import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-web';
 import * as Effect from 'effect/Effect';
 import { ApplicationInsightsWebExporter } from './applicationInsightsWebExporter';
 import { GatedSpanExporter } from './gatedSpanExporter';
+import { getLegacyCallerFalcon } from './legacyTelemetrySender';
 import { getConsoleTracesEnabled, getLocalTracesEnabled, getFileTracesEnabled } from './localTracing';
 import { O11yRoutingExporter } from './o11yRoutingExporter';
 import { O11ySpanExporter } from './o11ySpanExporter';
@@ -18,7 +19,13 @@ import { OtlpFileSpanExporterWeb } from './otlpFileSpanExporterWeb';
 import { RedactingSpanProcessor } from './redactingSpanProcessor';
 import { SpanTransformProcessor } from './spanTransformProcessor';
 
-export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, productFeatureId }: SdkLayerConfig) =>
+export const WebSdkLayerFor = ({
+  extensionName,
+  extensionVersion,
+  o11yEndpoint,
+  productFeatureId,
+  falcon
+}: SdkLayerConfig) =>
   WebSdk.layer(
     Effect.gen(function* () {
       return {
@@ -53,10 +60,16 @@ export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, 
               make: () =>
                 new O11yRoutingExporter({
                   makeDefault: o11yEndpoint
-                    ? () => new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId)
+                    ? () => new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId, undefined, falcon)
                     : undefined,
                   makeLegacy: (endpoint, legacyProductFeatureId, legacyExtensionName) =>
-                    new O11ySpanExporter(legacyExtensionName, endpoint, legacyProductFeatureId)
+                    new O11ySpanExporter(
+                      legacyExtensionName,
+                      endpoint,
+                      legacyProductFeatureId,
+                      undefined,
+                      getLegacyCallerFalcon(legacyExtensionName, falcon)
+                    )
                 }),
               o11yEndpoint,
               bypassGovernance: process.env.ESBUILD_WEB_LOCAL === '1'
