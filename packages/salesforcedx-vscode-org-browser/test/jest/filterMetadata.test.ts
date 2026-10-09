@@ -48,6 +48,7 @@ describe('Org Browser filter input', () => {
 
   it.each([
     ['broker', true],
+    ['ApexClass:', true],
     ['ApexClass:Broker', true],
     ['/Apex.*/:/Broker.*/', true],
     ['/Apex', false],

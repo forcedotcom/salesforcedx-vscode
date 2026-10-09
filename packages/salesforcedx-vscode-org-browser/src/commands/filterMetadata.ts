@@ -23,7 +23,6 @@ import { nls } from '../messages';
 import { getOrgBrowserRuntime } from '../services/extensionProvider';
 import { saveFilterState } from '../services/filterState';
 import { discoverFullOrgMetadata, type FullOrgDiscoveryProgress } from '../services/fullOrgDiscovery';
-import { matchesPattern } from '../utils/wildcardPattern';
 
 const parsePattern = (input: string): { pattern: string; isRegex: boolean } => {
   if (input.startsWith('/')) {
@@ -90,21 +89,24 @@ const promptRestoredFilterDiscovery = (
           filter.componentIsRegex
         );
       });
-    if (!filter.componentFilter) {
-      yield* Effect.annotateCurrentSpan({ decision: 'no-component-filter', projectionReleased: false });
+    if (!filter.typeFilter && !filter.componentFilter) {
+      yield* Effect.annotateCurrentSpan({ decision: 'no-filter', projectionReleased: false });
       return;
     }
-    const matchingTypes = (yield* catalog.getChildren()).filter(
-      entry =>
-        entry.kind === 'type' &&
-        entry.reference.type &&
-        (!filter.typeFilter || matchesPattern(entry.reference.type, filter.typeFilter, filter.typeIsRegex))
-    );
-    const unfetchedTypes = yield* Effect.filter(matchingTypes, entry =>
+    if (treeProvider.hasShownDiscoveryOffer()) {
+      yield* releaseFilterProjection('offer-already-shown');
+      return;
+    }
+    const types = (yield* catalog.getChildren()).filter(entry => entry.kind === 'type' && entry.reference.type);
+    const unfetchedTypes = yield* Effect.filter(types, entry =>
       catalog.hasTypeInventory(entry.reference.type!).pipe(Effect.map(loaded => !loaded))
     );
     if (unfetchedTypes.length === 0 || treeProvider.hasStartedFullDiscovery(orgId)) {
       yield* releaseFilterProjection(unfetchedTypes.length === 0 ? 'loaded-results' : 'discovery-already-started');
+      return;
+    }
+    if (!treeProvider.claimDiscoveryOffer()) {
+      yield* releaseFilterProjection('offer-already-shown');
       return;
     }
 
@@ -274,21 +276,18 @@ export const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')
     );
   };
 
-  const promptFullDiscovery = (value: string, filter: ReturnType<typeof parseFilterValue>) =>
+  const promptFullDiscovery = (value: string) =>
     Effect.gen(function* () {
-      if (!filter.componentFilter || !isCompleteSearchTerm(value)) return;
-      const types = yield* orgMetadataCatalog.getChildren();
+      if (!value.trim() || !isCompleteSearchTerm(value)) return;
       const { orgId } = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
-      const matchingTypes = types.filter(
-        entry =>
-          entry.kind === 'type' &&
-          entry.reference.type &&
-          (!filter.typeFilter || matchesPattern(entry.reference.type, filter.typeFilter, filter.typeIsRegex))
+      if (!orgId || treeProvider.hasStartedFullDiscovery(orgId) || treeProvider.hasShownDiscoveryOffer()) return;
+      const types = (yield* orgMetadataCatalog.getChildren()).filter(
+        entry => entry.kind === 'type' && entry.reference.type
       );
-      const unfetchedTypes = yield* Effect.filter(matchingTypes, entry =>
+      const unfetchedTypes = yield* Effect.filter(types, entry =>
         orgMetadataCatalog.hasTypeInventory(entry.reference.type!).pipe(Effect.map(loaded => !loaded))
       );
-      if (!orgId || unfetchedTypes.length === 0 || treeProvider.hasStartedFullDiscovery(orgId)) return;
+      if (unfetchedTypes.length === 0 || !treeProvider.claimDiscoveryOffer()) return;
 
       const approved = yield* Effect.promise(
         async () =>
@@ -301,13 +300,11 @@ export const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')
       if (approved) startFullDiscovery(orgId);
     });
 
-  const requestFullDiscovery = (value: string, filter: ReturnType<typeof parseFilterValue>) =>
+  const requestFullDiscovery = (value: string) =>
     Effect.gen(function* () {
       const canPrompt = yield* Ref.modify(discoveryPromptOpen, open => [!open, true]);
       if (!canPrompt) return;
-      yield* Effect.forkDaemon(
-        promptFullDiscovery(value, filter).pipe(Effect.ensuring(Ref.set(discoveryPromptOpen, false)))
-      );
+      yield* Effect.forkDaemon(promptFullDiscovery(value).pipe(Effect.ensuring(Ref.set(discoveryPromptOpen, false))));
     });
 
   const applyFilter = (value: string) =>
@@ -320,10 +317,10 @@ export const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')
       if (orgId) yield* Effect.promise(() => saveFilterState(context, orgId, filter));
       yield* updateFilterContext(isNotUndefined(typeFilter) || isNotUndefined(componentFilter));
       yield* updateInvalidSearchContext(value);
-      // VS Code dismisses the non-modal prompt while the user corrects an invalid expression.
-      // Allow the next valid, debounced term to raise a fresh prompt.
+      // Release the picker's in-flight guard if an expression becomes invalid.
+      // The provider still enforces the session-wide one-time offer.
       if (invalidStructuredSearch) yield* Ref.set(discoveryPromptOpen, false);
-      yield* requestFullDiscovery(value, filter);
+      yield* requestFullDiscovery(value);
     });
 
   const liveFilterFiber = yield* Stream.fromQueue(queue).pipe(

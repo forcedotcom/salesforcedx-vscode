@@ -339,6 +339,17 @@ describe('full discovery state', () => {
     expect(provider.hasStartedFullDiscovery('org-one')).toBe(true);
     expect(provider.hasStartedFullDiscovery('org-two')).toBe(false);
   });
+
+  it('offers full discovery only once per extension session, even across orgs', () => {
+    const provider = new MetadataTypeTreeProvider();
+
+    expect(provider.hasShownDiscoveryOffer()).toBe(false);
+    expect(provider.claimDiscoveryOffer()).toBe(true);
+    expect(provider.hasShownDiscoveryOffer()).toBe(true);
+    provider.markFullDiscoveryStarted('org-one');
+    expect(provider.claimDiscoveryOffer()).toBe(false);
+    expect(provider.hasStartedFullDiscovery('org-two')).toBe(false);
+  });
 });
 
 describe('component filtering failures', () => {

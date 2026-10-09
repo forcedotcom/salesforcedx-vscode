@@ -64,7 +64,7 @@ For these expressions, Org Browser shows an empty-tree message explaining that t
 
 ## Search All Metadata Types
 
-Org Browser initially searches metadata that is already loaded for the active org. When relevant metadata types have not been loaded, it shows a non-modal notification:
+Org Browser initially searches metadata that is already loaded for the active org. On the first nonempty, valid text filter entered during an IDE session, if metadata types remain unloaded, it shows a non-modal notification once:
 
 > Search all N metadata types in the org? This may take longer and make additional requests.
 
@@ -74,9 +74,9 @@ Org Browser initially searches metadata that is already loaded for the active or
 | **Use Loaded Results** | Searches currently loaded metadata only. Results can be incomplete until additional metadata is loaded. |
 | Dismiss notification | Uses loaded results for the current search. |
 
-The notification appears after a valid term remains unchanged for the debounce interval. It is not shown for incomplete or invalid structured expressions. If it disappears while editing, pause on a valid expression again to show a new notification. Org Browser prevents duplicate notifications while one is already active.
+The notification appears after a valid term remains unchanged for the debounce interval, including type-only filters such as `CustomObject:`. It is not shown for incomplete or invalid structured expressions. Selecting either action or dismissing the notification uses up the offer for the current IDE session. A later text filter does not show it again until the IDE session restarts.
 
-When Org Browser starts with a restored component filter, it waits for this choice before beginning the filtered tree projection. This prevents metadata loading from starting before you choose the search scope.
+When Org Browser starts with a restored component filter, it waits for this choice before beginning the filtered tree projection. A restored type-only filter also receives the offer when it is the first valid filter in the session. This prevents metadata loading from starting before you choose the search scope.
 
 ## Discovery Progress
 

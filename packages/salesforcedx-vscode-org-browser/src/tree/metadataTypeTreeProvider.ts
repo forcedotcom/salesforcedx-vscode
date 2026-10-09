@@ -31,6 +31,7 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
     this._onDidChangeTreeData.event;
   private readonly typeNodes = new Map<string, OrgBrowserTreeItem>();
   private readonly fullDiscoveryOrgIds = new Set<string>();
+  private discoveryOfferShown = false;
 
   private _showLocal = true;
   private _showOrg = true;
@@ -204,6 +205,17 @@ export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrow
 
   public markFullDiscoveryStarted(orgId: string): void {
     this.fullDiscoveryOrgIds.add(orgId);
+  }
+
+  /** Claim the one discovery offer for this extension session. */
+  public claimDiscoveryOffer(): boolean {
+    if (this.discoveryOfferShown) return false;
+    this.discoveryOfferShown = true;
+    return true;
+  }
+
+  public hasShownDiscoveryOffer(): boolean {
+    return this.discoveryOfferShown;
   }
 }
 

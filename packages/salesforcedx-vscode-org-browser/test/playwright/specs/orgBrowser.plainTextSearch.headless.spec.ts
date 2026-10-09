@@ -8,6 +8,7 @@ import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import {
+  acceptNotification,
   closeWelcomeTabs,
   createDreamhouseOrg,
   ensureSecondarySideBarHidden,
@@ -33,6 +34,7 @@ test('Org Browser retains an expanded custom object when a plain search matches 
   await orgBrowserPage.openOrgBrowser();
 
   await orgBrowserPage.applyTextFilter('CustomObject:');
+  await acceptNotification(page, /Search all \d+ metadata types in the org\?/, 'Use Loaded Results');
   const customObjects = orgBrowserPage.sidebar.getByRole('treeitem', { name: /^CustomObject(,|$)/, level: 1 });
   await expect(customObjects).toBeVisible();
   await customObjects.locator('.monaco-tl-twistie').click();

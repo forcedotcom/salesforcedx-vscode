@@ -916,7 +916,12 @@ describe('OrgMetadataCatalog contract', () => {
       }
     ];
     const { catalogChanges, internalLayer, layer } = makeHarness({
-      metadataByType: { ApexClass: [{ fullName: 'FileUtilitiesTest' }] },
+      metadataByType: {
+        ApexClass: [{ fullName: 'FileUtilitiesTest' }],
+        CustomObject: [{ fullName: 'Broker__c' }],
+        CustomField: [{ fullName: 'Broker__c.Email__c' }]
+      },
+      descriptions: { Broker__c: { ...emptySObject('Broker__c'), fields: [customStringField('Email__c')] } },
       workspaceComponents
     });
     jest.mocked(vscode.workspace.registerTextDocumentContentProvider).mockReturnValue({
@@ -963,10 +968,10 @@ describe('OrgMetadataCatalog contract', () => {
         const catalog = yield* OrgMetadataCatalog;
         const fileChanges = yield* FileChangePubSub;
         const subscription = yield* PubSub.subscribe(catalogChanges);
-        const before = yield* getEntry(catalog, { xmlName: 'ApexClass', fullName: 'FileUtilitiesTest' });
-
         yield* Effect.forkScoped(runOrgMetadataDocumentProvider());
         yield* Queue.take(subscription); // provider's initial active-org observation
+        const before = yield* getEntry(catalog, { xmlName: 'ApexClass', fullName: 'FileUtilitiesTest' });
+        yield* catalog.getChildren({ type: 'CustomObject', fullName: 'Broker__c' });
         const sourceUri = URI.file('/workspace/force-app/main/default/classes/FileUtilitiesTest.cls');
         const metadataUri = URI.file('/workspace/force-app/main/default/classes/FileUtilitiesTest.cls-meta.xml');
         yield* Effect.sync(() => workspaceComponents.splice(0));
@@ -980,13 +985,23 @@ describe('OrgMetadataCatalog contract', () => {
         });
 
         const event = yield* Queue.take(subscription);
+        const inventoryAvailable = yield* Effect.all([
+          catalog.hasTypeInventory('CustomObject'),
+          catalog.hasTypeInventory('CustomField')
+        ]);
+        const cachedFields = yield* catalog.getChildren(
+          { type: 'CustomObject', fullName: 'Broker__c' },
+          { consistency: 'cache-only' }
+        );
         const after = yield* getEntry(catalog, { xmlName: 'ApexClass', fullName: 'FileUtilitiesTest' });
-        return { after, before, event };
+        return { after, before, cachedFields, event, inventoryAvailable };
       })
     ).pipe(Effect.provide(providerLayer), Effect.timeout('2 seconds'), Effect.runPromise);
 
     expect(result.before).toMatchObject({ inOrg: true, inWorkspace: true });
     expect(result.after).toMatchObject({ inOrg: true, inWorkspace: false });
+    expect(result.inventoryAvailable).toEqual([true, true]);
+    expect(result.cachedFields.map(field => field.name)).toEqual(['Email__c']);
     expect(result.event).toMatchObject({ kind: 'workspace' });
   });
 

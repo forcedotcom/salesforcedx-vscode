@@ -8,6 +8,7 @@ import { test } from '../fixtures';
 import { expect } from '@playwright/test';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 import {
+  acceptNotification,
   closeWelcomeTabs,
   createDreamhouseOrg,
   ensureSecondarySideBarHidden,
@@ -50,6 +51,7 @@ test('Org Browser - text filter: explicit type name filters tree after input clo
   const beforeCount = await orgBrowserPage.getStableRootTypeCount();
 
   await orgBrowserPage.applyTextFilter('ApexClass:');
+  await acceptNotification(page, /Search all \d+ metadata types in the org\?/, 'Use Loaded Results');
 
   const narrowedItems = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
   await orgBrowserPage.waitForRootTypeCount(1);

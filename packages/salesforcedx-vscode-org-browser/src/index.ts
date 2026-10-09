@@ -271,7 +271,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     ),
     extensionScope
   );
-  if (initialFilter?.componentFilter) {
+  if (initialFilter?.typeFilter || initialFilter?.componentFilter) {
     yield* Effect.sync(() =>
       requestRestoredFilterDiscovery(
         treeProvider,
@@ -310,7 +310,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
             );
           }
           const filter = yield* restoreFilter(orgId, false, true);
-          if (filter?.componentFilter) {
+          if (filter?.typeFilter || filter?.componentFilter) {
             yield* Effect.sync(() =>
               requestRestoredFilterDiscovery(treeProvider, context, { ...filter }, requestTreeRefresh)
             );
