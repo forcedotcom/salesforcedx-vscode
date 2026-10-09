@@ -145,23 +145,6 @@ After a release, run the [`/shipped-issues`](../.claude/skills/shipped-issues/SK
 
 ---
 
-# Publishing a Beta Pre-Release
-
-For high-risk or large-scale changes, publish a pre-release to allow advanced users to test early. VSIX artifacts uploaded to GitHub release (no NPM or VS Code Marketplace publish yet).
-
-## Steps
-
-1. Create release branch, increment version per `create-release-branch.js`
-2. Version format: keep minor, set patch to `YYYYMMDDHHMM` (e.g., v55.11.202208260522)
-3. Push to remote
-4. GitHub Actions tab → 'Publish Beta Release to GitHub Only' workflow
-5. Select 'Run Workflow' from beta branch (requires write access)
-6. Workflow creates git tag, release, and attaches individual VSIX files for download/test
-
-Note: beta branch (unique versioning) should not merge back to develop; use regular release process when ready.
-
----
-
 # Manual Publish
 
 The steps used to publish to the VS Code Marketplace can be found in the associated GitHub Actions.
@@ -176,24 +159,23 @@ Major bumps are aligned with Salesforce Core major version releases (e.g., SF CL
 
 **Step 1: Bump develop branch**
 
-Create a PR to update `package.json` in the root and all publishable packages:
+Create a PR that runs [`scripts/update-release-versions.js`](../scripts/update-release-versions.js) to set every publishable package's `package.json` to the **first odd minor** of the new major — e.g. `68.1.0`, not `68.0.0`:
 
 ```bash
-# Example: 67.0.0 → 68.0.0
-# Update version in:
-# - package.json (root)
-# - packages/*/package.json (all publishable packages)
+node scripts/update-release-versions.js 68.1.0
 ```
 
-After merge, nightlies will automatically build with the new major version: `v68.0.0-nightly.develop.YYYYMMDD`
+Nightly's own version-bump logic always enforces an odd minor (see `vscode-publish-extensions.yml`'s `bump-versions` job): if you set the baseline to an even minor like `68.0.0`, the very next nightly run silently corrects it to `68.1.0` on its own anyway. Set it to the odd value directly so the PR's diff matches what actually ships.
+
+After merge, nightlies build from that baseline and tag `v68.1.0-nightly.develop.YYYYMMDD`, incrementing patch each night (`68.1.1`, `68.1.2`, ...) unless a `feat:`/breaking commit forces another minor bump.
 
 **Step 2: Build release with manual override**
 
-After ≥7 days of nightly testing, trigger the release build with manual version override to prevent auto-bumping to 68.1.0:
+The normal auto-calculated stable path (`scripts/calculate-release-version.js`) just increments the prerelease minor by one (`68.1.x` → `68.2.0`), which would skip the actual major version number entirely. To publish the major release as exactly `68.0.0`, after ≥7 days of nightly testing, trigger the release build with a manual version override:
 
 ```bash
 gh workflow run build-github-release.yml \
-  -f prereleaseTag="v68.0.0-nightly.develop.YYYYMMDD" \
+  -f prereleaseTag="v68.1.3-nightly.develop.YYYYMMDD" \
   -f releaseVersion="68.0.0"
 ```
 
@@ -204,7 +186,7 @@ Follow the standard [Publishing to Marketplace](#publishing-to-marketplace) flow
 - Trigger `publishVSCode.yml` with version `68.0.0`
 - Approve marketplace gates after testing
 
-**Note:** Minor releases (68.0.0 → 68.1.0, 68.2.0, ...) use auto-calculate and don't require manual version updates.
+**Note:** Subsequent minor releases (68.0.0 → 68.2.0 → 68.4.0, ...) use auto-calculate and don't require manual version updates — stable releases are always even minors, matching the odd/even convention nightly builds already follow.
 
 ## Downloading the .vsix from GitHub Action
 
