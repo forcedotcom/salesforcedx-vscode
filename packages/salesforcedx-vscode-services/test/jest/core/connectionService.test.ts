@@ -766,7 +766,105 @@ describe('ConnectionService.getConnection (Web Console)', () => {
     else process.env.ESBUILD_PLATFORM = originalPlatform;
   });
 
-  it('supplies the raw access token with auth flags to AuthInfo.create and preserves cache hits', async () => {
+  it('snapshots session context once, forwards it, and preserves cache hits', async () => {
+    process.env.ESBUILD_PLATFORM = 'web';
+    jest.resetModules();
+
+    await jest.isolateModulesAsync(async () => {
+      const { AuthInfo: WebAuthInfo, Connection: WebConnection } =
+        jest.requireMock<typeof import('@salesforce/core')>('@salesforce/core');
+      const WebEffect = jest.requireActual<typeof import('effect/Effect')>('effect/Effect');
+      const WebLayer = jest.requireActual<typeof import('effect/Layer')>('effect/Layer');
+      const Redacted = jest.requireActual<typeof import('effect/Redacted')>('effect/Redacted');
+      const { AliasService: WebAliasService } =
+        jest.requireActual<typeof import('../../../src/core/alias.js')>('../../../src/core/alias');
+      const { ConfigService: WebConfigService } = jest.requireActual<
+        typeof import('../../../src/core/configService.js')
+      >('../../../src/core/configService');
+      const { ConnectionService: WebConnectionService } = jest.requireActual<
+        typeof import('../../../src/core/connectionService.js')
+      >('../../../src/core/connectionService');
+      const { SettingsService: WebSettingsService } = jest.requireActual<
+        typeof import('../../../src/vscode/settingsService.js')
+      >('../../../src/vscode/settingsService');
+      const accessToken = 'web-console-token';
+      let sessionContext: {
+        username?: string;
+        orgId?: string;
+        userId?: string;
+        instanceName?: string;
+        orgEdition?: string;
+        namespacePrefix?: string;
+        isDevHub?: boolean;
+        isScratch?: boolean;
+        isSandbox?: boolean;
+      } = {
+        username: 'user@example.com',
+        orgId: '00D000000000001',
+        userId: '005000000000001',
+        instanceName: 'utf8',
+        orgEdition: 'Enterprise Edition',
+        namespacePrefix: '',
+        isDevHub: true,
+        isScratch: false,
+        isSandbox: true
+      };
+      const getSessionContext = jest.fn(() => WebEffect.succeed(sessionContext));
+      const authInfo = { getFields: () => ({}), save: jest.fn().mockResolvedValue(undefined) } as unknown as AuthInfo;
+      const connection = makeConn({ isAccessTokenFlow: false });
+      jest.mocked(WebAuthInfo.create).mockResolvedValue(authInfo);
+      jest.mocked(WebConnection.create).mockResolvedValue(connection);
+      const dependencies = WebLayer.mergeAll(
+        WebLayer.succeed(WebAliasService, WebAliasService.make({} as never)),
+        WebLayer.succeed(WebConfigService, WebConfigService.make({} as never)),
+        WebLayer.succeed(
+          WebSettingsService,
+          WebSettingsService.make({
+            getInstanceUrl: () => WebEffect.succeed(INSTANCE_URL),
+            getAccessToken: () => WebEffect.succeed(Redacted.make(accessToken)),
+            getApiVersion: () => WebEffect.succeed('67.0'),
+            getSessionContext
+          } as never)
+        )
+      );
+      const layer = WebLayer.provide(WebConnectionService.DefaultWithoutDependencies, dependencies);
+
+      const { first, cached, afterContextChange } = await WebEffect.runPromise(
+        WebEffect.gen(function* () {
+          const firstConnection = yield* WebConnectionService.getConnection('ignored');
+          const cachedConnection = yield* WebConnectionService.getConnection('ignored');
+          sessionContext = {};
+          const connectionAfterContextChange = yield* WebConnectionService.getConnection();
+          return { first: firstConnection, cached: cachedConnection, afterContextChange: connectionAfterContextChange };
+        }).pipe(WebEffect.provide(layer))
+      );
+
+      expect(WebAuthInfo.create).toHaveBeenCalledWith({
+        accessTokenOptions: {
+          accessToken,
+          loginUrl: INSTANCE_URL,
+          instanceUrl: INSTANCE_URL,
+          isDevHub: true,
+          isScratch: false,
+          isSandbox: true,
+          username: 'user@example.com',
+          orgId: '00D000000000001',
+          userId: '005000000000001',
+          instanceName: 'utf8',
+          orgEdition: 'Enterprise Edition',
+          namespacePrefix: ''
+        }
+      });
+      expect(WebAuthInfo.create).toHaveBeenCalledTimes(1);
+      expect(first).toBe(connection);
+      expect(cached).toBe(connection);
+      expect(getSessionContext).toHaveBeenCalledTimes(1);
+      expect(WebAuthInfo.create).toHaveBeenCalledTimes(1);
+      expect(afterContextChange).toBe(connection);
+    });
+  });
+
+  it('omits session identity options when the context is empty', async () => {
     process.env.ESBUILD_PLATFORM = 'web';
     jest.resetModules();
 
@@ -789,9 +887,8 @@ describe('ConnectionService.getConnection (Web Console)', () => {
       >('../../../src/vscode/settingsService');
       const accessToken = 'web-console-token';
       const authInfo = { getFields: () => ({}), save: jest.fn().mockResolvedValue(undefined) } as unknown as AuthInfo;
-      const connection = makeConn({ isAccessTokenFlow: false });
       jest.mocked(WebAuthInfo.create).mockResolvedValue(authInfo);
-      jest.mocked(WebConnection.create).mockResolvedValue(connection);
+      jest.mocked(WebConnection.create).mockResolvedValue(makeConn({ isAccessTokenFlow: false }));
       const dependencies = WebLayer.mergeAll(
         WebLayer.succeed(WebAliasService, WebAliasService.make({} as never)),
         WebLayer.succeed(WebConfigService, WebConfigService.make({} as never)),
@@ -800,18 +897,14 @@ describe('ConnectionService.getConnection (Web Console)', () => {
           WebSettingsService.make({
             getInstanceUrl: () => WebEffect.succeed(INSTANCE_URL),
             getAccessToken: () => WebEffect.succeed(Redacted.make(accessToken)),
-            getApiVersion: () => WebEffect.succeed('67.0')
+            getApiVersion: () => WebEffect.succeed('67.0'),
+            getSessionContext: () => WebEffect.succeed({ isDevHub: false, isScratch: false, isSandbox: false })
           } as never)
         )
       );
       const layer = WebLayer.provide(WebConnectionService.DefaultWithoutDependencies, dependencies);
 
-      const first = await WebEffect.runPromise(
-        WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer))
-      );
-      const cached = await WebEffect.runPromise(
-        WebConnectionService.getConnection('ignored').pipe(WebEffect.provide(layer))
-      );
+      await WebEffect.runPromise(WebConnectionService.getConnection().pipe(WebEffect.provide(layer)));
 
       expect(WebAuthInfo.create).toHaveBeenCalledWith({
         accessTokenOptions: {
@@ -823,9 +916,6 @@ describe('ConnectionService.getConnection (Web Console)', () => {
           isSandbox: false
         }
       });
-      expect(WebAuthInfo.create).toHaveBeenCalledTimes(1);
-      expect(first).toBe(connection);
-      expect(cached).toBe(connection);
     });
   });
 });
