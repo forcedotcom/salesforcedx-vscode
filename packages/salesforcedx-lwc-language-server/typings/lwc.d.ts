@@ -35,17 +35,11 @@ declare module '@lwc/errors' {
         url?: string;
     }
 
-    export class CompilerError extends Error implements CompilerDiagnostic {
-        code: number;
-        filename?: string;
-        location?: Location;
-        level: DiagnosticLevel;
-        url?: string;
-    }
+    export type CompilerError = import('@lwc/errors/dist/compiler/utils').CompilerError;
+    export const CompilerError: typeof import('@lwc/errors/dist/compiler/utils').CompilerError;
 
-    export class CompilerAggregateError extends Error {
-        errors: CompilerError[];
-    }
+    export type CompilerAggregateError = import('@lwc/errors/dist/compiler/utils').CompilerAggregateError;
+    export const CompilerAggregateError: typeof import('@lwc/errors/dist/compiler/utils').CompilerAggregateError;
 }
 
 declare module '@lwc/template-compiler' {
