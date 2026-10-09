@@ -9,6 +9,7 @@ import { Config, OrgConfigProperties, SfConfigProperties } from '@salesforce/cor
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
 import * as Effect from 'effect/Effect';
 import { ConfigService, ConfigWriteError } from '../../../src/core/configService';
+import { NoWorkspaceOpenError } from '../../../src/vscode/workspaceService';
 
 jest.mock('@salesforce/core', () => ({
   ...jest.requireActual('@salesforce/core'),
@@ -22,15 +23,34 @@ jest.mock('@salesforce/core/configAggregator', () => ({
 const vscode = require('vscode');
 
 const setMock = jest.fn();
+const unsetMock = jest.fn();
 const writeMock = jest.fn();
 const createMock = jest.mocked(Config.create);
 const aggregatorCreateMock = jest.mocked(ConfigAggregator.create);
 
+const MOCK_WORKSPACE_PATH = '/mock/workspace';
+
+const openMockWorkspace = (): void => {
+  vscode.workspace.workspaceFolders = [
+    {
+      uri: { scheme: 'file', fsPath: MOCK_WORKSPACE_PATH, toString: (): string => `file://${MOCK_WORKSPACE_PATH}` },
+      name: 'mock-workspace',
+      index: 0
+    }
+  ];
+};
+
+const resetConfigMocks = (): void => {
+  setMock.mockReset();
+  unsetMock.mockReset();
+  writeMock.mockReset().mockResolvedValue(undefined);
+  createMock.mockReset().mockResolvedValue({ set: setMock, unset: unsetMock, write: writeMock } as unknown as Config);
+};
+
 describe('ConfigService.setTargetOrg', () => {
   beforeEach(() => {
-    setMock.mockReset();
-    writeMock.mockReset().mockResolvedValue(undefined);
-    createMock.mockReset().mockResolvedValue({ set: setMock, write: writeMock } as unknown as Config);
+    resetConfigMocks();
+    openMockWorkspace();
   });
 
   it('writes the alias to target-org config', async () => {
@@ -59,6 +79,35 @@ describe('ConfigService.setTargetOrg', () => {
 
     expect(error).toBeInstanceOf(ConfigWriteError);
     expect(error.message).toContain('disk full');
+  });
+});
+
+// process.cwd() is the VS Code install folder when launched from the Windows Start menu (#8301),
+// so every local-config write must root at the workspace like getConfigAggregator does
+describe.each([
+  { method: 'setTargetOrg', write: () => ConfigService.setTargetOrg('MyAlias') },
+  { method: 'unsetTargetOrg', write: () => ConfigService.unsetTargetOrg() },
+  { method: 'unsetTargetDevHub', write: () => ConfigService.unsetTargetDevHub() }
+])('ConfigService.$method project root', ({ write }) => {
+  beforeEach(() => {
+    resetConfigMocks();
+    openMockWorkspace();
+  });
+
+  it('creates the local config at the workspace root, not process.cwd()', async () => {
+    await Effect.runPromise(write().pipe(Effect.provide(ConfigService.Default)));
+
+    // bare root: Config appends .sf/config.json itself
+    expect(createMock).toHaveBeenCalledWith(expect.objectContaining({ rootFolder: MOCK_WORKSPACE_PATH }));
+  });
+
+  it('fails with NoWorkspaceOpenError and never creates a config when no workspace is open', async () => {
+    vscode.workspace.workspaceFolders = [];
+
+    const error = await Effect.runPromise(write().pipe(Effect.provide(ConfigService.Default), Effect.flip));
+
+    expect(error).toBeInstanceOf(NoWorkspaceOpenError);
+    expect(createMock).not.toHaveBeenCalled();
   });
 });
 
