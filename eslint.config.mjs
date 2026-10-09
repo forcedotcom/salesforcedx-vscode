@@ -50,7 +50,6 @@ const noNullCompare = {
   message:
     "Do not use x == null / x != null. Use the 'effect/Predicate' guard matching the declared type: T | undefined -> isUndefined / isNotUndefined; T | null -> isNull / isNotNull; T | null | undefined -> isNullable / isNotNullable."
 };
-
 export default [
   {
     ignores: [
@@ -151,6 +150,7 @@ export default [
     },
     rules: {
       'local/no-vscode-uri': 'error',
+      'local/no-jsforce-query': 'error',
       'local/no-vscode-show-text-document': 'warn',
       'local/no-inline-esbuild-platform': 'error',
       'local/no-legacy-telemetry-service': 'error',
@@ -182,6 +182,7 @@ export default [
       'local/no-nested-effect-ternary': 'error',
       'local/require-effect-fn-span-name': 'error',
       'local/no-raw-duration': 'error',
+      'local/effect-fn-catch-middleware-last': 'error',
       'local/no-duplicate-i18n-values': 'error',
       'local/no-unused-i18n-messages': 'error',
       'local/no-vscode-message-literals': 'error',
@@ -603,7 +604,15 @@ export default [
       'packages/**/playwright*.ts'
     ],
     rules: {
-      // repeat noHrtime: flat config replaces the whole array, so re-specify to keep the hrtime guard
+      // flat config replaces the whole array, so re-specify the base guards
+      'no-restricted-syntax': ['error', noHrtime, noInstanceofError, noNullCompare]
+    }
+  },
+  {
+    // Only queryExecute calls jsforce query/queryMore; keep the other syntax guards here.
+    files: ['packages/salesforcedx-vscode-services/src/core/queryExecute.ts'],
+    rules: {
+      'local/no-jsforce-query': 'off',
       'no-restricted-syntax': ['error', noHrtime, noInstanceofError, noNullCompare]
     }
   },
@@ -712,6 +721,9 @@ export default [
     // Surface shrinks as later refactors (methods->functions, Effect) land.
     files: ['packages/salesforcedx-apex/**/*.ts'],
     rules: {
+      // apex-node does not depend on the services extension.
+      'no-restricted-syntax': ['error', noHrtime],
+      'local/no-jsforce-query': 'off',
       // upstream style: avoid restyling imported, history-tracked code
       '@typescript-eslint/consistent-type-assertions': 'off',
       '@typescript-eslint/explicit-member-accessibility': 'off',
@@ -753,6 +765,7 @@ export default [
       'packages/salesforcedx-vscode-services/**/*.ts',
       'packages/salesforcedx-vscode-org-browser/**/*.ts',
       'packages/salesforcedx-vscode-metadata/**/*.ts',
+      'packages/salesforcedx-vscode-apex/**/*.ts',
       'packages/salesforcedx-vscode-apex-log/**/*.ts',
       'packages/salesforcedx-vscode-apex-oas/**/*.ts',
       'packages/salesforcedx-vscode-apex-testing/**/*.ts',
@@ -858,7 +871,7 @@ export default [
     }
   },
   {
-    // consistent-type-imports for salesforcedx-visualforce-language-server (inline to avoid no-duplicate-imports; W-23371047)
+    // consistent-type-imports for salesforcedx-visualforce-language-server (inline to avoid no-duplicate-imports; W-23371067)
     files: ['packages/salesforcedx-visualforce-language-server/**/*.ts'],
     rules: {
       '@typescript-eslint/consistent-type-imports': [
@@ -888,6 +901,26 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-vscode-apex (inline to avoid no-duplicate-imports; W-23371071)
+    files: ['packages/salesforcedx-vscode-apex/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-vscode-core (inline to avoid no-duplicate-imports; W-23371068)
+    files: ['packages/salesforcedx-vscode-core/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // consistent-type-imports for salesforcedx-vscode-apex-log (inline to avoid no-duplicate-imports; W-23371055)
     files: ['packages/salesforcedx-vscode-apex-log/**/*.ts'],
     rules: {
@@ -900,6 +933,46 @@ export default [
   {
     // consistent-type-imports for salesforcedx-vscode-apex-oas (inline to avoid no-duplicate-imports; W-23371058)
     files: ['packages/salesforcedx-vscode-apex-oas/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-vscode-org-browser (inline to avoid no-duplicate-imports; W-23371063)
+    files: ['packages/salesforcedx-vscode-org-browser/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-vscode-metadata (inline to avoid no-duplicate-imports; W-23371074)
+    files: ['packages/salesforcedx-vscode-metadata/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-vscode-apex-replay-debugger (inline to avoid no-duplicate-imports; W-23371059)
+    files: ['packages/salesforcedx-vscode-apex-replay-debugger/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-vscode-lightning (inline to avoid no-duplicate-imports; W-23371060)
+    files: ['packages/salesforcedx-vscode-lightning/**/*.ts'],
     rules: {
       '@typescript-eslint/consistent-type-imports': [
         'error',
@@ -929,13 +1002,8 @@ export default [
   },
   {
     // class-methods-use-this for packages not yet using Effect
-    // (apex-oas + apex-testing omitted: covered by the Effect-services block above, which sets both rules)
-    files: [
-      'packages/salesforcedx-vscode-apex/**/*.ts',
-      'packages/salesforcedx-vscode-soql/**/*.ts',
-      'packages/soql-common/**/*.ts',
-      'packages/soql-model/**/*.ts'
-    ],
+    // (apex, apex-oas + apex-testing omitted: covered by the Effect-services block above, which sets both rules)
+    files: ['packages/salesforcedx-vscode-soql/**/*.ts', 'packages/soql-common/**/*.ts', 'packages/soql-model/**/*.ts'],
     rules: {
       'class-methods-use-this': 'error',
       'local/no-explicit-effect-return-type': 'error',
@@ -986,14 +1054,6 @@ export default [
     }
   },
   {
-    // vscode-apex is not in the Effect-services block. Only no-throw-statements.
-    // Before the test override so packages/**/test/**/*.ts stays off.
-    files: ['packages/salesforcedx-vscode-apex/**/*.ts'],
-    rules: {
-      'functional/no-throw-statements': 'error'
-    }
-  },
-  {
     // Relaxed rules for test files
     files: [
       'packages/**/test/**/*.ts',
@@ -1030,6 +1090,7 @@ export default [
       'functional/no-loop-statements': 'off',
       'functional/prefer-property-signatures': 'off',
       'import/no-extraneous-dependencies': 'off',
+      '@typescript-eslint/consistent-type-definitions': 'off',
       '@typescript-eslint/no-explicit-any': 'off',
       '@typescript-eslint/array-type': 'off'
     }

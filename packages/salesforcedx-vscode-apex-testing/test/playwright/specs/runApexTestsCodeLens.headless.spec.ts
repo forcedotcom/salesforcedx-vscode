@@ -20,14 +20,15 @@ import {
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   verifyCommandExists,
-  waitForOutputChannelText,
+  verifyNoTestRunInProgress,
   waitForRunApexTestsProgressNotificationGone
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
-import { TEST_RUN_TIMEOUT } from '../constants';
+import { TEST_RUN_TIMEOUT, TEST_SETUP_TIMEOUT } from '../constants';
 import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
+import { waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
 
 // salesforcedx-vscode-apex (which provides the Run All Tests / Run Test code lenses) has no
 // "browser" bundle, so the Apex language client never registers in VS Code Web — no code lenses
@@ -35,7 +36,7 @@ import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
 (isDesktop() ? test : test.skip.bind(test))(
   'Run Apex Tests via code lens: Run All Tests, then Run Test (single method)',
   async ({ page }) => {
-    test.setTimeout(TEST_RUN_TIMEOUT);
+    test.setTimeout(TEST_SETUP_TIMEOUT + TEST_RUN_TIMEOUT);
     const consoleErrors = setupConsoleMonitoring(page);
     const networkErrors = setupNetworkMonitoring(page);
 
@@ -73,12 +74,13 @@ import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
       await ensureOutputPanelOpen(page);
       await selectOutputChannel(page, 'Apex Testing');
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
-      await waitForOutputChannelText(page, { expectedText: '=== Test Summary', timeout: TEST_RUN_TIMEOUT });
-      await waitForOutputChannelText(page, { expectedText: 'Outcome              Passed' });
-      await waitForOutputChannelText(page, { expectedText: 'Tests Ran            1' });
-      await waitForOutputChannelText(page, { expectedText: 'Pass Rate            100%' });
-      await waitForOutputChannelText(page, { expectedText: `${testClassName}.validateSayHello  Pass` });
-      await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
+      await waitForApexRunOutputLine(page, '=== Test Summary');
+      await waitForApexRunOutputLine(page, 'Outcome              Passed');
+      await waitForApexRunOutputLine(page, 'Tests Ran            1');
+      await waitForApexRunOutputLine(page, 'Pass Rate            100%');
+      await waitForApexRunOutputLine(page, `${testClassName}.validateSayHello  Pass`);
+      await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
+      await verifyNoTestRunInProgress(page);
       await saveScreenshot(page, 'step.run-all.done.png');
       // Restore panel before next step
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
@@ -100,12 +102,13 @@ import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
       await ensureOutputPanelOpen(page);
       await selectOutputChannel(page, 'Apex Testing');
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
-      await waitForOutputChannelText(page, { expectedText: '=== Test Summary', timeout: TEST_RUN_TIMEOUT });
-      await waitForOutputChannelText(page, { expectedText: 'Outcome              Passed' });
-      await waitForOutputChannelText(page, { expectedText: 'Tests Ran            1' });
-      await waitForOutputChannelText(page, { expectedText: 'Pass Rate            100%' });
-      await waitForOutputChannelText(page, { expectedText: `${testClassName}.validateSayHello  Pass` });
-      await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
+      await waitForApexRunOutputLine(page, '=== Test Summary');
+      await waitForApexRunOutputLine(page, 'Outcome              Passed');
+      await waitForApexRunOutputLine(page, 'Tests Ran            1');
+      await waitForApexRunOutputLine(page, 'Pass Rate            100%');
+      await waitForApexRunOutputLine(page, `${testClassName}.validateSayHello  Pass`);
+      await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
+      await verifyNoTestRunInProgress(page);
       await saveScreenshot(page, 'step.run-single.done.png');
       // Restore panel before next step
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
@@ -133,11 +136,12 @@ import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
       await ensureOutputPanelOpen(page);
       await selectOutputChannel(page, 'Apex Testing');
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
-      await waitForOutputChannelText(page, { expectedText: '=== Test Summary', timeout: TEST_RUN_TIMEOUT });
-      await waitForOutputChannelText(page, { expectedText: 'Outcome              Passed' });
-      await waitForOutputChannelText(page, { expectedText: 'Tests Ran            1' });
-      await waitForOutputChannelText(page, { expectedText: `${testClassName}.validateSayHello  Pass` });
-      await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
+      await waitForApexRunOutputLine(page, '=== Test Summary');
+      await waitForApexRunOutputLine(page, 'Outcome              Passed');
+      await waitForApexRunOutputLine(page, 'Tests Ran            1');
+      await waitForApexRunOutputLine(page, `${testClassName}.validateSayHello  Pass`);
+      await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
+      await verifyNoTestRunInProgress(page);
       await saveScreenshot(page, 'step.rerun-last-class.done.png');
       // Restore panel before next step
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
@@ -162,11 +166,12 @@ import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
       await ensureOutputPanelOpen(page);
       await selectOutputChannel(page, 'Apex Testing');
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
-      await waitForOutputChannelText(page, { expectedText: '=== Test Summary', timeout: TEST_RUN_TIMEOUT });
-      await waitForOutputChannelText(page, { expectedText: 'Outcome              Passed' });
-      await waitForOutputChannelText(page, { expectedText: 'Tests Ran            1' });
-      await waitForOutputChannelText(page, { expectedText: `${testClassName}.validateSayHello  Pass` });
-      await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
+      await waitForApexRunOutputLine(page, '=== Test Summary');
+      await waitForApexRunOutputLine(page, 'Outcome              Passed');
+      await waitForApexRunOutputLine(page, 'Tests Ran            1');
+      await waitForApexRunOutputLine(page, `${testClassName}.validateSayHello  Pass`);
+      await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
+      await verifyNoTestRunInProgress(page);
       await saveScreenshot(page, 'step.rerun-last-method.done.png');
     });
 

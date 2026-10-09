@@ -21,6 +21,7 @@ import * as Effect from 'effect/Effect';
 import * as HashMap from 'effect/HashMap';
 import * as Option from 'effect/Option';
 import * as PubSub from 'effect/PubSub';
+import * as Struct from 'effect/Struct';
 import type { URI } from 'vscode-uri';
 import { TransmogrifierService, type DescribeSObjectResult } from '../core/transmogrifierService';
 import {
@@ -271,11 +272,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
         const sobject = yield* transmogrifier.toMinimalSObject(raw);
         const previous = yield* state.getSObjectDescription(orgId, sobject.name);
         const previousComparable = previous
-          ? Object.fromEntries(
-              Object.entries(previous).filter(
-                ([key]) => !['orgId', 'observedAt', 'provenance', 'remoteLastModifiedDate'].includes(key)
-              )
-            )
+          ? Struct.omit(previous, 'orgId', 'observedAt', 'provenance', 'remoteLastModifiedDate')
           : undefined;
         const changed = JSON.stringify(previousComparable) !== JSON.stringify(sobject);
         if (changed) {

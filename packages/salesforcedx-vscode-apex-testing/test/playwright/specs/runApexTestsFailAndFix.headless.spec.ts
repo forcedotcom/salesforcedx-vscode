@@ -25,6 +25,7 @@ import {
   setupNetworkMonitoring,
   setupNonTrackingOrgAndAuth,
   validateNoCriticalErrors,
+  verifyNoTestRunInProgress,
   waitForNotification,
   waitForOutputChannelText,
   waitForRunApexTestsProgressNotificationGone
@@ -32,8 +33,9 @@ import {
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
-import { TEST_RUN_TIMEOUT } from '../constants';
+import { TEST_RUN_TIMEOUT, TEST_SETUP_TIMEOUT } from '../constants';
 import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
+import { waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
 
 const ACCOUNT_SERVICE_CONTENT = [
   'public with sharing class AccountService {',
@@ -84,7 +86,7 @@ const runAccountServiceTestViaPalette = async (page: Page): Promise<void> => {
 (isDesktop() ? test : test.skip.bind(test))(
   'Run Apex Tests: fail then fix via deploy and redeploy',
   async ({ page }) => {
-    test.setTimeout(TEST_RUN_TIMEOUT);
+    test.setTimeout(TEST_SETUP_TIMEOUT + TEST_RUN_TIMEOUT);
     const consoleErrors = setupConsoleMonitoring(page);
     const networkErrors = setupNetworkMonitoring(page);
 
@@ -124,18 +126,15 @@ const runAccountServiceTestViaPalette = async (page: Page): Promise<void> => {
       await ensureOutputPanelOpen(page);
       await selectOutputChannel(page, 'Apex Testing');
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
-      await waitForOutputChannelText(page, {
-        expectedText: 'System.AssertException: Assertion Failed:',
-        timeout: TEST_RUN_TIMEOUT
-      });
-      await waitForOutputChannelText(page, {
-        expectedText: 'incorrect ticker symbol: Expected: CRM, Actual: SFDC'
-      });
+      await waitForApexRunOutputLine(page, 'System.AssertException: Assertion Failed:');
+      await waitForApexRunOutputLine(page, 'incorrect ticker symbol: Expected: CRM, Actual: SFDC');
       await saveScreenshot(page, 'step.fail.assert-failed.png');
       // Restore panel before continuing
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
-      // Clear all notifications so the failing run's success notification doesn't
-      // get re-matched (and possibly re-clicked) when we verify the passing-run notification.
+      await verifyNoTestRunInProgress(page);
+      // A run with failing tests still completes, so it shows the same "successfully ran" toast as a passing
+      // run. Clear it so it isn't re-matched (and possibly re-clicked) when we verify the passing run's toast.
+      // TODO: This should be a failure notification instead. Will fix in W-24417592.
       await clearAllNotifications(page);
     });
 
@@ -196,12 +195,13 @@ const runAccountServiceTestViaPalette = async (page: Page): Promise<void> => {
       await ensureOutputPanelOpen(page);
       await selectOutputChannel(page, 'Apex Testing');
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
-      await waitForOutputChannelText(page, { expectedText: '=== Test Summary', timeout: TEST_RUN_TIMEOUT });
-      await waitForOutputChannelText(page, { expectedText: 'Outcome              Passed' });
-      await waitForOutputChannelText(page, { expectedText: 'Tests Ran            1' });
-      await waitForOutputChannelText(page, { expectedText: 'Pass Rate            100%' });
-      await waitForOutputChannelText(page, { expectedText: 'AccountServiceTest.should_create_account  Pass' });
-      await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
+      await waitForApexRunOutputLine(page, '=== Test Summary');
+      await waitForApexRunOutputLine(page, 'Outcome              Passed');
+      await waitForApexRunOutputLine(page, 'Tests Ran            1');
+      await waitForApexRunOutputLine(page, 'Pass Rate            100%');
+      await waitForApexRunOutputLine(page, 'AccountServiceTest.should_create_account  Pass');
+      await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
+      await verifyNoTestRunInProgress(page);
       await saveScreenshot(page, 'step.pass.results-visible.png');
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
     });

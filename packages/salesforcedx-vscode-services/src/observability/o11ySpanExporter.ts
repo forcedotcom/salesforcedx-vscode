@@ -20,7 +20,8 @@ import {
   convertAttributes,
   getExtensionNameAndVersionAttributes,
   isSpanValidForProductionTelemetry,
-  spanDuration
+  legacyNumericMeasurements,
+  telemetrySpanDuration
 } from './spanUtils';
 
 // o11y_schema is ESM-only; load via dynamic import() so it works when this package is required as CJS
@@ -57,7 +58,7 @@ export const toO11yEvent = (span: ReadableSpan, identity: { userId?: string; cli
     ...(identity.cliId ? { cliId: identity.cliId } : {}),
     ...(identity.webUserId ? { webUserId: identity.webUserId } : {})
   },
-  measurements: { duration: spanDuration(span) }
+  measurements: { ...legacyNumericMeasurements(span.attributes), duration: telemetrySpanDuration(span) }
 });
 
 /**
@@ -122,6 +123,7 @@ export class O11ySpanExporter implements SpanExporter {
           } else {
             const error = new Error(span.status.message ?? 'Span failed');
             error.name = span.name;
+            error.stack = 'DEPRECATED';
             this.o11yService.logEvent({
               exception: error,
               properties: props,

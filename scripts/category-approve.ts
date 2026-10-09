@@ -15,6 +15,7 @@ import * as Stream from 'effect/Stream';
 import {
   actionsEnvironment,
   type CheckEvent,
+  findApprovedReviewOnHead,
   GitHub,
   readCheckEvent,
   withoutWorkflowRun
@@ -30,6 +31,7 @@ import {
   type Facts,
   buildPrompt,
   categoryIdsFromPolicy,
+  classifyGit2GusConfig,
   decideCategoryApprove,
   parseAgentResult
 } from './shared/categoryDecision.ts';
@@ -211,12 +213,34 @@ const onePull = Effect.fn('categoryApprove.onePull')(function* (
   if (gated._tag !== 'Classify' || isUndefined(pull))
     return yield* act(gated, owner, repo, pullNumber, headSha, reviews);
   yield* act(gated, owner, repo, pullNumber, headSha, reviews);
+  if ((yield* gitText(['rev-parse', 'HEAD'])).trim() !== headSha) {
+    return yield* Effect.log(`#${pullNumber} skip (checkout does not match PR head ${headSha})`);
+  }
   const baseRef = pull.baseRefName;
   yield* gitText(['fetch', 'origin', baseRef]);
   const policy = yield* gitText(['show', `origin/${baseRef}:APPROVAL_POLICY.md`]);
-  yield* gitText(['diff', `origin/${baseRef}...HEAD`]).pipe(
-    Effect.flatMap(diff => writeDiff(policy, diff)),
-    Effect.scoped,
+  yield* Match.value(files).pipe(
+    Match.when(
+      files => files.length === 1 && files[0]?.filename === '.git2gus/config.json' && files[0].status === 'modified',
+      () =>
+        Effect.all([
+          gitText(['show', `origin/${baseRef}:.git2gus/config.json`]),
+          gitText(['show', `${headSha}:.git2gus/config.json`])
+        ]).pipe(Effect.map(([before, after]) => classifyGit2GusConfig(files, before, after)))
+    ),
+    Match.when(
+      files =>
+        files.some(
+          file => file.filename === '.git2gus/config.json' || file.previous_filename === '.git2gus/config.json'
+        ),
+      () => Effect.succeed([])
+    ),
+    Match.orElse(() =>
+      gitText(['diff', `origin/${baseRef}...${headSha}`]).pipe(
+        Effect.flatMap(diff => writeDiff(policy, diff)),
+        Effect.scoped
+      )
+    ),
     Effect.flatMap(categories =>
       listChecks(owner, repo, headSha, runId).pipe(
         Effect.map(freshChecks =>

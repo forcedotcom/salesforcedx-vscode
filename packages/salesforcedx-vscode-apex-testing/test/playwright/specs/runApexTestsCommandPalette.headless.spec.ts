@@ -20,17 +20,18 @@ import {
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   verifyCommandExists,
-  waitForOutputChannelText,
+  verifyNoTestRunInProgress,
   waitForRunApexTestsProgressNotificationGone
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
-import { TEST_RUN_TIMEOUT } from '../constants';
+import { TEST_RUN_TIMEOUT, TEST_SETUP_TIMEOUT } from '../constants';
 import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
+import { waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
 
 test('Run Apex Tests via Command Palette: run all, then run single class', async ({ page }) => {
-  test.setTimeout(TEST_RUN_TIMEOUT);
+  test.setTimeout(TEST_SETUP_TIMEOUT + TEST_RUN_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -87,10 +88,11 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
     await selectOutputChannel(page, 'Apex Testing');
     await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
     await saveScreenshot(page, 'step.run-single.output-open.png');
-    await waitForOutputChannelText(page, { expectedText: '=== Test Summary', timeout: TEST_RUN_TIMEOUT });
+    await waitForApexRunOutputLine(page, '=== Test Summary');
     await saveScreenshot(page, 'step.run-single.results-visible.png');
-    await waitForOutputChannelText(page, { expectedText: testClassName });
-    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
+    await waitForApexRunOutputLine(page, testClassName);
+    await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
+    await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.run-single.done.png');
   });
 
@@ -103,9 +105,10 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
     await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Apex Testing');
-    await waitForOutputChannelText(page, { expectedText: '=== Test Summary', timeout: TEST_RUN_TIMEOUT });
-    await waitForOutputChannelText(page, { expectedText: testClassName });
-    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
+    await waitForApexRunOutputLine(page, '=== Test Summary');
+    await waitForApexRunOutputLine(page, testClassName);
+    await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
+    await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.rerun-last-class.done.png');
   });
 
@@ -129,11 +132,12 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
     await selectOutputChannel(page, 'Apex Testing');
     await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
     await saveScreenshot(page, 'step.run-all.output-open.png');
-    await waitForOutputChannelText(page, { expectedText: '=== Test Summary', timeout: TEST_RUN_TIMEOUT });
+    await waitForApexRunOutputLine(page, '=== Test Summary');
     await saveScreenshot(page, 'step.run-all.results-visible.png');
-    await waitForOutputChannelText(page, { expectedText: testClassName });
-    await waitForOutputChannelText(page, { expectedText: testClassName2 });
-    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
+    await waitForApexRunOutputLine(page, testClassName);
+    await waitForApexRunOutputLine(page, testClassName2);
+    await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
+    await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.run-all.done.png');
   });
 

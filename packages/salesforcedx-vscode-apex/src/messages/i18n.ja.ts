@@ -16,7 +16,7 @@
  * If omitted, we will assume _message.
  */
 
-import { MessageKey } from './i18n';
+import { type MessageKey } from './i18n';
 
 export const messages: Partial<Record<MessageKey, string>> = {
   apex_language_server_already_restarting: 'Apex 言語サーバは既に再起動中です。お待ちください。',
@@ -52,7 +52,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   terminate_failed: 'Apex 言語サーバプロセス PID: %d の終了に失敗しました: %s',
   terminate_processes: 'プロセスを終了',
   terminate_show_processes: 'プロセスを表示',
-  unknown: '不明',
   unknown_error: '不明なエラー',
   wrong_java_version_short: 'サポートされていない Java バージョン',
   wrong_java_version_text:

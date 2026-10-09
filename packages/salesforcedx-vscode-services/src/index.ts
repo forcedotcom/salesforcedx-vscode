@@ -47,6 +47,7 @@ import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
 import { nls } from './messages';
 import { annotateExtensionPackType } from './observability/extensionPackStatus';
+import { getLegacyTelemetrySender } from './observability/legacyTelemetrySender';
 import { redactingConsoleLoggerLayer, runOnServicesRuntime } from './observability/redactingConsoleLogger';
 import { getSdkLayerConfigFromContext } from './observability/sdkLayerConfig';
 import { seedTelemetryIdentities } from './observability/seedTelemetryIdentities';
@@ -164,6 +165,7 @@ export type SalesforceVSCodeServicesApi = {
     NotificationModeService: typeof NotificationModeService;
     ProjectService: typeof ProjectService;
     getSdkLayerConfigFromContext: typeof getSdkLayerConfigFromContext;
+    getLegacyTelemetrySender: typeof getLegacyTelemetrySender;
     SdkLayerFor: PublicSdkLayerFor;
     SettingsChangePubSub: typeof SettingsChangePubSub;
     SettingsService: typeof SettingsService;
@@ -537,7 +539,10 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       onSome: otelTracer =>
         OtelTracer.layerWithoutOtelTracer.pipe(Layer.provide(Layer.succeed(OtelTracer.OtelTracer, otelTracer)))
     });
-    const runtime = ManagedRuntime.make(Layer.merge(prebuiltServicesLayer, tracerFiberRefLayer));
+    // Same policy as effect-ext-utils suppressVersionMismatchWarning; services cannot import effect-ext-utils.
+    const runtime = ManagedRuntime.make(
+      Layer.mergeAll(prebuiltServicesLayer, tracerFiberRefLayer, Layer.setVersionMismatchErrorLogLevel(Option.none()))
+    );
     setServicesRuntime(runtime);
 
     await activationEffect(context).pipe(
@@ -586,6 +591,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         NotificationModeService,
         ProjectService,
         getSdkLayerConfigFromContext,
+        getLegacyTelemetrySender,
         SdkLayerFor: publicSdkLayerFor,
         SettingsChangePubSub,
         SettingsService,

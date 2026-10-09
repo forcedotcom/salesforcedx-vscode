@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.27.4",
+  "version": "68.1.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,8 +28,8 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/effect-ext-utils": "*",
-    "@salesforce/vscode-i18n": "*",
+    "@salesforce/effect-ext-utils": "workspace:*",
+    "@salesforce/vscode-i18n": "workspace:*",
     "effect": "^3.21.2",
     "vscode-css-languageservice": "^6.3.7",
     "vscode-languageclient": "^9.0.1",
@@ -37,9 +37,9 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/playwright-vscode-ext": "*",
-    "@salesforce/salesforcedx-visualforce-language-server": "*",
-    "salesforcedx-vscode-services": "*"
+    "@salesforce/playwright-vscode-ext": "workspace:*",
+    "@salesforce/salesforcedx-visualforce-language-server": "workspace:*",
+    "salesforcedx-vscode-services": "workspace:*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"

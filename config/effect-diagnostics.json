@@ -1,5 +1,5 @@
 {
-  "$comment": "Effect LS diagnostics ratchet. scripts/effect-diagnostics.mjs fails the build only on findings whose rule name is listed in enforcedRules (any severity). Sibling WIs append a rule name here after fixing all its sites. A rule whose upstream default (@effect/language-service/schema.json) is 'off' reports nothing, so it also needs an 'error' entry in the tsconfig.common.json diagnosticSeverity block or the name here is a silent no-op. Empty list = nothing enforced (exit 0).",
+  "$comment": "Effect LS diagnostics ratchet. scripts/effect-diagnostics.mjs enables every enforcedRules name at error severity for the CLI run and fails the build only on those findings. Sibling WIs append a rule name here after fixing all its sites. Do not pin gate-only rules in tsconfig.common.json (which also affects editor/tsc). Empty list = nothing enforced (exit 0).",
   "enforcedRules": [
     "lazyPromiseInEffectSync",
     "runEffectInsideEffect",
@@ -19,6 +19,8 @@
     "globalRandomInEffect",
     "globalFetchInEffect",
     "globalTimersInEffect",
-    "missedPipeableOpportunity"
+    "missedPipeableOpportunity",
+    "schemaUnionOfLiterals",
+    "instanceOfSchema"
   ]
 }

@@ -5,6 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as Order from 'effect/Order';
-import { FieldDeclaration } from './types/general';
+import { type FieldDeclaration } from './types/general';
 
 export const byFieldName = Order.mapInput(Order.string, (d: FieldDeclaration) => d.name);
