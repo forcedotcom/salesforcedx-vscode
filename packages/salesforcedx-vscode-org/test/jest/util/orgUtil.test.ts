@@ -60,8 +60,7 @@ describe('orgUtil tests', () => {
   // Create mock TargetOrgRef function
   const createMockTargetOrgRef = (username?: string) => () =>
     Effect.gen(function* () {
-      const ref = yield* SubscriptionRef.make<{ username?: string }>({ username });
-      return ref;
+      return yield* SubscriptionRef.make<{ username?: string }>({ username });
     });
 
   beforeEach(() => {

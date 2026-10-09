@@ -51,8 +51,9 @@ export class ExecuteAnonymousService extends Effect.Service<ExecuteAnonymousServ
 
     /** initiates an execute anonymous and retrieves the log.  Returns the result, log body, and log id */
     const executeAndRetrieveLog = Effect.fn('ExecuteAnonymousService.executeAndRetrieveLog')(function* (code: string) {
-      const conn = yield* connectionService.getConnection();
-      return yield* executeAnonymousWithConnection(conn, code);
+      return yield* connectionService
+        .getConnection()
+        .pipe(Effect.flatMap(conn => executeAnonymousWithConnection(conn, code)));
     });
 
     /** Output result to channel; errors get full detail, success gets one line */

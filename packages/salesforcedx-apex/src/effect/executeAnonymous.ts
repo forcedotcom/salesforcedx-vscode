@@ -98,7 +98,7 @@ export const executeAnonymous = Effect.fn('Apex.executeAnonymous')(function* (
   connection: Connection,
   options: ExecuteAnonymousOptions
 ) {
-  const response = yield* Effect.tryPromise({
+  return yield* Effect.tryPromise({
     try: () => connection.request<SoapResponse>(buildRequest(connection, options.apexCode)),
     catch: cause => new ApexRequestError({ cause })
   }).pipe(
@@ -117,7 +117,7 @@ export const executeAnonymous = Effect.fn('Apex.executeAnonymous')(function* (
         : isInvalidSession(error.cause)
           ? operationError(error.cause, AUTH_FAILURE_MESSAGE)
           : operationError(error.cause, `Unexpected error executing anonymous Apex: ${causeMessage(error.cause)}`)
-    )
+    ),
+    Effect.flatMap(parseResponse)
   );
-  return yield* parseResponse(response);
 });

@@ -332,7 +332,7 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
     });
 
     const pullsForCommit = Effect.fn('GitHub.pullsForCommit')(function* (owner: string, repo: string, sha: string) {
-      const pulls = yield* run('GET', `/repos/${owner}/${repo}/commits/${sha}/pulls`, () =>
+      return yield* run('GET', `/repos/${owner}/${repo}/commits/${sha}/pulls`, () =>
         octokit.paginate('GET /repos/{owner}/{repo}/commits/{commit_sha}/pulls', {
           owner,
           repo,
@@ -340,7 +340,6 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
           per_page: 100
         })
       );
-      return pulls;
     });
 
     const pullBody = Effect.fn('GitHub.pullBody')(function* (owner: string, repo: string, pullNumber: number) {

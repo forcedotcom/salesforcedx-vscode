@@ -37,8 +37,7 @@ const makeTestMessageLayer = () => {
 const runWithSDK = <A>(layer: Layer.Layer<MessageService>, body: (sdk: ToolingSDK) => Effect.Effect<A>): Promise<A> =>
   Effect.runPromise(
     Effect.gen(function* () {
-      const sdk = yield* ToolingSDK;
-      return yield* body(sdk);
+      return yield* body(yield* ToolingSDK);
     }).pipe(Effect.provide(Layer.provide(ToolingSDK.Default, layer)))
   );
 

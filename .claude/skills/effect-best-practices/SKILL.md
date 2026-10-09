@@ -34,7 +34,7 @@ npx effect-language-service diagnostics --project tsconfig.json
 | Error Handling    | `catchTag`/`catchTags`; catch only when needed           | `catchAll`; swallowing; catching "just in case"                  |
 | IDs               | Salesforce record/org: `SalesforceId`/`OrgId` (`core/schemas/salesforceId.ts`). `DefaultOrgInfoSchema.orgId`/`devHubOrgId`: `Schema.optional(OrgId)` like `cliId`. Else `Schema.UUID.pipe(Schema.brand("@App/EntityId"))` | Plain `string`; `getAuthInfoFields().orgId` ad hoc; `optionalWith` as Option on DefaultOrgInfo |
 | Functions         | `Effect.fn` over `Effect.gen`; `.gen` only for shared pipes | Anonymous generators; nested `Effect.gen` to attach recovery; `.gen` for business logic |
-| Composition       | `.pipe`; `const` only if read ≥2×. Details: `references/composition-style.md` | single-use `const x = yield*` then `f(x)` |
+| Composition       | `.pipe`; `local/inline-single-use-yield-binding` for single-use yielded values. Details: `references/composition-style.md` | — |
 | Params vs deps    | Params = runtime data; dependencies = yield from context | Passing Ref/PubSub/service as params                             |
 | Naming            | `FooCommand` for commands, domain names for helpers      | `FooEffect` suffix (redundant; TS/Effect.fn already convey type) |
 | Logging           | `Effect.log` with structured data                        | `console.log`                                                    |
@@ -277,7 +277,7 @@ const openedOk = Effect.gen(function* () {
 // CORRECT: logGetCommand, executeAnonymousCommand, executeAnonymous (helper), activation (lifecycle)
 ```
 
-See `references/composition-style.md`: `.pipe`, `const` only if read ≥2×, terminal runner, point-free safety, Match dispatch, guard clauses, recovery on a subsequence.
+See `references/composition-style.md`: `.pipe`, `local/inline-single-use-yield-binding` for single-use yielded values, terminal runner, point-free safety, Match dispatch, guard clauses, recovery on a subsequence.
 
 ## Layer Composition
 
@@ -519,7 +519,7 @@ See `references/observability-patterns.md` for metrics and tracing patterns.
 
 For detailed patterns, consult these reference files in the `references/` directory:
 
-- `composition-style.md` - `.pipe`; `const` only if read ≥2×; terminal runner; point-free safety; tap for side effects; Match dispatch; guard clauses; linear body as point-free pipe vs generator; recovery on a subsequence (pipe from the first Effect — not a nested `Effect.gen`)
+- `composition-style.md` - `.pipe`; `local/inline-single-use-yield-binding` for single-use yielded values; terminal runner; point-free safety; tap for side effects; Match dispatch; guard clauses; linear body as point-free pipe vs generator; recovery on a subsequence (pipe from the first Effect — not a nested `Effect.gen`)
 - `service-patterns.md` - Service definition, Effect.fn, Context.Tag exceptions
 - `error-patterns.md` - Schema.TaggedError, error remapping, retry patterns
 - `schema-patterns.md` - Branded types, transforms, Schema.Class

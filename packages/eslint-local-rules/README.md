@@ -82,6 +82,25 @@ const findById = Effect.fn('UserService.findById')(function* (id: UserId) {
 
 Note: Immediately-invoked `Effect.fn` calls (e.g. `Effect.fn('x')(function* (){})()`) are flagged by the Effect Language Service rule `effectFnIife` (config-enforced in `config/effect-diagnostics.json`), not this rule. Use `Effect.gen(...).pipe(Effect.withSpan(...))` for one-shot effects.
 
+### inline-single-use-yield-binding
+
+Reports a single-use `const x = yield* e` when its only reference is in the immediately following `return x`, `return f(x, ...)`, or `yield* f(x, ...)`. The rule uses ESLint scope references, not Effect types. Only `return x` is autofixed: moving the yield into a call argument would read the callee before the yield instead of after it. Comments outside the initializer in the removed declaration or between the binding and its use prevent autofix.
+
+**Bad:**
+
+```typescript
+const value = yield* readValue;
+return value;
+```
+
+**Good:**
+
+```typescript
+return yield* readValue;
+```
+
+Unlike the Effect Language Service's `returnEffectInGen`, this rule handles a local bound to the *yielded value*, not an un-run `Effect` returned from a generator.
+
 ### no-nested-effect-gen-catch-tags
 
 Inside an `Effect.fn` generator, do not wrap a span in `Effect.gen` just so `.pipe` can attach `Effect.catchTags`. Pipe from that span's first Effect and keep `catchTags` on that pipe. `catchTags` after other `.pipe` steps is the same shape. An `Effect.gen` service body, an `Effect.gen` inside `Effect.fn` with no `catchTags`, and `Effect.catchTags` on a non-`Effect.gen` receiver stay allowed. The rule is AST-only: it matches an `Effect` identifier, the same way `no-effect-fn-wrapper` does.

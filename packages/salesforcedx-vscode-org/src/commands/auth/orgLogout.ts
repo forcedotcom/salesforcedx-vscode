@@ -157,8 +157,7 @@ export const orgLogoutDefaultCommand = Effect.fn('orgLogoutDefaultCommand')(
     const wasTargetOrg = yield* api.services.ConfigService.isCurrentTargetOrg(username, aliases);
 
     const { fsPath: projectPath } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-    const authRemover = yield* createAuthRemover(projectPath, username);
-    yield* removeAuth(authRemover, username);
+    yield* removeAuth(yield* createAuthRemover(projectPath, username), username);
     yield* updateConfigAndStateAggregatorsEffect();
 
     // AuthRemover already unsets the project's target-org. The failed post-logout connection refresh

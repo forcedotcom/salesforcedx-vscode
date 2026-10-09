@@ -48,8 +48,7 @@ const runWithModelService = <A>(
 ): Promise<A> =>
   Effect.runPromise(
     Effect.gen(function* () {
-      const svc = yield* ToolingModelService;
-      return yield* body(svc);
+      return yield* body(yield* ToolingModelService);
     }).pipe(Effect.provide(Layer.provide(ToolingModelService.Default, layer)))
   );
 
