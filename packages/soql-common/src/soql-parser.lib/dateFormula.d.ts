@@ -45,3 +45,5 @@ export declare enum DateFormula {
     N_DAYS_AGO = 43
 }
 export declare function isDateFormula(s: string): boolean;
+export declare function isVariableRangeDateFormula(s: string): boolean;
+export declare function isFixedRangeDateFormula(s: string): boolean;

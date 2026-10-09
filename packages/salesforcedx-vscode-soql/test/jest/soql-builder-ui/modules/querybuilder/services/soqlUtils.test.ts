@@ -199,6 +199,16 @@ describe('SoqlUtils', () => {
     expect(transformedUiModel.unsupported[0].reason).toEqual(uiModelErrors.unsupported[0].reason);
   });
 
+  it('shows primary and independent parse errors without secondary recovery errors', () => {
+    expect(convertSoqlToUiModel('SELECT field1 FROM object1 WHERE field IN').errors.map(error => error.type)).toEqual([
+      'NOCOMPAREVALUE'
+    ]);
+    expect(convertSoqlToUiModel('SELECT A FROM B LIMIT X OFFSET Y').errors.map(error => error.type)).toEqual([
+      'INCOMPLETELIMIT',
+      'UNKNOWN'
+    ]);
+  });
+
   it('transform UI Model with allRows true to Soql with ALL ROWS', () => {
     const transformedSoql = convertUiModelToSoql({ ...uiModelOne, allRows: true });
     expect(transformedSoql).toContain('ALL ROWS');
