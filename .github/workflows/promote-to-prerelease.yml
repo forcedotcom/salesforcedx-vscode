@@ -325,3 +325,46 @@ jobs:
             gh release edit "$NIGHTLY_TAG" --repo "${{ github.repository }}" --title "$CURRENT_TITLE - published"
             echo "Renamed release title to: $CURRENT_TITLE - published"
           fi
+
+  # Step 6: Notify Slack if any job above failed, so a broken promotion doesn't go
+  # unnoticed until someone happens to check Actions. failure() only fires for an
+  # actual 'failure' status among `needs` -- jobs skipped because an earlier gate
+  # (e.g. gate-check) failed don't themselves count, but that earlier job's own
+  # 'failure' status does, so this still catches the real failure.
+  #
+  # Posts directly to a Slack Workflow Builder webhook trigger (hooks.slack.com/triggers/...),
+  # not a classic incoming webhook -- the payload must be the flat set of input variables
+  # defined on that trigger (title, run_url, repository), not a free-form Block Kit message.
+  notify-on-failure:
+    needs: [find-nightly, gate-check, compute-changelog-range, changelog-body, write-changelog, promote, mark-release-published]
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_PROMOTE_PRERELEASE_WEBHOOK }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          curl --fail -sS -X POST "$SLACK_WEBHOOK_URL" \
+            -H 'Content-Type: application/json' \
+            --data "$(jq -n --arg title ':x: Prerelease publishing failed' --arg run_url "$RUN_URL" --arg repository "$REPOSITORY" '{title: $title, run_url: $run_url, repository: $repository}')"
+
+  # Mirrors notify-on-failure above, but for the happy path. Gated on dry-run != true as well
+  # as success() -- mark-release-published (the real "did this actually publish" signal) is
+  # itself skipped during dry-run, and a skipped need doesn't count against success(), so without
+  # this guard a dry-run would falsely announce success despite publishing nothing for real.
+  notify-on-success:
+    needs: [find-nightly, gate-check, compute-changelog-range, changelog-body, write-changelog, promote, mark-release-published]
+    if: success() && inputs.dry-run != true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify Slack
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.IDEE_PROMOTE_PRERELEASE_WEBHOOK }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPOSITORY: ${{ github.repository }}
+        run: |
+          curl --fail -sS -X POST "$SLACK_WEBHOOK_URL" \
+            -H 'Content-Type: application/json' \
+            --data "$(jq -n --arg title ':check-green: Prerelease publishing succeeded :rocket:' --arg run_url "$RUN_URL" --arg repository "$REPOSITORY" '{title: $title, run_url: $run_url, repository: $repository}')"

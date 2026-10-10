@@ -48,7 +48,7 @@
     "@salesforce/salesforcedx-utils": "workspace:*",
     "@salesforce/source-deploy-retrieve": "^13.2.0",
     "@salesforce/source-tracking": "^8.0.0",
-    "@salesforce/templates": "^66.16.3",
+    "@salesforce/templates": "^66.16.4",
     "@salesforce/vscode-i18n": "workspace:*",
     "@vscode/extension-telemetry": "^1.0.0",
     "cross-spawn": "7.0.6",
@@ -344,6 +344,40 @@
           "type": "string",
           "default": "67.0",
           "description": "%configuration.apiVersion.description%"
+        },
+        "salesforce-web-console.sessionContext": {
+          "type": "object",
+          "default": {},
+          "description": "%configuration.sessionContext.description%",
+          "properties": {
+            "username": {
+              "type": "string"
+            },
+            "instanceName": {
+              "type": "string"
+            },
+            "orgEdition": {
+              "type": "string"
+            },
+            "namespacePrefix": {
+              "type": "string"
+            },
+            "orgId": {
+              "type": "string"
+            },
+            "userId": {
+              "type": "string"
+            },
+            "isDevHub": {
+              "type": "boolean"
+            },
+            "isScratch": {
+              "type": "boolean"
+            },
+            "isSandbox": {
+              "type": "boolean"
+            }
+          }
         },
         "salesforce-web-console.retrieveOnLoad": {
           "type": "string",

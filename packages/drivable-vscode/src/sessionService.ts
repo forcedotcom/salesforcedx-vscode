@@ -589,7 +589,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
           }).pipe(
             Effect.flatMap(Schema.decodeUnknown(DrivableVscodeObservation)),
             Effect.mapError(cause =>
-              cause instanceof DrivableVscodeObservationError
+              Schema.is(DrivableVscodeObservationError)(cause)
                 ? cause
                 : new DrivableVscodeObservationError({
                     message: 'Captured an invalid VS Code observation',
@@ -674,7 +674,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
                 }).pipe(
                   Effect.flatMap(videoPath => fs.rename(videoPath, path.join(artifacts.artifactDir, 'session.webm'))),
                   Effect.mapError(cause =>
-                    cause instanceof DrivableVscodeTeardownError
+                    Schema.is(DrivableVscodeTeardownError)(cause)
                       ? cause
                       : new DrivableVscodeTeardownError({
                           message: 'Failed to save session video',
@@ -772,7 +772,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
           Effect.suspend(() =>
             closeSession().pipe(
               Effect.mapError(error =>
-                error instanceof DrivableVscodeTeardownError
+                Schema.is(DrivableVscodeTeardownError)(error)
                   ? error
                   : new DrivableVscodeTeardownError({
                       message: 'Drivable VS Code session teardown failed',

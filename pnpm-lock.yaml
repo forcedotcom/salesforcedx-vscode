@@ -1405,8 +1405,8 @@ importers:
         specifier: ^8.0.0
         version: 8.1.3(supports-color@8.1.1)
       '@salesforce/templates':
-        specifier: ^66.16.3
-        version: 66.16.3
+        specifier: ^66.16.4
+        version: 66.16.4
       '@salesforce/types':
         specifier: ^1.8.0
         version: 1.8.0
@@ -1539,8 +1539,8 @@ importers:
         specifier: ^8.0.0
         version: 8.1.3(supports-color@8.1.1)
       '@salesforce/templates':
-        specifier: ^66.16.3
-        version: 66.16.3
+        specifier: ^66.16.4
+        version: 66.16.4
       '@salesforce/vscode-i18n':
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
@@ -4576,8 +4576,8 @@ packages:
     resolution: {integrity: sha512-xQy/l2ZVMx9DXJMFAFLs7cmEiQG2AZLZJZrLGscA8E5oMeg14tH4BMpyoFNXpYlmQlyX+1RF9CMzUrIdN9V5Rg==}
     engines: {node: '>=22.0.0'}
 
-  '@salesforce/templates@66.16.3':
-    resolution: {integrity: sha512-NSE62PuLlK/aDryiYxjzn26nu4XWx/6haJy5xcmNI+yIBKhU7m1vEIIJRvpe3SP+549tzEJymZk2drCEpPGVLg==}
+  '@salesforce/templates@66.16.4':
+    resolution: {integrity: sha512-gj2Rtr7WcZw4lM8vBji3qUeksNvIOFP0lMWNLLHXUbVPIFzoO/LxgJfYKTzqYMyvZCeOZjliMvFd4afW/lVfaw==}
     engines: {node: '>=22.0.0'}
 
   '@salesforce/ts-types@3.2.0':
@@ -14843,7 +14843,7 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@salesforce/templates@66.16.3':
+  '@salesforce/templates@66.16.4':
     dependencies:
       '@salesforce/kit': 4.0.0
       ejs: 3.1.10
