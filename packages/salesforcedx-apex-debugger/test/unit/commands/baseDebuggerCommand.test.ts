@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import { XHROptions, XHRResponse } from 'request-light';
 import { BaseDebuggerCommand } from '../../../src/commands/baseDebuggerCommand';
 import { DebuggerRequest } from '../../../src/commands/protocol';
@@ -22,7 +23,7 @@ export const getDefaultHeaders = (contentLength: number): any => ({
 });
 
 describe('Base command', () => {
-  let sendRequestSpy: jest.SpyInstance;
+  let sendRequestSpy: VitestMockInstance;
   let dummyCommand: DummyCommand;
   let requestService: RequestService;
 
@@ -34,7 +35,7 @@ describe('Base command', () => {
 
   it('Should build request without query string', async () => {
     dummyCommand = new DummyCommand('dummy', '07cFAKE');
-    sendRequestSpy = jest
+    sendRequestSpy = vi
       .spyOn(RequestService.prototype, 'sendRequest')
       .mockResolvedValue({ status: 200, responseText: '' } as XHRResponse);
     const expectedOptions: XHROptions = {
@@ -54,7 +55,7 @@ describe('Base command', () => {
 
   it('Should build request with query string', async () => {
     dummyCommand = new DummyCommand('dummy2', '07cFAKE', 'param=whoops');
-    sendRequestSpy = jest
+    sendRequestSpy = vi
       .spyOn(RequestService.prototype, 'sendRequest')
       .mockResolvedValue({ status: 200, responseText: '' } as XHRResponse);
     const expectedOptions: XHROptions = {
@@ -79,7 +80,7 @@ describe('Base command', () => {
       }
     };
     dummyCommand = new DummyCommand('dummy2', '07cFAKE', 'param=whoops', myRequest);
-    sendRequestSpy = jest
+    sendRequestSpy = vi
       .spyOn(RequestService.prototype, 'sendRequest')
       .mockResolvedValue({ status: 200, responseText: '' } as XHRResponse);
     const requestBody = JSON.stringify(myRequest);
@@ -100,7 +101,7 @@ describe('Base command', () => {
 
   it('Should handle command error', async () => {
     dummyCommand = new DummyCommand('dummy', '07cFAKE');
-    jest.spyOn(RequestService.prototype, 'sendRequest').mockRejectedValue({
+    vi.spyOn(RequestService.prototype, 'sendRequest').mockRejectedValue({
       status: 500,
       responseText: '{"message":"There was an error", "action":"Try again"}'
     } as XHRResponse);

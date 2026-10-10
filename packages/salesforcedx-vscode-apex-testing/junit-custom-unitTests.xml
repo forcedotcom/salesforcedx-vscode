@@ -1,0 +1,706 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="280" failures="0" errors="0" time="0.860111168">
+    <testsuite name="test/jest/codecoverage/colorizer.test.ts" timestamp="2026-09-24T04:32:34.291Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="16" failures="0" errors="0" skipped="0" time="0.091126875">
+        <testcase classname="test/jest/codecoverage/colorizer.test.ts" name="CodeCoverageHandler &gt; toggleCoverage &gt; when highlighting is enabled should turn off and clear decorations" time="0.009587083">
+        </testcase>
+        <testcase classname="test/jest/codecoverage/colorizer.test.ts" name="CodeCoverageHandler &gt; toggleCoverage &gt; when highlighting is disabled should turn on and apply coverage decorations" time="0.009437125">
+        </testcase>
+        <testcase classname="test/jest/codecoverage/colorizer.test.ts" name="CodeCoverageService &gt; Ref state &gt; getRanges starts empty, reflects applyForEditor, then clear resets it" time="0.014328833">
+        </testcase>
+        <testcase classname="test/jest/codecoverage/colorizer.test.ts" name="CodeCoverageService &gt; aggregation (restore-previous-results enabled by default) &gt; aggregates coverage from multiple recent files (most recent wins per class)" time="0.012081125">
+        </testcase>
+        <testcase classname="test/jest/codecoverage/colorizer.test.ts" name="CodeCoverageService &gt; aggregation (restore-previous-results enabled by default) &gt; merges coverage from different classes across runs" time="0.004454416">
+        </testcase>
+        <testcase classname="test/jest/codecoverage/colorizer.test.ts" name="CodeCoverageService &gt; aggregation (restore-previous-results enabled by default) &gt; excludes files older than 24 hours" time="0.009182208">
+        </testcase>
+        <testcase classname="test/jest/codecoverage/colorizer.test.ts" name="CodeCoverageService &gt; aggregation (restore-previous-results enabled by default) &gt; excludes -codecoverage.json files from aggregation" time="0.002377834">
+        </testcase>
+        <testcase classname="test/jest/codecoverage/colorizer.test.ts" name="CodeCoverageService &gt; restore-previous-results disabled &gt; only reads the most recent file" time="0.003104833">
+        </testcase>
+        <testcase classname="test/jest/codecoverage/colorizer.test.ts" name="CodeCoverageService &gt; restore-previous-results disabled &gt; picks newest file by mtime when filenames are not chronologically sortable" time="0.004116666">
+        </testcase>
+        <testcase classname="test/jest/codecoverage/colorizer.test.ts" name="CodeCoverageService &gt; tagged-error paths &gt; NoCoverageOnProjectError when results directory is empty" time="0.002671375">
+        </testcase>
+        <testcase classname="test/jest/codecoverage/colorizer.test.ts" name="CodeCoverageService &gt; tagged-error paths &gt; NoCoverageOnProjectError when readDirectory fails" time="0.001378292">
+        </testcase>
+        <testcase classname="test/jest/codecoverage/colorizer.test.ts" name="CodeCoverageService &gt; tagged-error paths &gt; StaleResultsError when files exist but none contain coverage keys" time="0.008955625">
+        </testcase>
+        <testcase classname="test/jest/codecoverage/colorizer.test.ts" name="CodeCoverageService &gt; tagged-error paths &gt; NoCoverageForFileError when no coverage entry matches the current file" time="0.001667667">
+        </testcase>
+        <testcase classname="test/jest/codecoverage/colorizer.test.ts" name="CodeCoverageService &gt; tagged-error paths &gt; OutOfSyncCoverageError when a coverage line is outside the document range" time="0.00132225">
+        </testcase>
+        <testcase classname="test/jest/codecoverage/colorizer.test.ts" name="CodeCoverageService &gt; handleCoverageException routing &gt; appends to channel when disable-warnings is enabled" time="0.000676792">
+        </testcase>
+        <testcase classname="test/jest/codecoverage/colorizer.test.ts" name="CodeCoverageService &gt; handleCoverageException routing &gt; shows a warning message when disable-warnings is disabled" time="0.003554667">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/codecoverage/decorations.test.ts" timestamp="2026-09-24T04:32:34.293Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="1" failures="0" errors="0" skipped="0" time="0.003232583">
+        <testcase classname="test/jest/codecoverage/decorations.test.ts" name="codecoverage decorations &gt; should export covered and uncovered decoration types" time="0.001923">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/codecoverage/statusBarToggle.test.ts" timestamp="2026-09-24T04:32:34.293Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="5" failures="0" errors="0" skipped="0" time="0.003269083">
+        <testcase classname="test/jest/codecoverage/statusBarToggle.test.ts" name="StatusBarToggle &gt; should create status bar item with toggle command and show icon" time="0.001634375">
+        </testcase>
+        <testcase classname="test/jest/codecoverage/statusBarToggle.test.ts" name="StatusBarToggle &gt; should report highlighting disabled initially" time="0.000249084">
+        </testcase>
+        <testcase classname="test/jest/codecoverage/statusBarToggle.test.ts" name="StatusBarToggle &gt; should update state and icon when toggled on" time="0.000244459">
+        </testcase>
+        <testcase classname="test/jest/codecoverage/statusBarToggle.test.ts" name="StatusBarToggle &gt; should update state and icon when toggled off" time="0.000161834">
+        </testcase>
+        <testcase classname="test/jest/codecoverage/statusBarToggle.test.ts" name="StatusBarToggle &gt; should dispose status bar item on dispose" time="0.000224875">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/retrieve/orgOnlyRetrieveCodeLensProvider.test.ts" timestamp="2026-09-24T04:32:34.293Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.00361525">
+        <testcase classname="test/jest/retrieve/orgOnlyRetrieveCodeLensProvider.test.ts" name="orgOnlyRetrieveCodeLensProvider &gt; provides a retrieve codelens for org metadata documents" time="0.002429041">
+        </testcase>
+        <testcase classname="test/jest/retrieve/orgOnlyRetrieveCodeLensProvider.test.ts" name="orgOnlyRetrieveCodeLensProvider &gt; registers codelens provider with the org metadata apex selector" time="0.000508375">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/testDiscovery/packageResolution.test.ts" timestamp="2026-09-24T04:32:34.293Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="12" failures="0" errors="0" skipped="0" time="0.047503083">
+        <testcase classname="test/jest/testDiscovery/packageResolution.test.ts" name="PackageResolutionService &gt; returns empty map for empty class IDs" time="0.008981375">
+        </testcase>
+        <testcase classname="test/jest/testDiscovery/packageResolution.test.ts" name="PackageResolutionService &gt; queries Package2Member by SubjectId and selects SubscriberPackageId (not MetadataComponentId/Package2Id)" time="0.005711208">
+        </testcase>
+        <testcase classname="test/jest/testDiscovery/packageResolution.test.ts" name="PackageResolutionService &gt; resolves 2GP package info via SubscriberPackageId join" time="0.005851542">
+        </testcase>
+        <testcase classname="test/jest/testDiscovery/packageResolution.test.ts" name="PackageResolutionService &gt; returns empty map (does not fail) when Package2Member query fails and no fallback namespace map" time="0.002473208">
+        </testcase>
+        <testcase classname="test/jest/testDiscovery/packageResolution.test.ts" name="PackageResolutionService &gt; returns empty map (does not fail) when Package2 join query fails" time="0.001775833">
+        </testcase>
+        <testcase classname="test/jest/testDiscovery/packageResolution.test.ts" name="PackageResolutionService &gt; skips empty or invalid class IDs" time="0.005699042">
+        </testcase>
+        <testcase classname="test/jest/testDiscovery/packageResolution.test.ts" name="PackageResolutionService &gt; caches results for the same org (second call does not re-query)" time="0.001806583">
+        </testcase>
+        <testcase classname="test/jest/testDiscovery/packageResolution.test.ts" name="PackageResolutionService &gt; resolves package via enumeration fallback when direct query returns no rows" time="0.001385584">
+        </testcase>
+        <testcase classname="test/jest/testDiscovery/packageResolution.test.ts" name="PackageResolutionService &gt; resolves from InstalledSubscriberPackage when Package2Member is unavailable and namespace map is provided" time="0.002296875">
+        </testcase>
+        <testcase classname="test/jest/testDiscovery/packageResolution.test.ts" name="PackageResolutionService &gt; resolves no-namespace classes to the single no-namespace package (Skyline resolveNoNamespaceInstalledItem)" time="0.004255417">
+        </testcase>
+        <testcase classname="test/jest/testDiscovery/packageResolution.test.ts" name="PackageResolutionService &gt; only resolves no-namespace classes with installed ManageableState (null/empty excluded)" time="0.004262292">
+        </testcase>
+        <testcase classname="test/jest/testDiscovery/packageResolution.test.ts" name="PackageResolutionService &gt; serves cached resolution and does not re-query once the org is marked unavailable" time="0.001771583">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/testDiscovery/testDiscovery.test.ts" timestamp="2026-09-24T04:32:34.294Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="10" failures="0" errors="0" skipped="0" time="0.030355583">
+        <testcase classname="test/jest/testDiscovery/testDiscovery.test.ts" name="TestDiscovery &gt; returns classes and methods from /tooling/tests endpoint" time="0.015593792">
+            <system-out>
+timestamp=2026-09-24T04:32:33.465Z level=INFO fiber=#1 message=&quot;Discovered 2 test classes with 3 total methods&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/testDiscovery/testDiscovery.test.ts" name="TestDiscovery &gt; decodes wire &quot;&quot; sentinels to Option.none() and non-empty prefixes to Option.some()" time="0.002051458">
+            <system-out>
+timestamp=2026-09-24T04:32:33.469Z level=INFO fiber=#4 message=&quot;Discovered 2 test classes with 2 total methods&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/testDiscovery/testDiscovery.test.ts" name="TestDiscovery &gt; gracefully returns empty when API returns no classes" time="0.0013855">
+            <system-out>
+timestamp=2026-09-24T04:32:33.471Z level=INFO fiber=#7 message=&quot;Discovered 0 test classes with 0 total methods&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/testDiscovery/testDiscovery.test.ts" name="TestDiscovery &gt; handles API errors" time="0.002821292">
+        </testcase>
+        <testcase classname="test/jest/testDiscovery/testDiscovery.test.ts" name="TestDiscovery &gt; uses minimum API version 65.0 and sets showAllMethods=true below v68" time="0.001111584">
+            <system-out>
+timestamp=2026-09-24T04:32:33.475Z level=INFO fiber=#13 message=&quot;Discovered 0 test classes with 0 total methods&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/testDiscovery/testDiscovery.test.ts" name="TestDiscovery &gt; omits showAllMethods and sets testLevel=RunAllTestsInOrg on v68.0" time="0.000892875">
+            <system-out>
+timestamp=2026-09-24T04:32:33.477Z level=INFO fiber=#16 message=&quot;Discovered 0 test classes with 0 total methods&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/testDiscovery/testDiscovery.test.ts" name="TestDiscovery &gt; keeps showAllMethods=true just under the gate on v67.9" time="0.000625792">
+            <system-out>
+timestamp=2026-09-24T04:32:33.477Z level=INFO fiber=#19 message=&quot;Discovered 0 test classes with 0 total methods&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/testDiscovery/testDiscovery.test.ts" name="TestDiscovery &gt; sets testLevel=RunAllTestsInOrg above the gate on v69.0 (&gt;=, not ==68)" time="0.000766917">
+            <system-out>
+timestamp=2026-09-24T04:32:33.478Z level=INFO fiber=#22 message=&quot;Discovered 0 test classes with 0 total methods&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/testDiscovery/testDiscovery.test.ts" name="TestDiscovery &gt; passes namespacePrefix when provided" time="0.002316917">
+            <system-out>
+timestamp=2026-09-24T04:32:33.480Z level=INFO fiber=#25 message=&quot;Discovered 0 test classes with 0 total methods&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/testDiscovery/testDiscovery.test.ts" name="TestDiscovery &gt; handles unexpected response shape without throwing" time="0.001141209">
+            <system-out>
+timestamp=2026-09-24T04:32:33.481Z level=INFO fiber=#28 message=&quot;Discovered 0 test classes with 0 total methods&quot;
+
+            </system-out>
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/utils/apexTestErrorMapper.test.ts" timestamp="2026-09-24T04:32:34.295Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="8" failures="0" errors="0" skipped="0" time="0.006398375">
+        <testcase classname="test/jest/utils/apexTestErrorMapper.test.ts" name="toUserFriendlyApexTestError &gt; should map UNKNOWN_EXCEPTION to user-friendly message" time="0.0022835">
+        </testcase>
+        <testcase classname="test/jest/utils/apexTestErrorMapper.test.ts" name="toUserFriendlyApexTestError &gt; should map auth-related errors to user-friendly message" time="0.000537625">
+        </testcase>
+        <testcase classname="test/jest/utils/apexTestErrorMapper.test.ts" name="toUserFriendlyApexTestError &gt; should map connection/network errors to user-friendly message" time="0.00022925">
+        </testcase>
+        <testcase classname="test/jest/utils/apexTestErrorMapper.test.ts" name="toUserFriendlyApexTestError &gt; should map resource not found to user-friendly message" time="0.000480417">
+        </testcase>
+        <testcase classname="test/jest/utils/apexTestErrorMapper.test.ts" name="toUserFriendlyApexTestError &gt; should map deleted/unreachable org (HTML response, 420) to resource-not-found message" time="0.000552625">
+        </testcase>
+        <testcase classname="test/jest/utils/apexTestErrorMapper.test.ts" name="toUserFriendlyApexTestError &gt; should return descriptive message unchanged when long enough" time="0.000173959">
+        </testcase>
+        <testcase classname="test/jest/utils/apexTestErrorMapper.test.ts" name="toUserFriendlyApexTestError &gt; should extract message from error-like object with body array" time="0.000424667">
+        </testcase>
+        <testcase classname="test/jest/utils/apexTestErrorMapper.test.ts" name="toUserFriendlyApexTestError &gt; should handle string errors" time="0.000160625">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/utils/newlineUtils.test.ts" timestamp="2026-09-24T04:32:34.296Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="3" failures="0" errors="0" skipped="0" time="0.002030667">
+        <testcase classname="test/jest/utils/newlineUtils.test.ts" name="newlineUtils &gt; should normalize CRLF split across chunk boundary to a single LF" time="0.000967833">
+        </testcase>
+        <testcase classname="test/jest/utils/newlineUtils.test.ts" name="newlineUtils &gt; should convert a trailing CR at end of stream into LF on next (empty) chunk" time="0.000220459">
+        </testcase>
+        <testcase classname="test/jest/utils/newlineUtils.test.ts" name="newlineUtils &gt; should normalize mixed newline styles within a single chunk" time="0.000150125">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/utils/payloadBuilder.test.ts" timestamp="2026-09-24T04:32:34.296Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="14" failures="0" errors="0" skipped="0" time="0.01339475">
+        <testcase classname="test/jest/utils/payloadBuilder.test.ts" name="payloadBuilder &gt; buildTestPayload &gt; should build payload for suite" time="0.003850291">
+        </testcase>
+        <testcase classname="test/jest/utils/payloadBuilder.test.ts" name="payloadBuilder &gt; buildTestPayload &gt; should build payload for single class" time="0.00053675">
+        </testcase>
+        <testcase classname="test/jest/utils/payloadBuilder.test.ts" name="payloadBuilder &gt; buildTestPayload &gt; should build payload for methods from same class" time="0.000743667">
+        </testcase>
+        <testcase classname="test/jest/utils/payloadBuilder.test.ts" name="payloadBuilder &gt; buildTestPayload &gt; should build payload for methods from different classes" time="0.0003255">
+        </testcase>
+        <testcase classname="test/jest/utils/payloadBuilder.test.ts" name="payloadBuilder &gt; buildTestPayload &gt; should handle code coverage enabled" time="0.000359708">
+        </testcase>
+        <testcase classname="test/jest/utils/payloadBuilder.test.ts" name="payloadBuilder &gt; buildTestPayload &gt; should build payload for multiple suites" time="0.000417958">
+        </testcase>
+        <testcase classname="test/jest/utils/payloadBuilder.test.ts" name="payloadBuilder &gt; buildTestPayload &gt; should throw error if suite name cannot be determined" time="0.002600416">
+        </testcase>
+        <testcase classname="test/jest/utils/payloadBuilder.test.ts" name="payloadBuilder &gt; buildTestPayload &gt; should throw error if payload is not built" time="0.000665">
+        </testcase>
+        <testcase classname="test/jest/utils/payloadBuilder.test.ts" name="payloadBuilder &gt; buildTestPayload &gt; should throw error when mixing suite and class without methods" time="0.001267666">
+        </testcase>
+        <testcase classname="test/jest/utils/payloadBuilder.test.ts" name="payloadBuilder &gt; buildTestPayload &gt; should handle empty test names array" time="0.000384042">
+        </testcase>
+        <testcase classname="test/jest/utils/payloadBuilder.test.ts" name="payloadBuilder &gt; buildTestPayload &gt; should handle mixed class and method names" time="0.000492625">
+        </testcase>
+        <testcase classname="test/jest/utils/payloadBuilder.test.ts" name="payloadBuilder &gt; buildTestPayload &gt; should build payload for namespaced methods" time="0.00024475">
+        </testcase>
+        <testcase classname="test/jest/utils/payloadBuilder.test.ts" name="payloadBuilder &gt; buildTestPayload &gt; should build payload for mixed namespaced and non-namespaced methods" time="0.000274916">
+        </testcase>
+        <testcase classname="test/jest/utils/payloadBuilder.test.ts" name="payloadBuilder &gt; buildTestPayload &gt; should build payload for multiple classes" time="0.000202166">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/utils/sortHelpers.test.ts" timestamp="2026-09-24T04:32:34.297Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="2" failures="0" errors="0" skipped="0" time="0.010051459">
+        <testcase classname="test/jest/utils/sortHelpers.test.ts" name="sortByMtimeAscending &gt; orders by mtime so the newest run is applied last (most recent result wins)" time="0.008625">
+        </testcase>
+        <testcase classname="test/jest/utils/sortHelpers.test.ts" name="sortByMtimeAscending &gt; does not mutate the input array" time="0.000257833">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/utils/testItemUtils.test.ts" timestamp="2026-09-24T04:32:34.297Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="50" failures="0" errors="0" skipped="0" time="0.014321083">
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; parseTestId &gt; should parse suite ID" time="0.002342542">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; parseTestId &gt; should parse class ID" time="0.000242875">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; parseTestId &gt; should parse method ID" time="0.000118125">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; parseTestId &gt; should parse suite-class ID" time="0.000338">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; parseTestId &gt; should return unknown for invalid ID" time="0.000510709">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; parseTestId &gt; should parse namespace ID" time="0.000194375">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; parseTestId &gt; should parse package ID" time="0.000298916">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; isSuite &gt; should return true for suite ID" time="0.00019975">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; isSuite &gt; should return false for non-suite ID" time="0.00209675">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; isClass &gt; should return true for class ID" time="0.000194458">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; isClass &gt; should return false for non-class ID" time="0.000123875">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; isMethod &gt; should return true for method ID" time="0.000055375">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; isMethod &gt; should return false for non-method ID" time="0.000046458">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; isSuiteClass &gt; should return true for suite-class ID" time="0.000040709">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; isSuiteClass &gt; should return false for non-suite-class ID" time="0.000041375">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; isNamespace &gt; should return true for namespace ID" time="0.0000495">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; isNamespace &gt; should return false for non-namespace ID" time="0.000041333">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; isPackage &gt; should return true for package ID" time="0.000042875">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; isPackage &gt; should return false for non-package ID" time="0.001046333">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; getTestName &gt; should extract name from suite TestItem" time="0.00038625">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; getTestName &gt; should extract name from class TestItem" time="0.00007375">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; getTestName &gt; should extract name from method TestItem" time="0.000087541">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; createSuiteId &gt; should create suite ID" time="0.000048834">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; createClassId &gt; should create class ID" time="0.000109875">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; createMethodId &gt; should create method ID" time="0.000042">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; createSuiteClassId &gt; should create suite-class ID" time="0.000039042">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; createNamespaceId &gt; should create namespace ID" time="0.000044416">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; createPackageId &gt; should create package ID" time="0.000043875">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; extractSuiteName &gt; should extract suite name from suite ID" time="0.000040125">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; extractSuiteName &gt; should extract suite name from suite-class ID" time="0.000034125">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; extractSuiteName &gt; should return undefined for non-suite ID" time="0.000041416">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; extractClassName &gt; should extract class name from class ID" time="0.000090333">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; extractClassName &gt; should extract class name from method ID" time="0.000094042">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; extractClassName &gt; should extract class name from suite-class ID" time="0.000053459">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; extractClassName &gt; should return undefined for non-class ID" time="0.00004">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; gatherTests &gt; should gather suite items" time="0.000514791">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; gatherTests &gt; should gather class items" time="0.000100625">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; gatherTests &gt; should expand class to methods" time="0.000311334">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; gatherTests &gt; should gather method items directly" time="0.00008025">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; gatherTests &gt; should expand suite-class placeholder to parent suite" time="0.000136792">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; gatherTests &gt; should skip suite-class placeholder if parent suite not found" time="0.000066125">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; gatherTests &gt; should expand suite parent to its children" time="0.000176">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; gatherTests &gt; should exclude items when exclude is provided" time="0.000094042">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; gatherTests &gt; should exclude a class node and all expanded methods (VS Code filter uses parent in exclude)" time="0.000195541">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; gatherTests &gt; should gather all items when include is not provided" time="0.000065333">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; gatherTests &gt; should handle empty include array" time="0.000090875">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; gatherTests &gt; should handle nested class expansion" time="0.0001905">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; gatherTests &gt; should recurse through namespace and package nodes without adding them" time="0.000071292">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; gatherTests &gt; should recurse through package node and collect class methods" time="0.000094625">
+        </testcase>
+        <testcase classname="test/jest/utils/testItemUtils.test.ts" name="testItemUtils &gt; filterTestItemsByRequestExclude &gt; removes methods when their class subtree is in exclude (simulates post–suite-expansion re-add)" time="0.000159">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/utils/testReportGenerator.test.ts" timestamp="2026-09-24T04:32:34.300Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="27" failures="0" errors="0" skipped="0" time="0.030440042">
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; generateMarkdownReport &gt; should generate markdown report with correct structure" time="0.010435417">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; generateMarkdownReport &gt; should include failures section with error message and stack trace" time="0.000803542">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; generateMarkdownReport &gt; should include passed tests section" time="0.00048675">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; generateMarkdownReport &gt; should escape markdown special characters in test names" time="0.000377917">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; generateMarkdownReport &gt; should handle namespace prefix in class names" time="0.000374833">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; generateMarkdownReport &gt; should handle skipped tests" time="0.0003885">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; generateMarkdownReport &gt; should format duration correctly" time="0.000486625">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; generateMarkdownReport &gt; should highlight poorly performing tests" time="0.000408708">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; generateMarkdownReport &gt; should highlight poorly covered tests" time="0.0008195">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; generateMarkdownReport &gt; should highlight tests with both poor performance and poor coverage" time="0.000311375">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; generateMarkdownReport &gt; should highlight poorly performing tests in passed tests section" time="0.000203542">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; generateMarkdownReport &gt; should highlight poorly covered tests in passed tests section" time="0.0002595">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; generateMarkdownReport &gt; should not show warnings section when no issues" time="0.00021075">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; generateMarkdownReport &gt; should sort poorly performing tests from worst to best" time="0.000237708">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; generateMarkdownReport &gt; should sort poorly covered tests from worst to best" time="0.00031525">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; generateMarkdownReport &gt; should sort test results table by severity (worst first)" time="0.000289">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; generateMarkdownReport &gt; should sort passed tests by runtime (slowest first)" time="0.000197042">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; generateTextReport &gt; should generate text report with correct structure" time="0.000292041">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; generateTextReport &gt; should include failures section in text format" time="0.000196167">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; generateTextReport &gt; should include passed tests section in text format" time="0.00017325">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; writeAndOpenTestReport &gt; should write markdown report without showing a toast (toast is the caller&apos;s responsibility)" time="0.006595458">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; writeAndOpenTestReport &gt; should write text report without showing a toast (toast is the caller&apos;s responsibility)" time="0.001067167">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; writeAndOpenTestReport &gt; should write report path and markdown tip to output channel for markdown format" time="0.0012655">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; writeAndOpenTestReport &gt; should encode content as UTF-8" time="0.00094425">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; writeAndOpenTestReport &gt; should use library filename format: test-result-{testRunId}.md" time="0.000879583">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; openTestReport &gt; should refresh and open the markdown preview for markdown format" time="0.000638542">
+        </testcase>
+        <testcase classname="test/jest/utils/testReportGenerator.test.ts" name="testReportGenerator &gt; openTestReport &gt; should open the text report in an editor for text format" time="0.000500709">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/utils/testResultProcessor.test.ts" timestamp="2026-09-24T04:32:34.302Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="25" failures="0" errors="0" skipped="0" time="0.01767225">
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; parseStackTrace &gt; should parse valid stack trace with line number and class" time="0.002874459">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; parseStackTrace &gt; should return undefined if line number not found" time="0.000139">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; parseStackTrace &gt; should return undefined if class not found in stack trace" time="0.000101583">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; parseStackTrace &gt; should return undefined if class item not found in map" time="0.000187042">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; parseStackTrace &gt; should handle stack trace with namespace" time="0.000751125">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; parseStackTrace &gt; should handle stack trace with namespace when class item has full namespace" time="0.000638375">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; parseStackTrace &gt; should handle multiple line numbers in stack trace" time="0.000723708">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; updateTestRunResults &gt; should update passed test results" time="0.0007755">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; updateTestRunResults &gt; should update failed test results with error message" time="0.000741083">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; updateTestRunResults &gt; should update failed test results with stack trace location" time="0.003829458">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; updateTestRunResults &gt; should update skipped test results" time="0.000318625">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; updateTestRunResults &gt; should handle tests with namespace prefix" time="0.000196667">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; updateTestRunResults &gt; should handle tests from testsToRun parameter" time="0.0002065">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; updateTestRunResults &gt; should handle tests not found in test map" time="0.001198625">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; updateTestRunResults &gt; should add HumanReporter output" time="0.000174625">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; updateTestRunResults &gt; should handle empty HumanReporter output" time="0.00014625">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; updateTestRunResults &gt; should handle code coverage parameter" time="0.000134125">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; updateTestRunResults &gt; should handle multiple test results" time="0.000208834">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; updateTestRunResults &gt; should combine error message and stack trace for failed tests" time="0.000129625">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; updateTestRunResults &gt; should update class items when class is in testsToRun" time="0.00045625">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; updateTestRunResults &gt; should recursively collect methods under suite and update class children" time="0.000575583">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; updateTestRunResults &gt; should handle suite with mixed pass/fail results and update class children correctly" time="0.000565042">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; updateTestRunResults &gt; should handle class with methods not in methodItems but found recursively" time="0.000192791">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; updateTestRunResults &gt; should handle suite with namespaced classes correctly" time="0.000261125">
+        </testcase>
+        <testcase classname="test/jest/utils/testResultProcessor.test.ts" name="testResultProcessor &gt; updateTestRunResults &gt; should mark only the failing suite as failed when running multiple suites" time="0.000384208">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/utils/toolingTestClassHelpers.test.ts" timestamp="2026-09-24T04:32:34.303Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="6" failures="0" errors="0" skipped="0" time="0.004668958">
+        <testcase classname="test/jest/utils/toolingTestClassHelpers.test.ts" name="isFlowTest &gt; is true for a bare FlowTesting namespace" time="0.001115292">
+        </testcase>
+        <testcase classname="test/jest/utils/toolingTestClassHelpers.test.ts" name="isFlowTest &gt; is true for a FlowTesting.&lt;Namespace&gt; prefix" time="0.000634084">
+        </testcase>
+        <testcase classname="test/jest/utils/toolingTestClassHelpers.test.ts" name="isFlowTest &gt; is false for a non-flow Apex namespace" time="0.000239917">
+        </testcase>
+        <testcase classname="test/jest/utils/toolingTestClassHelpers.test.ts" name="isFlowTest &gt; is false for a default Apex namespace (absent, post-normalization)" time="0.000651916">
+        </testcase>
+        <testcase classname="test/jest/utils/toolingTestClassHelpers.test.ts" name="getFullClassName &gt; prefixes the namespace when present" time="0.000501958">
+        </testcase>
+        <testcase classname="test/jest/utils/toolingTestClassHelpers.test.ts" name="getFullClassName &gt; returns the bare class name when the namespace is absent" time="0.00018825">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/views/apexTestExecutionService.test.ts" timestamp="2026-09-24T04:32:34.303Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="15" failures="0" errors="0" skipped="0" time="0.066070333">
+        <testcase classname="test/jest/views/apexTestExecutionService.test.ts" name="ApexTestExecutionService &gt; executeTests &gt; emits the run-path sentinel once when tests ran" time="0.016982958">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestExecutionService.test.ts" name="ApexTestExecutionService &gt; executeTests &gt; uses the RunAllTestsInOrg payload (no buildAsyncPayload) when runAllTestsInOrg" time="0.003805375">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestExecutionService.test.ts" name="ApexTestExecutionService &gt; executeTests &gt; records lastProcessedResultFile so the watcher dedupes the same URI" time="0.003054">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestExecutionService.test.ts" name="ApexTestExecutionService &gt; executeTests &gt; clears the stale tag from the run methods" time="0.002572791">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestExecutionService.test.ts" name="ApexTestExecutionService &gt; executeTests &gt; fails with PayloadBuildError when no payload is produced" time="0.006376083">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestExecutionService.test.ts" name="ApexTestExecutionService &gt; debugTests &gt; errors org-only tests and does not delegate them to the debug command" time="0.002731375">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestExecutionService.test.ts" name="ApexTestExecutionService &gt; debugTests &gt; does NOT emit a channel sentinel on the debug path" time="0.002886958">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestExecutionService.test.ts" name="ApexTestExecutionService &gt; debugTests &gt; errors the item with the failed-debug message when the debug command rejects" time="0.002722166">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestExecutionService.test.ts" name="ApexTestExecutionService &gt; debugTests &gt; skips method-level debug dispatch for a class already selected at class level" time="0.002338125">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestExecutionService.test.ts" name="ApexTestExecutionService &gt; debugTests &gt; errors a suite item with the not-supported message and does not dispatch it" time="0.001888708">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestExecutionService.test.ts" name="ApexTestExecutionService &gt; runTests &gt; surfaces a run failure on every test via run.errored (run still ends)" time="0.005720167">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestExecutionService.test.ts" name="ApexTestExecutionService &gt; runTests &gt; errors the run with TestTempFolderError when the results folder cannot be resolved" time="0.002356708">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestExecutionService.test.ts" name="ApexTestExecutionService &gt; runTests &gt; errors empty suites and ends without running when nothing remains" time="0.006611542">
+            <system-out>
+timestamp=2026-09-24T04:32:34.114Z level=WARN fiber=#204 message=&quot;Failed to resolve suite children (non-fatal)&quot; message=&quot;{
+  \&quot;error\&quot;: {
+    \&quot;suiteName\&quot;: \&quot;Empty\&quot;,
+    \&quot;message\&quot;: \&quot;(intermediate value).getTestsInSuite is not a function\&quot;,
+    \&quot;_tag\&quot;: \&quot;ResolveSuiteChildrenError\&quot;
+  }
+}&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/views/apexTestExecutionService.test.ts" name="ApexTestExecutionService &gt; runTests &gt; rejects an explicit mix of suites and individual tests without running anything" time="0.00221875">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestExecutionService.test.ts" name="ApexTestExecutionService &gt; onResultFileCreate &gt; applies results for the expected file and dedupes a repeat for the same URI" time="0.00254425">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/views/apexTestTreeService.test.ts" timestamp="2026-09-24T04:32:34.304Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="22" failures="0" errors="0" skipped="0" time="0.072673584">
+        <testcase classname="test/jest/views/apexTestTreeService.test.ts" name="ApexTestTreeService &gt; reset &gt; clears all tree maps in place (stable object identity for shared holders)" time="0.014416833">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestTreeService.test.ts" name="ApexTestTreeService &gt; discover dedup &gt; runs the body once when two callers overlap; the second awaits the same in-flight run" time="0.00454625">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestTreeService.test.ts" name="ApexTestTreeService &gt; discover dedup &gt; re-runs on a subsequent discover (single-shot, not memoized)" time="0.0023355">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestTreeService.test.ts" name="ApexTestTreeService &gt; discover failure notification &gt; shows an error message when discovery fails with a generic message" time="0.005468583">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestTreeService.test.ts" name="ApexTestTreeService &gt; discover failure notification &gt; shows a warning (not error) when discovery fails with the partial-discovery message" time="0.001654209">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestTreeService.test.ts" name="ApexTestTreeService &gt; restorePreviousResults test-and-set &gt; only one of two concurrent restores proceeds past the isRestoringResults guard" time="0.0011035">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestTreeService.test.ts" name="ApexTestTreeService &gt; restorePreviousResults test-and-set &gt; proceeds and resets the flag when no restore is in flight" time="0.002495041">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestTreeService.test.ts" name="ApexTestTreeService &gt; restore apply-loop per-item failure &gt; surfaces the offending URI and preserves oldest-first ordering" time="0.005718875">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestTreeService.test.ts" name="ApexTestTreeService &gt; incrementalUpdate diff &gt; adds a newly-created class under its namespace/package node" time="0.003211458">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestTreeService.test.ts" name="ApexTestTreeService &gt; incrementalUpdate diff &gt; replaces an org-only class when download creates its local source" time="0.003070667">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestTreeService.test.ts" name="ApexTestTreeService &gt; incrementalUpdate diff &gt; replaces a local class with an org-only class when its workspace source is deleted" time="0.002275833">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestTreeService.test.ts" name="ApexTestTreeService &gt; incrementalUpdate diff &gt; diffs a changed class using discovery positions" time="0.00139475">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestTreeService.test.ts" name="ApexTestTreeService &gt; incrementalUpdate diff &gt; removes a deleted class and prunes empty ancestor nodes" time="0.000902042">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestTreeService.test.ts" name="ApexTestTreeService &gt; incrementalUpdate diff &gt; skips the diff when there is no default org" time="0.0031795">
+            <system-out>
+timestamp=2026-09-24T04:32:34.088Z level=WARN fiber=#107 message=&quot;Incremental test-tree update failed (non-fatal)&quot; message=&quot;{
+  \&quot;message\&quot;: \&quot;No default org\&quot;
+}&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/views/apexTestTreeService.test.ts" name="ApexTestTreeService &gt; incrementalUpdate diff &gt; removes the suite parent and clears state when includesSuiteChange is true" time="0.004817708">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestTreeService.test.ts" name="ApexTestTreeService &gt; resolveSuiteChildren + suiteToClasses Ref &gt; records the suite→classes mapping and adds placeholder child items" time="0.001361458">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestTreeService.test.ts" name="ApexTestTreeService &gt; resolveSuiteChildren + suiteToClasses Ref &gt; fails with ResolveSuiteChildrenError when the tooling query throws" time="0.001207458">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestTreeService.test.ts" name="ApexTestTreeService &gt; resolveSuiteChildren + suiteToClasses Ref &gt; reset clears the suiteToClasses Ref (live map, stable identity)" time="0.000893709">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestTreeService.test.ts" name="ApexTestTreeService &gt; resolveSuiteChildren + suiteToClasses Ref &gt; fresh layer isolates the suiteToClasses Ref across runs" time="0.001615833">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestTreeService.test.ts" name="ApexTestTreeService &gt; getMethodIdsFromResultFile (via restore scan) &gt; parses Class.method ids from the result JSON and marks them stale" time="0.006435458">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestTreeService.test.ts" name="ApexTestTreeService &gt; getMethodIdsFromResultFile (via restore scan) &gt; recovers a corrupt/truncated result file to an empty id set instead of failing the restore" time="0.001504708">
+        </testcase>
+        <testcase classname="test/jest/views/apexTestTreeService.test.ts" name="ApexTestTreeService &gt; getMethodIdsFromResultFile (via restore scan) &gt; disables restore via the Workspace configuration target when the user picks &quot;Don&apos;t Restore Again&quot;" time="0.00113475">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/views/orgTestItems.test.ts" timestamp="2026-09-24T04:32:34.306Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="17" failures="0" errors="0" skipped="0" time="0.011738042">
+        <testcase classname="test/jest/views/orgTestItems.test.ts" name="sortNamespaceKeys &gt; places local namespace first when it is the only key" time="0.001060542">
+        </testcase>
+        <testcase classname="test/jest/views/orgTestItems.test.ts" name="sortNamespaceKeys &gt; places local namespace first regardless of alphabetical position" time="0.007205833">
+        </testcase>
+        <testcase classname="test/jest/views/orgTestItems.test.ts" name="sortNamespaceKeys &gt; sorts non-local namespaces alphabetically" time="0.000177833">
+        </testcase>
+        <testcase classname="test/jest/views/orgTestItems.test.ts" name="sortNamespaceKeys &gt; handles a single non-local namespace" time="0.000218416">
+        </testcase>
+        <testcase classname="test/jest/views/orgTestItems.test.ts" name="getPackageKeysOrdered &gt; places unpackaged first in local namespace" time="0.000251125">
+        </testcase>
+        <testcase classname="test/jest/views/orgTestItems.test.ts" name="getPackageKeysOrdered &gt; does not reorder when unpackaged is already first in local namespace" time="0.000083417">
+        </testcase>
+        <testcase classname="test/jest/views/orgTestItems.test.ts" name="getPackageKeysOrdered &gt; does not reorder for non-local namespaces" time="0.000103">
+        </testcase>
+        <testcase classname="test/jest/views/orgTestItems.test.ts" name="getPackageKeysOrdered &gt; returns keys unchanged when unpackaged is absent from local namespace" time="0.000094292">
+        </testcase>
+        <testcase classname="test/jest/views/orgTestItems.test.ts" name="getPackageLabelAndId &gt; returns localized label and fixed ID for unpackaged metadata" time="0.000536833">
+        </testcase>
+        <testcase classname="test/jest/views/orgTestItems.test.ts" name="getPackageLabelAndId &gt; returns 1GP label with namespace name" time="0.00016225">
+        </testcase>
+        <testcase classname="test/jest/views/orgTestItems.test.ts" name="getPackageLabelAndId &gt; returns unlocked package label with suffix" time="0.000152583">
+        </testcase>
+        <testcase classname="test/jest/views/orgTestItems.test.ts" name="getPackageLabelAndId &gt; returns managed package label with suffix" time="0.000105583">
+        </testcase>
+        <testcase classname="test/jest/views/orgTestItems.test.ts" name="getPackageLabelAndId &gt; falls back to baseName with no suffix when containerOptions is absent" time="0.000051917">
+        </testcase>
+        <testcase classname="test/jest/views/orgTestItems.test.ts" name="getPackageLabelAndId &gt; falls back to pkgKey when class has no ID" time="0.000083042">
+        </testcase>
+        <testcase classname="test/jest/views/orgTestItems.test.ts" name="buildNamespacePackageStructure &gt; groups a Flow class under its FlowTesting namespace key and an Apex default-ns class under LOCAL_NAMESPACE_KEY" time="0.000282542">
+        </testcase>
+        <testcase classname="test/jest/views/orgTestItems.test.ts" name="getNamespaceDisplayLabel &gt; returns localized label for local namespace" time="0.000049">
+        </testcase>
+        <testcase classname="test/jest/views/orgTestItems.test.ts" name="getNamespaceDisplayLabel &gt; returns the key as-is for non-local namespaces" time="0.000039458">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/views/testController.test.ts" timestamp="2026-09-24T04:32:34.307Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="29" failures="0" errors="0" skipped="0" time="0.054348959">
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; constructor &gt; should create a test controller" time="0.0104465">
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; constructor &gt; should register workspace-first run as default and org-wide run as secondary (no profile tags)" time="0.000804959">
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; constructor &gt; should set up refresh handler" time="0.000585209">
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; run profile handlers (workspace-first vs all-org) &gt; workspace-first implicit full run uses RunSpecifiedTests when in-workspace methods are gathered" time="0.011188458">
+            <system-out>
+timestamp=2026-09-24T04:32:33.844Z level=ERROR fiber=#15 message=&quot;Failed to generate test report&quot; message=&quot;{
+  \&quot;cause\&quot;: {
+    \&quot;_id\&quot;: \&quot;Cause\&quot;,
+    \&quot;_tag\&quot;: \&quot;Die\&quot;,
+    \&quot;defect\&quot;: {
+      \&quot;codeFrame\&quot;: \&quot;vi.mock(import(\&quot;@salesforce/apex-node\&quot;), async (importOriginal) =&gt; {\n  const actual = await importOriginal()\n  return {\n    ...actual,\n    // your mocked methods\n  }\n})\&quot;
+    }
+  }
+}&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; run profile handlers (workspace-first vs all-org) &gt; all-org implicit full run uses RunAllTestsInOrg" time="0.002211792">
+            <system-out>
+timestamp=2026-09-24T04:32:33.852Z level=ERROR fiber=#18 message=&quot;Failed to generate test report&quot; message=&quot;{
+  \&quot;cause\&quot;: {
+    \&quot;_id\&quot;: \&quot;Cause\&quot;,
+    \&quot;_tag\&quot;: \&quot;Die\&quot;,
+    \&quot;defect\&quot;: {
+      \&quot;codeFrame\&quot;: \&quot;vi.mock(import(\&quot;@salesforce/apex-node\&quot;), async (importOriginal) =&gt; {\n  const actual = await importOriginal()\n  return {\n    ...actual,\n    // your mocked methods\n  }\n})\&quot;
+    }
+  }
+}&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; run profile handlers (workspace-first vs all-org) &gt; workspace-first run does not strip tests when request.include is non-empty (explicit or filter-driven selection)" time="0.004580084">
+            <system-out>
+timestamp=2026-09-24T04:32:33.854Z level=ERROR fiber=#21 message=&quot;Failed to generate test report&quot; message=&quot;{
+  \&quot;cause\&quot;: {
+    \&quot;_id\&quot;: \&quot;Cause\&quot;,
+    \&quot;_tag\&quot;: \&quot;Die\&quot;,
+    \&quot;defect\&quot;: {
+      \&quot;codeFrame\&quot;: \&quot;vi.mock(import(\&quot;@salesforce/apex-node\&quot;), async (importOriginal) =&gt; {\n  const actual = await importOriginal()\n  return {\n    ...actual,\n    // your mocked methods\n  }\n})\&quot;
+    }
+  }
+}&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; discoverTests &gt; should discover tests and populate test items" time="0.002393792">
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; discoverTests &gt; should handle errors during discovery" time="0.002526958">
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; discoverTests &gt; should tag tests that exist in org but not in local workspace" time="0.00163775">
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; openOrgOnlyTest &gt; should open org-only class test" time="0.0006995">
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; openOrgOnlyTest &gt; should open org-only method test and navigate to position" time="0.000813834">
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; refresh &gt; should clear and rediscover tests" time="0.0008775">
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; retrieveOrgOnlyClass &gt; retrieves org-only class for apex-testing class items" time="0.001243667">
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; retrieveOrgOnlyClass &gt; shows the canceled notification when retrieve is cancelled (UserCancellationError)" time="0.000837917">
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; retrieveOrgOnlyClass &gt; shows failed-execution when retrieve fails (MetadataRetrieveError)" time="0.000687875">
+            <system-out>
+timestamp=2026-09-24T04:32:33.869Z level=WARN fiber=#57 message=&quot;Failed to retrieve org-only Apex class&quot; message=&quot;{
+  \&quot;error\&quot;: {
+    \&quot;_tag\&quot;: \&quot;MetadataRetrieveError\&quot;,
+    \&quot;message\&quot;: \&quot;boom\&quot;
+  }
+}&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; retrieveOrgOnlyClass &gt; does not retrieve for local class items" time="0.000316166">
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; retrieveOrgOnlyClass &gt; does not retrieve a virtual class from an inactive org" time="0.000309958">
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; onResultFileCreate &gt; should update test results from file" time="0.0008385">
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; runTests &gt; should execute tests and update results" time="0.000721541">
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; getController &gt; should return the test controller" time="0.000406708">
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; dispose &gt; should dispose the controller" time="0.0002495">
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; incrementalUpdate &gt; should not call testing.clearTestResults" time="0.000751792">
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; incrementalUpdate &gt; should not replace controller items" time="0.000362583">
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; incrementalUpdate &gt; should skip API call for pure deletions" time="0.0003285">
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; incrementalUpdate &gt; should call discoverTests for created changes" time="0.000422">
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; incrementalUpdate &gt; should call discoverTests for changed changes" time="0.000314375">
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; incrementalUpdate &gt; should fall back to full discoverTests on error" time="0.000723083">
+            <system-out>
+timestamp=2026-09-24T04:32:33.877Z level=WARN fiber=#95 message=&quot;Incremental test-tree update failed (non-fatal)&quot; message=&quot;{
+  \&quot;message\&quot;: \&quot;The org returned an error: API error\&quot;
+}&quot;
+
+            </system-out>
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="ApexTestController &gt; incrementalUpdate &gt; should refresh suite items when includesSuiteChange is true" time="0.000577667">
+        </testcase>
+        <testcase classname="test/jest/views/testController.test.ts" name="getTestController &gt; should return singleton instance" time="0.000072875">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/watchers/apexMetadataChangeWatcher.test.ts" timestamp="2026-09-24T04:32:34.309Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="9" failures="0" errors="0" skipped="0" time="0.153720792">
+        <testcase classname="test/jest/watchers/apexMetadataChangeWatcher.test.ts" name="setupApexMetadataChangeWatcher &gt; calls incrementalUpdate with changes map after debounce when an apex test event arrives" time="0.037444541">
+        </testcase>
+        <testcase classname="test/jest/watchers/apexMetadataChangeWatcher.test.ts" name="setupApexMetadataChangeWatcher &gt; does not call incrementalUpdate for non-apex metadata types" time="0.011929084">
+        </testcase>
+        <testcase classname="test/jest/watchers/apexMetadataChangeWatcher.test.ts" name="setupApexMetadataChangeWatcher &gt; does not call incrementalUpdate for non-apex change types" time="0.008739917">
+        </testcase>
+        <testcase classname="test/jest/watchers/apexMetadataChangeWatcher.test.ts" name="setupApexMetadataChangeWatcher &gt; does not read files for deleted events but still triggers incrementalUpdate" time="0.014817041">
+        </testcase>
+        <testcase classname="test/jest/watchers/apexMetadataChangeWatcher.test.ts" name="setupApexMetadataChangeWatcher &gt; does not read files for ApexTestSuite events and passes hasSuite=true" time="0.013523125">
+        </testcase>
+        <testcase classname="test/jest/watchers/apexMetadataChangeWatcher.test.ts" name="setupApexMetadataChangeWatcher &gt; skips file reads after first passing event in a burst but accumulates all names" time="0.018245042">
+        </testcase>
+        <testcase classname="test/jest/watchers/apexMetadataChangeWatcher.test.ts" name="setupApexMetadataChangeWatcher &gt; resets state after update so subsequent bursts are processed" time="0.019155167">
+        </testcase>
+        <testcase classname="test/jest/watchers/apexMetadataChangeWatcher.test.ts" name="setupApexMetadataChangeWatcher &gt; does not call incrementalUpdate when no events pass the apex test filter" time="0.008414458">
+        </testcase>
+        <testcase classname="test/jest/watchers/apexMetadataChangeWatcher.test.ts" name="setupApexMetadataChangeWatcher &gt; accumulates multiple class names with their respective change types" time="0.020256875">
+        </testcase>
+    </testsuite>
+    <testsuite name="test/jest/watchers/testDiscovery.test.ts" timestamp="2026-09-24T04:32:34.309Z" hostname="shanemc-ltm4zhp.internal.salesforce.com" tests="7" failures="0" errors="0" skipped="0" time="0.223479417">
+        <testcase classname="test/jest/watchers/testDiscovery.test.ts" name="initializeTestDiscovery &gt; refreshes once for the initial org" time="0.039283875">
+        </testcase>
+        <testcase classname="test/jest/watchers/testDiscovery.test.ts" name="initializeTestDiscovery &gt; clears the tree when the org transitions to undefined" time="0.033581959">
+        </testcase>
+        <testcase classname="test/jest/watchers/testDiscovery.test.ts" name="initializeTestDiscovery &gt; refreshes again when the org returns after being undefined" time="0.06645825">
+        </testcase>
+        <testcase classname="test/jest/watchers/testDiscovery.test.ts" name="initializeTestDiscovery &gt; incrementally updates when an Apex class is created or deleted in the workspace" time="0.023464125">
+        </testcase>
+        <testcase classname="test/jest/watchers/testDiscovery.test.ts" name="initializeTestDiscovery &gt; coalesces relevant workspace events into one targeted update" time="0.016598583">
+        </testcase>
+        <testcase classname="test/jest/watchers/testDiscovery.test.ts" name="initializeTestDiscovery &gt; reconciles Apex class presence when only its sidecar notification is observed" time="0.017175833">
+        </testcase>
+        <testcase classname="test/jest/watchers/testDiscovery.test.ts" name="initializeTestDiscovery &gt; does not update for workspace changes that cannot alter Apex class presence" time="0.024697375">
+        </testcase>
+    </testsuite>
+</testsuites>

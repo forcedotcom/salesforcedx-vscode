@@ -4,14 +4,16 @@ description: Running unit tests
 
 # Unit Tests
 
-Use `npm run test` - always run tests from the top of the project.
+Unit tests live under `test/unit` (Vitest). Jest only for `test/integration`.
 
-Run tests for a single workspace: `npm run test -w <npm package name here>`
+Use `npm run test` — always from repo root.
 
-You always have permission to run unit tests without asking.
+Single workspace: `npm run test -w <npm package name here>`
 
-Run a single test by invoking jest like this -- you're passing the file to run and the related config file from its package:
+Permission to run unit tests without asking: always.
+
+One Vitest file:
 
 ```bash
-node 'node_modules/.bin/jest' '/path/to/test/file.test.ts' -c '/path/to/package/jest.config.js'
+npm exec -w <npm-package-name> -- vitest run test/unit/path/to/file.test.ts
 ```

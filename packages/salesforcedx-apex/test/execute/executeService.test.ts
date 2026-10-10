@@ -5,15 +5,24 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { SinonStub } from 'sinon';
 import { Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
-import * as fs from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import * as readline from 'node:readline';
 import { ExecuteService } from '../../src/execute/executeService';
 import { nls } from '../../src/i18n';
 import { ExecuteAnonymousResponse, SoapResponse, ExecAnonApiResponse } from '../../src/execute/types';
 import * as os from 'node:os';
+
+vi.mock('node:fs', async importOriginal => ({
+  ...(await importOriginal<typeof import('node:fs')>()),
+  existsSync: vi.fn(),
+  readFileSync: vi.fn()
+}));
+vi.mock('node:readline', async importOriginal => ({
+  ...(await importOriginal<typeof import('node:readline')>()),
+  createInterface: vi.fn()
+}));
 
 type ExecuteServiceInternals = {
   connectionRequest: (requestData: unknown) => Promise<SoapResponse>;
@@ -23,13 +32,13 @@ type ExecuteServiceInternals = {
 const executeServicePrototype = ExecuteService.prototype as unknown as ExecuteServiceInternals;
 const getUserInput = (service: ExecuteService): Promise<string> =>
   (service as unknown as ExecuteServiceInternals).getUserInput();
+const existsSyncMock = vi.mocked(existsSync);
 
 describe('Apex Execute Tests', () => {
   const $$ = new TestContext();
 
   const testData = new MockTestOrgData();
   let mockConnection: Connection;
-  let fsStub: SinonStub;
 
   beforeEach(async () => {
     // Stub retrieveMaxApiVersion to get over "Domain Not Found: The org cannot be found" error
@@ -38,8 +47,8 @@ describe('Apex Execute Tests', () => {
     await $$.stubAuths(testData);
     mockConnection = await testData.getConnection();
 
-    $$.SANDBOX.stub(fs, 'readFileSync').returns('System.assert(true);');
-    fsStub = $$.SANDBOX.stub(fs, 'existsSync').returns(true);
+    vi.mocked(readFileSync).mockReturnValue('System.assert(true);');
+    existsSyncMock.mockReturnValue(true);
   });
 
   it('should execute and display successful result in correct format', async () => {
@@ -235,8 +244,7 @@ describe('Apex Execute Tests', () => {
   it('should raise an error when the source file is not found', async () => {
     const apexFile = 'filepath/to/anonApex/file';
     const apexExecute = new ExecuteService(mockConnection);
-    fsStub.restore();
-    fsStub.returns(false);
+    existsSyncMock.mockReturnValue(false);
 
     await expect(apexExecute.executeAnonymous({ apexFilePath: apexFile })).rejects.toThrow(
       nls.localize('fileNotFoundError', apexFile)
@@ -292,9 +300,7 @@ describe('Apex Execute Tests', () => {
       }
       listener();
     };
-    $$.SANDBOX.stub(readline, 'createInterface')
-      //@ts-ignore
-      .returns({ on });
+    vi.mocked(readline.createInterface).mockReturnValue({ on } as unknown as readline.Interface);
 
     const executeService = new ExecuteService(mockConnection);
     try {
@@ -310,9 +316,7 @@ describe('Apex Execute Tests', () => {
     const on = (event: string, listener: (input: string) => {}) => {
       listener(inputText);
     };
-    $$.SANDBOX.stub(readline, 'createInterface')
-      //@ts-ignore
-      .returns({ on });
+    vi.mocked(readline.createInterface).mockReturnValue({ on } as unknown as readline.Interface);
 
     const executeService = new ExecuteService(mockConnection);
     const text = await getUserInput(executeService);
@@ -323,9 +327,7 @@ describe('Apex Execute Tests', () => {
     const on = (event: string, listener: () => {}) => {
       listener();
     };
-    $$.SANDBOX.stub(readline, 'createInterface')
-      //@ts-ignore
-      .returns({ on });
+    vi.mocked(readline.createInterface).mockReturnValue({ on } as unknown as readline.Interface);
 
     const executeService = new ExecuteService(mockConnection);
     try {

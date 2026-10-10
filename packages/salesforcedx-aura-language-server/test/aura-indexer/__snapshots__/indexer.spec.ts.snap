@@ -1,6 +1,6 @@
-// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
 
-exports[`indexer parsing content aura indexer 1`] = `
+exports[`indexer parsing content > aura indexer 1`] = `
 [
   "force-app/main/default/aura/helloWorldApp/helloWorldApp.app",
   "force-app/main/default/aura/indexApp/indexApp.app",
@@ -11,7 +11,7 @@ exports[`indexer parsing content aura indexer 1`] = `
 ]
 `;
 
-exports[`indexer parsing content aura indexer 2`] = `
+exports[`indexer parsing content > aura indexer 2`] = `
 Map {
   "aura:application" => {
     "attributes": [
@@ -14757,7 +14757,7 @@ Map {
 }
 `;
 
-exports[`indexer parsing content aura indexer 3`] = `
+exports[`indexer parsing content > aura indexer 3`] = `
 [
   "aura",
   "c",

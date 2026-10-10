@@ -12,7 +12,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { ArtifactService } from '../src/artifactService';
 
-jest.mock('@salesforce/playwright-vscode-ext', () => ({ redactValue: (value: unknown) => value }));
+vi.mock('@salesforce/playwright-vscode-ext', () => ({ redactValue: (value: unknown) => value }));
 
 const PlatformLayer = Layer.merge(NodeFileSystem.layer, NodePath.layer);
 const TestLayer = Layer.merge(ArtifactService.Default.pipe(Layer.provide(PlatformLayer)), PlatformLayer);

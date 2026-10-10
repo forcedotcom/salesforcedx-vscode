@@ -14,7 +14,7 @@ import * as Runtime from 'effect/Runtime';
 import { ControllerService } from '../src/controllerService';
 import { createDrivableVscodeMcpServer, shutdownDrivableVscodeMcpServer } from '../src/mcpServer';
 
-jest.mock('@salesforce/playwright-vscode-ext', () => ({ redactValue: (value: unknown) => value }));
+vi.mock('@salesforce/playwright-vscode-ext', () => ({ redactValue: (value: unknown) => value }));
 
 const text = (result: CallToolResult): string => {
   const content = result.content[0];
@@ -27,15 +27,15 @@ const callTool = async (client: Client, name: string, args: Record<string, unkno
 };
 
 describe('drivable VS Code MCP server', () => {
-  const start = jest.fn(() =>
+  const start = vi.fn(() =>
     Effect.succeed({ runId: 'run-1', artifactDir: '/artifacts/run-1', workspaceDir: '/workspace' })
   );
   const observeForMcp = Effect.succeed({
     observation: { sequence: 1, title: 'Drivable VS Code' },
     screenshot: Uint8Array.from([1, 2, 3])
   });
-  const act = jest.fn(() => Effect.void);
-  const addFinding = jest.fn(() => Effect.void);
+  const act = vi.fn(() => Effect.void);
+  const addFinding = vi.fn(() => Effect.void);
   const status = Effect.succeed({
     state: 'running' as const,
     runId: 'run-1',

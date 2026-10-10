@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { MockInstance as VitestMockInstance } from 'vitest';
 import { XHROptions, XHRResponse } from 'request-light';
 import { StateCommand } from '../../../src/commands';
 import { DEFAULT_CONNECTION_TIMEOUT_MS } from '../../../src/constants';
@@ -12,7 +13,7 @@ import { RequestService } from '../../../src/requestService/requestService';
 import { getDefaultHeaders } from './baseDebuggerCommand.test';
 
 describe('State command', () => {
-  let sendRequestSpy: jest.SpyInstance;
+  let sendRequestSpy: VitestMockInstance;
   let stateCommand: StateCommand;
   const requestService = new RequestService();
 
@@ -23,7 +24,7 @@ describe('State command', () => {
   });
 
   it('Should build request', async () => {
-    sendRequestSpy = jest
+    sendRequestSpy = vi
       .spyOn(RequestService.prototype, 'sendRequest')
       .mockResolvedValue({ status: 200, responseText: '' } as XHRResponse);
     const expectedOptions: XHROptions = {
@@ -41,7 +42,7 @@ describe('State command', () => {
   });
 
   it('Should handle run command error', async () => {
-    jest.spyOn(RequestService.prototype, 'sendRequest').mockRejectedValue({
+    vi.spyOn(RequestService.prototype, 'sendRequest').mockRejectedValue({
       status: 500,
       responseText: '{"message":"There was an error", "action":"Try again"}'
     } as XHRResponse);

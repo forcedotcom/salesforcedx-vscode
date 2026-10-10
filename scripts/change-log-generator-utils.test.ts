@@ -4,29 +4,29 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-/// <reference types="jest" />
+/// <reference types="vitest/globals" />
 /// <reference types="node" />
 
 import { updateChangeLog } from './change-log-generator-utils';
 
-const mockExecFileSync = jest.fn<string, [command: string, args?: readonly string[]]>();
+const mockExecFileSync = vi.fn<(command: string, args?: readonly string[]) => string>();
 
-jest.mock('node:child_process', () => ({
+vi.mock('node:child_process', () => ({
   execFileSync: (command: string, args?: readonly string[]) => mockExecFileSync(command, args)
 }));
-jest.mock('node:fs', () => ({
+vi.mock('node:fs', () => ({
   __esModule: true,
   default: {
-    closeSync: jest.fn(),
-    openSync: jest.fn(() => 1),
-    readFileSync: jest.fn(() => Buffer.from('')),
-    writeSync: jest.fn()
+    closeSync: vi.fn(),
+    openSync: vi.fn(() => 1),
+    readFileSync: vi.fn(() => Buffer.from('')),
+    writeSync: vi.fn()
   }
 }));
 
 describe('updateChangeLog', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
+    vi.clearAllMocks();
     mockExecFileSync.mockImplementation((command, args) => {
       if (command === 'git' && args?.[0] === 'log') {
         return 'abc123 fix: secure release notes (#123)';

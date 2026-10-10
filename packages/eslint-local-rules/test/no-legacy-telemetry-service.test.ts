@@ -45,6 +45,14 @@ ruleTester.run('no-legacy-telemetry-service', noLegacyTelemetryService, {
     },
     {
       code: legacyUsage,
+      filename: 'packages/salesforcedx-utils-vscode/test/unit/telemetry/telemetry.test.ts'
+    },
+    {
+      code: legacyUsage,
+      filename: 'packages/salesforcedx-vscode-core/test/unit/telemetry/index.test.ts'
+    },
+    {
+      code: legacyUsage,
       filename: 'packages/salesforcedx-vscode-core/src/telemetry/index.ts'
     },
     {

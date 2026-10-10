@@ -6,9 +6,9 @@
  */
 
 import { Octokit } from '@octokit/core';
-import { GraphqlResponseError } from '@octokit/graphql';
+import type { GraphqlResponseError } from '@octokit/graphql';
 import { paginateRest } from '@octokit/plugin-paginate-rest';
-import { RequestError } from '@octokit/request-error';
+import type { RequestError } from '@octokit/request-error';
 import { type Endpoints } from '@octokit/types';
 import * as Config from 'effect/Config';
 import * as Duration from 'effect/Duration';
@@ -119,9 +119,20 @@ const header = (headers: RequestError['response'], name: string) => {
   return typeof value === 'string' ? value : undefined;
 };
 
+// Octokit and Vitest can load separate copies of these error classes, so use their stable fields.
+const isRequestError = (cause: unknown): cause is RequestError =>
+  isError(cause) &&
+  cause.name === 'HttpError' &&
+  'request' in cause &&
+  'status' in cause &&
+  typeof cause.status === 'number';
+
+const isGraphqlResponseError = (cause: unknown): cause is GraphqlResponseError<unknown> =>
+  isError(cause) && cause.name === 'GraphqlResponseError' && 'errors' in cause && Array.isArray(cause.errors);
+
 /** GitHub primary limits use remaining=0; secondary limits send retry-after. */
 const retryAfterMillis = (cause: unknown) => {
-  if (!(cause instanceof RequestError)) return undefined;
+  if (!isRequestError(cause)) return undefined;
   const retryAfter = header(cause.response, 'retry-after');
   const remaining = header(cause.response, 'x-ratelimit-remaining');
   const reset = header(cause.response, 'x-ratelimit-reset');
@@ -139,7 +150,7 @@ const toError = (method: string, path: string, cause: unknown) => {
   const wait = retryAfterMillis(cause);
   return new GitHubRequestError({
     message: isError(cause) ? cause.message : String(cause),
-    status: cause instanceof RequestError ? cause.status : cause instanceof GraphqlResponseError ? 200 : 0,
+    status: isRequestError(cause) ? cause.status : isGraphqlResponseError(cause) ? 200 : 0,
     method,
     path,
     ...(wait === undefined ? {} : { retryAfterMillis: wait })

@@ -6,6 +6,7 @@
  */
 
 import type { Connection } from '@salesforce/core';
+import type { Mock as VitestMock } from 'vitest';
 import * as Effect from 'effect/Effect';
 import { executeAnonymous } from '../../src/effect';
 import type { SoapResponse } from '../../src/execute/types';
@@ -28,7 +29,7 @@ const response: SoapResponse = {
   }
 };
 
-const makeConnection = (request: jest.Mock): Connection =>
+const makeConnection = (request: VitestMock): Connection =>
   ({
     accessToken: '00D-org!token',
     instanceUrl: 'https://example.my.salesforce.com',
@@ -39,7 +40,7 @@ const makeConnection = (request: jest.Mock): Connection =>
 
 describe('executeAnonymous', () => {
   it('uses the caller supplied connection and returns execution details', async () => {
-    const request = jest.fn().mockResolvedValue(response);
+    const request = vi.fn().mockResolvedValue(response);
     const connection = makeConnection(request);
 
     await expect(Effect.runPromise(executeAnonymous(connection, { apexCode: 'System.debug(1);' }))).resolves.toEqual({
@@ -62,7 +63,7 @@ describe('executeAnonymous', () => {
   });
 
   it('reports request failures through the typed error channel', async () => {
-    const connection = makeConnection(jest.fn().mockRejectedValue(new Error('request failed')));
+    const connection = makeConnection(vi.fn().mockRejectedValue(new Error('request failed')));
 
     await expect(
       Effect.runPromise(Effect.flip(executeAnonymous(connection, { apexCode: 'System.debug(1);' })))
@@ -74,7 +75,7 @@ describe('executeAnonymous', () => {
   });
 
   it('rebuilds the SOAP request after refreshing an expired session', async () => {
-    const request = jest.fn();
+    const request = vi.fn();
     const connection = makeConnection(request);
     const expired = new Error('INVALID_SESSION_ID');
     expired.name = 'ERROR_HTTP_500';
@@ -95,7 +96,7 @@ describe('executeAnonymous', () => {
   it('retries an expired session only once', async () => {
     const expired = new Error('INVALID_SESSION_ID');
     expired.name = 'ERROR_HTTP_500';
-    const request = jest
+    const request = vi
       .fn()
       .mockRejectedValueOnce(expired)
       .mockResolvedValueOnce({})
@@ -114,15 +115,13 @@ describe('executeAnonymous', () => {
 
     await expect(
       Effect.runPromise(
-        Effect.flip(
-          executeAnonymous(makeConnection(jest.fn().mockResolvedValue(inconsistent)), { apexCode: 'bad apex' })
-        )
+        Effect.flip(executeAnonymous(makeConnection(vi.fn().mockResolvedValue(inconsistent)), { apexCode: 'bad apex' }))
       )
     ).resolves.toMatchObject({ _tag: 'ApexResponseDecodeError' });
   });
 
   it('reports malformed responses through the decode error channel', async () => {
-    const connection = makeConnection(jest.fn().mockResolvedValue({}));
+    const connection = makeConnection(vi.fn().mockResolvedValue({}));
 
     await expect(
       Effect.runPromise(Effect.flip(executeAnonymous(connection, { apexCode: 'System.debug(1);' })))

@@ -22,7 +22,7 @@ import { orgDesktopMinimalDefaultTest as test } from '../fixtures/desktopFixture
 // Real session-ID auth can't run in e2e (no live session ID), so this proves: the command is registered
 // on the Effect path (palette shows + runs it), the PromptService-backed gatherer surfaces the instanceUrl
 // input box, and Esc maps UserCancellationError -> silent cancel (no error toast). The success path (CLI exec
-// with the token on SF_ACCESS_TOKEN env, never on argv) is covered by jest (orgLoginAccessToken.test.ts).
+// with the token on SF_ACCESS_TOKEN env, never on argv) is covered by Vitest (orgLoginAccessToken.test.ts).
 // Note: this command requires sf:project_opened (project gate); the spec depends on an sfdx-project being open.
 test('org extension: Authorize an Org using Session ID prompts then cancels cleanly on Esc', async ({ page }) => {
   test.setTimeout(120_000);

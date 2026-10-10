@@ -10,8 +10,11 @@ import templateLinter from '../../src/template/linter';
 
 let mockWarnings: CompilerDiagnostic[] | null = null;
 
-jest.mock('@lwc/template-compiler', () => {
-  const actual = jest.requireActual('@lwc/template-compiler') as Record<string, unknown>;
+vi.mock('@lwc/template-compiler', async () => {
+  const actual = (await vi.importActual<typeof import('@lwc/template-compiler')>('@lwc/template-compiler')) as Record<
+    string,
+    unknown
+  >;
   return {
     __esModule: true,
     ...actual,

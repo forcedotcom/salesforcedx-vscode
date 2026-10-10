@@ -70,9 +70,9 @@ describe('utils', () => {
     beforeEach(() => {
       fileSystemAccessor = new LspFileSystemAccessor();
       contentMap.clear();
-      jest
-        .spyOn(fileSystemAccessor, 'getFileContent')
-        .mockImplementation((uri: string) => Promise.resolve(contentMap.get(utils.normalizePath(uri))));
+      vi.spyOn(fileSystemAccessor, 'getFileContent').mockImplementation((uri: string) =>
+        Promise.resolve(contentMap.get(utils.normalizePath(uri)))
+      );
     });
 
     it('should read json files', async () => {
@@ -124,9 +124,9 @@ describe('utils', () => {
     beforeEach(() => {
       fileSystemProvider = new LspFileSystemAccessor();
       contentMap.clear();
-      jest
-        .spyOn(fileSystemProvider, 'getFileContent')
-        .mockImplementation((uri: string) => Promise.resolve(contentMap.get(utils.normalizePath(uri))));
+      vi.spyOn(fileSystemProvider, 'getFileContent').mockImplementation((uri: string) =>
+        Promise.resolve(contentMap.get(utils.normalizePath(uri)))
+      );
     });
 
     it('returns undefined when package.json does not exist', async () => {
