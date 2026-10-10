@@ -14,21 +14,16 @@ import { MetadataRegistryService } from '../../../src/core/metadataRegistryServi
 import type { TypeInventory } from '../../../src/orgCatalog/orgCatalogInternalTypes';
 import { componentIdentity } from '../../../src/orgCatalog/orgCatalogKeys';
 import { mergeInventory, projectChildren } from '../../../src/orgCatalog/orgCatalogProjection';
-import { OrgMetadataReferenceService } from '../../../src/orgCatalog/orgMetadataReference';
 
-const referenceLayer = OrgMetadataReferenceService.DefaultWithoutDependencies.pipe(
-  Layer.provide(
-    Layer.succeed(MetadataRegistryService, {
-      getRegistryAccess: () =>
-        Effect.succeed({
-          getTypeByName: () => ({ suffix: undefined })
-        })
-    } as unknown as InstanceType<typeof MetadataRegistryService>)
-  )
-);
+const registryLayer = Layer.succeed(MetadataRegistryService, {
+  getRegistryAccess: () =>
+    Effect.succeed({
+      getTypeByName: () => ({ suffix: undefined })
+    })
+} as unknown as InstanceType<typeof MetadataRegistryService>);
 
-const run = <A>(effect: Effect.Effect<A, unknown, OrgMetadataReferenceService>): A =>
-  Effect.runSync(effect.pipe(Effect.provide(referenceLayer)));
+const run = <A>(effect: Effect.Effect<A, unknown, MetadataRegistryService>): A =>
+  Effect.runSync(effect.pipe(Effect.provide(registryLayer)));
 
 describe('Org Catalog inventory projection', () => {
   it('merges remote observations with live workspace presence', () => {

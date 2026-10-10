@@ -13,10 +13,10 @@ import * as PubSub from 'effect/PubSub';
 import * as Queue from 'effect/Queue';
 import { URI } from 'vscode-uri';
 import { TransmogrifierService } from '../../../src/core/transmogrifierService';
+import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
 import { OrgCatalogState } from '../../../src/orgCatalog/orgCatalogState';
 import { componentIdentity, findInventoryComponent } from '../../../src/orgCatalog/orgCatalogKeys';
 import { OrgMetadataCatalogRecorder } from '../../../src/orgCatalog/orgMetadataCatalogRecorder';
-import { OrgMetadataReferenceService } from '../../../src/orgCatalog/orgMetadataReference';
 import {
   OrgMetadataCatalogChangePubSub,
   type OrgMetadataCatalogChange
@@ -42,10 +42,9 @@ const makeHarness = () => {
       OrgMetadataCatalogChangePubSub,
       catalogChanges as unknown as InstanceType<typeof OrgMetadataCatalogChangePubSub>
     ),
-    Layer.succeed(OrgMetadataReferenceService, {
-      documentUri: ({ orgId, xmlName, fullName }: { orgId: string; xmlName: string; fullName: string }) =>
-        Effect.succeed(URI.parse(`sf-org-metadata:/orgs/${orgId}/${xmlName}/${fullName}`))
-    } as unknown as InstanceType<typeof OrgMetadataReferenceService>),
+    Layer.succeed(MetadataRegistryService, {
+      getRegistryAccess: () => Effect.succeed({ getTypeByName: () => ({ suffix: undefined }) })
+    } as unknown as InstanceType<typeof MetadataRegistryService>),
     TransmogrifierService.Default
   );
   const stateLayer = OrgCatalogState.DefaultWithoutDependencies.pipe(Layer.provide(dependencies));
