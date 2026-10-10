@@ -10,7 +10,9 @@
 import type ts from 'typescript/lib/tsserverlibrary';
 import { getMessagesForFile, type MessagesResult } from './messageCache';
 
-function init(modules: { typescript: typeof import('typescript/lib/tsserverlibrary') }) {
+type TsServerLibrary = typeof ts;
+
+function init(modules: { typescript: TsServerLibrary }) {
   const ts = modules.typescript;
 
   const isNlsLocalizeCall = (node: ts.Node): boolean => {
