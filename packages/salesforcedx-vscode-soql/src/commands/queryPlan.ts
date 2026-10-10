@@ -105,14 +105,12 @@ export const queryPlan = Effect.fn('sf.data.query.explain')(function* () {
   const servicesApi = yield* getServicesApi;
   // precondition: fails with FailedToResolveSfProjectError when there's no project
   yield* servicesApi.services.ProjectService.getSfProject();
-  const inputs = yield* getQueryInputsForPlan();
-  yield* executeQueryPlan(inputs);
+  yield* getQueryInputsForPlan().pipe(Effect.flatMap(executeQueryPlan));
 });
 
 export const queryPlanDocument = Effect.fn('sf.data.query.explain.document')(function* () {
   const servicesApi = yield* getServicesApi;
   // precondition: fails with FailedToResolveSfProjectError when there's no project
   yield* servicesApi.services.ProjectService.getSfProject();
-  const inputs = yield* getDocumentQueryInputsForPlan();
-  yield* executeQueryPlan(inputs);
+  yield* getDocumentQueryInputsForPlan().pipe(Effect.flatMap(executeQueryPlan));
 });

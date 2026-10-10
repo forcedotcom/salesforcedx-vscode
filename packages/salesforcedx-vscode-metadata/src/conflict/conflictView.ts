@@ -36,8 +36,7 @@ export const ensureConflictView = Effect.fn('ensureConflictView')(function* () {
   const context = conflictViewContext;
   if (!context) return;
   const initialState = createEmptyConflictState();
-  const ref = yield* SubscriptionRef.make(initialState);
-  setConflictStateRef(ref);
+  yield* SubscriptionRef.make(initialState).pipe(Effect.map(setConflictStateRef));
   conflictTreeProvider = new ConflictTreeProvider();
   const treeView = vscode.window.createTreeView(CONFLICTS_VIEW_ID, {
     treeDataProvider: conflictTreeProvider
