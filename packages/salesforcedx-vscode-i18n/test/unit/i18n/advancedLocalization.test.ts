@@ -8,7 +8,7 @@
 import type { MockInstance as VitestMockInstance } from 'vitest';
 import { DEFAULT_LOCALE } from '../../../src/constants';
 import { LocalizationService, LocalizationConfig, MessageBundleManager } from '../../../src/i18n/advancedLocalization';
-import { AdvancedMessageBundle } from '../../../src/types/localization/advancedTypes';
+import { type AdvancedMessageBundle } from '../../../src/types/localization/advancedTypes';
 
 describe('Advanced Localization Unit Tests', () => {
   let consoleWarnSpy: VitestMockInstance;
