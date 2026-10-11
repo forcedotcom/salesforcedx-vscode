@@ -6,7 +6,7 @@
  */
 
 import { LocalizationConfig } from './i18n/advancedLocalization';
-import { Locale } from './types/localization/config';
+import { type Locale } from './types/localization/config';
 
 /**
  * Parse a supported {@link Locale} from a VSCODE_NLS_CONFIG JSON string.

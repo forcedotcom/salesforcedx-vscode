@@ -1001,6 +1001,16 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-vscode-i18n (inline to avoid no-duplicate-imports; W-23371066)
+    files: ['packages/salesforcedx-vscode-i18n/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // class-methods-use-this for packages not yet using Effect
     // (apex, apex-oas + apex-testing omitted: covered by the Effect-services block above, which sets both rules)
     files: ['packages/salesforcedx-vscode-soql/**/*.ts', 'packages/soql-common/**/*.ts', 'packages/soql-model/**/*.ts'],

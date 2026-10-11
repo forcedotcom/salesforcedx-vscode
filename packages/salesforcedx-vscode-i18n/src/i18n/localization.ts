@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LocalizationProvider } from '../types/localization/localizationProvider';
-import { Message } from './message';
+import { type LocalizationProvider } from '../types/localization/localizationProvider';
+import { type Message } from './message';
 
 export class Localization implements LocalizationProvider {
   private readonly delegate: Message;

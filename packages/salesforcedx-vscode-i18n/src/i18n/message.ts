@@ -6,8 +6,8 @@
  */
 import { format } from 'node:util';
 import { MISSING_LABEL_MSG } from '../constants';
-import { LocalizationProvider } from '../types/localization/localizationProvider';
-import { MessageBundle } from '../types/localization/messageBundle';
+import { type LocalizationProvider } from '../types/localization/localizationProvider';
+import { type MessageBundle } from '../types/localization/messageBundle';
 
 export class Message implements LocalizationProvider {
   private readonly delegate?: Message;

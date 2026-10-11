@@ -6,7 +6,7 @@
  */
 import { Localization } from '../../../src/i18n/localization';
 import { Message } from '../../../src/i18n/message';
-import { MessageBundle } from '../../../src/types/localization/messageBundle';
+import { type MessageBundle } from '../../../src/types/localization/messageBundle';
 
 describe('Localization Unit Tests.', () => {
   const fakeMessages: MessageBundle = { a: 'a', b: 'b', c: 'c' };
