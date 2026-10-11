@@ -12,6 +12,7 @@ import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../../messages';
 import { getRuntime } from '../../services/runtime';
+import { randomUuid } from '../randomUuid';
 import { lwcTestIndexer } from '../testIndexer';
 import { taskService, SfTask } from '../testRunner/taskService';
 import { TestRunner } from '../testRunner/testRunner';
@@ -551,10 +552,11 @@ class LwcTestController {
       // This also prevents partial results from overwriting a crash-extracted error.
       let taskCrashed = false;
       let exitCode: number | undefined;
+      const taskId = await getRuntime().runPromise(randomUuid);
 
       if (isDebug) {
         await vscode.debug.startDebugging(workspaceFolder, {
-          sfDebugSessionId: globalThis.crypto.randomUUID(),
+          sfDebugSessionId: taskId,
           type: 'node',
           request: 'launch',
           name: 'Debug LWC test(s)',
@@ -572,7 +574,7 @@ class LwcTestController {
         // Results surface in the Test Results tab. CustomExecution wraps a pseudoterminal
         // that captures output for error reporting. Default presentation keeps terminal hidden.
         const sfTask = taskService.createTask(
-          globalThis.crypto.randomUUID(),
+          taskId,
           nls.localize('run_test_task_name'),
           workspaceFolder,
           command,

@@ -11,6 +11,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { getRuntime } from '../../services/runtime';
+import { randomUuid } from '../randomUuid';
 import { isTestCaseInfo, type TestExecutionInfo, type TestRunType } from '../types';
 import { workspace, workspaceService } from '../workspace';
 import { SfTask, taskService } from './taskService';
@@ -61,7 +62,7 @@ export class TestRunner {
    * @param logName Telemetry log name. If specified we will send command telemetry event when task finishes
    */
   constructor(testExecutionInfo: TestExecutionInfo, testRunType: TestRunType, logName?: string) {
-    this.testRunId = globalThis.crypto.randomUUID();
+    this.testRunId = getRuntime().runSync(randomUuid);
     this.testExecutionInfo = testExecutionInfo;
     this.testRunType = testRunType;
     this.logName = logName;

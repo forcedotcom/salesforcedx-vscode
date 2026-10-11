@@ -7,6 +7,7 @@
 
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import * as Random from 'effect/Random';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
@@ -15,8 +16,19 @@ import { CliId, getCliId } from './cliTelemetry';
 import { readGlobalStateKey } from './readGlobalStateKey';
 import { TELEMETRY_GLOBAL_USER_ID, TELEMETRY_GLOBAL_WEB_USER_ID, UNAUTHENTICATED_USER } from './webUserId';
 
-// crypto.randomUUID() returns a valid UUIDv4 — decode lifts it to the CliId brand.
-const newRandomCliId = () => Schema.decode(CliId)(globalThis.crypto.randomUUID()).pipe(Effect.orDie);
+const newRandomCliId = () =>
+  Effect.all(Array.from({ length: 16 }, () => Random.nextIntBetween(0, 256))).pipe(
+    Effect.map(bytes => {
+      const hex = bytes
+        .map((byte, index) =>
+          (index === 6 ? (byte & 0x0f) | 0x40 : index === 8 ? (byte & 0x3f) | 0x80 : byte).toString(16).padStart(2, '0')
+        )
+        .join('');
+      return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+    }),
+    Effect.flatMap(Schema.decode(CliId)),
+    Effect.orDie
+  );
 
 const resolveCliIdFromCli = () =>
   process.env.ESBUILD_PLATFORM === 'web'
