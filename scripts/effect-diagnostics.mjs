@@ -91,9 +91,12 @@ const results = discoveredPackages.map(runPackage);
 
 const skipped = results.filter(r => r.skipped);
 const failed = results.filter(r => r.failed);
+// Declaration files describe external APIs; their native Error classes are not ours to change.
 const violations = results
   .filter(r => !r.skipped && !r.failed)
-  .flatMap(r => r.diagnostics.filter(d => enforcedSet.has(d.name)));
+  .flatMap(r =>
+    r.diagnostics.filter(d => enforcedSet.has(d.name) && !(d.name === 'extendsNativeError' && d.file.endsWith('.d.ts')))
+  );
 
 const isGithubActions = process.env.GITHUB_ACTIONS === 'true';
 

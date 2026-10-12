@@ -114,6 +114,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
           readonly fullName: string;
           readonly namespacePrefix?: string;
           readonly lastModifiedDate?: string;
+          readonly documentUri?: URI;
           readonly workspaceUri?: URI;
         }[]
       ) {
@@ -123,9 +124,11 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
         const componentsWithDocumentUris = yield* Effect.forEach(
           components,
           component =>
-            referenceService
-              .documentUri({ orgId, xmlName: component.type, fullName: component.fullName })
-              .pipe(Effect.map(documentUri => ({ component, documentUri }))),
+            component.documentUri
+              ? Effect.succeed({ component, documentUri: component.documentUri })
+              : referenceService
+                  .documentUri({ orgId, xmlName: component.type, fullName: component.fullName })
+                  .pipe(Effect.map(documentUri => ({ component, documentUri }))),
           { concurrency: 'unbounded' }
         );
         yield* state.updateInventories(current =>

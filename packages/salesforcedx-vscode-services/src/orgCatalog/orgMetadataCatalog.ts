@@ -99,6 +99,7 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
         resolutions.map(resolution => ({
           type: resolution.reference.xmlName,
           fullName: resolution.reference.fullName,
+          documentUri: resolution.orgUri,
           ...(resolution.workspaceUri ? { workspaceUri: resolution.workspaceUri } : {})
         }))
       );

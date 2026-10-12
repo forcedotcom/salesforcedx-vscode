@@ -119,7 +119,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
     const performDescribe = Effect.fn('MetadataDescribeService.performDescribe')(function* (orgId: string) {
       yield* Effect.annotateCurrentSpan({ orgId });
       const conn = yield* getConnection(orgId);
-      const result = yield* Effect.tryPromise({
+      return yield* Effect.tryPromise({
         try: () => conn.metadata.describe(),
         catch: e => {
           const { cause } = unknownToErrorCause(e);
@@ -140,7 +140,6 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
           )
         )
       );
-      return result;
     });
 
     const performListSObjects = Effect.fn('MetadataDescribeService.performListSObjects')(function* (orgId: string) {

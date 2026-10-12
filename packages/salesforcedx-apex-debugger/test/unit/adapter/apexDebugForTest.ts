@@ -6,18 +6,18 @@
  */
 // This is only done in tests because we are mocking things
 
-import { Connection } from '@salesforce/core';
-import { Source } from '@vscode/debugadapter';
-import { DebugProtocol } from '@vscode/debugprotocol';
+import { type Connection } from '@salesforce/core';
+import { type Source } from '@vscode/debugadapter';
+import { type DebugProtocol } from '@vscode/debugprotocol';
 import {
   ApexDebug,
-  ApexDebugStackFrameInfo,
-  LaunchRequestArguments,
-  VariableContainer
+  type ApexDebugStackFrameInfo,
+  type LaunchRequestArguments,
+  type VariableContainer
 } from '../../../src/adapter/apexDebug';
-import { Reference } from '../../../src/commands';
+import { type Reference } from '../../../src/commands';
 import { BreakpointService, SessionService, StreamingService } from '../../../src/core';
-import { RequestService } from '../../../src/requestService/requestService';
+import { type RequestService } from '../../../src/requestService/requestService';
 
 export class ApexDebugForTest extends ApexDebug {
   private receivedResponses: DebugProtocol.Response[] = [];

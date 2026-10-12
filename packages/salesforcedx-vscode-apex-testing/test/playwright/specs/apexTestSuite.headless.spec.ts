@@ -112,9 +112,6 @@ test('Apex Test Suite: create, verify creation, edit tests, run suite', async ({
 
   await test.step('create Apex Test Suite with first class', async () => {
     testSuiteName = `ApexTestSuite${Date.now()}`;
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Apex Testing');
-    await clearOutputChannel(page);
     await saveScreenshot(page, 'step.create-suite.before.png');
     await createApexTestSuiteViaPalette(page, testSuiteName, testClassName1);
     await saveScreenshot(page, 'step.create-suite.done.png');
@@ -128,12 +125,10 @@ test('Apex Test Suite: create, verify creation, edit tests, run suite', async ({
       timeout: 60_000
     });
     await saveScreenshot(page, 'step.verify-creation.png');
+    await clearOutputChannel(page);
   });
 
   await test.step('edit suite to add second test class', async () => {
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Apex Testing');
-    await clearOutputChannel(page);
     await executeCommandWithCommandPalette(page, packageNls.apex_test_suite_edit_text);
     await saveScreenshot(page, 'step.edit-add-tests.after-command.png');
     await selectSuiteInQuickPick(page, testSuiteName, { waitForListRowMs: 10_000 });
@@ -151,12 +146,10 @@ test('Apex Test Suite: create, verify creation, edit tests, run suite', async ({
       timeout: 60_000
     });
     await saveScreenshot(page, 'step.verify-edit-add.png');
+    await clearOutputChannel(page);
   });
 
   await test.step('run Apex Test Suite', async () => {
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Apex Testing');
-    await clearOutputChannel(page);
     // Gate on command registration to avoid racing extension-command registration
     await verifyCommandExists(page, packageNls.apex_test_suite_run_text, 30_000);
     await executeCommandWithCommandPalette(page, packageNls.apex_test_suite_run_text);
@@ -187,12 +180,10 @@ test('Apex Test Suite: create, verify creation, edit tests, run suite', async ({
     await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
     await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.verify-run.done.png');
+    await clearOutputChannel(page);
   });
 
   await test.step('edit suite to remove second test class', async () => {
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Apex Testing');
-    await clearOutputChannel(page);
     await executeCommandWithCommandPalette(page, packageNls.apex_test_suite_edit_text);
     await saveScreenshot(page, 'step.edit-remove-tests.after-command.png');
     await selectSuiteInQuickPick(page, testSuiteName, { waitForListRowMs: 10_000 });
@@ -210,6 +201,7 @@ test('Apex Test Suite: create, verify creation, edit tests, run suite', async ({
       timeout: 60_000
     });
     await saveScreenshot(page, 'step.verify-edit-remove.png');
+    await clearOutputChannel(page);
   });
 
   await test.step('verify removed class absent from test explorer tree', async () => {
@@ -237,9 +229,6 @@ test('Apex Test Suite: create, verify creation, edit tests, run suite', async ({
   });
 
   await test.step('re-run suite and verify removed class does not execute', async () => {
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Apex Testing');
-    await clearOutputChannel(page);
     await verifyCommandExists(page, packageNls.apex_test_suite_run_text, 30_000);
     await executeCommandWithCommandPalette(page, packageNls.apex_test_suite_run_text);
     await selectSuiteInQuickPick(page, testSuiteName);
@@ -247,6 +236,8 @@ test('Apex Test Suite: create, verify creation, edit tests, run suite', async ({
 
     await waitForNotification(page, /SFDX: Run Apex Tests/, { timeout: 60_000 });
     await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
     // Backstop; normally immediate because the channel is already populated.
     await waitForApexRunOutputLine(page, '=== Test Results');
     await waitForApexRunOutputLine(page, testClassName1);

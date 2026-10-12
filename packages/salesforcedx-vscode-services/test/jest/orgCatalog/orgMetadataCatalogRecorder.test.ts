@@ -137,6 +137,30 @@ describe('OrgMetadataCatalogRecorder', () => {
     ]);
   });
 
+  it('preserves supplied document URIs while resolving missing ones', async () => {
+    const { layer } = makeHarness();
+    const suppliedUri = URI.parse('sf-org-metadata:/orgs/org-one/ApexClass/Supplied.cls');
+
+    const entries = await Effect.runPromise(
+      Effect.gen(function* () {
+        const recorder = yield* OrgMetadataCatalogRecorder;
+        const state = yield* OrgCatalogState;
+        yield* recorder.recordRemoteComponents('org-one', 'metadata-api', [
+          { type: 'ApexClass', fullName: 'Supplied', documentUri: suppliedUri },
+          { type: 'ApexClass', fullName: 'Generated' }
+        ]);
+        const components = (yield* state.getInventory('org-one', 'ApexClass'))?.components ?? HashMap.empty();
+        return {
+          supplied: findInventoryComponent(components, { xmlName: 'ApexClass', fullName: 'Supplied' }),
+          generated: findInventoryComponent(components, { xmlName: 'ApexClass', fullName: 'Generated' })
+        };
+      }).pipe(Effect.provide(layer))
+    );
+
+    expect(entries.supplied?.documentUri.toString()).toBe(suppliedUri.toString());
+    expect(entries.generated?.documentUri.toString()).toBe('sf-org-metadata:/orgs/org-one/ApexClass/Generated');
+  });
+
   it('publishes tracking changes in previous-then-current status order and suppresses an identical observation', async () => {
     const { catalogChanges, layer } = makeHarness();
 
