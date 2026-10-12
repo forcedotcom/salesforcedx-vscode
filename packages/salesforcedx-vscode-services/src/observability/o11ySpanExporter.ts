@@ -4,6 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
+import * as HttpClient from '@effect/platform/HttpClient';
+import * as HttpClientRequest from '@effect/platform/HttpClientRequest';
 import { SpanStatusCode } from '@opentelemetry/api';
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
@@ -174,28 +177,30 @@ export class O11ySpanExporter implements SpanExporter {
       return;
     }
     const events = valid.map(span => toO11yEvent(span, getSpanCreationIdentity(span)));
-    // eslint-disable-next-line functional/no-try-statements -- network boundary
-    try {
-      const res = await fetch(`${this.localIngestionEndpoint!.replace(/\/$/, '')}/o11y`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ extensionName: this.extensionName, events })
-      });
-      resultCallback(
-        res.ok
+    await HttpClientRequest.post(`${this.localIngestionEndpoint!.replace(/\/$/, '')}/o11y`).pipe(
+      HttpClientRequest.bodyJson({ extensionName: this.extensionName, events }),
+      Effect.flatMap(HttpClient.execute),
+      Effect.map(res =>
+        res.status >= 200 && res.status < 300
           ? { code: ExportResultCode.SUCCESS }
           : { code: ExportResultCode.FAILED, error: new Error(`local /o11y responded ${res.status}`) }
-      );
-    } catch (error) {
-      await Effect.logError('O11ySpanExporter local divert failed:', Cause.fail(error)).pipe(
-        runOnServicesRuntime,
-        Effect.runPromise
-      );
-      resultCallback({
-        code: ExportResultCode.FAILED,
-        error: isError(error) ? error : new Error(String(error))
-      });
-    }
+      ),
+      Effect.catchAll(error => {
+        const result = {
+          code: ExportResultCode.FAILED,
+          error: isError(error) ? error : new Error(String(error))
+        };
+        return Effect.logError('O11ySpanExporter local divert failed:', Cause.fail(error)).pipe(
+          runOnServicesRuntime,
+          Effect.ignore,
+          Effect.andThen(Effect.succeed(result))
+        );
+      }),
+      Effect.tap(result => Effect.sync(() => resultCallback(result))),
+      Effect.withTracerEnabled(false),
+      Effect.provide(FetchHttpClient.layer),
+      Effect.runPromise
+    );
   }
 
   public shutdown(): Promise<void> {
