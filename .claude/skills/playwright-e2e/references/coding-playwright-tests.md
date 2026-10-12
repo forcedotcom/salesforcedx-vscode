@@ -176,7 +176,7 @@ await clickCodeLens(page, 'Debug'); // or run debug command
 
 Use `ensureOutputPanelOpen(page)` to prepare output during setup; close before each debug trigger to prevent interference.
 
-**Commands with active editor context:** Commands that fall back to the active editor's URI (e.g., `generateManifest` when invoked with no explorer selection) silently fail if the active view isn't the editor. Output-panel operations (`ensureOutputPanelOpen`, `selectOutputChannel`, `clearOutputChannel`) shift the active view away from the editor, so commands that need it must re-focus the editor first:
+**Commands with active editor context:** Commands gated by active-editor `when` clauses (e.g., `SFDX: Deploy This Source to Org`, `generateManifest` with no explorer selection) silently fail if the editor isn't focused. Output-panel operations (`ensureOutputPanelOpen`, `selectOutputChannel`, `clearOutputChannel`) shift focus away from the editor, so commands that need it must re-focus the editor first:
 
 ```typescript
 // Output panel work shifts active view
