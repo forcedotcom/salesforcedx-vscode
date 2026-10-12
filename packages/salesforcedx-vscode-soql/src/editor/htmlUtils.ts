@@ -6,8 +6,8 @@
  */
 
 import { isNotNull } from 'effect/Predicate';
-import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import type * as vscode from 'vscode';
+import { type URI, Utils } from 'vscode-uri';
 
 /**
  * Matches webpack-generated script tags like:

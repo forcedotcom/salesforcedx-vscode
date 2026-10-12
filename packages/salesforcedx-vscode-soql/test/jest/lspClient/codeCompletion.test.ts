@@ -12,6 +12,7 @@ import { MetadataDescribeService } from 'salesforcedx-vscode-services/src/core/m
 import { TransmogrifierService } from 'salesforcedx-vscode-services/src/core/transmogrifierService';
 import * as vscode from 'vscode';
 import type { CancellationToken, CompletionContext, Position, TextDocument } from 'vscode';
+import type { middleware as actualMiddleware } from '../../../src/lspClient/codeCompletion';
 
 type SObjectSummary = { readonly name: string; readonly custom: boolean; readonly queryable: boolean };
 
@@ -67,7 +68,7 @@ Object.assign(vscode, {
   }
 });
 
-const { middleware } = jest.requireActual<typeof import('../../../src/lspClient/codeCompletion')>(
+const { middleware } = jest.requireActual<{ middleware: typeof actualMiddleware }>(
   '../../../src/lspClient/codeCompletion'
 );
 
