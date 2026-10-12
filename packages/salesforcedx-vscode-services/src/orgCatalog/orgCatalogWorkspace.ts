@@ -15,7 +15,7 @@ import { MetadataRetrieveService } from '../core/metadataRetrieveService';
 import { ProjectService } from '../core/projectService';
 import { toUri } from '../vscode/uriUtils';
 import { OrgCatalogState } from './orgCatalogState';
-import { documentUri, type OrgMetadataComponentReference } from './orgMetadataReference';
+import { documentUris, type OrgMetadataComponentReference } from './orgMetadataReference';
 
 const emptyWorkspaceInventory: {
   readonly namespace: string | null;
@@ -86,42 +86,35 @@ export const makeOrgCatalogWorkspace = Effect.gen(function* () {
     options: { readonly prefer: 'workspace' | 'org' }
   ) {
     const xmlNames = Arr.dedupe(componentReferences.map(reference => reference.xmlName));
-    return yield* Effect.forEach(
+    const workspaceByType = yield* Effect.forEach(
       xmlNames,
       xmlName => scanWorkspace(xmlName).pipe(Effect.map(workspaceUris => [xmlName, workspaceUris] as const)),
       { concurrency: 10 }
-    ).pipe(
-      Effect.map(HashMap.fromIterable),
-      Effect.flatMap(workspaceByType =>
-        Effect.forEach(componentReferences, reference =>
-          Effect.gen(function* () {
-            const workspaceUri = HashMap.get(workspaceByType, reference.xmlName).pipe(
-              Option.flatMap(HashMap.get(reference.fullName)),
-              Option.getOrUndefined
-            );
-            const orgUri = yield* documentUri({ orgId, ...reference }).pipe(
-              Effect.provideService(MetadataRegistryService, registry)
-            );
-            return {
-              reference,
-              presence: workspaceUri ? ('both' as const) : ('org' as const),
-              preferredUri: options.prefer === 'workspace' && workspaceUri ? workspaceUri : orgUri,
-              orgUri,
-              ...(workspaceUri ? { workspaceUri } : {})
-            };
-          })
-        )
-      ),
-      Effect.tap(resolutions =>
-        Effect.annotateCurrentSpan({
-          componentCount: componentReferences.length,
-          metadataTypeCount: xmlNames.length,
-          workspaceComponentCount: resolutions.filter(resolution => resolution.presence === 'both').length
-        })
-      )
+    ).pipe(Effect.map(HashMap.fromIterable));
+    const orgUris = yield* documentUris(componentReferences.map(reference => ({ orgId, ...reference }))).pipe(
+      Effect.provideService(MetadataRegistryService, registry)
     );
+    const resolutions = componentReferences.map((reference, index) => {
+      const workspaceUri = HashMap.get(workspaceByType, reference.xmlName).pipe(
+        Option.flatMap(HashMap.get(reference.fullName)),
+        Option.getOrUndefined
+      );
+      const orgUri = orgUris[index];
+      return {
+        reference,
+        presence: workspaceUri ? ('both' as const) : ('org' as const),
+        preferredUri: options.prefer === 'workspace' && workspaceUri ? workspaceUri : orgUri,
+        orgUri,
+        ...(workspaceUri ? { workspaceUri } : {})
+      };
+    });
+    yield* Effect.annotateCurrentSpan({
+      componentCount: componentReferences.length,
+      metadataTypeCount: xmlNames.length,
+      workspaceComponentCount: resolutions.filter(resolution => resolution.presence === 'both').length
+    });
+    return resolutions;
   });
-
   return {
     getWorkspaceMetadataTypes,
     resolveComponents,

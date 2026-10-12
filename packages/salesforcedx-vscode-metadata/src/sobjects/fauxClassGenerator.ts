@@ -7,7 +7,7 @@
 import { EOL } from 'node:os';
 import { byFieldName } from './byFieldName';
 import { MODIFIER } from './declarationGenerator';
-import { FieldDeclaration, SObjectDefinition } from './types/general';
+import { type FieldDeclaration, type SObjectDefinition } from './types/general';
 
 export const INDENT = '    ';
 

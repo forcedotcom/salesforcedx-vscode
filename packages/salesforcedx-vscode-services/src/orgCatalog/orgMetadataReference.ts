@@ -89,6 +89,16 @@ export const getTypeSuffix = Effect.fn('OrgMetadataReferenceService.typeSuffix')
     );
 });
 
+export const documentUris = Effect.fn('OrgMetadataReferenceService.documentUris')(function* (
+  locations: readonly OrgMetadataDocumentLocation[]
+) {
+  const suffixes = yield* Effect.forEach(new Set(locations.map(location => location.xmlName)), xmlName =>
+    getTypeSuffix(xmlName).pipe(Effect.map(suffix => [xmlName, suffixToExtension(suffix)] as const))
+  );
+  const extensionByType = new Map(suffixes);
+  return locations.map(location => makeDocumentUri(location, extensionByType.get(location.xmlName)));
+});
+
 export const documentUri = Effect.fn('OrgMetadataReferenceService.documentUri')(function* (
   location: OrgMetadataDocumentLocation
 ) {

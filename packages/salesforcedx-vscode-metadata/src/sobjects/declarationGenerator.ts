@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { ChildRelationship, SObject, SObjectField } from 'salesforcedx-vscode-services';
-import { FieldDeclaration, SObjectDefinition } from './types/general';
+import { type FieldDeclaration, type SObjectDefinition } from './types/general';
 
 export const MODIFIER = 'global';
 const TYPE_MAPPING: Map<string, string> = new Map([

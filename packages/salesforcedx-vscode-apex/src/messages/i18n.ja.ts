@@ -52,7 +52,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   terminate_failed: 'Apex 言語サーバプロセス PID: %d の終了に失敗しました: %s',
   terminate_processes: 'プロセスを終了',
   terminate_show_processes: 'プロセスを表示',
-  unknown: '不明',
   unknown_error: '不明なエラー',
   wrong_java_version_short: 'サポートされていない Java バージョン',
   wrong_java_version_text:

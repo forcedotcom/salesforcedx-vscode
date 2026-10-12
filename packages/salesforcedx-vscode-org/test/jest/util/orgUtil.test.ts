@@ -15,7 +15,11 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
-import { buildAllServicesLayer, resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../src/extensionProvider';
+import {
+  type buildAllServicesLayer,
+  resetOrgRuntimeForTesting,
+  setAllServicesLayer
+} from '../../../src/extensionProvider';
 import { nls } from '../../../src/messages';
 import { checkForSoonToBeExpiredOrgs, updateConfigAndStateAggregators } from '../../../src/util/orgUtil';
 
@@ -60,8 +64,7 @@ describe('orgUtil tests', () => {
   // Create mock TargetOrgRef function
   const createMockTargetOrgRef = (username?: string) => () =>
     Effect.gen(function* () {
-      const ref = yield* SubscriptionRef.make<{ username?: string }>({ username });
-      return ref;
+      return yield* SubscriptionRef.make<{ username?: string }>({ username });
     });
 
   beforeEach(() => {

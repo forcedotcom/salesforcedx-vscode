@@ -9,7 +9,7 @@ import type { OrgAuthResult } from './types';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { execAsync, env, tryUseExistingOrg, extractAuthFields, requireOrgInCI } from './shared';
+import { execAsync, env, tryUseExistingOrg, getOrgAuthFields, requireOrgInCI } from './shared';
 
 export const NON_TRACKING_ORG_ALIAS = 'nonTrackingTestOrg';
 export const HUB_ORG_ALIAS = 'hub';
@@ -50,12 +50,12 @@ export const createNonTrackingOrg = async (alias: string = NON_TRACKING_ORG_ALIA
   requireOrgInCI(alias);
 
   const projectDir = await makeScratchProjectDir('non-tracking-org-');
-  const { stdout: createStdout } = await execAsync(
-    `sf org create scratch -d -w 10 -a ${alias} --edition developer --no-track-source --json`,
-    { cwd: projectDir, env }
-  );
+  await execAsync(`sf org create scratch -d -w 10 -a ${alias} --edition developer --no-track-source --json`, {
+    cwd: projectDir,
+    env
+  });
 
-  return extractAuthFields(createStdout, alias);
+  return getOrgAuthFields(alias);
 };
 
 /**
@@ -73,10 +73,10 @@ export const createLogoutTestOrg = async (alias: string = LOGOUT_TEST_ORG_ALIAS)
   }
 
   const projectDir = await makeScratchProjectDir('logout-test-org-');
-  const { stdout: createStdout } = await execAsync(
-    `sf org create scratch -d -w 10 -a ${alias} --edition developer --no-track-source --json`,
-    { cwd: projectDir, env }
-  );
+  await execAsync(`sf org create scratch -d -w 10 -a ${alias} --edition developer --no-track-source --json`, {
+    cwd: projectDir,
+    env
+  });
 
-  return extractAuthFields(createStdout, alias);
+  return getOrgAuthFields(alias);
 };

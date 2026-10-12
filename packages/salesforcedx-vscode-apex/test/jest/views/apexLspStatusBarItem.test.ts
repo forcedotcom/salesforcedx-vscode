@@ -122,6 +122,8 @@ describe('ApexLSPStatusBarItem', () => {
       // Verify diagnostic is created with correct properties
       expect(URI.file).toHaveBeenCalledWith('/ApexLSP');
       expect(setMock).toHaveBeenCalled();
+      const published = setMock.mock.calls[0][1] as vscode.Diagnostic[];
+      expect(published[0].source).toBe(nls.localize('client_name'));
     });
   });
 
