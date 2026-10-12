@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TSESTree } from '@typescript-eslint/utils';
+import { type TSESTree } from '@typescript-eslint/utils';
 import { RuleCreator } from '@typescript-eslint/utils/eslint-utils';
 
 // Matches bare-ancestor specifiers: '.', '..', '../..', '../../..', etc.

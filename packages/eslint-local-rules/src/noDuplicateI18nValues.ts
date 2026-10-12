@@ -6,7 +6,7 @@
  */
 
 import * as tsParser from '@typescript-eslint/parser';
-import { AST_NODE_TYPES, TSESTree } from '@typescript-eslint/utils';
+import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/utils';
 import { RuleCreator } from '@typescript-eslint/utils/eslint-utils';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
