@@ -86,7 +86,15 @@ const toolError = (error: unknown): CallToolResult => ({
     {
       type: 'text',
       text: JSON.stringify(
-        redactValue(isError(error) ? { name: error.name, message: error.message } : error),
+        redactValue(
+          isError(error)
+            ? {
+                name: error.name,
+                message: error.message,
+                ...(typeof error.cause === 'string' ? { cause: error.cause } : {})
+              }
+            : error
+        ),
         undefined,
         2
       )
