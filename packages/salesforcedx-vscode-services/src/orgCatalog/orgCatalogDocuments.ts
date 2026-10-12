@@ -9,22 +9,24 @@ import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { MetadataRegistryService } from '../core/metadataRegistryService';
 import { FsService } from '../vscode/fsService';
 import { OrgCatalogRemoteSource } from './orgCatalogRemoteSource';
-import { OrgMetadataReferenceService, type OrgMetadataDocumentLocation } from './orgMetadataReference';
+import { parseDocumentUri, type OrgMetadataDocumentLocation } from './orgMetadataReference';
 
 export class OrgCatalogDocuments extends Effect.Service<OrgCatalogDocuments>()('OrgCatalogDocuments', {
   accessors: true,
-  dependencies: [FsService.Default, OrgCatalogRemoteSource.Default, OrgMetadataReferenceService.Default],
+  dependencies: [FsService.Default, OrgCatalogRemoteSource.Default, MetadataRegistryService.Default],
   effect: Effect.gen(function* () {
-    const [fsService, remoteSource, references] = yield* Effect.all([
+    const [fsService, remoteSource, registry] = yield* Effect.all([
       FsService,
       OrgCatalogRemoteSource,
-      OrgMetadataReferenceService
+      MetadataRegistryService
     ]);
 
     const readDocumentUri = Effect.fn('OrgCatalogDocuments.readDocumentUri')(function* (activeOrgId: string, uri: URI) {
-      const location = yield* references.parseDocumentUri(uri).pipe(
+      const location = yield* parseDocumentUri(uri).pipe(
+        Effect.provideService(MetadataRegistryService, registry),
         Effect.filterOrFail(
           (candidateLocation): candidateLocation is OrgMetadataDocumentLocation =>
             isNotUndefined(candidateLocation) && candidateLocation.orgId === activeOrgId,
