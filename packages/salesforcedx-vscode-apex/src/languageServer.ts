@@ -20,6 +20,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import {
   type Executable,
+  type HandleDiagnosticsSignature,
   type LanguageClientOptions,
   type ProvideCodeLensesSignature,
   RevealOutputChannelOn
@@ -241,7 +242,8 @@ const buildClientOptions = Effect.fn('apex.lsp.buildClientOptions')(function* (o
         middleware: {
           ...parityMiddleware,
           ...(soqlExtensionInstalled ? soqlMiddleware : {}),
-          provideCodeLenses
+          provideCodeLenses,
+          handleDiagnostics
         },
         errorHandler: new ApexErrorHandler(),
         ...(isNotUndefined(outputChannel) ? { outputChannel } : {})
@@ -277,4 +279,22 @@ const provideCodeLenses = async (
     ? await Effect.forEach(lenses, rewriteNamespaceLens(nsFromOrg)(nsFromProject)).pipe(getRuntime().runPromise)
     : undefined;
   return rewritten === undefined ? undefined : dropLsAnonymousApexExecuteLenses(rewritten);
+};
+
+/**
+ * Jorje omits LSP diagnostic.source; vscode-languageclient only copies source when present.
+ * Set a stable Problems-panel Source when missing (issue #7915).
+ */
+const handleDiagnostics = (
+  uri: vscode.Uri,
+  diagnostics: vscode.Diagnostic[],
+  next: HandleDiagnosticsSignature
+): void => {
+  const source = nls.localize('client_name');
+  for (const diagnostic of diagnostics) {
+    if (!diagnostic.source) {
+      diagnostic.source = source;
+    }
+  }
+  next(uri, diagnostics);
 };
