@@ -6,7 +6,7 @@
  */
 
 import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
-import { AuthInfo, AuthRemover, OrgAuthorization } from '@salesforce/core';
+import { AuthInfo, AuthRemover, type OrgAuthorization } from '@salesforce/core';
 import { createTable, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
@@ -48,7 +48,9 @@ vi.mock('@salesforce/core', () => ({
   }
 }));
 vi.mock('@salesforce/effect-ext-utils', async () => {
-  const actual = await vi.importActual<typeof import('@salesforce/effect-ext-utils')>('@salesforce/effect-ext-utils');
+  const actual = await vi.importActual<{ ExtensionProviderService: typeof ExtensionProviderService }>(
+    '@salesforce/effect-ext-utils'
+  );
   return {
     createTable: vi.fn(),
     ExtensionProviderService: actual.ExtensionProviderService

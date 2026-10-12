@@ -184,6 +184,7 @@ export default [
         }
       ],
       'local/no-effect-fn-wrapper': 'error',
+      'local/inline-single-use-yield-binding': 'error',
       'local/no-nested-effect-gen-catch-tags': 'error',
       'local/no-nested-effect-ternary': 'error',
       'local/require-effect-fn-span-name': 'error',
@@ -957,6 +958,16 @@ export default [
   {
     // consistent-type-imports for salesforcedx-vscode-org-browser (inline to avoid no-duplicate-imports; W-23371063)
     files: ['packages/salesforcedx-vscode-org-browser/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-vscode-org (inline to avoid no-duplicate-imports; W-23371075)
+    files: ['packages/salesforcedx-vscode-org/**/*.ts'],
     rules: {
       '@typescript-eslint/consistent-type-imports': [
         'error',
