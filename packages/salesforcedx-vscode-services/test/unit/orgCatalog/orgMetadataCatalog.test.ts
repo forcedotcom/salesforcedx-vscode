@@ -284,6 +284,7 @@ const makeHarness = (options: HarnessOptions = {}) => {
     })
   );
   const getConnectionForOrg = vi.fn((_expectedOrgId: string) => getConnection());
+  const getRegistryAccess = vi.fn(() => Effect.succeed(new RegistryAccess()));
   const dependencies = Layer.mergeAll(
     Layer.succeed(ComponentSetService, {
       ensureNonEmptyComponentSet
@@ -326,7 +327,7 @@ const makeHarness = (options: HarnessOptions = {}) => {
       invalidateForMetadataChanges
     } as unknown as InstanceType<typeof MetadataDescribeService>),
     Layer.succeed(MetadataRegistryService, {
-      getRegistryAccess: () => Effect.succeed(new RegistryAccess())
+      getRegistryAccess
     } as unknown as InstanceType<typeof MetadataRegistryService>),
     Layer.succeed(MetadataRetrieveService, {
       buildComponentSet,
@@ -410,6 +411,7 @@ const makeHarness = (options: HarnessOptions = {}) => {
       invalidateSObjectDescribes,
       getConnection,
       getConnectionForOrg,
+      getRegistryAccess,
       listMetadata,
       listSObjects,
       readDirectoryWithTypes,
@@ -595,6 +597,7 @@ describe('OrgMetadataCatalog contract', () => {
       })
     ]);
     expect(mocks.buildComponentSetFromSource).toHaveBeenCalledTimes(1);
+    expect(mocks.getRegistryAccess).toHaveBeenCalledTimes(1);
     expect(mocks.listMetadata).not.toHaveBeenCalled();
     expect(mocks.storeLoad).toHaveBeenCalledWith('00D000000000001');
     expect(mocks.storeSave).toHaveBeenCalledWith(

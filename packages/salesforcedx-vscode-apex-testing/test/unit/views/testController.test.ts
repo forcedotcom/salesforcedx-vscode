@@ -28,6 +28,7 @@ vi.mock('../../../src/services/extensionProvider', async () => {
   const vscodeMock = await import('vscode');
 
   let mockConnectionRef: any;
+  let mockOrgId: string | undefined = 'org123';
   let mockReadFileResult = '';
   let mockWorkspaceUris = new Map<string, ReturnType<typeof UriClass.parse>>();
   const mockReadFile = vi.fn(() => EffectLib.succeed(mockReadFileResult));
@@ -111,7 +112,7 @@ vi.mock('../../../src/services/extensionProvider', async () => {
       // Backs the inline getDefaultOrgInfo helper in the real ApexTestTreeService:
       // persistDiscoveredClasses/addClassToTree/applyIncrementalDiff yield* api.services.TargetOrgRef() then
       // SubscriptionRef.get for the org key. Fresh ref per call. Mirrors watchers/testDiscovery.test.ts.
-      TargetOrgRef: () => SubscriptionRef.make({ orgId: 'org123', username: 'user@example.com' })
+      TargetOrgRef: () => SubscriptionRef.make({ orgId: mockOrgId, username: 'user@example.com' })
     }
   };
   const ExtensionProviderLayer = Layer.effect(
@@ -154,6 +155,9 @@ vi.mock('../../../src/services/extensionProvider', async () => {
     setAllServicesLayer: vi.fn(),
     __setMockConnection: (conn: any) => {
       mockConnectionRef = conn;
+    },
+    __setMockOrgId: (orgId: string | undefined) => {
+      mockOrgId = orgId;
     },
     __setMockReadFileResult: (s: string) => {
       mockReadFileResult = s;
@@ -247,6 +251,7 @@ const mockTestController = {
     add: vi.fn(),
     delete: vi.fn(),
     replace: vi.fn(),
+    forEach: vi.fn(),
     values: vi.fn().mockReturnValue([])
   } as unknown as vscode.TestItemCollection,
   createTestItem: vi.fn(),
@@ -287,6 +292,8 @@ describe('ApexTestController', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    (mockTestController.items.forEach as VitestMock) = vi.fn();
+    (extensionProvider as unknown as { __setMockOrgId: (orgId: string | undefined) => void }).__setMockOrgId('org123');
     // Clear the singleton runtime's tree Refs so per-test map state does not leak.
     (extensionProvider as unknown as { __resetTree: () => void }).__resetTree();
 
@@ -374,6 +381,7 @@ describe('ApexTestController', () => {
     it('should create a test controller', () => {
       expect(vscode.tests.createTestController).toHaveBeenCalled();
       expect(mockTestController.createRunProfile).toHaveBeenCalledTimes(5);
+      expect(discoverTestsSpy).not.toHaveBeenCalled();
     });
 
     it('should register workspace-first run as default and org-wide run as secondary (no profile tags)', () => {
@@ -389,6 +397,29 @@ describe('ApexTestController', () => {
 
     it('should set up refresh handler', () => {
       expect(mockTestController.refreshHandler).toBeDefined();
+    });
+  });
+
+  describe('root test resolution', () => {
+    it('discovers tests when VS Code requests the initial items, once', async () => {
+      await Promise.all([
+        mockTestController.resolveHandler?.(undefined),
+        mockTestController.resolveHandler?.(undefined)
+      ]);
+      await mockTestController.resolveHandler?.(undefined);
+
+      expect(discoverTestsSpy).toHaveBeenCalledTimes(1);
+      expect(controller.isDiscoveryRequested()).toBe(true);
+    });
+
+    it('waits for an org when the initial items are requested without one', async () => {
+      (extensionProvider as unknown as { __setMockOrgId: (orgId: string | undefined) => void }).__setMockOrgId(
+        undefined
+      );
+      await mockTestController.resolveHandler?.(undefined);
+
+      expect(discoverTestsSpy).not.toHaveBeenCalled();
+      expect(controller.isDiscoveryRequested()).toBe(true);
     });
   });
 
@@ -419,7 +450,29 @@ describe('ApexTestController', () => {
       getTestResultsFolderSpy.mockRestore();
     });
 
+    it('discovers before an implicit run when the Explorer has not requested tests', async () => {
+      await (
+        controller as unknown as {
+          runTests: (
+            request: vscode.TestRunRequest,
+            token: vscode.CancellationToken,
+            isDebug: boolean,
+            runScope: 'all-org'
+          ) => Promise<void>;
+        }
+      ).runTests(
+        { include: undefined, exclude: undefined, profile: undefined } as vscode.TestRunRequest,
+        cancellationToken,
+        false,
+        'all-org'
+      );
+
+      expect(discoverTestsSpy).toHaveBeenCalledTimes(1);
+      expect(controller.isDiscoveryRequested()).toBe(true);
+    });
+
     it('workspace-first implicit full run uses RunSpecifiedTests when in-workspace methods are gathered', async () => {
+      await controller.refresh();
       const inWorkspaceTag = (controller as unknown as { inWorkspaceTag: vscode.TestTag }).inWorkspaceTag;
       const methodItem = {
         id: 'method:WSClass.testOne',
@@ -465,6 +518,7 @@ describe('ApexTestController', () => {
     });
 
     it('all-org implicit full run uses RunAllTestsInOrg', async () => {
+      await controller.refresh();
       const inWorkspaceTag = (controller as unknown as { inWorkspaceTag: vscode.TestTag }).inWorkspaceTag;
       const methodItem = {
         id: 'method:WSClass.testOne',
