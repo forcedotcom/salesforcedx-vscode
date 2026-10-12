@@ -12,6 +12,7 @@ import * as Effect from 'effect/Effect';
 import * as Deferred from 'effect/Deferred';
 import * as Runtime from 'effect/Runtime';
 import { ControllerService } from '../src/controllerService';
+import { DrivableVscodeLaunchError } from '../src/errors';
 import { createDrivableVscodeMcpServer, shutdownDrivableVscodeMcpServer } from '../src/mcpServer';
 
 vi.mock('@salesforce/playwright-vscode-ext', () => ({ redactValue: (value: unknown) => value }));
@@ -27,9 +28,9 @@ const callTool = async (client: Client, name: string, args: Record<string, unkno
 };
 
 describe('drivable VS Code MCP server', () => {
-  const start = vi.fn(() =>
-    Effect.succeed({ runId: 'run-1', artifactDir: '/artifacts/run-1', workspaceDir: '/workspace' })
-  );
+  const start = vi.fn<
+    () => Effect.Effect<{ runId: string; artifactDir: string; workspaceDir: string }, DrivableVscodeLaunchError>
+  >(() => Effect.succeed({ runId: 'run-1', artifactDir: '/artifacts/run-1', workspaceDir: '/workspace' }));
   const observeForMcp = Effect.succeed({
     observation: { sequence: 1, title: 'Drivable VS Code' },
     screenshot: Uint8Array.from([1, 2, 3])
@@ -107,6 +108,28 @@ describe('drivable VS Code MCP server', () => {
     expect(result.isError).toBe(true);
     expect(text(result)).toContain('observationSequence');
     expect(act).not.toHaveBeenCalled();
+  });
+
+  test('reports the underlying VS Code launch failure', async () => {
+    start.mockImplementation(() =>
+      Effect.fail(
+        new DrivableVscodeLaunchError({
+          message: 'VS Code workbench failed to become ready',
+          cause:
+            'listen EINVAL: invalid argument /var/folders/.../salesforce-drivable-vscode-user-data-123456/1.14-main.sock'
+        })
+      )
+    );
+
+    const result = await callTool(client, 'start', { objective: 'Launch VS Code' });
+
+    expect(result.isError).toBe(true);
+    expect(JSON.parse(text(result))).toEqual({
+      name: 'DrivableVscodeLaunchError',
+      message: 'VS Code workbench failed to become ready',
+      cause:
+        'listen EINVAL: invalid argument /var/folders/.../salesforce-drivable-vscode-user-data-123456/1.14-main.sock'
+    });
   });
 
   test('shutdown interrupts active handlers before finishing and closing', async () => {

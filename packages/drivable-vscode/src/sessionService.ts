@@ -23,6 +23,7 @@ import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as Scope from 'effect/Scope';
 import { randomUUID } from 'node:crypto';
+import { tmpdir } from 'node:os';
 import { ArtifactService } from './artifactService';
 import { consumeConsoleWrites, drainConsoleWrites, type ConsoleWrite } from './consoleWriteQueue';
 import { QUICK_INPUT_WIDGET, WORKBENCH } from './constants';
@@ -46,6 +47,7 @@ import {
   type DrivableVscodeFinding,
   type DrivableVscodeLaunchOptions
 } from './schemas';
+import { userDataTempOptions } from './userDataDirectory';
 import { WorkspaceService } from './workspaceService';
 
 export type DrivableVscodeSession = {
@@ -370,7 +372,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
         );
         const userDataDir = yield* scoped(
           Effect.acquireRelease(
-            fs.makeTempDirectory({ prefix: 'salesforce-drivable-vscode-user-data-' }).pipe(
+            fs.makeTempDirectory(userDataTempOptions(tmpdir(), process.platform)).pipe(
               Effect.mapError(
                 cause =>
                   new DrivableVscodeLaunchError({

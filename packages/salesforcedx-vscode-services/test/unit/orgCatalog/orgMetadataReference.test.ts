@@ -19,7 +19,7 @@ import {
 
 describe('org metadata document references', () => {
   const registryAccess = new RegistryAccess();
-  const getRegistryAccess = jest.fn(() => Effect.succeed(registryAccess));
+  const getRegistryAccess = vi.fn(() => Effect.succeed(registryAccess));
   beforeEach(() => getRegistryAccess.mockImplementation(() => Effect.succeed(registryAccess)));
   const referenceLayer = OrgMetadataReferenceService.DefaultWithoutDependencies.pipe(
     Layer.provide(
