@@ -214,8 +214,7 @@ const fromKey = (key: string): WebConnectionKey => {
 
 const createDesktopConnection = Effect.fn('createDesktopConnection (cache miss)')(function* (username: string) {
   yield* Effect.annotateCurrentSpan({ username });
-  const authInfo = yield* createAuthInfoFromUsername(username);
-  return yield* createConnection(authInfo);
+  return yield* createAuthInfoFromUsername(username).pipe(Effect.flatMap(createConnection));
 });
 
 const desktopConnectionCache = Effect.runSync(
