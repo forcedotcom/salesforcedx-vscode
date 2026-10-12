@@ -7,7 +7,7 @@
 import type { CancellationToken } from '../types/cancellationToken';
 import type { Command } from '../types/command';
 import * as cross_spawn from 'cross-spawn';
-import { SpawnOptions } from 'node:child_process';
+import { type SpawnOptions } from 'node:child_process';
 import { TELEMETRY_HEADER } from '../constants';
 import { CliCommandExecution } from './cliCommandExecution';
 

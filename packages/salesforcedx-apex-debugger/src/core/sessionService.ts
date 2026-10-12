@@ -7,7 +7,7 @@
 
 import { CommandOutput } from '../cli/commandOutput';
 import { SfCommandBuilder } from '../cli/sfCommandBuilder';
-import { RequestService } from '../requestService/requestService';
+import { type RequestService } from '../requestService/requestService';
 import { CliCommandExecutor } from './cliCommandExecutor';
 
 export class SessionService {

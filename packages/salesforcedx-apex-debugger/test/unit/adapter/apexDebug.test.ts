@@ -8,9 +8,9 @@
 
 import { Org } from '@salesforce/core';
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
-import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
-import { OutputEvent, Source, StackFrame, StoppedEvent, ThreadEvent } from '@vscode/debugadapter';
-import { DebugProtocol } from '@vscode/debugprotocol';
+import { type LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
+import { type OutputEvent, Source, StackFrame, type StoppedEvent, type ThreadEvent } from '@vscode/debugadapter';
+import { type DebugProtocol } from '@vscode/debugprotocol';
 import * as AsyncLock from 'async-lock';
 import * as os from 'node:os';
 import { URI } from 'vscode-uri';
@@ -18,10 +18,10 @@ import {
   ApexDebugStackFrameInfo,
   ApexVariable,
   ApexVariableKind,
-  LaunchRequestArguments,
-  SetExceptionBreakpointsArguments
+  type LaunchRequestArguments,
+  type SetExceptionBreakpointsArguments
 } from '../../../src/adapter/apexDebug';
-import { LineBreakpointsInTyperef } from '../../../src/breakpoints/lineBreakpoint';
+import { type LineBreakpointsInTyperef } from '../../../src/breakpoints/lineBreakpoint';
 import { RunCommand, StateCommand, StepIntoCommand, StepOutCommand, StepOverCommand } from '../../../src/commands';
 import {
   DEFAULT_CONNECTION_TIMEOUT_MS,
@@ -39,15 +39,15 @@ import {
   TRIGGER_EXCEPTION_PREFIX
 } from '../../../src/constants';
 import {
-  ApexDebuggerEventType,
+  type ApexDebuggerEventType,
   BreakpointService,
-  DebuggerMessage,
+  type DebuggerMessage,
   SessionService,
   StreamingClientInfo,
-  StreamingEvent,
+  type StreamingEvent,
   StreamingService
 } from '../../../src/core';
-import { VscodeDebuggerMessage, VscodeDebuggerMessageType, WorkspaceSettings } from '../../../src/index';
+import { type VscodeDebuggerMessage, VscodeDebuggerMessageType, type WorkspaceSettings } from '../../../src/index';
 import { nls } from '../../../src/messages';
 import { RequestService } from '../../../src/requestService/requestService';
 import { ApexDebugForTest } from './apexDebugForTest';

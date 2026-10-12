@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as requestLight from 'request-light';
-import { XHROptions, XHRResponse } from 'request-light';
+import { type XHROptions, type XHRResponse } from 'request-light';
 import {
   DEFAULT_CONNECTION_TIMEOUT_MS,
   ENV_HTTPS_PROXY,

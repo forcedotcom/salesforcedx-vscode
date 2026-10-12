@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { XHROptions, XHRResponse } from 'request-light';
+import { type XHROptions, type XHRResponse } from 'request-light';
 import { BaseDebuggerCommand } from '../../../src/commands/baseDebuggerCommand';
-import { DebuggerRequest } from '../../../src/commands/protocol';
+import { type DebuggerRequest } from '../../../src/commands/protocol';
 import { CLIENT_ID, DEFAULT_CONNECTION_TIMEOUT_MS } from '../../../src/constants';
 import { RequestService } from '../../../src/requestService/requestService';
 

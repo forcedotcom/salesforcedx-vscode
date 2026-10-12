@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
-import { ApexBreakpointLocation, LineBreakpointsInTyperef } from '../breakpoints/lineBreakpoint';
+import { type ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
+import { type ApexBreakpointLocation, type LineBreakpointsInTyperef } from '../breakpoints/lineBreakpoint';
 import { CommandOutput } from '../cli/commandOutput';
 import { SfCommandBuilder } from '../cli/sfCommandBuilder';
-import { RequestService } from '../requestService/requestService';
+import { type RequestService } from '../requestService/requestService';
 import { CliCommandExecutor } from './cliCommandExecutor';
 
 export const DEBUGGER_BREAKPOINT_ID_PREFIX = '07b';

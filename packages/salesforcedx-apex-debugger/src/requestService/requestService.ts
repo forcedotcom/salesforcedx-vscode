@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { configure, xhr, XHROptions, XHRResponse } from 'request-light';
+import { configure, xhr, type XHROptions, type XHRResponse } from 'request-light';
 import {
   CLIENT_ID,
   DEFAULT_CONNECTION_TIMEOUT_MS,
@@ -14,7 +14,7 @@ import {
   ENV_SF_TARGET_ORG,
   ENV_SF_ORG_INSTANCE_URL
 } from '../constants';
-import { BaseCommand } from './baseCommand';
+import { type BaseCommand } from './baseCommand';
 
 // Right now have GET and POST (out of Query, GET, POST, PATCH, DELETE),
 // add any new ones needed as they are encountered. Note: when adding those

@@ -9,7 +9,7 @@ import { Client } from 'faye';
 import * as os from 'node:os';
 import { DEFAULT_STREAMING_TIMEOUT_MS } from '../constants';
 import { nls } from '../messages';
-import { RequestService } from '../requestService/requestService';
+import { type RequestService } from '../requestService/requestService';
 
 export type ApexDebuggerEventType =
   | 'ApexException'

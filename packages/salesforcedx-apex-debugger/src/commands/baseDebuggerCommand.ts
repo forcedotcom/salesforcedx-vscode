@@ -6,7 +6,7 @@
  */
 
 import { BaseCommand } from '../requestService/baseCommand';
-import { DebuggerRequest } from './protocol';
+import { type DebuggerRequest } from './protocol';
 
 const DEBUGGER_API_PATH = 'services/debug/v41.0';
 
