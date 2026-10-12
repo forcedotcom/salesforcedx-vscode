@@ -30,10 +30,14 @@ const aggregatorCreateMock = jest.mocked(ConfigAggregator.create);
 
 const MOCK_WORKSPACE_PATH = '/mock/workspace';
 
-const openMockWorkspace = (): void => {
+const openMockWorkspace = (
+  scheme = 'file',
+  fsPath = MOCK_WORKSPACE_PATH,
+  uriString = `file://${MOCK_WORKSPACE_PATH}`
+): void => {
   vscode.workspace.workspaceFolders = [
     {
-      uri: { scheme: 'file', fsPath: MOCK_WORKSPACE_PATH, toString: (): string => `file://${MOCK_WORKSPACE_PATH}` },
+      uri: { scheme, fsPath, toString: (): string => uriString },
       name: 'mock-workspace',
       index: 0
     }
@@ -85,10 +89,25 @@ describe('ConfigService.setTargetOrg', () => {
 // process.cwd() is the VS Code install folder when launched from the Windows Start menu (#8301),
 // so every local-config write must root at the workspace like getConfigAggregator does
 describe.each([
-  { method: 'setTargetOrg', write: () => ConfigService.setTargetOrg('MyAlias') },
-  { method: 'unsetTargetOrg', write: () => ConfigService.unsetTargetOrg() },
-  { method: 'unsetTargetDevHub', write: () => ConfigService.unsetTargetDevHub() }
-])('ConfigService.$method project root', ({ write }) => {
+  {
+    method: 'setTargetOrg',
+    write: () => ConfigService.setTargetOrg('MyAlias'),
+    mutation: setMock,
+    args: [OrgConfigProperties.TARGET_ORG, 'MyAlias']
+  },
+  {
+    method: 'unsetTargetOrg',
+    write: () => ConfigService.unsetTargetOrg(),
+    mutation: unsetMock,
+    args: [OrgConfigProperties.TARGET_ORG]
+  },
+  {
+    method: 'unsetTargetDevHub',
+    write: () => ConfigService.unsetTargetDevHub(),
+    mutation: unsetMock,
+    args: [OrgConfigProperties.TARGET_DEV_HUB]
+  }
+])('ConfigService.$method project root', ({ write, mutation, args }) => {
   beforeEach(() => {
     resetConfigMocks();
     openMockWorkspace();
@@ -99,6 +118,8 @@ describe.each([
 
     // bare root: Config appends .sf/config.json itself
     expect(createMock).toHaveBeenCalledWith(expect.objectContaining({ rootFolder: MOCK_WORKSPACE_PATH }));
+    expect(mutation).toHaveBeenCalledWith(...args);
+    expect(writeMock).toHaveBeenCalledTimes(1);
   });
 
   it('fails with NoWorkspaceOpenError and never creates a config when no workspace is open', async () => {
@@ -108,6 +129,54 @@ describe.each([
 
     expect(error).toBeInstanceOf(NoWorkspaceOpenError);
     expect(createMock).not.toHaveBeenCalled();
+  });
+});
+
+describe('ConfigService workspace root path', () => {
+  beforeEach(resetConfigMocks);
+
+  it('preserves a Windows drive path from the workspace fsPath', async () => {
+    openMockWorkspace('file', 'C:\\project', 'file:///C:/project');
+
+    await Effect.runPromise(ConfigService.setTargetOrg('MyAlias').pipe(Effect.provide(ConfigService.Default)));
+
+    expect(createMock).toHaveBeenCalledWith(expect.objectContaining({ rootFolder: 'C:\\project' }));
+  });
+
+  it('preserves the leading slash of a memfs workspace fsPath', async () => {
+    openMockWorkspace('memfs', '/project', 'memfs:/project');
+
+    await Effect.runPromise(ConfigService.setTargetOrg('MyAlias').pipe(Effect.provide(ConfigService.Default)));
+
+    expect(createMock).toHaveBeenCalledWith(expect.objectContaining({ rootFolder: '/project' }));
+  });
+});
+
+describe.each([
+  { method: 'unsetTargetOrg', write: () => ConfigService.unsetTargetOrg() },
+  { method: 'unsetTargetDevHub', write: () => ConfigService.unsetTargetDevHub() }
+])('ConfigService.$method errors', ({ write }) => {
+  beforeEach(() => {
+    resetConfigMocks();
+    openMockWorkspace();
+  });
+
+  it('wraps config creation failures in ConfigWriteError', async () => {
+    createMock.mockRejectedValueOnce(new Error('config unavailable'));
+
+    const error = await Effect.runPromise(write().pipe(Effect.provide(ConfigService.Default), Effect.flip));
+
+    expect(error).toBeInstanceOf(ConfigWriteError);
+    expect(error.message).toContain('config unavailable');
+  });
+
+  it('wraps config write failures in ConfigWriteError', async () => {
+    writeMock.mockRejectedValueOnce(new Error('disk full'));
+
+    const error = await Effect.runPromise(write().pipe(Effect.provide(ConfigService.Default), Effect.flip));
+
+    expect(error).toBeInstanceOf(ConfigWriteError);
+    expect(error.message).toContain('disk full');
   });
 });
 

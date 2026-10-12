@@ -23,8 +23,7 @@ const workspaceLayer = Layer.succeed(
         path: '',
         fsPath: '',
         isEmpty: true,
-        isVirtualFs: true,
-        cwd: '/'
+        isVirtualFs: true
       })
   } as unknown as WorkspaceService)
 );

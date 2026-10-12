@@ -74,8 +74,7 @@ const workspaceService = new WorkspaceService({
       path: workspaceUri.toString(),
       fsPath: workspaceUri.fsPath,
       isEmpty: false,
-      isVirtualFs: false,
-      cwd: workspaceUri.fsPath
+      isVirtualFs: false
     })
 } as unknown as WorkspaceService);
 

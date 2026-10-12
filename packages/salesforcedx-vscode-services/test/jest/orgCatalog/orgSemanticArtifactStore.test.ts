@@ -78,8 +78,7 @@ const makeHarness = () => {
         path: workspaceUri.toString(),
         fsPath: workspaceUri.fsPath,
         isEmpty: false,
-        isVirtualFs: false,
-        cwd: workspaceUri.fsPath
+        isVirtualFs: false
       })
   } as unknown as WorkspaceService);
   const run = <A, E>(effect: Effect.Effect<A, E, OrgSemanticArtifactStore>) =>

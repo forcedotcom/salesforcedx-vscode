@@ -12,7 +12,6 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { fsPrefix } from '../virtualFsProvider/constants';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { clearDefaultOrgRef, getDefaultOrgRef } from './defaultOrgRef';
 import { unknownToErrorCause } from './shared';
@@ -79,18 +78,11 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
       )
     );
 
-    /** Workspace root that local sf config is read from and written to. Never process.cwd(): that is the VS Code
-     * install folder when launched from the Windows Start menu. Pass it as Config's bare `rootFolder`; Config forces
-     * isState, so ConfigFile.getPath appends `.sf/config.json` itself. Annotates the caller's span. */
-    const getProjectPath = () =>
-      workspaceService.getWorkspaceInfoOrThrow().pipe(
-        Effect.map(({ path }) => path.replace(fsPrefix, '').replace(':/', '')),
-        Effect.tap(projectPath => Effect.annotateCurrentSpan({ projectPath }))
-      );
-
     /** Get a ConfigAggregator for the current workspace */
     const getConfigAggregator = Effect.fn('ConfigService.getConfigAggregator')(function* () {
-      const agg = yield* getProjectPath().pipe(Effect.flatMap(projectPath => configCache.get(projectPath)));
+      const projectPath = yield* workspaceService.getWorkspaceRootPath();
+      yield* Effect.annotateCurrentSpan({ projectPath });
+      const agg = yield* configCache.get(projectPath);
       // stateless when org can change: always reload only on desktop
       const reloadedAgg = yield* process.env.ESBUILD_PLATFORM === 'web'
         ? Effect.succeed(agg)
@@ -152,14 +144,11 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
 
     /** Sets target-org in local project config; caller must refresh defaultOrgRef via ConnectionService.getConnection(). */
     const setTargetOrg = Effect.fn('ConfigService.setTargetOrg')(function* (usernameOrAlias: string) {
-      const config = yield* getProjectPath().pipe(
-        Effect.flatMap(rootFolder =>
-          Effect.tryPromise({
-            try: () => Config.create({ ...Config.getDefaultOptions(), rootFolder }),
-            catch: configWriteCatch
-          })
-        )
-      );
+      const rootFolder = yield* workspaceService.getWorkspaceRootPath();
+      const config = yield* Effect.tryPromise({
+        try: () => Config.create({ ...Config.getDefaultOptions(), rootFolder }),
+        catch: configWriteCatch
+      });
       config.set(OrgConfigProperties.TARGET_ORG, usernameOrAlias);
       yield* Effect.tryPromise({ try: () => config.write(), catch: configWriteCatch });
       yield* invalidateConfigAggregator();
@@ -167,22 +156,26 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
 
     /** Unsets target-org from the local project config and clears the reactive org state */
     const unsetTargetOrg = Effect.fn('ConfigService.unsetTargetOrg')(function* () {
-      const config = yield* getProjectPath().pipe(
-        Effect.flatMap(rootFolder => Effect.promise(() => Config.create({ ...Config.getDefaultOptions(), rootFolder })))
-      );
+      const rootFolder = yield* workspaceService.getWorkspaceRootPath();
+      const config = yield* Effect.tryPromise({
+        try: () => Config.create({ ...Config.getDefaultOptions(), rootFolder }),
+        catch: configWriteCatch
+      });
       config.unset(OrgConfigProperties.TARGET_ORG);
-      yield* Effect.promise(() => config.write());
+      yield* Effect.tryPromise({ try: () => config.write(), catch: configWriteCatch });
       yield* invalidateConfigAggregator();
       yield* clearDefaultOrgRef();
     });
 
     /** Unsets target-dev-hub from the local project config */
     const unsetTargetDevHub = Effect.fn('ConfigService.unsetTargetDevHub')(function* () {
-      const config = yield* getProjectPath().pipe(
-        Effect.flatMap(rootFolder => Effect.promise(() => Config.create({ ...Config.getDefaultOptions(), rootFolder })))
-      );
+      const rootFolder = yield* workspaceService.getWorkspaceRootPath();
+      const config = yield* Effect.tryPromise({
+        try: () => Config.create({ ...Config.getDefaultOptions(), rootFolder }),
+        catch: configWriteCatch
+      });
       config.unset(OrgConfigProperties.TARGET_DEV_HUB);
-      yield* Effect.promise(() => config.write());
+      yield* Effect.tryPromise({ try: () => config.write(), catch: configWriteCatch });
       yield* invalidateConfigAggregator();
     });
 

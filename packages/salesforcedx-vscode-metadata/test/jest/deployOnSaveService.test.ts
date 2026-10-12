@@ -48,8 +48,7 @@ const createMockWorkspaceService = (fsPath: string, isVirtualFs = false): Worksp
         path: workspacePath,
         fsPath,
         isEmpty: false,
-        isVirtualFs,
-        cwd: fsPath
+        isVirtualFs
       }),
     getWorkspaceInfoOrThrow: () =>
       Effect.succeed({
@@ -58,13 +57,13 @@ const createMockWorkspaceService = (fsPath: string, isVirtualFs = false): Worksp
         fsPath,
         isEmpty: false,
         isVirtualFs,
-        cwd: fsPath,
         workspaceFolder: {
           uri: { fsPath },
           name: 'workspace',
           index: 0
         }
-      })
+      }),
+    getWorkspaceRootPath: () => Effect.succeed(fsPath)
   });
 };
 

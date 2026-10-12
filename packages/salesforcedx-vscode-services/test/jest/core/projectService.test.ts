@@ -27,8 +27,7 @@ const workspaceInfo = (uri: URI) => ({
   path: uri.toString(),
   fsPath: uri.fsPath,
   isEmpty: false as const,
-  isVirtualFs: uri.scheme !== 'file',
-  cwd: uri.fsPath
+  isVirtualFs: uri.scheme !== 'file'
 });
 
 const workspaceLayer = (uri: URI | undefined) =>
@@ -43,8 +42,7 @@ const workspaceLayer = (uri: URI | undefined) =>
               path: '',
               fsPath: '',
               isEmpty: true as const,
-              isVirtualFs: false,
-              cwd: ''
+              isVirtualFs: false
             }),
       getWorkspaceInfoOrThrow: () =>
         uri
