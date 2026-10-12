@@ -138,4 +138,30 @@ describe('languageServer client span', () => {
     expect(first.ended).toBe(true);
     expect(spans[1].ended).toBe(false);
   });
+
+  it('handleDiagnostics sets source when missing and preserves existing source', async () => {
+    await runCreateLanguageServer(mockContext);
+    const clientOptions = (ApexLanguageClient as unknown as jest.Mock).mock.calls[0][3] as {
+      middleware: {
+        handleDiagnostics: (
+          uri: vscode.Uri,
+          diagnostics: vscode.Diagnostic[],
+          next: (uri: vscode.Uri, diagnostics: vscode.Diagnostic[]) => void
+        ) => void;
+      };
+    };
+    const handleDiagnostics = clientOptions.middleware.handleDiagnostics;
+    expect(handleDiagnostics).toEqual(expect.any(Function));
+
+    const uri = vscode.Uri.file('/tmp/Demo.cls');
+    const withoutSource = { message: 'Unknown method', source: undefined } as vscode.Diagnostic;
+    const withSource = { message: 'Other', source: 'Custom' } as vscode.Diagnostic;
+    const next = jest.fn();
+
+    handleDiagnostics(uri, [withoutSource, withSource], next);
+
+    expect(withoutSource.source).toBe('Apex Language Server');
+    expect(withSource.source).toBe('Custom');
+    expect(next).toHaveBeenCalledWith(uri, [withoutSource, withSource]);
+  });
 });
