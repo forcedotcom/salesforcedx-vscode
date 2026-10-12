@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OrgAuthorization } from '@salesforce/core';
+import { type OrgAuthorization } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';

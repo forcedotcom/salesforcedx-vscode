@@ -9,7 +9,7 @@ import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from
 import type { SalesforceVSCodeOrgApi } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import { orgListCleanCommand, orgLoginWebCommand, orgLogoutAllCommand, orgLogoutDefaultCommand } from './commands';
 import { aliasListCommand } from './commands/aliasList';
 import { orgLoginAccessTokenCommand } from './commands/auth/orgLoginAccessToken';

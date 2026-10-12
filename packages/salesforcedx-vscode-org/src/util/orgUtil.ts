@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthFields, AuthInfo, AuthRemover, OrgAuthorization, StateAggregator } from '@salesforce/core';
-import { Column, createTable, Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { type AuthFields, AuthInfo, AuthRemover, type OrgAuthorization, StateAggregator } from '@salesforce/core';
+import { type Column, createTable, type Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { ICONS } from '@salesforce/vscode-services';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';

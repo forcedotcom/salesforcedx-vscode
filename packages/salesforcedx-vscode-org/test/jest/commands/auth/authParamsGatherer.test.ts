@@ -20,7 +20,7 @@ import {
   gatherAuthParams
 } from '../../../../src/commands/auth/authParamsGatherer';
 import {
-  buildAllServicesLayer,
+  type buildAllServicesLayer,
   getOrgRuntime,
   resetOrgRuntimeForTesting,
   setAllServicesLayer

@@ -13,7 +13,7 @@ import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { nls } from '../messages';
-import { gather, OrgToDelete } from '../parameterGatherers/selectDeletableOrg';
+import { gather, type OrgToDelete } from '../parameterGatherers/selectDeletableOrg';
 import { ConfigRefreshError, updateConfigAndStateAggregators } from '../util/orgUtil';
 import { type ProgressOnlyCommandKey } from '../utils/notificationMode';
 

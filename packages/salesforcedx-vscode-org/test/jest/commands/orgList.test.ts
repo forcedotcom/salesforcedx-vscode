@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthRemover, OrgAuthorization } from '@salesforce/core';
+import { AuthRemover, type OrgAuthorization } from '@salesforce/core';
 import { createTable, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';

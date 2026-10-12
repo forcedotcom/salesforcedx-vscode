@@ -6,11 +6,11 @@
  */
 
 import {
-  Column,
+  type Column,
   createTable,
   ExtensionProviderService,
   identifyJsonTypeInString,
-  Row
+  type Row
 } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
