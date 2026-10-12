@@ -143,7 +143,7 @@ describe('languageServer client span', () => {
 
   it('handleDiagnostics sets source when missing and preserves existing source', async () => {
     await runCreateLanguageServer(mockContext);
-    const clientOptions = (ApexLanguageClient as unknown as jest.Mock).mock.calls[0][3] as {
+    const clientOptions = (ApexLanguageClient as unknown as VitestMock).mock.calls[0][3] as {
       middleware: {
         handleDiagnostics: NonNullable<Middleware['handleDiagnostics']>;
       };
@@ -154,7 +154,7 @@ describe('languageServer client span', () => {
     const uri = URI.file('/tmp/Demo.cls');
     const withoutSource = { message: 'Unknown method', source: undefined } as vscode.Diagnostic;
     const withSource = { message: 'Other', source: 'Custom' } as vscode.Diagnostic;
-    const next = jest.fn();
+    const next = vi.fn();
 
     handleDiagnostics(uri, [withoutSource, withSource], next);
 
