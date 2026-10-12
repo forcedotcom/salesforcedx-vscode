@@ -13,9 +13,8 @@ import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { orgDisplayDefaultCommand, orgDisplayUsernameCommand } from '../../../src/commands/orgDisplay';
 
-// Both commands shell out to `sf org display --json` via TerminalService.simpleExec (mirrors
-// orgCreate/orgOpen); the picker is mocked so the tests assert command construction, table
-// rendering from the CLI JSON, and the failure/parse branches.
+// Both commands use Org Display for metadata and the dedicated auth commands for credentials.
+// The picker is mocked so the tests assert command construction, table rendering, and failures.
 const gatherOrgForDisplay = vi.fn();
 vi.mock('../../../src/parameterGatherers/selectOrgForDisplay', () => ({
   gatherOrgForDisplay: () => gatherOrgForDisplay()
@@ -59,6 +58,14 @@ const NON_SCRATCH_RESULT = {
 };
 
 const stdoutFor = (result: Record<string, unknown>) => JSON.stringify({ status: 0, result });
+const TOKEN = 'real-access-token';
+const PASSWORD = 'real-password';
+const cliResponse = (args: readonly string[], displayResult: Record<string, unknown> = SCRATCH_RESULT) =>
+  args[2] === 'show-access-token'
+    ? stdoutFor({ accessToken: TOKEN })
+    : args[2] === 'show-user-password'
+      ? JSON.stringify({ status: 1, code: 'NoPasswordError', message: 'No password found' })
+      : stdoutFor(displayResult);
 
 type OrgSnapshot = { orgId?: string; username?: string };
 
@@ -117,7 +124,7 @@ describe('orgDisplayDefaultCommand', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    simpleExec = vi.fn(() => Effect.succeed(stdoutFor(SCRATCH_RESULT)));
+    simpleExec = vi.fn(({ args }: { args: string[] }) => Effect.succeed(cliResponse(args)));
     appendToChannel = vi.fn();
     show = vi.fn();
   });
@@ -136,7 +143,81 @@ describe('orgDisplayDefaultCommand', () => {
     expect(appendToChannel.mock.calls[0][0]).toContain('Connected Status');
     expect(appendToChannel.mock.calls[0][0]).toContain('Dev Hub Id');
     expect(appendToChannel.mock.calls[0][0]).toContain('me@scratch.org');
+    expect(appendToChannel.mock.calls[0][0]).toContain(TOKEN);
+    expect(appendToChannel.mock.calls[0][0]).not.toContain('[REDACTED]');
+    expect(simpleExec).toHaveBeenCalledWith(
+      expect.objectContaining({
+        args: ['org', 'auth', 'show-access-token', '--target-org', 'me@scratch.org', '--json']
+      })
+    );
+    expect(simpleExec).toHaveBeenCalledWith(
+      expect.objectContaining({ args: ['org', 'auth', 'show-user-password', '--target-org', 'me@scratch.org', '--json'] })
+    );
+    expect(appendToChannel.mock.calls[0][0]).toMatch(/^Password\s*$/m);
     expect(show).toHaveBeenCalledTimes(1);
+  });
+
+  it('reveals a stored scratch-org password even when org display omits it', async () => {
+    simpleExec = vi.fn(({ args }: { args: string[] }) =>
+      Effect.succeed(args[2] === 'show-user-password' ? stdoutFor({ password: PASSWORD }) : cliResponse(args))
+    );
+
+    const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(simpleExec).toHaveBeenCalledWith(
+      expect.objectContaining({
+        args: ['org', 'auth', 'show-user-password', '--target-org', 'me@scratch.org', '--json']
+      })
+    );
+    expect(appendToChannel.mock.calls[0][0]).toContain(PASSWORD);
+    expect(appendToChannel.mock.calls[0][0]).not.toContain('[REDACTED]');
+  });
+
+  it('reports an unexpected password command failure instead of rendering a table', async () => {
+    simpleExec = vi.fn(({ args }: { args: string[] }) =>
+      Effect.succeed(
+        args[2] === 'show-user-password'
+          ? JSON.stringify({ status: 1, code: 'AuthError', message: 'Password lookup failed' })
+          : cliResponse(args)
+      )
+    );
+
+    const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(appendToChannel).toHaveBeenCalledWith('Password lookup failed');
+  });
+
+  it.each(['show-access-token', 'show-user-password'])('names org auth in malformed %s output errors', async command => {
+    simpleExec = vi.fn(({ args }: { args: string[] }) =>
+      Effect.succeed(args[2] === command ? 'not json' : cliResponse(args))
+    );
+
+    const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
+
+    expect(Exit.isFailure(exit)).toBe(true);
+    if (Exit.isFailure(exit)) {
+      expect(JSON.stringify(exit.cause)).toContain('processing the org auth response');
+      expect(JSON.stringify(exit.cause)).not.toContain('processing the org display response');
+    }
+    expect(appendToChannel).not.toHaveBeenCalled();
+  });
+
+  it('reports a credential command failure instead of rendering a table with a redacted token', async () => {
+    simpleExec = vi.fn(({ args }: { args: string[] }) =>
+      Effect.succeed(
+        args[2] === 'show-access-token'
+          ? JSON.stringify({ status: 1, message: 'No authorization information found' })
+          : cliResponse(args)
+      )
+    );
+
+    const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
+
+    expect(Exit.isSuccess(exit)).toBe(true);
+    expect(appendToChannel).toHaveBeenCalledWith('No authorization information found');
+    expect(appendToChannel.mock.calls[0][0]).not.toContain('Org Description');
   });
 
   it('wraps the sf round-trip in a cancellable progress notification', async () => {
@@ -158,7 +239,7 @@ describe('orgDisplayDefaultCommand', () => {
   });
 
   it('renders the non-scratch table (connectedStatus, no scratch block)', async () => {
-    simpleExec = vi.fn(() => Effect.succeed(stdoutFor(NON_SCRATCH_RESULT)));
+    simpleExec = vi.fn(({ args }: { args: string[] }) => Effect.succeed(cliResponse(args, NON_SCRATCH_RESULT)));
 
     const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
 
@@ -167,6 +248,10 @@ describe('orgDisplayDefaultCommand', () => {
     expect(table).toContain('Connected');
     expect(table).not.toContain('Dev Hub Id');
     expect(table).not.toContain('Expiration Date');
+    expect(table).toContain(TOKEN);
+    expect(simpleExec).not.toHaveBeenCalledWith(
+      expect.objectContaining({ args: expect.arrayContaining(['show-user-password']) })
+    );
   });
 
   it('fails (getSfProject) without exec when not in a project', async () => {
@@ -224,8 +309,8 @@ describe('orgDisplayDefaultCommand', () => {
 
   it('renders the table when stdout is prefixed with a CLI warning line', async () => {
     // sf can prepend non-JSON warning lines even with --json + SF_JSON_TO_STDOUT (seen on macOS CI).
-    simpleExec = vi.fn(() =>
-      Effect.succeed(`Warning: The following orgs expire in the next 5 days:\n${stdoutFor(SCRATCH_RESULT)}`)
+    simpleExec = vi.fn(({ args }: { args: string[] }) =>
+      Effect.succeed(`Warning: The following orgs expire in the next 5 days:\n${cliResponse(args)}`)
     );
 
     const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
@@ -253,7 +338,7 @@ describe('orgDisplayUsernameCommand', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    simpleExec = vi.fn(() => Effect.succeed(stdoutFor(SCRATCH_RESULT)));
+    simpleExec = vi.fn(({ args }: { args: string[] }) => Effect.succeed(cliResponse(args)));
     appendToChannel = vi.fn();
     show = vi.fn();
     gatherOrgForDisplay.mockReturnValue(Effect.succeed({ username: 'me@scratch.org' }));
@@ -269,6 +354,12 @@ describe('orgDisplayUsernameCommand', () => {
       parse: expect.any(Function)
     });
     expect(appendToChannel.mock.calls[0][0]).toContain('Username');
+    expect(appendToChannel.mock.calls[0][0]).toContain(TOKEN);
+    expect(simpleExec).toHaveBeenCalledWith(
+      expect.objectContaining({
+        args: ['org', 'auth', 'show-access-token', '--target-org', 'me@scratch.org', '--json']
+      })
+    );
     expect(show).toHaveBeenCalledTimes(1);
   });
 
