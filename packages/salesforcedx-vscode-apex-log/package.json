@@ -7,7 +7,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "67.27.6",
+  "version": "68.1.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -27,16 +27,16 @@
   "types": "./out/src/index.d.ts",
   "browser": "./dist/web/index.js",
   "dependencies": {
-    "@salesforce/effect-ext-utils": "*",
+    "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/types": "^1.8.0",
-    "@salesforce/vscode-i18n": "*",
+    "@salesforce/vscode-i18n": "workspace:*",
     "effect": "^3.21.2",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@salesforce/core": "^9.3.0",
-    "@salesforce/playwright-vscode-ext": "*",
-    "salesforcedx-vscode-services": "*"
+    "@salesforce/playwright-vscode-ext": "workspace:*",
+    "salesforcedx-vscode-services": "workspace:*"
   },
   "scripts": {
     "preinstall": "node ../../scripts/require-root-install.js",

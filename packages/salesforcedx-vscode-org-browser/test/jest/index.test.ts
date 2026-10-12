@@ -160,6 +160,7 @@ const MockSettingsServiceLayer = Layer.succeed(
     getInstanceUrl: () => Effect.succeed('https://test.salesforce.com'),
     getAccessToken: () => Effect.succeed(Redacted.make('mock-token')),
     getApiVersion: () => Effect.succeed('60.0'),
+    getSessionContext: () => Effect.succeed({ isDevHub: false, isScratch: false, isSandbox: false }),
     setInstanceUrl: (_url: string) =>
       Effect.tryPromise({
         try: async () => undefined,

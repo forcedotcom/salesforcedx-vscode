@@ -20,13 +20,12 @@ import {
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   verifyCommandExists,
-  waitForOutputChannelText,
   waitForRunApexTestsProgressNotificationGone
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
-import { TEST_RUN_TIMEOUT } from '../constants';
+import { TEST_RUN_TIMEOUT, TEST_SETUP_TIMEOUT } from '../constants';
 import {
   CMD_RUN_ALL_TESTS,
   CMD_TOGGLE_MAXIMIZED_PANEL,
@@ -38,9 +37,10 @@ import {
   openTestExplorerAndDiscover,
   verifyNoTestRunInProgress
 } from '../helpers/testExplorerHelpers';
+import { waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
 
 test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page }) => {
-  test.setTimeout(TEST_RUN_TIMEOUT);
+  test.setTimeout(TEST_SETUP_TIMEOUT + TEST_RUN_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -131,7 +131,7 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
 
     // Explorer run path must emit the completion sentinel to the Apex Testing channel.
     await selectOutputChannel(page, 'Apex Testing');
-    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests', timeout: TEST_RUN_TIMEOUT });
+    await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
     await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.class-run-done.png');
   });
@@ -160,7 +160,7 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
 
     await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
     await selectOutputChannel(page, 'Apex Testing');
-    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests', timeout: TEST_RUN_TIMEOUT });
+    await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
     await expect(findTestExplorerItem(page, 'shouldDiscoverThisTest')).toHaveAttribute('aria-label', /Passed/i, {
       timeout: TEST_RUN_TIMEOUT
     });
@@ -179,9 +179,9 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     await saveScreenshot(page, 'step.rerun-last-method.after-command.png');
     await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
     await selectOutputChannel(page, 'Apex Testing');
-    await waitForOutputChannelText(page, { expectedText: '=== Test Summary', timeout: TEST_RUN_TIMEOUT });
-    await waitForOutputChannelText(page, { expectedText: `${testClassName}.shouldDiscoverThisTest` });
-    await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
+    await waitForApexRunOutputLine(page, '=== Test Summary');
+    await waitForApexRunOutputLine(page, `${testClassName}.shouldDiscoverThisTest`);
+    await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
     await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.rerun-last-method.done.png');
   });

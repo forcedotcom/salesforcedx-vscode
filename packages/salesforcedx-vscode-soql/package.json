@@ -10,7 +10,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "67.27.6",
+  "version": "68.1.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -36,13 +36,13 @@
   ],
   "dependencies": {
     "@jsforce/jsforce-node": "^3.10.24",
-    "@salesforce/effect-ext-utils": "*",
-    "@salesforce/soql-builder-ui": "*",
-    "@salesforce/soql-common": "*",
+    "@salesforce/effect-ext-utils": "workspace:*",
+    "@salesforce/soql-builder-ui": "workspace:*",
+    "@salesforce/soql-common": "workspace:*",
     "@salesforce/soql-language-server": "^1.1.0",
-    "@salesforce/soql-model": "*",
-    "@salesforce/vscode-i18n": "*",
-    "@salesforce/vscode-services": "*",
+    "@salesforce/soql-model": "workspace:*",
+    "@salesforce/vscode-i18n": "workspace:*",
+    "@salesforce/vscode-services": "workspace:*",
     "antlr4ts": "^0.5.0-alpha.3",
     "debounce": "^2.2.0",
     "effect": "^3.21.2",
@@ -67,12 +67,12 @@
     "@salesforce/core": "^9.3.0",
     "@salesforce/eslint-config-lwc": "^4.1.2",
     "@salesforce/eslint-plugin-lightning": "^2.0.0",
-    "@salesforce/playwright-vscode-ext": "*",
+    "@salesforce/playwright-vscode-ext": "workspace:*",
     "@types/debounce": "^1.2.0",
     "@types/papaparse": "^5.2.3",
     "jest-environment-jsdom": "^30.4.1",
     "rollup": "^4.0.0",
-    "salesforcedx-vscode-services": "*"
+    "salesforcedx-vscode-services": "workspace:*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
