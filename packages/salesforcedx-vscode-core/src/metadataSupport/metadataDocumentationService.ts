@@ -39,6 +39,39 @@ const logXsdLoadFailure = (error: { readonly message: string }) =>
   Effect.logError('Error loading XSD documentation - no metadata documentation will be available', { error });
 
 /**
+ * Append fields inherited through `xsd:extension base` to each type's own fields.
+ * A type's own declaration of a field takes precedence over an inherited one.
+ */
+export const resolveInheritedFields = (
+  documentationMap: Map<string, MetadataTypeDocumentation>,
+  baseTypes: ReadonlyMap<string, string>
+): void => {
+  const resolved = new Map<string, MetadataFieldInfo[]>();
+
+  const resolve = (typeName: string, visiting: ReadonlySet<string>): MetadataFieldInfo[] => {
+    const cached = resolved.get(typeName);
+    if (cached) return cached;
+
+    const ownFields = documentationMap.get(typeName)?.fields ?? [];
+    const baseType = baseTypes.get(typeName);
+    if (!baseType || visiting.has(baseType)) return ownFields;
+
+    const ownNames = new Set(ownFields.map(f => f.name));
+    const inheritedFields = resolve(baseType, new Set([...visiting, typeName])).filter(f => !ownNames.has(f.name));
+    const allFields = [...ownFields, ...inheritedFields];
+    resolved.set(typeName, allFields);
+    return allFields;
+  };
+
+  // Resolve everything before assigning so each lookup reads the original own fields
+  const allResolved = [...documentationMap.keys()].map(typeName => [typeName, resolve(typeName, new Set())] as const);
+  for (const [typeName, fields] of allResolved) {
+    const doc = documentationMap.get(typeName);
+    if (doc) doc.fields = fields;
+  }
+};
+
+/**
  * Load metadata documentation from the Salesforce metadata XSD file
  * This reads descriptions directly from the official XSD schema
  */
@@ -96,11 +129,18 @@ const loadMetadataDocumentation = Effect.fn('MetadataDocumentationService.loadMe
       ? schema['xsd:complexType']
       : [schema['xsd:complexType']];
 
+    const baseTypes = new Map<string, string>();
+
     for (const complexType of complexTypes) {
       if (!complexType['@_name']) continue;
 
       const typeName = complexType['@_name'];
       const annotation = complexType['xsd:annotation'];
+
+      const baseType = complexType['xsd:complexContent']?.['xsd:extension']?.['@_base'];
+      if (isString(baseType)) {
+        baseTypes.set(typeName, baseType);
+      }
 
       let description = '';
       let developerGuideUrl = '';
@@ -131,6 +171,8 @@ const loadMetadataDocumentation = Effect.fn('MetadataDocumentationService.loadMe
         developerGuideUrls: developerGuideUrl ? [developerGuideUrl] : []
       });
     }
+
+    resolveInheritedFields(documentationMap, baseTypes);
   },
   Effect.catchTags({
     FsServiceError: logXsdLoadFailure,
