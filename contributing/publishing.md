@@ -167,7 +167,7 @@ node scripts/update-release-versions.js 68.1.0
 
 Nightly's own version-bump logic always enforces an odd minor (see `vscode-publish-extensions.yml`'s `bump-versions` job): if you set the baseline to an even minor like `68.0.0`, the very next nightly run silently corrects it to `68.1.0` on its own anyway. Set it to the odd value directly so the PR's diff matches what actually ships.
 
-After merge, nightlies build from that baseline and tag `v68.1.0-nightly.develop.YYYYMMDD`, incrementing patch each night (`68.1.1`, `68.1.2`, ...) unless a `feat:`/breaking commit forces another minor bump.
+After merge, nightlies build from that baseline and tag `v68.1.0-nightly.develop.YYYYMMDD`, incrementing patch each night (`68.1.1`, `68.1.2`, ...).
 
 **Step 2: Build release with manual override**
 
