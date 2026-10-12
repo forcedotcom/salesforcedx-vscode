@@ -15,11 +15,11 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 /**
- * Exact tree-item name match, tolerant of VS Code's `"<label>, has actions"` suffix
- * (1.125+) on rows with hover actions. Matches "CustomObject", not "CustomObjectTranslation".
+ * Match a tree item's name before VS Code's ", has actions" suffix or a custom
+ * field's " | type | details" label. Matches "CustomObject", not "CustomObjectTranslation".
  */
 const exactTreeItemName = (name: string): RegExp =>
-  new RegExp(`^${name.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')}(,|$)`);
+  new RegExp(`^${name.replaceAll(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?:,| \\||$)`);
 
 /**
  * Page Object Model for the Org Browser extension in VS Code web
@@ -192,9 +192,10 @@ export class OrgBrowserPage {
   }
 
   /**
-   * Get a specific metadata item under a metadata type
-   * @param metadataType The parent metadata type (e.g., 'CustomObject', 'AIApplication')
-   * @param itemName The specific metadata item name (e.g., 'Account', 'Broker__c')
+   * Get a specific metadata item under its parent at the requested tree depth.
+   * @param metadataType The parent row name (e.g., 'CustomObject', 'Broker__c')
+   * @param itemName The child row name (e.g., 'Broker__c', 'Email__c')
+   * @param level The child's aria level (defaults to 2)
    * @returns The locator for the metadata item
    */
   public async getMetadataItem(metadataType: string, itemName: string, level = 2): Promise<Locator> {
