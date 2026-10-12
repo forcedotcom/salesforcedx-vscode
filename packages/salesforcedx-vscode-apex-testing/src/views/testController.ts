@@ -34,6 +34,8 @@ export class ApexTestController {
   private suiteTag: vscode.TestTag | undefined;
   private staleTag: vscode.TestTag | undefined;
   private readonly sessionStartTime = Date.now();
+  private discoveryRequested = false;
+  private initialResolutionPromise: Promise<void> | undefined;
 
   constructor() {
     this.controller = vscode.tests.createTestController(TEST_CONTROLLER_ID, nls.localize('test_view_name'));
@@ -56,12 +58,44 @@ export class ApexTestController {
 
   private refreshPromise: Promise<void> | undefined;
 
+  public isDiscoveryRequested(): boolean {
+    return this.discoveryRequested;
+  }
+
+  private async resolveInitialTests(): Promise<void> {
+    if (this.initialResolutionPromise) {
+      await this.initialResolutionPromise;
+      return;
+    }
+    if (this.discoveryRequested) {
+      await this.refreshPromise;
+      return;
+    }
+    this.initialResolutionPromise = getApexTestingRuntime()
+      .runPromise(
+        Effect.gen(function* () {
+          const api = yield* (yield* ExtensionProviderService).getServicesApi;
+          return (yield* SubscriptionRef.get(yield* api.services.TargetOrgRef())).orgId;
+        })
+      )
+      .then(orgId => {
+        if (this.discoveryRequested) return this.refreshPromise;
+        this.discoveryRequested = true;
+        return orgId ? this.refresh() : undefined;
+      })
+      .finally(() => {
+        this.initialResolutionPromise = undefined;
+      });
+    await this.initialResolutionPromise;
+  }
+
   /**
    * Refresh the test tree. Concurrent calls join the in-flight refresh rather than
    * starting a second one — a concurrent resetState() mid-discovery would invalidate
    * the connection and leave the tree permanently empty.
    */
   public refresh(): Promise<void> {
+    this.discoveryRequested = true;
     this.refreshPromise ??= this.doRefresh().finally(() => {
       this.refreshPromise = undefined;
     });
@@ -220,11 +254,11 @@ export class ApexTestController {
     };
   }
 
-  /** Sets up the resolve handler for the TestController to lazily load suite children when expanded */
+  /** Loads the initial tree on demand, then resolves suite children when expanded. */
   private setupResolveHandler(): void {
     this.controller.resolveHandler = async (test: vscode.TestItem | undefined) => {
       if (!test) {
-        // Resolve all top-level items
+        await this.resolveInitialTests();
         return;
       }
 
@@ -313,6 +347,7 @@ export class ApexTestController {
     isDebug: boolean,
     runScope: ApexTestRunScope
   ): Promise<void> {
+    if (!this.discoveryRequested && !request.include?.length) await this.refresh();
     await getApexTestingRuntime().runPromise(
       ApexTestExecutionService.runTests(this.buildExecutionContext(), request, token, isDebug, runScope)
     );

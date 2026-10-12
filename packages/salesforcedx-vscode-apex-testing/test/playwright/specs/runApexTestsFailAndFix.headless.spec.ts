@@ -105,12 +105,6 @@ const runAccountServiceTestViaPalette = async (page: Page): Promise<void> => {
       await saveScreenshot(page, 'setup.account-service-test-deployed.png');
     });
 
-    await test.step('clear Apex Testing output before failing run', async () => {
-      await ensureOutputPanelOpen(page);
-      await selectOutputChannel(page, 'Apex Testing');
-      await clearOutputChannel(page);
-    });
-
     await test.step('run AccountServiceTest via Command Palette (expected to fail)', async () => {
       await runAccountServiceTestViaPalette(page);
       await saveScreenshot(page, 'step.fail.test-started.png');
@@ -131,6 +125,7 @@ const runAccountServiceTestViaPalette = async (page: Page): Promise<void> => {
       await saveScreenshot(page, 'step.fail.assert-failed.png');
       // Restore panel before continuing
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
+      await clearOutputChannel(page);
       await verifyNoTestRunInProgress(page);
       // A run with failing tests still completes, so it shows the same "successfully ran" toast as a passing
       // run. Clear it so it isn't re-matched (and possibly re-clicked) when we verify the passing run's toast.
@@ -163,12 +158,6 @@ const runAccountServiceTestViaPalette = async (page: Page): Promise<void> => {
         await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: TEST_RUN_TIMEOUT });
       }
       await saveScreenshot(page, 'step.fix.redeployed.png');
-    });
-
-    await test.step('clear Apex Testing output before passing run', async () => {
-      await ensureOutputPanelOpen(page);
-      await selectOutputChannel(page, 'Apex Testing');
-      await clearOutputChannel(page);
     });
 
     await test.step('rerun AccountServiceTest (expected to pass)', async () => {

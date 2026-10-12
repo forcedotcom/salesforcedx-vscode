@@ -114,6 +114,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
           readonly fullName: string;
           readonly namespacePrefix?: string;
           readonly lastModifiedDate?: string;
+          readonly documentUri?: URI;
           readonly workspaceUri?: URI;
         }[]
       ) {
@@ -121,7 +122,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
         yield* state.ensureHydrated(orgId);
         const observedAt = new Date().toISOString();
         const documentUris = yield* Effect.forEach(
-          components,
+          components.filter(component => !component.documentUri),
           component =>
             referenceService
               .documentUri({ orgId, xmlName: component.type, fullName: component.fullName })
@@ -146,6 +147,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
                   : provenance,
               reference,
               documentUri:
+                component.documentUri ??
                 Option.getOrUndefined(HashMap.get(documentUris, `${component.type}\0${component.fullName}`)) ??
                 previous!.documentUri,
               name: previous?.name ?? component.fullName.split('/').at(-1) ?? component.fullName,

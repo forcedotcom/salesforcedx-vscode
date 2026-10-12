@@ -45,6 +45,7 @@ export const initializeTestDiscovery = Effect.fn('apex-testing.initializeTestDis
         targetOrgRef.changes.pipe(
           Stream.map(org => org.orgId),
           Stream.changes,
+          Stream.filter(() => testController.isDiscoveryRequested()),
           Stream.runForEach(orgId =>
             isString(orgId)
               ? channelService
@@ -57,6 +58,7 @@ export const initializeTestDiscovery = Effect.fn('apex-testing.initializeTestDis
       Effect.forkDaemon(
         catalogChanges.pipe(
           Stream.fromPubSub<OrgMetadataCatalogChange>,
+          Stream.filter(() => testController.isDiscoveryRequested()),
           Stream.filter(
             (change): change is Extract<OrgMetadataCatalogChange, { kind: 'workspace' }> => change.kind === 'workspace'
           ),

@@ -70,11 +70,6 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
     await createAndDeployApexTestClass(page, testClassName2, testClassContent2);
   });
 
-  await test.step('clear output before run-single', async () => {
-    await clearOutputChannel(page);
-    await saveScreenshot(page, 'step.output-cleared.png');
-  });
-
   await test.step('run single test class via command palette', async () => {
     await executeCommandWithCommandPalette(page, packageNls.apex_test_run_text);
     await saveScreenshot(page, 'step.run-single.after-command.png');
@@ -94,12 +89,12 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
     await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
     await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.run-single.done.png');
+    await clearOutputChannel(page);
   });
 
   await test.step('re-run last class populated by the single-class palette run', async () => {
     // Single-class palette run set sf:has_cached_test_class; the Re-Run Last Class command's when-clause is gated on it.
     await verifyCommandExists(page, packageNls.apex_test_last_class_run_text);
-    await clearOutputChannel(page);
     await executeCommandWithCommandPalette(page, packageNls.apex_test_last_class_run_text);
     await saveScreenshot(page, 'step.rerun-last-class.after-command.png');
     await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
@@ -110,9 +105,6 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
     await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
     await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.rerun-last-class.done.png');
-  });
-
-  await test.step('clear output before running all tests', async () => {
     await clearOutputChannel(page);
   });
 

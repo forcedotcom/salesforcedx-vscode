@@ -58,12 +58,6 @@ import { waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
       await saveScreenshot(page, 'setup.code-lens-class-created.png');
     });
 
-    await test.step('clear output before Run All Tests via code lens', async () => {
-      await ensureOutputPanelOpen(page);
-      await selectOutputChannel(page, 'Apex Testing');
-      await clearOutputChannel(page);
-    });
-
     await test.step('click Run All Tests code lens (class-level)', async () => {
       await clickCodeLens(page, 'Run All Tests', { timeout: 180_000 });
       await saveScreenshot(page, 'step.run-all.code-lens-clicked.png');
@@ -84,11 +78,6 @@ import { waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
       await saveScreenshot(page, 'step.run-all.done.png');
       // Restore panel before next step
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
-    });
-
-    await test.step('clear output before Run Test (single method) via code lens', async () => {
-      await ensureOutputPanelOpen(page);
-      await selectOutputChannel(page, 'Apex Testing');
       await clearOutputChannel(page);
     });
 
@@ -112,17 +101,12 @@ import { waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
       await saveScreenshot(page, 'step.run-single.done.png');
       // Restore panel before next step
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
+      await clearOutputChannel(page);
     });
 
     // The Run All Tests / Run Test code lenses above populated the class/method re-run caches,
     // so the "Re-Run Last Run …" palette commands are now reachable. (These commands cache only
     // via the code-lens entrypoints, hence this desktop-only spec is their only happy-path home.)
-    await test.step('clear output before Re-Run Last Run Apex Test Class', async () => {
-      await ensureOutputPanelOpen(page);
-      await selectOutputChannel(page, 'Apex Testing');
-      await clearOutputChannel(page);
-    });
-
     await test.step('re-run last test class via command palette', async () => {
       // sf:has_cached_test_class is set via async setContext after the code-lens run; wait for the
       // when-gated command to appear before invoking it.
@@ -145,11 +129,6 @@ import { waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
       await saveScreenshot(page, 'step.rerun-last-class.done.png');
       // Restore panel before next step
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
-    });
-
-    await test.step('clear output before Re-Run Last Run Apex Test Method', async () => {
-      await ensureOutputPanelOpen(page);
-      await selectOutputChannel(page, 'Apex Testing');
       await clearOutputChannel(page);
     });
 

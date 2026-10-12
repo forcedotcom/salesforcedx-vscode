@@ -19,10 +19,12 @@ import {
 
 describe('org metadata document references', () => {
   const registryAccess = new RegistryAccess();
+  const getRegistryAccess = jest.fn(() => Effect.succeed(registryAccess));
+  beforeEach(() => getRegistryAccess.mockImplementation(() => Effect.succeed(registryAccess)));
   const referenceLayer = OrgMetadataReferenceService.DefaultWithoutDependencies.pipe(
     Layer.provide(
       Layer.succeed(MetadataRegistryService, {
-        getRegistryAccess: () => Effect.succeed(registryAccess)
+        getRegistryAccess
       } as unknown as InstanceType<typeof MetadataRegistryService>)
     )
   );
@@ -53,6 +55,24 @@ describe('org metadata document references', () => {
       xmlName: 'ApexClass',
       fullName: 'namespace.MyTest'
     });
+  });
+
+  it('looks up each metadata type once when building a batch of document URIs', () => {
+    getRegistryAccess.mockClear();
+    const uris = run(service =>
+      service.documentUris([
+        { orgId: '00Dxx0000000001', xmlName: 'ApexClass', fullName: 'FirstTest' },
+        { orgId: '00Dxx0000000001', xmlName: 'Report', fullName: 'Public Reports/Pipeline' },
+        { orgId: '00Dxx0000000001', xmlName: 'ApexClass', fullName: 'namespace.SecondTest' }
+      ])
+    );
+
+    expect(uris.map(uri => uri.path)).toEqual([
+      '/orgs/00Dxx0000000001/ApexClass/FirstTest.cls',
+      '/orgs/00Dxx0000000001/Report/Public Reports/Pipeline.report',
+      '/orgs/00Dxx0000000001/ApexClass/namespace.SecondTest.cls'
+    ]);
+    expect(getRegistryAccess).toHaveBeenCalledTimes(2);
   });
 
   it('preserves foldered metadata names', () => {

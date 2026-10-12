@@ -96,6 +96,11 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     // Results render before the TestRun ends; the run must also end without the user touching the toast.
     await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.run-done.png');
+
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
+    await clearOutputChannel(page);
   });
 
   await test.step('verify test class appears in Test Explorer', async () => {
@@ -114,12 +119,6 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     const classRow = findTestExplorerItem(page, testClassName);
     await classRow.waitFor({ state: 'visible', timeout: 30_000 });
 
-    // Gate the Explorer run-path completion sentinel (net-new in 4.2; emitted by ApexTestExecutionService
-    // on the run path only). Clear the channel first so the assertion can't match a prior run's output.
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Apex Testing');
-    await clearOutputChannel(page);
-
     await clickTreeItemAction(classRow, 'Run Test');
     await saveScreenshot(page, 'step.class-run-action-clicked.png');
 
@@ -130,10 +129,12 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     await expect(page.getByText(testClassName).first()).toBeVisible({ timeout: TEST_RUN_TIMEOUT });
 
     // Explorer run path must emit the completion sentinel to the Apex Testing channel.
+    await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Apex Testing');
     await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
     await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.class-run-done.png');
+    await clearOutputChannel(page);
   });
 
   await test.step('run a single test method via Test Explorer tree-item action', async () => {
@@ -149,16 +150,14 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     // HumanReporter detail — including the dotted "Class.method" line — to the TestRun output
     // (run.appendOutput, Test Results panel), NOT to the Apex Testing channel; only "Ended SFDX: Run Apex
     // Tests" reaches the channel. So the dotted string never appears in the channel on this path (unlike the
-    // command path used by Re-Run Last Method below). Clear the channel first so the sentinel can't match the
-    // prior class run, then verify the specific method ran via its durable "Passed" tree-item decoration.
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Apex Testing');
-    await clearOutputChannel(page);
+    // command path used by Re-Run Last Method below). Verify the specific method via its durable "Passed"
+    // tree-item decoration as well as the run-completion sentinel.
 
     await clickTreeItemAction(methodRow, 'Run Test');
     await saveScreenshot(page, 'step.method-run-action-clicked.png');
 
     await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
+    await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Apex Testing');
     await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
     await expect(findTestExplorerItem(page, 'shouldDiscoverThisTest')).toHaveAttribute('aria-label', /Passed/i, {
@@ -166,18 +165,17 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     });
     await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.method-run-done.png');
+    await clearOutputChannel(page);
   });
 
   await test.step('re-run last method populated by the sidebar single-method run', async () => {
     // The sidebar single-method run set sf:has_cached_test_method; the Re-Run Last Method command's
     // when-clause is gated on it. Confirm it surfaces, then replay it and assert the same method ran.
     await verifyCommandExists(page, packageNls.apex_test_last_method_run_text);
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Apex Testing');
-    await clearOutputChannel(page);
     await executeCommandWithCommandPalette(page, packageNls.apex_test_last_method_run_text);
     await saveScreenshot(page, 'step.rerun-last-method.after-command.png');
     await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
+    await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Apex Testing');
     await waitForApexRunOutputLine(page, '=== Test Summary');
     await waitForApexRunOutputLine(page, `${testClassName}.shouldDiscoverThisTest`);
