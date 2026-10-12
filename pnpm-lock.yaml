@@ -278,7 +278,7 @@ importers:
         specifier: workspace:*
         version: link:packages/effect-octokit
       '@salesforce/playwright-vscode-ext':
-        specifier: '*'
+        specifier: workspace:*
         version: link:packages/playwright-vscode-ext
       '@secretlint/node':
         specifier: 11.7.1
