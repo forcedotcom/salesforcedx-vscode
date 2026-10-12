@@ -866,6 +866,16 @@ export default [
     }
   },
   {
+    // consistent-type-imports for eslint-local-rules (inline to avoid no-duplicate-imports; W-23371083)
+    files: ['packages/eslint-local-rules/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // consistent-type-imports for effect-ext-utils (inline to avoid no-duplicate-imports)
     files: ['packages/effect-ext-utils/**/*.ts', 'packages/effect-octokit/**/*.ts'],
     rules: {
