@@ -133,14 +133,9 @@ const sendToLocalAppInsightsFile = (
   properties: Record<string, string | undefined>,
   measurements: Record<string, number>
 ): void => {
-  void HttpClient.execute(
-    HttpClientRequest.post(APP_INSIGHTS_WEB_FILE_SERVER_URL).pipe(
-      HttpClientRequest.bodyText(
-        JSON.stringify({ name, eventType: success ? 'event' : 'errorEvent', properties, measurements }),
-        'application/json'
-      )
-    )
-  ).pipe(
+  void HttpClientRequest.post(APP_INSIGHTS_WEB_FILE_SERVER_URL).pipe(
+    HttpClientRequest.bodyJson({ name, eventType: success ? 'event' : 'errorEvent', properties, measurements }),
+    Effect.flatMap(HttpClient.execute),
     Effect.ignore, // server optional in local dev
     Effect.withTracerEnabled(false),
     Effect.provide(FetchHttpClient.layer),

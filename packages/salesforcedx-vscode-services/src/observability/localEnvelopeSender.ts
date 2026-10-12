@@ -20,7 +20,12 @@ import * as HttpClient from '@effect/platform/HttpClient';
 import * as HttpClientRequest from '@effect/platform/HttpClientRequest';
 import { ExportResultCode, type ExportResult } from '@opentelemetry/core';
 import * as Effect from 'effect/Effect';
-import { isError } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
+
+class EnvelopeSerializationError extends Schema.TaggedError<EnvelopeSerializationError>()(
+  'EnvelopeSerializationError',
+  { message: Schema.String, cause: Schema.Unknown }
+) {}
 
 /** Matches the private sender shape the Azure exporters call (trace: `sender`, log: `_sender`). */
 export type LocalEnvelopeSender = {
@@ -37,16 +42,17 @@ export const makeLocalEnvelopeSender = (localEndpoint: string): LocalEnvelopeSen
           HttpClientRequest.post(trackUrl).pipe(
             HttpClientRequest.bodyText(envelopes.map(e => JSON.stringify(e)).join('\n'), 'application/x-json-stream')
           ),
-        catch: cause => ({ _tag: 'EnvelopeSerializationError' as const, cause })
+        catch: cause =>
+          new EnvelopeSerializationError({
+            message: 'Failed to serialize local Breeze envelopes',
+            cause
+          })
       }).pipe(
         Effect.flatMap(HttpClient.execute),
         Effect.map(res =>
           res.status >= 200 && res.status < 300
             ? { code: ExportResultCode.SUCCESS }
             : { code: ExportResultCode.FAILED, error: new Error(`local /v2.1/track responded ${res.status}`) }
-        ),
-        Effect.catchTag('EnvelopeSerializationError', ({ cause }) =>
-          Effect.succeed({ code: ExportResultCode.FAILED, error: isError(cause) ? cause : new Error(String(cause)) })
         ),
         Effect.catchAll(error => Effect.succeed({ code: ExportResultCode.FAILED, error })),
         Effect.withTracerEnabled(false),
