@@ -13,7 +13,10 @@ import { messages } from '../../../src/messages/i18n';
 import { showRunOutcomeNotification } from '../../../src/utils/notificationHelpers';
 
 const showSuccessNotification = jest.fn((..._a: unknown[]) => Effect.void);
-const notificationMode = { showSuccessNotification } as unknown as Parameters<typeof showRunOutcomeNotification>[0];
+const showErrorWithActions = jest.fn((..._a: unknown[]) => Effect.void);
+const notificationMode = { showSuccessNotification, showErrorWithActions } as unknown as Parameters<
+  typeof showRunOutcomeNotification
+>[0];
 const reportUri = URI.file('/tmp/test-result-RID.md');
 const resultWith = (outcome: string, failing = 0) =>
   ({ tests: [], summary: { outcome, failing } }) as unknown as TestResult;
@@ -34,47 +37,50 @@ const notify = (
     )
   );
 
+/** The actions passed to the most recent showErrorWithActions call. */
+const errorActions = () => showErrorWithActions.mock.lastCall?.[1] as { label: string; run: () => unknown }[];
+
 describe('showRunOutcomeNotification', () => {
   const showErrorMessage = vscode.window.showErrorMessage as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    showErrorMessage.mockResolvedValue(undefined);
   });
 
   it('shows the success notification when the run passed', async () => {
     await notify(resultWith('Passed'));
     expect(showSuccessNotification).toHaveBeenCalledTimes(1);
-    expect(showErrorMessage).not.toHaveBeenCalled();
+    expect(showErrorWithActions).not.toHaveBeenCalled();
   });
 
   it('shows a failing-tests error with an Open Report action when tests failed', async () => {
     await notify(resultWith('Failed', 3));
     expect(showSuccessNotification).not.toHaveBeenCalled();
-    expect(showErrorMessage).toHaveBeenCalledWith(
+    expect(showErrorWithActions).toHaveBeenCalledWith(
       'SFDX: Run Apex Tests completed with 3 failing test(s). Check the output for details.',
-      'Open Report'
+      [{ label: 'Open Report', run: expect.any(Function) }]
     );
   });
 
-  it('opens the report when Open Report is clicked on the failing-tests error', async () => {
-    showErrorMessage.mockResolvedValue('Open Report');
+  it('opens the report from the Open Report action on the failing-tests error', async () => {
     const openReport = jest.fn();
     await notify(resultWith('Failed', 1), { openReport });
-    await new Promise(resolve => setImmediate(resolve));
+    errorActions()[0].run();
     expect(openReport).toHaveBeenCalledWith(reportUri, 'markdown');
   });
 
   it('omits the Open Report action when no report was generated', async () => {
     await notify(resultWith('Failed', 1), { uri: null });
-    expect(showErrorMessage).toHaveBeenCalledWith(
-      'SFDX: Run Apex Tests completed with 1 failing test(s). Check the output for details.'
+    expect(showErrorWithActions).toHaveBeenCalledWith(
+      'SFDX: Run Apex Tests completed with 1 failing test(s). Check the output for details.',
+      []
     );
   });
 
   it('shows the failed-to-run error when the run produced no result', async () => {
     await notify(undefined);
     expect(showSuccessNotification).not.toHaveBeenCalled();
+    expect(showErrorWithActions).not.toHaveBeenCalled();
     expect(showErrorMessage).toHaveBeenCalledWith('SFDX: Run Apex Tests failed to run');
   });
 });

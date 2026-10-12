@@ -1,6 +1,6 @@
 # NotificationModeService
 
-Configurable success notifications and progress location. `commandKey` = English title (`COMMAND` in [SKILL.md](../SKILL.md#1-manifest--i18n)).
+Configurable success notifications and progress location, plus error toasts with action buttons. `commandKey` = English title (`COMMAND` in [SKILL.md](../SKILL.md#1-manifest--i18n)).
 
 Yield `api.services.NotificationModeService`. Merge `Default(extensionSection, statusBarId, statusBarName)` into `AllServicesLayer`.
 
@@ -32,6 +32,16 @@ type ToastAction = { label: string; run: () => void | Promise<void> };
 | `successOff` (SO) | No | Toast |
 
 PAS = ProgressAndSuccessMode; SO = SuccessOnlyMode. `forceShow: true` for critical info (e.g. request ID). Status bar click → toast with message + actions.
+
+Returns without waiting for a click. A rejecting `run` is shown via `showErrorMessage(String(cause))`.
+
+## showErrorWithActions
+
+```typescript
+yield* service.showErrorWithActions(message, actions?);
+```
+
+Error toast with buttons for an operation that completed with errors (e.g. "completed with N failing test(s)" + Open Report). Always a toast: modes only govern progress and success. Same action handling as `showSuccessNotification`: returns without waiting for a click; a rejecting `run` is shown as an error. Plain errors without buttons, and modal prompts, stay on `vscode.window.show*Message` ([vscode-window-messages](../../vscode-window-messages/SKILL.md)).
 
 ## getProgressLocation
 

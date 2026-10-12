@@ -66,6 +66,7 @@ import { ApexTestTreeService } from '../../../src/views/apexTestTreeService';
 
 const appendToChannel = jest.fn(() => Effect.void);
 const showSuccessNotification = jest.fn(() => Effect.void);
+const showErrorWithActions = jest.fn((..._args: unknown[]) => Effect.void);
 const readFile = jest.fn((_uri: URI) => Effect.succeed(JSON.stringify({ tests: [], summary: { testsRan: 0 } })));
 // Mirror the prior settings-mock defaults through the SettingsService accessor.
 const settingsValues: Record<string, unknown> = {
@@ -77,7 +78,7 @@ const settingsValues: Record<string, unknown> = {
 const mockApi = {
   services: {
     ChannelService: Effect.succeed({ appendToChannel }),
-    NotificationModeService: Effect.succeed({ showSuccessNotification }),
+    NotificationModeService: Effect.succeed({ showSuccessNotification, showErrorWithActions }),
     FsService: { readFile: (uri: URI) => readFile(uri) },
     // Yielded as an instance (yield* api.services.SettingsService), so wrap in Effect.succeed.
     SettingsService: Effect.succeed({
@@ -225,7 +226,6 @@ describe('ApexTestExecutionService', () => {
           runTestAsynchronous: jest.fn().mockResolvedValue({ tests: [], summary: { outcome, testsRan: 1, failing } })
         })
       );
-      (vscode.window.showErrorMessage as jest.Mock).mockClear().mockResolvedValue(undefined);
       return runEff(
         ApexTestExecutionService.executeTests({
           testNames: ['MyClass.testA'],
@@ -242,14 +242,15 @@ describe('ApexTestExecutionService', () => {
     it('shows the success notification when the run passed', async () => {
       await runWithOutcome('Passed');
       expect(showSuccessNotification).toHaveBeenCalledTimes(1);
-      expect(vscode.window.showErrorMessage).not.toHaveBeenCalled();
+      expect(showErrorWithActions).not.toHaveBeenCalled();
     });
 
     it('shows the failing-tests notification instead of success when the run has failing tests', async () => {
       await runWithOutcome('Failed', 2);
       expect(showSuccessNotification).not.toHaveBeenCalled();
-      expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
-        'SFDX: Run Apex Tests completed with 2 failing test(s). Check the output for details.'
+      expect(showErrorWithActions).toHaveBeenCalledWith(
+        'SFDX: Run Apex Tests completed with 2 failing test(s). Check the output for details.',
+        []
       );
     });
 

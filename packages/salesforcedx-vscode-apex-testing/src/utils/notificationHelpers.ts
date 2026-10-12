@@ -33,6 +33,12 @@ export const notificationService = {
 
 type OpenReport = (reportUri: URI, outputFormat: OutputFormat) => void | Promise<void>;
 
+/** "Open Report" toast action, or none when report generation failed. */
+const openReportActions = (reportUri: URI | undefined, outputFormat: OutputFormat, openReport: OpenReport) =>
+  reportUri
+    ? [{ label: nls.localize('apex_test_report_open_action'), run: () => openReport(reportUri, outputFormat) }]
+    : [];
+
 /** Success toast: a combined message plus an "Open Report" action when report generation succeeded. */
 const showRunSuccessNotification = (
   notificationMode: Context.Tag.Service<typeof NotificationModeService>,
@@ -48,33 +54,23 @@ const showRunSuccessNotification = (
       ? nls.localize('apex_test_successful_execution_with_report_message', executionName, Utils.basename(reportUri))
       : nls.localize('apex_test_successful_execution_message', executionName),
     false,
-    reportUri
-      ? [
-          {
-            label: nls.localize('apex_test_report_open_action'),
-            run: () => openReport(reportUri, outputFormat)
-          }
-        ]
-      : []
+    openReportActions(reportUri, outputFormat, openReport)
   );
 
 /** Error toast for a run that completed with failing tests, plus an "Open Report" action when report
- * generation succeeded. Fire-and-forget: the click is handled without blocking the run. */
+ * generation succeeded. */
 const showTestFailuresNotification = (
+  notificationMode: Context.Tag.Service<typeof NotificationModeService>,
   executionName: string,
   failing: number,
   reportUri: URI | undefined,
   outputFormat: OutputFormat,
   openReport: OpenReport
-): void => {
-  const openReportLabel = nls.localize('apex_test_report_open_action');
-  void vscode.window
-    .showErrorMessage(
-      nls.localize('apex_test_completed_with_failures_message', executionName, failing),
-      ...(reportUri ? [openReportLabel] : [])
-    )
-    .then(choice => (reportUri && choice === openReportLabel ? openReport(reportUri, outputFormat) : undefined));
-};
+) =>
+  notificationMode.showErrorWithActions(
+    nls.localize('apex_test_completed_with_failures_message', executionName, failing),
+    openReportActions(reportUri, outputFormat, openReport)
+  );
 
 /**
  * Terminal toast for the run-tests flows, keyed on the run's outcome: success when tests passed, a
@@ -97,8 +93,13 @@ export const showRunOutcomeNotification = (
       showRunSuccessNotification(notificationMode, command, executionName, reportUri, outputFormat, openReport)
     ),
     Match.when({ summary: { outcome: 'Failed' } }, failed =>
-      Effect.sync(() =>
-        showTestFailuresNotification(executionName, failed.summary.failing, reportUri, outputFormat, openReport)
+      showTestFailuresNotification(
+        notificationMode,
+        executionName,
+        failed.summary.failing,
+        reportUri,
+        outputFormat,
+        openReport
       )
     ),
     Match.orElse(() => Effect.sync(() => notificationService.showFailedExecution(executionName)))
