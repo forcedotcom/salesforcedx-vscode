@@ -12,12 +12,13 @@ import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { ComponentSetService } from '../core/componentSetService';
+import { MetadataRegistryService } from '../core/metadataRegistryService';
 import { MetadataRetrieveService } from '../core/metadataRetrieveService';
 import { FsService } from '../vscode/fsService';
 import { HashableUri } from '../vscode/hashableUri';
 import { pathSuffixWithin } from '../vscode/uriComparison';
 import { OrgMetadataCatalogError } from './orgMetadataCatalogErrors';
-import { OrgMetadataReferenceService, type OrgMetadataComponentReference } from './orgMetadataReference';
+import { documentUri, getTypeSuffix, type OrgMetadataComponentReference } from './orgMetadataReference';
 import { OrgMetadataShadowStore } from './orgMetadataShadowStore';
 
 type RetrieveRequest = {
@@ -43,15 +44,15 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
     ComponentSetService.Default,
     FsService.Default,
     MetadataRetrieveService.Default,
-    OrgMetadataReferenceService.Default,
+    MetadataRegistryService.Default,
     OrgMetadataShadowStore.Default
   ],
   effect: Effect.gen(function* () {
-    const [componentSetService, fsService, metadataRetrieveService, references, shadowStore] = yield* Effect.all([
+    const [componentSetService, fsService, metadataRetrieveService, registry, shadowStore] = yield* Effect.all([
       ComponentSetService,
       FsService,
       MetadataRetrieveService,
-      OrgMetadataReferenceService,
+      MetadataRegistryService,
       OrgMetadataShadowStore
     ]);
     const listStagedFiles = Effect.fn('OrgCatalogRemoteRetrieve.listStagedFiles')(function* (rootUri: URI) {
@@ -83,9 +84,13 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
       orgId: string,
       reference: OrgMetadataComponentReference
     ) {
-      const logicalBasename = Utils.basename(yield* references.documentUri({ orgId, ...reference }));
+      const logicalBasename = Utils.basename(
+        yield* documentUri({ orgId, ...reference }).pipe(Effect.provideService(MetadataRegistryService, registry))
+      );
       const leafName = reference.fullName.split(/[/.]/).at(-1) ?? reference.fullName;
-      const suffix = yield* references.getTypeSuffix(reference.xmlName);
+      const suffix = yield* getTypeSuffix(reference.xmlName).pipe(
+        Effect.provideService(MetadataRegistryService, registry)
+      );
       return new Set<string>([
         logicalBasename,
         `${logicalBasename}-meta.xml`,

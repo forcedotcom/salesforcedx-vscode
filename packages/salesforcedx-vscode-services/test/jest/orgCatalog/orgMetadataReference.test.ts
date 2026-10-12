@@ -14,28 +14,32 @@ import {
   isOrgMetadataComponentReference,
   ORG_METADATA_SCHEME,
   orgIdFromOrgMetadataUri,
-  OrgMetadataReferenceService
+  documentUris,
+  documentUri,
+  parseDocumentUri,
+  getTypeSuffix
 } from '../../../src/orgCatalog/orgMetadataReference';
 
 describe('org metadata document references', () => {
   const registryAccess = new RegistryAccess();
   const getRegistryAccess = jest.fn(() => Effect.succeed(registryAccess));
   beforeEach(() => getRegistryAccess.mockImplementation(() => Effect.succeed(registryAccess)));
-  const referenceLayer = OrgMetadataReferenceService.DefaultWithoutDependencies.pipe(
-    Layer.provide(
-      Layer.succeed(MetadataRegistryService, {
-        getRegistryAccess
-      } as unknown as InstanceType<typeof MetadataRegistryService>)
-    )
-  );
+  const registryLayer = Layer.succeed(MetadataRegistryService, {
+    getRegistryAccess
+  } as unknown as InstanceType<typeof MetadataRegistryService>);
 
   const run = <A, E extends Error>(
-    body: (service: InstanceType<typeof OrgMetadataReferenceService>) => Effect.Effect<A, E>
+    body: (references: {
+      documentUri: typeof documentUri;
+      documentUris: typeof documentUris;
+      parseDocumentUri: typeof parseDocumentUri;
+      getTypeSuffix: typeof getTypeSuffix;
+    }) => Effect.Effect<A, E, MetadataRegistryService>
   ): A =>
     Effect.runSync(
-      OrgMetadataReferenceService.pipe(
-        Effect.flatMap(service => body(service).pipe(Effect.orDie)),
-        Effect.provide(referenceLayer)
+      body({ documentUri, documentUris, parseDocumentUri, getTypeSuffix }).pipe(
+        Effect.orDie,
+        Effect.provide(registryLayer)
       )
     );
 

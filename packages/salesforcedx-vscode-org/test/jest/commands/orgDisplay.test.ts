@@ -150,7 +150,9 @@ describe('orgDisplayDefaultCommand', () => {
       })
     );
     expect(simpleExec).toHaveBeenCalledWith(
-      expect.objectContaining({ args: ['org', 'auth', 'show-user-password', '--target-org', 'me@scratch.org', '--json'] })
+      expect.objectContaining({
+        args: ['org', 'auth', 'show-user-password', '--target-org', 'me@scratch.org', '--json']
+      })
     );
     expect(appendToChannel.mock.calls[0][0]).toMatch(/^Password\s*$/m);
     expect(show).toHaveBeenCalledTimes(1);
@@ -188,20 +190,23 @@ describe('orgDisplayDefaultCommand', () => {
     expect(appendToChannel).toHaveBeenCalledWith('Password lookup failed');
   });
 
-  it.each(['show-access-token', 'show-user-password'])('names org auth in malformed %s output errors', async command => {
-    simpleExec = jest.fn(({ args }: { args: string[] }) =>
-      Effect.succeed(args[2] === command ? 'not json' : cliResponse(args))
-    );
+  it.each(['show-access-token', 'show-user-password'])(
+    'names org auth in malformed %s output errors',
+    async command => {
+      simpleExec = jest.fn(({ args }: { args: string[] }) =>
+        Effect.succeed(args[2] === command ? 'not json' : cliResponse(args))
+      );
 
-    const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
+      const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
 
-    expect(Exit.isFailure(exit)).toBe(true);
-    if (Exit.isFailure(exit)) {
-      expect(JSON.stringify(exit.cause)).toContain('processing the org auth response');
-      expect(JSON.stringify(exit.cause)).not.toContain('processing the org display response');
+      expect(Exit.isFailure(exit)).toBe(true);
+      if (Exit.isFailure(exit)) {
+        expect(JSON.stringify(exit.cause)).toContain('processing the org auth response');
+        expect(JSON.stringify(exit.cause)).not.toContain('processing the org display response');
+      }
+      expect(appendToChannel).not.toHaveBeenCalled();
     }
-    expect(appendToChannel).not.toHaveBeenCalled();
-  });
+  );
 
   it('reports a credential command failure instead of rendering a table with a redacted token', async () => {
     simpleExec = jest.fn(({ args }: { args: string[] }) =>

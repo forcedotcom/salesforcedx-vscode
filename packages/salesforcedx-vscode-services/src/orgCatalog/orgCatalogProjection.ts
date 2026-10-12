@@ -15,7 +15,7 @@ import * as HashMap from 'effect/HashMap';
 import * as Option from 'effect/Option';
 import { URI } from 'vscode-uri';
 import { componentIdentity, findInventoryComponent } from './orgCatalogKeys';
-import { isOrgMetadataComponentReference, OrgMetadataReferenceService } from './orgMetadataReference';
+import { documentUri, isOrgMetadataComponentReference } from './orgMetadataReference';
 
 export const mergeInventory = Effect.fn('mergeInventory')(function* ({
   orgId,
@@ -32,11 +32,9 @@ export const mergeInventory = Effect.fn('mergeInventory')(function* ({
   readonly workspaceNamespace?: ArtifactNamespace;
   readonly observedAt: string;
 }) {
-  const references = yield* OrgMetadataReferenceService;
-  const documentUri = (fullName: string) =>
-    references.documentUri({ orgId, xmlName, fullName: fullName || '__type__' });
+  const componentDocumentUri = (fullName: string) => documentUri({ orgId, xmlName, fullName: fullName || '__type__' });
   const orgInventory = yield* Effect.forEach(orgComponents, component =>
-    documentUri(component.fullName).pipe(
+    componentDocumentUri(component.fullName).pipe(
       Effect.map(
         uri =>
           [
@@ -66,7 +64,7 @@ export const mergeInventory = Effect.fn('mergeInventory')(function* ({
     const reference = { xmlName, fullName };
     const key = componentIdentity(reference, workspaceNamespace);
     const existing = Option.getOrUndefined(HashMap.get(orgInventory, key));
-    return (existing ? Effect.succeed(existing.documentUri) : documentUri(fullName)).pipe(
+    return (existing ? Effect.succeed(existing.documentUri) : componentDocumentUri(fullName)).pipe(
       Effect.map(
         uri =>
           [
@@ -105,7 +103,6 @@ export const projectChildren = Effect.fn('projectChildren')(function* (
   parentFullName: string | undefined,
   inventory: TypeInventory
 ) {
-  const references = yield* OrgMetadataReferenceService;
   const prefix = parentFullName ? `${parentFullName}/` : '';
   const inventoryFullNames = pipe(
     HashMap.toValues(inventory.components),
@@ -143,7 +140,7 @@ export const projectChildren = Effect.fn('projectChildren')(function* (
                   : ('metadata-api' as const)
                 : ('workspace' as const),
             reference: { xmlName, fullName },
-            documentUri: yield* references.documentUri({ orgId, xmlName, fullName: fullName || '__type__' }),
+            documentUri: yield* documentUri({ orgId, xmlName, fullName: fullName || '__type__' }),
             name,
             kind: 'folder' as const,
             namespacePrefix: folder?.namespacePrefix,

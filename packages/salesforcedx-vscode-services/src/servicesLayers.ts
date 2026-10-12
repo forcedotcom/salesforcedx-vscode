@@ -33,7 +33,6 @@ import { OrgCatalogState } from './orgCatalog/orgCatalogState';
 import { OrgMetadataCatalog } from './orgCatalog/orgMetadataCatalog';
 import { OrgMetadataCatalogChangePubSub } from './orgCatalog/orgMetadataCatalogChangePubSub';
 import { OrgMetadataCatalogStore } from './orgCatalog/orgMetadataCatalogStore';
-import { OrgMetadataReferenceService } from './orgCatalog/orgMetadataReference';
 import { TerminalService, TerminalServiceWebLive } from './terminal/terminalService';
 import { EditorService } from './vscode/editorService';
 import { ExtensionContextService } from './vscode/extensionContextService';
@@ -86,7 +85,6 @@ const baseGlobalLayers = Layer.mergeAll(
   OrgMetadataCatalogStore.Default,
   OrgCatalogDocuments.Default,
   OrgCatalogState.Default,
-  OrgMetadataReferenceService.Default,
   MetadataDeleteService.Default,
   MetadataDeployService.Default,
   PromptService.Default,
