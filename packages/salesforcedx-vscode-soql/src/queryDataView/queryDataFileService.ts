@@ -10,13 +10,13 @@ import type { QueryResult } from '../types';
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { getDocumentName } from '../commonUtils';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
 import { getSoqlRuntime } from '../services/extensionProvider';
 import { type SuccessOnlyCommandKey } from '../utils/notificationMode';
-import { CsvDataProvider, DataProvider, JsonDataProvider } from './dataProviders';
+import { CsvDataProvider, type DataProvider, JsonDataProvider } from './dataProviders';
 
 export enum FileFormat {
   JSON = 'json',

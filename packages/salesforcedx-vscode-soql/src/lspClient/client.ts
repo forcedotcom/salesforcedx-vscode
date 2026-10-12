@@ -5,10 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as Effect from 'effect/Effect';
-import { ExtensionContext, workspace } from 'vscode';
+import { type ExtensionContext, workspace } from 'vscode';
 import type { BaseLanguageClient } from 'vscode-languageclient';
 import type { LanguageClient as BrowserLanguageClient } from 'vscode-languageclient/browser';
-import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
+import {
+  LanguageClient,
+  type LanguageClientOptions,
+  type ServerOptions,
+  TransportKind
+} from 'vscode-languageclient/node';
 import { Utils } from 'vscode-uri';
 import * as codeCompletion from './codeCompletion';
 import * as queryValidation from './queryValidation';

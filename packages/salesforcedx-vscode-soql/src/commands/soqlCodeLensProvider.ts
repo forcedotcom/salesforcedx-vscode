@@ -5,7 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CancellationToken, CodeLens, EventEmitter, ExtensionContext, languages, Range, TextDocument } from 'vscode';
+import {
+  type CancellationToken,
+  CodeLens,
+  EventEmitter,
+  type ExtensionContext,
+  languages,
+  Range,
+  type TextDocument
+} from 'vscode';
 import { nls } from '../messages';
 import { isDefaultOrgSet, onDefaultOrgChange } from '../services/org';
 

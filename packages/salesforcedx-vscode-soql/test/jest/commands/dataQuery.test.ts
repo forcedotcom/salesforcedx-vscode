@@ -20,9 +20,8 @@ const mockExtensionProvider = {
   } as unknown as SalesforceVSCodeServicesApi)
 };
 
-jest.mock(
-  '@salesforce/effect-ext-utils',
-  () => jest.requireActual('@salesforce/effect-ext-utils') as typeof import('@salesforce/effect-ext-utils')
+jest.mock('@salesforce/effect-ext-utils', () =>
+  jest.requireActual<{ ExtensionProviderService: typeof ExtensionProviderService }>('@salesforce/effect-ext-utils')
 );
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';

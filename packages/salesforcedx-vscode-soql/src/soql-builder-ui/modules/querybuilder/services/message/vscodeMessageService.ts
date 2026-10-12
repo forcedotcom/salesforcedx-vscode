@@ -9,7 +9,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Schema from 'effect/Schema';
 import { getVscode } from '../globals';
-import { MessageService, IMessageService } from './iMessageService';
+import { MessageService, type IMessageService } from './iMessageService';
 import {
   HostToUiSoqlEditorEventSchema,
   MessageType,

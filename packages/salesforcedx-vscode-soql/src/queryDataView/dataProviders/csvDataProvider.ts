@@ -8,7 +8,7 @@
 import type { JsonObject } from '../../json';
 import { convertToCSV } from '../../commands/dataQuery';
 import { DATA_CSV_EXT } from '../../constants';
-import { DataProvider } from './iDataProvider';
+import { type DataProvider } from './iDataProvider';
 
 export class CsvDataProvider implements DataProvider {
   public readonly fileExtension = DATA_CSV_EXT;
