@@ -15,6 +15,10 @@
  * splitting them would be a fiction the image doesn't support (ADR 0022).
  */
 
+import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
+import * as HttpClient from '@effect/platform/HttpClient';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
 import { bootEnvToDockerArgs, type BootEnv } from './auth';
 import { defaultRunner, type CommandRunner } from './runner';
 
@@ -53,7 +57,7 @@ export type ReadinessOptions = {
   timeoutMs?: number;
   /** Poll interval in ms (default 2_000). */
   intervalMs?: number;
-  /** Health probe (default: fetch the URL, ok on any response). */
+  /** Health probe (default: GET the URL, ok on any response below 400). */
   probe?: ReadinessProbe;
 };
 
@@ -73,8 +77,8 @@ export type LifecycleOptions = { runner?: CommandRunner };
 
 /*
  * Default probe: GET the workbench URL. Two guards the naive version missed:
- *  - a per-request AbortSignal.timeout — otherwise a half-open socket (container accepted the TCP
- *    connection but never responds) hangs the fetch forever and the overall readiness budget is a
+ *  - a per-request Effect.timeout — otherwise a half-open socket (container accepted the TCP
+ *    connection but never responds) hangs the request forever and the overall readiness budget is a
  *    lie (the loop can only check the deadline BETWEEN probes, not mid-probe).
  *  - `status < 400` (NOT res.ok) — code-server with `--auth none` answers `/` with a 302 redirect
  *    (e.g. to `?folder=…`); res.ok (2xx-only) would reject that healthy response and burn the whole
@@ -83,8 +87,13 @@ export type LifecycleOptions = { runner?: CommandRunner };
  */
 const defaultProbe: ReadinessProbe = async url => {
   try {
-    const res = await fetch(url, { method: 'GET', redirect: 'manual', signal: AbortSignal.timeout(5000) });
-    return res.status < 400;
+    return await HttpClient.get(url).pipe(
+      Effect.map(res => res.status < 400),
+      Effect.timeout(Duration.seconds(5)),
+      Effect.provide(FetchHttpClient.layer),
+      Effect.provideService(FetchHttpClient.RequestInit, { redirect: 'manual' }),
+      Effect.runPromise
+    );
   } catch {
     return false;
   }
@@ -106,7 +115,7 @@ const waitForWorkbench = async (
   // already-up container returns on the first iteration with zero wasted interval — but it never
   // burns a full intervalMs sleep once the budget is spent, so the effective wait stays within
   // timeoutMs (the do-while overshot by up to one interval) and a timeoutMs: 0 fast-fail probes zero
-  // times. Each probe is itself time-bounded (default AbortSignal.timeout), so no probe can hang.
+  // times. Each probe is itself time-bounded (default Effect.timeout), so no probe can hang.
   while (Date.now() < deadline) {
     if (await probe(handle.publishedUrl)) {
       return;

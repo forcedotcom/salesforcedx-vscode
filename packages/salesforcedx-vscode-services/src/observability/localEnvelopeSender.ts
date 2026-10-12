@@ -15,8 +15,17 @@
  * http://→https:// (node_modules/@azure/monitor-opentelemetry-exporter), making a plain-HTTP
  * local server unreachable.
  */
+import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
+import * as HttpClient from '@effect/platform/HttpClient';
+import * as HttpClientRequest from '@effect/platform/HttpClientRequest';
 import { ExportResultCode, type ExportResult } from '@opentelemetry/core';
-import { isError } from 'effect/Predicate';
+import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
+
+class EnvelopeSerializationError extends Schema.TaggedError<EnvelopeSerializationError>()(
+  'EnvelopeSerializationError',
+  { message: Schema.String, cause: Schema.Unknown }
+) {}
 
 /** Matches the private sender shape the Azure exporters call (trace: `sender`, log: `_sender`). */
 export type LocalEnvelopeSender = {
@@ -27,21 +36,29 @@ export type LocalEnvelopeSender = {
 export const makeLocalEnvelopeSender = (localEndpoint: string): LocalEnvelopeSender => {
   const trackUrl = `${localEndpoint.replace(/\/$/, '')}/v2.1/track`;
   return {
-    exportEnvelopes: async (envelopes: unknown[]): Promise<ExportResult> => {
-      // eslint-disable-next-line functional/no-try-statements -- network boundary
-      try {
-        const res = await fetch(trackUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/x-json-stream' },
-          body: envelopes.map(e => JSON.stringify(e)).join('\n')
-        });
-        return res.ok
-          ? { code: ExportResultCode.SUCCESS }
-          : { code: ExportResultCode.FAILED, error: new Error(`local /v2.1/track responded ${res.status}`) };
-      } catch (error) {
-        return { code: ExportResultCode.FAILED, error: isError(error) ? error : new Error(String(error)) };
-      }
-    },
+    exportEnvelopes: (envelopes: unknown[]): Promise<ExportResult> =>
+      Effect.try({
+        try: () =>
+          HttpClientRequest.post(trackUrl).pipe(
+            HttpClientRequest.bodyText(envelopes.map(e => JSON.stringify(e)).join('\n'), 'application/x-json-stream')
+          ),
+        catch: cause =>
+          new EnvelopeSerializationError({
+            message: 'Failed to serialize local Breeze envelopes',
+            cause
+          })
+      }).pipe(
+        Effect.flatMap(HttpClient.execute),
+        Effect.map(res =>
+          res.status >= 200 && res.status < 300
+            ? { code: ExportResultCode.SUCCESS }
+            : { code: ExportResultCode.FAILED, error: new Error(`local /v2.1/track responded ${res.status}`) }
+        ),
+        Effect.catchAll(error => Effect.succeed({ code: ExportResultCode.FAILED, error })),
+        Effect.withTracerEnabled(false),
+        Effect.provide(FetchHttpClient.layer),
+        Effect.runPromise
+      ),
     shutdown: () => Promise.resolve()
   };
 };

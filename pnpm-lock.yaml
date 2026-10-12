@@ -606,6 +606,9 @@ importers:
 
   packages/playwright-vscode-ext:
     dependencies:
+      '@effect/platform':
+        specifier: ^0.96.1
+        version: 0.96.1(effect@3.22.2)
       '@playwright/test':
         specifier: 1.60.0
         version: 1.60.0
