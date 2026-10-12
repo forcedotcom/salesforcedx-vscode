@@ -82,6 +82,8 @@
       "files": [
         "out/**",
         "esbuild.config.mjs",
+        "browserBundleOptions.mjs",
+        "../../scripts/bundling/*.{js,mjs}",
         "package.json"
       ],
       "output": [
@@ -96,11 +98,12 @@
     "test:unit": {
       "command": "node --test test/**/*.test.mjs",
       "dependencies": [
-        "bundle"
+        "compile"
       ],
       "files": [
         "out/**",
-        "dist/app.js",
+        "browserBundleOptions.mjs",
+        "../../scripts/bundling/*.{js,mjs}",
         "test/**/*.test.mjs",
         "../../scripts/release-package-selection.js",
         "package.json"
