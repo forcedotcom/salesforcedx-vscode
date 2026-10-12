@@ -120,13 +120,15 @@ export const runAllTestsAndWaitForCompletion = async (page: Page, timeout: numbe
     await verifyNoTestRunInProgress(page);
   } catch (err) {
     // TEMP DIAGNOSTIC (remove once root-caused): a 30s timeout bump here didn't help — confirmed via
-    // CI that this genuinely never clears within 30s, not a brief settling lag. List what "Test:"
-    // commands ARE visible when this happens, to see if "Cancel Test Run" is truly stuck or something
-    // else (e.g. a second overlapping run) is going on.
+    // CI that this genuinely never clears within 30s, not a brief settling lag. An earlier version of
+    // this diagnostic filtered the palette by the generic '>Test:' prefix, which returned a loosely
+    // MRU-ranked top-N list that didn't actually prove whether the real check's exact-name query
+    // ('>Test: Cancel Test Run') would find it too — not an apples-to-apples comparison. Use the same
+    // exact filter the real check uses this time.
     await openCommandPalette(page);
-    await activeQuickInputTextField(page).fill('>Test:');
+    await activeQuickInputTextField(page).fill('>Test: Cancel Test Run');
     const rows = await page.locator(QUICK_INPUT_LIST_ROW).allTextContents();
-    console.log('[diag:test-commands-on-cancel-stuck]', JSON.stringify(rows));
+    console.log('[diag:cancel-test-run-exact-filter]', JSON.stringify(rows));
     await page.keyboard.press('Escape');
     throw err;
   }
