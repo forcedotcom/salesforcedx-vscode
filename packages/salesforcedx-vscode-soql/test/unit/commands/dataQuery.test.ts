@@ -6,6 +6,7 @@
  */
 
 import type { Mock as VitestMock } from 'vitest';
+import type * as EffectExtUtilsModule from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 
@@ -23,7 +24,7 @@ const mockExtensionProvider = {
 
 vi.mock(
   '@salesforce/effect-ext-utils',
-  async () => await vi.importActual<typeof import('@salesforce/effect-ext-utils')>('@salesforce/effect-ext-utils')
+  async () => await vi.importActual<typeof EffectExtUtilsModule>('@salesforce/effect-ext-utils')
 );
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
