@@ -11,6 +11,9 @@
  * We want to send spans that have no parent span as CustomEvents, and capture their properties from the span.
  * Additionally, we want to send any failed spans as Exceptions (the parent span may not finish if a child span fails)
  */
+import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
+import * as HttpClient from '@effect/platform/HttpClient';
+import * as HttpClientRequest from '@effect/platform/HttpClientRequest';
 import { SpanKind, SpanStatusCode } from '@opentelemetry/api';
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
@@ -130,11 +133,17 @@ const sendToLocalAppInsightsFile = (
   properties: Record<string, string | undefined>,
   measurements: Record<string, number>
 ): void => {
-  void fetch(APP_INSIGHTS_WEB_FILE_SERVER_URL, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ name, eventType: success ? 'event' : 'errorEvent', properties, measurements })
-  }).catch(() => {
-    /* server optional in local dev */
-  });
+  void HttpClient.execute(
+    HttpClientRequest.post(APP_INSIGHTS_WEB_FILE_SERVER_URL).pipe(
+      HttpClientRequest.bodyText(
+        JSON.stringify({ name, eventType: success ? 'event' : 'errorEvent', properties, measurements }),
+        'application/json'
+      )
+    )
+  ).pipe(
+    Effect.ignore, // server optional in local dev
+    Effect.withTracerEnabled(false),
+    Effect.provide(FetchHttpClient.layer),
+    Effect.runPromise
+  );
 };

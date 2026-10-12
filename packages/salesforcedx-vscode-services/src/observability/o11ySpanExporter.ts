@@ -4,6 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
+import * as HttpClient from '@effect/platform/HttpClient';
+import * as HttpClientRequest from '@effect/platform/HttpClientRequest';
 import { SpanStatusCode } from '@opentelemetry/api';
 import { ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
@@ -176,13 +179,13 @@ export class O11ySpanExporter implements SpanExporter {
     const events = valid.map(span => toO11yEvent(span, getSpanCreationIdentity(span)));
     // eslint-disable-next-line functional/no-try-statements -- network boundary
     try {
-      const res = await fetch(`${this.localIngestionEndpoint!.replace(/\/$/, '')}/o11y`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ extensionName: this.extensionName, events })
-      });
+      const res = await HttpClient.execute(
+        HttpClientRequest.post(`${this.localIngestionEndpoint!.replace(/\/$/, '')}/o11y`).pipe(
+          HttpClientRequest.bodyText(JSON.stringify({ extensionName: this.extensionName, events }), 'application/json')
+        )
+      ).pipe(Effect.withTracerEnabled(false), Effect.provide(FetchHttpClient.layer), Effect.runPromise);
       resultCallback(
-        res.ok
+        res.status >= 200 && res.status < 300
           ? { code: ExportResultCode.SUCCESS }
           : { code: ExportResultCode.FAILED, error: new Error(`local /o11y responded ${res.status}`) }
       );
