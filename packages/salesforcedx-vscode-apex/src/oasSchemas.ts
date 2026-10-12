@@ -6,13 +6,13 @@
  */
 
 import type { DocumentSymbol, Position } from 'vscode-languageserver-protocol';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 
-interface ApexOASSymbolEligibility {
+type ApexOASSymbolEligibility = {
   isEligible: boolean;
   isApexOasEligible: boolean;
   docSymbol: DocumentSymbol;
-}
+};
 
 export type ApexClassOASEligibleRequest = {
   resourceUri: URI;

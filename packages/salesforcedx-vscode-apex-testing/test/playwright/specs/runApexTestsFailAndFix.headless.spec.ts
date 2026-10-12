@@ -35,8 +35,9 @@ import {
 
 import packageNls from '../../../package.nls.json';
 import { isContainer, sharedTest as test } from '../fixtures';
-import { TEST_RUN_TIMEOUT } from '../constants';
+import { TEST_RUN_TIMEOUT, TEST_SETUP_TIMEOUT } from '../constants';
 import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
+import { waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
 
 // The buggy service assigns accountNumber to TickerSymbol (line 6) so the test's ticker assertion
 // fails. Desktop/web use fixed class names; the container stamps a unique suffix so the shared,
@@ -97,7 +98,7 @@ test.beforeEach(async ({ page }) => {
 (isDesktop() || isContainer ? test : test.skip.bind(test))(
   'Run Apex Tests: fail then fix via deploy and redeploy',
   async ({ page }) => {
-    test.setTimeout(TEST_RUN_TIMEOUT);
+    test.setTimeout(TEST_SETUP_TIMEOUT + TEST_RUN_TIMEOUT);
     const consoleErrors = setupConsoleMonitoring(page);
     const networkErrors = setupNetworkMonitoring(page);
 
@@ -163,16 +164,12 @@ test.beforeEach(async ({ page }) => {
       await ensureOutputPanelOpen(page);
       await selectOutputChannel(page, 'Apex Testing');
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
-      await waitForOutputChannelText(page, {
-        expectedText: 'System.AssertException: Assertion Failed:',
-        timeout: TEST_RUN_TIMEOUT
-      });
-      await waitForOutputChannelText(page, {
-        expectedText: 'incorrect ticker symbol: Expected: CRM, Actual: SFDC'
-      });
+      await waitForApexRunOutputLine(page, 'System.AssertException: Assertion Failed:');
+      await waitForApexRunOutputLine(page, 'incorrect ticker symbol: Expected: CRM, Actual: SFDC');
       await saveScreenshot(page, 'step.fail.assert-failed.png');
       // Restore panel before continuing
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
+      await clearOutputChannel(page);
       await verifyNoTestRunInProgress(page);
       // A run with failing tests still completes, so it shows the same "successfully ran" toast as a passing
       // run. Clear it so it isn't re-matched (and possibly re-clicked) when we verify the passing run's toast.
@@ -238,20 +235,20 @@ test.beforeEach(async ({ page }) => {
       await ensureOutputPanelOpen(page);
       await selectOutputChannel(page, 'Apex Testing');
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
-      await waitForOutputChannelText(page, { expectedText: '=== Test Summary', timeout: TEST_RUN_TIMEOUT });
-      await waitForOutputChannelText(page, { expectedText: 'Outcome              Passed' });
-      await waitForOutputChannelText(page, { expectedText: 'Tests Ran            1' });
-      await waitForOutputChannelText(page, { expectedText: 'Pass Rate            100%' });
+      await waitForApexRunOutputLine(page, '=== Test Summary');
+      await waitForApexRunOutputLine(page, 'Outcome              Passed');
+      await waitForApexRunOutputLine(page, 'Tests Ran            1');
+      await waitForApexRunOutputLine(page, 'Pass Rate            100%');
       if (isContainer) {
         // The container's Apex Testing output renders the per-method "Class.method  Pass" line with
         // variable column spacing (and virtualizes it out of the scrolled view), so the exact-line
         // match misses even on a passing run. Assert on the always-present "Org Wide Coverage"
         // summary signal instead; Outcome/Tests Ran/Pass Rate above already prove the run passed.
-        await waitForOutputChannelText(page, { expectedText: 'Org Wide Coverage' });
+        await waitForApexRunOutputLine(page, 'Org Wide Coverage');
       } else {
-        await waitForOutputChannelText(page, { expectedText: `${testClassName}.should_create_account  Pass` });
+        await waitForApexRunOutputLine(page, `${testClassName}.should_create_account  Pass`);
       }
-      await waitForOutputChannelText(page, { expectedText: 'Ended SFDX: Run Apex Tests' });
+      await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
       await verifyNoTestRunInProgress(page);
       await saveScreenshot(page, 'step.pass.results-visible.png');
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);

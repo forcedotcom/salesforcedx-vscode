@@ -8,11 +8,11 @@
 import { EventEmitter } from 'node:events';
 import {
   CloseAction,
-  CloseHandlerResult,
+  type CloseHandlerResult,
   ErrorAction,
-  ErrorHandler,
-  ErrorHandlerResult,
-  Message
+  type ErrorHandler,
+  type ErrorHandlerResult,
+  type Message
 } from 'vscode-languageclient/node';
 
 export class ApexErrorHandler extends EventEmitter implements ErrorHandler {

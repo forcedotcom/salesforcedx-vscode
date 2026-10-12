@@ -106,9 +106,6 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
 
   await test.step('create Apex Test Suite', async () => {
     testSuiteName = `DelSuite${Date.now()}`;
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Apex Testing');
-    await clearOutputChannel(page);
     await createApexTestSuiteViaPalette(page, testSuiteName, testClassName);
     await saveScreenshot(page, 'step.create-suite.done.png');
   });
