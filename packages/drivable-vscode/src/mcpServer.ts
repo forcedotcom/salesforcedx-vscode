@@ -162,8 +162,8 @@ const serverShutdowns = new WeakMap<Server, ServerShutdown>();
 
 export const createDrivableVscodeMcpServer = (
   runtime: Runtime.Runtime<ControllerService>,
-  finish: Effect.Effect<void, unknown, ControllerService> = ControllerService.finish,
-  dispose: Effect.Effect<void, unknown> = Effect.void
+  finish: typeof ControllerService.finish = ControllerService.finish,
+  dispose: Effect.Effect<void> = Effect.void
 ): Server => {
   const server = new Server(SERVER_INFO, {
     capabilities: { tools: {} },
