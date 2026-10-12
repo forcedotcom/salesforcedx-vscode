@@ -7,8 +7,8 @@
 
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import type * as vscode from 'vscode';
+import { type URI, Utils } from 'vscode-uri';
 import { DATA_VIEW_PATH, HTML_FILE } from '../constants';
 import { replaceCspMetaTag } from '../editor/htmlUtils';
 import { getSoqlRuntime } from '../services/extensionProvider';

@@ -24,7 +24,7 @@ import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDat
 import { getSoqlRuntime } from '../services/extensionProvider';
 import { isDefaultOrgSet } from '../services/org';
 import { listSObjectNamesEffect } from '../services/sObjects';
-import { TelemetryModelJson } from '../telemetry';
+import { type TelemetryModelJson } from '../telemetry';
 import { type ProgressOnlyCommandKey } from '../utils/notificationMode';
 import {
   invalidateMetadataRequests,
