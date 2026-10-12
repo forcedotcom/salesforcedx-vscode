@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  WorkspaceType,
-  LspFileSystemAccessor,
+  type WorkspaceType,
+  type LspFileSystemAccessor,
   normalizePath,
-  NormalizedPath
+  type NormalizedPath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 import { getSfdxPackageDirsPattern } from './baseIndexer';
