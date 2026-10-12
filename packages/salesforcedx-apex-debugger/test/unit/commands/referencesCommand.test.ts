@@ -6,7 +6,7 @@
  */
 
 import type { MockInstance as VitestMockInstance } from 'vitest';
-import { XHROptions, XHRResponse } from 'request-light';
+import { type XHROptions, type XHRResponse } from 'request-light';
 import { ReferencesCommand } from '../../../src/commands';
 import { DEFAULT_CONNECTION_TIMEOUT_MS } from '../../../src/constants';
 import { RequestService } from '../../../src/requestService/requestService';

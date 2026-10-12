@@ -6,7 +6,7 @@
  */
 import type { MockInstance as VitestMockInstance } from 'vitest';
 import * as requestLight from 'request-light';
-import { XHROptions, XHRResponse } from 'request-light';
+import { type XHROptions, type XHRResponse } from 'request-light';
 import {
   DEFAULT_CONNECTION_TIMEOUT_MS,
   ENV_HTTPS_PROXY,

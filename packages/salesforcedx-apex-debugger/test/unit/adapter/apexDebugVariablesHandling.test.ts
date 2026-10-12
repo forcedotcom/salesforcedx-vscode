@@ -6,9 +6,9 @@
  */
 
 import type { MockInstance as VitestMockInstance } from 'vitest';
-import { DebugProtocol } from '@vscode/debugprotocol';
+import { type DebugProtocol } from '@vscode/debugprotocol';
 import {
-  ApexDebug,
+  type ApexDebug,
   ApexDebugStackFrameInfo,
   ApexVariable,
   ApexVariableKind,
@@ -17,9 +17,9 @@ import {
   MapTupleContainer,
   ObjectReferenceContainer,
   ScopeContainer,
-  VariableContainer
+  type VariableContainer
 } from '../../../src/adapter/apexDebug';
-import { LocalValue, Reference, Value } from '../../../src/commands';
+import { type LocalValue, type Reference, type Value } from '../../../src/commands';
 import { BreakpointService } from '../../../src/core/breakpointService';
 import { RequestService } from '../../../src/requestService/requestService';
 import { ApexDebugForTest } from './apexDebugForTest';

@@ -7,8 +7,8 @@
 import type { CancellationToken } from '../types/cancellationToken';
 import type { Command } from '../types/command';
 import type { CommandExecution } from '../types/commandExecution';
-import { ChildProcess } from 'node:child_process';
-import { fromEvent, interval, Observable, Subscription } from 'rxjs';
+import { type ChildProcess } from 'node:child_process';
+import { fromEvent, interval, type Observable, type Subscription } from 'rxjs';
 import * as treeKill from 'tree-kill';
 
 type TreeKillFunction = (processId: number, signal: string, callback: (error?: Error) => void) => void;
