@@ -20,8 +20,8 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import {
   type Executable,
-  type HandleDiagnosticsSignature,
   type LanguageClientOptions,
+  type Middleware,
   type ProvideCodeLensesSignature,
   RevealOutputChannelOn
 } from 'vscode-languageclient/node';
@@ -285,16 +285,10 @@ const provideCodeLenses = async (
  * Jorje omits LSP diagnostic.source; vscode-languageclient only copies source when present.
  * Set a stable Problems-panel Source when missing (issue #7915).
  */
-const handleDiagnostics = (
-  uri: vscode.Uri,
-  diagnostics: vscode.Diagnostic[],
-  next: HandleDiagnosticsSignature
-): void => {
+const handleDiagnostics: NonNullable<Middleware['handleDiagnostics']> = (uri, diagnostics, next): void => {
   const source = nls.localize('client_name');
-  for (const diagnostic of diagnostics) {
-    if (!diagnostic.source) {
-      diagnostic.source = source;
-    }
-  }
+  diagnostics.forEach(diagnostic => {
+    diagnostic.source ??= source;
+  });
   next(uri, diagnostics);
 };
