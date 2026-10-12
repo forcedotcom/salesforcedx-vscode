@@ -192,8 +192,8 @@ const createConnection = (authInfo: AuthInfo, apiVersion?: string) =>
 const createWebConnection = Effect.fn('createWebConnection (cache miss)')(function* (key: string) {
   const { instanceUrl, accessToken, apiVersion } = fromKey(key);
   yield* Effect.annotateCurrentSpan({ apiVersion, instanceUrl });
-  const sessionContext = yield* SettingsService.getSessionContext();
-  return yield* createWebAuthInfo(instanceUrl, accessToken, sessionContext).pipe(
+  return yield* SettingsService.getSessionContext().pipe(
+    Effect.flatMap(sessionContext => createWebAuthInfo(instanceUrl, accessToken, sessionContext)),
     Effect.flatMap(authInfo => createConnection(authInfo, apiVersion))
   );
 });

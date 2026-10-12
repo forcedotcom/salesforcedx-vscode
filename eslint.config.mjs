@@ -872,6 +872,16 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-utils-vscode (inline to avoid no-duplicate-imports; W-23371077)
+    files: ['packages/salesforcedx-utils-vscode/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // consistent-type-imports for salesforcedx-visualforce-language-server (inline to avoid no-duplicate-imports; W-23371067)
     files: ['packages/salesforcedx-visualforce-language-server/**/*.ts'],
     rules: {
