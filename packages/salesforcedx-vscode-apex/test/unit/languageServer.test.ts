@@ -8,6 +8,8 @@
 import type { Mock as VitestMock } from 'vitest';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
+import { type Middleware } from 'vscode-languageclient/node';
+import { URI } from 'vscode-uri';
 import type { RecordedSpan } from './testUtils/recordingTracer';
 
 // Record every span (name + attrs + ended flag) so the apex.lsp.client rotation can be asserted:
@@ -47,6 +49,7 @@ vi.mock('../../src/apexLanguageClient', () => ({ ApexLanguageClient: vi.fn() }))
 import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import { ApexLanguageClient } from '../../src/apexLanguageClient';
 import { createLanguageServer } from '../../src/languageServer';
+import { nls } from '../../src/messages';
 import { resolveRequirements } from '../../src/requirements';
 import { buildMetadataRegistryScanConfig } from '../../src/languageServerScanConfig';
 import { getRuntime } from '../../src/services/runtime';
@@ -136,5 +139,27 @@ describe('languageServer client span', () => {
     expect(spans).toHaveLength(2);
     expect(first.ended).toBe(true);
     expect(spans[1].ended).toBe(false);
+  });
+
+  it('handleDiagnostics sets source when missing and preserves existing source', async () => {
+    await runCreateLanguageServer(mockContext);
+    const clientOptions = (ApexLanguageClient as unknown as jest.Mock).mock.calls[0][3] as {
+      middleware: {
+        handleDiagnostics: NonNullable<Middleware['handleDiagnostics']>;
+      };
+    };
+    const handleDiagnostics = clientOptions.middleware.handleDiagnostics;
+    expect(handleDiagnostics).toEqual(expect.any(Function));
+
+    const uri = URI.file('/tmp/Demo.cls');
+    const withoutSource = { message: 'Unknown method', source: undefined } as vscode.Diagnostic;
+    const withSource = { message: 'Other', source: 'Custom' } as vscode.Diagnostic;
+    const next = jest.fn();
+
+    handleDiagnostics(uri, [withoutSource, withSource], next);
+
+    expect(withoutSource.source).toBe(nls.localize('client_name'));
+    expect(withSource.source).toBe('Custom');
+    expect(next).toHaveBeenCalledWith(uri, [withoutSource, withSource]);
   });
 });
