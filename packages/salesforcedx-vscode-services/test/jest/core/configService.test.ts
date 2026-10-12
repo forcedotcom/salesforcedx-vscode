@@ -150,6 +150,14 @@ describe('ConfigService workspace root path', () => {
 
     expect(createMock).toHaveBeenCalledWith(expect.objectContaining({ rootFolder: '/project' }));
   });
+
+  it('normalizes Windows separators in a memfs workspace fsPath', async () => {
+    openMockWorkspace('memfs', '\\project', 'memfs:/project');
+
+    await Effect.runPromise(ConfigService.setTargetOrg('MyAlias').pipe(Effect.provide(ConfigService.Default)));
+
+    expect(createMock).toHaveBeenCalledWith(expect.objectContaining({ rootFolder: '/project' }));
+  });
 });
 
 describe.each([
