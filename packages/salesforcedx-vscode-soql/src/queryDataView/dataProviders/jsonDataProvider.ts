@@ -7,7 +7,7 @@
 
 import type { JsonObject } from '../../json';
 import { DATA_JSON_EXT } from '../../constants';
-import { DataProvider } from './iDataProvider';
+import { type DataProvider } from './iDataProvider';
 
 export class JsonDataProvider implements DataProvider {
   public readonly fileExtension = DATA_JSON_EXT;
