@@ -59,24 +59,16 @@ test('Stale tag is applied on class redeploy and removed by running tests', asyn
 
   // Deploy the currently open editor to the boot org, waiting on the Salesforce Metadata channel.
   // Container-only helper.
-  const deployActiveEditor = async (label: string): Promise<void> => {
+  const deployActiveEditor = async (): Promise<void> => {
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata');
     await clearOutputChannel(page);
-    // TEMP DIAGNOSTIC (remove once the "Command not found yet" flake in this spec is root-caused):
-    // capture focus/active-tab state right before the editor-context-gated deploy command check, to
-    // compare the setup call (never fails in CI) against the redeploy call (fails ~2/2 CI runs).
-    const diag = await page.evaluate(() => ({
-      activeElementTag: document.activeElement?.tagName ?? null,
-      activeElementClass: document.activeElement?.className ?? null,
-      activeTabLabel:
-        document.querySelector('.tab.active .label-name')?.textContent ??
-        document.querySelector('.tab.active')?.getAttribute('aria-label') ??
-        null,
-      focusedPart: document.querySelector('.part.editor.active, .part.editor:focus-within') ? 'editor' : null
-    }));
-    console.log(`[diag:${label}]`, JSON.stringify(diag));
-    await saveScreenshot(page, `stale.diag.${label}.png`);
+    // The output-panel work above shifts focus away from the editor — "SFDX: Deploy This Source to
+    // Org"'s palette visibility is gated on an active-editor-dependent `when` clause (same class of
+    // bug as the retrieveInManifest fix), so without re-focusing it here the command intermittently
+    // isn't found. Confirmed via a focus-state diagnostic in CI: the editor was genuinely unfocused
+    // right before this call on the redeploy step (never on the first, setup-time call).
+    await page.locator(`[data-uri*="${testClassName}.cls"]`).first().click();
     await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
   };
 
@@ -98,7 +90,7 @@ test('Stale tag is applied on class redeploy and removed by running tests', asyn
     if (isContainer) {
       await ensureSecondarySideBarHidden(page);
       await createApexClass(page, testClassName, testClassContent);
-      await deployActiveEditor('setup');
+      await deployActiveEditor();
       await saveScreenshot(page, 'stale.setup.class-deployed.png');
     } else {
       await setupNonTrackingOrgAndAuth(page);
@@ -125,7 +117,7 @@ test('Stale tag is applied on class redeploy and removed by running tests', asyn
     await editOpenFile(page, 'touched');
     if (isContainer) {
       // The container runs the desktop build with no push-or-deploy-on-save, so deploy explicitly.
-      await deployActiveEditor('redeploy');
+      await deployActiveEditor();
     } else if (isDesktop()) {
       // Web: saving a source file in the workspace auto-deploys via push-or-deploy-on-save.
       // Desktop: no auto-deploy on save, so we explicitly invoke "SFDX: Deploy This Source to Org".
