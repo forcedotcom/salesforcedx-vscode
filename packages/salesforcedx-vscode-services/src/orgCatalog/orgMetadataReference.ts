@@ -104,6 +104,15 @@ export class OrgMetadataReferenceService extends Effect.Service<OrgMetadataRefer
         ) {
           return makeDocumentUri(location, suffixToExtension(yield* typeSuffix(location.xmlName)));
         }),
+        documentUris: Effect.fn('OrgMetadataReferenceService.documentUris')(function* (
+          locations: readonly OrgMetadataDocumentLocation[]
+        ) {
+          const suffixes = yield* Effect.forEach(new Set(locations.map(location => location.xmlName)), xmlName =>
+            typeSuffix(xmlName).pipe(Effect.map(suffix => [xmlName, suffixToExtension(suffix)] as const))
+          );
+          const extensionByType = new Map(suffixes);
+          return locations.map(location => makeDocumentUri(location, extensionByType.get(location.xmlName)));
+        }),
         parseDocumentUri: Effect.fn('OrgMetadataReferenceService.parseDocumentUri')(function* (uri: URI) {
           if (uri.scheme !== ORG_METADATA_SCHEME) return undefined;
           const [, root, encodedOrgId, encodedXmlName] = uri.path.split('/');
