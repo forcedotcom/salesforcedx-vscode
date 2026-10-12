@@ -117,7 +117,25 @@ test('Apex Test Explorer (Code Builder): run via tree-item action + verify Test 
   await test.step('verify the native Test Results panel "Pass Rate" summary', async () => {
     // Target the Test Results tab in the bottom panel; the panel renders "Pass Rate" once a run completes.
     const testResultsTab = page.locator(TEST_RESULTS_TAB);
-    await testResultsTab.waitFor({ state: 'visible', timeout: 30_000 });
+    try {
+      await testResultsTab.waitFor({ state: 'visible', timeout: 30_000 });
+    } catch (err) {
+      // TEMP DIAGNOSTIC (remove once root-caused): the tree-item-triggered run completes (confirmed by
+      // the prior step's output-channel wait), but this tab doesn't reliably appear within 30s here —
+      // unlike the desktop twin, which only ever exercises this wait right after a COMMAND-PALETTE-
+      // triggered run. Capture whether the tab exists at all (even hidden/not-yet-visible) and what
+      // other bottom-panel tabs are present, to tell a slow render from a genuinely different one.
+      const diag = await page.evaluate(() => ({
+        testResultsTabExistsInDom: document.querySelector('a.action-label[aria-label="Test Results"]') !== null,
+        bottomPanelTabs: Array.from(document.querySelectorAll('.part.panel .action-label')).map(
+          el => el.getAttribute('aria-label') ?? el.textContent
+        ),
+        panelVisible: document.querySelector('.part.panel') !== null
+      }));
+      console.log('[diag:test-results-tab-missing]', JSON.stringify(diag));
+      await saveScreenshot(page, 'testExplorerRun.container.diag-missing-tab.png');
+      throw err;
+    }
     await testResultsTab.click();
     await expect(page.getByText(/Pass Rate/i)).toBeVisible({ timeout: TEST_RUN_TIMEOUT });
     await saveScreenshot(page, 'testExplorerRun.container.04-pass-rate.png');
