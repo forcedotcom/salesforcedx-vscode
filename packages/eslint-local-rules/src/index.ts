@@ -8,6 +8,7 @@
 import { TSESLint } from '@typescript-eslint/utils';
 import { commandMustBeInPackageJson } from './commandMustBeInPackageJson';
 import { effectFnCatchMiddlewareLast } from './effectFnCatchMiddlewareLast';
+import { inlineSingleUseYieldBinding } from './inlineSingleUseYieldBinding';
 import { noDirectServicesImports } from './noDirectServicesImports';
 import { noDuplicateI18nValues } from './noDuplicateI18nValues';
 import { noDuplicatePlaywrightLocators } from './noDuplicatePlaywrightLocators';
@@ -54,6 +55,7 @@ const plugin: TSESLint.FlatConfig.Plugin = {
   },
   rules: {
     'command-must-be-in-package-json': commandMustBeInPackageJson,
+    'inline-single-use-yield-binding': inlineSingleUseYieldBinding,
     'no-duplicate-i18n-values': noDuplicateI18nValues,
     'no-duplicate-playwright-locators': noDuplicatePlaywrightLocators,
     'no-direct-services-imports': noDirectServicesImports,
