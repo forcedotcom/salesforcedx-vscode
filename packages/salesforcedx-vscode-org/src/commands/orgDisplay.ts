@@ -25,7 +25,7 @@ import { type ProgressOnlyCommandKey } from '../utils/notificationMode';
 const COMMAND: ProgressOnlyCommandKey = 'SFDX: Display Org Details';
 
 /**
- * Raised when `sf org display --json` output cannot be decoded into either result shape.
+ * Raised when an org display or auth command's JSON output cannot be decoded.
  * @ExportTaggedError
  */
 export class OrgDisplayParseError extends Schema.TaggedError<OrgDisplayParseError>()('OrgDisplayParseError', {
@@ -33,7 +33,7 @@ export class OrgDisplayParseError extends Schema.TaggedError<OrgDisplayParseErro
 }) {}
 
 /**
- * `sf org display --json` result. Mirrors plugin-org's `OrgDisplayReturn`: only `username`/`accessToken`
+ * `sf org display --json` result. Mirrors plugin-org's `OrgDisplayReturn`: `username`
  * are always emitted; the scratch-org block (`devHubId`, `status`, `expirationDate`, `createdBy`,
  * `createdDate`, `edition`, `namespace`, `orgName`) and `connectedStatus` (non-scratch only) are
  * mutually exclusive, and undefined keys are omitted from the JSON entirely. Extra keys sf adds
@@ -68,7 +68,8 @@ const OrgDisplaySuccess = Schema.TaggedStruct('OrgDisplaySuccess', {
 /** sf prints `{ status, message }` (status !== 0) on failure; surface that message to the channel. */
 const OrgDisplayFailure = Schema.TaggedStruct('OrgDisplayFailure', {
   status: Schema.Number,
-  message: Schema.String
+  message: Schema.String,
+  code: Schema.optional(Schema.String)
 });
 
 const OrgDisplayResponse = Schema.Union(OrgDisplaySuccess, OrgDisplayFailure);
@@ -82,6 +83,27 @@ type OrgDisplayResponse = Schema.Schema.Type<typeof OrgDisplayResponse>;
 const decodeOrgDisplayResponse = decodeTaggedCliResponse(OrgDisplayResponse, raw =>
   raw.status === 0 ? 'OrgDisplaySuccess' : 'OrgDisplayFailure'
 )(() => new OrgDisplayParseError({ message: nls.localize('org_display_result_parsing_error') }));
+
+const AccessTokenResponse = Schema.Union(
+  Schema.TaggedStruct('CredentialSuccess', {
+    status: Schema.Literal(0),
+    result: Schema.Struct({ accessToken: Schema.String })
+  }),
+  OrgDisplayFailure
+);
+const PasswordResponse = Schema.Union(
+  Schema.TaggedStruct('CredentialSuccess', {
+    status: Schema.Literal(0),
+    result: Schema.Struct({ password: Schema.String })
+  }),
+  OrgDisplayFailure
+);
+const decodeAccessTokenResponse = decodeTaggedCliResponse(AccessTokenResponse, raw =>
+  raw.status === 0 ? 'CredentialSuccess' : 'OrgDisplayFailure'
+)(() => new OrgDisplayParseError({ message: nls.localize('org_auth_result_parsing_error') }));
+const decodePasswordResponse = decodeTaggedCliResponse(PasswordResponse, raw =>
+  raw.status === 0 ? 'CredentialSuccess' : 'OrgDisplayFailure'
+)(() => new OrgDisplayParseError({ message: nls.localize('org_auth_result_parsing_error') }));
 
 const formatOrgInfoAsTable = (orgInfo: OrgDisplayResult): string => {
   const columns: Column[] = [
@@ -120,9 +142,6 @@ const formatOrgInfoAsTable = (orgInfo: OrgDisplayResult): string => {
 };
 
 /**
- * Runs an `sf org display --json` variant and reports it to the org channel: the org table on
- * success, the CLI's message on failure.
- *
  * sf exits non-zero when it fails, which makes `simpleExec` fail with `TerminalServiceError` — whose
  * message already carries the CLI's JSON error payload (`execErrorMessage` folds stdout in). Recover
  * that message into the same decode pipeline so the `OrgDisplayFailure` branch is reachable
@@ -131,6 +150,48 @@ const formatOrgInfoAsTable = (orgInfo: OrgDisplayResult): string => {
  * spawn/permission error), so it stays a `TerminalServiceError` for ErrorHandlerService instead of
  * degrading into an `OrgDisplayParseError` that would hide the real diagnostic.
  */
+const runOrgCommand = Effect.fn('orgDisplay.runOrgCommand')(function* (args: readonly string[]) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  // simpleExec injects SF_JSON_TO_STDOUT + FORCE_COLOR=0 for sf commands, keeping the JSON we decode clean.
+  return yield* (yield* api.services.TerminalService)
+    .simpleExec({ executable: 'sf', args, parse: identity })
+    .pipe(
+      Effect.catchTag('TerminalServiceError', error =>
+        identifyJsonTypeInString(error.message) === 'object' ? Effect.succeed(error.message) : error
+      )
+    );
+});
+
+const revealOrgCredentials = Effect.fn('orgDisplay.revealOrgCredentials')(function* (orgInfo: OrgDisplayResult) {
+  const targetOrgArgs = ['--target-org', orgInfo.username, '--json'];
+  const token = yield* runOrgCommand(['org', 'auth', 'show-access-token', ...targetOrgArgs]).pipe(
+    Effect.flatMap(decodeAccessTokenResponse)
+  );
+
+  return yield* Match.value(token).pipe(
+    Match.tag('OrgDisplayFailure', ({ message }) => Effect.succeed(message)),
+    Match.tag('CredentialSuccess', ({ result: { accessToken } }) => {
+      const render = (password?: string) => formatOrgInfoAsTable({ ...orgInfo, accessToken, password });
+      if (!orgInfo.devHubId) return Effect.succeed(render());
+
+      // A scratch org can have no locally generated password. The CLI reports that as NoPasswordError.
+      return runOrgCommand(['org', 'auth', 'show-user-password', ...targetOrgArgs]).pipe(
+        Effect.flatMap(decodePasswordResponse),
+        Effect.map(
+          Match.type<Schema.Schema.Type<typeof PasswordResponse>>().pipe(
+            Match.when({ _tag: 'OrgDisplayFailure', code: 'NoPasswordError' }, () => render()),
+            Match.tag('OrgDisplayFailure', ({ message }) => message),
+            Match.tag('CredentialSuccess', ({ result: { password } }) => render(password)),
+            Match.exhaustive
+          )
+        )
+      );
+    }),
+    Match.exhaustive
+  );
+});
+
+/** Display org metadata and explicitly reveal stored credentials in the org channel. */
 const displayOrg = Effect.fn('orgDisplay.displayOrg')(function* (
   args: readonly string[],
   notificationCommand: ProgressOnlyCommandKey
@@ -141,27 +202,19 @@ const displayOrg = Effect.fn('orgDisplay.displayOrg')(function* (
   const notificationMode = yield* api.services.NotificationModeService;
   const progressLocation = yield* notificationMode.getProgressLocation(notificationCommand);
 
-  // simpleExec injects SF_JSON_TO_STDOUT + FORCE_COLOR=0 for sf commands, keeping the JSON we decode clean.
-  yield* (yield* api.services.TerminalService).simpleExec({ executable: 'sf', args, parse: identity }).pipe(
-    Effect.catchTag('TerminalServiceError', error =>
-      identifyJsonTypeInString(error.message) === 'object' ? Effect.succeed(error.message) : error
-    ),
-    // the sf round-trip is the slow part; Cancel interrupts it with UserCancellationError
-    promptService.withCancellableProgress(nls.localize('org_display_progress'), progressLocation),
+  yield* runOrgCommand(args).pipe(
     Effect.flatMap(decodeOrgDisplayResponse),
-    Effect.map(
+    Effect.flatMap(
       Match.type<OrgDisplayResponse>().pipe(
-        Match.tag('OrgDisplaySuccess', ({ result }) => formatOrgInfoAsTable(result)),
-        Match.tag('OrgDisplayFailure', ({ message }) => message),
+        Match.tag('OrgDisplayFailure', ({ message }) => Effect.succeed(message)),
+        Match.tag('OrgDisplaySuccess', ({ result }) => revealOrgCredentials(result)),
         Match.exhaustive
       )
     ),
-    Effect.flatMap(text =>
-      Effect.gen(function* () {
-        yield* channel.appendToChannel(text);
-        yield* channel.showChannel;
-      })
-    )
+    // Cancel interrupts the complete display + credential lookup before anything is written.
+    promptService.withCancellableProgress(nls.localize('org_display_progress'), progressLocation),
+    Effect.tap(text => channel.appendToChannel(text)),
+    Effect.tap(() => channel.showChannel)
   );
 });
 

@@ -9,7 +9,7 @@ import type { OrgAuthResult } from './types';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { execAsync, env, tryUseExistingOrg, extractAuthFields, requireOrgInCI } from './shared';
+import { execAsync, env, tryUseExistingOrg, getOrgAuthFields, requireOrgInCI } from './shared';
 
 export const MINIMAL_ORG_ALIAS = 'minimalTestOrg';
 
@@ -28,7 +28,7 @@ export const createMinimalOrg = async (): Promise<OrgAuthResult> => {
   const projectDir = path.join(tmpRoot, 'minimal-project');
 
   // Create minimal sfdx project structure
-  await fs.mkdir(projectDir);
+  await fs.mkdir(path.join(projectDir, 'force-app'), { recursive: true });
   await fs.writeFile(
     path.join(projectDir, 'sfdx-project.json'),
     JSON.stringify(
@@ -43,13 +43,10 @@ export const createMinimalOrg = async (): Promise<OrgAuthResult> => {
     )
   );
 
-  const { stdout: createStdout } = await execAsync(
-    `sf org create scratch -d -w 10 -a ${MINIMAL_ORG_ALIAS} --edition developer --json`,
-    {
-      cwd: projectDir,
-      env
-    }
-  );
+  await execAsync(`sf org create scratch -d -w 10 -a ${MINIMAL_ORG_ALIAS} --edition developer --json`, {
+    cwd: projectDir,
+    env
+  });
 
-  return extractAuthFields(createStdout, MINIMAL_ORG_ALIAS);
+  return getOrgAuthFields(MINIMAL_ORG_ALIAS);
 };

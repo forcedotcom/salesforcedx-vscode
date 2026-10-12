@@ -9,5 +9,5 @@ import type { AuthFields } from '@salesforce/core';
 
 export type OrgAuthResult = Required<Pick<AuthFields, 'instanceUrl' | 'accessToken' | 'instanceApiVersion'>>;
 
-type OrgDisplayFields = { instanceUrl: string; accessToken: string; apiVersion: string };
+type OrgDisplayFields = { instanceUrl: string; apiVersion: string };
 export type OrgDisplayResult = { result: OrgDisplayFields };

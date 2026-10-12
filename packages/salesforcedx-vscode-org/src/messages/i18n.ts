@@ -43,6 +43,7 @@ export const messages = {
   org_display_username_text: 'SFDX: Display Org Details...',
   org_display_progress: 'Getting org details',
   org_display_result_parsing_error: 'An unexpected error occurred while processing the org display response.',
+  org_auth_result_parsing_error: 'An unexpected error occurred while processing the org auth response.',
   org_expired: 'Expired',
   org_list_clean_text: 'SFDX: Remove Deleted and Expired Orgs',
   org_logout_all_text: 'SFDX: Log Out from Authorized Orgs',
