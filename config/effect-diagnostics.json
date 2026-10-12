@@ -23,6 +23,7 @@
     "schemaUnionOfLiterals",
     "instanceOfSchema",
     "extendsNativeError",
-    "globalFetch"
+    "globalFetch",
+    "anyUnknownInErrorContext"
   ]
 }

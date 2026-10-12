@@ -52,14 +52,15 @@ export const initSObjectDefinitions = Effect.fn('initSObjectDefinitions')(functi
   yield* Effect.promise(() => vscode.commands.executeCommand('sf.internal.refreshsobjects', refreshSource)).pipe(
     Effect.tapDefect(cause => {
       const error = Cause.squash(cause);
-      return Effect.fail(error).pipe(
+      return Effect.failCause(cause).pipe(
         Effect.withSpan('initSObjectDefinitionsError', {
           attributes: {
             message: `Error: ${extractErrorMessage(error)} with sobjectRefreshStartup = ${isSettingEnabled}`
           },
           root: true
         }),
-        Effect.ignore
+        Effect.exit,
+        Effect.asVoid
       );
     })
   );
