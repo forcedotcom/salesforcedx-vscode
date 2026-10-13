@@ -13,6 +13,7 @@ import { identity } from 'effect/Function';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { orgLogoutAllCommand } from '../../../../src/commands/auth/orgLogout';
+import type * as orgUtil from '../../../../src/util/orgUtil';
 
 // The real UserCancellationError (from @salesforce/vscode-services) is not constructable under
 // ts-jest; a local Schema.TaggedError with the same _tag is interchangeable for catchTag matching.
@@ -29,8 +30,7 @@ const mockGetFreshAuthorizations = jest.fn<Effect.Effect<unknown, never, never>,
 const mockUpdateConfigAndStateAggregatorsEffect = jest.fn<Effect.Effect<void, never, never>, []>(() => Effect.void);
 let logoutMock: jest.Mock;
 jest.mock('../../../../src/util/orgUtil', () => {
-  const { logoutOrg } =
-    jest.requireActual<typeof import('../../../../src/util/orgUtil')>('../../../../src/util/orgUtil');
+  const { logoutOrg } = jest.requireActual<typeof orgUtil>('../../../../src/util/orgUtil');
   return {
     logoutOrg,
     getFreshAuthorizations: () => mockGetFreshAuthorizations(),

@@ -12,13 +12,13 @@ import { identity } from 'effect/Function';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { orgLogoutDefaultCommand } from '../../../../src/commands/auth/orgLogout';
+import type * as orgUtil from '../../../../src/util/orgUtil';
 import { makeConfirmOrThrow, UserCancellationError } from '../../testHelpers/promptServiceStub';
 
 const mockUpdateConfigAndStateAggregatorsEffect = jest.fn<Effect.Effect<void, never, never>, []>(() => Effect.void);
 let logoutMock: jest.Mock;
 jest.mock('../../../../src/util/orgUtil', () => {
-  const { logoutOrg } =
-    jest.requireActual<typeof import('../../../../src/util/orgUtil')>('../../../../src/util/orgUtil');
+  const { logoutOrg } = jest.requireActual<typeof orgUtil>('../../../../src/util/orgUtil');
   return { logoutOrg, updateConfigAndStateAggregatorsEffect: () => mockUpdateConfigAndStateAggregatorsEffect() };
 });
 
