@@ -24,6 +24,7 @@
     "instanceOfSchema",
     "extendsNativeError",
     "globalFetch",
-    "anyUnknownInErrorContext"
+    "anyUnknownInErrorContext",
+    "globalConsoleInEffect"
   ]
 }

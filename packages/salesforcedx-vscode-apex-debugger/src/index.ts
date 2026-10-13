@@ -269,5 +269,5 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-deb
 export const deactivate = async (): Promise<void> => getRuntime().runPromise(deactivateEffect());
 
 export const deactivateEffect = Effect.fn('deactivation:salesforcedx-vscode-apex-debugger')(function* () {
-  yield* Effect.sync(() => console.log('Apex Debugger Extension Deactivated'));
+  yield* Effect.log('Apex Debugger Extension Deactivated');
 });

@@ -181,5 +181,5 @@ export const deactivate = async (): Promise<void> => {
 };
 
 export const deactivateEffect = Effect.fn('deactivation:salesforcedx-vscode-apex-replay-debugger')(function* () {
-  yield* Effect.sync(() => console.log('Apex Replay Debugger Extension Deactivated'));
+  yield* Effect.log('Apex Replay Debugger Extension Deactivated');
 });
