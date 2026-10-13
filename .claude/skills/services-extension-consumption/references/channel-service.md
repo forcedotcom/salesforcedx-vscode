@@ -37,3 +37,4 @@ yield* api.services.ChannelService.appendToChannel('Salesforce Metadata extensio
 - Logging is "best effort", won't cause failures
 - Use extension-specific channel via `ChannelServiceLayer`
 - Provide `ChannelServiceLayer` before `ErrorHandlerService`
+- `ChannelServiceLayer` is `Layer.scoped`. Finalizer disposes the cached `OutputChannel` and invalidates the cache entry when the layer scope closes (`ManagedRuntime.dispose`). Scope owns that channel.

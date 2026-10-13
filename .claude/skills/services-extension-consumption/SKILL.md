@@ -38,7 +38,7 @@ Per-extension layers (must build yourself):
 
 | Layer                                   | Why                                                        |
 | --------------------------------------- | ---------------------------------------------------------- |
-| `ChannelServiceLayer(displayName)`      | Own output channel                                         |
+| `ChannelServiceLayer(displayName)`      | Own output channel; disposed when layer scope closes       |
 | `ErrorHandlerService.Default`           | Depends on own ChannelService                              |
 | `ExtensionContextServiceLayer(context)` | Own `ExtensionContext`                                     |
 | `SdkLayerFor(context)`                  | Own tracer (extension name/version in resource attributes) |

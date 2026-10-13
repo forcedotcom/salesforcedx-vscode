@@ -34,6 +34,9 @@ export class ChannelService extends Effect.Service<ChannelService>()('ChannelSer
 
 /**
  * Factory for a Layer that provides a ChannelService for the given channel name.
+ * Channels are shared through the module cache and disposed when
+ * ChannelDisposalLayer's scope closes (extension deactivate), not when this
+ * layer's scope closes.
  * Use this in other extensions
  * Usage:
  * Layer.provide(ChannelServiceLayer('My Channel'))
@@ -43,21 +46,16 @@ export const ChannelServiceLayer = (channelName: string) =>
     ChannelService,
     new ChannelService({
       getChannel: cache.get(channelName),
-      showChannel: Effect.gen(function* () {
-        const channel = yield* cache.get(channelName);
-        return yield* Effect.sync(() => channel.show());
-      }),
-      clearChannel: Effect.gen(function* () {
-        const channel = yield* cache.get(channelName);
-        return yield* Effect.try(() => channel.clear());
-      }).pipe(Effect.catchAll(() => Effect.void)),
+      showChannel: cache.get(channelName).pipe(Effect.flatMap(channel => Effect.sync(() => channel.show()))),
+      clearChannel: cache.get(channelName).pipe(
+        Effect.flatMap(channel => Effect.try(() => channel.clear())),
+        Effect.ignore
+      ),
       appendToChannel: (message: string) =>
-        Effect.gen(function* () {
-          const channel = yield* cache.get(channelName);
-          return yield* Effect.try(() => channel.appendLine(message));
-        }).pipe(
+        cache.get(channelName).pipe(
+          Effect.flatMap(channel => Effect.try(() => channel.appendLine(message))),
           // channelLogging is "best effort" and will not cause a failure
-          Effect.catchAll(() => Effect.void)
+          Effect.ignore
         )
     })
   );
