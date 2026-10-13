@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { fs, resetFs, setFs } from '@salesforce/core/fs';
+import { type fs, resetFs, setFs } from '@salesforce/core/fs';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { createFsFromVolume, Volume } from 'memfs';

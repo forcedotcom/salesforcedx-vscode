@@ -852,6 +852,16 @@ export default [
     }
   },
   {
+    // consistent-type-imports for eslint-local-rules (inline to avoid no-duplicate-imports; W-23371083)
+    files: ['packages/eslint-local-rules/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // consistent-type-imports for effect-ext-utils (inline to avoid no-duplicate-imports)
     files: ['packages/effect-ext-utils/**/*.ts', 'packages/effect-octokit/**/*.ts'],
     rules: {
@@ -962,6 +972,16 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-vscode-services (inline to avoid no-duplicate-imports; W-23371088)
+    files: ['packages/salesforcedx-vscode-services/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // consistent-type-imports for salesforcedx-vscode-org-browser (inline to avoid no-duplicate-imports; W-23371063)
     files: ['packages/salesforcedx-vscode-org-browser/**/*.ts'],
     rules: {
@@ -1024,6 +1044,16 @@ export default [
   {
     // consistent-type-imports for salesforcedx-aura-language-server (inline to avoid no-duplicate-imports; W-23371054)
     files: ['packages/salesforcedx-aura-language-server/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-lwc-language-server (inline to avoid no-duplicate-imports; W-23371085)
+    files: ['packages/salesforcedx-lwc-language-server/**/*.ts'],
     rules: {
       '@typescript-eslint/consistent-type-imports': [
         'error',

@@ -7,8 +7,8 @@
 import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
 import * as HttpClient from '@effect/platform/HttpClient';
 import * as HttpClientRequest from '@effect/platform/HttpClientRequest';
-import { ExportResult, ExportResultCode } from '@opentelemetry/core';
-import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
+import { type ExportResult, ExportResultCode } from '@opentelemetry/core';
+import { type ReadableSpan, type SpanExporter } from '@opentelemetry/sdk-trace-base';
 import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';

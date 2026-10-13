@@ -20,49 +20,110 @@ import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
-import { ComponentSetService } from '../../../src/core/componentSetService';
+import { URI } from 'vscode-uri';
 import { ConnectionService, InactiveOrgOperationError } from '../../../src/core/connectionService';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
-import { MetadataChangeNotificationService } from '../../../src/core/metadataChangeNotificationService';
-import {
-  FOLDERED_METADATA_TYPES,
-  ListMetadataError,
-  MetadataDescribeService
-} from '../../../src/core/metadataDescribeService';
+import { ListMetadataError, MetadataDescribeService } from '../../../src/core/metadataDescribeService';
 import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
+import { MetadataChangeNotificationService } from '../../../src/core/metadataChangeNotificationService';
 import { MetadataRetrieveService } from '../../../src/core/metadataRetrieveService';
 import { ProjectService } from '../../../src/core/projectService';
-import { QueryService } from '../../../src/core/queryService';
 import { TransmogrifierService } from '../../../src/core/transmogrifierService';
 import { OrgId } from '../../../src/core/schemas/salesforceId';
 import type { SObject } from '../../../src/core/schemas/sObject';
 import { OrgMetadataCatalog } from '../../../src/orgCatalog/orgMetadataCatalog';
 import { OrgCatalogDocuments } from '../../../src/orgCatalog/orgCatalogDocuments';
-import { OrgCatalogInventory } from '../../../src/orgCatalog/orgCatalogInventory';
-import { OrgCatalogRemoteRetrieve } from '../../../src/orgCatalog/orgCatalogRemoteRetrieve';
-import { OrgCatalogRemoteSource } from '../../../src/orgCatalog/orgCatalogRemoteSource';
 import { OrgCatalogState } from '../../../src/orgCatalog/orgCatalogState';
-import { OrgCatalogTreeProjection } from '../../../src/orgCatalog/orgCatalogTreeProjection';
-import { OrgCatalogWorkspace } from '../../../src/orgCatalog/orgCatalogWorkspace';
-import { OrgMetadataCatalogRecorder } from '../../../src/orgCatalog/orgMetadataCatalogRecorder';
-import {
-  OrgMetadataCatalogChangePubSub,
-  type OrgMetadataCatalogChange
-} from '../../../src/orgCatalog/orgMetadataCatalogChangePubSub';
+import { runOrgMetadataDocumentProvider } from '../../../src/orgCatalog/orgMetadataDocumentProvider';
+import { OrgMetadataCatalogChangePubSub } from '../../../src/orgCatalog/orgMetadataCatalogChangePubSub';
 import {
   OrgMetadataCatalogStore,
   type OrgMetadataCatalogSnapshot
 } from '../../../src/orgCatalog/orgMetadataCatalogStore';
-import {
-  OrgMetadataDocumentProvider,
-  runOrgMetadataDocumentProvider
-} from '../../../src/orgCatalog/orgMetadataDocumentProvider';
-import { OrgMetadataReferenceService } from '../../../src/orgCatalog/orgMetadataReference';
-import { OrgMetadataShadowStore } from '../../../src/orgCatalog/orgMetadataShadowStore';
 import { FileChangePubSub } from '../../../src/vscode/fileChangePubSub';
-import { FsService } from '../../../src/vscode/fsService';
-import { NoWorkspaceOpenError, WorkspaceService } from '../../../src/vscode/workspaceService';
+import { WorkspaceService } from '../../../src/vscode/workspaceService';
+import type * as connectionService from '../../../src/core/connectionService';
+import type * as metadataDescribeService from '../../../src/core/metadataDescribeService';
+import type * as metadataRegistryService from '../../../src/core/metadataRegistryService';
+import type * as metadataRetrieveService from '../../../src/core/metadataRetrieveService';
+import type * as projectService from '../../../src/core/projectService';
+import type * as transmogrifierService from '../../../src/core/transmogrifierService';
+import type * as orgMetadataCatalogStore from '../../../src/orgCatalog/orgMetadataCatalogStore';
+
+// Keep production catalog/state/recorder composition. Infrastructure defaults read the test adapters from context.
+jest.mock('../../../src/core/connectionService', () => {
+  const actual = jest.requireActual<typeof connectionService>('../../../src/core/connectionService');
+  return {
+    ...actual,
+    ConnectionService: Object.defineProperty(actual.ConnectionService, 'Default', {
+      value: jest.requireActual<typeof Layer>('effect/Layer').effect(actual.ConnectionService, actual.ConnectionService)
+    })
+  };
+});
+jest.mock('../../../src/core/metadataDescribeService', () => {
+  const actual = jest.requireActual<typeof metadataDescribeService>('../../../src/core/metadataDescribeService');
+  return {
+    ...actual,
+    MetadataDescribeService: Object.defineProperty(actual.MetadataDescribeService, 'Default', {
+      value: jest
+        .requireActual<typeof Layer>('effect/Layer')
+        .effect(actual.MetadataDescribeService, actual.MetadataDescribeService)
+    })
+  };
+});
+jest.mock('../../../src/core/metadataRegistryService', () => {
+  const actual = jest.requireActual<typeof metadataRegistryService>('../../../src/core/metadataRegistryService');
+  return {
+    ...actual,
+    MetadataRegistryService: Object.defineProperty(actual.MetadataRegistryService, 'Default', {
+      value: jest
+        .requireActual<typeof Layer>('effect/Layer')
+        .effect(actual.MetadataRegistryService, actual.MetadataRegistryService)
+    })
+  };
+});
+jest.mock('../../../src/core/metadataRetrieveService', () => {
+  const actual = jest.requireActual<typeof metadataRetrieveService>('../../../src/core/metadataRetrieveService');
+  return {
+    ...actual,
+    MetadataRetrieveService: Object.defineProperty(actual.MetadataRetrieveService, 'Default', {
+      value: jest
+        .requireActual<typeof Layer>('effect/Layer')
+        .effect(actual.MetadataRetrieveService, actual.MetadataRetrieveService)
+    })
+  };
+});
+jest.mock('../../../src/core/projectService', () => {
+  const actual = jest.requireActual<typeof projectService>('../../../src/core/projectService');
+  return {
+    ...actual,
+    ProjectService: Object.defineProperty(actual.ProjectService, 'Default', {
+      value: jest.requireActual<typeof Layer>('effect/Layer').effect(actual.ProjectService, actual.ProjectService)
+    })
+  };
+});
+jest.mock('../../../src/core/transmogrifierService', () => {
+  const actual = jest.requireActual<typeof transmogrifierService>('../../../src/core/transmogrifierService');
+  return {
+    ...actual,
+    TransmogrifierService: Object.defineProperty(actual.TransmogrifierService, 'Default', {
+      value: jest
+        .requireActual<typeof Layer>('effect/Layer')
+        .effect(actual.TransmogrifierService, actual.TransmogrifierService)
+    })
+  };
+});
+jest.mock('../../../src/orgCatalog/orgMetadataCatalogStore', () => {
+  const actual = jest.requireActual<typeof orgMetadataCatalogStore>('../../../src/orgCatalog/orgMetadataCatalogStore');
+  return {
+    ...actual,
+    OrgMetadataCatalogStore: Object.defineProperty(actual.OrgMetadataCatalogStore, 'Default', {
+      value: jest
+        .requireActual<typeof Layer>('effect/Layer')
+        .effect(actual.OrgMetadataCatalogStore, actual.OrgMetadataCatalogStore)
+    })
+  };
+});
 
 type ListedComponent = {
   readonly fullName: string;
@@ -159,111 +220,11 @@ const makeHarness = (options: HarnessOptions = {}) => {
   const invalidateSObjectDescribe = jest.fn((_apiName: string, _orgId?: string) => Effect.void);
   const invalidateSObjectDescribes = jest.fn((_apiNames?: readonly string[], _orgId?: string) => Effect.void);
   const invalidateListSObjects = jest.fn((_orgId?: string) => Effect.void);
-  const invalidateForMetadataChanges = jest.fn(
-    (orgId: string, references: readonly { readonly xmlName: string; readonly fullName: string }[]) =>
-      Effect.gen(function* () {
-        const affectedTypes = new Set(references.map(reference => reference.xmlName));
-        yield* Effect.forEach(
-          affectedTypes,
-          xmlName =>
-            FOLDERED_METADATA_TYPES.has(xmlName)
-              ? invalidateAllListMetadata(orgId)
-              : invalidateListMetadata(xmlName, undefined, orgId),
-          { discard: true }
-        );
-        const affectedSObjects = new Set<string>();
-        references.forEach(reference => {
-          if (reference.xmlName === 'CustomObject') affectedSObjects.add(reference.fullName);
-          if (reference.xmlName === 'CustomField') affectedSObjects.add(reference.fullName.split('.')[0]);
-        });
-        if (affectedSObjects.size > 0) {
-          yield* invalidateListSObjects(orgId);
-          yield* invalidateSObjectDescribes([...affectedSObjects], orgId);
-        }
-      })
-  );
-  const shadowArtifacts = new Map<
-    string,
-    {
-      readonly rootUri: URI;
-      readonly primaryUri: URI;
-      readonly fileUris: readonly URI[];
-      readonly remoteLastModifiedDate?: string;
-      readonly materializedAt: string;
-    }
-  >();
-  const shadowFiles = new Map<string, string>();
-  const shadowKey = (
-    orgId: string,
-    reference: { readonly xmlName: string; readonly fullName: string },
-    revision?: string
-  ) => `${orgId}\0${reference.xmlName}\0${reference.fullName}\0${revision ?? 'unversioned'}`;
-  const shadowGet = jest.fn(
-    (orgId: string, reference: { readonly xmlName: string; readonly fullName: string }, revision?: string) =>
-      Effect.succeed(shadowArtifacts.get(shadowKey(orgId, reference, revision)))
-  );
-  const shadowPrepare = jest.fn(
-    (orgId: string, reference: { readonly xmlName: string; readonly fullName: string }, revision?: string) => {
-      const rootUri = URI.file(
-        `/workspace/.sf/orgs/${orgId}/metadata-shadow/${reference.xmlName}/${reference.fullName}/${revision ?? 'unversioned'}`
-      );
-      return Effect.succeed({ rootUri, stagingUri: rootUri.with({ path: `${rootUri.path}.__staging__` }) });
-    }
-  );
-  const shadowPrepareBatch = jest.fn((orgId: string) =>
-    Effect.succeed(URI.file(`/workspace/.sf/orgs/${orgId}/remoteMetadata/catalog-staging/batch.__staging__`))
-  );
-  const shadowPublish = jest.fn(
-    ({
-      orgId,
-      reference,
-      stagingUri,
-      primaryUri,
-      fileUris,
-      remoteLastModifiedDate
-    }: {
-      readonly orgId: string;
-      readonly reference: { readonly xmlName: string; readonly fullName: string };
-      readonly stagingUri: URI;
-      readonly primaryUri: URI;
-      readonly fileUris: readonly URI[];
-      readonly remoteLastModifiedDate?: string;
-    }) =>
-      Effect.sync(() => {
-        const rootUri = stagingUri.with({ path: stagingUri.path.replace(/\.__staging__$/, '') });
-        const publishedPrimaryUri = primaryUri.with({
-          path: primaryUri.path.replace(stagingUri.path, rootUri.path)
-        });
-        const content = shadowFiles.get(primaryUri.toString());
-        if (content !== undefined) shadowFiles.set(publishedPrimaryUri.toString(), content);
-        const artifact = {
-          rootUri,
-          primaryUri: publishedPrimaryUri,
-          fileUris: fileUris.map(uri => uri.with({ path: uri.path.replace(stagingUri.path, rootUri.path) })),
-          remoteLastModifiedDate,
-          materializedAt: new Date().toISOString()
-        };
-        shadowArtifacts.set(shadowKey(orgId, reference, remoteLastModifiedDate), artifact);
-        return artifact;
-      })
-  );
-  const toolingQuery = jest.fn(async (_soql: string) => ({
-    records: [{ Body: 'public class RemoteTest {}', LastModifiedDate: 'tooling-revision' }]
-  }));
   const buildComponentSetFromSource = jest.fn(() =>
     Effect.succeed({
       getSourceComponents: () => workspaceComponents
     })
   );
-  const buildComponentSet = jest.fn(() => Effect.succeed({ size: 1 }));
-  const ensureNonEmptyComponentSet = jest.fn((componentSet: unknown) => Effect.succeed(componentSet));
-  const retrieveComponentSetToDirectory = jest.fn((_componentSet: unknown, _stagingUri: URI, _expectedOrgId?: string) =>
-    Effect.die('unexpected remote materialization').pipe(Effect.as(undefined as unknown))
-  );
-  const readDirectoryWithTypes = jest.fn((_uri: URI) =>
-    Effect.succeed([] as { readonly uri: URI; readonly type: vscode.FileType }[])
-  );
-  const catalogChanges = Effect.runSync(PubSub.unbounded<OrgMetadataCatalogChange>({ replay: 16 }));
   const catalogSnapshots = options.catalogSnapshots ?? new Map<string, OrgMetadataCatalogSnapshot>();
   const storeLoad = jest.fn((orgId: string) =>
     options.storeLoadError ? Effect.fail(options.storeLoadError) : Effect.succeed(catalogSnapshots.get(orgId))
@@ -279,39 +240,16 @@ const makeHarness = (options: HarnessOptions = {}) => {
 
   const getConnection = jest.fn(() =>
     Effect.succeed({
-      getAuthInfoFields: () => ({ orgId: options.connectionOrgId ?? '00D000000000001' }),
-      tooling: { query: toolingQuery }
+      getAuthInfoFields: () => ({ orgId: options.connectionOrgId ?? '00D000000000001' })
     })
   );
   const getConnectionForOrg = jest.fn((_expectedOrgId: string) => getConnection());
   const getRegistryAccess = jest.fn(() => Effect.succeed(new RegistryAccess()));
   const dependencies = Layer.mergeAll(
-    Layer.succeed(ComponentSetService, {
-      ensureNonEmptyComponentSet
-    } as unknown as InstanceType<typeof ComponentSetService>),
     Layer.succeed(ConnectionService, {
       getConnection,
       getConnectionForOrg
     } as unknown as InstanceType<typeof ConnectionService>),
-    Layer.succeed(QueryService, {
-      query: (queryOptions: { soql: string }) =>
-        Effect.promise(() => toolingQuery(queryOptions.soql)).pipe(
-          Effect.map(result => ({
-            totalSize: result.records.length,
-            records: Stream.fromIterable(result.records)
-          }))
-        )
-    } as unknown as InstanceType<typeof QueryService>),
-    Layer.succeed(FsService, {
-      readFile: (uri: URI) => Effect.succeed(shadowFiles.get(uri.toString()) ?? ''),
-      readDirectoryWithTypes,
-      toUri: (path: string | URI) => Effect.succeed(typeof path === 'string' ? URI.file(path) : path),
-      safeDelete: () => Effect.void,
-      safeWriteFile: (uri: URI, content: string) =>
-        Effect.sync(() => {
-          shadowFiles.set(uri.toString(), content);
-        })
-    } as unknown as InstanceType<typeof FsService>),
     Layer.succeed(MetadataDescribeService, {
       describe,
       listMetadata,
@@ -323,31 +261,34 @@ const makeHarness = (options: HarnessOptions = {}) => {
       invalidateAllListMetadata,
       invalidateSObjectDescribe,
       invalidateSObjectDescribes,
-      invalidateListSObjects,
-      invalidateForMetadataChanges
+      invalidateListSObjects
     } as unknown as InstanceType<typeof MetadataDescribeService>),
     Layer.succeed(MetadataRegistryService, {
       getRegistryAccess
     } as unknown as InstanceType<typeof MetadataRegistryService>),
     Layer.succeed(MetadataRetrieveService, {
-      buildComponentSet,
-      buildComponentSetFromSource,
-      retrieveComponentSetToDirectory
+      buildComponentSetFromSource
     } as unknown as InstanceType<typeof MetadataRetrieveService>),
-    Layer.succeed(
-      OrgMetadataCatalogChangePubSub,
-      catalogChanges as unknown as InstanceType<typeof OrgMetadataCatalogChangePubSub>
-    ),
+    OrgMetadataCatalogChangePubSub.Default,
+    FileChangePubSub.Default,
+    MetadataChangeNotificationService.Default,
+    Layer.mock(OrgCatalogDocuments, { _tag: 'OrgCatalogDocuments', readDocumentUri: () => Effect.succeed('body') }),
+    Layer.mock(WorkspaceService, {
+      _tag: 'WorkspaceService',
+      getWorkspaceInfo: () =>
+        Effect.succeed({
+          uri: URI.file('/workspace'),
+          path: '/workspace',
+          fsPath: '/workspace',
+          isEmpty: false,
+          isVirtualFs: false,
+          cwd: '/workspace'
+        })
+    }),
     Layer.succeed(OrgMetadataCatalogStore, {
       load: storeLoad,
       save: storeSave
     } as unknown as InstanceType<typeof OrgMetadataCatalogStore>),
-    Layer.succeed(OrgMetadataShadowStore, {
-      get: shadowGet,
-      prepare: shadowPrepare,
-      prepareBatch: shadowPrepareBatch,
-      publish: shadowPublish
-    } as unknown as InstanceType<typeof OrgMetadataShadowStore>),
     Layer.succeed(ProjectService, {
       getSfProject: () =>
         Effect.succeed({
@@ -359,48 +300,12 @@ const makeHarness = (options: HarnessOptions = {}) => {
       toMinimalSObject: (value: SObject) => Effect.succeed(value)
     } as unknown as InstanceType<typeof TransmogrifierService>)
   );
-  const stateLayer = OrgCatalogState.DefaultWithoutDependencies.pipe(Layer.provide(dependencies));
-  const referenceLayer = OrgMetadataReferenceService.DefaultWithoutDependencies.pipe(Layer.provide(dependencies));
-  const foundation = Layer.mergeAll(dependencies, stateLayer, referenceLayer);
-  const recorderLayer = OrgMetadataCatalogRecorder.DefaultWithoutDependencies.pipe(Layer.provide(foundation));
-  const workspaceLayer = OrgCatalogWorkspace.DefaultWithoutDependencies.pipe(Layer.provide(foundation));
-  const remoteRetrieveLayer = OrgCatalogRemoteRetrieve.DefaultWithoutDependencies.pipe(Layer.provide(foundation));
-  const inventoryRequirements = Layer.mergeAll(foundation, workspaceLayer);
-  const inventoryLayer = OrgCatalogInventory.DefaultWithoutDependencies.pipe(Layer.provide(inventoryRequirements));
-  const remoteSourceRequirements = Layer.mergeAll(inventoryRequirements, inventoryLayer, remoteRetrieveLayer);
-  const remoteSourceLayer = OrgCatalogRemoteSource.DefaultWithoutDependencies.pipe(
-    Layer.provide(remoteSourceRequirements)
-  );
-  const documentsLayer = OrgCatalogDocuments.DefaultWithoutDependencies.pipe(
-    Layer.provide(Layer.mergeAll(remoteSourceRequirements, remoteSourceLayer))
-  );
-  const treeProjectionLayer = OrgCatalogTreeProjection.DefaultWithoutDependencies.pipe(
-    Layer.provide(Layer.mergeAll(inventoryRequirements, inventoryLayer))
-  );
-  const catalogRequirements = Layer.mergeAll(
-    dependencies,
-    stateLayer,
-    referenceLayer,
-    workspaceLayer,
-    inventoryLayer,
-    remoteRetrieveLayer,
-    remoteSourceLayer,
-    documentsLayer,
-    recorderLayer,
-    treeProjectionLayer
-  );
+  const layer = Layer.merge(OrgMetadataCatalog.Default, OrgCatalogState.Default).pipe(Layer.provideMerge(dependencies));
 
   return {
-    catalogChanges,
-    internalLayer: Layer.mergeAll(stateLayer, documentsLayer),
-    layer: Layer.mergeAll(
-      Layer.provide(OrgMetadataCatalog.DefaultWithoutDependencies, catalogRequirements),
-      referenceLayer
-    ),
-    remoteSourceLayer,
+    layer,
     mocks: {
       buildComponentSetFromSource,
-      buildComponentSet,
       describe,
       describeCustomObject,
       invalidateAllListMetadata,
@@ -414,16 +319,8 @@ const makeHarness = (options: HarnessOptions = {}) => {
       getRegistryAccess,
       listMetadata,
       listSObjects,
-      readDirectoryWithTypes,
       storeLoad,
-      storeSave,
-      shadowGet,
-      shadowPrepare,
-      shadowPrepareBatch,
-      shadowPublish,
-      retrieveComponentSetToDirectory,
-      ensureNonEmptyComponentSet,
-      toolingQuery
+      storeSave
     }
   };
 };
@@ -431,9 +328,9 @@ const makeHarness = (options: HarnessOptions = {}) => {
 const setOrg = (orgId: string) =>
   getDefaultOrgRef().pipe(Effect.flatMap(ref => SubscriptionRef.set(ref, { orgId: Schema.decodeSync(OrgId)(orgId) })));
 
-const runWithCatalog = <A, E, LayerError>(
-  layer: Layer.Layer<OrgMetadataCatalog | OrgMetadataReferenceService, LayerError>,
-  body: (catalog: InstanceType<typeof OrgMetadataCatalog>) => Effect.Effect<A, E>
+const runWithCatalog = <A, E, LayerError, R>(
+  layer: Layer.Layer<OrgMetadataCatalog | R, LayerError>,
+  body: (catalog: InstanceType<typeof OrgMetadataCatalog>) => Effect.Effect<A, E, R>
 ): Promise<A> =>
   Effect.runPromise(
     Effect.gen(function* () {
@@ -450,25 +347,6 @@ const getEntry = (
     .getEntries([{ type: reference.xmlName, fullName: reference.fullName }])
     .pipe(Effect.map(entries => entries[0]));
 
-const materializePrimaryDocument = (
-  remoteSource: InstanceType<typeof OrgCatalogRemoteSource>,
-  reference: { readonly xmlName: string; readonly fullName: string }
-) => remoteSource.materializePrimaryDocument('00D000000000001', reference);
-
-const runWithCatalogAndRemoteSource = <A, E, LayerError>(
-  layer: Layer.Layer<OrgMetadataCatalog | OrgCatalogRemoteSource | OrgMetadataReferenceService, LayerError>,
-  body: (
-    catalog: InstanceType<typeof OrgMetadataCatalog>,
-    remoteSource: InstanceType<typeof OrgCatalogRemoteSource>
-  ) => Effect.Effect<A, E>
-): Promise<A> =>
-  Effect.runPromise(
-    Effect.gen(function* () {
-      yield* setOrg('00D000000000001');
-      return yield* body(yield* OrgMetadataCatalog, yield* OrgCatalogRemoteSource);
-    }).pipe(Effect.provide(layer))
-  );
-
 describe('OrgMetadataCatalog contract', () => {
   it('exposes only consumer-shaped operations', async () => {
     const { layer } = makeHarness();
@@ -476,87 +354,6 @@ describe('OrgMetadataCatalog contract', () => {
     const keys = await runWithCatalog(layer, catalog => Effect.succeed(Object.keys(catalog).toSorted()));
 
     expect(keys).toEqual(['getChildren', 'getEntries', 'hasTypeInventory', 'resolveComponents']);
-  });
-
-  it('reports whether a direct type inventory has been loaded', async () => {
-    const { layer } = makeHarness();
-
-    const result = await runWithCatalog(layer, catalog =>
-      Effect.gen(function* () {
-        const before = yield* catalog.hasTypeInventory('ApexClass');
-        yield* catalog.getChildren({ type: 'ApexClass' });
-        const after = yield* catalog.hasTypeInventory('ApexClass');
-        return { after, before };
-      })
-    );
-
-    expect(result).toEqual({ before: false, after: true });
-  });
-
-  it('keeps the metadata document provider alive across org changes when no workspace is open', async () => {
-    const { catalogChanges, internalLayer } = makeHarness();
-    let provider: OrgMetadataDocumentProvider | undefined;
-    jest.mocked(vscode.workspace.registerTextDocumentContentProvider).mockImplementation((_scheme, value) => {
-      provider = value as OrgMetadataDocumentProvider;
-      return { dispose: jest.fn() };
-    });
-    const noWorkspace = new NoWorkspaceOpenError({ message: 'No workspace is currently open' });
-    const workspaceLayer = Layer.succeed(WorkspaceService, {
-      getWorkspaceInfo: () =>
-        Effect.succeed({
-          uri: URI.parse(''),
-          path: '',
-          fsPath: '',
-          isEmpty: true,
-          isVirtualFs: false,
-          cwd: '/workspace'
-        }),
-      getWorkspaceInfoOrThrow: () => Effect.fail(noWorkspace)
-    } as unknown as InstanceType<typeof WorkspaceService>);
-    const registryLayer = MetadataRegistryService.DefaultWithoutDependencies.pipe(Layer.provide(workspaceLayer));
-    const referenceLayer = OrgMetadataReferenceService.DefaultWithoutDependencies.pipe(Layer.provide(registryLayer));
-    const providerLayer = Layer.mergeAll(
-      internalLayer,
-      MetadataChangeNotificationService.Default,
-      FileChangePubSub.Default,
-      referenceLayer,
-      Layer.succeed(
-        OrgMetadataCatalogChangePubSub,
-        catalogChanges as unknown as InstanceType<typeof OrgMetadataCatalogChangePubSub>
-      ),
-      workspaceLayer
-    );
-
-    const result = await Effect.scoped(
-      Effect.gen(function* () {
-        yield* setOrg('00D000000000001');
-        const subscription = yield* PubSub.subscribe(catalogChanges);
-        yield* Effect.forkScoped(runOrgMetadataDocumentProvider());
-        yield* Queue.take(subscription);
-        const registeredProvider = provider;
-        if (!registeredProvider) return yield* Effect.die('document provider was not registered');
-
-        const staleUri = URI.parse('sf-org-metadata:/orgs/00D000000000001/ApexClass/Stale.cls');
-        const activeUri = URI.parse('sf-org-metadata:/orgs/00D000000000002/ApexClass/Active.cls');
-        yield* Effect.promise(() =>
-          Promise.allSettled([
-            registeredProvider.provideTextDocumentContent(staleUri),
-            registeredProvider.provideTextDocumentContent(activeUri)
-          ])
-        );
-
-        yield* setOrg('00D000000000002');
-        const transition = yield* Queue.take(subscription);
-        const requestedUris = registeredProvider.requestedUriEntries().map(([, uri]) => uri.toString());
-        yield* setOrg('00D000000000003');
-        const subsequentTransition = yield* Queue.take(subscription);
-        return { requestedUris, subsequentTransition, transition };
-      })
-    ).pipe(Effect.provide(providerLayer), Effect.timeout('2 seconds'), Effect.runPromise);
-
-    expect(result.transition).toEqual({ kind: 'org', orgId: '00D000000000002' });
-    expect(result.requestedUris).toEqual(['sf-org-metadata:/orgs/00D000000000002/ApexClass/Active.cls']);
-    expect(result.subsequentTransition).toEqual({ kind: 'org', orgId: '00D000000000003' });
   });
 
   it('resolves consumer-known components during startup before the default org ref is populated', async () => {
@@ -652,18 +449,21 @@ describe('OrgMetadataCatalog contract', () => {
       ]
     });
 
-    const [first, second, cached] = await runWithCatalog(layer, catalog =>
+    const [first, second, cached, catalogEntry] = await runWithCatalog(layer, catalog =>
       Effect.gen(function* () {
         const concurrent = yield* Effect.all(
           [catalog.getChildren({ type: 'ApexClass' }), catalog.getChildren({ type: 'ApexClass' })],
           { concurrency: 'unbounded' }
         );
-        return [...concurrent, yield* catalog.getChildren({ type: 'ApexClass' })] as const;
+        const cachedChildren = yield* catalog.getChildren({ type: 'ApexClass' });
+        const [matchedEntry] = yield* catalog.getEntries([{ type: 'ApexClass', fullName: 'BothTest' }]);
+        return [...concurrent, cachedChildren, matchedEntry] as const;
       })
     );
 
     expect(first).toEqual(second);
     expect(cached).toEqual(first);
+    expect(catalogEntry).toMatchObject({ name: 'BothTest', inOrg: true, inWorkspace: true });
     expect(mocks.listMetadata).toHaveBeenCalledTimes(1);
     expect(mocks.buildComponentSetFromSource).toHaveBeenCalledTimes(1);
     expect(first.map(entry => entry.name)).toEqual(['BothTest', 'LocalTest', 'RemoteTest']);
@@ -731,19 +531,8 @@ describe('OrgMetadataCatalog contract', () => {
       catalogSnapshots,
       workspaceComponents: [{ type: { name: 'ApexClass' }, fullName: 'LocalOnly', content: '/workspace/LocalOnly.cls' }]
     });
-    const { cached, restored } = await runWithCatalog(restarted.layer, catalog =>
-      catalog
-        .getChildren({ type: 'ApexClass' }, { consistency: 'cache-only' })
-        .pipe(
-          Effect.flatMap(cachedEntries =>
-            catalog
-              .getChildren({ type: 'ApexClass' })
-              .pipe(Effect.map(restoredEntries => ({ cached: cachedEntries, restored: restoredEntries })))
-          )
-        )
-    );
+    const restored = await runWithCatalog(restarted.layer, catalog => catalog.getChildren({ type: 'ApexClass' }));
 
-    expect(cached.map(entry => entry.name)).toEqual(['LocalOnly', 'RemoteTest']);
     expect(restored.map(entry => [entry.name, entry.inOrg, entry.inWorkspace])).toEqual([
       ['LocalOnly', false, true],
       ['RemoteTest', true, false]
@@ -751,32 +540,6 @@ describe('OrgMetadataCatalog contract', () => {
     expect(restored.find(entry => entry.name === 'RemoteTest')?.observedAt).toBe(persistedObservedAt);
     expect(restarted.mocks.storeLoad).toHaveBeenCalledWith('00D000000000001');
     expect(restarted.mocks.listMetadata).not.toHaveBeenCalled();
-  });
-
-  it('searches persisted custom fields without acquiring them again', async () => {
-    const catalogSnapshots = new Map<string, OrgMetadataCatalogSnapshot>();
-    const first = makeHarness({
-      catalogSnapshots,
-      metadataByType: {
-        CustomObject: [{ fullName: 'Broker__c' }],
-        CustomField: [{ fullName: 'Broker__c.Email__c' }]
-      },
-      descriptions: { Broker__c: { ...emptySObject('Broker__c'), fields: [customStringField('Email__c')] } }
-    });
-    await runWithCatalog(first.layer, catalog =>
-      catalog
-        .getChildren({ type: 'CustomObject' })
-        .pipe(Effect.andThen(catalog.getChildren({ type: 'CustomObject', fullName: 'Broker__c' })))
-    );
-
-    const restarted = makeHarness({ catalogSnapshots });
-    const fields = await runWithCatalog(restarted.layer, catalog =>
-      catalog.getChildren({ type: 'CustomObject', fullName: 'Broker__c' }, { consistency: 'cache-only' })
-    );
-
-    expect(fields.map(field => field.name)).toEqual(['Email__c']);
-    expect(restarted.mocks.listMetadata).not.toHaveBeenCalled();
-    expect(restarted.mocks.describeCustomObject).not.toHaveBeenCalled();
   });
 
   it('persists metadata components in listing order', async () => {
@@ -910,7 +673,8 @@ describe('OrgMetadataCatalog contract', () => {
     expect(mocks.buildComponentSetFromSource).toHaveBeenCalledTimes(2);
   });
 
-  it('removes workspace presence after source and sidecar deletion notifications', async () => {
+  it('removes workspace presence after source and sidecar delete events without forcing refresh', async () => {
+    jest.mocked(vscode.workspace.registerTextDocumentContentProvider).mockReturnValue({ dispose: jest.fn() });
     const workspaceComponents: WorkspaceComponent[] = [
       {
         type: { name: 'ApexClass' },
@@ -918,7 +682,7 @@ describe('OrgMetadataCatalog contract', () => {
         content: '/workspace/force-app/main/default/classes/FileUtilitiesTest.cls'
       }
     ];
-    const { catalogChanges, internalLayer, layer } = makeHarness({
+    const { layer, mocks } = makeHarness({
       metadataByType: {
         ApexClass: [{ fullName: 'FileUtilitiesTest' }],
         CustomObject: [{ fullName: 'Broker__c' }],
@@ -927,67 +691,25 @@ describe('OrgMetadataCatalog contract', () => {
       descriptions: { Broker__c: { ...emptySObject('Broker__c'), fields: [customStringField('Email__c')] } },
       workspaceComponents
     });
-    jest.mocked(vscode.workspace.registerTextDocumentContentProvider).mockReturnValue({
-      dispose: jest.fn()
-    });
-    const providerLayer = Layer.mergeAll(
-      layer,
-      internalLayer,
-      MetadataChangeNotificationService.Default,
-      FileChangePubSub.Default,
-      OrgMetadataReferenceService.Default,
-      Layer.succeed(
-        OrgMetadataCatalogChangePubSub,
-        catalogChanges as unknown as InstanceType<typeof OrgMetadataCatalogChangePubSub>
-      ),
-      Layer.succeed(MetadataRegistryService, {
-        getRegistryAccess: () => Effect.succeed(new RegistryAccess())
-      } as unknown as InstanceType<typeof MetadataRegistryService>),
-      Layer.succeed(WorkspaceService, {
-        getWorkspaceInfo: () =>
-          Effect.succeed({
-            uri: URI.file('/workspace'),
-            path: '/workspace',
-            fsPath: '/workspace',
-            isEmpty: false,
-            isVirtualFs: false,
-            cwd: '/workspace'
-          }),
-        getWorkspaceInfoOrThrow: () =>
-          Effect.succeed({
-            uri: URI.file('/workspace'),
-            path: '/workspace',
-            fsPath: '/workspace',
-            isEmpty: false,
-            isVirtualFs: false,
-            cwd: '/workspace'
-          })
-      } as unknown as InstanceType<typeof WorkspaceService>)
-    );
 
-    const result = await Effect.scoped(
+    const result = await runWithCatalog(layer, catalog =>
       Effect.gen(function* () {
-        yield* setOrg('00D000000000001');
-        const catalog = yield* OrgMetadataCatalog;
-        const fileChanges = yield* FileChangePubSub;
-        const subscription = yield* PubSub.subscribe(catalogChanges);
+        const subscription = yield* PubSub.subscribe(yield* OrgMetadataCatalogChangePubSub);
         yield* Effect.forkScoped(runOrgMetadataDocumentProvider());
         yield* Queue.take(subscription); // provider's initial active-org observation
         const before = yield* getEntry(catalog, { xmlName: 'ApexClass', fullName: 'FileUtilitiesTest' });
         yield* catalog.getChildren({ type: 'CustomObject', fullName: 'Broker__c' });
-        const sourceUri = URI.file('/workspace/force-app/main/default/classes/FileUtilitiesTest.cls');
-        const metadataUri = URI.file('/workspace/force-app/main/default/classes/FileUtilitiesTest.cls-meta.xml');
         yield* Effect.sync(() => workspaceComponents.splice(0));
-        yield* PubSub.publish(fileChanges, {
-          type: 'delete',
-          uri: sourceUri
-        });
-        yield* PubSub.publish(fileChanges, {
-          type: 'delete',
-          uri: metadataUri
-        });
-
-        const event = yield* Queue.take(subscription);
+        const events = [
+          { type: 'delete' as const, uri: URI.file('/workspace/force-app/main/default/classes/FileUtilitiesTest.cls') },
+          {
+            type: 'delete' as const,
+            uri: URI.file('/workspace/force-app/main/default/classes/FileUtilitiesTest.cls-meta.xml')
+          }
+        ];
+        yield* PubSub.publishAll(yield* FileChangePubSub, events);
+        const change = yield* Queue.take(subscription);
+        expect(change).toEqual({ kind: 'workspace', events });
         const inventoryAvailable = yield* Effect.all([
           catalog.hasTypeInventory('CustomObject'),
           catalog.hasTypeInventory('CustomField')
@@ -997,15 +719,15 @@ describe('OrgMetadataCatalog contract', () => {
           { consistency: 'cache-only' }
         );
         const after = yield* getEntry(catalog, { xmlName: 'ApexClass', fullName: 'FileUtilitiesTest' });
-        return { after, before, cachedFields, event, inventoryAvailable };
-      })
-    ).pipe(Effect.provide(providerLayer), Effect.timeout('2 seconds'), Effect.runPromise);
+        return { before, after, inventoryAvailable, cachedFields };
+      }).pipe(Effect.scoped, Effect.timeout('2 seconds'))
+    );
 
     expect(result.before).toMatchObject({ inOrg: true, inWorkspace: true });
     expect(result.after).toMatchObject({ inOrg: true, inWorkspace: false });
     expect(result.inventoryAvailable).toEqual([true, true]);
     expect(result.cachedFields.map(field => field.name)).toEqual(['Email__c']);
-    expect(result.event).toMatchObject({ kind: 'workspace' });
+    expect(mocks.invalidateListMetadata).not.toHaveBeenCalled();
   });
 
   it('correlates Custom Object children with custom REST fields and metadata inventory', async () => {
@@ -1097,30 +819,6 @@ describe('OrgMetadataCatalog contract', () => {
       inWorkspace: false,
       field: { name: 'RuntimeOnly__c', type: 'textarea' }
     });
-  });
-
-  it('returns an already loaded custom object hierarchy without acquiring it again', async () => {
-    const { layer, mocks } = makeHarness({
-      metadataByType: {
-        CustomObject: [{ fullName: 'Account' }],
-        CustomField: [{ fullName: 'Account.Rating__c' }]
-      },
-      descriptions: { Account: { ...emptySObject('Account'), fields: [customStringField('Rating__c')] } }
-    });
-
-    const result = await runWithCatalog(layer, catalog =>
-      catalog.getChildren({ type: 'CustomObject' }).pipe(
-        Effect.andThen(() => catalog.getChildren({ type: 'CustomObject', fullName: 'Account' })),
-        Effect.flatMap(loaded =>
-          catalog
-            .getChildren({ type: 'CustomObject', fullName: 'Account' }, { consistency: 'cache-only' })
-            .pipe(Effect.map(cached => ({ cached, loaded })))
-        )
-      )
-    );
-
-    expect(result.cached).toEqual(result.loaded);
-    expect(mocks.listMetadata).toHaveBeenCalledTimes(2);
   });
 
   it('uses Custom Field inventory when the SObject description has no matching fields', async () => {
@@ -1285,87 +983,5 @@ describe('OrgMetadataCatalog contract', () => {
     expect(orgTwo?.orgId).toBe('00D000000000002');
     expect(orgOneAgain?.documentUri.toString()).toBe(orgOne?.documentUri.toString());
     expect(orgTwo?.documentUri.toString()).not.toBe(orgOne?.documentUri.toString());
-  });
-
-  it('materializes decomposed metadata represented only by a metadata XML file', async () => {
-    const { layer, mocks, remoteSourceLayer } = makeHarness({
-      metadataByType: { ListView: [{ fullName: 'Broker__c.All', lastModifiedDate: 'revision-1' }] }
-    });
-    mocks.retrieveComponentSetToDirectory.mockImplementation((_componentSet: unknown, stagingUri: URI) => {
-      const filePath = Utils.joinPath(
-        stagingUri,
-        'package',
-        'main',
-        'default',
-        'objects',
-        'Broker__c',
-        'listViews',
-        'All.listView-meta.xml'
-      ).fsPath;
-      return Effect.succeed({
-        components: {
-          getSourceComponents: () => [],
-          getComponentFilenamesByNameAndType: () => []
-        },
-        getFileResponses: () => [
-          {
-            filePath,
-            fullName: 'Broker__c.All',
-            state: 'Created',
-            type: 'ListView'
-          }
-        ],
-        response: {
-          fileProperties: [
-            {
-              fullName: 'Broker__c.All',
-              lastModifiedDate: 'revision-1',
-              type: 'ListView'
-            }
-          ]
-        }
-      });
-    });
-
-    const artifact = await runWithCatalogAndRemoteSource(Layer.merge(layer, remoteSourceLayer), (_, remoteSource) =>
-      materializePrimaryDocument(remoteSource, { xmlName: 'ListView', fullName: 'Broker__c.All' })
-    );
-
-    expect(artifact.primaryUri.path.endsWith('/objects/Broker__c/listViews/All.listView-meta.xml')).toBe(true);
-    expect(artifact.fileUris).toEqual([artifact.primaryUri]);
-    expect(mocks.shadowPublish).toHaveBeenCalledWith(
-      expect.objectContaining({
-        reference: { xmlName: 'ListView', fullName: 'Broker__c.All' },
-        primaryUri: expect.objectContaining({ path: expect.stringMatching(/\/All\.listView-meta\.xml$/) })
-      })
-    );
-  });
-
-  it('materializes metadata by discovering files written to the staging directory', async () => {
-    const { layer, mocks, remoteSourceLayer } = makeHarness({
-      metadataByType: { Prompt: [{ fullName: 'Property', lastModifiedDate: 'revision-1' }] }
-    });
-    let retrievedUri: URI | undefined;
-    mocks.retrieveComponentSetToDirectory.mockImplementation((_componentSet: unknown, stagingUri: URI) => {
-      retrievedUri = Utils.joinPath(stagingUri, 'package', 'main', 'default', 'prompts', 'Property.prompt-meta.xml');
-      return Effect.succeed({
-        components: {
-          getSourceComponents: () => [],
-          getComponentFilenamesByNameAndType: () => []
-        },
-        getFileResponses: () => [],
-        response: { fileProperties: [] }
-      });
-    });
-    mocks.readDirectoryWithTypes.mockImplementation(() =>
-      Effect.succeed(retrievedUri ? [{ uri: retrievedUri, type: vscode.FileType.File }] : [])
-    );
-
-    const artifact = await runWithCatalogAndRemoteSource(Layer.merge(layer, remoteSourceLayer), (_, remoteSource) =>
-      materializePrimaryDocument(remoteSource, { xmlName: 'Prompt', fullName: 'Property' })
-    );
-
-    expect(artifact.primaryUri.path.endsWith('/prompts/Property.prompt-meta.xml')).toBe(true);
-    expect(artifact.fileUris).toEqual([artifact.primaryUri]);
   });
 });

@@ -7,12 +7,13 @@
 
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
-import * as ManagedRuntime from 'effect/ManagedRuntime';
+import type * as Layer from 'effect/Layer';
+import type * as ManagedRuntime from 'effect/ManagedRuntime';
 import { isNotUndefined } from 'effect/Predicate';
+import { type globalLayers } from './servicesLayers';
 
 // DERIVED from layer; cannot drift. Error = Layer.Error (graph build failures).
-type GlobalLayers = typeof import('./servicesLayers').globalLayers;
+type GlobalLayers = typeof globalLayers;
 type ServicesRuntime = ManagedRuntime.ManagedRuntime<
   Layer.Layer.Success<GlobalLayers>,
   Layer.Layer.Error<GlobalLayers>

@@ -17,6 +17,8 @@ export type FullOrgDiscoveryProgress = {
   readonly componentTotal: number;
 };
 
+type CatalogChildrenError = Effect.Effect.Error<ReturnType<OrgMetadataCatalog['getChildren']>>;
+
 const componentEntries = (entries: readonly OrgMetadataCatalogEntry[]) =>
   entries.filter(
     (entry): entry is OrgMetadataCatalogEntry & { readonly reference: { readonly fullName: string } } =>
@@ -62,7 +64,7 @@ export const discoverFullOrgMetadata = (
       type: string,
       fullName: string,
       reportFolderCompleted: () => Effect.Effect<void>
-    ) => Effect.Effect<void, unknown, never> = Effect.fn('discoverFullOrgMetadata.folder')(function* (
+    ) => Effect.Effect<void, CatalogChildrenError, never> = Effect.fn('discoverFullOrgMetadata.folder')(function* (
       type: string,
       fullName: string,
       reportFolderCompleted: () => Effect.Effect<void>

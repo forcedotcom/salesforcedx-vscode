@@ -381,7 +381,9 @@ const retainMatchingSubtree: (
   catalog: Catalog,
   consistency?: 'cache-only',
   descendantsCacheOnly?: boolean
-) => Effect.Effect<boolean, unknown, never> = Effect.fn('retainMatchingSubtree')(function* (
+) => Effect.Effect<boolean, Effect.Effect.Error<ReturnType<typeof loadVisibleChildren>>, never> = Effect.fn(
+  'retainMatchingSubtree'
+)(function* (
   node: OrgBrowserTreeItem,
   provider: MetadataTypeTreeProvider,
   catalog: Catalog,
