@@ -1,11 +1,49 @@
 name: AI Auto Approve
 
-# PR author on @forcedotcom/ide-experience comments exactly `/ai-auto approve`.
-# svc-idee-bot (IDEE_GH_TOKEN) submits APPROVE on the current head when CI is green.
+# This file runs from the default branch. workflow_run and check_suite do not start it until then.
+# pull_request_target synchronize checks out that same file, not the pull request head.
+# svc-idee-bot (IDEE_GH_TOKEN) approves the head when the author comment is still there and CI is green.
+# A push deletes that comment. GitHub's branch protection handles stale approvals.
 
 on:
   issue_comment:
     types: [created]
+  check_suite:
+    types: [completed]
+  # GitHub does not trigger check_suite workflows for suites created by Actions.
+  workflow_run:
+    workflows:
+      - Validate PR
+      - Commit Workflow
+      - Apex Debugger E2E (Playwright)
+      - Apex Log E2E (Playwright)
+      - Apex LSP E2E (Playwright)
+      - Apex OAS E2E (Playwright)
+      - Apex Replay Debugger E2E (Playwright)
+      - Apex Testing E2E (Playwright)
+      - Aura E2E (Playwright)
+      - Core E2E (Playwright)
+      - LWC E2E (Playwright)
+      - Metadata E2E (Playwright)
+      - Org E2E (Playwright)
+      - OrgBrowser E2E (Playwright)
+      - Playwright VS Code Ext E2E Tests
+      - Services E2E (Playwright)
+      - SOQL E2E (Playwright)
+      - Visualforce E2E (Playwright)
+      - Apex Consumer NUTs
+      - Doc-Only Auto-Merge
+      - Build and Test
+      - Unit Tests
+      - Unit Tests Linux
+      - Unit Tests Windows
+      - End to End Tests
+      - Rerun Push E2E
+      - Code Builder E2E (Playwright)
+      - Playwright E2E Full Suite
+    types: [completed]
+  pull_request_target:
+    types: [synchronize]
 
 permissions:
   contents: read
@@ -14,11 +52,19 @@ permissions:
 
 jobs:
   approve:
-    if: github.event.issue.pull_request && github.event.comment.body == '/ai-auto approve'
+    if: >-
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request)
+      || github.event_name == 'check_suite'
+      || github.event_name == 'workflow_run'
+      || (github.event_name == 'pull_request_target' && github.event.action == 'synchronize')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout default branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}

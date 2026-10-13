@@ -1,16 +1,32 @@
 /**
  * Gates for `/ai-auto approve` → svc-idee-bot APPROVE.
- * Pure: no GitHub I/O. Workflow supplies facts; this decides skip vs approve.
+ * Pure: no GitHub I/O. Workflow supplies facts; this decides skip, hold, or approve.
  */
 
 const APPROVE_TOKEN = '/ai-auto approve';
 export const TEAM_SLUG = 'ide-experience';
 export const TEAM_ORG = 'forcedotcom';
 export const BOT_LOGIN = 'svc-idee-bot';
+export const CHECK_PAGE_SIZE = 100;
 
-/** Standalone `/ai-auto approve` — whole body, optional trailing whitespace/newlines only. */
+/** Standalone `/ai-auto approve` — whole body, surrounding whitespace allowed. */
 export const isStandaloneAiAutoApprove = body =>
   new RegExp(`^${APPROVE_TOKEN.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\s*$`).test(String(body ?? '').trim());
+
+/** Issue comments the synchronize job deletes. */
+export const authorStandaloneAiAutoComments = (comments, prAuthorLogin) =>
+  comments.filter(comment => comment.authorLogin === prAuthorLogin && isStandaloneAiAutoApprove(comment.body));
+
+/** Pages after the first, so a caller can fetch through `total_count`. */
+export const extraPages = totalCount =>
+  Array.from(
+    {
+      length: Math.max(0, Math.ceil((Number.isFinite(totalCount) ? totalCount : 0) / CHECK_PAGE_SIZE) - 1)
+    },
+    (_, index) => index + 2
+  );
+
+export const throughTotal = (items, totalCount) => items.slice(0, totalCount);
 
 const FAIL_CONCLUSIONS = new Set(['FAILURE', 'CANCELLED', 'TIMED_OUT', 'ERROR', 'ACTION_REQUIRED', 'STARTUP_FAILURE']);
 
@@ -35,7 +51,7 @@ export const hasBotApprovalOnHead = (reviews, headSha, botLogin = BOT_LOGIN) =>
   );
 
 /**
- * @returns {{ action: 'skip' | 'approve', reason: string }}
+ * @returns {{ action: 'skip' | 'hold' | 'approve', reason: string }}
  */
 export const decideAiAutoApprove = input => {
   if (!input.isPullRequestComment) return { action: 'skip', reason: 'not a pull request comment' };
@@ -51,7 +67,7 @@ export const decideAiAutoApprove = input => {
   if (input.prState !== 'open') return { action: 'skip', reason: 'pull request is not open' };
   if (input.prDraft) return { action: 'skip', reason: 'pull request is a draft' };
   if (!input.headSha) return { action: 'skip', reason: 'missing head sha' };
-  if (!allChecksGreen(input.checks)) return { action: 'skip', reason: 'CI is not green on head' };
+  if (!allChecksGreen(input.checks)) return { action: 'hold', reason: 'CI is not green on head' };
   if (hasBotApprovalOnHead(input.reviews, input.headSha, input.botLogin ?? BOT_LOGIN)) {
     return { action: 'skip', reason: 'bot already approved this head' };
   }
