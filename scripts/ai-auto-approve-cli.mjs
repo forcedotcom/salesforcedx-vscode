@@ -1,284 +1,296 @@
 #!/usr/bin/env node
-import { readFile } from 'node:fs/promises';
+import * as NodeContext from '@effect/platform-node/NodeContext';
+import * as FileSystem from '@effect/platform/FileSystem';
+import { actionsEnvironment, GitHub, readIssueCommentEvent } from '@salesforce/effect-octokit';
+import * as Cause from 'effect/Cause';
+import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
+import * as Layer from 'effect/Layer';
+import * as Logger from 'effect/Logger';
+import { isNullable } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import { pathToFileURL } from 'node:url';
 import {
   authorStandaloneAiAutoComments,
-  CHECK_PAGE_SIZE,
   decideAiAutoApprove,
-  extraPages,
   isStandaloneAiAutoApprove,
-  throughTotal,
   BOT_LOGIN,
   TEAM_ORG,
   TEAM_SLUG
 } from './ai-auto-approve.mjs';
 
-const gh = async (path, { method = 'GET', body, token } = {}) => {
-  const response = await fetch(path.startsWith('https://') ? path : `https://api.github.com${path}`, {
-    method,
-    headers: {
-      Accept: 'application/vnd.github+json',
-      Authorization: `Bearer ${token}`,
-      'X-GitHub-Api-Version': '2022-11-28',
-      ...(body ? { 'Content-Type': 'application/json' } : {})
-    },
-    body: body ? JSON.stringify(body) : undefined
-  });
-  const text = await response.text();
-  const json = text ? JSON.parse(text) : {};
-  if (!response.ok) {
-    const error = new Error(`${method} ${path} ${response.status}: ${json.message ?? text}`);
-    error.status = response.status;
-    throw error;
-  }
-  return { json, link: response.headers.get('link') ?? undefined };
-};
+const APPROVAL_BODY =
+  'Approved by svc-idee-bot after `/ai-auto approve` from the PR author (@forcedotcom/ide-experience).';
 
-const linkNext = link =>
-  String(link ?? '')
-    .split(',')
-    .map(part => part.trim())
-    .flatMap(part => {
-      const match = part.match(/<([^>]+)>;\s*rel="next"/);
-      return match ? [match[1]] : [];
-    })[0];
-
-const listAll = async (path, { token }) => {
-  const separator = path.includes('?') ? '&' : '?';
-  const page = await gh(path.startsWith('https://') ? path : `${path}${separator}per_page=100`, { token });
-  const items = Array.isArray(page.json) ? page.json : [];
-  const next = linkNext(page.link);
-  return next ? [...items, ...(await listAll(next, { token }))] : items;
-};
-
-const teamMembershipState = async ({ token, login }) => {
-  try {
-    const membership = await gh(`/orgs/${TEAM_ORG}/teams/${TEAM_SLUG}/memberships/${login}`, { token });
-    return membership.json.state ?? 'none';
-  } catch (error) {
-    if (error.status === 404) return 'none';
-    throw error;
-  }
-};
-
-const listReviews = async ({ token, owner, repo, pullNumber }) => {
-  const reviews = await listAll(`/repos/${owner}/${repo}/pulls/${pullNumber}/reviews`, { token });
-  return reviews.map(review => ({
-    id: review.id,
-    authorLogin: review.user?.login,
-    state: review.state,
-    commitOid: review.commit_id
-  }));
-};
-
-const listIssueComments = async ({ token, owner, repo, pullNumber }) => {
-  const comments = await listAll(`/repos/${owner}/${repo}/issues/${pullNumber}/comments`, { token });
-  return comments.map(comment => ({
-    id: comment.id,
-    authorLogin: comment.user?.login,
-    body: comment.body
-  }));
-};
-
-const listByTotal = async ({ token, path, pick }) => {
-  const first = await gh(`${path}?per_page=${CHECK_PAGE_SIZE}&page=1`, { token });
-  const total = first.json.total_count ?? 0;
-  const rest = await Promise.all(
-    extraPages(total).map(page => gh(`${path}?per_page=${CHECK_PAGE_SIZE}&page=${page}`, { token }))
-  );
-  return throughTotal([first.json, ...rest.map(page => page.json)].flatMap(pick), total);
-};
-
-const listChecks = async ({ token, owner, repo, headSha }) => {
-  const [statuses, runs] = await Promise.all([
-    listByTotal({
-      token,
-      path: `/repos/${owner}/${repo}/commits/${headSha}/status`,
-      pick: page => page.statuses ?? []
-    }),
-    listByTotal({
-      token,
-      path: `/repos/${owner}/${repo}/commits/${headSha}/check-runs`,
-      pick: page => page.check_runs ?? []
+/** `check_suite` and `workflow_run` completion payloads. Only the fields the approve path reads. */
+const CompletedChecksEvent = Schema.Struct({
+  check_suite: Schema.optional(
+    Schema.Struct({
+      head_sha: Schema.String,
+      pull_requests: Schema.Array(Schema.Struct({ number: Schema.Number }))
     })
-  ]);
-  return [
-    ...statuses.map(status => ({
-      name: status.context,
-      state: status.state,
-      conclusion: status.state
-    })),
-    ...runs.map(run => ({
-      name: run.name,
-      status: run.status,
-      conclusion: run.conclusion
-    }))
-  ];
-};
+  ),
+  workflow_run: Schema.optional(
+    Schema.Struct({
+      head_sha: Schema.String,
+      pull_requests: Schema.Array(Schema.Struct({ number: Schema.Number }))
+    })
+  )
+});
 
-const postApproval = async ({ token, owner, repo, pullNumber, headSha }) => {
-  const latest = await gh(`/repos/${owner}/${repo}/pulls/${pullNumber}`, { token });
-  if (latest.json.head?.sha !== headSha) {
-    console.log(`skip: head moved before approve on #${pullNumber}`);
-    return;
-  }
-  await gh(`/repos/${owner}/${repo}/pulls/${pullNumber}/reviews`, {
-    method: 'POST',
-    token,
-    body: {
-      commit_id: headSha,
-      event: 'APPROVE',
-      body: 'Approved by svc-idee-bot after `/ai-auto approve` from the PR author (@forcedotcom/ide-experience).'
-    }
+/** `pull_request_target` payload for `synchronize`. */
+const SynchronizeEvent = Schema.Struct({
+  action: Schema.String,
+  pull_request: Schema.Struct({ number: Schema.Number })
+});
+
+const readEvent = (eventPath, schema) =>
+  Effect.gen(function* () {
+    const fs = yield* FileSystem.FileSystem;
+    return yield* fs.readFileString(eventPath).pipe(Effect.flatMap(Schema.decodeUnknown(Schema.parseJson(schema))));
   });
-  console.log(`approved ${owner}/${repo}#${pullNumber} at ${headSha}`);
-};
 
-const approveFromComment = async ({ token, owner, repo, pullNumber, pr, comment, headSha }) => {
-  if (!headSha) {
-    console.log(`decision: skip (missing head sha) on #${pullNumber}`);
-    return;
-  }
-  const [membership, reviews, checks] = await Promise.all([
-    teamMembershipState({ token, login: comment.authorLogin }),
-    listReviews({ token, owner, repo, pullNumber }),
-    listChecks({ token, owner, repo, headSha })
-  ]);
-  const decision = decideAiAutoApprove({
-    isPullRequestComment: true,
-    commentBody: comment.body,
-    commenterLogin: comment.authorLogin,
-    prAuthorLogin: pr.user?.login,
-    teamMembershipState: membership,
-    prState: pr.state,
-    prDraft: Boolean(pr.draft),
-    headSha,
-    checks,
-    reviews,
-    botLogin: BOT_LOGIN
+const logDecision = decision =>
+  Effect.log(`decision: ${decision.action} (${decision.reason})`, {
+    action: decision.action,
+    reason: decision.reason
   });
-  console.log(`decision: ${decision.action} (${decision.reason})`);
-  if (decision.action !== 'approve') return;
-  await postApproval({ token, owner, repo, pullNumber, headSha });
-};
 
-const onIssueComment = async ({ token, event, owner, repo }) => {
-  const comment = event.comment;
-  const issue = event.issue;
-  if (!comment || !issue?.pull_request) {
-    console.log('skip: not a pull request comment');
-    return;
-  }
-  if (!isStandaloneAiAutoApprove(comment.body)) {
-    console.log('skip: comment is not standalone /ai-auto approve');
-    return;
-  }
-  const pullNumber = issue.number;
-  const pr = await gh(`/repos/${owner}/${repo}/pulls/${pullNumber}`, { token });
-  const headSha = pr.json.head?.sha;
-  await approveFromComment({
-    token,
-    owner,
-    repo,
-    pullNumber,
-    pr: pr.json,
-    comment: { authorLogin: comment.user?.login, body: comment.body },
-    headSha
-  });
-};
-
-const onChecksComplete = async ({ token, event, owner, repo }) => {
-  const completed = event.workflow_run ?? event.check_suite;
-  const headSha = completed?.head_sha;
-  const pullNumbers = (completed?.pull_requests ?? []).flatMap(pull =>
-    pull?.number !== undefined ? [pull.number] : []
-  );
-  if (!headSha || pullNumbers.length === 0) {
-    console.log('skip: completed checks have no head sha or pull requests');
-    return;
-  }
-  await Promise.all(
-    pullNumbers.map(async pullNumber => {
-      const pr = await gh(`/repos/${owner}/${repo}/pulls/${pullNumber}`, { token });
-      if (pr.json.head?.sha !== headSha) {
-        console.log(`skip: #${pullNumber} head is not ${headSha}`);
-        return;
-      }
-      const comments = await listIssueComments({ token, owner, repo, pullNumber });
-      const match = authorStandaloneAiAutoComments(comments, pr.json.user?.login)[0];
-      if (!match) {
-        console.log(`skip: no author /ai-auto approve on #${pullNumber}`);
-        return;
-      }
-      await approveFromComment({
-        token,
-        owner,
-        repo,
-        pullNumber,
-        pr: pr.json,
-        comment: match,
-        headSha
+/**
+ * Gates for one PR at one head. Identity gates run before any extra API reads.
+ * Only `approve` is returned as action to post; caller decides what to do with `hold` / `skip`.
+ */
+const decidePull = Effect.fn('aiAutoApprove.decidePull')(
+  function* (github, owner, repo, pullNumber, pull, commenterLogin, commentBody) {
+    const headSha = pull.headRefOid ?? '';
+    const authorLogin = pull.author?.login ?? '';
+    if (!commenterLogin || commenterLogin !== authorLogin) {
+      return decideAiAutoApprove({
+        isPullRequestComment: true,
+        commentBody,
+        commenterLogin,
+        prAuthorLogin: authorLogin,
+        teamMembershipState: 'none',
+        prState: pull.state,
+        prDraft: pull.isDraft,
+        headSha,
+        checks: [],
+        reviews: []
       });
-    })
-  );
-};
+    }
+    const [membership, reviews, checks] = yield* Effect.all(
+      [
+        github.teamMembership(TEAM_ORG, TEAM_SLUG, commenterLogin),
+        github.pullReviews(owner, repo, pullNumber),
+        headSha.length === 0 ? Effect.succeed([]) : github.headChecks(owner, repo, headSha)
+      ],
+      { concurrency: 'unbounded' }
+    );
+    return decideAiAutoApprove({
+      isPullRequestComment: true,
+      commentBody,
+      commenterLogin,
+      prAuthorLogin: authorLogin,
+      teamMembershipState: membership,
+      prState: pull.state,
+      prDraft: pull.isDraft,
+      headSha,
+      checks,
+      reviews,
+      botLogin: BOT_LOGIN
+    });
+  }
+);
 
-const onSynchronize = async ({ token, event, owner, repo }) => {
+const approveIfDecided = Effect.fn('aiAutoApprove.approveIfDecided')(
+  function* (github, owner, repo, pullNumber, headSha, decision) {
+    yield* logDecision(decision);
+    if (decision.action !== 'approve') return;
+    const latest = yield* github.pullRequest(owner, repo, pullNumber);
+    if (isNullable(latest) || latest.headRefOid !== headSha) {
+      yield* Effect.log(`decision: skip (#${pullNumber} head moved before approve)`);
+      return;
+    }
+    yield* github.createReview(owner, repo, pullNumber, headSha, 'APPROVE', APPROVAL_BODY);
+    yield* Effect.log(`approved ${owner}/${repo}#${pullNumber} at ${headSha}`, {
+      owner,
+      repo,
+      pullNumber,
+      headSha
+    });
+  }
+);
+
+/** Comment just posted. `hold` leaves the comment; checks completion re-decides on the same head. */
+const onIssueComment = Effect.fn('aiAutoApprove.issueComment')(function* (env, github) {
+  const { comment, issue } = yield* readIssueCommentEvent(env.eventPath);
+  if (isNullable(comment) || isNullable(issue)) {
+    yield* Effect.log('decision: skip (no comment/issue on event)');
+    return;
+  }
+  if (!issue.pull_request) {
+    yield* Effect.log('decision: skip (not a pull request comment)');
+    return;
+  }
+  const commentBody = comment.body ?? '';
+  if (!isStandaloneAiAutoApprove(commentBody)) {
+    yield* Effect.log('decision: skip (comment is not standalone /ai-auto approve)');
+    return;
+  }
+  const pull = yield* github.pullRequest(env.owner, env.repo, issue.number);
+  if (isNullable(pull)) {
+    yield* Effect.log('decision: skip (pull request not found)');
+    return;
+  }
+  const decision = yield* decidePull(
+    github,
+    env.owner,
+    env.repo,
+    issue.number,
+    pull,
+    comment.user?.login ?? '',
+    commentBody
+  );
+  yield* approveIfDecided(github, env.owner, env.repo, issue.number, pull.headRefOid ?? '', decision);
+});
+
+/**
+ * Checks completed on a head. Re-reads every check on that SHA, not just the suite that finished.
+ * Old SHA never approves: `pull.headRefOid` must equal the completed SHA.
+ */
+const onChecksComplete = Effect.fn('aiAutoApprove.checksComplete')(function* (env, github) {
+  const event = yield* readEvent(env.eventPath, CompletedChecksEvent);
+  const completed = event.check_suite ?? event.workflow_run;
+  if (isNullable(completed)) {
+    yield* Effect.log('decision: skip (completed checks have no head sha or pull requests)');
+    return;
+  }
+  yield* Effect.forEach(
+    completed.pull_requests,
+    Effect.fn('aiAutoApprove.checksCompletePull')(function* ({ number: pullNumber }) {
+      const pull = yield* github.pullRequest(env.owner, env.repo, pullNumber);
+      if (isNullable(pull) || pull.headRefOid !== completed.head_sha) {
+        yield* Effect.log(`decision: skip (#${pullNumber} head is not ${completed.head_sha})`);
+        return;
+      }
+      const comments = yield* github.paginate('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+        owner: env.owner,
+        repo: env.repo,
+        issue_number: pullNumber
+      });
+      const author = authorStandaloneAiAutoComments(
+        comments.map(comment => ({
+          authorLogin: comment.user?.login,
+          body: comment.body
+        })),
+        pull.author?.login
+      )[0];
+      if (isNullable(author)) {
+        yield* Effect.log(`decision: skip (no author /ai-auto approve on #${pullNumber})`);
+        return;
+      }
+      const decision = yield* decidePull(
+        github,
+        env.owner,
+        env.repo,
+        pullNumber,
+        pull,
+        author.authorLogin ?? '',
+        author.body
+      );
+      yield* approveIfDecided(github, env.owner, env.repo, pullNumber, completed.head_sha, decision);
+    }),
+    { concurrency: 'unbounded', discard: true }
+  );
+});
+
+/** New commits: delete the author's `/ai-auto approve` comments. No review.
+ *  Runs from default-branch checkout; see workflow. Uses IDEE_GH_TOKEN for DELETE. */
+const onSynchronize = Effect.fn('aiAutoApprove.synchronize')(function* (env, github) {
+  const event = yield* readEvent(env.eventPath, SynchronizeEvent);
   if (event.action !== 'synchronize') {
-    console.log(`skip: pull_request_target action ${event.action ?? 'missing'}`);
+    yield* Effect.log(`decision: skip (pull_request_target action ${event.action})`);
     return;
   }
-  const pullNumber = event.pull_request?.number;
-  const prAuthorLogin = event.pull_request?.user?.login;
-  if (pullNumber === undefined || !prAuthorLogin) {
-    console.log('skip: synchronize missing pull');
+  const pullNumber = event.pull_request.number;
+  const pull = yield* github.pullRequest(env.owner, env.repo, pullNumber);
+  if (isNullable(pull)) {
+    yield* Effect.log(`decision: skip (#${pullNumber} not found)`);
     return;
   }
-  const comments = await listIssueComments({ token, owner, repo, pullNumber });
-  const commentIds = authorStandaloneAiAutoComments(comments, prAuthorLogin).map(comment => comment.id);
-  await Promise.all(
-    commentIds.map(async commentId => {
-      await gh(`/repos/${owner}/${repo}/issues/comments/${commentId}`, { method: 'DELETE', token });
-      console.log(`deleted comment ${commentId} on #${pullNumber}`);
-    })
-  );
-};
-
-const handlers = {
-  issue_comment: onIssueComment,
-  workflow_run: onChecksComplete,
-  check_suite: onChecksComplete,
-  pull_request_target: onSynchronize
-};
-
-export const handleAiAutoApproveEvent = async ({ token, eventName, event, owner, repo }) => {
-  const handler = handlers[eventName];
-  if (!handler) {
-    console.log(`skip: unhandled event ${eventName}`);
-    return;
-  }
-  await handler({ token, event, owner, repo });
-};
-
-const main = async () => {
-  const token = process.env.IDEE_GH_TOKEN;
-  const eventName = process.env.GITHUB_EVENT_NAME;
-  const eventPath = process.env.GITHUB_EVENT_PATH;
-  const repository = process.env.GITHUB_REPOSITORY;
-  if (!token) throw new Error('IDEE_GH_TOKEN is required');
-  if (!eventName) throw new Error('GITHUB_EVENT_NAME is required');
-  if (!eventPath) throw new Error('GITHUB_EVENT_PATH is required');
-  if (!repository) throw new Error('GITHUB_REPOSITORY is required');
-  const [owner, repo] = repository.split('/');
-  if (!owner || !repo) throw new Error('GITHUB_REPOSITORY is required');
-
-  const event = JSON.parse(await readFile(eventPath, 'utf8'));
-  await handleAiAutoApproveEvent({ token, eventName, event, owner, repo });
-};
-
-if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
-  main().catch(error => {
-    console.error(error);
-    process.exit(1);
+  const comments = yield* github.paginate('GET /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+    owner: env.owner,
+    repo: env.repo,
+    issue_number: pullNumber
   });
+  const stale = authorStandaloneAiAutoComments(
+    comments.map(comment => ({ id: comment.id, authorLogin: comment.user?.login, body: comment.body })),
+    pull.author?.login
+  );
+  yield* Effect.forEach(
+    stale,
+    comment =>
+      github
+        .request('DELETE /repos/{owner}/{repo}/issues/comments/{comment_id}', {
+          owner: env.owner,
+          repo: env.repo,
+          comment_id: comment.id
+        })
+        .pipe(Effect.andThen(Effect.log(`deleted comment ${comment.id} on #${pullNumber}`))),
+    { discard: true }
+  );
+});
+
+export const aiAutoApproveProgram = Effect.fn('aiAutoApprove.program')(function* () {
+  const env = yield* actionsEnvironment;
+  const github = yield* GitHub;
+  switch (env.eventName) {
+    case 'issue_comment':
+      return yield* onIssueComment(env, github);
+    case 'check_suite':
+    case 'workflow_run':
+      return yield* onChecksComplete(env, github);
+    case 'pull_request_target':
+      return yield* onSynchronize(env, github);
+    default:
+      yield* Effect.log(`decision: skip (unhandled event ${env.eventName})`);
+  }
+});
+
+export const aiAutoApproveMain = aiAutoApproveProgram().pipe(
+  Effect.provide(
+    Layer.mergeAll(
+      GitHub.Default,
+      NodeContext.layer,
+      Logger.replace(
+        Logger.defaultLogger,
+        Logger.make(({ message }) =>
+          process.stdout.write(
+            `${
+              Array.isArray(message)
+                ? message.map(value => (typeof value === 'string' ? value : JSON.stringify(value))).join(' ')
+                : typeof message === 'string'
+                  ? message
+                  : JSON.stringify(message)
+            }\n`
+          )
+        )
+      )
+    )
+  )
+);
+
+const isDirectRun = process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href;
+
+if (isDirectRun) {
+  await aiAutoApproveMain.pipe(
+    Effect.tapErrorCause(cause => Effect.sync(() => process.stderr.write(`${Cause.pretty(cause)}\n`))),
+    Effect.exit,
+    Effect.tap(exit =>
+      Effect.sync(() => {
+        if (Exit.isFailure(exit)) process.exitCode = 1;
+      })
+    ),
+    Effect.runPromise
+  );
 }

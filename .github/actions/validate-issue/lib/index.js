@@ -316,7 +316,7 @@ async function run() {
             }
         }
         function getLatestExtensionsVersion() {
-            const result = (0, node_child_process_1.execSync)('npx vsce show salesforce.salesforcedx-vscode --json').toString();
+            const result = (0, node_child_process_1.execSync)('pnpm exec vsce show salesforce.salesforcedx-vscode --json').toString();
             return JSON.parse(result).versions[0].version;
         }
         function getMinimumVSCodeVersion() {

@@ -234,6 +234,7 @@ describe('OrgMetadataShadowStore', () => {
   });
 
   it('retains only the newest bounded revisions for a component', async () => {
+    jest.useFakeTimers().setSystemTime(new Date('2026-01-01T00:00:00.000Z'));
     const { files, service } = makeFsService();
     const reference = { xmlName: 'ApexClass', fullName: 'FooTest' };
     const revisions = Array.from(
@@ -252,9 +253,13 @@ describe('OrgMetadataShadowStore', () => {
       Effect.provideService(WorkspaceService, workspaceService)
     );
 
-    const artifacts = await Effect.runPromise(program);
-    expect(artifacts[0]).toBeUndefined();
-    expect(artifacts.slice(1).every(artifact => artifact !== undefined)).toBe(true);
+    try {
+      const artifacts = await Effect.runPromise(program);
+      expect(artifacts[0]).toBeUndefined();
+      expect(artifacts.slice(1).every(artifact => artifact !== undefined)).toBe(true);
+    } finally {
+      jest.useRealTimers();
+    }
   });
 
   it('preserves an older revision that backs an open editor document', async () => {

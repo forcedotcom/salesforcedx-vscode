@@ -6,48 +6,45 @@
  */
 
 import type { QueryResult } from '../types';
-import type { Connection } from '@salesforce/core';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as soqlComments from '@salesforce/soql-common/soqlComments';
-import type { JsonMap } from '@salesforce/ts-types';
-import { isError, isRecord } from 'effect/Predicate';
-import * as vscode from 'vscode';
-import { nls } from '../messages';
+import * as Chunk from 'effect/Chunk';
+import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
+import { JsonObject } from '../json';
 import { stripAllRows } from './allRows';
 
-const hasMessage = (obj: unknown): obj is { message: unknown } => isRecord(obj) && 'message' in obj;
-
-const getErrorMessage = (error: unknown): string =>
-  isError(error) ? error.message : hasMessage(error) ? String(error.message) : String(error);
-
-export const runQuery =
-  (conn: Connection) =>
-  async (
-    queryText: string,
-    options: { showErrors?: boolean; maxRows?: number } = { showErrors: true }
-  ): Promise<QueryResult<JsonMap>> => {
-    const { maxRows } = options;
-    const pureSOQLText = soqlComments.parseHeaderComments(queryText).soqlText;
-    const { soql, scanAll } = stripAllRows(pureSOQLText);
-
-    try {
-      const rawQueryData = await conn.query(soql, { autoFetch: true, maxFetch: maxRows ?? 50_000, scanAll });
-      return {
-        ...rawQueryData,
-        records: flattenQueryRecords(rawQueryData.records)
-      };
-    } catch (error) {
-      if (options.showErrors) {
-        const errorMsg = getErrorMessage(error);
-        vscode.window.showErrorMessage(nls.localize('error_run_soql_query', errorMsg));
-      }
-      throw error;
-    }
-  };
+export const runQuery = Effect.fn('runQuery')(function* (queryText: string, options?: { readonly maxRows?: number }) {
+  const maxRows = options?.maxRows ?? 50_000;
+  return yield* Effect.flatMap(ExtensionProviderService, provider => provider.getServicesApi).pipe(
+    Effect.flatMap(api => api.services.QueryService),
+    Effect.flatMap(queryService =>
+      queryService.query(
+        {
+          ...stripAllRows(soqlComments.parseHeaderComments(queryText).soqlText)
+        },
+        JsonObject
+      )
+    ),
+    Effect.flatMap(({ totalSize, records }) =>
+      Stream.take(records, maxRows).pipe(
+        Stream.runCollect,
+        Effect.map(
+          (chunk): QueryResult<JsonObject> => ({
+            done: true,
+            totalSize,
+            records: flattenQueryRecords(chunk.pipe(Chunk.toReadonlyArray))
+          })
+        )
+      )
+    )
+  );
+});
 /**
   As query complexity grows
   we will need to flatten the results of nested values
   in order to be parsed and displayed correctly
  */
-const flattenQueryRecords = (rawQueryRecords: JsonMap[]) =>
+const flattenQueryRecords = (rawQueryRecords: readonly JsonObject[]) =>
   // filter out the attributes key
   rawQueryRecords.map(({ attributes, ...cleanRecords }) => cleanRecords);

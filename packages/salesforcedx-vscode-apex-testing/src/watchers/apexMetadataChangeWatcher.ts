@@ -46,6 +46,7 @@ export const setupApexMetadataChangeWatcher = Effect.fn('apex-testing.watchApexM
 
   yield* Stream.fromPubSub(notificationService.pubsub).pipe(
     Stream.flatMap(operation => Stream.fromIterable(operation.changes)),
+    Stream.filter(() => testController.isDiscoveryRequested()),
     Stream.filter(e => APEX_METADATA_TYPES.has(e.metadataType)),
     Stream.filter(e => APEX_CHANGE_TYPES.has(e.changeType)),
     // Always accumulate name + changeType (cheap, no I/O)

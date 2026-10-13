@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as Effect from 'effect/Effect';
-import { isString } from 'effect/Predicate';
-import * as vscode from 'vscode';
+import { isNumber, isString } from 'effect/Predicate';
+import type * as vscode from 'vscode';
 import { getRuntime } from '../../services/runtime';
 import { getLwcTestController } from '../testExplorer/lwcTestController';
-import { TestCaseInfo, TestExecutionInfo } from '../types';
+import { type TestCaseInfo, type TestExecutionInfo } from '../types';
 import { LWC_TEST_DEBUG_LOG_NAME } from '../types/constants';
 import { workspaceService } from '../workspace/workspaceService';
 
@@ -46,7 +46,7 @@ export const handleDidTerminateDebugSession = (session: vscode.DebugSession) => 
   const { configuration } = session;
   const { sfDebugSessionId } = configuration;
   const startTime = isString(sfDebugSessionId) ? debugSessionStartTimes.get(sfDebugSessionId) : undefined;
-  if (typeof startTime === 'number') {
+  if (isNumber(startTime)) {
     getRuntime().runFork(
       Effect.void.pipe(
         Effect.withSpan(LWC_TEST_DEBUG_LOG_NAME, {

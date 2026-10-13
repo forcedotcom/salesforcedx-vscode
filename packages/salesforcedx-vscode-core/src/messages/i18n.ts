@@ -28,12 +28,6 @@ export const messages = {
   telemetry_internal_user_message:
     "We're collecting information on the usage of our extensions and sending it to AppInsights to help us understand how our internal developers use them. We want to gather data on developer adoption to improve our products and services. Thanks for being a part of this process!",
 
-  aura_doc_url: 'https://developer.salesforce.com/tools/vscode/en/aura/writing',
-  apex_doc_url: 'https://developer.salesforce.com/tools/vscode/en/apex/writing',
-  soql_doc_url: 'https://developer.salesforce.com/tools/vscode/en/soql/soql-builder',
-  lwc_doc_url: 'https://developer.salesforce.com/tools/vscode/en/lwc/writing',
-  default_doc_url: 'https://developer.salesforce.com/tools/vscode',
-
   // Metadata XML Support Messages
   metadata_xml_no_redhat_extension_found:
     'Red Hat XML extension is not installed. Install it to enable metadata XML IntelliSense.',

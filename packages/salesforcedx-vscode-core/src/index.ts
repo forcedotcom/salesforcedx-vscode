@@ -16,7 +16,7 @@ import { isError, isString } from 'effect/Predicate';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { configListCommand, initSObjectDefinitions, openDocumentationCommand } from './commands';
+import { configListCommand, initSObjectDefinitions } from './commands';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP } from './constants';
@@ -29,7 +29,6 @@ import { getRuntime } from './services/runtime';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
 import { getEnableAllExceptionCatcher } from './settings/salesforceCoreSettings';
 import { showTelemetryMessage, telemetryService } from './telemetry';
-import { getUserId } from './util/orgAuthInfoExtensions';
 import { ensureCurrentWorkingDirIsProjectPath } from './util/workingDirectory';
 
 /** Customer-facing commands */
@@ -45,8 +44,6 @@ export const activate = async (extensionContext: vscode.ExtensionContext): Promi
   await getRuntime().runPromise(activateEffect(extensionContext));
 
   const api: SalesforceVSCodeCoreApi = {
-    getUserId,
-    telemetryService,
     workspaceContextUtils,
     services: {
       ChannelService,
@@ -64,10 +61,8 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
 ) {
   yield* ensureCurrentWorkingDirIsProjectPath();
 
-  // Dispose the services-owned output channel with the extension context.
+  // Lifecycle is owned by services (ChannelDisposalLayer); core only borrows the channel.
   const servicesApi = yield* getServicesApi;
-  const coreChannel = yield* (yield* servicesApi.services.ChannelService).getChannel;
-  extensionContext.subscriptions.push(coreChannel);
 
   yield* Effect.promise(() => telemetryService.initializeService(extensionContext));
   void showTelemetryMessage(extensionContext);
@@ -78,12 +73,11 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
   yield* Effect.promise(() => WorkspaceContext.getInstance().initialize(extensionContext));
 
   if (internalDev) {
-    console.log('SF CLI Extension Activated (internal dev mode)');
+    yield* Effect.log('SF CLI Extension Activated (internal dev mode)');
     return;
   }
 
   const registerCommand = servicesApi.services.registerCommandWithRuntime(getRuntime());
-  yield* registerCommand('sf.open.documentation', openDocumentationCommand);
 
   // Context — ProjectService.isSalesforceProject() sets sf:project_opened as a side effect
   const salesforceProjectOpened = yield* servicesApi.services.ProjectService.isSalesforceProject();
@@ -112,7 +106,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
     yield* initSObjectDefinitions(vscode.workspace.workspaceFolders![0].uri.fsPath, sobjectRefreshStartup);
   }
 
-  console.log('SF CLI Extension Activated');
+  yield* Effect.log('SF CLI Extension Activated');
   handleTheUnhandled();
 });
 
@@ -205,8 +199,6 @@ const handleTheUnhandled = (): void => {
 };
 
 export type SalesforceVSCodeCoreApi = {
-  getUserId: typeof getUserId;
-  telemetryService: typeof telemetryService;
   workspaceContextUtils: typeof workspaceContextUtils;
   services: {
     ChannelService: typeof ChannelService;

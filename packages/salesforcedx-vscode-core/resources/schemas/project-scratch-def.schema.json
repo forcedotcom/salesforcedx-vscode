@@ -533,6 +533,7 @@
               "JigsawUser",
               "Knowledge",
               "LegacyLiveAgentRouting",
+              "LifeSciencesCloudForCustomerEngagement",
               "LightningSalesConsole",
               "LightningScheduler",
               "LightningServiceConsole",
@@ -1165,6 +1166,14 @@
           },
           "additionalProperties": {}
         },
+        "helpSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_helpsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
         "highVelocitySalesSettings": {
           "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_highvelocitysalessettings.htm",
           "type": "object",
@@ -1343,6 +1352,14 @@
         },
         "mapAndLocationSettings": {
           "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_mapandlocationsettings.htm",
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {}
+        },
+        "mCETransformationsSettings": {
+          "description": "For more details go to https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_mcetransformationssettings.htm",
           "type": "object",
           "propertyNames": {
             "type": "string"

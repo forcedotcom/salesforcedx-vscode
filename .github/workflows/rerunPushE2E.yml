@@ -38,8 +38,7 @@ jobs:
       EVENT: ${{ github.event.workflow_run.event }}
       ACTOR: ${{ github.event.workflow_run.actor.login }}
       CONCLUSION: ${{ github.event.workflow_run.conclusion }}
-      RUN_STARTED_AT: ${{ github.event.workflow_run.run_started_at }}
-      UPDATED_AT: ${{ github.event.workflow_run.updated_at }}
+      WORKFLOW_NAME: ${{ github.event.workflow_run.name }}
       RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
       RUN_ID: ${{ github.event.workflow_run.id }}
       REPO: ${{ github.repository }}

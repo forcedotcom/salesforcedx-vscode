@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type * as Duration from 'effect/Duration';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { SoqlBuilderApplication } from '../../src/application.js';
 import { SoqlBuilderElement } from '../../src/components/soqlBuilderElement.js';
@@ -128,6 +128,7 @@ const unmount = async (): Promise<void> => {
   await waitForFinalizers();
 };
 
+window.soqlBuilderDuration = Duration;
 window.soqlBuilderHarness = {
   connectAgain: () => application?.connect(),
   emit: async overrides => {
@@ -200,6 +201,7 @@ window.soqlBuilderHarness = {
 
 declare global {
   interface Window {
+    soqlBuilderDuration: typeof Duration;
     soqlBuilderHarness: SoqlBuilderBrowserHarness;
   }
 }

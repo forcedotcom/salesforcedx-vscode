@@ -1,36 +1,17 @@
-# 67.23.1 - September 25, 2026
-
-## Added
-
-#### docs
-
-- Tag promoted nightly release title with " - published" - W-24269682 ([PR #8241](https://github.com/forcedotcom/salesforcedx-vscode/pull/8241))
-
-- Auto-bump develop's nightly minor to next odd, rename publishAsPrerelease ([PR #8236](https://github.com/forcedotcom/salesforcedx-vscode/pull/8236))
-
-#### salesforcedx-vscode-core
-
-- Container spec scaffold + core spec parity - W-23898525 ([PR #8069](https://github.com/forcedotcom/salesforcedx-vscode/pull/8069))
+# 68.1.1 - October 19, 2026
 
 ## Fixed
 
-#### docs
+#### salesforcedx-vscode-apex
 
-- Fall back past stale tracking tags in release auto-detect - W-24276485 ([PR #8242](https://github.com/forcedotcom/salesforcedx-vscode/pull/8242))
+- We fixed a bug where Apex problems from the language server did not show **Apex Language Server** as the Source in the Problems panel. ([PR #8418](https://github.com/forcedotcom/salesforcedx-vscode/pull/8418))
 
-- Update release title and mark --latest on promotion to stable ([PR #8238](https://github.com/forcedotcom/salesforcedx-vscode/pull/8238))
+## Changed
 
-- 1 ADR: record pnpm cutover decisions - W-24093888 ([PR #8220](https://github.com/forcedotcom/salesforcedx-vscode/pull/8220))
+#### salesforcedx-vscode-core
 
-- Document pre-release promotion, run name, and Slack link format ([PR #8226](https://github.com/forcedotcom/salesforcedx-vscode/pull/8226))
-
-- Drop WDIO from e2e-advocate ([PR #8214](https://github.com/forcedotcom/salesforcedx-vscode/pull/8214))
-
-- Share one User identity SOQL across concurrent getConnection - W-24195475 ([PR #8201](https://github.com/forcedotcom/salesforcedx-vscode/pull/8201))
+- The **Command Palette** no longer includes **SFDX: Open Documentation** (`sf.open.documentation`). ([PR #8382](https://github.com/forcedotcom/salesforcedx-vscode/pull/8382))
 
 #### salesforcedx-vscode-services
 
-- Share one User identity SOQL across concurrent getConnection - W-24195475 ([PR #8201](https://github.com/forcedotcom/salesforcedx-vscode/pull/8201))
-
-- Hosted Web Console local OTEL ([PR #8212](https://github.com/forcedotcom/salesforcedx-vscode/pull/8212))
-
+- The **Web Console** now uses host-provided session identity and org metadata from `salesforce-web-console.sessionContext` for authentication. ([PR #8395](https://github.com/forcedotcom/salesforcedx-vscode/pull/8395))

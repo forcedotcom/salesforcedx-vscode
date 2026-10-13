@@ -6,7 +6,7 @@
  */
 
 import { BaseDebuggerCommand } from './baseDebuggerCommand';
-import { DebuggerRequest, ReferenceRequest } from './protocol';
+import { type DebuggerRequest, type ReferenceRequest } from './protocol';
 
 export class ReferencesCommand extends BaseDebuggerCommand {
   protected static createGetReferenceRequest(apexReferences: number[]): DebuggerRequest {

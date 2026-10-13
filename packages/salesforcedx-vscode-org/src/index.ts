@@ -9,7 +9,7 @@ import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from
 import type { SalesforceVSCodeOrgApi } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import { orgListCleanCommand, orgLoginWebCommand, orgLogoutAllCommand, orgLogoutDefaultCommand } from './commands';
 import { aliasListCommand } from './commands/aliasList';
 import { orgLoginAccessTokenCommand } from './commands/auth/orgLoginAccessToken';
@@ -52,13 +52,12 @@ export const activate = (extensionContext: vscode.ExtensionContext): Promise<Sal
 };
 
 const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function* (
-  extensionContext: vscode.ExtensionContext
+  _extensionContext: vscode.ExtensionContext
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
-  // Share the Effect layer's OutputChannel so only one 'Salesforce Org Management' channel exists.
+  // Lifecycle is owned by services (ChannelDisposalLayer); org only borrows the channel.
   const orgChannel = yield* (yield* api.services.ChannelService).getChannel;
-  extensionContext.subscriptions.push(orgChannel);
   const registerCommand = api.services.registerCommandWithRuntime(getOrgRuntime());
   yield* registerCommand('sf.alias.list', aliasListCommand);
   yield* registerCommand('sf.org.create', orgCreateCommand);

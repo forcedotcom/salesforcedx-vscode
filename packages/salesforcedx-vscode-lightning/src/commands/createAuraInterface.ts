@@ -7,9 +7,47 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { URI, Utils } from 'vscode-uri';
+import * as vscode from 'vscode';
+import { type URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { promptForAuraName } from './promptForAuraName';
+
+const AURA_INTERFACE_TEMPLATE_DESCRIPTIONS: Record<string, string> = {
+  DefaultLightningIntf: nls.localize('aura_interface_default_template_description')
+};
+
+const promptForTemplate = Effect.fn('promptForAuraInterfaceTemplate')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+
+  const customTemplateNames = yield* api.services.TemplateService.getCustomTemplateNames('lightninginterface', '.intf');
+  if (customTemplateNames.length === 0) {
+    return 'DefaultLightningIntf';
+  }
+
+  const promptService = yield* api.services.PromptService;
+  const builtInNames = yield* api.services.TemplateService.getBuiltInTemplateNames('lightninginterface', /\.intf$/);
+  const builtInItems = builtInNames.map(label => ({
+    label,
+    description: AURA_INTERFACE_TEMPLATE_DESCRIPTIONS[label] ?? ''
+  }));
+  const customItems = customTemplateNames.map(label => ({ label, description: '' }));
+  const customNameSet = new Set(customTemplateNames);
+  const nonOverriddenBuiltInItems = builtInItems.filter(item => !customNameSet.has(item.label));
+
+  const items: vscode.QuickPickItem[] = [
+    { kind: vscode.QuickPickItemKind.Separator, label: nls.localize('aura_builtin_templates_label') },
+    ...nonOverriddenBuiltInItems,
+    { kind: vscode.QuickPickItemKind.Separator, label: nls.localize('aura_custom_templates_label') },
+    ...customItems
+  ];
+
+  return yield* Effect.promise(() =>
+    vscode.window.showQuickPick<vscode.QuickPickItem>(items, { placeHolder: nls.localize('template_type_prompt') })
+  ).pipe(
+    Effect.flatMap(choice => promptService.considerUndefinedAsCancellation(choice)),
+    Effect.map(selected => selected.label)
+  );
+});
 
 export const createAuraInterfaceCommand = Effect.fn('createAuraInterfaceCommand')(function* (
   outputDirParam?: URI,
@@ -21,7 +59,8 @@ export const createAuraInterfaceCommand = Effect.fn('createAuraInterfaceCommand'
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
   const fsService = yield* api.services.FsService;
 
-  const interfaceName = yield* promptForAuraName();
+  const template = yield* promptForTemplate();
+  const interfaceName = yield* promptForAuraName({ promptKey: 'aura_interface_name_prompt' });
 
   const defaultUri = Utils.joinPath(workspaceInfo.uri, project.getDefaultPackage().path, 'main', 'default', 'aura');
 
@@ -42,7 +81,7 @@ export const createAuraInterfaceCommand = Effect.fn('createAuraInterfaceCommand'
     outputdir: outputDirUri,
     options: {
       interfacename: interfaceName,
-      template: 'DefaultLightningIntf',
+      template,
       internal: options?.internal ?? false
     }
   });

@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CommandOutput, SfCommandBuilder } from '@salesforce/salesforcedx-utils';
+import { CommandOutput } from '../../../src/cli/commandOutput';
+import { SfCommandBuilder } from '../../../src/cli/sfCommandBuilder';
 import { BreakpointService, DEBUGGER_BREAKPOINT_ID_PREFIX } from '../../../src/core/breakpointService';
 import { CliCommandExecutor } from '../../../src/core/cliCommandExecutor';
 

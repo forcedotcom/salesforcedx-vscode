@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AST_NODE_TYPES, TSESTree } from '@typescript-eslint/utils';
+import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/utils';
 import { RuleCreator } from '@typescript-eslint/utils/eslint-utils';
 
-const isEffectFnCall = (node: TSESTree.CallExpression): TSESTree.FunctionExpression | undefined => {
+export const isEffectFnCall = (node: TSESTree.CallExpression): TSESTree.FunctionExpression | undefined => {
   const callee = node.callee;
   if (callee.type !== AST_NODE_TYPES.CallExpression) return undefined;
 

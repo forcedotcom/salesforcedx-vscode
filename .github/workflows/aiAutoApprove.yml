@@ -1,16 +1,20 @@
 name: AI Auto Approve
 
-# This file runs from the default branch. workflow_run and check_suite do not start it until then.
-# pull_request_target synchronize checks out that same file, not the pull request head.
-# svc-idee-bot (IDEE_GH_TOKEN) approves the head when the author comment is still there and CI is green.
-# A push deletes that comment. GitHub's branch protection handles stale approvals.
+# PR author on @forcedotcom/ide-experience comments exactly `/ai-auto approve`.
+# svc-idee-bot (IDEE_GH_TOKEN) submits APPROVE on the current head when CI is green.
+# Comment while CI pending/red: held. Same-SHA green later (check_suite or workflow_run completion): approve.
+# Push (pull_request_target synchronize): delete the author's `/ai-auto approve` comments. No approve.
+#
+# Every job checks out the default branch, never the PR head. pull_request_target has secrets; running PR code there is unsafe.
+# workflow_run and check_suite only start once this file exists on the default branch.
+# GitHub does not fire check_suite for suites created by Actions, so workflow_run covers the Actions CI.
 
 on:
   issue_comment:
     types: [created]
   check_suite:
     types: [completed]
-  # GitHub does not trigger check_suite workflows for suites created by Actions.
+  # Names must match the `name:` of each CI workflow on the default branch.
   workflow_run:
     workflows:
       - Validate PR
@@ -53,7 +57,7 @@ permissions:
 jobs:
   approve:
     if: >-
-      (github.event_name == 'issue_comment' && github.event.issue.pull_request)
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && github.event.comment.body == '/ai-auto approve')
       || github.event_name == 'check_suite'
       || github.event_name == 'workflow_run'
       || (github.event_name == 'pull_request_target' && github.event.action == 'synchronize')
@@ -65,9 +69,11 @@ jobs:
         with:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
-      - uses: actions/setup-node@v4
+      - uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+      - name: Compile effect-octokit
+        run: pnpm --filter @salesforce/effect-octokit compile
       - name: Decide and approve
         env:
           IDEE_GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}

@@ -85,6 +85,7 @@ await page.keyboard.press('Escape');
 - Prefer `aria` (getByRole) over css selectors
 - `expect` assertions need clear error messages. Import `expect` from playwright
 - `playwright/expect-expect` error (`eslint.config.mjs`) — `test()`: `assert*`/`expect*`/`verify*` or a named helper. outer-helper `expect`: ignored
+- `playwright/no-conditional-expect` error — `expect` outside `if` / `catch` / `?:` / `&&` / `||` / `??` / `switch`, off `.catch()`. assert outcome
 - Fail early, avoid fallbacks/retries
 - Reusable locators belong in `locators.ts` - check before creating new ones
 
@@ -131,7 +132,7 @@ Prefer `package.nls.json` for command titles instead of hardcoded strings.
 - Protects tests when command labels change or are localized
 - Pattern: `import packageNls from '../../../package.nls.json'` (adjust path for package root)
 - Use for `executeCommandWithCommandPalette`, `executeExplorerContextMenuCommand`, `executeEditorContextMenuCommand`, `verifyCommandExists`, and `waitForOutputChannelText` expectedText (e.g. `Ended ${packageNls.deploy_this_source_text}`)
-- **Run-completion sentinels** (e.g., `Ended SFDX: Run Apex Tests`) must emit BEFORE success notifications with user-interactive action buttons. A headless run never resolves a toast button click, causing deadlock if the sentinel append comes after the notification. Service code should append the sentinel first, then show the notification.
+- **Run-completion sentinels** (e.g., `Ended SFDX: Run Apex Tests`) are output-channel lines, not notifications: tests wait on them via `waitForOutputChannelText`. They're appended on success and failure, so they mean "run finished," not "run succeeded." Order relative to `showSuccessNotification` doesn't matter; it never blocks the caller, even when the toast has action buttons. A sentinel doesn't prove the TestRun ended; use `verifyNoTestRunInProgress` (see "Test Controller Native Surfaces" in SKILL.md).
 
 ## Commands with Editor Selection
 

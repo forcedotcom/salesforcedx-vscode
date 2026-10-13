@@ -34,12 +34,12 @@ npx effect-language-service diagnostics --project tsconfig.json
 | Error Handling    | `catchTag`/`catchTags`; catch only when needed           | `catchAll`; swallowing; catching "just in case"                  |
 | IDs               | Salesforce record/org: `SalesforceId`/`OrgId` (`core/schemas/salesforceId.ts`). `DefaultOrgInfoSchema.orgId`/`devHubOrgId`: `Schema.optional(OrgId)` like `cliId`. Else `Schema.UUID.pipe(Schema.brand("@App/EntityId"))` | Plain `string`; `getAuthInfoFields().orgId` ad hoc; `optionalWith` as Option on DefaultOrgInfo |
 | Functions         | `Effect.fn` over `Effect.gen`; `.gen` only for shared pipes | Anonymous generators; nested `Effect.gen` to attach recovery; `.gen` for business logic |
-| Composition       | `.pipe`; `const` only if read ≥2×. Details: `references/composition-style.md` | single-use `const x = yield*` then `f(x)` |
+| Composition       | `.pipe`; `local/inline-single-use-yield-binding` for single-use yielded values. Details: `references/composition-style.md` | — |
 | Params vs deps    | Params = runtime data; dependencies = yield from context | Passing Ref/PubSub/service as params                             |
 | Naming            | `FooCommand` for commands, domain names for helpers      | `FooEffect` suffix (redundant; TS/Effect.fn already convey type) |
 | Logging           | `Effect.log` with structured data                        | `console.log`                                                    |
 | Config            | `Config.*` with validation                               | `process.env` directly (except build-time vars like `ESBUILD_*`) |
-| Time values       | `Duration.seconds(30)`, `Duration.millis(5000)`; params as `Duration.DurationInput` | Numeric milliseconds as `number` params or `TIMEOUT_MS = 30_000` constants |
+| Time values       | `Duration.seconds(30)`, `Duration.millis(5000)`; params as `Duration.DurationInput`. Enforced by `local/no-raw-duration` for a numeric arg/prop in `Duration` / `DurationInput` position only. `bigint`, template strings, `number` params, and `TIMEOUT_MS` constants stay outside the rule. | Numeric milliseconds as `number` params or `TIMEOUT_MS = 30_000` constants |
 | Options           | `Option.match` with both cases                           | `Option.getOrThrow`                                              |
 | Nullability       | `Option<T>` in domain types                              | `null`/`undefined`                                               |
 | Atoms             | `Atom.make` outside components                           | Creating atoms inside render                                     |
@@ -236,7 +236,7 @@ See `references/schema-patterns.md` for transforms and advanced patterns.
 
 ## Function Pattern: Prefer Effect.fn over Effect.gen
 
-**Prefer `Effect.fn`** for effectful code. Provides automatic tracing with proper span names. Span name required; enforced by `local/require-effect-fn-span-name`.
+**Prefer `Effect.fn`** for effectful code. Provides automatic tracing with proper span names. Span name required; enforced by `local/require-effect-fn-span-name`. `Effect.tap` / `*SuccessNotification` middleware before catch middleware: `local/effect-fn-catch-middleware-last` (later catch and non-success guards stay valid). Details: services-extension-consumption Success handling.
 
 **Use `Effect.gen` only when** you need a shared effect with common `.pipe` attached so multiple consumers don't each pipe the same things — e.g. provided dependencies, common error handlers, retries. (Less common with Runtimes.) Service definition bodies are a valid use (shared wiring).
 
@@ -277,7 +277,7 @@ const openedOk = Effect.gen(function* () {
 // CORRECT: logGetCommand, executeAnonymousCommand, executeAnonymous (helper), activation (lifecycle)
 ```
 
-See `references/composition-style.md`: `.pipe`, `const` only if read ≥2×, terminal runner, point-free safety, Match dispatch, guard clauses, recovery on a subsequence.
+See `references/composition-style.md`: `.pipe`, `local/inline-single-use-yield-binding` for single-use yielded values, terminal runner, point-free safety, Match dispatch, guard clauses, recovery on a subsequence.
 
 ## Layer Composition
 
@@ -519,7 +519,7 @@ See `references/observability-patterns.md` for metrics and tracing patterns.
 
 For detailed patterns, consult these reference files in the `references/` directory:
 
-- `composition-style.md` - `.pipe`; `const` only if read ≥2×; terminal runner; point-free safety; tap for side effects; Match dispatch; guard clauses; linear body as point-free pipe vs generator; recovery on a subsequence (pipe from the first Effect — not a nested `Effect.gen`)
+- `composition-style.md` - `.pipe`; `local/inline-single-use-yield-binding` for single-use yielded values; terminal runner; point-free safety; tap for side effects; Match dispatch; guard clauses; linear body as point-free pipe vs generator; recovery on a subsequence (pipe from the first Effect — not a nested `Effect.gen`)
 - `service-patterns.md` - Service definition, Effect.fn, Context.Tag exceptions
 - `error-patterns.md` - Schema.TaggedError, error remapping, retry patterns
 - `schema-patterns.md` - Branded types, transforms, Schema.Class

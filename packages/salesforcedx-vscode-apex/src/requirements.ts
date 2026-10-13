@@ -19,7 +19,6 @@ import { APEX_SETTINGS_SECTION, SET_JAVA_DOC_LINK } from './constants';
 import { nls } from './messages';
 
 /* eslint-disable @typescript-eslint/no-var-requires */
-// eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
 const findJavaHome: (
   callback: (err: Error | undefined, home: string | undefined) => void
 ) => void = require('find-java-home');

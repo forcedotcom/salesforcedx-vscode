@@ -2,13 +2,6 @@ name: Commit Workflow
 on:
   push:
     branches-ignore: [main, develop]
-    paths-ignore:
-      - CONTEXT.md
-      - CONTEXT-MAP.md
-      - '**/CONTEXT.md'
-      - 'docs/**.md'
-      - '**/docs/**.md'
-      - '.claude/**.md'
 
 jobs:
   build-and-test:

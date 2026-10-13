@@ -24,7 +24,7 @@ import * as Arr from 'effect/Array';
 import { isNotNull } from 'effect/Predicate';
 import * as ejs from 'ejs';
 import * as path from 'node:path';
-import { TextDocument } from 'vscode-languageserver-textdocument';
+import { type TextDocument } from 'vscode-languageserver-textdocument';
 
 /**
  * Holds information and utility methods for a LWC workspace

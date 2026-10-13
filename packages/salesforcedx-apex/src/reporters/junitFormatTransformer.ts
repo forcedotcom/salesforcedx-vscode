@@ -12,35 +12,30 @@ import { elapsedTime, formatStartTime, HeapMonitor, msToSecond } from '../utils'
 
 // cli currently has spaces in multiples of four for junit format
 const tab = '    ';
+const BUFFER_SIZE = 256;
 
 const timeProperties = new Set(['testExecutionTimeInMs', 'testTotalTimeInMs', 'commandTimeInMs']);
 
 // properties not in cli junit spec
 const skippedProperties = new Set(['skipRate', 'totalLines', 'linesCovered']);
 
-type JUnitFormatTransformerOptions = ReadableOptions & {
-  bufferSize?: number;
-};
-
 export class JUnitFormatTransformer extends Readable {
   private logger: Logger;
   private buffer: string;
-  private bufferSize: number;
 
   constructor(
     private readonly testResult: TestResult,
-    options?: JUnitFormatTransformerOptions
+    options?: ReadableOptions
   ) {
     super(options);
     this.testResult = testResult;
     this.logger = Logger.childFromRoot('JUnitFormatTransformer');
     this.buffer = '';
-    this.bufferSize = options?.bufferSize || 256; // Default buffer size is 256
   }
 
   private pushToBuffer(chunk: string): void {
     this.buffer += chunk;
-    if (this.buffer.length >= this.bufferSize) {
+    if (this.buffer.length >= BUFFER_SIZE) {
       this.push(this.buffer);
       this.buffer = '';
     }

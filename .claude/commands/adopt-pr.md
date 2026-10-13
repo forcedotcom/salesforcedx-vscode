@@ -43,10 +43,10 @@ Slug: lowercase title, `[^a-z0-9]+ → -`, trim, slice 40.
 ```
 git fetch origin develop
 git worktree add -b <branch> <path> origin/develop --no-track
-cd <path> && npm install
+cd <path> && pnpm install
 ```
 
-`npm install` wires husky.
+`pnpm install` wires husky.
 
 ### 4. Cherry-pick
 

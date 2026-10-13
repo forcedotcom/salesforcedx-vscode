@@ -230,9 +230,7 @@ export const openFileFromExplorerTree = async (
     if (expanded) continue;
     // Single click expands a folder; double-click expands then immediately collapses (two toggles).
     await folderItem.click({ timeout: 5000 }).catch(() => {});
-    await expect(folderItem)
-      .toHaveAttribute('aria-expanded', 'true', { timeout: 5000 })
-      .catch(() => {});
+    await expect(folderItem).toHaveAttribute('aria-expanded', 'true', { timeout: 5000 });
   }
 
   const fileItem = tree.getByRole('treeitem', { name: new RegExp(`^${escapeRegExp(fileName)}$`) }).first();
@@ -334,9 +332,7 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
     const selected = await sourceTab.getAttribute('aria-selected').catch(() => null);
     if (selected !== 'true') {
       await sourceTab.click({ timeout: 5000 }).catch(() => {});
-      await expect(sourceTab)
-        .toHaveAttribute('aria-selected', 'true', { timeout: 5000 })
-        .catch(() => {});
+      await expect(sourceTab).toHaveAttribute('aria-selected', 'true', { timeout: 5000 });
     }
   }
 };

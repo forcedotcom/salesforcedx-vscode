@@ -6,8 +6,8 @@ import { glob } from 'glob';
 
 // Effect LS diagnostics ratchet.
 // Runs @effect/language-service `diagnostics` on every Effect-adopting package,
-// then fails ONLY on findings whose rule name is listed in config/effect-diagnostics.json
-// `enforcedRules` (any severity). Everything else is reported informationally.
+// enables config/effect-diagnostics.json `enforcedRules` at error severity, then fails
+// ONLY on those findings. Everything else is reported informationally.
 // Decoupled from the CLI exit code (which counts errors) so per-rule gating is uniform.
 // A CLI invocation that can't be parsed as JSON for any reason other than an empty-package
 // NoFilesToCheckError fails the gate — a broken run must never silently drop enforced findings.
@@ -26,6 +26,11 @@ if (!Array.isArray(enforcedRules)) {
   process.exit(1);
 }
 const enforcedSet = new Set(enforcedRules);
+// --lspconfig replaces the project's Effect plugin config; enable off-by-default rules
+// here without pinning them in tsconfig.common.json (which also affects editor/tsc).
+const lspConfig = JSON.stringify({
+  diagnosticSeverity: Object.fromEntries(enforcedRules.map(name => [name, 'error']))
+});
 
 // Per-package CLI budget: bound a hung/runaway invocation instead of hanging the whole CI job.
 const perPackageTimeoutMs = 5 * 60 * 1000;
@@ -53,12 +58,16 @@ const discoveredPackages = packageJsonPaths.flatMap(relPkgJson => {
 // - Anything else (crash, timeout, maxBuffer overflow, non-JSON output) -> hard failure
 //   that fails the gate, so a broken invocation can never silently drop enforced findings.
 const runPackage = ({ name, tsconfig }) => {
-  const result = spawnSync('node', [cli, 'diagnostics', '--project', tsconfig, '--format', 'json'], {
-    cwd: repoRoot,
-    encoding: 'utf8',
-    maxBuffer: 64 * 1024 * 1024,
-    timeout: perPackageTimeoutMs
-  });
+  const result = spawnSync(
+    'node',
+    [cli, 'diagnostics', '--project', tsconfig, '--format', 'json', '--lspconfig', lspConfig],
+    {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      maxBuffer: 64 * 1024 * 1024,
+      timeout: perPackageTimeoutMs
+    }
+  );
   const parsed = (() => {
     try {
       return JSON.parse(result.stdout);
@@ -82,9 +91,12 @@ const results = discoveredPackages.map(runPackage);
 
 const skipped = results.filter(r => r.skipped);
 const failed = results.filter(r => r.failed);
+// Declaration files describe external APIs; their native Error classes are not ours to change.
 const violations = results
   .filter(r => !r.skipped && !r.failed)
-  .flatMap(r => r.diagnostics.filter(d => enforcedSet.has(d.name)));
+  .flatMap(r =>
+    r.diagnostics.filter(d => enforcedSet.has(d.name) && !(d.name === 'extendsNativeError' && d.file.endsWith('.d.ts')))
+  );
 
 const isGithubActions = process.env.GITHUB_ACTIONS === 'true';
 

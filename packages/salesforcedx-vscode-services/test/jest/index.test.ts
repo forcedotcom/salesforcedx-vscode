@@ -24,6 +24,7 @@ jest.mock('@salesforce/core', () => ({
 }));
 
 import { activate, deactivate } from '../../src/index';
+import { type ExtensionContext } from 'vscode';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -227,6 +228,13 @@ describe('Extension', () => {
     ];
     // Mock the updateWorkspaceFolders method that's called in the index.ts
     vscode.workspace.updateWorkspaceFolders = jest.fn();
+    // resetMocks clears the vscode stub, and ChannelDisposalLayer calls dispose() on every cached channel.
+    vscode.window.createOutputChannel = jest.fn(() => ({
+      clear: jest.fn(),
+      appendLine: jest.fn(),
+      show: jest.fn(),
+      dispose: jest.fn()
+    }));
   });
 
   it('activates with shared services and an external span SDK', async () => {
@@ -245,7 +253,7 @@ describe('Extension', () => {
         get: jest.fn().mockReturnValue(undefined),
         update: jest.fn().mockResolvedValue(undefined)
       }
-    } as unknown as import('vscode').ExtensionContext;
+    } as unknown as ExtensionContext;
 
     const api = await activate(context);
     expect(api).toBeDefined();
@@ -293,7 +301,7 @@ describe('Extension', () => {
         get: jest.fn().mockReturnValue(undefined),
         update: jest.fn().mockResolvedValue(undefined)
       }
-    } as unknown as import('vscode').ExtensionContext;
+    } as unknown as ExtensionContext;
 
     await expect(activate(context)).rejects.toThrow('activation failed');
 

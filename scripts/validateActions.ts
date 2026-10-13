@@ -73,12 +73,13 @@ const asStringList = (value: unknown): readonly string[] | undefined => (isStrin
 
 const sameStrings = Equivalence.array(Equivalence.string);
 
-const DOC_ONLY_AUTO_MERGE = '.github/workflows/docOnlyAutoMerge.yml';
-
-// `on.push` / `on.pull_request` paths-ignore must equal docOnlyAutoMerge.yml `on.pull_request.paths`.
-const PATHS_IGNORE_WORKFLOWS = [
+// Required checks must post on every PR, including docs. E2E workflows share one paths-ignore list.
+const REQUIRED_CHECK_WORKFLOWS = [
   '.github/workflows/validatePR.yml',
-  '.github/workflows/testCommitExceptMain.yml',
+  '.github/workflows/testCommitExceptMain.yml'
+] as const;
+
+const E2E_WORKFLOWS = [
   '.github/workflows/visualforceE2E.yml',
   '.github/workflows/soqlE2E.yml',
   '.github/workflows/servicesE2E.yml',
@@ -97,14 +98,16 @@ const PATHS_IGNORE_WORKFLOWS = [
   '.github/workflows/apexDebuggerE2E.yml'
 ] as const;
 
+const CANONICAL_E2E = E2E_WORKFLOWS[0];
+
 const TRIGGER_KEYS = ['push', 'pull_request'] as const;
 
 const onMap = (workflow: unknown): Readonly<Record<string, unknown>> | undefined =>
   isRecord(workflow) && isRecord(workflow.on) ? workflow.on : undefined;
 
-const docOnlyTriggerPaths = (workflow: unknown): readonly string[] | undefined => {
-  const pullRequest = onMap(workflow)?.pull_request;
-  return isRecord(pullRequest) ? asStringList(pullRequest.paths) : undefined;
+const pushPathsIgnore = (workflow: unknown): readonly string[] | undefined => {
+  const push = onMap(workflow)?.push;
+  return isRecord(push) ? asStringList(push['paths-ignore']) : undefined;
 };
 
 const pathsIgnoreLists = (workflow: unknown): readonly (readonly string[] | undefined)[] => {
@@ -138,23 +141,39 @@ const pathsIgnoreDrift = (file: string, expected: readonly string[]) =>
                 ? [`${file}: paths-ignore is not a string list`]
                 : sameStrings(list, expected)
                   ? []
-                  : [
-                      `${file}: paths-ignore ${JSON.stringify(list)} != ${DOC_ONLY_AUTO_MERGE} on.pull_request.paths ${JSON.stringify(expected)}`
-                    ]
+                  : [`${file}: paths-ignore ${JSON.stringify(list)} != ${CANONICAL_E2E} ${JSON.stringify(expected)}`]
             );
       }
     })
   );
 
-const docOnlyPathsIgnoreErrors = readWorkflowYaml(DOC_ONLY_AUTO_MERGE).pipe(
+const requiredChecksAlwaysPost = Effect.all(
+  REQUIRED_CHECK_WORKFLOWS.map(file =>
+    readWorkflowYaml(file).pipe(
+      Effect.match({
+        onFailure: message => [message],
+        onSuccess: workflow =>
+          pathsIgnoreLists(workflow).length === 0
+            ? []
+            : [`${file}: paths-ignore must be absent so required checks post`]
+      })
+    )
+  )
+).pipe(Effect.map(groups => groups.flat()));
+
+const e2ePathsIgnoreErrors = readWorkflowYaml(CANONICAL_E2E).pipe(
   Effect.flatMap(workflow => {
-    const expected = docOnlyTriggerPaths(workflow);
+    const expected = pushPathsIgnore(workflow);
     return expected === undefined
-      ? Effect.succeed([`${DOC_ONLY_AUTO_MERGE}: on.pull_request.paths is not a string list`])
-      : Effect.all(PATHS_IGNORE_WORKFLOWS.map(file => pathsIgnoreDrift(file, expected))).pipe(
+      ? Effect.succeed([`${CANONICAL_E2E}: on.push paths-ignore is not a string list`])
+      : Effect.all(E2E_WORKFLOWS.map(file => pathsIgnoreDrift(file, expected))).pipe(
           Effect.map(groups => groups.flat())
         );
   })
+);
+
+const pathsIgnoreErrors = Effect.all([requiredChecksAlwaysPost, e2ePathsIgnoreErrors]).pipe(
+  Effect.map(groups => groups.flat())
 );
 
 const collectLeafErrors = (errors: ValidationError[]): string[] =>
@@ -198,7 +217,7 @@ const program = Stream.concat(
   Stream.tap(({ file, messages }) => Console.error(`\n${file}:\n${messages.join('\n')}`)),
   Stream.runCount,
   Effect.flatMap(schemaFailures =>
-    docOnlyPathsIgnoreErrors.pipe(
+    pathsIgnoreErrors.pipe(
       Effect.match({
         onFailure: message => ({ schemaFailures, drift: [message] }),
         onSuccess: drift => ({ schemaFailures, drift })

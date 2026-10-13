@@ -21,6 +21,8 @@ export const SF_CONFIG_ISV_DEBUGGER_SID = 'org-isv-debugger-sid';
 export const SF_CONFIG_ISV_DEBUGGER_URL = 'org-isv-debugger-url';
 
 // used within this package only
+export const SF_COMMAND = 'sf';
+export const TELEMETRY_HEADER = 'salesforce-vscode-extensions';
 export const CLIENT_ID = 'sfdx-vscode';
 export const DEFAULT_CONNECTION_TIMEOUT_MS = 20_000;
 export const ENV_SF_TARGET_ORG = 'SF_TARGET_ORG';

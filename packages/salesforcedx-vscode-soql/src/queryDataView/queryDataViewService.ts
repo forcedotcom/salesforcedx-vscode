@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { JsonObject } from '../json';
 import type { QueryResult } from '../types';
 import { getServicesApi } from '@salesforce/effect-ext-utils';
-import type { JsonMap } from '@salesforce/ts-types';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { getDocumentName } from '../commonUtils';
 import {
   DATA_VIEW_ICONS_PATH,
@@ -28,7 +28,7 @@ import {
 } from '../constants';
 import { nls } from '../messages';
 import { getSoqlRuntime } from '../services/extensionProvider';
-import { FileFormat, QueryDataFileService as FileService } from './queryDataFileService';
+import { type FileFormat, QueryDataFileService as FileService } from './queryDataFileService';
 import { extendQueryData } from './queryDataHelper';
 import { getHtml } from './queryDataHtml';
 
@@ -65,7 +65,7 @@ const saveRecordsEffect = Effect.fn('QueryDataView.save_records')(function* ({
   document
 }: {
   queryText: string;
-  queryData: QueryResult<JsonMap>;
+  queryData: QueryResult<JsonObject>;
   format: FileFormat;
   document: vscode.TextDocument;
 }) {
@@ -91,7 +91,7 @@ export class QueryDataViewService {
 
   constructor(
     private subscriptions: vscode.Disposable[],
-    private queryData: QueryResult<JsonMap>,
+    private queryData: QueryResult<JsonObject>,
     private document: vscode.TextDocument
   ) {
     this.queryText = document.getText();
@@ -101,7 +101,7 @@ export class QueryDataViewService {
     QueryDataViewService.extensionUri = extensionContext.extensionUri;
   }
 
-  private updateWebviewWith(queryData: QueryResult<JsonMap>) {
+  private updateWebviewWith(queryData: QueryResult<JsonObject>) {
     return Effect.promise(
       () =>
         this.currentPanel?.webview.postMessage({

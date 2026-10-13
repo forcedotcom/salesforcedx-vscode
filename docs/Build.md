@@ -16,7 +16,7 @@ Pipeline: src → out (tsc) → dist (esbuild). Shared configs: [scripts/bundlin
 
 ## Monorepo Management
 
-This repo uses npm workspaces with wireit for task orchestration. You don't have to use the same setup if it's not necessary for your project
+This repo uses [pnpm](./adr/0022-pnpm-cutover.md) workspaces with wireit for task orchestration. You don't have to use the same setup if it's not necessary for your project
 
 ## Versioning
 

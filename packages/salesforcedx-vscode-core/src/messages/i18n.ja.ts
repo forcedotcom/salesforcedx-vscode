@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { MessageKey } from './i18n';
+import { type MessageKey } from './i18n';
 
 /**
  * Conventions:
@@ -21,11 +21,5 @@ export const messages: Partial<Record<MessageKey, string>> = {
   config_list_text: 'SFDX: すべての設定変数を一覧表示',
   telemetry_legal_dialog_message:
     'VS Code の Salesforce 拡張機能が製品の改善のために、利用状況、ユーザ環境、クラッシュレポートを収集することに同意しました。[オプトアウトの方法について参照する](%s)。',
-  telemetry_legal_dialog_button_text: 'さらに表示',
-
-  aura_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/aura/writing',
-  apex_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/apex/writing',
-  soql_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/soql/soql-builder',
-  lwc_doc_url: 'https://developer.salesforce.com/tools/vscode/ja/lwc/writing',
-  default_doc_url: 'https://developer.salesforce.com/tools/vscode/ja'
+  telemetry_legal_dialog_button_text: 'さらに表示'
 };
