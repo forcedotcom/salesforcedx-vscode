@@ -10,7 +10,6 @@ import { format } from 'node:util';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
-import { getRuntime } from '../services/runtime';
 import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { launchFromLogFile } from './launchFromLogFile';
 
@@ -104,24 +103,17 @@ const executeAnonApexDebug = Effect.fn('ApexReplayDebugger.executeAnonApexDebug'
 
 const COMMAND: ProgressAndSuccessCommandKey = 'Debug Anonymous Apex';
 
-export const anonApexDebug = async (): Promise<void> => {
-  const progressLocation = await getRuntime().runPromise(
-    Effect.gen(function* () {
-      const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const notificationMode = yield* api.services.NotificationModeService;
-      return yield* notificationMode.getProgressLocation(COMMAND);
-    })
+export const anonApexDebugCommand = Effect.fn('ApexReplayDebugger.anonApexDebugCommand')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const notificationMode = yield* api.services.NotificationModeService;
+  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
+  const prompts = yield* api.services.PromptService;
+  yield* executeAnonApexDebug().pipe(
+    prompts.withProgress(nls.localize('apex_execute_text'), progressLocation),
+    Effect.catchAll(error =>
+      Effect.sync(() => {
+        void vscode.window.showErrorMessage(nls.localize('apex_execute_debug_failed', String(error)));
+      })
+    )
   );
-  try {
-    await vscode.window.withProgress(
-      {
-        location: progressLocation,
-        title: nls.localize('apex_execute_text'),
-        cancellable: false
-      },
-      () => getRuntime().runPromise(executeAnonApexDebug())
-    );
-  } catch (error) {
-    void vscode.window.showErrorMessage(nls.localize('apex_execute_debug_failed', String(error)));
-  }
-};
+});

@@ -234,6 +234,7 @@
     "onDebugResolve:apex-replay",
     "onCommand:sf.launch.replay.debugger.logfile",
     "onCommand:sf.anon.apex.debug.delegate",
+    "onCommand:sf.apex.debug.document",
     "onCommand:sf.launch.apex.replay.debugger.with.current.file"
   ],
   "main": "./dist/index.js",
