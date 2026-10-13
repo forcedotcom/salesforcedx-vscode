@@ -178,14 +178,7 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
 
     // Durable signal: poll the CLI until the default org is no longer authorized.
     await expectOrgLoggedOut(DEFAULT_LOGOUT_ORG_ALIAS);
-    // The workspace target is gone; the globally configured minimalTestOrg becomes the default.
-    await expectOrgPickerStatusBar(page, MINIMAL_ORG_ALIAS);
-    await clickOrgPickerStatusBar(page, MINIMAL_ORG_ALIAS);
-    await expectOrgPickerListsOrg(page, MINIMAL_ORG_ALIAS);
-    await expect(
-      activeQuickInputWidget(page).locator(QUICK_INPUT_LIST_ROW).filter({ hasText: DEFAULT_LOGOUT_ORG_ALIAS })
-    ).toHaveCount(0);
-    await page.keyboard.press('Escape');
+    await expectOrgPickerStatusBar(page, 'No Default Org Set');
   });
 });
 

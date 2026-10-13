@@ -35,7 +35,13 @@ import { AliasService } from './alias';
 import { ConfigService, type FailedToCreateConfigAggregatorError } from './configService';
 import { getDefaultOrgRef } from './defaultOrgRef';
 import { executeQuery } from './queryExecute';
-import { authFieldsFromConnection, orgIdFrom, orgIdFromConnection } from './schemas/authFields';
+import {
+  AuthFields,
+  authFieldsFromConnection,
+  orgIdFrom,
+  orgIdFromConnection,
+  type AuthInfoFields
+} from './schemas/authFields';
 import { DefaultOrgInfoSchema } from './schemas/defaultOrgInfo';
 import { OrgId } from './schemas/salesforceId';
 import { getOrgFromConnection, unknownToErrorCause } from './shared';
@@ -458,6 +464,15 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       );
     });
 
+    /** Decode auth fields at the services boundary instead of exposing the Connection schema decoder. */
+    const getAuthInfoFields = Effect.fn('ConnectionService.getAuthInfoFields')(function* (username?: string) {
+      const connection = yield* getConnection(username);
+      return Option.map(authFieldsFromConnection(connection), fields => {
+        const encodedFields: AuthInfoFields = Schema.encodeSync(AuthFields)(fields);
+        return encodedFields;
+      });
+    });
+
     /** Drops cached JSForce `Connection` instances so the next `getConnection()` reloads `AuthInfo` from disk. */
     const invalidateCachedConnections = Effect.fn('ConnectionService.invalidateCachedConnections')(function* () {
       yield* activeConnectionCache.invalidateAll;
@@ -488,6 +503,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     return {
       getConnection,
       getConnectionForOrg,
+      getAuthInfoFields,
       validateAccessTokenOrPromptReauth,
       invalidateCachedConnections,
       listAllAuthorizations

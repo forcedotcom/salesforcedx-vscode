@@ -11,6 +11,7 @@ import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
 import * as Layer from 'effect/Layer';
+import * as Option from 'effect/Option';
 import { nls } from '../../../src/messages';
 import {
   determineConnectedStatusForNonScratchOrg,
@@ -27,6 +28,7 @@ import * as orgUtil from '../../../src/util/orgUtil';
 // (an Effect) and write to the Effect ChannelService (yielded off the services api), never the legacy singleton.
 let listAllAuthorizationsMock: jest.Mock;
 let getConnectionMock: jest.Mock;
+let getAuthInfoFieldsMock: jest.Mock;
 let simpleExecMock: jest.Mock;
 let appendToChannelMock: jest.Mock;
 let showChannelMock: jest.Mock;
@@ -48,7 +50,8 @@ const buildServicesLayer = (listMock: jest.Mock) =>
       services: {
         ConnectionService: {
           listAllAuthorizations: listMock,
-          getConnection: getConnectionMock
+          getConnection: getConnectionMock,
+          getAuthInfoFields: getAuthInfoFieldsMock
         },
         TerminalService: Effect.succeed({ simpleExec: simpleExecMock }),
         WorkspaceService: { getWorkspaceInfoOrThrow: () => Effect.succeed({ fsPath: '/workspace' }) },
@@ -91,6 +94,7 @@ describe('orgList command', () => {
     listAllAuthorizationsMock = jest.fn().mockReturnValue(Effect.succeed([] as OrgAuthorization[]));
     // Default getConnection to a never-called stub; the determineConnectedStatus suite overrides it.
     getConnectionMock = jest.fn();
+    getAuthInfoFieldsMock = jest.fn().mockReturnValue(Effect.succeed(Option.none()));
     simpleExecMock = jest.fn().mockReturnValue(Effect.succeed('logged out'));
     appendToChannelMock = jest.fn();
     showChannelMock = jest.fn();
@@ -106,30 +110,28 @@ describe('orgList command', () => {
     jest.restoreAllMocks();
   });
 
-  it('reads expiration and org identity from the services connection for the requested username', async () => {
+  it('gets decoded auth fields through ConnectionService for the requested username', async () => {
     mockGetAuthFieldsFor.mockRestore();
-    const getAuthInfoFields = jest.fn().mockReturnValue({
-      username: 'scratch@example.com',
-      expirationDate: '2026-10-10',
-      orgId: '00D000000000000EAA'
-    });
-    getConnectionMock.mockReturnValue(Effect.succeed({ getAuthInfoFields }));
+    getAuthInfoFieldsMock.mockReturnValue(
+      Effect.succeed(
+        Option.some({
+          username: 'scratch@example.com',
+          expirationDate: '2026-10-10',
+          orgId: '00D000000000000EAA'
+        })
+      )
+    );
 
     const fields = await runWithServices(orgUtil.getAuthFieldsFor('scratch@example.com'));
 
-    expect(getConnectionMock).toHaveBeenCalledWith('scratch@example.com');
-    expect(getAuthInfoFields).toHaveBeenCalledTimes(1);
+    expect(getAuthInfoFieldsMock).toHaveBeenCalledWith('scratch@example.com');
     expect(fields.expirationDate).toBe('2026-10-10');
     expect(fields.orgId).toBe('00D000000000000EAA');
   });
 
   it('fails getAuthFieldsFor when the services decoder rejects the auth fields', async () => {
     mockGetAuthFieldsFor.mockRestore();
-    getConnectionMock.mockReturnValue(
-      Effect.succeed({
-        getAuthInfoFields: () => ({ orgId: 'not-an-org-id', expirationDate: '2026-10-10' })
-      })
-    );
+    getAuthInfoFieldsMock.mockReturnValue(Effect.succeed(Option.none()));
 
     await expect(runWithServices(orgUtil.getAuthFieldsFor('scratch@example.com'))).rejects.toThrow(
       'Unable to decode auth fields'
@@ -159,20 +161,19 @@ describe('orgList command', () => {
   describe('determineConnectedStatusForNonScratchOrg', () => {
     // conn stands in for the jsforce Connection getConnection(username) resolves to.
     const mockConn = {
-      getAuthInfoFields: jest.fn(),
       refreshAuth: jest.fn(),
       getUsername: jest.fn().mockReturnValue('test@example.com')
     };
 
     beforeEach(() => {
-      mockConn.getAuthInfoFields.mockReset();
       mockConn.refreshAuth.mockReset();
       // Default: getConnection succeeds with mockConn; per-test overrides for failure cases.
       getConnectionMock.mockReturnValue(Effect.succeed(mockConn));
+      getAuthInfoFieldsMock.mockReturnValue(Effect.succeed(Option.none()));
     });
 
     it('should return undefined for scratch orgs', async () => {
-      mockConn.getAuthInfoFields.mockReturnValue({ devHubUsername: 'hub@example.com' });
+      getAuthInfoFieldsMock.mockReturnValue(Effect.succeed(Option.some({ devHubUsername: 'hub@example.com' })));
 
       const result = await runWithServices(determineConnectedStatusForNonScratchOrg('scratch@example.com'));
 
@@ -181,7 +182,6 @@ describe('orgList command', () => {
     });
 
     it('should return Connected for valid non-scratch org', async () => {
-      mockConn.getAuthInfoFields.mockReturnValue({}); // No devHubUsername
       mockConn.refreshAuth.mockResolvedValue(undefined);
 
       const result = await runWithServices(determineConnectedStatusForNonScratchOrg('prod@example.com'));
@@ -191,7 +191,6 @@ describe('orgList command', () => {
     });
 
     it('should handle refreshAuth live-probe errors', async () => {
-      mockConn.getAuthInfoFields.mockReturnValue({});
       mockConn.refreshAuth.mockRejectedValue(new Error('Connection failed'));
 
       const result = await runWithServices(determineConnectedStatusForNonScratchOrg('invalid@example.com'));

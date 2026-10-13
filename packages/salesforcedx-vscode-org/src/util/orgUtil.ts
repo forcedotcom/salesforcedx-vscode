@@ -6,7 +6,7 @@
  */
 
 import { type Column, createTable, type Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { AuthFields, authFieldsFromConnection, ICONS, type OrgAuthorizationSummary } from '@salesforce/vscode-services';
+import { ICONS, type OrgAuthorizationSummary } from '@salesforce/vscode-services';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
@@ -120,12 +120,12 @@ export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeEx
 /** Fetch auth fields for a username through the shared connection service. */
 export const getAuthFieldsFor = Effect.fn('OrgUtil.getAuthFieldsFor')(function* (username: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const conn = yield* api.services.ConnectionService.getConnection(username).pipe(
+  const authFields = yield* api.services.ConnectionService.getAuthInfoFields(username).pipe(
     Effect.mapError(error => new GetAuthFieldsError({ message: error.message, username }))
   );
-  return yield* Option.match(authFieldsFromConnection(conn), {
+  return yield* Option.match(authFields, {
     onNone: () => Effect.fail(new GetAuthFieldsError({ message: 'Unable to decode auth fields', username })),
-    onSome: fields => Effect.succeed(Schema.encodeSync(AuthFields)(fields))
+    onSome: Effect.succeed
   });
 });
 /**
@@ -188,7 +188,7 @@ export const determineConnectedStatusForNonScratchOrg = Effect.fn('OrgUtil.deter
 
     // Skip connection testing for scratch orgs (they have a devHubUsername)
     const devHubUsername = Option.getOrUndefined(
-      Option.flatMap(authFieldsFromConnection(conn), fields => fields.devHubUsername)
+      Option.map(yield* api.services.ConnectionService.getAuthInfoFields(username), fields => fields.devHubUsername)
     );
     return devHubUsername
       ? undefined

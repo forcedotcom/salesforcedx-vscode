@@ -12,6 +12,7 @@ import {
 import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as Option from 'effect/Option';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import {
@@ -29,7 +30,7 @@ describe('orgUtil tests', () => {
   let appendToChannelMock: jest.Mock;
   let showChannelMock: jest.Mock;
   let listAllAuthorizationsSpy: jest.Mock;
-  let authInfoCreateSpy: jest.Mock;
+  let authInfoCreateSpy: jest.Mock<Promise<{ getAuthInfoFields: () => unknown }>, [string]>;
   let mockWatcher: any;
 
   // ChannelService entry provided in every seeded ExtensionProviderService layer.
@@ -42,7 +43,10 @@ describe('orgUtil tests', () => {
   // Both authorization listing and connection resolution are provided by services.
   const connectionServiceStub = () => ({
     listAllAuthorizations: () => Effect.promise(() => listAllAuthorizationsSpy()),
-    getConnection: (username: string) => Effect.promise(() => authInfoCreateSpy(username))
+    getAuthInfoFields: (username: string) =>
+      Effect.promise(() => authInfoCreateSpy(username)).pipe(
+        Effect.map(authInfo => Option.some(authInfo.getAuthInfoFields()))
+      )
   });
 
   // checkForSoonToBeExpiredOrgs leaks ChannelService / ConnectionService into its R channel (it yields
@@ -99,7 +103,7 @@ describe('orgUtil tests', () => {
     appendToChannelMock = jest.fn();
     showChannelMock = jest.fn();
     listAllAuthorizationsSpy = jest.fn();
-    authInfoCreateSpy = jest.fn();
+    authInfoCreateSpy = jest.fn<Promise<{ getAuthInfoFields: () => unknown }>, [string]>();
   });
 
   afterEach(() => {

@@ -9,6 +9,7 @@ import type { Connection } from '@salesforce/core';
 import { standardValueSet } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ChannelService } from '../../../src/vscode/channelService';
@@ -49,6 +50,7 @@ const createMockConnectionService = (
         } as unknown as Connection),
       validateAccessTokenOrPromptReauth: () => Effect.void,
       invalidateCachedConnections: () => Effect.void,
+      getAuthInfoFields: () => Effect.succeed(Option.none()),
       listAllAuthorizations: () => Effect.succeed([])
     })
   )

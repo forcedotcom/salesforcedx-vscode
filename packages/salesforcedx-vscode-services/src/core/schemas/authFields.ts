@@ -28,6 +28,7 @@ export const AuthFields = Schema.Struct({
   expirationDate: optional(Schema.String)
 });
 export type AuthFields = typeof AuthFields.Type;
+export type AuthInfoFields = Schema.Schema.Encoded<typeof AuthFields>;
 
 export const authFieldsFrom = (fields: unknown): Option.Option<AuthFields> =>
   Schema.decodeUnknownOption(AuthFields)(fields);

@@ -11,6 +11,7 @@ import * as SfTemplates from '@salesforce/templates';
 import { isNull } from 'effect/Predicate';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as Option from 'effect/Option';
 import * as Stream from 'effect/Stream';
 import { URI } from 'vscode-uri';
 import { ConfigService, type FailedToCreateConfigAggregatorError } from '../../../src/core/configService';
@@ -105,6 +106,7 @@ const createMockConnectionService = () =>
       getConnectionForOrg: () => Effect.succeed({ version: '60.0' } as unknown as Connection),
       validateAccessTokenOrPromptReauth: () => Effect.void,
       invalidateCachedConnections: () => Effect.void,
+      getAuthInfoFields: () => Effect.succeed(Option.none()),
       listAllAuthorizations: () => Effect.succeed([])
     })
   );

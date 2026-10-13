@@ -314,13 +314,7 @@ export type {
 } from './core/metadataDescribeService';
 export type { TransmogrifierService, TransmogrifierError } from './core/transmogrifierService';
 export type { SObject, SObjectField, ChildRelationship } from './core/schemas/sObject';
-export {
-  SObjectSchema,
-  SObjectFieldSchema,
-  ChildRelationshipSchema,
-  PicklistValueSchema
-} from './core/schemas/sObject';
-export { AuthFields, authFieldsFrom, authFieldsFromConnection } from './core/schemas/authFields';
+export type { AuthInfoFields } from './core/schemas/authFields';
 export type { ExecuteAnonymousResult } from './core/executeAnonymousService';
 export type { ExecuteAnonymousError } from './errors/executeAnonymousErrors';
 export type { ApexLogBodyFetchError } from './errors/apexLogErrors';

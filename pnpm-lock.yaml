@@ -1661,9 +1661,6 @@ importers:
       '@salesforce/vscode-i18n':
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
-      '@salesforce/vscode-services':
-        specifier: workspace:*
-        version: link:../salesforcedx-vscode-services-types
       antlr4ts:
         specifier: ^0.5.0-alpha.3
         version: 0.5.0-alpha.4
@@ -1786,9 +1783,6 @@ importers:
 
   packages/soql-builder-ui:
     dependencies:
-      '@salesforce/vscode-services':
-        specifier: workspace:*
-        version: link:../salesforcedx-vscode-services-types
       '@vscode-elements/elements':
         specifier: ^2.5.1
         version: 2.5.1(@vscode/codicons@0.0.45)
