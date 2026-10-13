@@ -37,7 +37,7 @@ const toWatchError = (error: unknown, path: string): HostFileWatchFailure => {
 };
 
 /** Watch a host-FS file (not a workspace path). Uses `@salesforce/core/fs` (node on desktop, memfs on web). */
-const watchHostFile = (filePath: string): Stream.Stream<FileChangeEvent, HostFileWatchFailure> =>
+const watchHostFile = (filePath: string) =>
   Stream.unwrap(
     Effect.try({
       try: () => fs.promises.watch(filePath),

@@ -38,7 +38,7 @@ const toSystemError = (err: NodeJS.ErrnoException, executable: string): SystemEr
     description: err.code
   });
 
-const fromReadable = (readable: Readable | null): Stream.Stream<Uint8Array, PlatformError> =>
+const fromReadable = (readable: Readable | null) =>
   isNull(readable)
     ? Stream.empty
     : NodeStream.fromReadable<PlatformError, Uint8Array>(

@@ -18,5 +18,4 @@ export const shouldRefreshTreeForCatalogChange = (change: OrgMetadataCatalogChan
 export const coalesceTreeRefreshes = <E, R>(
   changes: Stream.Stream<OrgMetadataCatalogChange, E, R>,
   quietPeriod: Duration.DurationInput = Duration.millis(500)
-): Stream.Stream<OrgMetadataCatalogChange, E, R> =>
-  changes.pipe(Stream.filter(shouldRefreshTreeForCatalogChange), Stream.debounce(quietPeriod));
+) => changes.pipe(Stream.filter(shouldRefreshTreeForCatalogChange), Stream.debounce(quietPeriod));
