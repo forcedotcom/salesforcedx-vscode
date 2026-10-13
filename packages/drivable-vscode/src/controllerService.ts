@@ -14,6 +14,7 @@ import type {
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
+import * as Layer from 'effect/Layer';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
@@ -29,7 +30,7 @@ type ControllerState = {
 
 export class ControllerService extends Effect.Service<ControllerService>()('DrivableVscode/ControllerService', {
   accessors: true,
-  dependencies: [SessionService.Default],
+  dependencies: [SessionService.Default, Layer.service(FileSystem.FileSystem)],
   effect: Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
     const sessions = yield* SessionService;

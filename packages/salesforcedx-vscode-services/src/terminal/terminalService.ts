@@ -117,7 +117,7 @@ const unsupportedOnWeb = Effect.fn('TerminalService.simpleExec')(function* <A>(_
 
 export class TerminalService extends Effect.Service<TerminalService>()('TerminalService', {
   accessors: false,
-  dependencies: [ConfigService.Default, SettingsService.Default],
+  dependencies: [ConfigService.Default, SettingsService.Default, Layer.service(CommandExecutor.CommandExecutor)],
   effect: Effect.gen(function* () {
     const commandExecutor = yield* CommandExecutor.CommandExecutor;
     const configService = yield* ConfigService;

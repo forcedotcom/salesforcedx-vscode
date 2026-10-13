@@ -16,6 +16,7 @@ import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
 import { redactValue } from '@salesforce/playwright-vscode-ext';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import { causeMessage, DrivableVscodeArtifactError } from './errors';
 
 type ArtifactWrite = { filePath: string; contents: string; append: boolean };
@@ -44,6 +45,7 @@ const summaryMarkdown = (summary: DrivableVscodeSummary) =>
 
 export class ArtifactService extends Effect.Service<ArtifactService>()('DrivableVscode/ArtifactService', {
   accessors: true,
+  dependencies: [Layer.service(FileSystem.FileSystem), Layer.service(Path.Path)],
   effect: Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
     const path = yield* Path.Path;

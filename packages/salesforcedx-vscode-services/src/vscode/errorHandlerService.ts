@@ -7,6 +7,7 @@
 
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import { isError, isRecord, isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
@@ -74,6 +75,7 @@ export const getErrorMessage = (error: unknown): string => {
  * When errors have actions (like SfError), also shows a "View Details" button.
  */
 export class ErrorHandlerService extends Effect.Service<ErrorHandlerService>()('ErrorHandlerService', {
+  dependencies: [Layer.service(ChannelService)],
   effect: Effect.gen(function* () {
     const channelService = yield* ChannelService;
     return {

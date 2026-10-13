@@ -8,6 +8,7 @@
 import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import type { OrgUserInfo } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as MutableRef from 'effect/MutableRef';
 import * as PubSub from 'effect/PubSub';
 import * as Stream from 'effect/Stream';
@@ -30,6 +31,7 @@ const transitionAttributes = (identity: WorkspaceOrgIdentity) => ({
 
 export class WorkspaceContextService extends Effect.Service<WorkspaceContextService>()('WorkspaceContextService', {
   accessors: true,
+  dependencies: [Layer.service(ExtensionProviderService)],
   scoped: Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const targetOrgRef = yield* api.services.TargetOrgRef();
