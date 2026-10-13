@@ -25,6 +25,7 @@
     "extendsNativeError",
     "globalFetch",
     "anyUnknownInErrorContext",
-    "globalConsoleInEffect"
+    "globalConsoleInEffect",
+    "missingEffectServiceDependency"
   ]
 }
