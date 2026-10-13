@@ -14,14 +14,14 @@ jest.mock('@vscode/debugadapter', () => ({
   }
 }));
 
-import { Source, StackFrame } from '@vscode/debugadapter';
-import { DebugProtocol } from '@vscode/debugprotocol';
+import { Source, type StackFrame } from '@vscode/debugadapter';
+import { type DebugProtocol } from '@vscode/debugprotocol';
 import { EXTENT_TRIGGER_PREFIX } from '../../../src';
 import { ApexDebugStackFrameInfo } from '../../../src/adapter/apexDebugStackFrameInfo';
 import { ApexVariable } from '../../../src/adapter/apexVariable';
-import { LaunchRequestArguments } from '../../../src/adapter/types';
+import { type LaunchRequestArguments } from '../../../src/adapter/types';
 import { ApexVariableContainer } from '../../../src/adapter/variableContainer';
-import { ApexExecutionOverlayResultCommandSuccess } from '../../../src/commands/apexExecutionOverlayResultCommand';
+import { type ApexExecutionOverlayResultCommandSuccess } from '../../../src/commands/apexExecutionOverlayResultCommand';
 import { ApexHeapDump, LogContext } from '../../../src/core';
 import { Handles } from '../../../src/core/handles';
 import { HeapDumpService } from '../../../src/core/heapDumpService';
