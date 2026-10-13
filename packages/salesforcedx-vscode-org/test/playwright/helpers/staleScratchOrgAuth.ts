@@ -32,7 +32,8 @@ export const writeStaleScratchOrgAuth = async (): Promise<string> => {
   const auth = {
     orgId: '00Dxx0000000EXPIRED',
     username: STALE_SCRATCH_ORG_USERNAME,
-    instanceUrl: 'https://stale-expired-e2e.my.salesforce.com',
+    // Connection.create validates the domain before exposing auth fields; use a real hostname.
+    instanceUrl: 'https://login.salesforce.com',
     loginUrl: 'https://test.salesforce.com',
     accessToken: '00Dxx0000000EXPIRED!FAKE_TOKEN',
     refreshToken: 'FAKE_REFRESH_TOKEN',

@@ -24,8 +24,9 @@ const generateEntry = (): void => {
  */
 
 // This file is auto-generated. Do not edit manually.
-export type { SalesforceVSCodeServicesApi } from '../../salesforcedx-vscode-services/out/src/index';
+export type { SalesforceVSCodeServicesApi, OrgAuthorizationSummary } from '../../salesforcedx-vscode-services/out/src/index';
 export { DefaultOrgInfoSchema } from '../../salesforcedx-vscode-services/out/src/core/schemas/defaultOrgInfo';
+export { AuthFields, authFieldsFrom, authFieldsFromConnection } from '../../salesforcedx-vscode-services/out/src/core/schemas/authFields';
 export {
   ChildRelationshipSchema,
   PicklistValueSchema,

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, OrgConfigProperties, StateAggregator } from '@salesforce/core';
+import { AuthInfo, Connection, OrgConfigProperties, StateAggregator, type OrgAuthorization } from '@salesforce/core';
 
 import * as Arr from 'effect/Array';
 import * as Cache from 'effect/Cache';
@@ -44,6 +44,12 @@ type WebConnectionKey = {
   instanceUrl: string;
   accessToken: Redacted.Redacted<string>;
 };
+
+/** Authorization fields consumed by org management; excludes credentials and CLI-specific metadata. */
+export type OrgAuthorizationSummary = Pick<
+  OrgAuthorization,
+  'username' | 'aliases' | 'isDevHub' | 'isSandbox' | 'isScratchOrg' | 'isExpired' | 'error'
+>;
 
 type WebConnectionKeyAndApiVersion = WebConnectionKey & { apiVersion: string };
 

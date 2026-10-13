@@ -320,6 +320,7 @@ export {
   ChildRelationshipSchema,
   PicklistValueSchema
 } from './core/schemas/sObject';
+export { AuthFields, authFieldsFrom, authFieldsFromConnection } from './core/schemas/authFields';
 export type { ExecuteAnonymousResult } from './core/executeAnonymousService';
 export type { ExecuteAnonymousError } from './errors/executeAnonymousErrors';
 export type { ApexLogBodyFetchError } from './errors/apexLogErrors';
@@ -636,7 +637,7 @@ const deactivateEffect = Effect.gen(function* () {
 export { type DefaultOrgInfoSchema } from './core/schemas/defaultOrgInfo';
 export { type ChannelService, type ChannelServiceLayer } from './vscode/channelService';
 export { type ConfigService } from './core/configService';
-export { type ConnectionService } from './core/connectionService';
+export { type ConnectionService, type OrgAuthorizationSummary } from './core/connectionService';
 export { type QueryService } from './core/queryService';
 export type { QueryOptions, QueryServiceResult } from './core/queryExecute';
 export { FieldError, SoqlError } from './errors/queryErrors';

@@ -48,7 +48,7 @@ const DEFAULT_LOGOUT_ORG_ALIAS = 'logoutDefaultThrowawayOrg';
 //   - selectDeletableOrg (multi-pick + confirm) -> sf.org.delete.username
 //   - orgLogoutAllCommand inline multi-pick + confirm -> sf.org.logout.all
 // plus the cancel mappings: Esc (UserCancellationError -> CANCEL) and multi-pick "pick nothing" ([] -> CANCEL),
-// and a REAL logout against a dedicated throwaway org (removeAuth actually runs, asserted via the CLI).
+// and a REAL CLI logout against a dedicated throwaway org (asserted via the CLI).
 // The fixture sets a SCRATCH org (MINIMAL_ORG_ALIAS) as default, satisfying sf:project_opened +
 // sf:has_target_org + sf:default_org_deletable. The delete confirm modal is cancelled so the fixture
 // org is never deleted; only the throwaway org is actually logged out.
@@ -133,7 +133,7 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
   });
 
   // Real logout against the dedicated THROWAWAY org (never MINIMAL_ORG_ALIAS). Confirm the modal
-  // (do NOT Escape) so removeAuth actually runs, then assert removal durably via the CLI.
+  // (do NOT Escape) so sf org logout actually runs, then assert removal durably via the CLI.
   await test.step('LOGOUT real: confirm removes auth for the throwaway org', async () => {
     await executeCommandWithCommandPalette(page, packageNls.org_logout_all_text);
     await expectOrgPickerListsOrg(page, THROWAWAY_ORG_ALIAS);
@@ -161,7 +161,7 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
   });
 
   // Real logout of the CURRENT DEFAULT org via sf.org.logout.default (W-23069609). Set the dedicated
-  // second throwaway AS the default first (so removeAuth unsets the current default — the path that
+  // second throwaway AS the default first (so CLI logout unsets the current default — the path that
   // must clear the in-process ref), confirm the scratch modal, then assert removal durably via the CLI.
   // Sequenced last: it leaves the workspace with no default org. MINIMAL_ORG_ALIAS stays authed.
   await test.step('LOGOUT DEFAULT real: confirm removes auth for the default org', async () => {
@@ -178,6 +178,14 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
 
     // Durable signal: poll the CLI until the default org is no longer authorized.
     await expectOrgLoggedOut(DEFAULT_LOGOUT_ORG_ALIAS);
+    // The workspace target is gone; the globally configured minimalTestOrg becomes the default.
+    await expectOrgPickerStatusBar(page, MINIMAL_ORG_ALIAS);
+    await clickOrgPickerStatusBar(page, MINIMAL_ORG_ALIAS);
+    await expectOrgPickerListsOrg(page, MINIMAL_ORG_ALIAS);
+    await expect(
+      activeQuickInputWidget(page).locator(QUICK_INPUT_LIST_ROW).filter({ hasText: DEFAULT_LOGOUT_ORG_ALIAS })
+    ).toHaveCount(0);
+    await page.keyboard.press('Escape');
   });
 });
 
