@@ -363,7 +363,7 @@ describe('OrgMetadataCatalog contract', () => {
 
     const keys = await runWithCatalog(layer, catalog => Effect.succeed(Object.keys(catalog).toSorted()));
 
-    expect(keys).toEqual(['getChildren', 'getEntries', 'resolveComponents']);
+    expect(keys).toEqual(['getChildren', 'getEntries', 'hasTypeInventory', 'resolveComponents']);
   });
 
   it('resolves consumer-known components during startup before the default org ref is populated', async () => {
@@ -693,16 +693,22 @@ describe('OrgMetadataCatalog contract', () => {
       }
     ];
     const { layer, mocks } = makeHarness({
-      metadataByType: { ApexClass: [{ fullName: 'FileUtilitiesTest' }] },
+      metadataByType: {
+        ApexClass: [{ fullName: 'FileUtilitiesTest' }],
+        CustomObject: [{ fullName: 'Broker__c' }],
+        CustomField: [{ fullName: 'Broker__c.Email__c' }]
+      },
+      descriptions: { Broker__c: { ...emptySObject('Broker__c'), fields: [customStringField('Email__c')] } },
       workspaceComponents
     });
 
-    const [before, after] = await runWithCatalog(layer, catalog =>
+    const result = await runWithCatalog(layer, catalog =>
       Effect.gen(function* () {
         const subscription = yield* PubSub.subscribe(yield* OrgMetadataCatalogChangePubSub);
         yield* Effect.forkScoped(runOrgMetadataDocumentProvider());
         yield* Queue.take(subscription); // provider's initial active-org observation
-        const initial = yield* getEntry(catalog, { xmlName: 'ApexClass', fullName: 'FileUtilitiesTest' });
+        const before = yield* getEntry(catalog, { xmlName: 'ApexClass', fullName: 'FileUtilitiesTest' });
+        yield* catalog.getChildren({ type: 'CustomObject', fullName: 'Broker__c' });
         yield* Effect.sync(() => workspaceComponents.splice(0));
         const events = [
           { type: 'delete' as const, uri: URI.file('/workspace/force-app/main/default/classes/FileUtilitiesTest.cls') },
@@ -714,13 +720,23 @@ describe('OrgMetadataCatalog contract', () => {
         yield* PubSub.publishAll(yield* FileChangePubSub, events);
         const change = yield* Queue.take(subscription);
         expect(change).toEqual({ kind: 'workspace', events });
-        return [initial, yield* getEntry(catalog, { xmlName: 'ApexClass', fullName: 'FileUtilitiesTest' })];
+        const inventoryAvailable = yield* Effect.all([
+          catalog.hasTypeInventory('CustomObject'),
+          catalog.hasTypeInventory('CustomField')
+        ]);
+        const cachedFields = yield* catalog.getChildren(
+          { type: 'CustomObject', fullName: 'Broker__c' },
+          { consistency: 'cache-only' }
+        );
+        const after = yield* getEntry(catalog, { xmlName: 'ApexClass', fullName: 'FileUtilitiesTest' });
+        return { before, after, inventoryAvailable, cachedFields };
       }).pipe(Effect.scoped, Effect.timeout('2 seconds'))
     );
 
-    expect(before).toMatchObject({ inOrg: true, inWorkspace: true });
-    expect(after).toMatchObject({ inOrg: true, inWorkspace: false });
-    expect(mocks.buildComponentSetFromSource).toHaveBeenCalledTimes(2);
+    expect(result.before).toMatchObject({ inOrg: true, inWorkspace: true });
+    expect(result.after).toMatchObject({ inOrg: true, inWorkspace: false });
+    expect(result.inventoryAvailable).toEqual([true, true]);
+    expect(result.cachedFields.map(field => field.name)).toEqual(['Email__c']);
     expect(mocks.invalidateListMetadata).not.toHaveBeenCalled();
   });
 
