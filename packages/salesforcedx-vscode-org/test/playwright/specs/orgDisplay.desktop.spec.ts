@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { expect } from '@playwright/test';
 import {
   closeWelcomeTabs,
   createMinimalOrg,
@@ -51,5 +52,23 @@ test('org extension: SFDX: Display Org Details for Default Org logs the org tabl
     // 'Connected Status' is an unconditional row of formatOrgInfoAsTable; its presence proves the
     // `sf org display --json` round-trip + table render completed against the live default org.
     await waitForOutputChannelText(page, { expectedText: 'Connected Status', timeout: 60_000 });
+    // The access token is explicitly fetched, not copied from Org Display's redacted JSON.
+    await waitForOutputChannelText(page, {
+      expectedText: 'Access Token',
+      failIfChannelIncludes: ['[REDACTED]']
+    });
+    // The output is virtualized; the helper restores the panel after finding the row, so sweep
+    // from the top again. Return only a boolean: never print the credential in assertion output.
+    const outputLines = page.locator('[id="workbench.panel.output"] .view-lines .view-line');
+    await page.locator('[id="workbench.panel.output"] .view-lines').focus();
+    await page.keyboard.press('Control+Home');
+    let hasNonEmptyToken = false;
+    for (let pageIndex = 0; pageIndex < 30 && !hasNonEmptyToken; pageIndex++) {
+      hasNonEmptyToken = await outputLines.evaluateAll(lines =>
+        lines.some(line => /^Access Token +\S/.test(line.textContent?.replaceAll('\u00A0', ' ') ?? ''))
+      );
+      if (!hasNonEmptyToken) await page.keyboard.press('PageDown');
+    }
+    expect(hasNonEmptyToken, 'Access Token row should contain a non-empty value').toBe(true);
   });
 });

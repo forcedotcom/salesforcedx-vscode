@@ -7,7 +7,7 @@
 import { sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { updateLastOpened } from '../activation/getDialogStartingPath';
 import { nls } from '../messages';
 import { launchFromLogFile } from './launchFromLogFile';

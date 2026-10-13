@@ -17,6 +17,7 @@ import * as Layer from 'effect/Layer';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import { isNotUndefined, isUndefined } from 'effect/Predicate';
+import * as Rec from 'effect/Record';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { isNonEmpty, trim } from 'effect/String';
@@ -190,7 +191,8 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
             }
           : undefined;
       const mergedEnv = sfEnv || env ? { ...sfEnv, ...env } : undefined;
-      if (isNotUndefined(mergedEnv)) yield* Effect.annotateCurrentSpan('envKeys', Object.keys(mergedEnv));
+      if (isNotUndefined(mergedEnv))
+        yield* Effect.annotateCurrentSpan('envKeys', Rec.keys<string, string | undefined>(mergedEnv));
       return yield* Effect.scoped(
         Effect.gen(function* () {
           const proc = yield* pipe(

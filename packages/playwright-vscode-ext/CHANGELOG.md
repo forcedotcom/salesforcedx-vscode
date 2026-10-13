@@ -1,3 +1,12 @@
+## [1.7.1](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.7.0...playwright-vscode-ext-v1.7.1) (2026-10-06)
+
+
+### Bug Fixes
+
+* **services, apex-testing:** don't block callers on success toasts with action buttons - W-24378601 ([#8370](https://github.com/forcedotcom/salesforcedx-vscode/issues/8370)) ([7cade39](https://github.com/forcedotcom/salesforcedx-vscode/commit/7cade39e393f99ed32ec380dfad20202f8417789))
+
+
+
 # [1.7.0](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.6.1...playwright-vscode-ext-v1.7.0) (2026-09-18)
 
 

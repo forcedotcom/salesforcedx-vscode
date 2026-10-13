@@ -20,8 +20,6 @@ These paths have no category. A hunk on one of them means `categories` is `[]`:
 - `.github/workflows/**`
 - `CODEOWNERS`
 - `APPROVAL_POLICY.md`
-- `.cursor/rules/**`
-- `.cursor/commands/**`
 - `out/**`
 
 ## Categories
@@ -29,6 +27,10 @@ These paths have no category. A hunk on one of them means `categories` is `[]`:
 ### claude
 
 Every file under `.claude/`.
+
+### cursor
+
+Every file under `.cursor/`.
 
 ### eslint
 
@@ -45,6 +47,10 @@ Every file under `.vscode/`.
 ### effect-diagnostics
 
 `config/effect-diagnostics.json`.
+
+### git2gus-config
+
+Only a modified `.git2gus/config.json`, with no other changed files. The only edit is a newer, positive, safe-integer `defaultBuild` number in `offcore.tooling.<number>`; the rest of the JSON must be unchanged and valid. This category is checked against the base and head file contents by `scripts/category-approve.ts`. Other config edits, additions, deletions, or mixed diffs are uncovered.
 
 ### changelog-constants
 

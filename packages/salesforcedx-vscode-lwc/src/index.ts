@@ -19,7 +19,7 @@ import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { ExtensionContext, workspace } from 'vscode';
+import { type ExtensionContext, workspace } from 'vscode';
 import type { BaseLanguageClient } from 'vscode-languageclient';
 import { URI, Utils } from 'vscode-uri';
 import { channelAdapter } from './channel';

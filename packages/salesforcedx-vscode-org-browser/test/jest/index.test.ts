@@ -53,22 +53,23 @@ import * as Option from 'effect/Option';
 import * as Redacted from 'effect/Redacted';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { activateEffect, deactivateEffect } from '../../src/index';
-import { ComponentSetService } from 'salesforcedx-vscode-services/src/core/componentSetService';
+import { type ComponentSetService } from 'salesforcedx-vscode-services/src/core/componentSetService';
 import { ConnectionService } from 'salesforcedx-vscode-services/src/core/connectionService';
 import { ProjectService } from 'salesforcedx-vscode-services/src/core/projectService';
-import { MetadataDeleteService } from 'salesforcedx-vscode-services/src/core/metadataDeleteService';
-import { MetadataDeployService } from 'salesforcedx-vscode-services/src/core/metadataDeployService';
+import { type MetadataDeleteService } from 'salesforcedx-vscode-services/src/core/metadataDeleteService';
+import { type MetadataDeployService } from 'salesforcedx-vscode-services/src/core/metadataDeployService';
 import { MetadataRegistryService } from 'salesforcedx-vscode-services/src/core/metadataRegistryService';
 import { MetadataRetrieveService } from 'salesforcedx-vscode-services/src/core/metadataRetrieveService';
 import { SourceTrackingService } from 'salesforcedx-vscode-services/src/core/sourceTrackingService';
 import { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
-import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
+import { type FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import { ConfigService } from 'salesforcedx-vscode-services/src/core/configService';
 import { SettingsService, SettingsError } from 'salesforcedx-vscode-services/src/vscode/settingsService';
-import { EditorService } from 'salesforcedx-vscode-services/src/vscode/editorService';
+import { type EditorService } from 'salesforcedx-vscode-services/src/vscode/editorService';
 import { getDefaultOrgRef } from 'salesforcedx-vscode-services/src/core/defaultOrgRef';
-import { SdkLayerFor } from 'salesforcedx-vscode-services/src/observability/spans';
+import { type SdkLayerFor } from 'salesforcedx-vscode-services/src/observability/spans';
 import { OrgMetadataCatalogChangePubSub } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalogChangePubSub';
+import { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
 import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
 import { ErrorHandlerService } from 'salesforcedx-vscode-services/src/vscode/errorHandlerService';
 import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode/extensionContextService';
@@ -160,6 +161,7 @@ const MockSettingsServiceLayer = Layer.succeed(
     getInstanceUrl: () => Effect.succeed('https://test.salesforce.com'),
     getAccessToken: () => Effect.succeed(Redacted.make('mock-token')),
     getApiVersion: () => Effect.succeed('60.0'),
+    getSessionContext: () => Effect.succeed({ isDevHub: false, isScratch: false, isSandbox: false }),
     setInstanceUrl: (_url: string) =>
       Effect.tryPromise({
         try: async () => undefined,
@@ -322,6 +324,7 @@ describe('Extension activation ordering', () => {
           MockConnectionServiceLayer,
           MockExtensionContextServiceLayer,
           MockErrorHandlerServiceLayer,
+          Layer.succeed(OrgMetadataCatalog, { getChildren: () => Effect.succeed([]) } as never),
           OrgMetadataCatalogChangePubSub.Default
         )
       )
@@ -379,6 +382,7 @@ describe.skip('Extension', () => {
             MockConnectionServiceLayer,
             MockExtensionContextServiceLayer,
             MockErrorHandlerServiceLayer,
+            Layer.succeed(OrgMetadataCatalog, { getChildren: () => Effect.succeed([]) } as never),
             MockProjectServiceLayer,
             MockMetadataRetrieveServiceLayer,
             MockMetadataRegistryServiceLayer,

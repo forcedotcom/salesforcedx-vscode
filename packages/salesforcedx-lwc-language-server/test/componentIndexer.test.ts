@@ -17,8 +17,8 @@ import {
 import * as path from 'node:path';
 import type { Connection } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
-import ComponentIndexer, { Entry, unIndexedFiles } from '../src/componentIndexer';
-import { Tag, createTag, getTagName } from '../src/tag';
+import ComponentIndexer, { type Entry, unIndexedFiles } from '../src/componentIndexer';
+import { type Tag, createTag, getTagName } from '../src/tag';
 
 const contentMap = buildSfdxContentMap();
 

@@ -24,8 +24,3 @@ export const telemetryDesktopTest = createDesktopTest({
     'salesforcedx-vscode-core.telemetry-tag': 'core-telemetry-e2e-test'
   }
 });
-
-export const noOrgDesktopTest = createDesktopTest({
-  fixturesDir: __dirname,
-  userSettings: { 'salesforcedx-vscode-core.useMetadataExtensionCommands': false }
-});

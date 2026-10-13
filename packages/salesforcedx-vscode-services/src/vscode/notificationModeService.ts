@@ -41,15 +41,16 @@ export type ProgressOnlyMode = 'progressToast' | 'progressStatusBar';
 /** Notification mode for commands that produce only a success notification. */
 export type SuccessOnlyMode = 'successToast' | 'successStatusBar' | 'successOff';
 
-const AnyModeSchema = Schema.Union(
-  Schema.Literal(
-    'progressToastSuccessToast',
-    'progressToastSuccessOff',
-    'progressStatusBarSuccessStatusBar',
-    'progressStatusBarSuccessOff'
-  ),
-  Schema.Literal('progressToast', 'progressStatusBar'),
-  Schema.Literal('successToast', 'successStatusBar', 'successOff')
+const AnyModeSchema = Schema.Literal(
+  'progressToastSuccessToast',
+  'progressToastSuccessOff',
+  'progressStatusBarSuccessStatusBar',
+  'progressStatusBarSuccessOff',
+  'progressToast',
+  'progressStatusBar',
+  'successToast',
+  'successStatusBar',
+  'successOff'
 );
 type AnyMode = Schema.Schema.Type<typeof AnyModeSchema>;
 
@@ -132,20 +133,11 @@ export class NotificationModeService extends Effect.Service<NotificationModeServ
       const hideTimerRef = yield* Ref.make<Option.Option<Fiber.RuntimeFiber<void, never>>>(Option.none());
       const runtime = yield* Effect.runtime<never>();
 
-      const showToastWithActions = Effect.fn('NotificationModeService.showToastWithActions')(function* (
-        message: string,
+      const awaitToastSelection = Effect.fn('NotificationModeService.awaitToastSelection')(function* (
+        pendingSelection: Thenable<string | undefined>,
         actions: ToastAction[]
       ) {
-        // No buttons: nothing to react to, so fire-and-forget instead of awaiting VS Code's dismissal
-        // Thenable — awaiting it would block the caller until the user dismisses the toast (or forever
-        // in a headless/E2E session where nothing ever dismisses it).
-        if (actions.length === 0) {
-          yield* Effect.sync(() => void vscode.window.showInformationMessage(message));
-          return;
-        }
-        const selection = yield* Effect.promise(() =>
-          vscode.window.showInformationMessage(message, ...actions.map(candidate => candidate.label))
-        );
+        const selection = yield* Effect.promise(() => Promise.resolve(pendingSelection));
         const action = actions.find(candidate => candidate.label === selection);
         if (action)
           yield* Effect.tryPromise({
@@ -156,6 +148,21 @@ export class NotificationModeService extends Effect.Service<NotificationModeServ
               Effect.promise(() => vscode.window.showErrorMessage(String(error.cause))).pipe(Effect.asVoid)
             )
           );
+      });
+
+      // Never block the caller on VS Code's toast Thenable: it settles only when the user clicks a button or
+      // dismisses the toast (or never, in a headless/E2E session), so awaiting it would hold the caller's
+      // progress, TestRun, etc. open until then.
+      const showToastWithActions = Effect.fn('NotificationModeService.showToastWithActions')(function* (
+        message: string,
+        actions: ToastAction[]
+      ) {
+        const pendingSelection = yield* Effect.sync(() =>
+          vscode.window.showInformationMessage(message, ...actions.map(candidate => candidate.label))
+        );
+        // Buttons: await the selection in a fiber owned by the service scope so the action still runs after the
+        // caller has moved on. No buttons: nothing to react to, so fire-and-forget.
+        if (actions.length > 0) yield* awaitToastSelection(pendingSelection, actions).pipe(Effect.forkIn(scope));
       });
 
       const commandId = `${statusBarId}.showToast`;

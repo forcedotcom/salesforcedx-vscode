@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.27.2",
+  "version": "68.3.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,16 +28,16 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/effect-ext-utils": "*",
-    "@salesforce/vscode-i18n": "*",
+    "@salesforce/effect-ext-utils": "workspace:*",
+    "@salesforce/vscode-i18n": "workspace:*",
     "effect": "^3.21.2",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^9.1.9",
-    "@salesforce/playwright-vscode-ext": "*",
+    "@salesforce/core": "^9.3.0",
+    "@salesforce/playwright-vscode-ext": "workspace:*",
     "@salesforce/source-deploy-retrieve": "^13.2.0",
-    "salesforcedx-vscode-services": "*"
+    "salesforcedx-vscode-services": "workspace:*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
@@ -334,8 +334,13 @@
       },
       {
         "view": "sfdxOrgBrowser",
+        "contents": "%org_browser_filters_invalid_search%",
+        "when": "sf:orgBrowser.initialized == true && sf:orgBrowser.invalidStructuredSearch == true && sf:orgBrowser.treeEmpty"
+      },
+      {
+        "view": "sfdxOrgBrowser",
         "contents": "%org_browser_filters_empty%",
-        "when": "sf:orgBrowser.initialized == true && ((sf:orgBrowser.showLocal == true && sf:orgBrowser.showOrg == false && sf:orgBrowser.treeEmpty) || (sf:orgBrowser.textFilterActive && sf:orgBrowser.treeEmpty))"
+        "when": "sf:orgBrowser.initialized == true && sf:orgBrowser.invalidStructuredSearch != true && ((sf:orgBrowser.showLocal == true && sf:orgBrowser.showOrg == false && sf:orgBrowser.treeEmpty) || (sf:orgBrowser.textFilterActive && sf:orgBrowser.treeEmpty))"
       },
       {
         "view": "sfdxOrgBrowser",

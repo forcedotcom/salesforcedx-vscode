@@ -13,10 +13,10 @@ import * as PubSub from 'effect/PubSub';
 import * as Queue from 'effect/Queue';
 import { URI } from 'vscode-uri';
 import { TransmogrifierService } from '../../../src/core/transmogrifierService';
+import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
 import { OrgCatalogState } from '../../../src/orgCatalog/orgCatalogState';
 import { componentIdentity, findInventoryComponent } from '../../../src/orgCatalog/orgCatalogKeys';
 import { OrgMetadataCatalogRecorder } from '../../../src/orgCatalog/orgMetadataCatalogRecorder';
-import { OrgMetadataReferenceService } from '../../../src/orgCatalog/orgMetadataReference';
 import {
   OrgMetadataCatalogChangePubSub,
   type OrgMetadataCatalogChange
@@ -42,10 +42,9 @@ const makeHarness = () => {
       OrgMetadataCatalogChangePubSub,
       catalogChanges as unknown as InstanceType<typeof OrgMetadataCatalogChangePubSub>
     ),
-    Layer.succeed(OrgMetadataReferenceService, {
-      documentUri: ({ orgId, xmlName, fullName }: { orgId: string; xmlName: string; fullName: string }) =>
-        Effect.succeed(URI.parse(`sf-org-metadata:/orgs/${orgId}/${xmlName}/${fullName}`))
-    } as unknown as InstanceType<typeof OrgMetadataReferenceService>),
+    Layer.succeed(MetadataRegistryService, {
+      getRegistryAccess: () => Effect.succeed({ getTypeByName: () => ({ suffix: undefined }) })
+    } as unknown as InstanceType<typeof MetadataRegistryService>),
     TransmogrifierService.Default
   );
   const stateLayer = OrgCatalogState.DefaultWithoutDependencies.pipe(Layer.provide(dependencies));
@@ -135,6 +134,30 @@ describe('OrgMetadataCatalogRecorder', () => {
         components: [expect.objectContaining({ fullName: 'DiscoveredTest' })]
       })
     ]);
+  });
+
+  it('preserves supplied document URIs while resolving missing ones', async () => {
+    const { layer } = makeHarness();
+    const suppliedUri = URI.parse('sf-org-metadata:/orgs/org-one/ApexClass/Supplied.cls');
+
+    const entries = await Effect.runPromise(
+      Effect.gen(function* () {
+        const recorder = yield* OrgMetadataCatalogRecorder;
+        const state = yield* OrgCatalogState;
+        yield* recorder.recordRemoteComponents('org-one', 'metadata-api', [
+          { type: 'ApexClass', fullName: 'Supplied', documentUri: suppliedUri },
+          { type: 'ApexClass', fullName: 'Generated' }
+        ]);
+        const components = (yield* state.getInventory('org-one', 'ApexClass'))?.components ?? HashMap.empty();
+        return {
+          supplied: findInventoryComponent(components, { xmlName: 'ApexClass', fullName: 'Supplied' }),
+          generated: findInventoryComponent(components, { xmlName: 'ApexClass', fullName: 'Generated' })
+        };
+      }).pipe(Effect.provide(layer))
+    );
+
+    expect(entries.supplied?.documentUri.toString()).toBe(suppliedUri.toString());
+    expect(entries.generated?.documentUri.toString()).toBe('sf-org-metadata:/orgs/org-one/ApexClass/Generated');
   });
 
   it('publishes tracking changes in previous-then-current status order and suppresses an identical observation', async () => {

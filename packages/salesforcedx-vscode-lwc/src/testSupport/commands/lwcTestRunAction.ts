@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { getLwcTestController } from '../testExplorer/lwcTestController';
-import { TestExecutionInfo } from '../types';
+import { type TestExecutionInfo } from '../types';
 
 /** Run an individual test case (code lens). */
 export const lwcTestCaseRun = (data: { testExecutionInfo: TestExecutionInfo }) =>

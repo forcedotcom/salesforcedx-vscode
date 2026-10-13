@@ -22,6 +22,7 @@
     "clean": "shx rm -rf node_modules out coverage .wireit .eslintcache .circular-deps.json",
     "lint": "wireit",
     "test": "wireit",
+    "test:desktop": "wireit",
     "test:compile": "wireit"
   },
   "wireit": {
@@ -66,6 +67,25 @@
         "coverage"
       ]
     },
+    "test:desktop": {
+      "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",
+      "env": {
+        "TMPDIR": {
+          "external": true
+        },
+        "PLAYWRIGHT_VSCODE_VERSION": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "test:compile"
+      ],
+      "files": [
+        "test/playwright/**",
+        "package.json"
+      ],
+      "output": []
+    },
     "check:circular-deps": {
       "command": "dpdm --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json 'src/**/*.ts'",
       "dependencies": [
@@ -101,7 +121,7 @@
     "@effect/platform-node": "0.106.0",
     "@modelcontextprotocol/sdk": "1.30.0",
     "@playwright/test": "1.60.0",
-    "@salesforce/playwright-vscode-ext": "*",
+    "@salesforce/playwright-vscode-ext": "workspace:*",
     "@vscode/test-electron": "3.1.0",
     "effect": "^3.21.2"
   }
