@@ -6,13 +6,10 @@
  */
 
 import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
-import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
-import * as Schedule from 'effect/Schedule';
 import * as Scope from 'effect/Scope';
 import * as Stream from 'effect/Stream';
-import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { openFilterTextPicker } from './commands/filterMetadata';
 import { retrieveEffect } from './commands/retrieveMetadata';
@@ -174,17 +171,10 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 
   yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.initialized', true));
 
-  // get a connection to initiate the ref
-  yield* api.services.ConnectionService.getConnection();
-  // wait for the target org ref to have an orgId
   const targetOrgRef = yield* api.services.TargetOrgRef();
-  yield* Effect.repeat(SubscriptionRef.get(targetOrgRef), {
-    until: org => isNotUndefined(org.orgId),
-    schedule: Schedule.exponential(Duration.millis(10))
-  });
+  const extensionScope = yield* getExtensionScope();
 
   const orgMetadataChanges = yield* api.services.OrgMetadataCatalogChangePubSub;
-  const extensionScope = yield* getExtensionScope();
   yield* Effect.forkIn(
     orgMetadataChanges.pipe(
       changes => Stream.fromPubSub(changes),
@@ -194,15 +184,17 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     extensionScope
   );
 
-  yield* Effect.forkDaemon(
+  yield* Effect.forkIn(
     targetOrgRef.changes.pipe(
       Stream.map(org => org.orgId),
       Stream.changes,
-      // we do want a change to "no org" to trigger the refresh so it shows the empty state.
-      Stream.tap(orgId => svc.appendToChannel(`Target org changed to ${orgId ?? '<NOT SET>'}`)),
+      // No org means no visible view (sf:has_target_org), so there is nothing to refresh.
+      Stream.filter(isNotUndefined),
+      Stream.tap(orgId => svc.appendToChannel(`Target org changed to ${orgId}`)),
       Stream.tap(() => svc.appendToChannel('Org changed, will try to update OrgBrowser')),
       Stream.runForEach(() => Effect.promise(() => treeProvider.refreshType()))
-    )
+    ),
+    extensionScope
   );
 
   // Append completion message
