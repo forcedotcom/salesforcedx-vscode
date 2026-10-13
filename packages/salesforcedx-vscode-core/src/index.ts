@@ -73,7 +73,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
   yield* Effect.promise(() => WorkspaceContext.getInstance().initialize(extensionContext));
 
   if (internalDev) {
-    console.log('SF CLI Extension Activated (internal dev mode)');
+    yield* Effect.log('SF CLI Extension Activated (internal dev mode)');
     return;
   }
 
@@ -106,7 +106,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
     yield* initSObjectDefinitions(vscode.workspace.workspaceFolders![0].uri.fsPath, sobjectRefreshStartup);
   }
 
-  console.log('SF CLI Extension Activated');
+  yield* Effect.log('SF CLI Extension Activated');
   handleTheUnhandled();
 });
 
