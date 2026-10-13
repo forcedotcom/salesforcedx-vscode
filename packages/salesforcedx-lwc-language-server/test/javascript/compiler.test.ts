@@ -4,13 +4,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { collectBundleMetadata, BundleConfig, ScriptFile } from '@lwc/metadata';
-import { ClassMember } from '@salesforce/salesforcedx-lightning-lsp-common';
+import type * as lwcCompiler from '@lwc/compiler';
+import type * as lwcErrors from '@lwc/errors';
+import { collectBundleMetadata, type BundleConfig, type ScriptFile } from '@lwc/metadata';
+import { type ClassMember } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { readFile } from 'node:fs/promises';
 import * as path from 'node:path';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DIAGNOSTIC_SOURCE, MAX_32BIT_INTEGER } from '../../src/constants';
-import { Metadata } from '../../src/decorators/lwcDecorators';
+import { type Metadata } from '../../src/decorators/lwcDecorators';
 import {
   compileDocument,
   compileSource,
@@ -23,7 +25,7 @@ import { mapLwcMetadataToInternal } from '../../src/javascript/typeMapping';
 let mockTransformSyncUrl: string | null | undefined;
 
 vi.mock('@lwc/errors', async () => {
-  const actual = await vi.importActual<typeof import('@lwc/errors')>('@lwc/errors');
+  const actual = await vi.importActual<typeof lwcErrors>('@lwc/errors');
   return {
     ...actual,
     CompilerError: class CompilerError {
@@ -35,7 +37,7 @@ vi.mock('@lwc/errors', async () => {
 });
 
 vi.mock('@lwc/compiler', async () => {
-  const actual = (await vi.importActual<typeof import('@lwc/compiler')>('@lwc/compiler')) as Record<string, unknown>;
+  const actual = (await vi.importActual<typeof lwcCompiler>('@lwc/compiler')) as Record<string, unknown>;
   return {
     ...actual,
     transformSync: (...args: unknown[]) => {

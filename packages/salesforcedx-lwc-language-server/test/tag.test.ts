@@ -19,7 +19,7 @@ import type { Connection } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 
 import {
-  Tag,
+  type Tag,
   createTag,
   createTagFromFile,
   getClassMembers,

@@ -58,7 +58,7 @@ function createReadJsonSyncMockImplementation(actualUtils: SyncUtils) {
 vi.mock(
   '../../salesforcedx-lightning-lsp-common/out/src/utils',
   async () => {
-    const actual = (await vi.importActual<typeof import('../../salesforcedx-lightning-lsp-common/out/src/utils')>(
+    const actual = (await vi.importActual<SyncUtils>(
       '../../salesforcedx-lightning-lsp-common/out/src/utils'
     )) as SyncUtils;
 
@@ -73,10 +73,10 @@ vi.mock(
 // Also mock the package-level export (for direct imports from the package)
 // This is used by componentIndexer.ts which imports readJsonSync from the package
 vi.mock('@salesforce/salesforcedx-lightning-lsp-common', async () => {
-  const actual = (await vi.importActual<typeof import('@salesforce/salesforcedx-lightning-lsp-common')>(
+  const actual = (await vi.importActual<typeof lightningLsp>(
     '@salesforce/salesforcedx-lightning-lsp-common'
   )) as Record<string, unknown>;
-  const actualUtils = (await vi.importActual<typeof import('../../salesforcedx-lightning-lsp-common/out/src/utils')>(
+  const actualUtils = (await vi.importActual<SyncUtils>(
     '../../salesforcedx-lightning-lsp-common/out/src/utils'
   )) as SyncUtils;
 
@@ -90,8 +90,8 @@ vi.mock('@salesforce/salesforcedx-lightning-lsp-common', async () => {
 
 // Mock JSON imports using fs.readFileSync since Jest cannot directly import JSON files
 vi.mock('../src/resources/transformed-lwc-standard.json', () => {
-  const fs = require('node:fs') as typeof import('node:fs');
-  const pathModule = require('node:path') as typeof import('node:path');
+  const fs = require('node:fs') as typeof nodeFs;
+  const pathModule = require('node:path') as typeof path;
   // Find package root (lwc-language-server)
   let current = __dirname;
   while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
@@ -114,8 +114,9 @@ vi.mock('../src/resources/transformed-lwc-standard.json', () => {
 // resolves to out/src/resources/... which we mock using paths relative to the test file.
 
 import type { MockInstance as VitestMockInstance } from 'vitest';
+import type * as lightningLsp from '@salesforce/salesforcedx-lightning-lsp-common';
 import {
-  LspFileSystemAccessor,
+  type LspFileSystemAccessor,
   normalizePath,
   LWC_SERVER_READY_NOTIFICATION,
   WORKSPACE_FIND_FILES_REQUEST,
@@ -130,25 +131,28 @@ import {
   sfdxFileSystemAccessor
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import { isNotNull } from 'effect/Predicate';
+import type * as nodeFs from 'node:fs';
 import * as path from 'node:path';
 import { getLanguageService } from 'vscode-html-languageservice';
+import type * as languageServer from 'vscode-languageserver';
+import type * as languageServerNode from 'vscode-languageserver/node';
 import {
   type Connection,
   type TextDocuments,
-  CompletionParams,
+  type CompletionParams,
   CompletionTriggerKind,
-  DidChangeWatchedFilesParams,
+  type DidChangeWatchedFilesParams,
   FileChangeType,
-  Hover,
-  InitializeParams,
-  Location,
-  MarkupContent,
-  TextDocumentPositionParams,
+  type Hover,
+  type InitializeParams,
+  type Location,
+  type MarkupContent,
+  type TextDocumentPositionParams,
   TextDocumentSyncKind
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import { BaseServer } from '../src/baseServer';
+import { type BaseServer } from '../src/baseServer';
 import Server, { findDynamicContent } from '../src/lwcServerNode';
 
 // File paths and URIs
@@ -372,7 +376,7 @@ const createServerWithTsSupport = async (initializeParams: InitializeParams): Pr
 };
 
 vi.mock('vscode-languageserver', async () => {
-  const actual = await vi.importActual<typeof import('vscode-languageserver')>('vscode-languageserver');
+  const actual = await vi.importActual<typeof languageServer>('vscode-languageserver');
   const mockConnection = {
     onInitialize: (): boolean => true,
     onCompletion: (): boolean => true,
@@ -422,7 +426,7 @@ vi.mock('vscode-languageserver', async () => {
 });
 
 vi.mock('vscode-languageserver/node', async () => {
-  const actual = await vi.importActual<typeof import('vscode-languageserver/node')>('vscode-languageserver/node');
+  const actual = await vi.importActual<typeof languageServerNode>('vscode-languageserver/node');
   return {
     ...actual,
     createConnection: vi.fn(() => languageServerMockState.connection as Connection)

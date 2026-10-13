@@ -20,7 +20,8 @@ const isEffectReturnType = (typeAnnotation: TSESTree.TSTypeAnnotation | undefine
       typeName.left.type === AST_NODE_TYPES.Identifier &&
       typeName.right.type === AST_NODE_TYPES.Identifier &&
       ((typeName.left.name === 'Effect' && typeName.right.name === 'Effect') ||
-        (typeName.left.name === 'Layer' && typeName.right.name === 'Layer'))
+        (typeName.left.name === 'Layer' && typeName.right.name === 'Layer') ||
+        (typeName.left.name === 'Stream' && typeName.right.name === 'Stream'))
     );
   }
 
@@ -35,13 +36,13 @@ export const noExplicitEffectReturnType = RuleCreator.withoutDocs({
   meta: {
     type: 'problem',
     docs: {
-      description: 'Prevent explicit Effect.Effect or Layer.Layer return annotations'
+      description: 'Prevent explicit Effect.Effect, Layer.Layer, or Stream.Stream return annotations'
     },
     fixable: 'code',
     schema: [],
     messages: {
       noExplicitEffectReturnType:
-        'Do not declare explicit return types for Effect.Effect or Layer.Layer. Let TypeScript infer the return type.'
+        'Do not declare explicit return types for Effect.Effect, Layer.Layer, or Stream.Stream. Let TypeScript infer the return type.'
     }
   },
   defaultOptions: [],
