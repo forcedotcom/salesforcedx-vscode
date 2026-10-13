@@ -13,22 +13,22 @@ import { URI, Utils } from 'vscode-uri';
 import { nls } from '../../messages';
 import { getRuntime } from '../../services/runtime';
 import { lwcTestIndexer } from '../testIndexer';
-import { taskService, SfTask } from '../testRunner/taskService';
+import { taskService, type SfTask } from '../testRunner/taskService';
 import { TestRunner } from '../testRunner/testRunner';
 import {
-  LwcJestTestResults,
-  TestCaseInfo,
-  TestDirectoryInfo,
-  TestExecutionInfo,
-  TestFileInfo,
-  TestResultStatus,
+  type LwcJestTestResults,
+  type TestCaseInfo,
+  type TestDirectoryInfo,
+  type TestExecutionInfo,
+  type TestFileInfo,
+  type TestResultStatus,
   isTestCaseInfo
 } from '../types';
 import { LWC_TEST_RUN_LOG_NAME, matchJestStackTraceLocation } from '../types/constants';
 import { isLwcJestTest } from '../utils/isLwcJestTest';
 import { normalizeJestFsPath } from '../utils/normalizeJestFsPath';
 import { workspace, workspaceService } from '../workspace';
-import { appendLine, appendRunHeader, appendTestResultsOutput, TestItemLookup } from './testResultsOutput';
+import { appendLine, appendRunHeader, appendTestResultsOutput, type TestItemLookup } from './testResultsOutput';
 
 const TEST_CONTROLLER_ID = 'sf.lwc.testController';
 

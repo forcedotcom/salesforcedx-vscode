@@ -11,7 +11,7 @@ import {
 } from '@salesforce/salesforcedx-lightning-lsp-common/applyEditHandler';
 import { isError } from 'effect/Predicate';
 import { window, workspace } from 'vscode';
-import { LanguageClient, LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient/browser';
+import { LanguageClient, type LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient/browser';
 import type { URI } from 'vscode-uri';
 import { appendToChannel } from '../channel';
 import { buildDocumentSelector, getBaseClientOptions, type LwcInitializationOptions } from './clientOptions';
