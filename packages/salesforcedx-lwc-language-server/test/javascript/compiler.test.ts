@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { CompilerError } from '@lwc/errors';
-import { collectBundleMetadata, BundleConfig, ScriptFile } from '@lwc/metadata';
-import { ClassMember } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { collectBundleMetadata, type BundleConfig, type ScriptFile } from '@lwc/metadata';
+import { type ClassMember } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DIAGNOSTIC_SOURCE, MAX_32BIT_INTEGER } from '../../src/constants';
-import { Metadata } from '../../src/decorators/lwcDecorators';
+import { type Metadata } from '../../src/decorators/lwcDecorators';
 import {
   compileDocument,
   compileSource,

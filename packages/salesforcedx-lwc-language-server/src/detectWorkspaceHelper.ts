@@ -7,7 +7,7 @@
 
 import {
   detectWorkspaceHelper as detectWorkspaceHelperCore,
-  LspFileSystemAccessor,
+  type LspFileSystemAccessor,
   type WorkspaceType
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 

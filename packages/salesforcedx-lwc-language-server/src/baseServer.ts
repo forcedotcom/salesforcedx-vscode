@@ -9,42 +9,42 @@ import {
   isLWCRootDirectoryCreated,
   toResolvedPath,
   getBasename,
-  AttributeInfo,
+  type AttributeInfo,
   LspFileSystemAccessor,
-  BaseWorkspaceContext,
-  NormalizedPath,
-  WorkspaceType,
+  type BaseWorkspaceContext,
+  type NormalizedPath,
+  type WorkspaceType,
   LWC_SERVER_READY_NOTIFICATION
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { basename, dirname, parse } from 'node:path';
 import {
   getLanguageService,
-  LanguageService,
-  HTMLDocument,
-  CompletionList,
+  type LanguageService,
+  type HTMLDocument,
+  type CompletionList,
   TokenType,
-  Hover,
-  CompletionItem,
+  type Hover,
+  type CompletionItem,
   CompletionItemKind
 } from 'vscode-html-languageservice';
 import {
-  Connection,
+  type Connection,
   TextDocuments,
-  TextDocumentChangeEvent,
+  type TextDocumentChangeEvent,
   Location,
-  WorkspaceFolder,
-  InitializeResult,
-  InitializeParams,
-  TextDocumentPositionParams,
-  CompletionParams,
-  DidChangeWatchedFilesParams,
+  type WorkspaceFolder,
+  type InitializeResult,
+  type InitializeParams,
+  type TextDocumentPositionParams,
+  type CompletionParams,
+  type DidChangeWatchedFilesParams,
   ShowMessageNotification,
   MessageType,
   FileChangeType,
-  Position,
-  Range,
+  type Position,
+  type Range,
   TextDocumentSyncKind,
-  FileEvent
+  type FileEvent
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI, Utils } from 'vscode-uri';
@@ -57,7 +57,7 @@ import { LWCDataProvider } from './lwcDataProvider';
 import { nls } from './messages';
 
 import {
-  Tag,
+  type Tag,
   getTagName,
   getLwcTypingsName,
   getClassMembers,

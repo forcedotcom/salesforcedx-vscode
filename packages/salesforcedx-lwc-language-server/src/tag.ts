@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  ClassMember,
-  AttributeInfo,
-  LspFileSystemAccessor,
+  type ClassMember,
+  type AttributeInfo,
+  type LspFileSystemAccessor,
   normalizePath,
   Logger
 } from '@salesforce/salesforcedx-lightning-lsp-common';
@@ -16,7 +16,7 @@ import { camelCase, paramCase } from 'change-case';
 import * as path from 'node:path';
 import { Location, Position, Range } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
-import { Metadata } from './decorators/lwcDecorators';
+import { type Metadata } from './decorators/lwcDecorators';
 import { compileSource, extractAttributes, getMethods, toVSCodeRange } from './javascript/compiler';
 
 export type TagAttrs = {
