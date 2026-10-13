@@ -5,15 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type * as NodeFsModule from 'node:fs';
+import type * as NodeOsModule from 'node:os';
+import type * as SalesforceCoreModule from '@salesforce/core';
+import type * as SalesforceCoreFsModule from '@salesforce/core/fs';
+import type * as IndexedDbStorageModule from '../../src/virtualFsProvider/indexedDbStorage';
+
 // Mock os module before any other imports
 vi.mock('node:os', async () => ({
-  ...(await vi.importActual<typeof import('node:os')>('node:os')),
+  ...(await vi.importActual<typeof NodeOsModule>('node:os')),
   homedir: vi.fn(() => '/tmp')
 }));
 
 // Mock @salesforce/core
 vi.mock('@salesforce/core', async () => ({
-  ...(await vi.importActual<typeof import('@salesforce/core')>('@salesforce/core')),
+  ...(await vi.importActual<typeof SalesforceCoreModule>('@salesforce/core')),
   Global: {
     SF_DIR: '/tmp/sf',
     DIR: '/tmp/sf',
@@ -24,7 +30,7 @@ vi.mock('@salesforce/core', async () => ({
 }));
 
 vi.mock('@salesforce/core/fs', async () => {
-  const actual = await vi.importActual<typeof import('@salesforce/core/fs')>('@salesforce/core/fs');
+  const actual = await vi.importActual<typeof SalesforceCoreFsModule>('@salesforce/core/fs');
   return {
     ...actual,
     fs: {
@@ -107,7 +113,7 @@ vi.mock('../../src/observability/spansNode', () => {
 
 // Mock IndexedDB Storage Service
 vi.mock('../../src/virtualFsProvider/indexedDbStorage', async () => {
-  const originalModule = await vi.importActual<typeof import('../../src/virtualFsProvider/indexedDbStorage')>(
+  const originalModule = await vi.importActual<typeof IndexedDbStorageModule>(
     '../../src/virtualFsProvider/indexedDbStorage'
   );
   const E = require('effect');
@@ -199,7 +205,7 @@ vi.mock('node:os', () => ({
 // also serves unrelated consumers that require('fs') (e.g. got). Spread the real module so
 // only the members below are replaced.
 vi.mock('node:fs', async () => ({
-  ...(await vi.importActual<typeof import('node:fs')>('node:fs')),
+  ...(await vi.importActual<typeof NodeFsModule>('node:fs')),
   watch: vi.fn(() => ({
     close: vi.fn()
   })),

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type * as EffectOpenTelemetryModule from '@effect/opentelemetry';
 import { trace } from '@opentelemetry/api';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -28,10 +29,12 @@ import {
 } from '../../../src/observability/legacyTelemetrySender';
 
 const { mockCurrentOtelSpan } = vi.hoisted(() => ({
-  mockCurrentOtelSpan: { effect: undefined as typeof import('@effect/opentelemetry').Tracer.currentOtelSpan | undefined }
+  mockCurrentOtelSpan: {
+    effect: undefined as typeof EffectOpenTelemetryModule.Tracer.currentOtelSpan | undefined
+  }
 }));
 vi.mock('@effect/opentelemetry', async importOriginal => {
-  const actual = await importOriginal<typeof import('@effect/opentelemetry')>();
+  const actual = await importOriginal<typeof EffectOpenTelemetryModule>();
   return {
     ...actual,
     Tracer: {

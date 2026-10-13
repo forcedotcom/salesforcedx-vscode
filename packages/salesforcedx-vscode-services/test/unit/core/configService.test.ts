@@ -6,13 +6,14 @@
  */
 
 import { Config, OrgConfigProperties, SfConfigProperties } from '@salesforce/core';
+import type * as SalesforceCoreModule from '@salesforce/core';
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { ConfigService, ConfigWriteError } from '../../../src/core/configService';
 
 vi.mock('@salesforce/core', async () => ({
-  ...(await vi.importActual<typeof import('@salesforce/core')>('@salesforce/core')),
+  ...(await vi.importActual<typeof SalesforceCoreModule>('@salesforce/core')),
   Config: { create: vi.fn(), getDefaultOptions: vi.fn().mockReturnValue({}) }
 }));
 

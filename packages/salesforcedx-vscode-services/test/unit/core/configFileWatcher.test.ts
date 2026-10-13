@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type * as SalesforceCoreGlobalModule from '@salesforce/core/global';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
@@ -23,7 +24,7 @@ import { HostFileNotFoundError, HostFileWatchError, HostFileWatcher } from '../.
 import { FileChangePubSub, type FileChangeEvent } from '../../../src/vscode/fileChangePubSub';
 
 vi.mock('@salesforce/core/global', async () => ({
-  ...(await vi.importActual<typeof import('@salesforce/core/global')>('@salesforce/core/global')),
+  ...(await vi.importActual<typeof SalesforceCoreGlobalModule>('@salesforce/core/global')),
   Global: {
     SF_DIR: '/Users/test/.sf',
     SFDX_DIR: '/Users/test/.sfdx',
