@@ -1,7 +1,7 @@
 # Effect Composition Style
 
-How effects read, compose, and execute. SKILL.md Composition row is `must`
-(`const` only if read ≥2×); LS-enforced shapes annotated below. Rest is style.
+How effects read, compose, and execute. Single-use yielded bindings are enforced
+by `local/inline-single-use-yield-binding`; LS-enforced shapes annotated below. Rest is style.
 From real review decisions in this repo.
 
 ## Core principle: an effect is a value you build flat, then run
@@ -16,8 +16,8 @@ call site:
    config-enforced by `missedPipeableOpportunity`.
 3. **Bail conditions and dispatch are separate** — guard clauses up top, the pipe
    handles real variance.
-4. **No single-use intermediate vars.** A value read once is a pipe step, not a
-   `const`; keep the `const` only when read ≥2×. Plain value (not yet an Effect) →
+4. **Single-use yielded bindings:** `local/inline-single-use-yield-binding`.
+   Other single-use values can be pipe steps. Plain value (not yet an Effect) →
    seed a standalone `pipe(value, …)`. The nested-call-arg half (`f(g(x))`) is
    config-enforced by `missedPipeableOpportunity`, which fires at ≥2 pipeable
    call-kind transformations; judgment remains for what the pipe's subject should
@@ -214,15 +214,6 @@ export const fetchHeapDumpOverlayResults = Effect.fn('svc.fetchHeapDumpOverlayRe
   );
 });
 
-// AVOID — generator whose consts are each read once on the next line
-export const fetchHeapDumpOverlayResults = Effect.fn('svc.fetchHeapDumpOverlayResults')(function* (
-  conn: Connection,
-  logFileContents: string
-) {
-  const uniqueIds = Arr.dedupe(extractHeapDumpIdsFromLog(logFileContents.split(/\r?\n/)).map(e => e.heapDumpId));
-  const results = yield* Stream.fromIterable(uniqueIds).pipe(/* ...same ops... */, Stream.runCollect);
-  return Chunk.toArray(results);
-});
 ```
 
 ## Flatten nested pipes into sibling steps
@@ -330,11 +321,11 @@ getServicesApi.pipe(
 | Point-free terminal step | bare `Effect.runPromise` always; methods only when closure-based (e.g. `ManagedRuntime.runPromise`) | point-free any `this`-bound method |
 | Any side effect (mid-pipe or terminal) | `Effect.tap` / `tapError` / `tapBoth`, value passes through | imperative tail after `yield*` re-inspecting the result |
 | Sync side effect inside a tap | wrap in `Effect.sync(() => ...)` | — |
-| Return the run's value | `return yield* effect.pipe(...)`; config-enforced by `returnEffectInGen` for a raw `return effect` (missing `yield*`). Binding the *yielded* value and returning it stays judgment (return expression isn't an Effect, so no rule fires); returning a local that still holds an un-run Effect does fire | bind to a local just to `return` it |
+| Return the run's value | `return yield* effect.pipe(...)`; `local/inline-single-use-yield-binding` for a single-use yielded value; `returnEffectInGen` for a raw `return effect` (missing `yield*`) | — |
 | 3+ way effect dispatch | `Match.value().pipe(Match.when, Match.orElse)`; enforced by `local/no-nested-effect-ternary` (typed `Effect` only; a 2-branch Effect ternary and non-Effect nested ternaries stay allowed) | nested ternary |
 | No-op Match branch | `Match.orElse(() => Effect.void)` | — |
 | Prerequisite bail (`isDebug`, missing input) | early-return guard clause above the matcher | fold into `Match.when({...})` |
-| Linear `Effect.fn` body (data in, one path out) | single point-free `pipe`, constructors/array ops as steps, `Effect.map` for post-collect | `function*` with single-use `const x = yield*` then `return f(x)` |
+| Linear `Effect.fn` body (data in, one path out) | single point-free `pipe`, constructors/array ops as steps, `Effect.map` for post-collect | — |
 | `Effect.gen` body is only `yield* X` | `X` itself — or `Effect.asVoid(X)` when the `yield*` isn't `return`ed and `X` isn't void; config-enforced by `unnecessaryEffectGen`, which matches `Effect.gen` only (an `Effect.fn` wrapper keeps its span) | `Effect.gen` wrapper around one `yield*` |
 | Point-free pipe seed | `.pipe(...)` on an existing Effect/Tag; standalone `pipe(value, ...)` only when the seed isn't an Effect yet | standalone `pipe(someEffect, ...)` when `someEffect.pipe(...)` works |
 | Throwing step inside a point-free pipe (parse, FFI) | lift with `Effect.try`/`Effect.tryPromise` | bare `JSON.parse(...)`/throwing call as a pipe step |

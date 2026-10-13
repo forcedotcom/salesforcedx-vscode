@@ -21,6 +21,7 @@
  */
 
 import { isNull } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { join, resolve, sep } from 'node:path';
@@ -34,13 +35,16 @@ export type ExtensionDigest = {
 };
 
 /** Thrown when an extension declares a `main` that does not resolve to a file — a real broken build/swap. */
-export class UnresolvableEntrypointError extends Error {
-  constructor(
-    public readonly extensionRoot: string,
-    public readonly main: string
-  ) {
-    super(`package.json "main" (${main}) does not resolve to a file under ${extensionRoot}`);
-    this.name = 'UnresolvableEntrypointError';
+export class UnresolvableEntrypointError extends Schema.TaggedError<UnresolvableEntrypointError>()(
+  'UnresolvableEntrypointError',
+  { extensionRoot: Schema.String, main: Schema.String, message: Schema.String }
+) {
+  constructor(extensionRoot: string, main: string) {
+    super({
+      extensionRoot,
+      main,
+      message: `package.json "main" (${main}) does not resolve to a file under ${extensionRoot}`
+    });
   }
 }
 

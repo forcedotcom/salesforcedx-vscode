@@ -7,16 +7,16 @@
 import { getServicesApi, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
 import { errorToString } from '@salesforce/salesforcedx-utils';
 import {
-  Properties,
-  Measurements,
-  TelemetryData,
-  TelemetryReporter,
-  TelemetryServiceInterface,
-  ActivationInfo
+  type Properties,
+  type Measurements,
+  type TelemetryData,
+  type TelemetryReporter,
+  type TelemetryServiceInterface,
+  type ActivationInfo
 } from '@salesforce/vscode-service-provider';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isString } from 'effect/Predicate';
-import { ExtensionContext, ExtensionMode, workspace } from 'vscode';
+import { type ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import { SFDX_CORE_CONFIGURATION_NAME, SFDX_CORE_EXTENSION_NAME, SFDX_EXTENSION_PACK_NAME } from '../constants';
 import { isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
 import { extensionPackageJsonSchema } from '../telemetry/schema';

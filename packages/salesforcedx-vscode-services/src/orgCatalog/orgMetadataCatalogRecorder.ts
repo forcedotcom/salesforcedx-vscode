@@ -23,6 +23,7 @@ import * as Option from 'effect/Option';
 import * as PubSub from 'effect/PubSub';
 import * as Struct from 'effect/Struct';
 import type { URI } from 'vscode-uri';
+import { MetadataRegistryService } from '../core/metadataRegistryService';
 import { TransmogrifierService, type DescribeSObjectResult } from '../core/transmogrifierService';
 import {
   componentIdentity,
@@ -32,7 +33,7 @@ import {
 } from './orgCatalogKeys';
 import { OrgCatalogState } from './orgCatalogState';
 import { OrgMetadataCatalogChangePubSub } from './orgMetadataCatalogChangePubSub';
-import { OrgMetadataReferenceService, type OrgMetadataComponentReference } from './orgMetadataReference';
+import { documentUri, type OrgMetadataComponentReference } from './orgMetadataReference';
 
 type MetadataTypeResult = {
   readonly xmlName: string;
@@ -94,14 +95,14 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
     dependencies: [
       OrgCatalogState.Default,
       OrgMetadataCatalogChangePubSub.Default,
-      OrgMetadataReferenceService.Default,
+      MetadataRegistryService.Default,
       TransmogrifierService.Default
     ],
     effect: Effect.gen(function* () {
-      const [state, catalogChanges, referenceService, transmogrifier] = yield* Effect.all([
+      const [state, catalogChanges, registry, transmogrifier] = yield* Effect.all([
         OrgCatalogState,
         OrgMetadataCatalogChangePubSub,
-        OrgMetadataReferenceService,
+        MetadataRegistryService,
         TransmogrifierService
       ]);
 
@@ -114,6 +115,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
           readonly fullName: string;
           readonly namespacePrefix?: string;
           readonly lastModifiedDate?: string;
+          readonly documentUri?: URI;
           readonly workspaceUri?: URI;
         }[]
       ) {
@@ -121,11 +123,12 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
         yield* state.ensureHydrated(orgId);
         const observedAt = new Date().toISOString();
         const documentUris = yield* Effect.forEach(
-          components,
+          components.filter(component => !component.documentUri),
           component =>
-            referenceService
-              .documentUri({ orgId, xmlName: component.type, fullName: component.fullName })
-              .pipe(Effect.map(documentUri => [`${component.type}\0${component.fullName}`, documentUri] as const)),
+            documentUri({ orgId, xmlName: component.type, fullName: component.fullName }).pipe(
+              Effect.provideService(MetadataRegistryService, registry),
+              Effect.map(uri => [`${component.type}\0${component.fullName}`, uri] as const)
+            ),
           { concurrency: 'unbounded' }
         ).pipe(Effect.map(HashMap.fromIterable));
         yield* state.updateInventories(current =>
@@ -146,6 +149,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
                   : provenance,
               reference,
               documentUri:
+                component.documentUri ??
                 Option.getOrUndefined(HashMap.get(documentUris, `${component.type}\0${component.fullName}`)) ??
                 previous!.documentUri,
               name: previous?.name ?? component.fullName.split('/').at(-1) ?? component.fullName,

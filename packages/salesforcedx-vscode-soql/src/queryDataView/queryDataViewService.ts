@@ -12,7 +12,7 @@ import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { getDocumentName } from '../commonUtils';
 import {
   DATA_VIEW_ICONS_PATH,
@@ -28,7 +28,7 @@ import {
 } from '../constants';
 import { nls } from '../messages';
 import { getSoqlRuntime } from '../services/extensionProvider';
-import { FileFormat, QueryDataFileService as FileService } from './queryDataFileService';
+import { type FileFormat, QueryDataFileService as FileService } from './queryDataFileService';
 import { extendQueryData } from './queryDataHelper';
 import { getHtml } from './queryDataHtml';
 

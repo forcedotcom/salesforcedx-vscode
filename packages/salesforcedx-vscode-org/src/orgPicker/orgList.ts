@@ -18,7 +18,7 @@ import { nls } from '../messages';
 import {
   determineOrgMarkers,
   getAuthFieldsFor,
-  getDefaultOrgConfiguration,
+  type getDefaultOrgConfiguration,
   getFreshAuthorizations
 } from '../util/orgUtil';
 

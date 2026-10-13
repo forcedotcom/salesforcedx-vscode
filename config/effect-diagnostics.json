@@ -21,6 +21,10 @@
     "globalTimersInEffect",
     "missedPipeableOpportunity",
     "schemaUnionOfLiterals",
-    "instanceOfSchema"
+    "instanceOfSchema",
+    "extendsNativeError",
+    "globalFetch",
+    "anyUnknownInErrorContext",
+    "globalConsoleInEffect"
   ]
 }

@@ -8,7 +8,7 @@ import * as Equal from 'effect/Equal';
 import { dual } from 'effect/Function';
 import * as Hash from 'effect/Hash';
 import { isRecord, isString } from 'effect/Predicate';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { comparisonPath } from './uriComparison';
 
 /**

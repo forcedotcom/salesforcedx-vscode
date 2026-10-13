@@ -33,6 +33,7 @@
     "access": "public"
   },
   "dependencies": {
+    "@effect/platform": "^0.96.1",
     "@playwright/test": "1.60.0",
     "@vscode/test-electron": "3.1.0",
     "@vscode/test-web": "^0.0.81",
