@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type * as sourceDeployRetrieve from '@salesforce/source-deploy-retrieve';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -26,9 +27,7 @@ import { FsService } from '../../../src/vscode/fsService';
 import { WorkspaceService } from '../../../src/vscode/workspaceService';
 
 jest.mock('@salesforce/source-deploy-retrieve', () => {
-  const actual = jest.requireActual<typeof import('@salesforce/source-deploy-retrieve')>(
-    '@salesforce/source-deploy-retrieve'
-  );
+  const actual = jest.requireActual<typeof sourceDeployRetrieve>('@salesforce/source-deploy-retrieve');
   return {
     ...actual,
     MetadataApiRetrieve: function metadataApiRetrieve(this: {

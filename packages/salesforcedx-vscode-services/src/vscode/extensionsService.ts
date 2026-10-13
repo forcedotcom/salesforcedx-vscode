@@ -7,7 +7,7 @@
 
 import * as Effect from 'effect/Effect';
 import * as Runtime from 'effect/Runtime';
-import * as Stream from 'effect/Stream';
+import type * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 

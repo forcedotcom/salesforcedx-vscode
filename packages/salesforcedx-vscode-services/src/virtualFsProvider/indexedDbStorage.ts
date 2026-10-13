@@ -16,8 +16,8 @@ import { unknownToErrorCause } from '../core/shared';
 import {
   isSerializedDirectoryWithPath,
   isSerializedFileWithPath,
-  SerializedEntryWithPath,
-  SerializedFileWithPath
+  type SerializedEntryWithPath,
+  type SerializedFileWithPath
 } from './fsTypes';
 import { settleIdbTransaction } from './idbTransaction';
 import { VirtualFsProviderError } from './virtualFsProviderError';

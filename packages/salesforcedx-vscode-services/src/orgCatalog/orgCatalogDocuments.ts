@@ -8,7 +8,7 @@
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { MetadataRegistryService } from '../core/metadataRegistryService';
 import { FsService } from '../vscode/fsService';
 import { OrgCatalogRemoteSource } from './orgCatalogRemoteSource';

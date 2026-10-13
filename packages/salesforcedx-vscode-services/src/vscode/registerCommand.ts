@@ -7,7 +7,7 @@
 
 import type { UserCancellationError } from './prompts/promptService';
 import * as Effect from 'effect/Effect';
-import * as ManagedRuntime from 'effect/ManagedRuntime';
+import type * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as vscode from 'vscode';
 import { ErrorHandlerService } from './errorHandlerService';
 import { ExtensionContextService } from './extensionContextService';

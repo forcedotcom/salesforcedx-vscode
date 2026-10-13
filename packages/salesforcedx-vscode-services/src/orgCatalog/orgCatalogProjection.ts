@@ -13,7 +13,7 @@ import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
 import * as HashMap from 'effect/HashMap';
 import * as Option from 'effect/Option';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { componentIdentity, findInventoryComponent } from './orgCatalogKeys';
 import { documentUri, isOrgMetadataComponentReference } from './orgMetadataReference';
 

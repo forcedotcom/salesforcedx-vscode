@@ -10,8 +10,8 @@ import { trace } from '@opentelemetry/api';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { ExtensionContext } from 'vscode';
-import { CliId } from '../../../src/observability/cliTelemetry';
-import { OrgId } from '../../../src/core/schemas/salesforceId';
+import { type CliId } from '../../../src/observability/cliTelemetry';
+import { type OrgId } from '../../../src/core/schemas/salesforceId';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
 import { getSpanCreationIdentity, setSpanCreationIdentity } from '../../../src/observability/spanTransformProcessor';
 import {

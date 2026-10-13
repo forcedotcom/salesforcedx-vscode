@@ -12,7 +12,7 @@ import {
   type FileResponse,
   type RetrieveResult
 } from '@salesforce/source-deploy-retrieve';
-import { ChangeResult, type SourceTracking } from '@salesforce/source-tracking';
+import { type ChangeResult, type SourceTracking } from '@salesforce/source-tracking';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';

@@ -42,12 +42,17 @@ import {
 } from '../../../src/orgCatalog/orgMetadataCatalogStore';
 import { FileChangePubSub } from '../../../src/vscode/fileChangePubSub';
 import { WorkspaceService } from '../../../src/vscode/workspaceService';
+import type * as connectionService from '../../../src/core/connectionService';
+import type * as metadataDescribeService from '../../../src/core/metadataDescribeService';
+import type * as metadataRegistryService from '../../../src/core/metadataRegistryService';
+import type * as metadataRetrieveService from '../../../src/core/metadataRetrieveService';
+import type * as projectService from '../../../src/core/projectService';
+import type * as transmogrifierService from '../../../src/core/transmogrifierService';
+import type * as orgMetadataCatalogStore from '../../../src/orgCatalog/orgMetadataCatalogStore';
 
 // Keep production catalog/state/recorder composition. Infrastructure defaults read the test adapters from context.
 jest.mock('../../../src/core/connectionService', () => {
-  const actual = jest.requireActual<typeof import('../../../src/core/connectionService')>(
-    '../../../src/core/connectionService'
-  );
+  const actual = jest.requireActual<typeof connectionService>('../../../src/core/connectionService');
   return {
     ...actual,
     ConnectionService: Object.defineProperty(actual.ConnectionService, 'Default', {
@@ -56,9 +61,7 @@ jest.mock('../../../src/core/connectionService', () => {
   };
 });
 jest.mock('../../../src/core/metadataDescribeService', () => {
-  const actual = jest.requireActual<typeof import('../../../src/core/metadataDescribeService')>(
-    '../../../src/core/metadataDescribeService'
-  );
+  const actual = jest.requireActual<typeof metadataDescribeService>('../../../src/core/metadataDescribeService');
   return {
     ...actual,
     MetadataDescribeService: Object.defineProperty(actual.MetadataDescribeService, 'Default', {
@@ -69,9 +72,7 @@ jest.mock('../../../src/core/metadataDescribeService', () => {
   };
 });
 jest.mock('../../../src/core/metadataRegistryService', () => {
-  const actual = jest.requireActual<typeof import('../../../src/core/metadataRegistryService')>(
-    '../../../src/core/metadataRegistryService'
-  );
+  const actual = jest.requireActual<typeof metadataRegistryService>('../../../src/core/metadataRegistryService');
   return {
     ...actual,
     MetadataRegistryService: Object.defineProperty(actual.MetadataRegistryService, 'Default', {
@@ -82,9 +83,7 @@ jest.mock('../../../src/core/metadataRegistryService', () => {
   };
 });
 jest.mock('../../../src/core/metadataRetrieveService', () => {
-  const actual = jest.requireActual<typeof import('../../../src/core/metadataRetrieveService')>(
-    '../../../src/core/metadataRetrieveService'
-  );
+  const actual = jest.requireActual<typeof metadataRetrieveService>('../../../src/core/metadataRetrieveService');
   return {
     ...actual,
     MetadataRetrieveService: Object.defineProperty(actual.MetadataRetrieveService, 'Default', {
@@ -95,9 +94,7 @@ jest.mock('../../../src/core/metadataRetrieveService', () => {
   };
 });
 jest.mock('../../../src/core/projectService', () => {
-  const actual = jest.requireActual<typeof import('../../../src/core/projectService')>(
-    '../../../src/core/projectService'
-  );
+  const actual = jest.requireActual<typeof projectService>('../../../src/core/projectService');
   return {
     ...actual,
     ProjectService: Object.defineProperty(actual.ProjectService, 'Default', {
@@ -106,9 +103,7 @@ jest.mock('../../../src/core/projectService', () => {
   };
 });
 jest.mock('../../../src/core/transmogrifierService', () => {
-  const actual = jest.requireActual<typeof import('../../../src/core/transmogrifierService')>(
-    '../../../src/core/transmogrifierService'
-  );
+  const actual = jest.requireActual<typeof transmogrifierService>('../../../src/core/transmogrifierService');
   return {
     ...actual,
     TransmogrifierService: Object.defineProperty(actual.TransmogrifierService, 'Default', {
@@ -119,9 +114,7 @@ jest.mock('../../../src/core/transmogrifierService', () => {
   };
 });
 jest.mock('../../../src/orgCatalog/orgMetadataCatalogStore', () => {
-  const actual = jest.requireActual<typeof import('../../../src/orgCatalog/orgMetadataCatalogStore')>(
-    '../../../src/orgCatalog/orgMetadataCatalogStore'
-  );
+  const actual = jest.requireActual<typeof orgMetadataCatalogStore>('../../../src/orgCatalog/orgMetadataCatalogStore');
   return {
     ...actual,
     OrgMetadataCatalogStore: Object.defineProperty(actual.OrgMetadataCatalogStore, 'Default', {

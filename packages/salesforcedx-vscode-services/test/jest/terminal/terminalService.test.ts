@@ -7,7 +7,7 @@
 
 import * as Command from '@effect/platform/Command';
 import * as CommandExecutor from '@effect/platform/CommandExecutor';
-import { SystemError } from '@effect/platform/Error';
+import { type SystemError } from '@effect/platform/Error';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';

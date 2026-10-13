@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExportResult, ExportResultCode } from '@opentelemetry/core';
+import { type ExportResult, ExportResultCode } from '@opentelemetry/core';
 import * as Effect from 'effect/Effect';
 import { O11ySpanExporter } from '../../../src/observability/o11ySpanExporter';
 import { disposeServicesRuntime } from '../../../src/servicesRuntime';

@@ -13,7 +13,7 @@
 
 import * as Effect from 'effect/Effect';
 import { isUndefined } from 'effect/Predicate';
-import * as Schema from 'effect/Schema';
+import type * as Schema from 'effect/Schema';
 import { ConnectionService } from './connectionService';
 import { executeQuery, type QueryOptions } from './queryExecute';
 

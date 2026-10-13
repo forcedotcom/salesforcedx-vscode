@@ -5,8 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { DefaultOrgInfoSchema } from '../core/schemas/defaultOrgInfo';
-import { Context } from '@opentelemetry/api';
-import { Span, BatchSpanProcessor, SpanExporter, BufferConfig, ReadableSpan } from '@opentelemetry/sdk-trace-base';
+import { type Context } from '@opentelemetry/api';
+import {
+  type Span,
+  BatchSpanProcessor,
+  type SpanExporter,
+  type BufferConfig,
+  type ReadableSpan
+} from '@opentelemetry/sdk-trace-base';
 import { classifyOrgForTelemetry, type TelemetryClassification } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isString } from 'effect/Predicate';

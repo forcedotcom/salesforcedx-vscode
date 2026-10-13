@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as HashMap from 'effect/HashMap';
 import * as Option from 'effect/Option';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { ComponentSetService } from '../core/componentSetService';
 import { MetadataRegistryService } from '../core/metadataRegistryService';
 import { MetadataRetrieveService } from '../core/metadataRetrieveService';

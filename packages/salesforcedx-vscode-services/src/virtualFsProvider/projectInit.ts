@@ -11,7 +11,7 @@ import { Buffer } from 'node:buffer';
 import * as os from 'node:os';
 import { URI } from 'vscode-uri';
 import { unknownToErrorCause } from '../core/shared';
-import { FsProvider } from './fsTypes';
+import { type FsProvider } from './fsTypes';
 import { getProjectRoot } from './projectRoot';
 import { TEMPLATES, metadataDirs } from './templates/templates';
 import { VirtualFsProviderError } from './virtualFsProviderError';

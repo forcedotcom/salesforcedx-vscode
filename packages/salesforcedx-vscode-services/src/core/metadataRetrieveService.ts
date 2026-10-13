@@ -24,14 +24,18 @@ import * as Option from 'effect/Option';
 import { isUndefined } from 'effect/Predicate';
 import * as Runtime from 'effect/Runtime';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { OrgMetadataCatalogRecorder } from '../orgCatalog/orgMetadataCatalogRecorder';
 import { FsService } from '../vscode/fsService';
 import { uriToPath } from '../vscode/paths';
 import { UserCancellationError } from '../vscode/prompts/promptService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { withActiveMetadataOperationPipeline } from './activeMetadataOperationRef';
-import { FailedToBuildComponentSetError, NonEmptyComponentSet, setComponentSetProperties } from './componentSetService';
+import {
+  FailedToBuildComponentSetError,
+  type NonEmptyComponentSet,
+  setComponentSetProperties
+} from './componentSetService';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
 import { dedupeMetadataChanges, MetadataChangeNotificationService } from './metadataChangeNotificationService';
