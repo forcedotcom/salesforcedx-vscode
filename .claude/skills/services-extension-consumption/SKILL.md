@@ -78,6 +78,7 @@ Two patterns exist depending on whether the extension adds services beyond the s
 
 ## Runtime vs provide
 
+- `buildAllServicesLayer` merges `suppressVersionMismatchWarning`. Extension code keeps `ManagedRuntime.make(AllServicesLayer)`; do not wrap it. The services activation runtime inlines `Layer.setVersionMismatchErrorLogLevel(Option.none())` because it cannot import effect-ext-utils.
 - **Do**: Build `ManagedRuntime.make(AllServicesLayer)` and export `getRuntime()`.
 - **Do**: Export runtime disposal, clear the memo, and call it during extension deactivation.
 - **Do**: Use `getRuntime().runPromise(effect)` / `runFork(effect)` for ad-hoc execution.
@@ -161,7 +162,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 
 ### Success handling
 
-`Effect.fn` accepts middleware args after the generator. Put success-side middleware **before** `catchTag`/`catchAll` — otherwise caught errors become successes.
+`Effect.fn` middleware runs left to right after the generator. `Effect.tap` and `*SuccessNotification` before catch* (`catch`, `catchAll`, `catchAllCause`, `catchCause`, `catchCauseIf`, `catchIf`, `catchSome`, `catchSomeCause`, `catchTag`, `catchTags`) — a success combinator after catch treats recovery as success. Later catch valid. Later non-success guard (`preventOrgChanges`) valid. Lint: `local/effect-fn-catch-middleware-last` on spanned `Effect.fn` (`fn('span')`, `fn('name', options)`). Skips `fnUntraced`, unspanned `fn(function*)`, generator-body catch, `.pipe` catch.
 
 ```typescript
 export const deployActiveEditorCommand = Effect.fn('deploySourcePath.deployActiveEditor')(

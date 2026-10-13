@@ -37,4 +37,5 @@ jobs:
       mergeMethod: squash
       skipCI: ${{ github.event.inputs.skipCI == 'true' }}
       package-manager: pnpm
+      package-manager-version: '' # empty = auto-detect from package.json's "packageManager" field, avoiding ERR_PNPM_BAD_PM_VERSION
       cache-dependency-path: pnpm-lock.yaml

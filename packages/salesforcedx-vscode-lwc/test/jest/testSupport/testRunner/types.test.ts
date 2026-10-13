@@ -6,8 +6,8 @@
  */
 
 import * as path from 'node:path';
-import { URI } from 'vscode-uri';
-import { isTestCaseInfo, TestCaseInfo, TestFileInfo } from '../../../../src/testSupport/types';
+import { type URI } from 'vscode-uri';
+import { isTestCaseInfo, type TestCaseInfo, type TestFileInfo } from '../../../../src/testSupport/types';
 
 describe('test support types Unit Tests.', () => {
   const mockUriPath = path.join('/');

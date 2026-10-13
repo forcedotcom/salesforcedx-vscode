@@ -64,7 +64,7 @@ rerun_cancelled_timeouts() {
 
 [ "${EVENT:-}" = "push" ] || skip "event=${EVENT:-}"
 
-if [ "${ACTOR:-}" != "svc-idee-bot" ]; then
+if [ "${ACTOR:-}" != "svc-idee-bot" ] && [ "${ACTOR:-}" != "dependabot[bot]" ]; then
   state=$(gh api "orgs/forcedotcom/teams/ide-foundations/memberships/${ACTOR:-}" -q .state || true)
   [ "$state" = "active" ] || skip "membership=${state}"
 fi

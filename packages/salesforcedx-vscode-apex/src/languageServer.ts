@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as ExecutionStrategy from 'effect/ExecutionStrategy';
 import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
-import { isNotNullable, isNotUndefined } from 'effect/Predicate';
+import { isNotNullable, isNotUndefined, isNumber } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
@@ -19,9 +19,10 @@ import type * as Tracer from 'effect/Tracer';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import {
-  Executable,
-  LanguageClientOptions,
-  ProvideCodeLensesSignature,
+  type Executable,
+  type LanguageClientOptions,
+  type Middleware,
+  type ProvideCodeLensesSignature,
   RevealOutputChannelOn
 } from 'vscode-languageclient/node';
 import { URI } from 'vscode-uri';
@@ -107,7 +108,7 @@ const createServer = Effect.fn('apex.lsp.createServer')(
           '-Dlwc.typegeneration.disabled=true'
         ];
 
-        if (jvmMaxHeap && typeof jvmMaxHeap === 'number') {
+        if (jvmMaxHeap && isNumber(jvmMaxHeap)) {
           args.push(`-Xmx${jvmMaxHeap}M`);
         }
         fireSpan('apex.lsp.settings', { maxHeapSize: jvmMaxHeap ?? 0 });
@@ -241,7 +242,8 @@ const buildClientOptions = Effect.fn('apex.lsp.buildClientOptions')(function* (o
         middleware: {
           ...parityMiddleware,
           ...(soqlExtensionInstalled ? soqlMiddleware : {}),
-          provideCodeLenses
+          provideCodeLenses,
+          handleDiagnostics
         },
         errorHandler: new ApexErrorHandler(),
         ...(isNotUndefined(outputChannel) ? { outputChannel } : {})
@@ -277,4 +279,16 @@ const provideCodeLenses = async (
     ? await Effect.forEach(lenses, rewriteNamespaceLens(nsFromOrg)(nsFromProject)).pipe(getRuntime().runPromise)
     : undefined;
   return rewritten === undefined ? undefined : dropLsAnonymousApexExecuteLenses(rewritten);
+};
+
+/**
+ * Jorje omits LSP diagnostic.source; vscode-languageclient only copies source when present.
+ * Set a stable Problems-panel Source when missing (issue #7915).
+ */
+const handleDiagnostics: NonNullable<Middleware['handleDiagnostics']> = (uri, diagnostics, next): void => {
+  const source = nls.localize('client_name');
+  diagnostics.forEach(diagnostic => {
+    diagnostic.source ??= source;
+  });
+  next(uri, diagnostics);
 };

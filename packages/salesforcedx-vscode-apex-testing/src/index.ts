@@ -44,6 +44,8 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
 
   // Only set up project-specific features if we're in a Salesforce project
   if (isSalesforceProject) {
+    // Register the output channel at activation; test discovery no longer writes to it until requested.
+    yield* (yield* api.services.ChannelService).getChannel;
     const testController = getTestController();
     yield* Effect.log('[Apex Testing] Test controller created');
 

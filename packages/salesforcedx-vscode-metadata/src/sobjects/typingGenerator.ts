@@ -7,7 +7,7 @@
 import { mapInput, not } from 'effect/Predicate';
 import { EOL } from 'node:os';
 import { byFieldName } from './byFieldName';
-import { FieldDeclaration, SObjectDefinition } from './types/general';
+import { type FieldDeclaration, type SObjectDefinition } from './types/general';
 
 const isCollectionType = (fieldType: string): boolean =>
   fieldType.startsWith('List<') || fieldType.startsWith('Set<') || fieldType.startsWith('Map<');

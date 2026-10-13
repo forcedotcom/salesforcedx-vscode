@@ -12,7 +12,14 @@ import * as Option from 'effect/Option';
 import { isNumber, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { actionsEnvironment, GitHub } from '@salesforce/effect-octokit';
+import {
+  actionsEnvironment,
+  type CheckEvent,
+  findApprovedReviewOnHead,
+  GitHub,
+  readCheckEvent,
+  withoutWorkflowRun
+} from '@salesforce/effect-octokit';
 import { AgentError, GitError } from './shared/scriptErrors.ts';
 import {
   BASE_BRANCH,
@@ -24,9 +31,9 @@ import {
   type Facts,
   buildPrompt,
   categoryIdsFromPolicy,
+  classifyGit2GusConfig,
   decideCategoryApprove,
-  parseAgentResult,
-  withoutOwnRun
+  parseAgentResult
 } from './shared/categoryDecision.ts';
 
 // Command.env merges over process.env (NodeCommandExecutor). Blank inherited values so the agent only sees its allowlist.
@@ -62,23 +69,6 @@ const gitText = (args: ReadonlyArray<string>) =>
     Effect.map(([stdout]) => stdout)
   );
 
-const PullRequestNumber = Schema.Struct({
-  number: Schema.Number
-});
-
-const CheckPayload = Schema.Struct({
-  name: Schema.optional(Schema.String),
-  head_sha: Schema.optional(Schema.String),
-  pull_requests: Schema.optional(Schema.Array(PullRequestNumber))
-});
-
-const CheckEvent = Schema.Struct({
-  action: Schema.optional(Schema.String),
-  check_run: Schema.optional(CheckPayload),
-  check_suite: Schema.optional(CheckPayload),
-  pull_request: Schema.optional(PullRequestNumber)
-});
-
 const listChecks = Effect.fn('categoryApprove.listChecks')(function* (
   owner: string,
   repo: string,
@@ -90,7 +80,7 @@ const listChecks = Effect.fn('categoryApprove.listChecks')(function* (
     [github.combinedStatus(owner, repo, headSha), github.checkRuns(owner, repo, headSha)],
     { concurrency: 'unbounded' }
   );
-  return { statuses: status.statuses, checkRuns: withoutOwnRun(runs, runId) };
+  return { statuses: status.statuses, checkRuns: withoutWorkflowRun(runs, runId) };
 });
 
 const classify = Effect.fn('categoryApprove.classify')(function* (policy: string, diffPath: string) {
@@ -162,11 +152,6 @@ const dismiss = Effect.fn('categoryApprove.dismiss')(function* (
   );
 });
 
-const botReview = (reviews: Facts['reviews'], headSha: string) =>
-  reviews.find(
-    review => review.user?.login === BOT_LOGIN && review.state === 'APPROVED' && review.commit_id === headSha
-  );
-
 const act = (
   decision: Decision,
   owner: string,
@@ -180,7 +165,7 @@ const act = (
     Match.tag('Dismiss', dismissed =>
       Effect.log(`#${pullNumber} dismiss (${dismissed.reason})`).pipe(
         Effect.andThen(
-          Option.match(Option.fromNullable(botReview(reviews, headSha)), {
+          Option.match(Option.fromNullable(findApprovedReviewOnHead(reviews, headSha, BOT_LOGIN)), {
             onNone: () => Effect.void,
             onSome: review => dismiss(owner, repo, pullNumber, review.id)
           })
@@ -228,12 +213,34 @@ const onePull = Effect.fn('categoryApprove.onePull')(function* (
   if (gated._tag !== 'Classify' || isUndefined(pull))
     return yield* act(gated, owner, repo, pullNumber, headSha, reviews);
   yield* act(gated, owner, repo, pullNumber, headSha, reviews);
+  if ((yield* gitText(['rev-parse', 'HEAD'])).trim() !== headSha) {
+    return yield* Effect.log(`#${pullNumber} skip (checkout does not match PR head ${headSha})`);
+  }
   const baseRef = pull.baseRefName;
   yield* gitText(['fetch', 'origin', baseRef]);
   const policy = yield* gitText(['show', `origin/${baseRef}:APPROVAL_POLICY.md`]);
-  yield* gitText(['diff', `origin/${baseRef}...HEAD`]).pipe(
-    Effect.flatMap(diff => writeDiff(policy, diff)),
-    Effect.scoped,
+  yield* Match.value(files).pipe(
+    Match.when(
+      files => files.length === 1 && files[0]?.filename === '.git2gus/config.json' && files[0].status === 'modified',
+      () =>
+        Effect.all([
+          gitText(['show', `origin/${baseRef}:.git2gus/config.json`]),
+          gitText(['show', `${headSha}:.git2gus/config.json`])
+        ]).pipe(Effect.map(([before, after]) => classifyGit2GusConfig(files, before, after)))
+    ),
+    Match.when(
+      files =>
+        files.some(
+          file => file.filename === '.git2gus/config.json' || file.previous_filename === '.git2gus/config.json'
+        ),
+      () => Effect.succeed([])
+    ),
+    Match.orElse(() =>
+      gitText(['diff', `origin/${baseRef}...${headSha}`]).pipe(
+        Effect.flatMap(diff => writeDiff(policy, diff)),
+        Effect.scoped
+      )
+    ),
     Effect.flatMap(categories =>
       listChecks(owner, repo, headSha, runId).pipe(
         Effect.map(freshChecks =>
@@ -256,7 +263,7 @@ const pullActions = new Set(['opened', 'ready_for_review', 'reopened', 'edited',
 const pullNumbers = Effect.fn('categoryApprove.pullNumbers')(function* (
   owner: string,
   repo: string,
-  event: typeof CheckEvent.Type
+  event: CheckEvent
 ) {
   if (!isUndefined(event.pull_request) && !isUndefined(event.action) && pullActions.has(event.action)) {
     return [event.pull_request.number];
@@ -278,10 +285,7 @@ const pullNumbers = Effect.fn('categoryApprove.pullNumbers')(function* (
 
 const categoryApprove = Effect.fn('categoryApprove')(function* () {
   const env = yield* actionsEnvironment;
-  const event = yield* FileSystem.FileSystem.pipe(
-    Effect.flatMap(fs => fs.readFileString(env.eventPath)),
-    Effect.flatMap(Schema.decodeUnknown(Schema.parseJson(CheckEvent)))
-  );
+  const event = yield* readCheckEvent(env.eventPath);
   if (event.check_run?.name === 'category-approve') {
     yield* Effect.log('skip: own check run');
     return;

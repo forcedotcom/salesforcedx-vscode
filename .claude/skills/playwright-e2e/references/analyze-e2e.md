@@ -1,3 +1,8 @@
+---
+description: Monitor running E2E Playwright tests, download artifacts on failure, provide analysis tools
+review: never
+---
+
 # Analyze E2E Tests
 
 Monitor running e2e playwright tests for current branch, download artifacts on failure, provide analysis tools.

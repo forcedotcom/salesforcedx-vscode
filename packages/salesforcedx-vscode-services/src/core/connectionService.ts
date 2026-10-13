@@ -19,6 +19,7 @@ import * as Hash from 'effect/Hash';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import { isNotUndefined, isRecord, isString, isUndefined } from 'effect/Predicate';
+import * as Rec from 'effect/Record';
 import * as Redacted from 'effect/Redacted';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -28,10 +29,10 @@ import { nls } from '../messages';
 import { getCliId } from '../observability/cliTelemetry';
 import { setWebUserId, UNAUTHENTICATED_USER } from '../observability/webUserId';
 import { ExtensionContextService } from '../vscode/extensionContextService';
-import { SettingsService } from '../vscode/settingsService';
-import { NoWorkspaceOpenError } from '../vscode/workspaceService';
+import { SettingsService, type WebSessionContext } from '../vscode/settingsService';
+import { type NoWorkspaceOpenError } from '../vscode/workspaceService';
 import { AliasService } from './alias';
-import { ConfigService, FailedToCreateConfigAggregatorError } from './configService';
+import { ConfigService, type FailedToCreateConfigAggregatorError } from './configService';
 import { getDefaultOrgRef } from './defaultOrgRef';
 import { executeQuery } from './queryExecute';
 import { authFieldsFromConnection, orgIdFrom, orgIdFromConnection } from './schemas/authFields';
@@ -42,9 +43,14 @@ import { getOrgFromConnection, unknownToErrorCause } from './shared';
 type WebConnectionKey = {
   instanceUrl: string;
   accessToken: Redacted.Redacted<string>;
+  apiVersion: string;
 };
 
-type WebConnectionKeyAndApiVersion = WebConnectionKey & { apiVersion: string };
+const WebConnectionCacheKeySchema = Schema.Struct({
+  instanceUrl: Schema.String,
+  accessToken: Schema.String,
+  apiVersion: Schema.String
+});
 
 export const updateDefaultOrgIdentity = Effect.fn('updateDefaultOrgIdentity')(function* (
   defaultOrgRef: SubscriptionRef.SubscriptionRef<typeof DefaultOrgInfoSchema.Type>,
@@ -128,11 +134,20 @@ export class FailedToListAuthorizationsError extends Schema.TaggedError<FailedTo
 ) {}
 
 /** side effect: save the auth info in the background */
-const createWebAuthInfo = (instanceUrl: string, accessToken: Redacted.Redacted<string>) =>
+const createWebAuthInfo = (
+  instanceUrl: string,
+  accessToken: Redacted.Redacted<string>,
+  sessionContext: WebSessionContext
+) =>
   Effect.tryPromise({
     try: () =>
       AuthInfo.create({
-        accessTokenOptions: { accessToken: Redacted.value(accessToken), loginUrl: instanceUrl, instanceUrl }
+        accessTokenOptions: {
+          accessToken: Redacted.value(accessToken),
+          loginUrl: instanceUrl,
+          instanceUrl,
+          ...sessionContext
+        }
       }),
     catch: error => {
       const { cause } = unknownToErrorCause(error);
@@ -174,47 +189,45 @@ const createConnection = (authInfo: AuthInfo, apiVersion?: string) =>
     }
   }).pipe(Effect.withSpan('createConnection', { attributes: { apiVersion: apiVersion ?? 'default' } }));
 
-const createWebConnection = (key: string) => {
+const createWebConnection = Effect.fn('createWebConnection (cache miss)')(function* (key: string) {
   const { instanceUrl, accessToken, apiVersion } = fromKey(key);
-  return createWebAuthInfo(instanceUrl, accessToken).pipe(
-    Effect.flatMap(authInfo => createConnection(authInfo, apiVersion)),
-    Effect.withSpan('createWebConnection (cache miss)', {
-      attributes: { apiVersion, instanceUrl }
-    })
+  yield* Effect.annotateCurrentSpan({ apiVersion, instanceUrl });
+  return yield* SettingsService.getSessionContext().pipe(
+    Effect.flatMap(sessionContext => createWebAuthInfo(instanceUrl, accessToken, sessionContext)),
+    Effect.flatMap(authInfo => createConnection(authInfo, apiVersion))
   );
-};
+});
 
 // use string cache keys, objects don't seem to work
 const toKey = (instanceUrl: string, accessToken: Redacted.Redacted<string>, apiVersion: string): string =>
-  `${instanceUrl}###${Redacted.value(accessToken)}###${apiVersion}`;
+  JSON.stringify({
+    instanceUrl,
+    accessToken: Redacted.value(accessToken),
+    apiVersion
+  });
 
-const fromKey = (key: string): WebConnectionKeyAndApiVersion => {
-  const [instanceUrl, accessToken, apiVersion] = key.split('###');
+const fromKey = (key: string): WebConnectionKey => {
+  const { instanceUrl, accessToken, apiVersion } = Schema.decodeUnknownSync(WebConnectionCacheKeySchema)(
+    JSON.parse(key)
+  );
   return { instanceUrl, accessToken: Redacted.make(accessToken), apiVersion };
 };
 
 const createDesktopConnection = Effect.fn('createDesktopConnection (cache miss)')(function* (username: string) {
   yield* Effect.annotateCurrentSpan({ username });
-  const authInfo = yield* createAuthInfoFromUsername(username);
-  return yield* createConnection(authInfo);
+  return yield* createAuthInfoFromUsername(username).pipe(Effect.flatMap(createConnection));
 });
 
-const connectionCache = Effect.runSync(
+const desktopConnectionCache = Effect.runSync(
   Cache.makeWith({
-    capacity: process.env.ESBUILD_PLATFORM === 'web' ? 1 : 100,
+    capacity: 100,
     timeToLive: Exit.match({
-      onSuccess: () => (process.env.ESBUILD_PLATFORM === 'web' ? Duration.infinity : Duration.minutes(30)),
+      onSuccess: () => Duration.minutes(30),
       onFailure: () => Duration.zero
     }),
-    lookup: process.env.ESBUILD_PLATFORM === 'web' ? createWebConnection : createDesktopConnection
+    lookup: createDesktopConnection
   })
 );
-
-const getCachedConnection = Effect.fn('ConnectionService.connectionCache.get')(function* (key: string) {
-  const either = yield* connectionCache.getEither(key);
-  yield* Effect.annotateCurrentSpan({ connectionCache: Either.isLeft(either) ? 'hit' : 'miss' });
-  return Either.merge(either);
-});
 
 const resolveUsername = (conn: Connection): string | undefined =>
   conn.getUsername() ??
@@ -283,6 +296,24 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     const configService = yield* ConfigService;
     const settingsService = yield* SettingsService;
     const aliasService = yield* AliasService;
+    const activeConnectionCache =
+      process.env.ESBUILD_PLATFORM === 'web'
+        ? yield* Cache.makeWith({
+            capacity: 1,
+            timeToLive: Exit.match({
+              onSuccess: () => Duration.infinity,
+              onFailure: () => Duration.zero
+            }),
+            lookup: createWebConnection
+          })
+        : desktopConnectionCache;
+
+    const getCachedConnection = Effect.fn('ConnectionService.connectionCache.get')(function* (key: string) {
+      return yield* activeConnectionCache.getEither(key).pipe(
+        Effect.tap(either => Effect.annotateCurrentSpan({ connectionCache: Either.isLeft(either) ? 'hit' : 'miss' })),
+        Effect.map(Either.merge)
+      );
+    });
 
     // explicit type breaks the promptReauth → reauthCache → runReauthLookup → promptReauth inference cycle
     const promptReauth: (
@@ -317,13 +348,13 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
         });
       });
 
-    // Keyed by RESOLVED USERNAME (matching connectionCache), NOT the Connection object: connectionCache is
+    // Keyed by RESOLVED USERNAME (matching desktopConnectionCache), NOT the Connection object: desktopConnectionCache is
     // invalidated on every config-file change (configFileWatcher) + on org switch, so a Connection-keyed reauth
     // cache would treat each rebuilt Connection for the SAME org as new and re-prompt — stacking a modal per
     // invalidation. Re-fetch the Connection here (cache hit in the common path; a fresh valid one if it was
     // invalidated) so identity() always probes the current auth.
     const runReauthLookup = Effect.fn('ConnectionService.runReauthLookup')(function* (username: string) {
-      const conn = yield* connectionCache.get(username);
+      const conn = yield* desktopConnectionCache.get(username);
       yield* Effect.tryPromise(() => conn.identity()).pipe(Effect.catchAll(() => promptReauth(conn, username)));
     });
 
@@ -423,7 +454,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
 
     /** Drops cached JSForce `Connection` instances so the next `getConnection()` reloads `AuthInfo` from disk. */
     const invalidateCachedConnections = Effect.fn('ConnectionService.invalidateCachedConnections')(function* () {
-      yield* connectionCache.invalidateAll;
+      yield* activeConnectionCache.invalidateAll;
     });
 
     /**
@@ -549,8 +580,8 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
         yield* setWebUserId(orgId, userId).pipe(Effect.provide(ExtensionContextService.Default))
       : (existingOrgInfo.webUserId ?? UNAUTHENTICATED_USER);
 
-  const updates = Object.fromEntries(
-    Object.entries({
+  const updates = Rec.filter(
+    {
       orgId,
       instanceName,
       devHubUsername,
@@ -563,9 +594,10 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
       aliases,
       username,
       alias,
-      ...(isString(cliId) ? { cliId } : {}),
-      ...(isString(orgEdition) ? { orgEdition } : {})
-    } satisfies typeof DefaultOrgInfoSchema.Type).filter(([, v]) => isNotUndefined(v))
+      cliId: isString(cliId) ? cliId : undefined,
+      orgEdition: isString(orgEdition) ? orgEdition : undefined
+    } satisfies typeof DefaultOrgInfoSchema.Type,
+    isNotUndefined
   );
 
   const updated = { ...existingOrgInfo, ...updates, alias };

@@ -17,6 +17,11 @@ export const messages: Partial<Record<MessageKey, string>> = {
   vf_component_name_prompt: 'Visualforce コンポーネント名を入力',
   vf_generate_page_success: 'Visualforce ページが正常に作成されました',
   vf_generate_component_success: 'Visualforce コンポーネントが正常に作成されました',
+  template_type_prompt: 'テンプレートの種類を選択',
+  vf_builtin_templates_label: '組み込みテンプレート',
+  vf_custom_templates_label: 'カスタムテンプレート',
+  vf_page_default_template_description: '標準の Visualforce ページ',
+  vf_component_default_template_description: '標準の Visualforce コンポーネント',
   visualforce_generate_page_text: 'SFDX: Visualforce ページを作成',
   visualforce_generate_component_text: 'SFDX: Visualforce コンポーネントを作成'
 };
