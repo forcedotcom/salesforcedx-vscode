@@ -9,12 +9,5 @@ module.exports = {
         file: path.resolve('static/js/main.js'),
         format: 'iife',
     },
-    external: ['lwc'],
-    globals: { lwc: 'Engine' },
-    plugins: [
-        lwcCompiler({
-            mapNamespaceFromPath: true,
-            resolveFromPackages: false,
-        })
-    ]
+    plugins: [lwcCompiler()]
 };

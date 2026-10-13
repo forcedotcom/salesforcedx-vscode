@@ -79,14 +79,8 @@ const workspaceService = new WorkspaceService({
     })
 } as unknown as WorkspaceService);
 
-const useSequentialMaterializationTimes = () => {
-  let millisecond = 0;
-  jest
-    .spyOn(Date.prototype, 'toISOString')
-    .mockImplementation(() => `2026-01-01T00:00:00.${String(millisecond++).padStart(3, '0')}Z`);
-};
-
 describe('OrgMetadataShadowStore', () => {
+  // vscode.workspace.textDocuments is shared mock state; isolate per test so open-editor protection doesn't leak.
   const textDocuments = vscode.workspace.textDocuments as vscode.TextDocument[];
   let originalTextDocuments: vscode.TextDocument[];
 
@@ -97,7 +91,6 @@ describe('OrgMetadataShadowStore', () => {
 
   afterEach(() => {
     textDocuments.splice(0, textDocuments.length, ...originalTextDocuments);
-    jest.restoreAllMocks();
   });
 
   const publishRevision = (
@@ -254,7 +247,6 @@ describe('OrgMetadataShadowStore', () => {
   });
 
   it('retains only the newest bounded revisions for a component', async () => {
-    useSequentialMaterializationTimes();
     const { files, service } = makeFsService();
     const reference = { xmlName: 'ApexClass', fullName: 'FooTest' };
     const revisions = Array.from(
@@ -279,7 +271,6 @@ describe('OrgMetadataShadowStore', () => {
   });
 
   it('preserves an older revision that backs an open editor document', async () => {
-    useSequentialMaterializationTimes();
     const { files, service } = makeFsService();
     const reference = { xmlName: 'ApexClass', fullName: 'FooTest' };
     const program = Effect.gen(function* () {
@@ -307,7 +298,6 @@ describe('OrgMetadataShadowStore', () => {
   });
 
   it('does not fail publication when pruning an old revision fails', async () => {
-    useSequentialMaterializationTimes();
     const { failedDeletes, files, service } = makeFsService();
     const reference = { xmlName: 'ApexClass', fullName: 'FooTest' };
     const program = Effect.gen(function* () {

@@ -53,7 +53,6 @@ export const messages = {
   terminate_orphaned_language_server_instances: '%d orphaned Apex Language Server process(es) found.',
   terminate_show_processes: 'Show Processes',
   terminated_orphaned_process: 'Terminated Apex Language Server process PID: %d',
-  unknown: 'Unknown',
   unknown_error: 'Unknown error',
   wrong_java_version_short: 'Unsupported Java version',
   wrong_java_version_text:

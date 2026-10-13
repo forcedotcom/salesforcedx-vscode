@@ -9,7 +9,7 @@ import type { OrgAuthResult } from './types';
 import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { execAsync, env, tryUseExistingOrg, extractAuthFields, requireOrgInCI } from './shared';
+import { execAsync, env, tryUseExistingOrg, getOrgAuthFields, requireOrgInCI } from './shared';
 
 const DREAMHOUSE_REPO = 'https://github.com/trailheadapps/dreamhouse-lwc';
 export const DREAMHOUSE_ORG_ALIAS = 'orgBrowserDreamhouseTestOrg';
@@ -29,12 +29,12 @@ export const createDreamhouseOrg = async (): Promise<OrgAuthResult> => {
 
   await execAsync(`git clone --depth=1 ${DREAMHOUSE_REPO} ${repoDir}`);
 
-  const { stdout: createStdout } = await execAsync(
+  await execAsync(
     `sf org create scratch -d -f config/project-scratch-def.json -a ${DREAMHOUSE_ORG_ALIAS} --wait 30 --json`,
     { cwd: repoDir, env }
   );
 
-  const authFields = await extractAuthFields(createStdout, DREAMHOUSE_ORG_ALIAS);
+  const authFields = await getOrgAuthFields(DREAMHOUSE_ORG_ALIAS);
 
   await execAsync('sf project deploy start', { cwd: repoDir });
   await execAsync('sf org assign permset -n dreamhouse -o dreamhouse', { cwd: repoDir });

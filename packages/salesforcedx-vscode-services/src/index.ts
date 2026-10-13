@@ -47,6 +47,7 @@ import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
 import { nls } from './messages';
 import { annotateExtensionPackType } from './observability/extensionPackStatus';
+import { getLegacyTelemetrySender } from './observability/legacyTelemetrySender';
 import { redactingConsoleLoggerLayer, runOnServicesRuntime } from './observability/redactingConsoleLogger';
 import { getSdkLayerConfigFromContext } from './observability/sdkLayerConfig';
 import { seedTelemetryIdentities } from './observability/seedTelemetryIdentities';
@@ -164,6 +165,7 @@ export type SalesforceVSCodeServicesApi = {
     NotificationModeService: typeof NotificationModeService;
     ProjectService: typeof ProjectService;
     getSdkLayerConfigFromContext: typeof getSdkLayerConfigFromContext;
+    getLegacyTelemetrySender: typeof getLegacyTelemetrySender;
     SdkLayerFor: PublicSdkLayerFor;
     SettingsChangePubSub: typeof SettingsChangePubSub;
     SettingsService: typeof SettingsService;
@@ -589,6 +591,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         NotificationModeService,
         ProjectService,
         getSdkLayerConfigFromContext,
+        getLegacyTelemetrySender,
         SdkLayerFor: publicSdkLayerFor,
         SettingsChangePubSub,
         SettingsService,
@@ -609,7 +612,8 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   return activateWithScope().catch(async error => {
     // Cleanup completes before the original activation rejection is restored.
     await Effect.runPromise(disposeServicesRuntime().pipe(Effect.ensuring(closeExtensionScope())));
-    return Effect.runPromise(Effect.fail(error));
+    // eslint-disable-next-line functional/no-throw-statements -- preserve the original rejected promise at the VS Code activation boundary.
+    throw error;
   });
 };
 

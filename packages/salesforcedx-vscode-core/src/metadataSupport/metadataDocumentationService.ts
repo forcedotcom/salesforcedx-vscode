@@ -8,6 +8,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import { isError, isString } from 'effect/Predicate';
+import { toEntries } from 'effect/Record';
 import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
 import { XMLParser } from 'fast-xml-parser';
@@ -371,7 +372,7 @@ export class MetadataDocumentationService {
       number: { type: 'int', description: `The numeric value for ${fieldName.replace('Number', '').toLowerCase()}.` }
     };
 
-    for (const [pattern, info] of Object.entries(patterns)) {
+    for (const [pattern, info] of toEntries(patterns)) {
       if (fieldName.toLowerCase().includes(pattern)) {
         return {
           name: fieldName,

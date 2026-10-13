@@ -16,12 +16,17 @@ import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { ConnectionService } from '../core/connectionService';
+import { MetadataDescribeService } from '../core/metadataDescribeService';
+import { MetadataRegistryService } from '../core/metadataRegistryService';
+import { MetadataRetrieveService } from '../core/metadataRetrieveService';
+import { ProjectService } from '../core/projectService';
 import { QueryService } from '../core/queryService';
 import { FsService } from '../vscode/fsService';
-import { OrgCatalogInventory } from './orgCatalogInventory';
+import { makeOrgCatalogInventory } from './orgCatalogInventory';
 import { OrgCatalogRemoteRetrieve } from './orgCatalogRemoteRetrieve';
+import { OrgCatalogState } from './orgCatalogState';
 import { OrgMetadataCatalogError } from './orgMetadataCatalogErrors';
-import { OrgMetadataReferenceService, type OrgMetadataComponentReference } from './orgMetadataReference';
+import { documentUri, type OrgMetadataComponentReference } from './orgMetadataReference';
 import { OrgMetadataShadowStore } from './orgMetadataShadowStore';
 
 const escapeSoql = (value: string): string => value.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
@@ -32,18 +37,21 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
     ConnectionService.Default,
     QueryService.Default,
     FsService.Default,
-    OrgCatalogInventory.Default,
+    MetadataDescribeService.Default,
+    MetadataRegistryService.Default,
+    MetadataRetrieveService.Default,
+    ProjectService.Default,
+    OrgCatalogState.Default,
     OrgCatalogRemoteRetrieve.Default,
-    OrgMetadataReferenceService.Default,
     OrgMetadataShadowStore.Default
   ],
   effect: Effect.gen(function* () {
-    const [queryService, fsService, inventories, remoteRetrieve, references, shadowStore] = yield* Effect.all([
+    const [queryService, fsService, inventories, remoteRetrieve, registry, shadowStore] = yield* Effect.all([
       QueryService,
       FsService,
-      OrgCatalogInventory,
+      makeOrgCatalogInventory,
       OrgCatalogRemoteRetrieve,
-      OrgMetadataReferenceService,
+      MetadataRegistryService,
       OrgMetadataShadowStore
     ]);
 
@@ -135,7 +143,9 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
       const { stagingUri } = yield* shadowStore.prepare(orgId, reference, shadowRevision);
       const primaryUri = Utils.joinPath(
         stagingUri,
-        Utils.basename(yield* references.documentUri({ orgId, ...reference }))
+        Utils.basename(
+          yield* documentUri({ orgId, ...reference }).pipe(Effect.provideService(MetadataRegistryService, registry))
+        )
       );
       return yield* fsService.safeWriteFile(primaryUri, content).pipe(
         Effect.flatMap(() =>
