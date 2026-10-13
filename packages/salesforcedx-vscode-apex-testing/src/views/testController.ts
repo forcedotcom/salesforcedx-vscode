@@ -225,11 +225,13 @@ export class ApexTestController {
       false
     );
 
-    this.controller.createRunProfile(
-      nls.localize('debug_tests_title'),
-      vscode.TestRunProfileKind.Debug,
-      (request, token) => this.runTests(request, token, true, 'workspace-first')
-    );
+    if (process.env.ESBUILD_PLATFORM !== 'web') {
+      this.controller.createRunProfile(
+        nls.localize('debug_tests_title'),
+        vscode.TestRunProfileKind.Debug,
+        (request, token) => this.runTests(request, token, true, 'workspace-first')
+      );
+    }
 
     this.controller.createRunProfile(
       nls.localize('run_stale_workspace_tests_title'),
