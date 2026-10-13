@@ -8,7 +8,7 @@
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import { type URI, Utils } from 'vscode-uri';
-import { FsService, FsServiceError } from '../vscode/fsService';
+import { FsService } from '../vscode/fsService';
 
 const TEST_FOLDER = '__tests__';
 
@@ -42,7 +42,7 @@ export class LightningComponentService extends Effect.Service<LightningComponent
       /** Stream the immediate children of `bundleUri`, recursing into a top-level `__tests__/` if present.
        * Each emitted entry is tagged so callers can apply different match rules to test files vs. bundle
        * top-level files (test files use a fuzzy substring match; top-level files use a strict pattern). */
-      const bundleEntries = (bundleUri: URI): Stream.Stream<{ uri: URI; inTests: boolean }, FsServiceError> =>
+      const bundleEntries = (bundleUri: URI) =>
         Stream.unwrap(
           Effect.map(fs.readDirectory(bundleUri), top =>
             Stream.fromIterable(top).pipe(
