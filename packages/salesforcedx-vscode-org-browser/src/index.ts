@@ -184,9 +184,6 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 
   yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.initialized', true));
 
-  // get a connection to initiate the ref
-  yield* api.services.ConnectionService.getConnection();
-  // wait for the target org ref to have an orgId
   const targetOrgRef = yield* api.services.TargetOrgRef();
   const legacyFilter: OrgBrowserFilterState | undefined = (() => {
     const typeFilter = context.workspaceState.get<string | undefined>('orgBrowser.typeFilter');
