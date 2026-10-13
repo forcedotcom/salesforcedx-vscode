@@ -1,14 +1,18 @@
 #!/usr/bin/env node
 import * as NodeContext from '@effect/platform-node/NodeContext';
-import * as FileSystem from '@effect/platform/FileSystem';
-import { actionsEnvironment, GitHub, readIssueCommentEvent } from '@salesforce/effect-octokit';
+import {
+  actionsEnvironment,
+  GitHub,
+  readCompletedChecksEvent,
+  readIssueCommentEvent,
+  readSynchronizeEvent
+} from '@salesforce/effect-octokit';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
 import * as Logger from 'effect/Logger';
 import { isNullable } from 'effect/Predicate';
-import * as Schema from 'effect/Schema';
 import { pathToFileURL } from 'node:url';
 import {
   authorStandaloneAiAutoComments,
@@ -21,34 +25,6 @@ import {
 
 const APPROVAL_BODY =
   'Approved by svc-idee-bot after `/ai-auto approve` from the PR author (@forcedotcom/ide-experience).';
-
-/** `check_suite` and `workflow_run` completion payloads. Only the fields the approve path reads. */
-const CompletedChecksEvent = Schema.Struct({
-  check_suite: Schema.optional(
-    Schema.Struct({
-      head_sha: Schema.String,
-      pull_requests: Schema.Array(Schema.Struct({ number: Schema.Number }))
-    })
-  ),
-  workflow_run: Schema.optional(
-    Schema.Struct({
-      head_sha: Schema.String,
-      pull_requests: Schema.Array(Schema.Struct({ number: Schema.Number }))
-    })
-  )
-});
-
-/** `pull_request_target` payload for `synchronize`. */
-const SynchronizeEvent = Schema.Struct({
-  action: Schema.String,
-  pull_request: Schema.Struct({ number: Schema.Number })
-});
-
-const readEvent = (eventPath, schema) =>
-  Effect.gen(function* () {
-    const fs = yield* FileSystem.FileSystem;
-    return yield* fs.readFileString(eventPath).pipe(Effect.flatMap(Schema.decodeUnknown(Schema.parseJson(schema))));
-  });
 
 const logDecision = decision =>
   Effect.log(`decision: ${decision.action} (${decision.reason})`, {
@@ -159,7 +135,7 @@ const onIssueComment = Effect.fn('aiAutoApprove.issueComment')(function* (env, g
  * Old SHA never approves: `pull.headRefOid` must equal the completed SHA.
  */
 const onChecksComplete = Effect.fn('aiAutoApprove.checksComplete')(function* (env, github) {
-  const event = yield* readEvent(env.eventPath, CompletedChecksEvent);
+  const event = yield* readCompletedChecksEvent(env.eventPath);
   const completed = event.check_suite ?? event.workflow_run;
   if (isNullable(completed)) {
     yield* Effect.log('decision: skip (completed checks have no head sha or pull requests)');
@@ -207,7 +183,7 @@ const onChecksComplete = Effect.fn('aiAutoApprove.checksComplete')(function* (en
 /** New commits: delete the author's `/ai-auto approve` comments. No review.
  *  Runs from default-branch checkout; see workflow. Uses IDEE_GH_TOKEN for DELETE. */
 const onSynchronize = Effect.fn('aiAutoApprove.synchronize')(function* (env, github) {
-  const event = yield* readEvent(env.eventPath, SynchronizeEvent);
+  const event = yield* readSynchronizeEvent(env.eventPath);
   if (event.action !== 'synchronize') {
     yield* Effect.log(`decision: skip (pull_request_target action ${event.action})`);
     return;
