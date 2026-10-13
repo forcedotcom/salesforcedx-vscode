@@ -199,8 +199,7 @@ OtlpLogger.layer({ url: "http://localhost:4318/v1/logs", resource: {...} })
 | `packages/salesforcedx-vscode-services/src/observability/otlpFileSpanExporterNode.ts` | File-based span export |
 | `packages/salesforcedx-vscode-services/src/observability/spanTransformProcessor.ts` | Span metadata enrichment |
 | `packages/salesforcedx-vscode-services/src/observability/spanUtils.ts` | Span serialization |
-| `packages/salesforcedx-utils-vscode/src/telemetry/schema.ts` | Extension package.json schema (otelConnectionString, aiKey, enableCustomEventsFromSpans) |
-| `packages/salesforcedx-vscode-services/src/observability/sdkLayerConfig.ts` | Connection string resolution (otelConnectionString > normalized aiKey) |
+| `packages/salesforcedx-vscode-services/src/observability/sdkLayerConfig.ts` | Reads extension package.json telemetry config; resolves connection string (otelConnectionString > normalized aiKey) |
 | `node_modules/@effect/opentelemetry/src/Logger.ts` | Effect → OTEL bridge (attributes path) |
 | `node_modules/@effect/opentelemetry/src/OtlpLogger.ts` | Effect-native OTLP logger (native correlation) |
 | `.vscode/launch.json` | Grafana launch configs with OTEL_EXPORTER_OTLP_ENDPOINT |

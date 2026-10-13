@@ -19,7 +19,6 @@ import { isNotUndefined, isString } from 'effect/Predicate';
 import { type ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import { SFDX_CORE_CONFIGURATION_NAME, SFDX_CORE_EXTENSION_NAME, SFDX_EXTENSION_PACK_NAME } from '../constants';
 import { isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
-import { extensionPackageJsonSchema } from '../telemetry/schema';
 import { isInternalHost } from '../telemetry/utils/isInternal';
 
 type CommandMetric = {
@@ -95,8 +94,7 @@ export class TelemetryService implements TelemetryServiceInterface {
    * @param extensionContext extension context
    */
   public async initializeService(extensionContext: ExtensionContext): Promise<void> {
-    const { name } = extensionPackageJsonSchema.parse(extensionContext.extension.packageJSON);
-    this.extensionName = name;
+    this.extensionName = extensionContext.extension.packageJSON.name;
     this.isInternal = isInternalHost();
     this.isDevMode = extensionContext.extensionMode !== ExtensionMode.Production;
 

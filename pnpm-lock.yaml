@@ -966,9 +966,6 @@ importers:
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
-      zod:
-        specifier: ^4.3.2
-        version: 4.6.1
 
   packages/salesforcedx-visualforce-language-server:
     dependencies:

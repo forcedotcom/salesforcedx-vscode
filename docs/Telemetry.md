@@ -54,7 +54,7 @@ If you need events to go to a Product Feature Taxonomy Id other than VSCode Exte
 "productFeatureId": "aJCEE0000000mLm4AI"
 ```
 
-IDs must start with `aJC` (see `salesforcedx-utils-vscode/src/telemetry/schema.ts`).
+IDs must start with `aJC`.
 
 ### Using old telemetry
 
