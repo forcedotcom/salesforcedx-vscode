@@ -92,7 +92,7 @@
     }
   },
   "dependencies": {
-    "@salesforce/soql-common": "*",
+    "@salesforce/soql-common": "workspace:*",
     "antlr4ts": "^0.5.0-alpha.3"
   }
 }

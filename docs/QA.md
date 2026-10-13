@@ -39,7 +39,7 @@ This file is gitignored.
 
 #### `ESBUILD_WEB_ORG_ALIAS`
 
-Specifies a Salesforce org alias to fetch credentials from. The build will run `sf org display -o <alias> --json` and inject the org's `instanceUrl`, `accessToken`, and `apiVersion` into VS Code settings.
+Specifies a Salesforce org alias to fetch credentials from. The build reads `instanceUrl` and `apiVersion` from `sf org display -o <alias> --json`, and the access token from `sf org auth show-access-token -o <alias> --json`. It injects those values into VS Code settings.
 
 ```bash
 export ESBUILD_WEB_ORG_ALIAS=myOrg
@@ -88,5 +88,5 @@ This will:
 **Auth values missing?**
 
 - Verify `ESBUILD_WEB_ORG_ALIAS` is set correctly
-- Ensure the org alias exists and is authenticated: `sf org display -o <alias>`
+- Ensure the org alias exists and is authenticated: `sf org display -o <alias> --json` (metadata), then `sf org auth show-access-token -o <alias> --json` (credential; do not log its output)
 - Clear wireit cache and rebuild (env vars don't invalidate cache automatically)

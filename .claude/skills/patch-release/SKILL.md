@@ -1,3 +1,9 @@
+---
+name: patch-release
+description: Run emergency patch releases for critical hotfixes. Use when user explicitly requests patch release workflow.
+review: never
+---
+
 # Patch Release Skill
 
 **User-invocable only.** Run emergency patch releases for critical hotfixes.

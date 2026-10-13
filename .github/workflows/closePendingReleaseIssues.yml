@@ -3,7 +3,7 @@ name: Close Pending Release Issues
 on:
   workflow_dispatch:
   workflow_run:
-    workflows: ['Publish in Microsoft Marketplace']
+    workflows: ['Publish Release to Marketplace']
     types: [completed]
 
 permissions:
@@ -16,17 +16,25 @@ jobs:
     if: github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success'
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout main
+      - name: Checkout develop
         uses: actions/checkout@v4
         with:
-          ref: main
+          ref: develop
 
-      - name: Extract version from package.json
+      # Not read from package.json: develop's version reflects the *next* nightly
+      # baseline (bumped by bump-develop-nightly-minor after this same release), not
+      # the version that was just published. The latest non-prerelease GitHub release
+      # is the version this workflow run is actually about, since this only fires
+      # right after publishVSCode.yml completes that exact transition.
+      - name: Extract version from the latest release
         id: version
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION=$(node -pe "require('./packages/salesforcedx-vscode/package.json').version")
+          TAG=$(gh release list --repo "${{ github.repository }}" --exclude-pre-releases --exclude-drafts --limit 1 --json tagName -q '.[0].tagName')
+          VERSION="${TAG#v}"
           if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+ ]]; then
-            echo "::error::Invalid version extracted: '$VERSION'"
+            echo "::error::Invalid version extracted from latest release tag '$TAG'"
             exit 1
           fi
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"

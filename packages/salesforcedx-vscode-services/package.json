@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.27.3",
+  "version": "68.3.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -36,19 +36,20 @@
     "@opentelemetry/api": "1.9.1",
     "@opentelemetry/core": "2.8.0",
     "@opentelemetry/exporter-trace-otlp-http": "0.219.0",
-    "@opentelemetry/resources": "2.8.0",
+    "@opentelemetry/resources": "2.11.0",
     "@opentelemetry/sdk-logs": "0.219.0",
     "@opentelemetry/sdk-metrics": "2.10.0",
     "@opentelemetry/sdk-trace-base": "2.10.0",
     "@opentelemetry/sdk-trace-node": "2.8.0",
     "@opentelemetry/sdk-trace-web": "2.8.0",
-    "@salesforce/core": "^9.1.9",
+    "@salesforce/apex-node": "workspace:*",
+    "@salesforce/core": "^9.3.0",
     "@salesforce/o11y-reporter": "^1.8.5",
-    "@salesforce/salesforcedx-utils": "*",
+    "@salesforce/salesforcedx-utils": "workspace:*",
     "@salesforce/source-deploy-retrieve": "^13.2.0",
     "@salesforce/source-tracking": "^8.0.0",
-    "@salesforce/templates": "^66.16.3",
-    "@salesforce/vscode-i18n": "*",
+    "@salesforce/templates": "^66.16.4",
+    "@salesforce/vscode-i18n": "workspace:*",
     "@vscode/extension-telemetry": "^1.0.0",
     "cross-spawn": "7.0.6",
     "effect": "^3.21.2",
@@ -58,7 +59,7 @@
   },
   "devDependencies": {
     "@jest/globals": "30.4.1",
-    "@salesforce/playwright-vscode-ext": "*",
+    "@salesforce/playwright-vscode-ext": "workspace:*",
     "jest-mock": "30.4.1",
     "memfs": "^4.38.1",
     "svgtofont": "^6.5.2"
@@ -103,6 +104,7 @@
       "dependencies": [
         "build:icons",
         "generate-types",
+        "../salesforcedx-apex:compile",
         "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-i18n:compile"
       ],
@@ -182,7 +184,7 @@
       ]
     },
     "check:circular-deps": {
-      "command": "dpdm --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
+      "command": "dpdm --transform --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
       "dependencies": [
         "compile"
       ],
@@ -339,6 +341,40 @@
           "type": "string",
           "default": "67.0",
           "description": "%configuration.apiVersion.description%"
+        },
+        "salesforce-web-console.sessionContext": {
+          "type": "object",
+          "default": {},
+          "description": "%configuration.sessionContext.description%",
+          "properties": {
+            "username": {
+              "type": "string"
+            },
+            "instanceName": {
+              "type": "string"
+            },
+            "orgEdition": {
+              "type": "string"
+            },
+            "namespacePrefix": {
+              "type": "string"
+            },
+            "orgId": {
+              "type": "string"
+            },
+            "userId": {
+              "type": "string"
+            },
+            "isDevHub": {
+              "type": "boolean"
+            },
+            "isScratch": {
+              "type": "boolean"
+            },
+            "isSandbox": {
+              "type": "boolean"
+            }
+          }
         },
         "salesforce-web-console.retrieveOnLoad": {
           "type": "string",

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { type ExtensionProviderService as ExtensionProviderServiceType } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
@@ -14,6 +14,7 @@ import * as TestContext from 'effect/TestContext';
 import type * as Tracer from 'effect/Tracer';
 import * as vscode from 'vscode';
 import { UBER_JAR_NAME } from '../../src/constants';
+import type { checkAndResolveOrphanedLanguageServers as checkOrphans } from '../../src/languageServerOrphanHandler';
 import { nls } from '../../src/messages';
 
 const ORPHAN_LIST = `1234 1 java -jar ${UBER_JAR_NAME}`;
@@ -115,15 +116,17 @@ const loadHandler = (platform: NodeJS.Platform) => {
   Object.defineProperty(process, 'platform', { value: platform, configurable: true });
   let result:
     | {
-        checkAndResolveOrphanedLanguageServers: typeof import('../../src/languageServerOrphanHandler').checkAndResolveOrphanedLanguageServers;
-        Provider: typeof ExtensionProviderService;
+        checkAndResolveOrphanedLanguageServers: typeof checkOrphans;
+        Provider: typeof ExtensionProviderServiceType;
       }
     | undefined;
   jest.isolateModules(() => {
-    const { ExtensionProviderService: Provider } =
-      require('@salesforce/effect-ext-utils') as typeof import('@salesforce/effect-ext-utils');
-    const { checkAndResolveOrphanedLanguageServers } =
-      require('../../src/languageServerOrphanHandler') as typeof import('../../src/languageServerOrphanHandler');
+    const { ExtensionProviderService: Provider } = require('@salesforce/effect-ext-utils') as {
+      ExtensionProviderService: typeof ExtensionProviderServiceType;
+    };
+    const { checkAndResolveOrphanedLanguageServers } = require('../../src/languageServerOrphanHandler') as {
+      checkAndResolveOrphanedLanguageServers: typeof checkOrphans;
+    };
     result = { checkAndResolveOrphanedLanguageServers, Provider };
   });
   Object.defineProperty(process, 'platform', { value: original, configurable: true });
@@ -132,7 +135,7 @@ const loadHandler = (platform: NodeJS.Platform) => {
 
 const provide =
   (
-    Provider: typeof ExtensionProviderService,
+    Provider: typeof ExtensionProviderServiceType,
     responses: { match: string; result: ExecResult }[],
     settingsStub?: SettingsStub
   ) =>
@@ -140,7 +143,7 @@ const provide =
     effect.pipe(
       Effect.provideService(Provider, {
         getServicesApi: Effect.succeed(makeApi(responses, settingsStub))
-      } as unknown as ExtensionProviderService)
+      } as unknown as ExtensionProviderServiceType)
     );
 
 // Capture the root span so tests can assert the annotations the handler writes via annotateRootSpan.
@@ -285,7 +288,9 @@ describe('languageServerOrphanHandler', () => {
     };
     await Effect.runPromise(
       checkAndResolveOrphanedLanguageServers(3, Duration.millis(0)).pipe(
-        Effect.provideService(Provider, { getServicesApi: Effect.succeed(api) } as unknown as ExtensionProviderService)
+        Effect.provideService(Provider, {
+          getServicesApi: Effect.succeed(api)
+        } as unknown as ExtensionProviderServiceType)
       ) as Effect.Effect<void>
     );
     expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
@@ -410,10 +415,13 @@ describe('languageServerOrphanHandler (Windows powershell guard)', () => {
     const holder: { root?: Tracer.Span } = {};
     let program: Effect.Effect<void> | undefined;
     jest.isolateModules(() => {
-      const { ExtensionProviderService: IsolatedProvider } =
-        require('@salesforce/effect-ext-utils') as typeof import('@salesforce/effect-ext-utils');
+      const { ExtensionProviderService: IsolatedProvider } = require('@salesforce/effect-ext-utils') as {
+        ExtensionProviderService: typeof ExtensionProviderServiceType;
+      };
       const { checkAndResolveOrphanedLanguageServers: checkOnWindows } =
-        require('../../src/languageServerOrphanHandler') as typeof import('../../src/languageServerOrphanHandler');
+        require('../../src/languageServerOrphanHandler') as {
+          checkAndResolveOrphanedLanguageServers: typeof checkOrphans;
+        };
       program = Effect.gen(function* () {
         holder.root = yield* Effect.currentSpan;
         return yield* checkOnWindows().pipe(
@@ -421,7 +429,7 @@ describe('languageServerOrphanHandler (Windows powershell guard)', () => {
             getServicesApi: Effect.succeed(
               makeApi([{ match: 'where powershell', result: { fail: 'powershell not found' } }])
             )
-          } as unknown as ExtensionProviderService)
+          } as unknown as ExtensionProviderServiceType)
         );
       }).pipe(Effect.withSpan('test-root')) as Effect.Effect<void>;
     });

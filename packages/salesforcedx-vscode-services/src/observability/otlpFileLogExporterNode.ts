@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 /* eslint-disable no-restricted-imports -- Node-only exporter, not used in web bundle */
-import { ExportResult, ExportResultCode } from '@opentelemetry/core';
+import { type ExportResult, ExportResultCode } from '@opentelemetry/core';
 import type { LogRecordExporter, ReadableLogRecord } from '@opentelemetry/sdk-logs';
 import { appendFileSync } from 'node:fs';
 import { getOtlpFilePath } from './otlpFileSpanExporterNode';

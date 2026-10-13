@@ -45,6 +45,39 @@ const byMetadataListing = Order.combine(
   Order.mapInput(Order.string, (value: PersistedMetadataListingObservation) => value.xmlName),
   Order.mapInput(Order.string, (value: PersistedMetadataListingObservation) => value.folder ?? '')
 );
+const hierarchyGenerationKey = (orgId: string, xmlName?: string): string => `${orgId}\0${xmlName ?? ''}`;
+
+const toPersistedInventory = (xmlName: string, value: TypeInventory): PersistedTypeInventory => ({
+  xmlName,
+  observedAt: value.observedAt,
+  complete: value.complete,
+  components: value.componentIdentityOrder.flatMap(identity =>
+    Option.match(HashMap.get(value.components, identity), {
+      onNone: () => [],
+      onSome: component =>
+        component.inOrg
+          ? [
+              {
+                fullName: isOrgMetadataComponentReference(component.reference)
+                  ? component.reference.fullName
+                  : component.name,
+                namespacePrefix: component.namespacePrefix,
+                manageableState: component.manageableState,
+                fileName: component.fileName,
+                lastModifiedByName: component.lastModifiedByName,
+                lastModifiedDate: component.lastModifiedDate
+              }
+            ]
+          : []
+    })
+  ),
+  folders: value.folderFullNameOrder.flatMap(fullName =>
+    Option.match(HashMap.get(value.folders, fullName), {
+      onNone: () => [],
+      onSome: folder => [folder]
+    })
+  )
+});
 
 export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatalogState', {
   accessors: true,
@@ -52,6 +85,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
   scoped: Effect.gen(function* () {
     const catalogStore = yield* OrgMetadataCatalogStore;
     const inventoryCache = yield* Ref.make<InventoryCache>(HashMap.empty());
+    const hierarchyGenerations = yield* Ref.make<HashMap.HashMap<string, number>>(HashMap.empty());
     const persistedInventoryCache = yield* Ref.make<PersistedInventoryCache>(HashMap.empty());
     const inventorySemaphores = yield* Ref.make<HashMap.HashMap<string, Effect.Semaphore>>(HashMap.empty());
     const remoteTrackingCache = yield* Ref.make<HashMap.HashMap<string, RemoteTrackingObservations>>(HashMap.empty());
@@ -97,33 +131,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
         (current, value, key) => {
           if (!key.startsWith(`${orgId}\0`)) return current;
           const xmlName = key.slice(orgId.length + 1);
-          const remoteComponents = value.componentIdentityOrder.flatMap(identity =>
-            Option.match(HashMap.get(value.components, identity), {
-              onNone: () => [],
-              onSome: component => (component.inOrg ? [component] : [])
-            })
-          );
-          return HashMap.set(current, xmlName, {
-            xmlName,
-            observedAt: value.observedAt,
-            complete: value.complete,
-            components: remoteComponents.map(component => ({
-              fullName: isOrgMetadataComponentReference(component.reference)
-                ? component.reference.fullName
-                : component.name,
-              namespacePrefix: component.namespacePrefix,
-              manageableState: component.manageableState,
-              fileName: component.fileName,
-              lastModifiedByName: component.lastModifiedByName,
-              lastModifiedDate: component.lastModifiedDate
-            })),
-            folders: value.folderFullNameOrder.flatMap(fullName =>
-              Option.match(HashMap.get(value.folders, fullName), {
-                onNone: () => [],
-                onSome: folder => [folder]
-              })
-            )
-          });
+          return HashMap.set(current, xmlName, toPersistedInventory(xmlName, value));
         }
       );
       const generation = yield* Ref.modify(persistedGenerations, generations => {
@@ -308,6 +316,26 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
     );
     const updateInventories = (update: (current: InventoryCache) => InventoryCache) =>
       Ref.update(inventoryCache, update);
+    const getHierarchyGeneration = Effect.fn('OrgCatalogState.getHierarchyGeneration')(
+      (orgId: string, xmlName?: string) =>
+        Ref.get(hierarchyGenerations).pipe(
+          Effect.map(generations =>
+            Option.getOrElse(HashMap.get(generations, hierarchyGenerationKey(orgId, xmlName)), () => 0)
+          )
+        )
+    );
+    const invalidateHierarchyGenerations = (orgId: string, xmlNames?: ReadonlySet<string>) =>
+      Ref.update(hierarchyGenerations, current => {
+        const keys = [
+          hierarchyGenerationKey(orgId),
+          ...(xmlNames ? [...xmlNames].map(xmlName => hierarchyGenerationKey(orgId, xmlName)) : [])
+        ];
+        return keys.reduce(
+          (generations, key) =>
+            HashMap.set(generations, key, Option.getOrElse(HashMap.get(generations, key), () => 0) + 1),
+          current
+        );
+      });
 
     const invalidateOrgInventories = Effect.fn('OrgCatalogState.invalidateOrgInventories')((orgId: string) =>
       Ref.get(inventorySemaphores).pipe(
@@ -321,6 +349,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
         Effect.flatMap(activeTypeSemaphores =>
           Effect.all(
             [
+              invalidateHierarchyGenerations(orgId),
               Ref.update(inventoryCache, current =>
                 HashMap.filter(current, (_value, key) => !key.startsWith(`${orgId}\0`))
               ),
@@ -335,6 +364,37 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
       )
     );
 
+    /** Rebuild workspace presence while retaining metadata already discovered from the org. */
+    const invalidateWorkspaceInventories = Effect.fn('OrgCatalogState.invalidateWorkspaceInventories')(
+      (orgId: string) =>
+        Ref.get(inventorySemaphores).pipe(
+          Effect.map(HashMap.toEntries),
+          Effect.map(entries =>
+            entries
+              .filter(([key]) => key.startsWith(`${orgId}\0`))
+              .toSorted(([left], [right]) => left.localeCompare(right))
+              .map(([, semaphore]) => semaphore)
+          ),
+          Effect.flatMap(activeTypeSemaphores =>
+            Effect.gen(function* () {
+              const loaded = yield* Ref.get(inventoryCache);
+              yield* Ref.update(persistedInventoryCache, current =>
+                HashMap.reduce(loaded, current, (preserved, value, key) => {
+                  if (!key.startsWith(`${orgId}\0`) || !value.complete) return preserved;
+                  const xmlName = key.slice(orgId.length + 1);
+                  return HashMap.set(preserved, key, toPersistedInventory(xmlName, value));
+                })
+              );
+              yield* invalidateHierarchyGenerations(orgId);
+              yield* Ref.update(inventoryCache, current =>
+                HashMap.filter(current, (_value, key) => !key.startsWith(`${orgId}\0`))
+              );
+              yield* Ref.update(workspaceTypeCache, current => HashMap.remove(current, orgId));
+            }).pipe(withInventorySemaphores(activeTypeSemaphores))
+          )
+        )
+    );
+
     const invalidateTypes = Effect.fn('OrgCatalogState.invalidateTypes')(function* (
       orgId: string,
       xmlNames: ReadonlySet<string>
@@ -344,6 +404,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
       );
       yield* Effect.all(
         [
+          invalidateHierarchyGenerations(orgId, xmlNames),
           Ref.update(inventoryCache, current =>
             HashMap.removeMany(
               current,
@@ -485,6 +546,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
     return {
       ensureHydrated,
       flushOrg,
+      getHierarchyGeneration,
       getInventory,
       getInventorySemaphore,
       getMetadataListing,
@@ -495,6 +557,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
       getTracking,
       getWorkspaceTypes,
       invalidateOrgInventories,
+      invalidateWorkspaceInventories,
       invalidateSObjects,
       invalidateTypes,
       persistOrg,

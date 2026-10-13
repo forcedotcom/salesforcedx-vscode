@@ -28,15 +28,15 @@ import * as Schema from 'effect/Schema';
 import * as Scope from 'effect/Scope';
 import { log } from 'node:console';
 import * as path from 'node:path';
-import { ExtensionContext, workspace } from 'vscode';
+import { type ExtensionContext, workspace } from 'vscode';
 import {
   LanguageClient,
-  LanguageClientOptions,
+  type LanguageClientOptions,
   RevealOutputChannelOn,
-  ServerOptions,
+  type ServerOptions,
   TransportKind
 } from 'vscode-languageclient/node';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import AuraLspStatusBarItem from './auraLspStatusBarItem';
 import { createAuraAppCommand } from './commands/createAuraApp';
 import { createAuraComponentCommand } from './commands/createAuraComponent';
@@ -192,7 +192,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lightnin
   const client = new LanguageClient('auraLanguageServer', nls.localize('client_name'), serverOptions, clientOptions);
   // Handle workspace/applyEdit by writing via workspace.fs (no IDE open); must register before start()
   client.onRequest(ApplyWorkspaceEditRequest.type, handleApplyEditWithFs);
-  console.log(`Server module path: ${serverModule}`);
+  yield* Effect.log(`Server module path: ${serverModule}`);
 
   // Create language status item to show indexing progress
   const statusBarItem = new AuraLspStatusBarItem();
@@ -210,13 +210,14 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lightnin
   yield* Effect.promise(async () => {
     try {
       await client.start();
-      console.log('Aura Language Server started successfully');
     } catch (error) {
       const errorMessage = `Failed to start Aura Language Server: ${String(error)}`;
       log(errorMessage);
       throw error;
     }
   });
+
+  yield* Effect.log('Aura Language Server started successfully');
 
   // Push the disposable to the context's subscriptions so that the
   // client can be deactivated on extension deactivation

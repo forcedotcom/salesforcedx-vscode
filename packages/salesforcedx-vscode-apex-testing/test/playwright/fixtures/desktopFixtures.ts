@@ -13,7 +13,6 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 const sharedExtensionDirs = [
-  'salesforcedx-vscode-core',
   'salesforcedx-vscode-org',
   'salesforcedx-vscode-metadata',
   'salesforcedx-vscode-apex-log',
@@ -56,7 +55,6 @@ export const logoutDesktopTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: LOGOUT_TEST_ORG_ALIAS,
   additionalExtensionDirs: [
-    'salesforcedx-vscode-core',
     'salesforcedx-vscode-org',
     'salesforcedx-vscode-metadata',
     'salesforcedx-vscode-apex-log',
@@ -73,7 +71,6 @@ export const logoutDesktopTest = createDesktopTest({
 export const noOrgDesktopTest = createDesktopTest({
   fixturesDir: __dirname,
   additionalExtensionDirs: [
-    'salesforcedx-vscode-core',
     'salesforcedx-vscode-metadata',
     'salesforcedx-vscode-apex-log',
     'salesforcedx-vscode-apex'
@@ -89,7 +86,6 @@ export const emptyWorkspaceDesktopTest = createDesktopTest({
   fixturesDir: __dirname,
   emptyWorkspace: true,
   additionalExtensionDirs: [
-    'salesforcedx-vscode-core',
     'salesforcedx-vscode-metadata',
     'salesforcedx-vscode-apex-log',
     'salesforcedx-vscode-apex'

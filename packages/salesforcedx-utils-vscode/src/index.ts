@@ -7,10 +7,7 @@
 
 export { ChannelService } from './commands/channelService';
 export { SFDX_CORE_CONFIGURATION_NAME } from './constants';
-export { type SalesforceVSCodeOrgApi } from './context/orgExtensionUtils';
 export { type OrgUserInfo } from './context/orgUserInfo';
 export { shapeFrom, type OrgShape } from './context/workspaceOrgShape';
 export { TelemetryService } from './services/telemetry';
 export { isInternalHost } from './telemetry/utils/isInternal';
-export { errorToString } from './helpers/errorUtils';
-export { updateUserIDOnTelemetryReporters as refreshAllExtensionReporters } from './helpers/telemetryUtils';

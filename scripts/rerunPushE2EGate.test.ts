@@ -253,6 +253,12 @@ const cases: readonly GateCase[] = [
     ghInvoked: false
   },
   {
+    name: 'actor dependabot[bot] passes',
+    env: { ...baseEnv, ACTOR: 'dependabot[bot]' },
+    decision: 'rerun',
+    ghInvoked: false
+  },
+  {
     name: 'pending membership skips',
     env: { ...baseEnv, ACTOR: 'octocat' },
     membership: 'pending',

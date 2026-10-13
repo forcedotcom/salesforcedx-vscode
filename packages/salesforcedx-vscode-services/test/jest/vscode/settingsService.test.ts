@@ -12,7 +12,7 @@ import { SettingsService } from '../../../src/vscode/settingsService';
 
 const FALLBACK_API_VERSION = '67.0';
 
-const mockGetConfiguration = (value: string | undefined): void => {
+const mockGetConfiguration = (value: unknown): void => {
   jest.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue({
     get: () => value,
     update: jest.fn()
@@ -24,6 +24,9 @@ const runGetApiVersion = (): Promise<string> =>
 
 const runGetAccessToken = () =>
   Effect.runPromise(SettingsService.getAccessToken().pipe(Effect.provide(SettingsService.Default)));
+
+const runGetSessionContext = () =>
+  Effect.runPromise(SettingsService.getSessionContext().pipe(Effect.provide(SettingsService.Default)));
 
 describe('SettingsService.getAccessToken', () => {
   it('returns the trimmed token as a redacted value', async () => {
@@ -50,6 +53,58 @@ describe('SettingsService.getApiVersion', () => {
   it('returns the configured value when set', async () => {
     mockGetConfiguration('63.0');
     expect(await runGetApiVersion()).toBe('63.0');
+  });
+});
+
+describe('SettingsService.getSessionContext', () => {
+  it('returns the configured session identity fields together', async () => {
+    mockGetConfiguration({
+      username: ' user@example.com ',
+      orgId: ' 00D000000000001 ',
+      userId: ' 005000000000001 ',
+      instanceName: 'utf8',
+      orgEdition: 'Enterprise Edition',
+      namespacePrefix: '',
+      isDevHub: true,
+      isScratch: false,
+      isSandbox: true
+    });
+
+    await expect(runGetSessionContext()).resolves.toEqual({
+      username: 'user@example.com',
+      orgId: '00D000000000001',
+      userId: '005000000000001',
+      instanceName: 'utf8',
+      orgEdition: 'Enterprise Edition',
+      namespacePrefix: '',
+      isDevHub: true,
+      isScratch: false,
+      isSandbox: true
+    });
+  });
+
+  it('omits missing and empty fields', async () => {
+    mockGetConfiguration({ username: 'user@example.com', orgId: '', userId: undefined, isScratch: false });
+
+    await expect(runGetSessionContext()).resolves.toEqual({
+      username: 'user@example.com',
+      isDevHub: false,
+      isScratch: false,
+      isSandbox: false
+    });
+  });
+
+  it('returns an empty object when the setting is absent or malformed', async () => {
+    mockGetConfiguration(undefined);
+    await expect(runGetSessionContext()).resolves.toEqual({ isDevHub: false, isScratch: false, isSandbox: false });
+
+    mockGetConfiguration({ username: 123, orgId: '00D000000000001', isDevHub: true, isSandbox: 'false' });
+    await expect(runGetSessionContext()).resolves.toEqual({
+      orgId: '00D000000000001',
+      isDevHub: true,
+      isScratch: false,
+      isSandbox: false
+    });
   });
 });
 

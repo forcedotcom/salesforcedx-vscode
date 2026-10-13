@@ -6,6 +6,7 @@
  */
 import { createTable, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Record from 'effect/Record';
 
 export const aliasListCommand = Effect.fn('aliasListCommand')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -13,7 +14,7 @@ export const aliasListCommand = Effect.fn('aliasListCommand')(function* () {
   const channelService = yield* api.services.ChannelService;
 
   const table = createTable(
-    Object.entries(aliases).map(([alias, username]) => ({ alias, username })),
+    Record.collect(aliases, (alias, username) => ({ alias, username })),
     [
       { key: 'alias', label: 'Alias' },
       { key: 'username', label: 'Username' }
