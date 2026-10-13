@@ -13,7 +13,7 @@ import * as Stream from 'effect/Stream';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
-import * as Scope from 'effect/Scope';
+import type * as Scope from 'effect/Scope';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { ConnectionService } from '../../../src/core/connectionService';
 import { getDefaultOrgRef, clearDefaultOrgRef } from '../../../src/core/defaultOrgRef';

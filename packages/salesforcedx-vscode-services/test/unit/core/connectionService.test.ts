@@ -28,13 +28,15 @@ import {
   updateDefaultOrgIdentity
 } from '../../../src/core/connectionService';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
-import { DefaultOrgInfoSchema } from '../../../src/core/schemas/defaultOrgInfo';
+import { type DefaultOrgInfoSchema } from '../../../src/core/schemas/defaultOrgInfo';
 import { OrgId } from '../../../src/core/schemas/salesforceId';
 import { preventOrgChanges } from '../../../src/core/targetOrgGuard';
-import { SettingsService } from '../../../src/vscode/settingsService';
+import { SettingsService, type WebSessionContext } from '../../../src/vscode/settingsService';
+import type * as salesforceCore from '@salesforce/core';
+import type * as childProcess from 'node:child_process';
 
 vi.mock('@salesforce/core', async () => ({
-  ...(await vi.importActual<typeof import('@salesforce/core')>('@salesforce/core')),
+  ...(await vi.importActual<typeof salesforceCore>('@salesforce/core')),
   AuthInfo: { create: vi.fn() },
   Connection: { create: vi.fn() }
 }));
@@ -42,7 +44,7 @@ vi.mock('@salesforce/core', async () => ({
 // getCliId runs `sf telemetry --json` once per process. Under a full suite that
 // exceeds the 5s test timeout before the default-org ref is published.
 vi.mock('node:child_process', async () => {
-  const actual = await vi.importActual<typeof import('node:child_process')>('node:child_process');
+  const actual = await vi.importActual<typeof childProcess>('node:child_process');
   const stdout = JSON.stringify({
     status: 0,
     result: { cliId: '11111111-1111-4111-8111-111111111111' }
@@ -802,7 +804,7 @@ describe('ConnectionService.getConnection (Web Console)', () => {
     const { ConnectionService: WebConnectionService } = await import('../../../src/core/connectionService.js');
     const { SettingsService: WebSettingsService } = await import('../../../src/vscode/settingsService.js');
     const accessToken = 'web-console-token';
-    let sessionContext: Partial<import('../../../src/vscode/settingsService.js').WebSessionContext> = {
+    let sessionContext: Partial<WebSessionContext> = {
       username: 'user@example.com',
       orgId: '00D000000000001',
       userId: '005000000000001',

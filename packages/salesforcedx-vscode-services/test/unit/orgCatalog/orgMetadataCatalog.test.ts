@@ -42,12 +42,17 @@ import {
 } from '../../../src/orgCatalog/orgMetadataCatalogStore';
 import { FileChangePubSub } from '../../../src/vscode/fileChangePubSub';
 import { WorkspaceService } from '../../../src/vscode/workspaceService';
+import type * as connectionService from '../../../src/core/connectionService';
+import type * as metadataDescribeService from '../../../src/core/metadataDescribeService';
+import type * as metadataRegistryService from '../../../src/core/metadataRegistryService';
+import type * as metadataRetrieveService from '../../../src/core/metadataRetrieveService';
+import type * as projectService from '../../../src/core/projectService';
+import type * as transmogrifierService from '../../../src/core/transmogrifierService';
+import type * as orgMetadataCatalogStore from '../../../src/orgCatalog/orgMetadataCatalogStore';
 
 // Keep production catalog/state/recorder composition. Infrastructure defaults read the test adapters from context.
 vi.mock('../../../src/core/connectionService', async () => {
-  const actual = await vi.importActual<typeof import('../../../src/core/connectionService')>(
-    '../../../src/core/connectionService'
-  );
+  const actual = await vi.importActual<typeof connectionService>('../../../src/core/connectionService');
   return {
     ...actual,
     ConnectionService: Object.defineProperty(actual.ConnectionService, 'Default', {
@@ -59,9 +64,7 @@ vi.mock('../../../src/core/connectionService', async () => {
   };
 });
 vi.mock('../../../src/core/metadataDescribeService', async () => {
-  const actual = await vi.importActual<typeof import('../../../src/core/metadataDescribeService')>(
-    '../../../src/core/metadataDescribeService'
-  );
+  const actual = await vi.importActual<typeof metadataDescribeService>('../../../src/core/metadataDescribeService');
   return {
     ...actual,
     MetadataDescribeService: Object.defineProperty(actual.MetadataDescribeService, 'Default', {
@@ -73,9 +76,7 @@ vi.mock('../../../src/core/metadataDescribeService', async () => {
   };
 });
 vi.mock('../../../src/core/metadataRegistryService', async () => {
-  const actual = await vi.importActual<typeof import('../../../src/core/metadataRegistryService')>(
-    '../../../src/core/metadataRegistryService'
-  );
+  const actual = await vi.importActual<typeof metadataRegistryService>('../../../src/core/metadataRegistryService');
   return {
     ...actual,
     MetadataRegistryService: Object.defineProperty(actual.MetadataRegistryService, 'Default', {
@@ -87,9 +88,7 @@ vi.mock('../../../src/core/metadataRegistryService', async () => {
   };
 });
 vi.mock('../../../src/core/metadataRetrieveService', async () => {
-  const actual = await vi.importActual<typeof import('../../../src/core/metadataRetrieveService')>(
-    '../../../src/core/metadataRetrieveService'
-  );
+  const actual = await vi.importActual<typeof metadataRetrieveService>('../../../src/core/metadataRetrieveService');
   return {
     ...actual,
     MetadataRetrieveService: Object.defineProperty(actual.MetadataRetrieveService, 'Default', {
@@ -101,9 +100,7 @@ vi.mock('../../../src/core/metadataRetrieveService', async () => {
   };
 });
 vi.mock('../../../src/core/projectService', async () => {
-  const actual = await vi.importActual<typeof import('../../../src/core/projectService')>(
-    '../../../src/core/projectService'
-  );
+  const actual = await vi.importActual<typeof projectService>('../../../src/core/projectService');
   return {
     ...actual,
     ProjectService: Object.defineProperty(actual.ProjectService, 'Default', {
@@ -112,9 +109,7 @@ vi.mock('../../../src/core/projectService', async () => {
   };
 });
 vi.mock('../../../src/core/transmogrifierService', async () => {
-  const actual = await vi.importActual<typeof import('../../../src/core/transmogrifierService')>(
-    '../../../src/core/transmogrifierService'
-  );
+  const actual = await vi.importActual<typeof transmogrifierService>('../../../src/core/transmogrifierService');
   return {
     ...actual,
     TransmogrifierService: Object.defineProperty(actual.TransmogrifierService, 'Default', {
@@ -126,7 +121,7 @@ vi.mock('../../../src/core/transmogrifierService', async () => {
   };
 });
 vi.mock('../../../src/orgCatalog/orgMetadataCatalogStore', async () => {
-  const actual = await vi.importActual<typeof import('../../../src/orgCatalog/orgMetadataCatalogStore')>(
+  const actual = await vi.importActual<typeof orgMetadataCatalogStore>(
     '../../../src/orgCatalog/orgMetadataCatalogStore'
   );
   return {

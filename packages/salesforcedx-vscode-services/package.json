@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.1.1",
+  "version": "68.1.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -187,7 +187,7 @@
       ]
     },
     "check:circular-deps": {
-      "command": "dpdm --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
+      "command": "dpdm --transform --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
       "dependencies": [
         "compile"
       ],

@@ -6,7 +6,7 @@
  */
 
 import type { MockInstance as VitestMockInstance } from 'vitest';
-import { fs, resetFs, setFs } from '@salesforce/core/fs';
+import { type fs, resetFs, setFs } from '@salesforce/core/fs';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import type * as Layer from 'effect/Layer';

@@ -8,7 +8,7 @@
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { URI } from 'vscode-uri';
-import { FsProvider } from '../../../src/virtualFsProvider/fsTypes';
+import { type FsProvider } from '../../../src/virtualFsProvider/fsTypes';
 import { projectFiles } from '../../../src/virtualFsProvider/projectInit';
 import { WorkspaceService } from '../../../src/vscode/workspaceService';
 
