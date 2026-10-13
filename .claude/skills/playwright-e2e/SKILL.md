@@ -129,6 +129,8 @@ See `docs/codeBuilderContainerParity.md` for coverage ledger (which packages hav
 
 **Orchestrator:** `scripts/codeBuilderLocalE2E.ts` discovers all packages with `test:container` scripts, spins up 1 container, swaps every built extension into it, runs all suites sequentially. Adding a container suite to a package auto-discovers it (no script edit needed).
 
+**Run in CI** (full 15-package matrix, not wired per-PR): see `references/running-codebuilder-e2e-in-ci.md` for dispatching `codeBuilderE2E.yml` — finding a compatible `runId`, testing a specific branch/commit/release candidate, checking results, and known gotchas.
+
 ## Disable/reenable other E2E when iterating
 
 To run only your new test in CI while iterating:
