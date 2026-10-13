@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  CancellationToken,
-  CodeLens,
-  CodeLensProvider,
+  type CancellationToken,
+  type CodeLens,
+  type CodeLensProvider,
   EventEmitter,
-  ExtensionContext,
+  type ExtensionContext,
   extensions,
   languages,
-  TextDocument,
+  type TextDocument,
   window
 } from 'vscode';
 
