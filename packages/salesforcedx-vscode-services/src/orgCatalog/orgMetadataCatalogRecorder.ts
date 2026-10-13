@@ -122,17 +122,19 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
         if (components.length === 0) return;
         yield* state.ensureHydrated(orgId);
         const observedAt = new Date().toISOString();
-        const documentUris = yield* Effect.forEach(
-          components.filter(component => !component.documentUri),
+        const componentsWithDocumentUris = yield* Effect.forEach(
+          components,
           component =>
-            documentUri({ orgId, xmlName: component.type, fullName: component.fullName }).pipe(
-              Effect.provideService(MetadataRegistryService, registry),
-              Effect.map(uri => [`${component.type}\0${component.fullName}`, uri] as const)
-            ),
+            component.documentUri
+              ? Effect.succeed({ component, documentUri: component.documentUri })
+              : documentUri({ orgId, xmlName: component.type, fullName: component.fullName }).pipe(
+                  Effect.provideService(MetadataRegistryService, registry),
+                  Effect.map(uri => ({ component, documentUri: uri }))
+                ),
           { concurrency: 'unbounded' }
-        ).pipe(Effect.map(HashMap.fromIterable));
+        );
         yield* state.updateInventories(current =>
-          components.reduce((inventories, component) => {
+          componentsWithDocumentUris.reduce((inventories, { component, documentUri: uri }) => {
             const reference = { xmlName: component.type, fullName: component.fullName };
             const key = typeCacheKey(orgId, component.type);
             const inventory = Option.getOrUndefined(HashMap.get(inventories, key));
@@ -148,10 +150,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
                   ? 'metadata-api+workspace'
                   : provenance,
               reference,
-              documentUri:
-                component.documentUri ??
-                Option.getOrUndefined(HashMap.get(documentUris, `${component.type}\0${component.fullName}`)) ??
-                previous!.documentUri,
+              documentUri: uri,
               name: previous?.name ?? component.fullName.split('/').at(-1) ?? component.fullName,
               kind: 'component',
               namespacePrefix: component.namespacePrefix ?? previous?.namespacePrefix,

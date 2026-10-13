@@ -227,18 +227,21 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
     change: OrgMetadataCatalogChange
   ) {
     yield* Effect.annotateCurrentSpan('changeKind', change.kind);
-    const invalidateCatalog = Effect.gen(function* () {
-      const activeOrgId = (yield* SubscriptionRef.get(defaultOrgRef)).orgId;
-      if (!activeOrgId) return;
-      yield* catalogState.ensureHydrated(activeOrgId);
-      yield* catalogState.invalidateOrgInventories(activeOrgId);
-      yield* catalogState.persistOrg(activeOrgId);
-    });
+    const invalidateCatalog = (workspaceOnly: boolean) =>
+      Effect.gen(function* () {
+        const activeOrgId = (yield* SubscriptionRef.get(defaultOrgRef)).orgId;
+        if (!activeOrgId) return;
+        yield* catalogState.ensureHydrated(activeOrgId);
+        yield* workspaceOnly
+          ? catalogState.invalidateWorkspaceInventories(activeOrgId)
+          : catalogState.invalidateOrgInventories(activeOrgId);
+        yield* catalogState.persistOrg(activeOrgId);
+      });
     yield* Match.value(change).pipe(
       Match.discriminators('kind')({
         workspace: workspaceChange =>
           Effect.annotateCurrentSpan('workspaceEventCount', workspaceChange.events.length).pipe(
-            Effect.andThen(invalidateCatalog)
+            Effect.andThen(invalidateCatalog(true))
           ),
         org: orgChange =>
           Effect.gen(function* () {
@@ -246,7 +249,7 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
             yield* closeInactiveOrgDocuments(orgChange.orgId).pipe(
               Effect.catchAll(error => Effect.logWarning('Unable to close inactive org metadata documents', error))
             );
-            if (orgChange.orgId !== undefined) yield* invalidateCatalog;
+            if (orgChange.orgId !== undefined) yield* invalidateCatalog(false);
           }),
         operation: () => Effect.void,
         tracking: () => Effect.void
