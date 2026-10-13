@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as vscode from 'vscode';
-import { commands, Disposable, ExtensionContext } from 'vscode';
+import { commands, Disposable, type ExtensionContext } from 'vscode';
 import {
   handleDidStartDebugSession,
   handleDidTerminateDebugSession,

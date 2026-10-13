@@ -6,10 +6,10 @@
  */
 import * as Effect from 'effect/Effect';
 import { isNumber, isString } from 'effect/Predicate';
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import { getRuntime } from '../../services/runtime';
 import { getLwcTestController } from '../testExplorer/lwcTestController';
-import { TestCaseInfo, TestExecutionInfo } from '../types';
+import { type TestCaseInfo, type TestExecutionInfo } from '../types';
 import { LWC_TEST_DEBUG_LOG_NAME } from '../types/constants';
 import { workspaceService } from '../workspace/workspaceService';
 
