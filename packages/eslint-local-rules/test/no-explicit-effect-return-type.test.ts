@@ -47,6 +47,31 @@ class Test {
       code: `import * as Effect from 'effect/Effect';
 const fn: () => Effect.Effect<number> = () => Effect.succeed(1);`,
       filename: 'packages/salesforcedx-vscode-services/src/test.ts'
+    },
+    {
+      code: `import * as Stream from 'effect/Stream';
+const fn = () => Stream.make(1);`,
+      filename: 'packages/salesforcedx-vscode-services/src/test.ts'
+    },
+    {
+      code: `import * as Stream from 'effect/Stream';
+const fn: () => Stream.Stream<number> = () => Stream.make(1);`,
+      filename: 'packages/salesforcedx-vscode-services/src/test.ts'
+    },
+    {
+      code: `import * as Stream from 'effect/Stream';
+const fn = (stream: Stream.Stream<number>) => stream;`,
+      filename: 'packages/salesforcedx-vscode-services/src/test.ts'
+    },
+    {
+      code: `import * as Sink from 'effect/Sink';
+const fn = (): Sink.Sink<void, unknown> => Sink.drain;`,
+      filename: 'packages/salesforcedx-vscode-services/src/test.ts'
+    },
+    {
+      code: `import * as Channel from 'effect/Channel';
+const fn = (): Channel.Channel<number> => Channel.succeed(1);`,
+      filename: 'packages/salesforcedx-vscode-services/src/test.ts'
     }
   ],
   invalid: [
@@ -137,6 +162,54 @@ const fn = () => Layer.empty;`,
           messageId: 'noExplicitEffectReturnType'
         }
       ]
+    },
+    {
+      code: `import * as Stream from 'effect/Stream';
+const fn = (): Stream.Stream<number, Error, never> => Stream.make(1);`,
+      output: `import * as Stream from 'effect/Stream';
+const fn = () => Stream.make(1);`,
+      filename: 'packages/salesforcedx-vscode-services/src/test.ts',
+      errors: [{ messageId: 'noExplicitEffectReturnType' }]
+    },
+    {
+      code: `import * as Stream from 'effect/Stream';
+function fn(): Stream.Stream<number> {
+  return Stream.make(1);
+}`,
+      output: `import * as Stream from 'effect/Stream';
+function fn() {
+  return Stream.make(1);
+}`,
+      filename: 'packages/salesforcedx-vscode-services/src/test.ts',
+      errors: [{ messageId: 'noExplicitEffectReturnType' }]
+    },
+    {
+      code: `import * as Stream from 'effect/Stream';
+class Test {
+  method(): Stream.Stream<number> {
+    return Stream.make(1);
+  }
+}`,
+      output: `import * as Stream from 'effect/Stream';
+class Test {
+  method() {
+    return Stream.make(1);
+  }
+}`,
+      filename: 'packages/salesforcedx-vscode-services/src/test.ts',
+      errors: [{ messageId: 'noExplicitEffectReturnType' }]
+    },
+    {
+      code: `import * as Stream from 'effect/Stream';
+const fn = function(): Stream.Stream<number> {
+  return Stream.make(1);
+};`,
+      output: `import * as Stream from 'effect/Stream';
+const fn = function() {
+  return Stream.make(1);
+};`,
+      filename: 'packages/salesforcedx-vscode-services/src/test.ts',
+      errors: [{ messageId: 'noExplicitEffectReturnType' }]
     }
   ]
 });

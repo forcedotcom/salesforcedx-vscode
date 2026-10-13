@@ -8,6 +8,7 @@
 import { expect } from '@playwright/test';
 import {
   clearOutputChannel,
+  createApexClass,
   EDITOR,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
@@ -34,6 +35,16 @@ const SOQL_CHANNEL = 'SOQL';
 // Unique per run so container's shared, persistent workbench never collides across specs or retries.
 const SOQL_FILE = `MySoqlQueryPlanFile${Date.now()}`;
 const SOQL_QUERY = 'SELECT Id, Name FROM Account LIMIT 10';
+const APEX_CLASS = 'SoqlQueryPlanSelection';
+// Bracketed inline SOQL sits alone on its line so a triple-click selects `[SELECT ...]` exactly;
+// the query only succeeds if the selection command strips the Apex brackets
+const APEX_CLASS_CONTENT = `public with sharing class ${APEX_CLASS} {
+  public static List<Account> getAccounts() {
+    return new List<Account>(
+      [${SOQL_QUERY}]
+    );
+  }
+}`;
 // executeQueryPlan calls vscChannel.show() in its finally block — the Output panel opens automatically.
 // Waiting for it directly avoids racing with ensureOutputPanelOpen.
 const OUTPUT_PANEL = '[id="workbench.panel.output"]';
@@ -120,19 +131,20 @@ test('SOQL Query Plan: code lens, current file, selected text via command palett
   });
 
   await test.step('get query plan with currently selected text via command palette', async () => {
-    const soqlTab = page.locator('[role="tab"]').filter({ hasText: `${SOQL_FILE}.soql` });
-    await soqlTab.click();
+    // The selection command is only offered in Apex files (.cls/.trigger/.apex), where inline SOQL lives
+    await createApexClass(page, APEX_CLASS, APEX_CLASS_CONTENT);
+    await saveScreenshot(page, 'step4.apex-class-created.png');
 
     await selectOutputChannel(page, SOQL_CHANNEL);
     await clearOutputChannel(page);
 
-    // Select the whole line in the editor via triple-click. This single gesture both focuses
+    // Select the query line in the editor via triple-click. This single gesture both focuses
     // Monaco and creates a real editor selection (setting `editorHasSelection` true). On web,
     // `click + Ctrl/Cmd+A` is unreliable because the synthetic click on `.view-line` doesn't
     // always forward focus to Monaco's hidden input textarea, so the shortcut lands on the
     // browser (DOM-level selection) instead.
-    const soqlEditor = page.locator(`${EDITOR}[data-uri$="${SOQL_FILE}.soql"]`);
-    await soqlEditor.locator('.view-line').first().click({ clickCount: 3 });
+    const apexEditor = page.locator(`${EDITOR}[data-uri$="${APEX_CLASS}.cls"]`);
+    await apexEditor.locator('.view-line').filter({ hasText: SOQL_QUERY }).click({ clickCount: 3 });
     // Sanity check: VS Code's status bar shows "(N selected)" only when the active editor has a
     // real, non-empty selection. If this never appears, the triple-click didn't reach Monaco and
     // the palette command would be hidden by `editorHasSelection`.
