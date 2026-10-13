@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { type DebugSession } from 'vscode';
 import { URI } from 'vscode-uri';
 import { createRecordingRuntimeMock, type RecordedSpan } from '../../testUtils/recordingTracer';
 
@@ -55,7 +56,7 @@ describe('lwcTestDebugAction routes through the controller', () => {
     workspaceService.setCurrentWorkspaceType('SFDX');
     const session = {
       configuration: { sfDebugSessionId: 'debug-session' }
-    } as unknown as import('vscode').DebugSession;
+    } as unknown as DebugSession;
 
     handleDidStartDebugSession(session);
     handleDidTerminateDebugSession(session);

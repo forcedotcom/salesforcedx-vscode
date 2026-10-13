@@ -1046,6 +1046,16 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-vscode-lwc (inline to avoid no-duplicate-imports; W-23371089)
+    files: ['packages/salesforcedx-vscode-lwc/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // consistent-type-imports for playwright-vscode-ext (inline to avoid no-duplicate-imports; W-23370906)
     files: ['packages/playwright-vscode-ext/**/*.ts'],
     rules: {
