@@ -15,7 +15,7 @@ import * as Runtime from 'effect/Runtime';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { detectConflictsFromTracking } from '../conflict/conflictDetection';
 import { getConflictStateRef } from '../conflict/conflictTreeProvider';
 import { conflictTreeProvider, ensureConflictView } from '../conflict/conflictView';
@@ -65,7 +65,7 @@ const deployQueuedFiles = Effect.fn('deployOnSave:deployQueuedFiles', {
     { concurrency: 'unbounded' }
   );
 
-  const ignoreConflicts = getIgnoreConflicts();
+  const ignoreConflicts = yield* getIgnoreConflicts();
   yield* channelService.appendToChannel(`Deploy on save triggered (ignoreConflicts: ${ignoreConflicts})`);
 
   const componentSet = yield* componentSetService

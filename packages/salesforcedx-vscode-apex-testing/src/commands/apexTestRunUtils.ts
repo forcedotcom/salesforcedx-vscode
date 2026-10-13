@@ -7,6 +7,8 @@
 import { AsyncTestConfiguration, HumanReporter, TestResult, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { isError } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { CancellationTokenSource } from 'vscode';
 import { URI } from 'vscode-uri';
@@ -49,9 +51,8 @@ export const resolveRunInputs = <E, R>(
   Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const settings = yield* api.services.SettingsService;
-    const codeCoverage =
-      (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'retrieve-test-code-coverage', false)) ?? false;
-    const concise = (yield* settings.getValue<boolean>(APEX_TESTING_SECTION, 'test-run-concise', false)) ?? false;
+    const codeCoverage = yield* settings.getValueOrElse(APEX_TESTING_SECTION, 'retrieve-test-code-coverage', false);
+    const concise = yield* settings.getValueOrElse(APEX_TESTING_SECTION, 'test-run-concise', false);
     const resolved = yield* Effect.all(
       {
         payload: api.services.ConnectionService.getConnection().pipe(
@@ -83,6 +84,21 @@ const appendTestOutput = Effect.fn('runApexTests.appendTestOutput')(function* (
   );
 });
 
+/** Span `status.message` is this `message` (cause chain). Nested `.cause` is stack only; keep the rejection there so the channel shows the innermost message. @ExportTaggedError */
+export class ApexTestRunError extends Schema.TaggedError<ApexTestRunError>()('ApexTestRunError', {
+  message: Schema.String,
+  cause: Schema.Unknown
+}) {}
+
+const rejectionMessages = (error: unknown): readonly string[] =>
+  isError(error)
+    ? [
+        error.message,
+        ...(isError(error.cause) ? rejectionMessages(error.cause) : []),
+        ...(error instanceof AggregateError ? error.errors.flatMap((nested: unknown) => rejectionMessages(nested)) : [])
+      ]
+    : [String(error)];
+
 /** Runs Apex tests and writes results. Returns the completed (or soft-failed) test result plus the
  * generated report's location/format for callers to wire into a success toast's "Open Report" action.
  * `result` is undefined when the run produced no usable result (timeout / no summary); `reportUri` is
@@ -103,9 +119,11 @@ export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTe
   const tokenSource = new CancellationTokenSource();
 
   // TODO: fix in apex-node W-18453221
-  const result = yield* Effect.tryPromise(() =>
-    testService.runTestAsynchronous(options.payload, options.codeCoverage, false, undefined, tokenSource.token)
-  ).pipe(
+  const result = yield* Effect.tryPromise({
+    try: () =>
+      testService.runTestAsynchronous(options.payload, options.codeCoverage, false, undefined, tokenSource.token),
+    catch: error => new ApexTestRunError({ message: rejectionMessages(error).join(': '), cause: error })
+  }).pipe(
     Effect.onInterrupt(() => Effect.sync(() => tokenSource.cancel())),
     Effect.ensuring(Effect.sync(() => tokenSource.dispose()))
   );
@@ -124,11 +142,16 @@ export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTe
 
   // Generate and open test report
   const settings = yield* api.services.SettingsService;
-  const outputFormat =
-    (yield* settings.getValue<'markdown' | 'text'>(APEX_TESTING_SECTION, 'outputFormat', 'markdown')) ?? 'markdown';
-  const sortOrder =
-    (yield* settings.getValue<'runtime' | 'coverage' | 'severity'>(APEX_TESTING_SECTION, 'testSortOrder', 'runtime')) ??
-    'runtime';
+  const outputFormat = yield* settings.getValueOrElse<'markdown' | 'text'>(
+    APEX_TESTING_SECTION,
+    'outputFormat',
+    'markdown'
+  );
+  const sortOrder = yield* settings.getValueOrElse<'runtime' | 'coverage' | 'severity'>(
+    APEX_TESTING_SECTION,
+    'testSortOrder',
+    'runtime'
+  );
   const channelService = yield* api.services.ChannelService;
   const reportUri = yield* writeAndOpenTestReport(
     result,

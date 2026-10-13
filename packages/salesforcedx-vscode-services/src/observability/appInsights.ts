@@ -8,6 +8,7 @@
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import { ExtensionMode, workspace } from 'vscode';
+import { SFDX_CORE_SECTION } from '../constants';
 import { getExtensionContext } from '../vscode/extensionContext';
 
 /** instrumentation key / connection string for test-otel-effect */
@@ -49,7 +50,7 @@ const isTelemetryExtensionConfigurationEnabled = (): boolean => {
     workspace.getConfiguration('telemetry').get<string>('telemetryLevel', 'all') !== 'off' &&
     // on the web, no core extension is ever installed so we can't consult the config
     (process.env.ESBUILD_PLATFORM === 'web' ||
-      workspace.getConfiguration('salesforcedx-vscode-core').get<boolean>('telemetry.enabled', false));
+      workspace.getConfiguration(SFDX_CORE_SECTION).get<boolean>('telemetry.enabled', false));
 
   if (!enabled) {
     return false;
@@ -59,7 +60,7 @@ const isTelemetryExtensionConfigurationEnabled = (): boolean => {
   // Can be overridden with salesforcedx-vscode-core.telemetry.allowDevMode setting
   const extensionMode = getExtensionMode();
   return isNotUndefined(extensionMode) && extensionMode !== ExtensionMode.Production
-    ? workspace.getConfiguration('salesforcedx-vscode-core').get<boolean>('telemetry.allowDevMode', false)
+    ? workspace.getConfiguration(SFDX_CORE_SECTION).get<boolean>('telemetry.allowDevMode', false)
     : true;
 };
 

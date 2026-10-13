@@ -21,8 +21,7 @@ import {
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
-  verifyCommandExists,
-  waitForQuickInputFirstOption
+  verifyCommandExists
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
@@ -83,7 +82,6 @@ test('Trace flag for another user: SOSL picker, verify in virtual doc, cleanup',
     const pickerInput = userPicker.locator('input.input');
     await pickerInput.click();
     await pickerInput.fill('Integration');
-    await waitForQuickInputFirstOption(page);
 
     const integrationUserRow = page
       .locator(QUICK_INPUT_LIST_ROW)
@@ -104,7 +102,8 @@ test('Trace flag for another user: SOSL picker, verify in virtual doc, cleanup',
 
   await test.step('cleanup: delete trace flag via Remove code lens', async () => {
     const traceFlagsTab = page.locator('.tab').filter({ hasText: /traceFlags\.json/ });
-    await traceFlagsTab.click({ force: true });
+    await expect(traceFlagsTab).toBeVisible({ timeout: 10_000 });
+    await traceFlagsTab.click();
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.click();
     await findInEditor(page, 'Integration User');

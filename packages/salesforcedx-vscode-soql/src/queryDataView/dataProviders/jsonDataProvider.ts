@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { JsonMap } from '@salesforce/ts-types';
+import type { JsonObject } from '../../json';
 import { DATA_JSON_EXT } from '../../constants';
-import { DataProvider } from './iDataProvider';
+import { type DataProvider } from './iDataProvider';
 
 export class JsonDataProvider implements DataProvider {
   public readonly fileExtension = DATA_JSON_EXT;
@@ -15,7 +15,7 @@ export class JsonDataProvider implements DataProvider {
   constructor(public readonly documentName: string) {}
 
   // eslint-disable-next-line class-methods-use-this
-  public getFileContent(query: string, data: JsonMap[]): string {
+  public getFileContent(query: string, data: JsonObject[]): string {
     const queryRecordsJson = JSON.stringify(data, null, 2);
     return queryRecordsJson;
   }

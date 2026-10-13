@@ -69,10 +69,11 @@ When the VSCode UI changes, you might have to update your e2e tests. And you mig
 
 ### Playwright selector gotchas
 
-- quick input: use `activeQuickInputTextField`, `activeQuickInputWidget`, `openCommandPalette`, `executeCommandWithCommandPalette` from `@salesforce/playwright-vscode-ext` — 1.116+ often fails `toBeVisible()` on `.quick-input-widget` while open; follow package attached waits + `force` fill/click, not visible-widget filtering
-- quick-pick rows: `waitForQuickInputFirstOption(page)` (ARIA options + Monaco list rows; attached-state waits)
+- quick input: `activeQuickInputTextField` / `activeQuickInputWidget` (visible-filtered; skips stale `display:none` widgets) + `openCommandPalette` / `executeCommandWithCommandPalette` from `@salesforce/playwright-vscode-ext`
+- `fill()` / `click()` already wait visible (+ editable for fill) — no pre-`toBeVisible`/`toBeEditable`; `waitForActiveQuickInputTextField` only before `page.keyboard.type` / `locator.press` (e.g. `openFileByName`)
+- quick-pick rows: `waitForQuickInputFirstOption(page)` (ARIA options + Monaco list rows)
 - accept first quick-pick option: `selectFirstQuickInputOption(page, { confirmCommitted?, commitTimeout? })` — unifies flaky `.click()` / Enter / `evaluate` click variants; commits via DOM `evaluate` click with optional Enter fallback when `confirmCommitted` predicate doesn't pass within `commitTimeout`
-- quick input text: fill `input.input`; avoid `keyboard.type` into ambiguous focus
+- quick input text: `fill` on `input.input`; avoid `keyboard.type` into ambiguous focus
 - editor content via keyboard: call `disableMonacoAutoClosing(page)` before `page.keyboard.type()` to prevent bracket/quote duplication; avoids clipboard (shared global resource + parallel worker races)
 - Problems view assertions: clear `Filter Problems` input before counting diagnostics
 - `expectProblemsCount*` helpers now clear Problems filter before assertion; use helpers over ad-hoc row counts

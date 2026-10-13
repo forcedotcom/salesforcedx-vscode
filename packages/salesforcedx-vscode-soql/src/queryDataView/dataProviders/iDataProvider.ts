@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { JsonMap } from '@salesforce/ts-types';
+import type { JsonObject } from '../../json';
 
 export type DataProvider = {
   fileExtension: string;
   documentName: string;
   getFileName(): string;
-  getFileContent(query: string, data: JsonMap[]): string;
+  getFileContent(query: string, data: JsonObject[]): string;
 };

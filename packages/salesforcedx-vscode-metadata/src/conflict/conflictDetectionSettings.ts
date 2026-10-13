@@ -5,8 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as vscode from 'vscode';
+import { EXTENSION_NAME } from '../constants';
 
 /**
  * Centralized helper to check if conflict detection should be enabled.
@@ -21,6 +22,10 @@ import * as vscode from 'vscode';
  * - After metadata operations
  */
 export const isConflictDetectionEnabled = Effect.fn('isConflictDetectionEnabled')(function* () {
-  const config = vscode.workspace.getConfiguration('salesforcedx-vscode-metadata');
-  return config.get<boolean>('sourceTracking.enableConflictDetection', true);
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* (yield* api.services.SettingsService).getValueOrElse(
+    EXTENSION_NAME,
+    'sourceTracking.enableConflictDetection',
+    true
+  );
 });

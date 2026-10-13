@@ -4,7 +4,7 @@ module.exports = {
     '.ts': 'ts-jest',
     'node_modules[\\\\/]@lwc[\\\\/].+\\.js$': ['babel-jest', { plugins: ['@babel/plugin-transform-modules-commonjs'] }]
   },
-  transformIgnorePatterns: ['node_modules[\\\\/](?!@lwc[\\\\/])'],
+  transformIgnorePatterns: ['node_modules[\\\\/](?!(?:\\.pnpm[\\\\/])?@lwc(?:\\+|[\\\\/]))'],
   testRegex: 'test/.*(\\.|/)(test|spec)\\.(ts|js)$',
   // Use regex patterns that match both forward slashes and backslashes for cross-platform compatibility
   testPathIgnorePatterns: ['[/\\\\]out[/\\\\]', '[/\\\\]lib[/\\\\]'],

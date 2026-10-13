@@ -28,7 +28,8 @@ import { orgIdFromConnection } from './schemas/authFields';
 import { FilePropertiesByFullName, FilePropertiesSchema } from './schemas/fileProperties';
 import { unknownToErrorCause } from './shared';
 
-const NON_SUPPORTED_TYPES = new Set(['InstalledPackage', 'Profile', 'Scontrol']);
+// These types are returned by describe but cannot be listed reliably through Metadata API list().
+const NON_SUPPORTED_TYPES = new Set(['ContentWorkspace', 'InstalledPackage', 'Profile', 'Scontrol']);
 /** Metadata types listed via a folder argument rather than a flat listMetadata call. */
 export const FOLDERED_METADATA_TYPES = new Set(['Dashboard', 'Document', 'EmailTemplate', 'Report']);
 
@@ -118,7 +119,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
     const performDescribe = Effect.fn('MetadataDescribeService.performDescribe')(function* (orgId: string) {
       yield* Effect.annotateCurrentSpan({ orgId });
       const conn = yield* getConnection(orgId);
-      const result = yield* Effect.tryPromise({
+      return yield* Effect.tryPromise({
         try: () => conn.metadata.describe(),
         catch: e => {
           const { cause } = unknownToErrorCause(e);
@@ -139,7 +140,6 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
           )
         )
       );
-      return result;
     });
 
     const performListSObjects = Effect.fn('MetadataDescribeService.performListSObjects')(function* (orgId: string) {

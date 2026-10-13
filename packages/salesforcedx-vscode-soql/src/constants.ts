@@ -31,4 +31,5 @@ export const DATA_JSON_EXT = 'json';
 
 /* ==== SOQL Extension ==== */
 export const SOQL_CONFIGURATION_NAME = 'salesforcedx-vscode-soql';
+export const SFDX_CORE_SECTION = 'salesforcedx-vscode-core';
 export const SOQL_VALIDATION_CONFIG = 'experimental.validateQueries';

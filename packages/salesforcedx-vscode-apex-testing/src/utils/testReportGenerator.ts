@@ -102,10 +102,16 @@ export const writeAndOpenTestReport = Effect.fn('writeAndOpenTestReport')(functi
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelSvc = yield* api.services.ChannelService;
   const settings = yield* api.services.SettingsService;
-  const performanceThresholdMs =
-    (yield* settings.getValue<number>(APEX_TESTING_SECTION, 'testPerformanceThresholdMs', 5000)) ?? 5000;
-  const coverageThresholdPercent =
-    (yield* settings.getValue<number>(APEX_TESTING_SECTION, 'testCoverageThresholdPercent', 75)) ?? 75;
+  const performanceThresholdMs = yield* settings.getValueOrElse(
+    APEX_TESTING_SECTION,
+    'testPerformanceThresholdMs',
+    5000
+  );
+  const coverageThresholdPercent = yield* settings.getValueOrElse(
+    APEX_TESTING_SECTION,
+    'testCoverageThresholdPercent',
+    75
+  );
 
   // Write directly to UTF-8 bytes (with LF newlines) without building a large intermediate string.
   const transformer = createReportTransformer(

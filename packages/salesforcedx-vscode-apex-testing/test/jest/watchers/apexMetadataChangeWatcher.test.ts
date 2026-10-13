@@ -47,10 +47,16 @@ const makeEvent = (
  * `forkScoped` ties the watcher fiber to the test's scope so it's interrupted on test exit.
  * `TestClock.adjust` runs actions scheduled on or before the adjusted time.
  */
-const setupHarness = Effect.fn('setupHarness')(function* (readFileResponses: Map<string, string> = new Map()) {
+const setupHarness = Effect.fn('setupHarness')(function* (
+  readFileResponses: Map<string, string> = new Map(),
+  discoveryRequested = true
+) {
   const pubsub = yield* PubSub.unbounded<MetadataOperationEventType>({ replay: 16 });
   const incrementalUpdate = jest.fn<Promise<void>, [Map<string, string>, boolean]>(() => Promise.resolve());
-  const testController = { incrementalUpdate } as unknown as Parameters<typeof setupApexMetadataChangeWatcher>[0];
+  const testController = {
+    incrementalUpdate,
+    isDiscoveryRequested: () => discoveryRequested
+  } as unknown as Parameters<typeof setupApexMetadataChangeWatcher>[0];
 
   const readFileFn = jest.fn((uri: unknown) => Effect.succeed(readFileResponses.get(String(uri)) ?? NON_TEST_CONTENT));
 
@@ -79,6 +85,17 @@ const runTest = <A>(effect: Effect.Effect<A, unknown, Scope.Scope>) =>
   Effect.runPromise(effect.pipe(Effect.scoped, Effect.provide(TestContext.TestContext)));
 
 describe('setupApexMetadataChangeWatcher', () => {
+  it('ignores metadata changes before discovery is requested', () =>
+    runTest(
+      Effect.gen(function* () {
+        const { pubsub, incrementalUpdate, readFileFn } = yield* setupHarness(new Map(), false);
+        yield* PubSub.publish(pubsub, makeEvent({ metadataType: 'ApexClass' }));
+        yield* advance;
+        expect(readFileFn).not.toHaveBeenCalled();
+        expect(incrementalUpdate).not.toHaveBeenCalled();
+      })
+    ));
+
   it('calls incrementalUpdate with changes map after debounce when an apex test event arrives', () =>
     runTest(
       Effect.gen(function* () {

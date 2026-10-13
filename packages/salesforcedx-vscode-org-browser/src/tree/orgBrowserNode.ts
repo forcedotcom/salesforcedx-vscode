@@ -27,6 +27,8 @@ type OrgBrowserTreeItemInputs = {
   componentName?: string;
   // The label to display in the tree
   label: string;
+  /** The node name searched by an unstructured Org Browser search. */
+  searchName?: string;
   /** Whether the file is present in the local workspace */
   filePresent?: boolean;
   /** Whether the component is present in the active org */
@@ -46,6 +48,7 @@ export class OrgBrowserTreeItem extends vscode.TreeItem {
   /** the name of the component that you could use to retrieve the node.  One of the [xmlName] */
   public readonly componentName?: string;
   public readonly namespace?: string;
+  public readonly searchName: string;
   public readonly filePresent?: boolean;
   public readonly orgPresent?: boolean;
 
@@ -55,6 +58,7 @@ export class OrgBrowserTreeItem extends vscode.TreeItem {
       inputs.kind === 'component' ? vscode.TreeItemCollapsibleState.None : vscode.TreeItemCollapsibleState.Collapsed
     );
     this.namespace = inputs.namespace;
+    this.searchName = inputs.searchName ?? inputs.label;
     this.kind = inputs.kind;
     this.xmlName = inputs.xmlName;
     this.folderName = inputs.folderName;

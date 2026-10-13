@@ -15,11 +15,6 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { orgDeleteDefaultCommand, orgDeleteUsernameCommand } from '../../../src/commands/orgDelete';
 import type { OrgToDelete } from '../../../src/parameterGatherers/selectDeletableOrg';
 
-jest.mock('../../../src/channels', () => ({
-  getOrgChannelService: () => ({ appendLine: jest.fn(), showChannelOutput: jest.fn() }),
-  setOrgChannel: jest.fn()
-}));
-
 const mockUpdateConfigAndStateAggregators = jest.fn<Promise<void>, []>();
 jest.mock('../../../src/util/orgUtil', () => ({
   updateConfigAndStateAggregators: () => mockUpdateConfigAndStateAggregators()

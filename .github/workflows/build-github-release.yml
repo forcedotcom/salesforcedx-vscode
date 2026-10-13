@@ -49,9 +49,10 @@ jobs:
           token: ${{ secrets.IDEE_GH_TOKEN }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+          install: 'false'
 
       - name: Detect source ref
         id: detect-tag
@@ -107,10 +108,14 @@ jobs:
           else
             # Priority 3: Auto-detect latest nightly published to marketplace as prerelease
             # The promote-to-prerelease workflow (nightly → marketplace prerelease) creates
-            # marketplace-prerelease-* tracking tags pointing to the Wednesday candidate commit
-            TRACKING_TAG=$(git tag -l 'marketplace-prerelease-*' --sort=-creatordate | head -1)
+            # marketplace-prerelease-* tracking tags pointing to the Wednesday candidate commit.
+            # A tracking tag's version doesn't always resolve to a real nightly tag -- e.g. a
+            # manual promote-to-prerelease dispatch against a non-nightly releaseTag still mints
+            # one. Walk tracking tags newest-first and use the first one that actually resolves,
+            # instead of hard-failing on the newest tag alone.
+            TRACKING_TAGS=$(git tag -l 'marketplace-prerelease-*' --sort=-creatordate)
 
-            if [ -z "$TRACKING_TAG" ]; then
+            if [ -z "$TRACKING_TAGS" ]; then
               echo "::error::No marketplace-prerelease tracking tags found"
               echo "::error::Expected pattern: marketplace-prerelease-salesforcedx-vscode-v{version}"
               echo "::error::"
@@ -119,28 +124,34 @@ jobs:
               exit 1
             fi
 
-            # Extract the nightly tag from the tracking tag
-            # Tracking tag format: marketplace-prerelease-salesforcedx-vscode-v{version}
-            # We need to find the nightly tag with matching version
-            VERSION=$(echo "$TRACKING_TAG" | grep -oP '\d+\.\d+\.\d+' | head -1)
+            TAG=""
+            while IFS= read -r TRACKING_TAG; do
+              # Tracking tag format: marketplace-prerelease-salesforcedx-vscode-v{version}
+              VERSION=$(echo "$TRACKING_TAG" | grep -oP '\d+\.\d+\.\d+' | head -1)
+              if [ -z "$VERSION" ]; then
+                echo "⏭️ Could not extract version from tracking tag: $TRACKING_TAG -- skipping"
+                continue
+              fi
 
-            if [ -z "$VERSION" ]; then
-              echo "::error::Could not extract version from tracking tag: $TRACKING_TAG"
-              exit 1
-            fi
+              CANDIDATE=$(git tag -l "v${VERSION}-nightly.develop.*" --sort=-v:refname | head -1)
+              if [ -n "$CANDIDATE" ]; then
+                TAG="$CANDIDATE"
+                echo "Auto-detected nightly published to marketplace as prerelease"
+                echo "Tracking tag: $TRACKING_TAG"
+                echo "Resolved to nightly tag: $TAG"
+                echo "This is the Wednesday candidate published to marketplace and tested by customers"
+                break
+              fi
 
-            # Find the nightly tag with this version
-            TAG=$(git tag -l "v${VERSION}-nightly.develop.*" --sort=-v:refname | head -1)
+              echo "⏭️ Tracking tag $TRACKING_TAG has no matching nightly tag (v${VERSION}-nightly.develop.*) -- skipping"
+            done <<< "$TRACKING_TAGS"
 
             if [ -z "$TAG" ]; then
-              echo "::error::No nightly tag found matching version $VERSION from tracking tag $TRACKING_TAG"
+              echo "::error::No marketplace-prerelease tracking tag resolved to a real nightly tag"
+              echo "::error::Checked: $(echo "$TRACKING_TAGS" | tr '\n' ' ')"
+              echo "::error::💡 TIP: Use startFromRef input to build from a specific tag/branch/commit"
               exit 1
             fi
-
-            echo "Auto-detected nightly published to marketplace as prerelease"
-            echo "Tracking tag: $TRACKING_TAG"
-            echo "Resolved to nightly tag: $TAG"
-            echo "This is the Wednesday candidate published to marketplace and tested by customers"
           fi
 
           echo "tag=$TAG" >> $GITHUB_OUTPUT
@@ -276,7 +287,7 @@ jobs:
         run: |
           # Commit the version changes to the isolated branch
           # This is a release-only commit that will NOT be merged to develop
-          git add packages/*/package.json package-lock.json
+          git add packages/*/package.json pnpm-lock.yaml
 
           git commit -m "chore: bump versions to ${RELEASE_VERSION} for stable release
 
@@ -320,8 +331,9 @@ jobs:
           echo "✓ Tag points to: $(git rev-parse $RELEASE_TAG)"
 
       - name: Install dependencies with updated versions
-        uses: salesforcecli/github-workflows/.github/actions/npmInstallWithRetries@main
-
+        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        with:
+          command: pnpm install --frozen-lockfile
       - name: Relabel this week's changelog for stable release
         # promote-to-prerelease.yml already generated and committed this week's
         # delta to develop (labeled with the prerelease version); pull that exact content
@@ -354,9 +366,9 @@ jobs:
           IS_EMERGENCY_PRERELEASE: ${{ steps.calculate-version.outputs.is_emergency_prerelease }}
         run: |
           if [ "$IS_EMERGENCY_PRERELEASE" = "true" ]; then
-            npm run vscode:package:prerelease
+            pnpm vscode:package:prerelease
           else
-            npm run vscode:package
+            pnpm vscode:package
           fi
 
       - name: Collect VSIXs
@@ -364,7 +376,7 @@ jobs:
 
       - name: Generate SHA256 checksums
         run: |
-          npm run vscode:sha256
+          pnpm vscode:sha256
           scripts/concatenate-sha256.js
           rm ./SHA256
 
@@ -439,9 +451,10 @@ jobs:
           token: ${{ secrets.IDEE_GH_TOKEN }}
 
       - name: Setup Node.js
-        uses: actions/setup-node@v7
+        uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+          install: 'false'
 
       - uses: ./.github/actions/gitConfig
         with:
@@ -481,7 +494,7 @@ jobs:
       - uses: ./.github/actions/commitAndPushToDevelop
         if: steps.guard.outputs.skip != 'true'
         with:
-          files: packages/*/package.json package-lock.json
+          files: packages/*/package.json pnpm-lock.yaml
           message: |
             chore: bump nightly minor to ${{ steps.next-odd.outputs.version }} after v${{ needs.build-release.outputs.release_version }} stable release [skip ci]
 

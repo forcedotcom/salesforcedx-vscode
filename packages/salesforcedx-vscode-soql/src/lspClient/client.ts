@@ -4,10 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionContext, workspace } from 'vscode';
+import * as Effect from 'effect/Effect';
+import { type ExtensionContext, workspace } from 'vscode';
 import type { BaseLanguageClient } from 'vscode-languageclient';
 import type { LanguageClient as BrowserLanguageClient } from 'vscode-languageclient/browser';
-import { LanguageClient, LanguageClientOptions, ServerOptions, TransportKind } from 'vscode-languageclient/node';
+import {
+  LanguageClient,
+  type LanguageClientOptions,
+  type ServerOptions,
+  TransportKind
+} from 'vscode-languageclient/node';
 import { Utils } from 'vscode-uri';
 import * as codeCompletion from './codeCompletion';
 import * as queryValidation from './queryValidation';
@@ -23,7 +29,7 @@ const buildClientOptions = (): LanguageClientOptions => ({
   middleware: codeCompletion.middleware
 });
 
-export const startLanguageClient = async (extensionContext: ExtensionContext): Promise<void> => {
+export const startLanguageClient = Effect.fn('startLanguageClient')(function* (extensionContext: ExtensionContext) {
   if (process.env.ESBUILD_PLATFORM === 'web') {
     // In the web bundle, esbuild aliases vscode-languageclient/node -> /browser, so LanguageClient
     // is the browser version at runtime. Cast to get the correct browser constructor signature.
@@ -47,8 +53,8 @@ export const startLanguageClient = async (extensionContext: ExtensionContext): P
   }
 
   client = queryValidation.init(client);
-  await client.start();
-  client = queryValidation.afterStart(client);
-};
+  yield* Effect.tryPromise(() => client.start());
+  yield* queryValidation.afterStart(client);
+});
 
 export const stopLanguageClient = (): Thenable<void> | undefined => client?.stop();

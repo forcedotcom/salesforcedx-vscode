@@ -20,7 +20,6 @@ tsconfig.json
 coverage
 esbuild.config.mjs
 jest.config.js
-junit-custom-unitTests.xml
 
 # do not reach outside the package
 ../../**

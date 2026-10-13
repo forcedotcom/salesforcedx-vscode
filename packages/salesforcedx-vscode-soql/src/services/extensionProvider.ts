@@ -10,6 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import type { ExtensionContext } from 'vscode';
+import { SOQL_CONFIGURATION_NAME } from '../constants';
 
 export const buildAllServicesLayer = (context: ExtensionContext) =>
   Layer.unwrapEffect(
@@ -17,7 +18,7 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
       Layer.mergeAll(
         buildSharedServicesLayer(context, 'SOQL'),
         api.services.NotificationModeService.Default(
-          'salesforcedx-vscode-soql',
+          SOQL_CONFIGURATION_NAME,
           'sf-soql-notifications',
           'Salesforce: SOQL Notifications'
         )

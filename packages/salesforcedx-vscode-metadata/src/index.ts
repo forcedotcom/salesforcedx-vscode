@@ -10,7 +10,7 @@ import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { analyticsGenerateTemplate } from './commands/analyticsGenerateTemplate';
 import { deleteSourcePathsCommand } from './commands/deleteSourcePath';
 import { deployManifestCommand } from './commands/deployManifest';
@@ -123,7 +123,12 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   );
 
   if (process.env.ESBUILD_PLATFORM === 'web') {
-    vscode.workspace.getConfiguration(CORE_CONFIG_SECTION).update(DEPLOY_ON_SAVE_ENABLED, true);
+    yield* api.services.SettingsService.setValue(
+      CORE_CONFIG_SECTION,
+      DEPLOY_ON_SAVE_ENABLED,
+      true,
+      vscode.ConfigurationTarget.Workspace
+    );
   }
   setConflictViewContext(context);
 

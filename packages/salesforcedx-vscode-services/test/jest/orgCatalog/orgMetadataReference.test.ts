@@ -14,26 +14,32 @@ import {
   isOrgMetadataComponentReference,
   ORG_METADATA_SCHEME,
   orgIdFromOrgMetadataUri,
-  OrgMetadataReferenceService
+  documentUris,
+  documentUri,
+  parseDocumentUri,
+  getTypeSuffix
 } from '../../../src/orgCatalog/orgMetadataReference';
 
 describe('org metadata document references', () => {
   const registryAccess = new RegistryAccess();
-  const referenceLayer = OrgMetadataReferenceService.DefaultWithoutDependencies.pipe(
-    Layer.provide(
-      Layer.succeed(MetadataRegistryService, {
-        getRegistryAccess: () => Effect.succeed(registryAccess)
-      } as unknown as InstanceType<typeof MetadataRegistryService>)
-    )
-  );
+  const getRegistryAccess = jest.fn(() => Effect.succeed(registryAccess));
+  beforeEach(() => getRegistryAccess.mockImplementation(() => Effect.succeed(registryAccess)));
+  const registryLayer = Layer.succeed(MetadataRegistryService, {
+    getRegistryAccess
+  } as unknown as InstanceType<typeof MetadataRegistryService>);
 
   const run = <A, E extends Error>(
-    body: (service: InstanceType<typeof OrgMetadataReferenceService>) => Effect.Effect<A, E>
+    body: (references: {
+      documentUri: typeof documentUri;
+      documentUris: typeof documentUris;
+      parseDocumentUri: typeof parseDocumentUri;
+      getTypeSuffix: typeof getTypeSuffix;
+    }) => Effect.Effect<A, E, MetadataRegistryService>
   ): A =>
     Effect.runSync(
-      OrgMetadataReferenceService.pipe(
-        Effect.flatMap(service => body(service).pipe(Effect.orDie)),
-        Effect.provide(referenceLayer)
+      body({ documentUri, documentUris, parseDocumentUri, getTypeSuffix }).pipe(
+        Effect.orDie,
+        Effect.provide(registryLayer)
       )
     );
 
@@ -53,6 +59,24 @@ describe('org metadata document references', () => {
       xmlName: 'ApexClass',
       fullName: 'namespace.MyTest'
     });
+  });
+
+  it('looks up each metadata type once when building a batch of document URIs', () => {
+    getRegistryAccess.mockClear();
+    const uris = run(service =>
+      service.documentUris([
+        { orgId: '00Dxx0000000001', xmlName: 'ApexClass', fullName: 'FirstTest' },
+        { orgId: '00Dxx0000000001', xmlName: 'Report', fullName: 'Public Reports/Pipeline' },
+        { orgId: '00Dxx0000000001', xmlName: 'ApexClass', fullName: 'namespace.SecondTest' }
+      ])
+    );
+
+    expect(uris.map(uri => uri.path)).toEqual([
+      '/orgs/00Dxx0000000001/ApexClass/FirstTest.cls',
+      '/orgs/00Dxx0000000001/Report/Public Reports/Pipeline.report',
+      '/orgs/00Dxx0000000001/ApexClass/namespace.SecondTest.cls'
+    ]);
+    expect(getRegistryAccess).toHaveBeenCalledTimes(2);
   });
 
   it('preserves foldered metadata names', () => {

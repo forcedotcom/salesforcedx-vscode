@@ -22,6 +22,7 @@ import { MetadataDescribeService } from './core/metadataDescribeService';
 import { MetadataRegistryService } from './core/metadataRegistryService';
 import { MetadataRetrieveService } from './core/metadataRetrieveService';
 import { ProjectService } from './core/projectService';
+import { QueryService } from './core/queryService';
 import { SourceTrackingService } from './core/sourceTrackingService';
 import { TemplateService } from './core/templateService';
 import { TraceFlagService } from './core/traceFlagService';
@@ -32,7 +33,6 @@ import { OrgCatalogState } from './orgCatalog/orgCatalogState';
 import { OrgMetadataCatalog } from './orgCatalog/orgMetadataCatalog';
 import { OrgMetadataCatalogChangePubSub } from './orgCatalog/orgMetadataCatalogChangePubSub';
 import { OrgMetadataCatalogStore } from './orgCatalog/orgMetadataCatalogStore';
-import { OrgMetadataReferenceService } from './orgCatalog/orgMetadataReference';
 import { TerminalService, TerminalServiceWebLive } from './terminal/terminalService';
 import { EditorService } from './vscode/editorService';
 import { ExtensionContextService } from './vscode/extensionContextService';
@@ -61,7 +61,7 @@ const terminalServiceLayer =
  * Global service Defaults (same for all extensions). Leaf module to avoid circular dependency
  * when deriving runtime type from `typeof globalLayers`.
  */
-export const globalLayers = Layer.mergeAll(
+const baseGlobalLayers = Layer.mergeAll(
   AliasService.Default,
   TemplateService.Default,
   ExtensionContextService.Default,
@@ -74,6 +74,7 @@ export const globalLayers = Layer.mergeAll(
   LightningComponentService.Default,
   ConfigService.Default,
   ConnectionService.Default,
+  QueryService.Default,
   EditorService.Default,
   FsService.Default,
   MediaService.Default,
@@ -84,7 +85,6 @@ export const globalLayers = Layer.mergeAll(
   OrgMetadataCatalogStore.Default,
   OrgCatalogDocuments.Default,
   OrgCatalogState.Default,
-  OrgMetadataReferenceService.Default,
   MetadataDeleteService.Default,
   MetadataDeployService.Default,
   PromptService.Default,
@@ -100,3 +100,5 @@ export const globalLayers = Layer.mergeAll(
   WorkspaceService.Default,
   redactingConsoleLoggerLayer
 );
+
+export const globalLayers = baseGlobalLayers;

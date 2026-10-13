@@ -7,15 +7,15 @@
 
 import {
   BaseWorkspaceContext,
-  Indexer,
+  type Indexer,
   AURA_EXTENSIONS,
   findLwcNamespaceRoots,
   Logger,
   normalizePath,
-  NormalizedPath
+  type NormalizedPath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';
-import { TextDocument } from 'vscode-languageserver-textdocument';
+import { type TextDocument } from 'vscode-languageserver-textdocument';
 
 /**
  * Holds information and utility methods for an Aura workspace

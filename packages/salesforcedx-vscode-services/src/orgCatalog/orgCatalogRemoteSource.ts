@@ -6,18 +6,27 @@
  */
 
 import type { OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry } from './orgMetadataCatalogTypes';
+import * as Arr from 'effect/Array';
+import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
-import { isNotUndefined } from 'effect/Predicate';
+import * as Option from 'effect/Option';
+import { isNotUndefined, isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { ConnectionService } from '../core/connectionService';
-import { unknownToErrorCause } from '../core/shared';
+import { MetadataDescribeService } from '../core/metadataDescribeService';
+import { MetadataRegistryService } from '../core/metadataRegistryService';
+import { MetadataRetrieveService } from '../core/metadataRetrieveService';
+import { ProjectService } from '../core/projectService';
+import { QueryService } from '../core/queryService';
 import { FsService } from '../vscode/fsService';
-import { OrgCatalogInventory } from './orgCatalogInventory';
+import { makeOrgCatalogInventory } from './orgCatalogInventory';
 import { OrgCatalogRemoteRetrieve } from './orgCatalogRemoteRetrieve';
+import { OrgCatalogState } from './orgCatalogState';
 import { OrgMetadataCatalogError } from './orgMetadataCatalogErrors';
-import { OrgMetadataReferenceService, type OrgMetadataComponentReference } from './orgMetadataReference';
+import { documentUri, type OrgMetadataComponentReference } from './orgMetadataReference';
 import { OrgMetadataShadowStore } from './orgMetadataShadowStore';
 
 const escapeSoql = (value: string): string => value.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
@@ -26,19 +35,23 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
   accessors: true,
   dependencies: [
     ConnectionService.Default,
+    QueryService.Default,
     FsService.Default,
-    OrgCatalogInventory.Default,
+    MetadataDescribeService.Default,
+    MetadataRegistryService.Default,
+    MetadataRetrieveService.Default,
+    ProjectService.Default,
+    OrgCatalogState.Default,
     OrgCatalogRemoteRetrieve.Default,
-    OrgMetadataReferenceService.Default,
     OrgMetadataShadowStore.Default
   ],
   effect: Effect.gen(function* () {
-    const [connectionService, fsService, inventories, remoteRetrieve, references, shadowStore] = yield* Effect.all([
-      ConnectionService,
+    const [queryService, fsService, inventories, remoteRetrieve, registry, shadowStore] = yield* Effect.all([
+      QueryService,
       FsService,
-      OrgCatalogInventory,
+      makeOrgCatalogInventory,
       OrgCatalogRemoteRetrieve,
-      OrgMetadataReferenceService,
+      MetadataRegistryService,
       OrgMetadataShadowStore
     ]);
 
@@ -55,25 +68,39 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
       orgId: string,
       reference: OrgMetadataComponentReference
     ) {
-      const connection = yield* connectionService.getConnectionForOrg(orgId);
       const nameParts = reference.fullName.split('.');
-      const className = nameParts.at(-1) ?? reference.fullName;
-      const namespace = nameParts.length > 1 ? nameParts.slice(0, -1).join('.') : undefined;
-      const namespaceFilter = namespace ? ` AND NamespacePrefix = '${escapeSoql(namespace)}'` : '';
-      const query = `SELECT Body, LastModifiedDate FROM ApexClass WHERE Name = '${escapeSoql(className)}'${namespaceFilter} LIMIT 1`;
-      const result = yield* Effect.tryPromise({
-        try: () => connection.tooling.query<{ Body?: string; LastModifiedDate?: string }>(query),
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new OrgMetadataCatalogError({
-            cause,
-            message: `Failed to retrieve Apex class '${reference.fullName}': ${cause.message}`,
-            reference
-          });
-        }
-      });
-      const record = result.records[0];
-      const body = yield* Effect.succeed(record?.Body).pipe(
+      const record = yield* queryService
+        .query(
+          {
+            soql: `SELECT Body, LastModifiedDate FROM ApexClass WHERE Name = '${escapeSoql(nameParts.at(-1) ?? reference.fullName)}'${
+              nameParts.length > 1 ? ` AND NamespacePrefix = '${escapeSoql(nameParts.slice(0, -1).join('.'))}'` : ''
+            } LIMIT 1`,
+            tooling: true,
+            orgId
+          },
+          Schema.Struct({
+            Body: Schema.optionalWith(Schema.String, { nullable: true }),
+            LastModifiedDate: Schema.optionalWith(Schema.String, { nullable: true })
+          })
+        )
+        .pipe(
+          Effect.flatMap(({ records }) => Stream.runCollect(records)),
+          Effect.map(Chunk.toReadonlyArray),
+          Effect.flatMap(rows =>
+            Option.match(Arr.head(rows), {
+              onNone: () =>
+                Effect.fail(
+                  new OrgMetadataCatalogError({
+                    cause: new Error('Apex class was not returned'),
+                    message: `Apex class '${reference.fullName}' has no readable source body`,
+                    reference
+                  })
+                ),
+              onSome: Effect.succeed
+            })
+          )
+        );
+      const body = yield* Effect.succeed(record.Body).pipe(
         Effect.filterOrFail(
           Schema.is(Schema.NonEmptyString),
           () =>
@@ -87,10 +114,10 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
       if (body.includes('(hidden)')) {
         return {
           content: `// Source code for managed class '${reference.fullName}' is protected.`,
-          lastModifiedDate: record?.LastModifiedDate
+          lastModifiedDate: record.LastModifiedDate
         };
       }
-      return { content: body, lastModifiedDate: record?.LastModifiedDate };
+      return { content: body, lastModifiedDate: record.LastModifiedDate };
     });
 
     const materializePrimaryDocument = Effect.fn('OrgCatalogRemoteSource.materializePrimaryDocument')(function* (
@@ -108,11 +135,17 @@ export class OrgCatalogRemoteSource extends Effect.Service<OrgCatalogRemoteSourc
       }
 
       const { content, lastModifiedDate } = yield* fetchApexClass(orgId, reference);
-      const shadowRevision = entry.lastModifiedDate ?? lastModifiedDate;
+      const shadowRevision = isString(entry.lastModifiedDate)
+        ? entry.lastModifiedDate
+        : isString(lastModifiedDate)
+          ? lastModifiedDate
+          : undefined;
       const { stagingUri } = yield* shadowStore.prepare(orgId, reference, shadowRevision);
       const primaryUri = Utils.joinPath(
         stagingUri,
-        Utils.basename(yield* references.documentUri({ orgId, ...reference }))
+        Utils.basename(
+          yield* documentUri({ orgId, ...reference }).pipe(Effect.provideService(MetadataRegistryService, registry))
+        )
       );
       return yield* fsService.safeWriteFile(primaryUri, content).pipe(
         Effect.flatMap(() =>

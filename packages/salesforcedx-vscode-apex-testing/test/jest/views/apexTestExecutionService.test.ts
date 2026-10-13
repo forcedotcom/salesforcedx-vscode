@@ -82,6 +82,8 @@ const mockApi = {
     // Yielded as an instance (yield* api.services.SettingsService), so wrap in Effect.succeed.
     SettingsService: Effect.succeed({
       getValue: (_section: string, key: string, defaultValue: unknown) =>
+        Effect.succeed(key in settingsValues ? settingsValues[key] : defaultValue),
+      getValueOrElse: (_section: string, key: string, defaultValue: unknown) =>
         Effect.succeed(key in settingsValues ? settingsValues[key] : defaultValue)
     }),
     // getConnection is a static accessor (api.services.ConnectionService.getConnection()); the returned

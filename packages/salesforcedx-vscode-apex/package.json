@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.19.1",
+  "version": "68.3.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,19 +28,20 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "*",
-    "@salesforce/effect-ext-utils": "*",
-    "@salesforce/salesforcedx-utils": "*",
-    "@salesforce/vscode-i18n": "*",
+    "@salesforce/apex-node": "workspace:*",
+    "@salesforce/effect-ext-utils": "workspace:*",
+    "@salesforce/salesforcedx-utils": "workspace:*",
+    "@salesforce/vscode-i18n": "workspace:*",
     "effect": "^3.21.2",
     "find-java-home": "1.2.2",
     "vscode-languageclient": "^9.0.1",
+    "vscode-languageserver-protocol": "^3.17.5",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^9.1.9",
-    "@salesforce/playwright-vscode-ext": "*",
-    "salesforcedx-vscode-services": "*"
+    "@salesforce/core": "^9.3.0",
+    "@salesforce/playwright-vscode-ext": "workspace:*",
+    "salesforcedx-vscode-services": "workspace:*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
@@ -61,7 +62,8 @@
     "test": "wireit",
     "test:compile": "wireit",
     "test:desktop": "wireit",
-    "test:desktop:debug": "npm run test:desktop -- --debug"
+    "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-apex test:desktop --debug",
+    "test:web": "wireit"
   },
   "wireit": {
     "compile": {
@@ -95,6 +97,26 @@
       "files": [
         "test/**/*.ts",
         "test/tsconfig.json"
+      ],
+      "output": []
+    },
+    "test:web": {
+      "command": "playwright test --config=test/playwright/playwright.config.web.ts",
+      "env": {
+        "PLAYWRIGHT_WORKERS": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "test:compile",
+        "../salesforcedx-vscode-services:vscode:bundle",
+        "../salesforcedx-vscode-services:spans:server",
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**/*.ts",
+        "package*.json",
+        "../../.github/**"
       ],
       "output": []
     },
@@ -198,7 +220,7 @@
       "output": []
     },
     "vscode:package": {
-      "command": "vsce package --allow-package-all-secrets",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies",
       "dependencies": [
         "vscode:bundle"
       ],
@@ -217,7 +239,7 @@
       ]
     },
     "vscode:package:prerelease": {
-      "command": "vsce package --allow-package-all-secrets --pre-release",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies --pre-release",
       "dependencies": [
         "vscode:bundle"
       ],

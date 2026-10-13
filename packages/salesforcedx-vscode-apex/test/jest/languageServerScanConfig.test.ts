@@ -5,11 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  InvalidServicesApiError,
-  ServicesExtensionNotFoundError,
-  type SalesforceVSCodeServicesApi
-} from '@salesforce/effect-ext-utils';
+import * as EffectExtUtils from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import {
@@ -18,10 +14,10 @@ import {
 } from 'salesforcedx-vscode-services/src/core/metadataRegistryService';
 import { buildMetadataRegistryScanConfig, deriveExcludedMetadataFolders } from '../../src/languageServerScanConfig';
 
-const mockGetServicesApi = jest.fn<Effect.Effect<SalesforceVSCodeServicesApi, unknown>, []>();
+const mockGetServicesApi = jest.fn<Effect.Effect<EffectExtUtils.SalesforceVSCodeServicesApi, unknown>, []>();
 
 jest.mock('@salesforce/effect-ext-utils', () => {
-  const actual = jest.requireActual<typeof import('@salesforce/effect-ext-utils')>('@salesforce/effect-ext-utils');
+  const actual = jest.requireActual<typeof EffectExtUtils>('@salesforce/effect-ext-utils');
   const EffectLib = jest.requireActual<typeof Effect>('effect/Effect');
   return {
     ...actual,
@@ -40,7 +36,7 @@ const useRegistryAccess = (registryAccess: Effect.Effect<unknown, unknown>): voi
         MetadataRegistryService,
         prebuiltServicesLayer: Layer.succeed(MetadataRegistryService, metadataRegistryService)
       }
-    } as unknown as SalesforceVSCodeServicesApi)
+    } as unknown as EffectExtUtils.SalesforceVSCodeServicesApi)
   );
 };
 
@@ -71,13 +67,13 @@ describe('languageServerScanConfig', () => {
     });
 
     it('returns undefined when the services API is unavailable', async () => {
-      mockGetServicesApi.mockReturnValue(Effect.fail(new ServicesExtensionNotFoundError()));
+      mockGetServicesApi.mockReturnValue(Effect.fail(new EffectExtUtils.ServicesExtensionNotFoundError()));
 
       await expect(buildMetadataRegistryScanConfig()).resolves.toBeUndefined();
     });
 
     it('propagates services API activation failure', async () => {
-      mockGetServicesApi.mockReturnValue(Effect.fail(new InvalidServicesApiError({})));
+      mockGetServicesApi.mockReturnValue(Effect.fail(new EffectExtUtils.InvalidServicesApiError({})));
 
       await expect(buildMetadataRegistryScanConfig()).rejects.toThrow();
     });

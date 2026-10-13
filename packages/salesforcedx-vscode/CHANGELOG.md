@@ -1,28 +1,17 @@
-# 67.17.16 - September 18, 2026
+# 68.1.1 - October 19, 2026
 
 ## Fixed
 
-#### docs
-
-- Execute CLI commands shell-free to prevent OS command injection - W-24161260 ([PR #8184](https://github.com/forcedotcom/salesforcedx-vscode/pull/8184))
-
 #### salesforcedx-vscode-apex
 
-- Execute CLI commands shell-free to prevent OS command injection - W-24161260 ([PR #8184](https://github.com/forcedotcom/salesforcedx-vscode/pull/8184))
+- We fixed a bug where Apex problems from the language server did not show **Apex Language Server** as the Source in the Problems panel. ([PR #8418](https://github.com/forcedotcom/salesforcedx-vscode/pull/8418))
 
-#### salesforcedx-vscode-apex-debugger
+## Changed
 
-- Execute CLI commands shell-free to prevent OS command injection - W-24161260 ([PR #8184](https://github.com/forcedotcom/salesforcedx-vscode/pull/8184))
+#### salesforcedx-vscode-core
 
-#### salesforcedx-vscode-metadata
-
-- Execute CLI commands shell-free to prevent OS command injection - W-24161260 ([PR #8184](https://github.com/forcedotcom/salesforcedx-vscode/pull/8184))
-
-#### salesforcedx-vscode-org
-
-- Execute CLI commands shell-free to prevent OS command injection - W-24161260 ([PR #8184](https://github.com/forcedotcom/salesforcedx-vscode/pull/8184))
+- The **Command Palette** no longer includes **SFDX: Open Documentation** (`sf.open.documentation`). ([PR #8382](https://github.com/forcedotcom/salesforcedx-vscode/pull/8382))
 
 #### salesforcedx-vscode-services
 
-- Execute CLI commands shell-free to prevent OS command injection - W-24161260 ([PR #8184](https://github.com/forcedotcom/salesforcedx-vscode/pull/8184))
-
+- The **Web Console** now uses host-provided session identity and org metadata from `salesforce-web-console.sessionContext` for authentication. ([PR #8395](https://github.com/forcedotcom/salesforcedx-vscode/pull/8395))

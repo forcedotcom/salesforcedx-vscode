@@ -14,7 +14,6 @@ lerna-debug.log*
 # test results
 test-results.xml
 xunit.xml
-junit-custom.xml
 path
 
 /test-results

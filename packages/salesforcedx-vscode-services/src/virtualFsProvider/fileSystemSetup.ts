@@ -11,7 +11,7 @@ import * as Effect from 'effect/Effect';
 import * as Schedule from 'effect/Schedule';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { sampleProjectName } from '../constants';
+import { CODE_BUILDER_WEB_SECTION, sampleProjectName } from '../constants';
 import { MetadataRegistryService } from '../core/metadataRegistryService';
 import { SettingsService } from '../vscode/settingsService';
 import { fsPrefix } from './constants';
@@ -75,7 +75,7 @@ export const fileSystemSetup = Effect.fn('fileSystemSetup')(function* (context: 
 
   const settingsService = yield* SettingsService;
 
-  if (yield* settingsService.getValue('salesforce-web-console', 'protectedOrg', false)) {
+  if (yield* settingsService.getValueOrElse(CODE_BUILDER_WEB_SECTION, 'protectedOrg', false)) {
     vscode.commands.executeCommand('setContext', 'sf:protectedOrg', true);
     const registryAccess = yield* MetadataRegistryService.getRegistryAccess();
     // protected org: make apex read only

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { MessageKey } from '../messages/i18n';
 import { ExtensionProviderService, LetterStartNameSchema } from '@salesforce/effect-ext-utils';
 import { hasFileNameCollision } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as Effect from 'effect/Effect';
@@ -19,6 +20,8 @@ export type PromptForAuraNameOptions = {
   readonly initialValue?: string;
   /** When set, validates against bundle-internal file-name collisions (rename flow). */
   readonly bundleFileNames?: readonly string[];
+  /** i18n key for the input-box prompt; defaults to the Aura component wording. */
+  readonly promptKey?: MessageKey;
 };
 
 export const promptForAuraName = Effect.fn('promptForAuraName')(function* (opts: PromptForAuraNameOptions = {}) {
@@ -27,7 +30,7 @@ export const promptForAuraName = Effect.fn('promptForAuraName')(function* (opts:
   return yield* Effect.promise(() =>
     vscode.window.showInputBox({
       value: opts.initialValue,
-      prompt: nls.localize('aura_component_name_prompt'),
+      prompt: nls.localize(opts.promptKey ?? 'aura_component_name_prompt'),
       validateInput: (value: string) => {
         const trimmed = value?.trim();
         if (!trimmed) return nls.localize('aura_component_name_empty_error');

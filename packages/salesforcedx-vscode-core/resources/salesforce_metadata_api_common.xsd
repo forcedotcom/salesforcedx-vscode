@@ -3,8 +3,8 @@
 Salesforce Metadata Types XSD - Generated from metadata documentation
 This file contains all metadata type definitions for hover documentation and IDE support.
 
-Generated on: 2026-09-20T13:11:42.343Z
-Total metadata types: 1604
+Generated on: 2026-09-27T13:14:11.662Z
+Total metadata types: 1607
 -->
 <xsd:schema
  xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -3479,78 +3479,12 @@ Total metadata types: 1604
  </xsd:complexType>
  <xsd:complexType name="AffinityScoreDefinition">
   <xsd:annotation>
-   <xsd:documentation>Represents the affinity information used in calculations to analyze and categorize contacts for marketing purposes.</xsd:documentation>
+   <xsd:documentation>AffinityScoreDefinition components have the suffix .affinityScoreDefinition and are stored in the affinityScoreDefinitions folder.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/fundraising_affinityscoredefinition_metadata_api.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="Metadata">
-    <xsd:choice maxOccurs="unbounded">
-     <xsd:element name="affinityScoreDefinitionDesc" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Description of the affinity score definition.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="affinityScoreDefinitionName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Name of the affinity score definition.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="affinityScoreType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Type of the affinity score that&apos;s defined. Valid values are CAP—Capacity, Ability, Propensity (CAP), or RFM—Recency, Frequency, Monetary (RFM). The default value is RFM.</xsd:documentation>
-       <xsd:appinfo>Type: AffinityScoreType (enumeration of type string)</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Label for this affinity score definition value. This display value is the internal label that doesn&apos;t get translated.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="numberOfMonths" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
-      <xsd:annotation>
-       <xsd:documentation>Number of months to analyze the records for calculating the affinity score.</xsd:documentation>
-       <xsd:appinfo>Type: int</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="numberOfRanges" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
-      <xsd:annotation>
-       <xsd:documentation>Required. Number of ranges to use in the calculation, ranging from 0 to 9. Provide the corresponding range list values in the scoreRangeList field.</xsd:documentation>
-       <xsd:appinfo>Type: int</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="scoreRangeList" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Required. Ranges that are referenced in the affinity score calculation. This field is used with scoreRangeList. For example, to calculate RFM with numberOfRanges value as 3, provide the values for the scoreRangeList field.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="sourceFieldApiNameList" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Required. API names of the source fields that are referenced in the score calculation.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="sourceObjectApiNameList" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>API names of the source objects that are referenced in the score calculation.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="targetFieldApiNameList" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Required. API names of the target fields where the calculated scores are added.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="targetObjectApiName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>API name of the target object where the calculated scores are added.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
+    <xsd:choice>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
     </xsd:choice>
    </xsd:extension>
@@ -4998,6 +4932,12 @@ Total metadata types: 1604
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="enableAiSentimentInDcrPref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether AI sentiment analysis is enabled for Data 360 reports (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="enableAmazonRedshiftOutputConnector" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the Amazon Redshift Output connector is enabled in Salesforce (true) or not (false). Available in API version 58.0 and later.</xsd:documentation>
@@ -5013,6 +4953,12 @@ Total metadata types: 1604
      <xsd:element name="enableAnalyticsSharingEnable" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the Analytics sharing is enabled in Salesforce (true) or not (false). Available in API version 48.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableAnalyzeInTableauNext" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Analyze in Tableau Next feature is enabled in Data 360 reports (true) or not (false). Available in API version 67.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -5040,6 +4986,12 @@ Total metadata types: 1604
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="enableCdpBetaConnectors" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether beta Data 360 connectors are enabled for Tableau Next (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="enableCioHistoryReportingPref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether CIO history reporting is enabled for Data 360 reports (true) or not (false). Available in API version 67.0 or later.</xsd:documentation>
@@ -5061,6 +5013,12 @@ Total metadata types: 1604
      <xsd:element name="enableCrmaSubsForExpCloud" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether CRM Analtyics subscriptions are available in Experience Cloud (true) or not (false). Available in API version 67.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableCrossCloudCsi" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether cross-cloud calculated insights (CSI) are enabled for Data 360 reports and Tableau Next (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -5130,9 +5088,21 @@ Total metadata types: 1604
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="enableEasySetupAI" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Easy Setup AI experience is enabled for Tableau Next (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="enableEmailReportsToPortalUsers" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether this org allows Classic reports and dashboards to be sent to Portal Users (true) or not (false). Available in API version 47.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableExploreInTableau" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Explore in Tableau feature is enabled for Salesforce analytics features (true) or not (false). Available in API version 60.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -5145,6 +5115,12 @@ Total metadata types: 1604
      <xsd:element name="enableFloatingReportHeaders" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether report results display floating headers when scrolling (true) or not (false). Available in API version 47.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableHeadlessBrowserServiceTOS" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the terms of service for the Analytics headless browser service are available in Salesforce (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -5178,9 +5154,21 @@ Total metadata types: 1604
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="enableLightningDashboardLWRPref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Lightning Web Runtime (LWR) is enabled for Lightning Experience dashboards (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="enableLightningReportBuilder" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the Lightning Report Builder feature can be enabled or disabled on the Setup page in Salesforce (true) or not (false). Available in API version 47.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableLightningReportLWRPref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Lightning Web Runtime (LWR) is enabled for Lightning Experience reports (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -5196,9 +5184,21 @@ Total metadata types: 1604
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="enableMDW" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the metadata warehouse (MDW) is enabled for semantic authoring in Salesforce Analytics (true) or not (false). Available in API version 64.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="enableMassEnableReportBuilder" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the Report Builder is available in Salesforce (true), overriding profile level settings, or not (false). Available in API version 47.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableNativeTableauLWC" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether native Tableau Lightning Web Components are enabled in Salesforce (true) or not (false). Available in API version 64.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -5232,7 +5232,7 @@ Total metadata types: 1604
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="enableOrgHaMobileOfflineEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+     <xsd:element name="enableOrgHasMobileOfflineEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether admins can enable mobile offline access in Salesforce (true) or not (false). Available in API version 51.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
@@ -5241,6 +5241,18 @@ Total metadata types: 1604
      <xsd:element name="enableOrgHasWatchlistEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether admins can turn on watchlists for assets in Salesforce (true) or not (false). Available in API version 50.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableOrgHierarchy" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the org hierarchy feature is enabled for Tableau Next (true) or not (false). Available in API version 67.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableOrgHierarchyInDcrPref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether org hierarchy is enabled for Data 360 reports (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -5253,6 +5265,12 @@ Total metadata types: 1604
      <xsd:element name="enablePowerInsights" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether admins can turn on Power Insights for this org (true) or not (false). Removed in API version 51.0.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enablePredictFunction" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the creating Predict Caluculated Fields is enabled for semantic authoring in Salesforce Analytics (true) or not (false). Available in API version 67.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -5271,6 +5289,12 @@ Total metadata types: 1604
      <xsd:element name="enableRecommendedReportTypePref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether recommended report types for Lightning Reports are available in Salesforce (true) or not (false). Available in API version 54.0 to 56.0. Removed in API version 57.0.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableRemoteHomeOrgOps" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether remote home org operations are enabled for the App Template Framework in Salesforce (true) or not (false). Available in API version 65.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -5340,6 +5364,12 @@ Total metadata types: 1604
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="enableReportRecordPreviewOrgPref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the report record preview feature is enabled for Data 360 reports (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="enableReportSubOrgEmailPref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the unique org email for Lightning Experience Report subscriptions is enabled (true) or not (false). Available in API version 61.0 and later.</xsd:documentation>
@@ -5349,6 +5379,18 @@ Total metadata types: 1604
      <xsd:element name="enableReportUniqueRowCountPref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the unique row count aggregate feature in Lightning Experience Reports is available in Salesforce (true) or not (false). Available in API version 47.0. Removed in API version 48.0.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableReportTypeSearchPref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether report type search is enabled for Data 360 reports (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableReportingOnSDMPref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether reporting on Data 360 semantic models (SDM) is enabled (true) or not (false). Available in API version 63.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -5394,6 +5436,18 @@ Total metadata types: 1604
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="enableSemanticAuthoringAI" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether semantic authoring AI is enabled for Salesforce Analytics (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableShowHighContrastChart" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether high-contrast charts are enabled for Tableau Next dashboards (true) or not (false). Available in API version 63.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="enableSnowflakeOutputConnector" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the Snowflake output data connector is available in Salesforce (true) or not (false). Available in API version 49.0 and later.</xsd:documentation>
@@ -5418,9 +5472,225 @@ Total metadata types: 1604
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="enableTNAppAutoInstall" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Tableau Next templated apps can be auto-installed in Salesforce (true) or not (false). Available in API version 67.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTNAppAutoUpdate" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Tableau Next templated apps are automatically updated in Salesforce (true) or not (false). Available in API version 67.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauAdoptionInsights" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Tableau Admin Adoption Insights is enabled (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauAgent" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Tableau Agent is enabled in Agentforce (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauAgentAnalyzeData" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the standard Tableau Agent Data Analysis topic and Analyze Data action are enabled in Agentforce (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauAgentBeacon" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Tableau Agent Beacon, which generates analytical insights that surface relevant business findings and recommendations proactively, is enabled in Agentforce (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauAgentCreateAlert" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the standard Tableau Agent Data Alert Management topic and Create Data Alert action are enabled in Agentforce (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauAgentDataExploration" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Tableau Agent Data Connection and Analytics Creation are enabled in Agentforce (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauAgentDataPro" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the standard Tableau Agent Semantic Model Curation topic and Create Calculated Field actions are enabled in Agentforce (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauAgentDescriptionGeneration" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Tableau Agent Description Generation action is enabled in Agentforce (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauAgenticTransforms" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Tableau Agent agentic transforms are enabled in Agentforce (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauAnalyticsFeedbackStreaming" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Tableau Agent analytics feedback streaming is enabled (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauAnalyticsInteractions" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Tableau Agent analytics interactions testing center is enabled (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauAnnotations" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Tableau annotations are enabled for Slack (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauAssetCompareUseLlm" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Tableau asset comparison API uses LLM-powered comparison (true) or the deterministic engine (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauAssetThumbnail" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Tableau Next asset thumbnails are enabled (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauAudit" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Tableau Next auditing is enabled (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauClientMonitor" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Tableau Next client monitor is enabled (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauConciergeV2" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Tableau Next Concierge V2 is enabled (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauEnhancedVisualizationAuthoring" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether beta features for Tableau Next visualization authoring are enabled (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauExternalDataExploration" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Tableau Next external data exploration is enabled (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauFollowing" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Tableau Next following feature is enabled (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauGenerateVisualization" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Tableau Agent generate visualization feature is enabled in Agentforce (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="enableTableauHyperOutputConnector" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the Tableau hyper output data connector is available in Salesforce (true) or not (false). Available in API version 51.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauMISummary" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Tableau Next metrics insights (MI) summary is enabled (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauMaps" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Tableau Next maps are enabled (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauPersonalOrg" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Tableau Next personal orgs are enabled (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauPersonalOrgSfSupport" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Salesforce support login as SysAmdin is enabled for Tableau Next personal orgs (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauPlatform" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Tableau Next platform is enabled (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauPrivateMarketplaceConsumeFlow" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Tableau Next marketplace is enabled (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauPrivateMarketplaceMetricConsumeFlow" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Tableau Next marketplace metric templates are enabled (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauPrivateMarketplaceTemplateBuilderFlow" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Tableau Next marketplace template builder is enabled (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauSdmAiOptimization" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Tableau semantic model (SDM) AI optimization is enabled (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauSeamlessAuth" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether Tableau Next configuration for token-based authentication is enabled (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauSlackApp" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Tableau Next Slack app is enabled (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauSlackCollab" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Tableau Next integration for Slack is enabled (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="enableTableauTemplateBldr" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether the Tableau Next template builder is enabled (true) or not (false). Available in API version 68.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -5442,6 +5712,12 @@ Total metadata types: 1604
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
+     <xsd:element name="enableWaveIframeDashboard" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether using legacy iframe embedding instead of LWC for CRM Analytics dashboards is enabled (true) or not (false). Available in API version 57.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
      <xsd:element name="enableWaveIndexMVDim" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether multivalve dimension indexing is enabled in Salesforce (true) or not (false). Available in API version 50.0 and later.</xsd:documentation>
@@ -5454,7 +5730,7 @@ Total metadata types: 1604
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="enableWaveMulticurrency" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+     <xsd:element name="enableWaveMultiCurrency" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether CRM Analytics multiple currencies is enabled (true) or not (false). Available in API version 56.0 and later. (Beta)</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
@@ -5522,7 +5798,7 @@ Total metadata types: 1604
      </xsd:element>
      <xsd:element name="incrementalUpsertEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether the incremental upsert operation is enabled for CRM Analytics recipe output nodes (true) or not (false). Available in API version 66.0 and later.</xsd:documentation>
+       <xsd:documentation>Indicates whether the incremental upsert operation is enabled for CRM Analytics recipe output nodes (true) or not (false). Available in API version 66.0. Removed in API version 68.0.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -5577,6 +5853,12 @@ Total metadata types: 1604
      <xsd:element name="recipePreCachingOptOut" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
        <xsd:documentation>Indicates whether the option to disable Data Prep recipe pre-step caching is available (true) or not (false). Available in API version 53.0 and later.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="recipeScheduleExportPref" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether exporting schedules for CRM Analytics recipes is enabled (true) or not (false). Available in API version 67.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -9544,7 +9826,7 @@ Total metadata types: 1604
      </xsd:element>
      <xsd:element name="enableCreditMemoSequenceService" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether to mandate the application of sequence policy for credit memos (true) or not (false). The default value is false.Available in API version 66.0 and later with Revenue Cloud Billing.</xsd:documentation>
+       <xsd:documentation>Indicates whether to mandate the application of sequence policy for credit memos (true) or not (false). The default value is false. Available in API version 66.0 and later with Revenue Cloud Billing.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -9604,13 +9886,13 @@ Total metadata types: 1604
      </xsd:element>
      <xsd:element name="enableTransactionJournalCreation" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether to create Transaction Journal records based on the defined general ledger account assignment rules for the billing entities when billing transaction records are created or updated (true) or not (false). The default value is false. Available in API version 63.0 and later with Revenue Cloud Billing. Billing transaction records include these transaction types. Invoice Invoice Line Invoice Line Tax Credit Memo Credit Memo Line Credit Memo Line Tax Payment Refund Payment Line Invoice Payment Line Invoice Line Credit Memo Inv Application Credit Memo Line Invoice Line</xsd:documentation>
+       <xsd:documentation>Indicates whether to create Transaction Journal records based on the defined general ledger account assignment rules for the billing entities when billing transaction records are created or updated ( true ) or not ( false ). The default value is false. Available in API version 63.0 and later with Revenue Cloud Billing. Billing transaction records include these transaction types.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="enableTransactionsApplicationToInvoices" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether to enable Credit Application Level setting (true) or not (false). The default value is false.</xsd:documentation>
+       <xsd:documentation>Indicates whether to enable Credit Application Level setting (true) or not (false). The default value is false. Revenue Cloud Advanced: This setting applies balances of credit memos to invoices or balances of credit memo lines to invoice lines. For the latter, amounts and balances on the invoices are rolled-up from the related invoice lines. Revenue Cloud Billing: This setting applies balances of credit memos and payments to invoices or balances of credit memo lines and payments lines to invoice lines. For the latter, amounts and balances on the invoices are rolled-up from the related invoice lines.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -23590,6 +23872,62 @@ Total metadata types: 1604
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="DataMaskPolicy">
+  <xsd:annotation>
+   <xsd:documentation>Represents a masking policy for use with Data Mask &amp; Seed. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_datamaskpolicy.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Optional. A description of the masking policy.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="label" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The master label for the masking policy.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="runFrequency" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
+      <xsd:annotation>
+       <xsd:documentation>Optional. The frequency at which the masking job runs. Valid values are: once, daily, weekly, and monthly. If a value is omitted, the policy has no scheduled run frequency and must be triggered manually from Setup or the Connect API.</xsd:documentation>
+       <xsd:appinfo>Type: enum</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="runOnRefresh" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Optional. Indicates whether the masking policy runs automatically when a sandbox is either created or refreshed (true) or doesn&apos;t run automatically (false). The default value is false.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="DataMaskSettings">
+  <xsd:annotation>
+   <xsd:documentation>Represents org-level setup (features and preferences) for use with Data Mask &amp; Seed. This type extends the Metadata metadata type and inherits its fullName field. In the package manifest, all the settings metadata types for the org are accessed using the &quot;Settings&quot; name. See Settings for more details.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_datamasksettings.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="enableDataMaskGPTEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Optional. Indicates whether the ability to use the Einstein tool to generate values for Data Mask &amp; Seed custom libraries is turned on (true) or turned off (false) for the admin/developer. The default value is false. To turn on the user&apos;s ability to use the Einstein tool, set this field to true.</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="DataObjectBuildOrgTemplate">
   <xsd:annotation>
    <xsd:documentation>Represents the derived object template used to define the structure and configuration of data objects in a build organization. The object templates are added inside the data kit to deploy metadata.</xsd:documentation>
@@ -34274,54 +34612,12 @@ Total metadata types: 1604
  </xsd:complexType>
  <xsd:complexType name="FieldMappingConfig">
   <xsd:annotation>
-   <xsd:documentation>Represents the configuration for fields mapped between a source object and one or more destination objects and fields. This object is available in API version 63.0 and later.</xsd:documentation>
+   <xsd:documentation>create(), delete(), describeSObjects(), query(), retrieve(), update(), upsert()</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/npc_fundraising_api_objects_fieldmappingconfig.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="Metadata">
-    <xsd:choice maxOccurs="unbounded">
-     <xsd:element name="Description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>The description of the field mapping configuration.</xsd:documentation>
-       <xsd:appinfo>Type: textarea</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="DeveloperName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>The unqiue name for FieldMappingConfig.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="Language" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>The language of the FieldMappingConfig. Possible values are: da—Danish de—German en_US—English es—Spanish es_MX—Spanish (Mexico) fi—Finnish fr—French it—Italian ja—Japanese ko—Korean nl_NL—Dutch no—Norwegian pt_BR—Portuguese (Brazil) ru—Russian sv—Swedish th—Thai zh_CN—Chinese (Simplified) zh_TW—Chinese (Traditional)</xsd:documentation>
-       <xsd:appinfo>Type: picklist</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="MasterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Label for the FieldMappingConfig.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="NamespacePrefix" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>The namespace prefix associated with this object. Each Developer Edition organization that creates a managed package has a unique namespace prefix. Limit: 15 characters. You can refer to a component in a managed package by using the namespacePrefix__componentName notation. The namespace prefix can have one of the following values: In Developer Edition organizations, the namespace prefix is set to the namespace prefix of the organization for all objects that support it. There is an exception if an object is in an installed managed package. In that case, the object has the namespace prefix of the installed managed package. This field’s value is the namespace prefix of the Developer Edition organization of the package developer. In organizations that are not Developer Edition organizations, NamespacePrefix is only set for objects that are part of an installed managed package. There is no namespace prefix for all other objects.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="ProcessType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Specifies the type of process that the field mapping configuration supports. Possible values are: ChangeRequest GiftEntry Incident Problem The default value is GiftEntry.</xsd:documentation>
-       <xsd:appinfo>Type: picklist</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="SourceObjectId" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>The ID of the source object for all of the fields mapped in the configuration. Possible values are: GiftEntry</xsd:documentation>
-       <xsd:appinfo>Type: picklist</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
+    <xsd:choice>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
     </xsd:choice>
    </xsd:extension>
@@ -45716,7 +46012,7 @@ Total metadata types: 1604
      </xsd:element>
      <xsd:element name="enableLoyaltyRulesVerifyCdpMemberSegment" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether the capability that allows: Loyalty program process rules to process transaction journals only when the loyalty program member is part of a Data Cloud segment associated with the rule&apos;s promotion is enabled (true) or disabled (false) for your org. The Promotion Eligibility component on Loyalty Program Member record page to categorize promotions based on whether the member belongs to the promotion’s campaign or Data Cloud segment is enabled (true) or disabled (false) for your org. The default value is false. This field is available in API version 55.0 or later.</xsd:documentation>
+       <xsd:documentation>The default value is false. This field is available in API version 55.0 or later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -48389,9 +48685,9 @@ Total metadata types: 1604
        <xsd:appinfo>Type: LightningDesignSystemVersion (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="isDarkModeEnabled_beta" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+     <xsd:element name="isDarkModeEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether individual users can enable dark mode (true) or not (false) for this LightningExperienceTheme. The default value is false. Available for custom SLDS 2 themes in select editions. See Salesforce Cosmos Theme and SLDS 2 Availability. Available in API version 65.0 and later.Dark mode is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer&apos;s sole discretion.</xsd:documentation>
+       <xsd:documentation>Indicates whether individual users can enable dark mode (true) or not (false) for this LightningExperienceTheme. The default value is false. Available for custom SLDS 2 themes in select editions. See Salesforce Cosmos Theme and SLDS 2 Availability. Available in API version 65.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -50582,7 +50878,7 @@ Total metadata types: 1604
      </xsd:element>
      <xsd:element name="state" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>The execution state that the ManagedSubscribe RPC call consumes. If state is set to RUN, the subscription starts when the ManagedSubscribe RPC call is made. Otherwise, the subscription doesn&apos;t start. If an administrator later changes state from RUN to STOP, the system notifies the Pub/Sub API client of the new state value and the subscription disconnects. Also, the stored Replay ID value that was committed previously is deleted. The next time the ManagedSubscribe RPC call is made after state is changed from STOP to RUN, the subscription starts from the defaultReplay value. The possible values for state are: RUN—(Default) The subscription is running and delivering new events to the Pub/Sub API client. STOP—The subscription is stopped. No events are delivered to the Pub/Sub API client during this state and the previously committed Replay ID is deleted. PAUSE—Reserved for internal use.</xsd:documentation>
+       <xsd:documentation>The execution state that the ManagedSubscribe RPC call consumes. If state is set to RUN, the subscription starts when the ManagedSubscribe RPC call is made. Otherwise, the subscription doesn&apos;t start. If an administrator later changes state from RUN to STOP, the system notifies the Pub/Sub API client of the new state value and the subscription disconnects. Also, the stored Replay ID value that was committed previously is deleted. The next time the ManagedSubscribe RPC call is made after state is changed from STOP to RUN, the subscription starts from the defaultReplay value. You must wait at least 5 minutes after changing the state to STOP before changing it back to RUN. The possible values for state are: RUN—(Default) The subscription is running and delivering new events to the Pub/Sub API client. STOP—The subscription is stopped. No events are delivered to the Pub/Sub API client during this state and the previously committed Replay ID is deleted. PAUSE—Reserved for internal use.</xsd:documentation>
        <xsd:appinfo>Type: EventSubscriptionAdminState (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -51529,18 +51825,12 @@ Total metadata types: 1604
  </xsd:complexType>
  <xsd:complexType name="MfgServiceConsoleSettings">
   <xsd:annotation>
-   <xsd:documentation>Represents the settings to access the Service Console for Manufacturing. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
+   <xsd:documentation>This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/mfg_mfgserviceconsolesettings_metadata_api.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="Metadata">
-    <xsd:choice maxOccurs="unbounded">
-     <xsd:element name="enableMfgServiceConsole" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
-      <xsd:annotation>
-       <xsd:documentation>Indicates whether Service Console for Manufacturing is enabled in your org (true) or not false).By default, Service Console for Manufacturing is disabled.</xsd:documentation>
-       <xsd:appinfo>Type: boolean</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
+    <xsd:choice>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
     </xsd:choice>
    </xsd:extension>
@@ -54694,84 +54984,12 @@ Total metadata types: 1604
  </xsd:complexType>
  <xsd:complexType name="ObjectHierarchyRelationship">
   <xsd:annotation>
-   <xsd:documentation>Represents an organization’s custom field mappings for sales agreement conversion. Fields can be mapped from Opportunity and Quotes to SalesAgreement and SalesAgreementProduct. Represents a set of inputObject, mappingFields, and outputObject entries. Represents a set of inputField and outputField entries.</xsd:documentation>
+   <xsd:documentation>ObjectHierarchyRelationship components have the suffix ObjectHierarchyRelationship.settings and are stored in the ObjectHierarchyRelationship folder.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/mfg_objecthierarchyrelationshipsettings_metadata_api.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="Metadata">
-    <xsd:choice maxOccurs="unbounded">
-     <xsd:element name="childObjectMapping" minOccurs="0" maxOccurs="unbounded" type="ObjectMapping">
-      <xsd:annotation>
-       <xsd:documentation>Set of inputObject, mappingFields, and outputObject entries. For example, fields from the input object of OpportunityLineItem maps to fields of the output object of SalesAgreementProduct.</xsd:documentation>
-       <xsd:appinfo>Type: ObjectMapping</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="childObjectMappingId" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>The ID of the child object mapping record. This field is available in API version 56.0 and later.</xsd:documentation>
-       <xsd:appinfo>Type: String</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="inputObjRecordsGrpFieldName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>The field name in the input object used to group the records. This field is available in API version 55.0 and later.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="mappingType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Specifies the type of relationship between two objects. This field is available in API version 55.0 and later.Valid values are: ChildToChild ParentToChild ParentToParent Support</xsd:documentation>
-       <xsd:appinfo>Type: ObjHierarchyMappingType (enumeration of type string)</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Label name of the mapping definition.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="outputPntRelationshipFieldName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>The field name that defines the relationship between a parent and child for the output object. This field is available in API version 55.0 and later.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="parentObjectMapping" minOccurs="0" maxOccurs="unbounded" type="ObjectMapping">
-      <xsd:annotation>
-       <xsd:documentation>Required. Set of inputObject, mappingFields, and outputObject entries. For example, fields from the input object of Opportunity maps to fields of the output object of SalesAgreement.</xsd:documentation>
-       <xsd:appinfo>Type: ObjectMapping</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="parentObjectMappingId" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>The ID of the parent object mapping record. This field is available in API version 56.0 and later.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="parentRecord" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>The parent record for this object hierarchy relationship. This field is available in API version 55.0 and later.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="parentRelationshipFieldName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Name of the field that defines the relationship between the parent and child.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="sourceReferenceRelaFieldName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>The field name in an object that&apos;s used to define the relationship between a source and reference object. This field is available in API version 56.0 and later.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="usageType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Required. Name of the usage type of an object hierarchy relationship.Valid value is: ConvertToSalesAgreement CLMFieldMapping EligibleProgramRebateType MapJournalToMemberAggregate TransformationMapping</xsd:documentation>
-       <xsd:appinfo>Type: MappingUsageType (enumeration of type string)</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
+    <xsd:choice>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
     </xsd:choice>
    </xsd:extension>
@@ -56301,7 +56519,7 @@ Total metadata types: 1604
      </xsd:element>
      <xsd:element name="orchestrationType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Required. Type of orchestration plan that this context mapping applies to. Valid values are: Billing Fulfillment Generic IntegrationOrchestrator InsuranceRuleAction OrderFulfillment StageManagement</xsd:documentation>
+       <xsd:documentation>Required. Type of orchestration plan that this context mapping applies to. Valid values are Billing, Fulfillment, Generic, IntegrationOrchestrator, InsuranceRuleAction, OrderFulfillment, or StageManagement.</xsd:documentation>
        <xsd:appinfo>Type: PlanUsageType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -59151,7 +59369,7 @@ Total metadata types: 1604
      </xsd:element>
      <xsd:element name="objectName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Name of the object that&apos;s associated with the pricing action. Valid values are: Case Contract Opportunity Order Quote SalesAgreement WorkOrder</xsd:documentation>
+       <xsd:documentation>Name of the object that&apos;s associated with the pricing action. Valid values are Case, Contract, Opportunity, Order, Quote, SalesAgreement, or WorkOrder.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -59200,13 +59418,13 @@ Total metadata types: 1604
      </xsd:element>
      <xsd:element name="outputType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Output type that&apos;s generated from a pricing element. Valid values are: AdjustmentType AdjustmentValue CustomOutput HashOutput UnitPrice</xsd:documentation>
+       <xsd:documentation>Output type that&apos;s generated from a pricing element. Valid values are AdjustmentType, AdjustmentValue, CustomOutput, HashOutput, or UnitPrice.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="pricingElementType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Type of pricing element, which is a derived field from PricingRecipeTableMapping.PricingComponentType.Valid values are: AssetDiscovery AttributeDiscount BundleDiscount DerivedPricing DiscountDistributionService ListPrice MinimumPrice PriceAdjustmentMatrix PriceRevision PromotionsDiscount RuleFetch VolumeDiscount VolumeTierDiscount</xsd:documentation>
+       <xsd:documentation>Type of pricing element, which is a derived field from PricingRecipeTableMapping.PricingComponentType. Valid values are AssetDiscovery, AttributeDiscount, BundleDiscount, DerivedPricing, DiscountDistributionService, ListPrice, MinimumPrice, PriceAdjustmentMatrix, PriceRevision, PromotionsDiscount, RuleFetch, VolumeDiscount, or VolumeTierDiscount.</xsd:documentation>
        <xsd:appinfo>Type: PricingElementType (enumeration of type string)</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -59249,13 +59467,13 @@ Total metadata types: 1604
      </xsd:element>
      <xsd:element name="isActive" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether the pricing recipe is active (true) or not (false).The default value is false</xsd:documentation>
+       <xsd:documentation>Indicates whether the pricing recipe is active (true) or not (false). The default value is false.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="isInternal" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether the price recipe record is created internally by the Salesforce platform (true) or not (false).The default value is false</xsd:documentation>
+       <xsd:documentation>Indicates whether the price recipe record is created internally by the Salesforce platform (true) or not (false). The default value is false.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -59286,14 +59504,14 @@ Total metadata types: 1604
     <xsd:choice maxOccurs="unbounded">
      <xsd:element name="isInternal" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether the price recipe field mapping record is created internally by the platform (true) or not (false).The default value is false.</xsd:documentation>
+       <xsd:documentation>Indicates whether the price recipe field mapping record is created internally by the platform (true) or not (false). The default value is false.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="lookupTable" minOccurs="0" maxOccurs="unbounded" type="DecisionTable">
+     <xsd:element name="lookupTable" minOccurs="0" maxOccurs="unbounded" type="xsd:anyType">
       <xsd:annotation>
        <xsd:documentation>Lookup table that&apos;s associated with either a decision matrix or decision table.</xsd:documentation>
-       <xsd:appinfo>Type: DecisionTable</xsd:appinfo>
+       <xsd:appinfo>Type: DecisionTable or DecisionMatrixDefinition</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:element name="lookupTableDeveloperName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
@@ -59304,7 +59522,7 @@ Total metadata types: 1604
      </xsd:element>
      <xsd:element name="pricingComponentType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
       <xsd:annotation>
-       <xsd:documentation>Pricing component field data that the decision table is built on. Valid values are: AttributeDiscount BundleDiscount DerivedPricing ListPrice PriceAdjustmentMatrix PromotionsDiscount VolumeDiscount VolumeTierDiscount DiscountDistributionService. This value is available in API version 60.0 and later. MinimumPrice. Available in API version 62.0 and later.</xsd:documentation>
+       <xsd:documentation>Pricing component field data that the decision table is built on. Valid values are AttributeDiscount; BundleDiscount; DerivedPricing; ListPrice; PriceAdjustmentMatrix; PromotionsDiscount; VolumeDiscount; VolumeTierDiscount; DiscountDistributionService. This value is available in API version 60.0 and later; or MinimumPrice. Available in API version 62.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -62320,195 +62538,12 @@ Total metadata types: 1604
  </xsd:complexType>
  <xsd:complexType name="RecordAggregationDefinition">
   <xsd:annotation>
-   <xsd:documentation>Represents a data aggregation from one object to another object to which it is connected by other objects in the data model.</xsd:documentation>
+   <xsd:documentation>RecordAggregationDefinition components have the suffix .RecordAggregationDefinition and are stored in the RecordAggregationDefinitions folder.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_recordaggregationdefinition.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="Metadata">
-    <xsd:choice maxOccurs="unbounded">
-     <xsd:element name="aggregateFromObject" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Required. API name of the object from which data is aggregated.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="aggregateToObject" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Required. API name of the object to which data is aggregated.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="aggregationType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Required. Type of the data aggregation. Valid value is: Record</xsd:documentation>
-       <xsd:appinfo>Type: RecordAggregationDefinitionAggregationType (enumeration of type string)</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="batchProcessingDefinition" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Data Processing Engine definition that aggregates data from one record to another.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="description" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Description for this record aggregation definition.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="displayName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Required. Name of the record aggregation definition that&apos;s displayed in the record page.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="onDemandProcDefinition" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Data Processing Engine definition that aggregates data from one record to another on demand. Available in API version 63.0 and later.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="recordAggregationObject" minOccurs="0" maxOccurs="unbounded" type="RecordAggregationObject">
-      <xsd:annotation>
-       <xsd:documentation>List of record aggregation objects in the record aggregation join sequence.</xsd:documentation>
-       <xsd:appinfo>Type: RecordAggregationObject[]</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="status" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Required. Status of this record aggregation definition. Values are: Active Draft Inactive</xsd:documentation>
-       <xsd:appinfo>Type: RecordAggregationDefinitionStatus (enumeration of type string)</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
-    </xsd:choice>
-   </xsd:extension>
-  </xsd:complexContent>
- </xsd:complexType>
- <xsd:complexType name="RecordAggregationJoinCondition">
-  <xsd:annotation>
-   <xsd:documentation>Represents a condition in a join between two record aggregation objects.</xsd:documentation>
-   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_recordaggregationdefinition.htm</xsd:appinfo>
-  </xsd:annotation>
-  <xsd:complexContent>
-   <xsd:extension base="Metadata">
-    <xsd:choice maxOccurs="unbounded">
-     <xsd:element name="joinField" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Required. API name of the field on the record aggregation object&apos;s associated object that is used in the join condition.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="navigationSequenceNumber" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
-      <xsd:annotation>
-       <xsd:documentation>Required. Sequence number corresponding to this join in the join sequence from the object to which the data is aggregated to the object that contains the data being aggregated.</xsd:documentation>
-       <xsd:appinfo>Type: int</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="relatedJoinField" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Required. API name of the field on the related record aggregation object&apos;s associated object that is used in the join condition.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="relatedRecordAggregationObject" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Required. Second record aggregation object in the join condition.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="type" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Required. Type of this record aggregation join in the join path from the object to which the data is aggregated to the object that contains the data being aggregated. Valid values are: AggregateFrom AggregateTo Intermediate</xsd:documentation>
-       <xsd:appinfo>Type: RecordAggregationJoinConditionType (enumeration of type string)</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
-    </xsd:choice>
-   </xsd:extension>
-  </xsd:complexContent>
- </xsd:complexType>
- <xsd:complexType name="RecordAggregationObject">
-  <xsd:annotation>
-   <xsd:documentation>Represents an object in the record aggregation join sequence.</xsd:documentation>
-   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_recordaggregationdefinition.htm</xsd:appinfo>
-  </xsd:annotation>
-  <xsd:complexContent>
-   <xsd:extension base="Metadata">
-    <xsd:choice maxOccurs="unbounded">
-     <xsd:element name="associatedObject" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Required. API name of the object associated with this record aggregation object.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="developerName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Developer name of the record aggregation object. May contain only underscores and alphanumeric characters and must be unique in your org. It must begin with a letter, not include spaces, not end with an underscore, and not contain two consecutive underscores.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="filterLogic" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Logical sequence in which the record aggregation object filters associated with this record aggregation object are applied to the associated object&apos;s records. If you define two or more record aggregation object filters, but don’t specify the sequence in which to apply the filters, the filters are applied by using a logical AND expression. Available in API version 60.0 and later.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Required. A user-friendly name for RecordAggregationDefinition, which is defined when the RecordAggregationDefinition is created.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="recordAggregationJoinCondition" minOccurs="0" maxOccurs="unbounded" type="RecordAggregationJoinCondition">
-      <xsd:annotation>
-       <xsd:documentation>List of join conditions that apply to this record aggregation object.</xsd:documentation>
-       <xsd:appinfo>Type: RecordAggregationJoinCondition[]</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="recordAggregationObjectFilter" minOccurs="0" maxOccurs="unbounded" type="RecordAggregationObjectFilter">
-      <xsd:annotation>
-       <xsd:documentation>List of filters that are applied to the records of this record aggregation object. Available in API version 60.0 and later.</xsd:documentation>
-       <xsd:appinfo>Type: RecordAggregationObjectFilter[]</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
-    </xsd:choice>
-   </xsd:extension>
-  </xsd:complexContent>
- </xsd:complexType>
- <xsd:complexType name="RecordAggregationObjectFilter">
-  <xsd:annotation>
-   <xsd:documentation>Represents a filter that is applied to the records of an object in the record aggregation join sequence. Available in API version 60.0 and later.</xsd:documentation>
-   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_recordaggregationdefinition.htm</xsd:appinfo>
-  </xsd:annotation>
-  <xsd:complexContent>
-   <xsd:extension base="Metadata">
-    <xsd:choice maxOccurs="unbounded">
-     <xsd:element name="associatedObjectField" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Required. API name of the associated object&apos;s field whose value is used to filter the object&apos;s records. The associated object is specified in the record aggregation object.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="operator" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Required. Operator used in the filter expression. Values are: Contains Equals GreaterThan GreaterThanOrEquals In LessThan LessThanOrEquals NotEquals NotIn</xsd:documentation>
-       <xsd:appinfo>Type: RecordAggregationObjectFilterOperator (enumeration of type string)</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="sequenceNumber" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
-      <xsd:annotation>
-       <xsd:documentation>Required. Sequence number of this record aggregation object filter.</xsd:documentation>
-       <xsd:appinfo>Type: int</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="value" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Required. Reference value with which the designated field&apos;s values are compared when the filter is applied on the associated object&apos;s records.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
+    <xsd:choice>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
     </xsd:choice>
    </xsd:extension>
@@ -65244,78 +65279,12 @@ Total metadata types: 1604
  </xsd:complexType>
  <xsd:complexType name="SalesAgreementSettings">
   <xsd:annotation>
-   <xsd:documentation>Represents settings that control the display of agreement terms metrics in sales agreements and the calculation of the actual quantity of products in sales agreements. These settings also control the approval of sales agreements. In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for more details.</xsd:documentation>
+   <xsd:documentation>In the package manifest, all organization settings metadata types are accessed using the Settings name. See Settings for more details.</xsd:documentation>
    <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/mfg_salesagreementsettings_metadata_api.htm</xsd:appinfo>
   </xsd:annotation>
   <xsd:complexContent>
    <xsd:extension base="Metadata">
-    <xsd:choice maxOccurs="unbounded">
-     <xsd:element name="actualsCalculationMode" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Required. Source from which the actual ordered quantity of a product in a sales agreement is calculated. Valid values are: DataProcessingEngine—Available in API version 63.0 and later. Manual: Default Orders OrdersThroughContracts</xsd:documentation>
-       <xsd:appinfo>Type: ActualsCalculationMode(enumeration of type string)</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="arePredfndStatusValOveride" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
-      <xsd:annotation>
-       <xsd:documentation>Indicates whether predefined status validations are overridden (true) or not (false) when the Override Predefined Status Validations feature is enabled. The default value is false. Available in API version 65.0 and later.</xsd:documentation>
-       <xsd:appinfo>Type: boolean</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="decimalScale" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
-      <xsd:annotation>
-       <xsd:documentation>Required. Number of decimal places applied to values in sales agreements. Available in API version 62.0 and later.</xsd:documentation>
-       <xsd:appinfo>Type: int</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="displayGroups" minOccurs="0" maxOccurs="unbounded" type="AdvAcctFrcstDisplayGroup">
-      <xsd:annotation>
-       <xsd:documentation>Represents information about the groups for the advanced account forecast set measures or dimensions. Available in API version 56.0 and later.</xsd:documentation>
-       <xsd:appinfo>Type: AdvAcctFrcstDisplayGroup</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="displayedAgreementTermsMetrics" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>Required. Metrics that are selected for display in the sales agreement terms in the specified sequence. There can be a maximum of 10 comma-separated metric names in this list.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="futureActCalcSchedules" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
-      <xsd:annotation>
-       <xsd:documentation>Required. Number of future schedules to include in actuals calculations in the sales agreement. Available in API version 63.0 and later.</xsd:documentation>
-       <xsd:appinfo>Type: int</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="measureDefinitions" minOccurs="0" maxOccurs="unbounded" type="AdvAcctForecastMeasureDef">
-      <xsd:annotation>
-       <xsd:documentation>Represents information about the measures to be displayed in the advanced account forecasts grid for the forecast set. Available in API version 56.0 and later.</xsd:documentation>
-       <xsd:appinfo>Type: AdvAcctForecastMeasureDef</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="objectMapping" minOccurs="0" maxOccurs="unbounded" type="ObjectMapping">
-      <xsd:annotation>
-       <xsd:documentation>Foreign key to ObjectMapping that maps fields from the input object of SalesAgreementSettings to fields in the output object of SalesAgreementSettings.</xsd:documentation>
-       <xsd:appinfo>Type: ObjectMapping</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="primaryNotifEmailAddress" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>The email address to which notifications are sent.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="renewalPeriodDayCount" minOccurs="0" maxOccurs="unbounded" type="xsd:int">
-      <xsd:annotation>
-       <xsd:documentation>The number of days before the end date of a sales agreement from when the agreement can be renewed. Available in API version 50.0 and later.</xsd:documentation>
-       <xsd:appinfo>Type: int</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
-     <xsd:element name="secondaryNotifEmailAddress" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
-      <xsd:annotation>
-       <xsd:documentation>The second email address to which notifications are sent.</xsd:documentation>
-       <xsd:appinfo>Type: string</xsd:appinfo>
-      </xsd:annotation>
-     </xsd:element>
+    <xsd:choice>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
     </xsd:choice>
    </xsd:extension>
@@ -65756,6 +65725,61 @@ Total metadata types: 1604
       <xsd:annotation>
        <xsd:documentation>Indicates whether custom settings values are returned in Salesforce Object Search language (SOSL) queries (true) or not (false). This field has a default value of false.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="ScndTelephPrvdOtbdDtl">
+  <xsd:annotation>
+   <xsd:documentation>Represents the outbound SIP routing configuration for a secondary telephony provider in Agentforce Contact Center BYOC. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_scndtelephprvdotbddtl.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="customHeader" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Specifies the custom SIP headers for outbound calls.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="fullName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The unique name of the ScndTelephPrvdOtbdDtl component. Inherited from the Metadata metadata type.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="hostConfig" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Specifies key-value pair of IP address and port, up to 5 per record.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="id" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Specifies the ID of the outbound detail for a secondary telephony provider.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The master label for the ScndTelephPrvdOtbdDtl.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="outboundAuthEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether outbound authentication is enabled (true) or not (false).</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="secondaryTelephonyProvider" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Specifies the associated secondary telephony provider for the outbound detail.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
@@ -66319,6 +66343,55 @@ Total metadata types: 1604
       <xsd:annotation>
        <xsd:documentation>Contains a list of search settings for each object.</xsd:documentation>
        <xsd:appinfo>Type: ObjectSearchSetting</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
+ <xsd:complexType name="SecondaryTelephonyProvider">
+  <xsd:annotation>
+   <xsd:documentation>Represents the SIP configuration for secondary telephony providers in Agentforce Contact Center BYOC. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_secondarytelephonyprovider.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="fullName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The unique name of the SecondaryTelephonyProvider component. Inherited from the Metadata metadata type.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="id" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Specifies the ID of the secondary telephony provider.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="inboundAuthEnabled" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+      <xsd:annotation>
+       <xsd:documentation>Indicates whether inbound authentication is enabled for the secondary telephony provider (true) or not (false).</xsd:documentation>
+       <xsd:appinfo>Type: boolean</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="inboundIpAllowlist" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Specifies the inbound IP allowlist of the secondary telephony provider.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The master label for the SecondaryTelephonyProvider.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="telephonyProvider" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Specifies the associated telephony provider for the secondary telephony provider.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
      <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
@@ -70799,6 +70872,61 @@ Total metadata types: 1604
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="TelephonyProvider">
+  <xsd:annotation>
+   <xsd:documentation>Represents a telephony provider configuration that an org uses with Bring Your Own Carrier (BYOC). This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_telephonyprovider.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="country" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Specifies the country of the telephony provider.</xsd:documentation>
+       <xsd:appinfo>Type: ByocCountryCode( enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="externalIdentifier" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Specifies the ID of the telephony provider.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="fullName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The unique name of the TelephonyProvider component. Inherited from the Metadata metadata type.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="id" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Specifies the ID of the TelephonyProvider record.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Specifies the label for the telephony provider.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="providerName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Specifies the name of the telephony provider.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="trunkType" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Specifies the trunk type of the telephony provider. Valid values are: Trusted Secondary</xsd:documentation>
+       <xsd:appinfo>Type: TrunkType( enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="Territory">
   <xsd:annotation>
    <xsd:documentation>Represents a territory.</xsd:documentation>
@@ -71848,6 +71976,49 @@ Total metadata types: 1604
    </xsd:extension>
   </xsd:complexContent>
  </xsd:complexType>
+ <xsd:complexType name="TrustedTelephonyProvider">
+  <xsd:annotation>
+   <xsd:documentation>Represents the trusted telephony carrier configuration for Agentforce Contact Center BYOC. This type extends the Metadata metadata type and inherits its fullName field.</xsd:documentation>
+   <xsd:appinfo>Documentation: https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_trustedtelephonyprovider.htm</xsd:appinfo>
+  </xsd:annotation>
+  <xsd:complexContent>
+   <xsd:extension base="Metadata">
+    <xsd:choice maxOccurs="unbounded">
+     <xsd:element name="fullName" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. The unique name of the TrustedTelephonyProvider component. Inherited from the Metadata metadata type.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="id" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Specifies the ID of the trusted telephony provider.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="masterLabel" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Specifies the master label of the trusted telephony provider.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="providerCarrier" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Required. Specifies the aggregator type associated with trusted telephony provider. Valid value: Bandwidth</xsd:documentation>
+       <xsd:appinfo>Type: ByocTrustedAggregator( enumeration of type string)</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:element name="telephonyProvider" minOccurs="0" maxOccurs="unbounded" type="xsd:string">
+      <xsd:annotation>
+       <xsd:documentation>Specifies the associated telephony provider for the trusted telephony provider.</xsd:documentation>
+       <xsd:appinfo>Type: string</xsd:appinfo>
+      </xsd:annotation>
+     </xsd:element>
+     <xsd:any minOccurs="0" maxOccurs="unbounded" processContents="lax"/>
+    </xsd:choice>
+   </xsd:extension>
+  </xsd:complexContent>
+ </xsd:complexType>
  <xsd:complexType name="UIBundle">
   <xsd:annotation>
    <xsd:documentation>Represents the UI of a Salesforce Multi-Framework app, such as a React app.</xsd:documentation>
@@ -72799,9 +72970,9 @@ Total metadata types: 1604
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
-     <xsd:element name="enableSldsV2DarkModeInCosmos_beta" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
+     <xsd:element name="enableSldsV2DarkModeInCosmos" minOccurs="0" maxOccurs="unbounded" type="xsd:boolean">
       <xsd:annotation>
-       <xsd:documentation>Indicates whether individual users can enable dark mode (true) or not (false) for the Salesforce Cosmos theme. The default value is false. Available for SLDS 2 themes in select editions. See Salesforce Cosmos Theme and SLDS 2 Availability. Available in API version 65.0 and later.Dark mode is a pilot or beta service that is subject to the Beta Services Terms at Agreements - Salesforce.com or a written Unified Pilot Agreement if executed by Customer, and applicable terms in the Product Terms Directory. Use of this pilot or beta service is at the Customer&apos;s sole discretion.</xsd:documentation>
+       <xsd:documentation>Indicates whether individual users can enable dark mode (true) or not (false) for the Salesforce Cosmos theme. The default value is false. Available for SLDS 2 themes in select editions. See Salesforce Cosmos Theme and SLDS 2 Availability. Available in API version 65.0 and later.</xsd:documentation>
        <xsd:appinfo>Type: boolean</xsd:appinfo>
       </xsd:annotation>
      </xsd:element>
@@ -76753,6 +76924,8 @@ Total metadata types: 1604
  <xsd:element name="DataImportManagementSettings" type="DataImportManagementSettings"/>
  <xsd:element name="DataKitObjectDependency" type="DataKitObjectDependency"/>
  <xsd:element name="DataKitObjectTemplate" type="DataKitObjectTemplate"/>
+ <xsd:element name="DataMaskPolicy" type="DataMaskPolicy"/>
+ <xsd:element name="DataMaskSettings" type="DataMaskSettings"/>
  <xsd:element name="DataObjectBuildOrgTemplate" type="DataObjectBuildOrgTemplate"/>
  <xsd:element name="DataObjectSearchIndexConf" type="DataObjectSearchIndexConf"/>
  <xsd:element name="DataPackageKitDefinition" type="DataPackageKitDefinition"/>
@@ -77573,9 +77746,6 @@ Total metadata types: 1604
  <xsd:element name="RecordActionRecommendation" type="RecordActionRecommendation"/>
  <xsd:element name="RecordActionSelectableItem" type="RecordActionSelectableItem"/>
  <xsd:element name="RecordAggregationDefinition" type="RecordAggregationDefinition"/>
- <xsd:element name="RecordAggregationJoinCondition" type="RecordAggregationJoinCondition"/>
- <xsd:element name="RecordAggregationObject" type="RecordAggregationObject"/>
- <xsd:element name="RecordAggregationObjectFilter" type="RecordAggregationObjectFilter"/>
  <xsd:element name="RecordAlertCategory" type="RecordAlertCategory"/>
  <xsd:element name="RecordAlertCategoryTranslation" type="RecordAlertCategoryTranslation"/>
  <xsd:element name="RecordAlertTemplateTranslation" type="RecordAlertTemplateTranslation"/>
@@ -77657,6 +77827,7 @@ Total metadata types: 1604
  <xsd:element name="SchedulingRule" type="SchedulingRule"/>
  <xsd:element name="SchedulingRuleParameter" type="SchedulingRuleParameter"/>
  <xsd:element name="SchemaSettings" type="SchemaSettings"/>
+ <xsd:element name="ScndTelephPrvdOtbdDtl" type="ScndTelephPrvdOtbdDtl"/>
  <xsd:element name="Scontrol" type="Scontrol"/>
  <xsd:element name="ScontrolTranslation" type="ScontrolTranslation"/>
  <xsd:element name="SearchCustomization" type="SearchCustomization"/>
@@ -77669,6 +77840,7 @@ Total metadata types: 1604
  <xsd:element name="SearchOrgWideObjectConfig" type="SearchOrgWideObjectConfig"/>
  <xsd:element name="SearchSettings" type="SearchSettings"/>
  <xsd:element name="SearchSettingsByObject" type="SearchSettingsByObject"/>
+ <xsd:element name="SecondaryTelephonyProvider" type="SecondaryTelephonyProvider"/>
  <xsd:element name="SecuritySettings" type="SecuritySettings"/>
  <xsd:element name="ServiceAISetupDefinition" type="ServiceAISetupDefinition"/>
  <xsd:element name="ServiceAISetupField" type="ServiceAISetupField"/>
@@ -77770,6 +77942,7 @@ Total metadata types: 1604
  <xsd:element name="TagProperty" type="TagProperty"/>
  <xsd:element name="TagSet" type="TagSet"/>
  <xsd:element name="Targets" type="Targets"/>
+ <xsd:element name="TelephonyProvider" type="TelephonyProvider"/>
  <xsd:element name="Territory" type="Territory"/>
  <xsd:element name="Territory2" type="Territory2"/>
  <xsd:element name="Territory2AccessLevel" type="Territory2AccessLevel"/>
@@ -77793,6 +77966,7 @@ Total metadata types: 1604
  <xsd:element name="TransactionSecurityPolicy" type="TransactionSecurityPolicy"/>
  <xsd:element name="Translations" type="Translations"/>
  <xsd:element name="TrialOrgSettings" type="TrialOrgSettings"/>
+ <xsd:element name="TrustedTelephonyProvider" type="TrustedTelephonyProvider"/>
  <xsd:element name="UIBundle" type="UIBundle"/>
  <xsd:element name="UIObjectRelationConfig" type="UIObjectRelationConfig"/>
  <xsd:element name="UIObjectRelationFieldConfig" type="UIObjectRelationFieldConfig"/>

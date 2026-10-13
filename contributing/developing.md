@@ -2,9 +2,9 @@
 
 ## Pre-requisites
 
-1.  Require Node LTS (with fallback to vars.NODE_VERSION) and npm v10+. To work with multiple Node versions, consider [nvm](https://github.com/creationix/nvm).
-1.  This repository uses [npm workspaces](https://docs.npmjs.com/cli/using-npm/workspaces) and [wireit](https://github.com/google/wireit) to manage it as a _monorepo_.
-1.  We use `eslint` so please install it using `npm install --global eslint`.
+1.  Require Node LTS (with fallback to vars.NODE_VERSION) and [pnpm](https://pnpm.io/) via the root `packageManager` field (Corepack: `corepack enable`). To work with multiple Node versions, consider [nvm](https://github.com/creationix/nvm).
+1.  This repository uses [pnpm workspaces](../docs/adr/0022-pnpm-cutover.md) and [wireit](https://github.com/google/wireit) to manage it as a _monorepo_. Lockfile: `pnpm-lock.yaml`.
+1.  We use `eslint` so please install it using `pnpm add --global eslint` (or your preferred global install).
 1.  It is preferred, though not required, that you use the Insiders version of VS
     Code from [here](https://code.visualstudio.com/insiders).
 1.  There is a list of recommended extensions for this workspace in
@@ -48,15 +48,16 @@ You would only do this once after you cloned the repository.
 1.  We develop on the `develop` branch and release from the `main` branch. At
     this point, you should do initiate a `git checkout -t origin/develop` unless
     you are working on releasing.
-1.  `npm install` to bring in all the top-level dependencies. `postinstall` runs
-    wireit (`check:peer-deps`). Run `npm run bootstrap` to reinstall deps if
-    you change package.json.
+1.  `pnpm install` to bring in all workspace dependencies (frozen against
+    `pnpm-lock.yaml` in CI via `pnpm install --frozen-lockfile`). `postinstall`
+    runs wireit (`check:peer-deps`). Run `pnpm run bootstrap` (`pnpm install`)
+    to reinstall deps if you change package.json.
 1.  Open the project in VS Code.
 
 You would usually do the following each time you close/reopen VS Code:
 
 1.  [Optional] Open the Command Palette > Tasks: Run Task > Bootstrap (this
-    essentially runs `npm run bootstrap`). This is required if you change the
+    essentially runs `pnpm run bootstrap`). This is required if you change the
     dependencies in any of the package.json.
 1.  If you wish to build, you can invoke Command Palette > Build Task
     (Ctrl+Shift+B or Cmd+Shift+B on Mac). The errors will show in the Problems
@@ -131,13 +132,12 @@ develop debugger extensions.
 ## List of Useful commands
 
 _These commands assume that they are executed from the top-level directory.
-Internally, they use `wireit` to orchestrate tasks across npm workspaces in the
-packages directory._
+Internally, they use `wireit` to orchestrate tasks across pnpm workspaces in the
+packages directory. Prefer `pnpm run <script>`; many `npm run <script>` forms still work via Corepack/`packageManager`._
 
-### `npm run bootstrap`
+### `pnpm run bootstrap`
 
-This bootstraps the packages by issuing an `npm install` on each package and
-also symlinking any package that are part of the packages folder.
+Runs `pnpm install` at the repo root (workspace install + `linkWorkspacePackages`).
 
 You would want do this as the first step after you have made changes in the
 modules.
@@ -183,7 +183,7 @@ Runs `markdown-link-check` on all markdown files in the repo to check for any br
 
 ### `npm run check:actions`
 
-Validates `.github/workflows/*.{yml,yaml}` and `.github/actions/*/action.{yml,yaml}`.
+Schema-validates `.github/workflows/*.{yml,yaml}` and `.github/actions/*/action.{yml,yaml}`. Fails when `validatePR.yml` or `testCommitExceptMain.yml` has `paths-ignore`, and when an E2E workflow's `paths-ignore` differs from `visualforceE2E.yml`.
 
 ### `npm run check:peer-deps`
 
@@ -209,9 +209,9 @@ Similar to the above command, this finds VSIX packages built locally (using `npm
 
 ## Node Configuration
 
-### .npmrc
+### pnpm workspace
 
-The npmrc allows for project-level [configuration](https://docs.npmjs.com/cli/v8/using-npm/config) of the npm environment.
+Root `packageManager` pins the pnpm version. Workspace + install settings live in [`pnpm-workspace.yaml`](../pnpm-workspace.yaml). CI uses [`.github/actions/setup-pnpm`](../.github/actions/setup-pnpm/action.yml) (`pnpm install --frozen-lockfile`).
 
 ### Development Mode Local Telemetry Logging
 

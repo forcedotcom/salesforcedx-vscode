@@ -6,12 +6,11 @@
  */
 import type { HttpRequest } from '@jsforce/jsforce-node';
 import { Connection } from '@salesforce/core';
-import type { JsonCollection } from '@salesforce/ts-types';
 import { xmlCharMap } from './types';
 
-export async function refreshAuth(connection: Connection): Promise<JsonCollection> {
+export async function refreshAuth(connection: Connection): Promise<void> {
   const requestInfo: HttpRequest = { url: connection.baseUrl(), method: 'GET' };
-  return await connection.request(requestInfo);
+  await connection.request(requestInfo);
 }
 
 export function escapeXml(data: string): string {

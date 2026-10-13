@@ -5,9 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as vscode from 'vscode';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
 
 const APEX_TESTING_CONFIGURATION_NAME = 'salesforcedx-vscode-apex-testing';
 
-export const retrieveTestCodeCoverage = (): boolean =>
-  vscode.workspace.getConfiguration(APEX_TESTING_CONFIGURATION_NAME).get<boolean>('retrieve-test-code-coverage', false);
+export const retrieveTestCodeCoverage = Effect.fn('retrieveTestCodeCoverage')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* (yield* api.services.SettingsService).getValueOrElse(
+    APEX_TESTING_CONFIGURATION_NAME,
+    'retrieve-test-code-coverage',
+    false
+  );
+});

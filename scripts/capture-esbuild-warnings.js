@@ -1,6 +1,6 @@
 const { exec } = require('child_process');
 
-exec('npm run vscode:bundle', (error, stdout, stderr) => {
+exec('pnpm vscode:bundle', (error, stdout, stderr) => {
   // Combine stdout and stderr to check the entire output
   const output = `${stdout}\n${stderr}`;
 

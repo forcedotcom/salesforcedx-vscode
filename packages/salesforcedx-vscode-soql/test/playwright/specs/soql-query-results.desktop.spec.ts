@@ -194,12 +194,10 @@ test('SOQL query results: relationship columns, pagination, resize, restoration,
 
     await validateNoCriticalErrors(test, consoleErrors, networkErrors);
   } finally {
-    if (connection && accountIds.length > 0) {
-      const results = await connection.sobject('Account').destroy(accountIds);
-      expect(
-        results.filter(result => !result.success),
-        'all pagination records should be deleted'
-      ).toEqual([]);
-    }
+    const deleted = connection && accountIds.length > 0 ? await connection.sobject('Account').destroy(accountIds) : [];
+    expect(
+      deleted.filter(result => !result.success),
+      'all pagination records should be deleted'
+    ).toEqual([]);
   }
 });

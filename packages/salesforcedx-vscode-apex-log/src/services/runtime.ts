@@ -7,7 +7,7 @@
 
 // type-only import: TS strips this, no runtime cycle
 import type { buildAllServicesLayer } from './extensionProvider';
-import * as Layer from 'effect/Layer';
+import type * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 
 type ServicesLayer = ReturnType<typeof buildAllServicesLayer>;
