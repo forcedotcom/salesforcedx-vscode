@@ -18,6 +18,7 @@ import { Layer } from 'effect';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import App from 'querybuilder/app';
+import { messages } from '../../../../../../src/soql-builder-ui/modules/querybuilder/messages/i18n';
 import {
   toolingModelTemplate,
   ToolingModelJson
@@ -375,6 +376,33 @@ describe('App should', () => {
       expect(sendMessage).toHaveBeenCalled();
       expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
       expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).payload).toContain(eventPayload.detail.limit);
+    });
+  });
+
+  describe('NO DEFAULT ORG', () => {
+    const infoSelector = '.info-notification';
+    const setDefaultOrgButtonSelector = '.info-notification__dismiss button';
+    const flushLwc = () => new Promise(r => setTimeout(r, 0));
+
+    afterEach(() => {
+      delete document.body.dataset.isWeb;
+    });
+
+    it('show Set a Default Org button and desktop copy when not web', async () => {
+      emitMessage({ type: MessageType.NO_DEFAULT_ORG });
+      await flushLwc();
+      expect(app.shadowRoot.querySelector(infoSelector).textContent).toContain('Set a Default Org');
+      expect(app.shadowRoot.querySelector(setDefaultOrgButtonSelector)).toBeTruthy();
+    });
+
+    it('hide Set a Default Org button and show web copy when web', async () => {
+      document.body.dataset.isWeb = 'true';
+      emitMessage({ type: MessageType.NO_DEFAULT_ORG });
+      await flushLwc();
+      const info = app.shadowRoot.querySelector(infoSelector);
+      expect(info.textContent).toContain(messages.label_no_default_org_web);
+      expect(info.textContent).not.toContain('Set a Default Org');
+      expect(app.shadowRoot.querySelector(setDefaultOrgButtonSelector)).toBeNull();
     });
   });
 });

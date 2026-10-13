@@ -30,7 +30,7 @@ app.labels = {
   limit: messages.label_limit,
   limitPlaceholder: messages.placeholder_limit,
   loading: messages.label_loading,
-  noDefaultOrg: messages.label_no_default_org,
+  noDefaultOrg: document.body.dataset.isWeb === 'true' ? messages.label_no_default_org_web : messages.label_no_default_org,
   noResults: messages.label_no_results_found,
   query: messages.label_soql_query,
   selectAllFields: messages.action_select_all_fields

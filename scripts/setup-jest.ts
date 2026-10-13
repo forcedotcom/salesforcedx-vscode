@@ -142,6 +142,7 @@ const getMockVSCode = () => {
       machineId: '12345534',
       appName: 'Visual Studio Code',
       language: 'en',
+      uiKind: 1,
       createTelemetryLogger: jest.fn().mockReturnValue({
         logUsage: jest.fn(),
         logError: jest.fn(),
@@ -150,6 +151,7 @@ const getMockVSCode = () => {
       })
     },
     EventEmitter,
+    UIKind: { Desktop: 1, Web: 2 },
     ExtensionMode: { Production: 1, Development: 2, Test: 3 },
     extensions: {
       getExtension: jest.fn()

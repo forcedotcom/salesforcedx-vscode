@@ -16,3 +16,6 @@ export const nls = createNls({
   jaMessages,
   locale: vscode.env.language
 });
+
+export const noDefaultOrgMessage = (): string =>
+  nls.localize(vscode.env.uiKind === vscode.UIKind.Web ? 'info_no_default_org_web' : 'info_no_default_org');

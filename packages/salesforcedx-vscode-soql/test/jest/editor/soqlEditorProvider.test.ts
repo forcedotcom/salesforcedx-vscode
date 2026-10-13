@@ -16,7 +16,7 @@ import { BUILDER_VIEW_TYPE, SOQL_BUILDER_UI_PATH } from '../../../src/constants'
 import * as HtmlUtils from '../../../src/editor/htmlUtils';
 import { SOQLEditorInstance } from '../../../src/editor/soqlEditorInstance';
 import { SOQLEditorProvider } from '../../../src/editor/soqlEditorProvider';
-import { nls } from '../../../src/messages';
+import { noDefaultOrgMessage } from '../../../src/messages';
 import * as org from '../../../src/services/org';
 
 describe('SOQLEditorProvider', () => {
@@ -133,7 +133,7 @@ describe('SOQLEditorProvider', () => {
 
       await soqlEditorProvider.resolveCustomTextEditor(mockDocument, mockWebviewPanel, {} as vscode.CancellationToken);
 
-      const expectedMessage = nls.localize('info_no_default_org');
+      const expectedMessage = noDefaultOrgMessage();
       expect(vscode.window.showInformationMessage).toHaveBeenCalledWith(expectedMessage);
     });
   });
