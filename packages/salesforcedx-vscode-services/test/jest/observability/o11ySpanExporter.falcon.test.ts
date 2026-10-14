@@ -51,7 +51,7 @@ describe('O11ySpanExporter falcon opt-in', () => {
     expect(initialize).toHaveBeenCalledWith('ext', 'https://example.test', expect.any(Function), { falcon });
   });
 
-  it('never logs the falcon api key', async () => {
+  it('does not log the falcon api key', async () => {
     const log = jest.spyOn(console, 'log').mockImplementation(() => undefined);
     await exportVia(new O11ySpanExporter('ext', 'https://example.test', undefined, undefined, { apiKey: 'test-key' }));
     expect(log.mock.calls.flat().map(String).join('\n')).not.toContain('test-key');
