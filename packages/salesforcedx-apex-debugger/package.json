@@ -70,6 +70,11 @@
       "output": []
     },
     "bundle:debugger": {
+      "env": {
+        "DEBUG_BUNDLE": {
+          "external": true
+        }
+      },
       "command": "node ../../scripts/bundling/bundle-debugger.mjs",
       "dependencies": [
         "compile"
