@@ -44,9 +44,10 @@ jest.mock('../../src/requirements', () => {
 });
 
 // No services extension → no scan config.
-jest.mock('../../src/languageServerScanConfig', () => ({
-  buildMetadataRegistryScanConfig: jest.fn().mockResolvedValue(undefined)
-}));
+jest.mock('../../src/languageServerScanConfig', () => {
+  const effectVoid = (require('effect/Effect') as { void: unknown }).void;
+  return { buildMetadataRegistryScanConfigInRuntime: effectVoid };
+});
 
 // Capture the onTelemetry callback so tests can drive Jorje telemetry events at will.
 type TelemetryData = { properties?: Record<string, string>; measures?: Record<string, number> };
@@ -57,7 +58,6 @@ import { ApexLanguageClient } from '../../src/apexLanguageClient';
 import { createLanguageServer } from '../../src/languageServer';
 import { nls } from '../../src/messages';
 import { resolveRequirements } from '../../src/requirements';
-import { buildMetadataRegistryScanConfig } from '../../src/languageServerScanConfig';
 import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import { getRuntime } from '../../src/services/runtime';
 
@@ -71,7 +71,6 @@ describe('languageServer client span', () => {
     capturedOnTelemetry = undefined;
     // resetMocks:true wipes module-scope implementations before each test — re-establish them here.
     (resolveRequirements as jest.Mock).mockReturnValue(Effect.succeed({ java_home: '/mock/java', java_memory: 4096 }));
-    (buildMetadataRegistryScanConfig as jest.Mock).mockResolvedValue(undefined);
     (ApexLanguageClient as unknown as jest.Mock).mockImplementation(() => ({
       onTelemetry: (cb: (data: TelemetryData) => void) => {
         capturedOnTelemetry = cb;

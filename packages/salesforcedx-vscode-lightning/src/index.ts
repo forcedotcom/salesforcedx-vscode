@@ -203,7 +203,9 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lightnin
     statusBarItem.ready();
   });
   // Register workspace read file handler before start so the server can read files during initialize
-  registerWorkspaceReadFileHandler(client);
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const fsService = yield* api.services.FsService;
+  registerWorkspaceReadFileHandler(client, undefined, { fsService, runPromise: getRuntime().runPromise });
   log('Workspace read file handler registered');
 
   // Start the language server

@@ -57,6 +57,25 @@ const getApexFolderNames = (registryAccess: RegistryAccessLike): Set<string> =>
       .map(toNormalizedFolderName)
   );
 
+const buildScanConfig = (registryAccess: RegistryAccessLike): ApexLspScanConfig | undefined => {
+  const excludeFolders = deriveExcludedMetadataFolders(
+    registryAccess.getRegistry(),
+    getApexFolderNames(registryAccess)
+  );
+  return excludeFolders.length === 0 ? undefined : { scan: { excludeFolders } };
+};
+
+/** Service-dependent form for callers already running with the Apex extension's services runtime. */
+export const buildMetadataRegistryScanConfigInRuntime = getServicesApi.pipe(
+  Effect.flatMap(servicesApi =>
+    servicesApi.services.MetadataRegistryService.getRegistryAccess().pipe(
+      Effect.map(buildScanConfig),
+      Effect.catchAllCause(() => Effect.void)
+    )
+  ),
+  Effect.catchTag('ServicesExtensionNotFoundError', () => Effect.void)
+);
+
 export const buildMetadataRegistryScanConfig = async (): Promise<ApexLspScanConfig | undefined> => {
   const excludes = await Effect.runPromise(
     getServicesApi.pipe(
@@ -85,9 +104,5 @@ export const buildMetadataRegistryScanConfig = async (): Promise<ApexLspScanConf
     return undefined;
   }
 
-  return {
-    scan: {
-      excludeFolders: excludes.value
-    }
-  };
+  return { scan: { excludeFolders: excludes.value } };
 };

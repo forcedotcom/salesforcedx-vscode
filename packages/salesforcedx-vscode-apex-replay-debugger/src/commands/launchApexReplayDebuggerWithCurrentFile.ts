@@ -9,6 +9,7 @@ import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
 import { updateLastOpened } from '../activation/getDialogStartingPath';
 import { nls } from '../messages';
+import { getRuntime } from '../services/runtime';
 import { launchFromLogFile } from './launchFromLogFile';
 
 export const launchApexReplayDebuggerWithCurrentFile = async (extensionContext: vscode.ExtensionContext) => {
@@ -58,7 +59,7 @@ const getApexTestClassName = (document: vscode.TextDocument): string | undefined
 };
 
 const launchAnonymousApexReplayDebugger = async () => {
-  if (!(await sfProjectPreconditionChecker.check())) return;
+  if (!(await getRuntime().runPromise(sfProjectPreconditionChecker.checkEffect))) return;
   await vscode.commands.executeCommand('sf.anon.apex.debug.delegate');
 };
 
