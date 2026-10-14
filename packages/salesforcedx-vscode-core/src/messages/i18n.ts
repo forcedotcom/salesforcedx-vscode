@@ -38,7 +38,10 @@ export const messages = {
     'Salesforce metadata XML IntelliSense requires the Red Hat XML extension version >= 0.14.0. Upgrade the Red Hat XML extension.',
   metadata_xml_vmargs_configured:
     'Configured xml.server.vmargs to -Xmx1024M in User settings to prevent Out Of Memory errors.',
-  metadata_xml_fail_redhat_extension: 'Failed to setup Red Hat XML extension for metadata XML support'
+  metadata_xml_fail_redhat_extension: 'Failed to setup Red Hat XML extension for metadata XML support',
+  metadata_xml_hover_unknown_field_message: 'No documentation found for %s in %s. It may not be a valid field.',
+  metadata_xml_hover_primitive_parent_message: "%s is documented as a %s field, so it shouldn't contain %s.",
+  metadata_xml_hover_view_type_in_developer_guide_text: 'View %s in Developer Guide'
 } as const;
 
 export type MessageKey = keyof typeof messages;

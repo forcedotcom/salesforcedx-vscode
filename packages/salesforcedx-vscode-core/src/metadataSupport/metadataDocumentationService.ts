@@ -31,6 +31,66 @@ type MetadataTypeDocumentation = {
   developerGuideUrls?: string[];
 };
 
+export type FieldDocumentationResult =
+  | { readonly _tag: 'Found'; readonly field: MetadataFieldDocumentation }
+  | {
+      readonly _tag: 'UnknownField';
+      readonly typeName: string;
+      readonly fieldName: string;
+      readonly developerGuideUrl: string | undefined;
+    }
+  | {
+      readonly _tag: 'PrimitiveParent';
+      readonly typeName: string;
+      readonly parentName: string;
+      readonly parentType: string;
+      readonly childName: string;
+      readonly developerGuideUrl: string | undefined;
+    };
+
+/** Scraped type names for fields that hold a single value, so they can't contain child elements */
+const PRIMITIVE_TYPE_PATTERN = /^(string|boolean|int|integer|double|date|datetime|time)$/i;
+
+/**
+ * Normalize a field's scraped type text to a type name. Drops `[]`, the ` (enumeration of type …)` suffix
+ * (some complex types are mislabeled with it), and stray whitespace such as in `QuickActionLayoutItem []`.
+ */
+const toTypeName = (typeText: string): string =>
+  typeText
+    .replace(/\s*\(enumeration of type [^)]*\)/, '')
+    .replaceAll(/\s+/g, '')
+    .replace(/\[\]$/, '');
+
+/**
+ * Whether the XSD has field data for a type. Every type extending Metadata inherits fullName,
+ * so fullName alone doesn't show the type's fields were scraped.
+ */
+const hasFieldData = (
+  typeDoc: MetadataTypeDocumentation | undefined
+): typeDoc is MetadataTypeDocumentation & { fields: MetadataFieldInfo[] } =>
+  typeDoc?.fields?.some(f => f.name !== 'fullName') ?? false;
+
+const unknownField = (typeDoc: MetadataTypeDocumentation, fieldName: string): FieldDocumentationResult => ({
+  _tag: 'UnknownField',
+  typeName: typeDoc.name,
+  fieldName,
+  developerGuideUrl: typeDoc.developerGuideUrls?.[0]
+});
+
+const primitiveParent = (
+  typeDoc: MetadataTypeDocumentation,
+  parentName: string,
+  parentType: string,
+  childName: string
+): FieldDocumentationResult => ({
+  _tag: 'PrimitiveParent',
+  typeName: typeDoc.name,
+  parentName,
+  parentType,
+  childName,
+  developerGuideUrl: typeDoc.developerGuideUrls?.[0]
+});
+
 class XsdParseError extends Schema.TaggedError<XsdParseError>()('XsdParseError', {
   message: Schema.String
 }) {}
@@ -221,62 +281,66 @@ export class MetadataDocumentationService {
   }
 
   /**
-   * Get documentation for a specific field within a metadata type
+   * Get documentation for a specific field within a metadata type.
+   * Reports `UnknownField` only when the XSD has field data for the type that should contain the field,
+   * and `PrimitiveParent` when an intermediate layer is a primitive field, which can't contain child elements.
    */
   public getFieldDocumentation(
     metadataType: string,
     fieldName: string,
     intermediateLayers: string[] = []
-  ): MetadataFieldDocumentation | null {
+  ): FieldDocumentationResult {
     // Resolve the actual type by traversing intermediate layers
     let currentType = metadataType;
 
-    for (const layerName of intermediateLayers) {
+    for (const [index, layerName] of intermediateLayers.entries()) {
       const layerTypeDoc = this.documentationMap.get(currentType);
-      if (!layerTypeDoc?.fields) {
-        break;
+      if (!hasFieldData(layerTypeDoc)) {
+        return { _tag: 'Found', field: this.getFallbackFieldDocumentation(currentType, fieldName) };
       }
 
       const layerField = layerTypeDoc.fields.find(f => f.name === layerName);
       if (!layerField) {
-        break;
+        return unknownField(layerTypeDoc, layerName);
       }
 
-      // Get the type of this layer field and strip array notation if present
-      currentType = layerField.type.endsWith('[]') ? layerField.type.slice(0, -2) : layerField.type;
+      const layerFieldType = toTypeName(layerField.type);
+      if (PRIMITIVE_TYPE_PATTERN.test(layerFieldType)) {
+        return primitiveParent(layerTypeDoc, layerName, layerFieldType, intermediateLayers[index + 1] ?? fieldName);
+      }
+      currentType = layerFieldType;
     }
 
     // Now look up the field in the resolved type (not the original metadataType)
     const typeDoc = this.documentationMap.get(currentType);
-    if (typeDoc?.fields) {
-      const field = typeDoc.fields.find(f => f.name === fieldName);
-      if (field?.description.trim()) {
-        // Only use XSD field if it has meaningful documentation
-        return field;
+    if (!hasFieldData(typeDoc)) {
+      return { _tag: 'Found', field: this.getFallbackFieldDocumentation(currentType, fieldName) };
+    }
+
+    const field = typeDoc.fields.find(f => f.name === fieldName);
+    if (!field) {
+      return unknownField(typeDoc, fieldName);
+    }
+
+    if (field.description.trim()) {
+      return { _tag: 'Found', field };
+    }
+
+    // The field exists but has no description
+    return {
+      _tag: 'Found',
+      field: this.getFieldDefinitionsForCommonFields(fieldName) ?? {
+        ...field,
+        description: this.extractFieldFromXSDPatterns(currentType, fieldName).description
       }
-    }
+    };
+  }
 
-    // Fall back to hardcoded field definitions only for common fields or when XSD data is insufficient
-    const fieldDoc = this.getFieldDefinitionsForCommonFields(fieldName);
-    if (fieldDoc) {
-      return fieldDoc;
-    }
-
-    // If we have XSD field data but no description, use it with pattern-based description
-    if (typeDoc?.fields) {
-      const field = typeDoc.fields.find(f => f.name === fieldName);
-      if (field) {
-        const patternDoc = this.extractFieldFromXSDPatterns(currentType, fieldName);
-        return {
-          ...field,
-          description:
-            patternDoc?.description ?? field.description ?? `The ${fieldName} field for ${currentType} metadata.`
-        };
-      }
-    }
-
-    // If no definition found, try to extract from XSD patterns
-    return this.extractFieldFromXSDPatterns(currentType, fieldName);
+  /**
+   * Generated documentation for a field on a type the XSD has no field data for
+   */
+  private getFallbackFieldDocumentation(typeName: string, fieldName: string): MetadataFieldDocumentation {
+    return this.getFieldDefinitionsForCommonFields(fieldName) ?? this.extractFieldFromXSDPatterns(typeName, fieldName);
   }
 
   /**
@@ -381,7 +445,7 @@ export class MetadataDocumentationService {
   /**
    * Extract field information from XSD patterns (fallback method)
    */
-  private extractFieldFromXSDPatterns(metadataType: string, fieldName: string): MetadataFieldDocumentation | null {
+  private extractFieldFromXSDPatterns(metadataType: string, fieldName: string): MetadataFieldDocumentation {
     // Basic pattern-based field documentation
     const patterns: Record<string, Partial<MetadataFieldDocumentation>> = {
       // Boolean patterns

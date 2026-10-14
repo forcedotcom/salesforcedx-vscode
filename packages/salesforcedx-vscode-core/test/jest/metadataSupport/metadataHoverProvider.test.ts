@@ -352,6 +352,184 @@ describe('MetadataHoverProvider', () => {
         intermediateLayers: ['decisions', 'rules', 'conditions']
       });
     });
+
+    it('should keep parent elements whose names start with an uppercase letter', () => {
+      const mockDocService = createMockDocumentationService(new Set(['Profile']));
+      const content = `<?xml version="1.0" encoding="UTF-8"?>
+<Profile xmlns="http://soap.sforce.com/2006/04/metadata">
+    <ServicePresenceStatusAccesses>
+        <servicePresenceStatus>Available</servicePresenceStatus>
+    </ServicePresenceStatusAccesses>
+</Profile>`;
+
+      const document = createMockDocument('Admin.profile-meta.xml', content);
+
+      expect(findParentMetadataTypeWithLayers(document, 3, mockDocService)).toEqual({
+        metadataType: 'Profile',
+        intermediateLayers: ['ServicePresenceStatusAccesses']
+      });
+    });
+
+    it('should only parse the start line up to the given character', () => {
+      const mockDocService = createMockDocumentationService(new Set(['Flow']));
+      const content = `<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <decisions>
+        <rules><conditions>`;
+
+      const document = createMockDocument('TestFlow.flow-meta.xml', content);
+
+      expect(findParentMetadataTypeWithLayers(document, 3, mockDocService, 15)).toEqual({
+        metadataType: 'Flow',
+        intermediateLayers: ['decisions', 'rules']
+      });
+    });
+
+    it('should ignore tags inside a single-line comment', () => {
+      const mockDocService = createMockDocumentationService(new Set(['ListView']));
+      const content = `<?xml version="1.0" encoding="UTF-8"?>
+<ListView xmlns="http://soap.sforce.com/2006/04/metadata">
+    <filters>
+        <!-- <field> is valid in real list views -->
+        <operation>notEqual</operation>`;
+
+      const document = createMockDocument('All.listView-meta.xml', content);
+
+      expect(findParentMetadataTypeWithLayers(document, 4, mockDocService, 8)).toEqual({
+        metadataType: 'ListView',
+        intermediateLayers: ['filters']
+      });
+    });
+
+    it('should ignore tags inside a multi-line comment', () => {
+      const mockDocService = createMockDocumentationService(new Set(['Flow']));
+      const content = `<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <!--
+    <decisions>
+        <rules>
+    -->
+    <screens>
+        <name>Screen_1</name>`;
+
+      const document = createMockDocument('TestFlow.flow-meta.xml', content);
+
+      expect(findParentMetadataTypeWithLayers(document, 7, mockDocService, 8)).toEqual({
+        metadataType: 'Flow',
+        intermediateLayers: ['screens']
+      });
+    });
+
+    it('should parse tags after a comment closes on the same line', () => {
+      const mockDocService = createMockDocumentationService(new Set(['Flow']));
+      const content = `<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <!-- <decisions> --><screens>
+        <name>Screen_1</name>`;
+
+      const document = createMockDocument('TestFlow.flow-meta.xml', content);
+
+      expect(findParentMetadataTypeWithLayers(document, 3, mockDocService, 8)).toEqual({
+        metadataType: 'Flow',
+        intermediateLayers: ['screens']
+      });
+    });
+
+    it('should return null when the given character is inside a comment', () => {
+      const mockDocService = createMockDocumentationService(new Set(['Flow']));
+      const content = `<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <!--
+        <label>Old label</label>
+    -->`;
+
+      const document = createMockDocument('TestFlow.flow-meta.xml', content);
+
+      expect(findParentMetadataTypeWithLayers(document, 3, mockDocService, 8)).toBeNull();
+    });
+  });
+
+  describe('extractFieldInfo parent element paths', () => {
+    const content = `<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <screens>
+        <fields>
+            <fields>
+                <name>Inner_Field</name>
+            </fields>
+        </fields>
+        <value><stringValue>abc</stringValue>
+        </value>
+    </screens>
+</Flow>`;
+    // Mocks are reset between tests, so build them per test
+    const extractAt = (line: number, character: number) =>
+      extractFieldInfo(
+        createMockDocument('TestFlow.flow-meta.xml', content),
+        { line, character } as vscode.Position,
+        createMockDocumentationService(new Set(['Flow']))
+      );
+
+    it('should keep an ancestor that has the same name as the hovered element', () => {
+      // Position inside the inner '<fields>' tag
+      expect(extractAt(4, 14)).toEqual({
+        metadataType: 'Flow',
+        fieldName: 'fields',
+        intermediateLayers: ['screens', 'fields']
+      });
+    });
+
+    it('should keep every same-named ancestor for a nested child', () => {
+      // Position inside '<name>' tag
+      expect(extractAt(5, 18)).toEqual({
+        metadataType: 'Flow',
+        fieldName: 'name',
+        intermediateLayers: ['screens', 'fields', 'fields']
+      });
+    });
+
+    it('should exclude the hovered element when a later tag on the same line is still open', () => {
+      // Position inside '<value>' tag
+      expect(extractAt(8, 10)).toEqual({
+        metadataType: 'Flow',
+        fieldName: 'value',
+        intermediateLayers: ['screens']
+      });
+    });
+
+    it('should include an earlier open tag on the same line', () => {
+      // Position inside '<stringValue>' tag
+      expect(extractAt(8, 18)).toEqual({
+        metadataType: 'Flow',
+        fieldName: 'stringValue',
+        intermediateLayers: ['screens', 'value']
+      });
+    });
+
+    it('should exclude the element being closed when hovering a closing tag', () => {
+      // Position inside the outer '</fields>' tag
+      expect(extractAt(7, 11)).toEqual({
+        metadataType: 'Flow',
+        fieldName: 'fields',
+        intermediateLayers: ['screens']
+      });
+    });
+
+    it('should return null when hovering a tag inside a comment', () => {
+      const commentedContent = `<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <!-- <label>Old label</label> -->
+</Flow>`;
+
+      // Position inside the commented-out '<label>' tag
+      expect(
+        extractFieldInfo(
+          createMockDocument('TestFlow.flow-meta.xml', commentedContent),
+          { line: 2, character: 11 } as vscode.Position,
+          createMockDocumentationService(new Set(['Flow']))
+        )
+      ).toBeNull();
+    });
   });
 
   describe('provideHover for internal fields', () => {
@@ -402,7 +580,10 @@ describe('MetadataHoverProvider', () => {
         required: false
       };
 
-      (hoverProvider as any).documentationService.getFieldDocumentation.mockResolvedValue(mockFieldDoc);
+      (hoverProvider as any).documentationService.getFieldDocumentation.mockReturnValue({
+        _tag: 'Found',
+        field: mockFieldDoc
+      });
 
       const result = await hoverProvider.provideHover(document, position, {} as any);
 
@@ -432,7 +613,10 @@ describe('MetadataHoverProvider', () => {
         required: false
       };
 
-      (hoverProvider as any).documentationService.getFieldDocumentation.mockResolvedValue(mockFieldDoc);
+      (hoverProvider as any).documentationService.getFieldDocumentation.mockReturnValue({
+        _tag: 'Found',
+        field: mockFieldDoc
+      });
 
       const result = await hoverProvider.provideHover(document, position, {} as any);
 
@@ -463,7 +647,10 @@ describe('MetadataHoverProvider', () => {
         validValues: ['Active', 'Inactive']
       };
 
-      (hoverProvider as any).documentationService.getFieldDocumentation.mockResolvedValue(mockFieldDoc);
+      (hoverProvider as any).documentationService.getFieldDocumentation.mockReturnValue({
+        _tag: 'Found',
+        field: mockFieldDoc
+      });
 
       const result = await hoverProvider.provideHover(document, position, {} as any);
 
@@ -494,7 +681,10 @@ describe('MetadataHoverProvider', () => {
         validValues: ['AutoLaunchedFlow', 'Flow', 'Workflow', 'CustomEvent', 'InvocableProcess']
       };
 
-      (hoverProvider as any).documentationService.getFieldDocumentation.mockResolvedValue(mockFieldDoc);
+      (hoverProvider as any).documentationService.getFieldDocumentation.mockReturnValue({
+        _tag: 'Found',
+        field: mockFieldDoc
+      });
 
       const result = await hoverProvider.provideHover(document, position, {} as any);
 
@@ -527,7 +717,10 @@ describe('MetadataHoverProvider', () => {
         required: false
       };
 
-      (hoverProvider as any).documentationService.getFieldDocumentation.mockResolvedValue(mockFieldDoc);
+      (hoverProvider as any).documentationService.getFieldDocumentation.mockReturnValue({
+        _tag: 'Found',
+        field: mockFieldDoc
+      });
 
       const result = await hoverProvider.provideHover(document, position, {} as any);
 
@@ -540,7 +733,7 @@ describe('MetadataHoverProvider', () => {
       );
     });
 
-    it('should return null when field documentation is not available', async () => {
+    it('should show an unknown field message with a developer guide link for a nonexistent field', async () => {
       const content = `<?xml version="1.0" encoding="UTF-8"?>
 <CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
     <unknownField>value</unknownField>
@@ -548,17 +741,87 @@ describe('MetadataHoverProvider', () => {
 
       const document = createMockDocument('TestObject__c.object-meta.xml', content);
       const position = { line: 2, character: 8 } as vscode.Position; // Position inside '<unknownField>' tag
+      const url = 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customobject.htm';
 
-      (hoverProvider as any).documentationService.getFieldDocumentation.mockReturnValue(null);
+      (hoverProvider as any).documentationService.getFieldDocumentation.mockReturnValue({
+        _tag: 'UnknownField',
+        typeName: 'CustomObject',
+        fieldName: 'unknownField',
+        developerGuideUrl: url
+      });
 
       const result = await hoverProvider.provideHover(document, position, {} as any);
 
-      expect(result).toBeNull();
       expect((hoverProvider as any).documentationService.getFieldDocumentation).toHaveBeenCalledWith(
         'CustomObject',
         'unknownField',
         []
       );
+      const markdown = result?.contents as any;
+      expect(markdown.appendCodeblock).toHaveBeenCalledWith('CustomObject.unknownField', 'xml');
+      expect(markdown.appendMarkdown).toHaveBeenCalledWith(
+        '⚠️ No documentation found for `unknownField` in **CustomObject**. It may not be a valid field.'
+      );
+      expect(markdown.appendMarkdown).toHaveBeenCalledWith(`\n\n[📖 View CustomObject in Developer Guide](${url})`);
+    });
+
+    it('should name the unknown parent element and omit the link when the type has no developer guide URL', async () => {
+      const content = `<?xml version="1.0" encoding="UTF-8"?>
+<Flow xmlns="http://soap.sforce.com/2006/04/metadata">
+    <decisions>
+        <notAField>
+            <label>Check</label>
+        </notAField>
+    </decisions>
+</Flow>`;
+
+      const document = createMockDocument('TestFlow.flow-meta.xml', content);
+      const position = { line: 4, character: 14 } as vscode.Position; // Position inside '<label>' tag
+
+      (hoverProvider as any).documentationService.getFieldDocumentation.mockReturnValue({
+        _tag: 'UnknownField',
+        typeName: 'FlowDecision',
+        fieldName: 'notAField',
+        developerGuideUrl: undefined
+      });
+
+      const result = await hoverProvider.provideHover(document, position, {} as any);
+
+      const markdown = result?.contents as any;
+      expect(markdown.appendCodeblock).toHaveBeenCalledWith('Flow.decisions.notAField.label', 'xml');
+      expect(markdown.appendMarkdown).toHaveBeenCalledWith(
+        '⚠️ No documentation found for `notAField` in **FlowDecision**. It may not be a valid field.'
+      );
+      expect(markdown.appendMarkdown).toHaveBeenCalledTimes(1);
+    });
+
+    it('should show a primitive parent message with a developer guide link for a child of a primitive field', async () => {
+      const content = `<?xml version="1.0" encoding="UTF-8"?>
+<CustomObject xmlns="http://soap.sforce.com/2006/04/metadata">
+    <pluralLabel><bogusChild>x</bogusChild></pluralLabel>
+</CustomObject>`;
+
+      const document = createMockDocument('Test__c.object-meta.xml', content);
+      const position = { line: 2, character: 20 } as vscode.Position; // Position inside '<bogusChild>' tag
+      const url = 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/customobject.htm';
+
+      (hoverProvider as any).documentationService.getFieldDocumentation.mockReturnValue({
+        _tag: 'PrimitiveParent',
+        typeName: 'CustomObject',
+        parentName: 'pluralLabel',
+        parentType: 'string',
+        childName: 'bogusChild',
+        developerGuideUrl: url
+      });
+
+      const result = await hoverProvider.provideHover(document, position, {} as any);
+
+      const markdown = result?.contents as any;
+      expect(markdown.appendCodeblock).toHaveBeenCalledWith('CustomObject.pluralLabel.bogusChild', 'xml');
+      expect(markdown.appendMarkdown).toHaveBeenCalledWith(
+        "⚠️ `pluralLabel` is documented as a `string` field, so it shouldn't contain `bogusChild`."
+      );
+      expect(markdown.appendMarkdown).toHaveBeenCalledWith(`\n\n[📖 View CustomObject in Developer Guide](${url})`);
     });
 
     it('should handle self-closing field elements', async () => {
@@ -578,7 +841,10 @@ describe('MetadataHoverProvider', () => {
         required: false
       };
 
-      (hoverProvider as any).documentationService.getFieldDocumentation.mockResolvedValue(mockFieldDoc);
+      (hoverProvider as any).documentationService.getFieldDocumentation.mockReturnValue({
+        _tag: 'Found',
+        field: mockFieldDoc
+      });
 
       const result = await hoverProvider.provideHover(document, position, {} as any);
 
@@ -606,7 +872,10 @@ describe('MetadataHoverProvider', () => {
         description: 'Indicates whether feeds is enabled.'
       };
 
-      (hoverProvider as any).documentationService.getFieldDocumentation.mockResolvedValue(mockFieldDoc);
+      (hoverProvider as any).documentationService.getFieldDocumentation.mockReturnValue({
+        _tag: 'Found',
+        field: mockFieldDoc
+      });
 
       const result = await hoverProvider.provideHover(document, position, {} as any);
 
@@ -635,7 +904,10 @@ describe('MetadataHoverProvider', () => {
         description: 'Indicates whether this component published.'
       };
 
-      (hoverProvider as any).documentationService.getFieldDocumentation.mockResolvedValue(mockFieldDoc);
+      (hoverProvider as any).documentationService.getFieldDocumentation.mockReturnValue({
+        _tag: 'Found',
+        field: mockFieldDoc
+      });
 
       const result = await hoverProvider.provideHover(document, position, {} as any);
 
@@ -664,7 +936,10 @@ describe('MetadataHoverProvider', () => {
         description: 'The name of the recordtype.'
       };
 
-      (hoverProvider as any).documentationService.getFieldDocumentation.mockResolvedValue(mockFieldDoc);
+      (hoverProvider as any).documentationService.getFieldDocumentation.mockReturnValue({
+        _tag: 'Found',
+        field: mockFieldDoc
+      });
 
       const result = await hoverProvider.provideHover(document, position, {} as any);
 
@@ -693,7 +968,10 @@ describe('MetadataHoverProvider', () => {
         description: 'The display label for the recordtype.'
       };
 
-      (hoverProvider as any).documentationService.getFieldDocumentation.mockResolvedValue(mockFieldDoc);
+      (hoverProvider as any).documentationService.getFieldDocumentation.mockReturnValue({
+        _tag: 'Found',
+        field: mockFieldDoc
+      });
 
       const result = await hoverProvider.provideHover(document, position, {} as any);
 
@@ -761,7 +1039,10 @@ describe('MetadataHoverProvider', () => {
         description: 'The value to assign.'
       };
 
-      (hoverProvider as any).documentationService.getFieldDocumentation.mockResolvedValue(mockFieldDoc);
+      (hoverProvider as any).documentationService.getFieldDocumentation.mockReturnValue({
+        _tag: 'Found',
+        field: mockFieldDoc
+      });
 
       const result = await hoverProvider.provideHover(document, position, {} as any);
 
@@ -788,7 +1069,10 @@ describe('MetadataHoverProvider', () => {
         description: 'Indicates whether this object can be accessed via the Bulk API for large data operations.'
       };
 
-      (hoverProvider as any).documentationService.getFieldDocumentation.mockResolvedValue(mockFieldDoc);
+      (hoverProvider as any).documentationService.getFieldDocumentation.mockReturnValue({
+        _tag: 'Found',
+        field: mockFieldDoc
+      });
 
       const result = await hoverProvider.provideHover(document, position, {} as any);
 
@@ -816,7 +1100,10 @@ describe('MetadataHoverProvider', () => {
         description: 'A description of the metadata component. This field is optional and provides additional context.'
       };
 
-      (hoverProvider as any).documentationService.getFieldDocumentation.mockResolvedValue(mockFieldDoc);
+      (hoverProvider as any).documentationService.getFieldDocumentation.mockReturnValue({
+        _tag: 'Found',
+        field: mockFieldDoc
+      });
 
       const result = await hoverProvider.provideHover(document, position, {} as any);
 
@@ -844,7 +1131,10 @@ describe('MetadataHoverProvider', () => {
         description: 'Indicates whether sharing is enabled for this object.'
       };
 
-      (hoverProvider as any).documentationService.getFieldDocumentation.mockResolvedValue(mockFieldDoc);
+      (hoverProvider as any).documentationService.getFieldDocumentation.mockReturnValue({
+        _tag: 'Found',
+        field: mockFieldDoc
+      });
 
       const result = await hoverProvider.provideHover(document, position, {} as any);
 
@@ -881,7 +1171,10 @@ describe('MetadataHoverProvider', () => {
       };
 
       (hoverProvider as any).documentationService.getDocumentation.mockReturnValue(mockTypeDoc);
-      (hoverProvider as any).documentationService.getFieldDocumentation.mockResolvedValue(mockFieldDoc);
+      (hoverProvider as any).documentationService.getFieldDocumentation.mockReturnValue({
+        _tag: 'Found',
+        field: mockFieldDoc
+      });
 
       // Test hovering over "CustomObject" on line 1 (multi-line opening tag)
       const position1 = { line: 1, character: 5 } as vscode.Position;
