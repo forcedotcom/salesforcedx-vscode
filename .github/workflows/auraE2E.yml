@@ -56,6 +56,7 @@ jobs:
           workspace: packages/${{ matrix.package }}
           npm-script: test:desktop
           scratch-orgs: minimal
+          sf-cli-version: ${{ vars.SF_CLI_VERSION || 'latest' }}
           copy-appinsights: 'true'
           report-name: playwright-report-${{ matrix.package }}-desktop-${{ matrix.os }}
           results-name: playwright-test-results-${{ matrix.package }}-desktop-${{ matrix.os }}

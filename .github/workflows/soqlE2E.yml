@@ -49,6 +49,7 @@ jobs:
           workspace: packages/salesforcedx-vscode-soql
           npm-script: test:web
           scratch-orgs: minimal
+          sf-cli-version: ${{ vars.SF_CLI_VERSION || 'latest' }}
           report-name: playwright-report-soql-web
           results-name: playwright-test-results-soql-web
           results-path: packages/soql-builder-ui/test-results
@@ -74,6 +75,7 @@ jobs:
           workspace: packages/salesforcedx-vscode-soql
           npm-script: test:desktop
           scratch-orgs: minimal
+          sf-cli-version: ${{ vars.SF_CLI_VERSION || 'latest' }}
           report-name: playwright-report-soql-desktop-${{ matrix.os }}
           results-name: playwright-test-results-soql-desktop-${{ matrix.os }}
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}

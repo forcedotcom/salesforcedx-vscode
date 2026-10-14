@@ -54,6 +54,7 @@ jobs:
           workspace: packages/salesforcedx-vscode-apex-testing
           npm-script: test:web:${{ matrix.lane }}
           scratch-orgs: ${{ matrix.lane == 'ride-along' && 'minimal' || 'non-tracking' }}
+          sf-cli-version: ${{ vars.SF_CLI_VERSION || 'latest' }}
           recreate-org-on-retry: 'true'
           compile-playwright-utils: 'true'
           report-name: playwright-report-apex-testing-web-${{ matrix.lane }}
@@ -83,6 +84,7 @@ jobs:
           workspace: packages/salesforcedx-vscode-apex-testing
           npm-script: test:desktop:${{ matrix.lane }}
           scratch-orgs: ${{ matrix.lane == 'ride-along' && 'minimal' || 'non-tracking' }}
+          sf-cli-version: ${{ vars.SF_CLI_VERSION || 'latest' }}
           recreate-org-on-retry: 'true'
           compile-playwright-utils: 'true'
           report-name: playwright-report-apex-testing-desktop-${{ matrix.os }}-${{ matrix.lane }}

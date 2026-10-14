@@ -49,6 +49,7 @@ jobs:
           workspace: packages/salesforcedx-vscode-apex-log
           npm-script: test:web
           scratch-orgs: minimal
+          sf-cli-version: ${{ vars.SF_CLI_VERSION || 'latest' }}
           retry-failed: 'false'
           report-name: playwright-report-apex-log-web
           results-name: playwright-test-results-apex-log-web
@@ -75,6 +76,7 @@ jobs:
           workspace: packages/salesforcedx-vscode-apex-log
           npm-script: test:desktop
           scratch-orgs: minimal
+          sf-cli-version: ${{ vars.SF_CLI_VERSION || 'latest' }}
           retry-failed: 'false'
           report-name: playwright-report-apex-log-desktop-${{ matrix.os }}
           results-name: playwright-test-results-apex-log-desktop-${{ matrix.os }}

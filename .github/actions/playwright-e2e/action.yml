@@ -37,6 +37,9 @@ inputs:
   node-version:
     description: Node.js version
     default: lts/*
+  sf-cli-version:
+    description: Salesforce CLI version (callers pass the repository variable)
+    default: latest
 runs:
   using: composite
   steps:
@@ -112,7 +115,7 @@ runs:
       uses: salesforcecli/github-workflows/.github/actions/retry@main
       with:
         max_attempts: 3
-        command: npm i -g @salesforce/cli@${{ vars.SF_CLI_VERSION || 'latest' }}
+        command: npm i -g @salesforce/cli@${{ inputs.sf-cli-version }}
         retry_wait_seconds: 30
 
     - name: Auth to dev hub (global)
