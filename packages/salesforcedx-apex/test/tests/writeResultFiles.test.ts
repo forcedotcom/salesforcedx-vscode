@@ -10,16 +10,16 @@ import { mkdir, readFile, rm } from 'node:fs/promises';
 import { createWriteStream, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
-import { Readable } from 'node:stream';
+import { type Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { writeResultFiles } from '../../src/tests/testService';
 import {
-  ResultFormat,
-  TestResult,
-  TestRunIdResult,
-  OutputDirConfig,
-  CodeCoverageResult,
-  PerClassCoverage
+  type ResultFormat,
+  type TestResult,
+  type TestRunIdResult,
+  type OutputDirConfig,
+  type CodeCoverageResult,
+  type PerClassCoverage
 } from '../../src';
 
 describe('writeResultFiles', () => {
