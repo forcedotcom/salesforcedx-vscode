@@ -8,6 +8,7 @@
 import type { FileStat, DirectoryEntry } from './types/fileSystemTypes';
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
@@ -56,7 +57,11 @@ const vscodeStatToFileStat = (vstat: vscode.FileStat): FileStat => ({
 });
 
 const getFs = Effect.flatMap(getServicesApi, api =>
-  Effect.provide(api.services.FsService, api.services.FsService.Default)
+  api.services.prebuiltServicesLayer.pipe(
+    Layer.toRuntime,
+    Effect.flatMap(runtime => api.services.FsService.pipe(Effect.provide(runtime))),
+    Effect.scoped
+  )
 );
 
 const logTo = (channel: Pick<vscode.OutputChannel, 'appendLine'>, msg: string) =>

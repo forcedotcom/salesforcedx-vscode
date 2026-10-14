@@ -28,7 +28,6 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { getCliId } from '../observability/cliTelemetry';
 import { setWebUserId, UNAUTHENTICATED_USER } from '../observability/webUserId';
-import { ExtensionContextService } from '../vscode/extensionContextService';
 import { SettingsService, type WebSessionContext } from '../vscode/settingsService';
 import { type NoWorkspaceOpenError } from '../vscode/workspaceService';
 import { AliasService } from './alias';
@@ -574,10 +573,8 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
 
   const webUserId =
     existingOrgInfo.webUserId === UNAUTHENTICATED_USER && orgId && userId
-      ? // ooh, now we know who they are, so we set that.
-
-        // Pipe the extension context in for ServicesExtension so we don't get context from another ext
-        yield* setWebUserId(orgId, userId).pipe(Effect.provide(ExtensionContextService.Default))
+      ? // ooh, now we know who they are, so we set that in the services extension's context.
+        yield* setWebUserId(orgId, userId)
       : (existingOrgInfo.webUserId ?? UNAUTHENTICATED_USER);
 
   const updates = Rec.filter(

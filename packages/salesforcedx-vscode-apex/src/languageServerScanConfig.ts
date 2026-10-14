@@ -7,6 +7,7 @@
 
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import * as Order from 'effect/Order';
 import { isString } from 'effect/Predicate';
@@ -60,15 +61,18 @@ export const buildMetadataRegistryScanConfig = async (): Promise<ApexLspScanConf
   const excludes = await Effect.runPromise(
     getServicesApi.pipe(
       Effect.flatMap(servicesApi =>
-        Effect.suspend(() =>
-          servicesApi.services.MetadataRegistryService.getRegistryAccess().pipe(
-            Effect.map(registryAccess => {
-              const apexFolderNames = getApexFolderNames(registryAccess);
-              return deriveExcludedMetadataFolders(registryAccess.getRegistry(), apexFolderNames);
-            }),
-            Effect.provide(servicesApi.services.prebuiltServicesLayer)
-          )
-        ).pipe(
+        servicesApi.services.prebuiltServicesLayer.pipe(
+          Layer.toRuntime,
+          Effect.flatMap(runtime =>
+            servicesApi.services.MetadataRegistryService.getRegistryAccess().pipe(
+              Effect.map(registryAccess => {
+                const apexFolderNames = getApexFolderNames(registryAccess);
+                return deriveExcludedMetadataFolders(registryAccess.getRegistry(), apexFolderNames);
+              }),
+              Effect.provide(runtime)
+            )
+          ),
+          Effect.scoped,
           Effect.map(Option.some),
           Effect.catchAllCause(() => Effect.succeed(Option.none<string[]>()))
         )

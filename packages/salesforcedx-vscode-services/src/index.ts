@@ -495,16 +495,15 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       }
       // first, before all other things, get the FS running.
       await Effect.runPromise(
-        fileSystemSetup(context).pipe(
-          Effect.provide(
-            Layer.mergeAll(
-              SettingsService.Default,
-              ChannelService.Default,
-              IndexedDBStorageServiceShared,
-              isItReadOnlyLayer,
-              ServicesSdkLayer()
-            )
-          ),
+        Layer.mergeAll(
+          SettingsService.Default,
+          ChannelService.Default,
+          IndexedDBStorageServiceShared,
+          isItReadOnlyLayer,
+          ServicesSdkLayer()
+        ).pipe(
+          Layer.toRuntime,
+          Effect.flatMap(fileSystemRuntime => fileSystemSetup(context).pipe(Effect.provide(fileSystemRuntime))),
           Scope.extend(extensionScope)
         )
       );
@@ -619,7 +618,13 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
 
 /** Deactivates the Salesforce Services extension */
 export const deactivate = async (): Promise<void> => {
-  await Effect.runPromise(deactivateEffect);
+  await Effect.runPromise(
+    ChannelService.Default.pipe(
+      Layer.toRuntime,
+      Effect.flatMap(runtime => deactivateEffect.pipe(Effect.provide(runtime))),
+      Effect.scoped
+    )
+  );
 };
 
 const deactivateEffect = Effect.gen(function* () {
@@ -632,7 +637,7 @@ const deactivateEffect = Effect.gen(function* () {
   // those fibers touch, so nothing runs against a torn-down service.
   yield* disposeServicesRuntime();
   yield* closeExtensionScope();
-}).pipe(Effect.provide(ChannelService.Default));
+});
 
 export { type DefaultOrgInfoSchema } from './core/schemas/defaultOrgInfo';
 export { type ChannelService, type ChannelServiceLayer } from './vscode/channelService';

@@ -20,6 +20,7 @@ import * as HttpClient from '@effect/platform/HttpClient';
 import * as HttpClientRequest from '@effect/platform/HttpClientRequest';
 import { ExportResultCode, type ExportResult } from '@opentelemetry/core';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as Schema from 'effect/Schema';
 
 class EnvelopeSerializationError extends Schema.TaggedError<EnvelopeSerializationError>()(
@@ -37,26 +38,35 @@ export const makeLocalEnvelopeSender = (localEndpoint: string): LocalEnvelopeSen
   const trackUrl = `${localEndpoint.replace(/\/$/, '')}/v2.1/track`;
   return {
     exportEnvelopes: (envelopes: unknown[]): Promise<ExportResult> =>
-      Effect.try({
-        try: () =>
-          HttpClientRequest.post(trackUrl).pipe(
-            HttpClientRequest.bodyText(envelopes.map(e => JSON.stringify(e)).join('\n'), 'application/x-json-stream')
-          ),
-        catch: cause =>
-          new EnvelopeSerializationError({
-            message: 'Failed to serialize local Breeze envelopes',
-            cause
-          })
-      }).pipe(
-        Effect.flatMap(HttpClient.execute),
-        Effect.map(res =>
-          res.status >= 200 && res.status < 300
-            ? { code: ExportResultCode.SUCCESS }
-            : { code: ExportResultCode.FAILED, error: new Error(`local /v2.1/track responded ${res.status}`) }
+      FetchHttpClient.layer.pipe(
+        Layer.toRuntime,
+        Effect.flatMap(runtime =>
+          Effect.try({
+            try: () =>
+              HttpClientRequest.post(trackUrl).pipe(
+                HttpClientRequest.bodyText(
+                  envelopes.map(e => JSON.stringify(e)).join('\n'),
+                  'application/x-json-stream'
+                )
+              ),
+            catch: cause =>
+              new EnvelopeSerializationError({
+                message: 'Failed to serialize local Breeze envelopes',
+                cause
+              })
+          }).pipe(
+            Effect.flatMap(HttpClient.execute),
+            Effect.map(res =>
+              res.status >= 200 && res.status < 300
+                ? { code: ExportResultCode.SUCCESS }
+                : { code: ExportResultCode.FAILED, error: new Error(`local /v2.1/track responded ${res.status}`) }
+            ),
+            Effect.catchAll(error => Effect.succeed({ code: ExportResultCode.FAILED, error })),
+            Effect.withTracerEnabled(false),
+            Effect.provide(runtime)
+          )
         ),
-        Effect.catchAll(error => Effect.succeed({ code: ExportResultCode.FAILED, error })),
-        Effect.withTracerEnabled(false),
-        Effect.provide(FetchHttpClient.layer),
+        Effect.scoped,
         Effect.runPromise
       ),
     shutdown: () => Promise.resolve()

@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import { getServicesApi } from './extensionProvider';
 import { nls } from './messages';
@@ -20,9 +21,8 @@ export const sfProjectPreconditionChecker = {
     Effect.runPromise(
       Effect.gen(function* () {
         const api = yield* getServicesApi;
-        const isProject = yield* api.services.ProjectService.isSalesforceProject().pipe(
-          Effect.provide(api.services.prebuiltServicesLayer)
-        );
+        const runtime = yield* Layer.toRuntime(api.services.prebuiltServicesLayer);
+        const isProject = yield* api.services.ProjectService.isSalesforceProject().pipe(Effect.provide(runtime));
         if (!isProject) {
           return yield* Effect.sync(() => {
             void vscode.window.showErrorMessage(nls.localize('predicates_no_salesforce_project_found_text'));
@@ -31,6 +31,7 @@ export const sfProjectPreconditionChecker = {
         }
         return true;
       }).pipe(
+        Effect.scoped,
         Effect.catchAllCause(() =>
           Effect.sync(() => {
             void vscode.window.showErrorMessage(nls.localize('predicates_no_folder_opened_text'));

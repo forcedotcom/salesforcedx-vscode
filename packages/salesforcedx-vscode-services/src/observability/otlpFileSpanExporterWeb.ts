@@ -10,6 +10,7 @@ import * as HttpClientRequest from '@effect/platform/HttpClientRequest';
 import { type ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { type ReadableSpan, type SpanExporter } from '@opentelemetry/sdk-trace-base';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { runOnServicesRuntime } from './redactingConsoleLogger';
@@ -33,40 +34,46 @@ export class OtlpFileSpanExporterWeb implements SpanExporter {
       return;
     }
 
-    void Effect.try({
-      try: () => spans.map(span => serializeSpanOtlp(span)),
-      catch: cause =>
-        new OtlpSpanSerializationError({
-          message: 'Failed to serialize local OTLP spans',
-          cause
-        })
-    }).pipe(
-      Effect.flatMap(lines =>
-        HttpClientRequest.post(OTLP_SPAN_FILE_SERVER_URL).pipe(
-          HttpClientRequest.bodyJson({ lines }),
-          Effect.flatMap(HttpClient.execute)
+    void FetchHttpClient.layer.pipe(
+      Layer.toRuntime,
+      Effect.flatMap(runtime =>
+        Effect.try({
+          try: () => spans.map(span => serializeSpanOtlp(span)),
+          catch: cause =>
+            new OtlpSpanSerializationError({
+              message: 'Failed to serialize local OTLP spans',
+              cause
+            })
+        }).pipe(
+          Effect.flatMap(lines =>
+            HttpClientRequest.post(OTLP_SPAN_FILE_SERVER_URL).pipe(
+              HttpClientRequest.bodyJson({ lines }),
+              Effect.flatMap(HttpClient.execute)
+            )
+          ),
+          Effect.map(res =>
+            res.status >= 200 && res.status < 300
+              ? resultCallback({ code: ExportResultCode.SUCCESS })
+              : resultCallback({ code: ExportResultCode.FAILED, error: new Error(`HTTP ${res.status}`) })
+          ),
+          Effect.catchAll(error => {
+            const exportError = isError(error) ? error : new Error(String(error));
+            if (!localExportFailureLogged.logged) {
+              localExportFailureLogged.logged = true;
+              return Effect.logWarning(
+                'Local span export failed at localhost:3003 — check spans:server and span payloads'
+              ).pipe(
+                runOnServicesRuntime,
+                Effect.andThen(Effect.sync(() => resultCallback({ code: ExportResultCode.FAILED, error: exportError })))
+              );
+            }
+            return Effect.sync(() => resultCallback({ code: ExportResultCode.FAILED, error: exportError }));
+          }),
+          Effect.withTracerEnabled(false),
+          Effect.provide(runtime)
         )
       ),
-      Effect.map(res =>
-        res.status >= 200 && res.status < 300
-          ? resultCallback({ code: ExportResultCode.SUCCESS })
-          : resultCallback({ code: ExportResultCode.FAILED, error: new Error(`HTTP ${res.status}`) })
-      ),
-      Effect.catchAll(error => {
-        const exportError = isError(error) ? error : new Error(String(error));
-        if (!localExportFailureLogged.logged) {
-          localExportFailureLogged.logged = true;
-          return Effect.logWarning(
-            'Local span export failed at localhost:3003 — check spans:server and span payloads'
-          ).pipe(
-            runOnServicesRuntime,
-            Effect.andThen(Effect.sync(() => resultCallback({ code: ExportResultCode.FAILED, error: exportError })))
-          );
-        }
-        return Effect.sync(() => resultCallback({ code: ExportResultCode.FAILED, error: exportError }));
-      }),
-      Effect.withTracerEnabled(false),
-      Effect.provide(FetchHttpClient.layer),
+      Effect.scoped,
       Effect.runPromise
     );
   }
