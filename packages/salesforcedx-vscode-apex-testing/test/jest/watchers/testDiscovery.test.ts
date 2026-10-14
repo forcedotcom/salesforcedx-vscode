@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as PubSub from 'effect/PubSub';
-import * as Scope from 'effect/Scope';
+import type * as Scope from 'effect/Scope';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as TestClock from 'effect/TestClock';
 import * as TestContext from 'effect/TestContext';
@@ -18,7 +18,7 @@ import { OrgMetadataCatalogChangePubSub } from 'salesforcedx-vscode-services/src
 import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
 import { URI } from 'vscode-uri';
 import { initializeTestDiscovery } from '../../../src/watchers/testDiscovery';
-import { getTestController } from '../../../src/views/testController';
+import { type getTestController } from '../../../src/views/testController';
 
 jest.mock('../../../src/views/testController', () => ({
   getTestController: jest.fn()

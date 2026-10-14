@@ -14,11 +14,11 @@ jest.mock('@vscode/debugadapter', () => ({
   }
 }));
 
-import { StackFrame } from '@vscode/debugadapter';
+import { type StackFrame } from '@vscode/debugadapter';
 import { strict as assert } from 'node:assert';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
-import { LaunchRequestArguments } from '../../../src/adapter/types';
-import { ApexVariableContainer } from '../../../src/adapter/variableContainer';
+import { type LaunchRequestArguments } from '../../../src/adapter/types';
+import { type ApexVariableContainer } from '../../../src/adapter/variableContainer';
 import { LogContext } from '../../../src/core';
 import { FrameEntryState, VariableAssignmentState, VariableBeginState } from '../../../src/states';
 

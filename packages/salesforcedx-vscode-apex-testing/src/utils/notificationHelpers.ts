@@ -10,7 +10,7 @@ import type { OutputFormat } from '@salesforce/apex-node';
 import type { Context } from 'effect';
 import type { NotificationModeService } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 
 /**

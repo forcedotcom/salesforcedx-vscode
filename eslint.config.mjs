@@ -902,6 +902,16 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-apex-replay-debugger (inline to avoid no-duplicate-imports; W-23371091)
+    files: ['packages/salesforcedx-apex-replay-debugger/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // consistent-type-imports for salesforcedx-visualforce-language-server (inline to avoid no-duplicate-imports; W-23371067)
     files: ['packages/salesforcedx-visualforce-language-server/**/*.ts'],
     rules: {
@@ -972,6 +982,16 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-vscode-apex-testing (inline to avoid no-duplicate-imports; W-23371092)
+    files: ['packages/salesforcedx-vscode-apex-testing/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // consistent-type-imports for salesforcedx-vscode-services (inline to avoid no-duplicate-imports; W-23371088)
     files: ['packages/salesforcedx-vscode-services/**/*.ts'],
     rules: {
@@ -1024,6 +1044,16 @@ export default [
   {
     // consistent-type-imports for salesforcedx-vscode-lightning (inline to avoid no-duplicate-imports; W-23371060)
     files: ['packages/salesforcedx-vscode-lightning/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-vscode-lwc (inline to avoid no-duplicate-imports; W-23371089)
+    files: ['packages/salesforcedx-vscode-lwc/**/*.ts'],
     rules: {
       '@typescript-eslint/consistent-type-imports': [
         'error',

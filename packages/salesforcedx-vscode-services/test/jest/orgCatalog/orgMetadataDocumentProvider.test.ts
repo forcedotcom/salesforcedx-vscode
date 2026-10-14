@@ -33,6 +33,7 @@ const setOrg = (orgId: string) =>
 
 const makeHarness = (isEmpty: boolean) => {
   const invalidateOrgInventories = jest.fn(() => Effect.void);
+  const invalidateWorkspaceInventories = jest.fn(() => Effect.void);
   const readDocumentUri = jest.fn(() => Effect.succeed('body'));
   const layer = Layer.mergeAll(
     Layer.mock(OrgCatalogDocuments, { _tag: 'OrgCatalogDocuments', readDocumentUri }),
@@ -40,6 +41,7 @@ const makeHarness = (isEmpty: boolean) => {
       _tag: 'OrgCatalogState',
       ensureHydrated: () => Effect.void,
       invalidateOrgInventories,
+      invalidateWorkspaceInventories,
       persistOrg: () => Effect.void
     }),
     OrgMetadataCatalogChangePubSub.Default,
@@ -58,7 +60,7 @@ const makeHarness = (isEmpty: boolean) => {
         })
     })
   );
-  return { invalidateOrgInventories, layer, readDocumentUri };
+  return { invalidateOrgInventories, invalidateWorkspaceInventories, layer, readDocumentUri };
 };
 
 const documentUri = (orgId: string, fullName: string): URI =>
@@ -108,7 +110,7 @@ describe('OrgMetadataDocumentProvider lifecycle', () => {
   });
 
   it('invalidates workspace inventory and publishes source and sidecar deletion notifications', async () => {
-    const { invalidateOrgInventories, layer } = makeHarness(false);
+    const { invalidateWorkspaceInventories, layer } = makeHarness(false);
     jest.mocked(vscode.workspace.registerTextDocumentContentProvider).mockReturnValue({ dispose: jest.fn() });
     const events = [
       { type: 'delete' as const, uri: URI.file('/workspace/force-app/main/default/classes/FileUtilitiesTest.cls') },
@@ -123,12 +125,12 @@ describe('OrgMetadataDocumentProvider lifecycle', () => {
       const fileChanges = yield* FileChangePubSub;
       yield* Effect.forkScoped(runOrgMetadataDocumentProvider());
       yield* Queue.take(subscription); // provider's initial active-org observation
-      yield* Effect.sync(() => invalidateOrgInventories.mockClear());
+      yield* Effect.sync(() => invalidateWorkspaceInventories.mockClear());
       yield* PubSub.publishAll(fileChanges, events);
       return yield* Queue.take(subscription);
     }).pipe(Effect.scoped, Effect.provide(layer), Effect.timeout('2 seconds'), Effect.runPromise);
 
-    expect(invalidateOrgInventories).toHaveBeenCalledWith('00D000000000001');
+    expect(invalidateWorkspaceInventories).toHaveBeenCalledWith('00D000000000001');
     expect(event).toEqual({ kind: 'workspace', events });
   });
 

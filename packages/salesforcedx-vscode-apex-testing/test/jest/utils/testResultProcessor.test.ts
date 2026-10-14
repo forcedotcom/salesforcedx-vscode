@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { TestResult } from '@salesforce/apex-node';
+import { type TestResult } from '@salesforce/apex-node';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { FAIL_RESULT, PASS_RESULT, SKIP_RESULT } from '../../../src/constants';

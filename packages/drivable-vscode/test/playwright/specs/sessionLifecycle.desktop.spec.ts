@@ -35,7 +35,9 @@ test('starts the VS Code workbench and finishes without an org using macOS TMPDI
     args: [resolve(repoRoot, 'packages/drivable-vscode/bin/drivable-vscode-mcp.js')],
     cwd: repoRoot,
     // StdioClientTransport otherwise inherits only a small allowlist that excludes TMPDIR.
-    env: Object.fromEntries(Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined))
+    env: Object.fromEntries(
+      Object.entries(process.env).filter((entry): entry is [string, string] => entry[1] !== undefined)
+    )
   });
 
   expect(process.env.TMPDIR).toBeTruthy();
@@ -53,12 +55,13 @@ test('starts the VS Code workbench and finishes without an org using macOS TMPDI
           repoRoot,
           artifactRoot: testInfo.outputPath('drivable-vscode')
         })
-      )
-    );
+      ));
 
     try {
       await test.step('verify running without an org', async () => {
-        expect(JSON.parse(await call('status'))).toEqual(expect.objectContaining({ state: 'running', runId: session.runId }));
+        expect(JSON.parse(await call('status'))).toEqual(
+          expect.objectContaining({ state: 'running', runId: session.runId })
+        );
         expect(JSON.parse(await readFile(resolve(session.artifactDir, 'manifest.json'), 'utf8'))).toEqual(
           expect.not.objectContaining({ orgAlias: expect.anything() })
         );
