@@ -7,9 +7,9 @@
 
 import { isNotNull } from 'effect/Predicate';
 import { ApexVariableContainer } from '../adapter/variableContainer';
-import { LogContext } from '../core/logContext';
+import { type LogContext } from '../core/logContext';
 import { removeQuotesFromBlob, surroundBlobsWithQuotes } from '../core/logContextUtil';
-import { DebugLogState } from './debugLogState';
+import { type DebugLogState } from './debugLogState';
 
 export class VariableAssignmentState implements DebugLogState {
   private fields: string[];
