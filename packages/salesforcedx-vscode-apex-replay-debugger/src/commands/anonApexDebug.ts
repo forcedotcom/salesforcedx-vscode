@@ -35,7 +35,7 @@ const launchReplayDebugger = Effect.fn('ApexReplayDebugger.launchReplayDebugger'
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   if (!logs) return false;
   yield* api.services.FsService.safeWriteFile(logFilePath, logs);
-  yield* Effect.promise(() => launchFromLogFile(logFilePath.fsPath, true, anonApexFilePath, anonApexLineOffset));
+  yield* launchFromLogFile(logFilePath.fsPath, true, anonApexFilePath, anonApexLineOffset);
   return true;
 });
 

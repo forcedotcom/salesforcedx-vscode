@@ -49,15 +49,21 @@ const launchFromLogFileCommand = Effect.fn('ApexReplayDebugger.launchFromLogFile
   extensionContext: vscode.ExtensionContext,
   editorUri?: URI
 ) {
-  const resolved = editorUri ?? vscode.window.activeTextEditor?.document.uri;
+  let resolved = editorUri;
+  if (!resolved) {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    resolved = yield* api.services.EditorService.getActiveEditorUri().pipe(
+      Effect.catchTag('NoActiveEditorError', () => Effect.as(Effect.void, undefined))
+    );
+  }
   if (resolved) updateLastOpened(extensionContext, resolved);
-  yield* Effect.promise(() => launchFromLogFile(resolved?.fsPath));
+  yield* launchFromLogFile(resolved?.fsPath);
 });
 
 const launchFromLastLogFileCommand = Effect.fn('ApexReplayDebugger.launchFromLastLogFileCommand')(function* (
   extensionContext: vscode.ExtensionContext
 ) {
-  yield* Effect.promise(() => launchFromLogFile(extensionContext.workspaceState.get<string>(LAST_OPENED_LOG_KEY)));
+  yield* launchFromLogFile(extensionContext.workspaceState.get<string>(LAST_OPENED_LOG_KEY));
 });
 
 export const getDebuggerType = async (session: vscode.DebugSession): Promise<string> => {
@@ -132,7 +138,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
     launchFromLastLogFileCommand(extensionContext)
   );
   yield* registerCommand('sf.anon.apex.debug.delegate', anonApexDebugCommand);
-  yield* registerCommand('sf.apex.debug.document', anonApexDebugCommand);
   yield* registerCommand('sf.launch.apex.replay.debugger.with.current.file', () =>
     launchApexReplayDebuggerWithCurrentFileCommand(extensionContext)
   );

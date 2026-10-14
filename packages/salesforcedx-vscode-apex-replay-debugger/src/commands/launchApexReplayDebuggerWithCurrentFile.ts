@@ -21,9 +21,7 @@ export const launchApexReplayDebuggerWithCurrentFileCommand = Effect.fn(
 
     if (isLogFile(sourceUri)) {
       updateLastOpened(extensionContext, sourceUri);
-      yield* api.services.FsService.uriToPath(sourceUri).pipe(
-        Effect.flatMap(logFile => Effect.promise(() => launchFromLogFile(logFile)))
-      );
+      yield* api.services.FsService.uriToPath(sourceUri).pipe(Effect.flatMap(logFile => launchFromLogFile(logFile)));
       return;
     }
 
