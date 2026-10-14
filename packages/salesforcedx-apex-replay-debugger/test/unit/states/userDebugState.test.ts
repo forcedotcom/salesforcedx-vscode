@@ -6,8 +6,8 @@
  */
 
 // Mock DebugSession.run to prevent it from executing during tests
-vi.mock('@vscode/debugadapter', async importOriginal => {
-  const actual = await importOriginal<typeof import('@vscode/debugadapter')>();
+vi.mock(import('@vscode/debugadapter'), async importOriginal => {
+  const actual = await importOriginal();
   return {
     ...actual,
     DebugSession: Object.assign(actual.DebugSession, { run: vi.fn() })
