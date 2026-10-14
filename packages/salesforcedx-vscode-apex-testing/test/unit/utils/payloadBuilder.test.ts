@@ -6,9 +6,9 @@
  */
 
 import type { Mock as VitestMock, Mocked as VitestMocked } from 'vitest';
-import { AsyncTestConfiguration, TestService } from '@salesforce/apex-node';
+import { type AsyncTestConfiguration, type TestService } from '@salesforce/apex-node';
 import * as Effect from 'effect/Effect';
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import { buildTestPayload as buildTestPayloadEffect } from '../../../src/utils/payloadBuilder';
 
 // buildTestPayload is now an Effect.fn; run it to a Promise so the existing assertions hold.

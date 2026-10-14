@@ -60,7 +60,7 @@ vi.mock('../../../src/utils/testUtils', async () => {
 });
 
 import type { Mock as VitestMock } from 'vitest';
-import { TestService } from '@salesforce/apex-node';
+import { type TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';

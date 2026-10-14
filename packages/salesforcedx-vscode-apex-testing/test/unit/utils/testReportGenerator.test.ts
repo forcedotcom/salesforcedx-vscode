@@ -96,7 +96,7 @@ vi.mock('../../../src/services/extensionProvider', async () => {
 });
 
 import type { Mock as VitestMock } from 'vitest';
-import { TestResult, MarkdownTextFormatTransformer } from '@salesforce/apex-node';
+import { type TestResult, MarkdownTextFormatTransformer } from '@salesforce/apex-node';
 import { Global } from '@salesforce/core';
 import * as path from 'node:path';
 import * as vscode from 'vscode';

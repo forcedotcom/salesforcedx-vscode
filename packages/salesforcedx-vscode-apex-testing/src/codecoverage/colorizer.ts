@@ -8,11 +8,11 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
-import { TextEditor, window } from 'vscode';
+import { type TextEditor, window } from 'vscode';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 import { CodeCoverageService, type CoverageRanges } from './codeCoverageService';
 import { coveredLinesDecorationType, uncoveredLinesDecorationType } from './decorations';
-import { StatusBarToggle } from './statusBarToggle';
+import { type StatusBarToggle } from './statusBarToggle';
 
 const setCoverageDecorators = (editor: TextEditor, ranges: CoverageRanges): void => {
   editor.setDecorations(coveredLinesDecorationType, ranges.coveredLines);

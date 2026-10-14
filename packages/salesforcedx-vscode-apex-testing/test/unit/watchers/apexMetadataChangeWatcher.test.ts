@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import * as PubSub from 'effect/PubSub';
-import * as Scope from 'effect/Scope';
+import type * as Scope from 'effect/Scope';
 import * as TestClock from 'effect/TestClock';
 import * as TestContext from 'effect/TestContext';
 import {

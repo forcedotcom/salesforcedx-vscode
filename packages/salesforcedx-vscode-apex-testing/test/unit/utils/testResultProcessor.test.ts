@@ -6,7 +6,7 @@
  */
 
 import type { Mock as VitestMock } from 'vitest';
-import { TestResult } from '@salesforce/apex-node';
+import type { TestResult } from '@salesforce/apex-node';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { FAIL_RESULT, PASS_RESULT, SKIP_RESULT } from '../../../src/constants';

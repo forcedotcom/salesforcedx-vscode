@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { ProgressAndSuccessCommandKey } from '../utils/notificationMode';
-import { TestResult, TestService } from '@salesforce/apex-node';
+import { type TestResult, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
@@ -13,7 +13,7 @@ import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as Runtime from 'effect/Runtime';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { APEX_TESTING_SECTION } from '../constants';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
