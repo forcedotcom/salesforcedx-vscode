@@ -25,7 +25,8 @@
     "clean": "shx rm -rf node_modules out coverage .wireit .eslintcache",
     "compile": "wireit",
     "test": "wireit",
-    "lint": "wireit"
+    "lint": "wireit",
+    "check:effect-diagnostics": "wireit"
   },
   "wireit": {
     "compile": {
@@ -69,6 +70,21 @@
         "test/**/*.ts",
         "jest.config.js",
         "../../config/jest.base.config.js"
+      ],
+      "output": []
+    },
+    "check:effect-diagnostics": {
+      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "package.json",
+        "../../tsconfig.common.json",
+        "../../config/effect-diagnostics.json",
+        "../../scripts/effect-diagnostics.mjs"
       ],
       "output": []
     }

@@ -23,7 +23,8 @@
     "lint": "wireit",
     "test": "wireit",
     "test:desktop": "wireit",
-    "test:compile": "wireit"
+    "test:compile": "wireit",
+    "check:effect-diagnostics": "wireit"
   },
   "wireit": {
     "compile": {
@@ -112,6 +113,21 @@
         "test/**/*.ts",
         "../../eslint.config.mjs",
         "package.json"
+      ],
+      "output": []
+    },
+    "check:effect-diagnostics": {
+      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "package.json",
+        "../../tsconfig.common.json",
+        "../../config/effect-diagnostics.json",
+        "../../scripts/effect-diagnostics.mjs"
       ],
       "output": []
     }

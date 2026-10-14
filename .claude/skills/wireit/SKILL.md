@@ -42,7 +42,10 @@ ref: https://github.com/google/wireit?tab=readme-ov-file#extra-arguments
 
 ## Common Patterns
 
-top level `compile`, `lint`, `test` should run all of that in the various packages. When creating new packages, update these.
+- top-level `compile`, `lint`, `test`: run that script in every package. New package → add to these.
+- top-level `check:effect-diagnostics`: dependency list only (same shape as root `lint`; no command, files, output, or `compile` dep). Effect-adopting package (`effect` or `@effect/*` dep, `tsconfig.json`, `src/**/*.ts`):
+  - package `check:effect-diagnostics` = wireit; command `node ../../scripts/effect-diagnostics.mjs .` (one package-dir, resolved from cwd; missing arg exits 1); `dependencies: [compile]`
+  - root dep `./packages/<name>:check:effect-diagnostics`
 
 ## Errors
 
