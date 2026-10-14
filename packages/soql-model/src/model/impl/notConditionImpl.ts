@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Condition, NotCondition, SyntaxOptions } from '../model';
+import { type Condition, type NotCondition, type SyntaxOptions } from '../model';
 
 export class NotConditionImpl implements NotCondition {
   public readonly kind = 'not' as const;

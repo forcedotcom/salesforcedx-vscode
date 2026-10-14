@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Condition, NestedCondition, SyntaxOptions } from '../model';
+import { type Condition, type NestedCondition, type SyntaxOptions } from '../model';
 
 export class NestedConditionImpl implements NestedCondition {
   public readonly kind = 'nested' as const;
