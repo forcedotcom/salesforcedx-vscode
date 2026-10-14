@@ -15,12 +15,11 @@ const mockAppendToChannel = vi.fn();
 
 // Mock the extensionProvider module before importing anything that uses it
 vi.mock('../../../src/services/extensionProvider', async () => {
-  const Effect = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
-  const Context = await vi.importActual<typeof import('effect/Context')>('effect/Context');
-  const Layer = await vi.importActual<typeof import('effect/Layer')>('effect/Layer');
-  const ManagedRuntime = await vi.importActual<typeof import('effect/ManagedRuntime')>('effect/ManagedRuntime');
-  const { ExtensionProviderService } =
-    await vi.importActual<typeof import('@salesforce/effect-ext-utils')>('@salesforce/effect-ext-utils');
+  const Effect = await vi.importActual<typeof EffectModule>('effect/Effect');
+  const Context = await vi.importActual<typeof ContextModule>('effect/Context');
+  const Layer = await vi.importActual<typeof LayerModule>('effect/Layer');
+  const ManagedRuntime = await vi.importActual<typeof ManagedRuntimeModule>('effect/ManagedRuntime');
+  const { ExtensionProviderService } = await vi.importActual<typeof EffectExtUtils>('@salesforce/effect-ext-utils');
   const vscodeApi = await import('vscode');
 
   const mockFsWrite = (pathOrUri: unknown, _content: string) =>
@@ -43,10 +42,7 @@ vi.mock('../../../src/services/extensionProvider', async () => {
     safeWriteFile: mockFsWrite,
     showTextDocument: (uri: unknown, options?: unknown) =>
       Effect.promise(() =>
-        vscodeApi.window.showTextDocument(
-          uri as import('vscode').Uri,
-          options as import('vscode').TextDocumentShowOptions | undefined
-        )
+        vscodeApi.window.showTextDocument(uri as URI, options as vscode.TextDocumentShowOptions | undefined)
       ),
     Default: Layer.succeed(Context.GenericTag('FsService'), {
       writeFile: mockFsWrite,
@@ -84,7 +80,7 @@ vi.mock('../../../src/services/extensionProvider', async () => {
       () =>
         ({
           getServicesApi: Effect.succeed(mockServicesApi)
-        }) as unknown as import('@salesforce/effect-ext-utils').ExtensionProviderService
+        }) as unknown as EffectExtUtils.ExtensionProviderService
     )
   );
 
@@ -96,6 +92,11 @@ vi.mock('../../../src/services/extensionProvider', async () => {
 });
 
 import type { Mock as VitestMock } from 'vitest';
+import type * as EffectExtUtils from '@salesforce/effect-ext-utils';
+import type * as EffectModule from 'effect/Effect';
+import type * as ContextModule from 'effect/Context';
+import type * as LayerModule from 'effect/Layer';
+import type * as ManagedRuntimeModule from 'effect/ManagedRuntime';
 import { type TestResult, MarkdownTextFormatTransformer } from '@salesforce/apex-node';
 import { Global } from '@salesforce/core';
 import * as path from 'node:path';

@@ -8,10 +8,10 @@
 // Mocks are hoisted; static import is fine
 
 vi.mock('../../../src/services/extensionProvider', async () => {
-  const EffectLib = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
-  const Context = await vi.importActual<typeof import('effect/Context')>('effect/Context');
-  const Layer = await vi.importActual<typeof import('effect/Layer')>('effect/Layer');
-  const ManagedRuntime = await vi.importActual<typeof import('effect/ManagedRuntime')>('effect/ManagedRuntime');
+  const EffectLib = await vi.importActual<typeof Effect>('effect/Effect');
+  const Context = await vi.importActual<typeof ContextModule>('effect/Context');
+  const Layer = await vi.importActual<typeof LayerModule>('effect/Layer');
+  const ManagedRuntime = await vi.importActual<typeof ManagedRuntimeModule>('effect/ManagedRuntime');
 
   const MockExtensionProviderService = Context.GenericTag('ExtensionProviderService');
 
@@ -48,6 +48,10 @@ vi.mock('../../../src/services/extensionProvider', async () => {
 });
 
 import type { Mock as VitestMock } from 'vitest';
+import type * as Effect from 'effect/Effect';
+import type * as ContextModule from 'effect/Context';
+import type * as LayerModule from 'effect/Layer';
+import type * as ManagedRuntimeModule from 'effect/ManagedRuntime';
 import * as Option from 'effect/Option';
 import * as extensionProvider from '../../../src/services/extensionProvider';
 import { discoverTests } from '../../../src/testDiscovery/testDiscovery';

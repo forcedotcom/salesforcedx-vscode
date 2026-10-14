@@ -7,7 +7,8 @@
 
 import type { Mock as VitestMock } from 'vitest';
 import type { TestResult } from '@salesforce/apex-node';
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
+import type * as ApexNode from '@salesforce/apex-node';
 import { URI } from 'vscode-uri';
 import { FAIL_RESULT, PASS_RESULT, SKIP_RESULT } from '../../../src/constants';
 import { parseStackTrace, updateTestRunResults } from '../../../src/utils/testResultProcessor';
@@ -16,7 +17,7 @@ import { parseStackTrace, updateTestRunResults } from '../../../src/utils/testRe
 const mockFormat = vi.fn().mockReturnValue('Mocked HumanReporter Output\nTest Results\n');
 
 vi.mock('@salesforce/apex-node', async () => {
-  const actual = (await vi.importActual<typeof import('@salesforce/apex-node')>('@salesforce/apex-node')) as any;
+  const actual = (await vi.importActual<typeof ApexNode>('@salesforce/apex-node')) as any;
   // Create a mock class that returns an object with format method
   class MockHumanReporter {
     public format = mockFormat;

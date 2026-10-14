@@ -10,7 +10,7 @@
 // suites). retrieveAllSuites failures are recovered inside retrieveSuites.
 let activeTestService: unknown = { retrieveAllSuites: () => Promise.resolve([]) };
 vi.mock('@salesforce/apex-node', async () => ({
-  ...(await vi.importActual<typeof import('@salesforce/apex-node')>('@salesforce/apex-node')),
+  ...(await vi.importActual<typeof ApexNode>('@salesforce/apex-node')),
   TestService: vi.fn().mockImplementation(
     // Vitest constructor mocks must use a constructable function.
     // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
@@ -24,7 +24,7 @@ vi.mock('@salesforce/apex-node', async () => ({
 // trivially-succeeding discovery keeps the body cheap. The mock returns an Effect (consumed via yield*).
 const mockDiscoverTests = vi.fn();
 vi.mock('../../../src/testDiscovery/testDiscovery', async () => {
-  const EffectLib = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
+  const EffectLib = await vi.importActual<typeof Effect>('effect/Effect');
   return { discoverTests: () => mockDiscoverTests() ?? EffectLib.succeed({ classes: [] }) };
 });
 
@@ -32,7 +32,7 @@ vi.mock('../../../src/testDiscovery/testDiscovery', async () => {
 // restore-apply test only cares about the dir-listing + apply loop, so return a fixed folder URI.
 const mockGetTestResultsFolder = vi.fn();
 vi.mock('../../../src/utils/pathHelpers', async () => {
-  const EffectLib = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
+  const EffectLib = await vi.importActual<typeof Effect>('effect/Effect');
   return { getTestResultsFolder: () => mockGetTestResultsFolder() ?? EffectLib.succeed({ toString: () => 'dir' }) };
 });
 
@@ -50,12 +50,13 @@ vi.mock('../../../src/services/extensionProvider', () => ({
 // maps so addClassToTree exercises the namespace/package build path.
 let mockOrgInfo: { orgId?: string; username?: string } = { orgId: 'org123', username: 'user@example.com' };
 vi.mock('../../../src/testDiscovery/packageResolution', async () => {
-  const EffectLib = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
+  const EffectLib = await vi.importActual<typeof Effect>('effect/Effect');
   // resolve is a static accessor (PackageResolutionService.resolve(...)) returning an Effect<Map>.
   return { PackageResolutionService: { resolve: () => EffectLib.succeed(new Map()) } };
 });
 let mockClassNameToUri = new Map<string, URI>();
 import type { Mock as VitestMock } from 'vitest';
+import type * as ApexNode from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';

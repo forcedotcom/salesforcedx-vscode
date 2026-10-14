@@ -16,14 +16,13 @@ const mockAppendToChannel = vi.fn();
 // Build a real CodeCoverageService.Default over a mock ExtensionProviderService whose api.services
 // exposes a controllable SettingsService + ChannelService. getApexTestingRuntime runs effects for real.
 vi.mock('../../../src/services/extensionProvider', async () => {
-  const EffectActual = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
-  const LayerActual = await vi.importActual<typeof import('effect/Layer')>('effect/Layer');
-  const ManagedRuntimeActual = await vi.importActual<typeof import('effect/ManagedRuntime')>('effect/ManagedRuntime');
-  const { ExtensionProviderService } =
-    await vi.importActual<typeof import('@salesforce/effect-ext-utils')>('@salesforce/effect-ext-utils');
-  const { CodeCoverageService: CodeCoverageServiceActual } = await vi.importActual<
-    typeof import('../../../src/codecoverage/codeCoverageService')
-  >('../../../src/codecoverage/codeCoverageService');
+  const EffectActual = await vi.importActual<typeof Effect>('effect/Effect');
+  const LayerActual = await vi.importActual<typeof Layer>('effect/Layer');
+  const ManagedRuntimeActual = await vi.importActual<typeof ManagedRuntime>('effect/ManagedRuntime');
+  const { ExtensionProviderService } = await vi.importActual<typeof EffectExtUtils>('@salesforce/effect-ext-utils');
+  const { CodeCoverageService: CodeCoverageServiceActual } = await vi.importActual<typeof CodeCoverage>(
+    '../../../src/codecoverage/codeCoverageService'
+  );
   const vscodeMock = await import('vscode');
   const { Utils: UtilsActual } = await import('vscode-uri');
 
@@ -44,14 +43,12 @@ vi.mock('../../../src/services/extensionProvider', async () => {
   // fs op surfaces as an Effect failure the service's catchAll can handle (not a defect).
   const mockFsService = {
     readFile: (uri: unknown) =>
-      EffectActual.tryPromise(async () =>
-        new TextDecoder().decode(await vscodeMock.workspace.fs.readFile(uri as import('vscode').Uri))
-      ),
-    stat: (uri: unknown) => EffectActual.tryPromise(() => vscodeMock.workspace.fs.stat(uri as import('vscode').Uri)),
+      EffectActual.tryPromise(async () => new TextDecoder().decode(await vscodeMock.workspace.fs.readFile(uri as URI))),
+    stat: (uri: unknown) => EffectActual.tryPromise(() => vscodeMock.workspace.fs.stat(uri as URI)),
     readDirectoryWithTypes: (dirUri: unknown) =>
       EffectActual.tryPromise(async () =>
-        (await vscodeMock.workspace.fs.readDirectory(dirUri as import('vscode').Uri)).map(([name, type]) => ({
-          uri: UtilsActual.joinPath(dirUri as import('vscode-uri').URI, name),
+        (await vscodeMock.workspace.fs.readDirectory(dirUri as URI)).map(([name, type]) => ({
+          uri: UtilsActual.joinPath(dirUri as URI, name),
           type
         }))
       )
@@ -67,7 +64,7 @@ vi.mock('../../../src/services/extensionProvider', async () => {
   };
   const ExtensionProviderLive = LayerActual.succeed(ExtensionProviderService, {
     getServicesApi: EffectActual.succeed(mockServicesApi)
-  } as unknown as import('@salesforce/effect-ext-utils').ExtensionProviderService);
+  } as unknown as EffectExtUtils.ExtensionProviderService);
   // merge (not provide): ExtensionProviderService is yielded at call time, so it must remain in the
   // runtime context (mirrors production, where buildAllServicesLayer keeps it ambient).
   const TestLayer = LayerActual.merge(CodeCoverageServiceActual.Default, ExtensionProviderLive);
@@ -84,6 +81,10 @@ vi.mock('../../../src/utils/pathHelpers', () => ({
 }));
 
 import type { Mock as VitestMock } from 'vitest';
+import type * as EffectExtUtils from '@salesforce/effect-ext-utils';
+import type * as Layer from 'effect/Layer';
+import type * as ManagedRuntime from 'effect/ManagedRuntime';
+import type * as CodeCoverage from '../../../src/codecoverage/codeCoverageService';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';

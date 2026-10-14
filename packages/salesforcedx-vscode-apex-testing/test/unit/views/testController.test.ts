@@ -6,23 +6,22 @@
  */
 
 vi.mock('../../../src/services/extensionProvider', async () => {
-  const EffectLib = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
-  const SubscriptionRef = await vi.importActual<typeof import('effect/SubscriptionRef')>('effect/SubscriptionRef');
-  const Layer = await vi.importActual<typeof import('effect/Layer')>('effect/Layer');
-  const ManagedRuntime = await vi.importActual<typeof import('effect/ManagedRuntime')>('effect/ManagedRuntime');
-  const { ExtensionProviderService } =
-    await vi.importActual<typeof import('@salesforce/effect-ext-utils')>('@salesforce/effect-ext-utils');
-  const { ApexTestRunCacheService } = await vi.importActual<
-    typeof import('../../../src/testRunCache/apexTestRunCacheService')
-  >('../../../src/testRunCache/apexTestRunCacheService');
-  const { ApexTestTreeService: ApexTestTreeServiceActual } = await vi.importActual<
-    typeof import('../../../src/views/apexTestTreeService')
-  >('../../../src/views/apexTestTreeService');
-  const { ApexTestExecutionService: ApexTestExecutionServiceActual } = await vi.importActual<
-    typeof import('../../../src/views/apexTestExecutionService')
-  >('../../../src/views/apexTestExecutionService');
-  const { URI: UriClass } = await vi.importActual<typeof import('vscode-uri')>('vscode-uri');
-  const { HashableUri } = await vi.importActual<typeof import('salesforcedx-vscode-services/src/vscode/hashableUri')>(
+  const EffectLib = await vi.importActual<typeof Effect>('effect/Effect');
+  const SubscriptionRef = await vi.importActual<typeof SubscriptionRefModule>('effect/SubscriptionRef');
+  const Layer = await vi.importActual<typeof LayerModule>('effect/Layer');
+  const ManagedRuntime = await vi.importActual<typeof ManagedRuntimeModule>('effect/ManagedRuntime');
+  const { ExtensionProviderService } = await vi.importActual<typeof EffectExtUtils>('@salesforce/effect-ext-utils');
+  const { ApexTestRunCacheService } = await vi.importActual<typeof ApexTestRunCache>(
+    '../../../src/testRunCache/apexTestRunCacheService'
+  );
+  const { ApexTestTreeService: ApexTestTreeServiceActual } = await vi.importActual<typeof ApexTestTree>(
+    '../../../src/views/apexTestTreeService'
+  );
+  const { ApexTestExecutionService: ApexTestExecutionServiceActual } = await vi.importActual<typeof ApexTestExecution>(
+    '../../../src/views/apexTestExecutionService'
+  );
+  const { URI: UriClass } = await vi.importActual<typeof VscodeUri>('vscode-uri');
+  const { HashableUri } = await vi.importActual<typeof HashableUriModule>(
     'salesforcedx-vscode-services/src/vscode/hashableUri'
   );
   const vscodeMock = await import('vscode');
@@ -69,10 +68,7 @@ vi.mock('../../../src/services/extensionProvider', async () => {
     showTextDocument: (uri: unknown, options?: unknown) =>
       EffectLib.tryPromise({
         try: () =>
-          vscodeMock.window.showTextDocument(
-            uri as import('vscode').Uri,
-            options as import('vscode').TextDocumentShowOptions | undefined
-          ),
+          vscodeMock.window.showTextDocument(uri as URI, options as vscode.TextDocumentShowOptions | undefined),
         catch: (e: unknown) => (e instanceof Error ? e : new Error(String(e)))
       })
   };
@@ -121,7 +117,7 @@ vi.mock('../../../src/services/extensionProvider', async () => {
       () =>
         ({
           getServicesApi: EffectLib.succeed(mockServicesApi)
-        }) as unknown as import('@salesforce/effect-ext-utils').ExtensionProviderService
+        }) as unknown as EffectExtUtils.ExtensionProviderService
     )
   );
   // ApexTestTreeService owns the tree Refs; the shell reads them via this runtime, so the mock runtime
@@ -180,8 +176,8 @@ vi.mock('../../../src/services/extensionProvider', async () => {
 });
 
 vi.mock('../../../src/utils/testUtils', async () => {
-  const actual = await vi.importActual<typeof import('../../../src/utils/testUtils')>('../../../src/utils/testUtils');
-  const EffectLib = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
+  const actual = await vi.importActual<typeof TestUtils>('../../../src/utils/testUtils');
+  const EffectLib = await vi.importActual<typeof Effect>('effect/Effect');
   return {
     ...actual,
     readTestRunIdFile: vi.fn(() => EffectLib.succeed(undefined))
@@ -189,7 +185,7 @@ vi.mock('../../../src/utils/testUtils', async () => {
 });
 
 vi.mock('../../../src/testDiscovery/packageResolution', async () => {
-  const EffectLib = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
+  const EffectLib = await vi.importActual<typeof Effect>('effect/Effect');
   // resolve is a static accessor (PackageResolutionService.resolve(...)) returning an Effect<Map>.
   return { PackageResolutionService: { resolve: () => EffectLib.succeed(new Map()) } };
 });
@@ -224,6 +220,16 @@ vi.mock('@salesforce/apex-node', () => ({
 }));
 
 import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
+import type * as EffectExtUtils from '@salesforce/effect-ext-utils';
+import type * as SubscriptionRefModule from 'effect/SubscriptionRef';
+import type * as LayerModule from 'effect/Layer';
+import type * as ManagedRuntimeModule from 'effect/ManagedRuntime';
+import type * as VscodeUri from 'vscode-uri';
+import type * as HashableUriModule from 'salesforcedx-vscode-services/src/vscode/hashableUri';
+import type * as ApexTestRunCache from '../../../src/testRunCache/apexTestRunCacheService';
+import type * as ApexTestTree from '../../../src/views/apexTestTreeService';
+import type * as ApexTestExecution from '../../../src/views/apexTestExecutionService';
+import type * as TestUtils from '../../../src/utils/testUtils';
 import * as path from 'node:path';
 import { type TestResult, TestService } from '@salesforce/apex-node';
 import { URI } from 'vscode-uri';

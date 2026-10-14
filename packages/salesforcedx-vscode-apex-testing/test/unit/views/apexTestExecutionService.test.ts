@@ -16,7 +16,7 @@ vi.mock('../../../src/services/extensionProvider', () => ({
 // ConnectionService.getConnection). Mock the constructor to return a controllable instance per test.
 let activeTestService: unknown;
 vi.mock('@salesforce/apex-node', async () => ({
-  ...(await vi.importActual<typeof import('@salesforce/apex-node')>('@salesforce/apex-node')),
+  ...(await vi.importActual<typeof ApexNode>('@salesforce/apex-node')),
   TestService: vi.fn().mockImplementation(
     // Vitest constructor mocks must use a constructable function.
     // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
@@ -32,14 +32,14 @@ vi.mock('../../../src/utils/testResultProcessor', () => ({
   updateTestRunResults: (...a: unknown[]) => mockUpdateTestRunResults(...a)
 }));
 vi.mock('../../../src/utils/testReportGenerator', async () => {
-  const EffectLib = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
+  const EffectLib = await vi.importActual<typeof Effect>('effect/Effect');
   return { writeAndOpenTestReport: () => EffectLib.void };
 });
 
 const mockGetTestResultsFolder = vi.fn();
 vi.mock('../../../src/utils/pathHelpers', async () => {
-  const EffectLib = await vi.importActual<typeof import('effect/Effect')>('effect/Effect');
-  const { URI: UriClass } = await vi.importActual<typeof import('vscode-uri')>('vscode-uri');
+  const EffectLib = await vi.importActual<typeof Effect>('effect/Effect');
+  const { URI: UriClass } = await vi.importActual<typeof VscodeUri>('vscode-uri');
   return {
     getTestResultsFolder: () => mockGetTestResultsFolder() ?? EffectLib.succeed(UriClass.file('/tmp/apex-test-results'))
   };
@@ -51,7 +51,7 @@ const mockReadTestRunIdFile = vi.fn(
   (..._a: unknown[]) => Effect.succeed(undefined) as Effect.Effect<string | undefined>
 );
 vi.mock('../../../src/utils/testUtils', async () => {
-  const actual = await vi.importActual<typeof import('../../../src/utils/testUtils')>('../../../src/utils/testUtils');
+  const actual = await vi.importActual<typeof TestUtils>('../../../src/utils/testUtils');
   return {
     ...actual,
     writeTestResultJsonFile: (...a: unknown[]) => mockWriteTestResultJsonFile(...a),
@@ -60,6 +60,9 @@ vi.mock('../../../src/utils/testUtils', async () => {
 });
 
 import type { Mock as VitestMock } from 'vitest';
+import type * as ApexNode from '@salesforce/apex-node';
+import type * as VscodeUri from 'vscode-uri';
+import type * as TestUtils from '../../../src/utils/testUtils';
 import { type TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
