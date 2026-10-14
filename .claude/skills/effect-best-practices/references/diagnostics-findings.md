@@ -2,7 +2,7 @@
 
 Repo's chosen fix per rule — the LS message and quickfix say what's wrong, this says what we do about it. Which rules gate the build is not tracked here: `config/effect-diagnostics.json` `enforcedRules` is the only list (`npm run check:effect-diagnostics` fails on any rule in it, any severity). Fix unlisted findings too — each becomes enforced by a later WI.
 
-Many rules ship `default: "off"` upstream (`@effect/language-service/schema.json`) — an `off` rule reports nothing, so a name in `enforcedRules` gates nothing until `tsconfig.common.json` `diagnosticSeverity` pins it to `error`. Pinned there today: `floatingEffect`, `globalRandom`, `globalRandomInEffect`, `globalFetchInEffect`, `globalTimersInEffect`, `missedPipeableOpportunity`.
+Many rules ship `default: "off"` upstream (`@effect/language-service/schema.json`) — an `off` rule reports nothing, so a name in `enforcedRules` gates nothing until `tsconfig.common.json` `diagnosticSeverity` pins it to `error`. Pinned there today: `floatingEffect`, `globalRandom`, `globalRandomInEffect`, `globalFetchInEffect`, `globalTimersInEffect`, `missedPipeableOpportunity`, `nestedEffectGenYield`. `effectFnOpportunity: "warning"` is an editor override and stays out of `enforcedRules`.
 
 | Rule | Finding | Fix |
 | --- | --- | --- |
