@@ -6,13 +6,13 @@
  */
 
 /* eslint-disable @typescript-eslint/consistent-type-assertions, no-param-reassign, prefer-const */
-import { SOQLParser, ParserError } from '@salesforce/soql-common/soql-parser.lib';
+import { SOQLParser, type ParserError } from '@salesforce/soql-common/soql-parser.lib';
 import * as Parser from '@salesforce/soql-common/soql-parser.lib/generated/SoqlParser';
-import { SoqlParserListener } from '@salesforce/soql-common/soql-parser.lib/generated/SoqlParserListener';
+import { type SoqlParserListener } from '@salesforce/soql-common/soql-parser.lib/generated/SoqlParserListener';
 import { parseHeaderComments } from '@salesforce/soql-common/soqlComments';
-import { CharStream, ParserRuleContext, Token, NoViableAltException, InputMismatchException } from 'antlr4ts';
+import { type CharStream, ParserRuleContext, Token, NoViableAltException, InputMismatchException } from 'antlr4ts';
 import { Interval } from 'antlr4ts/misc/Interval';
-import { ErrorNode, ParseTreeListener, ParseTree } from 'antlr4ts/tree';
+import { ErrorNode, type ParseTreeListener, type ParseTree } from 'antlr4ts/tree';
 import { messages } from '../messages/i18n';
 import { AndOrConditionImpl } from '../model/impl/andOrConditionImpl';
 import { FieldCompareConditionImpl } from '../model/impl/fieldCompareConditionImpl';
@@ -35,29 +35,29 @@ import { UnmodeledSyntaxImpl } from '../model/impl/unmodeledSyntaxImpl';
 import { WhereImpl } from '../model/impl/whereImpl';
 import {
   AndOr,
-  Bind,
-  Condition,
+  type Bind,
+  type Condition,
   ConditionOperator,
-  CompareValue,
-  ErrorType,
-  Field,
-  From,
-  GroupBy,
-  Limit,
-  Literal,
-  ModelError,
-  Offset,
+  type CompareValue,
+  type ErrorType,
+  type Field,
+  type From,
+  type GroupBy,
+  type Limit,
+  type Literal,
+  type ModelError,
+  type Offset,
   Order,
-  OrderBy,
-  OrderByExpression,
-  Query,
-  RecordTrackingType,
-  Select,
-  UnmodeledSyntax,
-  Update,
-  Where,
-  With,
-  SelectExpression,
+  type OrderBy,
+  type OrderByExpression,
+  type Query,
+  type RecordTrackingType,
+  type Select,
+  type UnmodeledSyntax,
+  type Update,
+  type Where,
+  type With,
+  type SelectExpression,
   NullsOrder
 } from '../model/model';
 import {
@@ -82,7 +82,7 @@ import {
   REASON_UNMODELED_USING,
   REASON_UNMODELED_WITH,
   REASON_UNMODELED_GROUPBY,
-  UnmodeledSyntaxReason
+  type UnmodeledSyntaxReason
 } from '../model/unmodeled';
 import { SoqlModelUtils } from '../model/util';
 import { stripAllRows } from './allRows';

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Condition, SyntaxOptions, Where } from '../model';
+import { type Condition, type SyntaxOptions, type Where } from '../model';
 
 export class WhereImpl implements Where {
   constructor(public condition: Condition) {}

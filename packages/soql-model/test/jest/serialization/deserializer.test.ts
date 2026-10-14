@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ErrorType } from '../../../src/model/model';
+import { type ErrorType } from '../../../src/model/model';
 import {
   REASON_UNMODELED_ALIAS,
   REASON_UNMODELED_BIND,

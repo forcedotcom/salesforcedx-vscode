@@ -5,7 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ConditionOperator, CompareValue, Field, InListCondition, SyntaxOptions } from '../model';
+import {
+  type ConditionOperator,
+  type CompareValue,
+  type Field,
+  type InListCondition,
+  type SyntaxOptions
+} from '../model';
 
 export class InListConditionImpl implements InListCondition {
   public readonly kind = 'inList' as const;

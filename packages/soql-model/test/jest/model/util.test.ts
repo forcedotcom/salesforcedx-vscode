@@ -18,7 +18,7 @@ import { NotConditionImpl } from '../../../src/model/impl/notConditionImpl';
 import { QueryImpl } from '../../../src/model/impl/queryImpl';
 import { SelectExprsImpl } from '../../../src/model/impl/selectExprsImpl';
 import { UnmodeledSyntaxImpl } from '../../../src/model/impl/unmodeledSyntaxImpl';
-import { AndOr, Condition, ConditionOperator } from '../../../src/model/model';
+import { AndOr, type Condition, ConditionOperator } from '../../../src/model/model';
 import {
   REASON_UNMODELED_ALIAS,
   REASON_UNMODELED_CALCULATEDCONDITION,

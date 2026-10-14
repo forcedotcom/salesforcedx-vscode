@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AndOr, AndOrCondition, Condition, SyntaxOptions } from '../model';
+import { type AndOr, type AndOrCondition, type Condition, type SyntaxOptions } from '../model';
 
 export class AndOrConditionImpl implements AndOrCondition {
   public readonly kind = 'andOr' as const;

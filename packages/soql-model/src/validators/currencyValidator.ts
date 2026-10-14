@@ -6,7 +6,7 @@
  */
 import { messages } from '../messages/i18n';
 import { FloatValidator } from './floatValidator';
-import { ValidateResult } from './validator';
+import { type ValidateResult } from './validator';
 
 export class CurrencyValidator extends FloatValidator {
   public validate(input: string): ValidateResult {

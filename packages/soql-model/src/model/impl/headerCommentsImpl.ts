@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { HeaderComments, SyntaxOptions } from '../model';
+import { type HeaderComments, type SyntaxOptions } from '../model';
 
 export class HeaderCommentsImpl implements HeaderComments {
   constructor(public text: string) {}
