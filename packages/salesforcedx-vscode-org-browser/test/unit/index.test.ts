@@ -307,7 +307,7 @@ describe('Extension activation ordering', () => {
       invalidateCachedConnections: () => Effect.void,
       listAllAuthorizations: () => Effect.succeed([])
     } as const);
-    const getConnection = jest.spyOn(connectionService, 'getConnection');
+    const getConnection = vi.spyOn(connectionService, 'getConnection');
     const servicesApi = {
       services: {
         ChannelService,
