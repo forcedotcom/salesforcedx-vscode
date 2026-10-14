@@ -1,0 +1,269 @@
+name: Playwright E2E
+description: Run one Playwright E2E lane with cached setup, scratch orgs, retry, and artifacts
+inputs:
+  workspace:
+    description: Workspace directory under packages (for example, packages/salesforcedx-vscode-core)
+    required: true
+  npm-script:
+    description: Playwright npm script in the workspace
+    required: true
+  spec-filter:
+    description: Optional Playwright spec filter (LWC desktop lanes)
+    default: ''
+  scratch-orgs:
+    description: Space-separated org kinds (minimal, non-tracking, dreamhouse, throwaway, default-logout)
+    default: ''
+  recreate-org-on-retry:
+    description: Recreate the single scratch org before retrying failed specs
+    default: 'false'
+  retry-failed:
+    description: Retry failed specs sequentially (disabled for apex-log's org-wide mutations)
+    default: 'true'
+  compile-playwright-utils:
+    description: Compile shared Playwright utilities before probing the cache
+    default: 'false'
+  copy-appinsights:
+    description: Include local AppInsights output in test results
+    default: 'false'
+  report-name:
+    description: HTML report artifact name
+    required: true
+  results-name:
+    description: Test results artifact name
+    required: true
+  results-path:
+    description: Additional test results path (SOQL web)
+    default: ''
+  node-version:
+    description: Node.js version
+    default: lts/*
+runs:
+  using: composite
+  steps:
+    # Callers use $/.github/actions/playwright-e2e so GitHub loads this action
+    # from the running commit before the workspace has been checked out.
+    - name: Checkout repository
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 1
+
+    - name: Log desktop VS Code version
+      if: env.VSCODE_DESKTOP == '1'
+      shell: bash
+      run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
+
+    - name: Setup pnpm
+      uses: ./.github/actions/setup-pnpm
+      with:
+        node-version: ${{ inputs.node-version }}
+
+    - uses: google/wireit@setup-github-actions-caching/v2
+
+    # This package is loaded by Playwright before test discovery. Do not trust a malformed
+    # Wireit cache entry that reports success without its required out/index.js.
+    - name: Compile shared Playwright utilities
+      if: inputs.compile-playwright-utils == 'true'
+      shell: bash
+      run: pnpm --filter @salesforce/playwright-vscode-ext exec tsc --pretty
+
+    # Wireit cache hits exit zero without requiring CLI, scratch orgs, or Chromium.
+    - name: Try E2E tests
+      id: try-run
+      continue-on-error: true
+      shell: bash
+      env:
+        WORKSPACE: ${{ inputs.workspace }}
+        NPM_SCRIPT: ${{ inputs.npm-script }}
+        SPEC_FILTER: ${{ inputs.spec-filter }}
+        CI: '1'
+        E2E_NO_RETRIES: '1'
+      run: |
+        command=(pnpm --filter "./$WORKSPACE" "$NPM_SCRIPT")
+        if [[ -n "$SPEC_FILTER" ]]; then command+=(-- "$SPEC_FILTER"); fi
+        if [[ "$RUNNER_OS" == Linux && "${VSCODE_DESKTOP:-}" == 1 ]]; then command=(xvfb-run -a "${command[@]}"); fi
+        # Composite action steps cannot set timeout-minutes; bound the cache probe to five minutes.
+        "${command[@]}" &
+        command_pid=$!
+        (sleep 300; kill -TERM "$command_pid" 2>/dev/null || true) &
+        timeout_pid=$!
+        status=0
+        wait "$command_pid" || status=$?
+        kill "$timeout_pid" 2>/dev/null || true
+        wait "$timeout_pid" 2>/dev/null || true
+        exit "$status"
+
+    - name: Kill process on port 3001
+      if: steps.try-run.outcome == 'failure' && env.VSCODE_DESKTOP != '1'
+      shell: bash
+      run: lsof -ti :3001 | xargs --no-run-if-empty kill -9
+
+    - uses: ./.github/actions/cache-vscode-web
+      if: steps.try-run.outcome == 'failure' && env.VSCODE_DESKTOP != '1'
+      with:
+        vscode-version: ${{ env.PLAYWRIGHT_VSCODE_VERSION }}
+
+    - uses: ./.github/actions/cache-vscode-desktop
+      if: steps.try-run.outcome == 'failure' && env.VSCODE_DESKTOP == '1'
+      with:
+        vscode-version: ${{ env.PLAYWRIGHT_VSCODE_VERSION }}
+
+    - name: Install Salesforce CLI
+      if: steps.try-run.outcome == 'failure' && inputs.scratch-orgs != ''
+      uses: salesforcecli/github-workflows/.github/actions/retry@main
+      with:
+        max_attempts: 3
+        command: npm i -g @salesforce/cli@${{ vars.SF_CLI_VERSION || 'latest' }}
+        retry_wait_seconds: 30
+
+    - name: Auth to dev hub (global)
+      if: steps.try-run.outcome == 'failure' && inputs.scratch-orgs != ''
+      uses: salesforcecli/github-workflows/.github/actions/retry@main
+      with:
+        max_attempts: 3
+        command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'
+        retry_wait_seconds: 30
+
+    - name: Install Playwright browsers and OS deps
+      if: steps.try-run.outcome == 'failure'
+      uses: salesforcecli/github-workflows/.github/actions/retry@main
+      with:
+        max_attempts: 3
+        command: pnpm exec playwright install chromium --with-deps
+        retry_wait_seconds: 60
+
+    - name: Clone dreamhouse
+      if: steps.try-run.outcome == 'failure' && contains(format(' {0} ', inputs.scratch-orgs), ' dreamhouse ')
+      uses: salesforcecli/github-workflows/.github/actions/retry@main
+      with:
+        max_attempts: 3
+        command: git clone --depth=1 https://github.com/trailheadapps/dreamhouse-lwc dreamhouse-lwc
+        retry_wait_seconds: 60
+
+    - name: Create requested scratch orgs
+      if: steps.try-run.outcome == 'failure' && inputs.scratch-orgs != ''
+      shell: bash
+      env:
+        SCRATCH_ORGS: ${{ inputs.scratch-orgs }}
+      run: |
+        set -e
+        has_org() { [[ " $SCRATCH_ORGS " == *" $1 "* ]]; }
+
+        if has_org dreamhouse; then
+          (cd dreamhouse-lwc
+            sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$DREAMHOUSE_ORG_ALIAS" --json --wait 30
+            sf project deploy start
+            sf org assign permset -n dreamhouse)
+        fi
+        if has_org minimal || has_org throwaway || has_org default-logout; then
+          sf project generate -n minimal-project
+          (cd minimal-project
+            if has_org minimal; then sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30; fi
+            # The logout tests require two additional, non-default throwaway orgs.
+            if has_org throwaway; then sf org create scratch -y 1 -f config/project-scratch-def.json -a "$THROWAWAY_ORG_ALIAS" --json; fi
+            if has_org default-logout; then sf org create scratch -y 1 -f config/project-scratch-def.json -a "$DEFAULT_LOGOUT_ORG_ALIAS" --json; fi)
+        fi
+        if has_org non-tracking; then
+          sf project generate -n non-tracking-project
+          (cd non-tracking-project
+            sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source)
+        fi
+
+    - name: Run E2E tests
+      if: steps.try-run.outcome == 'failure'
+      id: test-run
+      continue-on-error: ${{ inputs.retry-failed == 'true' }}
+      shell: bash
+      env:
+        WORKSPACE: ${{ inputs.workspace }}
+        NPM_SCRIPT: ${{ inputs.npm-script }}
+        SPEC_FILTER: ${{ inputs.spec-filter }}
+        CI: '1'
+      run: |
+        command=(pnpm --filter "./$WORKSPACE" "$NPM_SCRIPT")
+        if [[ -n "$SPEC_FILTER" ]]; then command+=(-- "$SPEC_FILTER"); fi
+        if [[ "$RUNNER_OS" == Linux && "${VSCODE_DESKTOP:-}" == 1 ]]; then command=(xvfb-run -a "${command[@]}"); fi
+        "${command[@]}"
+
+    - name: Recreate scratch org before retry
+      if: steps.try-run.outcome == 'failure' && steps.test-run.outcome == 'failure' && inputs.recreate-org-on-retry == 'true'
+      continue-on-error: true
+      shell: bash
+      env:
+        SCRATCH_ORGS: ${{ inputs.scratch-orgs }}
+      run: |
+        if [[ "$SCRATCH_ORGS" == minimal ]]; then
+          (cd minimal-project
+            sf org delete scratch -o "$MINIMAL_ORG_ALIAS" --no-prompt 2>/dev/null || true
+            sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$MINIMAL_ORG_ALIAS" --json --wait 30)
+        elif [[ "$SCRATCH_ORGS" == non-tracking ]]; then
+          (cd non-tracking-project
+            sf org delete scratch -o "$NON_TRACKING_ORG_ALIAS" --no-prompt 2>/dev/null || true
+            sf org create scratch -y 1 -d -f config/project-scratch-def.json -a "$NON_TRACKING_ORG_ALIAS" --json --wait 30 --no-track-source)
+        fi
+
+    - name: Retry failed tests (sequential)
+      if: steps.try-run.outcome == 'failure' && steps.test-run.outcome == 'failure' && inputs.retry-failed == 'true'
+      shell: bash
+      env:
+        WORKSPACE: ${{ inputs.workspace }}
+        NPM_SCRIPT: ${{ inputs.npm-script }}
+        SPEC_FILTER: ${{ inputs.spec-filter }}
+        CI: '1'
+        PLAYWRIGHT_WORKERS: '1'
+      run: |
+        command=(pnpm --filter "./$WORKSPACE" "$NPM_SCRIPT" -- --last-failed)
+        if [[ -n "$SPEC_FILTER" ]]; then command+=("$SPEC_FILTER"); fi
+        if [[ "$RUNNER_OS" == Linux && "${VSCODE_DESKTOP:-}" == 1 ]]; then command=(xvfb-run -a "${command[@]}"); fi
+        "${command[@]}"
+
+    - name: Copy span files to test-results
+      if: always()
+      shell: bash
+      env:
+        WORKSPACE: ${{ inputs.workspace }}
+        COPY_APPINSIGHTS: ${{ inputs.copy-appinsights }}
+      run: |
+        mkdir -p "$WORKSPACE/test-results/spans"
+        cp -r ~/.sf/vscode-spans/. "$WORKSPACE/test-results/spans/" 2>/dev/null || true
+        if [[ "$COPY_APPINSIGHTS" == true ]]; then
+          mkdir -p "$WORKSPACE/test-results/appinsights"
+          cp -r ~/.sf/vscode-appinsights/. "$WORKSPACE/test-results/appinsights/" 2>/dev/null || true
+        fi
+
+    - name: Upload Playwright HTML report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.report-name }}
+        path: ${{ inputs.workspace }}/playwright-report
+        if-no-files-found: ignore
+        retention-days: 14
+
+    - name: Upload Playwright Test Results
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ inputs.results-name }}
+        path: |
+          ${{ inputs.workspace }}/test-results
+          ${{ inputs.results-path }}
+        if-no-files-found: ignore
+        retention-days: 14
+
+    - name: Cleanup scratch orgs
+      if: always() && steps.try-run.outcome == 'failure' && inputs.scratch-orgs != ''
+      continue-on-error: true
+      shell: bash
+      env:
+        SCRATCH_ORGS: ${{ inputs.scratch-orgs }}
+      run: |
+        for org in $SCRATCH_ORGS; do
+          case "$org" in
+            minimal) alias="$MINIMAL_ORG_ALIAS" ;;
+            non-tracking) alias="$NON_TRACKING_ORG_ALIAS" ;;
+            dreamhouse) alias="$DREAMHOUSE_ORG_ALIAS" ;;
+            throwaway) alias="$THROWAWAY_ORG_ALIAS" ;;
+            default-logout) alias="$DEFAULT_LOGOUT_ORG_ALIAS" ;;
+          esac
+          sf org delete scratch -o "$alias" --no-prompt || true
+        done
