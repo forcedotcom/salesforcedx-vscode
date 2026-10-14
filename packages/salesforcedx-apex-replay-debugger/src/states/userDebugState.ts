@@ -8,8 +8,8 @@
 import { Source } from '@vscode/debugadapter';
 import { EOL } from 'node:os';
 import { EXEC_ANON_SIGNATURE } from '../constants';
-import { LogContext } from '../core/logContext';
-import { DebugLogState } from './debugLogState';
+import { type LogContext } from '../core/logContext';
+import { type DebugLogState } from './debugLogState';
 
 export class UserDebugState implements DebugLogState {
   private readonly line: number;

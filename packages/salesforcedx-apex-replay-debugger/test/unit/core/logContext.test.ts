@@ -14,10 +14,11 @@ jest.mock('@vscode/debugadapter', () => ({
   }
 }));
 
-import { StackFrame } from '@vscode/debugadapter';
+import { type StackFrame } from '@vscode/debugadapter';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
-import { LaunchRequestArguments } from '../../../src/adapter/types';
+import { type LaunchRequestArguments } from '../../../src/adapter/types';
 import { breakpointUtil } from '../../../src/breakpoints';
+import { type ApexExecutionOverlayResultCommandSuccess } from '../../../src/commands';
 import {
   EVENT_CODE_UNIT_FINISHED,
   EVENT_CODE_UNIT_STARTED,
@@ -36,6 +37,7 @@ import {
 import { LogContext } from '../../../src/core';
 import * as logContextUtil from '../../../src/core/logContextUtil';
 import {
+  type DebugLogState,
   FrameEntryState,
   FrameExitState,
   LogEntryState,
@@ -139,9 +141,7 @@ describe('LogContext', () => {
   });
 
   it('Should handle undefined log event', () => {
-    jest
-      .spyOn(LogContext.prototype, 'parseLogEvent')
-      .mockReturnValue(undefined as unknown as import('../../../src/states').DebugLogState);
+    jest.spyOn(LogContext.prototype, 'parseLogEvent').mockReturnValue(undefined as unknown as DebugLogState);
     context.updateFrames();
     expect(context.getLogLinePosition()).toBe(3);
   });
@@ -292,8 +292,7 @@ describe('LogContext', () => {
       '<TimeInfo>|HEAP_DUMP|[22]|id2|ClassName2|ns2|22'
     ];
 
-    const makeSuccess = (id: string) =>
-      ({ Id: id }) as unknown as import('../../../src/commands').ApexExecutionOverlayResultCommandSuccess;
+    const makeSuccess = (id: string) => ({ Id: id }) as unknown as ApexExecutionOverlayResultCommandSuccess;
 
     it('Should apply a success result onto the matching heap dump by id', () => {
       readLogFileSpy.mockRestore();

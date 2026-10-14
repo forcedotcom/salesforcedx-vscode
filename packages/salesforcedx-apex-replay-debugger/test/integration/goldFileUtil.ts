@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { DebugClient } from '@vscode/debugadapter-testsupport';
-import { DebugProtocol } from '@vscode/debugprotocol/lib/debugProtocol';
+import { type DebugClient } from '@vscode/debugadapter-testsupport';
+import { type DebugProtocol } from '@vscode/debugprotocol/lib/debugProtocol';
 // eslint-disable-next-line no-restricted-imports
 import * as fs from 'node:fs';
 

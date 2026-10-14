@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { StackFrame } from '@vscode/debugadapter';
+import { type StackFrame } from '@vscode/debugadapter';
 import { isNotNull } from 'effect/Predicate';
-import { ApexDebugStackFrameInfo } from '../adapter/apexDebugStackFrameInfo';
-import { ApexReplayDebug } from '../adapter/apexReplayDebug';
-import { HeapDumpResult, LaunchRequestArguments } from '../adapter/types';
+import { type ApexDebugStackFrameInfo } from '../adapter/apexDebugStackFrameInfo';
+import { type ApexReplayDebug } from '../adapter/apexReplayDebug';
+import { type HeapDumpResult, type LaunchRequestArguments } from '../adapter/types';
 import { ApexVariableContainer } from '../adapter/variableContainer';
 import { breakpointUtil } from '../breakpoints';
 import {
@@ -32,7 +32,7 @@ import {
 } from '../constants';
 import { nls } from '../messages';
 import {
-  DebugLogState,
+  type DebugLogState,
   FrameEntryState,
   FrameExitState,
   FrameStateUtil,

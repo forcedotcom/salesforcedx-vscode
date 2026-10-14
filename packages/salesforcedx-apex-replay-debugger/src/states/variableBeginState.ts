@@ -6,9 +6,9 @@
  */
 
 import { ApexVariableContainer } from '../adapter/variableContainer';
-import { LogContext } from '../core/logContext';
+import { type LogContext } from '../core/logContext';
 import { substringFromLastPeriod, substringUpToLastPeriod } from '../core/logContextUtil';
-import { DebugLogState } from './debugLogState';
+import { type DebugLogState } from './debugLogState';
 
 export class VariableBeginState implements DebugLogState {
   private fields: string[];
