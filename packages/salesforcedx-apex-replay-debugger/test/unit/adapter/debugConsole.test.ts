@@ -16,9 +16,9 @@ vi.mock('@vscode/debugadapter', async importOriginal => {
 
 import type { MockInstance as VitestMockInstance } from 'vitest';
 import { Source } from '@vscode/debugadapter';
-import { DebugProtocol } from '@vscode/debugprotocol';
+import { type DebugProtocol } from '@vscode/debugprotocol';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
-import { LaunchRequestArguments } from '../../../src/adapter/types';
+import { type LaunchRequestArguments } from '../../../src/adapter/types';
 import { MockApexReplayDebug } from './apexReplayDebug.test';
 
 describe('Debug console', () => {

@@ -15,10 +15,10 @@ vi.mock('@vscode/debugadapter', async importOriginal => {
 });
 
 import type { MockInstance as VitestMockInstance } from 'vitest';
-import { Source, StackFrame } from '@vscode/debugadapter';
+import { Source, type StackFrame } from '@vscode/debugadapter';
 import { EOL } from 'node:os';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
-import { LaunchRequestArguments } from '../../../src/adapter/types';
+import { type LaunchRequestArguments } from '../../../src/adapter/types';
 import { EXEC_ANON_SIGNATURE } from '../../../src/constants';
 import { LogContext } from '../../../src/core';
 import { UserDebugState } from '../../../src/states';

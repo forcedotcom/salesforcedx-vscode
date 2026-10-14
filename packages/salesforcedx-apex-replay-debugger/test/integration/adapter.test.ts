@@ -7,9 +7,9 @@
 
 /// <reference types="jest" />
 
-import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
+import { type LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import { DebugClient } from '@vscode/debugadapter-testsupport';
-import { DebugProtocol } from '@vscode/debugprotocol';
+import { type DebugProtocol } from '@vscode/debugprotocol';
 import * as path from 'node:path';
 import { URI } from 'vscode-uri';
 import { ApexReplayDebug } from '../../src/adapter/apexReplayDebug';

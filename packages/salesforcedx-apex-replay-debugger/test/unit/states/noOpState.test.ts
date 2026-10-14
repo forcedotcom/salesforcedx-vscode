@@ -15,7 +15,7 @@ vi.mock('@vscode/debugadapter', async importOriginal => {
 });
 
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
-import { LaunchRequestArguments } from '../../../src/adapter/types';
+import { type LaunchRequestArguments } from '../../../src/adapter/types';
 import { LogContext } from '../../../src/core';
 import { NoOpState } from '../../../src/states';
 
