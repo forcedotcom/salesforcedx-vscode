@@ -33,8 +33,8 @@ export const LEGACY_O11Y_ENDPOINT_ATTR = 'legacy.o11yEndpoint';
 export const LEGACY_O11Y_ENABLED_ATTR = 'legacy.o11yEnabled';
 export const LEGACY_PRODUCT_FEATURE_ID_ATTR = 'legacy.productFeatureId';
 
-// caller Falcon opt-in keyed by caller extension name. Kept in memory, never stamped on span
-// attributes: the API key is a secret and spans also flow to App Insights/console/file sinks.
+// caller Falcon opt-in keyed by caller extension name. Kept in memory rather than stamped on span
+// attributes, which flow to App Insights/console/file sinks that have no use for the upload config.
 const legacyCallerFalcon = new Map<string, FalconUploadOptions>();
 // Callers without their own opt-in inherit the host's: o11y-reporter's shared upload buffer is
 // first-writer-wins, so one non-Falcon caller would otherwise route every extension's events off Falcon.

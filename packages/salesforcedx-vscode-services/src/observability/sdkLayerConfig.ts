@@ -33,7 +33,9 @@ export type SdkLayerConfig = {
   /**
    * Opt-in Falcon publishing for O11y. Set only when the extension's package.json provides
    * falconApiKey; undefined keeps the existing org/static upload path unchanged.
-   * Holds a secret: never log it or stamp it on span attributes.
+   * The API key is not confidential: like aiKey it ships in the published package.json, and it is
+   * write-only, scoped to one environment, and rotatable (W-23946898). It stays out of logs and span
+   * attributes only because nothing downstream needs it.
    */
   falcon?: FalconUploadOptions;
 };
