@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SyntaxOptions, UnmodeledSyntax } from '../model';
-import { UnmodeledSyntaxReason } from '../unmodeled';
+import { type SyntaxOptions, type UnmodeledSyntax } from '../model';
+import { type UnmodeledSyntaxReason } from '../unmodeled';
 
 export class UnmodeledSyntaxImpl implements UnmodeledSyntax {
   public readonly kind = 'unmodeled' as const;

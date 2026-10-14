@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, OrgConfigProperties, StateAggregator } from '@salesforce/core';
+import { AuthInfo, Connection, OrgConfigProperties, StateAggregator, type OrgAuthorization } from '@salesforce/core';
 
 import * as Arr from 'effect/Array';
 import * as Cache from 'effect/Cache';
@@ -34,7 +34,13 @@ import { AliasService } from './alias';
 import { ConfigService, type FailedToCreateConfigAggregatorError } from './configService';
 import { getDefaultOrgRef } from './defaultOrgRef';
 import { executeQuery } from './queryExecute';
-import { authFieldsFromConnection, orgIdFrom, orgIdFromConnection } from './schemas/authFields';
+import {
+  AuthFields,
+  authFieldsFromConnection,
+  orgIdFrom,
+  orgIdFromConnection,
+  type AuthInfoFields
+} from './schemas/authFields';
 import { DefaultOrgInfoSchema } from './schemas/defaultOrgInfo';
 import { OrgId } from './schemas/salesforceId';
 import { getOrgFromConnection, unknownToErrorCause } from './shared';
@@ -44,6 +50,12 @@ type WebConnectionKey = {
   accessToken: Redacted.Redacted<string>;
   apiVersion: string;
 };
+
+/** Authorization fields consumed by org management; excludes credentials and CLI-specific metadata. */
+export type OrgAuthorizationSummary = Pick<
+  OrgAuthorization,
+  'username' | 'aliases' | 'isDevHub' | 'isSandbox' | 'isScratchOrg' | 'isExpired' | 'error'
+>;
 
 const WebConnectionCacheKeySchema = Schema.Struct({
   instanceUrl: Schema.String,
@@ -94,6 +106,11 @@ export class FailedToResolveUsernameError extends Schema.TaggedError<FailedToRes
     cause: Schema.optional(Schema.instanceOf(Error))
   }
 ) {}
+
+export class GetAuthFieldsError extends Schema.TaggedError<GetAuthFieldsError>()('GetAuthFieldsError', {
+  message: Schema.String,
+  username: Schema.optional(Schema.String)
+}) {}
 
 export class NoTargetOrgConfiguredError extends Schema.TaggedError<NoTargetOrgConfiguredError>()(
   'NoTargetOrgConfiguredError',
@@ -451,6 +468,24 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       );
     });
 
+    /** Get decoded auth fields; failure to read or decode them is an error for every consumer. */
+    const getAuthInfoFields = Effect.fn('ConnectionService.getAuthInfoFields')(function* (username?: string) {
+      const connection = yield* getConnection(username).pipe(
+        Effect.mapError(error => new GetAuthFieldsError({ message: error.message, ...(username ? { username } : {}) }))
+      );
+      const authFieldsUsername = username ?? connection.getUsername();
+      return yield* Option.match(authFieldsFromConnection(connection), {
+        onNone: () =>
+          Effect.fail(
+            new GetAuthFieldsError({
+              message: 'Unable to decode auth fields',
+              ...(authFieldsUsername ? { username: authFieldsUsername } : {})
+            })
+          ),
+        onSome: fields => Effect.succeed(Schema.encodeSync(AuthFields)(fields) satisfies AuthInfoFields)
+      });
+    });
+
     /** Drops cached JSForce `Connection` instances so the next `getConnection()` reloads `AuthInfo` from disk. */
     const invalidateCachedConnections = Effect.fn('ConnectionService.invalidateCachedConnections')(function* () {
       yield* activeConnectionCache.invalidateAll;
@@ -481,6 +516,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     return {
       getConnection,
       getConnectionForOrg,
+      getAuthInfoFields,
       validateAccessTokenOrPromptReauth,
       invalidateCachedConnections,
       listAllAuthorizations

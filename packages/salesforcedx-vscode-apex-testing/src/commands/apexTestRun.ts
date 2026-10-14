@@ -7,7 +7,7 @@
 
 import type { ToolingTestClass } from '../testDiscovery/schemas';
 import type { ProgressAndSuccessCommandKey } from '../utils/notificationMode';
-import { AsyncTestConfiguration, TestService } from '@salesforce/apex-node';
+import { type AsyncTestConfiguration, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
@@ -18,7 +18,7 @@ import { messages } from '../messages/i18n';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
-import { ApexTestQuickPickItem } from '../utils/fileHelpers';
+import { type ApexTestQuickPickItem } from '../utils/fileHelpers';
 import { notificationService, showRunSuccessNotification } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { openTestReport } from '../utils/testReportGenerator';

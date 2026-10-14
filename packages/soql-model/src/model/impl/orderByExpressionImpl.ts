@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Field, NullsOrder, Order, OrderByExpression, SyntaxOptions } from '../model';
+import { type Field, type NullsOrder, type Order, type OrderByExpression, type SyntaxOptions } from '../model';
 
 export class OrderByExpressionImpl implements OrderByExpression {
   constructor(

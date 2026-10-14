@@ -22,6 +22,7 @@ import { AliasService } from '../../../src/core/alias';
 import { ConfigService } from '../../../src/core/configService';
 import {
   ConnectionService,
+  GetAuthFieldsError,
   InactiveOrgOperationError,
   NoTargetOrgConfiguredError,
   updateDefaultOrgIdentity
@@ -371,9 +372,11 @@ const makeDesktopConn = (
   username: string,
   {
     orgId = '00D000000000005',
+    getAuthInfoFields,
     query = async () => ({ records: [] as { Id: string; Username: string }[], totalSize: 0, done: true })
   }: {
     orgId?: string;
+    getAuthInfoFields?: () => unknown;
     query?: (
       soql: string
     ) => Promise<{ records: { Id: string; Username: string }[]; totalSize: number; done: boolean }>;
@@ -383,14 +386,16 @@ const makeDesktopConn = (
     getUsername: () => username,
     instanceUrl: 'https://example.my.salesforce.com',
     getApiVersion: () => '66.0',
-    getAuthInfoFields: () => ({
-      username,
-      orgId,
-      instanceName: 'USA9S',
-      tracksSource: false,
-      isScratch: false,
-      isSandbox: false
-    }),
+    getAuthInfoFields:
+      getAuthInfoFields ??
+      (() => ({
+        username,
+        orgId,
+        instanceName: 'USA9S',
+        tracksSource: false,
+        isScratch: false,
+        isSandbox: false
+      })),
     getFields: () => ({ username }),
     getAuthInfo: () => ({ isAccessTokenFlow: () => false }),
     query,
@@ -531,6 +536,50 @@ describe('ConnectionService.getConnection (desktop)', () => {
     expect(getUsernameFromAliasMock).toHaveBeenCalledWith('myAlias');
     expect(authInfoCreateMock).toHaveBeenCalledWith({ username: 'real@example.com' });
     expect(getPropertyValueMock).not.toHaveBeenCalled();
+  });
+
+  it('decodes auth fields inside ConnectionService', async () => {
+    const getAuthInfoFields = jest.fn(() => ({
+      username: 'given@example.com',
+      orgId: '00D000000000005',
+      expirationDate: '2026-10-10'
+    }));
+    connectionCreateMock.mockResolvedValue(makeDesktopConn('given@example.com', { getAuthInfoFields }));
+
+    await expect(run(ConnectionService.getAuthInfoFields('given@example.com'))).resolves.toEqual({
+      username: 'given@example.com',
+      orgId: '00D000000000005',
+      expirationDate: '2026-10-10'
+    });
+    expect(getAuthInfoFields).toHaveBeenCalledTimes(1);
+  });
+
+  it('fails with GetAuthFieldsError when auth fields fail schema decoding', async () => {
+    connectionCreateMock.mockResolvedValue(
+      makeDesktopConn('given@example.com', { getAuthInfoFields: () => ({ orgId: 'bad-org-id' }) })
+    );
+
+    const exit = await Effect.runPromiseExit(
+      ConnectionService.getAuthInfoFields('given@example.com').pipe(Effect.provide(buildLayer()))
+    );
+
+    expect(exit).toEqual(
+      Exit.fail(new GetAuthFieldsError({ message: 'Unable to decode auth fields', username: 'given@example.com' }))
+    );
+  });
+
+  it('fails with GetAuthFieldsError when the connection has no auth fields', async () => {
+    connectionCreateMock.mockResolvedValue(
+      makeDesktopConn('given@example.com', { getAuthInfoFields: () => undefined })
+    );
+
+    const exit = await Effect.runPromiseExit(
+      ConnectionService.getAuthInfoFields('given@example.com').pipe(Effect.provide(buildLayer()))
+    );
+
+    expect(exit).toEqual(
+      Exit.fail(new GetAuthFieldsError({ message: 'Unable to decode auth fields', username: 'given@example.com' }))
+    );
   });
 
   it('given a username, does NOT fork the default-org ref update', async () => {

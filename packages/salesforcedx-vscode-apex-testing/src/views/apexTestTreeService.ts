@@ -6,7 +6,7 @@
  */
 
 import type { ToolingTestClass } from '../testDiscovery/schemas';
-import { TestResult, TestService } from '@salesforce/apex-node';
+import { type TestResult, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
@@ -20,7 +20,7 @@ import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { APEX_TESTING_SECTION, RESULT_MAX_AGE_MS, TEST_ID_PREFIXES } from '../constants';
 import { nls } from '../messages';
 import { PackageResolutionService } from '../testDiscovery/packageResolution';

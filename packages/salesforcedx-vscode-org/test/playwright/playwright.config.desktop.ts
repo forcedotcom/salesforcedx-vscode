@@ -7,4 +7,5 @@
 
 import { createDesktopConfig } from '@salesforce/playwright-vscode-ext';
 
-export default createDesktopConfig({ testDir: './specs' });
+// Tests create and remove org auths in shared $HOME CLI config, so they must not race each other.
+export default createDesktopConfig({ testDir: './specs', workers: 1 });

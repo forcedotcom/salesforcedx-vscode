@@ -105,6 +105,7 @@ const createMockConnectionService = () =>
       getConnectionForOrg: () => Effect.succeed({ version: '60.0' } as unknown as Connection),
       validateAccessTokenOrPromptReauth: () => Effect.void,
       invalidateCachedConnections: () => Effect.void,
+      getAuthInfoFields: () => Effect.succeed({}),
       listAllAuthorizations: () => Effect.succeed([])
     })
   );

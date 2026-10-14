@@ -982,6 +982,16 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-vscode-apex-testing (inline to avoid no-duplicate-imports; W-23371092)
+    files: ['packages/salesforcedx-vscode-apex-testing/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // consistent-type-imports for salesforcedx-vscode-services (inline to avoid no-duplicate-imports; W-23371088)
     files: ['packages/salesforcedx-vscode-services/**/*.ts'],
     rules: {
@@ -1094,6 +1104,16 @@ export default [
   {
     // consistent-type-imports for salesforcedx-vscode-soql (inline to avoid no-duplicate-imports; W-23371082)
     files: ['packages/salesforcedx-vscode-soql/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for soql-model (inline to avoid no-duplicate-imports; W-23371093)
+    files: ['packages/soql-model/**/*.ts'],
     rules: {
       '@typescript-eslint/consistent-type-imports': [
         'error',
