@@ -11,7 +11,7 @@ import { isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import type { OrgMetadataCatalogChange } from 'salesforcedx-vscode-services';
 import { type URI, Utils } from 'vscode-uri';
-import { getTestController } from '../views/testController';
+import { type getTestController } from '../views/testController';
 
 const apexClassName = (uri: URI): string | undefined => {
   const basename = Utils.basename(uri);
