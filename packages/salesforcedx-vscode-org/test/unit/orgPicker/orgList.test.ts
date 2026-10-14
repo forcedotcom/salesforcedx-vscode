@@ -63,7 +63,7 @@ describe('OrgList tests', () => {
         pastDate.setDate(pastDate.getDate() - 1);
         getAuthFieldsForMock.mockReturnValueOnce(Effect.succeed({ expirationDate: pastDate.toISOString() }));
 
-        const result = await Effect.runPromise(orgListModule.isOrgExpired('test-org'));
+        const result = await Effect.runPromise(orgListModule.isOrgExpired('test-org') as Effect.Effect<boolean>);
 
         expect(result).toBe(true);
         expect(getAuthFieldsForMock).toHaveBeenCalledWith('test-org');
@@ -74,7 +74,7 @@ describe('OrgList tests', () => {
         futureDate.setDate(futureDate.getDate() + 1);
         getAuthFieldsForMock.mockReturnValueOnce(Effect.succeed({ expirationDate: futureDate.toISOString() }));
 
-        const result = await Effect.runPromise(orgListModule.isOrgExpired('test-org'));
+        const result = await Effect.runPromise(orgListModule.isOrgExpired('test-org') as Effect.Effect<boolean>);
 
         expect(result).toBe(false);
         expect(getAuthFieldsForMock).toHaveBeenCalledWith('test-org');
@@ -83,7 +83,7 @@ describe('OrgList tests', () => {
       it('should return false when org has no expiration date', async () => {
         getAuthFieldsForMock.mockReturnValueOnce(Effect.succeed({ expirationDate: undefined }));
 
-        const result = await Effect.runPromise(orgListModule.isOrgExpired('test-org'));
+        const result = await Effect.runPromise(orgListModule.isOrgExpired('test-org') as Effect.Effect<boolean>);
 
         expect(result).toBe(false);
         expect(getAuthFieldsForMock).toHaveBeenCalledWith('test-org');

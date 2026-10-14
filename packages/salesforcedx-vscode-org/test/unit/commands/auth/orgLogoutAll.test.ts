@@ -6,14 +6,15 @@
  */
 
 import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
-import { AuthRemover } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { isNotNull } from 'effect/Predicate';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
+import { identity } from 'effect/Function';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { orgLogoutAllCommand } from '../../../../src/commands/auth/orgLogout';
+import type * as orgUtil from '../../../../src/util/orgUtil';
 
 // Real UserCancellationError (@salesforce/vscode-services) not constructable under Vitest;
 // local Schema.TaggedError with same _tag works for catchTag matching.
@@ -28,14 +29,19 @@ vi.mock('../../../../src/orgPicker/orgList', () => ({
 
 const mockGetFreshAuthorizations = vi.fn<() => Effect.Effect<unknown, never, never>>();
 const mockUpdateConfigAndStateAggregatorsEffect = vi.fn<() => Effect.Effect<void, never, never>>(() => Effect.void);
-vi.mock('../../../../src/util/orgUtil', () => ({
-  getFreshAuthorizations: () => mockGetFreshAuthorizations(),
-  updateConfigAndStateAggregatorsEffect: () => mockUpdateConfigAndStateAggregatorsEffect()
-}));
+let logoutMock: VitestMock;
+vi.mock('../../../../src/util/orgUtil', async () => {
+  const { logoutOrg } = await vi.importActual<typeof orgUtil>('../../../../src/util/orgUtil');
+  return {
+    logoutOrg,
+    getFreshAuthorizations: () => mockGetFreshAuthorizations(),
+    updateConfigAndStateAggregatorsEffect: () => mockUpdateConfigAndStateAggregatorsEffect()
+  };
+});
 
 type Authorization = { username: string; isScratchOrg?: boolean; isSandbox?: boolean };
 
-const buildServices = (opts: { isProject: boolean; confirm: boolean }) => ({
+const buildServices = (opts: { isProject: boolean; confirm: boolean; simpleExec: VitestMock }) => ({
   ProjectService: {
     getSfProject: () =>
       opts.isProject ? Effect.succeed({}) : Effect.fail({ _tag: 'FailedToResolveSfProjectError' as const })
@@ -46,9 +52,8 @@ const buildServices = (opts: { isProject: boolean; confirm: boolean }) => ({
     confirmOrThrow: (_params: { message: string; confirmLabel: string }) =>
       opts.confirm ? Effect.void : Effect.fail(new UserCancellationError())
   }),
-  WorkspaceService: {
-    getWorkspaceInfoOrThrow: () => Effect.succeed({ fsPath: '/workspace' })
-  },
+  TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
+  WorkspaceService: { getWorkspaceInfoOrThrow: () => Effect.succeed({ fsPath: '/workspace' }) },
   UserCancellationError
 });
 
@@ -56,13 +61,12 @@ const run = (opts: { isProject: boolean; confirm: boolean }) =>
   Effect.runPromiseExit(
     orgLogoutAllCommand().pipe(
       Effect.provideService(ExtensionProviderService, {
-        getServicesApi: Effect.succeed({ services: buildServices(opts) })
+        getServicesApi: Effect.succeed({ services: buildServices({ ...opts, simpleExec: logoutMock }) })
       } as unknown as ExtensionProviderService)
     ) as Effect.Effect<void, unknown, never>
   );
 
 describe('orgLogoutAllCommand', () => {
-  let removeAuthMock: VitestMock;
   let showQuickPickMock: VitestMockInstance;
 
   const selectAll = (auths: Authorization[]) =>
@@ -70,10 +74,7 @@ describe('orgLogoutAllCommand', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    removeAuthMock = vi.fn().mockResolvedValue(undefined);
-    vi.spyOn(AuthRemover, 'create').mockResolvedValue({
-      removeAuth: removeAuthMock
-    } as unknown as AuthRemover);
+    logoutMock = vi.fn().mockReturnValue(Effect.succeed('logged out'));
     showQuickPickMock = vi.spyOn(vscode.window, 'showQuickPick');
     mockGetFreshAuthorizations.mockReturnValue(Effect.succeed({ defaultConfig: {}, freshAuthorizations: [] }));
     mockUpdateConfigAndStateAggregatorsEffect.mockReturnValue(Effect.void);
@@ -91,10 +92,19 @@ describe('orgLogoutAllCommand', () => {
     const exit = await run({ isProject: true, confirm: true });
 
     expect(Exit.isSuccess(exit)).toBe(true);
-    expect(AuthRemover.create).toHaveBeenCalledWith({ projectPath: '/workspace', skipCache: true });
-    expect(removeAuthMock).toHaveBeenCalledTimes(2);
-    expect(removeAuthMock).toHaveBeenCalledWith('user1@example.com');
-    expect(removeAuthMock).toHaveBeenCalledWith('user2@example.com');
+    expect(logoutMock).toHaveBeenCalledTimes(2);
+    expect(logoutMock).toHaveBeenNthCalledWith(1, {
+      executable: 'sf',
+      args: ['org', 'logout', '--target-org', 'user1@example.com', '--no-prompt'],
+      parse: identity,
+      cwd: '/workspace'
+    });
+    expect(logoutMock).toHaveBeenNthCalledWith(2, {
+      executable: 'sf',
+      args: ['org', 'logout', '--target-org', 'user2@example.com', '--no-prompt'],
+      parse: identity,
+      cwd: '/workspace'
+    });
     expect(mockUpdateConfigAndStateAggregatorsEffect).toHaveBeenCalledTimes(1);
   });
 
@@ -107,7 +117,7 @@ describe('orgLogoutAllCommand', () => {
 
     // cancellation is caught and turned into a no-op success
     expect(Exit.isSuccess(exit)).toBe(true);
-    expect(removeAuthMock).not.toHaveBeenCalled();
+    expect(logoutMock).not.toHaveBeenCalled();
     expect(mockUpdateConfigAndStateAggregatorsEffect).not.toHaveBeenCalled();
   });
 
@@ -119,8 +129,10 @@ describe('orgLogoutAllCommand', () => {
     const exit = await run({ isProject: true, confirm: true });
 
     expect(Exit.isSuccess(exit)).toBe(true);
-    expect(removeAuthMock).toHaveBeenCalledTimes(1);
-    expect(removeAuthMock).toHaveBeenCalledWith('scratch@example.com');
+    expect(logoutMock).toHaveBeenCalledTimes(1);
+    expect(logoutMock).toHaveBeenCalledWith(
+      expect.objectContaining({ args: ['org', 'logout', '--target-org', 'scratch@example.com', '--no-prompt'] })
+    );
     expect(mockUpdateConfigAndStateAggregatorsEffect).toHaveBeenCalledTimes(1);
   });
 
@@ -129,15 +141,13 @@ describe('orgLogoutAllCommand', () => {
     mockGetFreshAuthorizations.mockReturnValue(Effect.succeed({ defaultConfig: {}, freshAuthorizations: auths }));
     selectAll(auths);
     // first org rejects; Effect.forEach is sequential + non-concurrent, so it stops before the second.
-    removeAuthMock.mockRejectedValueOnce(new Error('removal failed'));
+    logoutMock.mockReturnValueOnce(Effect.fail({ _tag: 'TerminalServiceError', message: 'removal failed' }));
 
     const exit = await run({ isProject: true, confirm: true });
 
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('OrgLogoutError');
-    expect(removeAuthMock).toHaveBeenCalledTimes(1);
-    expect(removeAuthMock).toHaveBeenCalledWith('user1@example.com');
-    expect(removeAuthMock).not.toHaveBeenCalledWith('user2@example.com');
+    expect(logoutMock).toHaveBeenCalledTimes(1);
     expect(mockUpdateConfigAndStateAggregatorsEffect).not.toHaveBeenCalled();
   });
 
@@ -149,7 +159,7 @@ describe('orgLogoutAllCommand', () => {
     const exit = await run({ isProject: true, confirm: false });
 
     expect(Exit.isSuccess(exit)).toBe(true);
-    expect(removeAuthMock).not.toHaveBeenCalled();
+    expect(logoutMock).not.toHaveBeenCalled();
     expect(mockUpdateConfigAndStateAggregatorsEffect).not.toHaveBeenCalled();
   });
 
@@ -158,7 +168,7 @@ describe('orgLogoutAllCommand', () => {
 
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('FailedToResolveSfProjectError');
-    expect(removeAuthMock).not.toHaveBeenCalled();
+    expect(logoutMock).not.toHaveBeenCalled();
     expect(mockUpdateConfigAndStateAggregatorsEffect).not.toHaveBeenCalled();
   });
 
@@ -166,7 +176,7 @@ describe('orgLogoutAllCommand', () => {
     const auths: Authorization[] = [{ username: 'user@example.com' }];
     mockGetFreshAuthorizations.mockReturnValue(Effect.succeed({ defaultConfig: {}, freshAuthorizations: auths }));
     selectAll(auths);
-    removeAuthMock.mockRejectedValue(new Error('removal failed'));
+    logoutMock.mockReturnValue(Effect.fail({ _tag: 'TerminalServiceError', message: 'removal failed' }));
 
     const exit = await run({ isProject: true, confirm: true });
 

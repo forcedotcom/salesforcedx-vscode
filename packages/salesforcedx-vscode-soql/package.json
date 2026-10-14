@@ -42,7 +42,6 @@
     "@salesforce/soql-language-server": "^1.1.0",
     "@salesforce/soql-model": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
-    "@salesforce/vscode-services": "workspace:*",
     "antlr4ts": "^0.5.0-alpha.3",
     "debounce": "^2.2.0",
     "effect": "^3.21.2",

@@ -31,6 +31,16 @@
       "types": "./out/src/register.d.ts",
       "default": "./out/src/register.js"
     },
+    "./sObjectSchema": {
+      "import": {
+        "types": "./out/src/sObjectSchema.d.ts",
+        "default": "./out/src/sObjectSchema.js"
+      },
+      "require": {
+        "types": "./out/src/sObjectSchema.d.cts",
+        "default": "./out/src/sObjectSchema.cjs"
+      }
+    },
     "./service": {
       "types": "./out/src/effect/soqlBuilderService.d.ts",
       "default": "./out/src/effect/soqlBuilderService.js"
@@ -58,16 +68,14 @@
   },
   "wireit": {
     "compile": {
-      "command": "tsc --pretty --project tsconfig.build.json",
+      "command": "tsc --pretty --project tsconfig.build.json && esbuild src/sObjectSchema.ts --bundle --platform=node --format=cjs --external:effect/* --outfile=out/src/sObjectSchema.cjs && shx cp types/sObjectSchema.d.cts out/src/sObjectSchema.d.cts",
       "clean": "if-file-deleted",
-      "dependencies": [
-        "../salesforcedx-vscode-services-types:compile"
-      ],
       "files": [
         "src/**/*.ts",
         "tsconfig.json",
         "tsconfig.build.json",
         "../../tsconfig.common.json",
+        "types/sObjectSchema.d.cts",
         "package.json"
       ],
       "output": [
@@ -206,7 +214,6 @@
     }
   },
   "dependencies": {
-    "@salesforce/vscode-services": "workspace:*",
     "@vscode-elements/elements": "^2.5.1",
     "effect": "^3.21.2",
     "lit": "3.3.3"

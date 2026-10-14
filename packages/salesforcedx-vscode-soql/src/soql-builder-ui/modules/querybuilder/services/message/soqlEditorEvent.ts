@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SObjectSchema } from '@salesforce/vscode-services';
+import { SObjectSchema } from '@salesforce/soql-builder-ui/sObjectSchema';
 import * as Schema from 'effect/Schema';
 
 export const MessageType = {

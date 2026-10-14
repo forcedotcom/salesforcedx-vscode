@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
-import { AuthInfo, AuthRemover, type OrgAuthorization } from '@salesforce/core';
+import type { Mock as VitestMock } from 'vitest';
+import type { OrgAuthorization } from '@salesforce/core';
 import { createTable, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
+import { identity } from 'effect/Function';
 import * as Layer from 'effect/Layer';
 import { nls } from '../../../src/messages';
 import {
@@ -18,35 +19,21 @@ import {
   removeExpiredAndDeletedOrgs,
   displayRemainingOrgs,
   shouldRemoveOrg,
-  getConnectionStatusFromError
+  getConnectionStatusFromError,
+  getAuthFieldsFor,
+  getFreshAuthorizations
 } from '../../../src/util/orgUtil';
 
 // The migrated helpers are pure Effects: they resolve org auths through ConnectionService.listAllAuthorizations
 // (an Effect) and write to the Effect ChannelService (yielded off the services api), never the legacy singleton.
 let listAllAuthorizationsMock: VitestMock;
 let getConnectionMock: VitestMock;
+let getAuthInfoFieldsMock: VitestMock;
+let simpleExecMock: VitestMock;
 let appendToChannelMock: VitestMock;
 let showChannelMock: VitestMock;
 
 // Mock the dependencies
-vi.mock('@salesforce/core', () => ({
-  AuthRemover: {
-    create: vi.fn()
-  },
-  AuthInfo: {
-    create: vi.fn(),
-    listAllAuthorizations: vi.fn()
-  },
-  ConfigAggregator: {
-    create: vi.fn().mockImplementation(() => ({
-      getPropertyValue: vi.fn()
-    }))
-  },
-  OrgConfigProperties: {
-    TARGET_DEV_HUB: 'target-dev-hub',
-    TARGET_ORG: 'target-org'
-  }
-}));
 vi.mock('@salesforce/effect-ext-utils', async () => {
   const actual = await vi.importActual<{ ExtensionProviderService: typeof ExtensionProviderService }>(
     '@salesforce/effect-ext-utils'
@@ -66,12 +53,16 @@ const buildServicesLayer = (listMock: VitestMock) =>
       services: {
         ConnectionService: {
           listAllAuthorizations: listMock,
-          getConnection: getConnectionMock
+          getConnection: getConnectionMock,
+          getAuthInfoFields: getAuthInfoFieldsMock
         },
+        TerminalService: Effect.succeed({ simpleExec: simpleExecMock }),
+        WorkspaceService: { getWorkspaceInfoOrThrow: () => Effect.succeed({ fsPath: '/workspace' }) },
         ConfigService: {
           getTargetDevHub: () => Effect.succeed(undefined),
           getTargetOrg: () => Effect.succeed(undefined)
         },
+        AliasService: Effect.succeed({ getAllAliases: () => Effect.succeed({}) }),
         ChannelService: Effect.succeed({
           appendToChannel: (message: string) => Effect.sync(() => appendToChannelMock(message)),
           showChannel: Effect.sync(() => showChannelMock())
@@ -96,8 +87,6 @@ const runWithServices = <A, E, R>(effect: Effect.Effect<A, E, R>): Promise<A> =>
   );
 
 describe('orgList command', () => {
-  let mockAuthInfoCreate: VitestMockInstance;
-
   beforeEach(() => {
     // Reset all mocks
     vi.clearAllMocks();
@@ -106,36 +95,85 @@ describe('orgList command', () => {
     listAllAuthorizationsMock = vi.fn().mockReturnValue(Effect.succeed([] as OrgAuthorization[]));
     // Default getConnection to a never-called stub; the determineConnectedStatus suite overrides it.
     getConnectionMock = vi.fn();
+    getAuthInfoFieldsMock = vi.fn().mockReturnValue(Effect.succeed({}));
+    simpleExecMock = vi.fn().mockReturnValue(Effect.succeed('logged out'));
     appendToChannelMock = vi.fn();
     showChannelMock = vi.fn();
 
     // Mock createTable function
     (createTable as VitestMock).mockReturnValue('mocked table output');
-
-    mockAuthInfoCreate = vi.mocked(AuthInfo.create);
   });
 
   afterEach(() => {
     vi.restoreAllMocks();
   });
 
+  it('gets decoded auth fields through ConnectionService for the requested username', async () => {
+    getAuthInfoFieldsMock.mockReturnValue(
+      Effect.succeed({
+        username: 'scratch@example.com',
+        expirationDate: '2026-10-10',
+        orgId: '00D000000000000EAA'
+      })
+    );
+
+    const fields = await runWithServices(getAuthFieldsFor('scratch@example.com'));
+
+    expect(getAuthInfoFieldsMock).toHaveBeenCalledWith('scratch@example.com');
+    expect(fields.expirationDate).toBe('2026-10-10');
+    expect(fields.orgId).toBe('00D000000000000EAA');
+  });
+
+  it('propagates GetAuthFieldsError from ConnectionService', async () => {
+    getAuthInfoFieldsMock.mockReturnValue(
+      Effect.fail({
+        _tag: 'GetAuthFieldsError',
+        message: 'Unable to decode auth fields',
+        username: 'scratch@example.com'
+      } as never)
+    );
+
+    await expect(runWithServices(getAuthFieldsFor('scratch@example.com'))).rejects.toThrow(
+      'Unable to decode auth fields'
+    );
+  });
+
+  it('keeps only org-management authorization fields at the services boundary', async () => {
+    listAllAuthorizationsMock.mockReturnValue(
+      Effect.succeed([{ username: 'user@example.com', aliases: ['myOrg'], isExpired: false, accessToken: 'secret' }])
+    );
+
+    const { freshAuthorizations } = await runWithServices(getFreshAuthorizations());
+
+    expect(freshAuthorizations).toEqual([
+      {
+        username: 'user@example.com',
+        aliases: ['myOrg'],
+        isDevHub: undefined,
+        isSandbox: undefined,
+        isScratchOrg: undefined,
+        isExpired: false,
+        error: undefined
+      }
+    ]);
+  });
+
   describe('determineConnectedStatusForNonScratchOrg', () => {
     // conn stands in for the jsforce Connection getConnection(username) resolves to.
     const mockConn = {
-      getAuthInfoFields: vi.fn(),
       refreshAuth: vi.fn(),
       getUsername: vi.fn().mockReturnValue('test@example.com')
     };
 
     beforeEach(() => {
-      mockConn.getAuthInfoFields.mockReset();
       mockConn.refreshAuth.mockReset();
       // Default: getConnection succeeds with mockConn; per-test overrides for failure cases.
       getConnectionMock.mockReturnValue(Effect.succeed(mockConn));
+      getAuthInfoFieldsMock.mockReturnValue(Effect.succeed({}));
     });
 
     it('should return undefined for scratch orgs', async () => {
-      mockConn.getAuthInfoFields.mockReturnValue({ devHubUsername: 'hub@example.com' });
+      getAuthInfoFieldsMock.mockReturnValue(Effect.succeed({ devHubUsername: 'hub@example.com' }));
 
       const result = await runWithServices(determineConnectedStatusForNonScratchOrg('scratch@example.com'));
 
@@ -144,7 +182,6 @@ describe('orgList command', () => {
     });
 
     it('should return Connected for valid non-scratch org', async () => {
-      mockConn.getAuthInfoFields.mockReturnValue({}); // No devHubUsername
       mockConn.refreshAuth.mockResolvedValue(undefined);
 
       const result = await runWithServices(determineConnectedStatusForNonScratchOrg('prod@example.com'));
@@ -154,7 +191,6 @@ describe('orgList command', () => {
     });
 
     it('should handle refreshAuth live-probe errors', async () => {
-      mockConn.getAuthInfoFields.mockReturnValue({});
       mockConn.refreshAuth.mockRejectedValue(new Error('Connection failed'));
 
       const result = await runWithServices(determineConnectedStatusForNonScratchOrg('invalid@example.com'));
@@ -272,28 +308,30 @@ describe('orgList command', () => {
     });
 
     it('should skip dev hubs', async () => {
-      mockAuthInfoCreate.mockResolvedValue({ getFields: () => ({}) });
+      getAuthInfoFieldsMock.mockReturnValue(Effect.succeed({}));
 
       await runWithServices(findRemovableOrgs());
 
-      expect(mockAuthInfoCreate).not.toHaveBeenCalledWith({ username: 'devhub@example.com' });
+      expect(getAuthInfoFieldsMock).not.toHaveBeenCalledWith('devhub@example.com');
     });
 
     it('should classify expired orgs as removable without removing them', async () => {
       const pastDate = new Date('2020-01-01').toISOString();
-      mockAuthInfoCreate.mockImplementation(({ username }: { username: string }) =>
-        Promise.resolve({ getFields: () => (username === 'expired@example.com' ? { expirationDate: pastDate } : {}) })
+      getAuthInfoFieldsMock.mockImplementation((username: string) =>
+        Effect.succeed(username === 'expired@example.com' ? { expirationDate: pastDate } : {})
       );
 
       const result = await runWithServices(findRemovableOrgs());
 
       expect(result.map(o => o.username)).toEqual(['expired@example.com']);
       // classification must not mutate auth state
-      expect(AuthRemover.create).not.toHaveBeenCalled();
+      expect(simpleExecMock).not.toHaveBeenCalled();
     });
 
     it('should not classify orgs when getAuthFieldsFor fails with a non-removable error', async () => {
-      mockAuthInfoCreate.mockRejectedValue('Auth fields error');
+      getAuthInfoFieldsMock.mockImplementation((username: string) =>
+        Effect.fail({ _tag: 'GetAuthFieldsError', message: 'Auth fields error', username } as never)
+      );
 
       const result = await runWithServices(findRemovableOrgs());
 
@@ -307,26 +345,22 @@ describe('orgList command', () => {
   });
 
   describe('removeExpiredAndDeletedOrgs', () => {
-    const mockAuthRemover = {
-      removeAuth: vi.fn()
-    };
-
-    beforeEach(() => {
-      (AuthRemover.create as VitestMock).mockResolvedValue(mockAuthRemover);
-      mockAuthRemover.removeAuth.mockResolvedValue(undefined);
-    });
-
     it('should remove each given org and return removed usernames', async () => {
       const result = await runWithServices(
         removeExpiredAndDeletedOrgs([{ username: 'expired@example.com', logLine: 'removing expired' }])
       );
 
-      expect(mockAuthRemover.removeAuth).toHaveBeenCalledWith('expired@example.com');
+      expect(simpleExecMock).toHaveBeenCalledWith({
+        executable: 'sf',
+        args: ['org', 'logout', '--target-org', 'expired@example.com', '--no-prompt'],
+        parse: identity,
+        cwd: '/workspace'
+      });
       expect(result).toEqual(['expired@example.com']);
     });
 
     it('should keep removing after a removal failure and exclude the failed org', async () => {
-      mockAuthRemover.removeAuth.mockRejectedValueOnce(new Error('remove failed')).mockResolvedValueOnce(undefined);
+      simpleExecMock.mockReturnValueOnce(Effect.fail({ _tag: 'TerminalServiceError', message: 'remove failed' }));
 
       const result = await runWithServices(
         removeExpiredAndDeletedOrgs([
@@ -356,9 +390,7 @@ describe('orgList command', () => {
     beforeEach(() => {
       listAllAuthorizationsMock.mockReturnValue(Effect.succeed(mockOrgAuths as unknown as OrgAuthorization[]));
       // scratch (has expirationDate) => 'Active' branch, so determineConnectedStatusForNonScratchOrg is skipped
-      mockAuthInfoCreate.mockResolvedValue({
-        getFields: () => ({ expirationDate: new Date('2999-01-01').toISOString() })
-      });
+      getAuthInfoFieldsMock.mockReturnValue(Effect.succeed({ expirationDate: new Date('2999-01-01').toISOString() }));
     });
 
     it('should display message when no orgs found', async () => {
@@ -408,9 +440,8 @@ describe('orgList command', () => {
         ] as unknown as OrgAuthorization[])
       );
       // Non-scratch (no expirationDate) => determineConnectedStatusForNonScratchOrg runs the live probe.
-      mockAuthInfoCreate.mockResolvedValue({ getFields: () => ({}) });
+      getAuthInfoFieldsMock.mockReturnValue(Effect.succeed({}));
       const mockConn = {
-        getAuthInfoFields: vi.fn().mockReturnValue({}),
         refreshAuth: vi.fn().mockResolvedValue(undefined),
         getUsername: vi.fn().mockReturnValue('hub@example.com')
       };
@@ -419,7 +450,7 @@ describe('orgList command', () => {
       await runWithServices(displayRemainingOrgs());
 
       // The org was processed (not early-returned): its auth fields were fetched and the live probe ran.
-      expect(mockAuthInfoCreate).toHaveBeenCalledWith({ username: 'hub@example.com' });
+      expect(getAuthInfoFieldsMock).toHaveBeenCalledWith('hub@example.com');
       expect(mockConn.refreshAuth).toHaveBeenCalled();
     });
   });
