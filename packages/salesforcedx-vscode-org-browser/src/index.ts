@@ -6,10 +6,8 @@
  */
 
 import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
-import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
-import * as Schedule from 'effect/Schedule';
 import * as Scope from 'effect/Scope';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -186,14 +184,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 
   yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:orgBrowser.initialized', true));
 
-  // get a connection to initiate the ref
-  yield* api.services.ConnectionService.getConnection();
-  // wait for the target org ref to have an orgId
   const targetOrgRef = yield* api.services.TargetOrgRef();
-  yield* Effect.repeat(SubscriptionRef.get(targetOrgRef), {
-    until: org => isNotUndefined(org.orgId),
-    schedule: Schedule.exponential(Duration.millis(10))
-  });
   const legacyFilter: OrgBrowserFilterState | undefined = (() => {
     const typeFilter = context.workspaceState.get<string | undefined>('orgBrowser.typeFilter');
     const componentFilter = context.workspaceState.get<string | undefined>('orgBrowser.componentFilter');
@@ -282,7 +273,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
         requestTreeRefresh
       )
     );
-  } else {
+  } else if (initialOrgId) {
     if (!initialFilter?.typeFilter) {
       const catalog = yield* api.services.OrgMetadataCatalog;
       yield* treeProvider.trackOrgRequest('Discovering org metadata', catalog.getChildren());
@@ -296,8 +287,9 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   yield* Effect.forkDaemon(
     targetOrgRef.changes.pipe(
       Stream.map(org => org.orgId),
-      Stream.drop(1),
       Stream.changes,
+      // skip the snapshot already handled via initialOrgId; any other value (incl. org arriving after read, or no org) refreshes
+      Stream.filter(orgId => orgId !== initialOrgId),
       Stream.tap(orgId => svc.appendToChannel(`Target org changed to ${orgId ?? '<NOT SET>'}`)),
       Stream.tap(() => svc.appendToChannel('Org changed, will try to update OrgBrowser')),
       Stream.runForEach(orgId =>
