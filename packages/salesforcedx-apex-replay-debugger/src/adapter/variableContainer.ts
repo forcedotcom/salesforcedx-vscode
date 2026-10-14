@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ApexVariable } from './apexVariable';
-import { ScopeType } from './types';
+import { type ScopeType } from './types';
 
 export class ApexVariableContainer {
   public variables: Map<string, ApexVariableContainer>;
