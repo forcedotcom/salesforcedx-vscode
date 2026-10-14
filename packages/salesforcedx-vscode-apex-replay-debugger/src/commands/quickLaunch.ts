@@ -71,7 +71,7 @@ const debugTest = Effect.fn('ApexReplayDebugger.debugTest')(function* (testClass
   const logService = new LogService(connection);
   const debugLogsFolder = yield* api.services.ProjectService.getDebugLogsFolder();
   yield* Effect.promise(() => logService.getLogs({ logId, outputDir: debugLogsFolder.fsPath }));
-  yield* Effect.promise(() => launchFromLogFile(Utils.joinPath(debugLogsFolder, `${logId}.log`).fsPath, false));
+  yield* launchFromLogFile(Utils.joinPath(debugLogsFolder, `${logId}.log`).fsPath, false);
   yield* notificationMode.showSuccessNotification(COMMAND, nls.localize('debug_test_success'), false);
   return true;
 });
