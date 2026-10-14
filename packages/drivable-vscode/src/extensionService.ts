@@ -10,6 +10,7 @@ import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
 import { prepareVsixExtensions } from '@salesforce/playwright-vscode-ext';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as Schema from 'effect/Schema';
 import { execFileSync } from 'node:child_process';
 import { DRIVABLE_VSCODE_EXTENSION_DIRS } from './constants';
@@ -24,6 +25,7 @@ const decodeExtensionPackage = Schema.decodeUnknown(Schema.parseJson(RequiredExt
 
 export class ExtensionService extends Effect.Service<ExtensionService>()('DrivableVscode/ExtensionService', {
   accessors: true,
+  dependencies: [Layer.service(FileSystem.FileSystem), Layer.service(Path.Path)],
   effect: Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
     const path = yield* Path.Path;

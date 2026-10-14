@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { isString, isUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 
 type XMLExtensionApi = {

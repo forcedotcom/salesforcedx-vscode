@@ -69,6 +69,7 @@ import { type EditorService } from 'salesforcedx-vscode-services/src/vscode/edit
 import { getDefaultOrgRef } from 'salesforcedx-vscode-services/src/core/defaultOrgRef';
 import { type SdkLayerFor } from 'salesforcedx-vscode-services/src/observability/spans';
 import { OrgMetadataCatalogChangePubSub } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalogChangePubSub';
+import { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
 import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
 import { ErrorHandlerService } from 'salesforcedx-vscode-services/src/vscode/errorHandlerService';
 import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode/extensionContextService';
@@ -160,6 +161,7 @@ const MockSettingsServiceLayer = Layer.succeed(
     getInstanceUrl: () => Effect.succeed('https://test.salesforce.com'),
     getAccessToken: () => Effect.succeed(Redacted.make('mock-token')),
     getApiVersion: () => Effect.succeed('60.0'),
+    getSessionContext: () => Effect.succeed({ isDevHub: false, isScratch: false, isSandbox: false }),
     setInstanceUrl: (_url: string) =>
       Effect.tryPromise({
         try: async () => undefined,
@@ -322,6 +324,7 @@ describe('Extension activation ordering', () => {
           MockConnectionServiceLayer,
           MockExtensionContextServiceLayer,
           MockErrorHandlerServiceLayer,
+          Layer.succeed(OrgMetadataCatalog, { getChildren: () => Effect.succeed([]) } as never),
           OrgMetadataCatalogChangePubSub.Default
         )
       )
@@ -379,6 +382,7 @@ describe.skip('Extension', () => {
             MockConnectionServiceLayer,
             MockExtensionContextServiceLayer,
             MockErrorHandlerServiceLayer,
+            Layer.succeed(OrgMetadataCatalog, { getChildren: () => Effect.succeed([]) } as never),
             MockProjectServiceLayer,
             MockMetadataRetrieveServiceLayer,
             MockMetadataRegistryServiceLayer,

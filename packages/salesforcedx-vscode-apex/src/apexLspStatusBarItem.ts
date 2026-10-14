@@ -94,16 +94,14 @@ export default class ApexLSPStatusBarItem implements vscode.Disposable {
     this.restartStatusItem.command = undefined;
     const position = new vscode.Position(0, 0);
     const errorSeverity = vscode.DiagnosticSeverity?.Error ?? 0;
-    this.diagnostics.set(URI.file('/ApexLSP'), [
-      new vscode.Diagnostic(new vscode.Range(position, position), msg, errorSeverity)
-    ]);
+    const diagnostic = new vscode.Diagnostic(new vscode.Range(position, position), msg, errorSeverity);
+    diagnostic.source = nls.localize('client_name');
+    this.diagnostics.set(URI.file('/ApexLSP'), [diagnostic]);
   }
 
   public dispose() {
     this.languageStatusItem.dispose();
     this.restartStatusItem.dispose();
-    for (const disposable of this.disposables) {
-      disposable.dispose();
-    }
+    this.disposables.forEach(disposable => disposable.dispose());
   }
 }

@@ -24,6 +24,7 @@ jest.mock('@salesforce/core', () => ({
 }));
 
 import { activate, deactivate } from '../../src/index';
+import { type ExtensionContext } from 'vscode';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -252,7 +253,7 @@ describe('Extension', () => {
         get: jest.fn().mockReturnValue(undefined),
         update: jest.fn().mockResolvedValue(undefined)
       }
-    } as unknown as import('vscode').ExtensionContext;
+    } as unknown as ExtensionContext;
 
     const api = await activate(context);
     expect(api).toBeDefined();
@@ -300,7 +301,7 @@ describe('Extension', () => {
         get: jest.fn().mockReturnValue(undefined),
         update: jest.fn().mockResolvedValue(undefined)
       }
-    } as unknown as import('vscode').ExtensionContext;
+    } as unknown as ExtensionContext;
 
     await expect(activate(context)).rejects.toThrow('activation failed');
 

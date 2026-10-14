@@ -6,8 +6,8 @@
  */
 import type { FalconUploadOptions } from '@salesforce/o11y-reporter';
 import { isLoopbackHttpEndpoint } from '@salesforce/salesforcedx-utils';
-import * as vscode from 'vscode';
-import { ExtensionContext, ExtensionMode } from 'vscode';
+import type * as vscode from 'vscode';
+import { type ExtensionContext, ExtensionMode } from 'vscode';
 import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
 
 export type SdkLayerConfig = {

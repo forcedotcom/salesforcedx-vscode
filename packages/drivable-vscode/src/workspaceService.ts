@@ -8,10 +8,13 @@
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
+import * as Schema from 'effect/Schema';
 import { causeMessage, DrivableVscodeWorkspaceError } from './errors';
 
 export class WorkspaceService extends Effect.Service<WorkspaceService>()('DrivableVscode/WorkspaceService', {
   accessors: true,
+  dependencies: [Layer.service(FileSystem.FileSystem), Layer.service(Path.Path)],
   effect: Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
     const path = yield* Path.Path;
@@ -101,7 +104,7 @@ export class WorkspaceService extends Effect.Service<WorkspaceService>()('Drivab
       ];
       yield* Effect.all(writes, { concurrency: 'unbounded' }).pipe(
         Effect.mapError(cause =>
-          cause instanceof DrivableVscodeWorkspaceError
+          Schema.is(DrivableVscodeWorkspaceError)(cause)
             ? cause
             : new DrivableVscodeWorkspaceError({
                 message: 'Failed to populate disposable workspace',

@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
-  LspFileSystemAccessor,
+  type LspFileSystemAccessor,
   Logger,
-  NormalizedPath,
+  type NormalizedPath,
   normalizePath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as path from 'node:path';

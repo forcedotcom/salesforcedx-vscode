@@ -6,10 +6,9 @@
  */
 
 import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
-import type { SalesforceVSCodeOrgApi } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import { orgListCleanCommand, orgLoginWebCommand, orgLogoutAllCommand, orgLogoutDefaultCommand } from './commands';
 import { aliasListCommand } from './commands/aliasList';
 import { orgLoginAccessTokenCommand } from './commands/auth/orgLoginAccessToken';
@@ -43,22 +42,18 @@ const initializeStatusBarItems = Effect.gen(function* () {
   yield* Effect.forkDaemon(checkForSoonToBeExpiredOrgs());
 });
 
-export const activate = (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeOrgApi> => {
+export const activate = (extensionContext: vscode.ExtensionContext): Promise<void> => {
   console.log('Salesforce Org Management extension activated');
 
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(extensionContext));
-  return activateEffect(extensionContext).pipe(Scope.extend(extensionScope), getOrgRuntime().runPromise);
+  return activation().pipe(Scope.extend(extensionScope), getOrgRuntime().runPromise);
 };
 
-const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function* (
-  _extensionContext: vscode.ExtensionContext
-) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-
-  // Lifecycle is owned by services (ChannelDisposalLayer); org only borrows the channel.
-  const orgChannel = yield* (yield* api.services.ChannelService).getChannel;
-  const registerCommand = api.services.registerCommandWithRuntime(getOrgRuntime());
+const activation = Effect.fn('activation:salesforcedx-vscode-org')(function* () {
+  const registerCommand = (yield* (yield* ExtensionProviderService).getServicesApi).services.registerCommandWithRuntime(
+    getOrgRuntime()
+  );
   yield* registerCommand('sf.alias.list', aliasListCommand);
   yield* registerCommand('sf.org.create', orgCreateCommand);
   yield* registerCommand('sf.org.delete.default', orgDeleteDefaultCommand);
@@ -75,14 +70,6 @@ const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function*
 
   // Initialize org picker and status bar
   yield* initializeStatusBarItems;
-
-  // show(true) preserves focus, matching utils-vscode ChannelService.showChannelOutput.
-  return {
-    channelService: {
-      appendLine: orgChannel.appendLine.bind(orgChannel),
-      showChannelOutput: () => orgChannel.show(true)
-    }
-  } satisfies SalesforceVSCodeOrgApi;
 });
 
 export const deactivate = async (): Promise<void> => {
@@ -91,5 +78,4 @@ export const deactivate = async (): Promise<void> => {
   console.log('Salesforce Org Management extension deactivated');
 };
 
-export type { SalesforceVSCodeOrgApi } from '@salesforce/salesforcedx-utils-vscode';
 export type { OrgListCleanError } from './commands/orgList';

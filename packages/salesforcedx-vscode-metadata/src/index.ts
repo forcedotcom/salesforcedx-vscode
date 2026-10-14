@@ -10,7 +10,7 @@ import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { analyticsGenerateTemplate } from './commands/analyticsGenerateTemplate';
 import { deleteSourcePathsCommand } from './commands/deleteSourcePath';
 import { deployManifestCommand } from './commands/deployManifest';

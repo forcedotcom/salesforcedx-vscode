@@ -20,6 +20,13 @@
     "globalFetchInEffect",
     "globalTimersInEffect",
     "missedPipeableOpportunity",
-    "schemaUnionOfLiterals"
+    "schemaUnionOfLiterals",
+    "instanceOfSchema",
+    "extendsNativeError",
+    "globalFetch",
+    "anyUnknownInErrorContext",
+    "globalConsoleInEffect",
+    "missingEffectServiceDependency",
+    "nestedEffectGenYield"
   ]
 }

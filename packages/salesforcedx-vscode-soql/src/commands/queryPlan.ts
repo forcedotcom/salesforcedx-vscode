@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Column, createTable, getServicesApi, Row } from '@salesforce/effect-ext-utils';
+import { type Column, createTable, getServicesApi, type Row } from '@salesforce/effect-ext-utils';
 import * as Cause from 'effect/Cause';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
@@ -105,14 +105,12 @@ export const queryPlan = Effect.fn('sf.data.query.explain')(function* () {
   const servicesApi = yield* getServicesApi;
   // precondition: fails with FailedToResolveSfProjectError when there's no project
   yield* servicesApi.services.ProjectService.getSfProject();
-  const inputs = yield* getQueryInputsForPlan();
-  yield* executeQueryPlan(inputs);
+  yield* getQueryInputsForPlan().pipe(Effect.flatMap(executeQueryPlan));
 });
 
 export const queryPlanDocument = Effect.fn('sf.data.query.explain.document')(function* () {
   const servicesApi = yield* getServicesApi;
   // precondition: fails with FailedToResolveSfProjectError when there's no project
   yield* servicesApi.services.ProjectService.getSfProject();
-  const inputs = yield* getDocumentQueryInputsForPlan();
-  yield* executeQueryPlan(inputs);
+  yield* getDocumentQueryInputsForPlan().pipe(Effect.flatMap(executeQueryPlan));
 });

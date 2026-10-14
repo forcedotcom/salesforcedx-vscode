@@ -6,9 +6,9 @@
  */
 /* eslint-disable @typescript-eslint/no-misused-promises */
 
-import { Connection, Org } from '@salesforce/core';
+import { type Connection, Org } from '@salesforce/core';
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
-import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
+import { type LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import {
   DebugSession,
   Event,
@@ -27,26 +27,26 @@ import {
   Variable,
   logger
 } from '@vscode/debugadapter';
-import { DebugProtocol } from '@vscode/debugprotocol';
+import { type DebugProtocol } from '@vscode/debugprotocol';
 import * as Arr from 'effect/Array';
 import { isNull } from 'effect/Predicate';
 import * as os from 'node:os';
 import { URI, Utils } from 'vscode-uri';
-import { ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
-import { LineBreakpointsInTyperef } from '../breakpoints/lineBreakpoint';
+import { type ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
+import { type LineBreakpointsInTyperef } from '../breakpoints/lineBreakpoint';
 import {
-  DebuggerResponse,
+  type DebuggerResponse,
   FrameCommand,
-  LocalValue,
-  Reference,
+  type LocalValue,
+  type Reference,
   ReferencesCommand,
   RunCommand,
   StateCommand,
   StepIntoCommand,
   StepOutCommand,
   StepOverCommand,
-  Tuple,
-  Value
+  type Tuple,
+  type Value
 } from '../commands';
 import {
   DEFAULT_IDLE_TIMEOUT_MS,
@@ -68,17 +68,17 @@ import {
 } from '../constants';
 import {
   BreakpointService,
-  DebuggerMessage,
+  type DebuggerMessage,
   SessionService,
-  StreamingClientInfo,
+  type StreamingClientInfo,
   StreamingClientInfoBuilder,
   StreamingService
 } from '../core';
 import { extractJsonObject } from '../extractJsonObject';
 import { nls } from '../messages';
 import { RequestService } from '../requestService/requestService';
-import { VscodeDebuggerMessage, VscodeDebuggerMessageType } from '../vscodeDebuggerMessage';
-import { WorkspaceSettings } from '../workspaceSettings';
+import { type VscodeDebuggerMessage, VscodeDebuggerMessageType } from '../vscodeDebuggerMessage';
+import { type WorkspaceSettings } from '../workspaceSettings';
 
 // Below import has to be required for bundling
 // eslint-disable-next-line @typescript-eslint/no-var-requires
