@@ -18,7 +18,16 @@ import * as Redacted from 'effect/Redacted';
 import * as Schema from 'effect/Schema';
 
 export { actionsEnvironment } from './actionsEnvironment.js';
-export { type CheckEvent, readCheckEvent, readIssueCommentEvent, readPullRequestEvent } from './actionsEvent.js';
+export {
+  type CheckEvent,
+  type CompletedChecksEvent,
+  type SynchronizeEvent,
+  readCheckEvent,
+  readCompletedChecksEvent,
+  readIssueCommentEvent,
+  readPullRequestEvent,
+  readSynchronizeEvent
+} from './actionsEvent.js';
 
 export type PullReview = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews']['response']['data'][number];
 export type CommitStatus =
