@@ -12,7 +12,8 @@ import {
   MetadataApiRetrieve,
   ComponentSet,
   type RegistryAccess,
-  type RetrieveResult
+  type RetrieveResult,
+  type TreeContainer
 } from '@salesforce/source-deploy-retrieve';
 
 import * as Arr from 'effect/Array';
@@ -186,7 +187,8 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
      */
     const buildComponentSetFromSource = Effect.fn('MetadataRetrieveService.buildComponentSetFromSource')(function* (
       sourcePaths: string[],
-      filterMembers: MetadataMember[]
+      filterMembers: MetadataMember[],
+      makeTree?: (registryAccess: RegistryAccess) => TreeContainer
     ) {
       yield* Effect.annotateCurrentSpan({
         filterMemberCount: filterMembers.length,
@@ -194,8 +196,9 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       });
       const registryAccess = yield* metadataRegistryService.getRegistryAccess();
       const include = filterMembers.length > 0 ? yield* buildComponentSet(filterMembers) : undefined;
+      const tree = makeTree?.(registryAccess);
       const cs = yield* Effect.try({
-        try: () => ComponentSet.fromSource({ fsPaths: sourcePaths, include, registry: registryAccess }),
+        try: () => ComponentSet.fromSource({ fsPaths: sourcePaths, include, registry: registryAccess, tree }),
         catch: e => {
           const { cause } = unknownToErrorCause(e);
           return new FailedToBuildComponentSetError({

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { NodeFSTreeContainer, type RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as HashMap from 'effect/HashMap';
@@ -27,6 +28,27 @@ const ignoreWorkspaceScanErrors =
   <A, E, R>(self: Effect.Effect<A, E, R>) =>
     self.pipe(Effect.catchAll(error => Effect.logWarning(message, { error, ...attributes }).pipe(Effect.as(fallback))));
 
+/** Ignore XML only when SDR requires a matching source file that is missing. */
+class WorkspacePresenceTree extends NodeFSTreeContainer {
+  constructor(private readonly registry: RegistryAccess) {
+    super();
+  }
+
+  public override readDirectory(fsPath: string): string[] {
+    const entries = super.readDirectory(fsPath);
+    const fileNames = new Set(entries);
+    return entries.filter(entry => {
+      if (!entry.endsWith('-meta.xml')) return true;
+      const sourceName = entry.slice(0, -'-meta.xml'.length);
+      const suffix = sourceName.split('.').at(-1) ?? '';
+      return (
+        this.registry.getTypeBySuffix(suffix)?.strategies?.adapter !== 'matchingContentFile' ||
+        fileNames.has(sourceName)
+      );
+    });
+  }
+}
+
 export const makeOrgCatalogWorkspace = Effect.gen(function* () {
   const [state, metadataRetrieveService, projectService, registry] = yield* Effect.all([
     OrgCatalogState,
@@ -41,9 +63,11 @@ export const makeOrgCatalogWorkspace = Effect.gen(function* () {
         projectService.getProjectNamespace()
       ]);
       const packageDirectories = project.getPackageDirectories().map(directory => directory.fullPath);
-      const componentSet = yield* metadataRetrieveService.buildComponentSetFromSource(packageDirectories, [
-        { type: xmlName, fullName: '*' }
-      ]);
+      const componentSet = yield* metadataRetrieveService.buildComponentSetFromSource(
+        packageDirectories,
+        [{ type: xmlName, fullName: '*' }],
+        registryAccess => new WorkspacePresenceTree(registryAccess)
+      );
       const components = [...componentSet.getSourceComponents()].reduce((workspaceUris, component) => {
         if (component.type.name !== xmlName) return workspaceUris;
         // Decomposed children (e.g. CustomField): xml is the workspace artifact when content is absent.
@@ -72,7 +96,11 @@ export const makeOrgCatalogWorkspace = Effect.gen(function* () {
     const types = yield* Effect.gen(function* () {
       const project = yield* projectService.getSfProject();
       const packageDirectories = project.getPackageDirectories().map(directory => directory.fullPath);
-      const componentSet = yield* metadataRetrieveService.buildComponentSetFromSource(packageDirectories, []);
+      const componentSet = yield* metadataRetrieveService.buildComponentSetFromSource(
+        packageDirectories,
+        [],
+        registryAccess => new WorkspacePresenceTree(registryAccess)
+      );
       return new Set([...componentSet.getSourceComponents()].map(component => component.type.name));
     }).pipe(ignoreWorkspaceScanErrors(new Set<string>(), 'Failed to resolve workspace metadata types'));
     yield* state.setWorkspaceTypes(orgId, types);
