@@ -17,7 +17,9 @@
           "globalRandomInEffect": "error",
           "globalFetchInEffect": "error",
           "globalTimersInEffect": "error",
-          "missedPipeableOpportunity": "error"
+          "missedPipeableOpportunity": "error",
+          "nestedEffectGenYield": "error",
+          "effectFnOpportunity": "warning"
         }
       }
     ]

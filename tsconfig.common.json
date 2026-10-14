@@ -25,7 +25,7 @@
     "useUnknownInCatchVariables": false,
     "noUnusedLocals": true,
     "allowSyntheticDefaultImports": true,
-    // Rules listed in diagnosticSeverity are enabled/pinned at "error" — most default to "off" upstream, so they report nothing until pinned. The build gate is config/effect-diagnostics.json enforcedRules.
+    // Error pins in diagnosticSeverity are "error" (most default to "off" upstream, so they report nothing until pinned); the build gate is config/effect-diagnostics.json enforcedRules. effectFnOpportunity is a "warning" editor override and stays out of enforcedRules.
     "plugins": [
       {
         "name": "@effect/language-service",
@@ -35,7 +35,9 @@
           "globalRandomInEffect": "error",
           "globalFetchInEffect": "error",
           "globalTimersInEffect": "error",
-          "missedPipeableOpportunity": "error"
+          "missedPipeableOpportunity": "error",
+          "nestedEffectGenYield": "error",
+          "effectFnOpportunity": "warning"
         }
       },
       { "name": "@salesforce/vscode-i18n/tsPlugin" }
