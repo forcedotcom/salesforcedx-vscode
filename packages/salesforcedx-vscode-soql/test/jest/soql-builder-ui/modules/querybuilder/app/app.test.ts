@@ -185,7 +185,7 @@ describe('App should', () => {
       emitMessage(createSoqlEditorEvent(accountQuery));
       emitMessage({
         type: MessageType.SOBJECT_METADATA_RESPONSE,
-        payload: { fields: accountFields.map(f => ({ name: f })) } as any
+        payload: { fields: accountFields.map(f => ({ name: f, type: 'string' })) } as any
       });
       await Promise.resolve();
       const fields = app.shadowRoot.querySelector('querybuilder-fields');

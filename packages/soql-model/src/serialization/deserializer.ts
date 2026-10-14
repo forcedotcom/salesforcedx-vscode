@@ -10,7 +10,14 @@ import { SOQLParser, ParserError } from '@salesforce/soql-common/soql-parser.lib
 import * as Parser from '@salesforce/soql-common/soql-parser.lib/generated/SoqlParser';
 import { SoqlParserListener } from '@salesforce/soql-common/soql-parser.lib/generated/SoqlParserListener';
 import { parseHeaderComments } from '@salesforce/soql-common/soqlComments';
-import { CharStream, ParserRuleContext, Token, NoViableAltException, InputMismatchException } from 'antlr4ts';
+import {
+  CharStream,
+  ParserRuleContext,
+  Token,
+  TokenStream,
+  NoViableAltException,
+  InputMismatchException
+} from 'antlr4ts';
 import { Interval } from 'antlr4ts/misc/Interval';
 import { ErrorNode, ParseTreeListener, ParseTree } from 'antlr4ts/tree';
 import { messages } from '../messages/i18n';
@@ -116,8 +123,29 @@ export const deserialize = (soqlSyntax: string): Query => {
     }
   }
 
-  const errorIdentifer = new ErrorIdentifier(parseTree);
-  const modelErrors = errors.map(error => errorIdentifer.identifyError(error));
+  const errorIdentifer = new ErrorIdentifier(parseTree, result.getTokenStream());
+  const classifiedErrors = errors.map(error => errorIdentifer.identifyError(error));
+  // Parser recovery can report the same diagnostic twice; keep distinct errors in their original order.
+  const uniqueErrors = classifiedErrors
+    .map((error, index) => ({ error, parserError: errors[index] }))
+    .filter(
+      ({ error }, index) =>
+        classifiedErrors.findIndex(
+          other =>
+            other.type === error.type &&
+            other.message === error.message &&
+            other.lineNumber === error.lineNumber &&
+            other.charInLine === error.charInLine &&
+            other.grammarRule === error.grammarRule
+        ) === index
+    );
+  const modelErrors = uniqueErrors.map(({ error, parserError }, index) => {
+    const previous = uniqueErrors[index - 1];
+    return previous &&
+      isSecondaryRecovery(parserError, error, previous.parserError, previous.error, result.getTokenStream())
+      ? { ...error, isSecondaryRecovery: true }
+      : error;
+  });
   if (query) {
     query.errors = modelErrors;
   } else {
@@ -126,15 +154,55 @@ export const deserialize = (soqlSyntax: string): Query => {
   return query;
 };
 
+const isNextDefaultToken = (earlier: ParserError, later: ParserError, tokenStream: TokenStream): boolean => {
+  const earlierIndex = earlier.getToken()?.tokenIndex;
+  const laterIndex = later.getToken()?.tokenIndex;
+  if (earlierIndex === undefined || laterIndex === undefined || laterIndex <= earlierIndex) return false;
+  for (let index = earlierIndex + 1; index < laterIndex; index++) {
+    if (tokenStream.get(index).channel === Token.DEFAULT_CHANNEL) return false;
+  }
+  return true;
+};
+
+const isSecondaryRecovery = (
+  parserError: ParserError,
+  error: ModelError,
+  previousParserError: ParserError,
+  previousError: ModelError,
+  tokenStream: TokenStream
+): boolean => {
+  if (previousError.type === 'UNKNOWN' || parserError.getLineNumber() !== previousParserError.getLineNumber()) {
+    return false;
+  }
+  if (error.type === 'UNKNOWN' && error.grammarRule === 'SoqlGenericOptionContext') {
+    const currentIndex = parserError.getToken()?.tokenIndex;
+    const previousIndex = previousParserError.getToken()?.tokenIndex;
+    return currentIndex !== undefined && previousIndex !== undefined && currentIndex <= previousIndex;
+  }
+  if (error.type === 'UNKNOWN' && error.grammarRule === 'SoqlQueryContext') {
+    return (
+      previousError.type === 'UNRECOGNIZEDCOMPAREOPERATOR' &&
+      isNextDefaultToken(previousParserError, parserError, tokenStream)
+    );
+  }
+  return (
+    error.type === 'UNEXPECTEDEOF' &&
+    parserError.getToken()?.type === Token.EOF &&
+    (previousError.type === 'INCOMPLETELIMIT' || previousError.type === 'UNRECOGNIZEDCOMPAREVALUE') &&
+    isNextDefaultToken(previousParserError, parserError, tokenStream)
+  );
+};
+
 type KnownError = {
   type: ErrorType;
   message: string;
-  predicate: (error: ParserError, context?: ParseTree) => boolean;
+  predicate: (error: ParserError, context: ParseTree | undefined, failedWhereTokens: Token[]) => boolean;
 };
 
 /* eslint-disable @typescript-eslint/no-unused-vars */
 class ErrorIdentifier {
   protected parseTree: ParseTree;
+  protected tokenStream: TokenStream;
   protected nodesWithExceptionsAndErrorNodes: ParseTree[];
   protected knownErrors: KnownError[] = [
     {
@@ -171,7 +239,7 @@ class ErrorIdentifier {
       type: 'INCOMPLETEFROM',
       message: messages.error_incompleteFrom,
       predicate: (error, context): boolean =>
-        context instanceof Parser.SoqlIdentifierContext &&
+        context instanceof Parser.IdentifierContext &&
         context.parent instanceof Parser.SoqlFromExprContext &&
         context.exception instanceof InputMismatchException
     },
@@ -229,11 +297,12 @@ class ErrorIdentifier {
     {
       type: 'UNRECOGNIZEDCOMPAREOPERATOR',
       message: messages.error_unrecognizedCompareOperator,
-      predicate: (error, context): boolean =>
+      predicate: (error, context, failedWhereTokens): boolean =>
         context instanceof Parser.SoqlWhereExprContext &&
-        context.childCount >= 2 &&
-        context.getChild(1) instanceof ErrorNode &&
-        (context.getChild(1) as ErrorNode).symbol === error.getToken()
+        ((context.childCount >= 2 &&
+          context.getChild(1) instanceof ErrorNode &&
+          (context.getChild(1) as ErrorNode).symbol === error.getToken()) ||
+          failedWhereTokens[1]?.type === Parser.SoqlParser.IDENTIFIER)
     },
     {
       type: 'UNRECOGNIZEDCOMPAREFIELD',
@@ -247,7 +316,7 @@ class ErrorIdentifier {
     {
       type: 'NOCOMPAREVALUE',
       message: messages.error_noCompareValue,
-      predicate: (error, context): boolean =>
+      predicate: (error, context, failedWhereTokens): boolean =>
         (((context instanceof Parser.SoqlLiteralValueContext &&
           context.parent instanceof Parser.SimpleWhereExprContext) ||
           (context instanceof Parser.SoqlLikeValueContext && context.parent instanceof Parser.LikeWhereExprContext)) &&
@@ -259,21 +328,23 @@ class ErrorIdentifier {
           context.exception instanceof NoViableAltException) ||
         (context instanceof Parser.IncludesWhereExprContext &&
           context.childCount === 2 &&
-          context.exception instanceof InputMismatchException)
+          context.exception instanceof InputMismatchException) ||
+        (failedWhereTokens.length === 2 && failedWhereTokens[1].type === Parser.SoqlParser.IN)
     },
     {
       type: 'NOCOMPAREOPERATOR',
       message: messages.error_noCompareOperator,
-      predicate: (error, context): boolean =>
+      predicate: (error, context, failedWhereTokens): boolean =>
         context instanceof Parser.SoqlWhereExprContext &&
-        context.childCount === 1 &&
-        context.getChild(0) instanceof ErrorNode &&
-        (context.getChild(0) as ErrorNode).symbol !== error.getToken()
+        ((context.childCount === 1 &&
+          context.getChild(0) instanceof ErrorNode &&
+          (context.getChild(0) as ErrorNode).symbol !== error.getToken()) ||
+          failedWhereTokens.length === 1)
     },
     {
       type: 'INCOMPLETEMULTIVALUELIST',
       message: messages.error_incompleteMultiValueList,
-      predicate: (error, context): boolean =>
+      predicate: (error, context, failedWhereTokens): boolean =>
         (context instanceof Parser.SoqlWhereExprContext &&
           context.childCount === 3 &&
           context.getChild(2).text === '(' &&
@@ -283,7 +354,10 @@ class ErrorIdentifier {
             context.parent instanceof Parser.IncludesWhereExprContext)) ||
         (context instanceof Parser.SoqlLiteralValueContext &&
           context.parent instanceof Parser.SoqlLiteralValuesContext &&
-          context.exception instanceof InputMismatchException)
+          context.exception instanceof InputMismatchException) ||
+        (failedWhereTokens.length === 3 &&
+          failedWhereTokens[1].type === Parser.SoqlParser.IN &&
+          failedWhereTokens[2].type === Parser.SoqlParser.LPAREN)
     },
     // NOTE: new known errors should go above;
     // unexpectedEOF is an EOF catch-all, make sure it is tested last
@@ -295,15 +369,43 @@ class ErrorIdentifier {
   ];
   /* eslint-enable @typescript-eslint/no-unused-vars */
 
-  constructor(parseTree: ParseTree) {
+  constructor(parseTree: ParseTree, tokenStream: TokenStream) {
     this.parseTree = parseTree;
+    this.tokenStream = tokenStream;
     this.nodesWithExceptionsAndErrorNodes = [];
     this.findExceptionsAndErrorNodes(parseTree);
   }
 
+  protected getFailedWhereTokens(error: ParserError, context?: ParseTree): Token[] {
+    // The new parser can abandon a WHERE expression before adding children to its context.
+    if (
+      !(context instanceof Parser.SoqlWhereExprContext) ||
+      context.childCount !== 0 ||
+      !(context.exception instanceof NoViableAltException)
+    ) {
+      return [];
+    }
+    const startIndex = context.exception.startToken.tokenIndex;
+    const endIndex = error.getToken()?.tokenIndex;
+    if (startIndex < 0 || endIndex === undefined || endIndex < startIndex) {
+      return [];
+    }
+    const tokens: Token[] = [];
+    for (let index = startIndex; index <= endIndex; index++) {
+      const token = this.tokenStream.get(index);
+      if (token.channel === Token.DEFAULT_CHANNEL && token.type !== Token.EOF) {
+        tokens.push(token);
+      }
+    }
+    return tokens;
+  }
+
   public identifyError(error: ParserError): ModelError {
     const context = this.matchErrorToContext(error);
-    const knownErrorMatch = this.knownErrors.find(knownError => knownError.predicate(error, context));
+    const failedWhereTokens = this.getFailedWhereTokens(error, context);
+    const knownErrorMatch = this.knownErrors.find(knownError =>
+      knownError.predicate(error, context, failedWhereTokens)
+    );
 
     return knownErrorMatch
       ? {
@@ -414,16 +516,15 @@ class QueryListener implements SoqlParserListener {
   public update?: Update;
 
   public enterSoqlFromExpr(ctx: Parser.SoqlFromExprContext): void {
-    const idContexts = ctx.getRuleContexts(Parser.SoqlIdentifierContext);
-    const hasAsClause = idContexts.length > 1;
-    const sobjectName = idContexts[0].text;
+    const sobjectName = ctx.identifier().text;
+    const alias = ctx.soqlIdentifier();
     let as: UnmodeledSyntax | undefined;
-    if (hasAsClause) {
+    if (alias) {
       const safeAS = ctx.AS();
       as =
         safeAS !== undefined
-          ? this.toUnmodeledSyntax(safeAS.symbol, idContexts[1].stop as Token, REASON_UNMODELED_AS)
-          : this.toUnmodeledSyntax(idContexts[1].start, idContexts[1].stop as Token, REASON_UNMODELED_AS);
+          ? this.toUnmodeledSyntax(safeAS.symbol, alias.stop as Token, REASON_UNMODELED_AS)
+          : this.toUnmodeledSyntax(alias.start, alias.stop as Token, REASON_UNMODELED_AS);
     }
 
     const safeUSING = ctx.soqlUsingClause();
@@ -514,7 +615,7 @@ class QueryListener implements SoqlParserListener {
     });
   }
 
-  public enterSoqlWhereClauseMethod(ctx: Parser.SoqlWhereClauseMethodContext): void {
+  public enterSoqlWhereClause(ctx: Parser.SoqlWhereClauseContext): void {
     let condition = this.exprsToCondition(ctx.soqlWhereExprs());
     if (!SoqlModelUtils.isSimpleGroup(condition)) {
       condition = this.toUnmodeledSyntax(
@@ -710,7 +811,8 @@ class QueryListener implements SoqlParserListener {
       ctx instanceof Parser.SoqlDateLiteralContext ||
       ctx instanceof Parser.SoqlDateTimeLiteralContext ||
       ctx instanceof Parser.SoqlTimeLiteralContext ||
-      ctx instanceof Parser.SoqlDateFormulaLiteralContext
+      ctx instanceof Parser.SoqlFixedRangeDateFormulaLiteralContext ||
+      ctx instanceof Parser.SoqlVariableRangeDateFormulaLiteralContext
     ) {
       return new LiteralImpl('DATE', ctx.text);
     } else if (ctx instanceof Parser.SoqlNumberLiteralContext) {
