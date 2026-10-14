@@ -12,7 +12,6 @@ import {
 import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import * as Option from 'effect/Option';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import {
@@ -30,7 +29,7 @@ describe('orgUtil tests', () => {
   let appendToChannelMock: jest.Mock;
   let showChannelMock: jest.Mock;
   let listAllAuthorizationsSpy: jest.Mock;
-  let authInfoCreateSpy: jest.Mock<Promise<{ getAuthInfoFields: () => unknown }>, [string]>;
+  let getAuthInfoFieldsSpy: jest.Mock<unknown, [string]>;
   let mockWatcher: any;
 
   // ChannelService entry provided in every seeded ExtensionProviderService layer.
@@ -43,10 +42,7 @@ describe('orgUtil tests', () => {
   // Both authorization listing and connection resolution are provided by services.
   const connectionServiceStub = () => ({
     listAllAuthorizations: () => Effect.promise(() => listAllAuthorizationsSpy()),
-    getAuthInfoFields: (username: string) =>
-      Effect.promise(() => authInfoCreateSpy(username)).pipe(
-        Effect.map(authInfo => Option.some(authInfo.getAuthInfoFields()))
-      )
+    getAuthInfoFields: (username: string) => Effect.sync(() => getAuthInfoFieldsSpy(username))
   });
 
   // checkForSoonToBeExpiredOrgs leaks ChannelService / ConnectionService into its R channel (it yields
@@ -103,7 +99,7 @@ describe('orgUtil tests', () => {
     appendToChannelMock = jest.fn();
     showChannelMock = jest.fn();
     listAllAuthorizationsSpy = jest.fn();
-    authInfoCreateSpy = jest.fn<Promise<{ getAuthInfoFields: () => unknown }>, [string]>();
+    getAuthInfoFieldsSpy = jest.fn<unknown, [string]>();
   });
 
   afterEach(() => {
@@ -157,7 +153,7 @@ describe('orgUtil tests', () => {
     expect(showWarningMessageSpy).not.toHaveBeenCalled();
     expect(appendToChannelMock).not.toHaveBeenCalled();
     expect(showChannelMock).not.toHaveBeenCalled();
-    expect(authInfoCreateSpy).not.toHaveBeenCalled();
+    expect(getAuthInfoFieldsSpy).not.toHaveBeenCalled();
   });
 
   it('should display a notification when the scratch org has already expired', async () => {
@@ -170,12 +166,10 @@ describe('orgUtil tests', () => {
       }
     ]);
 
-    authInfoCreateSpy.mockResolvedValue({
-      getAuthInfoFields: () => ({
-        username: 'foo',
-        alias: orgName1,
-        expirationDate: `${yesterday.getFullYear()}-${yesterday.getMonth() + 1}-${yesterday.getDate()}`
-      })
+    getAuthInfoFieldsSpy.mockReturnValue({
+      username: 'foo',
+      alias: orgName1,
+      expirationDate: `${yesterday.getFullYear()}-${yesterday.getMonth() + 1}-${yesterday.getDate()}`
     });
     const mockServicesApi = {
       services: {
@@ -192,7 +186,7 @@ describe('orgUtil tests', () => {
     expect(showWarningMessageSpy).toHaveBeenCalled();
     expect(appendToChannelMock).not.toHaveBeenCalled();
     expect(showChannelMock).not.toHaveBeenCalled();
-    expect(authInfoCreateSpy).toHaveBeenCalled();
+    expect(getAuthInfoFieldsSpy).toHaveBeenCalled();
   });
 
   it('reveals the Output panel only when the user clicks Show Output on the expiry warning', async () => {
@@ -207,14 +201,10 @@ describe('orgUtil tests', () => {
       }
     ]);
 
-    authInfoCreateSpy.mockResolvedValue({
-      getAuthInfoFields: () => ({
-        username: 'foo',
-        alias: orgName1,
-        expirationDate: `${threeDaysFromNow.getFullYear()}-${
-          threeDaysFromNow.getMonth() + 1
-        }-${threeDaysFromNow.getDate()}`
-      })
+    getAuthInfoFieldsSpy.mockReturnValue({
+      username: 'foo',
+      alias: orgName1,
+      expirationDate: `${threeDaysFromNow.getFullYear()}-${threeDaysFromNow.getMonth() + 1}-${threeDaysFromNow.getDate()}`
     });
     const mockServicesApi = {
       services: {
@@ -251,24 +241,16 @@ describe('orgUtil tests', () => {
       }
     ]);
 
-    authInfoCreateSpy
-      .mockResolvedValueOnce({
-        getAuthInfoFields: () => ({
-          username: 'foo',
-          alias: orgName1,
-          expirationDate: `${threeDaysFromNow.getFullYear()}-${
-            threeDaysFromNow.getMonth() + 1
-          }-${threeDaysFromNow.getDate()}`
-        })
+    getAuthInfoFieldsSpy
+      .mockReturnValueOnce({
+        username: 'foo',
+        alias: orgName1,
+        expirationDate: `${threeDaysFromNow.getFullYear()}-${threeDaysFromNow.getMonth() + 1}-${threeDaysFromNow.getDate()}`
       })
-      .mockResolvedValueOnce({
-        getAuthInfoFields: () => ({
-          username: 'bar',
-          alias: orgName2,
-          expirationDate: `${threeDaysFromNow.getFullYear()}-${
-            threeDaysFromNow.getMonth() + 1
-          }-${threeDaysFromNow.getDate()}`
-        })
+      .mockReturnValueOnce({
+        username: 'bar',
+        alias: orgName2,
+        expirationDate: `${threeDaysFromNow.getFullYear()}-${threeDaysFromNow.getMonth() + 1}-${threeDaysFromNow.getDate()}`
       });
     const mockServicesApi = {
       services: {
@@ -319,22 +301,16 @@ describe('orgUtil tests', () => {
       }
     ]);
 
-    // Mock authInfoCreate to return different expiration dates based on org name
-    authInfoCreateSpy.mockResolvedValueOnce({
-      getAuthInfoFields: () => ({
-        username: 'about-to-expire-org@salesforce.com',
-        alias: orgNameAboutToExpire,
-        expirationDate: `${aboutToExpireDate.getFullYear()}-${
-          aboutToExpireDate.getMonth() + 1
-        }-${aboutToExpireDate.getDate()}`
-      })
+    // Return different expiration dates for each org.
+    getAuthInfoFieldsSpy.mockReturnValueOnce({
+      username: 'about-to-expire-org@salesforce.com',
+      alias: orgNameAboutToExpire,
+      expirationDate: `${aboutToExpireDate.getFullYear()}-${aboutToExpireDate.getMonth() + 1}-${aboutToExpireDate.getDate()}`
     });
-    authInfoCreateSpy.mockResolvedValueOnce({
-      getAuthInfoFields: () => ({
-        username: 'expired-org@salesforce.com',
-        alias: orgNameExpired,
-        expirationDate: `${expiredDate.getFullYear()}-${expiredDate.getMonth() + 1}-${expiredDate.getDate()}`
-      })
+    getAuthInfoFieldsSpy.mockReturnValueOnce({
+      username: 'expired-org@salesforce.com',
+      alias: orgNameExpired,
+      expirationDate: `${expiredDate.getFullYear()}-${expiredDate.getMonth() + 1}-${expiredDate.getDate()}`
     });
     const mockServicesApi = {
       services: {

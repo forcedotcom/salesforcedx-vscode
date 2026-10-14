@@ -108,6 +108,11 @@ export class FailedToResolveUsernameError extends Schema.TaggedError<FailedToRes
   }
 ) {}
 
+export class GetAuthFieldsError extends Schema.TaggedError<GetAuthFieldsError>()('GetAuthFieldsError', {
+  message: Schema.String,
+  username: Schema.optional(Schema.String)
+}) {}
+
 export class NoTargetOrgConfiguredError extends Schema.TaggedError<NoTargetOrgConfiguredError>()(
   'NoTargetOrgConfiguredError',
   {
@@ -464,12 +469,21 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       );
     });
 
-    /** Decode auth fields at the services boundary instead of exposing the Connection schema decoder. */
+    /** Get decoded auth fields; failure to read or decode them is an error for every consumer. */
     const getAuthInfoFields = Effect.fn('ConnectionService.getAuthInfoFields')(function* (username?: string) {
-      const connection = yield* getConnection(username);
-      return Option.map(authFieldsFromConnection(connection), fields => {
-        const encodedFields: AuthInfoFields = Schema.encodeSync(AuthFields)(fields);
-        return encodedFields;
+      const connection = yield* getConnection(username).pipe(
+        Effect.mapError(error => new GetAuthFieldsError({ message: error.message, ...(username ? { username } : {}) }))
+      );
+      const authFieldsUsername = username ?? connection.getUsername();
+      return yield* Option.match(authFieldsFromConnection(connection), {
+        onNone: () =>
+          Effect.fail(
+            new GetAuthFieldsError({
+              message: 'Unable to decode auth fields',
+              ...(authFieldsUsername ? { username: authFieldsUsername } : {})
+            })
+          ),
+        onSome: fields => Effect.succeed(Schema.encodeSync(AuthFields)(fields) satisfies AuthInfoFields)
       });
     });
 

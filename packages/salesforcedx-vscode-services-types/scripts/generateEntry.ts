@@ -27,6 +27,7 @@ const generateEntry = (): void => {
 export type {
   SalesforceVSCodeServicesApi,
   AuthInfoFields,
+  GetAuthFieldsError,
   OrgAuthorizationSummary,
   DefaultOrgInfoSchema,
   ChildRelationship,

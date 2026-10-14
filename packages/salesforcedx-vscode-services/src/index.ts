@@ -285,6 +285,7 @@ export type {
   FailedToSaveAuthInfoError,
   FailedToCreateConnectionError,
   FailedToResolveUsernameError,
+  GetAuthFieldsError,
   InactiveOrgOperationError,
   NoTargetOrgConfiguredError,
   FailedToListAuthorizationsError,

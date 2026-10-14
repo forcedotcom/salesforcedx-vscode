@@ -22,12 +22,6 @@ import { nls } from '../messages';
 
 const DAYS_BEFORE_EXPIRE = 5;
 
-/** Raised when the services connection or its auth fields cannot be read. */
-export class GetAuthFieldsError extends Schema.TaggedError<GetAuthFieldsError>()('GetAuthFieldsError', {
-  message: Schema.String,
-  username: Schema.String
-}) {}
-
 /** Raised when `conn.refreshAuth()` live-probe rejects while checking a non-scratch org's connection (caught in-fn). */
 class OrgConnectionCheckError extends Schema.TaggedError<OrgConnectionCheckError>()('OrgConnectionCheckError', {
   cause: Schema.Unknown,
@@ -117,16 +111,10 @@ export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeEx
   }
 });
 
-/** Fetch auth fields for a username through the shared connection service. */
+/** Fetch auth fields through the shared connection service. */
 export const getAuthFieldsFor = Effect.fn('OrgUtil.getAuthFieldsFor')(function* (username: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const authFields = yield* api.services.ConnectionService.getAuthInfoFields(username).pipe(
-    Effect.mapError(error => new GetAuthFieldsError({ message: error.message, username }))
-  );
-  return yield* Option.match(authFields, {
-    onNone: () => Effect.fail(new GetAuthFieldsError({ message: 'Unable to decode auth fields', username })),
-    onSome: Effect.succeed
-  });
+  return yield* api.services.ConnectionService.getAuthInfoFields(username);
 });
 /**
  * Effect form of {@link updateConfigAndStateAggregators}. Invalidates services' config/connection
@@ -187,9 +175,7 @@ export const determineConnectedStatusForNonScratchOrg = Effect.fn('OrgUtil.deter
     const conn = yield* api.services.ConnectionService.getConnection(username);
 
     // Skip connection testing for scratch orgs (they have a devHubUsername)
-    const devHubUsername = Option.getOrUndefined(
-      Option.map(yield* api.services.ConnectionService.getAuthInfoFields(username), fields => fields.devHubUsername)
-    );
+    const devHubUsername = (yield* api.services.ConnectionService.getAuthInfoFields(username)).devHubUsername;
     return devHubUsername
       ? undefined
       : yield* Effect.tryPromise({
@@ -209,6 +195,7 @@ export const determineConnectedStatusForNonScratchOrg = Effect.fn('OrgUtil.deter
         FailedToCreateConfigAggregatorError: err => Effect.succeed(getConnectionStatusFromError(err, username)),
         FailedToCreateAuthInfoError: err => Effect.succeed(getConnectionStatusFromError(err, username)),
         FailedToCreateConnectionError: err => Effect.succeed(getConnectionStatusFromError(err, username)),
+        GetAuthFieldsError: err => Effect.succeed(getConnectionStatusFromError(err, username)),
         MissingSettingsError: err => Effect.succeed(getConnectionStatusFromError(err, username)),
         NoWorkspaceOpenError: err => Effect.succeed(getConnectionStatusFromError(err, username))
       })

@@ -22,6 +22,7 @@ import { AliasService } from '../../../src/core/alias';
 import { ConfigService } from '../../../src/core/configService';
 import {
   ConnectionService,
+  GetAuthFieldsError,
   InactiveOrgOperationError,
   NoTargetOrgConfiguredError,
   updateDefaultOrgIdentity
@@ -545,22 +546,40 @@ describe('ConnectionService.getConnection (desktop)', () => {
     }));
     connectionCreateMock.mockResolvedValue(makeDesktopConn('given@example.com', { getAuthInfoFields }));
 
-    await expect(run(ConnectionService.getAuthInfoFields('given@example.com'))).resolves.toEqual(
-      Option.some({
-        username: 'given@example.com',
-        orgId: '00D000000000005',
-        expirationDate: '2026-10-10'
-      })
-    );
+    await expect(run(ConnectionService.getAuthInfoFields('given@example.com'))).resolves.toEqual({
+      username: 'given@example.com',
+      orgId: '00D000000000005',
+      expirationDate: '2026-10-10'
+    });
     expect(getAuthInfoFields).toHaveBeenCalledTimes(1);
   });
 
-  it('returns None when auth fields fail schema decoding', async () => {
+  it('fails with GetAuthFieldsError when auth fields fail schema decoding', async () => {
     connectionCreateMock.mockResolvedValue(
       makeDesktopConn('given@example.com', { getAuthInfoFields: () => ({ orgId: 'bad-org-id' }) })
     );
 
-    await expect(run(ConnectionService.getAuthInfoFields('given@example.com'))).resolves.toEqual(Option.none());
+    const exit = await Effect.runPromiseExit(
+      ConnectionService.getAuthInfoFields('given@example.com').pipe(Effect.provide(buildLayer()))
+    );
+
+    expect(exit).toEqual(
+      Exit.fail(new GetAuthFieldsError({ message: 'Unable to decode auth fields', username: 'given@example.com' }))
+    );
+  });
+
+  it('fails with GetAuthFieldsError when the connection has no auth fields', async () => {
+    connectionCreateMock.mockResolvedValue(
+      makeDesktopConn('given@example.com', { getAuthInfoFields: () => undefined })
+    );
+
+    const exit = await Effect.runPromiseExit(
+      ConnectionService.getAuthInfoFields('given@example.com').pipe(Effect.provide(buildLayer()))
+    );
+
+    expect(exit).toEqual(
+      Exit.fail(new GetAuthFieldsError({ message: 'Unable to decode auth fields', username: 'given@example.com' }))
+    );
   });
 
   it('given a username, does NOT fork the default-org ref update', async () => {
