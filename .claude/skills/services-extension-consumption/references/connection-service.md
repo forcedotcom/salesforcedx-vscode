@@ -25,6 +25,10 @@ Returns `Connection` from `@salesforce/core`.
 
 Auto-validates access-token (session-ID) flow connections via `identity()` before returning. On failure: shows a reauth modal, and (if accepted) dispatches `sf.org.login.web`, then fails with `AccessTokenExpiredError`. No-op for refreshable (web/JWT) flows. Consumers get the reauth modal automatically — no need to re-implement token validation.
 
+### getAuthInfoFields
+
+Get decoded auth fields for the configured org or an optional username/alias. Returns `AuthInfoFields`; failure to read or decode fields fails with `GetAuthFieldsError` (username included when known).
+
 ### validateAccessTokenOrPromptReauth
 
 Runs the access-token validation above against a given `Connection` (called internally by `getConnection`):
@@ -46,6 +50,7 @@ yield* api.services.ConnectionService.invalidateCachedConnections();
 - `NoTargetOrgConfiguredError` - No target org
 - `FailedToResolveUsernameError` - Can't resolve username/alias
 - `FailedToCreateConnectionError` - Connection creation failed
+- `GetAuthFieldsError` - Can't read or decode auth fields
 - `AccessTokenExpiredError` - Session-ID token expired; reauth modal shown, `sf.org.login.web` dispatched
 
 ## Examples

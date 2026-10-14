@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { type OrgAuthorization } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { OrgAuthorizationSummary } from '@salesforce/vscode-services';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
@@ -17,7 +17,7 @@ import { getFreshAuthorizations } from '../util/orgUtil';
 
 export type OrgToDelete = { username: string; orgType: 'scratch' | 'sandbox' };
 
-const isDeletable = (org: OrgAuthorization): boolean => org.isScratchOrg === true || org.isSandbox === true;
+const isDeletable = (org: OrgAuthorizationSummary): boolean => org.isScratchOrg === true || org.isSandbox === true;
 
 /** Multi-select QuickPick filtered to scratch orgs and sandboxes with a delete confirmation. */
 export const gather = Effect.fn('SelectDeletableOrg.gather')(function* () {

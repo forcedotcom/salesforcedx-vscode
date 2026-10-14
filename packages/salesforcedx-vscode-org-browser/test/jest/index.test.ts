@@ -189,6 +189,7 @@ const MockConnectionServiceLayer = Layer.succeed(
   new ConnectionService({
     getConnection: () => Effect.sync(() => mockConnection),
     getConnectionForOrg: () => Effect.sync(() => mockConnection),
+    getAuthInfoFields: () => Effect.succeed({}),
     validateAccessTokenOrPromptReauth: () => Effect.void,
     invalidateCachedConnections: () => Effect.void,
     listAllAuthorizations: () => Effect.succeed([])
@@ -305,6 +306,7 @@ describe('Extension activation ordering', () => {
       getConnectionForOrg: () => Effect.sync(() => mockConnection),
       validateAccessTokenOrPromptReauth: () => Effect.void,
       invalidateCachedConnections: () => Effect.void,
+      getAuthInfoFields: () => Effect.succeed({}),
       listAllAuthorizations: () => Effect.succeed([])
     } as const);
     const getConnection = jest.spyOn(connectionService, 'getConnection');

@@ -68,6 +68,7 @@ const buildConnectionServiceLayer = (connection: unknown) =>
       getConnectionForOrg: () => Effect.succeed(connection as Connection),
       validateAccessTokenOrPromptReauth: () => Effect.void,
       invalidateCachedConnections: () => Effect.void,
+      getAuthInfoFields: () => Effect.succeed({}),
       listAllAuthorizations: () => Effect.succeed([])
     })
   );

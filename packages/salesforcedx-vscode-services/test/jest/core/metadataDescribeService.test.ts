@@ -49,6 +49,7 @@ const createMockConnectionService = (
         } as unknown as Connection),
       validateAccessTokenOrPromptReauth: () => Effect.void,
       invalidateCachedConnections: () => Effect.void,
+      getAuthInfoFields: () => Effect.succeed({}),
       listAllAuthorizations: () => Effect.succeed([])
     })
   )
@@ -66,6 +67,7 @@ const runDescribe = (metadataObjects: { xmlName: string }[]) => {
       getConnectionForOrg: () => Effect.succeed(connection),
       validateAccessTokenOrPromptReauth: () => Effect.void,
       invalidateCachedConnections: () => Effect.void,
+      getAuthInfoFields: () => Effect.succeed({}),
       listAllAuthorizations: () => Effect.succeed([])
     })
   );

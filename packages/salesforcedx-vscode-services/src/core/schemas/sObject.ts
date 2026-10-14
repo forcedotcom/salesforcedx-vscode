@@ -7,13 +7,13 @@
 
 import * as S from 'effect/Schema';
 
-export const PicklistValueSchema = S.Struct({
+const PicklistValueSchema = S.Struct({
   active: S.Boolean,
   label: S.NullOr(S.String),
   value: S.String
 });
 
-export const SObjectFieldSchema = S.Struct({
+const SObjectFieldSchema = S.Struct({
   aggregatable: S.Boolean,
   custom: S.Boolean,
   defaultValue: S.NullOr(S.Unknown),
@@ -34,7 +34,7 @@ export const SObjectFieldSchema = S.Struct({
   type: S.String
 });
 
-export const ChildRelationshipSchema = S.Struct({
+const ChildRelationshipSchema = S.Struct({
   childSObject: S.String,
   field: S.String,
   relationshipName: S.NullOr(S.String)

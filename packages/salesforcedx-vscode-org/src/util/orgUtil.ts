@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { type AuthFields, AuthInfo, AuthRemover, type OrgAuthorization, StateAggregator } from '@salesforce/core';
 import { type Column, createTable, type Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { ICONS } from '@salesforce/vscode-services';
+import { ICONS, type OrgAuthorizationSummary } from '@salesforce/vscode-services';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
+import { identity } from 'effect/Function';
 import * as Option from 'effect/Option';
 import { isError, isNotUndefined, isString, not } from 'effect/Predicate';
 import * as Record from 'effect/Record';
@@ -22,49 +22,25 @@ import { nls } from '../messages';
 
 const DAYS_BEFORE_EXPIRE = 5;
 
-/**
- * Raised when reloading the on-disk StateAggregator cache rejects.
- * Surfaces a real message to ErrorHandlerService instead of escaping as a defect.
- * @ExportTaggedError
- */
-export class AggregatorReloadError extends Schema.TaggedError<AggregatorReloadError>()('AggregatorReloadError', {
-  message: Schema.String,
-  cause: Schema.optional(Schema.String)
-}) {}
-
-/**
- * Raised when `AuthInfo.create`/`getFields` rejects for a username (leaf Promise, no runtime re-entry).
- */
-export class GetAuthFieldsError extends Schema.TaggedError<GetAuthFieldsError>()('GetAuthFieldsError', {
-  message: Schema.String,
-  username: Schema.String
-}) {}
-
 /** Raised when `conn.refreshAuth()` live-probe rejects while checking a non-scratch org's connection (caught in-fn). */
 class OrgConnectionCheckError extends Schema.TaggedError<OrgConnectionCheckError>()('OrgConnectionCheckError', {
   cause: Schema.Unknown,
   username: Schema.String
 }) {}
 
-/** Raised when `AuthRemover.removeAuth` rejects for a single username (caught in-fn, tracked as a partition failure). */
+/** Raised when CLI logout fails for a single username (caught in-fn, tracked as a partition failure). */
 class RemoveAuthError extends Schema.TaggedError<RemoveAuthError>()('RemoveAuthError', {
   message: Schema.String,
   username: Schema.String
 }) {}
 
-/**
- * Raised when `AuthRemover.create()` rejects while removing expired/deleted orgs.
- * @ExportTaggedError
- */
-export class AuthRemoverCreateError extends Schema.TaggedError<AuthRemoverCreateError>()('AuthRemoverCreateError', {
-  message: Schema.String
-}) {}
+type OrgAuthFields = Effect.Effect.Success<ReturnType<typeof getAuthFieldsFor>>;
 
-const orgExpiresSoon = (authFields: AuthFields) =>
+const orgExpiresSoon = (authFields: OrgAuthFields) =>
   isString(authFields.expirationDate) &&
   new Date(authFields.expirationDate) <= new Date(Date.now() + DAYS_BEFORE_EXPIRE * 24 * 60 * 60 * 1000);
 
-const orgIsExpired = (authFields: AuthFields) =>
+const orgIsExpired = (authFields: OrgAuthFields) =>
   isString(authFields.expirationDate) && new Date(authFields.expirationDate) < new Date();
 
 /** One time notification about orgs that expire soon */
@@ -135,20 +111,15 @@ export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeEx
   }
 });
 
-/** Fetch AuthFields for a username. Leaf Promise (`AuthInfo.create`/`getFields`); no runtime re-entry. */
+/** Fetch auth fields through the shared connection service. */
 export const getAuthFieldsFor = Effect.fn('OrgUtil.getAuthFieldsFor')(function* (username: string) {
-  return yield* Effect.tryPromise({
-    try: async () => {
-      const authInfo: AuthInfo = await AuthInfo.create({ username });
-      return authInfo.getFields();
-    },
-    catch: cause => new GetAuthFieldsError({ message: String(cause), username })
-  });
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* api.services.ConnectionService.getAuthInfoFields(username);
 });
 /**
- * Effect form of {@link updateConfigAndStateAggregators}. Reloads the on-disk
- * StateAggregator cache, then invalidates the services-api config/connection
- * caches and re-fetches the connection. Exported so Effect commands can `yield*` it directly
+ * Effect form of {@link updateConfigAndStateAggregators}. Invalidates services' config/connection
+ * caches, clears stale authorizations through services, and re-fetches the connection.
+ * Exported so Effect commands can `yield*` it directly
  * instead of bouncing through the async wrapper (which re-enters the runtime via runPromise).
  */
 export const updateConfigAndStateAggregatorsEffect = Effect.fn('updateConfigAndStateAggregators', {
@@ -156,14 +127,9 @@ export const updateConfigAndStateAggregatorsEffect = Effect.fn('updateConfigAndS
   attributes: { telemetryIgnore: true }
 })(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  // Force the StateAggregator to drop ALL cached instances (incl. the default used by
-  // AuthInfo.listAllAuthorizations) so this config file change is accounted for.
-  yield* Effect.tryPromise({
-    try: () => StateAggregator.clearInstanceAsync(),
-    catch: cause => new AggregatorReloadError({ message: 'Failed to reload state aggregator', cause: String(cause) })
-  });
   yield* api.services.ConfigService.invalidateConfigAggregator();
   yield* api.services.ConnectionService.invalidateCachedConnections();
+  yield* api.services.ConnectionService.listAllAuthorizations();
   yield* api.services.ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void));
 });
 
@@ -209,7 +175,8 @@ export const determineConnectedStatusForNonScratchOrg = Effect.fn('OrgUtil.deter
     const conn = yield* api.services.ConnectionService.getConnection(username);
 
     // Skip connection testing for scratch orgs (they have a devHubUsername)
-    return conn.getAuthInfoFields().devHubUsername
+    const devHubUsername = (yield* api.services.ConnectionService.getAuthInfoFields(username)).devHubUsername;
+    return devHubUsername
       ? undefined
       : yield* Effect.tryPromise({
           try: () => conn.refreshAuth(),
@@ -228,6 +195,7 @@ export const determineConnectedStatusForNonScratchOrg = Effect.fn('OrgUtil.deter
         FailedToCreateConfigAggregatorError: err => Effect.succeed(getConnectionStatusFromError(err, username)),
         FailedToCreateAuthInfoError: err => Effect.succeed(getConnectionStatusFromError(err, username)),
         FailedToCreateConnectionError: err => Effect.succeed(getConnectionStatusFromError(err, username)),
+        GetAuthFieldsError: err => Effect.succeed(getConnectionStatusFromError(err, username)),
         MissingSettingsError: err => Effect.succeed(getConnectionStatusFromError(err, username)),
         NoWorkspaceOpenError: err => Effect.succeed(getConnectionStatusFromError(err, username))
       })
@@ -238,7 +206,7 @@ export const determineConnectedStatusForNonScratchOrg = Effect.fn('OrgUtil.deter
 type RemovableOrg = { username: string; logLine: string };
 
 /** Classify a single org for removal WITHOUT mutating auth state, so the caller can confirm first. */
-const classifyOrgForRemoval = Effect.fn('OrgUtil.classifyOrgForRemoval')(function* (orgAuth: OrgAuthorization) {
+const classifyOrgForRemoval = Effect.fn('OrgUtil.classifyOrgForRemoval')(function* (orgAuth: OrgAuthorizationSummary) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channel = yield* api.services.ChannelService;
 
@@ -279,10 +247,34 @@ const classifyOrgForRemoval = Effect.fn('OrgUtil.classifyOrgForRemoval')(functio
   );
 });
 
-/** Lists all org authorizations via `ConnectionService.listAllAuthorizations` (wraps `AuthInfo.listAllAuthorizations`). */
+/** Drop core-only authorization fields at the services boundary. */
+const toOrgAuthorizationSummary = (org: OrgAuthorizationSummary): OrgAuthorizationSummary => ({
+  username: org.username,
+  aliases: org.aliases,
+  isDevHub: org.isDevHub,
+  isSandbox: org.isSandbox,
+  isScratchOrg: org.isScratchOrg,
+  isExpired: org.isExpired,
+  error: org.error
+});
+
+/** Lists all org authorizations through services, with no core types exposed in org. */
 const listAllAuthorizationsEffect = Effect.fn('OrgUtil.listAllAuthorizations')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* api.services.ConnectionService.listAllAuthorizations();
+  return (yield* api.services.ConnectionService.listAllAuthorizations()).map(toOrgAuthorizationSummary);
+});
+
+/** Logout by username; sf handles aliases and default-org config as well as the auth file. */
+export const logoutOrg = Effect.fn('OrgUtil.logoutOrg')(function* (username: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const terminalService = yield* api.services.TerminalService;
+  const { fsPath: cwd } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+  return yield* terminalService.simpleExec({
+    executable: 'sf',
+    args: ['org', 'logout', '--target-org', username, '--no-prompt'],
+    parse: identity,
+    cwd
+  });
 });
 
 /**
@@ -297,7 +289,6 @@ export const findRemovableOrgs = Effect.fn('OrgUtil.findRemovableOrgs')(function
 
 /**
  * Remove the given orgs from local configuration.
- * Fails on `AuthRemover.create` rejection; the command maps that to OrgListCleanError.
  * Per-org removal failures are logged and skipped (keep-going).
  */
 export const removeExpiredAndDeletedOrgs = Effect.fn('OrgUtil.removeExpiredAndDeletedOrgs')(function* (
@@ -305,28 +296,20 @@ export const removeExpiredAndDeletedOrgs = Effect.fn('OrgUtil.removeExpiredAndDe
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channel = yield* api.services.ChannelService;
-  const authRemover = yield* Effect.tryPromise({
-    try: () => AuthRemover.create(),
-    catch: cause => new AuthRemoverCreateError({ message: String(cause) })
-  });
-
-  // Remove sequentially (AuthRemover mutates shared auth state); keep going on per-org failure.
+  // Remove sequentially: each CLI invocation writes shared auth, alias, and config files.
   const [failures, removed] = yield* Effect.partition(
     removable,
     ({ username, logLine }) =>
-      channel.appendToChannel(logLine).pipe(
-        Effect.andThen(
-          Effect.tryPromise({
-            try: () => authRemover.removeAuth(username),
-            catch: removeError =>
-              new RemoveAuthError({
-                message: isError(removeError) ? removeError.message : String(removeError),
-                username
-              })
-          })
+      channel
+        .appendToChannel(logLine)
+        .pipe(
+          Effect.andThen(
+            logoutOrg(username).pipe(
+              Effect.mapError(error => new RemoveAuthError({ message: error.message, username }))
+            )
+          ),
+          Effect.as(username)
         ),
-        Effect.as(username)
-      ),
     { concurrency: 1 }
   );
   yield* Effect.forEach(
@@ -375,14 +358,13 @@ const readAliasesByUsernameFromDiskEffect = Effect.fn('OrgUtil.readAliasesByUser
 
 /**
  * Loads default-org config + fresh org authorizations (alias-supplemented from disk) in one Effect.
- * Authorizations come from `ConnectionService.listAllAuthorizations` (wraps `AuthInfo.listAllAuthorizations`).
+ * Authorizations come from `ConnectionService.listAllAuthorizations`.
  * Consumed by the org pickers and `setDefaultOrg`.
  */
 export const getFreshAuthorizations = Effect.fn('orgUtil.getFreshAuthorizations')(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const [defaultConfig, authorizations, aliasesByUsername] = yield* Effect.all([
     getDefaultOrgConfigurationEffect(),
-    api.services.ConnectionService.listAllAuthorizations(),
+    listAllAuthorizationsEffect(),
     readAliasesByUsernameFromDiskEffect()
   ]);
 
@@ -417,7 +399,7 @@ export const getDefaultOrgConfiguration = async (): Promise<DefaultOrgConfig> =>
   getOrgRuntime().runPromise(getDefaultOrgConfigurationEffect());
 
 /** Determine the type of org (DevHub, Sandbox, Org, or Scratch) */
-const determineOrgType = (orgAuth: OrgAuthorization, authFields: AuthFields): string => {
+const determineOrgType = (orgAuth: OrgAuthorizationSummary, authFields: OrgAuthFields): string => {
   if (orgAuth.isDevHub) {
     return 'DevHub';
   } else if (authFields && !authFields.expirationDate) {
@@ -427,7 +409,7 @@ const determineOrgType = (orgAuth: OrgAuthorization, authFields: AuthFields): st
 };
 
 /** Determine default org markers for display */
-export const determineOrgMarkers = (orgAuth: OrgAuthorization, defaultConfig: DefaultOrgConfig): string => {
+export const determineOrgMarkers = (orgAuth: OrgAuthorizationSummary, defaultConfig: DefaultOrgConfig): string => {
   const possibleDefaults = new Set([...(orgAuth.aliases ?? []), orgAuth.username].filter(Boolean));
 
   // Check if this org is the default DevHub (by property value or resolved username)
@@ -455,7 +437,7 @@ export const determineOrgMarkers = (orgAuth: OrgAuthorization, defaultConfig: De
 };
 /** Process a single org authorization into display data */
 const processOrgForDisplay = Effect.fn('OrgUtil.processOrgForDisplay')(
-  function* (orgAuth: OrgAuthorization, defaultConfig: DefaultOrgConfig) {
+  function* (orgAuth: OrgAuthorizationSummary, defaultConfig: DefaultOrgConfig) {
     // isExpired is `boolean | 'unknown'`: non-scratch orgs (e.g. the dev hub) have no expirationDate
     // so @salesforce/core reports 'unknown' (authInfo.js). A loose truthy check drops them (and thus
     // never runs determineConnectedStatusForNonScratchOrg) — only skip orgs that are DEFINITELY expired.

@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthRemover } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
@@ -13,11 +12,10 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { buildOrgQuickPickItems, isOrgItem } from '../../orgPicker/orgList';
-import { getFreshAuthorizations, updateConfigAndStateAggregatorsEffect } from '../../util/orgUtil';
+import { getFreshAuthorizations, logoutOrg, updateConfigAndStateAggregatorsEffect } from '../../util/orgUtil';
 
 /**
- * Raised when `AuthRemover.removeAuth` rejects for an org. Uses `Effect.tryPromise` so the core
- * rejection becomes a typed error ErrorHandlerService can render, not an unhandled defect.
+ * Raised when the CLI cannot log out an org.
  * @ExportTaggedError
  */
 export class OrgLogoutError extends Schema.TaggedError<OrgLogoutError>()('OrgLogoutError', {
@@ -26,37 +24,12 @@ export class OrgLogoutError extends Schema.TaggedError<OrgLogoutError>()('OrgLog
   cause: Schema.optional(Schema.String)
 }) {}
 
-/**
- * Logs out a single org via an `AuthRemover`. `AuthRemover.removeAuth` already calls
- * `unsetConfigValues` + `unsetAliases` (node_modules/@salesforce/core/lib/org/authRemover.js L50-54),
- * which unsets every global+local config key matching the username/aliases — covering target-org AND
- * target-dev-hub. No separate alias/config-unset calls are needed here. See `createAuthRemover` for
- * how the remover itself is built (shared per command, explicit `projectPath`, `skipCache`).
- */
-const removeAuth = Effect.fn('orgLogoutAllCommand.removeAuth')(function* (authRemover: AuthRemover, username: string) {
-  yield* Effect.annotateCurrentSpan('username', username);
-  yield* Effect.tryPromise({
-    try: () => authRemover.removeAuth(username),
-    catch: cause => new OrgLogoutError({ username, message: `Failed to log out of ${username}`, cause: String(cause) })
-  });
-});
-
-/**
- * Builds one `AuthRemover` per command (not per org): each `.create()` reloads ConfigAggregator + reads
- * all org files from disk (authRemover.js L92-97), so per-org creation repeats that I/O. `projectPath`
- * resolves local config from the workspace rather than `process.cwd()` (the extension host must not be
- * relied on to set it); `skipCache` forces a disk re-read so removeAuth unsets the current target-org
- * rather than a stale cached value. `seedUsername` labels the failure if `.create()` rejects.
- */
-const createAuthRemover = Effect.fn('orgLogout.createAuthRemover')(function* (
-  projectPath: string,
-  seedUsername: string
-) {
-  return yield* Effect.tryPromise({
-    try: () => AuthRemover.create({ projectPath, skipCache: true }),
-    catch: cause =>
-      new OrgLogoutError({ username: seedUsername, message: 'Failed to initialize AuthRemover', cause: String(cause) })
-  });
+const removeAuth = Effect.fn('orgLogout.removeAuth')(function* (username: string) {
+  yield* logoutOrg(username).pipe(
+    Effect.mapError(
+      error => new OrgLogoutError({ username, message: `Failed to log out of ${username}`, cause: error.message })
+    )
+  );
 });
 
 /** Multi-select QuickPick + confirmation modal yielding the usernames to log out. */
@@ -103,7 +76,7 @@ const selectOrgsForLogout = Effect.fn('orgLogoutAllCommand.selectOrgs')(function
 /**
  * Effect command for `sf.org.logout.all`: multi-pick orgs, confirm, then log each out.
  * Cancellation (empty selection / Esc / declined confirm) is an intentional no-op; every other
- * failure (project precondition, removeAuth, config refresh) propagates to ErrorHandlerService.
+ * failure (project precondition, CLI logout, config refresh) propagates to ErrorHandlerService.
  */
 export const orgLogoutAllCommand = Effect.fn('orgLogoutAllCommand')(
   function* () {
@@ -113,12 +86,8 @@ export const orgLogoutAllCommand = Effect.fn('orgLogoutAllCommand')(
     yield* api.services.ProjectService.getSfProject();
 
     const usernames = yield* selectOrgsForLogout();
-    // resolve the workspace path so AuthRemover unsets local config dir-explicitly (no process.cwd reliance)
-    const { fsPath: projectPath } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-    const authRemover = yield* createAuthRemover(projectPath, usernames[0]);
-    // Sequential (no concurrency): AuthRemover writes to shared on-disk config/alias/state files;
-    // the library itself serializes removals to avoid a ConfigFile collision bug (authRemover.js L64-65).
-    yield* Effect.forEach(usernames, username => removeAuth(authRemover, username), { discard: true });
+    // Sequential: each CLI invocation writes shared auth, alias, and config files.
+    yield* Effect.forEach(usernames, removeAuth, { discard: true });
     yield* updateConfigAndStateAggregatorsEffect();
   },
   // Cancellation is intentional; swallow it. All other errors surface to ErrorHandlerService.
@@ -153,16 +122,13 @@ export const orgLogoutDefaultCommand = Effect.fn('orgLogoutDefaultCommand')(
       });
     }
 
-    // check BEFORE removeAuth: after it unsets config the target-org is already gone
+    // Check before logout: the CLI may unset the target-org config.
     const wasTargetOrg = yield* api.services.ConfigService.isCurrentTargetOrg(username, aliases);
 
-    const { fsPath: projectPath } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-    yield* createAuthRemover(projectPath, username).pipe(
-      Effect.flatMap(authRemover => removeAuth(authRemover, username))
-    );
+    yield* removeAuth(username);
     yield* updateConfigAndStateAggregatorsEffect();
 
-    // AuthRemover already unsets the project's target-org. The failed post-logout connection refresh
+    // The CLI unsets the project's target-org. The failed post-logout connection refresh
     // does not clear the in-process ref; reset it without writing config again from the extension-host cwd.
     // Only clear it when the logged-out org was the target.
     if (wasTargetOrg) {

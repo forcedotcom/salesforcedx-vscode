@@ -18,14 +18,17 @@ const optional = <S extends Schema.Schema.Any>(schema: S) => Schema.optionalWith
 export const AuthFields = Schema.Struct({
   orgId: optional(OrgId),
   username: optional(Schema.String),
+  alias: optional(Schema.String),
   instanceName: optional(Schema.Trim),
   devHubUsername: optional(Schema.String),
   tracksSource: optional(Schema.Boolean),
   isScratch: optional(Schema.Boolean),
   isSandbox: optional(Schema.Boolean),
-  orgEdition: optional(Schema.String)
+  orgEdition: optional(Schema.String),
+  expirationDate: optional(Schema.String)
 });
 export type AuthFields = typeof AuthFields.Type;
+export type AuthInfoFields = Schema.Schema.Encoded<typeof AuthFields>;
 
 export const authFieldsFrom = (fields: unknown): Option.Option<AuthFields> =>
   Schema.decodeUnknownOption(AuthFields)(fields);

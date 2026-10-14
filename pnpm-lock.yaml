@@ -1414,9 +1414,6 @@ importers:
 
   packages/salesforcedx-vscode-org:
     dependencies:
-      '@salesforce/core':
-        specifier: ^9.3.0
-        version: 9.3.0
       '@salesforce/effect-ext-utils':
         specifier: workspace:*
         version: link:../effect-ext-utils
@@ -1439,6 +1436,9 @@ importers:
       '@effect/opentelemetry':
         specifier: 0.63.0
         version: 0.63.0(@effect/platform@0.96.1(effect@3.22.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.11.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.22.2)
+      '@salesforce/core':
+        specifier: ^9.3.0
+        version: 9.3.0
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
@@ -1661,9 +1661,6 @@ importers:
       '@salesforce/vscode-i18n':
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
-      '@salesforce/vscode-services':
-        specifier: workspace:*
-        version: link:../salesforcedx-vscode-services-types
       antlr4ts:
         specifier: ^0.5.0-alpha.3
         version: 0.5.0-alpha.4
@@ -1786,9 +1783,6 @@ importers:
 
   packages/soql-builder-ui:
     dependencies:
-      '@salesforce/vscode-services':
-        specifier: workspace:*
-        version: link:../salesforcedx-vscode-services-types
       '@vscode-elements/elements':
         specifier: ^2.5.1
         version: 2.5.1(@vscode/codicons@0.0.45)

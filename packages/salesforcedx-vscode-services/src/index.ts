@@ -285,6 +285,7 @@ export type {
   FailedToSaveAuthInfoError,
   FailedToCreateConnectionError,
   FailedToResolveUsernameError,
+  GetAuthFieldsError,
   InactiveOrgOperationError,
   NoTargetOrgConfiguredError,
   FailedToListAuthorizationsError,
@@ -314,12 +315,7 @@ export type {
 } from './core/metadataDescribeService';
 export type { TransmogrifierService, TransmogrifierError } from './core/transmogrifierService';
 export type { SObject, SObjectField, ChildRelationship } from './core/schemas/sObject';
-export {
-  SObjectSchema,
-  SObjectFieldSchema,
-  ChildRelationshipSchema,
-  PicklistValueSchema
-} from './core/schemas/sObject';
+export type { AuthInfoFields } from './core/schemas/authFields';
 export type { ExecuteAnonymousResult } from './core/executeAnonymousService';
 export type { ExecuteAnonymousError } from './errors/executeAnonymousErrors';
 export type { ApexLogBodyFetchError } from './errors/apexLogErrors';
@@ -637,7 +633,7 @@ const deactivateEffect = Effect.gen(function* () {
 export { type DefaultOrgInfoSchema } from './core/schemas/defaultOrgInfo';
 export { type ChannelService, type ChannelServiceLayer } from './vscode/channelService';
 export { type ConfigService } from './core/configService';
-export { type ConnectionService } from './core/connectionService';
+export { type ConnectionService, type OrgAuthorizationSummary } from './core/connectionService';
 export { type QueryService } from './core/queryService';
 export type { QueryOptions, QueryServiceResult } from './core/queryExecute';
 export { FieldError, SoqlError } from './errors/queryErrors';

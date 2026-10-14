@@ -30,11 +30,12 @@ export const writeStaleScratchOrgAuth = async (): Promise<string> => {
   const authFile = path.join(os.homedir(), '.sfdx', `${STALE_SCRATCH_ORG_USERNAME}.json`);
   const yesterday = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
   const auth = {
-    orgId: '00Dxx0000000EXPIRED',
+    orgId: '00D000000000001',
     username: STALE_SCRATCH_ORG_USERNAME,
-    instanceUrl: 'https://stale-expired-e2e.my.salesforce.com',
+    // Connection.create validates the domain before exposing auth fields; use a real hostname.
+    instanceUrl: 'https://login.salesforce.com',
     loginUrl: 'https://test.salesforce.com',
-    accessToken: '00Dxx0000000EXPIRED!FAKE_TOKEN',
+    accessToken: '00D000000000001!FAKE_TOKEN',
     refreshToken: 'FAKE_REFRESH_TOKEN',
     clientId: 'PlatformCLI',
     isScratch: true,
