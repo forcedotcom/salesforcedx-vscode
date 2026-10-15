@@ -18,14 +18,13 @@ const webview = {
 const lwcDistUri = URI.file('/ext/dist/soql-builder-ui');
 
 describe('transformHtml', () => {
-  it('adds data-is-web to body when isWeb', () => {
+  it('adds the default org capability to the body', () => {
     const result = transformHtml(html, lwcDistUri, webview, true);
-    expect(result).toContain('<body data-is-web="true" class="vscode-light">');
+    expect(result).toContain('<body data-can-set-default-org="true" class="vscode-light">');
   });
 
-  it('leaves body untouched when desktop', () => {
+  it('marks the default org action unavailable when the org extension is absent', () => {
     const result = transformHtml(html, lwcDistUri, webview, false);
-    expect(result).toContain('<body class="vscode-light">');
-    expect(result).not.toContain('data-is-web');
+    expect(result).toContain('<body data-can-set-default-org="false" class="vscode-light">');
   });
 });

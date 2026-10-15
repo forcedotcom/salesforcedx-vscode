@@ -7,6 +7,7 @@
 
 import { createNls } from '@salesforce/vscode-i18n';
 import * as vscode from 'vscode';
+import { isOrgExtensionInstalled } from '../services/orgExtension';
 import { messages as enMessages } from './i18n';
 import { messages as jaMessages } from './i18n.ja';
 
@@ -18,4 +19,4 @@ export const nls = createNls({
 });
 
 export const noDefaultOrgMessage = (): string =>
-  nls.localize(vscode.env.uiKind === vscode.UIKind.Web ? 'info_no_default_org_web' : 'info_no_default_org');
+  nls.localize(isOrgExtensionInstalled() ? 'info_no_default_org' : 'info_no_default_org_without_org_extension');

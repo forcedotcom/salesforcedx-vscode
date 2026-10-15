@@ -20,9 +20,18 @@ const scriptRegex = /script defer="defer"\ssrc="\.\/(?<app>[^"]*app.js)"/g;
  * Transforms index.html from @salesforce/soql-builder-ui (built for normal web context)
  * to work inside VS Code, which uses vscode-webview-resource instead of http to load resources.
  */
-export const transformHtml = (html: string, lwcDistUri: URI, webview: vscode.Webview, isWeb: boolean): string =>
+export const transformHtml = (
+  html: string,
+  lwcDistUri: URI,
+  webview: vscode.Webview,
+  canSetDefaultOrg: boolean
+): string =>
   replaceCspMetaTag(
-    transformScriptTags(isWeb ? html.replace('<body', '<body data-is-web="true"') : html, lwcDistUri, webview),
+    transformScriptTags(
+      html.replace('<body', `<body data-can-set-default-org="${canSetDefaultOrg}"`),
+      lwcDistUri,
+      webview
+    ),
     webview
   );
 

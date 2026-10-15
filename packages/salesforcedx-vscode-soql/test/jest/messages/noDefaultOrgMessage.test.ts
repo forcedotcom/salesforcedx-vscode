@@ -10,21 +10,16 @@ import { messages } from '../../../src/messages/i18n';
 import { noDefaultOrgMessage } from '../../../src/messages';
 
 describe('noDefaultOrgMessage', () => {
-  const env = vscode.env as unknown as { uiKind: number };
-  const originalUiKind = env.uiKind;
+  const getExtension = vscode.extensions.getExtension as jest.Mock;
 
-  afterEach(() => {
-    env.uiKind = originalUiKind;
-  });
-
-  it('returns web copy without Set a Default Org instructions when uiKind is Web', () => {
-    env.uiKind = vscode.UIKind.Web;
-    expect(noDefaultOrgMessage()).toBe(messages.info_no_default_org_web);
+  it('uses concise copy when the org extension is absent', () => {
+    getExtension.mockReturnValue(undefined);
+    expect(noDefaultOrgMessage()).toBe(messages.info_no_default_org_without_org_extension);
     expect(noDefaultOrgMessage()).not.toContain('Set a Default Org');
   });
 
-  it('returns full desktop copy when uiKind is Desktop', () => {
-    env.uiKind = vscode.UIKind.Desktop;
+  it('includes the Set a Default Org instructions when the org extension is installed', () => {
+    getExtension.mockReturnValue({} as vscode.Extension<unknown>);
     expect(noDefaultOrgMessage()).toBe(messages.info_no_default_org);
     expect(noDefaultOrgMessage()).toContain('Set a Default Org');
   });

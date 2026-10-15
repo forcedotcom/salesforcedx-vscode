@@ -13,6 +13,7 @@ import { BUILDER_VIEW_TYPE, HTML_FILE, SOQL_BUILDER_UI_PATH } from '../constants
 import { noDefaultOrgMessage } from '../messages';
 import { getSoqlRuntime } from '../services/extensionProvider';
 import { isDefaultOrgSet } from '../services/org';
+import { isOrgExtensionInstalled } from '../services/orgExtension';
 import { transformHtml } from './htmlUtils';
 import { SOQLEditorInstance } from './soqlEditorInstance';
 
@@ -64,7 +65,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
         return yield* api.services.FsService.readFile(Utils.joinPath(soqlBuilderUri, HTML_FILE));
       })
     );
-    return transformHtml(htmlContent, soqlBuilderUri, webview, vscode.env.uiKind === vscode.UIKind.Web);
+    return transformHtml(htmlContent, soqlBuilderUri, webview, isOrgExtensionInstalled());
   }
 
   private disposeInstance(instance: SOQLEditorInstance) {

@@ -186,7 +186,7 @@ describe('App should', () => {
       emitMessage(createSoqlEditorEvent(accountQuery));
       emitMessage({
         type: MessageType.SOBJECT_METADATA_RESPONSE,
-        payload: { fields: accountFields.map(f => ({ name: f })) } as any
+        payload: { fields: accountFields.map(f => ({ name: f, type: 'string' })) } as any
       });
       await Promise.resolve();
       const fields = app.shadowRoot.querySelector('querybuilder-fields');
@@ -385,22 +385,23 @@ describe('App should', () => {
     const flushLwc = () => new Promise(r => setTimeout(r, 0));
 
     afterEach(() => {
-      delete document.body.dataset.isWeb;
+      delete document.body.dataset.canSetDefaultOrg;
     });
 
-    it('show Set a Default Org button and desktop copy when not web', async () => {
+    it('shows the Set a Default Org button and full copy when the org extension is available', async () => {
+      document.body.dataset.canSetDefaultOrg = 'true';
       emitMessage({ type: MessageType.NO_DEFAULT_ORG });
       await flushLwc();
       expect(app.shadowRoot.querySelector(infoSelector).textContent).toContain('Set a Default Org');
       expect(app.shadowRoot.querySelector(setDefaultOrgButtonSelector)).toBeTruthy();
     });
 
-    it('hide Set a Default Org button and show web copy when web', async () => {
-      document.body.dataset.isWeb = 'true';
+    it('hides the Set a Default Org button when the org extension is unavailable', async () => {
+      document.body.dataset.canSetDefaultOrg = 'false';
       emitMessage({ type: MessageType.NO_DEFAULT_ORG });
       await flushLwc();
       const info = app.shadowRoot.querySelector(infoSelector);
-      expect(info.textContent).toContain(messages.label_no_default_org_web);
+      expect(info.textContent).toContain(messages.label_no_default_org_without_org_extension);
       expect(info.textContent).not.toContain('Set a Default Org');
       expect(app.shadowRoot.querySelector(setDefaultOrgButtonSelector)).toBeNull();
     });
