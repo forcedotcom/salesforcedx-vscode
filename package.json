@@ -11,7 +11,7 @@
   },
   "dependencies": {
     "@salesforce/o11y-reporter": "^1.8.5",
-    "@salesforce/vscode-service-provider": "1.5.0",
+    "@salesforce/vscode-service-provider": "^1.5.0",
     "jsforce": "^3.10.24",
     "memfs": "^4.32.0",
     "semver": "^7.5.4",
@@ -206,6 +206,7 @@
       ]
     },
     "lint": {
+      "command": "eslint --color package.json",
       "dependencies": [
         "./packages/eslint-local-rules:lint",
         "./packages/salesforcedx-utils:lint",
@@ -240,7 +241,12 @@
         "./packages/salesforcedx-lightning-lsp-common:lint",
         "./packages/salesforcedx-aura-language-server:lint",
         "./packages/salesforcedx-lwc-language-server:lint"
-      ]
+      ],
+      "files": [
+        "package.json",
+        "eslint.config.mjs"
+      ],
+      "output": []
     },
     "test": {
       "dependencies": [

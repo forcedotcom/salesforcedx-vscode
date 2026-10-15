@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as path from 'node:path';
+
 import { packageJsonSalesforceDepVersions } from '../src/packageJsonSalesforceDepVersions';
 import { createJsonLinter, filterByRule } from './jsonLintHelper';
 
@@ -16,8 +18,16 @@ describe('package-json-salesforce-dep-versions', () => {
     expect(packageJsonSalesforceDepVersions.meta?.type).toBe('problem');
   });
 
-  describe('with Linter', () => {
-    const lintJson = createJsonLinter(RULE_NAME, packageJsonSalesforceDepVersions);
+  describe.each([
+    ['package.json', undefined],
+    [path.resolve('package.json'), undefined],
+    ['packages/test/package.json', undefined],
+    ['/repo/package.json', '/repo'],
+    ['C:\\repo\\package.json', 'C:\\repo'],
+    ['C:\\repo\\packages\\test\\package.json', 'C:\\repo']
+  ])('%s', (filename, cwd) => {
+    const lint = createJsonLinter(RULE_NAME, packageJsonSalesforceDepVersions, cwd);
+    const lintJson = (code: string) => lint(code, filename);
 
     it('passes when @salesforce dep uses caret in dependencies', () => {
       const code = JSON.stringify({ name: 'test', dependencies: { '@salesforce/core': '^3.0.0' } }, null, 2);
@@ -29,8 +39,8 @@ describe('package-json-salesforce-dep-versions', () => {
       expect(filterByRule(lintJson(code), RULE_NAME)).toHaveLength(0);
     });
 
-    it('errors when @salesforce dep is pinned (exact version)', () => {
-      const code = JSON.stringify({ name: 'test', dependencies: { '@salesforce/core': '3.0.0' } }, null, 2);
+    it.each(['@salesforce/core', '@salesforce/vscode-service-provider'])('errors when %s is pinned', dep => {
+      const code = JSON.stringify({ name: 'test', dependencies: { [dep]: '3.0.0' } }, null, 2);
       const errors = filterByRule(lintJson(code), RULE_NAME);
       expect(errors).toHaveLength(1);
       expect(errors[0].messageId).toBe('pinnedVersion');
@@ -50,13 +60,26 @@ describe('package-json-salesforce-dep-versions', () => {
       expect(errors[0].messageId).toBe('pinnedVersion');
     });
 
+    it.each(['>=3.0.0', 'latest', 'git+https://github.com/forcedotcom/sfdx-core.git'])(
+      'errors when @salesforce deps use non-caret spec %s',
+      version => {
+        const code = JSON.stringify({
+          dependencies: { '@salesforce/core': version },
+          devDependencies: { '@salesforce/cli': version }
+        });
+        const errors = filterByRule(lintJson(code), RULE_NAME);
+        expect(errors).toHaveLength(2);
+        expect(errors.map(error => error.messageId)).toEqual(['pinnedVersion', 'pinnedVersion']);
+      }
+    );
+
     it('passes when non-@salesforce dep is pinned', () => {
       const code = JSON.stringify({ name: 'test', dependencies: { lodash: '4.17.21' } }, null, 2);
       expect(filterByRule(lintJson(code), RULE_NAME)).toHaveLength(0);
     });
 
-    it('passes when @salesforce dep uses workspace wildcard (*)', () => {
-      const code = JSON.stringify({ name: 'test', dependencies: { '@salesforce/my-local-pkg': '*' } }, null, 2);
+    it.each(['*', 'workspace:*', 'workspace:^', 'workspace:~'])('passes when @salesforce dep uses %s', version => {
+      const code = JSON.stringify({ name: 'test', dependencies: { '@salesforce/my-local-pkg': version } }, null, 2);
       expect(filterByRule(lintJson(code), RULE_NAME)).toHaveLength(0);
     });
 
@@ -73,11 +96,6 @@ describe('package-json-salesforce-dep-versions', () => {
         2
       );
       expect(filterByRule(lintJson(code), RULE_NAME)).toHaveLength(2);
-    });
-
-    it('skips files not matching packages/*/package.json', () => {
-      const code = JSON.stringify({ name: 'test', dependencies: { '@salesforce/core': '3.0.0' } }, null, 2);
-      expect(filterByRule(lintJson(code, 'some/other/file.json'), RULE_NAME)).toHaveLength(0);
     });
 
     it('passes when no @salesforce deps exist', () => {
@@ -100,5 +118,15 @@ describe('package-json-salesforce-dep-versions', () => {
       );
       expect(filterByRule(lintJson(code), RULE_NAME)).toHaveLength(0);
     });
+  });
+
+  it.each([
+    ['some/other/file.json', undefined],
+    ['some/other/package.json', undefined],
+    ['C:\\repo\\other\\package.json', 'C:\\repo']
+  ])('skips unrelated manifest %s', (filename, cwd) => {
+    const lintJson = createJsonLinter(RULE_NAME, packageJsonSalesforceDepVersions, cwd);
+    const code = JSON.stringify({ dependencies: { '@salesforce/core': '3.0.0' } });
+    expect(filterByRule(lintJson(code, filename), RULE_NAME)).toHaveLength(0);
   });
 });
