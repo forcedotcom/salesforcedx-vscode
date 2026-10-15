@@ -81,6 +81,8 @@ runs:
         CI: '1'
         E2E_NO_RETRIES: '1'
       run: |
+        # Wireit passes Windows paths to tar; prefer native tar over Git Bash's GNU tar.
+        if [[ "$RUNNER_OS" == Windows ]]; then export PATH="$(cygpath -u "$SYSTEMROOT")/System32:$PATH"; fi
         command=(pnpm --filter "./$WORKSPACE" "$NPM_SCRIPT")
         if [[ -n "$SPEC_FILTER" ]]; then command+=(-- "$SPEC_FILTER"); fi
         if [[ "$RUNNER_OS" == Linux && "${VSCODE_DESKTOP:-}" == 1 ]]; then command=(xvfb-run -a "${command[@]}"); fi
@@ -98,7 +100,9 @@ runs:
     - name: Kill process on port 3001
       if: steps.try-run.outcome == 'failure' && env.VSCODE_DESKTOP != '1'
       shell: bash
-      run: lsof -ti :3001 | xargs --no-run-if-empty kill -9
+      run: |
+        pids=$(lsof -ti :3001 || true)
+        if [[ -n "$pids" ]]; then kill -9 $pids; fi
 
     - uses: ./.github/actions/cache-vscode-web
       if: steps.try-run.outcome == 'failure' && env.VSCODE_DESKTOP != '1'
@@ -182,6 +186,7 @@ runs:
         SPEC_FILTER: ${{ inputs.spec-filter }}
         CI: '1'
       run: |
+        if [[ "$RUNNER_OS" == Windows ]]; then export PATH="$(cygpath -u "$SYSTEMROOT")/System32:$PATH"; fi
         command=(pnpm --filter "./$WORKSPACE" "$NPM_SCRIPT")
         if [[ -n "$SPEC_FILTER" ]]; then command+=(-- "$SPEC_FILTER"); fi
         if [[ "$RUNNER_OS" == Linux && "${VSCODE_DESKTOP:-}" == 1 ]]; then command=(xvfb-run -a "${command[@]}"); fi
@@ -214,6 +219,7 @@ runs:
         CI: '1'
         PLAYWRIGHT_WORKERS: '1'
       run: |
+        if [[ "$RUNNER_OS" == Windows ]]; then export PATH="$(cygpath -u "$SYSTEMROOT")/System32:$PATH"; fi
         command=(pnpm --filter "./$WORKSPACE" "$NPM_SCRIPT" -- --last-failed)
         if [[ -n "$SPEC_FILTER" ]]; then command+=("$SPEC_FILTER"); fi
         if [[ "$RUNNER_OS" == Linux && "${VSCODE_DESKTOP:-}" == 1 ]]; then command=(xvfb-run -a "${command[@]}"); fi
