@@ -21,6 +21,7 @@ import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
 import { AppInsightsRoutingExporter } from './appInsightsRoutingExporter';
 import { ApplicationInsightsNodeExporter } from './applicationInsightsNodeExporter';
 import { GatedSpanExporter } from './gatedSpanExporter';
+import { getLegacyCallerFalcon } from './legacyTelemetrySender';
 import { makeLocalEnvelopeSender } from './localEnvelopeSender';
 import { getConsoleTracesEnabled, getFileTracesEnabled, getLocalTracesEnabled, getLogLevel } from './localTracing';
 import { O11yRoutingExporter } from './o11yRoutingExporter';
@@ -57,7 +58,8 @@ export const NodeSdkLayerFor = ({
   productFeatureId,
   enableCustomEventsFromSpans,
   connectionString,
-  localIngestionEndpoint
+  localIngestionEndpoint,
+  falcon
 }: SdkLayerConfig) => {
   // connectionString is normalized (otelConnectionString preferred over aiKey, bare UUIDs wrapped)
   // and defaulted by sdkLayerConfig.ts. This `?? DEFAULT` is a safety net for SdkLayerConfig
@@ -128,10 +130,23 @@ export const NodeSdkLayerFor = ({
               make: () =>
                 new O11yRoutingExporter({
                   makeDefault: o11yEndpoint
-                    ? () => new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId, localIngestionEndpoint)
+                    ? () =>
+                        new O11ySpanExporter(
+                          extensionName,
+                          o11yEndpoint,
+                          productFeatureId,
+                          localIngestionEndpoint,
+                          falcon
+                        )
                     : undefined,
                   makeLegacy: (endpoint, legacyProductFeatureId, legacyExtensionName) =>
-                    new O11ySpanExporter(legacyExtensionName, endpoint, legacyProductFeatureId, localIngestionEndpoint)
+                    new O11ySpanExporter(
+                      legacyExtensionName,
+                      endpoint,
+                      legacyProductFeatureId,
+                      localIngestionEndpoint,
+                      getLegacyCallerFalcon(legacyExtensionName, falcon)
+                    )
                 }),
               o11yEndpoint,
               bypassGovernance: Boolean(localIngestionEndpoint)
