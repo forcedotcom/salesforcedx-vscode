@@ -10,11 +10,11 @@ import { Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import { CodeCoverage } from '../../src/tests/codeCoverage';
 import {
-  ApexCodeCoverageAggregate,
-  ApexOrgWideCoverage,
-  ApexCodeCoverage,
-  ApexCodeCoverageRecord,
-  ApexCodeCoverageAggregateRecord
+  type ApexCodeCoverageAggregate,
+  type ApexOrgWideCoverage,
+  type ApexCodeCoverage,
+  type ApexCodeCoverageRecord,
+  type ApexCodeCoverageAggregateRecord
 } from '../../src/tests/types';
 import { QUERY_RECORD_LIMIT } from '../../src/tests/constants';
 

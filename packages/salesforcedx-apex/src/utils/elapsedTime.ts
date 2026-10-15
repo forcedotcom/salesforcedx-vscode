@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Logger, LoggerLevel, LoggerLevelValue } from '@salesforce/core';
+import { Logger, LoggerLevel, type LoggerLevelValue } from '@salesforce/core';
 
 const log = (level: LoggerLevelValue, logger: Logger, msg: string, properties: Record<string, any> = {}): void => {
   if (!logger.shouldLog(level)) {

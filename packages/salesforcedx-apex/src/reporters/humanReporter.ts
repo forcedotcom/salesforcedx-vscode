@@ -8,7 +8,7 @@
 import * as os from 'node:os';
 import { nls } from '../i18n';
 import { type ApexTestResultData, type CodeCoverageResult, type TestResult } from '../tests/types';
-import { elapsedTime, HeapMonitor, Row, Table } from '../utils';
+import { elapsedTime, HeapMonitor, type Row, Table } from '../utils';
 
 const UNCOVERED_LINES_ARRAY_LIMIT = 5;
 

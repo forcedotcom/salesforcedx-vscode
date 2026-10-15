@@ -10,7 +10,7 @@ import { mkdir, readFile, rm } from 'node:fs/promises';
 import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
-import { TestResult } from '../../src';
+import { type TestResult } from '../../src';
 import { writeAsyncResultsToFile } from '../../src/tests/asyncTests';
 
 describe('writeAsyncResultsToFile - Snapshot Tests', () => {

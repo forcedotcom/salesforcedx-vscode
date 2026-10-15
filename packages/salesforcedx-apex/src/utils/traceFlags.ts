@@ -4,13 +4,13 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Connection } from '@salesforce/core';
+import { type Connection } from '@salesforce/core';
 import { nls } from '../i18n';
 import { DEFAULT_DEBUG_LEVEL_NAME, LOG_TIMER_LENGTH_MINUTES, LOG_TYPE } from '../logs/constants';
 import { escapeXml } from './authUtil';
 import { MILLISECONDS_PER_MINUTE } from './dateUtil';
 import { elapsedTime } from './elapsedTime';
-import { IdRecord, DataRecordResult, QueryRecords, TraceFlagRecord } from './types';
+import { type IdRecord, type DataRecordResult, type QueryRecords, type TraceFlagRecord } from './types';
 
 export class TraceFlags {
   private connection: Connection;

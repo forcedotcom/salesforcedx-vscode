@@ -13,10 +13,10 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { nls } from '../i18n';
 import {
-  ApexCodeCoverage,
-  ApexCodeCoverageAggregate,
-  ApexCodeCoverageAggregateRecord,
-  ApexCodeCoverageRecord
+  type ApexCodeCoverage,
+  type ApexCodeCoverageAggregate,
+  type ApexCodeCoverageAggregateRecord,
+  type ApexCodeCoverageRecord
 } from '../tests/types';
 import { elapsedTime } from '../utils';
 

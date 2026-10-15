@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TestResultStringifyStream } from '../../src/streaming';
-import { CodeCoverageResult, TestResult } from '../../src/tests';
-import { PerClassCoverage } from '../../src/tests/types';
+import { type CodeCoverageResult, type TestResult } from '../../src/tests';
+import { type PerClassCoverage } from '../../src/tests/types';
 
 const tests: TestResult['tests'] = [
   {

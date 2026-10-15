@@ -892,6 +892,16 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-apex (inline to avoid no-duplicate-imports; W-23371097)
+    files: ['packages/salesforcedx-apex/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // consistent-type-imports for salesforcedx-apex-debugger (inline to avoid no-duplicate-imports; W-23371080)
     files: ['packages/salesforcedx-apex-debugger/**/*.ts'],
     rules: {
