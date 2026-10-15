@@ -128,12 +128,11 @@ const unknownArray = S.transform(S.Unknown, S.Array(S.Unknown), {
   encode: value => value
 });
 
-const optionalTrimmedString = pipe(
-  S.transform(S.Unknown, S.String.pipe(S.UndefinedOr), {
-    strict: true,
-    decode: value => (isString(value) ? value : undefined),
-    encode: value => value
-  }),
+const optionalTrimmedString = S.transform(S.Unknown, S.String.pipe(S.UndefinedOr), {
+  strict: true,
+  decode: value => (isString(value) ? value : undefined),
+  encode: value => value
+}).pipe(
   S.compose(S.OptionFromNonEmptyTrimmedString.pipe(S.UndefinedOr)),
   S.compose(
     S.transform(
@@ -184,8 +183,7 @@ const workspaceFieldTypeByMetadata: Readonly<Record<string, string>> = {
   text: 'string'
 };
 
-const workspaceFieldType = pipe(
-  optionalTrimmedString,
+const workspaceFieldType = optionalTrimmedString.pipe(
   S.compose(
     S.transform(S.NonEmptyTrimmedString.pipe(S.UndefinedOr), S.String.pipe(S.UndefinedOr), {
       strict: true,
@@ -196,8 +194,7 @@ const workspaceFieldType = pipe(
   )
 );
 
-const workspaceReferenceTo = pipe(
-  unknownArray,
+const workspaceReferenceTo = unknownArray.pipe(
   S.compose(S.Array(optionalTrimmedString)),
   S.compose(
     S.transform(S.Array(S.NonEmptyTrimmedString.pipe(S.UndefinedOr)), S.Array(S.String), {
