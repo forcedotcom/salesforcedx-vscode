@@ -371,6 +371,12 @@ Validates view ID references in `package.json`:
 - View IDs in `when` clauses must match defined views in `contributes.views`
 - View IDs in `viewsWelcome` must reference defined views
 
+### package-json-salesforce-dep-versions
+
+Requires caret ranges for external `@salesforce/*` entries in `dependencies` and `devDependencies` in root `package.json` and `packages/*/package.json`. Workspace references (`*`, `workspace:*`, `workspace:^`, `workspace:~`) remain allowed.
+
+`@salesforce/apex`, `@salesforce/label`, and `@salesforce/schema` retain their pin exceptions. This repository's `pnpm lint` checks the root manifest as well as workspace manifests.
+
 ### vscodeignore-required-patterns
 
 Validates `.vscodeignore` required patterns for web extensions (`package.json` contains a `browser` field):
