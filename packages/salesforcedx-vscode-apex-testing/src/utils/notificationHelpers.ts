@@ -7,13 +7,14 @@
 
 import type { ProgressAndSuccessCommandKey } from './notificationMode';
 import type { OutputFormat, TestResult } from '@salesforce/apex-node';
-import type { Context } from 'effect';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
-import type { NotificationModeService } from 'salesforcedx-vscode-services';
+import * as Runtime from 'effect/Runtime';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
+import { openTestReport } from './testReportGenerator';
 
 /**
  * Simple notification service wrapper that uses vscode.window directly.
@@ -31,76 +32,50 @@ export const notificationService = {
   }
 };
 
-type OpenReport = (reportUri: URI, outputFormat: OutputFormat) => void | Promise<void>;
-
-/** "Open Report" toast action, or none when report generation failed. */
-const openReportActions = (reportUri: URI | undefined, outputFormat: OutputFormat, openReport: OpenReport) =>
-  reportUri
-    ? [{ label: nls.localize('apex_test_report_open_action'), run: () => openReport(reportUri, outputFormat) }]
-    : [];
-
-/** Success toast: a combined message plus an "Open Report" action when report generation succeeded. */
-const showRunSuccessNotification = (
-  notificationMode: Context.Tag.Service<typeof NotificationModeService>,
-  command: ProgressAndSuccessCommandKey,
-  executionName: string,
-  reportUri: URI | undefined,
-  outputFormat: OutputFormat,
-  openReport: OpenReport
-) =>
-  notificationMode.showSuccessNotification(
-    command,
-    reportUri
-      ? nls.localize('apex_test_successful_execution_with_report_message', executionName, Utils.basename(reportUri))
-      : nls.localize('apex_test_successful_execution_message', executionName),
-    false,
-    openReportActions(reportUri, outputFormat, openReport)
-  );
-
-/** Error toast for a run that completed with failing tests, plus an "Open Report" action when report
- * generation succeeded. */
-const showTestFailuresNotification = (
-  notificationMode: Context.Tag.Service<typeof NotificationModeService>,
-  executionName: string,
-  failing: number,
-  reportUri: URI | undefined,
-  outputFormat: OutputFormat,
-  openReport: OpenReport
-) =>
-  notificationMode.showErrorWithActions(
-    nls.localize('apex_test_completed_with_failures_message', executionName, failing),
-    openReportActions(reportUri, outputFormat, openReport)
-  );
-
 /**
  * Terminal toast for the run-tests flows, keyed on the run's outcome: success when tests passed, a
  * "completed with failing tests" error when some failed, and `showFailedExecution` when the run produced
- * no usable result (timeout / no summary) or ended in any other state. `openReport` is injected rather
- * than imported so this stays usable from apexTestExecutionService.ts, which resolves its own runtime to
- * avoid a circular import through services/extensionProvider.ts.
+ * no usable result (timeout / no summary) or ended in any other state. Both toasts get an "Open Report"
+ * action when report generation succeeded. The action runs on the caller's runtime, captured here, so this
+ * needs no import of services/extensionProvider.ts, which apexTestExecutionService.ts can't import without a
+ * cycle.
  */
-export const showRunOutcomeNotification = (
-  notificationMode: Context.Tag.Service<typeof NotificationModeService>,
+export const showRunOutcomeNotification = Effect.fn('ApexTesting.showRunOutcomeNotification')(function* (
   command: ProgressAndSuccessCommandKey,
   executionName: string,
   result: TestResult | undefined,
   reportUri: URI | undefined,
-  outputFormat: OutputFormat,
-  openReport: OpenReport
-) =>
-  Match.value(result).pipe(
+  outputFormat: OutputFormat
+) {
+  const notificationMode = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services
+    .NotificationModeService;
+  const runtime = yield* Effect.runtime<Effect.Effect.Context<ReturnType<typeof openTestReport>>>();
+  const openReportActions = reportUri
+    ? [
+        {
+          label: nls.localize('apex_test_report_open_action'),
+          run: () => Runtime.runPromise(runtime)(openTestReport(reportUri, outputFormat))
+        }
+      ]
+    : [];
+
+  yield* Match.value(result).pipe(
     Match.when({ summary: { outcome: 'Passed' } }, () =>
-      showRunSuccessNotification(notificationMode, command, executionName, reportUri, outputFormat, openReport)
+      notificationMode.showSuccessNotification(
+        command,
+        reportUri
+          ? nls.localize('apex_test_successful_execution_with_report_message', executionName, Utils.basename(reportUri))
+          : nls.localize('apex_test_successful_execution_message', executionName),
+        false,
+        openReportActions
+      )
     ),
     Match.when({ summary: { outcome: 'Failed' } }, failed =>
-      showTestFailuresNotification(
-        notificationMode,
-        executionName,
-        failed.summary.failing,
-        reportUri,
-        outputFormat,
-        openReport
+      notificationMode.showErrorWithActions(
+        nls.localize('apex_test_completed_with_failures_message', executionName, failed.summary.failing),
+        openReportActions
       )
     ),
     Match.orElse(() => Effect.sync(() => notificationService.showFailedExecution(executionName)))
   );
+});

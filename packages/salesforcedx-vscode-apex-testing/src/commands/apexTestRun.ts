@@ -15,13 +15,11 @@ import { and, not } from 'effect/Predicate';
 import { window } from 'vscode';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
-import { getApexTestingRuntime } from '../services/extensionProvider';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { ApexTestQuickPickItem } from '../utils/fileHelpers';
 import { showRunOutcomeNotification } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
-import { openTestReport } from '../utils/testReportGenerator';
 import { getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';
 import { getRunCommandContext, resolveRunInputs, runApexTests } from './apexTestRunUtils';
 
@@ -146,15 +144,7 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
     // timeout/no summary). Cancellation stays on the failure channel, so this tap never fires a bogus toast.
     Effect.tap(() => channelService.showChannel),
     Effect.tap(({ result, reportUri, outputFormat }) =>
-      showRunOutcomeNotification(
-        notificationMode,
-        COMMAND,
-        executionName,
-        result,
-        reportUri,
-        outputFormat,
-        (uri, format) => getApexTestingRuntime().runPromise(openTestReport(uri, format))
-      )
+      showRunOutcomeNotification(COMMAND, executionName, result, reportUri, outputFormat)
     ),
     Effect.map(({ result }) => result)
   );

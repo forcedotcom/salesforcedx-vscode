@@ -16,12 +16,10 @@ import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
-import { getApexTestingRuntime } from '../services/extensionProvider';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { apexTestingDiagnostics } from '../utils/diagnostics';
 import { showRunOutcomeNotification } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
-import { openTestReport } from '../utils/testReportGenerator';
 import { getRunCommandContext, resolveRunInputs, runApexTests } from './apexTestRunUtils';
 import { getZeroBasedRange } from './range';
 
@@ -77,15 +75,7 @@ const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (
   if (isNotUndefined(result)) {
     yield* handleDiagnostics(result);
   }
-  yield* showRunOutcomeNotification(
-    notificationMode,
-    COMMAND,
-    executionName,
-    result,
-    reportUri,
-    outputFormat,
-    (uri, format) => getApexTestingRuntime().runPromise(openTestReport(uri, format))
-  );
+  yield* showRunOutcomeNotification(COMMAND, executionName, result, reportUri, outputFormat);
 });
 
 const handleDiagnostics = Effect.fn('apexTestRunCodeAction.handleDiagnostics')(function* (result: TestResult) {

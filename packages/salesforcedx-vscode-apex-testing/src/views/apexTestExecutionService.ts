@@ -11,7 +11,6 @@ import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
-import * as Runtime from 'effect/Runtime';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { APEX_TESTING_SECTION } from '../constants';
@@ -34,7 +33,7 @@ import {
   isSuite,
   isSuiteClass
 } from '../utils/testItemUtils';
-import { openTestReport, writeAndOpenTestReport } from '../utils/testReportGenerator';
+import { writeAndOpenTestReport } from '../utils/testReportGenerator';
 import { updateTestRunResults } from '../utils/testResultProcessor';
 import { readTestRunIdFile, writeTestResultJsonFile } from '../utils/testUtils';
 import { ApexTestTreeService, type TreeMutationContext } from './apexTestTreeService';
@@ -291,17 +290,7 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       const channelService = yield* api.services.ChannelService;
       yield* channelService.appendToChannel(`Ended ${executionName}`);
       if (totalCount > 0) {
-        const notificationMode = yield* api.services.NotificationModeService;
-        const runtime = yield* Effect.runtime<Effect.Effect.Context<ReturnType<typeof openTestReport>>>();
-        yield* showRunOutcomeNotification(
-          notificationMode,
-          command,
-          executionName,
-          result,
-          reportUri,
-          outputFormat,
-          (uri, format) => Runtime.runPromise(runtime)(openTestReport(uri, format))
-        );
+        yield* showRunOutcomeNotification(command, executionName, result, reportUri, outputFormat);
       }
     });
 

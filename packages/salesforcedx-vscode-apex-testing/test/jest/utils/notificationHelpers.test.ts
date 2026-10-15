@@ -6,7 +6,9 @@
  */
 
 import type { TestResult } from '@salesforce/apex-node';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { messages } from '../../../src/messages/i18n';
@@ -14,26 +16,28 @@ import { showRunOutcomeNotification } from '../../../src/utils/notificationHelpe
 
 const showSuccessNotification = jest.fn((..._a: unknown[]) => Effect.void);
 const showErrorWithActions = jest.fn((..._a: unknown[]) => Effect.void);
-const notificationMode = { showSuccessNotification, showErrorWithActions } as unknown as Parameters<
-  typeof showRunOutcomeNotification
->[0];
+const ExtProviderLayer = Layer.succeed(ExtensionProviderService, {
+  getServicesApi: Effect.succeed({
+    services: { NotificationModeService: Effect.succeed({ showSuccessNotification, showErrorWithActions }) }
+  })
+} as unknown as ExtensionProviderService);
 const reportUri = URI.file('/tmp/test-result-RID.md');
 const resultWith = (outcome: string, failing = 0) =>
   ({ tests: [], summary: { outcome, failing } }) as unknown as TestResult;
 
-const notify = (
-  result: TestResult | undefined,
-  { openReport = jest.fn(), uri = reportUri }: { openReport?: jest.Mock; uri?: URI | null } = {}
-) =>
+// The notification-mode and FS services are yielded from the mocked services API (ExtProviderLayer), not
+// the Effect context, so erase their requirements at the boundary.
+const notify = (result: TestResult | undefined, { uri = reportUri }: { uri?: URI | null } = {}) =>
   Effect.runPromise(
-    showRunOutcomeNotification(
-      notificationMode,
-      messages.apex_test_run_text,
-      'SFDX: Run Apex Tests',
-      result,
-      uri ?? undefined,
-      'markdown',
-      openReport
+    Effect.provide(
+      showRunOutcomeNotification(
+        messages.apex_test_run_text,
+        'SFDX: Run Apex Tests',
+        result,
+        uri ?? undefined,
+        'markdown'
+      ) as Effect.Effect<void, unknown, ExtensionProviderService>,
+      ExtProviderLayer
     )
   );
 
@@ -63,10 +67,10 @@ describe('showRunOutcomeNotification', () => {
   });
 
   it('opens the report from the Open Report action on the failing-tests error', async () => {
-    const openReport = jest.fn();
-    await notify(resultWith('Failed', 1), { openReport });
-    errorActions()[0].run();
-    expect(openReport).toHaveBeenCalledWith(reportUri, 'markdown');
+    (vscode.commands.executeCommand as jest.Mock).mockResolvedValue(undefined);
+    await notify(resultWith('Failed', 1));
+    await errorActions()[0].run();
+    expect(vscode.commands.executeCommand).toHaveBeenCalledWith('markdown.showPreview', reportUri);
   });
 
   it('omits the Open Report action when no report was generated', async () => {
