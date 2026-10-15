@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
+import { RegistryAccess, registry } from '@salesforce/source-deploy-retrieve';
 import * as Cause from 'effect/Cause';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
@@ -244,7 +244,7 @@ const makeHarness = (options: HarnessOptions = {}) => {
     })
   );
   const getConnectionForOrg = jest.fn((_expectedOrgId: string) => getConnection());
-  const getRegistryAccess = jest.fn(() => Effect.succeed(new RegistryAccess()));
+  const getRegistryAccess = jest.fn(() => Effect.succeed(new RegistryAccess(registry)));
   const dependencies = Layer.mergeAll(
     Layer.succeed(ConnectionService, {
       getConnection,
