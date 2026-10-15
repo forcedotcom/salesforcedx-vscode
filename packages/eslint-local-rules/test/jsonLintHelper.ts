@@ -16,8 +16,8 @@ const jsonModule = require('@eslint/json') as typeof import('@eslint/json');
 const json = jsonModule.default;
 
 /** Creates a lintJson helper for testing a specific package.json ESLint rule */
-export const createJsonLinter = (ruleName: string, ruleModule: Rule.RuleModule) => {
-  const linter = new Linter({ configType: 'flat' });
+export const createJsonLinter = (ruleName: string, ruleModule: Rule.RuleModule, cwd?: string) => {
+  const linter = new Linter({ configType: 'flat', cwd });
 
   return (code: string, filename = 'packages/test/package.json'): LinterType.LintMessage[] => {
     const config = [
