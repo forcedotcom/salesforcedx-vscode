@@ -178,7 +178,7 @@ importers:
         specifier: ^1.8.5
         version: 1.8.5
       '@salesforce/vscode-service-provider':
-        specifier: 1.5.0
+        specifier: ^1.5.0
         version: 1.5.0
       jsforce:
         specifier: ^3.10.24

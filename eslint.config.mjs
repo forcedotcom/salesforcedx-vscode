@@ -1273,15 +1273,9 @@ export default [
   {
     ignores: ['packages/eslint-local-rules/test/**']
   },
-  // Register JSON plugin
+  // Dependency ranges apply to root and workspace manifests
   {
-    plugins: {
-      json: jsonPlugin
-    }
-  },
-  // JSON linting for package.json files
-  {
-    files: ['packages/*/package.json'],
+    files: ['package.json', 'packages/*/package.json'],
     language: 'json/json',
     plugins: {
       json: jsonPlugin,
@@ -1289,6 +1283,13 @@ export default [
     },
     rules: {
       ...jsonPlugin.configs.recommended.rules,
+      'local/package-json-salesforce-dep-versions': 'error'
+    }
+  },
+  // Extension-specific validation applies only to workspace manifests
+  {
+    files: ['packages/*/package.json'],
+    rules: {
       'local/package-json-i18n-descriptions': 'error',
       'local/package-json-extension-icon': 'error',
       'local/package-json-icon-paths': 'error',
@@ -1296,8 +1297,7 @@ export default [
       'local/package-json-no-default-true': 'error',
       'local/package-json-no-services-dependency': 'error',
       'local/package-json-require-root-install': 'error',
-      'local/package-json-view-refs': 'error',
-      'local/package-json-salesforce-dep-versions': 'error'
+      'local/package-json-view-refs': 'error'
     }
   },
   {
