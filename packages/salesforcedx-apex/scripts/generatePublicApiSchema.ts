@@ -377,7 +377,9 @@ const ApexTestProgressValueSchema = Schema.Union(
     type: Schema.Literal('PollingClientProgress'),
     value: Schema.Literal('pollingProcessingTestRun'),
     testRunId: Schema.String,
-    message: Schema.String
+    message: Schema.String,
+    classesCompleted: Schema.Number,
+    classesEnqueued: Schema.Number
   }),
   Schema.Struct({ type: Schema.Literal('TestQueueProgress'), value: ApexTestQueueItemSchema }),
   Schema.Struct({

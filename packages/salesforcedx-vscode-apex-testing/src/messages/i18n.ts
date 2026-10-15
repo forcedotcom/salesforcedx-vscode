@@ -26,6 +26,7 @@ export const messages = {
     'Test class not provided. Run the code action on a class annotated with @isTest.',
   apex_test_run_codeAction_no_method_test_param_text:
     'Test method not provided. Run the code action on a method annotated with @isTest or testMethod.',
+  apex_test_run_progress_message: '%s (%d test classes)',
   apex_test_run_text: 'SFDX: Run Apex Tests',
   apex_test_suite_create_text: 'SFDX: Create Apex Test Suite',
   apex_test_suite_edit_text: 'SFDX: Edit Apex Test Suite',

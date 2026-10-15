@@ -137,18 +137,32 @@ describe('Run Apex tests asynchronously', () => {
 
     const testSrv = new TestService(mockConnection);
     const mockTestResultData = $$.SANDBOX.stub(AsyncTests.prototype, 'formatAsyncResults').resolves(testResultData);
+    const report = $$.SANDBOX.stub();
 
     const testResult = await testSrv.runTestAsynchronous(
       requestOptions,
       false,
       false,
-      undefined,
+      { report },
       undefined,
       Duration.minutes(2)
     );
     expect(typeof testResult).toBe('object');
     expect(mockTestResultData.calledOnce).toBe(true);
     expect(testResult).toBe(testResultData);
+    sinon.assert.calledWith(report, {
+      type: 'PollingClientProgress',
+      value: 'pollingProcessingTestRun',
+      message: nls.localize('pollingProcessingTestRun', testRunId),
+      testRunId,
+      classesCompleted: 1,
+      classesEnqueued: 1
+    });
+    sinon.assert.calledWith(report, {
+      type: 'FormatTestResultProgress',
+      value: 'retrievingTestRunSummary',
+      message: nls.localize('retrievingTestRunSummary')
+    });
   });
 
   it('should throw an error on refresh token issue', async () => {

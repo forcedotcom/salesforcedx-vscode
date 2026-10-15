@@ -60,15 +60,18 @@ const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (
 
   const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
 
-  const { result, reportUri, outputFormat } = yield* runApexTests({
-    payload,
-    outputDir,
-    codeCoverage,
-    concise,
-    telemetryTrigger: 'codeAction'
-  }).pipe(
-    Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
-    promptService.withCancellableProgress(executionName, progressLocation)
+  const { result, reportUri, outputFormat } = yield* promptService.withCancellableProgressReporting(
+    executionName,
+    progressLocation
+  )(progress =>
+    runApexTests({
+      payload,
+      outputDir,
+      codeCoverage,
+      concise,
+      telemetryTrigger: 'codeAction',
+      progress
+    }).pipe(Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }))
   );
 
   yield* channelService.showChannel;
