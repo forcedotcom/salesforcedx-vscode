@@ -59,7 +59,8 @@
     "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-core test:desktop --debug",
     "test:container": "wireit",
     "test:compile": "wireit",
-    "vscode:package:prerelease": "wireit"
+    "vscode:package:prerelease": "wireit",
+    "check:effect-diagnostics": "wireit"
   },
   "wireit": {
     "compile": {
@@ -244,6 +245,17 @@
       "output": [
         "*.vsix"
       ]
+    },
+    "check:effect-diagnostics": {
+      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "../../config/effect-diagnostics.json",
+        "../../scripts/effect-diagnostics.mjs"
+      ],
+      "output": []
     }
   },
   "activationEvents": [

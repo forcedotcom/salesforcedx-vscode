@@ -2,12 +2,11 @@ import fs from 'fs';
 import path from 'path';
 import { spawnSync } from 'child_process';
 import { fileURLToPath } from 'url';
-import { glob } from 'glob';
 
 // Effect LS diagnostics ratchet.
-// Runs @effect/language-service `diagnostics` on every Effect-adopting package,
-// enables config/effect-diagnostics.json `enforcedRules` at error severity, then fails
-// ONLY on those findings. Everything else is reported informationally.
+// Runs @effect/language-service `diagnostics` on one package directory (argv),
+// then fails ONLY on findings whose rule name is listed in config/effect-diagnostics.json
+// `enforcedRules` (any severity). Everything else is reported informationally.
 // Decoupled from the CLI exit code (which counts errors) so per-rule gating is uniform.
 // A CLI invocation that can't be parsed as JSON for any reason other than an empty-package
 // NoFilesToCheckError fails the gate — a broken run must never silently drop enforced findings.
@@ -17,6 +16,16 @@ import { glob } from 'glob';
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const cli = path.join(repoRoot, 'node_modules', '@effect', 'language-service', 'cli.js');
 const configPath = path.join(repoRoot, 'config', 'effect-diagnostics.json');
+
+const packageDirArg = process.argv[2];
+if (packageDirArg === undefined) {
+  console.error('usage: node scripts/effect-diagnostics.mjs <package-dir>');
+  process.exit(1);
+}
+
+const pkgDir = path.resolve(process.cwd(), packageDirArg);
+const name = path.basename(pkgDir);
+const tsconfig = path.join(pkgDir, 'tsconfig.json');
 
 const enforcedRules = JSON.parse(fs.readFileSync(configPath, 'utf8')).enforcedRules;
 if (!Array.isArray(enforcedRules)) {
@@ -35,29 +44,12 @@ const lspConfig = JSON.stringify({
 // Per-package CLI budget: bound a hung/runaway invocation instead of hanging the whole CI job.
 const perPackageTimeoutMs = 5 * 60 * 1000;
 
-// Discover packages: an Effect dependency + a tsconfig + at least one src .ts file.
-const packageJsonPaths = glob.sync('packages/*/package.json', { cwd: repoRoot }).sort();
-
-const hasEffectDep = pkg => {
-  const deps = { ...pkg.dependencies, ...pkg.devDependencies };
-  return Object.keys(deps).some(name => name === 'effect' || name.startsWith('@effect/'));
-};
-
-const discoveredPackages = packageJsonPaths.flatMap(relPkgJson => {
-  const pkgDir = path.join(repoRoot, path.dirname(relPkgJson));
-  const pkg = JSON.parse(fs.readFileSync(path.join(repoRoot, relPkgJson), 'utf8'));
-  const tsconfig = path.join(pkgDir, 'tsconfig.json');
-  const hasTsconfig = fs.existsSync(tsconfig);
-  const hasSrcTs = fs.existsSync(path.join(pkgDir, 'src')) && glob.sync('src/**/*.ts', { cwd: pkgDir }).length > 0;
-  return hasEffectDep(pkg) && hasTsconfig && hasSrcTs ? [{ name: path.basename(pkgDir), tsconfig }] : [];
-});
-
-// Run the CLI per package; parse JSON.
+// Run the CLI; parse JSON.
 // - Valid JSON -> diagnostics.
 // - NoFilesToCheckError (a package with no analyzable files) -> benign skip.
 // - Anything else (crash, timeout, maxBuffer overflow, non-JSON output) -> hard failure
 //   that fails the gate, so a broken invocation can never silently drop enforced findings.
-const runPackage = ({ name, tsconfig }) => {
+const runPackage = () => {
   const result = spawnSync(
     'node',
     [cli, 'diagnostics', '--project', tsconfig, '--format', 'json', '--lspconfig', lspConfig],
@@ -87,16 +79,15 @@ const runPackage = ({ name, tsconfig }) => {
       };
 };
 
-const results = discoveredPackages.map(runPackage);
-
-const skipped = results.filter(r => r.skipped);
-const failed = results.filter(r => r.failed);
-// Declaration files describe external APIs; their native Error classes are not ours to change.
-const violations = results
-  .filter(r => !r.skipped && !r.failed)
-  .flatMap(r =>
-    r.diagnostics.filter(d => enforcedSet.has(d.name) && !(d.name === 'extendsNativeError' && d.file.endsWith('.d.ts')))
-  );
+const result = runPackage();
+const skipped = result.skipped ? [result] : [];
+const failed = result.failed ? [result] : [];
+const violations =
+  result.skipped || result.failed
+    ? []
+    : result.diagnostics.filter(
+        d => enforcedSet.has(d.name) && !(d.name === 'extendsNativeError' && d.file.endsWith('.d.ts'))
+      );
 
 const isGithubActions = process.env.GITHUB_ACTIONS === 'true';
 
@@ -122,7 +113,7 @@ console.log(
   `${enforcedRules.length} rules enforced${enforcedRules.length > 0 ? ` (${enforcedRules.join(', ')})` : ''}`
 );
 console.log(
-  `${discoveredPackages.length} packages checked, ${skipped.length} skipped, ${failed.length} failed, ${violations.length} enforced violation(s)`
+  `1 package checked, ${skipped.length} skipped, ${failed.length} failed, ${violations.length} enforced violation(s)`
 );
 
 process.exit(violations.length > 0 || failed.length > 0 ? 1 : 0);
