@@ -144,6 +144,8 @@ jobs:
     needs: [prepare-release-metadata]
     if: inputs.dry-run != true
     uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@main
+    with:
+      package-manager: pnpm
     secrets: inherit
 
   validate-vsix:
