@@ -97,6 +97,9 @@ jobs:
     name: Build and publish to npm
     needs: create-release
     if: needs.create-release.outputs.tag != ''
+    permissions:
+      id-token: write
+      contents: read
     uses: salesforcecli/github-workflows/.github/workflows/npmPublish.yml@main
     with:
       githubTag: ${{ needs.create-release.outputs.tag }}
@@ -106,5 +109,4 @@ jobs:
       nodeVersion: ${{ vars.NODE_VERSION || 'lts/*' }}
       packagePath: ./packages/soql-common
       prerelease: ${{ github.event.inputs.prerelease == 'true' }}
-    secrets:
-      NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+      trustedPublishing: true
