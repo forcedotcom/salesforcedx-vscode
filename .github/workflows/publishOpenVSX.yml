@@ -163,6 +163,8 @@ jobs:
     secrets: inherit
     with:
       changeCaseId: ${{needs.ctc-open.outputs.changeCaseId}}
+      package-manager: pnpm
+      package-manager-version: ''
 
   ctcCloseFail:
     needs: [ctc-open, verify-published]
@@ -172,3 +174,5 @@ jobs:
     with:
       changeCaseId: ${{ needs.ctc-open.outputs.changeCaseId }}
       status: Not Implemented
+      package-manager: pnpm
+      package-manager-version: ''
