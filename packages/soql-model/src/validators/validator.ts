@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { messages } from '../messages/i18n';
-import { SObjectFieldType, UiOperatorValue } from '../model/model';
+import { SObjectFieldType, type UiOperatorValue } from '../model/model';
 import { splitMultiInputValues } from './inputUtils';
 
 export type ValidateOptions = {

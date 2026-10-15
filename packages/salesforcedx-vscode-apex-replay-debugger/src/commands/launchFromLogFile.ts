@@ -5,17 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from '../adapter/debugConfigurationProvider';
 
-export const launchFromLogFile = async (
+export const launchFromLogFile = Effect.fn('ApexReplayDebugger.launchFromLogFile')(function* (
   logFile?: string,
   stopOnEntry: boolean = true,
   anonApexFilePath?: string,
   anonApexLineOffset?: number
-) => {
-  if (!vscode.debug.activeDebugSession && vscode.workspace.workspaceFolders?.[0]) {
+) {
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+  if (!vscode.debug.activeDebugSession && workspaceFolder) {
     const config = DebugConfigurationProvider.getConfig(logFile, stopOnEntry, anonApexFilePath, anonApexLineOffset);
-    await vscode.debug.startDebugging(vscode.workspace.workspaceFolders[0], config);
+    yield* Effect.promise(() => vscode.debug.startDebugging(workspaceFolder, config));
   }
-};
+});

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { UnmodeledSyntaxReason } from './unmodeled';
+import { type UnmodeledSyntaxReason } from './unmodeled';
 
 export type ModelError = {
   type: ErrorType;

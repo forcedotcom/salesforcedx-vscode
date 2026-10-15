@@ -92,7 +92,7 @@ import {
   StaleResultsError
 } from '../../../src/codecoverage/codeCoverageService';
 import { CodeCoverageHandler } from '../../../src/codecoverage/colorizer';
-import { StatusBarToggle } from '../../../src/codecoverage/statusBarToggle';
+import { type StatusBarToggle } from '../../../src/codecoverage/statusBarToggle';
 import { getApexTestingRuntime } from '../../../src/services/extensionProvider';
 import { getTestResultsFolder } from '../../../src/utils/pathHelpers';
 

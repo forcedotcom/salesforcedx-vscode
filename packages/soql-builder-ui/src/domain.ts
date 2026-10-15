@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ChildRelationshipSchema, SObjectFieldSchema } from '@salesforce/vscode-services';
 import * as Effect from 'effect/Effect';
 import * as ParseResult from 'effect/ParseResult';
 import * as Schema from 'effect/Schema';
+import { ChildRelationshipSchema, SObjectFieldSchema } from './sObjectSchema.js';
 
 const SoqlObjectMetadataSchema = Schema.Struct({
   name: Schema.NonEmptyTrimmedString,

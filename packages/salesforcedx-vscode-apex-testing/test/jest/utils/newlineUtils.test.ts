@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { NewlineNormalizationState, normalizeTextChunkToLf } from '../../../src/utils/newlineUtils';
+import { type NewlineNormalizationState, normalizeTextChunkToLf } from '../../../src/utils/newlineUtils';
 
 describe('newlineUtils', () => {
   it('should normalize CRLF split across chunk boundary to a single LF', () => {
