@@ -14,9 +14,11 @@ port of the desktop/web suites:
    and each hardens for leftover state: `beforeEach` closes editors + clears notifications, created
    artifacts use unique (`Date.now()`) names, and assertions avoid absolute/global counts.
 2. **One boot-authed tracking org.** A single tracking scratch org is authed at container boot and
-   is the default target-org. Specs cannot create/delete/switch orgs or do interactive web login;
-   org-dependent specs were rewired from `createMinimalOrg`/`setupNonTrackingOrgAndAuth`/etc. to the
-   boot org, deploying what they need to it first.
+   is the default target-org. Specs can't create a new org at runtime (no interactive web login, no
+   scratch-org creation) or destroy org auth on the shared session; org-dependent specs were rewired
+   from `createMinimalOrg`/`setupNonTrackingOrgAndAuth`/etc. to the boot org, deploying what they need
+   to it first. Switching between orgs *is* supported, for orgs pre-provisioned by the orchestrator —
+   see "Multi-org container support" below.
 3. **One mounted fixture workspace.** The
    [`container-workspace`](../packages/salesforcedx-vscode-core/test/playwright/fixtures/container-workspace)
    fixture (Apex classes `PagedResult`/`ExampleClass` + tests, an anonymous-Apex script, an `aura1`
