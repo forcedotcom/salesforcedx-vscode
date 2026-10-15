@@ -32,7 +32,8 @@
     "generate-entry": "ts-node scripts/generateEntry.ts",
     "sync-deps": "ts-node scripts/syncDeps.ts",
     "compile": "wireit",
-    "clean": "shx rm -rf src out dist node_modules .wireit .eslintcache *.tgz"
+    "clean": "shx rm -rf src out dist node_modules .wireit .eslintcache *.tgz",
+    "check:effect-diagnostics": "wireit"
   },
   "wireit": {
     "generate-src": {
@@ -62,6 +63,17 @@
       "output": [
         "out/**"
       ]
+    },
+    "check:effect-diagnostics": {
+      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "../../config/effect-diagnostics.json",
+        "../../scripts/effect-diagnostics.mjs"
+      ],
+      "output": []
     }
   },
   "dependencies": {

@@ -498,19 +498,35 @@
       "output": []
     },
     "check:effect-diagnostics": {
-      "command": "node scripts/effect-diagnostics.mjs",
       "dependencies": [
-        "compile"
-      ],
-      "files": [
-        "packages/*/src/**/*.ts",
-        "packages/*/tsconfig.json",
-        "packages/*/package.json",
-        "tsconfig.common.json",
-        "config/effect-diagnostics.json",
-        "scripts/effect-diagnostics.mjs"
-      ],
-      "output": []
+        "./packages/salesforcedx-utils-vscode:check:effect-diagnostics",
+        "./packages/soql-builder-ui:check:effect-diagnostics",
+        "./packages/salesforcedx-apex:check:effect-diagnostics",
+        "./packages/salesforcedx-apex-debugger:check:effect-diagnostics",
+        "./packages/salesforcedx-apex-replay-debugger:check:effect-diagnostics",
+        "./packages/effect-ext-utils:check:effect-diagnostics",
+        "./packages/salesforcedx-vscode-core:check:effect-diagnostics",
+        "./packages/salesforcedx-vscode-apex:check:effect-diagnostics",
+        "./packages/salesforcedx-vscode-apex-debugger:check:effect-diagnostics",
+        "./packages/salesforcedx-vscode-apex-replay-debugger:check:effect-diagnostics",
+        "./packages/salesforcedx-vscode-apex-oas:check:effect-diagnostics",
+        "./packages/salesforcedx-vscode-apex-testing:check:effect-diagnostics",
+        "./packages/salesforcedx-vscode-lwc:check:effect-diagnostics",
+        "./packages/salesforcedx-vscode-lightning:check:effect-diagnostics",
+        "./packages/salesforcedx-vscode-soql:check:effect-diagnostics",
+        "./packages/salesforcedx-vscode-visualforce:check:effect-diagnostics",
+        "./packages/salesforcedx-vscode-services:check:effect-diagnostics",
+        "./packages/salesforcedx-vscode-metadata:check:effect-diagnostics",
+        "./packages/salesforcedx-vscode-services-types:check:effect-diagnostics",
+        "./packages/salesforcedx-vscode-org:check:effect-diagnostics",
+        "./packages/salesforcedx-vscode-org-browser:check:effect-diagnostics",
+        "./packages/drivable-vscode:check:effect-diagnostics",
+        "./packages/salesforcedx-vscode-apex-log:check:effect-diagnostics",
+        "./packages/playwright-vscode-ext:check:effect-diagnostics",
+        "./packages/salesforcedx-lightning-lsp-common:check:effect-diagnostics",
+        "./packages/salesforcedx-aura-language-server:check:effect-diagnostics",
+        "./packages/salesforcedx-lwc-language-server:check:effect-diagnostics"
+      ]
     },
     "check:format:staged": {
       "command": "pretty-quick --staged"
