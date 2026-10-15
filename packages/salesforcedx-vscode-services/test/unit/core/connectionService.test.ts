@@ -558,7 +558,7 @@ describe('ConnectionService.getConnection (desktop)', () => {
   });
 
   it('decodes auth fields inside ConnectionService', async () => {
-    const getAuthInfoFields = jest.fn(() => ({
+    const getAuthInfoFields = vi.fn(() => ({
       username: 'given@example.com',
       orgId: '00D000000000005',
       expirationDate: '2026-10-10'
