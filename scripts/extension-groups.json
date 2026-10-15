@@ -1,0 +1,17 @@
+{
+  "core-services": ["salesforcedx-vscode-core", "salesforcedx-vscode-services"],
+  "apex-log": [
+    "salesforcedx-vscode-core",
+    "salesforcedx-vscode-services",
+    "salesforcedx-vscode-apex",
+    "salesforcedx-vscode-apex-log"
+  ],
+  "org-browser": ["salesforcedx-vscode-services", "salesforcedx-vscode-org-browser", "salesforcedx-vscode-metadata"],
+  "org-browser-core": [
+    "salesforcedx-vscode-core",
+    "salesforcedx-vscode-services",
+    "salesforcedx-vscode-org-browser",
+    "salesforcedx-vscode-metadata"
+  ],
+  "metadata": ["salesforcedx-vscode-core", "salesforcedx-vscode-services", "salesforcedx-vscode-metadata"]
+}

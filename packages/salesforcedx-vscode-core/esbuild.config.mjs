@@ -12,7 +12,6 @@ const nodeBuild = await build({
   ...nodeConfig,
   entryPoints: ['./src/index.ts'],
   outdir: 'dist/src',
-  minify: true,
   metafile: true
 });
 

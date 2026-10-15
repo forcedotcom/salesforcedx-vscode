@@ -1,8 +1,22 @@
 {
-    "compilerOptions": {
-        "target": "es2017"
-    },
+  "compilerOptions": {
+    "target": "es2017",
+    "experimentalDecorators": true,
+    "baseUrl": ".",
+    "paths": {
+      "c/*": [
+        "*"
+      ]
+    }
+  },
+  "include": [
+    "util/*.js",
+    "**/*",
+    "../../../.sfdx/typings/lwc/**/*.d.ts"
+  ],
+  "typeAcquisition": {
     "include": [
-        "util/*.js"
+      "jest"
     ]
+  }
 }

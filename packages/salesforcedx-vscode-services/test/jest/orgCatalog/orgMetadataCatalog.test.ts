@@ -40,7 +40,7 @@ import {
   OrgMetadataCatalogStore,
   type OrgMetadataCatalogSnapshot
 } from '../../../src/orgCatalog/orgMetadataCatalogStore';
-import { FileChangePubSub } from '../../../src/vscode/fileChangePubSub';
+import { FileChangePubSub, type FileChangeEvent } from '../../../src/vscode/fileChangePubSub';
 import { WorkspaceService } from '../../../src/vscode/workspaceService';
 import type * as connectionService from '../../../src/core/connectionService';
 import type * as metadataDescribeService from '../../../src/core/metadataDescribeService';
@@ -708,8 +708,13 @@ describe('OrgMetadataCatalog contract', () => {
           }
         ];
         yield* PubSub.publishAll(yield* FileChangePubSub, events);
-        const change = yield* Queue.take(subscription);
-        expect(change).toEqual({ kind: 'workspace', events });
+        const observedEvents: FileChangeEvent[] = [];
+        while (observedEvents.length < events.length) {
+          const change = yield* Queue.take(subscription);
+          expect(change.kind).toBe('workspace');
+          if (change.kind === 'workspace') observedEvents.push(...change.events);
+        }
+        expect(observedEvents).toEqual(events);
         const inventoryAvailable = yield* Effect.all([
           catalog.hasTypeInventory('CustomObject'),
           catalog.hasTypeInventory('CustomField')

@@ -62,6 +62,8 @@ build/Release
 # Dependency directories
 node_modules/
 jspm_packages/
+/.vscode/selected-extensions/
+/.vscode/selected-extensions-*/
 
 # Optional npm cache directory
 .npm
