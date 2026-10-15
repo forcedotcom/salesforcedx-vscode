@@ -5,9 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ComponentSet, RegistryAccess } from '@salesforce/source-deploy-retrieve';
+import { ComponentSet, RegistryAccess, registry } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as os from 'node:os';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { ComponentSetService, type NonEmptyComponentSet } from '../../../src/core/componentSetService';
@@ -16,6 +17,8 @@ import { MetadataRetrieveService } from '../../../src/core/metadataRetrieveServi
 import { OrgCatalogRemoteRetrieve } from '../../../src/orgCatalog/orgCatalogRemoteRetrieve';
 import { OrgMetadataShadowStore } from '../../../src/orgCatalog/orgMetadataShadowStore';
 import { FsService } from '../../../src/vscode/fsService';
+
+beforeEach(() => jest.mocked(os.homedir).mockReturnValue('/tmp'));
 
 const makeHarness = () => {
   const stagingUri = URI.file('/workspace/shadow.__staging__');
@@ -51,7 +54,7 @@ const makeHarness = () => {
         } as Pick<ComponentSetService, 'ensureNonEmptyComponentSet'> as ComponentSetService),
         Layer.mock(MetadataRegistryService, {
           _tag: 'MetadataRegistryService',
-          getRegistryAccess: () => Effect.succeed(new RegistryAccess())
+          getRegistryAccess: () => Effect.succeed(new RegistryAccess(registry))
         }),
         Layer.mock(MetadataRetrieveService, {
           _tag: 'MetadataRetrieveService',
