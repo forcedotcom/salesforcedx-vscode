@@ -15,7 +15,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "68.3.1",
+  "version": "68.3.2",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -63,7 +63,8 @@
     "vscode:prepublish": "npm prune --production",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
-    "vscode:package:legacy:prerelease": "wireit"
+    "vscode:package:legacy:prerelease": "wireit",
+    "check:effect-diagnostics": "wireit"
   },
   "serverPath": [
     "dist",
@@ -235,6 +236,17 @@
       "env": {
         "VSCE_PRE_RELEASE": "true"
       }
+    },
+    "check:effect-diagnostics": {
+      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "../../config/effect-diagnostics.json",
+        "../../scripts/effect-diagnostics.mjs"
+      ],
+      "output": []
     }
   },
   "contributes": {

@@ -58,7 +58,8 @@
     "clean": "shx rm -rf node_modules out dist coverage .wireit .eslintcache .circular-deps.json",
     "test:compile": "wireit",
     "test:packed-web": "wireit",
-    "test": "wireit"
+    "test": "wireit",
+    "check:effect-diagnostics": "wireit"
   },
   "versionedIndependently": true,
   "wireit": {
@@ -172,6 +173,17 @@
       "output": [
         ".circular-deps.json"
       ]
+    },
+    "check:effect-diagnostics": {
+      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "../../config/effect-diagnostics.json",
+        "../../scripts/effect-diagnostics.mjs"
+      ],
+      "output": []
     }
   },
   "license": "BSD-3-Clause",

@@ -64,7 +64,8 @@
     "test:browser": "wireit",
     "test:browser:bundle": "wireit",
     "test:browser:compile": "wireit",
-    "test:unit": "wireit"
+    "test:unit": "wireit",
+    "check:effect-diagnostics": "wireit"
   },
   "wireit": {
     "compile": {
@@ -211,6 +212,17 @@
       "output": [
         ".circular-deps.json"
       ]
+    },
+    "check:effect-diagnostics": {
+      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "../../config/effect-diagnostics.json",
+        "../../scripts/effect-diagnostics.mjs"
+      ],
+      "output": []
     }
   },
   "dependencies": {
