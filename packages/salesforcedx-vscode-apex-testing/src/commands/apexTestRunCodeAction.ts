@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { ProgressAndSuccessCommandKey } from '../utils/notificationMode';
-import { type ApexDiagnostic, ApexTestResultData, TestResult } from '@salesforce/apex-node';
+import { type ApexDiagnostic, type ApexTestResultData, type TestResult } from '@salesforce/apex-node';
 import { type NamedPackageDir } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';

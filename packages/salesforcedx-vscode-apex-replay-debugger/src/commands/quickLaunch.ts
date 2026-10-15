@@ -8,7 +8,9 @@
 import { LogService, type TestResult, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { Context } from 'effect';
+import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
 import type { NotificationModeService } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
@@ -103,31 +105,26 @@ const awaitNoActiveSession = (token: vscode.CancellationToken) =>
  * Start a replay session for `logPath` and resolve once it terminates, or right away when no session started.
  * Stops waiting when `token` is cancelled; the open session keeps running.
  */
-const launchAndAwaitEnd = (logPath: string, token: vscode.CancellationToken) =>
-  Effect.async<void>(resume => {
-    const listeners: vscode.Disposable[] = [];
-    let settled = false;
-    const settle = (effect: Effect.Effect<void>) => {
-      if (settled) return;
-      settled = true;
-      disposeAll(listeners);
-      resume(effect);
-    };
-    // Subscribe before launching: a log that hits no breakpoint can end its session immediately
-    listeners.push(
+const launchAndAwaitEnd = Effect.fn('ApexReplayDebugger.launchAndAwaitEnd')(function* (
+  logPath: string,
+  token: vscode.CancellationToken
+) {
+  const ended = yield* Deferred.make<void>();
+  const end = () => Deferred.unsafeDone(ended, Exit.void);
+  // Subscribe before launching: a log that hits no breakpoint can end its session immediately
+  yield* Effect.acquireRelease(
+    Effect.sync(() => [
       vscode.debug.onDidTerminateDebugSession(session => {
-        if (session.type === DEBUGGER_TYPE) settle(Effect.void);
+        if (session.type === DEBUGGER_TYPE) end();
       }),
-      token.onCancellationRequested(() => settle(Effect.void))
-    );
-    void launchFromLogFile(logPath, false).then(
-      launched => {
-        if (!launched) settle(Effect.void);
-      },
-      (error: unknown) => settle(Effect.die(error))
-    );
-    return Effect.sync(() => disposeAll(listeners));
-  });
+      token.onCancellationRequested(end)
+    ]),
+    listeners => Effect.sync(() => disposeAll(listeners))
+  );
+  if (yield* launchFromLogFile(logPath, false)) {
+    yield* Deferred.await(ended);
+  }
+}, Effect.scoped);
 
 /**
  * Replay each log in turn, starting the next only when the previous session ends, so every selected test gets
@@ -226,7 +223,7 @@ const debugTests = Effect.fn('ApexReplayDebugger.debugTests')(function* (targets
   // One log replays as before. Several replay in the background so the progress and the Test Explorer run end
   // now, while the user steps through each session.
   if (replayLogs.length === 1) {
-    yield* Effect.promise(() => launchFromLogFile(replayLogs[0].logPath, false));
+    yield* launchFromLogFile(replayLogs[0].logPath, false);
   } else {
     yield* Effect.forkDaemon(replayInOrder(replayLogs));
   }

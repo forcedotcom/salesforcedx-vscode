@@ -55,24 +55,13 @@ export const orgListCleanCommand = Effect.fn('orgListCleanCommand')(function* ()
     confirmLabel: nls.localize('org_list_clean_confirm_label')
   });
 
-  const removedOrgs = yield* removeExpiredAndDeletedOrgs(removable).pipe(
-    Effect.catchTag(
-      'AuthRemoverCreateError',
-      error => new OrgListCleanError({ message: nls.localize('org_list_clean_general_error', error.message) })
-    )
-  );
+  const removedOrgs = yield* removeExpiredAndDeletedOrgs(removable);
 
   const successMessage = nls.localize('org_list_clean_success_message', removedOrgs.length, removedOrgs.join(', '));
   yield* channel.appendToChannel(successMessage);
 
-  // Flush ConfigAggregator + StateAggregator so the org picker doesn't show just-removed orgs,
-  // and so the table below reflects post-flush state.
-  yield* updateConfigAndStateAggregatorsEffect().pipe(
-    Effect.catchTag(
-      'AggregatorReloadError',
-      error => new OrgListCleanError({ message: nls.localize('org_list_clean_general_error', error.message) })
-    )
-  );
+  // Invalidate config/connections; the table's authorization listing clears StateAggregator in services.
+  yield* updateConfigAndStateAggregatorsEffect();
 
   yield* displayRemainingOrgs();
 

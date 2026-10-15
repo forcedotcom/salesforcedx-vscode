@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { type Attributes, type HrTime } from '@opentelemetry/api';
-import { ReadableSpan } from '@opentelemetry/sdk-trace-base';
+import { type ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import * as Option from 'effect/Option';
 import { isNotNullable, isNotUndefined, isUndefined } from 'effect/Predicate';
 import * as Rec from 'effect/Record';

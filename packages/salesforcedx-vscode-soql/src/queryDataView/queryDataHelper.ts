@@ -6,7 +6,7 @@
  */
 import type { JsonObject } from '../json';
 import type { QueryResult } from '../types';
-import { ColumnData, SelectAnalyzer } from '@salesforce/soql-model';
+import { type ColumnData, SelectAnalyzer } from '@salesforce/soql-model';
 import { getFlattenedSoqlGridPayload } from '../commands/dataQuery';
 
 type FlattenedSoqlGridPayload = {

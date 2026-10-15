@@ -82,8 +82,8 @@ jest.mock('@salesforce/salesforcedx-lightning-lsp-common', () => {
 
 // Mock JSON imports using fs.readFileSync since Jest cannot directly import JSON files
 jest.mock('../src/resources/transformed-lwc-standard.json', () => {
-  const fs = require('node:fs') as typeof import('node:fs');
-  const pathModule = require('node:path') as typeof import('node:path');
+  const fs = require('node:fs') as typeof nodeFs;
+  const pathModule = require('node:path') as typeof path;
   // Find package root (lwc-language-server)
   let current = __dirname;
   while (!fs.existsSync(pathModule.join(current, 'package.json'))) {
@@ -106,7 +106,7 @@ jest.mock('../src/resources/transformed-lwc-standard.json', () => {
 // resolves to out/src/resources/... which we mock using paths relative to the test file.
 
 import {
-  LspFileSystemAccessor,
+  type LspFileSystemAccessor,
   normalizePath,
   LWC_SERVER_READY_NOTIFICATION,
   WORKSPACE_FIND_FILES_REQUEST,
@@ -121,25 +121,27 @@ import {
   sfdxFileSystemAccessor
 } from '@salesforce/salesforcedx-lightning-lsp-common/testUtils';
 import { isNotNull } from 'effect/Predicate';
+import type * as nodeFs from 'node:fs';
 import * as path from 'node:path';
 import { getLanguageService } from 'vscode-html-languageservice';
+import type * as languageServer from 'vscode-languageserver';
 import {
   type Connection,
   type TextDocuments,
-  CompletionParams,
+  type CompletionParams,
   CompletionTriggerKind,
-  DidChangeWatchedFilesParams,
+  type DidChangeWatchedFilesParams,
   FileChangeType,
-  Hover,
-  InitializeParams,
-  Location,
-  MarkupContent,
-  TextDocumentPositionParams,
+  type Hover,
+  type InitializeParams,
+  type Location,
+  type MarkupContent,
+  type TextDocumentPositionParams,
   TextDocumentSyncKind
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import { BaseServer } from '../src/baseServer';
+import { type BaseServer } from '../src/baseServer';
 import Server, { findDynamicContent } from '../src/lwcServerNode';
 
 // File paths and URIs
@@ -363,7 +365,7 @@ const createServerWithTsSupport = async (initializeParams: InitializeParams): Pr
 };
 
 jest.mock('vscode-languageserver', () => {
-  const actual = jest.requireActual<typeof import('vscode-languageserver')>('vscode-languageserver');
+  const actual = jest.requireActual<typeof languageServer>('vscode-languageserver');
   const mockConnection = {
     onInitialize: (): boolean => true,
     onCompletion: (): boolean => true,

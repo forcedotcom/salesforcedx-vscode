@@ -852,6 +852,16 @@ export default [
     }
   },
   {
+    // consistent-type-imports for eslint-local-rules (inline to avoid no-duplicate-imports; W-23371083)
+    files: ['packages/eslint-local-rules/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // consistent-type-imports for effect-ext-utils (inline to avoid no-duplicate-imports)
     files: ['packages/effect-ext-utils/**/*.ts', 'packages/effect-octokit/**/*.ts'],
     rules: {
@@ -874,6 +884,26 @@ export default [
   {
     // consistent-type-imports for salesforcedx-utils-vscode (inline to avoid no-duplicate-imports; W-23371077)
     files: ['packages/salesforcedx-utils-vscode/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-apex-debugger (inline to avoid no-duplicate-imports; W-23371080)
+    files: ['packages/salesforcedx-apex-debugger/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-apex-replay-debugger (inline to avoid no-duplicate-imports; W-23371091)
+    files: ['packages/salesforcedx-apex-replay-debugger/**/*.ts'],
     rules: {
       '@typescript-eslint/consistent-type-imports': [
         'error',
@@ -952,6 +982,26 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-vscode-apex-testing (inline to avoid no-duplicate-imports; W-23371092)
+    files: ['packages/salesforcedx-vscode-apex-testing/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-vscode-services (inline to avoid no-duplicate-imports; W-23371088)
+    files: ['packages/salesforcedx-vscode-services/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // consistent-type-imports for salesforcedx-vscode-org-browser (inline to avoid no-duplicate-imports; W-23371063)
     files: ['packages/salesforcedx-vscode-org-browser/**/*.ts'],
     rules: {
@@ -1002,6 +1052,16 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-vscode-lwc (inline to avoid no-duplicate-imports; W-23371089)
+    files: ['packages/salesforcedx-vscode-lwc/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // consistent-type-imports for playwright-vscode-ext (inline to avoid no-duplicate-imports; W-23370906)
     files: ['packages/playwright-vscode-ext/**/*.ts'],
     rules: {
@@ -1022,8 +1082,38 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-lwc-language-server (inline to avoid no-duplicate-imports; W-23371085)
+    files: ['packages/salesforcedx-lwc-language-server/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // consistent-type-imports for salesforcedx-vscode-i18n (inline to avoid no-duplicate-imports; W-23371066)
     files: ['packages/salesforcedx-vscode-i18n/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-vscode-soql (inline to avoid no-duplicate-imports; W-23371082)
+    files: ['packages/salesforcedx-vscode-soql/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for soql-model (inline to avoid no-duplicate-imports; W-23371093)
+    files: ['packages/soql-model/**/*.ts'],
     rules: {
       '@typescript-eslint/consistent-type-imports': [
         'error',

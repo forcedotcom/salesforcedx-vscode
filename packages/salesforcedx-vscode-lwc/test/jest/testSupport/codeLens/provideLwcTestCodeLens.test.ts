@@ -7,8 +7,8 @@
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import * as vscode from 'vscode';
-import { CancellationToken, TextDocument, extensions } from 'vscode';
+import type * as vscode from 'vscode';
+import { type CancellationToken, type TextDocument, extensions } from 'vscode';
 import { provideLwcTestCodeLens } from '../../../../src/testSupport/codeLens/provideLwcTestCodeLens';
 
 describe('provideLwcTestCodeLens', () => {

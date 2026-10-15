@@ -15,6 +15,7 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as ExecutionStrategy from 'effect/ExecutionStrategy';
 import * as Exit from 'effect/Exit';
+import * as Layer from 'effect/Layer';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import { isNull } from 'effect/Predicate';
@@ -23,6 +24,7 @@ import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as Scope from 'effect/Scope';
 import { randomUUID } from 'node:crypto';
+import { tmpdir } from 'node:os';
 import { ArtifactService } from './artifactService';
 import { consumeConsoleWrites, drainConsoleWrites, type ConsoleWrite } from './consoleWriteQueue';
 import { QUICK_INPUT_WIDGET, WORKBENCH } from './constants';
@@ -46,6 +48,7 @@ import {
   type DrivableVscodeFinding,
   type DrivableVscodeLaunchOptions
 } from './schemas';
+import { userDataTempOptions } from './userDataDirectory';
 import { WorkspaceService } from './workspaceService';
 
 export type DrivableVscodeSession = {
@@ -310,7 +313,13 @@ const executeAction = (page: Page, action: DrivableVscodeAction) =>
 
 export class SessionService extends Effect.Service<SessionService>()('DrivableVscode/SessionService', {
   accessors: true,
-  dependencies: [ArtifactService.Default, ExtensionService.Default, WorkspaceService.Default],
+  dependencies: [
+    ArtifactService.Default,
+    ExtensionService.Default,
+    WorkspaceService.Default,
+    Layer.service(FileSystem.FileSystem),
+    Layer.service(Path.Path)
+  ],
   effect: Effect.gen(function* () {
     const fs = yield* FileSystem.FileSystem;
     const path = yield* Path.Path;
@@ -370,7 +379,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
         );
         const userDataDir = yield* scoped(
           Effect.acquireRelease(
-            fs.makeTempDirectory({ prefix: 'salesforce-drivable-vscode-user-data-' }).pipe(
+            fs.makeTempDirectory(userDataTempOptions(tmpdir(), process.platform)).pipe(
               Effect.mapError(
                 cause =>
                   new DrivableVscodeLaunchError({

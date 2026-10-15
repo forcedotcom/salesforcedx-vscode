@@ -4,23 +4,30 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Indexer } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { type Indexer } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { type parse as parseJestTestType } from 'jest-editor-support';
 import parseJestTest from 'jest-editor-support/build/parsers';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 
-import { LwcJestTestResults, RawTestResult, TestCaseInfo, TestFileInfo, TestResultStatus } from '../types';
+import {
+  type LwcJestTestResults,
+  type RawTestResult,
+  type TestCaseInfo,
+  type TestFileInfo,
+  type TestResultStatus
+} from '../types';
 import { LWC_TEST_GLOB_PATTERN } from '../types/constants';
 import { normalizeJestFsPath } from '../utils/normalizeJestFsPath';
 import {
   extractPositionFromFailureMessage,
-  IExtendedParseResults,
-  ItBlockWithAncestorTitles,
+  type IExtendedParseResults,
+  type ItBlockWithAncestorTitles,
   populateAncestorTitles,
   sanitizeFailureMessage
 } from './jestUtils';
 
-const parse: typeof import('jest-editor-support').parse = parseJestTest;
+const parse: typeof parseJestTestType = parseJestTest;
 
 class LwcTestIndexer implements Indexer, vscode.Disposable {
   private disposables: vscode.Disposable[] = [];

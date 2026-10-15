@@ -1,3 +1,41 @@
+# 68.3.1 - October 21, 2026
+
+## Fixed
+
+#### salesforcedx-vscode-apex-testing
+
+- We fixed a bug where the **Debug** run profile for Apex tests appeared in VS Code on the web even though debugging is not supported there. ([PR #8437](https://github.com/forcedotcom/salesforcedx-vscode/pull/8437))
+
+#### salesforcedx-vscode-org-browser
+
+- We fixed a bug where plain-text search in **Org Browser** missed partial metadata type and component names. Typing `broker` now matches names like `Broker__c` without regex. ([PR #8365](https://github.com/forcedotcom/salesforcedx-vscode/pull/8365), [DISCUSSION #5376](https://github.com/forcedotcom/salesforcedx-vscode/discussions/5376))
+
+#### salesforcedx-vscode-soql
+
+- We fixed a bug where **SFDX: Execute SOQL Query with Currently Selected Text** and **SFDX: Get SOQL Query Plan with Currently Selected Text** appeared in non-Apex files. They now only appear in `.cls`, `.apex`, and `.trigger` files. ([PR #8426](https://github.com/forcedotcom/salesforcedx-vscode/pull/8426))
+
+## Under the Hood
+
+- We made some under the hood changes. ([PR #8419](https://github.com/forcedotcom/salesforcedx-vscode/pull/8419))
+
+# 68.1.1 - October 19, 2026
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We fixed a bug where Apex problems from the language server did not show **Apex Language Server** as the Source in the Problems panel. ([PR #8418](https://github.com/forcedotcom/salesforcedx-vscode/pull/8418))
+
+## Changed
+
+#### salesforcedx-vscode-core
+
+- The **Command Palette** no longer includes **SFDX: Open Documentation** (`sf.open.documentation`). ([PR #8382](https://github.com/forcedotcom/salesforcedx-vscode/pull/8382))
+
+#### salesforcedx-vscode-services
+
+- The **Web Console** now uses host-provided session identity and org metadata from `salesforce-web-console.sessionContext` for authentication. ([PR #8395](https://github.com/forcedotcom/salesforcedx-vscode/pull/8395))
+
 # 67.27.6 - October 14, 2026
 
 ## Added

@@ -15,7 +15,9 @@ describe('AuthFields', () => {
     const fields = authFieldsFrom({
       orgId: ORG_ID,
       username: 'user@example.com',
+      alias: 'my-scratch',
       instanceName: 'USA9S',
+      expirationDate: '2026-10-10',
       accessToken: 'secret',
       refreshToken: 'secret'
     });
@@ -23,7 +25,10 @@ describe('AuthFields', () => {
     if (Option.isSome(fields)) {
       expect(fields.value.orgId).toEqual(Option.some(ORG_ID));
       expect(fields.value.username).toEqual(Option.some('user@example.com'));
+      expect(fields.value.alias).toEqual(Option.some('my-scratch'));
       expect(fields.value.instanceName).toEqual(Option.some('USA9S'));
+      expect(fields.value.expirationDate).toEqual(Option.some('2026-10-10'));
+      expect(fields.value).not.toHaveProperty('accessToken');
     }
   });
 
@@ -64,5 +69,21 @@ describe('authFieldsFromConnection', () => {
     const connection = { getAuthInfoFields: () => ({ orgId: 'org-one' }) };
     expect(authFieldsFromConnection(connection)).toEqual(Option.none());
     expect(orgIdFromConnection(connection)).toEqual(Option.none());
+  });
+
+  it('decodes alias and expirationDate from the connection', () => {
+    const connection = {
+      getAuthInfoFields: () => ({
+        orgId: ORG_ID,
+        alias: 'my-scratch',
+        expirationDate: '2026-10-10'
+      })
+    };
+    const fields = authFieldsFromConnection(connection);
+    expect(Option.isSome(fields)).toBe(true);
+    if (Option.isSome(fields)) {
+      expect(fields.value.alias).toEqual(Option.some('my-scratch'));
+      expect(fields.value.expirationDate).toEqual(Option.some('2026-10-10'));
+    }
   });
 });

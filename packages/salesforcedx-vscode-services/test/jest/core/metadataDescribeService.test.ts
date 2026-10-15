@@ -49,10 +49,42 @@ const createMockConnectionService = (
         } as unknown as Connection),
       validateAccessTokenOrPromptReauth: () => Effect.void,
       invalidateCachedConnections: () => Effect.void,
+      getAuthInfoFields: () => Effect.succeed({}),
       listAllAuthorizations: () => Effect.succeed([])
     })
   )
 });
+
+const runDescribe = (metadataObjects: { xmlName: string }[]) => {
+  const connection = {
+    version: '60.0',
+    metadata: { describe: jest.fn().mockResolvedValue({ metadataObjects }) }
+  } as unknown as Connection;
+  const connectionLayer = Layer.succeed(
+    ConnectionService,
+    ConnectionService.make({
+      getConnection: () => Effect.succeed(connection),
+      getConnectionForOrg: () => Effect.succeed(connection),
+      validateAccessTokenOrPromptReauth: () => Effect.void,
+      invalidateCachedConnections: () => Effect.void,
+      getAuthInfoFields: () => Effect.succeed({}),
+      listAllAuthorizations: () => Effect.succeed([])
+    })
+  );
+  return Effect.runPromise(
+    Effect.gen(function* () {
+      yield* seedDefaultOrg;
+      return yield* (yield* MetadataDescribeService).describe();
+    }).pipe(
+      Effect.provide(
+        Layer.provide(
+          MetadataDescribeService.DefaultWithoutDependencies,
+          Layer.mergeAll(connectionLayer, ChannelService.Default, mockOrgMetadataCatalogRecorder)
+        )
+      )
+    )
+  );
+};
 
 const ORG_ID = Schema.decodeSync(OrgId)('00D000000000001');
 
@@ -160,6 +192,14 @@ describe('MetadataDescribeService.listMetadata', () => {
     ]);
 
     expect(result.map(r => r.fullName)).toEqual(['Alpha', 'Bravo', 'Charlie']);
+  });
+});
+
+describe('MetadataDescribeService.describe', () => {
+  it('excludes ContentWorkspace because Metadata API list does not support it', async () => {
+    await expect(runDescribe([{ xmlName: 'ApexClass' }, { xmlName: 'ContentWorkspace' }])).resolves.toEqual([
+      { xmlName: 'ApexClass' }
+    ]);
   });
 });
 

@@ -22,15 +22,22 @@ import { AliasService } from '../../../src/core/alias';
 import { ConfigService } from '../../../src/core/configService';
 import {
   ConnectionService,
+  GetAuthFieldsError,
   InactiveOrgOperationError,
   NoTargetOrgConfiguredError,
   updateDefaultOrgIdentity
 } from '../../../src/core/connectionService';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
-import { DefaultOrgInfoSchema } from '../../../src/core/schemas/defaultOrgInfo';
+import { type DefaultOrgInfoSchema } from '../../../src/core/schemas/defaultOrgInfo';
 import { OrgId } from '../../../src/core/schemas/salesforceId';
 import { preventOrgChanges } from '../../../src/core/targetOrgGuard';
 import { SettingsService } from '../../../src/vscode/settingsService';
+import type * as salesforceCore from '@salesforce/core';
+import type * as redacted from 'effect/Redacted';
+import type * as alias from '../../../src/core/alias';
+import type * as configService from '../../../src/core/configService';
+import type * as connectionService from '../../../src/core/connectionService';
+import type * as settingsService from '../../../src/vscode/settingsService';
 
 jest.mock('@salesforce/core', () => ({
   ...jest.requireActual('@salesforce/core'),
@@ -365,9 +372,11 @@ const makeDesktopConn = (
   username: string,
   {
     orgId = '00D000000000005',
+    getAuthInfoFields,
     query = async () => ({ records: [] as { Id: string; Username: string }[], totalSize: 0, done: true })
   }: {
     orgId?: string;
+    getAuthInfoFields?: () => unknown;
     query?: (
       soql: string
     ) => Promise<{ records: { Id: string; Username: string }[]; totalSize: number; done: boolean }>;
@@ -377,14 +386,16 @@ const makeDesktopConn = (
     getUsername: () => username,
     instanceUrl: 'https://example.my.salesforce.com',
     getApiVersion: () => '66.0',
-    getAuthInfoFields: () => ({
-      username,
-      orgId,
-      instanceName: 'USA9S',
-      tracksSource: false,
-      isScratch: false,
-      isSandbox: false
-    }),
+    getAuthInfoFields:
+      getAuthInfoFields ??
+      (() => ({
+        username,
+        orgId,
+        instanceName: 'USA9S',
+        tracksSource: false,
+        isScratch: false,
+        isSandbox: false
+      })),
     getFields: () => ({ username }),
     getAuthInfo: () => ({ isAccessTokenFlow: () => false }),
     query,
@@ -525,6 +536,50 @@ describe('ConnectionService.getConnection (desktop)', () => {
     expect(getUsernameFromAliasMock).toHaveBeenCalledWith('myAlias');
     expect(authInfoCreateMock).toHaveBeenCalledWith({ username: 'real@example.com' });
     expect(getPropertyValueMock).not.toHaveBeenCalled();
+  });
+
+  it('decodes auth fields inside ConnectionService', async () => {
+    const getAuthInfoFields = jest.fn(() => ({
+      username: 'given@example.com',
+      orgId: '00D000000000005',
+      expirationDate: '2026-10-10'
+    }));
+    connectionCreateMock.mockResolvedValue(makeDesktopConn('given@example.com', { getAuthInfoFields }));
+
+    await expect(run(ConnectionService.getAuthInfoFields('given@example.com'))).resolves.toEqual({
+      username: 'given@example.com',
+      orgId: '00D000000000005',
+      expirationDate: '2026-10-10'
+    });
+    expect(getAuthInfoFields).toHaveBeenCalledTimes(1);
+  });
+
+  it('fails with GetAuthFieldsError when auth fields fail schema decoding', async () => {
+    connectionCreateMock.mockResolvedValue(
+      makeDesktopConn('given@example.com', { getAuthInfoFields: () => ({ orgId: 'bad-org-id' }) })
+    );
+
+    const exit = await Effect.runPromiseExit(
+      ConnectionService.getAuthInfoFields('given@example.com').pipe(Effect.provide(buildLayer()))
+    );
+
+    expect(exit).toEqual(
+      Exit.fail(new GetAuthFieldsError({ message: 'Unable to decode auth fields', username: 'given@example.com' }))
+    );
+  });
+
+  it('fails with GetAuthFieldsError when the connection has no auth fields', async () => {
+    connectionCreateMock.mockResolvedValue(
+      makeDesktopConn('given@example.com', { getAuthInfoFields: () => undefined })
+    );
+
+    const exit = await Effect.runPromiseExit(
+      ConnectionService.getAuthInfoFields('given@example.com').pipe(Effect.provide(buildLayer()))
+    );
+
+    expect(exit).toEqual(
+      Exit.fail(new GetAuthFieldsError({ message: 'Unable to decode auth fields', username: 'given@example.com' }))
+    );
   });
 
   it('given a username, does NOT fork the default-org ref update', async () => {
@@ -772,21 +827,20 @@ describe('ConnectionService.getConnection (Web Console)', () => {
 
     await jest.isolateModulesAsync(async () => {
       const { AuthInfo: WebAuthInfo, Connection: WebConnection } =
-        jest.requireMock<typeof import('@salesforce/core')>('@salesforce/core');
-      const WebEffect = jest.requireActual<typeof import('effect/Effect')>('effect/Effect');
-      const WebLayer = jest.requireActual<typeof import('effect/Layer')>('effect/Layer');
-      const Redacted = jest.requireActual<typeof import('effect/Redacted')>('effect/Redacted');
-      const { AliasService: WebAliasService } =
-        jest.requireActual<typeof import('../../../src/core/alias.js')>('../../../src/core/alias');
-      const { ConfigService: WebConfigService } = jest.requireActual<
-        typeof import('../../../src/core/configService.js')
-      >('../../../src/core/configService');
-      const { ConnectionService: WebConnectionService } = jest.requireActual<
-        typeof import('../../../src/core/connectionService.js')
-      >('../../../src/core/connectionService');
-      const { SettingsService: WebSettingsService } = jest.requireActual<
-        typeof import('../../../src/vscode/settingsService.js')
-      >('../../../src/vscode/settingsService');
+        jest.requireMock<typeof salesforceCore>('@salesforce/core');
+      const WebEffect = jest.requireActual<typeof Effect>('effect/Effect');
+      const WebLayer = jest.requireActual<typeof Layer>('effect/Layer');
+      const Redacted = jest.requireActual<typeof redacted>('effect/Redacted');
+      const { AliasService: WebAliasService } = jest.requireActual<typeof alias>('../../../src/core/alias');
+      const { ConfigService: WebConfigService } = jest.requireActual<typeof configService>(
+        '../../../src/core/configService'
+      );
+      const { ConnectionService: WebConnectionService } = jest.requireActual<typeof connectionService>(
+        '../../../src/core/connectionService'
+      );
+      const { SettingsService: WebSettingsService } = jest.requireActual<typeof settingsService>(
+        '../../../src/vscode/settingsService'
+      );
       const accessToken = 'web-console-token';
       let sessionContext: {
         username?: string;
@@ -870,21 +924,20 @@ describe('ConnectionService.getConnection (Web Console)', () => {
 
     await jest.isolateModulesAsync(async () => {
       const { AuthInfo: WebAuthInfo, Connection: WebConnection } =
-        jest.requireMock<typeof import('@salesforce/core')>('@salesforce/core');
-      const WebEffect = jest.requireActual<typeof import('effect/Effect')>('effect/Effect');
-      const WebLayer = jest.requireActual<typeof import('effect/Layer')>('effect/Layer');
-      const Redacted = jest.requireActual<typeof import('effect/Redacted')>('effect/Redacted');
-      const { AliasService: WebAliasService } =
-        jest.requireActual<typeof import('../../../src/core/alias.js')>('../../../src/core/alias');
-      const { ConfigService: WebConfigService } = jest.requireActual<
-        typeof import('../../../src/core/configService.js')
-      >('../../../src/core/configService');
-      const { ConnectionService: WebConnectionService } = jest.requireActual<
-        typeof import('../../../src/core/connectionService.js')
-      >('../../../src/core/connectionService');
-      const { SettingsService: WebSettingsService } = jest.requireActual<
-        typeof import('../../../src/vscode/settingsService.js')
-      >('../../../src/vscode/settingsService');
+        jest.requireMock<typeof salesforceCore>('@salesforce/core');
+      const WebEffect = jest.requireActual<typeof Effect>('effect/Effect');
+      const WebLayer = jest.requireActual<typeof Layer>('effect/Layer');
+      const Redacted = jest.requireActual<typeof redacted>('effect/Redacted');
+      const { AliasService: WebAliasService } = jest.requireActual<typeof alias>('../../../src/core/alias');
+      const { ConfigService: WebConfigService } = jest.requireActual<typeof configService>(
+        '../../../src/core/configService'
+      );
+      const { ConnectionService: WebConnectionService } = jest.requireActual<typeof connectionService>(
+        '../../../src/core/connectionService'
+      );
+      const { SettingsService: WebSettingsService } = jest.requireActual<typeof settingsService>(
+        '../../../src/vscode/settingsService'
+      );
       const accessToken = 'web-console-token';
       const authInfo = { getFields: () => ({}), save: jest.fn().mockResolvedValue(undefined) } as unknown as AuthInfo;
       jest.mocked(WebAuthInfo.create).mockResolvedValue(authInfo);

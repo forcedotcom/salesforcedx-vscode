@@ -69,6 +69,7 @@ import { type EditorService } from 'salesforcedx-vscode-services/src/vscode/edit
 import { getDefaultOrgRef } from 'salesforcedx-vscode-services/src/core/defaultOrgRef';
 import { type SdkLayerFor } from 'salesforcedx-vscode-services/src/observability/spans';
 import { OrgMetadataCatalogChangePubSub } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalogChangePubSub';
+import { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
 import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
 import { ErrorHandlerService } from 'salesforcedx-vscode-services/src/vscode/errorHandlerService';
 import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode/extensionContextService';
@@ -188,6 +189,7 @@ const MockConnectionServiceLayer = Layer.succeed(
   new ConnectionService({
     getConnection: () => Effect.sync(() => mockConnection),
     getConnectionForOrg: () => Effect.sync(() => mockConnection),
+    getAuthInfoFields: () => Effect.succeed({}),
     validateAccessTokenOrPromptReauth: () => Effect.void,
     invalidateCachedConnections: () => Effect.void,
     listAllAuthorizations: () => Effect.succeed([])
@@ -274,7 +276,7 @@ describe('Extension activation ordering', () => {
     mockContext.subscriptions.length = 0;
   });
 
-  it('registers the Org Browser UI before waiting for an org ID', async () => {
+  it('registers the Org Browser UI and sets initialized without waiting for an org ID or connection', async () => {
     const expectedCommands = [
       'sf.org-browser.walkthrough.open',
       'sfdxOrgBrowser.refreshType',
@@ -298,10 +300,20 @@ describe('Extension activation ordering', () => {
         initialized.resolve();
       }
     });
+    // activation must not kick a connection; services populates the default-org snapshot itself
+    const connectionService = new ConnectionService({
+      getConnection: () => Effect.sync(() => mockConnection),
+      getConnectionForOrg: () => Effect.sync(() => mockConnection),
+      validateAccessTokenOrPromptReauth: () => Effect.void,
+      invalidateCachedConnections: () => Effect.void,
+      getAuthInfoFields: () => Effect.succeed({}),
+      listAllAuthorizations: () => Effect.succeed([])
+    } as const);
+    const getConnection = jest.spyOn(connectionService, 'getConnection');
     const servicesApi = {
       services: {
         ChannelService,
-        ConnectionService,
+        ConnectionService: connectionService,
         TargetOrgRef: () => Effect.succeed(targetOrgRef),
         registerCommandWithRuntime: () => (command: string) =>
           Effect.sync(() => {
@@ -320,9 +332,9 @@ describe('Extension activation ordering', () => {
         Layer.mergeAll(
           providerLayer,
           MockChannelServiceLayer('test'),
-          MockConnectionServiceLayer,
           MockExtensionContextServiceLayer,
           MockErrorHandlerServiceLayer,
+          Layer.succeed(OrgMetadataCatalog, { getChildren: () => Effect.succeed([]) } as never),
           OrgMetadataCatalogChangePubSub.Default
         )
       )
@@ -355,6 +367,7 @@ describe('Extension activation ordering', () => {
       );
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith('setContext', 'sf:orgBrowser.treeEmpty', false);
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith('setContext', 'sf:orgBrowser.initialized', true);
+      expect(getConnection).not.toHaveBeenCalled();
       expect(Option.isNone(Effect.runSync(Fiber.poll(fiber)))).toBe(true);
     } finally {
       await Effect.runPromise(Fiber.interrupt(fiber));
@@ -380,6 +393,7 @@ describe.skip('Extension', () => {
             MockConnectionServiceLayer,
             MockExtensionContextServiceLayer,
             MockErrorHandlerServiceLayer,
+            Layer.succeed(OrgMetadataCatalog, { getChildren: () => Effect.succeed([]) } as never),
             MockProjectServiceLayer,
             MockMetadataRetrieveServiceLayer,
             MockMetadataRegistryServiceLayer,

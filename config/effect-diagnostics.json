@@ -22,6 +22,11 @@
     "missedPipeableOpportunity",
     "schemaUnionOfLiterals",
     "instanceOfSchema",
-    "extendsNativeError"
+    "extendsNativeError",
+    "globalFetch",
+    "anyUnknownInErrorContext",
+    "globalConsoleInEffect",
+    "missingEffectServiceDependency",
+    "nestedEffectGenYield"
   ]
 }

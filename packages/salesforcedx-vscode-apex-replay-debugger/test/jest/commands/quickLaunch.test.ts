@@ -83,7 +83,7 @@ describe('replayInOrder', () => {
       (_options: unknown, task: (progress: unknown, token: unknown) => Promise<void>) =>
         task({ report: jest.fn() }, token)
     );
-    launch.mockResolvedValue(true);
+    launch.mockReturnValue(Effect.succeed(true));
   });
 
   it('waits for each replay session to end before launching the next', async () => {
@@ -144,7 +144,7 @@ describe('replayInOrder', () => {
   });
 
   it('shows an error when launching a replay fails', async () => {
-    launch.mockRejectedValue(new Error('launch boom'));
+    launch.mockReturnValue(Effect.die(new Error('launch boom')));
     await Effect.runPromise(replayInOrder(logs));
     expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(expect.stringContaining('launch boom'));
   });

@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { StackFrame } from '@vscode/debugadapter';
+import { type StackFrame } from '@vscode/debugadapter';
 import { isNotNull, isNull, isUndefined } from 'effect/Predicate';
 import { ApexVariableContainer } from '../adapter/variableContainer';
 import {
-  ApexExecutionOverlayResultCommandSuccess,
-  HeapDumpExtents,
-  HeapDumpExtentValue
+  type ApexExecutionOverlayResultCommandSuccess,
+  type HeapDumpExtents,
+  type HeapDumpExtentValue
 } from '../commands/apexExecutionOverlayResultCommand';
 import {
   ADDRESS_PREFIX,
@@ -32,7 +32,7 @@ import {
   LC_APEX_PRIMITIVE_STRING,
   LC_APEX_PRIMITIVE_TIME
 } from '../constants';
-import { LogContext } from './logContext';
+import { type LogContext } from './logContext';
 import { substringFromLastPeriod, substringUpToLastPeriod } from './logContextUtil';
 import { createStringFromVarContainer, isCollectionType } from './variableContainerStrings';
 

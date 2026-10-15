@@ -4,14 +4,14 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AsyncTestConfiguration, HumanReporter, TestResult, TestService } from '@salesforce/apex-node';
+import { type AsyncTestConfiguration, HumanReporter, type TestResult, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { CancellationTokenSource } from 'vscode';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { APEX_TESTING_SECTION } from '../constants';
 import { nls } from '../messages';
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';

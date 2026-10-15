@@ -53,7 +53,7 @@ jest.mock('../../../src/utils/testUtils', () => {
   };
 });
 
-import { TestService } from '@salesforce/apex-node';
+import { type TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';

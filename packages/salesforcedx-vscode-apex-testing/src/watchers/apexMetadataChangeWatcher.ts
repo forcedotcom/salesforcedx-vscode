@@ -13,7 +13,7 @@ import * as Ref from 'effect/Ref';
 import * as Stream from 'effect/Stream';
 import type { MetadataChangeEventType } from 'salesforcedx-vscode-services';
 import { IS_TEST_REG_EXP } from '../constants';
-import { getTestController } from '../views/testController';
+import { type getTestController } from '../views/testController';
 
 const APEX_METADATA_TYPES = new Set(['ApexClass', 'ApexTestSuite']);
 const APEX_CHANGE_TYPES = new Set<string>(['created', 'changed', 'deleted']);
@@ -46,6 +46,7 @@ export const setupApexMetadataChangeWatcher = Effect.fn('apex-testing.watchApexM
 
   yield* Stream.fromPubSub(notificationService.pubsub).pipe(
     Stream.flatMap(operation => Stream.fromIterable(operation.changes)),
+    Stream.filter(() => testController.isDiscoveryRequested()),
     Stream.filter(e => APEX_METADATA_TYPES.has(e.metadataType)),
     Stream.filter(e => APEX_CHANGE_TYPES.has(e.changeType)),
     // Always accumulate name + changeType (cheap, no I/O)
