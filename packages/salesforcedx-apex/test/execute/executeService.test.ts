@@ -11,7 +11,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import * as readline from 'node:readline';
 import { ExecuteService } from '../../src/execute/executeService';
 import { nls } from '../../src/i18n';
-import { ExecuteAnonymousResponse, SoapResponse, ExecAnonApiResponse } from '../../src/execute/types';
+import { type ExecuteAnonymousResponse, type SoapResponse, type ExecAnonApiResponse } from '../../src/execute/types';
 import * as os from 'node:os';
 
 vi.mock('node:fs', async importOriginal => ({

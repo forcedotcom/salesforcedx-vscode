@@ -7,21 +7,21 @@
 
 import type { CodeCoverage } from './codeCoverage';
 import type { QueryResult, Record as JsforceRecord } from '@jsforce/jsforce-node';
-import { Connection } from '@salesforce/core';
+import { type Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import { Progress } from '../common';
+import { type Progress } from '../common';
 import { nls } from '../i18n';
 import {
-  ApexTestProgressValue,
-  ApexTestResultData,
-  ApexTestResultDataRaw,
-  ApexTestSetupData,
-  NamespaceInfo,
-  TestCategory,
-  TestResult,
-  TestResultRaw
+  type ApexTestProgressValue,
+  type ApexTestResultData,
+  type ApexTestResultDataRaw,
+  type ApexTestSetupData,
+  type NamespaceInfo,
+  type TestCategory,
+  type TestResult,
+  type TestResultRaw
 } from './types';
 
 export function calculatePercentage(dividend: number, divisor: number): string {

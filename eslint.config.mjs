@@ -906,6 +906,16 @@ export default [
     }
   },
   {
+    // consistent-type-imports for salesforcedx-apex (inline to avoid no-duplicate-imports; W-23371097)
+    files: ['packages/salesforcedx-apex/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
     // consistent-type-imports for salesforcedx-apex-debugger (inline to avoid no-duplicate-imports; W-23371080)
     files: ['packages/salesforcedx-apex-debugger/**/*.ts'],
     rules: {
@@ -1128,6 +1138,16 @@ export default [
   {
     // consistent-type-imports for soql-model (inline to avoid no-duplicate-imports; W-23371093)
     files: ['packages/soql-model/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ]
+    }
+  },
+  {
+    // consistent-type-imports for salesforcedx-lightning-lsp-common (inline to avoid no-duplicate-imports; W-23371056)
+    files: ['packages/salesforcedx-lightning-lsp-common/**/*.ts'],
     rules: {
       '@typescript-eslint/consistent-type-imports': [
         'error',
