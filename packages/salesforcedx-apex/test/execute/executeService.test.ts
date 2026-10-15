@@ -14,13 +14,13 @@ import { nls } from '../../src/i18n';
 import { type ExecuteAnonymousResponse, type SoapResponse, type ExecAnonApiResponse } from '../../src/execute/types';
 import * as os from 'node:os';
 
-vi.mock('node:fs', async importOriginal => ({
-  ...(await importOriginal<typeof import('node:fs')>()),
+vi.mock(import('node:fs'), async importOriginal => ({
+  ...(await importOriginal()),
   existsSync: vi.fn(),
   readFileSync: vi.fn()
 }));
-vi.mock('node:readline', async importOriginal => ({
-  ...(await importOriginal<typeof import('node:readline')>()),
+vi.mock(import('node:readline'), async importOriginal => ({
+  ...(await importOriginal()),
   createInterface: vi.fn()
 }));
 

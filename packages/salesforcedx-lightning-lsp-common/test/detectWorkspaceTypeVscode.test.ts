@@ -9,8 +9,8 @@ import * as Effect from 'effect/Effect';
 import type { WorkspaceType } from '../src/shared';
 
 const mockDetectWorkspaceHelper = vi.fn<(_path: string, _context: unknown) => Promise<WorkspaceType>>();
-vi.mock('../src/shared', async () => ({
-  ...(await vi.importActual<typeof import('../src/shared')>('../src/shared')),
+vi.mock(import('../src/shared'), async importOriginal => ({
+  ...(await importOriginal()),
   detectWorkspaceHelper: (...args: [string, unknown]) => mockDetectWorkspaceHelper(...args)
 }));
 

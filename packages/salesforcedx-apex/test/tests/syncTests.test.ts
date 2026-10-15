@@ -31,8 +31,8 @@ import { fail } from 'node:assert';
 import { SyncTests } from '../../src/tests/syncTests';
 import { Writable } from 'node:stream';
 
-vi.mock('../../src/tests/diagnosticUtil', async importOriginal => {
-  const actual = await importOriginal<typeof import('../../src/tests/diagnosticUtil')>();
+vi.mock(import('../../src/tests/diagnosticUtil'), async importOriginal => {
+  const actual = await importOriginal();
   return { ...actual, formatTestErrors: vi.fn(actual.formatTestErrors) };
 });
 

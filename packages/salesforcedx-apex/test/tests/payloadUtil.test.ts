@@ -11,8 +11,8 @@ import { nls } from '../../src/i18n';
 import { TestService } from '../../src/tests';
 import * as utils from '../../src/tests/utils';
 
-vi.mock('../../src/tests/utils', async importOriginal => ({
-  ...(await importOriginal<typeof import('../../src/tests/utils')>()),
+vi.mock(import('../../src/tests/utils'), async importOriginal => ({
+  ...(await importOriginal()),
   queryNamespaces: vi.fn()
 }));
 

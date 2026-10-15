@@ -50,20 +50,20 @@ import { QUERY_RECORD_LIMIT } from '../../src/tests/constants';
 import { Writable } from 'node:stream';
 import { Duration } from '@salesforce/kit';
 
-vi.mock('../../src/tests/diagnosticUtil', async importOriginal => {
-  const actual = await importOriginal<typeof import('../../src/tests/diagnosticUtil')>();
+vi.mock(import('../../src/tests/diagnosticUtil'), async importOriginal => {
+  const actual = await importOriginal();
   return { ...actual, formatTestErrors: vi.fn(actual.formatTestErrors) };
 });
-vi.mock('../../src/utils', async importOriginal => ({
-  ...(await importOriginal<typeof import('../../src/utils')>()),
+vi.mock(import('../../src/utils'), async importOriginal => ({
+  ...(await importOriginal()),
   getCurrentTime: vi.fn()
 }));
-vi.mock('../../src/tests/utils', async importOriginal => ({
-  ...(await importOriginal<typeof import('../../src/tests/utils')>()),
+vi.mock(import('../../src/tests/utils'), async importOriginal => ({
+  ...(await importOriginal()),
   queryNamespaces: vi.fn()
 }));
-vi.mock('node:fs/promises', async importOriginal => ({
-  ...(await importOriginal<typeof import('node:fs/promises')>()),
+vi.mock(import('node:fs/promises'), async importOriginal => ({
+  ...(await importOriginal()),
   mkdir: vi.fn(),
   writeFile: vi.fn()
 }));

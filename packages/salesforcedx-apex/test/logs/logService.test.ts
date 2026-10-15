@@ -14,8 +14,8 @@ import * as path from 'node:path';
 import * as stream from 'node:stream';
 import { type LogRecord, type LogResult } from '../../src/logs/types';
 
-vi.mock('node:fs', async importOriginal => ({
-  ...(await importOriginal<typeof import('node:fs')>()),
+vi.mock(import('node:fs'), async importOriginal => ({
+  ...(await importOriginal()),
   closeSync: vi.fn(),
   createWriteStream: vi.fn(),
   existsSync: vi.fn(),
