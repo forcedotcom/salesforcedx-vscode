@@ -6,6 +6,7 @@
  */
 import { expect, type Page } from '@playwright/test';
 import {
+  clearAllNotifications,
   clickCodeLens,
   createApexClass,
   ensureOutputPanelOpen,
@@ -105,6 +106,9 @@ const waitForSuccessNotification = async (page: Page): Promise<void> => {
   await expect(successNotification).toBeVisible({ timeout: 60_000 });
 };
 
+// replay-debugger i18n `debug_test_completed_with_failures_message` (not in any package.nls.json)
+const FAILURE_NOTIFICATION_PATTERN = /Debug Test\(s\) completed with 1 failing test\(s\)/;
+
 const class1Content = [
   'public with sharing class ExampleApexClass1 {',
   '  public static void SayHello(string name){',
@@ -150,18 +154,32 @@ const class2TestContent = [
   '}'
 ].join('\n');
 
+// Fails on purpose: debugging a failing test still launches the replay debugger, but ends with the
+// failure notification instead of success.
+const failingTestContent = [
+  '@IsTest',
+  'public class ExampleFailingApexTest {',
+  '  @IsTest',
+  '  static void validateFails() {',
+  "    System.debug('Starting validate');",
+  "    System.assertEquals(1, 2, 'expected failure');",
+  '  }',
+  '}'
+].join('\n');
+
 test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page }) => {
   test.setTimeout(600_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
-  await test.step('setup minimal org with two Apex classes and their tests', async () => {
+  await test.step('setup minimal org with two Apex classes, their tests, and a failing test', async () => {
     await setupMinimalOrgAndAuth(page);
     await ensureSecondarySideBarHidden(page);
     await createApexClass(page, 'ExampleApexClass1', class1Content);
     await createApexClass(page, 'ExampleApexClass1Test', class1TestContent);
     await createApexClass(page, 'ExampleApexClass2', class2Content);
     await createApexClass(page, 'ExampleApexClass2Test', class2TestContent);
+    await createApexClass(page, 'ExampleFailingApexTest', failingTestContent);
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata');
     await executeCommandWithCommandPalette(page, metadataNls.project_deploy_start_ignore_conflicts_default_org_text);
@@ -222,6 +240,42 @@ test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page 
     await continueDebugSession(page);
     await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.debug-test-explorer-method.png');
+  });
+
+  await test.step('Debug failing test via CodeLens shows the failure notification', async () => {
+    // Clear the earlier steps' success toasts so the failing run's toast is checked against a clean list
+    await clearAllNotifications(page);
+    await openFileByName(page, 'ExampleFailingApexTest.cls');
+    await clickCodeLens(page, 'Debug All Tests', { timeout: 180_000 });
+    await expect(
+      page.locator(NOTIFICATION_LIST_ITEM).filter({ hasText: FAILURE_NOTIFICATION_PATTERN }).first()
+    ).toBeVisible({ timeout: 60_000 });
+    await expect(page.locator(NOTIFICATION_LIST_ITEM).filter({ hasText: SUCCESS_NOTIFICATION_SUFFIX })).toHaveCount(0);
+    await continueDebugSession(page);
+    await verifyNoTestRunInProgress(page);
+    await saveScreenshot(page, 'step.debug-failing-test.png');
+  });
+
+  await test.step('Debug all classes via Test Explorer shows one failure notification', async () => {
+    // The package row covers all three test classes: they run as one batch, so the single failing test
+    // must surface as the failure notification with no per-test success toasts alongside it
+    await clearAllNotifications(page);
+    await executeCommandWithCommandPalette(page, 'Testing: Focus on Test Explorer View');
+    await expandNamespaceAndPackage(page);
+    await debugTestFromTreeItem(page, /\(Unpackaged Metadata\)/);
+    await expect(
+      page.locator(NOTIFICATION_LIST_ITEM).filter({ hasText: FAILURE_NOTIFICATION_PATTERN }).first()
+    ).toBeVisible({ timeout: 180_000 });
+    await expect(page.locator(NOTIFICATION_LIST_ITEM).filter({ hasText: SUCCESS_NOTIFICATION_SUFFIX })).toHaveCount(0);
+    // One test method per class, so three logs replay one after another: each starts when the previous ends
+    for (const testName of ['ExampleApexClass1Test', 'ExampleApexClass2Test', 'ExampleFailingApexTest']) {
+      await expect(page.locator(NOTIFICATION_LIST_ITEM).filter({ hasText: testName }).first()).toBeVisible({
+        timeout: 60_000
+      });
+      await continueDebugSession(page);
+    }
+    await verifyNoTestRunInProgress(page);
+    await saveScreenshot(page, 'step.debug-test-explorer-all.png');
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

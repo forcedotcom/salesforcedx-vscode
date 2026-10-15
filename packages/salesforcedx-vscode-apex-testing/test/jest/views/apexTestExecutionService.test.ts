@@ -377,7 +377,10 @@ describe('ApexTestExecutionService', () => {
       (vscode.commands.executeCommand as jest.Mock).mockReset();
       (vscode.commands.executeCommand as jest.Mock).mockRejectedValue(new Error('dispatch boom'));
       await runEff(ApexTestExecutionService.debugTests(makeCtx(), [cls], run));
-      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugTests', { name: 'A' });
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugTests', {
+        classNames: ['A'],
+        methodNames: []
+      });
       expect(errored.map(e => e.test)).toContain(cls);
       expect((errored[0].message as unknown as { message: string }).message).toContain('Debug failed:');
     });
@@ -389,11 +392,39 @@ describe('ApexTestExecutionService', () => {
       (vscode.commands.executeCommand as jest.Mock).mockReset();
       (vscode.commands.executeCommand as jest.Mock).mockResolvedValue(undefined);
       await runEff(ApexTestExecutionService.debugTests(makeCtx(), [cls, method], run));
-      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugTests', { name: 'A' });
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugTests', {
+        classNames: ['A'],
+        methodNames: []
+      });
       expect(vscode.commands.executeCommand).not.toHaveBeenCalledWith(
         'sf.test.view.debugSingleTest',
         expect.anything()
       );
+    });
+
+    it('debugs a multi-class selection as one batch so it gets one notification', async () => {
+      const clsA = fakeItem('class:A', 'A', { tags: [inWorkspaceTag] });
+      const clsB = fakeItem('class:B', 'B', { tags: [inWorkspaceTag] });
+      const methodC = fakeItem('method:C.testC', 'testC', { tags: [inWorkspaceTag] });
+      const { run } = fakeRun();
+      (vscode.commands.executeCommand as jest.Mock).mockReset();
+      (vscode.commands.executeCommand as jest.Mock).mockResolvedValue(undefined);
+      await runEff(ApexTestExecutionService.debugTests(makeCtx(), [clsA, clsB, methodC], run));
+      expect(vscode.commands.executeCommand).toHaveBeenCalledTimes(1);
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugTests', {
+        classNames: ['A', 'B'],
+        methodNames: ['C.testC']
+      });
+    });
+
+    it('errors every batched test when the batch debug command rejects', async () => {
+      const clsA = fakeItem('class:A', 'A', { tags: [inWorkspaceTag] });
+      const methodC = fakeItem('method:C.testC', 'testC', { tags: [inWorkspaceTag] });
+      const { run, errored } = fakeRun();
+      (vscode.commands.executeCommand as jest.Mock).mockReset();
+      (vscode.commands.executeCommand as jest.Mock).mockRejectedValue(new Error('dispatch boom'));
+      await runEff(ApexTestExecutionService.debugTests(makeCtx(), [clsA, methodC], run));
+      expect(errored.map(e => e.test)).toEqual([clsA, methodC]);
     });
 
     it('errors a suite item with the not-supported message and does not dispatch it', async () => {
