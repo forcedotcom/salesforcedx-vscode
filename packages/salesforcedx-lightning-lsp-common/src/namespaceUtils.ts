@@ -6,7 +6,7 @@
  */
 
 import * as path from 'node:path';
-import { LspFileSystemAccessor } from './providers/lspFileSystemAccessor';
+import { type LspFileSystemAccessor } from './providers/lspFileSystemAccessor';
 import { normalizePath } from './utils';
 
 /**

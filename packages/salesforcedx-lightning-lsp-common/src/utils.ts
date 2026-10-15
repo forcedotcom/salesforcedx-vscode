@@ -6,13 +6,13 @@
  */
 
 import { isNotUndefined } from 'effect/Predicate';
-import { basename, extname, join, ParsedPath, parse as parsePath, relative, resolve, sep } from 'node:path';
-import { FileEvent, FileChangeType } from 'vscode-languageserver';
-import { TextDocument } from 'vscode-languageserver-textdocument';
+import { basename, extname, join, type ParsedPath, parse as parsePath, relative, resolve, sep } from 'node:path';
+import { type FileEvent, FileChangeType } from 'vscode-languageserver';
+import { type TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import { BaseWorkspaceContext } from './baseContext';
-import { LspFileSystemAccessor } from './providers/lspFileSystemAccessor';
-import { isPackageJson, PackageJson } from './types/packageJson';
+import { type BaseWorkspaceContext } from './baseContext';
+import { type LspFileSystemAccessor } from './providers/lspFileSystemAccessor';
+import { isPackageJson, type PackageJson } from './types/packageJson';
 
 const RESOURCES_DIR = 'resources';
 
