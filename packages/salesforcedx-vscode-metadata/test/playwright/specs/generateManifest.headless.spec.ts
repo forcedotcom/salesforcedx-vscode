@@ -12,20 +12,20 @@ import {
   closeAllEditors,
   closeWelcomeTabs,
   createApexClass,
-  createMinimalOrg,
   EDITOR,
   ensureSecondarySideBarHidden,
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
   focusOnFilesExplorer,
   saveScreenshot,
+  selectOutputChannel,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
-  upsertScratchOrgAuthFieldsToSettings,
   validateNoCriticalErrors,
-  waitForVSCodeWorkbench
+  waitForOutputChannelText,
+  waitForVSCodeWorkbench,
+  waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
-import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import packageNls from '../../../package.nls.json';
 import { messages } from '../../../src/messages/i18n';
 
@@ -34,20 +34,19 @@ test('Generate Manifest: generates via context menu entry points', async ({ page
   const networkErrors = setupNetworkMonitoring(page);
 
   let className: string;
-  let statusBarPage: SourceTrackingStatusBarPage;
 
-  await test.step('setup minimal org', async () => {
-    const createResult = await createMinimalOrg();
+  await test.step('setup workspace', async () => {
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
+    await waitForWorkspaceReady(page);
+    // Manifest generation is local; readiness must not depend on org auth or source tracking.
+    await selectOutputChannel(page, 'Salesforce Metadata');
+    await waitForOutputChannelText(page, {
+      expectedText: 'Salesforce Metadata activation complete.',
+      timeout: 60_000
+    });
     await saveScreenshot(page, 'setup.after-workbench.png');
-    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-    await saveScreenshot(page, 'setup.after-auth-fields.png');
-
-    statusBarPage = new SourceTrackingStatusBarPage(page);
-    await statusBarPage.waitForVisible(120_000);
-    await saveScreenshot(page, 'setup.after-status-bar-visible.png');
   });
 
   await test.step('1. Editor context menu', async () => {
