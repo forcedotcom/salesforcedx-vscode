@@ -146,6 +146,10 @@ jobs:
     uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@main
     with:
       package-manager: pnpm
+      # Empty string, not a pin: pnpm/action-setup only errors on a *mismatched* explicit
+      # version, so leaving this blank lets it read packageManager from package.json instead
+      # of drifting out of sync with it on every pnpm bump.
+      package-manager-version: ''
     secrets: inherit
 
   validate-vsix:
