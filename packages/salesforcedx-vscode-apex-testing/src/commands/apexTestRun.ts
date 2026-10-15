@@ -131,22 +131,27 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
 
   const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
 
-  return yield* runApexTests({
-    payload,
-    outputDir,
-    codeCoverage,
-    concise,
-    telemetryTrigger: 'quickPick'
-  }).pipe(
-    Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
-    promptService.withCancellableProgress(executionName, progressLocation),
-    // Terminal notify on the success value, keyed on the run outcome (undefined result = soft failure:
-    // timeout/no summary). Cancellation stays on the failure channel, so this tap never fires a bogus toast.
-    Effect.tap(() => channelService.showChannel),
-    Effect.tap(({ result, reportUri, outputFormat }) =>
-      showRunOutcomeNotification(COMMAND, executionName, result, reportUri, outputFormat)
-    ),
-    Effect.map(({ result }) => result)
+  return yield* promptService.withCancellableProgressReporting(
+    executionName,
+    progressLocation
+  )(progress =>
+    runApexTests({
+      payload,
+      outputDir,
+      codeCoverage,
+      concise,
+      telemetryTrigger: 'quickPick',
+      progress
+    }).pipe(
+      Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
+      // Terminal notify on the success value, keyed on the run outcome (undefined result = soft failure:
+      // timeout/no summary). Cancellation stays on the failure channel, so this tap never fires a bogus toast.
+      Effect.tap(() => channelService.showChannel),
+      Effect.tap(({ result, reportUri, outputFormat }) =>
+        showRunOutcomeNotification(COMMAND, executionName, result, reportUri, outputFormat)
+      ),
+      Effect.map(({ result }) => result)
+    )
   );
 });
 
