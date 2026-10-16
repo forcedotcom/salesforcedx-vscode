@@ -179,4 +179,64 @@ describe('NotificationModeService.Default', () => {
 
     expect(run).toHaveBeenCalledTimes(1);
   });
+
+  it('shows an error toast with actions even when success notifications are off', async () => {
+    makeConfig({ extGlobal: 'progressStatusBarSuccessOff' });
+    // Never resolves: if showErrorWithActions awaited this, the test would hang/timeout.
+    (vscode.window.showErrorMessage as VitestMock).mockReturnValue(new Promise(() => {}));
+    const run = vi.fn();
+
+    await NotificationModeService.showErrorWithActions('failed', [{ label: 'Open', run }]).pipe(runWithService);
+
+    expect(vscode.window.showErrorMessage).toHaveBeenCalledWith('failed', 'Open');
+    expect(item.show).not.toHaveBeenCalled();
+    expect(run).not.toHaveBeenCalled();
+  });
+
+  it('runs the selected error toast action after showErrorWithActions has returned', async () => {
+    const { promise: selection, resolve: select } = Promise.withResolvers<string | undefined>();
+    (vscode.window.showErrorMessage as VitestMock).mockReturnValue(selection);
+    const run = vi.fn();
+    const ran = new Promise<void>(resolve => run.mockImplementation(resolve));
+
+    await Effect.gen(function* () {
+      yield* NotificationModeService.showErrorWithActions('failed', [{ label: 'Open', run }]);
+      expect(run).not.toHaveBeenCalled();
+      select('Open');
+      yield* Effect.promise(() => ran);
+    }).pipe(runWithService);
+
+    expect(run).toHaveBeenCalledTimes(1);
+  });
+
+  it.each([
+    [
+      'success',
+      () => vscode.window.showInformationMessage,
+      (run: () => Promise<void>) =>
+        NotificationModeService.showSuccessNotification('Command', 'done', false, [{ label: 'Open', run }])
+    ],
+    [
+      'error',
+      () => vscode.window.showErrorMessage,
+      (run: () => Promise<void>) => NotificationModeService.showErrorWithActions('failed', [{ label: 'Open', run }])
+    ]
+  ] as const)('shows an error when the selected %s toast action rejects', async (_kind, toast, show) => {
+    makeConfig({ extGlobal: 'progressToastSuccessToast' });
+    (toast() as VitestMock).mockResolvedValueOnce('Open');
+    const { promise: reported, resolve: report } = Promise.withResolvers<void>();
+    (vscode.window.showErrorMessage as VitestMock).mockImplementationOnce(() => {
+      report();
+      return Promise.resolve(undefined);
+    });
+    const run = vi.fn(() => Promise.reject(new Error('report file not found')));
+
+    await Effect.gen(function* () {
+      yield* show(run);
+      yield* Effect.promise(() => reported);
+    }).pipe(runWithService);
+
+    expect(run).toHaveBeenCalledTimes(1);
+    expect(vscode.window.showErrorMessage).toHaveBeenLastCalledWith('Error: report file not found');
+  });
 });

@@ -26,6 +26,7 @@ export const messages = {
     'Test class not provided. Run the code action on a class annotated with @isTest.',
   apex_test_run_codeAction_no_method_test_param_text:
     'Test method not provided. Run the code action on a method annotated with @isTest or testMethod.',
+  apex_test_run_progress_message: '%s (%d test classes)',
   apex_test_run_text: 'SFDX: Run Apex Tests',
   apex_test_suite_create_text: 'SFDX: Create Apex Test Suite',
   apex_test_suite_edit_text: 'SFDX: Edit Apex Test Suite',
@@ -88,6 +89,7 @@ export const messages = {
   apex_test_successful_execution_message: '%s successfully ran',
   apex_test_successful_execution_with_report_message: '%s successfully ran. Apex test report is ready: %s',
   apex_test_failed_execution_message: '%s failed to run',
+  apex_test_completed_with_failures_message: '%s completed with %d failing test(s). Check the output for details.',
   test_explorer_local_namespace_label: '(Local Namespace)',
   test_explorer_unpackaged_metadata_label: '(Unpackaged Metadata)',
   test_explorer_1gp_package_label: '%s (1GP)',
