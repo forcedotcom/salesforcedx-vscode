@@ -9,9 +9,11 @@ import {
   clearAllNotifications,
   clickCodeLens,
   createApexClass,
+  EDITOR_WITH_URI,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  focusMonacoInput,
   NOTIFICATION_LIST_ITEM,
   openFileByName,
   saveScreenshot,
@@ -21,7 +23,8 @@ import {
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   verifyNoTestRunInProgress,
-  waitForOutputChannelText
+  waitForOutputChannelText,
+  WORKBENCH
 } from '@salesforce/playwright-vscode-ext';
 
 import apexTestingNls from 'salesforcedx-vscode-apex-testing/package.nls.json';
@@ -108,6 +111,24 @@ const waitForSuccessNotification = async (page: Page): Promise<void> => {
 
 // replay-debugger i18n `debug_test_completed_with_failures_message` (not in any package.nls.json)
 const FAILURE_NOTIFICATION_PATTERN = /Debug Test\(s\) completed with 1 failing test\(s\)/;
+
+/** Open `fileName` and toggle a breakpoint (F9) on the first line containing `lineText`. */
+const setBreakpoint = async (page: Page, fileName: string, lineText: string): Promise<void> => {
+  await openFileByName(page, fileName);
+  const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${fileName}"]`);
+  await editor.waitFor({ state: 'visible', timeout: 15_000 });
+  const line = editor.locator('.view-line').filter({ hasText: lineText }).first();
+  await expect(line).toBeVisible({ timeout: 15_000 });
+  await line.click();
+  await page.keyboard.press('F9');
+  await expect(editor.locator('div.codicon-debug-breakpoint').first()).toBeVisible({ timeout: 15_000 });
+};
+
+/** Continue (F5) from a breakpoint once, focusing the editor first as continueDebugSession does. */
+const continueFromBreakpoint = async (page: Page): Promise<void> => {
+  await focusMonacoInput(page.locator(`${WORKBENCH} .editor-instance .monaco-editor`).first());
+  await page.keyboard.press('F5');
+};
 
 const class1Content = [
   'public with sharing class ExampleApexClass1 {',
@@ -259,6 +280,11 @@ test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page 
   await test.step('Debug all classes via Test Explorer shows one failure notification', async () => {
     // The package row covers all three test classes: they run as one batch, so the single failing test
     // must surface as the failure notification with no per-test success toasts alongside it
+    const testClasses = ['ExampleApexClass1Test', 'ExampleApexClass2Test', 'ExampleFailingApexTest'];
+    // A breakpoint per class pauses each replay, so the batch can't run past a log before it's checked
+    for (const testClass of testClasses) {
+      await setBreakpoint(page, `${testClass}.cls`, 'Starting validate');
+    }
     await clearAllNotifications(page);
     await executeCommandWithCommandPalette(page, 'Testing: Focus on Test Explorer View');
     await expandNamespaceAndPackage(page);
@@ -267,12 +293,22 @@ test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page 
       page.locator(NOTIFICATION_LIST_ITEM).filter({ hasText: FAILURE_NOTIFICATION_PATTERN }).first()
     ).toBeVisible({ timeout: 180_000 });
     await expect(page.locator(NOTIFICATION_LIST_ITEM).filter({ hasText: SUCCESS_NOTIFICATION_SUFFIX })).toHaveCount(0);
+    await executeCommandWithCommandPalette(page, 'View: Show Run and Debug');
     // One synchronous run, and so one log, per class: three logs replay in turn, each when the previous ends
-    for (const testName of ['ExampleApexClass1Test', 'ExampleApexClass2Test', 'ExampleFailingApexTest']) {
-      await expect(page.locator(NOTIFICATION_LIST_ITEM).filter({ hasText: testName }).first()).toBeVisible({
-        timeout: 60_000
-      });
-      await continueDebugSession(page);
+    for (const [index, testClass] of testClasses.entries()) {
+      const stackFrame = page.locator('.debug-call-stack .monaco-list-row').filter({ hasText: testClass });
+      await expect(stackFrame.first()).toBeVisible({ timeout: 60_000 });
+      // The progress toast may be hidden, so read the replay progress from the notification center
+      await executeCommandWithCommandPalette(page, 'Notifications: Show Notifications');
+      await expect(
+        page
+          .locator(NOTIFICATION_LIST_ITEM)
+          .filter({ hasText: `${index + 1} of ${testClasses.length}: ${testClass}` })
+          .first()
+      ).toBeVisible({ timeout: 10_000 });
+      // Leave the center as is: opening the command palette closes it, so "Hide Notifications" isn't offered,
+      // and an open center doesn't block F5
+      await (index < testClasses.length - 1 ? continueFromBreakpoint(page) : continueDebugSession(page));
     }
     await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.debug-test-explorer-all.png');
