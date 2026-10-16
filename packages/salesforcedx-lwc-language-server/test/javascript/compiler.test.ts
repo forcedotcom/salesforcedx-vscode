@@ -22,7 +22,12 @@ import {
 } from '../../src/javascript/compiler';
 import { mapLwcMetadataToInternal } from '../../src/javascript/typeMapping';
 
-let mockTransformSyncUrl: string | null | undefined;
+type MockTransformSyncUrl =
+  | { readonly kind: 'unchanged' }
+  | { readonly kind: 'remove' }
+  | { readonly kind: 'set'; readonly url: string };
+
+let mockTransformSyncUrl: MockTransformSyncUrl = { kind: 'unchanged' };
 
 vi.mock('@lwc/errors', async () => {
   const actual = await vi.importActual<typeof lwcErrors>('@lwc/errors');
@@ -44,13 +49,13 @@ vi.mock('@lwc/compiler', async () => {
       try {
         return (actual.transformSync as Function)(...args);
       } catch (error) {
-        if (mockTransformSyncUrl === undefined || !(error instanceof Error)) {
+        if (mockTransformSyncUrl.kind === 'unchanged' || !(error instanceof Error)) {
           throw error;
         }
-        if (mockTransformSyncUrl === null) {
+        if (mockTransformSyncUrl.kind === 'remove') {
           delete (error as Error & { url?: string }).url;
         } else {
-          (error as Error & { url?: string }).url = mockTransformSyncUrl;
+          (error as Error & { url?: string }).url = mockTransformSyncUrl.url;
         }
         throw error;
       }
@@ -163,18 +168,18 @@ it('displays an error for a component with other errors', () => {
 });
 
 it('does not include URL or codeDescription when error has no url', () => {
-  mockTransformSyncUrl = null;
+  mockTransformSyncUrl = { kind: 'remove' };
 
   const result = compileSource(codeError, 'foo.js');
   const [diagnostic] = result.diagnostics!;
   expect(diagnostic.message).not.toContain('More Details:');
   expect(diagnostic.codeDescription).toBeUndefined();
 
-  mockTransformSyncUrl = undefined;
+  mockTransformSyncUrl = { kind: 'unchanged' };
 });
 
 it('includes URL in message and codeDescription when error has url', () => {
-  mockTransformSyncUrl = 'https://lwc.dev/guide/reference#lwc1099';
+  mockTransformSyncUrl = { kind: 'set', url: 'https://lwc.dev/guide/reference#lwc1099' };
 
   const result = compileSource(codeError, 'foo.js');
   const [diagnostic] = result.diagnostics!;
@@ -182,7 +187,7 @@ it('includes URL in message and codeDescription when error has url', () => {
   expect(diagnostic.code).toBe(1099);
   expect(diagnostic.codeDescription).toEqual({ href: 'https://lwc.dev/guide/reference#lwc1099' });
 
-  mockTransformSyncUrl = undefined;
+  mockTransformSyncUrl = { kind: 'unchanged' };
 });
 
 it('compileDocument returns list of javascript syntax errors', () => {

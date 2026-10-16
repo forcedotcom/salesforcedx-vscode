@@ -203,9 +203,7 @@
         "src/soql-builder-ui/testSetup/**",
         "test/unit/soql-builder-ui/**"
       ],
-      "output": [
-        "junit-custom-soqlBuilder-unitTests.xml"
-      ]
+      "output": []
     },
     "test:query-results-ui": {
       "command": "vitest run --config vitest.queryResults.config.mts",
@@ -219,9 +217,7 @@
         "../../scripts/setupVitest.ts",
         "../../scripts/vscodeMock.ts"
       ],
-      "output": [
-        "junit-custom-queryResults-unitTests.xml"
-      ]
+      "output": []
     },
     "test:ui-bundle-budgets": {
       "command": "node scripts/check-ui-bundle-budgets.mjs",

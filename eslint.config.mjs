@@ -24,6 +24,7 @@ import eslintPluginWorkspaces from 'eslint-plugin-workspaces';
 import effectPlugin from '@effect/eslint-plugin';
 import eslintPluginEslintPlugin from 'eslint-plugin-eslint-plugin';
 import jsonPlugin from '@eslint/json';
+import path from 'node:path';
 
 import htmlEslintPlugin from '@html-eslint/eslint-plugin';
 import localRulesPlugin from './packages/eslint-local-rules/out/index.js';
@@ -1394,7 +1395,25 @@ export default [
   {
     files: ['**/vitest*.config.mts'],
     rules: {
-      'import/no-extraneous-dependencies': 'off'
+      'import/no-extraneous-dependencies': [
+        'error',
+        {
+          packageDir: import.meta.dirname,
+          devDependencies: true
+        }
+      ]
+    }
+  },
+  {
+    files: ['packages/salesforcedx-vscode-soql/src/soql-builder-ui/vitest.config.mts'],
+    rules: {
+      'import/no-extraneous-dependencies': [
+        'error',
+        {
+          packageDir: [import.meta.dirname, path.resolve(import.meta.dirname, 'packages/salesforcedx-vscode-soql')],
+          devDependencies: true
+        }
+      ]
     }
   },
   eslintConfigPrettier

@@ -54,6 +54,6 @@ export default defineConfig({
     globals: true,
     include: ['test/unit/soql-builder-ui/**/*.{spec,test}.{ts,js}'],
     setupFiles: [path.resolve(soqlBuilderUiRoot, 'testSetup/setupTests.ts')],
-    reporters: ['verbose', ['junit', { outputFile: 'junit-custom-soqlBuilder-unitTests.xml' }]]
+    reporters: ['verbose']
   }
 });

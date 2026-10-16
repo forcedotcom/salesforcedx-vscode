@@ -123,6 +123,7 @@ const setWorkspaceFolders = () => {
 };
 
 const encode = (obj: unknown) => new TextEncoder().encode(JSON.stringify(obj));
+const lineNumbers = (ranges: readonly vscode.Range[]) => ranges.map(range => range.start.line);
 
 describe('CodeCoverageHandler', () => {
   let mockStatusBar: StatusBarToggle;
@@ -184,8 +185,8 @@ describe('CodeCoverageHandler', () => {
       expect(mockStatusBar.toggle).toHaveBeenCalledWith(true);
       // both decoration sets applied with the computed ranges (covered + uncovered)
       const calls = (mockEditor.setDecorations as VitestMock).mock.calls;
-      expect(calls[0][1]).toHaveLength(1);
-      expect(calls[1][1]).toHaveLength(1);
+      expect(lineNumbers(calls[0][1])).toEqual([0]);
+      expect(lineNumbers(calls[1][1])).toEqual([1]);
     });
   });
 });
@@ -227,8 +228,8 @@ describe('CodeCoverageService', () => {
 
       await run(CodeCoverageService.applyForEditor(classADoc()));
       const populated = await run(CodeCoverageService.getRanges());
-      expect(populated.coveredLines).toHaveLength(1);
-      expect(populated.uncoveredLines).toHaveLength(1);
+      expect(lineNumbers(populated.coveredLines)).toEqual([0]);
+      expect(lineNumbers(populated.uncoveredLines)).toEqual([1]);
 
       const cleared = await run(CodeCoverageService.clear());
       expect(cleared).toEqual({ coveredLines: [], uncoveredLines: [] });
@@ -258,8 +259,8 @@ describe('CodeCoverageService', () => {
 
       const ranges = await run(CodeCoverageService.applyForEditor(classADoc()));
       // File 002 wins: 3 covered lines, 0 uncovered
-      expect(ranges.coveredLines).toHaveLength(3);
-      expect(ranges.uncoveredLines).toHaveLength(0);
+      expect(lineNumbers(ranges.coveredLines)).toEqual([0, 1, 2]);
+      expect(lineNumbers(ranges.uncoveredLines)).toEqual([]);
     });
 
     it('merges coverage from different classes across runs', async () => {
@@ -280,8 +281,8 @@ describe('CodeCoverageService', () => {
       const ranges = await run(
         CodeCoverageService.applyForEditor(makeDocument('/workspace/project/force-app/main/default/classes/ClassB.cls'))
       );
-      expect(ranges.coveredLines).toHaveLength(2); // lines 5, 6
-      expect(ranges.uncoveredLines).toHaveLength(1); // line 7
+      expect(lineNumbers(ranges.coveredLines)).toEqual([4, 5]);
+      expect(lineNumbers(ranges.uncoveredLines)).toEqual([6]);
     });
 
     it('excludes files older than 24 hours', async () => {
@@ -308,8 +309,8 @@ describe('CodeCoverageService', () => {
 
       const ranges = await run(CodeCoverageService.applyForEditor(classADoc()));
       // Only file 002 (recent) used — 5 covered, 0 uncovered
-      expect(ranges.coveredLines).toHaveLength(5);
-      expect(ranges.uncoveredLines).toHaveLength(0);
+      expect(lineNumbers(ranges.coveredLines)).toEqual([0, 1, 2, 3, 4]);
+      expect(lineNumbers(ranges.uncoveredLines)).toEqual([]);
     });
 
     it('excludes -codecoverage.json files from aggregation', async () => {
@@ -387,8 +388,8 @@ describe('CodeCoverageService', () => {
 
       expect(readCalls.some(p => p.endsWith('test-result-707xx0000099999.json'))).toBe(false);
       expect(readCalls.some(p => p.endsWith('test-result-707xx0000011111.json'))).toBe(true);
-      expect(ranges.coveredLines).toHaveLength(3);
-      expect(ranges.uncoveredLines).toHaveLength(0);
+      expect(lineNumbers(ranges.coveredLines)).toEqual([0, 1, 2]);
+      expect(lineNumbers(ranges.uncoveredLines)).toEqual([]);
     });
   });
 
