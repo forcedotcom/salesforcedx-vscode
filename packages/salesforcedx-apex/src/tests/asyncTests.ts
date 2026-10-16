@@ -120,13 +120,6 @@ export class AsyncTests {
             };
           }
 
-          progress?.report({
-            type: 'PollingClientProgress',
-            value: 'pollingProcessingTestRun',
-            message: nls.localize('pollingProcessingTestRun', testRunId),
-            testRunId
-          });
-
           const hasTestSetupTimeField = await this.supportsTestSetupFeature();
           const testRunSummaryQuery = hasTestSetupTimeField
             ? `SELECT AsyncApexJobId, Status, ClassesCompleted, ClassesEnqueued, MethodsEnqueued, StartTime, EndTime, TestTime, TestSetupTime, UserId FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`
@@ -141,6 +134,15 @@ export class AsyncTests {
 
           const summary = testRunSummary.records[0];
           const isCompleted = finishedStatuses.has(summary.Status);
+
+          progress?.report({
+            type: 'PollingClientProgress',
+            value: 'pollingProcessingTestRun',
+            message: nls.localize('pollingProcessingTestRun', testRunId),
+            testRunId,
+            classesCompleted: summary.ClassesCompleted,
+            classesEnqueued: summary.ClassesEnqueued
+          });
 
           // Query queue items to get detailed status (use queryAll to fetch all pages)
           const queryResult = await queryAll<ApexTestQueueItemRecord>(
@@ -174,7 +176,7 @@ export class AsyncTests {
       });
 
       const queueItem = (await pollingClient.subscribe()) as ApexTestQueueItem;
-      const runResult = await this.checkRunStatus(testRunId);
+      const runResult = await this.checkRunStatus(testRunId, progress);
 
       const formattedResults = await this.formatAsyncResults(
         { runId: testRunId, queueItem },

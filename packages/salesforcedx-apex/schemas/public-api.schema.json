@@ -148,12 +148,14 @@
         },
         {
           "type": "object",
-          "required": ["type", "value", "testRunId", "message"],
+          "required": ["type", "value", "testRunId", "message", "classesCompleted", "classesEnqueued"],
           "properties": {
             "type": { "type": "string", "enum": ["PollingClientProgress"] },
             "value": { "type": "string", "enum": ["pollingProcessingTestRun"] },
             "testRunId": { "type": "string" },
-            "message": { "type": "string" }
+            "message": { "type": "string" },
+            "classesCompleted": { "type": "number" },
+            "classesEnqueued": { "type": "number" }
           },
           "additionalProperties": false
         },

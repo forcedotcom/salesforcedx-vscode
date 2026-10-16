@@ -66,6 +66,7 @@ import { ApexTestTreeService } from '../../../src/views/apexTestTreeService';
 
 const appendToChannel = jest.fn(() => Effect.void);
 const showSuccessNotification = jest.fn(() => Effect.void);
+const showErrorWithActions = jest.fn((..._args: unknown[]) => Effect.void);
 const readFile = jest.fn((_uri: URI) => Effect.succeed(JSON.stringify({ tests: [], summary: { testsRan: 0 } })));
 // Mirror the prior settings-mock defaults through the SettingsService accessor.
 const settingsValues: Record<string, unknown> = {
@@ -77,7 +78,7 @@ const settingsValues: Record<string, unknown> = {
 const mockApi = {
   services: {
     ChannelService: Effect.succeed({ appendToChannel }),
-    NotificationModeService: Effect.succeed({ showSuccessNotification }),
+    NotificationModeService: Effect.succeed({ showSuccessNotification, showErrorWithActions }),
     FsService: { readFile: (uri: URI) => readFile(uri) },
     // Yielded as an instance (yield* api.services.SettingsService), so wrap in Effect.succeed.
     SettingsService: Effect.succeed({
@@ -217,6 +218,42 @@ describe('ApexTestExecutionService', () => {
       expect(appendToChannel).toHaveBeenCalledWith('Ended SFDX: Run Apex Tests');
     });
 
+    const runWithOutcome = (outcome: string, failing = 0) => {
+      const method = fakeItem('method:MyClass.testA', 'testA');
+      const { run } = fakeRun();
+      setTestService(
+        makeTestService({
+          runTestAsynchronous: jest.fn().mockResolvedValue({ tests: [], summary: { outcome, testsRan: 1, failing } })
+        })
+      );
+      return runEff(
+        ApexTestExecutionService.executeTests({
+          testNames: ['MyClass.testA'],
+          outputDir: URI.file('/tmp'),
+          codeCoverage: false,
+          token: cancellationToken,
+          run,
+          testsToRun: [method],
+          runAllTestsInOrg: false
+        })
+      );
+    };
+
+    it('shows the success notification when the run passed', async () => {
+      await runWithOutcome('Passed');
+      expect(showSuccessNotification).toHaveBeenCalledTimes(1);
+      expect(showErrorWithActions).not.toHaveBeenCalled();
+    });
+
+    it('shows the failing-tests notification instead of success when the run has failing tests', async () => {
+      await runWithOutcome('Failed', 2);
+      expect(showSuccessNotification).not.toHaveBeenCalled();
+      expect(showErrorWithActions).toHaveBeenCalledWith(
+        'SFDX: Run Apex Tests completed with 2 failing test(s). Check the output for details.',
+        []
+      );
+    });
+
     it('uses the RunAllTestsInOrg payload (no buildAsyncPayload) when runAllTestsInOrg', async () => {
       const buildAsyncPayload = jest.fn();
       const runTestAsynchronous = jest.fn().mockResolvedValue({ tests: [], summary: { testsRan: 1 } });
@@ -340,7 +377,10 @@ describe('ApexTestExecutionService', () => {
       (vscode.commands.executeCommand as jest.Mock).mockReset();
       (vscode.commands.executeCommand as jest.Mock).mockRejectedValue(new Error('dispatch boom'));
       await runEff(ApexTestExecutionService.debugTests(makeCtx(), [cls], run));
-      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugTests', { name: 'A' });
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugTests', {
+        classNames: ['A'],
+        methodNames: []
+      });
       expect(errored.map(e => e.test)).toContain(cls);
       expect((errored[0].message as unknown as { message: string }).message).toContain('Debug failed:');
     });
@@ -352,11 +392,39 @@ describe('ApexTestExecutionService', () => {
       (vscode.commands.executeCommand as jest.Mock).mockReset();
       (vscode.commands.executeCommand as jest.Mock).mockResolvedValue(undefined);
       await runEff(ApexTestExecutionService.debugTests(makeCtx(), [cls, method], run));
-      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugTests', { name: 'A' });
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugTests', {
+        classNames: ['A'],
+        methodNames: []
+      });
       expect(vscode.commands.executeCommand).not.toHaveBeenCalledWith(
         'sf.test.view.debugSingleTest',
         expect.anything()
       );
+    });
+
+    it('debugs a multi-class selection as one batch so it gets one notification', async () => {
+      const clsA = fakeItem('class:A', 'A', { tags: [inWorkspaceTag] });
+      const clsB = fakeItem('class:B', 'B', { tags: [inWorkspaceTag] });
+      const methodC = fakeItem('method:C.testC', 'testC', { tags: [inWorkspaceTag] });
+      const { run } = fakeRun();
+      (vscode.commands.executeCommand as jest.Mock).mockReset();
+      (vscode.commands.executeCommand as jest.Mock).mockResolvedValue(undefined);
+      await runEff(ApexTestExecutionService.debugTests(makeCtx(), [clsA, clsB, methodC], run));
+      expect(vscode.commands.executeCommand).toHaveBeenCalledTimes(1);
+      expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugTests', {
+        classNames: ['A', 'B'],
+        methodNames: ['C.testC']
+      });
+    });
+
+    it('errors every batched test when the batch debug command rejects', async () => {
+      const clsA = fakeItem('class:A', 'A', { tags: [inWorkspaceTag] });
+      const methodC = fakeItem('method:C.testC', 'testC', { tags: [inWorkspaceTag] });
+      const { run, errored } = fakeRun();
+      (vscode.commands.executeCommand as jest.Mock).mockReset();
+      (vscode.commands.executeCommand as jest.Mock).mockRejectedValue(new Error('dispatch boom'));
+      await runEff(ApexTestExecutionService.debugTests(makeCtx(), [clsA, methodC], run));
+      expect(errored.map(e => e.test)).toEqual([clsA, methodC]);
     });
 
     it('errors a suite item with the not-supported message and does not dispatch it', async () => {

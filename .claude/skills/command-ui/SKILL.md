@@ -9,7 +9,7 @@ review: always
 One Effect handler. Palette plus any extra _surface_ (context menu, CodeLens, tree item, title). Success/progress through `NotificationModeService`.
 
 - Registration: [services-extension-consumption](../services-extension-consumption/SKILL.md) (`registerCommandWithRuntime`)
-- Confirmations / errors / modals: [vscode-window-messages](../vscode-window-messages/SKILL.md)
+- Confirmations / errors / modals: [vscode-window-messages](../vscode-window-messages/SKILL.md). Exception: a non-modal error toast with action buttons → `NotificationModeService.showErrorWithActions`
 - Mode API: [notification-mode-api.md](references/notification-mode-api.md)
 
 ## Recipe

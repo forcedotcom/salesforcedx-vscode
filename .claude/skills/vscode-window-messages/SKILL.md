@@ -219,6 +219,16 @@ if (hasErrors) {
 }
 ```
 
+### Error Toast with Action Buttons
+
+Non-modal error toast whose buttons run an action (e.g. Open Report): use `NotificationModeService.showErrorWithActions`, not `showErrorMessage(...).then(...)`. It returns without waiting for the click and shows an error if the action rejects ([notification-mode-api](../command-ui/references/notification-mode-api.md#showerrorwithactions)).
+
+```typescript
+yield* notificationMode.showErrorWithActions(nls.localize('operation_completed_with_errors'), [
+  { label: nls.localize('open_report_button'), run: () => openReport(uri) }
+]);
+```
+
 ### User Confirmation (Requires Response)
 
 ```typescript

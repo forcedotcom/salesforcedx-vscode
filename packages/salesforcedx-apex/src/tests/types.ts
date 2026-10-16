@@ -571,6 +571,8 @@ export type ApexTestProgressValue =
       value: 'pollingProcessingTestRun';
       testRunId: string;
       message: string;
+      classesCompleted: number;
+      classesEnqueued: number;
     }
   | {
       type: 'TestQueueProgress';
