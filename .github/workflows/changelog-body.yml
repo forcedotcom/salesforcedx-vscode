@@ -40,7 +40,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+          node-version: 24.12.0
       - name: Install changelog body dependencies
         working-directory: scripts/changelogBody
         run: npm ci

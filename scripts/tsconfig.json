@@ -3,6 +3,7 @@
   "compilerOptions": {
     "outDir": "./dist",
     "noEmit": true,
+    "allowImportingTsExtensions": true,
     "isolatedModules": true,
     "strictNullChecks": true,
     "resolveJsonModule": true,
@@ -14,6 +15,5 @@
     "types": ["jest", "node", "vitest/globals"],
     "skipLibCheck": true
   },
-  "include": ["*.ts"],
-  "exclude": ["category-approve.ts"]
+  "include": ["*.ts", "**/*.mts"]
 }
