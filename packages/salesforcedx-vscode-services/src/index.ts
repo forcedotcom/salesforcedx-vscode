@@ -479,7 +479,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
     if (process.env.ESBUILD_PLATFORM === 'web') {
       // load auth from local environment.  development only.
       if (process.env.ESBUILD_WEB_CONFIG) {
-        await Effect.runPromise(runWebAuthEffect());
+        await Effect.runPromise(runWebAuthEffect().pipe(Effect.provide(SettingsService.Default)));
       }
       // first, before all other things, get the FS running.
       await Effect.runPromise(
@@ -497,9 +497,22 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         )
       );
       // test-web has this on by default. vscode-dev does not
-      if (vscode.workspace.getConfiguration('files').get<boolean>('autoSave', false)) {
-        await vscode.workspace.getConfiguration('files').update('autoSave', 'off', vscode.ConfigurationTarget.Global);
-      }
+      await Effect.runPromise(
+        SettingsService.pipe(
+          Effect.flatMap(settings =>
+            settings
+              .getValue<boolean>('files', 'autoSave', false)
+              .pipe(
+                Effect.flatMap(autoSave =>
+                  autoSave
+                    ? settings.setValue('files', 'autoSave', 'off', vscode.ConfigurationTarget.Global)
+                    : Effect.void
+                )
+              )
+          ),
+          Effect.provide(SettingsService.Default)
+        )
+      );
     }
     const internalLayers = Layer.mergeAll(
       FileWatcherLayer,

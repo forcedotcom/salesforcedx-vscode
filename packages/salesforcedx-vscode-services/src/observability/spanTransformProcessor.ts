@@ -14,8 +14,10 @@ import { isNotUndefined, isString } from 'effect/Predicate';
 import * as Rec from 'effect/Record';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as os from 'node:os';
-import { env, UIKind, version, workspace } from 'vscode';
+import { env, UIKind, version } from 'vscode';
+import { SFDX_CORE_SECTION } from '../constants';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
+import { SettingsService } from '../vscode/settingsService';
 
 type SpanCreationIdentity = Readonly<
   Pick<
@@ -72,7 +74,7 @@ export class SpanTransformProcessor extends BatchSpanProcessor {
         Effect.all([
           getAdditionalAttributes(getSpanCreationIdentity(span), extensionName, extensionVersion),
           memoized('everySpanIsTheSame')
-        ]) // it seems to want a key
+        ]).pipe(Effect.provide(SettingsService.Default)) // it seems to want a key
       );
       // Rec.filter's refinement overload drops the undefined-valued attributes and narrows the rest to string
       Object.entries(Rec.filter({ ...permanent, ...dynamic }, isString)).map(([k, v]) => span.setAttribute(k, v));
@@ -99,21 +101,26 @@ const getAdditionalAttributes = (
   extensionName: unknown,
   extensionVersion: unknown
 ) =>
-  Effect.succeed<TelemetryAttributes>({
-    // Add common.* attributes for AppInsights (AzureMonitorTraceExporter includes span attributes)
-    'common.extname': isString(extensionName) ? extensionName : undefined,
-    'common.extversion': isString(extensionVersion) ? extensionVersion : undefined,
-    orgId,
-    devHubOrgId,
-    isSandbox: optionalBooleanToString(isSandbox),
-    isScratch: optionalBooleanToString(isScratch),
-    tracksSource: optionalBooleanToString(tracksSource),
-    userId,
-    cliId,
-    webUserId,
-    orgEdition,
-    telemetryTag: workspace.getConfiguration('salesforcedx-vscode-core')?.get('telemetry-tag')
-  });
+  SettingsService.pipe(
+    Effect.flatMap(settings => settings.getValue<string>(SFDX_CORE_SECTION, 'telemetry-tag')),
+    Effect.map(
+      (telemetryTag): TelemetryAttributes => ({
+        // Add common.* attributes for AppInsights (AzureMonitorTraceExporter includes span attributes)
+        'common.extname': isString(extensionName) ? extensionName : undefined,
+        'common.extversion': isString(extensionVersion) ? extensionVersion : undefined,
+        orgId,
+        devHubOrgId,
+        isSandbox: optionalBooleanToString(isSandbox),
+        isScratch: optionalBooleanToString(isScratch),
+        tracksSource: optionalBooleanToString(tracksSource),
+        userId,
+        cliId,
+        webUserId,
+        orgEdition,
+        telemetryTag
+      })
+    )
+  );
 
 export const isInternalUser = (uiKindString: string | undefined): string | undefined => {
   if (uiKindString !== 'Desktop') return undefined;

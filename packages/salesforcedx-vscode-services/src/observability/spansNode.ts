@@ -17,6 +17,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Logger from 'effect/Logger';
 import { join } from 'node:path';
+import { SettingsService } from '../vscode/settingsService';
 import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
 import { ApplicationInsightsNodeExporter } from './applicationInsightsNodeExporter';
 import { GatedSpanExporter } from './gatedSpanExporter';
@@ -65,84 +66,93 @@ export const NodeSdkLayerFor = ({
   // localIngestionEndpoint is set in dev/test (sdkLayerConfig.resolveLocalIngestionEndpoint) and, when
   // present, diverts App Insights envelopes to the local span file server (see exporters below).
 
-  return NodeSdk.layer(
+  return Layer.unwrapEffect(
     Effect.gen(function* () {
-      return {
-        resource: {
-          serviceName: extensionName,
-          //manually bump this to cause rebuilds/bust cache
-          serviceVersion: '2026-03-02T01:00.304Z',
-          attributes: {
-            'extension.name': extensionName,
-            'extension.version': extensionVersion
-          }
-        },
-        spanProcessor: [
-          // first and unconditional: rewrites sensitive-data-shaped text during onEnding, which MultiSpanProcessor
-          // runs on every processor before any onEnd, so every sink below receives redacted spans
-          new RedactingSpanProcessor(),
-          ...(getConsoleTracesEnabled() ? [new SpanTransformProcessor({ exporter: new ConsoleSpanExporter() })] : []),
-          // AI processor always present; GatedSpanExporter re-checks the telemetry setting per export
-          // (mid-session toggle) and lazily constructs the delegate on first enabled export so a
-          // disabled session runs no delegate ctor (no Azure Statsbeat/network setup).
-          new SpanTransformProcessor({
-            exporter: new GatedSpanExporter({
-              make: () =>
-                enableCustomEventsFromSpans
-                  ? // customEvents path (LogRecord-based); localIngestionEndpoint diverts to local server in dev/test
-                    new ApplicationInsightsNodeExporter(effectiveConnectionString, localIngestionEndpoint)
-                  : // dependencies path; localIngestionEndpoint diverts to local server in dev/test
-                    new FilteredAzureMonitorTraceExporter(
-                      {
-                        connectionString: effectiveConnectionString,
-                        storageDirectory: join(Global.SF_DIR, 'vscode-extensions-telemetry')
-                      },
-                      localIngestionEndpoint
-                    ),
-              bypassGovernance: Boolean(localIngestionEndpoint)
-            }),
-            options:
-              enableCustomEventsFromSpans || localIngestionEndpoint
-                ? undefined
-                : {
-                    exportTimeoutMillis: 15_000,
-                    maxQueueSize: 1000
-                  }
-          }),
-          // O11y processor present whenever an endpoint is configured; the gate (localhost bypass +
-          // telemetry setting) now lives in GatedSpanExporter and is re-checked per export.
-          ...(o11yEndpoint
-            ? [
-                new SpanTransformProcessor({
-                  exporter: new GatedSpanExporter({
-                    // localIngestionEndpoint (dev/test) diverts O11y events to the local span file server's
-                    // /o11y route instead of uploading through the org connection — mirrors the AI divert.
-                    make: () =>
-                      new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId, localIngestionEndpoint),
-                    o11yEndpoint,
-                    bypassGovernance: Boolean(localIngestionEndpoint)
-                  })
-                })
-              ]
-            : []),
-          ...(getLocalTracesEnabled() ? [new SpanTransformProcessor({ exporter: new OTLPTraceExporter() })] : []),
-          ...(getFileTracesEnabled() ? [new SpanTransformProcessor({ exporter: new OtlpFileSpanExporterNode() })] : [])
-        ],
-        logRecordProcessor: [
-          ...(getFileTracesEnabled() ? [new SimpleLogRecordProcessor(new OtlpFileLogExporterNode())] : [])
-        ]
-      };
-    })
-  ).pipe(
-    Layer.merge(Logger.minimumLogLevel(getLogLevel())),
-    Layer.merge(
-      getLocalTracesEnabled()
-        ? OtlpLogger.layer({
-            // OTLPTraceExporter reads OTEL_EXPORTER_OTLP_ENDPOINT internally; OtlpLogger does not, so we resolve it here
-            url: `${process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? 'http://localhost:4318'}/v1/logs`,
-            resource: { serviceName: extensionName, serviceVersion: extensionVersion }
-          }).pipe(Layer.provide(FetchHttpClient.layer), Layer.provide(OtlpSerialization.layerJson))
-        : Layer.empty
-    )
+      const consoleTracesEnabled = yield* getConsoleTracesEnabled();
+      const localTracesEnabled = yield* getLocalTracesEnabled();
+      const fileTracesEnabled = yield* getFileTracesEnabled();
+      const logLevel = yield* getLogLevel();
+
+      return NodeSdk.layer(
+        Effect.gen(function* () {
+          return {
+            resource: {
+              serviceName: extensionName,
+              //manually bump this to cause rebuilds/bust cache
+              serviceVersion: '2026-03-02T01:00.304Z',
+              attributes: {
+                'extension.name': extensionName,
+                'extension.version': extensionVersion
+              }
+            },
+            spanProcessor: [
+              // first and unconditional: rewrites sensitive-data-shaped text during onEnding, which MultiSpanProcessor
+              // runs on every processor before any onEnd, so every sink below receives redacted spans
+              new RedactingSpanProcessor(),
+              ...(consoleTracesEnabled ? [new SpanTransformProcessor({ exporter: new ConsoleSpanExporter() })] : []),
+              // AI processor always present; GatedSpanExporter re-checks the telemetry setting per export
+              // (mid-session toggle) and lazily constructs the delegate on first enabled export so a
+              // disabled session runs no delegate ctor (no Azure Statsbeat/network setup).
+              new SpanTransformProcessor({
+                exporter: new GatedSpanExporter({
+                  make: () =>
+                    enableCustomEventsFromSpans
+                      ? // customEvents path (LogRecord-based); localIngestionEndpoint diverts to local server in dev/test
+                        new ApplicationInsightsNodeExporter(effectiveConnectionString, localIngestionEndpoint)
+                      : // dependencies path; localIngestionEndpoint diverts to local server in dev/test
+                        new FilteredAzureMonitorTraceExporter(
+                          {
+                            connectionString: effectiveConnectionString,
+                            storageDirectory: join(Global.SF_DIR, 'vscode-extensions-telemetry')
+                          },
+                          localIngestionEndpoint
+                        ),
+                  bypassGovernance: Boolean(localIngestionEndpoint)
+                }),
+                options:
+                  enableCustomEventsFromSpans || localIngestionEndpoint
+                    ? undefined
+                    : {
+                        exportTimeoutMillis: 15_000,
+                        maxQueueSize: 1000
+                      }
+              }),
+              // O11y processor present whenever an endpoint is configured; the gate (localhost bypass +
+              // telemetry setting) now lives in GatedSpanExporter and is re-checked per export.
+              ...(o11yEndpoint
+                ? [
+                    new SpanTransformProcessor({
+                      exporter: new GatedSpanExporter({
+                        // localIngestionEndpoint (dev/test) diverts O11y events to the local span file server's
+                        // /o11y route instead of uploading through the org connection — mirrors the AI divert.
+                        make: () =>
+                          new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId, localIngestionEndpoint),
+                        o11yEndpoint,
+                        bypassGovernance: Boolean(localIngestionEndpoint)
+                      })
+                    })
+                  ]
+                : []),
+              ...(localTracesEnabled ? [new SpanTransformProcessor({ exporter: new OTLPTraceExporter() })] : []),
+              ...(fileTracesEnabled ? [new SpanTransformProcessor({ exporter: new OtlpFileSpanExporterNode() })] : [])
+            ],
+            logRecordProcessor: [
+              ...(fileTracesEnabled ? [new SimpleLogRecordProcessor(new OtlpFileLogExporterNode())] : [])
+            ]
+          };
+        })
+      ).pipe(
+        Layer.merge(Logger.minimumLogLevel(logLevel)),
+        Layer.merge(
+          localTracesEnabled
+            ? OtlpLogger.layer({
+                // OTLPTraceExporter reads OTEL_EXPORTER_OTLP_ENDPOINT internally; OtlpLogger does not, so we resolve it here
+                url: `${process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? 'http://localhost:4318'}/v1/logs`,
+                resource: { serviceName: extensionName, serviceVersion: extensionVersion }
+              }).pipe(Layer.provide(FetchHttpClient.layer), Layer.provide(OtlpSerialization.layerJson))
+            : Layer.empty
+        )
+      );
+    }).pipe(Effect.provide(SettingsService.Default), Effect.orDie)
   );
 };

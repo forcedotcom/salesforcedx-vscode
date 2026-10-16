@@ -12,21 +12,23 @@
  * Additionally, we want to send any failed spans as Exceptions (the parent span may not finish if a child span fails)
  */
 import { SpanKind, SpanStatusCode } from '@opentelemetry/api';
-import { ExportResult, ExportResultCode } from '@opentelemetry/core';
+import { ExportResult } from '@opentelemetry/core';
 import { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { TelemetryReporter } from '@vscode/extension-telemetry';
 import * as Console from 'effect/Console';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Stream from 'effect/Stream';
-import { workspace } from 'vscode';
+import { SFDX_CORE_SECTION } from '../constants';
 import { unknownToErrorCause } from '../core/shared';
+import { SettingsService } from '../vscode/settingsService';
 import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
 import { getSpanCreationIdentity } from './spanTransformProcessor';
 import {
   convertAttributes,
   getExtensionNameAndVersionAttributes,
   isSpanValidForProductionTelemetry,
+  reportExportResult,
   spanDuration
 } from './spanUtils';
 
@@ -39,8 +41,6 @@ const getSpanKindName = (kind: SpanKind): string =>
     Match.when(SpanKind.CONSUMER, () => 'CONSUMER'),
     Match.orElse(() => 'UNKNOWN')
   );
-
-const telemetryTag = workspace.getConfiguration()?.get<string>('salesforcedx-vscode-core.telemetry-tag');
 
 /**
  * Custom OpenTelemetry span exporter that sends telemetry to Application Insights
@@ -64,9 +64,8 @@ export class ApplicationInsightsWebExporter implements SpanExporter {
         Stream.filter(isSpanValidForProductionTelemetry),
         Stream.mapEffect(span => exportSpan(span, () => this.getReporter())),
         Stream.runDrain,
-        Effect.map(() => {
-          resultCallback({ code: ExportResultCode.SUCCESS });
-        })
+        Effect.provide(SettingsService.Default),
+        reportExportResult(resultCallback)
       )
     );
   }
@@ -77,6 +76,7 @@ export class ApplicationInsightsWebExporter implements SpanExporter {
 }
 
 const exportSpan = Effect.fn('exportSpan')(function* (span: ReadableSpan, getReporter: () => TelemetryReporter) {
+  const telemetryTag = yield* (yield* SettingsService).getValue<string>(SFDX_CORE_SECTION, 'telemetry-tag');
   const success = span.status?.code !== SpanStatusCode.ERROR;
 
   // Create distributed trace context from OpenTelemetry span context

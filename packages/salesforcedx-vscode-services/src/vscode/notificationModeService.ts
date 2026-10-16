@@ -13,6 +13,7 @@ import * as Ref from 'effect/Ref';
 import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
+import { SettingsService } from './settingsService';
 
 class ToastActionError extends Schema.TaggedError<ToastActionError>()('ToastActionError', {
   cause: Schema.Defect
@@ -84,11 +85,11 @@ export const normalizeToInternal = (raw: AnyMode): ProgressAndSuccessMode => {
   }
 };
 
-export const getInternalMode = (
+export const getInternalMode = Effect.fn('getInternalMode')(function* (
   extensionSection: string,
   commandLevelSection: string,
   command: string
-): ProgressAndSuccessMode => {
+) {
   // Command-level: any of the three mode types; Schema rejects unknown strings before normalizing
   const raw = vscode.workspace.getConfiguration(commandLevelSection).inspect<unknown>(command);
   const cmdExplicit = raw?.workspaceFolderValue ?? raw?.workspaceValue ?? raw?.globalValue;
@@ -102,11 +103,13 @@ export const getInternalMode = (
   if (Option.isSome(fromExt)) return fromExt.value;
 
   // Global fallback (also ProgressAndSuccessMode)
-  return Option.getOrElse(
-    decodeProgressAndSuccessMode(vscode.workspace.getConfiguration(GLOBAL_SECTION).get<unknown>(GLOBAL_KEY)),
-    () => 'progressToastSuccessToast' as const
+  return yield* SettingsService.pipe(
+    Effect.flatMap(settings => settings.getValue<unknown>(GLOBAL_SECTION, GLOBAL_KEY)),
+    Effect.map(value =>
+      Option.getOrElse(decodeProgressAndSuccessMode(value), () => 'progressToastSuccessToast' as const)
+    )
   );
-};
+});
 
 const applyForceShow = (mode: ProgressAndSuccessMode): ProgressAndSuccessMode => {
   if (mode === 'progressToastSuccessOff') return 'progressToastSuccessToast';
@@ -117,8 +120,10 @@ const applyForceShow = (mode: ProgressAndSuccessMode): ProgressAndSuccessMode =>
 /** Per-extension service for notification settings, progress placement, and success notifications. */
 export class NotificationModeService extends Effect.Service<NotificationModeService>()('NotificationModeService', {
   accessors: true,
+  dependencies: [SettingsService.Default],
   scoped: (extensionSection: string, statusBarId: string, statusBarName: string) =>
     Effect.gen(function* () {
+      const settings = yield* SettingsService;
       const scope = yield* Effect.scope;
       const item = yield* Effect.sync(() =>
         vscode.window.createStatusBarItem(statusBarId, vscode.StatusBarAlignment.Left, 44)
@@ -198,6 +203,10 @@ export class NotificationModeService extends Effect.Service<NotificationModeServ
       });
 
       const commandLevelSection = `${extensionSection}.${COMMAND_LEVEL_KEY}`;
+      const getMode = (command: string) =>
+        getInternalMode(extensionSection, commandLevelSection, command).pipe(
+          Effect.provideService(SettingsService, settings)
+        );
 
       return {
         showSuccessNotification: Effect.fn('NotificationModeService.showSuccessNotification')(function* (
@@ -206,13 +215,13 @@ export class NotificationModeService extends Effect.Service<NotificationModeServ
           forceShow = false,
           actions: ToastAction[] = []
         ) {
-          const mode = getInternalMode(extensionSection, commandLevelSection, command);
+          const mode = yield* getMode(command);
           const effectiveMode = forceShow ? applyForceShow(mode) : mode;
           if (effectiveMode === 'progressStatusBarSuccessStatusBar') return yield* showTransient(message, actions);
           if (effectiveMode === 'progressToastSuccessToast') return yield* showToastWithActions(message, actions);
         }),
         getProgressLocation: Effect.fn('NotificationModeService.getProgressLocation')(function* (command: string) {
-          const mode = getInternalMode(extensionSection, commandLevelSection, command);
+          const mode = yield* getMode(command);
           return mode === 'progressToastSuccessToast' || mode === 'progressToastSuccessOff'
             ? vscode.ProgressLocation.Notification
             : vscode.ProgressLocation.Window;

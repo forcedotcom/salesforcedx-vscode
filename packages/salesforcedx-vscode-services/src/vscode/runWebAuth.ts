@@ -7,6 +7,7 @@
 import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
 import * as vscode from 'vscode';
+import { SettingsService } from './settingsService';
 
 export const runWebAuthEffect = Effect.fn('runWebAuthEffect')(function* () {
   // Apply web config from esbuild define if present
@@ -19,11 +20,12 @@ export const runWebAuthEffect = Effect.fn('runWebAuthEffect')(function* () {
     const configMap = parseConfig();
 
     if (configMap) {
-      const config = vscode.workspace.getConfiguration();
+      const settings = yield* SettingsService;
       yield* Effect.all(
-        Object.entries(configMap).map(([k, v]) =>
-          Effect.promise(() => config.update(k, v, vscode.ConfigurationTarget.Workspace))
-        )
+        Object.entries(configMap).map(([fullKey, value]) => {
+          const [section, ...key] = fullKey.split('.');
+          return settings.setValue(section, key.join('.'), value, vscode.ConfigurationTarget.Workspace);
+        })
       );
     }
   }

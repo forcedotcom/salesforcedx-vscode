@@ -26,13 +26,15 @@ import { Global } from '@salesforce/core/global';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import { join } from 'node:path';
-import { workspace } from 'vscode';
+import { SFDX_CORE_SECTION } from '../constants';
+import { SettingsService } from '../vscode/settingsService';
 import { AzureMonitorLogExporterWrapper } from './azureMonitorLogExporterWrapper';
 import { getSpanCreationIdentity } from './spanTransformProcessor';
 import {
   convertAttributes,
   getExtensionNameAndVersionAttributes,
   isSpanValidForProductionTelemetry,
+  reportExportResult,
   spanDuration
 } from './spanUtils';
 
@@ -86,9 +88,8 @@ export class ApplicationInsightsNodeExporter implements SpanExporter {
 
     void Effect.runPromise(
       Effect.all(validSpans.map(span => sendSpan(span, otelLogger))).pipe(
-        Effect.map(() => {
-          resultCallback({ code: ExportResultCode.SUCCESS });
-        })
+        Effect.provide(SettingsService.Default),
+        reportExportResult(resultCallback)
       )
     );
   }
@@ -102,7 +103,7 @@ const sendSpan = Effect.fn('sendSpan')(function* (
   span: ReadableSpan,
   otelLogger: ReturnType<LoggerProvider['getLogger']>
 ) {
-  const telemetryTag = workspace.getConfiguration()?.get<string>('salesforcedx-vscode-core.telemetry-tag');
+  const telemetryTag = yield* (yield* SettingsService).getValue<string>(SFDX_CORE_SECTION, 'telemetry-tag');
 
   const { userId, webUserId } = getSpanCreationIdentity(span);
 

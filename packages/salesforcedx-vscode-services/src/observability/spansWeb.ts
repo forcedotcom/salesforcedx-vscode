@@ -9,6 +9,7 @@ import { WebSdk } from '@effect/opentelemetry';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-web';
 import * as Effect from 'effect/Effect';
+import { SettingsService } from '../vscode/settingsService';
 import { ApplicationInsightsWebExporter } from './applicationInsightsWebExporter';
 import { GatedSpanExporter } from './gatedSpanExporter';
 import { getConsoleTracesEnabled, getLocalTracesEnabled, getFileTracesEnabled } from './localTracing';
@@ -36,7 +37,9 @@ export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, 
           // first and unconditional: rewrites sensitive-data-shaped text during onEnding, which MultiSpanProcessor
           // runs on every processor before any onEnd, so every sink below receives redacted spans
           new RedactingSpanProcessor(),
-          ...(getConsoleTracesEnabled() ? [new SpanTransformProcessor({ exporter: new ConsoleSpanExporter() })] : []),
+          ...((yield* getConsoleTracesEnabled())
+            ? [new SpanTransformProcessor({ exporter: new ConsoleSpanExporter() })]
+            : []),
           // AI processor always present; GatedSpanExporter re-checks the telemetry setting per export (mid-session toggle)
           new SpanTransformProcessor({
             exporter: new GatedSpanExporter({
@@ -56,9 +59,13 @@ export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, 
                 })
               ]
             : []),
-          ...(getLocalTracesEnabled() ? [new SpanTransformProcessor({ exporter: new OTLPTraceExporter() })] : []),
-          ...(getFileTracesEnabled() ? [new SpanTransformProcessor({ exporter: new OtlpFileSpanExporterWeb() })] : [])
+          ...((yield* getLocalTracesEnabled())
+            ? [new SpanTransformProcessor({ exporter: new OTLPTraceExporter() })]
+            : []),
+          ...((yield* getFileTracesEnabled())
+            ? [new SpanTransformProcessor({ exporter: new OtlpFileSpanExporterWeb() })]
+            : [])
         ]
       };
-    })
+    }).pipe(Effect.provide(SettingsService.Default), Effect.orDie)
   );
