@@ -109,7 +109,7 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
       Effect.try({
         try: () => vscode.workspace.getConfiguration(section).get<T>(key),
         catch: () => undefined
-      }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
+      }).pipe(Effect.orElseSucceed(() => undefined));
 
     const getValue = Effect.fn('SettingsService.getValue')(function* <T>(section: string, key: string) {
       return yield* readValue<T>(section, key);
