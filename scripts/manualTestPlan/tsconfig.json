@@ -1,15 +1,6 @@
 {
+  "extends": "../tsconfig.native.json",
   "compilerOptions": {
-    "target": "ES2024",
-    "lib": ["ES2024"],
-    "module": "nodenext",
-    "moduleResolution": "nodenext",
-    "strict": true,
-    "noEmit": true,
-    "allowImportingTsExtensions": true,
-    "skipLibCheck": true,
-    "types": ["node"],
-    "typeRoots": ["../../node_modules/@types"],
     "plugins": [
       {
         "name": "@effect/language-service",
