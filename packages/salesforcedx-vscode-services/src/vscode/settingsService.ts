@@ -108,16 +108,8 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
     const readValue = <T>(section: string, key: string) =>
       Effect.try({
         try: () => vscode.workspace.getConfiguration(section).get<T>(key),
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new SettingsError({
-            cause,
-            section,
-            key,
-            message: `Failed to get setting ${section}.${key}: ${cause.message ?? String(cause)}`
-          });
-        }
-      });
+        catch: () => undefined
+      }).pipe(Effect.catchAll(() => Effect.succeed(undefined)));
 
     const getValue = Effect.fn('SettingsService.getValue')(function* <T>(section: string, key: string) {
       return yield* readValue<T>(section, key);
@@ -285,9 +277,9 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
     });
 
     return {
-      /** Setting value, or `undefined` when unset. */
+      /** Setting value, or `undefined` when unset or unreadable. Never fails. */
       getValue,
-      /** Setting value, or `defaultValue` when stored value is `undefined` or `null`. */
+      /** Setting value, or `defaultValue` when stored value is `undefined`, `null`, or unreadable. Never fails. */
       getValueOrElse,
       /** Set a value in settings. @param section The settings section @param key The settings key @param value The value to set @param target Configuration target (defaults to Global) */
       setValue,

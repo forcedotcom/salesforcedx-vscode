@@ -509,10 +509,10 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         SettingsService.pipe(
           Effect.flatMap(settings =>
             settings
-              .getValueOrElse('files', 'autoSave', false)
+              .getValueOrElse('files', 'autoSave', 'off')
               .pipe(
                 Effect.flatMap(autoSave =>
-                  autoSave
+                  autoSave && autoSave !== 'off'
                     ? settings.setValue('files', 'autoSave', 'off', vscode.ConfigurationTarget.Global)
                     : Effect.void
                 )

@@ -26,7 +26,6 @@ export const getLogLevel = Effect.fn('getLogLevel')(function* () {
   const sfLogLevel = process.env.SF_LOG_LEVEL;
   const fallback = sfLogLevel === 'fatal' ? 'error' : (sfLogLevel ?? 'error');
   return yield* (yield* SettingsService).getValue<string>(SALESFORCE_DX_SECTION, 'logLevel').pipe(
-    Effect.catchTag('MissingSettingsError', () => Effect.succeed(fallback)),
     Effect.map(raw => mapSfLogLevel(raw ?? fallback))
   );
 });
@@ -51,7 +50,4 @@ const mapSfLogLevel = (level: string): LogLevel.LogLevel => {
 };
 
 const getBooleanConfiguration = (key: string) =>
-  SettingsService.pipe(
-    Effect.flatMap(settings => settings.getValueOrElse(SALESFORCE_DX_SECTION, key, false)),
-    Effect.catchTag('MissingSettingsError', () => Effect.succeed(false))
-  );
+  SettingsService.pipe(Effect.flatMap(settings => settings.getValueOrElse(SALESFORCE_DX_SECTION, key, false)));

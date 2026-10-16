@@ -24,8 +24,18 @@ export const runWebAuthEffect = Effect.fn('runWebAuthEffect')(function* () {
       const settings = yield* SettingsService;
       yield* Effect.all(
         Rec.collect(configMap, (fullKey, value) => {
-          const [section, ...key] = fullKey.split('.');
-          return settings.setValue(section, key.join('.'), value, vscode.ConfigurationTarget.Workspace);
+          const dot = fullKey.indexOf('.');
+          if (dot === -1) {
+            return Effect.promise(() =>
+              vscode.workspace.getConfiguration().update(fullKey, value, vscode.ConfigurationTarget.Workspace)
+            );
+          }
+          return settings.setValue(
+            fullKey.slice(0, dot),
+            fullKey.slice(dot + 1),
+            value,
+            vscode.ConfigurationTarget.Workspace
+          );
         })
       );
     }

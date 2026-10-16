@@ -74,7 +74,9 @@ export const resolveLegacyConnectionString = (packageJSON?: {
 
 export const legacySpanName = (extensionName: string, eventName: string): string => `${extensionName}/${eventName}`;
 
-// payload-derived attributes; resource/common + frozen identity applied by sender post-onStart
+// payload-derived attributes; resource/common + frozen identity applied by sender post-onStart.
+// Excludes telemetry-tag: createLegacyTelemetrySpan stamps the live settings value at send time,
+// so direct callers of this builder get tagless attributes by design.
 export const buildLegacySpanAttributes = (
   payload: LegacyTelemetryPayload,
   callerO11y?: { endpoint?: string; enabled: boolean; productFeatureId?: string }

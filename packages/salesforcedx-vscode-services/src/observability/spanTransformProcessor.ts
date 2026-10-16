@@ -21,9 +21,7 @@ import * as Rec from 'effect/Record';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as os from 'node:os';
 import { env, UIKind, version } from 'vscode';
-import { SFDX_CORE_SECTION } from '../constants';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
-import { SettingsService } from '../vscode/settingsService';
 
 export type SpanCreationIdentity = Readonly<
   Pick<
@@ -71,15 +69,20 @@ export class SpanTransformProcessor extends BatchSpanProcessor {
   constructor({
     exporter,
     options,
+    telemetryTag,
     getIdentitySnapshot = getCurrentSpanCreationIdentity
   }: {
     exporter: SpanExporter;
     options?: BufferConfig;
+    telemetryTag?: string | undefined;
     getIdentitySnapshot?: () => SpanCreationIdentity;
   }) {
     super(exporter, options);
+    this.telemetryTag = telemetryTag;
     this.getIdentitySnapshot = getIdentitySnapshot;
   }
+
+  private readonly telemetryTag: string | undefined;
 
   private readonly getIdentitySnapshot: () => SpanCreationIdentity;
 
@@ -92,12 +95,13 @@ export class SpanTransformProcessor extends BatchSpanProcessor {
       const resourceAttrs = span.resource.attributes;
       const extensionName = resourceAttrs['extension.name'];
       const extensionVersion = resourceAttrs['extension.version'];
-      const [dynamic, permanent] = Effect.runSync(
-        Effect.all([
-          getAdditionalAttributes(getSpanCreationIdentity(span), extensionName, extensionVersion),
-          memoized('everySpanIsTheSame')
-        ]).pipe(Effect.provide(SettingsService.Default)) // it seems to want a key
+      const dynamic = getAdditionalAttributes(
+        getSpanCreationIdentity(span),
+        extensionName,
+        extensionVersion,
+        this.telemetryTag
       );
+      const permanent = Effect.runSync(memoized('everySpanIsTheSame')); // it seems to want a key
       const attributes = { ...permanent, ...dynamic };
       Rec.keys(attributes).forEach(key => {
         const value = attributes[key];
@@ -131,28 +135,23 @@ const getAdditionalAttributes = (
     orgEdition
   }: SpanCreationIdentity,
   extensionName: unknown,
-  extensionVersion: unknown
-) =>
-  SettingsService.pipe(
-    Effect.flatMap(settings => settings.getValue<string>(SFDX_CORE_SECTION, 'telemetry-tag')),
-    Effect.map(
-      (telemetryTag): TelemetryAttributes => ({
-        // Add common.* attributes for AppInsights (AzureMonitorTraceExporter includes span attributes)
-        'common.extname': isString(extensionName) ? extensionName : undefined,
-        'common.extversion': isString(extensionVersion) ? extensionVersion : undefined,
-        orgId,
-        devHubOrgId,
-        isSandbox: optionalBooleanToString(isSandbox),
-        isScratch: optionalBooleanToString(isScratch),
-        tracksSource: optionalBooleanToString(tracksSource),
-        userId,
-        cliId,
-        webUserId,
-        orgEdition,
-        telemetryTag
-      })
-    )
-  );
+  extensionVersion: unknown,
+  telemetryTag: string | undefined
+): TelemetryAttributes => ({
+  // Add common.* attributes for AppInsights (AzureMonitorTraceExporter includes span attributes)
+  'common.extname': isString(extensionName) ? extensionName : undefined,
+  'common.extversion': isString(extensionVersion) ? extensionVersion : undefined,
+  orgId,
+  devHubOrgId,
+  isSandbox: optionalBooleanToString(isSandbox),
+  isScratch: optionalBooleanToString(isScratch),
+  tracksSource: optionalBooleanToString(tracksSource),
+  userId,
+  cliId,
+  webUserId,
+  orgEdition,
+  telemetryTag
+});
 
 export const isInternalUser = (uiKindString: string | undefined): string | undefined => {
   if (uiKindString !== 'Desktop') return undefined;
