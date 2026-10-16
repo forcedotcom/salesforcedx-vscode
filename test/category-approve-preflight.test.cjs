@@ -1,5 +1,7 @@
 const assert = require('node:assert/strict');
-const { readFileSync } = require('node:fs');
+const { execFileSync } = require('node:child_process');
+const { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } = require('node:fs');
+const { tmpdir } = require('node:os');
 const { join } = require('node:path');
 const test = require('node:test');
 const { parse } = require('yaml');
@@ -145,3 +147,24 @@ test('workflow runs trusted approver when develop does not yet contain the prefl
   };
   assert.equal(await run(absent, { env: { RUNNER_TEMP: '/runner' } }, {}, context), true);
 });
+
+for (const extension of ['ts', 'mts']) {
+  test(`workflow runs trusted .${extension} approver from the PR working directory`, t => {
+    const directory = mkdtempSync(join(tmpdir(), 'category-approve-workflow-'));
+    t.after(() => rmSync(directory, { recursive: true, force: true }));
+    const scripts = join(directory, 'trusted-approver', 'scripts');
+    mkdirSync(scripts, { recursive: true });
+    writeFileSync(join(scripts, 'category-approve.ts'), 'console.log("trusted ts");\n');
+    if (extension === 'mts') {
+      writeFileSync(join(scripts, 'category-approve.mts'), 'console.log("trusted mts");\n');
+    }
+    const workflow = parse(readFileSync(join(__dirname, '../.github/workflows/categoryApprove.yml'), 'utf8'));
+    const script = workflow.jobs['category-approve'].steps.find(step => step.name === 'Decide and approve').run;
+    const output = execFileSync('bash', ['-e', '-o', 'pipefail', '-c', script], {
+      cwd: join(__dirname, '..'),
+      env: { ...process.env, RUNNER_TEMP: directory },
+      encoding: 'utf8'
+    });
+    assert.equal(output.trim(), `trusted ${extension}`);
+  });
+}

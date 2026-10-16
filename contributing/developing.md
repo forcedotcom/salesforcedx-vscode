@@ -2,7 +2,7 @@
 
 ## Pre-requisites
 
-1.  Require Node LTS (with fallback to vars.NODE_VERSION) and [pnpm](https://pnpm.io/) via the root `packageManager` field (Corepack: `corepack enable`). To work with multiple Node versions, consider [nvm](https://github.com/creationix/nvm).
+1.  Require Node >=24.12.0 for repository tooling and [pnpm](https://pnpm.io/) via the root `packageManager` field (Corepack: `corepack enable`). Extension runtime targets are unchanged. To work with multiple Node versions, consider [nvm](https://github.com/creationix/nvm).
 1.  This repository uses [pnpm workspaces](../docs/adr/0022-pnpm-cutover.md) and [wireit](https://github.com/google/wireit) to manage it as a _monorepo_. Lockfile: `pnpm-lock.yaml`.
 1.  We use `eslint` so please install it using `pnpm add --global eslint` (or your preferred global install).
 1.  It is preferred, though not required, that you use the Insiders version of VS
@@ -183,7 +183,11 @@ Runs `markdown-link-check` on all markdown files in the repo to check for any br
 
 ### `npm run check:actions`
 
-Schema-validates `.github/workflows/*.{yml,yaml}` and `.github/actions/*/action.{yml,yaml}`. Fails when `validatePR.yml` or `testCommitExceptMain.yml` has `paths-ignore`, and when an E2E workflow's `paths-ignore` differs from `visualforceE2E.yml`.
+Runs `check:scripts`, then schema-validates `.github/workflows/*.{yml,yaml}` and `.github/actions/*/action.{yml,yaml}`. Fails when `validatePR.yml` or `testCommitExceptMain.yml` has `paths-ignore`, and when an E2E workflow's `paths-ignore` differs from `visualforceE2E.yml`.
+
+### `pnpm run check:scripts`
+
+Type-checks native TypeScript scripts and their local helpers with `tsc --noEmit -p scripts/tsconfig.native.json`, then runs `node --check` on entry points. Runs in precommit and CI script validation; CI uses the minimum supported Node version, 24.12.0.
 
 ### `npm run check:peer-deps`
 
@@ -208,6 +212,14 @@ Similar to the above command, this finds VSIX packages built locally (using `npm
 - To debug installed extensions you can use Command Palette: `Developer > Show Logs .. > Extension Host`
 
 ## Node Configuration
+
+### Native TypeScript scripts
+
+Use `.mts` for TypeScript executed directly with `node`; use `.cts` only for intentional CommonJS. Local TypeScript helpers follow the same convention. Use explicit file extensions in relative imports and `import type` for type-only imports.
+
+Node's [type stripping](https://nodejs.org/docs/v24.12.0/api/typescript.html) is stable starting in 24.12.0. Node ignores tsconfig and does not type-check. Native scripts must use erasable syntax: no enums, parameter properties, or namespaces containing runtime code. Do not rely on tsconfig path aliases or module transformations.
+
+`scripts/tsconfig.native.json` checks all `.mts`/`.cts` files under `scripts/` and `test/` with `NodeNext`, `erasableSyntaxOnly`, and `verbatimModuleSyntax`. Add each new native entry point to the `node --check` commands in root `check:scripts`; keep imported local helpers inside the config's include patterns. Legacy `ts-node` scripts continue to use `scripts/tsconfig.json`.
 
 ### pnpm workspace
 
