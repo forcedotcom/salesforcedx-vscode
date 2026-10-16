@@ -1,3 +1,12 @@
+## [1.7.2](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.7.1...playwright-vscode-ext-v1.7.2) (2026-10-16)
+
+
+### Bug Fixes
+
+* **apex-testing:** show failure notification for failing Apex test runs and debugs + handle race condition when debugging multiple Apex classes at a time - W-24417592 ([#8397](https://github.com/forcedotcom/salesforcedx-vscode/issues/8397)) ([0a25d7d](https://github.com/forcedotcom/salesforcedx-vscode/commit/0a25d7da9164261e259d61c39ff450c6b8d74205)), closes [#8464](https://github.com/forcedotcom/salesforcedx-vscode/issues/8464)
+
+
+
 ## [1.7.1](https://github.com/forcedotcom/salesforcedx-vscode/compare/playwright-vscode-ext-v1.7.0...playwright-vscode-ext-v1.7.1) (2026-10-06)
 
 
