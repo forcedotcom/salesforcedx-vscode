@@ -105,14 +105,14 @@ const mockWorkspaceInfo = {
   path: '/mock/workspace',
   fsPath: '/mock/workspace',
   isEmpty: false as const,
-  isVirtualFs: false,
-  cwd: '/mock/workspace'
+  isVirtualFs: false
 };
 const MockWorkspaceServiceLayer = Layer.succeed(
   WorkspaceService,
   new WorkspaceService({
     getWorkspaceInfo: () => Effect.sync(() => mockWorkspaceInfo),
-    getWorkspaceInfoOrThrow: () => Effect.sync(() => mockWorkspaceInfo)
+    getWorkspaceInfoOrThrow: () => Effect.sync(() => mockWorkspaceInfo),
+    getWorkspaceRootPath: () => Effect.succeed('/mock/workspace')
   } as const)
 );
 

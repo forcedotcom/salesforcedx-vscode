@@ -12,7 +12,6 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { fsPrefix } from '../virtualFsProvider/constants';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { clearDefaultOrgRef, getDefaultOrgRef } from './defaultOrgRef';
 import { unknownToErrorCause } from './shared';
@@ -81,8 +80,7 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
 
     /** Get a ConfigAggregator for the current workspace */
     const getConfigAggregator = Effect.fn('ConfigService.getConfigAggregator')(function* () {
-      const workspaceDescription = yield* workspaceService.getWorkspaceInfoOrThrow();
-      const projectPath = workspaceDescription.path.replace(fsPrefix, '').replace(':/', '');
+      const projectPath = yield* workspaceService.getWorkspaceRootPath();
       yield* Effect.annotateCurrentSpan({ projectPath });
       const agg = yield* configCache.get(projectPath);
       // stateless when org can change: always reload only on desktop
@@ -146,8 +144,9 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
 
     /** Sets target-org in local project config; caller must refresh defaultOrgRef via ConnectionService.getConnection(). */
     const setTargetOrg = Effect.fn('ConfigService.setTargetOrg')(function* (usernameOrAlias: string) {
+      const rootFolder = yield* workspaceService.getWorkspaceRootPath();
       const config = yield* Effect.tryPromise({
-        try: () => Config.create(Config.getDefaultOptions()),
+        try: () => Config.create({ ...Config.getDefaultOptions(), rootFolder }),
         catch: configWriteCatch
       });
       config.set(OrgConfigProperties.TARGET_ORG, usernameOrAlias);
@@ -157,18 +156,26 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
 
     /** Unsets target-org from the local project config and clears the reactive org state */
     const unsetTargetOrg = Effect.fn('ConfigService.unsetTargetOrg')(function* () {
-      const config = yield* Effect.promise(() => Config.create(Config.getDefaultOptions()));
+      const rootFolder = yield* workspaceService.getWorkspaceRootPath();
+      const config = yield* Effect.tryPromise({
+        try: () => Config.create({ ...Config.getDefaultOptions(), rootFolder }),
+        catch: configWriteCatch
+      });
       config.unset(OrgConfigProperties.TARGET_ORG);
-      yield* Effect.promise(() => config.write());
+      yield* Effect.tryPromise({ try: () => config.write(), catch: configWriteCatch });
       yield* invalidateConfigAggregator();
       yield* clearDefaultOrgRef();
     });
 
     /** Unsets target-dev-hub from the local project config */
     const unsetTargetDevHub = Effect.fn('ConfigService.unsetTargetDevHub')(function* () {
-      const config = yield* Effect.promise(() => Config.create(Config.getDefaultOptions()));
+      const rootFolder = yield* workspaceService.getWorkspaceRootPath();
+      const config = yield* Effect.tryPromise({
+        try: () => Config.create({ ...Config.getDefaultOptions(), rootFolder }),
+        catch: configWriteCatch
+      });
       config.unset(OrgConfigProperties.TARGET_DEV_HUB);
-      yield* Effect.promise(() => config.write());
+      yield* Effect.tryPromise({ try: () => config.write(), catch: configWriteCatch });
       yield* invalidateConfigAggregator();
     });
 

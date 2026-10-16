@@ -18,8 +18,7 @@ const run = (folderUri?: string): Promise<{ fsPath: string; uri: string }> => {
     path: uri.toString(),
     fsPath: uri.fsPath,
     isEmpty: folderUri === undefined,
-    isVirtualFs: uri.scheme !== 'file',
-    cwd: '/'
+    isVirtualFs: uri.scheme !== 'file'
   };
   const layer = Layer.succeed(
     WorkspaceService,
