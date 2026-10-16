@@ -153,7 +153,7 @@ const removeApexDB = (): Promise<void> =>
       ServicesExtensionNotFoundError: () => Effect.void,
       InvalidServicesApiError: () => Effect.void
     }),
-    // Provide the service locally so the runtime (real AllServicesLayer in prod, tracer-only mock in jest)
+    // Provide the service locally so the runtime (real AllServicesLayer in prod, tracer-only mock in vitest)
     // needn't supply ExtensionProviderService.
     Effect.provideService(ExtensionProviderService, { getServicesApi }),
     getRuntime().runPromise

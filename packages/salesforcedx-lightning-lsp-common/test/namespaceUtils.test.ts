@@ -32,7 +32,7 @@ describe('findNamespaceRoots', () => {
 
     // Mock accessor to use real FS for paths under this test's tempDir (no LSP in tests)
     const isUnderTemp = (key: string): boolean => key === normTempDir || key.startsWith(`${normTempDir}/`);
-    jest.spyOn(fileSystemAccessor, 'getFileStat').mockImplementation(async (uri: string) => {
+    vi.spyOn(fileSystemAccessor, 'getFileStat').mockImplementation(async (uri: string) => {
       const key = normalizePath(uri);
       if (!isUnderTemp(key)) return undefined;
       try {
@@ -48,7 +48,7 @@ describe('findNamespaceRoots', () => {
         return undefined;
       }
     });
-    jest.spyOn(fileSystemAccessor, 'getDirectoryListing').mockImplementation((uri: NormalizedPath) => {
+    vi.spyOn(fileSystemAccessor, 'getDirectoryListing').mockImplementation((uri: NormalizedPath) => {
       const key = normalizePath(uri);
       if (!isUnderTemp(key)) return Promise.resolve([]);
       try {
