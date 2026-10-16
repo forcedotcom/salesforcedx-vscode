@@ -20,8 +20,12 @@ class ToastActionError extends Schema.TaggedError<ToastActionError>()('ToastActi
 
 const STATUS_BAR_VISIBLE = Duration.seconds(5);
 
-/** An action button shown in a success toast, or when a status bar success notification is clicked. */
+/** An action button shown in a success or error toast, or when a status bar success notification is clicked. */
 export type ToastAction = { label: string; run: () => void | Promise<void> };
+
+type ShowToast = (message: string, ...items: string[]) => Thenable<string | undefined>;
+const showInformationToast: ShowToast = (message, ...items) => vscode.window.showInformationMessage(message, ...items);
+const showErrorToast: ShowToast = (message, ...items) => vscode.window.showErrorMessage(message, ...items);
 
 const COMMAND_LEVEL_KEY = 'commandLevelNotifications';
 const EXTENSION_LEVEL_KEY = 'extensionLevelNotifications';
@@ -115,7 +119,8 @@ const applyForceShow = (mode: ProgressAndSuccessMode): ProgressAndSuccessMode =>
   return mode;
 };
 
-/** Per-extension service for notification settings, progress placement, and success notifications. */
+/** Per-extension service for notification settings, progress placement, success notifications, and error
+ * toasts with actions. */
 export class NotificationModeService extends Effect.Service<NotificationModeService>()('NotificationModeService', {
   accessors: true,
   scoped: (extensionSection: string, statusBarId: string, statusBarName: string) =>
@@ -154,12 +159,11 @@ export class NotificationModeService extends Effect.Service<NotificationModeServ
       // dismisses the toast (or never, in a headless/E2E session), so awaiting it would hold the caller's
       // progress, TestRun, etc. open until then.
       const showToastWithActions = Effect.fn('NotificationModeService.showToastWithActions')(function* (
+        show: ShowToast,
         message: string,
         actions: ToastAction[]
       ) {
-        const pendingSelection = yield* Effect.sync(() =>
-          vscode.window.showInformationMessage(message, ...actions.map(candidate => candidate.label))
-        );
+        const pendingSelection = yield* Effect.sync(() => show(message, ...actions.map(candidate => candidate.label)));
         // Buttons: await the selection in a fiber owned by the service scope so the action still runs after the
         // caller has moved on. No buttons: nothing to react to, so fire-and-forget.
         if (actions.length > 0) yield* awaitToastSelection(pendingSelection, actions).pipe(Effect.forkIn(scope));
@@ -171,7 +175,8 @@ export class NotificationModeService extends Effect.Service<NotificationModeServ
           const pending = pendingToastRef.pipe(Ref.get, Runtime.runSync(runtime));
           await Option.match(pending, {
             onNone: () => Promise.resolve(),
-            onSome: ({ message, actions }) => Runtime.runPromise(runtime)(showToastWithActions(message, actions))
+            onSome: ({ message, actions }) =>
+              Runtime.runPromise(runtime)(showToastWithActions(showInformationToast, message, actions))
           });
         })
       );
@@ -216,7 +221,17 @@ export class NotificationModeService extends Effect.Service<NotificationModeServ
           const mode = getInternalMode(extensionSection, commandLevelSection, command);
           const effectiveMode = forceShow ? applyForceShow(mode) : mode;
           if (effectiveMode === 'progressStatusBarSuccessStatusBar') return yield* showTransient(message, actions);
-          if (effectiveMode === 'progressToastSuccessToast') return yield* showToastWithActions(message, actions);
+          if (effectiveMode === 'progressToastSuccessToast')
+            return yield* showToastWithActions(showInformationToast, message, actions);
+        }),
+        /** Error toast with action buttons for an operation that completed with errors. Always shown as a toast:
+         * notification modes only govern progress and success. Returns without waiting for a click, and a
+         * failed action is surfaced as an error, same as success-toast actions. */
+        showErrorWithActions: Effect.fn('NotificationModeService.showErrorWithActions')(function* (
+          message: string,
+          actions: ToastAction[] = []
+        ) {
+          yield* showToastWithActions(showErrorToast, message, actions);
         }),
         getProgressLocation: Effect.fn('NotificationModeService.getProgressLocation')(function* (command: string) {
           const mode = getInternalMode(extensionSection, commandLevelSection, command);

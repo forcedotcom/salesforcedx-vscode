@@ -92,7 +92,7 @@ const ExecuteAnonymousResponseSchema = Schema.Struct({
   compiled: Schema.Boolean,
   success: Schema.Boolean,
   logs: optional(Schema.String),
-  diagnostic: optional(Schema.Array(ApexDiagnosticSchema))
+  diagnostic: ApexDiagnosticSchema.pipe(Schema.Array, optional)
 }).annotations({ identifier: 'ExecuteAnonymousResponse' });
 
 const ApexLogGetOptionsSchema = Schema.Struct({
@@ -163,7 +163,7 @@ const AsyncTestArrayConfigurationSchema = Schema.Struct({
 
 const SyncTestConfigurationSchema = Schema.Struct({
   classNames: optional(Schema.String),
-  tests: optional(Schema.Array(TestItemSchema)),
+  tests: TestItemSchema.pipe(Schema.Array, optional),
   testLevel: optional(Schema.String),
   maxFailedTests: optional(Schema.Number),
   skipCodeCoverage: optional(Schema.Boolean),
@@ -172,15 +172,11 @@ const SyncTestConfigurationSchema = Schema.Struct({
 
 const OutputDirConfigSchema = Schema.Struct({
   dirPath: Schema.String,
-  resultFormats: optional(Schema.Array(ResultFormatSchema)),
-  fileInfos: optional(
-    Schema.Array(
-      Schema.Struct({
-        filename: Schema.String,
-        content: Schema.Union(Schema.String, Schema.Object)
-      })
-    )
-  )
+  resultFormats: ResultFormatSchema.pipe(Schema.Array, optional),
+  fileInfos: Schema.Struct({
+    filename: Schema.String,
+    content: Schema.Union(Schema.String, Schema.Object)
+  }).pipe(Schema.Array, optional)
 }).annotations({ identifier: 'OutputDirConfig' });
 
 const CoverageLinesSchema = Schema.Struct({
@@ -271,7 +267,7 @@ const ApexTestResultDataSchema = Schema.Struct({
   runTime: Schema.Number,
   testTimestamp: Schema.String,
   fullName: Schema.String,
-  perClassCoverage: optional(Schema.Array(PerClassCoverageSchema)),
+  perClassCoverage: PerClassCoverageSchema.pipe(Schema.Array, optional),
   diagnostic: optional(ApexDiagnosticSchema),
   category: optional(Schema.String)
 }).annotations({ identifier: 'ApexTestResultData' });
@@ -334,14 +330,14 @@ const TestResultSummarySchema = Schema.Struct({
 const TestResultRawSchema = Schema.Struct({
   summary: TestResultSummarySchema,
   tests: Schema.Array(ApexTestResultDataRawSchema),
-  codecoverage: optional(Schema.Array(CodeCoverageResultSchema))
+  codecoverage: CodeCoverageResultSchema.pipe(Schema.Array, optional)
 }).annotations({ identifier: 'TestResultRaw' });
 
 const TestResultSchema = Schema.Struct({
   summary: TestResultSummarySchema,
   tests: Schema.Array(ApexTestResultDataSchema),
-  setup: optional(Schema.Array(ApexTestSetupDataSchema)),
-  codecoverage: optional(Schema.Array(CodeCoverageResultSchema))
+  setup: ApexTestSetupDataSchema.pipe(Schema.Array, optional),
+  codecoverage: CodeCoverageResultSchema.pipe(Schema.Array, optional)
 }).annotations({ identifier: 'TestResult' });
 
 const TestRunIdResultSchema = Schema.Struct({ testRunId: Schema.String }).annotations({
@@ -377,7 +373,9 @@ const ApexTestProgressValueSchema = Schema.Union(
     type: Schema.Literal('PollingClientProgress'),
     value: Schema.Literal('pollingProcessingTestRun'),
     testRunId: Schema.String,
-    message: Schema.String
+    message: Schema.String,
+    classesCompleted: Schema.Number,
+    classesEnqueued: Schema.Number
   }),
   Schema.Struct({ type: Schema.Literal('TestQueueProgress'), value: ApexTestQueueItemSchema }),
   Schema.Struct({

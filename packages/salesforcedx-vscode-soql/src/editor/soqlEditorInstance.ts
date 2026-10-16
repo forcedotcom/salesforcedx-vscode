@@ -9,7 +9,7 @@ import type { JsonObject } from '../json';
 import type { MessageType } from '../soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
 import type { QueryResult } from '../types';
 import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
-import * as debounce from 'debounce';
+import debounce = require('debounce');
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
@@ -21,6 +21,7 @@ import * as vscode from 'vscode';
 import { executeQueryPlan } from '../commands/queryPlan';
 import { SOQL_CONFIGURATION_NAME } from '../constants';
 import { nls } from '../messages';
+import { prepareQuery } from '../prepareQuery';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
 import { getSoqlRuntime } from '../services/extensionProvider';
 import { isDefaultOrgSet } from '../services/org';
@@ -316,7 +317,9 @@ export class SOQLEditorInstance {
             yield* getQueryPlanDone();
             return;
           }
-          yield* Effect.promise(() => getSoqlRuntime().runPromise(executeQueryPlan(document.getText())));
+          yield* Effect.promise(() =>
+            getSoqlRuntime().runPromise(executeQueryPlan(prepareQuery(document.getText()).soql))
+          );
           yield* getQueryPlanDone();
         }).pipe(
           Effect.catchAllCause(cause => {

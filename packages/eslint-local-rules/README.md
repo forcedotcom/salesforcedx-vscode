@@ -56,7 +56,7 @@ if (process.env.ESBUILD_PLATFORM === 'web') { ... }
 const reporter = process.env.ESBUILD_PLATFORM === 'web' ? webReporter : nodeReporter;
 ```
 
-Test files set/delete/save-restore the env var as jest plumbing; that is allowed via an `off` override in `eslint.config.mjs`, not the rule.
+Test files set/delete/save-restore the env var as Vitest plumbing; that is allowed via an `off` override in `eslint.config.mjs`, not the rule.
 
 ### no-effect-fn-wrapper
 
@@ -257,6 +257,29 @@ Schedule.exponential(Duration.seconds(1), 2);
 
 This monorepo enables the rule as `error` for `**/*.ts` in `eslint.config.mjs`, next to `local/require-effect-fn-span-name`.
 
+### no-standalone-pipeable-value
+
+Use an Effect, Stream, or Schema's `.pipe(...)` method instead of passing it as the first argument to the standalone `pipe(...)` from `effect/Function`. The rule checks the first argument's TypeScript type, including Schema classes such as `Schema.String`. Plain values (arrays, strings, parsed JSON) remain valid. Other functions named `pipe` are not affected. Type-aware ESLint parsing (`projectService`) is required.
+
+**Bad:**
+
+```typescript
+pipe(Effect.succeed(1), Effect.map(n => n + 1));
+pipe(Stream.fromIterable([1]), Stream.map(n => n + 1));
+pipe(Schema.String, Schema.minLength(1));
+```
+
+**Good:**
+
+```typescript
+Effect.succeed(1).pipe(Effect.map(n => n + 1));
+Stream.fromIterable([1]).pipe(Stream.map(n => n + 1));
+Schema.String.pipe(Schema.minLength(1));
+pipe([1, 2], xs => xs.length);
+```
+
+Enabled as `error` for TypeScript files in this monorepo's `eslint.config.mjs`.
+
 ### no-effect-service-promise-return
 
 Disallows methods that return `Promise` on the object returned from the `effect` or `scoped` callback of a class that extends `Effect.Service<…>()(…)`. That includes `async` methods and methods whose return type is inferred as `Promise`. Return an `Effect` instead, for example `Effect.fn`. An `Effect` or `Effect.fn` method stays allowed, and so does a function that returns `Promise` outside an `Effect.Service`.
@@ -370,6 +393,12 @@ Validates view ID references in `package.json`:
 
 - View IDs in `when` clauses must match defined views in `contributes.views`
 - View IDs in `viewsWelcome` must reference defined views
+
+### package-json-salesforce-dep-versions
+
+Requires caret ranges for external `@salesforce/*` entries in `dependencies` and `devDependencies` in root `package.json` and `packages/*/package.json`. Workspace references (`*`, `workspace:*`, `workspace:^`, `workspace:~`) remain allowed.
+
+`@salesforce/apex`, `@salesforce/label`, and `@salesforce/schema` retain their pin exceptions. This repository's `pnpm lint` checks the root manifest as well as workspace manifests.
 
 ### vscodeignore-required-patterns
 

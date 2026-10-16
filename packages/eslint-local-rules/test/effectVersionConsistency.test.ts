@@ -52,30 +52,34 @@ describe('effect version consistency', () => {
         .map(file => readJson(file).version)
     );
     expect([...versions]).toHaveLength(1);
-  });
+  }, 15_000);
 
-  it('satisfies @effect companion peer ranges', () => {
-    const resolvedEffect = readJson(
-      fs.globSync('**/node_modules/effect/package.json', {
-        cwd: REPO_ROOT,
-        exclude: ['**/node_modules/**/node_modules/**/node_modules/**']
-      })[0]
-    ).version;
-    if (resolvedEffect === undefined) throw new Error('no resolved effect copy');
+  it(
+    'satisfies @effect companion peer ranges',
+    () => {
+      const resolvedEffect = readJson(
+        fs.globSync('**/node_modules/effect/package.json', {
+          cwd: REPO_ROOT,
+          exclude: ['**/node_modules/**/node_modules/**/node_modules/**']
+        })[0]
+      ).version;
+      if (resolvedEffect === undefined) throw new Error('no resolved effect copy');
 
-    const violations = fs
-      .globSync('**/node_modules/@effect/*/package.json', {
-        cwd: REPO_ROOT,
-        exclude: ['**/node_modules/**/node_modules/**']
-      })
-      .map(readJson)
-      .map(pkg => ({ pkg, peer: pkg.peerDependencies?.effect }))
-      .filter((entry): entry is { pkg: PackageJson; peer: string } => entry.peer !== undefined)
-      .filter(entry => !semver.satisfies(resolvedEffect, entry.peer))
-      .map(
-        entry => `${entry.pkg.name ?? '(unnamed)'} peer effect ${entry.peer} not satisfied by effect@${resolvedEffect}`
-      );
+      const violations = fs
+        .globSync('**/node_modules/@effect/*/package.json', {
+          cwd: REPO_ROOT,
+          exclude: ['**/node_modules/**/node_modules/**']
+        })
+        .map(readJson)
+        .map(pkg => ({ pkg, peer: pkg.peerDependencies?.effect }))
+        .filter((entry): entry is { pkg: PackageJson; peer: string } => entry.peer !== undefined)
+        .filter(entry => !semver.satisfies(resolvedEffect, entry.peer))
+        .map(
+          entry => `${entry.pkg.name ?? '(unnamed)'} peer effect ${entry.peer} not satisfied by effect@${resolvedEffect}`
+        );
 
-    expect(violations).toEqual([]);
-  });
+      expect(violations).toEqual([]);
+    },
+    15_000
+  );
 });

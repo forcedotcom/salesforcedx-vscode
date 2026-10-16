@@ -1,0 +1,158 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import * as EffectExtUtils from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
+import {
+  GetRegistryAccessError,
+  MetadataRegistryService
+} from 'salesforcedx-vscode-services/src/core/metadataRegistryService';
+import { buildMetadataRegistryScanConfig, deriveExcludedMetadataFolders } from '../../src/languageServerScanConfig';
+
+const mockGetServicesApi = vi.fn<() => Effect.Effect<EffectExtUtils.SalesforceVSCodeServicesApi, unknown>>();
+
+vi.mock('@salesforce/effect-ext-utils', async () => {
+  const actual = await vi.importActual<typeof EffectExtUtils>('@salesforce/effect-ext-utils');
+  const EffectLib = await vi.importActual<typeof Effect>('effect/Effect');
+  return {
+    ...actual,
+    getServicesApi: EffectLib.suspend(() => mockGetServicesApi())
+  };
+});
+
+const useRegistryAccess = (registryAccess: Effect.Effect<unknown, unknown>) => {
+  const metadataRegistryService = {
+    getRegistryAccess: () => registryAccess
+  } as unknown as InstanceType<typeof MetadataRegistryService>;
+  const prebuiltServicesLayer = Layer.succeed(MetadataRegistryService, metadataRegistryService);
+
+  mockGetServicesApi.mockReturnValue(
+    Effect.succeed({
+      services: {
+        MetadataRegistryService,
+        prebuiltServicesLayer
+      }
+    } as unknown as EffectExtUtils.SalesforceVSCodeServicesApi)
+  );
+  return prebuiltServicesLayer;
+};
+
+const runBuildMetadataRegistryScanConfig = (layer: ReturnType<typeof useRegistryAccess>) =>
+  Effect.runPromise(buildMetadataRegistryScanConfig.pipe(Effect.provide(layer)));
+
+describe('languageServerScanConfig', () => {
+  describe('buildMetadataRegistryScanConfig', () => {
+    it('builds scan config from the shared metadata registry service', async () => {
+      const layer = useRegistryAccess(
+        Effect.succeed({
+          getRegistry: () => ({
+            strictDirectoryNames: {
+              classes: 'apexclass',
+              triggers: 'apextrigger',
+              lwc: 'lightningcomponentbundle',
+              objects: 'customobject'
+            }
+          }),
+          getTypeByName: (typeName: string) => ({
+            directoryName: typeName === 'ApexClass' ? 'classes' : 'triggers'
+          })
+        })
+      );
+
+      await expect(runBuildMetadataRegistryScanConfig(layer)).resolves.toEqual({
+        scan: {
+          excludeFolders: ['lwc', 'objects']
+        }
+      });
+    });
+
+    it('returns undefined when the services API is unavailable', async () => {
+      const layer = useRegistryAccess(Effect.succeed({ getRegistry: () => ({}), getTypeByName: () => ({}) }));
+      mockGetServicesApi.mockReturnValue(Effect.fail(new EffectExtUtils.ServicesExtensionNotFoundError()));
+
+      await expect(runBuildMetadataRegistryScanConfig(layer)).resolves.toBeUndefined();
+    });
+
+    it('propagates services API activation failure', async () => {
+      const layer = useRegistryAccess(Effect.succeed({ getRegistry: () => ({}), getTypeByName: () => ({}) }));
+      mockGetServicesApi.mockReturnValue(Effect.fail(new EffectExtUtils.InvalidServicesApiError({})));
+
+      await expect(runBuildMetadataRegistryScanConfig(layer)).rejects.toThrow();
+    });
+
+    it('returns undefined when registry access fails', async () => {
+      const layer = useRegistryAccess(new GetRegistryAccessError({ cause: 'registry unavailable' }).pipe(Effect.fail));
+
+      await expect(runBuildMetadataRegistryScanConfig(layer)).resolves.toBeUndefined();
+    });
+
+    it('returns undefined when no metadata folders are excluded', async () => {
+      const layer = useRegistryAccess(
+        Effect.succeed({
+          getRegistry: () => ({
+            strictDirectoryNames: {
+              classes: 'apexclass',
+              triggers: 'apextrigger'
+            }
+          }),
+          getTypeByName: (typeName: string) => ({
+            directoryName: typeName === 'ApexClass' ? 'classes' : 'triggers'
+          })
+        })
+      );
+
+      await expect(runBuildMetadataRegistryScanConfig(layer)).resolves.toBeUndefined();
+    });
+  });
+
+  describe('deriveExcludedMetadataFolders', () => {
+    it('excludes strict metadata directories that are not apex folders', () => {
+      const registry = {
+        strictDirectoryNames: {
+          classes: 'apexclass',
+          triggers: 'apextrigger',
+          lwc: 'lightningcomponentbundle',
+          staticresources: 'staticresource'
+        }
+      };
+
+      const result = deriveExcludedMetadataFolders(registry, new Set(['classes', 'triggers']));
+
+      expect(result).toEqual(['lwc', 'staticresources']);
+    });
+
+    it('normalizes folder names and filters empty values', () => {
+      const registry = {
+        strictDirectoryNames: {
+          ' Classes ': 'apexclass',
+          '': 'invalid',
+          Objects: 'customobject'
+        }
+      };
+
+      const result = deriveExcludedMetadataFolders(registry, new Set(['classes']));
+
+      expect(result).toEqual(['objects']);
+    });
+
+    it('sorts folder names with locale-aware comparison', () => {
+      const folderNames = ['z', 'ä'];
+      const registry = {
+        strictDirectoryNames: Object.fromEntries(folderNames.map(folderName => [folderName, 'metadata']))
+      };
+
+      expect(deriveExcludedMetadataFolders(registry, new Set())).toEqual(
+        folderNames.toSorted((left, right) => left.localeCompare(right))
+      );
+    });
+
+    it('returns empty list when strictDirectoryNames is missing', () => {
+      expect(deriveExcludedMetadataFolders({}, new Set(['classes', 'triggers']))).toEqual([]);
+    });
+  });
+});

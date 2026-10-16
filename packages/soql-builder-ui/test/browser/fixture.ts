@@ -8,7 +8,7 @@
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { SoqlBuilderApplication } from '../../src/application.js';
-import { SoqlBuilderElement } from '../../src/components/soqlBuilderElement.js';
+import type { SoqlBuilderElement } from '../../src/components/soqlBuilderElement.js';
 import {
   SoqlBuilderMessageChannelError,
   createInitialSoqlBuilderState,

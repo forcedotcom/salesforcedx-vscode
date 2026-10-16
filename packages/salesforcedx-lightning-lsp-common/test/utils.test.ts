@@ -7,12 +7,12 @@
 import * as os from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { join, resolve } from 'node:path';
-import { FileEvent, FileChangeType } from 'vscode-languageserver';
+import { type FileEvent, FileChangeType } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { LspFileSystemAccessor } from '../src/providers/lspFileSystemAccessor';
-import { PackageJson } from '../src/types/packageJson';
+import { type PackageJson } from '../src/types/packageJson';
 import * as utils from '../src/utils';
-import { NormalizedPath } from '../src/utils';
+import { type NormalizedPath } from '../src/utils';
 import { WorkspaceContext } from '../src/testSupport/workspaceContext';
 
 describe('utils', () => {
@@ -70,9 +70,9 @@ describe('utils', () => {
     beforeEach(() => {
       fileSystemAccessor = new LspFileSystemAccessor();
       contentMap.clear();
-      jest
-        .spyOn(fileSystemAccessor, 'getFileContent')
-        .mockImplementation((uri: string) => Promise.resolve(contentMap.get(utils.normalizePath(uri))));
+      vi.spyOn(fileSystemAccessor, 'getFileContent').mockImplementation((uri: string) =>
+        Promise.resolve(contentMap.get(utils.normalizePath(uri)))
+      );
     });
 
     it('should read json files', async () => {
@@ -124,9 +124,9 @@ describe('utils', () => {
     beforeEach(() => {
       fileSystemProvider = new LspFileSystemAccessor();
       contentMap.clear();
-      jest
-        .spyOn(fileSystemProvider, 'getFileContent')
-        .mockImplementation((uri: string) => Promise.resolve(contentMap.get(utils.normalizePath(uri))));
+      vi.spyOn(fileSystemProvider, 'getFileContent').mockImplementation((uri: string) =>
+        Promise.resolve(contentMap.get(utils.normalizePath(uri)))
+      );
     });
 
     it('returns undefined when package.json does not exist', async () => {
