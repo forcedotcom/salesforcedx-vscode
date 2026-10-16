@@ -6,10 +6,15 @@
  */
 
 import type { FileStat, DirectoryEntry } from './types/fileSystemTypes';
-import { getServicesApi, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
+import {
+  getServicesApi,
+  type buildAllServicesLayer,
+  type SalesforceVSCodeServicesApi
+} from '@salesforce/effect-ext-utils';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as ManagedRuntime from 'effect/ManagedRuntime';
 import { isError, isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
@@ -58,9 +63,15 @@ const vscodeStatToFileStat = (vstat: vscode.FileStat): FileStat => ({
 });
 
 type WorkspaceFsService = Context.Tag.Service<SalesforceVSCodeServicesApi['services']['FsService']>;
+type AllServicesLayer = ReturnType<typeof buildAllServicesLayer>;
+type AllServicesRuntime = ManagedRuntime.ManagedRuntime<
+  Layer.Layer.Success<AllServicesLayer>,
+  Layer.Layer.Error<AllServicesLayer>
+>;
+
 type WorkspaceReadFileServices = {
   readonly fsService: WorkspaceFsService;
-  readonly runPromise: <A, E>(effect: Effect.Effect<A, E, never>) => Promise<A>;
+  readonly runPromise: AllServicesRuntime['runPromise'];
 };
 
 const getFsFromServicesApi = Effect.flatMap(getServicesApi, api =>
