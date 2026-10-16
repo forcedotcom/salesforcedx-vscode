@@ -31,7 +31,7 @@ import { QUICK_INPUT_WIDGET, WORKBENCH } from './constants';
 import {
   causeMessage,
   DrivableVscodeActionError,
-  DrivableVscodeArtifactError,
+  type DrivableVscodeArtifactError,
   DrivableVscodeLaunchError,
   DrivableVscodeObservationError,
   DrivableVscodeStaleObservationError,
