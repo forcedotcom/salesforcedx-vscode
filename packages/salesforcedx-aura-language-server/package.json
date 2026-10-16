@@ -66,7 +66,6 @@
         "compile"
       ],
       "files": [
-        "src/**/*.ts",
         "test/**/*.ts",
         "vitest.setup.js",
         "vitest.config.mts",

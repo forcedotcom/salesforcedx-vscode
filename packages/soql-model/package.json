@@ -52,7 +52,6 @@
         "compile"
       ],
       "files": [
-        "src/**/*.ts",
         "test/**/*.ts",
         "vitest.config.mts",
         "../../config/vitest.base.config.mts",
