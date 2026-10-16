@@ -56,6 +56,7 @@ const notificationMode = {
   showSuccessNotification: () => Effect.void
 } as unknown as NotificationModeService;
 import { formatErrorMessage } from '../../../src/commands/queryUtils';
+import { prepareQuery } from '../../../src/prepareQuery';
 import { nls } from '../../../src/messages';
 import { messages } from '../../../src/messages/i18n';
 
@@ -770,7 +771,7 @@ describe('DataQuery Pure Functions', () => {
     it('strips trailing ALL ROWS and passes scanAll true on the REST branch', async () => {
       const { provider, query, mockConnectionService, mockPromptService } = makeApiMock();
       await Effect.runPromise(
-        runSoqlQuery('SELECT Id FROM Account ALL ROWS', false).pipe(
+        runSoqlQuery(prepareQuery('SELECT Id FROM Account ALL ROWS;'), false).pipe(
           Effect.provideService(ExtensionProviderService, provider),
           Effect.provideService(ConnectionService, mockConnectionService),
           Effect.provideService(ChannelService, mockChannel as unknown as ChannelService),
@@ -791,7 +792,7 @@ describe('DataQuery Pure Functions', () => {
     it('strips trailing ALL ROWS and passes scanAll true on the Tooling branch', async () => {
       const { provider, query, mockConnectionService, mockPromptService } = makeApiMock();
       await Effect.runPromise(
-        runSoqlQuery('SELECT Id FROM ApexClass ALL ROWS', true).pipe(
+        runSoqlQuery(prepareQuery('SELECT Id FROM ApexClass ALL ROWS'), true).pipe(
           Effect.provideService(ExtensionProviderService, provider),
           Effect.provideService(ConnectionService, mockConnectionService),
           Effect.provideService(ChannelService, mockChannel as unknown as ChannelService),
@@ -812,7 +813,7 @@ describe('DataQuery Pure Functions', () => {
     it('passes scanAll false and unchanged text when ALL ROWS is absent', async () => {
       const { provider, query, mockConnectionService, mockPromptService } = makeApiMock();
       await Effect.runPromise(
-        runSoqlQuery('SELECT Id FROM Account', false).pipe(
+        runSoqlQuery(prepareQuery('SELECT Id FROM Account'), false).pipe(
           Effect.provideService(ExtensionProviderService, provider),
           Effect.provideService(ConnectionService, mockConnectionService),
           Effect.provideService(ChannelService, mockChannel as unknown as ChannelService),
@@ -1062,7 +1063,7 @@ describe('DataQuery Pure Functions', () => {
     const run = (query: VitestMock) => {
       const { provider, show, appendToChannel } = makeProvider(query);
       return Effect.runPromise(
-        executeDataQuery('SELECT Id FROM Account', 'REST').pipe(
+        executeDataQuery(prepareQuery('SELECT Id FROM Account'), 'REST').pipe(
           Effect.provideService(ExtensionProviderService, provider),
           Effect.provideService(ChannelService, {} as unknown as ChannelService),
           Effect.provideService(ConnectionService, {} as unknown as ConnectionService),
