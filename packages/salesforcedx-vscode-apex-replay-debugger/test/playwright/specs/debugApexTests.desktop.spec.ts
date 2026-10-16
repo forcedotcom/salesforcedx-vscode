@@ -267,7 +267,7 @@ test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page 
       page.locator(NOTIFICATION_LIST_ITEM).filter({ hasText: FAILURE_NOTIFICATION_PATTERN }).first()
     ).toBeVisible({ timeout: 180_000 });
     await expect(page.locator(NOTIFICATION_LIST_ITEM).filter({ hasText: SUCCESS_NOTIFICATION_SUFFIX })).toHaveCount(0);
-    // One test method per class, so three logs replay one after another: each starts when the previous ends
+    // One synchronous run, and so one log, per class: three logs replay in turn, each when the previous ends
     for (const testName of ['ExampleApexClass1Test', 'ExampleApexClass2Test', 'ExampleFailingApexTest']) {
       await expect(page.locator(NOTIFICATION_LIST_ITEM).filter({ hasText: testName }).first()).toBeVisible({
         timeout: 60_000

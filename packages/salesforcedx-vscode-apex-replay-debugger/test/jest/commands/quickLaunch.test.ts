@@ -13,7 +13,7 @@ jest.mock('../../../src/apexExtension', () => ({ salesforceApexExtension: { isAc
 jest.mock('../../../src/commands/launchFromLogFile', () => ({ launchFromLogFile: jest.fn() }));
 
 import { launchFromLogFile } from '../../../src/commands/launchFromLogFile';
-import { replayInOrder, showDebugTestOutcome } from '../../../src/commands/quickLaunch';
+import { replayInOrder, showDebugTestOutcome, toDebugTargets } from '../../../src/commands/quickLaunch';
 
 const showSuccessNotification = jest.fn((..._a: unknown[]) => Effect.void);
 const notificationMode = { showSuccessNotification } as unknown as Parameters<typeof showDebugTestOutcome>[0];
@@ -147,5 +147,28 @@ describe('replayInOrder', () => {
     launch.mockReturnValue(Effect.die(new Error('launch boom')));
     await Effect.runPromise(replayInOrder(logs));
     expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(expect.stringContaining('launch boom'));
+  });
+});
+
+describe('toDebugTargets', () => {
+  it('runs the selected methods of a class together, one target per class', () => {
+    expect(toDebugTargets([], ['A.test1', 'B.test1', 'A.test2'])).toEqual([
+      { className: 'A', methodNames: ['test1', 'test2'] },
+      { className: 'B', methodNames: ['test1'] }
+    ]);
+  });
+
+  it('keeps namespaced classes apart from same-named local classes', () => {
+    expect(toDebugTargets([], ['ns.A.test1', 'A.test1'])).toEqual([
+      { className: 'ns.A', methodNames: ['test1'] },
+      { className: 'A', methodNames: ['test1'] }
+    ]);
+  });
+
+  it('runs a class selected whole once, dropping its separately selected methods', () => {
+    expect(toDebugTargets(['A'], ['A.test1', 'B.test1'])).toEqual([
+      { className: 'A' },
+      { className: 'B', methodNames: ['test1'] }
+    ]);
   });
 });

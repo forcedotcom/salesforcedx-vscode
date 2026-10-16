@@ -8,6 +8,7 @@
 import { LogService, type TestResult, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { Context } from 'effect';
+import * as Arr from 'effect/Array';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -38,30 +39,46 @@ export const showDebugTestOutcome = (
       )
     : notificationMode.showSuccessNotification(COMMAND, nls.localize('debug_test_success'), false);
 
-/** One synchronous test run: a whole class, or one method of it. */
-type DebugTarget = { className: string; methodName?: string };
+/** One synchronous test run: a whole class, or the listed methods of it. A sync run takes a single class, and
+ * all its tests share one debug log. */
+type DebugTarget = { className: string; methodNames?: readonly string[] };
 
-/** Parse a `Class.method` or `ns.Class.method` test name. */
-const toMethodTarget = (name: string): DebugTarget => {
+/** Split a `Class.method` or `ns.Class.method` test name into its class and method. */
+const parseMethodName = (name: string) => {
   const [methodName, className, namespace] = name.split('.').toReversed();
   return { className: namespace ? `${namespace}.${className}` : className, methodName };
 };
 
-/** A downloaded debug log, labelled with the test it came from for the replay progress message. */
+/**
+ * One target per class, so each class runs once and writes one log (as the class code lens does): whole classes
+ * first, then each remaining class with its selected methods. Methods of a class selected whole are covered by it.
+ */
+export const toDebugTargets = (classNames: readonly string[], methodNames: readonly string[]): DebugTarget[] => [
+  ...classNames.map(className => ({ className })),
+  ...Object.entries(
+    Arr.groupBy(
+      methodNames.map(parseMethodName).filter(({ className }) => !classNames.includes(className)),
+      ({ className }) => className
+    )
+  ).map(([className, methods]) => ({ className, methodNames: methods.map(({ methodName }) => methodName) }))
+];
+
+/** A downloaded debug log, labelled with the class it came from for the replay progress message. */
 type ReplayLog = { label: string; logPath: string };
 
 const runSyncTests = Effect.fn('ApexReplayDebugger.runSyncTests')(function* (
   testService: TestService,
-  { className, methodName }: DebugTarget,
+  { className, methodNames }: DebugTarget,
   retrieveCodeCoverage: boolean,
   dirPath: string
 ) {
-  const singleTestName = methodName ? `${className}.${methodName}` : undefined;
+  // Comma-separated methods of one class build a single-class payload
+  const tests = methodNames?.map(methodName => `${className}.${methodName}`).join(',');
   const payload = yield* Effect.promise(() =>
     testService.buildSyncPayload(
       'RunSpecifiedTests',
-      singleTestName,
-      singleTestName ? undefined : className,
+      tests,
+      tests ? undefined : className,
       undefined,
       !retrieveCodeCoverage // the setting enables code coverage, so we need to pass false to disable it
     )
@@ -72,7 +89,7 @@ const runSyncTests = Effect.fn('ApexReplayDebugger.runSyncTests')(function* (
   yield* Effect.promise(() =>
     testService.writeResultFiles(result, { dirPath, resultFormats: ['json'] }, retrieveCodeCoverage)
   );
-  return { label: singleTestName ?? className, result };
+  return { label: className, result };
 });
 
 const disposeAll = (disposables: readonly vscode.Disposable[]): void => {
@@ -264,13 +281,10 @@ const setupAndDebugTests = async (targets: readonly DebugTarget[]): Promise<void
 export type DebugTestsArg = { name: string } | { classNames: readonly string[]; methodNames: readonly string[] };
 
 export const debugTestsCommand = Effect.fn('debugTestsCommand')(function* (arg: DebugTestsArg) {
-  const targets =
-    'name' in arg
-      ? [{ className: arg.name }]
-      : [...arg.classNames.map(className => ({ className })), ...arg.methodNames.map(toMethodTarget)];
+  const targets = 'name' in arg ? [{ className: arg.name }] : toDebugTargets(arg.classNames, arg.methodNames);
   yield* Effect.promise(() => setupAndDebugTests(targets));
 });
 
 export const debugSingleTestCommand = Effect.fn('debugSingleTestCommand')(function* (test: { name: string }) {
-  yield* Effect.promise(() => setupAndDebugTests([toMethodTarget(test.name)]));
+  yield* Effect.promise(() => setupAndDebugTests(toDebugTargets([], [test.name])));
 });
