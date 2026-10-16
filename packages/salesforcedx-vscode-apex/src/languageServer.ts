@@ -32,7 +32,7 @@ import { APEX_SETTINGS_SECTION, UBER_JAR_NAME } from './constants';
 import { dropLsAnonymousApexExecuteLenses } from './dropLsAnonymousApexExecuteLenses';
 import { soqlMiddleware } from './embeddedSoql';
 import { languageClientSetupError } from './languageClientSetupErrors';
-import { buildMetadataRegistryScanConfigInRuntime } from './languageServerScanConfig';
+import { buildMetadataRegistryScanConfig } from './languageServerScanConfig';
 import { nls } from './messages';
 import { rewriteNamespaceLens } from './namespaceLensRewriter';
 import { resolveRequirements } from './requirements';
@@ -195,7 +195,7 @@ export const createLanguageServer = Effect.fn('apex.lsp.createLanguageServer')(f
 });
 
 const buildClientOptions = Effect.fn('apex.lsp.buildClientOptions')(function* (outputChannel?: vscode.OutputChannel) {
-  const scanConfig = yield* buildMetadataRegistryScanConfigInRuntime.pipe(
+  const scanConfig = yield* buildMetadataRegistryScanConfig.pipe(
     Effect.mapError(cause => languageClientSetupError('options', cause))
   );
 

@@ -46,7 +46,7 @@ jest.mock('../../src/requirements', () => {
 // No services extension → no scan config.
 jest.mock('../../src/languageServerScanConfig', () => {
   const effectVoid = (require('effect/Effect') as { void: unknown }).void;
-  return { buildMetadataRegistryScanConfigInRuntime: effectVoid };
+  return { buildMetadataRegistryScanConfig: effectVoid };
 });
 
 // Capture the onTelemetry callback so tests can drive Jorje telemetry events at will.

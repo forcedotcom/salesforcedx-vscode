@@ -7,8 +7,6 @@
 
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
-import * as Option from 'effect/Option';
 import * as Order from 'effect/Order';
 import { isString } from 'effect/Predicate';
 import * as String from 'effect/String';
@@ -65,8 +63,8 @@ const buildScanConfig = (registryAccess: RegistryAccessLike): ApexLspScanConfig 
   return excludeFolders.length === 0 ? undefined : { scan: { excludeFolders } };
 };
 
-/** Service-dependent form for callers already running with the Apex extension's services runtime. */
-export const buildMetadataRegistryScanConfigInRuntime = getServicesApi.pipe(
+/** Builds Apex scan exclusions using the caller's services runtime. */
+export const buildMetadataRegistryScanConfig = getServicesApi.pipe(
   Effect.flatMap(servicesApi =>
     servicesApi.services.MetadataRegistryService.getRegistryAccess().pipe(
       Effect.map(buildScanConfig),
@@ -75,34 +73,3 @@ export const buildMetadataRegistryScanConfigInRuntime = getServicesApi.pipe(
   ),
   Effect.catchTag('ServicesExtensionNotFoundError', () => Effect.void)
 );
-
-export const buildMetadataRegistryScanConfig = async (): Promise<ApexLspScanConfig | undefined> => {
-  const excludes = await Effect.runPromise(
-    getServicesApi.pipe(
-      Effect.flatMap(servicesApi =>
-        servicesApi.services.prebuiltServicesLayer.pipe(
-          Layer.toRuntime,
-          Effect.flatMap(runtime =>
-            servicesApi.services.MetadataRegistryService.getRegistryAccess().pipe(
-              Effect.map(registryAccess => {
-                const apexFolderNames = getApexFolderNames(registryAccess);
-                return deriveExcludedMetadataFolders(registryAccess.getRegistry(), apexFolderNames);
-              }),
-              Effect.provide(runtime)
-            )
-          ),
-          Effect.scoped,
-          Effect.map(Option.some),
-          Effect.catchAllCause(() => Effect.succeed(Option.none<string[]>()))
-        )
-      ),
-      Effect.catchTag('ServicesExtensionNotFoundError', () => Effect.succeed(Option.none<string[]>()))
-    )
-  );
-
-  if (Option.isNone(excludes) || excludes.value.length === 0) {
-    return undefined;
-  }
-
-  return { scan: { excludeFolders: excludes.value } };
-};
