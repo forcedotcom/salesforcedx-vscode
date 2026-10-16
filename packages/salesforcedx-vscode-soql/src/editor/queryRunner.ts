@@ -7,25 +7,17 @@
 
 import type { QueryResult } from '../types';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import * as soqlComments from '@salesforce/soql-common/soqlComments';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import { JsonObject } from '../json';
-import { stripAllRows } from './allRows';
+import { prepareQuery } from '../prepareQuery';
 
 export const runQuery = Effect.fn('runQuery')(function* (queryText: string, options?: { readonly maxRows?: number }) {
   const maxRows = options?.maxRows ?? 50_000;
   return yield* Effect.flatMap(ExtensionProviderService, provider => provider.getServicesApi).pipe(
     Effect.flatMap(api => api.services.QueryService),
-    Effect.flatMap(queryService =>
-      queryService.query(
-        {
-          ...stripAllRows(soqlComments.parseHeaderComments(queryText).soqlText)
-        },
-        JsonObject
-      )
-    ),
+    Effect.flatMap(queryService => queryService.query(prepareQuery(queryText), JsonObject)),
     Effect.flatMap(({ totalSize, records }) =>
       Stream.take(records, maxRows).pipe(
         Stream.runCollect,

@@ -14,6 +14,7 @@ import * as vscode from 'vscode';
 import { executeQueryPlan, formatQueryPlanResults, QueryPlanResponse } from '../../../src/commands/queryPlan';
 import { formatErrorMessage } from '../../../src/commands/queryUtils';
 import { nls } from '../../../src/messages';
+import { prepareQuery } from '../../../src/prepareQuery';
 
 const decode = Schema.decodeUnknownSync(QueryPlanResponse);
 const settingsService = SettingsService.make({
@@ -118,5 +119,19 @@ describe('executeQueryPlan', () => {
     );
     expect(appendToChannel).toHaveBeenCalledWith(nls.localize('query_plan_complete'));
     expect(show).toHaveBeenCalledTimes(1);
+  });
+
+  it('encodes the same prepared SOQL used for Run Query in explain=', async () => {
+    const request = jest.fn().mockResolvedValue({ plans: [] });
+    setup(request);
+    const query = '// header\nSELECT Id FROM Account ALL ROWS;';
+    await Effect.runPromise(
+      executeQueryPlan(prepareQuery(query).soql).pipe(
+        Effect.provideService(ChannelService, {} as unknown as ChannelService),
+        Effect.provideService(ConnectionService, {} as unknown as ConnectionService),
+        Effect.provideService(SettingsService, settingsService)
+      )
+    );
+    expect(request).toHaveBeenCalledWith(`/query?explain=${encodeURIComponent('SELECT Id FROM Account')}`);
   });
 });
