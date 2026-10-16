@@ -11,6 +11,7 @@ import * as Option from 'effect/Option';
 import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { prepareQuery } from '../prepareQuery';
 
 const API_ITEMS = [
   { api: 'REST' as const, label: nls.localize('REST_API'), description: nls.localize('REST_API_description') },
@@ -20,12 +21,10 @@ const API_ITEMS = [
 const ensureTextAndNormalize = Effect.fn('ensureTextAndNormalize')(function* (text: string) {
   const servicesApi = yield* getServicesApi;
   const promptService = yield* servicesApi.services.PromptService;
-  const normalized = text
-    .replace('[', '')
-    .replace(']', '')
-    .replaceAll(/(\r\n|\n)/g, ' ')
-    .trim();
-  return yield* promptService.considerUndefinedAsCancellation(normalized);
+  const withoutBrackets = text.replace('[', '').replace(']', '');
+  const prepared = prepareQuery(withoutBrackets);
+  const normalized = prepared.soql.replaceAll(/(\r\n|\n)/g, ' ').trim();
+  return { ...prepared, soql: yield* promptService.considerUndefinedAsCancellation(normalized) };
 });
 
 const getQueryText = Effect.fn('getQueryText')(function* (useSelection: boolean) {
@@ -52,11 +51,11 @@ export const getDocumentQueryAndApiInputs = Effect.fn('getDocumentQueryAndApiInp
 });
 
 export const getQueryInputsForPlan = Effect.fn('getQueryInputsForPlan')(function* () {
-  return yield* getQueryText(true);
+  return (yield* getQueryText(true)).soql;
 });
 
 export const getDocumentQueryInputsForPlan = Effect.fn('getDocumentQueryInputsForPlan')(function* () {
-  return yield* getQueryText(false);
+  return (yield* getQueryText(false)).soql;
 });
 
 const ERROR_PATTERNS = [

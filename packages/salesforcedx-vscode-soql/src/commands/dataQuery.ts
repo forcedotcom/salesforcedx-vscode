@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { prepareQuery } from '../prepareQuery';
 import type { QueryResult } from '../types';
 import { type Column, createTable, ExtensionProviderService, type Row } from '@salesforce/effect-ext-utils';
 import * as Cause from 'effect/Cause';
@@ -13,7 +14,6 @@ import { isBoolean, isDate, isNull, isNullable, isNumber, isRecord, isUndefined 
 import * as Stream from 'effect/Stream';
 import { Utils } from 'vscode-uri';
 import { SFDX_CORE_SECTION, SOQL_CONFIGURATION_NAME } from '../constants';
-import { stripAllRows } from '../editor/allRows';
 import { JsonObject } from '../json';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
@@ -26,13 +26,16 @@ const COMMAND: ProgressAndSuccessCommandKey = messages.soql_query_execution_text
 /**
  * Executes a SOQL query, auto-fetching all pages of results up to the user-configured
  * `salesforcedx-vscode-soql.maxQueryLimit` setting (default 50,000).
- * Detects and strips `ALL ROWS` clauses, routing to `/queryAll` endpoint via `scanAll` option.
+ * Routes prepared `ALL ROWS` queries to `/queryAll` via the `scanAll` option.
  * Shows a progress notification while query executes.
  *
- * @param query - SOQL query string to execute (may contain trailing `ALL ROWS`)
+ * @param query - Prepared SOQL query and scanAll option
  * @param useTooling - Whether to use the Tooling API instead of REST
  */
-export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, useTooling: boolean = false) {
+export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (
+  query: ReturnType<typeof prepareQuery>,
+  useTooling: boolean = false
+) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
   yield* api.services.ChannelService.pipe(
@@ -54,7 +57,7 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (query: string, 
     queryService: api.services.QueryService
   }).pipe(
     Effect.flatMap(({ maxRows, promptService, progressLocation, queryService }) =>
-      queryService.query({ ...stripAllRows(query), tooling: useTooling }, JsonObject).pipe(
+      queryService.query({ ...query, tooling: useTooling }, JsonObject).pipe(
         Effect.flatMap(({ totalSize, records }) =>
           Stream.take(records, maxRows).pipe(
             Stream.runCollect,
@@ -94,7 +97,10 @@ const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: Q
   ]);
 });
 
-export const executeDataQuery = Effect.fn('executeDataQuery')(function* (query: string, queryApi: 'REST' | 'TOOLING') {
+export const executeDataQuery = Effect.fn('executeDataQuery')(function* (
+  query: ReturnType<typeof prepareQuery>,
+  queryApi: 'REST' | 'TOOLING'
+) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
 
