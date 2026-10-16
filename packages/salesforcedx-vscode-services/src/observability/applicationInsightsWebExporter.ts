@@ -20,6 +20,7 @@ import { type ReadableSpan, type SpanExporter } from '@opentelemetry/sdk-trace-b
 import { TelemetryReporter } from '@vscode/extension-telemetry';
 import * as Console from 'effect/Console';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as Match from 'effect/Match';
 import * as Stream from 'effect/Stream';
 import { workspace } from 'vscode';
@@ -133,12 +134,18 @@ const sendToLocalAppInsightsFile = (
   properties: Record<string, string | undefined>,
   measurements: Record<string, number>
 ): void => {
-  void HttpClientRequest.post(APP_INSIGHTS_WEB_FILE_SERVER_URL).pipe(
-    HttpClientRequest.bodyJson({ name, eventType: success ? 'event' : 'errorEvent', properties, measurements }),
-    Effect.flatMap(HttpClient.execute),
-    Effect.ignore, // server optional in local dev
-    Effect.withTracerEnabled(false),
-    Effect.provide(FetchHttpClient.layer),
+  void FetchHttpClient.layer.pipe(
+    Layer.toRuntime,
+    Effect.flatMap(runtime =>
+      HttpClientRequest.post(APP_INSIGHTS_WEB_FILE_SERVER_URL).pipe(
+        HttpClientRequest.bodyJson({ name, eventType: success ? 'event' : 'errorEvent', properties, measurements }),
+        Effect.flatMap(HttpClient.execute),
+        Effect.ignore, // server optional in local dev
+        Effect.withTracerEnabled(false),
+        Effect.provide(runtime)
+      )
+    ),
+    Effect.scoped,
     Effect.runPromise
   );
 };

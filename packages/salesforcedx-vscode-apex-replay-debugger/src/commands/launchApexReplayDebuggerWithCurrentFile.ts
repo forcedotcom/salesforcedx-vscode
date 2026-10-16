@@ -60,7 +60,7 @@ const getApexTestClassName = (sourceUri: URI, text: string): string | undefined 
 
 const launchAnonymousApexReplayDebugger = Effect.fn('ApexReplayDebugger.launchAnonymousApexReplayDebugger')(
   function* () {
-    if (!(yield* Effect.promise(() => sfProjectPreconditionChecker.check()))) return;
+    if (!(yield* sfProjectPreconditionChecker.checkEffect)) return;
     yield* Effect.promise(() => vscode.commands.executeCommand('sf.anon.apex.debug.delegate'));
   }
 );

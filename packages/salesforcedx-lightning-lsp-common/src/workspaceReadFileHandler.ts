@@ -6,8 +6,11 @@
  */
 
 import type { FileStat, DirectoryEntry } from './types/fileSystemTypes';
-import { getServicesApi } from '@salesforce/effect-ext-utils';
+import { type buildAllServicesLayer, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
+import type * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
+import type * as Layer from 'effect/Layer';
+import type * as ManagedRuntime from 'effect/ManagedRuntime';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
@@ -55,9 +58,17 @@ const vscodeStatToFileStat = (vstat: vscode.FileStat): FileStat => ({
   exists: true
 });
 
-const getFs = Effect.flatMap(getServicesApi, api =>
-  Effect.provide(api.services.FsService, api.services.FsService.Default)
-);
+type WorkspaceFsService = Context.Tag.Service<SalesforceVSCodeServicesApi['services']['FsService']>;
+type AllServicesLayer = ReturnType<typeof buildAllServicesLayer>;
+type AllServicesRuntime = ManagedRuntime.ManagedRuntime<
+  Layer.Layer.Success<AllServicesLayer>,
+  Layer.Layer.Error<AllServicesLayer>
+>;
+
+type WorkspaceReadFileServices = {
+  readonly fsService: WorkspaceFsService;
+  readonly runPromise: AllServicesRuntime['runPromise'];
+};
 
 const logTo = (channel: Pick<vscode.OutputChannel, 'appendLine'>, msg: string) =>
   Effect.sync(() => channel.appendLine(msg));
@@ -70,15 +81,19 @@ const logTo = (channel: Pick<vscode.OutputChannel, 'appendLine'>, msg: string) =
  * Call this from the extension after the language client has started. Only extensions that
  * have salesforcedx-vscode-services as an extensionDependency should use this.
  *
+ * @param services FsService and Effect runner from the caller's long-lived runtime.
  * @param outputChannel Optional channel to log handler activity. Pass the extension's existing
  * output channel (e.g. channelService) so logs appear there rather than in a new dedicated channel.
  * When omitted, handler activity is not logged.
  */
 export const registerWorkspaceReadFileHandler = (
   client: WorkspaceReadFileClient,
+  services: WorkspaceReadFileServices,
   outputChannel?: Pick<vscode.OutputChannel, 'appendLine'>
 ): void => {
   const log = outputChannel ?? { appendLine: () => {} };
+  const getFs = Effect.succeed(services.fsService);
+  const run = services.runPromise;
 
   const handleReadFile = Effect.fn('WorkspaceHandler.readFile')(function* (params: WorkspaceReadFileParams) {
     const uri = URI.revive(params.uri);
@@ -143,7 +158,7 @@ export const registerWorkspaceReadFileHandler = (
           return { error: errorMessage(e) };
         })
       ),
-      Effect.runPromise
+      run
     )
   );
 
@@ -157,7 +172,7 @@ export const registerWorkspaceReadFileHandler = (
           return { error: errorMessage(e) || 'Unknown stat error' };
         })
       ),
-      Effect.runPromise
+      run
     )
   );
 
@@ -171,7 +186,7 @@ export const registerWorkspaceReadFileHandler = (
             return { error: errorMessage(e) };
           })
         ),
-        Effect.runPromise
+        run
       )
   );
 
@@ -186,7 +201,7 @@ export const registerWorkspaceReadFileHandler = (
           return { uris: undefined };
         })
       ),
-      Effect.runPromise
+      run
     )
   );
 
@@ -198,7 +213,7 @@ export const registerWorkspaceReadFileHandler = (
           return { error: errorMessage(e) };
         })
       ),
-      Effect.runPromise
+      run
     )
   );
 };

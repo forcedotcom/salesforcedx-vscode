@@ -7,7 +7,6 @@
 
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as Option from 'effect/Option';
 import * as Order from 'effect/Order';
 import { isString } from 'effect/Predicate';
 import * as String from 'effect/String';
@@ -56,34 +55,21 @@ const getApexFolderNames = (registryAccess: RegistryAccessLike): Set<string> =>
       .map(toNormalizedFolderName)
   );
 
-export const buildMetadataRegistryScanConfig = async (): Promise<ApexLspScanConfig | undefined> => {
-  const excludes = await Effect.runPromise(
-    getServicesApi.pipe(
-      Effect.flatMap(servicesApi =>
-        Effect.suspend(() =>
-          servicesApi.services.MetadataRegistryService.getRegistryAccess().pipe(
-            Effect.map(registryAccess => {
-              const apexFolderNames = getApexFolderNames(registryAccess);
-              return deriveExcludedMetadataFolders(registryAccess.getRegistry(), apexFolderNames);
-            }),
-            Effect.provide(servicesApi.services.prebuiltServicesLayer)
-          )
-        ).pipe(
-          Effect.map(Option.some),
-          Effect.catchAllCause(() => Effect.succeed(Option.none<string[]>()))
-        )
-      ),
-      Effect.catchTag('ServicesExtensionNotFoundError', () => Effect.succeed(Option.none<string[]>()))
-    )
+const buildScanConfig = (registryAccess: RegistryAccessLike): ApexLspScanConfig | undefined => {
+  const excludeFolders = deriveExcludedMetadataFolders(
+    registryAccess.getRegistry(),
+    getApexFolderNames(registryAccess)
   );
-
-  if (Option.isNone(excludes) || excludes.value.length === 0) {
-    return undefined;
-  }
-
-  return {
-    scan: {
-      excludeFolders: excludes.value
-    }
-  };
+  return excludeFolders.length === 0 ? undefined : { scan: { excludeFolders } };
 };
+
+/** Builds Apex scan exclusions using the caller's services runtime. */
+export const buildMetadataRegistryScanConfig = getServicesApi.pipe(
+  Effect.flatMap(servicesApi =>
+    servicesApi.services.MetadataRegistryService.getRegistryAccess().pipe(
+      Effect.map(buildScanConfig),
+      Effect.catchAllCause(() => Effect.void)
+    )
+  ),
+  Effect.catchTag('ServicesExtensionNotFoundError', () => Effect.void)
+);
