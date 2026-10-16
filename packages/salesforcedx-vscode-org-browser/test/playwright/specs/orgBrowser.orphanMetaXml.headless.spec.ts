@@ -28,10 +28,12 @@ import { OrgBrowserPage } from '../pages/orgBrowserPage';
     await desktopTest.step('create orphaned ApexClass metadata XML', async () => {
       await fs.mkdir(classesDir, { recursive: true });
       await expect(fs.access(sourcePath)).rejects.toThrow();
+      await fs.writeFile(sourcePath, 'public with sharing class PropertyController {}');
       await fs.writeFile(
         `${sourcePath}-meta.xml`,
         '<?xml version="1.0" encoding="UTF-8"?><ApexClass xmlns="http://soap.sforce.com/2006/04/metadata"><apiVersion>64.0</apiVersion><status>Active</status></ApexClass>'
       );
+      await fs.unlink(sourcePath);
     });
 
     const orgBrowserPage = new OrgBrowserPage(page);
