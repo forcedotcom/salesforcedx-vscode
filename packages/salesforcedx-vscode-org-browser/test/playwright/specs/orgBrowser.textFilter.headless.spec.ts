@@ -70,7 +70,15 @@ test('Org Browser - text filter: explicit type name filters tree after input clo
   const beforeCount = await orgBrowserPage.getStableRootTypeCount();
 
   await orgBrowserPage.applyTextFilter('ApexClass:');
-  await acceptNotification(page, /Search all \d+ metadata types in the org\?/, 'Use Loaded Results');
+  if (isContainer) {
+    // "Search all N metadata types" is a session-wide one-time offer
+    // (MetadataTypeTreeProvider#discoveryOfferShown). orgBrowserTextFilterDreamhouse.container.spec.ts
+    // runs earlier in this suite's one persistent extension host and already claims the offer without
+    // accepting it, so it can never reappear here. Basic filtering applies independently of the offer —
+    // skip straight to asserting the narrowed tree.
+  } else {
+    await acceptNotification(page, /Search all \d+ metadata types in the org\?/, 'Use Loaded Results');
+  }
 
   const narrowedItems = orgBrowserPage.sidebar.getByRole('treeitem', { level: 1 });
   await orgBrowserPage.waitForRootTypeCount(1);
@@ -128,6 +136,13 @@ test('Org Browser - text filter: Escape closes the input and keeps the typed fil
   await orgBrowserPage.openOrgBrowser();
 
   await orgBrowserPage.fillTextFilter('ApexClass:');
+  // Wait for the LIVE (debounced) preview filter to actually land host-side before closing the
+  // picker. onDidHide applies picker.value immediately on Escape with no debounce; closing right
+  // after fill() (which only waits for the DOM value, not for that value's change message to reach
+  // the extension host) races the host's still-stale picker.value. Confirming the live filter
+  // already narrowed the tree first — the same thing the "unresolved type name" test above waits
+  // on before its own Escape — removes that race.
+  await orgBrowserPage.waitForRootTypeCount(1);
   await page.keyboard.press('Escape');
 
   await orgBrowserPage.waitForRootTypeCount(1);
