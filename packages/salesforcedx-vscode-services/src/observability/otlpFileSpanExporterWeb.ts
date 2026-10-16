@@ -13,6 +13,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
+import { exportResultFromHttpStatus } from './httpExportResult';
 import { runOnServicesRuntime } from './redactingConsoleLogger';
 import { serializeSpanOtlp } from './spanUtils';
 
@@ -51,11 +52,7 @@ export class OtlpFileSpanExporterWeb implements SpanExporter {
               Effect.flatMap(HttpClient.execute)
             )
           ),
-          Effect.map(res =>
-            res.status >= 200 && res.status < 300
-              ? resultCallback({ code: ExportResultCode.SUCCESS })
-              : resultCallback({ code: ExportResultCode.FAILED, error: new Error(`HTTP ${res.status}`) })
-          ),
+          Effect.map(res => resultCallback(exportResultFromHttpStatus(res.status, status => `HTTP ${status}`))),
           Effect.catchAll(error => {
             const exportError = isError(error) ? error : new Error(String(error));
             if (!localExportFailureLogged.logged) {

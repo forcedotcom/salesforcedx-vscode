@@ -18,6 +18,7 @@ import { isError, isString } from 'effect/Predicate';
 import { ConnectionService } from '../core/connectionService';
 import { unknownToErrorCause } from '../core/shared';
 import { getServicesRuntime, isServicesRuntimeReady } from '../servicesRuntime';
+import { exportResultFromHttpStatus } from './httpExportResult';
 import { runOnServicesRuntime } from './redactingConsoleLogger';
 import { getSpanCreationIdentity } from './spanTransformProcessor';
 import {
@@ -184,11 +185,7 @@ export class O11ySpanExporter implements SpanExporter {
         HttpClientRequest.post(`${this.localIngestionEndpoint!.replace(/\/$/, '')}/o11y`).pipe(
           HttpClientRequest.bodyJson({ extensionName: this.extensionName, events }),
           Effect.flatMap(HttpClient.execute),
-          Effect.map(res =>
-            res.status >= 200 && res.status < 300
-              ? { code: ExportResultCode.SUCCESS }
-              : { code: ExportResultCode.FAILED, error: new Error(`local /o11y responded ${res.status}`) }
-          ),
+          Effect.map(res => exportResultFromHttpStatus(res.status, status => `local /o11y responded ${status}`)),
           Effect.catchAll(error => {
             const result = {
               code: ExportResultCode.FAILED,
