@@ -227,7 +227,10 @@ jobs:
           # build-github-release.yml always writes "Built from nightly: `<tag>`" for stable builds,
           # even when the source was startFromRef rather than an actual nightly tag -- the
           # nightly-tag-shaped grep below naturally no-ops for those (no promoted delta to relabel).
-          NIGHTLY_TAG=$(gh release view "$RELEASE_TAG" --json body -q .body | grep -oP '(?<=Built from nightly:.{0,10}`)v[\d.]+-nightly\.develop\.\d+' || true)
+          # \K (not a variable-length lookbehind) because GNU grep's PCRE engine rejects
+          # (?<=...{0,10}...) with "lookbehind assertion is not fixed length" -- that silently
+          # swallowed every match via the `|| true` below, so this step always skipped.
+          NIGHTLY_TAG=$(gh release view "$RELEASE_TAG" --json body -q .body | grep -oP 'Built from nightly:.{0,10}`\Kv[\d.]+-nightly\.develop\.\d+' || true)
           if [ -z "$NIGHTLY_TAG" ]; then
             echo "No 'Built from nightly' reference found in release $RELEASE_TAG (likely a hotfix/startFromRef build) - skipping relabel."
             echo "prerelease_version=" >> "$GITHUB_OUTPUT"
