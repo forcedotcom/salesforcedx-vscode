@@ -39,4 +39,10 @@ describe('runQuery ALL ROWS handling', () => {
       expect.anything()
     );
   });
+
+  it('sends cleaned SOQL for Builder and LSP validation', async () => {
+    const query = await run('// this is a comment\nSELECT Id, Name FROM Account;');
+
+    expect(query).toHaveBeenCalledWith({ soql: 'SELECT Id, Name FROM Account', scanAll: false }, expect.anything());
+  });
 });
