@@ -26,6 +26,25 @@ const run = <A>(effect: Effect.Effect<A, unknown, MetadataRegistryService>): A =
   Effect.runSync(effect.pipe(Effect.provide(registryLayer)));
 
 describe('Org Catalog inventory projection', () => {
+  it('marks workspace presence unavailable instead of absent when the scan failed', () => {
+    const inventory = run(
+      mergeInventory({
+        orgId: 'org-one',
+        xmlName: 'ApexClass',
+        observedAt: '2026-08-03T12:00:00.000Z',
+        orgComponents: [{ fullName: 'RemoteOnly' }],
+        workspaceUris: HashMap.empty(),
+        workspacePresenceAvailable: false
+      })
+    );
+
+    expect(HashMap.toValues(inventory)[0]).toMatchObject({
+      inOrg: true,
+      inWorkspace: false,
+      workspacePresenceAvailable: false
+    });
+  });
+
   it('merges remote observations with live workspace presence', () => {
     const workspaceUri = URI.file('/workspace/classes/Both.cls');
     const localOnlyUri = URI.file('/workspace/classes/LocalOnly.cls');

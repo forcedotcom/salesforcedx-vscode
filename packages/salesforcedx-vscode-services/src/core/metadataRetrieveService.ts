@@ -24,7 +24,7 @@ import * as Option from 'effect/Option';
 import { isUndefined } from 'effect/Predicate';
 import * as Runtime from 'effect/Runtime';
 import * as vscode from 'vscode';
-import { type URI, Utils } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { OrgMetadataCatalogRecorder } from '../orgCatalog/orgMetadataCatalogRecorder';
 import { FsService } from '../vscode/fsService';
 import { uriToPath } from '../vscode/paths';
@@ -92,41 +92,6 @@ type PerformRetrieveOperationInput = {
 
 type MetadataRetrieveOptions = SourceTrackingOptions & { readonly expectedOrgId?: string };
 
-const metadataXmlSuffix = '-meta.xml';
-
-/** Match file paths SDR treats as metadata when it discovers a workspace containing an orphaned sidecar. */
-const isMetadataSourceFile = (
-  uri: URI,
-  registryAccess: RegistryAccess,
-  specialMetadataDirectories: ReadonlySet<string>
-): boolean => {
-  const fileName = Utils.basename(uri);
-  if (fileName.endsWith(metadataXmlSuffix)) return true;
-
-  const pathSegments = new Set(uri.path.split('/'));
-  const suffix = Utils.extname(uri).slice(1);
-  const isStrictFolderType = registryAccess.getStrictFolderTypes().some(type => {
-    if (!pathSegments.has(type.directoryName)) return false;
-    const adapter = type.strategies?.adapter;
-    if (adapter === 'mixedContent' || adapter === 'bundle' || adapter === 'uiBundles') return true;
-    const childSuffixes = Object.values(type.children?.types ?? {}).flatMap(child => [
-      child.suffix,
-      child.legacySuffix
-    ]);
-    return [type.suffix, type.legacySuffix, ...childSuffixes].some(
-      candidateSuffix =>
-        candidateSuffix !== undefined &&
-        (fileName.endsWith(candidateSuffix) || fileName.endsWith(`${candidateSuffix}${metadataXmlSuffix}`))
-    );
-  });
-  if (isStrictFolderType) return true;
-
-  const suffixType = registryAccess.getTypeBySuffix(suffix);
-  if (suffixType && pathSegments.has(suffixType.directoryName)) return true;
-
-  return [...specialMetadataDirectories].some(directoryName => pathSegments.has(directoryName));
-};
-
 export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveService>()('MetadataRetrieveService', {
   accessors: true,
   dependencies: [
@@ -152,72 +117,6 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
     const metadataDescribeService = yield* MetadataDescribeService;
     const catalogRecorder = yield* OrgMetadataCatalogRecorder;
     const fsService = yield* FsService;
-
-    const sourcePathsWithoutOrphanedMetadataXml = Effect.fn(
-      'MetadataRetrieveService.sourcePathsWithoutOrphanedMetadataXml'
-    )(function* (sourcePaths: string[], registryAccess: RegistryAccess) {
-      const rootUris = yield* Effect.forEach(sourcePaths, fsService.toUri, { concurrency: 'unbounded' });
-      const rootDirectories = yield* Effect.forEach(rootUris, uri => fsService.isDirectory(uri), {
-        concurrency: 'unbounded'
-      });
-      if (!rootDirectories.every(Boolean)) return sourcePaths;
-
-      const initialTraversal: { readonly pending: readonly URI[]; readonly files: readonly URI[] } = {
-        pending: rootUris,
-        files: []
-      };
-      const traversal = yield* Effect.iterate(initialTraversal, {
-        while: current => current.pending.length > 0,
-        body: current =>
-          fsService.readDirectoryWithTypes(current.pending[0]!).pipe(
-            Effect.map(entries => ({
-              pending: [
-                ...current.pending.slice(1),
-                ...entries
-                  .filter(entry => (entry.type & vscode.FileType.Directory) !== 0)
-                  .filter(entry => Utils.basename(entry.uri) !== 'node_modules')
-                  .map(entry => entry.uri)
-              ],
-              files: [
-                ...current.files,
-                ...entries.filter(entry => (entry.type & vscode.FileType.File) !== 0).map(entry => entry.uri)
-              ]
-            }))
-          )
-      });
-      const fileUris = new Set(traversal.files.map(uri => uri.toString()));
-      const orphanedMetadataXml = new Set(
-        traversal.files
-          .filter(uri => Utils.basename(uri).endsWith(metadataXmlSuffix))
-          .filter(uri => {
-            const fileName = Utils.basename(uri);
-            const sourceName = fileName.slice(0, -metadataXmlSuffix.length);
-            const suffix = sourceName.split('.').at(-1) ?? '';
-            return (
-              registryAccess.getTypeBySuffix(suffix)?.strategies?.adapter === 'matchingContentFile' &&
-              !fileUris.has(Utils.joinPath(Utils.dirname(uri), sourceName).toString())
-            );
-          })
-          .map(uri => uri.toString())
-      );
-      if (orphanedMetadataXml.size === 0) return sourcePaths;
-
-      const specialMetadataDirectories = new Set(
-        [
-          'DigitalExperience',
-          'ExperiencePropertyTypeBundle',
-          'LightningTypeBundle',
-          'ContentTypeBundle',
-          'UiWidgetBundle'
-        ].map(typeName => registryAccess.getTypeByName(typeName).directoryName)
-      );
-      const metadataFiles = traversal.files.filter(
-        uri =>
-          !orphanedMetadataXml.has(uri.toString()) &&
-          isMetadataSourceFile(uri, registryAccess, specialMetadataDirectories)
-      );
-      return yield* Effect.forEach(metadataFiles, uri => fsService.uriToPath(uri), { concurrency: 'unbounded' });
-    });
 
     const publishRetrieveNotifications = Effect.fn('MetadataRetrieveService.publishRetrieveNotifications')(function* (
       retrieveOutcome: Awaited<ReturnType<MetadataApiRetrieve['pollStatus']>>,
@@ -295,9 +194,8 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       });
       const registryAccess = yield* metadataRegistryService.getRegistryAccess();
       const include = filterMembers.length > 0 ? yield* buildComponentSet(filterMembers) : undefined;
-      const resolvedSourcePaths = yield* sourcePathsWithoutOrphanedMetadataXml(sourcePaths, registryAccess);
       const cs = yield* Effect.try({
-        try: () => ComponentSet.fromSource({ fsPaths: resolvedSourcePaths, include, registry: registryAccess }),
+        try: () => ComponentSet.fromSource({ fsPaths: sourcePaths, include, registry: registryAccess }),
         catch: e => {
           const { cause } = unknownToErrorCause(e);
           return new FailedToBuildComponentSetError({

@@ -19,7 +19,7 @@ import { test as desktopTest } from '../fixtures/desktopFixtures';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 
 (isDesktop() ? desktopTest : desktopTest.skip.bind(desktopTest))(
-  'Org Browser loads ApexClass with orphaned metadata XML and marks its source absent',
+  'Org Browser loads ApexClass with orphaned metadata XML and marks workspace presence unknown',
   async ({ page, workspaceDir }) => {
     desktopTest.setTimeout(600_000);
     const classesDir = path.join(workspaceDir, 'force-app', 'main', 'default', 'classes');
@@ -44,14 +44,16 @@ import { OrgBrowserPage } from '../pages/orgBrowserPage';
       await orgBrowserPage.openOrgBrowser();
     });
 
-    await desktopTest.step('expand ApexClass and check the missing-source indicator', async () => {
+    await desktopTest.step('expand ApexClass and report that workspace presence is unknown', async () => {
       await orgBrowserPage.findMetadataType('ApexClass');
       await orgBrowserPage.expandFolder('ApexClass');
       const item = await orgBrowserPage.getMetadataItem('ApexClass', 'PropertyController');
       await expect(item, 'PropertyController should load despite its orphaned XML').toBeVisible();
-      await expect(item.locator('div.custom-view-tree-node-item-icon'), 'Source file is absent').toContainClass(
-        'codicon-circle-large-outline'
-      );
+      await expect(
+        item.locator('div.custom-view-tree-node-item-icon'),
+        'The scan failed, so do not show a present or absent indicator'
+      ).toHaveCount(0);
+      await expect(page.getByText(/PropertyController\.cls-meta\.xml has no matching content file/)).toBeVisible();
     });
   }
 );
