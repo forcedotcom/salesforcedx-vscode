@@ -16,10 +16,13 @@ call site:
    config-enforced by `missedPipeableOpportunity`.
 3. **Bail conditions and dispatch are separate** — guard clauses up top, the pipe
    handles real variance.
-4. **Single-use yielded bindings:** `local/inline-single-use-yield-binding`.
-   Other single-use values can be pipe steps. Plain value (not yet an Effect) →
-   seed a standalone `pipe(value, …)`. The nested-call-arg half (`f(g(x))`) is
-   config-enforced by `missedPipeableOpportunity`, which fires at ≥2 pipeable
+4. **No single-use intermediate vars.** A value read once is a pipe step, not a
+   `const`; keep the `const` only when read ≥2×. Yielded bindings are enforced by
+   `local/inline-single-use-yield-binding`. Standalone `pipe(value, …)` is for
+   values without `.pipe(...)`; `local/no-standalone-pipeable-value` rejects
+   Effect, Stream, and Schema values that already have `.pipe(...)`. The
+   nested-call-arg half (`f(g(x))`) is config-enforced by
+   `missedPipeableOpportunity`, which fires at ≥2 pipeable
    call-kind transformations; judgment remains for what the pipe's subject should
    be — nested Schema combinators invert to pipe (`Schema.String.pipe(Schema.NullOr,
    Schema.optional)`, `x.pipe(Schema.Array, Schema.optional)`).
@@ -173,11 +176,6 @@ Straight-line `Effect.fn` body — data in, one path out, no branching, no reuse
 intermediate — is a single point-free `pipe`. Reserve `function*` for **dependent**
 `yield*`, branching, or early return.
 
-Seed value already an `Effect`/`Tag` (e.g. a service accessor) → start with
-`.pipe(...)` directly on it, same as every other example in this file. Only reach
-for the standalone `pipe(value, ...)` import when the seed is a plain value (array,
-string, parsed JSON) that isn't an Effect yet.
-
 Any step that can throw (parsing, JSON, non-Effect FFI) must be lifted with
 `Effect.try`/`Effect.tryPromise` — a bare throw inside the pipe's input becomes an
 uncatchable `Die` defect, not a typed failure (`catchTag`/`catchAll` won't see it).
@@ -197,7 +195,7 @@ export const parseAndFilterUsers = Effect.fn('svc.parseAndFilterUsers')(
     )
 );
 
-// GENERATOR — plain array seeds a pipe; the grouped chunk pipes toArray then the query
+// GENERATOR — a plain array starts the standalone pipe; the grouped chunk uses .pipe(...)
 export const fetchHeapDumpOverlayResults = Effect.fn('svc.fetchHeapDumpOverlayResults')(function* (
   logFileContents: string
 ) {
@@ -262,7 +260,7 @@ Target only nesting that **exists to sequence steps** or **repeats verbatim**.
 Inside an already-running gen, recover a span of yields by piping from that span's first Effect. Nested `Effect.gen` is a wrapper around a sequence combinators already cover.
 
 ```typescript
-// PREFERRED — seed at the first recovered Effect
+// PREFERRED — pipe from the first Effect being recovered
 yield* api.services.QueryService.pipe(
   Effect.flatMap(qs =>
     qs.query({ soql: 'SELECT COUNT() FROM SourceMember', tooling: true }, Schema.Unknown)
@@ -327,7 +325,6 @@ getServicesApi.pipe(
 | Prerequisite bail (`isDebug`, missing input) | early-return guard clause above the matcher | fold into `Match.when({...})` |
 | Linear `Effect.fn` body (data in, one path out) | single point-free `pipe`, constructors/array ops as steps, `Effect.map` for post-collect | — |
 | `Effect.gen` body is only `yield* X` | `X` itself — or `Effect.asVoid(X)` when the `yield*` isn't `return`ed and `X` isn't void; config-enforced by `unnecessaryEffectGen`, which matches `Effect.gen` only (an `Effect.fn` wrapper keeps its span) | `Effect.gen` wrapper around one `yield*` |
-| Point-free pipe seed | `.pipe(...)` on an existing Effect/Tag; standalone `pipe(value, ...)` only when the seed isn't an Effect yet | standalone `pipe(someEffect, ...)` when `someEffect.pipe(...)` works |
 | Throwing step inside a point-free pipe (parse, FFI) | lift with `Effect.try`/`Effect.tryPromise` | bare `JSON.parse(...)`/throwing call as a pipe step |
 | Callback does `pure(x).pipe(step)` | split: pure part as `Effect.map`, effectful part as sibling `Effect.flatMap` (point-free) | one `flatMap` whose callback opens a nested `.pipe` |
 | Same `decode.pipe(mapError)` at N≥2 sites | extract parameterized point-free helper (`decodeOrFail(schema, label)`), call bare | copy the transform+error-remap into each site |

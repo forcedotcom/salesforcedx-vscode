@@ -28,5 +28,5 @@ jobs:
       - run: pnpm compile
       - run: pnpm test
         env:
-          # jest does parallel test execution; too much parallelism actually makes it slower/failure-prone
+          # Concurrent Wireit test tasks make Windows CI slower and more failure-prone.
           WIREIT_PARALLEL: 1

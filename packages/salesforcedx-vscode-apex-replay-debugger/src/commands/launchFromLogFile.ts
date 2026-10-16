@@ -9,6 +9,8 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from '../adapter/debugConfigurationProvider';
 
+/** Start a replay session for `logFile`. Returns false without launching when a debug session is already open
+ * or no workspace folder is open. */
 export const launchFromLogFile = Effect.fn('ApexReplayDebugger.launchFromLogFile')(function* (
   logFile?: string,
   stopOnEntry: boolean = true,
@@ -16,8 +18,7 @@ export const launchFromLogFile = Effect.fn('ApexReplayDebugger.launchFromLogFile
   anonApexLineOffset?: number
 ) {
   const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-  if (!vscode.debug.activeDebugSession && workspaceFolder) {
-    const config = DebugConfigurationProvider.getConfig(logFile, stopOnEntry, anonApexFilePath, anonApexLineOffset);
-    yield* Effect.promise(() => vscode.debug.startDebugging(workspaceFolder, config));
-  }
+  if (vscode.debug.activeDebugSession || !workspaceFolder) return false;
+  const config = DebugConfigurationProvider.getConfig(logFile, stopOnEntry, anonApexFilePath, anonApexLineOffset);
+  return yield* Effect.promise(() => vscode.debug.startDebugging(workspaceFolder, config));
 });

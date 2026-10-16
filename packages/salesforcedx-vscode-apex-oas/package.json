@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.3.1",
+  "version": "68.5.0",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -67,7 +67,8 @@
     "test:compile": "wireit",
     "test:desktop": "wireit",
     "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-apex-oas test:desktop --debug",
-    "vscode:package:legacy:prerelease": "wireit"
+    "vscode:package:legacy:prerelease": "wireit",
+    "check:effect-diagnostics": "wireit"
   },
   "wireit": {
     "compile": {
@@ -101,6 +102,11 @@
       "output": []
     },
     "vscode:bundle": {
+      "env": {
+        "DEBUG_BUNDLE": {
+          "external": true
+        }
+      },
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile",
@@ -116,14 +122,17 @@
       ]
     },
     "test": {
-      "command": "jest",
+      "command": "vitest run",
       "dependencies": [
         "test:compile"
       ],
       "files": [
         "test/**/*.ts",
-        "jest.config.js",
-        "../../config/jest.base.config.js"
+        "vitest.config.mts",
+        "../../config/vitest.base.config.mts",
+        "../../config/__mocks__/o11y_schema_sf_pdp.js",
+        "../../scripts/setupVitest.ts",
+        "../../scripts/vscodeMock.ts"
       ],
       "output": [
         "coverage"
@@ -186,6 +195,17 @@
       "env": {
         "VSCE_PRE_RELEASE": "true"
       }
+    },
+    "check:effect-diagnostics": {
+      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "../../config/effect-diagnostics.json",
+        "../../scripts/effect-diagnostics.mjs"
+      ],
+      "output": []
     }
   },
   "packaging": {

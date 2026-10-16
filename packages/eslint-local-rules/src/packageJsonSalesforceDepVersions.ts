@@ -14,16 +14,18 @@ export const packageJsonSalesforceDepVersions: Rule.RuleModule = {
   meta: {
     type: 'problem',
     docs: {
-      description: 'Require caret ranges (^) for all @salesforce/* dependencies'
+      description: 'Require caret ranges (^) for external @salesforce/* dependencies in root and workspace manifests'
     },
     schema: [],
     messages: {
-      pinnedVersion: '"{{dep}}" version "{{version}}" must use a caret range (^), not a pinned version'
+      pinnedVersion: '"{{dep}}" version "{{version}}" must use a caret range (^)'
     }
   },
   create: context => {
-    const filename = context.filename;
-    if (!filename.match(/packages\/[^/]+\/package\.json$/)) {
+    const filename = context.filename.replaceAll('\\', '/');
+    const isRootPackageJson =
+      filename === 'package.json' || filename === `${context.cwd.replaceAll('\\', '/')}/package.json`;
+    if (!isRootPackageJson && !filename.match(/packages\/[^/]+\/package\.json$/)) {
       return {};
     }
 
@@ -50,7 +52,7 @@ export const packageJsonSalesforceDepVersions: Rule.RuleModule = {
             if (!dep?.startsWith('@salesforce/') || version === undefined || pinnedExceptions.has(dep)) {
               continue;
             }
-            if (/^[\d~]/.test(version)) {
+            if (!version.startsWith('^') && !['*', 'workspace:*', 'workspace:^', 'workspace:~'].includes(version)) {
               context.report({
                 node: member.value as unknown as Rule.Node,
                 messageId: 'pinnedVersion',
