@@ -63,7 +63,7 @@ export const makeOrgCatalogWorkspace = Effect.gen(function* () {
     ProjectService,
     MetadataRegistryService
   ]);
-  const reportedWorkspaceScanWarnings = new Set<string>();
+  const reportedWorkspaceScanErrors = new Set<string>();
   const reportWorkspaceScanFailure = Effect.fn('OrgCatalogWorkspace.reportWorkspaceScanFailure')(function* (
     xmlName: string | undefined,
     error: unknown
@@ -83,11 +83,11 @@ export const makeOrgCatalogWorkspace = Effect.gen(function* () {
           xmlName ?? 'workspace metadata',
           description
         );
-    if (reportedWorkspaceScanWarnings.has(message)) return;
-    reportedWorkspaceScanWarnings.add(message);
-    yield* Effect.logWarning('Could not determine workspace metadata presence', { xmlName, error });
+    if (reportedWorkspaceScanErrors.has(message)) return;
+    reportedWorkspaceScanErrors.add(message);
+    yield* Effect.logError('Could not determine workspace metadata presence', { xmlName, error });
     yield* Effect.sync(() => {
-      void vscode.window.showWarningMessage(message);
+      void vscode.window.showErrorMessage(message);
     });
   });
 

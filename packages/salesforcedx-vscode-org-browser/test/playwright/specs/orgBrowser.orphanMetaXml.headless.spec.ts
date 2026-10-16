@@ -12,6 +12,7 @@ import {
   createDreamhouseOrg,
   ensureSecondarySideBarHidden,
   isDesktop,
+  NOTIFICATION_LIST_ITEM,
   upsertScratchOrgAuthFieldsToSettings,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
@@ -19,13 +20,13 @@ import { test as desktopTest } from '../fixtures/desktopFixtures';
 import { OrgBrowserPage } from '../pages/orgBrowserPage';
 
 (isDesktop() ? desktopTest : desktopTest.skip.bind(desktopTest))(
-  'Org Browser loads ApexClass with orphaned metadata XML and marks workspace presence unknown',
+  'Org Browser marks workspace presence unknown when an Apex source file is deleted',
   async ({ page, workspaceDir }) => {
     desktopTest.setTimeout(600_000);
     const classesDir = path.join(workspaceDir, 'force-app', 'main', 'default', 'classes');
     const sourcePath = path.join(classesDir, 'PropertyController.cls');
 
-    await desktopTest.step('create orphaned ApexClass metadata XML', async () => {
+    await desktopTest.step('create an ApexClass source file and sidecar', async () => {
       await fs.mkdir(classesDir, { recursive: true });
       await expect(fs.access(sourcePath)).rejects.toThrow();
       await fs.writeFile(sourcePath, 'public with sharing class PropertyController {}');
@@ -33,7 +34,6 @@ import { OrgBrowserPage } from '../pages/orgBrowserPage';
         `${sourcePath}-meta.xml`,
         '<?xml version="1.0" encoding="UTF-8"?><ApexClass xmlns="http://soap.sforce.com/2006/04/metadata"><apiVersion>64.0</apiVersion><status>Active</status></ApexClass>'
       );
-      await fs.unlink(sourcePath);
     });
 
     const orgBrowserPage = new OrgBrowserPage(page);
@@ -46,16 +46,35 @@ import { OrgBrowserPage } from '../pages/orgBrowserPage';
       await orgBrowserPage.openOrgBrowser();
     });
 
-    await desktopTest.step('expand ApexClass and report that workspace presence is unknown', async () => {
+    await desktopTest.step('confirm local presence, delete source, and report the failed scan', async () => {
       await orgBrowserPage.findMetadataType('ApexClass');
       await orgBrowserPage.expandFolder('ApexClass');
       const item = await orgBrowserPage.getMetadataItem('ApexClass', 'PropertyController');
-      await expect(item, 'PropertyController should load despite its orphaned XML').toBeVisible();
-      await expect(
-        item.locator('div.custom-view-tree-node-item-icon'),
-        'The scan failed, so do not show a present or absent indicator'
-      ).toHaveCount(0);
-      await expect(page.getByText(/PropertyController\.cls-meta\.xml has no matching content file/)).toBeVisible();
+      const indicator = item.locator('div.custom-view-tree-node-item-icon');
+      await expect(item, 'PropertyController should load before its source is deleted').toBeVisible();
+      await expect(indicator, 'The source file is present').toContainClass('codicon-pass-filled');
+
+      await fs.unlink(sourcePath);
+      await expect(fs.access(sourcePath)).rejects.toThrow();
+      const apexClass = await orgBrowserPage.findMetadataType('ApexClass');
+      await apexClass.hover();
+      await apexClass.getByRole('button', { name: 'Refresh Type' }).click();
+
+      const notification = page
+        .locator(NOTIFICATION_LIST_ITEM)
+        .filter({
+          hasText:
+            /Could not check workspace presence for ApexClass: .*PropertyController\.cls-meta\.xml has no matching content file .*PropertyController\.cls/
+        })
+        .first();
+      await expect(notification).toBeVisible({ timeout: 30_000 });
+      await expect(notification).toContainText('PropertyController.cls-meta.xml');
+      await expect(notification).toContainText('PropertyController.cls');
+      await expect(notification.locator('.codicon-error')).toBeVisible();
+      await expect(item, 'The Org Browser component remains visible').toBeVisible();
+      await expect(indicator, 'Unknown workspace presence should use a question-mark icon').toContainClass(
+        'codicon-question'
+      );
     });
   }
 );

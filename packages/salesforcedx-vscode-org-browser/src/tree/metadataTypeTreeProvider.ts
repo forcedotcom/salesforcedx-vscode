@@ -572,6 +572,7 @@ const listMetadataToComponent =
       componentName: c.reference.fullName,
       label: c.reference.fullName,
       filePresent: c.workspacePresenceAvailable === false ? undefined : c.inWorkspace,
+      workspacePresenceUnavailable: c.workspacePresenceAvailable === false,
       orgPresent: c.inOrg
     });
 
@@ -585,6 +586,7 @@ const listMetadataToFolder =
       folderName: c.reference.fullName,
       label: c.reference.fullName,
       filePresent: c.workspacePresenceAvailable === false ? undefined : c.inWorkspace,
+      workspacePresenceUnavailable: c.workspacePresenceAvailable === false,
       orgPresent: c.inOrg
     });
 
@@ -599,6 +601,7 @@ const listMetadataToFolderItem =
       componentName: c.reference.fullName,
       label: c.reference.fullName,
       filePresent: c.workspacePresenceAvailable === false ? undefined : c.inWorkspace,
+      workspacePresenceUnavailable: c.workspacePresenceAvailable === false,
       orgPresent: c.inOrg
     });
 

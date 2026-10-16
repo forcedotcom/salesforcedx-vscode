@@ -13,6 +13,8 @@ export const messages = {
   filter_text_placeholder: 'Search names (Broker or Apex*), or filter types (Apex*:); empty to clear',
   search_all_types_button: 'Search All Types',
   use_loaded_results_button: 'Use Loaded Results',
+  workspace_presence_unavailable_tooltip:
+    'Workspace presence could not be determined because the metadata scan failed.',
   filter_discovery_confirmation:
     'Search all %d metadata types in the org? This may take longer and make additional requests.'
 } as const;
