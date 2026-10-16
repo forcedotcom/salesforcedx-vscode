@@ -203,9 +203,7 @@ describe('createLegacyTelemetrySpan', () => {
   });
 
   it('stamps telemetry-tag from settings at send time', async () => {
-    jest
-      .spyOn(vscode.workspace, 'getConfiguration')
-      .mockReturnValue({ get: () => 'test-tag' } as never);
+    vi.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue({ get: () => 'test-tag' } as never);
     const { attributes } = captureOtelSpan();
     await Effect.runPromise(
       createLegacyTelemetrySpan(senderConfig, { kind: 'event', name: 'e', identity: baseIdentity })
