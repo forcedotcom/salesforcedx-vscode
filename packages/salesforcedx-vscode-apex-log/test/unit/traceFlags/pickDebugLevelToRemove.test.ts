@@ -53,12 +53,12 @@ const run = (items: DebugLevelItem[]) =>
 describe('pickDebugLevelToRemove', () => {
   it('calls showQuickPick with all levels and resolves the picked debugLevelId', async () => {
     const mockPick = { label: LEVEL_A.masterLabel, debugLevelId: LEVEL_A.id };
-    jest.mocked(vscode.window.showQuickPick).mockResolvedValue(mockPick as never);
+    vi.mocked(vscode.window.showQuickPick).mockResolvedValue(mockPick as never);
 
     const exit = await run([LEVEL_A, LEVEL_B]);
 
     expect(vscode.window.showQuickPick).toHaveBeenCalledTimes(1);
-    const [items] = jest.mocked(vscode.window.showQuickPick).mock.calls[0];
+    const [items] = vi.mocked(vscode.window.showQuickPick).mock.calls[0];
     const typedItems = items as unknown as Array<{ debugLevelId: string; label: string; description: string }>;
     expect(typedItems.map(i => i.debugLevelId)).toEqual([LEVEL_A.id, LEVEL_B.id]);
     expect(typedItems[0].description).toBe('Apex=DEBUG Vf=INFO DB=INFO');
@@ -66,7 +66,7 @@ describe('pickDebugLevelToRemove', () => {
   });
 
   it('fails with UserCancellationError when the user dismisses the QuickPick', async () => {
-    jest.mocked(vscode.window.showQuickPick).mockResolvedValue(undefined);
+    vi.mocked(vscode.window.showQuickPick).mockResolvedValue(undefined);
 
     const exit = await run([LEVEL_A]);
 
@@ -77,11 +77,11 @@ describe('pickDebugLevelToRemove', () => {
 
   it('uses masterLabel as the QuickPick label and developerName as the detail', async () => {
     const level = makeLevel('dl-test', { masterLabel: 'My Level', developerName: 'My_Level' });
-    jest.mocked(vscode.window.showQuickPick).mockResolvedValue(undefined);
+    vi.mocked(vscode.window.showQuickPick).mockResolvedValue(undefined);
 
     await run([level]);
 
-    const [items] = jest.mocked(vscode.window.showQuickPick).mock.calls[0];
+    const [items] = vi.mocked(vscode.window.showQuickPick).mock.calls[0];
     const typedItems = items as unknown as Array<{ label: string; detail: string }>;
     expect(typedItems[0].label).toBe('My Level');
     expect(typedItems[0].detail).toBe('My_Level');

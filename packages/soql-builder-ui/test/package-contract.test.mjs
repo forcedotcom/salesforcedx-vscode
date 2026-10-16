@@ -2,6 +2,8 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { readFile, readdir } from 'node:fs/promises';
 import test from 'node:test';
+import { build } from 'esbuild';
+import { browserBundleOptions } from '../browserBundleOptions.mjs';
 
 const require = createRequire(import.meta.url);
 const packageJson = require('../package.json');
@@ -33,7 +35,8 @@ test('source stays browser-safe and presentation stays Effect-runtime-free', asy
 });
 
 test('the browser bundle is self-contained and contains no spike or VS Code host imports', async () => {
-  const bundle = await readFile(new URL('../dist/app.js', import.meta.url), 'utf8');
+  const { outputFiles } = await build({ ...browserBundleOptions, write: false });
+  const bundle = outputFiles[0].text;
 
   assert.doesNotMatch(bundle, /litSpike|lit-spike|acquireVsCodeApi/u);
   assert.doesNotMatch(bundle, /(?:from\s*|import\s*)[(']\s*(?:node:|vscode|salesforcedx-vscode-services|jsforce)/u);

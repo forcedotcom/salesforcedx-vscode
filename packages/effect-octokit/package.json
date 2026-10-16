@@ -49,14 +49,15 @@
       "output": []
     },
     "test": {
-      "command": "node --experimental-vm-modules ../../node_modules/jest/bin/jest.js",
+      "command": "vitest run",
       "dependencies": [
         "test:compile"
       ],
       "files": [
         "test/**/*.ts",
-        "jest.config.cjs",
-        "../../config/jest.base.config.js"
+        "vitest.config.mts",
+        "../../config/vitest.base.config.mts",
+        "../../scripts/setupVitest.ts"
       ],
       "output": [
         "coverage"

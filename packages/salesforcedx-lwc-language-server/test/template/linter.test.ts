@@ -5,13 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { type CompilerDiagnostic } from '@lwc/errors';
+import type * as TemplateCompilerModule from '@lwc/template-compiler';
 import { TextDocument } from 'vscode-languageserver';
 import templateLinter from '../../src/template/linter';
 
 let mockWarnings: CompilerDiagnostic[] | null = null;
 
-jest.mock('@lwc/template-compiler', () => {
-  const actual = jest.requireActual('@lwc/template-compiler') as Record<string, unknown>;
+vi.mock('@lwc/template-compiler', async () => {
+  const actual = (await vi.importActual<typeof TemplateCompilerModule>('@lwc/template-compiler')) as Record<
+    string,
+    unknown
+  >;
   return {
     __esModule: true,
     ...actual,

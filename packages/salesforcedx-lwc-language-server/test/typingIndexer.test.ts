@@ -65,23 +65,21 @@ describe('TypingIndexer', () => {
       CUSTOM_LABELS_XML
     );
 
-    jest
-      .spyOn(sfdxFileSystemAccessor, 'findFilesWithGlobAsync')
-      .mockImplementation((pattern: string, folder: string) => {
-        const basePath = normalizePath(folder);
-        const mm = new Minimatch(pattern, { dot: true });
-        const prefix = `${basePath}/`;
-        const matching = [...contentMap.keys()].filter(absPath => {
-          if (!absPath.startsWith(prefix)) return false;
-          return mm.match(absPath.slice(prefix.length));
-        });
-        return Promise.resolve(matching.map(normalizePath));
+    vi.spyOn(sfdxFileSystemAccessor, 'findFilesWithGlobAsync').mockImplementation((pattern: string, folder: string) => {
+      const basePath = normalizePath(folder);
+      const mm = new Minimatch(pattern, { dot: true });
+      const prefix = `${basePath}/`;
+      const matching = [...contentMap.keys()].filter(absPath => {
+        if (!absPath.startsWith(prefix)) return false;
+        return mm.match(absPath.slice(prefix.length));
       });
+      return Promise.resolve(matching.map(normalizePath));
+    });
 
-    jest
-      .spyOn(sfdxFileSystemAccessor, 'getFileContent')
-      .mockImplementation((uri: string) => Promise.resolve(contentMap.get(normalizePath(uri))));
-    jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation((uri: string) => {
+    vi.spyOn(sfdxFileSystemAccessor, 'getFileContent').mockImplementation((uri: string) =>
+      Promise.resolve(contentMap.get(normalizePath(uri)))
+    );
+    vi.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation((uri: string) => {
       const key = normalizePath(uri);
       if (contentMap.has(key)) return Promise.resolve(FILE_STAT);
       const prefix = `${key}/`;
@@ -90,10 +88,10 @@ describe('TypingIndexer', () => {
       }
       return Promise.resolve(undefined);
     });
-    jest.spyOn(sfdxFileSystemAccessor, 'updateFileContent').mockImplementation(async (uri: string, content: string) => {
+    vi.spyOn(sfdxFileSystemAccessor, 'updateFileContent').mockImplementation(async (uri: string, content: string) => {
       contentMap.set(normalizePath(uri), content);
     });
-    jest.spyOn(sfdxFileSystemAccessor, 'deleteFile').mockImplementation(async (pathOrUri: string) => {
+    vi.spyOn(sfdxFileSystemAccessor, 'deleteFile').mockImplementation(async (pathOrUri: string) => {
       contentMap.delete(normalizePath(pathOrUri));
     });
 
@@ -124,7 +122,7 @@ describe('TypingIndexer', () => {
       for (const filename of filepaths) {
         const filepath = path.join(typingIndexerData.typingsBaseDir, filename);
         const exists = await sfdxFileSystemAccessor.fileExists(`${filepath}`);
-        expect(exists).toBeTrue();
+        expect(exists).toBe(true);
       }
     });
   });
@@ -138,7 +136,7 @@ describe('TypingIndexer', () => {
       void sfdxFileSystemAccessor.updateFileContent(`${staleTyping}`, 'foobar');
 
       const realGetMetaTypings = typingIndexerModule.getMetaTypings;
-      jest.spyOn(typingIndexerModule, 'getMetaTypings').mockImplementation(async indexer => {
+      vi.spyOn(typingIndexerModule, 'getMetaTypings').mockImplementation(async indexer => {
         const list = await realGetMetaTypings(indexer);
         list.push(path.resolve(indexer.typingsBaseDir, 'extra.resource.d.ts'));
         return list;
@@ -146,8 +144,8 @@ describe('TypingIndexer', () => {
 
       await deleteStaleMetaTypings(typingIndexerData);
 
-      expect(await sfdxFileSystemAccessor.fileExists(`${typing}`)).toBeTrue();
-      expect(await sfdxFileSystemAccessor.fileExists(`${staleTyping}`)).toBeFalse();
+      expect(await sfdxFileSystemAccessor.fileExists(`${typing}`)).toBe(true);
+      expect(await sfdxFileSystemAccessor.fileExists(`${staleTyping}`)).toBe(false);
     });
   });
 
@@ -161,9 +159,9 @@ describe('TypingIndexer', () => {
         'lwc',
         'customlabels.d.ts'
       );
-      expect(await sfdxFileSystemAccessor.fileExists(`${customLabelPath}`)).toBeTrue();
+      expect(await sfdxFileSystemAccessor.fileExists(`${customLabelPath}`)).toBe(true);
       const content = await sfdxFileSystemAccessor.getFileContent(`${customLabelPath}`);
-      expect(content).toInclude('declare module');
+      expect(content).toContain('declare module');
     });
   });
 

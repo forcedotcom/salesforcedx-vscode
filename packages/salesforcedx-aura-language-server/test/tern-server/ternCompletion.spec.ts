@@ -7,7 +7,7 @@
 
 // Mock JSON imports for tern definitions - these are imported in ternServer.ts as '../tern/defs/browser.json'
 // We need to mock using the exact path that ternServer.ts uses, and Jest will resolve it correctly
-// Use require() inside jest.mock() factories since they execute during hoisting before ES module imports initialize
+// Use require() inside vi.mock() factories since they execute during hoisting before ES module imports initialize
 
 const createMockJsonFromTernDefs = (relativePath: string) => {
   const fs = require('node:fs');
@@ -35,8 +35,8 @@ const createMockJsonFromTernDefs = (relativePath: string) => {
 // Use paths relative to test file to match the resolved paths from ternServer.ts
 // ternServer.ts (in src/tern-server/) imports '../tern/defs/browser.json' which resolves to src/tern/defs/browser.json
 // From test file (test/tern-server/), '../../src/tern/defs/browser.json' resolves to src/tern/defs/browser.json
-jest.mock('../../src/tern/defs/browser.json', () => createMockJsonFromTernDefs('browser.json'), { virtual: true });
-jest.mock('../../src/tern/defs/ecmascript.json', () => createMockJsonFromTernDefs('ecmascript.json'), { virtual: true });
+vi.mock('../../src/tern/defs/browser.json', () => createMockJsonFromTernDefs('browser.json'), { virtual: true });
+vi.mock('../../src/tern/defs/ecmascript.json', () => createMockJsonFromTernDefs('ecmascript.json'), { virtual: true });
 
 // These imports are needed for the mock factory function and are hoisted, so import order doesn't matter
 

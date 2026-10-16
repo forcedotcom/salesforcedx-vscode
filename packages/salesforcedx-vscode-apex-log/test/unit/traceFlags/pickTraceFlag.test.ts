@@ -43,12 +43,12 @@ const run = (active: TraceFlagItem[]) =>
 describe('pickTraceFlag', () => {
   it('calls showQuickPick with the given flags and resolves the picked traceFlagId', async () => {
     const mockPick: TraceFlagQuickPickItem = { label: ACTIVE.id, traceFlagId: ACTIVE.id };
-    jest.mocked(vscode.window.showQuickPick).mockResolvedValue(mockPick as never);
+    vi.mocked(vscode.window.showQuickPick).mockResolvedValue(mockPick as never);
 
     const exit = await run([ACTIVE]);
 
     expect(vscode.window.showQuickPick).toHaveBeenCalledTimes(1);
-    const [items] = jest.mocked(vscode.window.showQuickPick).mock.calls[0];
+    const [items] = vi.mocked(vscode.window.showQuickPick).mock.calls[0];
     const typedItems = items as unknown as TraceFlagQuickPickItem[];
     expect(typedItems.map(i => i.traceFlagId)).toEqual([ACTIVE.id]);
     expect(typedItems[0].description).toBe(ACTIVE.logType);
@@ -57,7 +57,7 @@ describe('pickTraceFlag', () => {
   });
 
   it('fails with UserCancellationError when the user dismisses the QuickPick', async () => {
-    jest.mocked(vscode.window.showQuickPick).mockResolvedValue(undefined);
+    vi.mocked(vscode.window.showQuickPick).mockResolvedValue(undefined);
 
     const exit = await run([ACTIVE]);
 
@@ -72,11 +72,11 @@ describe('pickTraceFlag', () => {
     ['tf.id when name and entityId absent', {}, 'tf-label']
   ])('labels the item with %s', async (_desc, overrides, expectedLabel) => {
     const flag = makeFlag('tf-label', overrides);
-    jest.mocked(vscode.window.showQuickPick).mockResolvedValue(undefined);
+    vi.mocked(vscode.window.showQuickPick).mockResolvedValue(undefined);
 
     await run([flag]);
 
-    const [items] = jest.mocked(vscode.window.showQuickPick).mock.calls[0];
+    const [items] = vi.mocked(vscode.window.showQuickPick).mock.calls[0];
     const typedItems = items as unknown as TraceFlagQuickPickItem[];
     expect(typedItems[0].label).toBe(expectedLabel);
     expect(typedItems[0].traceFlagId).toBe('tf-label');

@@ -18,7 +18,9 @@ const ALLOWED_FILES = new Set([
 
 const ALLOWED_TEST_DIRECTORIES = [
   'salesforcedx-utils-vscode/test/jest/telemetry/',
-  'salesforcedx-vscode-core/test/jest/telemetry/'
+  'salesforcedx-vscode-core/test/jest/telemetry/',
+  'salesforcedx-utils-vscode/test/unit/telemetry/',
+  'salesforcedx-vscode-core/test/unit/telemetry/'
 ];
 
 const isAllowedFile = (filename: string): boolean => {

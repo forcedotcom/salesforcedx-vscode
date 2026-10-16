@@ -49,7 +49,7 @@ beforeAll(() => {
     }) as Connection
   );
 
-  jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation((uri: string) => {
+  vi.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation((uri: string) => {
     const key = normalizePath(uri);
     if (contentMap.has(key)) return Promise.resolve(FILE_STAT);
     const prefix = `${key}/`;
@@ -58,9 +58,9 @@ beforeAll(() => {
     }
     return Promise.resolve(undefined);
   });
-  jest
-    .spyOn(sfdxFileSystemAccessor, 'getFileContent')
-    .mockImplementation((uri: string) => Promise.resolve(contentMap.get(normalizePath(uri))));
+  vi.spyOn(sfdxFileSystemAccessor, 'getFileContent').mockImplementation((uri: string) =>
+    Promise.resolve(contentMap.get(normalizePath(uri)))
+  );
 });
 
 describe('Tag', () => {

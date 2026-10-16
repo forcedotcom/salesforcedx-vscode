@@ -44,7 +44,6 @@ test('Generate Manifest: generates via context menu entry points', async ({ page
     await saveScreenshot(page, 'setup.after-workbench.png');
     await upsertScratchOrgAuthFieldsToSettings(page, createResult);
     await saveScreenshot(page, 'setup.after-auth-fields.png');
-
     statusBarPage = new SourceTrackingStatusBarPage(page);
     await statusBarPage.waitForVisible(120_000);
     await saveScreenshot(page, 'setup.after-status-bar-visible.png');

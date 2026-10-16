@@ -9,7 +9,7 @@ import type { AuraWorkspaceContext } from '../../src/context/auraContext';
 
 const attributeNames = ['z', 'ä'];
 
-jest.mock('../../src/resources/aura-standard.json', () => ({
+const standardComponents = vi.hoisted(() => ({
   'aura:test': {
     attributes: [{ name: 'z' }, { name: 'ä' }],
     description: '',
@@ -18,12 +18,17 @@ jest.mock('../../src/resources/aura-standard.json', () => ({
   }
 }));
 
+vi.mock('../../src/resources/aura-standard.json', () => ({
+  default: standardComponents,
+  ...standardComponents
+}));
+
 import AuraIndexer from '../../src/aura-indexer/indexer';
 
 it('sorts standard component attributes with locale-aware comparison', async () => {
   const context = {
-    addIndexingProvider: jest.fn(),
-    findAllAuraMarkup: jest.fn().mockResolvedValue([]),
+    addIndexingProvider: vi.fn(),
+    findAllAuraMarkup: vi.fn().mockResolvedValue([]),
     type: 'SFDX'
   } as unknown as AuraWorkspaceContext;
   const indexer = new AuraIndexer(context);

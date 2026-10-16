@@ -6,7 +6,7 @@
  */
 import { type Connection, Logger } from '@salesforce/core';
 import { elapsedTime } from '../../src/utils';
-import * as dateUtil from '../../src/utils/dateUtil';
+import * as apexUtils from '../../src/utils';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import * as sinon from 'sinon';
 import {
@@ -50,6 +50,24 @@ import { QUERY_RECORD_LIMIT } from '../../src/tests/constants';
 import { Writable } from 'node:stream';
 import { Duration } from '@salesforce/kit';
 
+vi.mock(import('../../src/tests/diagnosticUtil'), async importOriginal => {
+  const actual = await importOriginal();
+  return { ...actual, formatTestErrors: vi.fn(actual.formatTestErrors) };
+});
+vi.mock(import('../../src/utils'), async importOriginal => ({
+  ...(await importOriginal()),
+  getCurrentTime: vi.fn()
+}));
+vi.mock(import('../../src/tests/utils'), async importOriginal => ({
+  ...(await importOriginal()),
+  queryNamespaces: vi.fn()
+}));
+vi.mock(import('node:fs/promises'), async importOriginal => ({
+  ...(await importOriginal()),
+  mkdir: vi.fn(),
+  writeFile: vi.fn()
+}));
+
 type TestServiceInternals = {
   createStream: (filePath: string) => Writable;
 };
@@ -59,9 +77,11 @@ const testServicePrototype = TestService.prototype as unknown as TestServiceInte
 let mockConnection: Connection;
 let toolingRequestStub: sinon.SinonStub;
 let retrieveMaxApiVersionStub: sinon.SinonStub;
-let formatSpy: sinon.SinonSpy;
 const testData = new MockTestOrgData();
-let timeStub: sinon.SinonStub;
+const formatTestErrorsMock = vi.mocked(diagnosticUtil.formatTestErrors);
+const queryNamespacesMock = vi.mocked(utils.queryNamespaces);
+const writeFileMock = vi.mocked(fs.writeFile);
+const getCurrentTimeMock = vi.mocked(apexUtils.getCurrentTime);
 const pollResponse: ApexTestQueueItem = {
   done: true,
   totalSize: 1,
@@ -85,13 +105,13 @@ describe('Run Apex tests asynchronously', () => {
     $$.SANDBOX.stub(mockConnection, 'instanceUrl').get(() => 'https://na139.salesforce.com');
     $$.SANDBOX.stub(mockConnection, 'getApiVersion').resolves('50.0');
     // Stub getCurrentTime (not Date.prototype.getTime) so incidental Date usage in
-    // jest/TestContext setup does not consume the sequenced return values.
-    timeStub = $$.SANDBOX.stub(dateUtil, 'getCurrentTime').onFirstCall().returns(6000);
-    timeStub.onSecondCall().returns(8000);
+    // Vitest/TestContext setup does not consume the sequenced return values.
+    getCurrentTimeMock.mockReset().mockReturnValueOnce(6000).mockReturnValue(8000);
     testResultData.summary.orgId = mockConnection.getAuthInfoFields().orgId ?? '';
     testResultData.summary.username = mockConnection.getUsername() ?? '';
     toolingRequestStub = $$.SANDBOX.stub(mockConnection.tooling, 'request');
-    formatSpy = $$.SANDBOX.spy(diagnosticUtil, 'formatTestErrors');
+    formatTestErrorsMock.mockClear();
+    queryNamespacesMock.mockReset();
   });
 
   it('should run a successful test', async () => {
@@ -255,7 +275,7 @@ describe('Run Apex tests asynchronously', () => {
     };
     const getTestResultData = await asyncTestSrv.formatAsyncResults(
       { queueItem: pollResponseForFlowTest, runId: testRunId },
-      dateUtil.getCurrentTime(),
+      apexUtils.getCurrentTime(),
       undefined,
       runResult.testRunSummary
     );
@@ -309,7 +329,7 @@ describe('Run Apex tests asynchronously', () => {
     const runResult = await asyncTestSrv.checkRunStatus(testRunId);
     const testResultData = await asyncTestSrv.formatAsyncResults(
       { queueItem: pollResponse, runId: testRunId },
-      dateUtil.getCurrentTime(),
+      apexUtils.getCurrentTime(),
       false,
       runResult.testRunSummary
     );
@@ -353,7 +373,7 @@ describe('Run Apex tests asynchronously', () => {
     const runResult = await asyncTestSrv.checkRunStatus(testRunId);
     const getTestResultData = await asyncTestSrv.formatAsyncResults(
       { queueItem: pollResponse, runId: testRunId },
-      dateUtil.getCurrentTime(),
+      apexUtils.getCurrentTime(),
       undefined,
       runResult.testRunSummary
     );
@@ -462,7 +482,7 @@ describe('Run Apex tests asynchronously', () => {
     const runResult = await asyncTestSrv.checkRunStatus(testRunId);
     const getTestResultData = await asyncTestSrv.formatAsyncResults(
       { queueItem: pollResponse, runId: testRunId },
-      dateUtil.getCurrentTime(),
+      apexUtils.getCurrentTime(),
       false,
       runResult.testRunSummary
     );
@@ -520,7 +540,7 @@ describe('Run Apex tests asynchronously', () => {
     const runResult = await asyncTestSrv.checkRunStatus(testRunId);
     const getTestResultData = await asyncTestSrv.formatAsyncResults(
       { queueItem: pollResponse, runId: testRunId },
-      dateUtil.getCurrentTime(),
+      apexUtils.getCurrentTime(),
       false,
       runResult.testRunSummary
     );
@@ -541,7 +561,7 @@ describe('Run Apex tests asynchronously', () => {
       const runResult = await asyncTestSrv.checkRunStatus(testRunId);
       await asyncTestSrv.formatAsyncResults(
         { queueItem: pollResponse, runId: testRunId },
-        dateUtil.getCurrentTime(),
+        apexUtils.getCurrentTime(),
         false,
         runResult.testRunSummary
       );
@@ -662,7 +682,7 @@ describe('Run Apex tests asynchronously', () => {
     const runResult = await asyncTestSrv.checkRunStatus(testRunId);
     const getTestResultData = await asyncTestSrv.formatAsyncResults(
       { queueItem: pollResponse, runId: testRunId },
-      dateUtil.getCurrentTime(),
+      apexUtils.getCurrentTime(),
       true,
       runResult.testRunSummary
     );
@@ -731,7 +751,7 @@ describe('Run Apex tests asynchronously', () => {
     const runResult = await asyncTestSrv.checkRunStatus(testRunId, progressReporter);
     await asyncTestSrv.formatAsyncResults(
       { queueItem: pollResponse, runId: testRunId },
-      dateUtil.getCurrentTime(),
+      apexUtils.getCurrentTime(),
       true,
       runResult.testRunSummary,
       progressReporter
@@ -1146,20 +1166,20 @@ describe('Run Apex tests asynchronously', () => {
         );
         fail('Should have failed');
       } catch (e) {
-        expect(formatSpy.calledOnce).toBe(true);
+        expect(formatTestErrorsMock).toHaveBeenCalledOnce();
         expect(e.message).toContain(nls.localize('invalidsObjectErr', ['ApexClass', errMsg]));
       }
     });
 
     it('should format test error when building asynchronous payload', async () => {
       const errMsg = "sObject type 'PackageLicense' is not supported.";
-      $$.SANDBOX.stub(utils, 'queryNamespaces').throws(new Error(errMsg));
+      queryNamespacesMock.mockRejectedValue(new Error(errMsg));
       const testSrv = new TestService(mockConnection);
       try {
         await testSrv.buildAsyncPayload('RunSpecifiedTests', 'MyApexClass.MyTest');
         fail('Should have failed');
       } catch (e) {
-        expect(formatSpy.calledOnce).toBe(true);
+        expect(formatTestErrorsMock).toHaveBeenCalledOnce();
         expect(e.message).toContain(nls.localize('invalidsObjectErr', ['PackageLicense', errMsg]));
       }
     });
@@ -1453,7 +1473,7 @@ describe('Run Apex tests asynchronously', () => {
       expect((result as TestRunIdResult).testRunId).toBe(testRunId);
 
       // Verify that the debug message was logged
-      sinon.assert.calledWith(debugStub, sinon.match.string.and(sinon.match(testRunId)));
+      expect(debugStub.args.some(([message]) => String(message).includes(testRunId))).toBe(true);
 
       // Verify that the info message with the command was logged
       const username = mockConnection.getUsername();
@@ -1524,7 +1544,7 @@ describe('Run Apex tests asynchronously', () => {
       expect((result as TestRunIdResult).testRunId).toBe(testRunId);
 
       // Verify that the appropriate messages were logged
-      sinon.assert.calledWith(debugStub, sinon.match.string.and(sinon.match(testRunId)));
+      expect(debugStub.args.some(([message]) => String(message).includes(testRunId))).toBe(true);
 
       const username = mockConnection.getUsername();
       sinon.assert.calledWith(loggerStub, nls.localize('runTestReportCommand', [testRunId, username ?? '']));
@@ -1626,12 +1646,16 @@ describe('Run Apex tests asynchronously', () => {
       };
 
       // Setup mock to return different results based on query type
-      const mockToolingQuery = $$.SANDBOX.stub(mockConnection.tooling, 'query');
-      mockToolingQuery
-        .withArgs(sinon.match(/ApexTestResult/))
-        .resolves(mockApexResults)
-        .withArgs(sinon.match(/FlowTestResult/))
-        .resolves(mockFlowResults);
+      const queryResult = (query: string): ReturnType<typeof mockConnection.tooling.query> => {
+        if (/FROM ApexTestResult\b/.test(query)) {
+          return mockApexResults as unknown as ReturnType<typeof mockConnection.tooling.query>;
+        }
+        if (/FROM FlowTestResult\b/.test(query)) {
+          return mockFlowResults as unknown as ReturnType<typeof mockConnection.tooling.query>;
+        }
+        throw new Error(`Unexpected tooling query: ${query}`);
+      };
+      const mockToolingQuery = $$.SANDBOX.stub(mockConnection.tooling, 'query').callsFake(queryResult);
 
       // Execute the test
       const results = await asyncTests.getAsyncTestResults(testQueueResult);
@@ -1700,7 +1724,7 @@ describe('elapsedTime', () => {
     dummyInstance.dummyMethod();
 
     // loggerStub is a SinonStubbedInstance; .debug is a stub, not an unbound method
-    // eslint-disable-next-line jest/unbound-method
+    // eslint-disable-next-line vitest/unbound-method
     const debugStub = loggerStub.debug as sinon.SinonStub;
     sinon.assert.calledOnce(loggerChildStub);
     sinon.assert.calledWith(loggerChildStub, 'elapsedTime');
@@ -1727,16 +1751,12 @@ describe('Create Result Files', () => {
   let testServiceSpy: sinon.SinonSpy;
   let junitSpy: sinon.SinonSpy;
   let tapSpy: sinon.SinonSpy;
-  let writeFileSpy: sinon.SinonSpy;
   let sandboxStub1: sinon.SinonSandbox;
 
   beforeEach(async () => {
     sandboxStub1 = sinon.createSandbox();
-    sandboxStub1.stub(fs, 'stat');
-    sandboxStub1.stub(fs, 'mkdir');
-    writeFileSpy = sandboxStub1.stub(fs, 'writeFile');
-    // sandboxStub1.stub(fs, 'close');
-    sandboxStub1.stub(fs, 'open');
+    vi.mocked(fs.mkdir).mockClear();
+    writeFileMock.mockClear();
     testServiceSpy = sandboxStub1.stub(testServicePrototype, 'createStream').returns(
       new Writable({
         write(chunk: unknown, encoding, callback) {
@@ -1759,7 +1779,7 @@ describe('Create Result Files', () => {
     const testSrv = new TestService(mockConnection);
     await testSrv.writeResultFiles(testResultData, config);
 
-    expect(writeFileSpy.calledWith(join(config.dirPath, 'test-run-id.txt'))).toBe(true);
+    expect(writeFileMock).toHaveBeenCalledWith(join(config.dirPath, 'test-run-id.txt'), testRunId);
     expect(testServiceSpy.callCount).toBe(0);
   });
 
@@ -1772,7 +1792,7 @@ describe('Create Result Files', () => {
     const testSrv = new TestService(mockConnection);
     await testSrv.writeResultFiles({ testRunId } as TestRunIdResult, config, false);
 
-    expect(writeFileSpy.calledWith(join(config.dirPath, 'test-run-id.txt'))).toBe(true);
+    expect(writeFileMock).toHaveBeenCalledWith(join(config.dirPath, 'test-run-id.txt'), testRunId);
     expect(testServiceSpy.callCount).toBe(0);
   });
 
@@ -1785,7 +1805,7 @@ describe('Create Result Files', () => {
 
     await testSrv.writeResultFiles({ testRunId } as TestRunIdResult, config, true);
 
-    expect(writeFileSpy.calledWith(join(config.dirPath, 'test-run-id.txt'))).toBe(true);
+    expect(writeFileMock).toHaveBeenCalledWith(join(config.dirPath, 'test-run-id.txt'), testRunId);
     expect(testServiceSpy.callCount).toBe(0);
   });
 
