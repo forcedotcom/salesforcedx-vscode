@@ -14,6 +14,7 @@ import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { isConflictDetectionEnabled } from '../conflict/conflictDetectionSettings';
+import { EXTENSION_NAME } from '../constants';
 import { nls } from '../messages';
 import { calculateBackground, calculateCounts, dedupeStatus, getCommand, separateChanges } from './helpers';
 import { buildCombinedHoverText } from './hover';
@@ -87,10 +88,14 @@ const updateDisplay =
   };
 
 /** Helper to read polling interval config */
-const getPollingIntervalSeconds = (): number =>
-  vscode.workspace
-    .getConfiguration('salesforcedx-vscode-metadata')
-    .get<number>('sourceTracking.pollingIntervalSeconds', 60);
+const getPollingIntervalSeconds = Effect.fn('getPollingIntervalSeconds')(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  return yield* (yield* api.services.SettingsService).getValueOrElse(
+    EXTENSION_NAME,
+    'sourceTracking.pollingIntervalSeconds',
+    60
+  );
+});
 
 /** Create and initialize source tracking status bar */
 export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStatusBar')(function* () {
@@ -114,14 +119,18 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
 
   // Setup dynamic polling interval that responds to config changes
   const settingsChangePubSub = yield* api.services.SettingsChangePubSub;
-  const pollIntervalRef = yield* SubscriptionRef.make(Duration.seconds(getPollingIntervalSeconds()));
+  const pollIntervalRef = yield* SubscriptionRef.make(Duration.seconds(yield* getPollingIntervalSeconds()));
 
   // Watch setting changes to update poll frequency dynamically
   yield* Stream.fromPubSub(settingsChangePubSub).pipe(
     Stream.filter(event =>
       event.affectsConfiguration('salesforcedx-vscode-metadata.sourceTracking.pollingIntervalSeconds')
     ),
-    Stream.runForEach(() => SubscriptionRef.set(pollIntervalRef, Duration.seconds(getPollingIntervalSeconds()))),
+    Stream.runForEach(() =>
+      getPollingIntervalSeconds().pipe(
+        Effect.flatMap(seconds => SubscriptionRef.set(pollIntervalRef, Duration.seconds(seconds)))
+      )
+    ),
     Effect.fork
   );
 

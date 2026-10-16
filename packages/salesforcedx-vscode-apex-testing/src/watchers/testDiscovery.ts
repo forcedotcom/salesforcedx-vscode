@@ -11,7 +11,7 @@ import { isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import type { OrgMetadataCatalogChange } from 'salesforcedx-vscode-services';
 import { type URI, Utils } from 'vscode-uri';
-import { getTestController } from '../views/testController';
+import { type getTestController } from '../views/testController';
 
 const apexClassName = (uri: URI): string | undefined => {
   const basename = Utils.basename(uri);
@@ -45,6 +45,7 @@ export const initializeTestDiscovery = Effect.fn('apex-testing.initializeTestDis
         targetOrgRef.changes.pipe(
           Stream.map(org => org.orgId),
           Stream.changes,
+          Stream.filter(() => testController.isDiscoveryRequested()),
           Stream.runForEach(orgId =>
             isString(orgId)
               ? channelService
@@ -57,6 +58,7 @@ export const initializeTestDiscovery = Effect.fn('apex-testing.initializeTestDis
       Effect.forkDaemon(
         catalogChanges.pipe(
           Stream.fromPubSub<OrgMetadataCatalogChange>,
+          Stream.filter(() => testController.isDiscoveryRequested()),
           Stream.filter(
             (change): change is Extract<OrgMetadataCatalogChange, { kind: 'workspace' }> => change.kind === 'workspace'
           ),

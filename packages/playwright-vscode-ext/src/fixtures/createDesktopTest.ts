@@ -9,6 +9,7 @@
 import type { WorkerFixtures, TestFixtures } from './desktopFixtureTypes';
 import { test as base, _electron as electron, type ElectronApplication, type Page } from '@playwright/test';
 import { downloadAndUnzipVSCode, resolveCliPathFromVSCodeExecutablePath } from '@vscode/test-electron';
+import * as Data from 'effect/Data';
 import { isNotNull, isNull } from 'effect/Predicate';
 import { spawnSync, type ChildProcess } from 'node:child_process';
 import * as fs from 'node:fs/promises';
@@ -35,12 +36,10 @@ const WORKBENCH_TIMEOUT_MS = 60_000;
  * test-level retry — both yield a fresh window, avoiding the stale-page trap where
  * `firstWindow()` returns the same closed Page on a second call.
  */
-class WindowsDesktopLaunchInstabilityError extends Error {
-  constructor(message: string, options?: { cause?: unknown }) {
-    super(message, options);
-    this.name = 'WindowsDesktopLaunchInstabilityError';
-  }
-}
+class WindowsDesktopLaunchInstabilityError extends Data.TaggedError('WindowsDesktopLaunchInstabilityError')<{
+  readonly message: string;
+  readonly cause?: unknown;
+}> {}
 
 const isWindowClosedError = (error: unknown): boolean => {
   const message = error instanceof Error ? error.message : String(error);
@@ -53,7 +52,7 @@ const wrapWindowClose = async <T>(message: string, op: () => Promise<T>): Promis
     return await op();
   } catch (error) {
     if (isWindowClosedError(error)) {
-      throw new WindowsDesktopLaunchInstabilityError(message, { cause: error });
+      throw new WindowsDesktopLaunchInstabilityError({ message, cause: error });
     }
     throw error;
   }
@@ -130,6 +129,11 @@ type CreateDesktopTestOptions = {
   testExtensionPaths?: string[];
   /** Marketplace extension IDs (publisher.name) installed via `code --install-extension` once per worker. Use for hard `extensionDependencies` not built locally. */
   marketplaceExtensions?: string[];
+  /**
+   * Omit the fixture package (`--extensionDevelopmentPath` and VSIX cache). Marketplace ids still install.
+   * Set `disableOtherExtensions: false`; `--disable-extensions` blocks that install.
+   */
+  skipCurrentPackage?: boolean;
   /** When false, do not pass --disable-extensions (needed when loading multiple dev extensions). Default true. */
   disableOtherExtensions?: boolean;
   /** Optional user settings to write to User/settings.json (e.g. to reduce GitHub/Git prompts). */
@@ -180,6 +184,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     additionalExtensionDirs = [],
     testExtensionPaths = [],
     marketplaceExtensions = [],
+    skipCurrentPackage = false,
     disableOtherExtensions = true,
     userSettings,
     beforeLaunch
@@ -214,7 +219,9 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         const repoRoot = resolveRepoRoot(fixturesDir);
         const { extensionsDir } = await prepareVsixExtensions({
           repoRoot,
-          packageDirs: ['salesforcedx-vscode-services', packageDir, ...additionalExtensionDirs],
+          packageDirs: ['salesforcedx-vscode-services', packageDir, ...additionalExtensionDirs].filter(
+            dir => !(skipCurrentPackage && dir === packageDir)
+          ),
           vscodeExecutable,
           marketplaceExtensions
         });
@@ -319,7 +326,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           installMarketplaceExtensions(extensionsDir, userDataDir, marketplaceExtensions, vscodeExecutable);
           const extensionArgs = [
             // Extension path is the package root (contains package.json and bundled dist/index.js)
-            packageRoot,
+            ...(skipCurrentPackage ? [] : [packageRoot]),
             ...additionalExtensionDirs
               .concat(['salesforcedx-vscode-services'])
               .map(dir => path.resolve(packageRoot, '..', dir))

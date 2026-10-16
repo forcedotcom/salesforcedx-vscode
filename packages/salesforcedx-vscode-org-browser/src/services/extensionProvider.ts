@@ -14,6 +14,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import type { ExtensionContext } from 'vscode';
+import { EXTENSION_NAME } from '../constants';
 import { OrgBrowserRetrieveService } from './orgBrowserMetadataRetrieveService';
 
 /** Apply the Services-owned target-org guard. */
@@ -34,7 +35,7 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
         buildSharedServicesLayer(context, 'Salesforce Org Browser'),
         OrgBrowserRetrieveService.Default,
         api.services.NotificationModeService.Default(
-          'salesforcedx-vscode-org-browser',
+          EXTENSION_NAME,
           'sf-org-browser-notifications',
           'Salesforce: Org Browser Notifications'
         )

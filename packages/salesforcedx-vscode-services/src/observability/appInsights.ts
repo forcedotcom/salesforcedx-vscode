@@ -49,10 +49,10 @@ const isTelemetryExtensionConfigurationEnabled = Effect.fn('isTelemetryExtension
   const settings = yield* SettingsService;
   // Check VS Code telemetry settings
   const enabled =
-    (yield* settings.getValue<string>('telemetry', 'telemetryLevel', 'all')) !== 'off' &&
+    (yield* settings.getValueOrElse('telemetry', 'telemetryLevel', 'all')) !== 'off' &&
     // on the web, no core extension is ever installed so we can't consult the config
     (process.env.ESBUILD_PLATFORM === 'web' ||
-      (yield* settings.getValue<boolean>(SFDX_CORE_SECTION, 'telemetry.enabled', false)));
+      (yield* settings.getValueOrElse(SFDX_CORE_SECTION, 'telemetry.enabled', false)));
 
   if (!enabled) {
     return false;
@@ -62,7 +62,7 @@ const isTelemetryExtensionConfigurationEnabled = Effect.fn('isTelemetryExtension
   // Can be overridden with salesforcedx-vscode-core.telemetry.allowDevMode setting
   const extensionMode = getExtensionMode();
   return isNotUndefined(extensionMode) && extensionMode !== ExtensionMode.Production
-    ? ((yield* settings.getValue<boolean>(SFDX_CORE_SECTION, 'telemetry.allowDevMode', false)) ?? false)
+    ? yield* settings.getValueOrElse(SFDX_CORE_SECTION, 'telemetry.allowDevMode', false)
     : true;
 });
 

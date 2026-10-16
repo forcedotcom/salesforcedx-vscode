@@ -5,10 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type * as EffectExtUtils from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
+import type * as ChannelServiceModule from 'salesforcedx-vscode-services/src/vscode/channelService';
+import type * as ChannelsModule from '../../../src/channels';
+import type * as ExtensionProviderModule from '../../../src/services/extensionProvider';
 
 /**
  * Load the bridge from a fresh module graph with a mock AllServicesLayer already set.
@@ -24,12 +28,11 @@ const loadBridgeWithMockLayer = () => {
   };
 
   jest.isolateModules(() => {
-    const { ExtensionProviderService } =
-      require('@salesforce/effect-ext-utils') as typeof import('@salesforce/effect-ext-utils');
+    const { ExtensionProviderService } = require('@salesforce/effect-ext-utils') as typeof EffectExtUtils;
     const { ChannelService } =
-      require('salesforcedx-vscode-services/src/vscode/channelService') as typeof import('salesforcedx-vscode-services/src/vscode/channelService');
+      require('salesforcedx-vscode-services/src/vscode/channelService') as typeof ChannelServiceModule;
     const { setAllServicesLayer } =
-      require('../../../src/services/extensionProvider') as typeof import('../../../src/services/extensionProvider');
+      require('../../../src/services/extensionProvider') as typeof ExtensionProviderModule;
 
     const channel = {
       appendLine: jest.fn(),
@@ -62,7 +65,7 @@ const loadBridgeWithMockLayer = () => {
     );
 
     loaded.writeToDebuggerOutputWindow = (
-      require('../../../src/channels') as typeof import('../../../src/channels')
+      require('../../../src/channels') as typeof ChannelsModule
     ).writeToDebuggerOutputWindow;
   });
 
@@ -77,8 +80,7 @@ describe('writeToDebuggerOutputWindow', () => {
 
   it('creates no channel and does not throw when no AllServicesLayer has been set', () => {
     jest.isolateModules(() => {
-      const { writeToDebuggerOutputWindow } =
-        require('../../../src/channels') as typeof import('../../../src/channels');
+      const { writeToDebuggerOutputWindow } = require('../../../src/channels') as typeof ChannelsModule;
       // Channel output is fire-and-forget: pre-activation (or in unit tests) there is no layer/runtime,
       // and writeToDebuggerOutputWindow's callers must not see that as an exception or a stray channel.
       expect(() => writeToDebuggerOutputWindow('hello')).not.toThrow();

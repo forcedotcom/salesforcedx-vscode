@@ -5,9 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Tracer from 'effect/Tracer';
+import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 
 export type RecordedSpan = { name: string; attributes: Map<string, unknown>; ended: boolean };
 
@@ -21,7 +23,11 @@ export type RecordedSpan = { name: string; attributes: Map<string, unknown>; end
  */
 export const createRecordingRuntimeMock = (
   getRecordedSpans: () => RecordedSpan[],
-  options?: { forkSync?: boolean }
+  options?: {
+    forkSync?: boolean;
+    provideExtensionProvider?: boolean;
+    settingsGetValue?: (section: string, key: string, defaultValue?: unknown) => Effect.Effect<unknown>;
+  }
 ) => {
   const recordingTracer = Tracer.make({
     span: (name, parent, context, links, startTime, kind, spanOptions) => {
@@ -54,11 +60,28 @@ export const createRecordingRuntimeMock = (
     context: <X>(f: () => X) => f()
   });
   const layer = Layer.setTracer(recordingTracer);
+  const provideRuntimeServices = <A, E, R>(effect: Effect.Effect<A, E, R>) => {
+    const withExtensionProvider = options?.provideExtensionProvider
+      ? effect.pipe(Effect.provideService(ExtensionProviderService, { getServicesApi }))
+      : effect;
+    return options?.settingsGetValue
+      ? withExtensionProvider.pipe(
+          Effect.provideService(
+            SettingsService,
+            SettingsService.make({
+              getValue: options.settingsGetValue,
+              getValueOrElse: options.settingsGetValue
+            } as never)
+          )
+        )
+      : withExtensionProvider;
+  };
   return {
     getRuntime: () => ({
-      runPromise: (eff: Effect.Effect<unknown, unknown>) => Effect.runPromise(eff.pipe(Effect.provide(layer))),
+      runPromise: (eff: Effect.Effect<unknown, unknown>) =>
+        provideRuntimeServices(eff).pipe(Effect.provide(layer), Effect.runPromise),
       runFork: (eff: Effect.Effect<unknown, unknown>) => {
-        const provided = eff.pipe(
+        const provided = provideRuntimeServices(eff).pipe(
           Effect.provide(layer),
           Effect.catchAllCause(() => Effect.void)
         );
@@ -69,7 +92,8 @@ export const createRecordingRuntimeMock = (
         }
         return undefined;
       },
-      runSync: (eff: Effect.Effect<unknown, unknown>) => Effect.runSync(eff.pipe(Effect.provide(layer)))
+      runSync: (eff: Effect.Effect<unknown, unknown>) =>
+        provideRuntimeServices(eff).pipe(Effect.provide(layer), Effect.runSync)
     })
   };
 };

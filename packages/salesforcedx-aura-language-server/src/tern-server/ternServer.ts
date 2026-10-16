@@ -6,26 +6,26 @@
  */
 // @ts-nocheck as this is a third party library
 import { extractJsonFromImport, normalizePath } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { LspFileSystemAccessor } from '@salesforce/salesforcedx-lightning-lsp-common/providers/lspFileSystemAccessor';
+import { type LspFileSystemAccessor } from '@salesforce/salesforcedx-lightning-lsp-common/providers/lspFileSystemAccessor';
 import LineColumnFinder from 'line-column';
 import * as path from 'node:path';
 import * as util from 'node:util';
 import {
-  TextDocumentPositionParams,
-  CompletionList,
-  CompletionItem,
-  Hover,
-  Location,
-  TextDocumentChangeEvent,
-  CompletionParams,
-  Position,
-  Range,
-  ReferenceParams,
-  SignatureHelp,
-  SignatureInformation,
-  Definition
+  type TextDocumentPositionParams,
+  type CompletionList,
+  type CompletionItem,
+  type Hover,
+  type Location,
+  type TextDocumentChangeEvent,
+  type CompletionParams,
+  type Position,
+  type Range,
+  type ReferenceParams,
+  type SignatureHelp,
+  type SignatureInformation,
+  type Definition
 } from 'vscode-languageserver';
-import { TextDocument } from 'vscode-languageserver-textdocument';
+import { type TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
 import * as infer from '../tern/lib/infer';

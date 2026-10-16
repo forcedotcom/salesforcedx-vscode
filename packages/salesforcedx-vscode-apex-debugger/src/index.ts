@@ -20,9 +20,9 @@ import {
   LIVESHARE_DEBUG_TYPE_REQUEST,
   LIVESHARE_DEBUGGER_TYPE,
   SEND_METRIC_EVENT,
-  SetExceptionBreakpointsArguments,
+  type SetExceptionBreakpointsArguments,
   SHOW_MESSAGE_EVENT,
-  VscodeDebuggerMessage,
+  type VscodeDebuggerMessage,
   VscodeDebuggerMessageType
 } from '@salesforce/salesforcedx-apex-debugger';
 import type { DebugProtocol } from '@vscode/debugprotocol';
@@ -104,7 +104,7 @@ const EXCEPTION_BREAK_MODES: BreakModeItem[] = [
 const configureExceptionBreakpoint = Effect.fn('configureExceptionBreakpoint')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
-  const salesforceApexExtension = yield* Effect.promise(() => getActiveApexExtension());
+  const salesforceApexExtension = yield* getActiveApexExtension();
   const exceptionBreakpointInfos = (yield* Effect.promise(() =>
     salesforceApexExtension.exports.getExceptionBreakpointInfo()
   )) as ExceptionBreakpointItem[];
@@ -269,5 +269,5 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-deb
 export const deactivate = async (): Promise<void> => getRuntime().runPromise(deactivateEffect());
 
 export const deactivateEffect = Effect.fn('deactivation:salesforcedx-vscode-apex-debugger')(function* () {
-  yield* Effect.sync(() => console.log('Apex Debugger Extension Deactivated'));
+  yield* Effect.log('Apex Debugger Extension Deactivated');
 });

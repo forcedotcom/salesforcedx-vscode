@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import {
   activeQuickInputWidget,
   clickModalDialogButton,
@@ -48,7 +48,7 @@ const DEFAULT_LOGOUT_ORG_ALIAS = 'logoutDefaultThrowawayOrg';
 //   - selectDeletableOrg (multi-pick + confirm) -> sf.org.delete.username
 //   - orgLogoutAllCommand inline multi-pick + confirm -> sf.org.logout.all
 // plus the cancel mappings: Esc (UserCancellationError -> CANCEL) and multi-pick "pick nothing" ([] -> CANCEL),
-// and a REAL logout against a dedicated throwaway org (removeAuth actually runs, asserted via the CLI).
+// and a REAL CLI logout against a dedicated throwaway org (asserted via the CLI).
 // The fixture sets a SCRATCH org (MINIMAL_ORG_ALIAS) as default, satisfying sf:project_opened +
 // sf:has_target_org + sf:default_org_deletable. The delete confirm modal is cancelled so the fixture
 // org is never deleted; only the throwaway org is actually logged out.
@@ -133,7 +133,7 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
   });
 
   // Real logout against the dedicated THROWAWAY org (never MINIMAL_ORG_ALIAS). Confirm the modal
-  // (do NOT Escape) so removeAuth actually runs, then assert removal durably via the CLI.
+  // (do NOT Escape) so sf org logout actually runs, then assert removal durably via the CLI.
   await test.step('LOGOUT real: confirm removes auth for the throwaway org', async () => {
     await executeCommandWithCommandPalette(page, packageNls.org_logout_all_text);
     await expectOrgPickerListsOrg(page, THROWAWAY_ORG_ALIAS);
@@ -161,7 +161,7 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
   });
 
   // Real logout of the CURRENT DEFAULT org via sf.org.logout.default (W-23069609). Set the dedicated
-  // second throwaway AS the default first (so removeAuth unsets the current default — the path that
+  // second throwaway AS the default first (so CLI logout unsets the current default — the path that
   // must clear the in-process ref), confirm the scratch modal, then assert removal durably via the CLI.
   // Sequenced last: it leaves the workspace with no default org. MINIMAL_ORG_ALIAS stays authed.
   await test.step('LOGOUT DEFAULT real: confirm removes auth for the default org', async () => {
@@ -178,6 +178,7 @@ test('org pickers: display, delete, logout pick + confirm + cancel flows', async
 
     // Durable signal: poll the CLI until the default org is no longer authorized.
     await expectOrgLoggedOut(DEFAULT_LOGOUT_ORG_ALIAS);
+    await expectOrgPickerStatusBar(page, 'No Default Org Set');
   });
 });
 
@@ -202,7 +203,7 @@ const expectOrgLoggedOut = async (alias: string, timeoutMs = 30_000): Promise<vo
 };
 
 /** Toggle a `canPickMany` quick-pick row's checkbox by typing the alias and clicking the matching org row. */
-const toggleMultiPickRow = async (page: import('@playwright/test').Page, alias: string): Promise<void> => {
+const toggleMultiPickRow = async (page: Page, alias: string): Promise<void> => {
   await page.keyboard.type(alias);
   const row = activeQuickInputWidget(page)
     .locator(QUICK_INPUT_LIST_ROW)
@@ -210,11 +211,12 @@ const toggleMultiPickRow = async (page: import('@playwright/test').Page, alias: 
     .filter({ hasNotText: 'SFDX:' })
     .first();
   await row.waitFor({ state: 'visible', timeout: 10_000 });
-  await row.click({ force: true });
+  await expect(row).toBeEnabled({ timeout: 10_000 });
+  await row.click();
 };
 
 /** Assert no error toast surfaced (UserCancellationError must map to CANCEL, never an error notification). */
-const expectNoErrorNotification = async (page: import('@playwright/test').Page): Promise<void> => {
+const expectNoErrorNotification = async (page: Page): Promise<void> => {
   await expect(
     page.locator(NOTIFICATION_LIST_ITEM).filter({ has: page.locator('.codicon-error') }),
     'a CANCEL flow must not surface an error notification'

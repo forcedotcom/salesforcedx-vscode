@@ -31,6 +31,10 @@ jest.mock('../../../src/services/extensionProvider', () => {
     getValue: (_section: string, key: string, _default: unknown) =>
       EffectActual.succeed(
         key === 'restore-previous-results' ? settingsValues.restorePrevious : settingsValues.disableWarnings
+      ),
+    getValueOrElse: (_section: string, key: string, _default: unknown) =>
+      EffectActual.succeed(
+        key === 'restore-previous-results' ? settingsValues.restorePrevious : settingsValues.disableWarnings
       )
   };
   const mockChannelService = {
@@ -88,7 +92,7 @@ import {
   StaleResultsError
 } from '../../../src/codecoverage/codeCoverageService';
 import { CodeCoverageHandler } from '../../../src/codecoverage/colorizer';
-import { StatusBarToggle } from '../../../src/codecoverage/statusBarToggle';
+import { type StatusBarToggle } from '../../../src/codecoverage/statusBarToggle';
 import { getApexTestingRuntime } from '../../../src/services/extensionProvider';
 import { getTestResultsFolder } from '../../../src/utils/pathHelpers';
 

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SelectExprs, SelectExpression, SyntaxOptions } from '../model';
+import { type SelectExprs, type SelectExpression, type SyntaxOptions } from '../model';
 
 export class SelectExprsImpl implements SelectExprs {
   public readonly kind = 'selectExprs' as const;

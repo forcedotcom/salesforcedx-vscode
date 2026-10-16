@@ -25,7 +25,8 @@
     "clean": "shx rm -rf node_modules out coverage .wireit .eslintcache",
     "compile": "wireit",
     "test": "wireit",
-    "lint": "wireit"
+    "lint": "wireit",
+    "check:effect-diagnostics": "wireit"
   },
   "wireit": {
     "compile": {
@@ -71,12 +72,24 @@
         "../../config/jest.base.config.js"
       ],
       "output": []
+    },
+    "check:effect-diagnostics": {
+      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "package.json",
+        "../../config/effect-diagnostics.json",
+        "../../scripts/effect-diagnostics.mjs"
+      ],
+      "output": []
     }
   },
   "dependencies": {
-    "@salesforce/salesforcedx-lightning-lsp-common": "*",
-    "@salesforce/salesforcedx-utils": "*",
-    "@salesforce/vscode-i18n": "*",
+    "@salesforce/salesforcedx-lightning-lsp-common": "workspace:*",
+    "@salesforce/salesforcedx-utils": "workspace:*",
+    "@salesforce/vscode-i18n": "workspace:*",
     "acorn": "^6.0.0",
     "acorn-loose": "^6.0.0",
     "acorn-walk": "^6.0.0",

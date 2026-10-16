@@ -24,14 +24,18 @@ import * as Option from 'effect/Option';
 import { isUndefined } from 'effect/Predicate';
 import * as Runtime from 'effect/Runtime';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { OrgMetadataCatalogRecorder } from '../orgCatalog/orgMetadataCatalogRecorder';
 import { FsService } from '../vscode/fsService';
 import { uriToPath } from '../vscode/paths';
 import { UserCancellationError } from '../vscode/prompts/promptService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { withActiveMetadataOperationPipeline } from './activeMetadataOperationRef';
-import { FailedToBuildComponentSetError, NonEmptyComponentSet, setComponentSetProperties } from './componentSetService';
+import {
+  FailedToBuildComponentSetError,
+  type NonEmptyComponentSet,
+  setComponentSetProperties
+} from './componentSetService';
 import { ConfigService } from './configService';
 import { ConnectionService } from './connectionService';
 import { dedupeMetadataChanges, MetadataChangeNotificationService } from './metadataChangeNotificationService';
@@ -240,11 +244,12 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
           );
           return retrieveResult;
         },
-        catch: e => {
-          console.error(e);
-          return new MetadataRetrieveError(unknownToErrorCause(e));
-        }
-      }).pipe(Effect.withSpan('retrieve (API call)'), Effect.fork);
+        catch: e => new MetadataRetrieveError(unknownToErrorCause(e))
+      }).pipe(
+        Effect.tapError(e => e.pipe(Cause.fail, Effect.logError)),
+        Effect.withSpan('retrieve (API call)'),
+        Effect.fork
+      );
 
       const retrieveOutcome = yield* Effect.matchCauseEffect(Fiber.join(retrieveFiber), {
         onFailure: cause =>

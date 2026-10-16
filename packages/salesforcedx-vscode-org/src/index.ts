@@ -6,11 +6,9 @@
  */
 
 import { closeExtensionScope, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
-import type { SalesforceVSCodeOrgApi } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Scope from 'effect/Scope';
-import * as vscode from 'vscode';
-import { getOrgChannelService, setOrgChannel } from './channels';
+import type * as vscode from 'vscode';
 import { orgListCleanCommand, orgLoginWebCommand, orgLogoutAllCommand, orgLogoutDefaultCommand } from './commands';
 import { aliasListCommand } from './commands/aliasList';
 import { orgLoginAccessTokenCommand } from './commands/auth/orgLoginAccessToken';
@@ -44,29 +42,18 @@ const initializeStatusBarItems = Effect.gen(function* () {
   yield* Effect.forkDaemon(checkForSoonToBeExpiredOrgs());
 });
 
-export const activate = async (extensionContext: vscode.ExtensionContext): Promise<SalesforceVSCodeOrgApi> => {
+export const activate = (extensionContext: vscode.ExtensionContext): Promise<void> => {
   console.log('Salesforce Org Management extension activated');
 
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(extensionContext));
-  await activateEffect(extensionContext).pipe(Scope.extend(extensionScope), getOrgRuntime().runPromise);
-
-  const api: SalesforceVSCodeOrgApi = {
-    channelService: getOrgChannelService()
-  };
-  return api;
+  return activation().pipe(Scope.extend(extensionScope), getOrgRuntime().runPromise);
 };
 
-const activateEffect = Effect.fn('activation:salesforcedx-vscode-org')(function* (
-  extensionContext: vscode.ExtensionContext
-) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-
-  // Wire the legacy wrapper to the Effect channel so only one 'Salesforce Org Management' channel exists.
-  const orgChannel = yield* (yield* api.services.ChannelService).getChannel;
-  setOrgChannel(orgChannel);
-  extensionContext.subscriptions.push(orgChannel);
-  const registerCommand = api.services.registerCommandWithRuntime(getOrgRuntime());
+const activation = Effect.fn('activation:salesforcedx-vscode-org')(function* () {
+  const registerCommand = (yield* (yield* ExtensionProviderService).getServicesApi).services.registerCommandWithRuntime(
+    getOrgRuntime()
+  );
   yield* registerCommand('sf.alias.list', aliasListCommand);
   yield* registerCommand('sf.org.create', orgCreateCommand);
   yield* registerCommand('sf.org.delete.default', orgDeleteDefaultCommand);
@@ -91,5 +78,4 @@ export const deactivate = async (): Promise<void> => {
   console.log('Salesforce Org Management extension deactivated');
 };
 
-export type { SalesforceVSCodeOrgApi } from '@salesforce/salesforcedx-utils-vscode';
 export type { OrgListCleanError } from './commands/orgList';

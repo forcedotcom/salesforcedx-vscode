@@ -2,10 +2,52 @@ name: AI Auto Approve
 
 # PR author on @forcedotcom/ide-experience comments exactly `/ai-auto approve`.
 # svc-idee-bot (IDEE_GH_TOKEN) submits APPROVE on the current head when CI is green.
+# Comment while CI pending/red: held. Same-SHA green later (check_suite or workflow_run completion): approve.
+# Push (pull_request_target synchronize): delete the author's `/ai-auto approve` comments. No approve.
+#
+# Every job checks out the default branch, never the PR head. pull_request_target has secrets; running PR code there is unsafe.
+# workflow_run and check_suite only start once this file exists on the default branch.
+# GitHub does not fire check_suite for suites created by Actions, so workflow_run covers the Actions CI.
 
 on:
   issue_comment:
     types: [created]
+  check_suite:
+    types: [completed]
+  # Names must match the `name:` of each CI workflow on the default branch.
+  workflow_run:
+    workflows:
+      - Validate PR
+      - Commit Workflow
+      - Apex Debugger E2E (Playwright)
+      - Apex Log E2E (Playwright)
+      - Apex LSP E2E (Playwright)
+      - Apex OAS E2E (Playwright)
+      - Apex Replay Debugger E2E (Playwright)
+      - Apex Testing E2E (Playwright)
+      - Aura E2E (Playwright)
+      - Core E2E (Playwright)
+      - LWC E2E (Playwright)
+      - Metadata E2E (Playwright)
+      - Org E2E (Playwright)
+      - OrgBrowser E2E (Playwright)
+      - Playwright VS Code Ext E2E Tests
+      - Services E2E (Playwright)
+      - SOQL E2E (Playwright)
+      - Visualforce E2E (Playwright)
+      - Apex Consumer NUTs
+      - Doc-Only Auto-Merge
+      - Build and Test
+      - Unit Tests
+      - Unit Tests Linux
+      - Unit Tests Windows
+      - End to End Tests
+      - Rerun Push E2E
+      - Code Builder E2E (Playwright)
+      - Playwright E2E Full Suite
+    types: [completed]
+  pull_request_target:
+    types: [synchronize]
 
 permissions:
   contents: read
@@ -14,14 +56,24 @@ permissions:
 
 jobs:
   approve:
-    if: github.event.issue.pull_request && github.event.comment.body == '/ai-auto approve'
+    if: >-
+      (github.event_name == 'issue_comment' && github.event.issue.pull_request && github.event.comment.body == '/ai-auto approve')
+      || github.event_name == 'check_suite'
+      || github.event_name == 'workflow_run'
+      || (github.event_name == 'pull_request_target' && github.event.action == 'synchronize')
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - name: Checkout default branch
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+      - uses: ./.github/actions/setup-pnpm
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+      - name: Compile effect-octokit
+        run: pnpm --filter @salesforce/effect-octokit compile
       - name: Decide and approve
         env:
           IDEE_GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}

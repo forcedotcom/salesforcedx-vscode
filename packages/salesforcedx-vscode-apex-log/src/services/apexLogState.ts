@@ -7,8 +7,8 @@
 
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
-import * as HashSet from 'effect/HashSet';
-import * as Ref from 'effect/Ref';
+import type * as HashSet from 'effect/HashSet';
+import type * as Ref from 'effect/Ref';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { TraceFlagItem } from 'salesforcedx-vscode-services';
 

@@ -4,9 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { OrgAuthorization } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { ICONS, type DefaultOrgInfoSchema } from '@salesforce/vscode-services';
+import { ICONS, type DefaultOrgInfoSchema, type OrgAuthorizationSummary } from '@salesforce/vscode-services';
 import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -19,14 +18,14 @@ import { nls } from '../messages';
 import {
   determineOrgMarkers,
   getAuthFieldsFor,
-  getDefaultOrgConfiguration,
+  type getDefaultOrgConfiguration,
   getFreshAuthorizations
 } from '../util/orgUtil';
 
 type OrgType = 'DevHub' | 'Sandbox' | 'Scratch' | 'Org';
 
-/** Org type derived from OrgAuthorization (no async calls) */
-const getOrgTypeFromAuth = (orgAuth: OrgAuthorization): OrgType => {
+/** Org type derived from authorization (no async calls) */
+const getOrgTypeFromAuth = (orgAuth: OrgAuthorizationSummary): OrgType => {
   if (orgAuth.isDevHub) {
     return 'DevHub';
   }
@@ -75,31 +74,32 @@ interface OrgQuickPickItem extends vscode.QuickPickItem {
 
 type DefaultOrgConfig = Awaited<ReturnType<typeof getDefaultOrgConfiguration>>;
 
-const byTypeAndMarkers = (): Order.Order<OrgAuthorization> =>
-  Order.mapInput(Order.number, (o: OrgAuthorization) => {
+const byTypeAndMarkers = (): Order.Order<OrgAuthorizationSummary> =>
+  Order.mapInput(Order.number, (o: OrgAuthorizationSummary) => {
     if (o.isScratchOrg) return 0;
     if (o.isSandbox) return 1;
     if (o.isDevHub) return 3;
     return 2;
   });
 
-const byAliasFirst: Order.Order<OrgAuthorization> = Order.mapInput(
+const byAliasFirst: Order.Order<OrgAuthorizationSummary> = Order.mapInput(
   Order.reverse(Order.boolean),
-  (o: OrgAuthorization) => Option.getOrElse(Option.map(Arr.head(o.aliases ?? []), Boolean), () => false)
+  (o: OrgAuthorizationSummary) => Option.getOrElse(Option.map(Arr.head(o.aliases ?? []), Boolean), () => false)
 );
 
-const byAliasOrUsername: Order.Order<OrgAuthorization> = Order.mapInput(Order.string, (o: OrgAuthorization) =>
-  Option.getOrElse(Arr.head(o.aliases ?? []), () => o.username ?? '').toLowerCase()
+const byAliasOrUsername: Order.Order<OrgAuthorizationSummary> = Order.mapInput(
+  Order.string,
+  (o: OrgAuthorizationSummary) => Option.getOrElse(Arr.head(o.aliases ?? []), () => o.username ?? '').toLowerCase()
 );
 
 /** Sort: Scratch, Sandbox, Other, DevHub, Defaults; within each, aliases first then alphabetical. Exported for test. */
-const orgOrder = (): Order.Order<OrgAuthorization> =>
+const orgOrder = (): Order.Order<OrgAuthorizationSummary> =>
   Order.combineAll([byTypeAndMarkers(), byAliasFirst, byAliasOrUsername]);
 
 /** Build QuickPick items from orgs: icons + (alias(s) | username when alias present) */
 const orgAuthToQuickPickItem =
   (defaultConfig: Awaited<ReturnType<typeof getDefaultOrgConfiguration>>) =>
-  (orgAuth: OrgAuthorization): OrgQuickPickItem => {
+  (orgAuth: OrgAuthorizationSummary): OrgQuickPickItem => {
     const defaultMarkers = determineOrgMarkers(orgAuth, defaultConfig);
     const orgType = getOrgTypeFromAuth(orgAuth);
     const typeIcon = getIconForOrgType(orgType);
@@ -155,7 +155,7 @@ export const isOrgExpired = Effect.fn('OrgList.isOrgExpired')(function* (targetO
 });
 
 export const authorizationsToQuickPickItems = (
-  authorizations: OrgAuthorization[],
+  authorizations: OrgAuthorizationSummary[],
   defaultConfig: DefaultOrgConfig
 ): OrgQuickPickItem[] =>
   authorizations
@@ -168,9 +168,9 @@ export const isOrgItem = (item: vscode.QuickPickItem): item is OrgQuickPickItem 
 
 /** Build grouped QuickPick items with type separators, with optional org-type filter. */
 export const buildOrgQuickPickItems = (
-  authorizations: OrgAuthorization[],
+  authorizations: OrgAuthorizationSummary[],
   defaultConfig: DefaultOrgConfig,
-  filter?: (org: OrgAuthorization) => boolean
+  filter?: (org: OrgAuthorizationSummary) => boolean
 ): vscode.QuickPickItem[] => {
   const filtered = filter ? authorizations.filter(filter) : authorizations;
   return authorizationsToQuickPickItems(filtered, defaultConfig).flatMap((item, index, array) => {

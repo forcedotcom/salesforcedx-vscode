@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Arr from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
@@ -105,8 +106,8 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
     const considerEmptySelectionAsCancellation = <T>(value: readonly T[] | undefined) =>
       Effect.succeed(value).pipe(
         Effect.filterOrFail(
-          (candidateValue): candidateValue is readonly T[] =>
-            isNotUndefined(candidateValue) && candidateValue.length > 0,
+          (candidateValue): candidateValue is Arr.NonEmptyReadonlyArray<T> =>
+            isNotUndefined(candidateValue) && Arr.isNonEmptyReadonlyArray(candidateValue),
           () => new UserCancellationError()
         )
       );

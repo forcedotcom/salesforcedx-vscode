@@ -20,20 +20,14 @@ on:
   push:
     branches-ignore: [ main, develop ]
     paths-ignore:
-      - '.claude/**'
-      - '.cursor/**'
-      - 'contributing/**'
-      - 'CONTRIBUTING.md'
-      - 'docs/**'
-      - 'CONTEXT.md'
-      - 'CONTEXT-MAP.md'
+      - CONTEXT.md
+      - CONTEXT-MAP.md
       - '**/CONTEXT.md'
-      - '**/docs/**/*.md'
-      - '**/README*'
-      - 'SECURITY*'
-      - 'CODE_OF_CONDUCT*'
-      - 'CHANGELOG*'
-      - '**/CHANGELOG*'
+      - 'docs/**.md'
+      - '**/docs/**.md'
+      - '.claude/**.md'
+      - 'plans/**.md'
+      - '.cursor/**.md'
 
 concurrency:
   group: ci-${{ github.ref }}-visualforceE2E
@@ -50,91 +44,13 @@ jobs:
         inputs.vscode_version != '' && inputs.vscode_version ||
         vars.PLAYWRIGHT_VSCODE_VERSION }}
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: $/.github/actions/playwright-e2e
         with:
-          fetch-depth: 1
-
-      - name: Setup E2E
-        uses: ./.github/actions/setup-e2e
-        with:
+          workspace: packages/salesforcedx-vscode-visualforce
+          npm-script: test:web
+          report-name: playwright-report-visualforce-web
+          results-name: playwright-test-results-visualforce-web
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
-
-      # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need Playwright.
-      # When cache misses, tests fail on missing chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
-      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
-      - name: Try E2E tests
-        id: try-run
-        continue-on-error: true
-        timeout-minutes: 5
-        env:
-          CI: 1
-          E2E_NO_RETRIES: 1
-        run: |
-          npm run test:web -w salesforcedx-vscode-visualforce
-
-      - name: Kill process on port 3001
-        if: steps.try-run.outcome == 'failure'
-        run: lsof -ti :3001 | xargs --no-run-if-empty kill -9
-
-      - uses: ./.github/actions/cache-vscode-web
-        if: steps.try-run.outcome == 'failure'
-        with:
-          vscode-version: ${{ env.PLAYWRIGHT_VSCODE_VERSION }}
-
-      - name: Install Playwright browsers and OS deps
-        if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: npx playwright install chromium --with-deps
-          retry_wait_seconds: 60
-
-      - name: Run Visualforce Playwright web tests (parallel)
-        if: steps.try-run.outcome == 'failure'
-        id: parallel-run
-        continue-on-error: true
-        env:
-          CI: 1
-        run: |
-          npm run test:web -w salesforcedx-vscode-visualforce
-
-      - name: Retry failed tests (sequential)
-        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
-          'failure'
-        env:
-          CI: 1
-          PLAYWRIGHT_WORKERS: 1
-        run: |
-          npm run test:web -w salesforcedx-vscode-visualforce -- --last-failed
-
-      - name: Copy span files to test-results
-        if: always()
-        shell: bash
-        run: |
-          mkdir -p packages/salesforcedx-vscode-visualforce/test-results/spans
-          cp -r ~/.sf/vscode-spans/. packages/salesforcedx-vscode-visualforce/test-results/spans/ 2>/dev/null || true
-
-      - name: Upload Playwright HTML report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report-visualforce-web
-          path: packages/salesforcedx-vscode-visualforce/playwright-report
-          if-no-files-found: ignore
-          retention-days: 14
-
-      - name: Upload Playwright test results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-test-results-visualforce-web
-          path: packages/salesforcedx-vscode-visualforce/test-results
-          if-no-files-found: ignore
-          retention-days: 14
-
-  # ─── Desktop ──────────────────────────────────────────────────────────────────────────────
-
   e2e-desktop:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
@@ -150,89 +66,10 @@ jobs:
       fail-fast: false
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+      - uses: $/.github/actions/playwright-e2e
         with:
-          fetch-depth: 1
-
-      - name: Log desktop VS Code version
-        shell: bash
-        run: echo "::notice::VS Code version=${PLAYWRIGHT_VSCODE_VERSION}"
-
-      - name: Setup E2E
-        uses: ./.github/actions/setup-e2e
-        with:
+          workspace: packages/salesforcedx-vscode-visualforce
+          npm-script: test:desktop
+          report-name: playwright-report-visualforce-desktop-${{ matrix.os }}
+          results-name: playwright-test-results-visualforce-desktop-${{ matrix.os }}
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
-
-      # Try E2E tests first. When wireit cache hits, it skips the command and exits 0—we never need Playwright.
-      # When cache misses, tests fail on missing chromium. E2E_NO_RETRIES=1 disables Playwright retries in config
-      # so failures are fast (env var doesn't affect wireit cache key since it's not part of the npm command).
-      - name: Try E2E tests
-        id: try-run
-        continue-on-error: true
-        timeout-minutes: 5
-        env:
-          CI: 1
-          VSCODE_DESKTOP: 1
-          E2E_NO_RETRIES: 1
-        run: |
-          npm run test:desktop -w salesforcedx-vscode-visualforce
-
-      # Only run expensive setup when try-run failed (cache miss). On cache hit we never reach these steps.
-      - uses: ./.github/actions/cache-vscode-desktop
-        if: steps.try-run.outcome == 'failure'
-        with:
-          vscode-version: ${{ env.PLAYWRIGHT_VSCODE_VERSION }}
-
-      - name: Install Playwright browsers and OS deps
-        if: steps.try-run.outcome == 'failure'
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          max_attempts: 3
-          command: npx playwright install chromium --with-deps
-          retry_wait_seconds: 60
-
-      - name: Run Visualforce E2E tests (parallel)
-        if: steps.try-run.outcome == 'failure'
-        id: parallel-run
-        continue-on-error: true
-        env:
-          CI: 1
-          VSCODE_DESKTOP: 1
-        run: |
-          npm run test:desktop -w salesforcedx-vscode-visualforce
-
-      - name: Retry failed tests (sequential)
-        if: steps.try-run.outcome == 'failure' && steps.parallel-run.outcome ==
-          'failure'
-        env:
-          CI: 1
-          VSCODE_DESKTOP: 1
-          PLAYWRIGHT_WORKERS: 1
-        run: |
-          npm run test:desktop -w salesforcedx-vscode-visualforce -- --last-failed
-
-      - name: Copy span files to test-results
-        if: always()
-        shell: bash
-        run: |
-          mkdir -p packages/salesforcedx-vscode-visualforce/test-results/spans
-          cp -r ~/.sf/vscode-spans/. packages/salesforcedx-vscode-visualforce/test-results/spans/ 2>/dev/null || true
-
-      - name: Upload Playwright HTML report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-report-visualforce-desktop-${{ matrix.os }}
-          path: packages/salesforcedx-vscode-visualforce/playwright-report
-          if-no-files-found: ignore
-          retention-days: 14
-
-      - name: Upload Playwright Test Results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: playwright-test-results-visualforce-desktop-${{ matrix.os }}
-          path: packages/salesforcedx-vscode-visualforce/test-results
-          if-no-files-found: ignore
-          retention-days: 14

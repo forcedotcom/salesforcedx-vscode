@@ -5,9 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { SObjectFieldType } from '@salesforce/soql-model';
-import { SObjectTypeUtils } from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/sobjectUtils';
+import {
+  fieldMap,
+  getNillable,
+  getPicklistValues,
+  getType
+} from '../../../../../../src/soql-builder-ui/modules/querybuilder/services/sobjectUtils';
 
-describe('SObjectTypeUtils should', () => {
+describe('sobject field map should', () => {
   const sobjectMetadata = {
     fields: [
       { name: 'Id', type: 'id', picklistValues: [] },
@@ -52,17 +57,25 @@ describe('SObjectTypeUtils should', () => {
       SObjectFieldType.Picklist,
       SObjectFieldType.Phone
     ];
-    const sobjectTypeUtils = new SObjectTypeUtils(sobjectMetadata);
-    const actual = sobjectMetadata.fields.map(field => sobjectTypeUtils.getType(field.name));
+    const fields = fieldMap(sobjectMetadata);
+    const actual = sobjectMetadata.fields.map(field => getType(fields, field.name));
 
     expect(actual).toEqual(expected);
   });
 
   it('return AnyType by default like when a field cannot be found', () => {
     const expected = SObjectFieldType.AnyType;
-    const actual = new SObjectTypeUtils(sobjectMetadata).getType('foo');
+    const actual = getType(fieldMap(sobjectMetadata), 'foo');
 
     expect(actual).toEqual(expected);
+  });
+
+  it('return AnyType when the describe type is unknown', () => {
+    const fields = fieldMap({
+      fields: [{ name: 'Weird', type: 'not-a-real-type', picklistValues: [] }]
+    });
+
+    expect(getType(fields, 'Weird')).toBe(SObjectFieldType.AnyType);
   });
 
   it('return a string list of picklist values', () => {
@@ -80,9 +93,23 @@ describe('SObjectTypeUtils should', () => {
       ['apple', 'banana', 'cherry'],
       []
     ];
-    const sobjectTypeUtils = new SObjectTypeUtils(sobjectMetadata);
-    const actual = sobjectMetadata.fields.map(field => sobjectTypeUtils.getPicklistValues(field.name));
+    const fields = fieldMap(sobjectMetadata);
+    const actual = sobjectMetadata.fields.map(field => getPicklistValues(fields, field.name));
 
     expect(actual).toEqual(expected);
+  });
+
+  it('return whether a field is nillable', () => {
+    const fields = fieldMap({
+      fields: [
+        { name: 'Name', type: 'string', picklistValues: [], nillable: true },
+        { name: 'Id', type: 'id', picklistValues: [], nillable: false }
+      ]
+    });
+
+    expect(getNillable(fields, 'Name')).toBe(true);
+    expect(getNillable(fields, 'Id')).toBe(false);
+    expect(getNillable(fields, 'Missing')).toBeUndefined();
+    expect(getNillable(undefined, 'Name')).toBeUndefined();
   });
 });

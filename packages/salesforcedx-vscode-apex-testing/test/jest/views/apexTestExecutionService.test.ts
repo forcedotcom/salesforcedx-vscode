@@ -53,7 +53,7 @@ jest.mock('../../../src/utils/testUtils', () => {
   };
 });
 
-import { TestService } from '@salesforce/apex-node';
+import { type TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -82,6 +82,8 @@ const mockApi = {
     // Yielded as an instance (yield* api.services.SettingsService), so wrap in Effect.succeed.
     SettingsService: Effect.succeed({
       getValue: (_section: string, key: string, defaultValue: unknown) =>
+        Effect.succeed(key in settingsValues ? settingsValues[key] : defaultValue),
+      getValueOrElse: (_section: string, key: string, defaultValue: unknown) =>
         Effect.succeed(key in settingsValues ? settingsValues[key] : defaultValue)
     }),
     // getConnection is a static accessor (api.services.ConnectionService.getConnection()); the returned

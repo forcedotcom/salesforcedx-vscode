@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.19.1",
+  "version": "68.3.3",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,19 +28,19 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/core": "^9.1.9",
-    "@salesforce/effect-ext-utils": "*",
-    "@salesforce/salesforcedx-apex-debugger": "*",
-    "@salesforce/vscode-i18n": "*",
+    "@salesforce/core": "^9.3.0",
+    "@salesforce/effect-ext-utils": "workspace:*",
+    "@salesforce/salesforcedx-apex-debugger": "workspace:*",
+    "@salesforce/vscode-i18n": "workspace:*",
     "effect": "^3.21.2",
     "sanitize-filename": "^1.6.1",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/playwright-vscode-ext": "*",
+    "@salesforce/playwright-vscode-ext": "workspace:*",
     "@vscode/debugprotocol": "1.68.0",
-    "salesforcedx-vscode-apex": "*",
-    "salesforcedx-vscode-services": "*"
+    "salesforcedx-vscode-apex": "workspace:*",
+    "salesforcedx-vscode-services": "workspace:*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
@@ -61,8 +61,9 @@
     "test:compile": "wireit",
     "vscode:package:legacy:prerelease": "wireit",
     "test:desktop": "wireit",
-    "test:desktop:debug": "npm run test:desktop -- --debug",
-    "test:e2e": "wireit"
+    "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-apex-debugger test:desktop --debug",
+    "test:e2e": "wireit",
+    "check:effect-diagnostics": "wireit"
   },
   "wireit": {
     "compile": {
@@ -127,6 +128,11 @@
       ]
     },
     "vscode:bundle:build": {
+      "env": {
+        "DEBUG_BUNDLE": {
+          "external": true
+        }
+      },
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile",
@@ -215,6 +221,17 @@
       "env": {
         "VSCE_PRE_RELEASE": "true"
       }
+    },
+    "check:effect-diagnostics": {
+      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "../../config/effect-diagnostics.json",
+        "../../scripts/effect-diagnostics.mjs"
+      ],
+      "output": []
     }
   },
   "activationEvents": [

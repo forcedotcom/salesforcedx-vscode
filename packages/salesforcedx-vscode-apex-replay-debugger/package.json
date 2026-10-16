@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.19.1",
+  "version": "68.3.3",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,23 +28,23 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/apex-node": "*",
-    "@salesforce/effect-ext-utils": "*",
-    "@salesforce/salesforcedx-apex-replay-debugger": "*",
-    "@salesforce/salesforcedx-utils": "*",
-    "@salesforce/salesforcedx-utils-vscode": "*",
-    "@salesforce/vscode-i18n": "*",
+    "@salesforce/apex-node": "workspace:*",
+    "@salesforce/effect-ext-utils": "workspace:*",
+    "@salesforce/salesforcedx-apex-replay-debugger": "workspace:*",
+    "@salesforce/salesforcedx-utils": "workspace:*",
+    "@salesforce/vscode-i18n": "workspace:*",
     "effect": "^3.21.2",
-    "salesforcedx-vscode-apex-log": "*",
+    "salesforcedx-vscode-apex-log": "workspace:*",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@playwright/test": "*",
-    "@salesforce/core": "^9.1.9",
-    "@salesforce/playwright-vscode-ext": "*",
-    "salesforcedx-vscode-apex": "*",
-    "salesforcedx-vscode-metadata": "*",
-    "salesforcedx-vscode-services": "*"
+    "@playwright/test": "1.60.0",
+    "@salesforce/core": "^9.3.0",
+    "@salesforce/playwright-vscode-ext": "workspace:*",
+    "salesforcedx-vscode-apex": "workspace:*",
+    "salesforcedx-vscode-apex-testing": "workspace:*",
+    "salesforcedx-vscode-metadata": "workspace:*",
+    "salesforcedx-vscode-services": "workspace:*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-apex",
@@ -64,7 +64,8 @@
     "check:circular-deps": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache .circular-deps.json *.vsix",
     "test": "wireit",
-    "vscode:package:prerelease": "wireit"
+    "vscode:package:prerelease": "wireit",
+    "check:effect-diagnostics": "wireit"
   },
   "wireit": {
     "compile": {
@@ -74,7 +75,6 @@
         "../salesforcedx-apex:compile",
         "../salesforcedx-apex-replay-debugger:compile",
         "../salesforcedx-utils:compile",
-        "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-apex-log:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-apex:compile",
@@ -94,6 +94,11 @@
       ]
     },
     "vscode:bundle": {
+      "env": {
+        "DEBUG_BUNDLE": {
+          "external": true
+        }
+      },
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile"
@@ -164,7 +169,7 @@
       "output": []
     },
     "vscode:package": {
-      "command": "vsce package --allow-package-all-secrets",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies",
       "dependencies": [
         "vscode:bundle"
       ],
@@ -195,7 +200,7 @@
       "dependencies": [
         "vscode:package",
         "../salesforcedx-vscode-services:vscode:package",
-        "../salesforcedx-vscode-core:vscode:package:legacy",
+        "../salesforcedx-vscode-core:vscode:package",
         "../salesforcedx-vscode-apex:vscode:package",
         "../salesforcedx-vscode-apex-log:vscode:package",
         "../salesforcedx-vscode-apex-testing:vscode:package",
@@ -210,7 +215,7 @@
       "output": []
     },
     "vscode:package:prerelease": {
-      "command": "vsce package --allow-package-all-secrets --pre-release",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies --pre-release",
       "dependencies": [
         "vscode:bundle"
       ],
@@ -226,6 +231,17 @@
       "output": [
         "*.vsix"
       ]
+    },
+    "check:effect-diagnostics": {
+      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "../../config/effect-diagnostics.json",
+        "../../scripts/effect-diagnostics.mjs"
+      ],
+      "output": []
     }
   },
   "activationEvents": [

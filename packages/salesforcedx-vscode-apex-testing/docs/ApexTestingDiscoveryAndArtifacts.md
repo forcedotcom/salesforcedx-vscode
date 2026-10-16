@@ -7,11 +7,11 @@ This note documents how Apex Testing currently handles test discovery data and t
 - Activation initializes `ApexTestController` in `src/index.ts`.
 - Org changes trigger `testController.refresh()` from `initializeTestDiscovery()`.
 - `refresh()` in `src/views/testController.ts` deduplicates concurrent calls (later callers join the in-flight refresh rather than starting a second one); calls `doRefresh()`:
-  - Ensures org connection and `TestService`.
+  - Ensures org connection.
   - Clears in-memory test items.
-  - Populates suites (`retrieveAllSuites()`).
-  - Fetches discovered classes from Tooling API via `src/testDiscovery/testDiscovery.ts`.
-  - Builds Test Explorer items from discovered classes.
+  - Fetches suites (`retrieveAllSuites()`) and discovered classes (`src/testDiscovery/testDiscovery.ts`) together.
+  - Writes the suite parent when the suite fetch succeeds, including when discovery fails.
+  - Builds Test Explorer class items from discovered classes after that write.
 
 ## In-Memory Runtime State
 

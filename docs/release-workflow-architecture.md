@@ -37,9 +37,17 @@ Wednesday (Week N - 8 AM UTC) ────────────────�
 │  │ ✓ Finds most recent nightly (min-tag-age: 0 days)            │
 │  │ ✓ Gate-checks: nightly build/release success                 │
 │  │   (not unit-tests; those ran on PR before merge to develop)  │
+│  │ ✓ Computes changelog range (prev prerelease tag or latest v*) │
+│  │ ✓ Generates polished changelog via AI (removes GUS refs,     │
+│  │   rewrites sentences, dedupes packages, consolidates Under-  │
+│  │   the-Hood) using .github/workflows/changelog-body.yml       │
+│  │ ✓ Writes polished changelog to CHANGELOG.md + root           │
 │  │ ✓ Creates marketplace-prerelease-* tracking tag              │
 │  │   (marks which nightly to promote to stable next week)       │
 │  │ ✓ Publishes that specific nightly to marketplace             │
+│  │ ✓ Tags nightly release title with " - published" suffix      │
+│  │   (visible at-a-glance on Releases page which nightly went   │
+│  │    out as that week's marketplace pre-release)               │
 │  │ ✓ Zero manual intervention                                   │
 │  │                                                              │
 │  │ WHY IT MATTERS:                                              │
@@ -62,6 +70,7 @@ Next Wednesday (Week N+1 - 8 AM UTC)                                      │
 │  ┌──────────────────────────────────────────────────────────────┤
 │  │ WHAT IT DOES:                                                │
 │  │ 1. Finds marketplace-prerelease-* tracking tag               │
+│  │    (loops through tags newest-first, resolves first match)   │
 │  │    (previous Wednesday's promoted build that customer tested)│
 │  │ 2. Extracts source commit SHA                                │
 │  │ 3. Creates ephemeral release-staging/vX.Y.Z branch           │
@@ -261,6 +270,7 @@ WEEK N    Mon       Tue       Wed       Thu       Fri       Sat       Sun
                               │    • Gate-checks: verifies nightly build/release success
                               │    • Publishes to marketplace as PRE-RELEASE
                               │    • Creates marketplace-prerelease-* tracking tag
+                              │    • Tags nightly release title with " - published" suffix
                               │    ✓ Real users test in production
                               │
                               │    [7 DAYS OF CUSTOMER TESTING]

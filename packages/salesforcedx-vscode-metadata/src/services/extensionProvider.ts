@@ -14,6 +14,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import type { ExtensionContext } from 'vscode';
+import { EXTENSION_NAME } from '../constants';
 
 /** Apply the Services-owned target-org guard. */
 export const preventOrgChanges = <A, E, R>(command: Effect.Effect<A, E, R>) =>
@@ -28,7 +29,7 @@ export const buildAllServicesLayer = (context: ExtensionContext) =>
       Layer.mergeAll(
         buildSharedServicesLayer(context, 'Salesforce Metadata'),
         api.services.NotificationModeService.Default(
-          'salesforcedx-vscode-metadata',
+          EXTENSION_NAME,
           'sf-metadata-notifications',
           'Salesforce: Metadata Notifications'
         )

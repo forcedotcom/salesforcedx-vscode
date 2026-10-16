@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { OrgConfigProperties } from '@salesforce/core';
+import { OrgConfigProperties, type SfProject, type Connection } from '@salesforce/core';
 import type { ConfigAggregator } from '@salesforce/core/configAggregator';
 import * as SfTemplates from '@salesforce/templates';
 import { isNull } from 'effect/Predicate';
@@ -13,7 +13,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Stream from 'effect/Stream';
 import { URI } from 'vscode-uri';
-import { ConfigService } from '../../../src/core/configService';
+import { ConfigService, type FailedToCreateConfigAggregatorError } from '../../../src/core/configService';
 import { ConnectionService } from '../../../src/core/connectionService';
 import { ProjectService } from '../../../src/core/projectService';
 import { TemplateService } from '../../../src/core/templateService';
@@ -56,11 +56,7 @@ const createFailingConfigService = () =>
     ConfigService,
     ConfigService.make({
       getConfigAggregator: () =>
-        Effect.fail(
-          new Error(
-            'config unavailable'
-          ) as unknown as import('../../../src/core/configService').FailedToCreateConfigAggregatorError
-        ),
+        Effect.fail(new Error('config unavailable') as unknown as FailedToCreateConfigAggregatorError),
       invalidateConfigAggregator: () => Effect.void,
       getTargetOrg: () => Effect.succeed(undefined),
       getTargetDevHub: () => Effect.succeed(undefined),
@@ -76,7 +72,7 @@ const createFailingConfigService = () =>
 const createMockProjectService = () => {
   const mockSfProject = {
     retrieveSfProjectJson: () => Promise.resolve({ get: () => '60.0' })
-  } as unknown as import('@salesforce/core').SfProject;
+  } as unknown as SfProject;
   return Layer.succeed(
     ProjectService,
     ProjectService.make({
@@ -105,11 +101,11 @@ const createMockConnectionService = () =>
   Layer.succeed(
     ConnectionService,
     ConnectionService.make({
-      getConnection: () => Effect.succeed({ version: '60.0' } as unknown as import('@salesforce/core').Connection),
-      getConnectionForOrg: () =>
-        Effect.succeed({ version: '60.0' } as unknown as import('@salesforce/core').Connection),
+      getConnection: () => Effect.succeed({ version: '60.0' } as unknown as Connection),
+      getConnectionForOrg: () => Effect.succeed({ version: '60.0' } as unknown as Connection),
       validateAccessTokenOrPromptReauth: () => Effect.void,
       invalidateCachedConnections: () => Effect.void,
+      getAuthInfoFields: () => Effect.succeed({}),
       listAllAuthorizations: () => Effect.succeed([])
     })
   );
@@ -175,5 +171,70 @@ describe('TemplateService', () => {
       expect.objectContaining({ classname: 'MyClass' }),
       undefined
     );
+  });
+
+  describe('getBuiltInTemplateSubdirNames', () => {
+    it('delegates to CreateUtil.getCommandTemplatesInSubdirs', async () => {
+      (SfTemplates.CreateUtil.getCommandTemplatesInSubdirs as jest.Mock).mockReturnValue(['default', 'typeScript']);
+      const layer = createTestLayer(createMockConfigService(undefined));
+
+      const result = await Effect.runPromise(
+        TemplateService.getBuiltInTemplateSubdirNames('lightningcomponent', 'lwc', /\.html$/).pipe(
+          Effect.provide(layer)
+        )
+      );
+
+      expect(result).toEqual(['default', 'typeScript']);
+      expect(SfTemplates.CreateUtil.getCommandTemplatesInSubdirs).toHaveBeenCalledWith(
+        'lightningcomponent',
+        { filetype: /\.html$/, subdir: 'lwc' },
+        expect.anything(),
+        expect.anything()
+      );
+    });
+  });
+
+  describe('getCustomTemplateSubdirNames', () => {
+    it('returns [] when ORG_CUSTOM_METADATA_TEMPLATES is not set', async () => {
+      const layer = createTestLayer(createMockConfigService(undefined));
+
+      const result = await Effect.runPromise(
+        TemplateService.getCustomTemplateSubdirNames('lightningcomponent', 'lwc', /\.(js|ts)$/).pipe(
+          Effect.provide(layer)
+        )
+      );
+
+      expect(result).toEqual([]);
+    });
+
+    it('returns only subdirectories containing a matching file', async () => {
+      const layer = createTestLayer(createMockConfigService('/my/custom/templates'));
+      // Compare against uri.path (always forward-slash) rather than uri.fsPath, which is
+      // backslash-separated on Windows and would never match these POSIX-style keys there.
+      vscode.workspace.fs.readDirectory.mockImplementation((uri: { path: string }) => {
+        if (uri.path === '/my/custom/templates/lightningcomponent/lwc') {
+          return Promise.resolve([
+            ['myCustomTemplate', vscode.FileType.Directory],
+            ['notATemplate', vscode.FileType.Directory],
+            ['stray.txt', vscode.FileType.File]
+          ]);
+        }
+        if (uri.path === '/my/custom/templates/lightningcomponent/lwc/myCustomTemplate') {
+          return Promise.resolve([['myCustomTemplate.js', vscode.FileType.File]]);
+        }
+        if (uri.path === '/my/custom/templates/lightningcomponent/lwc/notATemplate') {
+          return Promise.resolve([['readme.md', vscode.FileType.File]]);
+        }
+        return Promise.resolve([]);
+      });
+
+      const result = await Effect.runPromise(
+        TemplateService.getCustomTemplateSubdirNames('lightningcomponent', 'lwc', /\.(js|ts)$/).pipe(
+          Effect.provide(layer)
+        )
+      );
+
+      expect(result).toEqual(['myCustomTemplate']);
+    });
   });
 });

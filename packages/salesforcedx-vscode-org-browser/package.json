@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "67.19.1",
+  "version": "68.3.3",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -28,16 +28,16 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/effect-ext-utils": "*",
-    "@salesforce/vscode-i18n": "*",
+    "@salesforce/effect-ext-utils": "workspace:*",
+    "@salesforce/vscode-i18n": "workspace:*",
     "effect": "^3.21.2",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^9.1.9",
-    "@salesforce/playwright-vscode-ext": "*",
-    "@salesforce/source-deploy-retrieve": "^13.2.0",
-    "salesforcedx-vscode-services": "*"
+    "@salesforce/core": "^9.3.0",
+    "@salesforce/playwright-vscode-ext": "workspace:*",
+    "@salesforce/source-deploy-retrieve": "^13.5.0",
+    "salesforcedx-vscode-services": "workspace:*"
   },
   "extensionDependencies": [
     "salesforce.salesforcedx-vscode-services"
@@ -47,10 +47,10 @@
     "vscode:bundle": "wireit",
     "run:web": "wireit",
     "test:web": "wireit",
-    "test:web:ui": "DEBUG_MODE=1 npm run test:web -- --headed",
-    "test:web:debug": "npm run test:web -- --debug",
+    "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-org-browser test:web --headed",
+    "test:web:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-org-browser test:web --debug",
     "test:desktop": "wireit",
-    "test:desktop:debug": "npm run test:desktop -- --debug",
+    "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-org-browser test:desktop --debug",
     "test:e2e": "wireit",
     "prepare:walkthrough-images": "bash scripts/prepare-walkthrough-images.sh",
     "vscode:package": "wireit",
@@ -61,7 +61,8 @@
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json",
     "test": "wireit",
     "test:compile": "wireit",
-    "vscode:package:prerelease": "wireit"
+    "vscode:package:prerelease": "wireit",
+    "check:effect-diagnostics": "wireit"
   },
   "wireit": {
     "compile": {
@@ -112,6 +113,11 @@
       ]
     },
     "vscode:bundle": {
+      "env": {
+        "DEBUG_BUNDLE": {
+          "external": true
+        }
+      },
       "command": "node ./esbuild.config.mjs",
       "dependencies": [
         "compile",
@@ -173,7 +179,7 @@
       "output": []
     },
     "vscode:package": {
-      "command": "vsce package --allow-package-all-secrets",
+      "command": "vsce package --allow-package-all-secrets --no-dependencies",
       "dependencies": [
         "vscode:bundle"
       ],
@@ -241,7 +247,7 @@
       ]
     },
     "run:web": {
-      "command": "npx vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --quality stable --verbose --printServerLog",
+      "command": "vscode-test-web --browserType=chromium --browserOption=--disable-web-security --browserOption=--remote-debugging-port=9222 --extensionDevelopmentPath . --extensionPath ../salesforcedx-vscode-services --extensionPath ../salesforcedx-vscode-metadata --open-devtools --port 3001 --quality stable --verbose --printServerLog",
       "service": true,
       "dependencies": [
         "vscode:bundle",
@@ -252,7 +258,7 @@
       ]
     },
     "vscode:package:prerelease": {
-      "command": "vsce package --pre-release",
+      "command": "vsce package --no-dependencies --pre-release",
       "dependencies": [
         "vscode:bundle"
       ],
@@ -268,6 +274,17 @@
       "output": [
         "*.vsix"
       ]
+    },
+    "check:effect-diagnostics": {
+      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "../../config/effect-diagnostics.json",
+        "../../scripts/effect-diagnostics.mjs"
+      ],
+      "output": []
     }
   },
   "main": "./dist/index.js",
@@ -334,8 +351,13 @@
       },
       {
         "view": "sfdxOrgBrowser",
+        "contents": "%org_browser_filters_invalid_search%",
+        "when": "sf:orgBrowser.initialized == true && sf:orgBrowser.invalidStructuredSearch == true && sf:orgBrowser.treeEmpty"
+      },
+      {
+        "view": "sfdxOrgBrowser",
         "contents": "%org_browser_filters_empty%",
-        "when": "sf:orgBrowser.initialized == true && ((sf:orgBrowser.showLocal == true && sf:orgBrowser.showOrg == false && sf:orgBrowser.treeEmpty) || (sf:orgBrowser.textFilterActive && sf:orgBrowser.treeEmpty))"
+        "when": "sf:orgBrowser.initialized == true && sf:orgBrowser.invalidStructuredSearch != true && ((sf:orgBrowser.showLocal == true && sf:orgBrowser.showOrg == false && sf:orgBrowser.treeEmpty) || (sf:orgBrowser.textFilterActive && sf:orgBrowser.treeEmpty))"
       },
       {
         "view": "sfdxOrgBrowser",

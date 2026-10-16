@@ -53,22 +53,23 @@ import * as Option from 'effect/Option';
 import * as Redacted from 'effect/Redacted';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { activateEffect, deactivateEffect } from '../../src/index';
-import { ComponentSetService } from 'salesforcedx-vscode-services/src/core/componentSetService';
+import { type ComponentSetService } from 'salesforcedx-vscode-services/src/core/componentSetService';
 import { ConnectionService } from 'salesforcedx-vscode-services/src/core/connectionService';
 import { ProjectService } from 'salesforcedx-vscode-services/src/core/projectService';
-import { MetadataDeleteService } from 'salesforcedx-vscode-services/src/core/metadataDeleteService';
-import { MetadataDeployService } from 'salesforcedx-vscode-services/src/core/metadataDeployService';
+import { type MetadataDeleteService } from 'salesforcedx-vscode-services/src/core/metadataDeleteService';
+import { type MetadataDeployService } from 'salesforcedx-vscode-services/src/core/metadataDeployService';
 import { MetadataRegistryService } from 'salesforcedx-vscode-services/src/core/metadataRegistryService';
 import { MetadataRetrieveService } from 'salesforcedx-vscode-services/src/core/metadataRetrieveService';
 import { SourceTrackingService } from 'salesforcedx-vscode-services/src/core/sourceTrackingService';
 import { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
-import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
+import { type FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import { ConfigService } from 'salesforcedx-vscode-services/src/core/configService';
 import { SettingsService, SettingsError } from 'salesforcedx-vscode-services/src/vscode/settingsService';
-import { EditorService } from 'salesforcedx-vscode-services/src/vscode/editorService';
+import { type EditorService } from 'salesforcedx-vscode-services/src/vscode/editorService';
 import { getDefaultOrgRef } from 'salesforcedx-vscode-services/src/core/defaultOrgRef';
-import { SdkLayerFor } from 'salesforcedx-vscode-services/src/observability/spans';
+import { type SdkLayerFor } from 'salesforcedx-vscode-services/src/observability/spans';
 import { OrgMetadataCatalogChangePubSub } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalogChangePubSub';
+import { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
 import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
 import { ErrorHandlerService } from 'salesforcedx-vscode-services/src/vscode/errorHandlerService';
 import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode/extensionContextService';
@@ -145,6 +146,12 @@ const MockSettingsServiceLayer = Layer.succeed(
         catch: () =>
           new SettingsError({ cause: new Error('Mock error'), section: _section, key: _key, message: 'Mock error' })
       }),
+    getValueOrElse: <T>(_section: string, _key: string, defaultValue: T) =>
+      Effect.try({
+        try: () => defaultValue,
+        catch: () =>
+          new SettingsError({ cause: new Error('Mock error'), section: _section, key: _key, message: 'Mock error' })
+      }),
     setValue: <T>(_section: string, _key: string, _value: T) =>
       Effect.tryPromise({
         try: async () => undefined,
@@ -154,6 +161,7 @@ const MockSettingsServiceLayer = Layer.succeed(
     getInstanceUrl: () => Effect.succeed('https://test.salesforce.com'),
     getAccessToken: () => Effect.succeed(Redacted.make('mock-token')),
     getApiVersion: () => Effect.succeed('60.0'),
+    getSessionContext: () => Effect.succeed({ isDevHub: false, isScratch: false, isSandbox: false }),
     setInstanceUrl: (_url: string) =>
       Effect.tryPromise({
         try: async () => undefined,
@@ -181,6 +189,7 @@ const MockConnectionServiceLayer = Layer.succeed(
   new ConnectionService({
     getConnection: () => Effect.sync(() => mockConnection),
     getConnectionForOrg: () => Effect.sync(() => mockConnection),
+    getAuthInfoFields: () => Effect.succeed({}),
     validateAccessTokenOrPromptReauth: () => Effect.void,
     invalidateCachedConnections: () => Effect.void,
     listAllAuthorizations: () => Effect.succeed([])
@@ -205,25 +214,19 @@ const MockErrorHandlerServiceLayer = Layer.succeed(
 );
 
 // 9. Mock ProjectService layer (needed by retrieveOrgBrowserTreeItemCommand)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const MockProjectServiceLayer = ProjectService.Default as any as Layer.Layer<ProjectService>;
 
 // 10. Mock MetadataRetrieveService layer (needed by retrieveOrgBrowserTreeItemCommand)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const MockMetadataRetrieveServiceLayer = MetadataRetrieveService.Default as any as Layer.Layer<MetadataRetrieveService>;
 
 // 11. Mock MetadataRegistryService layer (needed by retrieveOrgBrowserTreeItemCommand)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const MockMetadataRegistryServiceLayer = MetadataRegistryService.Default as any as Layer.Layer<MetadataRegistryService>;
 
 // 12. Mock SourceTrackingService layer (needed by retrieveOrgBrowserTreeItemCommand)
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const MockSourceTrackingServiceLayer = SourceTrackingService.Default as any as Layer.Layer<SourceTrackingService>;
 
 // 13. Mock OrgBrowserRetrieveService layer (needed by retrieveOrgBrowserTreeItemCommand)
-
 const MockOrgBrowserRetrieveServiceLayer =
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   OrgBrowserRetrieveService.Default as any as Layer.Layer<OrgBrowserRetrieveService>;
 
 // 14. ExtensionProviderService mock
@@ -273,7 +276,7 @@ describe('Extension activation ordering', () => {
     mockContext.subscriptions.length = 0;
   });
 
-  it('registers the Org Browser UI before waiting for an org ID', async () => {
+  it('registers the Org Browser UI and sets initialized without waiting for an org ID or connection', async () => {
     const expectedCommands = [
       'sf.org-browser.walkthrough.open',
       'sfdxOrgBrowser.refreshType',
@@ -297,10 +300,20 @@ describe('Extension activation ordering', () => {
         initialized.resolve();
       }
     });
+    // activation must not kick a connection; services populates the default-org snapshot itself
+    const connectionService = new ConnectionService({
+      getConnection: () => Effect.sync(() => mockConnection),
+      getConnectionForOrg: () => Effect.sync(() => mockConnection),
+      validateAccessTokenOrPromptReauth: () => Effect.void,
+      invalidateCachedConnections: () => Effect.void,
+      getAuthInfoFields: () => Effect.succeed({}),
+      listAllAuthorizations: () => Effect.succeed([])
+    } as const);
+    const getConnection = jest.spyOn(connectionService, 'getConnection');
     const servicesApi = {
       services: {
         ChannelService,
-        ConnectionService,
+        ConnectionService: connectionService,
         TargetOrgRef: () => Effect.succeed(targetOrgRef),
         registerCommandWithRuntime: () => (command: string) =>
           Effect.sync(() => {
@@ -319,9 +332,9 @@ describe('Extension activation ordering', () => {
         Layer.mergeAll(
           providerLayer,
           MockChannelServiceLayer('test'),
-          MockConnectionServiceLayer,
           MockExtensionContextServiceLayer,
           MockErrorHandlerServiceLayer,
+          Layer.succeed(OrgMetadataCatalog, { getChildren: () => Effect.succeed([]) } as never),
           OrgMetadataCatalogChangePubSub.Default
         )
       )
@@ -354,6 +367,7 @@ describe('Extension activation ordering', () => {
       );
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith('setContext', 'sf:orgBrowser.treeEmpty', false);
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith('setContext', 'sf:orgBrowser.initialized', true);
+      expect(getConnection).not.toHaveBeenCalled();
       expect(Option.isNone(Effect.runSync(Fiber.poll(fiber)))).toBe(true);
     } finally {
       await Effect.runPromise(Fiber.interrupt(fiber));
@@ -379,6 +393,7 @@ describe.skip('Extension', () => {
             MockConnectionServiceLayer,
             MockExtensionContextServiceLayer,
             MockErrorHandlerServiceLayer,
+            Layer.succeed(OrgMetadataCatalog, { getChildren: () => Effect.succeed([]) } as never),
             MockProjectServiceLayer,
             MockMetadataRetrieveServiceLayer,
             MockMetadataRegistryServiceLayer,

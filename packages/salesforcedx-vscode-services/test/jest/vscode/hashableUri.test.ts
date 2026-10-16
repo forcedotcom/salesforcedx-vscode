@@ -42,6 +42,12 @@ describe('HashableUri', () => {
       expect(Equal.equals(a, b)).toBe(false);
     });
 
+    it('does not treat a trailing slash as the same key', () => {
+      const a = HashableUri.fromUri(URI.file('/foo'));
+      const b = HashableUri.fromUri(URI.file('/foo/'));
+      expect(Equal.equals(a, b)).toBe(false);
+    });
+
     it('rejects plain { uri } objects without the Equal symbol', () => {
       const a = HashableUri.fromUri(URI.file('/x/y.ts'));
       const fake = { uri: URI.file('/x/y.ts') };

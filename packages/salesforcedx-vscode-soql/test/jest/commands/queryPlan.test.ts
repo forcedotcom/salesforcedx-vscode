@@ -9,12 +9,18 @@ import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import { ChannelService } from 'salesforcedx-vscode-services/out/src/vscode/channelService';
 import { ConnectionService } from 'salesforcedx-vscode-services/out/src/core/connectionService';
+import { SettingsService } from 'salesforcedx-vscode-services/out/src/vscode/settingsService';
 import * as vscode from 'vscode';
 import { executeQueryPlan, formatQueryPlanResults, QueryPlanResponse } from '../../../src/commands/queryPlan';
 import { formatErrorMessage } from '../../../src/commands/queryUtils';
 import { nls } from '../../../src/messages';
+import { prepareQuery } from '../../../src/prepareQuery';
 
 const decode = Schema.decodeUnknownSync(QueryPlanResponse);
+const settingsService = SettingsService.make({
+  getValue: (_section: string, _key: string, defaultValue?: unknown) => Effect.succeed(defaultValue),
+  getValueOrElse: (_section: string, _key: string, defaultValue: unknown) => Effect.succeed(defaultValue)
+} as never);
 
 const rawNote = {
   description: 'Not considering filter for optimization because unindexed',
@@ -74,8 +80,11 @@ describe('executeQueryPlan', () => {
           appendToChannel,
           clearChannel: Effect.void,
           getChannel: Effect.succeed({ show }),
-          showChannel: Effect.sync(() => show())
-        })
+          showChannel: Effect.sync(() => {
+            show();
+          })
+        }),
+        SettingsService
       }
     };
     (vscode.extensions.getExtension as jest.Mock).mockReturnValue({ isActive: true, exports: servicesApi });
@@ -91,7 +100,8 @@ describe('executeQueryPlan', () => {
     await Effect.runPromise(
       executeQueryPlan('SELECT Id FROM Account').pipe(
         Effect.provideService(ChannelService, {} as unknown as ChannelService),
-        Effect.provideService(ConnectionService, {} as unknown as ConnectionService)
+        Effect.provideService(ConnectionService, {} as unknown as ConnectionService),
+        Effect.provideService(SettingsService, settingsService)
       )
     );
     expect(appendToChannel).toHaveBeenCalledWith(formatErrorMessage(new Error('boom')));
@@ -103,10 +113,25 @@ describe('executeQueryPlan', () => {
     await Effect.runPromise(
       executeQueryPlan('SELECT Id FROM Account').pipe(
         Effect.provideService(ChannelService, {} as unknown as ChannelService),
-        Effect.provideService(ConnectionService, {} as unknown as ConnectionService)
+        Effect.provideService(ConnectionService, {} as unknown as ConnectionService),
+        Effect.provideService(SettingsService, settingsService)
       )
     );
     expect(appendToChannel).toHaveBeenCalledWith(nls.localize('query_plan_complete'));
     expect(show).toHaveBeenCalledTimes(1);
+  });
+
+  it('encodes the same prepared SOQL used for Run Query in explain=', async () => {
+    const request = jest.fn().mockResolvedValue({ plans: [] });
+    setup(request);
+    const query = '// header\nSELECT Id FROM Account ALL ROWS;';
+    await Effect.runPromise(
+      executeQueryPlan(prepareQuery(query).soql).pipe(
+        Effect.provideService(ChannelService, {} as unknown as ChannelService),
+        Effect.provideService(ConnectionService, {} as unknown as ConnectionService),
+        Effect.provideService(SettingsService, settingsService)
+      )
+    );
+    expect(request).toHaveBeenCalledWith(`/query?explain=${encodeURIComponent('SELECT Id FROM Account')}`);
   });
 });

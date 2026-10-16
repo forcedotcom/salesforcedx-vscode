@@ -10,15 +10,11 @@
   ],
   "main": "out/src",
   "dependencies": {
-    "@salesforce/core": "^9.1.9",
-    "@salesforce/effect-ext-utils": "*",
-    "@salesforce/o11y-reporter": "^1.8.5",
-    "@salesforce/salesforcedx-utils": "*",
+    "@salesforce/core": "^9.3.0",
+    "@salesforce/effect-ext-utils": "workspace:*",
+    "@salesforce/salesforcedx-utils": "workspace:*",
     "@salesforce/vscode-service-provider": "^1.5.0",
-    "@vscode/extension-telemetry": "^1.0.0",
-    "applicationinsights": "1.8.10",
     "effect": "^3.21.2",
-    "o11y_schema": "^264.89.0",
     "vscode-uri": "^3.1.0",
     "zod": "^4.3.2"
   },
@@ -31,7 +27,8 @@
     "lint": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache",
     "test": "wireit",
-    "test:compile": "wireit"
+    "test:compile": "wireit",
+    "check:effect-diagnostics": "wireit"
   },
   "wireit": {
     "compile": {
@@ -87,6 +84,17 @@
         "test/**/*.ts",
         "../../eslint.config.mjs",
         "package.json"
+      ],
+      "output": []
+    },
+    "check:effect-diagnostics": {
+      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "../../config/effect-diagnostics.json",
+        "../../scripts/effect-diagnostics.mjs"
       ],
       "output": []
     }

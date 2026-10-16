@@ -16,6 +16,7 @@ export const createCustomFieldNode = (entry: OrgMetadataCatalogComponentEntry): 
     xmlName: 'CustomField',
     componentName: entry.reference.fullName,
     label: fieldNodeLabel(entry),
+    searchName: entry.reference.fullName.split('.').at(-1)!,
     filePresent: entry.inWorkspace,
     orgPresent: entry.inOrg
   });

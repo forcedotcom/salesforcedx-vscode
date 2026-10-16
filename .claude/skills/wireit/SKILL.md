@@ -1,6 +1,6 @@
 ---
 name: wireit
-description: Author and use Wireit scripts for npm. Use when working with Wireit configuration, npm scripts, build pipelines, or when the user mentions Wireit.
+description: Author and use Wireit scripts. Use when working with Wireit configuration, package.json scripts, build pipelines, or when the user mentions Wireit.
 review: always
 ---
 
@@ -12,14 +12,14 @@ Full documentation: https://github.com/google/wireit
 
 ## Authoring Wireit Scripts
 
-- Wireit is very static, list dependencies explicitly (won't infer them from npm workspace relationships).
+- Wireit is very static, list dependencies explicitly (won't infer them from pnpm workspace relationships).
 - if something needs go (ex:compile) before another thing go (ex:bundle) that's a dependency
 - envs: see https://github.com/google/wireit?tab=readme-ov-file#environment-variables
 - deps can be relative ex "../../other-pkg:script-name"
 - If a package in this repo has another package as a package.json dep or devDep, it should be a wireit dep for compile
 - If an extension has another extension as an extensionDependency, it should be a wireit dep for bundle
   caching: if you specify `files` and `output` (even `[]`) you'll get caching (skips when neither have changed)
-- You can have a wireit script without it being an npm script (ex: you can't execute it on its own, but it can run as a dep of another wireit script that can start from `npm run`)
+- You can have a wireit script without it being an npm script (ex: you can't execute it on its own, but it can run as a dep of another wireit script that can start from `pnpm run`)
 - don't make circular references
 
 ## Using Wireit Scripts
@@ -37,12 +37,16 @@ Full documentation: https://github.com/google/wireit
 
 ref: https://github.com/google/wireit?tab=readme-ov-file#extra-arguments
 
-- `npm run {script} -- {script args}` — single `--` forwards args to underlying command
-- ex: `npm run build -- --verbose` passes `--verbose` to the command in `wireit.build.command`
+- `pnpm run {script} -- {script args}` — single `--` forwards args to underlying command
+- ex: `pnpm run build -- --verbose` passes `--verbose` to the command in `wireit.build.command`
 
 ## Common Patterns
 
-top level `compile`, `lint`, `test` should run all of that in the various packages. When creating new packages, update these.
+- top-level `compile`, `lint`, `test`: run that script in every package. New package → add to these.
+- top-level `check:effect-diagnostics`: dependency list only (same shape as root `lint`; no command, files, output, or `compile` dep). Effect-adopting package (`effect` or `@effect/*` dep, `tsconfig.json`, `src/**/*.ts`):
+  - package `check:effect-diagnostics` = wireit; command `node ../../scripts/effect-diagnostics.mjs .` (one package-dir, resolved from cwd; missing arg exits 1); `dependencies: [compile]` (default cascade covers compile inputs and transitive dependencies)
+  - `files`: only diagnostics inputs not covered by `compile.files` (usually `../../config/effect-diagnostics.json` and `../../scripts/effect-diagnostics.mjs`); `output: []`
+  - root dep `./packages/<name>:check:effect-diagnostics`
 
 ## Errors
 

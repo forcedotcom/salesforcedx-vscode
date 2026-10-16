@@ -33,6 +33,12 @@ const getAllOutputText = async (page: Page): Promise<string> => {
   return (text ?? '').replaceAll('\u00A0', ' ');
 };
 
+const channelSample = (text: string): string => text.slice(-400).trim().replaceAll('\n', ' ↵ ');
+
+/** Decide a marker hit before `includes(expectedText)`: a failure line can also contain the expected text. */
+const channelMarkerSample = (text: string, markers: readonly string[] | undefined): string | undefined =>
+  markers?.some(marker => text.includes(marker)) ? channelSample(text) : undefined;
+
 /** Wait for output channel to have content */
 const waitForOutputContent = async (page: Page, timeout: number): Promise<boolean> => {
   const codeArea = outputPanelCodeArea(page);
@@ -94,72 +100,97 @@ const restoreOutputPanel = async (page: Page): Promise<void> => {
 /**
  * Desktop workaround: filter does not reliably work on Electron for streamed content.
  * Fast path: check visible content immediately (works when channel is clear and output is short).
- * Bounded sweep top→bottom then bottom→top; exit as soon as text is found.
+ * Bounded sweep top→bottom then bottom→top; exit as soon as the text or a failure marker is in view.
  * Panel should be maximized before calling this so more lines are visible per step.
  */
 const waitForOutputChannelTextDesktopWorkaround = async (
   page: Page,
   expectedText: string,
-  timeout: number
+  timeout: number,
+  checkChannelFailure: (text: string) => boolean
 ): Promise<void> => {
   const codeArea = outputPanelCodeArea(page);
-  // force: true — Output actions toolbar overlays the code area and intercepts pointer events
-  await codeArea.click({ force: true });
+  // Output actions toolbar overlays the code area. Focus it directly before keyboard paging.
+  await codeArea.focus();
 
   // Fewer steps needed when panel is maximized; 30 each direction covers very long output
   const PAGE_STEPS = 30;
+  const settle = (text: string): boolean => checkChannelFailure(text) || text.includes(expectedText);
 
   await expect(async () => {
     // Fast path: text may already be in the visible viewport
-    if ((await getAllOutputText(page)).includes(expectedText)) return;
+    if (settle(await getAllOutputText(page))) return;
 
     // Sweep top → bottom
     await page.keyboard.press('Control+Home');
     for (let i = 0; i < PAGE_STEPS; i++) {
-      if ((await getAllOutputText(page)).includes(expectedText)) return;
+      if (settle(await getAllOutputText(page))) return;
       await page.keyboard.press('PageDown');
     }
 
     // Sweep bottom → top
     await page.keyboard.press('Control+End');
     for (let i = 0; i < PAGE_STEPS; i++) {
-      if ((await getAllOutputText(page)).includes(expectedText)) return;
+      if (settle(await getAllOutputText(page))) return;
       await page.keyboard.press('PageUp');
     }
 
     // Diagnostic: include a sample of what was visible at the end of the sweep
-    const sample = (await getAllOutputText(page)).slice(-400).trim().replaceAll('\n', ' ↵ ');
+    const lastText = await getAllOutputText(page);
+    if (settle(lastText)) return;
+    const sample = channelSample(lastText);
     throw new Error(`Expected "${expectedText}" in output. Last visible content: ${sample || '(empty)'}`);
   }).toPass({ timeout });
 };
 
 /** wait for output channel to contain text. Throws if not found. Assumes output has content. */
-const waitForOutputChannelTextCommon = async (page: Page, expectedText: string, timeout: number): Promise<void> => {
+const waitForOutputChannelTextCommon = async (
+  page: Page,
+  expectedText: string,
+  timeout: number,
+  failIfChannelIncludes?: readonly string[]
+): Promise<void> => {
+  const channelFailure: { sample?: string } = {};
+  // Return from `toPass` on a marker hit; throwing inside its callback would retry until timeout.
+  const checkChannelFailure = (text: string): boolean => {
+    const sample = channelMarkerSample(text, failIfChannelIncludes);
+    if (sample === undefined) return false;
+    channelFailure.sample = sample;
+    return true;
+  };
+
   if (isDesktop()) {
-    await waitForOutputChannelTextDesktopWorkaround(page, expectedText, timeout);
-    return;
+    await waitForOutputChannelTextDesktopWorkaround(page, expectedText, timeout, checkChannelFailure);
+  } else {
+    // Web: use filter input (works reliably on web)
+    const input = await ensureOutputFilterReady(page, Math.min(timeout, 15_000));
+    try {
+      await expect(async () => {
+        await input.focus();
+        await input.fill('');
+        await input.press('Enter');
+        // Check unfiltered text first: the filter hides failure lines that do not match expectedText.
+        if (failIfChannelIncludes !== undefined && checkChannelFailure(await getAllOutputText(page))) return;
+        await input.fill(expectedText);
+        await expect(input).toHaveValue(expectedText, { timeout: 5000 });
+        await input.press('Enter');
+        const combinedText = await getAllOutputText(page);
+        const sample = channelSample(combinedText);
+        expect(
+          combinedText.includes(expectedText),
+          `Expected "${expectedText}" in output. Last visible content: ${sample || '(empty)'}`
+        ).toBe(true);
+      }).toPass({ timeout });
+    } finally {
+      await input.focus().catch(() => {});
+      await input.fill('').catch(() => {});
+      await input.press('Enter').catch(() => {});
+    }
   }
-  // Web: use filter input (works reliably on web)
-  const input = await ensureOutputFilterReady(page, Math.min(timeout, 15_000));
-  try {
-    await expect(async () => {
-      await input.focus();
-      await input.fill('');
-      await input.press('Enter');
-      await input.fill(expectedText);
-      await expect(input).toHaveValue(expectedText, { timeout: 5000 });
-      await input.press('Enter');
-      const combinedText = await getAllOutputText(page);
-      const sample = combinedText.slice(-400).trim().replaceAll('\n', ' ↵ ');
-      expect(
-        combinedText.includes(expectedText),
-        `Expected "${expectedText}" in output. Last visible content: ${sample || '(empty)'}`
-      ).toBe(true);
-    }).toPass({ timeout });
-  } finally {
-    await input.focus().catch(() => {});
-    await input.fill('').catch(() => {});
-    await input.press('Enter').catch(() => {});
+  if (channelFailure.sample !== undefined && failIfChannelIncludes !== undefined) {
+    throw new Error(
+      `Output channel included ${failIfChannelIncludes.join(', ')}. Last visible content: ${channelFailure.sample || '(empty)'}`
+    );
   }
 };
 
@@ -175,9 +206,8 @@ export const ensureOutputPanelOpen = async (page: Page): Promise<void> => {
   await openCommandPalette(page);
   const widget = activeQuickInputWidget(page);
   const input = activeQuickInputTextField(page);
-  await input.waitFor({ state: 'attached', timeout: 5000 });
-  await input.click({ force: true, timeout: 5000 });
-  await input.fill('>Output: Focus on Output View', { force: true });
+  await input.click({ timeout: 5000 });
+  await input.fill('>Output: Focus on Output View');
   await expect(widget.locator(QUICK_INPUT_LIST_ROW).first()).toBeAttached({ timeout: 5000 });
   await page.keyboard.press('Enter');
 
@@ -230,8 +260,15 @@ export const selectOutputChannel = async (page: Page, channelName: string, timeo
     // Wait for the option to be enabled before selecting (fixes macOS GHA timing issues)
     const targetOption = dropdown.locator(`option[value="${targetValue}"]`);
     await expect(targetOption).not.toHaveAttribute('disabled', '', { timeout: 5000 });
-    // Select the channel using the value attribute (more reliable than label)
-    await dropdown.selectOption({ value: targetValue }, { force: true });
+    // The native select is intentionally hidden behind VS Code's custom control.
+    // Update it directly and emit the same events as a user selection.
+    await expect(dropdown).toBeEnabled({ timeout: 5000 });
+    await dropdown.evaluate((element, value) => {
+      const select = element as HTMLSelectElement;
+      select.value = value;
+      select.dispatchEvent(new Event('input', { bubbles: true }));
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    }, targetValue);
     // Verify the selection took effect - wait a bit longer for the UI to update
     await expect(dropdown).toHaveValue(targetValue, { timeout: 5000 });
   }).toPass({ timeout });
@@ -289,14 +326,14 @@ export const clearOutputChannel = async (page: Page): Promise<void> => {
   }).toPass({ timeout: 2000 });
 };
 
-/** Wait for output channel to contain specific text. Repeats [snapshot, sweep] until found or timeout to handle streaming content and virtualized DOM. */
+/** Wait for output channel text, checking failure markers before expected text in each visible sample. */
 export const waitForOutputChannelText = async (
   page: Page,
-  opts: { expectedText: string; timeout?: number }
+  opts: { expectedText: string; timeout?: number; failIfChannelIncludes?: readonly string[] }
 ): Promise<void> => {
-  const { expectedText, timeout = 30_000 } = opts;
+  const { expectedText, timeout = 30_000, failIfChannelIncludes } = opts;
 
-  if (!(await waitForOutputContent(page, timeout))) {
+  if (!(await waitForOutputContent(page, Math.min(timeout, 30_000)))) {
     throw new Error(`Output channel did not have content within ${timeout}ms`);
   }
 
@@ -304,7 +341,7 @@ export const waitForOutputChannelText = async (
   const shouldRestorePanel = isDesktop();
   if (shouldRestorePanel) await maximizeOutputPanel(page);
   try {
-    await waitForOutputChannelTextCommon(page, expectedText, timeout);
+    await waitForOutputChannelTextCommon(page, expectedText, timeout, failIfChannelIncludes);
   } finally {
     if (shouldRestorePanel) await restoreOutputPanel(page);
   }

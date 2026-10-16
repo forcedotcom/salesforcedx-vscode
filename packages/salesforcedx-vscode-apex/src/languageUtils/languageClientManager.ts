@@ -4,15 +4,20 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService, getExtensionScope, getServicesApi } from '@salesforce/effect-ext-utils';
-import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
+import {
+  ExtensionProviderService,
+  getExtensionScope,
+  getMessageFromError,
+  getServicesApi
+} from '@salesforce/effect-ext-utils';
+import { type LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
-import { isError, isNotUndefined } from 'effect/Predicate';
+import { isNotUndefined } from 'effect/Predicate';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
-import { ApexLanguageClient } from '../apexLanguageClient';
+import { type ApexLanguageClient } from '../apexLanguageClient';
 import ApexLSPStatusBarItem from '../apexLspStatusBarItem';
 import {
   API,
@@ -26,7 +31,7 @@ import { createLanguageServer } from '../languageServer';
 import { nls } from '../messages';
 import { fireErrorSpan, fireSpan } from '../services/fireSpan';
 import { getRuntime } from '../services/runtime';
-import { retrieveEnableSyncInitJobs } from '../settings';
+import { getApexLanguageServerRestartBehavior, retrieveEnableSyncInitJobs } from '../settings';
 
 export enum ClientStatus {
   Unavailable,
@@ -61,9 +66,9 @@ class LanguageClientStatus {
   }
 }
 
-interface RestartQuickPickItem extends vscode.QuickPickItem {
+type RestartQuickPickItem = vscode.QuickPickItem & {
   type: 'restart' | 'reset';
-}
+};
 
 const promptForRestartOption = Effect.fn('LanguageClientManager.promptForRestartOption')(function* (
   items: RestartQuickPickItem[]
@@ -109,6 +114,50 @@ const removeApexDbEffect = Effect.fn('LanguageClientManager.removeApexDB')(funct
     )
   );
 });
+
+const sendRestartTelemetry = (
+  selectedOption: RestartQuickPickItem,
+  source: 'commandPalette' | 'statusBar',
+  restartBehavior: string
+): void => {
+  fireSpan('apex.lsp.restart', {
+    restartBehavior: restartBehavior === 'prompt' ? 'prompt' : restartBehavior,
+    selectedOption: selectedOption.type,
+    source,
+    defaultOption: restartBehavior
+  });
+};
+
+const showRestartQuickPick = (
+  items: RestartQuickPickItem[],
+  source: 'commandPalette' | 'statusBar',
+  restartBehavior: string
+): Promise<string | undefined> =>
+  promptForRestartOption(items).pipe(
+    Effect.catchTag('UserCancellationError', () => Effect.void),
+    Effect.provideService(ExtensionProviderService, { getServicesApi }),
+    Effect.tap(selectedOption =>
+      Effect.sync(() => {
+        if (!selectedOption) return;
+        sendRestartTelemetry(selectedOption, source, restartBehavior);
+      })
+    ),
+    Effect.map(selectedOption => (selectedOption ? selectedOption.label : undefined)),
+    getRuntime().runPromise
+  );
+
+const removeApexDB = (): Promise<void> =>
+  removeApexDbEffect().pipe(
+    // No services extension ⇒ skip DB cleanup.
+    Effect.catchTags({
+      ServicesExtensionNotFoundError: () => Effect.void,
+      InvalidServicesApiError: () => Effect.void
+    }),
+    // Provide the service locally so the runtime (real AllServicesLayer in prod, tracer-only mock in jest)
+    // needn't supply ExtensionProviderService.
+    Effect.provideService(ExtensionProviderService, { getServicesApi }),
+    getRuntime().runPromise
+  );
 
 export class LanguageClientManager {
   private static instance: LanguageClientManager;
@@ -172,41 +221,10 @@ export class LanguageClientManager {
     return this.clientInstance ? this.clientInstance.sendRequest(DEBUGGER_EXCEPTION_BREAKPOINTS) : {};
   }
 
-  private async showRestartQuickPick(
-    items: RestartQuickPickItem[],
-    source: 'commandPalette' | 'statusBar',
-    restartBehavior: string
-  ): Promise<string | undefined> {
-    const selectedOption = await getRuntime().runPromise(
-      promptForRestartOption(items).pipe(
-        Effect.catchTag('UserCancellationError', () => Effect.void),
-        Effect.provideService(ExtensionProviderService, { getServicesApi })
-      )
-    );
-
-    if (selectedOption) {
-      await this.sendRestartTelemetry(selectedOption, source, restartBehavior);
-      return selectedOption.label;
-    }
-    return undefined;
-  }
-
-  private async sendRestartTelemetry(
-    selectedOption: RestartQuickPickItem,
-    source: 'commandPalette' | 'statusBar',
-    restartBehavior: string
-  ): Promise<void> {
-    fireSpan('apex.lsp.restart', {
-      restartBehavior: restartBehavior === 'prompt' ? 'prompt' : restartBehavior,
-      selectedOption: selectedOption.type,
-      source,
-      defaultOption: restartBehavior
-    });
-  }
-
   private async getRestartOption(source: 'commandPalette' | 'statusBar'): Promise<string | undefined> {
-    const config = vscode.workspace.getConfiguration('salesforcedx-vscode-apex');
-    const restartBehavior = config.get<string>('languageServer.restartBehavior', 'prompt');
+    const restartBehavior = await getRuntime().runPromise(
+      getApexLanguageServerRestartBehavior().pipe(Effect.provideService(ExtensionProviderService, { getServicesApi }))
+    );
 
     // If launched from command palette, always show prompt with default option first
     if (source === 'commandPalette') {
@@ -222,21 +240,21 @@ export class LanguageClientManager {
               { label: this.RESTART_OPTIONS.cleanAndRestart, description: '', type: 'reset' }
             ];
 
-      return this.showRestartQuickPick(items, source, restartBehavior);
+      return showRestartQuickPick(items, source, restartBehavior);
     }
 
     // For status bar, use the setting value directly if not 'prompt'
     if (source === 'statusBar') {
       switch (restartBehavior) {
         case 'restart':
-          await this.sendRestartTelemetry(
+          sendRestartTelemetry(
             { label: this.RESTART_OPTIONS.restartOnly, description: '', type: 'restart' },
             source,
             restartBehavior
           );
           return this.RESTART_OPTIONS.restartOnly;
         case 'reset':
-          await this.sendRestartTelemetry(
+          sendRestartTelemetry(
             { label: this.RESTART_OPTIONS.cleanAndRestart, description: '', type: 'reset' },
             source,
             restartBehavior
@@ -247,12 +265,9 @@ export class LanguageClientManager {
             { label: this.RESTART_OPTIONS.restartOnly, description: '', type: 'restart' },
             { label: this.RESTART_OPTIONS.cleanAndRestart, description: '', type: 'reset' }
           ];
-          return this.showRestartQuickPick(promptItems, source, restartBehavior);
+          return showRestartQuickPick(promptItems, source, restartBehavior);
       }
     }
-
-    // This case should never be reached as source is now required
-    throw new Error('Invalid source parameter');
   }
 
   public async restartLanguageServerAndClient(
@@ -281,25 +296,27 @@ export class LanguageClientManager {
 
     if (isNotUndefined(alc)) {
       statusBarInstance.restarting();
-      try {
-        await alc.stop();
-      } catch (error) {
-        const errorMessage = isError(error) ? error.message : String(error);
-        vscode.window.showWarningMessage(
-          `${nls.localize('apex_language_server_restart_dialog_restart_only')} - ${errorMessage}`
-        );
-      }
+      await getRuntime().runPromise(
+        Effect.tryPromise({ try: () => alc.stop(), catch: getMessageFromError }).pipe(
+          Effect.catchAll(message =>
+            Effect.sync(() => {
+              void vscode.window.showWarningMessage(
+                `${nls.localize('apex_language_server_restart_dialog_restart_only')} - ${message}`
+              );
+            })
+          )
+        )
+      );
 
       if (selectedOption === nls.localize('apex_language_server_restart_dialog_clean_and_restart')) {
-        try {
-          await this.removeApexDB();
-        } catch (error) {
-          // Guards an unexpected defect thrown inside the effect gen body (not the typed errors,
-          // which are already caught via catchTags). Swallow so a failed DB cleanup can never
-          // strand this.isRestarting = true.
-          const errorMessage = isError(error) ? error.message : String(error);
-          console.log(`Error, failed to remove apex db: ${errorMessage}`);
-        }
+        // Guards an unexpected defect thrown inside the effect gen body (not the typed errors,
+        // which are already caught via catchTags). Swallow so a failed DB cleanup can never
+        // strand this.isRestarting = true.
+        await getRuntime().runPromise(
+          Effect.tryPromise({ try: removeApexDB, catch: error => ({ error }) }).pipe(
+            Effect.catchAll(({ error }) => Effect.logWarning('Failed to remove Apex DB', { error }))
+          )
+        );
       }
 
       // Clear any existing timeout
@@ -309,44 +326,41 @@ export class LanguageClientManager {
 
       // Set a new timeout for the restart
       this.restartTimeout = setTimeout(() => {
-        void (async () => {
-          try {
+        Effect.tryPromise({
+          try: async () => {
             // Dispose the old client after stopping but before creating the new one.
             // This deregisters providers, watchers, and middleware that would otherwise
             // attempt to use the closed channel during the restart gap.
             await alc.dispose();
             await this.createLanguageClient(extensionContext, statusBarInstance);
-          } catch (error) {
-            // Log any errors that occur during client creation
-            const errorMessage = isError(error) ? error.message : String(error);
-            console.error('Error creating language client:', errorMessage);
-            vscode.window.showErrorMessage(`${nls.localize('apex_language_server_failed_activate')} - ${errorMessage}`);
-          } finally {
-            // Reset the restarting flag and clear the timeout reference
-            this.isRestarting = false;
-            this.restartTimeout = undefined;
-          }
-        })();
+          },
+          catch: error => ({ error, message: getMessageFromError(error) })
+        }).pipe(
+          Effect.catchAll(({ error, message }) =>
+            Effect.logError('Error creating language client', { error }).pipe(
+              Effect.zipRight(
+                Effect.sync(() => {
+                  void vscode.window.showErrorMessage(
+                    `${nls.localize('apex_language_server_failed_activate')} - ${message}`
+                  );
+                })
+              )
+            )
+          ),
+          Effect.ensuring(
+            Effect.sync(() => {
+              // Reset the restarting flag and clear the timeout reference
+              this.isRestarting = false;
+              this.restartTimeout = undefined;
+            })
+          ),
+          getRuntime().runFork
+        );
       }, 500);
     } else {
       // Reset the restarting flag if there's no client instance
       this.isRestarting = false;
     }
-  }
-
-  private async removeApexDB(): Promise<void> {
-    await getRuntime().runPromise(
-      removeApexDbEffect().pipe(
-        // No services extension ⇒ skip DB cleanup, exactly like the old hasRootWorkspace() guard returning false.
-        Effect.catchTags({
-          ServicesExtensionNotFoundError: () => Effect.void,
-          InvalidServicesApiError: () => Effect.void
-        }),
-        // Provide the service locally so the runtime (real AllServicesLayer in prod, tracer-only mock in jest)
-        // needn't supply ExtensionProviderService.
-        Effect.provideService(ExtensionProviderService, { getServicesApi })
-      )
-    );
   }
 
   public async createLanguageClient(
@@ -405,8 +419,11 @@ export class LanguageClientManager {
         catch: cause => languageClientSetupError('start', cause)
       });
       fireSpan('apex.lsp.startup', { activationTime: globalThis.performance.now() - langClientStartTime });
-      yield* Effect.tryPromise({
-        try: () => this.indexerDoneHandler(retrieveEnableSyncInitJobs(), languageClient, languageServerStatusBarItem),
+      const enableSyncInitJobs = yield* retrieveEnableSyncInitJobs().pipe(
+        Effect.mapError(cause => languageClientSetupError('initialization', cause))
+      );
+      yield* Effect.try({
+        try: () => this.indexerDoneHandler(enableSyncInitJobs, languageClient, languageServerStatusBarItem),
         catch: cause => languageClientSetupError('initialization', cause)
       });
       yield* Effect.try({
@@ -424,39 +441,32 @@ export class LanguageClientManager {
       )
   );
 
-  private reportLanguageClientSetupError(
-    message: string,
-    languageServerStatusBarItem: ApexLSPStatusBarItem
-  ): Effect.Effect<void> {
+  private reportLanguageClientSetupError(message: string, languageServerStatusBarItem: ApexLSPStatusBarItem) {
     return Effect.sync(() => {
-      let errorMessage = message;
-      if (errorMessage.includes(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK))) {
-        errorMessage = nls.localize('wrong_java_version_short');
-      }
+      const errorMessage = message.includes(nls.localize('wrong_java_version_text', SET_JAVA_DOC_LINK))
+        ? nls.localize('wrong_java_version_short')
+        : message;
       this.setStatus(ClientStatus.Error, errorMessage);
       languageServerStatusBarItem.error(`${nls.localize('apex_language_server_failed_activate')} - ${errorMessage}`);
     });
   }
 
-  public async indexerDoneHandler(
+  public indexerDoneHandler(
     enableSyncInitJobs: boolean,
     languageClient: ApexLanguageClient,
     languageServerStatusBarItem: ApexLSPStatusBarItem
-  ): Promise<void> {
+  ): void {
     if (!enableSyncInitJobs) {
       this.setStatus(ClientStatus.Indexing, '');
       languageClient.onNotification(API.doneIndexing, () => {
-        void this.setClientReady(languageClient, languageServerStatusBarItem);
+        this.setClientReady(languageClient, languageServerStatusBarItem);
       });
     } else {
-      await this.setClientReady(languageClient, languageServerStatusBarItem);
+      this.setClientReady(languageClient, languageServerStatusBarItem);
     }
   }
 
-  private async setClientReady(
-    languageClient: ApexLanguageClient,
-    languageServerStatusBarItem: ApexLSPStatusBarItem
-  ): Promise<void> {
+  private setClientReady(languageClient: ApexLanguageClient, languageServerStatusBarItem: ApexLSPStatusBarItem): void {
     languageServerStatusBarItem.ready();
     this.setStatus(ClientStatus.Ready, '');
     languageClient?.errorHandler?.serviceHasStartedSuccessfully();

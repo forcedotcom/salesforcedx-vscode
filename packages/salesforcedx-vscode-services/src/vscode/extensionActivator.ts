@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { type URI } from 'vscode-uri';
 import { ProjectService } from '../core/projectService';
 import { EditorService } from './editorService';
 import { ExtensionsService } from './extensionsService';

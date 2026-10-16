@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { RequestService } from '../requestService/requestService';
-import { ApexDebuggerEventType, StreamingClient, StreamingClientInfo } from './streamingClient';
+import { type RequestService } from '../requestService/requestService';
+import { type ApexDebuggerEventType, StreamingClient, type StreamingClientInfo } from './streamingClient';
 
 export class StreamingService {
   public static SYSTEM_EVENT_CHANNEL = '/systemTopic/ApexDebuggerSystemEvent';

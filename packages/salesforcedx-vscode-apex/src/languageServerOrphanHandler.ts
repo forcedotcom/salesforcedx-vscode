@@ -9,10 +9,11 @@ import {
   type Column,
   createTable,
   ExtensionProviderService,
+  getMessageFromError,
   type Row
 } from '@salesforce/effect-ext-utils';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import { isError } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
@@ -102,10 +103,10 @@ const findOrphanedProcesses = Effect.fn('apex.orphan.findOrphaned')(function* ()
 
   // Web (or any exec failure listing processes) → no orphan work.
   const candidates = yield* terminal
-    .simpleExec({ ...listProcessesCmd, parse: parseProcessList, timeout: 60_000 })
+    .simpleExec({ ...listProcessesCmd, parse: parseProcessList, timeout: Duration.millis(60_000) })
     .pipe(Effect.catchTag('TerminalServiceError', () => Effect.succeed<ProcessDetail[]>([])));
 
-  const checkParent = (processInfo: ProcessDetail): Effect.Effect<ProcessDetail> =>
+  const checkParent = (processInfo: ProcessDetail) =>
     !isWindows && processInfo.ppid === 1
       ? Effect.succeed({ ...processInfo, orphaned: true })
       : terminal.simpleExec({ ...parentCheckCmd(processInfo.ppid), parse: s => s }).pipe(
@@ -126,7 +127,7 @@ const killOne = Effect.fn('apex.orphan.killOne')(function* (processInfo: Process
     catch: e =>
       new ProcessTerminationError({
         pid: processInfo.pid,
-        message: isError(e) ? e.message : 'unknown'
+        message: getMessageFromError(e)
       })
   }).pipe(
     Effect.retry(Schedule.exponential('2 seconds').pipe(Schedule.intersect(Schedule.recurs(2)))),
@@ -151,45 +152,45 @@ const findOrphanedProcessesSafe = Effect.fn('apex.orphan.findOrphanedSafe')(func
   );
 });
 
-/** Read the auto-terminate setting; any failure (missing setting / services unavailable) degrades to false. */
-const isAutoTerminateEnabled = Effect.fn('apex.orphan.isAutoTerminateEnabled')(function* () {
-  return yield* Effect.gen(function* () {
+/** Auto-terminate setting; read/services failure → false. */
+const isAutoTerminateEnabled = Effect.fn('apex.orphan.isAutoTerminateEnabled')(
+  function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    return yield* (yield* api.services.SettingsService).getValue<boolean>(
+    return yield* (yield* api.services.SettingsService).getValueOrElse(
       APEX_SETTINGS_SECTION,
       AUTO_TERMINATE_KEY,
       false
     );
-  }).pipe(
-    Effect.map(v => v === true),
-    Effect.catchTags({
-      MissingSettingsError: () => Effect.succeed(false),
-      ServicesExtensionNotFoundError: () => Effect.succeed(false),
-      InvalidServicesApiError: () => Effect.succeed(false)
-    })
-  );
-});
+  },
+  Effect.catchTags({
+    MissingSettingsError: () => Effect.succeed(false),
+    ServicesExtensionNotFoundError: () => Effect.succeed(false),
+    InvalidServicesApiError: () => Effect.succeed(false)
+  })
+);
 
 export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.checkAndResolve')(function* (
   numTries = 3,
-  delayBetweenTriesMs = 2000
+  delayBetweenTries: Duration.DurationInput = Duration.seconds(2)
 ) {
   // Check up to numTries times, pausing between checks: a process may self-exit between checks
   // (e.g. a previous session's LSP completing its own graceful shutdown, which can take a second
   // or more). The delay gives that shutdown time to finish so an already-exiting server isn't
   // mistaken for a confirmed orphan. Runs on a background fiber, so the wait never blocks activation.
-  let confirmedOrphans: ProcessDetail[] = [];
-  for (let i = 1; i <= numTries; i++) {
-    if (i > 1) {
-      yield* Effect.sleep(delayBetweenTriesMs);
-    }
-    confirmedOrphans = yield* findOrphanedProcessesSafe();
-    if (confirmedOrphans.length === 0) {
-      yield* annotateRootSpan('orphanCount', 0);
-      return;
-    }
-  }
+  // Effect.repeat runs the initial check before the schedule, so recurs bounds only later checks.
+  const confirmedOrphans = yield* numTries <= 0
+    ? Effect.succeed<ProcessDetail[]>([])
+    : findOrphanedProcessesSafe().pipe(
+        Effect.repeat(
+          Schedule.recurWhile((orphans: ProcessDetail[]) => orphans.length > 0).pipe(
+            Schedule.intersect(Schedule.recurs(numTries - 1)),
+            Schedule.map(([orphans]) => orphans),
+            Schedule.addDelay(() => delayBetweenTries)
+          )
+        )
+      );
   yield* annotateRootSpan('orphanCount', confirmedOrphans.length);
+  if (confirmedOrphans.length === 0) return;
 
   // When auto-terminate is enabled, kill silently; otherwise ask the user.
   const shouldTerminate = (yield* isAutoTerminateEnabled())
@@ -309,10 +310,10 @@ const alwaysAutoTerminateConfirmation = Effect.fn('apex.orphan.alwaysAutoTermina
   }
   // Persist the setting, then kill. Any failure — write error or services unavailable — is recorded
   // but non-fatal: the user already confirmed, so the kill proceeds regardless of whether the write stuck.
-  yield* Effect.gen(function* () {
-    const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    yield* (yield* api.services.SettingsService).setValue(APEX_SETTINGS_SECTION, AUTO_TERMINATE_KEY, true);
-  }).pipe(
+  yield* ExtensionProviderService.pipe(
+    Effect.flatMap(provider => provider.getServicesApi),
+    Effect.flatMap(api => api.services.SettingsService),
+    Effect.flatMap(settings => settings.setValue(APEX_SETTINGS_SECTION, AUTO_TERMINATE_KEY, true)),
     Effect.catchTags({
       MissingSettingsError: e => annotateRootSpan('settingsWriteError', e.message),
       ServicesExtensionNotFoundError: e => annotateRootSpan('settingsWriteError', String(e)),

@@ -81,8 +81,5 @@
         ".circular-deps.json"
       ]
     }
-  },
-  "devDependencies": {
-    "rxjs": "^7.8.2"
   }
 }

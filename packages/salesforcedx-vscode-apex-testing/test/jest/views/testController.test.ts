@@ -16,6 +16,7 @@ jest.mock('../../../src/services/extensionProvider', () => {
   const { HashableUri } = jest.requireActual('salesforcedx-vscode-services/src/vscode/hashableUri');
 
   let mockConnectionRef: any;
+  let mockOrgId: string | undefined = 'org123';
   let mockReadFileResult = '';
   let mockWorkspaceUris = new Map<string, InstanceType<typeof UriClass>>();
   const mockReadFile = jest.fn(() => EffectLib.succeed(mockReadFileResult));
@@ -88,12 +89,14 @@ jest.mock('../../../src/services/extensionProvider', () => {
       // (yield* api.services.SettingsService), so wrap in Effect.succeed.
       SettingsService: EffectLib.succeed({
         getValue: (_section: string, key: string, defaultValue: unknown) =>
+          EffectLib.succeed(key === 'restore-previous-results' ? false : defaultValue),
+        getValueOrElse: (_section: string, key: string, defaultValue: unknown) =>
           EffectLib.succeed(key === 'restore-previous-results' ? false : defaultValue)
       }),
       // Backs the inline getDefaultOrgInfo helper in the real ApexTestTreeService (jest.requireActual above):
       // persistDiscoveredClasses/addClassToTree/applyIncrementalDiff yield* api.services.TargetOrgRef() then
       // SubscriptionRef.get for the org key. Fresh ref per call. Mirrors watchers/testDiscovery.test.ts.
-      TargetOrgRef: () => SubscriptionRef.make({ orgId: 'org123', username: 'user@example.com' })
+      TargetOrgRef: () => SubscriptionRef.make({ orgId: mockOrgId, username: 'user@example.com' })
     }
   };
   const ExtensionProviderLayer = Layer.effect(
@@ -134,6 +137,9 @@ jest.mock('../../../src/services/extensionProvider', () => {
     setAllServicesLayer: jest.fn(),
     __setMockConnection: (conn: any) => {
       mockConnectionRef = conn;
+    },
+    __setMockOrgId: (orgId: string | undefined) => {
+      mockOrgId = orgId;
     },
     __setMockReadFileResult: (s: string) => {
       mockReadFileResult = s;
@@ -190,7 +196,7 @@ jest.mock('@salesforce/apex-node', () => ({
 }));
 
 import * as path from 'node:path';
-import { TestResult, TestService } from '@salesforce/apex-node';
+import { type TestResult, TestService } from '@salesforce/apex-node';
 import { URI } from 'vscode-uri';
 import * as vscode from 'vscode';
 import * as testDiscovery from '../../../src/testDiscovery/testDiscovery';
@@ -213,6 +219,7 @@ const mockTestController = {
     add: jest.fn(),
     delete: jest.fn(),
     replace: jest.fn(),
+    forEach: jest.fn(),
     values: jest.fn().mockReturnValue([])
   } as unknown as vscode.TestItemCollection,
   createTestItem: jest.fn(),
@@ -253,6 +260,8 @@ describe('ApexTestController', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    (mockTestController.items.forEach as jest.Mock) = jest.fn();
+    (extensionProvider as unknown as { __setMockOrgId: (orgId: string | undefined) => void }).__setMockOrgId('org123');
     // Clear the singleton runtime's tree Refs so per-test map state does not leak.
     (extensionProvider as unknown as { __resetTree: () => void }).__resetTree();
 
@@ -338,6 +347,7 @@ describe('ApexTestController', () => {
     it('should create a test controller', () => {
       expect(vscode.tests.createTestController).toHaveBeenCalled();
       expect(mockTestController.createRunProfile).toHaveBeenCalledTimes(5);
+      expect(discoverTestsSpy).not.toHaveBeenCalled();
     });
 
     it('should register workspace-first run as default and org-wide run as secondary (no profile tags)', () => {
@@ -353,6 +363,29 @@ describe('ApexTestController', () => {
 
     it('should set up refresh handler', () => {
       expect(mockTestController.refreshHandler).toBeDefined();
+    });
+  });
+
+  describe('root test resolution', () => {
+    it('discovers tests when VS Code requests the initial items, once', async () => {
+      await Promise.all([
+        mockTestController.resolveHandler?.(undefined),
+        mockTestController.resolveHandler?.(undefined)
+      ]);
+      await mockTestController.resolveHandler?.(undefined);
+
+      expect(discoverTestsSpy).toHaveBeenCalledTimes(1);
+      expect(controller.isDiscoveryRequested()).toBe(true);
+    });
+
+    it('waits for an org when the initial items are requested without one', async () => {
+      (extensionProvider as unknown as { __setMockOrgId: (orgId: string | undefined) => void }).__setMockOrgId(
+        undefined
+      );
+      await mockTestController.resolveHandler?.(undefined);
+
+      expect(discoverTestsSpy).not.toHaveBeenCalled();
+      expect(controller.isDiscoveryRequested()).toBe(true);
     });
   });
 
@@ -384,7 +417,29 @@ describe('ApexTestController', () => {
       getTestResultsFolderSpy.mockRestore();
     });
 
+    it('discovers before an implicit run when the Explorer has not requested tests', async () => {
+      await (
+        controller as unknown as {
+          runTests: (
+            request: vscode.TestRunRequest,
+            token: vscode.CancellationToken,
+            isDebug: boolean,
+            runScope: 'all-org'
+          ) => Promise<void>;
+        }
+      ).runTests(
+        { include: undefined, exclude: undefined, profile: undefined } as vscode.TestRunRequest,
+        cancellationToken,
+        false,
+        'all-org'
+      );
+
+      expect(discoverTestsSpy).toHaveBeenCalledTimes(1);
+      expect(controller.isDiscoveryRequested()).toBe(true);
+    });
+
     it('workspace-first implicit full run uses RunSpecifiedTests when in-workspace methods are gathered', async () => {
+      await controller.refresh();
       const inWorkspaceTag = (controller as unknown as { inWorkspaceTag: vscode.TestTag }).inWorkspaceTag;
       const methodItem = {
         id: 'method:WSClass.testOne',
@@ -430,6 +485,7 @@ describe('ApexTestController', () => {
     });
 
     it('all-org implicit full run uses RunAllTestsInOrg', async () => {
+      await controller.refresh();
       const inWorkspaceTag = (controller as unknown as { inWorkspaceTag: vscode.TestTag }).inWorkspaceTag;
       const methodItem = {
         id: 'method:WSClass.testOne',
@@ -1043,8 +1099,8 @@ describe('ApexTestController', () => {
 
       await controller.incrementalUpdate(changes, true);
 
-      // Suite parent deleted from controller and suiteItems Ref cleared (populateSuiteItems re-adds nothing
-      // because retrieveAllSuites returns [] from the mock).
+      // Suite parent deleted from controller and suiteItems Ref cleared (retrieveAllSuites returns []
+      // from the mock, so the parent is not re-added).
       expect(mockTestController.items.delete).toHaveBeenCalledWith('apex-test-suites-parent');
     });
 

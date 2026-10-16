@@ -10,23 +10,25 @@ import * as Effect from 'effect/Effect';
 import * as ExecutionStrategy from 'effect/ExecutionStrategy';
 import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
-import { isNotUndefined } from 'effect/Predicate';
+import { isNotNullable, isNotUndefined, isNumber } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Runtime from 'effect/Runtime';
+import * as Schema from 'effect/Schema';
 import * as Scope from 'effect/Scope';
 import type * as Tracer from 'effect/Tracer';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import {
-  Executable,
-  LanguageClientOptions,
-  ProvideCodeLensesSignature,
+  type Executable,
+  type LanguageClientOptions,
+  type Middleware,
+  type ProvideCodeLensesSignature,
   RevealOutputChannelOn
 } from 'vscode-languageclient/node';
 import { URI } from 'vscode-uri';
 import { ApexErrorHandler } from './apexErrorHandler';
 import { ApexLanguageClient } from './apexLanguageClient';
-import { UBER_JAR_NAME } from './constants';
+import { APEX_SETTINGS_SECTION, UBER_JAR_NAME } from './constants';
 import { dropLsAnonymousApexExecuteLenses } from './dropLsAnonymousApexExecuteLenses';
 import { soqlMiddleware } from './embeddedSoql';
 import { languageClientSetupError } from './languageClientSetupErrors';
@@ -36,22 +38,7 @@ import { rewriteNamespaceLens } from './namespaceLensRewriter';
 import { resolveRequirements } from './requirements';
 import { fireSpan } from './services/fireSpan';
 import { getRuntime } from './services/runtime';
-import {
-  retrieveEnableApexLSErrorToTelemetry,
-  retrieveEnableSyncInitJobs,
-  retrieveAAClassDefModifiers,
-  retrieveAAClassAccessModifiers,
-  retrieveAAMethodDefModifiers,
-  retrieveAAMethodAccessModifiers,
-  retrieveAAPropDefModifiers,
-  retrieveAAPropAccessModifiers,
-  retrieveAAClassRestAnnotations,
-  retrieveAAMethodRestAnnotations,
-  retrieveAAMethodAnnotations,
-  retrieveGeneralClassAccessModifiers,
-  retrieveGeneralMethodAccessModifiers,
-  retrieveGeneralPropAccessModifiers
-} from './settings';
+import { apexLanguageServerSettings } from './settings';
 import { isApexLspTelemetryAllowed } from './telemetry/apexLspTelemetryAllowlist';
 
 const JDWP_DEBUG_PORT = 0;
@@ -63,7 +50,7 @@ const LANGUAGE_SERVER_LOG_LEVEL = process.env.LANGUAGE_SERVER_LOG_LEVEL ?? 'ERRO
 const LSP_PARITY_PROVIDERS = ['provideDocumentSymbols'];
 
 // eslint-disable-next-line no-var
-declare var v8debug: any;
+declare var v8debug: object | undefined;
 
 type ApexLanguageClientOptions = LanguageClientOptions & { errorHandler?: ApexErrorHandler };
 
@@ -71,7 +58,7 @@ const startedInDebugMode = (): boolean => {
   const args = process.execArgv;
   if (args) {
     return args.some(
-      (arg: any) =>
+      arg =>
         /^--debug=?/.test(arg) || /^--debug-brk=?/.test(arg) || /^--inspect=?/.test(arg) || /^--inspect-brk=?/.test(arg)
     );
   }
@@ -82,25 +69,35 @@ const DEBUG = typeof v8debug === 'object' || startedInDebugMode();
 
 const createServer = Effect.fn('apex.lsp.createServer')(
   function* (extensionContext: vscode.ExtensionContext) {
-    const requirementsData = yield* Effect.tryPromise({
-      try: resolveRequirements,
-      catch: cause => languageClientSetupError('requirements', cause)
-    });
+    const requirementsData = yield* resolveRequirements().pipe(
+      Effect.mapError(cause => languageClientSetupError('requirements', cause))
+    );
+
+    const { enableSemanticErrors, enableCompletionStatistics } =
+      yield* (yield* ExtensionProviderService).getServicesApi.pipe(
+        Effect.flatMap(api =>
+          Effect.flatMap(api.services.SettingsService, settings =>
+            Effect.all({
+              enableSemanticErrors: settings.getValueOrElse(APEX_SETTINGS_SECTION, 'enable-semantic-errors', false),
+              enableCompletionStatistics: settings.getValueOrElse(
+                APEX_SETTINGS_SECTION,
+                'advanced.enable-completion-statistics',
+                false
+              )
+            })
+          )
+        ),
+        Effect.mapError(cause => languageClientSetupError('configuration', cause))
+      );
+
+    const { languageServerDir } = yield* Schema.decodeUnknown(Schema.Struct({ languageServerDir: Schema.String }))(
+      extensionContext.extension.packageJSON
+    ).pipe(Effect.mapError(cause => languageClientSetupError('configuration', cause)));
 
     return yield* Effect.try({
       try: (): Executable => {
-        const uberJar = path.resolve(
-          extensionContext.extensionPath,
-          extensionContext.extension.packageJSON.languageServerDir,
-          UBER_JAR_NAME
-        );
+        const uberJar = path.resolve(extensionContext.extensionPath, languageServerDir, UBER_JAR_NAME);
         const jvmMaxHeap = requirementsData.java_memory;
-        const enableSemanticErrors = vscode.workspace
-          .getConfiguration()
-          .get<boolean>('salesforcedx-vscode-apex.enable-semantic-errors', false);
-        const enableCompletionStatistics = vscode.workspace
-          .getConfiguration()
-          .get<boolean>('salesforcedx-vscode-apex.advanced.enable-completion-statistics', false);
 
         const args: string[] = [
           '-cp',
@@ -111,7 +108,7 @@ const createServer = Effect.fn('apex.lsp.createServer')(
           '-Dlwc.typegeneration.disabled=true'
         ];
 
-        if (jvmMaxHeap && typeof jvmMaxHeap === 'number') {
+        if (jvmMaxHeap && isNumber(jvmMaxHeap)) {
           args.push(`-Xmx${jvmMaxHeap}M`);
         }
         fireSpan('apex.lsp.settings', { maxHeapSize: jvmMaxHeap ?? 0 });
@@ -203,30 +200,18 @@ const buildClientOptions = Effect.fn('apex.lsp.buildClientOptions')(function* (o
     catch: cause => languageClientSetupError('options', cause)
   });
 
+  const { lspParityCapabilities, ...initializationSettings } = yield* apexLanguageServerSettings().pipe(
+    Effect.mapError(cause => languageClientSetupError('options', cause))
+  );
+
   return yield* Effect.try({
     try: (): ApexLanguageClientOptions => {
       const soqlExtensionInstalled = isNotUndefined(
         vscode.extensions.getExtension('salesforce.salesforcedx-vscode-soql')
       );
-      const lspParityCapabilities = vscode.workspace
-        .getConfiguration()
-        .get<boolean>('salesforcedx-vscode-apex.advanced.lspParityCapabilities', true);
       const initializationOptions = {
         enableEmbeddedSoqlCompletion: soqlExtensionInstalled,
-        enableErrorToTelemetry: retrieveEnableApexLSErrorToTelemetry(),
-        enableSynchronizedInitJobs: retrieveEnableSyncInitJobs(),
-        apexActionClassDefModifiers: retrieveAAClassDefModifiers().join(','),
-        apexActionClassAccessModifiers: retrieveAAClassAccessModifiers().join(','),
-        apexActionMethodDefModifiers: retrieveAAMethodDefModifiers().join(','),
-        apexActionMethodAccessModifiers: retrieveAAMethodAccessModifiers().join(','),
-        apexActionPropDefModifiers: retrieveAAPropDefModifiers().join(','),
-        apexActionPropAccessModifiers: retrieveAAPropAccessModifiers().join(','),
-        apexActionClassRestAnnotations: retrieveAAClassRestAnnotations().join(','),
-        apexActionMethodRestAnnotations: retrieveAAMethodRestAnnotations().join(','),
-        apexActionMethodAnnotations: retrieveAAMethodAnnotations().join(','),
-        apexOASClassAccessModifiers: retrieveGeneralClassAccessModifiers().join(','),
-        apexOASMethodAccessModifiers: retrieveGeneralMethodAccessModifiers().join(','),
-        apexOASPropAccessModifiers: retrieveGeneralPropAccessModifiers().join(',')
+        ...initializationSettings
       };
 
       // Create middleware that disables parity providers when setting is true
@@ -257,7 +242,8 @@ const buildClientOptions = Effect.fn('apex.lsp.buildClientOptions')(function* (o
         middleware: {
           ...parityMiddleware,
           ...(soqlExtensionInstalled ? soqlMiddleware : {}),
-          provideCodeLenses
+          provideCodeLenses,
+          handleDiagnostics
         },
         errorHandler: new ApexErrorHandler(),
         ...(isNotUndefined(outputChannel) ? { outputChannel } : {})
@@ -289,6 +275,20 @@ const provideCodeLenses = async (
     getRuntime().runPromise(getNamespaces()),
     next(document, token)
   ]);
-  const rewritten = lenses?.map(rewriteNamespaceLens(nsFromOrg)(nsFromProject));
+  const rewritten = isNotNullable(lenses)
+    ? await Effect.forEach(lenses, rewriteNamespaceLens(nsFromOrg)(nsFromProject)).pipe(getRuntime().runPromise)
+    : undefined;
   return rewritten === undefined ? undefined : dropLsAnonymousApexExecuteLenses(rewritten);
+};
+
+/**
+ * Jorje omits LSP diagnostic.source; vscode-languageclient only copies source when present.
+ * Set a stable Problems-panel Source when missing (issue #7915).
+ */
+const handleDiagnostics: NonNullable<Middleware['handleDiagnostics']> = (uri, diagnostics, next): void => {
+  const source = nls.localize('client_name');
+  diagnostics.forEach(diagnostic => {
+    diagnostic.source ??= source;
+  });
+  next(uri, diagnostics);
 };

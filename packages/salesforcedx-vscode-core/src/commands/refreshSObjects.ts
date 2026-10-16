@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import { isError, isRecord, isString } from 'effect/Predicate';
@@ -39,7 +39,12 @@ export const initSObjectDefinitions = Effect.fn('initSObjectDefinitions')(functi
     : getStandardSObjectsDirectory(projectPath);
   const refreshSource = isSettingEnabled ? 'startup' : 'startupmin';
 
-  if (yield* Effect.promise(() => fileOrFolderExists(sobjectFolder))) return;
+  if (
+    yield* (yield* ExtensionProviderService).getServicesApi.pipe(
+      Effect.flatMap(api => api.services.FsService.fileOrFolderExists(sobjectFolder))
+    )
+  )
+    return;
 
   yield* Effect.void.pipe(
     Effect.withSpan('sObjectRefreshNotification', { attributes: { type: refreshSource }, root: true })
@@ -47,14 +52,15 @@ export const initSObjectDefinitions = Effect.fn('initSObjectDefinitions')(functi
   yield* Effect.promise(() => vscode.commands.executeCommand('sf.internal.refreshsobjects', refreshSource)).pipe(
     Effect.tapDefect(cause => {
       const error = Cause.squash(cause);
-      return Effect.fail(error).pipe(
+      return Effect.failCause(cause).pipe(
         Effect.withSpan('initSObjectDefinitionsError', {
           attributes: {
             message: `Error: ${extractErrorMessage(error)} with sobjectRefreshStartup = ${isSettingEnabled}`
           },
           root: true
         }),
-        Effect.ignore
+        Effect.exit,
+        Effect.asVoid
       );
     })
   );

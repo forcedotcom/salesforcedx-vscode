@@ -5,60 +5,59 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as vscode from 'vscode';
+import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import { isConflictDetectionEnabled } from '../../../src/conflict/conflictDetectionSettings';
 
-jest.mock('vscode', () => ({
-  workspace: {
-    getConfiguration: jest.fn()
-  }
-}));
-
 describe('conflictDetectionSettings', () => {
-  let mockGetConfiguration: jest.Mock;
-  let mockGet: jest.Mock;
+  const getValueOrElse = jest.fn();
+  const settingsService = SettingsService.make({ getValueOrElse } as never);
+  const run = () =>
+    Effect.runPromise(
+      isConflictDetectionEnabled().pipe(
+        Effect.provideService(ExtensionProviderService, {
+          getServicesApi: Effect.succeed({
+            services: { SettingsService }
+          } as never)
+        }),
+        Effect.provideService(SettingsService, settingsService)
+      )
+    );
 
   beforeEach(() => {
-    mockGet = jest.fn();
-    mockGetConfiguration = vscode.workspace.getConfiguration as jest.Mock;
-    mockGetConfiguration.mockReturnValue({
-      get: mockGet
-    });
+    getValueOrElse.mockReset();
   });
 
   afterEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('isConflictDetectionEnabled (Effect version)', () => {
-    it('should return true when setting is false (conflict detection enabled by default)', async () => {
-      mockGet.mockReturnValue(true);
+  describe('isConflictDetectionEnabled', () => {
+    it('returns true when the setting is true', async () => {
+      getValueOrElse.mockReturnValue(Effect.succeed(true));
 
-      const result = await Effect.runPromise(isConflictDetectionEnabled());
+      const result = await run();
 
       expect(result).toBe(true);
-      expect(mockGetConfiguration).toHaveBeenCalledWith('salesforcedx-vscode-metadata');
-      expect(mockGet).toHaveBeenCalledWith('sourceTracking.enableConflictDetection', true);
+      expect(getValueOrElse).toHaveBeenCalledWith(
+        'salesforcedx-vscode-metadata',
+        'sourceTracking.enableConflictDetection',
+        true
+      );
     });
 
-    it('should return false when setting is false (conflict detection disabled)', async () => {
-      mockGet.mockReturnValue(false);
+    it('returns false when the setting is false', async () => {
+      getValueOrElse.mockReturnValue(Effect.succeed(false));
 
-      const result = await Effect.runPromise(isConflictDetectionEnabled());
+      const result = await run();
 
       expect(result).toBe(false);
-      expect(mockGetConfiguration).toHaveBeenCalledWith('salesforcedx-vscode-metadata');
-      expect(mockGet).toHaveBeenCalledWith('sourceTracking.enableConflictDetection', true);
-    });
-
-    it('should return true when setting is undefined (default behavior)', async () => {
-      // When setting is not set, vscode returns the default value (true)
-      mockGet.mockReturnValue(true);
-
-      const result = await Effect.runPromise(isConflictDetectionEnabled());
-
-      expect(result).toBe(true);
+      expect(getValueOrElse).toHaveBeenCalledWith(
+        'salesforcedx-vscode-metadata',
+        'sourceTracking.enableConflictDetection',
+        true
+      );
     });
   });
 });

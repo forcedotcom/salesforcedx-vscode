@@ -1,94 +1,124 @@
-# 67.17.16 - September 18, 2026
+# 68.3.1 - October 21, 2026
 
 ## Fixed
 
-#### docs
+#### salesforcedx-vscode-apex-testing
 
-- Execute CLI commands shell-free to prevent OS command injection - W-24161260 ([PR #8184](https://github.com/forcedotcom/salesforcedx-vscode/pull/8184))
-
-#### salesforcedx-vscode-apex
-
-- Execute CLI commands shell-free to prevent OS command injection - W-24161260 ([PR #8184](https://github.com/forcedotcom/salesforcedx-vscode/pull/8184))
-
-#### salesforcedx-vscode-apex-debugger
-
-- Execute CLI commands shell-free to prevent OS command injection - W-24161260 ([PR #8184](https://github.com/forcedotcom/salesforcedx-vscode/pull/8184))
-
-#### salesforcedx-vscode-metadata
-
-- Execute CLI commands shell-free to prevent OS command injection - W-24161260 ([PR #8184](https://github.com/forcedotcom/salesforcedx-vscode/pull/8184))
-
-#### salesforcedx-vscode-org
-
-- Execute CLI commands shell-free to prevent OS command injection - W-24161260 ([PR #8184](https://github.com/forcedotcom/salesforcedx-vscode/pull/8184))
-
-#### salesforcedx-vscode-services
-
-- Execute CLI commands shell-free to prevent OS command injection - W-24161260 ([PR #8184](https://github.com/forcedotcom/salesforcedx-vscode/pull/8184))
-
-# 67.17.14 - September 16, 2026
-
-## Added
-
-#### docs
-
-- Automated weekly release workflow with security hardening and promotion fix - W-23900552 ([PR #7995](https://github.com/forcedotcom/salesforcedx-vscode/pull/7995))
-
-#### salesforcedx-vscode-apex
-
-- Execute code lens for anonymous apex scripts - W-24106251 ([PR #8122](https://github.com/forcedotcom/salesforcedx-vscode/pull/8122))
-
-#### salesforcedx-vscode-apex-log
-
-- Execute code lens for anonymous apex scripts - W-24106251 ([PR #8122](https://github.com/forcedotcom/salesforcedx-vscode/pull/8122))
-
-#### salesforcedx-vscode-metadata
-
-- Use modal confirmation for destructive delete-source and retrieve-overwrite prompts - W-23530668 ([PR #8090](https://github.com/forcedotcom/salesforcedx-vscode/pull/8090))
-
-#### salesforcedx-vscode-services
-
-- Transform workspace SObject metadata - W-23973850 ([PR #8041](https://github.com/forcedotcom/salesforcedx-vscode/pull/8041))
-
-- Add canonical artifact projection schemas - W-23973850 ([PR #8038](https://github.com/forcedotcom/salesforcedx-vscode/pull/8038))
-
-#### salesforcedx-vscode-soql
-
-- Migrate Limit and All Rows - W-23928682 ([PR #8136](https://github.com/forcedotcom/salesforcedx-vscode/pull/8136))
-
-## Fixed
-
-#### docs
-
-- Close test-coverage gaps in emergency/hotfix release paths - W-23900552 ([PR #8147](https://github.com/forcedotcom/salesforcedx-vscode/pull/8147))
-
-- Gate promote-nightly on nightly build success, not unit-tests W-24093729 ([PR #8111](https://github.com/forcedotcom/salesforcedx-vscode/pull/8111))
-
-#### salesforcedx-apex
-
-- Define Effect API and host boundaries - W-23839448 ([PR #8086](https://github.com/forcedotcom/salesforcedx-vscode/pull/8086))
-
-#### salesforcedx-vscode-apex-oas
-
-- Stop serializing retrieve results onto spans - W-24156300 ([PR #8163](https://github.com/forcedotcom/salesforcedx-vscode/pull/8163))
-
-#### salesforcedx-vscode-metadata
-
-- Stop serializing retrieve results onto spans - W-24156300 ([PR #8163](https://github.com/forcedotcom/salesforcedx-vscode/pull/8163))
+- We fixed a bug where the **Debug** run profile for Apex tests appeared in VS Code on the web even though debugging is not supported there. ([PR #8437](https://github.com/forcedotcom/salesforcedx-vscode/pull/8437))
 
 #### salesforcedx-vscode-org-browser
 
-- Register controls before org initialization - W-24087331 ([PR #8105](https://github.com/forcedotcom/salesforcedx-vscode/pull/8105))
+- We fixed a bug where plain-text search in **Org Browser** missed partial metadata type and component names. Typing `broker` now matches names like `Broker__c` without regex. ([PR #8365](https://github.com/forcedotcom/salesforcedx-vscode/pull/8365), [DISCUSSION #5376](https://github.com/forcedotcom/salesforcedx-vscode/discussions/5376))
+
+#### salesforcedx-vscode-soql
+
+- We fixed a bug where **SFDX: Execute SOQL Query with Currently Selected Text** and **SFDX: Get SOQL Query Plan with Currently Selected Text** appeared in non-Apex files. They now only appear in `.cls`, `.apex`, and `.trigger` files. ([PR #8426](https://github.com/forcedotcom/salesforcedx-vscode/pull/8426))
+
+## Under the Hood
+
+- We made some under the hood changes. ([PR #8419](https://github.com/forcedotcom/salesforcedx-vscode/pull/8419))
+
+# 68.1.1 - October 19, 2026
+
+## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We fixed a bug where Apex problems from the language server did not show **Apex Language Server** as the Source in the Problems panel. ([PR #8418](https://github.com/forcedotcom/salesforcedx-vscode/pull/8418))
+
+## Changed
+
+#### salesforcedx-vscode-core
+
+- The **Command Palette** no longer includes **SFDX: Open Documentation** (`sf.open.documentation`). ([PR #8382](https://github.com/forcedotcom/salesforcedx-vscode/pull/8382))
 
 #### salesforcedx-vscode-services
 
-- Stop serializing retrieve results onto spans - W-24156300 ([PR #8163](https://github.com/forcedotcom/salesforcedx-vscode/pull/8163))
+- The **Web Console** now uses host-provided session identity and org metadata from `salesforce-web-console.sessionContext` for authentication. ([PR #8395](https://github.com/forcedotcom/salesforcedx-vscode/pull/8395))
 
-- Watch global sf config and alias files for default org - W-24154071 ([PR #8159](https://github.com/forcedotcom/salesforcedx-vscode/pull/8159))
+# 67.27.6 - October 14, 2026
 
-#### salesforcedx-vscode-services-types
+## Added
 
-- TagPendingRelease.yml checks for bare issue numbers ([PR #8127](https://github.com/forcedotcom/salesforcedx-vscode/pull/8127))
+#### salesforcedx-vscode-lightning
+
+- We added support for custom templates in **SFDX: Create Aura Component**, **SFDX: Create Aura App**, **SFDX: Create Aura Event**, and **SFDX: Create Aura Interface**. ([PR #8311](https://github.com/forcedotcom/salesforcedx-vscode/pull/8311))
+
+#### salesforcedx-vscode-lwc
+
+- We added support for custom templates in **SFDX: Create Lightning Web Component**, including up-to-date built-in templates and honoring `defaultLwcLanguage` in `sfdx-project.json`. ([PR #8289](https://github.com/forcedotcom/salesforcedx-vscode/pull/8289))
+
+#### salesforcedx-vscode-visualforce
+
+- We added support for custom templates in **SFDX: Create Visualforce Component** and **SFDX: Create Visualforce Page**. ([PR #8323](https://github.com/forcedotcom/salesforcedx-vscode/pull/8323))
+
+## Fixed
+
+#### salesforcedx-vscode-apex-testing
+
+- We fixed a bug where success toasts with action buttons blocked the caller until the toast was dismissed. Apex test runs in the Testing sidebar now finish and clear the spinner without waiting for **Open Report**. ([PR #8370](https://github.com/forcedotcom/salesforcedx-vscode/pull/8370))
+
+#### salesforcedx-vscode-metadata
+
+- We fixed a bug where right-clicking in the Output panel offered **SFDX: Generate Manifest File** and related source commands that then failed. Those commands now appear only on filesystem files and folders. ([PR #8344](https://github.com/forcedotcom/salesforcedx-vscode/pull/8344))
+
+#### salesforcedx-vscode-soql
+
+- We fixed a bug where **SOQL Builder** **Run Query** failures only appeared in the Output channel and were easy to miss. Failures now also show an error toast. ([PR #8305](https://github.com/forcedotcom/salesforcedx-vscode/pull/8305))
+
+## Under the Hood
+
+- We made some under the hood changes. ([PR #8046](https://github.com/forcedotcom/salesforcedx-vscode/pull/8046), [PR #8139](https://github.com/forcedotcom/salesforcedx-vscode/pull/8139), [PR #8047](https://github.com/forcedotcom/salesforcedx-vscode/pull/8047))
+
+# 67.25.6 - October 7, 2026
+
+## Fixed
+
+#### salesforcedx-vscode-soql
+
+- We fixed a bug where the **Include deleted/archived records** checkbox and label were misaligned in SOQL Builder. ([PR #8268](https://github.com/forcedotcom/salesforcedx-vscode/pull/8268))
+
+## Under the Hood
+
+- We made some under the hood changes. ([PR #8243](https://github.com/forcedotcom/salesforcedx-vscode/pull/8243), [PR #8244](https://github.com/forcedotcom/salesforcedx-vscode/pull/8244), [PR #8277](https://github.com/forcedotcom/salesforcedx-vscode/pull/8277))
+
+# 67.23.1 - September 30, 2026 - Prerelease
+
+Release skipped. No customer-facing changes.
+
+# 67.20.0 - September 23, 2026
+
+## Fixed
+
+#### salesforcedx-vscode-services
+
+- We fixed a security vulnerability where a malicious scratch-org definition folder name or ISV debugging project name could execute arbitrary shell commands. Salesforce CLI commands now run without a shell, so input is always treated as literal arguments. ([PR #8184](https://github.com/forcedotcom/salesforcedx-vscode/pull/8184))
+
+# 67.18.2 - September 18, 2026
+
+## Added
+
+#### salesforcedx-vscode-apex-log
+
+- You can now run anonymous Apex (`.apex`) scripts directly from the editor with an **Execute** CodeLens, including in web where the Apex extension isn't available. ([PR #8122](https://github.com/forcedotcom/salesforcedx-vscode/pull/8122))
+
+## Fixed
+
+#### salesforcedx-vscode-core
+
+- We changed the destructive **Delete Source** and retrieve-overwrite prompts from a notification toast to a modal dialog that requires explicit confirmation before overwriting or deleting. ([PR #8090](https://github.com/forcedotcom/salesforcedx-vscode/pull/8090))
+
+#### salesforcedx-vscode-lwc
+
+- We fixed a bug where the LWC extension repeatedly rewrote `jsconfig.json` and watched directory creation events, causing sustained high file-watcher CPU usage in large projects. ([PR #7979](https://github.com/forcedotcom/salesforcedx-vscode/pull/7979), [ISSUE #7966](https://github.com/forcedotcom/salesforcedx-vscode/issues/7966))
+
+#### salesforcedx-vscode-org-browser
+
+- We fixed a bug where the **Org Browser** could show toolbar actions before their handlers were registered while waiting for a target org. The controls now stay hidden until they're ready. ([PR #8105](https://github.com/forcedotcom/salesforcedx-vscode/pull/8105), [ISSUE #8094](https://github.com/forcedotcom/salesforcedx-vscode/issues/8094))
+
+#### salesforcedx-vscode-services
+
+- We fixed a bug where in-flight deploy, retrieve, and delete operations kept running after you changed the target org. They're now canceled when the target org changes. ([PR #8079](https://github.com/forcedotcom/salesforcedx-vscode/pull/8079))
 
 # 67.17.2 - September 4, 2026
 
@@ -831,7 +861,7 @@
 - We fixed a bug where the Apex Test Explorer did not refresh after metadata changes. ([PR #7140](https://github.com/forcedotcom/salesforcedx-vscode/pull/7140))
 - We added a message to the Apex Testing sidebar reminding users to deploy their Apex tests to the default org if no tests appear. ([PR #7152](https://github.com/forcedotcom/salesforcedx-vscode/pull/7152))
 - Strip subclass for vscode RPC serialization W-21972447 ([PR #7159](https://github.com/forcedotcom/salesforcedx-vscode/pull/7159))
-  
+
 #### salesforcedx-vscode-core
 
 - We made some changes under the hood. ([PR #7145](https://github.com/forcedotcom/salesforcedx-vscode/pull/7145), [PR #7073](https://github.com/forcedotcom/salesforcedx-vscode/pull/7073), [PR #7124](https://github.com/forcedotcom/salesforcedx-vscode/pull/7124))
@@ -909,7 +939,7 @@
 - We fixed a bug where the Apex Test Explorer did not refresh after metadata changes. ([PR #7140](https://github.com/forcedotcom/salesforcedx-vscode/pull/7140))
 - We added a message to the Apex Testing sidebar reminding users to deploy their Apex tests to the default org if no tests appear. ([PR #7152](https://github.com/forcedotcom/salesforcedx-vscode/pull/7152))
 - Strip subclass for vscode RPC serialization W-21972447 ([PR #7159](https://github.com/forcedotcom/salesforcedx-vscode/pull/7159))
-  
+
 #### salesforcedx-vscode-core
 
 - We made some changes under the hood. ([PR #7145](https://github.com/forcedotcom/salesforcedx-vscode/pull/7145), [PR #7073](https://github.com/forcedotcom/salesforcedx-vscode/pull/7073), [PR #7124](https://github.com/forcedotcom/salesforcedx-vscode/pull/7124))
@@ -1665,7 +1695,7 @@ Check out the improved version of the Local Dev Server by installing the [Salesf
 #### salesforcedx-lightning-lsp-common
 #### salesforcedx-lwc-language-server
 
-- We refactored the Lightning language server into the monorepo to improve long-term maintainability. 
+- We refactored the Lightning language server into the monorepo to improve long-term maintainability.
 - We removed `node:fs` and direct file system calls from the lightning-language-server in favor of asynchronously loading filesystem data into the server. ([PR #6620](https://github.com/forcedotcom/salesforcedx-vscode/pull/6620), ([PR #6658](https://github.com/forcedotcom/salesforcedx-vscode/pull/6658)), ([PR #6666](https://github.com/forcedotcom/salesforcedx-vscode/pull/6666)), ([PR #6711](https://github.com/forcedotcom/salesforcedx-vscode/pull/6711))
 - We added UX popups and hover text to clearly communicate the delayed server start. ([PR #6723](https://github.com/forcedotcom/salesforcedx-vscode/pull/6723))
 
@@ -2177,13 +2207,13 @@ Thank you [Humaira Zaman](https://github.com/humairazaman-devsinc) and [Charlie 
 - We modified the Apex language server restart behavior and added new options:
 
   **From the status bar**: Respects the configured `Restart Behavior` setting.
-     
+
      - **prompt**: Prompts with `Restart Only` selected by default.
-     
+
      - **restart**: Restarts immediately.
-     
+
      -  **reset**: Cleans Apex DB and restarts.
-     
+
   **From the command palette**: Always prompts the user, with the selection prehighlighted based on the configured setting. ([PR #6292](https://github.com/forcedotcom/salesforcedx-vscode/pull/6292))
 
 ## Fixed
@@ -2877,7 +2907,7 @@ We’re excited that we’ve made it easier for you to give Einstein for Develop
 
 #### salesforcedx-vscode-lwc
 
-- We now support the `lightning_UrlAddressable` enumeration type in LWC components. Thank you 
+- We now support the `lightning_UrlAddressable` enumeration type in LWC components. Thank you
 [Mike Senn](https://github.com/mpsenn) for this contribution. ([PR #5328](https://github.com/forcedotcom/salesforcedx-vscode/pull/5328))
 
 ## Fixed
@@ -3050,7 +3080,7 @@ If you run Salesforce CLI commands in the terminal, use the newer sf commands. S
 
 #### salesforcedx-vscode-apex
 
-- We updated the Apex Language Server to support the null coalescing operator. Thank you [Gianluca Riboldi](https://github.com/gian-ribo) for creating the issue. ([PR #5385](https://github.com/forcedotcom/salesforcedx-vscode/pull/5385), [ISSUE #5384](https://github.com/forcedotcom/salesforcedx-vscode/issues/5384)). 
+- We updated the Apex Language Server to support the null coalescing operator. Thank you [Gianluca Riboldi](https://github.com/gian-ribo) for creating the issue. ([PR #5385](https://github.com/forcedotcom/salesforcedx-vscode/pull/5385), [ISSUE #5384](https://github.com/forcedotcom/salesforcedx-vscode/issues/5384)).
 
 ## Fixed
 
@@ -3267,7 +3297,7 @@ If you run Salesforce CLI commands in the terminal, use the newer sf commands. S
 #### salesforcedx-vscode-core
 
 - We made some changes under the hood. ([PR #5253](https://github.com/forcedotcom/salesforcedx-vscode/pull/5253))
-  
+
 #### docs
 
 - We made updates to the Org Browser docs topic. ([PR #5254](https://github.com/forcedotcom/salesforcedx-vscode/pull/5254))
@@ -3492,7 +3522,7 @@ If you run Salesforce CLI commands in the terminal, use the newer sf commands. S
 
 ## Added
 
-- We released a brand new [Einstein for Developers](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-einstein-gpt) extension 🎉 🎉! Use this extension to generate boilerplate code from natural language instructions in a sidebar, so you can work with your editor and the tool side by side, without any interruptions to your workflow. You can also get code suggestions within an existing Apex class, trigger, or anonymous Apex file. Simply enter in a prompt describing what you'd like to build and see Apex code generated within your editor. 
+- We released a brand new [Einstein for Developers](https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-einstein-gpt) extension 🎉 🎉! Use this extension to generate boilerplate code from natural language instructions in a sidebar, so you can work with your editor and the tool side by side, without any interruptions to your workflow. You can also get code suggestions within an existing Apex class, trigger, or anonymous Apex file. Simply enter in a prompt describing what you'd like to build and see Apex code generated within your editor.
 
 #### docs
 - We added documentation for Einstein for Developers (Beta) ([PR #5053](https://github.com/forcedotcom/salesforcedx-vscode/pull/5053))
@@ -3897,7 +3927,7 @@ We made some updates under the hood. ([PR #4661](https://github.com/forcedotcom/
 
 We made lots of under the hood updates in this release that involved:
   - Addition of new jest unit tests for test infrastructure hardening.
-  - A major upgrade to the version of the `@salesforce/core` library to reach parity with CLI dependencies. 
+  - A major upgrade to the version of the `@salesforce/core` library to reach parity with CLI dependencies.
   - A new way of bundling extensions that resulted in a smaller increase in the size of the Extension Pack.
 
 ## Added
@@ -4133,7 +4163,7 @@ If you run into any issues, navigate to the Salesforce Extensions Pack in the Ex
 
 #### salesforcedx-vscode-core
 
-- We fixed an issue with the _SFDX: Rename Component_ command so that it now correctly renames the file in the `__tests__` folder for LWC components that has the same name as the component being renamed ([PR #4020](https://github.com/forcedotcom/salesforcedx-vscode/pull/4020)). 
+- We fixed an issue with the _SFDX: Rename Component_ command so that it now correctly renames the file in the `__tests__` folder for LWC components that has the same name as the component being renamed ([PR #4020](https://github.com/forcedotcom/salesforcedx-vscode/pull/4020)).
 - We added support for debugging JavaScript in containerless functions ([PR#4001](https://github.com/forcedotcom/salesforcedx-vscode/pull/4001)).
 - We fixed an issue that prevented `Standard Value Sets` from being displayed in the Org Browser([PR # 3992](https://github.com/forcedotcom/salesforcedx-vscode/pull/3992)). Fixes Issue https://github.com/forcedotcom/salesforcedx-vscode/issues/1579
 

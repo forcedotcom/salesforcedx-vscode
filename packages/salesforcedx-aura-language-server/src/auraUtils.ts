@@ -4,12 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { BaseWorkspaceContext, toResolvedPath } from '@salesforce/salesforcedx-lightning-lsp-common';
-import { HTMLDocument, TokenType, getLanguageService } from 'vscode-html-languageservice';
+import { type BaseWorkspaceContext, toResolvedPath } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { type HTMLDocument, TokenType, getLanguageService } from 'vscode-html-languageservice';
 import { createScanner } from 'vscode-html-languageservice/lib/umd/parser/htmlScanner';
-import { FileChangeType, FileEvent, Range } from 'vscode-languageserver';
+import { FileChangeType, type FileEvent, type Range } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
-import { Position, Location } from 'vscode-languageserver-types';
+import { type Position, type Location } from 'vscode-languageserver-types';
 /**
  * Regex pattern to match Aura expression syntax in HTML templates.
  *

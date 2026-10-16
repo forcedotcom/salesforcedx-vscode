@@ -13,6 +13,7 @@ import { SettingsService } from '../vscode/settingsService';
 import { ApplicationInsightsWebExporter } from './applicationInsightsWebExporter';
 import { GatedSpanExporter } from './gatedSpanExporter';
 import { getConsoleTracesEnabled, getLocalTracesEnabled, getFileTracesEnabled } from './localTracing';
+import { O11yRoutingExporter } from './o11yRoutingExporter';
 import { O11ySpanExporter } from './o11ySpanExporter';
 import { OtlpFileSpanExporterWeb } from './otlpFileSpanExporterWeb';
 import { RedactingSpanProcessor } from './redactingSpanProcessor';
@@ -47,18 +48,23 @@ export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, 
               bypassGovernance: process.env.ESBUILD_WEB_LOCAL === '1'
             })
           }),
-          // O11y processor present whenever an endpoint is configured; gate (localhost bypass + telemetry setting) lives in the wrapper
-          ...(o11yEndpoint
-            ? [
-                new SpanTransformProcessor({
-                  exporter: new GatedSpanExporter({
-                    make: () => new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId),
-                    o11yEndpoint,
-                    bypassGovernance: process.env.ESBUILD_WEB_LOCAL === '1'
-                  })
-                })
-              ]
-            : []),
+          // O11y processor always present; O11yRoutingExporter restores per-caller
+          // endpoint/PFT for legacy spans and drops rest spans when the host
+          // configured no endpoint. Gate (localhost bypass + telemetry setting) lives in the wrapper.
+          new SpanTransformProcessor({
+            exporter: new GatedSpanExporter({
+              make: () =>
+                new O11yRoutingExporter({
+                  makeDefault: o11yEndpoint
+                    ? () => new O11ySpanExporter(extensionName, o11yEndpoint, productFeatureId)
+                    : undefined,
+                  makeLegacy: (endpoint, legacyProductFeatureId, legacyExtensionName) =>
+                    new O11ySpanExporter(legacyExtensionName, endpoint, legacyProductFeatureId)
+                }),
+              o11yEndpoint,
+              bypassGovernance: process.env.ESBUILD_WEB_LOCAL === '1'
+            })
+          }),
           ...((yield* getLocalTracesEnabled())
             ? [new SpanTransformProcessor({ exporter: new OTLPTraceExporter() })]
             : []),

@@ -22,20 +22,33 @@ import {
 } from '../../../src/core/projectService';
 import { NoWorkspaceOpenError, WorkspaceService } from '../../../src/vscode/workspaceService';
 
+const workspaceInfo = (uri: URI) => ({
+  uri,
+  path: uri.toString(),
+  fsPath: uri.fsPath,
+  isEmpty: false as const,
+  isVirtualFs: uri.scheme !== 'file',
+  cwd: uri.fsPath
+});
+
 const workspaceLayer = (uri: URI | undefined) =>
   Layer.succeed(
     WorkspaceService,
     new WorkspaceService({
+      getWorkspaceInfo: () =>
+        uri
+          ? Effect.succeed(workspaceInfo(uri))
+          : Effect.succeed({
+              uri: URI.parse(''),
+              path: '',
+              fsPath: '',
+              isEmpty: true as const,
+              isVirtualFs: false,
+              cwd: ''
+            }),
       getWorkspaceInfoOrThrow: () =>
         uri
-          ? Effect.succeed({
-              uri,
-              path: uri.toString(),
-              fsPath: uri.fsPath,
-              isEmpty: false,
-              isVirtualFs: uri.scheme !== 'file',
-              cwd: uri.fsPath
-            })
+          ? Effect.succeed(workspaceInfo(uri))
           : Effect.fail(new NoWorkspaceOpenError({ message: 'No workspace is currently open' }))
     } as unknown as WorkspaceService)
   );
@@ -150,5 +163,39 @@ describe('ProjectService namespace', () => {
     expect(Exit.isFailure(exit) ? Option.getOrUndefined(Cause.failureOption(exit.cause)) : undefined).toMatchObject({
       _tag: 'FailedToResolveSfProjectError'
     });
+  });
+});
+
+describe('ProjectService.isInPackageDirectories', () => {
+  const posixWorkspace = URI.file('/w24232208-posix-pkg');
+  const windowsWorkspace = URI.file('/w24232208-windows-pkg');
+
+  beforeEach(() => {
+    jest.spyOn(SfProject, 'resolve').mockImplementation(
+      async (fsPath?: string) =>
+        ({
+          getPackageDirectories: () =>
+            fsPath?.includes('w24232208-windows-pkg') ? [{ fullPath: 'C:/Force-App' }] : [{ fullPath: '/force-app' }]
+        }) as unknown as SfProject
+    );
+  });
+
+  afterEach(() => {
+    jest.restoreAllMocks();
+  });
+
+  const contained = (workspace: URI, uri: URI) =>
+    Effect.runPromise(ProjectService.isInPackageDirectories(uri).pipe(Effect.provide(layerFor(workspace))));
+
+  it('keeps posix package directories case-sensitive', async () => {
+    await expect(contained(posixWorkspace, URI.file('/force-app/classes/Foo.cls'))).resolves.toBe(true);
+    await expect(contained(posixWorkspace, URI.file('/Force-app/classes/Foo.cls'))).resolves.toBe(false);
+    await expect(contained(posixWorkspace, URI.file('/other/Foo.cls'))).resolves.toBe(false);
+  });
+
+  it('treats Windows drive package directories as case-insensitive', async () => {
+    await expect(contained(windowsWorkspace, URI.parse('file:///c:/force-app/classes/Foo.cls'))).resolves.toBe(true);
+    await expect(contained(windowsWorkspace, URI.parse('file:///C:/FORCE-APP/classes/Foo.cls'))).resolves.toBe(true);
+    await expect(contained(windowsWorkspace, URI.parse('file:///c:/other/Foo.cls'))).resolves.toBe(false);
   });
 });

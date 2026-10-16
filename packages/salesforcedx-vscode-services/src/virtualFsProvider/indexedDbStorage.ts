@@ -17,8 +17,8 @@ import { SettingsService } from '../vscode/settingsService';
 import {
   isSerializedDirectoryWithPath,
   isSerializedFileWithPath,
-  SerializedEntryWithPath,
-  SerializedFileWithPath
+  type SerializedEntryWithPath,
+  type SerializedFileWithPath
 } from './fsTypes';
 import { settleIdbTransaction } from './idbTransaction';
 import { VirtualFsProviderError } from './virtualFsProviderError';

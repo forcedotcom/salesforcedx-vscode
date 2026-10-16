@@ -13,11 +13,11 @@ Remote visual presence and operation in a running VS Code instance.
 From repo root:
 
 ```bash
-npm install
-npm run compile -w @salesforce/drivable-vscode
+pnpm install
+pnpm --filter @salesforce/drivable-vscode compile
 ```
 
-`start` runs the cached `vscode:package` graph before VSIX launch. For faster source iteration, run `npm run vscode:bundle`, then start with `extensionMode: "dev"`.
+`start` runs the cached `vscode:package` graph before VSIX launch. For faster source iteration, run `pnpm run vscode:bundle`, then start with `extensionMode: "dev"`.
 
 ### Claude Code
 

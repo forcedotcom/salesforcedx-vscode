@@ -24,9 +24,9 @@ import {
   splitMultiInputValues,
   UiOperatorValue
 } from '@salesforce/soql-model';
-import { JsonMap } from '@salesforce/types';
+import type { JsonObject } from '../../../../json';
 import { OperatorOption, operatorOptions } from '../services/model';
-import { SObjectTypeUtils } from '../services/sobjectUtils';
+import { fieldMap, getNillable, getPicklistValues, getType, type FieldMap } from '../services/sobjectUtils';
 import {
   displayValueToSoqlStringLiteral,
   soqlStringLiteralToDisplayValue,
@@ -44,7 +44,7 @@ export default class WhereModifierGroup extends LightningElement {
   @api public index;
   @track public _currentFieldSelection;
   @track public _criteriaDisplayValue;
-  public sobjectTypeUtils: SObjectTypeUtils;
+  public fieldMap: FieldMap | undefined;
   public fieldEl: HTMLSelectElement;
   public operatorEl: HTMLSelectElement;
   public criteriaEl: HTMLInputElement;
@@ -55,7 +55,7 @@ export default class WhereModifierGroup extends LightningElement {
   public selectPlaceHolderText = messages.placeholder_search_fields;
   public _allModifiersHaveValue = false;
   public _sobjectMetadata: any;
-  public _condition: JsonMap;
+  public _condition: JsonObject;
   public _currentOperatorValue: UiOperatorValue | undefined;
   public handleSelectionEvent: () => void;
 
@@ -67,7 +67,7 @@ export default class WhereModifierGroup extends LightningElement {
   public set sobjectMetadata(sobjectMetadata: any) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     this._sobjectMetadata = sobjectMetadata;
-    this.sobjectTypeUtils = new SObjectTypeUtils(sobjectMetadata);
+    this.fieldMap = fieldMap(sobjectMetadata);
     this.resetErrorFlagsAndMessages();
   }
 
@@ -77,12 +77,12 @@ export default class WhereModifierGroup extends LightningElement {
   }
 
   @api
-  public get condition(): JsonMap {
+  public get condition(): JsonObject {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-return
     return this._condition;
   }
 
-  public set condition(condition: JsonMap) {
+  public set condition(condition: JsonObject) {
     // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
     this._condition = condition;
     this._criteriaDisplayValue = '';
@@ -250,15 +250,6 @@ export default class WhereModifierGroup extends LightningElement {
     return normalized;
   }
 
-  public getSObjectFieldType(fieldName: string): SObjectFieldType {
-    return this.sobjectTypeUtils ? this.sobjectTypeUtils.getType(fieldName) : SObjectFieldType.AnyType;
-  }
-
-  public getPicklistValues(fieldName: string): string[] {
-    // values need to be quoted
-    return this.sobjectTypeUtils ? this.sobjectTypeUtils.getPicklistValues(fieldName).map(value => `'${value}'`) : [];
-  }
-
   public getCriteriaType(type: SObjectFieldType, value: string): LiteralType {
     let criteriaType: LiteralType = 'STRING';
     if (value.toLowerCase() === 'null') {
@@ -301,11 +292,11 @@ export default class WhereModifierGroup extends LightningElement {
       const opModelValue = this.toOperatorModelValue(op);
 
       this._criteriaDisplayValue = this.criteriaEl.value;
-      const type = this.getSObjectFieldType(fieldName);
+      const type = getType(this.fieldMap, fieldName);
       const normalizedInput = this.normalizeInput(type, this.criteriaEl.value, op);
       const critType = this.getCriteriaType(type, normalizedInput);
-      const picklistValues = this.getPicklistValues(fieldName);
-      const nillable = this.sobjectTypeUtils.getNillable(fieldName);
+      const picklistValues = getPicklistValues(this.fieldMap, fieldName).map(value => `'${value}'`);
+      const nillable = getNillable(this.fieldMap, fieldName);
 
       const validateOptions = {
         type,

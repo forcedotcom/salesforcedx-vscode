@@ -6,6 +6,7 @@
  */
 import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
+import * as Rec from 'effect/Record';
 import * as vscode from 'vscode';
 import { SettingsService } from './settingsService';
 
@@ -22,7 +23,7 @@ export const runWebAuthEffect = Effect.fn('runWebAuthEffect')(function* () {
     if (configMap) {
       const settings = yield* SettingsService;
       yield* Effect.all(
-        Object.entries(configMap).map(([fullKey, value]) => {
+        Rec.collect(configMap, (fullKey, value) => {
           const [section, ...key] = fullKey.split('.');
           return settings.setValue(section, key.join('.'), value, vscode.ConfigurationTarget.Workspace);
         })

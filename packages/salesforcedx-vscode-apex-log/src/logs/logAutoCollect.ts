@@ -10,28 +10,25 @@ import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
-import { isString, isUndefined } from 'effect/Predicate';
+import { isDate, isString, isUndefined } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
+import { APEX_LOG_SETTINGS_SECTION } from '../constants';
 import { nls } from '../messages';
 import { KnownLogIdsRef, LogCollectorStateRef, CurrentTraceFlags } from '../services/apexLogState';
 import { isTraceFlagActive } from '../traceFlags/traceFlagActive';
 import { getExecAnonLogIds, saveLog } from './logStorage';
 
-const toDate = (d: Date | string): Date => (d instanceof Date ? d : new Date(d));
+const toDate = (d: Date | string): Date => (isDate(d) ? d : new Date(d));
 
 const isAfterTraceFlagStart =
   (startDateByUser: Map<string, Date>) =>
   (log: { LogUserId?: string; StartTime?: Date | string }): boolean => {
     const uid = log.LogUserId;
-    const st = isUndefined(log.StartTime)
-      ? undefined
-      : log.StartTime instanceof Date
-        ? log.StartTime
-        : new Date(log.StartTime);
+    const st = isUndefined(log.StartTime) ? undefined : isDate(log.StartTime) ? log.StartTime : new Date(log.StartTime);
     if (!uid || !st) return true;
     const userStart = startDateByUser.get(uid);
     return isUndefined(userStart) || st >= userStart;
@@ -108,7 +105,7 @@ const collectNewLogs = Effect.fn('LogAutoCollect.collectNewLogs', {
 const getPollIntervalSeconds = Effect.fn('ApexLog.getPollIntervalSeconds')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const settings = yield* api.services.SettingsService;
-  return (yield* settings.getValue('salesforcedx-vscode-apex-log', 'logPollIntervalSeconds', 30)) ?? 30;
+  return yield* settings.getValueOrElse(APEX_LOG_SETTINGS_SECTION, 'logPollIntervalSeconds', 30);
 });
 
 /** Polling stream that auto-collects Apex logs when trace flags are active. Writes to collectorRef for status bar display. */

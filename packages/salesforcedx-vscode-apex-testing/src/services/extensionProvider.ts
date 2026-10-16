@@ -10,6 +10,7 @@ import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import type { ExtensionContext } from 'vscode';
 import { CodeCoverageService } from '../codecoverage/codeCoverageService';
+import { APEX_TESTING_SECTION } from '../constants';
 import { PackageResolutionService } from '../testDiscovery/packageResolution';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { ApexTestExecutionService } from '../views/apexTestExecutionService';
@@ -36,7 +37,7 @@ export const buildAllServicesLayer = (context: ExtensionContext, fallbackDisplay
         buildBaseServicesLayer(context, fallbackDisplayName),
         ApexTestingServicesLayer,
         api.services.NotificationModeService.Default(
-          'salesforcedx-vscode-apex-testing',
+          APEX_TESTING_SECTION,
           'sf-apex-testing-notifications',
           'Salesforce: Apex Testing Notifications'
         )

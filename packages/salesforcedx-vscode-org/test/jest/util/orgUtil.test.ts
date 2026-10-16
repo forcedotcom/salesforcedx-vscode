@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, StateAggregator } from '@salesforce/core';
 import {
   ExtensionProviderService,
   type ExtensionProviderService as ExtensionProviderServiceType
@@ -15,7 +14,11 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
-import { buildAllServicesLayer, resetOrgRuntimeForTesting, setAllServicesLayer } from '../../../src/extensionProvider';
+import {
+  type buildAllServicesLayer,
+  resetOrgRuntimeForTesting,
+  setAllServicesLayer
+} from '../../../src/extensionProvider';
 import { nls } from '../../../src/messages';
 import { checkForSoonToBeExpiredOrgs, updateConfigAndStateAggregators } from '../../../src/util/orgUtil';
 
@@ -25,8 +28,8 @@ describe('orgUtil tests', () => {
   // not the legacy channelService singleton. These mocks stand in for appendToChannel/showChannel.
   let appendToChannelMock: jest.Mock;
   let showChannelMock: jest.Mock;
-  let listAllAuthorizationsSpy: jest.SpyInstance;
-  let authInfoCreateSpy: jest.SpyInstance;
+  let listAllAuthorizationsSpy: jest.Mock;
+  let getAuthInfoFieldsSpy: jest.Mock<unknown, [string]>;
   let mockWatcher: any;
 
   // ChannelService entry provided in every seeded ExtensionProviderService layer.
@@ -36,10 +39,10 @@ describe('orgUtil tests', () => {
       showChannel: Effect.sync(() => showChannelMock())
     });
 
-  // ConnectionService.listAllAuthorizations delegates to the mocked AuthInfo.listAllAuthorizations,
-  // mirroring the real service (which clears StateAggregator then calls AuthInfo.listAllAuthorizations).
+  // Both authorization listing and connection resolution are provided by services.
   const connectionServiceStub = () => ({
-    listAllAuthorizations: () => Effect.promise(() => AuthInfo.listAllAuthorizations())
+    listAllAuthorizations: () => Effect.promise(() => listAllAuthorizationsSpy()),
+    getAuthInfoFields: (username: string) => Effect.sync(() => getAuthInfoFieldsSpy(username))
   });
 
   // checkForSoonToBeExpiredOrgs leaks ChannelService / ConnectionService into its R channel (it yields
@@ -60,8 +63,7 @@ describe('orgUtil tests', () => {
   // Create mock TargetOrgRef function
   const createMockTargetOrgRef = (username?: string) => () =>
     Effect.gen(function* () {
-      const ref = yield* SubscriptionRef.make<{ username?: string }>({ username });
-      return ref;
+      return yield* SubscriptionRef.make<{ username?: string }>({ username });
     });
 
   beforeEach(() => {
@@ -96,8 +98,8 @@ describe('orgUtil tests', () => {
     showWarningMessageSpy = jest.spyOn(vscode.window, 'showWarningMessage').mockResolvedValue(undefined);
     appendToChannelMock = jest.fn();
     showChannelMock = jest.fn();
-    listAllAuthorizationsSpy = jest.spyOn(AuthInfo, 'listAllAuthorizations');
-    authInfoCreateSpy = jest.spyOn(AuthInfo, 'create');
+    listAllAuthorizationsSpy = jest.fn();
+    getAuthInfoFieldsSpy = jest.fn<unknown, [string]>();
   });
 
   afterEach(() => {
@@ -151,7 +153,7 @@ describe('orgUtil tests', () => {
     expect(showWarningMessageSpy).not.toHaveBeenCalled();
     expect(appendToChannelMock).not.toHaveBeenCalled();
     expect(showChannelMock).not.toHaveBeenCalled();
-    expect(authInfoCreateSpy).not.toHaveBeenCalled();
+    expect(getAuthInfoFieldsSpy).not.toHaveBeenCalled();
   });
 
   it('should display a notification when the scratch org has already expired', async () => {
@@ -164,12 +166,10 @@ describe('orgUtil tests', () => {
       }
     ]);
 
-    authInfoCreateSpy.mockResolvedValue({
-      getFields: () => ({
-        username: 'foo',
-        alias: orgName1,
-        expirationDate: `${yesterday.getFullYear()}-${yesterday.getMonth() + 1}-${yesterday.getDate()}`
-      })
+    getAuthInfoFieldsSpy.mockReturnValue({
+      username: 'foo',
+      alias: orgName1,
+      expirationDate: `${yesterday.getFullYear()}-${yesterday.getMonth() + 1}-${yesterday.getDate()}`
     });
     const mockServicesApi = {
       services: {
@@ -186,7 +186,7 @@ describe('orgUtil tests', () => {
     expect(showWarningMessageSpy).toHaveBeenCalled();
     expect(appendToChannelMock).not.toHaveBeenCalled();
     expect(showChannelMock).not.toHaveBeenCalled();
-    expect(authInfoCreateSpy).toHaveBeenCalled();
+    expect(getAuthInfoFieldsSpy).toHaveBeenCalled();
   });
 
   it('reveals the Output panel only when the user clicks Show Output on the expiry warning', async () => {
@@ -201,14 +201,10 @@ describe('orgUtil tests', () => {
       }
     ]);
 
-    authInfoCreateSpy.mockResolvedValue({
-      getFields: () => ({
-        username: 'foo',
-        alias: orgName1,
-        expirationDate: `${threeDaysFromNow.getFullYear()}-${
-          threeDaysFromNow.getMonth() + 1
-        }-${threeDaysFromNow.getDate()}`
-      })
+    getAuthInfoFieldsSpy.mockReturnValue({
+      username: 'foo',
+      alias: orgName1,
+      expirationDate: `${threeDaysFromNow.getFullYear()}-${threeDaysFromNow.getMonth() + 1}-${threeDaysFromNow.getDate()}`
     });
     const mockServicesApi = {
       services: {
@@ -245,24 +241,16 @@ describe('orgUtil tests', () => {
       }
     ]);
 
-    authInfoCreateSpy
-      .mockResolvedValueOnce({
-        getFields: () => ({
-          username: 'foo',
-          alias: orgName1,
-          expirationDate: `${threeDaysFromNow.getFullYear()}-${
-            threeDaysFromNow.getMonth() + 1
-          }-${threeDaysFromNow.getDate()}`
-        })
+    getAuthInfoFieldsSpy
+      .mockReturnValueOnce({
+        username: 'foo',
+        alias: orgName1,
+        expirationDate: `${threeDaysFromNow.getFullYear()}-${threeDaysFromNow.getMonth() + 1}-${threeDaysFromNow.getDate()}`
       })
-      .mockResolvedValueOnce({
-        getFields: () => ({
-          username: 'bar',
-          alias: orgName2,
-          expirationDate: `${threeDaysFromNow.getFullYear()}-${
-            threeDaysFromNow.getMonth() + 1
-          }-${threeDaysFromNow.getDate()}`
-        })
+      .mockReturnValueOnce({
+        username: 'bar',
+        alias: orgName2,
+        expirationDate: `${threeDaysFromNow.getFullYear()}-${threeDaysFromNow.getMonth() + 1}-${threeDaysFromNow.getDate()}`
       });
     const mockServicesApi = {
       services: {
@@ -313,22 +301,16 @@ describe('orgUtil tests', () => {
       }
     ]);
 
-    // Mock authInfoCreate to return different expiration dates based on org name
-    authInfoCreateSpy.mockResolvedValueOnce({
-      getFields: () => ({
-        username: 'about-to-expire-org@salesforce.com',
-        alias: orgNameAboutToExpire,
-        expirationDate: `${aboutToExpireDate.getFullYear()}-${
-          aboutToExpireDate.getMonth() + 1
-        }-${aboutToExpireDate.getDate()}`
-      })
+    // Return different expiration dates for each org.
+    getAuthInfoFieldsSpy.mockReturnValueOnce({
+      username: 'about-to-expire-org@salesforce.com',
+      alias: orgNameAboutToExpire,
+      expirationDate: `${aboutToExpireDate.getFullYear()}-${aboutToExpireDate.getMonth() + 1}-${aboutToExpireDate.getDate()}`
     });
-    authInfoCreateSpy.mockResolvedValueOnce({
-      getFields: () => ({
-        username: 'expired-org@salesforce.com',
-        alias: orgNameExpired,
-        expirationDate: `${expiredDate.getFullYear()}-${expiredDate.getMonth() + 1}-${expiredDate.getDate()}`
-      })
+    getAuthInfoFieldsSpy.mockReturnValueOnce({
+      username: 'expired-org@salesforce.com',
+      alias: orgNameExpired,
+      expirationDate: `${expiredDate.getFullYear()}-${expiredDate.getMonth() + 1}-${expiredDate.getDate()}`
     });
     const mockServicesApi = {
       services: {
@@ -361,17 +343,18 @@ describe('updateConfigAndStateAggregators', () => {
   let getConnectionMock: jest.Mock;
   let invalidateCachedConnectionsMock: jest.Mock;
   let invalidateConfigAggregatorMock: jest.Mock;
+  let listAllAuthorizationsMock: jest.Mock;
 
   beforeEach(() => {
     jest.restoreAllMocks();
     resetOrgRuntimeForTesting();
 
-    jest.spyOn(StateAggregator, 'clearInstanceAsync').mockResolvedValue();
     (vscode.commands.executeCommand as jest.Mock).mockResolvedValue(undefined);
 
     getConnectionMock = jest.fn().mockReturnValue(Effect.succeed({}));
     invalidateCachedConnectionsMock = jest.fn().mockReturnValue(Effect.void);
     invalidateConfigAggregatorMock = jest.fn().mockReturnValue(Effect.void);
+    listAllAuthorizationsMock = jest.fn().mockReturnValue(Effect.succeed([]));
 
     const mockServicesApi = {
       services: {
@@ -380,7 +363,8 @@ describe('updateConfigAndStateAggregators', () => {
         },
         ConnectionService: {
           getConnection: getConnectionMock,
-          invalidateCachedConnections: invalidateCachedConnectionsMock
+          invalidateCachedConnections: invalidateCachedConnectionsMock,
+          listAllAuthorizations: listAllAuthorizationsMock
         },
         NotificationModeService: Effect.succeed({
           getProgressLocation: () => Effect.succeed(1),
@@ -405,9 +389,9 @@ describe('updateConfigAndStateAggregators', () => {
   it('should call getConnection after invalidating caches to refresh TargetOrgRef', async () => {
     await updateConfigAndStateAggregators();
 
-    expect(StateAggregator.clearInstanceAsync).toHaveBeenCalled();
     expect(invalidateConfigAggregatorMock).toHaveBeenCalled();
     expect(invalidateCachedConnectionsMock).toHaveBeenCalled();
+    expect(listAllAuthorizationsMock).toHaveBeenCalled();
     expect(getConnectionMock).toHaveBeenCalled();
   });
 
@@ -415,9 +399,9 @@ describe('updateConfigAndStateAggregators', () => {
     getConnectionMock.mockReturnValue(Effect.fail(new Error('No target org configured')));
 
     await expect(updateConfigAndStateAggregators()).resolves.toBeUndefined();
-    expect(StateAggregator.clearInstanceAsync).toHaveBeenCalled();
     expect(invalidateConfigAggregatorMock).toHaveBeenCalled();
     expect(invalidateCachedConnectionsMock).toHaveBeenCalled();
+    expect(listAllAuthorizationsMock).toHaveBeenCalled();
     expect(getConnectionMock).toHaveBeenCalled();
   });
 });

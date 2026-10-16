@@ -4,7 +4,7 @@
   "tasks": [
     {
       "label": "Bootstrap",
-      "command": "npm",
+      "command": "pnpm",
       "type": "shell",
       "presentation": {
         "focus": false,
@@ -15,7 +15,7 @@
     },
     {
       "label": "Clean",
-      "command": "npm",
+      "command": "pnpm",
       "type": "shell",
       "presentation": {
         "focus": false,
@@ -26,7 +26,7 @@
     },
     {
       "label": "Commit",
-      "command": "npm",
+      "command": "pnpm",
       "type": "shell",
       "presentation": {
         "focus": true,
@@ -41,7 +41,7 @@
         "kind": "build",
         "isDefault": true
       },
-      "command": "npm",
+      "command": "pnpm",
       "type": "shell",
       "presentation": {
         "focus": false,
@@ -68,7 +68,7 @@
         "kind": "build",
         "isDefault": false
       },
-      "command": "npm",
+      "command": "pnpm",
       "type": "shell",
       "options": {
         "env": {
@@ -95,8 +95,26 @@
       }
     },
     {
+      "label": "Pick Extensions",
+      "type": "process",
+      "command": "node",
+      "args": ["${workspaceFolder}/scripts/pickExtensions.mjs", "--group", "interactive"],
+      "presentation": {
+        "reveal": "always",
+        "focus": true,
+        "panel": "dedicated"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Bundle then Pick Extensions",
+      "dependsOn": ["Compile and Bundle", "Pick Extensions"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
       "label": "Lint",
-      "command": "npm",
+      "command": "pnpm",
       "type": "shell",
       "presentation": {
         "focus": false,
@@ -113,12 +131,12 @@
     },
     {
       "label": "Update Change Log",
-      "command": "npm run changelog ${input:releaseOverride}",
+      "command": "pnpm changelog ${input:releaseOverride}",
       "type": "shell"
     },
     {
       "label": "Watch",
-      "command": "npm",
+      "command": "pnpm",
       "type": "shell",
       "presentation": {
         "focus": false,
@@ -143,6 +161,90 @@
       "label": "Start Grafana and Bundle",
       "dependsOn": ["Start Grafana LGTM", "Compile and Bundle"],
       "dependsOrder": "parallel",
+      "problemMatcher": []
+    },
+    {
+      "label": "Select All Extensions",
+      "type": "process",
+      "command": "node",
+      "args": ["${workspaceFolder}/scripts/pickExtensions.mjs", "--group", "all"],
+      "presentation": {
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Select Apex Log Extensions",
+      "type": "process",
+      "command": "node",
+      "args": ["${workspaceFolder}/scripts/pickExtensions.mjs", "--group", "apex-log"],
+      "presentation": {
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Select Org Browser Extensions",
+      "type": "process",
+      "command": "node",
+      "args": ["${workspaceFolder}/scripts/pickExtensions.mjs", "--group", "org-browser"],
+      "presentation": {
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Select Org Browser Core Extensions",
+      "type": "process",
+      "command": "node",
+      "args": ["${workspaceFolder}/scripts/pickExtensions.mjs", "--group", "org-browser-core"],
+      "presentation": {
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Select Metadata Extensions",
+      "type": "process",
+      "command": "node",
+      "args": ["${workspaceFolder}/scripts/pickExtensions.mjs", "--group", "metadata"],
+      "presentation": {
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Bundle then Select All Extensions",
+      "dependsOn": ["Compile and Bundle", "Select All Extensions"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "Select All Extensions and Start Grafana",
+      "dependsOn": ["Select All Extensions", "Start Grafana LGTM"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "Start Grafana and Bundle then Select All Extensions",
+      "dependsOn": ["Start Grafana and Bundle", "Select All Extensions"],
+      "dependsOrder": "sequence",
+      "problemMatcher": []
+    },
+    {
+      "label": "Bundle then Select Apex Log Extensions",
+      "dependsOn": ["Compile and Bundle", "Select Apex Log Extensions"],
+      "dependsOrder": "sequence",
       "problemMatcher": []
     }
   ],

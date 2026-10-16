@@ -7,10 +7,16 @@
 
 import { Logger } from '@salesforce/core';
 import * as Order from 'effect/Order';
-import { Readable, ReadableOptions } from 'node:stream';
-import { TestResult, ApexTestResultData } from '../tests/types';
+import { Readable, type ReadableOptions } from 'node:stream';
+import { type TestResult, type ApexTestResultData } from '../tests/types';
 import { elapsedTime, HeapMonitor } from '../utils';
-import { ReportData, FailureTest, WarningTest, TestTableRow, CoverageTableRow } from './markdownReportTemplate';
+import {
+  type ReportData,
+  type FailureTest,
+  type WarningTest,
+  type TestTableRow,
+  type CoverageTableRow
+} from './markdownReportTemplate';
 import {
   escapeMarkdown,
   escapeHtml,
@@ -24,9 +30,10 @@ import {
   getSeverityScore
 } from './markdownTextReporter';
 
+const BUFFER_SIZE = 256;
+
 /** @internal Used by the co-repo Apex Testing extension; not part of the supported npm API. */
 export type MarkdownTextFormatTransformerOptions = ReadableOptions & {
-  bufferSize?: number;
   format?: 'markdown' | 'text';
   sortOrder?: 'runtime' | 'coverage' | 'severity';
   performanceThresholdMs?: number;
@@ -39,7 +46,6 @@ export type MarkdownTextFormatTransformerOptions = ReadableOptions & {
 export class MarkdownTextFormatTransformer extends Readable {
   private readonly logger: Logger;
   private buffer: string;
-  private readonly bufferSize: number;
   private readonly testResult: TestResult;
   private readonly outputFormat: 'markdown' | 'text';
   private readonly sortOrder: 'runtime' | 'coverage' | 'severity';
@@ -53,7 +59,6 @@ export class MarkdownTextFormatTransformer extends Readable {
     this.testResult = testResult;
     this.logger = Logger.childFromRoot('MarkdownTextFormatTransformer');
     this.buffer = '';
-    this.bufferSize = options?.bufferSize || 256;
     this.outputFormat = options?.format ?? 'markdown';
     this.sortOrder = options?.sortOrder ?? 'runtime';
     this.performanceThresholdMs = options?.performanceThresholdMs ?? 5000;
@@ -64,7 +69,7 @@ export class MarkdownTextFormatTransformer extends Readable {
 
   private pushToBuffer(chunk: string): void {
     this.buffer += chunk;
-    if (this.buffer.length >= this.bufferSize) {
+    if (this.buffer.length >= BUFFER_SIZE) {
       this.push(this.buffer);
       this.buffer = '';
     }

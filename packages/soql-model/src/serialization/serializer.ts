@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { SoqlModelObject, SyntaxOptions } from '../model/model';
+import { type SoqlModelObject, type SyntaxOptions } from '../model/model';
 
 export class ModelSerializer {
   protected model: SoqlModelObject;

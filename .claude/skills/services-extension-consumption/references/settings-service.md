@@ -1,15 +1,25 @@
 # SettingsService
 
-VS Code settings read/write. Accessor pattern: call methods directly.
+VS Code settings read/write. `getValue` and `getValueOrElse` are generic, so yield the service and call the instance method. Other methods use the generated accessor.
 
 ## Methods
 
 ### getValue
 
-Get a setting value:
+Unset → `T | undefined`.
 
 ```typescript
-const value = yield* api.services.SettingsService.getValue('section', 'key', defaultValue);
+const settings = yield* api.services.SettingsService;
+const value = yield* settings.getValue<string>('section', 'key');
+```
+
+### getValueOrElse
+
+Unset or `null` → `defaultValue`. Success type is `T`.
+
+```typescript
+const settings = yield* api.services.SettingsService;
+const value = yield* settings.getValueOrElse('section', 'key', false);
 ```
 
 ### setValue
@@ -75,6 +85,14 @@ Get retrieve on load setting:
 
 ```typescript
 const value = yield* api.services.SettingsService.getRetrieveOnLoad();
+```
+
+### getInternalDev
+
+`salesforcedx-vscode-core.internal-development`. Unset/`null` → `false`.
+
+```typescript
+const internalDev = yield* api.services.SettingsService.getInternalDev();
 ```
 
 ## Errors

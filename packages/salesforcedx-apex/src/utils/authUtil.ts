@@ -5,13 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { HttpRequest } from '@jsforce/jsforce-node';
-import { Connection } from '@salesforce/core';
-import type { JsonCollection } from '@salesforce/ts-types';
+import { type Connection } from '@salesforce/core';
 import { xmlCharMap } from './types';
 
-export async function refreshAuth(connection: Connection): Promise<JsonCollection> {
+export async function refreshAuth(connection: Connection): Promise<void> {
   const requestInfo: HttpRequest = { url: connection.baseUrl(), method: 'GET' };
-  return await connection.request(requestInfo);
+  await connection.request(requestInfo);
 }
 
 export function escapeXml(data: string): string {

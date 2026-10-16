@@ -80,6 +80,19 @@ const workspaceService = new WorkspaceService({
 } as unknown as WorkspaceService);
 
 describe('OrgMetadataShadowStore', () => {
+  // vscode.workspace.textDocuments is shared mock state; isolate per test so open-editor protection doesn't leak.
+  const textDocuments = vscode.workspace.textDocuments as vscode.TextDocument[];
+  let originalTextDocuments: vscode.TextDocument[];
+
+  beforeEach(() => {
+    originalTextDocuments = [...textDocuments];
+    textDocuments.splice(0, textDocuments.length);
+  });
+
+  afterEach(() => {
+    textDocuments.splice(0, textDocuments.length, ...originalTextDocuments);
+  });
+
   const publishRevision = (
     store: InstanceType<typeof OrgMetadataShadowStore>,
     files: Map<string, string>,
@@ -260,7 +273,6 @@ describe('OrgMetadataShadowStore', () => {
   it('preserves an older revision that backs an open editor document', async () => {
     const { files, service } = makeFsService();
     const reference = { xmlName: 'ApexClass', fullName: 'FooTest' };
-    const textDocuments = vscode.workspace.textDocuments as vscode.TextDocument[];
     const program = Effect.gen(function* () {
       const store = yield* OrgMetadataShadowStore;
       const first = yield* publishRevision(store, files, '00D', reference, 'revision-1');
@@ -270,15 +282,19 @@ describe('OrgMetadataShadowStore', () => {
         revision => publishRevision(store, files, '00D', reference, revision),
         { concurrency: 1 }
       );
-      return yield* store.get('00D', reference, 'revision-1');
+      return yield* Effect.forEach(
+        ['revision-1', 'revision-2', 'revision-3', 'revision-4'],
+        revision => store.get('00D', reference, revision),
+        { concurrency: 1 }
+      );
     }).pipe(
-      Effect.ensuring(Effect.sync(() => textDocuments.splice(0, textDocuments.length))),
       Effect.provide(OrgMetadataShadowStore.DefaultWithoutDependencies),
       Effect.provideService(FsService, service),
       Effect.provideService(WorkspaceService, workspaceService)
     );
 
-    await expect(Effect.runPromise(program)).resolves.toBeDefined();
+    const artifacts = await Effect.runPromise(program);
+    expect(artifacts.every(artifact => artifact !== undefined)).toBe(true);
   });
 
   it('does not fail publication when pruning an old revision fails', async () => {

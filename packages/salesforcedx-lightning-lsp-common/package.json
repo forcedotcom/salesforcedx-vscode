@@ -55,7 +55,8 @@
     "clean": "shx rm -rf node_modules out coverage .wireit .eslintcache",
     "compile": "wireit",
     "test": "wireit",
-    "lint": "wireit"
+    "lint": "wireit",
+    "check:effect-diagnostics": "wireit"
   },
   "wireit": {
     "compile": {
@@ -106,12 +107,24 @@
         "../../eslint.config.mjs"
       ],
       "output": []
+    },
+    "check:effect-diagnostics": {
+      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "package.json",
+        "../../config/effect-diagnostics.json",
+        "../../scripts/effect-diagnostics.mjs"
+      ],
+      "output": []
     }
   },
   "dependencies": {
-    "@salesforce/effect-ext-utils": "*",
-    "@salesforce/salesforcedx-utils": "*",
-    "@salesforce/vscode-i18n": "*",
+    "@salesforce/effect-ext-utils": "workspace:*",
+    "@salesforce/salesforcedx-utils": "workspace:*",
+    "@salesforce/vscode-i18n": "workspace:*",
     "effect": "^3.21.2",
     "ejs": "^3.1.10",
     "minimatch": "^10.2.6",

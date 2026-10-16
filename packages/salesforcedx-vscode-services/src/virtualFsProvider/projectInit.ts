@@ -6,11 +6,12 @@
  */
 import * as Effect from 'effect/Effect';
 import { not } from 'effect/Predicate';
+import { toEntries } from 'effect/Record';
 import { Buffer } from 'node:buffer';
 import * as os from 'node:os';
 import { URI } from 'vscode-uri';
 import { unknownToErrorCause } from '../core/shared';
-import { FsProvider } from './fsTypes';
+import { type FsProvider } from './fsTypes';
 import { getProjectRoot } from './projectRoot';
 import { TEMPLATES, metadataDirs } from './templates/templates';
 import { VirtualFsProviderError } from './virtualFsProviderError';
@@ -30,7 +31,7 @@ const getDirsToCreate = (sampleProjectPath: string): string[] => [
 ];
 
 const createConfigFiles = (fsp: FsProvider, sampleProjectPath: string): void => {
-  Object.entries(TEMPLATES).forEach(([name, content]) => {
+  toEntries(TEMPLATES).forEach(([name, content]) => {
     const uri = URI.parse(`${sampleProjectPath}/${name}`);
     fsp.writeFile(uri, new Uint8Array(Buffer.from(content.join('\n'))), {
       create: true,

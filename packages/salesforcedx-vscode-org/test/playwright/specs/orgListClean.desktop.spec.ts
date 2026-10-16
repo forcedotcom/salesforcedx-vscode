@@ -25,6 +25,9 @@ import { removeStaleScratchOrgAuth, writeStaleScratchOrgAuth } from '../helpers/
 
 const ORG_OUTPUT_CHANNEL = 'Salesforce Org Management';
 
+// The second test writes an expired auth file into the shared CLI home. Run the no-op test first.
+test.describe.configure({ mode: 'serial' });
+
 // Exercises sf.org.list.clean (orgListCleanCommand). The fixture seeds a non-expired scratch org
 // (MINIMAL_ORG_ALIAS) as default, so there is nothing expired/deleted to remove. The command must
 // detect that, show an info toast, and NOT prompt for confirmation of a no-op.

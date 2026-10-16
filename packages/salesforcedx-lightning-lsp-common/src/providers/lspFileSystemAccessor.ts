@@ -8,14 +8,14 @@
 import { isError } from 'effect/Predicate';
 import * as path from 'node:path';
 import {
-  Connection,
+  type Connection,
   ApplyWorkspaceEditRequest,
   CreateFile,
   Position,
   TextDocumentEdit,
   TextEdit,
-  WorkspaceEdit,
-  DocumentUri
+  type WorkspaceEdit,
+  type DocumentUri
 } from 'vscode-languageserver';
 import { URI } from 'vscode-uri';
 import { Logger } from '../logger';
@@ -36,8 +36,8 @@ import {
   type WorkspaceDeleteFileParams,
   type WorkspaceDeleteFileResult
 } from '../lspCustomRequests';
-import { FileStat, DirectoryEntry } from '../types/fileSystemTypes';
-import { NormalizedPath, normalizePath } from '../utils';
+import { type FileStat, type DirectoryEntry } from '../types/fileSystemTypes';
+import { type NormalizedPath, normalizePath } from '../utils';
 
 // --- Standalone helpers (no instance state) ---
 

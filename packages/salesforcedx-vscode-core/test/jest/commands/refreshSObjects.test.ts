@@ -4,20 +4,23 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { fileOrFolderExists } from '@salesforce/salesforcedx-utils-vscode';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
-import * as path from 'node:path';
 import * as Tracer from 'effect/Tracer';
+import * as path from 'node:path';
 import * as vscode from 'vscode';
+import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import { extractErrorMessage, initSObjectDefinitions } from '../../../src/commands/refreshSObjects';
 
-jest.mock('@salesforce/salesforcedx-utils-vscode', () => ({
-  fileOrFolderExists: jest.fn()
-}));
-
-const fileOrFolderExistsMock = jest.mocked(fileOrFolderExists);
+const fileOrFolderExists = jest.fn((_filePath: string) => Effect.succeed(false));
+const fsLayer = Layer.mergeAll(
+  Layer.succeed(ExtensionProviderService, {
+    getServicesApi: Effect.succeed({ services: { FsService } })
+  } as never),
+  Layer.succeed(FsService, FsService.make({ fileOrFolderExists } as never))
+);
 type RecordedSpan = {
   name: string;
   attributes: Map<string, unknown>;
@@ -57,8 +60,8 @@ const recordingTracerLayer = Layer.setTracer(
   })
 );
 
-const runWithRecordingTracer = <A, E>(effect: Effect.Effect<A, E>): Promise<A> =>
-  Effect.runPromise(effect.pipe(Effect.provide(recordingTracerLayer)));
+const runWithRecordingTracer = <A, E>(effect: Effect.Effect<A, E, ExtensionProviderService | FsService>): Promise<A> =>
+  effect.pipe(Effect.provide(Layer.mergeAll(recordingTracerLayer, fsLayer)), Effect.runPromise);
 
 describe('extractErrorMessage', () => {
   it('returns the message of an Error instance', () => {
@@ -90,7 +93,7 @@ describe('extractErrorMessage', () => {
 describe('initSObjectDefinitions', () => {
   beforeEach(() => {
     recordedSpans.length = 0;
-    fileOrFolderExistsMock.mockReset();
+    fileOrFolderExists.mockReset();
     jest.mocked(vscode.commands.executeCommand).mockReset().mockResolvedValue(undefined);
   });
 
@@ -98,11 +101,11 @@ describe('initSObjectDefinitions', () => {
     [true, 'startup', path.join('/project', '.sfdx', 'tools', 'sobjects')],
     [false, 'startupmin', path.join('/project', '.sfdx', 'tools', 'sobjects', 'standardObjects')]
   ])('records the %s setting refresh span', async (isSettingEnabled, refreshSource, sobjectFolder) => {
-    fileOrFolderExistsMock.mockResolvedValue(false);
+    fileOrFolderExists.mockReturnValue(Effect.succeed(false));
 
     await runWithRecordingTracer(initSObjectDefinitions('/project', isSettingEnabled));
 
-    expect(fileOrFolderExistsMock).toHaveBeenCalledWith(sobjectFolder);
+    expect(fileOrFolderExists).toHaveBeenCalledWith(sobjectFolder);
     expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.internal.refreshsobjects', refreshSource);
     const notificationSpan = recordedSpans.find(span => span.name === 'sObjectRefreshNotification');
     expect(notificationSpan).toEqual(expect.objectContaining({ ended: true, result: 'success' }));
@@ -111,7 +114,7 @@ describe('initSObjectDefinitions', () => {
   });
 
   it('does not refresh or record a notification when definitions exist', async () => {
-    fileOrFolderExistsMock.mockResolvedValue(true);
+    fileOrFolderExists.mockReturnValue(Effect.succeed(true));
 
     await runWithRecordingTracer(initSObjectDefinitions('/project', true));
 
@@ -120,7 +123,7 @@ describe('initSObjectDefinitions', () => {
   });
 
   it('records command errors and preserves the failure', async () => {
-    fileOrFolderExistsMock.mockResolvedValue(false);
+    fileOrFolderExists.mockReturnValue(Effect.succeed(false));
     const error = new Error('boom');
     jest.mocked(vscode.commands.executeCommand).mockRejectedValue(error);
 

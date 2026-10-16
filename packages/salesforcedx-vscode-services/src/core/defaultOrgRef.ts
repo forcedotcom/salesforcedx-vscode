@@ -7,7 +7,7 @@
 
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { DefaultOrgInfoSchema } from './schemas/defaultOrgInfo';
+import { type DefaultOrgInfoSchema } from './schemas/defaultOrgInfo';
 
 // eslint-disable-next-line functional/no-let
 let defaultOrgRef: SubscriptionRef.SubscriptionRef<typeof DefaultOrgInfoSchema.Type> | undefined;

@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as PubSub from 'effect/PubSub';
-import * as Scope from 'effect/Scope';
+import type * as Scope from 'effect/Scope';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as TestClock from 'effect/TestClock';
 import * as TestContext from 'effect/TestContext';
@@ -18,7 +18,7 @@ import { OrgMetadataCatalogChangePubSub } from 'salesforcedx-vscode-services/src
 import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
 import { URI } from 'vscode-uri';
 import { initializeTestDiscovery } from '../../../src/watchers/testDiscovery';
-import { getTestController } from '../../../src/views/testController';
+import { type getTestController } from '../../../src/views/testController';
 
 jest.mock('../../../src/views/testController', () => ({
   getTestController: jest.fn()
@@ -32,7 +32,8 @@ type OrgInfo = { orgId?: string };
  * org once. Drive transitions with `SubscriptionRef.set` (NOT a PubSub). After each set, advance the
  * `TestClock` so the forked fiber drains deterministically before asserting.
  */
-const setupHarness = Effect.fn('setupHarness')(function* (initial: OrgInfo) {
+const setupHarness = Effect.fn('setupHarness')(function* (initial: OrgInfo, discoveryRequested = true) {
+  let requested = discoveryRequested;
   const targetOrgRef = yield* SubscriptionRef.make<OrgInfo>(initial);
   const catalogChanges = yield* PubSub.sliding<OrgMetadataCatalogChange>(100);
 
@@ -42,7 +43,8 @@ const setupHarness = Effect.fn('setupHarness')(function* (initial: OrgInfo) {
   const testController = {
     refresh,
     clearAllTestItems,
-    incrementalUpdate
+    incrementalUpdate,
+    isDiscoveryRequested: () => requested
   } as unknown as ReturnType<typeof getTestController>;
 
   const appendToChannel = jest.fn(() => Effect.void);
@@ -71,7 +73,16 @@ const setupHarness = Effect.fn('setupHarness')(function* (initial: OrgInfo) {
     )
   );
 
-  return { targetOrgRef, catalogChanges, refresh, clearAllTestItems, incrementalUpdate };
+  return {
+    targetOrgRef,
+    catalogChanges,
+    refresh,
+    clearAllTestItems,
+    incrementalUpdate,
+    requestDiscovery: () => {
+      requested = true;
+    }
+  };
 });
 
 // No debounce in the watcher; advance virtual time to let the forked fiber process the latest emission.
@@ -81,6 +92,30 @@ const runTest = <A>(effect: Effect.Effect<A, unknown, Scope.Scope>) =>
   Effect.runPromise(effect.pipe(Effect.scoped, Effect.provide(TestContext.TestContext)));
 
 describe('initializeTestDiscovery', () => {
+  it('does not discover or update tests before discovery is requested', () =>
+    runTest(
+      Effect.gen(function* () {
+        const { targetOrgRef, catalogChanges, refresh, incrementalUpdate, requestDiscovery } = yield* setupHarness(
+          { orgId: 'someOrg' },
+          false
+        );
+        yield* settle;
+        expect(refresh).not.toHaveBeenCalled();
+
+        yield* PubSub.publish(catalogChanges, {
+          kind: 'workspace',
+          events: [{ type: 'create', uri: URI.file('/workspace/force-app/main/default/classes/MyTest.cls') }]
+        });
+        yield* settle;
+        expect(incrementalUpdate).not.toHaveBeenCalled();
+
+        requestDiscovery();
+        yield* SubscriptionRef.set(targetOrgRef, { orgId: 'anotherOrg' });
+        yield* settle;
+        expect(refresh).toHaveBeenCalledTimes(1);
+      })
+    ));
+
   it('refreshes once for the initial org', () =>
     runTest(
       Effect.gen(function* () {

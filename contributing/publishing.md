@@ -24,14 +24,14 @@ References:
 Manual workflow [`build-github-release.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/build-github-release.yml) builds release VSIXs from promoted prerelease tags. Auto-detects latest nightly tag + bumps minor, or accepts manual overrides. Emergency pre-release mode auto-calculates patch from registries if empty.
 
 Inputs:
-- `prereleaseTag`: promoted prerelease tag (e.g., `v67.11.1-nightly.develop.20260812`); auto-detect if empty
+- `prereleaseTag`: promoted prerelease tag (e.g., `v67.11.1-nightly.develop.20260812`); auto-detect if empty (loops through `marketplace-prerelease-*` tracking tags newest-first, uses first one that resolves to a real nightly tag)
 - `releaseVersion`: release version (e.g., `67.12.0`); auto-calculated per mode if empty
 - `emergencyPrerelease`: `true` → emergency-hotfix build path; auto-calculates patch from max(Marketplace, Open VSX) if `releaseVersion` empty
 
 Uses scripts:
 - [`scripts/calculate-release-version.js`](../scripts/calculate-release-version.js) — extract prerelease version, bump minor
 - [`scripts/calculate-prerelease-hotfix-version.js`](../scripts/calculate-prerelease-hotfix-version.js) — query Marketplace/Open VSX, bump patch on max version
-- [`scripts/update-release-versions.js`](../scripts/update-release-versions.js) — update publishable packages' `package.json` + `package-lock.json`
+- [`scripts/update-release-versions.js`](../scripts/update-release-versions.js) — update publishable packages' `package.json` + `pnpm-lock.yaml`
 
 Output: GitHub pre-release with VSIX artifacts + SHA256 checksums. Test locally; trigger `publishVSCode.yml` for marketplace publish if tests pass.
 
@@ -86,7 +86,7 @@ Published releases extract extension names from VSIX filenames in release assets
 
 ### Pre-release Promotion
 
-**Pre-release promotion:** `promote-to-prerelease.yml` (Wednesdays 8 AM UTC) runs 3-stage pipeline: (1) find-nightly selects most recent nightly (min-tag-age: 0 days); (2) gate-check verifies nightly's build/release success, or tests hotfix commit directly when `-f isHotfix=true` (not unit-tests/build-all, which only exist on PR commits); (3) promote creates tracking tag for release flow. Safe rollback window before general release.
+**Pre-release promotion:** `promote-to-prerelease.yml` (Wednesdays 8 AM UTC) runs multi-stage pipeline: (1) find-nightly selects most recent nightly (min-tag-age: 0 days); (2) gate-check verifies nightly's build/release success, or tests hotfix commit directly when `-f isHotfix=true`; (3) compute-changelog-range finds baseline commit (newest `marketplace-prerelease-*` or latest stable `v*` tag); (4) changelog-body calls reusable AI-backed workflow to produce polished customer-facing changelog (GUS refs removed, sentences rewritten, packages deduped, Under-the-Hood consolidated); (5) changelog writes polished body under version header to `packages/salesforcedx-vscode/CHANGELOG.md` + root `CHANGELOG.md`; (6) promote creates marketplace-prerelease tracking tag; (7) mark-release-published tags nightly release GitHub title with " - published" suffix (visible on Releases page). Safe rollback window before general release.
 
 **Release build:** See [Build Release from Prerelease](#build-release-from-prerelease) above.
 
@@ -145,23 +145,6 @@ After a release, run the [`/shipped-issues`](../.claude/skills/shipped-issues/SK
 
 ---
 
-# Publishing a Beta Pre-Release
-
-For high-risk or large-scale changes, publish a pre-release to allow advanced users to test early. VSIX artifacts uploaded to GitHub release (no NPM or VS Code Marketplace publish yet).
-
-## Steps
-
-1. Create release branch, increment version per `create-release-branch.js`
-2. Version format: keep minor, set patch to `YYYYMMDDHHMM` (e.g., v55.11.202208260522)
-3. Push to remote
-4. GitHub Actions tab → 'Publish Beta Release to GitHub Only' workflow
-5. Select 'Run Workflow' from beta branch (requires write access)
-6. Workflow creates git tag, release, and attaches individual VSIX files for download/test
-
-Note: beta branch (unique versioning) should not merge back to develop; use regular release process when ready.
-
----
-
 # Manual Publish
 
 The steps used to publish to the VS Code Marketplace can be found in the associated GitHub Actions.
@@ -176,24 +159,23 @@ Major bumps are aligned with Salesforce Core major version releases (e.g., SF CL
 
 **Step 1: Bump develop branch**
 
-Create a PR to update `package.json` in the root and all publishable packages:
+Create a PR that runs [`scripts/update-release-versions.js`](../scripts/update-release-versions.js) to set every publishable package's `package.json` to the **first odd minor** of the new major — e.g. `68.1.0`, not `68.0.0`:
 
 ```bash
-# Example: 67.0.0 → 68.0.0
-# Update version in:
-# - package.json (root)
-# - packages/*/package.json (all publishable packages)
+node scripts/update-release-versions.js 68.1.0
 ```
 
-After merge, nightlies will automatically build with the new major version: `v68.0.0-nightly.develop.YYYYMMDD`
+Nightly's own version-bump logic always enforces an odd minor (see `vscode-publish-extensions.yml`'s `bump-versions` job): if you set the baseline to an even minor like `68.0.0`, the very next nightly run silently corrects it to `68.1.0` on its own anyway. Set it to the odd value directly so the PR's diff matches what actually ships.
+
+After merge, nightlies build from that baseline and tag `v68.1.0-nightly.develop.YYYYMMDD`, incrementing patch each night (`68.1.1`, `68.1.2`, ...).
 
 **Step 2: Build release with manual override**
 
-After ≥7 days of nightly testing, trigger the release build with manual version override to prevent auto-bumping to 68.1.0:
+The normal auto-calculated stable path (`scripts/calculate-release-version.js`) just increments the prerelease minor by one (`68.1.x` → `68.2.0`), which would skip the actual major version number entirely. To publish the major release as exactly `68.0.0`, after ≥7 days of nightly testing, trigger the release build with a manual version override:
 
 ```bash
 gh workflow run build-github-release.yml \
-  -f prereleaseTag="v68.0.0-nightly.develop.YYYYMMDD" \
+  -f prereleaseTag="v68.1.3-nightly.develop.YYYYMMDD" \
   -f releaseVersion="68.0.0"
 ```
 
@@ -204,7 +186,7 @@ Follow the standard [Publishing to Marketplace](#publishing-to-marketplace) flow
 - Trigger `publishVSCode.yml` with version `68.0.0`
 - Approve marketplace gates after testing
 
-**Note:** Minor releases (68.0.0 → 68.1.0, 68.2.0, ...) use auto-calculate and don't require manual version updates.
+**Note:** Subsequent minor releases (68.0.0 → 68.2.0 → 68.4.0, ...) use auto-calculate and don't require manual version updates — stable releases are always even minors, matching the odd/even convention nightly builds already follow.
 
 ## Downloading the .vsix from GitHub Action
 

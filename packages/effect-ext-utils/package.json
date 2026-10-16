@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/effect-ext-utils",
-  "version": "67.19.0",
+  "version": "68.3.0",
   "description": "Utility functions and helpers for Effect-based VS Code extensions",
   "author": "Salesforce",
   "license": "BSD-3-Clause",
@@ -27,7 +27,8 @@
     "lint": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .wireit .eslintcache .circular-deps.json",
     "test": "wireit",
-    "test:compile": "wireit"
+    "test:compile": "wireit",
+    "check:effect-diagnostics": "wireit"
   },
   "wireit": {
     "compile": {
@@ -100,12 +101,26 @@
         "package.json"
       ],
       "output": []
+    },
+    "check:effect-diagnostics": {
+      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "../../config/effect-diagnostics.json",
+        "../../scripts/effect-diagnostics.mjs"
+      ],
+      "output": []
     }
   },
   "dependencies": {
-    "@salesforce/vscode-i18n": "*",
+    "@salesforce/vscode-i18n": "workspace:*",
     "effect": "^3.21.2",
     "@types/vscode": "^1.90.0",
     "vscode-uri": "^3.1.0"
+  },
+  "devDependencies": {
+    "salesforcedx-vscode-services": "workspace:*"
   }
 }

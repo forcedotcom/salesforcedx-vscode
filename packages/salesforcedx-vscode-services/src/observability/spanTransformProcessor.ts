@@ -5,8 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { DefaultOrgInfoSchema } from '../core/schemas/defaultOrgInfo';
-import { Context } from '@opentelemetry/api';
-import { Span, BatchSpanProcessor, SpanExporter, BufferConfig, ReadableSpan } from '@opentelemetry/sdk-trace-base';
+import { type Context } from '@opentelemetry/api';
+import {
+  type Span,
+  BatchSpanProcessor,
+  type SpanExporter,
+  type BufferConfig,
+  type ReadableSpan
+} from '@opentelemetry/sdk-trace-base';
 import { classifyOrgForTelemetry, type TelemetryClassification } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isString } from 'effect/Predicate';
@@ -19,7 +25,7 @@ import { SFDX_CORE_SECTION } from '../constants';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { SettingsService } from '../vscode/settingsService';
 
-type SpanCreationIdentity = Readonly<
+export type SpanCreationIdentity = Readonly<
   Pick<
     typeof DefaultOrgInfoSchema.Type,
     | 'orgId'
@@ -35,9 +41,25 @@ type SpanCreationIdentity = Readonly<
 >;
 
 const creationIdentities = new WeakMap<object, SpanCreationIdentity>();
+const identityAttributes = [
+  'orgId',
+  'devHubOrgId',
+  'userId',
+  'cliId',
+  'webUserId',
+  'isSandbox',
+  'isScratch',
+  'tracksSource',
+  'orgEdition'
+] as const;
 
 export const getSpanCreationIdentity = (span: Span | ReadableSpan): SpanCreationIdentity =>
   creationIdentities.get(span) ?? { telemetryClassification: 'unknown' };
+
+// legacy telemetry path stamps synthetic spans with frozen send-time identity
+export const setSpanCreationIdentity = (span: object, identity: SpanCreationIdentity): void => {
+  creationIdentities.set(span, Object.freeze({ ...identity }));
+};
 
 const getCurrentSpanCreationIdentity = (): SpanCreationIdentity => {
   const { instanceName, ...identity } = Effect.runSync(getDefaultOrgRef().pipe(Effect.flatMap(SubscriptionRef.get)));
@@ -76,10 +98,20 @@ export class SpanTransformProcessor extends BatchSpanProcessor {
           memoized('everySpanIsTheSame')
         ]).pipe(Effect.provide(SettingsService.Default)) // it seems to want a key
       );
-      // Rec.filter's refinement overload drops the undefined-valued attributes and narrows the rest to string
-      Object.entries(Rec.filter({ ...permanent, ...dynamic }, isString)).map(([k, v]) => span.setAttribute(k, v));
+      const attributes = { ...permanent, ...dynamic };
+      Rec.keys(attributes).forEach(key => {
+        const value = attributes[key];
+        if (isString(value)) span.setAttribute(key, value);
+      });
     }
     super.onStart(span, parentContext);
+  }
+
+  // eslint-disable-next-line class-methods-use-this -- SpanProcessor lifecycle hook
+  public onEnding(span: Span): void {
+    if (span.attributes.telemetrySource !== 'legacy') return;
+    const identity = getSpanCreationIdentity(span);
+    identityAttributes.filter(key => identity[key] === undefined).forEach(key => delete span.attributes[key]);
   }
 }
 

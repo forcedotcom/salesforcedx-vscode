@@ -13,9 +13,9 @@
     "Debuggers"
   ],
   "dependencies": {
-    "@salesforce/core": "^9.1.9",
-    "@salesforce/salesforcedx-utils": "*",
-    "@salesforce/vscode-i18n": "*",
+    "@salesforce/core": "^9.3.0",
+    "@salesforce/salesforcedx-utils": "workspace:*",
+    "@salesforce/vscode-i18n": "workspace:*",
     "@vscode/debugadapter": "1.68.0",
     "@vscode/debugprotocol": "1.68.0",
     "async-lock": "1.4.1",
@@ -38,7 +38,8 @@
     "check:circular-deps": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache .circular-deps.json",
     "test": "wireit",
-    "test:compile": "wireit"
+    "test:compile": "wireit",
+    "check:effect-diagnostics": "wireit"
   },
   "wireit": {
     "compile": {
@@ -70,6 +71,11 @@
       "output": []
     },
     "bundle:debugger": {
+      "env": {
+        "DEBUG_BUNDLE": {
+          "external": true
+        }
+      },
       "command": "node ../../scripts/bundling/bundle-debugger.mjs",
       "dependencies": [
         "compile"
@@ -90,6 +96,7 @@
       ],
       "files": [
         "test/**/*.ts",
+        "test/**/*.snap",
         "jest.config.js",
         "../../config/jest.base.config.js"
       ],
@@ -124,6 +131,17 @@
       "output": [
         ".circular-deps.json"
       ]
+    },
+    "check:effect-diagnostics": {
+      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "../../config/effect-diagnostics.json",
+        "../../scripts/effect-diagnostics.mjs"
+      ],
+      "output": []
     }
   }
 }

@@ -4,14 +4,19 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { TestResult, MarkdownTextFormatTransformer, OutputFormat, TestSortOrder } from '@salesforce/apex-node';
+import {
+  type TestResult,
+  MarkdownTextFormatTransformer,
+  type OutputFormat,
+  type TestSortOrder
+} from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { APEX_TESTING_SECTION } from '../constants';
 import { nls } from '../messages';
-import { NewlineNormalizationState, normalizeTextChunkToLf } from './newlineUtils';
+import { type NewlineNormalizationState, normalizeTextChunkToLf } from './newlineUtils';
 
 /** Collects stream output into a UTF-8 encoded Uint8Array with LF line endings */
 const streamToNormalizedUtf8Bytes = async (stream: NodeJS.ReadableStream): Promise<Uint8Array> => {
@@ -102,10 +107,16 @@ export const writeAndOpenTestReport = Effect.fn('writeAndOpenTestReport')(functi
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelSvc = yield* api.services.ChannelService;
   const settings = yield* api.services.SettingsService;
-  const performanceThresholdMs =
-    (yield* settings.getValue<number>(APEX_TESTING_SECTION, 'testPerformanceThresholdMs', 5000)) ?? 5000;
-  const coverageThresholdPercent =
-    (yield* settings.getValue<number>(APEX_TESTING_SECTION, 'testCoverageThresholdPercent', 75)) ?? 75;
+  const performanceThresholdMs = yield* settings.getValueOrElse(
+    APEX_TESTING_SECTION,
+    'testPerformanceThresholdMs',
+    5000
+  );
+  const coverageThresholdPercent = yield* settings.getValueOrElse(
+    APEX_TESTING_SECTION,
+    'testCoverageThresholdPercent',
+    75
+  );
 
   // Write directly to UTF-8 bytes (with LF newlines) without building a large intermediate string.
   const transformer = createReportTransformer(

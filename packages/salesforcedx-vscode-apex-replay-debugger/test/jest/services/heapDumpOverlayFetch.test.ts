@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
 import type { HeapDumpResult } from '@salesforce/salesforcedx-apex-replay-debugger';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as Stream from 'effect/Stream';
 import { fetchHeapDumpOverlayResults } from '../../../src/services/heapDumpOverlayFetch';
 
 const heapDumpLine = (id: string) => `<TimeInfo>|HEAP_DUMP|[11]|${id}|ClassName1|ns1|11`;
@@ -30,21 +30,29 @@ const overlayRecord = (id: string) => ({
   }
 });
 
-const makeConn = (queryImpl: jest.Mock): Connection =>
-  ({ version: '60.0', tooling: { query: queryImpl } }) as unknown as Connection;
-
-/** Layer that hands the fetch service a fake connection through the services-extension API. */
-const provideConn = (conn: Connection) =>
+/** Layer that hands the fetch a fake QueryService through the services-extension API. */
+const provideQuery = (query: jest.Mock) =>
   Layer.succeed(ExtensionProviderService, {
     getServicesApi: Effect.succeed({
-      services: { ConnectionService: { getConnection: () => Effect.succeed(conn) } }
+      services: {
+        QueryService: Effect.succeed({
+          query: (options: { soql: string }) =>
+            Effect.tryPromise({
+              try: () => query(options.soql) as Promise<{ records: unknown[] }>,
+              catch: (error: unknown) => error
+            }).pipe(
+              Effect.map(result => ({
+                totalSize: result.records.length,
+                records: Stream.fromIterable(result.records)
+              }))
+            )
+        })
+      }
     } as unknown as SalesforceVSCodeServicesApi)
   });
 
-// The fake's getConnection is R=never at runtime, but api's ConnectionService type re-adds the
-// requirement to the channel; cast it away since provideConn fully satisfies it at runtime.
 const run = (query: jest.Mock, log: string) =>
-  fetchHeapDumpOverlayResults(log).pipe(Effect.provide(provideConn(makeConn(query)))) as Effect.Effect<
+  fetchHeapDumpOverlayResults(log).pipe(Effect.provide(provideQuery(query))) as Effect.Effect<
     HeapDumpResult[],
     unknown,
     never

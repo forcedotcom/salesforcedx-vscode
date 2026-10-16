@@ -28,7 +28,8 @@
     "clean": "shx rm -rf node_modules out coverage .wireit .eslintcache",
     "compile": "wireit",
     "test": "wireit",
-    "lint": "wireit"
+    "lint": "wireit",
+    "check:effect-diagnostics": "wireit"
   },
   "wireit": {
     "compile": {
@@ -75,6 +76,18 @@
       "output": [
         "coverage"
       ]
+    },
+    "check:effect-diagnostics": {
+      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "package.json",
+        "../../config/effect-diagnostics.json",
+        "../../scripts/effect-diagnostics.mjs"
+      ],
+      "output": []
     }
   },
   "dependencies": {
@@ -84,9 +97,9 @@
     "@lwc/template-compiler": "9.3.4",
     "@salesforce/apex": "^0.0.21",
     "@salesforce/label": "^0.0.21",
-    "@salesforce/salesforcedx-lightning-lsp-common": "*",
+    "@salesforce/salesforcedx-lightning-lsp-common": "workspace:*",
     "@salesforce/schema": "^0.0.21",
-    "@salesforce/vscode-i18n": "*",
+    "@salesforce/vscode-i18n": "workspace:*",
     "babel-types": "^6.26.0",
     "change-case": "^4.1.1",
     "comment-parser": "^0.7.6",

@@ -24,9 +24,8 @@ import {
   outputChannelContains,
   validateNoCriticalErrors,
   ensureSecondarySideBarHidden,
-  activeQuickInputWidget,
+  selectQuickInputOption,
   isDesktop,
-  QUICK_INPUT_LIST_ROW,
   WORKBENCH
 } from '@salesforce/playwright-vscode-ext';
 import * as fs from 'node:fs';
@@ -52,11 +51,7 @@ const runRefreshAndVerify = async (
   await page.locator(WORKBENCH).click();
 
   await executeCommandWithCommandPalette(page, packageNls.sobjects_refresh);
-
-  const quickInput = activeQuickInputWidget(page);
-  await quickInput.waitFor({ state: 'attached', timeout: 10_000 });
-  const row = quickInput.locator(QUICK_INPUT_LIST_ROW).filter({ hasText: quickPickOption });
-  await row.click({ force: true });
+  await selectQuickInputOption(page, quickPickOption);
 
   await waitForOutputChannelText(page, { expectedText: expectedOutputText, timeout });
 };
@@ -159,12 +154,7 @@ failureTest(
         await page.locator(WORKBENCH).click();
 
         await executeCommandWithCommandPalette(page, packageNls.sobjects_refresh);
-        const quickInput = activeQuickInputWidget(page);
-        await quickInput.waitFor({ state: 'attached', timeout: 10_000 });
-        await quickInput
-          .locator(QUICK_INPUT_LIST_ROW)
-          .filter({ hasText: packageNls.sobject_refresh_custom })
-          .click({ force: true });
+        await selectQuickInputOption(page, packageNls.sobject_refresh_custom);
       });
 
       await test.step('real permission error is shown, generic string is not', async () => {

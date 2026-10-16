@@ -1,0 +1,30 @@
+name: Drivable VS Code macOS E2E (Playwright)
+
+on:
+  workflow_dispatch:
+  push:
+    branches-ignore: [ main, develop ]
+    paths:
+      - 'packages/drivable-vscode/**'
+      - 'packages/playwright-vscode-ext/**'
+      - '.github/workflows/drivableVscodeE2E.yml'
+      - '.github/actions/playwright-e2e/action.yml'
+
+jobs:
+  macos-smoke:
+    runs-on: macos-latest
+    timeout-minutes: 20
+    env:
+      CI: 1
+      VSCODE_DESKTOP: 1
+      E2E_NO_RETRIES: 1
+      PLAYWRIGHT_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_VSCODE_VERSION || 'stable' }}
+    steps:
+      - uses: $/.github/actions/playwright-e2e
+        with:
+          workspace: packages/drivable-vscode
+          npm-script: test:desktop
+          retry-failed: false
+          report-name: drivable-vscode-macos-playwright-report
+          results-name: drivable-vscode-macos-playwright
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
