@@ -11,7 +11,8 @@ import type {
   MetadataTypeObservation,
   PersistedInventoryCache,
   RemoteTrackingObservations,
-  TypeInventory
+  TypeInventory,
+  WorkspaceTypeInventory
 } from './orgCatalogInternalTypes';
 import type { OrgSObjectDescription, OrgSObjectSummary } from './orgMetadataCatalogTypes';
 import * as Arr from 'effect/Array';
@@ -93,7 +94,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
       HashMap.empty()
     );
     const metadataListingCache = yield* Ref.make<HashMap.HashMap<string, MetadataListingObservation>>(HashMap.empty());
-    const workspaceTypeCache = yield* Ref.make<HashMap.HashMap<string, ReadonlySet<string>>>(HashMap.empty());
+    const workspaceTypeCache = yield* Ref.make<HashMap.HashMap<string, WorkspaceTypeInventory>>(HashMap.empty());
     const sobjectListCache = yield* Ref.make<HashMap.HashMap<string, readonly OrgSObjectSummary[]>>(HashMap.empty());
     const sobjectDescriptionCache = yield* Ref.make<HashMap.HashMap<string, OrgSObjectDescription>>(HashMap.empty());
     const hydratedOrgIds = yield* Ref.make<HashSet.HashSet<string>>(HashSet.empty());
@@ -426,7 +427,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
       Ref.get(workspaceTypeCache).pipe(Effect.map(HashMap.get(orgId)), Effect.map(Option.getOrUndefined))
     );
     const setWorkspaceTypes = Effect.fn('OrgCatalogState.setWorkspaceTypes')(
-      (orgId: string, types: ReadonlySet<string>) =>
+      (orgId: string, types: WorkspaceTypeInventory) =>
         Ref.update(workspaceTypeCache, current => HashMap.set(current, orgId, types))
     );
     const getSObjectList = Effect.fn('OrgCatalogState.getSObjectList')((orgId: string) =>

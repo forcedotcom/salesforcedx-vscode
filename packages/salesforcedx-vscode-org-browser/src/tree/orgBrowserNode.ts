@@ -6,6 +6,7 @@
  */
 import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
+import { nls } from '../messages';
 
 type OrgBrowserTreeItemKind =
   /** a normal metadata type */
@@ -31,6 +32,8 @@ type OrgBrowserTreeItemInputs = {
   searchName?: string;
   /** Whether the file is present in the local workspace */
   filePresent?: boolean;
+  /** Whether workspace presence could not be determined. */
+  workspacePresenceUnavailable?: boolean;
   /** Whether the component is present in the active org */
   orgPresent?: boolean;
   namespace?: string;
@@ -50,6 +53,7 @@ export class OrgBrowserTreeItem extends vscode.TreeItem {
   public readonly namespace?: string;
   public readonly searchName: string;
   public readonly filePresent?: boolean;
+  public readonly workspacePresenceUnavailable?: boolean;
   public readonly orgPresent?: boolean;
 
   constructor(inputs: OrgBrowserTreeItemInputs) {
@@ -64,10 +68,18 @@ export class OrgBrowserTreeItem extends vscode.TreeItem {
     this.folderName = inputs.folderName;
     this.componentName = inputs.componentName;
     this.filePresent = inputs.filePresent;
+    this.workspacePresenceUnavailable = inputs.workspacePresenceUnavailable;
     this.orgPresent = inputs.orgPresent;
 
-    // not defined intentionally results in no icon.
-    if (isNotUndefined(inputs.filePresent)) {
+    if (inputs.workspacePresenceUnavailable) {
+      this.iconPath = new vscode.ThemeIcon('question');
+      const unavailableDescription = nls.localize('workspace_presence_unavailable_tooltip');
+      this.tooltip = unavailableDescription;
+      this.accessibilityInformation = {
+        role: 'treeitem',
+        label: `${inputs.label}, ${unavailableDescription}`
+      };
+    } else if (isNotUndefined(inputs.filePresent)) {
       this.iconPath = getIconPath(inputs.filePresent);
     }
 
