@@ -52,7 +52,6 @@ const mapSfLogLevel = (level: string): LogLevel.LogLevel => {
 
 const getBooleanConfiguration = (key: string) =>
   SettingsService.pipe(
-    Effect.flatMap(settings => settings.getValue<boolean>(SALESFORCE_DX_SECTION, key, false)),
-    Effect.map(value => value ?? false),
+    Effect.flatMap(settings => settings.getValueOrElse(SALESFORCE_DX_SECTION, key, false)),
     Effect.catchTag('MissingSettingsError', () => Effect.succeed(false))
   );
