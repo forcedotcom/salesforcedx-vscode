@@ -149,7 +149,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   yield* channelSvc.appendToChannel(nls.localize('lwc_language_server_starting'));
   // Register workspace read file handler before start so the server can read files (e.g. sfdx-project.json) during initialize
   const fsService = yield* api.services.FsService;
-  registerWorkspaceReadFileHandler(client, channelAdapter, { fsService, runPromise: getRuntime().runPromise });
+  registerWorkspaceReadFileHandler(client, { fsService, runPromise: getRuntime().runPromise }, channelAdapter);
 
   yield* Effect.tryPromise({
     try: () => client.start(),
@@ -235,7 +235,7 @@ const watchSfProjectForLwcClient = Effect.fn('watchSfProjectForLwcClient')(funct
         const newClient = yield* createLanguageClientEffect(extensionUri, initializationOptions, packageDirectoryUris);
 
         // Register workspace read file handler before start
-        registerWorkspaceReadFileHandler(newClient, channelAdapter, { fsService, runPromise: getRuntime().runPromise });
+        registerWorkspaceReadFileHandler(newClient, { fsService, runPromise: getRuntime().runPromise }, channelAdapter);
 
         yield* Effect.tryPromise({
           try: () => newClient.start(),

@@ -6,16 +6,12 @@
  */
 
 import type { FileStat, DirectoryEntry } from './types/fileSystemTypes';
-import {
-  getServicesApi,
-  type buildAllServicesLayer,
-  type SalesforceVSCodeServicesApi
-} from '@salesforce/effect-ext-utils';
-import * as Context from 'effect/Context';
+import { type buildAllServicesLayer, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
+import type * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
-import * as ManagedRuntime from 'effect/ManagedRuntime';
-import { isError, isNotUndefined } from 'effect/Predicate';
+import type * as Layer from 'effect/Layer';
+import type * as ManagedRuntime from 'effect/ManagedRuntime';
+import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
@@ -74,14 +70,6 @@ type WorkspaceReadFileServices = {
   readonly runPromise: AllServicesRuntime['runPromise'];
 };
 
-const getFsFromServicesApi = Effect.flatMap(getServicesApi, api =>
-  api.services.prebuiltServicesLayer.pipe(
-    Layer.toRuntime,
-    Effect.flatMap(runtime => api.services.FsService.pipe(Effect.provide(runtime))),
-    Effect.scoped
-  )
-);
-
 const logTo = (channel: Pick<vscode.OutputChannel, 'appendLine'>, msg: string) =>
   Effect.sync(() => channel.appendLine(msg));
 
@@ -93,21 +81,19 @@ const logTo = (channel: Pick<vscode.OutputChannel, 'appendLine'>, msg: string) =
  * Call this from the extension after the language client has started. Only extensions that
  * have salesforcedx-vscode-services as an extensionDependency should use this.
  *
+ * @param services FsService and Effect runner from the caller's long-lived runtime.
  * @param outputChannel Optional channel to log handler activity. Pass the extension's existing
  * output channel (e.g. channelService) so logs appear there rather than in a new dedicated channel.
  * When omitted, handler activity is not logged.
- * @param services Optional filesystem service and runner from the caller's long-lived runtime. When
- * omitted, the handler resolves the service from the services API for compatibility with consumers.
  */
 export const registerWorkspaceReadFileHandler = (
   client: WorkspaceReadFileClient,
-  outputChannel?: Pick<vscode.OutputChannel, 'appendLine'>,
-  services?: WorkspaceReadFileServices
+  services: WorkspaceReadFileServices,
+  outputChannel?: Pick<vscode.OutputChannel, 'appendLine'>
 ): void => {
   const log = outputChannel ?? { appendLine: () => {} };
-  const getFs = isNotUndefined(services) ? Effect.succeed(services.fsService) : getFsFromServicesApi;
-  const run = <A, E>(effect: Effect.Effect<A, E, never>) =>
-    services ? services.runPromise(effect) : Effect.runPromise(effect);
+  const getFs = Effect.succeed(services.fsService);
+  const run = services.runPromise;
 
   const handleReadFile = Effect.fn('WorkspaceHandler.readFile')(function* (params: WorkspaceReadFileParams) {
     const uri = URI.revive(params.uri);
