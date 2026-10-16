@@ -1,9 +1,11 @@
 name: Code Builder E2E (Playwright)
 
 # Runs the Playwright container specs against the real Code Builder workspace-manager image, with
-# the unreleased monorepo VSIX (built by an upstream Build All run, downloaded by runId — the same
-# bytes about to ship, not a rebuild) swapped in. Linux-only single job: the code-server runtime is
-# identical regardless of host OS, and containers are Linux (plan §10.3).
+# the monorepo VSIX under test swapped in — either the unreleased VSIX from an upstream Build All
+# run (downloaded by runId — the same bytes about to ship, not a rebuild), or a published GitHub
+# Release's VSIX assets (downloaded by releaseTag, e.g. to validate an already-cut release). Linux-
+# only single job: the code-server runtime is identical regardless of host OS, and containers are
+# Linux (plan §10.3).
 #
 # This workflow DRIVES the repo orchestrator (scripts/codeBuilderLocalE2E.ts, run via
 # `pnpm test:container:local`) rather than re-implementing the pull → swap → restart → gate →
@@ -23,8 +25,12 @@ on:
   workflow_dispatch:
     inputs:
       runId:
-        description: 'Run ID of the Build All run that produced the VSIX under test.'
-        required: true
+        description: 'Run ID of the Build All run that produced the VSIX under test. Leave empty if releaseTag is set.'
+        required: false
+        type: string
+      releaseTag:
+        description: 'Published GitHub Release tag (e.g. v68.4.0) to pull VSIX assets from instead of a Build All run. Leave empty if runId is set.'
+        required: false
         type: string
       image_tag:
         description: 'Code Builder image tag to pull (rolling: latest).'
@@ -34,7 +40,10 @@ on:
   workflow_call:
     inputs:
       runId:
-        required: true
+        required: false
+        type: string
+      releaseTag:
+        required: false
         type: string
       image_tag:
         required: false
@@ -107,6 +116,9 @@ jobs:
       # We `docker login` below; tell the orchestrator to rely on that ambient auth, not gh/CR_PAT.
       CB_SKIP_GHCR_LOGIN: '1'
       RUN_ID: ${{ inputs.runId }}
+      # Mutually exclusive with RUN_ID (see the orchestrator step below, which picks one). A trusted
+      # dispatch/call input; kept in env (never inlined into a run: command) to avoid script injection.
+      RELEASE_TAG: ${{ inputs.releaseTag }}
       # Rolling tag by default. A trusted dispatch/call input; kept in env (never inlined into a
       # run: command) to avoid script injection.
       IMAGE_TAG: ${{ inputs.image_tag || 'latest' }}
@@ -221,7 +233,15 @@ jobs:
       # Same pipeline a developer runs locally. CB_EXTRA_ORG_ALIASES (set above) is empty for packages
       # whose specs need no extra org (the orchestrator no-ops).
       - name: Run Code Builder E2E (orchestrator)
-        run: npm run test:container:local -- --run-id "$RUN_ID" --image-tag "$IMAGE_TAG" --only "$PACKAGE"
+        # RELEASE_TAG and RUN_ID are mutually exclusive VSIX sources (see the workflow_dispatch/
+        # workflow_call input descriptions above) -- prefer RELEASE_TAG when set, since it's the more
+        # deliberate choice (testing an already-published release, not a Build All run).
+        run: |
+          if [ -n "$RELEASE_TAG" ]; then
+            npm run test:container:local -- --release-tag "$RELEASE_TAG" --image-tag "$IMAGE_TAG" --only "$PACKAGE"
+          else
+            npm run test:container:local -- --run-id "$RUN_ID" --image-tag "$IMAGE_TAG" --only "$PACKAGE"
+          fi
 
       # This shard runs one package (--only), so only that package's report/results dir exists; the
       # glob matches just it. Name the artifact per-package — upload-artifact@v4 rejects duplicate

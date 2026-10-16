@@ -32,7 +32,9 @@
  * which authenticates with its GITHUB_TOKEN) so this script skips its own gh/CR_PAT login.
  *
  * Usage: ts-node scripts/codeBuilderLocalE2E.ts [options]
- *   --run-id <id>     Pull the VSIX from that Build All run instead of building locally.
+ *   --run-id <id>        Pull the VSIX from that Build All run instead of building locally.
+ *   --release-tag <tag>  Pull the VSIX assets from that published GitHub Release (e.g. v68.4.0)
+ *                        instead of a Build All run or a local build. Mutually exclusive with --run-id.
  *   --grep <pattern>  Pass through to Playwright to run a subset of specs.
  *   --only <pkgs>     Run only these package suite(s) (comma-separated, e.g. salesforcedx-vscode-lwc).
  *                     The CI matrix passes one per job to shard the suite under the job timeout.
@@ -140,6 +142,7 @@ const MULTIPACKAGE_MOUNT_PATH = '/home/codebuilder/multipackage-workspace';
 
 type Options = {
   runId?: string;
+  releaseTag?: string;
   grep?: string;
   teardown: boolean;
   imageTag: string;
@@ -171,6 +174,9 @@ const parseArgs = (argv: string[]): Options => {
     switch (arg) {
       case '--run-id':
         parsed.runId = need('--run-id', argv[++i]);
+        break;
+      case '--release-tag':
+        parsed.releaseTag = need('--release-tag', argv[++i]);
         break;
       case '--grep':
         parsed.grep = need('--grep', argv[++i]);
@@ -286,6 +292,10 @@ const runAsync = (file: string, args: string[], asyncOpts: { cwd?: string; timeo
   });
 
 const opts = parseArgs(process.argv.slice(2));
+if (opts.runId && opts.releaseTag) {
+  console.error('--run-id and --release-tag are mutually exclusive VSIX sources — pass only one.');
+  process.exit(2);
+}
 const image = `ghcr.io/forcedotcom/code-builder-images/workspace-manager/codebuilder:${opts.imageTag}`;
 const vsixDir = mkdtempSync(join(tmpdir(), 'cb-e2e-vsix-'));
 
@@ -431,6 +441,30 @@ const logRunProvenance = (runId: string): void => {
   console.log('    NOTE: the VSIX semver is not release-bumped, so it also matches the marketplace build.');
 };
 
+const logReleaseProvenance = (releaseTag: string): void => {
+  const raw = tryCapture('gh', [
+    'release',
+    'view',
+    releaseTag,
+    '-R',
+    'forcedotcom/salesforcedx-vscode',
+    '--json',
+    'tagName,name,targetCommitish,publishedAt,url'
+  ]);
+  log('VSIX under test — provenance');
+  if (raw) {
+    const r = JSON.parse(raw);
+    console.log('    Built by the published release:');
+    console.log(`      Release:      ${r.url}`);
+    console.log(`      Tag:          ${r.tagName}`);
+    console.log(`      Name:         ${r.name}`);
+    console.log(`      Target:       ${r.targetCommitish}`);
+    console.log(`      Published at: ${r.publishedAt}`);
+  } else {
+    console.log(`    Could not resolve release ${releaseTag} metadata (tag may not exist).`);
+  }
+};
+
 const logLocalProvenance = (): void => {
   const sha = tryCapture('git', ['rev-parse', 'HEAD']) ?? 'unknown';
   const branch = tryCapture('git', ['rev-parse', '--abbrev-ref', 'HEAD']) ?? 'unknown';
@@ -512,6 +546,27 @@ const acquireVsix = async (): Promise<string[]> => {
       { timeoutMs: DOWNLOAD_TIMEOUT_MS }
     );
     logRunProvenance(opts.runId);
+  } else if (opts.releaseTag) {
+    // Same gh install/auth requirement as --run-id (gh release download, not a logged-in-package pull).
+    if (!has('gh')) {
+      console.error('--release-tag needs the gh CLI to download release assets. Install gh and run: gh auth login');
+      process.exit(1);
+    }
+    if (spawnSync('gh', ['auth', 'status', '-h', 'github.com'], { stdio: 'ignore' }).status !== 0) {
+      console.error(
+        '--release-tag needs gh authenticated to github.com — run `gh auth login` (or refresh an expired token).'
+      );
+      process.exit(1);
+    }
+    log(`Downloading VSIX assets from release ${opts.releaseTag}`);
+    // build-github-release.yml attaches VSIXs directly as release assets (no companion workflow-run
+    // artifact) alongside SHA256.md — the -p glob keeps only the former.
+    await runAsync(
+      'gh',
+      ['release', 'download', opts.releaseTag, '-D', vsixDir, '-p', '*.vsix', '-R', 'forcedotcom/salesforcedx-vscode'],
+      { timeoutMs: DOWNLOAD_TIMEOUT_MS }
+    );
+    logReleaseProvenance(opts.releaseTag);
   } else {
     log('Building VSIX from your working tree (pnpm vscode:package) — running alongside docker + org setup');
     await runAsync('pnpm', ['vscode:package'], { cwd: REPO_ROOT, timeoutMs: BUILD_TIMEOUT_MS });
