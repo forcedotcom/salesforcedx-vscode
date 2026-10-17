@@ -25,10 +25,8 @@ export const runWebAuthEffect = Effect.fn('runWebAuthEffect')(function* () {
       yield* Effect.all(
         Rec.collect(configMap, (fullKey, value) => {
           const dot = fullKey.indexOf('.');
-          if (dot === -1) {
-            return Effect.promise(() =>
-              vscode.workspace.getConfiguration().update(fullKey, value, vscode.ConfigurationTarget.Workspace)
-            );
+          if (dot <= 0 || dot === fullKey.length - 1) {
+            return Effect.dieMessage(`Invalid web setting key "${fullKey}": expected "<section>.<key>".`);
           }
           return settings.setValue(
             fullKey.slice(0, dot),

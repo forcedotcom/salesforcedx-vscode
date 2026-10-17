@@ -9,6 +9,7 @@ import { WebSdk } from '@effect/opentelemetry';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-web';
 import * as Effect from 'effect/Effect';
+import * as Runtime from 'effect/Runtime';
 import { SFDX_CORE_SECTION } from '../constants';
 import { SettingsService } from '../vscode/settingsService';
 import { ApplicationInsightsWebExporter } from './applicationInsightsWebExporter';
@@ -23,7 +24,10 @@ import { SpanTransformProcessor } from './spanTransformProcessor';
 export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, productFeatureId }: SdkLayerConfig) =>
   WebSdk.layer(
     Effect.gen(function* () {
-      const telemetryTag = yield* (yield* SettingsService).getValue<string>(SFDX_CORE_SECTION, 'telemetry-tag');
+      const settings = yield* SettingsService;
+      const runtime = yield* Effect.runtime<never>();
+      const getTelemetryTag = () =>
+        Runtime.runSync(runtime)(settings.getValue<string>(SFDX_CORE_SECTION, 'telemetry-tag'));
       return {
         resource: {
           serviceName: extensionName,
@@ -41,11 +45,11 @@ export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, 
           // runs on every processor before any onEnd, so every sink below receives redacted spans
           new RedactingSpanProcessor(),
           ...((yield* getConsoleTracesEnabled())
-            ? [new SpanTransformProcessor({ exporter: new ConsoleSpanExporter(), telemetryTag })]
+            ? [new SpanTransformProcessor({ exporter: new ConsoleSpanExporter(), getTelemetryTag })]
             : []),
           // AI processor always present; GatedSpanExporter re-checks the telemetry setting per export (mid-session toggle)
           new SpanTransformProcessor({
-            telemetryTag,
+            getTelemetryTag,
             exporter: new GatedSpanExporter({
               make: () => new ApplicationInsightsWebExporter(),
               bypassGovernance: process.env.ESBUILD_WEB_LOCAL === '1'
@@ -55,7 +59,7 @@ export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, 
           // endpoint/PFT for legacy spans and drops rest spans when the host
           // configured no endpoint. Gate (localhost bypass + telemetry setting) lives in the wrapper.
           new SpanTransformProcessor({
-            telemetryTag,
+            getTelemetryTag,
             exporter: new GatedSpanExporter({
               make: () =>
                 new O11yRoutingExporter({
@@ -70,10 +74,10 @@ export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, 
             })
           }),
           ...((yield* getLocalTracesEnabled())
-            ? [new SpanTransformProcessor({ exporter: new OTLPTraceExporter(), telemetryTag })]
+            ? [new SpanTransformProcessor({ exporter: new OTLPTraceExporter(), getTelemetryTag })]
             : []),
           ...((yield* getFileTracesEnabled())
-            ? [new SpanTransformProcessor({ exporter: new OtlpFileSpanExporterWeb(), telemetryTag })]
+            ? [new SpanTransformProcessor({ exporter: new OtlpFileSpanExporterWeb(), getTelemetryTag })]
             : [])
         ]
       };

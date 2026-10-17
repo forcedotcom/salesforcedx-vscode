@@ -69,20 +69,20 @@ export class SpanTransformProcessor extends BatchSpanProcessor {
   constructor({
     exporter,
     options,
-    telemetryTag,
+    getTelemetryTag,
     getIdentitySnapshot = getCurrentSpanCreationIdentity
   }: {
     exporter: SpanExporter;
     options?: BufferConfig;
-    telemetryTag?: string | undefined;
+    getTelemetryTag?: () => string | undefined;
     getIdentitySnapshot?: () => SpanCreationIdentity;
   }) {
     super(exporter, options);
-    this.telemetryTag = telemetryTag;
+    this.getTelemetryTag = getTelemetryTag;
     this.getIdentitySnapshot = getIdentitySnapshot;
   }
 
-  private readonly telemetryTag: string | undefined;
+  private readonly getTelemetryTag: (() => string | undefined) | undefined;
 
   private readonly getIdentitySnapshot: () => SpanCreationIdentity;
 
@@ -99,7 +99,7 @@ export class SpanTransformProcessor extends BatchSpanProcessor {
         getSpanCreationIdentity(span),
         extensionName,
         extensionVersion,
-        this.telemetryTag
+        this.getTelemetryTag?.()
       );
       const permanent = Effect.runSync(memoized('everySpanIsTheSame')); // it seems to want a key
       const attributes = { ...permanent, ...dynamic };

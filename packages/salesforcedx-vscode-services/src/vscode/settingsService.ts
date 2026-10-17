@@ -108,8 +108,25 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
     const readValue = <T>(section: string, key: string) =>
       Effect.try({
         try: () => vscode.workspace.getConfiguration(section).get<T>(key),
-        catch: () => undefined
-      }).pipe(Effect.orElseSucceed(() => undefined));
+        catch: error => {
+          const { cause } = unknownToErrorCause(error);
+          return new SettingsError({
+            cause,
+            section,
+            key,
+            message: `Failed to get setting ${section}.${key}: ${cause.message ?? String(cause)}`
+          });
+        }
+      }).pipe(
+        Effect.catchTag('MissingSettingsError', error =>
+          Effect.logWarning('Failed to read VS Code setting; using undefined', {
+            section,
+            key,
+            message: error.message,
+            cause: String(error.cause)
+          }).pipe(Effect.as(undefined))
+        )
+      );
 
     const getValue = Effect.fn('SettingsService.getValue')(function* <T>(section: string, key: string) {
       return yield* readValue<T>(section, key);

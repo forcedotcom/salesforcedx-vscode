@@ -16,6 +16,7 @@ import { Global } from '@salesforce/core/global';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Logger from 'effect/Logger';
+import * as Runtime from 'effect/Runtime';
 import { join } from 'node:path';
 import { SFDX_CORE_SECTION } from '../constants';
 import { SettingsService } from '../vscode/settingsService';
@@ -75,7 +76,10 @@ export const NodeSdkLayerFor = ({
       const localTracesEnabled = yield* getLocalTracesEnabled();
       const fileTracesEnabled = yield* getFileTracesEnabled();
       const logLevel = yield* getLogLevel();
-      const telemetryTag = yield* (yield* SettingsService).getValue<string>(SFDX_CORE_SECTION, 'telemetry-tag');
+      const settings = yield* SettingsService;
+      const runtime = yield* Effect.runtime<never>();
+      const getTelemetryTag = () =>
+        Runtime.runSync(runtime)(settings.getValue<string>(SFDX_CORE_SECTION, 'telemetry-tag'));
 
       return NodeSdk.layer(
         Effect.gen(function* () {
@@ -94,13 +98,13 @@ export const NodeSdkLayerFor = ({
               // runs on every processor before any onEnd, so every sink below receives redacted spans
               new RedactingSpanProcessor(),
               ...(consoleTracesEnabled
-                ? [new SpanTransformProcessor({ exporter: new ConsoleSpanExporter(), telemetryTag })]
+                ? [new SpanTransformProcessor({ exporter: new ConsoleSpanExporter(), getTelemetryTag })]
                 : []),
               // AI processor always present; GatedSpanExporter re-checks the telemetry setting per export
               // (mid-session toggle) and lazily constructs the delegate on first enabled export so a
               // disabled session runs no delegate ctor (no Azure Statsbeat/network setup).
               new SpanTransformProcessor({
-                telemetryTag,
+                getTelemetryTag,
                 exporter: new GatedSpanExporter({
                   // legacy spans (telemetrySource=legacy) route to per-caller keys inside the router
                   make: () =>
@@ -135,7 +139,7 @@ export const NodeSdkLayerFor = ({
               // configured no endpoint. The gate (localhost bypass + telemetry
               // setting) now lives in GatedSpanExporter and is re-checked per export.
               new SpanTransformProcessor({
-                telemetryTag,
+                getTelemetryTag,
                 exporter: new GatedSpanExporter({
                   // localIngestionEndpoint (dev/test) diverts O11y events to the local span file server's
                   // /o11y route instead of uploading through the org connection — mirrors the AI divert.
@@ -158,10 +162,10 @@ export const NodeSdkLayerFor = ({
                 })
               }),
               ...(localTracesEnabled
-                ? [new SpanTransformProcessor({ exporter: new OTLPTraceExporter(), telemetryTag })]
+                ? [new SpanTransformProcessor({ exporter: new OTLPTraceExporter(), getTelemetryTag })]
                 : []),
               ...(fileTracesEnabled
-                ? [new SpanTransformProcessor({ exporter: new OtlpFileSpanExporterNode(), telemetryTag })]
+                ? [new SpanTransformProcessor({ exporter: new OtlpFileSpanExporterNode(), getTelemetryTag })]
                 : [])
             ],
             logRecordProcessor: [
