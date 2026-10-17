@@ -10,6 +10,9 @@ import { writeFile } from 'fs/promises';
 
 const nodeBuild = await build({
   ...nodeConfig,
+  format: 'esm',
+  outExtension: { '.js': '.mjs' },
+  supported: { ...nodeConfig.supported, 'dynamic-import': true },
   entryPoints: ['./out/src/index.js'],
   outdir: './dist',
   plugins: [...(nodeConfig.plugins ?? [])],
