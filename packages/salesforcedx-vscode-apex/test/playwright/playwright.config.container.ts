@@ -17,14 +17,11 @@ export default defineConfig({
     ? [
         {
           ...chromiumProject,
-          // apexLspRestart stays a dedicated container twin: it drops the desktop matrix's clean-DB
-          // variant entirely (needs disk access the container's browser-driven spec doesn't have)
-          // and uses a fundamentally different no-op-restart detection mechanism (container latency
-          // makes the desktop twin's transient-button check unreliable — see its own header comment).
-          // apexLsp, apexLspHover, and apexSnippets are unified with desktop — they branch on
-          // `isContainer` from ../fixtures instead of a dedicated *.container.spec.ts file.
+          // All four are unified with desktop — they branch on `isContainer` from ../fixtures instead
+          // of a dedicated *.container.spec.ts file. apexLspRestart keeps its clean-DB disk checks by
+          // reading the host side of the fixture bind mount (sharedWorkspaceDirTest).
           testMatch: [
-            'container/apexLspRestart.container.spec.ts',
+            'apexLspRestart.desktop.spec.ts',
             'apexLsp.desktop.spec.ts',
             'apexLspHover.desktop.spec.ts',
             'apexSnippets.desktop.spec.ts'

@@ -37,11 +37,12 @@ container ports.
    cover the same scenario closely enough to share a body.
 2. **Standalone** — a separate `specs/container/<name>.container.spec.ts` file importing `containerTest`
    directly. Reserved for specs with no desktop/web counterpart at all, or a hard technical constraint
-   that rules out sharing a body (e.g. the `workspaceDir` fixture, used for on-disk assertions, doesn't
-   exist on `containerTest`).
+   that rules out sharing a body. A `workspaceDir` need alone isn't one: the fixture project is a host
+   bind mount, so a container fixture can supply its host path (`CB_FIXTURE_HOST_DIR`) for on-disk
+   reads — see apex's `sharedWorkspaceDirTest`, used by `apexLspRestart`.
 
 Per [PR #8102 review feedback](https://github.com/forcedotcom/salesforcedx-vscode/pull/8102#discussion_r4047559234),
-81 of the original 108 container specs have been merged this way; 27 remain standalone. See "Adding a
+82 of the original 108 container specs have been merged this way; 26 remain standalone. See "Adding a
 container suite to a package" below for both patterns.
 
 ## Coverage summary — 105 specs across 15 packages

@@ -43,7 +43,7 @@ test('Apex LSP: indexing, go-to-definition, autocompletion', async ({ page }) =>
     await openApexFileFromExplorerTree(page, 'ExampleClass.cls', CLASSES_DIR);
     // UI-only readiness (the "Indexing complete" language-status button) — sufficient for initial
     // load; the disk-based StandardApexLibrary check that matters for a clean-DB *restart* lives in
-    // apexLspRestart.desktop.spec.ts instead, which needs `workspaceDir` and stays desktop-only.
+    // apexLspRestart.desktop.spec.ts instead, which takes `workspaceDir` from sharedWorkspaceDirTest.
     await waitForApexLspReady(page);
     await saveScreenshot(page, 'step.indexing-complete.png');
   });

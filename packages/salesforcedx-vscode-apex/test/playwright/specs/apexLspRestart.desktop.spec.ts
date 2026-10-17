@@ -8,6 +8,8 @@
 import { expect } from '@playwright/test';
 import {
   openFileByName,
+  removePathsInContainer,
+  resetContainerWorkbench,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -17,36 +19,73 @@ import { existsSync } from 'node:fs';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
-import { test } from '../fixtures';
+import { isContainer, sharedWorkspaceDirTest as test } from '../fixtures';
 import { findReleaseDir, triggerLspRestart, waitForApexLspReady } from '../utils/apexLspUtils';
+import { openApexFileFromExplorerTree } from '../utils/containerApexLspUtils';
 
-// Each matrix entry gets its own test-scoped workspace + Electron, so they're already isolated.
-// Serial mode is purely to skip the remaining (slow) restart entries once one fails.
+/*
+ * Container-only: the container name and the CONTAINER side of the fixture bind mount, published by
+ * the orchestrator (scripts/codeBuilderLocalE2E.ts). In the container `workspaceDir` is the HOST side
+ * of that mount, so the StandardApexLibrary existence checks read it directly; but the library is
+ * owned by the container's `codebuilder` user, so the clean-db delete runs inside the container.
+ */
+const containerName = process.env.CB_CONTAINER_NAME;
+const fixtureContainerDir = process.env.CB_FIXTURE_CONTAINER_DIR;
+
+const removeStandardApexLibrary = async (workspaceDir: string, release: string): Promise<void> => {
+  if (!isContainer) {
+    await fs.rm(path.join(workspaceDir, '.sfdx', 'tools', release, 'StandardApexLibrary'), {
+      recursive: true,
+      force: true
+    });
+    return;
+  }
+  if (!containerName || !fixtureContainerDir) {
+    throw new Error(
+      'CB_CONTAINER_NAME / CB_FIXTURE_CONTAINER_DIR is not set — the orchestrator ' +
+        '(scripts/codeBuilderLocalE2E.ts) must publish them so the clean-db entries can delete inside the container.'
+    );
+  }
+  removePathsInContainer(containerName, [
+    path.posix.join(fixtureContainerDir, '.sfdx', 'tools', release, 'StandardApexLibrary')
+  ]);
+};
+
+// Desktop: each matrix entry gets its own test-scoped workspace + Electron, so they're already isolated.
+// Container: every entry restarts the same shared LSP. Either way, serial mode skips the remaining
+// (slow) restart entries once one fails.
 test.describe.configure({ mode: 'serial' });
 
+// Clean-db entries last: in the container they delete and rebuild the shared workspace's
+// StandardApexLibrary, so the restart-only entries run against the untouched library first.
 const matrix = [
   { cleanDb: false, via: 'palette' as const, label: 'palette × restart only' },
-  { cleanDb: true, via: 'palette' as const, label: 'palette × clean db + restart' },
   { cleanDb: false, via: 'statusBar' as const, label: 'status bar × restart only' },
+  { cleanDb: true, via: 'palette' as const, label: 'palette × clean db + restart' },
   { cleanDb: true, via: 'statusBar' as const, label: 'status bar × clean db + restart' }
 ];
 
 test.describe('Apex LSP restart', () => {
   test.beforeEach(async ({ page, workspaceDir }) => {
-    await openFileByName(page, 'ExampleClass.cls');
+    if (isContainer) {
+      await resetContainerWorkbench(page);
+    }
+    await (isContainer
+      ? openApexFileFromExplorerTree(page, 'ExampleClass.cls', ['force-app', 'main', 'default', 'classes'])
+      : openFileByName(page, 'ExampleClass.cls'));
     await waitForApexLspReady(page, workspaceDir);
   });
 
   for (const { cleanDb, via, label } of matrix) {
     test(label, async ({ page, workspaceDir }) => {
-      // timeout comes from playwright.config.desktop.ts (timeout: 360_000)
+      // timeout comes from playwright.config.desktop.ts / createContainerConfig (both 360_000)
       const consoleErrors = setupConsoleMonitoring(page);
       const networkErrors = setupNetworkMonitoring(page);
 
       const releaseBefore = findReleaseDir(workspaceDir);
       const stdLibBefore = path.join(workspaceDir, '.sfdx', 'tools', releaseBefore, 'StandardApexLibrary');
       if (cleanDb) {
-        await fs.rm(stdLibBefore, { recursive: true, force: true });
+        await removeStandardApexLibrary(workspaceDir, releaseBefore);
       }
       expect(
         existsSync(stdLibBefore),
@@ -55,7 +94,7 @@ test.describe('Apex LSP restart', () => {
           : 'StandardApexLibrary should exist before restart'
       ).toBe(!cleanDb);
 
-      const releaseAfter = await triggerLspRestart(page, workspaceDir, { cleanDb, via });
+      const releaseAfter = await triggerLspRestart(page, workspaceDir, { cleanDb, via, inContainer: isContainer });
       await saveScreenshot(page, `step.restart-${via}-${cleanDb ? 'cleandb' : 'only'}.png`);
 
       const stdLibAfter = path.join(workspaceDir, '.sfdx', 'tools', releaseAfter, 'StandardApexLibrary');

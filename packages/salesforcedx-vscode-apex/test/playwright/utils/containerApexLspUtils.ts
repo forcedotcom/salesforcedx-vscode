@@ -9,9 +9,9 @@ import { expect, type Page } from '@playwright/test';
 import { openFileFromExplorerTree } from '@salesforce/playwright-vscode-ext';
 
 /**
- * UI-only Apex LSP readiness: wait for the "Indexing complete" language-status button. The desktop
- * twin also checks StandardApexLibrary on disk, but the container's workspace is inside the image
- * (and boots pre-indexed), so the button alone is the reliable in-browser signal. `toBeVisible`
+ * UI-only Apex LSP readiness: wait for the "Indexing complete" language-status button — enough for
+ * specs that don't restart the LSP. apexLspRestart, which does, uses apexLspUtils' disk-checking
+ * variant on both targets instead (via sharedWorkspaceDirTest's `workspaceDir`). `toBeVisible`
  * auto-retries until the button's accessible name settles to "Indexing complete", so a late/flickering
  * status flip is tolerated within the generous bound.
  */
