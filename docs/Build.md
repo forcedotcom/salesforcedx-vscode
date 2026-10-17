@@ -26,7 +26,7 @@ This repo has a consistent version across all extensions and packages. You don't
 
 VSCode strongly recommends bundling your code (taking tons of js files and node_modules and outputting a single minified file). This repo uses [esbuild](https://esbuild.github.io/) and you probably should too.
 
-Bundle from compiled (`out/`), not source. Shared configs: [node.mjs](../scripts/bundling/node.mjs), [web.mjs](../scripts/bundling/web.mjs). Desktop: `dist/index.js`. **Web:** `dist/web/index.js`; use `commonConfigBrowser` from web.mjs.
+Bundle from compiled (`out/`), not source. Shared configs: [node.mjs](../scripts/bundling/node.mjs), [web.mjs](../scripts/bundling/web.mjs). Desktop `main`: CJS `dist/index.js` or ESM `dist/index.mjs` (VS Code 1.100+). **Web:** CJS `dist/web/index.js`; use `commonConfigBrowser` from web.mjs.
 
 **Effect imports:** Prefer deep namespace imports from `@effect/platform` (e.g., `import * as FetchHttpClient from '@effect/platform/FetchHttpClient'`) over barrel imports (`import { FetchHttpClient } from '@effect/platform'`). Barrel imports bundle HttpApiSwagger (Swagger UI), which esbuild cannot tree-shake, bloating bundles ~5.5MB. See [effect-best-practices skill](../.claude/skills/effect-best-practices/SKILL.md).
 
@@ -48,7 +48,7 @@ You can do this in libraries, too, to have their bundled version add or drop web
 
 **Entry points**
 
-- `main`: desktop, `dist/index.js`
+- `main`: desktop, CJS `dist/index.js` or ESM `dist/index.mjs` (VS Code 1.100+)
 - `browser`: **web only**, `dist/web/index.js` — VSCode web host uses this instead of main. See [VSCode web extensions](https://code.visualstudio.com/api/extension-guides/web-extensions).
 - `types`: when another package/extension has this as a devDependency and imports its API, point to `out/src/index.d.ts` so TypeScript can resolve types
 
