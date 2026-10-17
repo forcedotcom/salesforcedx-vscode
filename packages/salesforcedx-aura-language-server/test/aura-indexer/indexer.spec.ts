@@ -52,7 +52,7 @@ describe('indexer parsing content', () => {
       }) as Connection
     );
 
-    jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation((uri: string) => {
+    vi.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation((uri: string) => {
       const key = normalizePath(uri);
       if (!isUnderWorkspace(key)) return Promise.resolve(undefined);
       try {
@@ -68,7 +68,7 @@ describe('indexer parsing content', () => {
         return Promise.resolve(undefined);
       }
     });
-    jest.spyOn(sfdxFileSystemAccessor, 'getFileContent').mockImplementation((uri: string) => {
+    vi.spyOn(sfdxFileSystemAccessor, 'getFileContent').mockImplementation((uri: string) => {
       const key = normalizePath(uri);
       if (!isUnderWorkspace(key)) return Promise.resolve(undefined);
       try {
@@ -77,7 +77,7 @@ describe('indexer parsing content', () => {
         return Promise.resolve(undefined);
       }
     });
-    jest.spyOn(sfdxFileSystemAccessor, 'getDirectoryListing').mockImplementation((uri: NormalizedPath) => {
+    vi.spyOn(sfdxFileSystemAccessor, 'getDirectoryListing').mockImplementation((uri: NormalizedPath) => {
       const key = normalizePath(uri);
       if (!isUnderWorkspace(key)) return Promise.resolve([]);
       try {
@@ -92,7 +92,7 @@ describe('indexer parsing content', () => {
         return Promise.resolve([]);
       }
     });
-    jest.spyOn(sfdxFileSystemAccessor, 'updateFileContent').mockResolvedValue(undefined);
+    vi.spyOn(sfdxFileSystemAccessor, 'updateFileContent').mockResolvedValue(undefined);
   });
 
   it('aura indexer', async () => {
@@ -140,14 +140,14 @@ describe('indexer parsing content', () => {
 
     const auraFilename = path.join(SFDX_WORKSPACE_ROOT, 'force-app/main/default/aura/wireLdsCmp/wireLdsCmp.cmp');
     const tagInfo = await auraIndexer.indexFile(auraFilename, true);
-    expect(tagInfo).toBeObject();
+    expect(tagInfo).toBeTypeOf('object');
     expect(tagInfo?.name).toBe('c:wireLdsCmp');
-    expect(tagInfo?.file).toEndWith('wireLdsCmp.cmp');
+    expect(tagInfo?.file).toMatch(/wireLdsCmp\.cmp$/);
     expect(tagInfo?.type).toBe('CUSTOM');
     expect(tagInfo?.lwc).toBe(false);
-    expect(tagInfo?.location).toBeObject();
-    expect(tagInfo?.location?.uri).toEndWith('wireLdsCmp.cmp');
-    expect(tagInfo?.location?.range).toBeObject();
+    expect(tagInfo?.location).toBeTypeOf('object');
+    expect(tagInfo?.location?.uri).toMatch(/wireLdsCmp\.cmp$/);
+    expect(tagInfo?.location?.range).toBeTypeOf('object');
     expect(tagInfo?.namespace).toBe('c');
   });
 

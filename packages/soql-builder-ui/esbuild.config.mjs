@@ -6,12 +6,6 @@
  */
 
 import { build } from 'esbuild';
-import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
+import { browserBundleOptions } from './browserBundleOptions.mjs';
 
-await build({
-  ...commonConfigBrowser,
-  entryPoints: ['out/src/register.js'],
-  format: 'iife',
-  outfile: 'dist/app.js',
-  sourcemap: false
-});
+await build(browserBundleOptions);

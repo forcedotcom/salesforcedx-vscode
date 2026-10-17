@@ -4,12 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CompilerError } from '@lwc/errors';
+import type * as lwcCompiler from '@lwc/compiler';
+import type * as lwcErrors from '@lwc/errors';
 import { collectBundleMetadata, type BundleConfig, type ScriptFile } from '@lwc/metadata';
 import { type ClassMember } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { readFile } from 'node:fs/promises';
 import * as path from 'node:path';
-import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { DIAGNOSTIC_SOURCE, MAX_32BIT_INTEGER } from '../../src/constants';
 import { type Metadata } from '../../src/decorators/lwcDecorators';
@@ -22,17 +22,43 @@ import {
 } from '../../src/javascript/compiler';
 import { mapLwcMetadataToInternal } from '../../src/javascript/typeMapping';
 
-let mockTransformSyncError: CompilerError | null = null;
+type MockTransformSyncUrl =
+  | { readonly kind: 'unchanged' }
+  | { readonly kind: 'remove' }
+  | { readonly kind: 'set'; readonly url: string };
 
-jest.mock('@lwc/compiler', () => {
-  const actual = jest.requireActual('@lwc/compiler') as Record<string, unknown>;
+let mockTransformSyncUrl: MockTransformSyncUrl = { kind: 'unchanged' };
+
+vi.mock('@lwc/errors', async () => {
+  const actual = await vi.importActual<typeof lwcErrors>('@lwc/errors');
+  return {
+    ...actual,
+    CompilerError: class CompilerError {
+      public static [Symbol.hasInstance](error: unknown): boolean {
+        return typeof error === 'object' && error !== null && 'code' in error && 'message' in error;
+      }
+    }
+  };
+});
+
+vi.mock('@lwc/compiler', async () => {
+  const actual = (await vi.importActual<typeof lwcCompiler>('@lwc/compiler')) as Record<string, unknown>;
   return {
     ...actual,
     transformSync: (...args: unknown[]) => {
-      if (mockTransformSyncError) {
-        throw mockTransformSyncError;
+      try {
+        return (actual.transformSync as Function)(...args);
+      } catch (error) {
+        if (mockTransformSyncUrl.kind === 'unchanged' || !(error instanceof Error)) {
+          throw error;
+        }
+        if (mockTransformSyncUrl.kind === 'remove') {
+          delete (error as Error & { url?: string }).url;
+        } else {
+          (error as Error & { url?: string }).url = mockTransformSyncUrl.url;
+        }
+        throw error;
       }
-      return (actual.transformSync as Function)(...args);
     }
   };
 });
@@ -142,29 +168,18 @@ it('displays an error for a component with other errors', () => {
 });
 
 it('does not include URL or codeDescription when error has no url', () => {
-  mockTransformSyncError = Object.assign(
-    new CompilerError(
-      'foo.js: LWC1099: Boolean public property must default to false.\n> 5 |     @api property = true;\n    |     ^'
-    ),
-    { code: 1099, location: { line: 5, column: 4 }, level: 1 }
-    // no url property
-  );
+  mockTransformSyncUrl = { kind: 'remove' };
 
   const result = compileSource(codeError, 'foo.js');
   const [diagnostic] = result.diagnostics!;
   expect(diagnostic.message).not.toContain('More Details:');
   expect(diagnostic.codeDescription).toBeUndefined();
 
-  mockTransformSyncError = null;
+  mockTransformSyncUrl = { kind: 'unchanged' };
 });
 
 it('includes URL in message and codeDescription when error has url', () => {
-  mockTransformSyncError = Object.assign(
-    new CompilerError(
-      'foo.js: LWC1099: Boolean public property must default to false.\n> 5 |     @api property = true;\n    |     ^'
-    ),
-    { code: 1099, location: { line: 5, column: 4 }, level: 1, url: 'https://lwc.dev/guide/reference#lwc1099' }
-  );
+  mockTransformSyncUrl = { kind: 'set', url: 'https://lwc.dev/guide/reference#lwc1099' };
 
   const result = compileSource(codeError, 'foo.js');
   const [diagnostic] = result.diagnostics!;
@@ -172,7 +187,7 @@ it('includes URL in message and codeDescription when error has url', () => {
   expect(diagnostic.code).toBe(1099);
   expect(diagnostic.codeDescription).toEqual({ href: 'https://lwc.dev/guide/reference#lwc1099' });
 
-  mockTransformSyncError = null;
+  mockTransformSyncUrl = { kind: 'unchanged' };
 });
 
 it('compileDocument returns list of javascript syntax errors', () => {
@@ -216,9 +231,7 @@ it('linter returns empty diagnostics on correct file', () => {
 });
 
 it('mapLwcMetadataToInternal returns expected javascript metadata', async () => {
-  const filepath = URI.file(path.join(__dirname, 'fixtures', 'metadata.js'));
-  const fileBuffer = await vscode.workspace.fs.readFile(filepath);
-  const content = Buffer.from(fileBuffer).toString('utf8');
+  const content = await readFile(path.join(__dirname, 'fixtures', 'metadata.js'), 'utf8');
 
   const options: BundleConfig = {
     type: 'internal',

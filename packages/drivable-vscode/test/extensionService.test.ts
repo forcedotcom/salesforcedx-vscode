@@ -13,7 +13,7 @@ import * as Layer from 'effect/Layer';
 import { DRIVABLE_VSCODE_EXTENSION_DIRS } from '../src/constants';
 import { ExtensionService } from '../src/extensionService';
 
-jest.mock('@salesforce/playwright-vscode-ext', () => ({ prepareVsixExtensions: jest.fn() }));
+vi.mock('@salesforce/playwright-vscode-ext', () => ({ prepareVsixExtensions: vi.fn() }));
 
 const PlatformLayer = Layer.merge(NodeFileSystem.layer, NodePath.layer);
 const TestLayer = Layer.merge(ExtensionService.Default.pipe(Layer.provide(PlatformLayer)), PlatformLayer);

@@ -34,9 +34,9 @@ it('readAsTextDocument()', async () => {
   );
 
   const fileSystemAccessor = new LspFileSystemAccessor();
-  jest
-    .spyOn(fileSystemAccessor, 'getFileContent')
-    .mockImplementation((uri: string) => Promise.resolve(contentMap.get(normalizePath(uri))));
+  vi.spyOn(fileSystemAccessor, 'getFileContent').mockImplementation((uri: string) =>
+    Promise.resolve(contentMap.get(normalizePath(uri)))
+  );
 
   // reads .js file
   let document = await readAsTextDocument(`${FORCE_APP_ROOT}/lwc/hello_world/hello_world.js`, fileSystemAccessor);

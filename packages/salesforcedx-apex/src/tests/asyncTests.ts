@@ -15,29 +15,29 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import * as util from 'node:util';
-import { CancellationToken, Progress } from '../common';
+import { type CancellationToken, type Progress } from '../common';
 import { nls } from '../i18n';
 import { isValidTestRunID } from '../narrowing';
-import { AsyncTestRun, StreamingClient } from '../streaming';
+import { type AsyncTestRun, StreamingClient } from '../streaming';
 import { elapsedTime, formatStartTime, getCurrentTime, HeapMonitor } from '../utils';
 import { CodeCoverage } from './codeCoverage';
 import { QUERY_RECORD_LIMIT } from './constants';
 import { formatTestErrors, getDiagnostic } from './diagnosticUtil';
 import {
-  ApexTestProgressValue,
-  ApexTestQueueItem,
-  ApexTestQueueItemRecord,
-  ApexTestResult,
-  ApexTestResultDataRaw,
-  ApexTestRunResult,
-  ApexTestRunResultStatus,
-  AsyncTestArrayConfiguration,
-  AsyncTestConfiguration,
-  TestResult,
-  TestResultRaw,
-  TestRunIdResult,
-  FlowTestResult,
-  ApexTestResultRecord
+  type ApexTestProgressValue,
+  type ApexTestQueueItem,
+  type ApexTestQueueItemRecord,
+  type ApexTestResult,
+  type ApexTestResultDataRaw,
+  type ApexTestRunResult,
+  type ApexTestRunResultStatus,
+  type AsyncTestArrayConfiguration,
+  type AsyncTestConfiguration,
+  type TestResult,
+  type TestResultRaw,
+  type TestRunIdResult,
+  type FlowTestResult,
+  type ApexTestResultRecord
 } from './types';
 import { calculatePercentage, transformTestResult, queryAll, calculateCodeCoverage } from './utils';
 
@@ -120,13 +120,6 @@ export class AsyncTests {
             };
           }
 
-          progress?.report({
-            type: 'PollingClientProgress',
-            value: 'pollingProcessingTestRun',
-            message: nls.localize('pollingProcessingTestRun', testRunId),
-            testRunId
-          });
-
           const hasTestSetupTimeField = await this.supportsTestSetupFeature();
           const testRunSummaryQuery = hasTestSetupTimeField
             ? `SELECT AsyncApexJobId, Status, ClassesCompleted, ClassesEnqueued, MethodsEnqueued, StartTime, EndTime, TestTime, TestSetupTime, UserId FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`
@@ -141,6 +134,15 @@ export class AsyncTests {
 
           const summary = testRunSummary.records[0];
           const isCompleted = finishedStatuses.has(summary.Status);
+
+          progress?.report({
+            type: 'PollingClientProgress',
+            value: 'pollingProcessingTestRun',
+            message: nls.localize('pollingProcessingTestRun', testRunId),
+            testRunId,
+            classesCompleted: summary.ClassesCompleted,
+            classesEnqueued: summary.ClassesEnqueued
+          });
 
           // Query queue items to get detailed status (use queryAll to fetch all pages)
           const queryResult = await queryAll<ApexTestQueueItemRecord>(
@@ -174,7 +176,7 @@ export class AsyncTests {
       });
 
       const queueItem = (await pollingClient.subscribe()) as ApexTestQueueItem;
-      const runResult = await this.checkRunStatus(testRunId);
+      const runResult = await this.checkRunStatus(testRunId, progress);
 
       const formattedResults = await this.formatAsyncResults(
         { runId: testRunId, queueItem },

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 // Mock JSON imports using fs.readFileSync since Jest cannot directly import JSON files
-jest.mock('../src/resources/transformed-lwc-standard.json', () => {
+vi.mock('../src/resources/transformed-lwc-standard.json', () => {
   const fs = require('node:fs') as typeof nodeFs;
   const pathModule = require('node:path') as typeof path;
   // Find package root (lwc-language-server)
@@ -60,15 +60,15 @@ const fileStat = {
 };
 
 beforeAll(() => {
-  jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation((uri: string) => {
+  vi.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation((uri: string) => {
     const key = normalizePath(uri);
     return Promise.resolve(key in contentByPath ? fileStat : undefined);
   });
-  jest.spyOn(sfdxFileSystemAccessor, 'getFileContent').mockImplementation((uri: string) => {
+  vi.spyOn(sfdxFileSystemAccessor, 'getFileContent').mockImplementation((uri: string) => {
     const key = normalizePath(uri);
     return Promise.resolve(contentByPath[key]);
   });
-  jest.spyOn(sfdxFileSystemAccessor, 'updateFileContent').mockImplementation((uri: string, content: string) => {
+  vi.spyOn(sfdxFileSystemAccessor, 'updateFileContent').mockImplementation((uri: string, content: string) => {
     contentByPath[normalizePath(uri)] = content;
     return Promise.resolve();
   });
@@ -91,10 +91,10 @@ describe('provideValues()', () => {
   it('should return a list of values', () => {
     const values = provider.provideValues();
     const names = values.map(value => value.name);
-    expect(values).not.toBeEmpty();
+    expect(values.length).toBeGreaterThan(0);
     // Values come from disk-discovered components (e.g. todo_item has @api todo, sameLine, nextLine)
-    expect(names).toInclude('todo');
-    expect(names).toInclude('sameLine');
+    expect(names).toContain('todo');
+    expect(names).toContain('sameLine');
   });
 
   it('should validate an empty array is returned when tag.classMembers is undefined', async () => {
@@ -129,8 +129,8 @@ describe('provideValues()', () => {
 describe('provideAttributes()', () => {
   it('should return a set list of attributes for template tag', () => {
     const attributs = provider.provideAttributes('template');
-    expect(attributs).not.toBeEmpty();
-    expect(attributs).toBeArrayOfSize(9);
+    expect(attributs.length).toBeGreaterThan(0);
+    expect(attributs).toHaveLength(9);
     expect(attributs[0].name).toBe('for:each');
     expect(attributs[1].name).toBe('for:item');
     expect(attributs[2].name).toBe('for:index');
