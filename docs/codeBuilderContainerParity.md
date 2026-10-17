@@ -334,14 +334,15 @@ config; `RunSpec.bootEnv` optional (default org-boot argv byte-identical when pr
    (boot org instead of a freshly created one, output-channel waits instead of toasts, etc.), keeping
    the shared assertions unbranched. Use `test.fixme(isContainer, reason)` for a documented,
    container-only, product-limitation skip.
-3. `test/playwright/playwright.config.container.ts` → the override pattern: `testDir: './specs'` +
-   an explicit `testMatch` listing the merged `*.headless.spec.ts`/`*.desktop.spec.ts` filenames (see
-   e.g. `salesforcedx-vscode-metadata`'s config) instead of `createContainerConfig({ testDir:
-   './specs/container' })`.
+3. `test/playwright/playwright.config.container.ts` → `createContainerConfig({ testDir: './specs',
+   testMatch: [...] })`, the `testMatch` listing the merged `*.headless.spec.ts`/`*.desktop.spec.ts`
+   filenames (see e.g. `salesforcedx-vscode-metadata`'s config) instead of `createContainerConfig({
+   testDir: './specs/container' })`.
 4. Add `"VSCODE_CONTAINER": "1"` to the `test:container` wireit env block.
 
 Only fall back to a **standalone** `*.container.spec.ts` file when there's no desktop/web counterpart,
-or a hard constraint (e.g. no `workspaceDir` fixture on `containerTest`) rules out a shared body:
+or a hard constraint rules out a shared body (a `workspaceDir` need alone doesn't — see
+`sharedWorkspaceDirTest` above):
 
 **Phase 1 (standard DX-project fixture):**
 

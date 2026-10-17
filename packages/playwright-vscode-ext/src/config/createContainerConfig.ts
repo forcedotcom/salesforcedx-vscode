@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { defineConfig, devices } from '@playwright/test';
+import { defineConfig, devices, type PlaywrightTestConfig } from '@playwright/test';
 
 /**
  * Build the `grep` value from CB_GREP. A malformed regex would otherwise throw at config load and break
@@ -36,6 +36,12 @@ const parseMaxFailures = (value: string | undefined): number => {
 type ContainerConfigOptions = {
   /** Test directory relative to the config file (e.g. './specs/container') */
   testDir: string;
+  /**
+   * Spec files (relative to testDir) to run in the container — typically the merged desktop/headless
+   * twins that branch on `isContainer`, plus any standalone `container/*.container.spec.ts`. Default:
+   * Playwright's own (every spec file under testDir).
+   */
+  testMatch?: PlaywrightTestConfig['testMatch'];
   /** Number of parallel workers (default: 1 — one shared container serves the workbench) */
   workers?: number;
   /** Run tests in parallel (default: false — the container is a single shared editor session) */
@@ -98,7 +104,8 @@ export const createContainerConfig = (options: ContainerConfigOptions) =>
         // Unlike web mode, retries are CI-only: a local flake against the shared container is more
         // likely a real timing bug worth seeing immediately than a transient network hiccup.
         retries: process.env.E2E_NO_RETRIES ? 0 : process.env.CI ? 2 : 0,
-        snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/chromium/{arg}{ext}'
+        snapshotPathTemplate: '{testDir}/{testFilePath}-snapshots/chromium/{arg}{ext}',
+        ...(options.testMatch === undefined ? {} : { testMatch: options.testMatch })
       }
     ]
   });
