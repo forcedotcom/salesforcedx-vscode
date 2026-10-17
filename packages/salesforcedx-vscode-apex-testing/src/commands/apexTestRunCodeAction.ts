@@ -17,6 +17,7 @@ import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
+import { apexClassFileBaseName } from '../utils/apexClassFileCorrelation';
 import { apexTestingDiagnostics } from '../utils/diagnostics';
 import { showRunOutcomeNotification } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
@@ -102,7 +103,7 @@ const handleDiagnostics = Effect.fn('apexTestRunCodeAction.handleDiagnostics')(f
     testsWithDiagnostics,
     test => {
       const diagnostic = test.diagnostic;
-      const componentUri = correlatedArtifacts.get(test.apexClass.fullName ?? test.apexClass.name);
+      const componentUri = correlatedArtifacts.get(apexClassFileBaseName(test.apexClass));
       if (!componentUri) {
         return Effect.void;
       }
@@ -123,7 +124,7 @@ const mapApexArtifactToFilesystem = Effect.fn('apexTestRunCodeAction.mapApexArti
   packageDirectories: NamedPackageDir[]
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const classNames = new Set(tests.map(test => test.apexClass.fullName ?? test.apexClass.name));
+  const classNames = new Set(tests.map(test => apexClassFileBaseName(test.apexClass)));
   return yield* Effect.forEach(
     packageDirectories,
     pkgDir =>
@@ -219,4 +220,5 @@ export const apexTestLastMethodRunCodeAction = Effect.fn('apexTestLastMethodRunC
 
 const isTestWithDiagnostic = (
   test: ApexTestResultData
-): test is ApexTestResultData & { diagnostic: ApexDiagnostic[] } => 'diagnostic' in test;
+): test is ApexTestResultData & { diagnostic: ApexDiagnostic } =>
+  'diagnostic' in test && test.diagnostic !== undefined;
