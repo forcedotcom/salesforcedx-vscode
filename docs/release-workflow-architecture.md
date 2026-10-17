@@ -22,10 +22,12 @@ Daily (4 AM UTC)
     │
     ▼
 ┌──────────────────┐
-│  Nightly Builds  │  ← Automated daily pre-release builds (your PR #7790)
+│  Nightly Builds  │  ← Automated daily pre-release builds (PR #7790)
 │  (nightly.yml)   │     Published to marketplace with "Pre-Release" flag
 └────────┬─────────┘     Users opt-in to test cutting-edge features
-         │
+         │               Also runs e2e.yml (incl. codeBuilderE2E) against a
+         │               freshly-built VSIX, in parallel — advisory, not
+         │               blocking the publish (W-23898526)
          │
 Wednesday (Week N - 8 AM UTC) ───────────────────────────────┐
          │                                                   │

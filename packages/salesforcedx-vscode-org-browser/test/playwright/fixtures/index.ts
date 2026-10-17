@@ -6,13 +6,18 @@
  */
 
 import { test as webTest } from '@playwright/test';
+import { containerTest } from './containerFixtures';
 import { test as desktopTest } from './desktopFixtures';
 
 const isDesktop = process.env.VSCODE_DESKTOP === '1';
+export const isContainer = process.env.VSCODE_CONTAINER === '1';
 
 // Export the appropriate test based on environment (fixtures differ)
 // expect is the same for both, so just re-export it directly
 export const test = isDesktop ? desktopTest : webTest;
+
+/** For specs unified across desktop, web, and the Code Builder container. */
+export const sharedTest = isContainer ? containerTest : isDesktop ? desktopTest : webTest;
 
 // Keep browser open on test failure when in debug mode
 test.afterEach(async ({ page }, testInfo) => {

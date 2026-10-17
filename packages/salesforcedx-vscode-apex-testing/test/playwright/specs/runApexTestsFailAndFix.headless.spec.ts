@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { expect, type Page } from '@playwright/test';
+import { expect } from '@playwright/test';
 import {
   acceptNotification,
   clearAllNotifications,
   clearOutputChannel,
+  createApexClass,
   createAndDeployApexTestClass,
   deployCurrentSourceToOrg,
   ensureOutputPanelOpen,
@@ -19,6 +20,7 @@ import {
   NOTIFICATION_LIST_ITEM,
   openFileByName,
   replaceLineInOpenFile,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   selectQuickInputOptionByTyping,
@@ -33,83 +35,125 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
-import { test } from '../fixtures';
+import { isContainer, sharedTest as test } from '../fixtures';
 import { TEST_RUN_TIMEOUT, TEST_SETUP_TIMEOUT } from '../constants';
 import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
 import { waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
 
-const ACCOUNT_SERVICE_CONTENT = [
-  'public with sharing class AccountService {',
-  '\tpublic Account createAccount(String accountName, String accountNumber, String tickerSymbol) {',
-  '\t\tAccount newAcct = new Account(',
-  '\t\t\tName = accountName,',
-  '\t\t\tAccountNumber = accountNumber,',
-  '\t\t\tTickerSymbol = accountNumber',
-  '\t\t);',
-  '\t\treturn newAcct;',
-  '\t}',
-  '}'
-].join('\n');
+// The buggy service assigns accountNumber to TickerSymbol (line 6) so the test's ticker assertion
+// fails. Desktop/web use fixed class names; the container stamps a unique suffix so the shared,
+// persistent workbench/org never collides across specs or retries.
+const buildAccountServiceContent = (className: string): string =>
+  [
+    `public with sharing class ${className} {`,
+    '\tpublic Account createAccount(String accountName, String accountNumber, String tickerSymbol) {',
+    '\t\tAccount newAcct = new Account(',
+    '\t\t\tName = accountName,',
+    '\t\t\tAccountNumber = accountNumber,',
+    '\t\t\tTickerSymbol = accountNumber',
+    '\t\t);',
+    '\t\treturn newAcct;',
+    '\t}',
+    '}'
+  ].join('\n');
 
-const ACCOUNT_SERVICE_TEST_CONTENT = [
-  '@IsTest',
-  'private class AccountServiceTest {',
-  '\t@IsTest',
-  '\tstatic void should_create_account() {',
-  "\t\tString acctName = 'Salesforce';",
-  "\t\tString acctNumber = 'SFDC';",
-  "\t\tString tickerSymbol = 'CRM';",
-  '\t\tTest.startTest();',
-  '\t\tAccountService service = new AccountService();',
-  '\t\tAccount newAcct = service.createAccount(acctName, acctNumber, tickerSymbol);',
-  '\t\tinsert newAcct;',
-  '\t\tTest.stopTest();',
-  '\t\tList<Account> accts = [ SELECT Id, Name, AccountNumber, TickerSymbol FROM Account WHERE Id = :newAcct.Id ];',
-  "\t\tSystem.assertEquals(1, accts.size(), 'should have found new account');",
-  "\t\tSystem.assertEquals(acctName, accts[0].Name, 'incorrect name');",
-  "\t\tSystem.assertEquals(acctNumber, accts[0].AccountNumber, 'incorrect account number');",
-  "\t\tSystem.assertEquals(tickerSymbol, accts[0].TickerSymbol, 'incorrect ticker symbol');",
-  '\t}',
-  '}'
-].join('\n');
+const buildAccountServiceTestContent = (className: string, testClassName: string): string =>
+  [
+    '@IsTest',
+    `private class ${testClassName} {`,
+    '\t@IsTest',
+    '\tstatic void should_create_account() {',
+    "\t\tString acctName = 'Salesforce';",
+    "\t\tString acctNumber = 'SFDC';",
+    "\t\tString tickerSymbol = 'CRM';",
+    '\t\tTest.startTest();',
+    `\t\t${className} service = new ${className}();`,
+    '\t\tAccount newAcct = service.createAccount(acctName, acctNumber, tickerSymbol);',
+    '\t\tinsert newAcct;',
+    '\t\tTest.stopTest();',
+    '\t\tList<Account> accts = [ SELECT Id, Name, AccountNumber, TickerSymbol FROM Account WHERE Id = :newAcct.Id ];',
+    "\t\tSystem.assertEquals(1, accts.size(), 'should have found new account');",
+    "\t\tSystem.assertEquals(acctName, accts[0].Name, 'incorrect name');",
+    "\t\tSystem.assertEquals(acctNumber, accts[0].AccountNumber, 'incorrect account number');",
+    "\t\tSystem.assertEquals(tickerSymbol, accts[0].TickerSymbol, 'incorrect ticker symbol');",
+    '\t}',
+    '}'
+  ].join('\n');
 
 // Notification pattern for the consolidated success notification: "[name] successfully ran"
 const SUCCESS_NOTIFICATION_PATTERN = /successfully ran/;
 // Notification pattern for a run that completed with failing tests: "[name] completed with N failing test(s). ..."
 const FAILURE_NOTIFICATION_PATTERN = /completed with 1 failing test\(s\)/;
 
-const runAccountServiceTestViaPalette = async (page: Page): Promise<void> => {
-  await executeCommandWithCommandPalette(page, packageNls.apex_test_run_text);
-  await selectQuickInputOptionByTyping(page, 'AccountServiceTest');
-};
+test.beforeEach(async ({ page }) => {
+  if (isContainer) {
+    await resetContainerWorkbench(page);
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await clearOutputChannel(page);
+  }
+});
 
 // Drives the Apex test runner via Command Palette and asserts the failing run shows the failure
 // notification, then the passing run shows the success notification with an "Open Report" action button. The notification is managed by NotificationModeService
-// and never appears in VS Code Web, so keep this scenario desktop-only.
-(isDesktop() ? test : test.skip.bind(test))(
+// and never appears in VS Code Web, so keep this scenario desktop-only (and the container, which
+// runs the desktop build in a Node host).
+(isDesktop() || isContainer ? test : test.skip.bind(test))(
   'Run Apex Tests: fail then fix via deploy and redeploy',
   async ({ page }) => {
     test.setTimeout(TEST_SETUP_TIMEOUT + TEST_RUN_TIMEOUT);
     const consoleErrors = setupConsoleMonitoring(page);
     const networkErrors = setupNetworkMonitoring(page);
 
-    await test.step('setup non-tracking org', async () => {
-      await setupNonTrackingOrgAndAuth(page);
-      await ensureSecondarySideBarHidden(page);
+    const className = isContainer ? `FailFixService${Date.now()}` : 'AccountService';
+    const testClassName = isContainer ? `${className}Test` : 'AccountServiceTest';
+
+    const runServiceTestViaPalette = async (): Promise<void> => {
+      await executeCommandWithCommandPalette(page, packageNls.apex_test_run_text);
+      await selectQuickInputOptionByTyping(page, testClassName);
+    };
+
+    await test.step('setup', async () => {
+      if (isContainer) {
+        await ensureSecondarySideBarHidden(page);
+      } else {
+        await setupNonTrackingOrgAndAuth(page);
+        await ensureSecondarySideBarHidden(page);
+      }
     });
 
-    await test.step('deploy buggy AccountService class', async () => {
-      await createAndDeployApexTestClass(page, 'AccountService', ACCOUNT_SERVICE_CONTENT);
+    await test.step('deploy buggy service class', async () => {
+      if (isContainer) {
+        await createApexClass(page, className, buildAccountServiceContent(className));
+        await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
+      } else {
+        await createAndDeployApexTestClass(page, className, buildAccountServiceContent(className));
+      }
       await saveScreenshot(page, 'setup.account-service-deployed.png');
     });
 
-    await test.step('deploy AccountServiceTest class', async () => {
-      await createAndDeployApexTestClass(page, 'AccountServiceTest', ACCOUNT_SERVICE_TEST_CONTENT);
+    await test.step('deploy service test class', async () => {
+      if (isContainer) {
+        await createApexClass(page, testClassName, buildAccountServiceTestContent(className, testClassName));
+        await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
+      } else {
+        await createAndDeployApexTestClass(
+          page,
+          testClassName,
+          buildAccountServiceTestContent(className, testClassName)
+        );
+      }
       await saveScreenshot(page, 'setup.account-service-test-deployed.png');
     });
 
-    await test.step('run AccountServiceTest via Command Palette (expected to fail)', async () => {
-      await runAccountServiceTestViaPalette(page);
+    await test.step('clear Apex Testing output before failing run', async () => {
+      await ensureOutputPanelOpen(page);
+      await selectOutputChannel(page, 'Apex Testing');
+      await clearOutputChannel(page);
+    });
+
+    await test.step('run service test via Command Palette (expected to fail)', async () => {
+      await runServiceTestViaPalette();
       await saveScreenshot(page, 'step.fail.test-started.png');
     });
 
@@ -143,19 +187,20 @@ const runAccountServiceTestViaPalette = async (page: Page): Promise<void> => {
       await clearOutputChannel(page);
     });
 
-    await test.step('open AccountService.cls and fix bug on line 6', async () => {
-      await openFileByName(page, 'AccountService.cls');
+    await test.step('open the service class and fix bug on line 6', async () => {
+      await openFileByName(page, `${className}.cls`);
       await replaceLineInOpenFile(page, 6, '\t\t\tTickerSymbol = tickerSymbol');
       await saveScreenshot(page, 'step.fix.line-replaced.png');
     });
 
-    await test.step('redeploy fixed AccountService.cls', async () => {
-      if (isDesktop()) {
+    await test.step('redeploy fixed service class', async () => {
+      if (isDesktop() || isContainer) {
+        // Desktop and the container (no push-or-deploy-on-save) both need an explicit redeploy.
         await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
       } else {
         // Web: save-on-deploy already triggered by replaceLineInOpenFile's File: Save.
         // Wait for the deploy completion line — same signal desktop uses — instead of just the
-        // class name (which would also match the prior AccountServiceTest deploy line).
+        // class name (which would also match the prior test-class deploy line).
         await ensureOutputPanelOpen(page);
         await selectOutputChannel(page, 'Salesforce Metadata');
         await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: TEST_RUN_TIMEOUT });
@@ -163,8 +208,14 @@ const runAccountServiceTestViaPalette = async (page: Page): Promise<void> => {
       await saveScreenshot(page, 'step.fix.redeployed.png');
     });
 
-    await test.step('rerun AccountServiceTest (expected to pass)', async () => {
-      await runAccountServiceTestViaPalette(page);
+    await test.step('clear Apex Testing output before passing run', async () => {
+      await ensureOutputPanelOpen(page);
+      await selectOutputChannel(page, 'Apex Testing');
+      await clearOutputChannel(page);
+    });
+
+    await test.step('rerun service test (expected to pass)', async () => {
+      await runServiceTestViaPalette();
       await saveScreenshot(page, 'step.pass.test-started.png');
     });
 
@@ -191,7 +242,15 @@ const runAccountServiceTestViaPalette = async (page: Page): Promise<void> => {
       await waitForApexRunOutputLine(page, 'Outcome              Passed');
       await waitForApexRunOutputLine(page, 'Tests Ran            1');
       await waitForApexRunOutputLine(page, 'Pass Rate            100%');
-      await waitForApexRunOutputLine(page, 'AccountServiceTest.should_create_account  Pass');
+      if (isContainer) {
+        // The container's Apex Testing output renders the per-method "Class.method  Pass" line with
+        // variable column spacing (and virtualizes it out of the scrolled view), so the exact-line
+        // match misses even on a passing run. Assert on the always-present "Org Wide Coverage"
+        // summary signal instead; Outcome/Tests Ran/Pass Rate above already prove the run passed.
+        await waitForApexRunOutputLine(page, 'Org Wide Coverage');
+      } else {
+        await waitForApexRunOutputLine(page, `${testClassName}.should_create_account  Pass`);
+      }
       await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
       await verifyNoTestRunInProgress(page);
       await saveScreenshot(page, 'step.pass.results-visible.png');

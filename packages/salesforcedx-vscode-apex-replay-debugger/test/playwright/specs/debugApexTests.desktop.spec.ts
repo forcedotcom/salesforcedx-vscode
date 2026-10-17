@@ -8,6 +8,7 @@ import { expect, type Page } from '@playwright/test';
 import {
   clearAllNotifications,
   clickCodeLens,
+  continueDebugSession,
   createApexClass,
   EDITOR_WITH_URI,
   ensureOutputPanelOpen,
@@ -16,11 +17,13 @@ import {
   focusMonacoInput,
   NOTIFICATION_LIST_ITEM,
   openFileByName,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
+  stopDebugSession,
   validateNoCriticalErrors,
   verifyNoTestRunInProgress,
   waitForOutputChannelText,
@@ -29,24 +32,24 @@ import {
 
 import apexTestingNls from 'salesforcedx-vscode-apex-testing/package.nls.json';
 import metadataNls from 'salesforcedx-vscode-metadata/package.nls.json';
-import { test } from '../fixtures';
-import { continueDebugSession } from '../helpers/debugHelpers';
+import { isContainer, sharedTest as test } from '../fixtures';
 
 /**
  * Clicks a Test Explorer tree row's "Debug Test" action button using a bounded stale-row retry.
  * Clicking a tree row re-renders the tree (selection highlight + action buttons), invalidating element
- * refs, so retry the normal actions to tolerate stale refs.
+ * refs, so retry the normal actions (force-clicking on the container's browser-served workbench, which
+ * can intercept pointer events) to tolerate stale refs.
  */
 const debugTestFromTreeItem = async (page: Page, name: RegExp): Promise<void> => {
   const item = page.getByRole('treeitem', { name });
   await item.waitFor({ state: 'visible', timeout: 30_000 });
   await expect(async () => {
-    await item.click();
-    await item.hover();
+    await item.click({ force: isContainer });
+    await item.hover({ force: isContainer });
     const debugButton = item.getByRole('button', { name: /^Debug Test/ });
     await debugButton.waitFor({ state: 'visible', timeout: 3000 });
     await expect(debugButton).toBeEnabled({ timeout: 3000 });
-    await debugButton.click();
+    await debugButton.click({ force: isContainer });
   }).toPass({ timeout: 30_000 });
 };
 
@@ -63,8 +66,15 @@ const expandTreeRow = async (page: Page, rowLabel: string): Promise<void> => {
   const twistie = row.locator('.monaco-tl-twistie');
   const collapsed = await twistie.evaluate(el => el.classList.contains('collapsed')).catch(() => false);
   if (!collapsed) return;
-  await expect(twistie).toBeVisible({ timeout: 5000 });
-  await twistie.click();
+  if (isContainer) {
+    // Twistie glyph is a zero-size pseudo-element on the container's browser-served workbench; the row
+    // intercepts pointer events at its coordinates.
+    // eslint-disable-next-line playwright/no-force-option -- see comment above
+    await twistie.click({ force: true });
+  } else {
+    await expect(twistie).toBeVisible({ timeout: 5000 });
+    await twistie.click();
+  }
   await page.waitForTimeout(400);
 };
 
@@ -130,97 +140,202 @@ const continueFromBreakpoint = async (page: Page): Promise<void> => {
   await page.keyboard.press('F5');
 };
 
-const class1Content = [
-  'public with sharing class ExampleApexClass1 {',
-  '  public static void SayHello(string name){',
-  "    System.debug('Hello, ' + name + '!');",
-  '  }',
-  '}'
-].join('\n');
+/**
+ * Debug every test class at once from the Test Explorer package row and step through each class'
+ * replay. Desktop-only: the package row covers EVERY test class in the workspace, which on desktop is
+ * exactly `testClasses`, but the container's shared, persistent workspace also holds the fixture's and
+ * earlier specs' test classes, so neither the batch size nor the single-failure count is knowable there.
+ */
+const debugAllClassesViaPackageRow = async (page: Page, testClasses: readonly string[]): Promise<void> => {
+  // A breakpoint per class pauses each replay, so the batch can't run past a log before it's checked
+  for (const testClass of testClasses) {
+    await setBreakpoint(page, `${testClass}.cls`, 'Starting validate');
+  }
+  await clearAllNotifications(page);
+  await executeCommandWithCommandPalette(page, 'Testing: Focus on Test Explorer View');
+  await expandNamespaceAndPackage(page);
+  await debugTestFromTreeItem(page, /\(Unpackaged Metadata\)/);
+  await expect(
+    page.locator(NOTIFICATION_LIST_ITEM).filter({ hasText: FAILURE_NOTIFICATION_PATTERN }).first()
+  ).toBeVisible({ timeout: 180_000 });
+  await expect(page.locator(NOTIFICATION_LIST_ITEM).filter({ hasText: SUCCESS_NOTIFICATION_SUFFIX })).toHaveCount(0);
+  await executeCommandWithCommandPalette(page, 'View: Show Run and Debug');
+  // One synchronous run, and so one log, per class: three logs replay in turn, each when the previous ends
+  for (const [index, testClass] of testClasses.entries()) {
+    const stackFrame = page.locator('.debug-call-stack .monaco-list-row').filter({ hasText: testClass });
+    await expect(stackFrame.first()).toBeVisible({ timeout: 60_000 });
+    // The progress toast may be hidden, so read the replay progress from the notification center
+    await executeCommandWithCommandPalette(page, 'Notifications: Show Notifications');
+    await expect(
+      page
+        .locator(NOTIFICATION_LIST_ITEM)
+        .filter({ hasText: `${index + 1} of ${testClasses.length}: ${testClass}` })
+        .first()
+    ).toBeVisible({ timeout: 10_000 });
+    // Leave the center as is: opening the command palette closes it, so "Hide Notifications" isn't offered,
+    // and an open center doesn't block F5
+    await (index < testClasses.length - 1 ? continueFromBreakpoint(page) : continueDebugSession(page));
+  }
+};
 
-const class1TestContent = [
-  '@IsTest',
-  'public class ExampleApexClass1Test {',
-  '  @IsTest',
-  '  static void validateSayHello() {',
-  "    System.debug('Starting validate');",
-  "    ExampleApexClass1.SayHello('Cody');",
-  '',
-  "    System.assertEquals(1, 1, 'all good');",
-  '  }',
-  '}'
-].join('\n');
+// No org setup on the container's shared, persistent workbench — every test uses the boot (default)
+// org, and editors/notifications are reset before each test rather than assuming a clean slate.
+test.beforeEach(async ({ page }) => {
+  if (isContainer) {
+    await resetContainerWorkbench(page);
+  }
+});
 
-const class2Content = [
-  'public with sharing class ExampleApexClass2 {',
-  '  public static void SayHello(string name){',
-  "    System.debug('Hello, ' + name + '!');",
-  '  }',
-  '}'
-].join('\n');
+// A leaked session would poison the next test on the container's shared workbench. Best-effort.
+test.afterEach(async ({ page }) => {
+  if (isContainer) {
+    await stopDebugSession(page);
+  }
+});
 
-// Distinct method name from ExampleApexClass1Test so the Test Explorer treeitem label is unique
-// (both classes nest under the same Namespace/Package parents; a shared method name would match
-// two virtualized treeitem rows and trip Playwright strict mode).
-const class2TestContent = [
-  '@IsTest',
-  'public class ExampleApexClass2Test {',
-  '  @IsTest',
-  '  static void validateSayHelloTwo() {',
-  "    System.debug('Starting validate');",
-  "    ExampleApexClass2.SayHello('Cody');",
-  '',
-  "    System.assertEquals(1, 1, 'all good');",
-  '  }',
-  '}'
-].join('\n');
-
-// Fails on purpose: debugging a failing test still launches the replay debugger, but ends with the
-// failure notification instead of success.
-const failingTestContent = [
-  '@IsTest',
-  'public class ExampleFailingApexTest {',
-  '  @IsTest',
-  '  static void validateFails() {',
-  "    System.debug('Starting validate');",
-  "    System.assertEquals(1, 2, 'expected failure');",
-  '  }',
-  '}'
-].join('\n');
-
-test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page }) => {
+test('Debug Apex Tests: CodeLens and Test Explorer entry points', async ({ page }) => {
   test.setTimeout(600_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
-  await test.step('setup minimal org with two Apex classes, their tests, and a failing test', async () => {
-    await setupMinimalOrgAndAuth(page);
+  // Unique per-run names so the container's shared, persistent workbench never collides with a class
+  // left by a prior run.
+  const uid = Date.now().toString(36);
+  const class1 = isContainer ? `ExampleApexClass1_${uid}` : 'ExampleApexClass1';
+  const class1Test = isContainer ? `ExampleApexClass1_${uid}Test` : 'ExampleApexClass1Test';
+  const class2 = isContainer ? `ExampleApexClass2_${uid}` : 'ExampleApexClass2';
+  const class2Test = isContainer ? `ExampleApexClass2_${uid}Test` : 'ExampleApexClass2Test';
+
+  const class1Content = [
+    `public with sharing class ${class1} {`,
+    '  public static void SayHello(string name){',
+    "    System.debug('Hello, ' + name + '!');",
+    '  }',
+    '}'
+  ].join('\n');
+
+  // Annotations kept INLINE with their declarations: once the Apex LS is warm, a bare `@IsTest` line
+  // typed into the code-server editor can have its trailing newline swallowed by a completion-accept,
+  // merging it into the next line and producing invalid Apex.
+  const class1TestContent = isContainer
+    ? [
+        `@IsTest public class ${class1Test} {`,
+        '  @IsTest static void validateSayHello() {',
+        "    System.debug('Starting validate');",
+        `    ${class1}.SayHello('Cody');`,
+        "    System.assertEquals(1, 1, 'all good');",
+        '  }',
+        '}'
+      ].join('\n')
+    : [
+        '@IsTest',
+        `public class ${class1Test} {`,
+        '  @IsTest',
+        '  static void validateSayHello() {',
+        "    System.debug('Starting validate');",
+        `    ${class1}.SayHello('Cody');`,
+        '',
+        "    System.assertEquals(1, 1, 'all good');",
+        '  }',
+        '}'
+      ].join('\n');
+
+  const class2Content = [
+    `public with sharing class ${class2} {`,
+    '  public static void SayHello(string name){',
+    "    System.debug('Hello, ' + name + '!');",
+    '  }',
+    '}'
+  ].join('\n');
+
+  // Distinct method name from class1Test so the Test Explorer treeitem label is unique (both classes
+  // nest under the same Namespace/Package parents; a shared method name would match two virtualized
+  // treeitem rows and trip Playwright strict mode).
+  const class2TestContent = isContainer
+    ? [
+        `@IsTest public class ${class2Test} {`,
+        '  @IsTest static void validateSayHelloTwo() {',
+        "    System.debug('Starting validate');",
+        `    ${class2}.SayHello('Cody');`,
+        "    System.assertEquals(1, 1, 'all good');",
+        '  }',
+        '}'
+      ].join('\n')
+    : [
+        '@IsTest',
+        `public class ${class2Test} {`,
+        '  @IsTest',
+        '  static void validateSayHelloTwo() {',
+        "    System.debug('Starting validate');",
+        `    ${class2}.SayHello('Cody');`,
+        '',
+        "    System.assertEquals(1, 1, 'all good');",
+        '  }',
+        '}'
+      ].join('\n');
+
+  // Fails on purpose: debugging a failing test still launches the replay debugger, but ends with the
+  // failure notification instead of success.
+  const failingTest = isContainer ? `ExampleFailingApexTest_${uid}` : 'ExampleFailingApexTest';
+  const failingTestContent = isContainer
+    ? [
+        `@IsTest public class ${failingTest} {`,
+        '  @IsTest static void validateFails() {',
+        "    System.debug('Starting validate');",
+        "    System.assertEquals(1, 2, 'expected failure');",
+        '  }',
+        '}'
+      ].join('\n')
+    : [
+        '@IsTest',
+        `public class ${failingTest} {`,
+        '  @IsTest',
+        '  static void validateFails() {',
+        "    System.debug('Starting validate');",
+        "    System.assertEquals(1, 2, 'expected failure');",
+        '  }',
+        '}'
+      ].join('\n');
+
+  await test.step('setup with two Apex classes, their tests, and a failing test', async () => {
+    if (!isContainer) {
+      await setupMinimalOrgAndAuth(page);
+    }
     await ensureSecondarySideBarHidden(page);
-    await createApexClass(page, 'ExampleApexClass1', class1Content);
-    await createApexClass(page, 'ExampleApexClass1Test', class1TestContent);
-    await createApexClass(page, 'ExampleApexClass2', class2Content);
-    await createApexClass(page, 'ExampleApexClass2Test', class2TestContent);
-    await createApexClass(page, 'ExampleFailingApexTest', failingTestContent);
+    await createApexClass(page, class1, class1Content);
+    await createApexClass(page, class1Test, class1TestContent);
+    await createApexClass(page, class2, class2Content);
+    await createApexClass(page, class2Test, class2TestContent);
+    await createApexClass(page, failingTest, failingTestContent);
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata');
     await executeCommandWithCommandPalette(page, metadataNls.project_deploy_start_ignore_conflicts_default_org_text);
-    await waitForOutputChannelText(page, { expectedText: 'Starting metadata deployment', timeout: 30_000 });
+    await waitForOutputChannelText(page, { expectedText: 'Starting metadata deployment', timeout: 90_000 });
     await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: 120_000 });
     await saveScreenshot(page, 'setup.classes-created.png');
   });
 
   await test.step('wait for CodeLens in test class', async () => {
-    // Apex LS must finish indexing before CodeLens appear; CI is slower
-    const indexingComplete = page.getByRole('button', { name: /Indexing complete/ });
-    await expect(indexingComplete).toBeVisible({ timeout: 120_000 });
-    await openFileByName(page, 'ExampleApexClass1Test.cls');
+    const openTestClassContainer = async (): Promise<void> => {
+      // The desktop "Indexing complete" status-bar button never renders in the code-server image, so
+      // gate on the real indexing signal instead: the test class' CodeLens only appears once the LS
+      // has indexed it.
+      await openFileByName(page, `${class1Test}.cls`);
+    };
+    const openTestClassDesktop = async (): Promise<void> => {
+      // Apex LS must finish indexing before CodeLens appear; CI is slower
+      const indexingComplete = page.getByRole('button', { name: /Indexing complete/ });
+      await expect(indexingComplete).toBeVisible({ timeout: 120_000 });
+      await openFileByName(page, `${class1Test}.cls`);
+    };
+    await (isContainer ? openTestClassContainer : openTestClassDesktop)();
     const codelens = page.locator('.codelens-decoration a').filter({ hasText: /Run Test|Debug Test/ });
-    await expect(codelens.first()).toBeVisible({ timeout: 90_000 });
+    await expect(codelens.first()).toBeVisible({ timeout: isContainer ? 120_000 : 90_000 });
     await saveScreenshot(page, 'step.codelens-visible.png');
   });
 
   await test.step('Debug All Tests via class-level CodeLens', async () => {
-    await openFileByName(page, 'ExampleApexClass1Test.cls');
+    await openFileByName(page, `${class1Test}.cls`);
     await clickCodeLens(page, 'Debug All Tests', { timeout: 180_000 });
     await waitForSuccessNotification(page);
     await continueDebugSession(page);
@@ -229,7 +344,7 @@ test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page 
   });
 
   await test.step('Debug Test via method-level CodeLens', async () => {
-    await openFileByName(page, 'ExampleApexClass2Test.cls');
+    await openFileByName(page, `${class2Test}.cls`);
     await clickCodeLens(page, 'Debug Test', { timeout: 180_000 });
     await waitForSuccessNotification(page);
     await continueDebugSession(page);
@@ -242,7 +357,7 @@ test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page 
     // Refresh rebuilds the tree async; wait for rebuild then expand parents so class rows render
     await refreshTestsAndWaitForRebuild(page);
     await expandNamespaceAndPackage(page);
-    await debugTestFromTreeItem(page, /ExampleApexClass1Test/i);
+    await debugTestFromTreeItem(page, new RegExp(class1Test, 'i'));
     await waitForSuccessNotification(page);
     await continueDebugSession(page);
     await verifyNoTestRunInProgress(page);
@@ -253,7 +368,7 @@ test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page 
     await executeCommandWithCommandPalette(page, 'Testing: Focus on Test Explorer View');
     await expandNamespaceAndPackage(page);
     // Expand the class node to reveal its method, then debug the method row
-    await expandTreeRow(page, 'ExampleApexClass2Test');
+    await expandTreeRow(page, class2Test);
     const methodItem = page.getByRole('treeitem', { name: /validateSayHelloTwo/i });
     await methodItem.waitFor({ state: 'visible', timeout: 30_000 });
     await debugTestFromTreeItem(page, /validateSayHelloTwo/i);
@@ -266,7 +381,7 @@ test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page 
   await test.step('Debug failing test via CodeLens shows the failure notification', async () => {
     // Clear the earlier steps' success toasts so the failing run's toast is checked against a clean list
     await clearAllNotifications(page);
-    await openFileByName(page, 'ExampleFailingApexTest.cls');
+    await openFileByName(page, `${failingTest}.cls`);
     await clickCodeLens(page, 'Debug All Tests', { timeout: 180_000 });
     await expect(
       page.locator(NOTIFICATION_LIST_ITEM).filter({ hasText: FAILURE_NOTIFICATION_PATTERN }).first()
@@ -277,42 +392,16 @@ test('Debug Apex Tests: codelens and Test Explorer entry points', async ({ page 
     await saveScreenshot(page, 'step.debug-failing-test.png');
   });
 
-  await test.step('Debug all classes via Test Explorer shows one failure notification', async () => {
-    // The package row covers all three test classes: they run as one batch, so the single failing test
-    // must surface as the failure notification with no per-test success toasts alongside it
-    const testClasses = ['ExampleApexClass1Test', 'ExampleApexClass2Test', 'ExampleFailingApexTest'];
-    // A breakpoint per class pauses each replay, so the batch can't run past a log before it's checked
-    for (const testClass of testClasses) {
-      await setBreakpoint(page, `${testClass}.cls`, 'Starting validate');
-    }
-    await clearAllNotifications(page);
-    await executeCommandWithCommandPalette(page, 'Testing: Focus on Test Explorer View');
-    await expandNamespaceAndPackage(page);
-    await debugTestFromTreeItem(page, /\(Unpackaged Metadata\)/);
-    await expect(
-      page.locator(NOTIFICATION_LIST_ITEM).filter({ hasText: FAILURE_NOTIFICATION_PATTERN }).first()
-    ).toBeVisible({ timeout: 180_000 });
-    await expect(page.locator(NOTIFICATION_LIST_ITEM).filter({ hasText: SUCCESS_NOTIFICATION_SUFFIX })).toHaveCount(0);
-    await executeCommandWithCommandPalette(page, 'View: Show Run and Debug');
-    // One synchronous run, and so one log, per class: three logs replay in turn, each when the previous ends
-    for (const [index, testClass] of testClasses.entries()) {
-      const stackFrame = page.locator('.debug-call-stack .monaco-list-row').filter({ hasText: testClass });
-      await expect(stackFrame.first()).toBeVisible({ timeout: 60_000 });
-      // The progress toast may be hidden, so read the replay progress from the notification center
-      await executeCommandWithCommandPalette(page, 'Notifications: Show Notifications');
-      await expect(
-        page
-          .locator(NOTIFICATION_LIST_ITEM)
-          .filter({ hasText: `${index + 1} of ${testClasses.length}: ${testClass}` })
-          .first()
-      ).toBeVisible({ timeout: 10_000 });
-      // Leave the center as is: opening the command palette closes it, so "Hide Notifications" isn't offered,
-      // and an open center doesn't block F5
-      await (index < testClasses.length - 1 ? continueFromBreakpoint(page) : continueDebugSession(page));
-    }
-    await verifyNoTestRunInProgress(page);
-    await saveScreenshot(page, 'step.debug-test-explorer-all.png');
-  });
+  // Desktop-only — see debugAllClassesViaPackageRow.
+  if (!isContainer) {
+    await test.step('Debug all classes via Test Explorer shows one failure notification', async () => {
+      // The package row covers all three test classes: they run as one batch, so the single failing test
+      // must surface as the failure notification with no per-test success toasts alongside it
+      await debugAllClassesViaPackageRow(page, [class1Test, class2Test, failingTest]);
+      await verifyNoTestRunInProgress(page);
+      await saveScreenshot(page, 'step.debug-test-explorer-all.png');
+    });
+  }
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });

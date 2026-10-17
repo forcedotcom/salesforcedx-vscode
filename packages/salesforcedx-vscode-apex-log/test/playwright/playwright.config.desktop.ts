@@ -24,7 +24,9 @@ export default defineConfig({
         {
           ...desktopProject,
           name: 'desktop-electron',
-          testIgnore: serializedSpecs
+          // container specs are code-server-only; exclude them here too (project testIgnore overrides
+          // the factory's). Kept separate from serializedSpecs, which is reused as testMatch below.
+          testIgnore: [...serializedSpecs, '**/*.container.spec.ts']
         },
         // these depend on exclusive access to org trace flags so they can't run in parallel
         {

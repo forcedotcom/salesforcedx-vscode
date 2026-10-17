@@ -7,4 +7,14 @@
 
 import { createContainerConfig } from '@salesforce/playwright-vscode-ext';
 
-export default createContainerConfig({ testDir: './specs/container' });
+export default createContainerConfig({
+  testDir: './specs',
+  // Remaining container-only specs: coreOutputChannel (real behavioral differences — the
+  // container's full extension set changes which initializeMetadataSupport branch fires,
+  // and it skips the desktop-only activation-gate command), seededWorkspace (no headless
+  // twin), and workspaceContextOrgSwitch (a production-command proxy for an API the
+  // container's extension set can't load a test fixture for — see its own header comment).
+  // configList is unified with desktop — it branches on `isContainer` from ../fixtures
+  // instead of a dedicated *.container.spec.ts file.
+  testMatch: ['container/**/*.container.spec.ts', 'configList.headless.spec.ts']
+});
