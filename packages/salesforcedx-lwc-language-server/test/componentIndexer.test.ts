@@ -30,7 +30,7 @@ beforeAll(() => {
     }) as Connection
   );
 
-  jest.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation((uri: string) => {
+  vi.spyOn(sfdxFileSystemAccessor, 'getFileStat').mockImplementation((uri: string) => {
     const key = normalizePath(uri);
     if (contentMap.has(key)) return Promise.resolve(FILE_STAT);
     const prefix = `${key}/`;
@@ -39,14 +39,14 @@ beforeAll(() => {
     }
     return Promise.resolve(undefined);
   });
-  jest
-    .spyOn(sfdxFileSystemAccessor, 'getFileContent')
-    .mockImplementation((uri: string) => Promise.resolve(contentMap.get(normalizePath(uri))));
-  jest.spyOn(sfdxFileSystemAccessor, 'updateFileContent').mockImplementation((uri: string, content: string) => {
+  vi.spyOn(sfdxFileSystemAccessor, 'getFileContent').mockImplementation((uri: string) =>
+    Promise.resolve(contentMap.get(normalizePath(uri)))
+  );
+  vi.spyOn(sfdxFileSystemAccessor, 'updateFileContent').mockImplementation((uri: string, content: string) => {
     contentMap.set(normalizePath(uri), content);
     return Promise.resolve();
   });
-  jest.spyOn(sfdxFileSystemAccessor, 'deleteFile').mockImplementation((pathOrUri: string) => {
+  vi.spyOn(sfdxFileSystemAccessor, 'deleteFile').mockImplementation((pathOrUri: string) => {
     contentMap.delete(normalizePath(pathOrUri));
     return Promise.resolve();
   });

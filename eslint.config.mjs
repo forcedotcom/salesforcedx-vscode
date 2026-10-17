@@ -12,7 +12,7 @@ import globals from 'globals';
 import header from '@tony.ganchev/eslint-plugin-header';
 import eslintPluginImport from 'eslint-plugin-import-x';
 import eslintPluginJsdoc from 'eslint-plugin-jsdoc';
-import eslintPluginJestFormatting from 'eslint-plugin-jest-formatting';
+import vitest from '@vitest/eslint-plugin';
 import eslintPluginPreferArrow from 'eslint-plugin-prefer-arrow';
 import eslintConfigPrettier from 'eslint-config-prettier/flat';
 import eslintPluginJest from 'eslint-plugin-jest';
@@ -24,6 +24,7 @@ import eslintPluginWorkspaces from 'eslint-plugin-workspaces';
 import effectPlugin from '@effect/eslint-plugin';
 import eslintPluginEslintPlugin from 'eslint-plugin-eslint-plugin';
 import jsonPlugin from '@eslint/json';
+import path from 'node:path';
 
 import htmlEslintPlugin from '@html-eslint/eslint-plugin';
 import localRulesPlugin from './packages/eslint-local-rules/out/index.js';
@@ -61,7 +62,6 @@ export default [
       '**/packages/**/coverage',
       '**/test-workspaces/**',
       '**/*.d.ts',
-      '**/jest.config.js',
       '**/jest.integration.config.js',
       '**/.wireit/**',
       '.opencode/**',
@@ -82,7 +82,7 @@ export default [
       '!packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/services/message/**/*.ts',
       '!packages/salesforcedx-vscode-soql/src/soql-builder-ui/modules/querybuilder/messages/i18n.ts',
       'packages/salesforcedx-vscode-soql/src/soql-data-view/**',
-      'packages/salesforcedx-vscode-soql/test/jest/soql-builder-ui/**',
+      'packages/salesforcedx-vscode-soql/test/unit/soql-builder-ui/**',
       'packages/salesforcedx-vscode-soql/src/soql-common/soql-parser.lib/**',
       'packages/soql-common/src/soql-parser.lib/**',
       'scripts/vsce-bundled-extension.ts',
@@ -125,7 +125,15 @@ export default [
     languageOptions: {
       parser: tsParser,
       parserOptions: {
-        projectService: true,
+        projectService: {
+          allowDefaultProject: [
+            'vitest.config.mts',
+            'vitest.*.config.mts',
+            'config/vitest.base.config.mts',
+            'packages/*/vitest*.config.mts'
+          ],
+          maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING: 50
+        },
         sourceType: 'module',
         ecmaVersion: 2020,
         globals: {
@@ -138,7 +146,6 @@ export default [
       header: header,
       import: eslintPluginImport,
       jsdoc: eslintPluginJsdoc,
-      'jest-formatting': eslintPluginJestFormatting,
       'prefer-arrow': eslintPluginPreferArrow,
       '@stylistic/eslint-plugin-ts': stylistic,
       unicorn: eslintPluginUnicorn,
@@ -184,6 +191,7 @@ export default [
       'local/require-effect-fn-span-name': 'error',
       'local/no-raw-duration': 'error',
       'local/effect-fn-catch-middleware-last': 'error',
+      'local/no-standalone-pipeable-value': 'error',
       'local/no-duplicate-i18n-values': 'error',
       'local/no-unused-i18n-messages': 'error',
       'local/no-vscode-message-literals': 'error',
@@ -295,6 +303,10 @@ export default [
       '@typescript-eslint/adjacent-overload-signatures': 'error',
       '@typescript-eslint/class-literal-property-style': 'error',
       '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }],
+      '@typescript-eslint/consistent-type-imports': [
+        'error',
+        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
+      ],
       '@typescript-eslint/array-type': ['error', { default: 'array' }],
       '@typescript-eslint/no-restricted-types': [
         'warn',
@@ -626,7 +638,6 @@ export default [
   },
   {
     files: [
-      'packages/salesforcedx**/test/jest/**/*',
       'packages/salesforcedx**/test/unit/**/*',
       'packages/salesforcedx**/src/**/__tests__/**/*',
       'packages/salesforcedx**/src/**/*.spec.ts',
@@ -640,13 +651,15 @@ export default [
       'packages/soql-model/test/**/*',
       'packages/salesforcedx-apex/test/**/*',
       'packages/effect-ext-utils/test/**/*',
+      'packages/playwright-vscode-ext/**/*.ts',
       'packages/effect-octokit/test/**/*',
-      'packages/playwright-vscode-ext/**/*.ts'
+      'packages/playwright-vscode-ext/**/*.ts',
+      'scripts/**/*.test.ts'
     ],
     ignores: ['**/locators.ts'],
     plugins: {
       '@typescript-eslint': typescriptEslint,
-      jest: eslintPluginJest,
+      vitest,
       local: localPlugin
     },
     rules: {
@@ -671,21 +684,28 @@ export default [
       '@typescript-eslint/no-unsafe-return': 'warn',
       '@typescript-eslint/restrict-template-expressions': 'warn',
       '@typescript-eslint/unbound-method': 'off',
-      'jest/unbound-method': 'error',
-      'jest/no-deprecated-functions': 'error',
-      'jest/no-focused-tests': 'error',
-      'jest/prefer-to-have-length': 'error',
-      'jest/no-standalone-expect': 'error',
-      'jest/valid-describe-callback': 'error',
-      'jest/prefer-to-be': 'error',
-      'jest/prefer-to-contain': 'error',
-      'jest/no-test-prefixes': 'error',
-      'jest/no-identical-title': 'error',
+      'vitest/unbound-method': 'error',
+      'vitest/no-focused-tests': 'error',
+      'vitest/prefer-to-have-length': 'error',
+      'vitest/no-standalone-expect': 'error',
+      'vitest/valid-describe-callback': 'error',
+      'vitest/prefer-to-be': 'error',
+      'vitest/prefer-to-contain': 'error',
+      'vitest/no-test-prefixes': 'error',
+      'vitest/no-identical-title': 'error',
       '@typescript-eslint/no-var-requires': 'off',
       'no-useless-constructor': 'off',
       'no-restricted-imports': 'off',
       'no-param-reassign': 'off',
       'local/no-duplicate-playwright-locators': 'error'
+    }
+  },
+  {
+    files: ['packages/**/test/integration/**/*.{ts,tsx}'],
+    plugins: { jest: eslintPluginJest },
+    rules: {
+      'jest/no-deprecated-functions': 'error',
+      'jest/no-focused-tests': 'error'
     }
   },
   {
@@ -852,246 +872,6 @@ export default [
     }
   },
   {
-    // consistent-type-imports for eslint-local-rules (inline to avoid no-duplicate-imports; W-23371083)
-    files: ['packages/eslint-local-rules/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
-    // consistent-type-imports for effect-ext-utils (inline to avoid no-duplicate-imports)
-    files: ['packages/effect-ext-utils/**/*.ts', 'packages/effect-octokit/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
-    // consistent-type-imports for salesforcedx-utils (inline to avoid no-duplicate-imports; W-23371027)
-    files: ['packages/salesforcedx-utils/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
-    // consistent-type-imports for salesforcedx-utils-vscode (inline to avoid no-duplicate-imports; W-23371077)
-    files: ['packages/salesforcedx-utils-vscode/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
-    // consistent-type-imports for salesforcedx-apex-debugger (inline to avoid no-duplicate-imports; W-23371080)
-    files: ['packages/salesforcedx-apex-debugger/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
-    // consistent-type-imports for salesforcedx-visualforce-language-server (inline to avoid no-duplicate-imports; W-23371067)
-    files: ['packages/salesforcedx-visualforce-language-server/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
-    // consistent-type-imports for salesforcedx-vscode-visualforce (inline to avoid no-duplicate-imports; W-23371049)
-    files: ['packages/salesforcedx-vscode-visualforce/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
-    // consistent-type-imports for salesforcedx-vscode-apex-debugger (inline to avoid no-duplicate-imports; W-23371053)
-    files: ['packages/salesforcedx-vscode-apex-debugger/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
-    // consistent-type-imports for salesforcedx-vscode-apex (inline to avoid no-duplicate-imports; W-23371071)
-    files: ['packages/salesforcedx-vscode-apex/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
-    // consistent-type-imports for salesforcedx-vscode-core (inline to avoid no-duplicate-imports; W-23371068)
-    files: ['packages/salesforcedx-vscode-core/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
-    // consistent-type-imports for salesforcedx-vscode-apex-log (inline to avoid no-duplicate-imports; W-23371055)
-    files: ['packages/salesforcedx-vscode-apex-log/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
-    // consistent-type-imports for salesforcedx-vscode-apex-oas (inline to avoid no-duplicate-imports; W-23371058)
-    files: ['packages/salesforcedx-vscode-apex-oas/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
-    // consistent-type-imports for salesforcedx-vscode-services (inline to avoid no-duplicate-imports; W-23371088)
-    files: ['packages/salesforcedx-vscode-services/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
-    // consistent-type-imports for salesforcedx-vscode-org-browser (inline to avoid no-duplicate-imports; W-23371063)
-    files: ['packages/salesforcedx-vscode-org-browser/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
-    // consistent-type-imports for salesforcedx-vscode-org (inline to avoid no-duplicate-imports; W-23371075)
-    files: ['packages/salesforcedx-vscode-org/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
-    // consistent-type-imports for salesforcedx-vscode-metadata (inline to avoid no-duplicate-imports; W-23371074)
-    files: ['packages/salesforcedx-vscode-metadata/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
-    // consistent-type-imports for salesforcedx-vscode-apex-replay-debugger (inline to avoid no-duplicate-imports; W-23371059)
-    files: ['packages/salesforcedx-vscode-apex-replay-debugger/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
-    // consistent-type-imports for salesforcedx-vscode-lightning (inline to avoid no-duplicate-imports; W-23371060)
-    files: ['packages/salesforcedx-vscode-lightning/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
-    // consistent-type-imports for salesforcedx-vscode-lwc (inline to avoid no-duplicate-imports; W-23371089)
-    files: ['packages/salesforcedx-vscode-lwc/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
-    // consistent-type-imports for playwright-vscode-ext (inline to avoid no-duplicate-imports; W-23370906)
-    files: ['packages/playwright-vscode-ext/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
-    // consistent-type-imports for salesforcedx-aura-language-server (inline to avoid no-duplicate-imports; W-23371054)
-    files: ['packages/salesforcedx-aura-language-server/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
-    // consistent-type-imports for salesforcedx-lwc-language-server (inline to avoid no-duplicate-imports; W-23371085)
-    files: ['packages/salesforcedx-lwc-language-server/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
-    // consistent-type-imports for salesforcedx-vscode-i18n (inline to avoid no-duplicate-imports; W-23371066)
-    files: ['packages/salesforcedx-vscode-i18n/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
-    // consistent-type-imports for salesforcedx-vscode-soql (inline to avoid no-duplicate-imports; W-23371082)
-    files: ['packages/salesforcedx-vscode-soql/**/*.ts'],
-    rules: {
-      '@typescript-eslint/consistent-type-imports': [
-        'error',
-        { prefer: 'type-imports', fixStyle: 'inline-type-imports' }
-      ]
-    }
-  },
-  {
     // class-methods-use-this for packages not yet using Effect
     // (apex, apex-oas + apex-testing omitted: covered by the Effect-services block above, which sets both rules)
     files: ['packages/salesforcedx-vscode-soql/**/*.ts', 'packages/soql-common/**/*.ts', 'packages/soql-model/**/*.ts'],
@@ -1229,15 +1009,9 @@ export default [
   {
     ignores: ['packages/eslint-local-rules/test/**']
   },
-  // Register JSON plugin
+  // Dependency ranges apply to root and workspace manifests
   {
-    plugins: {
-      json: jsonPlugin
-    }
-  },
-  // JSON linting for package.json files
-  {
-    files: ['packages/*/package.json'],
+    files: ['package.json', 'packages/*/package.json'],
     language: 'json/json',
     plugins: {
       json: jsonPlugin,
@@ -1245,6 +1019,13 @@ export default [
     },
     rules: {
       ...jsonPlugin.configs.recommended.rules,
+      'local/package-json-salesforce-dep-versions': 'error'
+    }
+  },
+  // Extension-specific validation applies only to workspace manifests
+  {
+    files: ['packages/*/package.json'],
+    rules: {
       'local/package-json-i18n-descriptions': 'error',
       'local/package-json-extension-icon': 'error',
       'local/package-json-icon-paths': 'error',
@@ -1252,8 +1033,7 @@ export default [
       'local/package-json-no-default-true': 'error',
       'local/package-json-no-services-dependency': 'error',
       'local/package-json-require-root-install': 'error',
-      'local/package-json-view-refs': 'error',
-      'local/package-json-salesforce-dep-versions': 'error'
+      'local/package-json-view-refs': 'error'
     }
   },
   {
@@ -1323,6 +1103,30 @@ export default [
             'waitForOutputChannelText',
             'waitForTab'
           ]
+        }
+      ]
+    }
+  },
+  {
+    files: ['**/vitest*.config.mts'],
+    rules: {
+      'import/no-extraneous-dependencies': [
+        'error',
+        {
+          packageDir: import.meta.dirname,
+          devDependencies: true
+        }
+      ]
+    }
+  },
+  {
+    files: ['packages/salesforcedx-vscode-soql/src/soql-builder-ui/vitest.config.mts'],
+    rules: {
+      'import/no-extraneous-dependencies': [
+        'error',
+        {
+          packageDir: [import.meta.dirname, path.resolve(import.meta.dirname, 'packages/salesforcedx-vscode-soql')],
+          devDependencies: true
         }
       ]
     }

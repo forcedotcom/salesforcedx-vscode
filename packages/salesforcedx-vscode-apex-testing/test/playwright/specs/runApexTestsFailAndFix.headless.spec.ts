@@ -17,6 +17,7 @@ import {
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   isDesktop,
+  NOTIFICATION_LIST_ITEM,
   openFileByName,
   replaceLineInOpenFile,
   resetContainerWorkbench,
@@ -81,6 +82,8 @@ const buildAccountServiceTestContent = (className: string, testClassName: string
 
 // Notification pattern for the consolidated success notification: "[name] successfully ran"
 const SUCCESS_NOTIFICATION_PATTERN = /successfully ran/;
+// Notification pattern for a run that completed with failing tests: "[name] completed with N failing test(s). ..."
+const FAILURE_NOTIFICATION_PATTERN = /completed with 1 failing test\(s\)/;
 
 test.beforeEach(async ({ page }) => {
   if (isContainer) {
@@ -91,8 +94,8 @@ test.beforeEach(async ({ page }) => {
   }
 });
 
-// Drives the Apex test runner via Command Palette and asserts the success notification fires
-// with an "Open Report" action button. The notification is managed by NotificationModeService
+// Drives the Apex test runner via Command Palette and asserts the failing run shows the failure
+// notification, then the passing run shows the success notification with an "Open Report" action button. The notification is managed by NotificationModeService
 // and never appears in VS Code Web, so keep this scenario desktop-only (and the container, which
 // runs the desktop build in a Node host).
 (isDesktop() || isContainer ? test : test.skip.bind(test))(
@@ -156,10 +159,12 @@ test.beforeEach(async ({ page }) => {
 
     await test.step('verify failing test output', async () => {
       await waitForRunApexTestsProgressNotificationGone(page, { timeout: TEST_RUN_TIMEOUT });
-      const successNotification = await waitForNotification(page, SUCCESS_NOTIFICATION_PATTERN, { timeout: 60_000 });
-      await saveScreenshot(page, 'step.fail.report-notification.png');
-      // Notification visibility is enough; do not click Open Report here so we can keep editing.
-      await successNotification.waitFor({ state: 'visible', timeout: 5000 });
+      const failureNotification = await waitForNotification(page, FAILURE_NOTIFICATION_PATTERN, { timeout: 60_000 });
+      await saveScreenshot(page, 'step.fail.failure-notification.png');
+      await failureNotification.waitFor({ state: 'visible', timeout: 5000 });
+      await expect(page.locator(NOTIFICATION_LIST_ITEM).filter({ hasText: SUCCESS_NOTIFICATION_PATTERN })).toHaveCount(
+        0
+      );
 
       await ensureOutputPanelOpen(page);
       await selectOutputChannel(page, 'Apex Testing');
@@ -171,9 +176,7 @@ test.beforeEach(async ({ page }) => {
       await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
       await clearOutputChannel(page);
       await verifyNoTestRunInProgress(page);
-      // A run with failing tests still completes, so it shows the same "successfully ran" toast as a passing
-      // run. Clear it so it isn't re-matched (and possibly re-clicked) when we verify the passing run's toast.
-      // TODO: This should be a failure notification instead. Will fix in W-24417592.
+      // Clear the failure toast so the passing run's toast is verified against a clean notification list.
       await clearAllNotifications(page);
     });
 

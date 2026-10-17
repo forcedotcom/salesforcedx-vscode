@@ -6,12 +6,15 @@
  */
 
 import type { ProgressAndSuccessCommandKey } from './notificationMode';
-import type { OutputFormat } from '@salesforce/apex-node';
-import type { Context } from 'effect';
-import type { NotificationModeService } from 'salesforcedx-vscode-services';
+import type { OutputFormat, TestResult } from '@salesforce/apex-node';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Effect from 'effect/Effect';
+import * as Match from 'effect/Match';
+import * as Runtime from 'effect/Runtime';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
+import { openTestReport } from './testReportGenerator';
 
 /**
  * Simple notification service wrapper that uses vscode.window directly.
@@ -30,31 +33,49 @@ export const notificationService = {
 };
 
 /**
- * Shared success toast for the run-tests flows: a single combined message (plus an "Open Report"
- * action when report generation succeeded). `openReport` is injected rather than imported so this
- * stays usable from apexTestExecutionService.ts, which resolves its own runtime to avoid a circular
- * import through services/extensionProvider.ts.
+ * Terminal toast for the run-tests flows, keyed on the run's outcome: success when tests passed, a
+ * "completed with failing tests" error when some failed, and `showFailedExecution` when the run produced
+ * no usable result (timeout / no summary) or ended in any other state. Both toasts get an "Open Report"
+ * action when report generation succeeded. The action runs on the caller's runtime, captured here, so this
+ * needs no import of services/extensionProvider.ts, which apexTestExecutionService.ts can't import without a
+ * cycle.
  */
-export const showRunSuccessNotification = (
-  notificationMode: Context.Tag.Service<typeof NotificationModeService>,
+export const showRunOutcomeNotification = Effect.fn('ApexTesting.showRunOutcomeNotification')(function* (
   command: ProgressAndSuccessCommandKey,
   executionName: string,
+  result: TestResult | undefined,
   reportUri: URI | undefined,
-  outputFormat: OutputFormat,
-  openReport: (reportUri: URI, outputFormat: OutputFormat) => void | Promise<void>
-) =>
-  notificationMode.showSuccessNotification(
-    command,
-    reportUri
-      ? nls.localize('apex_test_successful_execution_with_report_message', executionName, Utils.basename(reportUri))
-      : nls.localize('apex_test_successful_execution_message', executionName),
-    false,
-    reportUri
-      ? [
-          {
-            label: nls.localize('apex_test_report_open_action'),
-            run: () => openReport(reportUri, outputFormat)
-          }
-        ]
-      : []
+  outputFormat: OutputFormat
+) {
+  const notificationMode = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services
+    .NotificationModeService;
+  const runtime = yield* Effect.runtime<Effect.Effect.Context<ReturnType<typeof openTestReport>>>();
+  const openReportActions = reportUri
+    ? [
+        {
+          label: nls.localize('apex_test_report_open_action'),
+          run: () => Runtime.runPromise(runtime)(openTestReport(reportUri, outputFormat))
+        }
+      ]
+    : [];
+
+  yield* Match.value(result).pipe(
+    Match.when({ summary: { outcome: 'Passed' } }, () =>
+      notificationMode.showSuccessNotification(
+        command,
+        reportUri
+          ? nls.localize('apex_test_successful_execution_with_report_message', executionName, Utils.basename(reportUri))
+          : nls.localize('apex_test_successful_execution_message', executionName),
+        false,
+        openReportActions
+      )
+    ),
+    Match.when({ summary: { outcome: 'Failed' } }, failed =>
+      notificationMode.showErrorWithActions(
+        nls.localize('apex_test_completed_with_failures_message', executionName, failed.summary.failing),
+        openReportActions
+      )
+    ),
+    Match.orElse(() => Effect.sync(() => notificationService.showFailedExecution(executionName)))
   );
+});

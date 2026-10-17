@@ -6,7 +6,7 @@
  */
 import { isNullable } from 'effect/Predicate';
 import { CLASS_ID_PREFIX, TEST_RUN_ID_PREFIX } from '../tests/constants';
-import { TestResult, TestRunIdResult } from '../tests/types';
+import { type TestResult, type TestRunIdResult } from '../tests/types';
 
 export const isTestResult = (result: TestResult | TestRunIdResult): result is TestResult =>
   'summary' in result && 'tests' in result && result.summary !== undefined && result.tests !== undefined;

@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { SoqlBuilderActionEvent } from './soqlBuilderActionEvent.js';
 import { html, LitElement, nothing } from 'lit';
 import { property } from 'lit/decorators/property.js';
 import { createInitialSoqlBuilderState, type SoqlBuilderState } from '../domain.js';
-import { SoqlBuilderActionEvent } from './soqlBuilderActionEvent.js';
 import { soqlBuilderElementStyles } from './soqlBuilderElement.styles.js';
 
 export { SoqlBuilderActionEvent } from './soqlBuilderActionEvent.js';

@@ -48,6 +48,9 @@ export const messages = {
   debug_test_exec_name: 'Debug Test(s)',
   debug_test_success: 'Debug Test(s) successfully ran',
   debug_test_failed: 'Debug Test(s) failed: %s',
+  debug_test_completed_with_failures_message: 'Debug Test(s) completed with %d failing test(s)',
+  debug_test_replay_progress_title: 'Replaying Debug Test(s) logs',
+  debug_test_replay_progress_message: '%d of %d: %s',
   debug_test_no_results_found: 'No test results found',
   debug_test_no_debug_log: 'No debug log associated with test results',
   channel_name: 'Apex Replay Debugger',
@@ -55,7 +58,6 @@ export const messages = {
   apex_execute_debug_failed: 'Execute anonymous failed: %s',
   apex_execute_debug_success: 'Execute Anonymous Apex successfully ran',
   unable_to_locate_editor: 'You can run this command only on a source file.',
-  unable_to_locate_document: 'You can run this command only on a source file.',
   launch_apex_replay_debugger_unsupported_file:
     'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.',
   launch_apex_replay_debugger_with_selected_file: 'Launch Apex Replay Debugger with Selected File'

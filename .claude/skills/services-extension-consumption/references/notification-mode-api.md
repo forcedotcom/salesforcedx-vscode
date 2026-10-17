@@ -12,7 +12,7 @@ import * as Effect from 'effect/Effect';
 const program = Effect.gen(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const service = yield* api.services.NotificationModeService;
-  // use service.showSuccessNotification, service.getProgressLocation
+  // use service.showSuccessNotification, service.showErrorWithActions, service.getProgressLocation
 });
 
 const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -60,6 +60,16 @@ type ToastAction = { label: string; run: () => void | Promise<void> };
 | `successOff` (SO) | No | Toast |
 
 PAS = ProgressAndSuccessMode; SO = SuccessOnlyMode. Use `forceShow: true` for critical info (e.g., request ID). Status bar click → toast with message + actions.
+
+Returns without waiting for a click. A rejecting `run` is shown via `showErrorMessage(String(cause))`.
+
+## showErrorWithActions
+
+```typescript
+yield* service.showErrorWithActions(message, actions?);
+```
+
+Error toast with buttons for an operation that completed with errors (e.g. "completed with N failing test(s)" + Open Report). Always a toast: modes only govern progress and success. Same action handling as `showSuccessNotification`. Plain errors without buttons, and modal prompts, stay on `vscode.window.show*Message`.
 
 ## getProgressLocation
 

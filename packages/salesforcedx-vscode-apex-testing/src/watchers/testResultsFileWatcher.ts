@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import type { FileChangeEvent } from 'salesforcedx-vscode-services';
 import { Utils } from 'vscode-uri';
-import { getTestController } from '../views/testController';
+import { type getTestController } from '../views/testController';
 
 /** Check if a file event is a test result JSON file */
 const isTestResultJsonFile = (event: FileChangeEvent): boolean =>

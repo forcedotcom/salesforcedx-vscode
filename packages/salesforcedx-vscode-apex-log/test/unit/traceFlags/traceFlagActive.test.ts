@@ -27,7 +27,7 @@ describe('isTraceFlagActive', () => {
 
   it('returns false at the expiry boundary (expirationDate === now)', () => {
     const now = Date.now();
-    jest.spyOn(Date, 'now').mockReturnValue(now);
+    vi.spyOn(Date, 'now').mockReturnValue(now);
     // expirationDate.getTime() > Date.now() is strict, so equal is not active
     expect(isTraceFlagActive(makeItem(new Date(now)))).toBe(false);
   });

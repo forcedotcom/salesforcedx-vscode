@@ -8,6 +8,7 @@ on:
       - 'packages/drivable-vscode/**'
       - 'packages/playwright-vscode-ext/**'
       - '.github/workflows/drivableVscodeE2E.yml'
+      - '.github/actions/playwright-e2e/action.yml'
 
 jobs:
   macos-smoke:
@@ -15,17 +16,15 @@ jobs:
     timeout-minutes: 20
     env:
       CI: 1
+      VSCODE_DESKTOP: 1
+      E2E_NO_RETRIES: 1
       PLAYWRIGHT_VSCODE_VERSION: ${{ vars.PLAYWRIGHT_VSCODE_VERSION || 'stable' }}
     steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-e2e
+      - uses: $/.github/actions/playwright-e2e
         with:
+          workspace: packages/drivable-vscode
+          npm-script: test:desktop
+          retry-failed: false
+          report-name: drivable-vscode-macos-playwright-report
+          results-name: drivable-vscode-macos-playwright
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
-      - run: pnpm --filter @salesforce/drivable-vscode test:desktop -- --retries 0
-      - if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: drivable-vscode-macos-playwright
-          path: |
-            packages/drivable-vscode/test-results
-            packages/drivable-vscode/playwright-report

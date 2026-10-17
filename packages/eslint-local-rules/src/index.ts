@@ -25,6 +25,7 @@ import { noNestedEffectTernary } from './noNestedEffectTernary';
 import { noRawDuration } from './noRawDuration';
 import { noRuntimeVscodeImport } from './noRuntimeVscodeImport';
 import { noSelfBarrelImport } from './noSelfBarrelImport';
+import { noStandalonePipeableValue } from './noStandalonePipeableValue';
 import { noSuccessiveAnnotateCurrentSpan } from './noSuccessiveAnnotateCurrentSpan';
 import { notificationSlotMatchesPackageJson } from './notificationSlotMatchesPackageJson';
 import { noUnusedI18nMessages } from './noUnusedI18nMessages';
@@ -76,6 +77,7 @@ const plugin: TSESLint.FlatConfig.Plugin = {
     'no-nested-effect-gen-catch-tags': noNestedEffectGenCatchTags,
     'no-nested-effect-ternary': noNestedEffectTernary,
     'no-raw-duration': noRawDuration,
+    'no-standalone-pipeable-value': noStandalonePipeableValue,
     'no-unused-i18n-messages': noUnusedI18nMessages,
     'query-builder-html-i18n-keys': queryBuilderHtmlI18nKeys,
     'no-vscode-message-literals': noVscodeMessageLiterals,

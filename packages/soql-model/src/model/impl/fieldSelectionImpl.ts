@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Field, FieldSelection, SyntaxOptions, UnmodeledSyntax } from '../model';
+import { type Field, type FieldSelection, type SyntaxOptions, type UnmodeledSyntax } from '../model';
 
 export class FieldSelectionImpl implements FieldSelection {
   public readonly kind = 'fieldSelection' as const;

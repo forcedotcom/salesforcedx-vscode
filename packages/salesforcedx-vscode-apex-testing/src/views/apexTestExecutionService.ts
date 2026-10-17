@@ -5,22 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { ProgressAndSuccessCommandKey } from '../utils/notificationMode';
-import { TestResult, TestService } from '@salesforce/apex-node';
+import { type TestResult, TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
-import * as Runtime from 'effect/Runtime';
 import * as vscode from 'vscode';
-import { URI, Utils } from 'vscode-uri';
+import { type URI, Utils } from 'vscode-uri';
 import { APEX_TESTING_SECTION } from '../constants';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
 import { DebugDispatchError, TestExecutionError, TestTempFolderError } from '../utils/apexTestExecutionErrors';
-import { showRunSuccessNotification } from '../utils/notificationHelpers';
+import { showRunOutcomeNotification } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
 import { buildTestPayload } from '../utils/payloadBuilder';
 import {
@@ -34,7 +33,7 @@ import {
   isSuite,
   isSuiteClass
 } from '../utils/testItemUtils';
-import { openTestReport, writeAndOpenTestReport } from '../utils/testReportGenerator';
+import { writeAndOpenTestReport } from '../utils/testReportGenerator';
 import { updateTestRunResults } from '../utils/testResultProcessor';
 import { readTestRunIdFile, writeTestResultJsonFile } from '../utils/testUtils';
 import { ApexTestTreeService, type TreeMutationContext } from './apexTestTreeService';
@@ -291,16 +290,7 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       const channelService = yield* api.services.ChannelService;
       yield* channelService.appendToChannel(`Ended ${executionName}`);
       if (totalCount > 0) {
-        const notificationMode = yield* api.services.NotificationModeService;
-        const runtime = yield* Effect.runtime<Effect.Effect.Context<ReturnType<typeof openTestReport>>>();
-        yield* showRunSuccessNotification(
-          notificationMode,
-          command,
-          executionName,
-          reportUri,
-          outputFormat,
-          (uri, format) => Runtime.runPromise(runtime)(openTestReport(uri, format))
-        );
+        yield* showRunOutcomeNotification(command, executionName, result, reportUri, outputFormat);
       }
     });
 
@@ -327,21 +317,22 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
         return;
       }
 
-      // Accumulators built by Loop A and consumed by Loops B/C. concurrency:1 on every Effect.forEach keeps
-      // the replay debugger serviced one session at a time and makes the mutable-collection writes safe.
+      // Accumulators built by the partition loop and consumed by the batch dispatch. concurrency:1 keeps
+      // className-less method dispatches serviced one session at a time and makes the mutable-collection
+      // writes safe.
       const classIdsToDebug = new Set<string>();
       const methodsToDebug = new Map<string, Set<string>>();
 
       // Dispatch one replay-debugger command; map rejection to the E channel (never the raw value) then
       // recover in place so the failure never escapes the debug path.
-      const dispatchDebug = (command: string, name: string, recover: (err: DebugDispatchError) => void) =>
+      const dispatchDebug = (command: string, args: unknown, recover: (err: DebugDispatchError) => void) =>
         Effect.tryPromise({
-          try: () => vscode.commands.executeCommand(command, { name }),
+          try: () => vscode.commands.executeCommand(command, args),
           catch: error => new DebugDispatchError({ message: toUserFriendlyApexTestError(error) })
         }).pipe(Effect.catchTag('DebugDispatchError', err => Effect.sync(() => recover(err))));
 
-      // Loop A: partition selections into class-level and method-level debug; className-less methods and
-      // suites are handled inline (dispatch / not-supported error).
+      // Partition selections into class-level and method-level debug; className-less methods and suites are
+      // handled inline (dispatch / not-supported error).
       yield* Effect.forEach(
         testsToDebug,
         test => {
@@ -354,7 +345,7 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
                   existingMethods.add(testName);
                   methodsToDebug.set(className, existingMethods);
                 })
-              : dispatchDebug('sf.test.view.debugSingleTest', testName, err =>
+              : dispatchDebug('sf.test.view.debugSingleTest', { name: testName }, err =>
                   run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', err.message)))
                 );
           }
@@ -371,51 +362,22 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
         { concurrency: 1, discard: true }
       );
 
-      // Loop B: class-level debug dispatch; on failure mark every selected test covered by the class errored.
-      yield* Effect.forEach(
-        [...classIdsToDebug],
-        className =>
-          dispatchDebug('sf.test.view.debugTests', className, err =>
-            testsToDebug
-              .filter(
-                test =>
-                  (isClass(test.id) && getTestName(test) === className) ||
-                  (isMethod(test.id) && extractClassName(test.id) === className)
-              )
-              .forEach(test =>
-                run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', err.message)))
-              )
-          ),
-        { concurrency: 1, discard: true }
-      );
-
-      // Loop C: method-level debug dispatch, skipping classes already debugged at class level (Loop B).
-      yield* Effect.forEach(
-        [...methodsToDebug],
-        ([className, methods]) =>
-          classIdsToDebug.has(className)
-            ? Effect.void
-            : Effect.forEach(
-                [...methods],
-                methodName =>
-                  dispatchDebug('sf.test.view.debugSingleTest', methodName, err =>
-                    testsToDebug
-                      .filter(
-                        test =>
-                          isMethod(test.id) &&
-                          extractClassName(test.id) === className &&
-                          getTestName(test) === methodName
-                      )
-                      .forEach(test =>
-                        run.errored(
-                          test,
-                          new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', err.message))
-                        )
-                      )
-                  ),
-                { concurrency: 1, discard: true }
-              ),
-        { concurrency: 1, discard: true }
+      // One batch for every class and method (skipping methods of classes already debugged at class level), so
+      // the replay debugger runs them all, replays one log, and shows one notification for the selection.
+      const classNames = [...classIdsToDebug];
+      const methodNames = [...methodsToDebug]
+        .filter(([className]) => !classIdsToDebug.has(className))
+        .flatMap(([, methods]) => [...methods]);
+      if (classNames.length === 0 && methodNames.length === 0) {
+        return;
+      }
+      // On failure mark every selected test the batch covered errored.
+      yield* dispatchDebug('sf.test.view.debugTests', { classNames, methodNames }, err =>
+        testsToDebug
+          .filter(test => isClass(test.id) || (isMethod(test.id) && extractClassName(test.id) !== undefined))
+          .forEach(test =>
+            run.errored(test, new vscode.TestMessage(nls.localize('apex_test_debug_failed_message', err.message)))
+          )
       );
     });
 

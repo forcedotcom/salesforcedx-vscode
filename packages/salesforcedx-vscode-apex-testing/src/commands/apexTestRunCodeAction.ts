@@ -5,23 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { ProgressAndSuccessCommandKey } from '../utils/notificationMode';
-import { type ApexDiagnostic, ApexTestResultData, TestResult } from '@salesforce/apex-node';
+import { type ApexDiagnostic, type ApexTestResultData, type TestResult } from '@salesforce/apex-node';
 import { type NamedPackageDir } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isUndefined } from 'effect/Predicate';
+import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
-import { getApexTestingRuntime } from '../services/extensionProvider';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { apexTestingDiagnostics } from '../utils/diagnostics';
-import { notificationService, showRunSuccessNotification } from '../utils/notificationHelpers';
+import { showRunOutcomeNotification } from '../utils/notificationHelpers';
 import { getTestResultsFolder } from '../utils/pathHelpers';
-import { openTestReport } from '../utils/testReportGenerator';
 import { getRunCommandContext, resolveRunInputs, runApexTests } from './apexTestRunUtils';
 import { getZeroBasedRange } from './range';
 
@@ -62,36 +60,25 @@ const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (
 
   const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
 
-  const { result, reportUri, outputFormat } = yield* runApexTests({
-    payload,
-    outputDir,
-    codeCoverage,
-    concise,
-    telemetryTrigger: 'codeAction'
-  }).pipe(
-    Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
-    promptService.withCancellableProgress(executionName, progressLocation)
+  const { result, reportUri, outputFormat } = yield* promptService.withCancellableProgressReporting(
+    executionName,
+    progressLocation
+  )(progress =>
+    runApexTests({
+      payload,
+      outputDir,
+      codeCoverage,
+      concise,
+      telemetryTrigger: 'codeAction',
+      progress
+    }).pipe(Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }))
   );
 
   yield* channelService.showChannel;
-  if (isUndefined(result)) {
-    notificationService.showFailedExecution(executionName);
-    return;
+  if (isNotUndefined(result)) {
+    yield* handleDiagnostics(result);
   }
-
-  yield* handleDiagnostics(result);
-  if (result.summary.outcome === 'Passed') {
-    yield* showRunSuccessNotification(
-      notificationMode,
-      COMMAND,
-      executionName,
-      reportUri,
-      outputFormat,
-      (uri, format) => getApexTestingRuntime().runPromise(openTestReport(uri, format))
-    );
-  } else {
-    notificationService.showFailedExecution(executionName);
-  }
+  yield* showRunOutcomeNotification(COMMAND, executionName, result, reportUri, outputFormat);
 });
 
 const handleDiagnostics = Effect.fn('apexTestRunCodeAction.handleDiagnostics')(function* (result: TestResult) {

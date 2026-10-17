@@ -5,17 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { DebugConfigurationProvider } from '../adapter/debugConfigurationProvider';
 
-export const launchFromLogFile = async (
+/** Start a replay session for `logFile`. Returns false without launching when a debug session is already open
+ * or no workspace folder is open. */
+export const launchFromLogFile = Effect.fn('ApexReplayDebugger.launchFromLogFile')(function* (
   logFile?: string,
   stopOnEntry: boolean = true,
   anonApexFilePath?: string,
   anonApexLineOffset?: number
-) => {
-  if (!vscode.debug.activeDebugSession && vscode.workspace.workspaceFolders?.[0]) {
-    const config = DebugConfigurationProvider.getConfig(logFile, stopOnEntry, anonApexFilePath, anonApexLineOffset);
-    await vscode.debug.startDebugging(vscode.workspace.workspaceFolders[0], config);
-  }
-};
+) {
+  const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+  if (vscode.debug.activeDebugSession || !workspaceFolder) return false;
+  const config = DebugConfigurationProvider.getConfig(logFile, stopOnEntry, anonApexFilePath, anonApexLineOffset);
+  return yield* Effect.promise(() => vscode.debug.startDebugging(workspaceFolder, config));
+});

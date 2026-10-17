@@ -28,8 +28,8 @@ import {
   sfToggleCheckpointCommand
 } from './breakpoints/checkpointService';
 import { getDebuggerOutputChannel } from './channels';
-import { anonApexDebug } from './commands/anonApexDebug';
-import { launchApexReplayDebuggerWithCurrentFile } from './commands/launchApexReplayDebuggerWithCurrentFile';
+import { anonApexDebugCommand } from './commands/anonApexDebug';
+import { launchApexReplayDebuggerWithCurrentFileCommand } from './commands/launchApexReplayDebuggerWithCurrentFile';
 import { launchFromLogFile } from './commands/launchFromLogFile';
 import { debugSingleTestCommand, debugTestsCommand } from './commands/quickLaunch';
 import {
@@ -45,41 +45,26 @@ import { disposeRuntime, getRuntime } from './services/runtime';
 export { retrieveLineBreakpointInfo } from './apexExtension';
 export { writeToDebuggerOutputWindow } from './channels';
 
-const registerCommands = (extensionContext: vscode.ExtensionContext): vscode.Disposable => {
-  const launchFromLogFileCmd = vscode.commands.registerCommand(
-    'sf.launch.replay.debugger.logfile',
-    async (editorUri: URI) => {
-      const resolved = editorUri ?? vscode.window.activeTextEditor?.document.uri;
+const launchFromLogFileCommand = Effect.fn('ApexReplayDebugger.launchFromLogFileCommand')(function* (
+  extensionContext: vscode.ExtensionContext,
+  editorUri?: URI
+) {
+  let resolved = editorUri;
+  if (!resolved) {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    resolved = yield* api.services.EditorService.getActiveEditorUri().pipe(
+      Effect.catchTag('NoActiveEditorError', () => Effect.as(Effect.void, undefined))
+    );
+  }
+  if (resolved) updateLastOpened(extensionContext, resolved);
+  yield* launchFromLogFile(resolved?.fsPath);
+});
 
-      if (resolved) {
-        updateLastOpened(extensionContext, resolved);
-      }
-      await launchFromLogFile(resolved?.fsPath);
-    }
-  );
-
-  const launchFromLastLogFileCmd = vscode.commands.registerCommand(
-    'sf.launch.replay.debugger.last.logfile',
-    async () => {
-      const lastOpenedLog = extensionContext.workspaceState.get<string>(LAST_OPENED_LOG_KEY);
-      await launchFromLogFile(lastOpenedLog);
-    }
-  );
-
-  const anonApexDebugDelegateCmd = vscode.commands.registerCommand('sf.anon.apex.debug.delegate', anonApexDebug);
-
-  const launchApexReplayDebuggerWithCurrentFileCmd = vscode.commands.registerCommand(
-    'sf.launch.apex.replay.debugger.with.current.file',
-    () => launchApexReplayDebuggerWithCurrentFile(extensionContext)
-  );
-
-  return vscode.Disposable.from(
-    launchFromLogFileCmd,
-    launchFromLastLogFileCmd,
-    anonApexDebugDelegateCmd,
-    launchApexReplayDebuggerWithCurrentFileCmd
-  );
-};
+const launchFromLastLogFileCommand = Effect.fn('ApexReplayDebugger.launchFromLastLogFileCommand')(function* (
+  extensionContext: vscode.ExtensionContext
+) {
+  yield* launchFromLogFile(extensionContext.workspaceState.get<string>(LAST_OPENED_LOG_KEY));
+});
 
 export const getDebuggerType = async (session: vscode.DebugSession): Promise<string> => {
   let type = session.type;
@@ -146,10 +131,19 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
   );
   yield* registerCommand('sf.create.checkpoints', sfCreateCheckpointsCommand);
   yield* registerCommand('sf.toggle.checkpoint', sfToggleCheckpointCommand);
+  yield* registerCommand('sf.launch.replay.debugger.logfile', (editorUri?: URI) =>
+    launchFromLogFileCommand(extensionContext, editorUri)
+  );
+  yield* registerCommand('sf.launch.replay.debugger.last.logfile', () =>
+    launchFromLastLogFileCommand(extensionContext)
+  );
+  yield* registerCommand('sf.anon.apex.debug.delegate', anonApexDebugCommand);
+  yield* registerCommand('sf.launch.apex.replay.debugger.with.current.file', () =>
+    launchApexReplayDebuggerWithCurrentFileCommand(extensionContext)
+  );
   yield* registerCommand('sf.test.view.debugTests', debugTestsCommand);
   yield* registerCommand('sf.test.view.debugSingleTest', debugSingleTestCommand);
 
-  const commands = registerCommands(extensionContext);
   const debugHandlers = registerDebugHandlers();
   const debugConfigProvider = vscode.debug.registerDebugConfigurationProvider(
     'apex-replay',
@@ -168,7 +162,6 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
 
   extensionContext.subscriptions.push(
     debuggerChannel,
-    commands,
     debugHandlers,
     debugConfigProvider,
     checkpointsView,

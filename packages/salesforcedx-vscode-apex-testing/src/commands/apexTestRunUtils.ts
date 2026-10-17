@@ -4,14 +4,20 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AsyncTestConfiguration, HumanReporter, TestResult, TestService } from '@salesforce/apex-node';
+import {
+  type ApexTestProgressValue,
+  type AsyncTestConfiguration,
+  HumanReporter,
+  type TestResult,
+  TestService
+} from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { CancellationTokenSource } from 'vscode';
-import { URI } from 'vscode-uri';
+import { CancellationTokenSource, type Progress } from 'vscode';
+import { type URI } from 'vscode-uri';
 import { APEX_TESTING_SECTION } from '../constants';
 import { nls } from '../messages';
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
@@ -23,6 +29,33 @@ type ApexTestRunOptions = {
   codeCoverage: boolean;
   concise: boolean;
   telemetryTrigger: 'quickPick' | 'codeAction' | 'testView';
+  progress?: Progress<{ increment?: number; message?: string }>;
+};
+
+const reportTestProgress = (
+  progress: Progress<{ increment?: number; message?: string }> | undefined,
+  value: ApexTestProgressValue,
+  previousClassesCompleted: number
+): number => {
+  if (!progress || value.type === 'TestQueueProgress') {
+    return previousClassesCompleted;
+  }
+
+  if (value.type === 'PollingClientProgress') {
+    const completed = Math.max(previousClassesCompleted, value.classesCompleted);
+    if (value.classesEnqueued > 0) {
+      progress.report({
+        increment: ((completed - previousClassesCompleted) / value.classesEnqueued) * 100,
+        message: nls.localize('apex_test_run_progress_message', value.message, value.classesEnqueued)
+      });
+    }
+    return completed;
+  }
+
+  progress.report({
+    message: value.message
+  });
+  return previousClassesCompleted;
 };
 
 /**
@@ -117,11 +150,26 @@ export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTe
   // apex-node never throws on cancel (it returns null once the token is set), so there is no
   // cancellation result to catch here.
   const tokenSource = new CancellationTokenSource();
+  const progressState = { previousClassesCompleted: 0 };
 
   // TODO: fix in apex-node W-18453221
   const result = yield* Effect.tryPromise({
     try: () =>
-      testService.runTestAsynchronous(options.payload, options.codeCoverage, false, undefined, tokenSource.token),
+      testService.runTestAsynchronous(
+        options.payload,
+        options.codeCoverage,
+        false,
+        {
+          report: value => {
+            progressState.previousClassesCompleted = reportTestProgress(
+              options.progress,
+              value,
+              progressState.previousClassesCompleted
+            );
+          }
+        },
+        tokenSource.token
+      ),
     catch: error => new ApexTestRunError({ message: rejectionMessages(error).join(': '), cause: error })
   }).pipe(
     Effect.onInterrupt(() => Effect.sync(() => tokenSource.cancel())),

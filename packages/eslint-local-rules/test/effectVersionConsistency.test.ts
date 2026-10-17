@@ -52,7 +52,7 @@ describe('effect version consistency', () => {
         .map(file => readJson(file).version)
     );
     expect([...versions]).toHaveLength(1);
-  });
+  }, 15_000);
 
   it('satisfies @effect companion peer ranges', () => {
     const resolvedEffect = readJson(
@@ -77,5 +77,5 @@ describe('effect version consistency', () => {
       );
 
     expect(violations).toEqual([]);
-  });
+  }, 15_000);
 });

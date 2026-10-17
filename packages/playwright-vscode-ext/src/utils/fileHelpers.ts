@@ -297,7 +297,13 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
     .poll(async () => (await results.allTextContents()).some(matchesFileName), { timeout: 10_000 })
     .toBe(true);
 
-  const resultTexts = await results.allTextContents();
+  // A row's text and accessible name can end with its group label ("recently opened", "similar commands"), which
+  // changes as Quick Open re-renders, so pin the row by its aria-label (`<file> <folder>[, <group>]`) without the
+  // group; read text and label in one pass to keep them paired
+  const rows = await results.evaluateAll(elements =>
+    elements.map(element => ({ text: element.textContent ?? '', label: element.getAttribute('aria-label') ?? '' }))
+  );
+  const resultTexts = rows.map(({ text }) => text);
   const matchingIndex = resultTexts.findIndex(matchesFileName);
 
   if (matchingIndex < 0) {
@@ -316,8 +322,14 @@ export const openFileByName = async (page: Page, fileName: string): Promise<void
   }
 
   // Click the matching row directly. Keyboard indexes are unstable while Quick Open streams results.
-  const matchingText = resultTexts[matchingIndex];
-  const matchingResult = results.filter({ hasText: new RegExp(`^${escapeRegExp(matchingText)}$`) }).first();
+  const { text: matchingText, label: matchingLabel } = rows[matchingIndex];
+  // Group labels hold no path separators, so a trailing `, <words>` is the group, not part of the folder
+  const labelWithoutGroup = matchingLabel.replace(/, [^,/\\]*$/, '');
+  const matchingResult = labelWithoutGroup
+    ? activeQuickInputWidget(page)
+        .getByRole('option', { name: new RegExp(`^${escapeRegExp(labelWithoutGroup)}(, [^,/\\\\]*)?$`) })
+        .first()
+    : results.filter({ hasText: new RegExp(`^${escapeRegExp(matchingText)}$`) }).first();
   await expect(matchingResult).toBeVisible({ timeout: 5000 });
   await expect(matchingResult).toBeEnabled({ timeout: 5000 });
   await matchingResult.click();
