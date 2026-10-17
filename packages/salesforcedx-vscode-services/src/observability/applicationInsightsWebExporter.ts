@@ -15,15 +15,16 @@ import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
 import * as HttpClient from '@effect/platform/HttpClient';
 import * as HttpClientRequest from '@effect/platform/HttpClientRequest';
 import { SpanKind, SpanStatusCode } from '@opentelemetry/api';
-import { type ExportResult, ExportResultCode } from '@opentelemetry/core';
+import { type ExportResult } from '@opentelemetry/core';
 import { type ReadableSpan, type SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { TelemetryReporter } from '@vscode/extension-telemetry';
 import * as Console from 'effect/Console';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Stream from 'effect/Stream';
-import { workspace } from 'vscode';
+import { SFDX_CORE_SECTION } from '../constants';
 import { unknownToErrorCause } from '../core/shared';
+import { SettingsService } from '../vscode/settingsService';
 import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
 import { getSpanCreationIdentity } from './spanTransformProcessor';
 import {
@@ -31,6 +32,7 @@ import {
   getExtensionNameAndVersionAttributes,
   isSpanValidForProductionTelemetry,
   legacyNumericMeasurements,
+  reportExportResult,
   telemetrySpanDuration
 } from './spanUtils';
 
@@ -43,8 +45,6 @@ const getSpanKindName = (kind: SpanKind): string =>
     Match.when(SpanKind.CONSUMER, () => 'CONSUMER'),
     Match.orElse(() => 'UNKNOWN')
   );
-
-const telemetryTag = workspace.getConfiguration()?.get<string>('salesforcedx-vscode-core.telemetry-tag');
 
 /**
  * Custom OpenTelemetry span exporter that sends telemetry to Application Insights
@@ -68,9 +68,8 @@ export class ApplicationInsightsWebExporter implements SpanExporter {
         Stream.filter(isSpanValidForProductionTelemetry),
         Stream.mapEffect(span => exportSpan(span, () => this.getReporter())),
         Stream.runDrain,
-        Effect.map(() => {
-          resultCallback({ code: ExportResultCode.SUCCESS });
-        })
+        Effect.provide(SettingsService.Default),
+        reportExportResult(resultCallback)
       )
     );
   }
@@ -81,6 +80,7 @@ export class ApplicationInsightsWebExporter implements SpanExporter {
 }
 
 const exportSpan = Effect.fn('exportSpan')(function* (span: ReadableSpan, getReporter: () => TelemetryReporter) {
+  const telemetryTag = yield* (yield* SettingsService).getValue<string>(SFDX_CORE_SECTION, 'telemetry-tag');
   const success = span.status?.code !== SpanStatusCode.ERROR;
 
   // Create distributed trace context from OpenTelemetry span context

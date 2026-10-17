@@ -11,10 +11,11 @@ import * as Effect from 'effect/Effect';
 import { isString, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { workspace, type ExtensionContext } from 'vscode';
+import { type ExtensionContext } from 'vscode';
 import { SFDX_CORE_SECTION } from '../constants';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { ChannelService, ChannelServiceLayer } from '../vscode/channelService';
+import { SettingsService } from '../vscode/settingsService';
 import { runOnServicesRuntime } from './redactingConsoleLogger';
 import { getSdkLayerConfigFromContext, resolveConnectionString } from './sdkLayerConfig';
 import { setSpanCreationIdentity } from './spanTransformProcessor';
@@ -73,7 +74,9 @@ export const resolveLegacyConnectionString = (packageJSON?: {
 
 export const legacySpanName = (extensionName: string, eventName: string): string => `${extensionName}/${eventName}`;
 
-// payload-derived attributes; resource/common + frozen identity applied by sender post-onStart
+// payload-derived attributes; resource/common + frozen identity applied by sender post-onStart.
+// Excludes telemetry-tag: createLegacyTelemetrySpan stamps the live settings value at send time,
+// so direct callers of this builder get tagless attributes by design.
 export const buildLegacySpanAttributes = (
   payload: LegacyTelemetryPayload,
   callerO11y?: { endpoint?: string; enabled: boolean; productFeatureId?: string }
@@ -113,8 +116,6 @@ export const buildLegacySpanAttributes = (
     if (callerO11y.endpoint) attributes[LEGACY_O11Y_ENDPOINT_ATTR] = callerO11y.endpoint;
     if (callerO11y.productFeatureId) attributes[LEGACY_PRODUCT_FEATURE_ID_ATTR] = callerO11y.productFeatureId;
   }
-  const telemetryTag = workspace.getConfiguration(SFDX_CORE_SECTION)?.get<string>('telemetry-tag');
-  if (isString(telemetryTag)) attributes.telemetryTag = telemetryTag;
   return attributes;
 };
 
@@ -180,10 +181,13 @@ export const createLegacyTelemetrySpan = (config: LegacyTelemetrySenderConfig, p
   };
 
   return Effect.gen(function* () {
+    const telemetryTag = yield* (yield* SettingsService).getValue<string>(SFDX_CORE_SECTION, 'telemetry-tag');
     const span = yield* OtelTracer.currentOtelSpan;
     // SpanTransformProcessor.onStart stamps live org identity. Restore the legacy
     // send-time snapshot and caller metadata on the underlying SDK span before end.
-    Object.entries(attributes).forEach(([key, value]) => span.setAttribute(key, value));
+    Object.entries({ ...attributes, ...(isString(telemetryTag) ? { telemetryTag } : {}) }).forEach(([key, value]) =>
+      span.setAttribute(key, value)
+    );
     setSpanCreationIdentity(span, {
       // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- branded OrgId from plain string
       orgId: payload.identity.orgId as never,
@@ -200,6 +204,7 @@ export const createLegacyTelemetrySpan = (config: LegacyTelemetrySenderConfig, p
       return yield* new LegacyTelemetryException({ exceptionName: payload.name, message: payload.message ?? '' });
     }
   }).pipe(
+    Effect.provide(SettingsService.Default),
     Effect.withSpan(legacySpanName(extensionName, payload.name), {
       kind: 'internal',
       root: true,

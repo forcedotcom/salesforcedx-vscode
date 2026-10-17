@@ -163,7 +163,6 @@ const isAutoTerminateEnabled = Effect.fn('apex.orphan.isAutoTerminateEnabled')(
     );
   },
   Effect.catchTags({
-    MissingSettingsError: () => Effect.succeed(false),
     ServicesExtensionNotFoundError: () => Effect.succeed(false),
     InvalidServicesApiError: () => Effect.succeed(false)
   })

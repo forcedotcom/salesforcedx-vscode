@@ -18,29 +18,25 @@ import * as Option from 'effect/Option';
 import * as Sink from 'effect/Sink';
 import * as Stream from 'effect/Stream';
 import * as Tracer from 'effect/Tracer';
+import * as vscode from 'vscode';
 import { ConfigService, FailedToCreateConfigAggregatorError } from '../../../src/core/configService';
 import { TerminalService, TerminalServiceError, TerminalServiceWebLive } from '../../../src/terminal/terminalService';
-import { SettingsError, SettingsService } from '../../../src/vscode/settingsService';
+import { SettingsService } from '../../../src/vscode/settingsService';
 
 const settings: { values: Record<string, unknown>; fail: boolean } = { values: {}, fail: false };
 const cliTelemetry: { disabled: boolean; fail: boolean } = { disabled: false, fail: false };
 
 const getValueMock = vi.fn();
-const getValueImpl = (section: string, key: string, defaultValue?: unknown) =>
-  settings.fail
-    ? Effect.fail(new SettingsError({ cause: new Error('settings unavailable'), section, key, message: 'boom' }))
-    : Effect.succeed(settings.values[`${section}.${key}`] ?? defaultValue);
+const getValueImpl = (section: string, key: string) => {
+  if (settings.fail) throw new Error('settings unavailable');
+  return settings.values[`${section}.${key}`];
+};
 
 const isCliTelemetryDisabledMock = vi.fn();
 const isCliTelemetryDisabledImpl = () =>
   cliTelemetry.fail
     ? Effect.fail(new FailedToCreateConfigAggregatorError({ message: 'no workspace open' }))
     : Effect.succeed(cliTelemetry.disabled);
-
-const MockSettingsServiceLayer = Layer.succeed(
-  SettingsService,
-  SettingsService.make({ getValue: getValueMock, getValueOrElse: getValueMock } as unknown as SettingsService)
-);
 
 const MockConfigServiceLayer = Layer.succeed(
   ConfigService,
@@ -109,7 +105,7 @@ const withStart = (result: StartResult) => {
       Layer.provide(
         Layer.mergeAll(
           Layer.succeed(CommandExecutor.CommandExecutor, CommandExecutor.makeExecutor(start)),
-          MockSettingsServiceLayer,
+          SettingsService.Default,
           MockConfigServiceLayer
         )
       )
@@ -165,6 +161,9 @@ describe('TerminalService.simpleExec', () => {
     cliTelemetry.disabled = false;
     cliTelemetry.fail = false;
     getValueMock.mockImplementation(getValueImpl);
+    vi.spyOn(vscode.workspace, 'getConfiguration').mockImplementation(
+      section => ({ get: (key: string) => getValueMock(section, key) }) as unknown as vscode.WorkspaceConfiguration
+    );
     isCliTelemetryDisabledMock.mockImplementation(isCliTelemetryDisabledImpl);
   });
 
@@ -450,6 +449,7 @@ describe('TerminalService.simpleExec', () => {
 
     expect(result).toHaveLength(0);
     expect(envOf(capture.command)).toEqual({
+      SF_LOG_LEVEL: 'fatal',
       SF_JSON_TO_STDOUT: 'true',
       FORCE_COLOR: '0',
       SFDX_TOOL: 'salesforce-vscode-extensions'

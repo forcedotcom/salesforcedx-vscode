@@ -7,9 +7,10 @@
 
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
-import { ExtensionMode, workspace } from 'vscode';
+import { ExtensionMode } from 'vscode';
 import { SFDX_CORE_SECTION } from '../constants';
 import { getExtensionContext } from '../vscode/extensionContext';
+import { SettingsService } from '../vscode/settingsService';
 
 /** instrumentation key / connection string for test-otel-effect */
 export const DEFAULT_AI_CONNECTION_STRING =
@@ -39,18 +40,19 @@ const isDevOrTestMode = (): boolean =>
 const isLocalDivertMode = (): boolean =>
   process.env.ESBUILD_PLATFORM === 'web' ? process.env.ESBUILD_WEB_LOCAL === '1' : isDevOrTestMode();
 
-const isTelemetryExtensionConfigurationEnabled = (): boolean => {
+const isTelemetryExtensionConfigurationEnabled = Effect.fn('isTelemetryExtensionConfigurationEnabled')(function* () {
   // Node dev/test: always emit; everything is diverted to a local endpoint, never Azure.
   if (isLocalDivertMode()) {
     return true;
   }
 
+  const settings = yield* SettingsService;
   // Check VS Code telemetry settings
   const enabled =
-    workspace.getConfiguration('telemetry').get<string>('telemetryLevel', 'all') !== 'off' &&
+    (yield* settings.getValueOrElse('telemetry', 'telemetryLevel', 'all')) !== 'off' &&
     // on the web, no core extension is ever installed so we can't consult the config
     (process.env.ESBUILD_PLATFORM === 'web' ||
-      workspace.getConfiguration(SFDX_CORE_SECTION).get<boolean>('telemetry.enabled', false));
+      (yield* settings.getValueOrElse(SFDX_CORE_SECTION, 'telemetry.enabled', false)));
 
   if (!enabled) {
     return false;
@@ -60,11 +62,12 @@ const isTelemetryExtensionConfigurationEnabled = (): boolean => {
   // Can be overridden with salesforcedx-vscode-core.telemetry.allowDevMode setting
   const extensionMode = getExtensionMode();
   return isNotUndefined(extensionMode) && extensionMode !== ExtensionMode.Production
-    ? workspace.getConfiguration(SFDX_CORE_SECTION).get<boolean>('telemetry.allowDevMode', false)
+    ? yield* settings.getValueOrElse(SFDX_CORE_SECTION, 'telemetry.allowDevMode', false)
     : true;
-};
+});
 
 /** Per-export telemetry gate; checked fresh each batch → honors mid-session toggle.
     o11yEndpoint localhost bypasses the setting (dev sink). */
 export const isProductionTelemetryExportEnabled = (o11yEndpoint?: string): boolean =>
-  Boolean(o11yEndpoint?.includes('localhost')) || isTelemetryExtensionConfigurationEnabled();
+  Boolean(o11yEndpoint?.includes('localhost')) ||
+  Effect.runSync(isTelemetryExtensionConfigurationEnabled().pipe(Effect.provide(SettingsService.Default)));

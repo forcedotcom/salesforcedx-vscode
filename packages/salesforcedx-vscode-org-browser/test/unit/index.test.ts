@@ -140,18 +140,8 @@ const MockConfigServiceLayer = Layer.succeed(
 const MockSettingsServiceLayer = Layer.succeed(
   SettingsService,
   new SettingsService({
-    getValue: <T>(_section: string, _key: string, defaultValue?: T) =>
-      Effect.try({
-        try: () => defaultValue ?? undefined,
-        catch: () =>
-          new SettingsError({ cause: new Error('Mock error'), section: _section, key: _key, message: 'Mock error' })
-      }),
-    getValueOrElse: <T>(_section: string, _key: string, defaultValue: T) =>
-      Effect.try({
-        try: () => defaultValue,
-        catch: () =>
-          new SettingsError({ cause: new Error('Mock error'), section: _section, key: _key, message: 'Mock error' })
-      }),
+    getValue: () => Effect.succeed(undefined),
+    getValueOrElse: <T>(_section: string, _key: string, defaultValue: T) => Effect.succeed(defaultValue),
     setValue: <T>(_section: string, _key: string, _value: T) =>
       Effect.tryPromise({
         try: async () => undefined,

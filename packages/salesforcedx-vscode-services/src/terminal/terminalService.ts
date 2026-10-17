@@ -136,21 +136,15 @@ export class TerminalService extends Effect.Service<TerminalService>()('Terminal
         };
         return result;
       },
-      Effect.catchTags({
-        MissingSettingsError: fallbackTo<Record<string, string>>({}),
-        ConfigError: fallbackTo<Record<string, string>>({})
-      })
+      Effect.catchAll(fallbackTo<Record<string, string>>({}))
     );
 
     /** Keep in sync with utils-vscode `isTelemetryExtensionConfigurationEnabled` (same two settings, negated). */
-    const isVscodeTelemetryOff = Effect.fn('TerminalService.isVscodeTelemetryOff')(
-      function* () {
-        const level = yield* settingsService.getValueOrElse('telemetry', 'telemetryLevel', 'all');
-        const coreEnabled = yield* settingsService.getValueOrElse(SFDX_CORE_SECTION, 'telemetry.enabled', true);
-        return level === 'off' || !coreEnabled;
-      },
-      Effect.catchTag('MissingSettingsError', fallbackTo(false))
-    );
+    const isVscodeTelemetryOff = Effect.fn('TerminalService.isVscodeTelemetryOff')(function* () {
+      const level = yield* settingsService.getValueOrElse('telemetry', 'telemetryLevel', 'all');
+      const coreEnabled = yield* settingsService.getValueOrElse(SFDX_CORE_SECTION, 'telemetry.enabled', true);
+      return level === 'off' || !coreEnabled;
+    });
 
     const isTelemetryDisabled = Effect.fn('TerminalService.isTelemetryDisabled')(
       function* () {

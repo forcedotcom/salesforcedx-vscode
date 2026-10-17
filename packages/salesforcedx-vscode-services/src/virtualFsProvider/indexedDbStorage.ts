@@ -13,6 +13,7 @@ import { dirname } from 'node:path';
 import * as vscode from 'vscode';
 import { CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY } from '../constants';
 import { unknownToErrorCause } from '../core/shared';
+import { SettingsService } from '../vscode/settingsService';
 import {
   isSerializedDirectoryWithPath,
   isSerializedFileWithPath,
@@ -37,9 +38,11 @@ const ensureOpenRequestEvent = (event: Event): Event & { target: IDBOpenDBReques
 };
 
 export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageService>()('IndexedDBStorageService', {
+  dependencies: [SettingsService.Default],
   scoped: Effect.gen(function* () {
     const dbName =
-      vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(INSTANCE_URL_KEY)?.trim() ?? 'default';
+      (yield* (yield* SettingsService).getValue<string>(CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY))?.trim() ??
+      'default';
 
     const db = yield* Effect.async<IDBDatabase, VirtualFsProviderError>(resume => {
       const openRequest = indexedDB.open(dbName, DB_VERSION);

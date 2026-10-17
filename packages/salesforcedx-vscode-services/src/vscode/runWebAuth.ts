@@ -8,6 +8,7 @@ import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
 import * as Rec from 'effect/Record';
 import * as vscode from 'vscode';
+import { SettingsService } from './settingsService';
 
 export const runWebAuthEffect = Effect.fn('runWebAuthEffect')(function* () {
   // Apply web config from esbuild define if present
@@ -20,11 +21,20 @@ export const runWebAuthEffect = Effect.fn('runWebAuthEffect')(function* () {
     const configMap = parseConfig();
 
     if (configMap) {
-      const config = vscode.workspace.getConfiguration();
+      const settings = yield* SettingsService;
       yield* Effect.all(
-        Rec.collect(configMap, (k, v) =>
-          Effect.promise(() => config.update(k, v, vscode.ConfigurationTarget.Workspace))
-        )
+        Rec.collect(configMap, (fullKey, value) => {
+          const dot = fullKey.indexOf('.');
+          if (dot <= 0 || dot === fullKey.length - 1) {
+            return Effect.dieMessage(`Invalid web setting key "${fullKey}": expected "<section>.<key>".`);
+          }
+          return settings.setValue(
+            fullKey.slice(0, dot),
+            fullKey.slice(dot + 1),
+            value,
+            vscode.ConfigurationTarget.Workspace
+          );
+        })
       );
     }
   }

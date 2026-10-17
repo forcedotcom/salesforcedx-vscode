@@ -8,10 +8,14 @@ import type { Mock as VitestMock } from 'vitest';
 import * as vscode from 'vscode';
 import * as Effect from 'effect/Effect';
 import {
-  getInternalMode,
+  getInternalMode as getInternalModeWithSettings,
   normalizeToInternal,
   NotificationModeService
 } from '../../src/vscode/notificationModeService';
+import { SettingsService } from '../../src/vscode/settingsService';
+
+const getInternalMode = (...args: Parameters<typeof getInternalModeWithSettings>) =>
+  getInternalModeWithSettings(...args).pipe(Effect.provide(SettingsService.Default), Effect.runSync);
 
 describe('normalizeToInternal', () => {
   it.each([
@@ -113,7 +117,7 @@ describe('NotificationModeService.Default', () => {
 
   afterEach(() => vi.restoreAllMocks());
 
-  const runWithService = <A>(effect: Effect.Effect<A, never, NotificationModeService>) =>
+  const runWithService = <A, E>(effect: Effect.Effect<A, E, NotificationModeService>) =>
     Effect.runPromise(effect.pipe(Effect.provide(NotificationModeService.Default('ext', 'status-id', 'Status Name'))));
 
   it.each([

@@ -9,6 +9,7 @@ import type * as EffectOpenTelemetryModule from '@effect/opentelemetry';
 import { trace } from '@opentelemetry/api';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import * as vscode from 'vscode';
 import type { ExtensionContext } from 'vscode';
 import { type CliId } from '../../../src/observability/cliTelemetry';
 import { type OrgId } from '../../../src/core/schemas/salesforceId';
@@ -89,6 +90,11 @@ describe('buildLegacySpanAttributes', () => {
   it('marks spans with the legacy telemetry source', () => {
     const attributes = buildLegacySpanAttributes({ kind: 'event', name: 'e', identity: baseIdentity });
     expect(attributes[LEGACY_TELEMETRY_SOURCE_ATTR]).toBe(LEGACY_TELEMETRY_SOURCE_VALUE);
+  });
+
+  it('excludes telemetry-tag, stamped at send time by createLegacyTelemetrySpan', () => {
+    const attributes = buildLegacySpanAttributes({ kind: 'event', name: 'e', identity: baseIdentity });
+    expect(attributes).not.toHaveProperty('telemetryTag');
   });
 
   it('commandExecution carries attribute command equal to properties.commandName', () => {
@@ -196,6 +202,15 @@ describe('createLegacyTelemetrySpan', () => {
     expect(attributes.get(LEGACY_PRODUCT_FEATURE_ID_ATTR)).toBe('aJC123');
   });
 
+  it('stamps telemetry-tag from settings at send time', async () => {
+    vi.spyOn(vscode.workspace, 'getConfiguration').mockReturnValue({ get: () => 'test-tag' } as never);
+    const { attributes } = captureOtelSpan();
+    await Effect.runPromise(
+      createLegacyTelemetrySpan(senderConfig, { kind: 'event', name: 'e', identity: baseIdentity })
+    );
+    expect(attributes.get('telemetryTag')).toBe('test-tag');
+  });
+
   it('stamps O11y disabled when the caller never opted in', async () => {
     const { attributes } = captureOtelSpan();
     await Effect.runPromise(
@@ -203,6 +218,14 @@ describe('createLegacyTelemetrySpan', () => {
     );
     expect(attributes.get(LEGACY_O11Y_ENABLED_ATTR)).toBe('false');
     expect(attributes.get(LEGACY_O11Y_ENDPOINT_ATTR)).toBeUndefined();
+  });
+
+  it('omits telemetry-tag when unset', async () => {
+    const { attributes } = captureOtelSpan();
+    await Effect.runPromise(
+      createLegacyTelemetrySpan(senderConfig, { kind: 'event', name: 'e', identity: baseIdentity })
+    );
+    expect(attributes.get('telemetryTag')).toBeUndefined();
   });
 });
 

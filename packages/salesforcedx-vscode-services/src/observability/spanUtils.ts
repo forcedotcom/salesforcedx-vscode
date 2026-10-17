@@ -5,11 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { type Attributes, type HrTime } from '@opentelemetry/api';
+import { type ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { type ReadableSpan } from '@opentelemetry/sdk-trace-base';
+import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isNotNullable, isNotUndefined, isUndefined } from 'effect/Predicate';
 import * as Rec from 'effect/Record';
 import { LEGACY_TELEMETRY_SOURCE_ATTR, LEGACY_TELEMETRY_SOURCE_VALUE } from './legacyTelemetrySender';
+
+/** Report an export Effect's success or failure through the OpenTelemetry callback. */
+export const reportExportResult = (resultCallback: (result: ExportResult) => void) =>
+  Effect.match({
+    onFailure: (error: Error) => resultCallback({ code: ExportResultCode.FAILED, error }),
+    onSuccess: () => resultCallback({ code: ExportResultCode.SUCCESS })
+  });
 
 /** Check if a span is a top-level span (has no parent) */
 const isTopLevelSpan = (span: ReadableSpan): boolean => isUndefined(span.parentSpanContext);
