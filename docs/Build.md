@@ -51,6 +51,7 @@ You can do this in libraries, too, to have their bundled version add or drop web
 - `main`: desktop, CJS `dist/index.js` or ESM `dist/index.mjs` (VS Code 1.100+)
 - `browser`: **web only**, `dist/web/index.js` — VSCode web host uses this instead of main. See [VSCode web extensions](https://code.visualstudio.com/api/extension-guides/web-extensions).
 - `types`: when another package/extension has this as a devDependency and imports its API, point to `out/src/index.d.ts` so TypeScript can resolve types
+- Shared packages used by CJS and ESM consumers: keep the CJS `require` target and add an ESM `import` target in `exports`; avoid package-wide `type: module` unless every `.js` file is ESM-ready.
 
 **activationEvents**
 
