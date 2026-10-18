@@ -100,10 +100,7 @@ export class ApplicationInsightsNodeExporter implements SpanExporter {
   }
 }
 
-const sendSpan = Effect.fn('sendSpan')(function* (
-  span: ReadableSpan,
-  otelLogger: ReturnType<LoggerProvider['getLogger']>
-) {
+const sendSpan = Effect.fnUntraced(function* (span: ReadableSpan, otelLogger: ReturnType<LoggerProvider['getLogger']>) {
   const telemetryTag = yield* (yield* SettingsService).getValue<string>(SFDX_CORE_SECTION, 'telemetry-tag');
 
   const { userId, webUserId } = getSpanCreationIdentity(span);

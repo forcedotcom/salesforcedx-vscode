@@ -29,7 +29,7 @@ const decodeStoredCliId = (value: string) => Schema.decode(CliId)(value).pipe(Ef
  * Seed the stable cliId and webUserId identities into defaultOrgRef + globalState.
  * Must run before consumers (connectionService, core telemetry init) read identity state.
  */
-export const seedTelemetryIdentities = Effect.fn('seedTelemetryIdentities')(function* () {
+export const seedTelemetryIdentities = Effect.fnUntraced(function* () {
   const contextService = yield* ExtensionContextService;
   const extensionContext = yield* contextService.getContext;
 

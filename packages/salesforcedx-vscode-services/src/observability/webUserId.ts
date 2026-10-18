@@ -27,7 +27,7 @@ const hashUserIdentifier = (orgId: string, userId: string) =>
   });
 
 // persist the webUserId to the extension context global state
-export const setWebUserId = Effect.fn('setWebUserId')(function* (orgId: string, userId: string) {
+export const setWebUserId = Effect.fnUntraced(function* (orgId: string, userId: string) {
   const contextService = yield* ExtensionContextService;
   const extensionContext = yield* contextService.getContext;
   const webUserId = yield* hashUserIdentifier(orgId, userId);

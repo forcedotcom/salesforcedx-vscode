@@ -43,8 +43,7 @@ const fetchCliIdFromCli = () => {
     Effect.map(parsed => parsed.result.cliId),
     Effect.catchAll(error =>
       Effect.log(`Failed to fetch cliId: ${String(error)}`).pipe(Effect.as<CliId | undefined>(undefined))
-    ),
-    Effect.withSpan('fetchCliId', { attributes: { command } })
+    )
   );
 };
 

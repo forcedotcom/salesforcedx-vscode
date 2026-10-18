@@ -79,7 +79,7 @@ export class ApplicationInsightsWebExporter implements SpanExporter {
   }
 }
 
-const exportSpan = Effect.fn('exportSpan')(function* (span: ReadableSpan, getReporter: () => TelemetryReporter) {
+const exportSpan = Effect.fnUntraced(function* (span: ReadableSpan, getReporter: () => TelemetryReporter) {
   const telemetryTag = yield* (yield* SettingsService).getValue<string>(SFDX_CORE_SECTION, 'telemetry-tag');
   const success = span.status?.code !== SpanStatusCode.ERROR;
 

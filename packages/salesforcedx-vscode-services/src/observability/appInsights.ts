@@ -40,7 +40,7 @@ const isDevOrTestMode = (): boolean =>
 const isLocalDivertMode = (): boolean =>
   process.env.ESBUILD_PLATFORM === 'web' ? process.env.ESBUILD_WEB_LOCAL === '1' : isDevOrTestMode();
 
-const isTelemetryExtensionConfigurationEnabled = Effect.fn('isTelemetryExtensionConfigurationEnabled')(function* () {
+const isTelemetryExtensionConfigurationEnabled = Effect.fnUntraced(function* () {
   // Node dev/test: always emit; everything is diverted to a local endpoint, never Azure.
   if (isLocalDivertMode()) {
     return true;

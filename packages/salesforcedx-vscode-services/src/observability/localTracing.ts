@@ -22,12 +22,12 @@ export const getConsoleTracesEnabled = () => getBooleanConfiguration('enableCons
 export const getFileTracesEnabled = () => getBooleanConfiguration('enableFileTraces');
 
 /** Resolve the minimum Effect log level from the VS Code setting, falling back to SF_LOG_LEVEL env var. */
-export const getLogLevel = Effect.fn('getLogLevel')(function* () {
+export const getLogLevel = Effect.fnUntraced(function* () {
   const sfLogLevel = process.env.SF_LOG_LEVEL;
   const fallback = sfLogLevel === 'fatal' ? 'error' : (sfLogLevel ?? 'error');
-  return yield* (yield* SettingsService).getValue<string>(SALESFORCE_DX_SECTION, 'logLevel').pipe(
-    Effect.map(raw => mapSfLogLevel(raw ?? fallback))
-  );
+  return yield* (yield* SettingsService)
+    .getValue<string>(SALESFORCE_DX_SECTION, 'logLevel')
+    .pipe(Effect.map(raw => mapSfLogLevel(raw ?? fallback)));
 });
 
 const mapSfLogLevel = (level: string): LogLevel.LogLevel => {

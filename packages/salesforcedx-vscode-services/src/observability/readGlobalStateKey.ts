@@ -10,7 +10,7 @@ import * as Option from 'effect/Option';
 import { ExtensionContextService } from '../vscode/extensionContextService';
 
 /** Read a string-valued globalState key as Option. */
-export const readGlobalStateKey = Effect.fn('readGlobalStateKey')(function* (key: string) {
+export const readGlobalStateKey = Effect.fnUntraced(function* (key: string) {
   const contextService = yield* ExtensionContextService;
   const extensionContext = yield* contextService.getContext;
   return Option.fromNullable(extensionContext.globalState.get<string | undefined>(key));

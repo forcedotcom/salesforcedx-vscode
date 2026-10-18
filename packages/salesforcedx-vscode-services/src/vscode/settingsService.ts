@@ -128,15 +128,12 @@ export class SettingsService extends Effect.Service<SettingsService>()('Settings
         )
       );
 
-    const getValue = Effect.fn('SettingsService.getValue')(function* <T>(section: string, key: string) {
+    // Reads run in telemetry span-processing paths; tracing them would create spans while handling spans.
+    const getValue = Effect.fnUntraced(function* <T>(section: string, key: string) {
       return yield* readValue<T>(section, key);
     });
 
-    const getValueOrElse = Effect.fn('SettingsService.getValueOrElse')(function* <T>(
-      section: string,
-      key: string,
-      defaultValue: T
-    ) {
+    const getValueOrElse = Effect.fnUntraced(function* <T>(section: string, key: string, defaultValue: T) {
       return (yield* readValue<T>(section, key)) ?? defaultValue;
     });
 
