@@ -1,0 +1,13 @@
+{
+  "name": "salesforcedx-vscode-apex-oas-activation-playwright",
+  "displayName": "Apex OAS Activation Playwright",
+  "publisher": "salesforce",
+  "version": "0.0.1",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./extension"
+}

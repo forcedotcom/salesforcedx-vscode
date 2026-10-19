@@ -35,8 +35,7 @@ concurrency:
 
 jobs:
   e2e-desktop:
-    # OAS broken by A4V v4 marketplace release; re-enable when fixed (tracked in W-22997620).
-    if: false
+    # Generation specs remain blocked by A4V v4 (W-22997620); this smoke test needs no LLM or org.
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     strategy:
@@ -45,8 +44,6 @@ jobs:
       fail-fast: false
 
     env:
-      MINIMAL_ORG_ALIAS: minimalTestOrg
-      SFDX_AUTH_URL: ${{ secrets.SFDX_AUTH_URL_E2E }}
       VSCODE_DESKTOP: 1
       E2E_FROM_VSIX: 1
       PLAYWRIGHT_VSCODE_VERSION: ${{ github.event_name != 'push' &&
@@ -56,10 +53,8 @@ jobs:
       - uses: $/.github/actions/playwright-e2e
         with:
           workspace: packages/salesforcedx-vscode-apex-oas
-          npm-script: test:desktop
-          scratch-orgs: minimal
+          npm-script: test:desktop:smoke
           sf-cli-version: ${{ vars.SF_CLI_VERSION || 'latest' }}
-          recreate-org-on-retry: 'true'
           report-name: playwright-report-apex-oas-desktop-${{ matrix.os }}
           results-name: playwright-test-results-apex-oas-desktop-${{ matrix.os }}
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}

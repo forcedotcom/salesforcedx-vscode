@@ -5,6 +5,7 @@
 .vscode/**
 .vscode-test/**
 .wireit/**
+node_modules
 *.xml
 *.vsix
 out/**
@@ -19,7 +20,9 @@ src/**
 tsconfig.json
 coverage
 esbuild.config.mjs
-jest.config.js
+vitest.config.mts
+playwright-report/**
+test-results/**
 
 # do not reach outside the package
 ../../**

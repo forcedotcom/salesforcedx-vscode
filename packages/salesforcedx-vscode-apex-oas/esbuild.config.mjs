@@ -10,9 +10,10 @@ import { writeFile } from 'fs/promises';
 
 const nodeBuild = await build({
   ...nodeConfig,
-  external: ['vscode', 'applicationinsights', 'jsonpath', 'jsonc-parser'],
+  // jsonc-parser's UMD entry hides require calls from esbuild; bundle its ESM entry instead.
+  mainFields: ['module', 'main'],
   keepNames: false,
-  entryPoints: ['./src/index.ts'],
+  entryPoints: ['./out/src/index.js'],
   outdir: 'dist',
   metafile: true
 });

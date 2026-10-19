@@ -128,7 +128,7 @@ packages/dbaeumer*
 .history
 
 # Extension build directory
-packages/**/extension
+packages/**/extension/
 tsconfig.tsbuildinfo
 
 #Extensions folder for local E2E Testing
