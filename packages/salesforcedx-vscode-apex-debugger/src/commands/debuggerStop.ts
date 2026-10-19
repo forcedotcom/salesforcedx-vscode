@@ -56,9 +56,8 @@ export const debuggerStop = Effect.fn('debuggerStop')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const notificationMode = yield* api.services.NotificationModeService;
 
-  // precondition: getSfProject sets the sf:project_opened context and fails with a typed
-  // FailedToResolveSfProjectError (rendered by ErrorHandlerService) when there's no project (parity
-  // with the migrated org commands and the old sfProjectPreconditionChecker gate).
+  // Precondition: getSfProject sets the sf:project_opened context and fails with a typed
+  // FailedToResolveSfProjectError (rendered by ErrorHandlerService) when there's no project.
   yield* api.services.ProjectService.getSfProject();
 
   // ISV Debugger projects authenticate via org-isv-debugger-sid/url stored in project-local config,

@@ -195,10 +195,9 @@ export const createLanguageServer = Effect.fn('apex.lsp.createLanguageServer')(f
 });
 
 const buildClientOptions = Effect.fn('apex.lsp.buildClientOptions')(function* (outputChannel?: vscode.OutputChannel) {
-  const scanConfig = yield* Effect.tryPromise({
-    try: buildMetadataRegistryScanConfig,
-    catch: cause => languageClientSetupError('options', cause)
-  });
+  const scanConfig = yield* buildMetadataRegistryScanConfig.pipe(
+    Effect.mapError(cause => languageClientSetupError('options', cause))
+  );
 
   const { lspParityCapabilities, ...initializationSettings } = yield* apexLanguageServerSettings().pipe(
     Effect.mapError(cause => languageClientSetupError('options', cause))

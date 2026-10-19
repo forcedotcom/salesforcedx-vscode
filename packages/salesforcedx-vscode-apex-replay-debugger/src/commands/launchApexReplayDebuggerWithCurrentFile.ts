@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService, sfProjectPreconditionChecker } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
@@ -26,7 +26,13 @@ export const launchApexReplayDebuggerWithCurrentFileCommand = Effect.fn(
     }
 
     if (isAnonymousApexFile(sourceUri)) {
-      yield* launchAnonymousApexReplayDebugger();
+      if (!(yield* api.services.ProjectService.isSalesforceProject())) {
+        yield* Effect.sync(() => {
+          void vscode.window.showErrorMessage(nls.localize('launch_apex_replay_debugger_no_salesforce_project'));
+        });
+        return;
+      }
+      yield* Effect.promise(() => vscode.commands.executeCommand('sf.anon.apex.debug.delegate'));
       return;
     }
 
@@ -57,13 +63,6 @@ const getApexTestClassName = (sourceUri: URI, text: string): string | undefined 
   const fileName = Utils.basename(sourceUri);
   return fileName.endsWith('.cls') && IS_TEST_REG_EXP.test(text) ? fileName.slice(0, -'.cls'.length) : undefined;
 };
-
-const launchAnonymousApexReplayDebugger = Effect.fn('ApexReplayDebugger.launchAnonymousApexReplayDebugger')(
-  function* () {
-    if (!(yield* Effect.promise(() => sfProjectPreconditionChecker.check()))) return;
-    yield* Effect.promise(() => vscode.commands.executeCommand('sf.anon.apex.debug.delegate'));
-  }
-);
 
 const launchApexReplayDebugger = async (apexTestClassName: string) => {
   await vscode.commands.executeCommand('sf.test.view.debugTests', {

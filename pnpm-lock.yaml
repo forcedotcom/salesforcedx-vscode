@@ -529,9 +529,6 @@ importers:
 
   packages/effect-ext-utils:
     dependencies:
-      '@salesforce/vscode-i18n':
-        specifier: workspace:*
-        version: link:../salesforcedx-vscode-i18n
       '@types/vscode':
         specifier: ^1.90.0
         version: 1.90.0

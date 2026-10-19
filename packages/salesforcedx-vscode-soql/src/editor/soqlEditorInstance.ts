@@ -13,6 +13,7 @@ import debounce = require('debounce');
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
+import * as Layer from 'effect/Layer';
 import { isError } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import type { SObject } from 'salesforcedx-vscode-services';
@@ -176,8 +177,11 @@ export class SOQLEditorInstance {
           )
         );
 
-        yield* Effect.all([messages, connectionChanges], { concurrency: 'unbounded', discard: true });
-      }).pipe(Effect.provide(MetadataRequestGenerationGateLive))
+        const metadataRequestContext = yield* Layer.build(MetadataRequestGenerationGateLive);
+        yield* Effect.all([messages, connectionChanges], { concurrency: 'unbounded', discard: true }).pipe(
+          Effect.provide(metadataRequestContext)
+        );
+      }).pipe(Effect.scoped)
     );
     this.subscriptions.push({ dispose: () => Fiber.interrupt(instanceFiber).pipe(Effect.runFork) });
 

@@ -60,5 +60,5 @@ export const buildAllServicesLayer = (context: ExtensionContext, fallbackDisplay
         // Multiple VSIX copies of effect share one Extension Host. Option.none() skips their mismatch WARN; Effect.logWarning is unchanged.
         suppressVersionMismatchWarning
       );
-    }).pipe(Effect.provide(ExtensionProviderServiceLive))
-  );
+    })
+  ).pipe(Layer.provide(ExtensionProviderServiceLive));

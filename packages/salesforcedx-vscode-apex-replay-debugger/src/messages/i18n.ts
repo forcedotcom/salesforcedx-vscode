@@ -58,6 +58,8 @@ export const messages = {
   apex_execute_debug_failed: 'Execute anonymous failed: %s',
   apex_execute_debug_success: 'Execute Anonymous Apex successfully ran',
   unable_to_locate_editor: 'You can run this command only on a source file.',
+  launch_apex_replay_debugger_no_salesforce_project:
+    'No sfdx-project.json found in the root directory of your open project. Open a Salesforce DX project in VS Code.',
   launch_apex_replay_debugger_unsupported_file:
     'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.',
   launch_apex_replay_debugger_with_selected_file: 'Launch Apex Replay Debugger with Selected File'

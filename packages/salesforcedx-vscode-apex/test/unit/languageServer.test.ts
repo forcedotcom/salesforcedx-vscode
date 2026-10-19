@@ -37,9 +37,10 @@ vi.mock('../../src/requirements', async () => {
 });
 
 // No services extension → no scan config.
-vi.mock('../../src/languageServerScanConfig', () => ({
-  buildMetadataRegistryScanConfig: vi.fn().mockResolvedValue(undefined)
-}));
+vi.mock('../../src/languageServerScanConfig', async () => {
+  const { void: effectVoid } = await import('effect/Effect');
+  return { buildMetadataRegistryScanConfig: effectVoid };
+});
 
 // Capture the onTelemetry callback so tests can drive Jorje telemetry events at will.
 type TelemetryData = { properties?: Record<string, string>; measures?: Record<string, number> };
@@ -51,7 +52,6 @@ import { ApexLanguageClient } from '../../src/apexLanguageClient';
 import { createLanguageServer } from '../../src/languageServer';
 import { nls } from '../../src/messages';
 import { resolveRequirements } from '../../src/requirements';
-import { buildMetadataRegistryScanConfig } from '../../src/languageServerScanConfig';
 import { getRuntime } from '../../src/services/runtime';
 
 const runCreateLanguageServer = (context: vscode.ExtensionContext) =>
@@ -64,7 +64,6 @@ describe('languageServer client span', () => {
     capturedOnTelemetry = undefined;
     // resetMocks:true wipes module-scope implementations before each test — re-establish them here.
     (resolveRequirements as VitestMock).mockReturnValue(Effect.succeed({ java_home: '/mock/java', java_memory: 4096 }));
-    (buildMetadataRegistryScanConfig as VitestMock).mockResolvedValue(undefined);
     (ApexLanguageClient as unknown as VitestMock).mockImplementation(
       // Vitest constructor mocks require a constructible function, not an arrow function.
       // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
