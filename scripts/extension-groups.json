@@ -16,6 +16,22 @@
     "metadata": {
       "label": "Metadata",
       "extensions": ["salesforcedx-vscode-metadata"]
+    },
+    "apex-replay-debugger": {
+      "label": "Apex Replay Debugger",
+      "extensions": [
+        "salesforcedx-vscode-apex-replay-debugger",
+        "salesforcedx-vscode-apex",
+        "salesforcedx-vscode-apex-log"
+      ]
+    },
+    "lwc": {
+      "label": "Lightning Web Components",
+      "extensions": ["salesforcedx-vscode-lwc"]
+    },
+    "soql": {
+      "label": "SOQL",
+      "extensions": ["salesforcedx-vscode-soql"]
     }
   }
 }
