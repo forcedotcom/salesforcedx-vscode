@@ -1,5 +1,5 @@
 {
-  "requiredExtensions": ["salesforcedx-vscode-core", "salesforcedx-vscode-services"],
+  "requiredExtensions": ["salesforcedx-vscode-core", "salesforcedx-vscode-services", "salesforcedx-vscode-org"],
   "groups": {
     "apex-log": {
       "label": "Apex Log",
@@ -7,7 +7,7 @@
     },
     "apex-testing": {
       "label": "Apex Testing",
-      "extensions": ["salesforcedx-vscode-apex-testing", "salesforcedx-vscode-org"]
+      "extensions": ["salesforcedx-vscode-apex-testing"]
     },
     "org-browser": {
       "label": "Org Browser",
