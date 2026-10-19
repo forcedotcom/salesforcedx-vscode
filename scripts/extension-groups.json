@@ -5,18 +5,6 @@
       "label": "Apex Log",
       "extensions": ["salesforcedx-vscode-apex", "salesforcedx-vscode-apex-log"]
     },
-    "apex-testing": {
-      "label": "Apex Testing",
-      "extensions": ["salesforcedx-vscode-apex-testing"]
-    },
-    "org-browser": {
-      "label": "Org Browser",
-      "extensions": ["salesforcedx-vscode-org-browser", "salesforcedx-vscode-metadata"]
-    },
-    "metadata": {
-      "label": "Metadata",
-      "extensions": ["salesforcedx-vscode-metadata"]
-    },
     "apex-replay-debugger": {
       "label": "Apex Replay Debugger",
       "extensions": [
@@ -25,9 +13,21 @@
         "salesforcedx-vscode-apex-log"
       ]
     },
+    "apex-testing": {
+      "label": "Apex Testing",
+      "extensions": ["salesforcedx-vscode-apex-testing"]
+    },
     "lwc": {
       "label": "Lightning Web Components",
       "extensions": ["salesforcedx-vscode-lwc"]
+    },
+    "metadata": {
+      "label": "Metadata",
+      "extensions": ["salesforcedx-vscode-metadata"]
+    },
+    "org-browser": {
+      "label": "Org Browser",
+      "extensions": ["salesforcedx-vscode-org-browser", "salesforcedx-vscode-metadata"]
     },
     "soql": {
       "label": "SOQL",
