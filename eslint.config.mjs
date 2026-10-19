@@ -639,6 +639,7 @@ export default [
   {
     files: [
       'packages/salesforcedx**/test/unit/**/*',
+      'packages/salesforcedx-apex-replay-debugger/test/integration/**/*',
       'packages/salesforcedx**/src/**/__tests__/**/*',
       'packages/salesforcedx**/src/**/*.spec.ts',
       'packages/salesforcedx**/src/**/*.test.ts',
@@ -702,6 +703,7 @@ export default [
   },
   {
     files: ['packages/**/test/integration/**/*.{ts,tsx}'],
+    ignores: ['packages/salesforcedx-apex-replay-debugger/test/integration/**/*'],
     plugins: { jest: eslintPluginJest },
     rules: {
       'jest/no-deprecated-functions': 'error',
