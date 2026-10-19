@@ -27,7 +27,7 @@
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
-      "args": ["--extensionDevelopmentPath=${workspaceFolder}/.vscode/selected-extensions"],
+      "args": ["--disable-extensions", "--extensionDevelopmentPath=${workspaceFolder}/.vscode/selected-extensions"],
       "sourceMaps": true,
       "smartStep": true,
       "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js", "${workspaceFolder}/packages/*/dist/**/*.js"],
