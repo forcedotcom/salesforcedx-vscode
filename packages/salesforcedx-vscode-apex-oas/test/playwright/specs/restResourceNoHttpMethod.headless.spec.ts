@@ -15,6 +15,7 @@ import {
   NOTIFICATION_LIST_ITEM,
   openFileByName
 } from '@salesforce/playwright-vscode-ext';
+import { restResourceNoHttpMethodClassText } from '../testData/sampleClassData';
 import { pushSource, setupWorkbenchAndAuth, waitForA4VAndOasCommands } from '../utils/oasHelpers';
 
 test.setTimeout(360_000);
@@ -22,14 +23,10 @@ test.setTimeout(360_000);
 // Unique per run: on container's shared, persistent workbench/org this avoids colliding with a prior
 // run or retry (desktop always gets a fresh org/workspace, so this is harmless there too).
 const CLASS_NAME = `RestResourceNoHttpMethod${Date.now()}`;
-const CLASS_CONTENT = [
-  `@RestResource(urlMapping='/apex-rest-examples/v1/noHttp-${CLASS_NAME}/*')`,
-  `global with sharing class ${CLASS_NAME} {`,
-  '  global static Account getAccount(Id accountId) {',
-  '    return [SELECT Id, Name, Phone, Website FROM Account WHERE Id = :accountId];',
-  '  }',
-  '}'
-].join('\n');
+// Unique urlMapping too, so the class doesn't clash with a prior run's class in the shared container org.
+const CLASS_CONTENT = restResourceNoHttpMethodClassText
+  .replaceAll('RestResourceNoHttpMethod', CLASS_NAME)
+  .replace('/v1/noHttp/', `/v1/noHttp-${CLASS_NAME}/`);
 
 // @RestResource without an @Http___ method passes eligibility and the mixed-frameworks check, but no
 // generation strategy qualifies. Asserts the early Step 2.6 guard fails fast with apex_class_not_valid

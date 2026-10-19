@@ -15,6 +15,7 @@ import {
   NOTIFICATION_LIST_ITEM,
   openFileByName
 } from '@salesforce/playwright-vscode-ext';
+import { mixedFrameworksClassText } from '../testData/sampleClassData';
 import { pushSource, setupWorkbenchAndAuth, waitForA4VAndOasCommands } from '../utils/oasHelpers';
 
 test.setTimeout(360_000);
@@ -22,22 +23,10 @@ test.setTimeout(360_000);
 // Unique per run: on container's shared, persistent workbench/org this avoids colliding with a prior
 // run or retry (desktop always gets a fresh org/workspace, so this is harmless there too).
 const CLASS_NAME = `MixedFrameworksClass${Date.now()}`;
-const CLASS_CONTENT = [
-  `@RestResource(urlMapping='/apex-rest-examples/v1/mixed-${CLASS_NAME}/*')`,
-  `global with sharing class ${CLASS_NAME} {`,
-  '  @HttpGet',
-  '  global static Account getAccount() {',
-  '    RestRequest req = RestContext.request;',
-  "    String accountId = req.requestURI.substring(req.requestURI.lastIndexOf('/')+1);",
-  '    return [SELECT Id, Name, Phone, Website FROM Account WHERE Id = :accountId];',
-  '  }',
-  '',
-  '  @AuraEnabled',
-  '  public static Account getAccountForAura(Id accountId) {',
-  '    return [SELECT Id, Name, Phone, Website FROM Account WHERE Id = :accountId];',
-  '  }',
-  '}'
-].join('\n');
+// Unique urlMapping too, so the class doesn't clash with a prior run's class in the shared container org.
+const CLASS_CONTENT = mixedFrameworksClassText
+  .replaceAll('MixedFrameworksClass', CLASS_NAME)
+  .replace('/v1/mixed/', `/v1/mixed-${CLASS_NAME}/`);
 
 test('OAS: class mixing Apex REST and AuraEnabled frameworks shows error notification', async ({ page }) => {
   await test.step('setup workbench + auth', async () => {
