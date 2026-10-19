@@ -56,7 +56,6 @@ jobs:
       - uses: ./.github/actions/setup-pnpm
         if: steps.preflight.outputs.result == 'true'
         with:
-          node-version: 24
           install: 'false'
       - name: Install trusted approver dependencies
         if: steps.preflight.outputs.result == 'true'

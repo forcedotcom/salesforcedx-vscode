@@ -4,7 +4,7 @@ inputs:
   node-version:
     description: Node.js version
     required: false
-    default: lts/*
+    default: '24.18.0'
   install:
     description: Install workspace dependencies
     required: false

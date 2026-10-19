@@ -1,5 +1,8 @@
 {
   "name": "@salesforce/drivable-vscode",
+  "engines": {
+    "node": ">=24.18.0"
+  },
   "version": "0.1.0",
   "private": true,
   "description": "Remote visual presence and operation in VS Code",

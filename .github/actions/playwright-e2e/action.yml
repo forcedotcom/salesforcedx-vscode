@@ -36,7 +36,7 @@ inputs:
     default: ''
   node-version:
     description: Node.js version
-    default: lts/*
+    default: '24.18.0'
   sf-cli-version:
     description: Salesforce CLI version (callers pass the repository variable)
     default: latest

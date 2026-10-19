@@ -48,7 +48,6 @@ jobs:
           npm-script: test:web
           report-name: playwright-report-lwc-web
           results-name: playwright-test-results-lwc-web
-          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
   e2e-desktop-lsp:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
@@ -68,7 +67,6 @@ jobs:
           spec-filter: headless
           report-name: playwright-report-lwc-desktop-lsp-${{ matrix.os }}
           results-name: playwright-test-results-lwc-desktop-lsp-${{ matrix.os }}
-          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
   e2e-desktop-run-tests:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 90
@@ -88,7 +86,6 @@ jobs:
           spec-filter: lwcRunTests
           report-name: playwright-report-lwc-desktop-run-tests-${{ matrix.os }}
           results-name: playwright-test-results-lwc-desktop-run-tests-${{ matrix.os }}
-          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
   e2e-desktop-debug-tests:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
@@ -108,4 +105,3 @@ jobs:
           spec-filter: lwcDebugTests
           report-name: playwright-report-lwc-desktop-debug-tests-${{ matrix.os }}
           results-name: playwright-test-results-lwc-desktop-debug-tests-${{ matrix.os }}
-          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}

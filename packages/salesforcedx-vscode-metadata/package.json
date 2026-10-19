@@ -22,7 +22,8 @@
   "productFeatureId": "aJCEE0000000mLm4AI",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.100.0"
+    "vscode": "^1.129.0",
+    "node": ">=24.18.0"
   },
   "categories": [
     "Other"

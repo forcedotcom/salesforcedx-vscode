@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+/// <reference lib="dom" preserve="true" />
+
 import { expect, type Page } from '@playwright/test';
 import {
   QUICK_INPUT_LIST_ROW,

@@ -22,7 +22,8 @@
     "theme": "light"
   },
   "engines": {
-    "vscode": "^1.100.0"
+    "vscode": "^1.129.0",
+    "node": ">=24.18.0"
   },
   "categories": [
     "Programming Languages"

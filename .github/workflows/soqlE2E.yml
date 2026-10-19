@@ -53,7 +53,6 @@ jobs:
           report-name: playwright-report-soql-web
           results-name: playwright-test-results-soql-web
           results-path: packages/soql-builder-ui/test-results
-          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
   e2e-desktop:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
@@ -78,4 +77,3 @@ jobs:
           sf-cli-version: ${{ vars.SF_CLI_VERSION || 'latest' }}
           report-name: playwright-report-soql-desktop-${{ matrix.os }}
           results-name: playwright-test-results-soql-desktop-${{ matrix.os }}
-          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}

@@ -13,7 +13,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-pnpm
         with:
-          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
       - uses: google/wireit@setup-github-actions-caching/v2
       - uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
@@ -28,7 +27,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-pnpm
         with:
-          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
       - uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
       - name: Validate GitHub Actions
@@ -40,7 +38,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-pnpm
         with:
-          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
       - uses: google/wireit@setup-github-actions-caching/v2
       - uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
@@ -53,7 +50,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-pnpm
         with:
-          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
       - uses: google/wireit@setup-github-actions-caching/v2
       - uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main

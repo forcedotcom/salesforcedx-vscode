@@ -106,7 +106,7 @@ jobs:
       packageManager: pnpm
       packageManagerVersion: 12.8.2
       cacheDependencyPath: pnpm-lock.yaml
-      nodeVersion: ${{ vars.NODE_VERSION || 'lts/*' }}
+      nodeVersion: '24.18.0'
       packagePath: ./packages/eslint-local-rules
       prerelease: ${{ github.event.inputs.prerelease == 'true' }}
       trustedPublishing: true

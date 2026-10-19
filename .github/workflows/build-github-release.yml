@@ -51,7 +51,6 @@ jobs:
       - name: Setup Node.js
         uses: ./.github/actions/setup-pnpm
         with:
-          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
 
       - name: Detect source ref
@@ -451,7 +450,6 @@ jobs:
       - name: Setup Node.js
         uses: ./.github/actions/setup-pnpm
         with:
-          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
 
       - uses: ./.github/actions/gitConfig

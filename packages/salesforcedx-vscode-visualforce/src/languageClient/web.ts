@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+/// <reference lib="dom" />
+
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import { window } from 'vscode';

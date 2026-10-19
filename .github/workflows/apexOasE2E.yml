@@ -57,4 +57,3 @@ jobs:
           sf-cli-version: ${{ vars.SF_CLI_VERSION || 'latest' }}
           report-name: playwright-report-apex-oas-desktop-${{ matrix.os }}
           results-name: playwright-test-results-apex-oas-desktop-${{ matrix.os }}
-          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}

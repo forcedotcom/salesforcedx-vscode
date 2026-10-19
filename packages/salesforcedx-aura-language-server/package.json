@@ -5,7 +5,8 @@
   "description": "Language server for Aura components.",
   "publisher": "salesforce",
   "engines": {
-    "vscode": "^1.90.0"
+    "node": ">=24.18.0",
+    "vscode": "^1.129.0"
   },
   "main": "out/src/index.js",
   "typings": "out/src/index.d.ts",

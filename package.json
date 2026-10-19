@@ -7,7 +7,7 @@
     "packages/*"
   ],
   "engines": {
-    "node": ">=22.15.1"
+    "node": ">=24.18.0"
   },
   "dependencies": {
     "@salesforce/o11y-reporter": "^1.8.5",
@@ -45,10 +45,10 @@
     "@secretlint/node": "11.7.1",
     "@stylistic/eslint-plugin-ts": "2.13.0",
     "@tony.ganchev/eslint-plugin-header": "3.4.4",
-    "@tsconfig/node22": "22.0.5",
+    "@tsconfig/node24": "24.0.5",
     "@types/cross-spawn": "6.0.6",
     "@types/jest": "^30.0.0",
-    "@types/node": "^22.15.1",
+    "@types/node": "^24.18.0",
     "@types/semver": "7.5.8",
     "@types/vscode": "1.90.0",
     "@types/xml2js": "0.4.14",
@@ -490,6 +490,7 @@
       "command": "ts-node --project scripts/tsconfig.json scripts/validateActions.ts",
       "files": [
         "scripts/validateActions.ts",
+        "scripts/shared/validateAction.ts",
         "scripts/tsconfig.json",
         ".github/workflows/*.{yml,yaml}",
         ".github/actions/*/action.{yml,yaml}"

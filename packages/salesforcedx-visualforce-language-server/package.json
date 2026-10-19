@@ -5,7 +5,8 @@
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.90.0"
+    "node": ">=24.18.0",
+    "vscode": "^1.129.0"
   },
   "dependencies": {
     "typescript": "6.0.3",
