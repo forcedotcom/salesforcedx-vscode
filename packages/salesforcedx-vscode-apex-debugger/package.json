@@ -49,8 +49,8 @@
     "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
     "vscode:bundle:build": "wireit",
-    "vscode:prepublish": "npm prune --production",
-    "vscode:package:legacy": "wireit",
+    "vscode:package": "wireit",
+    "vscode:package:prerelease": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "wireit",
@@ -59,7 +59,6 @@
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache .circular-deps.json *.vsix",
     "test": "wireit",
     "test:compile": "wireit",
-    "vscode:package:legacy:prerelease": "wireit",
     "test:desktop": "wireit",
     "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-apex-debugger test:desktop --debug",
     "test:e2e": "wireit",
@@ -110,7 +109,7 @@
         }
       },
       "dependencies": [
-        "vscode:package:legacy",
+        "vscode:package",
         "../salesforcedx-vscode-services:vscode:package",
         "../salesforcedx-vscode-services:spans:server",
         "../playwright-vscode-ext:compile"
@@ -210,20 +209,41 @@
       ],
       "output": []
     },
-    "vscode:package:legacy": {
-      "command": "ts-node ../../scripts/vsce-bundled-extension.ts",
-      "dependencies": [
-        "vscode:bundle"
-      ]
-    },
-    "vscode:package:legacy:prerelease": {
-      "command": "ts-node ../../scripts/vsce-bundled-extension.ts",
+    "vscode:package": {
+      "command": "vsce package --allow-package-all-secrets --no-dependencies",
       "dependencies": [
         "vscode:bundle"
       ],
-      "env": {
-        "VSCE_PRE_RELEASE": "true"
-      }
+      "files": [
+        ".vscodeignore",
+        "package.json",
+        "package.nls*.json",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE.txt",
+        "images/**"
+      ],
+      "output": [
+        "*.vsix"
+      ]
+    },
+    "vscode:package:prerelease": {
+      "command": "vsce package --allow-package-all-secrets --no-dependencies --pre-release",
+      "dependencies": [
+        "vscode:bundle"
+      ],
+      "files": [
+        ".vscodeignore",
+        "package.json",
+        "package.nls*.json",
+        "README.md",
+        "CHANGELOG.md",
+        "LICENSE.txt",
+        "images/**"
+      ],
+      "output": [
+        "*.vsix"
+      ]
     },
     "check:effect-diagnostics": {
       "command": "node ../../scripts/effect-diagnostics.mjs .",
@@ -240,28 +260,7 @@
   "activationEvents": [
     "onDebugResolve:apex"
   ],
-  "main": "./out/src",
-  "packaging": {
-    "assets": [
-      "LICENSE.txt",
-      "package.nls.ja.json",
-      "package.nls.json",
-      "README.md",
-      ".vscodeignore",
-      "images",
-      "dist"
-    ],
-    "debuggers": [
-      "./dist/apexDebug.js"
-    ],
-    "packageUpdates": {
-      "main": "dist/index.js",
-      "dependencies": {
-        "applicationinsights": "1.0.7"
-      },
-      "devDependencies": {}
-    }
-  },
+  "main": "./dist/index.js",
   "contributes": {
     "breakpoints": [
       {
