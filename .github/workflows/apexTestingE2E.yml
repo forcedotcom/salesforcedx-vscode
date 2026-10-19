@@ -59,6 +59,7 @@ jobs:
           compile-playwright-utils: 'true'
           report-name: playwright-report-apex-testing-web-${{ matrix.lane }}
           results-name: playwright-test-results-apex-testing-web-${{ matrix.lane }}
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
   e2e-desktop:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
@@ -88,3 +89,4 @@ jobs:
           compile-playwright-utils: 'true'
           report-name: playwright-report-apex-testing-desktop-${{ matrix.os }}-${{ matrix.lane }}
           results-name: playwright-test-results-apex-testing-desktop-${{ matrix.os }}-${{ matrix.lane }}
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}

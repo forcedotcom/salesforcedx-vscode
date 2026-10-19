@@ -54,6 +54,7 @@ jobs:
           sf-cli-version: ${{ vars.SF_CLI_VERSION || 'latest' }}
           report-name: playwright-report-web
           results-name: playwright-test-results-web
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
   e2e-desktop:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
@@ -81,6 +82,7 @@ jobs:
           sf-cli-version: ${{ vars.SF_CLI_VERSION || 'latest' }}
           report-name: playwright-report-desktop-${{ matrix.os }}
           results-name: playwright-test-results-desktop-${{ matrix.os }}
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
   e2e-conflicts-web:
     runs-on: ubuntu-latest
     timeout-minutes: 60
@@ -101,6 +103,7 @@ jobs:
           sf-cli-version: ${{ vars.SF_CLI_VERSION || 'latest' }}
           report-name: playwright-report-conflicts-web
           results-name: playwright-test-results-conflicts-web
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
   e2e-conflicts-desktop:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
@@ -127,3 +130,4 @@ jobs:
           sf-cli-version: ${{ vars.SF_CLI_VERSION || 'latest' }}
           report-name: playwright-report-conflicts-desktop-${{ matrix.os }}
           results-name: playwright-test-results-conflicts-desktop-${{ matrix.os }}
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}

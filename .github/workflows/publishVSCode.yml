@@ -125,6 +125,7 @@ jobs:
       - name: Setup Node.js
         uses: ./.github/actions/setup-pnpm
         with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
 
       - name: Install dependencies for hotfix commit
@@ -155,7 +156,7 @@ jobs:
     steps:
       - uses: actions/setup-node@v7
         with:
-          node-version: '24.18.0'
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
       - name: Download VSIXs from release
         env:
           RELEASE_TAG: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}

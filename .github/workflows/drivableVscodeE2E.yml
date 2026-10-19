@@ -27,3 +27,4 @@ jobs:
           retry-failed: false
           report-name: drivable-vscode-macos-playwright-report
           results-name: drivable-vscode-macos-playwright
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}

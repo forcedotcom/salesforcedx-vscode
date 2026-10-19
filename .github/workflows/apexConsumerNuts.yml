@@ -38,6 +38,8 @@ jobs:
 
       - name: Setup pnpm
         uses: ./.github/actions/setup-pnpm
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
 
       - name: Build apex library
         run: |

@@ -80,7 +80,7 @@ jobs:
           ref: ${{ github.event.inputs.branch || 'develop' }}
       - uses: actions/setup-node@v7
         with:
-          node-version: '24.18.0'
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
       - name: Build extension list
         id: list
         env:

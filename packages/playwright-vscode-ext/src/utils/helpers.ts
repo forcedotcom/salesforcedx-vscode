@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+// Playwright browser callbacks need DOM types, which the shared Node config no longer includes.
+// Preserve this reference in declarations so importing test projects get those types too.
 /// <reference lib="dom" preserve="true" />
 
 import { expect, type Page } from '@playwright/test';

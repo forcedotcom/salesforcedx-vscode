@@ -106,7 +106,7 @@ jobs:
       packageManager: pnpm
       packageManagerVersion: 12.8.2
       cacheDependencyPath: pnpm-lock.yaml
-      nodeVersion: '22'
+      nodeVersion: ${{ vars.NODE_VERSION || 'lts/*' }}
       packagePath: ./packages/salesforcedx-vscode-i18n
       prerelease: ${{ github.event.inputs.prerelease == 'true' }}
       trustedPublishing: true

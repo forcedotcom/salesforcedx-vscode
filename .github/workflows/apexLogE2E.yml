@@ -53,6 +53,7 @@ jobs:
           retry-failed: 'false'
           report-name: playwright-report-apex-log-web
           results-name: playwright-test-results-apex-log-web
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
   e2e-desktop:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
@@ -79,3 +80,4 @@ jobs:
           retry-failed: 'false'
           report-name: playwright-report-apex-log-desktop-${{ matrix.os }}
           results-name: playwright-test-results-apex-log-desktop-${{ matrix.os }}
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}

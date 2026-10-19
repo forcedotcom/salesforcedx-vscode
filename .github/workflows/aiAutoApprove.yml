@@ -70,6 +70,8 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
           persist-credentials: false
       - uses: ./.github/actions/setup-pnpm
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
       - name: Compile effect-octokit
         run: pnpm --filter @salesforce/effect-octokit compile
       - name: Decide and approve

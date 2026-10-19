@@ -49,6 +49,7 @@ jobs:
           npm-script: test:web
           report-name: playwright-report-apex-web
           results-name: playwright-test-results-apex-web
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
   e2e-desktop:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
@@ -70,3 +71,4 @@ jobs:
           npm-script: test:desktop
           report-name: playwright-report-apex-desktop-${{ matrix.os }}
           results-name: playwright-test-results-apex-desktop-${{ matrix.os }}
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}

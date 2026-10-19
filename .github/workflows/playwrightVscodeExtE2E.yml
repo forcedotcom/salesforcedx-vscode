@@ -46,6 +46,7 @@ jobs:
           npm-script: test:web
           report-name: playwright-report-web
           results-name: playwright-test-results-web
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
   e2e-desktop:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
@@ -66,3 +67,4 @@ jobs:
           npm-script: test:desktop
           report-name: playwright-report-desktop-${{ matrix.os }}
           results-name: playwright-test-results-desktop-${{ matrix.os }}
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}

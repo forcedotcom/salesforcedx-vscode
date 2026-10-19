@@ -8,7 +8,6 @@
   "license": "BSD-3-Clause",
   "main": "out/src",
   "engines": {
-    "node": ">=24.18.0",
     "vscode": "^1.129.0"
   },
   "categories": [

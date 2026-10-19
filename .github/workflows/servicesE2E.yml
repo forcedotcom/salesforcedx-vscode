@@ -52,3 +52,4 @@ jobs:
           sf-cli-version: ${{ vars.SF_CLI_VERSION || 'latest' }}
           report-name: playwright-report-web
           results-name: playwright-test-results-web
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}

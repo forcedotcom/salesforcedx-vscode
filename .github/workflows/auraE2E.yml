@@ -60,3 +60,4 @@ jobs:
           copy-appinsights: 'true'
           report-name: playwright-report-${{ matrix.package }}-desktop-${{ matrix.os }}
           results-name: playwright-test-results-${{ matrix.package }}-desktop-${{ matrix.os }}
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}

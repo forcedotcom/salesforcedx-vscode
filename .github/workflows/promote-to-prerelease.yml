@@ -73,6 +73,7 @@ jobs:
         if: ${{ inputs.isHotfix }}
         uses: ./.github/actions/setup-pnpm
         with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
 
       - name: Checkout hotfix commit
@@ -190,6 +191,7 @@ jobs:
       - name: Setup Node.js
         uses: ./.github/actions/setup-pnpm
         with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
 
       - uses: ./.github/actions/gitConfig
