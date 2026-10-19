@@ -11,10 +11,9 @@ export default createContainerConfig({
   testDir: './specs',
   // Remaining container-only twins under specs/container/ (NOT container-noorg/-noproject/
   // -multipackage — those need the re-seeded workspace shape from their own phase config).
-  // createApexTrigger and executeAnonymous stay separate twins: each exercises a genuinely
-  // different scenario in container mode (live org-connected picker vs no-org fallback;
-  // command-palette execution + marker round-trips vs CodeLens-driven flow), not just a
-  // setup/screenshot difference.
+  // executeAnonymous stays a separate twin: it exercises a genuinely different scenario in
+  // container mode (command-palette execution + marker round-trips vs CodeLens-driven flow), not
+  // just a setup/screenshot difference.
   //
   // The rest are unified with desktop/web — they branch on `isContainer` from ../fixtures
   // instead of duplicating a *.container.spec.ts file.
@@ -23,6 +22,7 @@ export default createContainerConfig({
     'apexGenerateClass.headless.spec.ts',
     'apexTestClassCreate.headless.spec.ts',
     'autoCollection.headless.spec.ts',
+    'createApexTrigger.headless.spec.ts',
     'logRetrieval.headless.spec.ts',
     'traceFlagExpiry.headless.spec.ts',
     'traceFlagsCrud.headless.spec.ts'
