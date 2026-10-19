@@ -23,9 +23,7 @@ export default defineConfig({
         {
           ...chromiumProject,
           name: 'chromium',
-          // container specs are code-server-only; exclude them here too (project testIgnore overrides
-          // the factory's). Kept separate from serializedSpecs, which is reused as testMatch below.
-          testIgnore: [...serializedSpecs, '**/*.container.spec.ts']
+          testIgnore: serializedSpecs
         },
         {
           ...chromiumProject,
