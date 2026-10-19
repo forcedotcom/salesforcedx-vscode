@@ -9,7 +9,7 @@ import copy from 'esbuild-plugin-copy';
 import { createRequire } from 'module';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { nodeConfig } from '../../scripts/bundling/node.mjs';
+import { nodeEsmConfig } from '../../scripts/bundling/node.mjs';
 import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
 
 import { writeFile, readFile, readdir, mkdir } from 'fs/promises';
@@ -148,13 +148,12 @@ const buildWebConfig = async () => {
 
 // Desktop build (Node.js environment)
 const nodeBuild = await build({
-  ...nodeConfig,
+  ...nodeEsmConfig,
   // node-branch `import()`; `node.mjs` defaults `dynamic-import` false/error (lwcServer.js).
-  supported: { ...nodeConfig.supported, 'dynamic-import': true },
-  logOverride: { ...nodeConfig.logOverride, 'unsupported-dynamic-import': 'silent' },
+  logOverride: { ...nodeEsmConfig.logOverride, 'unsupported-dynamic-import': 'silent' },
   entryPoints: ['./out/src/index.js'],
   outdir: './dist',
-  plugins: [...(nodeConfig.plugins ?? []), copyTemplates],
+  plugins: [...(nodeEsmConfig.plugins ?? []), copyTemplates],
   metafile: true
 });
 
