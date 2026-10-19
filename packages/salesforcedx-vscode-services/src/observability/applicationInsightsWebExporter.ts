@@ -11,7 +11,6 @@
  * We want to send spans that have no parent span as CustomEvents, and capture their properties from the span.
  * Additionally, we want to send any failed spans as Exceptions (the parent span may not finish if a child span fails)
  */
-import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
 import * as HttpClient from '@effect/platform/HttpClient';
 import * as HttpClientRequest from '@effect/platform/HttpClientRequest';
 import { SpanKind, SpanStatusCode } from '@opentelemetry/api';
@@ -20,12 +19,12 @@ import { type ReadableSpan, type SpanExporter } from '@opentelemetry/sdk-trace-b
 import { TelemetryReporter } from '@vscode/extension-telemetry';
 import * as Console from 'effect/Console';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
 import * as Match from 'effect/Match';
 import * as Stream from 'effect/Stream';
 import { workspace } from 'vscode';
 import { unknownToErrorCause } from '../core/shared';
 import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
+import { makeLocalHttpRuntime } from './localHttpRuntime';
 import { getSpanCreationIdentity } from './spanTransformProcessor';
 import {
   convertAttributes,
@@ -56,6 +55,7 @@ const telemetryTag = workspace.getConfiguration()?.get<string>('salesforcedx-vsc
  */
 export class ApplicationInsightsWebExporter implements SpanExporter {
   private reporter: TelemetryReporter | undefined;
+  private readonly localHttpRuntime = makeLocalHttpRuntime();
 
   constructor(private readonly makeReporter = () => new TelemetryReporter(DEFAULT_AI_CONNECTION_STRING)) {}
 
@@ -67,7 +67,9 @@ export class ApplicationInsightsWebExporter implements SpanExporter {
     void Effect.runPromise(
       Stream.fromIterable(spans).pipe(
         Stream.filter(isSpanValidForProductionTelemetry),
-        Stream.mapEffect(span => exportSpan(span, () => this.getReporter())),
+        Stream.mapEffect(span => exportSpan(span, () => this.getReporter(), this.localHttpRuntime), {
+          concurrency: process.env.ESBUILD_WEB_LOCAL === '1' ? 'unbounded' : 1
+        }),
         Stream.runDrain,
         Effect.map(() => {
           resultCallback({ code: ExportResultCode.SUCCESS });
@@ -77,11 +79,15 @@ export class ApplicationInsightsWebExporter implements SpanExporter {
   }
 
   public shutdown(): Promise<void> {
-    return this.reporter?.dispose() ?? Promise.resolve();
+    return Promise.all([this.reporter?.dispose(), this.localHttpRuntime.dispose()]).then(() => undefined);
   }
 }
 
-const exportSpan = Effect.fn('exportSpan')(function* (span: ReadableSpan, getReporter: () => TelemetryReporter) {
+const exportSpan = Effect.fn('exportSpan')(function* (
+  span: ReadableSpan,
+  getReporter: () => TelemetryReporter,
+  localHttpRuntime: ReturnType<typeof makeLocalHttpRuntime>
+) {
   const success = span.status?.code !== SpanStatusCode.ERROR;
 
   // Create distributed trace context from OpenTelemetry span context
@@ -111,15 +117,17 @@ const exportSpan = Effect.fn('exportSpan')(function* (span: ReadableSpan, getRep
     duration: telemetrySpanDuration(span)
   };
 
-  yield* Effect.try({
-    try: () =>
-      process.env.ESBUILD_WEB_LOCAL === '1'
-        ? sendToLocalAppInsightsFile(span.name, success, props, measurements)
-        : success
-          ? getReporter().sendDangerousTelemetryEvent(span.name, props, measurements)
-          : getReporter().sendDangerousTelemetryErrorEvent(span.name, props, measurements),
-    catch: error => unknownToErrorCause(error)
-  }).pipe(
+  const send =
+    process.env.ESBUILD_WEB_LOCAL === '1'
+      ? sendToLocalAppInsightsFile(localHttpRuntime, span.name, success, props, measurements)
+      : Effect.try({
+          try: () =>
+            success
+              ? getReporter().sendDangerousTelemetryEvent(span.name, props, measurements)
+              : getReporter().sendDangerousTelemetryErrorEvent(span.name, props, measurements),
+          catch: error => unknownToErrorCause(error)
+        });
+  yield* send.pipe(
     Effect.catchAll(error => Console.error('❌ Failed to send dangerous telemetry:', JSON.stringify(error.cause)))
   );
 });
@@ -129,23 +137,16 @@ const exportSpan = Effect.fn('exportSpan')(function* (span: ReadableSpan, getRep
 const APP_INSIGHTS_WEB_FILE_SERVER_URL = 'http://localhost:3003/v2.1/track';
 
 const sendToLocalAppInsightsFile = (
+  runtime: ReturnType<typeof makeLocalHttpRuntime>,
   name: string,
   success: boolean,
   properties: Record<string, string | undefined>,
   measurements: Record<string, number>
-): void => {
-  void FetchHttpClient.layer.pipe(
-    Layer.toRuntime,
-    Effect.flatMap(runtime =>
-      HttpClientRequest.post(APP_INSIGHTS_WEB_FILE_SERVER_URL).pipe(
-        HttpClientRequest.bodyJson({ name, eventType: success ? 'event' : 'errorEvent', properties, measurements }),
-        Effect.flatMap(HttpClient.execute),
-        Effect.ignore, // server optional in local dev
-        Effect.withTracerEnabled(false),
-        Effect.provide(runtime)
-      )
-    ),
-    Effect.scoped,
-    Effect.runPromise
+) =>
+  HttpClientRequest.post(APP_INSIGHTS_WEB_FILE_SERVER_URL).pipe(
+    HttpClientRequest.bodyJson({ name, eventType: success ? 'event' : 'errorEvent', properties, measurements }),
+    Effect.flatMap(HttpClient.execute),
+    Effect.ignore, // server optional in local dev
+    Effect.withTracerEnabled(false),
+    Effect.provide(runtime)
   );
-};
