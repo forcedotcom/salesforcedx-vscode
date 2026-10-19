@@ -272,6 +272,7 @@
     "test:container:multipackage": {
       "command": "playwright test --config=test/playwright/playwright.config.container.multipackage.ts",
       "env": {
+        "VSCODE_CONTAINER": "1",
         "CODE_BUILDER_URL": {
           "external": true
         },

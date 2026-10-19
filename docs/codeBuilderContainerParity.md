@@ -42,7 +42,7 @@ container ports.
    reads — see apex's `sharedWorkspaceDirTest`, used by `apexLspRestart`.
 
 Per [PR #8102 review feedback](https://github.com/forcedotcom/salesforcedx-vscode/pull/8102#discussion_r4047559234),
-84 of the original 108 container specs have been merged this way; 24 remain standalone. See "Adding a
+85 of the original 108 container specs have been merged this way; 23 remain standalone. See "Adding a
 container suite to a package" below for both patterns.
 
 ## Coverage summary — 105 specs across 15 packages
@@ -301,7 +301,7 @@ than needing a mount or phase of their own — see the row below.
 | metadata `manifestCommandVisibility` | standard project + org (= current fixture) | **DONE** — ported; writes `*Package.xml`/`.xml` into bind-mounted fixture via `CB_FIXTURE_HOST_DIR` env; runs against ambient boot org in phase 1 |
 | metadata `noProjectCommandsHidden` | folder, no `sfdx-project.json` | **DONE** — ported; orchestrator re-seeds `coder.json` to non-project mount + `restart()`s in phase 2, re-runs verify gate, then runs `test:container:noproject`. Re-seed spike: **PASS** ✓ |
 | apex-log/apex-testing `noProjectVisibility`, metadata `emptyWorkspaceSfdxCommands` | folder open, no `sfdx-project.json` / no folder open | **DONE** — ported; org-agnostic palette-visibility checks via phase 2 (`test:container:noproject`) + a new phase 3 (`test:container:nofolder`) for the no-folder case |
-| apex-log `apexGenerateClassMultiPackageDirs` | multi-`packageDirectories` project | **DONE** — ported via a new phase 4 + a separate `container-multipackage` mount (2 `packageDirectories`, each with a `classes` dir); shared fixture left single-package |
+| apex-log `apexGenerateClassMultiPackageDirs` | multi-`packageDirectories` project | **DONE** — merged into `apexGenerateClassMultiPackageDirs.headless.spec.ts` with `isContainer` branch; runs in phase 4 against `container-multipackage` mount (2 `packageDirectories`, each with a `classes` dir); phase 1 config's `testMatch` excludes it so single-package desktop/web runs don't fail |
 | apex-log/apex-testing `noOrgVisibility` | DX project, **no org** | **DONE** — ported via a new phase 5: `bootEnv` made optional, org-less container boot (tears down + fresh `run()` without org env, since `restart()` reuses baked env), re-gates cleanly; default org-boot unchanged |
 | metadata `createProject`, `createProjectWithManifest` | folder open, no `sfdx-project.json` (reuses phase 2's no-project mount) | **DONE** — ported as standalone `*.container.spec.ts` in `specs/container-noproject/`; scaffold into that mount's checked-in `scratch/` subfolder (host path via new `CB_NOPROJECT_HOST_DIR`/`CB_NOPROJECT_CONTAINER_DIR` env vars, no new mount); `vscode.openFolder`'s trailing navigation is untracked by the spec since the verify step is pure host `node:fs` and the next test's own `page.goto('/')` lands back on the seeded shape regardless |
 | metadata `createProjectEmptyWindow` | no folder open (reuses phase 3's no-folder seed) | **DONE** — ported the same way, in `specs/container-nofolder/`; the file dialog browses the scratch mount regardless of what workspace is open |
@@ -312,7 +312,7 @@ runs a sequence of shape-change phases, each re-seeding `coder.json` to a differ
 baked env), re-running the verify gate, then running that shape's auto-discovered suite:
 - **Phase 2 — no-project** (`container-noproject` fixture, `test:container:noproject`)
 - **Phase 3 — no-folder** (`coder.json` with no `folder` key, `test:container:nofolder`)
-- **Phase 4 — multi-package** (`container-multipackage` fixture with 2 `packageDirectories`, `test:container:multipackage`)
+- **Phase 4 — multi-package** (`container-multipackage` fixture with 2 `packageDirectories`, `test:container:multipackage`; runs merged `apexGenerateClassMultiPackageDirs.headless.spec.ts` with `isContainer` branch via `testMatch`)
 - **Phase 5 — no-org** (`bootEnv` optional → org-less boot on the standard DX fixture, `test:container:noorg`)
 
 New env vars: `CB_FIXTURE_HOST_DIR` (host path of the DX fixture bind mount, for specs writing files),
@@ -338,7 +338,7 @@ config; `RunSpec.bootEnv` optional (default org-boot argv byte-identical when pr
    testMatch: [...] })`, the `testMatch` listing the merged `*.headless.spec.ts`/`*.desktop.spec.ts`
    filenames (see e.g. `salesforcedx-vscode-metadata`'s config) instead of `createContainerConfig({
    testDir: './specs/container' })`.
-4. Add `"VSCODE_CONTAINER": "1"` to the `test:container` wireit env block. Add `"CB_GREP": { "external": true }` and `"CB_UNDER_TEST": { "external": true }` — caching includes the VSIX/image under test in the fingerprint (via orchestrator's CB_UNDER_TEST sha256).
+4. Add `"VSCODE_CONTAINER": "1"` to the `test:container` wireit env block. Add `"CB_GREP": { "external": true }` and `"CB_UNDER_TEST": { "external": true }` — caching includes the VSIX/image under test in the fingerprint (via orchestrator's CB_UNDER_TEST sha256). **Any phase script** (`test:container:multipackage`, `test:container:noproject`, etc.) whose `testMatch` includes merged specs must also set `VSCODE_CONTAINER: "1"`, or `isContainer` is false and specs silently branch to web or skip.
 
 Only fall back to a **standalone** `*.container.spec.ts` file when there's no desktop/web counterpart,
 or a hard constraint rules out a shared body (a `workspaceDir` need alone doesn't — see
