@@ -42,7 +42,7 @@ container ports.
    reads — see apex's `sharedWorkspaceDirTest`, used by `apexLspRestart`.
 
 Per [PR #8102 review feedback](https://github.com/forcedotcom/salesforcedx-vscode/pull/8102#discussion_r4047559234),
-85 of the original 108 container specs have been merged this way; 23 remain standalone. See "Adding a
+86 of the original 108 container specs have been merged this way; 22 remain standalone. See "Adding a
 container suite to a package" below for both patterns.
 
 ## Coverage summary — 105 specs across 15 packages
@@ -302,7 +302,7 @@ than needing a mount or phase of their own — see the row below.
 | metadata `noProjectCommandsHidden` | folder, no `sfdx-project.json` | **DONE** — ported; orchestrator re-seeds `coder.json` to non-project mount + `restart()`s in phase 2, re-runs verify gate, then runs `test:container:noproject`. Re-seed spike: **PASS** ✓ |
 | apex-log/apex-testing `noProjectVisibility`, metadata `emptyWorkspaceSfdxCommands` | folder open, no `sfdx-project.json` / no folder open | **DONE** — ported; org-agnostic palette-visibility checks via phase 2 (`test:container:noproject`) + a new phase 3 (`test:container:nofolder`) for the no-folder case |
 | apex-log `apexGenerateClassMultiPackageDirs` | multi-`packageDirectories` project | **DONE** — merged into `apexGenerateClassMultiPackageDirs.headless.spec.ts` with `isContainer` branch; runs in phase 4 against `container-multipackage` mount (2 `packageDirectories`, each with a `classes` dir); phase 1 config's `testMatch` excludes it so single-package desktop/web runs don't fail |
-| apex-log/apex-testing `noOrgVisibility` | DX project, **no org** | **DONE** — ported via a new phase 5: `bootEnv` made optional, org-less container boot (tears down + fresh `run()` without org env, since `restart()` reuses baked env), re-gates cleanly; default org-boot unchanged |
+| apex-log/apex-testing `noOrgVisibility` | DX project, **no org** | **DONE** — ported via a new phase 5: `bootEnv` made optional, org-less container boot (tears down + fresh `run()` without org env, since `restart()` reuses baked env); both packages' specs are merged into their `noOrgVisibility.headless.spec.ts` (`isContainer` branch, picked by the phase config's `testMatch`); re-gates cleanly; default org-boot unchanged |
 | metadata `createProject`, `createProjectWithManifest` | folder open, no `sfdx-project.json` (reuses phase 2's no-project mount) | **DONE** — ported as standalone `*.container.spec.ts` in `specs/container-noproject/`; scaffold into that mount's checked-in `scratch/` subfolder (host path via new `CB_NOPROJECT_HOST_DIR`/`CB_NOPROJECT_CONTAINER_DIR` env vars, no new mount); `vscode.openFolder`'s trailing navigation is untracked by the spec since the verify step is pure host `node:fs` and the next test's own `page.goto('/')` lands back on the seeded shape regardless |
 | metadata `createProjectEmptyWindow` | no folder open (reuses phase 3's no-folder seed) | **DONE** — ported the same way, in `specs/container-nofolder/`; the file dialog browses the scratch mount regardless of what workspace is open |
 
