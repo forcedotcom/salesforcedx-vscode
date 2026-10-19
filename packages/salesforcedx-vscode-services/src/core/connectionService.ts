@@ -327,9 +327,15 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     const getCachedConnection = Effect.fn('ConnectionService.connectionCache.get')(function* (key: string) {
       return yield* activeConnectionCache.getEither(key).pipe(
         Effect.tap(either => Effect.annotateCurrentSpan({ connectionCache: Either.isLeft(either) ? 'hit' : 'miss' })),
-        Effect.map(Either.merge)
+        Effect.map(either => ({ connection: Either.merge(either), cacheHit: Either.isLeft(either) }))
       );
     });
+
+    const getConnectionFromCache = (key: string) =>
+      getCachedConnection(key).pipe(
+        Effect.tap(({ cacheHit }) => (cacheHit ? Effect.annotateCurrentSpan({ telemetryIgnore: true }) : Effect.void)),
+        Effect.map(({ connection }) => connection)
+      );
 
     // explicit type breaks the promptReauth → reauthCache → runReauthLookup → promptReauth inference cycle
     const promptReauth: (
@@ -412,7 +418,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             const accessToken = yield* settingsService.getAccessToken();
             const apiVersion = yield* settingsService.getApiVersion();
 
-            return yield* getCachedConnection(toKey(instanceUrl, accessToken, apiVersion));
+            return yield* getConnectionFromCache(toKey(instanceUrl, accessToken, apiVersion));
           })
         : Effect.gen(function* () {
             const usernameOrAlias =
@@ -424,15 +430,12 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
                   () => new NoTargetOrgConfiguredError({ message: 'No target org configured' })
                 )
               ));
+            const resolvedUsername = yield* aliasService
+              .getUsernameFromAlias(usernameOrAlias)
+              .pipe(Effect.map(Option.getOrElse(() => usernameOrAlias)));
             // Session-ID orgs can't silently refresh; validate before returning so ALL consumers
             // see reauth modal on expired token. No-op for refreshable flows.
-            return yield* aliasService
-              .getUsernameFromAlias(usernameOrAlias)
-              .pipe(
-                Effect.map(Option.getOrElse(() => usernameOrAlias)),
-                Effect.flatMap(getCachedConnection),
-                Effect.tap(validateAccessTokenOrPromptReauth)
-              );
+            return yield* getConnectionFromCache(resolvedUsername).pipe(Effect.tap(validateAccessTokenOrPromptReauth));
           });
 
       // Update the org ref in the background only for the default org (no explicit username).
