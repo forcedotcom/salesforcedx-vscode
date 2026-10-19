@@ -10,8 +10,9 @@ import { createContainerConfig } from '@salesforce/playwright-vscode-ext';
 export default createContainerConfig({
   testDir: './specs',
   // Every spec here is unified with desktop/web — it branches on `isContainer` from ../fixtures
-  // instead of duplicating a *.container.spec.ts file. (The container-noproject spec, noOrgVisibility
-  // and apexGenerateClassMultiPackageDirs need the re-seeded workspace shape from their own phase config.)
+  // instead of duplicating a *.container.spec.ts file. (noProjectVisibility, noOrgVisibility and
+  // apexGenerateClassMultiPackageDirs are too, but need the re-seeded workspace shape from their own
+  // phase config.)
   testMatch: [
     'apexGenerateClass.headless.spec.ts',
     'apexTestClassCreate.headless.spec.ts',
