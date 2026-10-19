@@ -332,6 +332,12 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
       );
     });
 
+    const getConnectionFromCache = (key: string) =>
+      getCachedConnection(key).pipe(
+        Effect.tap(({ cacheHit }) => (cacheHit ? Effect.annotateCurrentSpan({ telemetryIgnore: true }) : Effect.void)),
+        Effect.map(({ connection }) => connection)
+      );
+
     // explicit type breaks the promptReauth → reauthCache → runReauthLookup → promptReauth inference cycle
     const promptReauth: (
       conn: Connection,
@@ -413,9 +419,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             const accessToken = yield* settingsService.getAccessToken();
             const apiVersion = yield* settingsService.getApiVersion();
 
-            const cached = yield* getCachedConnection(toKey(instanceUrl, accessToken, apiVersion));
-            if (cached.cacheHit) yield* Effect.annotateCurrentSpan({ telemetryIgnore: true });
-            return cached.connection;
+            return yield* getConnectionFromCache(toKey(instanceUrl, accessToken, apiVersion));
           })
         : Effect.gen(function* () {
             const usernameOrAlias =
@@ -430,12 +434,9 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             const resolvedUsername = yield* aliasService
               .getUsernameFromAlias(usernameOrAlias)
               .pipe(Effect.map(Option.getOrElse(() => usernameOrAlias)));
-            const cached = yield* getCachedConnection(resolvedUsername);
-            if (cached.cacheHit) yield* Effect.annotateCurrentSpan({ telemetryIgnore: true });
             // Session-ID orgs can't silently refresh; validate before returning so ALL consumers
             // see reauth modal on expired token. No-op for refreshable flows.
-            yield* validateAccessTokenOrPromptReauth(cached.connection);
-            return cached.connection;
+            return yield* getConnectionFromCache(resolvedUsername).pipe(Effect.tap(validateAccessTokenOrPromptReauth));
           });
 
       // Update the org ref in the background only for the default org (no explicit username).
