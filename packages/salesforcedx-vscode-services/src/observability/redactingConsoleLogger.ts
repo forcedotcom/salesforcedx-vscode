@@ -6,6 +6,8 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as FiberRef from 'effect/FiberRef';
+import * as HashSet from 'effect/HashSet';
 import * as Logger from 'effect/Logger';
 import { getServicesRuntime } from '../servicesRuntime';
 import { redactSensitiveData } from './redactSensitiveData';
@@ -14,9 +16,15 @@ const redactingConsoleLogger = Logger.stringLogger.pipe(Logger.map(redactSensiti
 
 export const redactingConsoleLoggerLayer = Logger.replace(Logger.defaultLogger, redactingConsoleLogger);
 
-/** Shared runtime so Effect.log hits the redacting logger. Unpublished runtime still logs via that layer. */
+/** Shared runtime so Effect.log hits the redacting logger. Unpublished runtime still uses that logger. */
 export const runOnServicesRuntime = <A, E>(effect: Effect.Effect<A, E, never>) =>
   getServicesRuntime().pipe(
     Effect.flatMap(runtime => effect.pipe(Effect.provide(runtime))),
-    Effect.catchTag('ServicesRuntimeNotReady', () => effect.pipe(Effect.provide(redactingConsoleLoggerLayer)))
+    Effect.catchTag('ServicesRuntimeNotReady', () =>
+      effect.pipe(
+        Effect.locallyWith(FiberRef.currentLoggers, loggers =>
+          loggers.pipe(HashSet.remove(Logger.defaultLogger), HashSet.add(redactingConsoleLogger))
+        )
+      )
+    )
   );

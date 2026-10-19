@@ -11,7 +11,6 @@
  * We want to send spans that have no parent span as CustomEvents, and capture their properties from the span.
  * Additionally, we want to send any failed spans as Exceptions (the parent span may not finish if a child span fails)
  */
-import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
 import * as HttpClient from '@effect/platform/HttpClient';
 import * as HttpClientRequest from '@effect/platform/HttpClientRequest';
 import { SpanKind, SpanStatusCode } from '@opentelemetry/api';
@@ -26,6 +25,7 @@ import { SFDX_CORE_SECTION } from '../constants';
 import { unknownToErrorCause } from '../core/shared';
 import { SettingsService } from '../vscode/settingsService';
 import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
+import { makeLocalHttpRuntime } from './localHttpRuntime';
 import { getSpanCreationIdentity } from './spanTransformProcessor';
 import {
   convertAttributes,
@@ -55,6 +55,7 @@ const getSpanKindName = (kind: SpanKind): string =>
  */
 export class ApplicationInsightsWebExporter implements SpanExporter {
   private reporter: TelemetryReporter | undefined;
+  private readonly localHttpRuntime = makeLocalHttpRuntime();
 
   constructor(private readonly makeReporter = () => new TelemetryReporter(DEFAULT_AI_CONNECTION_STRING)) {}
 
@@ -66,7 +67,9 @@ export class ApplicationInsightsWebExporter implements SpanExporter {
     void Effect.runPromise(
       Stream.fromIterable(spans).pipe(
         Stream.filter(isSpanValidForProductionTelemetry),
-        Stream.mapEffect(span => exportSpan(span, () => this.getReporter())),
+        Stream.mapEffect(span => exportSpan(span, () => this.getReporter(), this.localHttpRuntime), {
+          concurrency: process.env.ESBUILD_WEB_LOCAL === '1' ? 'unbounded' : 1
+        }),
         Stream.runDrain,
         Effect.provide(SettingsService.Default),
         reportExportResult(resultCallback)
@@ -75,11 +78,15 @@ export class ApplicationInsightsWebExporter implements SpanExporter {
   }
 
   public shutdown(): Promise<void> {
-    return this.reporter?.dispose() ?? Promise.resolve();
+    return Promise.all([this.reporter?.dispose(), this.localHttpRuntime.dispose()]).then(() => undefined);
   }
 }
 
-const exportSpan = Effect.fnUntraced(function* (span: ReadableSpan, getReporter: () => TelemetryReporter) {
+const exportSpan = Effect.fnUntraced(function* (
+  span: ReadableSpan,
+  getReporter: () => TelemetryReporter,
+  localHttpRuntime: ReturnType<typeof makeLocalHttpRuntime>
+) {
   const telemetryTag = yield* (yield* SettingsService).getValue<string>(SFDX_CORE_SECTION, 'telemetry-tag');
   const success = span.status?.code !== SpanStatusCode.ERROR;
 
@@ -110,15 +117,17 @@ const exportSpan = Effect.fnUntraced(function* (span: ReadableSpan, getReporter:
     duration: telemetrySpanDuration(span)
   };
 
-  yield* Effect.try({
-    try: () =>
-      process.env.ESBUILD_WEB_LOCAL === '1'
-        ? sendToLocalAppInsightsFile(span.name, success, props, measurements)
-        : success
-          ? getReporter().sendDangerousTelemetryEvent(span.name, props, measurements)
-          : getReporter().sendDangerousTelemetryErrorEvent(span.name, props, measurements),
-    catch: error => unknownToErrorCause(error)
-  }).pipe(
+  const send =
+    process.env.ESBUILD_WEB_LOCAL === '1'
+      ? sendToLocalAppInsightsFile(localHttpRuntime, span.name, success, props, measurements)
+      : Effect.try({
+          try: () =>
+            success
+              ? getReporter().sendDangerousTelemetryEvent(span.name, props, measurements)
+              : getReporter().sendDangerousTelemetryErrorEvent(span.name, props, measurements),
+          catch: error => unknownToErrorCause(error)
+        });
+  yield* send.pipe(
     Effect.catchAll(error => Console.error('❌ Failed to send dangerous telemetry:', JSON.stringify(error.cause)))
   );
 });
@@ -128,17 +137,16 @@ const exportSpan = Effect.fnUntraced(function* (span: ReadableSpan, getReporter:
 const APP_INSIGHTS_WEB_FILE_SERVER_URL = 'http://localhost:3003/v2.1/track';
 
 const sendToLocalAppInsightsFile = (
+  runtime: ReturnType<typeof makeLocalHttpRuntime>,
   name: string,
   success: boolean,
   properties: Record<string, string | undefined>,
   measurements: Record<string, number>
-): void => {
-  void HttpClientRequest.post(APP_INSIGHTS_WEB_FILE_SERVER_URL).pipe(
+) =>
+  HttpClientRequest.post(APP_INSIGHTS_WEB_FILE_SERVER_URL).pipe(
     HttpClientRequest.bodyJson({ name, eventType: success ? 'event' : 'errorEvent', properties, measurements }),
     Effect.flatMap(HttpClient.execute),
     Effect.ignore, // server optional in local dev
     Effect.withTracerEnabled(false),
-    Effect.provide(FetchHttpClient.layer),
-    Effect.runPromise
+    Effect.provide(runtime)
   );
-};

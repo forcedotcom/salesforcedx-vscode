@@ -6,7 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
-import { ExtensionContextService } from '../vscode/extensionContextService';
+import { getExtensionContext } from '../vscode/extensionContext';
 
 // Telemetry globalState keys (matching @salesforce/salesforcedx-utils-vscode constants — kept in sync; services owns its own copy to avoid taking on a utils dep).
 export const TELEMETRY_GLOBAL_USER_ID = 'telemetryUserId';
@@ -28,8 +28,8 @@ const hashUserIdentifier = (orgId: string, userId: string) =>
 
 // persist the webUserId to the extension context global state
 export const setWebUserId = Effect.fnUntraced(function* (orgId: string, userId: string) {
-  const contextService = yield* ExtensionContextService;
-  const extensionContext = yield* contextService.getContext;
+  // Telemetry identity belongs to the services extension, not the calling extension.
+  const extensionContext = yield* getExtensionContext();
   const webUserId = yield* hashUserIdentifier(orgId, userId);
 
   yield* Effect.promise(() => extensionContext.globalState.update(TELEMETRY_GLOBAL_WEB_USER_ID, webUserId));

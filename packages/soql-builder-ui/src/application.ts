@@ -51,36 +51,40 @@ export class SoqlBuilderApplication {
           errorMessage: error.message
         };
       });
-    const session = Effect.gen(this, function* () {
-      const controller = yield* SoqlBuilderController;
-      const actions = yield* Queue.unbounded<SoqlBuilderAction>();
-      const actionListener: EventListener = event => {
-        if (isSoqlBuilderActionEvent(event)) actions.unsafeOffer(event.detail);
-      };
+    const session = SoqlBuilderController.Default.pipe(
+      Layer.provide(this.serviceLayer),
+      Layer.toRuntime,
+      Effect.flatMap(runtime =>
+        Effect.gen(this, function* () {
+          const controller = yield* SoqlBuilderController;
+          const actions = yield* Queue.unbounded<SoqlBuilderAction>();
+          const actionListener: EventListener = event => {
+            if (isSoqlBuilderActionEvent(event)) actions.unsafeOffer(event.detail);
+          };
 
-      yield* Effect.acquireRelease(
-        Effect.sync(() => this.view.addEventListener(SOQL_BUILDER_ACTION_EVENT, actionListener)),
-        () =>
-          Effect.sync(() => this.view.removeEventListener(SOQL_BUILDER_ACTION_EVENT, actionListener)).pipe(
-            Effect.andThen(Queue.shutdown(actions))
-          )
-      );
+          yield* Effect.acquireRelease(
+            Effect.sync(() => this.view.addEventListener(SOQL_BUILDER_ACTION_EVENT, actionListener)),
+            () =>
+              Effect.sync(() => this.view.removeEventListener(SOQL_BUILDER_ACTION_EVENT, actionListener)).pipe(
+                Effect.andThen(Queue.shutdown(actions))
+              )
+          );
 
-      yield* Effect.all(
-        [
-          controller.states.pipe(
-            Stream.runForEach(state =>
-              Effect.sync(() => {
-                this.view.viewState = state;
-              })
-            )
-          ),
-          Stream.fromQueue(actions).pipe(Stream.runForEach(controller.dispatch))
-        ],
-        { concurrency: 'unbounded', discard: true }
-      );
-    }).pipe(
-      Effect.provide(SoqlBuilderController.Default.pipe(Layer.provide(this.serviceLayer))),
+          yield* Effect.all(
+            [
+              controller.states.pipe(
+                Stream.runForEach(state =>
+                  Effect.sync(() => {
+                    this.view.viewState = state;
+                  })
+                )
+              ),
+              Stream.fromQueue(actions).pipe(Stream.runForEach(controller.dispatch))
+            ],
+            { concurrency: 'unbounded', discard: true }
+          );
+        }).pipe(Effect.provide(runtime))
+      ),
       Effect.scoped,
       Effect.catchTags({
         InvalidSoqlBuilderMetadataError: reportServiceError,

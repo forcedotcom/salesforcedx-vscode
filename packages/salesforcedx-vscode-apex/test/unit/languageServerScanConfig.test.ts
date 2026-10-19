@@ -25,25 +25,30 @@ vi.mock('@salesforce/effect-ext-utils', async () => {
   };
 });
 
-const useRegistryAccess = (registryAccess: Effect.Effect<unknown, unknown>): void => {
+const useRegistryAccess = (registryAccess: Effect.Effect<unknown, unknown>) => {
   const metadataRegistryService = {
     getRegistryAccess: () => registryAccess
   } as unknown as InstanceType<typeof MetadataRegistryService>;
+  const prebuiltServicesLayer = Layer.succeed(MetadataRegistryService, metadataRegistryService);
 
   mockGetServicesApi.mockReturnValue(
     Effect.succeed({
       services: {
         MetadataRegistryService,
-        prebuiltServicesLayer: Layer.succeed(MetadataRegistryService, metadataRegistryService)
+        prebuiltServicesLayer
       }
     } as unknown as EffectExtUtils.SalesforceVSCodeServicesApi)
   );
+  return prebuiltServicesLayer;
 };
+
+const runBuildMetadataRegistryScanConfig = (layer: ReturnType<typeof useRegistryAccess>) =>
+  Effect.runPromise(buildMetadataRegistryScanConfig.pipe(Effect.provide(layer)));
 
 describe('languageServerScanConfig', () => {
   describe('buildMetadataRegistryScanConfig', () => {
     it('builds scan config from the shared metadata registry service', async () => {
-      useRegistryAccess(
+      const layer = useRegistryAccess(
         Effect.succeed({
           getRegistry: () => ({
             strictDirectoryNames: {
@@ -59,7 +64,7 @@ describe('languageServerScanConfig', () => {
         })
       );
 
-      await expect(buildMetadataRegistryScanConfig()).resolves.toEqual({
+      await expect(runBuildMetadataRegistryScanConfig(layer)).resolves.toEqual({
         scan: {
           excludeFolders: ['lwc', 'objects']
         }
@@ -67,25 +72,27 @@ describe('languageServerScanConfig', () => {
     });
 
     it('returns undefined when the services API is unavailable', async () => {
+      const layer = useRegistryAccess(Effect.succeed({ getRegistry: () => ({}), getTypeByName: () => ({}) }));
       mockGetServicesApi.mockReturnValue(Effect.fail(new EffectExtUtils.ServicesExtensionNotFoundError()));
 
-      await expect(buildMetadataRegistryScanConfig()).resolves.toBeUndefined();
+      await expect(runBuildMetadataRegistryScanConfig(layer)).resolves.toBeUndefined();
     });
 
     it('propagates services API activation failure', async () => {
+      const layer = useRegistryAccess(Effect.succeed({ getRegistry: () => ({}), getTypeByName: () => ({}) }));
       mockGetServicesApi.mockReturnValue(Effect.fail(new EffectExtUtils.InvalidServicesApiError({})));
 
-      await expect(buildMetadataRegistryScanConfig()).rejects.toThrow();
+      await expect(runBuildMetadataRegistryScanConfig(layer)).rejects.toThrow();
     });
 
     it('returns undefined when registry access fails', async () => {
-      new GetRegistryAccessError({ cause: 'registry unavailable' }).pipe(Effect.fail, useRegistryAccess);
+      const layer = useRegistryAccess(new GetRegistryAccessError({ cause: 'registry unavailable' }).pipe(Effect.fail));
 
-      await expect(buildMetadataRegistryScanConfig()).resolves.toBeUndefined();
+      await expect(runBuildMetadataRegistryScanConfig(layer)).resolves.toBeUndefined();
     });
 
     it('returns undefined when no metadata folders are excluded', async () => {
-      useRegistryAccess(
+      const layer = useRegistryAccess(
         Effect.succeed({
           getRegistry: () => ({
             strictDirectoryNames: {
@@ -99,7 +106,7 @@ describe('languageServerScanConfig', () => {
         })
       );
 
-      await expect(buildMetadataRegistryScanConfig()).resolves.toBeUndefined();
+      await expect(runBuildMetadataRegistryScanConfig(layer)).resolves.toBeUndefined();
     });
   });
 

@@ -8,6 +8,7 @@ import type { DefaultOrgInfoSchema } from '../core/schemas/defaultOrgInfo';
 import { Tracer as OtelTracer } from '@effect/opentelemetry';
 import { classifyOrgForTelemetry, type TelemetryClassification } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import { isString, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -158,10 +159,15 @@ const warnDegradedTelemetrySession = (channelName: string, cliId: DefaultOrgInfo
   if (!isUndefined(cliId)) {
     return;
   }
-  Effect.runSync(
-    Effect.flatMap(ChannelService, channel =>
-      channel.appendToChannel('telemetry seed missing — degraded session')
-    ).pipe(Effect.provide(ChannelServiceLayer(channelName)))
+  ChannelServiceLayer(channelName).pipe(
+    Layer.toRuntime,
+    Effect.flatMap(runtime =>
+      Effect.flatMap(ChannelService, channel =>
+        channel.appendToChannel('telemetry seed missing — degraded session')
+      ).pipe(Effect.provide(runtime))
+    ),
+    Effect.scoped,
+    Effect.runSync
   );
 };
 
