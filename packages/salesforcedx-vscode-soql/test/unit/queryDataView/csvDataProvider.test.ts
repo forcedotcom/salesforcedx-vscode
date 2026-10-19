@@ -77,13 +77,11 @@ describe('convertToCSV (Query Data View / SOQL Builder save)', () => {
         }
       }
     ];
-    const csv = convertToCSV(data);
-    expect(csv.startsWith('Name,Pets.PetName,Pets.Toys.ToyName\n')).toBe(true);
-    expect(csv).toContain('Dana');
-    expect(csv).toContain('Fido');
-    expect(csv).toContain('Whiskers');
-    expect(csv).toContain('Ball');
-    expect(csv).toContain('Bone');
-    expect(csv).toContain('Yarn');
+    expect(convertToCSV(data)).toMatchInlineSnapshot(`
+      "Name,Pets.PetName,Pets.Toys.ToyName
+      Dana,Fido,Ball
+      Dana,,Bone
+      Dana,Whiskers,Yarn"
+    `);
   });
 });
