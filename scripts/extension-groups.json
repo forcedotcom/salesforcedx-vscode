@@ -1,17 +1,21 @@
 {
-  "core-services": ["salesforcedx-vscode-core", "salesforcedx-vscode-services"],
-  "apex-log": [
-    "salesforcedx-vscode-core",
-    "salesforcedx-vscode-services",
-    "salesforcedx-vscode-apex",
-    "salesforcedx-vscode-apex-log"
-  ],
-  "org-browser": ["salesforcedx-vscode-services", "salesforcedx-vscode-org-browser", "salesforcedx-vscode-metadata"],
-  "org-browser-core": [
-    "salesforcedx-vscode-core",
-    "salesforcedx-vscode-services",
-    "salesforcedx-vscode-org-browser",
-    "salesforcedx-vscode-metadata"
-  ],
-  "metadata": ["salesforcedx-vscode-core", "salesforcedx-vscode-services", "salesforcedx-vscode-metadata"]
+  "requiredExtensions": ["salesforcedx-vscode-core", "salesforcedx-vscode-services"],
+  "groups": {
+    "apex-log": {
+      "label": "Apex Log",
+      "extensions": ["salesforcedx-vscode-apex", "salesforcedx-vscode-apex-log"]
+    },
+    "apex-testing": {
+      "label": "Apex Testing",
+      "extensions": ["salesforcedx-vscode-apex-testing", "salesforcedx-vscode-org"]
+    },
+    "org-browser": {
+      "label": "Org Browser",
+      "extensions": ["salesforcedx-vscode-org-browser", "salesforcedx-vscode-metadata"]
+    },
+    "metadata": {
+      "label": "Metadata",
+      "extensions": ["salesforcedx-vscode-metadata"]
+    }
+  }
 }

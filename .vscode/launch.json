@@ -27,7 +27,7 @@
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
-      "args": ["--disable-extensions", "--extensionDevelopmentPath=${workspaceFolder}/.vscode/selected-extensions"],
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/.vscode/selected-extensions"],
       "sourceMaps": true,
       "smartStep": true,
       "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js", "${workspaceFolder}/packages/*/dist/**/*.js"],
@@ -46,13 +46,14 @@
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
-      "args": ["--disable-extensions", "--extensionDevelopmentPath=${workspaceFolder}/.vscode/selected-extensions"],
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/.vscode/selected-extensions"],
       "sourceMaps": true,
       "smartStep": true,
       "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js", "${workspaceFolder}/packages/*/dist/**/*.js"],
       "env": {
         "LANGUAGE_SERVER_LOG_LEVEL": "${env:LANGUAGE_SERVER_LOG_LEVEL}",
-        "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}"
+        "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}",
+        "APEX_LS_MODE": "development"
       },
       "preLaunchTask": "Bundle then Select All Extensions",
       "resolveSourceMapLocations": [
@@ -65,7 +66,7 @@
       "type": "extensionHost",
       "request": "launch",
       "runtimeExecutable": "${execPath}",
-      "args": ["--disable-extensions", "--extensionDevelopmentPath=${workspaceFolder}/.vscode/selected-extensions"],
+      "args": ["--extensionDevelopmentPath=${workspaceFolder}/.vscode/selected-extensions"],
       "stopOnEntry": false,
       "sourceMaps": true,
       "smartStep": true,
@@ -118,64 +119,6 @@
         "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4318"
       },
       "preLaunchTask": "Select All Extensions and Start Grafana",
-      "resolveSourceMapLocations": [
-        "${workspaceFolder}/packages/**",
-        "${workspaceFolder}/.vscode/selected-extensions/**"
-      ]
-    },
-
-    // ─── Extension Host (subset) ──────────────────────────────────────────────────
-    {
-      "name": "Launch Core, Services, Apex, Apex Log",
-      "type": "extensionHost",
-      "request": "launch",
-      "runtimeExecutable": "${execPath}",
-      "args": ["--disable-extensions", "--extensionDevelopmentPath=${workspaceFolder}/.vscode/selected-extensions"],
-      "sourceMaps": true,
-      "smartStep": true,
-      "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js", "${workspaceFolder}/packages/*/dist/**/*.js"],
-      "env": {
-        "LANGUAGE_SERVER_LOG_LEVEL": "${env:LANGUAGE_SERVER_LOG_LEVEL}",
-        "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}"
-      },
-      "preLaunchTask": "Bundle then Select Apex Log Extensions",
-      "resolveSourceMapLocations": [
-        "${workspaceFolder}/packages/**",
-        "${workspaceFolder}/.vscode/selected-extensions/**"
-      ]
-    },
-    {
-      "name": "Launch Only Org Browser, Services & Metadata",
-      "type": "extensionHost",
-      "request": "launch",
-      "args": ["--disable-extensions", "--extensionDevelopmentPath=${workspaceFolder}/.vscode/selected-extensions"],
-      "sourceMaps": true,
-      "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js", "${workspaceFolder}/packages/*/dist/**/*.js"],
-      "preLaunchTask": "Select Org Browser Extensions",
-      "resolveSourceMapLocations": [
-        "${workspaceFolder}/packages/**",
-        "${workspaceFolder}/.vscode/selected-extensions/**"
-      ]
-    },
-    {
-      "name": "Launch Only Org Browser, Services, Metadata & Core",
-      "type": "extensionHost",
-      "request": "launch",
-      "args": ["--disable-extensions", "--extensionDevelopmentPath=${workspaceFolder}/.vscode/selected-extensions"],
-      "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js", "${workspaceFolder}/packages/*/dist/**/*.js"],
-      "preLaunchTask": "Select Org Browser Core Extensions",
-      "resolveSourceMapLocations": [
-        "${workspaceFolder}/packages/**",
-        "${workspaceFolder}/.vscode/selected-extensions/**"
-      ]
-    },
-    {
-      "name": "Launch Only Core & Services & Metadata",
-      "type": "extensionHost",
-      "request": "launch",
-      "args": ["--disable-extensions", "--extensionDevelopmentPath=${workspaceFolder}/.vscode/selected-extensions"],
-      "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js", "${workspaceFolder}/packages/*/dist/**/*.js"],
-      "preLaunchTask": "Select Metadata Extensions",
       "resolveSourceMapLocations": [
         "${workspaceFolder}/packages/**",
         "${workspaceFolder}/.vscode/selected-extensions/**"
