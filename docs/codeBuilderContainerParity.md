@@ -42,10 +42,10 @@ container ports.
    reads — see apex's `sharedWorkspaceDirTest`, used by `apexLspRestart`.
 
 Per [PR #8102 review feedback](https://github.com/forcedotcom/salesforcedx-vscode/pull/8102#discussion_r4047559234),
-87 of the original 108 container specs have been merged this way; 21 remain standalone. See "Adding a
+88 of the 111 container specs (108 originally, plus the 3 later createProject* ports) have been merged this way; 23 remain standalone. See "Adding a
 container suite to a package" below for both patterns.
 
-## Coverage summary — 105 specs across 15 packages
+## Coverage summary — 111 specs across 15 packages
 
 Includes multi-org / Dreamhouse ports (see "Multi-org container support" below): 13 previously
 org-blocked specs now run by authing extra orgs + switching default with save/restore; 2 ported but

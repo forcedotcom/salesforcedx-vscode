@@ -9,13 +9,10 @@ import { createContainerConfig } from '@salesforce/playwright-vscode-ext';
 
 export default createContainerConfig({
   testDir: './specs',
-  // ineligibleClass stays a dedicated container twin: it relies on the pre-seeded
-  // PagedResult.cls fixture class (no org push needed), a genuinely different mechanism
-  // from the headless twin's dynamically-created-and-pushed class. mixedFrameworksClass and
-  // restResourceNoHttpMethod are unified with desktop — they branch on `isContainer` from
-  // ../fixtures instead of a dedicated *.container.spec.ts file.
+  // Unified with desktop — these branch on `isContainer` from ../fixtures/oasSharedTest instead of a
+  // dedicated *.container.spec.ts file. The other specs need the A4V LLM service, so they stay out.
   testMatch: [
-    'container/ineligibleClass.container.spec.ts',
+    'ineligibleClass.headless.spec.ts',
     'mixedFrameworksClass.headless.spec.ts',
     'restResourceNoHttpMethod.headless.spec.ts'
   ]
