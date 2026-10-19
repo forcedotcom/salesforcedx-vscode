@@ -328,7 +328,7 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     const getCachedConnection = Effect.fn('ConnectionService.connectionCache.get')(function* (key: string) {
       return yield* activeConnectionCache.getEither(key).pipe(
         Effect.tap(either => Effect.annotateCurrentSpan({ connectionCache: Either.isLeft(either) ? 'hit' : 'miss' })),
-        Effect.map(Either.merge)
+        Effect.map(either => ({ connection: Either.merge(either), cacheHit: Either.isLeft(either) }))
       );
     });
 
@@ -413,7 +413,9 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
             const accessToken = yield* settingsService.getAccessToken();
             const apiVersion = yield* settingsService.getApiVersion();
 
-            return yield* getCachedConnection(toKey(instanceUrl, accessToken, apiVersion));
+            const cached = yield* getCachedConnection(toKey(instanceUrl, accessToken, apiVersion));
+            if (cached.cacheHit) yield* Effect.annotateCurrentSpan({ telemetryIgnore: true });
+            return cached.connection;
           })
         : Effect.gen(function* () {
             const usernameOrAlias =
@@ -425,15 +427,15 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
                   () => new NoTargetOrgConfiguredError({ message: 'No target org configured' })
                 )
               ));
+            const resolvedUsername = yield* aliasService
+              .getUsernameFromAlias(usernameOrAlias)
+              .pipe(Effect.map(Option.getOrElse(() => usernameOrAlias)));
+            const cached = yield* getCachedConnection(resolvedUsername);
+            if (cached.cacheHit) yield* Effect.annotateCurrentSpan({ telemetryIgnore: true });
             // Session-ID orgs can't silently refresh; validate before returning so ALL consumers
             // see reauth modal on expired token. No-op for refreshable flows.
-            return yield* aliasService
-              .getUsernameFromAlias(usernameOrAlias)
-              .pipe(
-                Effect.map(Option.getOrElse(() => usernameOrAlias)),
-                Effect.flatMap(getCachedConnection),
-                Effect.tap(validateAccessTokenOrPromptReauth)
-              );
+            yield* validateAccessTokenOrPromptReauth(cached.connection);
+            return cached.connection;
           });
 
       // Update the org ref in the background only for the default org (no explicit username).
