@@ -176,54 +176,6 @@
       "problemMatcher": []
     },
     {
-      "label": "Select Apex Log Extensions",
-      "type": "process",
-      "command": "node",
-      "args": ["${workspaceFolder}/scripts/pickExtensions.mjs", "--group", "apex-log"],
-      "presentation": {
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared"
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Select Org Browser Extensions",
-      "type": "process",
-      "command": "node",
-      "args": ["${workspaceFolder}/scripts/pickExtensions.mjs", "--group", "org-browser"],
-      "presentation": {
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared"
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Select Org Browser Core Extensions",
-      "type": "process",
-      "command": "node",
-      "args": ["${workspaceFolder}/scripts/pickExtensions.mjs", "--group", "org-browser-core"],
-      "presentation": {
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared"
-      },
-      "problemMatcher": []
-    },
-    {
-      "label": "Select Metadata Extensions",
-      "type": "process",
-      "command": "node",
-      "args": ["${workspaceFolder}/scripts/pickExtensions.mjs", "--group", "metadata"],
-      "presentation": {
-        "reveal": "always",
-        "focus": false,
-        "panel": "shared"
-      },
-      "problemMatcher": []
-    },
-    {
       "label": "Bundle then Select All Extensions",
       "dependsOn": ["Compile and Bundle", "Select All Extensions"],
       "dependsOrder": "sequence",
@@ -238,12 +190,6 @@
     {
       "label": "Start Grafana and Bundle then Select All Extensions",
       "dependsOn": ["Start Grafana and Bundle", "Select All Extensions"],
-      "dependsOrder": "sequence",
-      "problemMatcher": []
-    },
-    {
-      "label": "Bundle then Select Apex Log Extensions",
-      "dependsOn": ["Compile and Bundle", "Select Apex Log Extensions"],
       "dependsOrder": "sequence",
       "problemMatcher": []
     }

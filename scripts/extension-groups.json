@@ -1,17 +1,37 @@
 {
-  "core-services": ["salesforcedx-vscode-core", "salesforcedx-vscode-services"],
-  "apex-log": [
-    "salesforcedx-vscode-core",
-    "salesforcedx-vscode-services",
-    "salesforcedx-vscode-apex",
-    "salesforcedx-vscode-apex-log"
-  ],
-  "org-browser": ["salesforcedx-vscode-services", "salesforcedx-vscode-org-browser", "salesforcedx-vscode-metadata"],
-  "org-browser-core": [
-    "salesforcedx-vscode-core",
-    "salesforcedx-vscode-services",
-    "salesforcedx-vscode-org-browser",
-    "salesforcedx-vscode-metadata"
-  ],
-  "metadata": ["salesforcedx-vscode-core", "salesforcedx-vscode-services", "salesforcedx-vscode-metadata"]
+  "requiredExtensions": ["salesforcedx-vscode-core", "salesforcedx-vscode-services", "salesforcedx-vscode-org"],
+  "groups": {
+    "apex-log": {
+      "label": "Apex Log",
+      "extensions": ["salesforcedx-vscode-apex", "salesforcedx-vscode-apex-log"]
+    },
+    "apex-replay-debugger": {
+      "label": "Apex Replay Debugger",
+      "extensions": [
+        "salesforcedx-vscode-apex-replay-debugger",
+        "salesforcedx-vscode-apex",
+        "salesforcedx-vscode-apex-log"
+      ]
+    },
+    "apex-testing": {
+      "label": "Apex Testing",
+      "extensions": ["salesforcedx-vscode-apex-testing"]
+    },
+    "lwc": {
+      "label": "Lightning Web Components",
+      "extensions": ["salesforcedx-vscode-lwc"]
+    },
+    "metadata": {
+      "label": "Metadata",
+      "extensions": ["salesforcedx-vscode-metadata"]
+    },
+    "org-browser": {
+      "label": "Org Browser",
+      "extensions": ["salesforcedx-vscode-org-browser", "salesforcedx-vscode-metadata"]
+    },
+    "soql": {
+      "label": "SOQL",
+      "extensions": ["salesforcedx-vscode-soql"]
+    }
+  }
 }

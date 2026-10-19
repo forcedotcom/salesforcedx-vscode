@@ -4,8 +4,9 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 export const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-export const extensionGroups = JSON.parse(readFileSync(path.join(root, 'scripts', 'extension-groups.json'), 'utf8'));
-const requiredExtensions = extensionGroups['core-services'];
+const extensionSelectionConfig = JSON.parse(readFileSync(path.join(root, 'scripts', 'extension-groups.json'), 'utf8'));
+export const extensionGroups = extensionSelectionConfig.groups;
+export const requiredExtensions = extensionSelectionConfig.requiredExtensions;
 
 export async function discoverExtensions() {
   const packagesDir = path.join(root, 'packages');

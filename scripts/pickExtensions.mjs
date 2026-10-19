@@ -2,9 +2,8 @@
 import { mkdir, rm, rename, symlink } from 'node:fs/promises';
 import path from 'node:path';
 import inquirer from 'inquirer';
-import { discoverExtensions, extensionGroups, root } from './selectedExtensions.mjs';
+import { discoverExtensions, extensionGroups, requiredExtensions, root } from './selectedExtensions.mjs';
 
-const requiredExtensions = extensionGroups['core-services'];
 const selectedExtensionsDir = path.join(root, '.vscode', 'selected-extensions');
 
 const group =
@@ -28,22 +27,43 @@ try {
 
   if (group === 'interactive') {
     if (!process.stdin.isTTY) throw new Error('The extension picker needs an interactive terminal.');
-    const optional = available.filter(extension => !requiredExtensions.includes(extension.name));
-    console.log(`Always included: ${requiredExtensions.join(', ')}`);
-    const { selected } = await inquirer.prompt([
+    const { selectedGroup } = await inquirer.prompt([
       {
-        type: 'checkbox',
-        name: 'selected',
-        message: 'Choose additional extensions to launch',
-        choices: optional.map(extension => ({
-          name: `${extension.label} (${extension.name})`,
-          value: extension.name
-        }))
+        type: 'select',
+        name: 'selectedGroup',
+        message: 'Choose extensions to launch',
+        choices: [
+          ...Object.keys(extensionGroups).map(name => ({
+            name: extensionGroups[name].label,
+            value: name
+          })),
+          { name: 'Custom selection', value: undefined }
+        ]
       }
     ]);
-    selection = [...requiredExtensions, ...selected];
+    if (selectedGroup) {
+      selection = [...requiredExtensions, ...extensionGroups[selectedGroup].extensions];
+    } else {
+      const optional = available.filter(extension => !requiredExtensions.includes(extension.name));
+      console.log(`Always included: ${requiredExtensions.join(', ')}`);
+      const { selected } = await inquirer.prompt([
+        {
+          type: 'checkbox',
+          name: 'selected',
+          message: 'Choose additional extensions to launch',
+          choices: optional.map(extension => ({
+            name: `${extension.label} (${extension.name})`,
+            value: extension.name
+          }))
+        }
+      ]);
+      selection = [...requiredExtensions, ...selected];
+    }
   } else {
-    selection = group === 'all' ? available.map(extension => extension.name) : [...extensionGroups[group]];
+    selection =
+      group === 'all'
+        ? available.map(extension => extension.name)
+        : [...requiredExtensions, ...extensionGroups[group].extensions];
   }
 
   for (let index = 0; index < selection.length; index++) {
