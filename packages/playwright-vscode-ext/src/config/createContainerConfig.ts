@@ -6,6 +6,17 @@
  */
 
 import { defineConfig, devices, type PlaywrightTestConfig } from '@playwright/test';
+import * as path from 'node:path';
+
+/**
+ * Place a results folder under the orchestrator's current phase (CB_PHASE, e.g. `no-org`). Each phase
+ * is a separate Playwright run, and every run clears `outputDir` and overwrites the HTML report, so a
+ * later phase would erase an earlier one's results. Unset (a direct `test:container` run): undefined,
+ * so Playwright's defaults apply. Resolved against the cwd (the package root under `npm run -w`)
+ * because Playwright resolves relative paths against the config's directory instead.
+ */
+const phaseFolder = (folder: string): string | undefined =>
+  process.env.CB_PHASE ? path.resolve(folder, process.env.CB_PHASE) : undefined;
 
 /**
  * Build the `grep` value from CB_GREP. A malformed regex would otherwise throw at config load and break
@@ -71,9 +82,14 @@ export const createContainerConfig = (options: ContainerConfigOptions) =>
     fullyParallel: options.fullyParallel ?? false,
     forbidOnly: !!process.env.CI,
     workers: options.workers ?? 1,
+    outputDir: phaseFolder('test-results'),
     reporter: process.env.CI
-      ? [['html', { open: 'never' }], ['line'], ['junit', { outputFile: 'test-results/junit.xml' }]]
-      : [['html', { open: 'never' }], ['list']],
+      ? [
+          ['html', { open: 'never', outputFolder: phaseFolder('playwright-report') }],
+          ['line'],
+          ['junit', { outputFile: path.join(phaseFolder('test-results') ?? 'test-results', 'junit.xml') }]
+        ]
+      : [['html', { open: 'never', outputFolder: phaseFolder('playwright-report') }], ['list']],
     use: {
       viewport: { width: 1920, height: 1080 },
       baseURL: process.env.CODE_BUILDER_URL ?? 'http://localhost:8123',

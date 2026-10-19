@@ -338,7 +338,7 @@ config; `RunSpec.bootEnv` optional (default org-boot argv byte-identical when pr
    testMatch: [...] })`, the `testMatch` listing the merged `*.headless.spec.ts`/`*.desktop.spec.ts`
    filenames (see e.g. `salesforcedx-vscode-metadata`'s config) instead of `createContainerConfig({
    testDir: './specs/container' })`.
-4. Add `"VSCODE_CONTAINER": "1"` to the `test:container` wireit env block.
+4. Add `"VSCODE_CONTAINER": "1"` to the `test:container` wireit env block. Add `"CB_GREP": { "external": true }` and `"CB_UNDER_TEST": { "external": true }` — caching includes the VSIX/image under test in the fingerprint (via orchestrator's CB_UNDER_TEST sha256).
 
 Only fall back to a **standalone** `*.container.spec.ts` file when there's no desktop/web counterpart,
 or a hard constraint rules out a shared body (a `workspaceDir` need alone doesn't — see
@@ -361,6 +361,6 @@ For specs requiring a no-project folder (project-gated commands must be hidden):
 
 1. `test/playwright/playwright.config.container.noproject.ts` → `createContainerConfig({ testDir: './specs/container-noproject' })`.
 2. `test/playwright/specs/container-noproject/<name>.container.spec.ts` — same patterns as phase 1.
-3. Add `test:container:noproject` script + wireit block (same env vars as `test:container`).
+3. Add `test:container:noproject` script + wireit block (same env vars as `test:container`, including the external `CB_GREP`/`CB_UNDER_TEST`).
 4. Orchestrator auto-discovers `test:container:noproject` scripts; runs phase 2 after phase 1. Specs
    run against the mounted non-project folder after re-seed + `restart()`.

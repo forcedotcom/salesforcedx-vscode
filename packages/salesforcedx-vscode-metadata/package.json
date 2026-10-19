@@ -226,7 +226,10 @@
         "CB_GREP": {
           "external": true
         },
-        "VSCODE_CONTAINER": "1"
+        "VSCODE_CONTAINER": "1",
+        "CB_UNDER_TEST": {
+          "external": true
+        }
       },
       "dependencies": [
         "../playwright-vscode-ext:compile"
@@ -244,6 +247,9 @@
           "external": true
         },
         "CB_GREP": {
+          "external": true
+        },
+        "CB_UNDER_TEST": {
           "external": true
         }
       },
@@ -263,6 +269,9 @@
           "external": true
         },
         "CB_GREP": {
+          "external": true
+        },
+        "CB_UNDER_TEST": {
           "external": true
         }
       },

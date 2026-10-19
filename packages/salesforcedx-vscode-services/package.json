@@ -247,6 +247,12 @@
       "env": {
         "CODE_BUILDER_URL": {
           "external": true
+        },
+        "CB_GREP": {
+          "external": true
+        },
+        "CB_UNDER_TEST": {
+          "external": true
         }
       },
       "dependencies": [

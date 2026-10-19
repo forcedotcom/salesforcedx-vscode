@@ -35,7 +35,8 @@
  *   --run-id <id>        Pull the VSIX from that Build All run instead of building locally.
  *   --release-tag <tag>  Pull the VSIX assets from that published GitHub Release (e.g. v68.4.0)
  *                        instead of a Build All run or a local build. Mutually exclusive with --run-id.
- *   --grep <pattern>  Pass through to Playwright to run a subset of specs.
+ *   --grep <pattern>  Pass through to Playwright to run a subset of specs. A phase/package with no
+ *                     matching test is skipped; no match in any phase fails the run.
  *   --only <pkgs>     Run only these package suite(s) (comma-separated, e.g. salesforcedx-vscode-lwc).
  *                     The CI matrix passes one per job to shard the suite under the job timeout.
  *   --no-teardown     Leave the container + scratch org up for debugging (default tears down).
@@ -60,6 +61,7 @@ import {
   type ContainerHandle
 } from '@salesforce/playwright-vscode-ext';
 import { type ChildProcess, execFileSync, spawn, spawnSync } from 'node:child_process';
+import { createHash, randomUUID } from 'node:crypto';
 import { closeSync, cpSync, mkdtempSync, openSync, readFileSync, readdirSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
@@ -153,6 +155,9 @@ type Options = {
   only?: string[];
 };
 
+/** A package's container suite that failed, and the workspace-shape phase it failed in. */
+type FailedSuite = { pkg: string; phase: string };
+
 const parseArgs = (argv: string[]): Options => {
   const parsed: Options = { teardown: true, imageTag: 'latest', debug: false };
   // A value-consuming flag given without its value (e.g. trailing `--run-id`) would otherwise read
@@ -238,6 +243,36 @@ const tryCapture = (file: string, args: string[]): string | null => {
   } catch {
     return null;
   }
+};
+
+/**
+ * Hash the contents of every VSIX: each entry's name, CRC-32, and size, read from the zip's central
+ * directory (no extraction). Sorted, and without zip timestamps, because repackaging an unchanged
+ * extension (the legacy vsce-bundled-extension packages always repackage) writes the same files in a
+ * different order with new timestamps. python3 is the same host dependency as swap's defaultExtract.
+ */
+const VSIX_CONTENT_DIGEST_PY = [
+  'import hashlib, os, sys, zipfile',
+  'h = hashlib.sha256()',
+  'for p in sorted(sys.argv[1:], key=os.path.basename):',
+  '    h.update(os.path.basename(p).encode() + b"\\0")',
+  '    for i in sorted(zipfile.ZipFile(p).infolist(), key=lambda i: i.filename):',
+  '        h.update(f"{i.filename}\\0{i.CRC}\\0{i.file_size}\\n".encode())',
+  'print(h.hexdigest())'
+].join('\n');
+
+/**
+ * Fingerprint what a container run tests: the VSIX contents plus the pulled image's ID. Published to
+ * the suites as CB_UNDER_TEST, which each `test:container*` wireit script declares as external env —
+ * wireit can't otherwise see these inputs (only spec files + env), so it would skip or replay a pass
+ * for a different build. Same build + same image (an unchanged local tree, or a fixed
+ * --run-id/--release-tag artifact) keeps the cache; anything else reruns. If either half can't be
+ * read, a unique value: never cache over an unknown build or image.
+ */
+const fingerprintUnderTest = (vsixPaths: readonly string[]): string => {
+  const contents = tryCapture('python3', ['-c', VSIX_CONTENT_DIGEST_PY, ...vsixPaths]);
+  const imageId = tryCapture('docker', ['image', 'inspect', '--format', '{{.Id}}', image]);
+  return contents && imageId ? createHash('sha256').update(contents).update(imageId).digest('hex') : randomUUID();
 };
 
 /*
@@ -1004,7 +1039,9 @@ const main = async (): Promise<number> => {
     CB_CONTAINER_NAME: CONTAINER_NAME,
     CB_FIXTURE_CONTAINER_DIR: FIXTURE_MOUNT_PATH,
     CB_NOPROJECT_HOST_DIR: NOPROJECT_FIXTURE_HOST_DIR,
-    CB_NOPROJECT_CONTAINER_DIR: NOPROJECT_MOUNT_PATH
+    CB_NOPROJECT_CONTAINER_DIR: NOPROJECT_MOUNT_PATH,
+    // Wireit cache key for what's under test — see fingerprintUnderTest
+    CB_UNDER_TEST: fingerprintUnderTest(vsixPaths)
   };
   if (opts.debug) {
     testEnv.PWDEBUG = '1';
@@ -1016,14 +1053,42 @@ const main = async (): Promise<number> => {
     testEnv.CB_GREP = opts.grep;
   }
 
+  // With --grep, keep only the packages whose `scriptName` suite has a test the grep matches. Otherwise
+  // a phase the grep excludes still re-seeds + restarts (or re-boots) the container, then fails on
+  // Playwright's "No tests found". `--list` (fixed tokens, so wireit's unquoted forwarding is safe)
+  // needs no container; `--reporter=list` because a failed listing still runs the config's HTML
+  // reporter, which would clear `playwright-report/` — earlier phases' reports included. Any other
+  // listing error keeps the package, so the real failure surfaces when its suite runs.
+  const withGrepMatches = (packages: string[], scriptName: string): string[] =>
+    opts.grep
+      ? packages.filter(pkg => {
+          const listing = spawnSync('npm', ['run', scriptName, '-w', pkg, '--', '--list', '--reporter=list'], {
+            cwd: REPO_ROOT,
+            env: testEnv,
+            encoding: 'utf-8'
+          });
+          const noMatch = listing.status !== 0 && `${listing.stdout}${listing.stderr}`.includes('No tests found');
+          if (noMatch) {
+            log(`Skipping ${scriptName} for ${pkg}: no test matches --grep ${opts.grep}`);
+          }
+          return !noMatch;
+        })
+      : packages;
+
+  // Every suite run, so a --grep that matched nothing anywhere fails instead of passing vacuously.
+  let suitesRun = 0;
+
   // Run one npm script across the given packages sequentially, returning the ones that failed.
-  // `label` distinguishes the phases in the log (DX-project vs no-project). Shared by both phases so
-  // the run-a-suite mechanics (grep passthrough, SPECS_TIMEOUT_MS backstop, per-package failure
-  // collection) live in one place.
-  const runSuites = (packages: string[], scriptName: string, label: string): string[] => {
-    const suiteFailed: string[] = [];
+  // `phase` names the workspace shape (dx-project, no-project, …) in the log, and is passed to the
+  // suite as CB_PHASE so createContainerConfig writes each phase's report + results to their own
+  // subfolder (a later phase would otherwise overwrite them). Shared by every phase so the run-a-suite
+  // mechanics (grep passthrough, SPECS_TIMEOUT_MS backstop, per-package failure collection) live in
+  // one place.
+  const runSuites = (packages: string[], scriptName: string, phase: string): FailedSuite[] => {
+    const suiteFailed: FailedSuite[] = [];
     for (const pkg of packages) {
-      log(`Specs [${label}]: ${pkg}`);
+      log(`Specs [${phase}]: ${pkg}`);
+      suitesRun++;
       // grep is passed via testEnv.CB_GREP (see above), not a forwarded --grep arg, so the argv is a
       // fixed, quoting-safe token list.
       const testArgs = ['run', scriptName, '-w', pkg];
@@ -1033,26 +1098,29 @@ const main = async (): Promise<number> => {
       const specs = spawnSync('npm', testArgs, {
         cwd: REPO_ROOT,
         stdio: 'inherit',
-        env: testEnv,
+        env: { ...testEnv, CB_PHASE: phase },
         timeout: SPECS_TIMEOUT_MS
       });
       if ((specs.status ?? 1) !== 0) {
-        suiteFailed.push(pkg);
+        suiteFailed.push({ pkg, phase });
       }
     }
     return suiteFailed;
   };
 
   // Phase 1 — standard container suites against the DX-project shape (the seeded fixture).
-  const failed = runSuites(containerPackages, 'test:container', 'dx-project');
+  const failed = runSuites(withGrepMatches(containerPackages, 'test:container'), 'test:container', 'dx-project');
 
   // Phase 2 — no-project shape. Any package declaring `test:container:noproject` needs a workspace
   // with NO sfdx-project.json open (project-gated commands must be hidden). Change the shape at a
   // phase boundary — re-seed coder.json to the non-project mount + restart() — never mid-suite in the
   // shared session. Discovered self-maintaining like phase 1; a no-op when no package declares it.
-  const noProjectPackages = opts.only
-    ? discoverPackagesWithScript('test:container:noproject').filter(p => opts.only!.includes(p))
-    : discoverPackagesWithScript('test:container:noproject');
+  const noProjectPackages = withGrepMatches(
+    opts.only
+      ? discoverPackagesWithScript('test:container:noproject').filter(p => opts.only!.includes(p))
+      : discoverPackagesWithScript('test:container:noproject'),
+    'test:container:noproject'
+  );
   if (noProjectPackages.length > 0) {
     log(`Re-seeding code-server at the non-project folder (${NOPROJECT_MOUNT_PATH}) + restarting`);
     seedWorkspace(handle, { fixturePath: NOPROJECT_MOUNT_PATH });
@@ -1072,9 +1140,12 @@ const main = async (): Promise<number> => {
   // must still be contributed). Change the shape at a phase boundary — re-seed coder.json to an empty
   // query (no `folder` key) + restart() — never mid-suite in the shared session. Discovered
   // self-maintaining like phases 1–2; a no-op when no package declares it.
-  const noFolderPackages = opts.only
-    ? discoverPackagesWithScript('test:container:nofolder').filter(p => opts.only!.includes(p))
-    : discoverPackagesWithScript('test:container:nofolder');
+  const noFolderPackages = withGrepMatches(
+    opts.only
+      ? discoverPackagesWithScript('test:container:nofolder').filter(p => opts.only!.includes(p))
+      : discoverPackagesWithScript('test:container:nofolder'),
+    'test:container:nofolder'
+  );
   if (noFolderPackages.length > 0) {
     log('Re-seeding code-server to a no-folder window (empty coder.json query) + restarting');
     seedNoFolder(handle.name);
@@ -1094,9 +1165,12 @@ const main = async (): Promise<number> => {
   // output-dir picker must list BOTH package dirs' classes folders). Change the shape at a phase
   // boundary — re-seed coder.json to the multi-package mount + restart() — never mid-suite in the
   // shared session. Discovered self-maintaining like phases 1–3; a no-op when no package declares it.
-  const multiPackagePackages = opts.only
-    ? discoverPackagesWithScript('test:container:multipackage').filter(p => opts.only!.includes(p))
-    : discoverPackagesWithScript('test:container:multipackage');
+  const multiPackagePackages = withGrepMatches(
+    opts.only
+      ? discoverPackagesWithScript('test:container:multipackage').filter(p => opts.only!.includes(p))
+      : discoverPackagesWithScript('test:container:multipackage'),
+    'test:container:multipackage'
+  );
   if (multiPackagePackages.length > 0) {
     log(`Re-seeding code-server at the multi-package project (${MULTIPACKAGE_MOUNT_PATH}) + restarting`);
     seedWorkspace(handle, { fixturePath: MULTIPACKAGE_MOUNT_PATH });
@@ -1120,9 +1194,12 @@ const main = async (): Promise<number> => {
   // re-run() it org-less (bootEnv omitted) against the same DX fixture, re-swap the extensions, restart
   // to apply, and re-run the verify gate. This is the LAST phase, so the torn-down org container never
   // needs restoring. Discovered self-maintaining like phases 1–4; a no-op when no package declares it.
-  const noOrgPackages = opts.only
-    ? discoverPackagesWithScript('test:container:noorg').filter(p => opts.only!.includes(p))
-    : discoverPackagesWithScript('test:container:noorg');
+  const noOrgPackages = withGrepMatches(
+    opts.only
+      ? discoverPackagesWithScript('test:container:noorg').filter(p => opts.only!.includes(p))
+      : discoverPackagesWithScript('test:container:noorg'),
+    'test:container:noorg'
+  );
   if (noOrgPackages.length > 0) {
     log('Re-booting the container org-less (no SF_ACCESS_TOKEN/INSTANCE_URL) for the no-org phase');
     // Tear the org-authed container down; a fresh org-less container reuses the same name/port/mounts.
@@ -1164,14 +1241,19 @@ const main = async (): Promise<number> => {
     failed.push(...runSuites(noOrgPackages, 'test:container:noorg', 'no-org'));
   }
 
+  if (opts.grep && suitesRun === 0) {
+    console.error(`--grep ${opts.grep} matched no container test in any phase.`);
+    return 1;
+  }
   if (failed.length > 0) {
-    log(`Container specs failed for ${failed.length} package(s): ${failed.join(', ')}. Recent container logs:`);
+    const suites = failed.map(({ pkg, phase }) => `${pkg} [${phase}]`).join(', ');
+    log(`Container specs failed in ${failed.length} suite(s): ${suites}. Recent container logs:`);
     const logs = tryCapture('docker', ['logs', CONTAINER_NAME]);
     if (logs) {
       console.log(logs.split('\n').slice(-40).join('\n'));
     }
-    for (const pkg of failed) {
-      console.log(`    HTML report: packages/${pkg}/playwright-report/index.html`);
+    for (const { pkg, phase } of failed) {
+      console.log(`    HTML report [${phase}]: packages/${pkg}/playwright-report/${phase}/index.html`);
     }
     return 1;
   }

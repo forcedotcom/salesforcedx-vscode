@@ -233,6 +233,9 @@
         },
         "CB_GREP": {
           "external": true
+        },
+        "CB_UNDER_TEST": {
+          "external": true
         }
       },
       "dependencies": [
@@ -251,6 +254,9 @@
           "external": true
         },
         "CB_GREP": {
+          "external": true
+        },
+        "CB_UNDER_TEST": {
           "external": true
         }
       },
@@ -271,6 +277,9 @@
         },
         "CB_GREP": {
           "external": true
+        },
+        "CB_UNDER_TEST": {
+          "external": true
         }
       },
       "dependencies": [
@@ -289,6 +298,9 @@
           "external": true
         },
         "CB_GREP": {
+          "external": true
+        },
+        "CB_UNDER_TEST": {
           "external": true
         }
       },

@@ -125,8 +125,9 @@ Ask user: "Test failed. Would you like me to analyze screenshots, traces, and sp
 
 **Playwright reports**:
 
-- HTML report: `test-results/playwright-report/index.html`
-- Mention to user they can open in browser for interactive view
+- **Web/desktop** (direct run): `packages/<pkg>/playwright-report/index.html`
+- **Container** (via orchestrator): `packages/<pkg>/playwright-report/<phase>/index.html` (one report per workspace-shape phase: dx-project, no-project, no-folder, multi-package, no-org)
+- Mention user can open in browser for interactive view
 
 **Reference error patterns**:
 
@@ -208,4 +209,4 @@ npm run test:container -w <package>
 
 **Sequential only:** Container hosts 1 browser session, so all package suites must run sequentially (not parallel).
 
-**Failure handling:** If a container spec fails, the orchestrator continues through all packages (doesn't stop at first failure) to surface all issues at once. Check `packages/<package>/test-results/playwright-report/index.html` for each failure.
+**Failure handling:** Orchestrator surfaces all failures across phases before exit. Failure summary lists affected suites with phase: `<pkg> [<phase>]`. Check `packages/<pkg>/playwright-report/<phase>/index.html` per suite. With `--grep`, phases matching no tests auto-skip (no "No tests found" error); `--grep` matching nothing in any phase fails the run.
