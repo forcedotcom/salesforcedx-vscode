@@ -276,17 +276,19 @@
       ]
     },
     "o11y:debug": {
-      "command": "ts-node --compiler-options '{\"module\":\"Node16\",\"moduleResolution\":\"Node16\"}' scripts/o11yDebugServer.ts",
+      "command": "ts-node --project tsconfig.scripts.json scripts/o11yDebugServer.ts",
       "service": true,
       "files": [
-        "scripts/o11yDebugServer.ts"
+        "scripts/o11yDebugServer.ts",
+        "tsconfig.scripts.json"
       ]
     },
     "spans:server": {
-      "command": "ts-node --compiler-options '{\"module\":\"Node16\",\"moduleResolution\":\"Node16\"}' scripts/spanFileServer.ts",
+      "command": "ts-node --project tsconfig.scripts.json scripts/spanFileServer.ts",
       "service": true,
       "files": [
-        "scripts/spanFileServer.ts"
+        "scripts/spanFileServer.ts",
+        "tsconfig.scripts.json"
       ]
     },
     "test:compile": {
