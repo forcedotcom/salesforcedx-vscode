@@ -7,6 +7,7 @@ import { discoverExtensions, extensionGroups, requiredExtensions, root } from '.
 const pickerName = 'pickExtensions.mjs';
 const developmentPath = '--extensionDevelopmentPath=${workspaceFolder}/.vscode/selected-extensions';
 const buildTask = 'Compile and Bundle';
+const disableExtensionPrefix = '--disable-extension=';
 
 async function readJson(file) {
   return JSON.parse(await readFile(path.join(root, file), 'utf8'));
@@ -85,6 +86,18 @@ async function check() {
     if (launch.type !== 'extensionHost') continue;
     if (!launch.args?.includes(developmentPath)) {
       throw new Error(`${launch.name} must use the picker development path.`);
+    }
+    const disabled = launch.args
+      .filter(arg => arg.startsWith(disableExtensionPrefix))
+      .map(arg => arg.slice(disableExtensionPrefix.length));
+    if (disabled.length) {
+      const missing = [...available].filter(name => !disabled.includes(`salesforce.${name}`));
+      const stale = disabled.filter(id => !available.has(id.replace(/^salesforce\./, '')));
+      if (missing.length || stale.length) {
+        throw new Error(
+          `${launch.name} must disable exactly the monorepo extensions. Missing: ${missing.join(', ') || 'none'}; stale: ${stale.join(', ') || 'none'}.`
+        );
+      }
     }
     const result = inspectTask(launch.preLaunchTask);
     if (result.selectors.length !== 1) {
