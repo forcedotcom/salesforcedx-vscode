@@ -485,9 +485,12 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
   const extensionScope = Effect.runSync(getExtensionScope());
   const activateWithScope = async (): Promise<SalesforceVSCodeServicesApi> => {
     if (process.env.ESBUILD_PLATFORM === 'web') {
+      const settingsRuntime = await Effect.runPromise(
+        SettingsService.Default.pipe(Layer.toRuntime, Scope.extend(extensionScope))
+      );
       // load auth from local environment.  development only.
       if (process.env.ESBUILD_WEB_CONFIG) {
-        await Effect.runPromise(runWebAuthEffect().pipe(Effect.provide(SettingsService.Default)));
+        await Effect.runPromise(runWebAuthEffect().pipe(Effect.provide(settingsRuntime)));
       }
       // first, before all other things, get the FS running.
       await Effect.runPromise(
@@ -517,7 +520,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
                 )
               )
           ),
-          Effect.provide(SettingsService.Default)
+          Effect.provide(settingsRuntime)
         )
       );
     }

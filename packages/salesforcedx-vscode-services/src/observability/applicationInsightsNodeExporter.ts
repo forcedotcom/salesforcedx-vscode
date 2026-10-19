@@ -24,6 +24,7 @@ import { LoggerProvider, SimpleLogRecordProcessor } from '@opentelemetry/sdk-log
 import { type ReadableSpan, type SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { Global } from '@salesforce/core/global';
 import * as Effect from 'effect/Effect';
+import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as Match from 'effect/Match';
 import { join } from 'node:path';
 import { SFDX_CORE_SECTION } from '../constants';
@@ -57,6 +58,7 @@ const getSpanKindName = (kind: SpanKind): string =>
  * depend on the global OTEL log provider (which @effect/opentelemetry does not register).
  */
 export class ApplicationInsightsNodeExporter implements SpanExporter {
+  private readonly settingsRuntime = ManagedRuntime.make(SettingsService.Default);
   private loggerProvider: LoggerProvider;
   private otelLogger: ReturnType<LoggerProvider['getLogger']>;
 
@@ -87,16 +89,13 @@ export class ApplicationInsightsNodeExporter implements SpanExporter {
 
     const otelLogger = this.otelLogger;
 
-    void Effect.runPromise(
-      Effect.all(validSpans.map(span => sendSpan(span, otelLogger))).pipe(
-        Effect.provide(SettingsService.Default),
-        reportExportResult(resultCallback)
-      )
+    void this.settingsRuntime.runPromise(
+      Effect.all(validSpans.map(span => sendSpan(span, otelLogger))).pipe(reportExportResult(resultCallback))
     );
   }
 
   public shutdown(): Promise<void> {
-    return this.loggerProvider.shutdown();
+    return Promise.all([this.loggerProvider.shutdown(), this.settingsRuntime.dispose()]).then(() => undefined);
   }
 }
 

@@ -186,31 +186,35 @@ export const createLegacyTelemetrySpan = (config: LegacyTelemetrySenderConfig, p
     'common.extversion': extensionVersion
   };
 
-  return Effect.gen(function* () {
-    const telemetryTag = yield* (yield* SettingsService).getValue<string>(SFDX_CORE_SECTION, 'telemetry-tag');
-    const span = yield* OtelTracer.currentOtelSpan;
-    // SpanTransformProcessor.onStart stamps live org identity. Restore the legacy
-    // send-time snapshot and caller metadata on the underlying SDK span before end.
-    Object.entries({ ...attributes, ...(isString(telemetryTag) ? { telemetryTag } : {}) }).forEach(([key, value]) =>
-      span.setAttribute(key, value)
-    );
-    setSpanCreationIdentity(span, {
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- branded OrgId from plain string
-      orgId: payload.identity.orgId as never,
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- branded OrgId from plain string
-      devHubOrgId: payload.identity.devHubId as never,
-      userId: payload.identity.cliId,
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- CliId brand from plain string
-      cliId: payload.identity.cliId as never,
-      webUserId: payload.identity.webUserId,
-      orgEdition: payload.identity.orgEdition,
-      telemetryClassification: payload.identity.telemetryClassification
-    });
-    if (payload.kind === 'exception') {
-      return yield* new LegacyTelemetryException({ exceptionName: payload.name, message: payload.message ?? '' });
-    }
-  }).pipe(
-    Effect.provide(SettingsService.Default),
+  return SettingsService.Default.pipe(
+    Layer.toRuntime,
+    Effect.flatMap(runtime =>
+      Effect.gen(function* () {
+        const telemetryTag = yield* (yield* SettingsService).getValue<string>(SFDX_CORE_SECTION, 'telemetry-tag');
+        const span = yield* OtelTracer.currentOtelSpan;
+        // SpanTransformProcessor.onStart stamps live org identity. Restore the legacy
+        // send-time snapshot and caller metadata on the underlying SDK span before end.
+        Object.entries({ ...attributes, ...(isString(telemetryTag) ? { telemetryTag } : {}) }).forEach(([key, value]) =>
+          span.setAttribute(key, value)
+        );
+        setSpanCreationIdentity(span, {
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- branded OrgId from plain string
+          orgId: payload.identity.orgId as never,
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- branded OrgId from plain string
+          devHubOrgId: payload.identity.devHubId as never,
+          userId: payload.identity.cliId,
+          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- CliId brand from plain string
+          cliId: payload.identity.cliId as never,
+          webUserId: payload.identity.webUserId,
+          orgEdition: payload.identity.orgEdition,
+          telemetryClassification: payload.identity.telemetryClassification
+        });
+        if (payload.kind === 'exception') {
+          return yield* new LegacyTelemetryException({ exceptionName: payload.name, message: payload.message ?? '' });
+        }
+      }).pipe(Effect.provide(runtime))
+    ),
+    Effect.scoped,
     Effect.withSpan(legacySpanName(extensionName, payload.name), {
       kind: 'internal',
       root: true,

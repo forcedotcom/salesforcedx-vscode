@@ -6,6 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import { isNotUndefined } from 'effect/Predicate';
 import { ExtensionMode } from 'vscode';
 import { SFDX_CORE_SECTION } from '../constants';
@@ -70,4 +71,9 @@ const isTelemetryExtensionConfigurationEnabled = Effect.fnUntraced(function* () 
     o11yEndpoint localhost bypasses the setting (dev sink). */
 export const isProductionTelemetryExportEnabled = (o11yEndpoint?: string): boolean =>
   Boolean(o11yEndpoint?.includes('localhost')) ||
-  Effect.runSync(isTelemetryExtensionConfigurationEnabled().pipe(Effect.provide(SettingsService.Default)));
+  SettingsService.Default.pipe(
+    Layer.toRuntime,
+    Effect.flatMap(runtime => isTelemetryExtensionConfigurationEnabled().pipe(Effect.provide(runtime))),
+    Effect.scoped,
+    Effect.runSync
+  );

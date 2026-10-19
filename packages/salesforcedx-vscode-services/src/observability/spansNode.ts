@@ -185,6 +185,6 @@ export const NodeSdkLayerFor = ({
             : Layer.empty
         )
       );
-    }).pipe(Effect.provide(SettingsService.Default))
-  );
+    })
+  ).pipe(Layer.provide(SettingsService.Default));
 };

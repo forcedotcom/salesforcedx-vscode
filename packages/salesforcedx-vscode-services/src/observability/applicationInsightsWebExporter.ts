@@ -19,6 +19,7 @@ import { type ReadableSpan, type SpanExporter } from '@opentelemetry/sdk-trace-b
 import { TelemetryReporter } from '@vscode/extension-telemetry';
 import * as Console from 'effect/Console';
 import * as Effect from 'effect/Effect';
+import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as Match from 'effect/Match';
 import * as Stream from 'effect/Stream';
 import { SFDX_CORE_SECTION } from '../constants';
@@ -56,6 +57,7 @@ const getSpanKindName = (kind: SpanKind): string =>
 export class ApplicationInsightsWebExporter implements SpanExporter {
   private reporter: TelemetryReporter | undefined;
   private readonly localHttpRuntime = makeLocalHttpRuntime();
+  private readonly settingsRuntime = ManagedRuntime.make(SettingsService.Default);
 
   constructor(private readonly makeReporter = () => new TelemetryReporter(DEFAULT_AI_CONNECTION_STRING)) {}
 
@@ -64,21 +66,24 @@ export class ApplicationInsightsWebExporter implements SpanExporter {
   }
 
   public export(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): void {
-    void Effect.runPromise(
+    void this.settingsRuntime.runPromise(
       Stream.fromIterable(spans).pipe(
         Stream.filter(isSpanValidForProductionTelemetry),
         Stream.mapEffect(span => exportSpan(span, () => this.getReporter(), this.localHttpRuntime), {
           concurrency: process.env.ESBUILD_WEB_LOCAL === '1' ? 'unbounded' : 1
         }),
         Stream.runDrain,
-        Effect.provide(SettingsService.Default),
         reportExportResult(resultCallback)
       )
     );
   }
 
   public shutdown(): Promise<void> {
-    return Promise.all([this.reporter?.dispose(), this.localHttpRuntime.dispose()]).then(() => undefined);
+    return Promise.all([
+      this.reporter?.dispose(),
+      this.localHttpRuntime.dispose(),
+      this.settingsRuntime.dispose()
+    ]).then(() => undefined);
   }
 }
 

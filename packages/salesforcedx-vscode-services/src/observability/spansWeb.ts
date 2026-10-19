@@ -9,6 +9,7 @@ import { WebSdk } from '@effect/opentelemetry';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { ConsoleSpanExporter } from '@opentelemetry/sdk-trace-web';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as Runtime from 'effect/Runtime';
 import { SFDX_CORE_SECTION } from '../constants';
 import { SettingsService } from '../vscode/settingsService';
@@ -81,5 +82,5 @@ export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, 
             : [])
         ]
       };
-    }).pipe(Effect.provide(SettingsService.Default))
-  );
+    })
+  ).pipe(Layer.provide(SettingsService.Default));
