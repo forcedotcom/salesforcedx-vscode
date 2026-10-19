@@ -1,0 +1,44 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+const assert = require('node:assert/strict');
+const vscode = require('vscode');
+
+const activate = async () => {
+  const workspace = vscode.workspace.workspaceFolders[0];
+  const result = await (async () => {
+    try {
+      const extension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-apex-oas');
+      assert.ok(extension, 'Packaged Apex OAS extension must be installed');
+      assert.equal(extension.packageJSON.main, './dist/index.js');
+      const [entryPoint, template] = await Promise.all([
+        vscode.workspace.fs.readFile(vscode.Uri.joinPath(extension.extensionUri, 'dist', 'index.js')),
+        vscode.workspace.fs.readFile(
+          vscode.Uri.joinPath(extension.extensionUri, 'resources', 'templates', 'methodByMethod.ejs')
+        )
+      ]);
+      assert.ok(entryPoint.byteLength > 0, 'Packaged entry point must not be empty');
+      assert.ok(template.byteLength > 0, 'Packaged EJS template must not be empty');
+
+      await extension.activate();
+      assert.equal(extension.isActive, true, 'Packaged Apex OAS activation must complete');
+      const commands = await vscode.commands.getCommands(true);
+      assert.ok(commands.includes('sf.create.apex.action.class'), 'Generation command must register');
+      assert.ok(commands.includes('sf.validate.oas.document'), 'Validation command must register');
+      // Invalid input exercises the registered handler without an org or LLM service.
+      await vscode.commands.executeCommand('sf.validate.oas.document', []);
+      return { extensionPath: extension.extensionPath };
+    } catch (error) {
+      return { error: error.stack ?? String(error) };
+    }
+  })();
+  await vscode.workspace.fs.writeFile(
+    vscode.Uri.joinPath(workspace.uri, '.oas-vsix-activation.json'),
+    Buffer.from(JSON.stringify(result))
+  );
+};
+
+module.exports = { activate };

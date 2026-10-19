@@ -27,6 +27,7 @@
     "anyUnknownInErrorContext",
     "globalConsoleInEffect",
     "missingEffectServiceDependency",
-    "nestedEffectGenYield"
+    "nestedEffectGenYield",
+    "strictEffectProvide"
   ]
 }

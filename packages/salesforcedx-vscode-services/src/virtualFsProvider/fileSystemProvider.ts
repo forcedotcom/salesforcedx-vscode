@@ -72,7 +72,12 @@ const isItReadOnly = (readOnlyTypes: MetadataType[], uri: URI): boolean => {
         Effect.map(runtime => runtime.runSync(checkIsReadOnly(readOnlyTypes, uri))),
         Effect.runSync
       )
-    : checkIsReadOnly(readOnlyTypes, uri).pipe(Effect.provide(isItReadOnlyLayer), Effect.runSync);
+    : isItReadOnlyLayer.pipe(
+        Layer.toRuntime,
+        Effect.flatMap(runtime => checkIsReadOnly(readOnlyTypes, uri).pipe(Effect.provide(runtime))),
+        Effect.scoped,
+        Effect.runSync
+      );
 };
 
 export class FsProvider implements vscode.FileSystemProvider {

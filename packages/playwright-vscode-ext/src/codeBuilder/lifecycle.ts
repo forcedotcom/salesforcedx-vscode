@@ -19,6 +19,7 @@ import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
 import * as HttpClient from '@effect/platform/HttpClient';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import { bootEnvToDockerArgs, type BootEnv } from './auth';
 import { defaultRunner, type CommandRunner } from './runner';
 
@@ -87,11 +88,17 @@ export type LifecycleOptions = { runner?: CommandRunner };
  */
 const defaultProbe: ReadinessProbe = async url => {
   try {
-    return await HttpClient.get(url).pipe(
-      Effect.map(res => res.status < 400),
-      Effect.timeout(Duration.seconds(5)),
-      Effect.provide(FetchHttpClient.layer),
-      Effect.provideService(FetchHttpClient.RequestInit, { redirect: 'manual' }),
+    return await FetchHttpClient.layer.pipe(
+      Layer.toRuntime,
+      Effect.flatMap(runtime =>
+        HttpClient.get(url).pipe(
+          Effect.map(res => res.status < 400),
+          Effect.timeout(Duration.seconds(5)),
+          Effect.provide(runtime),
+          Effect.provideService(FetchHttpClient.RequestInit, { redirect: 'manual' })
+        )
+      ),
+      Effect.scoped,
       Effect.runPromise
     );
   } catch {
