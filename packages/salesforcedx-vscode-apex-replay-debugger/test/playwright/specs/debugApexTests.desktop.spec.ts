@@ -199,12 +199,12 @@ test('Debug Apex Tests: CodeLens and Test Explorer entry points', async ({ page 
   const networkErrors = setupNetworkMonitoring(page);
 
   // Unique per-run names so the container's shared, persistent workbench never collides with a class
-  // left by a prior run.
+  // left by a prior run (harmless on desktop's fresh workspace).
   const uid = Date.now().toString(36);
-  const class1 = isContainer ? `ExampleApexClass1_${uid}` : 'ExampleApexClass1';
-  const class1Test = isContainer ? `ExampleApexClass1_${uid}Test` : 'ExampleApexClass1Test';
-  const class2 = isContainer ? `ExampleApexClass2_${uid}` : 'ExampleApexClass2';
-  const class2Test = isContainer ? `ExampleApexClass2_${uid}Test` : 'ExampleApexClass2Test';
+  const class1 = `ExampleApexClass1_${uid}`;
+  const class1Test = `ExampleApexClass1_${uid}Test`;
+  const class2 = `ExampleApexClass2_${uid}`;
+  const class2Test = `ExampleApexClass2_${uid}Test`;
 
   const class1Content = [
     `public with sharing class ${class1} {`,
@@ -216,29 +216,16 @@ test('Debug Apex Tests: CodeLens and Test Explorer entry points', async ({ page 
 
   // Annotations kept INLINE with their declarations: once the Apex LS is warm, a bare `@IsTest` line
   // typed into the code-server editor can have its trailing newline swallowed by a completion-accept,
-  // merging it into the next line and producing invalid Apex.
-  const class1TestContent = isContainer
-    ? [
-        `@IsTest public class ${class1Test} {`,
-        '  @IsTest static void validateSayHello() {',
-        "    System.debug('Starting validate');",
-        `    ${class1}.SayHello('Cody');`,
-        "    System.assertEquals(1, 1, 'all good');",
-        '  }',
-        '}'
-      ].join('\n')
-    : [
-        '@IsTest',
-        `public class ${class1Test} {`,
-        '  @IsTest',
-        '  static void validateSayHello() {',
-        "    System.debug('Starting validate');",
-        `    ${class1}.SayHello('Cody');`,
-        '',
-        "    System.assertEquals(1, 1, 'all good');",
-        '  }',
-        '}'
-      ].join('\n');
+  // merging it into the next line and producing invalid Apex. Same text on desktop, where it's equally valid.
+  const class1TestContent = [
+    `@IsTest public class ${class1Test} {`,
+    '  @IsTest static void validateSayHello() {',
+    "    System.debug('Starting validate');",
+    `    ${class1}.SayHello('Cody');`,
+    "    System.assertEquals(1, 1, 'all good');",
+    '  }',
+    '}'
+  ].join('\n');
 
   const class2Content = [
     `public with sharing class ${class2} {`,
@@ -251,51 +238,27 @@ test('Debug Apex Tests: CodeLens and Test Explorer entry points', async ({ page 
   // Distinct method name from class1Test so the Test Explorer treeitem label is unique (both classes
   // nest under the same Namespace/Package parents; a shared method name would match two virtualized
   // treeitem rows and trip Playwright strict mode).
-  const class2TestContent = isContainer
-    ? [
-        `@IsTest public class ${class2Test} {`,
-        '  @IsTest static void validateSayHelloTwo() {',
-        "    System.debug('Starting validate');",
-        `    ${class2}.SayHello('Cody');`,
-        "    System.assertEquals(1, 1, 'all good');",
-        '  }',
-        '}'
-      ].join('\n')
-    : [
-        '@IsTest',
-        `public class ${class2Test} {`,
-        '  @IsTest',
-        '  static void validateSayHelloTwo() {',
-        "    System.debug('Starting validate');",
-        `    ${class2}.SayHello('Cody');`,
-        '',
-        "    System.assertEquals(1, 1, 'all good');",
-        '  }',
-        '}'
-      ].join('\n');
+  const class2TestContent = [
+    `@IsTest public class ${class2Test} {`,
+    '  @IsTest static void validateSayHelloTwo() {',
+    "    System.debug('Starting validate');",
+    `    ${class2}.SayHello('Cody');`,
+    "    System.assertEquals(1, 1, 'all good');",
+    '  }',
+    '}'
+  ].join('\n');
 
   // Fails on purpose: debugging a failing test still launches the replay debugger, but ends with the
   // failure notification instead of success.
-  const failingTest = isContainer ? `ExampleFailingApexTest_${uid}` : 'ExampleFailingApexTest';
-  const failingTestContent = isContainer
-    ? [
-        `@IsTest public class ${failingTest} {`,
-        '  @IsTest static void validateFails() {',
-        "    System.debug('Starting validate');",
-        "    System.assertEquals(1, 2, 'expected failure');",
-        '  }',
-        '}'
-      ].join('\n')
-    : [
-        '@IsTest',
-        `public class ${failingTest} {`,
-        '  @IsTest',
-        '  static void validateFails() {',
-        "    System.debug('Starting validate');",
-        "    System.assertEquals(1, 2, 'expected failure');",
-        '  }',
-        '}'
-      ].join('\n');
+  const failingTest = `ExampleFailingApexTest_${uid}`;
+  const failingTestContent = [
+    `@IsTest public class ${failingTest} {`,
+    '  @IsTest static void validateFails() {',
+    "    System.debug('Starting validate');",
+    "    System.assertEquals(1, 2, 'expected failure');",
+    '  }',
+    '}'
+  ].join('\n');
 
   await test.step('setup with two Apex classes, their tests, and a failing test', async () => {
     if (!isContainer) {
@@ -316,21 +279,13 @@ test('Debug Apex Tests: CodeLens and Test Explorer entry points', async ({ page 
   });
 
   await test.step('wait for CodeLens in test class', async () => {
-    const openTestClassContainer = async (): Promise<void> => {
-      // The desktop "Indexing complete" status-bar button never renders in the code-server image, so
-      // gate on the real indexing signal instead: the test class' CodeLens only appears once the LS
-      // has indexed it.
-      await openFileByName(page, `${class1Test}.cls`);
-    };
-    const openTestClassDesktop = async (): Promise<void> => {
-      // Apex LS must finish indexing before CodeLens appear; CI is slower
-      const indexingComplete = page.getByRole('button', { name: /Indexing complete/ });
-      await expect(indexingComplete).toBeVisible({ timeout: 120_000 });
-      await openFileByName(page, `${class1Test}.cls`);
-    };
-    await (isContainer ? openTestClassContainer : openTestClassDesktop)();
+    await openFileByName(page, `${class1Test}.cls`);
+    // Apex LS must finish indexing before CodeLens appear; CI is slower. The language-status button
+    // renders only while an Apex editor is active, so wait after opening the test class.
+    const indexingComplete = page.getByRole('button', { name: /Indexing complete/ });
+    await expect(indexingComplete).toBeVisible({ timeout: 120_000 });
     const codelens = page.locator('.codelens-decoration a').filter({ hasText: /Run Test|Debug Test/ });
-    await expect(codelens.first()).toBeVisible({ timeout: isContainer ? 120_000 : 90_000 });
+    await expect(codelens.first()).toBeVisible({ timeout: 120_000 });
     await saveScreenshot(page, 'step.codelens-visible.png');
   });
 
