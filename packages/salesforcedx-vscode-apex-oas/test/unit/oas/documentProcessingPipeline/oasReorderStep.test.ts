@@ -72,6 +72,7 @@ describe('oasReorderStep', () => {
       'required',
       'content'
     ]);
+    expect(JSON.stringify(output.openAPIDoc, undefined, 2)).toMatchSnapshot();
   });
 
   it('reorders path-level attributes', async () => {
