@@ -9,6 +9,8 @@ import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import type { OrgMetadataCatalogComponentEntry } from 'salesforcedx-vscode-services';
+import { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
 import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -19,6 +21,7 @@ import { disposeRuntime } from '../../../src/services/runtime';
 
 describe('DebugConfigurationProvider log-file prompt', () => {
   const readFile = vi.fn();
+  const getEntries = vi.fn();
   const workspaceStateUpdate = vi.fn();
   const extensionContext = {
     workspaceState: { update: workspaceStateUpdate }
@@ -27,19 +30,24 @@ describe('DebugConfigurationProvider log-file prompt', () => {
   beforeEach(() => {
     readFile.mockReturnValue(Effect.succeed('64.0 APEX_CODE,FINEST\n12:00:00.0|USER_INFO|[EXTERNAL]|005'));
     workspaceStateUpdate.mockResolvedValue(undefined);
+    getEntries.mockReturnValue(Effect.succeed([]));
     (vscode.window as unknown as { showOpenDialog: VitestMock }).showOpenDialog = vi.fn();
     (vscode.window.showErrorMessage as VitestMock).mockResolvedValue(undefined);
     (vscode.extensions.getExtension as VitestMock).mockReturnValue(undefined);
     setAllServicesLayer(
-      Layer.succeed(ExtensionProviderService, {
-        getServicesApi: Effect.succeed({
-          services: {
-            FsService: { readFile },
-            UserCancellationError,
-            WorkspaceService: { getWorkspaceInfo: () => Effect.succeed({ isEmpty: true }) }
-          }
-        })
-      } as unknown as ExtensionProviderService) as ReturnType<typeof buildAllServicesLayer>
+      Layer.mergeAll(
+        Layer.succeed(ExtensionProviderService, {
+          getServicesApi: Effect.succeed({
+            services: {
+              FsService: { readFile },
+              OrgMetadataCatalog,
+              UserCancellationError,
+              WorkspaceService: { getWorkspaceInfo: () => Effect.succeed({ isEmpty: true }) }
+            }
+          })
+        } as unknown as ExtensionProviderService),
+        Layer.succeed(OrgMetadataCatalog, { getEntries } as unknown as OrgMetadataCatalog)
+      ) as ReturnType<typeof buildAllServicesLayer>
     );
   });
 
@@ -79,5 +87,32 @@ describe('DebugConfigurationProvider log-file prompt', () => {
     expect(resolved).toBeUndefined();
     expect(readFile).not.toHaveBeenCalled();
     expect(vscode.window.showErrorMessage).not.toHaveBeenCalled();
+  });
+
+  it('attaches catalog source URIs from the selected log before returning the launch configuration', async () => {
+    (vscode.window.showOpenDialog as VitestMock).mockResolvedValue([URI.file('/logs/selected.log')]);
+    readFile.mockReturnValue(Effect.succeed('time|METHOD_ENTRY|[1]|01p|Remote.run()'));
+    const entry: OrgMetadataCatalogComponentEntry = {
+      kind: 'component',
+      reference: { type: 'ApexClass', fullName: 'Remote' },
+      orgId: '00D000000000001',
+      observedAt: '2026-10-20T00:00:00.000Z',
+      provenance: 'metadata-api',
+      name: 'Remote',
+      documentUri: URI.parse('sf-org-metadata:/orgs/00D000000000001/ApexClass/Remote.cls'),
+      inOrg: true,
+      inWorkspace: false
+    };
+    getEntries.mockReturnValue(Effect.succeed([entry]));
+
+    const resolved = await new DebugConfigurationProvider(extensionContext).resolveDebugConfiguration(undefined, {
+      name: 'Prompt for log',
+      type: 'apex-replay',
+      request: 'launch'
+    });
+
+    expect(getEntries).toHaveBeenCalledExactlyOnceWith([{ type: 'ApexClass', fullName: 'Remote' }]);
+    expect(resolved?.sourceUriMapping).toEqual({ Remote: entry.documentUri.toString() });
+    expect(resolved?.lineBreakpointInfo).toBeUndefined();
   });
 });

@@ -44,6 +44,8 @@ export const messages = {
   no_line_breakpoint_information_for_current_project: 'There is no line breakpoint information for the current project',
   line_breakpoint_information_success: 'Retrieved line breakpoint info from language server',
   language_client_not_ready: 'Unable to retrieve breakpoint info from language server, language server is not ready',
+  replay_source_unavailable:
+    'Some Apex source could not be resolved in the workspace or currently selected org. Replay will continue without source for those frames.',
   unable_to_retrieve_org_info: 'Unable to retrieve OrgInfo',
   debug_test_exec_name: 'Debug Test(s)',
   debug_test_success: 'Debug Test(s) successfully ran',
