@@ -9,7 +9,7 @@ import { expect } from '@playwright/test';
 
 import {
   clearOutputChannel,
-  createApexClass,
+  createAndDeployApexTestClass,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
@@ -27,7 +27,6 @@ import {
 import packageNls from '../../../package.nls.json';
 import { isContainer, sharedTest as test } from '../fixtures';
 import { TEST_RUN_TIMEOUT, TEST_SETUP_TIMEOUT } from '../constants';
-import { deployApexClassesFromHost, isOrgAuthedOnHost, ORG_ALIAS } from '../helpers/hostDeploy';
 import {
   CMD_RUN_ALL_TESTS,
   CMD_TOGGLE_MAXIMIZED_PANEL,
@@ -60,10 +59,6 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     if (!isContainer) {
       await setupNonTrackingOrgAndAuth(page);
     }
-    // The container's boot org is authed on the host in the Code Builder CI. Skip — never false-fail —
-    // on a local run without that setup, since the host deploy can't target it.
-    const orgAuthedOnHost = await isOrgAuthedOnHost();
-    test.skip(!orgAuthedOnHost, `org "${ORG_ALIAS}" must be authed on the host to deploy the test class`);
     await ensureSecondarySideBarHidden(page);
     testClassName = `ExplorerTestClass${Date.now()}`;
     const testClassContent = [
@@ -80,10 +75,7 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
       '\t}',
       '}'
     ].join('\n');
-    // Create in the workspace, then deploy from the host CLI: the container's source-tracked boot org has
-    // pending conflicts that block an extension deploy, and the deploy itself isn't under test here.
-    await createApexClass(page, testClassName, testClassContent);
-    await deployApexClassesFromHost([{ name: testClassName, content: testClassContent }]);
+    await createAndDeployApexTestClass(page, testClassName, testClassContent);
   });
 
   await test.step('open Test Explorer and refresh tests', async () => {

@@ -9,11 +9,9 @@ import { expect, type Page } from '@playwright/test';
 import {
   clearOutputChannel,
   createAndDeployApexTestClass,
-  deployCurrentSourceToOrg,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
-  openFileByName,
   QUICK_INPUT_WIDGET,
   resetContainerWorkbench,
   saveScreenshot,
@@ -41,12 +39,6 @@ import {
 } from '../helpers/testExplorerHelpers';
 import { waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
 import { createApexTestSuiteViaPalette } from '../helpers/apexTestSuiteHelpers';
-
-// The web twin never surfaces Apex test suites because salesforcedx-vscode-apex has no browser
-// bundle; desktop authors uniquely-named classes via a fresh non-tracking org, while the Code
-// Builder container reuses these seeded fixture classes already deployed onto its boot org.
-const CONTAINER_TEST_CLASS_1 = 'PagedResultTest';
-const CONTAINER_TEST_CLASS_2 = 'ExampleClassTest';
 
 /** Select a suite from a quick pick (Run Apex Test Suite or Edit Apex Test Suite). */
 const selectSuiteInQuickPick = async (
@@ -96,59 +88,41 @@ test('Apex Test Suite: create, verify creation, edit tests, run suite', async ({
   let testClassName2: string;
   let testSuiteName: string;
 
-  // Deploy an open editor's source to the boot org, waiting on the Salesforce Metadata channel.
-  // Container-only: desktop/web author + deploy fresh classes via createAndDeployApexTestClass.
-  const deployOpenFile = async (fileName: string): Promise<void> => {
-    await openFileByName(page, fileName);
+  await test.step('setup two Apex test classes', async () => {
+    // The container uses its boot org, already authed at startup.
+    if (!isContainer) {
+      await setupNonTrackingOrgAndAuth(page);
+    }
+    await ensureSecondarySideBarHidden(page);
+
+    testClassName1 = `SuiteTestClass1${Date.now()}`;
+    const testClassContent1 = [
+      '@isTest',
+      `public class ${testClassName1} {`,
+      '\t@isTest',
+      '\tstatic void testMethod1() {',
+      "\t\tSystem.assertEquals(1, 1, 'First class test should pass');",
+      '\t}',
+      '}'
+    ].join('\n');
+    await createAndDeployApexTestClass(page, testClassName1, testClassContent1);
+    await saveScreenshot(page, 'setup.first-test-class-created.png');
+
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata');
     await clearOutputChannel(page);
-    await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
-  };
-
-  await test.step('setup two Apex test classes', async () => {
-    if (isContainer) {
-      await ensureSecondarySideBarHidden(page);
-      testClassName1 = CONTAINER_TEST_CLASS_1;
-      testClassName2 = CONTAINER_TEST_CLASS_2;
-      // Deploy each dependency class before its test class so both compile server-side.
-      await deployOpenFile('PagedResult.cls');
-      await deployOpenFile('PagedResultTest.cls');
-      await deployOpenFile('ExampleClass.cls');
-      await deployOpenFile('ExampleClassTest.cls');
-      await saveScreenshot(page, 'setup.classes-deployed.png');
-    } else {
-      await setupNonTrackingOrgAndAuth(page);
-
-      testClassName1 = `SuiteTestClass1${Date.now()}`;
-      const testClassContent1 = [
-        '@isTest',
-        `public class ${testClassName1} {`,
-        '\t@isTest',
-        '\tstatic void testMethod1() {',
-        "\t\tSystem.assertEquals(1, 1, 'First class test should pass');",
-        '\t}',
-        '}'
-      ].join('\n');
-      await createAndDeployApexTestClass(page, testClassName1, testClassContent1);
-      await saveScreenshot(page, 'setup.first-test-class-created.png');
-
-      await ensureOutputPanelOpen(page);
-      await selectOutputChannel(page, 'Salesforce Metadata');
-      await clearOutputChannel(page);
-      testClassName2 = `SuiteTestClass2${Date.now()}`;
-      const testClassContent2 = [
-        '@isTest',
-        `public class ${testClassName2} {`,
-        '\t@isTest',
-        '\tstatic void testMethod2() {',
-        "\t\tSystem.assertEquals(2, 2, 'Second class test should pass');",
-        '\t}',
-        '}'
-      ].join('\n');
-      await createAndDeployApexTestClass(page, testClassName2, testClassContent2);
-      await saveScreenshot(page, 'setup.second-test-class-created.png');
-    }
+    testClassName2 = `SuiteTestClass2${Date.now()}`;
+    const testClassContent2 = [
+      '@isTest',
+      `public class ${testClassName2} {`,
+      '\t@isTest',
+      '\tstatic void testMethod2() {',
+      "\t\tSystem.assertEquals(2, 2, 'Second class test should pass');",
+      '\t}',
+      '}'
+    ].join('\n');
+    await createAndDeployApexTestClass(page, testClassName2, testClassContent2);
+    await saveScreenshot(page, 'setup.second-test-class-created.png');
   });
 
   await test.step('create Apex Test Suite with first class', async () => {

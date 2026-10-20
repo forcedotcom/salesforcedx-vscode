@@ -43,13 +43,14 @@ export const isOrgAuthedOnHost = (): Promise<boolean> =>
     .catch(() => false);
 
 /**
- * ONE host-CLI deploy of Apex classes from a throwaway project, so the classes reach the org without
- * entering the workspace (an org-only class by construction) and nothing deploys through the extension
- * (no source-tracking conflict prompt). `--ignore-conflicts` keeps the container's source-tracked boot
- * org from rejecting a fresh, unrelated project.
+ * ONE host-CLI deploy of `makeApexTestClass` classes from a throwaway project, so the classes reach the
+ * org without entering the workspace (an org-only class by construction) and nothing deploys through the
+ * extension (no source-tracking conflict prompt). `--ignore-conflicts` keeps the container's
+ * source-tracked boot org from rejecting a fresh, unrelated project.
  */
-export const deployApexClassesFromHost = async (
-  classes: readonly { name: string; content: string }[]
+export const deployApexTestClassesFromHost = async (
+  classNames: readonly string[],
+  methodName?: string
 ): Promise<void> => {
   const tmpRoot = await fs.mkdtemp(path.join(os.tmpdir(), 'apex-testing-host-deploy-'));
   try {
@@ -59,8 +60,8 @@ export const deployApexClassesFromHost = async (
       path.join(tmpRoot, 'sfdx-project.json'),
       JSON.stringify({ packageDirectories: [{ path: 'force-app', default: true }], sourceApiVersion: '64.0' })
     );
-    for (const { name, content } of classes) {
-      await fs.writeFile(path.join(classesDir, `${name}.cls`), content);
+    for (const name of classNames) {
+      await fs.writeFile(path.join(classesDir, `${name}.cls`), makeApexTestClass(name, methodName));
       await fs.writeFile(path.join(classesDir, `${name}.cls-meta.xml`), APEX_CLASS_META);
     }
     await execAsync(
@@ -71,7 +72,3 @@ export const deployApexClassesFromHost = async (
     await fs.rm(tmpRoot, { recursive: true, force: true }).catch(() => {});
   }
 };
-
-/** `deployApexClassesFromHost` for `makeApexTestClass` classes. */
-export const deployApexTestClassesFromHost = (classNames: readonly string[], methodName?: string): Promise<void> =>
-  deployApexClassesFromHost(classNames.map(name => ({ name, content: makeApexTestClass(name, methodName) })));
