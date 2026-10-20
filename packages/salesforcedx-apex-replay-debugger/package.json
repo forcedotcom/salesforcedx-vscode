@@ -30,6 +30,7 @@
     "lint": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache",
     "test": "wireit",
+    "test:integration": "wireit",
     "test:compile": "wireit",
     "check:effect-diagnostics": "wireit"
   },
@@ -78,6 +79,21 @@
       "output": [
         "coverage"
       ]
+    },
+    "test:integration": {
+      "command": "vitest run --config vitest.integration.config.mts",
+      "dependencies": [
+        "test",
+        "../salesforcedx-vscode-apex-replay-debugger:vscode:bundle",
+        "../salesforcedx-vscode-apex-replay-debugger:test"
+      ],
+      "files": [
+        "test/integration/**",
+        "vitest.integration.config.mts",
+        "package.json",
+        "../../pnpm-lock.yaml"
+      ],
+      "output": []
     },
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",

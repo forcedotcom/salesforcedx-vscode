@@ -1,0 +1,510 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`Replay debugger adapter - integration > Recursive stack > A breakpoint 1`] = `
+{
+  "stackFrames": [
+    {
+      "column": 0,
+      "id": 1020,
+      "line": 42,
+      "name": "A.A",
+      "source": {
+        "name": "A.cls",
+        "path": "<fixtures>/recursive/classes/A.cls",
+        "sourceReference": 0,
+      },
+    },
+    {
+      "column": 0,
+      "id": 1000,
+      "line": 6,
+      "name": "RecursiveTest.testMain()",
+      "source": {
+        "name": "RecursiveTest.cls",
+        "path": "<fixtures>/recursive/classes/RecursiveTest.cls",
+        "sourceReference": 0,
+      },
+    },
+  ],
+  "variables": [
+    {
+      "frameId": 1020,
+      "local": [
+        {
+          "evaluateName": "",
+          "name": "this",
+          "type": "A",
+          "value": "",
+          "variablesReference": 1026,
+        },
+        {
+          "evaluateName": "BLOB(4 bytes)",
+          "name": "blobVar",
+          "type": "Blob",
+          "value": "BLOB(4 bytes)",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "true",
+          "name": "booleanVar",
+          "type": "Boolean",
+          "value": "true",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "'1980-10-01T07:00:00.000Z'",
+          "name": "datetimeVar",
+          "type": "Datetime",
+          "value": "'1980-10-01T07:00:00.000Z'",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "'1990-01-03T00:00:00.000Z'",
+          "name": "dateVar",
+          "type": "Date",
+          "value": "'1990-01-03T00:00:00.000Z'",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "0.002",
+          "name": "decimalVar",
+          "type": "Decimal",
+          "value": "0.002",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "3.14159",
+          "name": "doubleVar",
+          "type": "Double",
+          "value": "3.14159",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "",
+          "name": "enumVar",
+          "type": "A.Season",
+          "value": "",
+          "variablesReference": 1031,
+        },
+        {
+          "evaluateName": "'0050S0000014rYkQAI'",
+          "name": "idVar",
+          "type": "Id",
+          "value": "'0050S0000014rYkQAI'",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "42",
+          "name": "integerVar",
+          "type": "Integer",
+          "value": "42",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "123456789",
+          "name": "longVar",
+          "type": "Long",
+          "value": "123456789",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "",
+          "name": "myB",
+          "type": "B",
+          "value": "",
+          "variablesReference": 1027,
+        },
+        {
+          "evaluateName": "'Lorem ipsum dolor si (61 more) ...'",
+          "name": "stringVar",
+          "type": "String",
+          "value": "'Lorem ipsum dolor si (61 more) ...'",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "3723004",
+          "name": "timeVar",
+          "type": "Time",
+          "value": "3723004",
+          "variablesReference": 0,
+        },
+      ],
+      "static": [
+        {
+          "evaluateName": "",
+          "name": "myClass",
+          "type": "A.MyInnerClassA",
+          "value": "",
+          "variablesReference": 1017,
+        },
+        {
+          "evaluateName": "[{"myInteger":1,"myString":"One"},{"myInteger":2,"myString":"Two"}]",
+          "name": "myComplexList",
+          "type": "List<A.MyInnerClassA>",
+          "value": "[{"myInteger":1,"myString":"One"},{"myInteger":2,"myString":"Two"}]",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "{"1":{"myInteger":1,"myString":"One"},"2":{"myInteger":2,"myString":"Two"}}",
+          "name": "myComplexMap",
+          "type": "Map<Integer,A.MyInnerClassA>",
+          "value": "{"1":{"myInteger":1,"myString":"One"},"2":{"myInteger":2,"myString":"Two"}}",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "[{"myInteger":1,"myString":"One"},{"myInteger":2,"myString":"Two"}]",
+          "name": "myComplexSet",
+          "type": "Set<A.MyInnerClassA>",
+          "value": "[{"myInteger":1,"myString":"One"},{"myInteger":2,"myString":"Two"}]",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "[]",
+          "name": "myNestedList",
+          "type": "List<List<String>>",
+          "value": "[]",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "[1,2]",
+          "name": "mySimpleList",
+          "type": "List<Integer>",
+          "value": "[1,2]",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "{"1":"One","2":"Two"}",
+          "name": "mySimpleMap",
+          "type": "Map<Integer,String>",
+          "value": "{"1":"One","2":"Two"}",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "[1,2]",
+          "name": "mySimpleSet",
+          "type": "Set<Integer>",
+          "value": "[1,2]",
+          "variablesReference": 0,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Replay debugger adapter - integration > Recursive stack > B breakpoint 1`] = `
+{
+  "stackFrames": [
+    {
+      "column": 0,
+      "id": 1004,
+      "line": 42,
+      "name": "B.B",
+      "source": {
+        "name": "B.cls",
+        "path": "<fixtures>/recursive/classes/B.cls",
+        "sourceReference": 0,
+      },
+    },
+    {
+      "column": 0,
+      "id": 1000,
+      "line": 5,
+      "name": "RecursiveTest.testMain()",
+      "source": {
+        "name": "RecursiveTest.cls",
+        "path": "<fixtures>/recursive/classes/RecursiveTest.cls",
+        "sourceReference": 0,
+      },
+    },
+  ],
+  "variables": [
+    {
+      "frameId": 1004,
+      "local": [
+        {
+          "evaluateName": "",
+          "name": "this",
+          "type": "B",
+          "value": "",
+          "variablesReference": 1001,
+        },
+        {
+          "evaluateName": "",
+          "name": "myClass",
+          "type": "B.MyInnerClassB",
+          "value": "",
+          "variablesReference": 1003,
+        },
+        {
+          "evaluateName": "[{"myInteger":1,"myString":"One"},{"myInteger":2,"myString":"Two"}]",
+          "name": "myComplexList",
+          "type": "List<B.MyInnerClassB>",
+          "value": "[{"myInteger":1,"myString":"One"},{"myInteger":2,"myString":"Two"}]",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "{"1":{"myInteger":1,"myString":"One"},"2":{"myInteger":2,"myString":"Two"}}",
+          "name": "myComplexMap",
+          "type": "Map<Integer,B.MyInnerClassB>",
+          "value": "{"1":{"myInteger":1,"myString":"One"},"2":{"myInteger":2,"myString":"Two"}}",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "[{"myInteger":1,"myString":"One"},{"myInteger":2,"myString":"Two"}]",
+          "name": "myComplexSet",
+          "type": "Set<B.MyInnerClassB>",
+          "value": "[{"myInteger":1,"myString":"One"},{"myInteger":2,"myString":"Two"}]",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "[]",
+          "name": "myNestedList",
+          "type": "List<List<String>>",
+          "value": "[]",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "[1,2]",
+          "name": "mySimpleList",
+          "type": "List<Integer>",
+          "value": "[1,2]",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "{"1":"One","2":"Two"}",
+          "name": "mySimpleMap",
+          "type": "Map<Integer,String>",
+          "value": "{"1":"One","2":"Two"}",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "[1,2]",
+          "name": "mySimpleSet",
+          "type": "Set<Integer>",
+          "value": "[1,2]",
+          "variablesReference": 0,
+        },
+      ],
+      "static": [
+        {
+          "evaluateName": "BLOB(4 bytes)",
+          "name": "blobVar",
+          "type": "Blob",
+          "value": "BLOB(4 bytes)",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "true",
+          "name": "booleanVar",
+          "type": "Boolean",
+          "value": "true",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "'1980-10-01T07:00:00.000Z'",
+          "name": "datetimeVar",
+          "type": "Datetime",
+          "value": "'1980-10-01T07:00:00.000Z'",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "'1990-01-03T00:00:00.000Z'",
+          "name": "dateVar",
+          "type": "Date",
+          "value": "'1990-01-03T00:00:00.000Z'",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "0.002",
+          "name": "decimalVar",
+          "type": "Decimal",
+          "value": "0.002",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "3.14159",
+          "name": "doubleVar",
+          "type": "Double",
+          "value": "3.14159",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "",
+          "name": "enumVar",
+          "type": "B.Season",
+          "value": "",
+          "variablesReference": 1000,
+        },
+        {
+          "evaluateName": "'0050S0000014rYkQAI'",
+          "name": "idVar",
+          "type": "Id",
+          "value": "'0050S0000014rYkQAI'",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "42",
+          "name": "integerVar",
+          "type": "Integer",
+          "value": "42",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "123456789",
+          "name": "longVar",
+          "type": "Long",
+          "value": "123456789",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "'Lorem ipsum dolor si (61 more) ...'",
+          "name": "stringVar",
+          "type": "String",
+          "value": "'Lorem ipsum dolor si (61 more) ...'",
+          "variablesReference": 0,
+        },
+        {
+          "evaluateName": "3723004",
+          "name": "timeVar",
+          "type": "Time",
+          "value": "3723004",
+          "variablesReference": 0,
+        },
+      ],
+    },
+  ],
+}
+`;
+
+exports[`Replay debugger adapter - integration > Recursive stack > step out 1`] = `
+{
+  "stackFrames": [
+    {
+      "column": 0,
+      "id": 1000,
+      "line": 7,
+      "name": "RecursiveTest.testMain()",
+      "source": {
+        "name": "RecursiveTest.cls",
+        "path": "<fixtures>/recursive/classes/RecursiveTest.cls",
+        "sourceReference": 0,
+      },
+    },
+  ],
+  "variables": [
+    {
+      "frameId": 1000,
+      "local": [
+        {
+          "evaluateName": "",
+          "name": "myA",
+          "type": "A",
+          "value": "",
+          "variablesReference": 1036,
+        },
+        {
+          "evaluateName": "",
+          "name": "myB",
+          "type": "B",
+          "value": "",
+          "variablesReference": 1015,
+        },
+      ],
+      "static": [],
+    },
+  ],
+}
+`;
+
+exports[`Replay debugger adapter - integration > Static variable of one class in different frames 1`] = `
+{
+  "stackFrames": [
+    {
+      "column": 0,
+      "id": 1005,
+      "line": 9,
+      "name": "StaticVarsA.method2()",
+      "source": {
+        "name": "StaticVarsA.cls",
+        "path": "<fixtures>/statics/classes/StaticVarsA.cls",
+        "sourceReference": 0,
+      },
+    },
+    {
+      "column": 0,
+      "id": 1004,
+      "line": 5,
+      "name": "StaticVarsB.method1()",
+    },
+    {
+      "column": 0,
+      "id": 1002,
+      "line": 5,
+      "name": "StaticVarsA.method1()",
+      "source": {
+        "name": "StaticVarsA.cls",
+        "path": "<fixtures>/statics/classes/StaticVarsA.cls",
+        "sourceReference": 0,
+      },
+    },
+    {
+      "column": 0,
+      "id": 1000,
+      "line": 2,
+      "name": "execute_anonymous_apex",
+      "source": {
+        "name": "statics.log",
+        "path": "<fixtures>/logs/statics.log",
+        "sourceReference": 0,
+      },
+    },
+  ],
+  "variables": [
+    {
+      "frameId": 1005,
+      "local": [],
+      "static": [
+        {
+          "evaluateName": "'StaticVarsA'",
+          "name": "className",
+          "type": "String",
+          "value": "'StaticVarsA'",
+          "variablesReference": 0,
+        },
+      ],
+    },
+    {
+      "frameId": 1004,
+      "local": [],
+      "static": [
+        {
+          "evaluateName": "'StaticVarsB'",
+          "name": "className",
+          "type": "String",
+          "value": "'StaticVarsB'",
+          "variablesReference": 0,
+        },
+      ],
+    },
+    {
+      "frameId": 1002,
+      "local": [],
+      "static": [
+        {
+          "evaluateName": "'StaticVarsA'",
+          "name": "className",
+          "type": "String",
+          "value": "'StaticVarsA'",
+          "variablesReference": 0,
+        },
+      ],
+    },
+    {
+      "frameId": 1000,
+      "local": [],
+      "static": [],
+    },
+  ],
+}
+`;
