@@ -1,0 +1,18 @@
+{
+  "soql_notebook_display_name": "Salesforce Notebook",
+  "soql_notebook_create": "SFDX: Create Salesforce Notebook",
+  "notebook_add_soql_cell": "SFDX: Add SOQL Cell",
+  "notebook_add_anonymous_apex_cell": "SFDX: Add Anonymous Apex Cell",
+  "notebook_toggle_outputs": "Toggle Cell Outputs",
+  "soql_notebook_configuration_title": "Salesforce Notebook",
+  "soql_notebook_max_query_limit_description": "Maximum number of records to fetch when running a SOQL notebook cell.",
+  "soql_notebook_query_result_renderer": "SOQL Query Results",
+  "soql_notebook_toggle_tooling_api": "Toggle Tooling API",
+  "soql_notebook_toggle_query_plan": "Toggle Query Plan",
+  "collapse_outputs": "$(chevron-up) Collapse Outputs",
+  "expand_outputs": "$(chevron-down) Expand Outputs",
+  "collapse_outputs_tooltip": "Collapse cell outputs",
+  "expand_outputs_tooltip": "Expand cell outputs",
+  "soql_notebook_sort_by_last_edited": "SFDX: Sort Salesforce Notebook by Last Edited",
+  "soql_notebook_sort_by_last_run": "SFDX: Sort Salesforce Notebook by Last Run"
+}

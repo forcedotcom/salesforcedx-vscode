@@ -26,4 +26,4 @@ test-workspaces/**
 packages/soql-common/src/soql-parser.lib/**
 packages/salesforcedx-vscode-soql/src/soql-builder-ui/
 packages/salesforcedx-vscode-soql/src/soql-data-view/tabulator.min.*
-packages/salesforcedx-vscode-soql-notebook/src/soql-data-view/tabulator.min.*
+packages/salesforcedx-vscode-notebook/src/soql-data-view/tabulator.min.*

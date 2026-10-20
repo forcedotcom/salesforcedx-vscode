@@ -1402,6 +1402,31 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-services
 
+  packages/salesforcedx-vscode-notebook:
+    dependencies:
+      '@salesforce/effect-ext-utils':
+        specifier: '*'
+        version: link:../effect-ext-utils
+      '@salesforce/soql-common':
+        specifier: '*'
+        version: link:../soql-common
+      '@salesforce/soql-model':
+        specifier: '*'
+        version: link:../soql-model
+      '@salesforce/vscode-i18n':
+        specifier: '*'
+        version: link:../salesforcedx-vscode-i18n
+      '@salesforce/vscode-services':
+        specifier: '*'
+        version: link:../salesforcedx-vscode-services-types
+      effect:
+        specifier: ^3.21.2
+        version: 3.22.2
+    devDependencies:
+      salesforcedx-vscode-services:
+        specifier: '*'
+        version: link:../salesforcedx-vscode-services
+
   packages/salesforcedx-vscode-org:
     dependencies:
       '@salesforce/effect-ext-utils':

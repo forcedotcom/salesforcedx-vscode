@@ -1,0 +1,246 @@
+{
+  "name": "salesforcedx-vscode-notebook",
+  "private": true,
+  "displayName": "Salesforce Notebook",
+  "description": "Run SOQL queries and anonymous Apex in one notebook against the default org",
+  "repository": {
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "version": "67.17.8",
+  "publisher": "salesforce",
+  "license": "BSD-3-Clause",
+  "icon": "images/VSCodeSoql.png",
+  "engines": {
+    "vscode": "^1.90.0"
+  },
+  "extensionDependencies": [
+    "salesforce.salesforcedx-vscode-apex",
+    "salesforce.salesforcedx-vscode-services"
+  ],
+  "activationEvents": [
+    "onNotebook:salesforce-notebook",
+    "onCommand:salesforcedx-vscode-notebook.create"
+  ],
+  "main": "./dist/index.js",
+  "dependencies": {
+    "@salesforce/effect-ext-utils": "*",
+    "@salesforce/soql-common": "*",
+    "@salesforce/soql-model": "*",
+    "@salesforce/vscode-i18n": "*",
+    "@salesforce/vscode-services": "*",
+    "effect": "^3.21.2"
+  },
+  "devDependencies": {
+    "salesforcedx-vscode-services": "*"
+  },
+  "scripts": {
+    "preinstall": "node ../../scripts/require-root-install.js",
+    "vscode:bundle": "wireit",
+    "compile": "wireit",
+    "lint": "wireit",
+    "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json",
+    "test": "wireit",
+    "test:compile": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --pretty",
+      "clean": "if-file-deleted",
+      "dependencies": [
+        "../effect-ext-utils:compile",
+        "../salesforcedx-vscode-i18n:compile",
+        "../salesforcedx-vscode-services:compile",
+        "../soql-common:compile",
+        "../soql-model:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
+        "package.json",
+        "package.nls*.json"
+      ],
+      "output": [
+        "out/**"
+      ]
+    },
+    "vscode:bundle": {
+      "command": "node ./esbuild.config.mjs",
+      "dependencies": [
+        "compile",
+        "../salesforcedx-vscode-services:vscode:bundle"
+      ],
+      "files": [
+        "esbuild.config.mjs",
+        "../../scripts/bundling/node.mjs",
+        "out/**",
+        "src/soql-data-view/**"
+      ],
+      "output": [
+        "dist"
+      ]
+    },
+    "test": {
+      "command": "vitest run",
+      "dependencies": [
+        "test:compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "vitest.config.mts",
+        "../../config/vitest.base.config.mts",
+        "../../config/__mocks__/o11y_schema_sf_pdp.js",
+        "../../scripts/setupVitest.ts",
+        "../../scripts/vscodeMock.ts"
+      ],
+      "output": [
+        "coverage"
+      ]
+    },
+    "check:circular-deps": {
+      "command": "dpdm -T --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json"
+      ],
+      "output": [
+        ".circular-deps.json"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color --cache --cache-location .eslintcache .",
+      "dependencies": [
+        "../eslint-local-rules:compile",
+        "check:circular-deps",
+        "compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "../../eslint.config.mjs",
+        ".vscodeignore",
+        "package.json",
+        "package.nls.json"
+      ],
+      "output": []
+    },
+    "test:compile": {
+      "command": "tsc -p test/tsconfig.json",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "test/tsconfig.json"
+      ],
+      "output": []
+    }
+  },
+  "contributes": {
+    "notebooks": [
+      {
+        "type": "salesforce-notebook",
+        "displayName": "%soql_notebook_display_name%",
+        "selector": [
+          {
+            "filenamePattern": "*.sfnb"
+          }
+        ]
+      }
+    ],
+    "commands": [
+      {
+        "command": "salesforcedx-vscode-notebook.create",
+        "title": "%soql_notebook_create%"
+      },
+      {
+        "command": "salesforcedx-vscode-notebook.addSoqlCell",
+        "title": "%notebook_add_soql_cell%"
+      },
+      {
+        "command": "salesforcedx-vscode-notebook.addAnonymousApexCell",
+        "title": "%notebook_add_anonymous_apex_cell%"
+      },
+      {
+        "command": "salesforcedx-vscode-notebook.toggleToolingApi",
+        "title": "%soql_notebook_toggle_tooling_api%"
+      },
+      {
+        "command": "salesforcedx-vscode-notebook.toggleQueryPlan",
+        "title": "%soql_notebook_toggle_query_plan%"
+      },
+      {
+        "command": "salesforcedx-vscode-notebook.sortByLastEdited",
+        "title": "%soql_notebook_sort_by_last_edited%"
+      },
+      {
+        "command": "salesforcedx-vscode-notebook.sortByLastRun",
+        "title": "%soql_notebook_sort_by_last_run%"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "salesforcedx-vscode-notebook.create"
+        },
+        {
+          "command": "salesforcedx-vscode-notebook.addSoqlCell",
+          "when": "notebookType == salesforce-notebook"
+        },
+        {
+          "command": "salesforcedx-vscode-notebook.addAnonymousApexCell",
+          "when": "notebookType == salesforce-notebook"
+        },
+        {
+          "command": "salesforcedx-vscode-notebook.toggleToolingApi",
+          "when": "false"
+        },
+        {
+          "command": "salesforcedx-vscode-notebook.toggleQueryPlan",
+          "when": "false"
+        },
+        {
+          "command": "salesforcedx-vscode-notebook.sortByLastEdited",
+          "when": "notebookType == salesforce-notebook"
+        },
+        {
+          "command": "salesforcedx-vscode-notebook.sortByLastRun",
+          "when": "notebookType == salesforce-notebook"
+        }
+      ],
+      "file/newFile": [
+        {
+          "command": "salesforcedx-vscode-notebook.create"
+        }
+      ]
+    },
+    "notebookRenderer": [
+      {
+        "id": "salesforcedx-vscode-notebook.query-result",
+        "displayName": "%soql_notebook_query_result_renderer%",
+        "entrypoint": "./dist/soql-data-view/queryResultRenderer.js",
+        "mimeTypes": [
+          "application/vnd.salesforce.soql-query-result+json",
+          "application/vnd.salesforce.soql-query-plan+json",
+          "application/vnd.salesforce.anonymous-apex-result+json"
+        ],
+        "requiresMessaging": "never"
+      }
+    ],
+    "configuration": {
+      "title": "%soql_notebook_configuration_title%",
+      "properties": {
+        "salesforcedx-vscode-notebook.maxQueryLimit": {
+          "type": "integer",
+          "default": 50000,
+          "minimum": 1,
+          "description": "%soql_notebook_max_query_limit_description%"
+        }
+      }
+    }
+  }
+}

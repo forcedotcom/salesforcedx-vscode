@@ -44,7 +44,9 @@
         "--disable-extension=salesforce.salesforcedx-vscode-org-browser",
         "--disable-extension=salesforce.salesforcedx-vscode-services",
         "--disable-extension=salesforce.salesforcedx-vscode-soql",
-        "--disable-extension=salesforce.salesforcedx-vscode-visualforce"
+        "--disable-extension=salesforce.salesforcedx-vscode-visualforce",
+        "--disable-extension=salesforce.salesforcedx-vscode-notebook"
+
       ],
       "sourceMaps": true,
       "smartStep": true,
