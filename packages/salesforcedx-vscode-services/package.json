@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.5.1",
+  "version": "68.5.4",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -48,7 +48,7 @@
     "@salesforce/salesforcedx-utils": "workspace:*",
     "@salesforce/source-deploy-retrieve": "^13.5.0",
     "@salesforce/source-tracking": "^8.1.7",
-    "@salesforce/templates": "^66.16.4",
+    "@salesforce/templates": "^66.17.2",
     "@salesforce/vscode-i18n": "workspace:*",
     "@vscode/extension-telemetry": "^1.0.0",
     "cross-spawn": "7.0.6",

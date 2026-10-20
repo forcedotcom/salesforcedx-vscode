@@ -22,10 +22,6 @@ webTest.afterEach(async ({ page }, testInfo) => {
   }
 });
 
-// Export the appropriate test based on environment (fixtures differ)
-// expect is the same for both, so just re-export it directly
-export const test = isDesktop ? desktopTest : webTest;
-
 // Shared variants additionally route through the container fixture when running inside Code
 // Builder (VSCODE_CONTAINER=1). The three-way ternary is mandatory: falling back to
 // `isDesktop ? X : webTest` (rather than just `X`) keeps a plain `npm run test:web` run (neither

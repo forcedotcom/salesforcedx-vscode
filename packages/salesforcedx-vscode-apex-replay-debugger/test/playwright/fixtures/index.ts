@@ -8,8 +8,6 @@
 import { containerTest, containerWorkspaceTest } from './containerFixtures';
 import { desktopTest } from './desktopFixtures';
 
-export { desktopTest as test } from './desktopFixtures';
-
 export const isContainer = process.env.VSCODE_CONTAINER === '1';
 export const sharedTest = isContainer ? containerTest : desktopTest;
 

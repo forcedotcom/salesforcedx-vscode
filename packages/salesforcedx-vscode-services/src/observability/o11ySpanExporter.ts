@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
 import * as HttpClient from '@effect/platform/HttpClient';
 import * as HttpClientRequest from '@effect/platform/HttpClientRequest';
 import { SpanStatusCode } from '@opentelemetry/api';
@@ -17,6 +16,8 @@ import { isError, isString } from 'effect/Predicate';
 import { ConnectionService } from '../core/connectionService';
 import { unknownToErrorCause } from '../core/shared';
 import { getServicesRuntime, isServicesRuntimeReady } from '../servicesRuntime';
+import { exportResultFromHttpStatus } from './httpExportResult';
+import { makeLocalHttpRuntime } from './localHttpRuntime';
 import { runOnServicesRuntime } from './redactingConsoleLogger';
 import { getSpanCreationIdentity } from './spanTransformProcessor';
 import {
@@ -26,6 +27,13 @@ import {
   legacyNumericMeasurements,
   telemetrySpanDuration
 } from './spanUtils';
+
+const getTelemetryConnection = Effect.fn('O11ySpanExporter.getConnection', {
+  root: true,
+  attributes: { telemetryIgnore: true }
+})(function* () {
+  return yield* ConnectionService.getConnection();
+});
 
 // o11y_schema is ESM-only; load via dynamic import() so it works when this package is required as CJS
 const pdpEventSchemaCache: { promise: Promise<Record<string, unknown>> | null } = {
@@ -42,7 +50,7 @@ const getPdpEventSchema = async (): Promise<Record<string, unknown>> => {
 const getConnection = () =>
   Effect.runPromise(
     getServicesRuntime().pipe(
-      Effect.flatMap(runtime => Effect.promise(() => runtime.runPromise(ConnectionService.getConnection())))
+      Effect.flatMap(runtime => Effect.promise(() => runtime.runPromise(getTelemetryConnection())))
     )
   );
 
@@ -70,6 +78,7 @@ export const toO11yEvent = (span: ReadableSpan, identity: { userId?: string; cli
  */
 export class O11ySpanExporter implements SpanExporter {
   private o11yService: O11yService;
+  private readonly localHttpRuntime = makeLocalHttpRuntime();
   private initialized = false;
   private initPromise: Promise<void> | undefined;
 
@@ -177,40 +186,32 @@ export class O11ySpanExporter implements SpanExporter {
       return;
     }
     const events = valid.map(span => toO11yEvent(span, getSpanCreationIdentity(span)));
-    await HttpClientRequest.post(`${this.localIngestionEndpoint!.replace(/\/$/, '')}/o11y`).pipe(
-      HttpClientRequest.bodyJson({ extensionName: this.extensionName, events }),
-      Effect.flatMap(HttpClient.execute),
-      Effect.map(res =>
-        res.status >= 200 && res.status < 300
-          ? { code: ExportResultCode.SUCCESS }
-          : { code: ExportResultCode.FAILED, error: new Error(`local /o11y responded ${res.status}`) }
-      ),
-      Effect.catchAll(error => {
-        const result = {
-          code: ExportResultCode.FAILED,
-          error: isError(error) ? error : new Error(String(error))
-        };
-        return Effect.logError('O11ySpanExporter local divert failed:', Cause.fail(error)).pipe(
-          runOnServicesRuntime,
-          Effect.ignore,
-          Effect.andThen(Effect.succeed(result))
-        );
-      }),
-      Effect.tap(result => Effect.sync(() => resultCallback(result))),
-      Effect.withTracerEnabled(false),
-      Effect.provide(FetchHttpClient.layer),
-      Effect.runPromise
+    await this.localHttpRuntime.runPromise(
+      HttpClientRequest.post(`${this.localIngestionEndpoint!.replace(/\/$/, '')}/o11y`).pipe(
+        HttpClientRequest.bodyJson({ extensionName: this.extensionName, events }),
+        Effect.flatMap(HttpClient.execute),
+        Effect.map(res => exportResultFromHttpStatus(res.status, status => `local /o11y responded ${status}`)),
+        Effect.catchAll(error => {
+          const result = {
+            code: ExportResultCode.FAILED,
+            error: isError(error) ? error : new Error(String(error))
+          };
+          return Effect.logError('O11ySpanExporter local divert failed:', Cause.fail(error)).pipe(
+            runOnServicesRuntime,
+            Effect.ignore,
+            Effect.andThen(Effect.succeed(result))
+          );
+        }),
+        Effect.tap(result => Effect.sync(() => resultCallback(result))),
+        Effect.withTracerEnabled(false)
+      )
     );
   }
 
   public shutdown(): Promise<void> {
-    // In local-divert mode nothing is buffered in o11yService (we POST directly), so no flush needed.
-    if (this.localIngestionEndpoint) {
-      return Promise.resolve();
-    }
-    // forceFlush drains buffer at read time; if runtime unpublished, drained spans lost.
-    // On web, this fires before setServicesRuntime runs. Skip flush until runtime ready;
-    // post-activation autobatch uploads buffered spans then.
-    return isServicesRuntimeReady() ? this.o11yService.forceFlush() : Promise.resolve();
+    // In local-divert mode no spans are buffered in o11yService; otherwise flush if the shared services runtime is ready.
+    const flush =
+      this.localIngestionEndpoint || !isServicesRuntimeReady() ? Promise.resolve() : this.o11yService.forceFlush();
+    return flush.finally(() => this.localHttpRuntime.dispose());
   }
 }

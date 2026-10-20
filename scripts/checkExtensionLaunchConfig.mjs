@@ -2,11 +2,12 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import ts from 'typescript';
-import { discoverExtensions, extensionGroups, root } from './selectedExtensions.mjs';
+import { discoverExtensions, extensionGroups, requiredExtensions, root } from './selectedExtensions.mjs';
 
 const pickerName = 'pickExtensions.mjs';
 const developmentPath = '--extensionDevelopmentPath=${workspaceFolder}/.vscode/selected-extensions';
 const buildTask = 'Compile and Bundle';
+const disableExtensionPrefix = '--disable-extension=';
 
 async function readJson(file) {
   return JSON.parse(await readFile(path.join(root, file), 'utf8'));
@@ -15,6 +16,12 @@ async function readJson(file) {
 async function check() {
   const extensions = await discoverExtensions();
   const available = new Set(extensions.map(extension => extension.name));
+  if (!Array.isArray(requiredExtensions) || requiredExtensions.length === 0) {
+    throw new Error('Required extensions must be a non-empty array.');
+  }
+  for (const name of requiredExtensions) {
+    if (!available.has(name)) throw new Error(`Required extension is missing: ${name}`);
+  }
   for (const extension of extensions) {
     for (const dependency of extension.dependencies) {
       if (!available.has(dependency)) {
@@ -22,11 +29,16 @@ async function check() {
       }
     }
   }
-  for (const [group, members] of Object.entries(extensionGroups)) {
+  for (const [group, definition] of Object.entries(extensionGroups)) {
+    if (typeof definition.label !== 'string' || definition.label.trim() === '') {
+      throw new Error(`Group ${group} must have a label.`);
+    }
+    const { extensions: members } = definition;
     if (!Array.isArray(members) || members.length === 0) throw new Error(`Group ${group} must have extension names.`);
     const seen = new Set();
     for (const name of members) {
       if (!available.has(name)) throw new Error(`Group ${group} references a missing extension: ${name}`);
+      if (requiredExtensions.includes(name)) throw new Error(`Group ${group} duplicates required extension: ${name}`);
       if (seen.has(name)) throw new Error(`Group ${group} lists ${name} more than once.`);
       seen.add(name);
     }
@@ -74,6 +86,18 @@ async function check() {
     if (launch.type !== 'extensionHost') continue;
     if (!launch.args?.includes(developmentPath)) {
       throw new Error(`${launch.name} must use the picker development path.`);
+    }
+    const disabled = launch.args
+      .filter(arg => arg.startsWith(disableExtensionPrefix))
+      .map(arg => arg.slice(disableExtensionPrefix.length));
+    if (disabled.length) {
+      const missing = [...available].filter(name => !disabled.includes(`salesforce.${name}`));
+      const stale = disabled.filter(id => !available.has(id.replace(/^salesforce\./, '')));
+      if (missing.length || stale.length) {
+        throw new Error(
+          `${launch.name} must disable exactly the monorepo extensions. Missing: ${missing.join(', ') || 'none'}; stale: ${stale.join(', ') || 'none'}.`
+        );
+      }
     }
     const result = inspectTask(launch.preLaunchTask);
     if (result.selectors.length !== 1) {
