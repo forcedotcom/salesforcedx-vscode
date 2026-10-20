@@ -9,10 +9,11 @@ import { expect } from '@playwright/test';
 
 import {
   clearOutputChannel,
-  createAndDeployApexTestClass,
+  createApexClass,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -24,8 +25,9 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
-import { test } from '../fixtures';
+import { isContainer, sharedTest as test } from '../fixtures';
 import { TEST_RUN_TIMEOUT, TEST_SETUP_TIMEOUT } from '../constants';
+import { deployApexClassesFromHost, isOrgAuthedOnHost, ORG_ALIAS } from '../helpers/hostDeploy';
 import {
   CMD_RUN_ALL_TESTS,
   CMD_TOGGLE_MAXIMIZED_PANEL,
@@ -39,6 +41,13 @@ import {
 } from '../helpers/testExplorerHelpers';
 import { waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
 
+// Shared persistent workbench: reset editor + notification state before each test.
+test.beforeEach(async ({ page }) => {
+  if (isContainer) {
+    await resetContainerWorkbench(page);
+  }
+});
+
 test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page }) => {
   test.setTimeout(TEST_SETUP_TIMEOUT + TEST_RUN_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
@@ -46,8 +55,15 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
 
   let testClassName: string;
 
-  await test.step('setup non-tracking org with Apex test class', async () => {
-    await setupNonTrackingOrgAndAuth(page);
+  await test.step('setup org with Apex test class', async () => {
+    // The container uses its boot org, already authed at startup.
+    if (!isContainer) {
+      await setupNonTrackingOrgAndAuth(page);
+    }
+    // The container's boot org is authed on the host in the Code Builder CI. Skip — never false-fail —
+    // on a local run without that setup, since the host deploy can't target it.
+    const orgAuthedOnHost = await isOrgAuthedOnHost();
+    test.skip(!orgAuthedOnHost, `org "${ORG_ALIAS}" must be authed on the host to deploy the test class`);
     await ensureSecondarySideBarHidden(page);
     testClassName = `ExplorerTestClass${Date.now()}`;
     const testClassContent = [
@@ -64,7 +80,10 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
       '\t}',
       '}'
     ].join('\n');
-    await createAndDeployApexTestClass(page, testClassName, testClassContent);
+    // Create in the workspace, then deploy from the host CLI: the container's source-tracked boot org has
+    // pending conflicts that block an extension deploy, and the deploy itself isn't under test here.
+    await createApexClass(page, testClassName, testClassContent);
+    await deployApexClassesFromHost([{ name: testClassName, content: testClassContent }]);
   });
 
   await test.step('open Test Explorer and refresh tests', async () => {
@@ -142,7 +161,9 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     const classRow = findTestExplorerItem(page, testClassName);
     const twistie = classRow.locator('.monaco-tl-twistie');
     await expect(twistie).toBeVisible({ timeout: 10_000 });
-    await twistie.click();
+    // On the container's browser-served workbench the twistie glyph is a zero-size pseudo-element and
+    // the row intercepts pointer events at its coordinates.
+    await twistie.click({ force: isContainer });
     const methodRow = findTestExplorerItem(page, 'shouldDiscoverThisTest');
     await methodRow.waitFor({ state: 'visible', timeout: 15_000 });
 

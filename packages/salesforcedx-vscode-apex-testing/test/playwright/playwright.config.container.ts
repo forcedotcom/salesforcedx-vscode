@@ -10,8 +10,6 @@ import { createContainerConfig } from '@salesforce/playwright-vscode-ext';
 export default createContainerConfig({
   testDir: './specs',
   testMatch: [
-    'container/testExplorer.container.spec.ts',
-    'container/testExplorerRun.container.spec.ts',
     'apexTestSuite.headless.spec.ts',
     'apexTestSuiteDelete.headless.spec.ts',
     'clearApexTestResults.headless.spec.ts',
@@ -21,6 +19,7 @@ export default createContainerConfig({
     'runApexTestsCodeLens.headless.spec.ts',
     'runApexTestsCommandPalette.headless.spec.ts',
     'runApexTestsFailAndFix.headless.spec.ts',
-    'staleTestResultsRestoration.headless.spec.ts'
+    'staleTestResultsRestoration.headless.spec.ts',
+    'testExplorer.headless.spec.ts'
   ]
 });

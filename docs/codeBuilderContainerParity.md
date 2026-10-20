@@ -42,10 +42,10 @@ container ports.
    reads — see apex's `sharedWorkspaceDirTest`, used by `apexLspRestart`.
 
 Per [PR #8102 review feedback](https://github.com/forcedotcom/salesforcedx-vscode/pull/8102#discussion_r4047559234),
-91 of the 111 container specs (108 originally, plus the 3 later createProject* ports) have been merged this way; 20 remain standalone. See "Adding a
+92 of the 110 container specs (108 originally, plus the 3 later createProject* ports, less testExplorerRun folded into testExplorer) have been merged this way; 18 remain standalone. See "Adding a
 container suite to a package" below for both patterns.
 
-## Coverage summary — 111 specs across 15 packages
+## Coverage summary — 110 specs across 15 packages
 
 Includes multi-org / Dreamhouse ports (see "Multi-org container support" below): 13 previously
 org-blocked specs now run by authing extra orgs + switching default with save/restore; 2 ported but
@@ -66,7 +66,7 @@ spec uses.
 | --- | --: | --- |
 | `salesforcedx-vscode-metadata` | 32 | deploy (Source/Path/Palette/Manifest/OnSave), retrieve (Source/Manifest/StaleApiVersion), deleteSource, sourceDiff(+Multiple), viewChangesCommands, generateManifest, editorWatcher, projectDeployStart, projectInfo, packageInstall, nonTrackingOrgDeployRetrieve(Manifest/Operations), refreshSObjectDefinitions, sourceTrackingStatusBar, manifestCommandVisibility, noProjectCommandsHidden, **analyticsTemplates, taggedErrorChannelOutput, emptyWorkspaceSfdxCommands (no-project + no-folder), createProject, createProjectWithManifest, createProjectEmptyWindow** + nonTrackingOrgTracking(Commands/UI)Hidden (`fixme`) |
 | `salesforcedx-vscode-lwc` | 10 | generateComponent, rename, snippets, customComponentsIndex + LSP (autocomplete, goToDefinition Html/Js, hover, indexing, sfdxTypings) |
-| `salesforcedx-vscode-apex-testing` | 14 | testExplorer, runApexTests (CodeLens/CommandPalette/FailAndFix), apexTestSuite(+Delete), clearApexTestResults, codeCoverageColorizer, staleTestResultsRestoration, orgOnlyClassRetrieve, inWorkspaceFilter, **noProjectVisibility, noOrgVisibility** + testExplorerRun (`fixme`, Test Results tab unreliable — W-24510349) |
+| `salesforcedx-vscode-apex-testing` | 13 | testExplorer (incl. tree-item runs + Test Results Pass Rate), runApexTests (CodeLens/CommandPalette/FailAndFix), apexTestSuite(+Delete), clearApexTestResults, codeCoverageColorizer, staleTestResultsRestoration, orgOnlyClassRetrieve, inWorkspaceFilter, **noProjectVisibility, noOrgVisibility** |
 | `salesforcedx-vscode-org-browser` | 8 | orgBrowser (types), orgBrowser.describe, orgBrowser.filterToggle, orgBrowser.textFilter, **orgBrowserCustomObject, orgBrowserCustomTab, orgBrowserFolderedReport, orgBrowserTextFilterDreamhouse** |
 | `salesforcedx-vscode-apex-log` | 11 | executeAnonymous, logRetrieval, apexGenerateClass, apexTestClassCreate, createApexTrigger, autoCollection, traceFlagsCrud, traceFlagExpiry, **noProjectVisibility, apexGenerateClassMultiPackageDirs, noOrgVisibility** |
 | `salesforcedx-vscode-org` | 8 | orgDisplay, aliasList, orgOpen, orgCommands, orgDeleteCommandVisibility, orgLoginAccessToken, **orgPicker, orgPickers** |
