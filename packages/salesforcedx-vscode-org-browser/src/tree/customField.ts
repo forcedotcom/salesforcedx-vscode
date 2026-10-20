@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { OrgMetadataCatalogComponentEntry, OrgMetadataFieldDetails } from 'salesforcedx-vscode-services';
-import { OrgBrowserTreeItem } from './orgBrowserNode';
+import { OrgBrowserTreeItem, toOrgBrowserFilePresence } from './orgBrowserNode';
 
 export const fieldNodeLabel = (entry: OrgMetadataCatalogComponentEntry): string =>
   entry.field ? getFieldLabel(entry.field) : entry.name;
@@ -17,8 +17,7 @@ export const createCustomFieldNode = (entry: OrgMetadataCatalogComponentEntry): 
     componentName: entry.reference.fullName,
     label: fieldNodeLabel(entry),
     searchName: entry.reference.fullName.split('.').at(-1)!,
-    filePresent: entry.workspacePresenceAvailable === false ? undefined : entry.inWorkspace,
-    workspacePresenceUnavailable: entry.workspacePresenceAvailable === false,
+    filePresence: toOrgBrowserFilePresence(entry.inWorkspace, entry.workspacePresenceAvailable),
     orgPresent: entry.inOrg
   });
 

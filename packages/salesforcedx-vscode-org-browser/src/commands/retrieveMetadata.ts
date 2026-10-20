@@ -46,7 +46,7 @@ export const retrieveEffect = Effect.fn('RetrieveMetadata.retrieveEffect')(funct
       Match.value(node.kind).pipe(
         Match.whenOr('component', 'customObject', () =>
           Effect.sync(() => {
-            node.iconPath = getIconPath(true);
+            node.iconPath = getIconPath('present');
             treeProvider.fireChangeEvent(node);
           })
         ),
