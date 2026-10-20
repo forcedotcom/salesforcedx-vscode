@@ -8,7 +8,7 @@
 import { test as webTest } from '@playwright/test';
 
 import { desktopTest, emptyWorkspaceDesktopTest, noOrgDesktopTest, trackingDesktopTest } from './desktopFixtures';
-import { containerTest } from './containerFixtures';
+import { containerTest, containerWorkspaceTest } from './containerFixtures';
 
 const isDesktop = process.env.VSCODE_DESKTOP === '1';
 export const isContainer = process.env.VSCODE_CONTAINER === '1';
@@ -35,3 +35,7 @@ export const sharedTest = isContainer ? containerTest : isDesktop ? desktopTest 
 export const sharedTrackingTest = isContainer ? containerTest : isDesktop ? trackingDesktopTest : webTest;
 export const sharedNoOrgTest = isContainer ? containerTest : isDesktop ? noOrgDesktopTest : webTest;
 export const sharedEmptyWorkspaceTest = isContainer ? containerTest : isDesktop ? emptyWorkspaceDesktopTest : webTest;
+// For specs that touch workspace files via `workspaceDir` (desktop: the real workspace; container: the
+// host side of the fixture bind mount). No webTest branch — webTest has no `workspaceDir`, so such specs
+// skip on web and only collect there.
+export const sharedWorkspaceDirTest = isContainer ? containerWorkspaceTest : desktopTest;

@@ -12,12 +12,12 @@ export default createContainerConfig({
   testMatch: [
     'container/testExplorer.container.spec.ts',
     'container/testExplorerRun.container.spec.ts',
-    'container/orgOnlyClassRetrieve.container.spec.ts',
     'apexTestSuite.headless.spec.ts',
     'apexTestSuiteDelete.headless.spec.ts',
     'clearApexTestResults.headless.spec.ts',
     'codeCoverageColorizer.headless.spec.ts',
     'inWorkspaceFilter.headless.spec.ts',
+    'orgOnlyClassRetrieve.headless.spec.ts',
     'runApexTestsCodeLens.headless.spec.ts',
     'runApexTestsCommandPalette.headless.spec.ts',
     'runApexTestsFailAndFix.headless.spec.ts',
