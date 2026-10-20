@@ -136,6 +136,8 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
       ) =>
         Effect.tryPromise({
           try: () =>
+            // esbuild replaces this literal and removes the unused platform branch (ADR 0013).
+            // @effect-diagnostics-next-line processEnvInEffect:off
             process.env.ESBUILD_PLATFORM === 'web'
               ? (fsProviderRef.current?.findFiles(include, exclude ?? undefined, maxResults) ?? Promise.resolve([]))
               : vscode.workspace.findFiles(include, exclude ?? undefined, maxResults, token),

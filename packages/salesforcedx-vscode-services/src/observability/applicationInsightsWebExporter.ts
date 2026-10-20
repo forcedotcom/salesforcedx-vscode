@@ -118,6 +118,8 @@ const exportSpan = Effect.fn('exportSpan')(function* (
   };
 
   const send =
+    // esbuild replaces this constant to select the local-dev telemetry sink.
+    // @effect-diagnostics-next-line processEnvInEffect:off
     process.env.ESBUILD_WEB_LOCAL === '1'
       ? sendToLocalAppInsightsFile(localHttpRuntime, span.name, success, props, measurements)
       : Effect.try({

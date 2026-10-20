@@ -61,6 +61,8 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
   yield* svc.appendToChannel('Salesforce Metadata extension activating');
   const registerCommand = api.services.registerCommandWithRuntime(getMetadataRuntime());
   const projectGenerateCommands =
+    // esbuild replaces this literal and removes Node-only project generation from web bundles (ADR 0013).
+    // @effect-diagnostics-next-line processEnvInEffect:off
     process.env.ESBUILD_PLATFORM === 'web'
       ? []
       : [
@@ -122,6 +124,8 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
     { concurrency: 'unbounded' }
   );
 
+  // esbuild replaces this literal and removes the unused platform branch (ADR 0013).
+  // @effect-diagnostics-next-line processEnvInEffect:off
   if (process.env.ESBUILD_PLATFORM === 'web') {
     yield* api.services.SettingsService.setValue(
       CORE_CONFIG_SECTION,

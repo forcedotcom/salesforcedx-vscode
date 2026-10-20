@@ -6,6 +6,7 @@
  */
 import { Tracer as OtelTracer, type Resource } from '@effect/opentelemetry';
 import * as Cause from 'effect/Cause';
+import * as Config from 'effect/Config';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -387,6 +388,8 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
     );
   }
 
+  // esbuild replaces this literal and removes web-only startup from desktop bundles (ADR 0013).
+  // @effect-diagnostics-next-line processEnvInEffect:off
   if (process.env.ESBUILD_PLATFORM === 'web') {
     // auth settings go before other things so retrieveOnLoad can use them
 
@@ -470,8 +473,10 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
   const internalDev = yield* SettingsService.getInternalDev();
   yield* Effect.promise(() => vscode.commands.executeCommand('setContext', 'sf:internal_dev', internalDev));
   // set sf:code_builder_enabled context so Code Builder-only commands are visible on web
+  const codeBuilderEnabled =
+    (yield* Config.string('CODE_BUILDER').pipe(Config.withDefault('false'), Effect.orDie)) === 'true';
   yield* Effect.promise(() =>
-    vscode.commands.executeCommand('setContext', 'sf:code_builder_enabled', process.env.CODE_BUILDER === 'true')
+    vscode.commands.executeCommand('setContext', 'sf:code_builder_enabled', codeBuilderEnabled)
   );
 });
 

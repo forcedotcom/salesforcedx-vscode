@@ -28,6 +28,7 @@
     "globalConsoleInEffect",
     "missingEffectServiceDependency",
     "nestedEffectGenYield",
-    "strictEffectProvide"
+    "strictEffectProvide",
+    "processEnvInEffect"
   ]
 }

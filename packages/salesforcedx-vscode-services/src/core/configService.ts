@@ -86,6 +86,8 @@ export class ConfigService extends Effect.Service<ConfigService>()('ConfigServic
       yield* Effect.annotateCurrentSpan({ projectPath });
       const agg = yield* configCache.get(projectPath);
       // stateless when org can change: always reload only on desktop
+      // esbuild replaces this literal and removes the unused platform branch (ADR 0013).
+      // @effect-diagnostics-next-line processEnvInEffect:off
       const reloadedAgg = yield* process.env.ESBUILD_PLATFORM === 'web'
         ? Effect.succeed(agg)
         : Effect.promise(() => agg.reload());

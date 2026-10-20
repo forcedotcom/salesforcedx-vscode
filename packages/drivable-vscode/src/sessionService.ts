@@ -11,6 +11,7 @@ import { _electron as electron, type ConsoleMessage, type ElectronApplication, t
 import { redactValue } from '@salesforce/playwright-vscode-ext';
 import { downloadAndUnzipVSCode, SilentReporter } from '@vscode/test-electron';
 import * as Cause from 'effect/Cause';
+import * as Config from 'effect/Config';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as ExecutionStrategy from 'effect/ExecutionStrategy';
@@ -424,16 +425,22 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
           );
         const vscodeExecutable =
           options.vscodeExecutable ??
-          (yield* Effect.tryPromise({
-            try: () =>
-              downloadAndUnzipVSCode({
-                version: process.env.PLAYWRIGHT_VSCODE_VERSION,
-                cachePath: path.join(repoRoot, '.vscode-test'),
-                reporter: new SilentReporter()
-              }),
-            catch: cause =>
-              new DrivableVscodeLaunchError({ message: 'Failed to acquire VS Code', cause: causeMessage(cause) })
-          }));
+          (yield* Config.string('PLAYWRIGHT_VSCODE_VERSION').pipe(
+            Config.option,
+            Effect.orDie,
+            Effect.flatMap(version =>
+              Effect.tryPromise({
+                try: () =>
+                  downloadAndUnzipVSCode({
+                    version: Option.getOrUndefined(version),
+                    cachePath: path.join(repoRoot, '.vscode-test'),
+                    reporter: new SilentReporter()
+                  }),
+                catch: cause =>
+                  new DrivableVscodeLaunchError({ message: 'Failed to acquire VS Code', cause: causeMessage(cause) })
+              })
+            )
+          ));
         const resolved =
           extensionMode === 'dev'
             ? {

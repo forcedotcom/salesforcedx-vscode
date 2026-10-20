@@ -9,7 +9,9 @@
 // Original version licensed under the Eclipse Public License (EPL)
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Config from 'effect/Config';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import { isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as cp from 'node:child_process';
@@ -106,8 +108,8 @@ const isLocal = (javaHome: string): boolean => {
 
 const checkJavaRuntime = Effect.fn('requirements.checkJavaRuntime')(function* () {
   const configuredHome = yield* readJavaConfig();
-  const jdkHome = process.env['JDK_HOME'];
-  const javaHomeEnv = process.env['JAVA_HOME'];
+  const jdkHome = Option.getOrUndefined(yield* Config.string('JDK_HOME').pipe(Config.option, Effect.orDie));
+  const javaHomeEnv = Option.getOrUndefined(yield* Config.string('JAVA_HOME').pipe(Config.option, Effect.orDie));
   const javaHome = [configuredHome, jdkHome, javaHomeEnv].find(home => isString(home) && home.length > 0);
   const source = configuredHome
     ? nls.localize('source_java_home_setting_text')

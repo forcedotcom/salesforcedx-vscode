@@ -42,6 +42,8 @@ export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, 
           new SpanTransformProcessor({
             exporter: new GatedSpanExporter({
               make: () => new ApplicationInsightsWebExporter(),
+              // esbuild replaces this constant; local-dev telemetry never reaches production.
+              // @effect-diagnostics-next-line processEnvInEffect:off
               bypassGovernance: process.env.ESBUILD_WEB_LOCAL === '1'
             })
           }),
@@ -59,6 +61,8 @@ export const WebSdkLayerFor = ({ extensionName, extensionVersion, o11yEndpoint, 
                     new O11ySpanExporter(legacyExtensionName, endpoint, legacyProductFeatureId)
                 }),
               o11yEndpoint,
+              // esbuild replaces this constant; local-dev telemetry never reaches production.
+              // @effect-diagnostics-next-line processEnvInEffect:off
               bypassGovernance: process.env.ESBUILD_WEB_LOCAL === '1'
             })
           }),

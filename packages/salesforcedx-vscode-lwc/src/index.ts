@@ -184,6 +184,8 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   yield* activateMetaSupport(extensionContext.extensionUri);
 
   // Activate Test support (skip in web mode - test execution requires Node.js/terminal)
+  // esbuild replaces this literal and removes Node-only test support from web bundles (ADR 0013).
+  // @effect-diagnostics-next-line processEnvInEffect:off
   if (process.env.ESBUILD_PLATFORM !== 'web') {
     yield* Effect.tryPromise(() => import('./testSupport/index.js')).pipe(
       // Lazy load test support to avoid bundling jest-editor-support in web mode

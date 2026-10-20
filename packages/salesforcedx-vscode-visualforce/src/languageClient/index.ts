@@ -19,6 +19,8 @@ export const createLanguageClient = Effect.fn('createLanguageClient')(function* 
   initializationOptions: VisualforceInitializationOptions
 ) {
   const base = URI.from(extensionUri);
+  // esbuild replaces this literal and removes the unused platform branch (ADR 0013).
+  // @effect-diagnostics-next-line processEnvInEffect:off
   if (process.env.ESBUILD_PLATFORM === 'web') {
     const webServerPath = Utils.joinPath(base, 'dist', 'web', 'visualforceServer.js').toString();
     const { createLanguageClient: createWebLanguageClient } = yield* Effect.promise(() => import('./web.js'));

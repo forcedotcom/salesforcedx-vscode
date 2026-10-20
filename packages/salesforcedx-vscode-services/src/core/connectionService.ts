@@ -313,6 +313,8 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
     const settingsService = yield* SettingsService;
     const aliasService = yield* AliasService;
     const activeConnectionCache =
+      // esbuild replaces this literal and removes the unused platform branch (ADR 0013).
+      // @effect-diagnostics-next-line processEnvInEffect:off
       process.env.ESBUILD_PLATFORM === 'web'
         ? yield* Cache.makeWith({
             capacity: 1,
@@ -411,6 +413,8 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
      * When `username` is given, the default-org ref is NOT mutated (an arbitrary org must not overwrite it).
      */
     const getConnection = Effect.fn('ConnectionService.getConnection')(function* (username?: string) {
+      // esbuild replaces this literal and removes the unused platform branch (ADR 0013).
+      // @effect-diagnostics-next-line processEnvInEffect:off
       const conn = yield* process.env.ESBUILD_PLATFORM === 'web'
         ? Effect.gen(function* () {
             // Web environment - get connection from settings

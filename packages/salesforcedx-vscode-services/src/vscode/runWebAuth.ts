@@ -11,6 +11,7 @@ import * as vscode from 'vscode';
 
 export const runWebAuthEffect = Effect.fn('runWebAuthEffect')(function* () {
   // Apply web config from esbuild define if present
+  // @effect-diagnostics-next-line processEnvInEffect:off
   const webConfig = process.env.ESBUILD_WEB_CONFIG;
   if (webConfig && webConfig !== 'undefined' && isString(webConfig)) {
     const parseConfig = (): Record<string, unknown> | undefined => {

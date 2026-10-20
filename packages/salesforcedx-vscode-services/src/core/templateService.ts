@@ -173,6 +173,8 @@ const ensureTemplatesInFs = Effect.fn('TemplateService.ensureTemplatesInFs')(fun
   rootUri: URI,
   rootFsPath: string
 ) {
+  // esbuild replaces this literal and removes web-only template loading (ADR 0013).
+  // @effect-diagnostics-next-line processEnvInEffect:off
   if (process.env.ESBUILD_PLATFORM !== 'web') return;
   const manifestContent = yield* Effect.tryPromise({
     try: () => vscode.workspace.fs.readFile(Utils.joinPath(rootUri, 'manifest.json')),

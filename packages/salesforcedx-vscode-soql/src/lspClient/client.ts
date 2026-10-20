@@ -30,6 +30,8 @@ const buildClientOptions = (): LanguageClientOptions => ({
 });
 
 export const startLanguageClient = Effect.fn('startLanguageClient')(function* (extensionContext: ExtensionContext) {
+  // esbuild replaces this literal and removes the unused platform branch (ADR 0013).
+  // @effect-diagnostics-next-line processEnvInEffect:off
   if (process.env.ESBUILD_PLATFORM === 'web') {
     // In the web bundle, esbuild aliases vscode-languageclient/node -> /browser, so LanguageClient
     // is the browser version at runtime. Cast to get the correct browser constructor signature.
