@@ -108,6 +108,10 @@ test('Checkpoints: Toggle Checkpoint, Update Checkpoints in Org, and heap-dump r
     // editor's view-lines.
     const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${className}.cls"]`);
     await editor.waitFor({ state: 'visible', timeout: 15_000 });
+    // Update Checkpoints in Org's step 2 ("Retrieving source and line information") asks the Apex LS for
+    // line info and only waits ~3s for it, so gate on the Apex language-status "Indexing complete"
+    // button first — it renders only while an Apex editor is active (the .cls above is).
+    await expect(page.getByRole('button', { name: /Indexing complete/ })).toBeVisible({ timeout: 120_000 });
     const returnLine = editor.locator('.view-line').filter({ hasText: 'return newAcct;' }).first();
     await expect(returnLine).toBeVisible({ timeout: 15_000 });
     await returnLine.click();
@@ -129,31 +133,12 @@ test('Checkpoints: Toggle Checkpoint, Update Checkpoints in Org, and heap-dump r
     const channelCount = await countOutputChannelOptions(page, 'Apex Replay Debugger');
     expect(channelCount, "expected exactly one 'Apex Replay Debugger' output channel").toBe(1);
 
-    const updateCheckpointsInOrgContainer = async (): Promise<void> => {
-      // Step 2 ("Retrieving source and line information") calls the Apex LS, whose readiness gate
-      // waits only ~3s. On a cold code-server the LS indexing can still be running, so the command
-      // aborts before step 6. There is no CodeLens on this plain (non-test) class to gate LS
-      // readiness on, so retry the command — clearing the channel each attempt — until it reaches
-      // step 6, riding out the LS cold-start. When the LS is already warm (shared workbench) the
-      // first attempt succeeds.
-      await expect(async () => {
-        await clearOutputChannel(page);
-        await executeCommandWithCommandPalette(page, packageNls.sf_update_checkpoints_in_org as string);
-        await waitForOutputChannelText(page, {
-          expectedText: 'SFDX: Update Checkpoints in Org, Step 6 of 6: Confirming successful checkpoint creation',
-          timeout: 45_000
-        });
-      }).toPass({ timeout: 240_000 });
-    };
-    const updateCheckpointsInOrgDesktop = async (): Promise<void> => {
-      await clearOutputChannel(page);
-      await executeCommandWithCommandPalette(page, packageNls.sf_update_checkpoints_in_org as string);
-      await waitForOutputChannelText(page, {
-        expectedText: 'SFDX: Update Checkpoints in Org, Step 6 of 6: Confirming successful checkpoint creation',
-        timeout: 120_000
-      });
-    };
-    await (isContainer ? updateCheckpointsInOrgContainer : updateCheckpointsInOrgDesktop)();
+    await clearOutputChannel(page);
+    await executeCommandWithCommandPalette(page, packageNls.sf_update_checkpoints_in_org as string);
+    await waitForOutputChannelText(page, {
+      expectedText: 'SFDX: Update Checkpoints in Org, Step 6 of 6: Confirming successful checkpoint creation',
+      timeout: 120_000
+    });
 
     await waitForOutputChannelText(page, {
       expectedText: 'Ended SFDX: Update Checkpoints in Org',
