@@ -1,0 +1,27 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`oasReorderStep > reorders operation-level attributes 1`] = `
+"{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Example API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/examplePath": {
+      "get": {
+        "summary": "Get example",
+        "description": "Fetches example data",
+        "operationId": "getExample",
+        "parameters": [],
+        "requestBody": {
+          "description": "Request body description",
+          "required": true,
+          "content": {}
+        },
+        "responses": {}
+      }
+    }
+  }
+}"
+`;
