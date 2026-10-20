@@ -28,6 +28,13 @@ import {
   telemetrySpanDuration
 } from './spanUtils';
 
+const getTelemetryConnection = Effect.fn('O11ySpanExporter.getConnection', {
+  root: true,
+  attributes: { telemetryIgnore: true }
+})(function* () {
+  return yield* ConnectionService.getConnection();
+});
+
 // o11y_schema is ESM-only; load via dynamic import() so it works when this package is required as CJS
 const pdpEventSchemaCache: { promise: Promise<Record<string, unknown>> | null } = {
   promise: null
@@ -43,7 +50,7 @@ const getPdpEventSchema = async (): Promise<Record<string, unknown>> => {
 const getConnection = () =>
   Effect.runPromise(
     getServicesRuntime().pipe(
-      Effect.flatMap(runtime => Effect.promise(() => runtime.runPromise(ConnectionService.getConnection())))
+      Effect.flatMap(runtime => Effect.promise(() => runtime.runPromise(getTelemetryConnection())))
     )
   );
 
