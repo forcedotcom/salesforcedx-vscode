@@ -148,7 +148,7 @@ const assertStoppedOnEntry = async (dc: DebugClient, logFilePath: string) => {
 };
 
 const readStoppedState = async (dc: DebugClient, reason: string, path: string, line: number, frames: 'top' | 'all') => {
-  const response = await dc.assertStoppedLocation(reason, { path: URI.file(path).toString(), line });
+  const response = await dc.assertStoppedLocation(reason, { path: pathToFileURL(path).href, line });
   const stackFrames = response.body.stackFrames;
   const variables = await Promise.all(
     (frames === 'top' ? stackFrames.slice(0, 1) : stackFrames).map(async frame => {
