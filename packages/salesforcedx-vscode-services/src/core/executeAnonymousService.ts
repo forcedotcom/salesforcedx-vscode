@@ -5,20 +5,33 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { executeAnonymous } from '@salesforce/apex-node/effect';
+import {
+  executeAnonymous,
+  type ApexCompileError,
+  type ApexRuntimeError,
+  type ExecuteAnonymousOutcome
+} from '@salesforce/apex-node/effect';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
-import type { ExecuteAnonymousResult } from 'jsforce/lib/api/tooling';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 import { ExecuteAnonymousError } from '../errors/executeAnonymousErrors';
 import { ChannelService } from '../vscode/channelService';
 import { ConnectionService } from './connectionService';
 
-export type { ExecuteAnonymousResult } from 'jsforce/lib/api/tooling';
+/** Discriminated outcomes; diagnostics exist only on their matching failures. */
+export type ExecuteAnonymousResult =
+  | Pick<ExecuteAnonymousOutcome, 'compiled' | 'success' | 'line' | 'column'>
+  | (Pick<ApexCompileError, 'line' | 'column' | 'compileProblem'> & { compiled: false; success: false })
+  | (Pick<ApexRuntimeError, 'line' | 'column' | 'exceptionMessage' | 'exceptionStackTrace'> & {
+      compiled: true;
+      success: false;
+    });
 
 const ANON_APEX_ERRORS_COLLECTION = 'apex-anon-errors';
 const UNEXPECTED_ERROR = 'Unexpected error during anonymous Apex execution';
+const diagnosticMessage = (message: string | null): string =>
+  message === null || message === '' ? UNEXPECTED_ERROR : message;
 
 /** Keeps the services result contract while delegating execution to apex-node. */
 export const executeAnonymousWithConnection = (connection: Connection, code: string) =>
@@ -28,17 +41,9 @@ export const executeAnonymousWithConnection = (connection: Connection, code: str
     }
 
     const { result, logBody } = yield* executeAnonymous(connection, { apexCode: code }).pipe(
-      Effect.map(outcome => ({
-        result: {
-          compiled: true,
-          success: true,
-          line: outcome.line,
-          column: outcome.column,
-          compileProblem: '',
-          exceptionMessage: '',
-          exceptionStackTrace: ''
-        } satisfies ExecuteAnonymousResult,
-        logBody: outcome.logBody ?? ''
+      Effect.map(({ logBody: outcomeLogBody, ...outcomeResult }) => ({
+        result: outcomeResult satisfies ExecuteAnonymousResult,
+        logBody: outcomeLogBody ?? ''
       })),
       Effect.catchTags({
         ApexCompileError: error =>
@@ -48,9 +53,7 @@ export const executeAnonymousWithConnection = (connection: Connection, code: str
               success: false,
               line: error.line,
               column: error.column,
-              compileProblem: error.compileProblem,
-              exceptionMessage: null,
-              exceptionStackTrace: null
+              compileProblem: error.compileProblem
             } satisfies ExecuteAnonymousResult,
             logBody: error.logBody ?? ''
           }),
@@ -61,7 +64,6 @@ export const executeAnonymousWithConnection = (connection: Connection, code: str
               success: false,
               line: error.line,
               column: error.column,
-              compileProblem: null,
               exceptionMessage: error.exceptionMessage,
               exceptionStackTrace: error.exceptionStackTrace
             } satisfies ExecuteAnonymousResult,
@@ -110,8 +112,8 @@ export class ExecuteAnonymousService extends Effect.Service<ExecuteAnonymousServ
       const text = result.success
         ? 'Execute anonymous succeeded.'
         : !result.compiled
-          ? `Error: Line ${result.line}, Column ${result.column} -- ${result.compileProblem ?? UNEXPECTED_ERROR}`
-          : `Compile: success / Error: ${result.exceptionMessage ?? UNEXPECTED_ERROR}\n${result.exceptionStackTrace ?? ''}`;
+          ? `Error: Line ${result.line}, Column ${result.column} -- ${diagnosticMessage(result.compileProblem)}`
+          : `Compile: success / Error: ${diagnosticMessage(result.exceptionMessage)}\n${result.exceptionStackTrace ?? ''}`;
       yield* channelService.appendToChannel(text);
     });
 
@@ -122,12 +124,9 @@ export class ExecuteAnonymousService extends Effect.Service<ExecuteAnonymousServ
     ): void => {
       diagnostics.delete(documentUri);
       if (result.success) return;
-      const message =
-        (result.compileProblem && result.compileProblem !== ''
-          ? result.compileProblem
-          : result.exceptionMessage && result.exceptionMessage !== ''
-            ? result.exceptionMessage
-            : UNEXPECTED_ERROR) ?? UNEXPECTED_ERROR;
+      const message = result.compiled
+        ? diagnosticMessage(result.exceptionMessage)
+        : diagnosticMessage(result.compileProblem);
       const line = result.line ? result.line + (selectionStartLine ?? 0) : 1;
       const column = result.column ?? 1;
       const pos = new vscode.Position(line > 0 ? line - 1 : 0, column > 0 ? column - 1 : 0);
