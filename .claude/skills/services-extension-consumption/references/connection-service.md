@@ -66,7 +66,7 @@ const connection = yield* api.services.ConnectionService.getConnection();
 - Desktop: resolves username/alias from config
 - Connection cache: username/instanceUrl; cleared by `invalidateCachedConnections` when global `~/.sf/config.json` (`HostFileWatcher`) or project `.sf/config.json` (`FileChangePubSub`) change, and after org extension refreshes config/state post-auth so `getConnection` reloads `AuthInfo` (avoids stale sessions after token refresh)
 - Auto-updates default org ref (`maybeUpdateDefaultOrgRef`) — skipped when `username` passed
-- Treats ref stale if stored username ≠ connection auth username; re-queries username/userId/aliases/devHubOrgId instead of reusing them
-- Writes atomically via `SubscriptionRef.modify` onto ref's value at write time; drops write if ref's orgId no longer matches connection's org (prevents out-of-order background forks overwriting current org)
+- Treats ref stale if stored username !== connection auth username; re-queries username/userId/aliases/devHubOrgId
+- Writes atomically via `SubscriptionRef.modifyEffect` onto ref at write time; span annotated `stale: true` if ref's orgId moved (write dropped), else `changed` (+ `updated` if changed)
 - Ref username: User SOQL when possible; else `conn.getUsername()` / AuthInfo username
 - Requires `ConfigService`, `SettingsService`

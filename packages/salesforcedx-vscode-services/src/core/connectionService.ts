@@ -544,6 +544,8 @@ const getTracksSourceFromOrg = (conn: Connection) =>
     Effect.withSpan('getTracksSourceFromOrg')
   );
 
+type DefaultOrgInfo = typeof DefaultOrgInfoSchema.Type;
+
 /** Capture connection info in default org ref; used throughout (telemetry, org picker, etc.) */
 const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function* (
   conn: Connection,
@@ -563,8 +565,7 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
   const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
   // `updateDefaultOrgIdentity` swaps orgId synchronously, so a concurrent caller can see orgId unchanged while
   // username/aliases still belong to the previous org. Treat the ref as stale unless its username matches this conn.
-  const existingUsernameMatchesConn = existingOrgInfo.username?.toLowerCase() === resolveUsername(conn)?.toLowerCase();
-  const orgIdChanged = previousOrgId !== orgId || !existingUsernameMatchesConn;
+  const orgIdChanged = previousOrgId !== orgId || existingOrgInfo.username !== resolveUsername(conn);
   const [{ username: queriedUsername, userId: queriedUserId }, devHubOrgId, cliId] = yield* Effect.all(
     [
       Match.value({
@@ -643,22 +644,17 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
 
   // Merge onto the ref's value at write time (not the pre-await snapshot), and drop the write if the default org
   // moved on while we were querying — otherwise an out-of-order fork for the previous org overwrites the current one.
-  type OrgInfo = typeof DefaultOrgInfoSchema.Type;
-  type WriteResult = { updated: OrgInfo; outcome: 'stale' | 'unchanged' | 'changed' };
-  const result = yield* SubscriptionRef.modify(defaultOrgRef, (current): [WriteResult, OrgInfo] => {
-    if (current.orgId !== orgId) return [{ updated: current, outcome: 'stale' }, current];
-    const updated: OrgInfo = { ...current, ...updates, alias };
+  return yield* SubscriptionRef.modifyEffect(defaultOrgRef, current => {
+    if (current.orgId !== orgId) {
+      return Effect.annotateCurrentSpan({ stale: true }).pipe(Effect.as([current, current] as const));
+    }
+    const updated: DefaultOrgInfo = { ...current, ...updates, alias };
     // Deep equality: setting an equivalent value still counts as a change for subscribers.
-    return Schema.equivalence(DefaultOrgInfoSchema)(updated, current)
-      ? [{ updated, outcome: 'unchanged' }, current]
-      : [{ updated, outcome: 'changed' }, updated];
+    const changed = !Schema.equivalence(DefaultOrgInfoSchema)(updated, current);
+    return Effect.annotateCurrentSpan(changed ? { changed, updated } : { changed }).pipe(
+      Effect.as([updated, changed ? updated : current] as const)
+    );
   });
-  yield* Effect.annotateCurrentSpan({
-    changed: result.outcome === 'changed',
-    stale: result.outcome === 'stale',
-    ...(result.outcome === 'changed' ? { updated: result.updated } : {})
-  });
-  return result.updated;
 });
 
 /** for a given scratch org username, get the orgId of its devhub.  Requires the scratch org AND devhub to be authenticated locally */
