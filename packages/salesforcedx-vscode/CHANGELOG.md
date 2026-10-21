@@ -1,19 +1,19 @@
-# 68.3.1 - October 21, 2026
+# 68.5.5 - October 28, 2026
 
 ## Fixed
 
 #### salesforcedx-vscode-apex-testing
 
-- We fixed a bug where the **Debug** run profile for Apex tests appeared in VS Code on the web even though debugging is not supported there. ([PR #8437](https://github.com/forcedotcom/salesforcedx-vscode/pull/8437))
+- We fixed a bug where failing Apex test runs and debugs showed a success notification instead of a failure count. The Testing sidebar now debugs multiple Apex classes without a race condition, stepping through each class log sequentially with progress feedback. ([PR #8397](https://github.com/forcedotcom/salesforcedx-vscode/pull/8397))
 
 #### salesforcedx-vscode-org-browser
 
-- We fixed a bug where plain-text search in **Org Browser** missed partial metadata type and component names. Typing `broker` now matches names like `Broker__c` without regex. ([PR #8365](https://github.com/forcedotcom/salesforcedx-vscode/pull/8365), [DISCUSSION #5376](https://github.com/forcedotcom/salesforcedx-vscode/discussions/5376))
+- We fixed a bug where **Org Browser** activation waited for org identity, which could delay the view from initializing. ([PR #8442](https://github.com/forcedotcom/salesforcedx-vscode/pull/8442))
 
 #### salesforcedx-vscode-soql
 
-- We fixed a bug where **SFDX: Execute SOQL Query with Currently Selected Text** and **SFDX: Get SOQL Query Plan with Currently Selected Text** appeared in non-Apex files. They now only appear in `.cls`, `.apex`, and `.trigger` files. ([PR #8426](https://github.com/forcedotcom/salesforcedx-vscode/pull/8426))
+- We fixed a bug where SOQL with leading `//` header comments or a trailing semicolon failed in **Execute SOQL Query**, query plans, **SOQL Builder**, code lens, and LSP validation. The editor document is left unchanged. ([PR #8457](https://github.com/forcedotcom/salesforcedx-vscode/pull/8457))
 
 ## Under the Hood
 
-- We made some under the hood changes. ([PR #8419](https://github.com/forcedotcom/salesforcedx-vscode/pull/8419))
+- We made some under the hood changes. ([PR #8465](https://github.com/forcedotcom/salesforcedx-vscode/pull/8465), [PR #8466](https://github.com/forcedotcom/salesforcedx-vscode/pull/8466), [PR #8477](https://github.com/forcedotcom/salesforcedx-vscode/pull/8477), [PR #8484](https://github.com/forcedotcom/salesforcedx-vscode/pull/8484))
