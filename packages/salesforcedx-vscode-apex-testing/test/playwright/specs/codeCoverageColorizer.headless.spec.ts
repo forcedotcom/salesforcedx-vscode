@@ -76,22 +76,12 @@ test('Code coverage colorizer: green covered + red uncovered lines, cleared on t
   const testClassName = `ColorizerBranchTest${Date.now()}`;
   const editor = page.locator(`.monaco-editor[data-uri$="${className}.cls"]`).first();
 
-  // Deploy the currently open editor to the boot org, waiting on the Salesforce Metadata channel.
-  // Container-only helper: desktop/web deploy via the `isDesktop()` branch inline below instead.
-  const deployActiveEditor = async (): Promise<void> => {
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Salesforce Metadata', TEST_RUN_TIMEOUT);
-    await clearOutputChannel(page);
-    await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
-  };
-
   await test.step('setup: pin theme + enable coverage retrieval', async () => {
-    if (isContainer) {
-      await ensureSecondarySideBarHidden(page);
-    } else {
+    // The container uses its boot org, already authed at startup.
+    if (!isContainer) {
       await setupNonTrackingOrgAndAuth(page);
-      await ensureSecondarySideBarHidden(page);
     }
+    await ensureSecondarySideBarHidden(page);
     await upsertSettings(page, {
       'workbench.colorTheme': PINNED_THEME,
       'salesforcedx-vscode-apex-testing.retrieve-test-code-coverage': 'true'
@@ -112,16 +102,13 @@ test('Code coverage colorizer: green covered + red uncovered lines, cleared on t
       '}'
     ].join('\n');
     await createApexClass(page, className, branchContent);
-    if (isContainer) {
-      await deployActiveEditor();
-    } else {
-      if (isDesktop()) {
-        await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
-      }
-      await ensureOutputPanelOpen(page);
-      await selectOutputChannel(page, 'Salesforce Metadata', TEST_RUN_TIMEOUT);
-      await waitForOutputChannelText(page, { expectedText: className, timeout: TEST_RUN_TIMEOUT });
+    // Web auto-deploys on save; desktop and the container (desktop build) deploy explicitly.
+    if (isDesktop() || isContainer) {
+      await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
     }
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata', TEST_RUN_TIMEOUT);
+    await waitForOutputChannelText(page, { expectedText: className, timeout: TEST_RUN_TIMEOUT });
     await saveScreenshot(page, 'step.branch-class-deployed.png');
   });
 
@@ -135,12 +122,7 @@ test('Code coverage colorizer: green covered + red uncovered lines, cleared on t
       '    }',
       '}'
     ].join('\n');
-    if (isContainer) {
-      await createApexClass(page, testClassName, testContent);
-      await deployActiveEditor();
-    } else {
-      await createAndDeployApexTestClass(page, testClassName, testContent);
-    }
+    await createAndDeployApexTestClass(page, testClassName, testContent);
     await saveScreenshot(page, 'step.test-class-deployed.png');
   });
 

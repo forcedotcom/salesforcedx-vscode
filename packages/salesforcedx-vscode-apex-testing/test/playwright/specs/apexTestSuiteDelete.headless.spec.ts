@@ -10,12 +10,10 @@ import {
   clickModalDialogButton,
   clearOutputChannel,
   createAndDeployApexTestClass,
-  deployCurrentSourceToOrg,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   NOTIFICATION_LIST_ITEM,
-  openFileByName,
   openFileFromExplorerTree,
   resetContainerWorkbench,
   saveScreenshot,
@@ -34,10 +32,6 @@ import { isContainer, sharedTrackingTest as test } from '../fixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
 import { expandTreeRow, openTestExplorerAndDiscover } from '../helpers/testExplorerHelpers';
 import { createApexTestSuiteViaPalette, createLocalApexTestSuiteFile } from '../helpers/apexTestSuiteHelpers';
-
-// Container reuses the seeded PagedResultTest class deployed to the boot org rather than
-// authoring a fresh one (desktop/web path).
-const CONTAINER_TEST_CLASS = 'PagedResultTest';
 
 test.beforeEach(async ({ page }) => {
   if (isContainer) {
@@ -69,39 +63,25 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
   let testClassName: string;
   let testSuiteName: string;
 
-  // Deploy an open editor's source to the boot org, waiting on the Salesforce Metadata channel.
-  // Container-only: desktop/web author + deploy a fresh class via createAndDeployApexTestClass.
-  const deployOpenFile = async (fileName: string): Promise<void> => {
-    await openFileByName(page, fileName);
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Salesforce Metadata');
-    await clearOutputChannel(page);
-    await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
-  };
-
   await test.step('setup an Apex test class', async () => {
-    if (isContainer) {
-      await ensureSecondarySideBarHidden(page);
-      testClassName = CONTAINER_TEST_CLASS;
-      await deployOpenFile('PagedResult.cls');
-      await deployOpenFile('PagedResultTest.cls');
-      await saveScreenshot(page, 'setup.test-class-deployed.png');
-    } else {
+    // The container uses its boot org, already authed at startup.
+    if (!isContainer) {
       await setupMinimalOrgAndAuth(page);
-
-      testClassName = `SuiteDelTestClass${Date.now()}`;
-      const testClassContent = [
-        '@isTest',
-        `public class ${testClassName} {`,
-        '\t@isTest',
-        '\tstatic void testMethod1() {',
-        "\t\tSystem.assertEquals(1, 1, 'Test should pass');",
-        '\t}',
-        '}'
-      ].join('\n');
-      await createAndDeployApexTestClass(page, testClassName, testClassContent);
-      await saveScreenshot(page, 'setup.test-class-created.png');
     }
+    await ensureSecondarySideBarHidden(page);
+
+    testClassName = `SuiteDelTestClass${Date.now()}`;
+    const testClassContent = [
+      '@isTest',
+      `public class ${testClassName} {`,
+      '\t@isTest',
+      '\tstatic void testMethod1() {',
+      "\t\tSystem.assertEquals(1, 1, 'Test should pass');",
+      '\t}',
+      '}'
+    ].join('\n');
+    await createAndDeployApexTestClass(page, testClassName, testClassContent);
+    await saveScreenshot(page, 'setup.test-class-created.png');
   });
 
   await test.step('create Apex Test Suite', async () => {

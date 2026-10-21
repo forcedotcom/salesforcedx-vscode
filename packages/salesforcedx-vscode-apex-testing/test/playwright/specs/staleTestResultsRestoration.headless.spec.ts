@@ -9,7 +9,6 @@ import { expect } from '@playwright/test';
 
 import {
   clearOutputChannel,
-  createApexClass,
   createAndDeployApexTestClass,
   deployCurrentSourceToOrg,
   editOpenFile,
@@ -57,21 +56,6 @@ test('Stale tag is applied on class redeploy and removed by running tests', asyn
   // run's leftover class (container's org/workbench is shared and persistent).
   const testClassName = `StaleTestClass${Date.now()}`;
 
-  // Deploy the currently open editor to the boot org, waiting on the Salesforce Metadata channel.
-  // Container-only helper.
-  const deployActiveEditor = async (): Promise<void> => {
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Salesforce Metadata');
-    await clearOutputChannel(page);
-    // The output-panel work above shifts focus away from the editor — "SFDX: Deploy This Source to
-    // Org"'s palette visibility is gated on an active-editor-dependent `when` clause (same class of
-    // bug as the retrieveInManifest fix), so without re-focusing it here the command intermittently
-    // isn't found. Confirmed via a focus-state diagnostic in CI: the editor was genuinely unfocused
-    // right before this call on the redeploy step (never on the first, setup-time call).
-    await page.locator(`[data-uri*="${testClassName}.cls"]`).first().click();
-    await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
-  };
-
   const testClassContent = [
     '@isTest',
     `public class ${testClassName} {`,
@@ -87,16 +71,12 @@ test('Stale tag is applied on class redeploy and removed by running tests', asyn
   ].join('\n');
 
   await test.step('setup Apex test class', async () => {
-    if (isContainer) {
-      await ensureSecondarySideBarHidden(page);
-      await createApexClass(page, testClassName, testClassContent);
-      await deployActiveEditor();
-      await saveScreenshot(page, 'stale.setup.class-deployed.png');
-    } else {
+    // The container uses its boot org, already authed at startup.
+    if (!isContainer) {
       await setupNonTrackingOrgAndAuth(page);
-      await ensureSecondarySideBarHidden(page);
-      await createAndDeployApexTestClass(page, testClassName, testClassContent);
     }
+    await ensureSecondarySideBarHidden(page);
+    await createAndDeployApexTestClass(page, testClassName, testClassContent);
   });
 
   await test.step('discover and run tests to generate result files', async () => {
@@ -115,12 +95,14 @@ test('Stale tag is applied on class redeploy and removed by running tests', asyn
     await openFileByName(page, `${testClassName}.cls`);
     await ensureSecondarySideBarHidden(page);
     await editOpenFile(page, 'touched');
-    if (isContainer) {
-      // The container runs the desktop build with no push-or-deploy-on-save, so deploy explicitly.
-      await deployActiveEditor();
-    } else if (isDesktop()) {
-      // Web: saving a source file in the workspace auto-deploys via push-or-deploy-on-save.
-      // Desktop: no auto-deploy on save, so we explicitly invoke "SFDX: Deploy This Source to Org".
+    // Web: saving a source file in the workspace auto-deploys via push-or-deploy-on-save.
+    // Desktop and the container (desktop build): no auto-deploy on save, so we explicitly invoke
+    // "SFDX: Deploy This Source to Org".
+    if (isDesktop() || isContainer) {
+      // "SFDX: Deploy This Source to Org"'s palette visibility is gated on an active-editor-dependent
+      // `when` clause; a focus-state diagnostic in CI showed the container's editor genuinely unfocused
+      // right before this redeploy, so re-focus it first.
+      await page.locator(`[data-uri*="${testClassName}.cls"]`).first().click();
       await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
     }
     await ensureOutputPanelOpen(page);

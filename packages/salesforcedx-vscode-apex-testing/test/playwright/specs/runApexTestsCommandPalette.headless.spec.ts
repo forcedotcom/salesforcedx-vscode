@@ -8,11 +8,9 @@
 import {
   clearOutputChannel,
   createAndDeployApexTestClass,
-  deployCurrentSourceToOrg,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
-  openFileByName,
   resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
@@ -33,11 +31,6 @@ import { TEST_RUN_TIMEOUT, TEST_SETUP_TIMEOUT } from '../constants';
 import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
 import { waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
 
-// Container reuses the seeded PagedResultTest + ExampleClassTest classes deployed to the boot org
-// rather than authoring fresh ones (desktop/web path).
-const CONTAINER_TEST_CLASS_1 = 'PagedResultTest';
-const CONTAINER_TEST_CLASS_2 = 'ExampleClassTest';
-
 test.beforeEach(async ({ page }) => {
   if (isContainer) {
     await resetContainerWorkbench(page);
@@ -55,58 +48,39 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
   let testClassName: string;
   let testClassName2: string;
 
-  // Deploy an open editor's source to the boot org, waiting on the Salesforce Metadata channel.
-  // Container-only: desktop/web author + deploy fresh classes via createAndDeployApexTestClass.
-  const deployOpenFile = async (fileName: string): Promise<void> => {
-    await openFileByName(page, fileName);
+  await test.step('setup two Apex test classes', async () => {
+    // The container uses its boot org, already authed at startup.
+    if (!isContainer) {
+      await setupNonTrackingOrgAndAuth(page);
+    }
+    await ensureSecondarySideBarHidden(page);
+    testClassName = `CommandPaletteTestClass1${Date.now()}`;
+    const testClassContent = [
+      '@isTest',
+      `public class ${testClassName} {`,
+      '    @isTest',
+      '    static void testMethod1() {',
+      "        System.assertEquals(1, 1, 'Basic assertion should pass');",
+      '    }',
+      '}'
+    ].join('\n');
+    await createAndDeployApexTestClass(page, testClassName, testClassContent);
+    await saveScreenshot(page, 'setup.first-class-created.png');
+
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata');
     await clearOutputChannel(page);
-    await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
-  };
-
-  await test.step('setup two Apex test classes', async () => {
-    if (isContainer) {
-      await ensureSecondarySideBarHidden(page);
-      testClassName = CONTAINER_TEST_CLASS_1;
-      testClassName2 = CONTAINER_TEST_CLASS_2;
-      // Deploy each dependency class before its test class so both compile server-side.
-      await deployOpenFile('PagedResult.cls');
-      await deployOpenFile('PagedResultTest.cls');
-      await deployOpenFile('ExampleClass.cls');
-      await deployOpenFile('ExampleClassTest.cls');
-      await saveScreenshot(page, 'setup.classes-deployed.png');
-    } else {
-      await setupNonTrackingOrgAndAuth(page);
-      await ensureSecondarySideBarHidden(page);
-      testClassName = `CommandPaletteTestClass1${Date.now()}`;
-      const testClassContent = [
-        '@isTest',
-        `public class ${testClassName} {`,
-        '    @isTest',
-        '    static void testMethod1() {',
-        "        System.assertEquals(1, 1, 'Basic assertion should pass');",
-        '    }',
-        '}'
-      ].join('\n');
-      await createAndDeployApexTestClass(page, testClassName, testClassContent);
-      await saveScreenshot(page, 'setup.first-class-created.png');
-
-      await ensureOutputPanelOpen(page);
-      await selectOutputChannel(page, 'Salesforce Metadata');
-      await clearOutputChannel(page);
-      testClassName2 = `CommandPaletteTestClass2${Date.now()}`;
-      const testClassContent2 = [
-        '@isTest',
-        `public class ${testClassName2} {`,
-        '    @isTest',
-        '    static void testMethod2() {',
-        "        System.assertEquals(2, 2, 'Second class assertion should pass');",
-        '    }',
-        '}'
-      ].join('\n');
-      await createAndDeployApexTestClass(page, testClassName2, testClassContent2);
-    }
+    testClassName2 = `CommandPaletteTestClass2${Date.now()}`;
+    const testClassContent2 = [
+      '@isTest',
+      `public class ${testClassName2} {`,
+      '    @isTest',
+      '    static void testMethod2() {',
+      "        System.assertEquals(2, 2, 'Second class assertion should pass');",
+      '    }',
+      '}'
+    ].join('\n');
+    await createAndDeployApexTestClass(page, testClassName2, testClassContent2);
   });
 
   await test.step('clear output before run-single', async () => {

@@ -10,7 +10,6 @@ import {
   acceptNotification,
   clearAllNotifications,
   clearOutputChannel,
-  createApexClass,
   createAndDeployApexTestClass,
   deployCurrentSourceToOrg,
   ensureOutputPanelOpen,
@@ -41,8 +40,8 @@ import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
 import { waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
 
 // The buggy service assigns accountNumber to TickerSymbol (line 6) so the test's ticker assertion
-// fails. Desktop/web use fixed class names; the container stamps a unique suffix so the shared,
-// persistent workbench/org never collides across specs or retries.
+// fails. Class names are stamped with a unique suffix so the container's shared, persistent
+// workbench/org never collides across specs or retries.
 const buildAccountServiceContent = (className: string): string =>
   [
     `public with sharing class ${className} {`,
@@ -105,8 +104,8 @@ test.beforeEach(async ({ page }) => {
     const consoleErrors = setupConsoleMonitoring(page);
     const networkErrors = setupNetworkMonitoring(page);
 
-    const className = isContainer ? `FailFixService${Date.now()}` : 'AccountService';
-    const testClassName = isContainer ? `${className}Test` : 'AccountServiceTest';
+    const className = `FailFixService${Date.now()}`;
+    const testClassName = `${className}Test`;
 
     const runServiceTestViaPalette = async (): Promise<void> => {
       await executeCommandWithCommandPalette(page, packageNls.apex_test_run_text);
@@ -114,35 +113,20 @@ test.beforeEach(async ({ page }) => {
     };
 
     await test.step('setup', async () => {
-      if (isContainer) {
-        await ensureSecondarySideBarHidden(page);
-      } else {
+      // The container uses its boot org, already authed at startup.
+      if (!isContainer) {
         await setupNonTrackingOrgAndAuth(page);
-        await ensureSecondarySideBarHidden(page);
       }
+      await ensureSecondarySideBarHidden(page);
     });
 
     await test.step('deploy buggy service class', async () => {
-      if (isContainer) {
-        await createApexClass(page, className, buildAccountServiceContent(className));
-        await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
-      } else {
-        await createAndDeployApexTestClass(page, className, buildAccountServiceContent(className));
-      }
+      await createAndDeployApexTestClass(page, className, buildAccountServiceContent(className));
       await saveScreenshot(page, 'setup.account-service-deployed.png');
     });
 
     await test.step('deploy service test class', async () => {
-      if (isContainer) {
-        await createApexClass(page, testClassName, buildAccountServiceTestContent(className, testClassName));
-        await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
-      } else {
-        await createAndDeployApexTestClass(
-          page,
-          testClassName,
-          buildAccountServiceTestContent(className, testClassName)
-        );
-      }
+      await createAndDeployApexTestClass(page, testClassName, buildAccountServiceTestContent(className, testClassName));
       await saveScreenshot(page, 'setup.account-service-test-deployed.png');
     });
 

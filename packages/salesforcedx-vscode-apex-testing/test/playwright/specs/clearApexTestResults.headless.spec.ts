@@ -10,11 +10,9 @@ import { expect } from '@playwright/test';
 import {
   clearOutputChannel,
   createAndDeployApexTestClass,
-  deployCurrentSourceToOrg,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
-  openFileByName,
   resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
@@ -51,38 +49,23 @@ test('Clear Apex Test Results removes result files', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
-  // Deploy an open editor's source to the boot org, waiting on the Salesforce Metadata channel.
-  // Container-only: desktop/web author + deploy a fresh class via createAndDeployApexTestClass.
-  const deployOpenFile = async (fileName: string): Promise<void> => {
-    await openFileByName(page, fileName);
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Salesforce Metadata');
-    await clearOutputChannel(page);
-    await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
-  };
-
   await test.step('setup Apex test class', async () => {
-    if (isContainer) {
-      await ensureSecondarySideBarHidden(page);
-      // Reuses the seeded PagedResultTest class instead of authoring a new one.
-      await deployOpenFile('PagedResult.cls');
-      await deployOpenFile('PagedResultTest.cls');
-      await saveScreenshot(page, 'setup.test-class-deployed.png');
-    } else {
+    // The container uses its boot org, already authed at startup.
+    if (!isContainer) {
       await setupNonTrackingOrgAndAuth(page);
-      await ensureSecondarySideBarHidden(page);
-      const testClassName = `ClearTestClass${Date.now()}`;
-      const testClassContent = [
-        '@isTest',
-        `public class ${testClassName} {`,
-        '\t@isTest',
-        '\tstatic void testClearMethod() {',
-        "\t\tSystem.assertEquals(1, 1, 'clear test');",
-        '\t}',
-        '}'
-      ].join('\n');
-      await createAndDeployApexTestClass(page, testClassName, testClassContent);
     }
+    await ensureSecondarySideBarHidden(page);
+    const testClassName = `ClearTestClass${Date.now()}`;
+    const testClassContent = [
+      '@isTest',
+      `public class ${testClassName} {`,
+      '\t@isTest',
+      '\tstatic void testClearMethod() {',
+      "\t\tSystem.assertEquals(1, 1, 'clear test');",
+      '\t}',
+      '}'
+    ].join('\n');
+    await createAndDeployApexTestClass(page, testClassName, testClassContent);
   });
 
   await test.step('discover and run tests', async () => {

@@ -9,12 +9,10 @@ import {
   clearOutputChannel,
   clickCodeLens,
   createAndDeployApexTestClass,
-  deployCurrentSourceToOrg,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   isDesktop,
-  openFileByName,
   resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
@@ -53,42 +51,26 @@ test.beforeEach(async ({ page }) => {
     const consoleErrors = setupConsoleMonitoring(page);
     const networkErrors = setupNetworkMonitoring(page);
 
-    let testClassName: string | undefined;
-
-    // Deploy an open editor's source to the boot org, waiting on the Salesforce Metadata channel.
-    // Container-only: desktop/web author + deploy a fresh class via createAndDeployApexTestClass.
-    const deployOpenFile = async (fileName: string): Promise<void> => {
-      await openFileByName(page, fileName);
-      await ensureOutputPanelOpen(page);
-      await selectOutputChannel(page, 'Salesforce Metadata');
-      await clearOutputChannel(page);
-      await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
-    };
+    let testClassName: string;
 
     await test.step('setup Apex test class', async () => {
-      if (isContainer) {
-        await ensureSecondarySideBarHidden(page);
-        // Reuses the seeded ExampleClass/ExampleClassTest, leaving ExampleClassTest.cls as the
-        // active editor so its code lenses are the ones clicked below.
-        await deployOpenFile('ExampleClass.cls');
-        await deployOpenFile('ExampleClassTest.cls');
-        await saveScreenshot(page, 'setup.code-lens-class-deployed.png');
-      } else {
+      // The container uses its boot org, already authed at startup.
+      if (!isContainer) {
         await setupNonTrackingOrgAndAuth(page);
-        await ensureSecondarySideBarHidden(page);
-        testClassName = `CodeLensTestClass${Date.now()}`;
-        const testClassContent = [
-          '@isTest',
-          `public class ${testClassName} {`,
-          '    @isTest',
-          '    static void validateSayHello() {',
-          "        System.assertEquals(1, 1, 'Basic assertion should pass');",
-          '    }',
-          '}'
-        ].join('\n');
-        await createAndDeployApexTestClass(page, testClassName, testClassContent);
-        await saveScreenshot(page, 'setup.code-lens-class-created.png');
       }
+      await ensureSecondarySideBarHidden(page);
+      testClassName = `CodeLensTestClass${Date.now()}`;
+      const testClassContent = [
+        '@isTest',
+        `public class ${testClassName} {`,
+        '    @isTest',
+        '    static void validateSayHello() {',
+        "        System.assertEquals(1, 1, 'Basic assertion should pass');",
+        '    }',
+        '}'
+      ].join('\n');
+      await createAndDeployApexTestClass(page, testClassName, testClassContent);
+      await saveScreenshot(page, 'setup.code-lens-class-created.png');
     });
 
     await test.step('click Run All Tests code lens (class-level)', async () => {
