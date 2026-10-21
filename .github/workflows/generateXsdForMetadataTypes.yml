@@ -25,9 +25,7 @@ jobs:
           install: 'false'
 
       - name: Install dependencies
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          command: pnpm install --frozen-lockfile
+        uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
       - name: Scrape all metadata pages
         run: pnpm scrape:all:pages
 
