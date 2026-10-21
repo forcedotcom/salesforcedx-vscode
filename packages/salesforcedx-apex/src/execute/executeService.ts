@@ -11,7 +11,7 @@ import * as Either from 'effect/Either';
 import { existsSync, readFileSync } from 'node:fs';
 import { EOL } from 'node:os';
 import * as readline from 'node:readline';
-import { executeAnonymousSoap } from '../effect/executeAnonymous';
+import { executeAnonymous } from '../effect';
 import { nls } from '../i18n';
 import { elapsedTime } from '../utils/elapsedTime';
 
@@ -22,27 +22,50 @@ export class ExecuteService {
   @elapsedTime()
   public async executeAnonymous(options: ApexExecuteOptions): Promise<ExecuteAnonymousResponse> {
     const apexCode = await this.getApexCode(options);
-    const execution = await executeAnonymousSoap(this.connection, { apexCode }).pipe(Effect.either, Effect.runPromise);
+    const execution = await executeAnonymous(this.connection, { apexCode }).pipe(Effect.either, Effect.runPromise);
     // Unwrap typed failures outside the Effect runtime so CLI errors do not acquire a FiberFailure prefix.
-    if (Either.isLeft(execution)) throw new Error(execution.left.message);
+    if (Either.isLeft(execution)) {
+      const error = execution.left;
+      switch (error._tag) {
+        case 'ApexCompileError':
+          return {
+            compiled: false,
+            success: false,
+            logs: error.logBody,
+            diagnostic: [
+              {
+                lineNumber: error.line,
+                columnNumber: error.column,
+                compileProblem: error.compileProblem ?? '',
+                exceptionMessage: '',
+                exceptionStackTrace: ''
+              }
+            ]
+          };
+        case 'ApexRuntimeError':
+          return {
+            compiled: true,
+            success: false,
+            logs: error.logBody,
+            diagnostic: [
+              {
+                lineNumber: error.line,
+                columnNumber: error.column,
+                compileProblem: '',
+                exceptionMessage: error.exceptionMessage ?? '',
+                exceptionStackTrace: error.exceptionStackTrace ?? ''
+              }
+            ]
+          };
+        default:
+          throw new Error(error.message);
+      }
+    }
     const result = execution.right;
     return {
       compiled: result.compiled,
       success: result.success,
-      logs: result.logBody,
-      ...(!result.success
-        ? {
-            diagnostic: [
-              {
-                lineNumber: result.line,
-                columnNumber: result.column,
-                compileProblem: result.compileProblem ?? '',
-                exceptionMessage: result.exceptionMessage ?? '',
-                exceptionStackTrace: result.exceptionStackTrace ?? ''
-              }
-            ]
-          }
-        : {})
+      logs: result.logBody
     };
   }
 

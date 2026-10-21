@@ -28,6 +28,12 @@ const response = {
     }
   }
 };
+const responseWithLog = {
+  'soapenv:Envelope': {
+    ...response['soapenv:Envelope'],
+    'soapenv:Header': { DebuggingInfo: { debugLog: 'LOG BODY' } }
+  }
+};
 
 const makeConnection = (request: VitestMock): Connection =>
   ({
@@ -48,10 +54,7 @@ describe('executeAnonymous', () => {
       success: true,
       line: -1,
       column: -1,
-      compileProblem: '',
-      exceptionMessage: '',
-      exceptionStackTrace: '',
-      logBody: ''
+      logBody: undefined
     });
     expect(request).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -122,6 +125,33 @@ describe('executeAnonymous', () => {
     ).resolves.toMatchObject({ _tag: 'ApexResponseDecodeError' });
   });
 
+  it('returns compilation failures through the typed error channel', async () => {
+    const compileFailure = structuredClone(responseWithLog);
+    Object.assign(compileFailure['soapenv:Envelope']['soapenv:Body'].executeAnonymousResponse.result, {
+      compiled: 'false',
+      success: 'false',
+      line: 3,
+      column: 12,
+      compileProblem: 'Unexpected token'
+    });
+
+    await expect(
+      Effect.runPromise(
+        Effect.flip(
+          executeAnonymous(makeConnection(vi.fn().mockResolvedValue(compileFailure)), { apexCode: 'bad apex' })
+        )
+      )
+    ).resolves.toMatchObject({
+      _tag: 'ApexCompileError',
+      operation: 'executeAnonymous',
+      message: 'Unexpected token',
+      compileProblem: 'Unexpected token',
+      line: 3,
+      column: 12,
+      logBody: 'LOG BODY'
+    });
+  });
+
   it('reports malformed responses through the decode error channel', async () => {
     const connection = makeConnection(vi.fn().mockResolvedValue({}));
 
@@ -170,15 +200,12 @@ describe('executeAnonymous', () => {
     });
 
     await expect(
-      Effect.runPromise(executeAnonymous(makeConnection(request), { apexCode: 'bad apex' }))
-    ).resolves.toEqual({
-      compiled: false,
-      success: false,
+      Effect.runPromise(Effect.flip(executeAnonymous(makeConnection(request), { apexCode: 'bad apex' })))
+    ).resolves.toMatchObject({
+      _tag: 'ApexCompileError',
+      compileProblem: 'Unexpected token',
       line: 3,
       column: 12,
-      compileProblem: 'Unexpected token',
-      exceptionMessage: null,
-      exceptionStackTrace: null,
       logBody: 'LOG'
     });
   });
@@ -198,37 +225,40 @@ describe('executeAnonymous', () => {
 
     await expect(
       Effect.runPromise(
-        executeAnonymous(makeConnection(vi.fn().mockResolvedValue(soapResponse)), { apexCode: 'bad apex' })
+        Effect.flip(executeAnonymous(makeConnection(vi.fn().mockResolvedValue(soapResponse)), { apexCode: 'bad apex' }))
       )
-    ).resolves.toEqual({
-      compiled: false,
-      success: false,
+    ).resolves.toMatchObject({
+      _tag: 'ApexCompileError',
+      compileProblem: 'Unexpected token',
       line: 3,
       column: 12,
-      compileProblem: 'Unexpected token',
-      exceptionMessage: null,
-      exceptionStackTrace: null,
       logBody: 'LOG & TEXT'
     });
   });
 
-  it('returns runtime diagnostics as data, not an operation failure', async () => {
+  it('returns runtime failures through the typed error channel', async () => {
     const runtimeFailure = structuredClone(response);
     Object.assign(runtimeFailure['soapenv:Envelope']['soapenv:Body'].executeAnonymousResponse.result, {
       success: 'false',
+      line: 6,
+      column: 1,
       exceptionMessage: 'System.AssertException: Assertion Failed',
       exceptionStackTrace: 'AnonymousBlock: line 1, column 1'
     });
 
     await expect(
       Effect.runPromise(
-        executeAnonymous(makeConnection(vi.fn().mockResolvedValue(runtimeFailure)), { apexCode: 'code' })
+        Effect.flip(executeAnonymous(makeConnection(vi.fn().mockResolvedValue(runtimeFailure)), { apexCode: 'code' }))
       )
     ).resolves.toMatchObject({
-      compiled: true,
-      success: false,
+      _tag: 'ApexRuntimeError',
+      operation: 'executeAnonymous',
+      message: 'System.AssertException: Assertion Failed',
+      line: 6,
+      column: 1,
       exceptionMessage: 'System.AssertException: Assertion Failed',
-      exceptionStackTrace: 'AnonymousBlock: line 1, column 1'
+      exceptionStackTrace: 'AnonymousBlock: line 1, column 1',
+      logBody: undefined
     });
   });
 
