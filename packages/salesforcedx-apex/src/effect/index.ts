@@ -41,7 +41,9 @@ export type {
   ApexOrgWideCoverage
 } from './schema/wire/coverage';
 export {
+  ApexLogBodyFetchError,
   ApexCompileError,
+  ApexLogQueryError,
   ApexOperationError,
   ApexResponseDecodeError,
   ApexRuntimeError,
@@ -55,8 +57,14 @@ export { QueryPageSchema } from './schema/queryPage';
 export type { ListLogsOptions } from './schema/logs';
 export type { LogStreamEvent, StreamLogsOptions } from './logs';
 export { BuildSyncPayloadOptionsSchema, BuildAsyncPayloadOptionsSchema } from './schema/testPayloads';
-export type { BuildSyncPayloadOptions, BuildAsyncPayloadOptions } from './schema/testPayloads';
 export { buildSyncPayload, buildAsyncPayload } from './testPayloads';
+export type { BuildSyncPayloadOptions, BuildAsyncPayloadOptions } from './schema/testPayloads';
 export { TestSuiteSchema, TestSuiteMembershipSchema } from './schema/testSuites';
-export type { TestSuite, TestSuiteMembership } from './schema/testSuites';
 export { retrieveAllSuites, getTestsInSuite, buildSuite } from './testSuites';
+export type { TestSuite, TestSuiteMembership } from './schema/testSuites';
+export { AsyncTestOptionsSchema } from './schema/wire/asyncTests';
+export { AsyncTestProgressSchema, AsyncTestResultSchema, AsyncTestRunEventSchema } from './schema/asyncTests';
+export { runTestAsynchronous } from './asyncTests';
+export type { AsyncTestOptions } from './schema/wire/asyncTests';
+export type { AsyncTestProgress, AsyncTestRunEvent, AsyncTestRunSummary } from './schema/asyncTests';
+export type { AsyncTestPollingOptions, AsyncTestRun } from './asyncTests';

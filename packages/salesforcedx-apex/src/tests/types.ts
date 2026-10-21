@@ -480,6 +480,9 @@ export type NamespaceInfo = {
   namespace: string;
 };
 
+/** @internal Progress callback used by the co-repo extension's Promise test API. */
+export type ApexTestProgressReporter = { report: (value: ApexTestProgressValue) => void };
+
 export type ApexTestProgressValue =
   | {
       type: 'StreamingClientProgress';

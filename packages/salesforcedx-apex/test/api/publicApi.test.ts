@@ -65,6 +65,10 @@ describe('@salesforce/apex-node public API', () => {
       'ApexTestResultDataSchema',
       'ApexTestResultOutcomeSchema',
       'ApexTestSetupDataSchema',
+      'AsyncTestOptionsSchema',
+      'AsyncTestProgressSchema',
+      'AsyncTestResultSchema',
+      'AsyncTestRunEventSchema',
       'BuildAsyncPayloadOptionsSchema',
       'BuildSyncPayloadOptionsSchema',
       'CodeCoverageResultSchema',
@@ -95,6 +99,7 @@ describe('@salesforce/apex-node public API', () => {
       'getTestsInSuite',
       'listLogs',
       'retrieveAllSuites',
+      'runTestAsynchronous',
       'runTestSynchronous',
       'streamLogs',
       'transformTestResult'
