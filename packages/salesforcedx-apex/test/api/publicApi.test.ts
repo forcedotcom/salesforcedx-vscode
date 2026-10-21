@@ -41,6 +41,8 @@ describe('@salesforce/apex-node public API', () => {
       'ApexOperationError',
       'ApexResponseDecodeError',
       'ApexRuntimeError',
+      'AsyncTestOptionsSchema',
+      'AsyncTestProgressSchema',
       'BuildAsyncPayloadOptionsSchema',
       'BuildSyncPayloadOptionsSchema',
       'ExecuteAnonymousOptionsSchema',
@@ -58,6 +60,7 @@ describe('@salesforce/apex-node public API', () => {
       'getTestsInSuite',
       'listLogs',
       'retrieveAllSuites',
+      'runTestAsynchronous',
       'streamLogs'
     ]);
   });

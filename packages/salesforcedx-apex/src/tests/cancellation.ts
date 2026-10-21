@@ -5,17 +5,8 @@
  *--------------------------------------------------------------------------------------------*/
 
 /**
- * The following definitions are adapted from Type Definition for Visual Studio Code 1.46 Extension API
- * See https://code.visualstudio.com/api for more information
- */
-
-/**
- * A cancellation token is passed to an asynchronous or long running
- * operation to request cancellation, like cancelling a request
- * for completion items because the user continued to type.
- *
- * To get an instance of a `CancellationToken` use a
- * [CancellationTokenSource](#CancellationTokenSource).
+ * Minimal cancellation contract for the Promise test API, shared by CLI and editor consumers.
+ * The Effect API uses fiber interruption instead.
  */
 export interface CancellationToken {
   /**

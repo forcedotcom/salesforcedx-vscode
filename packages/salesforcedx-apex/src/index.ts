@@ -5,8 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { CancellationTokenSource } from './common';
-export type { CancellationToken, Progress } from './common';
+export { CancellationTokenSource } from './tests/cancellation';
+export type { CancellationToken } from './tests/cancellation';
+export type { ApexTestProgressReporter } from './tests/types';
 export type { ExecuteAnonymousResponse, ApexExecuteOptions } from './execute/types';
 export { ExecuteService } from './execute/executeService';
 export { LogService } from './logs';

@@ -9,11 +9,10 @@ import type { CodeCoverage } from './codeCoverage';
 import type { QueryResult, Record as JsforceRecord } from '@jsforce/jsforce-node';
 import { type Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
-import { type Progress } from '../common';
 import { queryNamespaces as queryNamespaceInfos } from '../effect/namespaces';
 import { nls } from '../i18n';
 import {
-  type ApexTestProgressValue,
+  type ApexTestProgressReporter,
   type ApexTestResultData,
   type ApexTestResultDataRaw,
   type ApexTestSetupData,
@@ -89,7 +88,7 @@ export const calculateCodeCoverage = async (
   apexTestClassIdSet: Set<string>,
   result: TestResultRaw,
   isAsync: boolean,
-  progress?: Progress<ApexTestProgressValue>
+  progress?: ApexTestProgressReporter
 ): Promise<void> => {
   const coveredApexClassIdSet = new Set<string>();
   if (codeCoverage) {

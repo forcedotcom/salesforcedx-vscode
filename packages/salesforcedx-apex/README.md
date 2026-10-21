@@ -12,7 +12,7 @@ Note: Please report any issues via the [Issues tab](https://github.com/forcedotc
 
 ## API entry points
 
-- `@salesforce/apex-node` is the backward-compatible Promise and class API.
+- `@salesforce/apex-node` is the Promise and class API for existing consumers.
 - `@salesforce/apex-node/effect` is the primary API for new Effect operations, schemas, and errors.
 
 ## Using the Effect API
@@ -95,6 +95,28 @@ The Effect API returns a success-only outcome. Compilation and runtime failures 
 `listLogs(connection, limit = 25, options?)` queries Tooling API logs in descending start-time order. Options filter by user(s), operation substring, and inclusive start time. `getLogBody(connection, logId)` retrieves the body.
 
 `streamLogs(connection, options)` collects immediately and then on the supplied Effect schedule. `pollOptions(index)` returns `Option.none()` to skip a poll or `Option.some(filters)` to query; `filterLogs` selects records before body retrieval. The stream emits `Log`, `QueryError`, and `BodyError` events, continuing after request failures. Consumers own window gating, trace flags, org changes, deduplication, storage, and interruption.
+
+### Asynchronous test execution
+
+`runTestAsynchronous(connection, options, polling?)` returns a lazy, scoped Stream. Consuming it submits the Tooling API request, emits `Started` with the test run ID, then polls `ApexTestRunResult`. Each `Progress` value contains the status and completed/enqueued class counts. The terminal status is emitted before the stream ends. Request and malformed-response failures use `ApexOperationError` and `ApexResponseDecodeError`.
+
+```ts
+import { runTestAsynchronous } from '@salesforce/apex-node/effect';
+import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
+
+const run = runTestAsynchronous(connection, { testLevel: 'RunLocalTests' }).pipe(
+  Stream.runForEach(progress => Effect.log(progress)),
+  Effect.scoped
+);
+await Effect.runPromise(run);
+```
+
+The caller owns the scope. Interruption stops polling; closing the scope before completion waits for unfinished queue items to be aborted, including paginated queue items. Submission is uninterruptible until the accepted run ID is known, so cancellation during submission can still abort the remote run. Cleanup failures surface as defects rather than being silently ignored. Keep the scope around the stream consumer, not the entire application.
+
+Polling defaults to one second; `polling.interval` accepts an Effect `DurationInput`. There is no CometD fallback. Consumers own deadlines (for example, `Effect.timeout` around `run`) and UI formatting. Once submission settles and the run ID is known, a deadline stops polling, closes the scope, and waits for unfinished tests to be aborted; it does not detach the run. A deadline cannot interrupt a pending submission or cleanup, so it does not bound the total duration of `run`. To intentionally leave tests running, use `{ exitOnTestRunId: true }`, which emits only `Started` without polling or aborting. This API reports execution progress; result formatting, coverage, and file output remain separate operations.
+
+For the next major, the Promise API keeps `CancellationTokenSource` and its minimal cancellation contract because [plugin-apex](https://github.com/salesforcecli/plugin-apex/blob/c8fdf7073ce194deb75fc7fd12c0b981ee2b97f4/src/shared/TestRunService.ts) and [plugin-flow](https://github.com/salesforcecli/plugin-flow/blob/37032aadfd665266184a7f71b18b133e1b55e25f/src/commands/flow/run/test.ts) use them. The generic, VS Code-derived `Progress<T>` export is removed; Promise test methods instead accept the concrete `ApexTestProgressReporter` (`{ report(value: ApexTestProgressValue): void }`). Existing reporter objects need no runtime changes. Neither cancellation tokens nor reporter callbacks are used by the Effect API.
 
 ## Getting Started
 
