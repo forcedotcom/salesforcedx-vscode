@@ -4,72 +4,60 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { HttpRequest } from '@jsforce/jsforce-node';
-import { type Connection } from '@salesforce/core';
+import type { ApexExecuteOptions, ExecuteAnonymousResponse } from './types';
+import type { Connection } from '@salesforce/core';
+import * as Effect from 'effect/Effect';
+import * as Either from 'effect/Either';
 import { existsSync, readFileSync } from 'node:fs';
-import * as os from 'node:os';
+import { EOL } from 'node:os';
 import * as readline from 'node:readline';
+import { executeAnonymousSoap } from '../effect/executeAnonymous';
 import { nls } from '../i18n';
-import { refreshAuth } from '../utils';
 import { elapsedTime } from '../utils/elapsedTime';
-import {
-  type ApexExecuteOptions,
-  type ExecuteAnonymousResponse,
-  type SoapResponse,
-  action,
-  soapBody,
-  soapEnv,
-  soapHeader
-} from './types';
-import { encodeBody } from './utils';
 
+/** Promise adapter for CLI consumers; the Effect API owns execution and diagnostics. */
 export class ExecuteService {
-  private readonly connection: Connection;
-
-  constructor(connection: Connection) {
-    this.connection = connection;
-  }
+  constructor(private readonly connection: Connection) {}
 
   @elapsedTime()
   public async executeAnonymous(options: ApexExecuteOptions): Promise<ExecuteAnonymousResponse> {
-    const data = await this.getApexCode(options);
-
-    let count = 0;
-    while (count < 2) {
-      try {
-        const request = this.buildExecRequest(data);
-        const result = await this.connectionRequest(request);
-        return this.jsonFormat(result);
-      } catch (e) {
-        if (e.name === 'ERROR_HTTP_500' && e.message?.includes('INVALID_SESSION_ID')) {
-          await refreshAuth(this.connection);
-          count += 1;
-        } else {
-          throw new Error(nls.localize('unexpectedExecuteCommandError', e.message));
-        }
-      }
-    }
-    throw new Error(nls.localize('authForAnonymousApexFailed'));
+    const apexCode = await this.getApexCode(options);
+    const execution = await executeAnonymousSoap(this.connection, { apexCode }).pipe(Effect.either, Effect.runPromise);
+    // Unwrap typed failures outside the Effect runtime so CLI errors do not acquire a FiberFailure prefix.
+    if (Either.isLeft(execution)) throw new Error(execution.left.message);
+    const result = execution.right;
+    return {
+      compiled: result.compiled,
+      success: result.success,
+      logs: result.logBody,
+      ...(!result.success
+        ? {
+            diagnostic: [
+              {
+                lineNumber: result.line,
+                columnNumber: result.column,
+                compileProblem: result.compileProblem ?? '',
+                exceptionMessage: result.exceptionMessage ?? '',
+                exceptionStackTrace: result.exceptionStackTrace ?? ''
+              }
+            ]
+          }
+        : {})
+    };
   }
 
+  // Keep the CLI input contract until plugin-apex reads files/stdin itself.
   @elapsedTime()
   private async getApexCode(options: ApexExecuteOptions): Promise<string> {
-    if (options.apexCode) {
-      return String(options.apexCode);
-    } else if (options.apexFilePath) {
-      return this.readApexFile(options.apexFilePath);
-    } else if (options.userInput) {
-      return await this.getUserInput();
-    } else {
-      throw new Error(nls.localize('optionExecAnonError'));
-    }
+    if (options.apexCode !== undefined) return options.apexCode.toString();
+    if (options.apexFilePath) return this.readApexFile(options.apexFilePath);
+    if (options.userInput) return this.getUserInput();
+    throw new Error(nls.localize('optionExecAnonError'));
   }
 
   @elapsedTime()
   private readApexFile(filepath: string): string {
-    if (!existsSync(filepath)) {
-      throw new Error(nls.localize('fileNotFoundError', filepath));
-    }
+    if (!existsSync(filepath)) throw new Error(nls.localize('fileNotFoundError', filepath));
     return readFileSync(filepath, 'utf8');
   }
 
@@ -86,7 +74,7 @@ export class ExecuteService {
       let apexCode = '';
       readInterface.on('line', (input: string) => {
         timeout.refresh();
-        apexCode = apexCode + input + os.EOL;
+        apexCode += input + EOL;
       });
       readInterface.on('close', () => {
         resolve(apexCode);
@@ -94,63 +82,8 @@ export class ExecuteService {
       });
       readInterface.on('error', (err: Error) => {
         reject(new Error(nls.localize('unexpectedExecAnonInputError', err.message)));
+        readInterface.close();
       });
     });
-  }
-
-  // Tooling API execute anonymous apex REST endpoint was not used because
-  // it requires multiple api calls to turn on trace flag, execute anonymous apex, and get the generated debug log
-  private buildExecRequest(data: string): HttpRequest {
-    const accessToken = this.connection.accessToken ?? '';
-    const body = encodeBody(accessToken, data);
-    const postEndpoint = `${this.connection.instanceUrl}/services/Soap/s/${
-      this.connection.version
-    }/${accessToken.split('!')[0]}`;
-
-    return {
-      method: 'POST',
-      url: postEndpoint,
-      body,
-      headers: {
-        'content-type': 'text/xml',
-        soapaction: action
-      }
-    };
-  }
-
-  @elapsedTime()
-  private jsonFormat(soapResponse: SoapResponse): ExecuteAnonymousResponse {
-    const envelope = soapResponse[soapEnv];
-    if (!envelope) {
-      throw new Error(nls.localize('unexpectedExecuteCommandError', ''));
-    }
-    const execAnonResponse = envelope[soapBody].executeAnonymousResponse.result;
-
-    const formattedResponse: ExecuteAnonymousResponse = {
-      compiled: execAnonResponse.compiled === 'true',
-      success: execAnonResponse.success === 'true',
-      logs: envelope[soapHeader]?.DebuggingInfo.debugLog
-    };
-
-    if (!formattedResponse.success) {
-      formattedResponse.diagnostic = [
-        {
-          lineNumber: execAnonResponse.line,
-          columnNumber: execAnonResponse.column,
-          compileProblem: typeof execAnonResponse.compileProblem === 'object' ? '' : execAnonResponse.compileProblem,
-          exceptionMessage:
-            typeof execAnonResponse.exceptionMessage === 'object' ? '' : execAnonResponse.exceptionMessage,
-          exceptionStackTrace:
-            typeof execAnonResponse.exceptionStackTrace === 'object' ? '' : execAnonResponse.exceptionStackTrace
-        }
-      ];
-    }
-
-    return formattedResponse;
-  }
-
-  @elapsedTime()
-  private async connectionRequest(requestData: HttpRequest): Promise<SoapResponse> {
-    return this.connection.request(requestData);
   }
 }
