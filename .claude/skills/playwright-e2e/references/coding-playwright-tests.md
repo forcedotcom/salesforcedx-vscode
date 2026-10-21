@@ -190,6 +190,17 @@ await editor.click(); // Re-focus the editor tab
 await executeCommandWithCommandPalette(page, editorContextCommand);
 ```
 
+**Output text with a variable gap:** don't put column spacing in `expectedText` (web filters by it literally; wrapped rows change whitespace). Filter by a plain substring, assert the rest with `expectedPattern`:
+
+```typescript
+await waitForOutputChannelText(page, {
+  expectedText: 'Class.method',
+  expectedPattern: /Class\.method\s*Pass\b/
+});
+```
+
+Apex per-method rows: `waitForApexMethodPassLine` (apex-testing `helpers/waitForApexRunOutputLine.ts`).
+
 ## Notifications and Toast Messages
 
 Click notification action buttons IMMEDIATELY after the toast appears — palette/maximize ops hide toasts before deferred clicks.
@@ -208,7 +219,7 @@ await acceptNotification(page, /pattern/, 'Action Name', { timeout: 60_000 });
 // Step 2: Separate step to verify output channel after action completed
 await test.step('verify output channel', async () => {
   await selectOutputChannel(page, 'Output Channel Name');
-  await waitForOutputChannelText(page, /expected text/);
+  await waitForOutputChannelText(page, { expectedText: 'expected text' });
 });
 ```
 

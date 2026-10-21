@@ -29,7 +29,7 @@ import packageNls from '../../../package.nls.json';
 import { isContainer, sharedTest as test } from '../fixtures';
 import { TEST_RUN_TIMEOUT, TEST_SETUP_TIMEOUT } from '../constants';
 import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
-import { waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
+import { waitForApexMethodPassLine, waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
 
 test.beforeEach(async ({ page }) => {
   if (isContainer) {
@@ -87,15 +87,7 @@ test.beforeEach(async ({ page }) => {
       await waitForApexRunOutputLine(page, 'Outcome              Passed');
       await waitForApexRunOutputLine(page, 'Tests Ran            1');
       await waitForApexRunOutputLine(page, 'Pass Rate            100%');
-      if (isContainer) {
-        // The container's Apex Testing output renders the per-method "Class.method  Pass" line with
-        // variable column spacing (and virtualizes it out of the scrolled view), so the exact-line
-        // match misses even on a passing run. Assert on the always-present "Org Wide Coverage"
-        // summary signal instead; Outcome/Tests Ran/Pass Rate above already prove the run passed.
-        await waitForApexRunOutputLine(page, 'Org Wide Coverage');
-      } else {
-        await waitForApexRunOutputLine(page, `${testClassName}.validateSayHello  Pass`);
-      }
+      await waitForApexMethodPassLine(page, `${testClassName}.validateSayHello`);
       await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
       await verifyNoTestRunInProgress(page);
       await saveScreenshot(page, 'step.run-all.done.png');
@@ -118,11 +110,7 @@ test.beforeEach(async ({ page }) => {
       await waitForApexRunOutputLine(page, 'Outcome              Passed');
       await waitForApexRunOutputLine(page, 'Tests Ran            1');
       await waitForApexRunOutputLine(page, 'Pass Rate            100%');
-      if (isContainer) {
-        await waitForApexRunOutputLine(page, 'Org Wide Coverage');
-      } else {
-        await waitForApexRunOutputLine(page, `${testClassName}.validateSayHello  Pass`);
-      }
+      await waitForApexMethodPassLine(page, `${testClassName}.validateSayHello`);
       await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
       await verifyNoTestRunInProgress(page);
       await saveScreenshot(page, 'step.run-single.done.png');
@@ -156,11 +144,7 @@ test.beforeEach(async ({ page }) => {
       await waitForApexRunOutputLine(page, '=== Test Summary');
       await waitForApexRunOutputLine(page, 'Outcome              Passed');
       await waitForApexRunOutputLine(page, 'Tests Ran            1');
-      if (isContainer) {
-        await waitForApexRunOutputLine(page, 'Org Wide Coverage');
-      } else {
-        await waitForApexRunOutputLine(page, `${testClassName}.validateSayHello  Pass`);
-      }
+      await waitForApexMethodPassLine(page, `${testClassName}.validateSayHello`);
       await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
       await verifyNoTestRunInProgress(page);
       await saveScreenshot(page, 'step.rerun-last-class.done.png');
@@ -185,11 +169,7 @@ test.beforeEach(async ({ page }) => {
       await waitForApexRunOutputLine(page, '=== Test Summary');
       await waitForApexRunOutputLine(page, 'Outcome              Passed');
       await waitForApexRunOutputLine(page, 'Tests Ran            1');
-      if (isContainer) {
-        await waitForApexRunOutputLine(page, 'Org Wide Coverage');
-      } else {
-        await waitForApexRunOutputLine(page, `${testClassName}.validateSayHello  Pass`);
-      }
+      await waitForApexMethodPassLine(page, `${testClassName}.validateSayHello`);
       await waitForApexRunOutputLine(page, 'Ended SFDX: Run Apex Tests');
       await verifyNoTestRunInProgress(page);
       await saveScreenshot(page, 'step.rerun-last-method.done.png');

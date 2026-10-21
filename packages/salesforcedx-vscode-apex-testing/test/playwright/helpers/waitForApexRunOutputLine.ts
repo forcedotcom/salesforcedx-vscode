@@ -12,3 +12,16 @@ import { APEX_RUN_CHANNEL_FAILURES } from '../constants';
 /** Check every post-run Apex Testing line for socket-close failures, not just the summary. */
 export const waitForApexRunOutputLine = (page: Page, expectedText: string): Promise<void> =>
   waitForOutputChannelText(page, { expectedText, timeout: 60_000, failIfChannelIncludes: APEX_RUN_CHANNEL_FAILURES });
+
+/**
+ * Wait for a per-method result row showing `Pass`. The column gap between name and outcome isn't
+ * matched literally: a long row can wrap in the container's narrower window, which changes the
+ * whitespace read back from the page.
+ */
+export const waitForApexMethodPassLine = (page: Page, qualifiedMethodName: string): Promise<void> =>
+  waitForOutputChannelText(page, {
+    expectedText: qualifiedMethodName,
+    expectedPattern: new RegExp(`${qualifiedMethodName.replaceAll('.', '\\.')}\\s*Pass\\b`),
+    timeout: 60_000,
+    failIfChannelIncludes: APEX_RUN_CHANNEL_FAILURES
+  });
