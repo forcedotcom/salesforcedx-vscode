@@ -23,7 +23,13 @@ import { getOrgBrowserRuntime } from '../services/extensionProvider';
 import { preloadMetadataTypes } from '../services/metadataTypePreload';
 import { matchesPattern } from '../utils/wildcardPattern';
 import { createCustomFieldNode } from './customField';
-import { isFolderListingNode, isFolderNode, isFolderType, OrgBrowserTreeItem } from './orgBrowserNode';
+import {
+  isFolderListingNode,
+  isFolderNode,
+  isFolderType,
+  OrgBrowserTreeItem,
+  toOrgBrowserFilePresence
+} from './orgBrowserNode';
 
 export class MetadataTypeTreeProvider implements vscode.TreeDataProvider<OrgBrowserTreeItem> {
   private _onDidChangeTreeData: vscode.EventEmitter<OrgBrowserTreeItem | undefined | void> = new vscode.EventEmitter();
@@ -292,7 +298,7 @@ const filterByViewMode = (nodes: OrgBrowserTreeItem[], provider: MetadataTypeTre
   if (provider.showLocal && provider.showOrg) return nodes;
   // both-off: unreachable at child level (root returns empty)
   if (!provider.showLocal && !provider.showOrg) return [];
-  if (provider.showLocal && !provider.showOrg) return nodes.filter(n => n.filePresent === true);
+  if (provider.showLocal && !provider.showOrg) return nodes.filter(n => n.filePresence === 'present');
   // orgOnly: include org components whether or not they also exist locally.
   return nodes.filter(n => n.orgPresent === true);
 };
@@ -571,7 +577,7 @@ const listMetadataToComponent =
       xmlName: element.xmlName,
       componentName: c.reference.fullName,
       label: c.reference.fullName,
-      filePresent: c.inWorkspace,
+      filePresence: toOrgBrowserFilePresence(c.inWorkspace, c.workspacePresenceAvailable),
       orgPresent: c.inOrg
     });
 
@@ -584,7 +590,7 @@ const listMetadataToFolder =
       namespace: c.namespacePrefix,
       folderName: c.reference.fullName,
       label: c.reference.fullName,
-      filePresent: c.inWorkspace,
+      filePresence: toOrgBrowserFilePresence(c.inWorkspace, c.workspacePresenceAvailable),
       orgPresent: c.inOrg
     });
 
@@ -598,7 +604,7 @@ const listMetadataToFolderItem =
       folderName: element.folderName,
       componentName: c.reference.fullName,
       label: c.reference.fullName,
-      filePresent: c.inWorkspace,
+      filePresence: toOrgBrowserFilePresence(c.inWorkspace, c.workspacePresenceAvailable),
       orgPresent: c.inOrg
     });
 

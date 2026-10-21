@@ -18,6 +18,7 @@ const UriSchema = Schema.declare((value): value is URI => URI.isUri(value), {
 const OrgMetadataPresenceSchema = Schema.Struct({
   inOrg: Schema.Boolean,
   inWorkspace: Schema.Boolean,
+  workspacePresenceAvailable: Schema.optional(Schema.Boolean),
   workspaceUri: Schema.optional(UriSchema)
 });
 type OrgMetadataPresence = typeof OrgMetadataPresenceSchema.Type;

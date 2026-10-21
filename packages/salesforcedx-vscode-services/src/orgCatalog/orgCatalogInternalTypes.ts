@@ -23,10 +23,17 @@ export type TypeInventory = {
   readonly observedAt: string;
   /** Whether this inventory represents a complete type listing rather than consumer-discovered members. */
   readonly complete: boolean;
+  /** False means SDR could not determine workspace presence for this type. */
+  readonly workspacePresenceAvailable?: boolean;
   readonly components: HashMap.HashMap<string, OrgMetadataCatalogEntry>;
   readonly componentIdentityOrder: readonly string[];
   readonly folders: HashMap.HashMap<string, ListedMetadataComponent>;
   readonly folderFullNameOrder: readonly string[];
+};
+
+export type WorkspaceTypeInventory = {
+  readonly types: ReadonlySet<string>;
+  readonly workspacePresenceAvailable: boolean;
 };
 
 export type InventoryCache = HashMap.HashMap<string, TypeInventory>;

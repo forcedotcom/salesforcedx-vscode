@@ -22,6 +22,7 @@ export const mergeInventory = Effect.fn('mergeInventory')(function* ({
   xmlName,
   orgComponents,
   workspaceUris,
+  workspacePresenceAvailable = true,
   workspaceNamespace = null,
   observedAt
 }: {
@@ -29,6 +30,7 @@ export const mergeInventory = Effect.fn('mergeInventory')(function* ({
   readonly xmlName: string;
   readonly orgComponents: readonly ListedMetadataComponent[];
   readonly workspaceUris: HashMap.HashMap<string, URI>;
+  readonly workspacePresenceAvailable?: boolean;
   readonly workspaceNamespace?: ArtifactNamespace;
   readonly observedAt: string;
 }) {
@@ -54,7 +56,8 @@ export const mergeInventory = Effect.fn('mergeInventory')(function* ({
               lastModifiedDate: component.lastModifiedDate,
               remoteLastModifiedDate: component.lastModifiedDate,
               inOrg: true,
-              inWorkspace: false
+              inWorkspace: false,
+              ...(workspacePresenceAvailable ? {} : { workspacePresenceAvailable: false })
             } satisfies OrgMetadataCatalogEntry
           ] as const
       )
@@ -149,7 +152,8 @@ export const projectChildren = Effect.fn('projectChildren')(function* (
             lastModifiedDate: folder?.lastModifiedDate,
             remoteLastModifiedDate: folder?.lastModifiedDate,
             inOrg: folder !== undefined || descendants.some(entry => entry.inOrg),
-            inWorkspace: descendants.some(entry => entry.inWorkspace)
+            inWorkspace: descendants.some(entry => entry.inWorkspace),
+            ...(inventory.workspacePresenceAvailable === false ? { workspacePresenceAvailable: false } : {})
           };
         }),
       { concurrency: 'unbounded' }

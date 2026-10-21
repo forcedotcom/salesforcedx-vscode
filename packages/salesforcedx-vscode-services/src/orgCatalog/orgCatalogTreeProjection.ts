@@ -180,7 +180,8 @@ export const makeOrgCatalogTreeProjection = Effect.gen(function* () {
                 }).pipe(Effect.provideService(MetadataRegistryService, registry)),
                 kind: 'component' as const,
                 inOrg: true,
-                inWorkspace: false
+                inWorkspace: false,
+                ...(fieldInventory.workspacePresenceAvailable === false ? { workspacePresenceAvailable: false } : {})
               }),
               name: unqualifiedName,
               namespacePrefix: objectEntry.namespacePrefix,
@@ -196,10 +197,11 @@ export const makeOrgCatalogTreeProjection = Effect.gen(function* () {
   });
 
   const loadRootTypes = Effect.fn('OrgCatalogTreeProjection.loadRootTypes')(function* (orgId: string) {
-    const [metadataTypes, workspaceTypes] = yield* Effect.all(
+    const [metadataTypes, workspaceTypeInventory] = yield* Effect.all(
       [metadataDescribeService.describe(orgId), workspace.getWorkspaceMetadataTypes(orgId)],
       { concurrency: 'unbounded' }
     );
+    const workspaceTypes = workspaceTypeInventory.types;
     const orgTypes = new Set(metadataTypes.map(type => type.xmlName));
     return yield* Effect.forEach(
       Arr.dedupe([...orgTypes, ...workspaceTypes]),
@@ -220,7 +222,8 @@ export const makeOrgCatalogTreeProjection = Effect.gen(function* () {
             name: xmlName,
             kind: 'type' as const,
             inOrg: orgTypes.has(xmlName),
-            inWorkspace: workspaceTypes.has(xmlName)
+            inWorkspace: workspaceTypes.has(xmlName),
+            ...(workspaceTypeInventory.workspacePresenceAvailable ? {} : { workspacePresenceAvailable: false })
           }))
         ),
       { concurrency: 'unbounded' }
