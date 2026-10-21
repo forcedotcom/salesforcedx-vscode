@@ -19,7 +19,6 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Readable, type Writable, type Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import { type CancellationToken, type Progress } from '../common';
 import { ApexOperationError } from '../effect/errors';
 import { buildAsyncPayload, buildSyncPayload } from '../effect/testPayloads';
 import { buildSuite, getTestsInSuite, retrieveAllSuites, retrieveSuiteId } from '../effect/testSuites';
@@ -28,10 +27,11 @@ import { JUnitFormatTransformer, TapFormatTransformer, MarkdownTextFormatTransfo
 import { TestResultStringifyStream } from '../streaming';
 import { elapsedTime, HeapMonitor } from '../utils';
 import { AsyncTests } from './asyncTests';
+import { type CancellationToken } from './cancellation';
 import { formatTestErrors } from './diagnosticUtil';
 import { SyncTests } from './syncTests';
 import {
-  type ApexTestProgressValue,
+  type ApexTestProgressReporter,
   type AsyncTestArrayConfiguration,
   type AsyncTestConfiguration,
   type OutputDirConfig,
@@ -234,7 +234,7 @@ export class TestService {
     options: AsyncTestConfiguration | AsyncTestArrayConfiguration,
     codeCoverage = false,
     immediatelyReturn = false,
-    progress?: Progress<ApexTestProgressValue>,
+    progress?: ApexTestProgressReporter,
     token?: CancellationToken,
     timeout?: Duration,
     interval?: Duration

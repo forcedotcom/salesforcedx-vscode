@@ -47,6 +47,8 @@ describe('@salesforce/apex-node public API', () => {
       'ApexOrgWideCoverageSchema',
       'ApexResponseDecodeError',
       'ApexRuntimeError',
+      'AsyncTestOptionsSchema',
+      'AsyncTestProgressSchema',
       'BuildAsyncPayloadOptionsSchema',
       'BuildSyncPayloadOptionsSchema',
       'CodeCoverageResultSchema',
@@ -69,6 +71,7 @@ describe('@salesforce/apex-node public API', () => {
       'getTestsInSuite',
       'listLogs',
       'retrieveAllSuites',
+      'runTestAsynchronous',
       'streamLogs'
     ]);
   });

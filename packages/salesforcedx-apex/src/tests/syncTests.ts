@@ -7,9 +7,9 @@
 
 import type { HttpRequest } from '@jsforce/jsforce-node';
 import { type Connection } from '@salesforce/core';
-import { type CancellationToken } from '../common';
 import { nls } from '../i18n';
 import { elapsedTime, formatStartTime, getCurrentTime, HeapMonitor } from '../utils';
+import { type CancellationToken } from './cancellation';
 import { CodeCoverage } from './codeCoverage';
 import { formatTestErrors, getDiagnostic } from './diagnosticUtil';
 import {

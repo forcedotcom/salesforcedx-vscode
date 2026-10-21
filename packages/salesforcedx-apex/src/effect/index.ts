@@ -61,3 +61,5 @@ export {
   buildSuite
 } from './testSuites';
 export type { TestSuite, TestSuiteMembership } from './testSuites';
+export { AsyncTestOptionsSchema, AsyncTestProgressSchema, runTestAsynchronous } from './asyncTests';
+export type { AsyncTestOptions, AsyncTestProgress } from './asyncTests';
