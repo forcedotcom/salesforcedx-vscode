@@ -18,32 +18,9 @@ export const soapBody = 'soapenv:Body';
 export const soapHeader = 'soapenv:Header';
 export const action = 'executeAnonymous';
 
-export interface SoapResponse {
-  [soapEnv]?: {
-    [soapHeader]?: { DebuggingInfo: DebuggingInfo };
-    [soapBody]: {
-      executeAnonymousResponse: { result: ExecAnonApiResponse };
-    };
-  };
-}
-
-interface DebuggingInfo {
-  debugLog: string;
-}
-
 export type ExecuteAnonymousResponse = {
   compiled: boolean;
   success: boolean;
   logs?: string;
   diagnostic?: ApexDiagnostic[];
-};
-
-export type ExecAnonApiResponse = {
-  column: number;
-  compiled: string;
-  compileProblem: string | object;
-  exceptionMessage: string | object;
-  exceptionStackTrace: string | object;
-  line: number;
-  success: string;
 };

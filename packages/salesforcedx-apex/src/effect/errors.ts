@@ -15,13 +15,13 @@ const OperationErrorFields = {
 };
 
 /** A request made by an Apex operation failed. */
-export class ApexOperationError extends Schema.TaggedError<ApexOperationError>('ApexOperationError')(
+export class ApexOperationError extends Schema.TaggedError<ApexOperationError>()(
   'ApexOperationError',
   OperationErrorFields
 ) {}
 
 /** An Apex operation received a response that did not match its public schema. */
-export class ApexResponseDecodeError extends Schema.TaggedError<ApexResponseDecodeError>('ApexResponseDecodeError')(
+export class ApexResponseDecodeError extends Schema.TaggedError<ApexResponseDecodeError>()(
   'ApexResponseDecodeError',
   OperationErrorFields
 ) {}

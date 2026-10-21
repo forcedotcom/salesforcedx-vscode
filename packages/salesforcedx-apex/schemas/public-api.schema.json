@@ -499,9 +499,9 @@
             "column",
             "exceptionMessage",
             "exceptionStackTrace",
-            "logBody",
             "compiled",
-            "success"
+            "success",
+            "logBody"
           ],
           "properties": {
             "compileProblem": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
@@ -509,9 +509,9 @@
             "column": { "type": "number" },
             "exceptionMessage": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
             "exceptionStackTrace": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
-            "logBody": { "type": "string" },
             "compiled": { "type": "boolean", "enum": [false] },
-            "success": { "type": "boolean", "enum": [false] }
+            "success": { "type": "boolean", "enum": [false] },
+            "logBody": { "type": "string" }
           },
           "additionalProperties": false
         },
@@ -523,9 +523,9 @@
             "column",
             "exceptionMessage",
             "exceptionStackTrace",
-            "logBody",
             "compiled",
-            "success"
+            "success",
+            "logBody"
           ],
           "properties": {
             "compileProblem": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
@@ -533,9 +533,9 @@
             "column": { "type": "number" },
             "exceptionMessage": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
             "exceptionStackTrace": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
-            "logBody": { "type": "string" },
             "compiled": { "type": "boolean", "enum": [true] },
-            "success": { "type": "boolean", "enum": [false] }
+            "success": { "type": "boolean", "enum": [false] },
+            "logBody": { "type": "string" }
           },
           "additionalProperties": false
         },
@@ -547,9 +547,9 @@
             "column",
             "exceptionMessage",
             "exceptionStackTrace",
-            "logBody",
             "compiled",
-            "success"
+            "success",
+            "logBody"
           ],
           "properties": {
             "compileProblem": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
@@ -557,9 +557,9 @@
             "column": { "type": "number" },
             "exceptionMessage": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
             "exceptionStackTrace": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
-            "logBody": { "type": "string" },
             "compiled": { "type": "boolean", "enum": [true] },
-            "success": { "type": "boolean", "enum": [true] }
+            "success": { "type": "boolean", "enum": [true] },
+            "logBody": { "type": "string" }
           },
           "additionalProperties": false
         }
