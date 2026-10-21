@@ -22,6 +22,4 @@ runs:
         cache-dependency-path: pnpm-lock.yaml
     - name: Install dependencies
       if: inputs.install == 'true'
-      uses: salesforcecli/github-workflows/.github/actions/retry@main
-      with:
-        command: pnpm install --frozen-lockfile
+      uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main

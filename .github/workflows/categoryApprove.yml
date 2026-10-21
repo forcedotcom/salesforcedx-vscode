@@ -60,8 +60,9 @@ jobs:
           install: 'false'
       - name: Install trusted approver dependencies
         if: steps.preflight.outputs.result == 'true'
-        working-directory: ${{ runner.temp }}/trusted-approver
-        run: pnpm install --frozen-lockfile
+        uses: ./.github/actions/pnpmInstallWithRetries
+        with:
+          working-directory: ${{ runner.temp }}/trusted-approver
       - name: Compile effect-octokit
         if: steps.preflight.outputs.result == 'true'
         working-directory: ${{ runner.temp }}/trusted-approver

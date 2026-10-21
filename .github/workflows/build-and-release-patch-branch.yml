@@ -120,9 +120,7 @@ jobs:
         run: node scripts/update-release-versions.js ${{ steps.calculate-version.outputs.version }}
 
       - name: Install dependencies from updated pnpm-lock.yaml
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          command: pnpm install --frozen-lockfile
+        uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
       - name: Commit version updates
         env:
           VERSION: ${{ steps.calculate-version.outputs.version }}

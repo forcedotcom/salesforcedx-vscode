@@ -22,9 +22,7 @@ jobs:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
       - uses: google/wireit@setup-github-actions-caching/v2
-      - uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          command: pnpm install --frozen-lockfile
+      - uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
       - run: pnpm --version
       - run: node --version
       - run: pnpm compile

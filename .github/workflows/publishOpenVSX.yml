@@ -70,9 +70,7 @@ jobs:
           install: 'false'
 
       - name: Install dependencies for hotfix commit
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          command: pnpm install --frozen-lockfile
+        uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
       - name: Run tests for hotfix commit
         env:
           NODE_OPTIONS: --max-old-space-size=8192

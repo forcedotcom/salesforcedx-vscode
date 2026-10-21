@@ -24,7 +24,7 @@ jobs:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
       - name: Check if the issue is a feature request
         id: check_feature_request
         uses: ./.github/actions/check-feature-request
@@ -42,7 +42,7 @@ jobs:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
       - name: issue comment
         id: issue_comment
         uses: ./.github/actions/new-issue
@@ -64,7 +64,7 @@ jobs:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
       - name: Install dependencies
-        run: pnpm install --frozen-lockfile
+        uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
       - name: Validate issue
         id: validate-issue
         uses: ./.github/actions/validate-issue

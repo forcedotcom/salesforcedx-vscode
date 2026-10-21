@@ -88,9 +88,7 @@ jobs:
 
       - name: Install dependencies for hotfix commit
         if: ${{ inputs.isHotfix }}
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          command: pnpm install --frozen-lockfile
+        uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
       - name: Run tests for hotfix commit
         if: ${{ inputs.isHotfix }}
         env:

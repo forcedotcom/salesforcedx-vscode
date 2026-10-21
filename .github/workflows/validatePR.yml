@@ -16,9 +16,7 @@ jobs:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
       - uses: google/wireit@setup-github-actions-caching/v2
-      - uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          command: pnpm install --frozen-lockfile
+      - uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
       - run: pnpm --filter @salesforce/eslint-plugin-vscode-extensions compile
         name: Compile ESLint rules
       - name: Lint
@@ -32,9 +30,7 @@ jobs:
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
-      - uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          command: pnpm install --frozen-lockfile
+      - uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
       - name: Validate GitHub Actions
         run: pnpm check:actions
   check-knip:
@@ -47,9 +43,7 @@ jobs:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
       - uses: google/wireit@setup-github-actions-caching/v2
-      - uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          command: pnpm install --frozen-lockfile
+      - uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
       - name: Check knip
         run: pnpm check:knip
   check-effect-diagnostics:
@@ -62,8 +56,6 @@ jobs:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
       - uses: google/wireit@setup-github-actions-caching/v2
-      - uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          command: pnpm install --frozen-lockfile
+      - uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
       - name: Check Effect LS diagnostics
         run: pnpm check:effect-diagnostics
