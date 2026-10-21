@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
+import { nls } from '../messages';
 
 type OrgBrowserTreeItemKind =
   /** a normal metadata type */
@@ -19,6 +19,17 @@ type OrgBrowserTreeItemKind =
   /** a custom object (so that its fields can be displayed and retrieved*/
   | 'customObject';
 
+export type OrgBrowserFilePresence = 'present' | 'absent' | 'unknown';
+
+export const toOrgBrowserFilePresence = (
+  inWorkspace: boolean | undefined,
+  workspacePresenceAvailable: boolean | undefined
+): OrgBrowserFilePresence | undefined => {
+  if (workspacePresenceAvailable === false) return 'unknown';
+  if (inWorkspace === undefined) return undefined;
+  return inWorkspace ? 'present' : 'absent';
+};
+
 type OrgBrowserTreeItemInputs = {
   kind: OrgBrowserTreeItemKind;
   /** Metadata Type that you could use to retrieve the node */
@@ -29,8 +40,8 @@ type OrgBrowserTreeItemInputs = {
   label: string;
   /** The node name searched by an unstructured Org Browser search. */
   searchName?: string;
-  /** Whether the file is present in the local workspace */
-  filePresent?: boolean;
+  /** Workspace presence for a component; omitted for metadata-type roots. */
+  filePresence?: OrgBrowserFilePresence;
   /** Whether the component is present in the active org */
   orgPresent?: boolean;
   namespace?: string;
@@ -49,7 +60,7 @@ export class OrgBrowserTreeItem extends vscode.TreeItem {
   public readonly componentName?: string;
   public readonly namespace?: string;
   public readonly searchName: string;
-  public readonly filePresent?: boolean;
+  public readonly filePresence?: OrgBrowserFilePresence;
   public readonly orgPresent?: boolean;
 
   constructor(inputs: OrgBrowserTreeItemInputs) {
@@ -63,12 +74,20 @@ export class OrgBrowserTreeItem extends vscode.TreeItem {
     this.xmlName = inputs.xmlName;
     this.folderName = inputs.folderName;
     this.componentName = inputs.componentName;
-    this.filePresent = inputs.filePresent;
+    this.filePresence = inputs.filePresence;
     this.orgPresent = inputs.orgPresent;
 
-    // not defined intentionally results in no icon.
-    if (isNotUndefined(inputs.filePresent)) {
-      this.iconPath = getIconPath(inputs.filePresent);
+    if (inputs.filePresence !== undefined) {
+      this.iconPath = getIconPath(inputs.filePresence);
+    }
+
+    if (inputs.filePresence === 'unknown') {
+      const unavailableDescription = nls.localize('workspace_presence_unavailable_tooltip');
+      this.tooltip = unavailableDescription;
+      this.accessibilityInformation = {
+        role: 'treeitem',
+        label: `${inputs.label}, ${unavailableDescription}`
+      };
     }
 
     // Set context value for menu contributions
@@ -77,8 +96,16 @@ export class OrgBrowserTreeItem extends vscode.TreeItem {
     this.id = calculateId(inputs);
   }
 }
-export const getIconPath = (filePresent: boolean): vscode.ThemeIcon =>
-  filePresent ? new vscode.ThemeIcon('pass-filled') : new vscode.ThemeIcon('circle-large-outline');
+export const getIconPath = (filePresence: OrgBrowserFilePresence): vscode.ThemeIcon => {
+  switch (filePresence) {
+    case 'present':
+      return new vscode.ThemeIcon('pass-filled');
+    case 'absent':
+      return new vscode.ThemeIcon('circle-large-outline');
+    case 'unknown':
+      return new vscode.ThemeIcon('question');
+  }
+};
 
 /** folder node with the fields needed to list its components */
 export const isFolderNode = (
