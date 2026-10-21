@@ -15,16 +15,16 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import * as util from 'node:util';
-import { type CancellationToken, type Progress } from '../common';
 import { nls } from '../i18n';
 import { isValidTestRunID } from '../narrowing';
 import { type AsyncTestRun, StreamingClient } from '../streaming';
 import { elapsedTime, formatStartTime, getCurrentTime, HeapMonitor } from '../utils';
+import { type CancellationToken } from './cancellation';
 import { CodeCoverage } from './codeCoverage';
 import { QUERY_RECORD_LIMIT } from './constants';
 import { formatTestErrors, getDiagnostic } from './diagnosticUtil';
 import {
-  type ApexTestProgressValue,
+  type ApexTestProgressReporter,
   type ApexTestQueueItem,
   type ApexTestQueueItemRecord,
   type ApexTestResult,
@@ -84,7 +84,7 @@ export class AsyncTests {
     options: AsyncTestConfiguration | AsyncTestArrayConfiguration,
     codeCoverage = false,
     exitOnTestRunId = false,
-    progress?: Progress<ApexTestProgressValue>,
+    progress?: ApexTestProgressReporter,
     token?: CancellationToken,
     timeout?: Duration,
     interval: Duration = POLLING_FREQUENCY
@@ -274,7 +274,7 @@ export class AsyncTests {
   @elapsedTime()
   public async checkRunStatus(
     testRunId: string,
-    progress?: Progress<ApexTestProgressValue>
+    progress?: ApexTestProgressReporter
   ): Promise<{
     testsComplete: boolean;
     testRunSummary: ApexTestRunResult;
@@ -362,7 +362,7 @@ export class AsyncTests {
     commandStartTime: number,
     codeCoverage = false,
     testRunSummary: ApexTestRunResult,
-    progress?: Progress<ApexTestProgressValue>
+    progress?: ApexTestProgressReporter
   ): Promise<TestResult> {
     HeapMonitor.getInstance().checkHeapSize('asyncTests.formatAsyncResults');
     try {
@@ -552,7 +552,7 @@ export class AsyncTests {
    * @param testRunId
    * @param progress
    */
-  public async abortTestRun(testRunId: string, progress?: Progress<ApexTestProgressValue>): Promise<void> {
+  public async abortTestRun(testRunId: string, progress?: ApexTestProgressReporter): Promise<void> {
     progress?.report({
       type: 'AbortTestRunProgress',
       value: 'abortingTestRun',

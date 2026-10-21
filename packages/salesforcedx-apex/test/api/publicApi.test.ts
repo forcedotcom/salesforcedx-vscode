@@ -31,10 +31,13 @@ describe('@salesforce/apex-node public API', () => {
     expect(Object.keys(effectApi).sort()).toEqual([
       'ApexOperationError',
       'ApexResponseDecodeError',
+      'AsyncTestOptionsSchema',
+      'AsyncTestProgressSchema',
       'ExecuteAnonymousOptionsSchema',
       'ExecuteAnonymousResultSchema',
       'causeMessage',
-      'executeAnonymous'
+      'executeAnonymous',
+      'runTestAsynchronous'
     ]);
   });
 

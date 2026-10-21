@@ -9,13 +9,7 @@ import { elapsedTime } from '../../src/utils';
 import * as apexUtils from '../../src/utils';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import * as sinon from 'sinon';
-import {
-  TestService,
-  type OutputDirConfig,
-  type ApexTestProgressValue,
-  type Progress,
-  CancellationTokenSource
-} from '../../src';
+import { TestService, type OutputDirConfig, type ApexTestProgressReporter, CancellationTokenSource } from '../../src';
 import { JUnitFormatTransformer } from '../../src/reporters/junitFormatTransformer';
 import { TapFormatTransformer } from '../../src/reporters/tapFormatTransform';
 import {
@@ -422,7 +416,7 @@ describe('Run Apex tests asynchronously', () => {
       ]
     } as unknown as ApexTestResult);
     const reportStub = $$.SANDBOX.stub();
-    const progressReporter: Progress<ApexTestProgressValue> = {
+    const progressReporter: ApexTestProgressReporter = {
       report: reportStub
     };
 
@@ -744,7 +738,7 @@ describe('Run Apex tests asynchronously', () => {
     });
 
     const reportStub = $$.SANDBOX.stub();
-    const progressReporter: Progress<ApexTestProgressValue> = {
+    const progressReporter: ApexTestProgressReporter = {
       report: reportStub
     };
 

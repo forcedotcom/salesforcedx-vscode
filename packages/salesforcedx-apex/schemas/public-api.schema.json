@@ -453,6 +453,76 @@
       },
       "additionalProperties": false
     },
+    "AsyncTestOptions": {
+      "type": "object",
+      "required": ["testLevel"],
+      "properties": {
+        "testLevel": { "type": "string", "enum": ["RunLocalTests", "RunAllTestsInOrg", "RunSpecifiedTests"] },
+        "classNames": { "type": "string" },
+        "classids": { "type": "string" },
+        "suiteNames": { "type": "string" },
+        "suiteids": { "type": "string" },
+        "tests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "className": { "type": "string" },
+              "classId": { "type": "string" },
+              "testMethods": { "type": "array", "items": { "type": "string" } },
+              "namespace": { "type": "string" },
+              "category": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "maxFailedTests": { "type": "number" },
+        "skipCodeCoverage": { "type": "boolean" },
+        "category": { "type": "array", "items": { "type": "string" } }
+      },
+      "additionalProperties": false
+    },
+    "AsyncTestProgress": {
+      "anyOf": [
+        {
+          "type": "object",
+          "required": ["_tag", "testRunId"],
+          "properties": {
+            "_tag": { "type": "string", "enum": ["Started"] },
+            "testRunId": {
+              "type": "string",
+              "description": "a string starting with \"707\"",
+              "pattern": "^707",
+              "title": "startsWith(\"707\")",
+              "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+            }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["_tag", "testRunId", "status", "classesCompleted", "classesEnqueued"],
+          "properties": {
+            "_tag": { "type": "string", "enum": ["Progress"] },
+            "testRunId": {
+              "type": "string",
+              "description": "a string starting with \"707\"",
+              "pattern": "^707",
+              "title": "startsWith(\"707\")",
+              "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+            },
+            "status": {
+              "type": "string",
+              "enum": ["Queued", "Processing", "Aborted", "Failed", "Completed", "Passed", "Skipped"]
+            },
+            "classesCompleted": { "type": "number" },
+            "classesEnqueued": { "type": "number" }
+          },
+          "additionalProperties": false
+        }
+      ]
+    },
     "CodeCoverageResult": {
       "type": "object",
       "required": [
@@ -809,6 +879,8 @@
     { "$ref": "#/$defs/ApexResponseDecodeError" },
     { "$ref": "#/$defs/AsyncTestArrayConfiguration" },
     { "$ref": "#/$defs/AsyncTestConfiguration" },
+    { "$ref": "#/$defs/AsyncTestOptions" },
+    { "$ref": "#/$defs/AsyncTestProgress" },
     { "$ref": "#/$defs/CodeCoverageResult" },
     { "$ref": "#/$defs/CommonOptions" },
     { "$ref": "#/$defs/ExecuteAnonymousOptions" },

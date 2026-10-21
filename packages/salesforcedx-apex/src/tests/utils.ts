@@ -11,10 +11,9 @@ import { type Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import { type Progress } from '../common';
 import { nls } from '../i18n';
 import {
-  type ApexTestProgressValue,
+  type ApexTestProgressReporter,
   type ApexTestResultData,
   type ApexTestResultDataRaw,
   type ApexTestSetupData,
@@ -138,7 +137,7 @@ export const calculateCodeCoverage = async (
   apexTestClassIdSet: Set<string>,
   result: TestResultRaw,
   isAsync: boolean,
-  progress?: Progress<ApexTestProgressValue>
+  progress?: ApexTestProgressReporter
 ): Promise<void> => {
   const coveredApexClassIdSet = new Set<string>();
   if (codeCoverage) {
