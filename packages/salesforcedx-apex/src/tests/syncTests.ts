@@ -8,7 +8,7 @@
 import { type Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as Either from 'effect/Either';
-import { type CancellationToken } from '../common';
+import { type CancellationToken } from './cancellation';
 import { formatSyncResults, requestSyncTests } from '../effect/syncTests';
 import { nls } from '../i18n';
 import { elapsedTime, getCurrentTime, HeapMonitor } from '../utils';

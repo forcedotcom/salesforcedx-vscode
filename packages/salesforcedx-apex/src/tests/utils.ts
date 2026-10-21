@@ -10,12 +10,11 @@ import type { QueryResult, Record as JsforceRecord } from '@jsforce/jsforce-node
 import { type Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import { isUndefined } from 'effect/Predicate';
-import { type Progress } from '../common';
 import { queryNamespaces as queryNamespaceInfos } from '../effect/namespaces';
 import * as TestResults from '../effect/testResults';
 export { calculatePercentage, computeTestCategory, isFlowTest, transformTestResult } from '../effect/testResults';
 import { nls } from '../i18n';
-import { type ApexTestProgressValue, type NamespaceInfo, type TestResultRaw } from './types';
+import { type ApexTestProgressReporter, type NamespaceInfo, type TestResultRaw } from './types';
 
 export const queryNamespaces = (connection: Connection): Promise<NamespaceInfo[]> =>
   queryNamespaceInfos(connection).pipe(Effect.runPromise);
@@ -47,7 +46,7 @@ export const calculateCodeCoverage = async (
   apexTestClassIdSet: Set<string>,
   result: TestResultRaw,
   isAsync: boolean,
-  progress?: Progress<ApexTestProgressValue>
+  progress?: ApexTestProgressReporter
 ): Promise<void> => {
   const coveredApexClassIdSet = new Set<string>();
   if (codeCoverage) {
