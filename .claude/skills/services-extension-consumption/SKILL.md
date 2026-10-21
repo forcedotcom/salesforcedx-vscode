@@ -298,7 +298,7 @@ yield *
 
 Ref behavior (concise):
 
-- Default-org update: username from User SOQL when present; else `conn.getUsername()` / AuthInfo login username. Ref treated stale if stored username !== connection auth username; triggers re-query of username/userId/aliases/devHubOrgId. Atomic write via `SubscriptionRef.modifyEffect` merges onto ref at write time; span annotated `stale: true` if ref's orgId moved (write dropped), else `changed` (+ `updated` if changed).
+- Default-org update: username from User SOQL when present; else `conn.getUsername()` / AuthInfo login username. Ref treated stale if stored username !== connection auth username; triggers re-query of username/userId/aliases/devHubOrgId. Write: re-`get` ref after queries (no async gap before `set`), merge onto it, `set` only if changed (any SubscriptionRef write publishes, even equivalent; TargetOrgRef subscribers like the org catalog treat each emission as an org change). Span annotated `stale: true` if ref's orgId moved (write dropped), else `changed` (+ `updated` if changed).
 - Username-less snapshot = no target org.
 - `TargetOrgRef` (`DefaultOrgInfoSchema`) value is always an object (never `undefined`); `orgId`/`devHubOrgId` optional branded `OrgId` (`Schema.optional(OrgId)`, like `cliId`).
 

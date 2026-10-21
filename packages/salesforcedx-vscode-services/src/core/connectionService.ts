@@ -644,17 +644,21 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
 
   // Merge onto the ref's value at write time (not the pre-await snapshot), and drop the write if the default org
   // moved on while we were querying — otherwise an out-of-order fork for the previous org overwrites the current one.
-  return yield* SubscriptionRef.modifyEffect(defaultOrgRef, current => {
-    if (current.orgId !== orgId) {
-      return Effect.annotateCurrentSpan({ stale: true }).pipe(Effect.as([current, current] as const));
-    }
-    const updated: DefaultOrgInfo = { ...current, ...updates, alias };
-    // Deep equality: setting an equivalent value still counts as a change for subscribers.
-    const changed = !Schema.equivalence(DefaultOrgInfoSchema)(updated, current);
-    return Effect.annotateCurrentSpan(changed ? { changed, updated } : { changed }).pipe(
-      Effect.as([updated, changed ? updated : current] as const)
-    );
-  });
+  // No async step between this get and the set below, so no other writer can interleave.
+  const current = yield* SubscriptionRef.get(defaultOrgRef);
+  if (current.orgId !== orgId) {
+    yield* Effect.annotateCurrentSpan({ stale: true });
+    return current;
+  }
+  const updated: DefaultOrgInfo = { ...current, ...updates, alias };
+  // Every SubscriptionRef write (set/modify, even of an equivalent value) publishes to `changes`, so skip no-op writes.
+  if (Schema.equivalence(DefaultOrgInfoSchema)(updated, current)) {
+    yield* Effect.annotateCurrentSpan({ changed: false });
+    return updated;
+  }
+  yield* Effect.annotateCurrentSpan({ changed: true, updated });
+  yield* SubscriptionRef.set(defaultOrgRef, updated);
+  return updated;
 });
 
 /** for a given scratch org username, get the orgId of its devhub.  Requires the scratch org AND devhub to be authenticated locally */
