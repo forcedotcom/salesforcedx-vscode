@@ -18,8 +18,7 @@ Optional `username?` (username or alias) — connect to a specific org instead o
 const connection = yield* api.services.ConnectionService.getConnection('user@example.com');
 ```
 
-Given → alias-resolve it, skip the config `target-org` lookup, and do NOT mutate the default-org ref
-(`maybeUpdateDefaultOrgRef`). Omitted → resolve the configured default and update the ref. Web ignores the param.
+Given → alias-resolve it, skip config `target-org`, do NOT mutate default-org ref. Omitted → resolve configured default, update ref. Web ignores param.
 
 Returns `Connection` from `@salesforce/core`.
 
@@ -66,6 +65,8 @@ const connection = yield* api.services.ConnectionService.getConnection();
 - Web: uses settings (instanceUrl, accessToken, apiVersion)
 - Desktop: resolves username/alias from config
 - Connection cache: username/instanceUrl; cleared by `invalidateCachedConnections` when global `~/.sf/config.json` (`HostFileWatcher`) or project `.sf/config.json` (`FileChangePubSub`) change, and after org extension refreshes config/state post-auth so `getConnection` reloads `AuthInfo` (avoids stale sessions after token refresh)
-- Auto-updates default org ref (`maybeUpdateDefaultOrgRef`) — skipped when a `username` is passed
-- Ref username: User SOQL when possible; empty → `conn.getUsername()` / AuthInfo `username`
+- Auto-updates default org ref (`maybeUpdateDefaultOrgRef`) — skipped when `username` passed
+- Treats ref stale if stored username ≠ connection auth username; re-queries username/userId/aliases/devHubOrgId instead of reusing them
+- Writes atomically via `SubscriptionRef.modify` onto ref's value at write time; drops write if ref's orgId no longer matches connection's org (prevents out-of-order background forks overwriting current org)
+- Ref username: User SOQL when possible; else `conn.getUsername()` / AuthInfo username
 - Requires `ConfigService`, `SettingsService`

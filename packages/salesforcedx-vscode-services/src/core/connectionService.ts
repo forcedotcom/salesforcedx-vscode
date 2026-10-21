@@ -544,7 +544,7 @@ const getTracksSourceFromOrg = (conn: Connection) =>
     Effect.withSpan('getTracksSourceFromOrg')
   );
 
-//** this info is used for quite a bit (ex: telemetry) so one we make the connection, we capture the info and store it in a ref */
+/** Capture connection info in default org ref; used throughout (telemetry, org picker, etc.) */
 const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function* (
   conn: Connection,
   previousOrgId?: OrgId
@@ -561,7 +561,10 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
   const orgEdition = Option.getOrUndefined(Option.flatMap(fields, f => f.orgEdition));
   const defaultOrgRef = yield* getDefaultOrgRef();
   const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
-  const orgIdChanged = previousOrgId !== orgId;
+  // `updateDefaultOrgIdentity` swaps orgId synchronously, so a concurrent caller can see orgId unchanged while
+  // username/aliases still belong to the previous org. Treat the ref as stale unless its username matches this conn.
+  const existingUsernameMatchesConn = existingOrgInfo.username?.toLowerCase() === resolveUsername(conn)?.toLowerCase();
+  const orgIdChanged = previousOrgId !== orgId || !existingUsernameMatchesConn;
   const [{ username: queriedUsername, userId: queriedUserId }, devHubOrgId, cliId] = yield* Effect.all(
     [
       Match.value({
@@ -576,7 +579,9 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
         Match.when({ refresh: true }, () => Effect.succeed({ username: undefined, userId: undefined })),
         Match.orElse(() => Effect.succeed({ username: existingOrgInfo.username, userId: existingOrgInfo.userId }))
       ),
-      existingOrgInfo.devHubOrgId ? Effect.succeed(existingOrgInfo.devHubOrgId) : getDevHubId(devHubUsername),
+      existingOrgInfo.devHubOrgId && !orgIdChanged
+        ? Effect.succeed(existingOrgInfo.devHubOrgId)
+        : getDevHubId(devHubUsername),
       existingOrgInfo.cliId
         ? Effect.succeed(existingOrgInfo.cliId)
         : getCliId().pipe(Effect.map(Option.getOrElse(() => undefined)))
@@ -636,21 +641,24 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
     isNotUndefined
   );
 
-  const updated = { ...existingOrgInfo, ...updates, alias };
-
-  // Check if objects have the same content (deep equality using schema)
-  // otherwise, calling set on the ref counts as a change but it's really not one.
-  if (Schema.equivalence(DefaultOrgInfoSchema)(updated, existingOrgInfo)) {
-    yield* Effect.annotateCurrentSpan({ changed: false });
-    return updated;
-  }
-  yield* Effect.all(
-    [Effect.annotateCurrentSpan({ updated, changed: true }), SubscriptionRef.set(defaultOrgRef, updated)],
-    {
-      concurrency: 'unbounded'
-    }
-  );
-  return updated;
+  // Merge onto the ref's value at write time (not the pre-await snapshot), and drop the write if the default org
+  // moved on while we were querying — otherwise an out-of-order fork for the previous org overwrites the current one.
+  type OrgInfo = typeof DefaultOrgInfoSchema.Type;
+  type WriteResult = { updated: OrgInfo; outcome: 'stale' | 'unchanged' | 'changed' };
+  const result = yield* SubscriptionRef.modify(defaultOrgRef, (current): [WriteResult, OrgInfo] => {
+    if (current.orgId !== orgId) return [{ updated: current, outcome: 'stale' }, current];
+    const updated: OrgInfo = { ...current, ...updates, alias };
+    // Deep equality: setting an equivalent value still counts as a change for subscribers.
+    return Schema.equivalence(DefaultOrgInfoSchema)(updated, current)
+      ? [{ updated, outcome: 'unchanged' }, current]
+      : [{ updated, outcome: 'changed' }, updated];
+  });
+  yield* Effect.annotateCurrentSpan({
+    changed: result.outcome === 'changed',
+    stale: result.outcome === 'stale',
+    ...(result.outcome === 'changed' ? { updated: result.updated } : {})
+  });
+  return result.updated;
 });
 
 /** for a given scratch org username, get the orgId of its devhub.  Requires the scratch org AND devhub to be authenticated locally */

@@ -298,9 +298,9 @@ yield *
 
 Ref behavior (concise):
 
-- Default-org update: username from User SOQL when present; else `conn.getUsername()` / AuthInfo login username.
+- Default-org update: username from User SOQL when present; else `conn.getUsername()` / AuthInfo login username. Ref treated stale if stored username ≠ connection auth username; triggers re-query of username/userId/aliases/devHubOrgId. Atomic write via `SubscriptionRef.modify` merges onto ref's value at write time; drops write if ref's orgId moved on while querying (prevents out-of-order background forks overwriting current org).
 - Username-less snapshot = no target org.
-- `TargetOrgRef` (`DefaultOrgInfoSchema`) value is always an object (never `undefined`); `orgId`/`devHubOrgId` are optional branded `OrgId` (`Schema.optional(OrgId)`, like `cliId`).
+- `TargetOrgRef` (`DefaultOrgInfoSchema`) value is always an object (never `undefined`); `orgId`/`devHubOrgId` optional branded `OrgId` (`Schema.optional(OrgId)`, like `cliId`).
 
 ### Clearing the Default Org
 
