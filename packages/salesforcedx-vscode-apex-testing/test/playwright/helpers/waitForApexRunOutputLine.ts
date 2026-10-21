@@ -14,14 +14,14 @@ export const waitForApexRunOutputLine = (page: Page, expectedText: string): Prom
   waitForOutputChannelText(page, { expectedText, timeout: 60_000, failIfChannelIncludes: APEX_RUN_CHANNEL_FAILURES });
 
 /**
- * Wait for a per-method result row showing `Pass`. The column gap between name and outcome isn't
- * matched literally: a long row can wrap in the container's narrower window, which changes the
- * whitespace read back from the page.
+ * Wait for a per-method result row showing `Pass`. With coverage retrieval on, the row carries a
+ * "class being tested" column between name and outcome, so that column is optional and the column
+ * gaps are matched as any whitespace rather than literally.
  */
 export const waitForApexMethodPassLine = (page: Page, qualifiedMethodName: string): Promise<void> =>
   waitForOutputChannelText(page, {
     expectedText: qualifiedMethodName,
-    expectedPattern: new RegExp(`${qualifiedMethodName.replaceAll('.', '\\.')}\\s*Pass\\b`),
+    expectedPattern: new RegExp(`${qualifiedMethodName.replaceAll('.', '\\.')}\\s+(?:\\S+\\s+)?Pass\\b`),
     timeout: 60_000,
     failIfChannelIncludes: APEX_RUN_CHANNEL_FAILURES
   });
