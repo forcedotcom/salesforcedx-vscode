@@ -44,11 +44,6 @@ export const ExecuteAnonymousResultSchema = ExecutionResultSchema.pipe(
 ).annotations({ identifier: 'ExecuteAnonymousResult' });
 export type ExecuteAnonymousResult = typeof ExecuteAnonymousResultSchema.Type;
 
-const SoapBoolean = Schema.transform(Schema.Literal('true', 'false'), Schema.Boolean, {
-  strict: true,
-  decode: value => value === 'true',
-  encode: value => (value ? 'true' : 'false')
-});
 // Generic Connection.request uses xml2js: nil elements retain their attributes; empty elements may be {}.
 const SoapText = Schema.transform(
   Schema.Union(
@@ -72,8 +67,8 @@ const SoapResponseSchema = Schema.Struct({
     [soapBody]: Schema.Struct({
       executeAnonymousResponse: Schema.Struct({
         result: Schema.Struct({
-          compiled: SoapBoolean,
-          success: SoapBoolean,
+          compiled: Schema.BooleanFromString,
+          success: Schema.BooleanFromString,
           line: SoapInteger,
           column: SoapInteger,
           compileProblem: SoapText,
