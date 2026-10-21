@@ -2,10 +2,13 @@ name: Promote to Pre-release
 
 on:
   schedule:
-    # Wednesdays at 8 AM UTC - promotes most recent CI-passing nightly to marketplace prerelease
-    # Creates tracking tag for NEXT week's build-github-release.yml (which runs at 7 AM)
-    # IMPORTANT: Runs AFTER build-github-release (7 AM) so that stable builds use last week's
-    # tested prerelease (7+ days on marketplace), not today's newly promoted one
+    # Wednesdays at 8 AM UTC - promotes most recent CI-passing nightly to marketplace prerelease.
+    # trigger-stable-build (below) chains build-github-release.yml right after, pinned to this
+    # exact nightly via prereleaseTag -- so stable always ships the identical commit + changelog
+    # as the prerelease, regardless of whether this run itself fired on schedule or was
+    # dispatched manually. Publishing the resulting stable *candidate* to the Marketplace is a
+    # separate human/PagerDuty decision (typically held until the following Wednesday), not
+    # something enforced by timing here. -- W-24610381
     - cron: '0 8 * * 3'
   workflow_dispatch:
     inputs:
@@ -302,7 +305,36 @@ jobs:
       dry-run: ${{ inputs.dry-run || false }}
     secrets: inherit
 
-  # Step 5: Mark the nightly release as published. The reusable promote workflow only
+  # Step 5: Chain the stable candidate off this exact prerelease. build-github-release.yml has no
+  # schedule of its own (see that file) -- it only runs from this dispatch or a manual hotfix --
+  # so stable is ALWAYS built from the nightly just promoted here, with prereleaseTag pinned
+  # explicitly rather than left to that workflow's own auto-detect (which picks whichever
+  # marketplace-prerelease-* tag happens to be newest at the moment it runs, and silently drifted
+  # from "last week's" once the scheduled crons started failing -- confirmed against v68.6.0,
+  # which auto-detected the *same* nightly as the then-current prerelease, v68.5.5). Dispatched
+  # immediately, with no artificial delay: the 7-day soak before the resulting candidate is
+  # actually published to the Marketplace is a separate PagerDuty decision, not something CI
+  # needs to enforce via timing. Skipped in dry-run, since build-github-release always pushes a
+  # real tag and cuts a real GitHub release -- there is no dry path for it to take.
+  # -- W-24610381
+  trigger-stable-build:
+    needs: [find-nightly, write-changelog, promote]
+    if: always() && needs.promote.result == 'success' && (needs.write-changelog.result == 'success' || needs.write-changelog.result == 'skipped') && inputs.dry-run != true
+    runs-on: ubuntu-latest
+    env:
+      # A PAT, not GITHUB_TOKEN: a GITHUB_TOKEN-triggered dispatch would not reliably cascade
+      # into the dispatched run's own tag-push/release-create events.
+      GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+      NIGHTLY_TAG: ${{ needs.find-nightly.outputs.nightly-tag }}
+    steps:
+      - name: Dispatch stable build for this nightly
+        run: |
+          gh workflow run build-github-release.yml \
+            --repo "${{ github.repository }}" \
+            --ref develop \
+            -f prereleaseTag="$NIGHTLY_TAG"
+
+  # Step 6: Mark the nightly release as published. The reusable promote workflow only
   # publishes VSIXs to the marketplaces -- it never touches the nightly release itself --
   # so tag the title here to make it obvious at a glance on the Releases page which
   # nightly has already gone out as this week's marketplace pre-release.
@@ -324,7 +356,7 @@ jobs:
             echo "Renamed release title to: $CURRENT_TITLE - published"
           fi
 
-  # Step 6: Notify Slack if any job above failed, so a broken promotion doesn't go
+  # Step 7: Notify Slack if any job above failed, so a broken promotion doesn't go
   # unnoticed until someone happens to check Actions. failure() only fires for an
   # actual 'failure' status among `needs` -- jobs skipped because an earlier gate
   # (e.g. gate-check) failed don't themselves count, but that earlier job's own
@@ -334,7 +366,17 @@ jobs:
   # not a classic incoming webhook -- the payload must be the flat set of input variables
   # defined on that trigger (title, run_url, repository), not a free-form Block Kit message.
   notify-on-failure:
-    needs: [find-nightly, gate-check, compute-changelog-range, changelog-body, write-changelog, promote, mark-release-published]
+    needs:
+      [
+        find-nightly,
+        gate-check,
+        compute-changelog-range,
+        changelog-body,
+        write-changelog,
+        promote,
+        trigger-stable-build,
+        mark-release-published
+      ]
     if: failure()
     runs-on: ubuntu-latest
     steps:
@@ -353,7 +395,17 @@ jobs:
   # itself skipped during dry-run, and a skipped need doesn't count against success(), so without
   # this guard a dry-run would falsely announce success despite publishing nothing for real.
   notify-on-success:
-    needs: [find-nightly, gate-check, compute-changelog-range, changelog-body, write-changelog, promote, mark-release-published]
+    needs:
+      [
+        find-nightly,
+        gate-check,
+        compute-changelog-range,
+        changelog-body,
+        write-changelog,
+        promote,
+        trigger-stable-build,
+        mark-release-published
+      ]
     if: success() && inputs.dry-run != true
     runs-on: ubuntu-latest
     steps:

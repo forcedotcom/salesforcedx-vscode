@@ -27,9 +27,9 @@ Daily (4 AM UTC)
 └────────┬─────────┘     Users opt-in to test cutting-edge features
          │
          │
-Wednesday (Week N - 8 AM UTC) ───────────────────────────────┐
-         │                                                   │
-         ▼                                                   │
+Wednesday (Week N - 8 AM UTC)
+         │
+         ▼
 ┌─────────────────────────────────────────────────────────────────┐
 │  promote-to-prerelease.yml (AUTOMATED CRON)                     │
 │  ┌──────────────────────────────────────────────────────────────┤
@@ -56,22 +56,37 @@ Wednesday (Week N - 8 AM UTC) ────────────────�
 │  │ • Can iterate/patch during 7-day customer validation window  │
 │  └──────────────────────────────────────────────────────────────┤
 └────────┬────────────────────────────────────────────────────────┘
-         │                                                                │
-         │ ════════════════════════════════════════════════════           │
-         │ 7-DAY CUSTOMER VALIDATION PERIOD                               │
-         │ Real users test prerelease in production before stable build   │
-         │ ════════════════════════════════════════════════════           │
-         │                                                                │
-Next Wednesday (Week N+1 - 8 AM UTC)                                      │
-         │                                                                │
-         ▼                                                                │
+         │
+         ▼
+         │
 ┌─────────────────────────────────────────────────────────────────┐
-│  build-github-release.yml (AUTOMATED CRON)                      │
+│  trigger-stable-build job (IMMEDIATE, SAME RUN)                 │
+│  ┌──────────────────────────────────────────────────────────────┤
+│  │ Dispatches build-github-release.yml with prereleaseTag       │
+│  │ pinned to the nightly just promoted (above).                 │
+│  │                                                              │
+│  │ KEY CHANGE (W-24610381):                                     │
+│  │ • Stable now built from EXACT SAME commit as prerelease      │
+│  │ • Eliminates auto-detect drift (was: independent cron runs)  │
+│  │ • Changelog always matches (same source, just relabeled)     │
+│  │ • 7-day soak remains: this builds the CANDIDATE, not auto-   │
+│  │   publish (PagerDuty decides when to publish to marketplace) │
+│  └──────────────────────────────────────────────────────────────┤
+└────────┬────────────────────────────────────────────────────────┘
+         │
+         │ ════════════════════════════════════════════════════
+         │ 7-DAY CUSTOMER VALIDATION PERIOD (optional delay)
+         │ Real users test prerelease in production before stable
+         │ publish is approved and triggered (separate decision)
+         │ ════════════════════════════════════════════════════
+         │
+         ▼
+┌─────────────────────────────────────────────────────────────────┐
+│  build-github-release.yml (DISPATCHED from promote, or manual)  │
 │  ┌──────────────────────────────────────────────────────────────┤
 │  │ WHAT IT DOES:                                                │
-│  │ 1. Finds marketplace-prerelease-* tracking tag               │
-│  │    (loops through tags newest-first, resolves first match)   │
-│  │    (previous Wednesday's promoted build that customer tested)│
+│  │ 1. Receives prereleaseTag from trigger-stable-build         │
+│  │    (or manual dispatch, or hotfix startFromRef)             │
 │  │ 2. Extracts source commit SHA                                │
 │  │ 3. Creates ephemeral release-staging/vX.Y.Z branch           │
 │  │ 4. Bumps version in isolated branch                          │
@@ -95,8 +110,7 @@ Next Wednesday (Week N+1 - 8 AM UTC)                                      │
 │  │ ✓ Enhanced error handling (JSON parsing, file validation)    │
 │  └──────────────────────────────────────────────────────────────┤
 └────────┬────────────────────────────────────────────────────────┘
-         │                                                               │
-         ▼                                                               │
+         │
 ┌──────────────────────────────────────────────────────────────────┐
 │  Engineer Testing                                                │
 │  • Download VSIXs from GitHub pre-release                        │
@@ -261,7 +275,7 @@ Pre-release Period: ZERO (straight to stable)
 Emergency Path: ❌ None (wait 7+ days)
 ```
 
-### New Workflow (After PR #7790 + #7995)
+### New Workflow (After PR #7790 + #7995 + W-24610381)
 ```
 WEEK N    Mon       Tue       Wed       Thu       Fri       Sat       Sun
                               │
@@ -273,14 +287,20 @@ WEEK N    Mon       Tue       Wed       Thu       Fri       Sat       Sun
                               │    • Tags nightly release title with " - published" suffix
                               │    ✓ Real users test in production
                               │
-                              │    [7 DAYS OF CUSTOMER TESTING]
+                              ├─ trigger-stable-build (IMMEDIATE, same run)
+                              │    • Dispatches build-github-release.yml
+                              │    • Pins prereleaseTag to nightly just promoted
+                              │    ✓ Stable always matches prerelease commit
+                              │
+                              │    [7 DAYS OF OPTIONAL CUSTOMER TESTING]
+                              │    (soak before publishing candidate is human decision)
                               │
 WEEK N+1  Mon       Tue       Wed       Thu       Fri       Sat       Sun
                               │
-                              ├─ build-github-release.yml (AUTOMATED 7 AM UTC)
-                              │    • Finds previous Wed's marketplace-prerelease-* tag
+                              ├─ build-github-release.yml (FROM trigger, or manual)
+                              │    • Receives prerelease tag from trigger-stable-build
                               │    • Creates ephemeral staging branch
-                              │    • Builds stable VSIXs
+                              │    • Builds stable VSIXs (NOT auto-published)
                               │    ✓ ZERO merge conflicts
                               │
                               ├─ Engineer tests (30 min)
@@ -290,23 +310,24 @@ WEEK N+1  Mon       Tue       Wed       Thu       Fri       Sat       Sun
                               │
                               └─ DONE (no merges, branch auto-deleted)
 
-Total Time: 30 min/week (testing only)
+Total Time: 30 min/week (testing + publish decision)
 Merge Conflicts: ZERO (ephemeral branch, never merged)
-Customer Validation Period: 7 DAYS (Week N Wed → Week N+1 Wed)
+Customer Validation Period: 7+ DAYS (Week N Wed → flexible)
 Emergency Path: ✓ 5 minutes (build → publish as pre-release)
                 ✓ Patch path (v67.12.0 → v67.12.1)
+Key Difference: Stable candidate auto-built from exact prerelease; publish timing separate
 ```
 
 ---
 
 ## Impact Metrics
 
-| Metric | OLD (Before Aug 2026) | NEW (Current) | Improvement |
-|--------|-----------------------|---------------|-------------|
+| Metric | OLD (Before Aug 2026) | CURRENT (W-24610381) | Improvement |
+|--------|----------------------|---------------------|-------------|
 | **Branches to Maintain** | 3 (main, develop, release/vX.Y.Z) | 1 (develop only) | 67% reduction |
 | **Merge Conflicts per Release** | 2 merges × 50-100 conflicts each | 0 conflicts | 100% eliminated |
 | **Time Resolving Conflicts** | 50-135 min/week | 0 min/week | 100% saved |
-| **Customer Validation Period** | 0 (straight to stable) | 7 days (Week N Wed → Week N+1 Wed) | Real user testing |
+| **Prerelease→Stable Sync** | ❌ Independent crons (auto-detect drift) | ✓ Chained dispatch (pinned tag) | Sync guaranteed |
 | **Total Weekly Release Time** | 50-135 min | 30 min | 77-84% faster |
 | **Emergency Response Time** | 7+ days (no path) | 5 minutes | 99.95% faster |
 | **Patch Release Support** | ❌ No capability | ✓ v67.12.0 → v67.12.1 | New capability |
