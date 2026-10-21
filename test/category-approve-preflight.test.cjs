@@ -1,5 +1,7 @@
 const assert = require('node:assert/strict');
-const { readFileSync } = require('node:fs');
+const { spawnSync } = require('node:child_process');
+const { mkdtempSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } = require('node:fs');
+const { tmpdir } = require('node:os');
 const { join } = require('node:path');
 const test = require('node:test');
 const { parse } = require('yaml');
@@ -133,6 +135,47 @@ test('bot approval reviews do not start the job', () => {
   const workflow = parse(readFileSync(join(__dirname, '../.github/workflows/categoryApprove.yml'), 'utf8'));
   assert.match(workflow.jobs['category-approve'].if, /github\.event\.review\.user\.login != 'svc-idee-bot'/);
 });
+
+test(
+  'dependency retries install only in the trusted approver worktree and propagate failures',
+  { skip: process.platform === 'win32' && 'Tests the Ubuntu-only workflow Bash command' },
+  t => {
+    const workflow = parse(readFileSync(join(__dirname, '../.github/workflows/categoryApprove.yml'), 'utf8'));
+    const install = workflow.jobs['category-approve'].steps.find(
+      step => step.name === 'Install trusted approver dependencies'
+    );
+    assert.equal(install.if, "steps.preflight.outputs.result == 'true'");
+    assert.equal(install.with['working-directory'], '${{ runner.temp }}/trusted-approver');
+    const action = parse(readFileSync(join(__dirname, '..', install.uses, 'action.yml'), 'utf8'));
+    const retry = action.runs.steps[0];
+    assert.equal(retry.uses, 'salesforcecli/github-workflows/.github/actions/retry@main');
+    assert.equal(retry.env.PNPM_INSTALL_WORKING_DIRECTORY, '${{ inputs.working-directory }}');
+
+    const directory = mkdtempSync(join(tmpdir(), 'trusted-approver-install-'));
+    t.after(() => rmSync(directory, { recursive: true, force: true }));
+    const trusted = join(directory, 'trusted approver');
+    const bin = join(directory, 'bin');
+    mkdirSync(trusted);
+    mkdirSync(bin);
+    writeFileSync(join(bin, 'pnpm'), '#!/bin/bash\npwd -P\nprintf "%s\\n" "$@"\nexit "$INSTALL_EXIT_CODE"\n', {
+      mode: 0o755
+    });
+    for (const status of [0, 42]) {
+      const result = spawnSync('bash', ['-e', '-c', retry.with.command], {
+        cwd: __dirname,
+        env: {
+          ...process.env,
+          PATH: `${bin}:${process.env.PATH}`,
+          PNPM_INSTALL_WORKING_DIRECTORY: trusted,
+          INSTALL_EXIT_CODE: String(status)
+        },
+        encoding: 'utf8'
+      });
+      assert.equal(result.status, status, result.stderr);
+      assert.equal(result.stdout, `${realpathSync(trusted)}\ninstall\n--frozen-lockfile\n`);
+    }
+  }
+);
 
 test('workflow runs trusted approver when develop does not yet contain the preflight helper', async () => {
   const workflow = parse(readFileSync(join(__dirname, '../.github/workflows/categoryApprove.yml'), 'utf8'));

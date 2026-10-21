@@ -16,7 +16,7 @@ jobs:
         with:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
-      - run: pnpm install --frozen-lockfile
+      - uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
       - run: pnpm --version
       - run: node --version
       - run: pnpm report:installs
