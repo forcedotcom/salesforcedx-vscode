@@ -13,7 +13,6 @@ import {
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
-  NOTIFICATION_LIST_ITEM,
   openFileFromExplorerTree,
   resetContainerWorkbench,
   saveScreenshot,
@@ -45,17 +44,6 @@ test.beforeEach(async ({ page }) => {
 test('Apex Test Suite: delete suite and verify it disappears from Testing sidebar without refresh', async ({
   page
 }) => {
-  // FIXME (container only): org read-consistency lag on suite creation exceeds the container
-  // budget — a just-created ApexTestSuite is not returned by the Tooling API query
-  // (retrieveAllSuites) backing the Testing sidebar within the poll window (confirmed: 3x 120s
-  // failures where the leftover sibling suite is visible but the just-created suite is not), so
-  // the pre-delete baseline cannot pass reliably. Suite creation is covered by
-  // apexTestSuite.headless.spec.ts's container path; only the delete-without-refresh nuance is lost.
-  test.fixme(
-    isContainer,
-    'org read-consistency lag on suite creation exceeds the container budget (confirmed 3x 120s failures)'
-  );
-
   test.setTimeout(TEST_RUN_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
@@ -101,45 +89,28 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
   });
 
   await test.step('verify suite appears in Testing sidebar', async () => {
-    const assertSuiteVisibleInSidebarContainer = async (): Promise<void> => {
-      // The "Apex Test Suites" parent and its suite children are populated from an org Tooling API
-      // query (retrieveAllSuites) that only runs on each "Test: Refresh Tests". A just-created suite
-      // can lag org read-consistency, so a single discovery right after creation often returns zero
-      // suites and the parent node never renders. Re-run discovery until the org reports the suite,
-      // then confirm it in the tree. This is a baseline before deletion; the "disappears without
-      // manual refresh" assertion below is what proves the auto-refresh behavior under test.
-      await expect
-        .poll(
-          async () => {
-            const panel = await openTestExplorerAndDiscover(page);
-            const suiteParent = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: 'Apex Test Suites' });
-            if (!(await suiteParent.isVisible().catch(() => false))) {
-              return false;
-            }
-            // Expand the "Apex Test Suites" parent so child suite items become visible in the tree.
-            await expandTreeRow(panel, 'Apex Test Suites');
-            const suiteItem = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: testSuiteName });
-            return suiteItem.isVisible().catch(() => false);
-          },
-          { timeout: 120_000, intervals: [3000] }
-        )
-        .toBe(true);
-    };
-    const assertSuiteVisibleInSidebarDesktop = async (): Promise<void> => {
-      const panel = await openTestExplorerAndDiscover(page);
-
-      // The "Apex Test Suites" parent item should be visible
-      const suiteParent = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: 'Apex Test Suites' });
-      await expect(suiteParent).toBeVisible({ timeout: 30_000 });
-
-      // Expand the "Apex Test Suites" parent so child suite items become visible in the tree
-      await expandTreeRow(panel, 'Apex Test Suites');
-
-      // The specific suite name should be visible as a baseline before deletion
-      const suiteItem = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: testSuiteName });
-      await expect(suiteItem).toBeVisible({ timeout: 15_000 });
-    };
-    await (isContainer ? assertSuiteVisibleInSidebarContainer : assertSuiteVisibleInSidebarDesktop)();
+    // The "Apex Test Suites" parent and its suite children are populated from an org Tooling API
+    // query (retrieveAllSuites) that only runs on each "Test: Refresh Tests". A just-created suite
+    // can lag org read-consistency, so a single discovery right after creation can return zero
+    // suites and the parent node never renders. Re-run discovery until the org reports the suite,
+    // then confirm it in the tree. This is a baseline before deletion; the "disappears without
+    // manual refresh" assertion below is what proves the auto-refresh behavior under test.
+    await expect
+      .poll(
+        async () => {
+          const panel = await openTestExplorerAndDiscover(page);
+          const suiteParent = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: 'Apex Test Suites' });
+          if (!(await suiteParent.isVisible().catch(() => false))) {
+            return false;
+          }
+          // Expand the "Apex Test Suites" parent so child suite items become visible in the tree.
+          await expandTreeRow(panel, 'Apex Test Suites');
+          const suiteItem = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: testSuiteName });
+          return suiteItem.isVisible().catch(() => false);
+        },
+        { timeout: 120_000, intervals: [3000] }
+      )
+      .toBe(true);
     await saveScreenshot(page, 'step.suite-visible-in-sidebar.png');
   });
 
@@ -162,24 +133,14 @@ test('Apex Test Suite: delete suite and verify it disappears from Testing sideba
     await executeCommandWithCommandPalette(page, 'SFDX: Delete from Project and Org');
     await saveScreenshot(page, 'step.delete-command-executed.png');
 
-    const confirmDeleteContainer = async (): Promise<void> => {
-      // The delete confirmation surfaces as a notification toast with a "Delete Source" button
-      const deleteConfirmation = page
-        .locator(NOTIFICATION_LIST_ITEM)
-        .filter({ hasText: /Deleting source files deletes the files from your computer/ })
-        .first();
-      await expect(deleteConfirmation).toBeVisible({ timeout: 15_000 });
-      await deleteConfirmation.getByRole('button', { name: 'Delete Source' }).click();
-    };
-    const confirmDeleteDesktop = async (): Promise<void> => {
-      const deleteConfirmation = page.locator('.monaco-dialog-box, .dialog-shadow').first();
-      await expect(deleteConfirmation, 'delete source confirmation modal').toContainText(
-        /Deleting source files deletes the files from your computer/,
-        { timeout: 15_000 }
-      );
-      await clickModalDialogButton(page, 'Delete Source', 15_000);
-    };
-    await (isContainer ? confirmDeleteContainer : confirmDeleteDesktop)();
+    // A modal warning (PromptService.confirmOrThrow) on both: desktop's custom dialogStyle and the
+    // container's browser-served workbench render it as an in-DOM dialog.
+    const deleteConfirmation = page.locator('.monaco-dialog-box, .dialog-shadow').first();
+    await expect(deleteConfirmation, 'delete source confirmation modal').toContainText(
+      /Deleting source files deletes the files from your computer/,
+      { timeout: 15_000 }
+    );
+    await clickModalDialogButton(page, 'Delete Source', 15_000);
     await saveScreenshot(page, 'step.delete-confirmed.png');
   });
 
