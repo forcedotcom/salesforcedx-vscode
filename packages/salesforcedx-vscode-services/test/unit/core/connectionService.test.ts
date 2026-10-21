@@ -16,6 +16,7 @@ import * as Option from 'effect/Option';
 import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Schedule from 'effect/Schedule';
+import * as Sink from 'effect/Sink';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
@@ -32,6 +33,7 @@ import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
 import { type DefaultOrgInfoSchema } from '../../../src/core/schemas/defaultOrgInfo';
 import { OrgId } from '../../../src/core/schemas/salesforceId';
 import { preventOrgChanges } from '../../../src/core/targetOrgGuard';
+import { CliId } from '../../../src/observability/cliTelemetry';
 import { SettingsService, type WebSessionContext } from '../../../src/vscode/settingsService';
 import type * as salesforceCore from '@salesforce/core';
 import type * as childProcess from 'node:child_process';
@@ -797,6 +799,41 @@ describe('ConnectionService.getConnection (desktop)', () => {
     );
     expect(second).toMatchObject({ username, userId: cachedUserId });
     expect(queryFromDisk).not.toHaveBeenCalled();
+  });
+
+  it('does not notify TargetOrgRef subscribers when the default-org refresh changes nothing', async () => {
+    // Ref as a previous refresh left it, so this refresh computes an equivalent value (no User query, no webUserId
+    // hash). Includes the explicit `alias: undefined` every refresh writes; equivalence treats an absent key as different.
+    const complete: typeof DefaultOrgInfoSchema.Type = {
+      orgId: brandedOrgId('00D000000000005'),
+      instanceName: 'USA9S',
+      tracksSource: false,
+      isScratch: false,
+      isSandbox: false,
+      username: USERNAME,
+      alias: undefined,
+      userId: '00500000000000FAA',
+      webUserId: 'hashed-web-user-id',
+      aliases: [],
+      cliId: Schema.decodeSync(CliId)('11111111-1111-4111-8111-111111111111')
+    };
+    await Effect.runPromise(getDefaultOrgRef().pipe(Effect.flatMap(ref => SubscriptionRef.set(ref, complete))));
+    getPropertyValueMock.mockImplementation((prop: string) => (prop === TARGET_ORG_KEY ? USERNAME : undefined));
+    connectionCreateMock.mockResolvedValue(makeDesktopConn(USERNAME));
+
+    const published = await run(
+      Effect.gen(function* () {
+        const ref = yield* getDefaultOrgRef();
+        // Peel off the current value so `later` only sees writes made after subscribing.
+        const [, later] = yield* ref.changes.pipe(Stream.peel(Sink.head()));
+        yield* ConnectionService.getConnection();
+        // The forked refresh reads target-org just before its final write.
+        yield* Effect.promise(() => waitUntil(() => getTargetOrgMock.mock.calls.length > 0));
+        return yield* later.pipe(Stream.interruptWhen(Effect.sleep(Duration.millis(50))), Stream.runCount);
+      }).pipe(Effect.scoped)
+    );
+
+    expect(published).toBe(0);
   });
 
   it('does not apply an in-flight User lookup to a different username on the same orgId', async () => {

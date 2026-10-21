@@ -544,7 +544,9 @@ const getTracksSourceFromOrg = (conn: Connection) =>
     Effect.withSpan('getTracksSourceFromOrg')
   );
 
-//** this info is used for quite a bit (ex: telemetry) so one we make the connection, we capture the info and store it in a ref */
+type DefaultOrgInfo = typeof DefaultOrgInfoSchema.Type;
+
+/** Capture connection info in default org ref; used throughout (telemetry, org picker, etc.) */
 const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function* (
   conn: Connection,
   previousOrgId?: OrgId
@@ -561,7 +563,9 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
   const orgEdition = Option.getOrUndefined(Option.flatMap(fields, f => f.orgEdition));
   const defaultOrgRef = yield* getDefaultOrgRef();
   const existingOrgInfo = yield* SubscriptionRef.get(defaultOrgRef);
-  const orgIdChanged = previousOrgId !== orgId;
+  // `updateDefaultOrgIdentity` swaps orgId synchronously, so a concurrent caller can see orgId unchanged while
+  // username/aliases still belong to the previous org. Treat the ref as stale unless its username matches this conn.
+  const orgIdChanged = previousOrgId !== orgId || existingOrgInfo.username !== resolveUsername(conn);
   const [{ username: queriedUsername, userId: queriedUserId }, devHubOrgId, cliId] = yield* Effect.all(
     [
       Match.value({
@@ -576,7 +580,9 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
         Match.when({ refresh: true }, () => Effect.succeed({ username: undefined, userId: undefined })),
         Match.orElse(() => Effect.succeed({ username: existingOrgInfo.username, userId: existingOrgInfo.userId }))
       ),
-      existingOrgInfo.devHubOrgId ? Effect.succeed(existingOrgInfo.devHubOrgId) : getDevHubId(devHubUsername),
+      existingOrgInfo.devHubOrgId && !orgIdChanged
+        ? Effect.succeed(existingOrgInfo.devHubOrgId)
+        : getDevHubId(devHubUsername),
       existingOrgInfo.cliId
         ? Effect.succeed(existingOrgInfo.cliId)
         : getCliId().pipe(Effect.map(Option.getOrElse(() => undefined)))
@@ -636,20 +642,22 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
     isNotUndefined
   );
 
-  const updated = { ...existingOrgInfo, ...updates, alias };
-
-  // Check if objects have the same content (deep equality using schema)
-  // otherwise, calling set on the ref counts as a change but it's really not one.
-  if (Schema.equivalence(DefaultOrgInfoSchema)(updated, existingOrgInfo)) {
+  // Merge onto the ref's value at write time (not the pre-await snapshot), and drop the write if the default org
+  // moved on while we were querying — otherwise an out-of-order fork for the previous org overwrites the current one.
+  // No async step between this get and the set below, so no other writer can interleave.
+  const current = yield* SubscriptionRef.get(defaultOrgRef);
+  if (current.orgId !== orgId) {
+    yield* Effect.annotateCurrentSpan({ stale: true });
+    return current;
+  }
+  const updated: DefaultOrgInfo = { ...current, ...updates, alias };
+  // Every SubscriptionRef write (set/modify, even of an equivalent value) publishes to `changes`, so skip no-op writes.
+  if (Schema.equivalence(DefaultOrgInfoSchema)(updated, current)) {
     yield* Effect.annotateCurrentSpan({ changed: false });
     return updated;
   }
-  yield* Effect.all(
-    [Effect.annotateCurrentSpan({ updated, changed: true }), SubscriptionRef.set(defaultOrgRef, updated)],
-    {
-      concurrency: 'unbounded'
-    }
-  );
+  yield* Effect.annotateCurrentSpan({ changed: true, updated });
+  yield* SubscriptionRef.set(defaultOrgRef, updated);
   return updated;
 });
 
