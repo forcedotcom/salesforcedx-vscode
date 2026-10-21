@@ -104,14 +104,11 @@ const buildRequest = (connection: Connection, code: string): HttpRequest => {
   };
 };
 
-const isInvalidSession = (cause: unknown): boolean =>
-  typeof cause === 'object' &&
-  cause !== null &&
-  'name' in cause &&
-  cause.name === 'ERROR_HTTP_500' &&
-  'message' in cause &&
-  typeof cause.message === 'string' &&
-  cause.message.includes('INVALID_SESSION_ID');
+const InvalidSessionErrorSchema = Schema.Struct({
+  name: Schema.Literal('ERROR_HTTP_500'),
+  message: Schema.String.pipe(Schema.pattern(/INVALID_SESSION_ID/))
+});
+const isInvalidSession = Schema.is(InvalidSessionErrorSchema);
 
 const parseResponse = (response: unknown) =>
   Schema.decodeUnknown(SoapResponseSchema)(response).pipe(
