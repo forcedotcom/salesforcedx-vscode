@@ -88,7 +88,7 @@ const result = await new ExecuteService(connection).executeAnonymous({ apexCode 
 
 The [CLI command at c8fdf707](https://github.com/salesforcecli/plugin-apex/blob/c8fdf7073ce194deb75fc7fd12c0b981ee2b97f4/src/commands/apex/run.ts) still passes `apexFilePath` or `userInput`. The class retains those reads, the input prompt, per-line 60-second idle timeout, platform line endings, and input-error messages. **Do not remove these options until the CLI reads `--file` or stdin itself, passes `apexCode`, and verifies file, piped-input, interactive-input, timeout, and error cases.** That consumer migration is not included here; this change preserves its existing input contract.
 
-Execution still returns compile/runtime failures as diagnostic data, not rejected Promises. `ExecuteService` preserves the CLI's `compiled`, `success`, `logs`, and `diagnostic` fields and plain error messages. The Effect API exposes host-neutral line/column, compile problem, exception message/stack, and log text; malformed SOAP produces `ApexResponseDecodeError`. Services/editor adoption is separate from this migration.
+The Effect API returns a success-only outcome. Compilation and runtime failures use `ApexCompileError` and `ApexRuntimeError`, carrying host-neutral line/column, diagnostic text, and any debug log; malformed SOAP produces `ApexResponseDecodeError`. `ExecuteService` adapts compile/runtime errors back to the CLI's `compiled`, `success`, `logs`, and `diagnostic` response, while other errors remain rejected Promises with plain messages. The VS Code services adapter handles the typed execution failures as diagnostic data for its editor and output-channel contract.
 
 ## Getting Started
 

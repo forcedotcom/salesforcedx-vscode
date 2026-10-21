@@ -97,6 +97,39 @@ describe('executeAnonymousWithConnection', () => {
     });
   });
 
+  it('preserves runtime diagnostics for the editor result contract', async () => {
+    const request = vi.fn().mockResolvedValue(
+      soapResponse(
+        {
+          column: 1,
+          compiled: 'true',
+          compileProblem: '',
+          exceptionMessage: 'System.AssertException: Assertion Failed',
+          exceptionStackTrace: 'AnonymousBlock: line 1, column 1',
+          line: 6,
+          success: 'false'
+        },
+        'RUNTIME LOG'
+      )
+    );
+
+    await expect(
+      Effect.runPromise(executeAnonymousWithConnection(makeConnection(request), 'System.assert(false);'))
+    ).resolves.toEqual({
+      result: {
+        compiled: true,
+        success: false,
+        line: 6,
+        column: 1,
+        compileProblem: null,
+        exceptionMessage: 'System.AssertException: Assertion Failed',
+        exceptionStackTrace: 'AnonymousBlock: line 1, column 1'
+      },
+      logBody: 'RUNTIME LOG',
+      logId: undefined
+    });
+  });
+
   it('rejects a connection without an access token before making a request', async () => {
     const request = vi.fn();
 
@@ -116,7 +149,7 @@ describe('executeAnonymousWithConnection', () => {
       Effect.runPromise(Effect.flip(executeAnonymousWithConnection(makeConnection(request), 'System.debug(1);')))
     ).resolves.toMatchObject({
       _tag: 'ExecuteAnonymousError',
-      message: 'Invalid SOAP response: missing executeAnonymousResponse.result'
+      message: 'Invalid execute anonymous SOAP response'
     });
   });
 });

@@ -27,19 +27,65 @@ export const executeAnonymousWithConnection = (connection: Connection, code: str
       return yield* new ExecuteAnonymousError({ message: 'Execute anonymous failed: no access token' });
     }
 
-    const { logBody, ...result } = yield* executeAnonymous(connection, { apexCode: code }).pipe(
-      Effect.mapError(
-        error =>
-          new ExecuteAnonymousError({
-            message:
-              error._tag === 'ApexResponseDecodeError'
-                ? 'Invalid SOAP response: missing executeAnonymousResponse.result'
-                : `Execute anonymous failed: ${error.message}`,
-            cause: error
+    const { result, logBody } = yield* executeAnonymous(connection, { apexCode: code }).pipe(
+      Effect.map(outcome => ({
+        result: {
+          compiled: true,
+          success: true,
+          line: outcome.line,
+          column: outcome.column,
+          compileProblem: '',
+          exceptionMessage: '',
+          exceptionStackTrace: ''
+        } satisfies ExecuteAnonymousResult,
+        logBody: outcome.logBody ?? ''
+      })),
+      Effect.catchTags({
+        ApexCompileError: error =>
+          Effect.succeed({
+            result: {
+              compiled: false,
+              success: false,
+              line: error.line,
+              column: error.column,
+              compileProblem: error.compileProblem,
+              exceptionMessage: null,
+              exceptionStackTrace: null
+            } satisfies ExecuteAnonymousResult,
+            logBody: error.logBody ?? ''
+          }),
+        ApexRuntimeError: error =>
+          Effect.succeed({
+            result: {
+              compiled: true,
+              success: false,
+              line: error.line,
+              column: error.column,
+              compileProblem: null,
+              exceptionMessage: error.exceptionMessage,
+              exceptionStackTrace: error.exceptionStackTrace
+            } satisfies ExecuteAnonymousResult,
+            logBody: error.logBody ?? ''
           })
-      )
+      }),
+      Effect.catchTags({
+        ApexResponseDecodeError: error =>
+          Effect.fail(
+            new ExecuteAnonymousError({
+              message: 'Invalid execute anonymous SOAP response',
+              cause: error
+            })
+          ),
+        ApexOperationError: error =>
+          Effect.fail(
+            new ExecuteAnonymousError({
+              message: `Execute anonymous failed: ${error.message}`,
+              cause: error
+            })
+          )
+      })
     );
-    return { result: result satisfies ExecuteAnonymousResult, logBody, logId: undefined };
+    return { result, logBody, logId: undefined };
   });
 
 export class ExecuteAnonymousService extends Effect.Service<ExecuteAnonymousService>()('ExecuteAnonymousService', {
