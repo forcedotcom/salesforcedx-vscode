@@ -55,6 +55,18 @@ await setWorkspaceApiVersion(workspaceDir, '66.0');
 - Load extra extensions via `additionalExtensionDirs` (e.g. metadata for LWC create). **Web** `headlessServer`: metadata + apex-log only (no core/apex, desktop only). **Desktop** fixture: metadata + apex-log + apex + core (core required for apex-testing UI features).
 - LWC LSP ready (`waitForLwcLspReady` in `salesforcedx-vscode-lwc` `test/playwright/utils/lwcUtils.ts`): **web** — `LWC Extension` output line `LWC Language Server: indexing complete`; **desktop** — Editor Language Status / legacy status text `Indexing complete` (language status item often missing on web)
 
+## Container Specs
+
+Container reuses workspace across specs; desktop isolates per-test. When specs modify settings via `upsertSettings`, reset them in `test.afterEach` when `isContainer` to prevent later specs inheriting changes:
+
+```typescript
+test.afterEach(async ({ page }) => {
+  if (isContainer) {
+    await upsertSettings(page, { 'setting.name': 'default-value' });
+  }
+});
+```
+
 ## Virtualized DOM
 
 VS Code API (tree views, editors, output panels) only contains visible DOM lines (rest not present until scrolled into view).
@@ -195,7 +207,7 @@ await executeCommandWithCommandPalette(page, editorContextCommand);
 ```typescript
 await waitForOutputChannelText(page, {
   expectedText: 'Class.method',
-  expectedPattern: /Class\.method\s*Pass\b/
+  expectedPattern: /Class\.method\s+(?:\S+\s+)?Pass\b/
 });
 ```
 

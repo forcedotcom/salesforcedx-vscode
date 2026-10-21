@@ -67,6 +67,14 @@ test.beforeEach(async ({ page }) => {
   }
 });
 
+// The container reuses one workspace across specs (desktop gets a fresh one per test). Left on,
+// coverage retrieval switches later specs' Apex Testing output to the detailed-coverage table.
+test.afterEach(async ({ page }) => {
+  if (isContainer) {
+    await upsertSettings(page, { 'salesforcedx-vscode-apex-testing.retrieve-test-code-coverage': 'false' });
+  }
+});
+
 test('Code coverage colorizer: green covered + red uncovered lines, cleared on toggle-off', async ({ page }) => {
   test.setTimeout(TEST_SETUP_TIMEOUT + TEST_RUN_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
