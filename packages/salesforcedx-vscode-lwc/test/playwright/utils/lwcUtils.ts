@@ -13,6 +13,7 @@ import {
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  find,
   focusOnFilesExplorer,
   isDesktop,
   openFileByName,
@@ -301,13 +302,18 @@ const LWC_SFDX_GENERATED_TYPINGS_EXPECTATIONS = [
  * search for can lag the open editor's cached model. Pass `reopen` to reload the file from disk on
  * each attempt (close all editors, then re-open): the poll re-runs Find against fresh content until
  * the new entry appears. Callers with an already-current editor can omit `reopen`.
+ *
+ * A `RegExp` needle switches the Find widget to regex mode and searches its `source`; a string needle
+ * searches literally. The toggle is synced on every call because the widget keeps it between searches.
  */
 export const assertOpenEditorContainsText = async (
   page: Page,
-  needle: string,
+  needle: string | RegExp,
   reopen?: (page: Page) => Promise<void>,
   timeout = 90_000
 ): Promise<void> => {
+  const isRegex = needle instanceof RegExp;
+  const query = isRegex ? needle.source : needle;
   const findWidget = page.locator('.editor-widget.find-widget');
   const matchesCount = findWidget.locator('.matchesCount');
   await expect(async () => {
@@ -319,12 +325,17 @@ export const assertOpenEditorContainsText = async (
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.waitFor({ state: 'visible', timeout: 15_000 });
     await editor.click();
-    await page.keyboard.press('Control+f');
+    // Palette command, not Control+f: on macOS Electron Find is Cmd+F and Control+f moves the cursor.
+    await find(page);
     await findWidget.waitFor({ state: 'visible', timeout: 10_000 });
+    const regexToggle = findWidget.getByRole('checkbox', { name: /Use Regular Expression/ });
+    if ((await regexToggle.getAttribute('aria-checked')) !== String(isRegex)) {
+      await regexToggle.click();
+    }
     const input = findWidget.locator('textarea.input').first();
     await input.waitFor({ state: 'visible', timeout: 5000 });
     // fill() clears then sets the query atomically — no editor-focused Ctrl+A that could nuke content.
-    await input.fill(needle);
+    await input.fill(query);
     await expect(matchesCount, `Find widget should report a match for "${needle}"`).toBeVisible({ timeout: 5000 });
     await expect(matchesCount, `Find widget should report a match for "${needle}"`).not.toHaveText(/No results/i, {
       timeout: 5000

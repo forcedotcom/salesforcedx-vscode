@@ -76,6 +76,7 @@ VS Code API (tree views, editors, output panels) only contains visible DOM lines
 - `scrollIntoViewIfNeeded` probably won't help
 - **Tree item count:** Use `aria-setsize` (VS Code's tree model count) instead of `.count()` (DOM nodes). Reads full child count regardless of viewport. Pattern: `getByRole('treeitem', { level: 1 }).first().getAttribute('aria-setsize')`. See `OrgBrowserPage` helpers: `getRootTypeCount()`, `waitForRootTypeCount(expected)`, `getStableRootTypeCount()` (tolerates scroll/unmount race)
 - **Monaco editors after `insertText`:** `page.keyboard.insertText(content)` leaves the cursor — and therefore Monaco's scroll position — at the end of the pasted content, so `.view-lines` no longer renders line 1. If you then assert `.view-lines` contains text from near the top of the file (e.g. an `@IsTest` annotation), press `Control+Home` first to scroll back to the start before checking.
+- **Searching editor content beyond viewport:** `.view-lines` omits off-screen text. Use `find(page)` to open Find widget (searches full model). Pattern: `assertOpenEditorContainsText` (`salesforcedx-vscode-lwc/test/playwright/utils/lwcUtils.ts`). Supports `string` (literal) or `RegExp` (toggles regex checkbox).
 
 ## Modal Dialog Buttons
 
