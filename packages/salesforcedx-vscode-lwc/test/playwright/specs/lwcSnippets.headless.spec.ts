@@ -17,6 +17,7 @@ import {
   openFileFromExplorerTree,
   QUICK_INPUT_WIDGET,
   saveFile,
+  saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   typingSpeed,
@@ -94,11 +95,13 @@ test('LWC snippets: Insert Snippet applies lwc-button in HTML', async ({ page },
     await waitForExtensionsActivated(page);
     // Disable deploy-on-save AFTER the workspace folder is added so the setting persists to the correct workspace context.
     await disableDeployOnSaveWeb(page);
+    await saveScreenshot(page, 'lwc-snippets-html.workspace-ready.png');
   });
 
   await test.step('ensure LWC bundle exists (web/container: create via palette)', async () => {
     if (isContainer || !isDesktop()) {
       await createLwcViaSfdxCommand(page, bundleName);
+      await saveScreenshot(page, 'lwc-snippets-html.after-create-lwc.png');
     }
   });
 
@@ -106,6 +109,7 @@ test('LWC snippets: Insert Snippet applies lwc-button in HTML', async ({ page },
     await openLwcBundleFile(page, bundleName, 'html');
     const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.waitFor({ state: 'visible', timeout: 15_000 });
+    await saveScreenshot(page, 'lwc-snippets-html.editor-open.png');
   });
 
   await test.step('insert lwc-button snippet', async () => {
@@ -120,6 +124,7 @@ test('LWC snippets: Insert Snippet applies lwc-button in HTML', async ({ page },
     await page.keyboard.press('Enter');
     await quickInput.waitFor({ state: 'hidden', timeout: 10_000 }).catch(() => {});
     await dismissEditorOverlays(page);
+    await saveScreenshot(page, 'lwc-snippets-html.after-insert.png');
   });
 
   await test.step('save and assert HTML snippet body', async () => {
@@ -131,6 +136,7 @@ test('LWC snippets: Insert Snippet applies lwc-button in HTML', async ({ page },
     expect(doc).toContain('label="Button Label"');
     expect(doc).toContain('onclick={handleClick}');
     expect(doc).toContain('></lightning-button>');
+    await saveScreenshot(page, 'lwc-snippets-html.saved.png');
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
@@ -160,17 +166,20 @@ test('LWC snippets: JS completion inserts lwc-event body', async ({ page }, test
     await waitForExtensionsActivated(page);
     // Disable deploy-on-save AFTER the workspace folder is added so the setting persists to the correct workspace context.
     await disableDeployOnSaveWeb(page);
+    await saveScreenshot(page, 'lwc-snippets-js.workspace-ready.png');
   });
 
   await test.step('ensure LWC bundle exists (web/container: create via palette)', async () => {
     if (isContainer || !isDesktop()) {
       await createLwcViaSfdxCommand(page, bundleName);
+      await saveScreenshot(page, 'lwc-snippets-js.after-create-lwc.png');
     }
   });
 
   await test.step('open component JS', async () => {
     await openLwcBundleFile(page, bundleName, 'js');
     await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 20_000 });
+    await saveScreenshot(page, 'lwc-snippets-js.after-open.png');
   });
 
   await test.step('type lwc prefix and accept lwc-event completion', async () => {
@@ -185,6 +194,7 @@ test('LWC snippets: JS completion inserts lwc-event body', async ({ page }, test
     await expect(completionRow).toBeVisible({ timeout: 30_000 });
     await completionRow.click();
     await dismissEditorOverlays(page);
+    await saveScreenshot(page, 'lwc-snippets-js.after-completion.png');
   });
 
   await test.step('save and assert JS snippet body', async () => {
@@ -192,6 +202,7 @@ test('LWC snippets: JS completion inserts lwc-event body', async ({ page }, test
     await saveFile(page);
     const doc = collapseEditorWhitespace(await readActiveEditorDocumentText(page));
     expect(doc).toContain('this.dispatchEvent(new CustomEvent("event-name"));');
+    await saveScreenshot(page, 'lwc-snippets-js.saved.png');
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

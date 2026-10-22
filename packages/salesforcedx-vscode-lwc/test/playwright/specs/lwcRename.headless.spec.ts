@@ -14,6 +14,7 @@ import {
   executeCommandWithCommandPalette,
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
+  saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
@@ -78,12 +79,14 @@ test('LWC Rename: renames an existing bundle via explorer context menu', async (
       .filter({ hasText: new RegExp(`${oldName}\\.js`, 'i') })
       .first()
       .waitFor({ state: 'visible', timeout: 20_000 });
+    await saveScreenshot(page, 'rename.create-seeded-bundle.png');
   });
 
   await test.step('rename the bundle via explorer context menu', async () => {
     await executeExplorerContextMenuCommand(page, oldName, packageNls.rename_lightning_component_text);
     // Wait for the input box (showInputBox) to take focus before typing.
     await activeQuickInputWidget(page).waitFor({ state: 'attached', timeout: 10_000 });
+    await saveScreenshot(page, 'rename.context-menu-fired.png');
 
     // Input box is pre-filled with the old name; fill atomically to avoid select-all/type focus race
     if (isContainer) {
@@ -93,6 +96,7 @@ test('LWC Rename: renames an existing bundle via explorer context menu', async (
       await activeQuickInputTextField(page).fill(newName);
     }
     await page.keyboard.press('Enter');
+    await saveScreenshot(page, 'rename.entered-new-name.png');
   });
 
   await test.step('verify rename took effect', async () => {
@@ -108,6 +112,7 @@ test('LWC Rename: renames an existing bundle via explorer context menu', async (
     const oldFolder = page.locator('[role="treeitem"]').filter({ hasText: new RegExp(`^${oldName}$`, 'i') });
     // Same debounced watcher lag can delay the old-name treeitem disappearing.
     await expect(oldFolder).toHaveCount(0, { timeout: 20_000 });
+    await saveScreenshot(page, 'rename.verify-tree.png');
   });
 
   // Follow-up: rename again via editor context menu. The renamed bundle's main file is in the active editor.
@@ -123,6 +128,7 @@ test('LWC Rename: renames an existing bundle via explorer context menu', async (
       await activeQuickInputTextField(page).fill(finalName);
     }
     await page.keyboard.press('Enter');
+    await saveScreenshot(page, 'rename.editor-menu-fired.png');
   });
 
   await test.step('verify second rename', async () => {
