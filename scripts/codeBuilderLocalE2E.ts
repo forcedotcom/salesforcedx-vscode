@@ -920,7 +920,7 @@ const main = async (): Promise<number> => {
   // revert — confirmed twice, hours apart, as the identical two-line diff. Because that edit lands in
   // the bind-mounted fixture, the next run's boot org (deployed from an EARLIER, now-stale edit of
   // this file) and the next run's local copy (a DIFFERENT accumulated edit) genuinely diverge, so a
-  // plain unmodified-file deploy in deploySource.container correctly reports a real conflict. `git
+  // plain unmodified-file deploy in deploySourcePath correctly reports a real conflict. `git
   // clean` only touches ignored/untracked paths, so it can't fix a tracked file; restore every tracked
   // file in the fixture to its committed state too.
   spawnSync('git', ['checkout', '--', '.'], { cwd: FIXTURE_HOST_DIR, stdio: 'ignore' });

@@ -10,7 +10,6 @@ import { createContainerConfig } from '@salesforce/playwright-vscode-ext';
 export default createContainerConfig({
   testDir: './specs',
   testMatch: [
-    'container/deploySource.container.spec.ts',
     'analyticsTemplates.headless.spec.ts',
     'deleteSource.headless.spec.ts',
     'deployManifest.headless.spec.ts',

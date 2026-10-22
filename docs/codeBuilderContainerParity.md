@@ -42,10 +42,10 @@ container ports.
    reads — see apex's `sharedWorkspaceDirTest`, used by `apexLspRestart`.
 
 Per [PR #8102 review feedback](https://github.com/forcedotcom/salesforcedx-vscode/pull/8102#discussion_r4047559234),
-92 of the 110 container specs (108 originally, plus the 3 later createProject* ports, less testExplorerRun folded into testExplorer) have been merged this way; 18 remain standalone. See "Adding a
+92 of the 109 container specs (108 originally, plus the 3 later createProject* ports, less testExplorerRun folded into testExplorer and the duplicate metadata deploySource) have been merged this way; 17 remain standalone. See "Adding a
 container suite to a package" below for both patterns.
 
-## Coverage summary — 110 specs across 15 packages
+## Coverage summary — 109 specs across 15 packages
 
 Includes multi-org / Dreamhouse ports (see "Multi-org container support" below): 13 previously
 org-blocked specs now run by authing extra orgs + switching default with save/restore; 2 ported but
@@ -57,7 +57,7 @@ re-run after each restart): **no-project** (phase 2), **no-folder** (phase 3), *
 (see "Workspace-shape portability assessment" below) — they target the no-project mount's checked-in
 `scratch/` subfolder rather than a new mount or phase. All verified green.
 
-Count is container-covered **specs** (scenarios), not separate files: 103 active + 2 `test.fixme`. Most
+Count is container-covered **specs** (scenarios), not separate files: 102 active + 2 `test.fixme`. Most
 of these now live merged into their desktop/web twin rather than as a standalone file — see "Two
 implementation patterns" above; the spec names/counts below are unaffected by which pattern a given
 spec uses.
@@ -89,8 +89,8 @@ suite to a new package wires it in with no orchestrator edit.
 How the container suite maps back to the original desktop/web (`.desktop`/`.headless`/`.spec`) specs
 it was ported from. **Origin** counts product specs only — the 10 `playwright-vscode-ext` specs test
 the shared test *library* itself, not a product feature, so they're excluded. **Ported** is origin
-specs that now have container coverage; the container has 5 more spec *files* than that (99 total)
-from container-only splits/additions (`seededWorkspace`, `testExplorerRun`, metadata `deploySource`,
+specs that now have container coverage; the container has 4 more spec *files* than that (98 total)
+from container-only splits/additions (`seededWorkspace`, `testExplorerRun`,
 2 org-browser variants).
 
 | Package | Origin | Ported | Not ported |
