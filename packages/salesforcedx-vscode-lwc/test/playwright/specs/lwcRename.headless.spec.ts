@@ -11,19 +11,18 @@ import {
   activeQuickInputWidget,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
-  executeCommandWithCommandPalette,
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
-  waitForQuickInputFirstOption,
   waitForVSCodeWorkbench,
   waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
 import { isContainer, sharedTest as test } from '../fixtures';
+import { createLwc } from '../utils/lwcUtils';
 
 test('LWC Rename: renames an existing bundle via explorer context menu', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
@@ -44,41 +43,7 @@ test('LWC Rename: renames an existing bundle via explorer context menu', async (
   });
 
   await test.step('seed bundle via SFDX: Create LWC', async () => {
-    await executeCommandWithCommandPalette(page, packageNls.lightning_generate_lwc_text);
-    const quickInput = activeQuickInputWidget(page);
-    await quickInput.waitFor({ state: 'attached', timeout: 30_000 });
-    await waitForQuickInputFirstOption(page);
-    const componentType = activeQuickInputWidget(page).getByRole('option').first();
-    const clickComponentTypeContainer = async (): Promise<void> => {
-      // eslint-disable-next-line playwright/no-force-option -- quick-pick row re-renders on filter/highlight, invalidating the hover/actionability check
-      await componentType.click({ force: true });
-    };
-    const clickComponentTypeDesktop = async (): Promise<void> => {
-      await expect(componentType).toBeVisible({ timeout: 10_000 });
-      await componentType.click();
-    };
-    await (isContainer ? clickComponentTypeContainer : clickComponentTypeDesktop)();
-    await activeQuickInputWidget(page)
-      .getByText(/Enter Lightning Web Component name/i)
-      .waitFor({ state: 'attached', timeout: 10_000 });
-    await page.keyboard.type(oldName);
-    await page.keyboard.press('Enter');
-    await waitForQuickInputFirstOption(page);
-    const outputDirectory = activeQuickInputWidget(page).getByRole('option').first();
-    const clickOutputDirectoryContainer = async (): Promise<void> => {
-      // eslint-disable-next-line playwright/no-force-option -- quick-pick row re-renders on filter/highlight, invalidating the hover/actionability check
-      await outputDirectory.click({ force: true });
-    };
-    const clickOutputDirectoryDesktop = async (): Promise<void> => {
-      await expect(outputDirectory).toBeVisible({ timeout: 10_000 });
-      await outputDirectory.click();
-    };
-    await (isContainer ? clickOutputDirectoryContainer : clickOutputDirectoryDesktop)();
-    await page
-      .locator('[role="tab"]')
-      .filter({ hasText: new RegExp(`${oldName}\\.js`, 'i') })
-      .first()
-      .waitFor({ state: 'visible', timeout: 20_000 });
+    await createLwc(page, oldName);
     await saveScreenshot(page, 'rename.create-seeded-bundle.png');
   });
 
@@ -89,12 +54,7 @@ test('LWC Rename: renames an existing bundle via explorer context menu', async (
     await saveScreenshot(page, 'rename.context-menu-fired.png');
 
     // Input box is pre-filled with the old name; fill atomically to avoid select-all/type focus race
-    if (isContainer) {
-      // eslint-disable-next-line playwright/no-force-option -- atomic fill avoids the select-all/type focus race
-      await activeQuickInputTextField(page).fill(newName, { force: true });
-    } else {
-      await activeQuickInputTextField(page).fill(newName);
-    }
+    await activeQuickInputTextField(page).fill(newName);
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'rename.entered-new-name.png');
   });
@@ -121,12 +81,7 @@ test('LWC Rename: renames an existing bundle via explorer context menu', async (
     await executeEditorContextMenuCommand(page, packageNls.rename_lightning_component_text, `${newName}.js`);
     await activeQuickInputWidget(page).waitFor({ state: 'attached', timeout: 10_000 });
     // Input box is pre-filled with the old name; fill atomically to avoid select-all/type focus race
-    if (isContainer) {
-      // eslint-disable-next-line playwright/no-force-option -- atomic fill avoids the select-all/type focus race
-      await activeQuickInputTextField(page).fill(finalName, { force: true });
-    } else {
-      await activeQuickInputTextField(page).fill(finalName);
-    }
+    await activeQuickInputTextField(page).fill(finalName);
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'rename.editor-menu-fired.png');
   });
