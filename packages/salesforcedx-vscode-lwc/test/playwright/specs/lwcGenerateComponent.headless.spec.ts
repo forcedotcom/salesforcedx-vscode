@@ -54,15 +54,9 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
 
     // Step 1: Select template (built-in templates are pinned first: 'default', then 'typeScript', then others)
     await waitForQuickInputFirstOption(page);
-    if (isContainer) {
-      // Click the option rather than selectQuickInputOption — 1.116+ occasionally drops Enter on quick picks (PR #7193).
-      // eslint-disable-next-line playwright/no-force-option -- quick-pick row re-renders on filter/highlight, invalidating the hover/actionability check
-      await activeQuickInputWidget(page).getByRole('option').first().click({ force: true });
-    } else {
-      await saveScreenshot(page, 'step1.component-type-prompt-visible.png');
-      await selectQuickInputOption(page, 'default');
-      await saveScreenshot(page, 'step1.component-type-selected.png');
-    }
+    await saveScreenshot(page, 'step1.component-type-prompt-visible.png');
+    await selectQuickInputOption(page, 'default');
+    await saveScreenshot(page, 'step1.component-type-selected.png');
 
     // Step 2: Enter component name
     await activeQuickInputWidget(page)
@@ -73,16 +67,9 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
 
     // Step 3: Select output directory (click first option instead of Enter)
     await waitForQuickInputFirstOption(page);
-    const selectOutputDirectoryContainer = async (): Promise<void> => {
-      // eslint-disable-next-line playwright/no-force-option -- quick-pick row re-renders on filter/highlight, invalidating the hover/actionability check
-      await activeQuickInputWidget(page).getByRole('option').first().click({ force: true });
-    };
-    const selectOutputDirectoryDesktop = async (): Promise<void> => {
-      const outputDirectory = activeQuickInputWidget(page).getByRole('option').first();
-      await expect(outputDirectory).toBeVisible({ timeout: 10_000 });
-      await outputDirectory.click();
-    };
-    await (isContainer ? selectOutputDirectoryContainer : selectOutputDirectoryDesktop)();
+    const outputDirectory = activeQuickInputWidget(page).getByRole('option').first();
+    await expect(outputDirectory).toBeVisible({ timeout: 10_000 });
+    await outputDirectory.click();
 
     // Step 4: Wait for editor to open with the new component
     await page.locator(EDITOR_WITH_URI).first().waitFor({ state: 'visible', timeout: 20_000 });
