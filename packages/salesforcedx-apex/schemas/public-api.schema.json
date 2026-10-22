@@ -484,44 +484,18 @@
       "additionalProperties": false
     },
     "AsyncTestProgress": {
-      "anyOf": [
-        {
-          "type": "object",
-          "required": ["_tag", "testRunId"],
-          "properties": {
-            "_tag": { "type": "string", "enum": ["Started"] },
-            "testRunId": {
-              "type": "string",
-              "description": "a string starting with \"707\"",
-              "pattern": "^707",
-              "title": "startsWith(\"707\")",
-              "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
-            }
-          },
-          "additionalProperties": false
+      "type": "object",
+      "required": ["_tag", "status", "classesCompleted", "classesEnqueued"],
+      "properties": {
+        "_tag": { "type": "string", "enum": ["Progress"] },
+        "status": {
+          "type": "string",
+          "enum": ["Queued", "Processing", "Aborted", "Failed", "Completed", "Passed", "Skipped"]
         },
-        {
-          "type": "object",
-          "required": ["_tag", "testRunId", "status", "classesCompleted", "classesEnqueued"],
-          "properties": {
-            "_tag": { "type": "string", "enum": ["Progress"] },
-            "testRunId": {
-              "type": "string",
-              "description": "a string starting with \"707\"",
-              "pattern": "^707",
-              "title": "startsWith(\"707\")",
-              "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
-            },
-            "status": {
-              "type": "string",
-              "enum": ["Queued", "Processing", "Aborted", "Failed", "Completed", "Passed", "Skipped"]
-            },
-            "classesCompleted": { "type": "number" },
-            "classesEnqueued": { "type": "number" }
-          },
-          "additionalProperties": false
-        }
-      ]
+        "classesCompleted": { "type": "number" },
+        "classesEnqueued": { "type": "number" }
+      },
+      "additionalProperties": false
     },
     "CodeCoverageResult": {
       "type": "object",

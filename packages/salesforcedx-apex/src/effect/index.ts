@@ -9,4 +9,11 @@ export { ExecuteAnonymousOptionsSchema, ExecuteAnonymousResultSchema, executeAno
 export type { ExecuteAnonymousOptions, ExecuteAnonymousResult } from './executeAnonymous';
 export { ApexOperationError, ApexResponseDecodeError, causeMessage } from './errors';
 export { AsyncTestOptionsSchema, AsyncTestProgressSchema, runTestAsynchronous } from './asyncTests';
-export type { AsyncTestOptions, AsyncTestProgress } from './asyncTests';
+export type {
+  AsyncTestOptions,
+  AsyncTestPollingOptions,
+  AsyncTestProgress,
+  AsyncTestRun,
+  AsyncTestRunEvent,
+  AsyncTestRunSummary
+} from './asyncTests';
