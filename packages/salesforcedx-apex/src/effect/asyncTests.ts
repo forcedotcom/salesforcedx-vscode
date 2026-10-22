@@ -13,7 +13,6 @@ import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
-import type * as Scope from 'effect/Scope';
 import * as Stream from 'effect/Stream';
 import { ApexOperationError, ApexResponseDecodeError, causeMessage } from './errors';
 
@@ -52,8 +51,14 @@ export const AsyncTestOptionsSchema = Schema.Struct({
 }).annotations({ identifier: 'AsyncTestOptions' });
 export type AsyncTestOptions = typeof AsyncTestOptionsSchema.Type;
 
+/** Override the default two-second delay between status queries. */
+export type AsyncTestPollingOptions = {
+  interval?: Duration.DurationInput;
+};
+
+const runStatusSchema = Schema.Literal('Queued', 'Processing', 'Aborted', 'Failed', 'Completed', 'Passed', 'Skipped');
 const summarySchema = Schema.Struct({
-  Status: Schema.Literal('Queued', 'Processing', 'Aborted', 'Failed', 'Completed', 'Passed', 'Skipped'),
+  Status: runStatusSchema,
   ClassesCompleted: Schema.Number,
   ClassesEnqueued: Schema.Number
 });
@@ -70,18 +75,29 @@ const queueSchema = Schema.Union(
 );
 const updateResultSchema = Schema.Struct({ success: Schema.Boolean });
 const finishedStatuses = HashSet.make('Aborted', 'Failed', 'Completed', 'Passed', 'Skipped');
+const DEFAULT_POLL_INTERVAL = Duration.seconds(2);
 
 /** Progress values contain domain data, not UI messages or VS Code progress shapes. */
-export const AsyncTestProgressSchema = Schema.Union(
-  Schema.TaggedStruct('Started', { testRunId: testRunIdSchema }),
-  Schema.TaggedStruct('Progress', {
-    testRunId: testRunIdSchema,
-    status: summarySchema.fields.Status,
-    classesCompleted: Schema.Number,
-    classesEnqueued: Schema.Number
-  })
-).annotations({ identifier: 'AsyncTestProgress' });
+export const AsyncTestProgressSchema = Schema.TaggedStruct('Progress', {
+  status: runStatusSchema,
+  classesCompleted: Schema.Number,
+  classesEnqueued: Schema.Number
+}).annotations({ identifier: 'AsyncTestProgress' });
 export type AsyncTestProgress = typeof AsyncTestProgressSchema.Type;
+
+export type AsyncTestRunSummary = Omit<AsyncTestProgress, '_tag'>;
+
+/** Progress updates followed by the terminal run summary. */
+export type AsyncTestRunEvent =
+  | AsyncTestProgress
+  | { _tag: 'Result'; testRunId: typeof testRunIdSchema.Type; result: AsyncTestRunSummary };
+
+/** The accepted Salesforce run ID and its lazy progress/result stream. */
+export type AsyncTestRun = {
+  readonly id: typeof testRunIdSchema.Type;
+  readonly stream: Stream.Stream<AsyncTestRunEvent, ApexOperationError | ApexResponseDecodeError>;
+  readonly cancel: () => Effect.Effect<void, ApexOperationError | ApexResponseDecodeError>;
+};
 
 const request = <A>(action: () => PromiseLike<A>) =>
   Effect.tryPromise({
@@ -150,64 +166,84 @@ const abortTestRun = Effect.fn('Apex.abortTestRun')(function* (
   );
 });
 
-/**
- * Submits a test run when consumed, then polls until its terminal status.
- * Consume inside Effect.scoped. Closing that scope before completion aborts unfinished queue items.
- * Submission and cleanup are uninterruptible so interruption cannot lose an accepted run ID. Use exitOnTestRunId to
- * detach intentionally; caller deadlines cannot interrupt pending submission or cleanup. Callers own result/coverage retrieval.
- */
-export const runTestAsynchronous = (
+const cancelTestRun = Effect.fn('Apex.cancelTestRun')(function* (
+  connection: Connection,
+  testRunId: typeof testRunIdSchema.Type,
+  pending: Ref.Ref<boolean>
+) {
+  const shouldAbort = yield* Ref.getAndSet(pending, false);
+  if (!shouldAbort) return;
+
+  yield* abortTestRun(connection, testRunId).pipe(Effect.tapError(() => Ref.set(pending, true)));
+});
+
+const pollTestRun = (
+  connection: Connection,
+  testRunId: typeof testRunIdSchema.Type,
+  polling: AsyncTestPollingOptions,
+  pending: Ref.Ref<boolean>
+): AsyncTestRun['stream'] =>
+  Stream.repeatEffectWithSchedule(
+    request(() =>
+      connection.tooling.query(
+        `SELECT Status, ClassesCompleted, ClassesEnqueued FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`
+      )
+    ).pipe(
+      Effect.flatMap(response => decode(summariesSchema, response)),
+      Effect.map(
+        ({ records: [summary] }): AsyncTestProgress => ({
+          _tag: 'Progress',
+          status: summary.Status,
+          classesCompleted: summary.ClassesCompleted,
+          classesEnqueued: summary.ClassesEnqueued
+        })
+      )
+    ),
+    Schedule.spaced(polling.interval ?? DEFAULT_POLL_INTERVAL)
+  ).pipe(
+    Stream.takeUntil(event => HashSet.has(finishedStatuses, event.status)),
+    Stream.flatMap(
+      (event): Stream.Stream<AsyncTestRunEvent, ApexOperationError | ApexResponseDecodeError> =>
+        HashSet.has(finishedStatuses, event.status)
+          ? Stream.fromEffect(
+              Ref.set(pending, false).pipe(
+                Effect.as({
+                  _tag: 'Result',
+                  testRunId,
+                  result: {
+                    status: event.status,
+                    classesCompleted: event.classesCompleted,
+                    classesEnqueued: event.classesEnqueued
+                  }
+                } as const)
+              )
+            )
+          : Stream.succeed(event)
+    ),
+    Stream.withSpan('Apex.pollTestRun')
+  );
+
+/** Submit an async run; poll lazily and abort it if the enclosing scope closes before the stream finishes. */
+export const runTestAsynchronous = Effect.fn('Apex.runTestAsynchronous')(function* (
   connection: Connection,
   options: AsyncTestOptions,
-  polling: { interval?: Duration.DurationInput; exitOnTestRunId?: boolean } = {}
-): Stream.Stream<AsyncTestProgress, ApexOperationError | ApexResponseDecodeError, Scope.Scope> =>
-  Stream.unwrap(
-    Effect.gen(function* () {
-      const pending = yield* Ref.make(!polling.exitOnTestRunId);
-      const testRunId = yield* Effect.acquireRelease(
-        request(() =>
-          connection.tooling.request({
-            method: 'POST',
-            url: `${connection.tooling._baseUrl()}/runTestsAsynchronous`,
-            body: JSON.stringify(options),
-            headers: { 'content-type': 'application/json' }
-          })
-        ).pipe(Effect.flatMap(response => decode(testRunIdSchema, response))),
-        id =>
-          Ref.get(pending).pipe(
-            Effect.flatMap(shouldAbort => (shouldAbort ? abortTestRun(connection, id).pipe(Effect.orDie) : Effect.void))
-          )
-      );
-      const started: AsyncTestProgress = { _tag: 'Started', testRunId };
-      if (polling.exitOnTestRunId) return Stream.succeed(started);
-
-      return Stream.succeed(started).pipe(
-        Stream.concat(
-          Stream.repeatEffectWithSchedule(
-            request(() =>
-              connection.tooling.query(
-                `SELECT Status, ClassesCompleted, ClassesEnqueued FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`
-              )
-            ).pipe(
-              Effect.flatMap(response => decode(summariesSchema, response)),
-              Effect.tap(({ records: [summary] }) =>
-                HashSet.has(finishedStatuses, summary.Status) ? Ref.set(pending, false) : Effect.void
-              ),
-              Effect.map(
-                ({ records: [summary] }): AsyncTestProgress => ({
-                  _tag: 'Progress',
-                  testRunId,
-                  status: summary.Status,
-                  classesCompleted: summary.ClassesCompleted,
-                  classesEnqueued: summary.ClassesEnqueued
-                })
-              )
-            ),
-            Schedule.spaced(polling.interval ?? Duration.seconds(1))
-          ).pipe(
-            Stream.takeUntil(progress => progress._tag === 'Progress' && HashSet.has(finishedStatuses, progress.status))
-          )
-        )
-      );
-    })
-  ).pipe(Stream.withSpan('Apex.runTestAsynchronous'));
+  polling: AsyncTestPollingOptions = {}
+) {
+  const pending = yield* Ref.make(true);
+  const id = yield* Effect.acquireRelease(
+    request(() =>
+      connection.tooling.request({
+        method: 'POST',
+        url: `${connection.tooling._baseUrl()}/runTestsAsynchronous`,
+        body: JSON.stringify(options),
+        headers: { 'content-type': 'application/json' }
+      })
+    ).pipe(Effect.flatMap(response => decode(testRunIdSchema, response))),
+    testRunId => cancelTestRun(connection, testRunId, pending).pipe(Effect.orDie)
+  );
+  return {
+    id,
+    stream: pollTestRun(connection, id, polling, pending),
+    cancel: () => cancelTestRun(connection, id, pending)
+  } satisfies AsyncTestRun;
+});
