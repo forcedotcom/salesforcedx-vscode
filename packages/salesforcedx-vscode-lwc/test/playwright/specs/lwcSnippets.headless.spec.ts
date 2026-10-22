@@ -33,7 +33,7 @@ import { createLwcViaSfdxCommand } from '../utils/lwcUtils';
 import { disableDeployOnSaveWeb } from '../utils/lwcWebScratchAuth';
 
 /**
- * Desktop: Quick Open works against the real filesystem; the desktop fixture seeds `snippetsE2E`.
+ * Desktop: Quick Open works against the real filesystem.
  * Web and Code Builder container: the file system provider (`@vscode/test-web`-style, or the container's
  * browser-flavored Page) does not implement `provideFileSearch`, so Quick Open returns "No matching
  * results" for files that have not been opened. Navigate the Files Explorer tree instead.
@@ -68,17 +68,13 @@ const dismissEditorOverlays = async (page: Page): Promise<void> => {
     .catch(() => {});
 };
 
-test('LWC snippets: Insert Snippet applies lwc-button in HTML', async ({ page }, testInfo) => {
+test('LWC snippets: Insert Snippet applies lwc-button in HTML', async ({ page }) => {
   test.setTimeout(120_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
-  // Unique per-run name: the container drives a single sequential workbench, so a fixed name would
-  // collide with a bundle another spec (or an earlier run) already created.
-  const bundleName = isContainer
-    ? `snippetsHtml${Date.now()}`
-    : isDesktop()
-      ? 'snippetsE2E'
-      : `snippetsHtml${testInfo.workerIndex}${Date.now()}`;
+  // Unique per-run name: the container's shared workbench would otherwise collide with a bundle another
+  // spec (or an earlier run) already created. Harmless where each test gets a fresh workspace.
+  const bundleName = `snippetsHtml${Date.now()}`;
 
   await test.step('wait for Salesforce project workspace', async () => {
     // The containerTest fixture already awaited workbench readiness before handing over `page`.
@@ -98,11 +94,9 @@ test('LWC snippets: Insert Snippet applies lwc-button in HTML', async ({ page },
     await saveScreenshot(page, 'lwc-snippets-html.workspace-ready.png');
   });
 
-  await test.step('ensure LWC bundle exists (web/container: create via palette)', async () => {
-    if (isContainer || !isDesktop()) {
-      await createLwcViaSfdxCommand(page, bundleName);
-      await saveScreenshot(page, 'lwc-snippets-html.after-create-lwc.png');
-    }
+  await test.step('create LWC bundle via palette', async () => {
+    await createLwcViaSfdxCommand(page, bundleName);
+    await saveScreenshot(page, 'lwc-snippets-html.after-create-lwc.png');
   });
 
   await test.step('open component HTML', async () => {
@@ -142,16 +136,12 @@ test('LWC snippets: Insert Snippet applies lwc-button in HTML', async ({ page },
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
 
-test('LWC snippets: JS completion inserts lwc-event body', async ({ page }, testInfo) => {
+test('LWC snippets: JS completion inserts lwc-event body', async ({ page }) => {
   test.setTimeout(180_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
   // Unique per-run name (see HTML test above).
-  const bundleName = isContainer
-    ? `snippetsJs${Date.now()}`
-    : isDesktop()
-      ? 'snippetsE2E'
-      : `snippetsJs${testInfo.workerIndex}${Date.now()}`;
+  const bundleName = `snippetsJs${Date.now()}`;
 
   await test.step('wait for Salesforce project workspace', async () => {
     // The containerTest fixture already awaited workbench readiness before handing over `page`.
@@ -169,11 +159,9 @@ test('LWC snippets: JS completion inserts lwc-event body', async ({ page }, test
     await saveScreenshot(page, 'lwc-snippets-js.workspace-ready.png');
   });
 
-  await test.step('ensure LWC bundle exists (web/container: create via palette)', async () => {
-    if (isContainer || !isDesktop()) {
-      await createLwcViaSfdxCommand(page, bundleName);
-      await saveScreenshot(page, 'lwc-snippets-js.after-create-lwc.png');
-    }
+  await test.step('create LWC bundle via palette', async () => {
+    await createLwcViaSfdxCommand(page, bundleName);
+    await saveScreenshot(page, 'lwc-snippets-js.after-create-lwc.png');
   });
 
   await test.step('open component JS', async () => {
