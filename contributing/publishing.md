@@ -1,6 +1,8 @@
 # Publishing
 
 > For an automated, agent-assisted walkthrough of these steps, see [.claude/skills/release/SKILL.md](../.claude/skills/release/SKILL.md).
+> For the weekly release-manager schedule, QA artifact selection, and recovery
+> of failed prerequisites, see [Release Testing Guide](../docs/release-testing-guide.md).
 
 This is a guide for publishing to the Visual Studio Code Marketplace and the Open VSX Registry. Most contributors will not need to worry about publishing. However, it might be worthwhile familiarizing yourself with the steps in case you need to share the extensions through the .vsix files.
 
@@ -21,7 +23,7 @@ References:
 
 ## Build Release from Prerelease
 
-Manual workflow [`build-github-release.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/build-github-release.yml) builds release VSIXs from promoted prerelease tags. Auto-detects latest nightly tag + bumps minor, or accepts manual overrides. Emergency pre-release mode auto-calculates patch from registries if empty.
+[`build-github-release.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/build-github-release.yml) builds stable-candidate VSIXs from a published marketplace prerelease. The scheduled run is Wednesday at 07:00 UTC and consumes the prior week's promoted nightly; the 08:00 UTC prerelease promotion creates the input for the following week's stable build. Auto-detection resolves the newest valid `marketplace-prerelease-*` tracking tag and bumps the nightly minor. Manual overrides are for controlled recovery or emergency use.
 
 Inputs:
 - `prereleaseTag`: promoted prerelease tag (e.g., `v67.11.1-nightly.develop.20260812`); auto-detect if empty (loops through `marketplace-prerelease-*` tracking tags newest-first, uses first one that resolves to a real nightly tag)
