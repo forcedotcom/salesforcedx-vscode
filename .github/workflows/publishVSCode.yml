@@ -186,6 +186,8 @@ jobs:
     secrets: inherit
     with:
       changeCaseId: ${{needs.ctc-open.outputs.changeCaseId}}
+      package-manager: pnpm
+      package-manager-version: ''
 
   ctcCloseFail:
     needs: [ctc-open, publish]
@@ -195,6 +197,8 @@ jobs:
     with:
       changeCaseId: ${{ needs.ctc-open.outputs.changeCaseId }}
       status: Not Implemented
+      package-manager: pnpm
+      package-manager-version: ''
 
   # promote-to-prerelease.yml committed this week's changelog delta to develop
   # labeled with the prerelease version. Now that it has shipped stable, relabel that same
