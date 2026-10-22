@@ -36,10 +36,10 @@ test('LWC LSP Go to Definition navigates from HTML property binding to JS class 
 
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
-  // Unique per-run name: the container drives a single sequential workbench, so a fixed name would
-  // collide with a bundle another spec (or an earlier run) already created.
+  // Unique per-run name: the container's shared workbench would otherwise collide with a bundle another
+  // spec (or an earlier run) already created. Harmless where each test gets a fresh workspace.
   // The `gtdHtmlComp` prefix triggers the greeting/{greeting} template seed in createLwc.
-  const componentName = isContainer ? `gtdHtmlComp${Date.now()}` : 'gtdHtmlComp';
+  const componentName = `gtdHtmlComp${Date.now()}`;
   const htmlFile = `${componentName}.html`;
   const jsFile = `${componentName}.js`;
 

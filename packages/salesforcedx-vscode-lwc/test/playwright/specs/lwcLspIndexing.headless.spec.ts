@@ -29,9 +29,9 @@ test('LWC LSP finishes indexing and shows status in status bar', async ({ page }
 
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
-  // Unique per-run name: the container drives a single sequential workbench, so a fixed name would
-  // collide with a bundle another spec (or an earlier run) already created.
-  const componentName = isContainer ? `indexComp${Date.now()}` : 'indexComp';
+  // Unique per-run name: the container's shared workbench would otherwise collide with a bundle another
+  // spec (or an earlier run) already created. Harmless where each test gets a fresh workspace.
+  const componentName = `indexComp${Date.now()}`;
   const htmlFile = `${componentName}.html`;
 
   await test.step('create Lightning Web Component', async () => {

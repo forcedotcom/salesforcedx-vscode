@@ -29,9 +29,9 @@ test('LWC LSP writes SFDX typings under .sfdx/typings/lwc with expected module h
 
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
-  // Unique per-run name: the container drives a single sequential workbench, so a fixed name would
-  // collide with a bundle another spec (or an earlier run) already created.
-  const componentName = isContainer ? `typingsProbe${Date.now()}` : 'typingsProbe';
+  // Unique per-run name: the container's shared workbench would otherwise collide with a bundle another
+  // spec (or an earlier run) already created. Harmless where each test gets a fresh workspace.
+  const componentName = `typingsProbe${Date.now()}`;
 
   await test.step('create bundle and wait for LSP indexing (triggers typings copy into workspace)', async () => {
     await createLwc(page, componentName);

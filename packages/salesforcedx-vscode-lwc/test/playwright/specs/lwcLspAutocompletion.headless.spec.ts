@@ -34,9 +34,9 @@ test('LWC LSP provides autocompletion for lightning-* base components in HTML te
 
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
-  // Unique per-run name: the container drives a single sequential workbench, so a fixed name would
-  // collide with a bundle another spec (or an earlier run) already created.
-  const componentName = isContainer ? `autoComp${Date.now()}` : 'autoComp';
+  // Unique per-run name: the container's shared workbench would otherwise collide with a bundle another
+  // spec (or an earlier run) already created. Harmless where each test gets a fresh workspace.
+  const componentName = `autoComp${Date.now()}`;
   const htmlFile = `${componentName}.html`;
 
   await test.step('create Lightning Web Component', async () => {
