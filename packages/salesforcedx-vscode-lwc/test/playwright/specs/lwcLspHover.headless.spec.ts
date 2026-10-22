@@ -44,9 +44,9 @@ test('LWC LSP provides hover documentation for lightning-accordion in HTML templ
 
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
-  // Unique per-run name: the container drives a single sequential workbench, so a fixed name would
-  // collide with a bundle another spec (or an earlier run) already created.
-  const componentName = isContainer ? `hoverHtmlComp${Date.now()}` : 'hoverHtmlComp';
+  // Unique per-run name: the container's shared workbench would otherwise collide with a bundle another
+  // spec (or an earlier run) already created. Harmless where each test gets a fresh workspace.
+  const componentName = `hoverHtmlComp${Date.now()}`;
   const htmlFile = `${componentName}.html`;
 
   await test.step('create Lightning Web Component', async () => {
@@ -108,9 +108,9 @@ test('LWC LSP provides hover type information for LightningElement in JS files',
 
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
-  // Unique per-run name: the container drives a single sequential workbench, so a fixed name would
-  // collide with a bundle another spec (or an earlier run) already created.
-  const componentName = isContainer ? `hoverJsComp${Date.now()}` : 'hoverJsComp';
+  // Unique per-run name: the container's shared workbench would otherwise collide with a bundle another
+  // spec (or an earlier run) already created. Harmless where each test gets a fresh workspace.
+  const componentName = `hoverJsComp${Date.now()}`;
   const htmlFile = `${componentName}.html`;
   const jsFile = `${componentName}.js`;
 

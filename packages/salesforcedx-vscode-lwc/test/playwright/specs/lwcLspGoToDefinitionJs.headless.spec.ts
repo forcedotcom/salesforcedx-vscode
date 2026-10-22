@@ -52,9 +52,9 @@ test('LWC LSP Go to Definition navigates from JS import to engine.d.ts LWC modul
 
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
-  // Unique per-run name: the container drives a single sequential workbench, so a fixed name would
-  // collide with a bundle another spec (or an earlier run) already created.
-  const componentName = isContainer ? `gtdJsComp${Date.now()}` : 'gtdJsComp';
+  // Unique per-run name: the container's shared workbench would otherwise collide with a bundle another
+  // spec (or an earlier run) already created. Harmless where each test gets a fresh workspace.
+  const componentName = `gtdJsComp${Date.now()}`;
   const htmlFile = `${componentName}.html`;
   const jsFile = `${componentName}.js`;
 

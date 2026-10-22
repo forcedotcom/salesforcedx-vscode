@@ -37,9 +37,9 @@ test('New LWC bundle updates .sfdx/indexes/lwc/custom-components.json without re
 
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
-  // Unique per-run name: the container drives a single sequential workbench, so a fixed name would
-  // collide with a bundle another spec (or an earlier run) already created.
-  const bundleCamel = isContainer ? `idxCmp${Date.now()}` : 'idxCmp';
+  // Unique per-run name: the container's shared workbench would otherwise collide with a bundle another
+  // spec (or an earlier run) already created. Harmless where each test gets a fresh workspace.
+  const bundleCamel = `idxCmp${Date.now()}`;
 
   await test.step('create a bundle and wait for LWC language server indexing', async () => {
     await createLwc(page, bundleCamel);
