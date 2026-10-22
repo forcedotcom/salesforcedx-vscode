@@ -7,9 +7,4 @@
 import { defineConfig } from '@playwright/test';
 import { createWebConfig } from '@salesforce/playwright-vscode-ext';
 
-// Also ignore container specs: this per-package testIgnore overrides createWebConfig's, so it must
-// re-list the container exclusion or web would run *.container.spec.ts (which need code-server).
-export default defineConfig({
-  ...createWebConfig({ testDir: './specs' }),
-  testIgnore: ['**/*.desktop.spec.ts', '**/*.container.spec.ts']
-});
+export default defineConfig({ ...createWebConfig({ testDir: './specs' }), testIgnore: ['**/*.desktop.spec.ts'] });
