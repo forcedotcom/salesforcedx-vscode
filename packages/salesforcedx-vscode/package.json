@@ -30,7 +30,7 @@
   },
   "wireit": {
     "vscode:package": {
-      "command": "vsce package --no-dependencies",
+      "command": "vsce package --no-dependencies --no-gitHubIssueLinking",
       "files": [
         "package.json",
         "images/**",
@@ -43,7 +43,7 @@
       ]
     },
     "vscode:package:prerelease": {
-      "command": "vsce package --no-dependencies --pre-release",
+      "command": "vsce package --no-dependencies --pre-release --no-gitHubIssueLinking",
       "files": [
         "package.json",
         "images/**",
