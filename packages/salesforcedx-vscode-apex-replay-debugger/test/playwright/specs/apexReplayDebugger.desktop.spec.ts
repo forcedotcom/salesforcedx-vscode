@@ -8,11 +8,14 @@ import { expect } from '@playwright/test';
 import {
   APEX_TRACE_FLAG_STATUS_BAR,
   clearOutputChannel,
+  closeAllEditors,
   createAndOpenApexScript,
   createApexClass,
+  EDITOR_WITH_URI,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  hidePanel,
   NOTIFICATION_LIST_ITEM,
   openFileByName,
   QUICK_INPUT_WIDGET,
@@ -26,6 +29,8 @@ import {
   validateNoCriticalErrors,
   waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
+import { unlink } from 'node:fs/promises';
+import { join } from 'node:path';
 
 import apexLogNls from 'salesforcedx-vscode-apex-log/package.nls.json';
 import metadataNls from 'salesforcedx-vscode-metadata/package.nls.json';
@@ -33,7 +38,7 @@ import packageNls from '../../../package.nls.json';
 import { test } from '../fixtures';
 import { continueDebugSession } from '../helpers/debugHelpers';
 
-test('Apex Replay Debugger: trace flag, exec anon, replay from log and test class', async ({ page }) => {
+test('Apex Replay Debugger: trace flag, exec anon, replay from log and test class', async ({ page, workspaceDir }) => {
   test.setTimeout(600_000);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
@@ -41,6 +46,7 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
   const exampleClassContent = [
     'public with sharing class ExampleApexClass {',
     '  public static void SayHello(string name){',
+    '    OrgOnlyReplayClass.run();',
     "    System.debug('Hello, ' + name + '!');",
     '  }',
     '}'
@@ -63,6 +69,17 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
     await setupMinimalOrgAndAuth(page);
     await ensureSecondarySideBarHidden(page);
     await createApexClass(page, 'ExampleApexClass', exampleClassContent);
+    await createApexClass(
+      page,
+      'OrgOnlyReplayClass',
+      [
+        'public class OrgOnlyReplayClass {',
+        '  public static void run() {',
+        "    System.debug('org-only replay source');",
+        '  }',
+        '}'
+      ].join('\n')
+    );
     await createApexClass(page, 'ExampleApexClassTest', exampleTestContent);
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata');
@@ -83,6 +100,17 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
     const codelens = page.locator('.codelens-decoration a').filter({ hasText: /Run Test|Debug Test/ });
     await expect(codelens.first()).toBeVisible({ timeout: 90_000 });
     await saveScreenshot(page, 'step.codelens-visible.png');
+  });
+
+  await test.step('remove the deployed OrgOnlyReplayClass from the workspace', async () => {
+    await closeAllEditors(page);
+    const classPath = join(workspaceDir, 'force-app', 'main', 'default', 'classes', 'OrgOnlyReplayClass.cls');
+    await unlink(classPath);
+    await unlink(`${classPath}-meta.xml`);
+    await expect(
+      page.getByRole('treeitem', { name: 'OrgOnlyReplayClass.cls', exact: true }),
+      'org-only source must not remain in the workspace'
+    ).toHaveCount(0);
   });
 
   await test.step('remove all debug levels so ReplayDebuggerLevels is auto-created', async () => {
@@ -131,7 +159,18 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
     await saveScreenshot(page, 'step.exec-anon-done.png');
   });
 
-  await test.step('launch replay debugger with current file (log)', async () => {
+  await test.step('set a workspace breakpoint before the org-only call', async () => {
+    await openFileByName(page, 'ExampleApexClass.cls');
+    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="ExampleApexClass.cls"]`);
+    await editor.locator('.view-line').filter({ hasText: 'OrgOnlyReplayClass.run();' }).click();
+    await page.keyboard.press('F9');
+    await expect(
+      page.locator('div.codicon-debug-breakpoint').first(),
+      'workspace breakpoint should be set'
+    ).toBeVisible();
+  });
+
+  await test.step('launch replay from the log and open the matching org-only frame source', async () => {
     // Click the debug.log tab directly to make it the active editor.
     // launchApexReplayDebuggerWithCurrentFile reads activeTextEditor and only calls
     // updateLastOpened (setting LAST_OPENED_LOG_KEY) when the active file is a .log file.
@@ -139,7 +178,28 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log and test clas
     const logTab = page.locator('.tab').filter({ hasText: /debug\.log/ });
     await expect(logTab).toBeVisible({ timeout: 10_000 });
     await logTab.click();
+    await hidePanel(page);
     await executeCommandWithCommandPalette(page, packageNls.launch_apex_replay_debugger_with_selected_file as string);
+    await expect(page.locator('.debug-toolbar'), 'replay should pause on entry').toBeVisible({ timeout: 30_000 });
+    await page.keyboard.press('F5');
+    const localFrame = page
+      .locator('.debug-call-stack .monaco-list-row')
+      .filter({ hasText: 'ExampleApexClass.SayHello' });
+    await expect(localFrame.first(), 'replay should stop before the org-only call').toBeVisible({ timeout: 30_000 });
+    await page.keyboard.press('F11');
+    const orgFrame = page
+      .locator('.debug-call-stack .monaco-list-row')
+      .filter({ hasText: 'OrgOnlyReplayClass.OrgOnlyReplayClass()' });
+    await orgFrame.click();
+    const orgEditor = page.locator(`${EDITOR_WITH_URI}[data-uri^="sf-org-metadata:"]`);
+    await expect(orgEditor, 'stack frame should open the catalog URI for OrgOnlyReplayClass').toHaveAttribute(
+      'data-uri',
+      /^sf-org-metadata:\/orgs\/00D\w+\/ApexClass\/OrgOnlyReplayClass\.cls$/,
+      { timeout: 30_000 }
+    );
+    await expect(orgEditor, 'catalog source should contain the deployed class body').toContainText(
+      "System.debug('org-only replay source');"
+    );
     await continueDebugSession(page);
   });
 

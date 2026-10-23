@@ -17,6 +17,7 @@ import { getDialogStartingPath, updateLastOpened } from '../activation/getDialog
 import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '../debuggerConstants';
 import { nls } from '../messages';
 import { fetchHeapDumpOverlayResults } from '../services/heapDumpOverlayFetch';
+import { resolveReplaySourceUris } from '../services/replaySourceUris';
 import { getRuntime } from '../services/runtime';
 
 const LOG_FILE_PROMPT = '${command:AskForLogFileName}';
@@ -25,6 +26,10 @@ type SelectedLogFile = {
   readonly contents: string;
   readonly path: string;
   readonly name: string;
+};
+
+type ReplayDebugConfiguration = vscode.DebugConfiguration & {
+  lineBreakpointInfo?: Awaited<ReturnType<ApexVSCodeApi['getLineBreakpointInfo']>>;
 };
 
 const selectLogFile = Effect.fn('ApexReplayDebugger.selectLogFile')(function* (
@@ -104,7 +109,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
   }
 
   private async asyncDebugConfig(
-    config: vscode.DebugConfiguration,
+    config: ReplayDebugConfiguration,
     selectedLogFile: SelectedLogFile | undefined
   ): Promise<vscode.DebugConfiguration | undefined> {
     config.name = config.name || nls.localize('config_name_text');
@@ -160,6 +165,9 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     if (logFileContents === undefined) {
       return config;
     }
+    config.sourceUriMapping = await getRuntime().runPromise(
+      resolveReplaySourceUris(logFileContents, config.lineBreakpointInfo ?? [])
+    );
     if (logFileContents.includes('|HEAP_DUMP|')) {
       config.heapDumpResults = await resolveHeapDumpResults(logFileContents);
     }
