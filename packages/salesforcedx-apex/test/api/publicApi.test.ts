@@ -32,12 +32,9 @@ describe('@salesforce/apex-node public API', () => {
       'ApexCompileError',
       'ApexOperationError',
       'ApexResponseDecodeError',
-<<<<<<< HEAD
+      'ApexRuntimeError',
       'AsyncTestOptionsSchema',
       'AsyncTestProgressSchema',
-=======
-      'ApexRuntimeError',
->>>>>>> origin/sm/W-23839366
       'ExecuteAnonymousOptionsSchema',
       'ExecuteAnonymousOutcomeSchema',
       'causeMessage',

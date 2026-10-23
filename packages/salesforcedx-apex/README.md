@@ -74,7 +74,6 @@ const result = await Effect.runPromise(operation.pipe(Effect.provide(connectionL
 
 A fixed layer captures its connection when constructed. An extension that needs the current default org should resolve the connection for each operation, as in the services example.
 
-<<<<<<< HEAD
 ### Asynchronous test execution
 
 `runTestAsynchronous(connection, options, polling?)` returns a lazy, scoped Stream. Consuming it submits the Tooling API request, emits `Started` with the test run ID, then polls `ApexTestRunResult`. Each `Progress` value contains the status and completed/enqueued class counts. The terminal status is emitted before the stream ends. Request and malformed-response failures use `ApexOperationError` and `ApexResponseDecodeError`.
@@ -96,7 +95,7 @@ The caller owns the scope. Interruption stops polling; closing the scope before 
 Polling defaults to one second; `polling.interval` accepts an Effect `DurationInput`. There is no CometD fallback. Consumers own deadlines (for example, `Effect.timeout` around `run`) and UI formatting. Once submission settles and the run ID is known, a deadline stops polling, closes the scope, and waits for unfinished tests to be aborted; it does not detach the run. A deadline cannot interrupt a pending submission or cleanup, so it does not bound the total duration of `run`. To intentionally leave tests running, use `{ exitOnTestRunId: true }`, which emits only `Started` without polling or aborting. This API reports execution progress; result formatting, coverage, and file output remain separate operations.
 
 For the next major, the Promise API keeps `CancellationTokenSource` and its minimal cancellation contract because [plugin-apex](https://github.com/salesforcecli/plugin-apex/blob/c8fdf7073ce194deb75fc7fd12c0b981ee2b97f4/src/shared/TestRunService.ts) and [plugin-flow](https://github.com/salesforcecli/plugin-flow/blob/37032aadfd665266184a7f71b18b133e1b55e25f/src/commands/flow/run/test.ts) use them. The generic, VS Code-derived `Progress<T>` export is removed; Promise test methods instead accept the concrete `ApexTestProgressReporter` (`{ report(value: ApexTestProgressValue): void }`). Existing reporter objects need no runtime changes. Neither cancellation tokens nor reporter callbacks are used by the Effect API.
-=======
+
 ### Execute anonymous input migration
 
 The Effect API requires `{ apexCode: string }` and never reads files or terminal input. `ExecuteService.executeAnonymous` accepts `{ apexCode: string | Buffer }` and retains the existing `apexFilePath` and `userInput` options for CLI compatibility. Explicit source content takes precedence; an empty source string is submitted to Salesforce for validation.
@@ -112,7 +111,6 @@ const result = await new ExecuteService(connection).executeAnonymous({ apexCode 
 The [CLI command at c8fdf707](https://github.com/salesforcecli/plugin-apex/blob/c8fdf7073ce194deb75fc7fd12c0b981ee2b97f4/src/commands/apex/run.ts) still passes `apexFilePath` or `userInput`. The class retains those reads, the input prompt, per-line 60-second idle timeout, platform line endings, and input-error messages. **Do not remove these options until the CLI reads `--file` or stdin itself, passes `apexCode`, and verifies file, piped-input, interactive-input, timeout, and error cases.** That consumer migration is not included here; this change preserves its existing input contract.
 
 The Effect API returns a success-only outcome. Compilation and runtime failures use `ApexCompileError` and `ApexRuntimeError`, carrying host-neutral line/column, diagnostic text, and any debug log; malformed SOAP produces `ApexResponseDecodeError`. `ExecuteService` adapts compile/runtime errors back to the CLI's `compiled`, `success`, `logs`, and `diagnostic` response, while other errors remain rejected Promises with plain messages. The VS Code services adapter handles the typed execution failures as diagnostic data for its editor and output-channel contract.
->>>>>>> origin/sm/W-23839366
 
 ## Getting Started
 
