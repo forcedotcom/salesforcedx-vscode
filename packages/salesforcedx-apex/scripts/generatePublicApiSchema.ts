@@ -50,6 +50,8 @@ import {
   ApexOperationError,
   ApexResponseDecodeError,
   ApexRuntimeError,
+  AsyncTestOptionsSchema,
+  AsyncTestProgressSchema,
   ExecuteAnonymousOptionsSchema,
   ExecuteAnonymousOutcomeSchema
 } from '../src/effect';
@@ -416,6 +418,8 @@ const PublicApiSchema = Schema.Union(
   ApexRuntimeError,
   AsyncTestArrayConfigurationSchema,
   AsyncTestConfigurationSchema,
+  AsyncTestOptionsSchema,
+  AsyncTestProgressSchema,
   CodeCoverageResultSchema,
   CommonOptionsSchema,
   ExecuteAnonymousOptionsSchema,

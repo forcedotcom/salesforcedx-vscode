@@ -33,10 +33,13 @@ describe('@salesforce/apex-node public API', () => {
       'ApexOperationError',
       'ApexResponseDecodeError',
       'ApexRuntimeError',
+      'AsyncTestOptionsSchema',
+      'AsyncTestProgressSchema',
       'ExecuteAnonymousOptionsSchema',
       'ExecuteAnonymousOutcomeSchema',
       'causeMessage',
-      'executeAnonymous'
+      'executeAnonymous',
+      'runTestAsynchronous'
     ]);
   });
 

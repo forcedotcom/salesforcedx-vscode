@@ -15,16 +15,16 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import * as util from 'node:util';
-import { type CancellationToken, type Progress } from '../common';
 import { nls } from '../i18n';
 import { isValidTestRunID } from '../narrowing';
-import { type AsyncTestRun, StreamingClient } from '../streaming';
+import { type AsyncTestRun } from '../streaming';
 import { elapsedTime, formatStartTime, getCurrentTime, HeapMonitor } from '../utils';
+import { type CancellationToken } from './cancellation';
 import { CodeCoverage } from './codeCoverage';
 import { QUERY_RECORD_LIMIT } from './constants';
 import { formatTestErrors, getDiagnostic } from './diagnosticUtil';
 import {
-  type ApexTestProgressValue,
+  type ApexTestProgressReporter,
   type ApexTestQueueItem,
   type ApexTestQueueItemRecord,
   type ApexTestResult,
@@ -84,7 +84,7 @@ export class AsyncTests {
     options: AsyncTestConfiguration | AsyncTestArrayConfiguration,
     codeCoverage = false,
     exitOnTestRunId = false,
-    progress?: Progress<ApexTestProgressValue>,
+    progress?: ApexTestProgressReporter,
     token?: CancellationToken,
     timeout?: Duration,
     interval: Duration = POLLING_FREQUENCY
@@ -233,29 +233,47 @@ export class AsyncTests {
   ): Promise<TestResult> {
     HeapMonitor.getInstance().checkHeapSize('asyncTests.reportAsyncResults');
     try {
-      const sClient = new StreamingClient(this.connection);
-      await sClient.init();
-      await sClient.handshake();
-      let queueItem: ApexTestQueueItem | null;
-      let runResult = await this.checkRunStatus(testRunId);
-
-      if (runResult.testsComplete) {
-        queueItem = await sClient.handler(undefined, testRunId);
-      } else {
-        queueItem = ((await sClient.subscribe(undefined, testRunId)) as AsyncTestRun).queueItem;
-        runResult = await this.checkRunStatus(testRunId);
-      }
-
-      token?.onCancellationRequested(async () => {
-        sClient.disconnect();
+      const pollingClient = await PollingClient.create({
+        poll: async () => {
+          const runResult = await this.checkRunStatus(testRunId);
+          return {
+            completed: runResult.testsComplete || Boolean(token?.isCancellationRequested),
+            payload: runResult
+          };
+        },
+        frequency: POLLING_FREQUENCY,
+        timeout: POLLING_TIMEOUT
       });
+      const runResult = (await pollingClient.subscribe()) as {
+        testsComplete: boolean;
+        testRunSummary: ApexTestRunResult;
+      };
 
       if (token?.isCancellationRequested) {
         throw new Error(nls.localize('testRunCancelled'));
       }
 
+      const queryResult = await queryAll<ApexTestQueueItemRecord>(
+        this.connection,
+        `SELECT Id, Status, ApexClassId, TestRunResultId FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`,
+        true
+      );
+      if (queryResult.records.length === 0) {
+        throw new Error(`No test queue items found for test run ID: ${testRunId}`);
+      }
+      const queueItem: ApexTestQueueItem = {
+        done: true,
+        totalSize: queryResult.records.length,
+        records: queryResult.records.map(({ Id, Status, ApexClassId, TestRunResultId }) => ({
+          Id,
+          Status,
+          ApexClassId,
+          TestRunResultId
+        }))
+      };
+
       const formattedResults = await this.formatAsyncResults(
-        { queueItem: queueItem as ApexTestQueueItem, runId: testRunId },
+        { queueItem, runId: testRunId },
         getCurrentTime(),
         codeCoverage,
         runResult.testRunSummary
@@ -274,7 +292,7 @@ export class AsyncTests {
   @elapsedTime()
   public async checkRunStatus(
     testRunId: string,
-    progress?: Progress<ApexTestProgressValue>
+    progress?: ApexTestProgressReporter
   ): Promise<{
     testsComplete: boolean;
     testRunSummary: ApexTestRunResult;
@@ -362,7 +380,7 @@ export class AsyncTests {
     commandStartTime: number,
     codeCoverage = false,
     testRunSummary: ApexTestRunResult,
-    progress?: Progress<ApexTestProgressValue>
+    progress?: ApexTestProgressReporter
   ): Promise<TestResult> {
     HeapMonitor.getInstance().checkHeapSize('asyncTests.formatAsyncResults');
     try {
@@ -552,7 +570,7 @@ export class AsyncTests {
    * @param testRunId
    * @param progress
    */
-  public async abortTestRun(testRunId: string, progress?: Progress<ApexTestProgressValue>): Promise<void> {
+  public async abortTestRun(testRunId: string, progress?: ApexTestProgressReporter): Promise<void> {
     progress?.report({
       type: 'AbortTestRunProgress',
       value: 'abortingTestRun',

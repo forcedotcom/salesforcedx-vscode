@@ -14,3 +14,12 @@ export {
   ApexRuntimeError,
   causeMessage
 } from './errors';
+export { AsyncTestOptionsSchema, AsyncTestProgressSchema, runTestAsynchronous } from './asyncTests';
+export type {
+  AsyncTestOptions,
+  AsyncTestPollingOptions,
+  AsyncTestProgress,
+  AsyncTestRun,
+  AsyncTestRunEvent,
+  AsyncTestRunSummary
+} from './asyncTests';
