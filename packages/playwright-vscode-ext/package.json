@@ -40,7 +40,7 @@
     "effect": "^3.21.2"
   },
   "devDependencies": {
-    "@salesforce/core": "^9.3.0"
+    "@salesforce/core": "^9.4.0"
   },
   "scripts": {
     "check:circular-deps": "wireit",
