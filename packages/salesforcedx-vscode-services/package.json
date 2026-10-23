@@ -22,7 +22,7 @@
   "productFeatureId": "aJCEE0000000mLm4AI",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.90.0"
+    "vscode": "^1.100.0"
   },
   "categories": [
     "Other"
@@ -276,17 +276,19 @@
       ]
     },
     "o11y:debug": {
-      "command": "ts-node scripts/o11yDebugServer.ts",
+      "command": "ts-node --project tsconfig.scripts.json scripts/o11yDebugServer.ts",
       "service": true,
       "files": [
-        "scripts/o11yDebugServer.ts"
+        "scripts/o11yDebugServer.ts",
+        "tsconfig.scripts.json"
       ]
     },
     "spans:server": {
-      "command": "ts-node scripts/spanFileServer.ts",
+      "command": "ts-node --project tsconfig.scripts.json scripts/spanFileServer.ts",
       "service": true,
       "files": [
-        "scripts/spanFileServer.ts"
+        "scripts/spanFileServer.ts",
+        "tsconfig.scripts.json"
       ]
     },
     "test:compile": {
@@ -335,7 +337,7 @@
     "*",
     "onFileSystem:memfs"
   ],
-  "main": "dist/index.js",
+  "main": "dist/index.mjs",
   "types": "out/src/index.d.ts",
   "browser": "./dist/web/index.js",
   "contributes": {

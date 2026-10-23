@@ -1609,8 +1609,8 @@ importers:
         specifier: ^8.1.7
         version: 8.1.7(supports-color@8.1.1)
       '@types/vscode':
-        specifier: ^1.90.0
-        version: 1.90.0
+        specifier: ^1.100.0
+        version: 1.140.0
       effect:
         specifier: ^3.21.2
         version: 3.22.2
@@ -5129,6 +5129,9 @@ packages:
 
   '@types/urijs@1.19.26':
     resolution: {integrity: sha512-wkXrVzX5yoqLnndOwFsieJA7oKM8cNkOKJtf/3vVGSUFkWDKZvFHpIl9Pvqb/T9UsawBBFMTTD8xu7sK5MWuvg==}
+
+  '@types/vscode@1.140.0':
+    resolution: {integrity: sha512-KAB5RBZIgnUhpp4mKsVJPPHLOQKu6WtGy2xpfWjaajEXO4xIIC+UESAXLiQ9ewx6QD1uBmvC/S8BJzkbvv4bRA==}
 
   '@types/vscode@1.90.0':
     resolution: {integrity: sha512-oT+ZJL7qHS9Z8bs0+WKf/kQ27qWYR3trsXpq46YDjFqBsMLG4ygGGjPaJ2tyrH0wJzjOEmDyg9PDJBBhWg9pkQ==}
@@ -15723,6 +15726,8 @@ snapshots:
   '@types/trusted-types@2.0.7': {}
 
   '@types/urijs@1.19.26': {}
+
+  '@types/vscode@1.140.0': {}
 
   '@types/vscode@1.90.0': {}
 

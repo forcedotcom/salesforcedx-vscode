@@ -90,7 +90,7 @@
     "@salesforce/core": "^9.3.6",
     "@salesforce/source-deploy-retrieve": "^13.5.0",
     "@salesforce/source-tracking": "^8.1.7",
-    "@types/vscode": "^1.90.0",
+    "@types/vscode": "^1.100.0",
     "effect": "^3.21.2",
     "jsforce": "^3.10.24",
     "vscode-uri": "^3.1.0"

@@ -22,7 +22,7 @@
   "productFeatureId": "aJCEE0000000mLm4AI",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.90.0"
+    "vscode": "^1.100.0"
   },
   "categories": [
     "Other"
@@ -348,7 +348,7 @@
     "workspaceContains:sfdx-project.json",
     "onFileSystem:memfs"
   ],
-  "main": "./dist/index.js",
+  "main": "./dist/index.mjs",
   "browser": "./dist/web/index.js",
   "contributes": {
     "viewsContainers": {
