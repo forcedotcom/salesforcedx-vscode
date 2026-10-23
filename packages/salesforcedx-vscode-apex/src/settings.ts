@@ -9,6 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import { APEX_SETTINGS_SECTION } from './constants';
+import { capabilitySettings, type CapabilityPolicy, type CapabilitySetting } from './languageServerCapabilities';
 
 // Eligibility for OpenAPI Document ONLY, should not be changed by users unless overwriting in settings.json
 const APEX_ACTION_CLASS_DEF_MODIFIERS = ['withsharing', 'withoutsharing', 'inheritedsharing'];
@@ -34,6 +35,26 @@ const getSetting = Effect.fn('apex.getSetting')(function* <T>(key: string, defau
   return yield* (yield* api.services.SettingsService).getValueOrElse(APEX_SETTINGS_SECTION, key, defaultValue);
 });
 
+const getCapabilitySetting = Effect.fn('apex.getCapabilitySetting')(function* (key: string) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const value = yield* (yield* api.services.SettingsService).getValue<CapabilitySetting>(APEX_SETTINGS_SECTION, key);
+  return value === 'enabled';
+});
+
+export const getLanguageServerCapabilityPolicy = Effect.fn('apex.languageServerCapabilityPolicy')(function* () {
+  const lsp = yield* Effect.all({
+    provideCodeActions: getCapabilitySetting(capabilitySettings.lsp.provideCodeActions),
+    provideCodeLenses: getCapabilitySetting(capabilitySettings.lsp.provideCodeLenses),
+    provideCompletions: getCapabilitySetting(capabilitySettings.lsp.provideCompletions),
+    provideDefinition: getCapabilitySetting(capabilitySettings.lsp.provideDefinition),
+    provideDocumentSymbols: getCapabilitySetting(capabilitySettings.lsp.provideDocumentSymbols),
+    provideHover: getCapabilitySetting(capabilitySettings.lsp.provideHover),
+    provideReferences: getCapabilitySetting(capabilitySettings.lsp.provideReferences),
+    provideRenameEdits: getCapabilitySetting(capabilitySettings.lsp.provideRenameEdits)
+  });
+  return { lsp } satisfies CapabilityPolicy;
+});
+
 export const retrieveEnableSyncInitJobs = Effect.fn('apex.retrieveEnableSyncInitJobs')(function* () {
   return yield* getSetting('wait-init-jobs', true);
 });
@@ -46,7 +67,6 @@ const joinedList = (key: string, defaults: readonly string[], unionDefaults: boo
 export const apexLanguageServerSettings = Effect.fn('apex.languageServerSettings')(() =>
   Effect.all(
     {
-      lspParityCapabilities: getSetting('advanced.lspParityCapabilities', true),
       enableErrorToTelemetry: getSetting('enable-apex-ls-error-to-telemetry', false),
       enableSynchronizedInitJobs: retrieveEnableSyncInitJobs(),
       apexActionClassDefModifiers: joinedList(

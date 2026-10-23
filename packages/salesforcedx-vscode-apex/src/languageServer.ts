@@ -32,13 +32,14 @@ import { APEX_SETTINGS_SECTION, UBER_JAR_NAME } from './constants';
 import { dropLsAnonymousApexExecuteLenses } from './dropLsAnonymousApexExecuteLenses';
 import { soqlMiddleware } from './embeddedSoql';
 import { languageClientSetupError } from './languageClientSetupErrors';
+import { resolveLanguageServerCapabilities } from './languageServerCapabilities';
 import { buildMetadataRegistryScanConfig } from './languageServerScanConfig';
 import { nls } from './messages';
 import { rewriteNamespaceLens } from './namespaceLensRewriter';
 import { resolveRequirements } from './requirements';
 import { fireSpan } from './services/fireSpan';
 import { getRuntime } from './services/runtime';
-import { apexLanguageServerSettings } from './settings';
+import { apexLanguageServerSettings, getLanguageServerCapabilityPolicy } from './settings';
 import { isApexLspTelemetryAllowed } from './telemetry/apexLspTelemetryAllowlist';
 
 const JDWP_DEBUG_PORT = 0;
@@ -46,13 +47,12 @@ const APEX_LANGUAGE_SERVER_MAIN = 'apex.jorje.lsp.ApexLanguageServerLauncher';
 const SUSPEND_LANGUAGE_SERVER_STARTUP = process.env.SUSPEND_LANGUAGE_SERVER_STARTUP === 'true';
 const LANGUAGE_SERVER_LOG_LEVEL = process.env.LANGUAGE_SERVER_LOG_LEVEL ?? 'ERROR';
 
-// LSP providers controlled by the lspParityCapabilities setting
-const LSP_PARITY_PROVIDERS = ['provideDocumentSymbols'];
-
 // eslint-disable-next-line no-var
 declare var v8debug: object | undefined;
 
-type ApexLanguageClientOptions = LanguageClientOptions & { errorHandler?: ApexErrorHandler };
+type ApexLanguageClientOptions = LanguageClientOptions & {
+  errorHandler?: ApexErrorHandler;
+};
 
 const startedInDebugMode = (): boolean => {
   const args = process.execArgv;
@@ -172,7 +172,7 @@ export const createLanguageServer = Effect.fn('apex.lsp.createLanguageServer')(f
   outputChannel?: vscode.OutputChannel
 ) {
   const server = yield* createServer(extensionContext);
-  const clientOptions = yield* buildClientOptions(outputChannel);
+  const clientOptions = yield* buildClientOptions(extensionContext, outputChannel);
   const client = yield* Effect.try({
     try: () => new ApexLanguageClient('apex', nls.localize('client_name'), server, clientOptions),
     catch: cause => languageClientSetupError('creation', cause)
@@ -194,12 +194,18 @@ export const createLanguageServer = Effect.fn('apex.lsp.createLanguageServer')(f
   return client;
 });
 
-const buildClientOptions = Effect.fn('apex.lsp.buildClientOptions')(function* (outputChannel?: vscode.OutputChannel) {
+const buildClientOptions = Effect.fn('apex.lsp.buildClientOptions')(function* (
+  extensionContext: vscode.ExtensionContext,
+  outputChannel?: vscode.OutputChannel
+) {
   const scanConfig = yield* buildMetadataRegistryScanConfig.pipe(
     Effect.mapError(cause => languageClientSetupError('options', cause))
   );
 
-  const { lspParityCapabilities, ...initializationSettings } = yield* apexLanguageServerSettings().pipe(
+  const initializationSettings = yield* apexLanguageServerSettings().pipe(
+    Effect.mapError(cause => languageClientSetupError('options', cause))
+  );
+  const capabilityPolicy = yield* getLanguageServerCapabilityPolicy().pipe(
     Effect.mapError(cause => languageClientSetupError('options', cause))
   );
 
@@ -213,10 +219,12 @@ const buildClientOptions = Effect.fn('apex.lsp.buildClientOptions')(function* (o
         ...initializationSettings
       };
 
-      // Create middleware that disables parity providers when setting is true
-      const parityMiddleware: Record<string, () => null> = lspParityCapabilities
-        ? Object.fromEntries(LSP_PARITY_PROVIDERS.map(provider => [provider, () => null]))
-        : {};
+      const capabilities = resolveLanguageServerCapabilities(capabilityPolicy);
+      const capabilityMiddleware: Record<string, () => null> = Object.fromEntries(
+        Object.entries(capabilities.lsp)
+          .filter(([, capability]) => !capability.enabled)
+          .map(([feature]) => [feature, () => null])
+      );
 
       return {
         // Register the server for Apex documents
@@ -239,7 +247,7 @@ const buildClientOptions = Effect.fn('apex.lsp.buildClientOptions')(function* (o
         },
         initializationOptions: scanConfig ? { ...initializationOptions, ...scanConfig } : initializationOptions,
         middleware: {
-          ...parityMiddleware,
+          ...capabilityMiddleware,
           ...(soqlExtensionInstalled ? soqlMiddleware : {}),
           provideCodeLenses,
           handleDiagnostics

@@ -19,6 +19,8 @@ import {
   configureApexLanguage,
   getExceptionBreakpointInfo,
   getLineBreakpointInfo,
+  gatherOpenAPIContext,
+  isOpenAPIEligible,
   languageClientManager,
   restartLanguageServerAndClient,
   createLanguageClient
@@ -27,12 +29,17 @@ import { nls } from './messages';
 import { setAllServicesLayer } from './services/extensionProvider';
 import { disposeRuntime, getRuntime } from './services/runtime';
 
+const capabilitySettingsChanged = (event: vscode.ConfigurationChangeEvent): boolean =>
+  event.affectsConfiguration('salesforcedx-vscode-apex.advanced.capabilities');
+
 export const activate = async (context: vscode.ExtensionContext) => {
   setAllServicesLayer(buildAllServicesLayer(context, nls.localize('channel_name')));
   await getRuntime().runPromise(activateEffect(context));
   return {
     getLineBreakpointInfo,
     getExceptionBreakpointInfo,
+    gatherOpenAPIContext,
+    isOpenAPIEligible,
     languageClientManager
   };
 };
@@ -56,13 +63,13 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex')(f
   yield* createLanguageClient(context, languageServerStatusBarItem);
 
   yield* Effect.sync(() => {
-    // Register settings change handler for LSP parity capabilities
-    const lspParitySettingsWatcher = vscode.workspace.onDidChangeConfiguration(event => {
-      if (event.affectsConfiguration('salesforcedx-vscode-apex.advanced.lspParityCapabilities')) {
+    // Rebuild the client when capability settings change so its policy snapshot is refreshed.
+    const capabilitySettingsWatcher = vscode.workspace.onDidChangeConfiguration(event => {
+      if (capabilitySettingsChanged(event)) {
         void vscode.commands.executeCommand('sf.apex.languageServer.restart', 'commandPalette');
       }
     });
-    context.subscriptions.push(lspParitySettingsWatcher);
+    context.subscriptions.push(capabilitySettingsWatcher);
 
     // Javadoc support
     configureApexLanguage();
@@ -124,5 +131,7 @@ export type {
 export type ApexVSCodeApi = {
   getLineBreakpointInfo: typeof getLineBreakpointInfo;
   getExceptionBreakpointInfo: typeof getExceptionBreakpointInfo;
+  gatherOpenAPIContext: typeof gatherOpenAPIContext;
+  isOpenAPIEligible: typeof isOpenAPIEligible;
   languageClientManager: typeof languageClientManager;
 };

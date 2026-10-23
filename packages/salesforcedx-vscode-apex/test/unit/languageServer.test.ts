@@ -16,6 +16,7 @@ import type { RecordedSpan } from './testUtils/recordingTracer';
 // each createLanguageServer opens exactly one client span; a restart ends the prior one and opens a
 // new one; onTelemetry writes attrs onto the current live span. Prefixed `mock*` for mock hoisting.
 const mockRecordedSpans: RecordedSpan[] = [];
+let mockHoverCapability = 'enabled';
 
 const clientSpans = (): RecordedSpan[] => mockRecordedSpans.filter(s => s.name === 'apex.lsp.client');
 
@@ -24,7 +25,14 @@ vi.mock('../../src/services/runtime', async () => {
   const { succeed } = await import('effect/Effect');
   return createRecordingRuntimeMock(() => mockRecordedSpans, {
     provideExtensionProvider: true,
-    settingsGetValue: (_section: string, _key: string, defaultValue?: unknown) => succeed(defaultValue)
+    settingsGetValue: (_section: string, key: string, defaultValue?: unknown) =>
+      succeed(
+        key === 'advanced.capabilities.hover'
+          ? mockHoverCapability
+          : key === 'advanced.capabilities.documentSymbols'
+            ? 'disabled'
+            : defaultValue
+      )
   });
 });
 
@@ -61,6 +69,7 @@ describe('languageServer client span', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockRecordedSpans.length = 0;
+    mockHoverCapability = 'enabled';
     capturedOnTelemetry = undefined;
     // resetMocks:true wipes module-scope implementations before each test — re-establish them here.
     (resolveRequirements as VitestMock).mockReturnValue(Effect.succeed({ java_home: '/mock/java', java_memory: 4096 }));
@@ -160,5 +169,27 @@ describe('languageServer client span', () => {
     expect(withoutSource.source).toBe(nls.localize('client_name'));
     expect(withSource.source).toBe('Custom');
     expect(next).toHaveBeenCalledWith(uri, [withoutSource, withSource]);
+  });
+
+  it('suppresses document symbols when its setting is disabled', async () => {
+    await runCreateLanguageServer(mockContext);
+    const clientOptions = (ApexLanguageClient as unknown as VitestMock).mock.calls[0][3] as {
+      middleware: {
+        provideDocumentSymbols?: () => null;
+      };
+    };
+
+    expect(clientOptions.middleware.provideDocumentSymbols?.()).toBeNull();
+  });
+
+  it('suppresses hover when its setting is disabled', async () => {
+    mockHoverCapability = 'disabled';
+
+    await runCreateLanguageServer(mockContext);
+    const clientOptions = (ApexLanguageClient as unknown as VitestMock).mock.calls[0][3] as {
+      middleware: { provideHover?: () => null };
+    };
+
+    expect(clientOptions.middleware.provideHover?.()).toBeNull();
   });
 });
