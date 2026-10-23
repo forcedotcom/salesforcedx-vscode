@@ -16,14 +16,15 @@ decision.
 Use these terms precisely:
 
 - **Nightly:** daily `vX.Y.Z-nightly.develop.YYYYMMDD` GitHub pre-release.
-- **Published marketplace pre-release:** a nightly whose title ends in
-  ` - published`; it is the input to the following week's stable build.
+- **Published marketplace pre-release:** normally a nightly whose title ends
+  in ` - published`; the weekly stable build consumes that nightly. Emergency
+  hotfix tags require explicit source selection; see the hotfix runbook.
 - **Stable candidate:** `Release X.Y.Z - Ready for Testing`; stable-version
   VSIXs awaiting manual QA.
 - **Approved stable release:** `Release X.Y.Z - Tested & Approved`; the
   stable candidate passed QA and triggered registry publishing.
 
-`Tested & Approved` never applies to a nightly pre-release.
+`Tested & Approved` never applies to nightly or emergency prerelease-packaged VSIXs.
 
 ## Step 0 - Diagnose the Release Train
 
@@ -67,6 +68,10 @@ Do not infer that a new 08:00 marketplace pre-release should be input to the
 same day's 07:00 stable build.
 
 ## Step 1 - Recover Prerequisites When Needed
+
+Weekly nightly recovery only. Existing hotfix tracking tags or an already-built
+candidate need [explicit source/version selection](../../../docs/release-testing-guide.md#later-stable-candidate-from-a-patched-prerelease),
+not a default rerun. Keep existing tags/assets unchanged.
 
 Use this only when diagnosis shows a broken release train. Before every
 dispatch, show the user the failed run, selected source tag, expected output,
@@ -170,7 +175,11 @@ human-facing metadata; they do not trigger publishing independently.
 
 ## Step 4 - Approve and Verify Registry Publication
 
-Locate the automatically created runs instead of dispatching new ones:
+For normal weekly releases, locate the automatically created runs instead of
+dispatching new ones. Stable patches and arbitrary-ref candidates require the
+[hotfix publication workaround](../../../docs/release-testing-guide.md#publish-a-stable-hotfix):
+release-event runs lack `isHotfix=true` and skip the exact-commit test gate.
+Leave those runs unapproved; follow the runbook before dispatching hotfix runs.
 
 ```sh
 gh run list --workflow=publishVSCode.yml -L 5 \
@@ -185,8 +194,9 @@ Expected result: one `publish` environment-gated run for Microsoft Marketplace
 and one for Open VSX. Ask for explicit confirmation before directing the user
 to approve either in GitHub Actions.
 
-If duplicate pairs exist, choose one Marketplace run and one Open VSX run;
-approve only that pair. After both succeed, cancel duplicates. A manual
+For normal weekly releases, if duplicate pairs exist, choose one Marketplace
+run and one Open VSX run; approve only that pair. After both succeed, cancel
+duplicates. A manual
 `workflow_dispatch` is retry-only if the release event failed to create a run
 or a specific registry workflow failed.
 
@@ -221,33 +231,12 @@ Before suggesting a mutating action, report the affected tag, proposed unused
 patch version, correction scope, and the exact commands. Wait for explicit
 confirmation.
 
-1. Create a patch branch from the affected release tag.
-2. Commit only the changelog correction.
-3. Dispatch `build-github-release.yml` using `startFromRef` for that branch
-   and an explicit new `releaseVersion`.
-4. QA and publish the new patch candidate through Steps 2 through 4.
-5. Cherry-pick the changelog-correction commit to `develop`; never
-   cherry-pick the release-only version-bump commit.
-
-Example for correcting a released `v68.6.0`:
-
-```sh
-git checkout -b patch/changelog-v68.6.1 v68.6.0
-# Edit packages/salesforcedx-vscode/CHANGELOG.md.
-git add packages/salesforcedx-vscode/CHANGELOG.md
-git commit -m "docs: correct v68.6.0 changelog"
-git push -u origin patch/changelog-v68.6.1
-
-gh workflow run build-github-release.yml \
-  -f startFromRef="patch/changelog-v68.6.1" \
-  -f releaseVersion="68.6.1" \
-  --repo forcedotcom/salesforcedx-vscode
-```
-
-Use this deliberate `startFromRef` path only for a post-VSIX correction or
-other approved patch release. It is not the recovery path for a failed weekly
-train, because it bypasses normal nightly validation.
+Follow [Changelog-Only Correction After a VSIX Exists](../../../docs/release-testing-guide.md#changelog-only-correction-after-a-vsix-exists).
+It uses the affected release tag, an explicit unused patch version, and the
+stable hotfix publication gates, not normal weekly release-event runs. Merge
+the correction to `develop` separately; exclude release-only version bumps.
 
 ## Emergency Hotfixes
 
-For critical production bugs, use the separate **`/patch-release`** skill.
+For critical production bugs, use **`/patch-release`** and the canonical
+[hotfix runbook](../../../docs/release-testing-guide.md#patch-release-workflow).
