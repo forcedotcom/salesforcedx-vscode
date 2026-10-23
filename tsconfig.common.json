@@ -3,12 +3,13 @@
 // Config ref: https://www.typescriptlang.org/docs/handbook/tsconfig-json.html
 {
   // https://github.com/microsoft/TypeScript/wiki/Node-Target-Mapping
-  "extends": "@tsconfig/node24/tsconfig.json",
   "compilerOptions": {
     "target": "ES2024",
     "lib": ["ES2024"],
     "module": "nodenext",
     "moduleResolution": "nodenext",
+    "strict": true,
+    "skipLibCheck": true,
     "esModuleInterop": false,
     "ignoreDeprecations": "6.0",
     "resolveJsonModule": true,
