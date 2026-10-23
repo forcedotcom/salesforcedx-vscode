@@ -29,12 +29,17 @@ describe('@salesforce/apex-node public API', () => {
 
   it('exports the Effect foundation from its isolated entry point', () => {
     expect(Object.keys(effectApi).sort()).toEqual([
+      'ApexCompileError',
       'ApexOperationError',
       'ApexResponseDecodeError',
+<<<<<<< HEAD
       'AsyncTestOptionsSchema',
       'AsyncTestProgressSchema',
+=======
+      'ApexRuntimeError',
+>>>>>>> origin/sm/W-23839366
       'ExecuteAnonymousOptionsSchema',
-      'ExecuteAnonymousResultSchema',
+      'ExecuteAnonymousOutcomeSchema',
       'causeMessage',
       'executeAnonymous',
       'runTestAsynchronous'
