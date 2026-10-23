@@ -43,19 +43,6 @@ export const seedLwcHeadlessWorkspaceSupplement = async (workspaceDir: string): 
   await fs.writeFile(path.join(labelsDir, 'CustomLabels.labels-meta.xml'), LWC_E2E_SEED_CUSTOM_LABELS_XML);
 };
 
-/**
- * Empty `snippetsE2E` bundle only — {@link ../specs/lwcSnippets.headless.spec.ts} opens these files before insert/completion;
- * not created via SFDX to keep the HTML/JS bodies empty for snippet assertions.
- */
-export const seedSnippetsE2eEmptyBundle = async (workspaceDir: string): Promise<void> => {
-  const bundleDir = path.join(workspaceDir, 'force-app', 'main', 'default', 'lwc', 'snippetsE2E');
-  await fs.mkdir(bundleDir, { recursive: true });
-  await Promise.all([
-    fs.writeFile(path.join(bundleDir, 'snippetsE2E.html'), '', 'utf8'),
-    fs.writeFile(path.join(bundleDir, 'snippetsE2E.js'), '', 'utf8')
-  ]);
-};
-
 const JEST_PACKAGE_JSON = JSON.stringify(
   {
     name: 'salesforce-app',

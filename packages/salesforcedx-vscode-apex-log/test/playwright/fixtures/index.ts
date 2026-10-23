@@ -7,9 +7,14 @@
 
 import { test as webTest } from '@playwright/test';
 
+import { containerTest } from './containerFixtures';
 import { desktopTest, emptyWorkspaceDesktopTest, multiPackageNoOrgDesktopTest, noOrgDesktopTest } from './desktopFixtures';
 
 const isDesktop = process.env.VSCODE_DESKTOP === '1';
+// Exported so a spec shared across desktop/web/container can branch on the one thing container
+// genuinely can't share: its org is boot-authed by the orchestrator, so specs that need a real,
+// freshly-created org locally (setupMinimalOrgAndAuth) must skip that step in container mode.
+export const isContainer = process.env.VSCODE_CONTAINER === '1';
 
 // Keep browser open on test failure when in debug mode
 webTest.afterEach(async ({ page }, testInfo) => {
@@ -20,7 +25,7 @@ webTest.afterEach(async ({ page }, testInfo) => {
   }
 });
 
-export const test = isDesktop ? desktopTest : webTest;
+export const test = isDesktop ? desktopTest : isContainer ? containerTest : webTest;
 export const emptyWorkspaceTest = isDesktop ? emptyWorkspaceDesktopTest : webTest;
 export const noOrgTest = isDesktop ? noOrgDesktopTest : webTest;
 export const multiPackageNoOrgTest = isDesktop ? multiPackageNoOrgDesktopTest : webTest;

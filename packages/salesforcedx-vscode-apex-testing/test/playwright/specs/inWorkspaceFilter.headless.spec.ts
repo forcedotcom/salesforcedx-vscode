@@ -5,29 +5,24 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'node:fs/promises';
-import * as path from 'node:path';
-
 import { expect, type Locator } from '@playwright/test';
 import {
   clearFilter,
-  createAndDeployApexTestClass,
+  createApexClass,
   ensureSecondarySideBarHidden,
-  executeCommandWithCommandPalette,
   focusAndTypeInFilter,
   isDesktop,
+  resetContainerWorkbench,
   saveScreenshot,
   setupConsoleMonitoring,
-  setupNonTrackingOrgAndAuth,
   setupNetworkMonitoring,
+  setupNonTrackingOrgAndAuth,
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 
-// Import the desktop fixture directly (not the web/desktop union from `../fixtures`) so
-// `workspaceDir` is typed; the web run still collects this file but `test.skip` (below) never
-// executes the desktop-only body. Making a class "org-only" needs real on-disk source removal.
-import { desktopTest as test } from '../fixtures/desktopFixtures';
+import { isContainer, sharedTest as test } from '../fixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
+import { deployApexTestClassesFromHost, isOrgAuthedOnHost, makeApexTestClass, ORG_ALIAS } from '../helpers/hostDeploy';
 import {
   TEST_EXPLORER_PANEL,
   TEST_EXPLORER_TREE_ITEM,
@@ -39,53 +34,51 @@ import {
 // org-only classes `org-only`. This locks in the Apex side of the contract the LWC fix relies on:
 // `@in-workspace` shows local classes and hides org-only ones. The companion LWC assertion lives in
 // salesforcedx-vscode-lwc/test/playwright/specs/lwcRunTests.desktop.spec.ts.
+//
+// Discovery starts from the org's Tooling API and resolves each class to the workspace: present in
+// both -> `in-workspace`, otherwise `org-only`. So both classes must be in the org, and only one in
+// the workspace.
 const treeRow = (panel: Locator, name: string): Locator =>
   panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: new RegExp(name, 'i') });
 
-(isDesktop() ? test : test.skip.bind(test))(
+// Shared persistent workbench: reset editor + notification state before each test.
+test.beforeEach(async ({ page }) => {
+  if (isContainer) {
+    await resetContainerWorkbench(page);
+  }
+});
+
+// salesforcedx-vscode-apex has no browser bundle, so the Test Controller never surfaces in VS Code Web.
+// The container runs the desktop build in a Node host, so it's exercisable there.
+(isDesktop() || isContainer ? test : test.skip.bind(test))(
   'Apex @in-workspace filter shows local classes and hides org-only classes',
-  async ({ page, workspaceDir }) => {
+  async ({ page }) => {
     test.setTimeout(TEST_RUN_TIMEOUT);
     const consoleErrors = setupConsoleMonitoring(page);
     const networkErrors = setupNetworkMonitoring(page);
 
+    // Unique per run: the container's shared workbench and org keep classes from earlier runs.
     const stamp = Date.now();
     const workspaceClassName = `InWorkspaceClass${stamp}`;
     const orgOnlyClassName = `OrgOnlyClass${stamp}`;
-    const makeClass = (name: string): string =>
-      [
-        '@isTest',
-        `public class ${name} {`,
-        '\t@isTest',
-        '\tstatic void passes() {',
-        `\t\tSystem.assertEquals(1, 1, '${name}');`,
-        '\t}',
-        '}'
-      ].join('\n');
-    const classesDir = path.join(workspaceDir, 'force-app', 'main', 'default', 'classes');
-    const orgOnlyClsPath = path.join(classesDir, `${orgOnlyClassName}.cls`);
 
-    await test.step('setup non-tracking org and deploy two Apex test classes', async () => {
-      await setupNonTrackingOrgAndAuth(page);
+    await test.step('create a workspace class, then deploy it and an org-only class from the host', async () => {
+      if (!isContainer) {
+        await setupNonTrackingOrgAndAuth(page);
+      }
+      // The container's boot org is authed on the host in the Code Builder CI. Skip — never false-fail —
+      // on a local run without that setup, since the host deploy can't target it.
+      const orgAuthedOnHost = await isOrgAuthedOnHost();
+      test.skip(!orgAuthedOnHost, `org "${ORG_ALIAS}" must be authed on the host to deploy the classes`);
+
       await ensureSecondarySideBarHidden(page);
-      await createAndDeployApexTestClass(page, workspaceClassName, makeClass(workspaceClassName));
-      await createAndDeployApexTestClass(page, orgOnlyClassName, makeClass(orgOnlyClassName));
+      await createApexClass(page, workspaceClassName, makeApexTestClass(workspaceClassName));
+      await deployApexTestClassesFromHost([workspaceClassName, orgOnlyClassName]);
       await saveScreenshot(page, 'in-workspace.classes-deployed.png');
-    });
-
-    await test.step('delete one class from local source so it becomes org-only', async () => {
-      await fs.rm(orgOnlyClsPath, { force: true });
-      await fs.rm(`${orgOnlyClsPath}-meta.xml`, { force: true });
-      await expect(async () => {
-        await expect(fs.access(orgOnlyClsPath)).rejects.toThrow();
-      }).toPass({ timeout: 10_000 });
-      await saveScreenshot(page, 'in-workspace.org-only-source-removed.png');
     });
 
     let panel: Awaited<ReturnType<typeof openTestExplorerAndDiscover>>;
     await test.step('discover both classes in the Test Explorer', async () => {
-      // The deleted class left a preview editor open; close all editors so discovery is clean.
-      await executeCommandWithCommandPalette(page, 'View: Close All Editors');
       panel = await openTestExplorerAndDiscover(page);
       await expect(treeRow(panel, workspaceClassName).first()).toBeVisible({ timeout: 60_000 });
       await expect(treeRow(panel, orgOnlyClassName).first()).toBeVisible({ timeout: 60_000 });

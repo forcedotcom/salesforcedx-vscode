@@ -433,6 +433,12 @@ export const escapeRegExp = (s: string): string => s.replaceAll(/[.*+?^${}()|[\]
 /** Returns true if running on desktop (Electron), regardless of platform */
 export const isDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1';
 
+/**
+ * Returns true if running against the Code Builder container (code-server serving the desktop build). It
+ * is not `isDesktop()`, but it runs the desktop extension build, so it needs desktop-style explicit deploys.
+ */
+export const isContainer = (): boolean => process.env.VSCODE_CONTAINER === '1';
+
 /** Returns true if running on macOS desktop (Electron) */
 export const isMacDesktop = (): boolean => process.env.VSCODE_DESKTOP === '1' && process.platform === 'darwin';
 

@@ -5,7 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { test } from '../fixtures';
+/*
+ * Covers the editor-watcher command gating: deploy/retrieve/delete/diff commands show or hide based on
+ * whether the active editor is inside a package directory (the sf:in_package_directories context).
+ *
+ * Container: uses the seeded fixture class (PagedResult.cls) as the in-package editor instead of
+ * creating a throwaway apex class, and sfdx-project.json as the out-of-package editor, so no source is
+ * created or mutated on the shared workbench.
+ */
+
 import { expect } from '@playwright/test';
 import {
   closeWelcomeTabs,
@@ -15,6 +23,7 @@ import {
   ensureSecondarySideBarHidden,
   focusOnFilesExplorer,
   openFileFromExplorerTree,
+  resetContainerWorkbench,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -26,6 +35,7 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import packageNls from '../../../package.nls.json';
+import { isContainer, sharedTest as test } from '../fixtures';
 
 // Commands that depend on sf:in_package_directories context
 const COMMANDS_TO_TEST = [
@@ -35,33 +45,60 @@ const COMMANDS_TO_TEST = [
   packageNls.diff_source_against_org_text
 ];
 
+if (isContainer) {
+  test.beforeEach(async ({ page }) => {
+    await resetContainerWorkbench(page);
+  });
+}
+
 test('EditorWatcher: deploy commands show/hide based on active editor location', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
   let className: string;
-  let statusBarPage: SourceTrackingStatusBarPage;
 
-  await test.step('setup minimal org and wait for extensions to load', async () => {
-    const createResult = await createMinimalOrg();
-    await waitForVSCodeWorkbench(page);
-    await closeWelcomeTabs(page);
-    await ensureSecondarySideBarHidden(page);
-    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+  await test.step('setup', async () => {
+    if (isContainer) {
+      // The containerTest fixture already awaited workbench readiness before handing over `page`.
+      await closeWelcomeTabs(page);
+      await ensureSecondarySideBarHidden(page);
+      // Status bar visibility confirms the metadata extension has activated against the boot org.
+      const statusBarPage = new SourceTrackingStatusBarPage(page);
+      await statusBarPage.waitForVisible(120_000);
+      await saveScreenshot(page, 'editorWatcher.01-ready.png');
+    } else {
+      const createResult = await createMinimalOrg();
+      await waitForVSCodeWorkbench(page);
+      await closeWelcomeTabs(page);
+      await ensureSecondarySideBarHidden(page);
+      await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 
-    statusBarPage = new SourceTrackingStatusBarPage(page);
-    await statusBarPage.waitForVisible(120_000);
+      const statusBarPage = new SourceTrackingStatusBarPage(page);
+      await statusBarPage.waitForVisible(120_000);
+    }
   });
 
-  await test.step('create apex class', async () => {
-    className = `EditorWatcherTest${Date.now()}`;
-    await createApexClass(page, className);
-  });
+  await test.step('open in-package editor', async () => {
+    const openInPackageEditorContainer = async (): Promise<void> => {
+      // Use the seeded fixture class rather than mutating the shared workbench with a new one.
+      // The Explorer tree open can transiently flake on the shared workbench (virtual scrolling /
+      // focus), so retry the open as a unit.
+      await expect(async () => {
+        await openFileFromExplorerTree(page, 'PagedResult.cls', ['force-app', 'main', 'default', 'classes']);
+        const editor = page.locator(EDITOR_WITH_URI).first();
+        await expect(editor).toBeVisible();
+        await expect(editor).toHaveAttribute('data-uri', /PagedResult\.cls/);
+      }).toPass({ timeout: 90_000, intervals: [1000, 2000, 5000] });
+    };
+    const openInPackageEditorDesktop = async (): Promise<void> => {
+      className = `EditorWatcherTest${Date.now()}`;
+      await createApexClass(page, className);
 
-  await test.step('verify apex class is active editor', async () => {
-    const editor = page.locator(EDITOR_WITH_URI).first();
-    await expect(editor).toBeVisible();
-    await expect(editor).toHaveAttribute('data-uri', new RegExp(`${className}\\.cls`));
+      const editor = page.locator(EDITOR_WITH_URI).first();
+      await expect(editor).toBeVisible();
+      await expect(editor).toHaveAttribute('data-uri', new RegExp(`${className}\\.cls`));
+    };
+    await (isContainer ? openInPackageEditorContainer : openInPackageEditorDesktop)();
   });
 
   await test.step('verify deploy/retrieve commands are in command palette', async () => {
@@ -69,7 +106,10 @@ test('EditorWatcher: deploy commands show/hide based on active editor location',
     for (const commandText of COMMANDS_TO_TEST) {
       await verifyCommandExists(page, commandText);
     }
-    await saveScreenshot(page, 'step3.command-palette-has-commands.png');
+    await saveScreenshot(
+      page,
+      isContainer ? 'editorWatcher.02-commands-present.png' : 'step3.command-palette-has-commands.png'
+    );
   });
 
   await test.step('open sfdx-project.json (not in package directory)', async () => {
@@ -88,7 +128,10 @@ test('EditorWatcher: deploy commands show/hide based on active editor location',
     for (const commandText of COMMANDS_TO_TEST) {
       await verifyCommandDoesNotExist(page, commandText);
     }
-    await saveScreenshot(page, 'step6.command-palette-no-commands.png');
+    await saveScreenshot(
+      page,
+      isContainer ? 'editorWatcher.03-commands-hidden.png' : 'step6.command-palette-no-commands.png'
+    );
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);

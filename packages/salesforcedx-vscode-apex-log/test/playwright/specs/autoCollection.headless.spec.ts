@@ -10,6 +10,7 @@ import { expect } from '@playwright/test';
 import {
   APEX_TRACE_FLAG_STATUS_BAR,
   closeSettingsTab,
+  closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   removeAllDebugLevels,
@@ -23,19 +24,36 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
-import { test } from '../fixtures';
+import { isContainer, test } from '../fixtures';
 import { waitForTraceFlagStatusBar } from '../helpers';
 
 test.describe.configure({ mode: 'serial', timeout: 180_000 });
 
 const LOG_POLL_INTERVAL_SETTING = 'salesforcedx-vscode-apex-log.logPollIntervalSeconds';
 
+// Self-clean: remove the trace flag this spec created and restore the poll interval to its default,
+// even if a step above failed before reaching the in-test cleanup step below. Matters most for
+// container's one shared, persistent workbench, but harmless everywhere else.
+test.afterEach(async ({ page }) => {
+  await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']).catch(
+    () => {}
+  );
+  await upsertSettings(page, { [LOG_POLL_INTERVAL_SETTING]: '30' }).catch(() => {});
+  await closeSettingsTab(page).catch(() => {});
+});
+
 test('Auto-collection: poll interval setting, trace flag triggers collector, disable via 0', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
-  await test.step('setup minimal org auth', async () => {
-    await setupMinimalOrgAndAuth(page);
+  await test.step('setup org auth', async () => {
+    // Container boots with the org already authed by the orchestrator; desktop/web must create it
+    // (idempotently — reuses the shared org if already created) before this spec can hit real APIs.
+    if (isContainer) {
+      await closeWelcomeTabs(page);
+    } else {
+      await setupMinimalOrgAndAuth(page);
+    }
     await closeSettingsTab(page);
     await ensureSecondarySideBarHidden(page);
 

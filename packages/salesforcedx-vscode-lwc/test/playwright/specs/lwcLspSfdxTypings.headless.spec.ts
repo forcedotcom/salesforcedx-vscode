@@ -8,14 +8,18 @@ import {
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   setupConsoleMonitoring,
+  setupNetworkMonitoring,
   validateNoCriticalErrors,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
-import { test } from '../fixtures';
+import { isContainer, sharedTest as test } from '../fixtures';
 import { assertLwcSfdxTypingsGenerated, createLwc, openLwcFile, waitForLwcLspReady } from '../utils/lwcUtils';
 
 test.beforeEach(async ({ page }) => {
-  await waitForVSCodeWorkbench(page);
+  // The containerTest fixture already awaited workbench readiness before handing over `page`.
+  if (!isContainer) {
+    await waitForVSCodeWorkbench(page);
+  }
   await closeWelcomeTabs(page);
   await ensureSecondarySideBarHidden(page);
 });
@@ -24,10 +28,14 @@ test('LWC LSP writes SFDX typings under .sfdx/typings/lwc with expected module h
   test.setTimeout(3 * 60 * 1000);
 
   const consoleErrors = setupConsoleMonitoring(page);
+  const networkErrors = setupNetworkMonitoring(page);
+  // Unique per-run name: the container's shared workbench would otherwise collide with a bundle another
+  // spec (or an earlier run) already created. Harmless where each test gets a fresh workspace.
+  const componentName = `typingsProbe${Date.now()}`;
 
   await test.step('create bundle and wait for LSP indexing (triggers typings copy into workspace)', async () => {
-    await createLwc(page, 'typingsProbe');
-    await openLwcFile(page, 'typingsProbe.js');
+    await createLwc(page, componentName);
+    await openLwcFile(page, `${componentName}.js`);
     await waitForLwcLspReady(page);
   });
 
@@ -35,5 +43,5 @@ test('LWC LSP writes SFDX typings under .sfdx/typings/lwc with expected module h
     await assertLwcSfdxTypingsGenerated(page);
   });
 
-  await validateNoCriticalErrors(test, consoleErrors);
+  await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });

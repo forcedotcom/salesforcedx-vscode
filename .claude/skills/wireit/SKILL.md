@@ -18,7 +18,7 @@ Full documentation: https://github.com/google/wireit
 - deps can be relative ex "../../other-pkg:script-name"
 - If a package in this repo has another package as a package.json dep or devDep, it should be a wireit dep for compile
 - If an extension has another extension as an extensionDependency, it should be a wireit dep for bundle
-  caching: if you specify `files` and `output` (even `[]`) you'll get caching (skips when neither have changed)
+  caching: if you specify `files` and `output` (even `[]`) you'll get caching (skips when neither have changed). `test:container*` scripts declare `CB_GREP` and `CB_UNDER_TEST` as `{ "external": true }` env — VSIX and image under test aren't wireit inputs, so caching includes them in the fingerprint via env.
 - You can have a wireit script without it being an npm script (ex: you can't execute it on its own, but it can run as a dep of another wireit script that can start from `pnpm run`)
 - don't make circular references
 

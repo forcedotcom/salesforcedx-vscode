@@ -13,9 +13,14 @@ import {
   isDesktop
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
-import { emptyWorkspaceTest as test } from '../fixtures';
+import { isContainer, sharedEmptyWorkspaceTest as test } from '../fixtures';
 
-(isDesktop() ? test : test.skip.bind(test))(
+// This spec runs against the NON-project workspace shape in container mode (Code Builder).
+// The orchestrator re-seeds coder.json to the container-noproject mount, restarts,
+// and runs this spec via isContainer branching. Re-runs the extension verify gate after restart,
+// so reaching here means the apex-testing extension IS installed — a command missing from
+// the palette is the project gate hiding it, not a failure to load the extension.
+(isDesktop() || isContainer ? test : test.skip.bind(test))(
   'Apex Testing commands are hidden when no project is open',
   async ({ page }) => {
     const consoleErrors = setupConsoleMonitoring(page);

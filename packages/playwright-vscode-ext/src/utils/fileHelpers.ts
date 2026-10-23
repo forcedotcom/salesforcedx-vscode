@@ -30,6 +30,7 @@ import {
   closeSettingsTab,
   closeWelcomeTabs,
   escapeRegExp,
+  isContainer,
   isDesktop,
   selectFirstQuickInputOption,
   waitForVSCodeWorkbench,
@@ -140,6 +141,10 @@ export const createApexClass = async (page: Page, className: string, content?: s
     await page.keyboard.press('Delete');
     // insertText, not type: per-key typing drops characters on Windows and deploys invalid Apex.
     await page.keyboard.insertText(content);
+    // insertText leaves the cursor (and Monaco's scroll position) at the end of the pasted content,
+    // so the virtualized `.view-lines` no longer renders line 1 — scroll back to the top before
+    // checking for a marker that lives there.
+    await page.keyboard.press('Control+Home');
     const marker =
       content
         .split('\n')
@@ -479,8 +484,13 @@ export const createAndDeployApexTestClass = async (page: Page, className: string
   await createApexClass(page, className, content);
 
   // On web, saving the file auto-deploys via push-or-deploy-on-save, so we just wait for completion
-  // On desktop, we need to explicitly deploy
-  if (isDesktop()) {
+  // On desktop and the Code Builder container (desktop build, no deploy-on-save), we need to explicitly deploy
+  if (isDesktop() || isContainer()) {
+    if (isContainer()) {
+      // "Deploy This Source to Org" deploys the active editor; on the container's browser-served
+      // workbench focus can drift off the new class after save, so re-focus it first.
+      await page.locator(`${EDITOR_WITH_URI}[data-uri$="/${className}.cls"]`).first().click();
+    }
     await deployCurrentSourceToOrg(page, { waitViaOutputChannel: true });
   }
   // Web: wait for auto-deploy to complete by checking output channel.

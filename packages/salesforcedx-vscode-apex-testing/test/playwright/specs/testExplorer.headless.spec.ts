@@ -13,6 +13,7 @@ import {
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   setupConsoleMonitoring,
@@ -24,7 +25,7 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
-import { test } from '../fixtures';
+import { isContainer, sharedTest as test } from '../fixtures';
 import { TEST_RUN_TIMEOUT, TEST_SETUP_TIMEOUT } from '../constants';
 import {
   CMD_RUN_ALL_TESTS,
@@ -39,6 +40,13 @@ import {
 } from '../helpers/testExplorerHelpers';
 import { waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
 
+// Shared persistent workbench: reset editor + notification state before each test.
+test.beforeEach(async ({ page }) => {
+  if (isContainer) {
+    await resetContainerWorkbench(page);
+  }
+});
+
 test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page }) => {
   test.setTimeout(TEST_SETUP_TIMEOUT + TEST_RUN_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
@@ -46,8 +54,11 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
 
   let testClassName: string;
 
-  await test.step('setup non-tracking org with Apex test class', async () => {
-    await setupNonTrackingOrgAndAuth(page);
+  await test.step('setup org with Apex test class', async () => {
+    // The container uses its boot org, already authed at startup.
+    if (!isContainer) {
+      await setupNonTrackingOrgAndAuth(page);
+    }
     await ensureSecondarySideBarHidden(page);
     testClassName = `ExplorerTestClass${Date.now()}`;
     const testClassContent = [
@@ -142,7 +153,9 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     const classRow = findTestExplorerItem(page, testClassName);
     const twistie = classRow.locator('.monaco-tl-twistie');
     await expect(twistie).toBeVisible({ timeout: 10_000 });
-    await twistie.click();
+    // On the container's browser-served workbench the twistie glyph is a zero-size pseudo-element and
+    // the row intercepts pointer events at its coordinates.
+    await twistie.click({ force: isContainer });
     const methodRow = findTestExplorerItem(page, 'shouldDiscoverThisTest');
     await methodRow.waitFor({ state: 'visible', timeout: 15_000 });
 

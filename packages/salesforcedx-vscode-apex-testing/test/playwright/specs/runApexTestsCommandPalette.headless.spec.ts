@@ -11,6 +11,7 @@ import {
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
   selectQuickInputOption,
@@ -25,10 +26,19 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
-import { test } from '../fixtures';
+import { isContainer, sharedTest as test } from '../fixtures';
 import { TEST_RUN_TIMEOUT, TEST_SETUP_TIMEOUT } from '../constants';
 import { CMD_TOGGLE_MAXIMIZED_PANEL } from '../helpers/testExplorerHelpers';
 import { waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
+
+test.beforeEach(async ({ page }) => {
+  if (isContainer) {
+    await resetContainerWorkbench(page);
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await clearOutputChannel(page);
+  }
+});
 
 test('Run Apex Tests via Command Palette: run all, then run single class', async ({ page }) => {
   test.setTimeout(TEST_SETUP_TIMEOUT + TEST_RUN_TIMEOUT);
@@ -38,8 +48,11 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
   let testClassName: string;
   let testClassName2: string;
 
-  await test.step('setup non-tracking org with two Apex test classes', async () => {
-    await setupNonTrackingOrgAndAuth(page);
+  await test.step('setup two Apex test classes', async () => {
+    // The container uses its boot org, already authed at startup.
+    if (!isContainer) {
+      await setupNonTrackingOrgAndAuth(page);
+    }
     await ensureSecondarySideBarHidden(page);
     testClassName = `CommandPaletteTestClass1${Date.now()}`;
     const testClassContent = [
@@ -70,6 +83,13 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
     await createAndDeployApexTestClass(page, testClassName2, testClassContent2);
   });
 
+  await test.step('clear output before run-single', async () => {
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await clearOutputChannel(page);
+    await saveScreenshot(page, 'step.output-cleared.png');
+  });
+
   await test.step('run single test class via command palette', async () => {
     await executeCommandWithCommandPalette(page, packageNls.apex_test_run_text);
     await saveScreenshot(page, 'step.run-single.after-command.png');
@@ -90,6 +110,10 @@ test('Run Apex Tests via Command Palette: run all, then run single class', async
     await verifyNoTestRunInProgress(page);
     await saveScreenshot(page, 'step.run-single.done.png');
     await clearOutputChannel(page);
+    if (isContainer) {
+      // Restore panel before next step
+      await executeCommandWithCommandPalette(page, CMD_TOGGLE_MAXIMIZED_PANEL);
+    }
   });
 
   await test.step('re-run last class populated by the single-class palette run', async () => {

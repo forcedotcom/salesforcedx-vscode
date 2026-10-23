@@ -8,22 +8,34 @@
 import { expect } from '@playwright/test';
 import {
   EDITOR_WITH_URI,
-  openFileByName,
+  saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 
-import { test } from '../fixtures';
-import { waitForApexLspReady } from '../utils/apexLspUtils';
+import { isContainer, sharedTest as test } from '../fixtures';
+import { openApexFileFromExplorerTree, waitForApexLspReady } from '../utils/containerApexLspUtils';
 
-test('Apex LSP: hover shows method signature for SayHello', async ({ page, workspaceDir }) => {
+// force-app/main/default/classes on desktop (fixtures/desktopFixtures.ts seeds it there); the
+// container's bind-mounted fixture project uses the same layout, so the path is shared.
+const CLASSES_DIR = ['force-app', 'main', 'default', 'classes'];
+
+test('Apex LSP: hover shows method signature for SayHello', async ({ page }) => {
+  if (isContainer) {
+    test.setTimeout(3 * 60 * 1000);
+  }
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
   await test.step('open ExampleClass.cls and wait for Apex LSP ready', async () => {
-    await openFileByName(page, 'ExampleClass.cls');
-    await waitForApexLspReady(page, workspaceDir);
+    // openApexFileFromExplorerTree retries the whole open — load-bearing in the container, where
+    // the Explorer tree hydrates progressively over a browser round-trip; harmless on desktop.
+    await openApexFileFromExplorerTree(page, 'ExampleClass.cls', CLASSES_DIR);
+    // UI-only readiness (the "Indexing complete" language-status button) — sufficient here; the
+    // disk-based StandardApexLibrary check only matters for apexLspRestart's clean-DB verification.
+    await waitForApexLspReady(page);
+    await saveScreenshot(page, 'apexLspHover.01-ready.png');
   });
 
   await test.step('hover SayHello token and verify method signature in hover card', async () => {

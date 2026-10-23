@@ -11,15 +11,13 @@ import * as path from 'node:path';
 import { expect } from '@playwright/test';
 import {
   clickCodeLens,
-  closeAllEditors,
-  createAndDeployApexTestClass,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   env,
   execAsync,
   isDesktop,
-  NON_TRACKING_ORG_ALIAS,
   ORG_METADATA_EDITOR,
+  resetContainerWorkbench,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -28,11 +26,11 @@ import {
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 
-// Import the desktop fixture directly (not the web/desktop union from `../fixtures`) so
-// `workspaceDir` is typed; the web run still collects this file but `test.skip` (below) never
-// executes the desktop-only body.
-import { desktopTest as test } from '../fixtures/desktopFixtures';
+// `workspaceDir` is typed on both branches (desktop: the real workspace; container: the host side of the
+// fixture bind mount); the web run still collects this file but `test.skip` (below) never executes the body.
+import { isContainer, sharedWorkspaceDirTest as test } from '../fixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
+import { deployApexTestClassesFromHost, isOrgAuthedOnHost, ORG_ALIAS } from '../helpers/hostDeploy';
 import { messages } from '../../../src/messages/i18n';
 import type { ToolingTestsPage } from '../../../src/testDiscovery/schemas';
 import {
@@ -44,19 +42,20 @@ import {
 // "Org-only" = the class exists in the org but NOT in local source. The retrieve flow
 // (testController.ts retrieveOrgOnlyClassFromUri -> MetadataRetrieveService.retrieve, then component resolution)
 // only fires on the `sf-org-metadata:` document, which requires the
-// Apex language client (no "browser" bundle). Desktop only — `workspaceDir` (real disk) is
-// also needed to make the class org-only and to assert the retrieved `.cls` lands on disk.
+// Apex language client (no "browser" bundle), so desktop + container only. The class is deployed from
+// the host CLI into a throwaway project and never added to the workspace, so it is org-only by
+// construction.
 const RETRIEVE_CODELENS = messages.apex_test_retrieve_org_only_class_codelens_text;
 
 const getDiscoveredMethodPosition = async (className: string, methodName: string) => {
-  const { stdout: orgDisplayJson } = await execAsync(`sf org display --target-org ${NON_TRACKING_ORG_ALIAS} --json`, {
+  const { stdout: orgDisplayJson } = await execAsync(`sf org display --target-org ${ORG_ALIAS} --json`, {
     env
   });
   const apiVersion = Number((JSON.parse(orgDisplayJson) as { result: { apiVersion: string } }).result.apiVersion);
   const query = apiVersion >= 68 ? 'testLevel=RunAllTestsInOrg' : 'showAllMethods=true';
   const restPath = `/services/data/v${apiVersion.toFixed(1)}/tooling/tests?${query}`;
   const { stdout: discoveryJson } = await execAsync(
-    `sf api request rest ${JSON.stringify(restPath)} --target-org ${NON_TRACKING_ORG_ALIAS} --json`,
+    `sf api request rest ${JSON.stringify(restPath)} --target-org ${ORG_ALIAS} --json`,
     { env }
   );
   const page = (JSON.parse(discoveryJson) as { result: { body: ToolingTestsPage } }).result.body;
@@ -67,7 +66,14 @@ const getDiscoveredMethodPosition = async (className: string, methodName: string
   return { line: method?.line ?? 1, column: method?.column ?? 1 };
 };
 
-(isDesktop() ? test : test.skip.bind(test))(
+// Shared persistent workbench: reset editor + notification state before each test.
+test.beforeEach(async ({ page }) => {
+  if (isContainer) {
+    await resetContainerWorkbench(page);
+  }
+});
+
+(isDesktop() || isContainer ? test : test.skip.bind(test))(
   'Org-only Apex class: retrieve via code lens opens the on-disk .cls',
   async ({ page, workspaceDir }) => {
     test.setTimeout(TEST_RUN_TIMEOUT);
@@ -76,41 +82,26 @@ const getDiscoveredMethodPosition = async (className: string, methodName: string
 
     const className = `OrgOnlyRetrieve${Date.now()}`;
     const methodName = 'retrievedFromOrg';
-    const classContent = `@isTest
-public class ${className} {
-    @isTest
-    static void ${methodName}() {
-        System.assertEquals(1, 1, 'org-only retrieve should pass');
-    }
-}`;
     const classesDir = path.join(workspaceDir, 'force-app', 'main', 'default', 'classes');
     const localClsPath = path.join(classesDir, `${className}.cls`);
 
     const discoveredMethodPosition =
-      await test.step('setup non-tracking org and deploy an Apex test class', async () => {
-        await setupNonTrackingOrgAndAuth(page);
+      await test.step('deploy an org-only Apex test class from the host (never in the workspace)', async () => {
+        if (!isContainer) {
+          await setupNonTrackingOrgAndAuth(page);
+        }
+        // The container's boot org is authed on the host in the Code Builder CI. Skip — never false-fail —
+        // on a local run without that setup, since the host deploy can't target it.
+        const orgAuthedOnHost = await isOrgAuthedOnHost();
+        test.skip(!orgAuthedOnHost, `org "${ORG_ALIAS}" must be authed on the host to deploy the org-only class`);
+
         await ensureSecondarySideBarHidden(page);
-        await createAndDeployApexTestClass(page, className, classContent);
+        await deployApexTestClassesFromHost([className], methodName);
         await saveScreenshot(page, 'setup.class-deployed.png');
         return getDiscoveredMethodPosition(className, methodName);
       });
 
-    await test.step('delete local source so the class is org-only', async () => {
-      // Remove both the `.cls` and its `-meta.xml` from disk (not from the org). After this the
-      // class is in the org but absent from local source, so discovery tags it `org-only`.
-      await fs.rm(localClsPath, { force: true });
-      await fs.rm(`${localClsPath}-meta.xml`, { force: true });
-      await expect(async () => {
-        await expect(fs.access(localClsPath)).rejects.toThrow();
-      }).toPass({ timeout: 10_000 });
-      await saveScreenshot(page, 'setup.local-source-removed.png');
-    });
-
     await test.step('discover and open the org-only class virtual doc', async () => {
-      // `createApexClass` (setup) left the on-disk `.cls` open in a preview editor; deleting the
-      // file does not close that tab. A leftover active editor keeps the test-item click from
-      // navigating to the catalog document, so close all editors first.
-      await closeAllEditors(page);
       const panel = await openTestExplorerAndDiscover(page);
       const classItem = panel.locator(TEST_EXPLORER_TREE_ITEM).filter({ hasText: new RegExp(className, 'i') });
       await classItem.first().waitFor({ state: 'visible', timeout: 60_000 });
@@ -120,7 +111,9 @@ public class ${className} {
       // the retrieve code lens renders).
       const twistie = classItem.first().locator('.monaco-tl-twistie');
       await expect(twistie).toBeVisible({ timeout: 10_000 });
-      await twistie.click();
+      // On the container's browser-served workbench the twistie glyph is a zero-size pseudo-element and
+      // the row intercepts pointer events at its coordinates.
+      await twistie.click({ force: isContainer });
       const methodItem = findTestExplorerItem(page, methodName);
       await methodItem.waitFor({ state: 'visible', timeout: 60_000 });
       await methodItem.dblclick();
