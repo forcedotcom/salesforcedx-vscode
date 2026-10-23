@@ -129,6 +129,7 @@ Reference: `salesforcedx-vscode-lwc` `lwcRunTests.desktop.spec.ts` / `lwcDebugTe
 
 - Use `f1` for commands, not meta-shift-P
 - Use `Control` for all. No ControlOrMeta
+- Debug Step Into: Alt+F11 in code-server, F11 on desktop — browser reserves F11 for fullscreen
 
 ## Native VS Code Commands
 

@@ -40,7 +40,8 @@ container ports.
    desktop/web counterpart isn't one: write it as a shared spec so desktop runs it too. Nor is a
    `workspaceDir` need alone: the fixture project is a host
    bind mount, so a container fixture can supply its host path (`CB_FIXTURE_HOST_DIR`) for on-disk
-   reads — see apex's `sharedWorkspaceDirTest`, used by `apexLspRestart`.
+   reads — see the `sharedWorkspaceDirTest` in apex (used by `apexLspRestart`) and apex-replay-debugger
+   (used by `apexReplayDebugger`).
 
 Per [PR #8102 review feedback](https://github.com/forcedotcom/salesforcedx-vscode/pull/8102#discussion_r4047559234),
 96 of the 107 container specs (108 originally, plus the 3 later createProject* ports, less testExplorerRun folded into testExplorer, the duplicate metadata deploySource, and the 2 metadata emptyWorkspaceSfdxCommands specs, whose checks the createProject* specs already make) have been merged this way; 11 remain standalone. See "Adding a
@@ -234,8 +235,9 @@ are all hard-blocked by the container model.
 7 of the 8 reachable and 1 permanently blocked; the gating unknown (can a live DAP session render
 through code-server?) was retired by a spike, and the 6 apex-replay specs now pass green both in
 isolation on a cold Apex LS and in the full serial suite. `isvDebugBootstrap` stays hard-blocked (live
-org-side session); `lwcDebugTests` needs the jest dep baked in. Notable fixes to reach green: replaced
-a context-sensitive "Indexing complete" gate with the test-class Run/Debug CodeLens gate, inlined
+org-side session); `lwcDebugTests` needs the jest dep baked in. Notable fixes to reach green: open the
+test class before the "Indexing complete" gate (the button renders only while an Apex editor is active),
+then gate on its Run/Debug CodeLens, inlined
 `@IsTest` annotations (a completion-accept was swallowing the newline and merging the annotation into
 the class decl), a robust `activateEditorTab` helper (Quick Open intermittently returned an unclickable
 grouped row — the dominant flake), an LS-readiness retry on Update Checkpoints, and an
