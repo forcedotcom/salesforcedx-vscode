@@ -43,7 +43,7 @@ container ports.
    reads — see apex's `sharedWorkspaceDirTest`, used by `apexLspRestart`.
 
 Per [PR #8102 review feedback](https://github.com/forcedotcom/salesforcedx-vscode/pull/8102#discussion_r4047559234),
-95 of the 107 container specs (108 originally, plus the 3 later createProject* ports, less testExplorerRun folded into testExplorer, the duplicate metadata deploySource, and the 2 metadata emptyWorkspaceSfdxCommands specs, whose checks the createProject* specs already make) have been merged this way; 12 remain standalone. See "Adding a
+96 of the 107 container specs (108 originally, plus the 3 later createProject* ports, less testExplorerRun folded into testExplorer, the duplicate metadata deploySource, and the 2 metadata emptyWorkspaceSfdxCommands specs, whose checks the createProject* specs already make) have been merged this way; 11 remain standalone. See "Adding a
 container suite to a package" below for both patterns.
 
 ## Coverage summary — 107 specs across 15 packages
@@ -300,7 +300,7 @@ than needing a mount or phase of their own — see the row below.
 | Spec(s) | Shape needed | Verdict |
 | --- | --- | --- |
 | metadata `manifestCommandVisibility` | standard project + org (= current fixture) | **DONE** — ported; writes `*Package.xml`/`.xml` into bind-mounted fixture via `CB_FIXTURE_HOST_DIR` env; runs against ambient boot org in phase 1 |
-| metadata `noProjectCommandsHidden` | folder, no `sfdx-project.json` | **DONE** — ported; orchestrator re-seeds `coder.json` to non-project mount + `restart()`s in phase 2, re-runs verify gate, then runs `test:container:noproject`. Re-seed spike: **PASS** ✓ |
+| metadata `noProjectCommandsHidden` | folder, no `sfdx-project.json` | **DONE** — merged into `noProjectCommandsHidden.headless.spec.ts`; orchestrator re-seeds `coder.json` to non-project mount + `restart()`s in phase 2, re-runs verify gate, then runs `test:container:noproject`. Re-seed spike: **PASS** ✓ |
 | apex-log/apex-testing `noProjectVisibility`, metadata `createProjectEmptyWindow` | folder open, no `sfdx-project.json` / no folder open | **DONE** — ported; org-agnostic palette-visibility checks via phase 2 (`test:container:noproject`) + a new phase 3 (`test:container:nofolder`) for the no-folder case (metadata `createProjectEmptyWindow`); apex-log/apex-testing `noProjectVisibility` are merged into their `noProjectVisibility.headless.spec.ts` (`isContainer` branch, picked by the phase config's `testMatch`) |
 | apex-log `apexGenerateClassMultiPackageDirs` | multi-`packageDirectories` project | **DONE** — merged into `apexGenerateClassMultiPackageDirs.headless.spec.ts` with `isContainer` branch; runs in phase 4 against `container-multipackage` mount (2 `packageDirectories`, each with a `classes` dir); phase 1 config's `testMatch` excludes it so single-package desktop/web runs don't fail |
 | apex-log/apex-testing `noOrgVisibility` | DX project, **no org** | **DONE** — ported via a new phase 5: `bootEnv` made optional, org-less container boot (tears down + fresh `run()` without org env, since `restart()` reuses baked env); both packages' specs are merged into their `noOrgVisibility.headless.spec.ts` (`isContainer` branch, picked by the phase config's `testMatch`); re-gates cleanly; default org-boot unchanged |
@@ -346,7 +346,7 @@ spec so desktop (and web, where it can) runs it too. Only fall back to a **stand
 `*.container.spec.ts` file when a hard constraint rules out a shared body (a `workspaceDir` need alone
 doesn't — see `sharedWorkspaceDirTest` above):
 
-**Phase 1 (standard DX-project fixture):**
+**Standalone spec (standard DX-project fixture, phase 1):**
 
 1. `test/playwright/playwright.config.container.ts` → `createContainerConfig({ testDir: './specs/container' })`.
 2. `test/playwright/fixtures/containerFixtures.ts` → `export const containerTest = createContainerTest()`.
@@ -357,17 +357,20 @@ doesn't — see `sharedWorkspaceDirTest` above):
    forward `CB_GREP` to Playwright).
 5. Orchestrator auto-discovers. Update coverage tables.
 
+Shared specs that need a different workspace shape run in their own orchestrator phase, with their
+own config and script:
+
 **Phase 2 (no-project workspace shape):**
 
 For specs requiring a no-project folder (project-gated commands must be hidden):
 
-1. `test/playwright/playwright.config.container.noproject.ts` → if the spec has a desktop/web twin,
-   merge it (`isContainer` branch, as in phase 1) and use `createContainerConfig({ testDir: './specs',
-   testMatch: ['<name>.headless.spec.ts'] })` (apex-log, apex-testing); otherwise for merged desktop specs,
-   use `testMatch` to list them (metadata); or fall back to `createContainerConfig({ testDir: './specs/container-noproject' })` for standalone-only.
-2. Standalone only: `test/playwright/specs/container-noproject/<name>.container.spec.ts` — same patterns as phase 1.
-3. Add `test:container:noproject` script + wireit block (same env vars as `test:container`, including `VSCODE_CONTAINER: "1"`, external `CB_GREP`/`CB_UNDER_TEST`). The phase script must set `VSCODE_CONTAINER=1` so `isContainer` is true for merged specs.
-4. Orchestrator auto-discovers `test:container:noproject` scripts; runs phase 2 after phase 1. Specs
+1. `test/playwright/playwright.config.container.noproject.ts` → write the spec as a shared
+   `.headless`/`.desktop` spec (`isContainer` branch) and list it in `createContainerConfig({ testDir:
+   './specs', testMatch: ['<name>.headless.spec.ts'] })` (apex-log, apex-testing, metadata).
+2. Add `test:container:noproject` script + wireit block (same env vars as `test:container`, including
+   `VSCODE_CONTAINER: "1"`, external `CB_GREP`/`CB_UNDER_TEST`). The phase script must set
+   `VSCODE_CONTAINER=1` so `isContainer` is true for merged specs.
+3. Orchestrator auto-discovers `test:container:noproject` scripts; runs phase 2 after phase 1. Specs
    run against the mounted non-project folder after re-seed + `restart()`.
 
 **Phase 3 (no-folder workspace shape):**
