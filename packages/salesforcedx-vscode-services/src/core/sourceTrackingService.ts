@@ -20,7 +20,6 @@ import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { normalize } from 'node:path';
 import { OrgMetadataCatalogRecorder } from '../orgCatalog/orgMetadataCatalogRecorder';
 import { ChannelService } from '../vscode/channelService';
 import { SettingsService } from '../vscode/settingsService';
@@ -33,7 +32,6 @@ import { MetadataRegistryService } from './metadataRegistryService';
 import { ProjectService } from './projectService';
 import { orgIdFromConnection } from './schemas/authFields';
 import { getOrgFromConnection, unknownToErrorCause } from './shared';
-import { releaseSourceTrackingShadowRepo } from './sourceTrackingShadowRepoLifecycle';
 
 export type SourceTrackingOptions = { ignoreConflicts?: boolean };
 export class SourceTrackingError extends Schema.TaggedError<SourceTrackingError>()('SourceTrackingError', {
@@ -99,14 +97,6 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
       if (Option.isSome(cached) && cached.value.orgId === currentOrgId) {
         return cached.value.tracking;
       }
-
-      // Source Tracking's local ShadowRepo singleton is keyed only by project
-      // path. Release it before constructing tracking for a different org.
-      yield* projectService.getSfProject().pipe(
-        Effect.map(project => normalize(project.getPath())),
-        Effect.flatMap(projectPath => Effect.sync(() => releaseSourceTrackingShadowRepo(projectPath))),
-        Effect.tap(releasedShadowRepo => Effect.annotateCurrentSpan({ currentOrgId, releasedShadowRepo }))
-      );
 
       // Different org or no cache - create new instance
       const tracking = yield* getTracking(undefined, expectedOrgId);

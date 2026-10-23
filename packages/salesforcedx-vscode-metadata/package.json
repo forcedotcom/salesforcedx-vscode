@@ -35,8 +35,8 @@
   },
   "devDependencies": {
     "@salesforce/templates": "^66.17.2",
-    "@salesforce/source-deploy-retrieve": "^13.5.0",
-    "@salesforce/source-tracking": "^8.1.7",
+    "@salesforce/source-deploy-retrieve": "^13.6.0",
+    "@salesforce/source-tracking": "^9.0.1-qa.2",
     "@salesforce/types": "^1.8.0",
     "@salesforce/playwright-vscode-ext": "workspace:*",
     "salesforcedx-vscode-services": "workspace:*"
