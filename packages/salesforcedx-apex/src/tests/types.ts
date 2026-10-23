@@ -14,7 +14,12 @@ import { type ApexDiagnostic } from '../utils';
  * - `RunAllTestsInOrg`: all local and managed-package tests
  * - `RunSpecifiedTests`: only explicitly selected tests
  */
-export type TestLevel = 'RunLocalTests' | 'RunAllTestsInOrg' | 'RunSpecifiedTests';
+export const TestLevel = {
+  RunLocalTests: 'RunLocalTests',
+  RunAllTestsInOrg: 'RunAllTestsInOrg',
+  RunSpecifiedTests: 'RunSpecifiedTests'
+} as const;
+export type TestLevel = (typeof TestLevel)[keyof typeof TestLevel];
 
 /** Test implementation category. */
 export type TestCategory = 'Apex' | 'Flow';
@@ -60,7 +65,15 @@ export type AsyncTestConfiguration = {
   category?: string[];
 };
 
-export type ResultFormat = 'junit' | 'tap' | 'json' | 'human' | 'markdown' | 'text';
+export const ResultFormat = {
+  junit: 'junit',
+  tap: 'tap',
+  json: 'json',
+  human: 'human',
+  markdown: 'markdown',
+  text: 'text'
+} as const;
+export type ResultFormat = (typeof ResultFormat)[keyof typeof ResultFormat];
 
 export type OutputDirConfig = {
   dirPath: string;

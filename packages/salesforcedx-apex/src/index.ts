@@ -28,7 +28,7 @@ export type {
   OutputFormat,
   TestSortOrder
 } from './reporters';
-export { TestService } from './tests';
+export { TestService, ResultFormat, TestLevel } from './tests';
 export type {
   ApexCodeCoverage,
   ApexCodeCoverageRecord,
@@ -47,10 +47,8 @@ export type {
   AsyncTestConfiguration,
   CodeCoverageResult,
   OutputDirConfig,
-  ResultFormat,
   SyncTestConfiguration,
   TestItem,
-  TestLevel,
   TestResult,
   TestResultRaw,
   TestRunIdResult,

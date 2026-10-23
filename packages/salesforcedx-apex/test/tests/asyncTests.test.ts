@@ -44,7 +44,6 @@ import {
 import { join } from 'node:path';
 import * as fs from 'node:fs/promises';
 import * as diagnosticUtil from '../../src/tests/diagnosticUtil';
-import * as utils from '../../src/tests/utils';
 import { AsyncTests } from '../../src/tests/asyncTests';
 import { QUERY_RECORD_LIMIT } from '../../src/tests/constants';
 import { Writable } from 'node:stream';
@@ -57,10 +56,6 @@ vi.mock(import('../../src/tests/diagnosticUtil'), async importOriginal => {
 vi.mock(import('../../src/utils'), async importOriginal => ({
   ...(await importOriginal()),
   getCurrentTime: vi.fn()
-}));
-vi.mock(import('../../src/tests/utils'), async importOriginal => ({
-  ...(await importOriginal()),
-  queryNamespaces: vi.fn()
 }));
 vi.mock(import('node:fs/promises'), async importOriginal => ({
   ...(await importOriginal()),
@@ -79,7 +74,6 @@ let toolingRequestStub: sinon.SinonStub;
 let retrieveMaxApiVersionStub: sinon.SinonStub;
 const testData = new MockTestOrgData();
 const formatTestErrorsMock = vi.mocked(diagnosticUtil.formatTestErrors);
-const queryNamespacesMock = vi.mocked(utils.queryNamespaces);
 const writeFileMock = vi.mocked(fs.writeFile);
 const getCurrentTimeMock = vi.mocked(apexUtils.getCurrentTime);
 const pollResponse: ApexTestQueueItem = {
@@ -111,7 +105,6 @@ describe('Run Apex tests asynchronously', () => {
     testResultData.summary.username = mockConnection.getUsername() ?? '';
     toolingRequestStub = $$.SANDBOX.stub(mockConnection.tooling, 'request');
     formatTestErrorsMock.mockClear();
-    queryNamespacesMock.mockReset();
   });
 
   it('should run a successful test', async () => {
@@ -1168,19 +1161,6 @@ describe('Run Apex tests asynchronously', () => {
       } catch (e) {
         expect(formatTestErrorsMock).toHaveBeenCalledOnce();
         expect(e.message).toContain(nls.localize('invalidsObjectErr', ['ApexClass', errMsg]));
-      }
-    });
-
-    it('should format test error when building asynchronous payload', async () => {
-      const errMsg = "sObject type 'PackageLicense' is not supported.";
-      queryNamespacesMock.mockRejectedValue(new Error(errMsg));
-      const testSrv = new TestService(mockConnection);
-      try {
-        await testSrv.buildAsyncPayload('RunSpecifiedTests', 'MyApexClass.MyTest');
-        fail('Should have failed');
-      } catch (e) {
-        expect(formatTestErrorsMock).toHaveBeenCalledOnce();
-        expect(e.message).toContain(nls.localize('invalidsObjectErr', ['PackageLicense', errMsg]));
       }
     });
   });

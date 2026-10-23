@@ -22,7 +22,9 @@ describe('@salesforce/apex-node public API', () => {
       'HumanReporter',
       'JUnitReporter',
       'LogService',
+      'ResultFormat',
       'TapReporter',
+      'TestLevel',
       'TestService'
     ]);
   });
@@ -31,10 +33,19 @@ describe('@salesforce/apex-node public API', () => {
     expect(Object.keys(effectApi).sort()).toEqual([
       'ApexOperationError',
       'ApexResponseDecodeError',
+      'BuildAsyncPayloadOptionsSchema',
+      'BuildSyncPayloadOptionsSchema',
       'ExecuteAnonymousOptionsSchema',
       'ExecuteAnonymousResultSchema',
+      'TestSuiteMembershipSchema',
+      'TestSuiteSchema',
+      'buildAsyncPayload',
+      'buildSuite',
+      'buildSyncPayload',
       'causeMessage',
-      'executeAnonymous'
+      'executeAnonymous',
+      'getTestsInSuite',
+      'retrieveAllSuites'
     ]);
   });
 

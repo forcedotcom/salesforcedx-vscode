@@ -48,8 +48,12 @@ import * as Prettier from 'prettier';
 import {
   ApexOperationError,
   ApexResponseDecodeError,
+  BuildSyncPayloadOptionsSchema,
+  BuildAsyncPayloadOptionsSchema,
   ExecuteAnonymousOptionsSchema,
-  ExecuteAnonymousResultSchema
+  ExecuteAnonymousResultSchema,
+  TestSuiteSchema,
+  TestSuiteMembershipSchema
 } from '../src/effect';
 
 const optional = Schema.optional;
@@ -414,6 +418,8 @@ const PublicApiSchema = Schema.Union(
   AsyncTestConfigurationSchema,
   CodeCoverageResultSchema,
   CommonOptionsSchema,
+  BuildSyncPayloadOptionsSchema,
+  BuildAsyncPayloadOptionsSchema,
   ExecuteAnonymousOptionsSchema,
   ExecuteAnonymousResultSchema,
   ExecuteAnonymousResponseSchema,
@@ -428,7 +434,9 @@ const PublicApiSchema = Schema.Union(
   TestLevelSchema,
   TestResultSchema,
   TestResultRawSchema,
-  TestRunIdResultSchema
+  TestRunIdResultSchema,
+  TestSuiteSchema,
+  TestSuiteMembershipSchema
 ).annotations({
   title: '@salesforce/apex-node public JSON API',
   description: 'JSON-representable values accepted or returned by the supported @salesforce/apex-node API.'
