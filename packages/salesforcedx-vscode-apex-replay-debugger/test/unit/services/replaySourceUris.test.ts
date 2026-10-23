@@ -56,7 +56,6 @@ describe('replay source URI resolution', () => {
 
   beforeEach(() => {
     getEntries.mockReturnValue(Effect.succeed([]));
-    vi.mocked(vscode.window.showWarningMessage).mockImplementation(() => new Promise(() => {}));
   });
 
   it('does not query the catalog for types already mapped by the workspace', async () => {
@@ -135,7 +134,7 @@ describe('replay source URI resolution', () => {
 
       expect(result).toEqual({});
       expect(getEntries).toHaveBeenCalledExactlyOnceWith([{ type: 'ApexClass', fullName: 'Outer' }]);
-      expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(1);
+      expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
     }
   );
 
@@ -146,7 +145,7 @@ describe('replay source URI resolution', () => {
     );
 
     expect(result).toEqual({});
-    expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(1);
+    expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
   });
 
   it.each([
@@ -171,7 +170,7 @@ describe('replay source URI resolution', () => {
     }
   );
 
-  it('continues with an empty mapping and one warning when the catalog service is absent', async () => {
+  it('continues with an empty mapping when the catalog service is absent', async () => {
     const result = await Effect.runPromise(
       resolveReplaySourceUris('time|METHOD_ENTRY|[1]|01p|Missing.run()', []).pipe(
         Effect.provide(
@@ -185,11 +184,11 @@ describe('replay source URI resolution', () => {
 
     expect(result).toEqual({});
     expect(getEntries).not.toHaveBeenCalled();
-    expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(1);
+    expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
     expect(vscode.window.showErrorMessage).not.toHaveBeenCalled();
   });
 
-  it('keeps found source and warns once for all missing types without waiting for dismissal', async () => {
+  it('keeps found source and leaves missing types unmapped without a warning', async () => {
     const found = component('ApexClass', 'Found');
     getEntries.mockReturnValue(Effect.succeed([found, undefined, undefined]));
     const log = [
@@ -202,11 +201,10 @@ describe('replay source URI resolution', () => {
 
     expect(result).toEqual({ Found: found.documentUri.toString() });
     expect(getEntries).toHaveBeenCalledTimes(1);
-    expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(1);
-    expect(vi.mocked(vscode.window.showWarningMessage).mock.calls[0]).toHaveLength(1);
+    expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
   });
 
-  it('continues with an empty mapping and one warning when catalog lookup is unavailable', async () => {
+  it('continues with an empty mapping when catalog lookup is unavailable', async () => {
     getEntries.mockReturnValue(Effect.fail(new Error('No currently selected org')));
     const result = await Effect.runPromise(
       resolveReplaySourceUris('time|METHOD_ENTRY|[1]|01p|Missing.run()', []).pipe(Effect.provide(layer))
@@ -214,7 +212,7 @@ describe('replay source URI resolution', () => {
 
     expect(result).toEqual({});
     expect(getEntries).toHaveBeenCalledTimes(1);
-    expect(vscode.window.showWarningMessage).toHaveBeenCalledTimes(1);
+    expect(vscode.window.showWarningMessage).not.toHaveBeenCalled();
     expect(vscode.window.showErrorMessage).not.toHaveBeenCalled();
   });
 });

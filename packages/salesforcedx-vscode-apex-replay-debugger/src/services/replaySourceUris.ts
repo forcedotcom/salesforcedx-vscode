@@ -10,8 +10,6 @@ import { extractSourceTypesFromLog, getSourceUri } from '@salesforce/salesforced
 import type { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import type { OrgMetadataCatalogComponentReference } from 'salesforcedx-vscode-services';
-import * as vscode from 'vscode';
-import { nls } from '../messages';
 
 const triggerPrefix = '__sfdc_trigger/';
 
@@ -72,14 +70,8 @@ export const resolveReplaySourceUris = Effect.fn('ApexReplayDebugger.resolveRepl
   if (unresolvedTypes.length === 0) return {};
 
   // Catalog source is best-effort against the currently selected org, not the log's originating org.
-  const mapping = yield* resolveCatalogSourceUris(unresolvedTypes).pipe(
+  return yield* resolveCatalogSourceUris(unresolvedTypes).pipe(
     Effect.tapError(error => Effect.logWarning('Unable to resolve Apex Replay Debugger source URIs', { error })),
     Effect.orElseSucceed((): Record<string, string> => ({}))
   );
-  if (unresolvedTypes.some(type => !getSourceUri(type, Object.entries(mapping)))) {
-    yield* Effect.sync(() => {
-      void vscode.window.showWarningMessage(nls.localize('replay_source_unavailable'));
-    });
-  }
-  return mapping;
 });
