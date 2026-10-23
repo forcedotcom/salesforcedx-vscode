@@ -10,6 +10,7 @@ const processGlobalPath = join(__dirname, 'process-global.js');
 const processPolyfillPath = join(__dirname, 'process-polyfill.js');
 const bufferGlobalPath = join(__dirname, 'buffer-global.js');
 const fsPolyfillPath = join(__dirname, 'fs-polyfill.js');
+const fsPromisesPolyfillPath = join(__dirname, 'fs-promises-polyfill.js');
 const urlPolyfillPath = join(__dirname, 'url-polyfill.js');
 const ttyPolyfillPath = join(__dirname, 'tty-polyfill.js');
 
@@ -71,7 +72,8 @@ export const commonConfigBrowser = {
     'graceful-fs': fsPolyfillPath,
     fs: fsPolyfillPath,
     'node:fs': fsPolyfillPath,
-    'node:fs/promises': fsPolyfillPath,
+    'fs/promises': fsPromisesPolyfillPath,
+    'node:fs/promises': fsPromisesPolyfillPath,
     jsonwebtoken: 'jsonwebtoken-esm',
     // Redirect jsforce-node to browser-compatible jsforce.  This is important, it won't auth without it but I don't understand why.
     '@jsforce/jsforce-node': 'jsforce/browser',

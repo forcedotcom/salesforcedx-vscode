@@ -143,6 +143,7 @@
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
         "../../scripts/bundling/fs-polyfill.js",
+        "../../scripts/bundling/fs-promises-polyfill.js",
         "out/**",
         "node_modules/@salesforce/templates/lib/**",
         "../../node_modules/@salesforce/templates/lib/**"
@@ -167,6 +168,7 @@
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
         "../../scripts/bundling/fs-polyfill.js",
+        "../../scripts/bundling/fs-promises-polyfill.js",
         "out/**",
         "../../.esbuild-web-extra-settings.json",
         "node_modules/@salesforce/templates/lib/**"

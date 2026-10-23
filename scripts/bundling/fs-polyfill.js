@@ -17,9 +17,7 @@ fs.writeFile = (file, data, options, callback) => {
   if (typeof options === 'function') return writeFile(file, data, options);
   const normalizedOptions = normalizeWriteFileOptions(options);
   if (typeof callback === 'function') return writeFile(file, data, normalizedOptions, callback);
-  return new Promise((resolve, reject) => {
-    writeFile(file, data, normalizedOptions, error => (error ? reject(error) : resolve()));
-  });
+  return writeFile(file, data, normalizedOptions, callback);
 };
 
 const writeFileSync = fs.writeFileSync.bind(fs);
