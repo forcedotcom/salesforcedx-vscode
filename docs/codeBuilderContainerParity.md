@@ -42,7 +42,7 @@ container ports.
    reads — see apex's `sharedWorkspaceDirTest`, used by `apexLspRestart`.
 
 Per [PR #8102 review feedback](https://github.com/forcedotcom/salesforcedx-vscode/pull/8102#discussion_r4047559234),
-92 of the 109 container specs (108 originally, plus the 3 later createProject* ports, less testExplorerRun folded into testExplorer and the duplicate metadata deploySource) have been merged this way; 17 remain standalone. See "Adding a
+93 of the 109 container specs (108 originally, plus the 3 later createProject* ports, less testExplorerRun folded into testExplorer and the duplicate metadata deploySource) have been merged this way; 16 remain standalone. See "Adding a
 container suite to a package" below for both patterns.
 
 ## Coverage summary — 109 specs across 15 packages
@@ -304,7 +304,7 @@ than needing a mount or phase of their own — see the row below.
 | apex-log `apexGenerateClassMultiPackageDirs` | multi-`packageDirectories` project | **DONE** — merged into `apexGenerateClassMultiPackageDirs.headless.spec.ts` with `isContainer` branch; runs in phase 4 against `container-multipackage` mount (2 `packageDirectories`, each with a `classes` dir); phase 1 config's `testMatch` excludes it so single-package desktop/web runs don't fail |
 | apex-log/apex-testing `noOrgVisibility` | DX project, **no org** | **DONE** — ported via a new phase 5: `bootEnv` made optional, org-less container boot (tears down + fresh `run()` without org env, since `restart()` reuses baked env); both packages' specs are merged into their `noOrgVisibility.headless.spec.ts` (`isContainer` branch, picked by the phase config's `testMatch`); re-gates cleanly; default org-boot unchanged |
 | metadata `createProject`, `createProjectWithManifest` | folder open, no `sfdx-project.json` (reuses phase 2's no-project mount) | **DONE** — ported as standalone `*.container.spec.ts` in `specs/container-noproject/`; scaffold into that mount's checked-in `scratch/` subfolder (host path via new `CB_NOPROJECT_HOST_DIR`/`CB_NOPROJECT_CONTAINER_DIR` env vars, no new mount); `vscode.openFolder`'s trailing navigation is untracked by the spec since the verify step is pure host `node:fs` and the next test's own `page.goto('/')` lands back on the seeded shape regardless |
-| metadata `createProjectEmptyWindow` | no folder open (reuses phase 3's no-folder seed) | **DONE** — ported the same way, in `specs/container-nofolder/`; the file dialog browses the scratch mount regardless of what workspace is open |
+| metadata `createProjectEmptyWindow` | no folder open (reuses phase 3's no-folder seed) | **DONE** — merged into `createProjectEmptyWindow.desktop.spec.ts` with `isContainer` branch; runs in phase 3 via `testMatch` on the no-folder config; the file dialog browses the scratch mount regardless of what workspace is open |
 
 **Phased re-seed infrastructure:** after the standard org-authed suites (phase 1), the orchestrator
 runs a sequence of shape-change phases, each re-seeding `coder.json` to a different mounted workspace,
@@ -367,3 +367,16 @@ For specs requiring a no-project folder (project-gated commands must be hidden):
 3. Add `test:container:noproject` script + wireit block (same env vars as `test:container`, including the external `CB_GREP`/`CB_UNDER_TEST`).
 4. Orchestrator auto-discovers `test:container:noproject` scripts; runs phase 2 after phase 1. Specs
    run against the mounted non-project folder after re-seed + `restart()`.
+
+**Phase 3 (no-folder workspace shape):**
+
+For specs requiring no folder open at all (e.g. Create Project from an empty window):
+
+1. `test/playwright/playwright.config.container.nofolder.ts` → if the spec has a desktop/web twin,
+   merge it (`isContainer` branch) and use `createContainerConfig({ testDir: './specs',
+   testMatch: ['<name>.desktop.spec.ts', 'container-nofolder/<name>.container.spec.ts'] })` to run both merged and standalone specs (metadata `createProjectEmptyWindow` + no-folder container specs); otherwise
+   `createContainerConfig({ testDir: './specs/container-nofolder' })` for standalone specs only.
+2. Standalone only: `test/playwright/specs/container-nofolder/<name>.container.spec.ts` — same patterns as phase 1.
+3. Add `test:container:nofolder` script + wireit block (same env vars as `test:container`, including the external `CB_GREP`/`CB_UNDER_TEST`).
+4. Orchestrator auto-discovers `test:container:nofolder` scripts; runs phase 3 after phase 2. Specs
+   run against the no-folder mount after re-seed + `restart()`.

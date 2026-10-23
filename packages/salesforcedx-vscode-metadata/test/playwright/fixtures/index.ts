@@ -10,10 +10,11 @@ import {
   desktopTest,
   dreamhouseDesktopTest,
   nonTrackingDesktopTest,
+  projectTargetDesktopTest,
   trackingConflictTest as trackingConflictDesktopTest
 } from './desktopFixtures';
 import { webTrackingConflictTest } from './webConflictFixtures';
-import { containerTest } from './containerFixtures';
+import { containerTest, projectTargetContainerTest } from './containerFixtures';
 
 const isDesktop = process.env.VSCODE_DESKTOP === '1';
 export const isContainer = process.env.VSCODE_CONTAINER === '1';
@@ -38,3 +39,5 @@ export { emptyWorkspaceDesktopTest, desktopTest } from './desktopFixtures';
 export const sharedTest = isContainer ? containerTest : isDesktop ? desktopTest : webTest;
 export const sharedDreamhouseTest = isContainer ? containerTest : isDesktop ? dreamhouseDesktopTest : webTest;
 export const sharedNonTrackingTest = isContainer ? containerTest : isDesktop ? nonTrackingDesktopTest : webTest;
+/** Create Project specs: desktop scaffolds beside its temp workspace, the container into the no-project mount's scratch/. */
+export const sharedProjectTargetTest = isContainer ? projectTargetContainerTest : projectTargetDesktopTest;
