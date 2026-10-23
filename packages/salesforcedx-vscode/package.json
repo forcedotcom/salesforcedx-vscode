@@ -15,11 +15,11 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.5.4",
+  "version": "68.7.2",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.90.0"
+    "vscode": "^1.100.0"
   },
   "scripts": {
     "preinstall": "node ../../scripts/require-root-install.js",
@@ -30,7 +30,7 @@
   },
   "wireit": {
     "vscode:package": {
-      "command": "vsce package --no-dependencies",
+      "command": "vsce package --no-dependencies --no-gitHubIssueLinking",
       "files": [
         "package.json",
         "images/**",
@@ -43,7 +43,7 @@
       ]
     },
     "vscode:package:prerelease": {
-      "command": "vsce package --no-dependencies --pre-release",
+      "command": "vsce package --no-dependencies --pre-release --no-gitHubIssueLinking",
       "files": [
         "package.json",
         "images/**",

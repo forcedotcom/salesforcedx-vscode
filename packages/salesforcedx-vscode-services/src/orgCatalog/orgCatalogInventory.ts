@@ -69,6 +69,7 @@ export const makeOrgCatalogInventory = Effect.gen(function* () {
           xmlName,
           orgComponents: orgListing.components,
           workspaceUris: workspaceInventory.components,
+          workspacePresenceAvailable: workspaceInventory.workspacePresenceAvailable,
           workspaceNamespace: workspaceInventory.namespace,
           observedAt
         }).pipe(Effect.provideService(MetadataRegistryService, registry)),
@@ -80,6 +81,7 @@ export const makeOrgCatalogInventory = Effect.gen(function* () {
             )
           )
         ),
+        workspacePresenceAvailable: workspaceInventory.workspacePresenceAvailable,
         folders: HashMap.fromIterable(orgListing.folders.map(folder => [folder.fullName, folder] as const)),
         folderFullNameOrder: Arr.dedupe(orgListing.folders.map(folder => folder.fullName))
       } satisfies TypeInventory;

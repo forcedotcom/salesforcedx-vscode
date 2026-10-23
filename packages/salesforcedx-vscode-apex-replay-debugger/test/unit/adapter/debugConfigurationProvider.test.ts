@@ -115,4 +115,32 @@ describe('DebugConfigurationProvider log-file prompt', () => {
     expect(resolved?.sourceUriMapping).toEqual({ Remote: entry.documentUri.toString() });
     expect(resolved?.lineBreakpointInfo).toBeUndefined();
   });
+
+  it('continues replay launch when disabled debug breakpoints return no information', async () => {
+    const getLineBreakpointInfo = vi.fn().mockResolvedValue([]);
+    (vscode.extensions.getExtension as VitestMock).mockReturnValue({
+      isActive: true,
+      exports: {
+        getLineBreakpointInfo,
+        languageClientManager: {
+          getStatus: () => ({
+            isReady: () => true,
+            failedToInitialize: () => false,
+            getStatusMessage: () => ''
+          })
+        }
+      }
+    });
+
+    const resolved = await new DebugConfigurationProvider(extensionContext).resolveDebugConfiguration(undefined, {
+      name: 'Replay without breakpoint information',
+      type: 'apex-replay',
+      request: 'launch',
+      logFile: '/logs/selected.log'
+    });
+
+    expect(getLineBreakpointInfo).toHaveBeenCalledOnce();
+    expect(resolved).toMatchObject({ lineBreakpointInfo: [] });
+    expect(vscode.window.showErrorMessage).not.toHaveBeenCalled();
+  });
 });

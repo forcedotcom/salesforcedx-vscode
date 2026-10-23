@@ -331,9 +331,7 @@ jobs:
           echo "✓ Tag points to: $(git rev-parse $RELEASE_TAG)"
 
       - name: Install dependencies with updated versions
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
-        with:
-          command: pnpm install --frozen-lockfile
+        uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
       - name: Relabel this week's changelog for stable release
         # promote-to-prerelease.yml already generated and committed this week's
         # delta to develop (labeled with the prerelease version); pull that exact content

@@ -15,14 +15,14 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.5.4",
+  "version": "68.7.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
   "productFeatureId": "aJCEE0000000mLm4AI",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.90.0"
+    "vscode": "^1.100.0"
   },
   "categories": [
     "Other"
@@ -348,7 +348,7 @@
     "workspaceContains:sfdx-project.json",
     "onFileSystem:memfs"
   ],
-  "main": "./dist/index.js",
+  "main": "./dist/index.mjs",
   "browser": "./dist/web/index.js",
   "contributes": {
     "viewsContainers": {
