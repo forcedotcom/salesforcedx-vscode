@@ -162,6 +162,39 @@ describe('Language Client Manager', () => {
     });
   });
 
+  describe('Custom endpoint capabilities', () => {
+    afterEach(() => {
+      languageClientManager.setClientInstance(undefined);
+    });
+
+    it('does not send debugger requests when custom endpoints are disabled', async () => {
+      const sendRequest = vi.fn();
+      languageClientManager.setClientInstance({
+        isCustomEndpointEnabled: () => false,
+        sendRequest
+      } as unknown as ApexLanguageClient);
+
+      await expect(languageClientManager.getLineBreakpointInfo()).resolves.toEqual([]);
+      await expect(languageClientManager.getExceptionBreakpointInfo()).resolves.toEqual([]);
+      expect(sendRequest).not.toHaveBeenCalled();
+    });
+
+    it('does not send OpenAPI requests when custom endpoints are disabled', async () => {
+      const isOpenAPIEligible = vi.fn();
+      const gatherOpenAPIContext = vi.fn();
+      languageClientManager.setClientInstance({
+        isCustomEndpointEnabled: () => false,
+        isOpenAPIEligible,
+        gatherOpenAPIContext
+      } as unknown as ApexLanguageClient);
+
+      await expect(languageClientManager.isOpenAPIEligible({ payload: [] })).resolves.toBeUndefined();
+      await expect(languageClientManager.gatherOpenAPIContext(URI.file('/tmp/Demo.cls'))).resolves.toBeUndefined();
+      expect(isOpenAPIEligible).not.toHaveBeenCalled();
+      expect(gatherOpenAPIContext).not.toHaveBeenCalled();
+    });
+  });
+
   describe('Client Setup', () => {
     let mockClient: ApexLanguageClient;
     let mockContext: vscode.ExtensionContext;

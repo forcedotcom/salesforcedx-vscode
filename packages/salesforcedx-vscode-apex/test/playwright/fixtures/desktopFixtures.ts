@@ -54,7 +54,9 @@ const userSettings = {
   'editor.gotoLocation.multipleImplementations': 'goto',
   'editor.gotoLocation.multipleTypeDefinitions': 'goto',
   'editor.gotoLocation.multipleReferences': 'goto',
-  'editor.gotoLocation.alternativeDefinitionCommand': ''
+  'editor.gotoLocation.alternativeDefinitionCommand': '',
+  // Keep desktop Jorje E2E coverage on the released capability policy, independent of user defaults.
+  'salesforcedx-vscode-apex.advanced.lspParityCapabilities': true
 };
 
 // Files are pre-seeded onto disk before Electron launches so the jorje LSP startup scan picks

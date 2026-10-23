@@ -9,6 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import { APEX_SETTINGS_SECTION } from './constants';
+import { capabilitySettings, type CapabilityPolicy } from './languageServerCapabilities';
 
 // Eligibility for OpenAPI Document ONLY, should not be changed by users unless overwriting in settings.json
 const APEX_ACTION_CLASS_DEF_MODIFIERS = ['withsharing', 'withoutsharing', 'inheritedsharing'];
@@ -32,6 +33,30 @@ const unionValues = (defaults: readonly string[], configuredValues: readonly str
 const getSetting = Effect.fn('apex.getSetting')(function* <T>(key: string, defaultValue: T) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   return yield* (yield* api.services.SettingsService).getValueOrElse(APEX_SETTINGS_SECTION, key, defaultValue);
+});
+
+const getCapabilityOverride = (key: string) =>
+  getSetting(key, false).pipe(Effect.map(disabled => (disabled ? false : undefined)));
+
+export const getLanguageServerCapabilityPolicy = Effect.fn('apex.languageServerCapabilityPolicy')(function* () {
+  const lsp = yield* Effect.all({
+    provideCodeActions: getCapabilityOverride(capabilitySettings.lsp.provideCodeActions),
+    provideCodeLenses: getCapabilityOverride(capabilitySettings.lsp.provideCodeLenses),
+    provideCompletions: getCapabilityOverride(capabilitySettings.lsp.provideCompletions),
+    provideDefinition: getCapabilityOverride(capabilitySettings.lsp.provideDefinition),
+    provideDocumentSymbols: getCapabilityOverride(capabilitySettings.lsp.provideDocumentSymbols),
+    provideHover: getCapabilityOverride(capabilitySettings.lsp.provideHover),
+    provideReferences: getCapabilityOverride(capabilitySettings.lsp.provideReferences),
+    provideRenameEdits: getCapabilityOverride(capabilitySettings.lsp.provideRenameEdits)
+  });
+  const custom = yield* Effect.all({
+    'apexoas/gatherContext': getCapabilityOverride(capabilitySettings.custom['apexoas/gatherContext']),
+    'apexoas/isEligible': getCapabilityOverride(capabilitySettings.custom['apexoas/isEligible']),
+    'debugger/exceptionBreakpoints': getCapabilityOverride(capabilitySettings.custom['debugger/exceptionBreakpoints']),
+    'debugger/lineBreakpoints': getCapabilityOverride(capabilitySettings.custom['debugger/lineBreakpoints']),
+    'test/getTestMethods': getCapabilityOverride(capabilitySettings.custom['test/getTestMethods'])
+  });
+  return { lsp, custom } satisfies CapabilityPolicy;
 });
 
 export const retrieveEnableSyncInitJobs = Effect.fn('apex.retrieveEnableSyncInitJobs')(function* () {

@@ -29,6 +29,11 @@ import {
 import { languageClientSetupError } from '../languageClientSetupErrors';
 import { createLanguageServer } from '../languageServer';
 import { nls } from '../messages';
+import {
+  type ApexClassOASEligibleResponses,
+  type ApexClassOASGatherContextResponse,
+  type ApexOASEligiblePayload
+} from '../oasSchemas';
 import { fireErrorSpan, fireSpan } from '../services/fireSpan';
 import { getRuntime } from '../services/runtime';
 import { getApexLanguageServerRestartBehavior, retrieveEnableSyncInitJobs } from '../settings';
@@ -214,11 +219,27 @@ export class LanguageClientManager {
   }
 
   public async getLineBreakpointInfo(): Promise<LineBreakpointInfo[]> {
-    return this.clientInstance ? this.clientInstance.sendRequest<LineBreakpointInfo[]>(DEBUGGER_LINE_BREAKPOINTS) : [];
+    return this.clientInstance?.isCustomEndpointEnabled('debugger/lineBreakpoints')
+      ? this.clientInstance.sendRequest<LineBreakpointInfo[]>(DEBUGGER_LINE_BREAKPOINTS)
+      : [];
   }
 
   public async getExceptionBreakpointInfo(): Promise<{}> {
-    return this.clientInstance ? this.clientInstance.sendRequest(DEBUGGER_EXCEPTION_BREAKPOINTS) : {};
+    return this.clientInstance?.isCustomEndpointEnabled('debugger/exceptionBreakpoints')
+      ? this.clientInstance.sendRequest(DEBUGGER_EXCEPTION_BREAKPOINTS)
+      : [];
+  }
+
+  public async isOpenAPIEligible(requests: ApexOASEligiblePayload): Promise<ApexClassOASEligibleResponses | undefined> {
+    return this.clientInstance?.isCustomEndpointEnabled('apexoas/isEligible')
+      ? this.clientInstance.isOpenAPIEligible(requests)
+      : undefined;
+  }
+
+  public async gatherOpenAPIContext(sourceUri: URI): Promise<ApexClassOASGatherContextResponse | undefined> {
+    return this.clientInstance?.isCustomEndpointEnabled('apexoas/gatherContext')
+      ? this.clientInstance.gatherOpenAPIContext(sourceUri)
+      : undefined;
   }
 
   private async getRestartOption(source: 'commandPalette' | 'statusBar'): Promise<string | undefined> {

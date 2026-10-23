@@ -9,11 +9,7 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
-import type {
-  ApexClassOASGatherContextResponse,
-  ApexOASEligiblePayload,
-  ApexVSCodeApi
-} from 'salesforcedx-vscode-apex';
+import type { ApexOASEligiblePayload, ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 import { ApexExtensionUnavailable, ApexLspNotReady, ApexLspRequestFailed } from '../errors';
@@ -63,21 +59,22 @@ export const probeReady = Effect.fn('ApexOas.Lsp.probeReady')(function* (
   );
 });
 
-const getClient = Effect.fn('ApexOas.Lsp.getClient')(function* () {
+const getApexApi = Effect.fn('ApexOas.Lsp.getApexApi')(function* () {
   const ext = yield* getApexExtension();
   // The OAS commands can fire before indexing completes (activation is deferred), so wait for Ready.
-  return yield* probeReady(ext.exports.languageClientManager).pipe(
+  yield* probeReady(ext.exports.languageClientManager).pipe(
     Effect.retry({ schedule: LSP_READY_SCHEDULE, while: error => error._tag === 'ApexLspNotReady' })
   );
+  return ext.exports;
 });
 
 export class ApexMetadataService extends Effect.Service<ApexMetadataService>()('ApexMetadataService', {
   accessors: true,
   effect: Effect.gen(function* () {
     const isOpenAPIEligible = Effect.fn('ApexOas.Lsp.isOpenAPIEligible')(function* (requests: ApexOASEligiblePayload) {
-      const client = yield* getClient();
+      const apexApi = yield* getApexApi();
       return yield* Effect.tryPromise({
-        try: () => client.isOpenAPIEligible(requests),
+        try: () => apexApi.isOpenAPIEligible(requests),
         catch: cause =>
           new ApexLspRequestFailed({ message: `apexoas/isEligible request failed: ${String(cause)}`, cause })
       }).pipe(
@@ -89,12 +86,17 @@ export class ApexMetadataService extends Effect.Service<ApexMetadataService>()('
     });
 
     const gatherOpenAPIContext = Effect.fn('ApexOas.Lsp.gatherOpenAPIContext')(function* (sourceUri: URI) {
-      const client = yield* getClient();
+      const apexApi = yield* getApexApi();
       return yield* Effect.tryPromise({
-        try: async (): Promise<ApexClassOASGatherContextResponse> => client.gatherOpenAPIContext(sourceUri),
+        try: () => apexApi.gatherOpenAPIContext(sourceUri),
         catch: cause =>
           new ApexLspRequestFailed({ message: `apexoas/gatherContext request failed: ${String(cause)}`, cause })
-      });
+      }).pipe(
+        Effect.filterOrFail(
+          isNotUndefined,
+          () => new ApexLspRequestFailed({ message: 'apexoas/gatherContext returned no response' })
+        )
+      );
     });
 
     return { isOpenAPIEligible, gatherOpenAPIContext };

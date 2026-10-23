@@ -8,6 +8,7 @@
 import { LanguageClient, type LanguageClientOptions, type ServerOptions } from 'vscode-languageclient/node';
 import { type URI } from 'vscode-uri';
 import { type ApexErrorHandler } from './apexErrorHandler';
+import { type CustomEndpoint, type ResolvedLanguageServerCapabilities } from './languageServerCapabilities';
 import {
   type ApexClassOASEligibleRequest,
   type ApexClassOASEligibleResponse,
@@ -35,6 +36,7 @@ type ApexClassOASEligibleResponsesForLSPProtocol = ApexClassOASEligibleResponseF
  */
 export class ApexLanguageClient extends LanguageClient {
   private _errorHandler: ApexErrorHandler | undefined;
+  private readonly capabilities: ResolvedLanguageServerCapabilities;
 
   /**
    * Constructs an instance of ApexLanguageClient.
@@ -48,11 +50,18 @@ export class ApexLanguageClient extends LanguageClient {
     id: string,
     name: string,
     serverOptions: ServerOptions,
-    clientOptions: LanguageClientOptions & { errorHandler?: ApexErrorHandler },
+    {
+      capabilities,
+      ...clientOptions
+    }: LanguageClientOptions & {
+      capabilities: ResolvedLanguageServerCapabilities;
+      errorHandler?: ApexErrorHandler;
+    },
     forceDebug?: boolean
   ) {
     super(id, name, serverOptions, clientOptions, forceDebug);
     this._errorHandler = clientOptions.errorHandler;
+    this.capabilities = capabilities;
   }
 
   /**
@@ -61,6 +70,11 @@ export class ApexLanguageClient extends LanguageClient {
    */
   public get errorHandler(): ApexErrorHandler | undefined {
     return this._errorHandler;
+  }
+
+  public isCustomEndpointEnabled(endpoint: CustomEndpoint): boolean {
+    const capability = this.capabilities.custom[endpoint];
+    return capability.supported && capability.enabled;
   }
 
   /**
@@ -77,6 +91,7 @@ export class ApexLanguageClient extends LanguageClient {
    * @returns A promise that resolves with the eligibility responses or undefined.
    */
   public async isOpenAPIEligible(requests: ApexOASEligiblePayload): Promise<ApexClassOASEligibleResponses | undefined> {
+    if (!this.isCustomEndpointEnabled('apexoas/isEligible')) return undefined;
     // given uris are embedded within a complex structure we must iterate over the collection and call code2ProtocolConverter for each uri
     const payload = requests.payload.map(req => ({
       ...req,

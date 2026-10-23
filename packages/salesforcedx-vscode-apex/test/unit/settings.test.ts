@@ -7,7 +7,11 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
-import { apexLanguageServerSettings, retrieveEnableSyncInitJobs } from '../../src/settings';
+import {
+  apexLanguageServerSettings,
+  getLanguageServerCapabilityPolicy,
+  retrieveEnableSyncInitJobs
+} from '../../src/settings';
 
 describe('settings Unit Tests.', () => {
   const getValue = vi.fn();
@@ -42,5 +46,19 @@ describe('settings Unit Tests.', () => {
     const result = await run(apexLanguageServerSettings());
     expect(result.apexActionMethodAnnotations.split(',').toSorted()).toEqual(['AuraEnabled', 'UserDefinedModifier']);
     expect(getValue).toHaveBeenCalledWith('salesforcedx-vscode-apex', 'apexoas.aa.method.annotations', []);
+  });
+
+  it('inverts hidden capability opt-outs into enabled policy states', async () => {
+    getValue.mockImplementation((_section: string, key: string, defaultValue: unknown) =>
+      Effect.succeed(key === 'advanced.capabilities.disableHover' ? true : defaultValue)
+    );
+
+    const result = await run(getLanguageServerCapabilityPolicy());
+
+    expect(result).toEqual({
+      lsp: expect.objectContaining({ provideHover: false, provideDefinition: undefined }),
+      custom: expect.objectContaining({ 'apexoas/isEligible': undefined })
+    });
+    expect(getValue).toHaveBeenCalledWith('salesforcedx-vscode-apex', 'advanced.capabilities.disableHover', false);
   });
 });
