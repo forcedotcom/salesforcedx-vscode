@@ -12,7 +12,7 @@ The client catalog is `src/languageServerCapabilities.ts`. Verify all changes ag
 
 Jorje requires a JVM and is never-web. Do not add web-platform branching to this policy.
 
-## Inventory
+## Configurable Inventory
 
 | Kind | Jorje capability | Default | Configuration |
 | --- | --- | --- | --- |
@@ -29,9 +29,8 @@ Jorje requires a JVM and is never-web. Do not add web-platform branching to this
 | Custom request | `debugger/exceptionBreakpoints` | enabled | hidden setting |
 | Custom request | `debugger/lineBreakpoints` | enabled | hidden setting |
 | Custom request | `test/getTestMethods` | enabled | hidden setting |
-| Internal notification | `indexer/done` | enabled | never configurable |
 
-`indexer/done` is a server-completion signal consumed only by the client. It remains inventory-only and must always be handled when `wait-init-jobs` is disabled.
+`indexer/done` is a server-completion signal consumed only by the client, not a capability-policy item. The existing handler must remain registered when `wait-init-jobs` is disabled.
 
 ## Hidden Settings
 
@@ -67,14 +66,14 @@ Custom requests:
 - `disableDebuggerLineBreakpoints`
 - `disableTestGetTestMethods`
 
-`advanced.lspParityCapabilities` remains the compatibility fallback for document symbols only. An explicit hidden `provideDocumentSymbols` value takes precedence.
+`advanced.lspParityCapabilities` remains the compatibility fallback for document symbols only. `disableDocumentSymbols: true` takes precedence; when it is absent or `false`, the legacy parity setting determines document-symbol behavior.
 
 ## Enforcement
 
 - Standard LSP providers are disabled with `LanguageClient` middleware. The policy snapshot is captured when a client starts, so restart the language server after changing one.
 - Custom requests must be gated at `LanguageClientManager` or exported Apex API boundaries. Disabled paths must not call `sendRequest` and must return the existing consumer's supported empty value or `undefined`.
 - Do not send client policy settings in `initializationOptions`.
-- Keep `indexer/done` handling unconditional; it is not an opt-out capability.
+- `indexer/done` remains outside this policy and is handled unconditionally by `LanguageClientManager` when `wait-init-jobs` is disabled.
 
 ## Testing
 

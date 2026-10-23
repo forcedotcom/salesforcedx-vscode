@@ -28,9 +28,6 @@ describe('resolveLanguageServerCapabilities', () => {
       'debugger/lineBreakpoints': { supported: true, enabled: true },
       'test/getTestMethods': { supported: true, enabled: true }
     });
-    expect(resolved.notifications).toEqual({
-      'indexer/done': { supported: true, enabled: true }
-    });
   });
 
   it('applies an individual override without changing other capability states', () => {
@@ -42,7 +39,6 @@ describe('resolveLanguageServerCapabilities', () => {
     expect(resolved.lsp.provideDocumentSymbols.enabled).toBe(true);
     expect(resolved.custom['apexoas/isEligible'].enabled).toBe(false);
     expect(resolved.custom['apexoas/gatherContext'].enabled).toBe(true);
-    expect(resolved.notifications['indexer/done'].enabled).toBe(true);
   });
 
   it('does not mutate its policy input', () => {
