@@ -25,3 +25,18 @@ export {
   streamLogs
 } from './logs';
 export type { ListLogsOptions, LogStreamEvent, StreamLogsOptions } from './logs';
+export {
+  BuildSyncPayloadOptionsSchema,
+  BuildAsyncPayloadOptionsSchema,
+  buildSyncPayload,
+  buildAsyncPayload
+} from './testPayloads';
+export type { BuildSyncPayloadOptions, BuildAsyncPayloadOptions } from './testPayloads';
+export {
+  TestSuiteSchema,
+  TestSuiteMembershipSchema,
+  retrieveAllSuites,
+  getTestsInSuite,
+  buildSuite
+} from './testSuites';
+export type { TestSuite, TestSuiteMembership } from './testSuites';

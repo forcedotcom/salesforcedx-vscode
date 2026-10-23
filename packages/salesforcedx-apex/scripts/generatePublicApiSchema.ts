@@ -54,8 +54,12 @@ import {
   ApexOperationError,
   ApexResponseDecodeError,
   ApexRuntimeError,
+  BuildSyncPayloadOptionsSchema,
+  BuildAsyncPayloadOptionsSchema,
   ExecuteAnonymousOptionsSchema,
-  ExecuteAnonymousOutcomeSchema
+  ExecuteAnonymousOutcomeSchema,
+  TestSuiteSchema,
+  TestSuiteMembershipSchema
 } from '../src/effect';
 
 const optional = Schema.optional;
@@ -426,6 +430,8 @@ const PublicApiSchema = Schema.Union(
   AsyncTestConfigurationSchema,
   CodeCoverageResultSchema,
   CommonOptionsSchema,
+  BuildSyncPayloadOptionsSchema,
+  BuildAsyncPayloadOptionsSchema,
   ExecuteAnonymousOptionsSchema,
   ExecuteAnonymousOutcomeSchema,
   ExecuteAnonymousResponseSchema,
@@ -440,7 +446,9 @@ const PublicApiSchema = Schema.Union(
   TestLevelSchema,
   TestResultSchema,
   TestResultRawSchema,
-  TestRunIdResultSchema
+  TestRunIdResultSchema,
+  TestSuiteSchema,
+  TestSuiteMembershipSchema
 ).annotations({
   title: '@salesforce/apex-node public JSON API',
   description: 'JSON-representable values accepted or returned by the supported @salesforce/apex-node API.'

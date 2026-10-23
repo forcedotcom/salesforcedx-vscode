@@ -38,8 +38,8 @@ try {
   const effectEntry = join(consumerRoot, 'effect-consumer.mjs');
   writeFileSync(
     effectEntry,
-    "import { executeAnonymous, ApexOperationError } from '@salesforce/apex-node/effect';\n" +
-      'globalThis.apexEffectApi = { executeAnonymous, ApexOperationError };\n'
+    "import { executeAnonymous, ApexOperationError, buildSyncPayload, buildAsyncPayload, retrieveAllSuites, getTestsInSuite, buildSuite } from '@salesforce/apex-node/effect';\n" +
+      'globalThis.apexEffectApi = { executeAnonymous, ApexOperationError, buildSyncPayload, buildAsyncPayload, retrieveAllSuites, getTestsInSuite, buildSuite };\n'
   );
   await build({
     entryPoints: [effectEntry],

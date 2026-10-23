@@ -577,6 +577,31 @@
       "properties": { "json": { "type": "boolean" }, "loglevel": { "$ref": "#/$defs/LogLevel" } },
       "additionalProperties": false
     },
+    "BuildSyncPayloadOptions": {
+      "type": "object",
+      "required": ["testLevel"],
+      "properties": {
+        "testLevel": { "type": "string", "enum": ["RunLocalTests", "RunAllTestsInOrg", "RunSpecifiedTests"] },
+        "tests": { "type": "string" },
+        "classNames": { "type": "string" },
+        "category": { "type": "string" },
+        "skipCodeCoverage": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "BuildAsyncPayloadOptions": {
+      "type": "object",
+      "required": ["testLevel"],
+      "properties": {
+        "testLevel": { "type": "string", "enum": ["RunLocalTests", "RunAllTestsInOrg", "RunSpecifiedTests"] },
+        "tests": { "type": "string" },
+        "classNames": { "type": "string" },
+        "category": { "type": "string" },
+        "skipCodeCoverage": { "type": "boolean" },
+        "suiteNames": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
     "ExecuteAnonymousOptions": {
       "type": "object",
       "required": ["apexCode"],
@@ -816,6 +841,18 @@
       "required": ["testRunId"],
       "properties": { "testRunId": { "type": "string" } },
       "additionalProperties": false
+    },
+    "TestSuite": {
+      "type": "object",
+      "required": ["id", "TestSuiteName"],
+      "properties": { "id": { "type": "string" }, "TestSuiteName": { "type": "string" } },
+      "additionalProperties": false
+    },
+    "TestSuiteMembership": {
+      "type": "object",
+      "required": ["ApexClassId"],
+      "properties": { "ApexClassId": { "type": "string" } },
+      "additionalProperties": false
     }
   },
   "anyOf": [
@@ -847,6 +884,8 @@
     { "$ref": "#/$defs/AsyncTestConfiguration" },
     { "$ref": "#/$defs/CodeCoverageResult" },
     { "$ref": "#/$defs/CommonOptions" },
+    { "$ref": "#/$defs/BuildSyncPayloadOptions" },
+    { "$ref": "#/$defs/BuildAsyncPayloadOptions" },
     { "$ref": "#/$defs/ExecuteAnonymousOptions" },
     { "$ref": "#/$defs/ExecuteAnonymousOutcome" },
     { "$ref": "#/$defs/ExecuteAnonymousResponse" },
@@ -861,7 +900,9 @@
     { "$ref": "#/$defs/TestLevel" },
     { "$ref": "#/$defs/TestResult" },
     { "$ref": "#/$defs/TestResultRaw" },
-    { "$ref": "#/$defs/TestRunIdResult" }
+    { "$ref": "#/$defs/TestRunIdResult" },
+    { "$ref": "#/$defs/TestSuite" },
+    { "$ref": "#/$defs/TestSuiteMembership" }
   ],
   "description": "JSON-representable values accepted or returned by the supported @salesforce/apex-node API.",
   "title": "@salesforce/apex-node public JSON API"
