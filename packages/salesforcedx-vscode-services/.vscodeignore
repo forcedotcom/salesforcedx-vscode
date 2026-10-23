@@ -24,6 +24,7 @@ junit*
 esbuild.config.mjs
 jest.config.js
 tsconfig.json
+tsconfig.scripts.json
 .eslint.json
 
 # unique to this package

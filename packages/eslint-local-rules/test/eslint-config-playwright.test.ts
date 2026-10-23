@@ -14,6 +14,7 @@ const playwrightFile = path.join(
   'packages/playwright-vscode-ext/test/playwright/specs/commandPalette.headless.spec.ts'
 );
 const ruleId = 'playwright/no-force-option';
+const eslintSpawnTimeoutMs = 60_000;
 
 const lintPlaywright = (code: string): number => {
   const eslint = spawnSync(
@@ -26,7 +27,7 @@ const lintPlaywright = (code: string): number => {
       '--format',
       'json'
     ],
-    { cwd: repoRoot, encoding: 'utf8', input: code }
+    { cwd: repoRoot, encoding: 'utf8', input: code, timeout: eslintSpawnTimeoutMs }
   );
   if (eslint.error) throw eslint.error;
   const [result] = JSON.parse(eslint.stdout) as Array<{ messages: Array<{ ruleId: string | null }> }>;
@@ -34,8 +35,7 @@ const lintPlaywright = (code: string): number => {
 };
 
 describe('Playwright ESLint configuration', () => {
-  // Each case spawns ESLint. The first spawn exceeds Vitest's 5s default when the suite runs in parallel.
-  const eslintSpawnTimeoutMs = 20_000;
+  // Cold ESLint subprocess startup can exceed 20s on Windows CI.
 
   it(
     'reports an ordinary forced Playwright action',

@@ -5,14 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { build } from 'esbuild';
-import { nodeConfig } from '../../scripts/bundling/node.mjs';
+import { nodeEsmConfig } from '../../scripts/bundling/node.mjs';
 import { writeFile } from 'fs/promises';
 
 const nodeBuild = await build({
-  ...nodeConfig,
+  ...nodeEsmConfig,
   entryPoints: ['./out/src/index.js'],
   outdir: './dist',
-  plugins: [...(nodeConfig.plugins ?? [])],
+  plugins: [...(nodeEsmConfig.plugins ?? [])],
   metafile: true
 });
 

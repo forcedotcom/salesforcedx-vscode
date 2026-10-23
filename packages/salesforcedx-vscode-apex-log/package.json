@@ -11,7 +11,7 @@
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.90.0"
+    "vscode": "^1.100.0"
   },
   "categories": [
     "Other"
@@ -23,7 +23,7 @@
     "workspaceContains:sfdx-project.json",
     "onFileSystem:memfs"
   ],
-  "main": "./dist/index.js",
+  "main": "./dist/index.mjs",
   "types": "./out/src/index.d.ts",
   "browser": "./dist/web/index.js",
   "dependencies": {
@@ -61,7 +61,7 @@
   },
   "wireit": {
     "compile": {
-      "command": "tsc --pretty && ts-node scripts/generateTraceFlagsSchema.ts",
+      "command": "tsc --pretty && ts-node --project tsconfig.scripts.json scripts/generateTraceFlagsSchema.ts",
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
@@ -72,6 +72,7 @@
         "src/**/*.ts",
         "scripts/**/*.ts",
         "tsconfig.json",
+        "tsconfig.scripts.json",
         "../../tsconfig.common.json",
         "package.json",
         "package.nls*.json"

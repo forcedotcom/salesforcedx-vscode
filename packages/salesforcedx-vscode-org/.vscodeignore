@@ -1,6 +1,7 @@
 .vscode/**
 .vscode-test/**
 .wireit/**
+.cjs-metafile/**
 out/**
 test/**
 src/**
@@ -15,6 +16,8 @@ junit*
 node_modules
 dist/*-metafile.json
 coverage
+playwright-report/**
+test-results/**
 
 # do not reach outside the package
 ../../**

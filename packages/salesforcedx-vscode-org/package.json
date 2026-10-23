@@ -22,7 +22,7 @@
   "productFeatureId": "aJCEE0000000mLm4AI",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.90.0"
+    "vscode": "^1.100.0"
   },
   "categories": [
     "Other"
@@ -179,6 +179,7 @@
       ],
       "files": [
         "package.json",
+        ".vscodeignore",
         "package.nls*.json",
         "README.md",
         "CHANGELOG.md",
@@ -208,6 +209,7 @@
       ],
       "files": [
         "package.json",
+        ".vscodeignore",
         "package.nls*.json",
         "README.md",
         "CHANGELOG.md",
@@ -244,7 +246,7 @@
       "description": "Org management requires executing Salesforce CLI commands"
     }
   },
-  "main": "./dist/index.js",
+  "main": "./dist/index.mjs",
   "contributes": {
     "configuration": {
       "title": "%configuration_title%",

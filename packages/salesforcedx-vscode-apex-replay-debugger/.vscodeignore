@@ -5,6 +5,7 @@
 .vscode/**
 .vscode-test/**
 .wireit/**
+out/**
 *.xml
 *.vsix
 test/**

@@ -9,7 +9,7 @@ import * as Command from '@effect/platform/Command';
 import * as CommandExecutor from '@effect/platform/CommandExecutor';
 import { BadArgument, SystemError, type PlatformError } from '@effect/platform/Error';
 import * as NodeStream from '@effect/platform-node-shared/NodeStream';
-import * as cross_spawn from 'cross-spawn';
+import crossSpawn from 'cross-spawn';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import type { HashMap } from 'effect/HashMap';
@@ -101,7 +101,7 @@ const startStandard = (command: Command.StandardCommand) =>
       )
     : Effect.flatMap(Deferred.make<readonly [number | null, NodeJS.Signals | null]>(), exit =>
         Effect.async<CommandExecutor.Process, PlatformError>(resume => {
-          const handle = cross_spawn(command.command, [...command.args], {
+          const handle = crossSpawn(command.command, [...command.args], {
             stdio: ['ignore', 'pipe', 'pipe'],
             cwd: Option.getOrUndefined(command.cwd),
             env: resolveCommandEnv(command.env),

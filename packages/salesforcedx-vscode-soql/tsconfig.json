@@ -1,6 +1,8 @@
 {
   "extends": "../../tsconfig.common.json",
   "compilerOptions": {
+    "module": "Preserve",
+    "moduleResolution": "Bundler",
     "rootDir": ".",
     "outDir": "out",
     "noImplicitAny": true

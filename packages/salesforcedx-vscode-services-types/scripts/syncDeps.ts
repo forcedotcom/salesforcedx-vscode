@@ -63,7 +63,9 @@ const syncDeps = (): void => {
   // Sync version number
   typesPkg.version = parentPkg.version;
 
-  fs.writeFileSync(typesPkgPath, `${JSON.stringify(typesPkg, null, 2)}\n`, 'utf8');
+  const temporaryTypesPkgPath = `${typesPkgPath}.${process.pid}.tmp`;
+  fs.writeFileSync(temporaryTypesPkgPath, `${JSON.stringify(typesPkg, null, 2)}\n`, 'utf8');
+  fs.renameSync(temporaryTypesPkgPath, typesPkgPath);
   console.log('Synced dependencies and version from parent package');
 };
 

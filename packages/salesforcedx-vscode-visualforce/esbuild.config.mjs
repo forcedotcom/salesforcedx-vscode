@@ -7,15 +7,15 @@
 import { build } from 'esbuild';
 import { writeFile } from 'fs/promises';
 import { assertWebSafe } from '../../scripts/bundling/assert-web-safe.mjs';
-import { nodeConfig } from '../../scripts/bundling/node.mjs';
+import { nodeConfig, nodeEsmConfig } from '../../scripts/bundling/node.mjs';
 import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
 
 // Desktop extension bundle — consumes effect; ESM conditions inherited from nodeConfig
 const nodeBuild = await build({
-  ...nodeConfig,
+  ...nodeEsmConfig,
   mainFields: ['module', 'main'],
   entryPoints: ['./out/src/extension.js'],
-  outfile: './dist/index.js',
+  outfile: './dist/index.mjs',
   metafile: true
 });
 
