@@ -26,18 +26,9 @@ export {
 } from './logs';
 export { QueryPageSchema } from './schema/queryPage';
 export type { ListLogsOptions, LogStreamEvent, StreamLogsOptions } from './logs';
-export {
-  BuildSyncPayloadOptionsSchema,
-  BuildAsyncPayloadOptionsSchema,
-  buildSyncPayload,
-  buildAsyncPayload
-} from './testPayloads';
-export type { BuildSyncPayloadOptions, BuildAsyncPayloadOptions } from './testPayloads';
-export {
-  TestSuiteSchema,
-  TestSuiteMembershipSchema,
-  retrieveAllSuites,
-  getTestsInSuite,
-  buildSuite
-} from './testSuites';
-export type { TestSuite, TestSuiteMembership } from './testSuites';
+export { BuildSyncPayloadOptionsSchema, BuildAsyncPayloadOptionsSchema } from './schema/testPayloads';
+export type { BuildSyncPayloadOptions, BuildAsyncPayloadOptions } from './schema/testPayloads';
+export { buildSyncPayload, buildAsyncPayload } from './testPayloads';
+export { TestSuiteSchema, TestSuiteMembershipSchema } from './schema/testSuites';
+export type { TestSuite, TestSuiteMembership } from './schema/testSuites';
+export { retrieveAllSuites, getTestsInSuite, buildSuite } from './testSuites';

@@ -8,9 +8,7 @@ import { type Connection } from '@salesforce/core';
 import { type Duration } from '@salesforce/kit';
 import * as Effect from 'effect/Effect';
 import * as Either from 'effect/Either';
-import * as FiberRef from 'effect/FiberRef';
-import * as HashSet from 'effect/HashSet';
-import * as Logger from 'effect/Logger';
+import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import { JsonStreamStringify } from 'json-stream-stringify';
 import { createWriteStream } from 'node:fs';
@@ -19,10 +17,12 @@ import { join } from 'node:path';
 import { Readable, type Writable, type Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { type CancellationToken, type Progress } from '../common';
+import { ApexOperationError, ApexResponseDecodeError } from '../effect/errors';
 import { buildAsyncPayload, buildSyncPayload } from '../effect/testPayloads';
-import { buildSuite, getTestsInSuite, retrieveAllSuites } from '../effect/testSuites';
+import { buildSuite, getTestsInSuite, retrieveAllSuites, retrieveSuiteId } from '../effect/testSuites';
 import { nls } from '../i18n';
 import { JUnitFormatTransformer, TapFormatTransformer, MarkdownTextFormatTransformer } from '../reporters';
+import { SalesforceId } from '../schemas/salesforceId';
 import { TestResultStringifyStream } from '../streaming';
 import { elapsedTime, HeapMonitor } from '../utils';
 import { AsyncTests } from './asyncTests';
@@ -33,7 +33,7 @@ import {
   type AsyncTestArrayConfiguration,
   type AsyncTestConfiguration,
   type OutputDirConfig,
-  type ResultFormat,
+  ResultFormat,
   type SyncTestConfiguration,
   type TestLevel,
   type TestResult,
@@ -42,7 +42,7 @@ import {
   type TestSuiteMembershipRecord
 } from './types';
 
-const validResultFormats = new Set<ResultFormat>(['junit', 'tap', 'json', 'human', 'markdown', 'text']);
+const validResultFormats = new Set<ResultFormat>(Object.values(ResultFormat));
 
 /**
  * Standalone function for writing test result files - easier to test
@@ -140,9 +140,6 @@ export const writeResultFiles = async (
 const runTestServiceOperation = async <A, E extends Error>(operation: Effect.Effect<A, E>): Promise<A> =>
   Either.getOrThrowWith(await operation.pipe(Effect.either, Effect.runPromise), formatTestErrors);
 
-// Preserve the class API's plain console messages while Effect consumers select their own logger.
-const suiteConsoleLogger = Logger.make(({ message }) => console.log(...(Array.isArray(message) ? message : [message])));
-
 export class TestService {
   private readonly connection: Connection;
   private readonly asyncService: AsyncTests;
@@ -158,7 +155,6 @@ export class TestService {
    * Retrieve all suites in org
    * @returns list of Suites in org
    */
-  @elapsedTime()
   public async retrieveAllSuites(): Promise<{ id: string; TestSuiteName: string }[]> {
     return runTestServiceOperation(retrieveAllSuites(this.connection).pipe(Effect.map(suites => [...suites])));
   }
@@ -170,10 +166,39 @@ export class TestService {
    * @returns list of test classes in the suite
    * @internal Used by the co-repo Apex Testing extension; not part of the supported npm API.
    */
-  @elapsedTime()
   public async getTestsInSuite(suitename?: string, suiteId?: string): Promise<TestSuiteMembershipRecord[]> {
+    const suiteIdLookup: Effect.Effect<Option.Option<string>, ApexOperationError | ApexResponseDecodeError> = suitename
+      ? retrieveSuiteId(this.connection, suitename)
+      : Effect.succeed(Option.fromNullable(suiteId));
     return runTestServiceOperation(
-      getTestsInSuite(this.connection, suitename, suiteId).pipe(Effect.map(members => [...members]))
+      suiteIdLookup.pipe(
+        Effect.flatMap(
+          Option.match({
+            onNone: () =>
+              Effect.fail(
+                new ApexOperationError({
+                  operation: 'getTestsInSuite',
+                  message: nls.localize(
+                    suitename === undefined && suiteId === undefined ? 'suitenameErr' : 'missingSuiteErr'
+                  )
+                })
+              ),
+            onSome: id =>
+              Schema.decodeUnknown(SalesforceId)(id).pipe(
+                Effect.mapError(
+                  cause =>
+                    new ApexResponseDecodeError({
+                      operation: 'getTestsInSuite',
+                      message: 'Invalid suite id',
+                      cause: cause.message
+                    })
+                ),
+                Effect.flatMap(id => getTestsInSuite(this.connection, id))
+              )
+          })
+        ),
+        Effect.map(members => [...members])
+      )
     );
   }
 
@@ -183,15 +208,8 @@ export class TestService {
    * @param testClasses
    * @internal Used by the co-repo Apex Testing extension; not part of the supported npm API.
    */
-  @elapsedTime()
   public async buildSuite(suitename: string, testClasses: string[]): Promise<void> {
-    return runTestServiceOperation(
-      buildSuite(this.connection, suitename, testClasses).pipe(
-        Effect.locallyWith(FiberRef.currentLoggers, loggers =>
-          loggers.pipe(HashSet.remove(Logger.defaultLogger), HashSet.add(suiteConsoleLogger))
-        )
-      )
-    );
+    return runTestServiceOperation(buildSuite(this.connection, suitename, testClasses));
   }
 
   /**
@@ -295,7 +313,6 @@ export class TestService {
   /**
    * Utility function to help build payload for https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/intro_rest_resources_testing_runner_sync.htm
    */
-  @elapsedTime()
   public async buildSyncPayload(
     testLevel: TestLevel,
     tests?: string,
@@ -318,7 +335,6 @@ export class TestService {
   /**
    * Utility function to help build payload for https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/intro_rest_resources_testing_runner_async.htm
    */
-  @elapsedTime()
   public async buildAsyncPayload(
     testLevel: TestLevel,
     tests?: string,

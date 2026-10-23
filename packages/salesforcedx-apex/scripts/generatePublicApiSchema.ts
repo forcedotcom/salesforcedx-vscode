@@ -71,6 +71,8 @@ import {
   ApexTestSetupDataSchema,
   CodeCoverageResultSchema,
   PerClassCoverageSchema,
+  ResultFormatSchema,
+  TestLevelSchema,
   TestResultRawSchema,
   TestResultSchema
 } from '../src/tests/types';
@@ -137,14 +139,6 @@ const LogResultSchema = Schema.Struct({
   logPath: optional(Schema.String),
   log: Schema.String
 }).annotations({ identifier: 'LogResult' });
-
-const TestLevelSchema = Schema.Literal('RunLocalTests', 'RunAllTestsInOrg', 'RunSpecifiedTests').annotations({
-  identifier: 'TestLevel'
-});
-
-const ResultFormatSchema = Schema.Literal('junit', 'tap', 'json', 'human', 'markdown', 'text').annotations({
-  identifier: 'ResultFormat'
-});
 
 const TestItemSchema = Schema.Struct({
   className: optional(Schema.String),
