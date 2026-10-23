@@ -3,6 +3,8 @@
 > For an automated, agent-assisted walkthrough of these steps, see [.claude/skills/release/SKILL.md](../.claude/skills/release/SKILL.md).
 > For the weekly release-manager schedule, QA artifact selection, and recovery
 > of failed prerequisites, see [Release Testing Guide](../docs/release-testing-guide.md).
+> For stable/prerelease hotfixes and replacement candidates, use its canonical
+> [hotfix runbook](../docs/release-testing-guide.md#patch-release-workflow).
 
 This is a guide for publishing to the Visual Studio Code Marketplace and the Open VSX Registry. Most contributors will not need to worry about publishing. However, it might be worthwhile familiarizing yourself with the steps in case you need to share the extensions through the .vsix files.
 
@@ -26,6 +28,7 @@ References:
 [`build-github-release.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/build-github-release.yml) builds stable-candidate VSIXs from a published marketplace prerelease. The scheduled run is Wednesday at 07:00 UTC and consumes the prior week's promoted nightly; the 08:00 UTC prerelease promotion creates the input for the following week's stable build. Auto-detection resolves the newest valid `marketplace-prerelease-*` tracking tag and bumps the nightly minor. Manual overrides are for controlled recovery or emergency use.
 
 Inputs:
+- `startFromRef`: exact source tag/branch/SHA; overrides `prereleaseTag` and bypasses nightly validation. Pair with an explicit unused `releaseVersion` for hotfixes.
 - `prereleaseTag`: promoted prerelease tag (e.g., `v67.11.1-nightly.develop.20260812`); auto-detect if empty (loops through `marketplace-prerelease-*` tracking tags newest-first, uses first one that resolves to a real nightly tag)
 - `releaseVersion`: release version (e.g., `67.12.0`); auto-calculated per mode if empty
 - `emergencyPrerelease`: `true` → emergency-hotfix build path; auto-calculates patch from max(Marketplace, Open VSX) if `releaseVersion` empty
@@ -35,7 +38,24 @@ Uses scripts:
 - [`scripts/calculate-prerelease-hotfix-version.js`](../scripts/calculate-prerelease-hotfix-version.js) — query Marketplace/Open VSX, bump patch on max version
 - [`scripts/update-release-versions.js`](../scripts/update-release-versions.js) — update publishable packages' `package.json` + `pnpm-lock.yaml`
 
-Output: GitHub pre-release with VSIX artifacts + SHA256 checksums. Test locally; trigger `publishVSCode.yml` for marketplace publish if tests pass.
+**Versioning:** stable mode runs the version updater on an isolated build branch.
+Emergency prerelease mode does **not**: run `node scripts/update-release-versions.js <version>`
+on the hotfix source, commit package/lockfile changes, and use the same explicit
+`releaseVersion`. In emergency mode that input changes only tag/release naming,
+not versions embedded in the VSIX.
+
+**Source selection:** auto-detection looks for `vVERSION-nightly.develop.*` for
+each tracking-tag version. A promoted hotfix tag without a matching nightly is
+skipped, potentially selecting an older source. `prereleaseTag` only accepts
+nightly-formatted tags; patched non-nightly sources require `startFromRef`.
+That path skips normal nightly changelog relabeling; prepare the complete
+original release changes plus fix before building a successor stable candidate.
+
+Output: GitHub pre-release with VSIX artifacts + SHA256 checksums, not registry
+publication. QA the exact artifacts, then follow the channel-specific
+[publishing runbook](../docs/release-testing-guide.md#publishing-to-marketplace).
+Existing tags/assets remain unchanged; even an unpublished candidate requires
+a new unused version for corrections.
 
 ## Nightly Builds & Pre-release Promotion
 
@@ -43,17 +63,19 @@ Output: GitHub pre-release with VSIX artifacts + SHA256 checksums. Test locally;
 
 Automated nightly VS Code extension builds via `salesforcecli/github-workflows` shared CI.
 
-**Automatic:** Daily 4 AM UTC publishes all extensions as prereleases. New extensions auto-included via dynamic discovery.
+**Automatic:** Daily 4 AM UTC builds GitHub prereleases/assets, not marketplace
+publications (`nightly: true`). New extensions auto-included via dynamic discovery;
+`promote-to-prerelease.yml` publishes the selected build to both registries.
 
 **Manual trigger:**
 ```bash
-# Publish all (dynamically discovered)
+# Build all (dynamically discovered)
 gh workflow run nightly.yml
 
-# Publish specific extensions only
+# Build specific extensions only
 gh workflow run nightly.yml -f extensions="salesforcedx-vscode-apex,salesforcedx-vscode-core"
 
-# Dry-run (no publish)
+# Dry-run
 gh workflow run nightly.yml -f dry-run=true
 ```
 
@@ -88,6 +110,13 @@ Published releases extract extension names from VSIX filenames in release assets
 
 ### Pre-release Promotion
 
+Emergency hotfix promotion requires `releaseTag=<exact-hotfix-tag>` and
+`isHotfix=true`; its compile/test gate tests that source commit and promotion
+publishes to **both** registries. The generated changelog covers the delta from
+the previous tracking tag, often only the hotfix, not the full original release.
+Keep emergency VSIXs prerelease; stable publication requires a separate
+stable-packaged build. See [Emergency Pre-release Workflow](../docs/release-testing-guide.md#emergency-pre-release-workflow).
+
 **Pre-release promotion:** `promote-to-prerelease.yml` (Wednesdays 8 AM UTC) runs multi-stage pipeline: (1) find-nightly selects most recent nightly (min-tag-age: 0 days); (2) gate-check verifies nightly's build/release success, or tests hotfix commit directly when `-f isHotfix=true`; (3) compute-changelog-range finds baseline commit (newest `marketplace-prerelease-*` or latest stable `v*` tag); (4) changelog-body calls reusable AI-backed workflow to produce polished customer-facing changelog (GUS refs removed, sentences rewritten, packages deduped, Under-the-Hood consolidated); (5) changelog writes polished body under version header to `packages/salesforcedx-vscode/CHANGELOG.md` + root `CHANGELOG.md`; (6) promote creates marketplace-prerelease tracking tag; (7) mark-release-published tags nightly release GitHub title with " - published" suffix (visible on Releases page). Safe rollback window before general release.
 
 **Release build:** See [Build Release from Prerelease](#build-release-from-prerelease) above.
@@ -100,11 +129,20 @@ Published releases extract extension names from VSIX filenames in release assets
 
 ### Standard Path: Promoted Prerelease → Release
 
+Normal weekly releases only. Stable hotfixes need the
+[current workflow workaround](../docs/release-testing-guide.md#publish-a-stable-hotfix):
+after QA, mark the GitHub release stable, leave automatic release-event runs
+unapproved (they skip the hotfix test gate), then explicitly dispatch **both**
+publishers from `develop` with `isHotfix=true`. Cancel automatic runs only after
+confirmation; approve only explicit hotfix runs and require both gates to pass.
+Human environment approval is not a substitute for tests. Each stable registry
+is independent; neither publisher triggers the other.
+
 1. Promoted nightly tag exists (see [Pre-release promotion](#nightly-builds--pre-release-promotion))
 2. Trigger [`build-github-release.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/build-github-release.yml) to build release VSIXs
 3. Download + test VSIX files from GitHub pre-release
 4. Promote the release from pre-release to a full release: `gh release edit v67.12.0 --prerelease=false --title "Release 67.12.0 - Tested & Approved" --latest`. This is required, not optional — the publish pipeline reads the release's `isPrerelease` flag and passes `--pre-release` to `vsce`, which fails outright since these VSIXs are packaged as stable. This flip is what actually marks the release stable, and also auto-fires both [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) and [`publishOpenVSX.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSX.yml) via the `release: types: [released]` event. The title/`--latest` change is cosmetic (reflects testing passed, points "latest release" resolvers at it) and doesn't affect the publish trigger.
-5. If a run needs retrying, dispatch manually with the version (e.g., `-f version="v67.12.0"` / `-f release-tag="v67.12.0"`) — dispatching one does **not** trigger the other. For stable hotfixes, also pass `-f isHotfix=true` to each so its gate-check tests the exact commit directly.
+5. Use the automatically created runs; dispatch manually only for a missing/failed run with the version (e.g., `-f version="v67.12.0"` / `-f release-tag="v67.12.0"`). Dispatching one does **not** trigger the other. The hotfix exception is described above.
 6. Approve marketplace publish gates
 7. Marketplace updates (usually within minutes)
 
@@ -185,8 +223,8 @@ gh workflow run build-github-release.yml \
 
 Follow the standard [Publishing to Marketplace](#publishing-to-marketplace) flow:
 - Download and test VSIX from GitHub pre-release
-- Trigger `publishVSCode.yml` with version `68.0.0`
-- Approve marketplace gates after testing
+- Mark the stable-packaged GitHub release stable after QA
+- Approve the automatically created Marketplace and Open VSX runs
 
 **Note:** Subsequent minor releases (68.0.0 → 68.2.0 → 68.4.0, ...) use auto-calculate and don't require manual version updates — stable releases are always even minors, matching the odd/even convention nightly builds already follow.
 
