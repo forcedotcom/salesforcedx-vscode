@@ -10,7 +10,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "68.7.0",
+  "version": "68.7.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -22,7 +22,7 @@
     "theme": "light"
   },
   "engines": {
-    "vscode": "^1.90.0"
+    "vscode": "^1.100.0"
   },
   "categories": [
     "Programming Languages"
@@ -509,7 +509,7 @@
       "output": []
     }
   },
-  "main": "dist/index.js",
+  "main": "dist/index.mjs",
   "browser": "dist/web/index.js",
   "contributes": {
     "customEditors": [
