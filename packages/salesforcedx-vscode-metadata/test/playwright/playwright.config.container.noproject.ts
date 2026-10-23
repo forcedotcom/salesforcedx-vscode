@@ -16,7 +16,6 @@ import { createContainerConfig } from '@salesforce/playwright-vscode-ext';
 export default createContainerConfig({
   testDir: './specs',
   testMatch: [
-    'container-noproject/emptyWorkspaceSfdxCommands.container.spec.ts',
     'container-noproject/noProjectCommandsHidden.container.spec.ts',
     'createProject.desktop.spec.ts',
     'createProjectWithManifest.desktop.spec.ts'

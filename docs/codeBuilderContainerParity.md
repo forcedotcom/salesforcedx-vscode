@@ -36,16 +36,17 @@ container ports.
    container-specific steps live in ONE file. Use this whenever the container and desktop/web runs
    cover the same scenario closely enough to share a body.
 2. **Standalone** — a separate `specs/container/<name>.container.spec.ts` file importing `containerTest`
-   directly. Reserved for specs with no desktop/web counterpart at all, or a hard technical constraint
-   that rules out sharing a body. A `workspaceDir` need alone isn't one: the fixture project is a host
+   directly. Reserved for a hard technical constraint that rules out sharing a body. A spec with no
+   desktop/web counterpart isn't one: write it as a shared spec so desktop runs it too. Nor is a
+   `workspaceDir` need alone: the fixture project is a host
    bind mount, so a container fixture can supply its host path (`CB_FIXTURE_HOST_DIR`) for on-disk
    reads — see apex's `sharedWorkspaceDirTest`, used by `apexLspRestart`.
 
 Per [PR #8102 review feedback](https://github.com/forcedotcom/salesforcedx-vscode/pull/8102#discussion_r4047559234),
-95 of the 109 container specs (108 originally, plus the 3 later createProject* ports, less testExplorerRun folded into testExplorer and the duplicate metadata deploySource) have been merged this way; 14 remain standalone. See "Adding a
+95 of the 107 container specs (108 originally, plus the 3 later createProject* ports, less testExplorerRun folded into testExplorer, the duplicate metadata deploySource, and the 2 metadata emptyWorkspaceSfdxCommands specs, whose checks the createProject* specs already make) have been merged this way; 12 remain standalone. See "Adding a
 container suite to a package" below for both patterns.
 
-## Coverage summary — 109 specs across 15 packages
+## Coverage summary — 107 specs across 15 packages
 
 Includes multi-org / Dreamhouse ports (see "Multi-org container support" below): 13 previously
 org-blocked specs now run by authing extra orgs + switching default with save/restore; 2 ported but
@@ -57,14 +58,14 @@ re-run after each restart): **no-project** (phase 2), **no-folder** (phase 3), *
 (see "Workspace-shape portability assessment" below) — they target the no-project mount's checked-in
 `scratch/` subfolder rather than a new mount or phase. All verified green.
 
-Count is container-covered **specs** (scenarios), not separate files: 102 active + 2 `test.fixme`. Most
+Count is container-covered **specs** (scenarios), not separate files: 100 active + 2 `test.fixme`. Most
 of these now live merged into their desktop/web twin rather than as a standalone file — see "Two
 implementation patterns" above; the spec names/counts below are unaffected by which pattern a given
 spec uses.
 
 | Package | Specs | Container specs |
 | --- | --: | --- |
-| `salesforcedx-vscode-metadata` | 32 | deploy (Source/Path/Palette/Manifest/OnSave), retrieve (Source/Manifest/StaleApiVersion), deleteSource, sourceDiff(+Multiple), viewChangesCommands, generateManifest, editorWatcher, projectDeployStart, projectInfo, packageInstall, nonTrackingOrgDeployRetrieve(Manifest/Operations), refreshSObjectDefinitions, sourceTrackingStatusBar, manifestCommandVisibility, noProjectCommandsHidden, **analyticsTemplates, taggedErrorChannelOutput, emptyWorkspaceSfdxCommands (no-project + no-folder), createProject, createProjectWithManifest, createProjectEmptyWindow** + nonTrackingOrgTracking(Commands/UI)Hidden (`fixme`) |
+| `salesforcedx-vscode-metadata` | 30 | deploy (Source/Path/Palette/Manifest/OnSave), retrieve (Source/Manifest/StaleApiVersion), deleteSource, sourceDiff(+Multiple), viewChangesCommands, generateManifest, editorWatcher, projectDeployStart, projectInfo, packageInstall, nonTrackingOrgDeployRetrieve(Manifest/Operations), refreshSObjectDefinitions, sourceTrackingStatusBar, manifestCommandVisibility, noProjectCommandsHidden, **analyticsTemplates, taggedErrorChannelOutput, createProject, createProjectWithManifest, createProjectEmptyWindow** + nonTrackingOrgTracking(Commands/UI)Hidden (`fixme`) |
 | `salesforcedx-vscode-lwc` | 10 | generateComponent, rename, snippets, customComponentsIndex + LSP (autocomplete, goToDefinition Html/Js, hover, indexing, sfdxTypings) |
 | `salesforcedx-vscode-apex-testing` | 13 | testExplorer (incl. tree-item runs + Test Results Pass Rate), runApexTests (CodeLens/CommandPalette/FailAndFix), apexTestSuite(+Delete), clearApexTestResults, codeCoverageColorizer, staleTestResultsRestoration, orgOnlyClassRetrieve, inWorkspaceFilter, **noProjectVisibility, noOrgVisibility** |
 | `salesforcedx-vscode-org-browser` | 8 | orgBrowser (types), orgBrowser.describe, orgBrowser.filterToggle, orgBrowser.textFilter, **orgBrowserCustomObject, orgBrowserCustomTab, orgBrowserFolderedReport, orgBrowserTextFilterDreamhouse** |
@@ -95,7 +96,7 @@ from container-only splits/additions (`seededWorkspace`, `testExplorerRun`,
 
 | Package | Origin | Ported | Not ported |
 | --- | --: | --: | --: |
-| `salesforcedx-vscode-metadata` | 32 | 30 | 2 |
+| `salesforcedx-vscode-metadata` | 31 | 29 | 2 |
 | `salesforcedx-vscode-apex-testing` | 14 | 13 | 1 |
 | `salesforcedx-vscode-lwc` | 13 | 10 | 3 |
 | `salesforcedx-vscode-apex-log` | 12 | 11 | 1 |
@@ -110,7 +111,7 @@ from container-only splits/additions (`seededWorkspace`, `testExplorerRun`,
 | `salesforcedx-vscode-core` | 3 | 3 | 0 |
 | `salesforcedx-vscode-apex-debugger` | 2 | 1 | 1 |
 | `salesforcedx-vscode-visualforce` | 2 | 2 | 0 |
-| **Total** | **132** | **105 (80%)** | **27** |
+| **Total** | **131** | **104 (79%)** | **27** |
 
 The 27 not-ported specs by blocking constraint — **all now hard-blocked** (every reachable-with-work
 spec, including the three `createProject*` specs, has now been ported):
@@ -300,7 +301,7 @@ than needing a mount or phase of their own — see the row below.
 | --- | --- | --- |
 | metadata `manifestCommandVisibility` | standard project + org (= current fixture) | **DONE** — ported; writes `*Package.xml`/`.xml` into bind-mounted fixture via `CB_FIXTURE_HOST_DIR` env; runs against ambient boot org in phase 1 |
 | metadata `noProjectCommandsHidden` | folder, no `sfdx-project.json` | **DONE** — ported; orchestrator re-seeds `coder.json` to non-project mount + `restart()`s in phase 2, re-runs verify gate, then runs `test:container:noproject`. Re-seed spike: **PASS** ✓ |
-| apex-log/apex-testing `noProjectVisibility`, metadata `emptyWorkspaceSfdxCommands` | folder open, no `sfdx-project.json` / no folder open | **DONE** — ported; org-agnostic palette-visibility checks via phase 2 (`test:container:noproject`) + a new phase 3 (`test:container:nofolder`) for the no-folder case; apex-log/apex-testing `noProjectVisibility` are merged into their `noProjectVisibility.headless.spec.ts` (`isContainer` branch, picked by the phase config's `testMatch`) |
+| apex-log/apex-testing `noProjectVisibility`, metadata `createProjectEmptyWindow` | folder open, no `sfdx-project.json` / no folder open | **DONE** — ported; org-agnostic palette-visibility checks via phase 2 (`test:container:noproject`) + a new phase 3 (`test:container:nofolder`) for the no-folder case (metadata `createProjectEmptyWindow`); apex-log/apex-testing `noProjectVisibility` are merged into their `noProjectVisibility.headless.spec.ts` (`isContainer` branch, picked by the phase config's `testMatch`) |
 | apex-log `apexGenerateClassMultiPackageDirs` | multi-`packageDirectories` project | **DONE** — merged into `apexGenerateClassMultiPackageDirs.headless.spec.ts` with `isContainer` branch; runs in phase 4 against `container-multipackage` mount (2 `packageDirectories`, each with a `classes` dir); phase 1 config's `testMatch` excludes it so single-package desktop/web runs don't fail |
 | apex-log/apex-testing `noOrgVisibility` | DX project, **no org** | **DONE** — ported via a new phase 5: `bootEnv` made optional, org-less container boot (tears down + fresh `run()` without org env, since `restart()` reuses baked env); both packages' specs are merged into their `noOrgVisibility.headless.spec.ts` (`isContainer` branch, picked by the phase config's `testMatch`); re-gates cleanly; default org-boot unchanged |
 | metadata `createProject`, `createProjectWithManifest` | folder open, no `sfdx-project.json` (reuses phase 2's no-project mount) | **DONE** — merged into `createProject.desktop.spec.ts` and `createProjectWithManifest.desktop.spec.ts` with `isContainer` branch; run in phase 2 via `testMatch`. The fixture snapshots `coder.json` before the test and restores it in teardown to prevent a pre-existing flake: `vscode.openFolder` records the new project in `coder.json` as the last-opened folder, so the next test's `page.goto('/')` would reopen the deleted project instead of the seeded mount. |
@@ -340,9 +341,10 @@ config; `RunSpec.bootEnv` optional (default org-boot argv byte-identical when pr
    testDir: './specs/container' })`.
 4. Add `"VSCODE_CONTAINER": "1"` to the `test:container` wireit env block. Add `"CB_GREP": { "external": true }` and `"CB_UNDER_TEST": { "external": true }` — caching includes the VSIX/image under test in the fingerprint (via orchestrator's CB_UNDER_TEST sha256). **Any phase script** (`test:container:multipackage`, `test:container:noproject`, etc.) whose `testMatch` includes merged specs must also set `VSCODE_CONTAINER: "1"`, or `isContainer` is false and specs silently branch to web or skip.
 
-Only fall back to a **standalone** `*.container.spec.ts` file when there's no desktop/web counterpart,
-or a hard constraint rules out a shared body (a `workspaceDir` need alone doesn't — see
-`sharedWorkspaceDirTest` above):
+A brand-new Code Builder test follows the same steps: write it as a shared `.headless`/`.desktop`
+spec so desktop (and web, where it can) runs it too. Only fall back to a **standalone**
+`*.container.spec.ts` file when a hard constraint rules out a shared body (a `workspaceDir` need alone
+doesn't — see `sharedWorkspaceDirTest` above):
 
 **Phase 1 (standard DX-project fixture):**
 
@@ -372,11 +374,9 @@ For specs requiring a no-project folder (project-gated commands must be hidden):
 
 For specs requiring no folder open at all (e.g. Create Project from an empty window):
 
-1. `test/playwright/playwright.config.container.nofolder.ts` → if the spec has a desktop/web twin,
-   merge it (`isContainer` branch) and use `createContainerConfig({ testDir: './specs',
-   testMatch: ['<name>.desktop.spec.ts', 'container-nofolder/<name>.container.spec.ts'] })` to run both merged and standalone specs (metadata `createProjectEmptyWindow` + no-folder container specs); otherwise
-   `createContainerConfig({ testDir: './specs/container-nofolder' })` for standalone specs only.
-2. Standalone only: `test/playwright/specs/container-nofolder/<name>.container.spec.ts` — same patterns as phase 1.
-3. Add `test:container:nofolder` script + wireit block (same env vars as `test:container`, including `VSCODE_CONTAINER: "1"`, external `CB_GREP`/`CB_UNDER_TEST`). The phase script must set `VSCODE_CONTAINER=1` so `isContainer` is true for merged specs.
-4. Orchestrator auto-discovers `test:container:nofolder` scripts; runs phase 3 after phase 2. Specs
+1. `test/playwright/playwright.config.container.nofolder.ts` → write the spec as a shared desktop
+   spec (`isContainer` branch) and list it in `createContainerConfig({ testDir: './specs',
+   testMatch: ['<name>.desktop.spec.ts'] })` (metadata `createProjectEmptyWindow`).
+2. Add `test:container:nofolder` script + wireit block (same env vars as `test:container`, including `VSCODE_CONTAINER: "1"`, external `CB_GREP`/`CB_UNDER_TEST`). The phase script must set `VSCODE_CONTAINER=1` so `isContainer` is true for merged specs.
+3. Orchestrator auto-discovers `test:container:nofolder` scripts; runs phase 3 after phase 2. Specs
    run against the no-folder mount after re-seed + `restart()`.

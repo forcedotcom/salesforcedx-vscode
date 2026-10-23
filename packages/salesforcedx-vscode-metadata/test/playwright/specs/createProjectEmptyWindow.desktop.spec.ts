@@ -57,8 +57,9 @@ test.afterEach(({ projectTarget }) => {
       await saveScreenshot(page, 'createProjectEmptyWindow.01-empty-window.png');
     });
 
-    await test.step('verify Create Project command available', async () => {
+    await test.step('verify Create Project commands available', async () => {
       await verifyCommandExists(page, packageNls.project_generate_text, 120_000);
+      await verifyCommandExists(page, packageNls.project_generate_with_manifest_text, 120_000);
     });
 
     await test.step('run Create Project, select Standard template', async () => {

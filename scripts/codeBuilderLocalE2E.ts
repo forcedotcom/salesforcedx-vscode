@@ -847,8 +847,7 @@ const authExtraOrgsIntoContainer = (containerName: string): void => {
 /*
  * Re-seed coder.json to a NO-FOLDER window (empty query, no `folder` key) for the nofolder phase.
  * seedWorkspace always writes `{query: {folder: …}}` against a recorded mount, so it can't express
- * "open with no folder at all" — the shape the emptyWorkspaceSfdxCommands case A (no folder open)
- * needs. This mirrors seed.ts's SEED_SCRIPT (atomic writes via mktemp+mv, disable workspace trust,
+ * "open with no folder at all" — the shape metadata createProjectEmptyWindow needs. This mirrors seed.ts's SEED_SCRIPT (atomic writes via mktemp+mv, disable workspace trust,
  * chown to codebuilder) but sets an empty query. Writes as root (docker exec default); a failure is
  * fatal for the phase, surfaced by the caller. Kept here (orchestrator re-seed logic), NOT in the
  * toolkit, per the no-folder-case scope.
@@ -1136,8 +1135,8 @@ const main = async (): Promise<number> => {
   }
 
   // Phase 3 — no-folder shape. Any package declaring `test:container:nofolder` needs a window with NO
-  // folder open at all (e.g. metadata emptyWorkspaceSfdxCommands case A: the Create Project commands
-  // must still be contributed). Change the shape at a phase boundary — re-seed coder.json to an empty
+  // folder open at all (e.g. metadata createProjectEmptyWindow: the Create Project commands must
+  // still be contributed). Change the shape at a phase boundary — re-seed coder.json to an empty
   // query (no `folder` key) + restart() — never mid-suite in the shared session. Discovered
   // self-maintaining like phases 1–2; a no-op when no package declares it.
   const noFolderPackages = withGrepMatches(
