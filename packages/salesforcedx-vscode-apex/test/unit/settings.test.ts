@@ -48,17 +48,20 @@ describe('settings Unit Tests.', () => {
     expect(getValue).toHaveBeenCalledWith('salesforcedx-vscode-apex', 'apexoas.aa.method.annotations', []);
   });
 
-  it('inverts hidden capability opt-outs into enabled policy states', async () => {
-    getValue.mockImplementation((_section: string, key: string, defaultValue: unknown) =>
-      Effect.succeed(key === 'advanced.capabilities.disableHover' ? true : defaultValue)
+  it('maps explicit capability states to enabled policy states', async () => {
+    getValue.mockImplementation((_section: string, key: string) =>
+      Effect.succeed(
+        key === 'advanced.capabilities.hover'
+          ? 'disabled'
+          : key === 'advanced.capabilities.documentSymbols'
+            ? 'disabled'
+            : 'enabled'
+      )
     );
 
     const result = await run(getLanguageServerCapabilityPolicy());
 
-    expect(result).toEqual({
-      lsp: expect.objectContaining({ provideHover: false, provideDefinition: undefined }),
-      custom: expect.objectContaining({ 'apexoas/isEligible': undefined })
-    });
-    expect(getValue).toHaveBeenCalledWith('salesforcedx-vscode-apex', 'advanced.capabilities.disableHover', false);
+    expect(result).toEqual({ lsp: expect.objectContaining({ provideHover: false, provideDefinition: true }) });
+    expect(getValue).toHaveBeenCalledWith('salesforcedx-vscode-apex', 'advanced.capabilities.hover');
   });
 });

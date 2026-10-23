@@ -32,10 +32,7 @@ import { APEX_SETTINGS_SECTION, UBER_JAR_NAME } from './constants';
 import { dropLsAnonymousApexExecuteLenses } from './dropLsAnonymousApexExecuteLenses';
 import { soqlMiddleware } from './embeddedSoql';
 import { languageClientSetupError } from './languageClientSetupErrors';
-import {
-  resolveLanguageServerCapabilities,
-  type ResolvedLanguageServerCapabilities
-} from './languageServerCapabilities';
+import { resolveLanguageServerCapabilities } from './languageServerCapabilities';
 import { buildMetadataRegistryScanConfig } from './languageServerScanConfig';
 import { nls } from './messages';
 import { rewriteNamespaceLens } from './namespaceLensRewriter';
@@ -54,7 +51,6 @@ const LANGUAGE_SERVER_LOG_LEVEL = process.env.LANGUAGE_SERVER_LOG_LEVEL ?? 'ERRO
 declare var v8debug: object | undefined;
 
 type ApexLanguageClientOptions = LanguageClientOptions & {
-  capabilities: ResolvedLanguageServerCapabilities;
   errorHandler?: ApexErrorHandler;
 };
 
@@ -206,7 +202,7 @@ const buildClientOptions = Effect.fn('apex.lsp.buildClientOptions')(function* (
     Effect.mapError(cause => languageClientSetupError('options', cause))
   );
 
-  const { lspParityCapabilities, ...initializationSettings } = yield* apexLanguageServerSettings().pipe(
+  const initializationSettings = yield* apexLanguageServerSettings().pipe(
     Effect.mapError(cause => languageClientSetupError('options', cause))
   );
   const capabilityPolicy = yield* getLanguageServerCapabilityPolicy().pipe(
@@ -223,14 +219,7 @@ const buildClientOptions = Effect.fn('apex.lsp.buildClientOptions')(function* (
         ...initializationSettings
       };
 
-      const capabilities = resolveLanguageServerCapabilities({
-        ...capabilityPolicy,
-        lsp: {
-          ...capabilityPolicy.lsp,
-          // Preserve the legacy setting only when the hidden per-capability setting is absent.
-          provideDocumentSymbols: capabilityPolicy.lsp?.provideDocumentSymbols ?? !lspParityCapabilities
-        }
-      });
+      const capabilities = resolveLanguageServerCapabilities(capabilityPolicy);
       const capabilityMiddleware: Record<string, () => null> = Object.fromEntries(
         Object.entries(capabilities.lsp)
           .filter(([, capability]) => !capability.enabled)
@@ -257,7 +246,6 @@ const buildClientOptions = Effect.fn('apex.lsp.buildClientOptions')(function* (
           protocol2Code: protocol2CodeConverter
         },
         initializationOptions: scanConfig ? { ...initializationOptions, ...scanConfig } : initializationOptions,
-        capabilities,
         middleware: {
           ...capabilityMiddleware,
           ...(soqlExtensionInstalled ? soqlMiddleware : {}),

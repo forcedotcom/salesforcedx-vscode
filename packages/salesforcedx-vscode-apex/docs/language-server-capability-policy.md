@@ -16,68 +16,54 @@ Jorje requires a JVM and is never-web. Do not add web-platform branching to this
 
 | Kind | Jorje capability | Default | Configuration |
 | --- | --- | --- | --- |
-| LSP provider | `provideCodeActions` | enabled | hidden setting |
-| LSP provider | `provideCodeLenses` | enabled | hidden setting |
-| LSP provider | `provideCompletions` | enabled | hidden setting |
-| LSP provider | `provideDefinition` | enabled | hidden setting |
-| LSP provider | `provideDocumentSymbols` | disabled | hidden setting; legacy parity fallback |
-| LSP provider | `provideHover` | enabled | hidden setting |
-| LSP provider | `provideReferences` | enabled | hidden setting |
-| LSP provider | `provideRenameEdits` | enabled | hidden setting |
-| Custom request | `apexoas/gatherContext` | enabled | hidden setting |
-| Custom request | `apexoas/isEligible` | enabled | hidden setting |
-| Custom request | `debugger/exceptionBreakpoints` | enabled | hidden setting |
-| Custom request | `debugger/lineBreakpoints` | enabled | hidden setting |
-| Custom request | `test/getTestMethods` | enabled | hidden setting |
+| LSP provider | `provideCodeActions` | enabled | public setting |
+| LSP provider | `provideCodeLenses` | enabled | public setting |
+| LSP provider | `provideCompletions` | enabled | public setting |
+| LSP provider | `provideDefinition` | enabled | public setting |
+| LSP provider | `provideDocumentSymbols` | disabled | public setting |
+| LSP provider | `provideHover` | enabled | public setting |
+| LSP provider | `provideReferences` | enabled | public setting |
+| LSP provider | `provideRenameEdits` | enabled | public setting |
 
 `indexer/done` is a server-completion signal consumed only by the client, not a capability-policy item. The existing handler must remain registered when `wait-init-jobs` is disabled.
 
-## Hidden Settings
+## Settings
 
-The settings are intentionally omitted from `package.json` contributes.configuration and therefore do not appear in the VS Code Settings UI. Set them directly in `settings.json` under `salesforcedx-vscode-apex.advanced.capabilities`.
+Each setting is contributed through `package.json`, appears in the VS Code Settings UI, and accepts exactly `enabled` or `disabled`.
 
 ```json
 {
-  "salesforcedx-vscode-apex.advanced.capabilities.disableHover": true,
-  "salesforcedx-vscode-apex.advanced.capabilities.disableApexoasGatherContext": true
+  "salesforcedx-vscode-apex.advanced.capabilities.hover": "disabled"
 }
 ```
 
-An absent setting preserves the production baseline. A setting set to `true` disables the named capability. Changes under `advanced.capabilities` automatically invoke the existing `sf.apex.languageServer.restart` command so the client starts with a refreshed policy snapshot.
+The `package.json` default is the shipped policy. `enabled` and `disabled` explicitly control the capability without truthiness or absent-setting semantics. Changes under `advanced.capabilities` automatically invoke the existing `sf.apex.languageServer.restart` command so the client starts with a refreshed policy snapshot.
 
 ### Setting Names
 
 LSP providers:
 
-- `disableCodeActions`
-- `disableCodeLenses`
-- `disableCompletions`
-- `disableDefinition`
-- `disableDocumentSymbols`
-- `disableHover`
-- `disableReferences`
-- `disableRenameEdits`
+- `codeActions`
+- `codeLenses`
+- `completions`
+- `definition`
+- `documentSymbols`
+- `hover`
+- `references`
+- `renameEdits`
 
-Custom requests:
-
-- `disableApexoasGatherContext`
-- `disableApexoasIsEligible`
-- `disableDebuggerExceptionBreakpoints`
-- `disableDebuggerLineBreakpoints`
-- `disableTestGetTestMethods`
-
-`advanced.lspParityCapabilities` remains the compatibility fallback for document symbols only. `disableDocumentSymbols: true` takes precedence; when it is absent or `false`, the legacy parity setting determines document-symbol behavior.
+The document-symbol setting replaces the legacy parity setting. The `disabled` default preserves the shipped behavior. Custom Jorje requests are protocol implementation details and are always available to their extension consumers; they are not customer-configurable capabilities.
 
 ## Enforcement
 
 - Standard LSP providers are disabled with `LanguageClient` middleware. The policy snapshot is captured when a client starts, so restart the language server after changing one.
-- Custom requests must be gated at `LanguageClientManager` or exported Apex API boundaries. Disabled paths must not call `sendRequest` and must return the existing consumer's supported empty value or `undefined`.
+- Custom requests are dispatched through `LanguageClientManager` or exported Apex API boundaries and are not subject to capability settings.
 - Do not send client policy settings in `initializationOptions`.
 - `indexer/done` remains outside this policy and is handled unconditionally by `LanguageClientManager` when `wait-init-jobs` is disabled.
 
 ## Testing
 
 - Update `test/unit/languageServerCapabilities.test.ts` for catalog baseline and resolver matrix changes.
-- Update request-owner tests to prove enabled dispatch and disabled non-dispatch.
+- Cover request-owner behavior in the extension that consumes the custom endpoint.
 - Cover observable provider lifecycle behavior in desktop E2E only when it adds value. Unit tests, not UI inference, validate outbound request suppression.
 - Desktop fixtures must pin released settings and must not depend on developer profile defaults.

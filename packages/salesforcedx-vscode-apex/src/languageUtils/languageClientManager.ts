@@ -219,27 +219,19 @@ export class LanguageClientManager {
   }
 
   public async getLineBreakpointInfo(): Promise<LineBreakpointInfo[]> {
-    return this.clientInstance?.isCustomEndpointEnabled('debugger/lineBreakpoints')
-      ? this.clientInstance.sendRequest<LineBreakpointInfo[]>(DEBUGGER_LINE_BREAKPOINTS)
-      : [];
+    return this.clientInstance?.sendRequest<LineBreakpointInfo[]>(DEBUGGER_LINE_BREAKPOINTS) ?? [];
   }
 
   public async getExceptionBreakpointInfo(): Promise<{}> {
-    return this.clientInstance?.isCustomEndpointEnabled('debugger/exceptionBreakpoints')
-      ? this.clientInstance.sendRequest(DEBUGGER_EXCEPTION_BREAKPOINTS)
-      : [];
+    return this.clientInstance?.sendRequest(DEBUGGER_EXCEPTION_BREAKPOINTS) ?? [];
   }
 
   public async isOpenAPIEligible(requests: ApexOASEligiblePayload): Promise<ApexClassOASEligibleResponses | undefined> {
-    return this.clientInstance?.isCustomEndpointEnabled('apexoas/isEligible')
-      ? this.clientInstance.isOpenAPIEligible(requests)
-      : undefined;
+    return this.clientInstance?.isOpenAPIEligible(requests);
   }
 
   public async gatherOpenAPIContext(sourceUri: URI): Promise<ApexClassOASGatherContextResponse | undefined> {
-    return this.clientInstance?.isCustomEndpointEnabled('apexoas/gatherContext')
-      ? this.clientInstance.gatherOpenAPIContext(sourceUri)
-      : undefined;
+    return this.clientInstance?.gatherOpenAPIContext(sourceUri);
   }
 
   private async getRestartOption(source: 'commandPalette' | 'statusBar'): Promise<string | undefined> {

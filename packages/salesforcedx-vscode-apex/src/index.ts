@@ -30,7 +30,6 @@ import { setAllServicesLayer } from './services/extensionProvider';
 import { disposeRuntime, getRuntime } from './services/runtime';
 
 const capabilitySettingsChanged = (event: vscode.ConfigurationChangeEvent): boolean =>
-  event.affectsConfiguration('salesforcedx-vscode-apex.advanced.lspParityCapabilities') ||
   event.affectsConfiguration('salesforcedx-vscode-apex.advanced.capabilities');
 
 export const activate = async (context: vscode.ExtensionContext) => {

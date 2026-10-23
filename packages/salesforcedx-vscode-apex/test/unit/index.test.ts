@@ -114,10 +114,7 @@ describe('index tests', () => {
     });
 
     const settingsChangeHandler = (event: any) => {
-      if (
-        event.affectsConfiguration('salesforcedx-vscode-apex.advanced.lspParityCapabilities') ||
-        event.affectsConfiguration('salesforcedx-vscode-apex.advanced.capabilities')
-      ) {
+      if (event.affectsConfiguration('salesforcedx-vscode-apex.advanced.capabilities')) {
         void vscode.commands.executeCommand('sf.apex.languageServer.restart', 'commandPalette');
       }
     };
@@ -126,17 +123,7 @@ describe('index tests', () => {
       vi.clearAllMocks();
     });
 
-    it('should execute restart command when lspParityCapabilities setting changes', () => {
-      mockEvent.affectsConfiguration.mockImplementation(
-        (setting: string) => setting === 'salesforcedx-vscode-apex.advanced.lspParityCapabilities'
-      );
-
-      settingsChangeHandler(mockEvent);
-
-      expect(executeCommandMock).toHaveBeenCalledWith('sf.apex.languageServer.restart', 'commandPalette');
-    });
-
-    it('should execute restart command when a hidden capability setting changes', () => {
+    it('should execute restart command when a capability setting changes', () => {
       mockEvent.affectsConfiguration.mockImplementation(
         (setting: string) => setting === 'salesforcedx-vscode-apex.advanced.capabilities'
       );
@@ -154,16 +141,13 @@ describe('index tests', () => {
       expect(executeCommandMock).not.toHaveBeenCalled();
     });
 
-    it('should check both capability configuration namespaces', () => {
+    it('should check the capability configuration namespace', () => {
       mockEvent.affectsConfiguration.mockImplementation(
         (setting: string) => setting === 'salesforcedx-vscode-apex.advanced.capabilities'
       );
 
       settingsChangeHandler(mockEvent);
 
-      expect(mockEvent.affectsConfiguration).toHaveBeenCalledWith(
-        'salesforcedx-vscode-apex.advanced.lspParityCapabilities'
-      );
       expect(mockEvent.affectsConfiguration).toHaveBeenCalledWith('salesforcedx-vscode-apex.advanced.capabilities');
     });
   });

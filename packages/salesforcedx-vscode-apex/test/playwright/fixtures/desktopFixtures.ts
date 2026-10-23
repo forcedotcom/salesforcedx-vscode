@@ -56,7 +56,14 @@ const userSettings = {
   'editor.gotoLocation.multipleReferences': 'goto',
   'editor.gotoLocation.alternativeDefinitionCommand': '',
   // Keep desktop Jorje E2E coverage on the released capability policy, independent of user defaults.
-  'salesforcedx-vscode-apex.advanced.lspParityCapabilities': true
+  'salesforcedx-vscode-apex.advanced.capabilities.codeActions': 'enabled',
+  'salesforcedx-vscode-apex.advanced.capabilities.codeLenses': 'enabled',
+  'salesforcedx-vscode-apex.advanced.capabilities.completions': 'enabled',
+  'salesforcedx-vscode-apex.advanced.capabilities.definition': 'enabled',
+  'salesforcedx-vscode-apex.advanced.capabilities.documentSymbols': 'disabled',
+  'salesforcedx-vscode-apex.advanced.capabilities.hover': 'enabled',
+  'salesforcedx-vscode-apex.advanced.capabilities.references': 'enabled',
+  'salesforcedx-vscode-apex.advanced.capabilities.renameEdits': 'enabled'
 };
 
 // Files are pre-seeded onto disk before Electron launches so the jorje LSP startup scan picks
