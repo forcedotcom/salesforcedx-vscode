@@ -21,6 +21,7 @@ import {
 } from '@vscode/debugadapter';
 import type { DebugProtocol } from '@vscode/debugprotocol';
 import * as Either from 'effect/Either';
+import * as Predicate from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { EOL } from 'node:os';
 import { breakpointUtil } from '../breakpoints';
@@ -78,7 +79,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
   }
 
   public launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments): void {
-    if (args.sourceUriMapping !== undefined) {
+    if (Predicate.isNotUndefined(args.sourceUriMapping)) {
       const sourceUriMapping = Schema.decodeUnknownEither(SourceUriMappingSchema)(args.sourceUriMapping);
       if (Either.isLeft(sourceUriMapping)) {
         response.success = false;
@@ -377,10 +378,9 @@ export class ApexReplayDebug extends LoggingDebugSession {
     const topFrameLine = topFrame?.line ?? null;
     if (sourcePath && topFrameLine) {
       // Stack-frame sources already carry debugger URIs, not client filesystem paths.
-      const topFrameUri = sourcePath;
       const topFrameLineDebugger = this.convertClientLineToDebugger(topFrameLine);
 
-      const breakpointsForUri = this.breakpoints.get(topFrameUri) ?? []; // Use empty array if breakpoints for the URI are undefined
+      const breakpointsForUri = this.breakpoints.get(sourcePath) ?? []; // Use empty array if breakpoints for the URI are undefined
       if (breakpointsForUri.includes(topFrameLineDebugger)) {
         this.sendEvent(new StoppedEvent('breakpoint', ApexReplayDebug.THREAD_ID));
         return true;
