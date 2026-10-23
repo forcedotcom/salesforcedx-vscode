@@ -7,7 +7,7 @@
 import { build } from 'esbuild';
 import copy from 'esbuild-plugin-copy';
 import { createRequire } from 'node:module';
-import { nodeConfig } from '../../scripts/bundling/node.mjs';
+import { nodeConfig, nodeEsmConfig } from '../../scripts/bundling/node.mjs';
 import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
 
 const require = createRequire(import.meta.url);
@@ -23,10 +23,10 @@ const commonConfig = {
 
 // Desktop extension bundle
 await build({
-  ...nodeConfig,
+  ...nodeEsmConfig,
   ...commonConfig,
   entryPoints: ['./out/src/index.js'],
-  outfile: `${distDir}/index.js`,
+  outfile: `${distDir}/index.mjs`,
   plugins: [
     copy({
       assets: {

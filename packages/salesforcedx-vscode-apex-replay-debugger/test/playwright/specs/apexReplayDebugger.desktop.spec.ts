@@ -8,16 +8,20 @@ import { expect } from '@playwright/test';
 import {
   APEX_TRACE_FLAG_STATUS_BAR,
   clearOutputChannel,
+  closeAllEditors,
   continueDebugSession,
   createAndOpenApexScript,
   createApexClass,
+  EDITOR_WITH_URI,
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  hidePanel,
   NOTIFICATION_LIST_ITEM,
   openFileByName,
   QUICK_INPUT_WIDGET,
   removeAllDebugLevels,
+  removePathsInContainer,
   resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
@@ -29,11 +33,40 @@ import {
   validateNoCriticalErrors,
   waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
+import { unlink } from 'node:fs/promises';
+import { join, posix } from 'node:path';
 
 import apexLogNls from 'salesforcedx-vscode-apex-log/package.nls.json';
 import metadataNls from 'salesforcedx-vscode-metadata/package.nls.json';
 import packageNls from '../../../package.nls.json';
-import { isContainer, sharedTest as test } from '../fixtures';
+import { isContainer, sharedWorkspaceDirTest as test } from '../fixtures';
+
+/*
+ * Container-only: the container name and the CONTAINER side of the fixture bind mount, published by
+ * the orchestrator (scripts/codeBuilderLocalE2E.ts). Classes created through the workbench are owned
+ * by the container's `codebuilder` user, so deleting one from the host side fails; it's removed
+ * inside the container instead.
+ */
+const containerName = process.env.CB_CONTAINER_NAME;
+const fixtureContainerDir = process.env.CB_FIXTURE_CONTAINER_DIR;
+
+const removeWorkspaceClass = async (workspaceDir: string, className: string): Promise<void> => {
+  const classesDir = ['force-app', 'main', 'default', 'classes'];
+  if (!isContainer) {
+    const hostClassPath = join(workspaceDir, ...classesDir, `${className}.cls`);
+    await unlink(hostClassPath);
+    await unlink(`${hostClassPath}-meta.xml`);
+    return;
+  }
+  if (!containerName || !fixtureContainerDir) {
+    throw new Error(
+      'CB_CONTAINER_NAME / CB_FIXTURE_CONTAINER_DIR is not set — the orchestrator ' +
+        '(scripts/codeBuilderLocalE2E.ts) must publish them so the spec can delete a class inside the container.'
+    );
+  }
+  const classPath = posix.join(fixtureContainerDir, ...classesDir, `${className}.cls`);
+  removePathsInContainer(containerName, [classPath, `${classPath}-meta.xml`]);
+};
 
 // No org setup on the container's shared, persistent workbench — every test uses the boot (default)
 // org, and editors/notifications are reset before each test rather than assuming a clean slate.
@@ -51,7 +84,8 @@ test.afterEach(async ({ page }) => {
 });
 
 test('Apex Replay Debugger: trace flag, exec anon, replay from log file, last log, and test class', async ({
-  page
+  page,
+  workspaceDir
 }) => {
   test.setTimeout(600_000);
   const consoleErrors = setupConsoleMonitoring(page);
@@ -60,13 +94,15 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log file, last lo
   // Unique per-run names so the container's shared, persistent workbench never collides with a class
   // or script left by a prior run.
   const uid = Date.now().toString(36);
-  const exampleClass = isContainer ? `ExampleApexClass_${uid}` : 'ExampleApexClass';
-  const exampleTestClass = isContainer ? `ExampleApexClass_${uid}Test` : 'ExampleApexClassTest';
-  const runScript = isContainer ? `RunExample_${uid}` : 'TestScript';
+  const exampleClass = `ExampleApexClass_${uid}`;
+  const exampleTestClass = `ExampleApexClass_${uid}Test`;
+  const runScript = `RunExample_${uid}`;
+  const orgOnlyClass = `OrgOnlyReplayClass_${uid}`;
 
   const exampleClassContent = [
     `public with sharing class ${exampleClass} {`,
     '  public static void SayHello(string name){',
+    `    ${orgOnlyClass}.run();`,
     "    System.debug('Hello, ' + name + '!');",
     '  }',
     '}'
@@ -104,6 +140,17 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log file, last lo
     }
     await ensureSecondarySideBarHidden(page);
     await createApexClass(page, exampleClass, exampleClassContent);
+    await createApexClass(
+      page,
+      orgOnlyClass,
+      [
+        `public class ${orgOnlyClass} {`,
+        '  public static void run() {',
+        "    System.debug('org-only replay source');",
+        '  }',
+        '}'
+      ].join('\n')
+    );
     await createApexClass(page, exampleTestClass, exampleTestContent);
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Metadata');
@@ -117,22 +164,22 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log file, last lo
   });
 
   await test.step('wait for CodeLens in test class', async () => {
-    const openTestClassContainer = async (): Promise<void> => {
-      // The desktop "Indexing complete" status-bar button never renders in the code-server image, so
-      // gate on the real indexing signal instead: the test class' CodeLens only appears once the LS
-      // has indexed it.
-      await openFileByName(page, `${exampleTestClass}.cls`);
-    };
-    const openTestClassDesktop = async (): Promise<void> => {
-      // Apex LS must finish indexing before CodeLens appear; CI is slower
-      const indexingComplete = page.getByRole('button', { name: /Indexing complete/ });
-      await expect(indexingComplete).toBeVisible({ timeout: 120_000 });
-      await openFileByName(page, `${exampleTestClass}.cls`);
-    };
-    await (isContainer ? openTestClassContainer : openTestClassDesktop)();
+    await openFileByName(page, `${exampleTestClass}.cls`);
+    // Apex LS must finish indexing before CodeLens appear; CI is slower. The Apex language-status
+    // "Indexing complete" button renders only while an Apex editor is active (the test class above is).
+    await expect(page.getByRole('button', { name: /Indexing complete/ })).toBeVisible({ timeout: 120_000 });
     const codelens = page.locator('.codelens-decoration a').filter({ hasText: /Run Test|Debug Test/ });
-    await expect(codelens.first()).toBeVisible({ timeout: isContainer ? 120_000 : 90_000 });
+    await expect(codelens.first()).toBeVisible({ timeout: 120_000 });
     await saveScreenshot(page, 'step.codelens-visible.png');
+  });
+
+  await test.step('remove the deployed org-only class from the workspace', async () => {
+    await closeAllEditors(page);
+    await removeWorkspaceClass(workspaceDir, orgOnlyClass);
+    await expect(
+      page.getByRole('treeitem', { name: `${orgOnlyClass}.cls`, exact: true }),
+      'org-only source must not remain in the workspace'
+    ).toHaveCount(0);
   });
 
   await test.step('remove all debug levels so ReplayDebuggerLevels is auto-created', async () => {
@@ -207,7 +254,21 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log file, last lo
   };
   await (isContainer ? execAnonContainer : execAnonDesktop)();
 
-  await test.step('launch replay debugger with current file (log)', async () => {
+  await test.step('set a workspace breakpoint before the org-only call', async () => {
+    await openFileByName(page, `${exampleClass}.cls`);
+    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${exampleClass}.cls"]`);
+    await editor
+      .locator('.view-line')
+      .filter({ hasText: `${orgOnlyClass}.run();` })
+      .click();
+    await page.keyboard.press('F9');
+    await expect(
+      page.locator('div.codicon-debug-breakpoint').first(),
+      'workspace breakpoint should be set'
+    ).toBeVisible();
+  });
+
+  await test.step('launch replay from the log and open the matching org-only frame source', async () => {
     // Click the debug.log tab directly to make it the active editor.
     // launchApexReplayDebuggerWithCurrentFile reads activeTextEditor and only calls
     // updateLastOpened (setting LAST_OPENED_LOG_KEY) when the active file is a .log file.
@@ -220,7 +281,29 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log file, last lo
     } else {
       await logTab.click();
     }
+    await hidePanel(page);
     await executeCommandWithCommandPalette(page, packageNls.launch_apex_replay_debugger_with_selected_file as string);
+    await expect(page.locator('.debug-toolbar'), 'replay should pause on entry').toBeVisible({ timeout: 30_000 });
+    await page.keyboard.press('F5');
+    const localFrame = page
+      .locator('.debug-call-stack .monaco-list-row')
+      .filter({ hasText: `${exampleClass}.SayHello` });
+    await expect(localFrame.first(), 'replay should stop before the org-only call').toBeVisible({ timeout: 30_000 });
+    // Step Into: code-server binds it to Alt+F11 because the browser reserves F11 for fullscreen.
+    await page.keyboard.press(isContainer ? 'Alt+F11' : 'F11');
+    const orgFrame = page
+      .locator('.debug-call-stack .monaco-list-row')
+      .filter({ hasText: `${orgOnlyClass}.${orgOnlyClass}()` });
+    await orgFrame.click();
+    const orgEditor = page.locator(`${EDITOR_WITH_URI}[data-uri^="sf-org-metadata:"]`);
+    await expect(orgEditor, 'stack frame should open the catalog URI for the org-only class').toHaveAttribute(
+      'data-uri',
+      new RegExp(String.raw`^sf-org-metadata:\/orgs\/00D\w+\/ApexClass\/${orgOnlyClass}\.cls$`),
+      { timeout: 30_000 }
+    );
+    await expect(orgEditor, 'catalog source should contain the deployed class body').toContainText(
+      "System.debug('org-only replay source');"
+    );
     await continueDebugSession(page);
     await saveScreenshot(page, 'step.replay-from-log.png');
   });

@@ -79,7 +79,7 @@ Next Wednesday (Week N+1 - 8 AM UTC)                                      │
 │  │ 4. Bumps version in isolated branch                          │
 │  │ 5. Builds VSIXs (15 min automated)                           │
 │  │ 6. Creates GitHub pre-release with VSIXs + SHA256            │
-│  │ 7. Branch automatically deleted after use                    │
+│  │ 7. Produces a Ready for Testing stable GitHub pre-release    │
 │  │                                                              │
 │  │ KEY IMPROVEMENTS:                                            │
 │  │ ✓ ZERO merge conflicts (ephemeral branch, never merged)      │
@@ -108,11 +108,10 @@ Next Wednesday (Week N+1 - 8 AM UTC)                                      │
          │                                                               │
          ▼                                                               │
 ┌──────────────────────────────────────────────────────────────────┐
-│  publishVSCode.yml (Manual Trigger)                              │
-│  • Extracts VSIXs from GitHub release                            │
-│  • Publishes to Marketplace as STABLE                            │
-│  • Triggers Web Console release                                  │
-│  • Auto-closes shipped GitHub issues                             │
+│  Mark stable release Tested & Approved                           │
+│  • Changes GitHub release from pre-release to stable             │
+│  • Automatically triggers publishVSCode.yml and publishOpenVSX  │
+│  • Both wait for publish-environment approval                    │
 └──────────────────────────────────────────────────────────────────┘
                                                                          │
                                                                          │
