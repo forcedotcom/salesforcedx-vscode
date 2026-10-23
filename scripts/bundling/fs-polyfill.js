@@ -13,10 +13,14 @@ const normalizeWriteFileOptions = options => {
 };
 
 const writeFile = fs.writeFile.bind(fs);
-fs.writeFile = (file, data, options, callback) =>
-  typeof options === 'function'
-    ? writeFile(file, data, options)
-    : writeFile(file, data, normalizeWriteFileOptions(options), callback);
+fs.writeFile = (file, data, options, callback) => {
+  if (typeof options === 'function') return writeFile(file, data, options);
+  const normalizedOptions = normalizeWriteFileOptions(options);
+  if (typeof callback === 'function') return writeFile(file, data, normalizedOptions, callback);
+  return new Promise((resolve, reject) => {
+    writeFile(file, data, normalizedOptions, error => (error ? reject(error) : resolve()));
+  });
+};
 
 const writeFileSync = fs.writeFileSync.bind(fs);
 fs.writeFileSync = (file, data, options) => writeFileSync(file, data, normalizeWriteFileOptions(options));
