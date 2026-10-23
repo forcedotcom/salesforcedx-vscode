@@ -23,8 +23,10 @@ describe('@salesforce/apex-node public API', () => {
       'HumanReporter',
       'JUnitReporter',
       'LogService',
+      'ResultFormat',
       'SalesforceId',
       'TapReporter',
+      'TestLevel',
       'TestRunId',
       'TestService'
     ]);
@@ -39,14 +41,23 @@ describe('@salesforce/apex-node public API', () => {
       'ApexOperationError',
       'ApexResponseDecodeError',
       'ApexRuntimeError',
+      'BuildAsyncPayloadOptionsSchema',
+      'BuildSyncPayloadOptionsSchema',
       'ExecuteAnonymousOptionsSchema',
       'ExecuteAnonymousOutcomeSchema',
       'ListLogsOptionsSchema',
       'LogStreamEventSchema',
+      'TestSuiteMembershipSchema',
+      'TestSuiteSchema',
+      'buildAsyncPayload',
+      'buildSuite',
+      'buildSyncPayload',
       'causeMessage',
       'executeAnonymous',
       'getLogBody',
+      'getTestsInSuite',
       'listLogs',
+      'retrieveAllSuites',
       'streamLogs'
     ]);
   });
