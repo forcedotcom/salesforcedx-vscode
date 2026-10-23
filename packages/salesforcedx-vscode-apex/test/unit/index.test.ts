@@ -113,20 +113,20 @@ describe('index tests', () => {
       };
     });
 
+    const settingsChangeHandler = (event: any) => {
+      if (event.affectsConfiguration('salesforcedx-vscode-apex.advanced.capabilities')) {
+        void vscode.commands.executeCommand('sf.apex.languageServer.restart', 'commandPalette');
+      }
+    };
+
     afterEach(() => {
       vi.clearAllMocks();
     });
 
-    it('should execute restart command when lspParityCapabilities setting changes', () => {
-      // Mock the event to affect our setting
-      mockEvent.affectsConfiguration.mockReturnValue(true);
-
-      // Create the settings change handler function (same logic as in index.ts)
-      const settingsChangeHandler = (event: any) => {
-        if (event.affectsConfiguration('salesforcedx-vscode-apex.advanced.lspParityCapabilities')) {
-          void vscode.commands.executeCommand('sf.apex.languageServer.restart', 'commandPalette');
-        }
-      };
+    it('should execute restart command when a capability setting changes', () => {
+      mockEvent.affectsConfiguration.mockImplementation(
+        (setting: string) => setting === 'salesforcedx-vscode-apex.advanced.capabilities'
+      );
 
       settingsChangeHandler(mockEvent);
 
@@ -134,37 +134,21 @@ describe('index tests', () => {
     });
 
     it('should not execute restart command when other settings change', () => {
-      // Mock the event to not affect our setting
       mockEvent.affectsConfiguration.mockReturnValue(false);
-
-      // Create the settings change handler function (same logic as in index.ts)
-      const settingsChangeHandler = (event: any) => {
-        if (event.affectsConfiguration('salesforcedx-vscode-apex.advanced.lspParityCapabilities')) {
-          void vscode.commands.executeCommand('sf.apex.languageServer.restart', 'commandPalette');
-        }
-      };
 
       settingsChangeHandler(mockEvent);
 
       expect(executeCommandMock).not.toHaveBeenCalled();
     });
 
-    it('should check for the correct configuration key', () => {
-      // Mock the event to affect our setting
-      mockEvent.affectsConfiguration.mockReturnValue(true);
-
-      // Create the settings change handler function (same logic as in index.ts)
-      const settingsChangeHandler = (event: any) => {
-        if (event.affectsConfiguration('salesforcedx-vscode-apex.advanced.lspParityCapabilities')) {
-          void vscode.commands.executeCommand('sf.apex.languageServer.restart', 'commandPalette');
-        }
-      };
+    it('should check the capability configuration namespace', () => {
+      mockEvent.affectsConfiguration.mockImplementation(
+        (setting: string) => setting === 'salesforcedx-vscode-apex.advanced.capabilities'
+      );
 
       settingsChangeHandler(mockEvent);
 
-      expect(mockEvent.affectsConfiguration).toHaveBeenCalledWith(
-        'salesforcedx-vscode-apex.advanced.lspParityCapabilities'
-      );
+      expect(mockEvent.affectsConfiguration).toHaveBeenCalledWith('salesforcedx-vscode-apex.advanced.capabilities');
     });
   });
 
