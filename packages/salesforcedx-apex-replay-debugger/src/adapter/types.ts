@@ -6,11 +6,14 @@
  */
 import { type LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import type { DebugProtocol } from '@vscode/debugprotocol';
+import * as Schema from 'effect/Schema';
 import { type ApexExecutionOverlayResultCommandSuccess } from '../commands';
 
 export type TraceCategory = 'all' | 'protocol' | 'logfile' | 'launch' | 'breakpoints';
 export type Step = 'Over' | 'In' | 'Out' | 'Run';
 export type ScopeType = 'local' | 'static' | 'global';
+
+export const SourceUriMappingSchema = Schema.Record({ key: Schema.String, value: Schema.String });
 
 /** Overlay-result fetch outcome for a single heap dump, resolved host-side and passed to the adapter. */
 export type HeapDumpResult = { heapDumpId: string } & (
@@ -26,6 +29,8 @@ export type LaunchRequestArguments = DebugProtocol.LaunchRequestArguments & {
   trace?: boolean | string;
   lineBreakpointInfo?: LineBreakpointInfo[];
   heapDumpResults?: HeapDumpResult[];
+  /** Source URI mappings resolved host-side, independent of breakpoint-line metadata. */
+  sourceUriMapping?: typeof SourceUriMappingSchema.Type;
 } & (
     | {
         /** Path to Anonymous Apex script file. When set, frame lines use script line numbers directly; otherwise they map via debug log. */
