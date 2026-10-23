@@ -17,7 +17,6 @@ vi.mock(import('@vscode/debugadapter'), async importOriginal => {
 import type { MockInstance as VitestMockInstance } from 'vitest';
 import { type StackFrame } from '@vscode/debugadapter';
 import { strict as assert } from 'node:assert';
-import { URI } from 'vscode-uri';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { type ApexVariable } from '../../../src/adapter/apexVariable';
 import { type LaunchRequestArguments } from '../../../src/adapter/types';
@@ -78,7 +77,7 @@ describe('Variable begin scope event', () => {
       name: 'signature',
       source: {
         name: 'foo.cls',
-        path: URI.parse(uriFromSignature).fsPath,
+        path: uriFromSignature,
         sourceReference: 0
       }
     } as StackFrame);
