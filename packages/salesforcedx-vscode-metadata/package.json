@@ -249,6 +249,7 @@
         "CB_GREP": {
           "external": true
         },
+        "VSCODE_CONTAINER": "1",
         "CB_UNDER_TEST": {
           "external": true
         }
