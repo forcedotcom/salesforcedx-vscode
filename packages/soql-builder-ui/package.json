@@ -1,5 +1,8 @@
 {
   "name": "@salesforce/soql-builder-ui",
+  "engines": {
+    "node": ">=24.18.0"
+  },
   "version": "0.1.0",
   "private": true,
   "description": "Browser-safe Lit and Effect foundation for the SOQL Builder",

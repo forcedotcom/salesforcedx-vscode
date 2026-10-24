@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig.common.json",
   "compilerOptions": {
+    "lib": ["ES2024", "DOM"],
     "module": "Preserve",
     "moduleResolution": "Bundler",
     "rootDir": ".",

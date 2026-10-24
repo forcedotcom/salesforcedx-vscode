@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Location, Range } from 'vscode';
+
 type MockFunction = (...args: any[]) => any;
 type MockFactory = (implementation?: MockFunction) => any;
 type MockedFunction<T extends MockFunction> = T & ReturnType<MockFactory>;

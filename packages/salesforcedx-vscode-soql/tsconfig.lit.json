@@ -1,8 +1,7 @@
 {
   "extends": "../../tsconfig.common.json",
   "compilerOptions": {
-    "module": "ESNext",
-    "moduleResolution": "Bundler",
+    "lib": ["ES2024", "DOM"],
     "noEmit": true
   },
   "include": ["src/soql-builder-ui/lit/**/*.ts"]
