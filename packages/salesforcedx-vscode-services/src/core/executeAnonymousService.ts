@@ -5,20 +5,33 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { executeAnonymous } from '@salesforce/apex-node/effect';
+import {
+  executeAnonymous,
+  type ApexCompileError,
+  type ApexRuntimeError,
+  type ExecuteAnonymousOutcome
+} from '@salesforce/apex-node/effect';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
-import type { ExecuteAnonymousResult } from 'jsforce/lib/api/tooling';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 import { ExecuteAnonymousError } from '../errors/executeAnonymousErrors';
 import { ChannelService } from '../vscode/channelService';
 import { ConnectionService } from './connectionService';
 
-export type { ExecuteAnonymousResult } from 'jsforce/lib/api/tooling';
+/** Discriminated outcomes; diagnostics exist only on their matching failures. */
+export type ExecuteAnonymousResult =
+  | Pick<ExecuteAnonymousOutcome, 'compiled' | 'success' | 'line' | 'column'>
+  | (Pick<ApexCompileError, 'line' | 'column' | 'compileProblem'> & { compiled: false; success: false })
+  | (Pick<ApexRuntimeError, 'line' | 'column' | 'exceptionMessage' | 'exceptionStackTrace'> & {
+      compiled: true;
+      success: false;
+    });
 
 const ANON_APEX_ERRORS_COLLECTION = 'apex-anon-errors';
 const UNEXPECTED_ERROR = 'Unexpected error during anonymous Apex execution';
+const diagnosticMessage = (message: string | null): string =>
+  message === null || message === '' ? UNEXPECTED_ERROR : message;
 
 /** Keeps the services result contract while delegating execution to apex-node. */
 export const executeAnonymousWithConnection = (connection: Connection, code: string) =>
@@ -27,19 +40,54 @@ export const executeAnonymousWithConnection = (connection: Connection, code: str
       return yield* new ExecuteAnonymousError({ message: 'Execute anonymous failed: no access token' });
     }
 
-    const { logBody, ...result } = yield* executeAnonymous(connection, { apexCode: code }).pipe(
-      Effect.mapError(
-        error =>
-          new ExecuteAnonymousError({
-            message:
-              error._tag === 'ApexResponseDecodeError'
-                ? 'Invalid SOAP response: missing executeAnonymousResponse.result'
-                : `Execute anonymous failed: ${error.message}`,
-            cause: error
+    const { result, logBody } = yield* executeAnonymous(connection, { apexCode: code }).pipe(
+      Effect.map(({ logBody: outcomeLogBody, ...outcomeResult }) => ({
+        result: outcomeResult satisfies ExecuteAnonymousResult,
+        logBody: outcomeLogBody ?? ''
+      })),
+      Effect.catchTags({
+        ApexCompileError: error =>
+          Effect.succeed({
+            result: {
+              compiled: false,
+              success: false,
+              line: error.line,
+              column: error.column,
+              compileProblem: error.compileProblem
+            } satisfies ExecuteAnonymousResult,
+            logBody: error.logBody ?? ''
+          }),
+        ApexRuntimeError: error =>
+          Effect.succeed({
+            result: {
+              compiled: true,
+              success: false,
+              line: error.line,
+              column: error.column,
+              exceptionMessage: error.exceptionMessage,
+              exceptionStackTrace: error.exceptionStackTrace
+            } satisfies ExecuteAnonymousResult,
+            logBody: error.logBody ?? ''
           })
-      )
+      }),
+      Effect.catchTags({
+        ApexResponseDecodeError: error =>
+          Effect.fail(
+            new ExecuteAnonymousError({
+              message: 'Invalid execute anonymous SOAP response',
+              cause: error
+            })
+          ),
+        ApexOperationError: error =>
+          Effect.fail(
+            new ExecuteAnonymousError({
+              message: `Execute anonymous failed: ${error.message}`,
+              cause: error
+            })
+          )
+      })
     );
-    return { result: result satisfies ExecuteAnonymousResult, logBody, logId: undefined };
+    return { result, logBody, logId: undefined };
   });
 
 export class ExecuteAnonymousService extends Effect.Service<ExecuteAnonymousService>()('ExecuteAnonymousService', {
@@ -64,8 +112,8 @@ export class ExecuteAnonymousService extends Effect.Service<ExecuteAnonymousServ
       const text = result.success
         ? 'Execute anonymous succeeded.'
         : !result.compiled
-          ? `Error: Line ${result.line}, Column ${result.column} -- ${result.compileProblem ?? UNEXPECTED_ERROR}`
-          : `Compile: success / Error: ${result.exceptionMessage ?? UNEXPECTED_ERROR}\n${result.exceptionStackTrace ?? ''}`;
+          ? `Error: Line ${result.line}, Column ${result.column} -- ${diagnosticMessage(result.compileProblem)}`
+          : `Compile: success / Error: ${diagnosticMessage(result.exceptionMessage)}\n${result.exceptionStackTrace ?? ''}`;
       yield* channelService.appendToChannel(text);
     });
 
@@ -76,12 +124,9 @@ export class ExecuteAnonymousService extends Effect.Service<ExecuteAnonymousServ
     ): void => {
       diagnostics.delete(documentUri);
       if (result.success) return;
-      const message =
-        (result.compileProblem && result.compileProblem !== ''
-          ? result.compileProblem
-          : result.exceptionMessage && result.exceptionMessage !== ''
-            ? result.exceptionMessage
-            : UNEXPECTED_ERROR) ?? UNEXPECTED_ERROR;
+      const message = result.compiled
+        ? diagnosticMessage(result.exceptionMessage)
+        : diagnosticMessage(result.compileProblem);
       const line = result.line ? result.line + (selectionStartLine ?? 0) : 1;
       const column = result.column ?? 1;
       const pos = new vscode.Position(line > 0 ? line - 1 : 0, column > 0 ? column - 1 : 0);

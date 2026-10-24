@@ -1,6 +1,6 @@
 # Keep traditional and Effect APIs in one apex-node package
 
-`@salesforce/apex-node` keeps its existing Promise/class API at the package root for compatibility and adds a pure Effect API for new development at `./effect`. Effect implementation, schemas, and errors live under `src/effect`. This work does not add parallel Promise facades or migrate existing classes. Both entry points remain in one package and version together.
+`@salesforce/apex-node` keeps its Promise/class API at the package root and provides the primary Effect API for new development at `./effect`. Effect implementation, schemas, and errors live under `src/effect`. Both entry points remain in one package and version together. Execute anonymous now shares one Effect implementation with the root class adapter; other classes remain separate until their migrations.
 
 Consumers choose the API by programming model, independently of host. Effect consumers compose `./effect` operations with explicit caller-selected connections and retain typed errors and Effect control flow. Existing consumers may continue to call the root Promise/class API. New Effect operations do not need matching root methods. A CLI command or VS Code extension may use either surface.
 
@@ -10,7 +10,7 @@ The Effect implementation owns Apex behavior and accepts the connection selected
 
 Expected failures use `Schema.TaggedError` on Effect error channels, as required by the repository [error-channel decision](../../../../docs/adr/0004-effect-error-channels.md). Operations use `Effect.fn` spans under the [Effect runtime](../../../../docs/adr/0011-effect-ts-runtime.md) and [spans-only observability](../../../../docs/adr/0012-spans-only-observability.md) decisions.
 
-The package keeps its existing Node filesystem contract and web-build substitution from [ADR 0003](./0003-node-filesystem-with-web-polyfill.md). Host selection remains a build/layer concern consistent with [in-process web libraries](../../../../docs/adr/0010-web-support-libs-in-process.md) and the [bundle-time platform split](../../../../docs/adr/0013-dual-target-bundle-time-split.md); this ADR adds no second filesystem abstraction.
+The execute anonymous Effect API accepts source content only; its callers own file/stdin reads. The class adapter retains `apexFilePath` and `userInput` until `plugin-apex` migrates and verifies its input handling. Removing those options before that consumer migration would break CLI file and terminal execution. The package's other operations keep their existing Node filesystem contract and web-build substitution from [ADR 0003](./0003-node-filesystem-with-web-polyfill.md). Host selection remains a build/layer concern consistent with [in-process web libraries](../../../../docs/adr/0010-web-support-libs-in-process.md) and the [bundle-time platform split](../../../../docs/adr/0013-dual-target-bundle-time-split.md); this ADR adds no second filesystem abstraction.
 
 This supersedes the direction proposed in closed [PR 7599](https://github.com/forcedotcom/salesforcedx-vscode/pull/7599), which framed apex-node as a CLI library allowed a limited Effect and observability subset. Apex-node instead owns the complete Effect API for its domain while remaining independent of VS Code runtime infrastructure; CLI and extension hosts select connections and other dependencies for its operations.
 
@@ -28,4 +28,4 @@ This supersedes the direction proposed in closed [PR 7599](https://github.com/fo
 - `./effect` is a deliberate public API expansion covered by the JSON-schema contract, package-export test, and packed-consumer validation.
 - Wire schemas decode untrusted transport and persisted data; domain schemas define normalized public values. Capability objects such as connections, streams, callbacks, and cancellation handles are not schema-modeled.
 - The Effect API initially includes execute anonymous; log, test, coverage, streaming, reporter, and file behavior migrate in their respective work items.
-- Existing Promise classes remain separate for now; Effect implementations must not call them.
+- `ExecuteService` adapts the shared Effect execution to the established CLI response/error contracts. Other Promise classes remain separate for now; Effect implementations must not call them.
