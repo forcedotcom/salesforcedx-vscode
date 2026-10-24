@@ -1,6 +1,6 @@
 # Keep traditional and Effect APIs in one apex-node package
 
-`@salesforce/apex-node` keeps its existing Promise/class API at the package root for compatibility and adds a pure Effect API for new development at `./effect`. Effect implementation, schemas, and errors live under `src/effect`. This work does not add parallel Promise facades or migrate existing classes. Both entry points remain in one package and version together.
+`@salesforce/apex-node` keeps its existing Promise/class API at the package root for compatibility and adds a pure Effect API for new development at `./effect`. Effect implementation, schemas, and errors live under `src/effect`. As domain behavior migrates, existing class methods delegate to Effect implementations while retaining their Promise signatures. Both entry points remain in one package and version together.
 
 Consumers choose the API by programming model, independently of host. Effect consumers compose `./effect` operations with explicit caller-selected connections and retain typed errors and Effect control flow. Existing consumers may continue to call the root Promise/class API. New Effect operations do not need matching root methods. A CLI command or VS Code extension may use either surface.
 
@@ -27,5 +27,5 @@ This supersedes the direction proposed in closed [PR 7599](https://github.com/fo
 - Existing root consumers do not receive `Effect.Effect` return types or need to run Effects.
 - `./effect` is a deliberate public API expansion covered by the JSON-schema contract, package-export test, and packed-consumer validation.
 - Wire schemas decode untrusted transport and persisted data; domain schemas define normalized public values. Capability objects such as connections, streams, callbacks, and cancellation handles are not schema-modeled.
-- The Effect API initially includes execute anonymous; log, test, coverage, streaming, reporter, and file behavior migrate in their respective work items.
-- Existing Promise classes remain separate for now; Effect implementations must not call them.
+- The Effect API includes execute anonymous, test payload construction, and suite discovery/build/membership; remaining log, test, coverage, streaming, reporter, and file behavior migrates in its respective work items.
+- Migrated Promise methods delegate to Effect implementations; Effect implementations must not call the classes.
