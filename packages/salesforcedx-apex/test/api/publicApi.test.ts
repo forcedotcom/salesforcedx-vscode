@@ -30,13 +30,20 @@ describe('@salesforce/apex-node public API', () => {
   it('exports the Effect foundation from its isolated entry point', () => {
     expect(Object.keys(effectApi).sort()).toEqual([
       'ApexCompileError',
+      'ApexLogBodyFetchError',
+      'ApexLogListItem',
+      'ApexLogQueryError',
       'ApexOperationError',
       'ApexResponseDecodeError',
       'ApexRuntimeError',
       'ExecuteAnonymousOptionsSchema',
       'ExecuteAnonymousOutcomeSchema',
+      'ListLogsOptionsSchema',
       'causeMessage',
-      'executeAnonymous'
+      'executeAnonymous',
+      'getLogBody',
+      'listLogs',
+      'streamLogs'
     ]);
   });
 

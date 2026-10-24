@@ -123,6 +123,64 @@
       },
       "additionalProperties": false
     },
+    "ApexLogListItem": {
+      "type": "object",
+      "required": ["Id", "LogLength", "StartTime", "Status"],
+      "properties": {
+        "Id": { "type": "string" },
+        "Application": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "DurationMilliseconds": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
+        "LogLength": { "type": "number" },
+        "LogUserId": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "LogUser": {
+          "anyOf": [
+            {
+              "type": "object",
+              "required": [],
+              "properties": { "Name": { "anyOf": [{ "type": "string" }, { "type": "null" }] } },
+              "additionalProperties": false
+            },
+            { "type": "null" }
+          ]
+        },
+        "Operation": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "StartTime": { "type": "string" },
+        "Status": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "ApexLogQueryError": {
+      "type": "object",
+      "required": ["soql", "message", "cause", "_tag"],
+      "properties": {
+        "soql": { "type": "string" },
+        "message": { "type": "string" },
+        "cause": { "$id": "/schemas/unknown", "title": "unknown" },
+        "_tag": { "type": "string", "enum": ["ApexLogQueryError"] }
+      },
+      "additionalProperties": false
+    },
+    "ApexLogBodyFetchError": {
+      "type": "object",
+      "required": ["message", "_tag"],
+      "properties": {
+        "message": { "type": "string" },
+        "cause": { "$id": "/schemas/unknown", "title": "unknown" },
+        "_tag": { "type": "string", "enum": ["ApexLogBodyFetchError"] }
+      },
+      "additionalProperties": false
+    },
+    "ListLogsOptions": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "userId": { "type": "string" },
+        "userIds": { "type": "array", "items": { "type": "string" } },
+        "operationContains": { "type": "string" },
+        "startTimeAfter": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
     "ApexTestProgressValue": {
       "anyOf": [
         {
@@ -761,6 +819,10 @@
     { "$ref": "#/$defs/ApexDiagnostic" },
     { "$ref": "#/$defs/ApexExecuteOptions" },
     { "$ref": "#/$defs/ApexLogGetOptions" },
+    { "$ref": "#/$defs/ApexLogListItem" },
+    { "$ref": "#/$defs/ApexLogQueryError" },
+    { "$ref": "#/$defs/ApexLogBodyFetchError" },
+    { "$ref": "#/$defs/ListLogsOptions" },
     { "$ref": "#/$defs/ApexTestProgressValue" },
     { "$ref": "#/$defs/ApexTestQueueItem" },
     { "$ref": "#/$defs/ApexTestQueueItemRecord" },

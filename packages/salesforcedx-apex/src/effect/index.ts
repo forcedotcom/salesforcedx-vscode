@@ -14,3 +14,13 @@ export {
   ApexRuntimeError,
   causeMessage
 } from './errors';
+export {
+  ApexLogListItem,
+  ListLogsOptionsSchema,
+  ApexLogQueryError,
+  ApexLogBodyFetchError,
+  listLogs,
+  getLogBody,
+  streamLogs
+} from './logs';
+export type { ListLogsOptions, LogStreamEvent, StreamLogsOptions } from './logs';
