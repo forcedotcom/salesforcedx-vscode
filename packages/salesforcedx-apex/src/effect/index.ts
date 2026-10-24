@@ -8,3 +8,13 @@
 export { ExecuteAnonymousOptionsSchema, ExecuteAnonymousResultSchema, executeAnonymous } from './executeAnonymous';
 export type { ExecuteAnonymousOptions, ExecuteAnonymousResult } from './executeAnonymous';
 export { ApexOperationError, ApexResponseDecodeError, causeMessage } from './errors';
+export {
+  ApexLogListItem,
+  ListLogsOptionsSchema,
+  ApexLogQueryError,
+  ApexLogBodyFetchError,
+  listLogs,
+  getLogBody,
+  streamLogs
+} from './logs';
+export type { ListLogsOptions, LogStreamEvent, StreamLogsOptions } from './logs';

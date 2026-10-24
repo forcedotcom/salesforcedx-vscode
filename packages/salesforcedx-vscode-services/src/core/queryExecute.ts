@@ -69,7 +69,7 @@ type QueryEnvelopeType<A> = {
   readonly records: readonly A[];
 };
 
-const refineSoqlError = (soql: string, error: unknown): SoqlError | FieldError | UnknownException => {
+export const refineSoqlError = (soql: string, error: unknown): SoqlError | FieldError | UnknownException => {
   const decoded = Schema.decodeUnknownOption(JsforceApiFailure)(error);
   if (Option.isNone(decoded)) {
     return new UnknownException(error);
