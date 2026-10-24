@@ -46,6 +46,10 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import * as Prettier from 'prettier';
 import {
+  ApexLogListItem,
+  ApexLogQueryError,
+  ApexLogBodyFetchError,
+  ListLogsOptionsSchema,
   ApexOperationError,
   ApexResponseDecodeError,
   ExecuteAnonymousOptionsSchema,
@@ -399,6 +403,10 @@ const PublicApiSchema = Schema.Union(
   ApexDiagnosticSchema,
   ApexExecuteOptionsSchema,
   ApexLogGetOptionsSchema,
+  ApexLogListItem,
+  ApexLogQueryError,
+  ApexLogBodyFetchError,
+  ListLogsOptionsSchema,
   ApexTestProgressValueSchema,
   ApexTestQueueItemSchema,
   ApexTestQueueItemRecordSchema,

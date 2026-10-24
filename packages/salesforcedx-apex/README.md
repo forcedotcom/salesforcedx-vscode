@@ -20,7 +20,7 @@ The existing Promise/class entry point remains available for its current consume
 
 ### Effect API with an explicit connection
 
-`executeAnonymous(connection, options)` is exported from `@salesforce/apex-node/effect`. It returns an Effect with typed operation and response errors. The consumer selects the connection and supplies Apex source text; file reading and terminal input belong to the consumer. Other Apex operations have not migrated yet.
+`executeAnonymous(connection, options)` is exported from `@salesforce/apex-node/effect`. It returns an Effect with typed operation and response errors. The consumer selects the connection and supplies Apex source text; file reading and terminal input belong to the consumer.
 
 An extension can obtain the current connection from services for each operation:
 
@@ -76,6 +76,12 @@ const result = await Effect.runPromise(
 ```
 
 A fixed layer captures its connection when constructed. An extension that needs the current default org should resolve the connection for each operation, as in the services example.
+
+### Logs
+
+`listLogs(connection, limit = 25, options?)` queries Tooling API logs in descending start-time order. Options filter by user(s), operation substring, and inclusive start time. `getLogBody(connection, logId)` retrieves the body.
+
+`streamLogs(connection, options)` collects immediately and then on the supplied Effect schedule. `pollOptions(index)` returns `Option.none()` to skip a poll or `Option.some(filters)` to query; `filterLogs` selects records before body retrieval. The stream emits `Log`, `QueryError`, and `BodyError` events, continuing after request failures. Consumers own window gating, trace flags, org changes, deduplication, storage, and interruption.
 
 ## Getting Started
 
