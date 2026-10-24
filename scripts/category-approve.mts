@@ -20,7 +20,7 @@ import {
   readCheckEvent,
   withoutWorkflowRun
 } from '@salesforce/effect-octokit';
-import { AgentError, GitError } from './shared/scriptErrors.ts';
+import { AgentError, GitError } from './shared/scriptErrors.mts';
 import {
   BASE_BRANCH,
   BOT_LOGIN,
@@ -34,7 +34,7 @@ import {
   classifyGit2GusConfig,
   decideCategoryApprove,
   parseAgentResult
-} from './shared/categoryDecision.ts';
+} from './shared/categoryDecision.mts';
 
 // Command.env merges over process.env (NodeCommandExecutor). Blank inherited values so the agent only sees its allowlist.
 const agentEnvironment = (home: string, pathEnv: string, apiKey: string) => ({
