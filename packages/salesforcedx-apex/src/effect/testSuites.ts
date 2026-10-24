@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import { messages } from '../i18n/i18n';
 import { ApexOperationError } from './errors';
-import { createRecord, queryRecords } from './tooling';
+import { createRecord, queryRecords } from './records';
 
 export const TestSuiteSchema = Schema.Struct({ id: Schema.String, TestSuiteName: Schema.String }).annotations({
   identifier: 'TestSuite'
