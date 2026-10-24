@@ -110,6 +110,17 @@ test('invalidate-on-push selector returns only author exact standalone comments'
   );
 });
 
+const upstreamPullRequest = {
+  number: 8303,
+  base: { repo: { id: 95021029 } },
+  head: { repo: { id: 560319098 } }
+};
+const forkTargetedPullRequest = {
+  number: 706,
+  base: { repo: { id: 560319098 } },
+  head: { repo: { id: 95021029 } }
+};
+
 const eventPayloads = {
   issue_comment: {
     comment: { user: { login: 'mshanemc' }, body: '/ai-auto approve' },
@@ -214,7 +225,7 @@ const runCli = ({
           GITHUB_JOB: 'ai-auto-approve',
           GITHUB_OUTPUT: '/tmp/output',
           GITHUB_PATH: '/tmp/path',
-          GITHUB_REPOSITORY_ID: '1',
+          GITHUB_REPOSITORY_ID: '95021029',
           GITHUB_REPOSITORY_OWNER_ID: '1',
           GITHUB_RETENTION_DAYS: '90',
           GITHUB_RUN_ATTEMPT: '1',
@@ -415,7 +426,7 @@ test('issue_comment: inactive member, draft, or closed skip, never hold', () => 
 });
 
 test('check_suite: pending then same-SHA green approves; no second comment', () => {
-  const event = { check_suite: { head_sha: 'abc123', pull_requests: [{ number: 8303 }] } };
+  const event = { check_suite: { head_sha: 'abc123', pull_requests: [upstreamPullRequest] } };
   const pending = runCli({
     eventName: 'check_suite',
     event,
@@ -430,7 +441,7 @@ test('check_suite: pending then same-SHA green approves; no second comment', () 
 });
 
 test('check_suite: re-reads all checks on the head, not just the suite that completed', () => {
-  const event = { check_suite: { head_sha: 'abc123', pull_requests: [{ number: 8303 }] } };
+  const event = { check_suite: { head_sha: 'abc123', pull_requests: [upstreamPullRequest] } };
   const output = runCli({
     eventName: 'check_suite',
     event,
@@ -442,7 +453,7 @@ test('check_suite: re-reads all checks on the head, not just the suite that comp
 });
 
 test('workflow_run: failed then same-SHA rerun green approves', () => {
-  const event = { workflow_run: { head_sha: 'abc123', pull_requests: [{ number: 8303 }] } };
+  const event = { workflow_run: { head_sha: 'abc123', pull_requests: [upstreamPullRequest] } };
   const failed = runCli({
     eventName: 'workflow_run',
     event,
@@ -459,8 +470,29 @@ test('workflow_run: failed then same-SHA rerun green approves', () => {
   assert.equal(approvals(rerun).length, 1);
 });
 
+for (const eventName of ['check_suite', 'workflow_run']) {
+  test(`${eventName}: ignores fork-targeted PR associations without API calls`, () => {
+    const output = runCli({
+      eventName,
+      event: { [eventName]: { head_sha: 'abc123', pull_requests: [forkTargetedPullRequest] } }
+    });
+    assert.match(output, /decision: skip \(#706 base repository is not forcedotcom\/salesforcedx-vscode\)/);
+    assert.deepEqual(requests(output), []);
+  });
+
+  test(`${eventName}: skips fork-targeted associations and approves an upstream PR from a fork`, () => {
+    const output = runCli({
+      eventName,
+      event: { [eventName]: { head_sha: 'abc123', pull_requests: [forkTargetedPullRequest, upstreamPullRequest] } }
+    });
+    assert.match(output, /decision: skip \(#706 base repository is not forcedotcom\/salesforcedx-vscode\)/);
+    assert.equal(requests(output).filter(line => line === 'POST /graphql').length, 2);
+    assert.deepEqual(approvals(output), ['POST /repos/forcedotcom/salesforcedx-vscode/pulls/8303/reviews']);
+  });
+}
+
 test('check/workflow completion for an old SHA never approves the new head', () => {
-  const event = { workflow_run: { head_sha: 'abc123', pull_requests: [{ number: 8303 }] } };
+  const event = { workflow_run: { head_sha: 'abc123', pull_requests: [upstreamPullRequest] } };
   const output = runCli({ eventName: 'workflow_run', event, headShas: ['new-sha'] });
   assert.equal(approvals(output).length, 0);
   assert.match(output, /decision: skip \(#8303 head is not abc123\)/);
@@ -468,7 +500,7 @@ test('check/workflow completion for an old SHA never approves the new head', () 
 });
 
 test('head moves between decision and approve POST: no approval on the stale SHA', () => {
-  const event = { check_suite: { head_sha: 'abc123', pull_requests: [{ number: 8303 }] } };
+  const event = { check_suite: { head_sha: 'abc123', pull_requests: [upstreamPullRequest] } };
   // read 1: onChecksComplete head match. read 2: pre-approve guard, head already moved.
   const output = runCli({ eventName: 'check_suite', event, headShas: ['abc123', 'new-sha'] });
   assert.equal(approvals(output).length, 0);
@@ -476,7 +508,7 @@ test('head moves between decision and approve POST: no approval on the stale SHA
 });
 
 test('check_suite: non-author comment or none on PR: skip, no approve, no hold', () => {
-  const event = { check_suite: { head_sha: 'abc123', pull_requests: [{ number: 8303 }] } };
+  const event = { check_suite: { head_sha: 'abc123', pull_requests: [upstreamPullRequest] } };
   const output = runCli({
     eventName: 'check_suite',
     event,
@@ -487,7 +519,7 @@ test('check_suite: non-author comment or none on PR: skip, no approve, no hold',
 });
 
 test('check_suite: author comment is not standalone, skip', () => {
-  const event = { check_suite: { head_sha: 'abc123', pull_requests: [{ number: 8303 }] } };
+  const event = { check_suite: { head_sha: 'abc123', pull_requests: [upstreamPullRequest] } };
   const output = runCli({
     eventName: 'check_suite',
     event,
