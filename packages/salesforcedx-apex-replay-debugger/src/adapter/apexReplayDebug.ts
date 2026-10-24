@@ -20,13 +20,16 @@ import {
   Thread
 } from '@vscode/debugadapter';
 import type { DebugProtocol } from '@vscode/debugprotocol';
+import * as Either from 'effect/Either';
+import * as Predicate from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import { EOL } from 'node:os';
 import { breakpointUtil } from '../breakpoints';
 import { SEND_METRIC_GENERAL_EVENT, SEND_METRIC_ERROR_EVENT, SEND_METRIC_LAUNCH_EVENT } from '../constants';
 import { HeapDumpService } from '../core/heapDumpService';
 import { LogContext } from '../core/logContext';
 import { nls } from '../messages';
-import { type TraceCategory, type Step, type LaunchRequestArguments } from './types';
+import { SourceUriMappingSchema, type TraceCategory, type Step, type LaunchRequestArguments } from './types';
 import { ScopeContainer } from './variableContainer';
 
 const TRACE_ALL = 'all';
@@ -76,6 +79,16 @@ export class ApexReplayDebug extends LoggingDebugSession {
   }
 
   public launchRequest(response: DebugProtocol.LaunchResponse, args: LaunchRequestArguments): void {
+    if (Predicate.isNotUndefined(args.sourceUriMapping)) {
+      const sourceUriMapping = Schema.decodeUnknownEither(SourceUriMappingSchema)(args.sourceUriMapping);
+      if (Either.isLeft(sourceUriMapping)) {
+        response.success = false;
+        response.message = `Invalid sourceUriMapping: ${sourceUriMapping.left.message}`;
+        this.sendResponse(response);
+        return;
+      }
+      args.sourceUriMapping = sourceUriMapping.right;
+    }
     let lineBreakpointInfoAvailable = false;
     if (args?.lineBreakpointInfo) {
       lineBreakpointInfoAvailable = true;
@@ -364,10 +377,10 @@ export class ApexReplayDebug extends LoggingDebugSession {
     const sourcePath = topFrame?.source?.path ?? null;
     const topFrameLine = topFrame?.line ?? null;
     if (sourcePath && topFrameLine) {
-      const topFrameUri = this.convertClientPathToDebugger(sourcePath);
+      // Stack-frame sources already carry debugger URIs, not client filesystem paths.
       const topFrameLineDebugger = this.convertClientLineToDebugger(topFrameLine);
 
-      const breakpointsForUri = this.breakpoints.get(topFrameUri) ?? []; // Use empty array if breakpoints for the URI are undefined
+      const breakpointsForUri = this.breakpoints.get(sourcePath) ?? []; // Use empty array if breakpoints for the URI are undefined
       if (breakpointsForUri.includes(topFrameLineDebugger)) {
         this.sendEvent(new StoppedEvent('breakpoint', ApexReplayDebug.THREAD_ID));
         return true;

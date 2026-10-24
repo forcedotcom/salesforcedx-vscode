@@ -208,6 +208,26 @@ describe('Replay debugger adapter - unit', () => {
       expect(actualResponse.success).toBe(true);
     });
 
+    it.each([[], { Remote: 42 }, 'file:///Remote.cls', null])(
+      'rejects malformed serialized source mappings: %j',
+      sourceUriMapping => {
+        hasLogLinesStub = vi.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
+        meetsLogLevelRequirementsStub = vi
+          .spyOn(LogContext.prototype, 'meetsLogLevelRequirements')
+          .mockReturnValue(true);
+
+        adapter.launchRequest(response, {
+          ...args,
+          lineBreakpointInfo: lineBpInfo,
+          sourceUriMapping
+        } as unknown as LaunchRequestArguments);
+
+        expect(sendResponseSpy).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ success: false }));
+        expect(response.message).toContain('sourceUriMapping');
+        expect(hasLogLinesStub).not.toHaveBeenCalled();
+      }
+    );
+
     it('Should not apply heap dump results if no heap dumps are found in the logs', async () => {
       hasLogLinesStub = vi.spyOn(LogContext.prototype, 'hasLogLines').mockReturnValue(true);
       meetsLogLevelRequirementsStub = vi.spyOn(LogContext.prototype, 'meetsLogLevelRequirements').mockReturnValue(true);
@@ -755,7 +775,7 @@ describe('Replay debugger adapter - unit', () => {
     it('Should stop for breakpoint', () => {
       getTopFrameStub = vi
         .spyOn(LogContext.prototype, 'getTopFrame')
-        .mockReturnValue({ line: 2, source: { path: '/path/foo.cls' } } as StackFrame);
+        .mockReturnValue({ line: 2, source: { path: 'file:///path/foo.cls' } } as StackFrame);
       adapter.getBreakpoints().set('file:///path/foo.cls', [2]);
 
       const isStopped = adapter.shouldStopForBreakpoint();
@@ -769,7 +789,7 @@ describe('Replay debugger adapter - unit', () => {
     it('Should not stop for breakpoint', () => {
       getTopFrameStub = vi
         .spyOn(LogContext.prototype, 'getTopFrame')
-        .mockReturnValue({ line: 2, source: { path: '/path/foo.cls' } } as StackFrame);
+        .mockReturnValue({ line: 2, source: { path: 'file:///path/foo.cls' } } as StackFrame);
       adapter.getBreakpoints().set('file:///path/bar.cls', [2]);
 
       const isStopped = adapter.shouldStopForBreakpoint();
