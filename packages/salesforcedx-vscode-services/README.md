@@ -14,7 +14,7 @@ This extension provides core services for Salesforce development in VS Code.
 
 ## Requirements
 
-- VS Code 1.90.0 or higher
+- VS Code 1.129.0 or higher
 - Salesforce CLI
 
 ## Installation

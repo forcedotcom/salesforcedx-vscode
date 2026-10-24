@@ -2,7 +2,7 @@
 
 ## Pre-requisites
 
-1.  Require Node LTS (with fallback to vars.NODE_VERSION) and [pnpm](https://pnpm.io/) via the root `packageManager` field (Corepack: `corepack enable`). To work with multiple Node versions, consider [nvm](https://github.com/creationix/nvm).
+1.  Require Node.js 24.18.0 or later and [pnpm](https://pnpm.io/) via the root `packageManager` field (Corepack: `corepack enable`). To work with multiple Node versions, consider [nvm](https://github.com/creationix/nvm).
 1.  This repository uses [pnpm workspaces](../docs/adr/0022-pnpm-cutover.md) and [wireit](https://github.com/google/wireit) to manage it as a _monorepo_. Lockfile: `pnpm-lock.yaml`.
 1.  We use `eslint` so please install it using `pnpm add --global eslint` (or your preferred global install).
 1.  It is preferred, though not required, that you use the Insiders version of VS

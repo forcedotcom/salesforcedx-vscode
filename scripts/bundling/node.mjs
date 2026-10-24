@@ -10,7 +10,7 @@ export const nodeConfig = {
   // Global on purpose: alters resolution for EVERY dep, not just effect. Validated across all node
   // consumers by a full vscode:bundle + desktop e2e. Do not re-scope to per-package opt-in or delete.
   conditions: ['import', 'module', 'default'],
-  target: 'es2023',
+  target: 'node24.18.0',
   keepNames: true,
   minify,
   sourcemap: true,

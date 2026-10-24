@@ -147,5 +147,8 @@
   },
   "devDependencies": {
     "salesforcedx-vscode-services": "workspace:*"
+  },
+  "engines": {
+    "node": ">=24.18.0"
   }
 }
