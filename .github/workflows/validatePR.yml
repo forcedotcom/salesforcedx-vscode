@@ -28,7 +28,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-pnpm
         with:
-          node-version: 24.18.0
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
       - uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
       - name: Validate native scripts and GitHub Actions
