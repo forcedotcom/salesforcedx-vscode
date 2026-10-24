@@ -10,11 +10,14 @@ import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
+import * as Match from 'effect/Match';
+import * as Option from 'effect/Option';
 import { isDate, isString, isUndefined } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import type { ApexLogListItem, TraceFlagItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { APEX_LOG_SETTINGS_SECTION } from '../constants';
 import { nls } from '../messages';
@@ -34,22 +37,14 @@ const isAfterTraceFlagStart =
     return isUndefined(userStart) || st >= userStart;
   };
 
-const collectNewLogs = Effect.fn('LogAutoCollect.collectNewLogs', {
-  root: true,
-  attributes: { telemetryIgnore: true }
-})(function* () {
+const getPollIntervalSeconds = Effect.fn('ApexLog.getPollIntervalSeconds')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const collectorRef = yield* LogCollectorStateRef;
-  const knownIdsRef = yield* KnownLogIdsRef;
-  const knownIds = yield* Ref.get(knownIdsRef);
+  const settings = yield* api.services.SettingsService;
+  return yield* settings.getValueOrElse(APEX_LOG_SETTINGS_SECTION, 'logPollIntervalSeconds', 30);
+});
 
-  const channelService = yield* api.services.ChannelService;
-  const items = yield* SubscriptionRef.get(yield* CurrentTraceFlags);
+const getTraceLogFilters = (items: TraceFlagItem[]) => {
   const activeItems = items.filter(isTraceFlagActive);
-  if (activeItems.length === 0) return;
-
-  const execAnonIds: Set<string> = yield* Effect.catchAll(getExecAnonLogIds(), () => Effect.succeed(new Set<string>()));
-
   const startDateByUser = new Map(
     [
       ...Map.groupBy(
@@ -67,110 +62,147 @@ const collectNewLogs = Effect.fn('LogAutoCollect.collectNewLogs', {
   const minStart =
     startDateByUser.size > 0 ? [...startDateByUser.values()].reduce((a, b) => (a < b ? a : b)) : undefined;
 
-  const newLogs = (yield* api.services.ApexLogService.listLogs(
-    25,
-    userIds.length > 0 && minStart ? { userIds, startTimeAfter: minStart.toISOString() } : undefined
+  return {
+    activeItems,
+    startDateByUser,
+    filters: userIds.length > 0 && minStart ? { userIds, startTimeAfter: minStart.toISOString() } : {}
+  };
+};
+
+const createCollectionStream = Effect.fn('LogAutoCollect.createCollectionStream')(function* (
+  collectWhileInactive: boolean
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const logService = yield* api.services.ApexLogService;
+  const channelService = yield* api.services.ChannelService;
+  const collectorRef = yield* LogCollectorStateRef;
+  const knownIdsRef = yield* KnownLogIdsRef;
+  const traceFlagsRef = yield* CurrentTraceFlags;
+  const logStorageContext = yield* Effect.context<Effect.Effect.Context<ReturnType<typeof getExecAnonLogIds>>>();
+
+  const pollOptions = Effect.fn('LogAutoCollect.pollOptions')(function* () {
+    const { activeItems, filters } = getTraceLogFilters(yield* SubscriptionRef.get(traceFlagsRef));
+    return (collectWhileInactive || vscode.window.state.active) && activeItems.length > 0
+      ? Option.some(filters)
+      : Option.none();
+  });
+
+  const filterLogs = Effect.fn('LogAutoCollect.filterLogs')(function* (logs: readonly ApexLogListItem[]) {
+    const { startDateByUser } = getTraceLogFilters(yield* SubscriptionRef.get(traceFlagsRef));
+    const knownIds = yield* Ref.get(knownIdsRef);
+    const execAnonIds = yield* getExecAnonLogIds().pipe(
+      Effect.provide(logStorageContext),
+      Effect.catchTags({
+        NoWorkspaceOpenError: () => Effect.succeed(new Set<string>()),
+        ServicesExtensionNotFoundError: () => Effect.succeed(new Set<string>()),
+        InvalidServicesApiError: () => Effect.succeed(new Set<string>())
+      })
+    );
+    const newLogs = logs
+      .filter(isAfterTraceFlagStart(startDateByUser))
+      .filter(log => !HashSet.has(knownIds, log.Id) && !execAnonIds.has(log.Id));
+    if (newLogs.length > 0) {
+      yield* SubscriptionRef.update(collectorRef, state => ({
+        ...state,
+        isCollecting: true,
+        collectedCount: state.collectedCount + newLogs.length
+      }));
+    }
+    return newLogs;
+  });
+
+  const reportLogError = (logId: string, error: { message: string }) =>
+    Effect.log('LogAutoCollect: failed to save log', { logId, error: String(error) });
+  return logService
+    .streamLogs({
+      // Timer replacement must not interrupt this poll's query, body retrieval, or storage.
+      schedule: Schedule.recurs(0),
+      pollOptions,
+      filterLogs
+    })
+    .pipe(
+      Stream.mapEffect(event =>
+        Match.value(event).pipe(
+          Match.tag('QueryError', ({ error }) =>
+            channelService.appendToChannel(`[LogAutoCollect] listLogs failed: ${error.message}`)
+          ),
+          Match.tag('BodyError', ({ log, error }) => reportLogError(log.Id, error)),
+          Match.tag('Log', ({ log, body }) =>
+            saveLog(log.Id, body).pipe(
+              Effect.flatMap(() =>
+                channelService.appendToChannel(
+                  nls.localize('log_auto_collect_fetched', log.Id, log.LogUser?.Name ?? 'Unknown', log.Operation ?? '')
+                )
+              ),
+              Effect.tap(() => Ref.update(knownIdsRef, set => HashSet.add(set, log.Id))),
+              Effect.catchTags({
+                FsServiceError: error => reportLogError(log.Id, error),
+                NoWorkspaceOpenError: error => reportLogError(log.Id, error),
+                ServicesExtensionNotFoundError: error => reportLogError(log.Id, error),
+                InvalidServicesApiError: error => reportLogError(log.Id, error)
+              })
+            )
+          ),
+          Match.exhaustive
+        )
+      ),
+      Stream.withSpan('LogAutoCollect.collectNewLogs', { root: true, attributes: { telemetryIgnore: true } })
+    );
+});
+
+const createPollTriggers = Effect.fn('LogAutoCollect.createPollTriggers')(function* (collectWhileInactive: boolean) {
+  const interval = yield* getPollIntervalSeconds();
+  return Stream.repeatEffectWithSchedule(
+    Effect.void,
+    interval > 0 ? Schedule.spaced(Duration.seconds(interval)) : Schedule.recurs(0)
   ).pipe(
-    Effect.catchAll(e =>
-      channelService.appendToChannel(`[LogAutoCollect] listLogs failed: ${e.message}`).pipe(Effect.as([]))
-    )
-  ))
-    .filter(isAfterTraceFlagStart(startDateByUser))
-    .filter(l => !HashSet.has(knownIds, l.Id) && !execAnonIds.has(l.Id));
-
-  if (newLogs.length === 0) return;
-
-  yield* SubscriptionRef.update(collectorRef, s => ({
-    ...s,
-    isCollecting: true,
-    collectedCount: s.collectedCount + newLogs.length
-  }));
-
-  yield* Stream.fromIterable(newLogs).pipe(
-    Stream.runForEach(log =>
-      api.services.ApexLogService.getLogBody(log.Id).pipe(
-        Effect.flatMap(body => saveLog(log.Id, body)),
-        Effect.flatMap(() =>
-          channelService.appendToChannel(
-            nls.localize('log_auto_collect_fetched', log.Id, log.LogUser?.Name ?? 'Unknown', log.Operation ?? '')
-          )
-        ),
-        Effect.tap(() => Ref.update(knownIdsRef, set => HashSet.add(set, log.Id))),
-        Effect.catchAll(e => Effect.log('LogAutoCollect: failed to save log', { logId: log.Id, error: String(e) }))
-      )
-    )
+    Stream.zipWithIndex,
+    Stream.map(([, index]) => index === 0 && collectWhileInactive)
   );
 });
 
-const getPollIntervalSeconds = Effect.fn('ApexLog.getPollIntervalSeconds')(function* () {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const settings = yield* api.services.SettingsService;
-  return yield* settings.getValueOrElse(APEX_LOG_SETTINGS_SECTION, 'logPollIntervalSeconds', 30);
-});
-
-/** Polling stream that auto-collects Apex logs when trace flags are active. Writes to collectorRef for status bar display. */
+/** Collects apex-node log streams; the extension owns triggers, filters, dedupe state, and storage. */
 export const createLogAutoCollect = Effect.fn('ApexLog.createLogAutoCollect')(function* () {
-  const traceFlagRefreshRef = yield* CurrentTraceFlags;
+  const traceFlagsRef = yield* CurrentTraceFlags;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const knownIdsRef = yield* KnownLogIdsRef;
   const targetOrgRef = yield* api.services.TargetOrgRef();
-
   const settingsChangePubSub = yield* api.services.SettingsChangePubSub;
   const pollIntervalSeconds = yield* getPollIntervalSeconds();
-  const pollIntervalRef = yield* SubscriptionRef.make(Duration.seconds(pollIntervalSeconds));
 
-  // watch the setting to update poll freq
-  yield* Stream.fromPubSub(settingsChangePubSub).pipe(
-    Stream.filter(event => event.affectsConfiguration('salesforcedx-vscode-apex-log.logPollIntervalSeconds')),
-    Stream.runForEach(() =>
-      getPollIntervalSeconds().pipe(Effect.flatMap(s => SubscriptionRef.set(pollIntervalRef, Duration.seconds(s))))
-    ),
-    Effect.fork
-  );
-
-  // when the org changes, clear the knownIds
-  yield* Effect.fork(
-    targetOrgRef.changes.pipe(
-      Stream.map(orgInfo => orgInfo.orgId),
-      Stream.changes,
-      Stream.as(undefined),
-      Stream.runForEach(() => Ref.set(knownIdsRef, HashSet.empty<string>()).pipe(Effect.asVoid))
-    )
-  );
-
-  const dynamicPollStream = pollIntervalRef.changes.pipe(
-    Stream.filter(d => Duration.greaterThan(d, Duration.zero)), // 0 means don't poll
-    Stream.flatMap(
-      interval =>
-        Schedule.spaced(interval).pipe(
-          Stream.fromSchedule,
-          Stream.filter(() => vscode.window.state.active)
-        ),
-      // With switch: true: When the interval changes, the previous schedule stream is interrupted and a new one starts.
-      // So changing the poll interval immediately replaces the old schedule with the new one instead of stacking them.
-      { switch: true }
-    )
-  );
-  const refreshStream = traceFlagRefreshRef.changes.pipe(Stream.as(undefined));
-  // When org becomes ready, status bar fetches trace flags and sets the ref. LogAutoCollect must also
-  // react to org changes so it doesn't miss the initial ref update (race on workspace reload).
-  const orgChangeStream = targetOrgRef.changes.pipe(
+  yield* targetOrgRef.changes.pipe(
     Stream.map(orgInfo => orgInfo.orgId),
     Stream.changes,
-    Stream.as(undefined)
+    Stream.flatMap(
+      orgId =>
+        Stream.fromEffect(Ref.set(knownIdsRef, HashSet.empty<string>())).pipe(
+          Stream.flatMap(() =>
+            isUndefined(orgId)
+              ? Stream.empty
+              : Stream.merge(
+                  traceFlagsRef.changes.pipe(Stream.as(true)),
+                  Stream.fromPubSub(settingsChangePubSub).pipe(
+                    Stream.filter(event =>
+                      event.affectsConfiguration('salesforcedx-vscode-apex-log.logPollIntervalSeconds')
+                    ),
+                    Stream.as(false)
+                  )
+                ).pipe(
+                  // Coalesce trace-flag refresh with org readiness, including workspace reload.
+                  Stream.debounce(calculateDebounce(pollIntervalSeconds)),
+                  // Replace only timer emissions. Serial collection downstream finishes before the next poll.
+                  Stream.flatMap(collectWhileInactive => Stream.unwrap(createPollTriggers(collectWhileInactive)), {
+                    switch: true
+                  }),
+                  Stream.flatMap(collectWhileInactive => Stream.unwrap(createCollectionStream(collectWhileInactive)))
+                )
+          )
+        ),
+      // Org changes interrupt the old connection's stream, including in-flight body retrieval/storage.
+      { switch: true }
+    ),
+    Stream.runDrain
   );
-
-  yield* Effect.fork(
-    // run when we know something changed OR when it's time based on polling
-    Stream.mergeAll([dynamicPollStream, refreshStream, orgChangeStream], { concurrency: 'unbounded' }).pipe(
-      // if the polling interval === the debounce, events don't make it through the stream
-      // 1s is fine except when the polling interval is very low
-      Stream.debounce(calculateDebounce(pollIntervalSeconds)),
-      Stream.runForEach(() => collectNewLogs())
-    )
-  );
-
-  yield* Effect.sleep(Duration.infinity);
 });
 
 const calculateDebounce = (pollIntervalSeconds: number) =>

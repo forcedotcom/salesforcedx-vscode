@@ -47,6 +47,10 @@ import { join } from 'node:path';
 import * as Prettier from 'prettier';
 import {
   ApexCompileError,
+  ApexLogListItem,
+  ApexLogQueryError,
+  ApexLogBodyFetchError,
+  ListLogsOptionsSchema,
   ApexOperationError,
   ApexResponseDecodeError,
   ApexRuntimeError,
@@ -401,6 +405,10 @@ const PublicApiSchema = Schema.Union(
   ApexDiagnosticSchema,
   ApexExecuteOptionsSchema,
   ApexLogGetOptionsSchema,
+  ApexLogListItem,
+  ApexLogQueryError,
+  ApexLogBodyFetchError,
+  ListLogsOptionsSchema,
   ApexTestProgressValueSchema,
   ApexTestQueueItemSchema,
   ApexTestQueueItemRecordSchema,
