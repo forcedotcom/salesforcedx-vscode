@@ -1,6 +1,9 @@
 {
   "name": "changelog-body",
   "private": true,
+  "engines": {
+    "node": ">=24.18.0"
+  },
   "type": "module",
   "dependencies": {
     "@cursor/sdk": "1.0.40",

@@ -1,5 +1,8 @@
 {
   "name": "@salesforce/eslint-plugin-vscode-extensions",
+  "engines": {
+    "node": ">=24.18.0"
+  },
   "version": "65.14.0",
   "versionedIndependently": true,
   "description": "Custom ESLint rules for Salesforce VSCode extensions",

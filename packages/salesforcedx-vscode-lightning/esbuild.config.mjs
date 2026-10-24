@@ -32,7 +32,7 @@ await build({
   outfile: './dist/auraServer.js',
   bundle: true,
   platform: 'node',
-  target: 'node18',
+  target: 'node24.18.0',
   plugins: [
     {
       name: 'external-tern',

@@ -25,23 +25,23 @@ const pid = 1;
 
 // Process versions - provide minimal version info for browser compatibility
 // VS Code extensions may check process.versions.node to determine Node.js version
+// Values from Node.js 24.18.0 process.versions.
 const versions = {
-  node: '18.0.0',
-  v8: '10.1.124.8',
-  modules: '108',
-  uv: '1.43.0', // Typical libuv version for Node 18
-  zlib: '1.2.11', // Typical zlib version
-  openssl: '3.0.7', // Typical OpenSSL version for Node 18
-  nghttp2: '1.47.0', // Typical nghttp2 version
-  napi: '9', // N-API version
-  llhttp: '6.0.10', // Typical llhttp version
-  http_parser: '2.9.4', // Typical http_parser version
-  brotli: '1.0.9', // Typical brotli version
-  ares: '1.18.1', // Typical c-ares version
-  icu: '71.1', // Typical ICU version
-  unicode: '14.0', // Typical Unicode version
-  ngtcp2: '0.8.1', // Typical ngtcp2 version
-  nghttp3: '0.7.0' // Typical nghttp3 version
+  node: '24.18.0',
+  v8: '13.6.233.17-node.50',
+  modules: '137',
+  uv: '1.52.1',
+  zlib: '1.3.1-e00f703',
+  openssl: '3.5.7',
+  nghttp2: '1.69.0',
+  napi: '10',
+  llhttp: '9.4.2',
+  brotli: '1.2.0',
+  ares: '1.34.6',
+  icu: '78.3',
+  unicode: '17.0',
+  ngtcp2: '',
+  nghttp3: ''
 };
 
 // EventEmitter-like implementation for browser compatibility
@@ -148,7 +148,7 @@ const process = {
   cwd,
   platform,
   pid,
-  version: 'v18.0.0',
+  version: 'v24.18.0',
   versions, // Add versions object for compatibility with VS Code extensions
   // Mock streams to prevent fd access errors
   stdin: mockStream,
