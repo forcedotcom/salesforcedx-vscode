@@ -20,7 +20,7 @@ import type { SObject } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { executeQueryPlan } from '../commands/queryPlan';
 import { SOQL_CONFIGURATION_NAME } from '../constants';
-import { nls } from '../messages';
+import { nls, noDefaultOrgMessage } from '../messages';
 import { prepareQuery } from '../prepareQuery';
 import { QueryDataViewService as QueryDataView } from '../queryDataView/queryDataViewService';
 import { getSoqlRuntime } from '../services/extensionProvider';
@@ -106,7 +106,7 @@ const runBuilderQueryEffect = Effect.fn('SOQLEditor.runBuilderQuery')(function* 
 ) {
   const isOrgSet = yield* Effect.promise(() => isDefaultOrgSet());
   if (!isOrgSet) {
-    const message = nls.localize('info_no_default_org');
+    const message = noDefaultOrgMessage();
     yield* appendToChannel(message);
     yield* Effect.promise(() => vscode.window.showInformationMessage(message));
     yield* runQueryDone();
@@ -311,7 +311,7 @@ export class SOQLEditorInstance {
         return Effect.gen(function* () {
           const isOrgSet = yield* Effect.promise(() => isDefaultOrgSet());
           if (!isOrgSet) {
-            const message = nls.localize('info_no_default_org');
+            const message = noDefaultOrgMessage();
             yield* appendToChannel(message);
             yield* Effect.promise(() => vscode.window.showInformationMessage(message));
             yield* getQueryPlanDone();
