@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
-import { withoutWorkflowRun } from '@salesforce/effect-octokit';
+import { withoutWorkflowRun, type CheckRun, type PullFile, type PullReview } from '@salesforce/effect-octokit';
 import { preClassifyDecision } from '../scripts/shared/categoryGates.cjs';
 import {
   BOT_LOGIN,
@@ -11,7 +11,7 @@ import {
   decideCategoryApprove,
   deniedFile,
   parseAgentResult
-} from '../scripts/shared/categoryDecision.ts';
+} from '../scripts/shared/categoryDecision.mts';
 
 const policy = readFileSync(new URL('../APPROVAL_POLICY.md', import.meta.url), 'utf8');
 const config = readFileSync(new URL('../.git2gus/config.json', import.meta.url), 'utf8');
@@ -20,7 +20,17 @@ const configWithBuild = (value: string) =>
   config.replace(/"defaultBuild": "offcore\.tooling\.\d+"/, `"defaultBuild": "${value}"`);
 const nextConfig = configWithBuild(`offcore.tooling.${buildNumber + 1}`);
 const allowed = categoryIdsFromPolicy(policy);
-const file = (filename: string) => ({ filename });
+const file = (filename: string): PullFile => ({
+  filename,
+  sha: 'abc123',
+  status: 'modified',
+  additions: 1,
+  deletions: 0,
+  changes: 1,
+  blob_url: 'https://github.com/acme/repo/blob/abc123/file',
+  raw_url: 'https://github.com/acme/repo/raw/abc123/file',
+  contents_url: 'https://api.github.com/repos/acme/repo/contents/file'
+});
 const pull = {
   reviewDecision: 'REVIEW_REQUIRED',
   isDraft: false,
@@ -31,7 +41,55 @@ const pull = {
   headRepository: { nameWithOwner: 'forcedotcom/salesforcedx-vscode' },
   baseRepository: { nameWithOwner: 'forcedotcom/salesforcedx-vscode' }
 };
-const green = { status: 'completed', conclusion: 'success' };
+const green: CheckRun = {
+  id: 1,
+  head_sha: 'abc123',
+  node_id: 'check-1',
+  external_id: null,
+  url: 'https://api.github.com/repos/acme/repo/check-runs/1',
+  html_url: null,
+  details_url: null,
+  status: 'completed',
+  conclusion: 'success',
+  started_at: null,
+  completed_at: null,
+  output: { title: null, summary: null, text: null, annotations_count: 0, annotations_url: '' },
+  name: 'test',
+  check_suite: null,
+  app: null,
+  pull_requests: []
+};
+const approved: PullReview = {
+  id: 1,
+  node_id: 'review-1',
+  user: {
+    login: BOT_LOGIN,
+    id: 1,
+    node_id: 'user-1',
+    avatar_url: '',
+    gravatar_id: null,
+    url: '',
+    html_url: '',
+    followers_url: '',
+    following_url: '',
+    gists_url: '',
+    starred_url: '',
+    subscriptions_url: '',
+    organizations_url: '',
+    repos_url: '',
+    events_url: '',
+    received_events_url: '',
+    type: 'Bot',
+    site_admin: false
+  },
+  body: 'Approved',
+  state: 'APPROVED',
+  html_url: '',
+  pull_request_url: '',
+  _links: { html: { href: '' }, pull_request: { href: '' } },
+  commit_id: pull.headRefOid,
+  author_association: 'MEMBER'
+};
 
 const base = {
   pull,
@@ -80,13 +138,12 @@ test('classifies when the gates pass', () => {
 });
 
 test('preflight and approver use the same pre-classify decision', () => {
-  const approved = { user: { login: BOT_LOGIN }, state: 'APPROVED', commit_id: pull.headRefOid };
   for (const changes of [
     {},
     { files: [file('APPROVAL_POLICY.md')] },
-    { checkRuns: [{ conclusion: 'failure' }] },
+    { checkRuns: [{ ...green, conclusion: 'failure' as const }] },
     { reviews: [approved] },
-    { reviews: [approved], checkRuns: [{ conclusion: 'failure' }] }
+    { reviews: [approved], checkRuns: [{ ...green, conclusion: 'failure' as const }] }
   ]) {
     const facts = { ...base, ...changes };
     assert.deepEqual(decideCategoryApprove(facts), preClassifyDecision(facts));
@@ -105,17 +162,14 @@ test('rejects an agent git2gus-config classification for a non-config diff', () 
 });
 
 test('approves only a newer git2gus defaultBuild in an otherwise unchanged config-only PR', () => {
-  const files = [{ filename: '.git2gus/config.json', status: 'modified' }] as const;
+  const files = [file('.git2gus/config.json')];
   const categories = classifyGit2GusConfig(files, config, nextConfig);
   assert.deepEqual(categories, ['git2gus-config']);
   assert.equal(decideCategoryApprove({ ...base, files, categories })._tag, 'Approve');
 });
 
 test('rejects git2gus edits mixed with another file, even if that file has a category', () => {
-  const files = [
-    { filename: '.git2gus/config.json', status: 'modified' },
-    { filename: 'README.md', status: 'modified' }
-  ] as const;
+  const files = [file('.git2gus/config.json'), file('README.md')];
   assert.deepEqual(classifyGit2GusConfig(files, config, nextConfig), []);
   assert.equal(decideCategoryApprove({ ...base, files, categories: [] })._tag, 'Skip');
 });
@@ -206,34 +260,31 @@ test('skips forks, drafts, dependabot, changes requested, and a failed check', (
     'Skip'
   );
   assert.equal(decideCategoryApprove({ ...base, pull: { ...pull, reviewDecision: 'CHANGES_REQUESTED' } })._tag, 'Skip');
-  assert.equal(
-    decideCategoryApprove({ ...base, checkRuns: [{ status: 'completed', conclusion: 'failure' }] })._tag,
-    'Skip'
-  );
+  assert.equal(decideCategoryApprove({ ...base, checkRuns: [{ ...green, conclusion: 'failure' }] })._tag, 'Skip');
 });
 
 test('classifies while the rollup is still settling', () => {
   assert.equal(decideCategoryApprove({ ...base, checkRuns: [] })._tag, 'Classify');
   assert.equal(
-    decideCategoryApprove({ ...base, checkRuns: [{ status: 'in_progress', conclusion: null }] })._tag,
+    decideCategoryApprove({ ...base, checkRuns: [{ ...green, status: 'in_progress', conclusion: null }] })._tag,
     'Classify'
   );
 });
 
 test('dismisses a bot approval on this sha when a check failed', () => {
-  const reviews = [{ user: { login: 'svc-idee-bot' }, state: 'APPROVED', commit_id: 'abc123' }];
+  const reviews = [approved];
   const decision = decideCategoryApprove({
     ...base,
     reviews,
-    checkRuns: [{ status: 'completed', conclusion: 'failure' }]
+    checkRuns: [{ ...green, conclusion: 'failure' }]
   });
   assert.equal(decision._tag, 'Dismiss');
 });
 
 test('drops this workflow run from the rollup', () => {
   const runs = [
-    { details_url: 'https://github.com/acme/repo/actions/runs/9/job/1', html_url: null },
-    { details_url: 'https://github.com/acme/repo/actions/runs/4/job/2', html_url: null }
+    { ...green, details_url: 'https://github.com/acme/repo/actions/runs/9/job/1' },
+    { ...green, details_url: 'https://github.com/acme/repo/actions/runs/4/job/2' }
   ];
   assert.equal(withoutWorkflowRun(runs, '9').length, 1);
 });
