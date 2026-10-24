@@ -5,8 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/// <reference lib="dom" preserve="true" />
-
 import type { SoqlBuilderActionEvent } from './soqlBuilderActionEvent.js';
 import { html, LitElement, nothing } from 'lit';
 import { property } from 'lit/decorators/property.js';
