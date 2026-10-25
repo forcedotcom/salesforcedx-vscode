@@ -37,7 +37,7 @@ Visual org picker in the VS Code status bar showing your current default org, wi
 
 ## Requirements
 
-- Visual Studio Code v1.90.0 or higher
+- Visual Studio Code v1.129.0 or higher
 - Salesforce CLI (sf)
 - Salesforce Extensions for VS Code (Core)
 

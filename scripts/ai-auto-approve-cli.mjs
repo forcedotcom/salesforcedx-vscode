@@ -143,7 +143,11 @@ const onChecksComplete = Effect.fn('aiAutoApprove.checksComplete')(function* (en
   }
   yield* Effect.forEach(
     completed.pull_requests,
-    Effect.fn('aiAutoApprove.checksCompletePull')(function* ({ number: pullNumber }) {
+    Effect.fn('aiAutoApprove.checksCompletePull')(function* ({ number: pullNumber, base }) {
+      if (base.repo.id !== env.repositoryId) {
+        yield* Effect.log(`decision: skip (#${pullNumber} base repository is not ${env.owner}/${env.repo})`);
+        return;
+      }
       const pull = yield* github.pullRequest(env.owner, env.repo, pullNumber);
       if (isNullable(pull) || pull.headRefOid !== completed.head_sha) {
         yield* Effect.log(`decision: skip (#${pullNumber} head is not ${completed.head_sha})`);

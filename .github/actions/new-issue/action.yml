@@ -19,5 +19,5 @@ inputs:
     required: false
     description: 'A label the issue must contain to post the message'
 runs:
-  using: 'node20'
+  using: 'node24'
   main: 'lib/index.js'

@@ -42,7 +42,6 @@ await build({
   outfile: './dist/lwcServer.js',
   bundle: true,
   platform: 'node',
-  target: 'node18',
   define: { 'process.env.ESBUILD_PLATFORM': '"node"' },
   // Allow dynamic import for @babel/core's config file loader (works fine at runtime on Node)
   supported: { 'dynamic-import': true },

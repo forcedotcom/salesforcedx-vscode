@@ -78,4 +78,10 @@ jobs:
           GITHUB_EVENT_PATH: ${{ github.event_path }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           GITHUB_RUN_ID: ${{ github.run_id }}
-        run: node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "$RUNNER_TEMP/trusted-approver/scripts/category-approve.ts"
+        run: |
+          if [ -f "$RUNNER_TEMP/trusted-approver/scripts/category-approve.mts" ]; then
+            node "$RUNNER_TEMP/trusted-approver/scripts/category-approve.mts"
+          else
+            # Until develop contains the native ESM entry point, run its trusted .ts script.
+            node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "$RUNNER_TEMP/trusted-approver/scripts/category-approve.ts"
+          fi

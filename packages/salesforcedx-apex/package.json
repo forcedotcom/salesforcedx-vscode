@@ -31,6 +31,7 @@
   },
   "devDependencies": {
     "@jsforce/jsforce-node": "^3.10.18",
+    "@types/node": "^22.15.1",
     "@types/istanbul-lib-coverage": "^2.0.6",
     "@types/istanbul-lib-report": "^3.0.3",
     "@types/istanbul-reports": "^3.0.4",

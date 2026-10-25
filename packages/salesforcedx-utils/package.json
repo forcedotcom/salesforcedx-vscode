@@ -1,5 +1,8 @@
 {
   "name": "@salesforce/salesforcedx-utils",
+  "engines": {
+    "node": ">=24.18.0"
+  },
   "displayName": "Node Utilities for VS Code",
   "version": "65.7.0",
   "description": "Provides node specific utilities for the Salesforce VSCode extensions",
