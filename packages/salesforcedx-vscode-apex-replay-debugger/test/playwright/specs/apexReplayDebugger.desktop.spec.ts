@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 import {
   APEX_TRACE_FLAG_STATUS_BAR,
   clearOutputChannel,
@@ -68,6 +68,24 @@ const removeWorkspaceClass = async (workspaceDir: string, className: string): Pr
   removePathsInContainer(containerName, [classPath, `${classPath}-meta.xml`]);
 };
 
+const clearApexLogChannel = async (page: Page): Promise<void> => {
+  await ensureOutputPanelOpen(page);
+  await selectOutputChannel(page, 'Salesforce Apex Log');
+  await clearOutputChannel(page);
+};
+
+/** After an exec-anon run: wait for its success notification, open the log, and wait for the log tab. */
+const openExecAnonLog = async (page: Page, screenshotName: string): Promise<void> => {
+  const successNotification = page
+    .locator(NOTIFICATION_LIST_ITEM)
+    .filter({ hasText: /executed successfully/i })
+    .first();
+  await expect(successNotification).toBeVisible({ timeout: 30_000 });
+  await successNotification.getByRole('button', { name: /Open Log/i }).click();
+  await expect(page.locator('.tab').filter({ hasText: /\.log$/ })).toBeVisible({ timeout: 10_000 });
+  await saveScreenshot(page, screenshotName);
+};
+
 // No org setup on the container's shared, persistent workbench — every test uses the boot (default)
 // org, and editors/notifications are reset before each test rather than assuming a clean slate.
 test.beforeEach(async ({ page }) => {
@@ -111,28 +129,17 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log file, last lo
   // Annotations kept INLINE with their declarations: once the Apex LS is warm, a bare `@IsTest` line
   // typed into the code-server editor can have its trailing newline swallowed by a completion-accept,
   // merging it into the next line and producing invalid Apex.
-  const exampleTestContent = isContainer
-    ? [
-        `@IsTest public class ${exampleTestClass} {`,
-        '  @IsTest static void validateSayHello() {',
-        "    System.debug('Starting validate');",
-        `    ${exampleClass}.SayHello('Cody');`,
-        "    System.assertEquals(1, 1, 'all good');",
-        '  }',
-        '}'
-      ].join('\n')
-    : [
-        '@IsTest',
-        `public class ${exampleTestClass} {`,
-        '  @IsTest',
-        '  static void validateSayHello() {',
-        "    System.debug('Starting validate');",
-        `    ${exampleClass}.SayHello('Cody');`,
-        '',
-        "    System.assertEquals(1, 1, 'all good');",
-        '  }',
-        '}'
-      ].join('\n');
+  const exampleTestContent = [
+    `@IsTest public class ${exampleTestClass} {`,
+    '  @IsTest static void validateSayHello() {',
+    "    System.debug('Starting validate');",
+    `    ${exampleClass}.SayHello('Cody');`,
+    "    System.assertEquals(1, 1, 'all good');",
+    '  }',
+    '}'
+  ].join('\n');
+  // The line of exampleTestContent the "execute selected text" step selects and runs.
+  const sayHelloLine = 4;
 
   await test.step('setup with the example class and its test', async () => {
     if (!isContainer) {
@@ -195,64 +202,29 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log file, last lo
     await expect(statusBar).toBeVisible({ timeout: 60_000 });
   });
 
-  const execAnonContainer = async (): Promise<void> => {
-    // Container drives the anon-script + "execute document" entry point to produce the log used by
-    // the replay launches below — no manual line-selection needed. Desktop additionally exercises the
-    // "execute selected text" entry point (see below) so both exec-anon paths get coverage.
-    await test.step('exec anon that calls the class so the org captures a debug log', async () => {
-      await ensureOutputPanelOpen(page);
-      await selectOutputChannel(page, 'Salesforce Apex Log');
-      await clearOutputChannel(page);
+  // This step's log (it runs SayHello, which calls the org-only class) is the one the replay steps below use.
+  await test.step('exec anon with selected text', async () => {
+    await clearApexLogChannel(page);
+    await openFileByName(page, `${exampleTestClass}.cls`);
 
-      await createAndOpenApexScript(page, { name: runScript, content: `${exampleClass}.SayHello('Cody');` });
-      await executeCommandWithCommandPalette(page, apexLogNls['apexLog.command.executeDocument'] as string);
+    // Use Control+G shortcut (no workbench.click) so editor retains focus throughout
+    await page.keyboard.press('Control+g');
+    await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 5000 });
+    await page.keyboard.type(String(sayHelloLine));
+    await page.keyboard.press('Enter');
+    // Wait for Go to Line prompt to close before selecting (ensures editor has focus)
+    await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'hidden', timeout: 5000 });
 
-      const successNotification = page
-        .locator(NOTIFICATION_LIST_ITEM)
-        .filter({ hasText: /executed successfully/i })
-        .first();
-      await expect(successNotification).toBeVisible({ timeout: 30_000 });
-      await successNotification.getByRole('button', { name: /Open Log/i }).click();
-      const logTab = page.locator('.tab').filter({ hasText: /\.log$/ });
-      await expect(logTab).toBeVisible({ timeout: 10_000 });
-      await saveScreenshot(page, 'step.exec-anon-done.png');
-    });
-  };
-  const execAnonDesktop = async (): Promise<void> => {
-    await test.step('exec anon with selected text', async () => {
-      await ensureOutputPanelOpen(page);
-      await selectOutputChannel(page, 'Salesforce Apex Log');
-      await clearOutputChannel(page);
-      await openFileByName(page, `${exampleTestClass}.cls`);
+    // Select line content with keyboard — editor is now focused
+    await page.keyboard.press('Home');
+    await page.keyboard.press('Shift+End');
 
-      // Use Control+G shortcut (no workbench.click) so editor retains focus throughout
-      await page.keyboard.press('Control+g');
-      await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'visible', timeout: 5000 });
-      await page.keyboard.type('6');
-      await page.keyboard.press('Enter');
-      // Wait for Go to Line prompt to close before selecting (ensures editor has focus)
-      await page.locator(QUICK_INPUT_WIDGET).waitFor({ state: 'hidden', timeout: 5000 });
+    // Open palette via F1 only (no workbench.click) to preserve editorHasSelection for the when condition
+    await page.keyboard.press('F1');
+    await selectQuickInputOptionByTyping(page, apexLogNls['apexLog.command.executeSelection'] as string);
 
-      // Select line content with keyboard — editor is now focused
-      await page.keyboard.press('Home');
-      await page.keyboard.press('Shift+End');
-
-      // Open palette via F1 only (no workbench.click) to preserve editorHasSelection for the when condition
-      await page.keyboard.press('F1');
-      await selectQuickInputOptionByTyping(page, apexLogNls['apexLog.command.executeSelection'] as string);
-
-      const successNotification = page
-        .locator(NOTIFICATION_LIST_ITEM)
-        .filter({ hasText: /executed successfully/i })
-        .first();
-      await expect(successNotification).toBeVisible({ timeout: 30_000 });
-      await successNotification.getByRole('button', { name: /Open Log/i }).click();
-      const logTab = page.locator('.tab').filter({ hasText: /\.log$/ });
-      await expect(logTab).toBeVisible({ timeout: 10_000 });
-      await saveScreenshot(page, 'step.exec-anon-done.png');
-    });
-  };
-  await (isContainer ? execAnonContainer : execAnonDesktop)();
+    await openExecAnonLog(page, 'step.exec-anon-done.png');
+  });
 
   await test.step('set a workspace breakpoint before the org-only call', async () => {
     await openFileByName(page, `${exampleClass}.cls`);
@@ -321,31 +293,12 @@ test('Apex Replay Debugger: trace flag, exec anon, replay from log file, last lo
     await saveScreenshot(page, 'step.replay-from-test-class.png');
   });
 
-  const execAnonWithEditorContentsDesktop = async (): Promise<void> => {
-    // Container already exercised the "execute document" entry point above (its sole exec-anon
-    // step); this covers it separately here so desktop gets both exec-anon paths.
-    await test.step('exec anon with editor contents', async () => {
-      await ensureOutputPanelOpen(page);
-      await selectOutputChannel(page, 'Salesforce Apex Log');
-      await clearOutputChannel(page);
-
-      await createAndOpenApexScript(page, { name: runScript });
-
-      await executeCommandWithCommandPalette(page, apexLogNls['apexLog.command.executeDocument'] as string);
-
-      const docSuccessNotification = page
-        .locator(NOTIFICATION_LIST_ITEM)
-        .filter({ hasText: /executed successfully/i })
-        .first();
-      await expect(docSuccessNotification).toBeVisible({ timeout: 30_000 });
-      await docSuccessNotification.getByRole('button', { name: /Open Log/i }).click();
-      const docLogTab = page.locator('.tab').filter({ hasText: /\.log$/ });
-      await expect(docLogTab).toBeVisible({ timeout: 10_000 });
-      await saveScreenshot(page, 'step.exec-anon-document-done.png');
-    });
-  };
-  const execAnonWithEditorContentsContainer = async (): Promise<void> => {};
-  await (isContainer ? execAnonWithEditorContentsContainer : execAnonWithEditorContentsDesktop)();
+  await test.step('exec anon with editor contents', async () => {
+    await clearApexLogChannel(page);
+    await createAndOpenApexScript(page, { name: runScript });
+    await executeCommandWithCommandPalette(page, apexLogNls['apexLog.command.executeDocument'] as string);
+    await openExecAnonLog(page, 'step.exec-anon-document-done.png');
+  });
 
   await test.step('turn off trace flag', async () => {
     await executeCommandWithCommandPalette(

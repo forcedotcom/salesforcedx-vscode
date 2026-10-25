@@ -160,7 +160,7 @@ Ask user: "Test failed. Would you like me to analyze screenshots, traces, and sp
 - **Package name mappings**:
   - `playwright-vscode-ext` = `@salesforce/playwright-vscode-ext`
   - `org-browser` = `salesforcedx-vscode-org-browser`
-- **Config detection**: Some packages only have desktop tests (core, apex-replay-debugger) - skip web phase for these
+- **Config detection**: Some packages only have desktop/container tests, no web (core, apex-replay-debugger) - skip web phase for these
 - **Span files**: Auto-enabled locally (not in CI). No manual setup needed.
 - **Individual test retry**: Always use `WIREIT_CACHE=none` when running specific test files (not full suite)
 - **Never parallel**: Tests CANNOT run in parallel - causes conflicts and unreliable results
