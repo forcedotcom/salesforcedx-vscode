@@ -52,11 +52,9 @@ test('Generate Manifest: generates via context menu entry points', async ({ page
 
   let className: string;
 
-  // Unique per run so the container's shared, persistent workbench never overwrites an existing
-  // manifest. Desktop/headless accept the default "package.xml"/type "package2" since each run gets a
-  // fresh project.
-  const editorManifestBase = isContainer ? `genManifestEditor${Date.now()}` : 'package';
-  const folderManifestBase = isContainer ? `genManifestFolder${Date.now()}` : 'package2';
+  // Unique per run so the container's shared, persistent workbench never overwrites an existing manifest.
+  const editorManifestBase = `genManifestEditor${Date.now()}`;
+  const folderManifestBase = `genManifestFolder${Date.now()}`;
 
   await test.step('setup', async () => {
     if (isContainer) {
@@ -121,10 +119,8 @@ test('Generate Manifest: generates via context menu entry points', async ({ page
     };
     await (isContainer ? prepareManifestEditorContextMenuContainer : prepareManifestEditorContextMenuDesktop)();
 
-    if (isContainer) {
-      await page.keyboard.type(editorManifestBase);
-    }
-    // Accept the filename (default "package.xml" on desktop, the typed unique name in the container)
+    // Replace the pre-selected default "package.xml" (the .xml extension is added automatically).
+    await page.keyboard.type(editorManifestBase);
     await page.keyboard.press('Enter');
     if (!isContainer) {
       await saveScreenshot(page, 'step1.after-accept-filename.png');

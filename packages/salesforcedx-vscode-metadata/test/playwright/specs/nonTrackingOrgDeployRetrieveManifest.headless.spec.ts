@@ -89,10 +89,9 @@ if (isContainer) {
     let className: string;
     let bootOrgLabel = '';
     let switchedToExtra = false;
-    // Unique manifest name in the container avoids the overwrite modal and collisions in the shared
-    // persistent workbench; desktop/headless accept the default "package.xml" since each run gets a
-    // fresh org.
-    const manifestFile = isContainer ? `nonTrackingManifest${Date.now()}.xml` : 'package.xml';
+    // Unique manifest name avoids the overwrite modal and collisions in the container's shared,
+    // persistent workbench.
+    const manifestFile = `nonTrackingManifest${Date.now()}.xml`;
 
     if (isContainer) {
       const bootOrgUsername = await resolveOrgUsername(MINIMAL_ORG_ALIAS).catch(() => undefined);
@@ -163,9 +162,7 @@ if (isContainer) {
         await quickInput.waitFor({ state: 'attached', timeout: 10_000 });
         await quickInput.getByText(messages.manifest_input_save_prompt).waitFor({ state: 'attached', timeout: 10_000 });
 
-        if (isContainer) {
-          await activeQuickInputTextField(page).fill(manifestFile.replace(/\.xml$/i, ''));
-        }
+        await activeQuickInputTextField(page).fill(manifestFile.replace(/\.xml$/i, ''));
         await page.keyboard.press('Enter');
 
         const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/${manifestFile}"]`).first();

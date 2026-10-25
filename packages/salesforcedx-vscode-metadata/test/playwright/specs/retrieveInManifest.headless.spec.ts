@@ -68,9 +68,8 @@ test('Retrieve In Manifest: retrieves via all entry points', async ({ page }) =>
 
   let className: string;
   let statusBarPage: SourceTrackingStatusBarPage;
-  // Unique per run so the container's shared, persistent workbench never overwrites an existing
-  // manifest; desktop/headless accept the default "package.xml" since each run gets a fresh project.
-  const manifestFile = isContainer ? `pkgContainer${Date.now()}.xml` : 'package.xml';
+  // Unique per run so the container's shared, persistent workbench never overwrites an existing manifest.
+  const manifestFile = `retrieveManifest${Date.now()}.xml`;
 
   await test.step('setup', async () => {
     if (isContainer) {
@@ -158,7 +157,8 @@ test('Retrieve In Manifest: retrieves via all entry points', async ({ page }) =>
       await quickInput.waitFor({ state: 'attached', timeout: 10_000 });
       await quickInput.getByText(messages.manifest_input_save_prompt).waitFor({ state: 'attached', timeout: 10_000 });
 
-      // Accept default filename (package.xml) by pressing Enter
+      // Replace the pre-selected default "package.xml" (the .xml extension is added automatically).
+      await activeQuickInputTextField(page).fill(manifestFile.replace(/\.xml$/i, ''));
       await page.keyboard.press('Enter');
 
       // Wait for manifest file to be created and opened
@@ -204,7 +204,7 @@ test('Retrieve In Manifest: retrieves via all entry points', async ({ page }) =>
       await manifestEditor.waitFor({ state: 'visible', timeout: 10_000 });
       await manifestEditor.click();
     } else {
-      // Open the manifest file (Quick Open shows just "package.xml")
+      // Open the manifest file
       await openFileByName(page, manifestFile);
 
       // Ensure the manifest editor is focused and ready
@@ -239,7 +239,7 @@ test('Retrieve In Manifest: retrieves via all entry points', async ({ page }) =>
     // Right-click manifest in explorer → "SFDX: Retrieve Source in Manifest from Org"
     await executeExplorerContextMenuCommand(
       page,
-      isContainer ? new RegExp(manifestFile.replaceAll('.', '\\.'), 'i') : /package\.xml/i,
+      new RegExp(manifestFile.replaceAll('.', '\\.'), 'i'),
       packageNls.retrieve_in_manifest_text
     );
 
