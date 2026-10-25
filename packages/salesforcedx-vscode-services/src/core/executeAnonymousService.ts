@@ -28,16 +28,18 @@ export const executeAnonymousWithConnection = (connection: Connection, code: str
     }
 
     const { logBody, ...result } = yield* executeAnonymous(connection, { apexCode: code }).pipe(
-      Effect.mapError(
-        error =>
+      Effect.catchTags({
+        ApexOperationError: error =>
           new ExecuteAnonymousError({
-            message:
-              error._tag === 'ApexResponseDecodeError'
-                ? 'Invalid SOAP response: missing executeAnonymousResponse.result'
-                : `Execute anonymous failed: ${error.message}`,
+            message: `Execute anonymous failed: ${error.message}`,
+            cause: error
+          }),
+        ApexResponseDecodeError: error =>
+          new ExecuteAnonymousError({
+            message: 'Invalid SOAP response: missing executeAnonymousResponse.result',
             cause: error
           })
-      )
+      })
     );
     return { result: result satisfies ExecuteAnonymousResult, logBody, logId: undefined };
   });
