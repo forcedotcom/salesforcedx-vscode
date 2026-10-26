@@ -914,7 +914,7 @@ const main = async (): Promise<number> => {
   spawnSync('git', ['clean', '-fdX', 'force-app', 'scripts'], { cwd: FIXTURE_HOST_DIR, stdio: 'ignore' });
   rmSync(join(FIXTURE_HOST_DIR, 'manifest'), { recursive: true, force: true });
 
-  // A different flavor of the same problem: deployOnSave/projectDeployStart edit the SEEDED
+  // A different flavor of the same problem: projectDeployStart edits the SEEDED
   // PagedResult.cls in place (appending a comment) to create a local change to deploy, with no
   // revert — confirmed twice, hours apart, as the identical two-line diff. Because that edit lands in
   // the bind-mounted fixture, the next run's boot org (deployed from an EARLIER, now-stale edit of
