@@ -268,10 +268,9 @@ describe('executeAnonymous', () => {
         exceptionStackTrace: 'AnonymousBlock: line 1, column 1'
       });
 
-      const error = yield* executeAnonymous(
-        makeConnection(vi.fn().mockResolvedValue(runtimeFailure)),
-        { apexCode: 'code' }
-      ).pipe(Effect.flip);
+      const error = yield* executeAnonymous(makeConnection(vi.fn().mockResolvedValue(runtimeFailure)), {
+        apexCode: 'code'
+      }).pipe(Effect.flip);
       expect(error).toMatchObject({
         _tag: 'ApexRuntimeError',
         operation: 'executeAnonymous',
