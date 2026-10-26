@@ -21,7 +21,7 @@ import { ConnectionService } from './connectionService';
 
 /** Discriminated outcomes; diagnostics exist only on their matching failures. */
 export type ExecuteAnonymousResult =
-  | Pick<ExecuteAnonymousOutcome, 'compiled' | 'success' | 'line' | 'column'>
+  | Pick<ExecuteAnonymousOutcome, 'compiled' | 'success'>
   | (Pick<ApexCompileError, 'line' | 'column' | 'compileProblem'> & { compiled: false; success: false })
   | (Pick<ApexRuntimeError, 'line' | 'column' | 'exceptionMessage' | 'exceptionStackTrace'> & {
       compiled: true;

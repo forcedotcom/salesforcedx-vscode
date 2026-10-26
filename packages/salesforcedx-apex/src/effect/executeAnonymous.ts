@@ -53,8 +53,6 @@ const ExecutionResultSchema = Schema.Union(
 export const ExecuteAnonymousOutcomeSchema = Schema.Struct({
   compiled: Schema.Literal(true),
   success: Schema.Literal(true),
-  line: Schema.Literal(-1),
-  column: Schema.Literal(-1),
   logBody: Schema.optional(Schema.String)
 }).annotations({ identifier: 'ExecuteAnonymousOutcome' });
 export type ExecuteAnonymousOutcome = typeof ExecuteAnonymousOutcomeSchema.Type;
@@ -161,8 +159,6 @@ const refineExecutionResult = Effect.fn('Apex.refineExecutionResult')(function* 
   return {
     compiled: true as const,
     success: true as const,
-    line: result.line,
-    column: result.column,
     logBody: result.logBody
   };
 });
