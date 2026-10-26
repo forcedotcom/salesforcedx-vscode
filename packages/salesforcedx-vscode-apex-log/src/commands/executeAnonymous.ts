@@ -8,7 +8,7 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { type EditorService } from 'salesforcedx-vscode-services';
-import { ExecAnonCompileError } from '../errors/commandErrors';
+import { ExecAnonCompileError, ExecAnonRuntimeError } from '../errors/commandErrors';
 import { saveExecResult } from '../logs/logStorage';
 import { nls } from '../messages';
 import { getRuntime } from '../services/runtime';
@@ -43,7 +43,13 @@ const executeAnonymous = Effect.fn('ApexLog.ExecuteAnonymous.executeAnonymous')(
     context.selectionRange?.startLine,
     logBody
   );
-  return yield* saveExecResult(context.text, result, logBody, logId);
+  const logUri = yield* saveExecResult(context.text, result, logBody, logId);
+  if (!result.success) {
+    return yield* new ExecAnonRuntimeError({
+      message: result.exceptionMessage ?? nls.localize('exec_anon_runtime_unknown')
+    });
+  }
+  return logUri;
 });
 
 export const executeAnonymousCommand = Effect.fn('ApexLog.Command.executeAnonymous')(function* (
