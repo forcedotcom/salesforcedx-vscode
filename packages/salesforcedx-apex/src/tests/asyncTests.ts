@@ -5,10 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, Logger, LoggerLevel, PollingClient } from '@salesforce/core';
+import { AuthInfo, Connection, Logger, LoggerLevel } from '@salesforce/core';
 import { Duration } from '@salesforce/kit';
+import * as EffectDuration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import { isNotNull, isNull } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
+import * as Schedule from 'effect/Schedule';
+import * as Stream from 'effect/Stream';
 import { JsonStreamStringify } from 'json-stream-stringify';
 import { createWriteStream } from 'node:fs';
 import * as fs from 'node:fs/promises';
@@ -16,6 +21,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import * as util from 'node:util';
+import { ApexOperationError, causeMessage } from '../effect/errors';
 import { nls } from '../i18n';
 import { TestRunId } from '../schemas/salesforceId';
 import { type AsyncTestRun } from '../streaming';
@@ -59,6 +65,38 @@ const MIN_VERSION_TO_SUPPORT_TEST_SETUP_METHODS = 61.0;
 const POLLING_FREQUENCY = Duration.seconds(1);
 const POLLING_TIMEOUT = Duration.hours(4);
 
+type PollingResult<A> = {
+  completed: boolean;
+  payload: A;
+};
+
+const pollUntilComplete = Effect.fn('AsyncTests.pollUntilComplete')(function* <A>(
+  poll: () => Promise<PollingResult<A>>,
+  interval: Duration,
+  timeout: Duration,
+  operation: string
+) {
+  const pollResult = Effect.tryPromise({
+    try: poll,
+    catch: cause =>
+      new ApexOperationError({
+        operation,
+        message: causeMessage(cause),
+        cause: causeMessage(cause)
+      })
+  });
+
+  return yield* Stream.repeatEffectWithSchedule(
+    pollResult,
+    Schedule.spaced(EffectDuration.millis(interval.milliseconds))
+  ).pipe(
+    Stream.takeUntil(result => result.completed),
+    Stream.runLast,
+    Effect.timeoutOption(EffectDuration.millis(timeout.milliseconds)),
+    Effect.map(result => Option.map(Option.flatten(result), ({ payload }) => payload))
+  );
+});
+
 export class AsyncTests {
   public readonly connection: Connection;
   private readonly codecoverage: CodeCoverage;
@@ -77,7 +115,7 @@ export class AsyncTests {
    * @param exitOnTestRunId should not wait for test run to complete, return test run id immediately
    * @param progress progress reporter
    * @param token cancellation token
-   * @param timeout Duration to wait before returning a TestRunIdResult. If the polling client times out,
+   * @param timeout Duration to wait before returning a TestRunIdResult. If polling times out,
    * the method will return the test run ID so you can retrieve results later.
    */
   @elapsedTime()
@@ -104,104 +142,102 @@ export class AsyncTests {
         throw new Error(nls.localize('testRunCancelled'));
       }
 
-      const pollingClient = await PollingClient.create({
-        poll: async (): Promise<{
-          completed: boolean;
-          payload: ApexTestQueueItem;
-        }> => {
-          if (token?.isCancellationRequested) {
-            await this.abortTestRun(testRunId, progress);
-            return {
-              completed: true,
-              payload: {
-                done: true,
-                totalSize: 0,
-                records: []
-              }
+      const queueItem = await Effect.runPromise(
+        pollUntilComplete(
+          async (): Promise<PollingResult<ApexTestQueueItem>> => {
+            if (token?.isCancellationRequested) {
+              await this.abortTestRun(testRunId, progress);
+              return {
+                completed: true,
+                payload: {
+                  done: true,
+                  totalSize: 0,
+                  records: []
+                }
+              };
+            }
+
+            const hasTestSetupTimeField = await this.supportsTestSetupFeature();
+            const testRunSummaryQuery = `SELECT AsyncApexJobId, Status, ClassesCompleted, ClassesEnqueued, MethodsEnqueued, StartTime, EndTime, TestTime${hasTestSetupTimeField ? ', TestSetupTime' : ''}, UserId FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`;
+
+            // Query for test run summary first to check overall status
+            const testRunSummary = await this.connection.tooling.query<ApexTestRunResult>(testRunSummaryQuery);
+
+            if (!testRunSummary?.records || testRunSummary.records.length === 0) {
+              throw new Error(`No test run summary found for test run ID: ${testRunId}`);
+            }
+
+            const summary = testRunSummary.records[0];
+            const isCompleted = finishedStatuses.has(summary.Status);
+
+            progress?.report({
+              type: 'PollingClientProgress',
+              value: 'pollingProcessingTestRun',
+              message: nls.localize('pollingProcessingTestRun', testRunId),
+              testRunId,
+              classesCompleted: summary.ClassesCompleted,
+              classesEnqueued: summary.ClassesEnqueued
+            });
+
+            // Query queue items to get detailed status (use queryAll to fetch all pages)
+            const queryResult = await queryAll<ApexTestQueueItemRecord>(
+              this.connection,
+              `SELECT Id, Status, ApexClassId, TestRunResultId, ParentJobId FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`,
+              true
+            );
+
+            if (!queryResult.records || queryResult.records.length === 0) {
+              throw new Error(`No test queue items found for test run ID: ${testRunId}`);
+            }
+
+            const queueItem: ApexTestQueueItem = {
+              done: isCompleted,
+              totalSize: queryResult.records.length,
+              records: queryResult.records.map(record => ({
+                Id: record.Id,
+                Status: record.Status,
+                ApexClassId: record.ApexClassId,
+                TestRunResultId: record.TestRunResultId
+              }))
             };
-          }
 
-          const hasTestSetupTimeField = await this.supportsTestSetupFeature();
-          const testRunSummaryQuery = hasTestSetupTimeField
-            ? `SELECT AsyncApexJobId, Status, ClassesCompleted, ClassesEnqueued, MethodsEnqueued, StartTime, EndTime, TestTime, TestSetupTime, UserId FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`
-            : `SELECT AsyncApexJobId, Status, ClassesCompleted, ClassesEnqueued, MethodsEnqueued, StartTime, EndTime, TestTime, UserId FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`;
-
-          // Query for test run summary first to check overall status
-          const testRunSummary = await this.connection.tooling.query<ApexTestRunResult>(testRunSummaryQuery);
-
-          if (!testRunSummary?.records || testRunSummary.records.length === 0) {
-            throw new Error(`No test run summary found for test run ID: ${testRunId}`);
-          }
-
-          const summary = testRunSummary.records[0];
-          const isCompleted = finishedStatuses.has(summary.Status);
-
-          progress?.report({
-            type: 'PollingClientProgress',
-            value: 'pollingProcessingTestRun',
-            message: nls.localize('pollingProcessingTestRun', testRunId),
-            testRunId,
-            classesCompleted: summary.ClassesCompleted,
-            classesEnqueued: summary.ClassesEnqueued
-          });
-
-          // Query queue items to get detailed status (use queryAll to fetch all pages)
-          const queryResult = await queryAll<ApexTestQueueItemRecord>(
-            this.connection,
-            `SELECT Id, Status, ApexClassId, TestRunResultId, ParentJobId FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`,
-            true
-          );
-
-          if (!queryResult.records || queryResult.records.length === 0) {
-            throw new Error(`No test queue items found for test run ID: ${testRunId}`);
-          }
-
-          const queueItem: ApexTestQueueItem = {
-            done: isCompleted,
-            totalSize: queryResult.records.length,
-            records: queryResult.records.map(record => ({
-              Id: record.Id,
-              Status: record.Status,
-              ApexClassId: record.ApexClassId,
-              TestRunResultId: record.TestRunResultId
-            }))
-          };
-
-          return {
-            completed: isCompleted,
-            payload: queueItem
-          };
-        },
-        frequency: interval,
-        timeout: timeout ?? POLLING_TIMEOUT
-      });
-
-      const queueItem = (await pollingClient.subscribe()) as ApexTestQueueItem;
-      const runResult = await this.checkRunStatus(testRunId, progress);
-
-      const formattedResults = await this.formatAsyncResults(
-        { runId: testRunId, queueItem },
-        getCurrentTime(),
-        codeCoverage,
-        runResult.testRunSummary,
-        progress
+            return {
+              completed: isCompleted,
+              payload: queueItem
+            };
+          },
+          interval,
+          timeout ?? POLLING_TIMEOUT,
+          'AsyncTests.runTests'
+        )
       );
 
-      await this.writeResultsToFile(formattedResults, testRunId);
-      return formattedResults;
+      return await Option.match(queueItem, {
+        onNone: async () => {
+          this.logger.debug(
+            `Polling timed out for test run ${testRunId}. Returning test run ID for later result retrieval.`
+          );
+
+          const username = this.connection.getUsername() ?? '';
+          this.logger.info(nls.localize('runTestReportCommand', [testRunId, username]));
+
+          return { testRunId };
+        },
+        onSome: async queueItem => {
+          const runResult = await this.checkRunStatus(testRunId, progress);
+          const formattedResults = await this.formatAsyncResults(
+            { runId: testRunId, queueItem },
+            getCurrentTime(),
+            codeCoverage,
+            runResult.testRunSummary,
+            progress
+          );
+
+          await this.writeResultsToFile(formattedResults, testRunId);
+          return formattedResults;
+        }
+      });
     } catch (e) {
-      // If it's a PollingClientTimeout, return the test run ID so results can be retrieved later
-      if (e.name === 'PollingClientTimeout') {
-        this.logger.debug(
-          `Polling client timed out for test run ${testRunId}. Returning test run ID for later result retrieval.`
-        );
-
-        // Log the proper 'apex get test' command for the user to run later
-        const username = this.connection.getUsername() ?? '';
-        this.logger.info(nls.localize('runTestReportCommand', [testRunId, username]));
-
-        return { testRunId };
-      }
       throw formatTestErrors(e);
     } finally {
       HeapMonitor.getInstance().checkHeapSize('asyncTests.runTests');
@@ -234,21 +270,31 @@ export class AsyncTests {
   ): Promise<TestResult> {
     HeapMonitor.getInstance().checkHeapSize('asyncTests.reportAsyncResults');
     try {
-      const pollingClient = await PollingClient.create({
-        poll: async () => {
-          const runResult = await this.checkRunStatus(testRunId);
-          return {
-            completed: runResult.testsComplete || Boolean(token?.isCancellationRequested),
-            payload: runResult
-          };
-        },
-        frequency: POLLING_FREQUENCY,
-        timeout: POLLING_TIMEOUT
-      });
-      const runResult = (await pollingClient.subscribe()) as {
-        testsComplete: boolean;
-        testRunSummary: ApexTestRunResult;
-      };
+      const runResult = await Option.match(
+        await Effect.runPromise(
+          pollUntilComplete(
+            async () => {
+              const runResult = await this.checkRunStatus(testRunId);
+              return {
+                completed: runResult.testsComplete || Boolean(token?.isCancellationRequested),
+                payload: runResult
+              };
+            },
+            POLLING_FREQUENCY,
+            POLLING_TIMEOUT,
+            'AsyncTests.reportAsyncResults'
+          )
+        ),
+        {
+          onNone: () => {
+            throw new ApexOperationError({
+              operation: 'AsyncTests.reportAsyncResults',
+              message: 'Timed out while waiting for the asynchronous test run to complete'
+            });
+          },
+          onSome: runResult => runResult
+        }
+      );
 
       if (token?.isCancellationRequested) {
         throw new Error(nls.localize('testRunCancelled'));

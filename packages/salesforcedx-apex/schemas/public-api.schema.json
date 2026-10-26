@@ -591,6 +591,35 @@
       },
       "additionalProperties": false
     },
+    "AsyncTestResult": {
+      "type": "object",
+      "required": ["_tag", "testRunId", "result"],
+      "properties": {
+        "_tag": { "type": "string", "enum": ["Result"] },
+        "testRunId": {
+          "type": "string",
+          "description": "a string starting with \"707\"",
+          "pattern": "^707",
+          "title": "startsWith(\"707\")",
+          "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+        },
+        "result": {
+          "type": "object",
+          "required": ["status", "classesCompleted", "classesEnqueued"],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": ["Queued", "Processing", "Aborted", "Failed", "Completed", "Passed", "Skipped"]
+            },
+            "classesCompleted": { "type": "number" },
+            "classesEnqueued": { "type": "number" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "AsyncTestRunEvent": { "anyOf": [{ "$ref": "#/$defs/AsyncTestProgress" }, { "$ref": "#/$defs/AsyncTestResult" }] },
     "CodeCoverageResult": {
       "type": "object",
       "required": [
@@ -928,6 +957,8 @@
     { "$ref": "#/$defs/AsyncTestConfiguration" },
     { "$ref": "#/$defs/AsyncTestOptions" },
     { "$ref": "#/$defs/AsyncTestProgress" },
+    { "$ref": "#/$defs/AsyncTestResult" },
+    { "$ref": "#/$defs/AsyncTestRunEvent" },
     { "$ref": "#/$defs/CodeCoverageResult" },
     { "$ref": "#/$defs/CommonOptions" },
     { "$ref": "#/$defs/BuildSyncPayloadOptions" },

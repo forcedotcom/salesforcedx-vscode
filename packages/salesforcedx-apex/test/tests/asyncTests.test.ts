@@ -1420,8 +1420,8 @@ describe('Run Apex tests asynchronously', () => {
     });
   });
 
-  describe('Polling Client Timeout', () => {
-    it('should return test run ID when polling client times out', async () => {
+  describe('Polling timeout', () => {
+    it('should return test run ID when polling times out', async () => {
       const requestOptions: AsyncTestConfiguration = {
         classNames: 'TestSample',
         testLevel: 'RunSpecifiedTests'
@@ -1490,7 +1490,7 @@ describe('Run Apex tests asynchronously', () => {
       sinon.assert.calledWith(loggerStub, nls.localize('runTestReportCommand', [testRunId, username ?? '']));
     });
 
-    it('should handle PollingClientTimeout error gracefully', async () => {
+    it('should return test run ID after a polling timeout', async () => {
       const requestOptions: AsyncTestConfiguration = {
         classNames: 'TestSample',
         testLevel: 'RunSpecifiedTests'
@@ -1539,7 +1539,7 @@ describe('Run Apex tests asynchronously', () => {
 
       const testSrv = new TestService(mockConnection);
 
-      // This should not throw an error, even though the polling client times out
+      // A polling timeout returns the test run ID instead of throwing.
       const result = await testSrv.runTestAsynchronous(
         requestOptions,
         false,

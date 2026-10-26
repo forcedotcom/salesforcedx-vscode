@@ -43,6 +43,8 @@ describe('@salesforce/apex-node public API', () => {
       'ApexRuntimeError',
       'AsyncTestOptionsSchema',
       'AsyncTestProgressSchema',
+      'AsyncTestResultSchema',
+      'AsyncTestRunEventSchema',
       'BuildAsyncPayloadOptionsSchema',
       'BuildSyncPayloadOptionsSchema',
       'ExecuteAnonymousOptionsSchema',
