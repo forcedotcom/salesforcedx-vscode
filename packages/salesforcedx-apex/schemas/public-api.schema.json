@@ -73,7 +73,7 @@
     },
     "ApexDiagnostic": {
       "type": "object",
-      "required": ["exceptionMessage", "compileProblem", "exceptionStackTrace"],
+      "required": ["exceptionMessage", "exceptionStackTrace"],
       "properties": {
         "lineNumber": { "type": "number" },
         "columnNumber": { "type": "number" },

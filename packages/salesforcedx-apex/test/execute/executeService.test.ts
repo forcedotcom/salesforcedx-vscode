@@ -135,7 +135,6 @@ describe('ExecuteService adapter', () => {
         {
           lineNumber: 6,
           columnNumber: 1,
-          compileProblem: '',
           exceptionMessage: 'System.AssertException: Assertion Failed',
           exceptionStackTrace: 'AnonymousBlock: line 1, column 1'
         }
