@@ -12,11 +12,12 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Fiber from 'effect/Fiber';
+import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { runTestAsynchronous } from '../../src/effect';
+import { AsyncTestOptionsSchema, runTestAsynchronous } from '../../src/effect';
 
 const testRunId = '707000000000001AAA';
-const options = { testLevel: 'RunLocalTests' as const, category: ['Apex', 'Flow'] };
+const options = { testLevel: 'RunLocalTests' as const, category: ['Apex', 'Flow'] as const };
 const summary = (Status: string, ClassesCompleted = 0) => ({
   records: [{ Status, ClassesCompleted, ClassesEnqueued: 2 }]
 });
@@ -42,6 +43,21 @@ const drainRun = (connection: Connection, polling: { interval?: Duration.Duratio
   );
 
 describe('Effect asynchronous tests', () => {
+  it('validates documented categories and comma-separated suite IDs', () => {
+    const isValidOptions = Schema.is(AsyncTestOptionsSchema);
+    const validOptions = {
+      testLevel: 'RunSpecifiedTests',
+      suiteids: '05F000000000001AAA,05F000000000002AAA',
+      category: ['Apex', 'Flow'],
+      tests: [{ className: 'ExampleTest', category: 'Apex' }]
+    };
+
+    expect(isValidOptions(validOptions)).toBe(true);
+    expect(isValidOptions({ ...validOptions, category: ['Other'] })).toBe(false);
+    expect(isValidOptions({ ...validOptions, suiteids: 'not-a-suite-id' })).toBe(false);
+    expect(isValidOptions({ ...validOptions, tests: [{ className: 'ExampleTest', category: 'Other' }] })).toBe(false);
+  });
+
   it('returns an ID before lazily polling class progress and emitting the terminal summary', async () => {
     const { connection, tooling } = makeConnection();
     tooling.query.mockResolvedValueOnce(summary('Processing', 1)).mockResolvedValueOnce(summary('Completed', 2));
