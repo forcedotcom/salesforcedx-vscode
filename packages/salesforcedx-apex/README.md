@@ -20,7 +20,7 @@ The existing Promise/class entry point remains available for its current consume
 
 ### Effect API with an explicit connection
 
-`executeAnonymous(connection, options)` is exported from `@salesforce/apex-node/effect`. It returns an Effect with typed operation and response errors. The consumer selects the connection and supplies Apex source text; file reading and terminal input belong to the consumer. Other Apex operations have not migrated yet.
+`executeAnonymous(connection, options)` is exported from `@salesforce/apex-node/effect`. It returns an Effect with typed operation and response errors. The consumer selects the connection and supplies Apex source text; file reading and terminal input belong to the consumer.
 
 An extension can obtain the current connection from services for each operation:
 
@@ -76,6 +76,39 @@ const result = await Effect.runPromise(
 ```
 
 A fixed layer captures its connection when constructed. An extension that needs the current default org should resolve the connection for each operation, as in the services example.
+
+### Effect report formatting
+
+`formatHumanReport`, `formatTapReport`, `formatJUnitReport`, and `formatMarkdownTextReport` return report strings through Effects with `ApexReportError`. They preserve the existing report content and options. Markdown/text defaults remain Markdown, runtime sorting, 5000 ms performance threshold, 75% coverage threshold, and coverage disabled. The default timestamp uses the Effect clock. Human/TAP formatting and coverage source parsing default to LF; callers can select CRLF.
+
+```ts
+import { formatMarkdownTextReport } from '@salesforce/apex-node/effect';
+import * as Effect from 'effect/Effect';
+
+const report = await Effect.runPromise(
+  formatMarkdownTextReport(testResult, { format: 'text', codeCoverage: true })
+);
+```
+
+`buildCoverageMap(coverage, sources)` accepts sources keyed by Apex class/trigger name, each with a resolved `path` and optional `content`. It does not discover or read files. `generateCoverageReports(coverage, sources, options)` defaults to `text-summary`, the existing filenames and watermarks, and nested summarization. Supply `IstanbulReports` with the host's Istanbul factories; the host owns its writer, assets, and destination:
+
+```ts
+import { generateCoverageReports, IstanbulReports } from '@salesforce/apex-node/effect';
+import * as Effect from 'effect/Effect';
+import * as libReport from 'istanbul-lib-report';
+import * as reports from 'istanbul-reports';
+
+await Effect.runPromise(
+  generateCoverageReports(coverage, sources).pipe(
+    Effect.provideService(IstanbulReports, {
+      createContext: options => libReport.createContext({ ...options, dir: reportDir }),
+      createReport: reports.create
+    })
+  )
+);
+```
+
+The Effect entry point has no Node file/stream dependencies. Existing class and Node stream reporters remain available.
 
 ## Getting Started
 

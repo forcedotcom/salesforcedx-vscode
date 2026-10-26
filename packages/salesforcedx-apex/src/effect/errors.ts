@@ -15,16 +15,23 @@ const OperationErrorFields = {
 };
 
 /** A request made by an Apex operation failed. */
-export class ApexOperationError extends Schema.TaggedError<ApexOperationError>('ApexOperationError')(
+export class ApexOperationError extends Schema.TaggedError<ApexOperationError>()(
   'ApexOperationError',
   OperationErrorFields
 ) {}
 
 /** An Apex operation received a response that did not match its public schema. */
-export class ApexResponseDecodeError extends Schema.TaggedError<ApexResponseDecodeError>('ApexResponseDecodeError')(
+export class ApexResponseDecodeError extends Schema.TaggedError<ApexResponseDecodeError>()(
   'ApexResponseDecodeError',
   OperationErrorFields
 ) {}
+
+/** Formatting or generating an Apex report failed. */
+export class ApexReportError extends Schema.TaggedError<ApexReportError>()('ApexReportError', {
+  format: Schema.String,
+  message: Schema.String,
+  cause: Schema.optional(Schema.String)
+}) {}
 
 /** Produces the serializable cause carried by public operation errors. */
 export const causeMessage = (cause: unknown): string => (isError(cause) ? cause.message : String(cause));

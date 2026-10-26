@@ -1,0 +1,70 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import type { ApexTestResultData, TestResult } from '../tests/types';
+import { isEmpty } from '../narrowing';
+import { formatStartTime, msToSecond } from '../utils/dateUtil';
+
+// CLI currently has spaces in multiples of four for junit format.
+const tab = '    ';
+const timeProperties = new Set(['testExecutionTimeInMs', 'testTotalTimeInMs', 'commandTimeInMs']);
+// Properties not in CLI junit spec.
+const skippedProperties = new Set(['skipRate', 'totalLines', 'linesCovered']);
+
+const xmlEscape = (value: string): string =>
+  value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&apos;');
+
+export const formatJUnitProperties = (testResult: TestResult): string =>
+  [
+    `${tab}${tab}<properties>\n`,
+    ...Object.entries(testResult.summary).flatMap(([key, value]) => {
+      if (isEmpty(value) || skippedProperties.has(key)) return [];
+      const propertyName = timeProperties.has(key) ? key.replace('InMs', '') : key;
+      const propertyValue = timeProperties.has(key)
+        ? `${msToSecond(value)} s`
+        : key === 'outcome' && value === 'Passed'
+          ? 'Successful'
+          : key === 'testStartTime'
+            ? formatStartTime(value)
+            : value;
+      return [`${tab}${tab}${tab}<property name="${propertyName}" value="${propertyValue}"/>\n`];
+    }),
+    `${tab}${tab}</properties>\n`
+  ].join('');
+
+export const formatJUnitTestCases = (tests: ApexTestResultData[]): string =>
+  tests
+    .map(test =>
+      [
+        `${tab}${tab}<testcase name="${xmlEscape(test.methodName)}" classname="${test.apexClass.fullName}" time="${msToSecond(test.runTime)}">\n`,
+        ...(test.outcome === 'Fail' || test.outcome === 'CompileFail'
+          ? [
+              `${tab}${tab}${tab}<failure message="${xmlEscape(isEmpty(test.message ?? '') ? '' : (test.message ?? ''))}">`,
+              test.stackTrace ? `<![CDATA[${test.stackTrace}]]>` : '',
+              '</failure>\n'
+            ]
+          : []),
+        `${tab}${tab}</testcase>\n`
+      ].join('')
+    )
+    .join('');
+
+export const formatJUnit = (testResult: TestResult): string => {
+  const { summary } = testResult;
+  return [
+    '<?xml version="1.0" encoding="UTF-8"?>\n<testsuites>\n',
+    `${tab}<testsuite name="force.apex" timestamp="${summary.testStartTime}" hostname="${summary.hostname}" tests="${summary.testsRan}" failures="${summary.failing}"  errors="0"  time="${msToSecond(summary.testExecutionTimeInMs)}">\n`,
+    formatJUnitProperties(testResult),
+    formatJUnitTestCases(testResult.tests),
+    `${tab}</testsuite>\n</testsuites>\n`
+  ].join('');
+};

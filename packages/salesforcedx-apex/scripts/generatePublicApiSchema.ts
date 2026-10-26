@@ -48,6 +48,7 @@ import * as Prettier from 'prettier';
 import {
   ApexOperationError,
   ApexResponseDecodeError,
+  ApexReportError,
   ExecuteAnonymousOptionsSchema,
   ExecuteAnonymousResultSchema
 } from '../src/effect';
@@ -410,6 +411,7 @@ const PublicApiSchema = Schema.Union(
   ApexTestSetupDataSchema,
   ApexOperationError,
   ApexResponseDecodeError,
+  ApexReportError,
   AsyncTestArrayConfigurationSchema,
   AsyncTestConfigurationSchema,
   CodeCoverageResultSchema,

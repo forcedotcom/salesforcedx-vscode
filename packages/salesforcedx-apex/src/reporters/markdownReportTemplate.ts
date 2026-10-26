@@ -5,20 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export interface FailureTest {
+interface FailureTest {
   testName: string;
   duration?: string;
   message?: string;
   stackTrace?: string;
 }
 
-export interface WarningTest {
+interface WarningTest {
   testName: string;
   value: string;
   type: 'performance' | 'coverage';
 }
 
-export interface TestTableRow {
+interface TestTableRow {
   testName: string;
   className: string;
   outcome: string;
@@ -28,7 +28,7 @@ export interface TestTableRow {
   hasWarning: boolean;
 }
 
-export interface CoverageTableRow {
+interface CoverageTableRow {
   className: string;
   percentage: string;
   uncoveredLines: string;
