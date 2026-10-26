@@ -35,21 +35,26 @@ export type ExecuteAnonymousOptions = typeof ExecuteAnonymousOptionsSchema.Type;
 /** Execution details and the debug log returned by the Apex SOAP endpoint. */
 const resultFields = {
   compileProblem: Schema.NullOr(Schema.String),
-  line: Schema.Number,
-  column: Schema.Number,
   exceptionMessage: Schema.NullOr(Schema.String),
   exceptionStackTrace: Schema.NullOr(Schema.String)
 };
+const failureResultFields = { ...resultFields, line: Schema.Number, column: Schema.Number };
 const ExecutionResultSchema = Schema.Union(
-  Schema.Struct({ ...resultFields, compiled: Schema.Literal(false), success: Schema.Literal(false) }),
-  Schema.Struct({ ...resultFields, compiled: Schema.Literal(true), success: Schema.Literal(false) }),
-  Schema.Struct({ ...resultFields, compiled: Schema.Literal(true), success: Schema.Literal(true) })
+  Schema.Struct({ ...failureResultFields, compiled: Schema.Literal(false), success: Schema.Literal(false) }),
+  Schema.Struct({ ...failureResultFields, compiled: Schema.Literal(true), success: Schema.Literal(false) }),
+  Schema.Struct({
+    ...resultFields,
+    line: Schema.Literal(-1),
+    column: Schema.Literal(-1),
+    compiled: Schema.Literal(true),
+    success: Schema.Literal(true)
+  })
 );
 export const ExecuteAnonymousOutcomeSchema = Schema.Struct({
   compiled: Schema.Literal(true),
   success: Schema.Literal(true),
-  line: Schema.Number,
-  column: Schema.Number,
+  line: Schema.Literal(-1),
+  column: Schema.Literal(-1),
   logBody: Schema.optional(Schema.String)
 }).annotations({ identifier: 'ExecuteAnonymousOutcome' });
 export type ExecuteAnonymousOutcome = typeof ExecuteAnonymousOutcomeSchema.Type;

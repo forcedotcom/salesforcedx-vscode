@@ -125,6 +125,20 @@ describe('executeAnonymous', () => {
     ).resolves.toMatchObject({ _tag: 'ApexResponseDecodeError' });
   });
 
+  it('requires the success line and column sentinels returned by Salesforce', async () => {
+    const invalidSuccess = structuredClone(response);
+    Object.assign(invalidSuccess['soapenv:Envelope']['soapenv:Body'].executeAnonymousResponse.result, {
+      line: 1,
+      column: 1
+    });
+
+    await expect(
+      Effect.runPromise(
+        Effect.flip(executeAnonymous(makeConnection(vi.fn().mockResolvedValue(invalidSuccess)), { apexCode: 'code' }))
+      )
+    ).resolves.toMatchObject({ _tag: 'ApexResponseDecodeError' });
+  });
+
   it('returns compilation failures through the typed error channel', async () => {
     const compileFailure = structuredClone(responseWithLog);
     Object.assign(compileFailure['soapenv:Envelope']['soapenv:Body'].executeAnonymousResponse.result, {
