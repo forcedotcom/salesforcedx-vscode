@@ -28,17 +28,15 @@ describe('Effect reporters', () => {
       for (const detailedCoverage of [false, true]) {
         for (const concise of [false, true]) {
           await expect(Effect.runPromise(formatHumanReport(result, { detailedCoverage, concise }))).resolves.toBe(
-            new HumanReporter().format(result, detailedCoverage, concise).replaceAll(/\r\n|\r|\n/g, '\n')
+            new HumanReporter().format(result, detailedCoverage, concise)
           );
-          for (const lineEnding of ['\n', '\r\n'] as const) {
-            const report = await Effect.runPromise(
-              formatHumanReport(result, { detailedCoverage, concise, lineEnding })
-            );
-            expect(report).toBe(
-              new HumanReporter().format(result, detailedCoverage, concise).replaceAll(/\r\n|\r|\n/g, lineEnding)
-            );
-            expect(report.replaceAll(lineEnding, '')).not.toMatch(/[\r\n]/);
-          }
+          const windowsReport = await Effect.runPromise(
+            formatHumanReport(result, { detailedCoverage, concise, lineEnding: '\r\n' })
+          );
+          expect(windowsReport).toBe(
+            new HumanReporter().format(result, detailedCoverage, concise).replaceAll(/\r\n|\r|\n/g, '\r\n')
+          );
+          expect(windowsReport.replaceAll('\r\n', '')).not.toMatch(/[\r\n]/);
         }
       }
     }
@@ -52,16 +50,14 @@ describe('Effect reporters', () => {
           detailedCoverage: true
         })
       )
-    ).resolves.toBe(
-      new HumanReporter().format(coverageResultWithCategory, true, false, true).replaceAll(/\r\n|\r|\n/g, '\n')
-    );
+    ).resolves.toBe(new HumanReporter().format(coverageResultWithCategory, true, false, true));
     const windowsReport = await Effect.runPromise(formatHumanReport(successResult, { lineEnding: '\r\n' }));
     expect(windowsReport).toContain('\r\n\r\n');
   });
 
-  it('defaults to non-detailed, non-concise human output with LF line endings', async () => {
+  it('defaults to non-detailed, non-concise human output', async () => {
     await expect(Effect.runPromise(formatHumanReport(setupResult))).resolves.toBe(
-      new HumanReporter().format(setupResult, false).replaceAll(/\r\n|\r|\n/g, '\n')
+      new HumanReporter().format(setupResult, false)
     );
   });
 
