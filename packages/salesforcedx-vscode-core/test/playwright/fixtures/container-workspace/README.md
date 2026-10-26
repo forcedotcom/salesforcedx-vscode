@@ -17,7 +17,8 @@ so the container opens it once and all specs run against it). Keep it small and 
 when a spec needs it — a change lands with the test that relies on it. Current contents:
 
 - `force-app/main/default/classes/PagedResult.cls` (+ test) — a plain Apex class/test used by the
-  core, metadata (deploy), apex-testing (discover/run), and apex-oas (ineligible-class) specs.
+  core, metadata (deploy/retrieve/manifest), apex-testing (discover/run), and apex-oas
+  (ineligible-class) specs.
 - `force-app/main/default/classes/ExampleClass.cls` (+ `ExampleClassTest.cls`) and
   `scripts/apex/ExampleAnon.apex` — seeded verbatim from the apex package's desktop fixture so the
   apex LSP container specs (hover, go-to-definition, autocomplete, restart) hit the exact
@@ -28,7 +29,7 @@ when a spec needs it — a change lands with the test that relies on it. Current
 - `.vscode/settings.json` — `editor.gotoLocation.*` set to `goto` so LSP "Go to Definition" in the
   container navigates directly instead of opening a peek widget (the go-to-def specs depend on it).
 
-Specs that need a throwaway artifact (a `.page` for visualforce, an LWC for lwc, a `.soql` for
-soql, a setting for services) create it at runtime via the extension's own command rather than
-committing it here, so the shared fixture stays minimal and one spec's artifact can't leak into
-another's assertions.
+Specs that need a throwaway artifact (an Apex class for metadata, a `.page` for visualforce, an LWC
+for lwc, a `.soql` for soql, a setting for services) create it at runtime via the extension's own
+command rather than committing it here, so the shared fixture stays minimal and one spec's artifact
+can't leak into another's assertions.
