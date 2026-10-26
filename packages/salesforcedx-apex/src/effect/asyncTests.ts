@@ -143,7 +143,7 @@ const abortTestRun = Effect.fn('Apex.abortTestRun')(function* (
   connection: Connection,
   testRunId: typeof testRunIdSchema.Type
 ) {
-  // Fetch every page before updating: aborting a page can change the subsequent query results.
+  // Fetch all pages before marking queue items Aborted; those updates can change later query results.
   yield* Stream.paginateEffect(Option.none<string>(), nextRecordsUrl =>
     request(() =>
       Option.match(nextRecordsUrl, {
