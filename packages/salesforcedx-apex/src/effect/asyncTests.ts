@@ -78,19 +78,28 @@ const finishedStatuses = HashSet.make('Aborted', 'Failed', 'Completed', 'Passed'
 const DEFAULT_POLL_INTERVAL = Duration.seconds(2);
 
 /** Progress values contain domain data, not UI messages or VS Code progress shapes. */
-export const AsyncTestProgressSchema = Schema.TaggedStruct('Progress', {
+const asyncTestRunSummarySchema = Schema.Struct({
   status: runStatusSchema,
   classesCompleted: Schema.Number,
   classesEnqueued: Schema.Number
+});
+export type AsyncTestRunSummary = typeof asyncTestRunSummarySchema.Type;
+
+export const AsyncTestProgressSchema = Schema.TaggedStruct('Progress', {
+  ...asyncTestRunSummarySchema.fields
 }).annotations({ identifier: 'AsyncTestProgress' });
 export type AsyncTestProgress = typeof AsyncTestProgressSchema.Type;
 
-export type AsyncTestRunSummary = Omit<AsyncTestProgress, '_tag'>;
+export const AsyncTestResultSchema = Schema.TaggedStruct('Result', {
+  testRunId: testRunIdSchema,
+  result: asyncTestRunSummarySchema
+}).annotations({ identifier: 'AsyncTestResult' });
 
 /** Progress updates followed by the terminal run summary. */
-export type AsyncTestRunEvent =
-  | AsyncTestProgress
-  | { _tag: 'Result'; testRunId: typeof testRunIdSchema.Type; result: AsyncTestRunSummary };
+export const AsyncTestRunEventSchema = Schema.Union(AsyncTestProgressSchema, AsyncTestResultSchema).annotations({
+  identifier: 'AsyncTestRunEvent'
+});
+export type AsyncTestRunEvent = typeof AsyncTestRunEventSchema.Type;
 
 /** The accepted Salesforce run ID and its lazy progress/result stream. */
 export type AsyncTestRun = {
@@ -101,7 +110,7 @@ export type AsyncTestRun = {
 
 const request = <A>(action: () => PromiseLike<A>) =>
   Effect.tryPromise({
-    try: () => Promise.resolve(action()),
+    try: action,
     catch: cause => new ApexOperationError({ operation, message: causeMessage(cause), cause: causeMessage(cause) })
   });
 
@@ -136,12 +145,10 @@ const abortTestRun = Effect.fn('Apex.abortTestRun')(function* (
       )
     )
   ).pipe(
+    Stream.mapConcat(records => records),
+    Stream.filter(record => !HashSet.has(finishedStatuses, record.Status)),
     Stream.runCollect,
-    Effect.map(pages =>
-      Array.from(pages)
-        .flat()
-        .filter(record => !HashSet.has(finishedStatuses, record.Status))
-    ),
+    Effect.map(records => Array.from(records)),
     Effect.flatMap(records =>
       records.length === 0
         ? Effect.void
@@ -191,12 +198,12 @@ const pollTestRun = (
     ).pipe(
       Effect.flatMap(response => decode(summariesSchema, response)),
       Effect.map(
-        ({ records: [summary] }): AsyncTestProgress => ({
-          _tag: 'Progress',
-          status: summary.Status,
-          classesCompleted: summary.ClassesCompleted,
-          classesEnqueued: summary.ClassesEnqueued
-        })
+        ({ records: [summary] }): AsyncTestProgress =>
+          AsyncTestProgressSchema.make({
+            status: summary.Status,
+            classesCompleted: summary.ClassesCompleted,
+            classesEnqueued: summary.ClassesEnqueued
+          })
       )
     ),
     Schedule.spaced(polling.interval ?? DEFAULT_POLL_INTERVAL)
@@ -207,15 +214,16 @@ const pollTestRun = (
         HashSet.has(finishedStatuses, event.status)
           ? Stream.fromEffect(
               Ref.set(pending, false).pipe(
-                Effect.as({
-                  _tag: 'Result',
-                  testRunId,
-                  result: {
-                    status: event.status,
-                    classesCompleted: event.classesCompleted,
-                    classesEnqueued: event.classesEnqueued
-                  }
-                } as const)
+                Effect.as(
+                  AsyncTestResultSchema.make({
+                    testRunId,
+                    result: {
+                      status: event.status,
+                      classesCompleted: event.classesCompleted,
+                      classesEnqueued: event.classesEnqueued
+                    }
+                  })
+                )
               )
             )
           : Stream.succeed(event)

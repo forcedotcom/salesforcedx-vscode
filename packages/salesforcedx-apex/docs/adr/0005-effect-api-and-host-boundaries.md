@@ -27,5 +27,5 @@ This supersedes the direction proposed in closed [PR 7599](https://github.com/fo
 - Existing root consumers do not receive `Effect.Effect` return types or need to run Effects.
 - `./effect` is a deliberate public API expansion covered by the JSON-schema contract, package-export test, and packed-consumer validation.
 - Wire schemas decode untrusted transport and persisted data; domain schemas define normalized public values. Capability objects such as connections, streams, callbacks, and cancellation handles are not schema-modeled.
-- The Effect API includes execute anonymous, log operations, test payload construction, and suite discovery/build/membership; remaining test execution, coverage, streaming, reporter, and file behavior migrates in its respective work items.
+- The Effect API includes execute anonymous, log operations, test payload construction, suite discovery/build/membership, and asynchronous test execution/progress; remaining synchronous result formatting, coverage, reporter, and file behavior migrates in its respective work items.
 - `ExecuteService` adapts shared Effect execution to the established CLI response/error contracts. Migrated Promise methods delegate to Effect implementations; Effect implementations must not call the classes.
