@@ -12,6 +12,7 @@ export {
   ApexOperationError,
   ApexResponseDecodeError,
   ApexRuntimeError,
+  ApexReportError,
   causeMessage
 } from './errors';
 export {
@@ -55,3 +56,11 @@ export type {
   AsyncTestRunEvent,
   AsyncTestRunSummary
 } from './asyncTests';
+export { formatHumanReport, formatTapReport, formatJUnitReport, formatMarkdownTextReport } from './reporters';
+export type { HumanReporterOptions } from './reporters';
+export type { MarkdownTextReporterOptions, OutputFormat, TestSortOrder } from '../reporters/markdownTextReporter';
+export { buildCoverageMap, generateCoverageReports, IstanbulReports } from './coverageReports';
+export type { CoverageReportOptions } from './coverageReports';
+export type { CoverageSource } from '../reporters/coverageMap';
+export { DefaultReportOptions, DefaultWatermarks } from '../reporters/coverageOptions';
+export type { CoverageReporterOptions, CoverageReportFormats } from '../reporters/coverageOptions';

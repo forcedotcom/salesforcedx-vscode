@@ -52,6 +52,7 @@ import {
   ApexLogBodyFetchError,
   ListLogsOptionsSchema,
   ApexOperationError,
+  ApexReportError,
   ApexResponseDecodeError,
   ApexRuntimeError,
   AsyncTestOptionsSchema,
@@ -87,6 +88,15 @@ const ApexDiagnosticSchema = Schema.Struct({
   exceptionStackTrace: Schema.String,
   className: optional(Schema.String)
 }).annotations({ identifier: 'ApexDiagnostic' });
+
+const ApexTestDiagnosticSchema = Schema.Struct({
+  lineNumber: optional(Schema.Number),
+  columnNumber: optional(Schema.Number),
+  exceptionMessage: Schema.String,
+  compileProblem: optional(Schema.String),
+  exceptionStackTrace: Schema.String,
+  className: optional(Schema.String)
+}).annotations({ identifier: 'ApexTestDiagnostic' });
 
 const ApexExecuteOptionsSchema = Schema.Struct({
   apexCode: Schema.String
@@ -272,7 +282,7 @@ const ApexTestResultDataSchema = Schema.Struct({
   testTimestamp: Schema.String,
   fullName: Schema.String,
   perClassCoverage: PerClassCoverageSchema.pipe(Schema.Array, optional),
-  diagnostic: optional(ApexDiagnosticSchema),
+  diagnostic: optional(ApexTestDiagnosticSchema),
   category: optional(Schema.String)
 }).annotations({ identifier: 'ApexTestResultData' });
 
@@ -292,7 +302,7 @@ const ApexTestSetupDataSchema = Schema.Struct({
   testSetupTime: Schema.Number,
   testTimestamp: Schema.String,
   fullName: Schema.String,
-  diagnostic: optional(ApexDiagnosticSchema)
+  diagnostic: optional(ApexTestDiagnosticSchema)
 }).annotations({ identifier: 'ApexTestSetupData' });
 
 const CodeCoverageResultSchema = Schema.Struct({
@@ -418,6 +428,7 @@ const PublicApiSchema = Schema.Union(
   ApexTestSetupDataSchema,
   ApexCompileError,
   ApexOperationError,
+  ApexReportError,
   ApexResponseDecodeError,
   ApexRuntimeError,
   AsyncTestArrayConfigurationSchema,

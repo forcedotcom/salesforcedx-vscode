@@ -4,45 +4,24 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { type ApexTestResultData, type TestResult } from '../tests/types';
+import type { TestResult } from '../tests/types';
+import * as os from 'node:os';
 import { elapsedTime, HeapMonitor } from '../utils';
-import { buildTapDiagnostics } from './buildTapDiagnostics';
-
-interface TapResult {
-  description: string;
-  diagnostics: string[];
-  outcome: string;
-  testNumber: number;
-}
+import { buildTapResults, formatTapResults } from './formatTap';
 
 export class TapReporter {
   @elapsedTime()
   public format(testResult: TestResult, epilog?: string[]): string {
     HeapMonitor.getInstance().checkHeapSize('TapReporter.format');
     try {
-      const results: TapResult[] = this.buildTapResults(testResult);
-
-      const lines = [
-        `1..${results.length}`,
-        ...results.flatMap(testPoint => [
-          `${testPoint.outcome} ${testPoint.testNumber} ${testPoint.description}`,
-          ...testPoint.diagnostics.map(s => `# ${s}`)
-        ]),
-        ...(epilog ? epilog.map(c => `# ${c}`) : [])
-      ];
-      return `${lines.join('\n')}\n`;
+      return formatTapResults(this.buildTapResults(testResult), epilog);
     } finally {
       HeapMonitor.getInstance().checkHeapSize('TapReporter.format');
     }
   }
 
   @elapsedTime()
-  private buildTapResults(testResult: TestResult): TapResult[] {
-    return testResult.tests.map((test: ApexTestResultData, index: number) => ({
-      testNumber: index + 1,
-      description: test.fullName,
-      diagnostics: buildTapDiagnostics(test),
-      outcome: test.outcome === 'Pass' ? 'ok' : 'not ok'
-    }));
+  private buildTapResults(testResult: TestResult): ReturnType<typeof buildTapResults> {
+    return buildTapResults(testResult, os.EOL);
   }
 }

@@ -301,7 +301,7 @@
         "testTimestamp": { "type": "string" },
         "fullName": { "type": "string" },
         "perClassCoverage": { "type": "array", "items": { "$ref": "#/$defs/PerClassCoverage" } },
-        "diagnostic": { "$ref": "#/$defs/ApexDiagnostic" },
+        "diagnostic": { "$ref": "#/$defs/ApexTestDiagnostic" },
         "category": { "type": "string" }
       },
       "additionalProperties": false
@@ -335,6 +335,19 @@
           },
           "additionalProperties": false
         }
+      },
+      "additionalProperties": false
+    },
+    "ApexTestDiagnostic": {
+      "type": "object",
+      "required": ["exceptionMessage", "exceptionStackTrace"],
+      "properties": {
+        "lineNumber": { "type": "number" },
+        "columnNumber": { "type": "number" },
+        "exceptionMessage": { "type": "string" },
+        "compileProblem": { "type": "string" },
+        "exceptionStackTrace": { "type": "string" },
+        "className": { "type": "string" }
       },
       "additionalProperties": false
     },
@@ -378,7 +391,7 @@
         "testTimestamp": { "type": "string" },
         "fullName": { "type": "string" },
         "perClassCoverage": { "type": "array", "items": { "$ref": "#/$defs/PerClassCoverage" } },
-        "diagnostic": { "$ref": "#/$defs/ApexDiagnostic" },
+        "diagnostic": { "$ref": "#/$defs/ApexTestDiagnostic" },
         "category": { "type": "string" },
         "isTestSetup": { "type": "boolean" }
       },
@@ -423,7 +436,7 @@
         "testSetupTime": { "type": "number" },
         "testTimestamp": { "type": "string" },
         "fullName": { "type": "string" },
-        "diagnostic": { "$ref": "#/$defs/ApexDiagnostic" }
+        "diagnostic": { "$ref": "#/$defs/ApexTestDiagnostic" }
       },
       "additionalProperties": false
     },
@@ -456,6 +469,17 @@
         "message": { "type": "string" },
         "cause": { "type": "string" },
         "_tag": { "type": "string", "enum": ["ApexOperationError"] }
+      },
+      "additionalProperties": false
+    },
+    "ApexReportError": {
+      "type": "object",
+      "required": ["format", "message", "_tag"],
+      "properties": {
+        "format": { "type": "string" },
+        "message": { "type": "string" },
+        "cause": { "type": "string" },
+        "_tag": { "type": "string", "enum": ["ApexReportError"] }
       },
       "additionalProperties": false
     },
@@ -941,6 +965,7 @@
     { "$ref": "#/$defs/ApexTestSetupData" },
     { "$ref": "#/$defs/ApexCompileError" },
     { "$ref": "#/$defs/ApexOperationError" },
+    { "$ref": "#/$defs/ApexReportError" },
     { "$ref": "#/$defs/ApexResponseDecodeError" },
     { "$ref": "#/$defs/ApexRuntimeError" },
     { "$ref": "#/$defs/AsyncTestArrayConfiguration" },
