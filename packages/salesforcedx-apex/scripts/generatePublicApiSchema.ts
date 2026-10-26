@@ -92,7 +92,7 @@ const ApexDiagnosticSchema = Schema.Struct({
   lineNumber: optional(Schema.Number),
   columnNumber: optional(Schema.Number),
   exceptionMessage: Schema.String,
-  compileProblem: Schema.String,
+  compileProblem: optional(Schema.String),
   exceptionStackTrace: Schema.String,
   className: optional(Schema.String)
 }).annotations({ identifier: 'ApexDiagnostic' });

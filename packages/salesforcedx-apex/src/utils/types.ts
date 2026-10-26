@@ -24,7 +24,7 @@ export type ApexDiagnostic = {
   lineNumber?: number;
   columnNumber?: number;
   exceptionMessage: string;
-  compileProblem: string;
+  compileProblem?: string;
   exceptionStackTrace: string;
   className?: string;
 };

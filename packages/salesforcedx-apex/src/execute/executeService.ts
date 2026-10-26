@@ -46,7 +46,6 @@ export class ExecuteService {
               {
                 lineNumber: error.line,
                 columnNumber: error.column,
-                compileProblem: '',
                 exceptionMessage: error.exceptionMessage ?? '',
                 exceptionStackTrace: error.exceptionStackTrace ?? ''
               }
