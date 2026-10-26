@@ -62,7 +62,7 @@ describe('executeAnonymousWithConnection', () => {
     );
   });
 
-  it('preserves compilation errors and empty XML fields', async () => {
+  it('omits the log body when the SOAP response has no debug log', async () => {
     const request = vi.fn().mockResolvedValue(
       soapResponse({
         column: 12,
@@ -85,9 +85,30 @@ describe('executeAnonymousWithConnection', () => {
         column: 12,
         compileProblem: 'Unexpected token'
       },
-      logBody: '',
       logId: undefined
     });
+  });
+
+  it('preserves an empty log body returned by Salesforce', async () => {
+    const request = vi.fn().mockResolvedValue(
+      soapResponse(
+        {
+          column: -1,
+          compiled: 'true',
+          compileProblem: '',
+          exceptionMessage: '',
+          exceptionStackTrace: '',
+          line: -1,
+          success: 'true'
+        },
+        ''
+      )
+    );
+
+    const result = await Effect.runPromise(
+      executeAnonymousWithConnection(makeConnection(request), 'System.assert(true);')
+    );
+    expect(result).toHaveProperty('logBody', '');
   });
 
   it('preserves runtime diagnostics for the editor result contract', async () => {
