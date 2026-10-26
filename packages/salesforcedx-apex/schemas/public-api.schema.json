@@ -86,31 +86,10 @@
     },
     "ApexExecuteOptions": {
       "type": "object",
-      "required": [],
-      "properties": {
-        "json": { "type": "boolean" },
-        "loglevel": { "$ref": "#/$defs/LogLevel" },
-        "targetUsername": { "type": "string" },
-        "apexFilePath": { "type": "string" },
-        "apexCode": {
-          "anyOf": [
-            { "type": "string" },
-            {
-              "type": "object",
-              "required": ["type", "data"],
-              "properties": {
-                "type": { "type": "string", "enum": ["Buffer"] },
-                "data": { "type": "array", "items": { "type": "number" } }
-              },
-              "additionalProperties": false
-            }
-          ]
-        },
-        "userInput": { "type": "boolean" }
-      },
+      "required": ["apexCode"],
+      "properties": { "apexCode": { "type": "string" } },
       "additionalProperties": false
     },
-    "LogLevel": { "type": "string", "enum": ["trace", "debug", "info", "warn", "error", "fatal"] },
     "ApexLogGetOptions": {
       "type": "object",
       "required": [],
@@ -123,6 +102,7 @@
       },
       "additionalProperties": false
     },
+    "LogLevel": { "type": "string", "enum": ["trace", "debug", "info", "warn", "error", "fatal"] },
     "ApexLogListItem": {
       "type": "object",
       "required": ["Id", "LogLength", "StartTime", "Status"],
