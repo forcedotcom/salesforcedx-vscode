@@ -31,12 +31,12 @@ describe('executeAnonymousWithConnection', () => {
     const request = vi.fn().mockResolvedValue(
       soapResponse(
         {
-          column: 5,
+          column: -1,
           compiled: 'true',
           compileProblem: '',
           exceptionMessage: '',
           exceptionStackTrace: '',
-          line: 1,
+          line: -1,
           success: 'true'
         },
         'LOG BODY HERE'
@@ -49,8 +49,8 @@ describe('executeAnonymousWithConnection', () => {
       result: {
         compiled: true,
         success: true,
-        line: 1,
-        column: 5
+        line: -1,
+        column: -1
       },
       logBody: 'LOG BODY HERE',
       logId: undefined
