@@ -12,12 +12,12 @@ import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
-import { isDate, isString, isUndefined } from 'effect/Predicate';
+import { isString, isUndefined } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { ApexLogListItem, TraceFlagItem } from 'salesforcedx-vscode-services';
+import type { ApexLogListItem, ListLogsOptions, TraceFlagItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { APEX_LOG_SETTINGS_SECTION } from '../constants';
 import { nls } from '../messages';
@@ -25,22 +25,41 @@ import { KnownLogIdsRef, LogCollectorStateRef, CurrentTraceFlags } from '../serv
 import { isTraceFlagActive } from '../traceFlags/traceFlagActive';
 import { getExecAnonLogIds, saveLog } from './logStorage';
 
-const toDate = (d: Date | string): Date => (isDate(d) ? d : new Date(d));
+type LogCursor = NonNullable<ListLogsOptions['cursor']>;
+
+const LOG_POLL_LIMIT = 500;
+// Re-query recent StartTimes in case a log becomes visible after its transaction completes.
+
+const cursorPollOptions = (cursor: LogCursor, filters: ListLogsOptions, lookbackStart: string): ListLogsOptions => {
+  if (cursor.startTime <= lookbackStart) return { ...filters, cursor };
+  return {
+    ...filters,
+    startTimeAfter:
+      isUndefined(filters.startTimeAfter) || lookbackStart > filters.startTimeAfter
+        ? lookbackStart
+        : filters.startTimeAfter
+  };
+};
+
+const isCursorAfter = (candidate: { startTime: string; id: string }, current: LogCursor): boolean =>
+  candidate.startTime > current.startTime ||
+  (candidate.startTime === current.startTime && (isUndefined(current.id) || candidate.id > current.id));
 
 const isAfterTraceFlagStart =
   (startDateByUser: Map<string, Date>) =>
-  (log: { LogUserId?: string; StartTime?: Date | string }): boolean => {
+  (log: ApexLogListItem): boolean => {
     const uid = log.LogUserId;
-    const st = isUndefined(log.StartTime) ? undefined : isDate(log.StartTime) ? log.StartTime : new Date(log.StartTime);
-    if (!uid || !st) return true;
+    if (!uid) return true;
     const userStart = startDateByUser.get(uid);
-    return isUndefined(userStart) || st >= userStart;
+    return isUndefined(userStart) || new Date(log.StartTime) >= userStart;
   };
 
-const getPollIntervalSeconds = Effect.fn('ApexLog.getPollIntervalSeconds')(function* () {
+const getPollInterval = Effect.fn('ApexLog.getPollInterval')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const settings = yield* api.services.SettingsService;
-  return yield* settings.getValueOrElse(APEX_LOG_SETTINGS_SECTION, 'logPollIntervalSeconds', 30);
+  return yield* settings
+    .getValueOrElse(APEX_LOG_SETTINGS_SECTION, 'logPollIntervalSeconds', 30)
+    .pipe(Effect.map(Duration.seconds));
 });
 
 const getTraceLogFilters = (items: TraceFlagItem[]) => {
@@ -51,7 +70,7 @@ const getTraceLogFilters = (items: TraceFlagItem[]) => {
         activeItems.filter(r => r.tracedEntityId?.startsWith('005') && r.startDate),
         r => r.tracedEntityId!
       )
-    ].map(([userId, recs]) => [userId, recs.map(r => toDate(r.startDate!)).reduce((a, b) => (a < b ? a : b))])
+    ].map(([userId, recs]) => [userId, recs.map(r => r.startDate!).reduce((a, b) => (a < b ? a : b))])
   );
   const userIds = Arr.dedupe(
     activeItems
@@ -65,12 +84,20 @@ const getTraceLogFilters = (items: TraceFlagItem[]) => {
   return {
     activeItems,
     startDateByUser,
+    cursorKey: JSON.stringify([
+      userIds,
+      [...startDateByUser].map(([userId, startDate]) => [userId, startDate.toISOString()])
+    ]),
     filters: userIds.length > 0 && minStart ? { userIds, startTimeAfter: minStart.toISOString() } : {}
   };
 };
 
 const createCollectionStream = Effect.fn('LogAutoCollect.createCollectionStream')(function* (
-  collectWhileInactive: boolean
+  collectWhileInactive: boolean,
+  cursorRef: Ref.Ref<Option.Option<LogCursor>>,
+  cursorFilterKeyRef: Ref.Ref<Option.Option<string>>,
+  pollFailedRef: Ref.Ref<boolean>,
+  cursorOverlap: Duration.Duration
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const logService = yield* api.services.ApexLogService;
@@ -81,14 +108,47 @@ const createCollectionStream = Effect.fn('LogAutoCollect.createCollectionStream'
   const logStorageContext = yield* Effect.context<Effect.Effect.Context<ReturnType<typeof getExecAnonLogIds>>>();
 
   const pollOptions = Effect.fn('LogAutoCollect.pollOptions')(function* () {
-    const { activeItems, filters } = getTraceLogFilters(yield* SubscriptionRef.get(traceFlagsRef));
-    return (collectWhileInactive || vscode.window.state.active) && activeItems.length > 0
-      ? Option.some(filters)
-      : Option.none();
+    const { activeItems, cursorKey, filters } = getTraceLogFilters(yield* SubscriptionRef.get(traceFlagsRef));
+    const previousFilterKey = yield* Ref.get(cursorFilterKeyRef);
+    const filtersChanged = Option.match(previousFilterKey, {
+      onNone: () => true,
+      onSome: previous => previous !== cursorKey
+    });
+    if (filtersChanged) {
+      yield* Ref.set(cursorFilterKeyRef, Option.some(cursorKey));
+      yield* Ref.set(cursorRef, Option.none());
+    }
+    const cursor = filtersChanged ? Option.none<LogCursor>() : yield* Ref.get(cursorRef);
+    yield* Ref.set(pollFailedRef, false);
+    if (!(collectWhileInactive || vscode.window.state.active) || activeItems.length === 0) return Option.none();
+    const lookbackStart = new Date(Date.now() - Duration.toMillis(cursorOverlap)).toISOString();
+    return Option.some(
+      Option.match(cursor, {
+        onNone: () => ({ ...filters, orderBy: 'ASC' as const }),
+        onSome: value =>
+          value.startTime < lookbackStart
+            ? { ...filters, cursor: value, orderBy: 'ASC' as const }
+            : { ...cursorPollOptions(value, filters, lookbackStart), orderBy: 'ASC' as const }
+      })
+    );
   });
 
   const filterLogs = Effect.fn('LogAutoCollect.filterLogs')(function* (logs: readonly ApexLogListItem[]) {
     const { startDateByUser } = getTraceLogFilters(yield* SubscriptionRef.get(traceFlagsRef));
+    const lastLog = logs.at(-1);
+    if (!isUndefined(lastLog)) {
+      const nextCursor = { startTime: lastLog.StartTime, id: lastLog.Id };
+      const currentCursor = yield* Ref.get(cursorRef);
+      yield* Ref.set(
+        cursorRef,
+        Option.some(
+          Option.match(currentCursor, {
+            onNone: () => nextCursor,
+            onSome: current => (isCursorAfter(nextCursor, current) ? nextCursor : current)
+          })
+        )
+      );
+    }
     const knownIds = yield* Ref.get(knownIdsRef);
     const execAnonIds = yield* getExecAnonLogIds().pipe(
       Effect.provide(logStorageContext),
@@ -111,12 +171,21 @@ const createCollectionStream = Effect.fn('LogAutoCollect.createCollectionStream'
     return newLogs;
   });
 
-  const reportLogError = (logId: string, error: { message: string }) =>
-    Effect.log('LogAutoCollect: failed to save log', { logId, error: String(error) });
+  const reportLogError = Effect.fn('LogAutoCollect.reportLogError')(function* (
+    log: ApexLogListItem,
+    error: { message: string }
+  ) {
+    if (!(yield* Ref.get(pollFailedRef))) {
+      yield* Ref.set(pollFailedRef, true);
+      yield* Ref.set(cursorRef, Option.some({ startTime: log.StartTime }));
+    }
+    yield* Effect.log('LogAutoCollect: failed to save log', { logId: log.Id, error: String(error) });
+  });
   return logService
     .streamLogs({
       // Timer replacement must not interrupt this poll's query, body retrieval, or storage.
       schedule: Schedule.recurs(0),
+      limit: LOG_POLL_LIMIT,
       pollOptions,
       filterLogs
     })
@@ -126,7 +195,7 @@ const createCollectionStream = Effect.fn('LogAutoCollect.createCollectionStream'
           Match.tag('QueryError', ({ error }) =>
             channelService.appendToChannel(`[LogAutoCollect] listLogs failed: ${error.message}`)
           ),
-          Match.tag('BodyError', ({ log, error }) => reportLogError(log.Id, error)),
+          Match.tag('BodyError', ({ log, error }) => reportLogError(log, error)),
           Match.tag('Log', ({ log, body }) =>
             saveLog(log.Id, body).pipe(
               Effect.flatMap(() =>
@@ -136,10 +205,10 @@ const createCollectionStream = Effect.fn('LogAutoCollect.createCollectionStream'
               ),
               Effect.tap(() => Ref.update(knownIdsRef, set => HashSet.add(set, log.Id))),
               Effect.catchTags({
-                FsServiceError: error => reportLogError(log.Id, error),
-                NoWorkspaceOpenError: error => reportLogError(log.Id, error),
-                ServicesExtensionNotFoundError: error => reportLogError(log.Id, error),
-                InvalidServicesApiError: error => reportLogError(log.Id, error)
+                FsServiceError: error => reportLogError(log, error),
+                NoWorkspaceOpenError: error => reportLogError(log, error),
+                ServicesExtensionNotFoundError: error => reportLogError(log, error),
+                InvalidServicesApiError: error => reportLogError(log, error)
               })
             )
           ),
@@ -151,13 +220,14 @@ const createCollectionStream = Effect.fn('LogAutoCollect.createCollectionStream'
 });
 
 const createPollTriggers = Effect.fn('LogAutoCollect.createPollTriggers')(function* (collectWhileInactive: boolean) {
-  const interval = yield* getPollIntervalSeconds();
+  const interval = yield* getPollInterval();
+  const cursorOverlap = Duration.max(Duration.minutes(1), Duration.times(interval, 2));
   return Stream.repeatEffectWithSchedule(
     Effect.void,
-    interval > 0 ? Schedule.spaced(Duration.seconds(interval)) : Schedule.recurs(0)
+    Duration.isZero(interval) ? Schedule.recurs(0) : Schedule.spaced(interval)
   ).pipe(
     Stream.zipWithIndex,
-    Stream.map(([, index]) => index === 0 && collectWhileInactive)
+    Stream.map(([, index]) => ({ collectWhileInactive: index === 0 && collectWhileInactive, cursorOverlap }))
   );
 });
 
@@ -166,16 +236,26 @@ export const createLogAutoCollect = Effect.fn('ApexLog.createLogAutoCollect')(fu
   const traceFlagsRef = yield* CurrentTraceFlags;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const knownIdsRef = yield* KnownLogIdsRef;
+  const cursorRef = yield* Ref.make(Option.none<LogCursor>());
+  const cursorFilterKeyRef = yield* Ref.make(Option.none<string>());
+  const pollFailedRef = yield* Ref.make(false);
   const targetOrgRef = yield* api.services.TargetOrgRef();
   const settingsChangePubSub = yield* api.services.SettingsChangePubSub;
-  const pollIntervalSeconds = yield* getPollIntervalSeconds();
+  const pollInterval = yield* getPollInterval();
 
   yield* targetOrgRef.changes.pipe(
     Stream.map(orgInfo => orgInfo.orgId),
     Stream.changes,
     Stream.flatMap(
       orgId =>
-        Stream.fromEffect(Ref.set(knownIdsRef, HashSet.empty<string>())).pipe(
+        Stream.fromEffect(
+          Effect.all([
+            Ref.set(knownIdsRef, HashSet.empty<string>()),
+            Ref.set(cursorRef, Option.none()),
+            Ref.set(cursorFilterKeyRef, Option.none()),
+            Ref.set(pollFailedRef, false)
+          ])
+        ).pipe(
           Stream.flatMap(() =>
             isUndefined(orgId)
               ? Stream.empty
@@ -189,12 +269,22 @@ export const createLogAutoCollect = Effect.fn('ApexLog.createLogAutoCollect')(fu
                   )
                 ).pipe(
                   // Coalesce trace-flag refresh with org readiness, including workspace reload.
-                  Stream.debounce(calculateDebounce(pollIntervalSeconds)),
+                  Stream.debounce(calculateDebounce(pollInterval)),
                   // Replace only timer emissions. Serial collection downstream finishes before the next poll.
                   Stream.flatMap(collectWhileInactive => Stream.unwrap(createPollTriggers(collectWhileInactive)), {
                     switch: true
                   }),
-                  Stream.flatMap(collectWhileInactive => Stream.unwrap(createCollectionStream(collectWhileInactive)))
+                  Stream.flatMap(({ collectWhileInactive, cursorOverlap }) =>
+                    Stream.unwrap(
+                      createCollectionStream(
+                        collectWhileInactive,
+                        cursorRef,
+                        cursorFilterKeyRef,
+                        pollFailedRef,
+                        cursorOverlap
+                      )
+                    )
+                  )
                 )
           )
         ),
@@ -205,5 +295,7 @@ export const createLogAutoCollect = Effect.fn('ApexLog.createLogAutoCollect')(fu
   );
 });
 
-const calculateDebounce = (pollIntervalSeconds: number) =>
-  Duration.millis(pollIntervalSeconds === 0 ? 1000 : Math.min(1000, pollIntervalSeconds * 1000 * 0.8));
+const calculateDebounce = (pollInterval: Duration.Duration): Duration.Duration =>
+  Duration.isZero(pollInterval)
+    ? Duration.millis(1000)
+    : Duration.min(Duration.millis(1000), Duration.times(pollInterval, 0.8));

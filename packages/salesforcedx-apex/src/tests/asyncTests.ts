@@ -8,6 +8,7 @@
 import { AuthInfo, Connection, Logger, LoggerLevel, PollingClient } from '@salesforce/core';
 import { Duration } from '@salesforce/kit';
 import { isNotNull, isNull } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import { JsonStreamStringify } from 'json-stream-stringify';
 import { createWriteStream } from 'node:fs';
 import * as fs from 'node:fs/promises';
@@ -17,7 +18,7 @@ import { pipeline } from 'node:stream/promises';
 import * as util from 'node:util';
 import { type CancellationToken, type Progress } from '../common';
 import { nls } from '../i18n';
-import { isValidTestRunID } from '../narrowing';
+import { TestRunId } from '../schemas/salesforceId';
 import { type AsyncTestRun, StreamingClient } from '../streaming';
 import { elapsedTime, formatStartTime, getCurrentTime, HeapMonitor } from '../utils';
 import { CodeCoverage } from './codeCoverage';
@@ -279,7 +280,8 @@ export class AsyncTests {
     testsComplete: boolean;
     testRunSummary: ApexTestRunResult;
   }> {
-    if (!isValidTestRunID(testRunId)) {
+    const isValidTestRunId = Schema.is(TestRunId)(testRunId);
+    if (!isValidTestRunId) {
       throw new Error(nls.localize('invalidTestRunIdErr', testRunId));
     }
     const hasTestSetupTimeField = await this.supportsTestSetupFeature();
@@ -314,7 +316,7 @@ export class AsyncTests {
           return {
             testsComplete: true,
             testRunSummary: {
-              AsyncApexJobId: testRunId,
+              AsyncApexJobId: testRunId as string,
               Status: 'Aborted',
               StartTime: new Date().toISOString(),
               TestTime: 0,

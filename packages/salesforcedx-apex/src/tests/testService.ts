@@ -6,6 +6,7 @@
  */
 import { type Connection } from '@salesforce/core';
 import { type Duration } from '@salesforce/kit';
+import * as Schema from 'effect/Schema';
 import { JsonStreamStringify } from 'json-stream-stringify';
 import { createWriteStream } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -14,8 +15,8 @@ import { Readable, type Writable, type Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { type CancellationToken, type Progress } from '../common';
 import { nls } from '../i18n';
-import { isTestResult, isValidApexClassID } from '../narrowing';
 import { JUnitFormatTransformer, TapFormatTransformer, MarkdownTextFormatTransformer } from '../reporters';
+import { ApexClassId } from '../schemas/salesforceId';
 import { TestResultStringifyStream } from '../streaming';
 import { elapsedTime, HeapMonitor } from '../utils';
 import { type QueryResult } from '../utils/types';
@@ -23,6 +24,7 @@ import { AsyncTests } from './asyncTests';
 import { formatTestErrors } from './diagnosticUtil';
 import { SyncTests } from './syncTests';
 import {
+  TestResultSchema,
   type ApexTestProgressValue,
   type AsyncTestArrayConfiguration,
   type AsyncTestConfiguration,
@@ -58,7 +60,8 @@ export const writeResultFiles = async (
 
   await mkdir(dirPath, { recursive: true });
 
-  const testRunId = isTestResult(result) ? result.summary.testRunId : result.testRunId;
+  const hasTestResult = Schema.is(TestResultSchema)(result);
+  const testRunId = hasTestResult ? result.summary.testRunId : result.testRunId;
 
   try {
     await writeFile(join(dirPath, 'test-run-id.txt'), testRunId);
@@ -67,7 +70,7 @@ export const writeResultFiles = async (
     console.error(`Error writing file: ${err}`);
   }
 
-  if (resultFormats && isTestResult(result)) {
+  if (resultFormats && hasTestResult) {
     for (const format of resultFormats) {
       let filePath;
       let readable;
@@ -107,7 +110,7 @@ export const writeResultFiles = async (
     }
   }
 
-  if (codeCoverage && isTestResult(result)) {
+  if (codeCoverage && hasTestResult) {
     const filePath = join(dirPath, `test-result-${testRunId}-codecoverage.json`);
     const c = result.tests.map(record => record.perClassCoverage).filter(pcc => pcc?.length);
     filesWritten.push(await runPipeline(new JsonStreamStringify(c), filePath));
@@ -142,7 +145,7 @@ const resolveClassNamespace = (className: string): TestItem => {
     return { className: `${namespace}.${classNamePart}` };
   } else {
     // No namespace - single class name
-    if (isValidApexClassID(className)) {
+    if (Schema.is(ApexClassId)(className)) {
       return { classId: className };
     }
     return { className };
@@ -538,7 +541,7 @@ export class TestService {
           ? await this.processFlowTest(testParts, testItems, classes, namespaceInfos)
           : await this.processApexTest(testParts, testItems, classes, namespaceInfos);
       } else {
-        const prop = isValidApexClassID(test) ? 'classId' : 'className';
+        const prop = Schema.is(ApexClassId)(test) ? 'classId' : 'className';
         testItems.push({ [prop]: test });
       }
     }

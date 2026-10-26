@@ -90,7 +90,6 @@ const localStartTime = new Date(testStartTime).toISOString();
 export const testRunId = '707xx0000AGQ3jbQQD';
 
 export const syncResult: TestResult = {
-  // @ts-ignore
   summary: {
     outcome: 'Passed',
     testsRan: 1,
@@ -104,6 +103,9 @@ export const syncResult: TestResult = {
     testExecutionTimeInMs: 1765,
     testTotalTimeInMs: 1765,
     commandTimeInMs: 2000,
+    hostname: 'https://example.salesforce.com',
+    orgId: '00Dxx0000000001AAA',
+    username: 'test@example.com',
     testRunId: '',
     userId: '005xx000000abcDAAU'
   },

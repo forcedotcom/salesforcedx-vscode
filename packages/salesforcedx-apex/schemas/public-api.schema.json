@@ -177,7 +177,14 @@
         "userId": { "type": "string" },
         "userIds": { "type": "array", "items": { "type": "string" } },
         "operationContains": { "type": "string" },
-        "startTimeAfter": { "type": "string" }
+        "startTimeAfter": { "type": "string" },
+        "cursor": {
+          "type": "object",
+          "required": ["startTime"],
+          "properties": { "startTime": { "type": "string" }, "id": { "type": "string" } },
+          "additionalProperties": false
+        },
+        "orderBy": { "type": "string", "enum": ["ASC", "DESC"] }
       },
       "additionalProperties": false
     },
@@ -305,7 +312,7 @@
           "properties": {
             "id": { "type": "string" },
             "name": { "type": "string" },
-            "namespacePrefix": { "type": "string" },
+            "namespacePrefix": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
             "fullName": { "type": "string" }
           },
           "additionalProperties": false
@@ -382,7 +389,7 @@
           "properties": {
             "id": { "type": "string" },
             "name": { "type": "string" },
-            "namespacePrefix": { "type": "string" },
+            "namespacePrefix": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
             "fullName": { "type": "string" }
           },
           "additionalProperties": false
@@ -428,7 +435,7 @@
           "properties": {
             "id": { "type": "string" },
             "name": { "type": "string" },
-            "namespacePrefix": { "type": "string" },
+            "namespacePrefix": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
             "fullName": { "type": "string" }
           },
           "additionalProperties": false

@@ -17,6 +17,7 @@ export {
 export {
   ApexLogListItem,
   ListLogsOptionsSchema,
+  LogStreamEventSchema,
   ApexLogQueryError,
   ApexLogBodyFetchError,
   listLogs,
