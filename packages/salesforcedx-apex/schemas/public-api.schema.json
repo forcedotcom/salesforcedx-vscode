@@ -553,12 +553,16 @@
       "properties": {
         "testLevel": { "type": "string", "enum": ["RunLocalTests", "RunAllTestsInOrg", "RunSpecifiedTests"] },
         "classNames": { "type": "string" },
-        "classids": { "type": "string" },
+        "classids": {
+          "type": "string",
+          "description": "a string matching the pattern ^01p[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?(?:,01p[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?)*$",
+          "pattern": "^01p[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?(?:,01p[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?)*$"
+        },
         "suiteNames": { "type": "string" },
         "suiteids": {
           "type": "string",
-          "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})(?:,(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18}))*$",
-          "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})(?:,(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18}))*$"
+          "description": "a string matching the pattern ^05F[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?(?:,05F[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?)*$",
+          "pattern": "^05F[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?(?:,05F[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?)*$"
         },
         "tests": {
           "type": "array",
@@ -567,7 +571,11 @@
             "required": [],
             "properties": {
               "className": { "type": "string" },
-              "classId": { "type": "string" },
+              "classId": {
+                "type": "string",
+                "description": "a string matching the pattern ^01p[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$",
+                "pattern": "^01p[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$"
+              },
               "testMethods": { "type": "array", "items": { "type": "string" } },
               "namespace": { "type": "string" },
               "category": { "type": "string", "enum": ["Apex", "Flow"] }

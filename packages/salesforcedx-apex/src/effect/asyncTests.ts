@@ -27,22 +27,31 @@ const testRunIdSchema = salesforceIdSchema.pipe(
 );
 const testLevelSchema = Schema.Literal('RunLocalTests', 'RunAllTestsInOrg', 'RunSpecifiedTests');
 const testCategorySchema = Schema.Literal('Apex', 'Flow');
+const apexClassIdPattern = '01p[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?';
+const apexTestSuiteIdPattern = '05F[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?';
+const apexClassIdSchema = Schema.String.pipe(
+  Schema.pattern(new RegExp(`^${apexClassIdPattern}$`, 'u')),
+  Schema.brand('@salesforce/apex-node/ApexClassId')
+);
+const classIdsSchema = Schema.String.pipe(
+  Schema.pattern(new RegExp(`^${apexClassIdPattern}(?:,${apexClassIdPattern})*$`, 'u'))
+);
 const suiteIdsSchema = Schema.String.pipe(
-  Schema.pattern(/^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})(?:,(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18}))*$/u)
+  Schema.pattern(new RegExp(`^${apexTestSuiteIdPattern}(?:,${apexTestSuiteIdPattern})*$`, 'u'))
 );
 
 /** Payload accepted by the Tooling API asynchronous test endpoint. */
 export const AsyncTestOptionsSchema = Schema.Struct({
   testLevel: testLevelSchema,
   classNames: Schema.optional(Schema.String),
-  classids: Schema.optional(Schema.String),
+  classids: Schema.optional(classIdsSchema),
   suiteNames: Schema.optional(Schema.String),
   suiteids: Schema.optional(suiteIdsSchema),
   tests: Schema.optional(
     Schema.Array(
       Schema.Struct({
         className: Schema.optional(Schema.String),
-        classId: Schema.optional(Schema.String),
+        classId: Schema.optional(apexClassIdSchema),
         testMethods: Schema.optional(Schema.Array(Schema.String)),
         namespace: Schema.optional(Schema.String),
         category: Schema.optional(testCategorySchema)
