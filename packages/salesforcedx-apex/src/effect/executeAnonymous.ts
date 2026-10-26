@@ -8,6 +8,7 @@
 import type { HttpRequest } from '@jsforce/jsforce-node';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
+import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { action, soapBody, soapEnv, soapHeader } from '../execute/types';
 import { encodeBody } from '../execute/utils';
@@ -21,6 +22,8 @@ import {
 } from './errors';
 
 const operation = 'executeAnonymous';
+const optionalLogBody = (logBody: string | undefined) => (isUndefined(logBody) ? {} : { logBody });
+
 class InvalidSessionError extends Schema.TaggedError<InvalidSessionError>()('InvalidSessionError', {
   message: Schema.String
 }) {}
@@ -120,8 +123,7 @@ const parseResponse = (response: unknown) =>
   Schema.decodeUnknown(SoapResponseSchema)(response).pipe(
     Effect.flatMap(({ [soapEnv]: envelope }) =>
       Schema.decodeUnknown(ExecutionResultSchema)(envelope[soapBody].executeAnonymousResponse.result).pipe(
-        // Keep absent and empty logs distinct for the class/CLI response contract.
-        Effect.map(result => ({ ...result, logBody: envelope[soapHeader]?.DebuggingInfo?.debugLog }))
+        Effect.map(result => ({ ...result, ...optionalLogBody(envelope[soapHeader]?.DebuggingInfo?.debugLog) }))
       )
     ),
     Effect.catchTag('ParseError', cause =>
@@ -145,7 +147,7 @@ const refineExecutionResult = Effect.fn('Apex.refineExecutionResult')(function* 
       line: result.line,
       column: result.column,
       compileProblem: result.compileProblem,
-      logBody: result.logBody
+      ...optionalLogBody(result.logBody)
     });
   }
   if (!result.success) {
@@ -156,13 +158,13 @@ const refineExecutionResult = Effect.fn('Apex.refineExecutionResult')(function* 
       column: result.column,
       exceptionMessage: result.exceptionMessage,
       exceptionStackTrace: result.exceptionStackTrace,
-      logBody: result.logBody
+      ...optionalLogBody(result.logBody)
     });
   }
   return {
     compiled: true as const,
     success: true as const,
-    logBody: result.logBody
+    ...optionalLogBody(result.logBody)
   };
 });
 

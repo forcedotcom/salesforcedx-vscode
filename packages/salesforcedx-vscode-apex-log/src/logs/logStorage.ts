@@ -7,6 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
 import { isNotUndefined } from 'effect/Predicate';
 import type { ExecuteAnonymousResult } from 'salesforcedx-vscode-services';
 import { Utils } from 'vscode-uri';
@@ -63,11 +64,11 @@ export const saveAndOpenLog = Effect.fn('LogStorage.saveAndOpenLog')(function* (
 
 type ResultWithExecutedAt = ExecuteAnonymousResult & { executedAt: string; logId?: string };
 
-/** Save execute-anonymous to a folder: result.json, script.apex, debug.log (raw Apex log format). Returns logUri for caller to open on demand. */
+/** Save result and source; write debug.log only when present, returning its URI as an Option. */
 export const saveExecResult = Effect.fn('LogStorage.saveExecResult')(function* (
   code: string,
   result: ExecuteAnonymousResult,
-  logBody: string,
+  logBody: string | undefined,
   logId?: string
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -84,6 +85,7 @@ export const saveExecResult = Effect.fn('LogStorage.saveExecResult')(function* (
     executedAt: new Date().toISOString(),
     ...(isNotUndefined(logId) && { logId })
   };
+  const logUri = Utils.joinPath(runDirUri, 'debug.log');
   yield* Effect.all(
     [
       api.services.FsService.writeFile(
@@ -91,10 +93,10 @@ export const saveExecResult = Effect.fn('LogStorage.saveExecResult')(function* (
         JSON.stringify(resultWithExecutedAt, undefined, 2)
       ),
       api.services.FsService.writeFile(Utils.joinPath(runDirUri, 'script.apex'), code),
-      api.services.FsService.writeFile(Utils.joinPath(runDirUri, 'debug.log'), logBody)
+      ...(isNotUndefined(logBody) ? [api.services.FsService.writeFile(logUri, logBody)] : [])
     ],
     { concurrency: 'unbounded' }
   );
 
-  return Utils.joinPath(runDirUri, 'debug.log');
+  return isNotUndefined(logBody) ? Option.some(logUri) : Option.none();
 });

@@ -26,7 +26,7 @@ export class ExecuteService {
           return {
             compiled: false,
             success: false,
-            logs: error.logBody,
+            ...(error.logBody === undefined ? {} : { logs: error.logBody }),
             diagnostic: [
               {
                 lineNumber: error.line,
@@ -41,7 +41,7 @@ export class ExecuteService {
           return {
             compiled: true,
             success: false,
-            logs: error.logBody,
+            ...(error.logBody === undefined ? {} : { logs: error.logBody }),
             diagnostic: [
               {
                 lineNumber: error.line,
@@ -59,7 +59,7 @@ export class ExecuteService {
     return {
       compiled: result.compiled,
       success: result.success,
-      logs: result.logBody
+      ...(result.logBody === undefined ? {} : { logs: result.logBody })
     };
   }
 }
