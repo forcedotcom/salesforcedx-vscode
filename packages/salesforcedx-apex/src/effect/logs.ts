@@ -9,7 +9,7 @@ import type { Connection } from '@salesforce/core';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import type { ParseError } from 'effect/ParseResult';
+import { ParseError } from 'effect/ParseResult';
 import { isString, isUndefined } from 'effect/Predicate';
 import type * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
@@ -41,7 +41,11 @@ export const ListLogsOptionsSchema = Schema.mutable(
     /** Filter to logs whose Operation contains this string (e.g. 'executeAnonymous'). */
     operationContains: Schema.optional(Schema.String),
     /** Inclusive ISO StartTime lower bound. */
-    startTimeAfter: Schema.optional(Schema.String)
+    startTimeAfter: Schema.optional(Schema.String),
+    /** Cursor for incremental polling; omitting id includes all records at startTime. */
+    cursor: Schema.optional(Schema.Struct({ startTime: Schema.String, id: Schema.optional(Schema.String) })),
+    /** Result ordering; defaults to descending, except cursor queries default to ascending. */
+    orderBy: Schema.optional(Schema.Literal('ASC', 'DESC'))
   })
 ).annotations({ identifier: 'ListLogsOptions' });
 export type ListLogsOptions = typeof ListLogsOptionsSchema.Type;
@@ -69,9 +73,15 @@ const buildListLogsQuery = (limit: number, options?: ListLogsOptions): string =>
     ? `Operation LIKE '%${options.operationContains.replaceAll("'", "''")}%'`
     : undefined;
   const startTimeCondition = options?.startTimeAfter ? `StartTime >= ${options.startTimeAfter}` : undefined;
-  const conditions = [userIdCondition, operationCondition, startTimeCondition].filter(Boolean);
+  const cursorCondition = options?.cursor
+    ? isUndefined(options.cursor.id)
+      ? `StartTime >= ${options.cursor.startTime}`
+      : `(StartTime > ${options.cursor.startTime} OR (StartTime = ${options.cursor.startTime} AND Id > '${options.cursor.id.replaceAll("'", "''")}'))`
+    : undefined;
+  const conditions = [userIdCondition, operationCondition, startTimeCondition, cursorCondition].filter(Boolean);
   const where = conditions.length > 0 ? ` WHERE ${conditions.join(' AND ')}` : '';
-  return `SELECT Id, Application, DurationMilliseconds, LogLength, LogUserId, LogUser.Name, Operation, StartTime, Status FROM ApexLog${where} ORDER BY StartTime DESC LIMIT ${limit}`;
+  const orderBy = options?.orderBy ?? (options?.cursor ? 'ASC' : 'DESC');
+  return `SELECT Id, Application, DurationMilliseconds, LogLength, LogUserId, LogUser.Name, Operation, StartTime, Status FROM ApexLog${where} ORDER BY StartTime ${orderBy}, Id ${orderBy} LIMIT ${limit}`;
 };
 
 const LogPage = Schema.Struct({
@@ -120,10 +130,12 @@ export const getLogBody = Effect.fn('Apex.getLogBody')((connection: Connection, 
   }).pipe(Effect.map(body => (isString(body) ? body : String(body))))
 );
 
-export type LogStreamEvent =
-  | { readonly _tag: 'Log'; readonly log: ApexLogListItem; readonly body: string }
-  | { readonly _tag: 'QueryError'; readonly error: ApexLogQueryError | ParseError }
-  | { readonly _tag: 'BodyError'; readonly log: ApexLogListItem; readonly error: ApexLogBodyFetchError };
+export const LogStreamEventSchema = Schema.Union(
+  Schema.TaggedStruct('Log', { log: ApexLogListItem, body: Schema.String }),
+  Schema.TaggedStruct('QueryError', { error: Schema.Union(ApexLogQueryError, Schema.instanceOf(ParseError)) }),
+  Schema.TaggedStruct('BodyError', { log: ApexLogListItem, error: ApexLogBodyFetchError })
+);
+export type LogStreamEvent = typeof LogStreamEventSchema.Type;
 
 export type StreamLogsOptions<R = never> = {
   readonly schedule: Schedule.Schedule<unknown, unknown, R>;
@@ -134,6 +146,29 @@ export type StreamLogsOptions<R = never> = {
   readonly filterLogs?: (logs: readonly ApexLogListItem[]) => Effect.Effect<readonly ApexLogListItem[], never, R>;
 };
 
+const pollLogs = <R>(
+  connection: Connection,
+  limit: number | undefined,
+  filterLogs: StreamLogsOptions<R>['filterLogs'],
+  filters: ListLogsOptions
+): Stream.Stream<LogStreamEvent, never, R> =>
+  Stream.fromEffect(listLogs(connection, limit, filters)).pipe(
+    Stream.mapEffect(filterLogs ?? Effect.succeed),
+    Stream.flatMap(Stream.fromIterable),
+    Stream.mapEffect(log =>
+      getLogBody(connection, log.Id).pipe(
+        Effect.map((body): LogStreamEvent => ({ _tag: 'Log', log, body })),
+        Effect.catchTag('ApexLogBodyFetchError', error =>
+          Effect.succeed<LogStreamEvent>({ _tag: 'BodyError', log, error })
+        )
+      )
+    ),
+    Stream.catchTags({
+      ApexLogQueryError: error => Stream.succeed<LogStreamEvent>({ _tag: 'QueryError', error }),
+      ParseError: error => Stream.succeed<LogStreamEvent>({ _tag: 'QueryError', error })
+    })
+  );
+
 /** Polls immediately, then on schedule. Request failures are events so later polls and bodies still run. */
 export const streamLogs = <R>(
   connection: Connection,
@@ -143,22 +178,5 @@ export const streamLogs = <R>(
     Stream.zipWithIndex,
     Stream.mapEffect(([, index]) => options.pollOptions?.(index) ?? Effect.succeed(Option.some({}))),
     Stream.filterMap(value => value),
-    Stream.flatMap(filters =>
-      Stream.fromEffect(listLogs(connection, options.limit, filters)).pipe(
-        Stream.mapEffect(options.filterLogs ?? Effect.succeed),
-        Stream.flatMap(Stream.fromIterable),
-        Stream.mapEffect(log =>
-          getLogBody(connection, log.Id).pipe(
-            Effect.map((body): LogStreamEvent => ({ _tag: 'Log', log, body })),
-            Effect.catchTag('ApexLogBodyFetchError', error =>
-              Effect.succeed<LogStreamEvent>({ _tag: 'BodyError', log, error })
-            )
-          )
-        ),
-        Stream.catchTags({
-          ApexLogQueryError: error => Stream.succeed<LogStreamEvent>({ _tag: 'QueryError', error }),
-          ParseError: error => Stream.succeed<LogStreamEvent>({ _tag: 'QueryError', error })
-        })
-      )
-    )
+    Stream.flatMap(filters => pollLogs(connection, options.limit, options.filterLogs, filters))
   );

@@ -256,7 +256,7 @@ const ApexTestQueueItemStatusSchema = Schema.Literal(
 const ApexClassSchema = Schema.Struct({
   id: Schema.String,
   name: Schema.String,
-  namespacePrefix: Schema.String,
+  namespacePrefix: Schema.NullOr(Schema.String),
   fullName: Schema.String
 });
 

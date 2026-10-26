@@ -142,7 +142,7 @@ describe('log auto collection', () => {
             )
           );
           expect(query.mock.calls[0][0]).toContain(
-            "WHERE LogUserId IN ('005one','005two') AND StartTime >= 2026-10-23T10:00:00.000Z ORDER BY StartTime DESC LIMIT 25"
+            "WHERE LogUserId IN ('005one','005two') AND StartTime >= 2026-10-23T10:00:00.000Z ORDER BY StartTime ASC, Id ASC LIMIT 500"
           );
           yield* advance(3);
           expect(query.mock.calls.length).toBeGreaterThan(1);
@@ -175,6 +175,28 @@ describe('log auto collection', () => {
           yield* SubscriptionRef.update(traceFlagsRef, flags => [...flags]);
           yield* advance(1);
           expect(query).toHaveBeenCalledTimes(callsAfterDisable + 1);
+        })
+      ).pipe(Effect.provide(TestContext.TestContext))
+    );
+  });
+
+  it('continues from the latest StartTime and ID cursor', async () => {
+    await Effect.runPromise(
+      Effect.scoped(
+        Effect.gen(function* () {
+          const { query, advance } = yield* setup;
+          const startTime = new Date(Date.now() - 120_000).toISOString();
+          query.mockResolvedValue({ totalSize: 1, records: [log('07Lcursor', '005one', startTime)] });
+
+          yield* advance(1);
+          yield* Effect.promise(() => vi.waitFor(() => expect(query).toHaveBeenCalledTimes(1)));
+          yield* advance(1);
+          yield* Effect.promise(() => vi.waitFor(() => expect(query).toHaveBeenCalledTimes(2)));
+
+          expect(query.mock.calls[0][0]).toContain('ORDER BY StartTime ASC, Id ASC LIMIT 500');
+          expect(query.mock.calls[1][0]).toContain(
+            `StartTime > ${startTime} OR (StartTime = ${startTime} AND Id > '07Lcursor')`
+          );
         })
       ).pipe(Effect.provide(TestContext.TestContext))
     );

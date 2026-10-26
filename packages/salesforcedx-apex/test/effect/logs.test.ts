@@ -34,7 +34,7 @@ describe('Effect Apex logs', () => {
     const { connection, query } = makeConnection();
     await Effect.runPromise(listLogs(connection));
     expect(query.mock.calls[0][0]).toBe(
-      'SELECT Id, Application, DurationMilliseconds, LogLength, LogUserId, LogUser.Name, Operation, StartTime, Status FROM ApexLog ORDER BY StartTime DESC LIMIT 25'
+      'SELECT Id, Application, DurationMilliseconds, LogLength, LogUserId, LogUser.Name, Operation, StartTime, Status FROM ApexLog ORDER BY StartTime DESC, Id DESC LIMIT 25'
     );
     await Effect.runPromise(
       listLogs(connection, 7, {
@@ -45,10 +45,26 @@ describe('Effect Apex logs', () => {
       })
     );
     expect(query.mock.calls[1][0]).toContain(
-      "WHERE LogUserId IN ('005''one','005two') AND Operation LIKE '%execute''Anonymous%' AND StartTime >= 2026-10-23T00:00:00.000Z ORDER BY StartTime DESC LIMIT 7"
+      "WHERE LogUserId IN ('005''one','005two') AND Operation LIKE '%execute''Anonymous%' AND StartTime >= 2026-10-23T00:00:00.000Z ORDER BY StartTime DESC, Id DESC LIMIT 7"
     );
     await Effect.runPromise(listLogs(connection, 5, { userId: "005'one", userIds: [] }));
-    expect(query.mock.calls[2][0]).toContain("WHERE LogUserId = '005''one' ORDER BY StartTime DESC LIMIT 5");
+    expect(query.mock.calls[2][0]).toContain("WHERE LogUserId = '005''one' ORDER BY StartTime DESC, Id DESC LIMIT 5");
+    await Effect.runPromise(
+      listLogs(connection, 500, {
+        startTimeAfter: '2026-10-23T00:00:00.000Z',
+        cursor: { startTime: '2026-10-23T12:00:00.000Z', id: "07L'one" },
+        orderBy: 'ASC'
+      })
+    );
+    expect(query.mock.calls[3][0]).toContain(
+      "StartTime >= 2026-10-23T00:00:00.000Z AND (StartTime > 2026-10-23T12:00:00.000Z OR (StartTime = 2026-10-23T12:00:00.000Z AND Id > '07L''one')) ORDER BY StartTime ASC, Id ASC LIMIT 500"
+    );
+    await Effect.runPromise(
+      listLogs(connection, 500, { cursor: { startTime: '2026-10-23T12:00:00.000Z' }, orderBy: 'ASC' })
+    );
+    expect(query.mock.calls[4][0]).toContain(
+      'WHERE StartTime >= 2026-10-23T12:00:00.000Z ORDER BY StartTime ASC, Id ASC LIMIT 500'
+    );
   });
 
   it('follows pages and normalizes nullable optional fields', async () => {
