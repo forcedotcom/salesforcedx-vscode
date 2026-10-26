@@ -679,8 +679,8 @@
       "properties": {
         "compiled": { "type": "boolean", "enum": [true] },
         "success": { "type": "boolean", "enum": [true] },
-        "line": { "type": "number" },
-        "column": { "type": "number" },
+        "line": { "type": "number", "enum": [-1] },
+        "column": { "type": "number", "enum": [-1] },
         "logBody": { "type": "string" }
       },
       "additionalProperties": false
