@@ -26,6 +26,10 @@ const testRunIdSchema = salesforceIdSchema.pipe(
   Schema.brand('@salesforce/apex-node/ApexTestRunId')
 );
 const testLevelSchema = Schema.Literal('RunLocalTests', 'RunAllTestsInOrg', 'RunSpecifiedTests');
+const testCategorySchema = Schema.Literal('Apex', 'Flow');
+const suiteIdsSchema = Schema.String.pipe(
+  Schema.pattern(/^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})(?:,(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18}))*$/u)
+);
 
 /** Payload accepted by the Tooling API asynchronous test endpoint. */
 export const AsyncTestOptionsSchema = Schema.Struct({
@@ -33,7 +37,7 @@ export const AsyncTestOptionsSchema = Schema.Struct({
   classNames: Schema.optional(Schema.String),
   classids: Schema.optional(Schema.String),
   suiteNames: Schema.optional(Schema.String),
-  suiteids: Schema.optional(Schema.String),
+  suiteids: Schema.optional(suiteIdsSchema),
   tests: Schema.optional(
     Schema.Array(
       Schema.Struct({
@@ -41,13 +45,13 @@ export const AsyncTestOptionsSchema = Schema.Struct({
         classId: Schema.optional(Schema.String),
         testMethods: Schema.optional(Schema.Array(Schema.String)),
         namespace: Schema.optional(Schema.String),
-        category: Schema.optional(Schema.String)
+        category: Schema.optional(testCategorySchema)
       })
     )
   ),
   maxFailedTests: Schema.optional(Schema.Number),
   skipCodeCoverage: Schema.optional(Schema.Boolean),
-  category: Schema.optional(Schema.Array(Schema.String))
+  category: Schema.optional(Schema.Array(testCategorySchema))
 }).annotations({ identifier: 'AsyncTestOptions' });
 export type AsyncTestOptions = typeof AsyncTestOptionsSchema.Type;
 
