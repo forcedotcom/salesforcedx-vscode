@@ -8,7 +8,7 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { type EditorService } from 'salesforcedx-vscode-services';
-import { ExecAnonCompileError, ExecAnonRuntimeError } from '../errors/commandErrors';
+import { ExecAnonCompileError } from '../errors/commandErrors';
 import { saveExecResult } from '../logs/logStorage';
 import { nls } from '../messages';
 import { getRuntime } from '../services/runtime';
@@ -44,12 +44,7 @@ const executeAnonymous = Effect.fn('ApexLog.ExecuteAnonymous.executeAnonymous')(
     logBody
   );
   const logUri = yield* saveExecResult(context.text, result, logBody, logId);
-  if (!result.success) {
-    return yield* new ExecAnonRuntimeError({
-      message: result.exceptionMessage ?? nls.localize('exec_anon_runtime_unknown')
-    });
-  }
-  return logUri;
+  return { result, logUri };
 });
 
 export const executeAnonymousCommand = Effect.fn('ApexLog.Command.executeAnonymous')(function* (
@@ -69,16 +64,20 @@ export const executeAnonymousCommand = Effect.fn('ApexLog.Command.executeAnonymo
       nls.localize('exec_anon_progress_title'),
       yield* notificationMode.getProgressLocation(command)
     ),
-    Effect.tap(logUri =>
-      notificationMode.showSuccessNotification(command, nls.localize('exec_anon_success'), false, [
-        {
-          label: nls.localize('open_log'),
-          run: () =>
-            getRuntime()
-              .runPromise(api.services.FsService.showTextDocument(logUri))
-              .then(() => undefined)
-        }
-      ])
-    )
+    Effect.tap(({ result, logUri }) => {
+      const openLogAction = {
+        label: nls.localize('open_log'),
+        run: () =>
+          getRuntime()
+            .runPromise(api.services.FsService.showTextDocument(logUri))
+            .then(() => undefined)
+      };
+      return result.success
+        ? notificationMode.showSuccessNotification(command, nls.localize('exec_anon_success'), false, [openLogAction])
+        : notificationMode.showErrorWithActions(result.exceptionMessage ?? nls.localize('exec_anon_runtime_unknown'), [
+            openLogAction
+          ]);
+    }),
+    Effect.map(({ logUri }) => logUri)
   );
 });

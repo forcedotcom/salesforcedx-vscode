@@ -19,7 +19,3 @@ export class OpenLogsFolderError extends Schema.TaggedError<OpenLogsFolderError>
 export class ExecAnonCompileError extends Schema.TaggedError<ExecAnonCompileError>()('ExecAnonCompileError', {
   message: Schema.String
 }) {}
-
-export class ExecAnonRuntimeError extends Schema.TaggedError<ExecAnonRuntimeError>()('ExecAnonRuntimeError', {
-  message: Schema.String
-}) {}

@@ -161,6 +161,10 @@ test('Execute Anonymous Apex: document, selection, script creation, runtime and 
       .filter({ hasText: /Invalid integer: not-an-integer/i })
       .first();
     await expect(errorNotification).toBeVisible({ timeout: 15_000 });
+    await errorNotification.getByRole('button', { name: /Open Log/i }).click();
+    const logTab = page.locator(TAB).filter({ hasText: /debug\.log/ });
+    await expect(logTab).toBeVisible({ timeout: 10_000 });
+    await closeEditor(page);
     await expectProblemsCountAtLeast(page, 1, { timeout: 15_000 });
     await ensureOutputPanelOpen(page);
     await selectOutputChannel(page, 'Salesforce Apex Log');
