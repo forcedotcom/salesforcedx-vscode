@@ -131,42 +131,36 @@ const parseResponse = (response: unknown) =>
 
 type DecodedExecutionResult = Effect.Effect.Success<ReturnType<typeof parseResponse>>;
 
-const refineExecutionResult = (
-  result: DecodedExecutionResult
-): Effect.Effect<ExecuteAnonymousOutcome, ApexCompileError | ApexRuntimeError> => {
+const refineExecutionResult = Effect.fn('Apex.refineExecutionResult')(function* (result: DecodedExecutionResult) {
   if (!result.compiled) {
-    return Effect.fail(
-      new ApexCompileError({
-        operation,
-        message: result.compileProblem || 'Anonymous Apex failed to compile.',
-        line: result.line,
-        column: result.column,
-        compileProblem: result.compileProblem,
-        logBody: result.logBody
-      })
-    );
+    return yield* new ApexCompileError({
+      operation,
+      message: result.compileProblem || 'Anonymous Apex failed to compile.',
+      line: result.line,
+      column: result.column,
+      compileProblem: result.compileProblem,
+      logBody: result.logBody
+    });
   }
   if (!result.success) {
-    return Effect.fail(
-      new ApexRuntimeError({
-        operation,
-        message: result.exceptionMessage || 'Anonymous Apex threw an unhandled exception.',
-        line: result.line,
-        column: result.column,
-        exceptionMessage: result.exceptionMessage,
-        exceptionStackTrace: result.exceptionStackTrace,
-        logBody: result.logBody
-      })
-    );
+    return yield* new ApexRuntimeError({
+      operation,
+      message: result.exceptionMessage || 'Anonymous Apex threw an unhandled exception.',
+      line: result.line,
+      column: result.column,
+      exceptionMessage: result.exceptionMessage,
+      exceptionStackTrace: result.exceptionStackTrace,
+      logBody: result.logBody
+    });
   }
-  return Effect.succeed({
+  return {
     compiled: true as const,
     success: true as const,
     line: result.line,
     column: result.column,
     logBody: result.logBody
-  });
-};
+  };
+});
 
 const sendRequest = (connection: Connection, code: string) =>
   Effect.tryPromise({

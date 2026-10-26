@@ -34,8 +34,8 @@ const diagnosticMessage = (message: string | null): string =>
   message === null || message === '' ? UNEXPECTED_ERROR : message;
 
 /** Keeps the services result contract while delegating execution to apex-node. */
-export const executeAnonymousWithConnection = (connection: Connection, code: string) =>
-  Effect.gen(function* () {
+export const executeAnonymousWithConnection = Effect.fn('ExecuteAnonymousService.executeAnonymousWithConnection')(
+  function* (connection: Connection, code: string) {
     if (!connection.accessToken) {
       return yield* new ExecuteAnonymousError({ message: 'Execute anonymous failed: no access token' });
     }
@@ -88,7 +88,8 @@ export const executeAnonymousWithConnection = (connection: Connection, code: str
       })
     );
     return { result, logBody, logId: undefined };
-  });
+  }
+);
 
 export class ExecuteAnonymousService extends Effect.Service<ExecuteAnonymousService>()('ExecuteAnonymousService', {
   accessors: true,
