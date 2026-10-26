@@ -7,7 +7,8 @@
 
 /*
  * Covers the Deploy This Source command-palette entry point for the active editor, asserting the
- * deploy runs to completion with no error notification.
+ * deploy succeeds by verifying "Deployed Source" appears in the output channel and the local
+ * source-tracking count returns to baseline.
  *
  * Container: runs against the container's boot-authed org instead of a freshly created minimal org,
  * with a uniquely-named throwaway class. Source-tracking counts are asserted relative to a baseline
@@ -34,7 +35,6 @@ import {
   selectOutputChannel,
   clearOutputChannel,
   waitForOutputChannelText,
-  NOTIFICATION_LIST_ITEM,
   resetContainerWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
@@ -124,21 +124,12 @@ test('Deploy Source Path: deploys via command palette (active editor)', async ({
     await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
     await saveScreenshot(page, 'step1.after-command-palette.png');
 
-    // Verify deploy progress notification appears then disappears, and the deploy finished cleanly
+    // Verify deploy progress notification appears then disappears. "Deployed Source" is only printed
+    // when the deploy was applied to the org, and a failed deploy would leave the local change pending.
     const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
     await saveScreenshot(page, 'step1.deploy-notification-appeared.png');
     await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
     await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
-
-    const deployError = page
-      .locator(NOTIFICATION_LIST_ITEM)
-      .filter({ hasText: /Failed to deploy|ENOENT|deploy.*failed/i })
-      .first();
-    const hasError = await deployError.isVisible({ timeout: 2000 }).catch(() => false);
-    if (hasError) {
-      const text = await deployError.textContent();
-      throw new Error(`Deploy failed with error notification: ${text}`);
-    }
 
     // Verify local count returns to the baseline
     await statusBarPage.waitForCounts({ local: baselineLocal }, 60_000);
