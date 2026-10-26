@@ -21,9 +21,12 @@ import {
 } from './errors';
 
 const operation = 'executeAnonymous';
+class InvalidSessionError extends Schema.TaggedError<InvalidSessionError>()('InvalidSessionError', {
+  message: Schema.String
+}) {}
+
 class ApexRequestError extends Schema.TaggedError<ApexRequestError>()('ApexRequestError', {
-  message: Schema.String,
-  invalidSession: Schema.Boolean
+  message: Schema.String
 }) {}
 
 /** Apex source selected by the caller; file and terminal input belong to the host. */
@@ -166,7 +169,10 @@ const refineExecutionResult = Effect.fn('Apex.refineExecutionResult')(function* 
 const sendRequest = (connection: Connection, code: string) =>
   Effect.tryPromise({
     try: () => connection.request<unknown>(buildRequest(connection, code)),
-    catch: cause => new ApexRequestError({ message: causeMessage(cause), invalidSession: isInvalidSession(cause) })
+    catch: cause =>
+      isInvalidSession(cause)
+        ? new InvalidSessionError({ message: causeMessage(cause) })
+        : new ApexRequestError({ message: causeMessage(cause) })
   });
 
 /** Executes anonymous Apex and exposes compilation/runtime failures as typed errors. */
@@ -179,21 +185,20 @@ export const executeAnonymous = Effect.fn('Apex.executeAnonymous')(function* (
   );
   return yield* sendRequest(connection, apexCode).pipe(
     // Only the first SOAP session fault triggers refresh. Rebuild the request after the token changes.
-    Effect.catchTag('ApexRequestError', error =>
-      error.invalidSession
-        ? Effect.tryPromise({
-            try: () => connection.request({ url: connection.baseUrl(), method: 'GET' }),
-            catch: refreshCause => operationError(refreshCause)
-          }).pipe(Effect.flatMap(() => sendRequest(connection, apexCode)))
-        : Effect.fail(error)
+    Effect.catchTag('InvalidSessionError', () =>
+      Effect.tryPromise({
+        try: () => connection.request({ url: connection.baseUrl(), method: 'GET' }),
+        catch: refreshCause => operationError(refreshCause)
+      }).pipe(Effect.flatMap(() => sendRequest(connection, apexCode)))
+    ),
+    Effect.catchTag('InvalidSessionError', error =>
+      Effect.fail(operationError(error.message, messages.authForAnonymousApexFailed))
     ),
     Effect.catchTag('ApexRequestError', error =>
       Effect.fail(
         operationError(
           error.message,
-          error.invalidSession
-            ? messages.authForAnonymousApexFailed
-            : messages.unexpectedExecuteCommandError.replace('%s', () => error.message)
+          messages.unexpectedExecuteCommandError.replace('%s', () => error.message)
         )
       )
     ),
