@@ -51,13 +51,23 @@ import packageJson from '../../../package.json';
 import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT } from '../../constants';
 import { isContainer, sharedTest as test } from '../fixtures';
+import { cleanupContainerApexClasses, cleanupContainerFiles } from '../utils/containerCleanup';
 
 /** Escape regex special characters in a string for use in RegExp */
 const escapeRegex = (str: string): string => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
+// Container-only: throwaway classes (deleted from the project and org) and generated manifests this test
+// created, removed after it (pass or fail) so they don't pile up on the shared workbench — see utils/containerCleanup.
+const createdClasses: string[] = [];
+const createdFiles: string[] = [];
+
 if (isContainer) {
   test.beforeEach(async ({ page }) => {
     await resetContainerWorkbench(page);
+  });
+  test.afterEach(() => {
+    cleanupContainerApexClasses(createdClasses.splice(0));
+    cleanupContainerFiles(createdFiles.splice(0));
   });
 }
 
@@ -71,6 +81,7 @@ test('Deploy Manifest: deploys via all entry points', async ({ page }) => {
   let initialLocalCount: number;
   // Unique per run so the container's shared, persistent workbench never overwrites an existing manifest.
   const manifestBaseName = `deployManifest${Date.now()}`;
+  createdFiles.push(`manifest/${manifestBaseName}.xml`);
 
   const assertNoPostDeployError = async (screenshot: string): Promise<void> => {
     const escapedCompletedWithErrors = escapeRegex(messages.deploy_completed_with_errors_message);
@@ -149,6 +160,7 @@ test('Deploy Manifest: deploys via all entry points', async ({ page }) => {
 
     // Create apex class (so manifest has something to deploy)
     className = `DeployManifestTest${Date.now()}`;
+    createdClasses.push(className);
     await createApexClass(page, className);
 
     // Verify local count incremented by 1

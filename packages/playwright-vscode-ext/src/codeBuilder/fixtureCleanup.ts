@@ -45,3 +45,39 @@ export const removePathsInContainer = (
   const user = options.user ?? CONTAINER_USER;
   runner('docker', ['exec', '-u', user, containerName, 'rm', '-rf', '--', ...paths]);
 };
+
+export type DeleteSourceInContainerOptions = RemovePathsInContainerOptions;
+
+/*
+ * `docker exec -u <user> -w <projectDir> <container> bash -lc 'sf project delete source …' …` — deletes
+ * metadata a spec created from BOTH the project and the container's default org, and updates source
+ * tracking, so a later spec on the shared workbench sees neither the files nor a pending local delete.
+ * A login shell (-l) so the image's PATH resolves `sf`; the metadata names are passed as positional
+ * args ("$@"), never interpolated into the script. A no-op when `metadata` is empty. Throws when the
+ * delete fails (e.g. the component never reached the org), so the caller decides on a fallback.
+ */
+export const deleteSourceInContainer = (
+  containerName: string,
+  projectDir: string,
+  metadata: readonly string[],
+  options: DeleteSourceInContainerOptions = {}
+): void => {
+  if (metadata.length === 0) {
+    return;
+  }
+  const runner = options.runner ?? defaultRunner;
+  const user = options.user ?? CONTAINER_USER;
+  runner('docker', [
+    'exec',
+    '-u',
+    user,
+    '-w',
+    projectDir,
+    containerName,
+    'bash',
+    '-lc',
+    'sf project delete source --no-prompt --track-source "$@"',
+    'sf-delete-source',
+    ...metadata.flatMap(name => ['--metadata', name])
+  ]);
+};

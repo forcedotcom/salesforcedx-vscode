@@ -40,10 +40,21 @@ import { DEPLOY_TIMEOUT } from '../../constants';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import { isContainer, sharedTest as test } from '../fixtures';
+import { cleanupContainerApexClasses } from '../utils/containerCleanup';
+
+// Container-only: throwaway classes this test created, deleted from the project and org after it (pass
+// or fail) so they don't pile up on the shared workbench — see utils/containerCleanup.
+const createdClasses: string[] = [];
 
 if (isContainer) {
   test.beforeEach(async ({ page }) => {
     await resetContainerWorkbench(page);
+  });
+  // The container's workbench is shared by every later spec; leaving deploy-on-save on would make their
+  // edits auto-deploy on save and break their local-change assertions. Desktop gets a fresh window.
+  test.afterEach(async ({ page }) => {
+    await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
+    cleanupContainerApexClasses(createdClasses.splice(0));
   });
 }
 
@@ -92,6 +103,7 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
 
   await test.step('edit class and save to trigger deploy', async () => {
     const className = `DeployOnSaveTest${Date.now()}`;
+    createdClasses.push(className);
     await createApexClass(page, className);
 
     // Clear the metadata output channel so the "Deployed Source" assertion reflects this save, not a

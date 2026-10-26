@@ -325,6 +325,29 @@ mount, so the `createProject*` specs can target its checked-in `scratch/` subfol
 `discoverPackagesWithScript()` generalized for any script name; extra bind mounts in the container
 config; `RunSpec.bootEnv` optional (default org-boot argv byte-identical when present).
 
+## Shared-workbench cleanup (container-only `test.afterEach`)
+
+Because the shared container runs serially with one persistent workbench, throwaway metadata/files a
+spec creates pile up for every later spec: the Explorer grows until VS Code's sticky-scroll header
+covers the `classes` folder row that context-menu specs right-click, and leftover local changes leak into
+later specs' counts and folder deploys. Specs that create them register a container-only
+`test.afterEach` that removes them (pass or fail); desktop needs none, since each test gets a fresh project.
+
+Even with that cleanup, the container's local-change count never starts at 0: the fixture's seeded
+components (4 Apex classes + `aura1`) are never deployed to the boot org, so a fresh org shows 5. Assert
+source-tracking counts relative to a baseline taken at setup.
+
+- **`deleteSourceInContainer(containerName, projectDir, metadata[])`** — metadata the spec deployed.
+  Runs `sf project delete source --track-source` in the container, deleting from the project and the
+  default org and updating tracking. Throws if the delete fails (e.g. the component never reached the org).
+- **`removePathsInContainer(containerName, paths[])`** — files only (never-deployed classes, generated
+  manifests). Runs as the container's `codebuilder` user, which owns workbench-created files.
+
+Both ship in `@salesforce/playwright-vscode-ext`. The metadata package wraps them in
+`test/playwright/utils/containerCleanup.ts`: `cleanupContainerApexClasses(classNames)` tries the org
+delete, warns and continues if it fails, then always removes the class files;
+`cleanupContainerFiles(relativePaths)` removes project-relative paths.
+
 ## Adding a container suite to a package
 
 **Preferred — merge into the existing `.headless`/`.desktop` spec:**
@@ -336,7 +359,8 @@ config; `RunSpec.bootEnv` optional (default org-boot argv byte-identical when pr
 2. In the target spec, branch each step on `isContainer` for the container-specific setup/assertions
    (boot org instead of a freshly created one, output-channel waits instead of toasts, etc.), keeping
    the shared assertions unbranched. Use `test.fixme(isContainer, reason)` for a documented,
-   container-only, product-limitation skip.
+   container-only, product-limitation skip. Register a `test.afterEach` that cleans up scaffolded
+   metadata/files for the shared workbench (see "Shared-workbench cleanup" above).
 3. `test/playwright/playwright.config.container.ts` → `createContainerConfig({ testDir: './specs',
    testMatch: [...] })`, the `testMatch` listing the merged `*.headless.spec.ts`/`*.desktop.spec.ts`
    filenames (see e.g. `salesforcedx-vscode-metadata`'s config) instead of `createContainerConfig({

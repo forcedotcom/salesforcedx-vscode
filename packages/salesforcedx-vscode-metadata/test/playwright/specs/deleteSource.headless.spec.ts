@@ -42,12 +42,21 @@ import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/consta
 import { messages } from '../../../src/messages/i18n';
 import { DEPLOY_TIMEOUT } from '../../constants';
 import { isContainer, sharedTest as test } from '../fixtures';
+import { cleanupContainerApexClasses } from '../utils/containerCleanup';
 
 test.setTimeout(DEPLOY_TIMEOUT);
+
+// Container-only: if the test fails before deleting its throwaway class itself, the class is deleted
+// from the project and org after it so it doesn't pile up on the shared workbench — see
+// utils/containerCleanup.
+const createdClasses: string[] = [];
 
 if (isContainer) {
   test.beforeEach(async ({ page }) => {
     await resetContainerWorkbench(page);
+  });
+  test.afterEach(() => {
+    cleanupContainerApexClasses(createdClasses.splice(0));
   });
 }
 
@@ -57,6 +66,10 @@ test('Delete Source: deletes file from project and org via command palette', asy
 
   let className: string;
   const statusBarPage = new SourceTrackingStatusBarPage(page);
+  // Local-change count before this spec's class exists: 0 on desktop's fresh project, non-zero on the
+  // container, whose fixture components aren't deployed to its boot org (5 on a fresh org) and where
+  // earlier specs on the shared workbench can leave more.
+  let baselineLocal: number;
 
   await test.step('setup', async () => {
     // The container's fixture already awaited the workbench, and its boot org is already authed.
@@ -80,6 +93,7 @@ test('Delete Source: deletes file from project and org via command palette', asy
       await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
       await saveScreenshot(page, 'setup.after-disable-deploy-on-save.png');
     }
+    baselineLocal = (await statusBarPage.getCounts()).local;
     await saveScreenshot(page, 'setup.complete.png');
 
     // Wait for core commands to be available
@@ -88,6 +102,7 @@ test('Delete Source: deletes file from project and org via command palette', asy
 
   await test.step('create and deploy apex class', async () => {
     className = `DeleteSourceTest${Date.now()}`;
+    createdClasses.push(className);
     await createApexClass(page, className);
     await saveScreenshot(page, 'step1.after-create-class.png');
 
@@ -100,7 +115,7 @@ test('Delete Source: deletes file from project and org via command palette', asy
     await verifyCommandExists(page, messages.deploy_this_source_text, 60_000);
 
     // Verify local count increments
-    await statusBarPage.waitForCounts({ local: 1 }, 60_000);
+    await statusBarPage.waitForCounts({ local: baselineLocal + 1 }, 60_000);
     await saveScreenshot(page, 'step1.after-local-count-1.png');
 
     // Prepare output channel
@@ -118,8 +133,8 @@ test('Delete Source: deletes file from project and org via command palette', asy
     await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
     await saveScreenshot(page, 'step1.deploy-complete.png');
 
-    // Verify local count returns to 0
-    await statusBarPage.waitForCounts({ local: 0 }, 60_000);
+    // Verify local count returns to the baseline
+    await statusBarPage.waitForCounts({ local: baselineLocal }, 60_000);
     await saveScreenshot(page, 'step1.after-deploy-count-0.png');
   });
 
@@ -176,6 +191,8 @@ test('Delete Source: deletes file from project and org via command palette', asy
       ).toBe(0);
     }).toPass({ timeout: 60_000 });
     await saveScreenshot(page, 'step2.file-removed-from-explorer.png');
+    // The test deleted it from the project and org itself; only clean up if it fails before this point.
+    createdClasses.length = 0;
 
     // Note: Editor tab may remain open with strikethrough (normal VS Code behavior for deleted files)
     await saveScreenshot(page, 'step2.final-state.png');

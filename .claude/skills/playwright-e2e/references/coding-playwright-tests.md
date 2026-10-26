@@ -67,6 +67,12 @@ test.afterEach(async ({ page }) => {
 });
 ```
 
+**Metadata / file cleanup:** the container's workbench persists across specs, so a spec that creates throwaway classes or files records them and removes them in a container-only `test.afterEach` (metadata: `test/playwright/utils/containerCleanup.ts`):
+- `cleanupContainerApexClasses(classNames)` — deletes from project + org with tracking; if the org delete fails (never deployed) it warns and removes the files anyway
+- `cleanupContainerFiles(relativePaths)` — removes project-relative files (e.g. generated manifests)
+
+Both need `CB_CONTAINER_NAME` / `CB_FIXTURE_CONTAINER_DIR`, published by the orchestrator. See docs/codeBuilderContainerParity.md "Shared-workbench cleanup".
+
 ## Virtualized DOM
 
 VS Code API (tree views, editors, output panels) only contains visible DOM lines (rest not present until scrolled into view).
