@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as os from 'node:os';
 import { type ApexTestResultData } from '../tests/types';
 /**
  * this regex is flagged as likely incorrect by Cursor, BUT there is a unit test that specs
@@ -17,7 +16,7 @@ import { type ApexTestResultData } from '../tests/types';
  */
 const startsWithNewlineRegex = new RegExp(/^[/\r\n|\r|\n][\w]*/gim);
 
-export const buildTapDiagnostics = (testResult: ApexTestResultData): string[] => {
+export const buildTapDiagnostics = (testResult: ApexTestResultData, lineEnding = '\n'): string[] => {
   if (testResult.outcome === 'Pass') {
     return [];
   }
@@ -31,6 +30,8 @@ export const buildTapDiagnostics = (testResult: ApexTestResultData): string[] =>
       : [testResult.message]
     : ['Unknown error'];
 
-  const stack = testResult.stackTrace ? testResult.stackTrace.split(os.EOL) : [];
+  const stack = testResult.stackTrace
+    ? testResult.stackTrace.replaceAll(/\r\n|\r|\n/g, lineEnding).split(lineEnding)
+    : [];
   return [...message, ...stack];
 };
