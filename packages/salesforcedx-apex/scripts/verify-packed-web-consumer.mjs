@@ -43,14 +43,16 @@ try {
     `import {
       executeAnonymous, ApexOperationError, buildSyncPayload, buildAsyncPayload, retrieveAllSuites, getTestsInSuite,
       buildSuite, runTestSynchronous, runTestAsynchronous, transformTestResult, SyncTestResultSchema, TestResultSchema,
-      getOrgWideCoverage, getPerClassCodeCoverage, getAggregateCodeCoverage, CodeCoverageResultSchema
+      getOrgWideCoverage, getPerClassCodeCoverage, getAggregateCodeCoverage, CodeCoverageResultSchema,
+      ApexReportError, formatHumanReport, formatJUnitReport, formatMarkdownTextReport, formatTapReport, generateCoverageReports
     } from '@salesforce/apex-node/effect';
     import * as Effect from 'effect/Effect';
     import * as Schema from 'effect/Schema';
     globalThis.apexEffectApi = {
       executeAnonymous, ApexOperationError, buildSyncPayload, buildAsyncPayload, retrieveAllSuites, getTestsInSuite,
       buildSuite, runTestAsynchronous, getOrgWideCoverage, getPerClassCodeCoverage, getAggregateCodeCoverage,
-      CodeCoverageResultSchema, transformTestResult,
+      CodeCoverageResultSchema, ApexReportError, formatHumanReport, formatJUnitReport, formatMarkdownTextReport,
+      formatTapReport, generateCoverageReports, transformTestResult,
       run: (connection, options) => runTestSynchronous(connection, options).pipe(Effect.either, Effect.runPromise),
       decodeSyncResult: Schema.decodeUnknownSync(SyncTestResultSchema, { onExcessProperty: 'error' }),
       decodeResult: Schema.decodeUnknownSync(TestResultSchema)

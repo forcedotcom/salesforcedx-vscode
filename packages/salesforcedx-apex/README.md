@@ -146,6 +146,39 @@ Closing the scope before the stream completes aborts unfinished queue items, inc
 
 Polling defaults to two seconds; `polling.interval` accepts an Effect `DurationInput`. There is no CometD fallback. Consumers own deadlines and UI formatting. This API reports execution progress; result formatting, coverage, and file output remain separate operations.
 
+### Effect report formatting
+
+`formatHumanReport`, `formatTapReport`, `formatJUnitReport`, and `formatMarkdownTextReport` return report strings through Effects with `ApexReportError`. They preserve the existing report content and options. `MarkdownTextReporterOptions`, `OutputFormat`, and `TestSortOrder` are supported public types exported by the Effect entry point. Markdown/text defaults remain Markdown, runtime sorting, 5000 ms performance threshold, 75% coverage threshold, and coverage disabled. The default timestamp uses the Effect clock. Human formatting preserves LF within tables and host-native separators between sections; an explicit `lineEnding` normalizes the complete Effect report to LF or CRLF. TAP formatting and coverage source parsing default to LF; callers can select CRLF.
+
+```ts
+import { formatMarkdownTextReport } from '@salesforce/apex-node/effect';
+import * as Effect from 'effect/Effect';
+
+const report = await Effect.runPromise(
+  formatMarkdownTextReport(testResult, { format: 'text', codeCoverage: true })
+);
+```
+
+`buildCoverageMap(coverage, sources)` accepts sources keyed by Apex class/trigger name, each with a resolved `path` and required `content`. It does not discover or read files. Coverage maps retain records for classes without supplied source. `generateCoverageReports(coverage, sources, options)` defaults to `text-summary`, the existing filenames and watermarks, and nested summarization. HTML and HTML-SPA reports require source text for every covered file; missing text fails with `ApexReportError` before report generation. Supply `IstanbulReports` with the host's Istanbul factories; the host owns its writer, assets, and destination:
+
+```ts
+import { generateCoverageReports, IstanbulReports } from '@salesforce/apex-node/effect';
+import * as Effect from 'effect/Effect';
+import * as libReport from 'istanbul-lib-report';
+import * as reports from 'istanbul-reports';
+
+await Effect.runPromise(
+  generateCoverageReports(coverage, sources).pipe(
+    Effect.provideService(IstanbulReports, {
+      createContext: options => libReport.createContext({ ...options, dir: reportDir }),
+      createReport: reports.create
+    })
+  )
+);
+```
+
+The Effect entry point has no Node file/stream dependencies. Existing class and Node stream reporters remain available.
+
 ## Getting Started
 
 If you're interested in contributing, take a look at the [CONTRIBUTING](./CONTRIBUTING.md) guide.

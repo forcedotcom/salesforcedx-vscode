@@ -53,7 +53,7 @@ export {
   ApexResponseDecodeError,
   ApexRuntimeError
 } from './schema/errors';
-export { causeMessage } from './errors';
+export { ApexReportError, causeMessage } from './errors';
 export { listLogs, getLogBody, streamLogs } from './logs';
 export { ApexLogListItem } from './schema/wire/logs';
 export { ListLogsOptionsSchema, LogStreamEventSchema } from './schema/logs';
@@ -71,3 +71,11 @@ export { runTestAsynchronous } from './asyncTests';
 export type { AsyncTestOptions } from './schema/wire/asyncTests';
 export type { AsyncTestProgress, AsyncTestRunEvent, AsyncTestRunSummary } from './schema/asyncTests';
 export type { AsyncTestPollingOptions, AsyncTestRun } from './asyncTests';
+export { formatHumanReport, formatTapReport, formatJUnitReport, formatMarkdownTextReport } from './reporters';
+export type { HumanReporterOptions } from './reporters';
+export type { MarkdownTextReporterOptions, OutputFormat, TestSortOrder } from '../reporters/markdownTextReporter';
+export { buildCoverageMap, generateCoverageReports, IstanbulReports } from './coverageReports';
+export type { CoverageReportOptions } from './coverageReports';
+export type { CoverageSource } from '../reporters/coverageMap';
+export { DefaultReportOptions, DefaultWatermarks } from '../reporters/coverageOptions';
+export type { CoverageReporterOptions, CoverageReportFormats } from '../reporters/coverageOptions';
