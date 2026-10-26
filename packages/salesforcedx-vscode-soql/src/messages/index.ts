@@ -7,6 +7,7 @@
 
 import { createNls } from '@salesforce/vscode-i18n';
 import * as vscode from 'vscode';
+import { isOrgExtensionInstalled } from '../services/orgExtension';
 import { messages as enMessages } from './i18n';
 import { messages as jaMessages } from './i18n.ja';
 
@@ -16,3 +17,6 @@ export const nls = createNls({
   jaMessages,
   locale: vscode.env.language
 });
+
+export const noDefaultOrgMessage = (): string =>
+  nls.localize(isOrgExtensionInstalled() ? 'info_no_default_org' : 'info_no_default_org_without_org_extension');

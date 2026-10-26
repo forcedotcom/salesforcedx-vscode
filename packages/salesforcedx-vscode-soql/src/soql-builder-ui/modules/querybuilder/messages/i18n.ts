@@ -15,6 +15,7 @@ export const messages = {
   // app – no-default-org notification
   label_no_default_org:
     'SOQL Builder requires a default org. Use the "Set a Default Org" button or run "SFDX: Set a Default Org" from the command palette to set one.',
+  label_no_default_org_without_org_extension: 'SOQL Builder requires a default org.',
   action_set_default_org: 'Set a Default Org',
 
   // app – unsupported-query notification
@@ -87,5 +88,3 @@ export const messages = {
   placeholder_search_fields: 'Search fields...',
   placeholder_select_field: 'Select Field...'
 } as const;
-
-export type MessageKey = keyof typeof messages;
