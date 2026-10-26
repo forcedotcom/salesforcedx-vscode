@@ -47,14 +47,19 @@ describe('Effect asynchronous tests', () => {
     const isValidOptions = Schema.is(AsyncTestOptionsSchema);
     const validOptions = {
       testLevel: 'RunSpecifiedTests',
+      classids: '01p000000000001AAA,01p000000000002AAA',
       suiteids: '05F000000000001AAA,05F000000000002AAA',
       category: ['Apex', 'Flow'],
-      tests: [{ className: 'ExampleTest', category: 'Apex' }]
+      tests: [{ className: 'ExampleTest', classId: '01p000000000001AAA', category: 'Apex' }]
     };
 
     expect(isValidOptions(validOptions)).toBe(true);
     expect(isValidOptions({ ...validOptions, category: ['Other'] })).toBe(false);
+    expect(isValidOptions({ ...validOptions, classids: '001000000000001AAA' })).toBe(false);
     expect(isValidOptions({ ...validOptions, suiteids: 'not-a-suite-id' })).toBe(false);
+    expect(
+      isValidOptions({ ...validOptions, tests: [{ className: 'ExampleTest', classId: '001000000000001AAA' }] })
+    ).toBe(false);
     expect(isValidOptions({ ...validOptions, tests: [{ className: 'ExampleTest', category: 'Other' }] })).toBe(false);
   });
 
