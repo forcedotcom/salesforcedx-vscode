@@ -52,8 +52,6 @@ describe('executeAnonymous', () => {
     await expect(Effect.runPromise(executeAnonymous(connection, { apexCode: 'System.debug(1);' }))).resolves.toEqual({
       compiled: true,
       success: true,
-      line: -1,
-      column: -1,
       logBody: undefined
     });
     expect(request).toHaveBeenCalledWith(

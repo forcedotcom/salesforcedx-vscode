@@ -48,9 +48,7 @@ describe('executeAnonymousWithConnection', () => {
     ).resolves.toEqual({
       result: {
         compiled: true,
-        success: true,
-        line: -1,
-        column: -1
+        success: true
       },
       logBody: 'LOG BODY HERE',
       logId: undefined
