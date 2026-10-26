@@ -74,9 +74,9 @@ const result = await Effect.runPromise(operation.pipe(Effect.provide(connectionL
 
 A fixed layer captures its connection when constructed. An extension that needs the current default org should resolve the connection for each operation, as in the services example.
 
-### Execute anonymous input migration
+### Execute anonymous input
 
-The Effect API requires `{ apexCode: string }` and never reads files or terminal input. `ExecuteService.executeAnonymous` accepts `{ apexCode: string | Buffer }` and retains the existing `apexFilePath` and `userInput` options for CLI compatibility. Explicit source content takes precedence; an empty source string is submitted to Salesforce for validation.
+Both `executeAnonymous` APIs accept `{ apexCode: string }`. The caller reads files or stdin and passes the resulting source text. `ExecuteService` no longer accepts `apexFilePath`, `userInput`, or `Buffer` source values. An empty source string is still submitted to Salesforce for validation.
 
 ```ts
 import { readFile } from 'node:fs/promises';
@@ -86,7 +86,7 @@ const apexCode = await readFile(file, 'utf8');
 const result = await new ExecuteService(connection).executeAnonymous({ apexCode });
 ```
 
-The [CLI command at c8fdf707](https://github.com/salesforcecli/plugin-apex/blob/c8fdf7073ce194deb75fc7fd12c0b981ee2b97f4/src/commands/apex/run.ts) still passes `apexFilePath` or `userInput`. The class retains those reads, the input prompt, per-line 60-second idle timeout, platform line endings, and input-error messages. **Do not remove these options until the CLI reads `--file` or stdin itself, passes `apexCode`, and verifies file, piped-input, interactive-input, timeout, and error cases.** That consumer migration is not included here; this change preserves its existing input contract.
+CLI hosts must implement `--file`, piped stdin, and interactive input themselves, then pass the source as `apexCode`.
 
 The Effect API returns a success-only outcome. Compilation and runtime failures use `ApexCompileError` and `ApexRuntimeError`, carrying host-neutral line/column, diagnostic text, and any debug log; malformed SOAP produces `ApexResponseDecodeError`. `ExecuteService` adapts compile/runtime errors back to the CLI's `compiled`, `success`, `logs`, and `diagnostic` response, while other errors remain rejected Promises with plain messages. The VS Code services adapter handles the typed execution failures as diagnostic data for its editor and output-channel contract.
 

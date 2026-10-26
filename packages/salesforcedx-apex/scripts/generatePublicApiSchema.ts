@@ -97,18 +97,8 @@ const ApexDiagnosticSchema = Schema.Struct({
   className: optional(Schema.String)
 }).annotations({ identifier: 'ApexDiagnostic' });
 
-const SerializedBufferSchema = Schema.Struct({
-  type: Schema.Literal('Buffer'),
-  data: NumberArray
-});
-
 const ApexExecuteOptionsSchema = Schema.Struct({
-  json: optional(Schema.Boolean),
-  loglevel: optional(LogLevelSchema),
-  targetUsername: optional(Schema.String),
-  apexFilePath: optional(Schema.String),
-  apexCode: optional(Schema.Union(Schema.String, SerializedBufferSchema)),
-  userInput: optional(Schema.Boolean)
+  apexCode: Schema.String
 }).annotations({ identifier: 'ApexExecuteOptions' });
 
 const ExecuteAnonymousResponseSchema = Schema.Struct({

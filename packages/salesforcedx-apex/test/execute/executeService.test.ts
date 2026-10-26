@@ -38,19 +38,25 @@ const makeService = (request: ReturnType<typeof vi.fn>) =>
   } as unknown as Connection);
 
 describe('ExecuteService adapter', () => {
-  it.each(['System.assert(true);', Buffer.from('System.assert(true);')])(
-    'accepts source content and preserves the CLI success shape',
-    async apexCode => {
-      const request = vi.fn().mockResolvedValue(makeResponse());
+  it('accepts Apex source and preserves the CLI success shape', async () => {
+    const apexCode = 'System.assert(true);';
+    const request = vi.fn().mockResolvedValue(makeResponse());
 
-      await expect(makeService(request).executeAnonymous({ apexCode })).resolves.toEqual({
-        compiled: true,
-        success: true,
-        logs: 'LOG'
-      });
-      expect(request.mock.calls[0][0].body).toContain('System.assert(true);');
-    }
-  );
+    await expect(makeService(request).executeAnonymous({ apexCode })).resolves.toEqual({
+      compiled: true,
+      success: true,
+      logs: 'LOG'
+    });
+    expect(request.mock.calls[0][0].body).toContain(apexCode);
+  });
+
+  it('rejects non-string source content before calling Salesforce', async () => {
+    const request = vi.fn().mockResolvedValue(makeResponse());
+    const options = { apexCode: Buffer.from('System.assert(true);') } as unknown as { apexCode: string };
+
+    await expect(makeService(request).executeAnonymous(options)).rejects.toThrow();
+    expect(request).not.toHaveBeenCalled();
+  });
 
   it('submits empty source content to Salesforce instead of selecting host input', async () => {
     const request = vi.fn().mockResolvedValue(makeResponse());
