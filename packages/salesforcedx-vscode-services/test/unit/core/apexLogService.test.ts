@@ -71,10 +71,10 @@ describe('ApexLogService', () => {
   it('uses apex-node defaults and passes public filters through', async () => {
     const { service, query } = makeService();
     await Effect.runPromise(service.listLogs());
-    expect(query.mock.calls[0][0]).toContain('ORDER BY StartTime DESC LIMIT 25');
+    expect(query.mock.calls[0][0]).toContain('ORDER BY StartTime DESC, Id DESC LIMIT 25');
     await Effect.runPromise(service.listLogs(3, { userId: '005one', operationContains: 'executeAnonymous' }));
     expect(query.mock.calls[1][0]).toContain(
-      "WHERE LogUserId = '005one' AND Operation LIKE '%executeAnonymous%' ORDER BY StartTime DESC LIMIT 3"
+      "WHERE LogUserId = '005one' AND Operation LIKE '%executeAnonymous%' ORDER BY StartTime DESC, Id DESC LIMIT 3"
     );
   });
 
