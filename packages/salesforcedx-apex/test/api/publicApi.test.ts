@@ -14,6 +14,7 @@ describe('@salesforce/apex-node public API', () => {
     const supportedSymbols = Object.keys(publicApi).filter(symbol => !coRepoOnlySymbols.has(symbol));
 
     expect(supportedSymbols.sort()).toEqual([
+      'ApexClassId',
       'CancellationTokenSource',
       'CoverageReporter',
       'DefaultReportOptions',
@@ -22,7 +23,9 @@ describe('@salesforce/apex-node public API', () => {
       'HumanReporter',
       'JUnitReporter',
       'LogService',
+      'SalesforceId',
       'TapReporter',
+      'TestRunId',
       'TestService'
     ]);
   });
@@ -39,6 +42,7 @@ describe('@salesforce/apex-node public API', () => {
       'ExecuteAnonymousOptionsSchema',
       'ExecuteAnonymousOutcomeSchema',
       'ListLogsOptionsSchema',
+      'LogStreamEventSchema',
       'causeMessage',
       'executeAnonymous',
       'getLogBody',
