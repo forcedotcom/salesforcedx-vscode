@@ -555,7 +555,11 @@
         "classNames": { "type": "string" },
         "classids": { "type": "string" },
         "suiteNames": { "type": "string" },
-        "suiteids": { "type": "string" },
+        "suiteids": {
+          "type": "string",
+          "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})(?:,(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18}))*$",
+          "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})(?:,(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18}))*$"
+        },
         "tests": {
           "type": "array",
           "items": {
@@ -566,14 +570,14 @@
               "classId": { "type": "string" },
               "testMethods": { "type": "array", "items": { "type": "string" } },
               "namespace": { "type": "string" },
-              "category": { "type": "string" }
+              "category": { "type": "string", "enum": ["Apex", "Flow"] }
             },
             "additionalProperties": false
           }
         },
         "maxFailedTests": { "type": "number" },
         "skipCodeCoverage": { "type": "boolean" },
-        "category": { "type": "array", "items": { "type": "string" } }
+        "category": { "type": "array", "items": { "type": "string", "enum": ["Apex", "Flow"] } }
       },
       "additionalProperties": false
     },
