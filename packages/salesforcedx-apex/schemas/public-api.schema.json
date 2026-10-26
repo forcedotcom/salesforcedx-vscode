@@ -675,12 +675,10 @@
     },
     "ExecuteAnonymousOutcome": {
       "type": "object",
-      "required": ["compiled", "success", "line", "column"],
+      "required": ["compiled", "success"],
       "properties": {
         "compiled": { "type": "boolean", "enum": [true] },
         "success": { "type": "boolean", "enum": [true] },
-        "line": { "type": "number", "enum": [-1] },
-        "column": { "type": "number", "enum": [-1] },
         "logBody": { "type": "string" }
       },
       "additionalProperties": false
