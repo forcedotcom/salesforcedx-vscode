@@ -77,7 +77,6 @@ import { ResultFormat as ResultFormatSchema, TestLevel as TestLevelSchema } from
 
 const optional = Schema.optional;
 const StringArray = Schema.Array(Schema.String);
-const NumberArray = Schema.Array(Schema.Number);
 
 const LogLevelSchema = Schema.Literal('trace', 'debug', 'info', 'warn', 'error', 'fatal').annotations({
   identifier: 'LogLevel'

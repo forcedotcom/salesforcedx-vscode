@@ -7,7 +7,7 @@
 
 import * as Schema from 'effect/Schema';
 import { CodeCoverageResultSchema, PerClassCoverageSchema } from '../effect/coverageSchemas';
-import type { CodeCoverageResult, PerClassCoverage } from '../effect/coverageSchemas';
+import type { CodeCoverageResult } from '../effect/coverageSchemas';
 
 export type {
   ApexCodeCoverage,
