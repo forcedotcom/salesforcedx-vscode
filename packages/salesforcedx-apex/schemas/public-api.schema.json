@@ -1050,13 +1050,26 @@
     "TestSuite": {
       "type": "object",
       "required": ["id", "TestSuiteName"],
-      "properties": { "id": { "type": "string" }, "TestSuiteName": { "type": "string" } },
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
+          "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+        },
+        "TestSuiteName": { "type": "string" }
+      },
       "additionalProperties": false
     },
     "TestSuiteMembership": {
       "type": "object",
       "required": ["ApexClassId"],
-      "properties": { "ApexClassId": { "type": "string" } },
+      "properties": {
+        "ApexClassId": {
+          "type": "string",
+          "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
+          "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+        }
+      },
       "additionalProperties": false
     }
   },
