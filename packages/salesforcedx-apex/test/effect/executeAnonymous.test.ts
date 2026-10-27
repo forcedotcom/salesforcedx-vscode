@@ -8,10 +8,10 @@
 import type { Connection } from '@salesforce/core';
 import type { Mock as VitestMock } from 'vitest';
 import * as Effect from 'effect/Effect';
+import { parseStringPromise } from 'xml2js';
 import { executeAnonymous } from '../../src/effect';
-import type { SoapResponse } from '../../src/execute/types';
 
-const response: SoapResponse = {
+const response = {
   'soapenv:Envelope': {
     'soapenv:Body': {
       executeAnonymousResponse: {
@@ -26,6 +26,12 @@ const response: SoapResponse = {
         }
       }
     }
+  }
+};
+const responseWithLog = {
+  'soapenv:Envelope': {
+    ...response['soapenv:Envelope'],
+    'soapenv:Header': { DebuggingInfo: { debugLog: 'LOG BODY' } }
   }
 };
 
@@ -48,10 +54,7 @@ describe('executeAnonymous', () => {
       success: true,
       line: -1,
       column: -1,
-      compileProblem: '',
-      exceptionMessage: '',
-      exceptionStackTrace: '',
-      logBody: ''
+      logBody: undefined
     });
     expect(request).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -90,28 +93,30 @@ describe('executeAnonymous', () => {
     await expect(
       Effect.runPromise(executeAnonymous(connection, { apexCode: 'System.debug(1);' }))
     ).resolves.toMatchObject({ compiled: true, success: true });
+    expect(request).toHaveBeenCalledTimes(3);
+    expect(request.mock.calls[1][0]).toEqual({ url: connection.baseUrl(), method: 'GET' });
+    expect(request.mock.calls[0][0].body).toContain('00D-org!token');
     expect(request.mock.calls[2][0].body).toContain('00D-org!new-token');
+    expect(request.mock.calls[2][0].body).not.toContain('<cmd:sessionId>00D-org!token</cmd:sessionId>');
   });
 
   it('retries an expired session only once', async () => {
     const expired = new Error('INVALID_SESSION_ID');
     expired.name = 'ERROR_HTTP_500';
-    const request = vi
-      .fn()
-      .mockRejectedValueOnce(expired)
-      .mockResolvedValueOnce({})
-      .mockRejectedValueOnce(expired)
-      .mockResolvedValueOnce({});
+    const request = vi.fn().mockRejectedValueOnce(expired).mockResolvedValueOnce({}).mockRejectedValueOnce(expired);
 
     await expect(
       Effect.runPromise(Effect.flip(executeAnonymous(makeConnection(request), { apexCode: 'System.debug(1);' })))
-    ).resolves.toMatchObject({ _tag: 'ApexOperationError', message: 'Authentication for anonymous Apex failed' });
-    expect(request).toHaveBeenCalledTimes(4);
+    ).resolves.toMatchObject({
+      _tag: 'ApexOperationError',
+      message: 'The authentication for execute anonymous failed'
+    });
+    expect(request).toHaveBeenCalledTimes(3);
   });
 
   it('rejects inconsistent success and compilation flags', async () => {
     const inconsistent = structuredClone(response);
-    inconsistent['soapenv:Envelope']!['soapenv:Body'].executeAnonymousResponse.result.compiled = 'false';
+    inconsistent['soapenv:Envelope']['soapenv:Body'].executeAnonymousResponse.result.compiled = 'false';
 
     await expect(
       Effect.runPromise(
@@ -120,11 +125,195 @@ describe('executeAnonymous', () => {
     ).resolves.toMatchObject({ _tag: 'ApexResponseDecodeError' });
   });
 
+  it('returns compilation failures through the typed error channel', async () => {
+    const compileFailure = structuredClone(responseWithLog);
+    Object.assign(compileFailure['soapenv:Envelope']['soapenv:Body'].executeAnonymousResponse.result, {
+      compiled: 'false',
+      success: 'false',
+      line: 3,
+      column: 12,
+      compileProblem: 'Unexpected token'
+    });
+
+    await expect(
+      Effect.runPromise(
+        Effect.flip(
+          executeAnonymous(makeConnection(vi.fn().mockResolvedValue(compileFailure)), { apexCode: 'bad apex' })
+        )
+      )
+    ).resolves.toMatchObject({
+      _tag: 'ApexCompileError',
+      operation: 'executeAnonymous',
+      message: 'Unexpected token',
+      compileProblem: 'Unexpected token',
+      line: 3,
+      column: 12,
+      logBody: 'LOG BODY'
+    });
+  });
+
   it('reports malformed responses through the decode error channel', async () => {
     const connection = makeConnection(vi.fn().mockResolvedValue({}));
 
     await expect(
       Effect.runPromise(Effect.flip(executeAnonymous(connection, { apexCode: 'System.debug(1);' })))
     ).resolves.toMatchObject({ _tag: 'ApexResponseDecodeError', operation: 'executeAnonymous' });
+  });
+
+  it.each([
+    { compiled: 'not a boolean' },
+    { success: 'not a boolean' },
+    { line: 'not a number' },
+    { line: undefined },
+    { column: 1.5 },
+    { compileProblem: { unexpected: 'object' } },
+    { exceptionMessage: 42 }
+  ])('rejects malformed SOAP fields: %j', async fields => {
+    const malformed = structuredClone(response);
+    Object.assign(malformed['soapenv:Envelope']['soapenv:Body'].executeAnonymousResponse.result, fields);
+    const request = vi.fn().mockResolvedValue(malformed);
+
+    await expect(
+      Effect.runPromise(Effect.flip(executeAnonymous(makeConnection(request), { apexCode: 'System.debug(1);' })))
+    ).resolves.toMatchObject({ _tag: 'ApexResponseDecodeError' });
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
+  it('decodes SOAP numeric text and nil diagnostic fields without host objects', async () => {
+    const request = vi.fn().mockResolvedValue({
+      'soapenv:Envelope': {
+        'soapenv:Header': { DebuggingInfo: { debugLog: 'LOG' } },
+        'soapenv:Body': {
+          executeAnonymousResponse: {
+            result: {
+              compiled: 'false',
+              success: 'false',
+              line: '3',
+              column: '12',
+              compileProblem: 'Unexpected token',
+              exceptionMessage: { $: { 'xsi:nil': 'true' } },
+              exceptionStackTrace: {}
+            }
+          }
+        }
+      }
+    });
+
+    await expect(
+      Effect.runPromise(Effect.flip(executeAnonymous(makeConnection(request), { apexCode: 'bad apex' })))
+    ).resolves.toMatchObject({
+      _tag: 'ApexCompileError',
+      compileProblem: 'Unexpected token',
+      line: 3,
+      column: 12,
+      logBody: 'LOG'
+    });
+  });
+
+  it('decodes the XML representation returned by generic Connection.request', async () => {
+    const soapResponse = await parseStringPromise(
+      `<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+        <soapenv:Header><DebuggingInfo><debugLog>LOG &amp; TEXT</debugLog></DebuggingInfo></soapenv:Header>
+        <soapenv:Body><executeAnonymousResponse><result>
+          <compiled>false</compiled><success>false</success><line>3</line><column>12</column>
+          <compileProblem>Unexpected token</compileProblem><exceptionMessage xsi:nil="true"/>
+          <exceptionStackTrace xsi:nil="true"/>
+        </result></executeAnonymousResponse></soapenv:Body>
+      </soapenv:Envelope>`,
+      { explicitArray: false }
+    );
+
+    await expect(
+      Effect.runPromise(
+        Effect.flip(executeAnonymous(makeConnection(vi.fn().mockResolvedValue(soapResponse)), { apexCode: 'bad apex' }))
+      )
+    ).resolves.toMatchObject({
+      _tag: 'ApexCompileError',
+      compileProblem: 'Unexpected token',
+      line: 3,
+      column: 12,
+      logBody: 'LOG & TEXT'
+    });
+  });
+
+  it('returns runtime failures through the typed error channel', async () => {
+    const runtimeFailure = structuredClone(response);
+    Object.assign(runtimeFailure['soapenv:Envelope']['soapenv:Body'].executeAnonymousResponse.result, {
+      success: 'false',
+      line: 6,
+      column: 1,
+      exceptionMessage: 'System.AssertException: Assertion Failed',
+      exceptionStackTrace: 'AnonymousBlock: line 1, column 1'
+    });
+
+    await expect(
+      Effect.runPromise(
+        Effect.flip(executeAnonymous(makeConnection(vi.fn().mockResolvedValue(runtimeFailure)), { apexCode: 'code' }))
+      )
+    ).resolves.toMatchObject({
+      _tag: 'ApexRuntimeError',
+      operation: 'executeAnonymous',
+      message: 'System.AssertException: Assertion Failed',
+      line: 6,
+      column: 1,
+      exceptionMessage: 'System.AssertException: Assertion Failed',
+      exceptionStackTrace: 'AnonymousBlock: line 1, column 1',
+      logBody: undefined
+    });
+  });
+
+  it('validates source content before issuing a request', async () => {
+    const request = vi.fn();
+
+    await expect(
+      Effect.runPromise(
+        Effect.flip(executeAnonymous(makeConnection(request), { apexCode: 42 } as unknown as { apexCode: string }))
+      )
+    ).resolves.toMatchObject({
+      _tag: 'ApexOperationError',
+      operation: 'executeAnonymous',
+      message: 'Please specify an option to execute anonymous Apex.'
+    });
+    expect(request).not.toHaveBeenCalled();
+  });
+
+  it.each(['ERROR_HTTP_500', 'ERROR_HTTP_400'])('does not retry an unrelated %s failure', async name => {
+    const error = new Error('unrelated fault');
+    error.name = name;
+    const request = vi.fn().mockRejectedValue(error);
+
+    await expect(
+      Effect.runPromise(Effect.flip(executeAnonymous(makeConnection(request), { apexCode: 'code' })))
+    ).resolves.toMatchObject({
+      _tag: 'ApexOperationError',
+      message: 'Unexpected error while executing anonymous apex. unrelated fault'
+    });
+    expect(request).toHaveBeenCalledTimes(1);
+  });
+
+  it('stops when refreshing authentication fails', async () => {
+    const expired = new Error('INVALID_SESSION_ID');
+    expired.name = 'ERROR_HTTP_500';
+    const request = vi.fn().mockRejectedValueOnce(expired).mockRejectedValueOnce(new Error('refresh failed'));
+
+    await expect(
+      Effect.runPromise(Effect.flip(executeAnonymous(makeConnection(request), { apexCode: 'code' })))
+    ).resolves.toMatchObject({ _tag: 'ApexOperationError', message: 'refresh failed' });
+    expect(request).toHaveBeenCalledTimes(2);
+  });
+
+  it('escapes source and session content and requests the existing debugging categories', async () => {
+    const request = vi.fn().mockResolvedValue(response);
+    const connection = makeConnection(request);
+    connection.accessToken = '00D-org!token&<';
+
+    await Effect.runPromise(executeAnonymous(connection, { apexCode: "System.debug('<&>\"');" }));
+
+    const body = request.mock.calls[0][0].body;
+    expect(body).toContain('<cmd:sessionId>00D-org!token&amp;&lt;</cmd:sessionId>');
+    expect(body).toContain('System.debug(&apos;&lt;&amp;&gt;&quot;&apos;);');
+    expect(body).toContain('<apex:category>Apex_code</apex:category><apex:level>Finest</apex:level>');
+    expect(body).toContain('<apex:category>Visualforce</apex:category><apex:level>Finer</apex:level>');
+    expect(body).toContain('<apex:category>Apex_profiling</apex:category><apex:level>Info</apex:level>');
   });
 });
