@@ -8,12 +8,12 @@
 import { isNotNull } from 'effect/Predicate';
 import { type TestResult, type ApexTestResultData } from '../tests/types';
 
-/** @internal Used by the co-repo Apex Testing extension; not part of the supported npm API. */
+/** Output format for Markdown/text test reports. */
 export type OutputFormat = 'markdown' | 'text';
-/** @internal Used by the co-repo Apex Testing extension; not part of the supported npm API. */
+/** Test ordering supported by Markdown/text report formatting. */
 export type TestSortOrder = 'runtime' | 'coverage' | 'severity';
 
-/** @internal Used by the co-repo Apex Testing extension; not part of the supported npm API. */
+/** Public options shared by Effect Markdown/text formatting and the compatibility stream. */
 export interface MarkdownTextReporterOptions {
   /**
    * Output format: 'markdown' or 'text'

@@ -23,48 +23,42 @@ const xmlEscape = (value: string): string =>
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&apos;');
 
-export const formatJUnitProperties = (testResult: TestResult): string =>
-  [
-    `${tab}${tab}<properties>\n`,
-    ...Object.entries(testResult.summary).flatMap(([key, value]) => {
-      if (isEmpty(value) || skippedProperties.has(key)) return [];
-      const propertyName = timeProperties.has(key) ? key.replace('InMs', '') : key;
-      const propertyValue = timeProperties.has(key)
-        ? `${msToSecond(value)} s`
-        : key === 'outcome' && value === 'Passed'
-          ? 'Successful'
-          : key === 'testStartTime'
-            ? formatStartTime(value)
-            : value;
-      return [`${tab}${tab}${tab}<property name="${propertyName}" value="${propertyValue}"/>\n`];
-    }),
-    `${tab}${tab}</properties>\n`
-  ].join('');
+export function* formatJUnitPropertyChunks(testResult: TestResult): Generator<string, void> {
+  yield `${tab}${tab}<properties>\n`;
+  for (const [key, value] of Object.entries(testResult.summary)) {
+    if (isEmpty(value) || skippedProperties.has(key)) continue;
+    const propertyName = timeProperties.has(key) ? key.replace('InMs', '') : key;
+    const propertyValue = timeProperties.has(key)
+      ? `${msToSecond(value)} s`
+      : key === 'outcome' && value === 'Passed'
+        ? 'Successful'
+        : key === 'testStartTime'
+          ? formatStartTime(value)
+          : value;
+    yield `${tab}${tab}${tab}<property name="${propertyName}" value="${propertyValue}"/>\n`;
+  }
+  yield `${tab}${tab}</properties>\n`;
+}
 
-export const formatJUnitTestCases = (tests: ApexTestResultData[]): string =>
-  tests
-    .map(test =>
-      [
-        `${tab}${tab}<testcase name="${xmlEscape(test.methodName)}" classname="${test.apexClass.fullName}" time="${msToSecond(test.runTime)}">\n`,
-        ...(test.outcome === 'Fail' || test.outcome === 'CompileFail'
-          ? [
-              `${tab}${tab}${tab}<failure message="${xmlEscape(isEmpty(test.message ?? '') ? '' : (test.message ?? ''))}">`,
-              test.stackTrace ? `<![CDATA[${test.stackTrace}]]>` : '',
-              '</failure>\n'
-            ]
-          : []),
-        `${tab}${tab}</testcase>\n`
-      ].join('')
-    )
-    .join('');
+export function* formatJUnitTestCaseChunks(tests: ApexTestResultData[]): Generator<string, void> {
+  for (const test of tests) {
+    yield `${tab}${tab}<testcase name="${xmlEscape(test.methodName)}" classname="${test.apexClass.fullName}" time="${msToSecond(test.runTime)}">\n`;
+    if (test.outcome === 'Fail' || test.outcome === 'CompileFail') {
+      yield `${tab}${tab}${tab}<failure message="${xmlEscape(isEmpty(test.message ?? '') ? '' : (test.message ?? ''))}">`;
+      if (test.stackTrace) yield `<![CDATA[${test.stackTrace}]]>`;
+      yield '</failure>\n';
+    }
+    yield `${tab}${tab}</testcase>\n`;
+  }
+}
 
-export const formatJUnit = (testResult: TestResult): string => {
+export function* formatJUnitChunks(testResult: TestResult): Generator<string, void> {
   const { summary } = testResult;
-  return [
-    '<?xml version="1.0" encoding="UTF-8"?>\n<testsuites>\n',
-    `${tab}<testsuite name="force.apex" timestamp="${summary.testStartTime}" hostname="${summary.hostname}" tests="${summary.testsRan}" failures="${summary.failing}"  errors="0"  time="${msToSecond(summary.testExecutionTimeInMs)}">\n`,
-    formatJUnitProperties(testResult),
-    formatJUnitTestCases(testResult.tests),
-    `${tab}</testsuite>\n</testsuites>\n`
-  ].join('');
-};
+  yield '<?xml version="1.0" encoding="UTF-8"?>\n<testsuites>\n';
+  yield `${tab}<testsuite name="force.apex" timestamp="${summary.testStartTime}" hostname="${summary.hostname}" tests="${summary.testsRan}" failures="${summary.failing}"  errors="0"  time="${msToSecond(summary.testExecutionTimeInMs)}">\n`;
+  yield* formatJUnitPropertyChunks(testResult);
+  yield* formatJUnitTestCaseChunks(testResult.tests);
+  yield `${tab}</testsuite>\n</testsuites>\n`;
+}
+
+export const formatJUnit = (testResult: TestResult): string => Array.from(formatJUnitChunks(testResult)).join('');

@@ -10,7 +10,8 @@ import type { TestResult } from '../tests/types';
 import { Logger } from '@salesforce/core';
 import { Readable, type ReadableOptions } from 'node:stream';
 import { elapsedTime, HeapMonitor } from '../utils';
-import { formatMarkdownText } from './formatMarkdownText';
+import { pushReportChunks } from '../utils/pushReportChunks';
+import { formatMarkdownTextChunks } from './formatMarkdownText';
 
 /** @internal Used by the co-repo Apex Testing extension; not part of the supported npm API. */
 export type MarkdownTextFormatTransformerOptions = ReadableOptions & MarkdownTextReporterOptions;
@@ -18,22 +19,18 @@ export type MarkdownTextFormatTransformerOptions = ReadableOptions & MarkdownTex
 /** @internal Used by the co-repo Apex Testing extension; not part of the supported npm API. */
 export class MarkdownTextFormatTransformer extends Readable {
   private readonly logger = Logger.childFromRoot('MarkdownTextFormatTransformer');
-  private readonly reportOptions: MarkdownTextReporterOptions;
+  private readonly chunks: ReturnType<typeof formatMarkdownTextChunks>;
 
-  constructor(
-    private readonly testResult: TestResult,
-    options?: MarkdownTextFormatTransformerOptions
-  ) {
+  constructor(testResult: TestResult, options?: MarkdownTextFormatTransformerOptions) {
     super(options);
-    this.reportOptions = { ...options, timestamp: options?.timestamp ?? new Date() };
+    this.chunks = formatMarkdownTextChunks(testResult, { ...options, timestamp: options?.timestamp ?? new Date() });
   }
 
   @elapsedTime()
   _read(): void {
     this.logger.trace('starting format');
     HeapMonitor.getInstance().checkHeapSize('MarkdownTextFormatTransformer._read');
-    this.push(formatMarkdownText(this.testResult, this.reportOptions));
-    this.push(null); // Signal the end of the stream.
+    pushReportChunks(this, this.chunks);
     this.logger.trace('finishing format');
     HeapMonitor.getInstance().checkHeapSize('MarkdownTextFormatTransformer._read');
   }

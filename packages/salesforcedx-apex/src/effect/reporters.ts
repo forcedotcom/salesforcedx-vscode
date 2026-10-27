@@ -31,15 +31,16 @@ const formatReport = (format: string, render: () => string): Effect.Effect<strin
 /** Formats a human-readable test report without owning a file or output stream. */
 export const formatHumanReport = Effect.fn('Apex.formatHumanReport')(
   (testResult: TestResult, options: HumanReporterOptions = {}) =>
-    formatReport('human', () =>
-      formatHuman(
+    formatReport('human', () => {
+      const report = formatHuman(
         testResult,
         options.detailedCoverage ?? false,
         options.concise,
         options.showCategory,
         options.lineEnding
-      )
-    )
+      );
+      return options.lineEnding ? report.replaceAll(/\r\n|\r|\n/g, options.lineEnding) : report;
+    })
 );
 
 export const formatTapReport = Effect.fn('Apex.formatTapReport')(

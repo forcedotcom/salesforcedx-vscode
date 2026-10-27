@@ -59,10 +59,7 @@ export const listLogs = Effect.fn('Apex.listLogs')(function* (
       Effect.flatMap(Schema.decodeUnknown(LogPageSchema)),
       Effect.map(
         page =>
-          [
-            Chunk.fromIterable(page.records),
-            page.done ? Option.none() : Option.fromNullable(page.nextRecordsUrl)
-          ] as const
+          [Chunk.fromIterable(page.records), page.done ? Option.none() : Option.some(page.nextRecordsUrl)] as const
       )
     )
   ).pipe(Stream.runCollect, Effect.map(Chunk.toReadonlyArray));

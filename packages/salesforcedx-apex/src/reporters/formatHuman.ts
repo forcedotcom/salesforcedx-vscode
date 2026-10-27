@@ -8,7 +8,7 @@
 import type { Row } from '../utils/types';
 import { messages } from '../i18n/i18n';
 import { type ApexTestResultData, type CodeCoverageResult, type TestResult } from '../tests/types';
-import { formatTable } from './formatTable';
+import { formatTable } from '../utils/formatTable';
 
 const UNCOVERED_LINES_ARRAY_LIMIT = 5;
 
@@ -17,21 +17,19 @@ export const formatHuman = (
   detailedCoverage: boolean,
   concise: boolean = false,
   showCategory: boolean = false,
-  lineEnding = '\n'
+  lineEnding = globalThis.process?.platform === 'win32' ? '\r\n' : '\n'
 ): string =>
   [
     ...(!testResult.codecoverage || !detailedCoverage
-      ? [formatTestResults(testResult.tests, concise, showCategory, lineEnding)]
+      ? [formatTestResults(testResult.tests, concise, showCategory)]
       : []),
-    ...(testResult.codecoverage && detailedCoverage
-      ? [formatDetailedCov(testResult, concise, showCategory, lineEnding)]
-      : []),
-    ...(testResult.codecoverage && !concise ? [formatCodeCov(testResult.codecoverage, lineEnding)] : []),
-    ...(testResult.setup && !concise ? [formatSetup(testResult, lineEnding)] : []),
-    formatSummary(testResult, lineEnding)
+    ...(testResult.codecoverage && detailedCoverage ? [formatDetailedCov(testResult, concise, showCategory)] : []),
+    ...(testResult.codecoverage && !concise ? [formatCodeCov(testResult.codecoverage)] : []),
+    ...(testResult.setup && !concise ? [formatSetup(testResult)] : []),
+    formatSummary(testResult)
   ].join(lineEnding.repeat(2));
 
-const formatSummary = (testResult: TestResult, lineEnding: string): string => {
+const formatSummary = (testResult: TestResult): string => {
   // Summary Table
   const summaryRowArray: Row[] = [
     {
@@ -97,17 +95,11 @@ const formatSummary = (testResult: TestResult, lineEnding: string): string => {
       },
       { key: 'value', label: messages.valueColHeader }
     ],
-    messages.testSummaryHeader,
-    lineEnding
+    messages.testSummaryHeader
   );
 };
 
-const formatTestResults = (
-  tests: ApexTestResultData[],
-  concise: boolean,
-  showCategory: boolean,
-  lineEnding: string
-): string => {
+const formatTestResults = (tests: ApexTestResultData[], concise: boolean, showCategory: boolean): string => {
   const testRowArray: Row[] = tests
     .filter(elem => !concise || elem.outcome === 'Fail' || elem.outcome === 'CompileFail')
     .map(elem => ({
@@ -128,14 +120,13 @@ const formatTestResults = (
         { key: 'msg', label: messages.msgColHeader },
         { key: 'runtime', label: messages.runtimeColHeader }
       ],
-      messages.testResultsHeader,
-      lineEnding
+      messages.testResultsHeader
     );
   }
   return '';
 };
 
-const formatSetup = (testResult: TestResult, lineEnding: string): string => {
+const formatSetup = (testResult: TestResult): string => {
   const testRowArray: Row[] = (testResult.setup ?? []).map(elem => ({
     name: elem.fullName,
     time: `${elem.testSetupTime}`,
@@ -151,19 +142,13 @@ const formatSetup = (testResult: TestResult, lineEnding: string): string => {
         },
         { key: 'time', label: messages.setupTimeColHeader }
       ],
-      messages.testSetupResultsHeader.replace('runId', testRowArray[0].runId),
-      lineEnding
+      messages.testSetupResultsHeader.replace('runId', testRowArray[0].runId)
     );
   }
   return '';
 };
 
-const formatDetailedCov = (
-  testResult: TestResult,
-  concise: boolean,
-  showCategory: boolean,
-  lineEnding: string
-): string => {
+const formatDetailedCov = (testResult: TestResult, concise: boolean, showCategory: boolean): string => {
   const testRowArray: Row[] = testResult.tests
     .filter((elem: ApexTestResultData) => !concise || elem.outcome === 'Fail' || elem.outcome === 'CompileFail')
     .flatMap(elem => {
@@ -214,14 +199,13 @@ const formatDetailedCov = (
         { key: 'msg', label: messages.msgColHeader },
         { key: 'runtime', label: messages.runtimeColHeader }
       ],
-      messages.detailedCodeCovHeader.replace('%s', () => testResult.summary.testRunId),
-      lineEnding
+      messages.detailedCodeCovHeader.replace('%s', () => testResult.summary.testRunId)
     );
   }
   return '';
 };
 
-const formatCodeCov = (codeCoverages: CodeCoverageResult[], lineEnding: string): string => {
+const formatCodeCov = (codeCoverages: CodeCoverageResult[]): string => {
   const codeCovRowArray: Row[] = codeCoverages.map(elem => ({
     name: elem.name,
     percent: elem.percentage,
@@ -244,8 +228,7 @@ const formatCodeCov = (codeCoverages: CodeCoverageResult[], lineEnding: string):
         label: messages.uncoveredLinesColHeader
       }
     ],
-    messages.codeCovHeader,
-    lineEnding
+    messages.codeCovHeader
   );
 };
 
