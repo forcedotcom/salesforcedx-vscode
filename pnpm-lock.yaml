@@ -177,9 +177,6 @@ importers:
       '@salesforce/o11y-reporter':
         specifier: ^1.8.5
         version: 1.8.5
-      '@salesforce/vscode-service-provider':
-        specifier: ^1.5.0
-        version: 1.5.0
       jsforce:
         specifier: ^3.10.24
         version: 3.10.25(@types/node@24.19.2)
@@ -748,9 +745,6 @@ importers:
         specifier: ^3.1.0
         version: 3.2.0
     devDependencies:
-      '@salesforce/vscode-service-provider':
-        specifier: ^1.5.0
-        version: 1.5.0
       '@vscode/debugadapter-testsupport':
         specifier: 1.68.0
         version: 1.68.0
@@ -938,27 +932,18 @@ importers:
 
   packages/salesforcedx-utils-vscode:
     dependencies:
-      '@salesforce/core':
-        specifier: ^9.3.0
-        version: 9.3.6
       '@salesforce/effect-ext-utils':
         specifier: workspace:*
         version: link:../effect-ext-utils
       '@salesforce/salesforcedx-utils':
         specifier: workspace:*
         version: link:../salesforcedx-utils
-      '@salesforce/vscode-service-provider':
-        specifier: ^1.5.0
-        version: 1.5.0
       effect:
         specifier: ^3.21.2
         version: 3.22.2
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
-      zod:
-        specifier: ^4.3.2
-        version: 4.6.1
 
   packages/salesforcedx-visualforce-language-server:
     dependencies:
@@ -1237,18 +1222,21 @@ importers:
 
   packages/salesforcedx-vscode-core:
     dependencies:
+      '@salesforce/core':
+        specifier: ^9.3.0
+        version: 9.3.6
       '@salesforce/effect-ext-utils':
         specifier: workspace:*
         version: link:../effect-ext-utils
+      '@salesforce/salesforcedx-utils':
+        specifier: workspace:*
+        version: link:../salesforcedx-utils
       '@salesforce/salesforcedx-utils-vscode':
         specifier: workspace:*
         version: link:../salesforcedx-utils-vscode
       '@salesforce/vscode-i18n':
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
-      '@salesforce/vscode-service-provider':
-        specifier: ^1.5.0
-        version: 1.5.0
       effect:
         specifier: ^3.21.2
         version: 3.22.2
@@ -1258,13 +1246,16 @@ importers:
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
+      zod:
+        specifier: ^4.3.2
+        version: 4.6.1
     devDependencies:
-      '@salesforce/core':
-        specifier: ^9.3.0
-        version: 9.3.6
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
+      '@salesforce/vscode-service-provider':
+        specifier: ^1.5.0
+        version: 1.5.0
       salesforcedx-vscode-services:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-services

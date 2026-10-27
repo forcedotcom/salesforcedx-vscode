@@ -9,7 +9,7 @@ import { AST_NODE_TYPES, type TSESTree } from '@typescript-eslint/utils';
 import { RuleCreator } from '@typescript-eslint/utils/eslint-utils';
 
 const ALLOWED_FILES = new Set([
-  'salesforcedx-utils-vscode/src/services/telemetry.ts',
+  'salesforcedx-vscode-core/src/services/telemetry/telemetryService.ts',
   'salesforcedx-utils-vscode/src/helpers/telemetryUtils.ts',
   'salesforcedx-vscode-core/src/telemetry/index.ts',
   'salesforcedx-vscode-core/src/index.ts',

@@ -10,7 +10,7 @@ import {
   ExtensionProviderService,
   getServicesApi
 } from '@salesforce/effect-ext-utils';
-import { ChannelService, SFDX_CORE_CONFIGURATION_NAME, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
+import { ChannelService, SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import { isError, isString } from 'effect/Predicate';
 import * as os from 'node:os';
@@ -26,6 +26,7 @@ import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
 import { initializeMetadataSupport } from './metadataSupport/metadataXmlSupport';
 import { buildCoreServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
+import { TelemetryService } from './services/telemetry/telemetryService';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
 import { getEnableAllExceptionCatcher } from './settings/salesforceCoreSettings';
 import { showTelemetryMessage, telemetryService } from './telemetry';

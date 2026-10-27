@@ -28,17 +28,19 @@
     "Other"
   ],
   "dependencies": {
+    "@salesforce/core": "^9.3.0",
     "@salesforce/effect-ext-utils": "workspace:*",
+    "@salesforce/salesforcedx-utils": "workspace:*",
     "@salesforce/salesforcedx-utils-vscode": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
-    "@salesforce/vscode-service-provider": "^1.5.0",
     "effect": "^3.21.2",
     "fast-xml-parser": "^5.7.1",
-    "vscode-uri": "^3.1.0"
+    "vscode-uri": "^3.1.0",
+    "zod": "^4.3.2"
   },
   "devDependencies": {
-    "@salesforce/core": "^9.3.0",
     "@salesforce/playwright-vscode-ext": "workspace:*",
+    "@salesforce/vscode-service-provider": "^1.5.0",
     "salesforcedx-vscode-services": "workspace:*"
   },
   "extensionDependencies": [
@@ -68,6 +70,7 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
+        "../salesforcedx-utils:compile",
         "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-services:compile"

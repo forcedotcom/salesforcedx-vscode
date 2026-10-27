@@ -29,11 +29,11 @@ ruleTester.run('no-legacy-telemetry-service', noLegacyTelemetryService, {
     { code: `// telemetryService\nconst value = 1;`, filename },
     {
       code: legacyUsage,
-      filename: 'packages/salesforcedx-utils-vscode/src/services/telemetry.ts'
+      filename: 'packages/salesforcedx-vscode-core/src/services/telemetry/telemetryService.ts'
     },
     {
       code: `import * as utils from '@salesforce/salesforcedx-utils-vscode'; utils.TelemetryService.getInstance();`,
-      filename: 'packages/salesforcedx-utils-vscode/src/services/telemetry.ts'
+      filename: 'packages/salesforcedx-vscode-core/src/services/telemetry/telemetryService.ts'
     },
     {
       code: legacyUsage,
