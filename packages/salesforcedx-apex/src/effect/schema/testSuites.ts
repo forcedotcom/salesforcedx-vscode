@@ -6,14 +6,13 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { SalesforceId } from '../../schemas/salesforceId';
 
-export const TestSuiteSchema = Schema.Struct({ id: SalesforceId, TestSuiteName: Schema.String }).annotations({
+export const TestSuiteSchema = Schema.Struct({ id: Schema.String, TestSuiteName: Schema.String }).annotations({
   identifier: 'TestSuite'
 });
 export type TestSuite = typeof TestSuiteSchema.Type;
 
-export const TestSuiteMembershipSchema = Schema.Struct({ ApexClassId: SalesforceId }).annotations({
+export const TestSuiteMembershipSchema = Schema.Struct({ ApexClassId: Schema.String }).annotations({
   identifier: 'TestSuiteMembership'
 });
 export type TestSuiteMembership = typeof TestSuiteMembershipSchema.Type;

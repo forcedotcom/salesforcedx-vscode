@@ -8,7 +8,8 @@
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
-import { ApexOperationError, ApexResponseDecodeError, causeMessage } from './errors';
+import { causeMessage } from './errors';
+import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
 import { createRecordResponseSchema, queryRecordsResponseSchema } from './schema/wire/records';
 
 export const queryRecords = Effect.fn('Apex.queryRecords')(function* <A, I>({
