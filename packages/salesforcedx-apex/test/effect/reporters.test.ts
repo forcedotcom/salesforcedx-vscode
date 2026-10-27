@@ -28,11 +28,7 @@ describe('Effect reporters', () => {
       for (const detailedCoverage of [false, true]) {
         for (const concise of [false, true]) {
           await expect(Effect.runPromise(formatHumanReport(result, { detailedCoverage, concise }))).resolves.toBe(
-<<<<<<< HEAD
             new HumanReporter().format(result, detailedCoverage, concise)
-=======
-            new HumanReporter().format(result, detailedCoverage, concise).replaceAll(/\r\n|\r|\n/g, '\n')
->>>>>>> origin/sm/W-23839447
           );
           for (const lineEnding of ['\n', '\r\n'] as const) {
             const report = await Effect.runPromise(
@@ -56,26 +52,14 @@ describe('Effect reporters', () => {
           detailedCoverage: true
         })
       )
-<<<<<<< HEAD
     ).resolves.toBe(new HumanReporter().format(coverageResultWithCategory, true, false, true));
-=======
-    ).resolves.toBe(
-      new HumanReporter().format(coverageResultWithCategory, true, false, true).replaceAll(/\r\n|\r|\n/g, '\n')
-    );
->>>>>>> origin/sm/W-23839447
     const windowsReport = await Effect.runPromise(formatHumanReport(successResult, { lineEnding: '\r\n' }));
     expect(windowsReport).toContain('\r\n\r\n');
   });
 
-<<<<<<< HEAD
   it('defaults to non-detailed, non-concise human output with host-native line endings', async () => {
     await expect(Effect.runPromise(formatHumanReport(setupResult))).resolves.toBe(
       new HumanReporter().format(setupResult, false)
-=======
-  it('defaults to non-detailed, non-concise human output with LF line endings', async () => {
-    await expect(Effect.runPromise(formatHumanReport(setupResult))).resolves.toBe(
-      new HumanReporter().format(setupResult, false).replaceAll(/\r\n|\r|\n/g, '\n')
->>>>>>> origin/sm/W-23839447
     );
   });
 

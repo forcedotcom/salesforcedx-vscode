@@ -14,58 +14,6 @@ import * as Ref from 'effect/Ref';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-<<<<<<< HEAD
-import { ApexOperationError, ApexResponseDecodeError, causeMessage } from './errors';
-import { QueryPageSchema } from './querySchema';
-
-const operation = 'runTestAsynchronous';
-const salesforceIdSchema = Schema.String.pipe(
-  Schema.pattern(/^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$/),
-  Schema.brand('@salesforce/apex-node/SalesforceId')
-);
-const testRunIdSchema = salesforceIdSchema.pipe(
-  Schema.startsWith('707'),
-  Schema.brand('@salesforce/apex-node/ApexTestRunId')
-);
-const testLevelSchema = Schema.Literal('RunLocalTests', 'RunAllTestsInOrg', 'RunSpecifiedTests');
-const testCategorySchema = Schema.Literal('Apex', 'Flow');
-const apexClassIdPattern = '01p[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?';
-const apexTestSuiteIdPattern = '05F[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?';
-const apexClassIdSchema = Schema.String.pipe(
-  Schema.pattern(new RegExp(`^${apexClassIdPattern}$`, 'u')),
-  Schema.brand('@salesforce/apex-node/ApexClassId')
-);
-const classIdsSchema = Schema.String.pipe(
-  Schema.pattern(new RegExp(`^${apexClassIdPattern}(?:,${apexClassIdPattern})*$`, 'u'))
-);
-const suiteIdsSchema = Schema.String.pipe(
-  Schema.pattern(new RegExp(`^${apexTestSuiteIdPattern}(?:,${apexTestSuiteIdPattern})*$`, 'u'))
-);
-
-/** Payload accepted by the Tooling API asynchronous test endpoint. */
-export const AsyncTestOptionsSchema = Schema.Struct({
-  testLevel: testLevelSchema,
-  classNames: Schema.optional(Schema.String),
-  classids: Schema.optional(classIdsSchema),
-  suiteNames: Schema.optional(Schema.String),
-  suiteids: Schema.optional(suiteIdsSchema),
-  tests: Schema.optional(
-    Schema.Array(
-      Schema.Struct({
-        className: Schema.optional(Schema.String),
-        classId: Schema.optional(apexClassIdSchema),
-        testMethods: Schema.optional(Schema.Array(Schema.String)),
-        namespace: Schema.optional(Schema.String),
-        category: Schema.optional(testCategorySchema)
-      })
-    )
-  ),
-  maxFailedTests: Schema.optional(Schema.Number),
-  skipCodeCoverage: Schema.optional(Schema.Boolean),
-  category: Schema.optional(Schema.Array(testCategorySchema))
-}).annotations({ identifier: 'AsyncTestOptions' });
-export type AsyncTestOptions = typeof AsyncTestOptionsSchema.Type;
-=======
 import { causeMessage } from './errors';
 import {
   AsyncTestProgressSchema,
@@ -78,65 +26,18 @@ import { TestRunId } from './schema/salesforceId';
 import { queueSchema, summariesSchema, updateResultsSchema, type AsyncTestOptions } from './schema/wire/asyncTests';
 
 const operation = 'runTestAsynchronous';
->>>>>>> origin/sm/W-23839447
 
 /** Override the default two-second delay between status queries. */
 export type AsyncTestPollingOptions = {
   interval?: Duration.DurationInput;
 };
 
-<<<<<<< HEAD
-const runStatusSchema = Schema.Literal('Queued', 'Processing', 'Aborted', 'Failed', 'Completed', 'Passed', 'Skipped');
-const summarySchema = Schema.Struct({
-  Status: runStatusSchema,
-  ClassesCompleted: Schema.Number,
-  ClassesEnqueued: Schema.Number
-});
-const summariesSchema = Schema.Struct({ records: Schema.Tuple(summarySchema) });
-const queueRecordSchema = Schema.Struct({
-  Id: salesforceIdSchema,
-  Status: Schema.Literal('Queued', 'Holding', 'Preparing', 'Processing', 'Aborted', 'Completed', 'Failed')
-});
-const queueSchema = QueryPageSchema(queueRecordSchema);
-const updateResultSchema = Schema.Struct({ success: Schema.Boolean });
-const finishedStatuses = HashSet.make('Aborted', 'Failed', 'Completed', 'Passed', 'Skipped');
-const DEFAULT_POLL_INTERVAL = Duration.seconds(2);
-
-/** Progress values contain domain data, not UI messages or VS Code progress shapes. */
-const asyncTestRunSummarySchema = Schema.Struct({
-  status: runStatusSchema,
-  classesCompleted: Schema.Number,
-  classesEnqueued: Schema.Number
-});
-export type AsyncTestRunSummary = typeof asyncTestRunSummarySchema.Type;
-
-export const AsyncTestProgressSchema = Schema.TaggedStruct('Progress', {
-  ...asyncTestRunSummarySchema.fields
-}).annotations({ identifier: 'AsyncTestProgress' });
-export type AsyncTestProgress = typeof AsyncTestProgressSchema.Type;
-
-export const AsyncTestResultSchema = Schema.TaggedStruct('Result', {
-  testRunId: testRunIdSchema,
-  result: asyncTestRunSummarySchema
-}).annotations({ identifier: 'AsyncTestResult' });
-
-/** Progress updates followed by the terminal run summary. */
-export const AsyncTestRunEventSchema = Schema.Union(AsyncTestProgressSchema, AsyncTestResultSchema).annotations({
-  identifier: 'AsyncTestRunEvent'
-});
-export type AsyncTestRunEvent = typeof AsyncTestRunEventSchema.Type;
-
-/** The accepted Salesforce run ID and its lazy progress/result stream. */
-export type AsyncTestRun = {
-  readonly id: typeof testRunIdSchema.Type;
-=======
 const finishedStatuses = HashSet.make('Aborted', 'Failed', 'Completed', 'Passed', 'Skipped');
 const DEFAULT_POLL_INTERVAL = Duration.seconds(2);
 
 /** The accepted Salesforce run ID and its lazy progress/result stream. */
 export type AsyncTestRun = {
   readonly id: typeof TestRunId.Type;
->>>>>>> origin/sm/W-23839447
   readonly stream: Stream.Stream<AsyncTestRunEvent, ApexOperationError | ApexResponseDecodeError>;
   readonly cancel: () => Effect.Effect<void, ApexOperationError | ApexResponseDecodeError>;
 };
@@ -161,11 +62,7 @@ const decode = <A, I>(schema: Schema.Schema<A, I>, response: unknown) =>
 
 const abortTestRun = Effect.fn('Apex.abortTestRun')(function* (
   connection: Connection,
-<<<<<<< HEAD
-  testRunId: typeof testRunIdSchema.Type
-=======
   testRunId: typeof TestRunId.Type
->>>>>>> origin/sm/W-23839447
 ) {
   // Fetch all pages before marking queue items Aborted; those updates can change later query results.
   yield* Stream.paginateEffect(Option.none<string>(), nextRecordsUrl =>
@@ -196,11 +93,7 @@ const abortTestRun = Effect.fn('Apex.abortTestRun')(function* (
               { allOrNone: false, allowRecursive: true }
             )
           ).pipe(
-<<<<<<< HEAD
-            Effect.flatMap(response => decode(Schema.Array(updateResultSchema), response)),
-=======
             Effect.flatMap(response => decode(updateResultsSchema, response)),
->>>>>>> origin/sm/W-23839447
             Effect.flatMap(results =>
               Effect.validateAll(
                 results,
@@ -216,11 +109,7 @@ const abortTestRun = Effect.fn('Apex.abortTestRun')(function* (
 
 const cancelTestRun = Effect.fn('Apex.cancelTestRun')(function* (
   connection: Connection,
-<<<<<<< HEAD
-  testRunId: typeof testRunIdSchema.Type,
-=======
   testRunId: typeof TestRunId.Type,
->>>>>>> origin/sm/W-23839447
   pending: Ref.Ref<boolean>
 ) {
   const shouldAbort = yield* Ref.getAndSet(pending, false);
@@ -231,11 +120,7 @@ const cancelTestRun = Effect.fn('Apex.cancelTestRun')(function* (
 
 const pollTestRun = (
   connection: Connection,
-<<<<<<< HEAD
-  testRunId: typeof testRunIdSchema.Type,
-=======
   testRunId: typeof TestRunId.Type,
->>>>>>> origin/sm/W-23839447
   polling: AsyncTestPollingOptions,
   pending: Ref.Ref<boolean>
 ): AsyncTestRun['stream'] =>
@@ -295,11 +180,7 @@ export const runTestAsynchronous = Effect.fn('Apex.runTestAsynchronous')(functio
         body: JSON.stringify(options),
         headers: { 'content-type': 'application/json' }
       })
-<<<<<<< HEAD
-    ).pipe(Effect.flatMap(response => decode(testRunIdSchema, response))),
-=======
     ).pipe(Effect.flatMap(response => decode(TestRunId, response))),
->>>>>>> origin/sm/W-23839447
     testRunId => cancelTestRun(connection, testRunId, pending).pipe(Effect.orDie)
   );
   return {

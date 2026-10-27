@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 # Salesforce Apex Library
 
 [![License](https://img.shields.io/badge/License-BSD%203--Clause-blue.svg)](https://opensource.org/licenses/BSD-3-Clause)
@@ -157,5 +156,3 @@ The Effect entry point has no Node file/stream dependencies. Existing class and 
 If you're interested in contributing, take a look at the [CONTRIBUTING](./CONTRIBUTING.md) guide.
 
 If you're interested in building the plugin and library locally, take a look at the [Developing](./contributing/developing.md) doc.
-=======
->>>>>>> origin/sm/W-23839447

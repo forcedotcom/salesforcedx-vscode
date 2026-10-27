@@ -34,84 +34,6 @@ import {
 
 const operation = 'executeAnonymous';
 const optionalLogBody = (logBody: string | undefined) => (isUndefined(logBody) ? {} : { logBody });
-<<<<<<< HEAD
-
-class InvalidSessionError extends Schema.TaggedError<InvalidSessionError>()('InvalidSessionError', {
-  message: Schema.String
-}) {}
-
-class ApexRequestError extends Schema.TaggedError<ApexRequestError>()('ApexRequestError', {
-  message: Schema.String
-}) {}
-
-/** Apex source selected by the caller; file and terminal input belong to the host. */
-export const ExecuteAnonymousOptionsSchema = Schema.Struct({ apexCode: Schema.String }).annotations({
-  identifier: 'ExecuteAnonymousOptions'
-});
-export type ExecuteAnonymousOptions = typeof ExecuteAnonymousOptionsSchema.Type;
-
-/** Execution details and the debug log returned by the Apex SOAP endpoint. */
-const resultFields = {
-  compileProblem: Schema.NullOr(Schema.String),
-  exceptionMessage: Schema.NullOr(Schema.String),
-  exceptionStackTrace: Schema.NullOr(Schema.String)
-};
-const failureResultFields = { ...resultFields, line: Schema.Number, column: Schema.Number };
-const ExecutionResultSchema = Schema.Union(
-  Schema.Struct({ ...failureResultFields, compiled: Schema.Literal(false), success: Schema.Literal(false) }),
-  Schema.Struct({ ...failureResultFields, compiled: Schema.Literal(true), success: Schema.Literal(false) }),
-  Schema.Struct({
-    ...resultFields,
-    line: Schema.Literal(-1),
-    column: Schema.Literal(-1),
-    compiled: Schema.Literal(true),
-    success: Schema.Literal(true)
-  })
-);
-export const ExecuteAnonymousOutcomeSchema = Schema.Struct({
-  compiled: Schema.Literal(true),
-  success: Schema.Literal(true),
-  logBody: Schema.optional(Schema.String)
-}).annotations({ identifier: 'ExecuteAnonymousOutcome' });
-export type ExecuteAnonymousOutcome = typeof ExecuteAnonymousOutcomeSchema.Type;
-
-// Generic Connection.request uses xml2js: nil elements retain their attributes; empty elements may be {}.
-const SoapText = Schema.transform(
-  Schema.Union(
-    Schema.String,
-    Schema.Struct({ $: Schema.Struct({ 'xsi:nil': Schema.Literal('true') }) }),
-    Schema.Record({ key: Schema.String, value: Schema.Never })
-  ),
-  Schema.NullOr(Schema.String),
-  {
-    strict: true,
-    decode: value => (typeof value === 'string' ? value : null),
-    encode: value => value ?? { $: { 'xsi:nil': 'true' as const } }
-  }
-);
-const SoapInteger = Schema.Union(Schema.Int, Schema.NumberFromString.pipe(Schema.int()));
-const SoapResponseSchema = Schema.Struct({
-  [soapEnv]: Schema.Struct({
-    [soapHeader]: Schema.optional(
-      Schema.Struct({ DebuggingInfo: Schema.optional(Schema.Struct({ debugLog: Schema.String })) })
-    ),
-    [soapBody]: Schema.Struct({
-      executeAnonymousResponse: Schema.Struct({
-        result: Schema.Struct({
-          compiled: Schema.BooleanFromString,
-          success: Schema.BooleanFromString,
-          line: SoapInteger,
-          column: SoapInteger,
-          compileProblem: SoapText,
-          exceptionMessage: SoapText,
-          exceptionStackTrace: SoapText
-        })
-      })
-    })
-  })
-});
-=======
->>>>>>> origin/sm/W-23839447
 
 const operationError = (cause: unknown, message = causeMessage(cause)): ApexOperationError =>
   new ApexOperationError({ operation, message, cause: causeMessage(cause) });
@@ -130,11 +52,7 @@ const buildRequest = (connection: Connection, code: string): HttpRequest => {
 const parseResponse = (response: unknown) =>
   Schema.decodeUnknown(soapResponseSchema)(response).pipe(
     Effect.flatMap(({ [soapEnv]: envelope }) =>
-<<<<<<< HEAD
-      Schema.decodeUnknown(ExecutionResultSchema)(envelope[soapBody].executeAnonymousResponse.result).pipe(
-=======
       Schema.decodeUnknown(executionResultSchema)(envelope[soapBody].executeAnonymousResponse.result).pipe(
->>>>>>> origin/sm/W-23839447
         Effect.map(result => ({ ...result, ...optionalLogBody(envelope[soapHeader]?.DebuggingInfo?.debugLog) }))
       )
     ),
@@ -184,11 +102,7 @@ const sendRequest = (connection: Connection, code: string) =>
   Effect.tryPromise({
     try: () => connection.request<unknown>(buildRequest(connection, code)),
     catch: cause =>
-<<<<<<< HEAD
-      isInvalidSession(cause)
-=======
       isInvalidSessionError(cause)
->>>>>>> origin/sm/W-23839447
         ? new InvalidSessionError({ message: causeMessage(cause) })
         : new ApexRequestError({ message: causeMessage(cause) })
   });

@@ -23,7 +23,6 @@ const xmlEscape = (value: string): string =>
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&apos;');
 
-<<<<<<< HEAD
 export function* formatJUnitPropertyChunks(testResult: TestResult): Generator<string, void> {
   yield `${tab}${tab}<properties>\n`;
   for (const [key, value] of Object.entries(testResult.summary)) {
@@ -63,50 +62,3 @@ export function* formatJUnitChunks(testResult: TestResult): Generator<string, vo
 }
 
 export const formatJUnit = (testResult: TestResult): string => Array.from(formatJUnitChunks(testResult)).join('');
-=======
-export const formatJUnitProperties = (testResult: TestResult): string =>
-  [
-    `${tab}${tab}<properties>\n`,
-    ...Object.entries(testResult.summary).flatMap(([key, value]) => {
-      if (isEmpty(value) || skippedProperties.has(key)) return [];
-      const propertyName = timeProperties.has(key) ? key.replace('InMs', '') : key;
-      const propertyValue = timeProperties.has(key)
-        ? `${msToSecond(value)} s`
-        : key === 'outcome' && value === 'Passed'
-          ? 'Successful'
-          : key === 'testStartTime'
-            ? formatStartTime(value)
-            : value;
-      return [`${tab}${tab}${tab}<property name="${propertyName}" value="${propertyValue}"/>\n`];
-    }),
-    `${tab}${tab}</properties>\n`
-  ].join('');
-
-export const formatJUnitTestCases = (tests: ApexTestResultData[]): string =>
-  tests
-    .map(test =>
-      [
-        `${tab}${tab}<testcase name="${xmlEscape(test.methodName)}" classname="${test.apexClass.fullName}" time="${msToSecond(test.runTime)}">\n`,
-        ...(test.outcome === 'Fail' || test.outcome === 'CompileFail'
-          ? [
-              `${tab}${tab}${tab}<failure message="${xmlEscape(isEmpty(test.message ?? '') ? '' : (test.message ?? ''))}">`,
-              test.stackTrace ? `<![CDATA[${test.stackTrace}]]>` : '',
-              '</failure>\n'
-            ]
-          : []),
-        `${tab}${tab}</testcase>\n`
-      ].join('')
-    )
-    .join('');
-
-export const formatJUnit = (testResult: TestResult): string => {
-  const { summary } = testResult;
-  return [
-    '<?xml version="1.0" encoding="UTF-8"?>\n<testsuites>\n',
-    `${tab}<testsuite name="force.apex" timestamp="${summary.testStartTime}" hostname="${summary.hostname}" tests="${summary.testsRan}" failures="${summary.failing}"  errors="0"  time="${msToSecond(summary.testExecutionTimeInMs)}">\n`,
-    formatJUnitProperties(testResult),
-    formatJUnitTestCases(testResult.tests),
-    `${tab}</testsuite>\n</testsuites>\n`
-  ].join('');
-};
->>>>>>> origin/sm/W-23839447

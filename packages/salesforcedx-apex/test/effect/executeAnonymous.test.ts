@@ -50,20 +50,6 @@ describe('executeAnonymous', () => {
       const request = vi.fn().mockResolvedValue(response);
       const connection = makeConnection(request);
 
-<<<<<<< HEAD
-    await expect(Effect.runPromise(executeAnonymous(connection, { apexCode: 'System.debug(1);' }))).resolves.toEqual({
-      compiled: true,
-      success: true
-    });
-    expect(request).toHaveBeenCalledWith(
-      expect.objectContaining({
-        method: 'POST',
-        url: 'https://example.my.salesforce.com/services/Soap/s/65.0/00D-org',
-        body: expect.stringContaining('System.debug(1);')
-      })
-    );
-  });
-=======
       expect(yield* executeAnonymous(connection, { apexCode: 'System.debug(1);' })).toEqual({
         compiled: true,
         success: true
@@ -76,7 +62,6 @@ describe('executeAnonymous', () => {
         })
       );
     }).pipe(Effect.runPromise));
->>>>>>> origin/sm/W-23839447
 
   it('reports request failures through the typed error channel', () =>
     Effect.gen(function* () {
@@ -134,47 +119,9 @@ describe('executeAnonymous', () => {
       const inconsistent = structuredClone(response);
       inconsistent['soapenv:Envelope']['soapenv:Body'].executeAnonymousResponse.result.compiled = 'false';
 
-<<<<<<< HEAD
-    await expect(
-      Effect.runPromise(
-        Effect.flip(executeAnonymous(makeConnection(vi.fn().mockResolvedValue(inconsistent)), { apexCode: 'bad apex' }))
-      )
-    ).resolves.toMatchObject({ _tag: 'ApexResponseDecodeError' });
-  });
-
-  it('requires the success line and column sentinels returned by Salesforce', async () => {
-    const invalidSuccess = structuredClone(response);
-    Object.assign(invalidSuccess['soapenv:Envelope']['soapenv:Body'].executeAnonymousResponse.result, {
-      line: 1,
-      column: 1
-    });
-
-    await expect(
-      Effect.runPromise(
-        Effect.flip(executeAnonymous(makeConnection(vi.fn().mockResolvedValue(invalidSuccess)), { apexCode: 'code' }))
-      )
-    ).resolves.toMatchObject({ _tag: 'ApexResponseDecodeError' });
-  });
-
-  it('returns compilation failures through the typed error channel', async () => {
-    const compileFailure = structuredClone(responseWithLog);
-    Object.assign(compileFailure['soapenv:Envelope']['soapenv:Body'].executeAnonymousResponse.result, {
-      compiled: 'false',
-      success: 'false',
-      line: 3,
-      column: 12,
-      compileProblem: 'Unexpected token'
-    });
-
-    await expect(
-      Effect.runPromise(
-        Effect.flip(
-          executeAnonymous(makeConnection(vi.fn().mockResolvedValue(compileFailure)), { apexCode: 'bad apex' })
-=======
       expect(
         yield* executeAnonymous(makeConnection(vi.fn().mockResolvedValue(inconsistent)), { apexCode: 'bad apex' }).pipe(
           Effect.flip
->>>>>>> origin/sm/W-23839447
         )
       ).toMatchObject({ _tag: 'ApexResponseDecodeError' });
     }).pipe(Effect.runPromise));
@@ -321,26 +268,9 @@ describe('executeAnonymous', () => {
         exceptionStackTrace: 'AnonymousBlock: line 1, column 1'
       });
 
-<<<<<<< HEAD
-    const error = await Effect.runPromise(
-      Effect.flip(executeAnonymous(makeConnection(vi.fn().mockResolvedValue(runtimeFailure)), { apexCode: 'code' }))
-    );
-    expect(error).toMatchObject({
-      _tag: 'ApexRuntimeError',
-      operation: 'executeAnonymous',
-      message: 'System.AssertException: Assertion Failed',
-      line: 6,
-      column: 1,
-      exceptionMessage: 'System.AssertException: Assertion Failed',
-      exceptionStackTrace: 'AnonymousBlock: line 1, column 1'
-    });
-    expect(error).not.toHaveProperty('logBody');
-  });
-=======
-      const error = yield* executeAnonymous(
-        makeConnection(vi.fn().mockResolvedValue(runtimeFailure)),
-        { apexCode: 'code' }
-      ).pipe(Effect.flip);
+      const error = yield* executeAnonymous(makeConnection(vi.fn().mockResolvedValue(runtimeFailure)), {
+        apexCode: 'code'
+      }).pipe(Effect.flip);
       expect(error).toMatchObject({
         _tag: 'ApexRuntimeError',
         operation: 'executeAnonymous',
@@ -352,7 +282,6 @@ describe('executeAnonymous', () => {
       });
       expect(error).not.toHaveProperty('logBody');
     }).pipe(Effect.runPromise));
->>>>>>> origin/sm/W-23839447
 
   it('validates source content before issuing a request', () =>
     Effect.gen(function* () {

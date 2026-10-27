@@ -97,7 +97,6 @@ const ApexDiagnosticSchema = Schema.Struct({
   className: optional(Schema.String)
 }).annotations({ identifier: 'ApexDiagnostic' });
 
-<<<<<<< HEAD
 const ApexTestDiagnosticSchema = Schema.Struct({
   lineNumber: optional(Schema.Number),
   columnNumber: optional(Schema.Number),
@@ -107,8 +106,6 @@ const ApexTestDiagnosticSchema = Schema.Struct({
   className: optional(Schema.String)
 }).annotations({ identifier: 'ApexTestDiagnostic' });
 
-=======
->>>>>>> origin/sm/W-23839447
 const ApexExecuteOptionsSchema = Schema.Struct({
   apexCode: Schema.String
 }).annotations({ identifier: 'ApexExecuteOptions' });
