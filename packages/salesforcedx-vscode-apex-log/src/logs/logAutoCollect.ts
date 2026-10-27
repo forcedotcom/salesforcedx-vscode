@@ -27,7 +27,6 @@ import { getExecAnonLogIds, saveLog } from './logStorage';
 
 type LogCursor = NonNullable<ListLogsOptions['cursor']>;
 
-const LOG_POLL_LIMIT = 500;
 // Re-query recent StartTimes in case a log becomes visible after its transaction completes.
 
 const cursorPollOptions = (cursor: LogCursor, filters: ListLogsOptions, lookbackStart: string): ListLogsOptions => {
@@ -185,7 +184,6 @@ const createCollectionStream = Effect.fn('LogAutoCollect.createCollectionStream'
     .streamLogs({
       // Timer replacement must not interrupt this poll's query, body retrieval, or storage.
       schedule: Schedule.recurs(0),
-      limit: LOG_POLL_LIMIT,
       pollOptions,
       filterLogs
     })

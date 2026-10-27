@@ -31,13 +31,13 @@ export class ApexLogService extends Effect.Service<ApexLogService>()('ApexLogSer
       Stream.succeed({ _tag: 'QueryError' as const, error });
 
     return {
-      listLogs: Effect.fn('ApexLogService.listLogs')((limit: number = 25, options?: ListLogsOptions) =>
+      listLogs: Effect.fn('ApexLogService.listLogs')((options?: ListLogsOptions) =>
         connectionService.getConnection().pipe(
-          Effect.flatMap(connection => listLogs(connection, limit, options)),
+          Effect.flatMap(connection => listLogs(connection, options)),
           Effect.catchTag('ApexLogQueryError', error => Effect.fail(refineSoqlError(error.soql, error.cause)))
         )
       ),
-      getLogBody: Effect.fn('ApexLogService.getLogBody')((logId: string) =>
+      getLogBody: Effect.fn('ApexLogService.getLogBody')((logId: Parameters<typeof getLogBody>[1]) =>
         connectionService.getConnection().pipe(Effect.flatMap(connection => getLogBody(connection, logId)))
       ),
       streamLogs: (options: StreamLogsOptions) =>

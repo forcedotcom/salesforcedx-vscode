@@ -773,6 +773,13 @@ export default [
     }
   },
   {
+    // New apex-node Effect code does not use TypeScript assertions.
+    files: ['packages/salesforcedx-apex/src/effect/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }]
+    }
+  },
+  {
     // Override header rules
     files: ['packages/salesforcedx-visualforce-language-server/**/*.ts'],
     rules: {

@@ -12,6 +12,9 @@ import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { type TestResult } from '../../src';
 import { writeAsyncResultsToFile } from '../../src/tests/asyncTests';
+import { salesforceId } from '../schemaHelpers';
+
+const asyncApexJobId = salesforceId('707000000000001AAA');
 
 describe('writeAsyncResultsToFile', () => {
   let tempDir: string;
@@ -53,7 +56,7 @@ describe('writeAsyncResultsToFile', () => {
         queueItemId: '709000000000001AAA',
         stackTrace: null as string | null,
         message: null as string | null,
-        asyncApexJobId: '707000000000001AAA',
+        asyncApexJobId,
         methodName: 'testAsyncMethod1',
         outcome: 'Pass',
         apexLogId: null as string | null,
@@ -72,7 +75,7 @@ describe('writeAsyncResultsToFile', () => {
         queueItemId: '709000000000002AAA',
         stackTrace: 'System.AssertException: Async test assertion failed',
         message: 'Async test failed',
-        asyncApexJobId: '707000000000001AAA',
+        asyncApexJobId,
         methodName: 'testAsyncMethod2',
         outcome: 'Fail',
         apexLogId: '07L000000000001AAA',
@@ -247,7 +250,7 @@ describe('writeAsyncResultsToFile', () => {
         queueItemId: `709000000000${i.toString().padStart(3, '0')}AAA`,
         stackTrace: i % 5 === 0 ? 'Stack trace for failed test' : (null as string | null),
         message: i % 5 === 0 ? 'Test failed' : (null as string | null),
-        asyncApexJobId: '707000000000001AAA',
+        asyncApexJobId,
         methodName: `testMethod${i}`,
         outcome: i % 5 === 0 ? 'Fail' : 'Pass',
         apexLogId: null as string | null,
@@ -354,7 +357,7 @@ describe('writeAsyncResultsToFile', () => {
           queueItemId: '709000000000001AAA',
           stackTrace: null as string | null,
           message: null as string | null,
-          asyncApexJobId: '707000000000001AAA',
+          asyncApexJobId,
           methodName: 'testWithNulls',
           outcome: 'Pass',
           apexLogId: null as string | null,

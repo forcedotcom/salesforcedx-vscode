@@ -14,6 +14,10 @@ export const SalesforceId = Schema.String.pipe(
 );
 export type SalesforceId = typeof SalesforceId.Type;
 
+/** Salesforce User record ID. */
+export const UserId = SalesforceId.pipe(Schema.startsWith('005'), Schema.brand('@salesforcedx-apex/UserId'));
+export type UserId = typeof UserId.Type;
+
 /** Salesforce ApexClass record ID. */
 export const ApexClassId = SalesforceId.pipe(Schema.startsWith('01p'), Schema.brand('@salesforcedx-apex/ApexClassId'));
 export type ApexClassId = typeof ApexClassId.Type;

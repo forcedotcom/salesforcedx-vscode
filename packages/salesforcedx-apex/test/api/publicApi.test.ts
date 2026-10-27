@@ -26,7 +26,8 @@ describe('@salesforce/apex-node public API', () => {
       'SalesforceId',
       'TapReporter',
       'TestRunId',
-      'TestService'
+      'TestService',
+      'UserId'
     ]);
   });
 
@@ -43,6 +44,7 @@ describe('@salesforce/apex-node public API', () => {
       'ExecuteAnonymousOutcomeSchema',
       'ListLogsOptionsSchema',
       'LogStreamEventSchema',
+      'QueryPageSchema',
       'causeMessage',
       'executeAnonymous',
       'getLogBody',

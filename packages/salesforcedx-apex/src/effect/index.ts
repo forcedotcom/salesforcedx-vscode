@@ -24,4 +24,5 @@ export {
   getLogBody,
   streamLogs
 } from './logs';
+export { QueryPageSchema } from './schema/queryPage';
 export type { ListLogsOptions, LogStreamEvent, StreamLogsOptions } from './logs';

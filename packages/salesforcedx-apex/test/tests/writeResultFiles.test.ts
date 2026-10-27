@@ -21,6 +21,9 @@ import {
   type CodeCoverageResult,
   type PerClassCoverage
 } from '../../src';
+import { salesforceId } from '../schemaHelpers';
+
+const asyncApexJobId = salesforceId('707000000000001AAA');
 
 describe('writeResultFiles', () => {
   let tempDir: string;
@@ -68,7 +71,7 @@ describe('writeResultFiles', () => {
         queueItemId: '709000000000001AAA',
         stackTrace: null as string | null,
         message: null as string | null,
-        asyncApexJobId: '707000000000001AAA',
+        asyncApexJobId,
         methodName: 'testMethod1',
         outcome: 'Pass',
         apexLogId: null as string | null,
@@ -87,7 +90,7 @@ describe('writeResultFiles', () => {
         queueItemId: '709000000000002AAA',
         stackTrace: 'System.AssertException: Assertion Failed',
         message: 'Test failed',
-        asyncApexJobId: '707000000000001AAA',
+        asyncApexJobId,
         methodName: 'testMethod2',
         outcome: 'Fail',
         apexLogId: '07L000000000001AAA',
@@ -117,8 +120,8 @@ describe('writeResultFiles', () => {
 
   const mockPerClassCoverage: PerClassCoverage = {
     apexClassOrTriggerName: 'TestClass1',
-    apexClassOrTriggerId: '01p000000000001AAA',
-    apexTestClassId: '01p000000000002AAA',
+    apexClassOrTriggerId: salesforceId('01p000000000001AAA'),
+    apexTestClassId: salesforceId('01p000000000002AAA'),
     apexTestMethodName: 'testMethod1',
     numLinesCovered: 5,
     numLinesUncovered: 2,

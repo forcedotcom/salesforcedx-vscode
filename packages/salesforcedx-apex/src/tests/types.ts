@@ -6,6 +6,7 @@
  */
 
 import * as Schema from 'effect/Schema';
+import { SalesforceId } from '../schemas/salesforceId';
 
 /**
  * Specifies which Apex tests run.
@@ -359,8 +360,8 @@ const ApexDiagnosticSchema = Schema.Struct({
 
 const PerClassCoverageSchema = Schema.Struct({
   apexClassOrTriggerName: Schema.String,
-  apexClassOrTriggerId: Schema.String,
-  apexTestClassId: Schema.String,
+  apexClassOrTriggerId: SalesforceId,
+  apexTestClassId: SalesforceId,
   apexTestMethodName: Schema.String,
   numLinesCovered: Schema.Number,
   numLinesUncovered: Schema.Number,
@@ -380,8 +381,8 @@ const ApexTestResultDataSchema = Schema.Struct({
   stackTrace: Schema.NullOr(Schema.String),
   /** The exception error message if a test failure occurs; otherwise, null. */
   message: Schema.NullOr(Schema.String),
-  /** Points to the AsyncApexJob that represents the entire test run. */
-  asyncApexJobId: Schema.String,
+  /** Points to the AsyncApexJob for asynchronous runs; empty for synchronous runs. */
+  asyncApexJobId: Schema.Union(Schema.Literal(''), SalesforceId),
   /** The name of the test method. */
   methodName: Schema.String,
   /** The result of the test. */
@@ -422,7 +423,7 @@ const ApexTestSetupDataSchema = Schema.Struct({
   id: Schema.String,
   stackTrace: Schema.NullOr(Schema.String),
   message: Schema.NullOr(Schema.String),
-  asyncApexJobId: Schema.String,
+  asyncApexJobId: SalesforceId,
   methodName: Schema.String,
   apexLogId: Schema.NullOr(Schema.String),
   apexClass: Schema.Struct({

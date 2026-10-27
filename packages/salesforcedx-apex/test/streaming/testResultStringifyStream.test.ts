@@ -8,6 +8,10 @@ import { once } from 'node:events';
 import { TestResultStringifyStream } from '../../src/streaming';
 import { type CodeCoverageResult, type TestResult } from '../../src/tests';
 import { type PerClassCoverage } from '../../src/tests/types';
+import { salesforceId } from '../schemaHelpers';
+
+const firstAsyncApexJobId = salesforceId('707000000000001AAA');
+const secondAsyncApexJobId = salesforceId('707000000000002AAA');
 
 const tests: TestResult['tests'] = [
   {
@@ -15,7 +19,7 @@ const tests: TestResult['tests'] = [
     queueItemId: 'queueItemId1',
     stackTrace: null,
     message: null,
-    asyncApexJobId: 'asyncApexJobId1',
+    asyncApexJobId: firstAsyncApexJobId,
     methodName: 'testMethod1',
     outcome: 'Pass',
     apexLogId: null,
@@ -35,7 +39,7 @@ const tests: TestResult['tests'] = [
     queueItemId: 'queueItemId2',
     stackTrace: 'Exception in thread "main" java.lang.NullPointerException',
     message: 'Null pointer exception',
-    asyncApexJobId: 'asyncApexJobId2',
+    asyncApexJobId: secondAsyncApexJobId,
     methodName: 'testMethod2',
     outcome: 'Fail',
     apexLogId: 'logId2',
@@ -54,8 +58,8 @@ const tests: TestResult['tests'] = [
 const perClassCoverageData: PerClassCoverage[] = [
   {
     apexClassOrTriggerName: tests[0].apexClass.name,
-    apexClassOrTriggerId: tests[0].apexClass.id,
-    apexTestClassId: tests[0].id,
+    apexClassOrTriggerId: salesforceId('01p000000000001AAA'),
+    apexTestClassId: salesforceId('01p000000000003AAA'),
     apexTestMethodName: tests[0].methodName,
     numLinesCovered: 80,
     numLinesUncovered: 20,
@@ -67,8 +71,8 @@ const perClassCoverageData: PerClassCoverage[] = [
   },
   {
     apexClassOrTriggerName: tests[1].apexClass.name,
-    apexClassOrTriggerId: tests[1].apexClass.id,
-    apexTestClassId: tests[1].id,
+    apexClassOrTriggerId: salesforceId('01p000000000002AAA'),
+    apexTestClassId: salesforceId('01p000000000004AAA'),
     apexTestMethodName: tests[1].methodName,
     numLinesCovered: 60,
     numLinesUncovered: 40,

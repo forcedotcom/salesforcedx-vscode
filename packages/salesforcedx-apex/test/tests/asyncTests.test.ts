@@ -730,6 +730,7 @@ describe('Run Apex tests asynchronously', () => {
             Id: '01pxx00000O6tXZQAZ',
             Name: 'TestLogger'
           },
+          ApexTestClassId: '01pxx00000NnP2KQAV',
           NumLinesCovered: 10,
           NumLinesUncovered: 5,
           PercentCovered: '57',

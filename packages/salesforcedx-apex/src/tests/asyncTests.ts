@@ -18,7 +18,7 @@ import { pipeline } from 'node:stream/promises';
 import * as util from 'node:util';
 import { type CancellationToken, type Progress } from '../common';
 import { nls } from '../i18n';
-import { TestRunId } from '../schemas/salesforceId';
+import { SalesforceId, TestRunId } from '../schemas/salesforceId';
 import { type AsyncTestRun, StreamingClient } from '../streaming';
 import { elapsedTime, formatStartTime, getCurrentTime, HeapMonitor } from '../utils';
 import { CodeCoverage } from './codeCoverage';
@@ -316,12 +316,17 @@ export class AsyncTests {
           return {
             testsComplete: true,
             testRunSummary: {
-              AsyncApexJobId: testRunId as string,
+              AsyncApexJobId: testRunId,
+              ClassesCompleted: 0,
+              ClassesEnqueued: 0,
+              MethodsEnqueued: 0,
               Status: 'Aborted',
               StartTime: new Date().toISOString(),
+              EndTime: undefined,
               TestTime: 0,
+              TestSetupTime: undefined,
               UserId: ''
-            } as ApexTestRunResult
+            }
           };
         }
         throw new Error(
@@ -519,7 +524,7 @@ export class AsyncTests {
             queueItemId: item.QueueItemId,
             stackTrace: item.StackTrace,
             message: item.Message,
-            asyncApexJobId: item.AsyncApexJobId,
+            asyncApexJobId: Schema.decodeUnknownSync(SalesforceId)(item.AsyncApexJobId),
             methodName: item.MethodName,
             outcome: item.Outcome,
             apexLogId: item.ApexLogId,

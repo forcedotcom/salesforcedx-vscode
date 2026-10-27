@@ -14,6 +14,9 @@ import { type Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { writeResultFiles } from '../../src/tests/testService';
 import { type TestResult, type OutputDirConfig, type CodeCoverageResult, type PerClassCoverage } from '../../src';
+import { salesforceId } from '../schemaHelpers';
+
+const asyncApexJobId = salesforceId('707000000000001AAA');
 
 describe('writeResultFiles - Snapshot Tests', () => {
   let tempDir: string;
@@ -68,7 +71,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
         queueItemId: '709000000000001AAA',
         stackTrace: null as string | null,
         message: null as string | null,
-        asyncApexJobId: '707000000000001AAA',
+        asyncApexJobId,
         methodName: 'testSnapshotMethod1',
         outcome: 'Pass',
         apexLogId: null as string | null,
@@ -87,7 +90,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
         queueItemId: '709000000000002AAA',
         stackTrace: 'System.AssertException: Snapshot test assertion failed',
         message: 'Snapshot test failed with detailed error message',
-        asyncApexJobId: '707000000000001AAA',
+        asyncApexJobId,
         methodName: 'testSnapshotMethod2',
         outcome: 'Fail',
         apexLogId: '07L000000000001AAA',
@@ -106,7 +109,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
         queueItemId: '709000000000003AAA',
         stackTrace: null as string | null,
         message: null as string | null,
-        asyncApexJobId: '707000000000001AAA',
+        asyncApexJobId,
         methodName: 'testSnapshotMethod3',
         outcome: 'Pass',
         apexLogId: null as string | null,
@@ -136,8 +139,8 @@ describe('writeResultFiles - Snapshot Tests', () => {
 
   const mockPerClassCoverage: PerClassCoverage = {
     apexClassOrTriggerName: 'SnapshotTestClass1',
-    apexClassOrTriggerId: '01p000000000001AAA',
-    apexTestClassId: '01p000000000002AAA',
+    apexClassOrTriggerId: salesforceId('01p000000000001AAA'),
+    apexTestClassId: salesforceId('01p000000000002AAA'),
     apexTestMethodName: 'testSnapshotMethod1',
     numLinesCovered: 8,
     numLinesUncovered: 2,

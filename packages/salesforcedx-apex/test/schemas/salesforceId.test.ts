@@ -6,7 +6,7 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { ApexClassId, SalesforceId, TestRunId } from '../../src/schemas/salesforceId';
+import { ApexClassId, SalesforceId, TestRunId, UserId } from '../../src/schemas/salesforceId';
 
 describe('Salesforce ID schemas', () => {
   it('accepts 15- and 18-character alphanumeric Salesforce IDs', () => {
@@ -19,6 +19,12 @@ describe('Salesforce ID schemas', () => {
   it('accepts only IDs with the ApexClass prefix', () => {
     expect(Schema.is(ApexClassId)('01p2M00000O6tXZQAZ')).toBe(true);
     expect(Schema.is(ApexClassId)('707xx0000AGQ3jbQQD')).toBe(false);
+  });
+
+  it('accepts only IDs with the User prefix', () => {
+    expect(Schema.is(UserId)('005xx0000000001')).toBe(true);
+    expect(Schema.is(UserId)('01p2M00000O6tXZQAZ')).toBe(false);
+    expect(Schema.is(UserId)('005xx000000')).toBe(false);
   });
 
   it('accepts only IDs with the test run prefix', () => {

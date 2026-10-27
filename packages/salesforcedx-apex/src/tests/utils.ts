@@ -13,6 +13,7 @@ import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { type Progress } from '../common';
 import { nls } from '../i18n';
+import { SalesforceId } from '../schemas/salesforceId';
 import {
   type ApexTestProgressValue,
   type ApexTestResultData,
@@ -183,7 +184,7 @@ const transformToApexTestSetupData = (testData: Omit<ApexTestResultDataRaw, 'isT
     id: testData.id,
     stackTrace: testData.stackTrace ?? null,
     message: testData.message ?? null,
-    asyncApexJobId: testData.asyncApexJobId,
+    asyncApexJobId: Schema.decodeUnknownSync(SalesforceId)(testData.asyncApexJobId),
     methodName: testData.methodName,
     apexLogId: testData.apexLogId ?? null,
     apexClass: testData.apexClass,

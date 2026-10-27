@@ -127,11 +127,28 @@
       "type": "object",
       "required": ["Id", "LogLength", "StartTime", "Status"],
       "properties": {
-        "Id": { "type": "string" },
+        "Id": {
+          "type": "string",
+          "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
+          "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+        },
         "Application": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
         "DurationMilliseconds": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
         "LogLength": { "type": "number" },
-        "LogUserId": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "LogUserId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "description": "a string starting with \"005\"",
+              "pattern": "^005",
+              "title": "startsWith(\"005\")",
+              "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+            },
+            { "type": "null" }
+          ],
+          "title": "startsWith(\"005\")",
+          "description": "a string starting with \"005\""
+        },
         "LogUser": {
           "anyOf": [
             {
@@ -148,6 +165,23 @@
         "Status": { "type": "string" }
       },
       "additionalProperties": false
+    },
+    "ApexLogPage": {
+      "type": "object",
+      "required": ["totalSize"],
+      "properties": {
+        "totalSize": { "type": "number" },
+        "done": { "type": "boolean" },
+        "nextRecordsUrl": { "$ref": "#/$defs/NonEmptyString" },
+        "records": { "type": "array", "items": { "$ref": "#/$defs/ApexLogListItem" } }
+      },
+      "additionalProperties": false
+    },
+    "NonEmptyString": {
+      "type": "string",
+      "description": "a non empty string",
+      "title": "nonEmptyString",
+      "minLength": 1
     },
     "ApexLogQueryError": {
       "type": "object",
@@ -174,14 +208,29 @@
       "type": "object",
       "required": [],
       "properties": {
-        "userId": { "type": "string" },
-        "userIds": { "type": "array", "items": { "type": "string" } },
+        "userIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "a string starting with \"005\"",
+            "pattern": "^005",
+            "title": "startsWith(\"005\")",
+            "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+          }
+        },
         "operationContains": { "type": "string" },
         "startTimeAfter": { "type": "string" },
         "cursor": {
           "type": "object",
           "required": ["startTime"],
-          "properties": { "startTime": { "type": "string" }, "id": { "type": "string" } },
+          "properties": {
+            "startTime": { "type": "string" },
+            "id": {
+              "type": "string",
+              "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
+              "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+            }
+          },
           "additionalProperties": false
         },
         "orderBy": { "type": "string", "enum": ["ASC", "DESC"] }
@@ -302,7 +351,16 @@
         "queueItemId": { "type": "string" },
         "stackTrace": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
         "message": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
-        "asyncApexJobId": { "type": "string" },
+        "asyncApexJobId": {
+          "anyOf": [
+            { "type": "string", "enum": [""] },
+            {
+              "type": "string",
+              "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
+              "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+            }
+          ]
+        },
         "methodName": { "type": "string" },
         "outcome": { "$ref": "#/$defs/ApexTestResultOutcome" },
         "apexLogId": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
@@ -340,8 +398,16 @@
       ],
       "properties": {
         "apexClassOrTriggerName": { "type": "string" },
-        "apexClassOrTriggerId": { "type": "string" },
-        "apexTestClassId": { "type": "string" },
+        "apexClassOrTriggerId": {
+          "type": "string",
+          "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
+          "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+        },
+        "apexTestClassId": {
+          "type": "string",
+          "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
+          "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+        },
         "apexTestMethodName": { "type": "string" },
         "numLinesCovered": { "type": "number" },
         "numLinesUncovered": { "type": "number" },
@@ -379,7 +445,16 @@
         "queueItemId": { "type": "string" },
         "stackTrace": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
         "message": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
-        "asyncApexJobId": { "type": "string" },
+        "asyncApexJobId": {
+          "anyOf": [
+            { "type": "string", "enum": [""] },
+            {
+              "type": "string",
+              "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
+              "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+            }
+          ]
+        },
         "methodName": { "type": "string" },
         "outcome": { "$ref": "#/$defs/ApexTestResultOutcome" },
         "apexLogId": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
@@ -426,7 +501,11 @@
         "id": { "type": "string" },
         "stackTrace": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
         "message": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
-        "asyncApexJobId": { "type": "string" },
+        "asyncApexJobId": {
+          "type": "string",
+          "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
+          "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+        },
         "methodName": { "type": "string" },
         "apexLogId": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
         "apexClass": {
@@ -827,6 +906,7 @@
     { "$ref": "#/$defs/ApexExecuteOptions" },
     { "$ref": "#/$defs/ApexLogGetOptions" },
     { "$ref": "#/$defs/ApexLogListItem" },
+    { "$ref": "#/$defs/ApexLogPage" },
     { "$ref": "#/$defs/ApexLogQueryError" },
     { "$ref": "#/$defs/ApexLogBodyFetchError" },
     { "$ref": "#/$defs/ListLogsOptions" },

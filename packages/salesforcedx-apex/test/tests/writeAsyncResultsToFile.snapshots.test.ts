@@ -12,6 +12,9 @@ import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { type TestResult } from '../../src';
 import { writeAsyncResultsToFile } from '../../src/tests/asyncTests';
+import { salesforceId } from '../schemaHelpers';
+
+const asyncApexJobId = salesforceId('707000000000001AAA');
 
 describe('writeAsyncResultsToFile - Snapshot Tests', () => {
   let tempDir: string;
@@ -53,7 +56,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
         queueItemId: '709000000000001AAA',
         stackTrace: null as string | null,
         message: null as string | null,
-        asyncApexJobId: '707000000000001AAA',
+        asyncApexJobId,
         methodName: 'testAsyncSnapshotMethod1',
         outcome: 'Pass',
         apexLogId: null as string | null,
@@ -72,7 +75,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
         queueItemId: '709000000000002AAA',
         stackTrace: 'System.AsyncException: Async operation failed\\nLine 15: someMethod()\\nLine 23: anotherMethod()',
         message: 'Async test failed with complex error details',
-        asyncApexJobId: '707000000000001AAA',
+        asyncApexJobId,
         methodName: 'testAsyncSnapshotMethod2',
         outcome: 'Fail',
         apexLogId: '07L000000000001AAA',
@@ -91,7 +94,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
         queueItemId: '709000000000003AAA',
         stackTrace: null as string | null,
         message: null as string | null,
-        asyncApexJobId: '707000000000001AAA',
+        asyncApexJobId,
         methodName: 'testAsyncSnapshotMethod3',
         outcome: 'Pass',
         apexLogId: null as string | null,
@@ -110,7 +113,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
         queueItemId: '709000000000004AAA',
         stackTrace: null as string | null,
         message: null as string | null,
-        asyncApexJobId: '707000000000001AAA',
+        asyncApexJobId,
         methodName: 'testAsyncSnapshotMethod4',
         outcome: 'Pass',
         apexLogId: null as string | null,
@@ -155,7 +158,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
           queueItemId: '709000000000001AAA',
           stackTrace: null as string | null,
           message: null as string | null,
-          asyncApexJobId: '707000000000001AAA',
+          asyncApexJobId,
           methodName: 'testWithNullValues',
           outcome: 'Pass',
           apexLogId: null as string | null,

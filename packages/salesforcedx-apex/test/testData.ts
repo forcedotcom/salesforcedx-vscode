@@ -12,6 +12,7 @@ import {
   type SyncTestResult,
   type TestResult
 } from '../src/tests/types';
+import { salesforceId } from './schemaHelpers';
 
 export const syncTestResultSimple: SyncTestResult = {
   apexLogId: '07Lxx00000cxy6YUAQ',
@@ -88,6 +89,8 @@ export const syncTestResultWithFailures: SyncTestResult = {
 export const testStartTime = '2020-11-09T18:02:50.000+0000';
 const localStartTime = new Date(testStartTime).toISOString();
 export const testRunId = '707xx0000AGQ3jbQQD';
+const asyncApexJobId = salesforceId(testRunId);
+const secondAsyncApexJobId = salesforceId('7092M000000Vt94QAC');
 
 export const syncResult: TestResult = {
   summary: {
@@ -158,7 +161,7 @@ export const testResultData: TestResult = {
       queueItemId: '7092M000000Vt94QAC',
       stackTrace: null as unknown as string,
       message: null as unknown as string,
-      asyncApexJobId: testRunId,
+      asyncApexJobId,
       methodName: 'testLoggerLog',
       outcome: 'Pass',
       apexLogId: null,
@@ -202,7 +205,7 @@ export const flowTestResultData: TestResult = {
       queueItemId: '7092M000000Vt94QAC',
       stackTrace: '',
       message: '',
-      asyncApexJobId: '7092M000000Vt94QAC',
+      asyncApexJobId: secondAsyncApexJobId,
       category: 'Flow',
       methodName: 'FlowName_FlowTestName',
       outcome: 'Pass',
@@ -248,7 +251,7 @@ export const missingTimeTestData: TestResult = {
       queueItemId: '7092M000000Vt94QAC',
       stackTrace: null as unknown as string,
       message: null as unknown as string,
-      asyncApexJobId: testRunId,
+      asyncApexJobId,
       category: 'Apex',
       methodName: 'testLoggerLog',
       outcome: 'Pass',
@@ -294,7 +297,7 @@ export const skippedTestData: TestResult = {
       queueItemId: '7092M000000Vt94QAC',
       stackTrace: null as unknown as string,
       message: null as unknown as string,
-      asyncApexJobId: testRunId,
+      asyncApexJobId,
       category: 'Apex',
       methodName: 'testLoggerLog',
       outcome: 'Skip',
@@ -342,7 +345,7 @@ export const diagnosticResult: TestResult = {
       queueItemId: '7092M000000Vt94QAC',
       stackTrace: 'Class.LIFXControllerTest.makeData: line 6, column 1',
       message: 'System.AssertException: Assertion Failed',
-      asyncApexJobId: testRunId,
+      asyncApexJobId,
       category: 'Apex',
       methodName: 'testLoggerLog',
       outcome: 'Fail',
@@ -379,7 +382,7 @@ export const diagnosticFailure: TestResult = {
       queueItemId: '7092M000000Vt94QAC',
       stackTrace: 'Class.LIFXControllerTest.makeData',
       message: 'System.AssertException: Assertion Failed',
-      asyncApexJobId: testRunId,
+      asyncApexJobId,
       category: 'Apex',
       methodName: 'testLoggerLog',
       outcome: 'Fail',
@@ -503,7 +506,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     Message: null,
     RunTime: 615,
     TestTimestamp: '2020-08-18T02:04:51.000+0000',
-    AsyncApexJobId: '707xxM0000ASIPB5QQP',
+    AsyncApexJobId: testRunId,
     MethodName: 'testAssignOnInsert',
     Outcome: 'Pass',
     ApexLogId: null,

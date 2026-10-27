@@ -29,6 +29,9 @@ import { URI } from 'vscode-uri';
 import { createLogAutoCollect } from '../../src/logs/logAutoCollect';
 import { CurrentTraceFlags, KnownLogIdsRef, LogCollectorStateRef } from '../../src/services/apexLogState';
 
+const userOne = '005000000000001AAA';
+const userTwo = '005000000000002AAA';
+
 const traceFlag = (tracedEntityId: string, startDate: string): TraceFlagItem => ({
   id: `trace-${tracedEntityId}`,
   tracedEntityId,
@@ -37,8 +40,10 @@ const traceFlag = (tracedEntityId: string, startDate: string): TraceFlagItem => 
   logType: 'DEVELOPER_LOG',
   isActive: true
 });
-const log = (Id: string, LogUserId = '005one', StartTime = '2026-10-23T12:00:00.000Z') => ({
-  Id,
+const logId = (id: string): string =>
+  id.length === 15 || id.length === 18 ? id : `07L${id.replace(/^07L/u, '').padStart(15, '0')}`;
+const log = (Id: string, LogUserId = userOne, StartTime = '2026-10-23T12:00:00.000Z') => ({
+  Id: logId(Id),
   LogUserId,
   StartTime,
   LogLength: 10,
@@ -48,8 +53,8 @@ const log = (Id: string, LogUserId = '005one', StartTime = '2026-10-23T12:00:00.
 const setup = Effect.gen(function* () {
   const targetOrgRef = yield* SubscriptionRef.make<{ orgId?: string }>({ orgId: '00Done' });
   const traceFlagsRef = yield* SubscriptionRef.make([
-    traceFlag('005one', '2026-10-23T10:00:00.000Z'),
-    traceFlag('005two', '2026-10-23T11:00:00.000Z')
+    traceFlag(userOne, '2026-10-23T10:00:00.000Z'),
+    traceFlag(userTwo, '2026-10-23T11:00:00.000Z')
   ]);
   const knownIdsRef = yield* Ref.make(HashSet.empty<string>());
   const collectorRef = yield* SubscriptionRef.make({ isCollecting: false, collectedCount: 0 });
@@ -99,7 +104,8 @@ const setup = Effect.gen(function* () {
       getWorkspaceInfoOrThrow: () => Effect.succeed({ uri: URI.file('/project') })
     } as unknown as WorkspaceService),
     Effect.provideService(FsService, {
-      readDirectory: () => Effect.succeed([URI.file('/project/execute-anonymous-2026-10-23T12-00-00-07Lexec')]),
+      readDirectory: () =>
+        Effect.succeed([URI.file(`/project/execute-anonymous-2026-10-23T12-00-00-${log('07Lexec').Id}`)]),
       isDirectory: () => Effect.succeed(true),
       writeFile
     } as unknown as FsService),
@@ -126,8 +132,8 @@ describe('log auto collection', () => {
           query.mockResolvedValue({
             totalSize: 4,
             records: [
-              log('07Lold', '005one', '2026-10-23T09:00:00.000Z'),
-              log('07Learly', '005two', '2026-10-23T10:30:00.000Z'),
+              log('07Lold', userOne, '2026-10-23T09:00:00.000Z'),
+              log('07Learly', userTwo, '2026-10-23T10:30:00.000Z'),
               log('07Lexec'),
               log('07Lgood')
             ]
@@ -136,13 +142,13 @@ describe('log auto collection', () => {
           yield* Effect.promise(() =>
             vi.waitFor(() =>
               expect(writeFile).toHaveBeenCalledWith(
-                expect.objectContaining({ path: '/project/.sfdx/tools/debug/logs/07Lgood.log' }),
+                expect.objectContaining({ path: `/project/.sfdx/tools/debug/logs/${log('07Lgood').Id}.log` }),
                 'body'
               )
             )
           );
           expect(query.mock.calls[0][0]).toContain(
-            "WHERE LogUserId IN ('005one','005two') AND StartTime >= 2026-10-23T10:00:00.000Z ORDER BY StartTime ASC, Id ASC LIMIT 500"
+            `WHERE LogUserId IN ('${userOne}','${userTwo}') AND StartTime >= 2026-10-23T10:00:00.000Z ORDER BY StartTime ASC, Id ASC`
           );
           yield* advance(3);
           expect(query.mock.calls.length).toBeGreaterThan(1);
@@ -186,17 +192,39 @@ describe('log auto collection', () => {
         Effect.gen(function* () {
           const { query, advance } = yield* setup;
           const startTime = new Date(Date.now() - 120_000).toISOString();
-          query.mockResolvedValue({ totalSize: 1, records: [log('07Lcursor', '005one', startTime)] });
+          query.mockResolvedValue({ totalSize: 1, records: [log('07Lcursor', userOne, startTime)] });
 
           yield* advance(1);
           yield* Effect.promise(() => vi.waitFor(() => expect(query).toHaveBeenCalledTimes(1)));
           yield* advance(1);
           yield* Effect.promise(() => vi.waitFor(() => expect(query).toHaveBeenCalledTimes(2)));
 
-          expect(query.mock.calls[0][0]).toContain('ORDER BY StartTime ASC, Id ASC LIMIT 500');
+          expect(query.mock.calls[0][0]).toContain('ORDER BY StartTime ASC, Id ASC');
+          expect(query.mock.calls[0][0]).not.toContain(' LIMIT ');
           expect(query.mock.calls[1][0]).toContain(
-            `StartTime > ${startTime} OR (StartTime = ${startTime} AND Id > '07Lcursor')`
+            `StartTime > ${startTime} OR (StartTime = ${startTime} AND Id > '${log('07Lcursor').Id}')`
           );
+        })
+      ).pipe(Effect.provide(TestContext.TestContext))
+    );
+  });
+
+  it('collects more than 500 logs without a SOQL result cap', async () => {
+    await Effect.runPromise(
+      Effect.scoped(
+        Effect.gen(function* () {
+          const { query, writeFile, advance } = yield* setup;
+          const startTime = new Date().toISOString();
+          const logs = Array.from({ length: 503 }, (_, index) =>
+            log(`07L${String(index).padStart(12, '0')}`, userOne, startTime)
+          );
+          query.mockResolvedValue({ totalSize: logs.length, records: logs });
+          yield* advance(1);
+          yield* Effect.promise(() =>
+            vi.waitFor(() => expect(writeFile).toHaveBeenCalledTimes(logs.length), { timeout: 5000 })
+          );
+          expect(query).toHaveBeenCalledTimes(1);
+          expect(query.mock.calls[0][0]).not.toContain(' LIMIT ');
         })
       ).pipe(Effect.provide(TestContext.TestContext))
     );
@@ -212,13 +240,13 @@ describe('log auto collection', () => {
           );
           yield* advance(1);
           yield* Effect.promise(() => vi.waitFor(() => expect(request).toHaveBeenCalledTimes(1)));
-          yield* Ref.set(knownIdsRef, HashSet.make('07Lgood'));
+          yield* Ref.set(knownIdsRef, HashSet.make(log('07Lgood').Id));
           yield* SubscriptionRef.set(targetOrgRef, { orgId: '00Dtwo' });
           yield* advance(1);
           yield* Effect.promise(() =>
             vi.waitFor(() =>
               expect(writeFile).toHaveBeenCalledWith(
-                expect.objectContaining({ path: '/project/.sfdx/tools/debug/logs/07Lgood.log' }),
+                expect.objectContaining({ path: `/project/.sfdx/tools/debug/logs/${log('07Lgood').Id}.log` }),
                 'new org body'
               )
             )
@@ -281,7 +309,9 @@ describe('log auto collection', () => {
           yield* advance(2);
           yield* Deferred.succeed(finish, 'body');
           yield* Effect.promise(() =>
-            vi.waitFor(() => expect(Effect.runSync(Ref.get(knownIdsRef)).pipe(HashSet.has('07Lgood'))).toBe(true))
+            vi.waitFor(() =>
+              expect(Effect.runSync(Ref.get(knownIdsRef)).pipe(HashSet.has(log('07Lgood').Id))).toBe(true)
+            )
           );
           expect(writeFile).toHaveBeenCalledTimes(1);
           expect(request).toHaveBeenCalledTimes(1);

@@ -5,46 +5,47 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type {
-  ApexCodeCoverage,
-  ApexCodeCoverageAggregate,
-  ApexCodeCoverageAggregateRecord,
-  ApexCodeCoverageRecord,
-  ApexDiagnostic,
-  ApexExecuteOptions,
-  ApexLogGetOptions,
-  ApexTestProgressValue,
-  ApexTestQueueItem,
-  ApexTestQueueItemRecord,
-  ApexTestQueueItemStatus,
-  ApexTestResultData,
-  ApexTestResultDataRaw,
-  ApexTestResultOutcome,
-  ApexTestRunResultStatus,
-  ApexTestSetupData,
-  AsyncTestArrayConfiguration,
-  AsyncTestConfiguration,
-  CodeCoverageResult,
-  CommonOptions,
-  ExecuteAnonymousResponse,
-  LogLevel,
-  LogRecord,
-  LogResult,
-  OutputDirConfig,
-  PerClassCoverage,
-  ResultFormat,
-  SyncTestConfiguration,
-  TestItem,
-  TestLevel,
-  TestResult,
-  TestResultRaw,
-  TestRunIdResult
-} from '../src';
 import * as JSONSchema from 'effect/JSONSchema';
 import * as Schema from 'effect/Schema';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import * as Prettier from 'prettier';
+import {
+  SalesforceId,
+  type ApexCodeCoverage,
+  type ApexCodeCoverageAggregate,
+  type ApexCodeCoverageAggregateRecord,
+  type ApexCodeCoverageRecord,
+  type ApexDiagnostic,
+  type ApexExecuteOptions,
+  type ApexLogGetOptions,
+  type ApexTestProgressValue,
+  type ApexTestQueueItem,
+  type ApexTestQueueItemRecord,
+  type ApexTestQueueItemStatus,
+  type ApexTestResultData,
+  type ApexTestResultDataRaw,
+  type ApexTestResultOutcome,
+  type ApexTestRunResultStatus,
+  type ApexTestSetupData,
+  type AsyncTestArrayConfiguration,
+  type AsyncTestConfiguration,
+  type CodeCoverageResult,
+  type CommonOptions,
+  type ExecuteAnonymousResponse,
+  type LogLevel,
+  type LogRecord,
+  type LogResult,
+  type OutputDirConfig,
+  type PerClassCoverage,
+  type ResultFormat,
+  type SyncTestConfiguration,
+  type TestItem,
+  type TestLevel,
+  type TestResult,
+  type TestResultRaw,
+  type TestRunIdResult
+} from '../src';
 import {
   ApexCompileError,
   ApexLogListItem,
@@ -57,6 +58,7 @@ import {
   ExecuteAnonymousOptionsSchema,
   ExecuteAnonymousOutcomeSchema
 } from '../src/effect';
+import { ApexLogPageSchema } from '../src/effect/schema/wire/logs';
 
 const optional = Schema.optional;
 const StringArray = Schema.Array(Schema.String);
@@ -220,8 +222,8 @@ const ApexCodeCoverageAggregateSchema = Schema.Struct({
 
 const PerClassCoverageSchema = Schema.Struct({
   apexClassOrTriggerName: Schema.String,
-  apexClassOrTriggerId: Schema.String,
-  apexTestClassId: Schema.String,
+  apexClassOrTriggerId: SalesforceId,
+  apexTestClassId: SalesforceId,
   apexTestMethodName: Schema.String,
   numLinesCovered: Schema.Number,
   numLinesUncovered: Schema.Number,
@@ -265,7 +267,7 @@ const ApexTestResultDataSchema = Schema.Struct({
   queueItemId: Schema.String,
   stackTrace: Schema.NullOr(Schema.String),
   message: Schema.NullOr(Schema.String),
-  asyncApexJobId: Schema.String,
+  asyncApexJobId: Schema.Union(Schema.Literal(''), SalesforceId),
   methodName: Schema.String,
   outcome: ApexTestResultOutcomeSchema,
   apexLogId: Schema.NullOr(Schema.String),
@@ -287,7 +289,7 @@ const ApexTestSetupDataSchema = Schema.Struct({
   id: Schema.String,
   stackTrace: Schema.NullOr(Schema.String),
   message: Schema.NullOr(Schema.String),
-  asyncApexJobId: Schema.String,
+  asyncApexJobId: SalesforceId,
   methodName: Schema.String,
   apexLogId: Schema.NullOr(Schema.String),
   apexClass: ApexClassSchema,
@@ -406,6 +408,7 @@ const PublicApiSchema = Schema.Union(
   ApexExecuteOptionsSchema,
   ApexLogGetOptionsSchema,
   ApexLogListItem,
+  ApexLogPageSchema,
   ApexLogQueryError,
   ApexLogBodyFetchError,
   ListLogsOptionsSchema,
