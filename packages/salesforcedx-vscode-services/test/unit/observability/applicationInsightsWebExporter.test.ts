@@ -27,6 +27,11 @@ const span = {
 } as unknown as ReadableSpan;
 
 describe('ApplicationInsightsWebExporter', () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.restoreAllMocks();
+  });
+
   it('does not construct or dispose a reporter before a valid send', async () => {
     const reporter = { dispose: vi.fn().mockResolvedValue(undefined) };
     const makeReporter = vi.fn(() => reporter);
@@ -84,5 +89,30 @@ describe('ApplicationInsightsWebExporter', () => {
       expect.anything(),
       expect.objectContaining({ executionTime: 50, duration: 50 })
     );
+  });
+
+  it('posts local web events with an absolute native fetch URL', async () => {
+    vi.stubEnv('ESBUILD_WEB_LOCAL', '1');
+    const fetch = vi.spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 200 }));
+    const makeReporter = vi.fn();
+    const exporter = new ApplicationInsightsWebExporter(makeReporter as never);
+
+    await new Promise<void>(resolve =>
+      exporter.export([span], result => {
+        expect(result.code).toBe(ExportResultCode.SUCCESS);
+        resolve();
+      })
+    );
+
+    expect(fetch).toHaveBeenCalledWith(
+      'http://localhost:3003/v2.1/track',
+      expect.objectContaining({ method: 'POST', headers: { 'Content-Type': 'application/json' } })
+    );
+    expect(JSON.parse(String(fetch.mock.calls[0]?.[1]?.body))).toMatchObject({
+      name: 'web-span',
+      eventType: 'event'
+    });
+    expect(makeReporter).not.toHaveBeenCalled();
+    await exporter.shutdown();
   });
 });
