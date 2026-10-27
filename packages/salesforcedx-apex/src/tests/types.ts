@@ -26,12 +26,10 @@ import {
  * - `RunAllTestsInOrg`: all local and managed-package tests
  * - `RunSpecifiedTests`: only explicitly selected tests
  */
-export const TestLevel = {
-  RunLocalTests: 'RunLocalTests',
-  RunAllTestsInOrg: 'RunAllTestsInOrg',
-  RunSpecifiedTests: 'RunSpecifiedTests'
-} as const;
-export type TestLevel = (typeof TestLevel)[keyof typeof TestLevel];
+export const TestLevel = Schema.Literal('RunLocalTests', 'RunAllTestsInOrg', 'RunSpecifiedTests').annotations({
+  identifier: 'TestLevel'
+});
+export type TestLevel = typeof TestLevel.Type;
 
 /** Test implementation category. */
 export const TestCategorySchema = Schema.Literal('Apex', 'Flow');
@@ -78,15 +76,10 @@ export type AsyncTestConfiguration = {
   category?: string[];
 };
 
-export const ResultFormat = {
-  junit: 'junit',
-  tap: 'tap',
-  json: 'json',
-  human: 'human',
-  markdown: 'markdown',
-  text: 'text'
-} as const;
-export type ResultFormat = (typeof ResultFormat)[keyof typeof ResultFormat];
+export const ResultFormat = Schema.Literal('junit', 'tap', 'json', 'human', 'markdown', 'text').annotations({
+  identifier: 'ResultFormat'
+});
+export type ResultFormat = typeof ResultFormat.Type;
 
 export type OutputDirConfig = {
   dirPath: string;

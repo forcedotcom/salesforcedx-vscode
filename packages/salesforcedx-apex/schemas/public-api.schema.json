@@ -756,7 +756,7 @@
       "type": "object",
       "required": ["testLevel"],
       "properties": {
-        "testLevel": { "type": "string", "enum": ["RunLocalTests", "RunAllTestsInOrg", "RunSpecifiedTests"] },
+        "testLevel": { "$ref": "#/$defs/TestLevel" },
         "tests": { "type": "string" },
         "classNames": { "type": "string" },
         "category": { "type": "string" },
@@ -768,7 +768,7 @@
       "type": "object",
       "required": ["testLevel"],
       "properties": {
-        "testLevel": { "type": "string", "enum": ["RunLocalTests", "RunAllTestsInOrg", "RunSpecifiedTests"] },
+        "testLevel": { "$ref": "#/$defs/TestLevel" },
         "tests": { "type": "string" },
         "classNames": { "type": "string" },
         "category": { "type": "string" },
