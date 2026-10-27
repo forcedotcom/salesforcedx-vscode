@@ -10,11 +10,6 @@ export type ApexExecuteOptions = {
   apexCode: string;
 };
 
-export const soapEnv = 'soapenv:Envelope';
-export const soapBody = 'soapenv:Body';
-export const soapHeader = 'soapenv:Header';
-export const action = 'executeAnonymous';
-
 export type ExecuteAnonymousResponse = {
   compiled: boolean;
   success: boolean;

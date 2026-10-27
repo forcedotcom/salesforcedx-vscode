@@ -6,10 +6,9 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { TestLevelSchema } from '../../tests/types';
 
 const payloadOptions = {
-  testLevel: TestLevelSchema,
+  testLevel: Schema.Literal('RunLocalTests', 'RunAllTestsInOrg', 'RunSpecifiedTests'),
   tests: Schema.optional(Schema.String),
   classNames: Schema.optional(Schema.String),
   category: Schema.optional(Schema.String),

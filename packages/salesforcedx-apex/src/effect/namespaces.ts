@@ -7,59 +7,44 @@
 
 import type { NamespaceInfo } from '../tests/types';
 import type { Connection } from '@salesforce/core';
-import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';
-import * as Option from 'effect/Option';
-import { queryRecords } from './records';
-import { InstalledSubscriberPackageRecordSchema, NamespacePrefixRecordSchema } from './schema/wire/namespaces';
+import { isError } from 'effect/Predicate';
+import { NamespaceQueryError } from './schema/errors';
 
-type NsPrefixRecord = typeof NamespacePrefixRecordSchema.Type;
+type NsPrefixRecord = { NamespacePrefix: string };
+type InstalledSubscriberRecord = { SubscriberPackage: NsPrefixRecord };
 
 const emptyNsRecords: readonly NsPrefixRecord[] = [];
 
-const installedSubscriberNsRecords = (connection: Connection) =>
-  queryRecords(
-    connection,
-    'queryNamespaces',
-    'SELECT SubscriberPackage.NamespacePrefix FROM InstalledSubscriberPackage',
-    InstalledSubscriberPackageRecordSchema,
-    true
-  ).pipe(Effect.map(records => records.map(record => record.SubscriberPackage)));
+const queryNsRecords = <A>(query: () => PromiseLike<{ records: readonly A[] }>) =>
+  Effect.tryPromise({
+    try: () => Promise.resolve(query()),
+    catch: error => new NamespaceQueryError({ message: isError(error) ? error.message : String(error) })
+  }).pipe(Effect.map(result => result.records));
 
 const installedNsRecords = (connection: Connection) =>
-  queryRecords(
-    connection,
-    'queryNamespaces',
-    'SELECT NamespacePrefix FROM PackageLicense',
-    NamespacePrefixRecordSchema
-  ).pipe(
-    Effect.catchTags({
-      ApexOperationError: () => installedSubscriberNsRecords(connection),
-      ApexResponseDecodeError: () => installedSubscriberNsRecords(connection)
-    }),
-    Effect.catchTags({
-      ApexOperationError: () => Effect.succeed(emptyNsRecords),
-      ApexResponseDecodeError: () => Effect.succeed(emptyNsRecords)
-    })
+  queryNsRecords(() => connection.query<NsPrefixRecord>('SELECT NamespacePrefix FROM PackageLicense')).pipe(
+    Effect.catchTag('NamespaceQueryError', () =>
+      queryNsRecords(() =>
+        connection.tooling.query<InstalledSubscriberRecord>(
+          'SELECT SubscriberPackage.NamespacePrefix FROM InstalledSubscriberPackage'
+        )
+      ).pipe(Effect.map(records => records.map(rec => ({ NamespacePrefix: rec.SubscriberPackage.NamespacePrefix }))))
+    ),
+    Effect.catchTag('NamespaceQueryError', () => Effect.succeed(emptyNsRecords))
   );
 
 const orgNsRecords = (connection: Connection) =>
-  queryRecords(
-    connection,
-    'queryNamespaces',
-    'SELECT NamespacePrefix FROM Organization',
-    NamespacePrefixRecordSchema
-  ).pipe(
-    Effect.catchTags({
-      ApexOperationError: () => Effect.succeed(emptyNsRecords),
-      ApexResponseDecodeError: () => Effect.succeed(emptyNsRecords)
-    })
+  queryNsRecords(() => connection.query<NsPrefixRecord>('SELECT NamespacePrefix FROM Organization')).pipe(
+    Effect.catchTag('NamespaceQueryError', () => Effect.succeed(emptyNsRecords))
   );
 
 const toNamespaceInfo =
   (installedNs: boolean) =>
-  (record: NsPrefixRecord): Option.Option<NamespaceInfo> =>
-    record.NamespacePrefix.pipe(Option.map(namespace => ({ installedNs, namespace })));
+  (record: NsPrefixRecord): NamespaceInfo => ({
+    installedNs,
+    namespace: record.NamespacePrefix
+  });
 
 /** Namespace discovery is optional; inaccessible queries must not prevent test selection. */
 export const queryNamespaces = Effect.fn('Apex.queryNamespaces')(function* (connection: Connection) {
@@ -67,8 +52,8 @@ export const queryNamespaces = Effect.fn('Apex.queryNamespaces')(function* (conn
     concurrency: 'unbounded'
   }).pipe(
     Effect.map(([installedRecords, orgRecords]) => [
-      ...Array.filterMap(orgRecords, toNamespaceInfo(false)),
-      ...Array.filterMap(installedRecords, toNamespaceInfo(true))
+      ...orgRecords.map(toNamespaceInfo(false)),
+      ...installedRecords.map(toNamespaceInfo(true))
     ])
   );
 });

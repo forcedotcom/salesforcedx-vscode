@@ -6,19 +6,18 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { SalesforceId } from '../../../schemas/salesforceId';
 import { TestSuiteSchema } from '../testSuites';
 
-export const TestSuiteIdQueryResponseSchema = Schema.Struct({ Id: SalesforceId });
-export const ApexClassIdQueryResponseSchema = Schema.Struct({ Id: SalesforceId });
+export const TestSuiteIdQueryResponseSchema = Schema.Struct({ Id: Schema.String });
+export const ApexClassIdQueryResponseSchema = Schema.Struct({ Id: Schema.String });
 
 export const TestSuiteRecordSchema = Schema.Union(
   TestSuiteSchema,
-  Schema.Struct({ Id: SalesforceId, TestSuiteName: Schema.String })
+  Schema.Struct({ Id: Schema.String, TestSuiteName: Schema.String })
 ).pipe(
   Schema.transform(TestSuiteSchema, {
     strict: true,
     decode: record => ({ id: 'id' in record ? record.id : record.Id, TestSuiteName: record.TestSuiteName }),
-    encode: (_encodedSuite, suite) => ({ Id: suite.id, TestSuiteName: suite.TestSuiteName })
+    encode: suite => ({ Id: suite.id, TestSuiteName: suite.TestSuiteName })
   })
 );

@@ -5,33 +5,30 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type {
+  AsyncTestArrayConfiguration,
+  AsyncTestConfiguration,
+  SyncTestConfiguration,
+  TestItem
+} from '../tests/types';
 import type { BuildAsyncPayloadOptions, BuildSyncPayloadOptions } from './schema/testPayloads';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
-import * as HashSet from 'effect/HashSet';
-import * as Match from 'effect/Match';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { messages } from '../i18n/i18n';
-import { ApexClassId } from '../schemas/salesforceId';
-import {
-  type AsyncTestArrayConfiguration,
-  type AsyncTestConfiguration,
-  type SyncTestConfiguration,
-  type TestItem
-} from '../tests/types';
-import { ApexOperationError } from './errors';
 import { queryNamespaces } from './namespaces';
-import { parseDottedName, parseTestSelection, resolveTestSelection, testItemFromSelection } from './testSelection';
+import { ApexOperationError } from './schema/errors';
+import { ApexClassId } from './schema/salesforceId';
 
-const classItem = (className: string): TestItem =>
-  Match.value(parseDottedName(className)).pipe(
-    Match.tag('UnqualifiedName', ({ name }) =>
-      Schema.is(ApexClassId)(name) ? { classId: name } : { className: name }
-    ),
-    Match.tag('QualifiedName', ({ namespace, name }) => ({ className: `${namespace}.${name}` })),
-    Match.exhaustive
-  );
+const classItem = (className: string): TestItem => {
+  const parts = className.split('.');
+  return parts.length > 1
+    ? { className: `${parts[0]}.${parts[1]}` }
+    : Schema.is(ApexClassId)(className)
+      ? { classId: className }
+      : { className };
+};
 
 const classPayload = (classNames: string, skipCodeCoverage: boolean, flow: boolean): AsyncTestArrayConfiguration => ({
   tests: classNames.split(',').map(name => (flow ? { className: name } : classItem(name))),
@@ -45,38 +42,45 @@ const buildTestPayload = Effect.fn('Apex.buildTestPayload')(function* (
   skipCodeCoverage: boolean
 ) {
   // Two-part Apex names and three-part Flow names need org data to distinguish a namespace from a class.
-  const namespaceInfos = yield* Effect.cached(queryNamespaces(connection));
+  const namespaces = yield* Effect.cached(queryNamespaces(connection));
   const items = yield* Effect.forEach(
     testNames.split(','),
     Effect.fn('Apex.parseTestSelection')(function* (test) {
-      const selection = parseTestSelection(test);
-      return yield* Match.value(selection).pipe(
-        Match.tag('AmbiguousApex', selection =>
-          namespaceInfos.pipe(Effect.map(infos => resolveTestSelection(selection, infos)))
-        ),
-        Match.tag('AmbiguousFlow', selection =>
-          namespaceInfos.pipe(Effect.map(infos => resolveTestSelection(selection, infos)))
-        ),
-        Match.tag('ApexClassId', selection => Effect.succeed(selection)),
-        Match.tag('ApexClass', selection => Effect.succeed(selection)),
-        Match.tag('ApexMethod', selection => Effect.succeed(selection)),
-        Match.tag('FlowClass', selection => Effect.succeed(selection)),
-        Match.tag('FlowMethod', selection => Effect.succeed(selection)),
-        Match.exhaustive,
-        Effect.map(testItemFromSelection)
-      );
+      if (test.indexOf('.') <= 0) {
+        return Schema.is(ApexClassId)(test) ? { classId: test } : { className: test };
+      }
+      const parts = test.split('.');
+      const flow = test.startsWith('FlowTesting.');
+      const qualifiedMethod = parts.length === (flow ? 4 : 3);
+      const namespaceIndex = flow ? 1 : 0;
+      const namespace = qualifiedMethod
+        ? undefined
+        : (yield* namespaces).find(record => record.namespace === parts[namespaceIndex]);
+      if (namespace) {
+        return {
+          className: parts.join('.'),
+          // The org namespace must be explicit for Flow class selections; installed namespaces need no extra field.
+          ...(flow && !namespace.installedNs && { namespace: parts.slice(0, 2).join('.') })
+        };
+      }
+      const className = parts.slice(0, qualifiedMethod ? -1 : flow ? 2 : 1).join('.');
+      const method = parts[qualifiedMethod ? parts.length - 1 : flow ? 2 : 1];
+      return {
+        className,
+        testMethods: [method],
+        ...(flow && qualifiedMethod && { namespace: parts.slice(0, 2).join('.') })
+      };
     })
   );
   const tests = items.reduce<TestItem[]>((grouped, item) => {
-    const testMethods = item.testMethods;
-    if (!isNotUndefined(testMethods)) return [...grouped, item];
+    if (!('testMethods' in item)) return [...grouped, item];
     const existing = grouped.find(
       candidate => candidate.className === item.className && isNotUndefined(candidate.testMethods)
     );
     return existing
       ? grouped.map(candidate =>
           candidate === existing
-            ? { ...candidate, testMethods: [...(candidate.testMethods ?? []), ...testMethods] }
+            ? { ...candidate, testMethods: [...(candidate.testMethods ?? []), ...item.testMethods] }
             : candidate
         )
       : [...grouped, item];
@@ -106,10 +110,7 @@ export const buildSyncPayload = Effect.fn('Apex.buildSyncPayload')(function* (
 });
 
 const validateSyncPayload = Effect.fn('Apex.validateSyncPayload')(function* (payload: AsyncTestArrayConfiguration) {
-  const classNames = HashSet.fromIterable(
-    payload.tests.map(item => item.className).filter(Schema.is(Schema.NonEmptyString))
-  );
-  if (HashSet.size(classNames) !== 1) {
+  if (new Set(payload.tests.filter(item => item.className).map(item => item.className)).size !== 1) {
     return yield* new ApexOperationError({
       operation: 'buildSyncPayload',
       message: messages.syncClassErr
