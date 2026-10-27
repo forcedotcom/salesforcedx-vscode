@@ -8,14 +8,14 @@
 /*
  * Covers deploy / retrieve / delete of a single class when the DEFAULT org has NO source tracking.
  *
- * Container: the container boots a source-TRACKING org as its default, so this uses the multi-org
- * capability (W-23898526): switch the DEFAULT to the second, NON-tracking org (nonTrackingTestOrg,
- * CB_EXTRA_ORG_ALIASES) via the status-bar picker, run the operations against it, and RESTORE the boot
- * org as default (REQUIRED) so the shared serial session is not contaminated — a genuinely different,
- * container-specific mechanism from desktop's per-run createNonTrackingOrg, so it is branched rather
- * than unified. The throwaway class is created only AFTER the non-tracking org is the default and is
- * removed BEFORE the boot org is restored, so no stray local change leaks into the tracking boot org.
- * Skips (never false-fails) when the extra org isn't authed.
+ * Desktop's fixture opens with a fresh non-tracking org as the default. The container boots a
+ * source-TRACKING org as its default, so it uses the multi-org capability (W-23898526): switch the
+ * DEFAULT to the second, NON-tracking org (nonTrackingTestOrg, CB_EXTRA_ORG_ALIASES) via the status-bar
+ * picker and RESTORE the boot org afterwards (REQUIRED) so the shared serial session is not
+ * contaminated. Everything between is shared. The uniquely named throwaway class is deleted by the test
+ * itself; if the test fails first, the container removes its files BEFORE the boot org is restored, so
+ * no stray local change leaks into the tracking boot org. The container skips (never false-fails) when
+ * the extra org isn't authed.
  */
 
 import { expect } from '@playwright/test';
@@ -26,7 +26,6 @@ import {
   closeWelcomeTabs,
   createNonTrackingOrg,
   upsertScratchOrgAuthFieldsToSettings,
-  upsertSettings,
   createApexClass,
   openFileByName,
   executeCommandWithCommandPalette,
@@ -36,7 +35,6 @@ import {
   clearOutputChannel,
   waitForOutputChannelText,
   isDesktop,
-  NOTIFICATION_LIST_ITEM,
   clickModalDialogButton,
   ensureSecondarySideBarHidden,
   closeAllEditors,
@@ -50,12 +48,11 @@ import {
   switchDefaultOrgViaPicker,
   verifyCommandExists
 } from '@salesforce/playwright-vscode-ext';
-import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
-import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
 import { isContainer, sharedNonTrackingTest as test } from '../fixtures';
+import { cleanupContainerFiles } from '../utils/containerCleanup';
 
 /** Resolve an org's username from the host CLI (the label the in-container picker shows for an unaliased org). */
 const resolveOrgUsername = async (alias: string): Promise<string> => {
@@ -85,7 +82,7 @@ if (isContainer) {
     let bootOrgLabel = '';
     let switchedToExtra = false;
     // Unique per run so the container's shared, persistent workbench never collides across runs.
-    let className = isContainer ? `NonTrackingOpsTest${Date.now()}` : '';
+    const className = `NonTrackingOpsTest${Date.now()}`;
 
     if (isContainer) {
       const bootOrgUsername = await resolveOrgUsername(MINIMAL_ORG_ALIAS).catch(() => undefined);
@@ -99,22 +96,17 @@ if (isContainer) {
     }
 
     await test.step('setup', async () => {
-      if (isContainer) {
-        // The containerTest fixture already awaited workbench readiness before handing over `page`.
-        await closeWelcomeTabs(page);
-        await ensureSecondarySideBarHidden(page);
-        await saveScreenshot(page, 'nonTrackingDeployRetrieveOps.01-ready.png');
-      } else {
-        const createResult = await createNonTrackingOrg();
+      // The container's fixture already awaited the workbench, and its boot org is already authed.
+      const createResult = isContainer ? undefined : await createNonTrackingOrg();
+      if (!isContainer) {
         await waitForVSCodeWorkbench(page);
-        await closeWelcomeTabs(page);
-        await ensureSecondarySideBarHidden(page);
-
-        await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-
-        // Disable deploy-on-save so test can control when deploys happen
-        await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
       }
+      await closeWelcomeTabs(page);
+      await ensureSecondarySideBarHidden(page);
+      if (createResult) {
+        await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+      }
+      await saveScreenshot(page, 'nonTrackingDeployRetrieveOps.01-ready.png');
     });
 
     try {
@@ -134,56 +126,33 @@ if (isContainer) {
       }
 
       await test.step('create apex class', async () => {
-        if (!isContainer) {
-          className = `NonTrackingTest${Date.now()}`;
-        }
         await createApexClass(page, className);
 
-        if (isContainer) {
-          const createdEditor = page.locator(`[data-uri*="${className}.cls"]`).first();
-          await createdEditor.waitFor({ state: 'visible', timeout: 15_000 });
-          await createdEditor.click();
-          // The editor context keys (sf:in_package_directories) settle a beat after the file opens.
-          await verifyCommandExists(page, messages.deploy_this_source_text, 60_000);
-          await saveScreenshot(page, 'nonTrackingDeployRetrieveOps.03-created.png');
-        }
+        const createdEditor = page.locator(`[data-uri*="${className}.cls"]`).first();
+        await createdEditor.waitFor({ state: 'visible', timeout: 15_000 });
+        await createdEditor.click();
+        // The editor context keys (sf:in_package_directories) settle a beat after the file opens.
+        await verifyCommandExists(page, messages.deploy_this_source_text, 60_000);
+        await saveScreenshot(page, 'nonTrackingDeployRetrieveOps.03-created.png');
       });
 
       await test.step('deploy class to org', async () => {
         await ensureOutputPanelOpen(page);
-        await selectOutputChannel(page, 'Salesforce Metadata', isContainer ? 60_000 : undefined);
+        await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
         await clearOutputChannel(page);
         await openFileByName(page, `${className}.cls`);
 
         await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
 
-        if (isContainer) {
-          await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
-          await saveScreenshot(page, 'nonTrackingDeployRetrieveOps.04-deployed.png');
-        } else {
-          const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
-          await expect(deployingNotification).not.toBeVisible({ timeout: 240_000 });
-
-          // Check for deploy error notifications
-          const postDeployNotifications = page.locator(NOTIFICATION_LIST_ITEM);
-          const deployErrorPattern = new RegExp(
-            `${messages.deploy_completed_with_errors_message}|${messages.deploy_failed.replace('%s', '.*')}`,
-            'i'
-          );
-          const deployErrorNotification = postDeployNotifications.filter({ hasText: deployErrorPattern }).first();
-          const hasDeployError = await deployErrorNotification.isVisible({ timeout: 2000 }).catch(() => false);
-          if (hasDeployError) {
-            const errorText = await deployErrorNotification.textContent();
-            throw new Error(`Deploy failed with error notification: ${errorText}`);
-          }
-
-          await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: 30_000 });
-        }
+        // "Deployed Source" is printed only for a deploy that reached the org. The transient "Deploying"
+        // toast is racy on a fast deploy, so completion is asserted via output alone.
+        await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
+        await saveScreenshot(page, 'nonTrackingDeployRetrieveOps.04-deployed.png');
       });
 
       await test.step('retrieve class from org', async () => {
         await ensureOutputPanelOpen(page);
-        await selectOutputChannel(page, 'Salesforce Metadata', isContainer ? 60_000 : undefined);
+        await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
         await clearOutputChannel(page);
         await openFileByName(page, `${className}.cls`);
 
@@ -191,14 +160,12 @@ if (isContainer) {
 
         await waitForOutputChannelText(page, { expectedText: 'Retrieving', timeout: 30_000 });
         await waitForOutputChannelText(page, { expectedText: 'Retrieved Source', timeout: RETRIEVE_TIMEOUT });
-        if (isContainer) {
-          await saveScreenshot(page, 'nonTrackingDeployRetrieveOps.05-retrieved.png');
-        }
+        await saveScreenshot(page, 'nonTrackingDeployRetrieveOps.05-retrieved.png');
       });
 
       await test.step('delete class from org', async () => {
         await ensureOutputPanelOpen(page);
-        await selectOutputChannel(page, 'Salesforce Metadata', isContainer ? 60_000 : undefined);
+        await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
         await clearOutputChannel(page);
         await openFileByName(page, `${className}.cls`);
 
@@ -211,9 +178,7 @@ if (isContainer) {
 
         await waitForOutputChannelText(page, { expectedText: 'Deleting', timeout: 30_000 });
         await waitForOutputChannelText(page, { expectedText: 'Deleted Source', timeout: DEPLOY_TIMEOUT });
-        if (isContainer) {
-          await saveScreenshot(page, 'nonTrackingDeployRetrieveOps.06-deleted.png');
-        }
+        await saveScreenshot(page, 'nonTrackingDeployRetrieveOps.06-deleted.png');
 
         // Verify file was deleted from local filesystem (delete from org also deletes from project)
         await expect(async () => {
@@ -222,29 +187,36 @@ if (isContainer) {
             .filter({ hasText: new RegExp(`${className}\\.cls$`, 'i') })
             .count();
           expect(count, `File ${className}.cls should not be in explorer after delete from org`).toBe(0);
-        }).toPass({ timeout: isContainer ? 60_000 : 30_000 });
-        if (isContainer) {
-          await saveScreenshot(page, 'nonTrackingDeployRetrieveOps.07-removed-from-explorer.png');
-        }
+        }).toPass({ timeout: 60_000 });
+        await saveScreenshot(page, 'nonTrackingDeployRetrieveOps.07-removed-from-explorer.png');
       });
     } finally {
       if (isContainer) {
-        // REQUIRED save/restore so later container specs run against the boot org. The throwaway class
-        // was already deleted above; close editors so the restore interacts only with the status bar
-        // picker.
+        // REQUIRED save/restore so later container specs run against the boot org. Close editors first
+        // so the restore interacts only with the status bar picker.
         await page.keyboard.press('Escape').catch(() => {});
         await closeAllEditors(page).catch(() => {});
-        if (switchedToExtra) {
-          await test.step('restore default org back to the boot org', async () => {
-            // Re-drives the picker if the restore doesn't take, so the shared serial session isn't left
-            // on nonTrackingTestOrg (which cascades into the next spec's pre-switch assertion).
-            await switchDefaultOrgViaPicker(page, {
-              fromLabel: NON_TRACKING_ORG_ALIAS,
-              filterText: bootOrgLabel,
-              expectLabel: bootOrgLabel
+        try {
+          // The delete step normally removed the class already (rm -rf is then a no-op). If the test failed
+          // first, remove its files while the non-tracking org is still the default, so the tracking boot
+          // org never sees them as local changes.
+          cleanupContainerFiles([
+            `force-app/main/default/classes/${className}.cls`,
+            `force-app/main/default/classes/${className}.cls-meta.xml`
+          ]);
+        } finally {
+          if (switchedToExtra) {
+            await test.step('restore default org back to the boot org', async () => {
+              // Re-drives the picker if the restore doesn't take, so the shared serial session isn't left
+              // on nonTrackingTestOrg (which cascades into the next spec's pre-switch assertion).
+              await switchDefaultOrgViaPicker(page, {
+                fromLabel: NON_TRACKING_ORG_ALIAS,
+                filterText: bootOrgLabel,
+                expectLabel: bootOrgLabel
+              });
+              await saveScreenshot(page, 'nonTrackingDeployRetrieveOps.08-restored-boot-org.png');
             });
-            await saveScreenshot(page, 'nonTrackingDeployRetrieveOps.08-restored-boot-org.png');
-          });
+          }
         }
       }
     }

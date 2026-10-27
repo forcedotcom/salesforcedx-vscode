@@ -8,17 +8,15 @@
 /*
  * Covers manifest-driven deploy + retrieve when the DEFAULT org has NO source tracking.
  *
- * Container: the container boots a source-TRACKING org as its default, so this uses the multi-org
- * capability (W-23898526): switch the DEFAULT to the second, NON-tracking org (nonTrackingTestOrg,
- * CB_EXTRA_ORG_ALIASES) via the status-bar picker, run the scenario against it, and RESTORE the boot
- * org as default (REQUIRED) so the shared serial session is not contaminated — a genuinely different,
- * container-specific mechanism from desktop's per-run createNonTrackingOrg, so it is branched rather
- * than unified. To avoid mutating the mounted fixture, the manifest is generated from the seeded
- * PagedResult.cls under a unique name, rather than creating a new class. Skips (never false-fails) when
- * the extra org isn't authed.
+ * Desktop's fixture opens with a fresh non-tracking org as the default. The container boots a
+ * source-TRACKING org as its default, so it uses the multi-org capability (W-23898526): switch the
+ * DEFAULT to the second, NON-tracking org (nonTrackingTestOrg, CB_EXTRA_ORG_ALIASES) via the status-bar
+ * picker and RESTORE the boot org afterwards (REQUIRED) so the shared serial session is not
+ * contaminated. Everything between is shared: a uniquely named throwaway class and manifest, which the
+ * container removes BEFORE the boot org is restored, so no stray local change leaks into the tracking
+ * boot org. The container skips (never false-fails) when the extra org isn't authed.
  */
 
-import { expect } from '@playwright/test';
 import {
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -26,7 +24,6 @@ import {
   closeWelcomeTabs,
   createNonTrackingOrg,
   upsertScratchOrgAuthFieldsToSettings,
-  upsertSettings,
   createApexClass,
   executeEditorContextMenuCommand,
   executeCommandWithCommandPalette,
@@ -46,20 +43,16 @@ import {
   expectOrgPickerStatusBar,
   MINIMAL_ORG_ALIAS,
   NON_TRACKING_ORG_ALIAS,
-  openFileFromExplorerTree,
   resetContainerWorkbench,
   saveScreenshot,
   switchDefaultOrgViaPicker,
   verifyCommandExists
 } from '@salesforce/playwright-vscode-ext';
-import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
-import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
 import { isContainer, sharedNonTrackingTest as test } from '../fixtures';
-
-const FIXTURE_CLASS = 'PagedResult';
+import { cleanupContainerFiles } from '../utils/containerCleanup';
 
 /** Resolve an org's username from the host CLI (the label the in-container picker shows for an unaliased org). */
 const resolveOrgUsername = async (alias: string): Promise<string> => {
@@ -86,12 +79,13 @@ if (isContainer) {
     const consoleErrors = setupConsoleMonitoring(page);
     const networkErrors = setupNetworkMonitoring(page);
 
-    let className: string;
     let bootOrgLabel = '';
     let switchedToExtra = false;
-    // Unique manifest name avoids the overwrite modal and collisions in the container's shared,
-    // persistent workbench.
-    const manifestFile = `nonTrackingManifest${Date.now()}.xml`;
+    // Unique per run so the container's shared, persistent workbench never collides across runs (and the
+    // manifest name never hits the overwrite modal).
+    const stamp = Date.now();
+    const className = `NonTrackingManifestTest${stamp}`;
+    const manifestFile = `nonTrackingManifest${stamp}.xml`;
 
     if (isContainer) {
       const bootOrgUsername = await resolveOrgUsername(MINIMAL_ORG_ALIAS).catch(() => undefined);
@@ -105,21 +99,17 @@ if (isContainer) {
     }
 
     await test.step('setup', async () => {
-      if (isContainer) {
-        // The containerTest fixture already awaited workbench readiness before handing over `page`.
-        await closeWelcomeTabs(page);
-        await ensureSecondarySideBarHidden(page);
-        await saveScreenshot(page, 'nonTrackingDeployRetrieveManifest.01-ready.png');
-      } else {
-        const createResult = await createNonTrackingOrg();
+      // The container's fixture already awaited the workbench, and its boot org is already authed.
+      const createResult = isContainer ? undefined : await createNonTrackingOrg();
+      if (!isContainer) {
         await waitForVSCodeWorkbench(page);
-        await closeWelcomeTabs(page);
-        await ensureSecondarySideBarHidden(page);
-        await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-
-        // Disable deploy-on-save so test can control when deploys happen
-        await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
       }
+      await closeWelcomeTabs(page);
+      await ensureSecondarySideBarHidden(page);
+      if (createResult) {
+        await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+      }
+      await saveScreenshot(page, 'nonTrackingDeployRetrieveManifest.01-ready.png');
     });
 
     try {
@@ -139,20 +129,7 @@ if (isContainer) {
       }
 
       await test.step('create source file', async () => {
-        if (isContainer) {
-          // Use the seeded fixture class rather than mutating the shared workbench with a new one.
-          // The Explorer tree open can transiently flake on the shared workbench (virtual scrolling /
-          // focus), so retry the open+focus as a unit.
-          await expect(async () => {
-            await openFileFromExplorerTree(page, `${FIXTURE_CLASS}.cls`, ['force-app', 'main', 'default', 'classes']);
-            const editor = page.locator(`[data-uri*="${FIXTURE_CLASS}.cls"]`).first();
-            await editor.waitFor({ state: 'visible', timeout: 15_000 });
-            await editor.click();
-          }).toPass({ timeout: 90_000, intervals: [1000, 2000, 5000] });
-        } else {
-          className = `NonTrackingTest${Date.now()}`;
-          await createApexClass(page, className);
-        }
+        await createApexClass(page, className);
       });
 
       await test.step('generate manifest from apex class', async () => {
@@ -167,60 +144,42 @@ if (isContainer) {
 
         const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/${manifestFile}"]`).first();
         await manifestEditor.waitFor({ state: 'visible', timeout: 15_000 });
-        if (isContainer) {
-          await saveScreenshot(page, 'nonTrackingDeployRetrieveManifest.03-manifest-generated.png');
-        }
+        await saveScreenshot(page, 'nonTrackingDeployRetrieveManifest.03-manifest-generated.png');
       });
 
       await test.step('deploy via manifest', async () => {
-        if (isContainer) {
-          const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/${manifestFile}"]`).first();
-          await manifestEditor.waitFor({ state: 'visible', timeout: 10_000 });
-          await manifestEditor.click();
-          // The deploy command is only contributed once the manifest editor context keys settle.
-          await verifyCommandExists(page, packageNls.deploy_in_manifest_text, 60_000);
-        }
+        const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/${manifestFile}"]`).first();
+        await manifestEditor.waitFor({ state: 'visible', timeout: 10_000 });
+        await manifestEditor.click();
+        // The deploy command is only contributed once the manifest editor context keys settle.
+        await verifyCommandExists(page, packageNls.deploy_in_manifest_text, 60_000);
 
         await ensureOutputPanelOpen(page);
-        await selectOutputChannel(page, 'Salesforce Metadata', isContainer ? 60_000 : undefined);
-        if (isContainer) {
-          await clearOutputChannel(page);
-        }
+        await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
+        await clearOutputChannel(page);
 
         await executeEditorContextMenuCommand(page, packageNls.deploy_in_manifest_text, `manifest/${manifestFile}`);
 
-        if (isContainer) {
-          // The transient "Deploying" toast is racy on a fast container deploy; assert completion via output.
-          await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
-          await saveScreenshot(page, 'nonTrackingDeployRetrieveManifest.04-deployed.png');
-        } else {
-          const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
-          await expect(deployingNotification).not.toBeVisible({ timeout: DEPLOY_TIMEOUT });
-
-          await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: 30_000 });
-        }
+        // "Deployed Source" is printed only for a deploy that reached the org. The transient "Deploying"
+        // toast is racy on a fast deploy, so completion is asserted via output alone.
+        await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
+        await saveScreenshot(page, 'nonTrackingDeployRetrieveManifest.04-deployed.png');
       });
 
       await test.step('retrieve via manifest', async () => {
-        if (isContainer) {
-          const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/${manifestFile}"]`).first();
-          await manifestEditor.waitFor({ state: 'visible', timeout: 10_000 });
-          await manifestEditor.click();
-        }
+        const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/${manifestFile}"]`).first();
+        await manifestEditor.waitFor({ state: 'visible', timeout: 10_000 });
+        await manifestEditor.click();
 
         await ensureOutputPanelOpen(page);
-        await selectOutputChannel(page, 'Salesforce Metadata', isContainer ? 60_000 : undefined);
-        if (isContainer) {
-          await clearOutputChannel(page);
-        }
+        await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
+        await clearOutputChannel(page);
 
         await executeEditorContextMenuCommand(page, packageNls.retrieve_in_manifest_text, `manifest/${manifestFile}`);
 
         await waitForOutputChannelText(page, { expectedText: 'Retrieving', timeout: 30_000 });
         await waitForOutputChannelText(page, { expectedText: 'Retrieved Source', timeout: RETRIEVE_TIMEOUT });
-        if (isContainer) {
-          await saveScreenshot(page, 'nonTrackingDeployRetrieveManifest.05-retrieved.png');
-        }
+        await saveScreenshot(page, 'nonTrackingDeployRetrieveManifest.05-retrieved.png');
       });
     } finally {
       if (isContainer) {
@@ -228,17 +187,27 @@ if (isContainer) {
         // so the restore step interacts only with the status bar picker.
         await page.keyboard.press('Escape').catch(() => {});
         await closeAllEditors(page).catch(() => {});
-        if (switchedToExtra) {
-          await test.step('restore default org back to the boot org', async () => {
-            // Re-drives the picker if the restore doesn't take, so the shared serial session isn't left
-            // on nonTrackingTestOrg (which cascades into the next spec's pre-switch assertion).
-            await switchDefaultOrgViaPicker(page, {
-              fromLabel: NON_TRACKING_ORG_ALIAS,
-              filterText: bootOrgLabel,
-              expectLabel: bootOrgLabel
+        try {
+          // Remove the throwaway files while the non-tracking org is still the default, so the tracking
+          // boot org never sees them as local changes. Like desktop, the class stays in the org.
+          cleanupContainerFiles([
+            `force-app/main/default/classes/${className}.cls`,
+            `force-app/main/default/classes/${className}.cls-meta.xml`,
+            `manifest/${manifestFile}`
+          ]);
+        } finally {
+          if (switchedToExtra) {
+            await test.step('restore default org back to the boot org', async () => {
+              // Re-drives the picker if the restore doesn't take, so the shared serial session isn't left
+              // on nonTrackingTestOrg (which cascades into the next spec's pre-switch assertion).
+              await switchDefaultOrgViaPicker(page, {
+                fromLabel: NON_TRACKING_ORG_ALIAS,
+                filterText: bootOrgLabel,
+                expectLabel: bootOrgLabel
+              });
+              await saveScreenshot(page, 'nonTrackingDeployRetrieveManifest.06-restored-boot-org.png');
             });
-            await saveScreenshot(page, 'nonTrackingDeployRetrieveManifest.06-restored-boot-org.png');
-          });
+          }
         }
       }
     }
