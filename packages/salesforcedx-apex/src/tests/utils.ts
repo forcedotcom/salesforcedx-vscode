@@ -9,12 +9,10 @@ import type { CodeCoverage } from './codeCoverage';
 import type { QueryResult, Record as JsforceRecord } from '@jsforce/jsforce-node';
 import { type Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
-import { isError } from 'effect/Predicate';
-import * as Schema from 'effect/Schema';
-import { type Progress } from '../common';
+import { queryNamespaces as queryNamespaceInfos } from '../effect/namespaces';
 import { nls } from '../i18n';
 import {
-  type ApexTestProgressValue,
+  type ApexTestProgressReporter,
   type ApexTestResultData,
   type ApexTestResultDataRaw,
   type ApexTestSetupData,
@@ -33,56 +31,8 @@ export function calculatePercentage(dividend: number, divisor: number): string {
   return percentage;
 }
 
-type NsPrefixRecord = { NamespacePrefix: string };
-type InstalledSubscriberRecord = { SubscriberPackage: NsPrefixRecord };
-
-class NamespaceQueryError extends Schema.TaggedError<NamespaceQueryError>()('NamespaceQueryError', {
-  message: Schema.String
-}) {}
-
-const emptyNsRecords: readonly NsPrefixRecord[] = [];
-
-const queryNsRecords = <A>(query: () => PromiseLike<{ records: readonly A[] }>) =>
-  Effect.tryPromise({
-    try: () => Promise.resolve(query()),
-    catch: error => new NamespaceQueryError({ message: isError(error) ? error.message : String(error) })
-  }).pipe(Effect.map(result => result.records));
-
-const installedNsRecords = (connection: Connection) =>
-  queryNsRecords(() => connection.query<NsPrefixRecord>('SELECT NamespacePrefix FROM PackageLicense')).pipe(
-    Effect.orElse(() =>
-      Effect.map(
-        queryNsRecords(() =>
-          connection.tooling.query<InstalledSubscriberRecord>(
-            'SELECT SubscriberPackage.NamespacePrefix FROM InstalledSubscriberPackage'
-          )
-        ),
-        records => records.map(rec => ({ NamespacePrefix: rec.SubscriberPackage.NamespacePrefix }))
-      )
-    ),
-    Effect.orElseSucceed(() => emptyNsRecords)
-  );
-
-const orgNsRecords = (connection: Connection) =>
-  queryNsRecords(() => connection.query<NsPrefixRecord>('SELECT NamespacePrefix FROM Organization')).pipe(
-    Effect.orElseSucceed(() => emptyNsRecords)
-  );
-
-const toNamespaceInfo =
-  (installedNs: boolean) =>
-  (record: NsPrefixRecord): NamespaceInfo => ({
-    installedNs,
-    namespace: record.NamespacePrefix
-  });
-
 export const queryNamespaces = (connection: Connection): Promise<NamespaceInfo[]> =>
-  Effect.all([installedNsRecords(connection), orgNsRecords(connection)], { concurrency: 'unbounded' }).pipe(
-    Effect.map(([installedRecords, orgRecords]) => [
-      ...orgRecords.map(toNamespaceInfo(false)),
-      ...installedRecords.map(toNamespaceInfo(true))
-    ]),
-    Effect.runPromise
-  );
+  queryNamespaceInfos(connection).pipe(Effect.runPromise);
 
 export const queryAll = async <R extends JsforceRecord>(
   connection: Connection,
@@ -138,7 +88,7 @@ export const calculateCodeCoverage = async (
   apexTestClassIdSet: Set<string>,
   result: TestResultRaw,
   isAsync: boolean,
-  progress?: Progress<ApexTestProgressValue>
+  progress?: ApexTestProgressReporter
 ): Promise<void> => {
   const coveredApexClassIdSet = new Set<string>();
   if (codeCoverage) {
@@ -175,7 +125,7 @@ export const calculateCodeCoverage = async (
 export const computeTestCategory = (testNamespace: string | null): TestCategory =>
   isFlowTest(testNamespace) ? 'Flow' : 'Apex';
 
-export const isFlowTest = (test: string | null): boolean => test?.startsWith('FlowTesting.') ?? false;
+const isFlowTest = (test: string | null): boolean => test?.startsWith('FlowTesting.') ?? false;
 
 const transformToApexTestSetupData = (testData: Omit<ApexTestResultDataRaw, 'isTestSetup'>): ApexTestSetupData =>
   // Assuming all necessary properties are present and optional properties are handled

@@ -5,106 +5,86 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Chunk from 'effect/Chunk';
+import {
+  getLogBody,
+  listLogs,
+  streamLogs,
+  type ListLogsOptions,
+  type StreamLogsOptions
+} from '@salesforce/apex-node/effect';
 import * as Effect from 'effect/Effect';
-import { isString } from 'effect/Predicate';
-import * as Schema from 'effect/Schema';
+import * as Match from 'effect/Match';
+import * as Option from 'effect/Option';
+import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
-import { ApexLogBodyFetchError } from '../errors/apexLogErrors';
 import { ConnectionService } from './connectionService';
-import { QueryService } from './queryService';
-import { unknownToErrorCause } from './shared';
+import { refineSoqlError } from './queryExecute';
 
-const LogUser = Schema.Struct({
-  Name: Schema.optionalWith(Schema.String, { nullable: true })
-});
-
-/** ApexLog record from Tooling API query (Id, LogLength, StartTime, Status required per API reference) */
-export const ApexLogListItem = Schema.Struct({
-  Id: Schema.String,
-  Application: Schema.optionalWith(Schema.String, { nullable: true }),
-  DurationMilliseconds: Schema.optionalWith(Schema.Number, { nullable: true }),
-  LogLength: Schema.Number,
-  LogUserId: Schema.optionalWith(Schema.String, { nullable: true }),
-  LogUser: Schema.optionalWith(LogUser, { nullable: true }),
-  Operation: Schema.optionalWith(Schema.String, { nullable: true }),
-  StartTime: Schema.String,
-  Status: Schema.String
-});
-export type ApexLogListItem = Schema.Schema.Type<typeof ApexLogListItem>;
-
-export type ListLogsOptions = {
-  /** Filter to logs for this user (LogUserId) */
-  userId?: string;
-  /** Filter to logs for these users (LogUserId IN). When set, userId is ignored. */
-  userIds?: string[];
-  /** Filter to logs whose Operation contains this string (e.g. 'executeAnonymous') */
-  operationContains?: string;
-  /** Filter to logs with StartTime >= this ISO string (trace-flag-aware polling) */
-  startTimeAfter?: string;
-};
-
-const BASE_SELECT =
-  'SELECT Id, Application, DurationMilliseconds, LogLength, LogUserId, LogUser.Name, Operation, StartTime, Status FROM ApexLog';
-
-const buildListLogsQuery = (limit: number, options?: ListLogsOptions): string => {
-  const userIds = options?.userIds ?? [];
-  const userIdCondition =
-    userIds.length > 0
-      ? `LogUserId IN (${userIds.map(id => `'${id.replaceAll("'", "''")}'`).join(',')})`
-      : options?.userId
-        ? `LogUserId = '${options.userId.replaceAll("'", "''")}'`
-        : undefined;
-  const operationCondition = options?.operationContains
-    ? `Operation LIKE '%${options.operationContains.replaceAll("'", "''")}%'`
-    : undefined;
-  const startTimeCondition = options?.startTimeAfter ? `StartTime >= ${options.startTimeAfter}` : undefined;
-  const conditions = [userIdCondition, operationCondition, startTimeCondition].filter(Boolean);
-  const where = conditions.length > 0 ? ` WHERE ${conditions.join(' AND ')}` : '';
-  return `${BASE_SELECT}${where} ORDER BY StartTime DESC LIMIT ${limit}`;
-};
+export { ApexLogListItem, type ListLogsOptions } from '@salesforce/apex-node/effect';
 
 export class ApexLogService extends Effect.Service<ApexLogService>()('ApexLogService', {
   accessors: true,
-  dependencies: [ConnectionService.Default, QueryService.Default],
+  dependencies: [ConnectionService.Default],
   effect: Effect.gen(function* () {
     const connectionService = yield* ConnectionService;
-
-    const listLogs = Effect.fn('ApexLogService.listLogs')(function* (limit: number = 25, options?: ListLogsOptions) {
-      return yield* Effect.flatMap(QueryService, queryService =>
-        queryService.query({ soql: buildListLogsQuery(limit, options), tooling: true }, ApexLogListItem).pipe(
-          Effect.flatMap(({ records }) => Stream.runCollect(records)),
-          Effect.map(Chunk.toReadonlyArray)
-        )
-      );
-    });
-
-    const getLogBody = Effect.fn('ApexLogService.getLogBody')(function* (logId: string) {
-      return yield* connectionService.getConnection().pipe(
-        Effect.flatMap(conn =>
-          Effect.tryPromise({
-            try: async () => {
-              const res = await conn.request({
-                method: 'GET',
-                url: `${conn.instanceUrl}/services/data/v${conn.getApiVersion()}/tooling/sobjects/ApexLog/${logId}/Body`
-              });
-              return isString(res) ? res : String(res);
-            },
-            catch: error => {
-              const { cause } = unknownToErrorCause(error);
-              return new ApexLogBodyFetchError({
-                message: `Failed to fetch ApexLog body: ${cause.message}`,
-                cause: error
-              });
-            }
-          })
-        )
-      );
-    });
+    const connectionFailure = (error: Effect.Effect.Error<ReturnType<typeof connectionService.getConnection>>) =>
+      Stream.succeed({ _tag: 'QueryError' as const, error });
 
     return {
-      listLogs,
-      getLogBody
+      listLogs: Effect.fn('ApexLogService.listLogs')((limit: number = 25, options?: ListLogsOptions) =>
+        connectionService.getConnection().pipe(
+          Effect.flatMap(connection => listLogs(connection, limit, options)),
+          Effect.catchTag('ApexLogQueryError', error => Effect.fail(refineSoqlError(error.soql, error.cause)))
+        )
+      ),
+      getLogBody: Effect.fn('ApexLogService.getLogBody')((logId: string) =>
+        connectionService.getConnection().pipe(Effect.flatMap(connection => getLogBody(connection, logId)))
+      ),
+      streamLogs: (options: StreamLogsOptions) =>
+        Stream.repeatEffectWithSchedule(Effect.void, options.schedule).pipe(
+          Stream.zipWithIndex,
+          Stream.mapEffect(([, index]) => options.pollOptions?.(index) ?? Effect.succeed(Option.some({}))),
+          Stream.filterMap(filters => filters),
+          Stream.flatMap(filters =>
+            Stream.unwrap(
+              connectionService.getConnection().pipe(
+                Effect.map(connection =>
+                  streamLogs(connection, {
+                    ...options,
+                    schedule: Schedule.recurs(0),
+                    pollOptions: () => Effect.succeed(Option.some(filters))
+                  }).pipe(
+                    Stream.map(event =>
+                      Match.value(event).pipe(
+                        Match.tag('Log', 'BodyError', value => value),
+                        Match.tag('QueryError', ({ error }) => ({
+                          _tag: 'QueryError' as const,
+                          error: Match.value(error).pipe(
+                            Match.tag('ApexLogQueryError', value => refineSoqlError(value.soql, value.cause)),
+                            Match.tag('ParseError', value => value),
+                            Match.exhaustive
+                          )
+                        })),
+                        Match.exhaustive
+                      )
+                    )
+                  )
+                )
+              )
+            ).pipe(
+              // Connection setup belongs to each poll, including recovery after a failed lookup.
+              Stream.catchTags({
+                SettingsError: connectionFailure,
+                NoWorkspaceOpenError: connectionFailure,
+                FailedToCreateConfigAggregatorError: connectionFailure,
+                FailedToCreateAuthInfoError: connectionFailure,
+                FailedToCreateConnectionError: connectionFailure,
+                NoTargetOrgConfiguredError: connectionFailure,
+                AccessTokenExpiredError: connectionFailure
+              })
+            )
+          )
+        )
     };
   })
 }) {}

@@ -7,20 +7,18 @@
 import type { SinonStub } from 'sinon';
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
+import * as Effect from 'effect/Effect';
 import { fail } from 'node:assert';
 import { TestService } from '../../src';
+import { getApexClassIds as getApexClassIdsOperation } from '../../src/effect/testSuites';
 
 let mockConnection: Connection;
 let toolingCreateStub: SinonStub;
 let toolingQueryStub: SinonStub;
 const testData = new MockTestOrgData();
 
-type TestServiceInternals = {
-  getApexClassIds: (testClasses: string[]) => Promise<string[]>;
-};
-
-const getApexClassIds = (service: TestService, testClasses: string[]): Promise<string[]> =>
-  (service as unknown as TestServiceInternals).getApexClassIds(testClasses);
+const getApexClassIds = (connection: Connection, testClasses: string[]): Promise<string[]> =>
+  Effect.runPromise(getApexClassIdsOperation(connection, testClasses));
 
 describe('Apex Test Suites', () => {
   const $$ = new TestContext();
@@ -41,8 +39,7 @@ describe('Apex Test Suites', () => {
   it('should retrieve apex class id for non-namespaced class', async () => {
     toolingQueryStub.resolves({ records: [{ Id: 'xxxxxxx243' }] });
 
-    const testService = new TestService(mockConnection);
-    const ids = await getApexClassIds(testService, ['firstTestClass']);
+    const ids = await getApexClassIds(mockConnection, ['firstTestClass']);
 
     expect(ids).toEqual(['xxxxxxx243']);
     expect(toolingQueryStub.calledOnce).toBe(true);
@@ -53,8 +50,7 @@ describe('Apex Test Suites', () => {
   it('should retrieve apex class id for namespaced class (ns.ShortName)', async () => {
     toolingQueryStub.resolves({ records: [{ Id: 'pkgClassId' }] });
 
-    const testService = new TestService(mockConnection);
-    const ids = await getApexClassIds(testService, ['myns.FooTest']);
+    const ids = await getApexClassIds(mockConnection, ['myns.FooTest']);
 
     expect(ids).toEqual(['pkgClassId']);
     expect(toolingQueryStub.firstCall.args[0]).toContain("Name = 'FooTest'");
@@ -76,8 +72,7 @@ describe('Apex Test Suites', () => {
         records: [{ Id: 'xxxxxxx247' }]
       });
 
-    const testService = new TestService(mockConnection);
-    const ids = await getApexClassIds(testService, ['firstTestClass', 'secondTestClass', 'thirdTestClass']);
+    const ids = await getApexClassIds(mockConnection, ['firstTestClass', 'secondTestClass', 'thirdTestClass']);
 
     expect(ids).toEqual(['xxxxxxx243', 'xxxxxxx245', 'xxxxxxx247']);
     expect(toolingQueryStub.calledThrice).toBe(true);
@@ -86,21 +81,16 @@ describe('Apex Test Suites', () => {
   it('should retrieve 0 apex class ids when given 0 classes', async () => {
     toolingQueryStub.resolves({ records: [{ Id: 'xxxxxxx243' }] });
 
-    const testService = new TestService(mockConnection);
-    const ids = await getApexClassIds(testService, []);
+    const ids = await getApexClassIds(mockConnection, []);
 
     expect(ids).toEqual([]);
     expect(toolingQueryStub.notCalled).toBe(true);
   });
 
   it('should throw an error if a given apex class does not exist', async () => {
-    toolingQueryStub.resolves({ records: [{ Id: 'xxxxxxx243' }] });
+    toolingQueryStub.resolves({ records: [] });
 
-    const testService = new TestService(mockConnection);
-    const ids = await getApexClassIds(testService, []);
-
-    expect(ids).toEqual([]);
-    expect(toolingQueryStub.notCalled).toBe(true);
+    await expect(getApexClassIds(mockConnection, ['MissingTest'])).rejects.toThrow('MissingTest');
   });
 
   it('should throw an error if suitename or suite id was not provided', async () => {
@@ -262,56 +252,64 @@ describe('Apex Test Suites', () => {
 
       const testService = new TestService(mockConnection);
 
-      const result = await (testService as any).buildTestPayload(tests);
-      expect(result.tests.toString()).toBe(testsPayload.tests.toString());
+      const result = await testService.buildAsyncPayload('RunSpecifiedTests', tests);
+      expect(result).toMatchObject(testsPayload);
     });
 
     it('should correctly identify and separate Flow tests from Apex tests', async () => {
       const tests = 'TestClass1.method1,FlowTesting.TestFlow.TestFlowClass.method1,TestClass2.method2';
 
       const testService = new TestService(mockConnection);
-      // Mock the processFlowTest and processApexTest methods
-      const processFlowTestSpy = $$.SANDBOX.spy(testService as any, 'processFlowTest');
-      const processApexTestSpy = $$.SANDBOX.spy(testService as any, 'processApexTest');
+      const result = await testService.buildAsyncPayload('RunSpecifiedTests', tests);
 
-      await (testService as any).buildTestPayload(tests);
-
-      // Verify that processFlowTest was called for Flow test
-      expect(processFlowTestSpy.calledOnce).toBe(true);
-      expect(processFlowTestSpy.args[0][0]).toEqual(['FlowTesting', 'TestFlow', 'TestFlowClass', 'method1']);
-
-      // Verify that processApexTest was called for Apex tests
-      expect(processApexTestSpy.calledTwice).toBe(true);
-      expect(processApexTestSpy.args[0][0]).toEqual(['TestClass1', 'method1']);
-      expect(processApexTestSpy.args[1][0]).toEqual(['TestClass2', 'method2']);
+      expect(result).toMatchObject({
+        tests: [
+          { className: 'TestClass1', testMethods: ['method1'] },
+          {
+            namespace: 'FlowTesting.TestFlow',
+            className: 'FlowTesting.TestFlow.TestFlowClass',
+            testMethods: ['method1']
+          },
+          { className: 'TestClass2', testMethods: ['method2'] }
+        ]
+      });
     });
 
     it('should handle only Flow tests in test payload', async () => {
       const tests = 'FlowTesting.TestFlow1.TestFlowClass1.method1,FlowTesting.TestFlow2.TestFlowClass2.method2';
 
       const testService = new TestService(mockConnection);
-      const processFlowTestSpy = $$.SANDBOX.spy(testService as any, 'processFlowTest');
-      const processApexTestSpy = $$.SANDBOX.spy(testService as any, 'processApexTest');
+      const result = await testService.buildAsyncPayload('RunSpecifiedTests', tests);
 
-      await (testService as any).buildTestPayload(tests);
-
-      // Verify that only processFlowTest was called
-      expect(processFlowTestSpy.calledTwice).toBe(true);
-      expect(processApexTestSpy.notCalled).toBe(true);
+      expect(result).toMatchObject({
+        tests: [
+          {
+            namespace: 'FlowTesting.TestFlow1',
+            className: 'FlowTesting.TestFlow1.TestFlowClass1',
+            testMethods: ['method1']
+          },
+          {
+            namespace: 'FlowTesting.TestFlow2',
+            className: 'FlowTesting.TestFlow2.TestFlowClass2',
+            testMethods: ['method2']
+          }
+        ]
+      });
     });
 
     it('should handle only Apex tests in test payload', async () => {
       const tests = 'TestClass1.method1,TestClass2.method2,namespace.TestClass3.method3';
 
       const testService = new TestService(mockConnection);
-      const processFlowTestSpy = $$.SANDBOX.spy(testService as any, 'processFlowTest');
-      const processApexTestSpy = $$.SANDBOX.spy(testService as any, 'processApexTest');
+      const result = await testService.buildAsyncPayload('RunSpecifiedTests', tests);
 
-      await (testService as any).buildTestPayload(tests);
-
-      // Verify that only processApexTest was called
-      expect(processApexTestSpy.calledThrice).toBe(true);
-      expect(processFlowTestSpy.notCalled).toBe(true);
+      expect(result).toMatchObject({
+        tests: [
+          { className: 'TestClass1', testMethods: ['method1'] },
+          { className: 'TestClass2', testMethods: ['method2'] },
+          { className: 'namespace.TestClass3', testMethods: ['method3'] }
+        ]
+      });
     });
   });
 
@@ -356,12 +354,11 @@ describe('Apex Test Suites', () => {
       });
 
       it('should handle classnames with category for Flow tests in sync payload', async () => {
-        // Mock the buildClassPayloadForFlow method
         const mockFlowPayload = {
           testLevel: 'RunSpecifiedTests',
-          tests: [{ className: 'FlowTestClass' }]
+          tests: [{ className: 'FlowTestClass' }],
+          skipCodeCoverage: false
         };
-        $$.SANDBOX.stub(testService as any, 'buildClassPayloadForFlow').resolves(mockFlowPayload);
 
         const result = await testService.buildSyncPayload('RunSpecifiedTests', undefined, 'FlowTestClass', 'Flow');
 
@@ -396,24 +393,6 @@ describe('Apex Test Suites', () => {
           skipCodeCoverage: false
         });
         expect(result).not.toHaveProperty('category');
-      });
-    });
-
-    describe('Private utility methods', () => {
-      it('should correctly identify when category is provided (hasCategory)', () => {
-        // Test hasCategory method behavior through public interface
-        // Since hasCategory is private, we test its behavior indirectly
-
-        const testServiceAny = testService as any;
-
-        // Test that valid categories return truthy values
-        expect(testServiceAny.hasCategory('Flow')).toBeTruthy();
-        expect(testServiceAny.hasCategory('Flow,Apex')).toBeTruthy();
-
-        // Test that invalid categories return falsy values
-        expect(testServiceAny.hasCategory('')).not.toBeTruthy();
-        expect(testServiceAny.hasCategory(null)).not.toBeTruthy();
-        expect(testServiceAny.hasCategory(undefined)).not.toBeTruthy();
       });
     });
   });

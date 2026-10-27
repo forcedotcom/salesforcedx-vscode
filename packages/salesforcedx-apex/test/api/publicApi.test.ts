@@ -14,6 +14,7 @@ describe('@salesforce/apex-node public API', () => {
     const supportedSymbols = Object.keys(publicApi).filter(symbol => !coRepoOnlySymbols.has(symbol));
 
     expect(supportedSymbols.sort()).toEqual([
+      'ApexClassId',
       'CancellationTokenSource',
       'CoverageReporter',
       'DefaultReportOptions',
@@ -22,7 +23,11 @@ describe('@salesforce/apex-node public API', () => {
       'HumanReporter',
       'JUnitReporter',
       'LogService',
+      'ResultFormat',
+      'SalesforceId',
       'TapReporter',
+      'TestLevel',
+      'TestRunId',
       'TestService'
     ]);
   });
@@ -30,23 +35,45 @@ describe('@salesforce/apex-node public API', () => {
   it('exports the Effect foundation from its isolated entry point', () => {
     expect(Object.keys(effectApi).sort()).toEqual([
       'ApexCompileError',
+      'ApexLogBodyFetchError',
+      'ApexLogListItem',
+      'ApexLogQueryError',
       'ApexOperationError',
       'ApexReportError',
       'ApexResponseDecodeError',
       'ApexRuntimeError',
+      'AsyncTestOptionsSchema',
+      'AsyncTestProgressSchema',
+      'AsyncTestResultSchema',
+      'AsyncTestRunEventSchema',
+      'BuildAsyncPayloadOptionsSchema',
+      'BuildSyncPayloadOptionsSchema',
       'DefaultReportOptions',
       'DefaultWatermarks',
       'ExecuteAnonymousOptionsSchema',
       'ExecuteAnonymousOutcomeSchema',
       'IstanbulReports',
+      'ListLogsOptionsSchema',
+      'LogStreamEventSchema',
+      'TestSuiteMembershipSchema',
+      'TestSuiteSchema',
+      'buildAsyncPayload',
       'buildCoverageMap',
+      'buildSuite',
+      'buildSyncPayload',
       'causeMessage',
       'executeAnonymous',
       'formatHumanReport',
       'formatJUnitReport',
       'formatMarkdownTextReport',
       'formatTapReport',
-      'generateCoverageReports'
+      'generateCoverageReports',
+      'getLogBody',
+      'getTestsInSuite',
+      'listLogs',
+      'retrieveAllSuites',
+      'runTestAsynchronous',
+      'streamLogs'
     ]);
   });
 

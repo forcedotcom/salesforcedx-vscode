@@ -38,19 +38,25 @@ const makeService = (request: ReturnType<typeof vi.fn>) =>
   } as unknown as Connection);
 
 describe('ExecuteService adapter', () => {
-  it.each(['System.assert(true);', Buffer.from('System.assert(true);')])(
-    'accepts source content and preserves the CLI success shape',
-    async apexCode => {
-      const request = vi.fn().mockResolvedValue(makeResponse());
+  it('accepts Apex source and preserves the CLI success shape', async () => {
+    const apexCode = 'System.assert(true);';
+    const request = vi.fn().mockResolvedValue(makeResponse());
 
-      await expect(makeService(request).executeAnonymous({ apexCode })).resolves.toEqual({
-        compiled: true,
-        success: true,
-        logs: 'LOG'
-      });
-      expect(request.mock.calls[0][0].body).toContain('System.assert(true);');
-    }
-  );
+    await expect(makeService(request).executeAnonymous({ apexCode })).resolves.toEqual({
+      compiled: true,
+      success: true,
+      logs: 'LOG'
+    });
+    expect(request.mock.calls[0][0].body).toContain(apexCode);
+  });
+
+  it('rejects non-string source content before calling Salesforce', async () => {
+    const request = vi.fn().mockResolvedValue(makeResponse());
+    const options = { apexCode: Buffer.from('System.assert(true);') } as unknown as { apexCode: string };
+
+    await expect(makeService(request).executeAnonymous(options)).rejects.toThrow();
+    expect(request).not.toHaveBeenCalled();
+  });
 
   it('submits empty source content to Salesforce instead of selecting host input', async () => {
     const request = vi.fn().mockResolvedValue(makeResponse());
@@ -91,15 +97,13 @@ describe('ExecuteService adapter', () => {
     });
   });
 
-  it('keeps an absent debug log undefined for CLI JSON output', async () => {
+  it('omits logs when the SOAP response has no debug log', async () => {
     const { 'soapenv:Header': _header, ...envelope } = makeResponse()['soapenv:Envelope'];
     const request = vi.fn().mockResolvedValue({ 'soapenv:Envelope': envelope });
 
-    await expect(makeService(request).executeAnonymous({ apexCode: 'code' })).resolves.toEqual({
-      compiled: true,
-      success: true,
-      logs: undefined
-    });
+    const response = await makeService(request).executeAnonymous({ apexCode: 'code' });
+    expect(response).toEqual({ compiled: true, success: true });
+    expect(response).not.toHaveProperty('logs');
   });
 
   it('adapts malformed SOAP failures to plain Promise errors', async () => {
@@ -129,7 +133,6 @@ describe('ExecuteService adapter', () => {
         {
           lineNumber: 6,
           columnNumber: 1,
-          compileProblem: '',
           exceptionMessage: 'System.AssertException: Assertion Failed',
           exceptionStackTrace: 'AnonymousBlock: line 1, column 1'
         }

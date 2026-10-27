@@ -74,6 +74,50 @@ const result = await Effect.runPromise(operation.pipe(Effect.provide(connectionL
 
 A fixed layer captures its connection when constructed. An extension that needs the current default org should resolve the connection for each operation, as in the services example.
 
+### Execute anonymous input
+
+Both `executeAnonymous` APIs accept `{ apexCode: string }`. The caller reads files or stdin and passes the resulting source text. `ExecuteService` no longer accepts `apexFilePath`, `userInput`, or `Buffer` source values. An empty source string is still submitted to Salesforce for validation.
+
+```ts
+import { readFile } from 'node:fs/promises';
+import { ExecuteService } from '@salesforce/apex-node';
+
+const apexCode = await readFile(file, 'utf8');
+const result = await new ExecuteService(connection).executeAnonymous({ apexCode });
+```
+
+CLI hosts must implement `--file`, piped stdin, and interactive input themselves, then pass the source as `apexCode`.
+
+The Effect API returns a success-only outcome. Compilation and runtime failures use `ApexCompileError` and `ApexRuntimeError`, carrying host-neutral line/column, diagnostic text, and any debug log; malformed SOAP produces `ApexResponseDecodeError`. `ExecuteService` adapts compile/runtime errors back to the CLI's `compiled`, `success`, `logs`, and `diagnostic` response, while other errors remain rejected Promises with plain messages. The VS Code services adapter handles the typed execution failures as diagnostic data for its editor and output-channel contract.
+
+### Logs
+
+`listLogs(connection, limit = 25, options?)` queries Tooling API logs in descending start-time order. Options filter by user(s), operation substring, and inclusive start time. `getLogBody(connection, logId)` retrieves the body.
+
+`streamLogs(connection, options)` collects immediately and then on the supplied Effect schedule. `pollOptions(index)` returns `Option.none()` to skip a poll or `Option.some(filters)` to query; `filterLogs` selects records before body retrieval. The stream emits `Log`, `QueryError`, and `BodyError` events, continuing after request failures. Consumers own window gating, trace flags, org changes, deduplication, storage, and interruption.
+
+### Asynchronous test execution
+
+`runTestAsynchronous(connection, options, polling?)` is an Effect that submits the Tooling API request and returns `{ id, stream, cancel }`. Consume the stream within the same scoped Effect. It polls `ApexTestRunResult` lazily, emitting `Progress` events and a terminal `Result` with the test run ID and final summary. Request and malformed-response failures use `ApexOperationError` and `ApexResponseDecodeError`.
+
+```ts
+import { runTestAsynchronous } from '@salesforce/apex-node/effect';
+import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
+
+const run = runTestAsynchronous(connection, { testLevel: 'RunLocalTests' }).pipe(
+  Effect.flatMap(({ id, stream }) =>
+    Stream.runForEach(stream, event => Effect.log('Apex test run', { testRunId: id, event }))
+  ),
+  Effect.scoped
+);
+await Effect.runPromise(run);
+```
+
+Closing the scope before the stream completes aborts unfinished queue items, including paginated queue items. Call `cancel()` to request an explicit abort. Cleanup failures surface as defects rather than being silently ignored. Keep the scope around the stream consumer, not the entire application.
+
+Polling defaults to two seconds; `polling.interval` accepts an Effect `DurationInput`. There is no CometD fallback. Consumers own deadlines and UI formatting. This API reports execution progress; result formatting, coverage, and file output remain separate operations.
+
 ### Effect report formatting
 
 `formatHumanReport`, `formatTapReport`, `formatJUnitReport`, and `formatMarkdownTextReport` return report strings through Effects with `ApexReportError`. They preserve the existing report content and options. Markdown/text defaults remain Markdown, runtime sorting, 5000 ms performance threshold, 75% coverage threshold, and coverage disabled. The default timestamp uses the Effect clock. Human/TAP formatting and coverage source parsing default to LF; callers can select CRLF.
@@ -106,22 +150,6 @@ await Effect.runPromise(
 ```
 
 The Effect entry point has no Node file/stream dependencies. Existing class and Node stream reporters remain available.
-
-### Execute anonymous input migration
-
-The Effect API requires `{ apexCode: string }` and never reads files or terminal input. `ExecuteService.executeAnonymous` accepts `{ apexCode: string | Buffer }` and retains the existing `apexFilePath` and `userInput` options for CLI compatibility. Explicit source content takes precedence; an empty source string is submitted to Salesforce for validation.
-
-```ts
-import { readFile } from 'node:fs/promises';
-import { ExecuteService } from '@salesforce/apex-node';
-
-const apexCode = await readFile(file, 'utf8');
-const result = await new ExecuteService(connection).executeAnonymous({ apexCode });
-```
-
-The [CLI command at c8fdf707](https://github.com/salesforcecli/plugin-apex/blob/c8fdf7073ce194deb75fc7fd12c0b981ee2b97f4/src/commands/apex/run.ts) still passes `apexFilePath` or `userInput`. The class retains those reads, the input prompt, per-line 60-second idle timeout, platform line endings, and input-error messages. **Do not remove these options until the CLI reads `--file` or stdin itself, passes `apexCode`, and verifies file, piped-input, interactive-input, timeout, and error cases.** That consumer migration is not included here; this change preserves its existing input contract.
-
-The Effect API returns a success-only outcome. Compilation and runtime failures use `ApexCompileError` and `ApexRuntimeError`, carrying host-neutral line/column, diagnostic text, and any debug log; malformed SOAP produces `ApexResponseDecodeError`. `ExecuteService` adapts compile/runtime errors back to the CLI's `compiled`, `success`, `logs`, and `diagnostic` response, while other errors remain rejected Promises with plain messages. The VS Code services adapter handles the typed execution failures as diagnostic data for its editor and output-channel contract.
 
 ## Getting Started
 

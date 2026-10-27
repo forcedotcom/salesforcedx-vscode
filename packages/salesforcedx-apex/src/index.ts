@@ -5,12 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { CancellationTokenSource } from './common';
-export type { CancellationToken, Progress } from './common';
+export { CancellationTokenSource } from './tests/cancellation';
+export type { CancellationToken } from './tests/cancellation';
+export type { ApexTestProgressReporter } from './tests/types';
 export type { ExecuteAnonymousResponse, ApexExecuteOptions } from './execute/types';
 export { ExecuteService } from './execute/executeService';
 export { LogService } from './logs';
 export type { ApexLogGetOptions, LogRecord, LogResult } from './logs';
+export { ApexClassId, SalesforceId, TestRunId } from './schemas/salesforceId';
 export {
   JUnitReporter,
   TapReporter,
@@ -28,7 +30,7 @@ export type {
   OutputFormat,
   TestSortOrder
 } from './reporters';
-export { TestService } from './tests';
+export { TestService, ResultFormat, TestLevel } from './tests';
 export type {
   ApexCodeCoverage,
   ApexCodeCoverageRecord,
@@ -47,10 +49,8 @@ export type {
   AsyncTestConfiguration,
   CodeCoverageResult,
   OutputDirConfig,
-  ResultFormat,
   SyncTestConfiguration,
   TestItem,
-  TestLevel,
   TestResult,
   TestResultRaw,
   TestRunIdResult,

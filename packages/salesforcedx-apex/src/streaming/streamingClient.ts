@@ -7,11 +7,12 @@
 
 import { type Connection, LoggerLevel } from '@salesforce/core';
 import { type Duration } from '@salesforce/kit';
+import * as Schema from 'effect/Schema';
 import { Client } from 'faye';
-import { type Progress } from '../common';
 import { nls } from '../i18n';
+import { TestRunId } from '../schemas/salesforceId';
 import {
-  type ApexTestProgressValue,
+  type ApexTestProgressReporter,
   type ApexTestQueueItem,
   type ApexTestQueueItemRecord,
   type TestRunIdResult
@@ -42,7 +43,7 @@ export class StreamingClient {
 
   private client: any;
   private readonly conn: Connection;
-  private progress?: Progress<ApexTestProgressValue>;
+  private progress?: ApexTestProgressReporter;
   public subscribedTestRunId!: string;
   private subscribedTestRunIdDeferred = new Deferred<string>();
   public get subscribedTestRunIdPromise(): Promise<string> {
@@ -58,7 +59,7 @@ export class StreamingClient {
     return urlElements.join('/');
   }
 
-  constructor(connection: Connection, progress?: Progress<ApexTestProgressValue>) {
+  constructor(connection: Connection, progress?: ApexTestProgressReporter) {
     this.conn = connection;
     this.progress = progress;
     const streamUrl = this.getStreamURL(this.conn.instanceUrl);
@@ -237,7 +238,7 @@ export class StreamingClient {
   }
 
   private isValidTestRunID(testRunId: string, subscribedId?: string): boolean {
-    if (testRunId.length !== 15 && testRunId.length !== 18) {
+    if (!Schema.is(TestRunId)(testRunId)) {
       return false;
     }
 

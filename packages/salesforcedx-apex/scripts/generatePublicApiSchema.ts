@@ -47,12 +47,24 @@ import { join } from 'node:path';
 import * as Prettier from 'prettier';
 import {
   ApexCompileError,
+  ApexLogListItem,
+  ApexLogQueryError,
+  ApexLogBodyFetchError,
+  ListLogsOptionsSchema,
   ApexOperationError,
   ApexResponseDecodeError,
   ApexReportError,
   ApexRuntimeError,
+  AsyncTestOptionsSchema,
+  AsyncTestProgressSchema,
+  AsyncTestResultSchema,
+  AsyncTestRunEventSchema,
+  BuildSyncPayloadOptionsSchema,
+  BuildAsyncPayloadOptionsSchema,
   ExecuteAnonymousOptionsSchema,
-  ExecuteAnonymousOutcomeSchema
+  ExecuteAnonymousOutcomeSchema,
+  TestSuiteSchema,
+  TestSuiteMembershipSchema
 } from '../src/effect';
 
 const optional = Schema.optional;
@@ -72,23 +84,22 @@ const ApexDiagnosticSchema = Schema.Struct({
   lineNumber: optional(Schema.Number),
   columnNumber: optional(Schema.Number),
   exceptionMessage: Schema.String,
-  compileProblem: Schema.String,
+  compileProblem: optional(Schema.String),
   exceptionStackTrace: Schema.String,
   className: optional(Schema.String)
 }).annotations({ identifier: 'ApexDiagnostic' });
 
-const SerializedBufferSchema = Schema.Struct({
-  type: Schema.Literal('Buffer'),
-  data: NumberArray
-});
+const ApexTestDiagnosticSchema = Schema.Struct({
+  lineNumber: optional(Schema.Number),
+  columnNumber: optional(Schema.Number),
+  exceptionMessage: Schema.String,
+  compileProblem: optional(Schema.String),
+  exceptionStackTrace: Schema.String,
+  className: optional(Schema.String)
+}).annotations({ identifier: 'ApexTestDiagnostic' });
 
 const ApexExecuteOptionsSchema = Schema.Struct({
-  json: optional(Schema.Boolean),
-  loglevel: optional(LogLevelSchema),
-  targetUsername: optional(Schema.String),
-  apexFilePath: optional(Schema.String),
-  apexCode: optional(Schema.Union(Schema.String, SerializedBufferSchema)),
-  userInput: optional(Schema.Boolean)
+  apexCode: Schema.String
 }).annotations({ identifier: 'ApexExecuteOptions' });
 
 const ExecuteAnonymousResponseSchema = Schema.Struct({
@@ -253,7 +264,7 @@ const ApexTestQueueItemStatusSchema = Schema.Literal(
 const ApexClassSchema = Schema.Struct({
   id: Schema.String,
   name: Schema.String,
-  namespacePrefix: Schema.String,
+  namespacePrefix: Schema.NullOr(Schema.String),
   fullName: Schema.String
 });
 
@@ -271,7 +282,7 @@ const ApexTestResultDataSchema = Schema.Struct({
   testTimestamp: Schema.String,
   fullName: Schema.String,
   perClassCoverage: PerClassCoverageSchema.pipe(Schema.Array, optional),
-  diagnostic: optional(ApexDiagnosticSchema),
+  diagnostic: optional(ApexTestDiagnosticSchema),
   category: optional(Schema.String)
 }).annotations({ identifier: 'ApexTestResultData' });
 
@@ -291,7 +302,7 @@ const ApexTestSetupDataSchema = Schema.Struct({
   testSetupTime: Schema.Number,
   testTimestamp: Schema.String,
   fullName: Schema.String,
-  diagnostic: optional(ApexDiagnosticSchema)
+  diagnostic: optional(ApexTestDiagnosticSchema)
 }).annotations({ identifier: 'ApexTestSetupData' });
 
 const CodeCoverageResultSchema = Schema.Struct({
@@ -402,6 +413,10 @@ const PublicApiSchema = Schema.Union(
   ApexDiagnosticSchema,
   ApexExecuteOptionsSchema,
   ApexLogGetOptionsSchema,
+  ApexLogListItem,
+  ApexLogQueryError,
+  ApexLogBodyFetchError,
+  ListLogsOptionsSchema,
   ApexTestProgressValueSchema,
   ApexTestQueueItemSchema,
   ApexTestQueueItemRecordSchema,
@@ -418,8 +433,14 @@ const PublicApiSchema = Schema.Union(
   ApexRuntimeError,
   AsyncTestArrayConfigurationSchema,
   AsyncTestConfigurationSchema,
+  AsyncTestOptionsSchema,
+  AsyncTestProgressSchema,
+  AsyncTestResultSchema,
+  AsyncTestRunEventSchema,
   CodeCoverageResultSchema,
   CommonOptionsSchema,
+  BuildSyncPayloadOptionsSchema,
+  BuildAsyncPayloadOptionsSchema,
   ExecuteAnonymousOptionsSchema,
   ExecuteAnonymousOutcomeSchema,
   ExecuteAnonymousResponseSchema,
@@ -434,7 +455,9 @@ const PublicApiSchema = Schema.Union(
   TestLevelSchema,
   TestResultSchema,
   TestResultRawSchema,
-  TestRunIdResultSchema
+  TestRunIdResultSchema,
+  TestSuiteSchema,
+  TestSuiteMembershipSchema
 ).annotations({
   title: '@salesforce/apex-node public JSON API',
   description: 'JSON-representable values accepted or returned by the supported @salesforce/apex-node API.'

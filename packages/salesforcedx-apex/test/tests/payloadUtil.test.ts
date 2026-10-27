@@ -9,14 +9,13 @@ import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import { nls } from '../../src/i18n';
 import { TestService } from '../../src/tests';
-import * as utils from '../../src/tests/utils';
 
-vi.mock(import('../../src/tests/utils'), async importOriginal => ({
-  ...(await importOriginal()),
-  queryNamespaces: vi.fn()
-}));
+const { queryNamespacesMock } = vi.hoisted(() => ({ queryNamespacesMock: vi.fn() }));
 
-const queryNamespacesMock = vi.mocked(utils.queryNamespaces);
+vi.mock(import('../../src/effect/namespaces'), async () => {
+  const Effect = await import('effect/Effect');
+  return { queryNamespaces: (connection: Connection) => Effect.promise(() => queryNamespacesMock(connection)) };
+});
 
 let mockConnection: Connection;
 const testData = new MockTestOrgData();
@@ -300,13 +299,11 @@ describe('Build async payload', () => {
 
   it('should include skipCodeCoverage in async payload when classNames with category are provided', async () => {
     const namespaceStub = queryNamespacesMock.mockClear();
-    // Mock the buildClassPayloadForFlow method
     const mockFlowPayload = {
       testLevel: 'RunSpecifiedTests',
       tests: [{ className: 'FlowTestClass' }],
       skipCodeCoverage: true
     };
-    $$.SANDBOX.stub(testService as any, 'buildClassPayloadForFlow').resolves(mockFlowPayload);
 
     const payload = await testService.buildAsyncPayload(
       'RunSpecifiedTests',
@@ -441,13 +438,11 @@ describe('Build sync payload', () => {
 
   it('should include skipCodeCoverage in sync payload when classnames with category are provided', async () => {
     const namespaceStub = queryNamespacesMock.mockClear();
-    // Mock the buildClassPayloadForFlow method
     const mockFlowPayload = {
       testLevel: 'RunSpecifiedTests',
       tests: [{ className: 'FlowTestClass' }],
       skipCodeCoverage: true
     };
-    $$.SANDBOX.stub(testSrv as any, 'buildClassPayloadForFlow').resolves(mockFlowPayload);
 
     const payload = await testSrv.buildSyncPayload('RunSpecifiedTests', undefined, 'FlowTestClass', 'Flow', true);
 

@@ -15,6 +15,47 @@ export {
   ApexRuntimeError,
   causeMessage
 } from './errors';
+export {
+  ApexLogListItem,
+  ListLogsOptionsSchema,
+  LogStreamEventSchema,
+  ApexLogQueryError,
+  ApexLogBodyFetchError,
+  listLogs,
+  getLogBody,
+  streamLogs
+} from './logs';
+export type { ListLogsOptions, LogStreamEvent, StreamLogsOptions } from './logs';
+export {
+  BuildSyncPayloadOptionsSchema,
+  BuildAsyncPayloadOptionsSchema,
+  buildSyncPayload,
+  buildAsyncPayload
+} from './testPayloads';
+export type { BuildSyncPayloadOptions, BuildAsyncPayloadOptions } from './testPayloads';
+export {
+  TestSuiteSchema,
+  TestSuiteMembershipSchema,
+  retrieveAllSuites,
+  getTestsInSuite,
+  buildSuite
+} from './testSuites';
+export type { TestSuite, TestSuiteMembership } from './testSuites';
+export {
+  AsyncTestOptionsSchema,
+  AsyncTestProgressSchema,
+  AsyncTestResultSchema,
+  AsyncTestRunEventSchema,
+  runTestAsynchronous
+} from './asyncTests';
+export type {
+  AsyncTestOptions,
+  AsyncTestPollingOptions,
+  AsyncTestProgress,
+  AsyncTestRun,
+  AsyncTestRunEvent,
+  AsyncTestRunSummary
+} from './asyncTests';
 export { formatHumanReport, formatTapReport, formatJUnitReport, formatMarkdownTextReport } from './reporters';
 export type { HumanReporterOptions } from './reporters';
 export type { MarkdownTextReporterOptions, OutputFormat, TestSortOrder } from '../reporters/markdownTextReporter';
