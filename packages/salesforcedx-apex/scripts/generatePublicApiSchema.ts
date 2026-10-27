@@ -46,10 +46,12 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import * as Prettier from 'prettier';
 import {
+  ApexCompileError,
   ApexOperationError,
   ApexResponseDecodeError,
+  ApexRuntimeError,
   ExecuteAnonymousOptionsSchema,
-  ExecuteAnonymousResultSchema
+  ExecuteAnonymousOutcomeSchema
 } from '../src/effect';
 
 const optional = Schema.optional;
@@ -408,14 +410,16 @@ const PublicApiSchema = Schema.Union(
   ApexTestResultOutcomeSchema,
   ApexTestRunResultStatusSchema,
   ApexTestSetupDataSchema,
+  ApexCompileError,
   ApexOperationError,
   ApexResponseDecodeError,
+  ApexRuntimeError,
   AsyncTestArrayConfigurationSchema,
   AsyncTestConfigurationSchema,
   CodeCoverageResultSchema,
   CommonOptionsSchema,
   ExecuteAnonymousOptionsSchema,
-  ExecuteAnonymousResultSchema,
+  ExecuteAnonymousOutcomeSchema,
   ExecuteAnonymousResponseSchema,
   LogLevelSchema,
   LogRecordSchema,

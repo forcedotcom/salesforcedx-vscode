@@ -61,6 +61,14 @@ export default class App extends LightningElement {
   public get showNoDefaultOrgNotification(): boolean {
     return this.hasNoDefaultOrg;
   }
+  public get noDefaultOrgLabel(): string {
+    return document.body.dataset.canSetDefaultOrg === 'true'
+      ? messages.label_no_default_org
+      : messages.label_no_default_org_without_org_extension;
+  }
+  public get showSetDefaultOrgAction(): boolean {
+    return document.body.dataset.canSetDefaultOrg === 'true';
+  }
   public get showBlockedQueryBuilder(): boolean {
     return !this.hasNoDefaultOrg && this.shouldBlockQueryBuilder;
   }
