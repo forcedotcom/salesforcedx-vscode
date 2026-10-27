@@ -61,6 +61,7 @@ import {
   TestSuiteSchema,
   TestSuiteMembershipSchema
 } from '../src/effect';
+import { ResultFormat as ResultFormatSchema, TestLevel as TestLevelSchema } from '../src/tests/types';
 
 const optional = Schema.optional;
 const StringArray = Schema.Array(Schema.String);
@@ -133,14 +134,6 @@ const LogResultSchema = Schema.Struct({
   logPath: optional(Schema.String),
   log: Schema.String
 }).annotations({ identifier: 'LogResult' });
-
-const TestLevelSchema = Schema.Literal('RunLocalTests', 'RunAllTestsInOrg', 'RunSpecifiedTests').annotations({
-  identifier: 'TestLevel'
-});
-
-const ResultFormatSchema = Schema.Literal('junit', 'tap', 'json', 'human', 'markdown', 'text').annotations({
-  identifier: 'ResultFormat'
-});
 
 const TestItemSchema = Schema.Struct({
   className: optional(Schema.String),

@@ -5,23 +5,24 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type {
-  AsyncTestArrayConfiguration,
-  AsyncTestConfiguration,
-  SyncTestConfiguration,
-  TestItem
-} from '../tests/types';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { messages } from '../i18n/i18n';
 import { ApexClassId } from '../schemas/salesforceId';
+import {
+  type AsyncTestArrayConfiguration,
+  type AsyncTestConfiguration,
+  type SyncTestConfiguration,
+  type TestItem,
+  TestLevel
+} from '../tests/types';
 import { ApexOperationError } from './errors';
 import { queryNamespaces } from './namespaces';
 
 const payloadOptions = {
-  testLevel: Schema.Literal('RunLocalTests', 'RunAllTestsInOrg', 'RunSpecifiedTests'),
+  testLevel: TestLevel,
   tests: Schema.optional(Schema.String),
   classNames: Schema.optional(Schema.String),
   category: Schema.optional(Schema.String),

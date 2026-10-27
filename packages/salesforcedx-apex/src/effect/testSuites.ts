@@ -7,6 +7,7 @@
 
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
+import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { messages } from '../i18n/i18n';
 import { ApexOperationError } from './errors';
@@ -46,36 +47,22 @@ export const retrieveAllSuites = Effect.fn('Apex.retrieveAllSuites')(function* (
   );
 });
 
-const retrieveSuiteId = Effect.fn('Apex.retrieveSuiteId')(function* (connection: Connection, suiteName: string) {
+export const retrieveSuiteId = Effect.fn('Apex.retrieveSuiteId')(function* (connection: Connection, suiteName: string) {
   return yield* queryRecords(
     connection,
     'retrieveSuiteId',
     `SELECT id FROM ApexTestSuite WHERE TestSuiteName = '${quote(suiteName)}'`,
     IdRecordSchema,
     true
-  ).pipe(Effect.map(records => records[0]?.Id));
+  ).pipe(Effect.map(records => records.at(0)?.Id));
 });
 
-/** Retrieves class membership by suite name or id; a supplied name takes precedence. */
-export const getTestsInSuite = Effect.fn('Apex.getTestsInSuite')(function* (
-  connection: Connection,
-  suiteName?: string,
-  suiteId?: string
-) {
-  if (suiteName === undefined && suiteId === undefined) {
-    return yield* new ApexOperationError({
-      operation: 'getTestsInSuite',
-      message: messages.suitenameErr
-    });
-  }
-  const id = suiteName ? yield* retrieveSuiteId(connection, suiteName) : suiteId;
-  if (id === undefined) {
-    return yield* new ApexOperationError({ operation: 'getTestsInSuite', message: messages.missingSuiteErr });
-  }
+/** Retrieves class membership by suite id. */
+export const getTestsInSuite = Effect.fn('Apex.getTestsInSuite')(function* (connection: Connection, suiteId: string) {
   return yield* queryRecords(
     connection,
     'getTestsInSuite',
-    `SELECT ApexClassId FROM TestSuiteMembership WHERE ApexTestSuiteId = '${quote(id)}'`,
+    `SELECT ApexClassId FROM TestSuiteMembership WHERE ApexTestSuiteId = '${quote(suiteId)}'`,
     TestSuiteMembershipSchema,
     true
   );
@@ -87,12 +74,22 @@ export const buildSuite = Effect.fn('Apex.buildSuite')(function* (
   suiteName: string,
   testClasses: readonly string[]
 ) {
-  const existingSuiteId = yield* retrieveSuiteId(connection, suiteName);
-  const suiteId =
-    existingSuiteId ??
-    (yield* createRecord(connection, 'buildSuite', 'ApexTestSuite', { TestSuiteName: suiteName })).id;
-  const members = yield* getTestsInSuite(connection, undefined, suiteId);
-  const classes = yield* getApexClassIds(connection, testClasses);
+  const suiteId = yield* retrieveSuiteId(connection, suiteName).pipe(
+    Effect.flatMap(id =>
+      // Recover an empty result, not a failed query.
+      Effect.fromNullable(id).pipe(
+        Effect.orElse(() =>
+          createRecord(connection, 'buildSuite', 'ApexTestSuite', { TestSuiteName: suiteName }).pipe(
+            Effect.map(record => record.id)
+          )
+        )
+      )
+    )
+  );
+  const [members, classes] = yield* Effect.all(
+    [getTestsInSuite(connection, suiteId), getApexClassIds(connection, testClasses)],
+    { concurrency: 'unbounded' }
+  );
   yield* Effect.forEach(
     classes,
     (classId, index) =>
@@ -132,16 +129,16 @@ export const getApexClassIds = Effect.fn('Apex.getApexClassIds')(function* (
         IdRecordSchema,
         true
       ).pipe(
-        Effect.flatMap(records =>
-          records[0]
-            ? Effect.succeed(records[0].Id)
-            : Effect.fail(
-                new ApexOperationError({
-                  operation: 'buildSuite',
-                  message: messages.missingTestClassErr.replace('%s', testClass)
-                })
-              )
-        )
+        Effect.map(records => records.at(0)),
+        Effect.filterOrFail(
+          isNotUndefined,
+          () =>
+            new ApexOperationError({
+              operation: 'buildSuite',
+              message: messages.missingTestClassErr.replace('%s', testClass)
+            })
+        ),
+        Effect.map(record => record.Id)
       );
     },
     { concurrency: 'unbounded' }
