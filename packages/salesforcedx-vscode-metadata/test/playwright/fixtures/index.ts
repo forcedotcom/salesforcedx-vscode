@@ -15,7 +15,7 @@ import {
   trackingConflictTest as trackingConflictDesktopTest
 } from './desktopFixtures';
 import { webTrackingConflictTest } from './webConflictFixtures';
-import { containerTest, projectTargetContainerTest } from './containerFixtures';
+import { containerTest, containerWorkspaceTest, projectTargetContainerTest } from './containerFixtures';
 
 const isDesktop = process.env.VSCODE_DESKTOP === '1';
 export const isContainer = process.env.VSCODE_CONTAINER === '1';
@@ -44,3 +44,8 @@ export const sharedNonTrackingTest = isContainer ? containerTest : isDesktop ? n
 export const sharedEmptyWorkspaceTest = isContainer ? containerTest : isDesktop ? emptyWorkspaceDesktopTest : webTest;
 /** Create Project specs: desktop scaffolds beside its temp workspace, the container into the no-project mount's scratch/. */
 export const sharedProjectTargetTest = isContainer ? projectTargetContainerTest : projectTargetDesktopTest;
+/**
+ * Like `sharedTest`, but both sides provide `workspaceDir`: desktop's temp workspace, or the host side
+ * of the container's fixture bind mount. For shared specs that read or write workspace files.
+ */
+export const sharedWorkspaceDirTest = isContainer ? containerWorkspaceTest : desktopTest;

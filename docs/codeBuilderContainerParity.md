@@ -40,8 +40,8 @@ container ports.
    desktop/web counterpart isn't one: write it as a shared spec so desktop runs it too. Nor is a
    `workspaceDir` need alone: the fixture project is a host
    bind mount, so a container fixture can supply its host path (`CB_FIXTURE_HOST_DIR`) for on-disk
-   reads — see the `sharedWorkspaceDirTest` in apex (used by `apexLspRestart`) and apex-replay-debugger
-   (used by `apexReplayDebugger`).
+   reads — see the `sharedWorkspaceDirTest` in apex (used by `apexLspRestart`), apex-replay-debugger
+   (used by `apexReplayDebugger`), and metadata (used by `manifestCommandVisibility`, which writes files).
 
 Per [PR #8102 review feedback](https://github.com/forcedotcom/salesforcedx-vscode/pull/8102#discussion_r4047559234),
 96 of the 107 container specs (108 originally, plus the 3 later createProject* ports, less testExplorerRun folded into testExplorer, the duplicate metadata deploySource, and the 2 metadata emptyWorkspaceSfdxCommands specs, whose checks the createProject* specs already make) have been merged this way; 11 remain standalone. See "Adding a
@@ -301,7 +301,7 @@ than needing a mount or phase of their own — see the row below.
 
 | Spec(s) | Shape needed | Verdict |
 | --- | --- | --- |
-| metadata `manifestCommandVisibility` | standard project + org (= current fixture) | **DONE** — ported; writes `*Package.xml`/`.xml` into bind-mounted fixture via `CB_FIXTURE_HOST_DIR` env; runs against ambient boot org in phase 1 |
+| metadata `manifestCommandVisibility` | standard project + org (= current fixture) | **DONE** — ported; writes `*Package.xml`/`.xml` into bind-mounted fixture via `sharedWorkspaceDirTest`'s `workspaceDir` (`CB_FIXTURE_HOST_DIR`); runs against ambient boot org in phase 1 |
 | metadata `noProjectCommandsHidden` | folder, no `sfdx-project.json` | **DONE** — merged into `noProjectCommandsHidden.headless.spec.ts`; orchestrator re-seeds `coder.json` to non-project mount + `restart()`s in phase 2, re-runs verify gate, then runs `test:container:noproject`. Re-seed spike: **PASS** ✓ |
 | apex-log/apex-testing `noProjectVisibility`, metadata `createProjectEmptyWindow` | folder open, no `sfdx-project.json` / no folder open | **DONE** — ported; org-agnostic palette-visibility checks via phase 2 (`test:container:noproject`) + a new phase 3 (`test:container:nofolder`) for the no-folder case (metadata `createProjectEmptyWindow`); apex-log/apex-testing `noProjectVisibility` are merged into their `noProjectVisibility.headless.spec.ts` (`isContainer` branch, picked by the phase config's `testMatch`) |
 | apex-log `apexGenerateClassMultiPackageDirs` | multi-`packageDirectories` project | **DONE** — merged into `apexGenerateClassMultiPackageDirs.headless.spec.ts` with `isContainer` branch; runs in phase 4 against `container-multipackage` mount (2 `packageDirectories`, each with a `classes` dir); phase 1 config's `testMatch` excludes it so single-package desktop/web runs don't fail |

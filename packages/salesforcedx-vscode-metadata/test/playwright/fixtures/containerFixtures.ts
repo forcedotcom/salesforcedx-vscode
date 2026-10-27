@@ -16,6 +16,24 @@ import type { ProjectTarget } from './projectTarget';
 
 export const containerTest = createContainerTest();
 
+/**
+ * containerTest plus `workspaceDir`: the host side of the fixture bind mount, published by the
+ * orchestrator (scripts/codeBuilderLocalE2E.ts). A host-side node:fs write there lands in the folder
+ * code-server has open. A missing var is a wiring bug, so fail loud rather than write to a guessed path.
+ */
+export const containerWorkspaceTest = containerTest.extend<{ workspaceDir: string }>({
+  workspaceDir: async ({}, use) => {
+    const hostDir = process.env.CB_FIXTURE_HOST_DIR;
+    if (!hostDir) {
+      throw new Error(
+        'CB_FIXTURE_HOST_DIR is not set — the orchestrator (scripts/codeBuilderLocalE2E.ts) must publish the ' +
+          'host side of the fixture bind mount so specs can write files into the opened workspace.'
+      );
+    }
+    await use(hostDir);
+  }
+});
+
 /** code-server's record of the last-opened folder; `/` redirects there. The orchestrator seeds it per phase. */
 const CODER_JSON = '/home/codebuilder/.local/share/code-server/coder.json';
 
