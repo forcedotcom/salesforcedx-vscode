@@ -522,6 +522,17 @@
       },
       "additionalProperties": false
     },
+    "ApexReportError": {
+      "type": "object",
+      "required": ["format", "message", "_tag"],
+      "properties": {
+        "format": { "type": "string" },
+        "message": { "type": "string" },
+        "cause": { "type": "string" },
+        "_tag": { "type": "string", "enum": ["ApexReportError"] }
+      },
+      "additionalProperties": false
+    },
     "ApexRuntimeError": {
       "type": "object",
       "required": ["operation", "message", "line", "column", "exceptionMessage", "exceptionStackTrace", "_tag"],
@@ -974,6 +985,7 @@
     { "$ref": "#/$defs/ApexOperationError" },
     { "$ref": "#/$defs/ApexOrgWideCoverage" },
     { "$ref": "#/$defs/ApexResponseDecodeError" },
+    { "$ref": "#/$defs/ApexReportError" },
     { "$ref": "#/$defs/ApexRuntimeError" },
     { "$ref": "#/$defs/AsyncTestArrayConfiguration" },
     { "$ref": "#/$defs/AsyncTestConfiguration" },
