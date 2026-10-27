@@ -186,7 +186,7 @@ describe('Apex Test Suites', () => {
       expect(toolingCreateStub.calledTwice).toBe(true);
     });
 
-    it('should log message if a test class already exists in given suite', async () => {
+    it('should not log when a test class already exists in the suite', async () => {
       toolingQueryStub
         .onFirstCall()
         .resolves({
@@ -208,12 +208,10 @@ describe('Apex Test Suites', () => {
 
       expect(toolingQueryStub.callCount).toBe(4);
       expect(toolingCreateStub.notCalled).toBe(true);
-      expect(consoleSpy.callCount).toBe(2);
-      expect(consoleSpy.args[0]).toEqual(['Apex test class testClassOne already exists in Apex test suite oldSuite']);
-      expect(consoleSpy.args[1]).toEqual(['Apex test class testClassTwo already exists in Apex test suite oldSuite']);
+      expect(consoleSpy.notCalled).toBe(true);
     });
 
-    it('should add test class to suite if class does not exist', async () => {
+    it('should add test classes to suite without logging to the console', async () => {
       toolingQueryStub
         .onFirstCall()
         .resolves({
@@ -226,11 +224,13 @@ describe('Apex Test Suites', () => {
         .onCall(3)
         .resolves({ records: [{ Id: '01p000000000006' }] });
       toolingCreateStub.resolves({ id: '05F000000000001' });
+      const consoleSpy = $$.SANDBOX.spy(console, 'log');
 
       const testService = new TestService(mockConnection);
       await testService.buildSuite('oldSuite', ['testClassOne', 'testClassTwo']);
 
       expect(toolingCreateStub.calledTwice).toBe(true);
+      expect(consoleSpy.notCalled).toBe(true);
     });
   });
 

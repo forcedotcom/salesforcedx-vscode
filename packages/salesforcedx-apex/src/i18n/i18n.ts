@@ -84,8 +84,6 @@ export const messages = {
   suitenameErr: 'Must provide a suite name or suite id to retrieve test classes in suite',
   missingSuiteErr: 'Suite does not exist',
   missingTestClassErr: 'Apex class %s does not exist in the org',
-  testSuiteMsg: 'Apex test class %s already exists in Apex test suite %s',
-  classSuiteMsg: 'Added Apex class %s to your Apex test suite %s',
   error_no_default_username:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
   trace_flags_unknown_user: 'Unknown user',
