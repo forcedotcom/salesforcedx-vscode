@@ -103,6 +103,20 @@ nightly remains a pre-release and is the next stable build's input.
 At the start of the release-manager work week, inspect the train without
 approving, cancelling, or dispatching anything:
 
+1. Open the latest [Releasability Dashboard workflow run](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/release-dashboard.yml).
+   Its job summary presents the nightly, prerelease-promotion, stable-build,
+   and per-registry publication states together with the current artifacts,
+   derived blocker, and a read-only recovery recommendation. It refreshes after
+   the scheduled nightly and Wednesday promotion; use **Run workflow** for a
+   current snapshot during an incident.
+   The dashboard's `develop` test-health section is intentionally strict about
+   evidence: a failed current-commit build or unit check is a hard no, while a
+   missing check is `not verified`, not a pass. The current unit/build workflows
+   run on merged PR heads rather than direct `develop` pushes, so use this
+   section as feeder evidence rather than asserting direct branch coverage.
+2. Use the commands below when the dashboard links to a failed or ambiguous
+   workflow and its logs need closer inspection.
+
 ```bash
 gh release list --repo forcedotcom/salesforcedx-vscode --limit 15
 gh run list --repo forcedotcom/salesforcedx-vscode --status waiting --limit 20 \
