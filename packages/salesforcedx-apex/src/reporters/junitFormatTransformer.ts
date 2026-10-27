@@ -8,39 +8,41 @@ import type { TestResult } from '../tests/types';
 import { Logger } from '@salesforce/core';
 import { Readable, type ReadableOptions } from 'node:stream';
 import { elapsedTime, HeapMonitor } from '../utils';
-import { formatJUnit, formatJUnitProperties, formatJUnitTestCases } from './formatJUnit';
+import { pushReportChunks } from '../utils/pushReportChunks';
+import { formatJUnitChunks, formatJUnitPropertyChunks, formatJUnitTestCaseChunks } from './formatJUnit';
 
 export class JUnitFormatTransformer extends Readable {
   private readonly logger = Logger.childFromRoot('JUnitFormatTransformer');
+  private readonly chunks: ReturnType<typeof formatJUnitChunks>;
 
   constructor(
     private readonly testResult: TestResult,
     options?: ReadableOptions
   ) {
     super(options);
+    this.chunks = formatJUnitChunks(testResult);
   }
 
   _read(): void {
     this.logger.trace('starting _read');
     HeapMonitor.getInstance().checkHeapSize('JUnitFormatTransformer._read');
     this.format();
-    this.push(null); // Signal the end of the stream.
     this.logger.trace('finishing _read');
     HeapMonitor.getInstance().checkHeapSize('JUnitFormatTransformer._read');
   }
 
   @elapsedTime()
   public format(): void {
-    this.push(formatJUnit(this.testResult));
+    pushReportChunks(this, this.chunks);
   }
 
   @elapsedTime()
   buildProperties(): void {
-    this.push(formatJUnitProperties(this.testResult));
+    for (const chunk of formatJUnitPropertyChunks(this.testResult)) this.push(chunk);
   }
 
   @elapsedTime()
   buildTestCases(): void {
-    this.push(formatJUnitTestCases(this.testResult.tests));
+    for (const chunk of formatJUnitTestCaseChunks(this.testResult.tests)) this.push(chunk);
   }
 }

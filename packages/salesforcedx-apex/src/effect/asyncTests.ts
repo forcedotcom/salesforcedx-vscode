@@ -15,6 +15,7 @@ import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { ApexOperationError, ApexResponseDecodeError, causeMessage } from './errors';
+import { QueryPageSchema } from './querySchema';
 
 const operation = 'runTestAsynchronous';
 const salesforceIdSchema = Schema.String.pipe(
@@ -76,16 +77,11 @@ const summarySchema = Schema.Struct({
   ClassesEnqueued: Schema.Number
 });
 const summariesSchema = Schema.Struct({ records: Schema.Tuple(summarySchema) });
-const queueRecordsSchema = Schema.Array(
-  Schema.Struct({
-    Id: salesforceIdSchema,
-    Status: Schema.Literal('Queued', 'Holding', 'Preparing', 'Processing', 'Aborted', 'Completed', 'Failed')
-  })
-);
-const queueSchema = Schema.Union(
-  Schema.Struct({ done: Schema.Literal(true), records: queueRecordsSchema }),
-  Schema.Struct({ done: Schema.Literal(false), records: queueRecordsSchema, nextRecordsUrl: Schema.String })
-);
+const queueRecordSchema = Schema.Struct({
+  Id: salesforceIdSchema,
+  Status: Schema.Literal('Queued', 'Holding', 'Preparing', 'Processing', 'Aborted', 'Completed', 'Failed')
+});
+const queueSchema = QueryPageSchema(queueRecordSchema);
 const updateResultSchema = Schema.Struct({ success: Schema.Boolean });
 const finishedStatuses = HashSet.make('Aborted', 'Failed', 'Completed', 'Passed', 'Skipped');
 const DEFAULT_POLL_INTERVAL = Duration.seconds(2);

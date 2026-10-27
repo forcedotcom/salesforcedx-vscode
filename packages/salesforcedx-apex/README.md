@@ -120,7 +120,7 @@ Polling defaults to two seconds; `polling.interval` accepts an Effect `DurationI
 
 ### Effect report formatting
 
-`formatHumanReport`, `formatTapReport`, `formatJUnitReport`, and `formatMarkdownTextReport` return report strings through Effects with `ApexReportError`. They preserve the existing report content and options. Markdown/text defaults remain Markdown, runtime sorting, 5000 ms performance threshold, 75% coverage threshold, and coverage disabled. The default timestamp uses the Effect clock. Human/TAP formatting and coverage source parsing default to LF; callers can select CRLF.
+`formatHumanReport`, `formatTapReport`, `formatJUnitReport`, and `formatMarkdownTextReport` return report strings through Effects with `ApexReportError`. They preserve the existing report content and options. `MarkdownTextReporterOptions`, `OutputFormat`, and `TestSortOrder` are supported public types exported by the Effect entry point. Markdown/text defaults remain Markdown, runtime sorting, 5000 ms performance threshold, 75% coverage threshold, and coverage disabled. The default timestamp uses the Effect clock. Human formatting preserves LF within tables and host-native separators between sections; an explicit `lineEnding` normalizes the complete Effect report to LF or CRLF. TAP formatting and coverage source parsing default to LF; callers can select CRLF.
 
 ```ts
 import { formatMarkdownTextReport } from '@salesforce/apex-node/effect';
@@ -131,7 +131,7 @@ const report = await Effect.runPromise(
 );
 ```
 
-`buildCoverageMap(coverage, sources)` accepts sources keyed by Apex class/trigger name, each with a resolved `path` and optional `content`. It does not discover or read files. `generateCoverageReports(coverage, sources, options)` defaults to `text-summary`, the existing filenames and watermarks, and nested summarization. Supply `IstanbulReports` with the host's Istanbul factories; the host owns its writer, assets, and destination:
+`buildCoverageMap(coverage, sources)` accepts sources keyed by Apex class/trigger name, each with a resolved `path` and required `content`. It does not discover or read files. Coverage maps retain records for classes without supplied source. `generateCoverageReports(coverage, sources, options)` defaults to `text-summary`, the existing filenames and watermarks, and nested summarization. HTML and HTML-SPA reports require source text for every covered file; missing text fails with `ApexReportError` before report generation. Supply `IstanbulReports` with the host's Istanbul factories; the host owns its writer, assets, and destination:
 
 ```ts
 import { generateCoverageReports, IstanbulReports } from '@salesforce/apex-node/effect';

@@ -58,14 +58,24 @@ export const generateCoverageReports = Effect.fn('Apex.generateCoverageReports')
     Effect.flatMap(coverageMap =>
       Effect.try({
         try: () => {
-          const sourceByPath = new Map(Object.values(sources).map(source => [source.path, source.content ?? '']));
+          const sourceByPath = new Map(Object.values(sources).map(source => [source.path, source.content]));
+          const sourceFinder = (path: string): string => {
+            const content = sourceByPath.get(path);
+            if (content === undefined) throw new Error(`Source content was not supplied for ${path}`);
+            return content;
+          };
+          const formats = options?.reportFormats || ['text-summary'];
+          // Istanbul HTML annotation catches source lookup errors instead of failing the report.
+          if (formats.some(format => format === 'html' || format === 'html-spa')) {
+            coverageMap.files().forEach(sourceFinder);
+          }
           const context = istanbul.createContext({
             coverageMap,
             defaultSummarizer: 'nested',
             watermarks: options?.watermark || DefaultWatermarks,
-            sourceFinder: path => sourceByPath.get(path) ?? ''
+            sourceFinder
           });
-          (options?.reportFormats || ['text-summary']).forEach(format => {
+          formats.forEach(format => {
             istanbul
               .createReport(format, options?.reportOptions?.[format] || DefaultReportOptions[format])
               .execute(context);

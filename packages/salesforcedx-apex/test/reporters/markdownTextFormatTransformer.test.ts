@@ -7,6 +7,7 @@
 
 import { MarkdownTextFormatTransformer } from '../../src';
 import { pipeline, Writable } from 'node:stream';
+import { formatMarkdownText } from '../../src/reporters/formatMarkdownText';
 import { getTestData, successResult } from './testResults';
 import type { TestResult } from '../../src/tests/types';
 
@@ -36,6 +37,16 @@ describe('MarkdownTextFormatTransformer', () => {
   ): Promise<void> => {
     callback(await runPipeline(reporter));
   };
+
+  it.each(['markdown', 'text'] as const)('streams %s incrementally and resumes after backpressure', async format => {
+    const options = { format, codeCoverage: true, timestamp: new Date('2026-01-02T03:04:05Z'), highWaterMark: 1 };
+    const reporter = new MarkdownTextFormatTransformer(testResults, options);
+    reporter.read(0);
+    expect(reporter.readableLength).toBe(
+      Buffer.byteLength(format === 'markdown' ? '# Apex Test Results\n' : 'Apex Test Results\n==================\n\n')
+    );
+    await expect(runPipeline(reporter)).resolves.toBe(formatMarkdownText(testResults, options));
+  });
 
   describe('format differences', () => {
     it('should produce different output for markdown vs text formats', async () => {

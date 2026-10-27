@@ -15,6 +15,7 @@ import type * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { causeMessage } from './errors';
+import { QueryPageSchema } from './querySchema';
 
 /** ApexLog record from Tooling API query (Id, LogLength, StartTime, Status required per API reference). */
 export const ApexLogListItem = Schema.Struct({
@@ -84,11 +85,9 @@ const buildListLogsQuery = (limit: number, options?: ListLogsOptions): string =>
   return `SELECT Id, Application, DurationMilliseconds, LogLength, LogUserId, LogUser.Name, Operation, StartTime, Status FROM ApexLog${where} ORDER BY StartTime ${orderBy}, Id ${orderBy} LIMIT ${limit}`;
 };
 
-const LogPage = Schema.Struct({
-  totalSize: Schema.Number,
-  done: Schema.optionalWith(Schema.Boolean, { default: () => true }),
-  nextRecordsUrl: Schema.optional(Schema.String),
-  records: Schema.optionalWith(Schema.Array(ApexLogListItem), { default: () => [] })
+const LogPage = QueryPageSchema(ApexLogListItem, {
+  additionalFields: { totalSize: Schema.Number },
+  defaultTerminalPage: true
 });
 
 /** Lists logs using the caller's connection, following Tooling API query pages. */
@@ -111,7 +110,7 @@ export const listLogs = Effect.fn('Apex.listLogs')(function* (
         page =>
           [
             Chunk.fromIterable(page.records),
-            page.done ? Option.none() : Option.fromNullable(page.nextRecordsUrl)
+            page.done ? Option.none() : Option.some(page.nextRecordsUrl)
           ] as const
       )
     )
