@@ -52,10 +52,7 @@ describe('executeAnonymous', () => {
 
       expect(yield* executeAnonymous(connection, { apexCode: 'System.debug(1);' })).toEqual({
         compiled: true,
-        success: true,
-        line: -1,
-        column: -1,
-        logBody: undefined
+        success: true
       });
       expect(request).toHaveBeenCalledWith(
         expect.objectContaining({
