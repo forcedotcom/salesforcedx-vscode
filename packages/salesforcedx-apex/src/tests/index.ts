@@ -6,7 +6,7 @@
  */
 
 export { TestService } from './testService';
-export { ResultFormat, TestLevel } from './types';
+export { ResultFormat, ResultFormatSchema, TestLevel, TestLevelSchema } from './types';
 export type {
   ApexCodeCoverage,
   ApexCodeCoverageRecord,

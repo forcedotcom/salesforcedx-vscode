@@ -6,10 +6,10 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { TestLevel } from '../../tests/types';
+import { TestLevelSchema } from '../../tests/types';
 
 const payloadOptions = {
-  testLevel: TestLevel,
+  testLevel: TestLevelSchema,
   tests: Schema.optional(Schema.String),
   classNames: Schema.optional(Schema.String),
   category: Schema.optional(Schema.String),
