@@ -72,6 +72,36 @@ describe('releaseDashboard', () => {
     expect(summary).toContain('do not rerun the stable build until a new prerelease tracking tag exists');
   });
 
+  it('still flags a failed nightly when the last promotion run predates it and was a stale success', () => {
+    const { result, summary } = runDashboard(
+      {
+        workflow_runs: [
+          {
+            name: 'Nightly Release',
+            status: 'completed',
+            conclusion: 'failure',
+            created_at: '2026-10-26T04:00:00Z',
+            html_url: 'https://example.test/nightly'
+          },
+          {
+            name: 'Promote to Pre-release',
+            status: 'completed',
+            conclusion: 'success',
+            created_at: '2026-10-21T08:00:00Z',
+            html_url: 'https://example.test/promotion'
+          }
+        ]
+      },
+      []
+    );
+
+    expect(result.status).toBe(0);
+    expect(summary).toContain('| Nightly | failure | [run](https://example.test/nightly) |');
+    expect(summary).toContain(
+      'Latest nightly failed. Promotion cannot pass its required nightly package/release checks'
+    );
+  });
+
   it('surfaces a stable candidate as awaiting manual QA', () => {
     const { result, summary } = runDashboard({ workflow_runs: [] }, [
       {

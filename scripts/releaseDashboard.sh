@@ -135,7 +135,16 @@ expected_stable_release=$(jq -r --arg tag "$expected_stable" '.[] | select(.tag_
 
 blocker='None detected from the latest workflow snapshots.'
 next_action='Monitor the scheduled release train.'
-if [ "$(run_state "$nightly")" = 'failure' ] && [ "$(run_state "$promotion")" != 'success' ] && [ "$stable_candidate" = 'not found' ]; then
+# Nightly runs daily but promotion only runs Wednesdays, so a successful promotion run can
+# predate a since-failed nightly; only treat promotion as covering the latest nightly if it ran after it.
+nightly_created_at=$(jq -r '.created_at // empty' <<< "$nightly")
+promotion_created_at=$(jq -r '.created_at // empty' <<< "$promotion")
+promotion_covers_nightly=false
+if [ "$(run_state "$promotion")" = 'success' ] && [ -n "$promotion_created_at" ] && [ -n "$nightly_created_at" ] \
+  && [[ "$promotion_created_at" > "$nightly_created_at" ]]; then
+  promotion_covers_nightly=true
+fi
+if [ "$(run_state "$nightly")" = 'failure' ] && [ "$promotion_covers_nightly" = false ] && [ "$stable_candidate" = 'not found' ]; then
   blocker='Latest nightly failed. Promotion cannot pass its required nightly package/release checks until the candidate is repaired or rerun.'
   next_action='Inspect and recover the nightly before rerunning promotion; do not rerun the stable build until a new prerelease tracking tag exists.'
 elif [ "$(run_state "$promotion")" = 'failure' ]; then
