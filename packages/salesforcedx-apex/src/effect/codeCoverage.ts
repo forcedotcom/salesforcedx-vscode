@@ -20,7 +20,8 @@ import {
   type ApexCodeCoverageRecord,
   type PerClassCoverage
 } from './coverageSchemas';
-import { ApexOperationError, ApexResponseDecodeError, causeMessage } from './errors';
+import { causeMessage } from './errors';
+import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
 
 const perClassQuery =
   'SELECT ApexTestClassId, ApexClassOrTrigger.Id, ApexClassOrTrigger.Name, TestMethodName, NumLinesCovered, NumLinesUncovered, Coverage FROM ApexCodeCoverage WHERE ApexTestClassId IN (%s)';
