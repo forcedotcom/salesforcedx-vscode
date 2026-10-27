@@ -1,0 +1,9 @@
+{
+  "name": "@salesforce/effect-v3-external-consumer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "effect": "3.21.2"
+  }
+}
