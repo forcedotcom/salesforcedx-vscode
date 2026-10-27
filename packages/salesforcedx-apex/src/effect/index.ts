@@ -5,9 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { ExecuteAnonymousOptionsSchema, ExecuteAnonymousResultSchema, executeAnonymous } from './executeAnonymous';
-export type { ExecuteAnonymousOptions, ExecuteAnonymousResult } from './executeAnonymous';
-export { ApexOperationError, ApexResponseDecodeError, ApexReportError, causeMessage } from './errors';
+export { ExecuteAnonymousOptionsSchema, ExecuteAnonymousOutcomeSchema, executeAnonymous } from './executeAnonymous';
+export type { ExecuteAnonymousOptions, ExecuteAnonymousOutcome } from './executeAnonymous';
+export {
+  ApexCompileError,
+  ApexOperationError,
+  ApexResponseDecodeError,
+  ApexReportError,
+  ApexRuntimeError,
+  causeMessage
+} from './errors';
 export { formatHumanReport, formatTapReport, formatJUnitReport, formatMarkdownTextReport } from './reporters';
 export type { HumanReporterOptions } from './reporters';
 export type { MarkdownTextReporterOptions, OutputFormat, TestSortOrder } from '../reporters/markdownTextReporter';

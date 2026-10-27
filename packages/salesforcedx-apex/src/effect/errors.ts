@@ -33,5 +33,26 @@ export class ApexReportError extends Schema.TaggedError<ApexReportError>()('Apex
   cause: Schema.optional(Schema.String)
 }) {}
 
+const AnonymousExecutionErrorFields = {
+  operation: Schema.NonEmptyTrimmedString,
+  message: Schema.String,
+  line: Schema.Number,
+  column: Schema.Number,
+  logBody: Schema.optional(Schema.String)
+};
+
+/** Anonymous Apex compiled unsuccessfully; diagnostics remain on the error. */
+export class ApexCompileError extends Schema.TaggedError<ApexCompileError>()('ApexCompileError', {
+  ...AnonymousExecutionErrorFields,
+  compileProblem: Schema.NullOr(Schema.String)
+}) {}
+
+/** Anonymous Apex compiled but failed during execution. */
+export class ApexRuntimeError extends Schema.TaggedError<ApexRuntimeError>()('ApexRuntimeError', {
+  ...AnonymousExecutionErrorFields,
+  exceptionMessage: Schema.NullOr(Schema.String),
+  exceptionStackTrace: Schema.NullOr(Schema.String)
+}) {}
+
 /** Produces the serializable cause carried by public operation errors. */
 export const causeMessage = (cause: unknown): string => (isError(cause) ? cause.message : String(cause));
