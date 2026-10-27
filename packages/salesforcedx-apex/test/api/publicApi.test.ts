@@ -40,19 +40,31 @@ describe('@salesforce/apex-node public API', () => {
   it('exports the Effect foundation from its isolated entry point', () => {
     expect(Object.keys(effectApi).sort()).toEqual([
       'ApexCompileError',
+      'ApexDiagnosticSchema',
       'ApexLogBodyFetchError',
       'ApexLogListItem',
       'ApexLogQueryError',
       'ApexOperationError',
       'ApexResponseDecodeError',
       'ApexRuntimeError',
+      'ApexTestResultDataRawSchema',
+      'ApexTestResultDataSchema',
+      'ApexTestResultOutcomeSchema',
+      'ApexTestSetupDataSchema',
       'BuildAsyncPayloadOptionsSchema',
       'BuildSyncPayloadOptionsSchema',
+      'CodeCoverageResultSchema',
       'ExecuteAnonymousOptionsSchema',
       'ExecuteAnonymousOutcomeSchema',
       'ListLogsOptionsSchema',
       'LogStreamEventSchema',
+      'PerClassCoverageSchema',
       'QueryPageSchema',
+      'SyncTestConfigurationSchema',
+      'SyncTestResultSchema',
+      'TestItemSchema',
+      'TestResultRawSchema',
+      'TestResultSchema',
       'TestSuiteMembershipSchema',
       'TestSuiteSchema',
       'buildAsyncPayload',
@@ -60,11 +72,15 @@ describe('@salesforce/apex-node public API', () => {
       'buildSyncPayload',
       'causeMessage',
       'executeAnonymous',
+      'formatSyncResults',
+      'getDiagnostic',
       'getLogBody',
       'getTestsInSuite',
       'listLogs',
       'retrieveAllSuites',
-      'streamLogs'
+      'runTestSynchronous',
+      'streamLogs',
+      'transformTestResult'
     ]);
   });
 

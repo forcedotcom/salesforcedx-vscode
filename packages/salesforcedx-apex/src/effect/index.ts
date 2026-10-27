@@ -7,6 +7,24 @@
 
 export { ExecuteAnonymousOptionsSchema, ExecuteAnonymousOutcomeSchema, executeAnonymous } from './executeAnonymous';
 export type { ExecuteAnonymousOptions, ExecuteAnonymousOutcome } from './executeAnonymous';
+export { ApexDiagnosticSchema, getDiagnostic } from './diagnostics';
+export type { ApexDiagnostic } from './diagnostics';
+export { formatSyncResults, runTestSynchronous } from './syncTests';
+export { transformTestResult } from './testResults';
+export {
+  ApexTestResultDataSchema,
+  ApexTestResultDataRawSchema,
+  ApexTestResultOutcomeSchema,
+  ApexTestSetupDataSchema,
+  CodeCoverageResultSchema,
+  PerClassCoverageSchema,
+  SyncTestConfigurationSchema,
+  SyncTestResultSchema,
+  TestItemSchema,
+  TestResultRawSchema,
+  TestResultSchema
+} from './testSchemas';
+export type { SyncTestConfiguration, TestResult, TestResultRaw } from './testSchemas';
 export {
   ApexCompileError,
   ApexOperationError,

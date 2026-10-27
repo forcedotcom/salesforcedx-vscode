@@ -58,9 +58,13 @@ import {
   BuildAsyncPayloadOptionsSchema,
   ExecuteAnonymousOptionsSchema,
   ExecuteAnonymousOutcomeSchema,
+  SyncTestConfigurationSchema,
+  SyncTestResultSchema,
+  TestItemSchema,
   TestSuiteSchema,
   TestSuiteMembershipSchema
 } from '../src/effect';
+import { CoverageLinesSchema } from '../src/effect/testSchemas';
 import { ApexLogPageSchema } from '../src/effect/schema/wire/logs';
 import {
   ApexDiagnosticSchema,
@@ -140,14 +144,6 @@ const LogResultSchema = Schema.Struct({
   log: Schema.String
 }).annotations({ identifier: 'LogResult' });
 
-const TestItemSchema = Schema.Struct({
-  className: optional(Schema.String),
-  classId: optional(Schema.String),
-  testMethods: optional(StringArray),
-  namespace: optional(Schema.String),
-  category: optional(Schema.String)
-}).annotations({ identifier: 'TestItem' });
-
 const AsyncTestConfigurationSchema = Schema.Struct({
   classNames: optional(Schema.String),
   classids: optional(Schema.String),
@@ -169,15 +165,6 @@ const AsyncTestArrayConfigurationSchema = Schema.Struct({
   category: optional(StringArray)
 }).annotations({ identifier: 'AsyncTestArrayConfiguration' });
 
-const SyncTestConfigurationSchema = Schema.Struct({
-  classNames: optional(Schema.String),
-  tests: TestItemSchema.pipe(Schema.Array, optional),
-  testLevel: optional(Schema.String),
-  maxFailedTests: optional(Schema.Number),
-  skipCodeCoverage: optional(Schema.Boolean),
-  category: optional(StringArray)
-}).annotations({ identifier: 'SyncTestConfiguration' });
-
 const OutputDirConfigSchema = Schema.Struct({
   dirPath: Schema.String,
   resultFormats: ResultFormatSchema.pipe(Schema.Array, optional),
@@ -186,11 +173,6 @@ const OutputDirConfigSchema = Schema.Struct({
     content: Schema.Union(Schema.String, Schema.Object)
   }).pipe(Schema.Array, optional)
 }).annotations({ identifier: 'OutputDirConfig' });
-
-const CoverageLinesSchema = Schema.Struct({
-  coveredLines: NumberArray,
-  uncoveredLines: NumberArray
-});
 
 const ApexCodeCoverageRecordSchema = Schema.Struct({
   ApexClassOrTrigger: Schema.Struct({ Id: Schema.String, Name: Schema.String }),
@@ -323,6 +305,7 @@ const PublicApiSchema = Schema.Union(
   PerClassCoverageSchema,
   ResultFormatSchema,
   SyncTestConfigurationSchema,
+  SyncTestResultSchema,
   TestItemSchema,
   TestLevelSchema,
   TestResultSchema,
