@@ -91,17 +91,20 @@ jobs:
       package-manager-version: ''
     secrets: inherit
 
-  publish:
-    needs: ['ctc-open', 'prepare-release-metadata', 'gate-check']
-    if: always() && needs.prepare-release-metadata.result == 'success' && (needs.gate-check.result == 'success' || needs.gate-check.result == 'skipped') && (inputs.dry-run || needs.ctc-open.result == 'success')
-    uses: salesforcecli/github-workflows/.github/workflows/openvsx-publish-release-vsix.yml@main
-    with:
-      release-tag: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
-      dry-run: ${{ inputs.dry-run == true }}
-    secrets: inherit
+  # The actual `ovsx publish` happens in publishOpenVSXTrusted.yml, not here. It has its own
+  # `release: types: [released]` trigger (fires independently off the same event this workflow
+  # listens for) rather than being `uses:`-called from this job, so its OIDC token's workflow_ref
+  # is publishOpenVSXTrusted.yml -- not this file. That's required for Open VSX's trusted-publisher
+  # match: it keys off workflow_ref (the run's own initiating workflow), and promote-to-prerelease.yml
+  # dispatches that same file for the weekly prerelease, so both channels share one workflow_ref and
+  # therefore one trusted-publisher registration. See publishOpenVSXTrusted.yml for details.
 
   verify-published:
-    needs: ['prepare-release-metadata', 'publish']
+    needs: ['prepare-release-metadata', 'ctc-open']
+    # No needs: on publishOpenVSXTrusted.yml -- it's a separate top-level run (see the comment
+    # above), so there's no in-workflow way to depend on it. Its own `ovsx publish` step normally
+    # finishes well before this starts (ctc-open takes longer), and the poll loop below already
+    # tolerates up to POLL_TIMEOUT (default 20 min) regardless.
     if: inputs.dry-run != true
     runs-on: ubuntu-latest
     env:

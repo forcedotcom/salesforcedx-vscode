@@ -293,7 +293,10 @@ jobs:
   promote:
     needs: [find-nightly, gate-check, write-changelog]
     if: always() && needs.gate-check.result == 'success' && (needs.write-changelog.result == 'success' || needs.write-changelog.result == 'skipped')
-    uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-prerelease.yml@main
+    # TEMPORARY: pinned to the github-workflows PR branch that removes vscode-promote-prerelease.yml's
+    # ovsx leg (salesforcecli/github-workflows#200), to validate end-to-end before that PR merges.
+    # Switch back to @main before merging this PR.
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-prerelease.yml@ms/W-24666922-promote-prerelease-skip-ovsx
     with:
       release-tag: ${{ needs.find-nightly.outputs.nightly-tag }}
       vsix-name-pattern: 'salesforcedx-vscode-*.vsix'
@@ -301,6 +304,33 @@ jobs:
       extension-name: 'salesforcedx-vscode'
       dry-run: ${{ inputs.dry-run || false }}
     secrets: inherit
+
+  # Step 4b: Dispatch publishOpenVSXTrusted.yml for this exact nightly. vscode-promote-prerelease.yml
+  # no longer publishes Open VSX at all (PAT-based ovsx leg removed there -- see its header comment),
+  # so this is the only place Open VSX publishing happens for prerelease. Open VSX's
+  # trusted-publisher match keys off the OIDC token's workflow_ref claim -- the top-level workflow
+  # that *initiated* the run, fixed to this file (promote-to-prerelease.yml) for every job that
+  # runs via a `uses:` call, no matter how deeply nested or which repo it lives in. Since stable
+  # releases are published via publishOpenVSX.yml, not this file, the two channels would get two
+  # different workflow_ref values -- and Open VSX allows only one trusted-publisher registration
+  # per extension. `gh workflow run` below is a genuinely new, independent run rather than a
+  # nested call, so that run's own workflow_ref is publishOpenVSXTrusted.yml -- the same file
+  # stable's `release` event also triggers directly. See publishOpenVSXTrusted.yml for the full
+  # explanation.
+  trigger-openvsx-publish:
+    needs: [find-nightly, write-changelog, promote]
+    if: always() && needs.promote.result == 'success' && (needs.write-changelog.result == 'success' || needs.write-changelog.result == 'skipped') && inputs.dry-run != true
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+      NIGHTLY_TAG: ${{ needs.find-nightly.outputs.nightly-tag }}
+    steps:
+      - name: Dispatch Open VSX publish for this nightly
+        run: |
+          gh workflow run publishOpenVSXTrusted.yml \
+            --repo "${{ github.repository }}" \
+            --ref develop \
+            -f release-tag="$NIGHTLY_TAG"
 
   # Step 5: Mark the nightly release as published. The reusable promote workflow only
   # publishes VSIXs to the marketplaces -- it never touches the nightly release itself --
@@ -334,7 +364,17 @@ jobs:
   # not a classic incoming webhook -- the payload must be the flat set of input variables
   # defined on that trigger (title, run_url, repository), not a free-form Block Kit message.
   notify-on-failure:
-    needs: [find-nightly, gate-check, compute-changelog-range, changelog-body, write-changelog, promote, mark-release-published]
+    needs:
+      [
+        find-nightly,
+        gate-check,
+        compute-changelog-range,
+        changelog-body,
+        write-changelog,
+        promote,
+        trigger-openvsx-publish,
+        mark-release-published
+      ]
     if: failure()
     runs-on: ubuntu-latest
     steps:
@@ -353,7 +393,17 @@ jobs:
   # itself skipped during dry-run, and a skipped need doesn't count against success(), so without
   # this guard a dry-run would falsely announce success despite publishing nothing for real.
   notify-on-success:
-    needs: [find-nightly, gate-check, compute-changelog-range, changelog-body, write-changelog, promote, mark-release-published]
+    needs:
+      [
+        find-nightly,
+        gate-check,
+        compute-changelog-range,
+        changelog-body,
+        write-changelog,
+        promote,
+        trigger-openvsx-publish,
+        mark-release-published
+      ]
     if: success() && inputs.dry-run != true
     runs-on: ubuntu-latest
     steps:
