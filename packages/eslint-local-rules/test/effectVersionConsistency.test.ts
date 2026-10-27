@@ -23,6 +23,7 @@ type PackageJson = {
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
   peerDependencies?: Record<string, string>;
+  optionalDependencies?: Record<string, string>;
 };
 
 const readJson = (relative: string): PackageJson =>
@@ -101,4 +102,54 @@ describe('effect version consistency', () => {
         });
     });
   }, 15_000);
+
+  it('rejects unreviewed Effect copies in reachable transitive dependencies', () => {
+    const visited = new Set<string>();
+    const violations = new Set<string>();
+    const manifests = new Map<string, PackageJson>();
+    const readManifest = (file: string): PackageJson => {
+      const cached = manifests.get(file);
+      if (cached !== undefined) return cached;
+      const pkg = JSON.parse(fs.readFileSync(file, 'utf8')) as PackageJson;
+      manifests.set(file, pkg);
+      return pkg;
+    };
+    const visit = (file: string, ownerEffectFile: string): void => {
+      const manifestFile = fs.realpathSync(file);
+      const relativeFile = path.relative(REPO_ROOT, manifestFile).split(path.sep).join('/');
+      const expectedEffectFile =
+        packageEffectVersions[relativeFile] === undefined ? ownerEffectFile : resolvedEffect(relativeFile).file;
+      const key = `${manifestFile}\0${expectedEffectFile}`;
+      if (visited.has(key)) return;
+      visited.add(key);
+      const pkg = readManifest(manifestFile);
+      if (pkg.name === 'effect') {
+        if (manifestFile !== expectedEffectFile) {
+          violations.add(
+            `${manifestFile}: effect@${pkg.version ?? '(unknown)'} differs from owner ${expectedEffectFile}`
+          );
+        }
+        return;
+      }
+      const requirePackage = createRequire(manifestFile);
+      const dependencies = {
+        ...pkg.dependencies,
+        ...pkg.optionalDependencies,
+        ...pkg.peerDependencies,
+        ...(workspaceFiles.includes(relativeFile) ? pkg.devDependencies : {})
+      };
+      Object.keys(dependencies).forEach(name => {
+        // Reading resolution paths handles hidden package.json exports without executing
+        // dependency code or relying on compiled workspace entry points.
+        const dependencyFile = requirePackage.resolve
+          .paths(name)
+          ?.map(directory => path.join(directory, name, 'package.json'))
+          .find(candidate => fs.existsSync(candidate));
+        if (dependencyFile !== undefined) visit(dependencyFile, expectedEffectFile);
+      });
+    };
+    const rootEffectFile = resolvedEffect('package.json').file;
+    workspaceFiles.forEach(file => visit(path.join(REPO_ROOT, file), rootEffectFile));
+    expect([...violations]).toEqual([]);
+  }, 30_000);
 });

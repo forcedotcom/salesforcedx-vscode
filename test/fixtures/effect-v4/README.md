@@ -18,6 +18,8 @@ IAC/core compile fixture exercises the actual core exports' Channel/Workspace/Co
 
 `pnpm test:packed-services` builds and packs the real `@salesforce/vscode-services` package, copies only fixture source/manifests into a fresh directory outside this checkout, installs its locked dependencies, asserts no Effect V4 is required, and typechecks real static accessor/Context/ref calls with V3 **3.21.2**, `strict:true`, `skipLibCheck:false`. No checkout's node_modules is reused.
 
+The public declaration entry preserves the generated source's type-only exports over an internal bundled declaration module. Packed controls reject runtime use of `GetAuthFieldsError` / `DefaultOrgInfoSchema`, and verify that the runtime root exports only `ICONS`.
+
 This caught two real failures: an unpublished sibling declaration import (`TS2307`) and incompatible V3 declaration identities caused by ranged Effect/platform versions. Legacy declarations are now bundled and validated; the legacy Effect ecosystem versions stay pinned independently of the future V4 implementation. No `--no-check` or other gate bypass.
 
 When the packed public artifact changes, regenerate its consumer lock intentionally with `node scripts/test-packed-services.mjs --update-lock`; this still installs and typechecks the package. Normal CI uses `npm ci`, never updates the lock. This does not claim support for untested V3 minors.

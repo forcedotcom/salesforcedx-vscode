@@ -46,6 +46,7 @@ try {
   }
   execFileSync(npm, ['ci'], { ...npmOptions, cwd: temp, stdio: 'inherit' });
   const requireConsumer = createRequire(path.join(temp, 'package.json'));
+  assert.deepEqual(Object.keys(requireConsumer('@salesforce/vscode-services')), ['ICONS']);
   assert.equal(requireConsumer('effect/package.json').version, '3.21.2');
   const tree = JSON.parse(execFileSync(npm, ['ls', 'effect', '--all', '--json'], { ...npmOptions, cwd: temp }));
   const assertV3Effects = dependencies =>
