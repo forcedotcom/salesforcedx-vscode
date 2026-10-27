@@ -17,7 +17,7 @@ Note: Please report any issues via the [Issues tab](https://github.com/forcedotc
 
 ## Using the Effect API
 
-The existing Promise/class entry point remains available for its current consumers. New Apex behavior is developed in `@salesforce/apex-node/effect`. `ExecuteService` adapts the shared Effect implementation to the CLI response and Promise error contracts; other classes have not migrated yet.
+The existing Promise/class entry point remains available for its current consumers. New Apex behavior is developed in `@salesforce/apex-node/effect`. Execute anonymous and code coverage retrieval share Effect implementations with their Promise adapters.
 
 ### Effect API with an explicit connection
 
@@ -95,6 +95,18 @@ The Effect API returns a success-only outcome. Compilation and runtime failures 
 `listLogs(connection, limit = 25, options?)` queries Tooling API logs in descending start-time order. Options filter by user(s), operation substring, and inclusive start time. `getLogBody(connection, logId)` retrieves the body.
 
 `streamLogs(connection, options)` collects immediately and then on the supplied Effect schedule. `pollOptions(index)` returns `Option.none()` to skip a poll or `Option.some(filters)` to query; `filterLogs` selects records before body retrieval. The stream emits `Log`, `QueryError`, and `BodyError` events, continuing after request failures. Consumers own window gating, trace flags, org changes, deduplication, storage, and interruption.
+
+### Code coverage retrieval
+
+`@salesforce/apex-node/effect` exports three coverage operations, each taking the caller-selected connection:
+
+- `getOrgWideCoverage(connection)` returns a percentage string, or `'0%'` if no record exists.
+- `getPerClassCodeCoverage(connection, apexTestClassIds)` takes a `ReadonlySet<string>` and returns a `Map<string, PerClassCoverage[]>` keyed by `${testClassId}-${methodName}`. An empty set returns an empty map without querying.
+- `getAggregateCodeCoverage(connection, apexClassIds)` takes a `ReadonlySet<string>` and returns `{ codeCoverageResults, totalLines, coveredLines }`. An empty set queries all aggregate records, preserving the org's **Store Only Aggregate Code Coverage** behavior.
+
+Both ID-filtered operations batch at 500 IDs and retrieve every Tooling query page. Request failures use `ApexOperationError`; malformed responses use `ApexResponseDecodeError`. Interruption stops further retrieval, but cannot cancel a request already submitted through the connection.
+
+Coverage schemas are exported from `./effect`. The existing root coverage types derive from those schemas without changing their fields, string IDs, mutable arrays, optional per-test coverage, or percentage rounding. Existing `TestService` consumers continue to use the Promise adapter; test execution, reporting, and coverage decorations are unchanged.
 
 ## Getting Started
 

@@ -7,6 +7,27 @@
 
 export { ExecuteAnonymousOptionsSchema, ExecuteAnonymousOutcomeSchema, executeAnonymous } from './executeAnonymous';
 export type { ExecuteAnonymousOptions, ExecuteAnonymousOutcome } from './executeAnonymous';
+export { getOrgWideCoverage, getPerClassCodeCoverage, getAggregateCodeCoverage } from './codeCoverage';
+export {
+  ApexCodeCoverageSchema,
+  ApexCodeCoverageRecordSchema,
+  ApexCodeCoverageAggregateSchema,
+  ApexCodeCoverageAggregateRecordSchema,
+  ApexOrgWideCoverageSchema,
+  PerClassCoverageSchema,
+  CodeCoverageResultSchema,
+  AggregateCodeCoverageResultSchema
+} from './coverageSchemas';
+export type {
+  ApexCodeCoverage,
+  ApexCodeCoverageRecord,
+  ApexCodeCoverageAggregate,
+  ApexCodeCoverageAggregateRecord,
+  ApexOrgWideCoverage,
+  PerClassCoverage,
+  CodeCoverageResult,
+  AggregateCodeCoverageResult
+} from './coverageSchemas';
 export {
   ApexCompileError,
   ApexOperationError,

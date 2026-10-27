@@ -6,6 +6,18 @@
  */
 
 import * as Schema from 'effect/Schema';
+import { CodeCoverageResultSchema, PerClassCoverageSchema } from '../effect/coverageSchemas';
+import type { CodeCoverageResult, PerClassCoverage } from '../effect/coverageSchemas';
+
+export type {
+  ApexCodeCoverage,
+  ApexCodeCoverageAggregate,
+  ApexCodeCoverageAggregateRecord,
+  ApexCodeCoverageRecord,
+  ApexOrgWideCoverage,
+  CodeCoverageResult,
+  PerClassCoverage
+} from '../effect/coverageSchemas';
 
 /**
  * Specifies which Apex tests run.
@@ -363,21 +375,6 @@ const ApexDiagnosticSchema = Schema.Struct({
   className: Schema.optional(Schema.String)
 }).pipe(Schema.mutable);
 
-const PerClassCoverageSchema = Schema.Struct({
-  apexClassOrTriggerName: Schema.String,
-  apexClassOrTriggerId: Schema.String,
-  apexTestClassId: Schema.String,
-  apexTestMethodName: Schema.String,
-  numLinesCovered: Schema.Number,
-  numLinesUncovered: Schema.Number,
-  percentage: Schema.String,
-  coverage: Schema.Struct({
-    coveredLines: Schema.Array(Schema.Number).pipe(Schema.mutable),
-    uncoveredLines: Schema.Array(Schema.Number).pipe(Schema.mutable)
-  }).pipe(Schema.mutable, Schema.optional)
-}).pipe(Schema.mutable);
-export type PerClassCoverage = Schema.Schema.Type<typeof PerClassCoverageSchema>;
-
 const ApexTestResultDataSchema = Schema.Struct({
   id: Schema.String,
   /** Points to the ApexTestQueueItem which is the class that this test method is part of. */
@@ -444,18 +441,6 @@ const ApexTestSetupDataSchema = Schema.Struct({
 }).pipe(Schema.mutable);
 export type ApexTestSetupData = Schema.Schema.Type<typeof ApexTestSetupDataSchema>;
 
-const CodeCoverageResultSchema = Schema.Struct({
-  apexId: Schema.String,
-  name: Schema.String,
-  type: Schema.Literal('ApexClass', 'ApexTrigger'),
-  numLinesCovered: Schema.Number,
-  numLinesUncovered: Schema.Number,
-  percentage: Schema.String,
-  coveredLines: Schema.Array(Schema.Number).pipe(Schema.mutable),
-  uncoveredLines: Schema.Array(Schema.Number).pipe(Schema.mutable)
-}).pipe(Schema.mutable);
-export type CodeCoverageResult = Schema.Schema.Type<typeof CodeCoverageResultSchema>;
-
 export type TestRunIdResult = {
   testRunId: string;
 };
@@ -499,52 +484,6 @@ export type TestResultRaw = {
   summary: TestResultSummary;
   tests: ApexTestResultDataRaw[];
   codecoverage?: CodeCoverageResult[];
-};
-
-export type ApexCodeCoverageRecord = {
-  ApexClassOrTrigger: {
-    Id: string;
-    Name: string;
-  };
-  ApexTestClassId: string;
-  TestMethodName: string;
-  NumLinesCovered: number;
-  NumLinesUncovered: number;
-  Coverage?: {
-    coveredLines: number[];
-    uncoveredLines: number[];
-  };
-};
-
-export type ApexCodeCoverage = {
-  done: boolean;
-  totalSize: number;
-  records: ApexCodeCoverageRecord[];
-};
-
-export type ApexCodeCoverageAggregateRecord = {
-  ApexClassOrTrigger: {
-    Id: string;
-    Name: string;
-  };
-  NumLinesCovered: number;
-  NumLinesUncovered: number;
-  Coverage: {
-    coveredLines: number[];
-    uncoveredLines: number[];
-  };
-};
-
-export type ApexCodeCoverageAggregate = {
-  done: boolean;
-  totalSize: number;
-  records: ApexCodeCoverageAggregateRecord[];
-};
-
-export type ApexOrgWideCoverage = {
-  done: boolean;
-  totalSize: number;
-  records: { PercentCovered: string }[];
 };
 
 export type NamespaceInfo = {
