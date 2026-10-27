@@ -14,6 +14,7 @@ import * as Ref from 'effect/Ref';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
+<<<<<<< HEAD
 import { ApexOperationError, ApexResponseDecodeError, causeMessage } from './errors';
 import { QueryPageSchema } from './querySchema';
 
@@ -64,12 +65,27 @@ export const AsyncTestOptionsSchema = Schema.Struct({
   category: Schema.optional(Schema.Array(testCategorySchema))
 }).annotations({ identifier: 'AsyncTestOptions' });
 export type AsyncTestOptions = typeof AsyncTestOptionsSchema.Type;
+=======
+import { causeMessage } from './errors';
+import {
+  AsyncTestProgressSchema,
+  AsyncTestResultSchema,
+  type AsyncTestProgress,
+  type AsyncTestRunEvent
+} from './schema/asyncTests';
+import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
+import { TestRunId } from './schema/salesforceId';
+import { queueSchema, summariesSchema, updateResultsSchema, type AsyncTestOptions } from './schema/wire/asyncTests';
+
+const operation = 'runTestAsynchronous';
+>>>>>>> origin/sm/W-23839447
 
 /** Override the default two-second delay between status queries. */
 export type AsyncTestPollingOptions = {
   interval?: Duration.DurationInput;
 };
 
+<<<<<<< HEAD
 const runStatusSchema = Schema.Literal('Queued', 'Processing', 'Aborted', 'Failed', 'Completed', 'Passed', 'Skipped');
 const summarySchema = Schema.Struct({
   Status: runStatusSchema,
@@ -113,6 +129,14 @@ export type AsyncTestRunEvent = typeof AsyncTestRunEventSchema.Type;
 /** The accepted Salesforce run ID and its lazy progress/result stream. */
 export type AsyncTestRun = {
   readonly id: typeof testRunIdSchema.Type;
+=======
+const finishedStatuses = HashSet.make('Aborted', 'Failed', 'Completed', 'Passed', 'Skipped');
+const DEFAULT_POLL_INTERVAL = Duration.seconds(2);
+
+/** The accepted Salesforce run ID and its lazy progress/result stream. */
+export type AsyncTestRun = {
+  readonly id: typeof TestRunId.Type;
+>>>>>>> origin/sm/W-23839447
   readonly stream: Stream.Stream<AsyncTestRunEvent, ApexOperationError | ApexResponseDecodeError>;
   readonly cancel: () => Effect.Effect<void, ApexOperationError | ApexResponseDecodeError>;
 };
@@ -137,7 +161,11 @@ const decode = <A, I>(schema: Schema.Schema<A, I>, response: unknown) =>
 
 const abortTestRun = Effect.fn('Apex.abortTestRun')(function* (
   connection: Connection,
+<<<<<<< HEAD
   testRunId: typeof testRunIdSchema.Type
+=======
+  testRunId: typeof TestRunId.Type
+>>>>>>> origin/sm/W-23839447
 ) {
   // Fetch all pages before marking queue items Aborted; those updates can change later query results.
   yield* Stream.paginateEffect(Option.none<string>(), nextRecordsUrl =>
@@ -168,7 +196,11 @@ const abortTestRun = Effect.fn('Apex.abortTestRun')(function* (
               { allOrNone: false, allowRecursive: true }
             )
           ).pipe(
+<<<<<<< HEAD
             Effect.flatMap(response => decode(Schema.Array(updateResultSchema), response)),
+=======
+            Effect.flatMap(response => decode(updateResultsSchema, response)),
+>>>>>>> origin/sm/W-23839447
             Effect.flatMap(results =>
               Effect.validateAll(
                 results,
@@ -184,7 +216,11 @@ const abortTestRun = Effect.fn('Apex.abortTestRun')(function* (
 
 const cancelTestRun = Effect.fn('Apex.cancelTestRun')(function* (
   connection: Connection,
+<<<<<<< HEAD
   testRunId: typeof testRunIdSchema.Type,
+=======
+  testRunId: typeof TestRunId.Type,
+>>>>>>> origin/sm/W-23839447
   pending: Ref.Ref<boolean>
 ) {
   const shouldAbort = yield* Ref.getAndSet(pending, false);
@@ -195,7 +231,11 @@ const cancelTestRun = Effect.fn('Apex.cancelTestRun')(function* (
 
 const pollTestRun = (
   connection: Connection,
+<<<<<<< HEAD
   testRunId: typeof testRunIdSchema.Type,
+=======
+  testRunId: typeof TestRunId.Type,
+>>>>>>> origin/sm/W-23839447
   polling: AsyncTestPollingOptions,
   pending: Ref.Ref<boolean>
 ): AsyncTestRun['stream'] =>
@@ -255,7 +295,11 @@ export const runTestAsynchronous = Effect.fn('Apex.runTestAsynchronous')(functio
         body: JSON.stringify(options),
         headers: { 'content-type': 'application/json' }
       })
+<<<<<<< HEAD
     ).pipe(Effect.flatMap(response => decode(testRunIdSchema, response))),
+=======
+    ).pipe(Effect.flatMap(response => decode(TestRunId, response))),
+>>>>>>> origin/sm/W-23839447
     testRunId => cancelTestRun(connection, testRunId, pending).pipe(Effect.orDie)
   );
   return {

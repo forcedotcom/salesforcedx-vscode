@@ -8,7 +8,11 @@
 import type { Row } from '../utils/types';
 import { messages } from '../i18n/i18n';
 import { type ApexTestResultData, type CodeCoverageResult, type TestResult } from '../tests/types';
+<<<<<<< HEAD
 import { formatTable } from '../utils/formatTable';
+=======
+import { formatTable } from './formatTable';
+>>>>>>> origin/sm/W-23839447
 
 const UNCOVERED_LINES_ARRAY_LIMIT = 5;
 
@@ -17,6 +21,7 @@ export const formatHuman = (
   detailedCoverage: boolean,
   concise: boolean = false,
   showCategory: boolean = false,
+<<<<<<< HEAD
   lineEnding = globalThis.process?.platform === 'win32' ? '\r\n' : '\n'
 ): string =>
   [
@@ -30,6 +35,23 @@ export const formatHuman = (
   ].join(lineEnding.repeat(2));
 
 const formatSummary = (testResult: TestResult): string => {
+=======
+  lineEnding = '\n'
+): string =>
+  [
+    ...(!testResult.codecoverage || !detailedCoverage
+      ? [formatTestResults(testResult.tests, concise, showCategory, lineEnding)]
+      : []),
+    ...(testResult.codecoverage && detailedCoverage
+      ? [formatDetailedCov(testResult, concise, showCategory, lineEnding)]
+      : []),
+    ...(testResult.codecoverage && !concise ? [formatCodeCov(testResult.codecoverage, lineEnding)] : []),
+    ...(testResult.setup && !concise ? [formatSetup(testResult, lineEnding)] : []),
+    formatSummary(testResult, lineEnding)
+  ].join(lineEnding.repeat(2));
+
+const formatSummary = (testResult: TestResult, lineEnding: string): string => {
+>>>>>>> origin/sm/W-23839447
   // Summary Table
   const summaryRowArray: Row[] = [
     {
@@ -95,11 +117,25 @@ const formatSummary = (testResult: TestResult): string => {
       },
       { key: 'value', label: messages.valueColHeader }
     ],
+<<<<<<< HEAD
     messages.testSummaryHeader
   );
 };
 
 const formatTestResults = (tests: ApexTestResultData[], concise: boolean, showCategory: boolean): string => {
+=======
+    messages.testSummaryHeader,
+    lineEnding
+  );
+};
+
+const formatTestResults = (
+  tests: ApexTestResultData[],
+  concise: boolean,
+  showCategory: boolean,
+  lineEnding: string
+): string => {
+>>>>>>> origin/sm/W-23839447
   const testRowArray: Row[] = tests
     .filter(elem => !concise || elem.outcome === 'Fail' || elem.outcome === 'CompileFail')
     .map(elem => ({
@@ -120,13 +156,22 @@ const formatTestResults = (tests: ApexTestResultData[], concise: boolean, showCa
         { key: 'msg', label: messages.msgColHeader },
         { key: 'runtime', label: messages.runtimeColHeader }
       ],
+<<<<<<< HEAD
       messages.testResultsHeader
+=======
+      messages.testResultsHeader,
+      lineEnding
+>>>>>>> origin/sm/W-23839447
     );
   }
   return '';
 };
 
+<<<<<<< HEAD
 const formatSetup = (testResult: TestResult): string => {
+=======
+const formatSetup = (testResult: TestResult, lineEnding: string): string => {
+>>>>>>> origin/sm/W-23839447
   const testRowArray: Row[] = (testResult.setup ?? []).map(elem => ({
     name: elem.fullName,
     time: `${elem.testSetupTime}`,
@@ -142,13 +187,27 @@ const formatSetup = (testResult: TestResult): string => {
         },
         { key: 'time', label: messages.setupTimeColHeader }
       ],
+<<<<<<< HEAD
       messages.testSetupResultsHeader.replace('runId', testRowArray[0].runId)
+=======
+      messages.testSetupResultsHeader.replace('runId', testRowArray[0].runId),
+      lineEnding
+>>>>>>> origin/sm/W-23839447
     );
   }
   return '';
 };
 
+<<<<<<< HEAD
 const formatDetailedCov = (testResult: TestResult, concise: boolean, showCategory: boolean): string => {
+=======
+const formatDetailedCov = (
+  testResult: TestResult,
+  concise: boolean,
+  showCategory: boolean,
+  lineEnding: string
+): string => {
+>>>>>>> origin/sm/W-23839447
   const testRowArray: Row[] = testResult.tests
     .filter((elem: ApexTestResultData) => !concise || elem.outcome === 'Fail' || elem.outcome === 'CompileFail')
     .flatMap(elem => {
@@ -199,13 +258,22 @@ const formatDetailedCov = (testResult: TestResult, concise: boolean, showCategor
         { key: 'msg', label: messages.msgColHeader },
         { key: 'runtime', label: messages.runtimeColHeader }
       ],
+<<<<<<< HEAD
       messages.detailedCodeCovHeader.replace('%s', () => testResult.summary.testRunId)
+=======
+      messages.detailedCodeCovHeader.replace('%s', () => testResult.summary.testRunId),
+      lineEnding
+>>>>>>> origin/sm/W-23839447
     );
   }
   return '';
 };
 
+<<<<<<< HEAD
 const formatCodeCov = (codeCoverages: CodeCoverageResult[]): string => {
+=======
+const formatCodeCov = (codeCoverages: CodeCoverageResult[], lineEnding: string): string => {
+>>>>>>> origin/sm/W-23839447
   const codeCovRowArray: Row[] = codeCoverages.map(elem => ({
     name: elem.name,
     percent: elem.percentage,
@@ -228,7 +296,12 @@ const formatCodeCov = (codeCoverages: CodeCoverageResult[]): string => {
         label: messages.uncoveredLinesColHeader
       }
     ],
+<<<<<<< HEAD
     messages.codeCovHeader
+=======
+    messages.codeCovHeader,
+    lineEnding
+>>>>>>> origin/sm/W-23839447
   );
 };
 

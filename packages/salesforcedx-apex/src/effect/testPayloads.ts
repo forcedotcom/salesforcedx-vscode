@@ -11,33 +11,15 @@ import type {
   SyncTestConfiguration,
   TestItem
 } from '../tests/types';
+import type { BuildAsyncPayloadOptions, BuildSyncPayloadOptions } from './schema/testPayloads';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { messages } from '../i18n/i18n';
-import { ApexClassId } from '../schemas/salesforceId';
-import { ApexOperationError } from './errors';
 import { queryNamespaces } from './namespaces';
-
-const payloadOptions = {
-  testLevel: Schema.Literal('RunLocalTests', 'RunAllTestsInOrg', 'RunSpecifiedTests'),
-  tests: Schema.optional(Schema.String),
-  classNames: Schema.optional(Schema.String),
-  category: Schema.optional(Schema.String),
-  skipCodeCoverage: Schema.optional(Schema.Boolean)
-};
-
-export const BuildSyncPayloadOptionsSchema = Schema.Struct(payloadOptions).annotations({
-  identifier: 'BuildSyncPayloadOptions'
-});
-export type BuildSyncPayloadOptions = typeof BuildSyncPayloadOptionsSchema.Type;
-
-export const BuildAsyncPayloadOptionsSchema = Schema.Struct({
-  ...payloadOptions,
-  suiteNames: Schema.optional(Schema.String)
-}).annotations({ identifier: 'BuildAsyncPayloadOptions' });
-export type BuildAsyncPayloadOptions = typeof BuildAsyncPayloadOptionsSchema.Type;
+import { ApexOperationError } from './schema/errors';
+import { ApexClassId } from './schema/salesforceId';
 
 const classItem = (className: string): TestItem => {
   const parts = className.split('.');

@@ -5,16 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { ListLogsOptions, LogStreamEvent } from './schema/logs';
 import type { Connection } from '@salesforce/core';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { ParseError } from 'effect/ParseResult';
 import { isString, isUndefined } from 'effect/Predicate';
 import type * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { causeMessage } from './errors';
+<<<<<<< HEAD
 import { QueryPageSchema } from './querySchema';
 
 /** ApexLog record from Tooling API query (Id, LogLength, StartTime, Status required per API reference). */
@@ -61,6 +62,10 @@ export class ApexLogBodyFetchError extends Schema.TaggedError<ApexLogBodyFetchEr
   message: Schema.String,
   cause: Schema.optional(Schema.Unknown)
 }) {}
+=======
+import { ApexLogBodyFetchError, ApexLogQueryError } from './schema/errors';
+import { type ApexLogListItem, LogPageSchema } from './schema/wire/logs';
+>>>>>>> origin/sm/W-23839447
 
 const buildListLogsQuery = (limit: number, options?: ListLogsOptions): string => {
   const userIds = options?.userIds ?? [];
@@ -85,11 +90,14 @@ const buildListLogsQuery = (limit: number, options?: ListLogsOptions): string =>
   return `SELECT Id, Application, DurationMilliseconds, LogLength, LogUserId, LogUser.Name, Operation, StartTime, Status FROM ApexLog${where} ORDER BY StartTime ${orderBy}, Id ${orderBy} LIMIT ${limit}`;
 };
 
+<<<<<<< HEAD
 const LogPage = QueryPageSchema(ApexLogListItem, {
   additionalFields: { totalSize: Schema.Number },
   defaultTerminalPage: true
 });
 
+=======
+>>>>>>> origin/sm/W-23839447
 /** Lists logs using the caller's connection, following Tooling API query pages. */
 export const listLogs = Effect.fn('Apex.listLogs')(function* (
   connection: Connection,
@@ -105,7 +113,7 @@ export const listLogs = Effect.fn('Apex.listLogs')(function* (
         ),
       catch: cause => new ApexLogQueryError({ soql, message: causeMessage(cause), cause })
     }).pipe(
-      Effect.flatMap(Schema.decodeUnknown(LogPage)),
+      Effect.flatMap(Schema.decodeUnknown(LogPageSchema)),
       Effect.map(
         page =>
           [
@@ -128,13 +136,6 @@ export const getLogBody = Effect.fn('Apex.getLogBody')((connection: Connection, 
       new ApexLogBodyFetchError({ message: `Failed to fetch ApexLog body: ${causeMessage(cause)}`, cause })
   }).pipe(Effect.map(body => (isString(body) ? body : String(body))))
 );
-
-export const LogStreamEventSchema = Schema.Union(
-  Schema.TaggedStruct('Log', { log: ApexLogListItem, body: Schema.String }),
-  Schema.TaggedStruct('QueryError', { error: Schema.Union(ApexLogQueryError, Schema.instanceOf(ParseError)) }),
-  Schema.TaggedStruct('BodyError', { log: ApexLogListItem, error: ApexLogBodyFetchError })
-);
-export type LogStreamEvent = typeof LogStreamEventSchema.Type;
 
 export type StreamLogsOptions<R = never> = {
   readonly schedule: Schedule.Schedule<unknown, unknown, R>;

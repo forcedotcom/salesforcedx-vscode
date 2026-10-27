@@ -11,6 +11,7 @@ import * as Either from 'effect/Either';
 import * as FiberRef from 'effect/FiberRef';
 import * as HashSet from 'effect/HashSet';
 import * as Logger from 'effect/Logger';
+import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { JsonStreamStringify } from 'json-stream-stringify';
 import { createWriteStream } from 'node:fs';
@@ -18,8 +19,12 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Readable, type Writable, type Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
+<<<<<<< HEAD
+=======
+import { ApexOperationError } from '../effect/schema/errors';
+>>>>>>> origin/sm/W-23839447
 import { buildAsyncPayload, buildSyncPayload } from '../effect/testPayloads';
-import { buildSuite, getTestsInSuite, retrieveAllSuites } from '../effect/testSuites';
+import { buildSuite, getTestsInSuite, retrieveAllSuites, retrieveSuiteId } from '../effect/testSuites';
 import { nls } from '../i18n';
 import { JUnitFormatTransformer, TapFormatTransformer, MarkdownTextFormatTransformer } from '../reporters';
 import { TestResultStringifyStream } from '../streaming';
@@ -33,7 +38,7 @@ import {
   type AsyncTestArrayConfiguration,
   type AsyncTestConfiguration,
   type OutputDirConfig,
-  type ResultFormat,
+  ResultFormat,
   type SyncTestConfiguration,
   type TestLevel,
   type TestResult,
@@ -41,8 +46,6 @@ import {
   type TestRunIdResult,
   type TestSuiteMembershipRecord
 } from './types';
-
-const validResultFormats = new Set<ResultFormat>(['junit', 'tap', 'json', 'human', 'markdown', 'text']);
 
 /**
  * Standalone function for writing test result files - easier to test
@@ -56,7 +59,7 @@ export const writeResultFiles = async (
   const filesWritten: string[] = [];
   const { dirPath, resultFormats, fileInfos } = outputDirConfig;
 
-  if (resultFormats && !resultFormats.every(format => validResultFormats.has(format))) {
+  if (resultFormats && !resultFormats.every(Schema.is(ResultFormat))) {
     throw new Error(nls.localize('resultFormatErr'));
   }
 
@@ -154,7 +157,6 @@ export class TestService {
    * Retrieve all suites in org
    * @returns list of Suites in org
    */
-  @elapsedTime()
   public async retrieveAllSuites(): Promise<{ id: string; TestSuiteName: string }[]> {
     return runTestServiceOperation(retrieveAllSuites(this.connection).pipe(Effect.map(suites => [...suites])));
   }
@@ -166,10 +168,22 @@ export class TestService {
    * @returns list of test classes in the suite
    * @internal Used by the co-repo Apex Testing extension; not part of the supported npm API.
    */
-  @elapsedTime()
   public async getTestsInSuite(suitename?: string, suiteId?: string): Promise<TestSuiteMembershipRecord[]> {
     return runTestServiceOperation(
-      getTestsInSuite(this.connection, suitename, suiteId).pipe(Effect.map(members => [...members]))
+      (suitename ? retrieveSuiteId(this.connection, suitename) : Effect.succeed(suiteId)).pipe(
+        Effect.filterOrFail(
+          isNotUndefined,
+          () =>
+            new ApexOperationError({
+              operation: 'getTestsInSuite',
+              message: nls.localize(
+                suitename === undefined && suiteId === undefined ? 'suitenameErr' : 'missingSuiteErr'
+              )
+            })
+        ),
+        Effect.flatMap(id => getTestsInSuite(this.connection, id)),
+        Effect.map(members => [...members])
+      )
     );
   }
 
@@ -179,7 +193,6 @@ export class TestService {
    * @param testClasses
    * @internal Used by the co-repo Apex Testing extension; not part of the supported npm API.
    */
-  @elapsedTime()
   public async buildSuite(suitename: string, testClasses: string[]): Promise<void> {
     return runTestServiceOperation(
       buildSuite(this.connection, suitename, testClasses).pipe(
@@ -291,7 +304,6 @@ export class TestService {
   /**
    * Utility function to help build payload for https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/intro_rest_resources_testing_runner_sync.htm
    */
-  @elapsedTime()
   public async buildSyncPayload(
     testLevel: TestLevel,
     tests?: string,
@@ -314,7 +326,6 @@ export class TestService {
   /**
    * Utility function to help build payload for https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/intro_rest_resources_testing_runner_async.htm
    */
-  @elapsedTime()
   public async buildAsyncPayload(
     testLevel: TestLevel,
     tests?: string,

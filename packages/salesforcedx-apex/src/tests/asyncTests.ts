@@ -21,9 +21,16 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import * as util from 'node:util';
+<<<<<<< HEAD
 import { ApexOperationError, causeMessage } from '../effect/errors';
 import { nls } from '../i18n';
 import { TestRunId } from '../schemas/salesforceId';
+=======
+import { causeMessage } from '../effect/errors';
+import { ApexOperationError } from '../effect/schema/errors';
+import { TestRunId } from '../effect/schema/salesforceId';
+import { nls } from '../i18n';
+>>>>>>> origin/sm/W-23839447
 import { type AsyncTestRun } from '../streaming';
 import { elapsedTime, formatStartTime, getCurrentTime, HeapMonitor } from '../utils';
 import { type CancellationToken } from './cancellation';

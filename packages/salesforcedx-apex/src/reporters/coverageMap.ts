@@ -11,7 +11,11 @@ import * as libCoverage from 'istanbul-lib-coverage';
 /** Resolved source supplied by the caller; discovery and reading belong to the host. */
 export interface CoverageSource {
   path: string;
+<<<<<<< HEAD
   content: string;
+=======
+  content?: string;
+>>>>>>> origin/sm/W-23839447
 }
 
 const startOfSource = (source: string | undefined): number => (source ? source.search(/\S/) || 0 : 0);
@@ -19,7 +23,11 @@ const endOfSource = (source: string | undefined): number => (source ? source.sea
 
 export const createCoverageMap = (
   coverage: ApexCodeCoverageAggregate | ApexCodeCoverage,
+<<<<<<< HEAD
   sourceForClass: (name: string) => Pick<CoverageSource, 'path'> & Partial<CoverageSource>,
+=======
+  sourceForClass: (name: string) => CoverageSource,
+>>>>>>> origin/sm/W-23839447
   lineEnding = '\n'
 ): libCoverage.CoverageMap => {
   const coverageMap = libCoverage.createCoverageMap();

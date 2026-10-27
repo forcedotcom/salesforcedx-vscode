@@ -34,11 +34,20 @@ describe('@salesforce/apex-node public API', () => {
 
   it('exports the Effect foundation from its isolated entry point', () => {
     expect(Object.keys(effectApi).sort()).toEqual([
+      'AggregateCodeCoverageResultSchema',
+      'ApexCodeCoverageAggregateRecordSchema',
+      'ApexCodeCoverageAggregateSchema',
+      'ApexCodeCoverageRecordSchema',
+      'ApexCodeCoverageSchema',
       'ApexCompileError',
       'ApexLogBodyFetchError',
       'ApexLogListItem',
       'ApexLogQueryError',
       'ApexOperationError',
+<<<<<<< HEAD
+=======
+      'ApexOrgWideCoverageSchema',
+>>>>>>> origin/sm/W-23839447
       'ApexReportError',
       'ApexResponseDecodeError',
       'ApexRuntimeError',
@@ -48,6 +57,10 @@ describe('@salesforce/apex-node public API', () => {
       'AsyncTestRunEventSchema',
       'BuildAsyncPayloadOptionsSchema',
       'BuildSyncPayloadOptionsSchema',
+<<<<<<< HEAD
+=======
+      'CodeCoverageResultSchema',
+>>>>>>> origin/sm/W-23839447
       'DefaultReportOptions',
       'DefaultWatermarks',
       'ExecuteAnonymousOptionsSchema',
@@ -55,6 +68,7 @@ describe('@salesforce/apex-node public API', () => {
       'IstanbulReports',
       'ListLogsOptionsSchema',
       'LogStreamEventSchema',
+      'PerClassCoverageSchema',
       'TestSuiteMembershipSchema',
       'TestSuiteSchema',
       'buildAsyncPayload',
@@ -68,7 +82,13 @@ describe('@salesforce/apex-node public API', () => {
       'formatMarkdownTextReport',
       'formatTapReport',
       'generateCoverageReports',
+<<<<<<< HEAD
+=======
+      'getAggregateCodeCoverage',
+>>>>>>> origin/sm/W-23839447
       'getLogBody',
+      'getOrgWideCoverage',
+      'getPerClassCodeCoverage',
       'getTestsInSuite',
       'listLogs',
       'retrieveAllSuites',

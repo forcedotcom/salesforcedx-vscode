@@ -1,6 +1,40 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "$defs": {
+    "AggregateCodeCoverageResult": {
+      "type": "object",
+      "required": ["codeCoverageResults", "totalLines", "coveredLines"],
+      "properties": {
+        "codeCoverageResults": { "type": "array", "items": { "$ref": "#/$defs/CodeCoverageResult" } },
+        "totalLines": { "type": "number" },
+        "coveredLines": { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+    "CodeCoverageResult": {
+      "type": "object",
+      "required": [
+        "apexId",
+        "name",
+        "type",
+        "numLinesCovered",
+        "numLinesUncovered",
+        "percentage",
+        "coveredLines",
+        "uncoveredLines"
+      ],
+      "properties": {
+        "apexId": { "type": "string" },
+        "name": { "type": "string" },
+        "type": { "type": "string", "enum": ["ApexClass", "ApexTrigger"] },
+        "numLinesCovered": { "type": "number" },
+        "numLinesUncovered": { "type": "number" },
+        "percentage": { "type": "string" },
+        "coveredLines": { "type": "array", "items": { "type": "number" } },
+        "uncoveredLines": { "type": "array", "items": { "type": "number" } }
+      },
+      "additionalProperties": false
+    },
     "ApexCodeCoverage": {
       "type": "object",
       "required": ["done", "totalSize", "records"],
@@ -472,6 +506,24 @@
       },
       "additionalProperties": false
     },
+    "ApexOrgWideCoverage": {
+      "type": "object",
+      "required": ["done", "totalSize", "records"],
+      "properties": {
+        "done": { "type": "boolean" },
+        "totalSize": { "type": "number" },
+        "records": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["PercentCovered"],
+            "properties": { "PercentCovered": { "type": "string" } },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "ApexResponseDecodeError": {
       "type": "object",
       "required": ["operation", "message", "_tag"],
@@ -552,6 +604,7 @@
       "additionalProperties": false
     },
     "AsyncTestOptions": {
+<<<<<<< HEAD
       "type": "object",
       "required": ["testLevel"],
       "properties": {
@@ -637,29 +690,94 @@
     },
     "AsyncTestRunEvent": { "anyOf": [{ "$ref": "#/$defs/AsyncTestProgress" }, { "$ref": "#/$defs/AsyncTestResult" }] },
     "CodeCoverageResult": {
+=======
+>>>>>>> origin/sm/W-23839447
       "type": "object",
-      "required": [
-        "apexId",
-        "name",
-        "type",
-        "numLinesCovered",
-        "numLinesUncovered",
-        "percentage",
-        "coveredLines",
-        "uncoveredLines"
-      ],
+      "required": ["testLevel"],
       "properties": {
-        "apexId": { "type": "string" },
-        "name": { "type": "string" },
-        "type": { "type": "string", "enum": ["ApexClass", "ApexTrigger"] },
-        "numLinesCovered": { "type": "number" },
-        "numLinesUncovered": { "type": "number" },
-        "percentage": { "type": "string" },
-        "coveredLines": { "type": "array", "items": { "type": "number" } },
-        "uncoveredLines": { "type": "array", "items": { "type": "number" } }
+        "testLevel": { "type": "string", "enum": ["RunLocalTests", "RunAllTestsInOrg", "RunSpecifiedTests"] },
+        "classNames": { "type": "string" },
+        "classids": {
+          "type": "string",
+          "description": "a string matching the pattern ^01p[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?(?:,01p[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?)*$",
+          "pattern": "^01p[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?(?:,01p[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?)*$"
+        },
+        "suiteNames": { "type": "string" },
+        "suiteids": {
+          "type": "string",
+          "description": "a string matching the pattern ^05F[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?(?:,05F[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?)*$",
+          "pattern": "^05F[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?(?:,05F[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?)*$"
+        },
+        "tests": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [],
+            "properties": {
+              "className": { "type": "string" },
+              "classId": {
+                "type": "string",
+                "description": "a string starting with \"01p\"",
+                "pattern": "^01p",
+                "title": "startsWith(\"01p\")",
+                "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+              },
+              "testMethods": { "type": "array", "items": { "type": "string" } },
+              "namespace": { "type": "string" },
+              "category": { "type": "string", "enum": ["Apex", "Flow"] }
+            },
+            "additionalProperties": false
+          }
+        },
+        "maxFailedTests": { "type": "number" },
+        "skipCodeCoverage": { "type": "boolean" },
+        "category": { "type": "array", "items": { "type": "string", "enum": ["Apex", "Flow"] } }
       },
       "additionalProperties": false
     },
+    "AsyncTestProgress": {
+      "type": "object",
+      "required": ["_tag", "status", "classesCompleted", "classesEnqueued"],
+      "properties": {
+        "_tag": { "type": "string", "enum": ["Progress"] },
+        "status": {
+          "type": "string",
+          "enum": ["Queued", "Processing", "Aborted", "Failed", "Completed", "Passed", "Skipped"]
+        },
+        "classesCompleted": { "type": "number" },
+        "classesEnqueued": { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+    "AsyncTestResult": {
+      "type": "object",
+      "required": ["_tag", "testRunId", "result"],
+      "properties": {
+        "_tag": { "type": "string", "enum": ["Result"] },
+        "testRunId": {
+          "type": "string",
+          "description": "a string starting with \"707\"",
+          "pattern": "^707",
+          "title": "startsWith(\"707\")",
+          "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+        },
+        "result": {
+          "type": "object",
+          "required": ["status", "classesCompleted", "classesEnqueued"],
+          "properties": {
+            "status": {
+              "type": "string",
+              "enum": ["Queued", "Processing", "Aborted", "Failed", "Completed", "Passed", "Skipped"]
+            },
+            "classesCompleted": { "type": "number" },
+            "classesEnqueued": { "type": "number" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "AsyncTestRunEvent": { "anyOf": [{ "$ref": "#/$defs/AsyncTestProgress" }, { "$ref": "#/$defs/AsyncTestResult" }] },
     "CommonOptions": {
       "type": "object",
       "required": [],
@@ -943,6 +1061,7 @@
     }
   },
   "anyOf": [
+    { "$ref": "#/$defs/AggregateCodeCoverageResult" },
     { "$ref": "#/$defs/ApexCodeCoverage" },
     { "$ref": "#/$defs/ApexCodeCoverageAggregate" },
     { "$ref": "#/$defs/ApexCodeCoverageAggregateRecord" },
@@ -965,6 +1084,7 @@
     { "$ref": "#/$defs/ApexTestSetupData" },
     { "$ref": "#/$defs/ApexCompileError" },
     { "$ref": "#/$defs/ApexOperationError" },
+    { "$ref": "#/$defs/ApexOrgWideCoverage" },
     { "$ref": "#/$defs/ApexResponseDecodeError" },
     { "$ref": "#/$defs/ApexReportError" },
     { "$ref": "#/$defs/ApexRuntimeError" },

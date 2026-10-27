@@ -58,6 +58,7 @@ export const generateCoverageReports = Effect.fn('Apex.generateCoverageReports')
     Effect.flatMap(coverageMap =>
       Effect.try({
         try: () => {
+<<<<<<< HEAD
           const sourceByPath = new Map(Object.values(sources).map(source => [source.path, source.content]));
           const sourceFinder = (path: string): string => {
             const content = sourceByPath.get(path);
@@ -69,13 +70,22 @@ export const generateCoverageReports = Effect.fn('Apex.generateCoverageReports')
           if (formats.some(format => format === 'html' || format === 'html-spa')) {
             coverageMap.files().forEach(sourceFinder);
           }
+=======
+          const sourceByPath = new Map(Object.values(sources).map(source => [source.path, source.content ?? '']));
+>>>>>>> origin/sm/W-23839447
           const context = istanbul.createContext({
             coverageMap,
             defaultSummarizer: 'nested',
             watermarks: options?.watermark || DefaultWatermarks,
+<<<<<<< HEAD
             sourceFinder
           });
           formats.forEach(format => {
+=======
+            sourceFinder: path => sourceByPath.get(path) ?? ''
+          });
+          (options?.reportFormats || ['text-summary']).forEach(format => {
+>>>>>>> origin/sm/W-23839447
             istanbul
               .createReport(format, options?.reportOptions?.[format] || DefaultReportOptions[format])
               .execute(context);

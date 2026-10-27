@@ -7,32 +7,17 @@
 
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
-import * as Schema from 'effect/Schema';
+import { isNotUndefined } from 'effect/Predicate';
 import { messages } from '../i18n/i18n';
-import { ApexOperationError } from './errors';
 import { createRecord, queryRecords } from './records';
+import { ApexOperationError } from './schema/errors';
+import { TestSuiteMembershipSchema } from './schema/testSuites';
+import {
+  ApexClassIdQueryResponseSchema,
+  TestSuiteIdQueryResponseSchema,
+  TestSuiteRecordSchema
+} from './schema/wire/testSuites';
 
-export const TestSuiteSchema = Schema.Struct({ id: Schema.String, TestSuiteName: Schema.String }).annotations({
-  identifier: 'TestSuite'
-});
-export type TestSuite = typeof TestSuiteSchema.Type;
-
-export const TestSuiteMembershipSchema = Schema.Struct({ ApexClassId: Schema.String }).annotations({
-  identifier: 'TestSuiteMembership'
-});
-export type TestSuiteMembership = typeof TestSuiteMembershipSchema.Type;
-
-const IdRecordSchema = Schema.Struct({ Id: Schema.String });
-const TestSuiteRecordSchema = Schema.Union(
-  TestSuiteSchema,
-  Schema.Struct({ Id: Schema.String, TestSuiteName: Schema.String })
-).pipe(
-  Schema.transform(TestSuiteSchema, {
-    strict: true,
-    decode: record => ({ id: 'id' in record ? record.id : record.Id, TestSuiteName: record.TestSuiteName }),
-    encode: suite => ({ Id: suite.id, TestSuiteName: suite.TestSuiteName })
-  })
-);
 const quote = (value: string): string => value.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
 
 /** Retrieves the suites in the caller's org. */
@@ -46,36 +31,22 @@ export const retrieveAllSuites = Effect.fn('Apex.retrieveAllSuites')(function* (
   );
 });
 
-const retrieveSuiteId = Effect.fn('Apex.retrieveSuiteId')(function* (connection: Connection, suiteName: string) {
+export const retrieveSuiteId = Effect.fn('Apex.retrieveSuiteId')(function* (connection: Connection, suiteName: string) {
   return yield* queryRecords(
     connection,
     'retrieveSuiteId',
     `SELECT id FROM ApexTestSuite WHERE TestSuiteName = '${quote(suiteName)}'`,
-    IdRecordSchema,
+    TestSuiteIdQueryResponseSchema,
     true
-  ).pipe(Effect.map(records => records[0]?.Id));
+  ).pipe(Effect.map(records => records.at(0)?.Id));
 });
 
-/** Retrieves class membership by suite name or id; a supplied name takes precedence. */
-export const getTestsInSuite = Effect.fn('Apex.getTestsInSuite')(function* (
-  connection: Connection,
-  suiteName?: string,
-  suiteId?: string
-) {
-  if (suiteName === undefined && suiteId === undefined) {
-    return yield* new ApexOperationError({
-      operation: 'getTestsInSuite',
-      message: messages.suitenameErr
-    });
-  }
-  const id = suiteName ? yield* retrieveSuiteId(connection, suiteName) : suiteId;
-  if (id === undefined) {
-    return yield* new ApexOperationError({ operation: 'getTestsInSuite', message: messages.missingSuiteErr });
-  }
+/** Retrieves class membership by suite id. */
+export const getTestsInSuite = Effect.fn('Apex.getTestsInSuite')(function* (connection: Connection, suiteId: string) {
   return yield* queryRecords(
     connection,
     'getTestsInSuite',
-    `SELECT ApexClassId FROM TestSuiteMembership WHERE ApexTestSuiteId = '${quote(id)}'`,
+    `SELECT ApexClassId FROM TestSuiteMembership WHERE ApexTestSuiteId = '${quote(suiteId)}'`,
     TestSuiteMembershipSchema,
     true
   );
@@ -87,12 +58,22 @@ export const buildSuite = Effect.fn('Apex.buildSuite')(function* (
   suiteName: string,
   testClasses: readonly string[]
 ) {
-  const existingSuiteId = yield* retrieveSuiteId(connection, suiteName);
-  const suiteId =
-    existingSuiteId ??
-    (yield* createRecord(connection, 'buildSuite', 'ApexTestSuite', { TestSuiteName: suiteName })).id;
-  const members = yield* getTestsInSuite(connection, undefined, suiteId);
-  const classes = yield* getApexClassIds(connection, testClasses);
+  const suiteId = yield* retrieveSuiteId(connection, suiteName).pipe(
+    Effect.flatMap(id =>
+      // Recover an empty result, not a failed query.
+      Effect.fromNullable(id).pipe(
+        Effect.orElse(() =>
+          createRecord(connection, 'buildSuite', 'ApexTestSuite', { TestSuiteName: suiteName }).pipe(
+            Effect.map(record => record.id)
+          )
+        )
+      )
+    )
+  );
+  const [members, classes] = yield* Effect.all(
+    [getTestsInSuite(connection, suiteId), getApexClassIds(connection, testClasses)],
+    { concurrency: 'unbounded' }
+  );
   yield* Effect.forEach(
     classes,
     (classId, index) =>
@@ -129,19 +110,19 @@ export const getApexClassIds = Effect.fn('Apex.getApexClassIds')(function* (
         connection,
         'buildSuite',
         `SELECT Id FROM ApexClass WHERE Name = '${quote(name)}' AND ${namespace} LIMIT 1`,
-        IdRecordSchema,
+        ApexClassIdQueryResponseSchema,
         true
       ).pipe(
-        Effect.flatMap(records =>
-          records[0]
-            ? Effect.succeed(records[0].Id)
-            : Effect.fail(
-                new ApexOperationError({
-                  operation: 'buildSuite',
-                  message: messages.missingTestClassErr.replace('%s', testClass)
-                })
-              )
-        )
+        Effect.map(records => records.at(0)),
+        Effect.filterOrFail(
+          isNotUndefined,
+          () =>
+            new ApexOperationError({
+              operation: 'buildSuite',
+              message: messages.missingTestClassErr.replace('%s', testClass)
+            })
+        ),
+        Effect.map(record => record.Id)
       );
     },
     { concurrency: 'unbounded' }

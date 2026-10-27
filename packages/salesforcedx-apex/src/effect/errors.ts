@@ -8,10 +8,12 @@
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 
-const OperationErrorFields = {
-  operation: Schema.NonEmptyTrimmedString,
+/** Formatting or generating an Apex report failed. */
+export class ApexReportError extends Schema.TaggedError<ApexReportError>()('ApexReportError', {
+  format: Schema.String,
   message: Schema.String,
   cause: Schema.optional(Schema.String)
+<<<<<<< HEAD
 };
 
 /** A request made by an Apex operation failed. */
@@ -52,6 +54,8 @@ export class ApexRuntimeError extends Schema.TaggedError<ApexRuntimeError>()('Ap
   ...AnonymousExecutionErrorFields,
   exceptionMessage: Schema.NullOr(Schema.String),
   exceptionStackTrace: Schema.NullOr(Schema.String)
+=======
+>>>>>>> origin/sm/W-23839447
 }) {}
 
 /** Produces the serializable cause carried by public operation errors. */

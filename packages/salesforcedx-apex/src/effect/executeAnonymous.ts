@@ -10,19 +10,31 @@ import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import { action, soapBody, soapEnv, soapHeader } from '../execute/types';
 import { encodeBody } from '../execute/utils';
 import { messages } from '../i18n/i18n';
+import { causeMessage } from './errors';
 import {
   ApexCompileError,
   ApexOperationError,
+  ApexRequestError,
   ApexResponseDecodeError,
   ApexRuntimeError,
-  causeMessage
-} from './errors';
+  InvalidSessionError
+} from './schema/errors';
+import { ExecuteAnonymousOptionsSchema, type ExecuteAnonymousOptions } from './schema/executeAnonymous';
+import {
+  executeAnonymousAction,
+  executionResultSchema,
+  isInvalidSessionError,
+  soapBody,
+  soapEnv,
+  soapHeader,
+  soapResponseSchema
+} from './schema/wire/executeAnonymous';
 
 const operation = 'executeAnonymous';
 const optionalLogBody = (logBody: string | undefined) => (isUndefined(logBody) ? {} : { logBody });
+<<<<<<< HEAD
 
 class InvalidSessionError extends Schema.TaggedError<InvalidSessionError>()('InvalidSessionError', {
   message: Schema.String
@@ -98,6 +110,8 @@ const SoapResponseSchema = Schema.Struct({
     })
   })
 });
+=======
+>>>>>>> origin/sm/W-23839447
 
 const operationError = (cause: unknown, message = causeMessage(cause)): ApexOperationError =>
   new ApexOperationError({ operation, message, cause: causeMessage(cause) });
@@ -109,20 +123,18 @@ const buildRequest = (connection: Connection, code: string): HttpRequest => {
     method: 'POST',
     url: `${connection.instanceUrl}/services/Soap/s/${connection.version}/${accessToken.split('!')[0]}`,
     body: encodeBody(accessToken, code),
-    headers: { 'content-type': 'text/xml', soapaction: action }
+    headers: { 'content-type': 'text/xml', soapaction: executeAnonymousAction }
   };
 };
 
-const InvalidSessionErrorSchema = Schema.Struct({
-  name: Schema.Literal('ERROR_HTTP_500'),
-  message: Schema.String.pipe(Schema.pattern(/INVALID_SESSION_ID/))
-});
-const isInvalidSession = Schema.is(InvalidSessionErrorSchema);
-
 const parseResponse = (response: unknown) =>
-  Schema.decodeUnknown(SoapResponseSchema)(response).pipe(
+  Schema.decodeUnknown(soapResponseSchema)(response).pipe(
     Effect.flatMap(({ [soapEnv]: envelope }) =>
+<<<<<<< HEAD
       Schema.decodeUnknown(ExecutionResultSchema)(envelope[soapBody].executeAnonymousResponse.result).pipe(
+=======
+      Schema.decodeUnknown(executionResultSchema)(envelope[soapBody].executeAnonymousResponse.result).pipe(
+>>>>>>> origin/sm/W-23839447
         Effect.map(result => ({ ...result, ...optionalLogBody(envelope[soapHeader]?.DebuggingInfo?.debugLog) }))
       )
     ),
@@ -172,7 +184,11 @@ const sendRequest = (connection: Connection, code: string) =>
   Effect.tryPromise({
     try: () => connection.request<unknown>(buildRequest(connection, code)),
     catch: cause =>
+<<<<<<< HEAD
       isInvalidSession(cause)
+=======
+      isInvalidSessionError(cause)
+>>>>>>> origin/sm/W-23839447
         ? new InvalidSessionError({ message: causeMessage(cause) })
         : new ApexRequestError({ message: causeMessage(cause) })
   });
