@@ -17,9 +17,9 @@ import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { messages } from '../i18n/i18n';
-import { ApexClassId } from './schema/salesforceId';
-import { ApexOperationError } from './schema/errors';
 import { queryNamespaces } from './namespaces';
+import { ApexOperationError } from './schema/errors';
+import { ApexClassId } from './schema/salesforceId';
 
 const classItem = (className: string): TestItem => {
   const parts = className.split('.');
