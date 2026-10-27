@@ -5,61 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { ListLogsOptions, LogStreamEvent } from './schema/logs';
 import type { Connection } from '@salesforce/core';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { ParseError } from 'effect/ParseResult';
 import { isString, isUndefined } from 'effect/Predicate';
 import type * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { causeMessage } from './errors';
-
-/** ApexLog record from Tooling API query (Id, LogLength, StartTime, Status required per API reference). */
-export const ApexLogListItem = Schema.Struct({
-  Id: Schema.String,
-  Application: Schema.optionalWith(Schema.String, { nullable: true }),
-  DurationMilliseconds: Schema.optionalWith(Schema.Number, { nullable: true }),
-  LogLength: Schema.Number,
-  LogUserId: Schema.optionalWith(Schema.String, { nullable: true }),
-  LogUser: Schema.optionalWith(Schema.Struct({ Name: Schema.optionalWith(Schema.String, { nullable: true }) }), {
-    nullable: true
-  }),
-  Operation: Schema.optionalWith(Schema.String, { nullable: true }),
-  StartTime: Schema.String,
-  Status: Schema.String
-}).annotations({ identifier: 'ApexLogListItem' });
-export type ApexLogListItem = typeof ApexLogListItem.Type;
-
-export const ListLogsOptionsSchema = Schema.mutable(
-  Schema.Struct({
-    /** Filter to logs for this user (LogUserId). */
-    userId: Schema.optional(Schema.String),
-    /** Nonempty userIds takes precedence over userId. */
-    userIds: Schema.optional(Schema.mutable(Schema.Array(Schema.String))),
-    /** Filter to logs whose Operation contains this string (e.g. 'executeAnonymous'). */
-    operationContains: Schema.optional(Schema.String),
-    /** Inclusive ISO StartTime lower bound. */
-    startTimeAfter: Schema.optional(Schema.String),
-    /** Cursor for incremental polling; omitting id includes all records at startTime. */
-    cursor: Schema.optional(Schema.Struct({ startTime: Schema.String, id: Schema.optional(Schema.String) })),
-    /** Result ordering; defaults to descending, except cursor queries default to ascending. */
-    orderBy: Schema.optional(Schema.Literal('ASC', 'DESC'))
-  })
-).annotations({ identifier: 'ListLogsOptions' });
-export type ListLogsOptions = typeof ListLogsOptionsSchema.Type;
-
-export class ApexLogQueryError extends Schema.TaggedError<ApexLogQueryError>()('ApexLogQueryError', {
-  soql: Schema.String,
-  message: Schema.String,
-  cause: Schema.Unknown
-}) {}
-
-export class ApexLogBodyFetchError extends Schema.TaggedError<ApexLogBodyFetchError>()('ApexLogBodyFetchError', {
-  message: Schema.String,
-  cause: Schema.optional(Schema.Unknown)
-}) {}
+import { ApexLogBodyFetchError, ApexLogQueryError } from './schema/errors';
+import { type ApexLogListItem, LogPageSchema } from './schema/wire/logs';
 
 const buildListLogsQuery = (limit: number, options?: ListLogsOptions): string => {
   const userIds = options?.userIds ?? [];
@@ -84,13 +41,6 @@ const buildListLogsQuery = (limit: number, options?: ListLogsOptions): string =>
   return `SELECT Id, Application, DurationMilliseconds, LogLength, LogUserId, LogUser.Name, Operation, StartTime, Status FROM ApexLog${where} ORDER BY StartTime ${orderBy}, Id ${orderBy} LIMIT ${limit}`;
 };
 
-const LogPage = Schema.Struct({
-  totalSize: Schema.Number,
-  done: Schema.optionalWith(Schema.Boolean, { default: () => true }),
-  nextRecordsUrl: Schema.optional(Schema.String),
-  records: Schema.optionalWith(Schema.Array(ApexLogListItem), { default: () => [] })
-});
-
 /** Lists logs using the caller's connection, following Tooling API query pages. */
 export const listLogs = Effect.fn('Apex.listLogs')(function* (
   connection: Connection,
@@ -106,7 +56,7 @@ export const listLogs = Effect.fn('Apex.listLogs')(function* (
         ),
       catch: cause => new ApexLogQueryError({ soql, message: causeMessage(cause), cause })
     }).pipe(
-      Effect.flatMap(Schema.decodeUnknown(LogPage)),
+      Effect.flatMap(Schema.decodeUnknown(LogPageSchema)),
       Effect.map(
         page =>
           [
@@ -129,13 +79,6 @@ export const getLogBody = Effect.fn('Apex.getLogBody')((connection: Connection, 
       new ApexLogBodyFetchError({ message: `Failed to fetch ApexLog body: ${causeMessage(cause)}`, cause })
   }).pipe(Effect.map(body => (isString(body) ? body : String(body))))
 );
-
-export const LogStreamEventSchema = Schema.Union(
-  Schema.TaggedStruct('Log', { log: ApexLogListItem, body: Schema.String }),
-  Schema.TaggedStruct('QueryError', { error: Schema.Union(ApexLogQueryError, Schema.instanceOf(ParseError)) }),
-  Schema.TaggedStruct('BodyError', { log: ApexLogListItem, error: ApexLogBodyFetchError })
-);
-export type LogStreamEvent = typeof LogStreamEventSchema.Type;
 
 export type StreamLogsOptions<R = never> = {
   readonly schedule: Schedule.Schedule<unknown, unknown, R>;

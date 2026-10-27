@@ -9,8 +9,8 @@ import { type Connection, LoggerLevel } from '@salesforce/core';
 import { type Duration } from '@salesforce/kit';
 import * as Schema from 'effect/Schema';
 import { Client } from 'faye';
+import { TestRunId } from '../effect/schema/salesforceId';
 import { nls } from '../i18n';
-import { TestRunId } from '../schemas/salesforceId';
 import {
   type ApexTestProgressReporter,
   type ApexTestQueueItem,

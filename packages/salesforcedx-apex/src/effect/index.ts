@@ -5,8 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { ExecuteAnonymousOptionsSchema, ExecuteAnonymousOutcomeSchema, executeAnonymous } from './executeAnonymous';
-export type { ExecuteAnonymousOptions, ExecuteAnonymousOutcome } from './executeAnonymous';
+export { executeAnonymous } from './executeAnonymous';
+export { ExecuteAnonymousOptionsSchema, ExecuteAnonymousOutcomeSchema } from './schema/executeAnonymous';
+export type { ExecuteAnonymousOptions, ExecuteAnonymousOutcome } from './schema/executeAnonymous';
 export { getOrgWideCoverage, getPerClassCodeCoverage, getAggregateCodeCoverage } from './codeCoverage';
 export {
   ApexCodeCoverageSchema,
@@ -29,50 +30,28 @@ export type {
   AggregateCodeCoverageResult
 } from './coverageSchemas';
 export {
+  ApexLogBodyFetchError,
   ApexCompileError,
+  ApexLogQueryError,
   ApexOperationError,
   ApexResponseDecodeError,
-  ApexRuntimeError,
-  causeMessage
-} from './errors';
-export {
-  ApexLogListItem,
-  ListLogsOptionsSchema,
-  LogStreamEventSchema,
-  ApexLogQueryError,
-  ApexLogBodyFetchError,
-  listLogs,
-  getLogBody,
-  streamLogs
-} from './logs';
-export type { ListLogsOptions, LogStreamEvent, StreamLogsOptions } from './logs';
-export {
-  BuildSyncPayloadOptionsSchema,
-  BuildAsyncPayloadOptionsSchema,
-  buildSyncPayload,
-  buildAsyncPayload
-} from './testPayloads';
-export type { BuildSyncPayloadOptions, BuildAsyncPayloadOptions } from './testPayloads';
-export {
-  TestSuiteSchema,
-  TestSuiteMembershipSchema,
-  retrieveAllSuites,
-  getTestsInSuite,
-  buildSuite
-} from './testSuites';
-export type { TestSuite, TestSuiteMembership } from './testSuites';
-export {
-  AsyncTestOptionsSchema,
-  AsyncTestProgressSchema,
-  AsyncTestResultSchema,
-  AsyncTestRunEventSchema,
-  runTestAsynchronous
-} from './asyncTests';
-export type {
-  AsyncTestOptions,
-  AsyncTestPollingOptions,
-  AsyncTestProgress,
-  AsyncTestRun,
-  AsyncTestRunEvent,
-  AsyncTestRunSummary
-} from './asyncTests';
+  ApexRuntimeError
+} from './schema/errors';
+export { causeMessage } from './errors';
+export { listLogs, getLogBody, streamLogs } from './logs';
+export { ApexLogListItem } from './schema/wire/logs';
+export { ListLogsOptionsSchema, LogStreamEventSchema } from './schema/logs';
+export type { ListLogsOptions, LogStreamEvent } from './schema/logs';
+export type { StreamLogsOptions } from './logs';
+export { BuildSyncPayloadOptionsSchema, BuildAsyncPayloadOptionsSchema } from './schema/testPayloads';
+export { buildSyncPayload, buildAsyncPayload } from './testPayloads';
+export type { BuildSyncPayloadOptions, BuildAsyncPayloadOptions } from './schema/testPayloads';
+export { TestSuiteSchema, TestSuiteMembershipSchema } from './schema/testSuites';
+export { retrieveAllSuites, getTestsInSuite, buildSuite, retrieveSuiteId } from './testSuites';
+export type { TestSuite, TestSuiteMembership } from './schema/testSuites';
+export { AsyncTestOptionsSchema } from './schema/wire/asyncTests';
+export { AsyncTestProgressSchema, AsyncTestResultSchema, AsyncTestRunEventSchema } from './schema/asyncTests';
+export { runTestAsynchronous } from './asyncTests';
+export type { AsyncTestOptions } from './schema/wire/asyncTests';
+export type { AsyncTestProgress, AsyncTestRunEvent, AsyncTestRunSummary } from './schema/asyncTests';
+export type { AsyncTestPollingOptions, AsyncTestRun } from './asyncTests';

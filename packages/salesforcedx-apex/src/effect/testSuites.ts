@@ -8,32 +8,16 @@
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
-import * as Schema from 'effect/Schema';
 import { messages } from '../i18n/i18n';
-import { ApexOperationError } from './errors';
 import { createRecord, queryRecords } from './records';
+import { ApexOperationError } from './schema/errors';
+import { TestSuiteMembershipSchema } from './schema/testSuites';
+import {
+  ApexClassIdQueryResponseSchema,
+  TestSuiteIdQueryResponseSchema,
+  TestSuiteRecordSchema
+} from './schema/wire/testSuites';
 
-export const TestSuiteSchema = Schema.Struct({ id: Schema.String, TestSuiteName: Schema.String }).annotations({
-  identifier: 'TestSuite'
-});
-export type TestSuite = typeof TestSuiteSchema.Type;
-
-export const TestSuiteMembershipSchema = Schema.Struct({ ApexClassId: Schema.String }).annotations({
-  identifier: 'TestSuiteMembership'
-});
-export type TestSuiteMembership = typeof TestSuiteMembershipSchema.Type;
-
-const IdRecordSchema = Schema.Struct({ Id: Schema.String });
-const TestSuiteRecordSchema = Schema.Union(
-  TestSuiteSchema,
-  Schema.Struct({ Id: Schema.String, TestSuiteName: Schema.String })
-).pipe(
-  Schema.transform(TestSuiteSchema, {
-    strict: true,
-    decode: record => ({ id: 'id' in record ? record.id : record.Id, TestSuiteName: record.TestSuiteName }),
-    encode: suite => ({ Id: suite.id, TestSuiteName: suite.TestSuiteName })
-  })
-);
 const quote = (value: string): string => value.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
 
 /** Retrieves the suites in the caller's org. */
@@ -52,7 +36,7 @@ export const retrieveSuiteId = Effect.fn('Apex.retrieveSuiteId')(function* (conn
     connection,
     'retrieveSuiteId',
     `SELECT id FROM ApexTestSuite WHERE TestSuiteName = '${quote(suiteName)}'`,
-    IdRecordSchema,
+    TestSuiteIdQueryResponseSchema,
     true
   ).pipe(Effect.map(records => records.at(0)?.Id));
 });
@@ -126,7 +110,7 @@ export const getApexClassIds = Effect.fn('Apex.getApexClassIds')(function* (
         connection,
         'buildSuite',
         `SELECT Id FROM ApexClass WHERE Name = '${quote(name)}' AND ${namespace} LIMIT 1`,
-        IdRecordSchema,
+        ApexClassIdQueryResponseSchema,
         true
       ).pipe(
         Effect.map(records => records.at(0)),

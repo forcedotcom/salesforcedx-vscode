@@ -9,14 +9,10 @@ import type { NamespaceInfo } from '../tests/types';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
-import * as Schema from 'effect/Schema';
+import { NamespaceQueryError } from './schema/errors';
 
 type NsPrefixRecord = { NamespacePrefix: string };
 type InstalledSubscriberRecord = { SubscriberPackage: NsPrefixRecord };
-
-class NamespaceQueryError extends Schema.TaggedError<NamespaceQueryError>()('NamespaceQueryError', {
-  message: Schema.String
-}) {}
 
 const emptyNsRecords: readonly NsPrefixRecord[] = [];
 
