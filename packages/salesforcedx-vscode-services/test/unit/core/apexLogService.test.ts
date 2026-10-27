@@ -11,12 +11,12 @@ import * as Effect from 'effect/Effect';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { SalesforceId, UserId } from '@salesforce/apex-node';
+import { ApexLogId, UserId } from '@salesforce/apex-node';
 import { ApexLogService } from '../../../src/core/apexLogService';
 import { ConnectionService, FailedToCreateConnectionError } from '../../../src/core/connectionService';
 
 const userId = Schema.decodeUnknownSync(UserId)('0053t000007OxppAAC');
-const logId = Schema.decodeUnknownSync(SalesforceId)('07Lxx00000cxy6YUAQ');
+const logId = Schema.decodeUnknownSync(ApexLogId)('07Lxx00000cxy6YUAQ');
 
 const makeService = () => {
   const query = vi.fn().mockResolvedValue({ totalSize: 0, done: true, records: [] });

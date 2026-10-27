@@ -14,7 +14,7 @@ import * as Option from 'effect/Option';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { salesforceId } from '../schemaHelpers';
+import { apexLogId } from '../schemaHelpers';
 import { UserId } from '../../src/schemas/salesforceId';
 import { getLogBody, listLogs, streamLogs } from '../../src/effect/logs';
 
@@ -22,7 +22,7 @@ const firstUserId = Schema.decodeUnknownSync(UserId)('0053t000007OxppAAC');
 const secondUserId = Schema.decodeUnknownSync(UserId)('0053t000007OxppAAD');
 const userIds = [firstUserId, secondUserId];
 const log = (id: string) => ({
-  Id: salesforceId(`07L${id.padStart(15, '0')}`),
+  Id: apexLogId(`07L${id.padStart(15, '0')}`),
   LogLength: 10,
   StartTime: '2026-10-23T12:00:00.000Z',
   Status: 'Success'
@@ -101,6 +101,22 @@ describe('Effect Apex logs', () => {
     expect(query).not.toHaveBeenCalled();
   });
 
+  it('rejects a valid Salesforce ID with the wrong ApexLog prefix', async () => {
+    const { connection, query } = makeConnection();
+    query.mockResolvedValue({ totalSize: 1, done: true, records: [{ ...log('1'), Id: firstUserId }] });
+    expect(await Effect.runPromise(Effect.flip(listLogs(connection)))).toMatchObject({ _tag: 'ParseError' });
+    expect(
+      await Effect.runPromise(
+        Effect.flip(
+          listLogs(connection, {
+            cursor: { startTime: '2026-10-23T12:00:00.000Z', id: firstUserId }
+          })
+        )
+      )
+    ).toMatchObject({ _tag: 'ParseError' });
+    expect(query).toHaveBeenCalledTimes(1);
+  });
+
   it('preserves request causes and reports malformed records', async () => {
     const { connection, query } = makeConnection();
     const cause = { message: 'Invalid field', errorCode: 'INVALID_FIELD', fields: ['Operation'] };
@@ -121,7 +137,7 @@ describe('Effect Apex logs', () => {
     expect(await Effect.runPromise(getLogBody(connection, logId))).toBe('123');
     expect(request).toHaveBeenCalledWith({
       method: 'GET',
-      url: `https://example.my.salesforce.com/services/data/v67.0/tooling/sobjects/ApexLog/${logId}/Body`
+      url: `/tooling/sobjects/ApexLog/${logId}/Body`
     });
     const cause = new Error('body unavailable');
     request.mockRejectedValueOnce(cause);
@@ -168,6 +184,12 @@ describe('Effect Apex logs', () => {
       '0053t000007OxppAAC',
       '0053t000007OxppAAD'
     ]);
+  });
+
+  it('accepts a schedule with a void output rather than a counter', async () => {
+    const { connection, query } = makeConnection();
+    await Effect.runPromise(streamLogs(connection, { schedule: Schedule.once }).pipe(Stream.runDrain));
+    expect(query).toHaveBeenCalledTimes(2);
   });
 
   it('follows Tooling API pages to retrieve every matching log, despite a failed body', async () => {

@@ -7,7 +7,7 @@
 
 import { ParseError } from 'effect/ParseResult';
 import * as Schema from 'effect/Schema';
-import { SalesforceId, UserId } from '../../schemas/salesforceId';
+import { ApexLogId, UserId } from '../../schemas/salesforceId';
 import { ApexLogBodyFetchError, ApexLogQueryError } from './errors';
 import { ApexLogListItem } from './wire/logs';
 
@@ -20,7 +20,7 @@ export const ListLogsOptionsSchema = Schema.mutable(
     /** Inclusive ISO StartTime lower bound. */
     startTimeAfter: Schema.optional(Schema.String),
     /** Cursor for incremental polling; omitting id includes all records at startTime. */
-    cursor: Schema.optional(Schema.Struct({ startTime: Schema.String, id: Schema.optional(SalesforceId) })),
+    cursor: Schema.optional(Schema.Struct({ startTime: Schema.String, id: Schema.optional(ApexLogId) })),
     /** Result ordering; defaults to descending, except cursor queries default to ascending. */
     orderBy: Schema.optional(Schema.Literal('ASC', 'DESC'))
   })

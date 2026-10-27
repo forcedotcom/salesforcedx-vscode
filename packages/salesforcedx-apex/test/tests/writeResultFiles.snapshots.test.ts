@@ -14,7 +14,7 @@ import { type Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { writeResultFiles } from '../../src/tests/testService';
 import { type TestResult, type OutputDirConfig, type CodeCoverageResult, type PerClassCoverage } from '../../src';
-import { salesforceId } from '../schemaHelpers';
+import { apexClassId, salesforceId } from '../schemaHelpers';
 
 const asyncApexJobId = salesforceId('707000000000001AAA');
 
@@ -139,8 +139,8 @@ describe('writeResultFiles - Snapshot Tests', () => {
 
   const mockPerClassCoverage: PerClassCoverage = {
     apexClassOrTriggerName: 'SnapshotTestClass1',
-    apexClassOrTriggerId: salesforceId('01p000000000001AAA'),
-    apexTestClassId: salesforceId('01p000000000002AAA'),
+    apexClassOrTriggerId: apexClassId('01p000000000001AAA'),
+    apexTestClassId: apexClassId('01p000000000002AAA'),
     apexTestMethodName: 'testSnapshotMethod1',
     numLinesCovered: 8,
     numLinesUncovered: 2,

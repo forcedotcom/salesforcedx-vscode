@@ -15,6 +15,8 @@ describe('@salesforce/apex-node public API', () => {
 
     expect(supportedSymbols.sort()).toEqual([
       'ApexClassId',
+      'ApexLogId',
+      'ApexTriggerId',
       'CancellationTokenSource',
       'CoverageReporter',
       'DefaultReportOptions',

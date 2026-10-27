@@ -211,14 +211,14 @@ describe('Get code coverage results', () => {
       {
         ApexClassOrTrigger: { Id: '01q000000000001AAA', Name: 'ApexTrigger1' },
         TestMethodName: 'MethodOne',
-        ApexTestClassId: '01q000000000001AAA',
+        ApexTestClassId: '01p000000000001AAA',
         NumLinesCovered: 5,
         NumLinesUncovered: 1,
         Coverage: { coveredLines: [1, 2, 3, 4, 5], uncoveredLines: [6] }
       },
       {
         ApexClassOrTrigger: { Id: '01q000000000002AAA', Name: 'ApexTrigger2' },
-        ApexTestClassId: '01q000000000002AAA',
+        ApexTestClassId: '01p000000000002AAA',
         TestMethodName: 'MethodTwo',
         NumLinesCovered: 6,
         NumLinesUncovered: 2,
@@ -226,7 +226,7 @@ describe('Get code coverage results', () => {
       },
       {
         ApexClassOrTrigger: { Id: '01q000000000003AAA', Name: 'ApexTrigger3' },
-        ApexTestClassId: '01q000000000003AAA',
+        ApexTestClassId: '01p000000000003AAA',
         TestMethodName: 'MethodThree',
         NumLinesCovered: 7,
         NumLinesUncovered: 3,
@@ -244,14 +244,14 @@ describe('Get code coverage results', () => {
 
     const codeCov = new CodeCoverage(mockConnection);
     const perClassCoverageMap = await codeCov.getPerClassCodeCoverage(
-      new Set<string>(['01q000000000001AAA', '01q000000000002AAA', '01q000000000003AAA'])
+      new Set<string>(['01p000000000001AAA', '01p000000000002AAA', '01p000000000003AAA'])
     );
     expect(perClassCoverageMap.size).toBe(3);
-    expect(perClassCoverageMap.get('01q000000000001AAA-MethodOne')).toEqual([
+    expect(perClassCoverageMap.get('01p000000000001AAA-MethodOne')).toEqual([
       {
         apexClassOrTriggerName: 'ApexTrigger1',
         apexClassOrTriggerId: '01q000000000001AAA',
-        apexTestClassId: '01q000000000001AAA',
+        apexTestClassId: '01p000000000001AAA',
         apexTestMethodName: 'MethodOne',
         percentage: '83%',
         coverage: { coveredLines: [1, 2, 3, 4, 5], uncoveredLines: [6] },
@@ -259,11 +259,11 @@ describe('Get code coverage results', () => {
         numLinesUncovered: 1
       }
     ]);
-    expect(perClassCoverageMap.get('01q000000000002AAA-MethodTwo')).toEqual([
+    expect(perClassCoverageMap.get('01p000000000002AAA-MethodTwo')).toEqual([
       {
         apexClassOrTriggerName: 'ApexTrigger2',
         apexClassOrTriggerId: '01q000000000002AAA',
-        apexTestClassId: '01q000000000002AAA',
+        apexTestClassId: '01p000000000002AAA',
         apexTestMethodName: 'MethodTwo',
         percentage: '75%',
         coverage: {
@@ -274,11 +274,11 @@ describe('Get code coverage results', () => {
         numLinesUncovered: 2
       }
     ]);
-    expect(perClassCoverageMap.get('01q000000000003AAA-MethodThree')).toEqual([
+    expect(perClassCoverageMap.get('01p000000000003AAA-MethodThree')).toEqual([
       {
         apexClassOrTriggerName: 'ApexTrigger3',
         apexClassOrTriggerId: '01q000000000003AAA',
-        apexTestClassId: '01q000000000003AAA',
+        apexTestClassId: '01p000000000003AAA',
         apexTestMethodName: 'MethodThree',
         percentage: '70%',
         coverage: {
@@ -296,14 +296,14 @@ describe('Get code coverage results', () => {
       {
         ApexClassOrTrigger: { Id: '01q000000000001AAA', Name: 'ApexTrigger1' },
         TestMethodName: 'MethodOne',
-        ApexTestClassId: '01q000000000001AAA',
+        ApexTestClassId: '01p000000000001AAA',
         NumLinesCovered: 5,
         NumLinesUncovered: 1,
         Coverage: { coveredLines: [1, 2, 3, 4, 5], uncoveredLines: [6] }
       },
       {
         ApexClassOrTrigger: { Id: '01q000000000002AAA', Name: 'ApexTrigger2' },
-        ApexTestClassId: '01q000000000001AAA',
+        ApexTestClassId: '01p000000000001AAA',
         TestMethodName: 'MethodOne',
         NumLinesCovered: 6,
         NumLinesUncovered: 2,
@@ -317,13 +317,13 @@ describe('Get code coverage results', () => {
     } as ApexCodeCoverage);
 
     const codeCov = new CodeCoverage(mockConnection);
-    const perClassCoverageMap = await codeCov.getPerClassCodeCoverage(new Set<string>(['01q000000000001AAA']));
+    const perClassCoverageMap = await codeCov.getPerClassCodeCoverage(new Set<string>(['01p000000000001AAA']));
     expect(perClassCoverageMap.size).toBe(1);
-    expect(perClassCoverageMap.get('01q000000000001AAA-MethodOne')).toEqual([
+    expect(perClassCoverageMap.get('01p000000000001AAA-MethodOne')).toEqual([
       {
         apexClassOrTriggerName: 'ApexTrigger1',
         apexClassOrTriggerId: '01q000000000001AAA',
-        apexTestClassId: '01q000000000001AAA',
+        apexTestClassId: '01p000000000001AAA',
         apexTestMethodName: 'MethodOne',
         percentage: '83%',
         coverage: { coveredLines: [1, 2, 3, 4, 5], uncoveredLines: [6] },
@@ -333,7 +333,7 @@ describe('Get code coverage results', () => {
       {
         apexClassOrTriggerName: 'ApexTrigger2',
         apexClassOrTriggerId: '01q000000000002AAA',
-        apexTestClassId: '01q000000000001AAA',
+        apexTestClassId: '01p000000000001AAA',
         apexTestMethodName: 'MethodOne',
         percentage: '75%',
         coverage: {
@@ -352,6 +352,28 @@ describe('Get code coverage results', () => {
     const perClassCoverageMap = await codeCov.getPerClassCodeCoverage(new Set<string>());
 
     expect(perClassCoverageMap.size).toBe(0);
+  });
+
+  it.each([
+    { coveredId: '001000000000001AAA', testId: '01p000000000001AAA' },
+    { coveredId: '01q000000000001AAA', testId: '01q000000000002AAA' }
+  ])('rejects IDs outside their coverage record types: %j', async ({ coveredId, testId }) => {
+    toolingQueryStub.resolves({
+      done: true,
+      totalSize: 1,
+      records: [
+        {
+          ApexClassOrTrigger: { Id: coveredId, Name: 'Covered' },
+          ApexTestClassId: testId,
+          TestMethodName: 'testMethod',
+          NumLinesCovered: 1,
+          NumLinesUncovered: 0
+        }
+      ]
+    });
+    await expect(new CodeCoverage(mockConnection).getPerClassCodeCoverage(new Set([testId]))).rejects.toMatchObject({
+      _tag: 'ParseError'
+    });
   });
 
   it('should split the PerClassCodeCoverage queue into chunks of 500 records', async () => {

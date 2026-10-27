@@ -11,7 +11,7 @@ import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
 import * as Option from 'effect/Option';
 import type { ParseError } from 'effect/ParseResult';
-import { isString, isUndefined } from 'effect/Predicate';
+import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
 import type * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -43,7 +43,7 @@ const buildListLogsQuery = (options?: DecodedListLogsOptions): string => {
       ? `StartTime >= ${options.cursor.startTime}`
       : `(StartTime > ${options.cursor.startTime} OR (StartTime = ${options.cursor.startTime} AND Id > '${options.cursor.id.replaceAll("'", "''")}'))`
     : undefined;
-  const conditions = [userIdCondition, operationCondition, startTimeCondition, cursorCondition].filter(Boolean);
+  const conditions = [userIdCondition, operationCondition, startTimeCondition, cursorCondition].filter(isNotUndefined);
   const where = conditions.length > 0 ? ` WHERE ${conditions.join(' AND ')}` : '';
   const orderBy = options?.orderBy ?? (options?.cursor ? 'ASC' : 'DESC');
   return `SELECT Id, Application, DurationMilliseconds, LogLength, LogUserId, LogUser.Name, Operation, StartTime, Status FROM ApexLog${where} ORDER BY StartTime ${orderBy}, Id ${orderBy}`;
@@ -64,10 +64,10 @@ const streamLogPagesForSoql = (connection: Connection, soql: string) => {
         Effect.flatMap(Schema.decodeUnknown(ApexLogPageSchema)),
         Effect.map(
           page =>
-            [
-              page.records,
-              page.done ? Option.none<string>() : Option.fromNullable(page.nextRecordsUrl)
-            ] satisfies readonly [readonly ApexLogListItem[], Option.Option<string>]
+            [page.records, page.done ? Option.none<string>() : Option.some(page.nextRecordsUrl)] satisfies readonly [
+              readonly ApexLogListItem[],
+              Option.Option<string>
+            ]
         )
       )
   );
@@ -91,7 +91,7 @@ export const getLogBody = Effect.fn('Apex.getLogBody')((connection: Connection, 
     try: () =>
       connection.request({
         method: 'GET',
-        url: `${connection.instanceUrl}/services/data/v${connection.getApiVersion()}/tooling/sobjects/ApexLog/${logId}/Body`
+        url: `/tooling/sobjects/ApexLog/${logId}/Body`
       }),
     catch: cause =>
       new ApexLogBodyFetchError({ message: `Failed to fetch ApexLog body: ${causeMessage(cause)}`, cause })
@@ -100,8 +100,9 @@ export const getLogBody = Effect.fn('Apex.getLogBody')((connection: Connection, 
 
 export type LogStreamEvent = LogStreamEventShape;
 
-export type StreamLogsOptions<R = never> = {
-  readonly schedule: Schedule.Schedule<unknown, unknown, R>;
+export type StreamLogsOptions<R = never, ScheduleOutput = unknown> = {
+  /** Receives the void poll result; the caller-defined schedule output is ignored. */
+  readonly schedule: Schedule.Schedule<ScheduleOutput, void, R>;
   /** None skips this poll. The initial poll is index 0; later polls follow the schedule. */
   readonly pollOptions?: (pollIndex: number) => Effect.Effect<Option.Option<ListLogsOptions>, never, R>;
   /** Host-owned filtering/deduplication happens before requesting a body. */
@@ -113,9 +114,9 @@ const queryErrorEvent = (error: Extract<LogStreamEvent, { readonly _tag: 'QueryE
   error
 });
 
-const pollLogs = <R>(
+const pollLogs = <R, ScheduleOutput>(
   connection: Connection,
-  options: StreamLogsOptions<R>,
+  options: StreamLogsOptions<R, ScheduleOutput>,
   filters: ListLogsOptions
 ): Stream.Stream<LogStreamEvent, never, R> => {
   const orderedFilters = { ...filters, orderBy: filters.orderBy ?? 'ASC' };
@@ -138,9 +139,9 @@ const pollLogs = <R>(
 };
 
 /** Polls immediately, then on schedule. Request failures are events so later polls and bodies still run. */
-export const streamLogs = <R>(
+export const streamLogs = <R, ScheduleOutput>(
   connection: Connection,
-  options: StreamLogsOptions<R>
+  options: StreamLogsOptions<R, ScheduleOutput>
 ): Stream.Stream<LogStreamEvent, never, R> =>
   Stream.repeatEffectWithSchedule(Effect.void, options.schedule).pipe(
     Stream.zipWithIndex,

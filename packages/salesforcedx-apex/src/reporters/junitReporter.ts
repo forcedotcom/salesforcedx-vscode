@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { LoggerLevel } from '@salesforce/core';
-import { isEmpty } from '../narrowing';
+import { isNullable, isString } from 'effect/Predicate';
+import { isEmpty } from 'effect/String';
 import { type ApexTestResultData, type TestResult } from '../tests/types';
 import { elapsedTime, formatStartTime, HeapMonitor, msToSecond } from '../utils';
 
@@ -49,7 +50,7 @@ export class JUnitReporter {
     let junitProperties = `${tab}${tab}<properties>\n`;
 
     Object.entries(testResult.summary).forEach(([key, value]) => {
-      if (isEmpty(value) || skippedProperties.has(key)) {
+      if (isNullable(value) || (isString(value) && isEmpty(value)) || skippedProperties.has(key)) {
         return;
       }
 
@@ -84,9 +85,7 @@ export class JUnitReporter {
       }" time="${msToSecond(testCase.runTime)}">\n`;
 
       if (testCase.outcome === 'Fail' || testCase.outcome === 'CompileFail') {
-        const rawMessage = testCase.message ?? '';
-        let message = isEmpty(rawMessage) ? '' : rawMessage;
-        message = this.xmlEscape(message);
+        const message = this.xmlEscape(testCase.message ?? '');
         junitTests += `${tab}${tab}${tab}<failure message="${message}">`;
         if (testCase.stackTrace) {
           junitTests += `<![CDATA[${testCase.stackTrace}]]>`;

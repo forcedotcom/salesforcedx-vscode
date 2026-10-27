@@ -7,12 +7,12 @@
 
 import * as util from 'node:util';
 import { type TestResult } from '../../src/tests/types';
-import { salesforceId } from '../schemaHelpers';
+import { apexClassId, salesforceId } from '../schemaHelpers';
 
 const asyncApexJobId = salesforceId('7073t000061uwZIAAY');
-const accountClassId = salesforceId('01p3t000000ivLzAAI');
-const calculatorClassId = salesforceId('01p3t000000imbvAAA');
-const animalLocatorClassId = salesforceId('01p3t000001ytUmAAI');
+const accountClassId = apexClassId('01p3t000000ivLzAAI');
+const calculatorClassId = apexClassId('01p3t000000imbvAAA');
+const animalLocatorClassId = apexClassId('01p3t000001ytUmAAI');
 const testStartTime = '2020-11-09T18:02:50.000+0000';
 const date = new Date(testStartTime);
 const isoStartTime = date.toISOString();

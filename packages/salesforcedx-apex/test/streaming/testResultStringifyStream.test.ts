@@ -8,7 +8,7 @@ import { once } from 'node:events';
 import { TestResultStringifyStream } from '../../src/streaming';
 import { type CodeCoverageResult, type TestResult } from '../../src/tests';
 import { type PerClassCoverage } from '../../src/tests/types';
-import { salesforceId } from '../schemaHelpers';
+import { apexClassId, salesforceId } from '../schemaHelpers';
 
 const firstAsyncApexJobId = salesforceId('707000000000001AAA');
 const secondAsyncApexJobId = salesforceId('707000000000002AAA');
@@ -58,8 +58,8 @@ const tests: TestResult['tests'] = [
 const perClassCoverageData: PerClassCoverage[] = [
   {
     apexClassOrTriggerName: tests[0].apexClass.name,
-    apexClassOrTriggerId: salesforceId('01p000000000001AAA'),
-    apexTestClassId: salesforceId('01p000000000003AAA'),
+    apexClassOrTriggerId: apexClassId('01p000000000001AAA'),
+    apexTestClassId: apexClassId('01p000000000003AAA'),
     apexTestMethodName: tests[0].methodName,
     numLinesCovered: 80,
     numLinesUncovered: 20,
@@ -71,8 +71,8 @@ const perClassCoverageData: PerClassCoverage[] = [
   },
   {
     apexClassOrTriggerName: tests[1].apexClass.name,
-    apexClassOrTriggerId: salesforceId('01p000000000002AAA'),
-    apexTestClassId: salesforceId('01p000000000004AAA'),
+    apexClassOrTriggerId: apexClassId('01p000000000002AAA'),
+    apexTestClassId: apexClassId('01p000000000004AAA'),
     apexTestMethodName: tests[1].methodName,
     numLinesCovered: 60,
     numLinesUncovered: 40,

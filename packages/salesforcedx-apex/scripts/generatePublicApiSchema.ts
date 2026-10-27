@@ -11,6 +11,8 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import * as Prettier from 'prettier';
 import {
+  ApexClassId,
+  ApexTriggerId,
   SalesforceId,
   type ApexCodeCoverage,
   type ApexCodeCoverageAggregate,
@@ -222,8 +224,8 @@ const ApexCodeCoverageAggregateSchema = Schema.Struct({
 
 const PerClassCoverageSchema = Schema.Struct({
   apexClassOrTriggerName: Schema.String,
-  apexClassOrTriggerId: SalesforceId,
-  apexTestClassId: SalesforceId,
+  apexClassOrTriggerId: Schema.Union(ApexClassId, ApexTriggerId),
+  apexTestClassId: ApexClassId,
   apexTestMethodName: Schema.String,
   numLinesCovered: Schema.Number,
   numLinesUncovered: Schema.Number,

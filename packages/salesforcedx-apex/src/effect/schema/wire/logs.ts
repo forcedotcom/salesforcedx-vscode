@@ -6,12 +6,12 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { SalesforceId, UserId } from '../../../schemas/salesforceId';
+import { ApexLogId, UserId } from '../../../schemas/salesforceId';
 import { QueryPageSchema } from '../queryPage';
 
 /** ApexLog record from Tooling API query (Id, LogLength, StartTime, Status required per API reference). */
 export const ApexLogListItem = Schema.Struct({
-  Id: SalesforceId,
+  Id: ApexLogId,
   Application: Schema.optionalWith(Schema.String, { nullable: true }),
   DurationMilliseconds: Schema.optionalWith(Schema.Number, { nullable: true }),
   LogLength: Schema.Number,

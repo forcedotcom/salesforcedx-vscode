@@ -8,14 +8,21 @@
 import * as Schema from 'effect/Schema';
 
 /** Generic SOQL response page; nonterminal pages require a continuation URL. */
-export const QueryPageSchema = <A, I>(recordSchema: Schema.Schema<A, I, never>) =>
-  Schema.Struct({
+export const QueryPageSchema = <A, I>(recordSchema: Schema.Schema<A, I, never>) => {
+  const fields = {
     totalSize: Schema.Number,
-    done: Schema.optionalWith(Schema.Boolean, { default: () => true }),
-    nextRecordsUrl: Schema.optional(Schema.NonEmptyString),
     records: Schema.optionalWith(Schema.Array(recordSchema), { default: () => [] })
-  }).pipe(
-    Schema.filter(
-      page => page.done || page.nextRecordsUrl !== undefined || 'A continuing query page must include nextRecordsUrl'
-    )
+  };
+  return Schema.Union(
+    Schema.Struct({
+      ...fields,
+      done: Schema.optionalWith(Schema.Literal(true), { default: () => true as const }),
+      nextRecordsUrl: Schema.optional(Schema.Never)
+    }),
+    Schema.Struct({
+      ...fields,
+      done: Schema.Literal(false),
+      nextRecordsUrl: Schema.NonEmptyString
+    })
   );
+};

@@ -6,7 +6,7 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { ApexClassId, SalesforceId, TestRunId, UserId } from '../../src/schemas/salesforceId';
+import { ApexClassId, ApexLogId, ApexTriggerId, SalesforceId, TestRunId, UserId } from '../../src/schemas/salesforceId';
 
 describe('Salesforce ID schemas', () => {
   it('accepts 15- and 18-character alphanumeric Salesforce IDs', () => {
@@ -25,6 +25,20 @@ describe('Salesforce ID schemas', () => {
     expect(Schema.is(UserId)('005xx0000000001')).toBe(true);
     expect(Schema.is(UserId)('01p2M00000O6tXZQAZ')).toBe(false);
     expect(Schema.is(UserId)('005xx000000')).toBe(false);
+  });
+
+  it('accepts only IDs with the ApexLog prefix', () => {
+    expect(Schema.is(ApexLogId)('07Lxx00000cxy6YUAQ')).toBe(true);
+    expect(Schema.is(ApexLogId)('07Lxx00000cxy6Y')).toBe(true);
+    expect(Schema.is(ApexLogId)('005xx0000000001AAA')).toBe(false);
+    expect(Schema.is(ApexLogId)('07Linvalid')).toBe(false);
+  });
+
+  it('accepts only IDs with the ApexTrigger prefix', () => {
+    expect(Schema.is(ApexTriggerId)('01q000000000001AAA')).toBe(true);
+    expect(Schema.is(ApexTriggerId)('01q000000000001')).toBe(true);
+    expect(Schema.is(ApexTriggerId)('01p000000000001AAA')).toBe(false);
+    expect(Schema.is(ApexTriggerId)('01qinvalid')).toBe(false);
   });
 
   it('accepts only IDs with the test run prefix', () => {

@@ -129,8 +129,10 @@
       "properties": {
         "Id": {
           "type": "string",
-          "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
-          "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+          "description": "a string starting with \"07L\"",
+          "pattern": "^07L",
+          "title": "startsWith(\"07L\")",
+          "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
         },
         "Application": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
         "DurationMilliseconds": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
@@ -167,15 +169,30 @@
       "additionalProperties": false
     },
     "ApexLogPage": {
-      "type": "object",
-      "required": ["totalSize"],
-      "properties": {
-        "totalSize": { "type": "number" },
-        "done": { "type": "boolean" },
-        "nextRecordsUrl": { "$ref": "#/$defs/NonEmptyString" },
-        "records": { "type": "array", "items": { "$ref": "#/$defs/ApexLogListItem" } }
-      },
-      "additionalProperties": false
+      "anyOf": [
+        {
+          "type": "object",
+          "required": ["totalSize"],
+          "properties": {
+            "totalSize": { "type": "number" },
+            "records": { "type": "array", "items": { "$ref": "#/$defs/ApexLogListItem" } },
+            "done": { "type": "boolean", "enum": [true] },
+            "nextRecordsUrl": { "$id": "/schemas/never", "not": {}, "title": "never" }
+          },
+          "additionalProperties": false
+        },
+        {
+          "type": "object",
+          "required": ["totalSize", "done", "nextRecordsUrl"],
+          "properties": {
+            "totalSize": { "type": "number" },
+            "records": { "type": "array", "items": { "$ref": "#/$defs/ApexLogListItem" } },
+            "done": { "type": "boolean", "enum": [false] },
+            "nextRecordsUrl": { "$ref": "#/$defs/NonEmptyString" }
+          },
+          "additionalProperties": false
+        }
+      ]
     },
     "NonEmptyString": {
       "type": "string",
@@ -227,8 +244,10 @@
             "startTime": { "type": "string" },
             "id": {
               "type": "string",
-              "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
-              "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+              "description": "a string starting with \"07L\"",
+              "pattern": "^07L",
+              "title": "startsWith(\"07L\")",
+              "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
             }
           },
           "additionalProperties": false
@@ -399,14 +418,29 @@
       "properties": {
         "apexClassOrTriggerName": { "type": "string" },
         "apexClassOrTriggerId": {
-          "type": "string",
-          "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
-          "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+          "anyOf": [
+            {
+              "type": "string",
+              "description": "a string starting with \"01p\"",
+              "pattern": "^01p",
+              "title": "startsWith(\"01p\")",
+              "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+            },
+            {
+              "type": "string",
+              "description": "a string starting with \"01q\"",
+              "pattern": "^01q",
+              "title": "startsWith(\"01q\")",
+              "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+            }
+          ]
         },
         "apexTestClassId": {
           "type": "string",
-          "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
-          "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+          "description": "a string starting with \"01p\"",
+          "pattern": "^01p",
+          "title": "startsWith(\"01p\")",
+          "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
         },
         "apexTestMethodName": { "type": "string" },
         "numLinesCovered": { "type": "number" },

@@ -8,7 +8,7 @@
 import { type Connection } from '@salesforce/core';
 import * as Schema from 'effect/Schema';
 import * as util from 'node:util';
-import { SalesforceId } from '../schemas/salesforceId';
+import { ApexClassId, ApexTriggerId } from '../schemas/salesforceId';
 import { elapsedTime, HeapMonitor } from '../utils';
 import { QUERY_RECORD_LIMIT } from './constants';
 import {
@@ -21,7 +21,8 @@ import {
 } from './types';
 import { calculatePercentage, queryAll } from './utils';
 
-const decodeSalesforceId = Schema.decodeUnknownSync(SalesforceId);
+const decodeClassOrTriggerId = Schema.decodeUnknownSync(Schema.Union(ApexClassId, ApexTriggerId));
+const decodeApexClassId = Schema.decodeUnknownSync(ApexClassId);
 
 export class CodeCoverage {
   public readonly connection: Connection;
@@ -76,8 +77,8 @@ export class CodeCoverage {
 
           const value: PerClassCoverage = {
             apexClassOrTriggerName: item.ApexClassOrTrigger.Name,
-            apexClassOrTriggerId: decodeSalesforceId(item.ApexClassOrTrigger.Id),
-            apexTestClassId: decodeSalesforceId(item.ApexTestClassId),
+            apexClassOrTriggerId: decodeClassOrTriggerId(item.ApexClassOrTrigger.Id),
+            apexTestClassId: decodeApexClassId(item.ApexTestClassId),
             apexTestMethodName: item.TestMethodName,
             numLinesCovered: item.NumLinesCovered,
             numLinesUncovered: item.NumLinesUncovered,

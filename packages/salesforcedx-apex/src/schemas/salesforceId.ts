@@ -22,6 +22,17 @@ export type UserId = typeof UserId.Type;
 export const ApexClassId = SalesforceId.pipe(Schema.startsWith('01p'), Schema.brand('@salesforcedx-apex/ApexClassId'));
 export type ApexClassId = typeof ApexClassId.Type;
 
+/** Salesforce ApexTrigger record ID. */
+export const ApexTriggerId = SalesforceId.pipe(
+  Schema.startsWith('01q'),
+  Schema.brand('@salesforcedx-apex/ApexTriggerId')
+);
+export type ApexTriggerId = typeof ApexTriggerId.Type;
+
+/** Salesforce Tooling API ApexLog record ID. */
+export const ApexLogId = SalesforceId.pipe(Schema.startsWith('07L'), Schema.brand('@salesforcedx-apex/ApexLogId'));
+export type ApexLogId = typeof ApexLogId.Type;
+
 /** Salesforce Apex test run ID. */
 export const TestRunId = SalesforceId.pipe(Schema.startsWith('707'), Schema.brand('@salesforcedx-apex/TestRunId'));
 export type TestRunId = typeof TestRunId.Type;

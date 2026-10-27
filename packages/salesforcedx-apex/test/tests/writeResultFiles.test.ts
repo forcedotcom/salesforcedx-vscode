@@ -21,7 +21,7 @@ import {
   type CodeCoverageResult,
   type PerClassCoverage
 } from '../../src';
-import { salesforceId } from '../schemaHelpers';
+import { apexClassId, salesforceId } from '../schemaHelpers';
 
 const asyncApexJobId = salesforceId('707000000000001AAA');
 
@@ -120,8 +120,8 @@ describe('writeResultFiles', () => {
 
   const mockPerClassCoverage: PerClassCoverage = {
     apexClassOrTriggerName: 'TestClass1',
-    apexClassOrTriggerId: salesforceId('01p000000000001AAA'),
-    apexTestClassId: salesforceId('01p000000000002AAA'),
+    apexClassOrTriggerId: apexClassId('01p000000000001AAA'),
+    apexTestClassId: apexClassId('01p000000000002AAA'),
     apexTestMethodName: 'testMethod1',
     numLinesCovered: 5,
     numLinesUncovered: 2,

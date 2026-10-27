@@ -6,7 +6,7 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { SalesforceId } from '../schemas/salesforceId';
+import { ApexClassId, ApexTriggerId, SalesforceId } from '../schemas/salesforceId';
 
 /**
  * Specifies which Apex tests run.
@@ -360,8 +360,8 @@ const ApexDiagnosticSchema = Schema.Struct({
 
 const PerClassCoverageSchema = Schema.Struct({
   apexClassOrTriggerName: Schema.String,
-  apexClassOrTriggerId: SalesforceId,
-  apexTestClassId: SalesforceId,
+  apexClassOrTriggerId: Schema.Union(ApexClassId, ApexTriggerId),
+  apexTestClassId: ApexClassId,
   apexTestMethodName: Schema.String,
   numLinesCovered: Schema.Number,
   numLinesUncovered: Schema.Number,
