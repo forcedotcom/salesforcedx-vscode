@@ -10,7 +10,19 @@ Run `pnpm test:effect-v4-compat` from repository root. Also runs in root `test` 
 - Missing V4 layer/service dependencies fail a separate negative TypeScript project. Raw V4 Layers fail in an isolated V3 child process.
 - Same `@effect/language-service` as editor and existing package gates; inherited plugin configuration. No separate V4-only LS, no disabled V3 checks. `typescript.enablePromptUseWorkspaceTsdk` keeps the configured workspace TypeScript visible in VS Code.
 
-IAC/core compile fixture exercises the actual core exports' Channel/Workspace/CommandEventDispatcher/getOrgShape/telemetry calls, not substitute class declarations. Runtime IAC behavior still needs its integrated tests. Packed public declaration installation gates are still missing; W-24615044 is not complete until those exercise the generated legacy and V2 packages. Do not treat this protocol fixture as complete external API coverage.
+Workspace version validation still requires one shared first-party Effect spec and resolved copy. `config/effect-version-boundaries.json` names exact reviewed exceptions (currently only the legacy declaration package). Each companion must satisfy its peer range and resolve its owner's Effect copy. Independently installed fixture trees are tested by their own gates, not mistaken for workspace runtime consumers by a filesystem-wide glob. Manifest, lockfile and boundary-config changes invalidate the consistency test's Wireit cache.
+
+IAC/core compile fixture exercises the actual core exports' Channel/Workspace/CommandEventDispatcher/getOrgShape/telemetry calls, not substitute class declarations. Runtime IAC behavior still needs its integrated tests. Do not treat the protocol fixture as complete external API coverage.
+
+## Actual packed legacy declarations
+
+`pnpm test:packed-services` builds and packs the real `@salesforce/vscode-services` package, copies only fixture source/manifests into a fresh directory outside this checkout, installs its locked dependencies, asserts no Effect V4 is required, and typechecks real static accessor/Context/ref calls with V3 **3.21.2**, `strict:true`, `skipLibCheck:false`. No checkout's node_modules is reused.
+
+This caught two real failures: an unpublished sibling declaration import (`TS2307`) and incompatible V3 declaration identities caused by ranged Effect/platform versions. Legacy declarations are now bundled and validated; the legacy Effect ecosystem versions stay pinned independently of the future V4 implementation. No `--no-check` or other gate bypass.
+
+When the packed public artifact changes, regenerate its consumer lock intentionally with `node scripts/test-packed-services.mjs --update-lock`; this still installs and typechecks the package. Normal CI uses `npm ci`, never updates the lock. This does not claim support for untested V3 minors.
+
+**Open Spec P1:** an equivalent packed installation/typecheck for the actual V2 public package is still required. W-24615044 remains incomplete until both public declaration protocols are covered.
 
 ## Existing diagnostic rule compatibility
 
