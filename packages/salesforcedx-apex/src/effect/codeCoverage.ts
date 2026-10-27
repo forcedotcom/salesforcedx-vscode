@@ -133,12 +133,10 @@ export const getAggregateCodeCoverage = Effect.fn('Apex.getAggregateCodeCoverage
   apexClassIds: ReadonlySet<string>
 ) {
   // Preserve "Store Only Aggregate Code Coverage": no per-test records means query the entire aggregate table.
-  const queries =
+  return yield* Effect.forEach(
     apexClassIds.size === 0
       ? [aggregateQuery]
-      : createQueries(`${aggregateQuery} WHERE ApexClassorTriggerId IN (%s)`, apexClassIds);
-  return yield* Effect.forEach(
-    queries,
+      : createQueries(`${aggregateQuery} WHERE ApexClassorTriggerId IN (%s)`, apexClassIds),
     query => queryCoverageRecords(connection, query, ApexCodeCoverageAggregateRecordSchema, 'getAggregateCodeCoverage'),
     { concurrency: 'unbounded' }
   ).pipe(
