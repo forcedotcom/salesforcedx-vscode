@@ -46,7 +46,7 @@
       ]
     },
     "compile": {
-      "command": "tsc --pretty && dts-bundle-generator --project tsconfig.json --export-referenced-types false --out-file out/index.d.ts src/index.ts",
+      "command": "tsc --pretty && dts-bundle-generator --project tsconfig.json --export-referenced-types false --out-file out/services.d.ts src/index.ts && node scripts/writePublicDeclarations.mjs",
       "clean": "if-file-deleted",
       "dependencies": [
         "generate-src",
@@ -54,8 +54,10 @@
       ],
       "files": [
         "src/**/*.ts",
+        "scripts/*.mjs",
         "tsconfig.json",
         "../../tsconfig.common.json",
+        "../../pnpm-lock.yaml",
         "package.json"
       ],
       "output": [

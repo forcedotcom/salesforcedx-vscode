@@ -9,7 +9,7 @@ import * as Schema from 'effect/Schema';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-const DependencyVersions = Schema.Record({ key: Schema.String, value: Schema.String }).pipe(Schema.mutable);
+const DependencyVersions = Schema.Record({ key: Schema.String, value: Schema.String });
 const PackageJsonSchema = Schema.Struct({
   name: Schema.optional(Schema.String),
   version: Schema.optional(Schema.String),
@@ -18,7 +18,7 @@ const PackageJsonSchema = Schema.Struct({
   engines: Schema.optional(
     Schema.Struct({ vscode: Schema.optional(Schema.String), node: Schema.optional(Schema.String) })
   )
-}).pipe(Schema.mutable);
+});
 const parsePackageJson = Schema.decodeUnknownSync(Schema.parseJson(PackageJsonSchema), {
   onExcessProperty: 'preserve'
 });
@@ -51,31 +51,29 @@ const syncDeps = (): void => {
     'vscode-uri'
   ];
 
-  // Sync versions
-  typesPkg.dependencies = typesPkg.dependencies ?? {};
-  depsToSync.forEach(dep => {
-    if (parentPkg.dependencies?.[dep]) {
-      typesPkg.dependencies![dep] = parentPkg.dependencies[dep];
+  const parentDependencies = Object.fromEntries(
+    depsToSync.flatMap(dep => {
+      const version = parentPkg.dependencies?.[dep];
+      return version === undefined ? [] : [[dep, version]];
+    })
+  );
+  const vscodeVersion = parentPkg.engines?.vscode;
+  const updatedPackage = {
+    ...typesPkg,
+    version: parentPkg.version,
+    dependencies: {
+      ...typesPkg.dependencies,
+      ...parentDependencies,
+      // Freeze the consumer protocol independently of the future V4 implementation.
+      effect: '3.21.2',
+      '@effect/platform': '0.96.1',
+      '@effect/opentelemetry': '0.63.0',
+      ...(vscodeVersion === undefined ? {} : { '@types/vscode': `^${vscodeVersion.replace('^', '')}` })
     }
-  });
-
-  // Frozen consumer protocol: parent implementation will move to V4 independently.
-  // Ranges can install a second V3 minor with incompatible declaration identities.
-  typesPkg.dependencies.effect = '3.21.2';
-  typesPkg.dependencies['@effect/platform'] = '0.96.1';
-  typesPkg.dependencies['@effect/opentelemetry'] = '0.63.0';
-
-  // Add @types/vscode from parent's engines
-  if (parentPkg.engines?.vscode) {
-    const vscodeVersion = parentPkg.engines.vscode.replace('^', '');
-    typesPkg.dependencies['@types/vscode'] = `^${vscodeVersion}`;
-  }
-
-  // Sync version number
-  typesPkg.version = parentPkg.version;
+  };
 
   const temporaryTypesPkgPath = `${typesPkgPath}.${process.pid}.tmp`;
-  fs.writeFileSync(temporaryTypesPkgPath, `${JSON.stringify(typesPkg, null, 2)}\n`, 'utf8');
+  fs.writeFileSync(temporaryTypesPkgPath, `${JSON.stringify(updatedPackage, null, 2)}\n`, 'utf8');
   fs.renameSync(temporaryTypesPkgPath, typesPkgPath);
   console.log('Synced dependencies and version from parent package');
 };
