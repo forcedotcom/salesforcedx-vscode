@@ -11,6 +11,39 @@ Read it before dispatching, approving, or promoting a release. This skill
 inspects and operates the release train; it does not replace the manual QA
 decision.
 
+## Releasability Dashboard Maintenance
+
+When a change affects a release-train gate or state transition, evaluate
+whether `.github/workflows/release-dashboard.yml` and
+`scripts/releaseDashboard.sh` must change in the same PR. Record an intentional
+out-of-scope dashboard update in the plan or review.
+
+Dashboard-affecting changes include:
+
+- `nightly.yml`, `promote-to-prerelease.yml`, `build-github-release.yml`,
+  `publishVSCode.yml`, or `publishOpenVSX.yml`
+- workflow names, schedules, inputs, triggers, job dependencies, gate
+  predicates, required check names, or retry behavior
+- tag formats, tracking tags, release titles/assets, source provenance, manual
+  approval, publish-environment approval, or registry verification behavior
+- `develop` feeder build, unit-test, or E2E evidence
+
+When affected, ensure the dashboard still:
+
+1. Resolves the exact artifact and commit consumed by each stage, including the
+   one-week pre-release to stable offset.
+2. Separates required gates from advisory/post-hoc signals. Do not make E2E a
+   hard stop unless the release workflow explicitly requires it.
+3. Correlates evidence by tag, commit, and job result instead of selecting an
+   unrelated repository-wide latest run.
+4. Reports missing or unavailable evidence as such, never as successful.
+5. Stays read-only; it must not dispatch, approve, publish, edit releases, or
+   mutate branches/tags.
+
+Update dashboard tests for each changed dependency, gate, or state
+classification. Run `pnpm test:scripts` and `pnpm check:actions` after
+dashboard or release-workflow changes.
+
 ## Release States
 
 Use these terms precisely:
