@@ -8,7 +8,7 @@
 import type { Mock as VitestMock } from 'vitest';
 import type { OrgAuthorization } from '@salesforce/core';
 import { createTable, ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
+import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
 import * as Layer from 'effect/Layer';

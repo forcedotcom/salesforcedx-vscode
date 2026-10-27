@@ -6,7 +6,7 @@
  */
 
 import { type Column, createTable, type Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { ICONS, type OrgAuthorizationSummary } from '@salesforce/vscode-services';
+import { ICONS } from '@salesforce/vscode-services';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
@@ -16,6 +16,7 @@ import * as Record from 'effect/Record';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import type { OrgAuthorizationSummary } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { getOrgRuntime } from '../extensionProvider';
 import { nls } from '../messages';

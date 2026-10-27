@@ -9,7 +9,7 @@ import {
   ExtensionProviderService,
   type ExtensionProviderService as ExtensionProviderServiceType
 } from '@salesforce/effect-ext-utils';
-import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
+import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
