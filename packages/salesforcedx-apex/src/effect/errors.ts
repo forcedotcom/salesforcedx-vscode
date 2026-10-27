@@ -15,12 +15,5 @@ export class ApexReportError extends Schema.TaggedError<ApexReportError>()('Apex
   cause: Schema.optional(Schema.String)
 }) {}
 
-/** Formatting or generating an Apex report failed. */
-export class ApexReportError extends Schema.TaggedError<ApexReportError>()('ApexReportError', {
-  format: Schema.String,
-  message: Schema.String,
-  cause: Schema.optional(Schema.String)
-}) {}
-
 /** Produces the serializable cause carried by public operation errors. */
 export const causeMessage = (cause: unknown): string => (isError(cause) ? cause.message : String(cause));
