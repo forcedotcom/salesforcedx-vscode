@@ -56,6 +56,14 @@ import {
   ApexRuntimeError,
   BuildSyncPayloadOptionsSchema,
   BuildAsyncPayloadOptionsSchema,
+  AggregateCodeCoverageResultSchema,
+  ApexCodeCoverageAggregateRecordSchema,
+  ApexCodeCoverageAggregateSchema,
+  ApexCodeCoverageRecordSchema,
+  ApexCodeCoverageSchema,
+  ApexOrgWideCoverageSchema,
+  CodeCoverageResultSchema,
+  PerClassCoverageSchema,
   ExecuteAnonymousOptionsSchema,
   ExecuteAnonymousOutcomeSchema,
   SyncTestConfigurationSchema,
@@ -64,7 +72,6 @@ import {
   TestSuiteSchema,
   TestSuiteMembershipSchema
 } from '../src/effect';
-import { CoverageLinesSchema } from '../src/effect/testSchemas';
 import { ApexLogPageSchema } from '../src/effect/schema/wire/logs';
 import {
   ApexDiagnosticSchema,
@@ -73,8 +80,6 @@ import {
   ApexTestResultDataSchema,
   ApexTestResultOutcomeSchema,
   ApexTestSetupDataSchema,
-  CodeCoverageResultSchema,
-  PerClassCoverageSchema,
   ResultFormatSchema,
   TestLevelSchema,
   TestResultRawSchema,
@@ -174,34 +179,6 @@ const OutputDirConfigSchema = Schema.Struct({
   }).pipe(Schema.Array, optional)
 }).annotations({ identifier: 'OutputDirConfig' });
 
-const ApexCodeCoverageRecordSchema = Schema.Struct({
-  ApexClassOrTrigger: Schema.Struct({ Id: Schema.String, Name: Schema.String }),
-  ApexTestClassId: Schema.String,
-  TestMethodName: Schema.String,
-  NumLinesCovered: Schema.Number,
-  NumLinesUncovered: Schema.Number,
-  Coverage: optional(CoverageLinesSchema)
-}).annotations({ identifier: 'ApexCodeCoverageRecord' });
-
-const ApexCodeCoverageSchema = Schema.Struct({
-  done: Schema.Boolean,
-  totalSize: Schema.Number,
-  records: Schema.Array(ApexCodeCoverageRecordSchema)
-}).annotations({ identifier: 'ApexCodeCoverage' });
-
-const ApexCodeCoverageAggregateRecordSchema = Schema.Struct({
-  ApexClassOrTrigger: Schema.Struct({ Id: Schema.String, Name: Schema.String }),
-  NumLinesCovered: Schema.Number,
-  NumLinesUncovered: Schema.Number,
-  Coverage: CoverageLinesSchema
-}).annotations({ identifier: 'ApexCodeCoverageAggregateRecord' });
-
-const ApexCodeCoverageAggregateSchema = Schema.Struct({
-  done: Schema.Boolean,
-  totalSize: Schema.Number,
-  records: Schema.Array(ApexCodeCoverageAggregateRecordSchema)
-}).annotations({ identifier: 'ApexCodeCoverageAggregate' });
-
 const ApexTestQueueItemStatusSchema = Schema.Literal(
   'Holding',
   'Queued',
@@ -264,10 +241,12 @@ const ApexTestProgressValueSchema = Schema.Union(
 ).annotations({ identifier: 'ApexTestProgressValue' });
 
 const PublicApiSchema = Schema.Union(
+  AggregateCodeCoverageResultSchema,
   ApexCodeCoverageSchema,
   ApexCodeCoverageAggregateSchema,
   ApexCodeCoverageAggregateRecordSchema,
   ApexCodeCoverageRecordSchema,
+  ApexOrgWideCoverageSchema,
   ApexDiagnosticSchema,
   ApexExecuteOptionsSchema,
   ApexLogGetOptionsSchema,

@@ -16,8 +16,6 @@ export {
   ApexTestResultDataRawSchema,
   ApexTestResultOutcomeSchema,
   ApexTestSetupDataSchema,
-  CodeCoverageResultSchema,
-  PerClassCoverageSchema,
   SyncTestConfigurationSchema,
   SyncTestResultSchema,
   TestItemSchema,
@@ -25,6 +23,27 @@ export {
   TestResultSchema
 } from './testSchemas';
 export type { SyncTestConfiguration, TestResult, TestResultRaw } from './testSchemas';
+export { getOrgWideCoverage, getPerClassCodeCoverage, getAggregateCodeCoverage } from './codeCoverage';
+export {
+  ApexCodeCoverageSchema,
+  ApexCodeCoverageRecordSchema,
+  ApexCodeCoverageAggregateSchema,
+  ApexCodeCoverageAggregateRecordSchema,
+  ApexOrgWideCoverageSchema,
+  PerClassCoverageSchema,
+  CodeCoverageResultSchema,
+  AggregateCodeCoverageResultSchema
+} from './coverageSchemas';
+export type {
+  ApexCodeCoverage,
+  ApexCodeCoverageRecord,
+  ApexCodeCoverageAggregate,
+  ApexCodeCoverageAggregateRecord,
+  ApexOrgWideCoverage,
+  PerClassCoverage,
+  CodeCoverageResult,
+  AggregateCodeCoverageResult
+} from './coverageSchemas';
 export {
   ApexCompileError,
   ApexOperationError,

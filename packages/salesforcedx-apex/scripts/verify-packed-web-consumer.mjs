@@ -42,13 +42,15 @@ try {
     effectEntry,
     `import {
       executeAnonymous, ApexOperationError, buildSyncPayload, buildAsyncPayload, retrieveAllSuites, getTestsInSuite,
-      buildSuite, runTestSynchronous, transformTestResult, SyncTestResultSchema, TestResultSchema
+      buildSuite, runTestSynchronous, transformTestResult, SyncTestResultSchema, TestResultSchema,
+      getOrgWideCoverage, getPerClassCodeCoverage, getAggregateCodeCoverage, CodeCoverageResultSchema
     } from '@salesforce/apex-node/effect';
     import * as Effect from 'effect/Effect';
     import * as Schema from 'effect/Schema';
     globalThis.apexEffectApi = {
       executeAnonymous, ApexOperationError, buildSyncPayload, buildAsyncPayload, retrieveAllSuites, getTestsInSuite,
-      buildSuite, transformTestResult,
+      buildSuite, getOrgWideCoverage, getPerClassCodeCoverage, getAggregateCodeCoverage,
+      CodeCoverageResultSchema, transformTestResult,
       run: (connection, options) => runTestSynchronous(connection, options).pipe(Effect.either, Effect.runPromise),
       decodeSyncResult: Schema.decodeUnknownSync(SyncTestResultSchema, { onExcessProperty: 'error' }),
       decodeResult: Schema.decodeUnknownSync(TestResultSchema)
