@@ -29,10 +29,12 @@ describe('@salesforce/apex-node public API', () => {
 
   it('exports the Effect foundation from its isolated entry point', () => {
     expect(Object.keys(effectApi).sort()).toEqual([
+      'ApexCompileError',
       'ApexOperationError',
       'ApexResponseDecodeError',
+      'ApexRuntimeError',
       'ExecuteAnonymousOptionsSchema',
-      'ExecuteAnonymousResultSchema',
+      'ExecuteAnonymousOutcomeSchema',
       'causeMessage',
       'executeAnonymous'
     ]);
