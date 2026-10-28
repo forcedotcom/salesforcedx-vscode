@@ -13,8 +13,12 @@ export const ExtensionPackageJsonSchema = Schema.Struct({
   publisher: Schema.optional(Schema.String),
   version: Schema.optional(Schema.String),
   displayName: Schema.optional(Schema.String),
+  aiKey: Schema.optional(Schema.String),
+  enableO11y: Schema.optional(Schema.Union(Schema.String, Schema.Boolean)),
   o11yUploadEndpoint: Schema.optional(Schema.String),
-  otelConnectionString: Schema.optional(Schema.String)
+  otelConnectionString: Schema.optional(Schema.String),
+  productFeatureId: Schema.optional(Schema.String),
+  enableCustomEventsFromSpans: Schema.optional(Schema.Boolean)
 });
 
 export type ExtensionPackageJson = Schema.Schema.Type<typeof ExtensionPackageJsonSchema>;
