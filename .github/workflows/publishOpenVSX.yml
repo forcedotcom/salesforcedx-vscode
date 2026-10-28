@@ -44,13 +44,31 @@ jobs:
           echo "tag=$TAG" >> $GITHUB_OUTPUT
           echo "version=${TAG#v}" >> $GITHUB_OUTPUT
 
+  # Reads the isHotfix classification build-github-release.yml/build-and-release-patch-branch.yml
+  # persisted on the release (release-metadata.json asset), falling back to the manual isHotfix
+  # dispatch input or a fail-safe "true" when that metadata is missing/invalid. This is what lets
+  # gate-check below run automatically on the release:released trigger, not just on manual dispatch.
+  classify-release:
+    needs: [prepare-release-metadata]
+    runs-on: ubuntu-latest
+    outputs:
+      is-hotfix: ${{ steps.classify.outputs.is-hotfix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: classify
+        uses: ./.github/actions/classify-release
+        with:
+          release-tag: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
+          github-token: ${{ github.token }}
+          dispatch-is-hotfix: ${{ github.event.inputs.isHotfix }}
+
   # Only needed for stable hotfixes (isHotfix=true): these are built via build-github-release.yml's
   # startFromRef, which never goes through develop's branch protection or any nightly pipeline,
   # so there's no existing signal that the release commit was tested. Skipped for normal releases,
   # which already passed develop's required checks before ever becoming a release tag.
   gate-check:
-    needs: [prepare-release-metadata]
-    if: github.event.inputs.isHotfix == 'true'
+    needs: [prepare-release-metadata, classify-release]
+    if: needs.classify-release.outputs.is-hotfix == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -92,8 +110,8 @@ jobs:
     secrets: inherit
 
   publish:
-    needs: ['ctc-open', 'prepare-release-metadata', 'gate-check']
-    if: always() && needs.prepare-release-metadata.result == 'success' && (needs.gate-check.result == 'success' || needs.gate-check.result == 'skipped') && (inputs.dry-run || needs.ctc-open.result == 'success')
+    needs: ['ctc-open', 'prepare-release-metadata', 'classify-release', 'gate-check']
+    if: always() && needs.prepare-release-metadata.result == 'success' && needs.classify-release.result == 'success' && (needs.gate-check.result == 'success' || needs.gate-check.result == 'skipped') && (inputs.dry-run || needs.ctc-open.result == 'success')
     uses: salesforcecli/github-workflows/.github/workflows/openvsx-publish-release-vsix.yml@main
     with:
       release-tag: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
