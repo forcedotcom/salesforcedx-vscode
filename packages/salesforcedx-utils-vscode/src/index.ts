@@ -6,7 +6,5 @@
  */
 
 export { ChannelService } from './commands/channelService';
-export { SFDX_CORE_CONFIGURATION_NAME } from './constants';
 export { type OrgUserInfo } from './context/orgUserInfo';
 export { shapeFrom, type OrgShape } from './context/workspaceOrgShape';
-export { isInternalHost } from './telemetry/utils/isInternal';

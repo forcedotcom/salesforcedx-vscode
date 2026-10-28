@@ -6,7 +6,7 @@
  */
 
 export const SF_CONFIG_DISABLE_TELEMETRY = 'disable-telemetry';
-export { SFDX_CORE_CONFIGURATION_NAME as SFDX_CORE_EXTENSION_NAME } from '@salesforce/salesforcedx-utils-vscode';
+export const SFDX_CORE_EXTENSION_NAME = 'salesforcedx-vscode-core';
 export const SFDX_EXTENSION_PACK_NAME = 'salesforcedx-vscode';
 export const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
 export const TELEMETRY_OPT_OUT_LINK = 'https://developer.salesforce.com/tools/vscode/en/faq/telemetry';

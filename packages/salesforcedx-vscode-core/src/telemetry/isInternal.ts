@@ -5,5 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export const SFDX_CORE_CONFIGURATION_NAME = 'salesforcedx-vscode-core';
-export const INTERNAL_FILTER = 'internal.salesforce.com';
+import * as os from 'node:os';
+
+const INTERNAL_FILTER = 'internal.salesforce.com';
+
+export const isInternalHost = (): boolean => (os.hostname().endsWith(INTERNAL_FILTER) ? true : false);

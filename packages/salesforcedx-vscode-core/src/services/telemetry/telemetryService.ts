@@ -6,7 +6,6 @@
  */
 import { getServicesApi, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
 import { errorToString } from '@salesforce/salesforcedx-utils';
-import { SFDX_CORE_CONFIGURATION_NAME, isInternalHost } from '@salesforce/salesforcedx-utils-vscode';
 import {
   type Properties,
   type Measurements,
@@ -20,6 +19,7 @@ import { isNotUndefined, isString } from 'effect/Predicate';
 import { type ExtensionContext, ExtensionMode, workspace } from 'vscode';
 import { SFDX_CORE_EXTENSION_NAME, SFDX_EXTENSION_PACK_NAME } from '../../constants';
 import { isCLITelemetryAllowed } from '../../telemetry/cliConfiguration';
+import { isInternalHost } from '../../telemetry/isInternal';
 import { extensionPackageJsonSchema } from '../../telemetry/schema';
 
 type CommandMetric = {
@@ -145,7 +145,7 @@ export class TelemetryService implements TelemetryServiceInterface {
   public isTelemetryExtensionConfigurationEnabled(): boolean {
     return (
       workspace.getConfiguration('telemetry').get<string>('telemetryLevel', 'all') !== 'off' &&
-      workspace.getConfiguration(SFDX_CORE_CONFIGURATION_NAME).get<boolean>('telemetry.enabled', true)
+      workspace.getConfiguration(SFDX_CORE_EXTENSION_NAME).get<boolean>('telemetry.enabled', true)
     );
   }
 

@@ -6,7 +6,7 @@
  */
 import type { MockInstance as VitestMockInstance } from 'vitest';
 import * as os from 'node:os';
-import { isInternalHost } from '../../../../src/telemetry/utils/isInternal';
+import { isInternalHost } from '../../../src/telemetry/isInternal';
 
 describe('Telemetry internal user check', () => {
   let osHostnameSpy: VitestMockInstance;
