@@ -18,7 +18,7 @@ import { openTestReport } from './testReportGenerator';
 
 /**
  * Simple notification service wrapper that uses vscode.window directly.
- * Replaces notificationService from @salesforce/salesforcedx-utils-vscode
+ * Replaces the legacy notification service.
  */
 export const notificationService = {
   showInformationMessage: (message: string, ...items: string[]): Thenable<string | undefined> =>

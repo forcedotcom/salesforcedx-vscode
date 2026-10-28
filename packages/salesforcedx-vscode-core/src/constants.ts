@@ -5,6 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+export const SF_CONFIG_DISABLE_TELEMETRY = 'disable-telemetry';
+export const SFDX_CORE_EXTENSION_NAME = 'salesforcedx-vscode-core';
+export const SFDX_EXTENSION_PACK_NAME = 'salesforcedx-vscode';
 export const TELEMETRY_GLOBAL_VALUE = 'sfdxTelemetryMessage';
 export const TELEMETRY_OPT_OUT_LINK = 'https://developer.salesforce.com/tools/vscode/en/faq/telemetry';
 export const TELEMETRY_INTERNAL_VALUE = 'sfdxTelemetryMessageInternal';

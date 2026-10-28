@@ -7,10 +7,10 @@
 /// <reference types="vitest/globals" />
 /// <reference types="node" />
 
-import { chmodSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { spawnSync } from 'node:child_process';
-import { join } from 'node:path';
+import { chmodSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 const script = join(process.cwd(), 'scripts', 'releaseDashboard.sh');
 
@@ -20,7 +20,7 @@ const runDashboard = (runs: unknown, releases: unknown, trackingTags = '', check
   const gh = join(directory, 'gh');
   writeFileSync(
     gh,
-    `#!/usr/bin/env bash\nif [[ "$*" == *"/releases?"* ]]; then printf '%s' "$RELEASES"; elif [[ "$*" == *"/branches/develop"* ]]; then printf '%s' '{"commit":{"sha":"develop-sha"}}'; elif [[ "$*" == *"/check-runs"* ]]; then printf '%s' "$CHECKS" | jq -c '.check_runs[]'; else printf '%s' "$RUNS"; fi\n`
+    '#!/usr/bin/env bash\nif [[ "$*" == *"/releases?"* ]]; then printf \'%s\' "$RELEASES"; elif [[ "$*" == *"/branches/develop"* ]]; then printf \'%s\' \'{"commit":{"sha":"develop-sha"}}\'; elif [[ "$*" == *"/check-runs"* ]]; then printf \'%s\' "$CHECKS" | jq -c \'.check_runs[]\'; else printf \'%s\' "$RUNS"; fi\n'
   );
   chmodSync(gh, 0o755);
   const result = spawnSync('bash', [script], {
@@ -40,7 +40,8 @@ const runDashboard = (runs: unknown, releases: unknown, trackingTags = '', check
   return { result, summary: readFileSync(summary, 'utf8') };
 };
 
-describe('releaseDashboard', () => {
+// Bash and jq subprocess startup can exceed Vitest's 5s default on Windows runners.
+describe('releaseDashboard', { timeout: 15_000 }, () => {
   it('identifies a failed nightly as the prerequisite blocker', () => {
     const { result, summary } = runDashboard(
       {
@@ -189,19 +190,19 @@ describe('releaseDashboard', () => {
         check_runs: [
           {
             name: 'build-and-test / build-all / build-all',
-            app: { id: 15368 },
+            app: { id: 15_368 },
             status: 'completed',
             conclusion: 'success'
           },
           {
             name: 'build-and-test / unit-tests / linux-unit-tests / linux-unit-tests',
-            app: { id: 15368 },
+            app: { id: 15_368 },
             status: 'completed',
             conclusion: 'failure'
           },
           {
             name: 'build-and-test / unit-tests / windows-unit-tests / windows-unit-tests',
-            app: { id: 15368 },
+            app: { id: 15_368 },
             status: 'completed',
             conclusion: 'success'
           }
@@ -237,19 +238,19 @@ describe('releaseDashboard', () => {
         check_runs: [
           {
             name: 'build-and-test / build-all / build-all',
-            app: { id: 15368 },
+            app: { id: 15_368 },
             status: 'completed',
             conclusion: 'success'
           },
           {
             name: 'build-and-test / unit-tests / linux-unit-tests / linux-unit-tests',
-            app: { id: 15368 },
+            app: { id: 15_368 },
             status: 'completed',
             conclusion: 'success'
           },
           {
             name: 'build-and-test / unit-tests / windows-unit-tests / windows-unit-tests',
-            app: { id: 15368 },
+            app: { id: 15_368 },
             status: 'completed',
             conclusion: 'success'
           }

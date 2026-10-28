@@ -8,7 +8,7 @@
 import * as Effect from 'effect/Effect';
 import { getExtensionContext } from '../vscode/extensionContext';
 
-// Telemetry globalState keys (matching @salesforce/salesforcedx-utils-vscode constants — kept in sync; services owns its own copy to avoid taking on a utils dep).
+// Telemetry globalState keys owned by the services extension.
 export const TELEMETRY_GLOBAL_USER_ID = 'telemetryUserId';
 export const TELEMETRY_GLOBAL_WEB_USER_ID = 'telemetryWebUserId';
 export const UNAUTHENTICATED_USER = 'UNAUTHENTICATED_USER';

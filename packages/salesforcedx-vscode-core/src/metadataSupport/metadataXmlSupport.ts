@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionPackageJsonSchema, ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
@@ -13,6 +12,7 @@ import { isError, isNotUndefined, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
+import { SFDX_CORE_EXTENSION_NAME } from '../constants';
 import { nls } from '../messages';
 
 type XMLExtensionApi = {
@@ -149,7 +149,7 @@ const setupRedhatXml = Effect.fn('metadataXmlSupport.setupRedhatXml')(
     // Suppress Red Hat XML schema documentation (unless user opts in) to prevent duplication,
     // but only if they haven't already set a value for the XML setting at any scope.
     const doNotSuppress = yield* settingsService.getValueOrElse(
-      SFDX_CORE_CONFIGURATION_NAME,
+      SFDX_CORE_EXTENSION_NAME,
       'metadata.doNotSuppressRedhatSchemaDocumentation',
       false
     );

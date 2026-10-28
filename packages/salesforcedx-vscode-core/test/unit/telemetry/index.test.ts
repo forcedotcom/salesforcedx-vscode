@@ -7,15 +7,13 @@
 
 import type { MockInstance as VitestMockInstance } from 'vitest';
 import { extensions, window, workspace } from 'vscode';
-import type * as SalesforcedxUtilsVscode from '@salesforce/salesforcedx-utils-vscode';
 import { TELEMETRY_GLOBAL_VALUE, TELEMETRY_INTERNAL_VALUE, TELEMETRY_OPT_OUT_LINK } from '../../../src/constants';
 import { nls } from '../../../src/messages';
 import { showTelemetryMessage, telemetryService } from '../../../src/telemetry';
 import { MockExtensionContext } from './MockExtensionContext';
 
 const { mockIsInternalHost } = vi.hoisted(() => ({ mockIsInternalHost: vi.fn() }));
-vi.mock('@salesforce/salesforcedx-utils-vscode', async importOriginal => ({
-  ...(await importOriginal<typeof SalesforcedxUtilsVscode>()),
+vi.mock('../../../src/telemetry/isInternal', () => ({
   isInternalHost: mockIsInternalHost
 }));
 
