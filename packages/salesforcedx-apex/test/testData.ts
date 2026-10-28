@@ -56,13 +56,13 @@ export const syncTestResultWithFailures: SyncTestResult = {
       name: 'TestSample2',
       namespace: 'tr',
       seeAllData: false,
-      stackTrace: null as unknown as string,
+      stackTrace: null,
       time: 68,
       type: 'Class'
     },
     {
       id: '01pxx00000NWwb5AAD',
-      message: null as unknown as string,
+      message: null,
       methodName: 'testOne',
       name: 'TestSample3',
       namespace: 'tr',
@@ -73,7 +73,7 @@ export const syncTestResultWithFailures: SyncTestResult = {
     },
     {
       id: '01pxx00000NWwb6AAD',
-      message: null as unknown as string,
+      message: null,
       methodName: 'testOne',
       name: 'TestSample4',
       namespace: 'tr',
@@ -112,8 +112,6 @@ export const syncResult: TestResult = {
   },
   tests: [
     {
-      stackTrace: '',
-      message: '',
       methodName: 'testMethod',
       outcome: 'Pass',
       apexLogId: null,
@@ -124,7 +122,6 @@ export const syncResult: TestResult = {
         fullName: 't3st.TestApexClass'
       },
       runTime: 8,
-      testTimestamp: '',
       fullName: 't3st.TestApexClass.testMethod'
     }
   ],
@@ -155,8 +152,6 @@ export const testResultData: TestResult = {
     {
       id: '07Mxx00000F2Xx6UAF',
       queueItemId: '7092M000000Vt94QAC',
-      stackTrace: null as unknown as string,
-      message: null as unknown as string,
       asyncApexJobId,
       methodName: 'testLoggerLog',
       outcome: 'Pass',
@@ -200,14 +195,11 @@ export const flowTestResultData: TestResult = {
     {
       id: '2hUxx00000F2Xx6UAF',
       queueItemId: '7092M000000Vt94QAC',
-      stackTrace: null,
-      message: null,
       category: 'Flow',
       methodName: 'FlowName_FlowTestName',
       outcome: 'Pass',
       apexClass: {
         name: 'FlowName',
-        namespacePrefix: '',
         fullName: 'FlowName'
       },
       runTime: 0,
@@ -244,8 +236,6 @@ export const missingTimeTestData: TestResult = {
     {
       id: '07Mxx00000F2Xx6UAF',
       queueItemId: '7092M000000Vt94QAC',
-      stackTrace: null as unknown as string,
-      message: null as unknown as string,
       asyncApexJobId,
       category: 'Apex',
       methodName: 'testLoggerLog',
@@ -291,8 +281,6 @@ export const skippedTestData: TestResult = {
     {
       id: '07Mxx00000F2Xx6UAF',
       queueItemId: '7092M000000Vt94QAC',
-      stackTrace: null as unknown as string,
-      message: null as unknown as string,
       asyncApexJobId,
       category: 'Apex',
       methodName: 'testLoggerLog',
@@ -359,7 +347,6 @@ export const diagnosticResult: TestResult = {
       diagnostic: {
         className: 'LIFXControllerTest',
         columnNumber: 1,
-        compileProblem: '',
         exceptionMessage: 'System.AssertException: Assertion Failed',
         exceptionStackTrace: 'Class.LIFXControllerTest.makeData: line 6, column 1',
         lineNumber: 6
@@ -395,7 +382,6 @@ export const diagnosticFailure: TestResult = {
       fullName: 't3st.TestLogger.testLoggerLog',
       diagnostic: {
         className: 'LIFXControllerTest',
-        compileProblem: '',
         exceptionMessage: 'System.AssertException: Assertion Failed',
         exceptionStackTrace: 'Class.LIFXControllerTest.makeData'
       }
@@ -492,7 +478,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',
       Name: 'TestAssignment',
-      NamespacePrefix: null as unknown as string,
+      NamespacePrefix: null,
       FullName: 'TestAssignment'
     }
   },
@@ -510,7 +496,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',
       Name: 'TestAssignment',
-      NamespacePrefix: null as unknown as string,
+      NamespacePrefix: null,
       FullName: 'TestAssignment'
     }
   },
@@ -528,7 +514,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',
       Name: 'TestAssignment',
-      NamespacePrefix: null as unknown as string,
+      NamespacePrefix: null,
       FullName: 'TestAssignment'
     }
   },
@@ -546,7 +532,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',
       Name: 'TestAssignment',
-      NamespacePrefix: null as unknown as string,
+      NamespacePrefix: null,
       FullName: 'TestAssignment'
     }
   },
@@ -562,7 +548,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',
       Name: 'TestAssignment',
-      NamespacePrefix: null as unknown as string,
+      NamespacePrefix: null,
       FullName: 'TestAssignment'
     },
     RunTime: 560,
@@ -580,7 +566,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',
       Name: 'TestAssignment',
-      NamespacePrefix: null as unknown as string,
+      NamespacePrefix: null,
       FullName: 'TestAssignment'
     },
     RunTime: 56,

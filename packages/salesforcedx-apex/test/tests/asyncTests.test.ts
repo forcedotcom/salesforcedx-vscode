@@ -500,9 +500,9 @@ describe('Run Apex tests asynchronously', () => {
   it('should return failed test results with missing error info', async () => {
     diagnosticFailure.summary.orgId = mockConnection.getAuthInfoFields().orgId ?? '';
     diagnosticFailure.summary.username = mockConnection.getUsername() ?? '';
-    diagnosticFailure.tests[0].diagnostic!.className = undefined;
-    diagnosticFailure.tests[0].diagnostic!.exceptionStackTrace = '';
-    diagnosticFailure.tests[0].stackTrace = undefined as unknown as string;
+    delete diagnosticFailure.tests[0].diagnostic!.className;
+    delete diagnosticFailure.tests[0].diagnostic!.exceptionStackTrace;
+    delete diagnosticFailure.tests[0].stackTrace;
     const asyncTestSrv = new AsyncTests(mockConnection);
     const mockToolingQuery = $$.SANDBOX.stub(mockConnection.tooling, 'query');
     mockToolingQuery.onFirstCall().resolves({

@@ -31,6 +31,8 @@ describe('ApexTestResultDataSchema', () => {
     expect(Schema.is(TestResultSummarySchema)(validSummary)).toBe(true);
     expect(Schema.is(TestResultSummarySchema)({ ...validSummary, orgId: '005xx0000000001AAA' })).toBe(false);
     expect(Schema.is(TestResultSummarySchema)({ ...validSummary, userId: '00Dxx0000000001AAA' })).toBe(false);
+    expect(Schema.is(TestResultSummarySchema)({ ...validSummary, userId: undefined })).toBe(true);
+    expect(Schema.is(TestResultSummarySchema)({ ...validSummary, userId: '' })).toBe(false);
     expect(Schema.is(TestResultSummarySchema)({ ...validSummary, testRunId: '7092M000000Vt94QAC' })).toBe(false);
     expect(Schema.is(TestResultSummarySchema)({ ...validSummary, testRunId: '' })).toBe(false);
   });

@@ -334,8 +334,7 @@ export class AsyncTests {
               StartTime: new Date().toISOString(),
               EndTime: undefined,
               TestTime: 0,
-              TestSetupTime: undefined,
-              UserId: ''
+              TestSetupTime: undefined
             }
           };
         }
@@ -395,6 +394,7 @@ export class AsyncTests {
         outcome = 'Passed';
       }
 
+      const username = this.connection.getUsername();
       const rawResult: TestResultRaw = {
         summary: {
           outcome,
@@ -412,9 +412,11 @@ export class AsyncTests {
           commandTimeInMs: getCurrentTime() - commandStartTime,
           hostname: this.connection.instanceUrl,
           orgId: Schema.decodeUnknownSync(OrgIdString)(this.connection.getAuthInfoFields().orgId),
-          username: this.connection.getUsername() ?? '',
+          ...(username ? { username } : {}),
           testRunId: Schema.decodeUnknownSync(TestRunIdString)(asyncRunResult.runId),
-          userId: Schema.decodeUnknownSync(UserIdString)(testRunSummary.UserId)
+          ...(isNotUndefined(testRunSummary.UserId)
+            ? { userId: Schema.decodeUnknownSync(UserIdString)(testRunSummary.UserId) }
+            : {})
         },
         tests: testResults
       };
@@ -455,8 +457,6 @@ export class AsyncTests {
       const tmpRecords: ApexTestResultRecord[] = flowtestResult.records.map(record => ({
         Id: record.Id,
         QueueItemId: record.ApexTestQueueItemId,
-        StackTrace: null,
-        Message: null,
         MethodName: record.FlowTest.DeveloperName,
         Outcome: record.Result,
         IsTestSetup: false,
@@ -531,8 +531,8 @@ export class AsyncTests {
           testResults.push({
             id: Schema.decodeUnknownSync(result.category === 'Flow' ? FlowTestResultId : ApexTestResultId)(item.Id),
             queueItemId: Schema.decodeUnknownSync(ApexTestQueueItemId)(item.QueueItemId),
-            stackTrace: item.StackTrace,
-            message: item.Message,
+            ...(item.StackTrace ? { stackTrace: item.StackTrace } : {}),
+            ...(item.Message ? { message: item.Message } : {}),
             ...(isNotUndefined(item.AsyncApexJobId)
               ? { asyncApexJobId: Schema.decodeUnknownSync(TestRunId)(item.AsyncApexJobId) }
               : {}),
@@ -547,11 +547,11 @@ export class AsyncTests {
                 ? { id: Schema.decodeUnknownSync(ApexClassId)(item.ApexClass.Id) }
                 : {}),
               name: item.ApexClass.Name,
-              namespacePrefix: item.ApexClass.NamespacePrefix,
+              ...(item.ApexClass.NamespacePrefix ? { namespacePrefix: item.ApexClass.NamespacePrefix } : {}),
               fullName: item.ApexClass.FullName
             },
             runTime: item.RunTime ?? 0,
-            testTimestamp: item.TestTimestamp, // TODO: convert timestamp
+            ...(item.TestTimestamp ? { testTimestamp: item.TestTimestamp } : {}), // TODO: convert timestamp
             fullName: `${item.ApexClass.FullName}.${item.MethodName}`,
             ...(diagnostic ? { diagnostic } : {}),
             category: result.category

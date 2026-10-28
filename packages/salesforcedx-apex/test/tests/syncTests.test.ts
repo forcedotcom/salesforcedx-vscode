@@ -117,18 +117,18 @@ describe('Run Apex tests synchronously', () => {
     expect(testResult.tests[0]).not.toHaveProperty('id');
     expect(testResult.tests[0]).not.toHaveProperty('queueItemId');
     expect(testResult.tests[0]).not.toHaveProperty('asyncApexJobId');
-    expect(testResult.tests[0].stackTrace).toBe('');
-    expect(testResult.tests[0].message).toBe('');
+    expect(testResult.tests[0]).not.toHaveProperty('stackTrace');
+    expect(testResult.tests[0]).not.toHaveProperty('message');
     expect(testResult.tests[0].methodName).toBe('testOne');
     expect(testResult.tests[0].outcome).toBe('Pass');
     expect(testResult.tests[0].apexLogId).toBe('07Lxx00000cxy6YUAQ');
     expect(typeof testResult.tests[0].apexClass).toBe('object');
     expect(testResult.tests[0].apexClass.id).toBe('01pxx00000NWwb3AAD');
     expect(testResult.tests[0].apexClass.name).toBe('TestSample');
-    expect(testResult.tests[0].apexClass.namespacePrefix).toBe('');
+    expect(testResult.tests[0].apexClass).not.toHaveProperty('namespacePrefix');
     expect(testResult.tests[0].apexClass.fullName).toBe('TestSample');
     expect(testResult.tests[0].runTime).toBe(107);
-    expect(testResult.tests[0].testTimestamp).toBe('');
+    expect(testResult.tests[0]).not.toHaveProperty('testTimestamp');
     expect(testResult.tests[0].fullName).toBe('TestSample.testOne');
   });
 
@@ -164,7 +164,7 @@ describe('Run Apex tests synchronously', () => {
     expect(testResult.tests[0].apexClass.namespacePrefix).toBe('tr');
     expect(testResult.tests[0].apexClass.fullName).toBe('tr__TestSample');
     expect(testResult.tests[0].runTime).toBe(68);
-    expect(testResult.tests[0].testTimestamp).toBe('');
+    expect(testResult.tests[0]).not.toHaveProperty('testTimestamp');
     expect(testResult.tests[0].fullName).toBe('tr__TestSample.testOne');
     expect(testResult.tests[0].diagnostic!.lineNumber).toBe(27);
     expect(testResult.tests[0].diagnostic!.columnNumber).toBe(1);

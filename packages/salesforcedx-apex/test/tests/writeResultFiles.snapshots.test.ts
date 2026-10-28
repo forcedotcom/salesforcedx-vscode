@@ -78,7 +78,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
         apexClass: {
           id: '01p000000000001AAA',
           name: 'SnapshotTestClass1',
-          namespacePrefix: null as unknown as string,
+          namespacePrefix: null,
           fullName: 'SnapshotTestClass1'
         },
         runTime: 750,
@@ -116,7 +116,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
         apexClass: {
           id: '01p000000000003AAA',
           name: 'SnapshotTestClass3',
-          namespacePrefix: null as unknown as string,
+          namespacePrefix: null,
           fullName: 'SnapshotTestClass3'
         },
         runTime: 300,

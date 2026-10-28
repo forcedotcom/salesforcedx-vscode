@@ -79,7 +79,7 @@ describe('writeResultFiles', () => {
         apexClass: {
           id: '01p000000000001AAA',
           name: 'TestClass1',
-          namespacePrefix: null as unknown as string,
+          namespacePrefix: null,
           fullName: 'TestClass1'
         },
         runTime: 500,
@@ -98,7 +98,7 @@ describe('writeResultFiles', () => {
         apexClass: {
           id: '01p000000000002AAA',
           name: 'TestClass2',
-          namespacePrefix: null as unknown as string,
+          namespacePrefix: null,
           fullName: 'TestClass2'
         },
         runTime: 300,

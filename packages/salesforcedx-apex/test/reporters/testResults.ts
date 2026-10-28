@@ -43,8 +43,6 @@ export const coverageResult: TestResult = {
     {
       id: '07M3t000003bQwqEAE',
       queueItemId: '7093t000000c0eWAAQ',
-      stackTrace: null,
-      message: null,
       asyncApexJobId,
       methodName: 'should_create_account',
       outcome: 'Pass',
@@ -52,7 +50,7 @@ export const coverageResult: TestResult = {
       apexClass: {
         id: '01p3t000000ivLzAAI',
         name: 'AccountServiceTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AccountServiceTest'
       },
       runTime: 86,
@@ -62,8 +60,6 @@ export const coverageResult: TestResult = {
     {
       id: '07M3t000003bQwgEAE',
       queueItemId: '7093t000000c0eXAAQ',
-      stackTrace: null,
-      message: '',
       asyncApexJobId,
       methodName: 'testCallout',
       outcome: 'Pass',
@@ -71,7 +67,7 @@ export const coverageResult: TestResult = {
       apexClass: {
         id: '01p3t000000imbvAAA',
         name: 'AwesomeCalculatorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AwesomeCalculatorTest'
       },
       runTime: 23,
@@ -119,8 +115,6 @@ export const setupResult: TestResult = {
     {
       id: '07M3t000003bQwqEAE',
       queueItemId: '7093t000000c0eWAAQ',
-      stackTrace: null,
-      message: null,
       asyncApexJobId,
       methodName: 'should_create_account',
       outcome: 'Pass',
@@ -128,7 +122,7 @@ export const setupResult: TestResult = {
       apexClass: {
         id: '01p3t000000ivLzAAI',
         name: 'AccountServiceTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AccountServiceTest'
       },
       runTime: 86,
@@ -138,8 +132,6 @@ export const setupResult: TestResult = {
     {
       id: '07M3t000003bQwgEAE',
       queueItemId: '7093t000000c0eXAAQ',
-      stackTrace: null,
-      message: '',
       asyncApexJobId,
       methodName: 'testCallout',
       outcome: 'Pass',
@@ -147,7 +139,7 @@ export const setupResult: TestResult = {
       apexClass: {
         id: '01p3t000000imbvAAA',
         name: 'AwesomeCalculatorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AwesomeCalculatorTest'
       },
       runTime: 23,
@@ -158,15 +150,13 @@ export const setupResult: TestResult = {
   setup: [
     {
       id: '07M3t000003bQwqEAE',
-      stackTrace: null,
-      message: null,
       asyncApexJobId,
       methodName: 'setup_method',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000ivLzAAI',
         name: 'AccountServiceTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AccountServiceTest'
       },
       testSetupTime: 24,
@@ -200,7 +190,7 @@ export const coverageFailResult: TestResult = {
       apexClass: {
         id: '01p3t000001ytUmAAI',
         name: 'AnimalLocatorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AnimalLocatorTest'
       },
       runTime: 5,
@@ -236,8 +226,6 @@ export const successResult: TestResult = {
     {
       id: '07M3t000003bQwqEAE',
       queueItemId: '7093t000000c0eWAAQ',
-      stackTrace: null,
-      message: null,
       asyncApexJobId,
       methodName: 'should_create_account',
       outcome: 'Pass',
@@ -245,7 +233,7 @@ export const successResult: TestResult = {
       apexClass: {
         id: '01p3t000000ivLzAAI',
         name: 'AccountServiceTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AccountServiceTest'
       },
       runTime: 86,
@@ -255,8 +243,6 @@ export const successResult: TestResult = {
     {
       id: '07M3t000003bQwgEAE',
       queueItemId: '7093t000000c0eXAAQ',
-      stackTrace: null,
-      message: '',
       asyncApexJobId,
       methodName: 'testCallout',
       outcome: 'Pass',
@@ -264,7 +250,7 @@ export const successResult: TestResult = {
       apexClass: {
         id: '01p3t000000imbvAAA',
         name: 'AwesomeCalculatorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AwesomeCalculatorTest'
       },
       runTime: 23,
@@ -299,8 +285,6 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQwqEAE',
       queueItemId: '7093t000000c0eWAAQ',
-      stackTrace: null,
-      message: null,
       asyncApexJobId,
       methodName: 'should_create_account',
       outcome: 'Pass',
@@ -308,7 +292,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000000ivLzAAI',
         name: 'AccountServiceTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AccountServiceTest'
       },
       runTime: 86,
@@ -318,8 +302,6 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQwgEAE',
       queueItemId: '7093t000000c0eXAAQ',
-      stackTrace: null,
-      message: '',
       asyncApexJobId,
       methodName: 'testCallout',
       outcome: 'Fail',
@@ -327,7 +309,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000000imbvAAA',
         name: 'AwesomeCalculatorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AwesomeCalculatorTest'
       },
       runTime: 23,
@@ -337,8 +319,6 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQwWEAU',
       queueItemId: '7093t000000c0eYAAQ',
-      stackTrace: null,
-      message: null,
       asyncApexJobId,
       methodName: 'testGetCurrentUser',
       outcome: 'Pass',
@@ -356,8 +336,6 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQwXEAU',
       queueItemId: '7093t000000c0eYAAQ',
-      stackTrace: null,
-      message: null,
       asyncApexJobId,
       methodName: 'testResetMyPassword',
       outcome: 'Pass',
@@ -375,8 +353,6 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQwlEAE',
       queueItemId: '7093t000000c0eZAAQ',
-      stackTrace: null,
-      message: null,
       asyncApexJobId,
       methodName: 'testGetCallout',
       outcome: 'Pass',
@@ -384,7 +360,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000001ytUmAAI',
         name: 'AnimalLocatorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AnimalLocatorTest'
       },
       runTime: 16,
@@ -403,7 +379,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000001ytUmAAI',
         name: 'AnimalLocatorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AnimalLocatorTest'
       },
       runTime: 5,
@@ -413,8 +389,6 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQxFEAU',
       queueItemId: '7093t000000c0ebAAA',
-      stackTrace: null,
-      message: null,
       asyncApexJobId,
       methodName: 'testProcessing',
       outcome: 'Pass',
@@ -422,7 +396,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000000i6dtAAA',
         name: 'LeadProcessorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'LeadProcessorTest'
       },
       runTime: 2256,
@@ -432,8 +406,6 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQwvEAE',
       queueItemId: '7093t000000c0eeAAA',
-      stackTrace: null,
-      message: null,
       asyncApexJobId,
       methodName: 'testDashboardPal',
       outcome: 'Pass',
@@ -460,7 +432,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000001zSjkAAE',
         name: 'AccountProcessorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AccountProcessorTest'
       },
       runTime: 241,
@@ -470,8 +442,6 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQx1EAE',
       queueItemId: '7093t000000c0efAAA',
-      stackTrace: null,
-      message: null,
       asyncApexJobId,
       methodName: 'testCountContactsEmptyList',
       outcome: 'Pass',
@@ -479,7 +449,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000001zSjkAAE',
         name: 'AccountProcessorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AccountProcessorTest'
       },
       runTime: 10,
@@ -489,8 +459,6 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQx2EAE',
       queueItemId: '7093t000000c0efAAA',
-      stackTrace: null,
-      message: null,
       asyncApexJobId,
       methodName: 'testCountContactsNullList',
       outcome: 'Pass',
@@ -498,7 +466,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000001zSjkAAE',
         name: 'AccountProcessorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AccountProcessorTest'
       },
       runTime: 10,
@@ -508,8 +476,6 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQwbEAE',
       queueItemId: '7093t000000c0ehAAA',
-      stackTrace: null,
-      message: null,
       asyncApexJobId,
       methodName: 'testCallout',
       outcome: 'Pass',
@@ -517,7 +483,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000000ime6AAA',
         name: 'ParkLocatorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'ParkLocatorTest'
       },
       runTime: 15,
@@ -527,7 +493,6 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQwREAU',
       queueItemId: '7093t000000c0eiAAA',
-      stackTrace: null,
       message: 'Weird characters <>&"\'\r\n\r\nSurrounded by newlines.\r\n  and whitespace.\r\n\r\n',
       asyncApexJobId,
       methodName: 'testGetCallout',
@@ -536,7 +501,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000001ytK6AAI',
         name: 'AnimalsCalloutsTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AnimalsCalloutsTest'
       },
       runTime: 28,
@@ -546,8 +511,6 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQwSEAU',
       queueItemId: '7093t000000c0eiAAA',
-      stackTrace: null,
-      message: null,
       asyncApexJobId,
       methodName: 'testPostCallout',
       outcome: 'Pass',
@@ -555,7 +518,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000001ytK6AAI',
         name: 'AnimalsCalloutsTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AnimalsCalloutsTest'
       },
       runTime: 7,
@@ -565,8 +528,6 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQx5EAE',
       queueItemId: '7093t000000c0ejAAA',
-      stackTrace: null,
-      message: null,
       asyncApexJobId,
       methodName: 'testAddContact',
       outcome: 'Pass',
@@ -574,7 +535,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000000iADsAAM',
         name: 'AddPrimaryContactTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AddPrimaryContactTest'
       },
       runTime: 250,
@@ -584,8 +545,6 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQxAEAU',
       queueItemId: '7093t000000c0ekAAA',
-      stackTrace: null,
-      message: null,
       asyncApexJobId,
       methodName: 'testLeadProcessing',
       outcome: 'Pass',
@@ -593,7 +552,7 @@ export const testResults: TestResult = {
       apexClass: {
         id: '01p3t000000iAZFAA2',
         name: 'DailyLeadProcessorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'DailyLeadProcessorTest'
       },
       runTime: 2196,
@@ -756,8 +715,6 @@ export const testResultsWithCategory: TestResult = {
     {
       id: '07M3t000003bQwqEAE',
       queueItemId: '7093t000000c0eWAAQ',
-      stackTrace: null,
-      message: null,
       asyncApexJobId,
       methodName: 'should_create_account',
       outcome: 'Pass',
@@ -765,7 +722,7 @@ export const testResultsWithCategory: TestResult = {
       apexClass: {
         id: '01p3t000000ivLzAAI',
         name: 'AccountServiceTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AccountServiceTest'
       },
       runTime: 86,
@@ -776,8 +733,6 @@ export const testResultsWithCategory: TestResult = {
     {
       id: '07M3t000003bQwgEAE',
       queueItemId: '7093t000000c0eXAAQ',
-      stackTrace: null,
-      message: '',
       asyncApexJobId,
       methodName: 'testCallout',
       outcome: 'Pass',
@@ -785,7 +740,7 @@ export const testResultsWithCategory: TestResult = {
       apexClass: {
         id: '01p3t000000imbvAAA',
         name: 'AwesomeCalculatorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AwesomeCalculatorTest'
       },
       runTime: 23,
@@ -805,7 +760,7 @@ export const testResultsWithCategory: TestResult = {
       apexClass: {
         id: '01p3t000001ytUmAAI',
         name: 'AnimalLocatorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AnimalLocatorTest'
       },
       runTime: 5,

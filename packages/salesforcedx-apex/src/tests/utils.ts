@@ -182,14 +182,19 @@ export const isFlowTest = (test: string | null): boolean => test?.startsWith('Fl
 const transformToApexTestSetupData = (testData: Omit<ApexTestResultDataRaw, 'isTestSetup'>): ApexTestSetupData =>
   Schema.decodeUnknownSync(ApexTestSetupDataSchema)({
     id: testData.id,
-    stackTrace: testData.stackTrace ?? null,
-    message: testData.message ?? null,
+    ...(testData.stackTrace ? { stackTrace: testData.stackTrace } : {}),
+    ...(testData.message ? { message: testData.message } : {}),
     asyncApexJobId: testData.asyncApexJobId,
     methodName: testData.methodName,
     apexLogId: testData.apexLogId ?? null,
-    apexClass: testData.apexClass,
+    apexClass: {
+      id: testData.apexClass.id,
+      name: testData.apexClass.name,
+      ...(testData.apexClass.namespacePrefix ? { namespacePrefix: testData.apexClass.namespacePrefix } : {}),
+      fullName: testData.apexClass.fullName
+    },
     testSetupTime: testData.runTime,
-    testTimestamp: testData.testTimestamp,
+    ...(testData.testTimestamp ? { testTimestamp: testData.testTimestamp } : {}),
     fullName: testData.fullName,
     diagnostic: testData.diagnostic
   });

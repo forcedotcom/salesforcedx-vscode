@@ -63,7 +63,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
         apexClass: {
           id: '01p000000000001AAA',
           name: 'AsyncSnapshotTestClass1',
-          namespacePrefix: null as unknown as string,
+          namespacePrefix: null,
           fullName: 'AsyncSnapshotTestClass1'
         },
         runTime: 800,
@@ -101,7 +101,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
         apexClass: {
           id: '01p000000000003AAA',
           name: 'AsyncSnapshotTestClass3',
-          namespacePrefix: null as unknown as string,
+          namespacePrefix: null,
           fullName: 'AsyncSnapshotTestClass3'
         },
         runTime: 400,
@@ -165,7 +165,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
           apexClass: {
             id: '01p000000000001AAA',
             name: 'NullValuesTestClass',
-            namespacePrefix: null as unknown as string,
+            namespacePrefix: null,
             fullName: 'NullValuesTestClass'
           },
           runTime: 250,

@@ -63,7 +63,7 @@ describe('writeAsyncResultsToFile', () => {
         apexClass: {
           id: '01p000000000001AAA',
           name: 'AsyncTestClass1',
-          namespacePrefix: null as unknown as string,
+          namespacePrefix: null,
           fullName: 'AsyncTestClass1'
         },
         runTime: 750,
@@ -82,7 +82,7 @@ describe('writeAsyncResultsToFile', () => {
         apexClass: {
           id: '01p000000000002AAA',
           name: 'AsyncTestClass2',
-          namespacePrefix: null as unknown as string,
+          namespacePrefix: null,
           fullName: 'AsyncTestClass2'
         },
         runTime: 450,
@@ -257,7 +257,7 @@ describe('writeAsyncResultsToFile', () => {
         apexClass: {
           id: `01p00000000000${i.toString().padStart(4, '0')}AAA`,
           name: `TestClass${i}`,
-          namespacePrefix: null as unknown as string,
+          namespacePrefix: null,
           fullName: `TestClass${i}`
         },
         runTime: i % 1000,
@@ -364,7 +364,7 @@ describe('writeAsyncResultsToFile', () => {
           apexClass: {
             id: '01p000000000001AAA',
             name: 'TestClassWithNulls',
-            namespacePrefix: null as unknown as string,
+            namespacePrefix: null,
             fullName: 'TestClassWithNulls'
           },
           runTime: 250,

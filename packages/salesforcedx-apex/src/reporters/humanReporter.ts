@@ -81,10 +81,7 @@ export class HumanReporter {
         name: nls.localize('orgId'),
         value: testResult.summary.orgId
       },
-      {
-        name: nls.localize('username'),
-        value: testResult.summary.username
-      },
+      ...(testResult.summary.username ? [{ name: nls.localize('username'), value: testResult.summary.username }] : []),
       ...(testResult.summary.orgWideCoverage
         ? [
             {

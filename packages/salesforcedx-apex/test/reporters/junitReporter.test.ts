@@ -44,7 +44,7 @@ describe('JUnit Reporter Tests', () => {
 
   it('should format test results with undefined or empty values', () => {
     successResult.summary.testRunId = undefined;
-    successResult.summary.userId = undefined as unknown as string;
+    successResult.summary.userId = undefined;
 
     const result = reporter.format(successResult);
     expect(result).not.toHaveLength(0);
