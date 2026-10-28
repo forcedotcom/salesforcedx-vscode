@@ -1397,8 +1397,8 @@ importers:
         specifier: ^8.1.7
         version: 8.1.7(supports-color@8.1.1)
       '@salesforce/templates':
-        specifier: ^66.17.3
-        version: 66.17.3
+        specifier: ^66.17.4
+        version: 66.17.4
       '@salesforce/types':
         specifier: ^1.8.0
         version: 1.8.0
@@ -1531,8 +1531,8 @@ importers:
         specifier: ^8.1.7
         version: 8.1.7(supports-color@8.1.1)
       '@salesforce/templates':
-        specifier: ^66.17.3
-        version: 66.17.3
+        specifier: ^66.17.4
+        version: 66.17.4
       '@salesforce/vscode-i18n':
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
@@ -4662,6 +4662,10 @@ packages:
     resolution: {integrity: sha512-VwxhSH/8PQ5YmPAdhmLaJGCgR0n/pOm8T2y+/odMFthd5SA0xsO/kTdaRLFnFQAxxNj1nYtNHRb+BoMuAatzew==}
     engines: {node: '>=22.0.0'}
 
+  '@salesforce/kit@4.0.8':
+    resolution: {integrity: sha512-buPp7lWQNK6f5S/vCXwcgclUPZlfRw66E1aXAY/Uy/qMPlaajS4xmo58HY7ge2zUfOjfwpH1b0GUV5cQ5D9EAw==}
+    engines: {node: '>=22.0.0'}
+
   '@salesforce/label@0.0.21':
     resolution: {integrity: sha512-11qXsGrA8fuMA3E0JShkpVp5wCidEpM5Lx16w7sLAa57AYI5jQ6EphgI1wQzI0daUL2GPgMEFdNF7tEOAXFT2g==}
 
@@ -4686,12 +4690,16 @@ packages:
     resolution: {integrity: sha512-Fp9KjXtPe30XCxCQ23jMu5ZyWnXEvEv+rEwbNu6VFi+QypHQeBexG+xRnwFYNc6iky5p3X/hah43nYgZtnIjfQ==}
     engines: {node: '>=22.0.0'}
 
-  '@salesforce/templates@66.17.3':
-    resolution: {integrity: sha512-WGCcPPLWtbxfBL2Jd1Sh4L5JtV2XCrUjCi6S0ijnl557Rk0LLac8GwEMFiB+IxDbqYGQTfTUkvMit2ruau0iNw==}
+  '@salesforce/templates@66.17.4':
+    resolution: {integrity: sha512-WPC2GgZl02FKYICgVNGGPkD2gKaGTtnzz5Utbm2rjHomSyF48246q+GX4FcriZy+Gcii/kP/TTBmEiMWCoHi5Q==}
     engines: {node: '>=22.0.0'}
 
   '@salesforce/ts-types@3.2.0':
     resolution: {integrity: sha512-3xdKt4nlthDC8nCHVWpVDwM5mmPlk8kDyJ1E3dWMk7FLRdQqhLgaHZgS+AMqcowWiKUC1l1d5YIhGhQM7dw3Bw==}
+    engines: {node: '>=22.0.0'}
+
+  '@salesforce/ts-types@3.2.3':
+    resolution: {integrity: sha512-re+ceqPAgBXdgml1bTPoetNb6UfDwh54Gi6USRvPLK6/iV5P9rrLp4d7Ee2UDs/rw80V3nCjfASacpARRDaLRw==}
     engines: {node: '>=22.0.0'}
 
   '@salesforce/types@1.8.0':
@@ -15037,6 +15045,10 @@ snapshots:
     dependencies:
       '@salesforce/ts-types': 3.2.0
 
+  '@salesforce/kit@4.0.8':
+    dependencies:
+      '@salesforce/ts-types': 3.2.3
+
   '@salesforce/label@0.0.21': {}
 
   '@salesforce/o11y-reporter@1.8.5':
@@ -15093,9 +15105,9 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
-  '@salesforce/templates@66.17.3':
+  '@salesforce/templates@66.17.4':
     dependencies:
-      '@salesforce/kit': 4.0.0
+      '@salesforce/kit': 4.0.8
       ejs: 3.1.10
       got: 11.8.6
       hpagent: 1.2.0
@@ -15105,6 +15117,8 @@ snapshots:
       tslib: 2.8.1
 
   '@salesforce/ts-types@3.2.0': {}
+
+  '@salesforce/ts-types@3.2.3': {}
 
   '@salesforce/types@1.8.0': {}
 
