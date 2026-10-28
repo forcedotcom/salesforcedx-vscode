@@ -140,9 +140,11 @@ Expected signals:
 - A successful stable build has a GitHub pre-release titled
   `Release X.Y.Z - Ready for Testing`.
 
-If duplicate publish runs exist, record their URLs and defer handling them to
-the Wednesday release ceremony. At that time, approve one Marketplace run and
-one Open VSX run; after the selected pair succeeds, cancel the duplicate pair.
+For normal weekly releases, if duplicate publish runs exist, record their URLs
+and defer handling them to the Wednesday release ceremony. At that time,
+approve one Marketplace run and one Open VSX run; after the selected pair
+succeeds, cancel the duplicate pair. Hotfixes require the explicit test-gated
+runs in [Publish a Stable Hotfix](#publish-a-stable-hotfix), not an arbitrary pair.
 
 ## Testing Checklist
 
@@ -208,6 +210,9 @@ candidate.
 
 ### Stable Release
 
+Normal weekly releases only. For patches or candidates built from arbitrary
+refs, use [Publish a Stable Hotfix](#publish-a-stable-hotfix).
+
 First, promote the release from pre-release to a full release. This is required, not optional — the publish pipeline reads the release's `isPrerelease` flag and passes `--pre-release` to `vsce`, which fails outright since these VSIXs are packaged as stable. Also update the title to reflect testing passed, and mark it `--latest`:
 
 ```bash
@@ -232,12 +237,8 @@ Monitor the workflows at: https://github.com/forcedotcom/salesforcedx-vscode/act
 
 ### Pre-release (Emergency Hotfix)
 
-```bash
-# Promote to marketplace as pre-release
-gh workflow run promote-to-prerelease.yml \
-  -f releaseTag="v67.12.0" \
-  --repo forcedotcom/salesforcedx-vscode
-```
+Use [Emergency Pre-release Workflow](#emergency-pre-release-workflow), including
+the source version bump, QA, and `isHotfix=true` promotion gate.
 
 ## Post-Publishing Cleanup
 
@@ -254,156 +255,224 @@ git push origin --delete release-staging/v67.12.0
 
 ### Cherry-pick Functional Fixes
 
-If the release included functional fixes (not just version bumps), cherry-pick them to develop:
-
-```bash
-git checkout develop && git pull origin develop
-git cherry-pick <commit-sha>  # functional fixes only
-git push origin develop
-```
+Merge functional fixes through a feature-branch PR to `develop`, separately
+from release backports. Cherry-pick only reviewed functional-fix commits;
+exclude release-only version bumps and tooling commits.
 
 ## Patch Release Workflow
 
-For hotfixes on already-published stable releases:
+Canonical hotfix runbook for already-cut stable and prerelease versions.
+Build, package versioning, QA, and marketplace publication are separate steps.
+The build workflows create GitHub releases/assets; they do not publish to registries.
+
+### Confirm Scope and Sources
+
+Before any mutation, show the release manager the exact source tags/SHAs,
+reviewed fix commits, target versions, changelog scope, pending publication
+runs, and commands. Get explicit confirmation for builds, publication,
+cancellations, and approvals; a request to investigate is not authorization.
+
+- Check both registries and existing GitHub tags/releases. Every target version
+  must be unused, including versions built but never marketplace-published.
+- Existing release artifacts are immutable for recovery: never delete/recreate
+  a release, move a tag, or replace assets to reuse its version. Choose the next
+  unused patch, even if a workflow error suggests deleting a tag for retry.
+- Use separate branches/worktrees for each release line. Stable starts at the
+  exact **released stable tag**, not its source nightly; that preserves shipped
+  release changes. Prerelease starts at the exact published prerelease tag.
+- Cherry-pick only the reviewed fix, not all of `develop`. Merge the fix to
+  `develop` separately for long-term protection; exclude release-only commits.
+- Install dependencies in each checkout (`pnpm install --frozen-lockfile`),
+  then run `pnpm compile` and `pnpm test`. Never reuse another checkout's
+  `node_modules`. Keep hooks and quality gates enabled.
+
+Illustration only; verify live versions before choosing targets:
+
+| Release line | Exact source | Immediate hotfix |
+|---|---|---|
+| Stable | `v68.4.0` | `v68.4.1` |
+| Published prerelease | `v68.5.5-nightly.develop.20261021` | `v68.5.6` |
+
+These are **2 builds**. Replacing an already-built `v68.6.0` candidate is a
+separate later decision, not an automatic third hotfix build.
+
+### Build a Stable Patch
+
+After scope confirmation, create the release-base branch from the exact stable tag:
+
+```bash
+gh workflow run create-patch-release-branch.yml --ref develop \
+  -f baseVersion="68.4.0" \
+  --repo forcedotcom/salesforcedx-vscode
+```
+
+This creates `release-base/v68.4.x` and copies version helpers from `develop`.
+Inspect an existing branch before reusing it; do not recreate it blindly.
+In its own checkout, install dependencies, cherry-pick only the reviewed fix,
+prepare `packages/salesforcedx-vscode/CHANGELOG.md` for the patch, test, and
+commit/push. Then, after confirming the calculated version is unused:
+
+```bash
+gh workflow run build-and-release-patch-branch.yml --ref develop \
+  -f releaseBranch="release-base/v68.4.x" \
+  --repo forcedotcom/salesforcedx-vscode
+```
+
+Input is **`releaseBranch`**, with `release-base/vX.Y.x` format. The workflow
+increments the highest `vX.Y.Z` tag (not just published versions), updates and
+commits package/lockfile versions, then tags/builds stable-packaged VSIXs.
+Download/test the new tag using [Testing Checklist](#testing-checklist), then
+follow [Publish a Stable Hotfix](#publish-a-stable-hotfix).
+
+### Publish a Stable Hotfix
+
+**Current workflow limitation/workaround:** both `publishVSCode.yml` and
+`publishOpenVSX.yml` trigger on `release: released`, but `gate-check` runs only
+when `github.event.inputs.isHotfix == 'true'`. Release events have no dispatch
+inputs, so those runs **skip compile/test**, and publication accepts a skipped
+gate. The human `publish` environment approval remains; it does not replace tests.
+
+1. Record manual QA evidence for the exact stable-packaged VSIXs. Include the
+   regression scenario in the affected runtime; e.g., an anonymous Apex SOAP
+   fix requires real Web Console anonymous Apex execution, not inferred success.
+2. After explicit QA/publication confirmation, mark the GitHub release stable:
+
+```bash
+gh release edit v68.4.1 --prerelease=false \
+  --title "Release 68.4.1 - Tested & Approved" --latest \
+  --repo forcedotcom/salesforcedx-vscode
+```
+
+The publishers read GitHub's `isPrerelease` flag. Leaving it `true` requests
+`--pre-release`, which is incompatible with stable-packaged VSIXs.
+
+3. Identify the 2 automatically created release-event runs. **Do not approve
+   them.** After explicit confirmation, cancel them or leave them unapproved.
+4. After explicit confirmation, manually dispatch **both** registries from
+   `develop` with the hotfix gate enabled:
+
+```bash
+gh workflow run publishVSCode.yml --ref develop \
+  -f version="v68.4.1" -f isHotfix=true \
+  --repo forcedotcom/salesforcedx-vscode
+gh workflow run publishOpenVSX.yml --ref develop \
+  -f release-tag="v68.4.1" -f isHotfix=true \
+  --repo forcedotcom/salesforcedx-vscode
+```
+
+5. Approve only these explicit hotfix runs after confirmation. Their `publish`
+   environment approval precedes `gate-check`; require each exact-tag
+   compile/test gate to succeed before publication. Stop on failure.
+6. Verify the intended version/channel in **both** registries. They are
+   independent: dispatching Microsoft publication does not trigger Open VSX.
+
+This is the hotfix exception to the weekly rule against duplicate dispatches;
+ordinary weekly releases use their automatically created runs.
 
 ### Changelog-Only Correction After a VSIX Exists
 
-A VSIX is immutable once built. Do not modify the changelog in place and do
-not retag or replace an existing release asset. If the changelog needs a
-correction after a stable candidate or published release exists, ship the
-correction as a new patch release.
-
-```mermaid
-flowchart LR
-  T[Released tag<br/>v68.6.0] --> B[Create patch branch]
-  B --> C[Commit changelog correction]
-  C --> R[Build new patch candidate<br/>v68.6.1]
-  R --> Q[QA the new VSIXs]
-  Q --> P[Publish v68.6.1]
-  C --> D[Cherry-pick correction<br/>to develop]
-
-  classDef automated fill:#e8f3ff,stroke:#0969da,color:#24292f
-  classDef human fill:#fff8c5,stroke:#9a6700,color:#24292f
-  class T,R,P automated
-  class B,C,Q,D human
-```
-
-1. Branch from the released tag, not current `develop`, so the corrected
-   changelog is paired with the same release content.
-2. Commit only the changelog correction and push the branch.
-3. Dispatch `build-github-release.yml` with that branch as `startFromRef` and
-   a new, unused patch version. The workflow can build from any ref; an
-   existing release tag cannot be rebuilt or overwritten.
-4. QA and publish the resulting `Ready for Testing` patch candidate using the
-   normal stable-release steps.
-5. Cherry-pick the changelog-correction commit to `develop` so future
-   changelogs retain the correction. Do not cherry-pick the release-only
-   version-bump commit created by the build workflow.
-
-Example for a correction to `v68.6.0`:
+The same immutable-version rule applies, even to an unpublished candidate.
+Branch from the affected release tag, commit the corrected package changelog
+with its new version header, and build a new unused patch:
 
 ```bash
-git checkout -b patch/changelog-v68.6.1 v68.6.0
-# Edit packages/salesforcedx-vscode/CHANGELOG.md.
-git add packages/salesforcedx-vscode/CHANGELOG.md
-git commit -m "docs: correct v68.6.0 changelog"
-git push -u origin patch/changelog-v68.6.1
-
-gh workflow run build-github-release.yml \
-  -f startFromRef="patch/changelog-v68.6.1" \
+gh workflow run build-github-release.yml --ref develop \
+  -f startFromRef="<changelog-correction-commit-sha>" \
   -f releaseVersion="68.6.1" \
   --repo forcedotcom/salesforcedx-vscode
 ```
 
-After the `v68.6.1` candidate is built, download and test that tag explicitly,
-then mark it `Tested & Approved` and publish it through the normal stable
-release flow. Finally, update `develop` with the correction commit:
-
-```bash
-git checkout develop && git pull origin develop
-git cherry-pick <changelog-correction-commit>
-git push origin develop
-```
-
-This process also applies if the affected release is still `Ready for Testing`:
-leave the original candidate unpublished and create the corrected patch
-candidate instead.
-
-### 1. Build Patch Release
-
-```bash
-# From a patch branch (e.g., release/v67.x)
-gh workflow run build-and-release-patch-branch.yml \
-  -f branch="release/v67.x" \
-  --repo forcedotcom/salesforcedx-vscode
-```
-
-### 2. Test VSIX Files
-
-Follow the testing checklist above.
-
-### 3. Publish to Marketplace
-
-Dispatch **both** registries with `isHotfix=true` (dispatching one does not trigger the other; the hotfix commit never went through develop's branch protection or a nightly pipeline, so each workflow's own gate-check must test it directly):
-
-```bash
-gh workflow run publishVSCode.yml \
-  -f version="v67.12.1" \
-  -f isHotfix=true \
-  --repo forcedotcom/salesforcedx-vscode
-
-gh workflow run publishOpenVSX.yml \
-  -f release-tag="v67.12.1" \
-  -f isHotfix=true \
-  --repo forcedotcom/salesforcedx-vscode
-```
-
-### 4. Cherry-pick to develop
-
-After publishing, cherry-pick **ONLY functional fixes** back to develop:
-
-```bash
-git checkout develop && git pull origin develop
-
-# Cherry-pick only functional fixes (NOT version-bump commits)
-git log v67.12.0..v67.12.1 --pretty=format:"%H %s" | grep -v "chore: bump versions"
-# For each commit hash, cherry-pick individually:
-git cherry-pick <commit-sha>
-
-git push origin develop
-```
-
-**Important:** Do NOT cherry-pick the version-bump commit (e.g., "chore: bump versions").
+Stable mode updates package versions on an isolated build branch. QA the new
+tag, then use [Publish a Stable Hotfix](#publish-a-stable-hotfix), not the
+ungated release-event runs. Merge the correction to `develop` separately;
+exclude the release-only version bump.
 
 ## Emergency Pre-release Workflow
 
-For urgent hotfixes that need immediate marketplace publication as pre-release:
-
-### 1. Build Emergency Pre-release
+Apply [Confirm Scope and Sources](#confirm-scope-and-sources) first. In a
+separate checkout from the exact published prerelease tag, cherry-pick only
+the reviewed fix. **Emergency mode does not bump package versions.**
+`releaseVersion` names the tag/release only; it does not change VSIX versions.
+Choose an unused version ahead of both registries, update source versions,
+and commit before building (illustrative version):
 
 ```bash
-# From hotfix branch or specific commit
-gh workflow run build-github-release.yml \
+node scripts/update-release-versions.js 68.5.6
+git add packages/*/package.json pnpm-lock.yaml
+git commit -m "chore: bump emergency prerelease versions to 68.5.6"
+```
+
+Install/test the updated checkout and push the source commit with normal
+hooks. Verify the publishable package versions equal `68.5.6`, then build
+that exact SHA after confirmation:
+
+```bash
+gh workflow run build-github-release.yml --ref develop \
   -f emergencyPrerelease=true \
-  -f startFromRef="hotfix/security-fix" \
+  -f startFromRef="<version-bumped-hotfix-commit-sha>" \
+  -f releaseVersion="68.5.6" \
   --repo forcedotcom/salesforcedx-vscode
 ```
 
-### 2. Test VSIX Files
-
-Follow the testing checklist above.
-
-### 3. Publish to Marketplace as Pre-release
+This creates `v68.5.6` with **prerelease-packaged** VSIXs, not a marketplace
+publication. Download/test that exact tag, verify the embedded versions, and
+record regression QA evidence (including real Web Console anonymous Apex for
+that fix). After explicit QA/publication confirmation:
 
 ```bash
-gh workflow run promote-to-prerelease.yml \
-  -f releaseTag="v67.12.0" \
+gh workflow run promote-to-prerelease.yml --ref develop \
+  -f releaseTag="v68.5.6" -f isHotfix=true \
   --repo forcedotcom/salesforcedx-vscode
 ```
+
+`isHotfix=true` runs compile/test against the exact source commit; it is
+required, not a test bypass. Promotion publishes to **both** registries.
+Verify both live prerelease versions. Keep this GitHub release a prerelease;
+never mark it `Tested & Approved` or flip it stable. Stable needs a separate
+stable-packaged build.
+
+Promotion generates a changelog delta from the previous tracking tag, often
+only the hotfix, and injects it into the pack VSIX before publication. It does
+not preserve the original candidate's full release notes automatically. This
+workflow-owned injection is not permission to replace assets as recovery.
+
+### Later Stable Candidate from a Patched Prerelease
+
+A successful hotfix promotion does **not** fix stable auto-detection:
+`build-github-release.yml` walks `marketplace-prerelease-*` tags, extracts each
+version, and searches for `vVERSION-nightly.develop.*`. A hotfix `v68.5.6`
+without such a nightly is skipped; an older source can be selected.
+`prereleaseTag` accepts only nightly-formatted tags, not `v68.5.6`.
+
+After a separate source/version decision, branch from the patched prerelease
+source, prepare/commit the package changelog with the **original candidate's
+changes plus the fix**, and label it for the intended stable version.
+Arbitrary `startFromRef` builds skip normal nightly changelog relabeling;
+neither that build nor promotion reconstructs those release notes for you.
+
+If `v68.6.0` already exists, leave its tag/assets unchanged, even if unpublished
+or already approved. With explicit confirmation, hold/cancel its superseded
+pending publications. Use an unused successor, e.g. `68.6.1`:
+
+```bash
+gh workflow run build-github-release.yml --ref develop \
+  -f startFromRef="<patched-source-with-complete-changelog-sha>" \
+  -f releaseVersion="68.6.1" \
+  --repo forcedotcom/salesforcedx-vscode
+```
+
+Stable mode bumps package versions on its isolated build branch. Verify the
+source/fix/changelog and embedded versions in the new assets, QA them, then
+follow [Publish a Stable Hotfix](#publish-a-stable-hotfix). Building this
+successor never retroactively fixes an existing candidate.
 
 ## Troubleshooting
 
 ### Wednesday Dependency Failures
+
+Weekly nightly recovery only. If the needed source is an emergency hotfix or
+the target candidate already exists, use [Later Stable Candidate from a Patched Prerelease](#later-stable-candidate-from-a-patched-prerelease).
+A hotfix tracking tag does not guarantee that default source detection uses it.
 
 The stable build depends on a promoted prerelease tracking tag, and promotion
 depends on a successful nightly build. A failed prerequisite can leave the
