@@ -23,10 +23,6 @@ export default defineConfig({
         replacement: repositoryFile('packages/effect-ext-utils/src/index.ts')
       },
       {
-        find: /^@salesforce\/salesforcedx-utils-vscode$/,
-        replacement: repositoryFile('packages/salesforcedx-utils-vscode/src/index.ts')
-      },
-      {
         find: /^@salesforce\/salesforcedx-lightning-lsp-common\/testUtils$/,
         replacement: repositoryFile('packages/salesforcedx-lightning-lsp-common/src/testSupport/testUtils.ts')
       },

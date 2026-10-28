@@ -6,7 +6,7 @@
  */
 
 import { SF_CONFIG_DISABLE_TELEMETRY } from '../constants';
-import { ConfigAggregatorProvider } from '../providers/configAggregatorProvider';
+import { ConfigAggregatorProvider } from './configAggregatorProvider';
 
 export const isCLITelemetryAllowed = async (): Promise<boolean> => {
   // In web mode, ConfigAggregator may not work correctly, so default to allowing telemetry

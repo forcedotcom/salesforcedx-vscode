@@ -19,7 +19,7 @@ ruleTester.run('no-legacy-telemetry-service', noLegacyTelemetryService, {
     { code: `import type { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';`, filename },
     { code: `import type * as utils from '@salesforce/salesforcedx-utils-vscode';`, filename },
     {
-      code: `import { type TelemetryService, isInternalHost } from '@salesforce/salesforcedx-utils-vscode';`,
+      code: `import { type TelemetryService, OtherService } from '@salesforce/salesforcedx-utils-vscode';`,
       filename
     },
     { code: `import { TelemetryService } from './otherModule';`, filename },
@@ -29,23 +29,11 @@ ruleTester.run('no-legacy-telemetry-service', noLegacyTelemetryService, {
     { code: `// telemetryService\nconst value = 1;`, filename },
     {
       code: legacyUsage,
-      filename: 'packages/salesforcedx-utils-vscode/src/services/telemetry.ts'
+      filename: 'packages/salesforcedx-vscode-core/src/services/telemetry/telemetryService.ts'
     },
     {
       code: `import * as utils from '@salesforce/salesforcedx-utils-vscode'; utils.TelemetryService.getInstance();`,
-      filename: 'packages/salesforcedx-utils-vscode/src/services/telemetry.ts'
-    },
-    {
-      code: legacyUsage,
-      filename: 'packages/salesforcedx-utils-vscode/src/helpers/telemetryUtils.ts'
-    },
-    {
-      code: legacyUsage,
-      filename: 'packages/salesforcedx-utils-vscode/test/jest/telemetry/telemetry.test.ts'
-    },
-    {
-      code: legacyUsage,
-      filename: 'packages/salesforcedx-utils-vscode/test/unit/telemetry/telemetry.test.ts'
+      filename: 'packages/salesforcedx-vscode-core/src/services/telemetry/telemetryService.ts'
     },
     {
       code: legacyUsage,
@@ -126,11 +114,6 @@ ruleTester.run('no-legacy-telemetry-service', noLegacyTelemetryService, {
     {
       code: `telemetryService;`,
       filename: 'packages/salesforcedx-vscode-core/test/jest/telemetry-other/index.test.ts',
-      errors: [error]
-    },
-    {
-      code: `telemetryService;`,
-      filename: 'packages/salesforcedx-utils-vscode/test/jest/services/telemetry.test.ts',
       errors: [error]
     },
     {

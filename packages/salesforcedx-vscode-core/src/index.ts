@@ -10,26 +10,29 @@ import {
   ExtensionProviderService,
   getServicesApi
 } from '@salesforce/effect-ext-utils';
-import { ChannelService, SFDX_CORE_CONFIGURATION_NAME, TelemetryService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import { isError, isString } from 'effect/Predicate';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { configListCommand, initSObjectDefinitions } from './commands';
+import { ChannelService } from './commands/channelService';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
-import { ENABLE_SOBJECT_REFRESH_ON_STARTUP } from './constants';
+import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, SFDX_CORE_EXTENSION_NAME } from './constants';
 import { WorkspaceContext, workspaceContextUtils } from './context';
 import { nls } from './messages';
 import { MetadataHoverProvider } from './metadataSupport/metadataHoverProvider';
 import { initializeMetadataSupport } from './metadataSupport/metadataXmlSupport';
 import { buildCoreServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { getRuntime } from './services/runtime';
+import { TelemetryService } from './services/telemetry/telemetryService';
 import { registerGetTelemetryServiceCommand } from './services/telemetry/telemetryServiceProvider';
 import { getEnableAllExceptionCatcher } from './settings/salesforceCoreSettings';
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import { ensureCurrentWorkingDirIsProjectPath } from './util/workingDirectory';
+
+export type { OrgShape } from './context/workspaceOrgShape';
 
 /** Customer-facing commands */
 const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Disposable =>
@@ -99,7 +102,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-core')(f
     // Refresh SObject definitions only for an open Salesforce project
     // when faux classes are missing (metadata extension registers the command).
     const sobjectRefreshStartup = yield* (yield* servicesApi.services.SettingsService).getValueOrElse(
-      SFDX_CORE_CONFIGURATION_NAME,
+      SFDX_CORE_EXTENSION_NAME,
       ENABLE_SOBJECT_REFRESH_ON_STARTUP,
       false
     );

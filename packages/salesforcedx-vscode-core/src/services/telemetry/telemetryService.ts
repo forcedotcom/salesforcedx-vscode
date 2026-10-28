@@ -16,11 +16,12 @@ import {
 } from '@salesforce/vscode-service-provider';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isString } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import { type ExtensionContext, ExtensionMode, workspace } from 'vscode';
-import { SFDX_CORE_CONFIGURATION_NAME, SFDX_CORE_EXTENSION_NAME, SFDX_EXTENSION_PACK_NAME } from '../constants';
-import { isCLITelemetryAllowed } from '../telemetry/cliConfiguration';
-import { extensionPackageJsonSchema } from '../telemetry/schema';
-import { isInternalHost } from '../telemetry/utils/isInternal';
+import { SFDX_CORE_EXTENSION_NAME, SFDX_EXTENSION_PACK_NAME } from '../../constants';
+import { isCLITelemetryAllowed } from '../../telemetry/cliConfiguration';
+import { isInternalHost } from '../../telemetry/isInternal';
+import { extensionPackageJsonSchema } from '../../telemetry/schema';
 
 type CommandMetric = {
   extensionName: string;
@@ -95,7 +96,7 @@ export class TelemetryService implements TelemetryServiceInterface {
    * @param extensionContext extension context
    */
   public async initializeService(extensionContext: ExtensionContext): Promise<void> {
-    const { name } = extensionPackageJsonSchema.parse(extensionContext.extension.packageJSON);
+    const { name } = Schema.decodeUnknownSync(extensionPackageJsonSchema)(extensionContext.extension.packageJSON);
     this.extensionName = name;
     this.isInternal = isInternalHost();
     this.isDevMode = extensionContext.extensionMode !== ExtensionMode.Production;
@@ -141,11 +142,11 @@ export class TelemetryService implements TelemetryServiceInterface {
 
   /** Duplicated by necessity in vscode-services (salesforcedx-vscode-services/src/terminal/terminalService.ts
    * `isVscodeTelemetryOff`, which gates SF_DISABLE_TELEMETRY for `sf ` execs) because that package cannot depend
-   * on utils-vscode — keep the two settings checked here in sync with it. */
+   * on Core — keep the two settings checked here in sync with it. */
   public isTelemetryExtensionConfigurationEnabled(): boolean {
     return (
       workspace.getConfiguration('telemetry').get<string>('telemetryLevel', 'all') !== 'off' &&
-      workspace.getConfiguration(SFDX_CORE_CONFIGURATION_NAME).get<boolean>('telemetry.enabled', true)
+      workspace.getConfiguration(SFDX_CORE_EXTENSION_NAME).get<boolean>('telemetry.enabled', true)
     );
   }
 
