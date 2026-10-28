@@ -8,10 +8,6 @@
 
 ## Fixed
 
-#### salesforcedx-apex
-
-- We fixed a bug where anonymous Apex in the Web Console failed with `INVALID_SESSION_ID` even when REST calls succeeded. ([PR #8505](https://github.com/forcedotcom/salesforcedx-vscode/pull/8505))
-
 #### salesforcedx-vscode-org-browser
 
 - We fixed a bug where a failed workspace scan made **Org Browser** treat components as absent. Components now stay visible with a question-mark icon when presence is unknown, and a notification names the orphaned `-meta.xml` and its missing content file. ([PR #8460](https://github.com/forcedotcom/salesforcedx-vscode/pull/8460))
@@ -28,7 +24,7 @@
 
 - We made some under the hood changes. ([PR #8467](https://github.com/forcedotcom/salesforcedx-vscode/pull/8467), [PR #8508](https://github.com/forcedotcom/salesforcedx-vscode/pull/8508))
 
-# 68.5.5 - October 28, 2026
+# 68.6.1 - October 28, 2026
 
 ## Fixed
 
@@ -36,57 +32,37 @@
 
 - We fixed a bug where failing Apex test runs and debugs showed a success notification instead of a failure count. The Testing sidebar now debugs multiple Apex classes without a race condition, stepping through each class log sequentially with progress feedback. ([PR #8397](https://github.com/forcedotcom/salesforcedx-vscode/pull/8397))
 
-#### salesforcedx-vscode-org-browser
-
-- We fixed a bug where **Org Browser** activation waited for org identity, which could delay the view from initializing. ([PR #8442](https://github.com/forcedotcom/salesforcedx-vscode/pull/8442))
-
-#### salesforcedx-vscode-soql
-
-- We fixed a bug where SOQL with leading `//` header comments or a trailing semicolon failed in **Execute SOQL Query**, query plans, **SOQL Builder**, code lens, and LSP validation. The editor document is left unchanged. ([PR #8457](https://github.com/forcedotcom/salesforcedx-vscode/pull/8457))
-
-## Under the Hood
-
-- We made some under the hood changes. ([PR #8465](https://github.com/forcedotcom/salesforcedx-vscode/pull/8465), [PR #8466](https://github.com/forcedotcom/salesforcedx-vscode/pull/8466), [PR #8477](https://github.com/forcedotcom/salesforcedx-vscode/pull/8477), [PR #8484](https://github.com/forcedotcom/salesforcedx-vscode/pull/8484))
-
-# 68.3.1 - October 21, 2026
-
-## Fixed
-
-#### salesforcedx-vscode-apex-testing
-
 - We fixed a bug where the **Debug** run profile for Apex tests appeared in VS Code on the web even though debugging is not supported there. ([PR #8437](https://github.com/forcedotcom/salesforcedx-vscode/pull/8437))
 
 #### salesforcedx-vscode-org-browser
+
+- We fixed a bug where **Org Browser** activation waited for org identity, which could delay the view from initializing. ([PR #8442](https://github.com/forcedotcom/salesforcedx-vscode/pull/8442))
 
 - We fixed a bug where plain-text search in **Org Browser** missed partial metadata type and component names. Typing `broker` now matches names like `Broker__c` without regex. ([PR #8365](https://github.com/forcedotcom/salesforcedx-vscode/pull/8365), [DISCUSSION #5376](https://github.com/forcedotcom/salesforcedx-vscode/discussions/5376))
 
 #### salesforcedx-vscode-soql
 
+- We fixed a bug where SOQL with leading `//` header comments or a trailing semicolon failed in **Execute SOQL Query**, query plans, **SOQL Builder**, code lens, and LSP validation. The editor document is left unchanged. ([PR #8457](https://github.com/forcedotcom/salesforcedx-vscode/pull/8457))
+
 - We fixed a bug where **SFDX: Execute SOQL Query with Currently Selected Text** and **SFDX: Get SOQL Query Plan with Currently Selected Text** appeared in non-Apex files. They now only appear in `.cls`, `.apex`, and `.trigger` files. ([PR #8426](https://github.com/forcedotcom/salesforcedx-vscode/pull/8426))
 
 ## Under the Hood
 
-- We made some under the hood changes. ([PR #8419](https://github.com/forcedotcom/salesforcedx-vscode/pull/8419))
+- We made some under the hood changes. ([PR #8419](https://github.com/forcedotcom/salesforcedx-vscode/pull/8419), [PR #8465](https://github.com/forcedotcom/salesforcedx-vscode/pull/8465), [PR #8466](https://github.com/forcedotcom/salesforcedx-vscode/pull/8466), [PR #8477](https://github.com/forcedotcom/salesforcedx-vscode/pull/8477), [PR #8484](https://github.com/forcedotcom/salesforcedx-vscode/pull/8484))
 
-# 68.1.1 - October 19, 2026
+# 68.4.1 - October 23, 2026
 
 ## Fixed
 
-#### salesforcedx-vscode-apex
+#### salesforcedx-vscode-apex-log
 
-- We fixed a bug where Apex problems from the language server did not show **Apex Language Server** as the Source in the Problems panel. ([PR #8418](https://github.com/forcedotcom/salesforcedx-vscode/pull/8418))
+- We fixed a bug where anonymous Apex in the Web Console failed with `INVALID_SESSION_ID` even when REST calls succeeded. ([PR #8505](https://github.com/forcedotcom/salesforcedx-vscode/pull/8505))
 
-## Changed
+# 68.4.0 - October 22, 2026
 
-#### salesforcedx-vscode-core
+No customer-facing changes.
 
-- The **Command Palette** no longer includes **SFDX: Open Documentation** (`sf.open.documentation`). ([PR #8382](https://github.com/forcedotcom/salesforcedx-vscode/pull/8382))
-
-#### salesforcedx-vscode-services
-
-- The **Web Console** now uses host-provided session identity and org metadata from `salesforce-web-console.sessionContext` for authentication. ([PR #8395](https://github.com/forcedotcom/salesforcedx-vscode/pull/8395))
-
-# 67.27.6 - October 14, 2026
+# 68.2.0 - October 15, 2026
 
 ## Added
 
@@ -102,7 +78,21 @@
 
 - We added support for custom templates in **SFDX: Create Visualforce Component** and **SFDX: Create Visualforce Page**. ([PR #8323](https://github.com/forcedotcom/salesforcedx-vscode/pull/8323))
 
+## Changed
+
+#### salesforcedx-vscode-core
+
+- The **Command Palette** no longer includes **SFDX: Open Documentation** (`sf.open.documentation`). ([PR #8382](https://github.com/forcedotcom/salesforcedx-vscode/pull/8382))
+
+#### salesforcedx-vscode-services
+
+- The **Web Console** now uses host-provided session identity and org metadata from `salesforce-web-console.sessionContext` for authentication. ([PR #8395](https://github.com/forcedotcom/salesforcedx-vscode/pull/8395))
+
 ## Fixed
+
+#### salesforcedx-vscode-apex
+
+- We fixed a bug where Apex problems from the language server did not show **Apex Language Server** as the Source in the Problems panel. ([PR #8418](https://github.com/forcedotcom/salesforcedx-vscode/pull/8418))
 
 #### salesforcedx-vscode-apex-testing
 
@@ -120,7 +110,7 @@
 
 - We made some under the hood changes. ([PR #8046](https://github.com/forcedotcom/salesforcedx-vscode/pull/8046), [PR #8139](https://github.com/forcedotcom/salesforcedx-vscode/pull/8139), [PR #8047](https://github.com/forcedotcom/salesforcedx-vscode/pull/8047))
 
-# 67.25.6 - October 7, 2026
+# 67.26.0 - October 7, 2026
 
 ## Fixed
 
