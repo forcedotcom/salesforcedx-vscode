@@ -15,7 +15,9 @@ describe('extensionPackageJsonSchema', () => {
     expect(
       decodeExtensionPackageJson({
         name: 'salesforcedx-vscode-core',
+        publisher: 'salesforce',
         version: '1.0.0',
+        displayName: 'Salesforce CLI',
         aiKey: 'key',
         otelConnectionString: 'connection',
         o11yUploadEndpoint: 'https://example.test',
@@ -25,7 +27,9 @@ describe('extensionPackageJsonSchema', () => {
       })
     ).toMatchObject({
       name: 'salesforcedx-vscode-core',
+      publisher: 'salesforce',
       version: '1.0.0',
+      displayName: 'Salesforce CLI',
       enableO11y: true,
       productFeatureId: 'aJC123',
       enableCustomEventsFromSpans: true

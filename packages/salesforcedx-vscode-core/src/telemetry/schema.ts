@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { ExtensionPackageJsonSchema } from '@salesforce/effect-ext-utils';
 import * as Schema from 'effect/Schema';
 
 const requiredPackageJsonString = (message: string) =>
@@ -24,12 +25,10 @@ const BooleanString = Schema.transform(
 );
 
 export const extensionPackageJsonSchema = Schema.Struct({
+  ...ExtensionPackageJsonSchema.fields,
   name: requiredPackageJsonString('Extension name is not defined in package.json'),
   version: requiredPackageJsonString('Extension version is not defined in package.json'),
   aiKey: Schema.optional(Schema.String),
-  otelConnectionString: Schema.optional(Schema.String),
-  // required for either original o11y OR PFT
-  o11yUploadEndpoint: Schema.optional(Schema.String),
   // original o11y (that is, sending most events and having them end up in splunk)
   enableO11y: Schema.optional(BooleanString),
   productFeatureId: Schema.optional(Schema.String.pipe(Schema.startsWith('aJC'))),
