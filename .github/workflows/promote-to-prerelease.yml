@@ -302,6 +302,7 @@ jobs:
       vsix-name-pattern: 'salesforcedx-vscode-*.vsix'
       exclude-web-vsix: 'false'
       extension-name: 'salesforcedx-vscode'
+      node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
       dry-run: ${{ inputs.dry-run || false }}
     secrets: inherit
 

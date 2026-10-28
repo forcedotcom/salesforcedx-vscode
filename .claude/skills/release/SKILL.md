@@ -11,6 +11,39 @@ Read it before dispatching, approving, or promoting a release. This skill
 inspects and operates the release train; it does not replace the manual QA
 decision.
 
+## Releasability Dashboard Maintenance
+
+When a change affects a release-train gate or state transition, evaluate
+whether `.github/workflows/release-dashboard.yml` and
+`scripts/releaseDashboard.sh` must change in the same PR. Record an intentional
+out-of-scope dashboard update in the plan or review.
+
+Dashboard-affecting changes include:
+
+- `nightly.yml`, `promote-to-prerelease.yml`, `build-github-release.yml`,
+  `publishVSCode.yml`, or `publishOpenVSX.yml`
+- workflow names, schedules, inputs, triggers, job dependencies, gate
+  predicates, required check names, or retry behavior
+- tag formats, tracking tags, release titles/assets, source provenance, manual
+  approval, publish-environment approval, or registry verification behavior
+- `develop` feeder build, unit-test, or E2E evidence
+
+When affected, ensure the dashboard still:
+
+1. Resolves the exact artifact and commit consumed by each stage, including the
+   one-week pre-release to stable offset.
+2. Separates required gates from advisory/post-hoc signals. Do not make E2E a
+   hard stop unless the release workflow explicitly requires it.
+3. Correlates evidence by tag, commit, and job result instead of selecting an
+   unrelated repository-wide latest run.
+4. Reports missing or unavailable evidence as such, never as successful.
+5. Stays read-only; it must not dispatch, approve, publish, edit releases, or
+   mutate branches/tags.
+
+Update dashboard tests for each changed dependency, gate, or state
+classification. Run `pnpm test:scripts` and `pnpm check:actions` after
+dashboard or release-workflow changes.
+
 ## Release States
 
 Use these terms precisely:
@@ -203,14 +236,69 @@ Verify live registry state:
 
 ## Step 5 - Communicate
 
-Compose the release announcement from the top section of
-`packages/salesforcedx-vscode/CHANGELOG.md`:
+Never source the announcement from `develop`'s `CHANGELOG.md`. After
+Wednesday promotion its top section is the new pre-release's delta, not the
+stable release's.
 
-- Header: `*Salesforce Extensions for VS Code v<version> is out* :tada:`
+Start from the changelog shipped in the stable VSIX:
+
+```sh
+gh release download v<version> --repo forcedotcom/salesforcedx-vscode \
+  --pattern 'salesforcedx-vscode-<version>.vsix' --dir /tmp/v<version>
+unzip -p /tmp/v<version>/salesforcedx-vscode-<version>.vsix extension/changelog.md
+```
+
+It holds 1 week's section and can be wrong (see
+[Stable Changelog Source](#stable-changelog-source)). Verify against git
+before drafting. Previous stable = latest **Marketplace** stable version; a
+`Tested & Approved` GitHub release may never have published.
+
+1. Each entry's commit must be in `v<version>` and not in the previous stable:
+   ```sh
+   git log --oneline -1 --grep='(#<pr>)' origin/develop
+   git merge-base --is-ancestor <commit> v<version>          # must succeed
+   git merge-base --is-ancestor <commit> v<previous-stable>  # must fail
+   ```
+2. Find omitted entries: read each weekly changelog commit on `develop` since
+   the previous stable's source nightly; include entries passing check 1.
+   ```sh
+   git log --format='%h %ad %s' --date=short --grep='changelog for prerelease' \
+     origin/develop -- packages/salesforcedx-vscode/CHANGELOG.md
+   git show <commit>:packages/salesforcedx-vscode/CHANGELOG.md
+   ```
+3. Drop entries already announced by a stable patch (e.g. hotfix in `X.Y.1`).
+
+Format:
+
+- Header: `**Salesforce Extensions for VS Code v<version> is out** :tada:`
 - Link: `VS Code Marketplace: https://marketplace.visualstudio.com/items?itemName=salesforce.salesforcedx-vscode`
-- Include `Added` and `Fixed` entries; omit PR and issue trailers.
+- Include `Added` and `Fixed` entries, grouped by package; omit PR and issue trailers.
+- Bold with `**bold**`; a single `*` renders italic in Slack.
 
 Show the draft before posting or drafting it in `#platform-dev-tools`.
+
+## Stable Changelog Source
+
+No tag contains the changelog that ships. `promote-to-prerelease.yml` commits
+each week's delta to `develop` after that nightly is cut.
+`build-github-release.yml` copies `develop`'s file into the working tree,
+relabels `# <nightly version>` → `# <stable version>`, and packages without
+committing.
+
+Failure modes:
+
+- **Late build:** a stable built after a later promotion copies the wrong
+  week's section. Relabel finds no matching header, no-ops, and the step
+  still logs `✓ Relabeled changelog`; the preceding `No "# X.Y.Z" header
+  found` line is the signal. Example: v68.4.0, built from `v68.1.1`, shipped
+  the `# 68.3.1` section.
+- **`startFromRef`:** relabel is skipped (`not a nightly tag`); the VSIX ships
+  the source ref's file, usually last week's section. Before dispatching,
+  commit the correct section to the source branch, as in
+  [Changelog Correction](#changelog-correction-after-a-vsix-exists) step 2.
+
+After any stable build, check `unzip -p <vsix> extension/changelog.md | head -1`
+shows `# <stable version>` with the expected entries.
 
 ## Changelog Correction After a VSIX Exists
 

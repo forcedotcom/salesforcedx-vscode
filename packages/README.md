@@ -42,8 +42,7 @@ Type legend: `ext` ships a VS Code extension (`engines.vscode`). `lib` is import
 | Directory | npm name | Purpose | Use when / not when |
 | --- | --- | --- | --- |
 | `salesforcedx-apex/` | `@salesforce/apex-node` | JS library for Apex (execute anonymous, tests, logs, trace flags) | Plain Node/CLI use. Inside VS Code prefer `salesforcedx-vscode-services/` API. |
-| `salesforcedx-utils/` | `@salesforce/salesforcedx-utils` | Node utils for extensions | Node-only helpers. VS Code API glue lives in `salesforcedx-utils-vscode/`. |
-| `salesforcedx-utils-vscode/` | `@salesforce/salesforcedx-utils-vscode` | SFDX library ↔ VS Code glue | VS Code-facing helpers. Not new shared services. |
+| `salesforcedx-utils/` | `@salesforce/salesforcedx-utils` | Node utils for extensions | Node-only helpers. VS Code integration lives in extension packages; shared services live in `salesforcedx-vscode-services/`. |
 | `salesforcedx-vscode-services-types/` | `@salesforce/vscode-services` | Types for services extension API | Types only. Runtime lives in `salesforcedx-vscode-services/`. |
 | `salesforcedx-vscode-i18n/` | `@salesforce/vscode-i18n` | i18n helpers | Messages. See `.claude/skills/i18n-messages/SKILL.md`. |
 | `effect-ext-utils/` | `@salesforce/effect-ext-utils` | Effect helpers (`buildAllServicesLayer`, `ExtensionProviderService`) | Wire `AllServicesLayer` in any Effect extension. |
@@ -65,7 +64,6 @@ Type legend: `ext` ships a VS Code extension (`engines.vscode`). `lib` is import
 
 - `salesforcedx-apex/` (lib `@salesforce/apex-node`) vs `salesforcedx-vscode-apex/` (ext language features) vs `salesforcedx-vscode-apex-testing/` / `apex-log/` (ext runners).
 - `salesforcedx-apex-debugger/` (adapter) vs `salesforcedx-vscode-apex-debugger/` (ext UI). Same split for `apex-replay-debugger`.
-- `salesforcedx-utils/` (node) vs `salesforcedx-utils-vscode/` (VS Code glue).
 - `salesforcedx-vscode-services/` (runtime) vs `salesforcedx-vscode-services-types/` (types) vs `salesforcedx-vscode-core/` (legacy frozen, CLI only).
 - `salesforcedx-vscode/` (pack, 21) vs `salesforcedx-vscode-expanded/` (pack, 26). Pack members in other repos (agents, einstein-gpt, slds, code-analyzer, ui-preview, metadata-visualizer) are not in `packages/`.
 - `soql-common/` (parse) vs `soql-model/` (model) vs `soql-builder-ui/` (browser UI) vs `salesforcedx-vscode-soql/` (ext host).
