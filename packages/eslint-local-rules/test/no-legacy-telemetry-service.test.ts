@@ -19,7 +19,7 @@ ruleTester.run('no-legacy-telemetry-service', noLegacyTelemetryService, {
     { code: `import type { TelemetryService } from '@salesforce/salesforcedx-utils-vscode';`, filename },
     { code: `import type * as utils from '@salesforce/salesforcedx-utils-vscode';`, filename },
     {
-      code: `import { type TelemetryService, isInternalHost } from '@salesforce/salesforcedx-utils-vscode';`,
+      code: `import { type TelemetryService, ChannelService } from '@salesforce/salesforcedx-utils-vscode';`,
       filename
     },
     { code: `import { TelemetryService } from './otherModule';`, filename },

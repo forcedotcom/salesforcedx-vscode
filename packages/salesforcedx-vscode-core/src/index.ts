@@ -10,13 +10,13 @@ import {
   ExtensionProviderService,
   getServicesApi
 } from '@salesforce/effect-ext-utils';
-import { ChannelService } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import { isError, isString } from 'effect/Predicate';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { configListCommand, initSObjectDefinitions } from './commands';
+import { ChannelService } from './commands/channelService';
 
 import { CommandEventDispatcher } from './commands/util/commandEventDispatcher';
 import { ENABLE_SOBJECT_REFRESH_ON_STARTUP, SFDX_CORE_EXTENSION_NAME } from './constants';
