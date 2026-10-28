@@ -589,7 +589,6 @@ export default [
       'packages/effect-ext-utils/**/*.ts',
       'packages/effect-octokit/**/*.ts',
       'packages/salesforcedx-lightning-lsp-common/**/*.ts',
-      'packages/salesforcedx-utils-vscode/**/*.ts',
       'packages/salesforcedx-vscode-apex/**/*.ts',
       'packages/salesforcedx-vscode-apex-debugger/**/*.ts',
       'packages/salesforcedx-vscode-apex-log/**/*.ts',

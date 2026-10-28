@@ -27,7 +27,7 @@ ruleTester.run('no-inline-esbuild-platform', noInlineEsbuildPlatform, {
     {
       // ternary test = BinaryExpression operand
       code: `const reporter = process.env.ESBUILD_PLATFORM === 'web' ? webReporter : nodeReporter;`,
-      filename: 'packages/salesforcedx-utils-vscode/src/test.ts'
+      filename: 'packages/salesforcedx-vscode-core/src/test.ts'
     },
     {
       code: `return process.env.ESBUILD_PLATFORM === 'web';`,

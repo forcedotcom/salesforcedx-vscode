@@ -179,7 +179,6 @@
         "./packages/eslint-local-rules:compile",
         "./packages/salesforcedx-utils:compile",
         "./packages/salesforcedx-vscode-i18n:compile",
-        "./packages/salesforcedx-utils-vscode:compile",
         "./packages/soql-common:compile",
         "./packages/soql-model:compile",
         "./packages/soql-builder-ui:compile",
@@ -216,7 +215,6 @@
         "./packages/eslint-local-rules:lint",
         "./packages/salesforcedx-utils:lint",
         "./packages/salesforcedx-vscode-i18n:lint",
-        "./packages/salesforcedx-utils-vscode:lint",
         "./packages/soql-common:lint",
         "./packages/soql-model:lint",
         "./packages/soql-builder-ui:lint",
@@ -262,7 +260,6 @@
         "./packages/eslint-local-rules:test",
         "./packages/salesforcedx-utils:test",
         "./packages/salesforcedx-vscode-i18n:test",
-        "./packages/salesforcedx-utils-vscode:test",
         "./packages/soql-common:test",
         "./packages/soql-model:test",
         "./packages/soql-builder-ui:test",
@@ -544,7 +541,6 @@
     },
     "check:effect-diagnostics": {
       "dependencies": [
-        "./packages/salesforcedx-utils-vscode:check:effect-diagnostics",
         "./packages/soql-builder-ui:check:effect-diagnostics",
         "./packages/salesforcedx-apex:check:effect-diagnostics",
         "./packages/salesforcedx-apex-debugger:check:effect-diagnostics",
