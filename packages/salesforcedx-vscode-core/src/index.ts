@@ -32,6 +32,8 @@ import { getEnableAllExceptionCatcher } from './settings/salesforceCoreSettings'
 import { showTelemetryMessage, telemetryService } from './telemetry';
 import { ensureCurrentWorkingDirIsProjectPath } from './util/workingDirectory';
 
+export type { OrgShape } from './context/workspaceOrgShape';
+
 /** Customer-facing commands */
 const registerCommands = (_extensionContext: vscode.ExtensionContext): vscode.Disposable =>
   vscode.Disposable.from(registerGetTelemetryServiceCommand());

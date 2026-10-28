@@ -31,7 +31,6 @@
     "@salesforce/core": "^9.3.0",
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/salesforcedx-utils": "workspace:*",
-    "@salesforce/salesforcedx-utils-vscode": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
     "effect": "^3.21.2",
     "fast-xml-parser": "^5.7.1",
@@ -70,7 +69,6 @@
       "dependencies": [
         "../effect-ext-utils:compile",
         "../salesforcedx-utils:compile",
-        "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-services:compile"
       ],
