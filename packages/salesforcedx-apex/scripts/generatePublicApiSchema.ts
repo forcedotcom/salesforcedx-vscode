@@ -11,9 +11,6 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import * as Prettier from 'prettier';
 import {
-  ApexClassId,
-  ApexTriggerId,
-  SalesforceId,
   type ApexCodeCoverage,
   type ApexCodeCoverageAggregate,
   type ApexCodeCoverageAggregateRecord,
@@ -61,6 +58,18 @@ import {
   ExecuteAnonymousOutcomeSchema
 } from '../src/effect';
 import { ApexLogPageSchema } from '../src/effect/schema/wire/logs';
+import {
+  ApexDiagnosticSchema,
+  ApexTestRunResultStatusSchema,
+  ApexTestResultDataRawSchema,
+  ApexTestResultDataSchema,
+  ApexTestResultOutcomeSchema,
+  ApexTestSetupDataSchema,
+  CodeCoverageResultSchema,
+  PerClassCoverageSchema,
+  TestResultRawSchema,
+  TestResultSchema
+} from '../src/tests/types';
 
 const optional = Schema.optional;
 const StringArray = Schema.Array(Schema.String);
@@ -74,15 +83,6 @@ const CommonOptionsSchema = Schema.Struct({
   json: optional(Schema.Boolean),
   loglevel: optional(LogLevelSchema)
 }).annotations({ identifier: 'CommonOptions' });
-
-const ApexDiagnosticSchema = Schema.Struct({
-  lineNumber: optional(Schema.Number),
-  columnNumber: optional(Schema.Number),
-  exceptionMessage: Schema.String,
-  compileProblem: Schema.String,
-  exceptionStackTrace: Schema.String,
-  className: optional(Schema.String)
-}).annotations({ identifier: 'ApexDiagnostic' });
 
 const SerializedBufferSchema = Schema.Struct({
   type: Schema.Literal('Buffer'),
@@ -222,31 +222,6 @@ const ApexCodeCoverageAggregateSchema = Schema.Struct({
   records: Schema.Array(ApexCodeCoverageAggregateRecordSchema)
 }).annotations({ identifier: 'ApexCodeCoverageAggregate' });
 
-const PerClassCoverageSchema = Schema.Struct({
-  apexClassOrTriggerName: Schema.String,
-  apexClassOrTriggerId: Schema.Union(ApexClassId, ApexTriggerId),
-  apexTestClassId: ApexClassId,
-  apexTestMethodName: Schema.String,
-  numLinesCovered: Schema.Number,
-  numLinesUncovered: Schema.Number,
-  percentage: Schema.String,
-  coverage: optional(CoverageLinesSchema)
-}).annotations({ identifier: 'PerClassCoverage' });
-
-const ApexTestResultOutcomeSchema = Schema.Literal('Pass', 'Fail', 'CompileFail', 'Skip').annotations({
-  identifier: 'ApexTestResultOutcome'
-});
-
-const ApexTestRunResultStatusSchema = Schema.Literal(
-  'Queued',
-  'Processing',
-  'Aborted',
-  'Passed',
-  'Failed',
-  'Completed',
-  'Skipped'
-).annotations({ identifier: 'ApexTestRunResultStatus' });
-
 const ApexTestQueueItemStatusSchema = Schema.Literal(
   'Holding',
   'Queued',
@@ -256,99 +231,6 @@ const ApexTestQueueItemStatusSchema = Schema.Literal(
   'Completed',
   'Failed'
 ).annotations({ identifier: 'ApexTestQueueItemStatus' });
-
-const ApexClassSchema = Schema.Struct({
-  id: Schema.String,
-  name: Schema.String,
-  namespacePrefix: Schema.NullOr(Schema.String),
-  fullName: Schema.String
-});
-
-const ApexTestResultDataSchema = Schema.Struct({
-  id: Schema.String,
-  queueItemId: Schema.String,
-  stackTrace: Schema.NullOr(Schema.String),
-  message: Schema.NullOr(Schema.String),
-  asyncApexJobId: Schema.Union(Schema.Literal(''), SalesforceId),
-  methodName: Schema.String,
-  outcome: ApexTestResultOutcomeSchema,
-  apexLogId: Schema.NullOr(Schema.String),
-  apexClass: ApexClassSchema,
-  runTime: Schema.Number,
-  testTimestamp: Schema.String,
-  fullName: Schema.String,
-  perClassCoverage: PerClassCoverageSchema.pipe(Schema.Array, optional),
-  diagnostic: optional(ApexDiagnosticSchema),
-  category: optional(Schema.String)
-}).annotations({ identifier: 'ApexTestResultData' });
-
-const ApexTestResultDataRawSchema = Schema.Struct({
-  ...ApexTestResultDataSchema.fields,
-  isTestSetup: optional(Schema.Boolean)
-}).annotations({ identifier: 'ApexTestResultDataRaw' });
-
-const ApexTestSetupDataSchema = Schema.Struct({
-  id: Schema.String,
-  stackTrace: Schema.NullOr(Schema.String),
-  message: Schema.NullOr(Schema.String),
-  asyncApexJobId: SalesforceId,
-  methodName: Schema.String,
-  apexLogId: Schema.NullOr(Schema.String),
-  apexClass: ApexClassSchema,
-  testSetupTime: Schema.Number,
-  testTimestamp: Schema.String,
-  fullName: Schema.String,
-  diagnostic: optional(ApexDiagnosticSchema)
-}).annotations({ identifier: 'ApexTestSetupData' });
-
-const CodeCoverageResultSchema = Schema.Struct({
-  apexId: Schema.String,
-  name: Schema.String,
-  type: Schema.Literal('ApexClass', 'ApexTrigger'),
-  numLinesCovered: Schema.Number,
-  numLinesUncovered: Schema.Number,
-  percentage: Schema.String,
-  coveredLines: NumberArray,
-  uncoveredLines: NumberArray
-}).annotations({ identifier: 'CodeCoverageResult' });
-
-const TestResultSummarySchema = Schema.Struct({
-  failRate: Schema.String,
-  testsRan: Schema.Number,
-  orgId: Schema.String,
-  outcome: Schema.String,
-  passing: Schema.Number,
-  failing: Schema.Number,
-  skipped: Schema.Number,
-  passRate: Schema.String,
-  skipRate: Schema.String,
-  testStartTime: Schema.String,
-  testExecutionTimeInMs: Schema.Number,
-  testTotalTimeInMs: Schema.Number,
-  testSetupTimeInMs: optional(Schema.Number),
-  commandTimeInMs: Schema.Number,
-  hostname: Schema.String,
-  username: Schema.String,
-  testRunId: Schema.String,
-  userId: Schema.String,
-  testRunCoverage: optional(Schema.String),
-  orgWideCoverage: optional(Schema.String),
-  totalLines: optional(Schema.Number),
-  coveredLines: optional(Schema.Number)
-});
-
-const TestResultRawSchema = Schema.Struct({
-  summary: TestResultSummarySchema,
-  tests: Schema.Array(ApexTestResultDataRawSchema),
-  codecoverage: CodeCoverageResultSchema.pipe(Schema.Array, optional)
-}).annotations({ identifier: 'TestResultRaw' });
-
-const TestResultSchema = Schema.Struct({
-  summary: TestResultSummarySchema,
-  tests: Schema.Array(ApexTestResultDataSchema),
-  setup: ApexTestSetupDataSchema.pipe(Schema.Array, optional),
-  codecoverage: CodeCoverageResultSchema.pipe(Schema.Array, optional)
-}).annotations({ identifier: 'TestResult' });
 
 const TestRunIdResultSchema = Schema.Struct({ testRunId: Schema.String }).annotations({
   identifier: 'TestRunIdResult'

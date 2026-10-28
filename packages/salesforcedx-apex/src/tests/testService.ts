@@ -63,39 +63,42 @@ export const writeResultFiles = async (
   const hasTestResult = Schema.is(TestResultSchema)(result);
   const testRunId = hasTestResult ? result.summary.testRunId : result.testRunId;
 
-  try {
-    await writeFile(join(dirPath, 'test-run-id.txt'), testRunId);
-    filesWritten.push(join(dirPath, 'test-run-id.txt'));
-  } catch (err) {
-    console.error(`Error writing file: ${err}`);
+  if (testRunId) {
+    try {
+      await writeFile(join(dirPath, 'test-run-id.txt'), testRunId);
+      filesWritten.push(join(dirPath, 'test-run-id.txt'));
+    } catch (err) {
+      console.error(`Error writing file: ${err}`);
+    }
   }
 
   if (resultFormats && hasTestResult) {
+    const fileId = testRunId || 'default';
     for (const format of resultFormats) {
       let filePath;
       let readable;
       switch (format) {
         case 'json':
-          filePath = join(dirPath, `test-result-${testRunId || 'default'}.json`);
+          filePath = join(dirPath, `test-result-${fileId}.json`);
           readable = TestResultStringifyStream.fromTestResult(result);
           break;
         case 'tap':
-          filePath = join(dirPath, `test-result-${testRunId}-tap.txt`);
+          filePath = join(dirPath, `test-result-${fileId}-tap.txt`);
           readable = new TapFormatTransformer(result);
           break;
         case 'junit':
-          filePath = join(dirPath, `test-result-${testRunId || 'default'}-junit.xml`);
+          filePath = join(dirPath, `test-result-${fileId}-junit.xml`);
           readable = new JUnitFormatTransformer(result);
           break;
         case 'markdown':
-          filePath = join(dirPath, `test-result-${testRunId || 'default'}.md`);
+          filePath = join(dirPath, `test-result-${fileId}.md`);
           readable = new MarkdownTextFormatTransformer(result, {
             format: 'markdown',
             codeCoverage
           });
           break;
         case 'text':
-          filePath = join(dirPath, `test-result-${testRunId || 'default'}.txt`);
+          filePath = join(dirPath, `test-result-${fileId}.txt`);
           readable = new MarkdownTextFormatTransformer(result, {
             format: 'text',
             codeCoverage
@@ -111,7 +114,8 @@ export const writeResultFiles = async (
   }
 
   if (codeCoverage && hasTestResult) {
-    const filePath = join(dirPath, `test-result-${testRunId}-codecoverage.json`);
+    const fileId = testRunId || 'default';
+    const filePath = join(dirPath, `test-result-${fileId}-codecoverage.json`);
     const c = result.tests.map(record => record.perClassCoverage).filter(pcc => pcc?.length);
     filesWritten.push(await runPipeline(new JsonStreamStringify(c), filePath));
   }

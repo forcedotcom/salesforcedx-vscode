@@ -90,7 +90,6 @@ export const testStartTime = '2020-11-09T18:02:50.000+0000';
 const localStartTime = new Date(testStartTime).toISOString();
 export const testRunId = '707xx0000AGQ3jbQQD';
 const asyncApexJobId = salesforceId(testRunId);
-const secondAsyncApexJobId = salesforceId('7092M000000Vt94QAC');
 
 export const syncResult: TestResult = {
   summary: {
@@ -109,16 +108,12 @@ export const syncResult: TestResult = {
     hostname: 'https://example.salesforce.com',
     orgId: '00Dxx0000000001AAA',
     username: 'test@example.com',
-    testRunId: '',
     userId: '005xx000000abcDAAU'
   },
   tests: [
     {
-      id: '',
-      queueItemId: '',
       stackTrace: '',
       message: '',
-      asyncApexJobId: '',
       methodName: 'testMethod',
       outcome: 'Pass',
       apexLogId: null,
@@ -142,6 +137,7 @@ export const testResultData: TestResult = {
     failRate: '0%',
     failing: 0,
     hostname: 'https://na139.salesforce.com',
+    orgId: '00Dxx0000000001AAA',
     testsRan: 1,
     outcome: 'Passed',
     passRate: '100%',
@@ -185,6 +181,7 @@ export const flowTestResultData: TestResult = {
     failRate: '0%',
     failing: 0,
     hostname: 'https://na139.salesforce.com',
+    orgId: '00Dxx0000000001AAA',
     testsRan: 1,
     outcome: 'Passed',
     passRate: '100%',
@@ -201,17 +198,14 @@ export const flowTestResultData: TestResult = {
   },
   tests: [
     {
-      id: '07Mxx00000F2Xx6UAF',
+      id: '2hUxx00000F2Xx6UAF',
       queueItemId: '7092M000000Vt94QAC',
-      stackTrace: '',
-      message: '',
-      asyncApexJobId: secondAsyncApexJobId,
+      stackTrace: null,
+      message: null,
       category: 'Flow',
       methodName: 'FlowName_FlowTestName',
       outcome: 'Pass',
-      apexLogId: '',
       apexClass: {
-        id: '7092M000000Vt94QAC',
         name: 'FlowName',
         namespacePrefix: '',
         fullName: 'FlowName'
@@ -231,6 +225,7 @@ export const missingTimeTestData: TestResult = {
     failRate: '0%',
     failing: 0,
     hostname: 'https://na139.salesforce.com',
+    orgId: '00Dxx0000000001AAA',
     testsRan: 1,
     outcome: 'Passed',
     passRate: '100%',
@@ -277,6 +272,7 @@ export const skippedTestData: TestResult = {
     failRate: '0%',
     failing: 0,
     hostname: 'https://na139.salesforce.com',
+    orgId: '00Dxx0000000001AAA',
     testsRan: 1,
     outcome: 'Skipped',
     passRate: '0%',
@@ -303,7 +299,7 @@ export const skippedTestData: TestResult = {
       outcome: 'Skip',
       apexLogId: null,
       apexClass: {
-        id: '7092M000000Vt94QAC',
+        id: '01pxx00000O6tXZQAZ',
         name: 'TestLogger',
         namespacePrefix: 't3st',
         fullName: 't3st.TestLogger'
@@ -321,6 +317,7 @@ const failureSummary = {
   failRate: '100%',
   failing: 1,
   hostname: 'https://na139.salesforce.com',
+  orgId: '00Dxx0000000001AAA',
   testsRan: 1,
   outcome: 'Failed',
   passRate: '0%',

@@ -9,12 +9,12 @@ import type { CodeCoverage } from './codeCoverage';
 import type { QueryResult, Record as JsforceRecord } from '@jsforce/jsforce-node';
 import { type Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
-import { isError } from 'effect/Predicate';
+import { isError, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { type Progress } from '../common';
 import { nls } from '../i18n';
-import { SalesforceId } from '../schemas/salesforceId';
 import {
+  ApexTestSetupDataSchema,
   type ApexTestProgressValue,
   type ApexTestResultData,
   type ApexTestResultDataRaw,
@@ -147,6 +147,7 @@ export const calculateCodeCoverage = async (
 
     if (perClassCovMap.size > 0) {
       result.tests.forEach(item => {
+        if (isUndefined(item.apexClass.id)) return;
         const keyCodeCov = `${item.apexClass.id}-${item.methodName}`;
         const perClassCov = perClassCovMap.get(keyCodeCov);
         // Skipped test is not in coverage map, check to see if perClassCov exists first
@@ -179,12 +180,11 @@ export const computeTestCategory = (testNamespace: string | null): TestCategory 
 export const isFlowTest = (test: string | null): boolean => test?.startsWith('FlowTesting.') ?? false;
 
 const transformToApexTestSetupData = (testData: Omit<ApexTestResultDataRaw, 'isTestSetup'>): ApexTestSetupData =>
-  // Assuming all necessary properties are present and optional properties are handled
-  ({
+  Schema.decodeUnknownSync(ApexTestSetupDataSchema)({
     id: testData.id,
     stackTrace: testData.stackTrace ?? null,
     message: testData.message ?? null,
-    asyncApexJobId: Schema.decodeUnknownSync(SalesforceId)(testData.asyncApexJobId),
+    asyncApexJobId: testData.asyncApexJobId,
     methodName: testData.methodName,
     apexLogId: testData.apexLogId ?? null,
     apexClass: testData.apexClass,

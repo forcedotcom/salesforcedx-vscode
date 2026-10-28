@@ -101,6 +101,10 @@ describe('Run Apex tests asynchronously', () => {
   beforeEach(async () => {
     await $$.stubAuths(testData);
     mockConnection = await testData.getConnection();
+    $$.SANDBOX.stub(mockConnection, 'getAuthInfoFields').returns({
+      ...mockConnection.getAuthInfoFields(),
+      orgId: '00Dxx0000000001AAA'
+    });
     retrieveMaxApiVersionStub = $$.SANDBOX.stub(mockConnection, 'retrieveMaxApiVersion').resolves('61.0');
     $$.SANDBOX.stub(mockConnection, 'instanceUrl').get(() => 'https://na139.salesforce.com');
     $$.SANDBOX.stub(mockConnection, 'getApiVersion').resolves('50.0');
@@ -244,7 +248,7 @@ describe('Run Apex tests asynchronously', () => {
       totalSize: 1,
       records: [
         {
-          Id: '07Mxx00000F2Xx6UAF',
+          Id: '2hUxx00000F2Xx6UAF',
           ApexTestQueueItemId: '7092M000000Vt94QAC',
           Result: 'Pass',
           TestStartDateTime: '3',
@@ -291,6 +295,9 @@ describe('Run Apex tests asynchronously', () => {
     testResultQuery += `FROM FlowTestResult WHERE ApexTestQueueItemId IN ('${pollResponseForFlowTest.records[0].Id}')`;
     expect(mockToolingQuery.getCall(1).args[0]).toBe(testResultQuery);
     expect(getTestResultData).toEqual(flowTestResultData);
+    expect(getTestResultData.tests[0]).not.toHaveProperty('asyncApexJobId');
+    expect(getTestResultData.tests[0]).not.toHaveProperty('apexLogId');
+    expect(getTestResultData.tests[0].apexClass).not.toHaveProperty('id');
   });
 
   it('should return correct summary outcome for single skipped test', async () => {
@@ -315,7 +322,7 @@ describe('Run Apex tests asynchronously', () => {
           Outcome: 'Skip',
           ApexLogId: null,
           ApexClass: {
-            Id: '7092M000000Vt94QAC',
+            Id: '01pxx00000O6tXZQAZ',
             Name: 'TestLogger',
             NamespacePrefix: 't3st',
             FullName: 't3st__TestLogger'
@@ -708,7 +715,7 @@ describe('Run Apex tests asynchronously', () => {
       totalSize: 1,
       records: [
         {
-          Id: '7092M000000Vt94QAC',
+          Id: '07Mxx00000F2Xx6UAF',
           AsyncApexJobId: testRunId,
           Status: 'Completed',
           StartTime: testStartTime,

@@ -6,7 +6,20 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { ApexClassId, ApexLogId, ApexTriggerId, SalesforceId, TestRunId, UserId } from '../../src/schemas/salesforceId';
+import {
+  ApexClassId,
+  ApexLogId,
+  ApexTestQueueItemId,
+  ApexTestResultId,
+  ApexTriggerId,
+  FlowTestResultId,
+  OrgIdString,
+  SalesforceId,
+  TestRunId,
+  TestRunIdString,
+  UserId,
+  UserIdString
+} from '../../src/schemas/salesforceId';
 
 describe('Salesforce ID schemas', () => {
   it('accepts 15- and 18-character alphanumeric Salesforce IDs', () => {
@@ -23,8 +36,14 @@ describe('Salesforce ID schemas', () => {
 
   it('accepts only IDs with the User prefix', () => {
     expect(Schema.is(UserId)('005xx0000000001')).toBe(true);
+    expect(Schema.is(UserIdString)('005xx0000000001')).toBe(true);
     expect(Schema.is(UserId)('01p2M00000O6tXZQAZ')).toBe(false);
     expect(Schema.is(UserId)('005xx000000')).toBe(false);
+  });
+
+  it('accepts only IDs with the Organization prefix', () => {
+    expect(Schema.is(OrgIdString)('00Dxx0000000001AAA')).toBe(true);
+    expect(Schema.is(OrgIdString)('005xx0000000001AAA')).toBe(false);
   });
 
   it('accepts only IDs with the ApexLog prefix', () => {
@@ -43,6 +62,19 @@ describe('Salesforce ID schemas', () => {
 
   it('accepts only IDs with the test run prefix', () => {
     expect(Schema.is(TestRunId)('707xx0000AGQ3jbQQD')).toBe(true);
+    expect(Schema.is(TestRunIdString)('707xx0000AGQ3jbQQD')).toBe(true);
     expect(Schema.is(TestRunId)('01p2M00000O6tXZQAZ')).toBe(false);
+  });
+
+  it('validates Apex and Flow test result IDs separately', () => {
+    expect(Schema.is(ApexTestResultId)('07Mxx00000F2Xx6UAF')).toBe(true);
+    expect(Schema.is(ApexTestResultId)('2hUxx0000000001AAA')).toBe(false);
+    expect(Schema.is(FlowTestResultId)('2hUxx0000000001AAA')).toBe(true);
+    expect(Schema.is(FlowTestResultId)('07Mxx00000F2Xx6UAF')).toBe(false);
+  });
+
+  it('accepts only IDs with the Apex test queue item prefix', () => {
+    expect(Schema.is(ApexTestQueueItemId)('7092M000000Vt94QAC')).toBe(true);
+    expect(Schema.is(ApexTestQueueItemId)('707xx0000AGQ3jbQQD')).toBe(false);
   });
 });

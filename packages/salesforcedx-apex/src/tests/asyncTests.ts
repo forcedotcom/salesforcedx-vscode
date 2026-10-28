@@ -7,7 +7,7 @@
 
 import { AuthInfo, Connection, Logger, LoggerLevel, PollingClient } from '@salesforce/core';
 import { Duration } from '@salesforce/kit';
-import { isNotNull, isNull } from 'effect/Predicate';
+import { isNotNull, isNull, isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { JsonStreamStringify } from 'json-stream-stringify';
 import { createWriteStream } from 'node:fs';
@@ -18,7 +18,17 @@ import { pipeline } from 'node:stream/promises';
 import * as util from 'node:util';
 import { type CancellationToken, type Progress } from '../common';
 import { nls } from '../i18n';
-import { SalesforceId, TestRunId } from '../schemas/salesforceId';
+import {
+  ApexClassId,
+  ApexLogId,
+  ApexTestQueueItemId,
+  ApexTestResultId,
+  FlowTestResultId,
+  OrgIdString,
+  TestRunId,
+  TestRunIdString,
+  UserIdString
+} from '../schemas/salesforceId';
 import { type AsyncTestRun, StreamingClient } from '../streaming';
 import { elapsedTime, formatStartTime, getCurrentTime, HeapMonitor } from '../utils';
 import { CodeCoverage } from './codeCoverage';
@@ -401,10 +411,10 @@ export class AsyncTests {
           testTotalTimeInMs: testRunSummary.TestTime ?? 0,
           commandTimeInMs: getCurrentTime() - commandStartTime,
           hostname: this.connection.instanceUrl,
-          orgId: this.connection.getAuthInfoFields().orgId ?? '',
+          orgId: Schema.decodeUnknownSync(OrgIdString)(this.connection.getAuthInfoFields().orgId),
           username: this.connection.getUsername() ?? '',
-          testRunId: asyncRunResult.runId,
-          userId: testRunSummary.UserId
+          testRunId: Schema.decodeUnknownSync(TestRunIdString)(asyncRunResult.runId),
+          userId: Schema.decodeUnknownSync(UserIdString)(testRunSummary.UserId)
         },
         tests: testResults
       };
@@ -445,15 +455,12 @@ export class AsyncTests {
       const tmpRecords: ApexTestResultRecord[] = flowtestResult.records.map(record => ({
         Id: record.Id,
         QueueItemId: record.ApexTestQueueItemId,
-        StackTrace: '', // Default value
-        Message: '', // Default value
-        AsyncApexJobId: record.ApexTestQueueItemId, // Assuming this maps from ApexTestQueueItem
+        StackTrace: null,
+        Message: null,
         MethodName: record.FlowTest.DeveloperName,
         Outcome: record.Result,
-        ApexLogId: '', // Default value
         IsTestSetup: false,
         ApexClass: {
-          Id: record.ApexTestQueueItemId,
           Name: record.FlowDefinition.DeveloperName,
           NamespacePrefix: record.FlowDefinition.NamespacePrefix,
           FullName: record.FlowDefinition.NamespacePrefix
@@ -511,7 +518,9 @@ export class AsyncTests {
               break;
           }
 
-          apexTestClassIdSet.add(item.ApexClass.Id);
+          if (isNotUndefined(item.ApexClass.Id)) {
+            apexTestClassIdSet.add(item.ApexClass.Id);
+          }
           // Can only query the FullName field if a single record is returned, so manually build the field
           item.ApexClass.FullName = item.ApexClass.NamespacePrefix
             ? `${item.ApexClass.NamespacePrefix}.${item.ApexClass.Name}`
@@ -520,17 +529,23 @@ export class AsyncTests {
           const diagnostic = item.Message || item.StackTrace ? getDiagnostic(item) : null;
 
           testResults.push({
-            id: item.Id,
-            queueItemId: item.QueueItemId,
+            id: Schema.decodeUnknownSync(result.category === 'Flow' ? FlowTestResultId : ApexTestResultId)(item.Id),
+            queueItemId: Schema.decodeUnknownSync(ApexTestQueueItemId)(item.QueueItemId),
             stackTrace: item.StackTrace,
             message: item.Message,
-            asyncApexJobId: Schema.decodeUnknownSync(SalesforceId)(item.AsyncApexJobId),
+            ...(isNotUndefined(item.AsyncApexJobId)
+              ? { asyncApexJobId: Schema.decodeUnknownSync(TestRunId)(item.AsyncApexJobId) }
+              : {}),
             methodName: item.MethodName,
             outcome: item.Outcome,
-            apexLogId: item.ApexLogId,
+            ...(isNotUndefined(item.ApexLogId)
+              ? { apexLogId: isNull(item.ApexLogId) ? null : Schema.decodeUnknownSync(ApexLogId)(item.ApexLogId) }
+              : {}),
             isTestSetup: item.IsTestSetup,
             apexClass: {
-              id: item.ApexClass.Id,
+              ...(isNotUndefined(item.ApexClass.Id)
+                ? { id: Schema.decodeUnknownSync(ApexClassId)(item.ApexClass.Id) }
+                : {}),
               name: item.ApexClass.Name,
               namespacePrefix: item.ApexClass.NamespacePrefix,
               fullName: item.ApexClass.FullName

@@ -49,7 +49,7 @@ describe('MarkdownTextFormatTransformer', () => {
             {
               apexClassOrTriggerName: 'TestClass',
               apexClassOrTriggerId: apexClassId('01p000000000001AAA'),
-              apexTestClassId: apexClassId(test.apexClass.id),
+              apexTestClassId: apexClassId(test.apexClass.id!),
               apexTestMethodName: test.methodName,
               numLinesCovered: 80,
               numLinesUncovered: 20,
@@ -413,7 +413,7 @@ describe('MarkdownTextFormatTransformer', () => {
               {
                 apexClassOrTriggerName: 'LCOUtilsTest',
                 apexClassOrTriggerId: apexClassId('01p000000000001AAA'),
-                apexTestClassId: apexClassId(successResult.tests[0].apexClass.id),
+                apexTestClassId: apexClassId(successResult.tests[0].apexClass.id!),
                 apexTestMethodName: 'test_LCOSDCreateController_assignDefaultPAItems',
                 numLinesCovered: 2,
                 numLinesUncovered: 98,

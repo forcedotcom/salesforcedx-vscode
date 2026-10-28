@@ -51,7 +51,7 @@ describe('JUnitFormatTransformer', () => {
   });
 
   it('should format test results with undefined or empty values', async () => {
-    successResult.summary.testRunId = '';
+    successResult.summary.testRunId = undefined;
     successResult.summary.userId = undefined as unknown as string;
     const result = await runPipeline(new JUnitFormatTransformer(successResult));
     expect(result).not.toHaveLength(0);

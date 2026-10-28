@@ -47,12 +47,12 @@ describe('writeAsyncResultsToFile', () => {
       hostname: 'test-host',
       orgId: '00D000000000000EAA',
       username: 'test@example.com',
-      testRunId: 'async-test-run-123',
+      testRunId: '707000000000003AAA',
       userId: '005000000000000AAA'
     },
     tests: [
       {
-        id: '01p000000000001AAA',
+        id: '07M000000000001AAA',
         queueItemId: '709000000000001AAA',
         stackTrace: null as string | null,
         message: null as string | null,
@@ -71,7 +71,7 @@ describe('writeAsyncResultsToFile', () => {
         fullName: 'AsyncTestClass1.testAsyncMethod1'
       },
       {
-        id: '01p000000000002AAA',
+        id: '07M000000000002AAA',
         queueItemId: '709000000000002AAA',
         stackTrace: 'System.AssertException: Async test assertion failed',
         message: 'Async test failed',
@@ -102,7 +102,7 @@ describe('writeAsyncResultsToFile', () => {
 
     const content = await readFile(expectedPath, 'utf8');
     const parsedContent = JSON.parse(content);
-    expect(parsedContent.summary.testRunId).toBe('async-test-run-123');
+    expect(parsedContent.summary.testRunId).toBe('707000000000003AAA');
     expect(parsedContent.tests).toHaveLength(2);
     expect(parsedContent.tests[0].methodName).toBe('testAsyncMethod1');
     expect(parsedContent.tests[1].methodName).toBe('testAsyncMethod2');
@@ -185,7 +185,7 @@ describe('writeAsyncResultsToFile', () => {
         hostname: 'test-host',
         orgId: '00D000000000000EAA',
         username: 'test@example.com',
-        testRunId: 'empty-test-run',
+        testRunId: '707000000000004AAA',
         userId: '005000000000000AAA'
       },
       tests: []
@@ -217,7 +217,7 @@ describe('writeAsyncResultsToFile', () => {
 
     const content = await readFile(expectedPath, 'utf8');
     const parsedContent = JSON.parse(content);
-    expect(parsedContent.summary.testRunId).toBe('async-test-run-123');
+    expect(parsedContent.summary.testRunId).toBe('707000000000003AAA');
 
     // Cleanup
     await rm(join(tmpdir(), runId), { recursive: true, force: true });
@@ -302,7 +302,7 @@ describe('writeAsyncResultsToFile', () => {
 
       const content = await readFile(expectedPath, 'utf8');
       const parsedContent = JSON.parse(content);
-      expect(parsedContent.summary.testRunId).toBe('async-test-run-123');
+      expect(parsedContent.summary.testRunId).toBe('707000000000003AAA');
 
       // Cleanup
       await rm(join(tmpdir(), runId), { recursive: true, force: true });
@@ -348,12 +348,12 @@ describe('writeAsyncResultsToFile', () => {
         hostname: 'test-host',
         orgId: '00D000000000000EAA',
         username: 'test@example.com',
-        testRunId: 'null-test-run',
+        testRunId: '707000000000005AAA',
         userId: '005000000000000AAA'
       },
       tests: [
         {
-          id: '01p000000000001AAA',
+          id: '07M000000000001AAA',
           queueItemId: '709000000000001AAA',
           stackTrace: null as string | null,
           message: null as string | null,
