@@ -200,10 +200,12 @@ jobs:
       package-manager: pnpm
       package-manager-version: ''
 
-  # promote-to-prerelease.yml committed this week's changelog delta to develop
-  # labeled with the prerelease version. Now that it has shipped stable, relabel that same
-  # develop history entry (root CHANGELOG.md + the pack's CHANGELOG.md) to the stable version.
-  relabel-changelog:
+  # promote-to-prerelease.yml prepended one root CHANGELOG.md section per promoted pre-release,
+  # labeled with the pre-release version. Now that this release has shipped stable, fold every
+  # section it contains into one section for the stable version, so develop's history matches
+  # what shipped. A hotfix that contains no pre-release sections gets the notes committed on its
+  # own branch instead.
+  fold-changelog:
     needs: [prepare-release-metadata, publish]
     if: always() && needs.publish.result == 'success' && inputs.dry-run != true
     runs-on: ubuntu-latest
@@ -223,42 +225,33 @@ jobs:
         with:
           email: ${{ secrets.IDEE_GH_EMAIL }}
 
-      - name: Determine prerelease version to relabel
-        id: relabel-version
+      # Manual dispatch can publish a pre-release tag; its sections stay pre-release history.
+      - name: Check release is stable
+        id: stable
         run: |
-          # build-github-release.yml always writes "Built from nightly: `<tag>`" for stable builds,
-          # even when the source was startFromRef rather than an actual nightly tag -- the
-          # nightly-tag-shaped grep below naturally no-ops for those (no promoted delta to relabel).
-          NIGHTLY_TAG=$(gh release view "$RELEASE_TAG" --json body -q .body | grep -oP '(?<=Built from nightly:.{0,10}`)v[\d.]+-nightly\.develop\.\d+' || true)
-          if [ -z "$NIGHTLY_TAG" ]; then
-            echo "No 'Built from nightly' reference found in release $RELEASE_TAG (likely a hotfix/startFromRef build) - skipping relabel."
-            echo "prerelease_version=" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
+          IS_PRERELEASE=$(gh release view "$RELEASE_TAG" --json isPrerelease -q .isPrerelease)
+          echo "is_stable=$([ "$IS_PRERELEASE" = "false" ] && echo true || echo false)" >> "$GITHUB_OUTPUT"
+          echo "$RELEASE_TAG isPrerelease=$IS_PRERELEASE"
 
-          PRERELEASE_VERSION=$(echo "$NIGHTLY_TAG" | grep -oP '\d+\.\d+\.\d+' | head -1)
-          if [ -z "$PRERELEASE_VERSION" ] || [ "$PRERELEASE_VERSION" = "$RELEASE_VERSION" ]; then
-            echo "Nothing to relabel (no prerelease version found, or already matches stable version)."
-            echo "prerelease_version=" >> "$GITHUB_OUTPUT"
-            exit 0
-          fi
-
-          echo "prerelease_version=$PRERELEASE_VERSION" >> "$GITHUB_OUTPUT"
-
-      - name: Relabel develop's changelog history to the stable version
-        if: steps.relabel-version.outputs.prerelease_version != ''
-        env:
-          PRERELEASE_VERSION: ${{ steps.relabel-version.outputs.prerelease_version }}
+      - name: Fold develop's pre-release changelog sections into the stable version
+        if: steps.stable.outputs.is_stable == 'true'
         run: |
-          node scripts/relabel-changelog-version.js "$PRERELEASE_VERSION" "$RELEASE_VERSION" CHANGELOG.md
-          node scripts/relabel-changelog-version.js "$PRERELEASE_VERSION" "$RELEASE_VERSION" packages/salesforcedx-vscode/CHANGELOG.md
+          git show "$RELEASE_TAG:packages/salesforcedx-vscode/CHANGELOG.md" > "$RUNNER_TEMP/release-CHANGELOG.md"
+          node scripts/fold-stable-changelog.js \
+            --changelog CHANGELOG.md \
+            --overlay packages/salesforcedx-vscode/CHANGELOG.md \
+            --ref "$RELEASE_TAG" \
+            --version "$RELEASE_VERSION" \
+            --date "$(date -u '+%B %-d, %Y')" \
+            --fallback-section "$RUNNER_TEMP/release-CHANGELOG.md" \
+            --write
 
-      - name: Commit relabeled changelog to develop
-        if: steps.relabel-version.outputs.prerelease_version != ''
+      - name: Commit folded changelog to develop
+        if: steps.stable.outputs.is_stable == 'true'
         uses: ./.github/actions/commitAndPushToDevelop
         with:
-          files: CHANGELOG.md packages/salesforcedx-vscode/CHANGELOG.md
-          message: "chore: relabel changelog v${{ steps.relabel-version.outputs.prerelease_version }} to v${{ env.RELEASE_VERSION }} [skip ci]"
+          files: CHANGELOG.md
+          message: "chore: fold changelog into v${{ env.RELEASE_VERSION }} [skip ci]"
 
   # Set repo variable CBW_TRIGGER_ENABLED=false to disable dispatch to code-builder-web.
   # Default (unset): dispatch after publish. Use when publishing without CBW promotion.

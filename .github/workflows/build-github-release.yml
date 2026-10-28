@@ -22,7 +22,7 @@ on:
         required: false
         type: string
       emergencyPrerelease:
-        description: 'Build via the emergency-hotfix path instead of stable? This workflow never publishes anything itself either way -- it only builds and creates the GitHub release. When true, skips the minor-bump/isolated-branch/changelog-relabel steps and packages the VSIX with vsce''s --pre-release flag, for a build meant to be promoted to the marketplace pre-release channel via promote-to-prerelease.yml. When releaseVersion is provided it is used as-is; when left empty it is auto-calculated from the registries.'
+        description: 'Build via the emergency-hotfix path instead of stable? This workflow never publishes anything itself either way -- it only builds and creates the GitHub release. When true, skips the minor-bump/isolated-branch/changelog-fold steps and packages the VSIX with vsce''s --pre-release flag, for a build meant to be promoted to the marketplace pre-release channel via promote-to-prerelease.yml. When releaseVersion is provided it is used as-is; when left empty it is auto-calculated from the registries.'
         required: false
         default: false
         type: boolean
@@ -198,7 +198,7 @@ jobs:
           # (Inlined from .github/actions/preserve-scripts to avoid action unavailability after checkout)
           mkdir -p /tmp/release-scripts
 
-          SCRIPTS="scripts/calculate-release-version.js scripts/update-release-versions.js"
+          SCRIPTS="scripts/calculate-release-version.js scripts/update-release-versions.js scripts/fold-stable-changelog.js"
 
           # Copy each script
           for script in $SCRIPTS; do
@@ -212,7 +212,7 @@ jobs:
 
           # Generate checksums for integrity verification
           cd scripts
-          sha256sum calculate-release-version.js update-release-versions.js > /tmp/release-scripts/checksums.txt
+          sha256sum calculate-release-version.js update-release-versions.js fold-stable-changelog.js > /tmp/release-scripts/checksums.txt
           cd ..
 
           echo "Generated checksums:"
@@ -242,7 +242,7 @@ jobs:
           # (Inlined from .github/actions/preserve-scripts to avoid action unavailability after checkout)
           mkdir -p scripts
 
-          SCRIPTS="scripts/calculate-release-version.js scripts/update-release-versions.js"
+          SCRIPTS="scripts/calculate-release-version.js scripts/update-release-versions.js scripts/fold-stable-changelog.js"
 
           # Verify all scripts exist in temp
           for script in $SCRIPTS; do
@@ -332,29 +332,30 @@ jobs:
 
       - name: Install dependencies with updated versions
         uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
-      - name: Relabel this week's changelog for stable release
-        # promote-to-prerelease.yml already generated and committed this week's
-        # delta to develop (labeled with the prerelease version); pull that exact content
-        # and relabel its header to the stable version being built here. Emergency
-        # pre-releases skip this -- they don't go through the weekly promote cycle. Stable
-        # hotfixes built via startFromRef also skip it (SOURCE_TAG there is an arbitrary
-        # ref, not a nightly tag), keeping whatever changelog is already in the working tree.
+      - name: Fold pre-release changelogs into this stable release's changelog
+        # promote-to-prerelease.yml prepends one section per promoted pre-release to develop's
+        # root CHANGELOG.md. This release can contain several (two promotions between stable
+        # builds, or a startFromRef build of a patched pre-release), so fold every section whose
+        # nightly is an ancestor of HEAD into one stable section and ship that. develop's package
+        # CHANGELOG.md is overlaid first to pick up polish applied there. The working-tree
+        # changelog is kept if it already starts with this version (a startFromRef branch that
+        # carries its own notes) or if nothing is contained (a hotfix of a stable release).
+        # Emergency pre-releases skip this -- they don't go through the weekly promote cycle.
         if: steps.calculate-version.outputs.is_emergency_prerelease != 'true'
         env:
           RELEASE_VERSION: ${{ steps.calculate-version.outputs.version }}
-          SOURCE_TAG: ${{ steps.detect-tag.outputs.tag }}
         run: |
-          if [[ ! "$SOURCE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-nightly\.develop\.[0-9]{8}$ ]]; then
-            echo "Source ref '$SOURCE_TAG' is not a nightly tag (hotfix/startFromRef build) - nothing to relabel."
-            exit 0
-          fi
-          PRERELEASE_VERSION=$(echo "$SOURCE_TAG" | grep -oP '\d+\.\d+\.\d+' | head -1)
-
           git fetch origin develop
-          git show origin/develop:packages/salesforcedx-vscode/CHANGELOG.md > packages/salesforcedx-vscode/CHANGELOG.md
-          node scripts/relabel-changelog-version.js "$PRERELEASE_VERSION" "$RELEASE_VERSION" packages/salesforcedx-vscode/CHANGELOG.md
-
-          echo "✓ Relabeled changelog v$PRERELEASE_VERSION → v$RELEASE_VERSION"
+          git show origin/develop:CHANGELOG.md > "$RUNNER_TEMP/develop-CHANGELOG.md"
+          git show origin/develop:packages/salesforcedx-vscode/CHANGELOG.md > "$RUNNER_TEMP/develop-package-CHANGELOG.md"
+          node scripts/fold-stable-changelog.js \
+            --changelog "$RUNNER_TEMP/develop-CHANGELOG.md" \
+            --overlay "$RUNNER_TEMP/develop-package-CHANGELOG.md" \
+            --ref HEAD \
+            --version "$RELEASE_VERSION" \
+            --date "$(date -u '+%B %-d, %Y')" \
+            --section-out packages/salesforcedx-vscode/CHANGELOG.md
+          head -1 packages/salesforcedx-vscode/CHANGELOG.md
 
       - name: Build VSIXs
         # vsce refuses to publish --pre-release against a VSIX that wasn't packaged

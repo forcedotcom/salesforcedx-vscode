@@ -344,6 +344,7 @@
         "vitest.config.mts",
         "scripts/**/*.ts",
         "scripts/clean-wireit-cache.js",
+        "scripts/fold-stable-changelog.js",
         "scripts/releaseDashboard.sh",
         "scripts/rerunPushE2EGate.sh",
         ".github/workflows/release-dashboard.yml",
