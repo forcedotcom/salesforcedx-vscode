@@ -757,9 +757,6 @@ importers:
       '@salesforce/salesforcedx-lightning-lsp-common':
         specifier: workspace:*
         version: link:../salesforcedx-lightning-lsp-common
-      '@salesforce/salesforcedx-utils':
-        specifier: workspace:*
-        version: link:../salesforcedx-utils
       '@salesforce/vscode-i18n':
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
@@ -802,9 +799,6 @@ importers:
       '@salesforce/effect-ext-utils':
         specifier: workspace:*
         version: link:../effect-ext-utils
-      '@salesforce/salesforcedx-utils':
-        specifier: workspace:*
-        version: link:../salesforcedx-utils
       '@salesforce/vscode-i18n':
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
