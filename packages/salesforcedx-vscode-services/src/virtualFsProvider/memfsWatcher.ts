@@ -12,7 +12,7 @@ import * as Stream from 'effect/Stream';
 // eslint-disable-next-line no-restricted-imports
 import type { FileChangeInfo } from 'node:fs/promises';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { ChannelService } from '../vscode/channelService';
 import { IndexedDBStorageService } from './indexedDbStorage';
 import { getProjectRoot } from './projectRoot';
@@ -41,6 +41,10 @@ export const updateIDB = Effect.fn('updateIDB')(
     const createdOrChanged =
       event.eventType === 'rename' ? vscode.FileChangeType.Created : vscode.FileChangeType.Changed;
     emitter.fire([{ type: exists ? createdOrChanged : vscode.FileChangeType.Deleted, uri }]);
+    // Catalog saves rename the staging file to catalog.json; persist only the final file.
+    if (Utils.basename(uri) === 'catalog.json.__staging__') {
+      return;
+    }
     return exists ? yield* storage.saveFile(fullPath) : yield* storage.deleteFile(fullPath);
   },
   Effect.catchTag('VirtualFsProviderError', error =>
