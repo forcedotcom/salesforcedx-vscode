@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+// eslint-disable-next-line no-restricted-imports -- Node-only declaration build; VS Code APIs are unavailable.
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
@@ -33,7 +34,7 @@ export type {
   ChildRelationship,
   SObject,
   SObjectField
-} from '../../salesforcedx-vscode-services/out/src/index';
+} from '../legacy/services';
 export { ICONS, type IconId } from './icons';
 `;
 

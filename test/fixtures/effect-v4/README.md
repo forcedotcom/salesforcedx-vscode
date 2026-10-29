@@ -24,7 +24,24 @@ This caught two real failures: an unpublished sibling declaration import (`TS230
 
 When the packed public artifact changes, regenerate its consumer lock intentionally with `node scripts/test-packed-services.mjs --update-lock`; this still installs and typechecks the package. Normal CI uses `npm ci`, never updates the lock. This does not claim support for untested V3 minors.
 
-**Open Spec P1:** an equivalent packed installation/typecheck for the actual V2 public package is still required. W-24615044 remains incomplete until both public declaration protocols are covered.
+## Actual packed V2 declarations
+
+The same gate packs `@salesforce/vscode-services-v2` from its real package-owned V4
+service keys, schemas and errors. An independent V4-only installation typechecks
+Connection/Alias/Config/org-ref calls and Context/Layer provisioning. Node/browser
+bundles execute those actual keys with injected test implementations. This verifies
+the initial public contract, not production V4 activation or Salesforce auth.
+
+A third independent installation contains both actual public packages and rejects
+cross-major Effect, Context, Layer and SubscriptionRef usage. All three consumers
+use `strict:true`, `skipLibCheck:false`, separate node_modules and committed registry
+locks. Regenerate only a selected lock with `--update-lock=packedV2` or
+`--update-lock=packedMixed`; regeneration still installs and typechecks.
+
+The legacy build now consumes a provenance-recorded V3 declaration snapshot rather
+than the provider's changing implementation. It synchronizes only release versions,
+not provider dependencies. V2's package-owned keys become the implementation's keys
+in later WIs; no live service graph is created by this package.
 
 ## Existing diagnostic rule compatibility
 

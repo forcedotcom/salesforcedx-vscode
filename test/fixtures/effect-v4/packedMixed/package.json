@@ -1,0 +1,14 @@
+{
+  "name": "@salesforce/effect-mixed-packed-consumer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@salesforce/vscode-services": "file:./packedLegacy.tgz",
+    "@salesforce/vscode-services-v2": "file:./packedV2.tgz",
+    "@types/node": "24.19.2",
+    "effect": "4.0.6",
+    "effect-v3": "npm:effect@3.21.2",
+    "typescript": "6.0.3"
+  }
+}

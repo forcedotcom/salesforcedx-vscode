@@ -61,6 +61,17 @@ UI-preview's vendored utils fork is not a direct API contract here. Inspect newl
 - Runtime activation returns both `services` and `v2.services`; consumer-local structural types remain valid. Internal providers request the V2 entry/type. Never repoint `api.services` or the existing package root to V4.
 - Replace `generateEntry.ts` / `syncDeps.ts`'s unconditional parent-service dependency/type copying. Packed legacy consumer fixture must install and typecheck with V3 and no installed V4; separate V2-package fixture must install and typecheck with V4. A root import must not transitively load V4 through an activation-return-type alias. Test independently installed/bundled V3 **3.21.2**, then every other supported locked consumer version discovered in the refreshed census. Do not infer arbitrary V3 minor-version compatibility from matching runtime results.
 
+W-24615044 establishes the real `@salesforce/vscode-services-v2` package with
+package-owned V4 Connection/Alias/Config/org-ref keys, schemas and typed failures.
+These are the initial contracts for later migrated implementation layers, not
+handwritten fixture declarations or a claim that production `api.v2` activation
+already exists. W-24615046 implements adapters, W-24615059 binds real connection/org
+instances, W-24615069 completes the surface, and W-24615075 completes consumers and
+publication integration. Do not redeclare the V4 keys in those implementations.
+Registry publication waits for coordinated cutover. Legacy declarations are frozen
+from the validated V3 provider at `6e0c02183a16b590a227bac5bc7c1f41f764289e`;
+only their release version tracks the provider thereafter.
+
 ## Inventory and WI ownership
 
 Reproduce every tracked static import/re-export, dynamic literal import/require, import type and direct dependency with `node scripts/effect-v4-inventory.mjs`. Output includes file paths, module specifiers, manifests and dependency sections; tests/fakes and root scripts are included. Generated declarations/build output are deliberately excluded. Check computed/dynamic module loading separately before final cutover; the script is a source census, not a bundle proof.
@@ -94,6 +105,14 @@ Current tracked census identifies **28 packages** with imports or direct depende
 ## Sequential stack and activation dependency closure
 
 Order: W-24615037 → W-24615044 → W-24615046 → W-24615048 → W-24615055 → W-24615059 → W-24615060 → W-24615063 → W-24615069 → W-24615075 → W-24615079 → W-24615083 → W-24615086 → W-24615089 → W-24615093 → W-24615098 → W-24615100 → W-24615101 → W-24615103. Use one focused PR per WI, each based on its immediate predecessor, even where the epic permits parallel work. Self-review each PR against its parent, not the cumulative stack.
+
+Register every PR in GitHub native stack **8542** (base `develop`), initially #8520 → #8521.
+Use `gh stack link` or `gh api` with the [REST stack endpoints](https://docs.github.com/en/rest/pulls/stacks):
+create with `POST /repos/forcedotcom/salesforcedx-vscode/stacks`, append with
+`POST /repos/forcedotcom/salesforcedx-vscode/stacks/8542/add`, and verify ordered
+membership with `GET /repos/forcedotcom/salesforcedx-vscode/stacks/8542`.
+Send ordered integer `pull_requests` and API version `2026-03-10`.
+Base-branch chaining or PR-body links alone do not satisfy native stack membership.
 
 Activation currently builds the complete services graph (`servicesLayers.ts`, `index.ts`); web filesystem bootstrap also needs registry services. Intermediate service slices therefore cannot promise fully working activation. Keep those changes on a non-releasing integration stack, use focused graphs with real migrated service instances, and perform full packaged activation after W-24615069. Do not satisfy intermediate checks by constructing a duplicate full V3 service graph, disabling checks, or silently routing first-party V4 callers back to V3.
 

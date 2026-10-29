@@ -4,7 +4,7 @@ TypeScript type definitions for the Salesforce VS Code Services extension API.
 
 ## Overview
 
-This package provides TypeScript type definitions for consuming the Salesforce VS Code Services extension API. It contains only type declarations (`.d.ts` files) with no runtime code, making it lightweight and suitable for type-checking during development.
+This package provides the legacy Effect V3 type definitions for consuming the Salesforce VS Code Services extension API. Its only runtime export is `ICONS`.
 
 ## Installation
 
@@ -76,11 +76,14 @@ This package bundles:
 
 - Type definitions for the public API
 - Type definitions for all transitive dependencies
-- No runtime code or JavaScript files
+- Runtime `ICONS`; service exports are type-only
 
 ## Development
 
-This package is automatically generated from the source code of the `salesforcedx-vscode-services` extension. Types and dependency versions are kept in sync with the parent package.
+The public entry is generated over the frozen declarations in `legacy/services.d.ts`.
+Only the release version tracks the extension; declaration dependencies remain
+independent of its future V4 implementation. Run `pnpm test:packed-services` from
+the repository root to verify a real packed installation with Effect V3 and no V4.
 
 ## License
 
