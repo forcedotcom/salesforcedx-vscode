@@ -37,7 +37,8 @@
     "generate-src": {
       "command": "ts-node scripts/generateEntry.ts && ts-node scripts/syncDeps.ts",
       "files": [
-        "../salesforcedx-vscode-services/src/**/*.ts",
+        "../salesforcedx-vscode-services/package.json",
+        "legacy/**/*.d.ts",
         "scripts/*.ts"
       ],
       "output": [
@@ -49,8 +50,7 @@
       "command": "tsc --pretty && dts-bundle-generator --project tsconfig.json --export-referenced-types false --out-file out/services.d.ts src/index.ts && node scripts/writePublicDeclarations.mjs",
       "clean": "if-file-deleted",
       "dependencies": [
-        "generate-src",
-        "../salesforcedx-vscode-services:compile"
+        "generate-src"
       ],
       "files": [
         "src/**/*.ts",

@@ -206,6 +206,7 @@
         "./packages/salesforcedx-vscode-services:compile",
         "./packages/salesforcedx-vscode-metadata:compile",
         "./packages/salesforcedx-vscode-services-types:compile",
+        "./packages/salesforcedx-vscode-services-v2:compile",
         "./packages/salesforcedx-vscode-org:compile",
         "./packages/salesforcedx-vscode-org-browser:compile",
         "./packages/drivable-vscode:compile",
@@ -238,6 +239,7 @@
         "./packages/salesforcedx-vscode-soql:lint",
         "./packages/salesforcedx-vscode-visualforce:lint",
         "./packages/salesforcedx-vscode-services:lint",
+        "./packages/salesforcedx-vscode-services-v2:lint",
         "./packages/salesforcedx-vscode-metadata:lint",
         "./packages/salesforcedx-vscode-org:lint",
         "./packages/salesforcedx-vscode-org-browser:lint",
@@ -374,11 +376,14 @@
     "test:packed-services": {
       "command": "node scripts/test-packed-services.mjs",
       "dependencies": [
-        "./packages/salesforcedx-vscode-services-types:compile"
+        "./packages/salesforcedx-vscode-services-types:compile",
+        "./packages/salesforcedx-vscode-services-v2:compile"
       ],
       "files": [
         "scripts/test-packed-services.mjs",
         "test/fixtures/effect-v4/packedLegacy/*.{ts,json}",
+        "test/fixtures/effect-v4/packedV2/*.{ts,json}",
+        "test/fixtures/effect-v4/packedMixed/*.{ts,json}",
         "package.json",
         "pnpm-lock.yaml"
       ],
@@ -594,6 +599,7 @@
         "./packages/salesforcedx-vscode-services:check:effect-diagnostics",
         "./packages/salesforcedx-vscode-metadata:check:effect-diagnostics",
         "./packages/salesforcedx-vscode-services-types:check:effect-diagnostics",
+        "./packages/salesforcedx-vscode-services-v2:check:effect-diagnostics",
         "./packages/salesforcedx-vscode-org:check:effect-diagnostics",
         "./packages/salesforcedx-vscode-org-browser:check:effect-diagnostics",
         "./packages/drivable-vscode:check:effect-diagnostics",

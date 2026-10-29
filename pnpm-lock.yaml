@@ -1605,6 +1605,15 @@ importers:
         specifier: ^10.9.2
         version: 10.9.2(@types/node@24.19.2)(typescript@6.0.3)
 
+  packages/salesforcedx-vscode-services-v2:
+    dependencies:
+      '@salesforce/core':
+        specifier: ^9.3.6
+        version: 9.3.6
+      effect:
+        specifier: 4.0.6
+        version: 4.0.6
+
   packages/salesforcedx-vscode-soql:
     dependencies:
       '@jsforce/jsforce-node':
@@ -6918,6 +6927,9 @@ packages:
 
   effect@3.22.2:
     resolution: {integrity: sha512-fm1CQXCs7GTMwpadZxwU5rnAb2bN6mbQpknq/pXBGCzSKkosNYb9k0wsoL0TfB10rSa5xOEZJjo77u/KLXSANg==}
+
+  effect@4.0.6:
+    resolution: {integrity: sha512-Tc3mkzuLR6t6P9dhLt0D2GrxYtmU5td4XEJEiXCmILz53IRIfJyHsKZWjTA3xEjiwpNTtXBgI4iqYPxMztBDrw==}
 
   ejs@3.1.10:
     resolution: {integrity: sha512-UeJmFfOrAQS8OJWPZ4qtgHyWExa088/MtK5UEyoJGFH67cDEXkZSviOiKRCZ4Xij0zxI3JECgYs3oKx+AizQBA==}
@@ -17803,6 +17815,8 @@ snapshots:
     dependencies:
       '@standard-schema/spec': 1.1.0
       fast-check: 3.23.2
+
+  effect@4.0.6: {}
 
   ejs@3.1.10:
     dependencies:

@@ -12,7 +12,7 @@ const statements = source.statements.map(statement =>
   ts.isExportDeclaration(statement) &&
   statement.moduleSpecifier &&
   ts.isStringLiteral(statement.moduleSpecifier) &&
-  statement.moduleSpecifier.text === '../../salesforcedx-vscode-services/out/src/index'
+  statement.moduleSpecifier.text === '../legacy/services'
     ? ts.factory.updateExportDeclaration(
         statement,
         statement.modifiers,
