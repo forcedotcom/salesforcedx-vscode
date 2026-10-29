@@ -62,10 +62,9 @@ export class HumanReporter {
         name: nls.localize('skipRate'),
         value: testResult.summary.skipRate
       },
-      {
-        name: nls.localize('testRunId'),
-        value: testResult.summary.testRunId
-      },
+      ...(testResult.summary.testRunId
+        ? [{ name: nls.localize('testRunId'), value: testResult.summary.testRunId }]
+        : []),
       {
         name: nls.localize('testSetupTime'),
         value: `${testResult.summary.testSetupTimeInMs || 0} ms`
@@ -82,10 +81,7 @@ export class HumanReporter {
         name: nls.localize('orgId'),
         value: testResult.summary.orgId
       },
-      {
-        name: nls.localize('username'),
-        value: testResult.summary.username
-      },
+      ...(testResult.summary.username ? [{ name: nls.localize('username'), value: testResult.summary.username }] : []),
       ...(testResult.summary.orgWideCoverage
         ? [
             {
@@ -152,10 +148,12 @@ export class HumanReporter {
   private formatSetup(testResult: TestResult): string {
     const testRowArray: Row[] = (testResult.setup ?? []).map(elem => ({
       name: elem.fullName,
-      time: `${elem.testSetupTime}`,
-      runId: testResult.summary.testRunId
+      time: `${elem.testSetupTime}`
     }));
     if (testRowArray.length > 0) {
+      const header = testResult.summary.testRunId
+        ? nls.localize('testSetupResultsHeader').replace('runId', testResult.summary.testRunId)
+        : nls.localize('testSetupResultsHeaderNoRunId');
       return new Table().createTable(
         testRowArray,
         [
@@ -165,7 +163,7 @@ export class HumanReporter {
           },
           { key: 'time', label: nls.localize('setupTimeColHeader') }
         ],
-        nls.localize('testSetupResultsHeader').replace('runId', testRowArray[0].runId)
+        header
       );
     }
     return '';
@@ -173,6 +171,9 @@ export class HumanReporter {
 
   @elapsedTime()
   private formatDetailedCov(testResult: TestResult, concise: boolean, showCategory: boolean): string {
+    const header = testResult.summary.testRunId
+      ? nls.localize('detailedCodeCovHeader', [testResult.summary.testRunId])
+      : nls.localize('detailedCodeCovHeaderNoRunId');
     const testRowArray: Row[] = testResult.tests
       .filter((elem: ApexTestResultData) => !concise || elem.outcome === 'Fail' || elem.outcome === 'CompileFail')
       .flatMap(elem => {
@@ -227,7 +228,7 @@ export class HumanReporter {
             { key: 'msg', label: nls.localize('msgColHeader') },
             { key: 'runtime', label: nls.localize('runtimeColHeader') }
           ],
-          nls.localize('detailedCodeCovHeader', [testResult.summary.testRunId])
+          header
         );
       }
       return new Table().createTable(
@@ -252,7 +253,7 @@ export class HumanReporter {
           { key: 'msg', label: nls.localize('msgColHeader') },
           { key: 'runtime', label: nls.localize('runtimeColHeader') }
         ],
-        nls.localize('detailedCodeCovHeader', [testResult.summary.testRunId])
+        header
       );
     }
     return '';

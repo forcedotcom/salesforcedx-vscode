@@ -9,13 +9,7 @@ import { elapsedTime } from '../../src/utils';
 import * as apexUtils from '../../src/utils';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import * as sinon from 'sinon';
-import {
-  TestService,
-  type OutputDirConfig,
-  type ApexTestProgressValue,
-  type Progress,
-  CancellationTokenSource
-} from '../../src';
+import { TestService, type OutputDirConfig, type ApexTestProgressReporter, CancellationTokenSource } from '../../src';
 import { JUnitFormatTransformer } from '../../src/reporters/junitFormatTransformer';
 import { TapFormatTransformer } from '../../src/reporters/tapFormatTransform';
 import {
@@ -44,7 +38,6 @@ import {
 import { join } from 'node:path';
 import * as fs from 'node:fs/promises';
 import * as diagnosticUtil from '../../src/tests/diagnosticUtil';
-import * as utils from '../../src/tests/utils';
 import { AsyncTests } from '../../src/tests/asyncTests';
 import { QUERY_RECORD_LIMIT } from '../../src/tests/constants';
 import { Writable } from 'node:stream';
@@ -57,10 +50,6 @@ vi.mock(import('../../src/tests/diagnosticUtil'), async importOriginal => {
 vi.mock(import('../../src/utils'), async importOriginal => ({
   ...(await importOriginal()),
   getCurrentTime: vi.fn()
-}));
-vi.mock(import('../../src/tests/utils'), async importOriginal => ({
-  ...(await importOriginal()),
-  queryNamespaces: vi.fn()
 }));
 vi.mock(import('node:fs/promises'), async importOriginal => ({
   ...(await importOriginal()),
@@ -79,7 +68,6 @@ let toolingRequestStub: sinon.SinonStub;
 let retrieveMaxApiVersionStub: sinon.SinonStub;
 const testData = new MockTestOrgData();
 const formatTestErrorsMock = vi.mocked(diagnosticUtil.formatTestErrors);
-const queryNamespacesMock = vi.mocked(utils.queryNamespaces);
 const writeFileMock = vi.mocked(fs.writeFile);
 const getCurrentTimeMock = vi.mocked(apexUtils.getCurrentTime);
 const pollResponse: ApexTestQueueItem = {
@@ -101,6 +89,10 @@ describe('Run Apex tests asynchronously', () => {
   beforeEach(async () => {
     await $$.stubAuths(testData);
     mockConnection = await testData.getConnection();
+    $$.SANDBOX.stub(mockConnection, 'getAuthInfoFields').returns({
+      ...mockConnection.getAuthInfoFields(),
+      orgId: '00Dxx0000000001AAA'
+    });
     retrieveMaxApiVersionStub = $$.SANDBOX.stub(mockConnection, 'retrieveMaxApiVersion').resolves('61.0');
     $$.SANDBOX.stub(mockConnection, 'instanceUrl').get(() => 'https://na139.salesforce.com');
     $$.SANDBOX.stub(mockConnection, 'getApiVersion').resolves('50.0');
@@ -111,7 +103,6 @@ describe('Run Apex tests asynchronously', () => {
     testResultData.summary.username = mockConnection.getUsername() ?? '';
     toolingRequestStub = $$.SANDBOX.stub(mockConnection.tooling, 'request');
     formatTestErrorsMock.mockClear();
-    queryNamespacesMock.mockReset();
   });
 
   it('should run a successful test', async () => {
@@ -244,7 +235,7 @@ describe('Run Apex tests asynchronously', () => {
       totalSize: 1,
       records: [
         {
-          Id: '07Mxx00000F2Xx6UAF',
+          Id: '2hUxx00000F2Xx6UAF',
           ApexTestQueueItemId: '7092M000000Vt94QAC',
           Result: 'Pass',
           TestStartDateTime: '3',
@@ -291,6 +282,9 @@ describe('Run Apex tests asynchronously', () => {
     testResultQuery += `FROM FlowTestResult WHERE ApexTestQueueItemId IN ('${pollResponseForFlowTest.records[0].Id}')`;
     expect(mockToolingQuery.getCall(1).args[0]).toBe(testResultQuery);
     expect(getTestResultData).toEqual(flowTestResultData);
+    expect(getTestResultData.tests[0]).not.toHaveProperty('asyncApexJobId');
+    expect(getTestResultData.tests[0]).not.toHaveProperty('apexLogId');
+    expect(getTestResultData.tests[0].apexClass).not.toHaveProperty('id');
   });
 
   it('should return correct summary outcome for single skipped test', async () => {
@@ -315,7 +309,7 @@ describe('Run Apex tests asynchronously', () => {
           Outcome: 'Skip',
           ApexLogId: null,
           ApexClass: {
-            Id: '7092M000000Vt94QAC',
+            Id: '01pxx00000O6tXZQAZ',
             Name: 'TestLogger',
             NamespacePrefix: 't3st',
             FullName: 't3st__TestLogger'
@@ -422,7 +416,7 @@ describe('Run Apex tests asynchronously', () => {
       ]
     } as unknown as ApexTestResult);
     const reportStub = $$.SANDBOX.stub();
-    const progressReporter: Progress<ApexTestProgressValue> = {
+    const progressReporter: ApexTestProgressReporter = {
       report: reportStub
     };
 
@@ -493,9 +487,9 @@ describe('Run Apex tests asynchronously', () => {
   it('should return failed test results with missing error info', async () => {
     diagnosticFailure.summary.orgId = mockConnection.getAuthInfoFields().orgId ?? '';
     diagnosticFailure.summary.username = mockConnection.getUsername() ?? '';
-    diagnosticFailure.tests[0].diagnostic!.className = undefined;
-    diagnosticFailure.tests[0].diagnostic!.exceptionStackTrace = '';
-    diagnosticFailure.tests[0].stackTrace = undefined as unknown as string;
+    delete diagnosticFailure.tests[0].diagnostic!.className;
+    delete diagnosticFailure.tests[0].diagnostic!.exceptionStackTrace;
+    delete diagnosticFailure.tests[0].stackTrace;
     const asyncTestSrv = new AsyncTests(mockConnection);
     const mockToolingQuery = $$.SANDBOX.stub(mockConnection.tooling, 'query');
     mockToolingQuery.onFirstCall().resolves({
@@ -708,7 +702,7 @@ describe('Run Apex tests asynchronously', () => {
       totalSize: 1,
       records: [
         {
-          Id: '7092M000000Vt94QAC',
+          Id: '07Mxx00000F2Xx6UAF',
           AsyncApexJobId: testRunId,
           Status: 'Completed',
           StartTime: testStartTime,
@@ -730,8 +724,11 @@ describe('Run Apex tests asynchronously', () => {
             Id: '01pxx00000O6tXZQAZ',
             Name: 'TestLogger'
           },
+          ApexTestClassId: '01pxx00000NnP2KQAV',
           NumLinesCovered: 10,
           NumLinesUncovered: 5,
+          ApexTestClassId: '01pxx00000O6tXZQAZ',
+          TestMethodName: 'testLoggerLog',
           PercentCovered: '57',
           RunTime: 8,
           TestTimestamp: '3',
@@ -744,7 +741,7 @@ describe('Run Apex tests asynchronously', () => {
     });
 
     const reportStub = $$.SANDBOX.stub();
-    const progressReporter: Progress<ApexTestProgressValue> = {
+    const progressReporter: ApexTestProgressReporter = {
       report: reportStub
     };
 
@@ -1170,23 +1167,10 @@ describe('Run Apex tests asynchronously', () => {
         expect(e.message).toContain(nls.localize('invalidsObjectErr', ['ApexClass', errMsg]));
       }
     });
-
-    it('should format test error when building asynchronous payload', async () => {
-      const errMsg = "sObject type 'PackageLicense' is not supported.";
-      queryNamespacesMock.mockRejectedValue(new Error(errMsg));
-      const testSrv = new TestService(mockConnection);
-      try {
-        await testSrv.buildAsyncPayload('RunSpecifiedTests', 'MyApexClass.MyTest');
-        fail('Should have failed');
-      } catch (e) {
-        expect(formatTestErrorsMock).toHaveBeenCalledOnce();
-        expect(e.message).toContain(nls.localize('invalidsObjectErr', ['PackageLicense', errMsg]));
-      }
-    });
   });
 
   describe('Report Test Run Status', () => {
-    it('should subscribe to test run for run still in progress', async () => {
+    it('should poll the run status until complete without subscribing to Streaming API', async () => {
       const asyncTestSrv = new AsyncTests(mockConnection);
       const mockToolingQueryProgress = $$.SANDBOX.stub(mockConnection.tooling, 'query');
       mockToolingQueryProgress
@@ -1217,6 +1201,19 @@ describe('Run Apex tests asynchronously', () => {
               UserId: '005xx000000abcDAAU'
             }
           ]
+        })
+        .onThirdCall()
+        .resolves({
+          done: true,
+          totalSize: 1,
+          records: [
+            {
+              Status: 'Completed',
+              Id: 'xxx',
+              ApexClassId: 'xxxx',
+              TestRunResultId: 'xxx'
+            }
+          ]
         });
       const formatResultsStub = $$.SANDBOX.stub(asyncTestSrv, 'formatAsyncResults');
       const subscribeStub = $$.SANDBOX.stub(StreamingClient.prototype, 'subscribe').resolves({
@@ -1235,33 +1232,50 @@ describe('Run Apex tests asynchronously', () => {
         runId: testRunId
       });
       const handlerStub = $$.SANDBOX.stub(StreamingClient.prototype, 'handler');
-      $$.SANDBOX.stub(StreamingClient.prototype, 'init');
-      $$.SANDBOX.stub(StreamingClient.prototype, 'handshake');
+      const initStub = $$.SANDBOX.stub(StreamingClient.prototype, 'init');
+      const handshakeStub = $$.SANDBOX.stub(StreamingClient.prototype, 'handshake');
 
       await asyncTestSrv.reportAsyncResults(testRunId);
 
-      expect(mockToolingQueryProgress.calledTwice).toBe(true);
+      expect(mockToolingQueryProgress.calledThrice).toBe(true);
       expect(formatResultsStub.calledOnce).toBe(true);
-      expect(subscribeStub.calledOnce).toBe(true);
+      expect(subscribeStub.notCalled).toBe(true);
       expect(handlerStub.notCalled).toBe(true);
+      expect(initStub.notCalled).toBe(true);
+      expect(handshakeStub.notCalled).toBe(true);
     });
 
     it('should query for test run results if run is complete', async () => {
       const asyncTestSrv = new AsyncTests(mockConnection);
       const mockToolingQueryComplete = $$.SANDBOX.stub(mockConnection.tooling, 'query');
-      mockToolingQueryComplete.onFirstCall().resolves({
-        done: true,
-        totalSize: 1,
-        records: [
-          {
-            AsyncApexJobId: testRunId,
-            Status: 'Completed',
-            StartTime: testStartTime,
-            TestTime: null,
-            UserId: '005xx000000abcDAAU'
-          }
-        ]
-      });
+      mockToolingQueryComplete
+        .onFirstCall()
+        .resolves({
+          done: true,
+          totalSize: 1,
+          records: [
+            {
+              AsyncApexJobId: testRunId,
+              Status: 'Completed',
+              StartTime: testStartTime,
+              TestTime: null,
+              UserId: '005xx000000abcDAAU'
+            }
+          ]
+        })
+        .onSecondCall()
+        .resolves({
+          done: true,
+          totalSize: 1,
+          records: [
+            {
+              Status: 'Completed',
+              Id: 'xxx',
+              ApexClassId: 'xxxx',
+              TestRunResultId: 'xxx'
+            }
+          ]
+        });
       const formatResultsStub = $$.SANDBOX.stub(asyncTestSrv, 'formatAsyncResults');
       const subscribeStub = $$.SANDBOX.stub(StreamingClient.prototype, 'subscribe').resolves({
         queueItem: {
@@ -1279,36 +1293,39 @@ describe('Run Apex tests asynchronously', () => {
         runId: testRunId
       });
       const handlerStub = $$.SANDBOX.stub(StreamingClient.prototype, 'handler');
-      $$.SANDBOX.stub(StreamingClient.prototype, 'init');
-      $$.SANDBOX.stub(StreamingClient.prototype, 'handshake');
+      const initStub = $$.SANDBOX.stub(StreamingClient.prototype, 'init');
+      const handshakeStub = $$.SANDBOX.stub(StreamingClient.prototype, 'handshake');
 
       await asyncTestSrv.reportAsyncResults(testRunId);
 
-      expect(mockToolingQueryComplete.calledOnce).toBe(true);
+      expect(mockToolingQueryComplete.calledTwice).toBe(true);
       expect(formatResultsStub.calledOnce).toBe(true);
       expect(subscribeStub.notCalled).toBe(true);
-      expect(handlerStub.calledOnce).toBe(true);
+      expect(handlerStub.notCalled).toBe(true);
+      expect(initStub.notCalled).toBe(true);
+      expect(handshakeStub.notCalled).toBe(true);
     });
 
     it('should format results with retrieved test run summary', async () => {
       const asyncTestSrv = new AsyncTests(mockConnection);
       const mockToolingQueryFormat = $$.SANDBOX.stub(mockConnection.tooling, 'query');
-      mockToolingQueryFormat.onFirstCall().resolves({
-        done: true,
-        totalSize: 1,
-        records: [
-          {
-            AsyncApexJobId: testRunId,
-            Status: 'Completed',
-            StartTime: testStartTime,
-            TestTime: null,
-            UserId: '005xx000000abcDAAU'
-          }
-        ]
-      });
-      const formatResultsStub = $$.SANDBOX.stub(asyncTestSrv, 'formatAsyncResults');
-      $$.SANDBOX.stub(StreamingClient.prototype, 'subscribe').resolves({
-        queueItem: {
+      mockToolingQueryFormat
+        .onFirstCall()
+        .resolves({
+          done: true,
+          totalSize: 1,
+          records: [
+            {
+              AsyncApexJobId: testRunId,
+              Status: 'Completed',
+              StartTime: testStartTime,
+              TestTime: null,
+              UserId: '005xx000000abcDAAU'
+            }
+          ]
+        })
+        .onSecondCall()
+        .resolves({
           done: true,
           totalSize: 1,
           records: [
@@ -1319,17 +1336,20 @@ describe('Run Apex tests asynchronously', () => {
               TestRunResultId: 'xxx'
             }
           ]
-        } as ApexTestQueueItem,
-        runId: testRunId
-      });
+        });
+      const formatResultsStub = $$.SANDBOX.stub(asyncTestSrv, 'formatAsyncResults');
+      const subscribeStub = $$.SANDBOX.stub(StreamingClient.prototype, 'subscribe');
       const handlerStub = $$.SANDBOX.stub(StreamingClient.prototype, 'handler');
-      $$.SANDBOX.stub(StreamingClient.prototype, 'init');
-      $$.SANDBOX.stub(StreamingClient.prototype, 'handshake');
+      const initStub = $$.SANDBOX.stub(StreamingClient.prototype, 'init');
+      const handshakeStub = $$.SANDBOX.stub(StreamingClient.prototype, 'handshake');
 
       await asyncTestSrv.reportAsyncResults(testRunId);
 
       expect(formatResultsStub.calledOnce).toBe(true);
-      expect(handlerStub.calledOnce).toBe(true);
+      expect(subscribeStub.notCalled).toBe(true);
+      expect(handlerStub.notCalled).toBe(true);
+      expect(initStub.notCalled).toBe(true);
+      expect(handshakeStub.notCalled).toBe(true);
     });
   });
 
@@ -1410,8 +1430,8 @@ describe('Run Apex tests asynchronously', () => {
     });
   });
 
-  describe('Polling Client Timeout', () => {
-    it('should return test run ID when polling client times out', async () => {
+  describe('Polling timeout', () => {
+    it('should return test run ID when polling times out', async () => {
       const requestOptions: AsyncTestConfiguration = {
         classNames: 'TestSample',
         testLevel: 'RunSpecifiedTests'
@@ -1480,7 +1500,7 @@ describe('Run Apex tests asynchronously', () => {
       sinon.assert.calledWith(loggerStub, nls.localize('runTestReportCommand', [testRunId, username ?? '']));
     });
 
-    it('should handle PollingClientTimeout error gracefully', async () => {
+    it('should return test run ID after a polling timeout', async () => {
       const requestOptions: AsyncTestConfiguration = {
         classNames: 'TestSample',
         testLevel: 'RunSpecifiedTests'
@@ -1529,7 +1549,7 @@ describe('Run Apex tests asynchronously', () => {
 
       const testSrv = new TestService(mockConnection);
 
-      // This should not throw an error, even though the polling client times out
+      // A polling timeout returns the test run ID instead of throwing.
       const result = await testSrv.runTestAsynchronous(
         requestOptions,
         false,

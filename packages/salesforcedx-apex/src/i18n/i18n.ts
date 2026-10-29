@@ -17,15 +17,10 @@
  */
 export const messages = {
   unexpectedExecuteCommandError: 'Unexpected error while executing anonymous apex. %s',
-  fileNotFoundError: 'File not found at the specified path: %s',
   missingInfoLogError: 'To retrieve logs, specify the log ID or the number of logs.',
   numLogsError: 'Expected number of logs to be greater than 0.',
   optionExecAnonError: 'Please specify an option to execute anonymous Apex.',
-  unexpectedExecAnonInputError: 'Unexpected error while reading user input. %s',
   coverageReportCreationError: 'Unexpected error occurred while creating coverage reports. %s',
-  execAnonInputPrompt:
-    'Start typing Apex code. Press the Enter key after each line, then press CTRL+D when finished.\n',
-  execAnonInputTimeout: 'Timed out while waiting for user input.',
   testRunCancelled: 'The test run was cancelled.',
   noTestResultSummary: 'No test results were found for test run %s',
   noTestQueueResults: 'No test results were found in the queue for test run %s',
@@ -65,12 +60,14 @@ export const messages = {
   setupTimeColHeader: 'SETUP TIME',
   testResultsHeader: 'Test Results',
   testSetupResultsHeader: 'Test Setup Time by Test Class for Run runId',
+  testSetupResultsHeaderNoRunId: 'Test Setup Time by Test Class',
   classesColHeader: 'CLASSES',
   percentColHeader: 'PERCENT',
   classTestedHeader: 'CLASS BEING TESTED',
   uncoveredLinesColHeader: 'UNCOVERED LINES',
   codeCovHeader: 'Apex Code Coverage by Class',
   detailedCodeCovHeader: 'Apex Code Coverage for Test Run %s',
+  detailedCodeCovHeaderNoRunId: 'Apex Code Coverage',
   syncClassErr:
     'Synchronous test runs can include test methods from only one Apex class. Omit the --synchronous flag or include tests from only one class',
   resultFormatErr: 'Specified result formats must be of type json, junit, or tap',
@@ -82,8 +79,6 @@ export const messages = {
   suitenameErr: 'Must provide a suite name or suite id to retrieve test classes in suite',
   missingSuiteErr: 'Suite does not exist',
   missingTestClassErr: 'Apex class %s does not exist in the org',
-  testSuiteMsg: 'Apex test class %s already exists in Apex test suite %s',
-  classSuiteMsg: 'Added Apex class %s to your Apex test suite %s',
   error_no_default_username:
     'No default org is set. Run "SFDX: Create a Default Scratch Org" or "SFDX: Authorize an Org" to set one.',
   trace_flags_unknown_user: 'Unknown user',

@@ -52,10 +52,7 @@ describe('executeAnonymous', () => {
 
       expect(yield* executeAnonymous(connection, { apexCode: 'System.debug(1);' })).toEqual({
         compiled: true,
-        success: true,
-        line: -1,
-        column: -1,
-        logBody: undefined
+        success: true
       });
       expect(request).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -124,6 +121,21 @@ describe('executeAnonymous', () => {
 
       expect(
         yield* executeAnonymous(makeConnection(vi.fn().mockResolvedValue(inconsistent)), { apexCode: 'bad apex' }).pipe(
+          Effect.flip
+        )
+      ).toMatchObject({ _tag: 'ApexResponseDecodeError' });
+    }).pipe(Effect.runPromise));
+
+  it('requires the success line and column sentinels returned by Salesforce', () =>
+    Effect.gen(function* () {
+      const invalidSuccess = structuredClone(response);
+      Object.assign(invalidSuccess['soapenv:Envelope']['soapenv:Body'].executeAnonymousResponse.result, {
+        line: 1,
+        column: 1
+      });
+
+      expect(
+        yield* executeAnonymous(makeConnection(vi.fn().mockResolvedValue(invalidSuccess)), { apexCode: 'code' }).pipe(
           Effect.flip
         )
       ).toMatchObject({ _tag: 'ApexResponseDecodeError' });
@@ -256,20 +268,19 @@ describe('executeAnonymous', () => {
         exceptionStackTrace: 'AnonymousBlock: line 1, column 1'
       });
 
-      expect(
-        yield* executeAnonymous(makeConnection(vi.fn().mockResolvedValue(runtimeFailure)), { apexCode: 'code' }).pipe(
-          Effect.flip
-        )
-      ).toMatchObject({
+      const error = yield* executeAnonymous(makeConnection(vi.fn().mockResolvedValue(runtimeFailure)), {
+        apexCode: 'code'
+      }).pipe(Effect.flip);
+      expect(error).toMatchObject({
         _tag: 'ApexRuntimeError',
         operation: 'executeAnonymous',
         message: 'System.AssertException: Assertion Failed',
         line: 6,
         column: 1,
         exceptionMessage: 'System.AssertException: Assertion Failed',
-        exceptionStackTrace: 'AnonymousBlock: line 1, column 1',
-        logBody: undefined
+        exceptionStackTrace: 'AnonymousBlock: line 1, column 1'
       });
+      expect(error).not.toHaveProperty('logBody');
     }).pipe(Effect.runPromise));
 
   it('validates source content before issuing a request', () =>

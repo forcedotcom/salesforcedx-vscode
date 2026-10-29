@@ -6,6 +6,7 @@
  */
 
 export { TestService } from './testService';
+export { ResultFormat, ResultFormatSchema, TestLevel, TestLevelSchema } from './types';
 export type {
   ApexCodeCoverage,
   ApexCodeCoverageRecord,
@@ -24,10 +25,8 @@ export type {
   AsyncTestConfiguration,
   CodeCoverageResult,
   OutputDirConfig,
-  ResultFormat,
   SyncTestConfiguration,
   TestItem,
-  TestLevel,
   TestResult,
   TestResultRaw,
   TestRunIdResult,

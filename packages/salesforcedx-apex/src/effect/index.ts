@@ -5,12 +5,69 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { ExecuteAnonymousOptionsSchema, ExecuteAnonymousOutcomeSchema, executeAnonymous } from './executeAnonymous';
-export type { ExecuteAnonymousOptions, ExecuteAnonymousOutcome } from './executeAnonymous';
+export { executeAnonymous } from './executeAnonymous';
+export { ExecuteAnonymousOptionsSchema, ExecuteAnonymousOutcomeSchema } from './schema/executeAnonymous';
+export type { ExecuteAnonymousOptions, ExecuteAnonymousOutcome } from './schema/executeAnonymous';
+export { ApexDiagnosticSchema, getDiagnostic } from './diagnostics';
+export type { ApexDiagnostic } from './diagnostics';
+export { formatSyncResults, runTestSynchronous } from './syncTests';
+export { transformTestResult } from './testResults';
 export {
+  ApexTestResultDataSchema,
+  ApexTestResultDataRawSchema,
+  ApexTestResultOutcomeSchema,
+  ApexTestSetupDataSchema,
+  SyncTestConfigurationSchema,
+  SyncTestResultSchema,
+  TestItemSchema,
+  TestResultRawSchema,
+  TestResultSchema
+} from './testSchemas';
+export type { SyncTestConfiguration, TestResult, TestResultRaw } from './testSchemas';
+export { getOrgWideCoverage, getPerClassCodeCoverage, getAggregateCodeCoverage } from './codeCoverage';
+export {
+  ApexCodeCoverageSchema,
+  ApexCodeCoverageRecordSchema,
+  ApexCodeCoverageAggregateSchema,
+  ApexCodeCoverageAggregateRecordSchema,
+  ApexOrgWideCoverageSchema,
+  PerClassCoverageSchema,
+  CodeCoverageResultSchema,
+  AggregateCodeCoverageResultSchema
+} from './coverageSchemas';
+export type {
+  ApexCodeCoverage,
+  ApexCodeCoverageRecord,
+  ApexCodeCoverageAggregate,
+  ApexCodeCoverageAggregateRecord,
+  ApexOrgWideCoverage,
+  PerClassCoverage,
+  CodeCoverageResult,
+  AggregateCodeCoverageResult
+} from './coverageSchemas';
+export {
+  ApexLogBodyFetchError,
   ApexCompileError,
+  ApexLogQueryError,
   ApexOperationError,
   ApexResponseDecodeError,
-  ApexRuntimeError,
-  causeMessage
-} from './errors';
+  ApexRuntimeError
+} from './schema/errors';
+export { causeMessage } from './errors';
+export { listLogs, getLogBody, streamLogs } from './logs';
+export { ApexLogListItem } from './schema/wire/logs';
+export { ListLogsOptionsSchema, LogStreamEventSchema } from './schema/logs';
+export type { ListLogsOptions, LogStreamEvent } from './schema/logs';
+export type { StreamLogsOptions } from './logs';
+export { BuildSyncPayloadOptionsSchema, BuildAsyncPayloadOptionsSchema } from './schema/testPayloads';
+export { buildSyncPayload, buildAsyncPayload } from './testPayloads';
+export type { BuildSyncPayloadOptions, BuildAsyncPayloadOptions } from './schema/testPayloads';
+export { TestSuiteSchema, TestSuiteMembershipSchema } from './schema/testSuites';
+export { retrieveAllSuites, getTestsInSuite, buildSuite } from './testSuites';
+export type { TestSuite, TestSuiteMembership } from './schema/testSuites';
+export { AsyncTestOptionsSchema } from './schema/wire/asyncTests';
+export { AsyncTestProgressSchema, AsyncTestResultSchema, AsyncTestRunEventSchema } from './schema/asyncTests';
+export { runTestAsynchronous } from './asyncTests';
+export type { AsyncTestOptions } from './schema/wire/asyncTests';
+export type { AsyncTestProgress, AsyncTestRunEvent, AsyncTestRunSummary } from './schema/asyncTests';
+export type { AsyncTestPollingOptions, AsyncTestRun } from './asyncTests';

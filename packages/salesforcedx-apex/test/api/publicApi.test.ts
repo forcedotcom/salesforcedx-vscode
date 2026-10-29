@@ -14,6 +14,9 @@ describe('@salesforce/apex-node public API', () => {
     const supportedSymbols = Object.keys(publicApi).filter(symbol => !coRepoOnlySymbols.has(symbol));
 
     expect(supportedSymbols.sort()).toEqual([
+      'ApexClassId',
+      'ApexLogId',
+      'ApexTriggerId',
       'CancellationTokenSource',
       'CoverageReporter',
       'DefaultReportOptions',
@@ -22,21 +25,76 @@ describe('@salesforce/apex-node public API', () => {
       'HumanReporter',
       'JUnitReporter',
       'LogService',
+      'ResultFormat',
+      'ResultFormatSchema',
+      'SalesforceId',
       'TapReporter',
-      'TestService'
+      'TestLevel',
+      'TestLevelSchema',
+      'TestRunId',
+      'TestService',
+      'UserId'
     ]);
   });
 
   it('exports the Effect foundation from its isolated entry point', () => {
     expect(Object.keys(effectApi).sort()).toEqual([
+      'AggregateCodeCoverageResultSchema',
+      'ApexCodeCoverageAggregateRecordSchema',
+      'ApexCodeCoverageAggregateSchema',
+      'ApexCodeCoverageRecordSchema',
+      'ApexCodeCoverageSchema',
       'ApexCompileError',
+      'ApexDiagnosticSchema',
+      'ApexLogBodyFetchError',
+      'ApexLogListItem',
+      'ApexLogQueryError',
       'ApexOperationError',
+      'ApexOrgWideCoverageSchema',
       'ApexResponseDecodeError',
       'ApexRuntimeError',
+      'ApexTestResultDataRawSchema',
+      'ApexTestResultDataSchema',
+      'ApexTestResultOutcomeSchema',
+      'ApexTestSetupDataSchema',
+      'AsyncTestOptionsSchema',
+      'AsyncTestProgressSchema',
+      'AsyncTestResultSchema',
+      'AsyncTestRunEventSchema',
+      'BuildAsyncPayloadOptionsSchema',
+      'BuildSyncPayloadOptionsSchema',
+      'CodeCoverageResultSchema',
       'ExecuteAnonymousOptionsSchema',
       'ExecuteAnonymousOutcomeSchema',
+      'ListLogsOptionsSchema',
+      'LogStreamEventSchema',
+      'PerClassCoverageSchema',
+      'QueryPageSchema',
+      'SyncTestConfigurationSchema',
+      'SyncTestResultSchema',
+      'TestItemSchema',
+      'TestResultRawSchema',
+      'TestResultSchema',
+      'TestSuiteMembershipSchema',
+      'TestSuiteSchema',
+      'buildAsyncPayload',
+      'buildSuite',
+      'buildSyncPayload',
       'causeMessage',
-      'executeAnonymous'
+      'executeAnonymous',
+      'formatSyncResults',
+      'getAggregateCodeCoverage',
+      'getDiagnostic',
+      'getLogBody',
+      'getOrgWideCoverage',
+      'getPerClassCodeCoverage',
+      'getTestsInSuite',
+      'listLogs',
+      'retrieveAllSuites',
+      'runTestAsynchronous',
+      'runTestSynchronous',
+      'streamLogs',
+      'transformTestResult'
     ]);
   });
 

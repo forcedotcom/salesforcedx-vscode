@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { action } from './types';
+import { executeAnonymousAction } from '../effect/schema/wire/executeAnonymous';
 
 const xmlCharMap: { [key: string]: string } = {
   '<': '&lt;',
@@ -36,9 +36,9 @@ xmlns:apex="http://soap.sforce.com/2006/08/apex">
         </apex:DebuggingHeader>
     </env:Header>
     <env:Body>
-        <${action} xmlns="http://soap.sforce.com/2006/08/apex">
+        <${executeAnonymousAction} xmlns="http://soap.sforce.com/2006/08/apex">
             <apexcode>${escapedData}</apexcode>
-        </${action}>
+        </${executeAnonymousAction}>
     </env:Body>
 </env:Envelope>`;
 }
