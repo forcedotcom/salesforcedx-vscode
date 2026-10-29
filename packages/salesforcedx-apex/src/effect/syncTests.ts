@@ -32,22 +32,18 @@ const processTestResult = (
   const failure = 'message' in item ? item : undefined;
   const namespace = item.namespace ? (outcome === 'Fail' ? `${item.namespace}__` : `${item.namespace}.`) : '';
   return {
-    id: '',
-    queueItemId: '',
-    stackTrace: failure?.stackTrace || '',
-    message: failure?.message || '',
-    asyncApexJobId: '',
+    ...(failure?.stackTrace && { stackTrace: failure.stackTrace }),
+    ...(failure?.message && { message: failure.message }),
     methodName: item.methodName,
     outcome,
     apexLogId,
     apexClass: {
       id: item.id,
       name: item.name,
-      namespacePrefix: item.namespace ?? '',
+      ...(item.namespace && { namespacePrefix: item.namespace }),
       fullName: `${namespace}${item.name}`
     },
     runTime: item.time,
-    testTimestamp: '',
     fullName: `${namespace}${item.name}.${item.methodName}`,
     category: computeTestCategory(item.namespace),
     ...(failure && (failure.message || failure.stackTrace) ? { diagnostic: getDiagnostic(failure) } : {})
@@ -90,7 +86,6 @@ export const formatSyncResults = Effect.fn('Apex.formatSyncResults')(function* (
       hostname: connection.instanceUrl,
       orgId: connection.getAuthInfoFields().orgId ?? '',
       username: connection.getUsername() ?? '',
-      testRunId: '',
       userId: connection.getConnectionOptions().userId ?? ''
     },
     tests: [

@@ -56,13 +56,13 @@ export const syncTestResultWithFailures: SyncTestResult = {
       name: 'TestSample2',
       namespace: 'tr',
       seeAllData: false,
-      stackTrace: '',
+      stackTrace: null,
       time: 68,
       type: 'Class'
     },
     {
       id: '01pxx00000NWwb5AAD',
-      message: '',
+      message: null,
       methodName: 'testOne',
       name: 'TestSample3',
       namespace: 'tr',
@@ -73,7 +73,7 @@ export const syncTestResultWithFailures: SyncTestResult = {
     },
     {
       id: '01pxx00000NWwb6AAD',
-      message: '',
+      message: null,
       methodName: 'testOne',
       name: 'TestSample4',
       namespace: 'tr',
@@ -108,16 +108,10 @@ export const syncResult: TestResult = {
     hostname: 'https://example.salesforce.com',
     orgId: '00Dxx0000000001AAA',
     username: 'test@example.com',
-    testRunId: '',
     userId: '005xx000000abcDAAU'
   },
   tests: [
     {
-      id: '',
-      queueItemId: '',
-      stackTrace: '',
-      message: '',
-      asyncApexJobId: '',
       methodName: 'testMethod',
       outcome: 'Pass',
       apexLogId: null,
@@ -128,7 +122,6 @@ export const syncResult: TestResult = {
         fullName: 't3st.TestApexClass'
       },
       runTime: 8,
-      testTimestamp: '',
       fullName: 't3st.TestApexClass.testMethod'
     }
   ],
@@ -159,8 +152,6 @@ export const testResultData: TestResult = {
     {
       id: '07Mxx00000F2Xx6UAF',
       queueItemId: '7092M000000Vt94QAC',
-      stackTrace: null,
-      message: null,
       asyncApexJobId,
       methodName: 'testLoggerLog',
       outcome: 'Pass',
@@ -204,17 +195,11 @@ export const flowTestResultData: TestResult = {
     {
       id: '2hUxx00000F2Xx6UAF',
       queueItemId: '7092M000000Vt94QAC',
-      stackTrace: '',
-      message: '',
-      asyncApexJobId: '7092M000000Vt94QAC',
       category: 'Flow',
       methodName: 'FlowName_FlowTestName',
       outcome: 'Pass',
-      apexLogId: '',
       apexClass: {
-        id: '7092M000000Vt94QAC',
         name: 'FlowName',
-        namespacePrefix: '',
         fullName: 'FlowName'
       },
       runTime: 0,
@@ -251,8 +236,6 @@ export const missingTimeTestData: TestResult = {
     {
       id: '07Mxx00000F2Xx6UAF',
       queueItemId: '7092M000000Vt94QAC',
-      stackTrace: null,
-      message: null,
       asyncApexJobId,
       category: 'Apex',
       methodName: 'testLoggerLog',
@@ -298,8 +281,6 @@ export const skippedTestData: TestResult = {
     {
       id: '07Mxx00000F2Xx6UAF',
       queueItemId: '7092M000000Vt94QAC',
-      stackTrace: null,
-      message: null,
       asyncApexJobId,
       category: 'Apex',
       methodName: 'testLoggerLog',
@@ -497,7 +478,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',
       Name: 'TestAssignment',
-      NamespacePrefix: '',
+      NamespacePrefix: null,
       FullName: 'TestAssignment'
     }
   },
@@ -515,7 +496,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',
       Name: 'TestAssignment',
-      NamespacePrefix: '',
+      NamespacePrefix: null,
       FullName: 'TestAssignment'
     }
   },
@@ -533,7 +514,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',
       Name: 'TestAssignment',
-      NamespacePrefix: '',
+      NamespacePrefix: null,
       FullName: 'TestAssignment'
     }
   },
@@ -551,7 +532,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',
       Name: 'TestAssignment',
-      NamespacePrefix: '',
+      NamespacePrefix: null,
       FullName: 'TestAssignment'
     }
   },
@@ -567,7 +548,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',
       Name: 'TestAssignment',
-      NamespacePrefix: '',
+      NamespacePrefix: null,
       FullName: 'TestAssignment'
     },
     RunTime: 560,
@@ -585,7 +566,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',
       Name: 'TestAssignment',
-      NamespacePrefix: '',
+      NamespacePrefix: null,
       FullName: 'TestAssignment'
     },
     RunTime: 56,

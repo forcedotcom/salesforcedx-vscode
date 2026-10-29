@@ -21,5 +21,5 @@ export function formatTestErrors(error: Error): Error {
 }
 
 export function getDiagnostic(record: SyncTestFailure | ApexTestResultRecord): ApexDiagnostic {
-  return getTestDiagnostic('message' in record ? record : { message: record.Message, stackTrace: record.StackTrace });
+  return getTestDiagnostic('id' in record ? record : { message: record.Message, stackTrace: record.StackTrace });
 }

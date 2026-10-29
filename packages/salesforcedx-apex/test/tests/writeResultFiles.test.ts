@@ -142,7 +142,7 @@ describe('writeResultFiles', () => {
     expect(content).toBe('707000000000001AAA');
   });
 
-  it('preserves filenames and the empty test-run-id file for synchronous results', async () => {
+  it('omits test-run-id.txt and uses default names for synchronous results', async () => {
     const outputConfig: OutputDirConfig = {
       dirPath: tempDir,
       resultFormats: ['json', 'tap', 'junit']
@@ -151,12 +151,11 @@ describe('writeResultFiles', () => {
     const result = await writeResultFiles(syncResult, outputConfig, false, mockRunPipeline);
 
     expect(result).toEqual([
-      join(tempDir, 'test-run-id.txt'),
       join(tempDir, 'test-result-default.json'),
-      join(tempDir, 'test-result--tap.txt'),
+      join(tempDir, 'test-result-default-tap.txt'),
       join(tempDir, 'test-result-default-junit.xml')
     ]);
-    expect(await readFile(join(tempDir, 'test-run-id.txt'), 'utf8')).toBe('');
+    expect(existsSync(join(tempDir, 'test-run-id.txt'))).toBe(false);
   });
 
   it('should create JSON result file when format is specified', async () => {

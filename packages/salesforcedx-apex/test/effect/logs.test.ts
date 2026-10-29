@@ -12,10 +12,21 @@ import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Option from 'effect/Option';
 import * as Schedule from 'effect/Schedule';
+import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
+import { apexLogId } from '../schemaHelpers';
+import { UserId } from '../../src/effect/schema/salesforceId';
 import { getLogBody, listLogs, streamLogs } from '../../src/effect/logs';
 
-const log = (Id: string) => ({ Id, LogLength: 10, StartTime: '2026-10-23T12:00:00.000Z', Status: 'Success' });
+const firstUserId = Schema.decodeUnknownSync(UserId)('0053t000007OxppAAC');
+const secondUserId = Schema.decodeUnknownSync(UserId)('0053t000007OxppAAD');
+const userIds = [firstUserId, secondUserId];
+const log = (id: string) => ({
+  Id: apexLogId(`07L${id.padStart(15, '0')}`),
+  LogLength: 10,
+  StartTime: '2026-10-23T12:00:00.000Z',
+  Status: 'Success'
+});
 const makeConnection = () => {
   const query = vi.fn().mockResolvedValue({ totalSize: 0, done: true, records: [] });
   const queryMore = vi.fn();
@@ -30,40 +41,41 @@ const makeConnection = () => {
 };
 
 describe('Effect Apex logs', () => {
-  it('preserves filters, quote escaping, descending order, and default limit', async () => {
+  it('uses user ID arrays, preserves filters, and orders logs without an arbitrary result limit', async () => {
     const { connection, query } = makeConnection();
     await Effect.runPromise(listLogs(connection));
     expect(query.mock.calls[0][0]).toBe(
-      'SELECT Id, Application, DurationMilliseconds, LogLength, LogUserId, LogUser.Name, Operation, StartTime, Status FROM ApexLog ORDER BY StartTime DESC, Id DESC LIMIT 25'
+      'SELECT Id, Application, DurationMilliseconds, LogLength, LogUserId, LogUser.Name, Operation, StartTime, Status FROM ApexLog ORDER BY StartTime DESC, Id DESC'
     );
     await Effect.runPromise(
-      listLogs(connection, 7, {
-        userId: 'ignored',
-        userIds: ["005'one", '005two'],
+      listLogs(connection, {
+        userIds,
         operationContains: "execute'Anonymous",
         startTimeAfter: '2026-10-23T00:00:00.000Z'
       })
     );
     expect(query.mock.calls[1][0]).toContain(
-      "WHERE LogUserId IN ('005''one','005two') AND Operation LIKE '%execute''Anonymous%' AND StartTime >= 2026-10-23T00:00:00.000Z ORDER BY StartTime DESC, Id DESC LIMIT 7"
+      "WHERE LogUserId IN ('0053t000007OxppAAC','0053t000007OxppAAD') AND Operation LIKE '%execute''Anonymous%' AND StartTime >= 2026-10-23T00:00:00.000Z ORDER BY StartTime DESC, Id DESC"
     );
-    await Effect.runPromise(listLogs(connection, 5, { userId: "005'one", userIds: [] }));
-    expect(query.mock.calls[2][0]).toContain("WHERE LogUserId = '005''one' ORDER BY StartTime DESC, Id DESC LIMIT 5");
+    await Effect.runPromise(listLogs(connection, { userIds: [firstUserId] }));
+    expect(query.mock.calls[2][0]).toContain(
+      "WHERE LogUserId IN ('0053t000007OxppAAC') ORDER BY StartTime DESC, Id DESC"
+    );
     await Effect.runPromise(
-      listLogs(connection, 500, {
+      listLogs(connection, {
         startTimeAfter: '2026-10-23T00:00:00.000Z',
-        cursor: { startTime: '2026-10-23T12:00:00.000Z', id: "07L'one" },
+        cursor: { startTime: '2026-10-23T12:00:00.000Z', id: log('cursor').Id },
         orderBy: 'ASC'
       })
     );
     expect(query.mock.calls[3][0]).toContain(
-      "StartTime >= 2026-10-23T00:00:00.000Z AND (StartTime > 2026-10-23T12:00:00.000Z OR (StartTime = 2026-10-23T12:00:00.000Z AND Id > '07L''one')) ORDER BY StartTime ASC, Id ASC LIMIT 500"
+      `StartTime >= 2026-10-23T00:00:00.000Z AND (StartTime > 2026-10-23T12:00:00.000Z OR (StartTime = 2026-10-23T12:00:00.000Z AND Id > '${log('cursor').Id}')) ORDER BY StartTime ASC, Id ASC`
     );
     await Effect.runPromise(
-      listLogs(connection, 500, { cursor: { startTime: '2026-10-23T12:00:00.000Z' }, orderBy: 'ASC' })
+      listLogs(connection, { cursor: { startTime: '2026-10-23T12:00:00.000Z' }, orderBy: 'ASC' })
     );
     expect(query.mock.calls[4][0]).toContain(
-      'WHERE StartTime >= 2026-10-23T12:00:00.000Z ORDER BY StartTime ASC, Id ASC LIMIT 500'
+      'WHERE StartTime >= 2026-10-23T12:00:00.000Z ORDER BY StartTime ASC, Id ASC'
     );
   });
 
@@ -81,6 +93,30 @@ describe('Effect Apex logs', () => {
     expect(await Effect.runPromise(Effect.flip(listLogs(connection)))).toMatchObject({ _tag: 'ParseError' });
   });
 
+  it('rejects malformed user IDs before querying', async () => {
+    const { connection, query } = makeConnection();
+    expect(await Effect.runPromise(Effect.flip(listLogs(connection, { userIds: ['005invalid'] })))).toMatchObject({
+      _tag: 'ParseError'
+    });
+    expect(query).not.toHaveBeenCalled();
+  });
+
+  it('rejects a valid Salesforce ID with the wrong ApexLog prefix', async () => {
+    const { connection, query } = makeConnection();
+    query.mockResolvedValue({ totalSize: 1, done: true, records: [{ ...log('1'), Id: firstUserId }] });
+    expect(await Effect.runPromise(Effect.flip(listLogs(connection)))).toMatchObject({ _tag: 'ParseError' });
+    expect(
+      await Effect.runPromise(
+        Effect.flip(
+          listLogs(connection, {
+            cursor: { startTime: '2026-10-23T12:00:00.000Z', id: firstUserId }
+          })
+        )
+      )
+    ).toMatchObject({ _tag: 'ParseError' });
+    expect(query).toHaveBeenCalledTimes(1);
+  });
+
   it('preserves request causes and reports malformed records', async () => {
     const { connection, query } = makeConnection();
     const cause = { message: 'Invalid field', errorCode: 'INVALID_FIELD', fields: ['Operation'] };
@@ -96,15 +132,16 @@ describe('Effect Apex logs', () => {
 
   it('retrieves bodies and preserves string conversion and tagged failures', async () => {
     const { connection, request } = makeConnection();
+    const logId = log('body').Id;
     request.mockResolvedValueOnce(123);
-    expect(await Effect.runPromise(getLogBody(connection, '07Lone'))).toBe('123');
+    expect(await Effect.runPromise(getLogBody(connection, logId))).toBe('123');
     expect(request).toHaveBeenCalledWith({
       method: 'GET',
-      url: 'https://example.my.salesforce.com/services/data/v67.0/tooling/sobjects/ApexLog/07Lone/Body'
+      url: `/tooling/sobjects/ApexLog/${logId}/Body`
     });
     const cause = new Error('body unavailable');
     request.mockRejectedValueOnce(cause);
-    expect(await Effect.runPromise(Effect.flip(getLogBody(connection, '07Lone')))).toMatchObject({
+    expect(await Effect.runPromise(Effect.flip(getLogBody(connection, logId)))).toMatchObject({
       _tag: 'ApexLogBodyFetchError',
       message: 'Failed to fetch ApexLog body: body unavailable',
       cause
@@ -121,11 +158,14 @@ describe('Effect Apex logs', () => {
     const events = await Effect.runPromise(
       streamLogs(connection, {
         schedule: Schedule.recurs(1),
-        filterLogs: logs => Effect.succeed(logs.filter(item => item.Id !== 'skip'))
+        filterLogs: logs => Effect.succeed(logs.filter(item => item.Id !== log('skip').Id))
       }).pipe(Stream.runCollect, Effect.map(Chunk.toReadonlyArray))
     );
     expect(events.map(event => event._tag)).toEqual(['QueryError', 'BodyError', 'Log']);
-    expect(request.mock.calls.map(([options]) => options.url.split('/').at(-2))).toEqual(['bad', 'good']);
+    expect(request.mock.calls.map(([options]) => options.url.split('/').at(-2))).toEqual([
+      log('bad').Id,
+      log('good').Id
+    ]);
     expect(query).toHaveBeenCalledTimes(2);
   });
 
@@ -134,10 +174,16 @@ describe('Effect Apex logs', () => {
     await Effect.runPromise(
       streamLogs(connection, {
         schedule: Schedule.recurs(2),
-        pollOptions: index => Effect.succeed(index === 1 ? Option.none() : Option.some({ userId: `005${index}` }))
+        pollOptions: index =>
+          Effect.succeed(
+            index === 1 ? Option.none() : Option.some({ userIds: [index === 0 ? firstUserId : secondUserId] })
+          )
       }).pipe(Stream.runDrain)
     );
-    expect(query.mock.calls.map(([soql]) => soql.match(/LogUserId = '([^']+)'/)[1])).toEqual(['0050', '0052']);
+    expect(query.mock.calls.map(([soql]) => soql.match(/LogUserId IN \('([^']+)'\)/)[1])).toEqual([
+      '0053t000007OxppAAC',
+      '0053t000007OxppAAD'
+    ]);
   });
 
   it('accepts a schedule with a void output rather than a counter', async () => {
@@ -161,11 +207,11 @@ describe('Effect Apex logs', () => {
       { _tag: 'BodyError', log: { Id: log('1').Id } },
       { _tag: 'Log', log: { Id: log('2').Id } }
     ]);
-    expect(query.mock.calls[0][0]).toContain(' LIMIT 25');
+    expect(query.mock.calls[0][0]).not.toContain(' LIMIT ');
     expect(queryMore).toHaveBeenCalledWith('/next');
   });
 
-  it('reports a later queryMore failure without emitting incomplete poll results', async () => {
+  it('emits completed pages before reporting a later queryMore failure', async () => {
     const { connection, query, queryMore } = makeConnection();
     query.mockResolvedValue({ totalSize: 2, done: false, nextRecordsUrl: '/next', records: [log('1')] });
     queryMore.mockRejectedValue(new Error('queryMore unavailable'));
@@ -175,7 +221,7 @@ describe('Effect Apex logs', () => {
         Effect.map(Chunk.toReadonlyArray)
       )
     );
-    expect(events.map(event => event._tag)).toEqual(['QueryError']);
+    expect(events.map(event => event._tag)).toEqual(['Log', 'QueryError']);
     expect(queryMore).toHaveBeenCalledWith('/next');
   });
   it('interrupts in-flight body retrieval without emitting a log', async () => {

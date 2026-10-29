@@ -52,10 +52,7 @@ const formatSummary = (testResult: TestResult): string => {
       name: messages.skipRate,
       value: testResult.summary.skipRate
     },
-    {
-      name: messages.testRunId,
-      value: testResult.summary.testRunId
-    },
+    ...(testResult.summary.testRunId ? [{ name: messages.testRunId, value: testResult.summary.testRunId }] : []),
     {
       name: messages.testSetupTime,
       value: `${testResult.summary.testSetupTimeInMs || 0} ms`
@@ -72,10 +69,7 @@ const formatSummary = (testResult: TestResult): string => {
       name: messages.orgId,
       value: testResult.summary.orgId
     },
-    {
-      name: messages.username,
-      value: testResult.summary.username
-    },
+    ...(testResult.summary.username ? [{ name: messages.username, value: testResult.summary.username }] : []),
     ...(testResult.summary.orgWideCoverage
       ? [
           {
@@ -129,10 +123,12 @@ const formatTestResults = (tests: ApexTestResultData[], concise: boolean, showCa
 const formatSetup = (testResult: TestResult): string => {
   const testRowArray: Row[] = (testResult.setup ?? []).map(elem => ({
     name: elem.fullName,
-    time: `${elem.testSetupTime}`,
-    runId: testResult.summary.testRunId
+    time: `${elem.testSetupTime}`
   }));
   if (testRowArray.length > 0) {
+    const header = testResult.summary.testRunId
+      ? messages.testSetupResultsHeader.replace('runId', testResult.summary.testRunId)
+      : messages.testSetupResultsHeaderNoRunId;
     return formatTable(
       testRowArray,
       [
@@ -142,13 +138,16 @@ const formatSetup = (testResult: TestResult): string => {
         },
         { key: 'time', label: messages.setupTimeColHeader }
       ],
-      messages.testSetupResultsHeader.replace('runId', testRowArray[0].runId)
+      header
     );
   }
   return '';
 };
 
 const formatDetailedCov = (testResult: TestResult, concise: boolean, showCategory: boolean): string => {
+  const header = testResult.summary.testRunId
+    ? messages.detailedCodeCovHeader.replace('%s', testResult.summary.testRunId)
+    : messages.detailedCodeCovHeaderNoRunId;
   const testRowArray: Row[] = testResult.tests
     .filter((elem: ApexTestResultData) => !concise || elem.outcome === 'Fail' || elem.outcome === 'CompileFail')
     .flatMap(elem => {
@@ -199,7 +198,7 @@ const formatDetailedCov = (testResult: TestResult, concise: boolean, showCategor
         { key: 'msg', label: messages.msgColHeader },
         { key: 'runtime', label: messages.runtimeColHeader }
       ],
-      messages.detailedCodeCovHeader.replace('%s', () => testResult.summary.testRunId)
+      header
     );
   }
   return '';

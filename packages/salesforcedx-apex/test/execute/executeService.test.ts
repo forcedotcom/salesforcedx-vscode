@@ -89,9 +89,7 @@ describe('ExecuteService adapter', () => {
         {
           lineNumber: 6,
           columnNumber: 1,
-          compileProblem: "Unexpected token '('.",
-          exceptionMessage: '',
-          exceptionStackTrace: ''
+          compileProblem: "Unexpected token '('."
         }
       ]
     });

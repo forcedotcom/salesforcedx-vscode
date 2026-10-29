@@ -8,6 +8,7 @@
 import { type Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as Either from 'effect/Either';
+import { isNotUndefined } from 'effect/Predicate';
 import { formatSyncResults, requestSyncTests } from '../effect/syncTests';
 import { nls } from '../i18n';
 import { elapsedTime, getCurrentTime, HeapMonitor } from '../utils';
@@ -76,7 +77,7 @@ export class SyncTests {
     await calculateCodeCoverage(
       this.codecoverage,
       codeCoverage,
-      new Set(result.tests.map(test => test.apexClass.id)),
+      new Set(result.tests.map(test => test.apexClass.id).filter(isNotUndefined)),
       result,
       false
     );

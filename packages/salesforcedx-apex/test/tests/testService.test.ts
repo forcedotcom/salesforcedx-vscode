@@ -186,7 +186,7 @@ describe('Apex Test Suites', () => {
       expect(toolingCreateStub.calledTwice).toBe(true);
     });
 
-    it('should log when a test class already exists in the suite', async () => {
+    it('should not log when a test class already exists in the suite', async () => {
       toolingQueryStub
         .onFirstCall()
         .resolves({
@@ -208,13 +208,10 @@ describe('Apex Test Suites', () => {
 
       expect(toolingQueryStub.callCount).toBe(4);
       expect(toolingCreateStub.notCalled).toBe(true);
-      expect(consoleSpy.args).toEqual([
-        ['Apex test class testClassOne already exists in Apex test suite oldSuite'],
-        ['Apex test class testClassTwo already exists in Apex test suite oldSuite']
-      ]);
+      expect(consoleSpy.notCalled).toBe(true);
     });
 
-    it('should add test classes to suite and log each addition', async () => {
+    it('should add test classes to suite without logging to the console', async () => {
       toolingQueryStub
         .onFirstCall()
         .resolves({
@@ -233,10 +230,7 @@ describe('Apex Test Suites', () => {
       await testService.buildSuite('oldSuite', ['testClassOne', 'testClassTwo']);
 
       expect(toolingCreateStub.calledTwice).toBe(true);
-      expect(consoleSpy.args).toEqual([
-        ['Added Apex class testClassOne to your Apex test suite oldSuite'],
-        ['Added Apex class testClassTwo to your Apex test suite oldSuite']
-      ]);
+      expect(consoleSpy.notCalled).toBe(true);
     });
   });
 

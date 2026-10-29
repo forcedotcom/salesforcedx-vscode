@@ -282,9 +282,9 @@ describe('Run Apex tests asynchronously', () => {
     testResultQuery += `FROM FlowTestResult WHERE ApexTestQueueItemId IN ('${pollResponseForFlowTest.records[0].Id}')`;
     expect(mockToolingQuery.getCall(1).args[0]).toBe(testResultQuery);
     expect(getTestResultData).toEqual(flowTestResultData);
-    expect(getTestResultData.tests[0].asyncApexJobId).toBe(pollResponseForFlowTest.records[0].Id);
-    expect(getTestResultData.tests[0].apexLogId).toBe('');
-    expect(getTestResultData.tests[0].apexClass.id).toBe(pollResponseForFlowTest.records[0].Id);
+    expect(getTestResultData.tests[0]).not.toHaveProperty('asyncApexJobId');
+    expect(getTestResultData.tests[0]).not.toHaveProperty('apexLogId');
+    expect(getTestResultData.tests[0].apexClass).not.toHaveProperty('id');
   });
 
   it('should return correct summary outcome for single skipped test', async () => {
@@ -487,9 +487,9 @@ describe('Run Apex tests asynchronously', () => {
   it('should return failed test results with missing error info', async () => {
     diagnosticFailure.summary.orgId = mockConnection.getAuthInfoFields().orgId ?? '';
     diagnosticFailure.summary.username = mockConnection.getUsername() ?? '';
-    diagnosticFailure.tests[0].diagnostic!.className = undefined;
-    diagnosticFailure.tests[0].diagnostic!.exceptionStackTrace = '';
-    diagnosticFailure.tests[0].stackTrace = null;
+    delete diagnosticFailure.tests[0].diagnostic!.className;
+    delete diagnosticFailure.tests[0].diagnostic!.exceptionStackTrace;
+    delete diagnosticFailure.tests[0].stackTrace;
     const asyncTestSrv = new AsyncTests(mockConnection);
     const mockToolingQuery = $$.SANDBOX.stub(mockConnection.tooling, 'query');
     mockToolingQuery.onFirstCall().resolves({
@@ -539,10 +539,7 @@ describe('Run Apex tests asynchronously', () => {
       runResult.testRunSummary
     );
 
-    expect(getTestResultData).toEqual({
-      ...diagnosticFailure,
-      tests: [{ ...diagnosticFailure.tests[0], stackTrace: undefined }]
-    });
+    expect(getTestResultData).toEqual(diagnosticFailure);
   });
 
   it('should return an error if no test results are found', async () => {

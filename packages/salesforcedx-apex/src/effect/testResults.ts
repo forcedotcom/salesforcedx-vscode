@@ -5,9 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { TestResult, TestResultRaw } from './testSchemas';
 import type { TestCategory } from '../tests/types';
 import * as Arr from 'effect/Array';
+import * as Schema from 'effect/Schema';
+import { ApexTestSetupDataSchema, type TestResult, type TestResultRaw } from './testSchemas';
 
 export const calculatePercentage = (dividend: number, divisor: number): string =>
   dividend > 0 ? `${((dividend / divisor) * 100).toFixed()}%` : '0%';
@@ -28,19 +29,21 @@ export const transformTestResult = (rawResult: TestResultRaw): TestResult => {
       testTotalTimeInMs: (rawResult.summary.testSetupTimeInMs || 0) + rawResult.summary.testExecutionTimeInMs
     },
     tests: regularTests.map(({ isTestSetup, ...test }) => test),
-    setup: setupMethods.map(test => ({
-      id: test.id,
-      stackTrace: test.stackTrace ?? null,
-      message: test.message ?? null,
-      asyncApexJobId: test.asyncApexJobId,
-      methodName: test.methodName,
-      apexLogId: test.apexLogId ?? null,
-      apexClass: test.apexClass,
-      testSetupTime: test.runTime,
-      testTimestamp: test.testTimestamp,
-      fullName: test.fullName,
-      diagnostic: test.diagnostic
-    })),
+    setup: setupMethods.map(test =>
+      Schema.decodeUnknownSync(ApexTestSetupDataSchema)({
+        id: test.id,
+        stackTrace: test.stackTrace ?? null,
+        message: test.message ?? null,
+        asyncApexJobId: test.asyncApexJobId,
+        methodName: test.methodName,
+        apexLogId: test.apexLogId ?? null,
+        apexClass: test.apexClass,
+        testSetupTime: test.runTime,
+        testTimestamp: test.testTimestamp,
+        fullName: test.fullName,
+        diagnostic: test.diagnostic
+      })
+    ),
     codecoverage: rawResult.codecoverage
   };
 };

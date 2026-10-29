@@ -15,6 +15,8 @@ describe('@salesforce/apex-node public API', () => {
 
     expect(supportedSymbols.sort()).toEqual([
       'ApexClassId',
+      'ApexLogId',
+      'ApexTriggerId',
       'CancellationTokenSource',
       'CoverageReporter',
       'DefaultReportOptions',
@@ -24,11 +26,14 @@ describe('@salesforce/apex-node public API', () => {
       'JUnitReporter',
       'LogService',
       'ResultFormat',
+      'ResultFormatSchema',
       'SalesforceId',
       'TapReporter',
       'TestLevel',
+      'TestLevelSchema',
       'TestRunId',
-      'TestService'
+      'TestService',
+      'UserId'
     ]);
   });
 

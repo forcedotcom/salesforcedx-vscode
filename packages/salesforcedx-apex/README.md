@@ -92,7 +92,7 @@ The Effect API returns a success-only outcome. Compilation and runtime failures 
 
 ### Logs
 
-`listLogs(connection, limit = 25, options?)` queries Tooling API logs in descending start-time order. Options filter by user(s), operation substring, and inclusive start time. `getLogBody(connection, logId)` retrieves the body.
+`listLogs(connection, options?)` retrieves every matching Tooling API log page in descending start-time order. Options filter by `userIds`, operation substring, and inclusive start time. `getLogBody(connection, logId)` retrieves the body using a validated `ApexLogId`.
 
 `streamLogs(connection, options)` collects immediately and then on the supplied Effect schedule. `pollOptions(index)` returns `Option.none()` to skip a poll or `Option.some(filters)` to query; `filterLogs` selects records before body retrieval. The stream emits `Log`, `QueryError`, and `BodyError` events, continuing after request failures. Consumers own window gating, trace flags, org changes, deduplication, storage, and interruption.
 

@@ -7,14 +7,15 @@
 
 import * as Schema from 'effect/Schema';
 import { QueryPageSchema } from '../queryPage';
+import { ApexLogId, UserId } from '../salesforceId';
 
 /** ApexLog record returned by the Tooling API. */
 export const ApexLogListItem = Schema.Struct({
-  Id: Schema.String,
+  Id: ApexLogId,
   Application: Schema.optionalWith(Schema.String, { nullable: true }),
   DurationMilliseconds: Schema.optionalWith(Schema.Number, { nullable: true }),
   LogLength: Schema.Number,
-  LogUserId: Schema.optionalWith(Schema.String, { nullable: true }),
+  LogUserId: Schema.optionalWith(UserId, { nullable: true }),
   LogUser: Schema.optionalWith(Schema.Struct({ Name: Schema.optionalWith(Schema.String, { nullable: true }) }), {
     nullable: true
   }),
@@ -24,4 +25,4 @@ export const ApexLogListItem = Schema.Struct({
 }).annotations({ identifier: 'ApexLogListItem' });
 export type ApexLogListItem = typeof ApexLogListItem.Type;
 
-export const LogPageSchema = QueryPageSchema(ApexLogListItem);
+export const ApexLogPageSchema = QueryPageSchema(ApexLogListItem).annotations({ identifier: 'ApexLogPage' });
