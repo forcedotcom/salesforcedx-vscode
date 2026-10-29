@@ -176,7 +176,6 @@ test('Execute Anonymous Apex: document, selection, script creation, runtime and 
   });
 
   await test.step('execute with runtime error and verify error notification', async () => {
-    const editor = page.locator(EDITOR_WITH_URI).first();
     await editor.click();
     await selectAll(page);
     await page.keyboard.press('Delete');
