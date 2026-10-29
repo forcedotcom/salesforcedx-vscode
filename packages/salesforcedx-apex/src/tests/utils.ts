@@ -13,7 +13,7 @@ import { isUndefined } from 'effect/Predicate';
 import { queryNamespaces as queryNamespaceInfos } from '../effect/namespaces';
 import * as TestResults from '../effect/testResults';
 
-export { calculatePercentage, computeTestCategory, isFlowTest, transformTestResult } from '../effect/testResults';
+export { calculatePercentage, transformTestResult } from '../effect/testResults';
 import { nls } from '../i18n';
 import { type ApexTestProgressReporter, type NamespaceInfo, type TestResultRaw } from './types';
 

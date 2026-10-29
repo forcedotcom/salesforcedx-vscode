@@ -13,7 +13,7 @@ import { ApexTestSetupDataSchema, type TestResult, type TestResultRaw } from './
 export const calculatePercentage = (dividend: number, divisor: number): string =>
   dividend > 0 ? `${((dividend / divisor) * 100).toFixed()}%` : '0%';
 
-export const isFlowTest = (test: string | null): boolean => test?.startsWith('FlowTesting.') ?? false;
+const isFlowTest = (test: string | null): boolean => test?.startsWith('FlowTesting.') ?? false;
 
 export const computeTestCategory = (testNamespace: string | null): TestCategory =>
   isFlowTest(testNamespace) ? 'Flow' : 'Apex';
