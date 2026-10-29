@@ -89,13 +89,18 @@ describe('O11Y_ENDPOINT override', () => {
     }
   );
 
-  it.each(['https://remote.example/o11y', 'file:///tmp/o11y', 'not a url'])(
-    'rejects non-loopback override %s',
-    endpoint => {
-      process.env.O11Y_ENDPOINT = endpoint;
-      expect(getSdkLayerConfigFromPackageJSON(packageJSON, true).o11yEndpoint).toBe(packageJSON.o11yUploadEndpoint);
-    }
-  );
+  it.each([
+    undefined,
+    '',
+    'https://remote.example/o11y',
+    'http://localhost.example.com',
+    'file:///tmp/o11y',
+    'not a url'
+  ])('rejects non-loopback override %s', endpoint => {
+    if (endpoint === undefined) delete process.env.O11Y_ENDPOINT;
+    else process.env.O11Y_ENDPOINT = endpoint;
+    expect(getSdkLayerConfigFromPackageJSON(packageJSON, true).o11yEndpoint).toBe(packageJSON.o11yUploadEndpoint);
+  });
 
   it('does not apply a loopback override in production', () => {
     process.env.O11Y_ENDPOINT = 'http://localhost:3002';

@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { nodeConfig } from '../../scripts/bundling/node.mjs';
+import { nodeConfig, nodeEsmConfig } from '../../scripts/bundling/node.mjs';
 import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
 import { build } from 'esbuild';
 import { writeFile } from 'fs/promises';
@@ -12,10 +12,10 @@ import { resolve } from 'path';
 
 // Node.js build (desktop VS Code)
 const nodeBuild = await build({
-  ...nodeConfig,
+  ...nodeEsmConfig,
   loader: { '.node': 'file' },
   external: nodeConfig.external,
-  entryPoints: ['./src/index.ts'],
+  entryPoints: ['./out/src/index.js'],
   outdir: 'dist',
   metafile: true
 });
@@ -25,7 +25,7 @@ const nodeBuild = await build({
 const browserBuild = await build({
   ...commonConfigBrowser,
   external: ['vscode'],
-  entryPoints: ['./src/index.ts'],
+  entryPoints: ['./out/src/index.js'],
   outdir: './dist/web',
   metafile: true
 });
@@ -42,7 +42,6 @@ await build({
   outfile: './dist/lwcServer.js',
   bundle: true,
   platform: 'node',
-  target: 'node18',
   define: { 'process.env.ESBUILD_PLATFORM': '"node"' },
   // Allow dynamic import for @babel/core's config file loader (works fine at runtime on Node)
   supported: { 'dynamic-import': true },

@@ -15,30 +15,30 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.7.0",
+  "version": "68.7.4",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
   "productFeatureId": "aJCEE0000000mLm4AI",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.90.0"
+    "vscode": "^1.129.0"
   },
   "categories": [
     "Other"
   ],
   "dependencies": {
+    "@salesforce/core": "^9.3.0",
     "@salesforce/effect-ext-utils": "workspace:*",
-    "@salesforce/salesforcedx-utils-vscode": "workspace:*",
+    "@salesforce/salesforcedx-utils": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
-    "@salesforce/vscode-service-provider": "^1.5.0",
     "effect": "^3.21.2",
     "fast-xml-parser": "^5.7.1",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@salesforce/core": "^9.3.0",
     "@salesforce/playwright-vscode-ext": "workspace:*",
+    "@salesforce/vscode-service-provider": "^1.5.0",
     "salesforcedx-vscode-services": "workspace:*"
   },
   "extensionDependencies": [
@@ -68,7 +68,7 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
-        "../salesforcedx-utils-vscode:compile",
+        "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-services:compile"
       ],
@@ -269,7 +269,7 @@
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
   ],
-  "main": "./dist/src/index.js",
+  "main": "./dist/src/index.mjs",
   "contributes": {
     "menus": {
       "commandPalette": [

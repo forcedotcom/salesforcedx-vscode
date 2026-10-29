@@ -14,10 +14,29 @@
   "homepage": "https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/effect-ext-utils",
   "main": "out/src/index.js",
   "types": "out/src/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./out/src/index.d.ts",
+      "import": "./dist/esm/index.mjs",
+      "require": "./out/src/index.js",
+      "default": "./out/src/index.js"
+    },
+    "./out/*": "./out/*",
+    "./*.js": {
+      "types": "./out/src/*.d.ts",
+      "default": "./out/src/*.js"
+    },
+    "./*": {
+      "types": "./out/src/*.d.ts",
+      "default": "./out/src/*.js"
+    },
+    "./package.json": "./package.json"
+  },
   "files": [
     "out/**/*.js",
     "out/**/*.d.ts",
-    "out/**/*.d.ts.map"
+    "out/**/*.d.ts.map",
+    "dist/esm/**/*.mjs"
   ],
   "publishConfig": {
     "access": "public"
@@ -32,7 +51,7 @@
   },
   "wireit": {
     "compile": {
-      "command": "tsc --pretty",
+      "command": "tsc --pretty && tsc -p tsconfig.esm.json --pretty && node esbuild.esm.config.mjs",
       "clean": "if-file-deleted",
       "dependencies": [
         "../salesforcedx-vscode-i18n:compile",
@@ -41,11 +60,15 @@
       "files": [
         "src/**/*.ts",
         "tsconfig.json",
+        "tsconfig.esm.json",
+        "esbuild.esm.config.mjs",
+        "../../scripts/bundling/node.mjs",
         "../../tsconfig.common.json",
         "package.json"
       ],
       "output": [
-        "out/**"
+        "out/**",
+        "dist/**"
       ]
     },
     "test:compile": {
@@ -124,5 +147,8 @@
   },
   "devDependencies": {
     "salesforcedx-vscode-services": "workspace:*"
+  },
+  "engines": {
+    "node": ">=24.18.0"
   }
 }

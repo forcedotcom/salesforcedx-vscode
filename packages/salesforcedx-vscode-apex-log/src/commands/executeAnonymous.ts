@@ -43,7 +43,8 @@ const executeAnonymous = Effect.fn('ApexLog.ExecuteAnonymous.executeAnonymous')(
     context.selectionRange?.startLine,
     logBody
   );
-  return yield* saveExecResult(context.text, result, logBody, logId);
+  const logUri = yield* saveExecResult(context.text, result, logBody, logId);
+  return { result, logUri };
 });
 
 export const executeAnonymousCommand = Effect.fn('ApexLog.Command.executeAnonymous')(function* (
@@ -63,16 +64,20 @@ export const executeAnonymousCommand = Effect.fn('ApexLog.Command.executeAnonymo
       nls.localize('exec_anon_progress_title'),
       yield* notificationMode.getProgressLocation(command)
     ),
-    Effect.tap(logUri =>
-      notificationMode.showSuccessNotification(command, nls.localize('exec_anon_success'), false, [
-        {
-          label: nls.localize('open_log'),
-          run: () =>
-            getRuntime()
-              .runPromise(api.services.FsService.showTextDocument(logUri))
-              .then(() => undefined)
-        }
-      ])
-    )
+    Effect.tap(({ result, logUri }) => {
+      const openLogAction = {
+        label: nls.localize('open_log'),
+        run: () =>
+          getRuntime()
+            .runPromise(api.services.FsService.showTextDocument(logUri))
+            .then(() => undefined)
+      };
+      return result.success
+        ? notificationMode.showSuccessNotification(command, nls.localize('exec_anon_success'), false, [openLogAction])
+        : notificationMode.showErrorWithActions(result.exceptionMessage ?? nls.localize('exec_anon_runtime_unknown'), [
+            openLogAction
+          ]);
+    }),
+    Effect.map(({ logUri }) => logUri)
   );
 });

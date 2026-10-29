@@ -31,7 +31,7 @@ jobs:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
       - uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
-      - name: Validate GitHub Actions
+      - name: Validate native scripts and GitHub Actions
         run: pnpm check:actions
   check-knip:
     if: github.event.action != 'edited'

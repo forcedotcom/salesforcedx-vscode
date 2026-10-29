@@ -5,7 +5,7 @@
   "description": "Language server for Aura components.",
   "publisher": "salesforce",
   "engines": {
-    "vscode": "^1.90.0"
+    "vscode": "^1.129.0"
   },
   "main": "out/src/index.js",
   "typings": "out/src/index.d.ts",
@@ -34,7 +34,6 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../salesforcedx-lightning-lsp-common:compile",
-        "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-i18n:compile"
       ],
       "files": [
@@ -91,7 +90,6 @@
   },
   "dependencies": {
     "@salesforce/salesforcedx-lightning-lsp-common": "workspace:*",
-    "@salesforce/salesforcedx-utils": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
     "acorn": "^6.0.0",
     "acorn-loose": "^6.0.0",

@@ -15,14 +15,14 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.7.0",
+  "version": "68.7.4",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
   "productFeatureId": "aJCEE0000000mLm4AI",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.90.0"
+    "vscode": "^1.129.0"
   },
   "categories": [
     "Other"
@@ -38,7 +38,7 @@
     "@opentelemetry/exporter-trace-otlp-http": "0.219.0",
     "@opentelemetry/resources": "2.11.0",
     "@opentelemetry/sdk-logs": "0.219.0",
-    "@opentelemetry/sdk-metrics": "2.10.0",
+    "@opentelemetry/sdk-metrics": "2.12.0",
     "@opentelemetry/sdk-trace-base": "2.10.0",
     "@opentelemetry/sdk-trace-node": "2.8.0",
     "@opentelemetry/sdk-trace-web": "2.8.0",
@@ -48,7 +48,7 @@
     "@salesforce/salesforcedx-utils": "workspace:*",
     "@salesforce/source-deploy-retrieve": "^13.5.0",
     "@salesforce/source-tracking": "^8.1.7",
-    "@salesforce/templates": "^66.17.2",
+    "@salesforce/templates": "^66.17.4",
     "@salesforce/vscode-i18n": "workspace:*",
     "@vscode/extension-telemetry": "^1.0.0",
     "cross-spawn": "7.0.6",
@@ -276,17 +276,19 @@
       ]
     },
     "o11y:debug": {
-      "command": "ts-node scripts/o11yDebugServer.ts",
+      "command": "ts-node --project tsconfig.scripts.json scripts/o11yDebugServer.ts",
       "service": true,
       "files": [
-        "scripts/o11yDebugServer.ts"
+        "scripts/o11yDebugServer.ts",
+        "tsconfig.scripts.json"
       ]
     },
     "spans:server": {
-      "command": "ts-node scripts/spanFileServer.ts",
+      "command": "ts-node --project tsconfig.scripts.json scripts/spanFileServer.ts",
       "service": true,
       "files": [
-        "scripts/spanFileServer.ts"
+        "scripts/spanFileServer.ts",
+        "tsconfig.scripts.json"
       ]
     },
     "test:compile": {
@@ -335,7 +337,7 @@
     "*",
     "onFileSystem:memfs"
   ],
-  "main": "dist/index.js",
+  "main": "dist/index.mjs",
   "types": "out/src/index.d.ts",
   "browser": "./dist/web/index.js",
   "contributes": {

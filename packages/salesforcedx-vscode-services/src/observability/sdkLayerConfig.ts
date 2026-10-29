@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isLoopbackHttpEndpoint } from '@salesforce/salesforcedx-utils';
 import type * as vscode from 'vscode';
 import { type ExtensionContext, ExtensionMode } from 'vscode';
 import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
@@ -50,6 +49,16 @@ export const resolveConnectionString = (
 
 /** Span file server's /v2.1/track endpoint — default local sink for dev/test telemetry. */
 const DEFAULT_LOCAL_INGESTION_ENDPOINT = 'http://localhost:3003';
+
+const isLoopbackHttpEndpoint = (endpoint: string | undefined): endpoint is string => {
+  if (!endpoint || !URL.canParse(endpoint)) return false;
+
+  const { hostname, protocol } = new URL(endpoint);
+  return (
+    (protocol === 'http:' || protocol === 'https:') &&
+    (hostname === 'localhost' || hostname === '127.0.0.1' || hostname === '[::1]')
+  );
+};
 
 /**
  * Resolve the dev/test local divert endpoint (App Insights envelopes go here instead of Azure):

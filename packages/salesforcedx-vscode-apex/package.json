@@ -15,14 +15,14 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.7.0",
+  "version": "68.7.4",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
   "productFeatureId": "aJCEE0000000mLm4AI",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.90.0"
+    "vscode": "^1.129.0"
   },
   "categories": [
     "Programming Languages"
@@ -281,7 +281,7 @@
   "activationEvents": [
     "workspaceContains:sfdx-project.json"
   ],
-  "main": "./dist/index.js",
+  "main": "./dist/index.mjs",
   "types": "./out/src/index.d.ts",
   "languageServerDir": "dist",
   "contributes": {
@@ -329,10 +329,85 @@
           "default": false,
           "description": "%apex_code_completion_stats_description%"
         },
-        "salesforcedx-vscode-apex.advanced.lspParityCapabilities": {
-          "type": "boolean",
-          "default": true,
-          "description": "%apex_lsp_parity_capabilities_description%"
+        "salesforcedx-vscode-apex.advanced.capabilities.codeActions": {
+          "type": "string",
+          "order": 1,
+          "enum": [
+            "enabled",
+            "disabled"
+          ],
+          "default": "enabled",
+          "description": "%apex_capability_code_actions_description%"
+        },
+        "salesforcedx-vscode-apex.advanced.capabilities.codeLenses": {
+          "type": "string",
+          "order": 2,
+          "enum": [
+            "enabled",
+            "disabled"
+          ],
+          "default": "enabled",
+          "description": "%apex_capability_code_lenses_description%"
+        },
+        "salesforcedx-vscode-apex.advanced.capabilities.completions": {
+          "type": "string",
+          "order": 3,
+          "enum": [
+            "enabled",
+            "disabled"
+          ],
+          "default": "enabled",
+          "description": "%apex_capability_completions_description%"
+        },
+        "salesforcedx-vscode-apex.advanced.capabilities.definition": {
+          "type": "string",
+          "order": 5,
+          "enum": [
+            "enabled",
+            "disabled"
+          ],
+          "default": "enabled",
+          "description": "%apex_capability_definition_description%"
+        },
+        "salesforcedx-vscode-apex.advanced.capabilities.documentSymbols": {
+          "type": "string",
+          "order": 6,
+          "enum": [
+            "enabled",
+            "disabled"
+          ],
+          "default": "disabled",
+          "description": "%apex_capability_document_symbols_description%"
+        },
+        "salesforcedx-vscode-apex.advanced.capabilities.hover": {
+          "type": "string",
+          "order": 7,
+          "enum": [
+            "enabled",
+            "disabled"
+          ],
+          "default": "enabled",
+          "description": "%apex_capability_hover_description%"
+        },
+        "salesforcedx-vscode-apex.advanced.capabilities.references": {
+          "type": "string",
+          "order": 9,
+          "enum": [
+            "enabled",
+            "disabled"
+          ],
+          "default": "enabled",
+          "description": "%apex_capability_references_description%"
+        },
+        "salesforcedx-vscode-apex.advanced.capabilities.renameEdits": {
+          "type": "string",
+          "order": 10,
+          "enum": [
+            "enabled",
+            "disabled"
+          ],
+          "default": "enabled",
+          "description": "%apex_capability_rename_edits_description%"
         },
         "apex.trace.server": {
           "type": "string",

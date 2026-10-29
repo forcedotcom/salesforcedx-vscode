@@ -1,17 +1,16 @@
 {
   "name": "@salesforce/salesforcedx-vscode",
-  "packageManager": "pnpm@12.11.2",
+  "packageManager": "pnpm@12.14.0",
   "repository": "forcedotcom/salesforcedx-vscode",
   "license": "BSD-3-Clause",
   "workspaces": [
     "packages/*"
   ],
   "engines": {
-    "node": ">=22.15.1"
+    "node": ">=24.18.0"
   },
   "dependencies": {
     "@salesforce/o11y-reporter": "^1.8.5",
-    "@salesforce/vscode-service-provider": "^1.5.0",
     "jsforce": "^3.10.24",
     "memfs": "^4.32.0",
     "semver": "^7.5.4",
@@ -45,15 +44,14 @@
     "@secretlint/node": "11.7.1",
     "@stylistic/eslint-plugin-ts": "2.13.0",
     "@tony.ganchev/eslint-plugin-header": "3.4.4",
-    "@tsconfig/node22": "22.0.5",
     "@types/cross-spawn": "6.0.6",
     "@types/jest": "^30.0.0",
-    "@types/node": "^22.15.1",
+    "@types/node": "^24.18.0",
     "@types/semver": "7.5.8",
     "@types/vscode": "1.90.0",
     "@types/xml2js": "0.4.14",
-    "@typescript-eslint/eslint-plugin": "^8.71.1",
-    "@typescript-eslint/parser": "^8.71.1",
+    "@typescript-eslint/eslint-plugin": "^8.72.0",
+    "@typescript-eslint/parser": "^8.72.0",
     "@vitest/coverage-v8": "5.0.1",
     "@vitest/eslint-plugin": "1.6.27",
     "@vscode/test-electron": "3.1.0",
@@ -73,13 +71,13 @@
     "esbuild-plugin-polyfill-node": "0.3.0",
     "esbuild-plugin-transform": "0.5.0",
     "esbuild-plugins-node-modules-polyfill": "1.8.2",
-    "eslint": "^10.12.0",
+    "eslint": "^10.13.0",
     "eslint-config-prettier": "10.1.5",
     "eslint-plugin-barrel-files": "^3.0.1",
     "eslint-plugin-eslint-plugin": "7.6.2",
     "eslint-plugin-functional": "9.0.5",
     "eslint-plugin-import-x": "4.17.1",
-    "eslint-plugin-jest": "29.16.11",
+    "eslint-plugin-jest": "29.17.0",
     "eslint-plugin-jsdoc": "63.3.3",
     "eslint-plugin-local-rules": "3.0.2",
     "eslint-plugin-playwright": "2.12.1",
@@ -119,7 +117,7 @@
     "typescript-eslint": "^8.67.0",
     "util": "0.12.5",
     "vitest": "5.0.1",
-    "wireit": "0.14.12",
+    "wireit": "0.15.0",
     "xml2js": "0.6.2",
     "yaml": "^2.9.0"
   },
@@ -144,6 +142,7 @@
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 pnpm exec markdown-link-check --quiet --alive 200,206,429",
     "check:dupes": "pnpm exec jscpd",
     "check:actions": "wireit",
+    "check:scripts": "wireit",
     "check:extension-launch": "wireit",
     "check:format:staged": "wireit",
     "check:knip": "wireit",
@@ -180,7 +179,6 @@
         "./packages/eslint-local-rules:compile",
         "./packages/salesforcedx-utils:compile",
         "./packages/salesforcedx-vscode-i18n:compile",
-        "./packages/salesforcedx-utils-vscode:compile",
         "./packages/soql-common:compile",
         "./packages/soql-model:compile",
         "./packages/soql-builder-ui:compile",
@@ -217,7 +215,6 @@
         "./packages/eslint-local-rules:lint",
         "./packages/salesforcedx-utils:lint",
         "./packages/salesforcedx-vscode-i18n:lint",
-        "./packages/salesforcedx-utils-vscode:lint",
         "./packages/soql-common:lint",
         "./packages/soql-model:lint",
         "./packages/soql-builder-ui:lint",
@@ -263,7 +260,6 @@
         "./packages/eslint-local-rules:test",
         "./packages/salesforcedx-utils:test",
         "./packages/salesforcedx-vscode-i18n:test",
-        "./packages/salesforcedx-utils-vscode:test",
         "./packages/soql-common:test",
         "./packages/soql-model:test",
         "./packages/soql-builder-ui:test",
@@ -296,7 +292,7 @@
       ]
     },
     "test:ai-safeguards": {
-      "command": "node --test test/ai-safeguards.test.mjs test/ai-auto-approve.test.mjs test/category-approve.test.ts test/category-approve-preflight.test.cjs",
+      "command": "node --test test/ai-safeguards.test.mjs test/ai-auto-approve.test.mjs test/category-approve.test.mts test/category-approve-preflight.test.cjs",
       "dependencies": [
         "./packages/effect-octokit:compile"
       ],
@@ -311,17 +307,17 @@
         "scripts/ai-safeguards-cli.mjs",
         "scripts/ai-auto-approve.mjs",
         "scripts/ai-auto-approve-cli.mjs",
-        "scripts/category-approve.ts",
+        "scripts/category-approve.mts",
         "scripts/category-approve-preflight.cjs",
         "scripts/shared/categoryGates.cjs",
         "scripts/shared/categoryGates.d.cts",
-        "scripts/shared/categoryDecision.ts",
-        "scripts/shared/scriptErrors.ts",
+        "scripts/shared/categoryDecision.mts",
+        "scripts/shared/scriptErrors.mts",
         ".github/workflows/categoryApprove.yml",
         "APPROVAL_POLICY.md",
         "test/ai-safeguards.test.mjs",
         "test/ai-auto-approve.test.mjs",
-        "test/category-approve.test.ts",
+        "test/category-approve.test.mts",
         "test/category-approve-preflight.test.cjs"
       ],
       "output": []
@@ -344,7 +340,9 @@
         "vitest.config.mts",
         "scripts/**/*.ts",
         "scripts/clean-wireit-cache.js",
+        "scripts/releaseDashboard.sh",
         "scripts/rerunPushE2EGate.sh",
+        ".github/workflows/release-dashboard.yml",
         ".github/workflows/rerunPushE2E.yml",
         "scripts/tsconfig.json",
         "tsconfig.json"
@@ -488,11 +486,29 @@
     },
     "check:actions": {
       "command": "ts-node --project scripts/tsconfig.json scripts/validateActions.ts",
+      "dependencies": [
+        "check:scripts"
+      ],
       "files": [
         "scripts/validateActions.ts",
+        "scripts/shared/validateAction.ts",
         "scripts/tsconfig.json",
         ".github/workflows/*.{yml,yaml}",
         ".github/actions/*/action.{yml,yaml}"
+      ],
+      "output": []
+    },
+    "check:scripts": {
+      "command": "tsc --noEmit -p scripts/tsconfig.native.json && node --check scripts/category-approve.mts && node --check scripts/changelogBody/changelogBody.mts && node --check scripts/manualTestPlan/manualTestPlan.mts && node --check test/category-approve.test.mts && node --check scripts/manualTestPlan/test/unit/manualTestPlan.test.mts",
+      "dependencies": [
+        "./packages/effect-octokit:compile"
+      ],
+      "files": [
+        "package.json",
+        "scripts/tsconfig.native.json",
+        "scripts/**/*.{mts,cts}",
+        "scripts/shared/categoryGates.cjs",
+        "test/**/*.{mts,cts}"
       ],
       "output": []
     },
@@ -525,7 +541,6 @@
     },
     "check:effect-diagnostics": {
       "dependencies": [
-        "./packages/salesforcedx-utils-vscode:check:effect-diagnostics",
         "./packages/soql-builder-ui:check:effect-diagnostics",
         "./packages/salesforcedx-apex:check:effect-diagnostics",
         "./packages/salesforcedx-apex-debugger:check:effect-diagnostics",
@@ -569,6 +584,7 @@
         "check:peer-deps",
         "check:lock-sync",
         "check:actions",
+        "check:scripts",
         "check:extension-launch",
         "check:knip",
         "check:effect-diagnostics"

@@ -1,0 +1,30 @@
+name: Releasability Dashboard
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Refresh after each scheduled nightly and both Wednesday release-train workflows.
+    - cron: '15 4 * * *'
+    - cron: '15 8 * * 3'
+
+permissions:
+  actions: read
+  checks: read
+  contents: read
+
+jobs:
+  report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      REPO: ${{ github.repository }}
+    steps:
+      - name: Checkout default branch for release tags
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Write releasability dashboard
+        run: bash scripts/releaseDashboard.sh

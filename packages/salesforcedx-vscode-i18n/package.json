@@ -18,6 +18,8 @@
   "exports": {
     ".": {
       "types": "./out/src/index.d.ts",
+      "import": "./dist/esm/index.mjs",
+      "require": "./out/src/index.js",
       "default": "./out/src/index.js"
     },
     "./tsPlugin": {
@@ -31,11 +33,18 @@
     "out/src/**/*.js.map",
     "out/src/**/*.d.ts",
     "out/src/**/*.d.ts.map",
+    "dist/esm/**/*.mjs",
     "LICENSE.txt",
     "README.md"
   ],
   "publishConfig": {
     "access": "public"
+  },
+  "engines": {
+    "node": ">=22.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.15.1"
   },
   "scripts": {
     "compile": "wireit",
@@ -47,16 +56,20 @@
   },
   "wireit": {
     "compile": {
-      "command": "tsc --pretty",
+      "command": "tsc --pretty && tsc -p tsconfig.esm.json --pretty && node esbuild.esm.config.mjs",
       "clean": "if-file-deleted",
       "files": [
         "src/**/*.ts",
         "tsconfig.json",
+        "tsconfig.esm.json",
+        "esbuild.esm.config.mjs",
+        "../../scripts/bundling/node.mjs",
         "../../tsconfig.common.json",
         "package.json"
       ],
       "output": [
-        "out/**"
+        "out/**",
+        "dist/**"
       ]
     },
     "test:compile": {

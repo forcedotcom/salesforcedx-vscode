@@ -13,7 +13,7 @@ This extension provides metadata operations for Salesforce development in VS Cod
 
 ## Requirements
 
-- VS Code 1.90.0 or higher
+- VS Code 1.129.0 or higher
 - Salesforce CLI
 - Authenticated Salesforce org
 

@@ -4,7 +4,7 @@ Extensions are a unique development environment. Understanding it is helpful.
 
 start with the official docs: <https://code.visualstudio.com/api/get-started/your-first-extension>.
 
-Extensions should be written in TS. Support for ESM in vscode extension is currently pretty sketchy (Nov 2025) so we recommend using cjs.
+Extensions should be written in TS. The Node extension host supports ESM starting with VS Code 1.100; use an `.mjs` `main` entry or set `type` to `module`. The web worker extension host still requires CJS output. See [Build](../Build.md).
 
 ## Naming
 

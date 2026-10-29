@@ -15,21 +15,20 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.7.0",
+  "version": "68.7.4",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
   "productFeatureId": "aJCEE0000000mLm4AI",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.90.0"
+    "vscode": "^1.129.0"
   },
   "categories": [
     "Other"
   ],
   "dependencies": {
     "@salesforce/effect-ext-utils": "workspace:*",
-    "@salesforce/salesforcedx-utils-vscode": "workspace:*",
     "@salesforce/vscode-services": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
     "effect": "^3.21.2",
@@ -65,7 +64,6 @@
       "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
-        "../salesforcedx-utils-vscode:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../effect-ext-utils:compile",
         "../salesforcedx-vscode-services-types:compile"
@@ -179,6 +177,7 @@
       ],
       "files": [
         "package.json",
+        ".vscodeignore",
         "package.nls*.json",
         "README.md",
         "CHANGELOG.md",
@@ -208,6 +207,7 @@
       ],
       "files": [
         "package.json",
+        ".vscodeignore",
         "package.nls*.json",
         "README.md",
         "CHANGELOG.md",
@@ -244,7 +244,7 @@
       "description": "Org management requires executing Salesforce CLI commands"
     }
   },
-  "main": "./dist/index.js",
+  "main": "./dist/index.mjs",
   "contributes": {
     "configuration": {
       "title": "%configuration_title%",

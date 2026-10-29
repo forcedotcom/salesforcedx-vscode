@@ -1,6 +1,8 @@
 # Publishing
 
 > For an automated, agent-assisted walkthrough of these steps, see [.claude/skills/release/SKILL.md](../.claude/skills/release/SKILL.md).
+> For the weekly release-manager schedule, QA artifact selection, and recovery
+> of failed prerequisites, see [Release Testing Guide](../docs/release-testing-guide.md).
 
 This is a guide for publishing to the Visual Studio Code Marketplace and the Open VSX Registry. Most contributors will not need to worry about publishing. However, it might be worthwhile familiarizing yourself with the steps in case you need to share the extensions through the .vsix files.
 

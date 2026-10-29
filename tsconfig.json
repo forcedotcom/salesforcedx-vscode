@@ -1,4 +1,9 @@
 {
+  "compilerOptions": {
+    "lib": ["ES2024"],
+    "module": "nodenext",
+    "target": "ES2024"
+  },
   "files": [],
   "include": []
 }

@@ -25,9 +25,9 @@ export function encodeBody(accessToken: string, data: string): string {
 xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"
 xmlns:cmd="http://soap.sforce.com/2006/08/apex"
 xmlns:apex="http://soap.sforce.com/2006/08/apex">
-    <env:Header>
+    <env:Header xmlns="http://soap.sforce.com/2006/08/apex">
         <cmd:SessionHeader>
-            <cmd:sessionId>${accessToken}</cmd:sessionId>
+            <cmd:sessionId>${escapeXml(accessToken)}</cmd:sessionId>
         </cmd:SessionHeader>
         <apex:DebuggingHeader>
             <apex:categories><apex:category>Apex_code</apex:category><apex:level>Finest</apex:level></apex:categories>
