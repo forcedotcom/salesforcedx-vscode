@@ -30,11 +30,6 @@ export const TestLevelSchema = Schema.Literal('RunLocalTests', 'RunAllTestsInOrg
   identifier: 'TestLevel'
 });
 export type TestLevel = typeof TestLevelSchema.Type;
-export const TestLevel = {
-  RunLocalTests: TestLevelSchema.literals[0],
-  RunAllTestsInOrg: TestLevelSchema.literals[1],
-  RunSpecifiedTests: TestLevelSchema.literals[2]
-} as const satisfies { [K in TestLevel]: K };
 
 /** Test implementation category. */
 export const TestCategorySchema = Schema.Literal('Apex', 'Flow');

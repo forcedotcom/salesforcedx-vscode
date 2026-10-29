@@ -29,7 +29,6 @@ describe('@salesforce/apex-node public API', () => {
       'ResultFormatSchema',
       'SalesforceId',
       'TapReporter',
-      'TestLevel',
       'TestLevelSchema',
       'TestRunId',
       'TestService',

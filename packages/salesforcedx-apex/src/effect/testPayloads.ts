@@ -7,6 +7,7 @@
 
 import type { BuildAsyncPayloadOptions, BuildSyncPayloadOptions } from './schema/testPayloads';
 import type { Connection } from '@salesforce/core';
+import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import * as Match from 'effect/Match';
@@ -46,7 +47,7 @@ const buildTestPayload = Effect.fn('Apex.buildTestPayload')(function* (
 ) {
   // Two-part Apex names and three-part Flow names need org data to distinguish a namespace from a class.
   const namespaceInfos = yield* Effect.cached(queryNamespaces(connection));
-  const items = yield* Effect.forEach(
+  return yield* Effect.forEach(
     testNames.split(','),
     Effect.fn('Apex.parseTestSelection')(function* (test) {
       const selection = parseTestSelection(test);
@@ -66,22 +67,30 @@ const buildTestPayload = Effect.fn('Apex.buildTestPayload')(function* (
         Effect.map(testItemFromSelection)
       );
     })
+  ).pipe(
+    Effect.map(
+      items =>
+        ({
+          tests: Array.map(
+            Object.values(
+              Array.groupBy(
+                items.map((item, index) => ({ item, index })),
+                ({ item, index }) => (isNotUndefined(item.testMethods) ? `class:${item.className}` : `item:${index}`)
+              )
+            ),
+            group =>
+              group.length === 1
+                ? group[0].item
+                : {
+                    ...group[0].item,
+                    testMethods: Array.flatMap(group, ({ item }) => item.testMethods ?? [])
+                  }
+          ),
+          testLevel: 'RunSpecifiedTests',
+          skipCodeCoverage
+        }) satisfies AsyncTestArrayConfiguration
+    )
   );
-  const tests = items.reduce<TestItem[]>((grouped, item) => {
-    const testMethods = item.testMethods;
-    if (!isNotUndefined(testMethods)) return [...grouped, item];
-    const existing = grouped.find(
-      candidate => candidate.className === item.className && isNotUndefined(candidate.testMethods)
-    );
-    return existing
-      ? grouped.map(candidate =>
-          candidate === existing
-            ? { ...candidate, testMethods: [...(candidate.testMethods ?? []), ...testMethods] }
-            : candidate
-        )
-      : [...grouped, item];
-  }, []);
-  return { tests, testLevel: 'RunSpecifiedTests', skipCodeCoverage } satisfies AsyncTestArrayConfiguration;
 });
 
 /** Builds a synchronous runner payload without executing tests. */
