@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { classifyOrgForTelemetry } from '../../../src/helpers/classifyOrgForTelemetry';
+import { classifyOrgForTelemetry } from '../../../src/observability/classifyOrgForTelemetry';
 
 describe('classifyOrgForTelemetry', () => {
   it.each([

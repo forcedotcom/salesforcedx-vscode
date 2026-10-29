@@ -64,7 +64,6 @@
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
-        "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-i18n:compile"
       ],
       "files": [
@@ -124,7 +123,6 @@
   },
   "dependencies": {
     "@salesforce/effect-ext-utils": "workspace:*",
-    "@salesforce/salesforcedx-utils": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
     "effect": "^3.21.2",
     "ejs": "^3.1.10",
