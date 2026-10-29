@@ -132,6 +132,7 @@ jobs:
       pre-release: 'true'
       nightly: true  # Skip marketplace publishing, use nightly versioning
       version-bump: 'auto'
+      node-version: ${{ vars.NODE_VERSION || 'lts/*' }}  # reusable workflow defaults to 22.x, which fails root engines.node
       package-manager: pnpm
       package-manager-version: ''  # empty = auto-detect from package.json's "packageManager" field, avoiding ERR_PNPM_BAD_PM_VERSION
       cache-dependency-path: pnpm-lock.yaml

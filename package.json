@@ -11,7 +11,6 @@
   },
   "dependencies": {
     "@salesforce/o11y-reporter": "^1.8.5",
-    "@salesforce/vscode-service-provider": "^1.5.0",
     "jsforce": "^3.10.24",
     "memfs": "^4.32.0",
     "semver": "^7.5.4",
@@ -180,7 +179,6 @@
         "./packages/eslint-local-rules:compile",
         "./packages/salesforcedx-utils:compile",
         "./packages/salesforcedx-vscode-i18n:compile",
-        "./packages/salesforcedx-utils-vscode:compile",
         "./packages/soql-common:compile",
         "./packages/soql-model:compile",
         "./packages/soql-builder-ui:compile",
@@ -217,7 +215,6 @@
         "./packages/eslint-local-rules:lint",
         "./packages/salesforcedx-utils:lint",
         "./packages/salesforcedx-vscode-i18n:lint",
-        "./packages/salesforcedx-utils-vscode:lint",
         "./packages/soql-common:lint",
         "./packages/soql-model:lint",
         "./packages/soql-builder-ui:lint",
@@ -263,7 +260,6 @@
         "./packages/eslint-local-rules:test",
         "./packages/salesforcedx-utils:test",
         "./packages/salesforcedx-vscode-i18n:test",
-        "./packages/salesforcedx-utils-vscode:test",
         "./packages/soql-common:test",
         "./packages/soql-model:test",
         "./packages/soql-builder-ui:test",
@@ -344,7 +340,9 @@
         "vitest.config.mts",
         "scripts/**/*.ts",
         "scripts/clean-wireit-cache.js",
+        "scripts/releaseDashboard.sh",
         "scripts/rerunPushE2EGate.sh",
+        ".github/workflows/release-dashboard.yml",
         ".github/workflows/rerunPushE2E.yml",
         "scripts/tsconfig.json",
         "tsconfig.json"
@@ -543,7 +541,6 @@
     },
     "check:effect-diagnostics": {
       "dependencies": [
-        "./packages/salesforcedx-utils-vscode:check:effect-diagnostics",
         "./packages/soql-builder-ui:check:effect-diagnostics",
         "./packages/salesforcedx-apex:check:effect-diagnostics",
         "./packages/salesforcedx-apex-debugger:check:effect-diagnostics",

@@ -6,7 +6,6 @@
  */
 import type { DefaultOrgInfoSchema } from '../core/schemas/defaultOrgInfo';
 import { Tracer as OtelTracer } from '@effect/opentelemetry';
-import { classifyOrgForTelemetry, type TelemetryClassification } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { isString, isUndefined } from 'effect/Predicate';
@@ -16,6 +15,7 @@ import { workspace, type ExtensionContext } from 'vscode';
 import { SFDX_CORE_SECTION } from '../constants';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { ChannelService, ChannelServiceLayer } from '../vscode/channelService';
+import { classifyOrgForTelemetry, type TelemetryClassification } from './classifyOrgForTelemetry';
 import { runOnServicesRuntime } from './redactingConsoleLogger';
 import { getSdkLayerConfigFromContext, resolveConnectionString } from './sdkLayerConfig';
 import { setSpanCreationIdentity } from './spanTransformProcessor';
