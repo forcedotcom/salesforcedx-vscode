@@ -6,7 +6,6 @@
  */
 
 import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
-import type { OrgUserInfo } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as MutableRef from 'effect/MutableRef';
@@ -15,6 +14,7 @@ import * as Stream from 'effect/Stream';
 import * as Struct from 'effect/Struct';
 import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
 
+type OrgUserInfo = Pick<typeof DefaultOrgInfoSchema.Type, 'username' | 'alias'>;
 type WorkspaceOrgIdentity = Pick<
   typeof DefaultOrgInfoSchema.Type,
   'username' | 'alias' | 'orgId' | 'isScratch' | 'isSandbox'

@@ -12,7 +12,7 @@ import * as Stream from 'effect/Stream';
 // eslint-disable-next-line no-restricted-imports
 import type { FileChangeInfo } from 'node:fs/promises';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
+import { URI, Utils } from 'vscode-uri';
 import { ChannelService } from '../vscode/channelService';
 import { IndexedDBStorageService } from './indexedDbStorage';
 import { getProjectRoot } from './projectRoot';
@@ -24,6 +24,11 @@ export const emitter = new vscode.EventEmitter<vscode.FileChangeEvent[]>();
 export const updateIDB = Effect.fn('updateIDB')(
   function* (event: FileChangeInfo<string>) {
     if (!event.filename) {
+      return;
+    }
+
+    // Catalog writes use this staging file for an atomic rename; it is not a workspace file.
+    if (Utils.basename(URI.file(event.filename)) === 'catalog.json.__staging__') {
       return;
     }
 

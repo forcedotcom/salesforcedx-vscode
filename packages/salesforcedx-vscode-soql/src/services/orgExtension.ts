@@ -7,5 +7,5 @@
 
 import * as vscode from 'vscode';
 
-export const isLocalLogging = (extName: string): boolean =>
-  vscode.workspace.getConfiguration().get<string>(`${extName}.advanced.localTelemetryLogging`) === 'true';
+export const isOrgExtensionInstalled = (): boolean =>
+  vscode.extensions.getExtension('salesforce.salesforcedx-vscode-org') !== undefined;

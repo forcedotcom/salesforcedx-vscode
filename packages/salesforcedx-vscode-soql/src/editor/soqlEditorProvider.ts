@@ -10,9 +10,10 @@ import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
 import { BUILDER_VIEW_TYPE, HTML_FILE, SOQL_BUILDER_UI_PATH } from '../constants';
-import { nls } from '../messages';
+import { noDefaultOrgMessage } from '../messages';
 import { getSoqlRuntime } from '../services/extensionProvider';
 import { isDefaultOrgSet } from '../services/org';
+import { isOrgExtensionInstalled } from '../services/orgExtension';
 import { transformHtml } from './htmlUtils';
 import { SOQLEditorInstance } from './soqlEditorInstance';
 
@@ -45,7 +46,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     this.extensionContext.subscriptions.push(...instance.subscriptions);
 
     if (!(await isDefaultOrgSet())) {
-      const message = nls.localize('info_no_default_org');
+      const message = noDefaultOrgMessage();
       getSoqlRuntime().runFork(
         getServicesApi.pipe(
           Effect.flatMap(api => api.services.ChannelService),
@@ -64,7 +65,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
         return yield* api.services.FsService.readFile(Utils.joinPath(soqlBuilderUri, HTML_FILE));
       })
     );
-    return transformHtml(htmlContent, soqlBuilderUri, webview);
+    return transformHtml(htmlContent, soqlBuilderUri, webview, isOrgExtensionInstalled());
   }
 
   private disposeInstance(instance: SOQLEditorInstance) {

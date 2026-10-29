@@ -63,7 +63,7 @@ const clearExecutionSignals = async (page: Page): Promise<void> => {
   await clearOutputChannel(page);
 };
 
-test('Execute Anonymous Apex: document, selection, script creation, compile error', async ({ page }) => {
+test('Execute Anonymous Apex: document, selection, script creation, runtime and compile errors', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
@@ -173,6 +173,28 @@ test('Execute Anonymous Apex: document, selection, script creation, compile erro
     // Close debug.log so the .apex file is active for the next step
     await closeEditor(page);
     await expect(logTab).not.toBeVisible({ timeout: 5000 });
+  });
+
+  await test.step('execute with runtime error and verify error notification', async () => {
+    const editor = page.locator(EDITOR_WITH_URI).first();
+    await editor.click();
+    await selectAll(page);
+    await page.keyboard.press('Delete');
+    await page.keyboard.type("Integer.valueOf('not-an-integer');");
+    await clickCodeLens(page, 'Execute', { timeout: 15_000 });
+    const errorNotification = page
+      .locator(NOTIFICATION_LIST_ITEM)
+      .filter({ hasText: /Invalid integer: not-an-integer/i })
+      .first();
+    await expect(errorNotification).toBeVisible({ timeout: 15_000 });
+    await errorNotification.getByRole('button', { name: /Open Log/i }).click();
+    const logTab = page.locator(TAB).filter({ hasText: /debug\.log/ });
+    await expect(logTab).toBeVisible({ timeout: 10_000 });
+    await closeEditor(page);
+    await expectProblemsCountAtLeast(page, 1, { timeout: 15_000 });
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Apex Log');
+    await waitForOutputChannelText(page, { expectedText: 'FATAL_ERROR', timeout: 10_000 });
   });
 
   await test.step('execute with compile error and verify error notification', async () => {

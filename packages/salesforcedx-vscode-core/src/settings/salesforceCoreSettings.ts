@@ -6,14 +6,13 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { SFDX_CORE_CONFIGURATION_NAME } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
-import { ALL_EXCEPTION_CATCHER_ENABLED } from '../constants';
+import { ALL_EXCEPTION_CATCHER_ENABLED, SFDX_CORE_EXTENSION_NAME } from '../constants';
 
 export const getEnableAllExceptionCatcher = Effect.fn('getEnableAllExceptionCatcher')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   return yield* (yield* api.services.SettingsService).getValueOrElse(
-    SFDX_CORE_CONFIGURATION_NAME,
+    SFDX_CORE_EXTENSION_NAME,
     ALL_EXCEPTION_CATCHER_ENABLED,
     false
   );

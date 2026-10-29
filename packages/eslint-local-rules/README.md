@@ -6,9 +6,9 @@ Custom ESLint rules for Salesforce VSCode extensions.
 
 ### no-legacy-telemetry-service
 
-Disallows value imports of `TelemetryService` and value namespace imports from `@salesforce/salesforcedx-utils-vscode`, calls to `TelemetryService.getInstance()`, and identifiers named `telemetryService`. Namespace imports are rejected because they can access the legacy service via members or destructuring. Wrap work in Effect and use `annotateRootSpan` ([ADR-0012](../../docs/adr/0012-spans-only-observability.md)); `fireSpan` is a last resort, not the default. Type-only imports remain allowed.
+Disallows value imports of `TelemetryService` and value namespace imports from the retired `@salesforce/salesforcedx-utils-vscode` package, calls to `TelemetryService.getInstance()`, and identifiers named `telemetryService`. Namespace imports are rejected because they can access the legacy service via members or destructuring. Wrap work in Effect and use `annotateRootSpan` ([ADR-0012](../../docs/adr/0012-spans-only-observability.md)); `fireSpan` is a last resort, not the default. Type-only imports remain allowed.
 
-The only exemptions preserve the frozen core API: `salesforcedx-utils-vscode/src/services/telemetry.ts`, `src/helpers/telemetryUtils.ts`, and `test/jest/telemetry/**`; `salesforcedx-vscode-core/src/telemetry/index.ts`, `src/index.ts`, `src/services/telemetry/telemetryServiceProvider.ts`, and `test/jest/telemetry/**`. The rule is enabled as an error for TypeScript files in `eslint.config.mjs`.
+The only exemptions preserve the frozen core API: `salesforcedx-vscode-core/src/services/telemetry/telemetryService.ts`, `src/telemetry/index.ts`, `src/index.ts`, `src/services/telemetry/telemetryServiceProvider.ts`, and telemetry tests. The rule is enabled as an error for TypeScript files in `eslint.config.mjs`.
 
 ### no-duplicate-i18n-values
 
