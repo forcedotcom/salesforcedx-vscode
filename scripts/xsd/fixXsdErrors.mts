@@ -109,7 +109,12 @@ function fixKnownXSDIssues(xsdFilePath: string): void {
 }
 
 function main() {
-  const repoRoot = path.resolve(__dirname, '../..');
+  if (process.argv.includes('--help')) {
+    console.log('Usage: node scripts/xsd/fixXsdErrors.mts\nFix metadata XSD type references using xsdErrors.txt.');
+    return;
+  }
+
+  const repoRoot = path.resolve(import.meta.dirname, '../..');
   const errorFilePath = path.join(repoRoot, 'xsdErrors.txt');
   const xsdFilePath = path.join(
     repoRoot,

@@ -262,6 +262,9 @@ importers:
       '@salesforce/effect-octokit':
         specifier: workspace:*
         version: link:packages/effect-octokit
+      '@salesforce/playwright-vscode-ext':
+        specifier: workspace:*
+        version: link:packages/playwright-vscode-ext
       '@secretlint/node':
         specifier: 11.7.1
         version: 11.7.1(supports-color@8.1.1)
@@ -313,6 +316,9 @@ importers:
       acorn:
         specifier: 8.15.0
         version: 8.15.0
+      applicationinsights:
+        specifier: 1.8.10
+        version: 1.8.10
       assert:
         specifier: 2.1.0
         version: 2.1.0

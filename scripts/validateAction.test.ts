@@ -6,7 +6,7 @@
  */
 
 import { stringify } from 'yaml';
-import { validateAction } from './shared/validateAction';
+import { validateAction } from './shared/validateAction.mts';
 
 const action = (runs: Record<string, unknown>) => stringify({ name: 'Test', description: 'Test action', runs });
 

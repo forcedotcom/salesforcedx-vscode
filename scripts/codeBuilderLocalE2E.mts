@@ -28,7 +28,7 @@
  *     (Falls back to a CR_PAT env var if you'd rather supply your own classic PAT.)
  *   - sf CLI logged in to a dev hub (for the scratch org)
  *
- * Usage: ts-node scripts/codeBuilderLocalE2E.ts [options]
+ * Usage: node scripts/codeBuilderLocalE2E.mts [options]
  *   --run-id <id>     Pull the VSIX from that Build All run instead of building locally.
  *   --grep <pattern>  Pass through to Playwright to run a subset of specs.
  *   --no-teardown     Leave the container + scratch org up for debugging (default tears down).
@@ -66,7 +66,7 @@ import {
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
-const REPO_ROOT = resolve(__dirname, '..');
+const REPO_ROOT = resolve(import.meta.dirname, '..');
 const CONTAINER_NAME = 'codebuilder-e2e-local';
 // Read from env so the orchestrator and the CI workflow's cleanup step share one alias (the
 // workflow sets MINIMAL_ORG_ALIAS); falls back to the local default.
@@ -139,7 +139,7 @@ const parseArgs = (argv: string[]): Options => {
         break;
       case '-h':
       case '--help':
-        console.log('See header of scripts/codeBuilderLocalE2E.ts for usage.');
+        console.log('See header of scripts/codeBuilderLocalE2E.mts for usage.');
         process.exit(0);
         break;
       default:
