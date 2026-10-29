@@ -47,12 +47,19 @@ import { join } from 'node:path';
 import * as Prettier from 'prettier';
 import {
   ApexCompileError,
+  ApexLogCursorSchema,
+  ApexLogResultSchema,
+  ApexLogGetOptionsSchema as EffectApexLogGetOptionsSchema,
+  ApexLogQueryOptionsSchema,
+  ApexLogRecordSchema,
+  ApexLogWithBodySchema,
   ApexOperationError,
   ApexResponseDecodeError,
   ApexRuntimeError,
   ExecuteAnonymousOptionsSchema,
   ExecuteAnonymousOutcomeSchema
 } from '../src/effect';
+import { LogRecordSchema } from '../src/logs/types';
 
 const optional = Schema.optional;
 const StringArray = Schema.Array(Schema.String);
@@ -104,22 +111,6 @@ const ApexLogGetOptionsSchema = Schema.Struct({
   logId: optional(Schema.String),
   outputDir: optional(Schema.String)
 }).annotations({ identifier: 'ApexLogGetOptions' });
-
-const LogRecordSchema = Schema.Struct({
-  Id: Schema.String,
-  Application: Schema.String,
-  DurationMilliseconds: Schema.Number,
-  Location: Schema.String,
-  LogLength: Schema.Number,
-  LogUser: Schema.Struct({
-    attributes: Schema.Record({ key: Schema.String, value: Schema.Unknown }),
-    Name: Schema.String
-  }),
-  Operation: Schema.String,
-  Request: Schema.String,
-  StartTime: Schema.String,
-  Status: Schema.String
-}).annotations({ identifier: 'LogRecord' });
 
 const LogResultSchema = Schema.Struct({
   logPath: optional(Schema.String),
@@ -401,6 +392,12 @@ const PublicApiSchema = Schema.Union(
   ApexDiagnosticSchema,
   ApexExecuteOptionsSchema,
   ApexLogGetOptionsSchema,
+  ApexLogCursorSchema,
+  ApexLogResultSchema,
+  EffectApexLogGetOptionsSchema,
+  ApexLogQueryOptionsSchema,
+  ApexLogRecordSchema,
+  ApexLogWithBodySchema,
   ApexTestProgressValueSchema,
   ApexTestQueueItemSchema,
   ApexTestQueueItemRecordSchema,

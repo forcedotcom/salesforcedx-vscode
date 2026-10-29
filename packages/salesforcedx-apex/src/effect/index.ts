@@ -7,6 +7,30 @@
 
 export { ExecuteAnonymousOptionsSchema, ExecuteAnonymousOutcomeSchema, executeAnonymous } from './executeAnonymous';
 export type { ExecuteAnonymousOptions, ExecuteAnonymousOutcome } from './executeAnonymous';
+export type { SalesforceId } from './salesforceId';
+export {
+  ApexLogRecordSchema,
+  ApexLogCursorSchema,
+  ApexLogQueryOptionsSchema,
+  ApexLogGetOptionsSchema,
+  ApexLogResultSchema,
+  ApexLogWithBodySchema,
+  listLogs,
+  getLogBody,
+  getLogRecords,
+  getLogs,
+  saveLog,
+  streamLogs
+} from './apexLogs';
+export type {
+  ApexLogRecord,
+  ApexLogCursor,
+  ApexLogQueryOptions,
+  ApexLogGetOptions,
+  ApexLogResult,
+  ApexLogWithBody,
+  ApexLogWriter
+} from './apexLogs';
 export {
   ApexCompileError,
   ApexOperationError,

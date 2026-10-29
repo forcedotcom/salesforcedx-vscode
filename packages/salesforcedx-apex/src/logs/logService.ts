@@ -7,13 +7,26 @@
 import type { JsonObject } from '../json';
 import { type Connection, Logger, type Org, type StatusResult, StreamingClient } from '@salesforce/core';
 import { Duration } from '@salesforce/kit';
+import * as Effect from 'effect/Effect';
+import * as Either from 'effect/Either';
+import { isUndefined } from 'effect/Predicate';
+import { mkdir, writeFile } from 'node:fs/promises';
 import * as path from 'node:path';
+import { ApexOperationError, causeMessage, getLogBody, getLogRecords, getLogs } from '../effect';
 import { nls } from '../i18n';
 import { elapsedTime } from '../utils/elapsedTime';
-import { createFile } from '../utils/fileSystemHandler';
 import { TraceFlags } from '../utils/traceFlags';
-import { LISTENER_ABORTED_ERROR_NAME, LOG_TIMER_LENGTH_MINUTES, MAX_NUM_LOGS, STREAMING_LOG_TOPIC } from './constants';
+import { LISTENER_ABORTED_ERROR_NAME, LOG_TIMER_LENGTH_MINUTES, STREAMING_LOG_TOPIC } from './constants';
 import { type ApexLogGetOptions, type LogRecord, type LogResult } from './types';
+
+// Unwrap at the Promise boundary so CLI errors do not acquire a FiberFailure prefix.
+const runLogOperation = async <A, E extends { message: string }>(operation: Effect.Effect<A, E>): Promise<A> =>
+  Either.match(await operation.pipe(Effect.either, Effect.runPromise), {
+    onLeft: error => {
+      throw new Error(error.message);
+    },
+    onRight: result => result
+  });
 
 type StreamingLogMessage = {
   errorName?: string;
@@ -30,66 +43,46 @@ export class LogService {
   }
 
   @elapsedTime()
-  private async getLogIds(options: ApexLogGetOptions): Promise<string[]> {
-    if (!(typeof options.logId === 'string' || typeof options.numberOfLogs === 'number')) {
-      throw new Error(nls.localize('missingInfoLogError'));
-    }
-
-    if (typeof options.numberOfLogs === 'number') {
-      const logIdRecordList = await this.getLogRecords(options.numberOfLogs);
-      return logIdRecordList.map(logRecord => logRecord.Id);
-    }
-    return options.logId ? [options.logId] : [];
-  }
-
-  // TODO: readableStream cannot be used until updates are made in jsforce and sfdx-core
-  @elapsedTime()
   public async getLogs(options: ApexLogGetOptions): Promise<LogResult[]> {
-    const logs = (
-      await Promise.all(
-        (await this.getLogIds(options)).map(async id => ({
-          ...(await this.getLogById(id)),
-          logId: id
-        }))
-      )
-    ).map(({ log, logId }) => {
-      if (options.outputDir) {
-        const logPath = path.join(options.outputDir, `${logId}.log`);
-        createFile(logPath, log);
-        return { log, logPath };
-      }
-      return { log };
-    });
-
-    return logs;
+    const outputDir = options.outputDir;
+    return runLogOperation(
+      getLogs(
+        this.connection,
+        options,
+        outputDir
+          ? (fileName, body) =>
+              Effect.tryPromise({
+                try: async () => {
+                  const logPath = path.join(outputDir, fileName);
+                  await mkdir(outputDir, { recursive: true });
+                  await writeFile(logPath, body);
+                  return logPath;
+                },
+                catch: cause =>
+                  new ApexOperationError({
+                    operation: 'writeLog',
+                    message: causeMessage(cause),
+                    cause: causeMessage(cause)
+                  })
+              })
+          : undefined
+      ).pipe(Effect.map(logs => logs.map(({ log, logPath }) => (isUndefined(logPath) ? { log } : { log, logPath }))))
+    );
   }
 
   @elapsedTime()
   private async getLogById(logId: string): Promise<LogResult> {
-    const baseUrl = this.connection.tooling._baseUrl();
-    const url = `${baseUrl}/sobjects/ApexLog/${logId}/Body`;
-    const response = await this.toolingRequest(url);
-    return { log: typeof response === 'string' ? response : String(response ?? '') };
+    return runLogOperation(getLogBody(this.connection, logId).pipe(Effect.map(log => ({ log }))));
   }
 
   @elapsedTime()
   public async getLogRecords(numberOfLogs?: number): Promise<LogRecord[]> {
-    let apexLogQuery = `
-        SELECT Id, Application, DurationMilliseconds, Location, LogLength, LogUser.Name,
-          Operation, Request, StartTime, Status
-        FROM ApexLog
-        ORDER BY StartTime DESC
-      `;
-
-    if (typeof numberOfLogs === 'number') {
-      if (numberOfLogs <= 0) {
-        throw new Error(nls.localize('numLogsError'));
-      }
-      numberOfLogs = Math.min(numberOfLogs, MAX_NUM_LOGS);
-      apexLogQuery += ` LIMIT ${numberOfLogs}`;
-    }
-
-    return (await this.connection.tooling.query<LogRecord>(apexLogQuery)).records;
+    return runLogOperation(
+      getLogRecords(this.connection, numberOfLogs).pipe(
+        // Keep the legacy CLI type without rejecting nullable fields accepted by the shared API.
+        Effect.map(records => records.map(({ LogUserId: _logUserId, ...record }) => record as LogRecord))
+      )
+    );
   }
 
   @elapsedTime()
@@ -141,10 +134,5 @@ export class LogService {
   public async prepareTraceFlag(requestedDebugLevel: string): Promise<void> {
     const flags = new TraceFlags(this.connection);
     await flags.ensureTraceFlags(requestedDebugLevel);
-  }
-
-  @elapsedTime()
-  private async toolingRequest(url: string): Promise<unknown> {
-    return this.connection.tooling.request(url);
   }
 }

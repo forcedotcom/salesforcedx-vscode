@@ -8,36 +8,20 @@
 import type { SinonStub } from 'sinon';
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
-import * as fs from 'node:fs';
+import * as fs from 'node:fs/promises';
 import { LogService } from '../../src/logs/logService';
 import * as path from 'node:path';
-import * as stream from 'node:stream';
 import { type LogRecord, type LogResult } from '../../src/logs/types';
 
-vi.mock(import('node:fs'), async importOriginal => ({
-  ...(await importOriginal()),
-  closeSync: vi.fn(),
-  createWriteStream: vi.fn(),
-  existsSync: vi.fn(),
-  mkdirSync: vi.fn(),
-  openSync: vi.fn()
-}));
+vi.mock(import('node:fs/promises'), () => ({ mkdir: vi.fn(), writeFile: vi.fn() }));
 
 type LogQueryResult = {
   records: LogRecord[];
 };
 
-type LogServiceInternals = {
-  getLogById: (logId: string) => Promise<LogResult>;
-  toolingRequest: (url: string) => Promise<unknown>;
-};
-
-const logServicePrototype = LogService.prototype as unknown as LogServiceInternals;
-const createWriteStreamMock = vi.mocked(fs.createWriteStream);
-
 const logRecords: LogRecord[] = [
   {
-    Id: '07L5tgg0005PGdTnEAL',
+    Id: '07L5tg0005PGdTnEAL',
     Application: 'Unknown',
     DurationMilliseconds: 75,
     Location: 'Unknown',
@@ -52,7 +36,7 @@ const logRecords: LogRecord[] = [
     Status: 'Assertion Failed'
   },
   {
-    Id: '07L5tgg0005PGdTnFPL',
+    Id: '07L5tg0005PGdTnFPL',
     Application: 'Unknown',
     DurationMilliseconds: 75,
     Location: 'Unknown',
@@ -71,7 +55,7 @@ const logRecords: LogRecord[] = [
 const rawLogResult: LogQueryResult = {
   records: [
     {
-      Id: '07L5tgg0005PGdTnEAL',
+      Id: '07L5tg0005PGdTnEAL',
       Application: 'Unknown',
       DurationMilliseconds: 75,
       Location: 'Unknown',
@@ -86,7 +70,7 @@ const rawLogResult: LogQueryResult = {
       Status: 'Assertion Failed'
     },
     {
-      Id: '07L5tgg0005PGdTnFPL',
+      Id: '07L5tg0005PGdTnFPL',
       Application: 'Unknown',
       DurationMilliseconds: 75,
       Location: 'Unknown',
@@ -111,11 +95,8 @@ describe('Apex Log Service Tests', () => {
   let toolingRequestStub: SinonStub;
 
   beforeEach(async () => {
-    createWriteStreamMock.mockReset();
-    vi.mocked(fs.closeSync).mockReset();
-    vi.mocked(fs.existsSync).mockReset();
-    vi.mocked(fs.mkdirSync).mockReset();
-    vi.mocked(fs.openSync).mockReset();
+    vi.mocked(fs.mkdir).mockReset();
+    vi.mocked(fs.writeFile).mockReset();
     await $$.stubAuths(testData);
 
     // Stub retrieveMaxApiVersion to get over "Domain Not Found: The org cannot be found" error
@@ -125,13 +106,13 @@ describe('Apex Log Service Tests', () => {
         username: testData.username
       })
     });
-    toolingRequestStub = $$.SANDBOX.stub(logServicePrototype, 'toolingRequest');
+    toolingRequestStub = $$.SANDBOX.stub(mockConnection.tooling, 'request');
   });
 
   it('should return correct number of logs', async () => {
     const apexLogGet = new LogService(mockConnection);
     const logs = ['07WgsWfsFF', 'FTWrd5lfg'];
-    const ids = [{ Id: '48jnskd' }, { Id: '67knmdfklDF' }];
+    const ids = logRecords;
     const queryRecords = { records: ids };
     toolingRequestStub.onFirstCall().resolves(logs[0]);
     toolingRequestStub.onSecondCall().resolves(logs[1]);
@@ -159,38 +140,37 @@ describe('Apex Log Service Tests', () => {
   it('should handle exceeding log limit', async () => {
     const apexLogGet = new LogService(mockConnection);
     const ids = [
-      { Id: '48jnskd' },
-      { Id: '67knmdfklDF' },
-      { Id: 'CODE' },
-      { Id: 'FINEST' },
-      { Id: 'PROFILING' },
-      { Id: 'INFO' },
-      { Id: 'CALLOUT' },
-      { Id: 'ASDA' },
-      { Id: 'ADAD' },
-      { Id: 'Ajkl' },
-      { Id: 'SADkl' },
-      { Id: 'FSDFS' },
-      { Id: 'DASD' },
-      { Id: 'ASD' },
-      { Id: 'NKJN' },
-      { Id: 'ADA' },
-      { Id: 'GGS' },
-      { Id: 'ADASD' },
-      { Id: 'SDA' },
-      { Id: 'ADA' },
-      { Id: 'JKH' },
-      { Id: 'DH' },
-      { Id: 'FGFD' },
-      { Id: 'SFSDF' },
-      { Id: 'DSASD' }
+      { Id: '07L000000000001AAA' },
+      { Id: '07L000000000002AAA' },
+      { Id: '07L000000000003AAA' },
+      { Id: '07L000000000004AAA' },
+      { Id: '07L000000000005AAA' },
+      { Id: '07L000000000006AAA' },
+      { Id: '07L000000000007AAA' },
+      { Id: '07L000000000008AAA' },
+      { Id: '07L000000000009AAA' },
+      { Id: '07L000000000010AAA' },
+      { Id: '07L000000000011AAA' },
+      { Id: '07L000000000012AAA' },
+      { Id: '07L000000000013AAA' },
+      { Id: '07L000000000014AAA' },
+      { Id: '07L000000000015AAA' },
+      { Id: '07L000000000016AAA' },
+      { Id: '07L000000000017AAA' },
+      { Id: '07L000000000018AAA' },
+      { Id: '07L000000000019AAA' },
+      { Id: '07L000000000020AAA' },
+      { Id: '07L000000000021AAA' },
+      { Id: '07L000000000022AAA' },
+      { Id: '07L000000000023AAA' },
+      { Id: '07L000000000024AAA' },
+      { Id: '07L000000000025AAA' }
     ];
-    const queryRecords = { records: ids, done: true, totalSize: ids.length };
+    const queryRecords = { records: ids.map(item => ({ ...logRecords[0], ...item })), done: true, totalSize: ids.length };
     const toolingQueryStub = $$.SANDBOX.stub(mockConnection.tooling, 'query');
     toolingQueryStub.onFirstCall().resolves(queryRecords);
 
-    const getLogByIdStub = $$.SANDBOX.stub(logServicePrototype, 'getLogById');
-    getLogByIdStub.resolves({ log: 'log' });
+    toolingRequestStub.resolves('log');
     const response = await apexLogGet.getLogs({
       numberOfLogs: 27
     });
@@ -200,7 +180,7 @@ describe('Apex Log Service Tests', () => {
   it('should handle invalid id', async () => {
     const apexLogGet = new LogService(mockConnection);
     toolingRequestStub.throws(new Error('invalid id'));
-    await expect(apexLogGet.getLogs({ logId: '07L5tgg0005PGdTnEAL' })).rejects.toThrow('invalid id');
+    await expect(apexLogGet.getLogs({ logId: '07L5tg0005PGdTnEAL' })).rejects.toThrow('invalid id');
   });
 
   it('should throw an error if 0 logs are requested', async () => {
@@ -213,11 +193,7 @@ describe('Apex Log Service Tests', () => {
   it('should store logs in the directory', async () => {
     const apexLogGet = new LogService(mockConnection);
     const filePath = path.join('testTmp', 'file', 'path', 'logs');
-    $$.SANDBOX.stub(LogService.prototype, 'getLogRecords').resolves(logRecords);
-
-    createWriteStreamMock
-      .mockReturnValueOnce(new stream.PassThrough() as any)
-      .mockReturnValueOnce(new stream.PassThrough() as any);
+    $$.SANDBOX.stub(mockConnection.tooling, 'query').resolves({ records: logRecords, done: true, totalSize: 2 });
 
     const logs = ['48jnskd', '57fskjf'];
     toolingRequestStub.onFirstCall().resolves(logs[0]);
@@ -234,26 +210,24 @@ describe('Apex Log Service Tests', () => {
     });
 
     expect(response).toEqual(logResult);
-    expect(createWriteStreamMock).toHaveBeenCalledTimes(2);
+    expect(fs.writeFile).toHaveBeenCalledTimes(2);
+    expect(fs.writeFile).toHaveBeenCalledWith(logResult[0].logPath, logs[0]);
+    expect(fs.mkdir).toHaveBeenCalledWith(filePath, { recursive: true });
   });
 
   it('should successfully create a .log file', async () => {
     const apexLogGet = new LogService(mockConnection);
     const filePath = path.join('path', 'to', 'logs');
-    const logIds = ['07WgsWfad'];
+    const logIds = ['07L000000000001AAA'];
     const logs = ['log content'];
     const logsPath = path.join(filePath, `${logIds[0]}.log`);
-    vi.mocked(fs.existsSync).mockReturnValue(true);
-    createWriteStreamMock
-      .mockReturnValueOnce(new stream.PassThrough() as any)
-      .mockReturnValueOnce(new stream.PassThrough() as any);
     toolingRequestStub.onFirstCall().resolves(logs[0]);
     toolingRequestStub.onSecondCall().resolves(logs[1]);
     await apexLogGet.getLogs({
-      logId: '07WgsWfad',
+      logId: '07L000000000001AAA',
       outputDir: filePath
     });
-    expect(createWriteStreamMock).toHaveBeenCalledWith(logsPath);
+    expect(fs.writeFile).toHaveBeenCalledWith(logsPath, logs[0]);
   });
 
   it('should throw an error if numberOfLogs or logId are not given to getLogs', async () => {
@@ -264,19 +238,20 @@ describe('Apex Log Service Tests', () => {
     );
   });
 
+  it('rejects failed file writes with a plain CLI error', async () => {
+    const logService = new LogService(mockConnection);
+    toolingRequestStub.resolves('body');
+    vi.mocked(fs.writeFile).mockRejectedValueOnce(new Error('permission denied'));
+    await expect(logService.getLogs({ logId: '07L5tg0005PGdTnEAL', outputDir: 'logs' })).rejects.toThrow(/^permission denied$/);
+  });
+
   describe('getLogRecords', () => {
     it('should return log records given a specific number of logs', async () => {
       const numberOfLogs = 2;
-      let apexLogQuery = `
-        SELECT Id, Application, DurationMilliseconds, Location, LogLength, LogUser.Name,
-          Operation, Request, StartTime, Status
-        FROM ApexLog
-        ORDER BY StartTime DESC
-      `;
-      apexLogQuery += ` LIMIT ${numberOfLogs}`;
+      const apexLogQuery = `SELECT Id, Application, DurationMilliseconds, Location, LogLength, LogUserId, LogUser.Name, Operation, Request, StartTime, Status FROM ApexLog ORDER BY StartTime DESC, Id DESC LIMIT ${numberOfLogs}`;
       const queryStub = $$.SANDBOX.stub(mockConnection.tooling, 'query')
         //@ts-ignore
-        .resolves(rawLogResult);
+        .resolves({ records: rawLogResult.records.map(record => ({ ...record, LogUserId: '005000000000001AAA' })) });
 
       const logService = new LogService(mockConnection);
       const records = await logService.getLogRecords(numberOfLogs);
@@ -286,12 +261,7 @@ describe('Apex Log Service Tests', () => {
     });
 
     it('should return all log records', async () => {
-      const apexLogQuery = `
-        SELECT Id, Application, DurationMilliseconds, Location, LogLength, LogUser.Name,
-          Operation, Request, StartTime, Status
-        FROM ApexLog
-        ORDER BY StartTime DESC
-      `;
+      const apexLogQuery = 'SELECT Id, Application, DurationMilliseconds, Location, LogLength, LogUserId, LogUser.Name, Operation, Request, StartTime, Status FROM ApexLog ORDER BY StartTime DESC, Id DESC';
       const queryStub = $$.SANDBOX.stub(mockConnection.tooling, 'query')
         //@ts-ignore
         .resolves(rawLogResult);

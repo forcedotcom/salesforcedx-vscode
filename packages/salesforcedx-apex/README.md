@@ -17,11 +17,11 @@ Note: Please report any issues via the [Issues tab](https://github.com/forcedotc
 
 ## Using the Effect API
 
-The existing Promise/class entry point remains available for its current consumers. New Apex behavior is developed in `@salesforce/apex-node/effect`. `ExecuteService` adapts the shared Effect implementation to the CLI response and Promise error contracts; other classes have not migrated yet.
+The existing Promise/class entry point remains available for its current consumers. New Apex behavior is developed in `@salesforce/apex-node/effect`. `ExecuteService` and the query/body/file methods of `LogService` adapt shared Effect implementations to the CLI response and Promise error contracts.
 
 ### Effect API with an explicit connection
 
-`executeAnonymous(connection, options)` is exported from `@salesforce/apex-node/effect`. It returns an Effect with typed operation and response errors. The consumer selects the connection and supplies Apex source text; file reading and terminal input belong to the consumer. Other Apex operations have not migrated yet.
+`executeAnonymous(connection, options)` is exported from `@salesforce/apex-node/effect`. It returns an Effect with typed operation and response errors. The consumer selects the connection and supplies Apex source text; file reading and terminal input belong to the consumer.
 
 An extension can obtain the current connection from services for each operation:
 
@@ -89,6 +89,18 @@ const result = await new ExecuteService(connection).executeAnonymous({ apexCode 
 The [CLI command at c8fdf707](https://github.com/salesforcecli/plugin-apex/blob/c8fdf7073ce194deb75fc7fd12c0b981ee2b97f4/src/commands/apex/run.ts) still passes `apexFilePath` or `userInput`. The class retains those reads, the input prompt, per-line 60-second idle timeout, platform line endings, and input-error messages. **Do not remove these options until the CLI reads `--file` or stdin itself, passes `apexCode`, and verifies file, piped-input, interactive-input, timeout, and error cases.** That consumer migration is not included here; this change preserves its existing input contract.
 
 The Effect API returns a success-only outcome. Compilation and runtime failures use `ApexCompileError` and `ApexRuntimeError`, carrying host-neutral line/column, diagnostic text, and any debug log; malformed SOAP produces `ApexResponseDecodeError`. `ExecuteService` adapts compile/runtime errors back to the CLI's `compiled`, `success`, `logs`, and `diagnostic` response, while other errors remain rejected Promises with plain messages. The VS Code services adapter handles the typed execution failures as diagnostic data for its editor and output-channel contract.
+
+### Apex logs
+
+The log operations also accept a caller-selected connection:
+
+- `listLogs(connection, options)` queries the combined CLI/services record fields. Filters: `userId`, `userIds` (nonempty takes precedence), `operationContains`, inclusive `startTimeAfter`, exclusive `cursor`. Optional `limit`; omitted means all records. Results are newest first and follow Tooling API pages.
+- `getLogRecords(connection, numberOfLogs?)` retains CLI count validation and the 25-log cap. Omitted count lists all records.
+- `getLogBody(connection, logId)` retrieves the raw body, preserving empty logs.
+- `getLogs(connection, { logId?, numberOfLogs? }, writeLog?)` requires an id or count; count takes precedence. Returns `{ logId, log, logPath? }`. An injected `writeLog(fileName, body)` returns an Effect containing the saved path. The host selects directories and joins paths; the operation waits for writes and preserves their typed failures. `saveLog(logId, body, writeLog)` writes an already-retrieved body.
+- `streamLogs(connection, options?, schedule?)` emits `{ record, log }` immediately, then polls on the supplied Effect schedule (default: 30 seconds). Each subscription owns a `(StartTime, Id)` cursor, retrieves all matching pages oldest first without the CLI cap, and fetches each discovered body. `options.cursor` resumes discovery; `startTimeAfter` sets an inclusive initial time bound. Interrupting the stream stops polling; query/body failures remain on its typed error channel.
+
+Query/body transport failures use `ApexOperationError`; malformed query responses use `ApexResponseDecodeError`. The CLI adapter retains `{ log, logPath? }` and its record projection. Services retains `ApexLogListItem` and `ApexLogBodyFetchError`.
 
 ## Getting Started
 

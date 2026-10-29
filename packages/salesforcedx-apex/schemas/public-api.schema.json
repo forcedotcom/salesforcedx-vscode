@@ -123,6 +123,126 @@
       },
       "additionalProperties": false
     },
+    "ApexLogCursor": {
+      "type": "object",
+      "required": ["startTime", "logId"],
+      "properties": {
+        "startTime": { "type": "string", "format": "date-time" },
+        "logId": {
+          "type": "string",
+          "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
+          "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "ApexLogResult": {
+      "type": "object",
+      "required": ["logId", "log"],
+      "properties": {
+        "logId": {
+          "type": "string",
+          "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
+          "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+        },
+        "log": { "type": "string" },
+        "logPath": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "EffectApexLogGetOptions": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "logId": {
+          "type": "string",
+          "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
+          "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+        },
+        "numberOfLogs": { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+    "ApexLogQueryOptions": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "userId": {
+          "type": "string",
+          "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
+          "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+        },
+        "userIds": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
+            "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+          }
+        },
+        "operationContains": { "type": "string" },
+        "startTimeAfter": { "type": "string", "format": "date-time" },
+        "cursor": { "$ref": "#/$defs/ApexLogCursor" },
+        "limit": { "type": "number" }
+      },
+      "additionalProperties": false
+    },
+    "ApexLogRecord": {
+      "type": "object",
+      "required": ["Id", "LogLength", "StartTime", "Status"],
+      "properties": {
+        "Id": {
+          "type": "string",
+          "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
+          "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+        },
+        "Application": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "DurationMilliseconds": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
+        "Location": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "LogLength": { "type": "number" },
+        "LogUserId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
+              "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+            },
+            { "type": "null" }
+          ],
+          "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+        },
+        "LogUser": {
+          "anyOf": [
+            {
+              "type": "object",
+              "required": [],
+              "properties": {
+                "Name": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+                "attributes": {
+                  "type": "object",
+                  "required": [],
+                  "properties": {},
+                  "additionalProperties": { "$id": "/schemas/unknown", "title": "unknown" }
+                }
+              },
+              "additionalProperties": false
+            },
+            { "type": "null" }
+          ]
+        },
+        "Operation": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "Request": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "StartTime": { "type": "string" },
+        "Status": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "ApexLogWithBody": {
+      "type": "object",
+      "required": ["record", "log"],
+      "properties": { "record": { "$ref": "#/$defs/ApexLogRecord" }, "log": { "type": "string" } },
+      "additionalProperties": false
+    },
     "ApexTestProgressValue": {
       "anyOf": [
         {
@@ -761,6 +881,12 @@
     { "$ref": "#/$defs/ApexDiagnostic" },
     { "$ref": "#/$defs/ApexExecuteOptions" },
     { "$ref": "#/$defs/ApexLogGetOptions" },
+    { "$ref": "#/$defs/ApexLogCursor" },
+    { "$ref": "#/$defs/ApexLogResult" },
+    { "$ref": "#/$defs/EffectApexLogGetOptions" },
+    { "$ref": "#/$defs/ApexLogQueryOptions" },
+    { "$ref": "#/$defs/ApexLogRecord" },
+    { "$ref": "#/$defs/ApexLogWithBody" },
     { "$ref": "#/$defs/ApexTestProgressValue" },
     { "$ref": "#/$defs/ApexTestQueueItem" },
     { "$ref": "#/$defs/ApexTestQueueItemRecord" },
