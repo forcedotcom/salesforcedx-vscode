@@ -316,10 +316,18 @@ jobs:
   # actually published to the Marketplace is a separate PagerDuty decision, not something CI
   # needs to enforce via timing. Skipped in dry-run, since build-github-release always pushes a
   # real tag and cuts a real GitHub release -- there is no dry path for it to take.
+  #
+  # Also skipped for isHotfix: find-nightly's nightly-tag is then just the hotfix's own release
+  # tag (e.g. v67.12.1), passed through verbatim with no nightly-shape validation -- not a real
+  # nightly. build-github-release.yml's prereleaseTag input requires the
+  # vX.Y.Z-nightly.develop.YYYYMMDD shape and would reject it, and even if it didn't, chaining a
+  # full stable minor-bump build off a hotfix tag makes no sense: hotfixes publish directly via
+  # publishVSCode.yml/publishOpenVSX.yml with isHotfix=true, they don't go through this
+  # nightly-to-stable promotion chain.
   # -- W-24610381
   trigger-stable-build:
     needs: [find-nightly, write-changelog, promote]
-    if: always() && needs.promote.result == 'success' && (needs.write-changelog.result == 'success' || needs.write-changelog.result == 'skipped') && inputs.dry-run != true
+    if: always() && needs.promote.result == 'success' && (needs.write-changelog.result == 'success' || needs.write-changelog.result == 'skipped') && inputs.dry-run != true && !inputs.isHotfix
     runs-on: ubuntu-latest
     env:
       # A PAT, not GITHUB_TOKEN: a GITHUB_TOKEN-triggered dispatch would not reliably cascade
