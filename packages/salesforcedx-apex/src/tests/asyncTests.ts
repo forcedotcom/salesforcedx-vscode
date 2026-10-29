@@ -290,10 +290,8 @@ export class AsyncTests {
     testsComplete: boolean;
     testRunSummary: ApexTestRunResult;
   }> {
-    const isValidTestRunId = Schema.is(TestRunId)(testRunId);
-    if (!isValidTestRunId) {
-      throw new Error(nls.localize('invalidTestRunIdErr', testRunId));
-    }
+    const assertTestRunId: Schema.Schema.ToAsserts<typeof TestRunId> = Schema.asserts(TestRunId);
+    assertTestRunId(testRunId);
     const hasTestSetupTimeField = await this.supportsTestSetupFeature();
 
     const fields = [

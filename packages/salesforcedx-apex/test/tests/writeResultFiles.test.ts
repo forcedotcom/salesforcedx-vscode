@@ -290,13 +290,26 @@ describe('writeResultFiles', () => {
     expect(content).toBe('run-id-456');
   });
 
-  it('should throw error for invalid result format', async () => {
+  it('should use the schema message for an invalid result format', async () => {
     const outputConfig: OutputDirConfig = {
       dirPath: tempDir,
       resultFormats: ['invalid' as ResultFormat]
     };
 
-    await expect(writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline)).rejects.toThrow();
+    await expect(writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline)).rejects.toThrow(
+      'Specified result formats must be one of json, junit, tap, human, markdown, or text'
+    );
+  });
+
+  it('should use the file-format schema message for human format', async () => {
+    const outputConfig: OutputDirConfig = {
+      dirPath: tempDir,
+      resultFormats: ['human']
+    };
+
+    await expect(writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline)).rejects.toThrow(
+      'Result files can be written in json, junit, tap, markdown, or text format'
+    );
   });
 
   it('should only write the test-run-id file for a TestRunIdResult with result formats', async () => {

@@ -1866,7 +1866,7 @@ describe('Create Result Files', () => {
       await testSrv.writeResultFiles(testResultData, config, true);
       fail();
     } catch (e) {
-      expect(e.message).toBe('Specified result formats must be of type json, junit, or tap');
+      expect(e.message).toBe('Specified result formats must be one of json, junit, tap, human, markdown, or text');
     }
   });
 

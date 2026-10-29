@@ -6,6 +6,7 @@
  */
 
 import * as Schema from 'effect/Schema';
+import { nls } from '../i18n';
 
 const SalesforceIdString = Schema.String.pipe(Schema.pattern(/^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$/));
 const prefixedSalesforceIdString = (prefix: string) => SalesforceIdString.pipe(Schema.startsWith(prefix));
@@ -40,7 +41,17 @@ export const ApexLogId = ApexLogIdString.pipe(Schema.brand('@salesforcedx-apex/A
 export type ApexLogId = typeof ApexLogId.Type;
 
 /** Salesforce Apex test run ID. */
-export const TestRunIdString = prefixedSalesforceIdString('707');
+export const TestRunIdString = prefixedSalesforceIdString('707').pipe(
+  Schema.annotations({
+    message: issue => ({
+      message: nls.localize(
+        'invalidTestRunIdErr',
+        'actual' in issue && typeof issue.actual === 'string' ? issue.actual : ''
+      ),
+      override: true
+    })
+  })
+);
 export const TestRunId = TestRunIdString.pipe(Schema.brand('@salesforcedx-apex/TestRunId'));
 export type TestRunId = typeof TestRunId.Type;
 

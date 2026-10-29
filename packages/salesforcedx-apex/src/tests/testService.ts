@@ -30,7 +30,8 @@ import {
   type AsyncTestConfiguration,
   type NamespaceInfo,
   type OutputDirConfig,
-  type ResultFormat,
+  ResultFileFormatsSchema,
+  ResultFormatsSchema,
   type SyncTestConfiguration,
   type TestItem,
   type TestLevel,
@@ -40,7 +41,9 @@ import {
 } from './types';
 import { isFlowTest, queryNamespaces } from './utils';
 
-const validResultFormats = new Set<ResultFormat>(['junit', 'tap', 'json', 'human', 'markdown', 'text']);
+const assertResultFormats: Schema.Schema.ToAsserts<typeof ResultFormatsSchema> = Schema.asserts(ResultFormatsSchema);
+const assertResultFileFormats: Schema.Schema.ToAsserts<typeof ResultFileFormatsSchema> =
+  Schema.asserts(ResultFileFormatsSchema);
 
 /**
  * Standalone function for writing test result files - easier to test
@@ -54,9 +57,7 @@ export const writeResultFiles = async (
   const filesWritten: string[] = [];
   const { dirPath, resultFormats, fileInfos } = outputDirConfig;
 
-  if (resultFormats && !resultFormats.every(format => validResultFormats.has(format))) {
-    throw new Error(nls.localize('resultFormatErr'));
-  }
+  assertResultFormats(resultFormats);
 
   await mkdir(dirPath, { recursive: true });
 
@@ -73,6 +74,7 @@ export const writeResultFiles = async (
   }
 
   if (resultFormats && hasTestResult) {
+    assertResultFileFormats(resultFormats);
     const fileId = testRunId || 'default';
     for (const format of resultFormats) {
       let filePath;
@@ -104,8 +106,6 @@ export const writeResultFiles = async (
             codeCoverage
           });
           break;
-        default:
-          throw new Error(nls.localize('resultFormatErr'));
       }
       if (filePath && readable) {
         filesWritten.push(await runPipeline(readable, filePath));

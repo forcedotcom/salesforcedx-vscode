@@ -6,6 +6,7 @@
  */
 
 import * as Schema from 'effect/Schema';
+import { nls } from '../i18n';
 import {
   ApexClassId,
   ApexClassIdString,
@@ -73,7 +74,29 @@ export type AsyncTestConfiguration = {
   category?: string[];
 };
 
-export type ResultFormat = 'junit' | 'tap' | 'json' | 'human' | 'markdown' | 'text';
+export const ResultFormatSchema = Schema.Literal('junit', 'tap', 'json', 'human', 'markdown', 'text').pipe(
+  Schema.annotations({ identifier: 'ResultFormat' })
+);
+export type ResultFormat = Schema.Schema.Type<typeof ResultFormatSchema>;
+
+export const ResultFormatsSchema = ResultFormatSchema.pipe(
+  Schema.Array,
+  Schema.UndefinedOr,
+  Schema.annotations({
+    identifier: 'ResultFormats',
+    message: () => ({ message: nls.localize('resultFormatErr'), override: true })
+  })
+);
+
+const ResultFileFormatSchema = Schema.Literal('junit', 'tap', 'json', 'markdown', 'text').pipe(
+  Schema.annotations({ identifier: 'ResultFileFormat' })
+);
+export const ResultFileFormatsSchema = Schema.Array(ResultFileFormatSchema).pipe(
+  Schema.annotations({
+    identifier: 'ResultFileFormats',
+    message: () => ({ message: nls.localize('resultFileFormatErr'), override: true })
+  })
+);
 
 export type OutputDirConfig = {
   dirPath: string;
