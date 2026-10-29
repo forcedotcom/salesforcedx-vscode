@@ -79,8 +79,11 @@ export const waitForApexLspReady = async (page: Page, workspaceDir: string): Pro
  */
 const clickApexLspRestartAction = async (page: Page): Promise<void> => {
   // Click the language status button to surface its hover popup; the hover hosts the link action.
-  // Match by aria-label substring — covers "Indexing complete", restart-progress states, errors, etc.
-  const statusButton = getApexLanguageStatusButton(page, /Apex/);
+  // Anchor on the language-status entry's own label ("Editor Language Status: …") — covers "Indexing
+  // complete", restart-progress states, errors, etc. A bare /Apex/ also matches other status bar
+  // buttons, e.g. source tracking's "Remote Changes (n): - ApexClass: …" item, and clicking that one
+  // retrieves from the org instead of opening this hover.
+  const statusButton = getApexLanguageStatusButton(page, /^Editor Language Status:/);
   const restartLink = page.getByRole('link', { name: new RegExp(RESTART_LINK_TITLE, 'i') }).first();
 
   // The hover popup may not appear on the first click (focus race in CI); retry up to 5 times
@@ -113,21 +116,30 @@ const clickApexLspRestartAction = async (page: Page): Promise<void> => {
   }
 };
 
-const selectRestartQuickPick = async (page: Page, cleanDb: boolean): Promise<void> => {
+const selectRestartQuickPick = async (page: Page, cleanDb: boolean, inContainer: boolean): Promise<void> => {
   const widget = page.locator(QUICK_INPUT_WIDGET);
-  await widget.waitFor({ state: 'visible', timeout: 10_000 });
+  // The quick pick opens more slowly in the container (browser round-trip + Node host) than in Electron.
+  const timeout = inContainer ? 30_000 : 10_000;
+  await widget.waitFor({ state: 'visible', timeout });
   const label = cleanDb ? CLEAN_AND_RESTART_LABEL : RESTART_ONLY_LABEL;
-  const row = widget
-    .locator(QUICK_INPUT_LIST_ROW)
-    .filter({ hasText: new RegExp(`^${label}$`) })
-    .first();
-  await row.waitFor({ state: 'visible', timeout: 10_000 });
+  // In the container the row renders a trailing keybinding badge ("Control+K Control+C"), so the
+  // anchored row-text filter never matches there; match the option's exact accessible name instead
+  // (`exact` keeps "Restart Only" from matching "Clean Apex DB and Restart").
+  const row = inContainer
+    ? widget.getByRole('option', { name: label, exact: true }).first()
+    : widget
+        .locator(QUICK_INPUT_LIST_ROW)
+        .filter({ hasText: new RegExp(`^${label}$`) })
+        .first();
+  await row.waitFor({ state: 'visible', timeout });
   await row.click();
 };
 
 type TriggerLspRestartOptions = {
   cleanDb: boolean;
   via: 'palette' | 'statusBar';
+  /** Code Builder container (browser-driven workbench, Node extension host). Defaults to false (desktop). */
+  inContainer?: boolean;
 };
 
 /**
@@ -136,13 +148,17 @@ type TriggerLspRestartOptions = {
  *
  * The intermediate `restarting` button check fails fast if the restart command was ignored —
  * important because the next two waits could otherwise spuriously pass against the prior
- * session's state.
+ * session's state. In the container that transient state can't be observed reliably (the status flip
+ * is pushed from the Node host to the browser, so a fast restart can settle back between DOM polls),
+ * so it is skipped there; the Prelude STARTING wait is the guard instead, because clearOutputChannel
+ * asserted the channel empty and only a real jorje (re)start prints its prelude into it.
  */
 export const triggerLspRestart = async (
   page: Page,
   workspaceDir: string,
   options: TriggerLspRestartOptions
 ): Promise<string> => {
+  const inContainer = options.inContainer ?? false;
   await ensureOutputPanelOpen(page);
   await selectOutputChannel(page, APEX_LANGUAGE_SERVER_CHANNEL);
   await clearOutputChannel(page);
@@ -150,12 +166,14 @@ export const triggerLspRestart = async (
   await (options.via === 'palette'
     ? executeCommandWithCommandPalette(page, RESTART_COMMAND)
     : clickApexLspRestartAction(page));
-  await selectRestartQuickPick(page, options.cleanDb);
+  await selectRestartQuickPick(page, options.cleanDb, inContainer);
 
-  // Intermediate "restarting" status — fails fast if restart was ignored.
-  await expect(getApexLanguageStatusButton(page, /Apex Language Server is restarting/i)).toBeVisible({
-    timeout: 10_000
-  });
+  if (!inContainer) {
+    // Intermediate "restarting" status — fails fast if restart was ignored.
+    await expect(getApexLanguageStatusButton(page, /Apex Language Server is restarting/i)).toBeVisible({
+      timeout: 10_000
+    });
+  }
 
   await waitForOutputChannelText(page, { expectedText: PRELUDE_STARTING, timeout: 60_000 });
   return waitForApexLspReady(page, workspaceDir);

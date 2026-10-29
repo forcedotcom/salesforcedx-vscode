@@ -61,6 +61,29 @@ describe('lifecycle', () => {
     expect(handle).not.toHaveProperty('bootEnv');
   });
 
+  it('run omits org env args for a no-org boot (bootEnv undefined)', async () => {
+    const { runner, calls } = recorder();
+    await run(
+      {
+        name: 'cb-noorg',
+        imageRef: 'img:latest',
+        publishedPort: 8123,
+        // No bootEnv — a deliberate no-org boot (the image authenticates no org).
+        mounts: [{ hostPath: '/host/fixture', containerPath: '/home/codebuilder/fixture-project' }],
+        readiness: { probe: alwaysReady, intervalMs: 1 }
+      },
+      { runner }
+    );
+
+    const runCall = calls.find(c => c[1] === 'run')!;
+    // No SF_ACCESS_TOKEN / INSTANCE_URL is injected, but the rest of the argv is unchanged.
+    expect(runCall.join(' ')).not.toContain('SF_ACCESS_TOKEN');
+    expect(runCall.join(' ')).not.toContain('INSTANCE_URL');
+    expect(runCall).toEqual(expect.arrayContaining(['--name', 'cb-noorg']));
+    expect(runCall).toEqual(expect.arrayContaining(['-v', '/host/fixture:/home/codebuilder/fixture-project']));
+    expect(runCall).toEqual(expect.arrayContaining(['-p', `8123:${CONTAINER_PORT}`]));
+  });
+
   it('run throws (with docker logs) AND tears down the container when readiness times out', async () => {
     const calls: string[][] = [];
     const runner: CommandRunner = (file, args) => {

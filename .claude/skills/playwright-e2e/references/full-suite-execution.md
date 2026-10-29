@@ -125,8 +125,9 @@ Ask user: "Test failed. Would you like me to analyze screenshots, traces, and sp
 
 **Playwright reports**:
 
-- HTML report: `test-results/playwright-report/index.html`
-- Mention to user they can open in browser for interactive view
+- **Web/desktop** (direct run): `packages/<pkg>/playwright-report/index.html`
+- **Container** (via orchestrator): `packages/<pkg>/playwright-report/<phase>/index.html` (one report per workspace-shape phase: dx-project, no-project, no-folder, multi-package, no-org)
+- Mention user can open in browser for interactive view
 
 **Reference error patterns**:
 
@@ -159,7 +160,7 @@ Ask user: "Test failed. Would you like me to analyze screenshots, traces, and sp
 - **Package name mappings**:
   - `playwright-vscode-ext` = `@salesforce/playwright-vscode-ext`
   - `org-browser` = `salesforcedx-vscode-org-browser`
-- **Config detection**: Some packages only have desktop tests (core, apex-replay-debugger) - skip web phase for these
+- **Config detection**: Some packages only have desktop/container tests, no web (core, apex-replay-debugger) - skip web phase for these
 - **Span files**: Auto-enabled locally (not in CI). No manual setup needed.
 - **Individual test retry**: Always use `WIREIT_CACHE=none` when running specific test files (not full suite)
 - **Never parallel**: Tests CANNOT run in parallel - causes conflicts and unreliable results
@@ -186,3 +187,26 @@ pnpm --filter ./packages/salesforcedx-vscode-metadata test:desktop:conflicts
 ```
 
 Each command must complete and be analyzed before proceeding to the next.
+
+## Container Specs (Code Builder)
+
+After all web/desktop tests pass, optionally run **container** Playwright specs. Container tests validate extensions against the Code Builder container (desktop extension build in a Node host with language servers + CLI access).
+
+**15 packages ship container specs** (apex, apex-debugger, apex-log, apex-oas, apex-replay-debugger, apex-testing, core, lightning, lwc, metadata, org, org-browser, services, soql, visualforce) — 110 specs, most now merged into their desktop/web twin via an `isContainer` branch rather than kept as a standalone `*.container.spec.ts` file (18 remain standalone, where no twin exists or a hard constraint rules out sharing a body). See `docs/codeBuilderContainerParity.md` for the per-package list + what's intentionally not ported.
+
+**Run all at once (recommended):**
+```bash
+npm run test:container:local
+```
+(from repo root; pulls the image, builds + swaps your extensions in, discovers all `test:container` scripts, runs suites sequentially against 1 shared workbench)
+
+**Run 1 package manually** (if container already running):
+```bash
+npm run test:container -w <package>
+```
+
+**Coverage ledger:** See `docs/codeBuilderContainerParity.md` for which packages have container specs + why others don't (not container-viable or covered elsewhere).
+
+**Sequential only:** Container hosts 1 browser session, so all package suites must run sequentially (not parallel).
+
+**Failure handling:** Orchestrator surfaces all failures across phases before exit. Failure summary lists affected suites with phase: `<pkg> [<phase>]`. Check `packages/<pkg>/playwright-report/<phase>/index.html` per suite. With `--grep`, phases matching no tests auto-skip (no "No tests found" error); `--grep` matching nothing in any phase fails the run.
