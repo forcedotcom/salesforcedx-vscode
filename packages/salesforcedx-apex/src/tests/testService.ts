@@ -41,9 +41,17 @@ import {
 } from './types';
 import { isFlowTest, queryNamespaces } from './utils';
 
-const assertResultFormats: Schema.Schema.ToAsserts<typeof ResultFormatsSchema> = Schema.asserts(ResultFormatsSchema);
-const assertResultFileFormats: Schema.Schema.ToAsserts<typeof ResultFileFormatsSchema> =
-  Schema.asserts(ResultFileFormatsSchema);
+const ResultFormatsWithMessageSchema = ResultFormatsSchema.pipe(
+  Schema.annotations({ message: () => ({ message: nls.localize('resultFormatErr'), override: true }) })
+);
+const ResultFileFormatsWithMessageSchema = ResultFileFormatsSchema.pipe(
+  Schema.annotations({ message: () => ({ message: nls.localize('resultFileFormatErr'), override: true }) })
+);
+const assertResultFormats: Schema.Schema.ToAsserts<typeof ResultFormatsWithMessageSchema> =
+  Schema.asserts(ResultFormatsWithMessageSchema);
+const assertResultFileFormats: Schema.Schema.ToAsserts<typeof ResultFileFormatsWithMessageSchema> = Schema.asserts(
+  ResultFileFormatsWithMessageSchema
+);
 
 /**
  * Standalone function for writing test result files - easier to test
