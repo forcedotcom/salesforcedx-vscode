@@ -5,13 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { ICONS, type DefaultOrgInfoSchema, type OrgAuthorizationSummary } from '@salesforce/vscode-services';
+import { ICONS } from '@salesforce/vscode-services';
 import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Order from 'effect/Order';
 import * as Stream from 'effect/Stream';
+import type { DefaultOrgInfoSchema, OrgAuthorizationSummary } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { ORG_OPEN_COMMAND } from '../constants';
 import { nls } from '../messages';

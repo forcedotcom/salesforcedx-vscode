@@ -6,10 +6,10 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { OrgAuthorizationSummary } from '@salesforce/vscode-services';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import type { OrgAuthorizationSummary } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { buildOrgQuickPickItems, isOrgItem } from '../orgPicker/orgList';

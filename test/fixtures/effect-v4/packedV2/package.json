@@ -1,0 +1,12 @@
+{
+  "name": "@salesforce/effect-v4-packed-consumer",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@salesforce/vscode-services-v2": "file:./services.tgz",
+    "@types/node": "24.19.2",
+    "effect": "4.0.6",
+    "typescript": "6.0.3"
+  }
+}
