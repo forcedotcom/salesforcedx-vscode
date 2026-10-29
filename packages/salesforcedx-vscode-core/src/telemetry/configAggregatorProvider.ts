@@ -6,7 +6,7 @@
  */
 
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
-import { getRootWorkspacePath } from '../workspaces/workspaceUtils';
+import { getRootWorkspacePath } from './workspaceUtils';
 
 const changeCurrentDirectoryTo = (dirPath: string) => {
   if (dirPath) {

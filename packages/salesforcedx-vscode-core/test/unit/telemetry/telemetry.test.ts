@@ -10,7 +10,7 @@ import { type MockInstance as VitestMockInstance } from 'vitest';
 import { type TelemetryServiceInterface } from '@salesforce/vscode-service-provider';
 import { type ExtensionContext, workspace } from 'vscode';
 import { SFDX_CORE_EXTENSION_NAME } from '../../../src/constants';
-import { TelemetryService, TelemetryServiceProvider } from '../../../src/services/telemetry';
+import { TelemetryService, TelemetryServiceProvider } from '../../../src/services/telemetry/telemetryService';
 
 describe('Telemetry', () => {
   describe('Telemetry Service Provider', () => {
@@ -366,8 +366,8 @@ describe('Telemetry', () => {
         expect(send).toHaveBeenCalledTimes(1);
       });
 
-      it('freezes the event and prepares identity before async telemetry gating', async () => {
-        const { promise: telemetryGate, resolve: enableTelemetry } = Promise.withResolvers<boolean>();
+      it.each([true, false])('freezes the event before telemetry gating resolves to %s', async telemetryEnabled => {
+        const { promise: telemetryGate, resolve: resolveTelemetryGate } = Promise.withResolvers<boolean>();
         vi.spyOn(instance, 'isTelemetryEnabled').mockReturnValue(telemetryGate);
         const send = vi.fn().mockResolvedValue(undefined);
         const prepareSend = vi.fn((payload: unknown) => send);
@@ -383,10 +383,10 @@ describe('Telemetry', () => {
         expect(submittedPayload).not.toHaveProperty('identity');
         expect(send).not.toHaveBeenCalled();
 
-        enableTelemetry(true);
+        resolveTelemetryGate(telemetryEnabled);
         await new Promise(resolve => setTimeout(resolve, 0));
 
-        expect(send).toHaveBeenCalledTimes(1);
+        expect(send).toHaveBeenCalledTimes(telemetryEnabled ? 1 : 0);
       });
     });
 
@@ -439,8 +439,6 @@ describe('Telemetry', () => {
         await new Promise(resolve => setTimeout(resolve, 0));
         const payload = sendProductionTelemetry.mock.calls[0]?.[0] as any;
         expect(payload.name).toBe('commandExecution');
-        expect(payload.properties.commandName).toBe('myCommand');
-        // services buildLegacySpanAttributes sets attribute command = properties.commandName
         expect(payload.properties.commandName).toBe('myCommand');
       });
 
