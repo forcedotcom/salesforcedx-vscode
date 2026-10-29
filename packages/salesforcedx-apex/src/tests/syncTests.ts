@@ -8,10 +8,11 @@
 import { type Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as Either from 'effect/Either';
-import { type CancellationToken } from './cancellation';
+import { isNotUndefined } from 'effect/Predicate';
 import { formatSyncResults, requestSyncTests } from '../effect/syncTests';
 import { nls } from '../i18n';
 import { elapsedTime, getCurrentTime, HeapMonitor } from '../utils';
+import { type CancellationToken } from './cancellation';
 import { CodeCoverage } from './codeCoverage';
 import { formatTestErrors } from './diagnosticUtil';
 import { type SyncTestConfiguration, type TestResult } from './types';
@@ -76,7 +77,7 @@ export class SyncTests {
     await calculateCodeCoverage(
       this.codecoverage,
       codeCoverage,
-      new Set(result.tests.map(test => test.apexClass.id)),
+      new Set(result.tests.map(test => test.apexClass.id).filter(isNotUndefined)),
       result,
       false
     );

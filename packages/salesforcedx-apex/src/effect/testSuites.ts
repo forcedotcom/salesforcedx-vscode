@@ -76,18 +76,13 @@ export const buildSuite = Effect.fn('Apex.buildSuite')(function* (
   );
   yield* Effect.forEach(
     classes,
-    (classId, index) =>
+    classId =>
       members.some(member => member.ApexClassId === classId)
-        ? Effect.log(messages.testSuiteMsg.replace('%s', testClasses[index]).replace('%s', suiteName))
+        ? Effect.void
         : createRecord(connection, 'buildSuite', 'TestSuiteMembership', {
             ApexClassId: classId,
             ApexTestSuiteId: suiteId
-          }).pipe(
-            Effect.tap(() =>
-              Effect.log(messages.classSuiteMsg.replace('%s', testClasses[index]).replace('%s', suiteName))
-            ),
-            Effect.asVoid
-          ),
+          }).pipe(Effect.asVoid),
     { concurrency: 'unbounded', discard: true }
   );
 });

@@ -33,26 +33,26 @@ const makeConnection = (query: Mock, queryMore = vi.fn()): Connection =>
   ({ tooling: { query, queryMore } }) as unknown as Connection;
 
 describe('coverage Effect API', () => {
-  it.each(['33', 33])('normalizes org-wide coverage %s to a percentage string', async PercentCovered => {
-    const query = vi.fn().mockResolvedValue(page([{ PercentCovered }]));
+  it.each(['33', 33])('normalizes org-wide coverage %s to a percentage string', PercentCovered =>
+    Effect.gen(function* () {
+      const query = vi.fn().mockResolvedValue(page([{ PercentCovered }]));
 
-    await expect(Effect.runPromise(getOrgWideCoverage(makeConnection(query)))).resolves.toBe('33%');
-    expect(query).toHaveBeenCalledWith('SELECT PercentCovered FROM ApexOrgWideCoverage');
-  });
+      expect(yield* getOrgWideCoverage(makeConnection(query))).toBe('33%');
+      expect(query).toHaveBeenCalledWith('SELECT PercentCovered FROM ApexOrgWideCoverage');
+    }).pipe(Effect.runPromise)
+  );
 
-  it('returns 0% when no org-wide coverage exists', async () => {
-    await expect(
-      Effect.runPromise(getOrgWideCoverage(makeConnection(vi.fn().mockResolvedValue(page([])))))
-    ).resolves.toBe('0%');
-  });
+  it('returns 0% when no org-wide coverage exists', () =>
+    Effect.gen(function* () {
+      expect(yield* getOrgWideCoverage(makeConnection(vi.fn().mockResolvedValue(page([]))))).toBe('0%');
+    }).pipe(Effect.runPromise));
 
-  it('does not query for an empty per-test class set', async () => {
-    const query = vi.fn();
-    await expect(Effect.runPromise(getPerClassCodeCoverage(makeConnection(query), new Set()))).resolves.toEqual(
-      new Map()
-    );
-    expect(query).not.toHaveBeenCalled();
-  });
+  it('does not query for an empty per-test class set', () =>
+    Effect.gen(function* () {
+      const query = vi.fn();
+      expect(yield* getPerClassCodeCoverage(makeConnection(query), new Set())).toEqual(new Map());
+      expect(query).not.toHaveBeenCalled();
+    }).pipe(Effect.runPromise));
 
   it('groups all covered classes by test class and method across Tooling pages', async () => {
     const query = vi.fn().mockResolvedValue({
@@ -147,11 +147,14 @@ describe('coverage Effect API', () => {
     });
   });
 
-  it('returns zero totals for an empty aggregate table', async () => {
-    await expect(
-      Effect.runPromise(getAggregateCodeCoverage(makeConnection(vi.fn().mockResolvedValue(page([]))), new Set()))
-    ).resolves.toEqual({ codeCoverageResults: [], totalLines: 0, coveredLines: 0 });
-  });
+  it('returns zero totals for an empty aggregate table', () =>
+    Effect.gen(function* () {
+      expect(yield* getAggregateCodeCoverage(makeConnection(vi.fn().mockResolvedValue(page([]))), new Set())).toEqual({
+        codeCoverageResults: [],
+        totalLines: 0,
+        coveredLines: 0
+      });
+    }).pipe(Effect.runPromise));
 
   it.each(['perClass', 'aggregate'] as const)(
     'batches %s class filters at 500 IDs and follows each batch cursor',
@@ -196,43 +199,44 @@ describe('coverage Effect API', () => {
     expect(query).toHaveBeenCalledTimes(1);
   });
 
-  it('reports query failures as typed operation errors', async () => {
-    const query = vi.fn().mockRejectedValue(new Error('coverage unavailable'));
-    await expect(
-      Effect.runPromise(getAggregateCodeCoverage(makeConnection(query), new Set()).pipe(Effect.flip))
-    ).resolves.toMatchObject({
-      _tag: 'ApexOperationError',
-      operation: 'getAggregateCodeCoverage',
-      message: 'coverage unavailable',
-      cause: 'coverage unavailable'
-    });
-  });
+  it('reports query failures as typed operation errors', () =>
+    Effect.gen(function* () {
+      const query = vi.fn().mockRejectedValue(new Error('coverage unavailable'));
+      expect(yield* getAggregateCodeCoverage(makeConnection(query), new Set()).pipe(Effect.flip)).toMatchObject({
+        _tag: 'ApexOperationError',
+        operation: 'getAggregateCodeCoverage',
+        message: 'coverage unavailable',
+        cause: 'coverage unavailable'
+      });
+    }).pipe(Effect.runPromise));
 
-  it('reports continuation failures without returning partial coverage', async () => {
-    const query = vi.fn().mockResolvedValue({ done: false, records: [record], nextRecordsUrl: '/coverage/page/2' });
-    const queryMore = vi.fn().mockRejectedValue(new Error('cursor expired'));
-    await expect(
-      Effect.runPromise(
-        getPerClassCodeCoverage(makeConnection(query, queryMore), new Set([testClassId])).pipe(Effect.flip)
-      )
-    ).resolves.toMatchObject({
-      _tag: 'ApexOperationError',
-      operation: 'getPerClassCodeCoverage',
-      message: 'cursor expired'
-    });
-  });
+  it('reports continuation failures without returning partial coverage', () =>
+    Effect.gen(function* () {
+      const query = vi.fn().mockResolvedValue({ done: false, records: [record], nextRecordsUrl: '/coverage/page/2' });
+      const queryMore = vi.fn().mockRejectedValue(new Error('cursor expired'));
+      expect(
+        yield* getPerClassCodeCoverage(makeConnection(query, queryMore), new Set([testClassId])).pipe(Effect.flip)
+      ).toMatchObject({
+        _tag: 'ApexOperationError',
+        operation: 'getPerClassCodeCoverage',
+        message: 'cursor expired'
+      });
+    }).pipe(Effect.runPromise));
 
   it.each([
     { done: true, records: [{ ...record, Coverage: { coveredLines: ['2'], uncoveredLines: [] } }] },
     { done: false, records: [record] }
-  ])('rejects malformed records or missing continuation URLs', async response => {
-    const queryMore = vi.fn();
-    const connection = makeConnection(vi.fn().mockResolvedValue(response), queryMore);
-    await expect(
-      Effect.runPromise(getAggregateCodeCoverage(connection, new Set([classId])).pipe(Effect.flip))
-    ).resolves.toMatchObject({ _tag: 'ApexResponseDecodeError', operation: 'getAggregateCodeCoverage' });
-    expect(queryMore).not.toHaveBeenCalled();
-  });
+  ])('rejects malformed records or missing continuation URLs', response =>
+    Effect.gen(function* () {
+      const queryMore = vi.fn();
+      const connection = makeConnection(vi.fn().mockResolvedValue(response), queryMore);
+      expect(yield* getAggregateCodeCoverage(connection, new Set([classId])).pipe(Effect.flip)).toMatchObject({
+        _tag: 'ApexResponseDecodeError',
+        operation: 'getAggregateCodeCoverage'
+      });
+      expect(queryMore).not.toHaveBeenCalled();
+    }).pipe(Effect.runPromise)
+  );
 
   it('stops pagination when the calling fiber is interrupted', async () => {
     const queryMore = vi.fn();
@@ -247,7 +251,7 @@ describe('coverage Effect API', () => {
     );
     const fiber = Effect.runFork(getAggregateCodeCoverage(makeConnection(query, queryMore), new Set()));
     await started.promise;
-    await Effect.runPromise(Fiber.interrupt(fiber));
+    await fiber.pipe(Fiber.interrupt, Effect.runPromise);
     finishQuery?.({ done: false, records: [record], nextRecordsUrl: '/coverage/page/2' });
     await Promise.resolve();
     expect(queryMore).not.toHaveBeenCalled();

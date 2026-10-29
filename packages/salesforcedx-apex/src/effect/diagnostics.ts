@@ -5,17 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Schema from 'effect/Schema';
+import type { ApexDiagnosticSchema } from '../tests/types';
+
+export { ApexDiagnosticSchema } from '../tests/types';
 
 /** Diagnostic data independent of editor ranges, files, or terminal output. */
-export const ApexDiagnosticSchema = Schema.Struct({
-  lineNumber: Schema.optional(Schema.Number),
-  columnNumber: Schema.optional(Schema.Number),
-  exceptionMessage: Schema.String,
-  compileProblem: Schema.String,
-  exceptionStackTrace: Schema.String,
-  className: Schema.optional(Schema.String)
-}).annotations({ identifier: 'ApexDiagnostic' });
 export type ApexDiagnostic = typeof ApexDiagnosticSchema.Type;
 
 export const getDiagnostic = (record: { message?: string | null; stackTrace?: string | null }): ApexDiagnostic => {
@@ -23,10 +17,9 @@ export const getDiagnostic = (record: { message?: string | null; stackTrace?: st
   const matches = stackTrace?.match(/(line (\d+), column (\d+))/);
 
   return {
-    exceptionMessage: message ?? '',
-    exceptionStackTrace: stackTrace ?? '',
+    ...(message && { exceptionMessage: message }),
+    ...(stackTrace && { exceptionStackTrace: stackTrace }),
     className: stackTrace ? stackTrace.split('.')[1] : undefined,
-    compileProblem: '',
     ...(matches?.[2] && { lineNumber: Number(matches[2]) }),
     ...(matches?.[3] && { columnNumber: Number(matches[3]) })
   };

@@ -35,7 +35,7 @@ import {
   type AsyncTestArrayConfiguration,
   type AsyncTestConfiguration,
   type OutputDirConfig,
-  ResultFormat,
+  ResultFormatSchema,
   type SyncTestConfiguration,
   type TestLevel,
   type TestResult,
@@ -56,7 +56,7 @@ export const writeResultFiles = async (
   const filesWritten: string[] = [];
   const { dirPath, resultFormats, fileInfos } = outputDirConfig;
 
-  if (resultFormats && !resultFormats.every(Schema.is(ResultFormat))) {
+  if (resultFormats && !resultFormats.every(Schema.is(ResultFormatSchema))) {
     throw new Error(nls.localize('resultFormatErr'));
   }
 
@@ -65,11 +65,13 @@ export const writeResultFiles = async (
   const hasTestResult = Schema.is(TestResultSchema)(result);
   const testRunId = hasTestResult ? result.summary.testRunId : result.testRunId;
 
-  try {
-    await writeFile(join(dirPath, 'test-run-id.txt'), testRunId);
-    filesWritten.push(join(dirPath, 'test-run-id.txt'));
-  } catch (err) {
-    console.error(`Error writing file: ${err}`);
+  if (isNotUndefined(testRunId)) {
+    try {
+      await writeFile(join(dirPath, 'test-run-id.txt'), testRunId);
+      filesWritten.push(join(dirPath, 'test-run-id.txt'));
+    } catch (err) {
+      console.error(`Error writing file: ${err}`);
+    }
   }
 
   if (resultFormats && hasTestResult) {
@@ -82,7 +84,7 @@ export const writeResultFiles = async (
           readable = TestResultStringifyStream.fromTestResult(result);
           break;
         case 'tap':
-          filePath = join(dirPath, `test-result-${testRunId}-tap.txt`);
+          filePath = join(dirPath, `test-result-${testRunId || 'default'}-tap.txt`);
           readable = new TapFormatTransformer(result);
           break;
         case 'junit':
@@ -113,7 +115,7 @@ export const writeResultFiles = async (
   }
 
   if (codeCoverage && hasTestResult) {
-    const filePath = join(dirPath, `test-result-${testRunId}-codecoverage.json`);
+    const filePath = join(dirPath, `test-result-${testRunId || 'default'}-codecoverage.json`);
     const c = result.tests.map(record => record.perClassCoverage).filter(pcc => pcc?.length);
     filesWritten.push(await runPipeline(new JsonStreamStringify(c), filePath));
   }

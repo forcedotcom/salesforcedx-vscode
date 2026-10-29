@@ -505,17 +505,12 @@ export class AsyncTests {
       const tmpRecords: ApexTestResultRecord[] = flowtestResult.records.map(record => ({
         Id: record.Id,
         QueueItemId: record.ApexTestQueueItemId,
-        StackTrace: '', // Default value
-        Message: '', // Default value
-        AsyncApexJobId: record.ApexTestQueueItemId, // Assuming this maps from ApexTestQueueItem
         MethodName: record.FlowTest.DeveloperName,
         Outcome: record.Result,
-        ApexLogId: '', // Default value
         IsTestSetup: false,
         ApexClass: {
-          Id: record.ApexTestQueueItemId,
           Name: record.FlowDefinition.DeveloperName,
-          NamespacePrefix: record.FlowDefinition.NamespacePrefix,
+          NamespacePrefix: record.FlowDefinition.NamespacePrefix || null,
           FullName: record.FlowDefinition.NamespacePrefix
             ? `${record.FlowDefinition.NamespacePrefix}.${record.FlowTest.DeveloperName}`
             : record.FlowTest.DeveloperName
@@ -571,7 +566,7 @@ export class AsyncTests {
               break;
           }
 
-          apexTestClassIdSet.add(item.ApexClass.Id);
+          if (item.ApexClass.Id) apexTestClassIdSet.add(item.ApexClass.Id);
           // Can only query the FullName field if a single record is returned, so manually build the field
           item.ApexClass.FullName = item.ApexClass.NamespacePrefix
             ? `${item.ApexClass.NamespacePrefix}.${item.ApexClass.Name}`
@@ -582,17 +577,17 @@ export class AsyncTests {
           testResults.push({
             id: item.Id,
             queueItemId: item.QueueItemId,
-            stackTrace: item.StackTrace,
-            message: item.Message,
-            asyncApexJobId: item.AsyncApexJobId,
+            ...(item.StackTrace && { stackTrace: item.StackTrace }),
+            ...(item.Message && { message: item.Message }),
+            ...(item.AsyncApexJobId && { asyncApexJobId: item.AsyncApexJobId }),
             methodName: item.MethodName,
             outcome: item.Outcome,
-            apexLogId: item.ApexLogId,
+            ...('ApexLogId' in item && { apexLogId: item.ApexLogId }),
             isTestSetup: item.IsTestSetup,
             apexClass: {
-              id: item.ApexClass.Id,
+              ...(item.ApexClass.Id && { id: item.ApexClass.Id }),
               name: item.ApexClass.Name,
-              namespacePrefix: item.ApexClass.NamespacePrefix,
+              ...(item.ApexClass.NamespacePrefix && { namespacePrefix: item.ApexClass.NamespacePrefix }),
               fullName: item.ApexClass.FullName
             },
             runTime: item.RunTime ?? 0,

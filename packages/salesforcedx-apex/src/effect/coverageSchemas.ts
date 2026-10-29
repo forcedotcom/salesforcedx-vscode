@@ -6,6 +6,11 @@
  */
 
 import * as Schema from 'effect/Schema';
+import { ApexClassIdString } from './schema/salesforceId';
+
+const ApexClassOrTriggerIdString = Schema.String.pipe(
+  Schema.pattern(/^(?:01p|01q)[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$/)
+);
 
 // Keep the mutable arrays and string IDs accepted by existing coverage consumers.
 const NumberArray = Schema.Number.pipe(Schema.Array, Schema.mutable);
@@ -13,11 +18,13 @@ const CoverageLinesSchema = Schema.Struct({
   coveredLines: NumberArray,
   uncoveredLines: NumberArray
 }).pipe(Schema.mutable);
-const ApexClassOrTriggerSchema = Schema.Struct({ Id: Schema.String, Name: Schema.String }).pipe(Schema.mutable);
+const ApexClassOrTriggerSchema = Schema.Struct({ Id: ApexClassOrTriggerIdString, Name: Schema.String }).pipe(
+  Schema.mutable
+);
 
 export const ApexCodeCoverageRecordSchema = Schema.Struct({
   ApexClassOrTrigger: ApexClassOrTriggerSchema,
-  ApexTestClassId: Schema.String,
+  ApexTestClassId: ApexClassIdString,
   TestMethodName: Schema.String,
   NumLinesCovered: Schema.Number,
   NumLinesUncovered: Schema.Number,
@@ -66,8 +73,8 @@ export type ApexOrgWideCoverage = typeof ApexOrgWideCoverageSchema.Type;
 
 export const PerClassCoverageSchema = Schema.Struct({
   apexClassOrTriggerName: Schema.String,
-  apexClassOrTriggerId: Schema.String,
-  apexTestClassId: Schema.String,
+  apexClassOrTriggerId: ApexClassOrTriggerIdString,
+  apexTestClassId: ApexClassIdString,
   apexTestMethodName: Schema.String,
   numLinesCovered: Schema.Number,
   numLinesUncovered: Schema.Number,
@@ -79,7 +86,7 @@ export const PerClassCoverageSchema = Schema.Struct({
 export type PerClassCoverage = typeof PerClassCoverageSchema.Type;
 
 export const CodeCoverageResultSchema = Schema.Struct({
-  apexId: Schema.String,
+  apexId: ApexClassOrTriggerIdString,
   name: Schema.String,
   type: Schema.Literal('ApexClass', 'ApexTrigger'),
   numLinesCovered: Schema.Number,

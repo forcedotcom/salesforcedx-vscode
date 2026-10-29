@@ -20,14 +20,7 @@ export type CommonOptions = {
   loglevel?: LogLevel;
 };
 
-export type ApexDiagnostic = {
-  lineNumber?: number;
-  columnNumber?: number;
-  exceptionMessage: string;
-  compileProblem?: string;
-  exceptionStackTrace: string;
-  className?: string;
-};
+export type { ApexDiagnostic } from '../effect/diagnostics';
 
 export type QueryRecords = {
   totalSize: number;

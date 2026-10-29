@@ -59,6 +59,7 @@ export { ApexLogListItem } from './schema/wire/logs';
 export { ListLogsOptionsSchema, LogStreamEventSchema } from './schema/logs';
 export type { ListLogsOptions, LogStreamEvent } from './schema/logs';
 export type { StreamLogsOptions } from './logs';
+export { QueryPageSchema } from './schema/queryPage';
 export { BuildSyncPayloadOptionsSchema, BuildAsyncPayloadOptionsSchema } from './schema/testPayloads';
 export { buildSyncPayload, buildAsyncPayload } from './testPayloads';
 export type { BuildSyncPayloadOptions, BuildAsyncPayloadOptions } from './schema/testPayloads';

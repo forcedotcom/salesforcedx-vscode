@@ -31,9 +31,7 @@ export class ExecuteService {
               {
                 lineNumber: error.line,
                 columnNumber: error.column,
-                compileProblem: error.compileProblem ?? '',
-                exceptionMessage: '',
-                exceptionStackTrace: ''
+                compileProblem: error.compileProblem ?? undefined
               }
             ]
           };

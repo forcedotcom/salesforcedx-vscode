@@ -9,7 +9,7 @@ import type { NamespaceInfo, TestItem } from '../tests/types';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
-import { ApexClassId } from '../schemas/salesforceId';
+import { ApexClassId } from './schema/salesforceId';
 import {
   AmbiguousApexSelectionSchema,
   AmbiguousFlowSelectionSchema,
