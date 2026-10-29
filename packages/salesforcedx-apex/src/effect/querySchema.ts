@@ -17,7 +17,7 @@ export const QueryPageSchema = <A, I, AdditionalFields extends Schema.Struct.Fie
   recordSchema: Schema.Schema<A, I, never>,
   options: QueryPageSchemaOptions<AdditionalFields> = {}
 ) => {
-  const fields = options.additionalFields ?? ({} as AdditionalFields);
+  const fields = options.additionalFields;
   const records = Schema.Array(recordSchema);
 
   return Schema.Union(

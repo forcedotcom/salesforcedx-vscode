@@ -8,6 +8,22 @@
 export { executeAnonymous } from './executeAnonymous';
 export { ExecuteAnonymousOptionsSchema, ExecuteAnonymousOutcomeSchema } from './schema/executeAnonymous';
 export type { ExecuteAnonymousOptions, ExecuteAnonymousOutcome } from './schema/executeAnonymous';
+export { ApexDiagnosticSchema, getDiagnostic } from './diagnostics';
+export type { ApexDiagnostic } from './diagnostics';
+export { formatSyncResults, runTestSynchronous } from './syncTests';
+export { transformTestResult } from './testResults';
+export {
+  ApexTestResultDataSchema,
+  ApexTestResultDataRawSchema,
+  ApexTestResultOutcomeSchema,
+  ApexTestSetupDataSchema,
+  SyncTestConfigurationSchema,
+  SyncTestResultSchema,
+  TestItemSchema,
+  TestResultRawSchema,
+  TestResultSchema
+} from './testSchemas';
+export type { SyncTestConfiguration, TestResult, TestResultRaw } from './testSchemas';
 export { getOrgWideCoverage, getPerClassCodeCoverage, getAggregateCodeCoverage } from './codeCoverage';
 export {
   ApexCodeCoverageSchema,
@@ -43,6 +59,7 @@ export { ApexLogListItem } from './schema/wire/logs';
 export { ListLogsOptionsSchema, LogStreamEventSchema } from './schema/logs';
 export type { ListLogsOptions, LogStreamEvent } from './schema/logs';
 export type { StreamLogsOptions } from './logs';
+export { QueryPageSchema } from './schema/queryPage';
 export { BuildSyncPayloadOptionsSchema, BuildAsyncPayloadOptionsSchema } from './schema/testPayloads';
 export { buildSyncPayload, buildAsyncPayload } from './testPayloads';
 export type { BuildSyncPayloadOptions, BuildAsyncPayloadOptions } from './schema/testPayloads';

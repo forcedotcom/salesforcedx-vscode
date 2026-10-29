@@ -6,6 +6,7 @@
  */
 
 import * as Schema from 'effect/Schema';
+import { QueryPageSchema } from '../queryPage';
 
 /** ApexLog record returned by the Tooling API. */
 export const ApexLogListItem = Schema.Struct({
@@ -23,9 +24,4 @@ export const ApexLogListItem = Schema.Struct({
 }).annotations({ identifier: 'ApexLogListItem' });
 export type ApexLogListItem = typeof ApexLogListItem.Type;
 
-export const LogPageSchema = Schema.Struct({
-  totalSize: Schema.Number,
-  done: Schema.optionalWith(Schema.Boolean, { default: () => true }),
-  nextRecordsUrl: Schema.optional(Schema.String),
-  records: Schema.optionalWith(Schema.Array(ApexLogListItem), { default: () => [] })
-});
+export const LogPageSchema = QueryPageSchema(ApexLogListItem);

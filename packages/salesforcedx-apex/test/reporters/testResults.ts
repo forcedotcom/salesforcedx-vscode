@@ -7,7 +7,12 @@
 
 import * as util from 'node:util';
 import { type TestResult } from '../../src/tests/types';
+import { apexClassId, salesforceId } from '../schemaHelpers';
 
+const asyncApexJobId = salesforceId('7073t000061uwZIAAY');
+const accountClassId = apexClassId('01p3t000000ivLzAAI');
+const calculatorClassId = apexClassId('01p3t000000imbvAAA');
+const animalLocatorClassId = apexClassId('01p3t000001ytUmAAI');
 const testStartTime = '2020-11-09T18:02:50.000+0000';
 const date = new Date(testStartTime);
 const isoStartTime = date.toISOString();
@@ -40,14 +45,14 @@ export const coverageResult: TestResult = {
       queueItemId: '7093t000000c0eWAAQ',
       stackTrace: null,
       message: null,
-      asyncApexJobId: '7073t000061uwZIAAY',
+      asyncApexJobId,
       methodName: 'should_create_account',
       outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000ivLzAAI',
         name: 'AccountServiceTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AccountServiceTest'
       },
       runTime: 86,
@@ -58,15 +63,15 @@ export const coverageResult: TestResult = {
       id: '07M3t000003bQwgEAE',
       queueItemId: '7093t000000c0eXAAQ',
       stackTrace: null,
-      message: '',
-      asyncApexJobId: '7073t000061uwZIAAY',
+      message: null,
+      asyncApexJobId,
       methodName: 'testCallout',
       outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000imbvAAA',
         name: 'AwesomeCalculatorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AwesomeCalculatorTest'
       },
       runTime: 23,
@@ -116,14 +121,14 @@ export const setupResult: TestResult = {
       queueItemId: '7093t000000c0eWAAQ',
       stackTrace: null,
       message: null,
-      asyncApexJobId: '7073t000061uwZIAAY',
+      asyncApexJobId,
       methodName: 'should_create_account',
       outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000ivLzAAI',
         name: 'AccountServiceTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AccountServiceTest'
       },
       runTime: 86,
@@ -134,15 +139,15 @@ export const setupResult: TestResult = {
       id: '07M3t000003bQwgEAE',
       queueItemId: '7093t000000c0eXAAQ',
       stackTrace: null,
-      message: '',
-      asyncApexJobId: '7073t000061uwZIAAY',
+      message: null,
+      asyncApexJobId,
       methodName: 'testCallout',
       outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000imbvAAA',
         name: 'AwesomeCalculatorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AwesomeCalculatorTest'
       },
       runTime: 23,
@@ -155,13 +160,13 @@ export const setupResult: TestResult = {
       id: '07M3t000003bQwqEAE',
       stackTrace: null,
       message: null,
-      asyncApexJobId: '7073t000061uwZIAAY',
+      asyncApexJobId,
       methodName: 'setup_method',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000ivLzAAI',
         name: 'AccountServiceTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AccountServiceTest'
       },
       testSetupTime: 24,
@@ -188,14 +193,14 @@ export const coverageFailResult: TestResult = {
       queueItemId: '7093t000000c0eZAAQ',
       stackTrace: 'Class.AnimalLocatorTest.testMissingAnimal: line 22, column 1',
       message: 'System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:',
-      asyncApexJobId: '7073t000061uwZIAAY',
+      asyncApexJobId,
       methodName: 'testMissingAnimal',
       outcome: 'Fail',
       apexLogId: null,
       apexClass: {
         id: '01p3t000001ytUmAAI',
         name: 'AnimalLocatorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AnimalLocatorTest'
       },
       runTime: 5,
@@ -233,14 +238,14 @@ export const successResult: TestResult = {
       queueItemId: '7093t000000c0eWAAQ',
       stackTrace: null,
       message: null,
-      asyncApexJobId: '7073t000061uwZIAAY',
+      asyncApexJobId,
       methodName: 'should_create_account',
       outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000ivLzAAI',
         name: 'AccountServiceTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AccountServiceTest'
       },
       runTime: 86,
@@ -251,15 +256,15 @@ export const successResult: TestResult = {
       id: '07M3t000003bQwgEAE',
       queueItemId: '7093t000000c0eXAAQ',
       stackTrace: null,
-      message: '',
-      asyncApexJobId: '7073t000061uwZIAAY',
+      message: null,
+      asyncApexJobId,
       methodName: 'testCallout',
       outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000imbvAAA',
         name: 'AwesomeCalculatorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AwesomeCalculatorTest'
       },
       runTime: 23,
@@ -296,14 +301,14 @@ export const testResults: TestResult = {
       queueItemId: '7093t000000c0eWAAQ',
       stackTrace: null,
       message: null,
-      asyncApexJobId: '7073t000061uwZIAAY',
+      asyncApexJobId,
       methodName: 'should_create_account',
       outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000ivLzAAI',
         name: 'AccountServiceTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AccountServiceTest'
       },
       runTime: 86,
@@ -314,15 +319,15 @@ export const testResults: TestResult = {
       id: '07M3t000003bQwgEAE',
       queueItemId: '7093t000000c0eXAAQ',
       stackTrace: null,
-      message: '',
-      asyncApexJobId: '7073t000061uwZIAAY',
+      message: null,
+      asyncApexJobId,
       methodName: 'testCallout',
       outcome: 'Fail',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000imbvAAA',
         name: 'AwesomeCalculatorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AwesomeCalculatorTest'
       },
       runTime: 23,
@@ -334,7 +339,7 @@ export const testResults: TestResult = {
       queueItemId: '7093t000000c0eYAAQ',
       stackTrace: null,
       message: null,
-      asyncApexJobId: '7073t000061uwZIAAY',
+      asyncApexJobId,
       methodName: 'testGetCurrentUser',
       outcome: 'Pass',
       apexLogId: null,
@@ -353,7 +358,7 @@ export const testResults: TestResult = {
       queueItemId: '7093t000000c0eYAAQ',
       stackTrace: null,
       message: null,
-      asyncApexJobId: '7073t000061uwZIAAY',
+      asyncApexJobId,
       methodName: 'testResetMyPassword',
       outcome: 'Pass',
       apexLogId: null,
@@ -372,14 +377,14 @@ export const testResults: TestResult = {
       queueItemId: '7093t000000c0eZAAQ',
       stackTrace: null,
       message: null,
-      asyncApexJobId: '7073t000061uwZIAAY',
+      asyncApexJobId,
       methodName: 'testGetCallout',
       outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000001ytUmAAI',
         name: 'AnimalLocatorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AnimalLocatorTest'
       },
       runTime: 16,
@@ -391,14 +396,14 @@ export const testResults: TestResult = {
       queueItemId: '7093t000000c0eZAAQ',
       stackTrace: 'Class.AnimalLocatorTest.testMissingAnimal: line 22, column 1',
       message: 'System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:',
-      asyncApexJobId: '7073t000061uwZIAAY',
+      asyncApexJobId,
       methodName: 'testMissingAnimal',
       outcome: 'Fail',
       apexLogId: null,
       apexClass: {
         id: '01p3t000001ytUmAAI',
         name: 'AnimalLocatorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AnimalLocatorTest'
       },
       runTime: 5,
@@ -410,14 +415,14 @@ export const testResults: TestResult = {
       queueItemId: '7093t000000c0ebAAA',
       stackTrace: null,
       message: null,
-      asyncApexJobId: '7073t000061uwZIAAY',
+      asyncApexJobId,
       methodName: 'testProcessing',
       outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000i6dtAAA',
         name: 'LeadProcessorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'LeadProcessorTest'
       },
       runTime: 2256,
@@ -429,7 +434,7 @@ export const testResults: TestResult = {
       queueItemId: '7093t000000c0eeAAA',
       stackTrace: null,
       message: null,
-      asyncApexJobId: '7073t000061uwZIAAY',
+      asyncApexJobId,
       methodName: 'testDashboardPal',
       outcome: 'Pass',
       apexLogId: null,
@@ -448,14 +453,14 @@ export const testResults: TestResult = {
       queueItemId: '7093t000000c0efAAA',
       stackTrace: 'Class.AccountProcessorTest.testCountContacts: line 47, column 1',
       message: 'System.AssertException: Assertion Failed: Incorrect count: Expected: 3, Actual: 2',
-      asyncApexJobId: '7073t000061uwZIAAY',
+      asyncApexJobId,
       methodName: 'testCountContacts',
       outcome: 'Fail',
       apexLogId: null,
       apexClass: {
         id: '01p3t000001zSjkAAE',
         name: 'AccountProcessorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AccountProcessorTest'
       },
       runTime: 241,
@@ -467,14 +472,14 @@ export const testResults: TestResult = {
       queueItemId: '7093t000000c0efAAA',
       stackTrace: null,
       message: null,
-      asyncApexJobId: '7073t000061uwZIAAY',
+      asyncApexJobId,
       methodName: 'testCountContactsEmptyList',
       outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000001zSjkAAE',
         name: 'AccountProcessorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AccountProcessorTest'
       },
       runTime: 10,
@@ -486,14 +491,14 @@ export const testResults: TestResult = {
       queueItemId: '7093t000000c0efAAA',
       stackTrace: null,
       message: null,
-      asyncApexJobId: '7073t000061uwZIAAY',
+      asyncApexJobId,
       methodName: 'testCountContactsNullList',
       outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000001zSjkAAE',
         name: 'AccountProcessorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AccountProcessorTest'
       },
       runTime: 10,
@@ -505,14 +510,14 @@ export const testResults: TestResult = {
       queueItemId: '7093t000000c0ehAAA',
       stackTrace: null,
       message: null,
-      asyncApexJobId: '7073t000061uwZIAAY',
+      asyncApexJobId,
       methodName: 'testCallout',
       outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000ime6AAA',
         name: 'ParkLocatorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'ParkLocatorTest'
       },
       runTime: 15,
@@ -522,16 +527,16 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQwREAU',
       queueItemId: '7093t000000c0eiAAA',
-      stackTrace: null,
       message: 'Weird characters <>&"\'\r\n\r\nSurrounded by newlines.\r\n  and whitespace.\r\n\r\n',
-      asyncApexJobId: '7073t000061uwZIAAY',
+      stackTrace: null,
+      asyncApexJobId,
       methodName: 'testGetCallout',
       outcome: 'Fail',
       apexLogId: null,
       apexClass: {
         id: '01p3t000001ytK6AAI',
         name: 'AnimalsCalloutsTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AnimalsCalloutsTest'
       },
       runTime: 28,
@@ -543,14 +548,14 @@ export const testResults: TestResult = {
       queueItemId: '7093t000000c0eiAAA',
       stackTrace: null,
       message: null,
-      asyncApexJobId: '7073t000061uwZIAAY',
+      asyncApexJobId,
       methodName: 'testPostCallout',
       outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000001ytK6AAI',
         name: 'AnimalsCalloutsTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AnimalsCalloutsTest'
       },
       runTime: 7,
@@ -562,14 +567,14 @@ export const testResults: TestResult = {
       queueItemId: '7093t000000c0ejAAA',
       stackTrace: null,
       message: null,
-      asyncApexJobId: '7073t000061uwZIAAY',
+      asyncApexJobId,
       methodName: 'testAddContact',
       outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000iADsAAM',
         name: 'AddPrimaryContactTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AddPrimaryContactTest'
       },
       runTime: 250,
@@ -581,14 +586,14 @@ export const testResults: TestResult = {
       queueItemId: '7093t000000c0ekAAA',
       stackTrace: null,
       message: null,
-      asyncApexJobId: '7073t000061uwZIAAY',
+      asyncApexJobId,
       methodName: 'testLeadProcessing',
       outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000iAZFAA2',
         name: 'DailyLeadProcessorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'DailyLeadProcessorTest'
       },
       runTime: 2196,
@@ -753,14 +758,14 @@ export const testResultsWithCategory: TestResult = {
       queueItemId: '7093t000000c0eWAAQ',
       stackTrace: null,
       message: null,
-      asyncApexJobId: '7073t000061uwZIAAY',
+      asyncApexJobId,
       methodName: 'should_create_account',
       outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000ivLzAAI',
         name: 'AccountServiceTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AccountServiceTest'
       },
       runTime: 86,
@@ -772,15 +777,15 @@ export const testResultsWithCategory: TestResult = {
       id: '07M3t000003bQwgEAE',
       queueItemId: '7093t000000c0eXAAQ',
       stackTrace: null,
-      message: '',
-      asyncApexJobId: '7073t000061uwZIAAY',
+      message: null,
+      asyncApexJobId,
       methodName: 'testCallout',
       outcome: 'Pass',
       apexLogId: null,
       apexClass: {
         id: '01p3t000000imbvAAA',
         name: 'AwesomeCalculatorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AwesomeCalculatorTest'
       },
       runTime: 23,
@@ -793,14 +798,14 @@ export const testResultsWithCategory: TestResult = {
       queueItemId: '7093t000000c0eZAAQ',
       stackTrace: 'Class.AnimalLocatorTest.testMissingAnimal: line 22, column 1',
       message: 'System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:',
-      asyncApexJobId: '7073t000061uwZIAAY',
+      asyncApexJobId,
       methodName: 'testMissingAnimal',
       outcome: 'Fail',
       apexLogId: null,
       apexClass: {
         id: '01p3t000001ytUmAAI',
         name: 'AnimalLocatorTest',
-        namespacePrefix: null as unknown as string,
+        namespacePrefix: null,
         fullName: 'AnimalLocatorTest'
       },
       runTime: 5,
@@ -822,8 +827,8 @@ export const coverageResultWithCategory: TestResult = {
       perClassCoverage: [
         {
           apexClassOrTriggerName: 'AccountService',
-          apexClassOrTriggerId: '01p3t000000ivLzAAI',
-          apexTestClassId: '01p3t000000ivLzAAI',
+          apexClassOrTriggerId: accountClassId,
+          apexTestClassId: accountClassId,
           apexTestMethodName: 'should_create_account',
           numLinesCovered: 17,
           numLinesUncovered: 3,
@@ -837,8 +842,8 @@ export const coverageResultWithCategory: TestResult = {
       perClassCoverage: [
         {
           apexClassOrTriggerName: 'CalculatorUtils',
-          apexClassOrTriggerId: '01p3t000000imbvAAA',
-          apexTestClassId: '01p3t000000imbvAAA',
+          apexClassOrTriggerId: calculatorClassId,
+          apexTestClassId: calculatorClassId,
           apexTestMethodName: 'testCallout',
           numLinesCovered: 23,
           numLinesUncovered: 2,
@@ -859,8 +864,8 @@ export const coverageFailResultWithCategory: TestResult = {
       perClassCoverage: [
         {
           apexClassOrTriggerName: 'AccountService',
-          apexClassOrTriggerId: '01p3t000000ivLzAAI',
-          apexTestClassId: '01p3t000000ivLzAAI',
+          apexClassOrTriggerId: accountClassId,
+          apexTestClassId: accountClassId,
           apexTestMethodName: 'should_create_account',
           numLinesCovered: 17,
           numLinesUncovered: 3,
@@ -874,8 +879,8 @@ export const coverageFailResultWithCategory: TestResult = {
       perClassCoverage: [
         {
           apexClassOrTriggerName: 'CalculatorUtils',
-          apexClassOrTriggerId: '01p3t000000imbvAAA',
-          apexTestClassId: '01p3t000000imbvAAA',
+          apexClassOrTriggerId: calculatorClassId,
+          apexTestClassId: calculatorClassId,
           apexTestMethodName: 'testCallout',
           numLinesCovered: 23,
           numLinesUncovered: 2,
@@ -889,8 +894,8 @@ export const coverageFailResultWithCategory: TestResult = {
       perClassCoverage: [
         {
           apexClassOrTriggerName: 'AnimalLocator',
-          apexClassOrTriggerId: '01p3t000001ytUmAAI',
-          apexTestClassId: '01p3t000001ytUmAAI',
+          apexClassOrTriggerId: animalLocatorClassId,
+          apexTestClassId: animalLocatorClassId,
           apexTestMethodName: 'testMissingAnimal',
           numLinesCovered: 5,
           numLinesUncovered: 8,

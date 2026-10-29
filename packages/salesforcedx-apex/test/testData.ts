@@ -12,6 +12,7 @@ import {
   type SyncTestResult,
   type TestResult
 } from '../src/tests/types';
+import { salesforceId } from './schemaHelpers';
 
 export const syncTestResultSimple: SyncTestResult = {
   apexLogId: '07Lxx00000cxy6YUAQ',
@@ -55,13 +56,13 @@ export const syncTestResultWithFailures: SyncTestResult = {
       name: 'TestSample2',
       namespace: 'tr',
       seeAllData: false,
-      stackTrace: null as unknown as string,
+      stackTrace: '',
       time: 68,
       type: 'Class'
     },
     {
       id: '01pxx00000NWwb5AAD',
-      message: null as unknown as string,
+      message: '',
       methodName: 'testOne',
       name: 'TestSample3',
       namespace: 'tr',
@@ -72,7 +73,7 @@ export const syncTestResultWithFailures: SyncTestResult = {
     },
     {
       id: '01pxx00000NWwb6AAD',
-      message: null as unknown as string,
+      message: '',
       methodName: 'testOne',
       name: 'TestSample4',
       namespace: 'tr',
@@ -88,6 +89,7 @@ export const syncTestResultWithFailures: SyncTestResult = {
 export const testStartTime = '2020-11-09T18:02:50.000+0000';
 const localStartTime = new Date(testStartTime).toISOString();
 export const testRunId = '707xx0000AGQ3jbQQD';
+const asyncApexJobId = salesforceId(testRunId);
 
 export const syncResult: TestResult = {
   summary: {
@@ -139,6 +141,7 @@ export const testResultData: TestResult = {
     failRate: '0%',
     failing: 0,
     hostname: 'https://na139.salesforce.com',
+    orgId: '00Dxx0000000001AAA',
     testsRan: 1,
     outcome: 'Passed',
     passRate: '100%',
@@ -156,9 +159,9 @@ export const testResultData: TestResult = {
     {
       id: '07Mxx00000F2Xx6UAF',
       queueItemId: '7092M000000Vt94QAC',
-      stackTrace: null as unknown as string,
-      message: null as unknown as string,
-      asyncApexJobId: testRunId,
+      stackTrace: null,
+      message: null,
+      asyncApexJobId,
       methodName: 'testLoggerLog',
       outcome: 'Pass',
       apexLogId: null,
@@ -182,6 +185,7 @@ export const flowTestResultData: TestResult = {
     failRate: '0%',
     failing: 0,
     hostname: 'https://na139.salesforce.com',
+    orgId: '00Dxx0000000001AAA',
     testsRan: 1,
     outcome: 'Passed',
     passRate: '100%',
@@ -198,7 +202,7 @@ export const flowTestResultData: TestResult = {
   },
   tests: [
     {
-      id: '07Mxx00000F2Xx6UAF',
+      id: '2hUxx00000F2Xx6UAF',
       queueItemId: '7092M000000Vt94QAC',
       stackTrace: '',
       message: '',
@@ -228,6 +232,7 @@ export const missingTimeTestData: TestResult = {
     failRate: '0%',
     failing: 0,
     hostname: 'https://na139.salesforce.com',
+    orgId: '00Dxx0000000001AAA',
     testsRan: 1,
     outcome: 'Passed',
     passRate: '100%',
@@ -246,9 +251,9 @@ export const missingTimeTestData: TestResult = {
     {
       id: '07Mxx00000F2Xx6UAF',
       queueItemId: '7092M000000Vt94QAC',
-      stackTrace: null as unknown as string,
-      message: null as unknown as string,
-      asyncApexJobId: testRunId,
+      stackTrace: null,
+      message: null,
+      asyncApexJobId,
       category: 'Apex',
       methodName: 'testLoggerLog',
       outcome: 'Pass',
@@ -274,6 +279,7 @@ export const skippedTestData: TestResult = {
     failRate: '0%',
     failing: 0,
     hostname: 'https://na139.salesforce.com',
+    orgId: '00Dxx0000000001AAA',
     testsRan: 1,
     outcome: 'Skipped',
     passRate: '0%',
@@ -292,15 +298,15 @@ export const skippedTestData: TestResult = {
     {
       id: '07Mxx00000F2Xx6UAF',
       queueItemId: '7092M000000Vt94QAC',
-      stackTrace: null as unknown as string,
-      message: null as unknown as string,
-      asyncApexJobId: testRunId,
+      stackTrace: null,
+      message: null,
+      asyncApexJobId,
       category: 'Apex',
       methodName: 'testLoggerLog',
       outcome: 'Skip',
       apexLogId: null,
       apexClass: {
-        id: '7092M000000Vt94QAC',
+        id: '01pxx00000O6tXZQAZ',
         name: 'TestLogger',
         namespacePrefix: 't3st',
         fullName: 't3st.TestLogger'
@@ -318,6 +324,7 @@ const failureSummary = {
   failRate: '100%',
   failing: 1,
   hostname: 'https://na139.salesforce.com',
+  orgId: '00Dxx0000000001AAA',
   testsRan: 1,
   outcome: 'Failed',
   passRate: '0%',
@@ -342,7 +349,7 @@ export const diagnosticResult: TestResult = {
       queueItemId: '7092M000000Vt94QAC',
       stackTrace: 'Class.LIFXControllerTest.makeData: line 6, column 1',
       message: 'System.AssertException: Assertion Failed',
-      asyncApexJobId: testRunId,
+      asyncApexJobId,
       category: 'Apex',
       methodName: 'testLoggerLog',
       outcome: 'Fail',
@@ -359,7 +366,6 @@ export const diagnosticResult: TestResult = {
       diagnostic: {
         className: 'LIFXControllerTest',
         columnNumber: 1,
-        compileProblem: '',
         exceptionMessage: 'System.AssertException: Assertion Failed',
         exceptionStackTrace: 'Class.LIFXControllerTest.makeData: line 6, column 1',
         lineNumber: 6
@@ -379,7 +385,7 @@ export const diagnosticFailure: TestResult = {
       queueItemId: '7092M000000Vt94QAC',
       stackTrace: 'Class.LIFXControllerTest.makeData',
       message: 'System.AssertException: Assertion Failed',
-      asyncApexJobId: testRunId,
+      asyncApexJobId,
       category: 'Apex',
       methodName: 'testLoggerLog',
       outcome: 'Fail',
@@ -395,7 +401,6 @@ export const diagnosticFailure: TestResult = {
       fullName: 't3st.TestLogger.testLoggerLog',
       diagnostic: {
         className: 'LIFXControllerTest',
-        compileProblem: '',
         exceptionMessage: 'System.AssertException: Assertion Failed',
         exceptionStackTrace: 'Class.LIFXControllerTest.makeData'
       }
@@ -492,7 +497,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',
       Name: 'TestAssignment',
-      NamespacePrefix: null as unknown as string,
+      NamespacePrefix: '',
       FullName: 'TestAssignment'
     }
   },
@@ -503,14 +508,14 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     Message: null,
     RunTime: 615,
     TestTimestamp: '2020-08-18T02:04:51.000+0000',
-    AsyncApexJobId: '707xxM0000ASIPB5QQP',
+    AsyncApexJobId: testRunId,
     MethodName: 'testAssignOnInsert',
     Outcome: 'Pass',
     ApexLogId: null,
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',
       Name: 'TestAssignment',
-      NamespacePrefix: null as unknown as string,
+      NamespacePrefix: '',
       FullName: 'TestAssignment'
     }
   },
@@ -528,7 +533,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',
       Name: 'TestAssignment',
-      NamespacePrefix: null as unknown as string,
+      NamespacePrefix: '',
       FullName: 'TestAssignment'
     }
   },
@@ -546,7 +551,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',
       Name: 'TestAssignment',
-      NamespacePrefix: null as unknown as string,
+      NamespacePrefix: '',
       FullName: 'TestAssignment'
     }
   },
@@ -562,7 +567,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',
       Name: 'TestAssignment',
-      NamespacePrefix: null as unknown as string,
+      NamespacePrefix: '',
       FullName: 'TestAssignment'
     },
     RunTime: 560,
@@ -580,7 +585,7 @@ export const mixedTestResults: ApexTestResultRecord[] = [
     ApexClass: {
       Id: '01pxx00000NnP2KQAV',
       Name: 'TestAssignment',
-      NamespacePrefix: null as unknown as string,
+      NamespacePrefix: '',
       FullName: 'TestAssignment'
     },
     RunTime: 56,

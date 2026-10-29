@@ -75,6 +75,12 @@ describe('Effect Apex logs', () => {
     expect(queryMore).toHaveBeenCalledWith('/next');
   });
 
+  it('fails decoding a continuing page without a nonempty nextRecordsUrl', async () => {
+    const { connection, query } = makeConnection();
+    query.mockResolvedValue({ totalSize: 2, done: false, records: [log('1')] });
+    expect(await Effect.runPromise(Effect.flip(listLogs(connection)))).toMatchObject({ _tag: 'ParseError' });
+  });
+
   it('preserves request causes and reports malformed records', async () => {
     const { connection, query } = makeConnection();
     const cause = { message: 'Invalid field', errorCode: 'INVALID_FIELD', fields: ['Operation'] };
@@ -134,6 +140,44 @@ describe('Effect Apex logs', () => {
     expect(query.mock.calls.map(([soql]) => soql.match(/LogUserId = '([^']+)'/)[1])).toEqual(['0050', '0052']);
   });
 
+  it('accepts a schedule with a void output rather than a counter', async () => {
+    const { connection, query } = makeConnection();
+    await Effect.runPromise(streamLogs(connection, { schedule: Schedule.once }).pipe(Stream.runDrain));
+    expect(query).toHaveBeenCalledTimes(2);
+  });
+
+  it('follows Tooling API pages to retrieve every matching log, despite a failed body', async () => {
+    const { connection, query, queryMore, request } = makeConnection();
+    query.mockResolvedValue({ totalSize: 2, done: false, nextRecordsUrl: '/next', records: [log('1')] });
+    queryMore.mockResolvedValue({ totalSize: 2, done: true, records: [log('2')] });
+    request.mockRejectedValueOnce(new Error('body unavailable'));
+    const events = await Effect.runPromise(
+      streamLogs(connection, { schedule: Schedule.recurs(0) }).pipe(
+        Stream.runCollect,
+        Effect.map(Chunk.toReadonlyArray)
+      )
+    );
+    expect(events).toMatchObject([
+      { _tag: 'BodyError', log: { Id: log('1').Id } },
+      { _tag: 'Log', log: { Id: log('2').Id } }
+    ]);
+    expect(query.mock.calls[0][0]).toContain(' LIMIT 25');
+    expect(queryMore).toHaveBeenCalledWith('/next');
+  });
+
+  it('reports a later queryMore failure without emitting incomplete poll results', async () => {
+    const { connection, query, queryMore } = makeConnection();
+    query.mockResolvedValue({ totalSize: 2, done: false, nextRecordsUrl: '/next', records: [log('1')] });
+    queryMore.mockRejectedValue(new Error('queryMore unavailable'));
+    const events = await Effect.runPromise(
+      streamLogs(connection, { schedule: Schedule.recurs(0) }).pipe(
+        Stream.runCollect,
+        Effect.map(Chunk.toReadonlyArray)
+      )
+    );
+    expect(events.map(event => event._tag)).toEqual(['QueryError']);
+    expect(queryMore).toHaveBeenCalledWith('/next');
+  });
   it('interrupts in-flight body retrieval without emitting a log', async () => {
     const { connection, query, request } = makeConnection();
     query.mockResolvedValue({ totalSize: 1, records: [log('pending')] });

@@ -10,6 +10,7 @@ import { pipeline, Writable } from 'node:stream';
 import { formatMarkdownText } from '../../src/reporters/formatMarkdownText';
 import { getTestData, successResult } from './testResults';
 import type { TestResult } from '../../src/tests/types';
+import { apexClassId } from '../schemaHelpers';
 
 const { testResults } = getTestData();
 
@@ -58,8 +59,8 @@ describe('MarkdownTextFormatTransformer', () => {
           perClassCoverage: [
             {
               apexClassOrTriggerName: 'TestClass',
-              apexClassOrTriggerId: '001',
-              apexTestClassId: test.apexClass.id,
+              apexClassOrTriggerId: apexClassId('01p000000000001AAA'),
+              apexTestClassId: apexClassId(test.apexClass.id!),
               apexTestMethodName: test.methodName,
               numLinesCovered: 80,
               numLinesUncovered: 20,
@@ -266,8 +267,8 @@ describe('MarkdownTextFormatTransformer', () => {
             perClassCoverage: [
               {
                 apexClassOrTriggerName: 'TestClass',
-                apexClassOrTriggerId: '001',
-                apexTestClassId: '002',
+                apexClassOrTriggerId: apexClassId('01p000000000001AAA'),
+                apexTestClassId: apexClassId('01p000000000002AAA'),
                 apexTestMethodName: 'LowCoverageTest',
                 numLinesCovered: 10,
                 numLinesUncovered: 90,
@@ -306,8 +307,8 @@ describe('MarkdownTextFormatTransformer', () => {
             perClassCoverage: [
               {
                 apexClassOrTriggerName: 'TestClass',
-                apexClassOrTriggerId: '001',
-                apexTestClassId: '002',
+                apexClassOrTriggerId: apexClassId('01p000000000001AAA'),
+                apexTestClassId: apexClassId('01p000000000002AAA'),
                 apexTestMethodName: 'FastTest',
                 numLinesCovered: 90,
                 numLinesUncovered: 10,
@@ -422,8 +423,8 @@ describe('MarkdownTextFormatTransformer', () => {
             perClassCoverage: [
               {
                 apexClassOrTriggerName: 'LCOUtilsTest',
-                apexClassOrTriggerId: '001',
-                apexTestClassId: successResult.tests[0].apexClass.id,
+                apexClassOrTriggerId: apexClassId('01p000000000001AAA'),
+                apexTestClassId: apexClassId(successResult.tests[0].apexClass.id!),
                 apexTestMethodName: 'test_LCOSDCreateController_assignDefaultPAItems',
                 numLinesCovered: 2,
                 numLinesUncovered: 98,

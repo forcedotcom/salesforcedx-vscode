@@ -18,6 +18,8 @@ import {
 } from '../../src/tests/types';
 import { QUERY_RECORD_LIMIT } from '../../src/tests/constants';
 
+const testClassId = (index: number): string => `01p${String(index).padStart(15, '0')}`;
+
 let mockConnection: Connection;
 let toolingQueryStub: SinonStub;
 const testData = new MockTestOrgData();
@@ -65,19 +67,19 @@ describe('Get code coverage results', () => {
   it('should return aggregate code coverage result and testRunCoverage', async () => {
     const codeCoverageQueryResult = [
       {
-        ApexClassOrTrigger: { Id: '0001x05958', Name: 'ApexTrigger1' },
+        ApexClassOrTrigger: { Id: '01q000000000001AAA', Name: 'ApexTrigger1' },
         NumLinesCovered: 5,
         NumLinesUncovered: 1,
         Coverage: { coveredLines: [1, 2, 3, 4, 5], uncoveredLines: [6] }
       },
       {
-        ApexClassOrTrigger: { Id: '0001x05959', Name: 'ApexTrigger2' },
+        ApexClassOrTrigger: { Id: '01q000000000002AAA', Name: 'ApexTrigger2' },
         NumLinesCovered: 6,
         NumLinesUncovered: 2,
         Coverage: { coveredLines: [1, 2, 3, 4, 5, 6], uncoveredLines: [7, 8] }
       },
       {
-        ApexClassOrTrigger: { Id: '0001x05951', Name: 'ApexTrigger3' },
+        ApexClassOrTrigger: { Id: '01q000000000003AAA', Name: 'ApexTrigger3' },
         NumLinesCovered: 7,
         NumLinesUncovered: 3,
         Coverage: {
@@ -89,7 +91,7 @@ describe('Get code coverage results', () => {
 
     const expectedResult = [
       {
-        apexId: '0001x05958',
+        apexId: '01q000000000001AAA',
         coveredLines: [1, 2, 3, 4, 5],
         name: 'ApexTrigger1',
         numLinesCovered: 5,
@@ -99,7 +101,7 @@ describe('Get code coverage results', () => {
         uncoveredLines: [6]
       },
       {
-        apexId: '0001x05959',
+        apexId: '01q000000000002AAA',
         coveredLines: [1, 2, 3, 4, 5, 6],
         name: 'ApexTrigger2',
         numLinesCovered: 6,
@@ -109,7 +111,7 @@ describe('Get code coverage results', () => {
         uncoveredLines: [7, 8]
       },
       {
-        apexId: '0001x05951',
+        apexId: '01q000000000003AAA',
         coveredLines: [1, 2, 3, 4, 5, 6, 7],
         name: 'ApexTrigger3',
         numLinesCovered: 7,
@@ -126,7 +128,7 @@ describe('Get code coverage results', () => {
     } as ApexCodeCoverageAggregate);
     const codeCov = new CodeCoverage(mockConnection);
     const { codeCoverageResults, totalLines, coveredLines } = await codeCov.getAggregateCodeCoverage(
-      new Set<string>(['0001x05958', '0001x05959', '0001x05951'])
+      new Set<string>(['01q000000000001AAA', '01q000000000002AAA', '01q000000000003AAA'])
     );
 
     expect(totalLines).toBe(24);
@@ -137,19 +139,19 @@ describe('Get code coverage results', () => {
   it('should return aggregate code coverage result with all records from AggregateCodeCoverage table', async () => {
     const codeCoverageQueryResult = [
       {
-        ApexClassOrTrigger: { Id: '0001x05958', Name: 'ApexTrigger1' },
+        ApexClassOrTrigger: { Id: '01q000000000001AAA', Name: 'ApexTrigger1' },
         NumLinesCovered: 5,
         NumLinesUncovered: 1,
         Coverage: { coveredLines: [1, 2, 3, 4, 5], uncoveredLines: [6] }
       },
       {
-        ApexClassOrTrigger: { Id: '0001x05959', Name: 'ApexTrigger2' },
+        ApexClassOrTrigger: { Id: '01q000000000002AAA', Name: 'ApexTrigger2' },
         NumLinesCovered: 6,
         NumLinesUncovered: 2,
         Coverage: { coveredLines: [1, 2, 3, 4, 5, 6], uncoveredLines: [7, 8] }
       },
       {
-        ApexClassOrTrigger: { Id: '0001x05951', Name: 'ApexTrigger3' },
+        ApexClassOrTrigger: { Id: '01q000000000003AAA', Name: 'ApexTrigger3' },
         NumLinesCovered: 7,
         NumLinesUncovered: 3,
         Coverage: {
@@ -161,7 +163,7 @@ describe('Get code coverage results', () => {
 
     const expectedResult = [
       {
-        apexId: '0001x05958',
+        apexId: '01q000000000001AAA',
         coveredLines: [1, 2, 3, 4, 5],
         name: 'ApexTrigger1',
         numLinesCovered: 5,
@@ -171,7 +173,7 @@ describe('Get code coverage results', () => {
         uncoveredLines: [6]
       },
       {
-        apexId: '0001x05959',
+        apexId: '01q000000000002AAA',
         coveredLines: [1, 2, 3, 4, 5, 6],
         name: 'ApexTrigger2',
         numLinesCovered: 6,
@@ -181,7 +183,7 @@ describe('Get code coverage results', () => {
         uncoveredLines: [7, 8]
       },
       {
-        apexId: '0001x05951',
+        apexId: '01q000000000003AAA',
         coveredLines: [1, 2, 3, 4, 5, 6, 7],
         name: 'ApexTrigger3',
         numLinesCovered: 7,
@@ -207,24 +209,24 @@ describe('Get code coverage results', () => {
   it('should return per class code coverage for multiple test classes', async () => {
     const perClassCodeCovResult = [
       {
-        ApexClassOrTrigger: { Id: '0001x05958', Name: 'ApexTrigger1' },
+        ApexClassOrTrigger: { Id: '01q000000000001AAA', Name: 'ApexTrigger1' },
         TestMethodName: 'MethodOne',
-        ApexTestClassId: '0001x05958',
+        ApexTestClassId: '01p000000000001AAA',
         NumLinesCovered: 5,
         NumLinesUncovered: 1,
         Coverage: { coveredLines: [1, 2, 3, 4, 5], uncoveredLines: [6] }
       },
       {
-        ApexClassOrTrigger: { Id: '0001x05959', Name: 'ApexTrigger2' },
-        ApexTestClassId: '0001x05959',
+        ApexClassOrTrigger: { Id: '01q000000000002AAA', Name: 'ApexTrigger2' },
+        ApexTestClassId: '01p000000000002AAA',
         TestMethodName: 'MethodTwo',
         NumLinesCovered: 6,
         NumLinesUncovered: 2,
         Coverage: { coveredLines: [1, 2, 3, 4, 5, 6], uncoveredLines: [7, 8] }
       },
       {
-        ApexClassOrTrigger: { Id: '0001x05951', Name: 'ApexTrigger3' },
-        ApexTestClassId: '0001x05951',
+        ApexClassOrTrigger: { Id: '01q000000000003AAA', Name: 'ApexTrigger3' },
+        ApexTestClassId: '01p000000000003AAA',
         TestMethodName: 'MethodThree',
         NumLinesCovered: 7,
         NumLinesUncovered: 3,
@@ -242,14 +244,14 @@ describe('Get code coverage results', () => {
 
     const codeCov = new CodeCoverage(mockConnection);
     const perClassCoverageMap = await codeCov.getPerClassCodeCoverage(
-      new Set<string>(['0001x05958', '0001x05959', '0001x05951'])
+      new Set<string>(['01p000000000001AAA', '01p000000000002AAA', '01p000000000003AAA'])
     );
     expect(perClassCoverageMap.size).toBe(3);
-    expect(perClassCoverageMap.get('0001x05958-MethodOne')).toEqual([
+    expect(perClassCoverageMap.get('01p000000000001AAA-MethodOne')).toEqual([
       {
         apexClassOrTriggerName: 'ApexTrigger1',
-        apexClassOrTriggerId: '0001x05958',
-        apexTestClassId: '0001x05958',
+        apexClassOrTriggerId: '01q000000000001AAA',
+        apexTestClassId: '01p000000000001AAA',
         apexTestMethodName: 'MethodOne',
         percentage: '83%',
         coverage: { coveredLines: [1, 2, 3, 4, 5], uncoveredLines: [6] },
@@ -257,11 +259,11 @@ describe('Get code coverage results', () => {
         numLinesUncovered: 1
       }
     ]);
-    expect(perClassCoverageMap.get('0001x05959-MethodTwo')).toEqual([
+    expect(perClassCoverageMap.get('01p000000000002AAA-MethodTwo')).toEqual([
       {
         apexClassOrTriggerName: 'ApexTrigger2',
-        apexClassOrTriggerId: '0001x05959',
-        apexTestClassId: '0001x05959',
+        apexClassOrTriggerId: '01q000000000002AAA',
+        apexTestClassId: '01p000000000002AAA',
         apexTestMethodName: 'MethodTwo',
         percentage: '75%',
         coverage: {
@@ -272,11 +274,11 @@ describe('Get code coverage results', () => {
         numLinesUncovered: 2
       }
     ]);
-    expect(perClassCoverageMap.get('0001x05951-MethodThree')).toEqual([
+    expect(perClassCoverageMap.get('01p000000000003AAA-MethodThree')).toEqual([
       {
         apexClassOrTriggerName: 'ApexTrigger3',
-        apexClassOrTriggerId: '0001x05951',
-        apexTestClassId: '0001x05951',
+        apexClassOrTriggerId: '01q000000000003AAA',
+        apexTestClassId: '01p000000000003AAA',
         apexTestMethodName: 'MethodThree',
         percentage: '70%',
         coverage: {
@@ -292,16 +294,16 @@ describe('Get code coverage results', () => {
   it('should return per class code coverage for test that covers multiple classes', async () => {
     const perClassCodeCovResult = [
       {
-        ApexClassOrTrigger: { Id: '0001x05958', Name: 'ApexTrigger1' },
+        ApexClassOrTrigger: { Id: '01q000000000001AAA', Name: 'ApexTrigger1' },
         TestMethodName: 'MethodOne',
-        ApexTestClassId: '0001x05958',
+        ApexTestClassId: '01p000000000001AAA',
         NumLinesCovered: 5,
         NumLinesUncovered: 1,
         Coverage: { coveredLines: [1, 2, 3, 4, 5], uncoveredLines: [6] }
       },
       {
-        ApexClassOrTrigger: { Id: '0001x05959', Name: 'ApexTrigger2' },
-        ApexTestClassId: '0001x05958',
+        ApexClassOrTrigger: { Id: '01q000000000002AAA', Name: 'ApexTrigger2' },
+        ApexTestClassId: '01p000000000001AAA',
         TestMethodName: 'MethodOne',
         NumLinesCovered: 6,
         NumLinesUncovered: 2,
@@ -315,13 +317,13 @@ describe('Get code coverage results', () => {
     } as ApexCodeCoverage);
 
     const codeCov = new CodeCoverage(mockConnection);
-    const perClassCoverageMap = await codeCov.getPerClassCodeCoverage(new Set<string>(['0001x05958']));
+    const perClassCoverageMap = await codeCov.getPerClassCodeCoverage(new Set<string>(['01p000000000001AAA']));
     expect(perClassCoverageMap.size).toBe(1);
-    expect(perClassCoverageMap.get('0001x05958-MethodOne')).toEqual([
+    expect(perClassCoverageMap.get('01p000000000001AAA-MethodOne')).toEqual([
       {
         apexClassOrTriggerName: 'ApexTrigger1',
-        apexClassOrTriggerId: '0001x05958',
-        apexTestClassId: '0001x05958',
+        apexClassOrTriggerId: '01q000000000001AAA',
+        apexTestClassId: '01p000000000001AAA',
         apexTestMethodName: 'MethodOne',
         percentage: '83%',
         coverage: { coveredLines: [1, 2, 3, 4, 5], uncoveredLines: [6] },
@@ -330,8 +332,8 @@ describe('Get code coverage results', () => {
       },
       {
         apexClassOrTriggerName: 'ApexTrigger2',
-        apexClassOrTriggerId: '0001x05959',
-        apexTestClassId: '0001x05958',
+        apexClassOrTriggerId: '01q000000000002AAA',
+        apexTestClassId: '01p000000000001AAA',
         apexTestMethodName: 'MethodOne',
         percentage: '75%',
         coverage: {
@@ -352,6 +354,26 @@ describe('Get code coverage results', () => {
     expect(perClassCoverageMap.size).toBe(0);
   });
 
+  it.each([undefined, 'one'])('rejects malformed coverage counts with a plain Promise error: %j', async covered => {
+    const testId = '01p000000000001AAA';
+    toolingQueryStub.resolves({
+      done: true,
+      totalSize: 1,
+      records: [
+        {
+          ApexClassOrTrigger: { Id: '01p000000000002AAA', Name: 'Covered' },
+          ApexTestClassId: testId,
+          TestMethodName: 'testMethod',
+          NumLinesCovered: covered,
+          NumLinesUncovered: 0
+        }
+      ]
+    });
+    await expect(new CodeCoverage(mockConnection).getPerClassCodeCoverage(new Set([testId]))).rejects.toThrow(
+      'Invalid Apex coverage response'
+    );
+  });
+
   it('should split the PerClassCodeCoverage queue into chunks of 500 records', async () => {
     const queryStart =
       'SELECT ApexTestClassId, ApexClassOrTrigger.Id, ApexClassOrTrigger.Name, TestMethodName, NumLinesCovered, NumLinesUncovered, Coverage FROM ApexCodeCoverage WHERE ApexTestClassId IN ';
@@ -362,10 +384,10 @@ describe('Get code coverage results', () => {
     for (let i = 0; i < recordCount; i++) {
       const record = {
         ApexClassOrTrigger: {
-          Id: `01p30000000DRIQAA4-${i}`,
+          Id: testClassId(i),
           Name: `apexClassName-${i}`
         },
-        ApexTestClassId: `01p30000000DRIQAA4-${i}`,
+        ApexTestClassId: testClassId(i),
         NumLinesCovered: 100,
         NumLinesUncovered: 0,
         TestMethodName: `testMethodName-${i}`
@@ -393,7 +415,7 @@ describe('Get code coverage results', () => {
 
     const apexTestClassSet: Set<string> = new Set<string>();
     for (let i = 0; i < recordCount; i++) {
-      apexTestClassSet.add(`01p30000000DRIQAA4-${i}`);
+      apexTestClassSet.add(testClassId(i));
     }
 
     const codeCoverage = new CodeCoverage(mockConnection);
@@ -456,7 +478,7 @@ describe('Get code coverage results', () => {
 
     const apexTestClassSet: Set<string> = new Set<string>();
     for (let i = 0; i < recordCount; i++) {
-      apexTestClassSet.add(`01p30000000DRIQAA4-${i}`);
+      apexTestClassSet.add(testClassId(i));
     }
 
     const codeCoverage = new CodeCoverage(mockConnection);

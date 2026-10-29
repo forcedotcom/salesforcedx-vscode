@@ -12,6 +12,9 @@ import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { type TestResult } from '../../src';
 import { writeAsyncResultsToFile } from '../../src/tests/asyncTests';
+import { salesforceId } from '../schemaHelpers';
+
+const asyncApexJobId = salesforceId('707000000000001AAA');
 
 describe('writeAsyncResultsToFile - Snapshot Tests', () => {
   let tempDir: string;
@@ -44,23 +47,23 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
       hostname: 'async-snapshot-host',
       orgId: '00D000000000000EAA',
       username: 'async-snapshot@example.com',
-      testRunId: 'async-snapshot-run-789',
+      testRunId: '707000000000006AAA',
       userId: '005000000000000AAA'
     },
     tests: [
       {
-        id: '01p000000000001AAA',
+        id: '07M000000000001AAA',
         queueItemId: '709000000000001AAA',
         stackTrace: null as string | null,
         message: null as string | null,
-        asyncApexJobId: '707000000000001AAA',
+        asyncApexJobId,
         methodName: 'testAsyncSnapshotMethod1',
         outcome: 'Pass',
         apexLogId: null as string | null,
         apexClass: {
           id: '01p000000000001AAA',
           name: 'AsyncSnapshotTestClass1',
-          namespacePrefix: null as unknown as string,
+          namespacePrefix: null,
           fullName: 'AsyncSnapshotTestClass1'
         },
         runTime: 800,
@@ -68,11 +71,11 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
         fullName: 'AsyncSnapshotTestClass1.testAsyncSnapshotMethod1'
       },
       {
-        id: '01p000000000002AAA',
+        id: '07M000000000002AAA',
         queueItemId: '709000000000002AAA',
         stackTrace: 'System.AsyncException: Async operation failed\\nLine 15: someMethod()\\nLine 23: anotherMethod()',
         message: 'Async test failed with complex error details',
-        asyncApexJobId: '707000000000001AAA',
+        asyncApexJobId,
         methodName: 'testAsyncSnapshotMethod2',
         outcome: 'Fail',
         apexLogId: '07L000000000001AAA',
@@ -87,18 +90,18 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
         fullName: 'AsyncNamespace.AsyncSnapshotTestClass2.testAsyncSnapshotMethod2'
       },
       {
-        id: '01p000000000003AAA',
+        id: '07M000000000003AAA',
         queueItemId: '709000000000003AAA',
         stackTrace: null as string | null,
         message: null as string | null,
-        asyncApexJobId: '707000000000001AAA',
+        asyncApexJobId,
         methodName: 'testAsyncSnapshotMethod3',
         outcome: 'Pass',
         apexLogId: null as string | null,
         apexClass: {
           id: '01p000000000003AAA',
           name: 'AsyncSnapshotTestClass3',
-          namespacePrefix: null as unknown as string,
+          namespacePrefix: null,
           fullName: 'AsyncSnapshotTestClass3'
         },
         runTime: 400,
@@ -106,11 +109,11 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
         fullName: 'AsyncSnapshotTestClass3.testAsyncSnapshotMethod3'
       },
       {
-        id: '01p000000000004AAA',
+        id: '07M000000000004AAA',
         queueItemId: '709000000000004AAA',
         stackTrace: null as string | null,
         message: null as string | null,
-        asyncApexJobId: '707000000000001AAA',
+        asyncApexJobId,
         methodName: 'testAsyncSnapshotMethod4',
         outcome: 'Pass',
         apexLogId: null as string | null,
@@ -147,22 +150,22 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
     const resultsWithNulls: TestResult = {
       summary: {
         ...mockSnapshotResults.summary,
-        testRunId: 'null-values-snapshot-test'
+        testRunId: '707000000000007AAA'
       },
       tests: [
         {
-          id: '01p000000000001AAA',
+          id: '07M000000000001AAA',
           queueItemId: '709000000000001AAA',
           stackTrace: null as string | null,
           message: null as string | null,
-          asyncApexJobId: '707000000000001AAA',
+          asyncApexJobId,
           methodName: 'testWithNullValues',
           outcome: 'Pass',
           apexLogId: null as string | null,
           apexClass: {
             id: '01p000000000001AAA',
             name: 'NullValuesTestClass',
-            namespacePrefix: null as unknown as string,
+            namespacePrefix: null,
             fullName: 'NullValuesTestClass'
           },
           runTime: 250,
@@ -236,7 +239,7 @@ describe('writeAsyncResultsToFile - Snapshot Tests', () => {
         hostname: 'empty-test-host',
         orgId: '00D000000000000EAA',
         username: 'empty@example.com',
-        testRunId: 'empty-snapshot-test',
+        testRunId: '707000000000008AAA',
         userId: '005000000000000AAA'
       },
       tests: []

@@ -14,7 +14,7 @@ exports[`writeResultFiles - Snapshot Tests > should produce consistent JSON outp
     "skipRate": "0%",
     "skipped": 0,
     "testExecutionTimeInMs": 1500,
-    "testRunId": "snapshot-test-run-456",
+    "testRunId": "707000000000002AAA",
     "testStartTime": "2023-01-01T12:00:00.000Z",
     "testTotalTimeInMs": 2500,
     "testsRan": 3,
@@ -32,7 +32,7 @@ exports[`writeResultFiles - Snapshot Tests > should produce consistent JSON outp
       "apexLogId": null,
       "asyncApexJobId": "707000000000001AAA",
       "fullName": "SnapshotTestClass1.testSnapshotMethod1",
-      "id": "01p000000000001AAA",
+      "id": "07M000000000001AAA",
       "message": null,
       "methodName": "testSnapshotMethod1",
       "outcome": "Pass",
@@ -51,7 +51,7 @@ exports[`writeResultFiles - Snapshot Tests > should produce consistent JSON outp
       "apexLogId": "07L000000000001AAA",
       "asyncApexJobId": "707000000000001AAA",
       "fullName": "TestNamespace.SnapshotTestClass2.testSnapshotMethod2",
-      "id": "01p000000000002AAA",
+      "id": "07M000000000002AAA",
       "message": "Snapshot test failed with detailed error message",
       "methodName": "testSnapshotMethod2",
       "outcome": "Fail",
@@ -70,7 +70,7 @@ exports[`writeResultFiles - Snapshot Tests > should produce consistent JSON outp
       "apexLogId": null,
       "asyncApexJobId": "707000000000001AAA",
       "fullName": "SnapshotTestClass3.testSnapshotMethod3",
-      "id": "01p000000000003AAA",
+      "id": "07M000000000003AAA",
       "message": null,
       "methodName": "testSnapshotMethod3",
       "outcome": "Pass",
@@ -102,7 +102,7 @@ exports[`writeResultFiles - Snapshot Tests > should produce consistent JUnit out
             <property name="hostname" value="snapshot-test-host"/>
             <property name="orgId" value="00D000000000000EAA"/>
             <property name="username" value="snapshot@example.com"/>
-            <property name="testRunId" value="snapshot-test-run-456"/>
+            <property name="testRunId" value="707000000000002AAA"/>
             <property name="userId" value="005000000000000AAA"/>
         </properties>
         <testcase name="testSnapshotMethod1" classname="SnapshotTestClass1" time="0.75">
@@ -169,17 +169,17 @@ exports[`writeResultFiles - Snapshot Tests > should produce consistent comprehen
 [
   "[TEMP_DIR]/comprehensive-config.json",
   "[TEMP_DIR]/comprehensive-test.txt",
-  "[TEMP_DIR]/test-result-snapshot-test-run-456-codecoverage.json",
-  "[TEMP_DIR]/test-result-snapshot-test-run-456-junit.xml",
-  "[TEMP_DIR]/test-result-snapshot-test-run-456-tap.txt",
-  "[TEMP_DIR]/test-result-snapshot-test-run-456.json",
-  "[TEMP_DIR]/test-result-snapshot-test-run-456.md",
-  "[TEMP_DIR]/test-result-snapshot-test-run-456.txt",
+  "[TEMP_DIR]/test-result-707000000000002AAA-codecoverage.json",
+  "[TEMP_DIR]/test-result-707000000000002AAA-junit.xml",
+  "[TEMP_DIR]/test-result-707000000000002AAA-tap.txt",
+  "[TEMP_DIR]/test-result-707000000000002AAA.json",
+  "[TEMP_DIR]/test-result-707000000000002AAA.md",
+  "[TEMP_DIR]/test-result-707000000000002AAA.txt",
   "[TEMP_DIR]/test-run-id.txt",
 ]
 `;
 
-exports[`writeResultFiles - Snapshot Tests > should produce consistent comprehensive output with all options 2`] = `"snapshot-test-run-456"`;
+exports[`writeResultFiles - Snapshot Tests > should produce consistent comprehensive output with all options 2`] = `"707000000000002AAA"`;
 
 exports[`writeResultFiles - Snapshot Tests > should produce consistent comprehensive output with all options 3`] = `
 {
@@ -195,7 +195,7 @@ exports[`writeResultFiles - Snapshot Tests > should produce consistent comprehen
     "skipRate": "0%",
     "skipped": 0,
     "testExecutionTimeInMs": 1500,
-    "testRunId": "snapshot-test-run-456",
+    "testRunId": "707000000000002AAA",
     "testStartTime": "2023-01-01T12:00:00.000Z",
     "testTotalTimeInMs": 2500,
     "testsRan": 3,
@@ -213,7 +213,7 @@ exports[`writeResultFiles - Snapshot Tests > should produce consistent comprehen
       "apexLogId": null,
       "asyncApexJobId": "707000000000001AAA",
       "fullName": "SnapshotTestClass1.testSnapshotMethod1",
-      "id": "01p000000000001AAA",
+      "id": "07M000000000001AAA",
       "message": null,
       "methodName": "testSnapshotMethod1",
       "outcome": "Pass",
@@ -265,7 +265,7 @@ exports[`writeResultFiles - Snapshot Tests > should produce consistent comprehen
       "apexLogId": "07L000000000001AAA",
       "asyncApexJobId": "707000000000001AAA",
       "fullName": "TestNamespace.SnapshotTestClass2.testSnapshotMethod2",
-      "id": "01p000000000002AAA",
+      "id": "07M000000000002AAA",
       "message": "Snapshot test failed with detailed error message",
       "methodName": "testSnapshotMethod2",
       "outcome": "Fail",
@@ -284,7 +284,7 @@ exports[`writeResultFiles - Snapshot Tests > should produce consistent comprehen
       "apexLogId": null,
       "asyncApexJobId": "707000000000001AAA",
       "fullName": "SnapshotTestClass3.testSnapshotMethod3",
-      "id": "01p000000000003AAA",
+      "id": "07M000000000003AAA",
       "message": null,
       "methodName": "testSnapshotMethod3",
       "outcome": "Pass",
@@ -326,7 +326,7 @@ exports[`writeResultFiles - Snapshot Tests > should produce consistent comprehen
             <property name="hostname" value="snapshot-test-host"/>
             <property name="orgId" value="00D000000000000EAA"/>
             <property name="username" value="snapshot@example.com"/>
-            <property name="testRunId" value="snapshot-test-run-456"/>
+            <property name="testRunId" value="707000000000002AAA"/>
             <property name="userId" value="005000000000000AAA"/>
         </properties>
         <testcase name="testSnapshotMethod1" classname="SnapshotTestClass1" time="0.75">

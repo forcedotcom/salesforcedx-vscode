@@ -67,6 +67,14 @@ describe('Run Apex tests synchronously', () => {
         username: testData.username
       })
     });
+    $$.SANDBOX.stub(mockConnection, 'getAuthInfoFields').returns({
+      ...mockConnection.getAuthInfoFields(),
+      orgId: '00Dxx0000000001AAA'
+    });
+    $$.SANDBOX.stub(mockConnection, 'getConnectionOptions').returns({
+      ...mockConnection.getConnectionOptions(),
+      userId: '005xx000000abcDAAU'
+    });
     toolingRequestStub = $$.SANDBOX.stub(mockConnection.tooling, 'request');
     testRequest = {
       method: 'POST',
@@ -102,13 +110,15 @@ describe('Run Apex tests synchronously', () => {
     expect(testResult.summary.skipRate).toBe('0%');
     expect(testResult.summary.testExecutionTimeInMs).toBe(270);
     expect(testResult.summary.username).toBe(mockConnection.getUsername());
+    expect(testResult.summary.testRunId).toBe('');
 
     expect(Array.isArray(testResult.tests)).toBe(true);
     expect(testResult.tests).toHaveLength(1);
+    expect(testResult.tests[0].id).toBe('');
     expect(testResult.tests[0].queueItemId).toBe('');
+    expect(testResult.tests[0].asyncApexJobId).toBe('');
     expect(testResult.tests[0].stackTrace).toBe('');
     expect(testResult.tests[0].message).toBe('');
-    expect(testResult.tests[0].asyncApexJobId).toBe('');
     expect(testResult.tests[0].methodName).toBe('testOne');
     expect(testResult.tests[0].outcome).toBe('Pass');
     expect(testResult.tests[0].apexLogId).toBe('07Lxx00000cxy6YUAQ');
@@ -140,10 +150,11 @@ describe('Run Apex tests synchronously', () => {
 
     expect(Array.isArray(testResult.tests)).toBe(true);
     expect(testResult.tests).toHaveLength(4);
+    expect(testResult.tests[0].id).toBe('');
     expect(testResult.tests[0].queueItemId).toBe('');
+    expect(testResult.tests[0].asyncApexJobId).toBe('');
     expect(testResult.tests[0].stackTrace).toBe('Class.TestSample.testOne: line 27, column 1');
     expect(testResult.tests[0].message).toBe('System.AssertException: Assertion Failed: Expected: false, Actual: true');
-    expect(testResult.tests[0].asyncApexJobId).toBe('');
     expect(testResult.tests[0].methodName).toBe('testOne');
     expect(testResult.tests[0].outcome).toBe('Fail');
     expect(testResult.tests[0].apexLogId).toBe('07Lxx00000cxy6YUAQ');
@@ -286,7 +297,7 @@ describe('Run Apex tests synchronously', () => {
         totalTime: 100,
         successes: [
           {
-            id: '01pxx00000FlowTest01',
+            id: '01pxx00000O6tXZQAZ',
             methodName: 'testFlowMethod',
             name: 'TestFlowClass',
             namespace: 'FlowTesting.TestFlow', // Flow test namespace
@@ -313,7 +324,7 @@ describe('Run Apex tests synchronously', () => {
         totalTime: 150,
         successes: [
           {
-            id: '01pxx00000CustomTest',
+            id: '01pxx00000O6tXZQAZ',
             methodName: 'testCustomMethod',
             name: 'CustomTestClass',
             namespace: 'myorg',
@@ -321,7 +332,7 @@ describe('Run Apex tests synchronously', () => {
             time: 60
           },
           {
-            id: '01pxx00000FlowTest02',
+            id: '01pxx00000O6tXZQAZ',
             methodName: 'testAnotherFlow',
             name: 'AnotherFlowTest',
             namespace: 'FlowTesting.AnotherFlow',

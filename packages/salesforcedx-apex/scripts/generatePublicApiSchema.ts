@@ -71,6 +71,9 @@ import {
   ExecuteAnonymousOptionsSchema,
   ExecuteAnonymousOutcomeSchema,
   PerClassCoverageSchema,
+  SyncTestConfigurationSchema,
+  SyncTestResultSchema,
+  TestItemSchema,
   TestSuiteSchema,
   TestSuiteMembershipSchema
 } from '../src/effect';
@@ -146,14 +149,6 @@ const LogResultSchema = Schema.Struct({
   log: Schema.String
 }).annotations({ identifier: 'LogResult' });
 
-const TestItemSchema = Schema.Struct({
-  className: optional(Schema.String),
-  classId: optional(Schema.String),
-  testMethods: optional(StringArray),
-  namespace: optional(Schema.String),
-  category: optional(Schema.String)
-}).annotations({ identifier: 'TestItem' });
-
 const AsyncTestConfigurationSchema = Schema.Struct({
   classNames: optional(Schema.String),
   classids: optional(Schema.String),
@@ -174,15 +169,6 @@ const AsyncTestArrayConfigurationSchema = Schema.Struct({
   skipCodeCoverage: optional(Schema.Boolean),
   category: optional(StringArray)
 }).annotations({ identifier: 'AsyncTestArrayConfiguration' });
-
-const SyncTestConfigurationSchema = Schema.Struct({
-  classNames: optional(Schema.String),
-  tests: TestItemSchema.pipe(Schema.Array, optional),
-  testLevel: optional(Schema.String),
-  maxFailedTests: optional(Schema.Number),
-  skipCodeCoverage: optional(Schema.Boolean),
-  category: optional(StringArray)
-}).annotations({ identifier: 'SyncTestConfiguration' });
 
 const OutputDirConfigSchema = Schema.Struct({
   dirPath: Schema.String,
@@ -356,6 +342,7 @@ const PublicApiSchema = Schema.Union(
   ApexCodeCoverageAggregateSchema,
   ApexCodeCoverageAggregateRecordSchema,
   ApexCodeCoverageRecordSchema,
+  ApexOrgWideCoverageSchema,
   ApexDiagnosticSchema,
   ApexExecuteOptionsSchema,
   ApexLogGetOptionsSchema,
@@ -398,6 +385,7 @@ const PublicApiSchema = Schema.Union(
   PerClassCoverageSchema,
   ResultFormatSchema,
   SyncTestConfigurationSchema,
+  SyncTestResultSchema,
   TestItemSchema,
   TestLevelSchema,
   TestResultSchema,

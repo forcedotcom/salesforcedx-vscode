@@ -105,6 +105,24 @@
       },
       "additionalProperties": false
     },
+    "ApexOrgWideCoverage": {
+      "type": "object",
+      "required": ["done", "totalSize", "records"],
+      "properties": {
+        "done": { "type": "boolean" },
+        "totalSize": { "type": "number" },
+        "records": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["PercentCovered"],
+            "properties": { "PercentCovered": { "type": "string" } },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
     "ApexDiagnostic": {
       "type": "object",
       "required": ["exceptionMessage", "exceptionStackTrace"],
@@ -506,24 +524,6 @@
       },
       "additionalProperties": false
     },
-    "ApexOrgWideCoverage": {
-      "type": "object",
-      "required": ["done", "totalSize", "records"],
-      "properties": {
-        "done": { "type": "boolean" },
-        "totalSize": { "type": "number" },
-        "records": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": ["PercentCovered"],
-            "properties": { "PercentCovered": { "type": "string" } },
-            "additionalProperties": false
-          }
-        }
-      },
-      "additionalProperties": false
-    },
     "ApexResponseDecodeError": {
       "type": "object",
       "required": ["operation", "message", "_tag"],
@@ -840,6 +840,52 @@
       },
       "additionalProperties": false
     },
+    "SyncTestResult": {
+      "type": "object",
+      "required": ["apexLogId", "failures", "numFailures", "numTestsRun", "successes"],
+      "properties": {
+        "apexLogId": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "failures": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "methodName", "name", "namespace", "seeAllData", "type"],
+            "properties": {
+              "id": { "type": "string" },
+              "methodName": { "type": "string" },
+              "name": { "type": "string" },
+              "namespace": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+              "seeAllData": { "type": "boolean" },
+              "time": { "anyOf": [{ "type": "number" }, { "type": "null" }] },
+              "message": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+              "stackTrace": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+              "type": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        },
+        "numFailures": { "type": "number" },
+        "numTestsRun": { "type": "number" },
+        "successes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["id", "methodName", "name", "namespace", "seeAllData"],
+            "properties": {
+              "id": { "type": "string" },
+              "methodName": { "type": "string" },
+              "name": { "type": "string" },
+              "namespace": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+              "seeAllData": { "type": "boolean" },
+              "time": { "anyOf": [{ "type": "number" }, { "type": "null" }] }
+            },
+            "additionalProperties": false
+          }
+        },
+        "totalTime": { "anyOf": [{ "type": "number" }, { "type": "null" }] }
+      },
+      "additionalProperties": false
+    },
     "TestResult": {
       "type": "object",
       "required": ["summary", "tests"],
@@ -978,6 +1024,7 @@
     { "$ref": "#/$defs/ApexCodeCoverageAggregate" },
     { "$ref": "#/$defs/ApexCodeCoverageAggregateRecord" },
     { "$ref": "#/$defs/ApexCodeCoverageRecord" },
+    { "$ref": "#/$defs/ApexOrgWideCoverage" },
     { "$ref": "#/$defs/ApexDiagnostic" },
     { "$ref": "#/$defs/ApexExecuteOptions" },
     { "$ref": "#/$defs/ApexLogGetOptions" },
@@ -1020,6 +1067,7 @@
     { "$ref": "#/$defs/PerClassCoverage" },
     { "$ref": "#/$defs/ResultFormat" },
     { "$ref": "#/$defs/SyncTestConfiguration" },
+    { "$ref": "#/$defs/SyncTestResult" },
     { "$ref": "#/$defs/TestItem" },
     { "$ref": "#/$defs/TestLevel" },
     { "$ref": "#/$defs/TestResult" },

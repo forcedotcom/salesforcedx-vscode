@@ -48,7 +48,7 @@ export const listLogs = Effect.fn('Apex.listLogs')(function* (
   options?: ListLogsOptions
 ) {
   const soql = buildListLogsQuery(limit, options);
-  return yield* Stream.paginateChunkEffect(undefined as string | undefined, nextRecordsUrl =>
+  return yield* Stream.paginateChunkEffect(undefined, (nextRecordsUrl: string | undefined) =>
     Effect.tryPromise({
       try: () =>
         Promise.resolve(
