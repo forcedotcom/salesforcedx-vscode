@@ -27,6 +27,11 @@ export const updateIDB = Effect.fn('updateIDB')(
       return;
     }
 
+    // Catalog writes use this staging file for an atomic rename; it is not a workspace file.
+    if (Utils.basename(URI.file(event.filename)) === 'catalog.json.__staging__') {
+      return;
+    }
+
     const storage = yield* IndexedDBStorageService;
     const { fsPath, uri: rootUri } = yield* getProjectRoot();
     const fullPath = `${fsPath}/${event.filename}`;
@@ -41,10 +46,6 @@ export const updateIDB = Effect.fn('updateIDB')(
     const createdOrChanged =
       event.eventType === 'rename' ? vscode.FileChangeType.Created : vscode.FileChangeType.Changed;
     emitter.fire([{ type: exists ? createdOrChanged : vscode.FileChangeType.Deleted, uri }]);
-    // Catalog saves rename the staging file to catalog.json; persist only the final file.
-    if (Utils.basename(uri) === 'catalog.json.__staging__') {
-      return;
-    }
     return exists ? yield* storage.saveFile(fullPath) : yield* storage.deleteFile(fullPath);
   },
   Effect.catchTag('VirtualFsProviderError', error =>
