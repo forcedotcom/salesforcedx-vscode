@@ -1,0 +1,103 @@
+name: Publish Open VSX (Trusted)
+run-name: "Open VSX: ${{ inputs.release-tag || github.event.release.tag_name }}"
+
+# The actual `ovsx publish` for BOTH channels lives here, deliberately split out of
+# publishOpenVSX.yml (stable) and promote-to-prerelease.yml (prerelease). Open VSX's
+# trusted-publisher match keys off the OIDC token's workflow_ref claim -- the top-level workflow
+# that *initiated* the run -- not job_workflow_ref (the reusable workflow actually executing a
+# job, which can be nested arbitrarily deep via `uses:`, even cross-repo, without changing
+# workflow_ref). Stable and prerelease used to be started by two different top-level files
+# (publishOpenVSX.yml vs promote-to-prerelease.yml), and Open VSX allows exactly one
+# trusted-publisher registration per extension (hard server-side check, not a UI gap -- see
+# TrustedPublishingService.registerTrustedPublisher in eclipse-openvsx/openvsx). This file is now
+# the single initiating workflow for both: stable triggers it directly via its own `release`
+# event (not nested inside publishOpenVSX.yml), and promote-to-prerelease.yml dispatches it via
+# `gh workflow run` (a brand-new independent run, not a `uses:` call) for the nightly being
+# promoted. Register the Open VSX trusted publisher against *this* file.
+#
+# Deliberately has no `environment: publish` (unlike publishOpenVSX.yml's prepare-release-metadata):
+# that environment has a required-reviewers protection rule, which would turn every automated
+# weekly prerelease dispatch into one requiring manual approval.
+
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+    inputs:
+      release-tag:
+        description: 'Release tag to publish (stable, e.g. v67.10.0, or nightly, e.g. v67.13.7-nightly.develop.20260820)'
+        required: true
+        type: string
+      dry-run:
+        description: 'Download and inspect VSIXs without publishing'
+        type: boolean
+        default: false
+      isHotfix:
+        description: 'Test the exact release commit directly before publishing. Use for stable hotfixes built via build-github-release.yml startFromRef, which have no other automated test gate for this registry. Prerelease dispatches never need this -- promote-to-prerelease.yml already tested the commit before dispatching here.'
+        required: false
+        default: false
+        type: boolean
+
+jobs:
+  # Mirrors publishOpenVSX.yml's prepare-release-metadata exclusion, so the automatic `release`
+  # trigger doesn't also fire for npm-package tags (soql-common-v1.0.4 etc.) or (defensively) a
+  # nightly tag that somehow got flipped to `released`. workflow_dispatch is unaffected -- that's
+  # the path promote-to-prerelease.yml uses to publish an actual nightly tag on purpose.
+  prepare:
+    if: github.event_name != 'release' || (!contains(github.event.release.tag_name, '-v') && !contains(github.event.release.tag_name, '-nightly'))
+    runs-on: ubuntu-latest
+    outputs:
+      release-tag: ${{ steps.tag.outputs.tag }}
+    steps:
+      - id: tag
+        run: echo "tag=${{ inputs.release-tag || github.event.release.tag_name }}" >> "$GITHUB_OUTPUT"
+
+  # Same purpose as publishOpenVSX.yml's gate-check, copied rather than shared because they run
+  # in different workflows: only exercised on a manual isHotfix dispatch retry. The prerelease
+  # dispatch from promote-to-prerelease.yml never sets isHotfix -- that workflow's own gate-check
+  # already tested the commit before it ever got here.
+  gate-check:
+    needs: [prepare]
+    if: inputs.isHotfix == true
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Need full history to check out the release tag below
+
+      - name: Checkout hotfix commit
+        env:
+          RELEASE_TAG: ${{ needs.prepare.outputs.release-tag }}
+        run: git checkout "$RELEASE_TAG"
+
+      - name: Setup Node.js
+        uses: ./.github/actions/setup-pnpm
+        with:
+          node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
+          install: 'false'
+
+      - name: Install dependencies for hotfix commit
+        uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
+      - name: Run tests for hotfix commit
+        env:
+          NODE_OPTIONS: --max-old-space-size=8192
+          WIREIT_PARALLEL: 1
+        run: |
+          pnpm compile
+          pnpm test
+
+  publish:
+    needs: [prepare, gate-check]
+    if: always() && needs.prepare.result == 'success' && (needs.gate-check.result == 'success' || needs.gate-check.result == 'skipped')
+    permissions:
+      contents: read
+      id-token: write
+    # TEMPORARY: pinned to the github-workflows PR branch with the --trusted-publishing migration
+    # (salesforcecli/github-workflows#199), to validate end-to-end before that PR merges. Switch
+    # back to @main before merging this PR.
+    uses: salesforcecli/github-workflows/.github/workflows/openvsx-publish-release-vsix.yml@ms/W-24666922-ovsx-trusted-publishing
+    with:
+      release-tag: ${{ needs.prepare.outputs.release-tag }}
+      dry-run: ${{ inputs.dry-run || false }}
+    secrets: inherit
