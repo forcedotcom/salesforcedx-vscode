@@ -33,28 +33,37 @@ const installAndCompile = (fixtureName, directory, packedPackages) => {
     .filter(file => file === 'package.json' || file === 'tsconfig.json' || file.endsWith('.ts'))) {
     fs.copyFileSync(path.join(fixture, file), path.join(directory, file));
   }
-  if (process.argv.includes('--update-lock') || process.argv.includes(`--update-lock=${fixtureName}`)) {
+  const updateLock = process.argv.includes('--update-lock') || process.argv.includes(`--update-lock=${fixtureName}`);
+  const lockPath = path.join(fixture, 'package-lock.json');
+  if (fs.existsSync(lockPath)) {
+    const lock = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
+    for (const { name, publishedPackage, packed } of packedPackages) {
+      const packageLock = lock.packages[`node_modules/${name}`];
+      if (!updateLock) {
+        assert.deepEqual(
+          packageLock.dependencies,
+          publishedPackage.dependencies,
+          `${name}: update the consumer lock when published dependencies change`
+        );
+      }
+      // Only rebuilt local archive metadata changes; registry versions/hashes stay locked.
+      packageLock.integrity = packed.integrity;
+      packageLock.version = packed.version;
+      packageLock.dependencies = publishedPackage.dependencies;
+    }
+    fs.writeFileSync(path.join(directory, 'package-lock.json'), JSON.stringify(lock));
+  } else {
+    assert.ok(updateLock, `${fixtureName}: missing committed consumer lock`);
+  }
+  if (updateLock) {
+    // Start from the existing registry lock, updating only what the changed manifests require.
     execFileSync(npm, ['install', '--package-lock-only'], {
       ...npmOptions,
       cwd: directory,
       stdio: 'inherit',
       timeout: 600000
     });
-    fs.copyFileSync(path.join(directory, 'package-lock.json'), path.join(fixture, 'package-lock.json'));
-  } else {
-    const lock = JSON.parse(fs.readFileSync(path.join(fixture, 'package-lock.json'), 'utf8'));
-    for (const { name, publishedPackage, packed } of packedPackages) {
-      const packageLock = lock.packages[`node_modules/${name}`];
-      assert.deepEqual(
-        packageLock.dependencies,
-        publishedPackage.dependencies,
-        `${name}: update the consumer lock when published dependencies change`
-      );
-      // Only rebuilt local archive metadata changes; registry versions/hashes stay locked.
-      packageLock.integrity = packed.integrity;
-      packageLock.version = packed.version;
-    }
-    fs.writeFileSync(path.join(directory, 'package-lock.json'), JSON.stringify(lock));
+    fs.copyFileSync(path.join(directory, 'package-lock.json'), lockPath);
   }
   execFileSync(npm, ['ci'], { ...npmOptions, cwd: directory, stdio: 'inherit', timeout: 600000 });
   execFileSync(

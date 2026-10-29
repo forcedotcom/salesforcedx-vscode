@@ -102,6 +102,16 @@ All files in each package belong to its WI below; no source/test import is exemp
 
 Current tracked census identifies **28 packages** with imports or direct dependencies. Do not treat these counts as permanent gates: rerun at each boundary and reconcile new paths. The script excludes quoted test source inside strings from real imports; test-fixture migration still belongs to its package WI.
 
+Rechecked after the stack rebase onto `1af06c186d`: the census still contains 28
+packages, now including `salesforcedx-vscode-services-v2` and excluding the removed
+`salesforcedx-utils-vscode`. Its paths moved into core remain owned by W-24615098;
+paths moved into services follow the corresponding services WI. Do not recreate
+the removed package.
+The tracked frozen V3 declaration snapshot is an intentional compatibility input,
+not a first-party V4 migration target. Retain upstream dependency updates when
+rebasing, then intentionally refresh affected packed-consumer locks and rerun their
+strict checks; never suppress manifest/lock drift assertions.
+
 ## Sequential stack and activation dependency closure
 
 Order: W-24615037 → W-24615044 → W-24615046 → W-24615048 → W-24615055 → W-24615059 → W-24615060 → W-24615063 → W-24615069 → W-24615075 → W-24615079 → W-24615083 → W-24615086 → W-24615089 → W-24615093 → W-24615098 → W-24615100 → W-24615101 → W-24615103. Use one focused PR per WI, each based on its immediate predecessor, even where the epic permits parallel work. Self-review each PR against its parent, not the cumulative stack.
