@@ -38,6 +38,10 @@ use `strict:true`, `skipLibCheck:false`, separate node_modules and committed reg
 locks. Regenerate only a selected lock with `--update-lock=packedV2` or
 `--update-lock=packedMixed`; regeneration still installs and typechecks.
 
+Lock regeneration starts from the existing registry lock, retaining unrelated
+versions/hashes while npm updates dependencies required by a changed public
+manifest. Normal CI still rejects manifest/lock dependency drift before `npm ci`.
+
 The legacy build now consumes a provenance-recorded V3 declaration snapshot rather
 than the provider's changing implementation. It synchronizes only release versions,
 not provider dependencies. V2's package-owned keys become the implementation's keys

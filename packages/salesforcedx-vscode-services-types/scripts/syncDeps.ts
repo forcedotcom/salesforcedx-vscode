@@ -9,12 +9,9 @@ import * as Schema from 'effect/Schema';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-const PackageJsonSchema = Schema.Struct({
-  version: Schema.String
-});
-const parsePackageJson = Schema.decodeUnknownSync(Schema.parseJson(PackageJsonSchema), {
-  onExcessProperty: 'preserve'
-});
+const PackageJsonSchema = Schema.Record({ key: Schema.String, value: Schema.Unknown });
+const parsePackageJson = Schema.decodeUnknownSync(Schema.parseJson(PackageJsonSchema));
+const packageVersion = Schema.decodeUnknownSync(Schema.Struct({ version: Schema.String }));
 
 /** Syncs release version only; legacy declaration dependencies are frozen independently. */
 const syncDeps = (): void => {
@@ -26,7 +23,7 @@ const syncDeps = (): void => {
 
   const updatedPackage = {
     ...typesPkg,
-    version: parentPkg.version
+    version: packageVersion(parentPkg).version
   };
 
   const temporaryTypesPkgPath = `${typesPkgPath}.${process.pid}.tmp`;

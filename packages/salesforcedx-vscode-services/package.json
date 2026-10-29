@@ -121,12 +121,9 @@
       ]
     },
     "generate-types": {
-      "command": "ts-node ../salesforcedx-vscode-services-types/scripts/generateEntry.ts && ts-node ../salesforcedx-vscode-services-types/scripts/syncDeps.ts",
-      "files": [
-        "src/**/*.ts",
-        "../salesforcedx-vscode-services-types/scripts/*.ts"
-      ],
-      "output": []
+      "dependencies": [
+        "../salesforcedx-vscode-services-types:generate-src"
+      ]
     },
     "vscode:bundle": {
       "env": {
