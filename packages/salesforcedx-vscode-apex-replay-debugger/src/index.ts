@@ -27,6 +27,7 @@ import {
   sfToggleCheckpointCommand
 } from './breakpoints/checkpointService';
 import { getDebuggerOutputChannel } from './channels';
+import { registerTestDebugCodeLensProducer } from './codelens/testDebugCodeLensProducer';
 import { anonApexDebugCommand } from './commands/anonApexDebug';
 import { launchApexReplayDebuggerWithCurrentFileCommand } from './commands/launchApexReplayDebuggerWithCurrentFile';
 import { launchFromLogFile } from './commands/launchFromLogFile';
@@ -158,6 +159,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
   yield* getExtensionExports({
     extId: 'salesforce.salesforcedx-vscode-apex'
   }).pipe(Effect.asVoid);
+  yield* registerTestDebugCodeLensProducer(extensionContext);
 
   extensionContext.subscriptions.push(
     debuggerChannel,
