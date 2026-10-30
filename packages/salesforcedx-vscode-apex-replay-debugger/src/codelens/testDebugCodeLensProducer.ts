@@ -5,10 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { CallableSchema, ExtensionProviderService, getExtensionExports } from '@salesforce/effect-ext-utils';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
@@ -36,19 +37,24 @@ class CodeLensRegistrationError extends Data.TaggedError('CodeLensRegistrationEr
   readonly cause: Error;
 }> {}
 
-const isApexLanguageServerApi = (value: unknown): value is ApexLanguageServerApi => {
-  if (typeof value !== 'object' || value === null) return false;
-  const codeLens = 'codeLens' in value ? value.codeLens : undefined;
-  return typeof codeLens === 'object' && codeLens !== null && typeof Reflect.get(codeLens, 'register') === 'function';
-};
+const CodeLensApiSchema = Schema.Struct({
+  register: CallableSchema<ApexLanguageServerApi['codeLens']['register']>()
+});
 
-const getApexLanguageServer = async (): Promise<ApexLanguageServerApi | undefined> => {
-  const extension = vscode.extensions.getExtension<ApexLanguageServerApi>(APEX_LANGUAGE_SERVER_EXTENSION_ID);
-  if (!extension) return undefined;
+const ApexLanguageServerApiSchema = Schema.Struct({
+  // Preserve the extension-owned CodeLens API because register may rely on its receiver.
+  codeLens: Schema.declare<ApexLanguageServerApi['codeLens']>(value => Schema.is(CodeLensApiSchema)(value), {
+    identifier: 'ApexLanguageServerCodeLensApi'
+  })
+});
 
-  if (!extension.isActive) await extension.activate();
-  return isApexLanguageServerApi(extension.exports) ? extension.exports : undefined;
-};
+const getApexLanguageServer = () =>
+  getExtensionExports({
+    extId: APEX_LANGUAGE_SERVER_EXTENSION_ID,
+    schema: ApexLanguageServerApiSchema
+  });
+
+type GetLanguageServer = () => ReturnType<typeof getApexLanguageServer>;
 
 const getTestName = (lens: vscode.CodeLens): string | undefined => {
   const commandArguments = lens.command?.arguments;
@@ -81,21 +87,15 @@ export const registerTestDebugCodeLensProducer = Effect.fn('ApexReplayDebugger.r
   function* (
     context: vscode.ExtensionContext,
     isDefaultOrgAvailable = () => getRuntime().runPromise(hasDefaultOrg()),
-    getLanguageServer = getApexLanguageServer
+    getLanguageServer: GetLanguageServer = getApexLanguageServer
   ) {
-    const languageServer = yield* Effect.tryPromise({
-      try: getLanguageServer,
-      catch: cause => new CodeLensRegistrationError({ cause: isError(cause) ? cause : new Error(String(cause)) })
-    }).pipe(
-      Effect.map(value => (isApexLanguageServerApi(value) ? value : undefined)),
-      Effect.catchAll(() => Effect.void)
-    );
-    if (!languageServer) return;
+    const languageServer = yield* getLanguageServer().pipe(Effect.option);
+    if (languageServer._tag === 'None') return;
 
     const registrations = yield* Effect.try({
       try: () =>
         testDebugDescriptors.map(descriptor =>
-          languageServer.codeLens.register(descriptor, async (lens: vscode.CodeLens) =>
+          languageServer.value.codeLens.register(descriptor, async (lens: vscode.CodeLens) =>
             (await isDefaultOrgAvailable()) ? produceTestDebugCodeLens(lens) : null
           )
         ),
