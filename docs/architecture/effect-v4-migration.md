@@ -17,13 +17,13 @@ Inspected 2026-10-26; refresh before cutover. Consumer revisions identify inspec
 
 Einstein files at the revision above: `packages/extension/src/services/auth/org-service.ts` and `org-display-alias.ts`.
 
-| Existing services member | Required behavior |
-| --- | --- |
-| `ConnectionService.getConnection()` | Genuine V3 static service accessor; returns V3 Effect. Context provisioning through consumer-owned `Layer.succeedContext(prebuiltServicesDependencies)`. Same plain `@salesforce/core` Connection identity as V4; supports `Org.create({ connection })` and arbitrary Connection calls. |
-| `TargetOrgRef()` | V3 Effect returning a stable genuine V3 `SubscriptionRef`. `.changes` emits initial snapshot, then updates; consumer maps `orgId`, calls `Stream.changes`, then `Stream.drop(1)`. |
-| `prebuiltServicesDependencies` | Genuine V3 Context keyed by the exported V3 tags. Not a Layer or cast of the V4 Context. |
-| `AliasService.getAliasesFromUsername(username)` | V3 accessor using the same Context; returns aliases for the resolved username without changing the selected org. Newly observed since the original epic draft. |
-| `ConfigService.getTargetOrg()` | V3 accessor using the same Context; returns configured alias/username or `undefined`, used to disambiguate multiple aliases. Newly observed since the original epic draft. |
+| Existing services member                        | Required behavior                                                                                                                                                                                                                                                                       |
+| ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `ConnectionService.getConnection()`             | Genuine V3 static service accessor; returns V3 Effect. Context provisioning through consumer-owned `Layer.succeedContext(prebuiltServicesDependencies)`. Same plain `@salesforce/core` Connection identity as V4; supports `Org.create({ connection })` and arbitrary Connection calls. |
+| `TargetOrgRef()`                                | V3 Effect returning a stable genuine V3 `SubscriptionRef`. `.changes` emits initial snapshot, then updates; consumer maps `orgId`, calls `Stream.changes`, then `Stream.drop(1)`.                                                                                                       |
+| `prebuiltServicesDependencies`                  | Genuine V3 Context keyed by the exported V3 tags. Not a Layer or cast of the V4 Context.                                                                                                                                                                                                |
+| `AliasService.getAliasesFromUsername(username)` | V3 accessor using the same Context; returns aliases for the resolved username without changing the selected org. Newly observed since the original epic draft.                                                                                                                          |
+| `ConfigService.getTargetOrg()`                  | V3 accessor using the same Context; returns configured alias/username or `undefined`, used to disambiguate multiple aliases. Newly observed since the original epic draft.                                                                                                              |
 
 Retain `prebuiltServicesLayer` as a genuine V3 Layer containing those instances and the redacting logger, preserving the documented provisioning alternative ([ADR 0007](../adr/0007-reuse-prebuilt-services-dependencies.md)). It does not implicitly install the OTEL tracer. No new `api.v1` alias: existing `api.services` already names the compatibility entry; an unused alias adds maintenance without functionality.
 
@@ -82,31 +82,37 @@ Reproduce every tracked static import/re-export, dynamic literal import/require,
 
 All files in each package belong to its WI below; no source/test import is exempt. Packages with no current Effect import/dependency need no migration unless new inventory findings add them.
 
-| Package / paths | WI |
-| --- | --- |
-| `salesforcedx-apex`, shared domain/schema prerequisites | W-24615048 |
-| `salesforcedx-vscode-services/src/core/executeAnonymousCompat.ts`, temporary Apex Promise/data boundary | W-24615048 introduces; W-24615069 removes |
-| `salesforcedx-vscode-services`: config/alias/settings/fs/workspace and foundational schemas | W-24615055 |
-| `salesforcedx-vscode-services`: connection/default-org and live compatibility binding | W-24615059 |
-| `salesforcedx-vscode-services`: project/catalog/registry/source tracking | W-24615060 |
-| `salesforcedx-vscode-services`: metadata/query/component operations | W-24615063 |
-| `salesforcedx-vscode-services`: remaining editor/UI/Apex/observability, activation/bootstrap | W-24615069 |
-| Compatibility-only implementation and independently installed fixtures | W-24615044, W-24615046 |
-| `salesforcedx-vscode-services-v3-compat`: genuine V3 proxies, lifecycle and encoded host boundary | W-24615046 |
-| `effect-ext-utils`, `salesforcedx-vscode-services-types`, new V2 types package, declaration generators | W-24615075; package boundaries/installation fixtures begin W-24615044 |
-| `salesforcedx-vscode-org`, `salesforcedx-vscode-org-browser`, `salesforcedx-vscode-metadata` | W-24615079 |
-| `salesforcedx-vscode-apex-log` | W-24615083 |
-| `salesforcedx-vscode-apex-testing` | W-24615086 |
-| `salesforcedx-apex-debugger`, `salesforcedx-apex-replay-debugger`, `salesforcedx-vscode-apex-debugger`, `salesforcedx-vscode-apex-replay-debugger` | W-24615089 |
-| `salesforcedx-vscode-soql`, `soql-builder-ui`; any newly Effect-bearing `soql-common`/`soql-model` files | W-24615093 |
-| `salesforcedx-vscode-apex`, `salesforcedx-vscode-apex-oas`, `salesforcedx-vscode-lwc`, `salesforcedx-vscode-lightning`, `salesforcedx-vscode-visualforce` | W-24615098 |
-| `salesforcedx-aura-language-server`, `salesforcedx-lwc-language-server`, `salesforcedx-lightning-lsp-common`, `salesforcedx-utils-vscode`, `salesforcedx-vscode-core` | W-24615098 |
-| `drivable-vscode`, `playwright-vscode-ext`, `effect-octokit`, `eslint-local-rules` test fixtures | W-24615100 |
-| Root `eslint.config.mjs`, `package.json`, `scripts/**` (including separately installed `scripts/changelogBody`), `test/**`, `.github/**` Effect helpers | W-24615100 |
-| LS/editor/CLI integration, dependency selection and diagnostic negative controls | W-24615044; per-slice fixes with each implementation; final enforcement W-24615101 |
-| Remaining V3 dependency/import gates, coding skills/examples | W-24615101 |
+| Package / paths                                                                                                                                                       | WI                                                                                     |
+| --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| `salesforcedx-apex`, shared domain/schema prerequisites                                                                                                               | W-24615048                                                                             |
+| `salesforcedx-vscode-services/src/core/executeAnonymousCompat.ts`, temporary Apex Promise/data boundary                                                               | W-24615048 introduces; W-24615069 removes                                              |
+| `salesforcedx-vscode-services`: config/alias/settings/fs/workspace and foundational schemas                                                                           | W-24615055                                                                             |
+| `salesforcedx-vscode-services`: connection/default-org and live compatibility binding                                                                                 | W-24615059                                                                             |
+| `salesforcedx-vscode-services`: project/catalog/registry/source tracking                                                                                              | W-24615060                                                                             |
+| `salesforcedx-vscode-services`: metadata/query/component operations                                                                                                   | W-24615063                                                                             |
+| `salesforcedx-vscode-services`: remaining editor/UI/Apex/observability, activation/bootstrap                                                                          | W-24615069                                                                             |
+| Compatibility-only implementation and independently installed fixtures                                                                                                | W-24615044, W-24615046                                                                 |
+| `salesforcedx-vscode-services-v3-compat`: genuine V3 proxies, lifecycle and encoded host boundary                                                                     | W-24615046                                                                             |
+| `salesforcedx-vscode-services-v4-implementation`: temporary isolated V4 host implementations/layers                                                                   | W-24615055 introduces; W-24615059/60/63 extend; W-24615069 folds into provider/removes |
+| `effect-ext-utils`, `salesforcedx-vscode-services-types`, new V2 types package, declaration generators                                                                | W-24615075; package boundaries/installation fixtures begin W-24615044                  |
+| `salesforcedx-vscode-org`, `salesforcedx-vscode-org-browser`, `salesforcedx-vscode-metadata`                                                                          | W-24615079                                                                             |
+| `salesforcedx-vscode-apex-log`                                                                                                                                        | W-24615083                                                                             |
+| `salesforcedx-vscode-apex-testing`                                                                                                                                    | W-24615086                                                                             |
+| `salesforcedx-apex-debugger`, `salesforcedx-apex-replay-debugger`, `salesforcedx-vscode-apex-debugger`, `salesforcedx-vscode-apex-replay-debugger`                    | W-24615089                                                                             |
+| `salesforcedx-vscode-soql`, `soql-builder-ui`; any newly Effect-bearing `soql-common`/`soql-model` files                                                              | W-24615093                                                                             |
+| `salesforcedx-vscode-apex`, `salesforcedx-vscode-apex-oas`, `salesforcedx-vscode-lwc`, `salesforcedx-vscode-lightning`, `salesforcedx-vscode-visualforce`             | W-24615098                                                                             |
+| `salesforcedx-aura-language-server`, `salesforcedx-lwc-language-server`, `salesforcedx-lightning-lsp-common`, `salesforcedx-utils-vscode`, `salesforcedx-vscode-core` | W-24615098                                                                             |
+| `drivable-vscode`, `playwright-vscode-ext`, `effect-octokit`, `eslint-local-rules` test fixtures                                                                      | W-24615100                                                                             |
+| Root `eslint.config.mjs`, `package.json`, `scripts/**` (including separately installed `scripts/changelogBody`), `test/**`, `.github/**` Effect helpers               | W-24615100                                                                             |
+| LS/editor/CLI integration, dependency selection and diagnostic negative controls                                                                                      | W-24615044; per-slice fixes with each implementation; final enforcement W-24615101     |
+| Remaining V3 dependency/import gates, coding skills/examples                                                                                                          | W-24615101                                                                             |
 
-Current tracked census identifies **29 packages** with imports or direct dependencies, including the private V3 compatibility implementation added by W-24615046. Do not treat these counts as permanent gates: rerun at each boundary and reconcile new paths. The script excludes quoted test source inside strings from real imports; test-fixture migration still belongs to its package WI.
+W-24615055 adds a private V4 implementation package to isolate its compiler/LS
+program from the still-V3 provider. See [foundation ownership and verification](effect-v4-foundations.md).
+The expected census becomes **30 packages** when that source is tracked; rerun
+the inventory rather than treating the count as a fixed gate. The script excludes
+quoted test source inside strings from real imports; test-fixture migration still
+belongs to its package WI.
 
 ### Apex prerequisite and temporary V3 caller
 

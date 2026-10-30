@@ -125,8 +125,9 @@ export const makeV4Host = async (
           });
         })
       ),
-      Layer.succeed(AliasService, { getAliasesFromUsername: username => Effect.succeed([`${username}-alias`]) }),
-      Layer.succeed(ConfigService, { getTargetOrg: () => Effect.succeed('configured-alias') }),
+      // This host exercises the frozen bridge methods; unrelated V4 methods remain unimplemented.
+      Layer.mock(AliasService, { getAliasesFromUsername: username => Effect.succeed([`${username}-alias`]) }),
+      Layer.mock(ConfigService, { getTargetOrg: () => Effect.succeed('configured-alias') }),
       Layer.succeed(TargetOrgRef, orgRef)
     )
   );

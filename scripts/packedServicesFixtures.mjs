@@ -88,6 +88,17 @@ const installFixture = async ({ fixture: fixtureName, directory, packedPackages 
       packageLock.integrity = packed.integrity;
       packageLock.version = packed.version;
       packageLock.dependencies = publishedPackage.dependencies;
+      for (const field of ['peerDependencies', 'peerDependenciesMeta']) {
+        if (!updateLock) {
+          assert.deepEqual(
+            packageLock[field],
+            publishedPackage[field],
+            `${name}: update the consumer lock when published ${field} change`
+          );
+        }
+        if (publishedPackage[field] === undefined) delete packageLock[field];
+        else packageLock[field] = publishedPackage[field];
+      }
     }
     fs.writeFileSync(path.join(directory, 'package-lock.json'), JSON.stringify(lock));
   } else {

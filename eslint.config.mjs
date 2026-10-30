@@ -121,7 +121,7 @@ export default [
     }
   },
   {
-    files: ['**/*.ts', '**/*.mts'],
+    files: ['**/*.ts', '**/*.mts', 'packages/salesforcedx-vscode-services-v2/src/uriComparison.cts'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {

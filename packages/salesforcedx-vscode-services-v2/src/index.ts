@@ -31,6 +31,14 @@ export { AliasService } from './aliasService.js';
 export { ConfigService } from './configService.js';
 export { ConnectionService } from './connectionService.js';
 export { TargetOrgRef } from './targetOrgRef.js';
+export { WorkspaceService, type WorkspaceInfo, type WorkspaceWithFolder } from './workspaceService.js';
+export { SettingsService, WebSessionContextSchema, type WebSessionContext } from './settingsService.js';
+export { FsService, type FsProvider } from './fsService.js';
+export { HashableUri } from './hashableUri.js';
+export { FileChangePubSub, type FileChangeEvent } from './fileChangePubSub.js';
+export { SettingsChangePubSub } from './settingsChangePubSub.js';
+export { HostFileWatcher } from './hostFileWatcher.js';
+export { ChannelService } from './channelService.js';
 export { DefaultOrgInfoSchema, OrgId, SalesforceId, CliId, type DefaultOrgInfo } from './defaultOrgInfo.js';
 export {
   AccessTokenExpiredError,
@@ -39,5 +47,9 @@ export {
   FailedToCreateConnectionError,
   NoTargetOrgConfiguredError,
   NoWorkspaceOpenError,
-  SettingsError
+  SettingsError,
+  ConfigWriteError,
+  FsServiceError,
+  HostFileNotFoundError,
+  HostFileWatchError
 } from './errors.js';

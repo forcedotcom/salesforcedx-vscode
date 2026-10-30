@@ -6,7 +6,7 @@
  */
 
 import { URI } from 'vscode-uri';
-import { pathSuffixWithin } from '../../../src/vscode/uriComparison';
+import { pathSuffixWithin } from '@salesforce/vscode-services-v2/uriComparison';
 
 describe('pathSuffixWithin', () => {
   it('returns the child suffix and keeps its segment casing', () => {

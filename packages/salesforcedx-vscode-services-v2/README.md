@@ -5,9 +5,15 @@ Initial Effect **4.0.6** service contracts. Independent of the frozen V3
 and public declarations; the packed-consumer gate tests this package, not substitute
 fixture declarations.
 
-Provides Connection/Alias/Config service keys, the org-ref key, org-state schemas,
-and typed failures. No default layers, connections, caches, watchers, or runtime are
+Provides Connection/Alias/Config, Workspace/Settings/FS, Channel and watcher/PubSub
+keys, URI primitives, org/session schemas and typed failures. No default layers, connections, caches, watchers, or runtime are
 constructed here. Later migrated implementations provide these exact keys.
+
+The Channel key does not include a host implementation yet. The pure
+`/uriComparison` subpath is safe to share with V3 code because it carries no
+Effect values. Its CommonJS artifacts also support existing Node16 declaration
+consumers. VS Code typings use a compatible peer range so consumers retain
+one ambient declaration version rather than conflicting nested copies.
 
 This does **not** claim production `api.v2` activation exists yet. W-24615046 adds
 the V3 adapters; W-24615059 binds real connection/org instances; W-24615069 completes

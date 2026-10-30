@@ -2,5 +2,6 @@
   "packages/salesforcedx-apex/package.json": "4.0.6",
   "packages/salesforcedx-vscode-services-types/package.json": "3.21.2",
   "packages/salesforcedx-vscode-services-v3-compat/package.json": "3.21.2",
-  "packages/salesforcedx-vscode-services-v2/package.json": "4.0.6"
+  "packages/salesforcedx-vscode-services-v2/package.json": "4.0.6",
+  "packages/salesforcedx-vscode-services-v4-implementation/package.json": "4.0.6"
 }

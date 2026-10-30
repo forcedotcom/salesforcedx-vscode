@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { comparisonPath, isWindowsFileDrivePath } from '@salesforce/vscode-services-v2/uriComparison';
 import type { URI } from 'vscode-uri';
-import { comparisonPath, isWindowsFileDrivePath } from './uriComparison';
 
 const comparableUriPath = (uri: URI): string => comparisonPath(uri).replace(/\/$/u, '');
 
