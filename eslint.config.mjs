@@ -190,6 +190,7 @@ export default [
       'local/no-nested-effect-ternary': 'error',
       'local/require-effect-fn-span-name': 'error',
       'local/no-raw-duration': 'error',
+      'local/no-schema-is-throw-guard': 'error',
       'local/effect-fn-catch-middleware-last': 'error',
       'local/no-standalone-pipeable-value': 'error',
       'local/no-duplicate-i18n-values': 'error',
