@@ -7,8 +7,10 @@
     "@salesforce/core": "9.3.6",
     "@salesforce/vscode-services-v2": "file:./v2.tgz",
     "@salesforce/vscode-services-v3-compat": "file:./v3.tgz",
+    "@salesforce/vscode-services-v4-implementation": "file:./implementation.tgz",
     "@types/node": "24.19.2",
     "effect": "4.0.6",
+    "jsdom": "27.0.0",
     "typescript": "6.0.3"
   }
 }

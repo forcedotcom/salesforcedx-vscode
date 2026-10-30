@@ -110,14 +110,13 @@ export const makeV4Host = async (
 
   const runtime = ManagedRuntime.make(
     Layer.mergeAll(
-      Layer.effect(
-        ConnectionService,
+      Layer.unwrap(
         Effect.gen(function* () {
           yield* Ref.update(stats, current => ({ ...current, graphBuilds: current.graphBuilds + 1 }));
           yield* Effect.addFinalizer(() =>
             Ref.update(stats, current => ({ ...current, graphDisposals: current.graphDisposals + 1 }))
           );
-          return ConnectionService.of({
+          return Layer.mock(ConnectionService, {
             getConnection: Effect.fn('FixtureConnection.getConnection')(function* (username?: string) {
               yield* Ref.update(stats, current => ({ ...current, connectionCalls: current.connectionCalls + 1 }));
               return yield* Ref.get(behavior).pipe(Effect.flatMap(getConnection => getConnection(username)));

@@ -12,6 +12,7 @@ import * as Option from 'effect/Option';
 import * as Rec from 'effect/Record';
 import * as Schema from 'effect/Schema';
 import { URI, Utils } from 'vscode-uri';
+import { ServiceOperations, ServiceOperationsLayer } from './serviceOperations.js';
 
 const AliasFile = Schema.Struct({ orgs: Schema.Record(Schema.String, Schema.String) });
 
@@ -19,24 +20,29 @@ export const AliasServiceLayer = Layer.effect(
   AliasService,
   Effect.gen(function* () {
     const fs = yield* FsService;
+    const operations = yield* ServiceOperations;
     // Read disk directly: StateAggregator does not notice external alias-file edits without a reset.
     const readAliasFile = Effect.fn('AliasService.readAliasFile')(() =>
       fs.readJSON(Utils.joinPath(URI.file(Global.SFDX_DIR), 'alias.json').fsPath, AliasFile)
     );
     return AliasService.of({
       getAllAliases: Effect.fn('AliasService.getAllAliases')(() =>
-        readAliasFile().pipe(Effect.map(value => value.orgs))
+        operations.run(readAliasFile().pipe(Effect.map(value => value.orgs)))
       ),
       getAliasesFromUsername: Effect.fn('AliasService.getAliasesFromUsername')((username: string) =>
-        readAliasFile().pipe(
-          Effect.map(value => Rec.keys(value.orgs).filter(alias => value.orgs[alias] === username)),
-          Effect.catchTag('FsServiceError', () => Effect.succeed([]))
+        operations.run(
+          readAliasFile().pipe(
+            Effect.map(value => Rec.keys(value.orgs).filter(alias => value.orgs[alias] === username)),
+            Effect.catchTag('FsServiceError', () => Effect.succeed([]))
+          )
         )
       ),
       getUsernameFromAlias: Effect.fn('AliasService.getUsernameFromAlias')((alias: string) =>
-        readAliasFile().pipe(
-          Effect.map(value => Option.fromNullishOr(value.orgs[alias])),
-          Effect.catchTag('FsServiceError', () => Effect.succeed(Option.none()))
+        operations.run(
+          readAliasFile().pipe(
+            Effect.map(value => Option.fromNullishOr(value.orgs[alias])),
+            Effect.catchTag('FsServiceError', () => Effect.succeed(Option.none()))
+          )
         )
       ),
       unsetAliases: Effect.fn('AliasService.unsetAliases')(function* (aliases: readonly string[]) {
@@ -46,7 +52,7 @@ export const AliasServiceLayer = Layer.effect(
           alias => Effect.tryPromise(() => state.aliases.unsetAndSave(alias)).pipe(Effect.ignore),
           { discard: true }
         );
-      })
+      }, operations.run)
     });
   })
-);
+).pipe(Layer.provideMerge(ServiceOperationsLayer));

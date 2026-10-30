@@ -77,6 +77,10 @@ const installFixture = async ({ fixture: fixtureName, directory, packedPackages 
     const lock = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
     for (const { name, publishedPackage, packed } of packedPackages) {
       const packageLock = lock.packages[`node_modules/${name}`];
+      if (!packageLock) {
+        assert.ok(updateLock, `${name}: missing package in committed consumer lock`);
+        continue;
+      }
       if (!updateLock) {
         assert.deepEqual(
           packageLock.dependencies,

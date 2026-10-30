@@ -13,10 +13,10 @@ import { FsServiceLayer } from './fsService.js';
 import { HostFileWatcherLayer } from './hostFileWatcher.js';
 import { SettingsServiceLayer } from './settingsService.js';
 import { SettingsWatcherLayer } from './settingsWatcher.js';
-import { TargetOrgRefLayer } from './targetOrgRef.js';
+import { orgLayers } from './targetOrgRef.js';
 import { WorkspaceServiceLayer } from './workspaceService.js';
 
-const workspaceAndOrg = Layer.mergeAll(WorkspaceServiceLayer, TargetOrgRefLayer);
+const workspaceAndOrg = Layer.mergeAll(WorkspaceServiceLayer, orgLayers);
 const config = ConfigServiceLayer.pipe(Layer.provide(workspaceAndOrg));
 const alias = AliasServiceLayer.pipe(Layer.provide(FsServiceLayer));
 const events = Layer.mergeAll(FileChangePubSubLayer, SettingsChangePubSubLayer);
