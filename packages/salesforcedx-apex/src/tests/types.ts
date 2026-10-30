@@ -26,7 +26,10 @@ import {
  * - `RunAllTestsInOrg`: all local and managed-package tests
  * - `RunSpecifiedTests`: only explicitly selected tests
  */
-export type TestLevel = 'RunLocalTests' | 'RunAllTestsInOrg' | 'RunSpecifiedTests';
+export const TestLevelSchema = Schema.Literal('RunLocalTests', 'RunAllTestsInOrg', 'RunSpecifiedTests').annotations({
+  identifier: 'TestLevel'
+});
+export type TestLevel = typeof TestLevelSchema.Type;
 
 /** Test implementation category. */
 export const TestCategorySchema = Schema.Literal('Apex', 'Flow');
@@ -73,10 +76,10 @@ export type AsyncTestConfiguration = {
   category?: string[];
 };
 
-export const ResultFormatSchema = Schema.Literal('junit', 'tap', 'json', 'human', 'markdown', 'text').pipe(
-  Schema.annotations({ identifier: 'ResultFormat' })
-);
-export type ResultFormat = Schema.Schema.Type<typeof ResultFormatSchema>;
+export const ResultFormatSchema = Schema.Literal('junit', 'tap', 'json', 'human', 'markdown', 'text').annotations({
+  identifier: 'ResultFormat'
+});
+export type ResultFormat = typeof ResultFormatSchema.Type;
 
 export const ResultFormatsSchema = ResultFormatSchema.pipe(
   Schema.Array,

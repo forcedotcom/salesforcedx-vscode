@@ -6,6 +6,9 @@
  */
 import { type Connection } from '@salesforce/core';
 import { type Duration } from '@salesforce/kit';
+import * as Effect from 'effect/Effect';
+import * as Either from 'effect/Either';
+import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import { JsonStreamStringify } from 'json-stream-stringify';
 import { createWriteStream } from 'node:fs';
@@ -14,32 +17,31 @@ import { join } from 'node:path';
 import { Readable, type Writable, type Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { type CancellationToken, type Progress } from '../common';
+import { ApexOperationError, ApexResponseDecodeError } from '../effect/errors';
+import { buildAsyncPayload, buildSyncPayload } from '../effect/testPayloads';
+import { buildSuite, getTestsInSuite, retrieveAllSuites, retrieveSuiteId } from '../effect/testSuites';
 import { nls } from '../i18n';
 import { JUnitFormatTransformer, TapFormatTransformer, MarkdownTextFormatTransformer } from '../reporters';
-import { ApexClassId } from '../schemas/salesforceId';
+import { SalesforceId } from '../schemas/salesforceId';
 import { TestResultStringifyStream } from '../streaming';
 import { elapsedTime, HeapMonitor } from '../utils';
-import { type QueryResult } from '../utils/types';
 import { AsyncTests } from './asyncTests';
 import { formatTestErrors } from './diagnosticUtil';
 import { SyncTests } from './syncTests';
 import {
-  TestResultSchema,
   type ApexTestProgressValue,
   type AsyncTestArrayConfiguration,
   type AsyncTestConfiguration,
-  type NamespaceInfo,
   type OutputDirConfig,
   ResultFileFormatsSchema,
   ResultFormatsSchema,
   type SyncTestConfiguration,
-  type TestItem,
   type TestLevel,
   type TestResult,
+  TestResultSchema,
   type TestRunIdResult,
   type TestSuiteMembershipRecord
 } from './types';
-import { isFlowTest, queryNamespaces } from './utils';
 
 const ResultFormatsWithMessageSchema = ResultFormatsSchema.pipe(
   Schema.annotations({ message: () => ({ message: nls.localize('resultFormatErr'), override: true }) })
@@ -114,6 +116,8 @@ export const writeResultFiles = async (
             codeCoverage
           });
           break;
+        default:
+          throw new Error(nls.localize('resultFormatErr'));
       }
       if (filePath && readable) {
         filesWritten.push(await runPipeline(readable, filePath));
@@ -142,38 +146,9 @@ export const writeResultFiles = async (
   return filesWritten;
 };
 
-/**
- * Resolves namespace for a class name and returns a TestItem
- * @param className - Class name, potentially with namespace (e.g., "ns.ClassName" or "ClassName")
- * @returns TestItem with properly formatted namespace and className fields
- */
-const resolveClassNamespace = (className: string): TestItem => {
-  const classParts = className.split('.');
-
-  if (classParts.length > 1) {
-    // Has namespace - always use full className format
-    // This works for both installed packages and org namespaces
-    const [namespace, classNamePart] = classParts;
-    return { className: `${namespace}.${classNamePart}` };
-  } else {
-    // No namespace - single class name
-    if (Schema.is(ApexClassId)(className)) {
-      return { classId: className };
-    }
-    return { className };
-  }
-};
-
-/** Unpackaged vs {@code ns.Name} for ApexClass lookup when building test suites. */
-const apexClassIdQueryForTestSuiteMember = (testClass: string): string => {
-  const dot = testClass.indexOf('.');
-  const shortName = dot === -1 ? testClass : testClass.slice(dot + 1);
-  if (dot === -1) {
-    return `SELECT Id FROM ApexClass WHERE Name = '${shortName}' AND (NamespacePrefix = null OR NamespacePrefix = '') LIMIT 1`;
-  }
-  const ns = testClass.slice(0, dot);
-  return `SELECT Id FROM ApexClass WHERE Name = '${shortName}' AND NamespacePrefix = '${ns}' LIMIT 1`;
-};
+/** Keeps typed failures as ordinary Promise rejections for existing class consumers. */
+const runTestServiceOperation = async <A, E extends Error>(operation: Effect.Effect<A, E>): Promise<A> =>
+  Either.getOrThrowWith(await operation.pipe(Effect.either, Effect.runPromise), formatTestErrors);
 
 export class TestService {
   private readonly connection: Connection;
@@ -190,46 +165,8 @@ export class TestService {
    * Retrieve all suites in org
    * @returns list of Suites in org
    */
-  @elapsedTime()
   public async retrieveAllSuites(): Promise<{ id: string; TestSuiteName: string }[]> {
-    const testSuiteRecords = (await this.connection.tooling.query(
-      'SELECT id, TestSuiteName FROM ApexTestSuite'
-    )) as QueryResult<{ id: string; TestSuiteName: string }>;
-
-    return testSuiteRecords.records;
-  }
-
-  @elapsedTime()
-  private async retrieveSuiteId(suitename: string): Promise<string | undefined> {
-    const suiteResult = (await this.connection.tooling.query(
-      `SELECT id FROM ApexTestSuite WHERE TestSuiteName = '${suitename}'`
-    )) as QueryResult;
-
-    if (suiteResult.records.length === 0) {
-      return undefined;
-    }
-    return suiteResult.records[0].Id;
-  }
-
-  /**
-   * Retrive the ids for the given suites
-   * @param suitenames names of suites
-   * @returns Ids associated with each suite
-   */
-  @elapsedTime()
-  private async getOrCreateSuiteIds(suitenames: string[]): Promise<string[]> {
-    const suiteIds = suitenames.map(async suite => {
-      const suiteId = await this.retrieveSuiteId(suite);
-
-      if (suiteId === undefined) {
-        const result = (await this.connection.tooling.create('ApexTestSuite', {
-          TestSuiteName: suite
-        })) as { id: string };
-        return result.id;
-      }
-      return suiteId;
-    });
-    return await Promise.all(suiteIds);
+    return runTestServiceOperation(retrieveAllSuites(this.connection).pipe(Effect.map(suites => [...suites])));
   }
 
   /**
@@ -239,41 +176,40 @@ export class TestService {
    * @returns list of test classes in the suite
    * @internal Used by the co-repo Apex Testing extension; not part of the supported npm API.
    */
-  @elapsedTime()
   public async getTestsInSuite(suitename?: string, suiteId?: string): Promise<TestSuiteMembershipRecord[]> {
-    if (suitename === undefined && suiteId === undefined) {
-      throw new Error(nls.localize('suitenameErr'));
-    }
-
-    if (suitename) {
-      suiteId = await this.retrieveSuiteId(suitename);
-      if (suiteId === undefined) {
-        throw new Error(nls.localize('missingSuiteErr'));
-      }
-    }
-    const classRecords = (await this.connection.tooling.query(
-      `SELECT ApexClassId FROM TestSuiteMembership WHERE ApexTestSuiteId = '${suiteId}'`
-    )) as QueryResult<TestSuiteMembershipRecord>;
-
-    return classRecords.records;
-  }
-
-  /**
-   * Returns the associated Ids for each given Apex class
-   * @param testClasses list of Apex class names (short name for unpackaged, or {@code ns.Name} for namespaced)
-   * @returns the associated ids for each Apex class
-   */
-  @elapsedTime()
-  private async getApexClassIds(testClasses: string[]): Promise<string[]> {
-    const classIds = testClasses.map(async testClass => {
-      const soql = apexClassIdQueryForTestSuiteMember(testClass);
-      const apexClass = (await this.connection.tooling.query(soql)) as QueryResult;
-      if (apexClass.records.length === 0) {
-        throw new Error(nls.localize('missingTestClassErr', testClass));
-      }
-      return apexClass.records[0].Id;
-    });
-    return await Promise.all(classIds);
+    const suiteIdLookup: Effect.Effect<Option.Option<string>, ApexOperationError | ApexResponseDecodeError> = suitename
+      ? retrieveSuiteId(this.connection, suitename)
+      : Effect.succeed(Option.fromNullable(suiteId));
+    return runTestServiceOperation(
+      suiteIdLookup.pipe(
+        Effect.flatMap(
+          Option.match({
+            onNone: () =>
+              Effect.fail(
+                new ApexOperationError({
+                  operation: 'getTestsInSuite',
+                  message: nls.localize(
+                    suitename === undefined && suiteId === undefined ? 'suitenameErr' : 'missingSuiteErr'
+                  )
+                })
+              ),
+            onSome: id =>
+              Schema.decodeUnknown(SalesforceId)(id).pipe(
+                Effect.mapError(
+                  cause =>
+                    new ApexResponseDecodeError({
+                      operation: 'getTestsInSuite',
+                      message: 'Invalid suite id',
+                      cause: cause.message
+                    })
+                ),
+                Effect.flatMap(id => getTestsInSuite(this.connection, id))
+              )
+          })
+        ),
+        Effect.map(members => [...members])
+      )
+    );
   }
 
   /**
@@ -282,29 +218,8 @@ export class TestService {
    * @param testClasses
    * @internal Used by the co-repo Apex Testing extension; not part of the supported npm API.
    */
-  @elapsedTime()
   public async buildSuite(suitename: string, testClasses: string[]): Promise<void> {
-    const testSuiteId = (await this.getOrCreateSuiteIds([suitename]))[0];
-
-    const classesInSuite = await this.getTestsInSuite(undefined, testSuiteId);
-    const testClassIds = await this.getApexClassIds(testClasses);
-
-    await Promise.all(
-      testClassIds.map(async classId => {
-        const existingClass = classesInSuite.filter(rec => rec.ApexClassId === classId);
-
-        const testClass = testClasses[testClassIds.indexOf(classId)];
-        if (existingClass.length > 0) {
-          console.log(nls.localize('testSuiteMsg', [testClass, suitename]));
-        } else {
-          await this.connection.tooling.create('TestSuiteMembership', {
-            ApexClassId: classId,
-            ApexTestSuiteId: testSuiteId
-          });
-          console.log(nls.localize('classSuiteMsg', [testClass, suitename]));
-        }
-      })
-    );
+    return runTestServiceOperation(buildSuite(this.connection, suitename, testClasses));
   }
 
   /**
@@ -408,7 +323,6 @@ export class TestService {
   /**
    * Utility function to help build payload for https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/intro_rest_resources_testing_runner_sync.htm
    */
-  @elapsedTime()
   public async buildSyncPayload(
     testLevel: TestLevel,
     tests?: string,
@@ -423,44 +337,14 @@ export class TestService {
      */
     skipCodeCoverage = false
   ): Promise<SyncTestConfiguration> {
-    try {
-      if (tests) {
-        const payload = await this.buildTestPayload(tests, skipCodeCoverage);
-        const classes = payload.tests?.filter(testItem => testItem.className).map(testItem => testItem.className);
-        if (new Set(classes).size !== 1) {
-          throw new Error(nls.localize('syncClassErr'));
-        }
-        return payload;
-      } else if (classnames) {
-        if (this.hasCategory(category)) {
-          const payload = await this.buildClassPayloadForFlow(classnames, skipCodeCoverage);
-          const classes = (payload.tests || [])
-            .filter(testItem => testItem.className)
-            .map(testItem => testItem.className);
-          if (new Set(classes).size !== 1) {
-            throw new Error(nls.localize('syncClassErr'));
-          }
-          return payload;
-        } else {
-          return await this.buildSyncClassPayload(classnames, testLevel, skipCodeCoverage);
-        }
-      } else if (this.hasCategory(category)) {
-        return {
-          testLevel,
-          category: category.split(','),
-          skipCodeCoverage
-        };
-      }
-      throw new Error(nls.localize('payloadErr'));
-    } catch (e) {
-      throw formatTestErrors(e);
-    }
+    return runTestServiceOperation(
+      buildSyncPayload(this.connection, { testLevel, tests, classNames: classnames, category, skipCodeCoverage })
+    );
   }
 
   /**
    * Utility function to help build payload for https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/intro_rest_resources_testing_runner_async.htm
    */
-  @elapsedTime()
   public async buildAsyncPayload(
     testLevel: TestLevel,
     tests?: string,
@@ -476,218 +360,9 @@ export class TestService {
      */
     skipCodeCoverage = false
   ): Promise<AsyncTestConfiguration | AsyncTestArrayConfiguration> {
-    try {
-      if (tests) {
-        return (await this.buildTestPayload(tests, skipCodeCoverage)) as AsyncTestArrayConfiguration;
-      } else if (classNames) {
-        return this.hasCategory(category)
-          ? this.buildClassPayloadForFlow(classNames, skipCodeCoverage)
-          : this.buildAsyncClassPayload(classNames, skipCodeCoverage);
-      } else {
-        return {
-          suiteNames,
-          testLevel,
-          ...(this.hasCategory(category) && {
-            category: category.split(',')
-          }),
-          skipCodeCoverage
-        };
-      }
-    } catch (e) {
-      throw formatTestErrors(e);
-    }
-  }
-
-  @elapsedTime()
-  private buildSyncClassPayload(
-    className: string,
-    testLevel: TestLevel,
-    skipCodeCoverage: boolean
-  ): SyncTestConfiguration {
-    const testItem = resolveClassNamespace(className);
-
-    return {
-      tests: [testItem],
-      testLevel,
-      skipCodeCoverage
-    };
-  }
-
-  @elapsedTime()
-  private buildAsyncClassPayload(classNames: string, skipCodeCoverage: boolean): AsyncTestArrayConfiguration {
-    const classItems = classNames.split(',').map(className => resolveClassNamespace(className));
-
-    return {
-      tests: classItems,
-      testLevel: 'RunSpecifiedTests',
-      skipCodeCoverage
-    };
-  }
-
-  @elapsedTime()
-  private buildClassPayloadForFlow(classNames: string, skipCodeCoverage: boolean): AsyncTestArrayConfiguration {
-    const classItems = classNames.split(',').map((item): TestItem => ({ className: item }));
-    return {
-      tests: classItems,
-      testLevel: 'RunSpecifiedTests',
-      skipCodeCoverage
-    };
-  }
-
-  @elapsedTime()
-  private async buildTestPayload(
-    testNames: string,
-    skipCodeCoverage: boolean
-  ): Promise<AsyncTestArrayConfiguration | SyncTestConfiguration> {
-    const testNameArray = testNames.split(',');
-    const testItems: TestItem[] = [];
-    const classes: string[] = [];
-    let namespaceInfos: NamespaceInfo[] | undefined;
-
-    for (const test of testNameArray) {
-      if (test.indexOf('.') > 0) {
-        const testParts = test.split('.');
-        const isFlow = isFlowTest(test);
-
-        namespaceInfos = isFlow
-          ? await this.processFlowTest(testParts, testItems, classes, namespaceInfos)
-          : await this.processApexTest(testParts, testItems, classes, namespaceInfos);
-      } else {
-        const prop = Schema.is(ApexClassId)(test) ? 'classId' : 'className';
-        testItems.push({ [prop]: test });
-      }
-    }
-
-    return {
-      tests: testItems,
-      testLevel: 'RunSpecifiedTests',
-      skipCodeCoverage
-    };
-  }
-
-  private async processFlowTest(
-    testParts: string[],
-    testItems: TestItem[],
-    classes: string[],
-    namespaceInfos: NamespaceInfo[] | undefined
-  ): Promise<NamespaceInfo[] | undefined> {
-    if (testParts.length === 4) {
-      // flowtesting.namespace.FlowName.testMethod
-      const [flowTestingPrefix, namespace, flowName, methodName] = testParts;
-      const fullClassName = `${flowTestingPrefix}.${namespace}.${flowName}`;
-
-      if (!classes.includes(fullClassName)) {
-        testItems.push({
-          namespace: `${flowTestingPrefix}.${namespace}`,
-          className: fullClassName,
-          testMethods: [methodName]
-        });
-        classes.push(fullClassName);
-      } else {
-        testItems.forEach(element => {
-          if (element.className === fullClassName) {
-            element.namespace = `${flowTestingPrefix}.${namespace}`;
-            element.testMethods!.push(methodName);
-          }
-        });
-      }
-    } else {
-      // Handle 3-part Flow tests: flowtesting.FlowName.testMethod
-      const [flowTestingPrefix, flowOrNamespace, testMethodOrFlowName] = testParts;
-
-      if (namespaceInfos === undefined) {
-        namespaceInfos = await queryNamespaces(this.connection);
-      }
-      const currentNamespace = namespaceInfos.find(namespaceInfo => namespaceInfo.namespace === flowOrNamespace);
-
-      if (currentNamespace) {
-        if (currentNamespace.installedNs) {
-          testItems.push({
-            className: `${flowTestingPrefix}.${flowOrNamespace}.${testMethodOrFlowName}`
-          });
-        } else {
-          testItems.push({
-            namespace: `${flowTestingPrefix}.${flowOrNamespace}`,
-            className: `${flowTestingPrefix}.${flowOrNamespace}.${testMethodOrFlowName}`
-          });
-        }
-      } else {
-        const flowClassName = `${flowTestingPrefix}.${flowOrNamespace}`;
-        if (!classes.includes(flowClassName)) {
-          testItems.push({
-            className: flowClassName,
-            testMethods: [testMethodOrFlowName]
-          });
-          classes.push(flowClassName);
-        } else {
-          testItems.forEach(element => {
-            if (element.className === flowClassName) {
-              element.testMethods!.push(testMethodOrFlowName);
-            }
-          });
-        }
-      }
-    }
-    return namespaceInfos;
-  }
-
-  private async processApexTest(
-    testParts: string[],
-    testItems: TestItem[],
-    classes: string[],
-    namespaceInfos: NamespaceInfo[] | undefined
-  ): Promise<NamespaceInfo[] | undefined> {
-    if (testParts.length === 3) {
-      // namespace.ClassName.testMethod
-      const [namespace, className, methodName] = testParts;
-      const fullClassName = `${namespace}.${className}`;
-
-      if (!classes.includes(fullClassName)) {
-        testItems.push({
-          className: fullClassName,
-          testMethods: [methodName]
-        });
-        classes.push(fullClassName);
-      } else {
-        testItems.forEach(element => {
-          if (element.className === fullClassName) {
-            element.testMethods!.push(methodName);
-          }
-        });
-      }
-    } else {
-      // Handle 2-part Apex tests: namespace.Class or Class.method
-      const [firstPart, secondPart] = testParts;
-
-      // First check if this could be a namespace by seeing if we have any namespace info
-      if (namespaceInfos === undefined) {
-        namespaceInfos = await queryNamespaces(this.connection);
-      }
-      const hasNamespace = namespaceInfos.some(namespaceInfo => namespaceInfo.namespace === firstPart);
-
-      if (hasNamespace) {
-        // This is namespace.Class - use full className format for all namespace types
-        testItems.push({
-          className: `${firstPart}.${secondPart}`
-        });
-      } else {
-        // This is Class.method - firstPart is the class, secondPart is the method
-        if (!classes.includes(firstPart)) {
-          testItems.push({
-            className: firstPart,
-            testMethods: [secondPart]
-          });
-          classes.push(firstPart);
-        } else {
-          testItems.forEach(element => {
-            if (element.className === firstPart) {
-              element.testMethods!.push(secondPart);
-            }
-          });
-        }
-      }
-    }
-    return namespaceInfos;
+    return runTestServiceOperation(
+      buildAsyncPayload(this.connection, { testLevel, tests, classNames, suiteNames, category, skipCodeCoverage })
+    );
   }
 
   private async runPipeline(readable: Readable, filePath: string, transform?: Transform): Promise<string> {
@@ -702,9 +377,5 @@ export class TestService {
 
   private createStream(filePath: string): Writable {
     return createWriteStream(filePath, 'utf8');
-  }
-  private hasCategory(category?: string): category is string {
-    // loose `!= null` rejects both null and undefined before reading length
-    return category != null && category.length > 0;
   }
 }

@@ -54,8 +54,12 @@ import {
   ApexOperationError,
   ApexResponseDecodeError,
   ApexRuntimeError,
+  BuildSyncPayloadOptionsSchema,
+  BuildAsyncPayloadOptionsSchema,
   ExecuteAnonymousOptionsSchema,
-  ExecuteAnonymousOutcomeSchema
+  ExecuteAnonymousOutcomeSchema,
+  TestSuiteSchema,
+  TestSuiteMembershipSchema
 } from '../src/effect';
 import { ApexLogPageSchema } from '../src/effect/schema/wire/logs';
 import {
@@ -68,6 +72,7 @@ import {
   CodeCoverageResultSchema,
   PerClassCoverageSchema,
   ResultFormatSchema,
+  TestLevelSchema,
   TestResultRawSchema,
   TestResultSchema
 } from '../src/tests/types';
@@ -134,10 +139,6 @@ const LogResultSchema = Schema.Struct({
   logPath: optional(Schema.String),
   log: Schema.String
 }).annotations({ identifier: 'LogResult' });
-
-const TestLevelSchema = Schema.Literal('RunLocalTests', 'RunAllTestsInOrg', 'RunSpecifiedTests').annotations({
-  identifier: 'TestLevel'
-});
 
 const TestItemSchema = Schema.Struct({
   className: optional(Schema.String),
@@ -310,6 +311,8 @@ const PublicApiSchema = Schema.Union(
   AsyncTestConfigurationSchema,
   CodeCoverageResultSchema,
   CommonOptionsSchema,
+  BuildSyncPayloadOptionsSchema,
+  BuildAsyncPayloadOptionsSchema,
   ExecuteAnonymousOptionsSchema,
   ExecuteAnonymousOutcomeSchema,
   ExecuteAnonymousResponseSchema,
@@ -324,7 +327,9 @@ const PublicApiSchema = Schema.Union(
   TestLevelSchema,
   TestResultSchema,
   TestResultRawSchema,
-  TestRunIdResultSchema
+  TestRunIdResultSchema,
+  TestSuiteSchema,
+  TestSuiteMembershipSchema
 ).annotations({
   title: '@salesforce/apex-node public JSON API',
   description: 'JSON-representable values accepted or returned by the supported @salesforce/apex-node API.'
