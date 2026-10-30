@@ -1,0 +1,14 @@
+{
+  "name": "@salesforce/effect-v4-bridge-host-fixture",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@salesforce/core": "9.3.6",
+    "@salesforce/vscode-services-v2": "file:./v2.tgz",
+    "@salesforce/vscode-services-v3-compat": "file:./v3.tgz",
+    "@types/node": "24.19.2",
+    "effect": "4.0.6",
+    "typescript": "6.0.3"
+  }
+}
