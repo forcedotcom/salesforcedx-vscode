@@ -14,6 +14,9 @@ describe('@salesforce/apex-node public API', () => {
     const supportedSymbols = Object.keys(publicApi).filter(symbol => !coRepoOnlySymbols.has(symbol));
 
     expect(supportedSymbols.sort()).toEqual([
+      'ApexClassId',
+      'ApexLogId',
+      'ApexTriggerId',
       'CancellationTokenSource',
       'CoverageReporter',
       'DefaultReportOptions',
@@ -22,21 +25,33 @@ describe('@salesforce/apex-node public API', () => {
       'HumanReporter',
       'JUnitReporter',
       'LogService',
+      'SalesforceId',
       'TapReporter',
-      'TestService'
+      'TestRunId',
+      'TestService',
+      'UserId'
     ]);
   });
 
   it('exports the Effect foundation from its isolated entry point', () => {
     expect(Object.keys(effectApi).sort()).toEqual([
       'ApexCompileError',
+      'ApexLogBodyFetchError',
+      'ApexLogListItem',
+      'ApexLogQueryError',
       'ApexOperationError',
       'ApexResponseDecodeError',
       'ApexRuntimeError',
       'ExecuteAnonymousOptionsSchema',
       'ExecuteAnonymousOutcomeSchema',
+      'ListLogsOptionsSchema',
+      'LogStreamEventSchema',
+      'QueryPageSchema',
       'causeMessage',
-      'executeAnonymous'
+      'executeAnonymous',
+      'getLogBody',
+      'listLogs',
+      'streamLogs'
     ]);
   });
 

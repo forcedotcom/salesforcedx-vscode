@@ -44,6 +44,7 @@ const testServicePrototype = TestService.prototype as unknown as TestServiceInte
 
 let mockConnection: Connection;
 let toolingRequestStub: SinonStub;
+let getConnectionOptionsStub: SinonStub;
 const testData = new MockTestOrgData();
 const formatTestErrorsMock = vi.mocked(diagnosticUtil.formatTestErrors);
 
@@ -66,6 +67,14 @@ describe('Run Apex tests synchronously', () => {
       authInfo: await AuthInfo.create({
         username: testData.username
       })
+    });
+    $$.SANDBOX.stub(mockConnection, 'getAuthInfoFields').returns({
+      ...mockConnection.getAuthInfoFields(),
+      orgId: '00Dxx0000000001AAA'
+    });
+    getConnectionOptionsStub = $$.SANDBOX.stub(mockConnection, 'getConnectionOptions').returns({
+      ...mockConnection.getConnectionOptions(),
+      userId: '005xx000000abcDAAU'
     });
     toolingRequestStub = $$.SANDBOX.stub(mockConnection.tooling, 'request');
     testRequest = {
@@ -102,24 +111,34 @@ describe('Run Apex tests synchronously', () => {
     expect(testResult.summary.skipRate).toBe('0%');
     expect(testResult.summary.testExecutionTimeInMs).toBe(270);
     expect(testResult.summary.username).toBe(mockConnection.getUsername());
+    expect(testResult.summary).not.toHaveProperty('testRunId');
 
     expect(Array.isArray(testResult.tests)).toBe(true);
     expect(testResult.tests).toHaveLength(1);
-    expect(testResult.tests[0].queueItemId).toBe('');
-    expect(testResult.tests[0].stackTrace).toBe('');
-    expect(testResult.tests[0].message).toBe('');
-    expect(testResult.tests[0].asyncApexJobId).toBe('');
+    expect(testResult.tests[0]).not.toHaveProperty('id');
+    expect(testResult.tests[0]).not.toHaveProperty('queueItemId');
+    expect(testResult.tests[0]).not.toHaveProperty('asyncApexJobId');
+    expect(testResult.tests[0]).not.toHaveProperty('stackTrace');
+    expect(testResult.tests[0]).not.toHaveProperty('message');
     expect(testResult.tests[0].methodName).toBe('testOne');
     expect(testResult.tests[0].outcome).toBe('Pass');
     expect(testResult.tests[0].apexLogId).toBe('07Lxx00000cxy6YUAQ');
     expect(typeof testResult.tests[0].apexClass).toBe('object');
     expect(testResult.tests[0].apexClass.id).toBe('01pxx00000NWwb3AAD');
     expect(testResult.tests[0].apexClass.name).toBe('TestSample');
-    expect(testResult.tests[0].apexClass.namespacePrefix).toBe('');
+    expect(testResult.tests[0].apexClass).not.toHaveProperty('namespacePrefix');
     expect(testResult.tests[0].apexClass.fullName).toBe('TestSample');
     expect(testResult.tests[0].runTime).toBe(107);
-    expect(testResult.tests[0].testTimestamp).toBe('');
+    expect(testResult.tests[0]).not.toHaveProperty('testTimestamp');
     expect(testResult.tests[0].fullName).toBe('TestSample.testOne');
+  });
+
+  it('formats synchronous results when the connection has no user ID', async () => {
+    getConnectionOptionsStub.returns({ ...mockConnection.getConnectionOptions(), userId: undefined });
+
+    const result = await new SyncTests(mockConnection).formatSyncResults(syncTestResultSimple, 1000);
+
+    expect(result.summary.userId).toBeUndefined();
   });
 
   it('should run a test with failures', async () => {
@@ -140,10 +159,11 @@ describe('Run Apex tests synchronously', () => {
 
     expect(Array.isArray(testResult.tests)).toBe(true);
     expect(testResult.tests).toHaveLength(4);
-    expect(testResult.tests[0].queueItemId).toBe('');
+    expect(testResult.tests[0]).not.toHaveProperty('id');
+    expect(testResult.tests[0]).not.toHaveProperty('queueItemId');
+    expect(testResult.tests[0]).not.toHaveProperty('asyncApexJobId');
     expect(testResult.tests[0].stackTrace).toBe('Class.TestSample.testOne: line 27, column 1');
     expect(testResult.tests[0].message).toBe('System.AssertException: Assertion Failed: Expected: false, Actual: true');
-    expect(testResult.tests[0].asyncApexJobId).toBe('');
     expect(testResult.tests[0].methodName).toBe('testOne');
     expect(testResult.tests[0].outcome).toBe('Fail');
     expect(testResult.tests[0].apexLogId).toBe('07Lxx00000cxy6YUAQ');
@@ -153,7 +173,7 @@ describe('Run Apex tests synchronously', () => {
     expect(testResult.tests[0].apexClass.namespacePrefix).toBe('tr');
     expect(testResult.tests[0].apexClass.fullName).toBe('tr__TestSample');
     expect(testResult.tests[0].runTime).toBe(68);
-    expect(testResult.tests[0].testTimestamp).toBe('');
+    expect(testResult.tests[0]).not.toHaveProperty('testTimestamp');
     expect(testResult.tests[0].fullName).toBe('tr__TestSample.testOne');
     expect(testResult.tests[0].diagnostic!.lineNumber).toBe(27);
     expect(testResult.tests[0].diagnostic!.columnNumber).toBe(1);
@@ -286,7 +306,7 @@ describe('Run Apex tests synchronously', () => {
         totalTime: 100,
         successes: [
           {
-            id: '01pxx00000FlowTest01',
+            id: '01pxx00000O6tXZQAZ',
             methodName: 'testFlowMethod',
             name: 'TestFlowClass',
             namespace: 'FlowTesting.TestFlow', // Flow test namespace
@@ -313,7 +333,7 @@ describe('Run Apex tests synchronously', () => {
         totalTime: 150,
         successes: [
           {
-            id: '01pxx00000CustomTest',
+            id: '01pxx00000O6tXZQAZ',
             methodName: 'testCustomMethod',
             name: 'CustomTestClass',
             namespace: 'myorg',
@@ -321,7 +341,7 @@ describe('Run Apex tests synchronously', () => {
             time: 60
           },
           {
-            id: '01pxx00000FlowTest02',
+            id: '01pxx00000O6tXZQAZ',
             methodName: 'testAnotherFlow',
             name: 'AnotherFlowTest',
             namespace: 'FlowTesting.AnotherFlow',

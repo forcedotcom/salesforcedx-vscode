@@ -7,8 +7,10 @@
 
 import type { HttpRequest } from '@jsforce/jsforce-node';
 import { type Connection } from '@salesforce/core';
+import * as Schema from 'effect/Schema';
 import { type CancellationToken } from '../common';
 import { nls } from '../i18n';
+import { ApexClassId, ApexLogId, OrgIdString, UserIdString } from '../schemas/salesforceId';
 import { elapsedTime, formatStartTime, getCurrentTime, HeapMonitor } from '../utils';
 import { CodeCoverage } from './codeCoverage';
 import { formatTestErrors, getDiagnostic } from './diagnosticUtil';
@@ -79,6 +81,8 @@ export class SyncTests {
     try {
       const globalTestFailed = apiTestResult.failures.length;
       const globalTestPassed = apiTestResult.successes.length;
+      const username = this.connection.getUsername();
+      const userId = this.connection.getConnectionOptions().userId;
       const rawResult: TestResultRaw = {
         summary: {
           outcome: globalTestFailed === 0 ? 'Passed' : 'Failed',
@@ -94,10 +98,9 @@ export class SyncTests {
           testTotalTimeInMs: apiTestResult.totalTime ?? 0,
           commandTimeInMs: getCurrentTime() - startTime,
           hostname: this.connection.instanceUrl,
-          orgId: this.connection.getAuthInfoFields().orgId ?? '',
-          username: this.connection.getUsername() ?? '',
-          testRunId: '',
-          userId: this.connection.getConnectionOptions().userId ?? ''
+          orgId: Schema.decodeUnknownSync(OrgIdString)(this.connection.getAuthInfoFields().orgId),
+          ...(username ? { username } : {}),
+          ...(userId === undefined ? {} : { userId: Schema.decodeUnknownSync(UserIdString)(userId) })
         },
         tests: testResults
       };
@@ -139,8 +142,8 @@ export class SyncTests {
       methodName: string;
       name: string;
       namespace: string | null;
-      stackTrace?: string;
-      message?: string;
+      stackTrace?: string | null;
+      message?: string | null;
       time?: number;
     },
     apiTestResult: SyncTestResult,
@@ -151,22 +154,18 @@ export class SyncTests {
     apexTestClassIdSet.add(item.id);
 
     const testResult: ApexTestResultDataRaw = {
-      id: '',
-      queueItemId: '',
-      stackTrace: item.stackTrace || '',
-      message: item.message || '',
-      asyncApexJobId: '',
+      ...(item.stackTrace ? { stackTrace: item.stackTrace } : {}),
+      ...(item.message ? { message: item.message } : {}),
       methodName: item.methodName,
       outcome,
-      apexLogId: apiTestResult.apexLogId,
+      apexLogId: Schema.decodeUnknownSync(ApexLogId)(apiTestResult.apexLogId),
       apexClass: {
-        id: item.id,
+        id: Schema.decodeUnknownSync(ApexClassId)(item.id),
         name: item.name,
-        namespacePrefix: item.namespace ?? '',
+        ...(item.namespace ? { namespacePrefix: item.namespace } : {}),
         fullName: `${nms}${item.name}`
       },
       runTime: item.time ?? 0,
-      testTimestamp: '',
       fullName: `${nms}${item.name}.${item.methodName}`,
       category: computeTestCategory(item.namespace)
     };

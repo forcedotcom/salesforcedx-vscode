@@ -21,20 +21,19 @@ export function formatTestErrors(error: Error): Error {
 
 export function getDiagnostic(record: SyncTestFailure | ApexTestResultRecord): ApexDiagnostic {
   const { message, stackTrace } =
-    'message' in record
-      ? record
-      : {
+    'MethodName' in record
+      ? {
           message: record.Message,
           stackTrace: record.StackTrace
-        };
+        }
+      : record;
 
   const matches = stackTrace?.match(/(line (\d+), column (\d+))/);
 
   return {
-    exceptionMessage: message ?? '',
-    exceptionStackTrace: stackTrace ?? '',
-    className: stackTrace ? stackTrace.split('.')[1] : undefined,
-    compileProblem: '',
+    ...(message ? { exceptionMessage: message } : {}),
+    ...(stackTrace ? { exceptionStackTrace: stackTrace } : {}),
+    ...(stackTrace ? { className: stackTrace.split('.')[1] } : {}),
     ...(matches?.[2] && { lineNumber: Number(matches[2]) }),
     ...(matches?.[3] && { columnNumber: Number(matches[3]) })
   };
