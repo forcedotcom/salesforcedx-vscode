@@ -7,10 +7,9 @@
 
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
-import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import { probeReady } from '../../../src/services/apexMetadataService';
 
-type Manager = ApexVSCodeApi['languageClientManager'];
+type Manager = Parameters<typeof probeReady>[0];
 
 /** Build a fake languageClientManager with a controllable status + client instance. */
 const makeManager = (opts: {

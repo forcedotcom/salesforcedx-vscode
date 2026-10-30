@@ -6,22 +6,18 @@
  */
 
 import * as Context from 'effect/Context';
-import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
-import { isError } from 'effect/Predicate';
+import type * as ParseResult from 'effect/ParseResult';
 // Import from the npm package (symlinked in workspace) - wireit ensures it's compiled first
 export type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
-import { getExtensionExports } from './extensionExports';
-
-export class ServicesExtensionNotFoundError extends Data.TaggedError('ServicesExtensionNotFoundError') {}
-export class InvalidServicesApiError extends Data.TaggedError('InvalidServicesApiError')<{ cause?: Error }> {}
+import { type ExtensionActivationError, type ExtensionNotFoundError, getExtensionExports } from './extensionExports';
 
 export type ExtensionProviderService = {
   /** Get the SalesforceVSCodeServicesApi, activating if needed */
   readonly getServicesApi: Effect.Effect<
     SalesforceVSCodeServicesApi,
-    ServicesExtensionNotFoundError | InvalidServicesApiError,
+    ExtensionNotFoundError | ExtensionActivationError | ParseResult.ParseError,
     never
   >;
 };
@@ -29,12 +25,12 @@ export type ExtensionProviderService = {
 export const ExtensionProviderService = Context.GenericTag<ExtensionProviderService>('ExtensionProviderService');
 
 /** connect to the Salesforce Services extension and get all of its API services */
-export const getServicesApi = getExtensionExports<SalesforceVSCodeServicesApi>(
-  'salesforce.salesforcedx-vscode-services'
-).pipe(
-  Effect.catchTags({
-    ExtensionNotFoundError: () => Effect.fail(new ServicesExtensionNotFoundError()),
-    ExtensionActivationError: ({ cause }) =>
-      Effect.fail(new InvalidServicesApiError({ cause: isError(cause) ? cause : new Error(String(cause)) }))
-  })
+export const getServicesApi: ExtensionProviderService['getServicesApi'] = getExtensionExports({
+  extId: 'salesforce.salesforcedx-vscode-services'
+}).pipe(
+  Effect.map(
+    // This first-party extension is compiled against the same public type; retain the existing typed wrapper.
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    exports => exports as SalesforceVSCodeServicesApi
+  )
 );

@@ -5,17 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, getExtensionExports } from '@salesforce/effect-ext-utils';
+import { CallableSchema, ExtensionProviderService, getExtensionExports } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { isString, isUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 
-type XMLExtensionApi = {
-  addXMLCatalogs: (catalogs: string[]) => void;
-  addXMLFileAssociations: (fileAssociations: { systemId: string; pattern: string }[]) => void;
-};
+const XMLExtensionApiSchema = Schema.Struct({
+  addXMLCatalogs: CallableSchema<(catalogs: string[]) => void>(),
+  addXMLFileAssociations: CallableSchema<(fileAssociations: { systemId: string; pattern: string }[]) => void>()
+});
+type XMLExtensionApi = Schema.Schema.Type<typeof XMLExtensionApiSchema>;
 
 const getLocalFilePath = (extensionUri: URI, targetFileNames: string[]): string[] =>
   targetFileNames.map(name => Utils.joinPath(extensionUri, 'resources', 'static', name).toString());
@@ -53,7 +55,7 @@ export const activateMetaSupport = Effect.fn('activateMetaSupport')(function* (e
         pattern: '**/*js-meta.xml'
       }
     ];
-    yield* getExtensionExports<XMLExtensionApi>('redhat.vscode-xml').pipe(
+    yield* getExtensionExports({ extId: 'redhat.vscode-xml', schema: XMLExtensionApiSchema }).pipe(
       Effect.flatMap(xmlApi =>
         Effect.try(() => {
           xmlApi.addXMLCatalogs(catalogs);
@@ -65,6 +67,8 @@ export const activateMetaSupport = Effect.fn('activateMetaSupport')(function* (e
           channelService.appendToChannel(nls.localize('lightning_lwc_no_redhat_extension_found')),
         ExtensionActivationError: () =>
           channelService.appendToChannel(nls.localize('lightning_lwc_fail_redhat_extension')),
+        ParseError: error =>
+          channelService.appendToChannel(`${nls.localize('lightning_lwc_fail_redhat_extension')}: ${error.message}`),
         UnknownException: () => channelService.appendToChannel(nls.localize('lightning_lwc_fail_redhat_extension'))
       })
     );

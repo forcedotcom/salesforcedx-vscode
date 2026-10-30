@@ -43,13 +43,22 @@ describe('Apex metadata extension activation', () => {
     vi.useFakeTimers();
     const response = { context: 'OpenAPI context' };
     const gatherOpenAPIContext = vi.fn().mockResolvedValue(response);
-    const getStatus = vi
-      .fn()
-      .mockReturnValueOnce({ isReady: () => false, failedToInitialize: () => false })
-      .mockReturnValue({ isReady: () => true, failedToInitialize: () => false });
+    const isOpenAPIEligible = vi.fn().mockResolvedValue(undefined);
+    const languageClientManager = {
+      statusReads: 0,
+      getClientInstance: () => ({}),
+      // Model the real class method, which reads manager state through `this`.
+      getStatus() {
+        this.statusReads += 1;
+        return this.statusReads === 1
+          ? { isReady: () => false, failedToInitialize: () => false, getStatusMessage: () => '' }
+          : { isReady: () => true, failedToInitialize: () => false, getStatusMessage: () => '' };
+      }
+    };
     const activate = vi.fn().mockResolvedValue({
-      languageClientManager: { getClientInstance: () => ({}), getStatus },
-      gatherOpenAPIContext
+      languageClientManager,
+      gatherOpenAPIContext,
+      isOpenAPIEligible
     });
     vi.mocked(vscode.extensions.getExtension).mockReturnValue({
       isActive: false,
@@ -64,7 +73,7 @@ describe('Apex metadata extension activation', () => {
 
       expect(await result).toBe(response);
       expect(activate).toHaveBeenCalledOnce();
-      expect(getStatus).toHaveBeenCalledTimes(2);
+      expect(languageClientManager.statusReads).toBe(2);
       expect(gatherOpenAPIContext).toHaveBeenCalledExactlyOnceWith(URI.file('/project/Example.cls'));
     } finally {
       vi.useRealTimers();
@@ -76,9 +85,14 @@ describe('Apex metadata extension activation', () => {
     vi.mocked(vscode.extensions.getExtension).mockReturnValue({
       isActive: true,
       exports: {
+        isOpenAPIEligible: vi.fn(),
         languageClientManager: {
           getClientInstance: () => undefined,
-          getStatus: () => ({ failedToInitialize: () => true, getStatusMessage: () => 'initialization failed' })
+          getStatus: () => ({
+            isReady: () => false,
+            failedToInitialize: () => true,
+            getStatusMessage: () => 'initialization failed'
+          })
         },
         gatherOpenAPIContext
       }

@@ -5,12 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, getExtensionExports } from '@salesforce/effect-ext-utils';
+import { CallableSchema, ExtensionProviderService, getExtensionExports } from '@salesforce/effect-ext-utils';
 import { extractAnonApexSource, type HeapDumpResult } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { errorToString } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isString, isUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { getDialogStartingPath, updateLastOpened } from '../activation/getDialogStartingPath';
@@ -21,6 +22,14 @@ import { resolveReplaySourceUris } from '../services/replaySourceUris';
 import { getRuntime } from '../services/runtime';
 
 const LOG_FILE_PROMPT = '${command:AskForLogFileName}';
+
+// Preserve the manager instance because getStatus reads its state through `this`.
+const languageClientManagerSchema: Schema.Schema<Pick<ApexVSCodeApi['languageClientManager'], 'getStatus'>> =
+  Schema.declare(
+    Schema.is(Schema.Struct({ getStatus: CallableSchema<ApexVSCodeApi['languageClientManager']['getStatus']>() }), {
+      exact: false
+    })
+  );
 
 type SelectedLogFile = {
   readonly contents: string;
@@ -122,9 +131,13 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     }
 
     const apexApi = await getRuntime().runPromise(
-      getExtensionExports<ApexVSCodeApi>('salesforce.salesforcedx-vscode-apex').pipe(
-        Effect.catchTag('ExtensionNotFoundError', () => Effect.void)
-      )
+      getExtensionExports({
+        extId: 'salesforce.salesforcedx-vscode-apex',
+        schema: Schema.Struct({
+          getLineBreakpointInfo: CallableSchema<ApexVSCodeApi['getLineBreakpointInfo']>(),
+          languageClientManager: languageClientManagerSchema
+        })
+      }).pipe(Effect.catchTag('ExtensionNotFoundError', () => Effect.void))
     );
     if (apexApi) {
       await this.isLanguageClientReady(apexApi);
@@ -177,7 +190,9 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     return config;
   }
 
-  private async isLanguageClientReady(apexApi: ApexVSCodeApi): Promise<void> {
+  private async isLanguageClientReady(apexApi: {
+    languageClientManager: Pick<ApexVSCodeApi['languageClientManager'], 'getStatus'>;
+  }): Promise<void> {
     let expired = false;
     let i = 0;
     while (!apexApi.languageClientManager.getStatus().isReady() && !expired) {

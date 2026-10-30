@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getExtensionExports } from '@salesforce/effect-ext-utils';
+import { CallableSchema, getExtensionExports } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
+import * as Schema from 'effect/Schema';
 import type { ApexOASEligiblePayload, ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import type { URI } from 'vscode-uri';
 import { ApexExtensionUnavailable, ApexLspNotReady, ApexLspRequestFailed } from '../errors';
@@ -17,12 +18,25 @@ import { nls } from '../messages/nls';
 
 const APEX_EXTENSION_ID = 'salesforce.salesforcedx-vscode-apex';
 
+// Preserve the manager instance because its methods read state through `this`.
+const languageClientManagerSchema: Schema.Schema<
+  Pick<ApexVSCodeApi['languageClientManager'], 'getStatus' | 'getClientInstance'>
+> = Schema.declare(
+  Schema.is(
+    Schema.Struct({
+      getStatus: CallableSchema<ApexVSCodeApi['languageClientManager']['getStatus']>(),
+      getClientInstance: CallableSchema<ApexVSCodeApi['languageClientManager']['getClientInstance']>()
+    }),
+    { exact: false }
+  )
+);
+
 // The Apex LS reports Indexing until it finishes; poll every 500ms for up to 2 minutes.
 const LSP_READY_SCHEDULE = Schedule.fixed(Duration.millis(500)).pipe(Schedule.intersect(Schedule.recurs(240)));
 
 // One readiness probe: ready → succeed; init failed → fail fast (non-retryable); still indexing → retryable.
 export const probeReady = Effect.fn('ApexOas.Lsp.probeReady')(function* (
-  manager: ApexVSCodeApi['languageClientManager']
+  manager: Pick<ApexVSCodeApi['languageClientManager'], 'getStatus' | 'getClientInstance'>
 ) {
   const apexClient = manager.getClientInstance();
   const languageClientStatus = manager.getStatus();
@@ -44,7 +58,14 @@ export const probeReady = Effect.fn('ApexOas.Lsp.probeReady')(function* (
 });
 
 const getApexApi = Effect.fn('ApexOas.Lsp.getApexApi')(function* () {
-  const apexApi = yield* getExtensionExports<ApexVSCodeApi>(APEX_EXTENSION_ID).pipe(
+  const apexApi = yield* getExtensionExports({
+    extId: APEX_EXTENSION_ID,
+    schema: Schema.Struct({
+      isOpenAPIEligible: CallableSchema<ApexVSCodeApi['isOpenAPIEligible']>(),
+      gatherOpenAPIContext: CallableSchema<ApexVSCodeApi['gatherOpenAPIContext']>(),
+      languageClientManager: languageClientManagerSchema
+    })
+  }).pipe(
     Effect.catchTags({
       ExtensionNotFoundError: () =>
         Effect.fail(new ApexExtensionUnavailable({ message: 'Apex extension is not installed' })),

@@ -73,14 +73,29 @@ describe('languageServerScanConfig', () => {
 
     it('returns undefined when the services API is unavailable', async () => {
       const layer = useRegistryAccess(Effect.succeed({ getRegistry: () => ({}), getTypeByName: () => ({}) }));
-      mockGetServicesApi.mockReturnValue(Effect.fail(new EffectExtUtils.ServicesExtensionNotFoundError()));
+      mockGetServicesApi.mockReturnValue(
+        Effect.fail(
+          new EffectExtUtils.ExtensionNotFoundError({
+            extId: 'salesforce.salesforcedx-vscode-services',
+            message: 'Services extension is not installed'
+          })
+        )
+      );
 
       await expect(runBuildMetadataRegistryScanConfig(layer)).resolves.toBeUndefined();
     });
 
     it('propagates services API activation failure', async () => {
       const layer = useRegistryAccess(Effect.succeed({ getRegistry: () => ({}), getTypeByName: () => ({}) }));
-      mockGetServicesApi.mockReturnValue(Effect.fail(new EffectExtUtils.InvalidServicesApiError({})));
+      mockGetServicesApi.mockReturnValue(
+        Effect.fail(
+          new EffectExtUtils.ExtensionActivationError({
+            extId: 'salesforce.salesforcedx-vscode-services',
+            message: 'Services extension activation failed',
+            cause: new Error('activation failed')
+          })
+        )
+      );
 
       await expect(runBuildMetadataRegistryScanConfig(layer)).rejects.toThrow();
     });

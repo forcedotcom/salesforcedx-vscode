@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import {
+  CallableSchema,
   ExtensionPackageJsonSchema,
   ExtensionProviderService,
   getExtensionExports
@@ -19,10 +20,11 @@ import { URI, Utils } from 'vscode-uri';
 import { SFDX_CORE_EXTENSION_NAME } from '../constants';
 import { nls } from '../messages';
 
-type XMLExtensionApi = {
-  addXMLCatalogs: (catalogs: string[]) => void;
-  addXMLFileAssociations: (fileAssociations: { systemId: string; pattern: string }[]) => void;
-};
+const XMLExtensionApiSchema = Schema.Struct({
+  addXMLCatalogs: CallableSchema<(catalogs: string[]) => void>(),
+  addXMLFileAssociations: CallableSchema<(fileAssociations: { systemId: string; pattern: string }[]) => void>()
+});
+type XMLExtensionApi = Schema.Schema.Type<typeof XMLExtensionApiSchema>;
 
 type SchemaDocumentationInspection =
   | Pick<
@@ -123,7 +125,7 @@ const setupRedhatXml = Effect.fn('metadataXmlSupport.setupRedhatXml')(
     const channelService = yield* api.services.ChannelService;
     const settingsService = yield* api.services.SettingsService;
 
-    yield* getExtensionExports<XMLExtensionApi>('redhat.vscode-xml').pipe(
+    yield* getExtensionExports({ extId: 'redhat.vscode-xml', schema: XMLExtensionApiSchema }).pipe(
       Effect.flatMap(xmlApi =>
         Effect.try({
           try: () => {
@@ -185,6 +187,7 @@ const setupRedhatXml = Effect.fn('metadataXmlSupport.setupRedhatXml')(
     MissingSettingsError: reportSetupFailure,
     ExtensionNotFoundError: () => reportToChannel(nls.localize('metadata_xml_no_redhat_extension_found')),
     ExtensionActivationError: error => reportSetupFailure(error.cause),
+    ParseError: reportSetupFailure,
     RedHatXmlExtensionSetupError: error => reportSetupFailure(error.cause),
     XmlConfigurationInspectError: error => reportSetupFailure(error.cause)
   })

@@ -9,12 +9,8 @@ import { expectTypeOf } from 'vitest';
 import * as Effect from 'effect/Effect';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
-import {
-  type ExtensionProviderService,
-  getServicesApi,
-  InvalidServicesApiError,
-  ServicesExtensionNotFoundError
-} from '../../src/extensionProvider';
+import { ExtensionActivationError, ExtensionNotFoundError } from '../../src/extensionExports';
+import { type ExtensionProviderService, getServicesApi } from '../../src/extensionProvider';
 
 describe('getServicesApi', () => {
   it('preserves the public result and error types', () => {
@@ -26,7 +22,8 @@ describe('getServicesApi', () => {
 
     const error = await Effect.runPromise(Effect.flip(getServicesApi));
 
-    expect(error).toBeInstanceOf(ServicesExtensionNotFoundError);
+    expect(error).toBeInstanceOf(ExtensionNotFoundError);
+    expect(error).toMatchObject({ extId: 'salesforce.salesforcedx-vscode-services' });
     expect(vscode.extensions.getExtension).toHaveBeenCalledExactlyOnceWith('salesforce.salesforcedx-vscode-services');
   });
 
@@ -44,7 +41,7 @@ describe('getServicesApi', () => {
   });
 
   it.each([new Error('activation failed'), 'activation failed'])(
-    'preserves InvalidServicesApiError and its Error cause for %s',
+    'preserves the generic activation error and cause for %s',
     async cause => {
       vi.mocked(vscode.extensions.getExtension).mockReturnValue({
         isActive: false,
@@ -53,9 +50,13 @@ describe('getServicesApi', () => {
 
       const error = await Effect.runPromise(Effect.flip(getServicesApi));
 
-      expect(error).toBeInstanceOf(InvalidServicesApiError);
-      expect(error).toMatchObject({ cause: new Error('activation failed') });
-      if (error instanceof InvalidServicesApiError && cause instanceof Error) {
+      expect(error).toBeInstanceOf(ExtensionActivationError);
+      expect(error).toMatchObject({
+        extId: 'salesforce.salesforcedx-vscode-services',
+        message: "Failed to activate extension 'salesforce.salesforcedx-vscode-services': activation failed",
+        cause
+      });
+      if (error instanceof ExtensionActivationError && cause instanceof Error) {
         expect(error.cause).toBe(cause);
       }
     }

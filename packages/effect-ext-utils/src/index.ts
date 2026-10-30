@@ -5,15 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export {
-  ExtensionProviderService,
-  InvalidServicesApiError,
-  ServicesExtensionNotFoundError,
-  getServicesApi
-} from './extensionProvider';
+export { ExtensionProviderService, getServicesApi } from './extensionProvider';
 
 export { buildAllServicesLayer } from './allServicesLayer';
 export { getExtensionExports, ExtensionNotFoundError, ExtensionActivationError } from './extensionExports';
+export { CallableSchema } from './callableSchema';
 export { ExtensionPackageJsonSchema, type ExtensionPackageJson } from './extensionPackageJson';
 export { closeExtensionScope, getExtensionScope } from './extensionScope';
 export type { SalesforceVSCodeServicesApi } from './extensionProvider';
