@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type * as vscode from 'vscode';
 import * as Effect from 'effect/Effect';
+import * as vscode from 'vscode';
 import { produceTestRunCodeLens, registerTestRunCodeLensProducer } from '../../../src/codelens/testRunCodeLensProducer';
 
 const range = { start: { line: 2, character: 0 }, end: { line: 2, character: 10 } } as vscode.Range;
@@ -38,18 +38,25 @@ describe('testRunCodeLensProducer', () => {
 
   it('registers class and method producers and suppresses them without a default org', async () => {
     const disposable = { dispose: vi.fn() };
-    let registeredCallback: ((candidate: vscode.CodeLens) => Promise<vscode.CodeLens | null>) | undefined;
-    const register = vi.fn((_: string, callback: (candidate: vscode.CodeLens) => Promise<vscode.CodeLens | null>) => {
-      registeredCallback = callback;
-      return disposable;
-    });
+    let registeredCallback:
+      | ((candidate: vscode.CodeLens) => vscode.CodeLens | null | Promise<vscode.CodeLens | null>)
+      | undefined;
+    const register = vi.fn(
+      (
+        _: string,
+        callback: (candidate: vscode.CodeLens) => vscode.CodeLens | null | Promise<vscode.CodeLens | null>
+      ) => {
+        registeredCallback = callback;
+        return disposable;
+      }
+    );
     const context = { subscriptions: [] as vscode.Disposable[] } as vscode.ExtensionContext;
 
     await Effect.runPromise(
       registerTestRunCodeLensProducer(
         context,
         () => Promise.resolve(false),
-        () => Promise.resolve({ codeLens: { register } })
+        () => Effect.succeed({ codeLens: { register } })
       )
     );
 
@@ -58,5 +65,38 @@ describe('testRunCodeLensProducer', () => {
     expect(register).toHaveBeenNthCalledWith(2, 'sf.apex.test.method.run.delegate', expect.any(Function));
     expect(context.subscriptions).toEqual([disposable, disposable]);
     await expect(registeredCallback?.(lens('sf.apex.test.class.run.delegate'))).resolves.toBeNull();
+  });
+
+  it('does not register producers when the language server is unavailable', async () => {
+    vi.mocked(vscode.extensions.getExtension).mockReturnValue(undefined);
+    const context = { subscriptions: [] as vscode.Disposable[] } as vscode.ExtensionContext;
+
+    await Effect.runPromise(registerTestRunCodeLensProducer(context));
+
+    expect(context.subscriptions).toEqual([]);
+  });
+
+  it('does not register producers when language server activation fails', async () => {
+    vi.mocked(vscode.extensions.getExtension).mockReturnValue({
+      isActive: false,
+      activate: vi.fn().mockRejectedValue(new Error('activation failed'))
+    } as unknown as vscode.Extension<unknown>);
+    const context = { subscriptions: [] as vscode.Disposable[] } as vscode.ExtensionContext;
+
+    await Effect.runPromise(registerTestRunCodeLensProducer(context));
+
+    expect(context.subscriptions).toEqual([]);
+  });
+
+  it('does not register producers when language server exports are incompatible', async () => {
+    vi.mocked(vscode.extensions.getExtension).mockReturnValue({
+      isActive: true,
+      exports: { codeLens: { register: 'not callable' } }
+    } as unknown as vscode.Extension<unknown>);
+    const context = { subscriptions: [] as vscode.Disposable[] } as vscode.ExtensionContext;
+
+    await Effect.runPromise(registerTestRunCodeLensProducer(context));
+
+    expect(context.subscriptions).toEqual([]);
   });
 });
