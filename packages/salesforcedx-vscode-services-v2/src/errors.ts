@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as Schema from 'effect/Schema';
+import { OrgId } from './defaultOrgInfo.js';
 
 const MessageWithCause = { message: Schema.String, cause: Schema.optional(Schema.instanceOf(Error)) };
 
@@ -63,3 +64,27 @@ export class AccessTokenExpiredError extends Schema.TaggedError<AccessTokenExpir
   message: Schema.String,
   username: Schema.optional(Schema.String)
 }) {}
+
+export class FailedToSaveAuthInfoError extends Schema.TaggedError<FailedToSaveAuthInfoError>()(
+  'FailedToSaveAuthInfoError',
+  MessageWithCause
+) {}
+
+export class FailedToListAuthorizationsError extends Schema.TaggedError<FailedToListAuthorizationsError>()(
+  'FailedToListAuthorizationsError',
+  MessageWithCause
+) {}
+
+export class GetAuthFieldsError extends Schema.TaggedError<GetAuthFieldsError>()('GetAuthFieldsError', {
+  message: Schema.String,
+  username: Schema.optional(Schema.String)
+}) {}
+
+export class InactiveOrgOperationError extends Schema.TaggedError<InactiveOrgOperationError>()(
+  'InactiveOrgOperationError',
+  {
+    message: Schema.String,
+    expectedOrgId: OrgId,
+    observedOrgId: Schema.optional(OrgId)
+  }
+) {}

@@ -6,6 +6,7 @@
  */
 export { AliasService, ConfigService, ConnectionService } from './services.js';
 export { createLegacyServices } from './createLegacyServices.js';
+export { createCompatibleConnectionServices } from './createCompatibleConnectionServices.js';
 export { DefaultOrgInfoSchema, type DefaultOrgInfo } from './defaultOrgInfo.js';
 export {
   ConfigFailureSchema,

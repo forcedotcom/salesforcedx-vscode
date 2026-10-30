@@ -1637,6 +1637,9 @@ importers:
       '@salesforce/vscode-services-v2':
         specifier: '*'
         version: link:../salesforcedx-vscode-services-v2
+      '@salesforce/vscode-services-v3-compat':
+        specifier: '*'
+        version: link:../salesforcedx-vscode-services-v3-compat
       effect:
         specifier: 4.0.6
         version: 4.0.6

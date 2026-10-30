@@ -389,12 +389,14 @@
       },
       "dependencies": [
         "./packages/salesforcedx-vscode-services-v3-compat:compile",
-        "./packages/salesforcedx-vscode-services-v2:compile"
+        "./packages/salesforcedx-vscode-services-v2:compile",
+        "./packages/salesforcedx-vscode-services-v4-implementation:compile"
       ],
       "files": [
         "scripts/test-effect-v3-bridge.mjs",
         "scripts/packedServicesFixtures.mjs",
-        "test/fixtures/effect-v4/bridgeHost/*.{ts,json}",
+        "test/fixtures/effect-v4/bridgeHost/*.{ts,mjs,json}",
+        "scripts/bundling/*.{js,mjs}",
         "test/fixtures/effect-v4/bridgeConsumer/*.{ts,mjs,json}",
         "package.json",
         "pnpm-lock.yaml"

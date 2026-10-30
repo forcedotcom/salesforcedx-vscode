@@ -22,7 +22,7 @@ import * as TestClock from 'effect/testing/TestClock';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { ConfigServiceLayer } from '../../src/configService.js';
-import { TargetOrgRefLayer } from '../../src/targetOrgRef.js';
+import { OrgChanges, OrgChangesLayer, orgLayers } from '../../src/targetOrgRef.js';
 import { WorkspaceServiceLayer } from '../../src/workspaceService.js';
 
 vi.mock('@salesforce/core', async () => ({
@@ -33,9 +33,7 @@ vi.mock('@salesforce/core/configAggregator', () => ({ ConfigAggregator: { create
 
 class ConfigA extends Context.Service<ConfigA, ConfigService['Service']>()('test/configA') {}
 class ConfigB extends Context.Service<ConfigB, ConfigService['Service']>()('test/configB') {}
-const configGraph = ConfigServiceLayer.pipe(
-  Layer.provideMerge(Layer.mergeAll(WorkspaceServiceLayer, TargetOrgRefLayer))
-);
+const configGraph = ConfigServiceLayer.pipe(Layer.provideMerge(Layer.mergeAll(WorkspaceServiceLayer, orgLayers)));
 const graph = Layer.mergeAll(
   configGraph,
   Layer.effect(ConfigA, ConfigService).pipe(Layer.provide(configGraph)),
@@ -179,7 +177,9 @@ it('does not hang startup when the supplied org-state subscription is already cl
   const ref = await Effect.runPromise(SubscriptionRef.make<DefaultOrgInfo>({}));
   await Effect.runPromise(PubSub.shutdown(ref.pubsub));
   const layer = ConfigServiceLayer.pipe(
-    Layer.provide(Layer.mergeAll(WorkspaceServiceLayer, Layer.succeed(TargetOrgRef, ref)))
+    Layer.provide(
+      Layer.mergeAll(WorkspaceServiceLayer, OrgChangesLayer.pipe(Layer.provideMerge(Layer.succeed(TargetOrgRef, ref))))
+    )
   );
   const exit = await Effect.runPromiseExit(
     Effect.void.pipe(Effect.provide(layer), Effect.timeout(Duration.millis(200)))
@@ -203,4 +203,35 @@ it('keeps cache entries until the existing 30-minute TTL expires', async () => {
       expect(ConfigAggregator.create).toHaveBeenCalledTimes(2);
     }).pipe(Effect.provide(configGraph), Effect.provide(TestClock.layer()))
   );
+});
+
+it('does not let a delayed unset clear a newer acknowledged selection', async () => {
+  const entered = Promise.withResolvers<void>();
+  const release = Promise.withResolvers<void>();
+  write.mockImplementationOnce(async () => {
+    entered.resolve();
+    await release.promise;
+  });
+  const runtime = ManagedRuntime.make(configGraph);
+  try {
+    const clearing = runtime.runPromise(ConfigService.use(service => service.unsetTargetOrg()));
+    await entered.promise;
+    await runtime.runPromise(
+      OrgChanges.use(changes =>
+        changes.begin.pipe(
+          Effect.flatMap(generation =>
+            changes.update(generation, () => Effect.succeed({ username: 'newer-selection' }))
+          )
+        )
+      )
+    );
+    release.resolve();
+    await clearing;
+    expect((await runtime.runPromise(OrgChanges.use(changes => changes.snapshot))).org.username).toBe(
+      'newer-selection'
+    );
+  } finally {
+    release.resolve();
+    await runtime.dispose();
+  }
 });

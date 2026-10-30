@@ -92,7 +92,7 @@ All files in each package belong to its WI below; no source/test import is exemp
 | `salesforcedx-vscode-services`: metadata/query/component operations                                                                                                   | W-24615063                                                                             |
 | `salesforcedx-vscode-services`: remaining editor/UI/Apex/observability, activation/bootstrap                                                                          | W-24615069                                                                             |
 | Compatibility-only implementation and independently installed fixtures                                                                                                | W-24615044, W-24615046                                                                 |
-| `salesforcedx-vscode-services-v3-compat`: genuine V3 proxies, lifecycle and encoded host boundary                                                                     | W-24615046                                                                             |
+| `salesforcedx-vscode-services-v3-compat`: genuine V3 proxies, lifecycle and encoded host boundary                                                                     | W-24615046 introduces; W-24615059 binds actual connection graph                          |
 | `salesforcedx-vscode-services-v4-implementation`: temporary isolated V4 host implementations/layers                                                                   | W-24615055 introduces; W-24615059/60/63 extend; W-24615069 folds into provider/removes |
 | `effect-ext-utils`, `salesforcedx-vscode-services-types`, new V2 types package, declaration generators                                                                | W-24615075; package boundaries/installation fixtures begin W-24615044                  |
 | `salesforcedx-vscode-org`, `salesforcedx-vscode-org-browser`, `salesforcedx-vscode-metadata`                                                                          | W-24615079                                                                             |
@@ -109,6 +109,8 @@ All files in each package belong to its WI below; no source/test import is exemp
 
 W-24615055 adds a private V4 implementation package to isolate its compiler/LS
 program from the still-V3 provider. See [foundation ownership and verification](effect-v4-foundations.md).
+W-24615059 adds the real connection graph, acknowledged org writer and compatible
+lifecycle owner; see [connection ownership and verification](effect-v4-connection.md).
 The expected census becomes **30 packages** when that source is tracked; rerun
 the inventory rather than treating the count as a fixed gate. The script excludes
 quoted test source inside strings from real imports; test-fixture migration still

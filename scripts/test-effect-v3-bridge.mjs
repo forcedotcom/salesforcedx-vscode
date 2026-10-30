@@ -4,6 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as esbuild from 'esbuild';
+import { commonConfigBrowser } from './bundling/web.mjs';
 import {
   createPackedFixturesDirectory,
   installAndCompileFixtures,
@@ -18,7 +19,12 @@ const consumer = path.join(temp, 'bridgeConsumer');
 try {
   const artifacts = [
     packServicesPackage(path.join(root, 'packages/salesforcedx-vscode-services-v3-compat'), host, 'v3.tgz'),
-    packServicesPackage(path.join(root, 'packages/salesforcedx-vscode-services-v2'), host, 'v2.tgz')
+    packServicesPackage(path.join(root, 'packages/salesforcedx-vscode-services-v2'), host, 'v2.tgz'),
+    packServicesPackage(
+      path.join(root, 'packages/salesforcedx-vscode-services-v4-implementation'),
+      host,
+      'implementation.tgz'
+    )
   ];
   fs.mkdirSync(consumer);
   await installAndCompileFixtures([
@@ -84,6 +90,66 @@ try {
   console.log(
     'PASS actual packed V3 bridge Node/browser bundle isolation and basic conformance; browser-target bundles execute under Node'
   );
+  fs.writeFileSync(
+    path.join(host, 'real-entry.mjs'),
+    `
+    import { realConnectionConformance } from '../bridgeConsumer/realConnection.ts';
+    import { stats } from './connectionVscode.mjs';
+    export const observed = await realConnectionConformance();
+    export { stats };
+  `
+  );
+  for (const platform of ['node', 'browser']) {
+    const outfile = path.join(host, `real-${platform}.mjs`);
+    const result = await esbuild.build({
+      ...(platform === 'browser' ? commonConfigBrowser : {}),
+      entryPoints: [path.join(host, 'real-entry.mjs')],
+      outfile,
+      bundle: true,
+      format: 'esm',
+      platform,
+      target: 'es2024',
+      metafile: true,
+      define: {
+        ...(platform === 'browser' ? commonConfigBrowser.define : {}),
+        'process.env.ESBUILD_PLATFORM': JSON.stringify(platform === 'browser' ? 'web' : 'node')
+      },
+      external: platform === 'node' ? ['@salesforce/core', '@salesforce/core/*'] : [],
+      plugins: [
+        ...(platform === 'browser' ? (commonConfigBrowser.plugins ?? []) : []),
+        {
+          name: 'connection-fixture-vscode',
+          setup: bundler =>
+            bundler.onResolve({ filter: /^vscode$/ }, () => ({ path: path.join(host, 'connectionVscode.mjs') }))
+        }
+      ]
+    });
+    assert(
+      Object.keys(result.metafile.inputs).some(file =>
+        file.includes('vscode-services-v4-implementation/out/connectionService.js')
+      )
+    );
+    const runner = path.join(host, `run-real-${platform}.mjs`);
+    fs.writeFileSync(
+      runner,
+      `
+      import assert from 'node:assert/strict';
+      ${platform === 'browser' ? `import { JSDOM } from 'jsdom'; const dom = new JSDOM('<!doctype html>', {url:'https://fixture.example/'}); globalThis.window = dom.window; globalThis.document = dom.window.document; Object.defineProperty(globalThis, 'navigator', {configurable:true,value:dom.window.navigator});` : ''}
+      const { observed, stats } = await import('./real-${platform}.mjs');
+      assert.deepEqual(observed, { sameConnection:true, unchangedByOverride:true, localWriteRepaired:true, overrideNative:true,
+        switchedNative:true, mirrorsMatch:true, username:'fixture-${platform === 'node' ? 'b' : 'a'}@example.com', afterShutdown:'Failure' });
+      assert.deepEqual(stats, { workspaceWatchers:1,workspaceDisposed:1,settingsWatchers:1,settingsDisposed:1 });
+      ${platform === 'browser' ? 'dom.window.close();' : ''}
+      console.log('PASS packed real ${platform}-target connection graph, genuine V3/V4 Connection identity, acknowledged org state and scoped teardown');
+    `
+    );
+    execFileSync(process.execPath, [runner], {
+      cwd: root,
+      stdio: 'inherit',
+      timeout: 180000,
+      env: { ...process.env, FORCE_MEMFS: 'true', SF_USE_GENERIC_UNIX_KEYCHAIN: 'true' }
+    });
+  }
 } catch (error) {
   console.error('V3 bridge check failed:', error);
   process.exitCode = 1;

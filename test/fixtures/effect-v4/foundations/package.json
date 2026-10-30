@@ -5,6 +5,7 @@
   "type": "module",
   "dependencies": {
     "@salesforce/vscode-services-v2": "file:./v2.tgz",
+    "@salesforce/vscode-services-v3-compat": "file:./compat.tgz",
     "@salesforce/vscode-services-v4-implementation": "file:./implementation.tgz",
     "@types/node": "24.19.2",
     "effect": "4.0.6",

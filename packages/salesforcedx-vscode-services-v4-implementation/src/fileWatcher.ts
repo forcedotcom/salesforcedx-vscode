@@ -12,10 +12,12 @@ import * as PubSub from 'effect/PubSub';
 import * as Queue from 'effect/Queue';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
+import { makeScopedFibers } from './scopedFiber.js';
 
 /** Channel is an explicit V4 requirement; its implementation remains assigned to W-24615069. */
 export const FileWatcherLayer = Layer.effectDiscard(
   Effect.gen(function* () {
+    const scopedFibers = yield* makeScopedFibers;
     const events = yield* FileChangePubSub;
     const channel = yield* ChannelService;
     const watcher = yield* Effect.acquireRelease(
@@ -52,7 +54,7 @@ export const FileWatcherLayer = Layer.effectDiscard(
       ).pipe(Effect.onExit(exit => Deferred.done(subscribed, exit)))
     ).pipe(
       Stream.runForEach(event => PubSub.publish(events, event)),
-      Effect.forkScoped
+      scopedFibers.fork
     );
     yield* Deferred.await(subscribed);
     yield* channel.appendToChannel('FileWatcherService started successfully');
