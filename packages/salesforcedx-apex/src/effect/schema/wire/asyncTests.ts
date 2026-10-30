@@ -6,7 +6,8 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { ApexClassId, ApexClassIdsSchema, ApexTestSuiteIdsSchema, SalesforceId } from '../salesforceId';
+import { ApexTestQueueItemId } from '../../../schemas/salesforceId';
+import { ApexClassId, ApexClassIdsSchema, ApexTestSuiteIdsSchema } from '../salesforceId';
 
 const testLevelSchema = Schema.Literal('RunLocalTests', 'RunAllTestsInOrg', 'RunSpecifiedTests');
 const testCategorySchema = Schema.Literal('Apex', 'Flow');
@@ -20,7 +21,7 @@ export const AsyncTestRunStatusSchema = Schema.Literal(
   'Skipped'
 );
 
-/** Request body accepted by the Tooling API asynchronous test endpoint. */
+/** Asynchronous request options; decoded ID lists are encoded as comma-separated strings for the API. */
 export const AsyncTestOptionsSchema = Schema.Struct({
   testLevel: testLevelSchema,
   classNames: Schema.optional(Schema.String),
@@ -53,7 +54,7 @@ export const summariesSchema = Schema.Struct({ records: Schema.Tuple(summarySche
 
 const queueRecordsSchema = Schema.Array(
   Schema.Struct({
-    Id: SalesforceId,
+    Id: ApexTestQueueItemId,
     Status: Schema.Literal('Queued', 'Holding', 'Preparing', 'Processing', 'Aborted', 'Completed', 'Failed')
   })
 );

@@ -28,6 +28,7 @@ describe('@salesforce/apex-node public API', () => {
     expect(supportedSymbols.sort()).toEqual([
       'ApexClassId',
       'ApexLogId',
+      'ApexTestSuiteId',
       'ApexTriggerId',
       'CancellationTokenSource',
       'CoverageReporter',
@@ -69,6 +70,7 @@ describe('@salesforce/apex-node public API', () => {
       'ApexTestResultDataSchema',
       'ApexTestResultOutcomeSchema',
       'ApexTestSetupDataSchema',
+      'ApexTestSuiteId',
       'AsyncTestOptionsSchema',
       'AsyncTestProgressSchema',
       'AsyncTestResultSchema',

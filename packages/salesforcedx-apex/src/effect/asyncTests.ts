@@ -23,7 +23,13 @@ import {
 } from './schema/asyncTests';
 import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
 import { TestRunId } from './schema/salesforceId';
-import { queueSchema, summariesSchema, updateResultsSchema, type AsyncTestOptions } from './schema/wire/asyncTests';
+import {
+  AsyncTestOptionsSchema,
+  queueSchema,
+  summariesSchema,
+  updateResultsSchema,
+  type AsyncTestOptions
+} from './schema/wire/asyncTests';
 
 const operation = 'runTestAsynchronous';
 
@@ -171,13 +177,23 @@ export const runTestAsynchronous = Effect.fn('Apex.runTestAsynchronous')(functio
   options: AsyncTestOptions,
   polling: AsyncTestPollingOptions = {}
 ) {
+  const encodedOptions = yield* Schema.encodeUnknown(AsyncTestOptionsSchema)(options).pipe(
+    Effect.mapError(
+      cause =>
+        new ApexOperationError({
+          operation,
+          message: 'Invalid asynchronous test options',
+          cause: cause.message
+        })
+    )
+  );
   const pending = yield* Ref.make(true);
   const id = yield* Effect.acquireRelease(
     request(() =>
       connection.tooling.request({
         method: 'POST',
         url: `${connection.tooling._baseUrl()}/runTestsAsynchronous`,
-        body: JSON.stringify(options),
+        body: JSON.stringify(encodedOptions),
         headers: { 'content-type': 'application/json' }
       })
     ).pipe(Effect.flatMap(response => decode(TestRunId, response))),

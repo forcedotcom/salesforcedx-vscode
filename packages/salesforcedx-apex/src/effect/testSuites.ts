@@ -13,7 +13,11 @@ import * as Option from 'effect/Option';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { messages } from '../i18n/i18n';
-import { SalesforceId, type SalesforceId as SalesforceIdType } from '../schemas/salesforceId';
+import {
+  ApexTestSuiteId,
+  type ApexTestSuiteId as ApexTestSuiteIdType,
+  type ApexClassId
+} from '../schemas/salesforceId';
 import { createRecord, queryRecords } from './records';
 import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
 import { TestSuiteMembershipSchema } from './schema/testSuites';
@@ -50,7 +54,7 @@ export const retrieveSuiteId = Effect.fn('Apex.retrieveSuiteId')(function* (conn
 /** Retrieves class membership by suite id. */
 export const getTestsInSuite = Effect.fn('Apex.getTestsInSuite')(function* (
   connection: Connection,
-  suiteId: SalesforceIdType
+  suiteId: ApexTestSuiteIdType
 ) {
   return yield* queryRecords({
     connection,
@@ -63,9 +67,9 @@ export const getTestsInSuite = Effect.fn('Apex.getTestsInSuite')(function* (
 
 const updateSuiteMembership = Effect.fn('Apex.buildSuite.updateMembership')(function* (
   connection: Connection,
-  suiteId: SalesforceIdType,
+  suiteId: ApexTestSuiteIdType,
   suiteName: string,
-  classId: SalesforceId,
+  classId: ApexClassId,
   className: string,
   alreadyPresent: boolean
 ) {
@@ -107,7 +111,7 @@ export const buildSuite = Effect.fn('Apex.buildSuite')(function* (
       })
     ),
     Effect.flatMap(id =>
-      Schema.decodeUnknown(SalesforceId)(id).pipe(
+      Schema.decodeUnknown(ApexTestSuiteId)(id).pipe(
         Effect.mapError(
           cause =>
             new ApexResponseDecodeError({
@@ -176,18 +180,6 @@ export const getApexClassIds = Effect.fn('Apex.getApexClassIds')(function* (
               ),
             onSome: record => Effect.succeed(record.Id)
           })
-        ),
-        Effect.flatMap(id =>
-          Schema.decodeUnknown(SalesforceId)(id).pipe(
-            Effect.mapError(
-              cause =>
-                new ApexResponseDecodeError({
-                  operation: 'buildSuite',
-                  message: 'Invalid Apex class id',
-                  cause: cause.message
-                })
-            )
-          )
         )
       );
     },

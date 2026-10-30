@@ -49,6 +49,11 @@ export const TestRunIdString = prefixedSalesforceIdString('707', 'AsyncApexJob')
 export const TestRunId = TestRunIdString.pipe(Schema.brand('@salesforcedx-apex/TestRunId'));
 export type TestRunId = typeof TestRunId.Type;
 
+/** Salesforce ApexTestSuite record ID. */
+export const ApexTestSuiteIdString = prefixedSalesforceIdString('05F', 'ApexTestSuite');
+export const ApexTestSuiteId = ApexTestSuiteIdString.pipe(Schema.brand('@salesforcedx-apex/ApexTestSuiteId'));
+export type ApexTestSuiteId = typeof ApexTestSuiteId.Type;
+
 /** Salesforce Apex test result ID. */
 export const ApexTestResultIdString = prefixedSalesforceIdString('07M', 'ApexTestResult');
 
@@ -57,3 +62,7 @@ export const FlowTestResultIdString = prefixedSalesforceIdString('2hU', 'FlowTes
 
 /** Salesforce Apex test queue item ID. */
 export const ApexTestQueueItemIdString = prefixedSalesforceIdString('709', 'ApexTestQueueItem');
+export const ApexTestQueueItemId = ApexTestQueueItemIdString.pipe(
+  Schema.brand('@salesforcedx-apex/ApexTestQueueItemId')
+);
+export type ApexTestQueueItemId = typeof ApexTestQueueItemId.Type;

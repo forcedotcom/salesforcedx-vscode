@@ -652,16 +652,11 @@
       "properties": {
         "testLevel": { "type": "string", "enum": ["RunLocalTests", "RunAllTestsInOrg", "RunSpecifiedTests"] },
         "classNames": { "type": "string" },
-        "classids": {
-          "type": "string",
-          "description": "a string matching the pattern ^01p[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?(?:,01p[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?)*$",
-          "pattern": "^01p[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?(?:,01p[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?)*$"
-        },
+        "classids": { "type": "string", "description": "a comma-separated list of 15- or 18-character ApexClass IDs" },
         "suiteNames": { "type": "string" },
         "suiteids": {
           "type": "string",
-          "description": "a string matching the pattern ^05F[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?(?:,05F[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?)*$",
-          "pattern": "^05F[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?(?:,05F[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?)*$"
+          "description": "a comma-separated list of 15- or 18-character ApexTestSuite IDs"
         },
         "tests": {
           "type": "array",
@@ -1083,13 +1078,28 @@
     "TestSuite": {
       "type": "object",
       "required": ["id", "TestSuiteName"],
-      "properties": { "id": { "type": "string" }, "TestSuiteName": { "type": "string" } },
+      "properties": { "id": { "$ref": "#/$defs/ApexTestSuiteId" }, "TestSuiteName": { "type": "string" } },
       "additionalProperties": false
+    },
+    "ApexTestSuiteId": {
+      "type": "string",
+      "description": "a string starting with \"05F\"",
+      "pattern": "^05F",
+      "title": "startsWith(\"05F\")",
+      "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
     },
     "TestSuiteMembership": {
       "type": "object",
       "required": ["ApexClassId"],
-      "properties": { "ApexClassId": { "type": "string" } },
+      "properties": {
+        "ApexClassId": {
+          "type": "string",
+          "description": "a string starting with \"01p\"",
+          "pattern": "^01p",
+          "title": "startsWith(\"01p\")",
+          "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+        }
+      },
       "additionalProperties": false
     }
   },
@@ -1146,6 +1156,13 @@
     { "$ref": "#/$defs/TestResult" },
     { "$ref": "#/$defs/TestResultRaw" },
     { "$ref": "#/$defs/TestRunIdResult" },
+    {
+      "type": "string",
+      "description": "a string starting with \"05F\"",
+      "pattern": "^05F",
+      "title": "startsWith(\"05F\")",
+      "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+    },
     { "$ref": "#/$defs/TestSuite" },
     { "$ref": "#/$defs/TestSuiteMembership" }
   ],
