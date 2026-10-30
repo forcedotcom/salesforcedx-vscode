@@ -23,14 +23,12 @@ export type CommonOptions = {
 export type ApexDiagnostic = {
   lineNumber?: number;
   columnNumber?: number;
-  exceptionMessage: string;
-  compileProblem: string;
-  exceptionStackTrace: string;
+  exceptionMessage?: string;
+  compileProblem?: string;
+  exceptionStackTrace?: string;
   className?: string;
 };
 
-export type QueryResult<T = QueryRecord> = { records: T[] };
-type QueryRecord = { Id: string };
 export type QueryRecords = {
   totalSize: number;
   records: IdRecord[];

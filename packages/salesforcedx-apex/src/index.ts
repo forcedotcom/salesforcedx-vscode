@@ -12,6 +12,7 @@ export type { ExecuteAnonymousResponse, ApexExecuteOptions } from './execute/typ
 export { ExecuteService } from './execute/executeService';
 export { LogService } from './logs/logService';
 export type { ApexLogGetOptions, LogRecord, LogResult } from './logs/types';
+export { ApexClassId, ApexLogId, ApexTriggerId, SalesforceId, TestRunId, UserId } from './schemas/salesforceId';
 export { JUnitReporter } from './reporters/junitReporter';
 export { TapReporter } from './reporters/tapReporter';
 export { HumanReporter } from './reporters/humanReporter';
@@ -25,7 +26,10 @@ export type {
   ApexCodeCoverage,
   ApexCodeCoverageRecord,
   ApexCodeCoverageAggregate,
-  ApexCodeCoverageAggregateRecord,
+  ApexCodeCoverageAggregateRecord
+} from './effect/schema/wire/coverage';
+export type { CodeCoverageResult, PerClassCoverage } from './effect/coverageSchemas';
+export type {
   ApexTestQueueItem,
   ApexTestQueueItemRecord,
   ApexTestQueueItemStatus,
@@ -37,16 +41,14 @@ export type {
   ApexTestSetupData,
   AsyncTestArrayConfiguration,
   AsyncTestConfiguration,
-  CodeCoverageResult,
   OutputDirConfig,
   ResultFormat,
   SyncTestConfiguration,
-  TestItem,
   TestLevel,
+  TestItem,
   TestResult,
   TestResultRaw,
   TestRunIdResult,
-  TestSuiteMembershipRecord,
-  PerClassCoverage
+  TestSuiteMembershipRecord
 } from './tests/types';
 export type { ApexDiagnostic, CommonOptions, LogLevel } from './utils/types';

@@ -12,6 +12,9 @@ import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
 import { type TestResult } from '../../src';
 import { writeAsyncResultsToFile } from '../../src/tests/asyncTests';
+import { salesforceId } from '../schemaHelpers';
+
+const asyncApexJobId = salesforceId('707000000000001AAA');
 
 describe('writeAsyncResultsToFile', () => {
   let tempDir: string;
@@ -44,23 +47,23 @@ describe('writeAsyncResultsToFile', () => {
       hostname: 'test-host',
       orgId: '00D000000000000EAA',
       username: 'test@example.com',
-      testRunId: 'async-test-run-123',
+      testRunId: '707000000000003AAA',
       userId: '005000000000000AAA'
     },
     tests: [
       {
-        id: '01p000000000001AAA',
+        id: '07M000000000001AAA',
         queueItemId: '709000000000001AAA',
         stackTrace: null as string | null,
         message: null as string | null,
-        asyncApexJobId: '707000000000001AAA',
+        asyncApexJobId,
         methodName: 'testAsyncMethod1',
         outcome: 'Pass',
         apexLogId: null as string | null,
         apexClass: {
           id: '01p000000000001AAA',
           name: 'AsyncTestClass1',
-          namespacePrefix: null as unknown as string,
+          namespacePrefix: null,
           fullName: 'AsyncTestClass1'
         },
         runTime: 750,
@@ -68,18 +71,18 @@ describe('writeAsyncResultsToFile', () => {
         fullName: 'AsyncTestClass1.testAsyncMethod1'
       },
       {
-        id: '01p000000000002AAA',
+        id: '07M000000000002AAA',
         queueItemId: '709000000000002AAA',
         stackTrace: 'System.AssertException: Async test assertion failed',
         message: 'Async test failed',
-        asyncApexJobId: '707000000000001AAA',
+        asyncApexJobId,
         methodName: 'testAsyncMethod2',
         outcome: 'Fail',
         apexLogId: '07L000000000001AAA',
         apexClass: {
           id: '01p000000000002AAA',
           name: 'AsyncTestClass2',
-          namespacePrefix: null as unknown as string,
+          namespacePrefix: null,
           fullName: 'AsyncTestClass2'
         },
         runTime: 450,
@@ -99,7 +102,7 @@ describe('writeAsyncResultsToFile', () => {
 
     const content = await readFile(expectedPath, 'utf8');
     const parsedContent = JSON.parse(content);
-    expect(parsedContent.summary.testRunId).toBe('async-test-run-123');
+    expect(parsedContent.summary.testRunId).toBe('707000000000003AAA');
     expect(parsedContent.tests).toHaveLength(2);
     expect(parsedContent.tests[0].methodName).toBe('testAsyncMethod1');
     expect(parsedContent.tests[1].methodName).toBe('testAsyncMethod2');
@@ -182,7 +185,7 @@ describe('writeAsyncResultsToFile', () => {
         hostname: 'test-host',
         orgId: '00D000000000000EAA',
         username: 'test@example.com',
-        testRunId: 'empty-test-run',
+        testRunId: '707000000000004AAA',
         userId: '005000000000000AAA'
       },
       tests: []
@@ -214,7 +217,7 @@ describe('writeAsyncResultsToFile', () => {
 
     const content = await readFile(expectedPath, 'utf8');
     const parsedContent = JSON.parse(content);
-    expect(parsedContent.summary.testRunId).toBe('async-test-run-123');
+    expect(parsedContent.summary.testRunId).toBe('707000000000003AAA');
 
     // Cleanup
     await rm(join(tmpdir(), runId), { recursive: true, force: true });
@@ -247,14 +250,14 @@ describe('writeAsyncResultsToFile', () => {
         queueItemId: `709000000000${i.toString().padStart(3, '0')}AAA`,
         stackTrace: i % 5 === 0 ? 'Stack trace for failed test' : (null as string | null),
         message: i % 5 === 0 ? 'Test failed' : (null as string | null),
-        asyncApexJobId: '707000000000001AAA',
+        asyncApexJobId,
         methodName: `testMethod${i}`,
         outcome: i % 5 === 0 ? 'Fail' : 'Pass',
         apexLogId: null as string | null,
         apexClass: {
           id: `01p00000000000${i.toString().padStart(4, '0')}AAA`,
           name: `TestClass${i}`,
-          namespacePrefix: null as unknown as string,
+          namespacePrefix: null,
           fullName: `TestClass${i}`
         },
         runTime: i % 1000,
@@ -299,7 +302,7 @@ describe('writeAsyncResultsToFile', () => {
 
       const content = await readFile(expectedPath, 'utf8');
       const parsedContent = JSON.parse(content);
-      expect(parsedContent.summary.testRunId).toBe('async-test-run-123');
+      expect(parsedContent.summary.testRunId).toBe('707000000000003AAA');
 
       // Cleanup
       await rm(join(tmpdir(), runId), { recursive: true, force: true });
@@ -345,23 +348,23 @@ describe('writeAsyncResultsToFile', () => {
         hostname: 'test-host',
         orgId: '00D000000000000EAA',
         username: 'test@example.com',
-        testRunId: 'null-test-run',
+        testRunId: '707000000000005AAA',
         userId: '005000000000000AAA'
       },
       tests: [
         {
-          id: '01p000000000001AAA',
+          id: '07M000000000001AAA',
           queueItemId: '709000000000001AAA',
           stackTrace: null as string | null,
           message: null as string | null,
-          asyncApexJobId: '707000000000001AAA',
+          asyncApexJobId,
           methodName: 'testWithNulls',
           outcome: 'Pass',
           apexLogId: null as string | null,
           apexClass: {
             id: '01p000000000001AAA',
             name: 'TestClassWithNulls',
-            namespacePrefix: null as unknown as string,
+            namespacePrefix: null,
             fullName: 'TestClassWithNulls'
           },
           runTime: 250,

@@ -8,11 +8,8 @@
 // exported for use in other packages
 export const SEND_METRIC_GENERAL_EVENT = 'sendMetricGeneral';
 export const SEND_METRIC_ERROR_EVENT = 'sendMetricError';
-export const COMPOSITE_BATCH_URL = 'services/data/v43.0/tooling/composite/batch';
-export const OVERLAY_ACTION_DELETE_URL = 'services/data/v43.0/tooling/sobjects/ApexExecutionOverlayAction/';
 export const EXTENT_TRIGGER_PREFIX = 'Trigger.';
 export const SEND_METRIC_LAUNCH_EVENT = 'sendMetricLaunch';
-export const QUERY_URL = 'services/data/v43.0/tooling/query';
 
 // local (used only inside this package)
 export const ADDRESS_PREFIX = '0x';
@@ -31,7 +28,6 @@ export const EVENT_VF_APEX_CALL_END = 'VF_APEX_CALL_END';
 export const EVENT_VARIABLE_SCOPE_BEGIN = 'VARIABLE_SCOPE_BEGIN';
 export const EVENT_VARIABLE_ASSIGNMENT = 'VARIABLE_ASSIGNMENT';
 export const EXEC_ANON_SIGNATURE = 'execute_anonymous_apex';
-export const SOBJECTS_URL = 'services/data/v43.0/tooling/sobjects';
 export const SFDC_TRIGGER = '__sfdc_trigger/';
 export const LC_APEX_PRIMITIVE_BLOB = 'blob';
 export const LC_APEX_PRIMITIVE_BOOLEAN = 'boolean';

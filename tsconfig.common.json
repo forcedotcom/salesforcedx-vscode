@@ -19,7 +19,8 @@
     "declarationMap": true,
     "isolatedModules": true,
     "paths": {
-      "salesforcedx-vscode-services": ["./packages/salesforcedx-vscode-services/out/src/index.d.ts"]
+      "salesforcedx-vscode-services": ["./packages/salesforcedx-vscode-services/out/src/index.d.ts"],
+      "salesforcedx-vscode-services/src/*": ["./packages/salesforcedx-vscode-services/out/src/*"]
     },
     "noImplicitAny": true,
     // TODO: cleanup unknown usage in catch blocks and remove below setting

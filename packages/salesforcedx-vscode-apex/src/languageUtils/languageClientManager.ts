@@ -164,7 +164,7 @@ const removeApexDB = (): Promise<void> =>
     getRuntime().runPromise
   );
 
-export class LanguageClientManager {
+class LanguageClientManager {
   private static instance: LanguageClientManager;
   private clientInstance: ApexLanguageClient | undefined;
   private status: LanguageClientStatus;

@@ -32,7 +32,7 @@ import { disposeRuntime, getRuntime } from './services/runtime';
 const capabilitySettingsChanged = (event: vscode.ConfigurationChangeEvent): boolean =>
   event.affectsConfiguration('salesforcedx-vscode-apex.advanced.capabilities');
 
-export const activate = async (context: vscode.ExtensionContext) => {
+export const activate = async (context: vscode.ExtensionContext): Promise<ApexVSCodeApi> => {
   setAllServicesLayer(buildAllServicesLayer(context, nls.localize('channel_name')));
   await getRuntime().runPromise(activateEffect(context));
   return {
@@ -113,5 +113,12 @@ export type ApexVSCodeApi = {
   getExceptionBreakpointInfo: typeof getExceptionBreakpointInfo;
   gatherOpenAPIContext: typeof gatherOpenAPIContext;
   isOpenAPIEligible: typeof isOpenAPIEligible;
-  languageClientManager: typeof languageClientManager;
+  languageClientManager: {
+    getStatus: () => {
+      failedToInitialize: () => boolean;
+      getStatusMessage: () => string;
+      isReady: () => boolean;
+    };
+    getClientInstance: () => unknown;
+  };
 };

@@ -48,7 +48,7 @@ export type ApexOASClassDetail = {
   comment: string;
 };
 
-export type ApexOASPropertyDetail = {
+type ApexOASPropertyDetail = {
   name: string;
   type: string;
   documentSymbol: DocumentSymbol;
@@ -66,7 +66,7 @@ export type ApexOASMethodDetail = {
   comment: string;
 };
 
-export type ApexOASInterface = {
+type ApexOASInterface = {
   name: string;
   uri: string;
   methods: DocumentSymbol[];
