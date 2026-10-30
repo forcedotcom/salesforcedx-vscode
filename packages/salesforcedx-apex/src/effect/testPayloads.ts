@@ -5,11 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { BuildAsyncPayloadOptions, BuildSyncPayloadOptions } from './schema/testPayloads';
 import type { Connection } from '@salesforce/core';
 import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';
-import * as HashSet from 'effect/HashSet';
 import * as Match from 'effect/Match';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
@@ -23,10 +21,15 @@ import {
 } from '../tests/types';
 import { ApexOperationError } from './errors';
 import { queryNamespaces } from './namespaces';
+import {
+  type BuildAsyncPayloadOptions,
+  type BuildSyncPayloadOptions,
+  SyncTestItemsSchema
+} from './schema/testPayloads';
 import { parseDottedName, parseTestSelection, resolveTestSelection, testItemFromSelection } from './testSelection';
 
 const classItem = (className: string): TestItem =>
-  Match.value(parseDottedName(className)).pipe(
+  Match.value(parseDottedName(className.trim())).pipe(
     Match.tag('UnqualifiedName', ({ name }) =>
       Schema.is(ApexClassId)(name) ? { classId: name } : { className: name }
     ),
@@ -35,7 +38,7 @@ const classItem = (className: string): TestItem =>
   );
 
 const classPayload = (classNames: string, skipCodeCoverage: boolean, flow: boolean): AsyncTestArrayConfiguration => ({
-  tests: classNames.split(',').map(name => (flow ? { className: name } : classItem(name))),
+  tests: classNames.split(',').map(name => (flow ? { className: name.trim() } : classItem(name))),
   testLevel: 'RunSpecifiedTests',
   skipCodeCoverage
 });
@@ -50,7 +53,7 @@ const buildTestPayload = Effect.fn('Apex.buildTestPayload')(function* (
   return yield* Effect.forEach(
     testNames.split(','),
     Effect.fn('Apex.parseTestSelection')(function* (test) {
-      const selection = parseTestSelection(test);
+      const selection = parseTestSelection(test.trim());
       return yield* Match.value(selection).pipe(
         Match.tag('AmbiguousApex', selection =>
           namespaceInfos.pipe(Effect.map(infos => resolveTestSelection(selection, infos)))
@@ -94,38 +97,28 @@ const buildTestPayload = Effect.fn('Apex.buildTestPayload')(function* (
 });
 
 /** Builds a synchronous runner payload without executing tests. */
-export const buildSyncPayload = Effect.fn('Apex.buildSyncPayload')(function* (
-  connection: Connection,
-  options: BuildSyncPayloadOptions
-) {
-  const { testLevel, tests, classNames, category, skipCodeCoverage = false } = options;
-  if (tests) {
-    return yield* buildTestPayload(connection, tests, skipCodeCoverage).pipe(Effect.flatMap(validateSyncPayload));
-  }
-  if (classNames && category) {
-    return yield* validateSyncPayload(classPayload(classNames, skipCodeCoverage, true));
-  }
-  if (classNames)
-    return { tests: [classItem(classNames)], testLevel, skipCodeCoverage } satisfies SyncTestConfiguration;
-  if (category) return { testLevel, category: category.split(','), skipCodeCoverage } satisfies SyncTestConfiguration;
-  return yield* new ApexOperationError({
-    operation: 'buildSyncPayload',
-    message: messages.payloadErr
-  });
-});
-
-const validateSyncPayload = Effect.fn('Apex.validateSyncPayload')(function* (payload: AsyncTestArrayConfiguration) {
-  const classNames = HashSet.fromIterable(
-    payload.tests.map(item => item.className).filter(Schema.is(Schema.NonEmptyString))
-  );
-  if (HashSet.size(classNames) !== 1) {
+export const buildSyncPayload = Effect.fn('Apex.buildSyncPayload')(
+  function* (connection: Connection, options: BuildSyncPayloadOptions) {
+    const { testLevel, tests, classNames, category, skipCodeCoverage = false } = options;
+    if (tests) return yield* buildTestPayload(connection, tests, skipCodeCoverage);
+    if (classNames && category) return classPayload(classNames, skipCodeCoverage, true);
+    if (classNames)
+      return {
+        tests: classNames.split(',').map(classItem),
+        testLevel,
+        skipCodeCoverage
+      } satisfies SyncTestConfiguration;
+    if (category) return { testLevel, category: category.split(','), skipCodeCoverage } satisfies SyncTestConfiguration;
     return yield* new ApexOperationError({
       operation: 'buildSyncPayload',
-      message: messages.syncClassErr
+      message: messages.payloadErr
     });
-  }
-  return payload;
-});
+  },
+  Effect.tap(payload => ('tests' in payload ? Schema.decodeUnknown(SyncTestItemsSchema)(payload.tests) : Effect.void)),
+  Effect.catchTag('ParseError', cause =>
+    Effect.fail(new ApexOperationError({ operation: 'buildSyncPayload', message: cause.message }))
+  )
+);
 
 /** Builds an asynchronous runner payload without executing tests. */
 export const buildAsyncPayload = Effect.fn('Apex.buildAsyncPayload')(function* (
