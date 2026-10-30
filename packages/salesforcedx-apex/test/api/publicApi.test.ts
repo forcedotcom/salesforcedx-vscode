@@ -49,6 +49,10 @@ describe('@salesforce/apex-node public API', () => {
       './effect': {
         types: './out/src/effect/index.d.ts',
         default: './out/src/effect/index.js'
+      },
+      './execute-anonymous-compat': {
+        types: './out/src/executeAnonymousCompat.d.ts',
+        default: './out/src/executeAnonymousCompat.js'
       }
     });
   });

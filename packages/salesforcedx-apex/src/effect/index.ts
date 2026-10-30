@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { ExecuteAnonymousOptionsSchema, ExecuteAnonymousOutcomeSchema, executeAnonymous } from './executeAnonymous';
-export type { ExecuteAnonymousOptions, ExecuteAnonymousOutcome } from './executeAnonymous';
+export { ExecuteAnonymousOptionsSchema, ExecuteAnonymousOutcomeSchema, executeAnonymous } from './executeAnonymous.js';
+export type { ExecuteAnonymousOptions, ExecuteAnonymousOutcome } from './executeAnonymous.js';
 export {
   ApexCompileError,
   ApexOperationError,
   ApexResponseDecodeError,
   ApexRuntimeError,
   causeMessage
-} from './errors';
+} from './errors.js';

@@ -85,6 +85,7 @@ All files in each package belong to its WI below; no source/test import is exemp
 | Package / paths | WI |
 | --- | --- |
 | `salesforcedx-apex`, shared domain/schema prerequisites | W-24615048 |
+| `salesforcedx-vscode-services/src/core/executeAnonymousCompat.ts`, temporary Apex Promise/data boundary | W-24615048 introduces; W-24615069 removes |
 | `salesforcedx-vscode-services`: config/alias/settings/fs/workspace and foundational schemas | W-24615055 |
 | `salesforcedx-vscode-services`: connection/default-org and live compatibility binding | W-24615059 |
 | `salesforcedx-vscode-services`: project/catalog/registry/source tracking | W-24615060 |
@@ -106,6 +107,15 @@ All files in each package belong to its WI below; no source/test import is exemp
 | Remaining V3 dependency/import gates, coding skills/examples | W-24615101 |
 
 Current tracked census identifies **29 packages** with imports or direct dependencies, including the private V3 compatibility implementation added by W-24615046. Do not treat these counts as permanent gates: rerun at each boundary and reconcile new paths. The script excludes quoted test source inside strings from real imports; test-fixture migration still belongs to its package WI.
+
+### Apex prerequisite and temporary V3 caller
+
+W-24615048 migrates Apex's `/effect` entry before `ExecuteAnonymousService` moves
+to V4. Until W-24615069, the services caller uses
+`@salesforce/apex-node/execute-anonymous-compat`: a private migration-only
+Promise/AbortSignal/data protocol, not a foreign runnable Effect. See
+[Apex packaging and transitional contract](apex-effect-v4.md). No earlier services
+graph migration or second execution implementation.
 
 Rechecked after the stack rebase onto `1af06c186d`: the census still contains 28
 packages, now including `salesforcedx-vscode-services-v2` and excluding the removed

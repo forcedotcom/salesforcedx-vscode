@@ -5,12 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  executeAnonymous,
-  type ApexCompileError,
-  type ApexRuntimeError,
-  type ExecuteAnonymousOutcome
-} from '@salesforce/apex-node/effect';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
@@ -18,6 +12,12 @@ import type { URI } from 'vscode-uri';
 import { ExecuteAnonymousError } from '../errors/executeAnonymousErrors';
 import { ChannelService } from '../vscode/channelService';
 import { ConnectionService } from './connectionService';
+import {
+  executeAnonymous,
+  type ApexCompileError,
+  type ApexRuntimeError,
+  type ExecuteAnonymousOutcome
+} from './executeAnonymousCompat';
 
 /** Discriminated outcomes; diagnostics exist only on their matching failures. */
 export type ExecuteAnonymousResult =

@@ -1,0 +1,16 @@
+{
+  "name": "@salesforce/apex-v4-consumer-fixture",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "allowScripts": {
+    "node@22.0.0": true
+  },
+  "dependencies": {
+    "@salesforce/apex-node": "file:./apex.tgz",
+    "@types/node": "24.19.2",
+    "effect": "4.0.6",
+    "node": "22.0.0",
+    "typescript": "6.0.3"
+  }
+}

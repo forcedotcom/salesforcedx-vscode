@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { isNullable } from 'effect/Predicate';
+import { isNullish } from 'effect/Predicate';
 import { CLASS_ID_PREFIX, TEST_RUN_ID_PREFIX } from '../tests/constants';
 import { type TestResult, type TestRunIdResult } from '../tests/types';
 
@@ -12,7 +12,7 @@ export const isTestResult = (result: TestResult | TestRunIdResult): result is Te
   'summary' in result && 'tests' in result && result.summary !== undefined && result.tests !== undefined;
 
 export const isEmpty = (value: string | number): boolean =>
-  isNullable(value) || (typeof value === 'string' && value.length === 0);
+  isNullish(value) || (typeof value === 'string' && value.length === 0);
 
 export const isValidTestRunID = (testRunId: string): boolean =>
   isValidSalesforceId(testRunId) && testRunId.startsWith(TEST_RUN_ID_PREFIX);

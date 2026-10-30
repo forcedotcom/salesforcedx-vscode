@@ -50,7 +50,7 @@ const queryNsRecords = <A>(query: () => PromiseLike<{ records: readonly A[] }>) 
 
 const installedNsRecords = (connection: Connection) =>
   queryNsRecords(() => connection.query<NsPrefixRecord>('SELECT NamespacePrefix FROM PackageLicense')).pipe(
-    Effect.orElse(() =>
+    Effect.catchTag('NamespaceQueryError', () =>
       Effect.map(
         queryNsRecords(() =>
           connection.tooling.query<InstalledSubscriberRecord>(
@@ -60,12 +60,12 @@ const installedNsRecords = (connection: Connection) =>
         records => records.map(rec => ({ NamespacePrefix: rec.SubscriberPackage.NamespacePrefix }))
       )
     ),
-    Effect.orElseSucceed(() => emptyNsRecords)
+    Effect.catchTag('NamespaceQueryError', () => Effect.succeed(emptyNsRecords))
   );
 
 const orgNsRecords = (connection: Connection) =>
   queryNsRecords(() => connection.query<NsPrefixRecord>('SELECT NamespacePrefix FROM Organization')).pipe(
-    Effect.orElseSucceed(() => emptyNsRecords)
+    Effect.catchTag('NamespaceQueryError', () => Effect.succeed(emptyNsRecords))
   );
 
 const toNamespaceInfo =

@@ -9,16 +9,17 @@ import type { HttpRequest } from '@jsforce/jsforce-node';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
-import { action, soapBody, soapEnv, soapHeader } from '../execute/types';
-import { encodeBody } from '../execute/utils';
-import { messages } from '../i18n/i18n';
+import * as SchemaGetter from 'effect/SchemaGetter';
+import { action, soapBody, soapEnv, soapHeader } from '../execute/types.js';
+import { encodeBody } from '../execute/utils.js';
+import { messages } from '../i18n/i18n.js';
 import {
   ApexCompileError,
   ApexOperationError,
   ApexResponseDecodeError,
   ApexRuntimeError,
   causeMessage
-} from './errors';
+} from './errors.js';
 
 const operation = 'executeAnonymous';
 class ApexRequestError extends Schema.TaggedError<ApexRequestError>()('ApexRequestError', {
@@ -27,7 +28,7 @@ class ApexRequestError extends Schema.TaggedError<ApexRequestError>()('ApexReque
 }) {}
 
 /** Apex source selected by the caller; file and terminal input belong to the host. */
-export const ExecuteAnonymousOptionsSchema = Schema.Struct({ apexCode: Schema.String }).annotations({
+export const ExecuteAnonymousOptionsSchema = Schema.Struct({ apexCode: Schema.String }).annotate({
   identifier: 'ExecuteAnonymousOptions'
 });
 export type ExecuteAnonymousOptions = typeof ExecuteAnonymousOptionsSchema.Type;
@@ -40,35 +41,45 @@ const resultFields = {
   exceptionMessage: Schema.NullOr(Schema.String),
   exceptionStackTrace: Schema.NullOr(Schema.String)
 };
-const ExecutionResultSchema = Schema.Union(
+const ExecutionResultSchema = Schema.Union([
   Schema.Struct({ ...resultFields, compiled: Schema.Literal(false), success: Schema.Literal(false) }),
   Schema.Struct({ ...resultFields, compiled: Schema.Literal(true), success: Schema.Literal(false) }),
   Schema.Struct({ ...resultFields, compiled: Schema.Literal(true), success: Schema.Literal(true) })
-);
+]);
 export const ExecuteAnonymousOutcomeSchema = Schema.Struct({
   compiled: Schema.Literal(true),
   success: Schema.Literal(true),
   line: Schema.Number,
   column: Schema.Number,
   logBody: Schema.optional(Schema.String)
-}).annotations({ identifier: 'ExecuteAnonymousOutcome' });
+}).annotate({ identifier: 'ExecuteAnonymousOutcome' });
 export type ExecuteAnonymousOutcome = typeof ExecuteAnonymousOutcomeSchema.Type;
 
 // Generic Connection.request uses xml2js: nil elements retain their attributes; empty elements may be {}.
-const SoapText = Schema.transform(
-  Schema.Union(
-    Schema.String,
-    Schema.Struct({ $: Schema.Struct({ 'xsi:nil': Schema.Literal('true') }) }),
-    Schema.Record({ key: Schema.String, value: Schema.Never })
-  ),
-  Schema.NullOr(Schema.String),
-  {
-    strict: true,
-    decode: value => (typeof value === 'string' ? value : null),
-    encode: value => value ?? { $: { 'xsi:nil': 'true' as const } }
-  }
+const SoapText = Schema.Union([
+  Schema.String,
+  Schema.Struct({ $: Schema.Struct({ 'xsi:nil': Schema.Literal('true') }) }),
+  Schema.Record(Schema.String, Schema.Never)
+]).pipe(
+  Schema.decodeTo(Schema.NullOr(Schema.String), {
+    decode: SchemaGetter.transform(value => (typeof value === 'string' ? value : null)),
+    encode: SchemaGetter.transform(value => value ?? { $: { 'xsi:nil': 'true' as const } })
+  })
 );
-const SoapInteger = Schema.Union(Schema.Int, Schema.NumberFromString.pipe(Schema.int()));
+// V3 rejects empty/whitespace numeric text; V4's NumberFromString alone coerces it to zero.
+const SoapInteger = Schema.Union([
+  Schema.Int,
+  Schema.String.check(Schema.isPattern(/\S/)).pipe(
+    Schema.decodeTo(Schema.NumberFromString),
+    Schema.check(Schema.isInt())
+  )
+]);
+const SoapBoolean = Schema.Literals(['true', 'false']).pipe(
+  Schema.decodeTo(Schema.Boolean, {
+    decode: SchemaGetter.transform(value => value === 'true'),
+    encode: SchemaGetter.transform(value => (value ? 'true' : 'false'))
+  })
+);
 const SoapResponseSchema = Schema.Struct({
   [soapEnv]: Schema.Struct({
     [soapHeader]: Schema.optional(
@@ -77,8 +88,8 @@ const SoapResponseSchema = Schema.Struct({
     [soapBody]: Schema.Struct({
       executeAnonymousResponse: Schema.Struct({
         result: Schema.Struct({
-          compiled: Schema.BooleanFromString,
-          success: Schema.BooleanFromString,
+          compiled: SoapBoolean,
+          success: SoapBoolean,
           line: SoapInteger,
           column: SoapInteger,
           compileProblem: SoapText,
@@ -106,19 +117,19 @@ const buildRequest = (connection: Connection, code: string): HttpRequest => {
 
 const InvalidSessionErrorSchema = Schema.Struct({
   name: Schema.Literal('ERROR_HTTP_500'),
-  message: Schema.String.pipe(Schema.pattern(/INVALID_SESSION_ID/))
+  message: Schema.String.check(Schema.isPattern(/INVALID_SESSION_ID/))
 });
 const isInvalidSession = Schema.is(InvalidSessionErrorSchema);
 
 const parseResponse = (response: unknown) =>
-  Schema.decodeUnknown(SoapResponseSchema)(response).pipe(
+  Schema.decodeUnknownEffect(SoapResponseSchema)(response).pipe(
     Effect.flatMap(({ [soapEnv]: envelope }) =>
-      Schema.decodeUnknown(ExecutionResultSchema)(envelope[soapBody].executeAnonymousResponse.result).pipe(
+      Schema.decodeUnknownEffect(ExecutionResultSchema)(envelope[soapBody].executeAnonymousResponse.result).pipe(
         // Keep absent and empty logs distinct for the class/CLI response contract.
         Effect.map(result => ({ ...result, logBody: envelope[soapHeader]?.DebuggingInfo?.debugLog }))
       )
     ),
-    Effect.catchTag('ParseError', cause =>
+    Effect.catchTag('SchemaError', cause =>
       Effect.fail(
         new ApexResponseDecodeError({
           operation,
@@ -129,7 +140,7 @@ const parseResponse = (response: unknown) =>
     )
   );
 
-type DecodedExecutionResult = Effect.Effect.Success<ReturnType<typeof parseResponse>>;
+type DecodedExecutionResult = Effect.Success<ReturnType<typeof parseResponse>>;
 
 const refineExecutionResult = Effect.fn('Apex.refineExecutionResult')(function* (result: DecodedExecutionResult) {
   if (!result.compiled) {
@@ -173,8 +184,8 @@ export const executeAnonymous = Effect.fn('Apex.executeAnonymous')(function* (
   connection: Connection,
   options: ExecuteAnonymousOptions
 ) {
-  const { apexCode } = yield* Schema.decodeUnknown(ExecuteAnonymousOptionsSchema)(options).pipe(
-    Effect.catchTag('ParseError', cause => Effect.fail(operationError(cause, messages.optionExecAnonError)))
+  const { apexCode } = yield* Schema.decodeUnknownEffect(ExecuteAnonymousOptionsSchema)(options).pipe(
+    Effect.catchTag('SchemaError', cause => Effect.fail(operationError(cause, messages.optionExecAnonError)))
   );
   return yield* sendRequest(connection, apexCode).pipe(
     // Only the first SOAP session fault triggers refresh. Rebuild the request after the token changes.
