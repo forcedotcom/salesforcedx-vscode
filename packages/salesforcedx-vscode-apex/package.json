@@ -346,7 +346,7 @@
             "enabled",
             "disabled"
           ],
-          "default": "enabled",
+          "default": "disabled",
           "description": "%apex_capability_code_lenses_description%"
         },
         "salesforcedx-vscode-apex.advanced.capabilities.completions": {
