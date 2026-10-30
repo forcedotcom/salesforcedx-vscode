@@ -379,6 +379,11 @@
     },
     "test:effect-v3-bridge": {
       "command": "node scripts/test-effect-v3-bridge.mjs",
+      "env": {
+        "RUNNER_TEMP": {
+          "external": true
+        }
+      },
       "dependencies": [
         "./packages/salesforcedx-vscode-services-v3-compat:compile",
         "./packages/salesforcedx-vscode-services-v2:compile"
@@ -395,6 +400,11 @@
     },
     "test:packed-services": {
       "command": "node scripts/test-packed-services.mjs",
+      "env": {
+        "RUNNER_TEMP": {
+          "external": true
+        }
+      },
       "dependencies": [
         "./packages/salesforcedx-vscode-services-types:compile",
         "./packages/salesforcedx-vscode-services-v2:compile"

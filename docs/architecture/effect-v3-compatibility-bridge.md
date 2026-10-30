@@ -69,3 +69,10 @@ org acknowledgments, mutation policy, overrides and redaction. A deliberately
 interruptible test-host control reproduces the stale-write bug prevented by masking.
 Node/browser-target bundles retain the expected physical runtimes; browser-target
 unit bundles execute under Node. Actual desktop/web E2E comes from GitHub.
+
+Packed installations use `RUNNER_TEMP` when supplied, otherwise OS temp, and reject
+storage inside the checkout. On hosted Windows, OS temp is on the system volume;
+runner temp is working storage ([runner I/O issue](https://github.com/actions/runner-images/issues/8755)).
+Each fixture still owns fresh node_modules. Windows uses Node's bundled npm CLI
+when that file exists, avoiding a shell wrapper; install timings are logged.
+No audit, dependency, typecheck, timeout or job-budget checks are disabled.
