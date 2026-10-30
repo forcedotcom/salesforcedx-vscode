@@ -139,6 +139,7 @@
     "test:manual-test-plan": "wireit",
     "test:scripts": "wireit",
     "test:effect-v4-compat": "wireit",
+    "test:effect-v3-bridge": "wireit",
     "test:packed-services": "wireit",
     "test-vsix": "ts-node scripts/installVSIXFromBranch.ts code",
     "test:container:local": "wireit",
@@ -207,6 +208,7 @@
         "./packages/salesforcedx-vscode-metadata:compile",
         "./packages/salesforcedx-vscode-services-types:compile",
         "./packages/salesforcedx-vscode-services-v2:compile",
+        "./packages/salesforcedx-vscode-services-v3-compat:compile",
         "./packages/salesforcedx-vscode-org:compile",
         "./packages/salesforcedx-vscode-org-browser:compile",
         "./packages/drivable-vscode:compile",
@@ -240,6 +242,7 @@
         "./packages/salesforcedx-vscode-visualforce:lint",
         "./packages/salesforcedx-vscode-services:lint",
         "./packages/salesforcedx-vscode-services-v2:lint",
+        "./packages/salesforcedx-vscode-services-v3-compat:lint",
         "./packages/salesforcedx-vscode-metadata:lint",
         "./packages/salesforcedx-vscode-org:lint",
         "./packages/salesforcedx-vscode-org-browser:lint",
@@ -263,6 +266,7 @@
         "test:manual-test-plan",
         "test:scripts",
         "test:effect-v4-compat",
+        "test:effect-v3-bridge",
         "test:packed-services",
         "./packages/eslint-local-rules:test",
         "./packages/salesforcedx-utils:test",
@@ -373,6 +377,22 @@
       ],
       "output": []
     },
+    "test:effect-v3-bridge": {
+      "command": "node scripts/test-effect-v3-bridge.mjs",
+      "dependencies": [
+        "./packages/salesforcedx-vscode-services-v3-compat:compile",
+        "./packages/salesforcedx-vscode-services-v2:compile"
+      ],
+      "files": [
+        "scripts/test-effect-v3-bridge.mjs",
+        "scripts/packedServicesFixtures.mjs",
+        "test/fixtures/effect-v4/bridgeHost/*.{ts,json}",
+        "test/fixtures/effect-v4/bridgeConsumer/*.{ts,mjs,json}",
+        "package.json",
+        "pnpm-lock.yaml"
+      ],
+      "output": []
+    },
     "test:packed-services": {
       "command": "node scripts/test-packed-services.mjs",
       "dependencies": [
@@ -381,6 +401,7 @@
       ],
       "files": [
         "scripts/test-packed-services.mjs",
+        "scripts/packedServicesFixtures.mjs",
         "test/fixtures/effect-v4/packedLegacy/*.{ts,json}",
         "test/fixtures/effect-v4/packedV2/*.{ts,json}",
         "test/fixtures/effect-v4/packedMixed/*.{ts,json}",
@@ -600,6 +621,7 @@
         "./packages/salesforcedx-vscode-metadata:check:effect-diagnostics",
         "./packages/salesforcedx-vscode-services-types:check:effect-diagnostics",
         "./packages/salesforcedx-vscode-services-v2:check:effect-diagnostics",
+        "./packages/salesforcedx-vscode-services-v3-compat:check:effect-diagnostics",
         "./packages/salesforcedx-vscode-org:check:effect-diagnostics",
         "./packages/salesforcedx-vscode-org-browser:check:effect-diagnostics",
         "./packages/drivable-vscode:check:effect-diagnostics",
