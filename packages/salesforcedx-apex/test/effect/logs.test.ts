@@ -6,7 +6,6 @@
  */
 
 import type { Connection } from '@salesforce/core';
-import * as Chunk from 'effect/Chunk';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
@@ -159,7 +158,7 @@ describe('Effect Apex logs', () => {
       streamLogs(connection, {
         schedule: Schedule.recurs(1),
         filterLogs: logs => Effect.succeed(logs.filter(item => item.Id !== log('skip').Id))
-      }).pipe(Stream.runCollect, Effect.map(Chunk.toReadonlyArray))
+      }).pipe(Stream.runCollect)
     );
     expect(events.map(event => event._tag)).toEqual(['QueryError', 'BodyError', 'Log']);
     expect(request.mock.calls.map(([options]) => options.url.split('/').at(-2))).toEqual([
@@ -199,8 +198,7 @@ describe('Effect Apex logs', () => {
     request.mockRejectedValueOnce(new Error('body unavailable'));
     const events = await Effect.runPromise(
       streamLogs(connection, { schedule: Schedule.recurs(0) }).pipe(
-        Stream.runCollect,
-        Effect.map(Chunk.toReadonlyArray)
+        Stream.runCollect
       )
     );
     expect(events).toMatchObject([
@@ -217,8 +215,7 @@ describe('Effect Apex logs', () => {
     queryMore.mockRejectedValue(new Error('queryMore unavailable'));
     const events = await Effect.runPromise(
       streamLogs(connection, { schedule: Schedule.recurs(0) }).pipe(
-        Stream.runCollect,
-        Effect.map(Chunk.toReadonlyArray)
+        Stream.runCollect
       )
     );
     expect(events.map(event => event._tag)).toEqual(['Log', 'QueryError']);
@@ -237,7 +234,7 @@ describe('Effect Apex logs', () => {
         });
         const fiber = yield* streamLogs(connection, { schedule: Schedule.recurs(0) }).pipe(
           Stream.runForEach(event => Effect.sync(() => events(event))),
-          Effect.fork
+          Effect.forkChild
         );
         yield* Deferred.await(started);
         yield* Fiber.interrupt(fiber);

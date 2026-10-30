@@ -6,17 +6,15 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { ApexClassIdString } from '../../../schemas/salesforceId';
+import { ApexClassIdString } from '../../../schemas/salesforceId.js';
 import {
   ApexClassOrTriggerIdSchema,
   CoverageLineCountSchema,
   CoverageLinesSchema,
   CoveragePercentSchema
-} from '../coverage';
+} from '../coverage.js';
 
-const ApexClassOrTriggerSchema = Schema.Struct({ Id: ApexClassOrTriggerIdSchema, Name: Schema.String }).pipe(
-  Schema.mutable
-);
+const ApexClassOrTriggerSchema = Schema.Struct({ Id: ApexClassOrTriggerIdSchema, Name: Schema.String });
 
 export const ApexCodeCoverageRecordSchema = Schema.Struct({
   ApexClassOrTrigger: ApexClassOrTriggerSchema,
@@ -25,18 +23,14 @@ export const ApexCodeCoverageRecordSchema = Schema.Struct({
   NumLinesCovered: CoverageLineCountSchema,
   NumLinesUncovered: CoverageLineCountSchema,
   Coverage: Schema.optional(CoverageLinesSchema)
-})
-  .pipe(Schema.mutable)
-  .annotations({ identifier: 'ApexCodeCoverageRecord' });
+}).annotate({ identifier: 'ApexCodeCoverageRecord' });
 export type ApexCodeCoverageRecord = typeof ApexCodeCoverageRecordSchema.Type;
 
 export const ApexCodeCoverageSchema = Schema.Struct({
   done: Schema.Boolean,
   totalSize: Schema.Number,
   records: Schema.mutable(Schema.Array(ApexCodeCoverageRecordSchema))
-})
-  .pipe(Schema.mutable)
-  .annotations({ identifier: 'ApexCodeCoverage' });
+}).annotate({ identifier: 'ApexCodeCoverage' });
 export type ApexCodeCoverage = typeof ApexCodeCoverageSchema.Type;
 
 export const ApexCodeCoverageAggregateRecordSchema = Schema.Struct({
@@ -44,29 +38,24 @@ export const ApexCodeCoverageAggregateRecordSchema = Schema.Struct({
   NumLinesCovered: CoverageLineCountSchema,
   NumLinesUncovered: CoverageLineCountSchema,
   Coverage: CoverageLinesSchema
-})
-  .pipe(Schema.mutable)
-  .annotations({ identifier: 'ApexCodeCoverageAggregateRecord' });
+}).annotate({ identifier: 'ApexCodeCoverageAggregateRecord' });
 export type ApexCodeCoverageAggregateRecord = typeof ApexCodeCoverageAggregateRecordSchema.Type;
 
 export const ApexCodeCoverageAggregateSchema = Schema.Struct({
   done: Schema.Boolean,
   totalSize: Schema.Number,
   records: Schema.mutable(Schema.Array(ApexCodeCoverageAggregateRecordSchema))
-})
-  .pipe(Schema.mutable)
-  .annotations({ identifier: 'ApexCodeCoverageAggregate' });
+}).annotate({ identifier: 'ApexCodeCoverageAggregate' });
 export type ApexCodeCoverageAggregate = typeof ApexCodeCoverageAggregateSchema.Type;
 
 export const ApexOrgWideCoverageSchema = Schema.Struct({
   done: Schema.Boolean,
   totalSize: Schema.Number,
-  records: Schema.mutable(Schema.Array(Schema.Struct({ PercentCovered: Schema.String }).pipe(Schema.mutable)))
+  records: Schema.mutable(Schema.Array(Schema.Struct({ PercentCovered: Schema.String })))
 })
-  .pipe(Schema.mutable)
-  .annotations({ identifier: 'ApexOrgWideCoverage' });
+  .annotate({ identifier: 'ApexOrgWideCoverage' });
 export type ApexOrgWideCoverage = typeof ApexOrgWideCoverageSchema.Type;
 
 export const ApexOrgWideCoverageQueryRecordSchema = Schema.Struct({
   PercentCovered: CoveragePercentSchema
-}).annotations({ identifier: 'ApexOrgWideCoverageRecord' });
+}).annotate({ identifier: 'ApexOrgWideCoverageRecord' });

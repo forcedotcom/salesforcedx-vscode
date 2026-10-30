@@ -6,24 +6,23 @@
  */
 
 import type { Connection } from '@salesforce/core';
-import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
 import * as Option from 'effect/Option';
-import type { ParseError } from 'effect/ParseResult';
 import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
+import * as Result from 'effect/Result';
 import type * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { causeMessage } from './errors';
-import { ApexLogBodyFetchError, ApexLogQueryError } from './schema/errors';
+import { causeMessage } from './errors.js';
+import { ApexLogBodyFetchError, ApexLogQueryError } from './schema/errors.js';
 import {
   ListLogsOptionsSchema,
   type DecodedListLogsOptions,
   type ListLogsOptions,
   type LogStreamEvent as LogStreamEventShape
-} from './schema/logs';
-import { ApexLogPageSchema, type ApexLogListItem } from './schema/wire/logs';
+} from './schema/logs.js';
+import { ApexLogPageSchema, type ApexLogListItem } from './schema/wire/logs.js';
 
 const buildListLogsQuery = (options?: DecodedListLogsOptions): string => {
   const userIds = options?.userIds ?? [];
@@ -46,7 +45,7 @@ const buildListLogsQuery = (options?: DecodedListLogsOptions): string => {
 
 const streamLogPagesForSoql = (connection: Connection, soql: string) => {
   const initialNextRecordsUrl: string | undefined = undefined;
-  return Stream.paginateEffect<string | undefined, readonly ApexLogListItem[], ApexLogQueryError | ParseError, never>(
+  return Stream.paginate<string | undefined, readonly ApexLogListItem[], ApexLogQueryError | Schema.SchemaError, never>(
     initialNextRecordsUrl,
     nextRecordsUrl =>
       Effect.tryPromise({
@@ -56,28 +55,24 @@ const streamLogPagesForSoql = (connection: Connection, soql: string) => {
           ),
         catch: cause => new ApexLogQueryError({ soql, message: causeMessage(cause), cause })
       }).pipe(
-        Effect.flatMap(Schema.decodeUnknown(ApexLogPageSchema)),
+        Effect.flatMap(Schema.decodeUnknownEffect(ApexLogPageSchema)),
         Effect.map(
           page =>
-            [page.records, page.done ? Option.none<string>() : Option.some(page.nextRecordsUrl)] satisfies readonly [
-              readonly ApexLogListItem[],
-              Option.Option<string>
-            ]
-        )
+            [[page.records], page.done ? Option.none() : Option.some(page.nextRecordsUrl)] as const
+          )
       )
   );
 };
 
 const streamLogPages = (connection: Connection, options?: ListLogsOptions) =>
-  Schema.decodeUnknown(ListLogsOptionsSchema)(options ?? {}).pipe(
+  Schema.decodeUnknownEffect(ListLogsOptionsSchema)(options ?? {}).pipe(
     Effect.map(decodedOptions => streamLogPagesForSoql(connection, buildListLogsQuery(decodedOptions)))
   );
 
 /** Lists logs using the caller's connection, following Tooling API query pages. */
 export const listLogs = Effect.fn('Apex.listLogs')(function* (connection: Connection, options?: ListLogsOptions) {
   return yield* streamLogPages(connection, options).pipe(
-    Effect.flatMap(pages => pages.pipe(Stream.flatMap(Stream.fromIterable), Stream.runCollect)),
-    Effect.map(Chunk.toReadonlyArray)
+    Effect.flatMap(pages => pages.pipe(Stream.flatMap(Stream.fromIterable), Stream.runCollect))
   );
 });
 
@@ -97,7 +92,7 @@ export type LogStreamEvent = LogStreamEventShape;
 
 export type StreamLogsOptions<R = never, ScheduleOutput = unknown> = {
   /** Receives the void poll result; the caller-defined schedule output is ignored. */
-  readonly schedule: Schedule.Schedule<ScheduleOutput, void, R>;
+  readonly schedule: Schedule.Schedule<ScheduleOutput, void, never, R>;
   /** None skips this poll. The initial poll is index 0; later polls follow the schedule. */
   readonly pollOptions?: (pollIndex: number) => Effect.Effect<Option.Option<ListLogsOptions>, never, R>;
   /** Host-owned filtering/deduplication happens before requesting a body. */
@@ -128,7 +123,7 @@ const pollLogs = <R, ScheduleOutput>(
     ),
     Stream.catchTags({
       ApexLogQueryError: error => pipe(error, queryErrorEvent, Stream.succeed),
-      ParseError: error => pipe(error, queryErrorEvent, Stream.succeed)
+      SchemaError: error => pipe(error, queryErrorEvent, Stream.succeed)
     })
   );
 };
@@ -138,9 +133,9 @@ export const streamLogs = <R, ScheduleOutput>(
   connection: Connection,
   options: StreamLogsOptions<R, ScheduleOutput>
 ): Stream.Stream<LogStreamEvent, never, R> =>
-  Stream.repeatEffectWithSchedule(Effect.void, options.schedule).pipe(
+  Stream.fromEffectSchedule(Effect.void, options.schedule).pipe(
     Stream.zipWithIndex,
     Stream.mapEffect(([, index]) => options.pollOptions?.(index) ?? Effect.succeed(Option.some({}))),
-    Stream.filterMap(value => value),
+    Stream.filterMap(value => Result.fromOption(value, () => undefined)),
     Stream.flatMap(filters => pollLogs(connection, options, filters))
   );

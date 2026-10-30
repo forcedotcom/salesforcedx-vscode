@@ -10,18 +10,16 @@ import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import { encodeBody } from '../execute/utils';
-import { messages } from '../i18n/i18n';
-import { causeMessage } from './errors';
+import { encodeBody } from '../execute/utils.js';
+import { messages } from '../i18n/i18n.js';
 import {
   ApexCompileError,
   ApexOperationError,
-  ApexRequestError,
   ApexResponseDecodeError,
   ApexRuntimeError,
-  InvalidSessionError
-} from './schema/errors';
-import { ExecuteAnonymousOptionsSchema, type ExecuteAnonymousOptions } from './schema/executeAnonymous';
+  causeMessage
+} from './errors.js';
+import { ApexRequestError, InvalidSessionError } from './schema/errors.js';
 import {
   executeAnonymousAction,
   executionResultSchema,
@@ -30,10 +28,24 @@ import {
   soapEnv,
   soapHeader,
   soapResponseSchema
-} from './schema/wire/executeAnonymous';
+} from './schema/wire/executeAnonymous.js';
 
 const operation = 'executeAnonymous';
 const optionalLogBody = (logBody: string | undefined) => (isUndefined(logBody) ? {} : { logBody });
+
+/** Apex source selected by the caller; file and terminal input belong to the host. */
+export const ExecuteAnonymousOptionsSchema = Schema.Struct({ apexCode: Schema.String }).annotate({
+  identifier: 'ExecuteAnonymousOptions'
+});
+export type ExecuteAnonymousOptions = typeof ExecuteAnonymousOptionsSchema.Type;
+
+/** Successful anonymous Apex execution returned by the SOAP endpoint. */
+export const ExecuteAnonymousOutcomeSchema = Schema.Struct({
+  compiled: Schema.Literal(true),
+  success: Schema.Literal(true),
+  logBody: Schema.optional(Schema.String)
+}).annotate({ identifier: 'ExecuteAnonymousOutcome' });
+export type ExecuteAnonymousOutcome = typeof ExecuteAnonymousOutcomeSchema.Type;
 
 const operationError = (cause: unknown, message = causeMessage(cause)): ApexOperationError =>
   new ApexOperationError({ operation, message, cause: causeMessage(cause) });
@@ -50,13 +62,13 @@ const buildRequest = (connection: Connection, code: string): HttpRequest => {
 };
 
 const parseResponse = (response: unknown) =>
-  Schema.decodeUnknown(soapResponseSchema)(response).pipe(
+  Schema.decodeUnknownEffect(soapResponseSchema)(response).pipe(
     Effect.flatMap(({ [soapEnv]: envelope }) =>
-      Schema.decodeUnknown(executionResultSchema)(envelope[soapBody].executeAnonymousResponse.result).pipe(
+      Schema.decodeUnknownEffect(executionResultSchema)(envelope[soapBody].executeAnonymousResponse.result).pipe(
         Effect.map(result => ({ ...result, ...optionalLogBody(envelope[soapHeader]?.DebuggingInfo?.debugLog) }))
       )
     ),
-    Effect.catchTag('ParseError', cause =>
+    Effect.catchTag('SchemaError', cause =>
       Effect.fail(
         new ApexResponseDecodeError({
           operation,
@@ -67,7 +79,7 @@ const parseResponse = (response: unknown) =>
     )
   );
 
-type DecodedExecutionResult = Effect.Effect.Success<ReturnType<typeof parseResponse>>;
+type DecodedExecutionResult = Effect.Success<ReturnType<typeof parseResponse>>;
 
 const refineExecutionResult = Effect.fn('Apex.refineExecutionResult')(function* (result: DecodedExecutionResult) {
   if (!result.compiled) {
@@ -112,8 +124,8 @@ export const executeAnonymous = Effect.fn('Apex.executeAnonymous')(function* (
   connection: Connection,
   options: ExecuteAnonymousOptions
 ) {
-  const { apexCode } = yield* Schema.decodeUnknown(ExecuteAnonymousOptionsSchema)(options).pipe(
-    Effect.catchTag('ParseError', cause => Effect.fail(operationError(cause, messages.optionExecAnonError)))
+  const { apexCode } = yield* Schema.decodeUnknownEffect(ExecuteAnonymousOptionsSchema)(options).pipe(
+    Effect.catchTag('SchemaError', cause => Effect.fail(operationError(cause, messages.optionExecAnonError)))
   );
   return yield* sendRequest(connection, apexCode).pipe(
     // Only the first SOAP session fault triggers refresh. Rebuild the request after the token changes.
@@ -128,10 +140,7 @@ export const executeAnonymous = Effect.fn('Apex.executeAnonymous')(function* (
     ),
     Effect.catchTag('ApexRequestError', error =>
       Effect.fail(
-        operationError(
-          error.message,
-          messages.unexpectedExecuteCommandError.replace('%s', () => error.message)
-        )
+        operationError(error.message, messages.unexpectedExecuteCommandError.replace('%s', () => error.message))
       )
     ),
     Effect.flatMap(parseResponse),

@@ -26,6 +26,7 @@ export function getDiagnostic(record: SyncTestFailure | ApexTestResultRecord): A
   );
   return {
     ...diagnostic,
+    compileProblem: diagnostic.compileProblem ?? '',
     exceptionMessage: diagnostic.exceptionMessage ?? '',
     exceptionStackTrace: diagnostic.exceptionStackTrace ?? ''
   };

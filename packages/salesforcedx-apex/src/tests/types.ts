@@ -7,6 +7,7 @@
 
 import type { SyncTestConfigurationSchema, TestItemSchema } from '../effect/schema/testPayloads';
 import * as Schema from 'effect/Schema';
+import type { Mutable } from '../utils/mutable';
 import { CodeCoverageResultSchema, PerClassCoverageSchema } from '../effect/coverageSchemas';
 import { ApexDiagnosticSchema } from '../effect/diagnostics';
 import {
@@ -36,13 +37,13 @@ export type { CodeCoverageResult, PerClassCoverage } from '../effect/coverageSch
  * - `RunAllTestsInOrg`: all local and managed-package tests
  * - `RunSpecifiedTests`: only explicitly selected tests
  */
-export const TestLevelSchema = Schema.Literal('RunLocalTests', 'RunAllTestsInOrg', 'RunSpecifiedTests').annotations({
+export const TestLevelSchema = Schema.Literals(['RunLocalTests', 'RunAllTestsInOrg', 'RunSpecifiedTests']).annotate({
   identifier: 'TestLevel'
 });
 export type TestLevel = typeof TestLevelSchema.Type;
 
 /** Test implementation category. */
-export const TestCategorySchema = Schema.Literal('Apex', 'Flow');
+export const TestCategorySchema = Schema.Literals(['Apex', 'Flow']);
 export type TestCategory = Schema.Schema.Type<typeof TestCategorySchema>;
 
 export type AsyncTestConfiguration = {
@@ -86,7 +87,7 @@ export type AsyncTestConfiguration = {
   category?: string[];
 };
 
-export const ResultFormatSchema = Schema.Literal('junit', 'tap', 'json', 'human', 'markdown', 'text').annotations({
+export const ResultFormatSchema = Schema.Literals(['junit', 'tap', 'json', 'human', 'markdown', 'text']).annotate({
   identifier: 'ResultFormat'
 });
 export type ResultFormat = typeof ResultFormatSchema.Type;
@@ -94,14 +95,14 @@ export type ResultFormat = typeof ResultFormatSchema.Type;
 export const ResultFormatsSchema = ResultFormatSchema.pipe(
   Schema.Array,
   Schema.UndefinedOr,
-  Schema.annotations({ identifier: 'ResultFormats' })
+  Schema.annotate({ identifier: 'ResultFormats' })
 );
 
-const ResultFileFormatSchema = Schema.Literal('junit', 'tap', 'json', 'markdown', 'text').pipe(
-  Schema.annotations({ identifier: 'ResultFileFormat' })
+const ResultFileFormatSchema = Schema.Literals(['junit', 'tap', 'json', 'markdown', 'text']).pipe(
+  Schema.annotate({ identifier: 'ResultFileFormat' })
 );
 export const ResultFileFormatsSchema = Schema.Array(ResultFileFormatSchema).pipe(
-  Schema.annotations({ identifier: 'ResultFileFormats' })
+  Schema.annotate({ identifier: 'ResultFileFormats' })
 );
 
 export type OutputDirConfig = {
@@ -171,8 +172,8 @@ export type SyncTestResult = {
   totalTime: number;
 };
 
-export const ApexTestResultOutcomeSchema = Schema.Literal('Pass', 'Fail', 'CompileFail', 'Skip').pipe(
-  Schema.annotations({ identifier: 'ApexTestResultOutcome' })
+export const ApexTestResultOutcomeSchema = Schema.Literals(['Pass', 'Fail', 'CompileFail', 'Skip']).pipe(
+  Schema.annotate({ identifier: 'ApexTestResultOutcome' })
 );
 export type ApexTestResultOutcome = Schema.Schema.Type<typeof ApexTestResultOutcomeSchema>;
 
@@ -267,15 +268,7 @@ export type FlowTestResult = {
   records: FlowTestResultRecord[];
 };
 
-export const ApexTestRunResultStatusSchema = Schema.Literal(
-  'Queued',
-  'Processing',
-  'Aborted',
-  'Passed',
-  'Failed',
-  'Completed',
-  'Skipped'
-).pipe(Schema.annotations({ identifier: 'ApexTestRunResultStatus' }));
+export const ApexTestRunResultStatusSchema = Schema.Literals(['Queued', 'Processing', 'Aborted', 'Passed', 'Failed', 'Completed', 'Skipped']).pipe(Schema.annotate({ identifier: 'ApexTestRunResultStatus' }));
 export type ApexTestRunResultStatus = Schema.Schema.Type<typeof ApexTestRunResultStatusSchema>;
 
 export type ApexTestRunResult = {
@@ -351,7 +344,7 @@ export type ApexTestQueueItem = {
 
 const ApexTestResultDataFields = {
   /** Salesforce Apex or Flow test result ID; absent for synchronous results. */
-  id: Schema.optional(Schema.Union(ApexTestResultIdString, FlowTestResultIdString)),
+  id: Schema.optional(Schema.Union([ApexTestResultIdString, FlowTestResultIdString])),
   /** Queue item for async tests; absent for synchronous results. */
   queueItemId: Schema.optional(ApexTestQueueItemIdString),
   /** The Apex stack trace if the test failed; otherwise, null. */
@@ -375,7 +368,7 @@ const ApexTestResultDataFields = {
     namespacePrefix: Schema.NonEmptyString.pipe(Schema.NullOr, Schema.optional),
     /** The full name of the associated ApexClass. */
     fullName: Schema.String
-  }).pipe(Schema.mutable),
+  }),
   /** The time it took the test method to run, in seconds. */
   runTime: Schema.Number,
   /** The start time of the test method. */
@@ -389,21 +382,20 @@ const ApexTestResultDataFields = {
   category: Schema.optional(TestCategorySchema)
 };
 
-export const ApexTestResultDataSchema = Schema.Struct(ApexTestResultDataFields).pipe(
-  Schema.mutable,
-  Schema.annotations({ identifier: 'ApexTestResultData' })
-);
-export type ApexTestResultData = Schema.Schema.Type<typeof ApexTestResultDataSchema>;
+export const ApexTestResultDataSchema = Schema.Struct(ApexTestResultDataFields).annotate({
+  identifier: 'ApexTestResultData'
+});
+export type ApexTestResultData = Mutable<Schema.Schema.Type<typeof ApexTestResultDataSchema>>;
 
 export const ApexTestResultDataRawSchema = Schema.Struct({
   ...ApexTestResultDataFields,
   /** Indicates if the results are for a test setup method. The default is false. */
   isTestSetup: Schema.optional(Schema.Boolean)
-}).pipe(Schema.mutable, Schema.annotations({ identifier: 'ApexTestResultDataRaw' }));
-export type ApexTestResultDataRaw = Schema.Schema.Type<typeof ApexTestResultDataRawSchema>;
+}).annotate({ identifier: 'ApexTestResultDataRaw' });
+export type ApexTestResultDataRaw = Mutable<Schema.Schema.Type<typeof ApexTestResultDataRawSchema>>;
 
 export const ApexTestSetupDataSchema = Schema.Struct({
-  id: Schema.optional(Schema.Union(ApexTestResultIdString, FlowTestResultIdString)),
+  id: Schema.optional(Schema.Union([ApexTestResultIdString, FlowTestResultIdString])),
   stackTrace: Schema.optional(Schema.NonEmptyString),
   message: Schema.optional(Schema.NonEmptyString),
   asyncApexJobId: Schema.optional(TestRunIdString),
@@ -414,13 +406,13 @@ export const ApexTestSetupDataSchema = Schema.Struct({
     name: Schema.String,
     namespacePrefix: Schema.optional(Schema.NonEmptyString),
     fullName: Schema.String
-  }).pipe(Schema.mutable),
+  }),
   testSetupTime: Schema.Number,
   testTimestamp: Schema.optional(Schema.NonEmptyString),
   fullName: Schema.String,
   diagnostic: Schema.optional(ApexDiagnosticSchema)
-}).pipe(Schema.mutable, Schema.annotations({ identifier: 'ApexTestSetupData' }));
-export type ApexTestSetupData = Schema.Schema.Type<typeof ApexTestSetupDataSchema>;
+}).annotate({ identifier: 'ApexTestSetupData' });
+export type ApexTestSetupData = Mutable<Schema.Schema.Type<typeof ApexTestSetupDataSchema>>;
 
 export type TestRunIdResult = {
   testRunId: string;
@@ -450,22 +442,22 @@ export const TestResultSummarySchema = Schema.Struct({
   orgWideCoverage: Schema.optional(Schema.String),
   totalLines: Schema.optional(Schema.Number),
   coveredLines: Schema.optional(Schema.Number)
-}).pipe(Schema.mutable);
+});
 /** Formatted Apex test results written by the test service. */
 export const TestResultSchema = Schema.Struct({
   summary: TestResultSummarySchema,
   tests: Schema.Array(ApexTestResultDataSchema).pipe(Schema.mutable),
   setup: Schema.Array(ApexTestSetupDataSchema).pipe(Schema.mutable, Schema.optional),
   codecoverage: Schema.Array(CodeCoverageResultSchema).pipe(Schema.mutable, Schema.optional)
-}).pipe(Schema.mutable, Schema.annotations({ identifier: 'TestResult' }));
-export type TestResult = Schema.Schema.Type<typeof TestResultSchema>;
+}).annotate({ identifier: 'TestResult' });
+export type TestResult = Mutable<Schema.Schema.Type<typeof TestResultSchema>>;
 
 export const TestResultRawSchema = Schema.Struct({
   summary: TestResultSummarySchema,
   tests: Schema.Array(ApexTestResultDataRawSchema).pipe(Schema.mutable),
   codecoverage: Schema.Array(CodeCoverageResultSchema).pipe(Schema.mutable, Schema.optional)
-}).pipe(Schema.mutable, Schema.annotations({ identifier: 'TestResultRaw' }));
-export type TestResultRaw = Schema.Schema.Type<typeof TestResultRawSchema>;
+}).annotate({ identifier: 'TestResultRaw' });
+export type TestResultRaw = Mutable<Schema.Schema.Type<typeof TestResultRawSchema>>;
 
 export type NamespaceInfo = {
   installedNs: boolean;

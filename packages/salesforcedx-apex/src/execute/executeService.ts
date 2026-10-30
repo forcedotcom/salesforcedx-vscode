@@ -7,7 +7,7 @@
 import type { ApexExecuteOptions, ExecuteAnonymousResponse } from './types';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
-import * as Either from 'effect/Either';
+import * as Result from 'effect/Result';
 import { executeAnonymous } from '../effect';
 import { elapsedTime } from '../utils/elapsedTime';
 
@@ -17,10 +17,10 @@ export class ExecuteService {
 
   @elapsedTime()
   public async executeAnonymous(options: ApexExecuteOptions): Promise<ExecuteAnonymousResponse> {
-    const execution = await executeAnonymous(this.connection, options).pipe(Effect.either, Effect.runPromise);
+    const execution = await executeAnonymous(this.connection, options).pipe(Effect.result, Effect.runPromise);
     // Unwrap typed failures outside the Effect runtime so CLI errors do not acquire a FiberFailure prefix.
-    if (Either.isLeft(execution)) {
-      const error = execution.left;
+    if (Result.isFailure(execution)) {
+      const error = execution.failure;
       switch (error._tag) {
         case 'ApexCompileError':
           return {
@@ -31,7 +31,9 @@ export class ExecuteService {
               {
                 ...(error.line === undefined ? {} : { lineNumber: error.line }),
                 ...(error.column === undefined ? {} : { columnNumber: error.column }),
-                compileProblem: error.compileProblem ?? ''
+                compileProblem: error.compileProblem ?? '',
+                exceptionMessage: '',
+                exceptionStackTrace: ''
               }
             ]
           };
@@ -44,8 +46,9 @@ export class ExecuteService {
               {
                 ...(error.line === undefined ? {} : { lineNumber: error.line }),
                 ...(error.column === undefined ? {} : { columnNumber: error.column }),
-                ...(error.exceptionMessage ? { exceptionMessage: error.exceptionMessage } : {}),
-                ...(error.exceptionStackTrace ? { exceptionStackTrace: error.exceptionStackTrace } : {})
+                compileProblem: '',
+                exceptionMessage: error.exceptionMessage ?? '',
+                exceptionStackTrace: error.exceptionStackTrace ?? ''
               }
             ]
           };
@@ -53,7 +56,7 @@ export class ExecuteService {
           throw new Error(error.message);
       }
     }
-    const result = execution.right;
+    const result = execution.success;
     return {
       compiled: result.compiled,
       success: result.success,

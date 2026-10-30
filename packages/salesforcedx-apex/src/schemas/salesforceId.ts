@@ -8,15 +8,13 @@
 import * as Schema from 'effect/Schema';
 import { messages } from '../i18n/i18n';
 
-const SalesforceIdString = Schema.String.pipe(Schema.pattern(/^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$/));
+const SalesforceIdString = Schema.String.check(Schema.isPattern(/^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$/));
 const prefixedSalesforceIdString = (prefix: string, recordType: string) =>
-  SalesforceIdString.pipe(Schema.startsWith(prefix)).annotations({
-    identifier: `${recordType}Id`,
-    message: () => ({
-      message: `${recordType} ID must contain 15 or 18 alphanumeric characters and start with ${prefix}`,
-      override: true
+  SalesforceIdString.check(
+    Schema.isStartingWith(prefix, {
+      message: `${recordType} ID must contain 15 or 18 alphanumeric characters and start with ${prefix}`
     })
-  });
+  ).annotate({ identifier: `${recordType}Id` });
 
 /** A 15- or 18-character alphanumeric Salesforce record ID. */
 export const SalesforceId = SalesforceIdString.pipe(Schema.brand('@salesforcedx-apex/SalesforceId'));
@@ -46,15 +44,15 @@ export const ApexLogId = ApexLogIdString.pipe(Schema.brand('@salesforcedx-apex/A
 export type ApexLogId = typeof ApexLogId.Type;
 
 /** Salesforce Apex test run ID. */
-export const TestRunIdString = prefixedSalesforceIdString('707', 'AsyncApexJob').annotations({
-  identifier: 'AsyncApexJobId',
-  message: issue => ({
-    message: messages.invalidTestRunIdErr.replace('%s', () =>
-      'actual' in issue && typeof issue.actual === 'string' ? issue.actual : ''
-    ),
-    override: true
-  })
-});
+export const TestRunIdString = Schema.String.check(
+  Schema.makeFilter(
+    input =>
+      /^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$/.test(input) && input.startsWith('707')
+        ? undefined
+        : messages.invalidTestRunIdErr.replace('%s', () => input),
+    { identifier: 'AsyncApexJobId' }
+  )
+).annotate({ identifier: 'AsyncApexJobId' });
 export const TestRunId = TestRunIdString.pipe(Schema.brand('@salesforcedx-apex/TestRunId'));
 export type TestRunId = typeof TestRunId.Type;
 

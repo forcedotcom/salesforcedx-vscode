@@ -8,7 +8,7 @@
 import * as Schema from 'effect/Schema';
 
 const OperationErrorFields = {
-  operation: Schema.NonEmptyTrimmedString,
+  operation: Schema.NonEmptyString.check(Schema.isTrimmed()),
   message: Schema.String,
   cause: Schema.optional(Schema.String)
 };
@@ -26,7 +26,7 @@ export class ApexResponseDecodeError extends Schema.TaggedError<ApexResponseDeco
 ) {}
 
 const AnonymousExecutionErrorFields = {
-  operation: Schema.NonEmptyTrimmedString,
+  operation: Schema.NonEmptyString.check(Schema.isTrimmed()),
   message: Schema.String,
   line: Schema.Number,
   column: Schema.Number,

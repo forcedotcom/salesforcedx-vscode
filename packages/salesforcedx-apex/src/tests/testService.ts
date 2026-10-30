@@ -7,12 +7,10 @@
 import { type Connection } from '@salesforce/core';
 import { type Duration } from '@salesforce/kit';
 import * as Effect from 'effect/Effect';
-import * as Either from 'effect/Either';
-import * as FiberRef from 'effect/FiberRef';
-import * as HashSet from 'effect/HashSet';
 import * as Logger from 'effect/Logger';
 import * as Option from 'effect/Option';
 import { isNotUndefined } from 'effect/Predicate';
+import * as Result from 'effect/Result';
 import * as Schema from 'effect/Schema';
 import { JsonStreamStringify } from 'json-stream-stringify';
 import { createWriteStream } from 'node:fs';
@@ -32,32 +30,27 @@ import { AsyncTests } from './asyncTests';
 import { type CancellationToken } from './cancellation';
 import { formatTestErrors } from './diagnosticUtil';
 import { SyncTests } from './syncTests';
-import {
-  type ApexTestProgressReporter,
-  type AsyncTestArrayConfiguration,
-  type AsyncTestConfiguration,
-  type OutputDirConfig,
-  ResultFileFormatsSchema,
-  ResultFormatsSchema,
-  type SyncTestConfiguration,
-  type TestLevel,
-  type TestResult,
-  TestResultSchema,
-  type TestRunIdResult,
-  type TestSuiteMembershipRecord
-} from './types';
+import type {
+  ApexTestProgressReporter,
+  AsyncTestArrayConfiguration,
+  AsyncTestConfiguration,
+  OutputDirConfig,
+  SyncTestConfiguration,
+  TestLevel,
+  TestResult,
+  TestRunIdResult,
+  TestSuiteMembershipRecord
+} from './apiTypes';
+import { ResultFileFormatsSchema, ResultFormatsSchema } from './types';
 
 const ResultFormatsWithMessageSchema = ResultFormatsSchema.pipe(
-  Schema.annotations({ message: () => ({ message: nls.localize('resultFormatErr'), override: true }) })
+  Schema.annotate({ message: nls.localize('resultFormatErr') })
 );
 const ResultFileFormatsWithMessageSchema = ResultFileFormatsSchema.pipe(
-  Schema.annotations({ message: () => ({ message: nls.localize('resultFileFormatErr'), override: true }) })
+  Schema.annotate({ message: nls.localize('resultFileFormatErr') })
 );
-const assertResultFormats: Schema.Schema.ToAsserts<typeof ResultFormatsWithMessageSchema> =
-  Schema.asserts(ResultFormatsWithMessageSchema);
-const assertResultFileFormats: Schema.Schema.ToAsserts<typeof ResultFileFormatsWithMessageSchema> = Schema.asserts(
-  ResultFileFormatsWithMessageSchema
-);
+const assertResultFormats = Schema.decodeUnknownSync(ResultFormatsWithMessageSchema);
+const assertResultFileFormats = Schema.decodeUnknownSync(ResultFileFormatsWithMessageSchema);
 
 /**
  * Standalone function for writing test result files - easier to test
@@ -75,7 +68,7 @@ export const writeResultFiles = async (
 
   await mkdir(dirPath, { recursive: true });
 
-  const hasTestResult = Schema.is(TestResultSchema)(result);
+  const hasTestResult = 'summary' in result;
   const testRunId = hasTestResult ? result.summary.testRunId : result.testRunId;
   const fileId = testRunId || 'default';
 
@@ -151,7 +144,7 @@ export const writeResultFiles = async (
 
 /** Keeps typed failures as ordinary Promise rejections for existing class consumers. */
 const runTestServiceOperation = async <A, E extends Error>(operation: Effect.Effect<A, E>): Promise<A> =>
-  Either.getOrThrowWith(await operation.pipe(Effect.either, Effect.runPromise), formatTestErrors);
+  Result.getOrThrowWith(await operation.pipe(Effect.result, Effect.runPromise), formatTestErrors);
 
 // Preserve the class API's plain console messages while Effect consumers select their own logger.
 const suiteConsoleLogger = Logger.make(({ message }) => console.log(...(Array.isArray(message) ? message : [message])));
@@ -185,7 +178,7 @@ export class TestService {
   public async getTestsInSuite(suitename?: string, suiteId?: string): Promise<TestSuiteMembershipRecord[]> {
     const suiteIdLookup: Effect.Effect<Option.Option<string>, ApexOperationError | ApexResponseDecodeError> = suitename
       ? retrieveSuiteId(this.connection, suitename)
-      : Effect.succeed(Option.fromNullable(suiteId));
+      : Effect.succeed(Option.fromNullishOr(suiteId));
     return runTestServiceOperation(
       suiteIdLookup.pipe(
         Effect.flatMap(
@@ -200,7 +193,7 @@ export class TestService {
                 })
               ),
             onSome: id =>
-              Schema.decodeUnknown(ApexTestSuiteId)(id).pipe(
+              Schema.decodeUnknownEffect(ApexTestSuiteId)(id).pipe(
                 Effect.mapError(
                   cause =>
                     new ApexResponseDecodeError({
@@ -227,9 +220,7 @@ export class TestService {
   public async buildSuite(suitename: string, testClasses: string[]): Promise<void> {
     return runTestServiceOperation(
       buildSuite(this.connection, suitename, testClasses).pipe(
-        Effect.locallyWith(FiberRef.currentLoggers, loggers =>
-          loggers.pipe(HashSet.remove(Logger.defaultLogger), HashSet.add(suiteConsoleLogger))
-        )
+        Effect.provide(Logger.layer([suiteConsoleLogger]))
       )
     );
   }

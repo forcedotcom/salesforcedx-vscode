@@ -6,6 +6,7 @@
  */
 
 import * as Schema from 'effect/Schema';
+import type { Mutable } from '../utils/mutable.js';
 
 export const ApexDiagnosticSchema = Schema.Struct({
   lineNumber: Schema.optional(Schema.Number),
@@ -14,9 +15,9 @@ export const ApexDiagnosticSchema = Schema.Struct({
   compileProblem: Schema.optional(Schema.NonEmptyString),
   exceptionStackTrace: Schema.optional(Schema.NonEmptyString),
   className: Schema.optional(Schema.String)
-}).pipe(Schema.mutable, Schema.annotations({ identifier: 'ApexDiagnostic' }));
+}).annotate({ identifier: 'ApexDiagnostic' });
 
-export type ApexDiagnostic = typeof ApexDiagnosticSchema.Type;
+export type ApexDiagnostic = Mutable<typeof ApexDiagnosticSchema.Type>;
 
 export const getDiagnostic = (record: { message?: string | null; stackTrace?: string | null }): ApexDiagnostic => {
   const { message, stackTrace } = record;

@@ -6,26 +6,34 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { ApexTestSuiteId, TestRunIdString } from '../../schemas/salesforceId';
+import * as SchemaGetter from 'effect/SchemaGetter';
+import { ApexTestSuiteId, TestRunIdString } from '../../schemas/salesforceId.js';
 
 /** A 15- or 18-character Salesforce record ID. */
-export const SalesforceId = Schema.String.pipe(
-  Schema.pattern(/^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$/),
+export const SalesforceId = Schema.String.check(Schema.isPattern(/^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$/)).pipe(
   Schema.brand('@salesforcedx-apex/SalesforceId')
 );
 export type SalesforceId = typeof SalesforceId.Type;
 
 /** Salesforce ApexClass record ID. */
-export const ApexClassId = SalesforceId.pipe(Schema.startsWith('01p'), Schema.brand('@salesforcedx-apex/ApexClassId'));
+export const ApexClassId = SalesforceId.check(Schema.isStartingWith('01p')).pipe(
+  Schema.brand('@salesforcedx-apex/ApexClassId')
+);
 export type ApexClassId = typeof ApexClassId.Type;
 
 /** Salesforce Apex test run ID. */
 export const TestRunId = TestRunIdString.pipe(Schema.brand('@salesforcedx-apex/TestRunId'));
 export type TestRunId = typeof TestRunId.Type;
 
-export const ApexClassIdsSchema = Schema.compose(Schema.split(','), Schema.Array(ApexClassId)).annotations({
-  description: 'a comma-separated list of 15- or 18-character ApexClass IDs'
-});
-export const ApexTestSuiteIdsSchema = Schema.compose(Schema.split(','), Schema.Array(ApexTestSuiteId)).annotations({
-  description: 'a comma-separated list of 15- or 18-character ApexTestSuite IDs'
-});
+export const ApexClassIdsSchema = Schema.String.pipe(
+  Schema.decodeTo(Schema.Array(ApexClassId), {
+    decode: SchemaGetter.transform(value => value.split(',')),
+    encode: SchemaGetter.transform(values => values.join(','))
+  })
+).annotate({ description: 'a comma-separated list of 15- or 18-character ApexClass IDs' });
+export const ApexTestSuiteIdsSchema = Schema.String.pipe(
+  Schema.decodeTo(Schema.Array(ApexTestSuiteId), {
+    decode: SchemaGetter.transform(value => value.split(',')),
+    encode: SchemaGetter.transform(values => values.join(','))
+  })
+).annotate({ description: 'a comma-separated list of 15- or 18-character ApexTestSuite IDs' });

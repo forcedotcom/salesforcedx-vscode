@@ -94,7 +94,7 @@ const pollUntilComplete = Effect.fn('AsyncTests.pollUntilComplete')(function* <A
       })
   });
 
-  return yield* Stream.repeatEffectWithSchedule(
+  return yield* Stream.fromEffectSchedule(
     pollResult,
     Schedule.spaced(EffectDuration.millis(interval.milliseconds))
   ).pipe(
@@ -341,8 +341,7 @@ export class AsyncTests {
     testsComplete: boolean;
     testRunSummary: ApexTestRunResult;
   }> {
-    const assertTestRunId: Schema.Schema.ToAsserts<typeof TestRunId> = Schema.asserts(TestRunId);
-    assertTestRunId(testRunId);
+    Schema.decodeUnknownSync(TestRunId)(testRunId);
     const hasTestSetupTimeField = await this.supportsTestSetupFeature();
 
     const fields = [

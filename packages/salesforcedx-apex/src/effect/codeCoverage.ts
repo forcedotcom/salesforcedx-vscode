@@ -7,22 +7,22 @@
 
 import type { Connection } from '@salesforce/core';
 import * as Arr from 'effect/Array';
-import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { QUERY_RECORD_LIMIT } from '../tests/constants';
-import { type AggregateCodeCoverageResult, type PerClassCoverage } from './coverageSchemas';
-import { causeMessage } from './errors';
-import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
-import { QueryPageSchema } from './schema/queryPage';
+import { QUERY_RECORD_LIMIT } from '../tests/constants.js';
+import { type AggregateCodeCoverageResult, type PerClassCoverage } from './coverageSchemas.js';
+import { causeMessage } from './errors.js';
+import { ApexOperationError, ApexResponseDecodeError } from './schema/errors.js';
+import { QueryPageSchema } from './schema/queryPage.js';
 import {
   ApexCodeCoverageAggregateRecordSchema,
   ApexCodeCoverageRecordSchema,
   ApexOrgWideCoverageQueryRecordSchema,
   type ApexCodeCoverageRecord
-} from './schema/wire/coverage';
+} from './schema/wire/coverage.js';
 
 const perClassQuery =
   'SELECT ApexTestClassId, ApexClassOrTrigger.Id, ApexClassOrTrigger.Name, TestMethodName, NumLinesCovered, NumLinesUncovered, Coverage FROM ApexCodeCoverage WHERE ApexTestClassId IN (%s)';
@@ -34,33 +34,30 @@ const createQueries = <Id extends string>(query: string, ids: ReadonlySet<Id>): 
     query.replace('%s', () => chunk.map(id => `'${id.replaceAll("'", "\\'")}'`).join(','))
   );
 
-const queryCoverageRecords = <A, I>(
+const queryCoverageRecords = <S extends Schema.ConstraintDecoder<unknown, never>>(
   connection: Connection,
   query: string,
-  recordSchema: Schema.Schema<A, I, never>,
+  recordSchema: S,
   operation: string
 ) => {
   const pageSchema = QueryPageSchema(recordSchema);
-  return Stream.paginateChunkEffect(Option.none<string>(), nextRecordsUrl =>
+  const initialNextRecordsUrl: string | undefined = undefined;
+  return Stream.paginate<string | undefined, S['Type'], ApexOperationError | ApexResponseDecodeError, never>(
+    initialNextRecordsUrl,
+    nextRecordsUrl =>
     Effect.tryPromise({
       try: () =>
         Promise.resolve(
-          Option.match(nextRecordsUrl, {
-            onNone: () => connection.tooling.query(query),
-            onSome: url => connection.tooling.queryMore(url)
-          })
+          isUndefined(nextRecordsUrl) ? connection.tooling.query(query) : connection.tooling.queryMore(nextRecordsUrl)
         ),
       catch: cause => new ApexOperationError({ operation, message: causeMessage(cause), cause: causeMessage(cause) })
     }).pipe(
-      Effect.flatMap(Schema.decodeUnknown(pageSchema)),
+      Effect.flatMap(Schema.decodeUnknownEffect(pageSchema)),
       Effect.map(
         page =>
-          [
-            Chunk.fromIterable(page.records),
-            page.done ? Option.none<Option.Option<string>>() : Option.some(Option.some(page.nextRecordsUrl))
-          ] as const
+          [page.records, page.done ? Option.none() : Option.some(page.nextRecordsUrl)] as const
       ),
-      Effect.catchTag('ParseError', cause =>
+      Effect.catchTag('SchemaError', cause =>
         Effect.fail(
           new ApexResponseDecodeError({
             operation,
@@ -70,7 +67,7 @@ const queryCoverageRecords = <A, I>(
         )
       )
     )
-  ).pipe(Stream.runCollect, Effect.map(Chunk.toArray));
+  ).pipe(Stream.runCollect);
 };
 
 const percentage = (covered: number, total: number): string =>
@@ -108,16 +105,12 @@ export const getPerClassCodeCoverage = Effect.fn('Apex.getPerClassCodeCoverage')
     query => queryCoverageRecords(connection, query, ApexCodeCoverageRecordSchema, 'getPerClassCodeCoverage'),
     { concurrency: 'unbounded' }
   ).pipe(
-    Effect.map(
-      chunks =>
-        new Map<string, PerClassCoverage[]>(
-          Object.entries(
-            Arr.groupBy(
-              chunks.flat().map(toPerClassCoverage),
-              item => `${item.apexTestClassId}-${item.apexTestMethodName}`
-            )
-          )
+    Effect.map(records =>
+      new Map<string, PerClassCoverage[]>(
+        Object.entries(
+          Arr.groupBy(records.flat().map(toPerClassCoverage), item => `${item.apexTestClassId}-${item.apexTestMethodName}`)
         )
+      )
     )
   );
 });
@@ -135,8 +128,8 @@ export const getAggregateCodeCoverage = Effect.fn('Apex.getAggregateCodeCoverage
     query => queryCoverageRecords(connection, query, ApexCodeCoverageAggregateRecordSchema, 'getAggregateCodeCoverage'),
     { concurrency: 'unbounded' }
   ).pipe(
-    Effect.map(chunks => {
-      const records = chunks.flat();
+    Effect.map(recordPages => {
+      const records = recordPages.flat();
       return {
         codeCoverageResults: records.map(item => ({
           apexId: item.ApexClassOrTrigger.Id,

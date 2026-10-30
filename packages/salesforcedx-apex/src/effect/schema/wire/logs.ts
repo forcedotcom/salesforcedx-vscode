@@ -6,23 +6,21 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { ApexLogId, UserId } from '../../../schemas/salesforceId';
-import { QueryPageSchema } from '../queryPage';
+import { ApexLogId, UserId } from '../../../schemas/salesforceId.js';
+import { QueryPageSchema } from '../queryPage.js';
 
 /** ApexLog record from Tooling API query (Id, LogLength, StartTime, Status required per API reference). */
 export const ApexLogListItem = Schema.Struct({
   Id: ApexLogId,
-  Application: Schema.optionalWith(Schema.String, { nullable: true }),
-  DurationMilliseconds: Schema.optionalWith(Schema.Number, { nullable: true }),
+  Application: Schema.optional(Schema.NullOr(Schema.String)),
+  DurationMilliseconds: Schema.optional(Schema.NullOr(Schema.Number)),
   LogLength: Schema.Number,
-  LogUserId: Schema.optionalWith(UserId, { nullable: true }),
-  LogUser: Schema.optionalWith(Schema.Struct({ Name: Schema.optionalWith(Schema.String, { nullable: true }) }), {
-    nullable: true
-  }),
-  Operation: Schema.optionalWith(Schema.String, { nullable: true }),
+  LogUserId: Schema.optional(Schema.NullOr(UserId)),
+  LogUser: Schema.optional(Schema.NullOr(Schema.Struct({ Name: Schema.optional(Schema.NullOr(Schema.String)) }))),
+  Operation: Schema.optional(Schema.NullOr(Schema.String)),
   StartTime: Schema.String,
   Status: Schema.String
-}).annotations({ identifier: 'ApexLogListItem' });
+}).annotate({ identifier: 'ApexLogListItem' });
 export type ApexLogListItem = typeof ApexLogListItem.Type;
 
-export const ApexLogPageSchema = QueryPageSchema(ApexLogListItem).annotations({ identifier: 'ApexLogPage' });
+export const ApexLogPageSchema = QueryPageSchema(ApexLogListItem).annotate({ identifier: 'ApexLogPage' });

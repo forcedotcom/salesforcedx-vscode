@@ -33,4 +33,4 @@ export type {
   TestRunIdResult,
   TestSuiteMembershipRecord,
   PerClassCoverage
-} from './types';
+} from './apiTypes';

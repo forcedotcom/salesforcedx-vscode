@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { NamespaceInfo } from '../tests/types';
+import type { NamespaceInfo } from '../tests/types.js';
 import type { Connection } from '@salesforce/core';
 import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { queryRecords } from './records';
-import { InstalledSubscriberPackageRecordSchema, NamespacePrefixRecordSchema } from './schema/wire/namespaces';
+import { queryRecords } from './records.js';
+import { InstalledSubscriberPackageRecordSchema, NamespacePrefixRecordSchema } from './schema/wire/namespaces.js';
 
 type NsPrefixRecord = typeof NamespacePrefixRecordSchema.Type;
 
@@ -67,8 +67,8 @@ export const queryNamespaces = Effect.fn('Apex.queryNamespaces')(function* (conn
     concurrency: 'unbounded'
   }).pipe(
     Effect.map(([installedRecords, orgRecords]) => [
-      ...Array.filterMap(orgRecords, toNamespaceInfo(false)),
-      ...Array.filterMap(installedRecords, toNamespaceInfo(true))
+      ...Array.getSomes(orgRecords.map(toNamespaceInfo(false))),
+      ...Array.getSomes(installedRecords.map(toNamespaceInfo(true)))
     ])
   );
 });

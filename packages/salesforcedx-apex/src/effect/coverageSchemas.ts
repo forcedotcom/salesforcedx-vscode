@@ -6,13 +6,14 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { ApexClassIdString } from '../schemas/salesforceId';
+import type { Mutable } from '../utils/mutable.js';
+import { ApexClassIdString } from '../schemas/salesforceId.js';
 import {
   ApexClassOrTriggerIdSchema,
   CoverageLineCountSchema,
   CoverageLinesSchema,
   CoverageNumberArraySchema
-} from './schema/coverage';
+} from './schema/coverage.js';
 
 // Keep the mutable arrays and string IDs accepted by existing coverage consumers.
 
@@ -25,30 +26,24 @@ export const PerClassCoverageSchema = Schema.Struct({
   numLinesUncovered: CoverageLineCountSchema,
   percentage: Schema.String,
   coverage: Schema.optional(CoverageLinesSchema)
-})
-  .pipe(Schema.mutable)
-  .annotations({ identifier: 'PerClassCoverage' });
-export type PerClassCoverage = typeof PerClassCoverageSchema.Type;
+}).annotate({ identifier: 'PerClassCoverage' });
+export type PerClassCoverage = Mutable<typeof PerClassCoverageSchema.Type>;
 
 export const CodeCoverageResultSchema = Schema.Struct({
   apexId: ApexClassOrTriggerIdSchema,
   name: Schema.String,
-  type: Schema.Literal('ApexClass', 'ApexTrigger'),
+  type: Schema.Literals(['ApexClass', 'ApexTrigger']),
   numLinesCovered: CoverageLineCountSchema,
   numLinesUncovered: CoverageLineCountSchema,
   percentage: Schema.String,
   coveredLines: CoverageNumberArraySchema,
   uncoveredLines: CoverageNumberArraySchema
-})
-  .pipe(Schema.mutable)
-  .annotations({ identifier: 'CodeCoverageResult' });
-export type CodeCoverageResult = typeof CodeCoverageResultSchema.Type;
+}).annotate({ identifier: 'CodeCoverageResult' });
+export type CodeCoverageResult = Mutable<typeof CodeCoverageResultSchema.Type>;
 
 export const AggregateCodeCoverageResultSchema = Schema.Struct({
   codeCoverageResults: Schema.mutable(Schema.Array(CodeCoverageResultSchema)),
   totalLines: CoverageLineCountSchema,
   coveredLines: CoverageLineCountSchema
-})
-  .pipe(Schema.mutable)
-  .annotations({ identifier: 'AggregateCodeCoverageResult' });
-export type AggregateCodeCoverageResult = typeof AggregateCodeCoverageResultSchema.Type;
+}).annotate({ identifier: 'AggregateCodeCoverageResult' });
+export type AggregateCodeCoverageResult = Mutable<typeof AggregateCodeCoverageResultSchema.Type>;

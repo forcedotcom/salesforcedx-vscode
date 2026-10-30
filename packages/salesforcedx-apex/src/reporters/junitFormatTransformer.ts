@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Logger } from '@salesforce/core';
-import { isNullable, isString } from 'effect/Predicate';
+import { isNull, isString, isUndefined } from 'effect/Predicate';
 import { isEmpty } from 'effect/String';
 import { Readable, type ReadableOptions } from 'node:stream';
 import { type TestResult } from '../tests/types';
@@ -80,7 +80,7 @@ export class JUnitFormatTransformer extends Readable {
     this.pushToBuffer(`${tab}${tab}<properties>\n`);
 
     Object.entries(this.testResult.summary).forEach(([key, value]) => {
-      if (isNullable(value) || (isString(value) && isEmpty(value)) || skippedProperties.has(key)) {
+      if (isNull(value) || isUndefined(value) || (isString(value) && isEmpty(value)) || skippedProperties.has(key)) {
         return;
       }
 

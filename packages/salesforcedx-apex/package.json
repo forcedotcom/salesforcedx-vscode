@@ -15,13 +15,18 @@
     "./effect": {
       "types": "./out/src/effect/index.d.ts",
       "default": "./out/src/effect/index.js"
+    },
+    "./execute-anonymous-compat": {
+      "types": "./out/src/executeAnonymousCompat.d.ts",
+      "default": "./out/src/executeAnonymousCompat.js"
     }
   },
   "dependencies": {
-    "@effect/platform": "^0.96.1",
     "@salesforce/core": "^9.3.0",
     "@salesforce/kit": "^4.0.0",
-    "effect": "^3.21.2",
+    "@types/istanbul-lib-report": "^3.0.3",
+    "@types/istanbul-reports": "^3.0.4",
+    "effect": "4.0.6",
     "fast-glob": "^3.3.2",
     "faye": "1.4.1",
     "istanbul-lib-coverage": "^3.2.2",
@@ -33,8 +38,6 @@
     "@jsforce/jsforce-node": "^3.10.18",
     "@types/node": "^22.15.1",
     "@types/istanbul-lib-coverage": "^2.0.6",
-    "@types/istanbul-lib-report": "^3.0.3",
-    "@types/istanbul-reports": "^3.0.4",
     "@types/sinon": "^17.0.3",
     "prettier": "3.8.3",
     "sinon": "^17.0.1"
@@ -65,7 +68,7 @@
   "versionedIndependently": true,
   "wireit": {
     "schema:update": {
-      "command": "ts-node scripts/generatePublicApiSchema.ts",
+      "command": "tsx scripts/generatePublicApiSchema.ts",
       "files": [
         "scripts/generatePublicApiSchema.ts",
         "src/**/*.ts",
@@ -78,10 +81,11 @@
       ]
     },
     "schema:check": {
-      "command": "ts-node scripts/generatePublicApiSchema.ts --check",
+      "command": "tsx scripts/generatePublicApiSchema.ts --check && node scripts/publicApiSchemaContract.mjs",
       "files": [
         "scripts/generatePublicApiSchema.ts",
         "schemas/public-api.schema.json",
+        "scripts/publicApiSchemaContract.mjs",
         "src/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
@@ -89,11 +93,14 @@
       ]
     },
     "compile": {
-      "command": "tsc --pretty",
+      "command": "tsc --pretty && node scripts/bundleCommonJs.mjs",
       "clean": "if-file-deleted",
       "files": [
         "src/**/*.ts",
         "scripts/**/*.ts",
+        "scripts/bundleCommonJs.mjs",
+        "src/effect/package.json",
+        "../../pnpm-lock.yaml",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json"
@@ -140,10 +147,19 @@
         "out/**",
         "package.json",
         "scripts/verify-packed-web-consumer.mjs",
+        "../../test/fixtures/effect-v4/apexV3/**",
+        "../../test/fixtures/effect-v4/apexV4/**",
+        "../salesforcedx-vscode-services/src/core/executeAnonymousCompat.ts",
+        "../../scripts/packedServicesFixtures.mjs",
         "../../scripts/bundling/*.js",
         "../../scripts/bundling/*.mjs"
       ],
-      "output": []
+      "output": [],
+      "env": {
+        "RUNNER_TEMP": {
+          "external": true
+        }
+      }
     },
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",

@@ -7,7 +7,7 @@
 
 import { type Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
-import * as Either from 'effect/Either';
+import * as Result from 'effect/Result';
 import { isNotUndefined } from 'effect/Predicate';
 import { formatSyncResults, requestSyncTests } from '../effect/syncTests';
 import { nls } from '../i18n';
@@ -15,7 +15,7 @@ import { elapsedTime, getCurrentTime, HeapMonitor } from '../utils';
 import { type CancellationToken } from './cancellation';
 import { CodeCoverage } from './codeCoverage';
 import { formatTestErrors } from './diagnosticUtil';
-import { type SyncTestConfiguration, type TestResult } from './types';
+import { type SyncTestConfiguration, type TestResult } from './apiTypes';
 import { calculateCodeCoverage } from './utils';
 
 export class SyncTests {
@@ -41,15 +41,15 @@ export class SyncTests {
   ): Promise<TestResult> {
     HeapMonitor.getInstance().checkHeapSize('synctests.runTests');
     try {
-      const execution = await requestSyncTests(this.connection, options).pipe(Effect.either, Effect.runPromise);
+      const execution = await requestSyncTests(this.connection, options).pipe(Effect.result, Effect.runPromise);
       // Keep Promise rejections free of the Effect runtime's FiberFailure prefix.
-      if (Either.isLeft(execution)) throw new Error(execution.left.message);
+      if (Result.isFailure(execution)) throw new Error(execution.failure.message);
 
       if (token?.isCancellationRequested) {
         throw new Error(nls.localize('testRunCancelled'));
       }
 
-      return await this.formatSyncResults(execution.right, getCurrentTime(), codeCoverage);
+      return await this.formatSyncResults(execution.success, getCurrentTime(), codeCoverage);
     } catch (e) {
       throw formatTestErrors(e);
     } finally {
@@ -62,11 +62,11 @@ export class SyncTests {
     HeapMonitor.getInstance().checkHeapSize('synctests.formatSyncResults');
     try {
       const formatted = await formatSyncResults(this.connection, apiTestResult, startTime).pipe(
-        Effect.either,
+        Effect.result,
         Effect.runPromise
       );
-      if (Either.isLeft(formatted)) throw new Error(formatted.left.message);
-      return await this.addCodeCoverage(formatted.right, codeCoverage);
+      if (Result.isFailure(formatted)) throw new Error(formatted.failure.message);
+      return await this.addCodeCoverage(formatted.success, codeCoverage);
     } finally {
       HeapMonitor.getInstance().checkHeapSize('synctests.formatSyncResults');
     }
