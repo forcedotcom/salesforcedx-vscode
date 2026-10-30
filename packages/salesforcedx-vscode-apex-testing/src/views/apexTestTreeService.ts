@@ -704,9 +704,9 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
             ),
           NoWorkspaceOpenError: e =>
             Effect.logWarning('Failed to restore previous test results', getMessageFromError(e)),
-          ServicesExtensionNotFoundError: e =>
+          ExtensionNotFoundError: e =>
             Effect.logWarning('Failed to restore previous test results', getMessageFromError(e)),
-          InvalidServicesApiError: e =>
+          ExtensionActivationError: e =>
             Effect.logWarning('Failed to restore previous test results', getMessageFromError(e)),
           MissingSettingsError: e =>
             Effect.logWarning('Failed to restore previous test results', getMessageFromError(e))
