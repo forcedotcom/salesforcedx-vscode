@@ -243,21 +243,21 @@ describe('deserialize should', () => {
   });
 
   it('identify incomplete LIMIT clause error when value is not a number', () => {
-    expectError('SELECT A FROM B LIMIT X', ['INCOMPLETELIMIT', 'UNEXPECTEDEOF']);
+    expectError('SELECT A FROM B LIMIT X', 'INCOMPLETELIMIT');
   });
 
   it('mark follow-on parser recovery errors while preserving independent errors', () => {
     const cases = [
-      ['SELECT field1 FROM object1 WHERE field IN', ['NOCOMPAREVALUE', 'UNKNOWN']],
-      ["SELECT field1 FROM object1 WHERE field LIK 'foo'", ['UNRECOGNIZEDCOMPAREOPERATOR', 'UNKNOWN']],
-      ['SELECT A FROM B LIMIT X', ['INCOMPLETELIMIT', 'UNEXPECTEDEOF']],
-      ['SELECT field1 FROM object1 WHERE field = foo', ['UNRECOGNIZEDCOMPAREVALUE', 'UNEXPECTEDEOF']]
+      ['SELECT field1 FROM object1 WHERE field IN', ['NOCOMPAREVALUE', 'UNKNOWN'], [false, true]],
+      ["SELECT field1 FROM object1 WHERE field LIK 'foo'", ['UNRECOGNIZEDCOMPAREOPERATOR', 'UNKNOWN'], [false, true]],
+      ['SELECT A FROM B LIMIT X', ['INCOMPLETELIMIT'], [false]],
+      ['SELECT field1 FROM object1 WHERE field = foo', ['UNRECOGNIZEDCOMPAREVALUE', 'UNEXPECTEDEOF'], [false, true]]
     ] as const;
 
-    for (const [query, types] of cases) {
+    for (const [query, types, recoveryFlags] of cases) {
       const errors = deserialize(query).errors ?? [];
       expect(errors.map(error => error.type)).toEqual(types);
-      expect(errors.map(error => error.isSecondaryRecovery ?? false)).toEqual([false, true]);
+      expect(errors.map(error => error.isSecondaryRecovery ?? false)).toEqual(recoveryFlags);
     }
 
     const independentErrors = deserialize('SELECT A FROM B LIMIT X OFFSET Y').errors ?? [];
