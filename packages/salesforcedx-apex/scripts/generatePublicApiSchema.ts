@@ -47,6 +47,7 @@ import { join } from 'node:path';
 import * as Prettier from 'prettier';
 import {
   ApexDiagnosticSchema,
+  ApexTestSuiteId,
   ApexCompileError,
   ApexLogListItem,
   ApexLogQueryError,
@@ -289,6 +290,7 @@ const PublicApiSchema = Schema.Union(
   TestResultSchema,
   TestResultRawSchema,
   TestRunIdResultSchema,
+  ApexTestSuiteId,
   TestSuiteSchema,
   TestSuiteMembershipSchema
 ).annotations({

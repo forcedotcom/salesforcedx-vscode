@@ -24,7 +24,7 @@ import * as util from 'node:util';
 import { getDiagnostic } from '../effect/diagnostics';
 import { causeMessage } from '../effect/errors';
 import { ApexOperationError } from '../effect/schema/errors';
-import { TestRunId } from '../effect/schema/salesforceId';
+import { ApexClassIdsSchema, ApexTestSuiteIdsSchema, TestRunId } from '../effect/schema/salesforceId';
 import { nls } from '../i18n';
 import { type AsyncTestRun } from '../streaming';
 import { elapsedTime, formatStartTime, getCurrentTime, HeapMonitor } from '../utils';
@@ -62,6 +62,10 @@ export const writeAsyncResultsToFile = async (formattedResults: TestResult, runI
 };
 
 const finishedStatuses = new Set<ApexTestRunResultStatus>(['Aborted', 'Failed', 'Completed', 'Passed', 'Skipped']);
+const asyncTestIdListsSchema = Schema.Struct({
+  classids: Schema.optional(ApexClassIdsSchema),
+  suiteids: Schema.optional(ApexTestSuiteIdsSchema)
+});
 
 const MIN_VERSION_TO_SUPPORT_TEST_SETUP_METHODS = 61.0;
 const POLLING_FREQUENCY = Duration.seconds(1);
@@ -272,31 +276,29 @@ export class AsyncTests {
   ): Promise<TestResult> {
     HeapMonitor.getInstance().checkHeapSize('asyncTests.reportAsyncResults');
     try {
-      const runResult = await Option.match(
-        await Effect.runPromise(
-          pollUntilComplete(
-            async () => {
-              const runResult = await this.checkRunStatus(testRunId);
-              return {
-                completed: runResult.testsComplete || Boolean(token?.isCancellationRequested),
-                payload: runResult
-              };
-            },
-            POLLING_FREQUENCY,
-            POLLING_TIMEOUT,
-            'AsyncTests.reportAsyncResults'
-          )
-        ),
-        {
-          onNone: () => {
-            throw new ApexOperationError({
-              operation: 'AsyncTests.reportAsyncResults',
-              message: 'Timed out while waiting for the asynchronous test run to complete'
-            });
+      const runResultOption = await Effect.runPromise(
+        pollUntilComplete(
+          async () => {
+            const runResult = await this.checkRunStatus(testRunId);
+            return {
+              completed: runResult.testsComplete || Boolean(token?.isCancellationRequested),
+              payload: runResult
+            };
           },
-          onSome: runResult => runResult
-        }
+          POLLING_FREQUENCY,
+          POLLING_TIMEOUT,
+          'AsyncTests.reportAsyncResults'
+        )
       );
+      const runResult = Option.match(runResultOption, {
+        onNone: () => {
+          throw new ApexOperationError({
+            operation: 'AsyncTests.reportAsyncResults',
+            message: 'Timed out while waiting for the asynchronous test run to complete'
+          });
+        },
+        onSome: runResult => runResult
+      });
 
       if (token?.isCancellationRequested) {
         throw new Error(nls.localize('testRunCancelled'));
@@ -665,6 +667,10 @@ export class AsyncTests {
     options: AsyncTestConfiguration | AsyncTestArrayConfiguration
   ): () => Promise<string> {
     return async (): Promise<string> => {
+      Schema.decodeUnknownSync(asyncTestIdListsSchema)({
+        classids: 'classids' in options ? options.classids : undefined,
+        suiteids: 'suiteids' in options ? options.suiteids : undefined
+      });
       const url = `${this.connection.tooling._baseUrl()}/runTestsAsynchronous`;
 
       return this.connection.tooling.request<string>({

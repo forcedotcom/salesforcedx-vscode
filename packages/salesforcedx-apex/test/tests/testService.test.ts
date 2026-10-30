@@ -131,6 +131,13 @@ describe('Apex Test Suites', () => {
     expect(toolingQueryStub.calledOnce).toBe(true);
   });
 
+  it('should reject an id that is not an ApexTestSuite id', async () => {
+    const testService = new TestService(mockConnection);
+
+    await expect(testService.getTestsInSuite(undefined, '01p000000000005')).rejects.toThrow('Invalid suite id');
+    expect(toolingQueryStub.notCalled).toBe(true);
+  });
+
   it('should retrieve all suites associated with a given username', async () => {
     toolingQueryStub.onFirstCall().resolves({
       records: [{ id: '05F000000000002', TestSuiteName: 'testSuite' }]
