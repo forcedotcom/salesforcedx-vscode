@@ -31,7 +31,7 @@ export class ExecuteService {
               {
                 ...(error.line === undefined ? {} : { lineNumber: error.line }),
                 ...(error.column === undefined ? {} : { columnNumber: error.column }),
-                compileProblem: error.compileProblem ?? ''
+                ...(error.compileProblem ? { compileProblem: error.compileProblem } : {})
               }
             ]
           };

@@ -16,6 +16,7 @@ export const ApexDiagnosticSchema = Schema.Struct({
   className: Schema.optional(Schema.String)
 }).pipe(Schema.mutable, Schema.annotations({ identifier: 'ApexDiagnostic' }));
 
+/** Diagnostic data independent of editor ranges, files, or terminal output. */
 export type ApexDiagnostic = typeof ApexDiagnosticSchema.Type;
 
 export const getDiagnostic = (record: { message?: string | null; stackTrace?: string | null }): ApexDiagnostic => {

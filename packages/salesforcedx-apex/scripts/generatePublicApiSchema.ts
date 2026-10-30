@@ -81,11 +81,13 @@ import {
 import {
   ApexTestResultDataSchema,
   ApexTestResultDataRawSchema,
+  ApexTestResultOutcomeSchema,
+  ApexTestRunResultStatusSchema,
   ApexTestSetupDataSchema,
   ResultFormatSchema,
   TestLevelSchema,
-  TestResultRawSchema,
-  TestResultSchema
+  TestResultSchema,
+  TestResultRawSchema
 } from '../src/tests/types';
 import { CommonOptionsSchema, LogLevelSchema } from '../src/utils/types';
 
@@ -161,20 +163,6 @@ const OutputDirConfigSchema = Schema.Struct({
     content: Schema.Union(Schema.String, Schema.Object)
   }).pipe(Schema.Array, optional)
 }).annotations({ identifier: 'OutputDirConfig' });
-
-const ApexTestResultOutcomeSchema = Schema.Literal('Pass', 'Fail', 'CompileFail', 'Skip').annotations({
-  identifier: 'ApexTestResultOutcome'
-});
-
-const ApexTestRunResultStatusSchema = Schema.Literal(
-  'Queued',
-  'Processing',
-  'Aborted',
-  'Passed',
-  'Failed',
-  'Completed',
-  'Skipped'
-).annotations({ identifier: 'ApexTestRunResultStatus' });
 
 const ApexTestQueueItemStatusSchema = Schema.Literal(
   'Holding',
