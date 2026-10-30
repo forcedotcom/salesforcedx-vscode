@@ -42,6 +42,7 @@
     "salesforcedx-vscode-services": "workspace:*"
   },
   "extensionDependencies": [
+    "salesforce.apex-language-server-extension",
     "salesforce.salesforcedx-vscode-services"
   ],
   "scripts": {
