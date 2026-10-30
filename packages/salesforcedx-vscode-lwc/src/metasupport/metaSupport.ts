@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getExtensionExports } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { isString, isUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
@@ -53,13 +53,21 @@ export const activateMetaSupport = Effect.fn('activateMetaSupport')(function* (e
         pattern: '**/*js-meta.xml'
       }
     ];
-    yield* Effect.tryPromise(async () => {
-      if (!redHatExtension.isActive) {
-        await redHatExtension.activate();
-      }
-      redHatExtension.exports.addXMLCatalogs(catalogs);
-      redHatExtension.exports.addXMLFileAssociations(fileAssociations);
-    }).pipe(Effect.catchAll(() => channelService.appendToChannel(nls.localize('lightning_lwc_fail_redhat_extension'))));
+    yield* getExtensionExports<XMLExtensionApi>('redhat.vscode-xml').pipe(
+      Effect.flatMap(xmlApi =>
+        Effect.try(() => {
+          xmlApi.addXMLCatalogs(catalogs);
+          xmlApi.addXMLFileAssociations(fileAssociations);
+        })
+      ),
+      Effect.catchTags({
+        ExtensionNotFoundError: () =>
+          channelService.appendToChannel(nls.localize('lightning_lwc_no_redhat_extension_found')),
+        ExtensionActivationError: () =>
+          channelService.appendToChannel(nls.localize('lightning_lwc_fail_redhat_extension')),
+        UnknownException: () => channelService.appendToChannel(nls.localize('lightning_lwc_fail_redhat_extension'))
+      })
+    );
   } else if (minor === 15) {
     yield* channelService.appendToChannel(nls.localize('lightning_lwc_redhat_extension_regression'));
   } else {

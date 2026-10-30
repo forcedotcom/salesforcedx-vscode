@@ -12,7 +12,7 @@ import { isError } from 'effect/Predicate';
 // Import from the npm package (symlinked in workspace) - wireit ensures it's compiled first
 export type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
-import * as vscode from 'vscode';
+import { getExtensionExports } from './extensionExports';
 
 export class ServicesExtensionNotFoundError extends Data.TaggedError('ServicesExtensionNotFoundError') {}
 export class InvalidServicesApiError extends Data.TaggedError('InvalidServicesApiError')<{ cause?: Error }> {}
@@ -29,16 +29,12 @@ export type ExtensionProviderService = {
 export const ExtensionProviderService = Context.GenericTag<ExtensionProviderService>('ExtensionProviderService');
 
 /** connect to the Salesforce Services extension and get all of its API services */
-export const getServicesApi = Effect.sync(() =>
-  vscode.extensions.getExtension<SalesforceVSCodeServicesApi>('salesforce.salesforcedx-vscode-services')
+export const getServicesApi = getExtensionExports<SalesforceVSCodeServicesApi>(
+  'salesforce.salesforcedx-vscode-services'
 ).pipe(
-  Effect.flatMap(ext => (ext ? Effect.succeed(ext) : Effect.fail(new ServicesExtensionNotFoundError()))),
-  Effect.flatMap(ext =>
-    ext.isActive
-      ? Effect.sync(() => ext.exports)
-      : Effect.tryPromise({
-          try: () => ext.activate(),
-          catch: e => new InvalidServicesApiError(isError(e) ? { cause: e } : { cause: new Error(String(e)) })
-        })
-  )
+  Effect.catchTags({
+    ExtensionNotFoundError: () => Effect.fail(new ServicesExtensionNotFoundError()),
+    ExtensionActivationError: ({ cause }) =>
+      Effect.fail(new InvalidServicesApiError({ cause: isError(cause) ? cause : new Error(String(cause)) }))
+  })
 );

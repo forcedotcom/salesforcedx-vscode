@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { getExtensionExports } from '@salesforce/effect-ext-utils';
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger';
 import * as Effect from 'effect/Effect';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
@@ -20,18 +21,14 @@ if (!apexExtension) {
 export const salesforceApexExtension = apexExtension;
 
 export const retrieveLineBreakpointInfo = Effect.fn('ApexReplayDebugger.retrieveLineBreakpointInfo')(function* () {
-  if (!salesforceApexExtension.isActive) {
-    yield* Effect.promise(() => salesforceApexExtension.activate());
-  }
-  const isReady = yield* waitForLanguageClientReady(() =>
-    salesforceApexExtension.exports.languageClientManager.getStatus()
-  );
+  const apexApi = yield* getExtensionExports<ApexVSCodeApi>('salesforce.salesforcedx-vscode-apex');
+  const isReady = yield* waitForLanguageClientReady(() => apexApi.languageClientManager.getStatus());
   if (!isReady) {
     const errorMessage = nls.localize('language_client_not_ready');
     yield* Effect.sync(() => writeToDebuggerOutputWindow(errorMessage, 'error'));
     return false;
   }
-  const lineBpInfo = yield* Effect.promise(() => salesforceApexExtension.exports.getLineBreakpointInfo());
+  const lineBpInfo = yield* Effect.promise(() => apexApi.getLineBreakpointInfo());
   if (lineBpInfo?.length) {
     yield* Effect.log(nls.localize('line_breakpoint_information_success'));
     yield* Effect.sync(() => breakpointUtil.createMappingsFromLineBreakpointInfo(lineBpInfo));

@@ -13,6 +13,7 @@ export {
 } from './extensionProvider';
 
 export { buildAllServicesLayer } from './allServicesLayer';
+export { getExtensionExports, ExtensionNotFoundError, ExtensionActivationError } from './extensionExports';
 export { ExtensionPackageJsonSchema, type ExtensionPackageJson } from './extensionPackageJson';
 export { closeExtensionScope, getExtensionScope } from './extensionScope';
 export type { SalesforceVSCodeServicesApi } from './extensionProvider';
