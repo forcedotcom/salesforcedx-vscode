@@ -5,8 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Logger } from '@salesforce/core';
+import { isNullable, isString } from 'effect/Predicate';
+import { isEmpty } from 'effect/String';
 import { Readable, type ReadableOptions } from 'node:stream';
-import { isEmpty } from '../narrowing';
 import { type TestResult } from '../tests/types';
 import { elapsedTime, formatStartTime, HeapMonitor, msToSecond } from '../utils';
 
@@ -79,7 +80,7 @@ export class JUnitFormatTransformer extends Readable {
     this.pushToBuffer(`${tab}${tab}<properties>\n`);
 
     Object.entries(this.testResult.summary).forEach(([key, value]) => {
-      if (isEmpty(value) || skippedProperties.has(key)) {
+      if (isNullable(value) || (isString(value) && isEmpty(value)) || skippedProperties.has(key)) {
         return;
       }
 
@@ -119,9 +120,7 @@ export class JUnitFormatTransformer extends Readable {
       );
 
       if (testCase.outcome === 'Fail' || testCase.outcome === 'CompileFail') {
-        const rawMessage = testCase.message ?? '';
-        let message = isEmpty(rawMessage) ? '' : rawMessage;
-        message = JUnitFormatTransformer.xmlEscape(message);
+        const message = JUnitFormatTransformer.xmlEscape(testCase.message ?? '');
         this.pushToBuffer(`${tab}${tab}${tab}<failure message="${message}">`);
         if (testCase.stackTrace) {
           this.pushToBuffer(`<![CDATA[${testCase.stackTrace}]]>`);

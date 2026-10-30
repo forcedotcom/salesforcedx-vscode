@@ -7,6 +7,12 @@
 
 import * as Schema from 'effect/Schema';
 
+export class ApexLogQueryError extends Schema.TaggedError<ApexLogQueryError>()('ApexLogQueryError', {
+  soql: Schema.String,
+  message: Schema.String,
+  cause: Schema.Unknown
+}) {}
+
 export class ApexLogBodyFetchError extends Schema.TaggedError<ApexLogBodyFetchError>()('ApexLogBodyFetchError', {
   message: Schema.String,
   cause: Schema.optional(Schema.Unknown)

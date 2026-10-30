@@ -55,6 +55,7 @@ export const ExecuteAnonymousOutcomeSchema = Schema.Struct({
 export type ExecuteAnonymousOutcome = typeof ExecuteAnonymousOutcomeSchema.Type;
 
 // Generic Connection.request uses xml2js: nil elements retain their attributes; empty elements may be {}.
+const soapNilText: { $: { 'xsi:nil': 'true' } } = { $: { 'xsi:nil': 'true' } };
 const SoapText = Schema.transform(
   Schema.Union(
     Schema.String,
@@ -65,7 +66,7 @@ const SoapText = Schema.transform(
   {
     strict: true,
     decode: value => (typeof value === 'string' ? value : null),
-    encode: value => value ?? { $: { 'xsi:nil': 'true' as const } }
+    encode: value => value ?? soapNilText
   }
 );
 const SoapInteger = Schema.Union(Schema.Int, Schema.NumberFromString.pipe(Schema.int()));
@@ -153,13 +154,13 @@ const refineExecutionResult = Effect.fn('Apex.refineExecutionResult')(function* 
       logBody: result.logBody
     });
   }
-  return {
-    compiled: true as const,
-    success: true as const,
+  return yield* Effect.succeed<ExecuteAnonymousOutcome>({
+    compiled: true,
+    success: true,
     line: result.line,
     column: result.column,
     logBody: result.logBody
-  };
+  });
 });
 
 const sendRequest = (connection: Connection, code: string) =>
