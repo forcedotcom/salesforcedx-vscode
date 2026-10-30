@@ -1,0 +1,75 @@
+{
+  "name": "@salesforce/vscode-services-v3-compat",
+  "version": "68.9.0",
+  "private": true,
+  "description": "Effect V3 compatibility adapters for the V4-owned Salesforce services runtime",
+  "license": "BSD-3-Clause",
+  "type": "module",
+  "main": "out/index.js",
+  "types": "out/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./out/index.d.ts",
+      "default": "./out/index.js"
+    },
+    "./host": {
+      "types": "./out/compatibilityHost.d.ts",
+      "default": "./out/compatibilityHost.js"
+    }
+  },
+  "files": [
+    "out/**",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=24.18.0"
+  },
+  "dependencies": {
+    "@salesforce/core": "^9.3.6",
+    "effect": "3.21.2"
+  },
+  "scripts": {
+    "compile": "wireit",
+    "lint": "wireit",
+    "check:effect-diagnostics": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --pretty",
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
+        "../../pnpm-lock.yaml",
+        "package.json"
+      ],
+      "output": [
+        "out/**"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color src package.json",
+      "dependencies": [
+        "../eslint-local-rules:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "package.json",
+        "tsconfig.json",
+        "../../eslint.config.mjs"
+      ],
+      "output": []
+    },
+    "check:effect-diagnostics": {
+      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "../../config/effect-diagnostics.json",
+        "../../scripts/effect-diagnostics.mjs"
+      ],
+      "output": []
+    }
+  }
+}

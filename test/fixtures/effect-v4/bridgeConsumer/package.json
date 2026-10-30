@@ -1,0 +1,11 @@
+{
+  "name": "@salesforce/effect-v3-bridge-consumer-fixture",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@types/node": "24.19.2",
+    "effect": "3.21.2",
+    "typescript": "6.0.3"
+  }
+}
