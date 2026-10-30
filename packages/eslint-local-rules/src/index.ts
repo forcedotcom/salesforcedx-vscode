@@ -24,6 +24,7 @@ import { noNestedEffectGenCatchTags } from './noNestedEffectGenCatchTags';
 import { noNestedEffectTernary } from './noNestedEffectTernary';
 import { noRawDuration } from './noRawDuration';
 import { noRuntimeVscodeImport } from './noRuntimeVscodeImport';
+import { noSchemaIsThrowGuard } from './noSchemaIsThrowGuard';
 import { noSelfBarrelImport } from './noSelfBarrelImport';
 import { noStandalonePipeableValue } from './noStandalonePipeableValue';
 import { noSuccessiveAnnotateCurrentSpan } from './noSuccessiveAnnotateCurrentSpan';
@@ -77,6 +78,7 @@ const plugin: TSESLint.FlatConfig.Plugin = {
     'no-nested-effect-gen-catch-tags': noNestedEffectGenCatchTags,
     'no-nested-effect-ternary': noNestedEffectTernary,
     'no-raw-duration': noRawDuration,
+    'no-schema-is-throw-guard': noSchemaIsThrowGuard,
     'no-standalone-pipeable-value': noStandalonePipeableValue,
     'no-unused-i18n-messages': noUnusedI18nMessages,
     'query-builder-html-i18n-keys': queryBuilderHtmlI18nKeys,
