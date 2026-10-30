@@ -51,17 +51,9 @@ export type TestRunId = typeof TestRunId.Type;
 
 /** Salesforce Apex test result ID. */
 export const ApexTestResultIdString = prefixedSalesforceIdString('07M', 'ApexTestResult');
-export const ApexTestResultId = ApexTestResultIdString.pipe(Schema.brand('@salesforcedx-apex/ApexTestResultId'));
-export type ApexTestResultId = typeof ApexTestResultId.Type;
 
 /** Salesforce Flow test result ID. */
 export const FlowTestResultIdString = prefixedSalesforceIdString('2hU', 'FlowTestResult');
-export const FlowTestResultId = FlowTestResultIdString.pipe(Schema.brand('@salesforcedx-apex/FlowTestResultId'));
-export type FlowTestResultId = typeof FlowTestResultId.Type;
 
 /** Salesforce Apex test queue item ID. */
 export const ApexTestQueueItemIdString = prefixedSalesforceIdString('709', 'ApexTestQueueItem');
-export const ApexTestQueueItemId = ApexTestQueueItemIdString.pipe(
-  Schema.brand('@salesforcedx-apex/ApexTestQueueItemId')
-);
-export type ApexTestQueueItemId = typeof ApexTestQueueItemId.Type;

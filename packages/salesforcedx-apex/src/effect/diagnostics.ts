@@ -16,7 +16,7 @@ export const getDiagnostic = (record: { message?: string | null; stackTrace?: st
   return {
     ...(message ? { exceptionMessage: message } : {}),
     ...(stackTrace ? { exceptionStackTrace: stackTrace } : {}),
-    className: stackTrace ? stackTrace.split('.')[1] : undefined,
+    ...(stackTrace ? { className: stackTrace.split('.')[1] } : {}),
     ...(matches?.[2] && { lineNumber: Number(matches[2]) }),
     ...(matches?.[3] && { columnNumber: Number(matches[3]) })
   };

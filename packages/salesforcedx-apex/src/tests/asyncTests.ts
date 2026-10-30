@@ -10,7 +10,7 @@ import { Duration } from '@salesforce/kit';
 import * as EffectDuration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isNotNull, isNull } from 'effect/Predicate';
+import { isNotNull, isNotUndefined, isNull } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -21,6 +21,7 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import * as util from 'node:util';
+import { getDiagnostic } from '../effect/diagnostics';
 import { causeMessage } from '../effect/errors';
 import { ApexOperationError } from '../effect/schema/errors';
 import { TestRunId } from '../effect/schema/salesforceId';
@@ -30,7 +31,7 @@ import { elapsedTime, formatStartTime, getCurrentTime, HeapMonitor } from '../ut
 import { type CancellationToken } from './cancellation';
 import { CodeCoverage } from './codeCoverage';
 import { QUERY_RECORD_LIMIT } from './constants';
-import { formatTestErrors, getDiagnostic } from './diagnosticUtil';
+import { formatTestErrors } from './diagnosticUtil';
 import {
   type ApexTestProgressReporter,
   type ApexTestQueueItem,
@@ -586,26 +587,33 @@ export class AsyncTests {
             ? `${item.ApexClass.NamespacePrefix}.${item.ApexClass.Name}`
             : item.ApexClass.Name;
 
-          const diagnostic = item.Message || item.StackTrace ? getDiagnostic(item) : null;
+          const diagnostic =
+            item.Message || item.StackTrace
+              ? getDiagnostic({ message: item.Message, stackTrace: item.StackTrace })
+              : null;
 
           testResults.push({
-            id: item.Id,
-            queueItemId: item.QueueItemId,
-            stackTrace: item.StackTrace,
-            message: item.Message,
-            asyncApexJobId: item.AsyncApexJobId,
+            ...(item.Id ? { id: item.Id } : {}),
+            ...(item.QueueItemId ? { queueItemId: item.QueueItemId } : {}),
+            ...(item.StackTrace ? { stackTrace: item.StackTrace } : {}),
+            ...(item.Message ? { message: item.Message } : {}),
+            ...(result.category !== 'Flow' && item.AsyncApexJobId ? { asyncApexJobId: item.AsyncApexJobId } : {}),
             methodName: item.MethodName,
             outcome: item.Outcome,
-            apexLogId: item.ApexLogId,
-            isTestSetup: item.IsTestSetup,
+            ...(result.category !== 'Flow' && item.ApexLogId !== undefined
+              ? { apexLogId: item.ApexLogId }
+              : item.ApexLogId
+                ? { apexLogId: item.ApexLogId }
+                : {}),
+            ...(item.IsTestSetup ? { isTestSetup: true } : {}),
             apexClass: {
-              id: item.ApexClass.Id,
+              ...(result.category !== 'Flow' && item.ApexClass.Id ? { id: item.ApexClass.Id } : {}),
               name: item.ApexClass.Name,
-              namespacePrefix: item.ApexClass.NamespacePrefix,
+              ...(item.ApexClass.NamespacePrefix ? { namespacePrefix: item.ApexClass.NamespacePrefix } : {}),
               fullName: item.ApexClass.FullName
             },
             runTime: item.RunTime ?? 0,
-            testTimestamp: item.TestTimestamp, // TODO: convert timestamp
+            ...(item.TestTimestamp ? { testTimestamp: item.TestTimestamp } : {}), // TODO: convert timestamp
             fullName: `${item.ApexClass.FullName}.${item.MethodName}`,
             ...(diagnostic ? { diagnostic } : {}),
             category: result.category

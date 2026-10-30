@@ -11,6 +11,7 @@ import * as Either from 'effect/Either';
 import * as FiberRef from 'effect/FiberRef';
 import * as HashSet from 'effect/HashSet';
 import * as Logger from 'effect/Logger';
+import * as Option from 'effect/Option';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { JsonStreamStringify } from 'json-stream-stringify';
@@ -19,11 +20,12 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Readable, type Writable, type Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import { ApexOperationError } from '../effect/schema/errors';
+import { ApexOperationError, ApexResponseDecodeError } from '../effect/schema/errors';
 import { buildAsyncPayload, buildSyncPayload } from '../effect/testPayloads';
 import { buildSuite, getTestsInSuite, retrieveAllSuites, retrieveSuiteId } from '../effect/testSuites';
 import { nls } from '../i18n';
 import { JUnitFormatTransformer, TapFormatTransformer, MarkdownTextFormatTransformer } from '../reporters';
+import { SalesforceId } from '../schemas/salesforceId';
 import { TestResultStringifyStream } from '../streaming';
 import { elapsedTime, HeapMonitor } from '../utils';
 import { AsyncTests } from './asyncTests';
@@ -75,42 +77,44 @@ export const writeResultFiles = async (
 
   const hasTestResult = Schema.is(TestResultSchema)(result);
   const testRunId = hasTestResult ? result.summary.testRunId : result.testRunId;
+  const fileId = testRunId || 'default';
 
-  try {
-    await writeFile(join(dirPath, 'test-run-id.txt'), testRunId);
-    filesWritten.push(join(dirPath, 'test-run-id.txt'));
-  } catch (err) {
-    console.error(`Error writing file: ${err}`);
+  if (isNotUndefined(testRunId)) {
+    try {
+      await writeFile(join(dirPath, 'test-run-id.txt'), testRunId);
+      filesWritten.push(join(dirPath, 'test-run-id.txt'));
+    } catch (err) {
+      console.error(`Error writing file: ${err}`);
+    }
   }
 
   if (resultFormats && hasTestResult) {
     assertResultFileFormats(resultFormats);
-    const fileId = testRunId || 'default';
     for (const format of resultFormats) {
       let filePath;
       let readable;
       switch (format) {
         case 'json':
-          filePath = join(dirPath, `test-result-${testRunId || 'default'}.json`);
+          filePath = join(dirPath, `test-result-${fileId}.json`);
           readable = TestResultStringifyStream.fromTestResult(result);
           break;
         case 'tap':
-          filePath = join(dirPath, `test-result-${testRunId}-tap.txt`);
+          filePath = join(dirPath, `test-result-${fileId}-tap.txt`);
           readable = new TapFormatTransformer(result);
           break;
         case 'junit':
-          filePath = join(dirPath, `test-result-${testRunId || 'default'}-junit.xml`);
+          filePath = join(dirPath, `test-result-${fileId}-junit.xml`);
           readable = new JUnitFormatTransformer(result);
           break;
         case 'markdown':
-          filePath = join(dirPath, `test-result-${testRunId || 'default'}.md`);
+          filePath = join(dirPath, `test-result-${fileId}.md`);
           readable = new MarkdownTextFormatTransformer(result, {
             format: 'markdown',
             codeCoverage
           });
           break;
         case 'text':
-          filePath = join(dirPath, `test-result-${testRunId || 'default'}.txt`);
+          filePath = join(dirPath, `test-result-${fileId}.txt`);
           readable = new MarkdownTextFormatTransformer(result, {
             format: 'text',
             codeCoverage
@@ -126,7 +130,7 @@ export const writeResultFiles = async (
   }
 
   if (codeCoverage && hasTestResult) {
-    const filePath = join(dirPath, `test-result-${testRunId}-codecoverage.json`);
+    const filePath = join(dirPath, `test-result-${fileId}-codecoverage.json`);
     const c = result.tests.map(record => record.perClassCoverage).filter(pcc => pcc?.length);
     filesWritten.push(await runPipeline(new JsonStreamStringify(c), filePath));
   }
@@ -179,19 +183,36 @@ export class TestService {
    * @internal Used by the co-repo Apex Testing extension; not part of the supported npm API.
    */
   public async getTestsInSuite(suitename?: string, suiteId?: string): Promise<TestSuiteMembershipRecord[]> {
+    const suiteIdLookup: Effect.Effect<Option.Option<string>, ApexOperationError | ApexResponseDecodeError> = suitename
+      ? retrieveSuiteId(this.connection, suitename)
+      : Effect.succeed(Option.fromNullable(suiteId));
     return runTestServiceOperation(
-      (suitename ? retrieveSuiteId(this.connection, suitename) : Effect.succeed(suiteId)).pipe(
-        Effect.filterOrFail(
-          isNotUndefined,
-          () =>
-            new ApexOperationError({
-              operation: 'getTestsInSuite',
-              message: nls.localize(
-                suitename === undefined && suiteId === undefined ? 'suitenameErr' : 'missingSuiteErr'
+      suiteIdLookup.pipe(
+        Effect.flatMap(
+          Option.match({
+            onNone: () =>
+              Effect.fail(
+                new ApexOperationError({
+                  operation: 'getTestsInSuite',
+                  message: nls.localize(
+                    suitename === undefined && suiteId === undefined ? 'suitenameErr' : 'missingSuiteErr'
+                  )
+                })
+              ),
+            onSome: id =>
+              Schema.decodeUnknown(SalesforceId)(id).pipe(
+                Effect.mapError(
+                  cause =>
+                    new ApexResponseDecodeError({
+                      operation: 'getTestsInSuite',
+                      message: 'Invalid suite id',
+                      cause: cause.message
+                    })
+                ),
+                Effect.flatMap(id => getTestsInSuite(this.connection, id))
               )
-            })
+          })
         ),
-        Effect.flatMap(id => getTestsInSuite(this.connection, id)),
         Effect.map(members => [...members])
       )
     );

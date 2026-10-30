@@ -56,11 +56,6 @@ export class ApexRequestError extends Schema.TaggedError<ApexRequestError>()('Ap
   message: Schema.String
 }) {}
 
-/** Namespace queries are optional metadata; failures are handled by the caller. */
-export class NamespaceQueryError extends Schema.TaggedError<NamespaceQueryError>()('NamespaceQueryError', {
-  message: Schema.String
-}) {}
-
 export class ApexLogQueryError extends Schema.TaggedError<ApexLogQueryError>()('ApexLogQueryError', {
   soql: Schema.String,
   message: Schema.String,
