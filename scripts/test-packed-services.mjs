@@ -2,14 +2,17 @@ import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import { createRequire } from 'node:module';
-import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as esbuild from 'esbuild';
-import { installAndCompileFixtures, packServicesPackage } from './packedServicesFixtures.mjs';
+import {
+  createPackedFixturesDirectory,
+  installAndCompileFixtures,
+  packServicesPackage
+} from './packedServicesFixtures.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const temp = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'salesforce-effect-packed-'));
+const temp = createPackedFixturesDirectory('salesforce-effect-packed-');
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const npmOptions = { cwd: root, encoding: 'utf8', shell: process.platform === 'win32', timeout: 180000 };
 const protocols = [

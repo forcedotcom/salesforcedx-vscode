@@ -1,14 +1,17 @@
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as esbuild from 'esbuild';
-import { installAndCompileFixtures, packServicesPackage } from './packedServicesFixtures.mjs';
+import {
+  createPackedFixturesDirectory,
+  installAndCompileFixtures,
+  packServicesPackage
+} from './packedServicesFixtures.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const temp = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'salesforce-effect-bridge-'));
+const temp = createPackedFixturesDirectory('salesforce-effect-bridge-');
 const host = path.join(temp, 'bridgeHost');
 const consumer = path.join(temp, 'bridgeConsumer');
 

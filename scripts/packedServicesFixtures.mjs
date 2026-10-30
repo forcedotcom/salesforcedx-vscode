@@ -1,14 +1,36 @@
 import assert from 'node:assert/strict';
 import { execFile, execFileSync } from 'node:child_process';
 import fs from 'node:fs';
+import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { promisify } from 'node:util';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-const npmOptions = { cwd: root, encoding: 'utf8', shell: process.platform === 'win32', timeout: 180000 };
+const windowsNpmCli = path.join(path.dirname(process.execPath), 'node_modules/npm/bin/npm-cli.js');
+const directWindowsNpm = process.platform === 'win32' && fs.existsSync(windowsNpmCli);
+const npm = directWindowsNpm ? process.execPath : process.platform === 'win32' ? 'npm.cmd' : 'npm';
+const npmArgs = directWindowsNpm ? [windowsNpmCli] : [];
+const npmOptions = {
+  cwd: root,
+  encoding: 'utf8',
+  shell: process.platform === 'win32' && !directWindowsNpm,
+  timeout: 180000
+};
 const execFileAsync = promisify(execFile);
+
+export const createPackedFixturesDirectory = prefix => {
+  // GitHub's runner temp is working storage; Windows os.tmpdir() is on the slow system volume.
+  const parent = fs.realpathSync(process.env.RUNNER_TEMP ?? os.tmpdir());
+  const relative = path.relative(fs.realpathSync(root), parent);
+  assert.ok(
+    relative.startsWith(`..${path.sep}`) || relative === '..' || path.isAbsolute(relative),
+    'packed fixtures must stay outside the checkout'
+  );
+  const directory = fs.mkdtempSync(path.join(parent, prefix));
+  console.log(`Packed fixture storage: ${directory}`);
+  return directory;
+};
 
 const runCommand = async (file, args, options) => {
   try {
@@ -32,7 +54,7 @@ const finishAll = async (promises, phase) => {
 export const packServicesPackage = (packageDirectory, directory, archiveName) => {
   fs.mkdirSync(directory, { recursive: true });
   const [packed] = JSON.parse(
-    execFileSync(npm, ['pack', packageDirectory, '--pack-destination', directory, '--json'], npmOptions)
+    execFileSync(npm, [...npmArgs, 'pack', packageDirectory, '--pack-destination', directory, '--json'], npmOptions)
   );
   const archive = path.join(directory, archiveName);
   fs.renameSync(path.join(directory, packed.filename), archive);
@@ -73,14 +95,16 @@ const installFixture = async ({ fixture: fixtureName, directory, packedPackages 
   }
   if (updateLock) {
     // Existing registry versions/hashes survive unless changed dependencies require an update.
-    await runCommand(npm, ['install', '--package-lock-only'], {
+    await runCommand(npm, [...npmArgs, 'install', '--package-lock-only'], {
       ...npmOptions,
       cwd: directory,
       timeout: 600000
     });
     fs.copyFileSync(path.join(directory, 'package-lock.json'), lockPath);
   }
-  await runCommand(npm, ['ci'], { ...npmOptions, cwd: directory, timeout: 600000 });
+  const started = Date.now();
+  await runCommand(npm, [...npmArgs, 'ci'], { ...npmOptions, cwd: directory, timeout: 600000 });
+  console.log(`${fixtureName}: npm ci completed in ${((Date.now() - started) / 1000).toFixed(1)}s`);
 };
 
 export const installAndCompileFixtures = async fixtures => {
