@@ -7,8 +7,6 @@
 
 import type { ApexDiagnosticSchema } from '../tests/types';
 
-export { ApexDiagnosticSchema } from '../tests/types';
-
 /** Diagnostic data independent of editor ranges, files, or terminal output. */
 export type ApexDiagnostic = typeof ApexDiagnosticSchema.Type;
 
@@ -17,9 +15,9 @@ export const getDiagnostic = (record: { message?: string | null; stackTrace?: st
   const matches = stackTrace?.match(/(line (\d+), column (\d+))/);
 
   return {
-    ...(message && { exceptionMessage: message }),
-    ...(stackTrace && { exceptionStackTrace: stackTrace }),
-    className: stackTrace ? stackTrace.split('.')[1] : undefined,
+    ...(message ? { exceptionMessage: message } : {}),
+    ...(stackTrace ? { exceptionStackTrace: stackTrace } : {}),
+    ...(stackTrace ? { className: stackTrace.split('.')[1] } : {}),
     ...(matches?.[2] && { lineNumber: Number(matches[2]) }),
     ...(matches?.[3] && { columnNumber: Number(matches[3]) })
   };

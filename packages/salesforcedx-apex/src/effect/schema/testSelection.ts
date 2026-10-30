@@ -6,7 +6,7 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { ApexClassId } from './salesforceId';
+import { ApexClassId } from '../../schemas/salesforceId';
 
 export const UnqualifiedNameSchema = Schema.TaggedStruct('UnqualifiedName', { name: Schema.String });
 export const QualifiedNameSchema = Schema.TaggedStruct('QualifiedName', {

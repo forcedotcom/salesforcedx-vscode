@@ -131,12 +131,7 @@ try {
   const normalized = api.transformTestResult({
     ...result,
     summary: { ...result.summary, testSetupTimeInMs: 12 },
-    tests: result.tests.map((test, index) => ({
-      ...test,
-      id: '07Mxx00000F2Xx6UAF',
-      asyncApexJobId: '707xx0000AGQ3jbQQD',
-      isTestSetup: index === 0
-    }))
+    tests: result.tests.map((test, index) => ({ ...test, isTestSetup: index === 0 }))
   });
   assert.equal(normalized.tests.length, 2);
   assert.equal(normalized.setup.length, 1);

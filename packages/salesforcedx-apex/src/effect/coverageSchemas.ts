@@ -6,78 +6,23 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { ApexClassIdString } from './schema/salesforceId';
-
-const ApexClassOrTriggerIdString = Schema.String.pipe(
-  Schema.pattern(/^(?:01p|01q)[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$/)
-);
+import { ApexClassIdString } from '../schemas/salesforceId';
+import {
+  ApexClassOrTriggerIdSchema,
+  CoverageLineCountSchema,
+  CoverageLinesSchema,
+  CoverageNumberArraySchema
+} from './schema/coverage';
 
 // Keep the mutable arrays and string IDs accepted by existing coverage consumers.
-const NumberArray = Schema.Number.pipe(Schema.Array, Schema.mutable);
-const CoverageLinesSchema = Schema.Struct({
-  coveredLines: NumberArray,
-  uncoveredLines: NumberArray
-}).pipe(Schema.mutable);
-const ApexClassOrTriggerSchema = Schema.Struct({ Id: ApexClassOrTriggerIdString, Name: Schema.String }).pipe(
-  Schema.mutable
-);
-
-export const ApexCodeCoverageRecordSchema = Schema.Struct({
-  ApexClassOrTrigger: ApexClassOrTriggerSchema,
-  ApexTestClassId: ApexClassIdString,
-  TestMethodName: Schema.String,
-  NumLinesCovered: Schema.Number,
-  NumLinesUncovered: Schema.Number,
-  Coverage: Schema.optional(CoverageLinesSchema)
-})
-  .pipe(Schema.mutable)
-  .annotations({ identifier: 'ApexCodeCoverageRecord' });
-export type ApexCodeCoverageRecord = typeof ApexCodeCoverageRecordSchema.Type;
-
-export const ApexCodeCoverageSchema = Schema.Struct({
-  done: Schema.Boolean,
-  totalSize: Schema.Number,
-  records: Schema.mutable(Schema.Array(ApexCodeCoverageRecordSchema))
-})
-  .pipe(Schema.mutable)
-  .annotations({ identifier: 'ApexCodeCoverage' });
-export type ApexCodeCoverage = typeof ApexCodeCoverageSchema.Type;
-
-export const ApexCodeCoverageAggregateRecordSchema = Schema.Struct({
-  ApexClassOrTrigger: ApexClassOrTriggerSchema,
-  NumLinesCovered: Schema.Number,
-  NumLinesUncovered: Schema.Number,
-  Coverage: CoverageLinesSchema
-})
-  .pipe(Schema.mutable)
-  .annotations({ identifier: 'ApexCodeCoverageAggregateRecord' });
-export type ApexCodeCoverageAggregateRecord = typeof ApexCodeCoverageAggregateRecordSchema.Type;
-
-export const ApexCodeCoverageAggregateSchema = Schema.Struct({
-  done: Schema.Boolean,
-  totalSize: Schema.Number,
-  records: Schema.mutable(Schema.Array(ApexCodeCoverageAggregateRecordSchema))
-})
-  .pipe(Schema.mutable)
-  .annotations({ identifier: 'ApexCodeCoverageAggregate' });
-export type ApexCodeCoverageAggregate = typeof ApexCodeCoverageAggregateSchema.Type;
-
-export const ApexOrgWideCoverageSchema = Schema.Struct({
-  done: Schema.Boolean,
-  totalSize: Schema.Number,
-  records: Schema.mutable(Schema.Array(Schema.Struct({ PercentCovered: Schema.String }).pipe(Schema.mutable)))
-})
-  .pipe(Schema.mutable)
-  .annotations({ identifier: 'ApexOrgWideCoverage' });
-export type ApexOrgWideCoverage = typeof ApexOrgWideCoverageSchema.Type;
 
 export const PerClassCoverageSchema = Schema.Struct({
   apexClassOrTriggerName: Schema.String,
-  apexClassOrTriggerId: ApexClassOrTriggerIdString,
+  apexClassOrTriggerId: ApexClassOrTriggerIdSchema,
   apexTestClassId: ApexClassIdString,
   apexTestMethodName: Schema.String,
-  numLinesCovered: Schema.Number,
-  numLinesUncovered: Schema.Number,
+  numLinesCovered: CoverageLineCountSchema,
+  numLinesUncovered: CoverageLineCountSchema,
   percentage: Schema.String,
   coverage: Schema.optional(CoverageLinesSchema)
 })
@@ -86,14 +31,14 @@ export const PerClassCoverageSchema = Schema.Struct({
 export type PerClassCoverage = typeof PerClassCoverageSchema.Type;
 
 export const CodeCoverageResultSchema = Schema.Struct({
-  apexId: ApexClassOrTriggerIdString,
+  apexId: ApexClassOrTriggerIdSchema,
   name: Schema.String,
   type: Schema.Literal('ApexClass', 'ApexTrigger'),
-  numLinesCovered: Schema.Number,
-  numLinesUncovered: Schema.Number,
+  numLinesCovered: CoverageLineCountSchema,
+  numLinesUncovered: CoverageLineCountSchema,
   percentage: Schema.String,
-  coveredLines: NumberArray,
-  uncoveredLines: NumberArray
+  coveredLines: CoverageNumberArraySchema,
+  uncoveredLines: CoverageNumberArraySchema
 })
   .pipe(Schema.mutable)
   .annotations({ identifier: 'CodeCoverageResult' });
@@ -101,8 +46,8 @@ export type CodeCoverageResult = typeof CodeCoverageResultSchema.Type;
 
 export const AggregateCodeCoverageResultSchema = Schema.Struct({
   codeCoverageResults: Schema.mutable(Schema.Array(CodeCoverageResultSchema)),
-  totalLines: Schema.Number,
-  coveredLines: Schema.Number
+  totalLines: CoverageLineCountSchema,
+  coveredLines: CoverageLineCountSchema
 })
   .pipe(Schema.mutable)
   .annotations({ identifier: 'AggregateCodeCoverageResult' });

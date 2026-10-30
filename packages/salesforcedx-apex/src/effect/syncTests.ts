@@ -8,18 +8,16 @@
 import type { Connection } from '@salesforce/core';
 import * as Clock from 'effect/Clock';
 import * as Effect from 'effect/Effect';
+import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
+import { OrgIdString, UserIdString } from '../schemas/salesforceId';
+import { type ApexTestResultData, type SyncTestConfiguration, type TestResultRaw } from '../tests/types';
 import { getDiagnostic } from './diagnostics';
 import { causeMessage } from './errors';
 import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
+import { SyncTestConfigurationSchema } from './schema/testPayloads';
 import { calculatePercentage, computeTestCategory, transformTestResult } from './testResults';
-import {
-  type ApexTestResultDataSchema,
-  type SyncTestConfiguration,
-  type TestResultRaw,
-  SyncTestConfigurationSchema,
-  SyncTestResultSchema
-} from './testSchemas';
+import { SyncTestResultSchema } from './testSchemas';
 
 const operation = 'runTestSynchronous';
 type SyncTestResult = typeof SyncTestResultSchema.Type;
@@ -28,19 +26,19 @@ const processTestResult = (
   item: SyncTestResult['successes'][number] | SyncTestResult['failures'][number],
   apexLogId: SyncTestResult['apexLogId'],
   outcome: 'Pass' | 'Fail'
-): typeof ApexTestResultDataSchema.Type => {
-  const failure = 'message' in item ? item : undefined;
+): ApexTestResultData => {
+  const failure = 'type' in item ? item : undefined;
   const namespace = item.namespace ? (outcome === 'Fail' ? `${item.namespace}__` : `${item.namespace}.`) : '';
   return {
-    ...(failure?.stackTrace && { stackTrace: failure.stackTrace }),
-    ...(failure?.message && { message: failure.message }),
+    ...(failure?.stackTrace ? { stackTrace: failure.stackTrace } : {}),
+    ...(failure?.message ? { message: failure.message } : {}),
     methodName: item.methodName,
     outcome,
     apexLogId,
     apexClass: {
       id: item.id,
       name: item.name,
-      ...(item.namespace && { namespacePrefix: item.namespace }),
+      ...(item.namespace ? { namespacePrefix: item.namespace } : {}),
       fullName: `${namespace}${item.name}`
     },
     runTime: item.time,
@@ -61,7 +59,7 @@ export const formatSyncResults = Effect.fn('Apex.formatSyncResults')(function* (
       Effect.fail(
         new ApexResponseDecodeError({
           operation,
-          message: 'Invalid synchronous Apex test response',
+          message: cause.message,
           cause: causeMessage(cause)
         })
       )
@@ -69,6 +67,30 @@ export const formatSyncResults = Effect.fn('Apex.formatSyncResults')(function* (
   );
   const passed = result.successes.length;
   const failed = result.failures.length;
+  const username = connection.getUsername();
+  const userId = connection.getConnectionOptions().userId;
+  const orgId = yield* Schema.decodeUnknown(OrgIdString)(connection.getAuthInfoFields().orgId).pipe(
+    Effect.mapError(
+      cause =>
+        new ApexResponseDecodeError({
+          operation,
+          message: cause.message,
+          cause: causeMessage(cause)
+        })
+    )
+  );
+  const decodedUserId = isUndefined(userId)
+    ? undefined
+    : yield* Schema.decodeUnknown(UserIdString)(userId).pipe(
+        Effect.mapError(
+          cause =>
+            new ApexResponseDecodeError({
+              operation,
+              message: cause.message,
+              cause: causeMessage(cause)
+            })
+        )
+      );
   const rawResult: TestResultRaw = {
     summary: {
       outcome: failed === 0 ? 'Passed' : 'Failed',
@@ -84,9 +106,9 @@ export const formatSyncResults = Effect.fn('Apex.formatSyncResults')(function* (
       testTotalTimeInMs: result.totalTime,
       commandTimeInMs: (yield* Clock.currentTimeMillis) - startTime,
       hostname: connection.instanceUrl,
-      orgId: connection.getAuthInfoFields().orgId ?? '',
-      username: connection.getUsername() ?? '',
-      userId: connection.getConnectionOptions().userId ?? ''
+      orgId,
+      ...(username ? { username } : {}),
+      ...(decodedUserId ? { userId: decodedUserId } : {})
     },
     tests: [
       ...result.successes.map(item => processTestResult(item, result.apexLogId, 'Pass')),

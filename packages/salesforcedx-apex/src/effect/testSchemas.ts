@@ -6,40 +6,10 @@
  */
 
 import * as Schema from 'effect/Schema';
-
-export {
-  ApexTestResultDataSchema,
-  ApexTestResultDataRawSchema,
-  ApexTestResultOutcomeSchema,
-  ApexTestSetupDataSchema,
-  TestResultRawSchema,
-  TestResultSchema
-} from '../tests/types';
-export type { TestResultRaw, TestResult } from '../tests/types';
-
-// Keep array mutability compatible with the existing class result types.
-const StringArray = Schema.Array(Schema.String).pipe(Schema.mutable);
-
-export const TestItemSchema = Schema.Struct({
-  className: Schema.optional(Schema.String),
-  classId: Schema.optional(Schema.String),
-  testMethods: Schema.optional(StringArray),
-  namespace: Schema.optional(Schema.String),
-  category: Schema.optional(Schema.String)
-}).annotations({ identifier: 'TestItem' });
-
-export const SyncTestConfigurationSchema = Schema.Struct({
-  classNames: Schema.optional(Schema.String),
-  tests: TestItemSchema.pipe(Schema.Array, Schema.mutable, Schema.optional),
-  testLevel: Schema.optional(Schema.String),
-  maxFailedTests: Schema.optional(Schema.Number),
-  skipCodeCoverage: Schema.optional(Schema.Boolean),
-  category: Schema.optional(StringArray)
-}).annotations({ identifier: 'SyncTestConfiguration' });
-export type SyncTestConfiguration = typeof SyncTestConfigurationSchema.Type;
+import { ApexClassIdString, ApexLogIdString } from '../schemas/salesforceId';
 
 const SyncTestMethodFields = {
-  id: Schema.String,
+  id: ApexClassIdString,
   methodName: Schema.String,
   name: Schema.String,
   namespace: Schema.NullOr(Schema.String),
@@ -49,14 +19,14 @@ const SyncTestMethodFields = {
 const SyncTestSuccessSchema = Schema.Struct(SyncTestMethodFields);
 const SyncTestFailureSchema = Schema.Struct({
   ...SyncTestMethodFields,
-  message: Schema.optionalWith(Schema.String, { nullable: true, default: () => '' }),
-  stackTrace: Schema.optionalWith(Schema.String, { nullable: true, default: () => '' }),
+  message: Schema.optionalWith(Schema.String, { nullable: true }),
+  stackTrace: Schema.optionalWith(Schema.String, { nullable: true }),
   type: Schema.String
 });
 
 /** Known fields from the Tooling runTestsSynchronous response. */
 export const SyncTestResultSchema = Schema.Struct({
-  apexLogId: Schema.NullOr(Schema.String),
+  apexLogId: Schema.NullOr(ApexLogIdString),
   failures: Schema.Array(SyncTestFailureSchema),
   numFailures: Schema.Number,
   numTestsRun: Schema.Number,

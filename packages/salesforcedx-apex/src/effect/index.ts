@@ -8,43 +8,39 @@
 export { executeAnonymous } from './executeAnonymous';
 export { ExecuteAnonymousOptionsSchema, ExecuteAnonymousOutcomeSchema } from './schema/executeAnonymous';
 export type { ExecuteAnonymousOptions, ExecuteAnonymousOutcome } from './schema/executeAnonymous';
-export { ApexDiagnosticSchema, getDiagnostic } from './diagnostics';
-export type { ApexDiagnostic } from './diagnostics';
+export { getDiagnostic } from './diagnostics';
 export { formatSyncResults, runTestSynchronous } from './syncTests';
 export { transformTestResult } from './testResults';
 export {
+  ApexDiagnosticSchema,
   ApexTestResultDataSchema,
   ApexTestResultDataRawSchema,
   ApexTestResultOutcomeSchema,
   ApexTestSetupDataSchema,
-  SyncTestConfigurationSchema,
-  SyncTestResultSchema,
-  TestItemSchema,
   TestResultRawSchema,
   TestResultSchema
-} from './testSchemas';
-export type { SyncTestConfiguration, TestResult, TestResultRaw } from './testSchemas';
+} from '../tests/types';
+export type { SyncTestConfiguration, TestResult, TestResultRaw } from '../tests/types';
+export type { ApexDiagnostic } from './diagnostics';
+export { SyncTestResultSchema } from './testSchemas';
+export { SyncTestConfigurationSchema, TestItemSchema } from './schema/testPayloads';
 export { getOrgWideCoverage, getPerClassCodeCoverage, getAggregateCodeCoverage } from './codeCoverage';
+export { PerClassCoverageSchema, CodeCoverageResultSchema, AggregateCodeCoverageResultSchema } from './coverageSchemas';
+export type { PerClassCoverage, CodeCoverageResult, AggregateCodeCoverageResult } from './coverageSchemas';
 export {
   ApexCodeCoverageSchema,
   ApexCodeCoverageRecordSchema,
   ApexCodeCoverageAggregateSchema,
   ApexCodeCoverageAggregateRecordSchema,
-  ApexOrgWideCoverageSchema,
-  PerClassCoverageSchema,
-  CodeCoverageResultSchema,
-  AggregateCodeCoverageResultSchema
-} from './coverageSchemas';
+  ApexOrgWideCoverageSchema
+} from './schema/wire/coverage';
 export type {
   ApexCodeCoverage,
   ApexCodeCoverageRecord,
   ApexCodeCoverageAggregate,
   ApexCodeCoverageAggregateRecord,
-  ApexOrgWideCoverage,
-  PerClassCoverage,
-  CodeCoverageResult,
-  AggregateCodeCoverageResult
-} from './coverageSchemas';
+  ApexOrgWideCoverage
+} from './schema/wire/coverage';
 export {
   ApexLogBodyFetchError,
   ApexCompileError,
@@ -57,9 +53,9 @@ export { causeMessage } from './errors';
 export { listLogs, getLogBody, streamLogs } from './logs';
 export { ApexLogListItem } from './schema/wire/logs';
 export { ListLogsOptionsSchema, LogStreamEventSchema } from './schema/logs';
+export { QueryPageSchema } from './schema/queryPage';
 export type { ListLogsOptions, LogStreamEvent } from './schema/logs';
 export type { StreamLogsOptions } from './logs';
-export { QueryPageSchema } from './schema/queryPage';
 export { BuildSyncPayloadOptionsSchema, BuildAsyncPayloadOptionsSchema } from './schema/testPayloads';
 export { buildSyncPayload, buildAsyncPayload } from './testPayloads';
 export type { BuildSyncPayloadOptions, BuildAsyncPayloadOptions } from './schema/testPayloads';
