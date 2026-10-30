@@ -106,7 +106,7 @@ const configureExceptionBreakpoint = Effect.fn('configureExceptionBreakpoint')(f
   const promptService = yield* api.services.PromptService;
   const salesforceApexExtension = yield* getActiveApexExtension();
   const exceptionBreakpointInfos = (yield* Effect.promise(() =>
-    salesforceApexExtension.exports.getExceptionBreakpointInfo()
+    salesforceApexExtension.getExceptionBreakpointInfo()
   )) as ExceptionBreakpointItem[];
   yield* Effect.log('Retrieved exception breakpoint info from language server');
   let enabledExceptionBreakpointTyperefs: string[] = [];

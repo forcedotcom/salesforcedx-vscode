@@ -153,8 +153,9 @@ const createCollectionStream = Effect.fn('LogAutoCollect.createCollectionStream'
       Effect.provide(logStorageContext),
       Effect.catchTags({
         NoWorkspaceOpenError: () => Effect.succeed(new Set<string>()),
-        ServicesExtensionNotFoundError: () => Effect.succeed(new Set<string>()),
-        InvalidServicesApiError: () => Effect.succeed(new Set<string>())
+        ExtensionNotFoundError: () => Effect.succeed(new Set<string>()),
+        ExtensionActivationError: () => Effect.succeed(new Set<string>()),
+        ParseError: () => Effect.succeed(new Set<string>())
       })
     );
     const newLogs = logs
@@ -205,8 +206,8 @@ const createCollectionStream = Effect.fn('LogAutoCollect.createCollectionStream'
               Effect.catchTags({
                 FsServiceError: error => reportLogError(log, error),
                 NoWorkspaceOpenError: error => reportLogError(log, error),
-                ServicesExtensionNotFoundError: error => reportLogError(log, error),
-                InvalidServicesApiError: error => reportLogError(log, error)
+                ExtensionNotFoundError: error => reportLogError(log, error),
+                ExtensionActivationError: error => reportLogError(log, error)
               })
             )
           ),
