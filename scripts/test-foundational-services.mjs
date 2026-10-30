@@ -270,26 +270,46 @@ try {
       assert.equal(catalog.nativeConnection, true);
       assert.equal(catalog.sameLegacyConnection, true);
       assert.deepEqual(catalog.contextKeys, catalog.expectedContextKeys);
-      assert.equal(catalog.contextKeys.length, 23);
+      assert.equal(catalog.contextKeys.length, 26);
       assert.deepEqual(catalog.extracted, [0, 255, 128, 0, 1, 2]);
       assert.deepEqual(catalog.materialized, catalog.extracted);
       assert.match(catalog.primary, /metadata-shadow\/StaticResource\/Blob\/revisions\//);
       assert.equal(catalog.revision, '2026-10-30T00:00:00.000Z');
       assert.equal(catalog.fileCount, 2);
-      assert.equal(catalog.retrieves, 2);
+      assert.equal(catalog.retrieves, 3);
+      assert.deepEqual(catalog.mergedBytes, catalog.extracted);
+      assert.equal(catalog.deploys, 2);
+      assert.equal(catalog.deployedStatus, 'Succeeded');
+      assert(
+        catalog.deployZipSizes.every(size => size > 0),
+        'both native deploys must produce ZIP bytes'
+      );
+      assert.equal(catalog.destructiveMarked, true);
+      assert(catalog.deleteStates.includes('Deleted'));
+      assert.equal(catalog.localDeleted, true);
+      assert.deepEqual(catalog.renamedFiles, [
+        '__tests__',
+        '__tests__/newBundle.small.test.js',
+        'newBundle.html',
+        'newBundle.js',
+        'other.js'
+      ]);
+      assert(catalog.progressTitles.includes('Deploying 1 component'));
+      assert(catalog.progressTitles.includes('Deleting 1 component'));
+      assert.deepEqual(catalog.queriedUsernames, ['catalog@example.com']);
       assert.equal(catalog.unchangedSource, 'public class Local { /* unchanged */ }');
       assert.equal(catalog.active, 0);
       assert(!catalog.staging.some(name => name.endsWith('.__staging__')));
       assert.equal(catalog.closedAdmission, true);
       assert.equal(catalog.createdChannels, 1);
       assert.equal(catalog.disposedChannels, 1);
-      assert.equal(catalog.progressListeners, 2);
-      assert.equal(catalog.disposedProgressListeners, 2);
+      assert.equal(catalog.progressListeners, 5);
+      assert.equal(catalog.disposedProgressListeners, 5);
       assert.equal(catalog.createdProviders, 1);
       assert.equal(catalog.disposedProviders, 1);
       assert.equal(catalog.notification, 'sf-org-metadata:/orgs/00D000000000001/StaticResource/Blob.resource');
       console.log(
-        `PASS actual packed ${platform}-target SDK binary retrieve/shadow/document notification, public-only Context and teardown`
+        `PASS actual packed ${platform}-target native merged retrieve/deploy/delete/rename/query, binary shadow/documents, public Context and teardown`
       );
     } finally {
       if (dom) {

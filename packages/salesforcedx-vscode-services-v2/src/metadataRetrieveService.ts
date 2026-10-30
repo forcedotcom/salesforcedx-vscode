@@ -13,8 +13,10 @@ import type {
   InactiveOrgOperationError,
   MetadataRetrieveError,
   NoWorkspaceOpenError,
+  SourceTrackingConflictError,
   UserCancellationError
 } from './errors.js';
+import type { SourceTrackingOperationError } from './sourceTrackingService.js';
 import type { ComponentSet, MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Context from 'effect/Context';
 import type * as Effect from 'effect/Effect';
@@ -27,10 +29,26 @@ export type MetadataRetrieveDirectoryError =
   | InactiveOrgOperationError
   | MetadataRetrieveError
   | UserCancellationError;
-/** Nonmerge retrieval only; workspace mutations are excluded. */
+export type MetadataRetrieveOptions = {
+  readonly ignoreConflicts?: boolean;
+  readonly expectedOrgId?: OrgId;
+  readonly progressLocation?: vscode.ProgressLocation;
+};
+export type MetadataRetrieveOperationError =
+  | MetadataRetrieveDirectoryError
+  | SourceTrackingOperationError
+  | SourceTrackingConflictError;
 export class MetadataRetrieveService extends Context.Service<
   MetadataRetrieveService,
   {
+    readonly retrieve: (
+      members: MetadataMember[],
+      options?: MetadataRetrieveOptions
+    ) => Effect.Effect<RetrieveResult, MetadataRetrieveOperationError>;
+    readonly retrieveComponentSet: (
+      components: ComponentSet,
+      options?: MetadataRetrieveOptions
+    ) => Effect.Effect<RetrieveResult, MetadataRetrieveOperationError>;
     readonly buildComponentSet: (
       members: MetadataMember[]
     ) => Effect.Effect<ComponentSet, GetRegistryAccessError | NoWorkspaceOpenError | FailedToBuildComponentSetError>;

@@ -24,7 +24,19 @@ export { ConfigService } from './configService.js';
 export { ConnectionService, type ConnectionError, type OrgAuthorizationSummary } from './connectionService.js';
 export { ProjectService, type ProjectError } from './projectService.js';
 export { ComponentSetService, type NonEmptyComponentSet, type ComponentSetBuildError } from './componentSetService.js';
-export { MetadataRetrieveService, type MetadataRetrieveDirectoryError } from './metadataRetrieveService.js';
+export {
+  MetadataRetrieveService,
+  type MetadataRetrieveDirectoryError,
+  type MetadataRetrieveOptions,
+  type MetadataRetrieveOperationError
+} from './metadataRetrieveService.js';
+export { MetadataDeployService, type MetadataDeployOperationError } from './metadataDeployService.js';
+export { MetadataDeleteService } from './metadataDeleteService.js';
+export {
+  LightningComponentService,
+  type LightningComponentKind,
+  type RenameBundleParams
+} from './lightningComponentService.js';
 export {
   SourceTrackingService,
   type SourceTrackingReadError,
@@ -206,6 +218,8 @@ export {
   EmptyComponentSetError,
   FailedToBuildComponentSetError,
   MetadataRetrieveError,
+  MetadataDeployError,
+  MetadataDeleteError,
   UserCancellationError,
   SourceTrackingError,
   SourceTrackingNotEnabledError,

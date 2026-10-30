@@ -55,6 +55,10 @@
     "./catalogRuntime": {
       "types": "./out/catalogRuntime.d.ts",
       "default": "./out/catalogRuntime.js"
+    },
+    "./metadataOperationMessages": {
+      "types": "./out/metadataOperationMessages.d.ts",
+      "default": "./out/metadataOperationMessages.js"
     }
   },
   "files": [

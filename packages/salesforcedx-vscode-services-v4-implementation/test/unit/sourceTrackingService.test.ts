@@ -39,8 +39,10 @@ import { URI, Utils } from 'vscode-uri';
 import { catalogReaderLayers } from '../../src/catalogLayers.js';
 import { ConnectionHost } from '../../src/connectionHost.js';
 import { MetadataDescribeInvalidation } from '../../src/metadataDescribeService.js';
+import { MetadataOperationOrg } from '../../src/metadataOperationOrg.js';
 import { OrgCatalogState } from '../../src/orgCatalog/orgCatalogState.js';
 import { trackingCacheOwnership } from '../../src/sourceTrackingCacheOwnership.js';
+import { SourceTrackingResultUpdates } from '../../src/sourceTrackingService.js';
 import { OrgChanges } from '../../src/targetOrgRef.js';
 import { WebFileSystemProvider } from '../../src/webFileSystemProvider.js';
 import { installVscodeFs } from '../support/vscodeFs.js';
@@ -650,6 +652,153 @@ it.each(['retrieve', 'deploy'] as const)(
       expect(nativeRetrieve).not.toHaveBeenCalled();
       expect(nativeDeploy).not.toHaveBeenCalled();
     } finally {
+      await runtime.dispose();
+    }
+  }
+);
+
+const clearAndRestoreOrg = Effect.fn('test.clearAndRestoreOrg')(function* () {
+  const changes = yield* OrgChanges;
+  const snapshot = yield* changes.snapshot;
+  yield* changes.clear;
+  yield* changes.begin.pipe(
+    Effect.flatMap(generation => changes.update(generation, () => Effect.succeed(snapshot.org)))
+  );
+});
+
+it.each(['retrieve', 'deploy'] as const)(
+  'rejects a %s operation identity captured before A→empty→A without entering the native tracking method',
+  async mode => {
+    const { runtime } = await start();
+    try {
+      const captured = await runtime.runPromise(MetadataOperationOrg.use(org => org.capture()));
+      const updates = await runtime.runPromise(SourceTrackingResultUpdates);
+      const retrieve = new RetrieveResult(
+        {
+          success: true,
+          done: true,
+          id: '09S000000000001',
+          status: RequestStatus.Succeeded,
+          zipFile: '',
+          fileProperties: []
+        },
+        new ComponentSet()
+      );
+      const deploy = new DeployResult(
+        { success: true } as ConstructorParameters<typeof DeployResult>[0],
+        new ComponentSet()
+      );
+      const nativeRetrieve = vi.spyOn(SourceTracking.prototype, 'updateTrackingFromRetrieve');
+      const nativeDeploy = vi.spyOn(SourceTracking.prototype, 'updateTrackingFromDeploy');
+      await runtime.runPromise(clearAndRestoreOrg());
+      expect(
+        await runtime.runPromise(
+          (mode === 'retrieve'
+            ? updates.maybeUpdateTrackingFromRetrieve(retrieve, captured)
+            : updates.maybeUpdateTrackingFromDeploy(deploy, captured)
+          ).pipe(Effect.flip)
+        )
+      ).toMatchObject({ _tag: 'InactiveOrgOperationError' });
+      expect(nativeRetrieve).not.toHaveBeenCalled();
+      expect(nativeDeploy).not.toHaveBeenCalled();
+    } finally {
+      await runtime.dispose();
+    }
+  }
+);
+
+it.each(['retrieve', 'deploy'] as const)(
+  'drains the already-entered native %s tracking promise across A→empty→A, then rejects its old identity',
+  async mode => {
+    const { runtime, service, source, root } = await start();
+    const release = Promise.withResolvers<void>();
+    let updating: Promise<unknown> | undefined;
+    try {
+      const components = ComponentSet.fromSource(source.fsPath);
+      const retrieve = new RetrieveResult(
+        {
+          success: true,
+          done: true,
+          id: '09S000000000001',
+          status: RequestStatus.Succeeded,
+          zipFile: '',
+          fileProperties: [{ fullName: 'Local', type: 'ApexClass', fileName: source.fsPath }] as ConstructorParameters<
+            typeof RetrieveResult
+          >[0]['fileProperties']
+        },
+        components
+      );
+      members = [member('Local')];
+      await runtime.runPromise(service.maybeUpdateTrackingFromRetrieve(retrieve, orgId));
+      await coreFs.fs.promises.writeFile(source.fsPath, 'public class Local { /* changed */ }');
+      members = [member('Local', 2)];
+      const deploy = new DeployResult(
+        {
+          success: true,
+          status: RequestStatus.Succeeded,
+          details: {
+            componentSuccesses: [
+              {
+                fullName: 'Local',
+                componentType: 'ApexClass',
+                fileName: source.fsPath,
+                success: true,
+                changed: true,
+                created: false,
+                deleted: false
+              }
+            ]
+          }
+        } as ConstructorParameters<typeof DeployResult>[0],
+        components
+      );
+      const captured = await runtime.runPromise(MetadataOperationOrg.use(org => org.capture()));
+      const updates = await runtime.runPromise(SourceTrackingResultUpdates);
+      const entered = Promise.withResolvers<void>();
+      // eslint-disable-next-line vitest/unbound-method -- Both actual native methods are invoked with their original receiver below.
+      const nativeRetrieve = SourceTracking.prototype.updateTrackingFromRetrieve;
+      // eslint-disable-next-line vitest/unbound-method -- Both actual native methods are invoked with their original receiver below.
+      const nativeDeploy = SourceTracking.prototype.updateTrackingFromDeploy;
+      vi.spyOn(SourceTracking.prototype, 'updateTrackingFromRetrieve').mockImplementationOnce(async function (
+        this: SourceTracking,
+        result
+      ) {
+        entered.resolve();
+        await release.promise;
+        return nativeRetrieve.call(this, result);
+      });
+      vi.spyOn(SourceTracking.prototype, 'updateTrackingFromDeploy').mockImplementationOnce(async function (
+        this: SourceTracking,
+        result
+      ) {
+        entered.resolve();
+        await release.promise;
+        return nativeDeploy.call(this, result);
+      });
+      let finished = false;
+      updating = runtime
+        .runPromise(
+          (mode === 'retrieve'
+            ? updates.maybeUpdateTrackingFromRetrieve(retrieve, captured)
+            : updates.maybeUpdateTrackingFromDeploy(deploy, captured)
+          ).pipe(Effect.flip)
+        )
+        .then(error => {
+          finished = true;
+          return error;
+        });
+      await entered.promise;
+      await runtime.runPromise(clearAndRestoreOrg());
+      expect(finished).toBe(false);
+      expect(nativeCache(ShadowRepo).has(root.fsPath)).toBe(true);
+      release.resolve();
+      expect(await updating).toMatchObject({ _tag: 'InactiveOrgOperationError' });
+      // The unchanged SDK may have committed files during its public promise. The wrapper must drain, not claim rollback.
+      await runtime.dispose();
+      expect(nativeCache(ShadowRepo).has(root.fsPath)).toBe(false);
+    } finally {
+      release.resolve();
+      await updating;
       await runtime.dispose();
     }
   }

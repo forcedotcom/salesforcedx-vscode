@@ -16,21 +16,18 @@ import { SourceTracking, type ChangeResult } from '@salesforce/source-tracking';
 import {
   ChannelService,
   ConfigService,
-  ConnectionService,
   InactiveOrgOperationError,
   MetadataRegistryService,
-  NoTargetOrgConfiguredError,
   ProjectService,
   SourceTrackingConflictError,
   SourceTrackingError,
   SourceTrackingNotEnabledError,
   SourceTrackingService,
-  authFieldsFromConnection,
-  orgIdFromConnection,
   type OrgId,
   type SourceTrackingOperationError,
   type SourceTrackingStatusOptions
 } from '@salesforce/vscode-services-v2';
+import * as Context from 'effect/Context';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
@@ -42,6 +39,11 @@ import * as Semaphore from 'effect/Semaphore';
 import { ConnectionHost } from './connectionHost.js';
 import { unknownToErrorCause } from './errorCause.js';
 import { MetadataDescribeInvalidation } from './metadataDescribeService.js';
+import {
+  MetadataOperationOrg,
+  MetadataOperationOrgLayer,
+  type MetadataOperationOrgSnapshot
+} from './metadataOperationOrg.js';
 import { OrgMetadataCatalogRecorder } from './orgCatalog/orgMetadataCatalogRecorder.js';
 import { ServiceOperations, ServiceOperationsLayer } from './serviceOperations.js';
 import { trackingCacheOwnership } from './sourceTrackingCacheOwnership.js';
@@ -60,10 +62,24 @@ const isResolvedChange = Schema.is(Schema.Struct({ name: Schema.String, type: Sc
 const resolvedChanges = (changes: readonly ChangeResult[]) =>
   changes.filter((change): change is ChangeResult & { name: string; type: string } => isResolvedChange(change));
 
-export const SourceTrackingServiceLayer = Layer.effect(
-  SourceTrackingService,
+/** Operation services pass their original identity, not a newly captured default org after network work. */
+export class SourceTrackingResultUpdates extends Context.Service<
+  SourceTrackingResultUpdates,
+  {
+    readonly maybeUpdateTrackingFromRetrieve: (
+      result: RetrieveResult,
+      org: MetadataOperationOrgSnapshot
+    ) => Effect.Effect<void, SourceTrackingOperationError>;
+    readonly maybeUpdateTrackingFromDeploy: (
+      result: DeployResult,
+      org: MetadataOperationOrgSnapshot
+    ) => Effect.Effect<void, SourceTrackingOperationError>;
+  }
+>()('@salesforce/vscode-services-v4-implementation/SourceTrackingResultUpdates') {}
+
+export const SourceTrackingServiceLayer = Layer.effectContext(
   Effect.gen(function* () {
-    const connections = yield* ConnectionService;
+    const operationOrg = yield* MetadataOperationOrg;
     const projects = yield* ProjectService;
     const config = yield* ConfigService;
     const registry = yield* MetadataRegistryService;
@@ -90,29 +106,20 @@ export const SourceTrackingServiceLayer = Layer.effect(
         Effect.andThen(native(name, () => entry.runNative(run, caches))),
         Effect.tap(() => validate(entry))
       );
-    const capture = Effect.fn('SourceTrackingService.capture')(function* (expectedOrgId?: OrgId) {
-      const connection = yield* expectedOrgId
-        ? connections.getConnectionForOrg(expectedOrgId)
-        : connections.getConnection();
-      const orgId = expectedOrgId ?? Option.getOrUndefined(orgIdFromConnection(connection));
-      if (!orgId)
-        return yield* new NoTargetOrgConfiguredError({
-          message: 'No active org identity is available for source tracking'
-        });
-      const snapshot = yield* changes.snapshot;
-      const username =
-        connection.getUsername() ??
-        Option.getOrUndefined(Option.flatMap(authFieldsFromConnection(connection), fields => fields.username));
-      if (snapshot.org.orgId !== orgId || snapshot.org.username?.toLowerCase() !== username?.toLowerCase())
-        return yield* changedError(orgId);
-      const identity = { connection, orgId, orgGeneration: snapshot.orgGeneration };
+    const resolveTrackingOrg = Effect.fn('SourceTrackingService.resolveTrackingOrg')(function* (
+      identity: MetadataOperationOrgSnapshot
+    ) {
+      yield* validate(identity);
       // Undefined is not false: enrichment may still be running. Resolve against this exact native connection.
       const aggregator = yield* config.getConfigAggregator();
-      const org = yield* native('Org.create', () => Org.create({ connection, aggregator }));
-      const enabled = snapshot.org.tracksSource ?? (yield* native('Org.tracksSource', () => org.tracksSource()));
+      const org = yield* native('Org.create', () => Org.create({ connection: identity.connection, aggregator }));
+      const enabled = identity.tracksSource ?? (yield* native('Org.tracksSource', () => org.tracksSource()));
       yield* validate(identity);
       return { ...identity, org, enabled };
     });
+    const capture = Effect.fn('SourceTrackingService.capture')((expectedOrgId?: OrgId) =>
+      operationOrg.capture(expectedOrgId).pipe(Effect.flatMap(resolveTrackingOrg))
+    );
     const retire = (entry: TrackingEntry) =>
       Ref.get(entry.leases).pipe(
         Effect.flatMap(leases => Effect.forEach(leases, lease => Deferred.await(lease), { discard: true })),
@@ -377,23 +384,24 @@ export const SourceTrackingServiceLayer = Layer.effect(
         ),
       operations.run
     );
-    const maybeUpdateTrackingFromRetrieve = Effect.fn('SourceTrackingService.maybeUpdateTrackingFromRetrieve')(
-      function* (result: RetrieveResult, expectedOrgId?: OrgId) {
-        const identity = yield* capture(expectedOrgId);
-        if (!identity.enabled) return;
-        yield* Effect.annotateCurrentSpan({ fileResponseCount: result.getFileResponses().length });
-        yield* withCapturedTracking(identity, { local: true, remote: true }, entry =>
-          sdk(entry, 'STL.UpdateTrackingFromRetrieve', 'both', () =>
-            entry.tracking.updateTrackingFromRetrieve(result)
-          ).pipe(Effect.tapError(Effect.logError))
-        );
-      },
-      operations.run
-    );
-    const maybeUpdateTrackingFromDeploy = Effect.fn('SourceTrackingService.maybeUpdateTrackingFromDeploy')(function* (
-      result: DeployResult
+    const applyRetrieve = Effect.fn('SourceTrackingService.applyRetrieve')(function* (
+      result: RetrieveResult,
+      captured: MetadataOperationOrgSnapshot
     ) {
-      const identity = yield* capture();
+      const identity = yield* resolveTrackingOrg(captured);
+      if (!identity.enabled) return;
+      yield* Effect.annotateCurrentSpan({ fileResponseCount: result.getFileResponses().length });
+      yield* withCapturedTracking(identity, { local: true, remote: true }, entry =>
+        sdk(entry, 'STL.UpdateTrackingFromRetrieve', 'both', () =>
+          entry.tracking.updateTrackingFromRetrieve(result)
+        ).pipe(Effect.tapError(Effect.logError))
+      );
+    }, operations.run);
+    const applyDeploy = Effect.fn('SourceTrackingService.applyDeploy')(function* (
+      result: DeployResult,
+      captured: MetadataOperationOrgSnapshot
+    ) {
+      const identity = yield* resolveTrackingOrg(captured);
       if (!identity.enabled) return;
       yield* Effect.annotateCurrentSpan({ fileResponseCount: result.getFileResponses().length });
       yield* withCapturedTracking(identity, { local: true, remote: true }, entry =>
@@ -402,6 +410,15 @@ export const SourceTrackingServiceLayer = Layer.effect(
         )
       );
     }, operations.run);
+    const maybeUpdateTrackingFromRetrieve = Effect.fn('SourceTrackingService.maybeUpdateTrackingFromRetrieve')(
+      (result: RetrieveResult, expectedOrgId?: OrgId) =>
+        operationOrg.capture(expectedOrgId).pipe(Effect.flatMap(identity => applyRetrieve(result, identity))),
+      operations.run
+    );
+    const maybeUpdateTrackingFromDeploy = Effect.fn('SourceTrackingService.maybeUpdateTrackingFromDeploy')(
+      (result: DeployResult) => operationOrg.capture().pipe(Effect.flatMap(identity => applyDeploy(result, identity))),
+      operations.run
+    );
     yield* Effect.addFinalizer(() =>
       operations.close.pipe(
         Effect.ensuring(
@@ -409,18 +426,26 @@ export const SourceTrackingServiceLayer = Layer.effect(
         )
       )
     );
-    return SourceTrackingService.of({
-      hasTracking,
-      getLocalChangesAsComponentSet,
-      getRemoteNonDeletesAsComponentSet,
-      getRemoteDeletesAsComponentSet,
-      resetRemoteTracking,
-      getStatus,
-      maybeApplyRemoteDeletesToLocal,
-      getConflicts,
-      checkConflicts,
-      maybeUpdateTrackingFromRetrieve,
-      maybeUpdateTrackingFromDeploy
-    });
+    return Context.make(
+      SourceTrackingService,
+      SourceTrackingService.of({
+        hasTracking,
+        getLocalChangesAsComponentSet,
+        getRemoteNonDeletesAsComponentSet,
+        getRemoteDeletesAsComponentSet,
+        resetRemoteTracking,
+        getStatus,
+        maybeApplyRemoteDeletesToLocal,
+        getConflicts,
+        checkConflicts,
+        maybeUpdateTrackingFromRetrieve,
+        maybeUpdateTrackingFromDeploy
+      })
+    ).pipe(
+      Context.add(SourceTrackingResultUpdates, {
+        maybeUpdateTrackingFromRetrieve: applyRetrieve,
+        maybeUpdateTrackingFromDeploy: applyDeploy
+      })
+    );
   })
-).pipe(Layer.provideMerge(ServiceOperationsLayer));
+).pipe(Layer.provideMerge(MetadataOperationOrgLayer), Layer.provideMerge(ServiceOperationsLayer));
