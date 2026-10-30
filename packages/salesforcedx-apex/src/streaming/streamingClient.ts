@@ -7,9 +7,11 @@
 
 import { type Connection, LoggerLevel } from '@salesforce/core';
 import { type Duration } from '@salesforce/kit';
+import * as Schema from 'effect/Schema';
 import { Client } from 'faye';
 import { type Progress } from '../common';
 import { nls } from '../i18n';
+import { TestRunId } from '../schemas/salesforceId';
 import {
   type ApexTestProgressValue,
   type ApexTestQueueItem,
@@ -237,7 +239,7 @@ export class StreamingClient {
   }
 
   private isValidTestRunID(testRunId: string, subscribedId?: string): boolean {
-    if (testRunId.length !== 15 && testRunId.length !== 18) {
+    if (!Schema.is(TestRunId)(testRunId)) {
       return false;
     }
 

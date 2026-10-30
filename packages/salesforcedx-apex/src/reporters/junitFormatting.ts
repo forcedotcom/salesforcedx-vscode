@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isEmpty } from '../narrowing';
+import { isNullable, isString } from 'effect/Predicate';
+import { isEmpty } from 'effect/String';
 import { type TestResult } from '../tests/types';
 import { formatStartTime, msToSecond } from '../utils';
 import { escapeXml, xmlCdata } from './escaping';
@@ -18,7 +19,7 @@ const skippedProperties = new Set(['skipRate', 'totalLines', 'linesCovered']);
 
 export const formatJUnitProperties = (summary: TestResult['summary']): string =>
   `${tab}${tab}<properties>\n${Object.entries(summary)
-    .filter(([key, value]) => !isEmpty(value) && !skippedProperties.has(key))
+    .filter(([key, value]) => !isNullable(value) && !(isString(value) && isEmpty(value)) && !skippedProperties.has(key))
     .map(([key, value]) => {
       const name = timeProperties.has(key) ? key.replace('InMs', '') : key;
       const formattedValue = timeProperties.has(key)

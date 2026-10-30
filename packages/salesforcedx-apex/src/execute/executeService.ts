@@ -36,9 +36,7 @@ export class ExecuteService {
               {
                 lineNumber: error.line,
                 columnNumber: error.column,
-                compileProblem: error.compileProblem ?? '',
-                exceptionMessage: '',
-                exceptionStackTrace: ''
+                ...(error.compileProblem ? { compileProblem: error.compileProblem } : {})
               }
             ]
           };
@@ -51,9 +49,8 @@ export class ExecuteService {
               {
                 lineNumber: error.line,
                 columnNumber: error.column,
-                compileProblem: '',
-                exceptionMessage: error.exceptionMessage ?? '',
-                exceptionStackTrace: error.exceptionStackTrace ?? ''
+                ...(error.exceptionMessage ? { exceptionMessage: error.exceptionMessage } : {}),
+                ...(error.exceptionStackTrace ? { exceptionStackTrace: error.exceptionStackTrace } : {})
               }
             ]
           };

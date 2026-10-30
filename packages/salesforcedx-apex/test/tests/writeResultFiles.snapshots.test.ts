@@ -14,6 +14,9 @@ import { type Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { writeResultFiles } from '../../src/tests/testService';
 import { type TestResult, type OutputDirConfig, type CodeCoverageResult, type PerClassCoverage } from '../../src';
+import { apexClassId, salesforceId } from '../schemaHelpers';
+
+const asyncApexJobId = salesforceId('707000000000001AAA');
 
 describe('writeResultFiles - Snapshot Tests', () => {
   let tempDir: string;
@@ -59,23 +62,23 @@ describe('writeResultFiles - Snapshot Tests', () => {
       hostname: 'snapshot-test-host',
       orgId: '00D000000000000EAA',
       username: 'snapshot@example.com',
-      testRunId: 'snapshot-test-run-456',
+      testRunId: '707000000000002AAA',
       userId: '005000000000000AAA'
     },
     tests: [
       {
-        id: '01p000000000001AAA',
+        id: '07M000000000001AAA',
         queueItemId: '709000000000001AAA',
         stackTrace: null as string | null,
         message: null as string | null,
-        asyncApexJobId: '707000000000001AAA',
+        asyncApexJobId,
         methodName: 'testSnapshotMethod1',
         outcome: 'Pass',
         apexLogId: null as string | null,
         apexClass: {
           id: '01p000000000001AAA',
           name: 'SnapshotTestClass1',
-          namespacePrefix: null as unknown as string,
+          namespacePrefix: null,
           fullName: 'SnapshotTestClass1'
         },
         runTime: 750,
@@ -83,11 +86,11 @@ describe('writeResultFiles - Snapshot Tests', () => {
         fullName: 'SnapshotTestClass1.testSnapshotMethod1'
       },
       {
-        id: '01p000000000002AAA',
+        id: '07M000000000002AAA',
         queueItemId: '709000000000002AAA',
         stackTrace: 'System.AssertException: Snapshot test assertion failed',
         message: 'Snapshot test failed with detailed error message',
-        asyncApexJobId: '707000000000001AAA',
+        asyncApexJobId,
         methodName: 'testSnapshotMethod2',
         outcome: 'Fail',
         apexLogId: '07L000000000001AAA',
@@ -102,18 +105,18 @@ describe('writeResultFiles - Snapshot Tests', () => {
         fullName: 'TestNamespace.SnapshotTestClass2.testSnapshotMethod2'
       },
       {
-        id: '01p000000000003AAA',
+        id: '07M000000000003AAA',
         queueItemId: '709000000000003AAA',
         stackTrace: null as string | null,
         message: null as string | null,
-        asyncApexJobId: '707000000000001AAA',
+        asyncApexJobId,
         methodName: 'testSnapshotMethod3',
         outcome: 'Pass',
         apexLogId: null as string | null,
         apexClass: {
           id: '01p000000000003AAA',
           name: 'SnapshotTestClass3',
-          namespacePrefix: null as unknown as string,
+          namespacePrefix: null,
           fullName: 'SnapshotTestClass3'
         },
         runTime: 300,
@@ -136,8 +139,8 @@ describe('writeResultFiles - Snapshot Tests', () => {
 
   const mockPerClassCoverage: PerClassCoverage = {
     apexClassOrTriggerName: 'SnapshotTestClass1',
-    apexClassOrTriggerId: '01p000000000001AAA',
-    apexTestClassId: '01p000000000002AAA',
+    apexClassOrTriggerId: apexClassId('01p000000000001AAA'),
+    apexTestClassId: apexClassId('01p000000000002AAA'),
     apexTestMethodName: 'testSnapshotMethod1',
     numLinesCovered: 8,
     numLinesUncovered: 2,
@@ -153,7 +156,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
 
     await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
 
-    const jsonFilePath = join(tempDir, 'test-result-snapshot-test-run-456.json');
+    const jsonFilePath = join(tempDir, 'test-result-707000000000002AAA.json');
     const content = await readFile(jsonFilePath, 'utf8');
     const parsedContent = JSON.parse(content);
 
@@ -169,7 +172,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
 
     await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
 
-    const tapFilePath = join(tempDir, 'test-result-snapshot-test-run-456-tap.txt');
+    const tapFilePath = join(tempDir, 'test-result-707000000000002AAA-tap.txt');
     const content = await readFile(tapFilePath, 'utf8');
 
     // Snapshot the TAP output
@@ -184,7 +187,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
 
     await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
 
-    const junitFilePath = join(tempDir, 'test-result-snapshot-test-run-456-junit.xml');
+    const junitFilePath = join(tempDir, 'test-result-707000000000002AAA-junit.xml');
     const content = await readFile(junitFilePath, 'utf8');
 
     // Snapshot the JUnit XML output
@@ -211,7 +214,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
 
     await writeResultFiles(testResultWithCoverage, outputConfig, true, mockRunPipeline);
 
-    const markdownFilePath = join(tempDir, 'test-result-snapshot-test-run-456.md');
+    const markdownFilePath = join(tempDir, 'test-result-707000000000002AAA.md');
     const content = await readFile(markdownFilePath, 'utf8');
 
     // Snapshot the markdown output
@@ -238,7 +241,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
 
     await writeResultFiles(testResultWithCoverage, outputConfig, true, mockRunPipeline);
 
-    const textFilePath = join(tempDir, 'test-result-snapshot-test-run-456.txt');
+    const textFilePath = join(tempDir, 'test-result-707000000000002AAA.txt');
     const content = await readFile(textFilePath, 'utf8');
 
     // Snapshot the text output
@@ -263,7 +266,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
 
     await writeResultFiles(testResultWithCoverage, outputConfig, true, mockRunPipeline);
 
-    const coverageFilePath = join(tempDir, 'test-result-snapshot-test-run-456-codecoverage.json');
+    const coverageFilePath = join(tempDir, 'test-result-707000000000002AAA-codecoverage.json');
     const content = await readFile(coverageFilePath, 'utf8');
     const parsedContent = JSON.parse(content);
 

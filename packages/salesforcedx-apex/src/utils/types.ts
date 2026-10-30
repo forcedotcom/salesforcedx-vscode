@@ -23,9 +23,9 @@ export type CommonOptions = {
 export type ApexDiagnostic = {
   lineNumber?: number;
   columnNumber?: number;
-  exceptionMessage: string;
-  compileProblem: string;
-  exceptionStackTrace: string;
+  exceptionMessage?: string;
+  compileProblem?: string;
+  exceptionStackTrace?: string;
   className?: string;
 };
 
