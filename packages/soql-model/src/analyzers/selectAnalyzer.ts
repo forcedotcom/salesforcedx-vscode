@@ -101,7 +101,7 @@ class SelectVisitor extends AbstractParseTreeVisitor<void> implements SoqlParser
   }
 
   public visitSoqlFromExpr(ctx: Parser.SoqlFromExprContext): void {
-    this.currentObjectName = ctx.soqlIdentifier()[0].text;
+    this.currentObjectName = ctx.identifier().text;
     if (this.isInnerQuery) {
       this.currentNamespace = `${this.currentObjectName}.`;
     }

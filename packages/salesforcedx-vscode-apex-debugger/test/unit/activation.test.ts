@@ -76,13 +76,18 @@ describe('activateEffect', () => {
     (vscode.extensions.getExtension as VitestMock).mockReturnValue({
       isActive: true,
       exports: {
+        getLineBreakpointInfo: vi.fn().mockResolvedValue([]),
         getExceptionBreakpointInfo: vi.fn().mockResolvedValue([
           {
             label: 'System.Exception',
             typeref: 'System.Exception',
             breakMode: 'never'
           }
-        ])
+        ]),
+        languageClientManager: {
+          getClientInstance: () => undefined,
+          getStatus: () => ({ isReady: () => true, failedToInitialize: () => false, getStatusMessage: () => '' })
+        }
       }
     });
     (vscode.workspace.createFileSystemWatcher as VitestMock).mockReturnValue({

@@ -343,6 +343,10 @@
     ".": {
       "types": "./out/src/index.d.ts",
       "default": "./dist/index.mjs"
+    },
+    "./src/*": {
+      "types": "./out/src/*.d.ts",
+      "default": "./out/src/*.js"
     }
   },
   "browser": "./dist/web/index.js",

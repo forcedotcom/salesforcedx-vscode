@@ -155,8 +155,8 @@ const removeApexDB = (): Promise<void> =>
   removeApexDbEffect().pipe(
     // No services extension ⇒ skip DB cleanup.
     Effect.catchTags({
-      ServicesExtensionNotFoundError: () => Effect.void,
-      InvalidServicesApiError: () => Effect.void
+      ExtensionNotFoundError: () => Effect.void,
+      ExtensionActivationError: () => Effect.void
     }),
     // Provide the service locally so the runtime (real AllServicesLayer in prod, tracer-only mock in vitest)
     // needn't supply ExtensionProviderService.

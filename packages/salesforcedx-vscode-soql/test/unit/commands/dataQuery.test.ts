@@ -28,13 +28,13 @@ vi.mock(
 );
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { ChannelService } from 'salesforcedx-vscode-services/out/src/vscode/channelService';
-import { ConnectionService } from 'salesforcedx-vscode-services/out/src/core/connectionService';
-import { QueryService } from 'salesforcedx-vscode-services/out/src/core/queryService';
-import { FsService } from 'salesforcedx-vscode-services/out/src/vscode/fsService';
-import { PromptService } from 'salesforcedx-vscode-services/out/src/vscode/prompts/promptService';
-import { SettingsService } from 'salesforcedx-vscode-services/out/src/vscode/settingsService';
-import { WorkspaceService } from 'salesforcedx-vscode-services/out/src/vscode/workspaceService';
+import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
+import { ConnectionService } from 'salesforcedx-vscode-services/src/core/connectionService';
+import { QueryService } from 'salesforcedx-vscode-services/src/core/queryService';
+import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
+import { PromptService } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
+import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
+import { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
 import * as vscode from 'vscode';
