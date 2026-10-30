@@ -34,6 +34,8 @@
   },
   "dependencies": {
     "@salesforce/core": "^9.3.6",
+    "@salesforce/source-deploy-retrieve": "^13.5.0",
+    "@salesforce/source-tracking": "^8.1.7",
     "effect": "4.0.6",
     "vscode-uri": "^3.1.0"
   },

@@ -128,7 +128,12 @@ export const FsServiceLayer = Layer.effect(
           try: () => Promise.resolve(vscode.workspace.fs.rename(toUri(oldPath), toUri(newPath), options)),
           catch: cause => failure(cause, 'rename', oldPath)
         }),
-      readJSON: <A>(filePath: string, schema: Schema.Codec<A>) =>
+      copy: (source, target, options) =>
+        Effect.tryPromise({
+          try: () => Promise.resolve(vscode.workspace.fs.copy(toUri(source), toUri(target), options)),
+          catch: cause => failure(cause, 'copy', uriOrString(source))
+        }),
+      readJSON: <S extends Schema.Constraint>(filePath: string, schema: S) =>
         readFile(filePath).pipe(
           Effect.flatMap(text =>
             Effect.try({

@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { FsService, HashableUri, type FsProvider } from '@salesforce/vscode-services-v2';
+import { DocumentUriSchema, FsService, HashableUri, OrgId, type FsProvider } from '@salesforce/vscode-services-v2';
 import * as Effect from 'effect/Effect';
 import * as Equal from 'effect/Equal';
 import * as HashSet from 'effect/HashSet';
@@ -12,6 +12,7 @@ import * as Layer from 'effect/Layer';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import { expectTypeOf } from 'vitest';
 import { FsServiceLayer } from '../../src/fsService.js';
 import { toUri } from '../../src/uriUtils.js';
 import { WebFileSystemProvider } from '../../src/webFileSystemProvider.js';
@@ -83,4 +84,31 @@ it('creates parents only for safe writes and keeps readJSON failures typed', asy
     function: 'readJSON',
     filePath: path.toString()
   });
+});
+
+it('retains decoded JSON codec types instead of widening branded IDs and transformed URIs to strings', async () => {
+  vi.mocked(vscode.workspace.fs.readFile).mockResolvedValue(
+    new TextEncoder().encode(
+      JSON.stringify({
+        orgId: '00D000000000001',
+        document: 'sf-org-metadata:/orgs/00D000000000001/ApexClass/Foo.cls'
+      })
+    )
+  );
+  const result = await provide(
+    FsService.use(service =>
+      service.readJSON(
+        '/project/catalog.json',
+        Schema.Struct({
+          orgId: OrgId,
+          document: DocumentUriSchema
+        })
+      )
+    )
+  );
+  expectTypeOf(result.orgId).toEqualTypeOf<OrgId>();
+  expectTypeOf(result.document).toEqualTypeOf<URI>();
+  expect(result.orgId).toBe('00D000000000001');
+  expect(URI.isUri(result.document)).toBe(true);
+  expect(result.document.scheme).toBe('sf-org-metadata');
 });

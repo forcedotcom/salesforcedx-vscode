@@ -16,8 +16,17 @@ export const createVSCodeMock = (mockFunction: MockFactory) => {
   class EventEmitter {
     private listeners: any[] = [];
     constructor() {}
-    public event = (listener: any) => this.listeners.push(listener);
-    public dispose = mockFunction();
+    public event = (listener: any) => {
+      this.listeners.push(listener);
+      return {
+        dispose: () => {
+          this.listeners = this.listeners.filter(value => value !== listener);
+        }
+      };
+    };
+    public dispose = mockFunction(() => {
+      this.listeners = [];
+    });
     public fire = (e: any) => this.listeners.forEach(listener => listener(e));
   }
 
@@ -263,10 +272,15 @@ export const createVSCodeMock = (mockFunction: MockFactory) => {
         setStatusBarMessage: mockFunction(),
         showWarningModal: mockFunction(),
         withProgress: mockFunction(),
-        createOutputChannel: mockFunction(() => ({
+        createOutputChannel: mockFunction((name: string) => ({
+          name,
+          append: mockFunction(),
           clear: mockFunction(),
           appendLine: mockFunction(),
-          show: mockFunction()
+          replace: mockFunction(),
+          show: mockFunction(),
+          hide: mockFunction(),
+          dispose: mockFunction()
         })),
         showSaveDialog: mockFunction(),
         showTextDocument: mockFunction(),

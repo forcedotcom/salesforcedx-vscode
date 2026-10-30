@@ -14,7 +14,7 @@ import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { makeScopedFibers } from './scopedFiber.js';
 
-/** Channel is an explicit V4 requirement; its implementation remains assigned to W-24615069. */
+/** Channel comes from the owning graph; never create another output channel for a watcher. */
 export const FileWatcherLayer = Layer.effectDiscard(
   Effect.gen(function* () {
     const scopedFibers = yield* makeScopedFibers;

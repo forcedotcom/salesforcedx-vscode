@@ -11,3 +11,7 @@ export const unknownToErrorCause = (error: unknown): { cause: Error; message: st
   const cause = isError(error) ? error : new Error(String(error));
   return { cause, message: cause.message };
 };
+
+/** Native Node/memfs and VS Code provider absence; permissions/unavailable errors are not absence. */
+export const isFileNotFound = (cause: Error): boolean =>
+  'code' in cause && (cause.code === 'ENOENT' || cause.code === 'FileNotFound');

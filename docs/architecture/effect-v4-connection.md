@@ -34,9 +34,9 @@ The owning V4 graph and V2 prebuilt Layer replace default loggers with a shared 
 
 The V3-only `createCompatibleConnectionServices` initializes the bridge before returning either API. Shutdown closes admission, drains operations, stops the V3 adapter, then disposes V4, including failure paths. Repeated disposals share the whole cached outcome, not merely a cached "already disposed" flag. Ordered Cause reasons and opaque defect identities cross; Cause topology, FiberRefs and tracing context do not.
 
-## Deferred
+## Follow-on slices
 
-- W60/W63 add project/catalog and full operation/query services. The raw V4 query executor here is Connection's required identity-query dependency, not QueryService activation.
+- W60 adds the [project/catalog graph and document provider](effect-v4-project-catalog.md), including the actual QueryService reader over Connection's query executor. W63 retains merged workspace retrieve, deploy, delete and remaining operations.
 - W69 folds the private implementations into the provider, supplies host/observability services, replaces production activation, and removes superseded V3 implementations and temporary package wiring.
 - W75 migrates shared first-party consumer plumbing; final-cutover work verifies packaged auth/org-switch acceptance and external shipping refs.
 - No sf-effect-sdk adoption, legacy declaration repointing, core Connection substitution or public `api.v1` alias.

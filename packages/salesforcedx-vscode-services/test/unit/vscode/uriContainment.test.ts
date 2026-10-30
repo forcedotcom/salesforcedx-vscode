@@ -6,7 +6,7 @@
  */
 
 import { URI } from 'vscode-uri';
-import { isUriEqualOrWithin, uriPathIncludesSegments } from '../../../src/vscode/uriContainment';
+import { isUriEqualOrWithin, uriPathIncludesSegments } from '@salesforce/vscode-services-v2/uriComparison';
 
 describe('isUriEqualOrWithin', () => {
   it('treats the same path as contained', () => {

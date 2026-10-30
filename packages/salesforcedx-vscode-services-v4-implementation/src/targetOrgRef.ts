@@ -4,7 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { DefaultOrgInfoSchema, TargetOrgRef, type DefaultOrgInfo } from '@salesforce/vscode-services-v2';
+import {
+  DefaultOrgInfoSchema,
+  InactiveOrgOperationError,
+  TargetOrgRef,
+  type DefaultOrgInfo
+} from '@salesforce/vscode-services-v2';
 import * as Cause from 'effect/Cause';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
@@ -23,7 +28,10 @@ const TargetOrgRefLayer = Layer.effect(
 );
 
 type OrgSnapshot = {
+  /** Auth-selection attempts, including same-org connection reads. */
   readonly generation: number;
+  /** Committed org/user identity changes, independent of connection/cache reads. */
+  readonly orgGeneration: number;
   readonly aliasesRevision: number;
   readonly org: DefaultOrgInfo;
 };
@@ -45,6 +53,11 @@ export class OrgChanges extends Context.Service<
     ) => Effect.Effect<boolean>;
     readonly clear: Effect.Effect<void>;
     readonly clearIfCurrent: (generation: number) => Effect.Effect<void>;
+    readonly commitIfCurrent: <A, E, R>(
+      orgGeneration: number,
+      changedError: InactiveOrgOperationError,
+      commit: Effect.Effect<A, E, R>
+    ) => Effect.Effect<A, E | InactiveOrgOperationError, R>;
     readonly subscribe: (callback: OrgCallback) => Effect.Effect<{ readonly stop: Effect.Effect<void> }>;
   }
 >()('@salesforce/vscode-services-v4-implementation/OrgChanges') {}
@@ -54,19 +67,31 @@ export const OrgChangesLayer = Layer.effect(
   Effect.gen(function* () {
     const orgRef = yield* TargetOrgRef;
     const permit = yield* Semaphore.make(1);
-    const state = yield* Ref.make({ generation: 0, aliasesRevision: 0, closed: false });
+    const state = yield* Ref.make({ generation: 0, orgGeneration: 0, aliasesRevision: 0, closed: false });
     const callbacks = yield* Ref.make<readonly OrgCallback[]>([]);
     const snapshot = Effect.gen(function* () {
       const current = yield* Ref.get(state);
       if (current.closed) return yield* Effect.interrupt;
       return {
         generation: current.generation,
+        orgGeneration: current.orgGeneration,
         aliasesRevision: current.aliasesRevision,
         org: yield* SubscriptionRef.get(orgRef)
       };
     });
-    const publish = Effect.fn('OrgChanges.publish')(function* (next: DefaultOrgInfo) {
+    const publish = Effect.fn('OrgChanges.publish')(function* (
+      next: DefaultOrgInfo,
+      reason: 'update' | 'clear' = 'update'
+    ) {
       const current = yield* SubscriptionRef.get(orgRef);
+      // SOQL can return canonical username casing different from AuthInfo; that is not another user.
+      if (
+        reason === 'clear' ||
+        current.orgId !== next.orgId ||
+        current.username?.toLowerCase() !== next.username?.toLowerCase()
+      ) {
+        yield* Ref.update(state, value => ({ ...value, orgGeneration: value.orgGeneration + 1 }));
+      }
       if (current.aliases !== next.aliases || current.alias !== next.alias) {
         yield* Ref.update(state, value => ({ ...value, aliasesRevision: value.aliasesRevision + 1 }));
       }
@@ -102,7 +127,7 @@ export const OrgChangesLayer = Layer.effect(
             const current = yield* snapshot;
             if (current.generation !== generation) return;
             yield* Ref.update(state, value => ({ ...value, generation: value.generation + 1 }));
-            yield* publish(preserveTelemetry(current.org));
+            yield* publish(preserveTelemetry(current.org), 'clear');
           })
         )
       )
@@ -120,6 +145,29 @@ export const OrgChangesLayer = Layer.effect(
     );
     const remove = (callback: OrgCallback) =>
       Ref.update(callbacks, values => values.filter(value => value !== callback));
+    /** Commit must be bounded and must not reacquire OrgChanges or call network/SDK polling. */
+    const commitIfCurrent = <A, E, R>(
+      orgGeneration: number,
+      changedError: InactiveOrgOperationError,
+      commit: Effect.Effect<A, E, R>
+    ): Effect.Effect<A, E | InactiveOrgOperationError, R> =>
+      snapshot.pipe(
+        Effect.flatMap(
+          (current): Effect.Effect<A, E | InactiveOrgOperationError, R> =>
+            current.orgGeneration === orgGeneration && current.org.orgId === changedError.expectedOrgId
+              ? commit
+              : Effect.fail(
+                  new InactiveOrgOperationError({
+                    message: changedError.message,
+                    expectedOrgId: changedError.expectedOrgId,
+                    ...(current.org.orgId ? { observedOrgId: current.org.orgId } : {})
+                  })
+                )
+        ),
+        Effect.uninterruptible,
+        program => permit.withPermit(program),
+        Effect.withSpan('OrgChanges.commitIfCurrent')
+      );
     yield* Effect.addFinalizer(() =>
       permit.withPermit(
         Effect.uninterruptible(
@@ -132,12 +180,13 @@ export const OrgChangesLayer = Layer.effect(
       snapshot: permit.withPermit(snapshot),
       update,
       clearIfCurrent,
+      commitIfCurrent,
       clear: permit.withPermit(
         Effect.uninterruptible(
           Effect.gen(function* () {
             const current = yield* snapshot;
             yield* Ref.update(state, value => ({ ...value, generation: value.generation + 1 }));
-            yield* publish(preserveTelemetry(current.org));
+            yield* publish(preserveTelemetry(current.org), 'clear');
           })
         )
       ),

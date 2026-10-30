@@ -9,6 +9,19 @@ import { URI } from 'vscode-uri';
 export const stats = { workspaceWatchers: 0, workspaceDisposed: 0, settingsWatchers: 0, settingsDisposed: 0 };
 export const FileType = { File: 1, Directory: 2 };
 export const ConfigurationTarget = { Global: 1 };
+export const ProgressLocation = { Notification: 15 };
+export class EventEmitter {
+  listeners = new Set();
+  event = listener => { this.listeners.add(listener); return { dispose: () => this.listeners.delete(listener) }; };
+  fire = value => { for (const listener of this.listeners) listener(value); };
+  dispose = () => this.listeners.clear();
+}
+export class TabInputText { constructor(uri) { this.uri = uri; } }
+export class TabInputTextDiff { constructor(original, modified) { this.original = original; this.modified = modified; } }
+export class FileSystemError extends Error {
+  static FileNotFound(value) { return new FileSystemError(`File not found: ${value}`); }
+  static FileNotADirectory(value) { return new FileSystemError(`Not a directory: ${value}`); }
+}
 const settings = new Map([
   ['salesforce-web-console.accessToken', ' fixture-secret '],
   ['salesforce-web-console.instanceUrl', ' https://example.com '],
@@ -16,6 +29,7 @@ const settings = new Map([
 ]);
 const disposable = () => ({ dispose() {} });
 export const workspace = {
+  textDocuments: [],
   workspaceFolders: [{ uri: URI.parse('memfs:/fixture'), name: 'fixture', index: 0 }],
   name: 'fixture',
   getConfiguration: section => ({
@@ -55,3 +69,4 @@ export const workspace = {
   }
 };
 export const window = { showTextDocument: async () => ({}) };
+export const commands = { executeCommand: async () => undefined };

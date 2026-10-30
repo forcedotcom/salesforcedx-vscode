@@ -32,7 +32,7 @@ export const foundationalLayers = Layer.mergeAll(
   events
 );
 
-/** Requires the host's WebFileSystemProvider getter and the eventual V4 ChannelService implementation. */
+/** Requires the owning host's WebFileSystemProvider getter and ChannelService. */
 export const foundationalWatcherLayers = Layer.mergeAll(FileWatcherLayer, SettingsWatcherLayer).pipe(
   Layer.provideMerge(foundationalLayers)
 );

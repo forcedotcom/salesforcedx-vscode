@@ -5,25 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { Connection } from '@salesforce/core';
+import { FieldError, SoqlError, type QueryOptions } from '@salesforce/vscode-services-v2';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { unknownToErrorCause } from './errorCause.js';
 
-class SoqlError extends Schema.TaggedError<SoqlError>()('SoqlError', {
-  soql: Schema.String,
-  errorCode: Schema.String,
-  statusCode: Schema.Number,
-  message: Schema.String
-}) {}
-class FieldError extends Schema.TaggedError<FieldError>()('FieldError', {
-  soql: Schema.String,
-  errorCode: Schema.String,
-  statusCode: Schema.Number,
-  message: Schema.String,
-  fields: Schema.Array(Schema.String)
-}) {}
 const ApiFailure = Schema.Struct({
   message: Schema.String,
   errorCode: Schema.String,
@@ -69,15 +57,12 @@ const Envelope = <S extends Schema.Constraint>(schema: S) =>
     records: Schema.optional(Schema.Array(schema))
   });
 
-/** Dependency closure for connection identity; the full QueryService remains assigned to W-24615063. */
-export const executeQuery = <S extends Schema.Constraint>(
+/** Runs against the captured SDK Connection; the optional page runner owns lazy query work. */
+export const executeQuery = <S extends Schema.Constraint, GuardError = never, GuardServices = never>(
   connection: Connection,
-  options: {
-    readonly soql: string;
-    readonly tooling?: boolean;
-    readonly scanAll?: boolean;
-  },
-  recordSchema: S
+  options: QueryOptions,
+  recordSchema: S,
+  runPage: <A, E, R>(page: Effect.Effect<A, E, R>) => Effect.Effect<A, E | GuardError, R | GuardServices> = page => page
 ) => {
   const api = options.tooling ? connection.tooling : connection;
   const fetchPage = (next?: string) =>
@@ -88,7 +73,8 @@ export const executeQuery = <S extends Schema.Constraint>(
         const refined = refineError(options.soql, error.cause);
         return Effect.fail(Schema.is(SoqlError)(refined) || Schema.is(FieldError)(refined) ? refined : error);
       }),
-      Effect.flatMap(Schema.decodeUnknownEffect(Envelope(recordSchema)))
+      Effect.flatMap(Schema.decodeUnknownEffect(Envelope(recordSchema))),
+      runPage
     );
   return fetchPage().pipe(
     Effect.map(first => ({
@@ -108,7 +94,9 @@ export const executeQuery = <S extends Schema.Constraint>(
                   )
                 )
               )
-        )
+        ),
+        // First-page records may be consumed after query() returns; every later emission is guarded too.
+        Stream.mapEffect(record => runPage(Effect.succeed(record)))
       )
     }))
   );

@@ -6,7 +6,11 @@
  */
 
 import type { OrgMetadataComponentReference } from './orgMetadataReference';
-import { pathSuffixWithin } from '@salesforce/vscode-services-v2/uriComparison';
+import {
+  isUriEqualOrWithin,
+  pathSuffixWithin,
+  uriPathIncludesSegments
+} from '@salesforce/vscode-services-v2/uriComparison';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Encoding from 'effect/Encoding';
@@ -20,7 +24,6 @@ import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { FsService } from '../vscode/fsService';
 import { HashableUri } from '../vscode/hashableUri';
-import { isUriEqualOrWithin, uriPathIncludesSegments } from '../vscode/uriContainment';
 import { WorkspaceService } from '../vscode/workspaceService';
 
 const SHADOW_DIRECTORY = 'metadata-shadow';

@@ -27,7 +27,8 @@ watchers or claim that old V3 activation E2E proves V4 activation.
 - Its `WebFileSystemProvider` requirement is a getter for the host's existing web
   provider. It never constructs another filesystem or captures a stale bootstrap value.
 - `foundationalWatcherLayers` adds workspace/configuration listener acquisition.
-  ChannelService remains an explicit V4 requirement; its host implementation is W69.
+  ChannelService remains an explicit V4 requirement; the [project/catalog graph](effect-v4-project-catalog.md)
+  supplies the shared scoped host implementation.
 - Each graph owns one org carrier, Config cache/subscription and each acquired watcher.
   Stable layer identity gives memoized reuse across dependent slices.
 - Config retains capacity 5, TTL 30 minutes, desktop aggregator reloads, web no-reload,
@@ -46,7 +47,8 @@ foundation implementation has no stale platform or unstable-module imports.
 ## Platform and data contracts
 
 - Canonical V2 keys are extended, not redeclared. Host implementation stays out of
-  the public contracts package. New ChannelService is a key/interface only.
+  the public contracts package. ChannelService's host implementation belongs to the
+  private implementation package, not the V2 contracts.
 - The pure `uriComparison` module moved to a V2 subpath shared by the old provider
   and V4 HashableUri. It imports no Effect runtime and passes no runnable value
   across majors. Its `.cjs`/`.d.cts` artifacts support both native ESM and existing
