@@ -120,6 +120,12 @@ the inventory rather than treating the count as a fixed gate. The script exclude
 quoted test source inside strings from real imports; test-fixture migration still
 belongs to its package WI.
 
+W-24615063 completes the remaining [metadata operation services](effect-v4-metadata-operations.md)
+on that same graph: merged retrieve, deploy/delete and Lightning bundle rename.
+The explicit public Context grows to 26 canonical keys; private result-application
+and org-lifetime coordination remain excluded. Production activation still waits
+for W-24615069.
+
 ### Apex prerequisite and temporary V3 caller
 
 W-24615048 migrates Apex's `/effect` entry before `ExecuteAnonymousService` moves

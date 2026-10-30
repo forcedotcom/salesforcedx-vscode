@@ -145,6 +145,14 @@ export class MetadataRetrieveError extends Schema.TaggedError<MetadataRetrieveEr
   cause: Schema.Unknown,
   message: Schema.String
 }) {}
+export class MetadataDeployError extends Schema.TaggedError<MetadataDeployError>()('FailedToDeployMetadataError', {
+  message: Schema.String,
+  cause: Schema.optional(Schema.Unknown)
+}) {}
+export class MetadataDeleteError extends Schema.TaggedError<MetadataDeleteError>()('MetadataDeleteError', {
+  message: Schema.String,
+  cause: Schema.optional(Schema.Unknown)
+}) {}
 export class UserCancellationError extends Schema.TaggedError<UserCancellationError>()('UserCancellationError', {
   message: Schema.String
 }) {}

@@ -7,12 +7,16 @@
 import * as Layer from 'effect/Layer';
 import { ChannelServiceLayer } from './channelService.js';
 import { connectionWatcherLayers } from './connectionLayers.js';
+import { LightningComponentServiceLayer } from './lightningComponentService.js';
 import {
   ActiveMetadataOperationRefLayer,
   MetadataChangeNotificationServiceLayer,
   OrgMetadataCatalogChangePubSubLayer
 } from './metadataChangeNotificationService.js';
+import { MetadataDeleteServiceLayer } from './metadataDeleteService.js';
+import { MetadataDeployServiceLayer } from './metadataDeployService.js';
 import { MetadataDescribeServiceLayer } from './metadataDescribeService.js';
+import { MetadataOperationNotificationsLayer } from './metadataOperationNotifications.js';
 import { MetadataRetrieveServiceLayer } from './metadataRetrieveService.js';
 import { OrgCatalogDocumentsLayer } from './orgCatalog/orgCatalogDocuments.js';
 import { OrgCatalogInventoryLayer } from './orgCatalog/orgCatalogInventory.js';
@@ -49,8 +53,10 @@ const recorder = OrgMetadataCatalogRecorderLayer.pipe(Layer.provideMerge(state))
 const descriptions = Layer.mergeAll(MetadataDescribeServiceLayer, OrgSemanticArtifactPersistenceLayer).pipe(
   Layer.provideMerge(recorder)
 );
-const nativeReaders = Layer.mergeAll(QueryServiceLayer, MetadataRetrieveServiceLayer, SourceTrackingServiceLayer).pipe(
-  Layer.provideMerge(descriptions)
+const tracking = SourceTrackingServiceLayer.pipe(Layer.provideMerge(descriptions));
+const operationNotifications = MetadataOperationNotificationsLayer.pipe(Layer.provideMerge(tracking));
+const nativeReaders = Layer.mergeAll(QueryServiceLayer, MetadataRetrieveServiceLayer).pipe(
+  Layer.provideMerge(operationNotifications)
 );
 export const catalogReaderLayers = OrgCatalogRemoteRetrieveLayer.pipe(Layer.provideMerge(nativeReaders));
 const workspaceInventory = OrgCatalogWorkspaceLayer.pipe(Layer.provideMerge(catalogReaderLayers));
@@ -59,4 +65,9 @@ export const catalogInventoryLayers = OrgCatalogTreeProjectionLayer.pipe(Layer.p
 const remoteDocuments = OrgCatalogRemoteSourceLayer.pipe(Layer.provideMerge(catalogInventoryLayers));
 export const catalogDocumentLayers = OrgCatalogDocumentsLayer.pipe(Layer.provideMerge(remoteDocuments));
 export const catalogLayers = OrgMetadataCatalogLayer.pipe(Layer.provideMerge(catalogDocumentLayers));
-export const catalogProviderLayers = OrgMetadataDocumentProviderLayer.pipe(Layer.provideMerge(catalogLayers));
+const metadataOperations = Layer.mergeAll(
+  MetadataDeployServiceLayer,
+  MetadataDeleteServiceLayer,
+  LightningComponentServiceLayer
+).pipe(Layer.provideMerge(catalogLayers));
+export const catalogProviderLayers = OrgMetadataDocumentProviderLayer.pipe(Layer.provideMerge(metadataOperations));

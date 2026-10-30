@@ -14,7 +14,7 @@ Canonical V4 keys, schemas, errors, and domain data live in `@salesforce/vscode-
 
 Stable layer values compose foundations → connection → Project/Registry/ComponentSet → stores/state/recorder → readers → inventory/documents/catalog → provider. Layer memoization shares the same caches, org writer, notifications, and watchers.
 
-`createCatalogRuntime` delegates once to the existing connection owner. `publicServiceKeys` explicitly selects 23 canonical keys for the customer Context; private state, org coordination, host messages, and implementation tags are excluded at runtime, not hidden by a cast. The prebuilt Layer reuses those instances and the redacting logger. The unchanged Promise/AbortSignal/data host still returns the same native SDK Connection to genuine V3 adapters.
+`createCatalogRuntime` delegates once to the existing connection owner. W60 established 23 canonical public keys; [W63 metadata operations](effect-v4-metadata-operations.md) extends the explicit whitelist to 26. Private state, org coordination, host messages, and implementation tags are excluded at runtime, not hidden by a cast. The prebuilt Layer reuses those instances and the redacting logger. The unchanged Promise/AbortSignal/data host still returns the same native SDK Connection to genuine V3 adapters.
 
 Pure URI comparison/containment remains in the existing CJS `uriComparison` subpath. V3 callers can reuse it without loading V4 schemas or runnable values. SDK Project cache keys retain native path normalization at their filesystem boundary.
 
