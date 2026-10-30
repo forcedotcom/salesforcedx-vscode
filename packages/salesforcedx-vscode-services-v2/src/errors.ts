@@ -6,6 +6,7 @@
  */
 import * as Schema from 'effect/Schema';
 import { OrgId } from './defaultOrgInfo.js';
+import { UriSchema } from './uriSchema.js';
 
 const MessageWithCause = { message: Schema.String, cause: Schema.optional(Schema.instanceOf(Error)) };
 
@@ -86,5 +87,80 @@ export class InactiveOrgOperationError extends Schema.TaggedError<InactiveOrgOpe
     message: Schema.String,
     expectedOrgId: OrgId,
     observedOrgId: Schema.optional(OrgId)
+  }
+) {}
+
+export class FailedToResolveSfProjectError extends Schema.TaggedError<FailedToResolveSfProjectError>()(
+  'FailedToResolveSfProjectError',
+  MessageWithCause
+) {}
+export class GetRegistryAccessError extends Schema.TaggedError<GetRegistryAccessError>()('GetRegistryAccessError', {
+  message: Schema.String,
+  cause: Schema.Unknown
+}) {}
+export class NotInPackageDirectoryError extends Schema.TaggedError<NotInPackageDirectoryError>()(
+  'NotInPackageDirectoryError',
+  { message: Schema.String, uris: Schema.Array(UriSchema) }
+) {}
+
+export class SoqlError extends Schema.TaggedError<SoqlError>()('SoqlError', {
+  soql: Schema.String,
+  errorCode: Schema.String,
+  statusCode: Schema.Number,
+  message: Schema.String
+}) {}
+export class FieldError extends Schema.TaggedError<FieldError>()('FieldError', {
+  soql: Schema.String,
+  errorCode: Schema.String,
+  statusCode: Schema.Number,
+  message: Schema.String,
+  fields: Schema.Array(Schema.String)
+}) {}
+export class TransmogrifierError extends Schema.TaggedError<TransmogrifierError>()('TransmogrifierError', {
+  source: Schema.Literals(['rest-sobject-describe', 'workspace-sobject-metadata', 'persisted-semantic-model']),
+  message: Schema.String,
+  cause: Schema.optional(Schema.Unknown)
+}) {}
+export class MetadataDescribeError extends Schema.TaggedError<MetadataDescribeError>()('MetadataDescribeError', {
+  cause: Schema.Unknown,
+  function: Schema.String,
+  objectName: Schema.optional(Schema.String),
+  message: Schema.String
+}) {}
+export class ListMetadataError extends Schema.TaggedError<ListMetadataError>()('ListMetadataError', {
+  cause: Schema.Unknown,
+  metadataType: Schema.String,
+  folder: Schema.optional(Schema.String),
+  message: Schema.String
+}) {}
+export class EmptyComponentSetError extends Schema.TaggedError<EmptyComponentSetError>()('EmptyComponentSetError', {
+  message: Schema.String,
+  size: Schema.Number
+}) {}
+export class FailedToBuildComponentSetError extends Schema.TaggedError<FailedToBuildComponentSetError>()(
+  'FailedToBuildComponentSetError',
+  MessageWithCause
+) {}
+export class MetadataRetrieveError extends Schema.TaggedError<MetadataRetrieveError>()('MetadataRetrieveError', {
+  cause: Schema.Unknown,
+  message: Schema.String
+}) {}
+export class UserCancellationError extends Schema.TaggedError<UserCancellationError>()('UserCancellationError', {
+  message: Schema.String
+}) {}
+export class SourceTrackingError extends Schema.TaggedError<SourceTrackingError>()('SourceTrackingError', {
+  message: Schema.String,
+  cause: Schema.Unknown
+}) {}
+export class SourceTrackingNotEnabledError extends Schema.TaggedError<SourceTrackingNotEnabledError>()(
+  'SourceTrackingNotEnabledError',
+  {
+    message: Schema.String
+  }
+) {}
+export class SourceTrackingConflictError extends Schema.TaggedError<SourceTrackingConflictError>()(
+  'SourceTrackingConflictError',
+  {
+    conflicts: Schema.Array(Schema.String)
   }
 ) {}

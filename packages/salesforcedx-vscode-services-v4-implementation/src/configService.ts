@@ -25,6 +25,7 @@ import { unknownToErrorCause } from './errorCause.js';
 import { makeScopedFibers } from './scopedFiber.js';
 import { ServiceOperations, ServiceOperationsLayer } from './serviceOperations.js';
 import { OrgChanges } from './targetOrgRef.js';
+import { uriToPath } from './uriUtils.js';
 
 // The resolved config can contain a decrypted live session id. Never spread it onto spans.
 const spanSafeKeys: readonly string[] = [
@@ -74,7 +75,7 @@ export const ConfigServiceLayer = Layer.effect(
 
     const getConfigAggregator = Effect.fn('ConfigService.getConfigAggregator')(function* () {
       const workspaceInfo = yield* workspace.getWorkspaceInfoOrThrow();
-      const projectPath = workspaceInfo.path.replace('memfs', '').replace(':/', '');
+      const projectPath = uriToPath(workspaceInfo.uri);
       yield* Effect.annotateCurrentSpan({ projectPath });
       const aggregator = yield* Cache.get(cache, projectPath);
       const reloaded = yield* process.env.ESBUILD_PLATFORM === 'web'

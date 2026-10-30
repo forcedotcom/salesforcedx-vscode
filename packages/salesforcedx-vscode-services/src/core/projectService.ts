@@ -7,6 +7,7 @@
 
 import type { FileChangeEvent } from '../vscode/fileChangePubSub';
 import { Global, SfProject } from '@salesforce/core';
+import { isUriEqualOrWithin } from '@salesforce/vscode-services-v2/uriComparison';
 import * as Cache from 'effect/Cache';
 import * as Chunk from 'effect/Chunk';
 import * as Data from 'effect/Data';
@@ -21,7 +22,6 @@ import * as Stream from 'effect/Stream';
 import { normalize } from 'node:path';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
-import { isUriEqualOrWithin } from '../vscode/uriContainment';
 import { toUri } from '../vscode/uriUtils';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { artifactNamespacesEqual, type ArtifactNamespace } from './artifactIdentity';

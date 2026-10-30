@@ -58,10 +58,11 @@ const encodeExit = <A, E, D>(exit: Exit.Exit<A, E>, encode: (error: E) => D): Ho
 type ConnectionGraph = ConnectionService | ConfigService | AliasService | TargetOrgRef | OrgChanges;
 
 /** Imperative owner of one acquired graph. The caller initializes V3 before publishing either API. */
-export const createConnectionRuntime = async <R>(
+export const createConnectionRuntime = async <R, Keys extends readonly Context.Key<unknown, unknown>[] = readonly []>(
   layer: Layer.Layer<ConnectionGraph | R>,
   redact: CompatibilityHost['redact'],
-  signal?: AbortSignal
+  signal?: AbortSignal,
+  additionalServiceKeys?: Keys
 ) => {
   const logging = Logger.layer([Logger.formatSimple.pipe(Logger.map(redact), Logger.withConsoleLog)]);
   const runtime = ManagedRuntime.make(
@@ -69,7 +70,7 @@ export const createConnectionRuntime = async <R>(
   );
   try {
     if (signal?.aborted) return await Effect.runPromise(Effect.interrupt);
-    const [connection, config, alias, orgRef, orgChanges, operations] = await runtime.runPromise(
+    const [connection, config, alias, , orgChanges, operations] = await runtime.runPromise(
       Effect.all([ConnectionService, ConfigService, AliasService, TargetOrgRef, OrgChanges, ServiceOperations]),
       { signal }
     );
@@ -88,10 +89,8 @@ export const createConnectionRuntime = async <R>(
       input?.aborted
         ? Promise.resolve({ _tag: 'Failure', reasons: [{ _tag: 'Interrupt', fiberId: undefined }] })
         : runtime.runPromiseExit(operations.run(program), { signal: input }).then(exit => encodeExit(exit, encode));
-    const context = Context.make(ConnectionService, connection).pipe(
-      Context.add(ConfigService, config),
-      Context.add(AliasService, alias),
-      Context.add(TargetOrgRef, orgRef)
+    const context = (await runtime.runPromise(Effect.context<ConnectionGraph | R>(), { signal })).pipe(
+      Context.pick(ConnectionService, ConfigService, AliasService, TargetOrgRef, ...(additionalServiceKeys ?? []))
     );
     const host: CompatibilityHost = {
       getConnection: (username, input) =>

@@ -63,6 +63,14 @@ export class FsService extends Context.Service<
       newPath: string,
       options?: { readonly overwrite?: boolean }
     ) => Effect.Effect<void, FsServiceError>;
-    readonly readJSON: <A>(filePath: string, schema: Schema.Codec<A>) => Effect.Effect<A, FsServiceError>;
+    readonly copy: (
+      source: string | URI,
+      target: string | URI,
+      options?: { readonly overwrite?: boolean }
+    ) => Effect.Effect<void, FsServiceError>;
+    readonly readJSON: <S extends Schema.Constraint>(
+      filePath: string,
+      schema: S
+    ) => Effect.Effect<S['Type'], FsServiceError, S['DecodingServices']>;
   }
 >()('@salesforce/vscode-services-v2/FsService') {}

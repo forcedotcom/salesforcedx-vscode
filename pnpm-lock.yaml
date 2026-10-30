@@ -1610,6 +1610,12 @@ importers:
       '@salesforce/core':
         specifier: ^9.3.6
         version: 9.3.6
+      '@salesforce/source-deploy-retrieve':
+        specifier: ^13.5.0
+        version: 13.5.0(supports-color@8.1.1)
+      '@salesforce/source-tracking':
+        specifier: ^8.1.7
+        version: 8.1.7(supports-color@8.1.1)
       '@types/vscode':
         specifier: ^1.90.0
         version: 1.90.0
@@ -1634,6 +1640,12 @@ importers:
       '@salesforce/core':
         specifier: ^9.3.6
         version: 9.3.6
+      '@salesforce/source-deploy-retrieve':
+        specifier: ^13.5.0
+        version: 13.5.0(supports-color@8.1.1)
+      '@salesforce/source-tracking':
+        specifier: ^8.1.7
+        version: 8.1.7(supports-color@8.1.1)
       '@salesforce/vscode-services-v2':
         specifier: '*'
         version: link:../salesforcedx-vscode-services-v2

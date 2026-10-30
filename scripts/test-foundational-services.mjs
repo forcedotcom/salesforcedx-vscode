@@ -125,6 +125,13 @@ try {
       bundler.onResolve({ filter: /^vscode$/ }, () => ({ path: path.join(directory, 'vscode.mjs') }));
     }
   };
+  // Browser FS polyfills live in this checkout; resolve their SDK import into the isolated packed consumer too.
+  const packedCore = {
+    name: 'packed-consumer-core',
+    setup: bundler => {
+      bundler.onResolve({ filter: /^@salesforce\/core(?:\/|$)/ }, args => ({ path: require.resolve(args.path) }));
+    }
+  };
   for (const platform of ['node', 'browser']) {
     const outfile = path.join(directory, `${platform}-bundle.mjs`);
     const result = await build({
@@ -138,8 +145,17 @@ try {
       sourcemap: false,
       metafile: true,
       external:
-        platform === 'node' ? ['@salesforce/core', '@salesforce/core/*', 'effect', 'effect/*', 'vscode-uri'] : [],
-      plugins: [...(platform === 'browser' ? (commonConfigBrowser.plugins ?? []) : []), vscodeHost]
+        platform === 'node'
+          ? [
+              '@salesforce/core',
+              '@salesforce/core/*',
+              '@salesforce/source-deploy-retrieve',
+              'effect',
+              'effect/*',
+              'vscode-uri'
+            ]
+          : [],
+      plugins: [...(platform === 'browser' ? [...(commonConfigBrowser.plugins ?? []), packedCore] : []), vscodeHost]
     });
     assert(
       Object.keys(result.metafile.inputs).some(file => file.includes('vscode-services-v4-implementation/out/')),
@@ -170,6 +186,103 @@ try {
         orgRefClosed: true
       });
       console.log(`PASS actual packed ${platform}-target foundation graph`);
+      const projectOutfile = path.join(directory, `${platform}-project-bundle.mjs`);
+      await build({
+        ...(platform === 'browser' ? commonConfigBrowser : {}),
+        entryPoints: [path.join(directory, 'projectRuntime.mjs')],
+        outfile: projectOutfile,
+        bundle: true,
+        format: 'esm',
+        platform,
+        target: 'es2024',
+        sourcemap: false,
+        external:
+          platform === 'node'
+            ? [
+                '@salesforce/core',
+                '@salesforce/core/*',
+                '@salesforce/source-deploy-retrieve',
+                'effect',
+                'effect/*',
+                'vscode-uri'
+              ]
+            : [],
+        plugins: [...(platform === 'browser' ? [...(commonConfigBrowser.plugins ?? []), packedCore] : []), vscodeHost]
+      });
+      const { observed: project } = await import(pathToFileURL(projectOutfile).href);
+      assert.equal(project.backend, platform === 'browser' ? 'memfs' : 'node');
+      assert.deepEqual(project.names, ['One', 'Other']);
+      assert.deepEqual(project.manifestNames, ['One']);
+      assert.deepEqual(project.filteredNames, ['Other']);
+      assert.equal(project.sameNonEmpty, true);
+      assert.equal(project.apiVersion, '68.0');
+      assert.equal(project.sourceApiVersion, '67.0');
+      assert.equal(project.projectDirectory, project.expectedProjectDirectory);
+      assert.equal(project.projectPath, project.expectedProjectDirectory);
+      assert.equal(project.customOutput, project.expectedOutput);
+      assert.equal(project.namespace, 'Fixture');
+      assert.equal(project.registrySuffix, 'cls');
+      assert.equal(project.closedAdmission, true);
+      assert.equal(project.createdChannels, 1);
+      assert.equal(project.disposedChannels, 1);
+      console.log(`PASS actual packed ${platform}-target native project/registry/ComponentSet discovery and teardown`);
+      const catalogOutfile = path.join(directory, `${platform}-catalog-bundle.mjs`);
+      const catalogBundle = await build({
+        ...(platform === 'browser' ? commonConfigBrowser : {}),
+        entryPoints: [path.join(directory, 'catalogRuntime.mjs')],
+        outfile: catalogOutfile,
+        bundle: true,
+        format: 'esm',
+        platform,
+        target: 'es2024',
+        sourcemap: false,
+        metafile: true,
+        external:
+          platform === 'node'
+            ? [
+                '@salesforce/core',
+                '@salesforce/core/*',
+                '@salesforce/source-deploy-retrieve',
+                '@salesforce/source-tracking',
+                '@salesforce/source-tracking/*',
+                'effect',
+                'effect/*',
+                'vscode-uri'
+              ]
+            : [],
+        plugins: [...(platform === 'browser' ? [...(commonConfigBrowser.plugins ?? []), packedCore] : []), vscodeHost]
+      });
+      assert(
+        Object.keys(catalogBundle.metafile.inputs).some(file =>
+          file.includes('vscode-services-v4-implementation/out/orgCatalog/orgCatalogRemoteRetrieve.js')
+        )
+      );
+      const { observed: catalog } = await import(pathToFileURL(catalogOutfile).href);
+      assert.equal(catalog.backend, platform === 'browser' ? 'memfs' : 'node');
+      assert.equal(catalog.nativeConnection, true);
+      assert.equal(catalog.sameLegacyConnection, true);
+      assert.deepEqual(catalog.contextKeys, catalog.expectedContextKeys);
+      assert.equal(catalog.contextKeys.length, 23);
+      assert.deepEqual(catalog.extracted, [0, 255, 128, 0, 1, 2]);
+      assert.deepEqual(catalog.materialized, catalog.extracted);
+      assert.match(catalog.primary, /metadata-shadow\/StaticResource\/Blob\/revisions\//);
+      assert.equal(catalog.revision, '2026-10-30T00:00:00.000Z');
+      assert.equal(catalog.fileCount, 2);
+      assert.equal(catalog.retrieves, 2);
+      assert.equal(catalog.unchangedSource, 'public class Local { /* unchanged */ }');
+      assert.equal(catalog.active, 0);
+      assert(!catalog.staging.some(name => name.endsWith('.__staging__')));
+      assert.equal(catalog.closedAdmission, true);
+      assert.equal(catalog.createdChannels, 1);
+      assert.equal(catalog.disposedChannels, 1);
+      assert.equal(catalog.progressListeners, 2);
+      assert.equal(catalog.disposedProgressListeners, 2);
+      assert.equal(catalog.createdProviders, 1);
+      assert.equal(catalog.disposedProviders, 1);
+      assert.equal(catalog.notification, 'sf-org-metadata:/orgs/00D000000000001/StaticResource/Blob.resource');
+      console.log(
+        `PASS actual packed ${platform}-target SDK binary retrieve/shadow/document notification, public-only Context and teardown`
+      );
     } finally {
       if (dom) {
         for (const [name, descriptor] of previous) {

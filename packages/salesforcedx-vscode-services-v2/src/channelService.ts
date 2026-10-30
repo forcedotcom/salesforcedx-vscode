@@ -8,7 +8,6 @@ import * as Context from 'effect/Context';
 import type * as Effect from 'effect/Effect';
 import type * as vscode from 'vscode';
 
-/** Canonical key only. The host channel implementation remains assigned to W-24615069. */
 export class ChannelService extends Context.Service<
   ChannelService,
   {

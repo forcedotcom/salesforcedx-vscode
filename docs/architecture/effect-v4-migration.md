@@ -88,8 +88,8 @@ All files in each package belong to its WI below; no source/test import is exemp
 | `salesforcedx-vscode-services/src/core/executeAnonymousCompat.ts`, temporary Apex Promise/data boundary                                                               | W-24615048 introduces; W-24615069 removes                                              |
 | `salesforcedx-vscode-services`: config/alias/settings/fs/workspace and foundational schemas                                                                           | W-24615055                                                                             |
 | `salesforcedx-vscode-services`: connection/default-org and live compatibility binding                                                                                 | W-24615059                                                                             |
-| `salesforcedx-vscode-services`: project/catalog/registry/source tracking                                                                                              | W-24615060                                                                             |
-| `salesforcedx-vscode-services`: metadata/query/component operations                                                                                                   | W-24615063                                                                             |
+| `salesforcedx-vscode-services`: project/catalog/documents/registry/source tracking and required describe/query/ComponentSet/nonmerge-retrieve readers                     | W-24615060                                                                             |
+| `salesforcedx-vscode-services`: merged workspace retrieve/deploy/delete and remaining metadata operations                                                              | W-24615063                                                                             |
 | `salesforcedx-vscode-services`: remaining editor/UI/Apex/observability, activation/bootstrap                                                                          | W-24615069                                                                             |
 | Compatibility-only implementation and independently installed fixtures                                                                                                | W-24615044, W-24615046                                                                 |
 | `salesforcedx-vscode-services-v3-compat`: genuine V3 proxies, lifecycle and encoded host boundary                                                                     | W-24615046 introduces; W-24615059 binds actual connection graph                          |
@@ -111,6 +111,10 @@ W-24615055 adds a private V4 implementation package to isolate its compiler/LS
 program from the still-V3 provider. See [foundation ownership and verification](effect-v4-foundations.md).
 W-24615059 adds the real connection graph, acknowledged org writer and compatible
 lifecycle owner; see [connection ownership and verification](effect-v4-connection.md).
+W-24615060 extends that graph through Project/catalog/SourceTracking and documents;
+see [project/catalog ownership and verification](effect-v4-project-catalog.md).
+Describe/query/ComponentSet/nonmerge-retrieve readers move into this slice as real
+prerequisites. W-24615063 retains merged retrieve/deploy/delete and remaining operations.
 The expected census becomes **30 packages** when that source is tracked; rerun
 the inventory rather than treating the count as a fixed gate. The script excludes
 quoted test source inside strings from real imports; test-fixture migration still
