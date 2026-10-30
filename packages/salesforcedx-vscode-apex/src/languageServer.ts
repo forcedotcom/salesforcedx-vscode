@@ -220,11 +220,16 @@ const buildClientOptions = Effect.fn('apex.lsp.buildClientOptions')(function* (
       };
 
       const capabilities = resolveLanguageServerCapabilities(capabilityPolicy);
-      const capabilityMiddleware: Record<string, () => null> = Object.fromEntries(
-        Object.entries(capabilities.lsp)
-          .filter(([, capability]) => !capability.enabled)
-          .map(([feature]) => [feature, () => null])
-      );
+      const capabilityMiddleware: Middleware = {
+        ...(capabilities.lsp.provideCodeActions.enabled ? {} : { provideCodeActions: () => null }),
+        ...(capabilities.lsp.provideCodeLenses.enabled ? {} : { provideCodeLenses: () => null }),
+        ...(capabilities.lsp.provideCompletions.enabled ? {} : { provideCompletionItem: () => null }),
+        ...(capabilities.lsp.provideDefinition.enabled ? {} : { provideDefinition: () => null }),
+        ...(capabilities.lsp.provideDocumentSymbols.enabled ? {} : { provideDocumentSymbols: () => null }),
+        ...(capabilities.lsp.provideHover.enabled ? {} : { provideHover: () => null }),
+        ...(capabilities.lsp.provideReferences.enabled ? {} : { provideReferences: () => null }),
+        ...(capabilities.lsp.provideRenameEdits.enabled ? {} : { provideRenameEdits: () => null })
+      };
 
       return {
         // Register the server for Apex documents
@@ -248,8 +253,8 @@ const buildClientOptions = Effect.fn('apex.lsp.buildClientOptions')(function* (
         initializationOptions: scanConfig ? { ...initializationOptions, ...scanConfig } : initializationOptions,
         middleware: {
           ...capabilityMiddleware,
-          ...(soqlExtensionInstalled ? soqlMiddleware : {}),
-          provideCodeLenses,
+          ...(soqlExtensionInstalled && capabilities.lsp.provideCompletions.enabled ? soqlMiddleware : {}),
+          ...(capabilities.lsp.provideCodeLenses.enabled ? { provideCodeLenses } : {}),
           handleDiagnostics
         },
         errorHandler: new ApexErrorHandler(),
