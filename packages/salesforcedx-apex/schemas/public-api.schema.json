@@ -156,12 +156,18 @@
       "properties": {
         "lineNumber": { "type": "number" },
         "columnNumber": { "type": "number" },
-        "exceptionMessage": { "type": "string" },
-        "compileProblem": { "type": "string" },
-        "exceptionStackTrace": { "type": "string" },
+        "exceptionMessage": { "$ref": "#/$defs/NonEmptyString" },
+        "compileProblem": { "$ref": "#/$defs/NonEmptyString" },
+        "exceptionStackTrace": { "$ref": "#/$defs/NonEmptyString" },
         "className": { "type": "string" }
       },
       "additionalProperties": false
+    },
+    "NonEmptyString": {
+      "type": "string",
+      "description": "a non empty string",
+      "title": "nonEmptyString",
+      "minLength": 1
     },
     "ApexExecuteOptions": {
       "type": "object",
@@ -428,12 +434,6 @@
       "pattern": "^709",
       "title": "startsWith(\"709\")",
       "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
-    },
-    "NonEmptyString": {
-      "type": "string",
-      "description": "a non empty string",
-      "title": "nonEmptyString",
-      "minLength": 1
     },
     "AsyncApexJobId": {
       "type": "string",

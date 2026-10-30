@@ -46,6 +46,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import * as Prettier from 'prettier';
 import {
+  ApexDiagnosticSchema,
   ApexCompileError,
   ApexLogListItem,
   ApexLogQueryError,
@@ -85,27 +86,10 @@ import {
   TestResultRawSchema,
   TestResultSchema
 } from '../src/tests/types';
+import { CommonOptionsSchema, LogLevelSchema } from '../src/utils/types';
 
 const optional = Schema.optional;
 const StringArray = Schema.Array(Schema.String);
-
-const LogLevelSchema = Schema.Literal('trace', 'debug', 'info', 'warn', 'error', 'fatal').annotations({
-  identifier: 'LogLevel'
-});
-
-const CommonOptionsSchema = Schema.Struct({
-  json: optional(Schema.Boolean),
-  loglevel: optional(LogLevelSchema)
-}).annotations({ identifier: 'CommonOptions' });
-
-const ApexDiagnosticSchema = Schema.Struct({
-  lineNumber: optional(Schema.Number),
-  columnNumber: optional(Schema.Number),
-  exceptionMessage: optional(Schema.String),
-  compileProblem: optional(Schema.String),
-  exceptionStackTrace: optional(Schema.String),
-  className: optional(Schema.String)
-}).annotations({ identifier: 'ApexDiagnostic' });
 
 const ApexExecuteOptionsSchema = Schema.Struct({
   apexCode: Schema.String
