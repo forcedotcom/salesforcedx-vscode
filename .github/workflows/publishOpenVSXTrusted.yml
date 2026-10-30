@@ -1,0 +1,41 @@
+name: Publish Open VSX (Trusted)
+run-name: "Open VSX: ${{ inputs.release-tag }}"
+
+# Split out of W-24666922's full PR (#8537) as its own minimal, standalone PR, purely so this
+# file exists on develop and GitHub registers it for dispatch -- a workflow_dispatch workflow
+# can't be run by filename (via `gh workflow run` or the Actions UI) until it exists on the
+# repo's default branch, even when you intend to run a different branch's content via `--ref`.
+# This split deliberately omits the `release: types: [released]` trigger #8537's real version
+# has (see that PR): with Open VSX trusted publishing not yet fully rolled out, we don't want
+# this to fire automatically on the next real stable release before that lands. Once #8537
+# merges for real, it supersedes this file with the full version (stable's automatic trigger,
+# publishOpenVSX.yml's `publish` job removed, promote-to-prerelease.yml's dispatch job, etc.).
+#
+# Until then, this is dispatch-only, under our control -- see #8537 for the full
+# workflow_ref/trusted-publisher explanation.
+
+on:
+  workflow_dispatch:
+    inputs:
+      release-tag:
+        description: 'Release tag to publish (stable, e.g. v67.10.0, or nightly, e.g. v67.13.7-nightly.develop.20260820)'
+        required: true
+        type: string
+      dry-run:
+        description: 'Download and inspect VSIXs without publishing'
+        type: boolean
+        default: false
+
+jobs:
+  publish:
+    permissions:
+      contents: read
+      id-token: write
+    # TEMPORARY: pinned to the github-workflows PR branch with the --trusted-publishing migration
+    # (salesforcecli/github-workflows#199), to validate end-to-end before that PR merges. Switch
+    # back to @main once that PR merges (and once #8537 supersedes this file).
+    uses: salesforcecli/github-workflows/.github/workflows/openvsx-publish-release-vsix.yml@ms/W-24666922-ovsx-trusted-publishing
+    with:
+      release-tag: ${{ inputs.release-tag }}
+      dry-run: ${{ inputs.dry-run || false }}
+    secrets: inherit
