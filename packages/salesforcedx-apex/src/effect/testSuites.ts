@@ -11,10 +11,15 @@ import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import { isNotUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import { messages } from '../i18n/i18n';
-import { type SalesforceId } from '../schemas/salesforceId';
-import { ApexOperationError } from './errors';
+import {
+  ApexTestSuiteId,
+  type ApexTestSuiteId as ApexTestSuiteIdType,
+  type ApexClassId
+} from '../schemas/salesforceId';
 import { createRecord, queryRecords } from './records';
+import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
 import { TestSuiteMembershipSchema } from './schema/testSuites';
 import {
   ApexClassIdQueryResponseSchema,
@@ -49,7 +54,7 @@ export const retrieveSuiteId = Effect.fn('Apex.retrieveSuiteId')(function* (conn
 /** Retrieves class membership by suite id. */
 export const getTestsInSuite = Effect.fn('Apex.getTestsInSuite')(function* (
   connection: Connection,
-  suiteId: SalesforceId
+  suiteId: ApexTestSuiteIdType
 ) {
   return yield* queryRecords({
     connection,
@@ -62,9 +67,9 @@ export const getTestsInSuite = Effect.fn('Apex.getTestsInSuite')(function* (
 
 const updateSuiteMembership = Effect.fn('Apex.buildSuite.updateMembership')(function* (
   connection: Connection,
-  suiteId: SalesforceId,
+  suiteId: ApexTestSuiteIdType,
   suiteName: string,
-  classId: SalesforceId,
+  classId: ApexClassId,
   className: string,
   alreadyPresent: boolean
 ) {
@@ -104,6 +109,18 @@ export const buildSuite = Effect.fn('Apex.buildSuite')(function* (
           }).pipe(Effect.map(record => record.id)),
         onSome: Effect.succeed
       })
+    ),
+    Effect.flatMap(id =>
+      Schema.decodeUnknown(ApexTestSuiteId)(id).pipe(
+        Effect.mapError(
+          cause =>
+            new ApexResponseDecodeError({
+              operation: 'buildSuite',
+              message: 'Invalid suite id',
+              cause: cause.message
+            })
+        )
+      )
     )
   );
   const [members, classes] = yield* Effect.all(

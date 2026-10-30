@@ -14,7 +14,8 @@ import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { QUERY_RECORD_LIMIT } from '../tests/constants';
 import { type AggregateCodeCoverageResult, type PerClassCoverage } from './coverageSchemas';
-import { ApexOperationError, ApexResponseDecodeError, causeMessage } from './errors';
+import { causeMessage } from './errors';
+import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
 import { QueryPageSchema } from './schema/queryPage';
 import {
   ApexCodeCoverageAggregateRecordSchema,

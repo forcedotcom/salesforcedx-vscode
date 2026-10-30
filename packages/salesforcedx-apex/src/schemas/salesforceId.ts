@@ -49,15 +49,16 @@ export const TestRunIdString = prefixedSalesforceIdString('707', 'AsyncApexJob')
 export const TestRunId = TestRunIdString.pipe(Schema.brand('@salesforcedx-apex/TestRunId'));
 export type TestRunId = typeof TestRunId.Type;
 
+/** Salesforce ApexTestSuite record ID. */
+export const ApexTestSuiteIdString = prefixedSalesforceIdString('05F', 'ApexTestSuite');
+export const ApexTestSuiteId = ApexTestSuiteIdString.pipe(Schema.brand('@salesforcedx-apex/ApexTestSuiteId'));
+export type ApexTestSuiteId = typeof ApexTestSuiteId.Type;
+
 /** Salesforce Apex test result ID. */
 export const ApexTestResultIdString = prefixedSalesforceIdString('07M', 'ApexTestResult');
-export const ApexTestResultId = ApexTestResultIdString.pipe(Schema.brand('@salesforcedx-apex/ApexTestResultId'));
-export type ApexTestResultId = typeof ApexTestResultId.Type;
 
 /** Salesforce Flow test result ID. */
 export const FlowTestResultIdString = prefixedSalesforceIdString('2hU', 'FlowTestResult');
-export const FlowTestResultId = FlowTestResultIdString.pipe(Schema.brand('@salesforcedx-apex/FlowTestResultId'));
-export type FlowTestResultId = typeof FlowTestResultId.Type;
 
 /** Salesforce Apex test queue item ID. */
 export const ApexTestQueueItemIdString = prefixedSalesforceIdString('709', 'ApexTestQueueItem');
