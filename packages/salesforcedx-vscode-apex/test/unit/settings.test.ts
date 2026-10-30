@@ -55,13 +55,17 @@ describe('settings Unit Tests.', () => {
           ? 'disabled'
           : key === 'advanced.capabilities.documentSymbols'
             ? 'disabled'
-            : 'enabled'
+            : key === 'advanced.capabilities.codeLenses'
+              ? 'disabled'
+              : 'enabled'
       )
     );
 
     const result = await run(getLanguageServerCapabilityPolicy());
 
-    expect(result).toEqual({ lsp: expect.objectContaining({ provideHover: false, provideDefinition: true }) });
+    expect(result).toEqual({
+      lsp: expect.objectContaining({ provideCodeLenses: false, provideHover: false, provideDefinition: true })
+    });
     expect(getValue).toHaveBeenCalledWith('salesforcedx-vscode-apex', 'advanced.capabilities.hover');
   });
 });
