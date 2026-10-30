@@ -50,6 +50,7 @@
     "@salesforce/source-tracking": "^8.1.7",
     "@salesforce/templates": "^66.17.4",
     "@salesforce/vscode-i18n": "workspace:*",
+    "@salesforce/vscode-services-v2": "workspace:*",
     "@vscode/extension-telemetry": "^1.0.0",
     "cross-spawn": "7.0.6",
     "effect": "^3.21.2",
@@ -106,6 +107,7 @@
         "build:icons",
         "generate-types",
         "../salesforcedx-apex:compile",
+        "../salesforcedx-vscode-services-v2:compile",
         "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-i18n:compile"
       ],

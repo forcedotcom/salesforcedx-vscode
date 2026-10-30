@@ -1,0 +1,136 @@
+{
+  "name": "@salesforce/vscode-services-v4-implementation",
+  "version": "68.9.0",
+  "private": true,
+  "description": "Temporary V4 service implementations for the coordinated services migration",
+  "license": "BSD-3-Clause",
+  "type": "module",
+  "main": "out/foundationalLayers.js",
+  "types": "out/foundationalLayers.d.ts",
+  "exports": {
+    ".": {
+      "types": "./out/foundationalLayers.d.ts",
+      "default": "./out/foundationalLayers.js"
+    },
+    "./webFileSystemProvider": {
+      "types": "./out/webFileSystemProvider.d.ts",
+      "default": "./out/webFileSystemProvider.js"
+    },
+    "./hostFileSystem": {
+      "types": "./out/hostFileSystem.d.ts",
+      "default": "./out/hostFileSystem.js"
+    }
+  },
+  "files": [
+    "out/**"
+  ],
+  "engines": {
+    "node": ">=24.18.0"
+  },
+  "dependencies": {
+    "@salesforce/core": "^9.3.6",
+    "@salesforce/vscode-services-v2": "*",
+    "effect": "4.0.6",
+    "vscode-uri": "^3.1.0"
+  },
+  "scripts": {
+    "compile": "wireit",
+    "lint": "wireit",
+    "test:compile": "wireit",
+    "test": "wireit",
+    "test:packed": "wireit",
+    "check:effect-diagnostics": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --pretty",
+      "dependencies": [
+        "../salesforcedx-vscode-services-v2:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
+        "../../pnpm-lock.yaml",
+        "package.json"
+      ],
+      "output": [
+        "out/**"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color src test package.json",
+      "dependencies": [
+        "compile",
+        "../eslint-local-rules:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "test/**/*.ts",
+        "package.json",
+        "../../eslint.config.mjs"
+      ],
+      "output": []
+    },
+    "test:compile": {
+      "command": "tsc -p test/tsconfig.json",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "test/tsconfig.json"
+      ],
+      "output": []
+    },
+    "test": {
+      "command": "vitest run",
+      "dependencies": [
+        "test:compile",
+        "test:packed"
+      ],
+      "files": [
+        "test/**/*.ts",
+        "vitest.config.mts",
+        "../../config/vitest.base.config.mts",
+        "../../scripts/setupVitest.ts",
+        "../../scripts/vscodeMock.ts"
+      ],
+      "output": [
+        "coverage"
+      ]
+    },
+    "test:packed": {
+      "command": "node ../../scripts/test-foundational-services.mjs",
+      "dependencies": [
+        "compile"
+      ],
+      "env": {
+        "RUNNER_TEMP": {
+          "external": true
+        }
+      },
+      "files": [
+        "out/**",
+        "package.json",
+        "../../scripts/test-foundational-services.mjs",
+        "../../scripts/packedServicesFixtures.mjs",
+        "../../scripts/bundling/*.{js,mjs}",
+        "../../config/effect-diagnostics.json",
+        "../../test/fixtures/effect-v4/foundations/*.{ts,mjs,json}"
+      ],
+      "output": []
+    },
+    "check:effect-diagnostics": {
+      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "../../config/effect-diagnostics.json",
+        "../../scripts/effect-diagnostics.mjs"
+      ],
+      "output": []
+    }
+  }
+}

@@ -1497,6 +1497,9 @@ importers:
       '@salesforce/vscode-i18n':
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
+      '@salesforce/vscode-services-v2':
+        specifier: workspace:*
+        version: link:../salesforcedx-vscode-services-v2
       '@vscode/extension-telemetry':
         specifier: ^1.0.0
         version: 1.5.2(tslib@2.8.1)
@@ -1607,9 +1610,15 @@ importers:
       '@salesforce/core':
         specifier: ^9.3.6
         version: 9.3.6
+      '@types/vscode':
+        specifier: ^1.90.0
+        version: 1.90.0
       effect:
         specifier: 4.0.6
         version: 4.0.6
+      vscode-uri:
+        specifier: ^3.1.0
+        version: 3.2.0
 
   packages/salesforcedx-vscode-services-v3-compat:
     dependencies:
@@ -1619,6 +1628,21 @@ importers:
       effect:
         specifier: 3.21.2
         version: 3.21.2
+
+  packages/salesforcedx-vscode-services-v4-implementation:
+    dependencies:
+      '@salesforce/core':
+        specifier: ^9.3.6
+        version: 9.3.6
+      '@salesforce/vscode-services-v2':
+        specifier: '*'
+        version: link:../salesforcedx-vscode-services-v2
+      effect:
+        specifier: 4.0.6
+        version: 4.0.6
+      vscode-uri:
+        specifier: ^3.1.0
+        version: 3.2.0
 
   packages/salesforcedx-vscode-soql:
     dependencies:
