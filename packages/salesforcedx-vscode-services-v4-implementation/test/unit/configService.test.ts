@@ -89,6 +89,18 @@ it('memoizes the same ConfigService and cache across dependent layers', async ()
   }
 });
 
+it('preserves an absolute virtual workspace path at the SDK config boundary', async () => {
+  vi.stubEnv('ESBUILD_PLATFORM', 'web');
+  folders[0] = { uri: URI.parse('memfs:/virtual/project'), name: 'project', index: 0 };
+  const runtime = ManagedRuntime.make(configGraph);
+  try {
+    await runtime.runPromise(ConfigService.use(service => service.getConfigAggregator()));
+    expect(ConfigAggregator.create).toHaveBeenCalledExactlyOnceWith({ projectPath: '/virtual/project' });
+  } finally {
+    await runtime.dispose();
+  }
+});
+
 it('retains cache capacity and invalidates on observed org changes', async () => {
   vi.stubEnv('ESBUILD_PLATFORM', 'web');
   const runtime = ManagedRuntime.make(configGraph);

@@ -11,6 +11,7 @@ import {
   ChannelService,
   CliId,
   ConnectionService,
+  QueryService,
   SettingsChangePubSub,
   TargetOrgRef,
   authFieldsFrom
@@ -38,6 +39,7 @@ import { createConnectionRuntime } from '../../src/connectionRuntime.js';
 import { ConnectionWatcherLayer } from '../../src/connectionWatchers.js';
 import { HostFileSystem } from '../../src/hostFileSystem.js';
 import { foundationalLayers } from '../../src/foundationalLayers.js';
+import { QueryServiceLayer } from '../../src/queryService.js';
 import { OrgChanges } from '../../src/targetOrgRef.js';
 import { WebFileSystemProvider } from '../../src/webFileSystemProvider.js';
 
@@ -78,19 +80,24 @@ const writeJson = async (directory: string, file: string, value: object) => {
 };
 const target = (value: string) =>
   writeJson(Global.SF_DIR, 'config.json', { 'target-org': value, 'org-api-version': '67.0' });
-const start = async (layer = graph) => {
-  const runtime = ManagedRuntime.make(layer);
-  await runtime.runPromise(
-    OrgChanges.use(changes =>
-      changes.begin.pipe(
-        Effect.flatMap(generation =>
-          changes.update(generation, () =>
-            Effect.succeed({ cliId: Schema.decodeUnknownSync(CliId)('00000000-0000-4000-8000-000000000001') })
-          )
-        )
+const initializeOrg = OrgChanges.use(changes =>
+  changes.begin.pipe(
+    Effect.flatMap(generation =>
+      changes.update(generation, () =>
+        Effect.succeed({ cliId: Schema.decodeUnknownSync(CliId)('00000000-0000-4000-8000-000000000001') })
       )
     )
-  );
+  )
+);
+const start = async (layer = graph) => {
+  const runtime = ManagedRuntime.make(layer);
+  await runtime.runPromise(initializeOrg);
+  return runtime;
+};
+const queryGraph = QueryServiceLayer.pipe(Layer.provideMerge(graph), Layer.provide(host));
+const startQuery = async () => {
+  const runtime = ManagedRuntime.make(queryGraph);
+  await runtime.runPromise(initializeOrg);
   return runtime;
 };
 const getConnection = (username?: string) => ConnectionService.use(service => service.getConnection(username));
@@ -111,6 +118,42 @@ const enriched = TargetOrgRef.pipe(
     )
   )
 );
+const queryRecords = QueryService.use(service =>
+  service.query({ soql: 'SELECT Name FROM Account' }, Schema.Struct({ Name: Schema.String }))
+);
+const installQueryResponses = (blockNext = false) => {
+  const requests: string[] = [];
+  const nextStarted = Promise.withResolvers<void>();
+  const nextRelease = Promise.withResolvers<void>();
+  if (!blockNext) nextRelease.resolve();
+  vi.mocked(Connection.prototype.request).mockImplementation(function (this: Connection, request) {
+    const url = typeof request === 'string' ? request : request.url;
+    const parsed = new URL(url, 'https://fixture.example');
+    if (parsed.searchParams.get('q')?.includes(' FROM User ')) {
+      return jsonResponse(
+        Promise.resolve({
+          totalSize: 1,
+          done: true,
+          records: [{ Id: '005000000000001', Username: this.getUsername() }]
+        })
+      );
+    }
+    requests.push(url);
+    if (parsed.pathname.endsWith('/query/query-next')) {
+      nextStarted.resolve();
+      return jsonResponse(nextRelease.promise.then(() => ({ totalSize: 3, done: true, records: [{ Name: 'Third' }] })));
+    }
+    return jsonResponse(
+      Promise.resolve({
+        totalSize: 3,
+        done: false,
+        nextRecordsUrl: '/services/data/v67.0/query/query-next',
+        records: [{ Name: 'First' }, { Name: 'Second' }]
+      })
+    );
+  });
+  return { requests, nextStarted, nextRelease };
+};
 
 beforeEach(async () => {
   vi.stubEnv('FORCE_MEMFS', 'true');
@@ -658,6 +701,103 @@ it('redacts formatted V4 owner and V2 prebuilt-layer messages, causes and annota
     expect(JSON.stringify(log.mock.calls)).toContain('<redacted>');
   } finally {
     await owner.dispose();
+  }
+});
+
+it('keeps domain org generation valid across parallel same-org connection acquisitions', async () => {
+  const runtime = await start();
+  try {
+    await runtime.runPromise(getConnection());
+    await runtime.runPromise(enriched);
+    const changes = await runtime.runPromise(OrgChanges);
+    const captured = await runtime.runPromise(changes.snapshot);
+    const orgId = captured.org.orgId;
+    if (!orgId) throw new Error('Missing fixture org');
+    await runtime.runPromise(
+      Effect.all(
+        [
+          getConnection(),
+          ConnectionService.use(service => service.getConnectionForOrg(orgId)),
+          ConnectionService.use(service => service.getConnectionForOrg(orgId))
+        ],
+        { concurrency: 'unbounded' }
+      )
+    );
+    const current = await runtime.runPromise(changes.snapshot);
+    expect(current.generation).toBeGreaterThan(captured.generation);
+    expect(current.orgGeneration).toBe(captured.orgGeneration);
+  } finally {
+    await runtime.dispose();
+  }
+});
+
+it('uses the real query reader and lazily follows the captured SDK connection pagination', async () => {
+  const response = installQueryResponses();
+  const runtime = await startQuery();
+  try {
+    const result = await runtime.runPromise(queryRecords);
+    expect(result.totalSize).toBe(3);
+    expect(response.requests).toHaveLength(1);
+    expect(await runtime.runPromise(Stream.runCollect(result.records))).toEqual([
+      { Name: 'First' },
+      { Name: 'Second' },
+      { Name: 'Third' }
+    ]);
+    expect(response.requests).toHaveLength(2);
+  } finally {
+    response.nextRelease.resolve();
+    await runtime.dispose();
+  }
+});
+
+it('rejects buffered query records and the next page after switching org before consumption', async () => {
+  const response = installQueryResponses();
+  const runtime = await startQuery();
+  try {
+    const result = await runtime.runPromise(queryRecords);
+    await target('AliasB');
+    await runtime.runPromise(getConnection());
+    expect(await Effect.runPromise(Stream.runCollect(result.records).pipe(Effect.flip))).toMatchObject({
+      _tag: 'InactiveOrgOperationError'
+    });
+    expect(response.requests).toHaveLength(1);
+  } finally {
+    response.nextRelease.resolve();
+    await runtime.dispose();
+  }
+});
+
+it('discards a late query page after org change without holding the org semaphore during network work', async () => {
+  const response = installQueryResponses(true);
+  const runtime = await startQuery();
+  try {
+    const result = await runtime.runPromise(queryRecords);
+    const reading = Effect.runPromise(Stream.runCollect(result.records).pipe(Effect.flip));
+    await response.nextStarted.promise;
+    await target('AliasB');
+    await runtime.runPromise(getConnection());
+    response.nextRelease.resolve();
+    expect(await reading).toMatchObject({ _tag: 'InactiveOrgOperationError' });
+  } finally {
+    response.nextRelease.resolve();
+    await runtime.dispose();
+  }
+});
+
+it('owns lazy query page calls made by external consumers and rejects retained streams after disposal', async () => {
+  const response = installQueryResponses(true);
+  const runtime = await startQuery();
+  try {
+    const result = await runtime.runPromise(queryRecords);
+    const reading = Effect.runPromiseExit(Stream.runCollect(result.records));
+    await response.nextStarted.promise;
+    await runtime.dispose();
+    expect(Exit.isFailure(await reading)).toBe(true);
+    expect(Exit.isFailure(await Effect.runPromiseExit(Stream.runCollect(result.records)))).toBe(true);
+    expect(response.requests).toHaveLength(2);
+  } finally {
+    response.nextRelease.resolve();
+    await runtime.dispose();
   }
 });
 

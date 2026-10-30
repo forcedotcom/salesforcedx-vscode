@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { isUriEqualOrWithin } from '@salesforce/vscode-services-v2/uriComparison';
 import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -23,7 +24,6 @@ import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { MetadataChangeNotificationService } from '../core/metadataChangeNotificationService';
 import { OrgId } from '../core/schemas/salesforceId';
 import { FileChangePubSub, type FileChangeEvent } from '../vscode/fileChangePubSub';
-import { isUriEqualOrWithin } from '../vscode/uriContainment';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { OrgCatalogDocuments } from './orgCatalogDocuments';
 import { OrgCatalogState } from './orgCatalogState';

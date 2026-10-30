@@ -31,6 +31,30 @@
     "./connectionRuntime": {
       "types": "./out/connectionRuntime.d.ts",
       "default": "./out/connectionRuntime.js"
+    },
+    "./projectLayers": {
+      "types": "./out/projectLayers.d.ts",
+      "default": "./out/projectLayers.js"
+    },
+    "./catalogLayers": {
+      "types": "./out/catalogLayers.d.ts",
+      "default": "./out/catalogLayers.js"
+    },
+    "./orgCatalogRemoteRetrieve": {
+      "types": "./out/orgCatalog/orgCatalogRemoteRetrieve.d.ts",
+      "default": "./out/orgCatalog/orgCatalogRemoteRetrieve.js"
+    },
+    "./orgCatalogMessages": {
+      "types": "./out/orgCatalog/orgCatalogMessages.d.ts",
+      "default": "./out/orgCatalog/orgCatalogMessages.js"
+    },
+    "./orgCatalogDocuments": {
+      "types": "./out/orgCatalog/orgCatalogDocuments.d.ts",
+      "default": "./out/orgCatalog/orgCatalogDocuments.js"
+    },
+    "./catalogRuntime": {
+      "types": "./out/catalogRuntime.d.ts",
+      "default": "./out/catalogRuntime.js"
     }
   },
   "files": [
@@ -41,6 +65,8 @@
   },
   "dependencies": {
     "@salesforce/core": "^9.3.6",
+    "@salesforce/source-deploy-retrieve": "^13.5.0",
+    "@salesforce/source-tracking": "^8.1.7",
     "@salesforce/vscode-services-v2": "*",
     "@salesforce/vscode-services-v3-compat": "*",
     "effect": "4.0.6",
