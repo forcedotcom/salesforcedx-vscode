@@ -24,6 +24,26 @@ export class FailedToCreateConfigAggregatorError extends Schema.TaggedError<Fail
   MessageWithCause
 ) {}
 
+export class ConfigWriteError extends Schema.TaggedError<ConfigWriteError>()('ConfigWriteError', MessageWithCause) {}
+
+export class FsServiceError extends Schema.TaggedError<FsServiceError>()('FsServiceError', {
+  cause: Schema.instanceOf(Error),
+  message: Schema.String,
+  function: Schema.String,
+  filePath: Schema.String
+}) {}
+
+export class HostFileNotFoundError extends Schema.TaggedError<HostFileNotFoundError>()('HostFileNotFoundError', {
+  message: Schema.String,
+  path: Schema.String
+}) {}
+
+export class HostFileWatchError extends Schema.TaggedError<HostFileWatchError>()('HostFileWatchError', {
+  message: Schema.String,
+  path: Schema.String,
+  code: Schema.optional(Schema.String)
+}) {}
+
 export class FailedToCreateAuthInfoError extends Schema.TaggedError<FailedToCreateAuthInfoError>()(
   'FailedToCreateAuthInfoError',
   MessageWithCause

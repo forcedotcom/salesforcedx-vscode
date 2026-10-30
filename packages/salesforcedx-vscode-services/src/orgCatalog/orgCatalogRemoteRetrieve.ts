@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { pathSuffixWithin } from '@salesforce/vscode-services-v2/uriComparison';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as HashMap from 'effect/HashMap';
@@ -16,7 +17,6 @@ import { MetadataRegistryService } from '../core/metadataRegistryService';
 import { MetadataRetrieveService } from '../core/metadataRetrieveService';
 import { FsService } from '../vscode/fsService';
 import { HashableUri } from '../vscode/hashableUri';
-import { pathSuffixWithin } from '../vscode/uriComparison';
 import { OrgMetadataCatalogError } from './orgMetadataCatalogErrors';
 import { documentUri, getTypeSuffix, type OrgMetadataComponentReference } from './orgMetadataReference';
 import { OrgMetadataShadowStore } from './orgMetadataShadowStore';
