@@ -21,7 +21,7 @@ import {
   ListLogsOptionsSchema,
   type DecodedListLogsOptions,
   type ListLogsOptions,
-  type LogStreamEvent
+  type LogStreamEvent as LogStreamEventShape
 } from './schema/logs';
 import { ApexLogPageSchema, type ApexLogListItem } from './schema/wire/logs';
 
@@ -92,6 +92,8 @@ export const getLogBody = Effect.fn('Apex.getLogBody')((connection: Connection, 
       new ApexLogBodyFetchError({ message: `Failed to fetch ApexLog body: ${causeMessage(cause)}`, cause })
   }).pipe(Effect.map(body => (isString(body) ? body : String(body))))
 );
+
+export type LogStreamEvent = LogStreamEventShape;
 
 export type StreamLogsOptions<R = never, ScheduleOutput = unknown> = {
   /** Receives the void poll result; the caller-defined schedule output is ignored. */

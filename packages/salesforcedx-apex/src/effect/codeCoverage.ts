@@ -13,22 +13,23 @@ import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { QUERY_RECORD_LIMIT } from '../tests/constants';
+import { type AggregateCodeCoverageResult, type PerClassCoverage } from './coverageSchemas';
+import { causeMessage } from './errors';
+import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
+import { QueryPageSchema } from './schema/queryPage';
 import {
   ApexCodeCoverageAggregateRecordSchema,
   ApexCodeCoverageRecordSchema,
-  type AggregateCodeCoverageResult,
-  type ApexCodeCoverageRecord,
-  type PerClassCoverage
-} from './coverageSchemas';
-import { causeMessage } from './errors';
-import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
+  ApexOrgWideCoverageQueryRecordSchema,
+  type ApexCodeCoverageRecord
+} from './schema/wire/coverage';
 
 const perClassQuery =
   'SELECT ApexTestClassId, ApexClassOrTrigger.Id, ApexClassOrTrigger.Name, TestMethodName, NumLinesCovered, NumLinesUncovered, Coverage FROM ApexCodeCoverage WHERE ApexTestClassId IN (%s)';
 const aggregateQuery =
   'SELECT ApexClassOrTrigger.Id, ApexClassOrTrigger.Name, NumLinesCovered, NumLinesUncovered, Coverage FROM ApexCodeCoverageAggregate';
 
-const createQueries = (query: string, ids: ReadonlySet<string>): string[] =>
+const createQueries = <Id extends string>(query: string, ids: ReadonlySet<Id>): string[] =>
   Arr.chunksOf(Array.from(ids), QUERY_RECORD_LIMIT).map(chunk =>
     query.replace('%s', () => chunk.map(id => `'${id.replaceAll("'", "\\'")}'`).join(','))
   );
@@ -36,17 +37,10 @@ const createQueries = (query: string, ids: ReadonlySet<string>): string[] =>
 const queryCoverageRecords = <A, I>(
   connection: Connection,
   query: string,
-  recordSchema: Schema.Schema<A, I>,
+  recordSchema: Schema.Schema<A, I, never>,
   operation: string
 ) => {
-  const pageSchema = Schema.Union(
-    Schema.Struct({ done: Schema.Literal(true), records: Schema.Array(recordSchema) }),
-    Schema.Struct({
-      done: Schema.Literal(false),
-      records: Schema.Array(recordSchema),
-      nextRecordsUrl: Schema.NonEmptyString
-    })
-  );
+  const pageSchema = QueryPageSchema(recordSchema);
   return Stream.paginateChunkEffect(Option.none<string>(), nextRecordsUrl =>
     Effect.tryPromise({
       try: () =>
@@ -70,7 +64,7 @@ const queryCoverageRecords = <A, I>(
         Effect.fail(
           new ApexResponseDecodeError({
             operation,
-            message: 'Invalid Apex coverage response',
+            message: cause.message,
             cause: causeMessage(cause)
           })
         )
@@ -99,7 +93,7 @@ export const getOrgWideCoverage = Effect.fn('Apex.getOrgWideCoverage')(function*
     connection,
     'SELECT PercentCovered FROM ApexOrgWideCoverage',
     // Tooling returns PercentCovered as a number; legacy callers also supply string-valued records.
-    Schema.Struct({ PercentCovered: Schema.Union(Schema.Number, Schema.String) }),
+    ApexOrgWideCoverageQueryRecordSchema,
     'getOrgWideCoverage'
   ).pipe(Effect.map(records => `${records[0]?.PercentCovered ?? 0}%`));
 });

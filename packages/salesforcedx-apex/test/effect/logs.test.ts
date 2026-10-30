@@ -15,7 +15,7 @@ import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { apexLogId } from '../schemaHelpers';
-import { UserId } from '../../src/effect/schema/salesforceId';
+import { UserId } from '../../src/schemas/salesforceId';
 import { getLogBody, listLogs, streamLogs } from '../../src/effect/logs';
 
 const firstUserId = Schema.decodeUnknownSync(UserId)('0053t000007OxppAAC');

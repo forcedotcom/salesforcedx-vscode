@@ -29,9 +29,9 @@ export class ExecuteService {
             ...(error.logBody === undefined ? {} : { logs: error.logBody }),
             diagnostic: [
               {
-                lineNumber: error.line,
-                columnNumber: error.column,
-                compileProblem: error.compileProblem ?? undefined
+                ...(error.line === undefined ? {} : { lineNumber: error.line }),
+                ...(error.column === undefined ? {} : { columnNumber: error.column }),
+                ...(error.compileProblem ? { compileProblem: error.compileProblem } : {})
               }
             ]
           };
@@ -42,10 +42,10 @@ export class ExecuteService {
             ...(error.logBody === undefined ? {} : { logs: error.logBody }),
             diagnostic: [
               {
-                lineNumber: error.line,
-                columnNumber: error.column,
-                exceptionMessage: error.exceptionMessage ?? '',
-                exceptionStackTrace: error.exceptionStackTrace ?? ''
+                ...(error.line === undefined ? {} : { lineNumber: error.line }),
+                ...(error.column === undefined ? {} : { columnNumber: error.column }),
+                ...(error.exceptionMessage ? { exceptionMessage: error.exceptionMessage } : {}),
+                ...(error.exceptionStackTrace ? { exceptionStackTrace: error.exceptionStackTrace } : {})
               }
             ]
           };

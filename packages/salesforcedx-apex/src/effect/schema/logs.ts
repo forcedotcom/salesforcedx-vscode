@@ -7,8 +7,8 @@
 
 import { ParseError } from 'effect/ParseResult';
 import * as Schema from 'effect/Schema';
+import { ApexLogId, UserId } from '../../schemas/salesforceId';
 import { ApexLogBodyFetchError, ApexLogQueryError } from './errors';
-import { ApexLogId, UserId } from './salesforceId';
 import { ApexLogListItem } from './wire/logs';
 
 export const ListLogsOptionsSchema = Schema.mutable(

@@ -724,9 +724,9 @@ describe('Run Apex tests asynchronously', () => {
             Id: '01pxx00000O6tXZQAZ',
             Name: 'TestLogger'
           },
+          ApexTestClassId: '01pxx00000NnP2KQAV',
           NumLinesCovered: 10,
           NumLinesUncovered: 5,
-          ApexTestClassId: '01pxx00000O6tXZQAZ',
           TestMethodName: 'testLoggerLog',
           PercentCovered: '57',
           RunTime: 8,
@@ -1877,7 +1877,7 @@ describe('Create Result Files', () => {
       await testSrv.writeResultFiles(testResultData, config, true);
       fail();
     } catch (e) {
-      expect(e.message).toBe('Specified result formats must be of type json, junit, or tap');
+      expect(e.message).toBe('Specified result formats must be one of json, junit, tap, human, markdown, or text');
     }
   });
 

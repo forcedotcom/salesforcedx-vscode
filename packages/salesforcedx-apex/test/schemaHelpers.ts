@@ -6,7 +6,7 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { ApexClassId, ApexLogId, SalesforceId } from '../src/effect/schema/salesforceId';
+import { ApexClassId, ApexLogId, SalesforceId } from '../src/schemas/salesforceId';
 
 export const salesforceId = Schema.decodeUnknownSync(SalesforceId);
 export const apexClassId = Schema.decodeUnknownSync(ApexClassId);

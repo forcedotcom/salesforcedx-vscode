@@ -158,15 +158,11 @@ export const setupResult: TestResult = {
   setup: [
     {
       id: '07M3t000003bQwqEAE',
-      stackTrace: null,
-      message: null,
       asyncApexJobId,
       methodName: 'setup_method',
-      apexLogId: null,
       apexClass: {
         id: '01p3t000000ivLzAAI',
         name: 'AccountServiceTest',
-        namespacePrefix: null,
         fullName: 'AccountServiceTest'
       },
       testSetupTime: 24,

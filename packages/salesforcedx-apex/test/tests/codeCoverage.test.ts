@@ -369,9 +369,9 @@ describe('Get code coverage results', () => {
         }
       ]
     });
-    await expect(new CodeCoverage(mockConnection).getPerClassCodeCoverage(new Set([testId]))).rejects.toMatchObject({
-      message: 'Invalid Apex coverage response'
-    });
+    await expect(new CodeCoverage(mockConnection).getPerClassCodeCoverage(new Set([testId]))).rejects.toThrow(
+      'Coverage line counts must be non-negative integers'
+    );
   });
 
   it('should split the PerClassCodeCoverage queue into chunks of 500 records', async () => {

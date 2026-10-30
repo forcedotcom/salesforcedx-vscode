@@ -6,14 +6,16 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { TestResultSchema as EffectTestResultSchema } from '../../src/effect/testSchemas';
+import { TestResultSchema as EffectTestResultSchema } from '../../src/effect';
 import { transformTestResult } from '../../src/effect/testResults';
 import {
+  ApexTestSetupDataSchema,
   ApexTestResultDataSchema,
   ApexTestRunResultStatusSchema,
   TestCategorySchema,
   TestResultSchema,
-  TestResultSummarySchema
+  TestResultSummarySchema,
+  type TestResultRaw
 } from '../../src/tests/types';
 import { flowTestResultData, syncResult } from '../testData';
 
@@ -92,6 +94,45 @@ describe('ApexTestResultDataSchema', () => {
     expect(flowTestResultData.tests[0]).not.toHaveProperty('asyncApexJobId');
     expect(flowTestResultData.tests[0]).not.toHaveProperty('apexLogId');
     expect(flowTestResultData.tests[0].apexClass).not.toHaveProperty('id');
+  });
+
+  it('omits nullish optional setup fields', () => {
+    const rawResult: TestResultRaw = {
+      summary: syncResult.summary,
+      tests: [
+        {
+          id: undefined,
+          stackTrace: null,
+          message: null,
+          asyncApexJobId: undefined,
+          methodName: 'setup_method',
+          outcome: 'Pass',
+          apexLogId: null,
+          apexClass: {
+            id: undefined,
+            name: 'AccountServiceTest',
+            namespacePrefix: null,
+            fullName: 'AccountServiceTest'
+          },
+          runTime: 24,
+          testTimestamp: undefined,
+          fullName: 'AccountServiceTest.setup_method',
+          diagnostic: undefined,
+          isTestSetup: true
+        }
+      ]
+    };
+    const result = transformTestResult(rawResult);
+
+    expect(result.setup).toEqual([
+      {
+        methodName: 'setup_method',
+        apexClass: { name: 'AccountServiceTest', fullName: 'AccountServiceTest' },
+        testSetupTime: 24,
+        fullName: 'AccountServiceTest.setup_method'
+      }
+    ]);
+    expect(Schema.is(ApexTestSetupDataSchema)(result.setup?.[0])).toBe(true);
   });
 
   it('rejects IDs with the wrong Salesforce object prefix', () => {
