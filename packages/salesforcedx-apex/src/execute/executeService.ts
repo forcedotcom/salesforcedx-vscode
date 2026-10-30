@@ -7,7 +7,7 @@
 import type { ApexExecuteOptions, ExecuteAnonymousResponse } from './types';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
-import * as Either from 'effect/Either';
+import * as Result from 'effect/Result';
 import { existsSync, readFileSync } from 'node:fs';
 import { EOL } from 'node:os';
 import * as readline from 'node:readline';
@@ -22,10 +22,10 @@ export class ExecuteService {
   @elapsedTime()
   public async executeAnonymous(options: ApexExecuteOptions): Promise<ExecuteAnonymousResponse> {
     const apexCode = await this.getApexCode(options);
-    const execution = await executeAnonymous(this.connection, { apexCode }).pipe(Effect.either, Effect.runPromise);
+    const execution = await executeAnonymous(this.connection, { apexCode }).pipe(Effect.result, Effect.runPromise);
     // Unwrap typed failures outside the Effect runtime so CLI errors do not acquire a FiberFailure prefix.
-    if (Either.isLeft(execution)) {
-      const error = execution.left;
+    if (Result.isFailure(execution)) {
+      const error = execution.failure;
       switch (error._tag) {
         case 'ApexCompileError':
           return {
@@ -61,7 +61,7 @@ export class ExecuteService {
           throw new Error(error.message);
       }
     }
-    const result = execution.right;
+    const result = execution.success;
     return {
       compiled: result.compiled,
       success: result.success,

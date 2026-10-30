@@ -1,0 +1,12 @@
+{
+  "name": "@salesforce/apex-v3-consumer-fixture",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@salesforce/apex-node": "file:./apex.tgz",
+    "@types/node": "24.19.2",
+    "effect": "3.22.2",
+    "typescript": "6.0.3"
+  }
+}

@@ -162,8 +162,16 @@ describe('executeAnonymous', () => {
 
   it.each([
     { compiled: 'not a boolean' },
+    { compiled: '1' },
+    { compiled: 'yes' },
+    { compiled: true },
     { success: 'not a boolean' },
     { line: 'not a number' },
+    { line: '' },
+    { line: ' ' },
+    { line: 'NaN' },
+    { line: 'Infinity' },
+    { line: Number.MAX_SAFE_INTEGER + 1 },
     { line: undefined },
     { column: 1.5 },
     { compileProblem: { unexpected: 'object' } },
@@ -208,6 +216,15 @@ describe('executeAnonymous', () => {
       column: 12,
       logBody: 'LOG'
     });
+  });
+
+  it.each([' 3 ', '0x3', '3e0', 3])('preserves accepted SOAP integer representations: %j', async line => {
+    const result = structuredClone(response);
+    Object.assign(result['soapenv:Envelope']['soapenv:Body'].executeAnonymousResponse.result, { line });
+
+    await expect(
+      Effect.runPromise(executeAnonymous(makeConnection(vi.fn().mockResolvedValue(result)), { apexCode: 'code' }))
+    ).resolves.toMatchObject({ compiled: true, success: true, line: 3 });
   });
 
   it('decodes the XML representation returned by generic Connection.request', async () => {

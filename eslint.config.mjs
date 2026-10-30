@@ -1120,6 +1120,16 @@ export default [
     }
   },
   {
+    files: ['packages/salesforcedx-apex/src/effect/**/*.ts'],
+    rules: {
+      // The nested package.json selects ESM; dependencies belong to the owning Apex package.
+      'import/no-extraneous-dependencies': [
+        'error',
+        { packageDir: path.resolve(import.meta.dirname, 'packages/salesforcedx-apex') }
+      ]
+    }
+  },
+  {
     files: ['packages/salesforcedx-vscode-soql/src/soql-builder-ui/vitest.config.mts'],
     rules: {
       'import/no-extraneous-dependencies': [

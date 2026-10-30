@@ -110,9 +110,9 @@ export class MarkdownTextFormatTransformer extends Readable {
     const { passed, failed, skipped, total, duration } = getSummaryInfo(this.testResult.summary);
     const timestampStr = formatTimestamp(this.timestamp);
 
-    const descendingNumber = Order.reverse(Order.number);
+    const descendingNumber = Order.flip(Order.Number);
     const runtimeOrder = Order.mapInput(descendingNumber, (test: ApexTestResultData) => test.runTime ?? 0);
-    const coverageOrder = Order.mapInput(Order.number, (test: ApexTestResultData) =>
+    const coverageOrder = Order.mapInput(Order.Number, (test: ApexTestResultData) =>
       this.codeCoverage ? (getCoveragePercentage(test.perClassCoverage?.[0]?.percentage) ?? 100) : 100
     );
     const severityOrder = Order.mapInput(descendingNumber, (test: ApexTestResultData) =>
@@ -127,11 +127,11 @@ export class MarkdownTextFormatTransformer extends Readable {
           ? coverageFirstOrder
           : severityOrder;
     const warningCoverageOrder = Order.mapInput(
-      Order.number,
+      Order.Number,
       (test: ApexTestResultData) => getCoveragePercentage(test.perClassCoverage?.[0]?.percentage) ?? 0
     );
     const coverageTableOrder = Order.mapInput(
-      Order.number,
+      Order.Number,
       (coverage: NonNullable<TestResult['codecoverage']>[number]) => getCoveragePercentage(coverage.percentage) ?? 0
     );
 

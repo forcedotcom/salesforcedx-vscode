@@ -625,18 +625,21 @@ importers:
 
   packages/salesforcedx-apex:
     dependencies:
-      '@effect/platform':
-        specifier: ^0.96.1
-        version: 0.96.1(effect@3.22.2)
       '@salesforce/core':
         specifier: ^9.3.0
         version: 9.3.6
       '@salesforce/kit':
         specifier: ^4.0.0
         version: 4.0.0
+      '@types/istanbul-lib-report':
+        specifier: ^3.0.3
+        version: 3.0.3
+      '@types/istanbul-reports':
+        specifier: ^3.0.4
+        version: 3.0.4
       effect:
-        specifier: ^3.21.2
-        version: 3.22.2
+        specifier: 4.0.6
+        version: 4.0.6
       fast-glob:
         specifier: ^3.3.2
         version: 3.3.3
@@ -662,12 +665,6 @@ importers:
       '@types/istanbul-lib-coverage':
         specifier: ^2.0.6
         version: 2.0.6
-      '@types/istanbul-lib-report':
-        specifier: ^3.0.3
-        version: 3.0.3
-      '@types/istanbul-reports':
-        specifier: ^3.0.4
-        version: 3.0.4
       '@types/node':
         specifier: ^22.15.1
         version: 22.20.2
