@@ -4,69 +4,32 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as Schema from 'effect/Schema';
+// eslint-disable-next-line no-restricted-imports -- Node-only manifest build; VS Code APIs are unavailable.
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-type PackageJson = {
-  name?: string;
-  version?: string;
-  dependencies?: Record<string, string>;
-  devDependencies?: Record<string, string>;
-  engines?: {
-    vscode?: string;
-    node?: string;
-  };
-};
+const PackageJsonSchema = Schema.Record({ key: Schema.String, value: Schema.Unknown });
+const parsePackageJson = Schema.decodeUnknownSync(Schema.parseJson(PackageJsonSchema));
+const packageVersion = Schema.decodeUnknownSync(Schema.Struct({ version: Schema.String }));
 
-/** Syncs dependency versions from parent package to types package */
+/** Syncs release version only; legacy declaration dependencies are frozen independently. */
 const syncDeps = (): void => {
   const parentPkgPath = path.join(__dirname, '..', '..', 'salesforcedx-vscode-services', 'package.json');
   const typesPkgPath = path.join(__dirname, '..', 'package.json');
 
-  const parentPkg: PackageJson = JSON.parse(fs.readFileSync(parentPkgPath, 'utf8'));
-  const typesPkg: PackageJson = JSON.parse(fs.readFileSync(typesPkgPath, 'utf8'));
+  const parentPkg = parsePackageJson(fs.readFileSync(parentPkgPath, 'utf8'));
+  const typesPkg = parsePackageJson(fs.readFileSync(typesPkgPath, 'utf8'));
 
-  // Dependencies to sync (these are needed for type resolution)
-  const depsToSync = [
-    '@azure/monitor-opentelemetry-exporter',
-    '@effect/opentelemetry',
-    '@opentelemetry/api',
-    '@opentelemetry/core',
-    '@opentelemetry/exporter-trace-otlp-http',
-    '@opentelemetry/sdk-logs',
-    '@opentelemetry/sdk-metrics',
-    '@opentelemetry/sdk-trace-base',
-    '@opentelemetry/sdk-trace-node',
-    '@opentelemetry/sdk-trace-web',
-    '@salesforce/core',
-    '@salesforce/source-deploy-retrieve',
-    '@salesforce/source-tracking',
-    'effect',
-    'jsforce',
-    'vscode-uri'
-  ];
-
-  // Sync versions
-  typesPkg.dependencies = typesPkg.dependencies || {};
-  depsToSync.forEach(dep => {
-    if (parentPkg.dependencies?.[dep]) {
-      typesPkg.dependencies![dep] = parentPkg.dependencies[dep];
-    }
-  });
-
-  // Add @types/vscode from parent's engines
-  if (parentPkg.engines?.vscode) {
-    const vscodeVersion = parentPkg.engines.vscode.replace('^', '');
-    typesPkg.dependencies['@types/vscode'] = `^${vscodeVersion}`;
-  }
-
-  // Sync version number
-  typesPkg.version = parentPkg.version;
+  const updatedPackage = {
+    ...typesPkg,
+    version: packageVersion(parentPkg).version
+  };
 
   const temporaryTypesPkgPath = `${typesPkgPath}.${process.pid}.tmp`;
-  fs.writeFileSync(temporaryTypesPkgPath, `${JSON.stringify(typesPkg, null, 2)}\n`, 'utf8');
+  fs.writeFileSync(temporaryTypesPkgPath, `${JSON.stringify(updatedPackage, null, 2)}\n`, 'utf8');
   fs.renameSync(temporaryTypesPkgPath, typesPkgPath);
-  console.log('Synced dependencies and version from parent package');
+  console.log('Synced release version; preserved frozen legacy dependencies');
 };
 
 syncDeps();

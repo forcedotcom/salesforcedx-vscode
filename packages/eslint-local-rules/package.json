@@ -74,6 +74,10 @@
       ],
       "files": [
         "test/**/*.ts",
+        "../../config/effect-version-boundaries.json",
+        "../../pnpm-lock.yaml",
+        "../../package.json",
+        "../*/package.json",
         "test/fixtures/no-nested-effect-gen-catch-tags/tsconfig.json",
         "vitest.config.mts",
         "../../config/vitest.base.config.mts",

@@ -1,0 +1,79 @@
+{
+  "name": "@salesforce/vscode-services-v2",
+  "version": "68.9.0",
+  "description": "Effect V4 contracts for the Salesforce VS Code Services extension",
+  "author": "Salesforce",
+  "license": "BSD-3-Clause",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/forcedotcom/salesforcedx-vscode"
+  },
+  "type": "module",
+  "main": "out/index.js",
+  "types": "out/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./out/index.d.ts",
+      "default": "./out/index.js"
+    }
+  },
+  "files": [
+    "out/**",
+    "README.md",
+    "LICENSE.txt"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=24.18.0"
+  },
+  "dependencies": {
+    "@salesforce/core": "^9.3.6",
+    "effect": "4.0.6"
+  },
+  "scripts": {
+    "compile": "wireit",
+    "lint": "wireit",
+    "check:effect-diagnostics": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "tsc --pretty",
+      "files": [
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
+        "../../pnpm-lock.yaml",
+        "package.json"
+      ],
+      "output": [
+        "out/**"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color src package.json",
+      "dependencies": [
+        "../../packages/eslint-local-rules:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "package.json",
+        "tsconfig.json",
+        "../../eslint.config.mjs"
+      ],
+      "output": []
+    },
+    "check:effect-diagnostics": {
+      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "../../config/effect-diagnostics.json",
+        "../../scripts/effect-diagnostics.mjs"
+      ],
+      "output": []
+    }
+  }
+}
