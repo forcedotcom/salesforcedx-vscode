@@ -4,7 +4,9 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import { SfProject } from '@salesforce/core';
 import coreFs from '@salesforce/core/fs';
+import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import { projectLayers } from '@salesforce/vscode-services-v4-implementation/projectLayers';
 import { WebFileSystemProvider } from '@salesforce/vscode-services-v4-implementation/webFileSystemProvider';
 import { ComponentSetService, MetadataRegistryService, ProjectService } from '@salesforce/vscode-services-v2';
@@ -59,6 +61,8 @@ try {
   const service = await runtime.runPromise(ComponentSetService);
   const nativeProject = await runtime.runPromise(ProjectService.use(project => project.getSfProject()));
   const registry = await runtime.runPromise(MetadataRegistryService.use(value => value.getRegistryAccess()));
+  const outside = Utils.joinPath(root, 'outside', 'Foo.cls');
+  const outsideError = await runtime.runPromise(ProjectService.use(project => project.ensureInPackageDirectories([outside])).pipe(Effect.flip));
   const components = await runtime.runPromise(service.getComponentSetFromUris([classes, Utils.joinPath(classes, 'One.cls'), classes]));
   const fromManifest = await runtime.runPromise(service.getComponentSetFromManifest(manifest));
   const filtered = await runtime.runPromise(service.getComponentSetFromProjectDirectories({ metadataMembers: [{ type: 'ApexClass', fullName: 'Other' }] }));
@@ -70,7 +74,14 @@ try {
     apiVersion: components.apiVersion, sourceApiVersion: components.sourceApiVersion, projectDirectory: components.projectDirectory,
     expectedProjectDirectory: path(root), customOutput: filtered.projectDirectory, expectedOutput: path(output),
     namespace: await runtime.runPromise(ProjectService.use(project => project.getProjectNamespace())),
-    projectPath: nativeProject.getPath(), registrySuffix: registry.getTypeByName('ApexClass').suffix };
+    projectPath: nativeProject.getPath(), registrySuffix: registry.getTypeByName('ApexClass').suffix,
+    nativeProject: nativeProject instanceof SfProject, nativeRegistry: registry instanceof RegistryAccess,
+    namespaceEligible: await runtime.runPromise(ProjectService.use(project => project.isArtifactNamespaceWorkspaceEligible('fixture'))),
+    nullNamespaceEligible: await runtime.runPromise(ProjectService.use(project => project.isArtifactNamespaceWorkspaceEligible(null))),
+    debugLogsFolder: (await runtime.runPromise(ProjectService.use(project => project.getDebugLogsFolder()))).toString(),
+    expectedDebugLogsFolder: Utils.joinPath(root, '.sfdx', 'tools', 'debug', 'logs').toString(),
+    inPackageDirectories: await runtime.runPromise(ProjectService.use(project => project.isInPackageDirectories(Utils.joinPath(classes, 'One.cls')))),
+    outsideError: outsideError._tag, outsideUris: outsideError.uris.map(uri => uri.toString()), expectedOutsideUris: [outside.toString()] };
   await runtime.dispose();
   observed.closedAdmission = Exit.isFailure(await Effect.runPromiseExit(service.getComponentSetFromUris([classes])));
 } finally {

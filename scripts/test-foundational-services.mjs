@@ -222,6 +222,14 @@ try {
       assert.equal(project.customOutput, project.expectedOutput);
       assert.equal(project.namespace, 'Fixture');
       assert.equal(project.registrySuffix, 'cls');
+      assert.equal(project.nativeProject, true);
+      assert.equal(project.nativeRegistry, true);
+      assert.equal(project.namespaceEligible, true);
+      assert.equal(project.nullNamespaceEligible, false);
+      assert.equal(project.debugLogsFolder, project.expectedDebugLogsFolder);
+      assert.equal(project.inPackageDirectories, true);
+      assert.equal(project.outsideError, 'NotInPackageDirectoryError');
+      assert.deepEqual(project.outsideUris, project.expectedOutsideUris);
       assert.equal(project.closedAdmission, true);
       assert.equal(project.createdChannels, 1);
       assert.equal(project.disposedChannels, 1);
