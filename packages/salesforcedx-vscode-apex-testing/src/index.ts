@@ -12,6 +12,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { CodeCoverageHandler, watchActiveEditorForCoverage } from './codecoverage/colorizer';
 import { StatusBarToggle } from './codecoverage/statusBarToggle';
+import { registerTestRunCodeLensProducer } from './codelens/testRunCodeLensProducer';
 import { apexTestRun } from './commands/apexTestRun';
 import {
   apexDebugClassRunCodeActionDelegate,
@@ -39,6 +40,7 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
 
   // Check if we're in a Salesforce project (also sets VS Code context as side effect)
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  yield* registerTestRunCodeLensProducer(context);
   const projectService = yield* api.services.ProjectService;
   const isSalesforceProject = yield* projectService.isSalesforceProject();
 
