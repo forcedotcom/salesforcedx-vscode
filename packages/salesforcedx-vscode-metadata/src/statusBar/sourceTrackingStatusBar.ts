@@ -40,7 +40,7 @@ const refresh = Effect.fn('statusBarRefresh', { root: true, attributes: { teleme
       return;
     }
 
-    const status = yield* sourceTracking.getStatus({ local: true, remote: true });
+    const status = yield* sourceTracking.getStatusWithWorker({ local: true, remote: true });
     updateDisplay(statusBarItem)(dedupeStatus(status));
   },
   Effect.catchAll(() => Effect.void) // ignore errors in refresh

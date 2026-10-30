@@ -10,6 +10,7 @@ import type * as NodeOsModule from 'node:os';
 import type * as SalesforceCoreModule from '@salesforce/core';
 import type * as SalesforceCoreFsModule from '@salesforce/core/fs';
 import type * as IndexedDbStorageModule from '../../src/virtualFsProvider/indexedDbStorage';
+import type { SdrStlWorkerService } from '../../src/sdrStlWorker/sdrStlWorkerService';
 
 // Mock os module before any other imports
 vi.mock('node:os', async () => ({
@@ -128,6 +129,26 @@ vi.mock('../../src/virtualFsProvider/indexedDbStorage', async () => {
   return {
     ...originalModule,
     IndexedDBStorageServiceShared: E.Layer.succeed(originalModule.IndexedDBStorageService, mockStorage)
+  };
+});
+
+// Worker bundle startup belongs to the worker integration test, not extension activation unit tests.
+vi.mock('../../src/sdrStlWorker/sdrStlWorkerService', async () => {
+  const actual = await vi.importActual<{ SdrStlWorkerService: typeof SdrStlWorkerService }>(
+    '../../src/sdrStlWorker/sdrStlWorkerService'
+  );
+  const E = await vi.importActual<typeof Effect>('effect/Effect');
+  const L = await vi.importActual<typeof Layer>('effect/Layer');
+  const service = actual.SdrStlWorkerService.make({
+    getClient: E.dieMessage('Unexpected SDR/STL worker use in activation unit tests')
+  });
+
+  return {
+    ...actual,
+    SdrStlWorkerService: Object.defineProperty(actual.SdrStlWorkerService, 'Default', {
+      configurable: true,
+      value: L.succeed(actual.SdrStlWorkerService, service)
+    })
   };
 });
 

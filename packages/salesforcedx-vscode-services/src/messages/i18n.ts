@@ -55,7 +55,9 @@ export const messages = {
     'No persisted OrgMetadataCatalog state exists yet. Use Org Browser, Apex Tests, SOQL, or Refresh SObject Definitions first.',
   org_metadata_catalog_state_open_failed: 'Failed to open persisted OrgMetadataCatalog state: %s',
   org_operation_target_changed: "The active org changed while an operation for '%s' was in progress.",
-  org_operation_superseded: 'The active org changed before this operation finished. Run it again for the current org.'
+  org_operation_superseded: 'The active org changed before this operation finished. Run it again for the current org.',
+  sdr_stl_worker_starting: 'Using the active SDR/STL worker for deployment.',
+  sdr_stl_worker_finished: 'SDR/STL worker deployment finished with %s: %d components, %d file responses.'
 } as const;
 
 export type MessageKey = keyof typeof messages;

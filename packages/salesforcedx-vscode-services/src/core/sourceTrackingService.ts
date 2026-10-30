@@ -22,6 +22,7 @@ import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { normalize } from 'node:path';
 import { OrgMetadataCatalogRecorder } from '../orgCatalog/orgMetadataCatalogRecorder';
+import { SdrStlWorkerService } from '../sdrStlWorker/sdrStlWorkerService';
 import { ChannelService } from '../vscode/channelService';
 import { SettingsService } from '../vscode/settingsService';
 import { WorkspaceService } from '../vscode/workspaceService';
@@ -70,7 +71,8 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
     WorkspaceService.Default,
     MetadataRegistryService.Default,
     MetadataDescribeService.Default,
-    OrgMetadataCatalogRecorder.Default
+    OrgMetadataCatalogRecorder.Default,
+    SdrStlWorkerService.Default
   ],
   effect: Effect.gen(function* () {
     const connectionService = yield* ConnectionService;
@@ -79,6 +81,7 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
     const metadataRegistryService = yield* MetadataRegistryService;
     const metadataDescribeService = yield* MetadataDescribeService;
     const catalogRecorder = yield* OrgMetadataCatalogRecorder;
+    const sdrStlWorkerService = yield* SdrStlWorkerService;
 
     // Semaphores for concurrency control (1 permit each for sequential access)
     const localSemaphore = yield* Effect.makeSemaphore(1);
@@ -337,7 +340,86 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
           yield* metadataDescribeService.invalidateForMetadataChanges(orgId, changedReferences);
         }
       }
-      return result.status;
+      return [...result.status];
+    });
+
+    /** Get tracking status through the shared SDR/STL worker for status-bar refreshes. */
+    const getStatusWithWorker = Effect.fn('SourceTrackingService.getStatusWithWorker')(function* (
+      options: { local: true; remote?: never } | { remote: true; local?: never } | { local: true; remote: true }
+    ) {
+      const { connection, result } = yield* Effect.acquireUseRelease(
+        Effect.all(
+          [
+            options.local ? localSemaphore.take(1) : Effect.void,
+            options.remote ? remoteSemaphore.take(1) : Effect.void
+          ],
+          { concurrency: 'unbounded' }
+        ),
+        () =>
+          Effect.gen(function* () {
+            const [activeConnection, project, client] = yield* Effect.all([
+              connectionService.getConnection(),
+              projectService.getSfProject(),
+              sdrStlWorkerService.getClient
+            ]);
+            const { accessToken, instanceUrl } = activeConnection;
+            if (!accessToken || !instanceUrl) {
+              return yield* new SourceTrackingError({
+                cause: new Error('The active connection does not expose access-token authentication.')
+              });
+            }
+            const workerResult = yield* Effect.acquireUseRelease(
+              Effect.tryPromise({
+                try: () =>
+                  client.createSourceTrackingSession({
+                    projectDirectory: project.getPath(),
+                    instanceUrl,
+                    accessToken,
+                    apiVersion: activeConnection.getApiVersion()
+                  }),
+                catch: toSourceTrackingError
+              }),
+              session =>
+                Effect.tryPromise({
+                  try: () => session.getStatus({ local: options.local === true, remote: options.remote === true }),
+                  catch: toSourceTrackingError
+                }),
+              session =>
+                Effect.tryPromise({ try: () => session.dispose(), catch: toSourceTrackingError }).pipe(
+                  Effect.catchAll(() => Effect.void)
+                )
+            ).pipe(
+              Effect.withSpan('SDRStlWorker.GetStatus', {
+                attributes: { local: options.local === true, remote: options.remote === true }
+              }),
+              Effect.tap(({ remoteChanges, status }) =>
+                Effect.annotateCurrentSpan({ remoteChangeRows: remoteChanges.length, statusRows: status.length })
+              )
+            );
+            return { connection: activeConnection, result: workerResult };
+          }),
+        () =>
+          Effect.all(
+            [
+              options.local ? localSemaphore.release(1) : Effect.void,
+              options.remote ? remoteSemaphore.release(1) : Effect.void
+            ],
+            { concurrency: 'unbounded' }
+          )
+      );
+      if (options.remote) {
+        const { orgId: activeOrgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
+        const orgId = activeOrgId ?? Option.getOrUndefined(orgIdFromConnection(connection));
+        if (orgId) {
+          const changedReferences = yield* catalogRecorder.recordTrackingStatus(
+            orgId,
+            result.status,
+            result.remoteChanges
+          );
+          yield* metadataDescribeService.invalidateForMetadataChanges(orgId, changedReferences);
+        }
+      }
+      return [...result.status];
     });
 
     /** Apply remote deletes to local and get non-deletes component set (both tracking files).
@@ -500,6 +582,41 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
         )
     );
 
+    const deployLocalChangesWithWorker = Effect.fn('SourceTrackingService.deployLocalChangesWithWorker')(function* (
+      onWorkerStarted?: () => void
+    ) {
+      const [connection, project, client] = yield* Effect.all([
+        connectionService.getConnection(),
+        projectService.getSfProject(),
+        sdrStlWorkerService.getClient
+      ]);
+      const { accessToken, instanceUrl } = connection;
+      if (!accessToken || !instanceUrl) {
+        return yield* new SourceTrackingError({
+          cause: new Error('The active connection does not expose access-token authentication.')
+        });
+      }
+      return yield* Effect.acquireUseRelease(
+        Effect.tryPromise({
+          try: () => {
+            onWorkerStarted?.();
+            return client.createSourceTrackingSession({
+              projectDirectory: project.getPath(),
+              instanceUrl,
+              accessToken,
+              apiVersion: connection.getApiVersion()
+            });
+          },
+          catch: toSourceTrackingError
+        }),
+        session => Effect.tryPromise({ try: () => session.deployLocalChanges(), catch: toSourceTrackingError }),
+        session =>
+          Effect.tryPromise({ try: () => session.dispose(), catch: toSourceTrackingError }).pipe(
+            Effect.catchAll(() => Effect.void)
+          )
+      );
+    });
+
     return {
       /** Check if source tracking is enabled for the current org without creating a tracking instance */
       hasTracking,
@@ -518,6 +635,8 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
 
       /** Get status of local and/or remote changes (auto-rereads based on options) */
       getStatus,
+      /** Get status through the shared SDR/STL worker. */
+      getStatusWithWorker,
 
       /** Apply remote deletes to local and return non-deletes ComponentSet (auto-rereads both) */
       maybeApplyRemoteDeletesToLocal,
@@ -532,7 +651,9 @@ export class SourceTrackingService extends Effect.Service<SourceTrackingService>
       maybeUpdateTrackingFromRetrieve,
 
       /** Update tracking from deploy result. No-op if tracking is disabled. */
-      maybeUpdateTrackingFromDeploy
+      maybeUpdateTrackingFromDeploy,
+      /** POC: resolve, deploy, and update local tracking entirely in the desktop SDR/STL worker. */
+      deployLocalChangesWithWorker
     };
   })
 }) {}
