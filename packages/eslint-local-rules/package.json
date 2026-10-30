@@ -81,7 +81,10 @@
         "../../scripts/setupVitest.ts",
         "../../scripts/vscodeMock.ts",
         "test/fixtures/no-raw-duration/tsconfig.json",
-        "test/fixtures/no-standalone-pipeable-value/tsconfig.json"
+        "test/fixtures/no-standalone-pipeable-value/tsconfig.json",
+        "test/fixtures/no-pass-through-exports/package.json",
+        "test/fixtures/no-pass-through-exports/tsconfig.json",
+        "test/fixtures/no-pass-through-exports/no-exports/package.json"
       ],
       "output": []
     },
@@ -128,7 +131,8 @@
     "@humanwhocodes/momoa": "^3.3.10",
     "@typescript-eslint/parser": "^8.72.0",
     "@typescript-eslint/utils": "^8.72.0",
-    "minimatch": "^10.2.6"
+    "minimatch": "^10.2.6",
+    "typescript": "6.0.3"
   },
   "devDependencies": {
     "@types/eslint": "^9.0.0",

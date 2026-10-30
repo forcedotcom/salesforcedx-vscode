@@ -10,7 +10,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
+import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services/src/core/componentSetService';
 import { nls } from '../messages';
 import { getDetectConflictsForDeployAndRetrieve } from '../settings/deployOnSaveSettings';
 import { detectConflictsFromTracking } from './conflictDetection';

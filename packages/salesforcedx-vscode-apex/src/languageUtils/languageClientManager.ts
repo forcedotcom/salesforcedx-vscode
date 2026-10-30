@@ -10,7 +10,7 @@ import {
   getMessageFromError,
   getServicesApi
 } from '@salesforce/effect-ext-utils';
-import { type LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
+import { type LineBreakpointInfo } from '@salesforce/salesforcedx-utils/out/src/types/debugger';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
 import { isNotUndefined } from 'effect/Predicate';

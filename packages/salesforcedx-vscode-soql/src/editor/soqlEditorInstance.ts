@@ -16,7 +16,7 @@ import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
 import { isError } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
-import type { SObject } from 'salesforcedx-vscode-services';
+import type { SObject } from 'salesforcedx-vscode-services/src/core/schemas/sObject';
 import * as vscode from 'vscode';
 import { executeQueryPlan } from '../commands/queryPlan';
 import { SOQL_CONFIGURATION_NAME } from '../constants';

@@ -7,7 +7,7 @@
 import * as Effect from 'effect/Effect';
 import { JSONPath } from 'jsonpath-plus';
 import type { OpenAPIV3 } from 'openapi-types';
-import type { ApexOASMethodDetail } from 'salesforcedx-vscode-apex';
+import type { ApexOASMethodDetail } from 'salesforcedx-vscode-apex/out/src/oasSchemas';
 import { MethodNotFoundInDocSymbols } from '../../errors';
 import { nls } from '../../messages/nls';
 import { cleanupGeneratedDoc, parseOASDocFromJson } from '../../oasUtils';

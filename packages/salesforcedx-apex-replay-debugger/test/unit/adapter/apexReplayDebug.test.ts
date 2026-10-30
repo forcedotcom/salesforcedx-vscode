@@ -6,7 +6,7 @@
  */
 
 import type { MockInstance as VitestMockInstance } from 'vitest';
-import type { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
+import type { LineBreakpointInfo } from '@salesforce/salesforcedx-utils/out/src/types/debugger';
 // Mock DebugSession.run to prevent it from executing during tests
 vi.mock(import('@vscode/debugadapter'), async importOriginal => {
   const actual = await importOriginal();
@@ -29,9 +29,10 @@ import {
 import { type DebugProtocol } from '@vscode/debugprotocol';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { type LaunchRequestArguments } from '../../../src/adapter/types';
-import { BreakpointUtil, breakpointUtil } from '../../../src/breakpoints';
+import { BreakpointUtil } from '../../../src/breakpoints/breakpointUtil';
+import { breakpointUtil } from '../../../src/breakpoints';
 import { SEND_METRIC_ERROR_EVENT, SEND_METRIC_LAUNCH_EVENT } from '../../../src/constants';
-import { LogContext } from '../../../src/core';
+import { LogContext } from '../../../src/core/logContext';
 import { HeapDumpService } from '../../../src/core/heapDumpService';
 import * as logContextUtil from '../../../src/core/logContextUtil';
 import { nls } from '../../../src/messages';

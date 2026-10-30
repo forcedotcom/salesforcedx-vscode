@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import { isString } from 'effect/Predicate';
-import type { TraceFlagItem } from 'salesforcedx-vscode-services';
+import type { TraceFlagItem } from 'salesforcedx-vscode-services/src/core/schemas/traceFlagSchemas';
 import * as vscode from 'vscode';
 import { pickTraceFlag, type TraceFlagQuickPickItem } from '../../../src/traceFlags/traceFlagJsonSync';
 

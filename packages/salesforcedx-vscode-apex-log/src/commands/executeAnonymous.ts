@@ -7,7 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { type EditorService } from 'salesforcedx-vscode-services';
+import { type EditorService } from 'salesforcedx-vscode-services/src/vscode/editorService';
 import { ExecAnonCompileError } from '../errors/commandErrors';
 import { saveExecResult } from '../logs/logStorage';
 import { nls } from '../messages';

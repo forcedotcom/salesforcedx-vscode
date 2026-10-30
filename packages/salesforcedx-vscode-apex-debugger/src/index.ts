@@ -9,22 +9,24 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { isMetric } from '@salesforce/salesforcedx-apex-debugger';
+import { type SetExceptionBreakpointsArguments } from '@salesforce/salesforcedx-apex-debugger/out/src/adapter/apexDebug';
 import {
   DEBUGGER_TYPE,
   EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
   EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
   EXCEPTION_BREAKPOINT_REQUEST,
   HOTSWAP_REQUEST,
-  isMetric,
   LIST_EXCEPTION_BREAKPOINTS_REQUEST,
   LIVESHARE_DEBUG_TYPE_REQUEST,
   LIVESHARE_DEBUGGER_TYPE,
   SEND_METRIC_EVENT,
-  type SetExceptionBreakpointsArguments,
-  SHOW_MESSAGE_EVENT,
+  SHOW_MESSAGE_EVENT
+} from '@salesforce/salesforcedx-apex-debugger/out/src/constants';
+import {
   type VscodeDebuggerMessage,
   VscodeDebuggerMessageType
-} from '@salesforce/salesforcedx-apex-debugger';
+} from '@salesforce/salesforcedx-apex-debugger/out/src/vscodeDebuggerMessage';
 import type { DebugProtocol } from '@vscode/debugprotocol';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';

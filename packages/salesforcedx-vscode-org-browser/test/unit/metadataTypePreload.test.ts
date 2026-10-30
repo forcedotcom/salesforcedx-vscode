@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { OrgMetadataCatalog } from 'salesforcedx-vscode-services';
+import type { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
 import * as Effect from 'effect/Effect';
 import { preloadMetadataTypes } from '../../src/services/metadataTypePreload';
 

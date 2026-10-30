@@ -8,7 +8,7 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
-import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
+import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services/src/core/componentSetService';
 import * as vscode from 'vscode';
 import { maybeStoreDeployResult } from '../../conflict/resultStorage';
 import { nls } from '../../messages';

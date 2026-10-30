@@ -16,7 +16,7 @@ import * as Ref from 'effect/Ref';
 import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services';
+import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services/src/core/schemas/traceFlagSchemas';
 import * as vscode from 'vscode';
 import { APEX_LOG_SETTINGS_SECTION } from '../constants';
 import { nls } from '../messages';

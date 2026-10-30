@@ -18,7 +18,7 @@ import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { HashableUri } from 'salesforcedx-vscode-services';
+import type { HashableUri } from 'salesforcedx-vscode-services/src/vscode/hashableUri';
 import { type URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { MissingDefaultOrgError } from '../shared/diff/diffErrors';

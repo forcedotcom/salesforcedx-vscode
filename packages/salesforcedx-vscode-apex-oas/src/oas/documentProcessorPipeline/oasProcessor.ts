@@ -7,7 +7,10 @@
 
 import * as Effect from 'effect/Effect';
 import type { OpenAPIV3 } from 'openapi-types';
-import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
+import type {
+  ApexClassOASEligibleResponse,
+  ApexClassOASGatherContextResponse
+} from 'salesforcedx-vscode-apex/out/src/oasSchemas';
 import { methodValidationStep } from './methodValidationStep';
 import { oasReorderStep } from './oasReorderStep';
 import { oasValidationStep } from './oasValidationStep';

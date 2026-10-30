@@ -7,7 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import type { SObject } from 'salesforcedx-vscode-services';
+import type { SObject } from 'salesforcedx-vscode-services/src/core/schemas/sObject';
 import { MetadataDescribeService } from 'salesforcedx-vscode-services/src/core/metadataDescribeService';
 import { TransmogrifierService } from 'salesforcedx-vscode-services/src/core/transmogrifierService';
 import type { CancellationToken, CompletionContext, Position, TextDocument } from 'vscode';

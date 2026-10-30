@@ -10,6 +10,8 @@ import * as path from 'node:path';
 
 import { expect, type Locator } from '@playwright/test';
 import {
+  TEST_EXPLORER_PANEL,
+  TEST_EXPLORER_TREE_ITEM,
   clearFilter,
   createAndDeployApexTestClass,
   ensureSecondarySideBarHidden,
@@ -28,11 +30,7 @@ import {
 // executes the desktop-only body. Making a class "org-only" needs real on-disk source removal.
 import { desktopTest as test } from '../fixtures/desktopFixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
-import {
-  TEST_EXPLORER_PANEL,
-  TEST_EXPLORER_TREE_ITEM,
-  openTestExplorerAndDiscover
-} from '../helpers/testExplorerHelpers';
+import { openTestExplorerAndDiscover } from '../helpers/testExplorerHelpers';
 
 // Regression guard for W-22691592 / issue #7350: VS Code's Test Explorer tag filter matches by
 // TestTag id across ALL controllers. The Apex controller tags workspace classes `in-workspace` and

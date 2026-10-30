@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Equal from 'effect/Equal';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { OrgMetadataComponentReference } from 'salesforcedx-vscode-services';
+import type { OrgMetadataComponentReference } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataReference';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';

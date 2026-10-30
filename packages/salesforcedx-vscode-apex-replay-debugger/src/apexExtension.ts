@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger';
+import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints/index';
 import * as Effect from 'effect/Effect';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';

@@ -7,14 +7,12 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 import { annotateRootSpan, ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { type MetricError, type MetricGeneral, type MetricLaunch } from '@salesforce/salesforcedx-apex-replay-debugger';
 import {
-  type MetricError,
-  type MetricGeneral,
-  type MetricLaunch,
   SEND_METRIC_GENERAL_EVENT,
   SEND_METRIC_ERROR_EVENT,
   SEND_METRIC_LAUNCH_EVENT
-} from '@salesforce/salesforcedx-apex-replay-debugger';
+} from '@salesforce/salesforcedx-apex-replay-debugger/out/src/constants';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { type URI } from 'vscode-uri';
@@ -41,9 +39,6 @@ import {
 import { nls } from './messages';
 import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
 import { disposeRuntime, getRuntime } from './services/runtime';
-
-export { retrieveLineBreakpointInfo } from './apexExtension';
-export { writeToDebuggerOutputWindow } from './channels';
 
 const launchFromLogFileCommand = Effect.fn('ApexReplayDebugger.launchFromLogFileCommand')(function* (
   extensionContext: vscode.ExtensionContext,

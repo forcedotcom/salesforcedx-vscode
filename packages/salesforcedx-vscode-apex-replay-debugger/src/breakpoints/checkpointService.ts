@@ -8,7 +8,7 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 import { annotateRootSpan, code2ProtocolConverter, ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger';
+import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints/index';
 import * as Arr from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';

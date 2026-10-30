@@ -8,6 +8,9 @@
 import { expect } from '@playwright/test';
 
 import {
+  TEST_EXPLORER_PANEL,
+  clearFilter,
+  focusAndTypeInFilter,
   createAndDeployApexTestClass,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
@@ -23,9 +26,6 @@ import { test } from '../fixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
 import {
   STALE_AUTOCOMPLETE_OPTION,
-  TEST_EXPLORER_PANEL,
-  clearFilter,
-  focusAndTypeInFilter,
   openTestExplorerAndDiscover,
   refreshTestsAndWaitForRebuild,
   runAllTestsAndWaitForCompletion

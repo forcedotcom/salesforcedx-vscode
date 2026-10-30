@@ -13,8 +13,10 @@ import type * as Scope from 'effect/Scope';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as TestClock from 'effect/TestClock';
 import * as TestContext from 'effect/TestContext';
-import type { OrgMetadataCatalogChange } from 'salesforcedx-vscode-services';
-import { OrgMetadataCatalogChangePubSub } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalogChangePubSub';
+import {
+  OrgMetadataCatalogChangePubSub,
+  type OrgMetadataCatalogChange
+} from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalogChangePubSub';
 import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
 import { URI } from 'vscode-uri';
 import { initializeTestDiscovery } from '../../../src/watchers/testDiscovery';

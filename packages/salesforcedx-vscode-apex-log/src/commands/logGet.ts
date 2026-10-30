@@ -8,7 +8,7 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
-import type { ApexLogListItem } from 'salesforcedx-vscode-services';
+import type { ApexLogListItem } from 'salesforcedx-vscode-services/src/core/apexLogService';
 import * as vscode from 'vscode';
 import { LogGetNoLogsError } from '../errors/commandErrors';
 import { saveAndOpenLog } from '../logs/logStorage';

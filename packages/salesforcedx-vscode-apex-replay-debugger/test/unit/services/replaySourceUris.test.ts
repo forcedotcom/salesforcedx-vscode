@@ -11,7 +11,7 @@ import * as Layer from 'effect/Layer';
 import type {
   OrgMetadataCatalogComponentEntry,
   OrgMetadataCatalogComponentReference
-} from 'salesforcedx-vscode-services';
+} from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalogTypes';
 import { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';

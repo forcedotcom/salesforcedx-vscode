@@ -6,7 +6,10 @@
  */
 
 import * as Effect from 'effect/Effect';
-import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
+import type {
+  ApexClassOASEligibleResponse,
+  ApexClassOASGatherContextResponse
+} from 'salesforcedx-vscode-apex/out/src/oasSchemas';
 import { type GenerationStrategy } from './generationStrategy';
 import { createApexRestStrategy } from './json/apexRest';
 import { createAuraEnabledStrategy } from './json/auraEnabledStrategy';

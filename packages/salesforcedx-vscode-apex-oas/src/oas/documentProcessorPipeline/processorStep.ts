@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { OpenAPIV3 } from 'openapi-types';
-import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
+import type {
+  ApexClassOASEligibleResponse,
+  ApexClassOASGatherContextResponse
+} from 'salesforcedx-vscode-apex/out/src/oasSchemas';
 import * as vscode from 'vscode';
 
 export type ProcessorInputOutput = {

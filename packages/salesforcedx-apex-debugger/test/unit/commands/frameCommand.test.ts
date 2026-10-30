@@ -7,7 +7,7 @@
 
 import type { MockInstance as VitestMockInstance } from 'vitest';
 import { type XHROptions, type XHRResponse } from 'request-light';
-import { FrameCommand } from '../../../src/commands';
+import { FrameCommand } from '../../../src/commands/frameCommand';
 import { DEFAULT_CONNECTION_TIMEOUT_MS } from '../../../src/constants';
 import { RequestService } from '../../../src/requestService/requestService';
 import { getDefaultHeaders } from './baseDebuggerCommand.test';

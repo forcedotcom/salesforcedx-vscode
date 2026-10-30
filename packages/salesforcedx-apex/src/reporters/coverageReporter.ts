@@ -18,7 +18,7 @@ import {
   type ApexCodeCoverageAggregateRecord,
   type ApexCodeCoverageRecord
 } from '../tests/types';
-import { elapsedTime } from '../utils';
+import { elapsedTime } from '../utils/elapsedTime';
 
 const startOfSource = (source: string): number => {
   if (source) {

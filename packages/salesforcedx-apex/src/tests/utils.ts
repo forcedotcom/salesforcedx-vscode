@@ -11,7 +11,7 @@ import { type Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import { type Progress } from '../common';
+import { type Progress } from '../common/types';
 import { nls } from '../i18n';
 import {
   type ApexTestProgressValue,

@@ -11,7 +11,10 @@ import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Record from 'effect/Record';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { type DebugLevelItem, type TraceFlagItem } from 'salesforcedx-vscode-services';
+import {
+  type DebugLevelItem,
+  type TraceFlagItem
+} from 'salesforcedx-vscode-services/src/core/schemas/traceFlagSchemas';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { isTraceFlagActive } from '../../traceFlags/traceFlagActive';

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { BreakpointUtil } from '../../../src/breakpoints';
+import { BreakpointUtil } from '../../../src/breakpoints/breakpointUtil';
 
 describe('Breakpoint utilities', () => {
   let util: BreakpointUtil;

@@ -8,7 +8,7 @@
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import { nls } from '../../src/i18n';
-import { TestService } from '../../src/tests';
+import { TestService } from '../../src/tests/testService';
 import * as utils from '../../src/tests/utils';
 
 vi.mock(import('../../src/tests/utils'), async importOriginal => ({

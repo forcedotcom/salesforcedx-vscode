@@ -12,7 +12,7 @@ import * as MutableRef from 'effect/MutableRef';
 import * as PubSub from 'effect/PubSub';
 import * as Stream from 'effect/Stream';
 import * as Struct from 'effect/Struct';
-import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
+import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services/src/core/schemas/defaultOrgInfo';
 
 type OrgUserInfo = Pick<typeof DefaultOrgInfoSchema.Type, 'username' | 'alias'>;
 type WorkspaceOrgIdentity = Pick<

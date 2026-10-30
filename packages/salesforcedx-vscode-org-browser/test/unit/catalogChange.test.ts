@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { OrgMetadataCatalogChange } from 'salesforcedx-vscode-services';
+import type { OrgMetadataCatalogChange } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalogChangePubSub';
 import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';

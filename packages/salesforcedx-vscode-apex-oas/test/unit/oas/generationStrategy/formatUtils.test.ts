@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as Effect from 'effect/Effect';
-import type { ApexOASMethodDetail } from 'salesforcedx-vscode-apex';
+import type { ApexOASMethodDetail } from 'salesforcedx-vscode-apex/out/src/oasSchemas';
 import {
   combineYamlByMethod,
   excludeNon2xxResponses,

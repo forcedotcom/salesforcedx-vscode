@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Tracer as OtelTracer, type Resource } from '@effect/opentelemetry';
+import { TemplateType } from '@salesforce/templates';
 import * as Cause from 'effect/Cause';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
@@ -42,7 +43,7 @@ import { TraceFlagItemStruct } from './core/schemas/traceFlagSchemas';
 import { watchSfProjectFile } from './core/sfProjectFileWatcher';
 import { SourceTrackingService } from './core/sourceTrackingService';
 import { preventOrgChanges } from './core/targetOrgGuard';
-import { TemplateService, TemplateType } from './core/templateService';
+import { TemplateService } from './core/templateService';
 import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
 import { nls } from './messages';
@@ -187,158 +188,6 @@ type PublicSdkLayerFor = (
   Layer.Layer.Success<ReturnType<typeof SdkLayerFor>>,
   Layer.Layer.Error<ReturnType<typeof SdkLayerFor>>
 >;
-export type { AliasService } from './core/alias';
-export {
-  ArtifactIdentitySchema,
-  ArtifactNamespaceSchema,
-  ArtifactTargetKindSchema,
-  MetadataComponentArtifactIdentitySchema,
-  SObjectArtifactIdentitySchema,
-  artifactIdentitiesEqual,
-  artifactIdentityKey,
-  artifactNamespacesEqual,
-  normalizeArtifactIdentity,
-  normalizeArtifactIdentityPart,
-  normalizeArtifactNamespace,
-  type ArtifactIdentity,
-  type ArtifactNamespace,
-  type ArtifactTargetKind,
-  type MetadataComponentArtifactIdentity,
-  type SObjectArtifactIdentity
-} from './core/artifactIdentity';
-export {
-  ArtifactPresenceSchema,
-  ArtifactProjectionSchema,
-  ArtifactProjectionSchemas,
-  ArtifactProviderKindSchema,
-  CanonicalSemanticModelSchema,
-  CatalogEntryDescriptorSchema,
-  CatalogEntryProjectionSchema,
-  DocumentUriSchema,
-  ProjectionUnavailableReasonSchema,
-  ProjectionUnavailableSchema,
-  SObjectChildRelationshipSchema,
-  SObjectFieldRuntimeCapabilitiesSchema,
-  SObjectPicklistValueSchema,
-  SObjectSemanticFieldSchema,
-  SObjectSemanticModelSchema,
-  SObjectSemanticProjectionSchema,
-  SObjectSemanticValueSchema,
-  SourceDocumentProjectionSchema,
-  SourceDocumentSchema,
-  type ArtifactPresence,
-  type ArtifactProjection,
-  type ArtifactProviderKind,
-  type CanonicalSemanticModel,
-  type CatalogEntryDescriptor,
-  type CatalogEntryProjection,
-  type DocumentUri,
-  type ProjectionUnavailable,
-  type ProjectionUnavailableReason,
-  type SObjectChildRelationship,
-  type SObjectFieldRuntimeCapabilities,
-  type SObjectPicklistValue,
-  type SObjectSemanticField,
-  type SObjectSemanticModel,
-  type SObjectSemanticProjection,
-  type SObjectSemanticValue,
-  type SourceDocument,
-  type SourceDocumentProjection
-} from './core/artifactProjection';
-export {
-  TemplateService,
-  type ApexClassCreateOptions,
-  type ApexTriggerCreateOptions,
-  type LightningAppCreateOptions,
-  type LightningComponentCreateOptions,
-  type LightningEventCreateOptions,
-  type LightningInterfaceCreateOptions,
-  type VisualforceComponentCreateOptions,
-  type VisualforcePageCreateOptions,
-  type CreateOutput,
-  type CreateParams,
-  type TemplateOptionsFor,
-  type TemplateType
-} from './core/templateService';
-export type { TemplatesManifestLoadError, TemplatesRootPathNotAvailableError } from './core/templateService';
-export type {
-  NonEmptyComponentSet,
-  ComponentSetService,
-  FailedToBuildComponentSetError,
-  EmptyComponentSetError
-} from './core/componentSetService';
-export type { LightningComponentKind, RenameBundleParams } from './core/lightningComponentService';
-export type { NoActiveEditorError, EditorService } from './vscode/editorService';
-export type { GetOrgFromConnectionError } from './core/shared';
-export type {
-  SourceTrackingConflictError,
-  SourceTrackingError,
-  SourceTrackingNotEnabledError,
-  SourceTrackingService
-} from './core/sourceTrackingService';
-export { HashableUri } from './vscode/hashableUri';
-export type { FailedToResolveSfProjectError, NotInPackageDirectoryError } from './core/projectService';
-export type { NoWorkspaceOpenError } from './vscode/workspaceService';
-export type { FailedToCreateConfigAggregatorError } from './core/configService';
-export type {
-  FailedToCreateAuthInfoError,
-  FailedToSaveAuthInfoError,
-  FailedToCreateConnectionError,
-  FailedToResolveUsernameError,
-  GetAuthFieldsError,
-  InactiveOrgOperationError,
-  NoTargetOrgConfiguredError,
-  FailedToListAuthorizationsError,
-  AccessTokenExpiredError
-} from './core/connectionService';
-export type { MetadataDeployError } from './core/metadataDeployService';
-export type { MetadataRetrieveError } from './core/metadataRetrieveService';
-export type { OrgMetadataCatalog } from './orgCatalog/orgMetadataCatalog';
-export type { OrgMetadataCatalogError } from './orgCatalog/orgMetadataCatalogErrors';
-export type {
-  OrgMetadataCatalogComponentEntry,
-  OrgMetadataCatalogComponentReference,
-  OrgMetadataCatalogEntry,
-  OrgMetadataCatalogFieldEntry,
-  OrgMetadataCatalogFolderEntry,
-  OrgMetadataCatalogReference,
-  OrgMetadataConsistency,
-  OrgMetadataFieldDetails,
-  OrgMetadataHierarchyConsistency
-} from './orgCatalog/orgMetadataCatalogTypes';
-export type { OrgMetadataComponentReference } from './orgCatalog/orgMetadataReference';
-export type { MetadataDeleteError } from './core/metadataDeleteService';
-export type {
-  MetadataDescribeError,
-  ListMetadataError,
-  SObjectGlobalDescribeItem
-} from './core/metadataDescribeService';
-export type { TransmogrifierService, TransmogrifierError } from './core/transmogrifierService';
-export type { SObject, SObjectField, ChildRelationship } from './core/schemas/sObject';
-export type { AuthInfoFields } from './core/schemas/authFields';
-export type { ExecuteAnonymousResult } from './core/executeAnonymousService';
-export type { ExecuteAnonymousError } from './errors/executeAnonymousErrors';
-export type { ApexLogBodyFetchError } from './errors/apexLogErrors';
-export type {
-  DebugLevelCreateError,
-  DebugLevelDeleteError,
-  TraceFlagCreateError,
-  TraceFlagNotFoundError,
-  TraceFlagUpdateError,
-  UserIdNotFoundError
-} from './errors/traceFlagErrors';
-export type { GetRegistryAccessError } from './core/metadataRegistryService';
-export type { FsServiceError } from './vscode/fsService';
-export { ICONS } from './vscode/mediaService';
-export type { IconId, MediaService } from './vscode/mediaService';
-export type { SettingsError } from './vscode/settingsService';
-export {
-  NotificationModeService,
-  type ProgressAndSuccessMode,
-  type ProgressOnlyMode,
-  type SuccessOnlyMode,
-  type ToastAction
-} from './vscode/notificationModeService';
 
 /** Effect that runs when the extension is activated after FS setup */
 const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(function* (
@@ -634,55 +483,3 @@ const deactivateEffect = Effect.gen(function* () {
   yield* disposeServicesRuntime();
   yield* closeExtensionScope();
 });
-
-export { type DefaultOrgInfoSchema } from './core/schemas/defaultOrgInfo';
-export { type ChannelService, type ChannelServiceLayer } from './vscode/channelService';
-export { type ConfigService } from './core/configService';
-export { type ConnectionService, type OrgAuthorizationSummary } from './core/connectionService';
-export { type QueryService } from './core/queryService';
-export type { QueryOptions, QueryServiceResult } from './core/queryExecute';
-export { FieldError, SoqlError } from './errors/queryErrors';
-export { type ErrorHandlerService } from './vscode/errorHandlerService';
-export { type ExtensionContextService, type ExtensionContextServiceLayer } from './vscode/extensionContextService';
-export { ExtensionContextNotAvailableError } from './vscode/extensionContextErrors';
-export { type FileChangePubSub, type FileChangeEvent } from './vscode/fileChangePubSub';
-export { type OrgMetadataCatalogChange } from './orgCatalog/orgMetadataCatalogChangePubSub';
-export { type FsService } from './vscode/fsService';
-export {
-  MetadataDeleteService,
-  type MetadataDeleteService as MetadataDeleteServiceType
-} from './core/metadataDeleteService';
-export { type ApexLogListItem, type ApexLogService, type ListLogsOptions } from './core/apexLogService';
-export { type MetadataDescribeService } from './core/metadataDescribeService';
-export {
-  dedupeMetadataChanges,
-  MetadataChangeNotificationService,
-  MetadataChangeEvent,
-  MetadataOperationEvent,
-  type MetadataChangeEvent as MetadataChangeEventType,
-  type MetadataOperationEvent as MetadataOperationEventType
-} from './core/metadataChangeNotificationService';
-export type { MetadataChangeType, RequestStatusValue } from './core/sdrGuards';
-export {
-  MetadataDeployService,
-  type MetadataDeployService as MetadataDeployServiceType
-} from './core/metadataDeployService';
-export { type MetadataRegistryService } from './core/metadataRegistryService';
-export { type MetadataRetrieveService } from './core/metadataRetrieveService';
-export { type ProjectService } from './core/projectService';
-export { type SdkLayerFor } from './observability/spans';
-export { type SettingsService } from './vscode/settingsService';
-export { type SettingsChangePubSub } from './vscode/settingsChangePubSub';
-export {
-  CreateDebugLevelStruct,
-  DebugLevelItemSchema,
-  TraceFlagItemStruct,
-  TraceFlagLogType,
-  type CreateDebugLevelPayload,
-  type DebugLevelItem,
-  type TraceFlagItem
-} from './core/schemas/traceFlagSchemas';
-export { type TraceFlagService } from './core/traceFlagService';
-export { type WorkspaceService } from './vscode/workspaceService';
-export type { UserCancellationError } from './vscode/prompts/promptService';
-export type { TerminalService, TerminalServiceError } from './terminal/terminalService';

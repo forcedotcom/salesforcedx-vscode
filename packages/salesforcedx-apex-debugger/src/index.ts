@@ -5,26 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export {
-  DEBUGGER_LAUNCH_TYPE,
-  DEBUGGER_TYPE,
-  EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS,
-  EXCEPTION_BREAKPOINT_BREAK_MODE_NEVER,
-  SHOW_MESSAGE_EVENT,
-  SEND_METRIC_EVENT,
-  LIVESHARE_DEBUGGER_TYPE,
-  HOTSWAP_REQUEST,
-  LIST_EXCEPTION_BREAKPOINTS_REQUEST,
-  LIVESHARE_DEBUG_TYPE_REQUEST,
-  EXCEPTION_BREAKPOINT_REQUEST,
-  SF_CONFIG_ISV_DEBUGGER_SID,
-  SF_CONFIG_ISV_DEBUGGER_URL
-} from './constants';
-export type { SetExceptionBreakpointsArguments } from './adapter/apexDebug';
-export { VscodeDebuggerMessageType } from './vscodeDebuggerMessage';
-export type { VscodeDebuggerMessage } from './vscodeDebuggerMessage';
-export type { WorkspaceSettings } from './workspaceSettings';
-
 // Define the metric payload sent to the debugger extension.
 type Metric = {
   subject: string;

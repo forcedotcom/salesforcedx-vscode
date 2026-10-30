@@ -61,7 +61,7 @@ export default [
       '**/.test-dist/**',
       '**/packages/**/coverage',
       '**/test-workspaces/**',
-      '**/*.d.ts',
+      '**/*.d.{ts,mts,cts}',
       '**/jest.integration.config.js',
       '**/.wireit/**',
       '.opencode/**',
@@ -121,7 +121,7 @@ export default [
     }
   },
   {
-    files: ['**/*.ts', '**/*.mts'],
+    files: ['**/*.{ts,tsx,mts,cts}'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -150,7 +150,6 @@ export default [
       '@stylistic/eslint-plugin-ts': stylistic,
       unicorn: eslintPluginUnicorn,
       local: localPlugin,
-      'barrel-files': eslintPluginBarrelFiles,
       functional: functional,
       workspaces: eslintPluginWorkspaces,
       effect: effectPlugin
@@ -200,8 +199,6 @@ export default [
       'local/no-vscode-validateinput-literals': 'error',
       'local/no-self-barrel-import': 'error',
       'local/notification-slot-matches-package-json': 'error',
-      'barrel-files/avoid-barrel-files': 'error',
-      'barrel-files/avoid-re-export-all': 'error',
       'workspaces/no-relative-imports': 'error',
       'unicorn/consistent-date-clone': 'error',
       'unicorn/consistent-empty-array-spread': 'error',
@@ -581,6 +578,23 @@ export default [
     }
   },
   {
+    files: ['packages/**/*.{ts,tsx,mts,cts}'],
+    rules: {
+      'local/no-pass-through-exports': 'error'
+    }
+  },
+  {
+    files: ['**/*.{ts,tsx,mts,cts}'],
+    ignores: ['packages/**'],
+    plugins: {
+      'barrel-files': eslintPluginBarrelFiles
+    },
+    rules: {
+      'barrel-files/avoid-barrel-files': 'error',
+      'barrel-files/avoid-re-export-all': 'error'
+    }
+  },
+  {
     // Opt-in: steer `x instanceof Error` to isError(x) and `x == null` to the matching
     // isUndefined/isNull/isNullable guard, all from effect/Predicate.
     // Scoped to effect-enabled packages only — non-effect packages can't import
@@ -756,7 +770,6 @@ export default [
       'unicorn/prefer-single-call': 'off',
       '@typescript-eslint/prefer-nullish-coalescing': 'off',
       'header/header': 'off',
-      'barrel-files/avoid-barrel-files': 'off',
       'prefer-arrow/prefer-arrow-functions': 'off',
       // unfixed type-safety debt: to be resolved by later refactors, not upstream style
       '@typescript-eslint/no-unsafe-enum-comparison': 'off',
@@ -803,8 +816,6 @@ export default [
     ],
     rules: {
       'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }],
-      'barrel-files/avoid-barrel-files': 'error',
-      'barrel-files/avoid-re-export-all': 'error',
       'functional/no-throw-statements': 'error',
       'functional/no-try-statements': 'error',
       'functional/no-let': 'error',
@@ -894,29 +905,6 @@ export default [
     }
   },
   {
-    // Allow top-level src/index.ts files as barrel files (public API exports),
-    // including export-* aggregation of a package's public surface.
-    files: ['packages/**/src/index.ts'],
-    rules: {
-      'barrel-files/avoid-barrel-files': 'off',
-      'barrel-files/avoid-re-export-all': 'off'
-    }
-  },
-  {
-    // Legacy packages with pre-existing sub-directory barrels (out of scope for
-    // the no-barrel-files rollout in W-23031858). avoid-re-export-all stays ON.
-    // Cleaning up these barrels is a separate WI.
-    files: [
-      'packages/salesforcedx-apex-debugger/**/*.ts',
-      'packages/salesforcedx-apex-replay-debugger/**/*.ts',
-      'packages/salesforcedx-vscode-org/**/*.ts',
-      'packages/salesforcedx-vscode-core/**/*.ts'
-    ],
-    rules: {
-      'barrel-files/avoid-barrel-files': 'off'
-    }
-  },
-  {
     // Prevent direct imports from services extension (except in services package itself)
     // Only applies to src directories, not test directories
     files: ['packages/**/src/**/*.ts'],
@@ -950,10 +938,6 @@ export default [
       'local/no-inline-esbuild-platform': 'off',
       // Deactivate import-order for tests to allow for mock-before-import
       'effect/no-import-from-barrel-package': ['off'],
-
-      // Tests may re-export fixtures / aggregate helpers
-      'barrel-files/avoid-barrel-files': 'off',
-      'barrel-files/avoid-re-export-all': 'off',
 
       'import/order': 'off',
       'functional/no-throw-statements': 'off',

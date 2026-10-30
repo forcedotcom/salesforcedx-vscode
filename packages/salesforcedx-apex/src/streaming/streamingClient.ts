@@ -8,7 +8,7 @@
 import { type Connection, LoggerLevel } from '@salesforce/core';
 import { type Duration } from '@salesforce/kit';
 import { Client } from 'faye';
-import { type Progress } from '../common';
+import { type Progress } from '../common/types';
 import { nls } from '../i18n';
 import {
   type ApexTestProgressValue,
@@ -17,7 +17,8 @@ import {
   type TestRunIdResult
 } from '../tests/types';
 import { queryAll } from '../tests/utils';
-import { elapsedTime, refreshAuth } from '../utils';
+import { refreshAuth } from '../utils/authUtil';
+import { elapsedTime } from '../utils/elapsedTime';
 import { RetrieveResultsInterval, type StreamMessage, StreamingErrors, type TestResultMessage } from './types';
 
 const TEST_RESULT_CHANNEL = '/systemTopic/TestResult';

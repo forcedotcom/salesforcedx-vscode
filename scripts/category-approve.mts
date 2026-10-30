@@ -3,8 +3,11 @@ import * as Command from '@effect/platform/Command';
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
 import * as NodeContext from '@effect/platform-node/NodeContext';
-import * as Config from 'effect/Config';
+import { findApprovedReviewOnHead, GitHub, withoutWorkflowRun } from '@salesforce/effect-octokit';
+import { actionsEnvironment } from '@salesforce/effect-octokit/out/src/actionsEnvironment.js';
+import { type CheckEvent, readCheckEvent } from '@salesforce/effect-octokit/out/src/actionsEvent.js';
 import * as Cause from 'effect/Cause';
+import * as Config from 'effect/Config';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Match from 'effect/Match';
@@ -12,15 +15,6 @@ import * as Option from 'effect/Option';
 import { isNumber, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import {
-  actionsEnvironment,
-  type CheckEvent,
-  findApprovedReviewOnHead,
-  GitHub,
-  readCheckEvent,
-  withoutWorkflowRun
-} from '@salesforce/effect-octokit';
-import { AgentError, GitError } from './shared/scriptErrors.mts';
 import {
   BASE_BRANCH,
   BOT_LOGIN,
@@ -35,6 +29,7 @@ import {
   decideCategoryApprove,
   parseAgentResult
 } from './shared/categoryDecision.mts';
+import { AgentError, GitError } from './shared/scriptErrors.mts';
 
 // Command.env merges over process.env (NodeCommandExecutor). Blank inherited values so the agent only sees its allowlist.
 const agentEnvironment = (home: string, pathEnv: string, apiKey: string) => ({

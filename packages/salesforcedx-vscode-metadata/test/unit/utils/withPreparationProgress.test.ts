@@ -11,7 +11,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
-import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
+import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services/src/core/componentSetService';
 import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
 import { withPreparationProgress } from '../../../src/utils/withPreparationProgress';
 import { ConflictsDetectedError } from '../../../src/conflict/conflictErrors';

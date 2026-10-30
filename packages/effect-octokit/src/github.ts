@@ -17,18 +17,6 @@ import { isError, isNullable } from 'effect/Predicate';
 import * as Redacted from 'effect/Redacted';
 import * as Schema from 'effect/Schema';
 
-export { actionsEnvironment } from './actionsEnvironment.js';
-export {
-  type CheckEvent,
-  type CompletedChecksEvent,
-  type SynchronizeEvent,
-  readCheckEvent,
-  readCompletedChecksEvent,
-  readIssueCommentEvent,
-  readPullRequestEvent,
-  readSynchronizeEvent
-} from './actionsEvent.js';
-
 export type PullReview = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews']['response']['data'][number];
 export type CommitStatus =
   Endpoints['GET /repos/{owner}/{repo}/commits/{ref}/status']['response']['data']['statuses'][number];

@@ -5,9 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { LoggerLevel } from '@salesforce/core';
-import { isEmpty } from '../narrowing';
+import { isEmpty } from '../narrowing/narrowing';
 import { type ApexTestResultData, type TestResult } from '../tests/types';
-import { elapsedTime, formatStartTime, HeapMonitor, msToSecond } from '../utils';
+import { formatStartTime, msToSecond } from '../utils/dateUtil';
+import { elapsedTime } from '../utils/elapsedTime';
+import { HeapMonitor } from '../utils/heapMonitor';
 
 // cli currently has spaces in multiples of four for junit format
 const tab = '    ';

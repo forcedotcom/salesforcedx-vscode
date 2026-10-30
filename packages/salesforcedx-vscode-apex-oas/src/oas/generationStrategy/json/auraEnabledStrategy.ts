@@ -8,7 +8,7 @@
 import type { GenerationStrategy } from '../generationStrategy';
 import { ExtensionProviderService, annotateRootSpan } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import type { ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
+import type { ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex/out/src/oasSchemas';
 import { OasGenerationFailed } from '../../../errors';
 import { hasAuraFrameworkCapability } from '../../../oasUtils';
 import { IMPOSED_FACTOR, SUM_TOKEN_MAX_LIMIT } from '../constants';

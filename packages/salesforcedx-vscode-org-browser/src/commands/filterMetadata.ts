@@ -17,7 +17,7 @@ import * as Ref from 'effect/Ref';
 import * as Runtime from 'effect/Runtime';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { OrgMetadataCatalog } from 'salesforcedx-vscode-services';
+import type { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { getOrgBrowserRuntime } from '../services/extensionProvider';

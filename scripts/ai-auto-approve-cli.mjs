@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 import * as NodeContext from '@effect/platform-node/NodeContext';
+import { GitHub } from '@salesforce/effect-octokit';
+import { actionsEnvironment } from '@salesforce/effect-octokit/out/src/actionsEnvironment.js';
 import {
-  actionsEnvironment,
-  GitHub,
   readCompletedChecksEvent,
   readIssueCommentEvent,
   readSynchronizeEvent
-} from '@salesforce/effect-octokit';
+} from '@salesforce/effect-octokit/out/src/actionsEvent.js';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';

@@ -9,7 +9,10 @@ import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
+import type {
+  ApexClassOASEligibleResponse,
+  ApexClassOASGatherContextResponse
+} from 'salesforcedx-vscode-apex/out/src/oasSchemas';
 import { EXTENSION_NAME } from '../constants';
 import { nls } from '../messages/nls';
 import { type GenerationStrategyType, initializeAndBid } from './generationStrategy/generationStrategyFactory';

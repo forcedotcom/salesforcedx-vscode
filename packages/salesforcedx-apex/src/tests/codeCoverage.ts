@@ -7,7 +7,8 @@
 
 import { type Connection } from '@salesforce/core';
 import * as util from 'node:util';
-import { elapsedTime, HeapMonitor } from '../utils';
+import { elapsedTime } from '../utils/elapsedTime';
+import { HeapMonitor } from '../utils/heapMonitor';
 import { QUERY_RECORD_LIMIT } from './constants';
 import {
   type ApexCodeCoverage,

@@ -13,7 +13,7 @@ import * as Order from 'effect/Order';
 import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { TraceFlagItem } from 'salesforcedx-vscode-services';
+import type { TraceFlagItem } from 'salesforcedx-vscode-services/src/core/schemas/traceFlagSchemas';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { type messages } from '../messages/i18n';

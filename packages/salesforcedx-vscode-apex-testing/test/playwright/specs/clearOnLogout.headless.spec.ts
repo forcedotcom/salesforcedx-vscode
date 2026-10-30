@@ -10,6 +10,7 @@ import * as path from 'node:path';
 
 import { expect } from '@playwright/test';
 import {
+  TEST_EXPLORER_TREE_ITEM,
   clickModalDialogButton,
   closeAllEditors,
   createAndDeployApexTestClass,
@@ -31,11 +32,7 @@ import {
 // since this test logs out of — and thus destroys — its default org.
 import { logoutDesktopTest as test } from '../fixtures/desktopFixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
-import {
-  findTestExplorerItem,
-  TEST_EXPLORER_TREE_ITEM,
-  openTestExplorerAndDiscover
-} from '../helpers/testExplorerHelpers';
+import { findTestExplorerItem, openTestExplorerAndDiscover } from '../helpers/testExplorerHelpers';
 
 // `SFDX: Log Out from Default Org` — title from salesforcedx-vscode-org package.nls (`org_logout_default_text`).
 const LOGOUT_COMMAND = 'SFDX: Log Out from Default Org';

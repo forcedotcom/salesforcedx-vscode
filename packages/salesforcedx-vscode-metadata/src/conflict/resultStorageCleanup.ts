@@ -7,7 +7,7 @@
 
 import type { NonEmptyReadonlyArray } from 'effect/Array';
 import * as HashSet from 'effect/HashSet';
-import type { HashableUri } from 'salesforcedx-vscode-services';
+import type { HashableUri } from 'salesforcedx-vscode-services/src/vscode/hashableUri';
 
 /** Returns the subset of allJsonUris that are stale — i.e., no component from that file
  * appears as the winning (first) row for any key in byKey. */

@@ -16,15 +16,15 @@ import * as vscode from 'vscode';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { checkAndResolveOrphanedLanguageServers } from './languageServerOrphanHandler';
 import {
-  configureApexLanguage,
   getExceptionBreakpointInfo,
   getLineBreakpointInfo,
   gatherOpenAPIContext,
   isOpenAPIEligible,
-  languageClientManager,
   restartLanguageServerAndClient,
   createLanguageClient
 } from './languageUtils';
+import { configureApexLanguage } from './languageUtils/apexLanguageConfiguration';
+import { languageClientManager } from './languageUtils/languageClientManager';
 import { nls } from './messages';
 import { setAllServicesLayer } from './services/extensionProvider';
 import { disposeRuntime, getRuntime } from './services/runtime';
@@ -107,26 +107,6 @@ export const deactivate = async () => {
   // BatchSpanProcessor's UNREF'd 5s timer on reload/teardown.
   await disposeRuntime();
 };
-
-export type {
-  ApexClassOASEligibleRequestForLSPProtocol,
-  ApexClassOASEligibleResponseForLSPProtocol
-} from './apexLanguageClient';
-export type { LanguageClientManager } from './languageUtils/languageClientManager';
-
-// Export OAS schema types for other extensions to consume
-export type {
-  ApexClassOASEligibleRequest,
-  ApexClassOASEligibleResponse,
-  ApexClassOASEligibleResponses,
-  ApexOASEligiblePayload,
-  ApexClassOASGatherContextResponse,
-  ApexOASClassDetail,
-  ApexOASPropertyDetail,
-  ApexOASMethodDetail,
-  ApexOASInterface,
-  ApexAnnotationDetail
-} from './oasSchemas';
 
 export type ApexVSCodeApi = {
   getLineBreakpointInfo: typeof getLineBreakpointInfo;

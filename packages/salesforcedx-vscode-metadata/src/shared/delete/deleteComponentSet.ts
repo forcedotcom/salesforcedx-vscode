@@ -7,7 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
+import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services/src/core/componentSetService';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { type ProgressAndSuccessCommandKey } from '../../utils/notificationMode';

@@ -22,6 +22,7 @@ import { noJsforceQuery } from './noJsforceQuery';
 import { noLegacyTelemetryService } from './noLegacyTelemetryService';
 import { noNestedEffectGenCatchTags } from './noNestedEffectGenCatchTags';
 import { noNestedEffectTernary } from './noNestedEffectTernary';
+import { noPassThroughExports } from './noPassThroughExports';
 import { noRawDuration } from './noRawDuration';
 import { noRuntimeVscodeImport } from './noRuntimeVscodeImport';
 import { noSelfBarrelImport } from './noSelfBarrelImport';
@@ -76,6 +77,7 @@ const plugin: TSESLint.FlatConfig.Plugin = {
     'no-legacy-telemetry-service': noLegacyTelemetryService,
     'no-nested-effect-gen-catch-tags': noNestedEffectGenCatchTags,
     'no-nested-effect-ternary': noNestedEffectTernary,
+    'no-pass-through-exports': noPassThroughExports,
     'no-raw-duration': noRawDuration,
     'no-standalone-pipeable-value': noStandalonePipeableValue,
     'no-unused-i18n-messages': noUnusedI18nMessages,

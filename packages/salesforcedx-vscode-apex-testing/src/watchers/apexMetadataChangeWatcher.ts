@@ -11,7 +11,7 @@ import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as Stream from 'effect/Stream';
-import type { MetadataChangeEventType } from 'salesforcedx-vscode-services';
+import type { MetadataChangeEvent as MetadataChangeEventType } from 'salesforcedx-vscode-services/src/core/metadataChangeNotificationService';
 import { IS_TEST_REG_EXP } from '../constants';
 import { type getTestController } from '../views/testController';
 

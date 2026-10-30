@@ -5,30 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { CancellationTokenSource } from './common';
-export type { CancellationToken, Progress } from './common';
+export { CancellationTokenSource } from './common/cancellation';
+export type { CancellationToken } from './common/cancellation';
+export type { Progress } from './common/types';
 export type { ExecuteAnonymousResponse, ApexExecuteOptions } from './execute/types';
 export { ExecuteService } from './execute/executeService';
-export { LogService } from './logs';
-export type { ApexLogGetOptions, LogRecord, LogResult } from './logs';
-export {
-  JUnitReporter,
-  TapReporter,
-  HumanReporter,
-  CoverageReporter,
-  DefaultReportOptions,
-  DefaultWatermarks,
-  MarkdownTextFormatTransformer
-} from './reporters';
-export type {
-  CoverageReporterOptions,
-  CoverageReportFormats,
-  MarkdownTextFormatTransformerOptions,
-  MarkdownTextReporterOptions,
-  OutputFormat,
-  TestSortOrder
-} from './reporters';
-export { TestService } from './tests';
+export { LogService } from './logs/logService';
+export type { ApexLogGetOptions, LogRecord, LogResult } from './logs/types';
+export { JUnitReporter } from './reporters/junitReporter';
+export { TapReporter } from './reporters/tapReporter';
+export { HumanReporter } from './reporters/humanReporter';
+export { CoverageReporter, DefaultReportOptions, DefaultWatermarks } from './reporters/coverageReporter';
+export { MarkdownTextFormatTransformer } from './reporters/markdownTextFormatTransformer';
+export type { CoverageReporterOptions, CoverageReportFormats } from './reporters/coverageReporter';
+export type { MarkdownTextFormatTransformerOptions } from './reporters/markdownTextFormatTransformer';
+export type { MarkdownTextReporterOptions, OutputFormat, TestSortOrder } from './reporters/markdownTextReporter';
+export { TestService } from './tests/testService';
 export type {
   ApexCodeCoverage,
   ApexCodeCoverageRecord,
@@ -56,5 +48,5 @@ export type {
   TestRunIdResult,
   TestSuiteMembershipRecord,
   PerClassCoverage
-} from './tests';
-export type { ApexDiagnostic, CommonOptions, LogLevel } from './utils';
+} from './tests/types';
+export type { ApexDiagnostic, CommonOptions, LogLevel } from './utils/types';

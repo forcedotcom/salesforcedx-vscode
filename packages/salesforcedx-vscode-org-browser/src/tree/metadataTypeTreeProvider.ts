@@ -11,13 +11,13 @@ import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import { isUndefined } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import type { InactiveOrgOperationError } from 'salesforcedx-vscode-services/src/core/connectionService';
+import type { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
 import type {
-  InactiveOrgOperationError,
-  OrgMetadataCatalog,
   OrgMetadataCatalogComponentEntry,
   OrgMetadataCatalogEntry,
   OrgMetadataCatalogFolderEntry
-} from 'salesforcedx-vscode-services';
+} from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalogTypes';
 import * as vscode from 'vscode';
 import { getOrgBrowserRuntime } from '../services/extensionProvider';
 import { preloadMetadataTypes } from '../services/metadataTypePreload';

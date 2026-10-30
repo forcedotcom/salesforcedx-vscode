@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { OrgMetadataCatalog, OrgMetadataCatalogEntry } from 'salesforcedx-vscode-services';
+import type { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
+import type { OrgMetadataCatalogEntry } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalogTypes';
 import * as Effect from 'effect/Effect';
 import { discoverFullOrgMetadata } from '../../src/services/fullOrgDiscovery';
 

@@ -6,7 +6,7 @@
  */
 
 import { nls } from '../i18n';
-import { type ApexDiagnostic } from '../utils';
+import { type ApexDiagnostic } from '../utils/types';
 import { type ApexTestResultRecord, type SyncTestFailure } from './types';
 
 export function formatTestErrors(error: Error): Error {

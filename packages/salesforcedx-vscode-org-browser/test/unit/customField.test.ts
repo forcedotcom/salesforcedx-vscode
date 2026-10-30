@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { OrgMetadataCatalogComponentEntry } from 'salesforcedx-vscode-services';
+import type { OrgMetadataCatalogComponentEntry } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalogTypes';
 import { URI } from 'vscode-uri';
 import { fieldNodeLabel } from '../../src/tree/customField';
 

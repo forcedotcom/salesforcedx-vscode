@@ -581,6 +581,9 @@ importers:
       minimatch:
         specifier: ^10.2.6
         version: 10.2.6
+      typescript:
+        specifier: 6.0.3
+        version: 6.0.3
     devDependencies:
       '@types/eslint':
         specifier: ^9.0.0
