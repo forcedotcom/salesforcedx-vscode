@@ -13,7 +13,10 @@ import { ConnectionService } from './connectionService.js';
 import { FileChangePubSub } from './fileChangePubSub.js';
 import { FsService } from './fsService.js';
 import { HostFileWatcher } from './hostFileWatcher.js';
+import { LightningComponentService } from './lightningComponentService.js';
 import { MetadataChangeNotificationService } from './metadataChangeNotificationService.js';
+import { MetadataDeleteService } from './metadataDeleteService.js';
+import { MetadataDeployService } from './metadataDeployService.js';
 import { MetadataDescribeService } from './metadataDescribeService.js';
 import { MetadataRegistryService } from './metadataRegistryService.js';
 import { MetadataRetrieveService } from './metadataRetrieveService.js';
@@ -39,8 +42,11 @@ export const publicServiceKeys = {
   FileChangePubSub,
   FsService,
   HostFileWatcher,
+  LightningComponentService,
   MetadataChangeNotificationService,
   MetadataDescribeService,
+  MetadataDeployService,
+  MetadataDeleteService,
   MetadataRegistryService,
   MetadataRetrieveService,
   OrgMetadataCatalog,

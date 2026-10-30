@@ -9,14 +9,16 @@ import coreFs from '@salesforce/core/fs';
 import { catalogProviderLayers } from '@salesforce/vscode-services-v4-implementation/catalogLayers';
 import { createCatalogRuntime } from '@salesforce/vscode-services-v4-implementation/catalogRuntime';
 import { ConnectionHost } from '@salesforce/vscode-services-v4-implementation/connectionHost';
+import { MetadataOperationMessages } from '@salesforce/vscode-services-v4-implementation/metadataOperationMessages';
 import { OrgCatalogMessages } from '@salesforce/vscode-services-v4-implementation/orgCatalogMessages';
 import { WebFileSystemProvider } from '@salesforce/vscode-services-v4-implementation/webFileSystemProvider';
-import { ActiveMetadataOperationRef, ComponentSetService, ConnectionService, MetadataRetrieveService, OrgId, OrgMetadataCatalogChangePubSub, TargetOrgRef, publicServiceKeys } from '@salesforce/vscode-services-v2';
+import { ActiveMetadataOperationRef, ComponentSetService, ConnectionService, LightningComponentService, MetadataDeleteService, MetadataDeployService, MetadataRetrieveService, OrgId, OrgMetadataCatalogChangePubSub, QueryService, SalesforceId, TargetOrgRef, publicServiceKeys } from '@salesforce/vscode-services-v2';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as PubSub from 'effect/PubSub';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import * as Stream from 'effect/Stream';
 import { tmpdir } from 'node:os';
 import { URI, Utils } from 'vscode-uri';
 import { window, workspace } from 'vscode';
@@ -49,6 +51,7 @@ let progressListeners = 0;
 let disposedProgressListeners = 0;
 let createdProviders = 0;
 let disposedProviders = 0;
+const progressTitles = [];
 let provider;
 workspace.registerTextDocumentContentProvider = (scheme, value) => {
   if (scheme !== 'sf-org-metadata') throw new Error('Unexpected provider scheme');
@@ -57,8 +60,11 @@ workspace.registerTextDocumentContentProvider = (scheme, value) => {
 };
 window.tabGroups = { all: [], close: async () => true };
 window.createOutputChannel = () => { createdChannels++; return { appendLine() {}, clear() {}, show() {}, dispose() { disposedChannels++; } }; };
-window.withProgress = async (_options, task) => task({ report() {} }, { isCancellationRequested: false,
-  onCancellationRequested() { progressListeners++; return { dispose() { disposedProgressListeners++; } }; } });
+window.withProgress = async (options, task) => {
+  progressTitles.push(options.title);
+  return task({ report() {} }, { isCancellationRequested: false,
+    onCancellationRequested() { progressListeners++; return { dispose() { disposedProgressListeners++; } }; } });
+};
 const classes = Utils.joinPath(root, 'force-app', 'main', 'default', 'classes');
 await fs.promises.mkdir(path(classes), { recursive: true });
 await fs.promises.writeFile(path(Utils.joinPath(root, 'sfdx-project.json')), JSON.stringify({ packageDirectories: [{ path: 'force-app', default: true }], namespace: '', sourceApiVersion: '67.0' }));
@@ -92,7 +98,11 @@ const messages = Layer.succeed(OrgCatalogMessages, {
   workspaceMissingContent: (type, xml, content) => `Missing ${type} content: ${xml} → ${content}`,
   workspaceScanFailed: (type, error) => `Cannot scan ${type}: ${error}`
 });
-const owner = await createCatalogRuntime(catalogProviderLayers.pipe(Layer.provide(Layer.mergeAll(host, messages, Layer.succeed(WebFileSystemProvider, { get: () => undefined }))), Layer.orDie), text => text.replaceAll('fixture-secret', '<redacted>'));
+const operationMessages = Layer.succeed(MetadataOperationMessages, {
+  deploying: count => `Deploying ${count} component${count === 1 ? '' : 's'}`,
+  deleting: count => `Deleting ${count} component${count === 1 ? '' : 's'}`
+});
+const owner = await createCatalogRuntime(catalogProviderLayers.pipe(Layer.provide(Layer.mergeAll(host, messages, operationMessages, Layer.succeed(WebFileSystemProvider, { get: () => undefined }))), Layer.orDie), text => text.replaceAll('fixture-secret', '<redacted>'));
 const run = program => Effect.runPromise(program.pipe(Effect.provide(owner.v2.services.prebuiltServicesLayer)));
 const binaryZip = 'UEsDBBQAAAAIAAAAXl15gOphCAAAAAYAAAAoAAAAdW5wYWNrYWdlZC9zdGF0aWNyZXNvdXJjZXMvQmxvYi5yZXNvdXJjZWP438DAyAQAUEsDBBQAAAAIAAAAXl25MvtsegAAAKcAAAAxAAAAdW5wYWNrYWdlZC9zdGF0aWNyZXNvdXJjZXMvQmxvYi5yZXNvdXJjZS1tZXRhLnhtbFWOwQrCMBBEf0V6txtEPEjMxR+Q6g+s60oLSTYkU9C/N0d7G2beMOPvYCwyabO1iu4+KeZ2GWagnImacRnb23oyiiU6OHcid6Sk4BeDh+CFZdarZVSL4bY+4yKeNqaXLjTj8S0auJRO9EnLZALFvqEqp975ozxtb4UfUEsDBBQAAAAIAAAAXl3+6OwVeQAAAJsAAAAWAAAAdW5wYWNrYWdlZC9wYWNrYWdlLnhtbDWOUQrCQAxEryI9wGYRqSAxH55A6gnSNWqxu1maKHp7i7Sfb5g3DJ45Pfkum08eix2bh3s9AJhyDXbTKUlImmEbYwtxB1mcr+zcEPq3ihFmyb1MRqdRe4SVsHAWujj7kDoxfc1DCP8QYTHfc3HQQu0+RISVEJZH9ANQSwECFAMUAAAACAAAAF5deYDqYQgAAAAGAAAAKAAAAAAAAAAAAAAAgAEAAAAAdW5wYWNrYWdlZC9zdGF0aWNyZXNvdXJjZXMvQmxvYi5yZXNvdXJjZVBLAQIUAxQAAAAIAAAAXl25MvtsegAAAKcAAAAxAAAAAAAAAAAAAACAAU4AAAB1bnBhY2thZ2VkL3N0YXRpY3Jlc291cmNlcy9CbG9iLnJlc291cmNlLW1ldGEueG1sUEsBAhQDFAAAAAgAAABeXf7o7BV5AAAAmwAAABYAAAAAAAAAAAAAAIABFwEAAHVucGFja2FnZWQvcGFja2FnZS54bWxQSwUGAAAAAAMAAwD5AAAAxAEAAAAA';
 let observed;
@@ -131,8 +141,30 @@ try {
   await run(OrgMetadataCatalogChangePubSub.pipe(Effect.flatMap(pubsub => PubSub.publish(pubsub, { kind: 'tracking', orgId, references: [{ xmlName: 'StaticResource', fullName: 'Blob' }] }))));
   const notification = await notified;
   listener.dispose();
+  const merged = await run(retrieve.retrieve([{ type: 'StaticResource', fullName: 'Blob' }], { expectedOrgId: orgId }));
+  const mergedSource = [...merged.components.getSourceComponents()].find(component => component.fullName === 'Blob');
+  const mergedBytes = [...await fs.promises.readFile(mergedSource.content)];
+  let deploys = 0;
+  const deployZipSizes = [];
+  connection.metadata.deploy = async zip => { deploys++; deployZipSizes.push(zip.byteLength); return { id: '0Af000000000001', done: false, state: 'Queued' }; };
+  connection.metadata.checkDeployStatus = async () => ({ id: '0Af000000000001', done: true, success: true, status: 'Succeeded',
+    details: { componentFailures: [], componentSuccesses: [{ fullName: 'Blob', componentType: 'StaticResource', fileName: 'staticresources/Blob.resource', success: true, changed: deploys === 1, created: false, deleted: deploys > 1 }] } });
+  const deployed = await run(MetadataDeployService.use(service => service.deploy(merged.components)));
+  const deleted = await run(MetadataDeleteService.use(service => service.markComponentsForDeletion(merged.components)));
+  const destructiveMarked = [...deleted.getSourceComponents()].every(component => component.isMarkedForDelete());
+  const deleteResult = await run(MetadataDeployService.use(service => service.deploy(deleted)));
+  await run(MetadataDeleteService.use(service => service.deleteLocalFiles(deleted)));
+  const localDeleted = await fs.promises.stat(mergedSource.content).then(() => false, error => error.code === 'ENOENT');
+  const bundle = Utils.joinPath(root, 'force-app', 'main', 'default', 'lwc', 'oldBundle');
+  await fs.promises.mkdir(path(Utils.joinPath(bundle, '__tests__')), { recursive: true });
+  for (const file of ['oldBundle.js', 'oldBundle.html', 'other.js', '__tests__/oldBundle.small.test.js'])
+    await fs.promises.writeFile(path(Utils.joinPath(bundle, ...file.split('/'))), file);
+  const renamed = await run(LightningComponentService.use(service => service.renameBundle({ bundleUri: bundle, oldName: 'oldBundle', newName: 'newBundle', kind: 'lwc' })));
+  const renamedFiles = (await fs.promises.readdir(path(renamed), { recursive: true })).map(file => file.replaceAll('\\', '/')).sort();
+  const queryRows = await run(QueryService.use(service => service.query({ soql: 'SELECT Id, Username FROM User', orgId }, Schema.Struct({ Id: SalesforceId, Username: Schema.String }))).pipe(Effect.flatMap(result => Stream.runCollect(result.records))));
   const legacy = await owner.host.getConnection(undefined, new AbortController().signal);
   observed = { backend: web ? 'memfs' : 'node', nativeConnection: connection instanceof Connection, extracted,
+    mergedBytes, deploys, deployZipSizes, deployedStatus: deployed.response.status, destructiveMarked, deleteStates: deleteResult.getFileResponses().map(response => response.state), localDeleted, renamedFiles, progressTitles, queriedUsernames: queryRows.map(row => row.Username),
     materialized: [...await fs.promises.readFile(path(primaryUri))], primary: primaryUri.path,
     revision: manifest.remoteLastModifiedDate, fileCount: manifest.files.length, retrieves, notification,
     sameLegacyConnection: legacy._tag === 'Success' && legacy.value === connection,

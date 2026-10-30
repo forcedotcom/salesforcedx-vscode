@@ -45,6 +45,7 @@ import { URI, Utils } from 'vscode-uri';
 import { catalogLayers, catalogProviderLayers } from '../../src/catalogLayers.js';
 import { createCatalogRuntime } from '../../src/catalogRuntime.js';
 import { ConnectionHost } from '../../src/connectionHost.js';
+import { MetadataOperationMessages } from '../../src/metadataOperationMessages.js';
 import { OrgCatalogInventory } from '../../src/orgCatalog/orgCatalogInventory.js';
 import { OrgCatalogDocuments } from '../../src/orgCatalog/orgCatalogDocuments.js';
 import { findInventoryComponent, typeCacheKey } from '../../src/orgCatalog/orgCatalogKeys.js';
@@ -81,6 +82,10 @@ const host = Layer.succeed(ConnectionHost, {
 const hostLayers = Layer.mergeAll(
   host,
   Layer.succeed(OrgCatalogMessages, messages),
+  Layer.succeed(MetadataOperationMessages, {
+    deploying: count => `Deploying ${count} component${count === 1 ? '' : 's'}`,
+    deleting: count => `Deleting ${count} component${count === 1 ? '' : 's'}`
+  }),
   Layer.succeed(WebFileSystemProvider, { get: () => undefined })
 );
 const graph = catalogLayers.pipe(Layer.provide(hostLayers), Layer.provideMerge(TestClock.layer()));
