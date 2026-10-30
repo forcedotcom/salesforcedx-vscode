@@ -96,6 +96,35 @@ The Effect API returns a success-only outcome. Compilation and runtime failures 
 
 `streamLogs(connection, options)` collects immediately and then on the supplied Effect schedule. `pollOptions(index)` returns `Option.none()` to skip a poll or `Option.some(filters)` to query; `filterLogs` selects records before body retrieval. The stream emits `Log`, `QueryError`, and `BodyError` events, continuing after request failures. Consumers own window gating, trace flags, org changes, deduplication, storage, and interruption.
 
+### Synchronous tests and normalized results
+
+```ts
+import { runTestSynchronous } from '@salesforce/apex-node/effect';
+import * as Effect from 'effect/Effect';
+
+const result = await Effect.runPromise(
+  runTestSynchronous(connection, { tests: [{ className: 'MyTest' }], testLevel: 'RunSpecifiedTests' })
+);
+```
+
+Failed tests remain in `result.tests` with a failed summary, not on the Effect error channel. Request failures use `ApexOperationError`; malformed responses use `ApexResponseDecodeError`. Interruption uses normal Effect cancellation. `formatSyncResults(connection, response, startTime)` normalizes an existing Tooling response. Diagnostics contain only message, stack trace, class name, and optional line/column values; hosts decide how to display them.
+
+`TestResultSchema`, `TestResultRawSchema`, and the component schemas describe the existing JSON result contract. `transformTestResult` separates setup methods from regular tests and combines setup/execution time without host APIs. The async class also uses this shared normalization.
+
+`TestService.runTestSynchronous(options, codeCoverage, token)` retains its Promise result, cancellation-token check, permission messages, coverage enrichment, and heap monitoring. Coverage retrieval remains in the existing class implementation; the new Effect operation returns execution results without querying coverage. Reporting and file output remain separate class operations.
+
+### Code coverage retrieval
+
+`@salesforce/apex-node/effect` exports three coverage operations, each taking the caller-selected connection:
+
+- `getOrgWideCoverage(connection)` returns a percentage string, or `'0%'` if no record exists.
+- `getPerClassCodeCoverage(connection, apexTestClassIds)` takes a `ReadonlySet<string>` and returns a `Map<string, PerClassCoverage[]>` keyed by `${testClassId}-${methodName}`. An empty set returns an empty map without querying.
+- `getAggregateCodeCoverage(connection, apexClassIds)` takes a `ReadonlySet<string>` and returns `{ codeCoverageResults, totalLines, coveredLines }`. An empty set queries all aggregate records, preserving the org's **Store Only Aggregate Code Coverage** behavior.
+
+Both ID-filtered operations batch at 500 IDs and retrieve every Tooling query page. Request failures use `ApexOperationError`; malformed responses use `ApexResponseDecodeError`. Interruption stops further retrieval, but cannot cancel a request already submitted through the connection.
+
+Coverage schemas are exported from `./effect`. The existing root coverage types derive from those schemas without changing their fields, string IDs, mutable arrays, optional per-test coverage, or percentage rounding. Existing `TestService` consumers continue to use the Promise adapter; test execution, reporting, and coverage decorations are unchanged.
+
 ## Getting Started
 
 If you're interested in contributing, take a look at the [CONTRIBUTING](./CONTRIBUTING.md) guide.

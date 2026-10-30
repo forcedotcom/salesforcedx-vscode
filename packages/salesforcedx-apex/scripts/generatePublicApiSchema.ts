@@ -56,8 +56,19 @@ import {
   ApexRuntimeError,
   BuildSyncPayloadOptionsSchema,
   BuildAsyncPayloadOptionsSchema,
+  AggregateCodeCoverageResultSchema,
+  ApexCodeCoverageAggregateRecordSchema,
+  ApexCodeCoverageAggregateSchema,
+  ApexCodeCoverageRecordSchema,
+  ApexCodeCoverageSchema,
+  ApexOrgWideCoverageSchema,
+  CodeCoverageResultSchema,
+  PerClassCoverageSchema,
   ExecuteAnonymousOptionsSchema,
   ExecuteAnonymousOutcomeSchema,
+  SyncTestConfigurationSchema,
+  SyncTestResultSchema,
+  TestItemSchema,
   TestSuiteSchema,
   TestSuiteMembershipSchema
 } from '../src/effect';
@@ -69,8 +80,6 @@ import {
   ApexTestResultDataSchema,
   ApexTestResultOutcomeSchema,
   ApexTestSetupDataSchema,
-  CodeCoverageResultSchema,
-  PerClassCoverageSchema,
   ResultFormatSchema,
   TestLevelSchema,
   TestResultRawSchema,
@@ -140,14 +149,6 @@ const LogResultSchema = Schema.Struct({
   log: Schema.String
 }).annotations({ identifier: 'LogResult' });
 
-const TestItemSchema = Schema.Struct({
-  className: optional(Schema.String),
-  classId: optional(Schema.String),
-  testMethods: optional(StringArray),
-  namespace: optional(Schema.String),
-  category: optional(Schema.String)
-}).annotations({ identifier: 'TestItem' });
-
 const AsyncTestConfigurationSchema = Schema.Struct({
   classNames: optional(Schema.String),
   classids: optional(Schema.String),
@@ -169,15 +170,6 @@ const AsyncTestArrayConfigurationSchema = Schema.Struct({
   category: optional(StringArray)
 }).annotations({ identifier: 'AsyncTestArrayConfiguration' });
 
-const SyncTestConfigurationSchema = Schema.Struct({
-  classNames: optional(Schema.String),
-  tests: TestItemSchema.pipe(Schema.Array, optional),
-  testLevel: optional(Schema.String),
-  maxFailedTests: optional(Schema.Number),
-  skipCodeCoverage: optional(Schema.Boolean),
-  category: optional(StringArray)
-}).annotations({ identifier: 'SyncTestConfiguration' });
-
 const OutputDirConfigSchema = Schema.Struct({
   dirPath: Schema.String,
   resultFormats: ResultFormatSchema.pipe(Schema.Array, optional),
@@ -186,39 +178,6 @@ const OutputDirConfigSchema = Schema.Struct({
     content: Schema.Union(Schema.String, Schema.Object)
   }).pipe(Schema.Array, optional)
 }).annotations({ identifier: 'OutputDirConfig' });
-
-const CoverageLinesSchema = Schema.Struct({
-  coveredLines: NumberArray,
-  uncoveredLines: NumberArray
-});
-
-const ApexCodeCoverageRecordSchema = Schema.Struct({
-  ApexClassOrTrigger: Schema.Struct({ Id: Schema.String, Name: Schema.String }),
-  ApexTestClassId: Schema.String,
-  TestMethodName: Schema.String,
-  NumLinesCovered: Schema.Number,
-  NumLinesUncovered: Schema.Number,
-  Coverage: optional(CoverageLinesSchema)
-}).annotations({ identifier: 'ApexCodeCoverageRecord' });
-
-const ApexCodeCoverageSchema = Schema.Struct({
-  done: Schema.Boolean,
-  totalSize: Schema.Number,
-  records: Schema.Array(ApexCodeCoverageRecordSchema)
-}).annotations({ identifier: 'ApexCodeCoverage' });
-
-const ApexCodeCoverageAggregateRecordSchema = Schema.Struct({
-  ApexClassOrTrigger: Schema.Struct({ Id: Schema.String, Name: Schema.String }),
-  NumLinesCovered: Schema.Number,
-  NumLinesUncovered: Schema.Number,
-  Coverage: CoverageLinesSchema
-}).annotations({ identifier: 'ApexCodeCoverageAggregateRecord' });
-
-const ApexCodeCoverageAggregateSchema = Schema.Struct({
-  done: Schema.Boolean,
-  totalSize: Schema.Number,
-  records: Schema.Array(ApexCodeCoverageAggregateRecordSchema)
-}).annotations({ identifier: 'ApexCodeCoverageAggregate' });
 
 const ApexTestQueueItemStatusSchema = Schema.Literal(
   'Holding',
@@ -282,10 +241,12 @@ const ApexTestProgressValueSchema = Schema.Union(
 ).annotations({ identifier: 'ApexTestProgressValue' });
 
 const PublicApiSchema = Schema.Union(
+  AggregateCodeCoverageResultSchema,
   ApexCodeCoverageSchema,
   ApexCodeCoverageAggregateSchema,
   ApexCodeCoverageAggregateRecordSchema,
   ApexCodeCoverageRecordSchema,
+  ApexOrgWideCoverageSchema,
   ApexDiagnosticSchema,
   ApexExecuteOptionsSchema,
   ApexLogGetOptionsSchema,
@@ -323,6 +284,7 @@ const PublicApiSchema = Schema.Union(
   PerClassCoverageSchema,
   ResultFormatSchema,
   SyncTestConfigurationSchema,
+  SyncTestResultSchema,
   TestItemSchema,
   TestLevelSchema,
   TestResultSchema,

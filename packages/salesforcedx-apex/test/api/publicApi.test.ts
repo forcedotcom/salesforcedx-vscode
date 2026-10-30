@@ -7,8 +7,20 @@
 import * as publicApi from '../../src';
 import * as effectApi from '../../src/effect';
 import * as packageJson from '../../package.json';
+import * as publicSchema from '../../schemas/public-api.schema.json';
 
 describe('@salesforce/apex-node public API', () => {
+  it.each([
+    ['TestItem', ['className', 'classId', 'testMethods']],
+    ['SyncTestConfiguration', ['tests', 'classNames', 'testLevel', 'maxFailedTests']],
+    ['BuildSyncPayloadOptions', ['tests', 'classNames', 'testLevel', 'category']]
+  ] as const)('preserves %s field definitions when exporting refinements to JSON Schema', (name, fields) => {
+    expect(publicSchema.$defs[name]).toMatchObject({
+      type: 'object',
+      properties: Object.fromEntries(fields.map(field => [field, expect.anything()]))
+    });
+  });
+
   it('exports the target major-version runtime symbols', () => {
     const coRepoOnlySymbols = new Set(['MarkdownTextFormatTransformer']);
     const supportedSymbols = Object.keys(publicApi).filter(symbol => !coRepoOnlySymbols.has(symbol));
@@ -35,20 +47,38 @@ describe('@salesforce/apex-node public API', () => {
 
   it('exports the Effect foundation from its isolated entry point', () => {
     expect(Object.keys(effectApi).sort()).toEqual([
+      'AggregateCodeCoverageResultSchema',
+      'ApexCodeCoverageAggregateRecordSchema',
+      'ApexCodeCoverageAggregateSchema',
+      'ApexCodeCoverageRecordSchema',
+      'ApexCodeCoverageSchema',
       'ApexCompileError',
+      'ApexDiagnosticSchema',
       'ApexLogBodyFetchError',
       'ApexLogListItem',
       'ApexLogQueryError',
       'ApexOperationError',
+      'ApexOrgWideCoverageSchema',
       'ApexResponseDecodeError',
       'ApexRuntimeError',
+      'ApexTestResultDataRawSchema',
+      'ApexTestResultDataSchema',
+      'ApexTestResultOutcomeSchema',
+      'ApexTestSetupDataSchema',
       'BuildAsyncPayloadOptionsSchema',
       'BuildSyncPayloadOptionsSchema',
+      'CodeCoverageResultSchema',
       'ExecuteAnonymousOptionsSchema',
       'ExecuteAnonymousOutcomeSchema',
       'ListLogsOptionsSchema',
       'LogStreamEventSchema',
+      'PerClassCoverageSchema',
       'QueryPageSchema',
+      'SyncTestConfigurationSchema',
+      'SyncTestResultSchema',
+      'TestItemSchema',
+      'TestResultRawSchema',
+      'TestResultSchema',
       'TestSuiteMembershipSchema',
       'TestSuiteSchema',
       'buildAsyncPayload',
@@ -56,11 +86,18 @@ describe('@salesforce/apex-node public API', () => {
       'buildSyncPayload',
       'causeMessage',
       'executeAnonymous',
+      'formatSyncResults',
+      'getAggregateCodeCoverage',
+      'getDiagnostic',
       'getLogBody',
+      'getOrgWideCoverage',
+      'getPerClassCodeCoverage',
       'getTestsInSuite',
       'listLogs',
       'retrieveAllSuites',
-      'streamLogs'
+      'runTestSynchronous',
+      'streamLogs',
+      'transformTestResult'
     ]);
   });
 

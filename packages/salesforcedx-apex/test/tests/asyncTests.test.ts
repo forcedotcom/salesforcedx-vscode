@@ -733,6 +733,7 @@ describe('Run Apex tests asynchronously', () => {
           ApexTestClassId: '01pxx00000NnP2KQAV',
           NumLinesCovered: 10,
           NumLinesUncovered: 5,
+          TestMethodName: 'testLoggerLog',
           PercentCovered: '57',
           RunTime: 8,
           TestTimestamp: '3',
