@@ -6,7 +6,8 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { transformTestResult } from '../../src/effect';
+import { TestResultSchema as EffectTestResultSchema } from '../../src/effect';
+import { transformTestResult } from '../../src/effect/testResults';
 import {
   ApexTestSetupDataSchema,
   ApexTestResultDataSchema,
@@ -17,6 +18,41 @@ import {
   type TestResultRaw
 } from '../../src/tests/types';
 import { flowTestResultData, syncResult } from '../testData';
+
+describe('test result schemas', () => {
+  it.each([
+    syncResult,
+    { ...flowTestResultData, summary: { ...flowTestResultData.summary, username: 'test@example.com' } }
+  ])('preserves the Promise result contract in the Effect API', result => {
+    expect(Schema.decodeUnknownSync(EffectTestResultSchema)(result)).toEqual(
+      Schema.decodeUnknownSync(TestResultSchema)(result)
+    );
+  });
+
+  it('separates setup methods without dropping nullable result fields', () => {
+    const result = transformTestResult({
+      ...syncResult,
+      summary: { ...syncResult.summary, testSetupTimeInMs: 8 },
+      tests: [
+        {
+          ...syncResult.tests[0],
+          id: '07Mxx00000F2Xx6UAF',
+          asyncApexJobId: '707xx0000AGQ3jbQQD',
+          isTestSetup: true
+        },
+        { ...syncResult.tests[0], stackTrace: null, message: null }
+      ]
+    });
+    expect(result.summary.testTotalTimeInMs).toBe(syncResult.summary.testExecutionTimeInMs + 8);
+    expect(result.tests).toEqual([{ ...syncResult.tests[0], stackTrace: null, message: null }]);
+    expect(result.setup).toEqual([
+      expect.objectContaining({
+        methodName: syncResult.tests[0].methodName,
+        testSetupTime: syncResult.tests[0].runTime
+      })
+    ]);
+  });
+});
 
 describe('ApexTestResultDataSchema', () => {
   it('accepts sync test results without async-only IDs', () => {

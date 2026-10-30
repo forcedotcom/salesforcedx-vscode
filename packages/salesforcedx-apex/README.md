@@ -92,7 +92,7 @@ The Effect API returns a success-only outcome. Compilation and runtime failures 
 
 ### Logs
 
-`listLogs(connection, limit = 25, options?)` queries Tooling API logs in descending start-time order. Options filter by user(s), operation substring, and inclusive start time. `getLogBody(connection, logId)` retrieves the body.
+`listLogs(connection, options?)` retrieves every matching Tooling API log page in descending start-time order. Options filter by `userIds`, operation substring, and inclusive start time. `getLogBody(connection, logId)` retrieves the body using a validated `ApexLogId`.
 
 `streamLogs(connection, options)` collects immediately and then on the supplied Effect schedule. `pollOptions(index)` returns `Option.none()` to skip a poll or `Option.some(filters)` to query; `filterLogs` selects records before body retrieval. The stream emits `Log`, `QueryError`, and `BodyError` events, continuing after request failures. Consumers own window gating, trace flags, org changes, deduplication, storage, and interruption.
 
@@ -124,6 +124,7 @@ Failed tests remain in `result.tests` with a failed summary, not on the Effect e
 Both ID-filtered operations batch at 500 IDs and retrieve every Tooling query page. Request failures use `ApexOperationError`; malformed responses use `ApexResponseDecodeError`. Interruption stops further retrieval, but cannot cancel a request already submitted through the connection.
 
 Coverage schemas are exported from `./effect`. The existing root coverage types derive from those schemas without changing their fields, string IDs, mutable arrays, optional per-test coverage, or percentage rounding. Existing `TestService` consumers continue to use the Promise adapter; test execution, reporting, and coverage decorations are unchanged.
+
 ### Asynchronous test execution
 
 `runTestAsynchronous(connection, options, polling?)` is an Effect that submits the Tooling API request and returns `{ id, stream, cancel }`. Consume the stream within the same scoped Effect. It polls `ApexTestRunResult` lazily, emitting `Progress` events and a terminal `Result` with the test run ID and final summary. Request and malformed-response failures use `ApexOperationError` and `ApexResponseDecodeError`.
@@ -145,6 +146,39 @@ await Effect.runPromise(run);
 Closing the scope before the stream completes aborts unfinished queue items, including paginated queue items. Call `cancel()` to request an explicit abort. Cleanup failures surface as defects rather than being silently ignored. Keep the scope around the stream consumer, not the entire application.
 
 Polling defaults to two seconds; `polling.interval` accepts an Effect `DurationInput`. There is no CometD fallback. Consumers own deadlines and UI formatting. This API reports execution progress; result formatting, coverage, and file output remain separate operations.
+
+### Effect report formatting
+
+`formatHumanReport`, `formatTapReport`, `formatJUnitReport`, and `formatMarkdownTextReport` return report strings through Effects with `ApexReportError`. They preserve the existing report content and options. `MarkdownTextReporterOptions`, `OutputFormat`, and `TestSortOrder` are supported public types exported by the Effect entry point. Markdown/text defaults remain Markdown, runtime sorting, 5000 ms performance threshold, 75% coverage threshold, and coverage disabled. The default timestamp uses the Effect clock. Human formatting preserves LF within tables and host-native separators between sections; an explicit `lineEnding` normalizes the complete Effect report to LF or CRLF. TAP formatting and coverage source parsing default to LF; callers can select CRLF.
+
+```ts
+import { formatMarkdownTextReport } from '@salesforce/apex-node/effect';
+import * as Effect from 'effect/Effect';
+
+const report = await Effect.runPromise(
+  formatMarkdownTextReport(testResult, { format: 'text', codeCoverage: true })
+);
+```
+
+`buildCoverageMap(coverage, sources)` accepts sources keyed by Apex class/trigger name, each with a resolved `path` and required `content`. It does not discover or read files. Coverage maps retain records for classes without supplied source. `generateCoverageReports(coverage, sources, options)` defaults to `text-summary`, the existing filenames and watermarks, and nested summarization. HTML and HTML-SPA reports require source text for every covered file; missing text fails with `ApexReportError` before report generation. Supply `IstanbulReports` with the host's Istanbul factories; the host owns its writer, assets, and destination:
+
+```ts
+import { generateCoverageReports, IstanbulReports } from '@salesforce/apex-node/effect';
+import * as Effect from 'effect/Effect';
+import * as libReport from 'istanbul-lib-report';
+import * as reports from 'istanbul-reports';
+
+await Effect.runPromise(
+  generateCoverageReports(coverage, sources).pipe(
+    Effect.provideService(IstanbulReports, {
+      createContext: options => libReport.createContext({ ...options, dir: reportDir }),
+      createReport: reports.create
+    })
+  )
+);
+```
+
+The Effect entry point has no Node file/stream dependencies. Existing class and Node stream reporters remain available.
 
 ## Getting Started
 

@@ -354,25 +354,23 @@ describe('Get code coverage results', () => {
     expect(perClassCoverageMap.size).toBe(0);
   });
 
-  it.each([
-    { coveredId: '001000000000001AAA', testId: '01p000000000001AAA' },
-    { coveredId: '01q000000000001AAA', testId: '01q000000000002AAA' }
-  ])('rejects IDs outside their coverage record types: %j', async ({ coveredId, testId }) => {
+  it.each([undefined, 'one'])('rejects malformed coverage counts with a plain Promise error: %j', async covered => {
+    const testId = '01p000000000001AAA';
     toolingQueryStub.resolves({
       done: true,
       totalSize: 1,
       records: [
         {
-          ApexClassOrTrigger: { Id: coveredId, Name: 'Covered' },
+          ApexClassOrTrigger: { Id: '01p000000000002AAA', Name: 'Covered' },
           ApexTestClassId: testId,
           TestMethodName: 'testMethod',
-          NumLinesCovered: 1,
+          NumLinesCovered: covered,
           NumLinesUncovered: 0
         }
       ]
     });
     await expect(new CodeCoverage(mockConnection).getPerClassCodeCoverage(new Set([testId]))).rejects.toThrow(
-      'ApexClass ID must contain 15 or 18 alphanumeric characters and start with 01p'
+      'Coverage line counts must be non-negative integers'
     );
   });
 

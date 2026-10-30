@@ -40,20 +40,14 @@ try {
   const effectEntry = join(consumerRoot, 'effect-consumer.mjs');
   writeFileSync(
     effectEntry,
-    `import {
-      executeAnonymous, ApexOperationError, buildSyncPayload, buildAsyncPayload, retrieveAllSuites, getTestsInSuite,
-      buildSuite, runTestSynchronous, runTestAsynchronous, transformTestResult, SyncTestResultSchema, TestResultSchema,
-      getOrgWideCoverage, getPerClassCodeCoverage, getAggregateCodeCoverage, CodeCoverageResultSchema
-    } from '@salesforce/apex-node/effect';
+    `import * as apexEffectApi from '@salesforce/apex-node/effect';
     import * as Effect from 'effect/Effect';
     import * as Schema from 'effect/Schema';
     globalThis.apexEffectApi = {
-      executeAnonymous, ApexOperationError, buildSyncPayload, buildAsyncPayload, retrieveAllSuites, getTestsInSuite,
-      buildSuite, runTestAsynchronous, getOrgWideCoverage, getPerClassCodeCoverage, getAggregateCodeCoverage,
-      CodeCoverageResultSchema, transformTestResult,
-      run: (connection, options) => runTestSynchronous(connection, options).pipe(Effect.either, Effect.runPromise),
-      decodeSyncResult: Schema.decodeUnknownSync(SyncTestResultSchema, { onExcessProperty: 'error' }),
-      decodeResult: Schema.decodeUnknownSync(TestResultSchema)
+      ...apexEffectApi,
+      run: (connection, options) => apexEffectApi.runTestSynchronous(connection, options).pipe(Effect.either, Effect.runPromise),
+      decodeSyncResult: Schema.decodeUnknownSync(apexEffectApi.SyncTestResultSchema, { onExcessProperty: 'error' }),
+      decodeResult: Schema.decodeUnknownSync(apexEffectApi.TestResultSchema)
     };
     `
   );

@@ -4,144 +4,45 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { TestResult } from '../tests/types';
 import { Logger } from '@salesforce/core';
-import { isNullable, isString } from 'effect/Predicate';
-import { isEmpty } from 'effect/String';
 import { Readable, type ReadableOptions } from 'node:stream';
-import { type TestResult } from '../tests/types';
-import { elapsedTime, formatStartTime, HeapMonitor, msToSecond } from '../utils';
-
-// cli currently has spaces in multiples of four for junit format
-const tab = '    ';
-const BUFFER_SIZE = 256;
-
-const timeProperties = new Set(['testExecutionTimeInMs', 'testTotalTimeInMs', 'commandTimeInMs']);
-
-// properties not in cli junit spec
-const skippedProperties = new Set(['skipRate', 'totalLines', 'linesCovered']);
+import { elapsedTime, HeapMonitor } from '../utils';
+import { pushReportChunks } from '../utils/pushReportChunks';
+import { formatJUnitChunks, formatJUnitPropertyChunks, formatJUnitTestCaseChunks } from './formatJUnit';
 
 export class JUnitFormatTransformer extends Readable {
-  private logger: Logger;
-  private buffer: string;
+  private readonly logger = Logger.childFromRoot('JUnitFormatTransformer');
+  private readonly chunks: ReturnType<typeof formatJUnitChunks>;
 
   constructor(
     private readonly testResult: TestResult,
     options?: ReadableOptions
   ) {
     super(options);
-    this.testResult = testResult;
-    this.logger = Logger.childFromRoot('JUnitFormatTransformer');
-    this.buffer = '';
-  }
-
-  private pushToBuffer(chunk: string): void {
-    this.buffer += chunk;
-    if (this.buffer.length >= BUFFER_SIZE) {
-      this.push(this.buffer);
-      this.buffer = '';
-    }
+    this.chunks = formatJUnitChunks(testResult);
   }
 
   _read(): void {
     this.logger.trace('starting _read');
     HeapMonitor.getInstance().checkHeapSize('JUnitFormatTransformer._read');
     this.format();
-    if (this.buffer.length > 0) {
-      this.push(this.buffer);
-    }
-    this.push(null); // Signal the end of the stream
     this.logger.trace('finishing _read');
     HeapMonitor.getInstance().checkHeapSize('JUnitFormatTransformer._read');
   }
 
   @elapsedTime()
   public format(): void {
-    const { summary } = this.testResult;
-
-    this.pushToBuffer('<?xml version="1.0" encoding="UTF-8"?>\n');
-    this.pushToBuffer('<testsuites>\n');
-    this.pushToBuffer(`${tab}<testsuite name="force.apex" `);
-    this.pushToBuffer(`timestamp="${summary.testStartTime}" `);
-    this.pushToBuffer(`hostname="${summary.hostname}" `);
-    this.pushToBuffer(`tests="${summary.testsRan}" `);
-    this.pushToBuffer(`failures="${summary.failing}"  `);
-    this.pushToBuffer('errors="0"  ');
-    this.pushToBuffer(`time="${msToSecond(summary.testExecutionTimeInMs)}">\n`);
-
-    this.buildProperties();
-    this.buildTestCases();
-
-    this.pushToBuffer(`${tab}</testsuite>\n`);
-    this.pushToBuffer('</testsuites>\n');
+    pushReportChunks(this, this.chunks);
   }
 
   @elapsedTime()
   buildProperties(): void {
-    this.pushToBuffer(`${tab}${tab}<properties>\n`);
-
-    Object.entries(this.testResult.summary).forEach(([key, value]) => {
-      if (isNullable(value) || (isString(value) && isEmpty(value)) || skippedProperties.has(key)) {
-        return;
-      }
-
-      if (timeProperties.has(key)) {
-        value = `${msToSecond(value)} s`;
-        key = key.replace('InMs', '');
-      }
-
-      if (key === 'outcome' && value === 'Passed') {
-        value = 'Successful';
-      }
-
-      if (key === 'testStartTime') {
-        value = formatStartTime(value);
-      }
-
-      this.pushToBuffer(`${tab}${tab}${tab}<property name="${key}" value="${value}"/>\n`);
-      // this call to setImmediate will schedule the closure on the event loop
-      // this action causing the current code to yield to the event loop
-      // allowing other processes to get time on the event loop
-      setImmediate(() => {});
-    });
-
-    this.pushToBuffer(`${tab}${tab}</properties>\n`);
+    for (const chunk of formatJUnitPropertyChunks(this.testResult)) this.push(chunk);
   }
 
   @elapsedTime()
   buildTestCases(): void {
-    const testCases = this.testResult.tests;
-
-    for (const testCase of testCases) {
-      const methodName = JUnitFormatTransformer.xmlEscape(testCase.methodName);
-      this.pushToBuffer(
-        `${tab}${tab}<testcase name="${methodName}" classname="${
-          testCase.apexClass.fullName
-        }" time="${msToSecond(testCase.runTime)}">\n`
-      );
-
-      if (testCase.outcome === 'Fail' || testCase.outcome === 'CompileFail') {
-        const message = JUnitFormatTransformer.xmlEscape(testCase.message ?? '');
-        this.pushToBuffer(`${tab}${tab}${tab}<failure message="${message}">`);
-        if (testCase.stackTrace) {
-          this.pushToBuffer(`<![CDATA[${testCase.stackTrace}]]>`);
-        }
-        this.pushToBuffer('</failure>\n');
-      }
-
-      this.pushToBuffer(`${tab}${tab}</testcase>\n`);
-      // this call to setImmediate will schedule the closure on the event loop
-      // this action causing the current code to yield to the event loop
-      // allowing other processes to get time on the event loop
-      setImmediate(() => {});
-    }
-  }
-
-  private static xmlEscape(value: string): string {
-    return value
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&apos;');
+    for (const chunk of formatJUnitTestCaseChunks(this.testResult.tests)) this.push(chunk);
   }
 }

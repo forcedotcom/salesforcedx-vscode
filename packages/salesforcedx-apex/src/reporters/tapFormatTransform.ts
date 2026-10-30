@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Logger } from '@salesforce/core';
+import * as os from 'node:os';
 import { Readable, type ReadableOptions } from 'node:stream';
 import { type ApexTestResultData, type TestResult } from '../tests/types';
 import { elapsedTime, HeapMonitor } from '../utils';
@@ -64,7 +65,7 @@ export class TapFormatTransformer extends Readable {
       const testNumber = index + 1;
       const outcome = test.outcome === 'Pass' ? 'ok' : 'not ok';
       this.pushToBuffer(`${outcome} ${testNumber} ${test.fullName}\n`);
-      buildTapDiagnostics(test).forEach(s => {
+      buildTapDiagnostics(test, os.EOL).forEach(s => {
         this.pushToBuffer(`# ${s}\n`);
       });
     });

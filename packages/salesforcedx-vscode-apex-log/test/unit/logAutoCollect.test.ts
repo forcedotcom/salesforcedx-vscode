@@ -61,13 +61,14 @@ const setup = Effect.gen(function* () {
   const intervalRef = yield* Ref.make(1);
   const settingsChanges = yield* PubSub.unbounded<vscode.ConfigurationChangeEvent>();
   const query = vi.fn().mockResolvedValue({ totalSize: 1, records: [log('07Lgood')] });
+  const queryMore = vi.fn();
   const request = vi.fn().mockResolvedValue('body');
   const writeFile = vi.fn((_uri: URI, _body: string) => Effect.void);
   const getConnection = Ref.get(targetOrgRef).pipe(
     Effect.map(
       ({ orgId }) =>
         ({
-          tooling: { query },
+          tooling: { query, queryMore },
           request: (options: unknown) => request(orgId, options),
           instanceUrl: 'https://example.my.salesforce.com',
           getApiVersion: () => '67.0'
@@ -116,7 +117,18 @@ const setup = Effect.gen(function* () {
     Ref.set(intervalRef, seconds).pipe(
       Effect.zipRight(PubSub.publish(settingsChanges, { affectsConfiguration: () => true }))
     );
-  return { targetOrgRef, traceFlagsRef, knownIdsRef, collectorRef, query, request, writeFile, advance, setInterval };
+  return {
+    targetOrgRef,
+    traceFlagsRef,
+    knownIdsRef,
+    collectorRef,
+    query,
+    queryMore,
+    request,
+    writeFile,
+    advance,
+    setInterval
+  };
 });
 
 beforeEach(() => {
@@ -209,22 +221,29 @@ describe('log auto collection', () => {
     );
   });
 
-  it('collects more than 500 logs without a SOQL result cap', async () => {
+  it('collects more than 500 logs across pages without a SOQL result cap', async () => {
     await Effect.runPromise(
       Effect.scoped(
         Effect.gen(function* () {
-          const { query, writeFile, advance } = yield* setup;
+          const { query, queryMore, writeFile, advance } = yield* setup;
           const startTime = new Date().toISOString();
           const logs = Array.from({ length: 503 }, (_, index) =>
             log(`07L${String(index).padStart(12, '0')}`, userOne, startTime)
           );
-          query.mockResolvedValue({ totalSize: logs.length, records: logs });
+          query.mockResolvedValue({
+            totalSize: logs.length,
+            done: false,
+            nextRecordsUrl: '/next',
+            records: logs.slice(0, 250)
+          });
+          queryMore.mockResolvedValue({ totalSize: logs.length, done: true, records: logs.slice(250) });
           yield* advance(1);
           yield* Effect.promise(() =>
             vi.waitFor(() => expect(writeFile).toHaveBeenCalledTimes(logs.length), { timeout: 5000 })
           );
           expect(query).toHaveBeenCalledTimes(1);
           expect(query.mock.calls[0][0]).not.toContain(' LIMIT ');
+          expect(queryMore).toHaveBeenCalledWith('/next');
         })
       ).pipe(Effect.provide(TestContext.TestContext))
     );
