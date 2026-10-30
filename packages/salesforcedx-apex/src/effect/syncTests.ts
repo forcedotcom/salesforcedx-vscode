@@ -8,7 +8,9 @@
 import type { Connection } from '@salesforce/core';
 import * as Clock from 'effect/Clock';
 import * as Effect from 'effect/Effect';
+import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
+import { OrgIdString, UserIdString } from '../schemas/salesforceId';
 import { getDiagnostic } from './diagnostics';
 import { ApexOperationError, ApexResponseDecodeError, causeMessage } from './errors';
 import { calculatePercentage, computeTestCategory, transformTestResult } from './testResults';
@@ -31,22 +33,18 @@ const processTestResult = (
   const failure = 'message' in item ? item : undefined;
   const namespace = item.namespace ? (outcome === 'Fail' ? `${item.namespace}__` : `${item.namespace}.`) : '';
   return {
-    id: '',
-    queueItemId: '',
-    stackTrace: failure?.stackTrace || '',
-    message: failure?.message || '',
-    asyncApexJobId: '',
+    ...(failure?.stackTrace ? { stackTrace: failure.stackTrace } : {}),
+    ...(failure?.message ? { message: failure.message } : {}),
     methodName: item.methodName,
     outcome,
     apexLogId,
     apexClass: {
       id: item.id,
       name: item.name,
-      namespacePrefix: item.namespace ?? '',
+      ...(item.namespace ? { namespacePrefix: item.namespace } : {}),
       fullName: `${namespace}${item.name}`
     },
     runTime: item.time,
-    testTimestamp: '',
     fullName: `${namespace}${item.name}.${item.methodName}`,
     category: computeTestCategory(item.namespace),
     ...(failure && (failure.message || failure.stackTrace) ? { diagnostic: getDiagnostic(failure) } : {})
@@ -72,6 +70,30 @@ export const formatSyncResults = Effect.fn('Apex.formatSyncResults')(function* (
   );
   const passed = result.successes.length;
   const failed = result.failures.length;
+  const username = connection.getUsername();
+  const userId = connection.getConnectionOptions().userId;
+  const orgId = yield* Schema.decodeUnknown(OrgIdString)(connection.getAuthInfoFields().orgId).pipe(
+    Effect.mapError(
+      cause =>
+        new ApexResponseDecodeError({
+          operation,
+          message: 'Invalid organization ID for synchronous Apex test result',
+          cause: causeMessage(cause)
+        })
+    )
+  );
+  const decodedUserId = isUndefined(userId)
+    ? undefined
+    : yield* Schema.decodeUnknown(UserIdString)(userId).pipe(
+        Effect.mapError(
+          cause =>
+            new ApexResponseDecodeError({
+              operation,
+              message: 'Invalid user ID for synchronous Apex test result',
+              cause: causeMessage(cause)
+            })
+        )
+      );
   const rawResult: TestResultRaw = {
     summary: {
       outcome: failed === 0 ? 'Passed' : 'Failed',
@@ -87,10 +109,9 @@ export const formatSyncResults = Effect.fn('Apex.formatSyncResults')(function* (
       testTotalTimeInMs: result.totalTime,
       commandTimeInMs: (yield* Clock.currentTimeMillis) - startTime,
       hostname: connection.instanceUrl,
-      orgId: connection.getAuthInfoFields().orgId ?? '',
-      username: connection.getUsername() ?? '',
-      testRunId: '',
-      userId: connection.getConnectionOptions().userId ?? ''
+      orgId,
+      ...(username ? { username } : {}),
+      ...(decodedUserId ? { userId: decodedUserId } : {})
     },
     tests: [
       ...result.successes.map(item => processTestResult(item, result.apexLogId, 'Pass')),

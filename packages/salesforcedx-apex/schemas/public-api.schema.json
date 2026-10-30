@@ -24,7 +24,24 @@
         "uncoveredLines"
       ],
       "properties": {
-        "apexId": { "type": "string" },
+        "apexId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "description": "a string starting with \"01p\"",
+              "pattern": "^01p",
+              "title": "startsWith(\"01p\")",
+              "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+            },
+            {
+              "type": "string",
+              "description": "a string starting with \"01q\"",
+              "pattern": "^01q",
+              "title": "startsWith(\"01q\")",
+              "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+            }
+          ]
+        },
         "name": { "type": "string" },
         "type": { "type": "string", "enum": ["ApexClass", "ApexTrigger"] },
         "numLinesCovered": { "type": "number" },
@@ -52,10 +69,36 @@
         "ApexClassOrTrigger": {
           "type": "object",
           "required": ["Id", "Name"],
-          "properties": { "Id": { "type": "string" }, "Name": { "type": "string" } },
+          "properties": {
+            "Id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "a string starting with \"01p\"",
+                  "pattern": "^01p",
+                  "title": "startsWith(\"01p\")",
+                  "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+                },
+                {
+                  "type": "string",
+                  "description": "a string starting with \"01q\"",
+                  "pattern": "^01q",
+                  "title": "startsWith(\"01q\")",
+                  "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+                }
+              ]
+            },
+            "Name": { "type": "string" }
+          },
           "additionalProperties": false
         },
-        "ApexTestClassId": { "type": "string" },
+        "ApexTestClassId": {
+          "type": "string",
+          "description": "a string starting with \"01p\"",
+          "pattern": "^01p",
+          "title": "startsWith(\"01p\")",
+          "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+        },
         "TestMethodName": { "type": "string" },
         "NumLinesCovered": { "type": "number" },
         "NumLinesUncovered": { "type": "number" },
@@ -88,7 +131,27 @@
         "ApexClassOrTrigger": {
           "type": "object",
           "required": ["Id", "Name"],
-          "properties": { "Id": { "type": "string" }, "Name": { "type": "string" } },
+          "properties": {
+            "Id": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "description": "a string starting with \"01p\"",
+                  "pattern": "^01p",
+                  "title": "startsWith(\"01p\")",
+                  "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+                },
+                {
+                  "type": "string",
+                  "description": "a string starting with \"01q\"",
+                  "pattern": "^01q",
+                  "title": "startsWith(\"01q\")",
+                  "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+                }
+              ]
+            },
+            "Name": { "type": "string" }
+          },
           "additionalProperties": false
         },
         "NumLinesCovered": { "type": "number" },
@@ -101,6 +164,24 @@
             "uncoveredLines": { "type": "array", "items": { "type": "number" } }
           },
           "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "ApexOrgWideCoverage": {
+      "type": "object",
+      "required": ["done", "totalSize", "records"],
+      "properties": {
+        "done": { "type": "boolean" },
+        "totalSize": { "type": "number" },
+        "records": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["PercentCovered"],
+            "properties": { "PercentCovered": { "type": "string" } },
+            "additionalProperties": false
+          }
         }
       },
       "additionalProperties": false
@@ -688,24 +769,6 @@
       },
       "additionalProperties": false
     },
-    "ApexOrgWideCoverage": {
-      "type": "object",
-      "required": ["done", "totalSize", "records"],
-      "properties": {
-        "done": { "type": "boolean" },
-        "totalSize": { "type": "number" },
-        "records": {
-          "type": "array",
-          "items": {
-            "type": "object",
-            "required": ["PercentCovered"],
-            "properties": { "PercentCovered": { "type": "string" } },
-            "additionalProperties": false
-          }
-        }
-      },
-      "additionalProperties": false
-    },
     "ApexResponseDecodeError": {
       "type": "object",
       "required": ["operation", "message", "_tag"],
@@ -1153,6 +1216,7 @@
     { "$ref": "#/$defs/ApexCodeCoverageAggregate" },
     { "$ref": "#/$defs/ApexCodeCoverageAggregateRecord" },
     { "$ref": "#/$defs/ApexCodeCoverageRecord" },
+    { "$ref": "#/$defs/ApexOrgWideCoverage" },
     { "$ref": "#/$defs/ApexDiagnostic" },
     { "$ref": "#/$defs/ApexExecuteOptions" },
     { "$ref": "#/$defs/ApexLogGetOptions" },
@@ -1172,7 +1236,6 @@
     { "$ref": "#/$defs/ApexTestSetupData" },
     { "$ref": "#/$defs/ApexCompileError" },
     { "$ref": "#/$defs/ApexOperationError" },
-    { "$ref": "#/$defs/ApexOrgWideCoverage" },
     { "$ref": "#/$defs/ApexResponseDecodeError" },
     { "$ref": "#/$defs/ApexRuntimeError" },
     { "$ref": "#/$defs/AsyncTestArrayConfiguration" },

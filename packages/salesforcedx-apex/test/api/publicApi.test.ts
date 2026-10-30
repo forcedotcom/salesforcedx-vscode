@@ -25,12 +25,8 @@ describe('@salesforce/apex-node public API', () => {
       'HumanReporter',
       'JUnitReporter',
       'LogService',
-      'ResultFormat',
-      'ResultFormatSchema',
       'SalesforceId',
       'TapReporter',
-      'TestLevel',
-      'TestLevelSchema',
       'TestRunId',
       'TestService',
       'UserId'

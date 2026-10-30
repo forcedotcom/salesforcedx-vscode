@@ -9,12 +9,15 @@ import type { Connection } from '@salesforce/core';
 import type { Mock } from 'vitest';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
+import * as Schema from 'effect/Schema';
 import {
   getAggregateCodeCoverage,
   getOrgWideCoverage,
   getPerClassCodeCoverage,
   type ApexCodeCoverageRecord
 } from '../../src/effect';
+import { CodeCoverageResultSchema, PerClassCoverageSchema } from '../../src/effect/coverageSchemas';
+import { ApexCodeCoverageRecordSchema } from '../../src/effect/schema/wire/coverage';
 import { CodeCoverage } from '../../src/tests/codeCoverage';
 
 const classId = '01p000000000001AAA';
@@ -33,6 +36,52 @@ const makeConnection = (query: Mock, queryMore = vi.fn()): Connection =>
   ({ tooling: { query, queryMore } }) as unknown as Connection;
 
 describe('coverage Effect API', () => {
+  it('validates class and trigger IDs in coverage schemas', () => {
+    expect(Schema.is(ApexCodeCoverageRecordSchema)(record)).toBe(true);
+    expect(
+      Schema.is(ApexCodeCoverageRecordSchema)({
+        ...record,
+        ApexClassOrTrigger: { ...record.ApexClassOrTrigger, Id: '005000000000001AAA' }
+      })
+    ).toBe(false);
+    expect(Schema.is(ApexCodeCoverageRecordSchema)({ ...record, ApexTestClassId: '07M000000000001AAA' })).toBe(false);
+    expect(
+      Schema.is(PerClassCoverageSchema)({
+        apexClassOrTriggerName: 'CoveredTrigger',
+        apexClassOrTriggerId: triggerId,
+        apexTestClassId: testClassId,
+        apexTestMethodName: 'coversTrigger',
+        numLinesCovered: 2,
+        numLinesUncovered: 1,
+        percentage: '67%'
+      })
+    ).toBe(true);
+    expect(
+      Schema.is(CodeCoverageResultSchema)({
+        apexId: triggerId,
+        name: 'CoveredTrigger',
+        type: 'ApexTrigger',
+        numLinesCovered: 2,
+        numLinesUncovered: 1,
+        percentage: '67%',
+        coveredLines: [2, 4],
+        uncoveredLines: [9]
+      })
+    ).toBe(true);
+    expect(
+      Schema.is(CodeCoverageResultSchema)({
+        apexId: '005000000000001AAA',
+        name: 'NotApex',
+        type: 'ApexClass',
+        numLinesCovered: 0,
+        numLinesUncovered: 0,
+        percentage: '0%',
+        coveredLines: [],
+        uncoveredLines: []
+      })
+    ).toBe(false);
+  });
+
   it.each(['33', 33])('normalizes org-wide coverage %s to a percentage string', async PercentCovered => {
     const query = vi.fn().mockResolvedValue(page([{ PercentCovered }]));
 
@@ -57,6 +106,7 @@ describe('coverage Effect API', () => {
   it('groups all covered classes by test class and method across Tooling pages', async () => {
     const query = vi.fn().mockResolvedValue({
       done: false,
+      totalSize: 3,
       records: [record],
       nextRecordsUrl: '/coverage/page/2'
     });
@@ -102,7 +152,9 @@ describe('coverage Effect API', () => {
   });
 
   it('normalizes aggregates and totals across all pages without an ID filter for aggregate-only orgs', async () => {
-    const query = vi.fn().mockResolvedValue({ done: false, records: [record], nextRecordsUrl: '/coverage/page/2' });
+    const query = vi
+      .fn()
+      .mockResolvedValue({ done: false, totalSize: 2, records: [record], nextRecordsUrl: '/coverage/page/2' });
     const queryMore = vi.fn().mockResolvedValue(
       page([
         {
@@ -159,6 +211,7 @@ describe('coverage Effect API', () => {
       const ids = Array.from({ length: 1001 }, (_, i) => `01p${String(i).padStart(15, '0')}`);
       const query = vi.fn().mockImplementation(async (soql: string) => ({
         done: false,
+        totalSize: 1,
         records: [],
         nextRecordsUrl: `/coverage/${ids.findIndex(id => soql.includes(id))}`
       }));
@@ -209,7 +262,9 @@ describe('coverage Effect API', () => {
   });
 
   it('reports continuation failures without returning partial coverage', async () => {
-    const query = vi.fn().mockResolvedValue({ done: false, records: [record], nextRecordsUrl: '/coverage/page/2' });
+    const query = vi
+      .fn()
+      .mockResolvedValue({ done: false, totalSize: 2, records: [record], nextRecordsUrl: '/coverage/page/2' });
     const queryMore = vi.fn().mockRejectedValue(new Error('cursor expired'));
     await expect(
       Effect.runPromise(
@@ -223,8 +278,8 @@ describe('coverage Effect API', () => {
   });
 
   it.each([
-    { done: true, records: [{ ...record, Coverage: { coveredLines: ['2'], uncoveredLines: [] } }] },
-    { done: false, records: [record] }
+    { done: true, totalSize: 1, records: [{ ...record, Coverage: { coveredLines: ['2'], uncoveredLines: [] } }] },
+    { done: false, totalSize: 2, records: [record] }
   ])('rejects malformed records or missing continuation URLs', async response => {
     const queryMore = vi.fn();
     const connection = makeConnection(vi.fn().mockResolvedValue(response), queryMore);
@@ -248,7 +303,7 @@ describe('coverage Effect API', () => {
     const fiber = Effect.runFork(getAggregateCodeCoverage(makeConnection(query, queryMore), new Set()));
     await started.promise;
     await Effect.runPromise(Fiber.interrupt(fiber));
-    finishQuery?.({ done: false, records: [record], nextRecordsUrl: '/coverage/page/2' });
+    finishQuery?.({ done: false, totalSize: 2, records: [record], nextRecordsUrl: '/coverage/page/2' });
     await Promise.resolve();
     expect(queryMore).not.toHaveBeenCalled();
   });

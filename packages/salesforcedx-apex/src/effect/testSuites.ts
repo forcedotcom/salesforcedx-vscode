@@ -27,23 +27,23 @@ const quote = (value: string): string => value.replaceAll('\\', '\\\\').replaceA
 
 /** Retrieves the suites in the caller's org. */
 export const retrieveAllSuites = Effect.fn('Apex.retrieveAllSuites')(function* (connection: Connection) {
-  return yield* queryRecords(
+  return yield* queryRecords({
     connection,
-    'retrieveAllSuites',
-    'SELECT id, TestSuiteName FROM ApexTestSuite',
-    TestSuiteRecordSchema,
-    true
-  );
+    operation: 'retrieveAllSuites',
+    soql: 'SELECT id, TestSuiteName FROM ApexTestSuite',
+    record: TestSuiteRecordSchema,
+    tooling: true
+  });
 });
 
 export const retrieveSuiteId = Effect.fn('Apex.retrieveSuiteId')(function* (connection: Connection, suiteName: string) {
-  return yield* queryRecords(
+  return yield* queryRecords({
     connection,
-    'retrieveSuiteId',
-    `SELECT id FROM ApexTestSuite WHERE TestSuiteName = '${quote(suiteName)}'`,
-    TestSuiteIdQueryResponseSchema,
-    true
-  ).pipe(Effect.map(records => Array.head(records).pipe(Option.map(record => record.Id))));
+    operation: 'retrieveSuiteId',
+    soql: `SELECT id FROM ApexTestSuite WHERE TestSuiteName = '${quote(suiteName)}'`,
+    record: TestSuiteIdQueryResponseSchema,
+    tooling: true
+  }).pipe(Effect.map(records => Array.head(records).pipe(Option.map(record => record.Id))));
 });
 
 /** Retrieves class membership by suite id. */
@@ -51,13 +51,13 @@ export const getTestsInSuite = Effect.fn('Apex.getTestsInSuite')(function* (
   connection: Connection,
   suiteId: SalesforceId
 ) {
-  return yield* queryRecords(
+  return yield* queryRecords({
     connection,
-    'getTestsInSuite',
-    `SELECT ApexClassId FROM TestSuiteMembership WHERE ApexTestSuiteId = '${quote(suiteId)}'`,
-    TestSuiteMembershipSchema,
-    true
-  );
+    operation: 'getTestsInSuite',
+    soql: `SELECT ApexClassId FROM TestSuiteMembership WHERE ApexTestSuiteId = '${quote(suiteId)}'`,
+    record: TestSuiteMembershipSchema,
+    tooling: true
+  });
 });
 
 const updateSuiteMembership = Effect.fn('Apex.buildSuite.updateMembership')(function* (
@@ -74,9 +74,14 @@ const updateSuiteMembership = Effect.fn('Apex.buildSuite.updateMembership')(func
     return;
   }
   yield* Effect.annotateCurrentSpan({ ...annotations, membership: 'creating' });
-  yield* createRecord(connection, 'buildSuite', 'TestSuiteMembership', {
-    ApexClassId: classId,
-    ApexTestSuiteId: suiteId
+  yield* createRecord({
+    connection,
+    operation: 'buildSuite',
+    type: 'TestSuiteMembership',
+    fields: {
+      ApexClassId: classId,
+      ApexTestSuiteId: suiteId
+    }
   }).pipe(Effect.asVoid);
   yield* Effect.annotateCurrentSpan({ membership: 'added' });
 });
@@ -91,9 +96,12 @@ export const buildSuite = Effect.fn('Apex.buildSuite')(function* (
     Effect.flatMap(
       Option.match({
         onNone: () =>
-          createRecord(connection, 'buildSuite', 'ApexTestSuite', { TestSuiteName: suiteName }).pipe(
-            Effect.map(record => record.id)
-          ),
+          createRecord({
+            connection,
+            operation: 'buildSuite',
+            type: 'ApexTestSuite',
+            fields: { TestSuiteName: suiteName }
+          }).pipe(Effect.map(record => record.id)),
         onSome: Effect.succeed
       })
     )
@@ -136,13 +144,13 @@ export const getApexClassIds = Effect.fn('Apex.getApexClassIds')(function* (
       const namespaceFilter = isNotUndefined(namespace)
         ? `NamespacePrefix = '${quote(namespace)}'`
         : "(NamespacePrefix = null OR NamespacePrefix = '')";
-      return queryRecords(
+      return queryRecords({
         connection,
-        'buildSuite',
-        `SELECT Id FROM ApexClass WHERE Name = '${quote(name)}' AND ${namespaceFilter} LIMIT 1`,
-        ApexClassIdQueryResponseSchema,
-        true
-      ).pipe(
+        operation: 'buildSuite',
+        soql: `SELECT Id FROM ApexClass WHERE Name = '${quote(name)}' AND ${namespaceFilter} LIMIT 1`,
+        record: ApexClassIdQueryResponseSchema,
+        tooling: true
+      }).pipe(
         Effect.map(Array.head),
         Effect.flatMap(
           Option.match({

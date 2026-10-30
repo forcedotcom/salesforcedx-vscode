@@ -371,9 +371,9 @@ describe('Get code coverage results', () => {
         }
       ]
     });
-    await expect(new CodeCoverage(mockConnection).getPerClassCodeCoverage(new Set([testId]))).rejects.toMatchObject({
-      _tag: 'ParseError'
-    });
+    await expect(new CodeCoverage(mockConnection).getPerClassCodeCoverage(new Set([testId]))).rejects.toThrow(
+      'Invalid Apex coverage response'
+    );
   });
 
   it('should split the PerClassCodeCoverage queue into chunks of 500 records', async () => {
@@ -449,7 +449,7 @@ describe('Get code coverage results', () => {
         NumLinesCovered: 0,
         NumLinesUncovered: 0,
         ApexClassOrTrigger: {
-          Id: '',
+          Id: testClassId(i),
           Name: ''
         },
         Coverage: {

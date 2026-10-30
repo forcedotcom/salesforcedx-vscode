@@ -5,14 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { TestResult, TestResultRaw } from './testSchemas';
-import type { TestCategory } from '../tests/types';
+import type { TestCategory, TestResult, TestResultRaw } from '../tests/types';
 import * as Arr from 'effect/Array';
 
 export const calculatePercentage = (dividend: number, divisor: number): string =>
   dividend > 0 ? `${((dividend / divisor) * 100).toFixed()}%` : '0%';
 
-export const isFlowTest = (test: string | null): boolean => test?.startsWith('FlowTesting.') ?? false;
+const isFlowTest = (test: string | null): boolean => test?.startsWith('FlowTesting.') ?? false;
 
 export const computeTestCategory = (testNamespace: string | null): TestCategory =>
   isFlowTest(testNamespace) ? 'Flow' : 'Apex';
@@ -29,13 +28,13 @@ export const transformTestResult = (rawResult: TestResultRaw): TestResult => {
     },
     tests: regularTests.map(({ isTestSetup, ...test }) => test),
     setup: setupMethods.map(test => ({
-      id: test.id,
+      id: test.id ?? '',
       stackTrace: test.stackTrace ?? null,
       message: test.message ?? null,
-      asyncApexJobId: test.asyncApexJobId,
+      asyncApexJobId: test.asyncApexJobId ?? '',
       methodName: test.methodName,
       apexLogId: test.apexLogId ?? null,
-      apexClass: test.apexClass,
+      apexClass: { ...test.apexClass, id: test.apexClass.id ?? '' },
       testSetupTime: test.runTime,
       testTimestamp: test.testTimestamp,
       fullName: test.fullName,

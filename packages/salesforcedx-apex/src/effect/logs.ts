@@ -25,11 +25,6 @@ import {
 } from './schema/logs';
 import { ApexLogPageSchema, type ApexLogListItem } from './schema/wire/logs';
 
-export { ApexLogBodyFetchError, ApexLogQueryError } from './schema/errors';
-export { ApexLogListItem } from './schema/wire/logs';
-export { ListLogsOptionsSchema, LogStreamEventSchema } from './schema/logs';
-export type { ListLogsOptions } from './schema/logs';
-
 const buildListLogsQuery = (options?: DecodedListLogsOptions): string => {
   const userIds = options?.userIds ?? [];
   const userIdCondition =

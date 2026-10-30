@@ -6,68 +6,15 @@
  */
 
 import * as Schema from 'effect/Schema';
+import { ApexClassIdString } from '../schemas/salesforceId';
+import { ApexClassOrTriggerIdSchema, CoverageLinesSchema, CoverageNumberArraySchema } from './schema/coverage';
 
 // Keep the mutable arrays and string IDs accepted by existing coverage consumers.
-const NumberArray = Schema.Number.pipe(Schema.Array, Schema.mutable);
-const CoverageLinesSchema = Schema.Struct({
-  coveredLines: NumberArray,
-  uncoveredLines: NumberArray
-}).pipe(Schema.mutable);
-const ApexClassOrTriggerSchema = Schema.Struct({ Id: Schema.String, Name: Schema.String }).pipe(Schema.mutable);
-
-export const ApexCodeCoverageRecordSchema = Schema.Struct({
-  ApexClassOrTrigger: ApexClassOrTriggerSchema,
-  ApexTestClassId: Schema.String,
-  TestMethodName: Schema.String,
-  NumLinesCovered: Schema.Number,
-  NumLinesUncovered: Schema.Number,
-  Coverage: Schema.optional(CoverageLinesSchema)
-})
-  .pipe(Schema.mutable)
-  .annotations({ identifier: 'ApexCodeCoverageRecord' });
-export type ApexCodeCoverageRecord = typeof ApexCodeCoverageRecordSchema.Type;
-
-export const ApexCodeCoverageSchema = Schema.Struct({
-  done: Schema.Boolean,
-  totalSize: Schema.Number,
-  records: Schema.mutable(Schema.Array(ApexCodeCoverageRecordSchema))
-})
-  .pipe(Schema.mutable)
-  .annotations({ identifier: 'ApexCodeCoverage' });
-export type ApexCodeCoverage = typeof ApexCodeCoverageSchema.Type;
-
-export const ApexCodeCoverageAggregateRecordSchema = Schema.Struct({
-  ApexClassOrTrigger: ApexClassOrTriggerSchema,
-  NumLinesCovered: Schema.Number,
-  NumLinesUncovered: Schema.Number,
-  Coverage: CoverageLinesSchema
-})
-  .pipe(Schema.mutable)
-  .annotations({ identifier: 'ApexCodeCoverageAggregateRecord' });
-export type ApexCodeCoverageAggregateRecord = typeof ApexCodeCoverageAggregateRecordSchema.Type;
-
-export const ApexCodeCoverageAggregateSchema = Schema.Struct({
-  done: Schema.Boolean,
-  totalSize: Schema.Number,
-  records: Schema.mutable(Schema.Array(ApexCodeCoverageAggregateRecordSchema))
-})
-  .pipe(Schema.mutable)
-  .annotations({ identifier: 'ApexCodeCoverageAggregate' });
-export type ApexCodeCoverageAggregate = typeof ApexCodeCoverageAggregateSchema.Type;
-
-export const ApexOrgWideCoverageSchema = Schema.Struct({
-  done: Schema.Boolean,
-  totalSize: Schema.Number,
-  records: Schema.mutable(Schema.Array(Schema.Struct({ PercentCovered: Schema.String }).pipe(Schema.mutable)))
-})
-  .pipe(Schema.mutable)
-  .annotations({ identifier: 'ApexOrgWideCoverage' });
-export type ApexOrgWideCoverage = typeof ApexOrgWideCoverageSchema.Type;
 
 export const PerClassCoverageSchema = Schema.Struct({
   apexClassOrTriggerName: Schema.String,
-  apexClassOrTriggerId: Schema.String,
-  apexTestClassId: Schema.String,
+  apexClassOrTriggerId: ApexClassOrTriggerIdSchema,
+  apexTestClassId: ApexClassIdString,
   apexTestMethodName: Schema.String,
   numLinesCovered: Schema.Number,
   numLinesUncovered: Schema.Number,
@@ -79,14 +26,14 @@ export const PerClassCoverageSchema = Schema.Struct({
 export type PerClassCoverage = typeof PerClassCoverageSchema.Type;
 
 export const CodeCoverageResultSchema = Schema.Struct({
-  apexId: Schema.String,
+  apexId: ApexClassOrTriggerIdSchema,
   name: Schema.String,
   type: Schema.Literal('ApexClass', 'ApexTrigger'),
   numLinesCovered: Schema.Number,
   numLinesUncovered: Schema.Number,
   percentage: Schema.String,
-  coveredLines: NumberArray,
-  uncoveredLines: NumberArray
+  coveredLines: CoverageNumberArraySchema,
+  uncoveredLines: CoverageNumberArraySchema
 })
   .pipe(Schema.mutable)
   .annotations({ identifier: 'CodeCoverageResult' });

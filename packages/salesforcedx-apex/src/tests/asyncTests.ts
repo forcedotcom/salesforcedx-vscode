@@ -290,10 +290,19 @@ export class AsyncTests {
     testsComplete: boolean;
     testRunSummary: ApexTestRunResult;
   }> {
-    const isValidTestRunId = Schema.is(TestRunId)(testRunId);
-    if (!isValidTestRunId) {
-      throw new Error(nls.localize('invalidTestRunIdErr', testRunId));
-    }
+    const testRunIdSchema = TestRunId.pipe(
+      Schema.annotations({
+        message: issue => ({
+          message: nls.localize(
+            'invalidTestRunIdErr',
+            'actual' in issue && typeof issue.actual === 'string' ? issue.actual : ''
+          ),
+          override: true
+        })
+      })
+    );
+    const assertTestRunId: Schema.Schema.ToAsserts<typeof testRunIdSchema> = Schema.asserts(testRunIdSchema);
+    assertTestRunId(testRunId);
     const hasTestSetupTimeField = await this.supportsTestSetupFeature();
 
     const fields = [
@@ -518,9 +527,7 @@ export class AsyncTests {
               break;
           }
 
-          if (isNotUndefined(item.ApexClass.Id)) {
-            apexTestClassIdSet.add(item.ApexClass.Id);
-          }
+          if (isNotUndefined(item.ApexClass.Id)) apexTestClassIdSet.add(item.ApexClass.Id);
           // Can only query the FullName field if a single record is returned, so manually build the field
           item.ApexClass.FullName = item.ApexClass.NamespacePrefix
             ? `${item.ApexClass.NamespacePrefix}.${item.ApexClass.Name}`

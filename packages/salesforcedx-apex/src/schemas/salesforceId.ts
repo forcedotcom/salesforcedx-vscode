@@ -28,10 +28,8 @@ export const ApexClassId = ApexClassIdString.pipe(Schema.brand('@salesforcedx-ap
 export type ApexClassId = typeof ApexClassId.Type;
 
 /** Salesforce ApexTrigger record ID. */
-export const ApexTriggerId = SalesforceId.pipe(
-  Schema.startsWith('01q'),
-  Schema.brand('@salesforcedx-apex/ApexTriggerId')
-);
+export const ApexTriggerIdString = prefixedSalesforceIdString('01q');
+export const ApexTriggerId = ApexTriggerIdString.pipe(Schema.brand('@salesforcedx-apex/ApexTriggerId'));
 export type ApexTriggerId = typeof ApexTriggerId.Type;
 
 /** Salesforce Tooling API ApexLog record ID. */

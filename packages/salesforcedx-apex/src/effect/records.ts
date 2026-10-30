@@ -11,13 +11,19 @@ import * as Schema from 'effect/Schema';
 import { ApexOperationError, ApexResponseDecodeError, causeMessage } from './errors';
 import { createRecordResponseSchema, queryRecordsResponseSchema } from './schema/wire/records';
 
-export const queryRecords = Effect.fn('Apex.queryRecords')(function* <A, I>(
-  connection: Connection,
-  operation: string,
-  soql: string,
-  record: Schema.Schema<A, I>,
+export const queryRecords = Effect.fn('Apex.queryRecords')(function* <A, I>({
+  connection,
+  operation,
+  soql,
+  record,
   tooling = false
-) {
+}: {
+  connection: Connection;
+  operation: string;
+  soql: string;
+  record: Schema.Schema<A, I>;
+  tooling?: boolean;
+}) {
   return yield* Effect.tryPromise({
     try: () => Promise.resolve((tooling ? connection.tooling : connection).query(soql)),
     catch: cause => new ApexOperationError({ operation, message: causeMessage(cause), cause: causeMessage(cause) })
@@ -30,12 +36,17 @@ export const queryRecords = Effect.fn('Apex.queryRecords')(function* <A, I>(
   );
 });
 
-export const createRecord = Effect.fn('Apex.createRecord')(function* (
-  connection: Connection,
-  operation: string,
-  type: string,
-  fields: Record<string, string>
-) {
+export const createRecord = Effect.fn('Apex.createRecord')(function* ({
+  connection,
+  operation,
+  type,
+  fields
+}: {
+  connection: Connection;
+  operation: string;
+  type: string;
+  fields: Record<string, string>;
+}) {
   return yield* Effect.tryPromise({
     try: () => Promise.resolve(connection.tooling.create(type, fields)),
     catch: cause => new ApexOperationError({ operation, message: causeMessage(cause), cause: causeMessage(cause) })

@@ -75,7 +75,8 @@ export const messages = {
   detailedCodeCovHeaderNoRunId: 'Apex Code Coverage',
   syncClassErr:
     'Synchronous test runs can include test methods from only one Apex class. Omit the --synchronous flag or include tests from only one class',
-  resultFormatErr: 'Specified result formats must be of type json, junit, or tap',
+  resultFormatErr: 'Specified result formats must be one of json, junit, tap, human, markdown, or text',
+  resultFileFormatErr: 'Result files can be written in json, junit, tap, markdown, or text format',
   invalidTestRunIdErr:
     'The test run id %s isn\'t in the correct format for "id." The ID is a 15- or 18-character string in the format "707xxxxxxxxxxxx"',
   invalidsObjectErr:

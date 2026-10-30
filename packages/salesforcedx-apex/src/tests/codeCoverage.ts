@@ -37,14 +37,16 @@ export class CodeCoverage {
     return runCoverage(getOrgWideCoverage(this.connection), 'codeCoverage.getOrgWideCoverage');
   }
 
-  public async getPerClassCodeCoverage(apexTestClassSet: Set<string>): Promise<Map<string, PerClassCoverage[]>> {
+  public async getPerClassCodeCoverage(
+    apexTestClassSet: ReadonlySet<string>
+  ): Promise<Map<string, PerClassCoverage[]>> {
     return runCoverage(
       getPerClassCodeCoverage(this.connection, apexTestClassSet),
       'codeCoverage.getPerClassCodeCoverage'
     );
   }
 
-  public async getAggregateCodeCoverage(apexClassIdSet: Set<string>): Promise<AggregateCodeCoverageResult> {
+  public async getAggregateCodeCoverage(apexClassIdSet: ReadonlySet<string>): Promise<AggregateCodeCoverageResult> {
     return runCoverage(
       getAggregateCodeCoverage(this.connection, apexClassIdSet),
       'codeCoverage.getAggregateCodeCoverage'

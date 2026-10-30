@@ -8,8 +8,8 @@
 import * as Schema from 'effect/Schema';
 import { CodeCoverageResultSchema, PerClassCoverageSchema } from '../effect/coverageSchemas';
 import {
-  ApexClassIdString,
   ApexLogIdString,
+  ApexClassIdString,
   ApexTestQueueItemIdString,
   ApexTestResultIdString,
   FlowTestResultIdString,
@@ -23,10 +23,9 @@ export type {
   ApexCodeCoverageAggregate,
   ApexCodeCoverageAggregateRecord,
   ApexCodeCoverageRecord,
-  ApexOrgWideCoverage,
-  CodeCoverageResult,
-  PerClassCoverage
-} from '../effect/coverageSchemas';
+  ApexOrgWideCoverage
+} from '../effect/schema/wire/coverage';
+export type { CodeCoverageResult, PerClassCoverage } from '../effect/coverageSchemas';
 
 /**
  * Specifies which Apex tests run.
@@ -39,11 +38,6 @@ export const TestLevelSchema = Schema.Literal('RunLocalTests', 'RunAllTestsInOrg
   identifier: 'TestLevel'
 });
 export type TestLevel = typeof TestLevelSchema.Type;
-export const TestLevel = {
-  RunLocalTests: TestLevelSchema.literals[0],
-  RunAllTestsInOrg: TestLevelSchema.literals[1],
-  RunSpecifiedTests: TestLevelSchema.literals[2]
-} as const satisfies { [K in TestLevel]: K };
 
 /** Test implementation category. */
 export const TestCategorySchema = Schema.Literal('Apex', 'Flow');
@@ -94,14 +88,19 @@ export const ResultFormatSchema = Schema.Literal('junit', 'tap', 'json', 'human'
   identifier: 'ResultFormat'
 });
 export type ResultFormat = typeof ResultFormatSchema.Type;
-export const ResultFormat = {
-  junit: ResultFormatSchema.literals[0],
-  tap: ResultFormatSchema.literals[1],
-  json: ResultFormatSchema.literals[2],
-  human: ResultFormatSchema.literals[3],
-  markdown: ResultFormatSchema.literals[4],
-  text: ResultFormatSchema.literals[5]
-} as const satisfies { [K in ResultFormat]: K };
+
+export const ResultFormatsSchema = ResultFormatSchema.pipe(
+  Schema.Array,
+  Schema.UndefinedOr,
+  Schema.annotations({ identifier: 'ResultFormats' })
+);
+
+const ResultFileFormatSchema = Schema.Literal('junit', 'tap', 'json', 'markdown', 'text').pipe(
+  Schema.annotations({ identifier: 'ResultFileFormat' })
+);
+export const ResultFileFormatsSchema = Schema.Array(ResultFileFormatSchema).pipe(
+  Schema.annotations({ identifier: 'ResultFileFormats' })
+);
 
 export type OutputDirConfig = {
   dirPath: string;
