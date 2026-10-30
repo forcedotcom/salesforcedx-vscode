@@ -246,6 +246,25 @@ describe('deserialize should', () => {
     expectError('SELECT A FROM B LIMIT X', 'INCOMPLETELIMIT');
   });
 
+  it('mark follow-on parser recovery errors while preserving independent errors', () => {
+    const cases = [
+      ['SELECT field1 FROM object1 WHERE field IN', ['NOCOMPAREVALUE', 'UNKNOWN'], [false, true]],
+      ["SELECT field1 FROM object1 WHERE field LIK 'foo'", ['UNRECOGNIZEDCOMPAREOPERATOR', 'UNKNOWN'], [false, true]],
+      ['SELECT A FROM B LIMIT X', ['INCOMPLETELIMIT'], [false]],
+      ['SELECT field1 FROM object1 WHERE field = foo', ['UNRECOGNIZEDCOMPAREVALUE', 'UNEXPECTEDEOF'], [false, true]]
+    ] as const;
+
+    for (const [query, types, recoveryFlags] of cases) {
+      const errors = deserialize(query).errors ?? [];
+      expect(errors.map(error => error.type)).toEqual(types);
+      expect(errors.map(error => error.isSecondaryRecovery ?? false)).toEqual(recoveryFlags);
+    }
+
+    const independentErrors = deserialize('SELECT A FROM B LIMIT X OFFSET Y').errors ?? [];
+    expect(independentErrors.map(error => error.type)).toEqual(['INCOMPLETELIMIT', 'UNKNOWN']);
+    expect(independentErrors.map(error => error.isSecondaryRecovery ?? false)).toEqual([false, false]);
+  });
+
   it('identify LIMIT 0 as valid limit clause', () => {
     const expected = {
       select: {
@@ -290,6 +309,15 @@ describe('deserialize should', () => {
     };
     const actual = deserialize('SELECT field1 FROM object1 WHERE field = 2020-11-11');
     expect(actual).toEqual(expected);
+  });
+
+  it.each(['YESTERDAY', 'LAST_N_DAYS:7'])('identify %s date formula in condition', formula => {
+    const actual = deserialize(`SELECT field1 FROM object1 WHERE field = ${formula}`);
+    expect(actual.where?.condition).toMatchObject({
+      ...conditionFieldCompare,
+      compareValue: { kind: 'literal', type: 'DATE', value: formula }
+    });
+    expect(actual.errors).toEqual([]);
   });
 
   it('identify TRUE literal in condition', () => {
@@ -698,14 +726,14 @@ describe('deserialize should', () => {
   });
 
   it('identify unrecognized literal value in condition', () => {
-    expectError('SELECT field1 FROM object1 WHERE field = foo', 'UNRECOGNIZEDCOMPAREVALUE');
-    expectError('SELECT field1 FROM object1 WHERE field LIKE foo', 'UNRECOGNIZEDCOMPAREVALUE');
+    expectError('SELECT field1 FROM object1 WHERE field = foo', ['UNRECOGNIZEDCOMPAREVALUE', 'UNEXPECTEDEOF']);
+    expectError('SELECT field1 FROM object1 WHERE field LIKE foo', ['UNRECOGNIZEDCOMPAREVALUE', 'UNEXPECTEDEOF']);
     expectError('SELECT field1 FROM object1 WHERE field IN ( foo )', 'UNRECOGNIZEDCOMPAREVALUE');
     expectError('SELECT field1 FROM object1 WHERE field INCLUDES ( foo )', 'UNRECOGNIZEDCOMPAREVALUE');
   });
 
   it('identify unrecognized compare operator in condition', () => {
-    expectError("SELECT field1 FROM object1 WHERE field LIK 'foo'", 'UNRECOGNIZEDCOMPAREOPERATOR');
+    expectError("SELECT field1 FROM object1 WHERE field LIK 'foo'", ['UNRECOGNIZEDCOMPAREOPERATOR', 'UNKNOWN']);
   });
 
   it('identify unrecognized compare field in condition', () => {
@@ -715,7 +743,7 @@ describe('deserialize should', () => {
   it('identify missing compare value in condition', () => {
     expectError('SELECT field1 FROM object1 WHERE field =', 'NOCOMPAREVALUE');
     expectError('SELECT field1 FROM object1 WHERE field LIKE', 'NOCOMPAREVALUE');
-    expectError('SELECT field1 FROM object1 WHERE field IN', 'NOCOMPAREVALUE');
+    expectError('SELECT field1 FROM object1 WHERE field IN', ['NOCOMPAREVALUE', 'UNKNOWN']);
     expectError('SELECT field1 FROM object1 WHERE field INCLUDES', 'NOCOMPAREVALUE');
   });
 
@@ -724,7 +752,7 @@ describe('deserialize should', () => {
   });
 
   it('identify incomplete multi-value list', () => {
-    expectError('SELECT field1 FROM object1 WHERE field IN (', 'INCOMPLETEMULTIVALUELIST');
+    expectError('SELECT field1 FROM object1 WHERE field IN (', ['INCOMPLETEMULTIVALUELIST', 'UNKNOWN']);
     expectError("SELECT field1 FROM object1 WHERE field IN ( 'foo'", 'INCOMPLETEMULTIVALUELIST');
     expectError("SELECT field1 FROM object1 WHERE field IN ( 'foo',", 'INCOMPLETEMULTIVALUELIST');
     expectError("SELECT field1 FROM object1 WHERE field IN ( 'foo', )", 'INCOMPLETEMULTIVALUELIST');
@@ -790,12 +818,10 @@ describe('deserialize should', () => {
     expectError('SELECT field1 FROM object1 GROUP BY', 'UNEXPECTEDEOF');
   });
 
-  const expectError = (query: string, expectedType: ErrorType): void => {
+  const expectError = (query: string, expectedTypes: ErrorType | ErrorType[]): void => {
     const model = deserialize(query);
-    if (model.errors?.length === 1) {
-      expect(model.errors[0].type).toEqual(expectedType);
-    } else {
-      fail();
-    }
+    expect(model.errors?.map(error => error.type)).toEqual(
+      Array.isArray(expectedTypes) ? expectedTypes : [expectedTypes]
+    );
   };
 });

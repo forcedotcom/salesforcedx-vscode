@@ -6,7 +6,7 @@
  */
 
 import type { Mock as VitestMock } from 'vitest';
-import { ExtensionProviderService, ServicesExtensionNotFoundError } from '@salesforce/effect-ext-utils';
+import { ExtensionNotFoundError, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import { SettingsError, SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
@@ -157,14 +157,15 @@ describe('Java Requirements Test', () => {
       mockGetValue.mockImplementation((_section, key, defaultValue) =>
         Effect.succeed(key === 'java.home' ? runtimePath : defaultValue)
       );
-      mockGetServicesApi
-        .mockReturnValueOnce(succeedApi())
-        .mockReturnValue(
-          Effect.fail(new ServicesExtensionNotFoundError()) as unknown as ExtensionProviderService['getServicesApi']
-        );
-      await expect(run(resolveRequirements().pipe(Effect.flip))).resolves.toBeInstanceOf(
-        ServicesExtensionNotFoundError
+      mockGetServicesApi.mockReturnValueOnce(succeedApi()).mockReturnValue(
+        Effect.fail(
+          new ExtensionNotFoundError({
+            extId: 'salesforce.salesforcedx-vscode-services',
+            message: 'Services extension is not installed'
+          })
+        ) as unknown as ExtensionProviderService['getServicesApi']
       );
+      await expect(run(resolveRequirements().pipe(Effect.flip))).resolves.toBeInstanceOf(ExtensionNotFoundError);
     });
 
     it('Should not support Java 8', async () => {
