@@ -65,9 +65,14 @@ describe('metadata XML extension activation', () => {
     await run();
 
     expect(activate).toHaveBeenCalledOnce();
-    expect(xmlApi.addXMLCatalogs).toHaveBeenCalledExactlyOnceWith(['/extension/resources/metadata-catalog.xml']);
+    expect(xmlApi.addXMLCatalogs).toHaveBeenCalledExactlyOnceWith([
+      URI.file('/extension/resources/metadata-catalog.xml').fsPath
+    ]);
     expect(xmlApi.addXMLFileAssociations).toHaveBeenCalledExactlyOnceWith([
-      { systemId: '/extension/resources/salesforce_metadata_api_namespace1.xsd', pattern: '**/*-meta.xml' }
+      {
+        systemId: URI.file('/extension/resources/salesforce_metadata_api_namespace1.xsd').fsPath,
+        pattern: '**/*-meta.xml'
+      }
     ]);
     expect(appendToChannel).toHaveBeenCalledWith(nls.localize('metadata_xml_redhat_extension_setup_success'));
   });
