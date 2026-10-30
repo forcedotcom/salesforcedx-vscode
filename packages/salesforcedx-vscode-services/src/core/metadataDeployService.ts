@@ -196,7 +196,19 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       return deployOutcome;
     }, withActiveMetadataOperationPipeline);
 
-    return { deploy, getComponentSetForDeploy };
+    const deployLocalChangesWithWorker = Effect.fn('MetadataDeployService.deployLocalChangesWithWorker')(function* (
+      onWorkerStarted?: () => void
+    ) {
+      const outcome = yield* trackingService.deployLocalChangesWithWorker(onWorkerStarted);
+      yield* Effect.annotateCurrentSpan({
+        deployStatus: outcome.status,
+        componentCount: outcome.components.length,
+        fileResponseCount: outcome.fileResponseCount
+      });
+      return outcome;
+    }, withActiveMetadataOperationPipeline);
+
+    return { deploy, deployLocalChangesWithWorker, getComponentSetForDeploy };
   })
 }) {}
 

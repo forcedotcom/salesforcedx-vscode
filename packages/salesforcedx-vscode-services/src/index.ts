@@ -378,6 +378,32 @@ const activationEffect = Effect.fn('activation:salesforcedx-vscode-services')(fu
     )
   );
 
+  // The activation runtime contains internal Services layers in addition to
+  // its public type. The POC command needs those shared instances.
+  // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- internal runtime includes worker services
+  const commandRuntime = (yield* getServicesRuntime()) as unknown as ManagedRuntime.ManagedRuntime<
+    PrebuiltServicesDependencies,
+    never
+  >;
+  yield* registerCommandWithRuntime(commandRuntime)('sf.internal.testSdrStlWorkerDeploy', () =>
+    Effect.gen(function* () {
+      const [deployService, channelService] = yield* Effect.all([MetadataDeployService, ChannelService]);
+      const outcome = yield* deployService.deployLocalChangesWithWorker(() => {
+        void vscode.window.showInformationMessage(nls.localize('sdr_stl_worker_starting'));
+      });
+      const message = nls.localize(
+        'sdr_stl_worker_finished',
+        outcome.status,
+        outcome.components.length,
+        outcome.fileResponseCount
+      );
+      yield* channelService.appendToChannel(message);
+      yield* Effect.sync(() => {
+        void vscode.window.showInformationMessage(message);
+      });
+      (yield* channelService.getChannel).show();
+    })
+  );
   if (
     context.extensionMode === vscode.ExtensionMode.Development ||
     context.extensionMode === vscode.ExtensionMode.Test
@@ -670,6 +696,7 @@ export {
 export { type MetadataRegistryService } from './core/metadataRegistryService';
 export { type MetadataRetrieveService } from './core/metadataRetrieveService';
 export { type ProjectService } from './core/projectService';
+export { SdrStlWorkerUnavailableError } from './sdrStlWorker/sdrStlWorkerService';
 export { type SdkLayerFor } from './observability/spans';
 export { type SettingsService } from './vscode/settingsService';
 export { type SettingsChangePubSub } from './vscode/settingsChangePubSub';
