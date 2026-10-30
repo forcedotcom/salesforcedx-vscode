@@ -4,7 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionPackageJsonSchema, ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import {
+  CallableSchema,
+  ExtensionPackageJsonSchema,
+  ExtensionProviderService,
+  getExtensionExports
+} from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
@@ -15,10 +20,11 @@ import { URI, Utils } from 'vscode-uri';
 import { SFDX_CORE_EXTENSION_NAME } from '../constants';
 import { nls } from '../messages';
 
-type XMLExtensionApi = {
-  addXMLCatalogs: (catalogs: string[]) => void;
-  addXMLFileAssociations: (fileAssociations: { systemId: string; pattern: string }[]) => void;
-};
+const XMLExtensionApiSchema = Schema.Struct({
+  addXMLCatalogs: CallableSchema<(catalogs: string[]) => void>(),
+  addXMLFileAssociations: CallableSchema<(fileAssociations: { systemId: string; pattern: string }[]) => void>()
+});
+type XMLExtensionApi = Schema.Schema.Type<typeof XMLExtensionApiSchema>;
 
 type SchemaDocumentationInspection =
   | Pick<
@@ -113,27 +119,27 @@ const reportSetupFailure = Effect.fn('metadataXmlSupport.reportSetupFailure')(fu
 const setupRedhatXml = Effect.fn('metadataXmlSupport.setupRedhatXml')(
   function* (
     inputCatalogs: Parameters<XMLExtensionApi['addXMLCatalogs']>[0],
-    inputFileAssociations: Parameters<XMLExtensionApi['addXMLFileAssociations']>[0],
-    redHatExtension: vscode.Extension<XMLExtensionApi>
+    inputFileAssociations: Parameters<XMLExtensionApi['addXMLFileAssociations']>[0]
   ) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const channelService = yield* api.services.ChannelService;
     const settingsService = yield* api.services.SettingsService;
 
-    yield* Effect.tryPromise({
-      try: async () => {
-        if (!redHatExtension.isActive) {
-          await redHatExtension.activate();
-        }
-        redHatExtension.exports.addXMLCatalogs(inputCatalogs);
-        redHatExtension.exports.addXMLFileAssociations(inputFileAssociations);
-      },
-      catch: cause =>
-        new RedHatXmlExtensionSetupError({
-          message: getErrorMessage(cause),
-          cause
+    yield* getExtensionExports({ extId: 'redhat.vscode-xml', schema: XMLExtensionApiSchema }).pipe(
+      Effect.flatMap(xmlApi =>
+        Effect.try({
+          try: () => {
+            xmlApi.addXMLCatalogs(inputCatalogs);
+            xmlApi.addXMLFileAssociations(inputFileAssociations);
+          },
+          catch: cause =>
+            new RedHatXmlExtensionSetupError({
+              message: getErrorMessage(cause),
+              cause
+            })
         })
-    });
+      )
+    );
 
     const inspectXmlConfiguration = <A>(setting: string) =>
       Effect.try({
@@ -179,27 +185,24 @@ const setupRedhatXml = Effect.fn('metadataXmlSupport.setupRedhatXml')(
   },
   Effect.catchTags({
     MissingSettingsError: reportSetupFailure,
+    ExtensionNotFoundError: () => reportToChannel(nls.localize('metadata_xml_no_redhat_extension_found')),
+    ExtensionActivationError: error => reportSetupFailure(error.cause),
+    ParseError: reportSetupFailure,
     RedHatXmlExtensionSetupError: error => reportSetupFailure(error.cause),
     XmlConfigurationInspectError: error => reportSetupFailure(error.cause)
   })
 );
 
-const setupCompatibleRedhatXml = Effect.fn('metadataXmlSupport.setupCompatibleRedhatXml')(function* (
-  redHatExtension: vscode.Extension<XMLExtensionApi>
-) {
+const setupCompatibleRedhatXml = Effect.fn('metadataXmlSupport.setupCompatibleRedhatXml')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const extensionContext = yield* (yield* api.services.ExtensionContextService).getContext;
   const extensionUri = URI.parse(extensionContext.extensionUri.toString());
-  yield* setupRedhatXml(
-    getLocalFilePaths(extensionUri, ['metadata-catalog.xml']),
-    [
-      {
-        systemId: getLocalFilePaths(extensionUri, ['salesforce_metadata_api_namespace1.xsd'])[0],
-        pattern: '**/*-meta.xml'
-      }
-    ],
-    redHatExtension
-  );
+  yield* setupRedhatXml(getLocalFilePaths(extensionUri, ['metadata-catalog.xml']), [
+    {
+      systemId: getLocalFilePaths(extensionUri, ['salesforce_metadata_api_namespace1.xsd'])[0],
+      pattern: '**/*-meta.xml'
+    }
+  ]);
 });
 
 /** Initialize metadata XML support by configuring Red Hat XML. */
@@ -235,7 +238,7 @@ export const initializeMetadataSupport = Effect.fn('metadataXmlSupport.initializ
         Match.value(parsed).pipe(
           Match.when(
             ({ major: maj, minor: min }) => maj >= 1 || min === 14 || min >= 16,
-            () => setupCompatibleRedhatXml(redHatExtension)
+            () => setupCompatibleRedhatXml()
           ),
           Match.when(
             ({ minor: min }) => min === 15,

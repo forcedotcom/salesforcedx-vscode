@@ -123,6 +123,7 @@ describe('DebugConfigurationProvider log-file prompt', () => {
       exports: {
         getLineBreakpointInfo,
         languageClientManager: {
+          getClientInstance: () => undefined,
           getStatus: () => ({
             isReady: () => true,
             failedToInitialize: () => false,

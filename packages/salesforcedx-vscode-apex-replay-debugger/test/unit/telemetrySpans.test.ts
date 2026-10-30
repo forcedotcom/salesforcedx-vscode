@@ -7,10 +7,8 @@
 
 import * as Effect from 'effect/Effect';
 
-// src/apexExtension throws at module load when the Apex extension host is absent;
-// the emitters under test do not touch it.
+// The emitters under test do not need Apex extension exports.
 vi.mock('../../src/apexExtension', () => ({
-  salesforceApexExtension: { isActive: true, activate: vi.fn() },
   retrieveLineBreakpointInfo: () => Effect.void
 }));
 

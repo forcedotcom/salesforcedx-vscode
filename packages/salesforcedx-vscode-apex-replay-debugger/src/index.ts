@@ -6,7 +6,7 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { annotateRootSpan, ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { annotateRootSpan, ExtensionProviderService, getExtensionExports } from '@salesforce/effect-ext-utils';
 import {
   type MetricError,
   type MetricGeneral,
@@ -20,7 +20,6 @@ import * as vscode from 'vscode';
 import { type URI } from 'vscode-uri';
 import { updateLastOpened } from './activation/getDialogStartingPath';
 import { DebugConfigurationProvider } from './adapter/debugConfigurationProvider';
-import { salesforceApexExtension } from './apexExtension';
 import {
   checkpointService,
   processBreakpointChangedForCheckpoints,
@@ -155,10 +154,10 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
   const checkpointsView = vscode.window.registerTreeDataProvider('sf.view.checkpoint', checkpointService);
   const breakpointsSub = vscode.debug.onDidChangeBreakpoints(processBreakpointChangedForCheckpoints);
 
-  // Activate Salesforce Apex Extension
-  if (!salesforceApexExtension.isActive) {
-    yield* Effect.promise(() => salesforceApexExtension.activate());
-  }
+  // Activate Salesforce Apex Extension before replay debug commands need its API.
+  yield* getExtensionExports({
+    extId: 'salesforce.salesforcedx-vscode-apex'
+  }).pipe(Effect.asVoid);
 
   extensionContext.subscriptions.push(
     debuggerChannel,
