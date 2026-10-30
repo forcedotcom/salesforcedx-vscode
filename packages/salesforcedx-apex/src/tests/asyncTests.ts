@@ -527,9 +527,7 @@ export class AsyncTests {
               break;
           }
 
-          if (isNotUndefined(item.ApexClass.Id)) {
-            apexTestClassIdSet.add(item.ApexClass.Id);
-          }
+          if (isNotUndefined(item.ApexClass.Id)) apexTestClassIdSet.add(item.ApexClass.Id);
           // Can only query the FullName field if a single record is returned, so manually build the field
           item.ApexClass.FullName = item.ApexClass.NamespacePrefix
             ? `${item.ApexClass.NamespacePrefix}.${item.ApexClass.Name}`

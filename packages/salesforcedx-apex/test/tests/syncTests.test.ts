@@ -254,9 +254,7 @@ describe('Run Apex tests synchronously', () => {
       const errMsg = "sObject type 'ApexClass' is not supported.";
       $$.SANDBOX.stub(SyncTests.prototype, 'formatSyncResults').throws(new Error(errMsg));
       try {
-        await testSrv.runTestSynchronous({
-          testLevel: 'RunLocalTests'
-        });
+        await testSrv.runTestSynchronous(requestOptions);
         fail('Should have failed');
       } catch (e) {
         expect(formatTestErrorsMock).toHaveBeenCalledOnce();

@@ -5,25 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { HttpRequest } from '@jsforce/jsforce-node';
 import { type Connection } from '@salesforce/core';
-import * as Schema from 'effect/Schema';
+import * as Effect from 'effect/Effect';
+import * as Either from 'effect/Either';
+import { isNotUndefined } from 'effect/Predicate';
 import { type CancellationToken } from '../common';
+import { formatSyncResults, requestSyncTests } from '../effect/syncTests';
 import { nls } from '../i18n';
-import { ApexClassId, ApexLogId, OrgIdString, UserIdString } from '../schemas/salesforceId';
-import { elapsedTime, formatStartTime, getCurrentTime, HeapMonitor } from '../utils';
+import { elapsedTime, getCurrentTime, HeapMonitor } from '../utils';
 import { CodeCoverage } from './codeCoverage';
-import { formatTestErrors, getDiagnostic } from './diagnosticUtil';
-import {
-  type ApexTestResultDataRaw,
-  type ApexTestResultOutcome,
-  type SyncTestConfiguration,
-  type SyncTestFailure,
-  type SyncTestResult,
-  type TestResult,
-  type TestResultRaw
-} from './types';
-import { calculateCodeCoverage, calculatePercentage, computeTestCategory, transformTestResult } from './utils';
+import { formatTestErrors } from './diagnosticUtil';
+import { type SyncTestConfiguration, type TestResult } from './types';
+import { calculateCodeCoverage } from './utils';
 
 export class SyncTests {
   public readonly connection: Connection;
@@ -48,21 +41,15 @@ export class SyncTests {
   ): Promise<TestResult> {
     HeapMonitor.getInstance().checkHeapSize('synctests.runTests');
     try {
-      const url = `${this.connection.tooling._baseUrl()}/runTestsSynchronous`;
-      const request: HttpRequest = {
-        method: 'POST',
-        url,
-        body: JSON.stringify(options),
-        headers: { 'content-type': 'application/json' }
-      };
-
-      const testRun = (await this.connection.tooling.request(request)) as SyncTestResult;
+      const execution = await requestSyncTests(this.connection, options).pipe(Effect.either, Effect.runPromise);
+      // Keep Promise rejections free of the Effect runtime's FiberFailure prefix.
+      if (Either.isLeft(execution)) throw new Error(execution.left.message);
 
       if (token?.isCancellationRequested) {
         throw new Error(nls.localize('testRunCancelled'));
       }
 
-      return await this.formatSyncResults(testRun, getCurrentTime(), codeCoverage);
+      return await this.formatSyncResults(execution.right, getCurrentTime(), codeCoverage);
     } catch (e) {
       throw formatTestErrors(e);
     } finally {
@@ -71,111 +58,29 @@ export class SyncTests {
   }
 
   @elapsedTime()
-  public async formatSyncResults(
-    apiTestResult: SyncTestResult,
-    startTime: number,
-    codeCoverage = false
-  ): Promise<TestResult> {
+  public async formatSyncResults(apiTestResult: unknown, startTime: number, codeCoverage = false): Promise<TestResult> {
     HeapMonitor.getInstance().checkHeapSize('synctests.formatSyncResults');
-    const { apexTestClassIdSet, testResults } = this.buildSyncTestResults(apiTestResult);
     try {
-      const globalTestFailed = apiTestResult.failures.length;
-      const globalTestPassed = apiTestResult.successes.length;
-      const username = this.connection.getUsername();
-      const userId = this.connection.getConnectionOptions().userId;
-      const rawResult: TestResultRaw = {
-        summary: {
-          outcome: globalTestFailed === 0 ? 'Passed' : 'Failed',
-          testsRan: apiTestResult.numTestsRun,
-          passing: globalTestPassed,
-          failing: globalTestFailed,
-          skipped: 0,
-          passRate: calculatePercentage(globalTestPassed, apiTestResult.numTestsRun),
-          failRate: calculatePercentage(globalTestFailed, apiTestResult.numTestsRun),
-          skipRate: calculatePercentage(0, apiTestResult.numTestsRun),
-          testStartTime: formatStartTime(startTime, 'ISO'),
-          testExecutionTimeInMs: apiTestResult.totalTime ?? 0,
-          testTotalTimeInMs: apiTestResult.totalTime ?? 0,
-          commandTimeInMs: getCurrentTime() - startTime,
-          hostname: this.connection.instanceUrl,
-          orgId: Schema.decodeUnknownSync(OrgIdString)(this.connection.getAuthInfoFields().orgId),
-          ...(username ? { username } : {}),
-          ...(userId === undefined ? {} : { userId: Schema.decodeUnknownSync(UserIdString)(userId) })
-        },
-        tests: testResults
-      };
-
-      await calculateCodeCoverage(this.codecoverage, codeCoverage, apexTestClassIdSet, rawResult, false);
-      return transformTestResult(rawResult);
+      const formatted = await formatSyncResults(this.connection, apiTestResult, startTime).pipe(
+        Effect.either,
+        Effect.runPromise
+      );
+      if (Either.isLeft(formatted)) throw new Error(formatted.left.message);
+      return await this.addCodeCoverage(formatted.right, codeCoverage);
     } finally {
       HeapMonitor.getInstance().checkHeapSize('synctests.formatSyncResults');
     }
   }
 
-  @elapsedTime()
-  private buildSyncTestResults(apiTestResult: SyncTestResult): {
-    apexTestClassIdSet: Set<string>;
-    testResults: ApexTestResultDataRaw[];
-  } {
-    HeapMonitor.getInstance().checkHeapSize('syncTests.buildSyncTestResults');
-    try {
-      const apexTestClassIdSet = new Set<string>();
-      const testResults: ApexTestResultDataRaw[] = [];
-
-      apiTestResult.successes.forEach(item => {
-        testResults.push(this.processTestResult(item, apiTestResult, apexTestClassIdSet, 'Pass'));
-      });
-
-      apiTestResult.failures.forEach(item => {
-        testResults.push(this.processTestResult(item, apiTestResult, apexTestClassIdSet, 'Fail'));
-      });
-
-      return { apexTestClassIdSet, testResults };
-    } finally {
-      HeapMonitor.getInstance().checkHeapSize('syncTests.buildSyncTestResults');
-    }
-  }
-
-  private processTestResult(
-    item: {
-      id: string;
-      methodName: string;
-      name: string;
-      namespace: string | null;
-      stackTrace?: string | null;
-      message?: string | null;
-      time?: number;
-    },
-    apiTestResult: SyncTestResult,
-    apexTestClassIdSet: Set<string>,
-    outcome: ApexTestResultOutcome
-  ): ApexTestResultDataRaw {
-    const nms = item.namespace ? (outcome === 'Fail' ? `${item.namespace}__` : `${item.namespace}.`) : '';
-    apexTestClassIdSet.add(item.id);
-
-    const testResult: ApexTestResultDataRaw = {
-      ...(item.stackTrace ? { stackTrace: item.stackTrace } : {}),
-      ...(item.message ? { message: item.message } : {}),
-      methodName: item.methodName,
-      outcome,
-      apexLogId: Schema.decodeUnknownSync(ApexLogId)(apiTestResult.apexLogId),
-      apexClass: {
-        id: Schema.decodeUnknownSync(ApexClassId)(item.id),
-        name: item.name,
-        ...(item.namespace ? { namespacePrefix: item.namespace } : {}),
-        fullName: `${nms}${item.name}`
-      },
-      runTime: item.time ?? 0,
-      fullName: `${nms}${item.name}.${item.methodName}`,
-      category: computeTestCategory(item.namespace)
-    };
-
-    if (outcome === 'Fail') {
-      const diagnostic = item.message || item.stackTrace ? getDiagnostic(item as SyncTestFailure) : null;
-      if (diagnostic) {
-        testResult.diagnostic = diagnostic;
-      }
-    }
-    return testResult;
+  // Coverage retrieval retains its existing class implementation until its own migration.
+  private async addCodeCoverage(result: TestResult, codeCoverage: boolean): Promise<TestResult> {
+    await calculateCodeCoverage(
+      this.codecoverage,
+      codeCoverage,
+      new Set(result.tests.map(test => test.apexClass.id).filter(isNotUndefined)),
+      result,
+      false
+    );
+    return result;
   }
 }

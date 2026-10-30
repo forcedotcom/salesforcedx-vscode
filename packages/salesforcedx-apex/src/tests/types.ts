@@ -5,19 +5,28 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { SyncTestConfigurationSchema, TestItemSchema } from '../effect/schema/testPayloads';
 import * as Schema from 'effect/Schema';
+import { CodeCoverageResultSchema, PerClassCoverageSchema } from '../effect/coverageSchemas';
 import {
-  ApexClassId,
-  ApexClassIdString,
   ApexLogIdString,
+  ApexClassIdString,
   ApexTestQueueItemIdString,
   ApexTestResultIdString,
-  ApexTriggerId,
   FlowTestResultIdString,
   OrgIdString,
   TestRunIdString,
   UserIdString
 } from '../schemas/salesforceId';
+
+export type {
+  ApexCodeCoverage,
+  ApexCodeCoverageAggregate,
+  ApexCodeCoverageAggregateRecord,
+  ApexCodeCoverageRecord,
+  ApexOrgWideCoverage
+} from '../effect/schema/wire/coverage';
+export type { CodeCoverageResult, PerClassCoverage } from '../effect/coverageSchemas';
 
 /**
  * Specifies which Apex tests run.
@@ -103,26 +112,7 @@ export type OutputDirConfig = {
 /**
  * array of objects that represent Apex test classes
  */
-export type TestItem = {
-  /**
-   * Apex Class name. Should include namespace if needed e.g. namespace.ClassName
-   */
-  className?: string;
-  /**
-   * Apex Class Id
-   */
-  classId?: string;
-  /**
-   * Array of test names to run. Not specifying it will run all test methods in a test class
-   */
-  testMethods?: string[];
-  /**
-   * Namespace associated with the test class or method
-   */
-  namespace?: string;
-
-  category?: string;
-};
+export type TestItem = typeof TestItemSchema.Type;
 
 export type AsyncTestArrayConfiguration = {
   tests: TestItem[];
@@ -148,30 +138,7 @@ export type AsyncTestArrayConfiguration = {
   category?: string[];
 };
 
-export type SyncTestConfiguration = {
-  classNames?: string;
-  /**
-   * Specifies which test class to run. Only one class is allowed for synchronous runs.
-   */
-  tests?: TestItem[];
-  /**
-   * Specifies which tests to run. The only valid value is RunSpecifiedTests.
-   */
-  testLevel?: string;
-  /**
-   * Limits the test run from executing new tests after a given number of tests fail.
-   * Valid value ranges from 0 to 1,000,000. A value of 0 causes the test run to stop if any failure occurs.
-   */
-  maxFailedTests?: number;
-  /**
-   * Allows for faster tests by skipping code coverage
-   */
-  skipCodeCoverage?: boolean;
-  /**
-   * Category for this run, for Flow or Apex
-   */
-  category?: string[];
-};
+export type SyncTestConfiguration = typeof SyncTestConfigurationSchema.Type;
 
 type SyncTestSuccess = {
   id: string;
@@ -390,21 +357,6 @@ export const ApexDiagnosticSchema = Schema.Struct({
   className: Schema.optional(Schema.String)
 }).pipe(Schema.mutable, Schema.annotations({ identifier: 'ApexDiagnostic' }));
 
-export const PerClassCoverageSchema = Schema.Struct({
-  apexClassOrTriggerName: Schema.String,
-  apexClassOrTriggerId: Schema.Union(ApexClassId, ApexTriggerId),
-  apexTestClassId: ApexClassId,
-  apexTestMethodName: Schema.String,
-  numLinesCovered: Schema.Number,
-  numLinesUncovered: Schema.Number,
-  percentage: Schema.String,
-  coverage: Schema.Struct({
-    coveredLines: Schema.Array(Schema.Number).pipe(Schema.mutable),
-    uncoveredLines: Schema.Array(Schema.Number).pipe(Schema.mutable)
-  }).pipe(Schema.mutable, Schema.optional)
-}).pipe(Schema.mutable, Schema.annotations({ identifier: 'PerClassCoverage' }));
-export type PerClassCoverage = Schema.Schema.Type<typeof PerClassCoverageSchema>;
-
 const ApexTestResultDataFields = {
   /** Salesforce Apex or Flow test result ID; absent for synchronous results. */
   id: Schema.optional(Schema.Union(ApexTestResultIdString, FlowTestResultIdString)),
@@ -459,16 +411,16 @@ export const ApexTestResultDataRawSchema = Schema.Struct({
 export type ApexTestResultDataRaw = Schema.Schema.Type<typeof ApexTestResultDataRawSchema>;
 
 export const ApexTestSetupDataSchema = Schema.Struct({
-  id: ApexTestResultIdString,
-  stackTrace: Schema.NonEmptyString.pipe(Schema.NullOr, Schema.optional),
-  message: Schema.NonEmptyString.pipe(Schema.NullOr, Schema.optional),
-  asyncApexJobId: TestRunIdString,
+  id: Schema.optional(Schema.Union(ApexTestResultIdString, FlowTestResultIdString)),
+  stackTrace: Schema.optional(Schema.NonEmptyString),
+  message: Schema.optional(Schema.NonEmptyString),
+  asyncApexJobId: Schema.optional(TestRunIdString),
   methodName: Schema.String,
-  apexLogId: Schema.NullOr(ApexLogIdString),
+  apexLogId: Schema.optional(ApexLogIdString),
   apexClass: Schema.Struct({
-    id: ApexClassIdString,
+    id: Schema.optional(ApexClassIdString),
     name: Schema.String,
-    namespacePrefix: Schema.NonEmptyString.pipe(Schema.NullOr, Schema.optional),
+    namespacePrefix: Schema.optional(Schema.NonEmptyString),
     fullName: Schema.String
   }).pipe(Schema.mutable),
   testSetupTime: Schema.Number,
@@ -477,18 +429,6 @@ export const ApexTestSetupDataSchema = Schema.Struct({
   diagnostic: Schema.optional(ApexDiagnosticSchema)
 }).pipe(Schema.mutable, Schema.annotations({ identifier: 'ApexTestSetupData' }));
 export type ApexTestSetupData = Schema.Schema.Type<typeof ApexTestSetupDataSchema>;
-
-export const CodeCoverageResultSchema = Schema.Struct({
-  apexId: Schema.String,
-  name: Schema.String,
-  type: Schema.Literal('ApexClass', 'ApexTrigger'),
-  numLinesCovered: Schema.Number,
-  numLinesUncovered: Schema.Number,
-  percentage: Schema.String,
-  coveredLines: Schema.Array(Schema.Number).pipe(Schema.mutable),
-  uncoveredLines: Schema.Array(Schema.Number).pipe(Schema.mutable)
-}).pipe(Schema.mutable, Schema.annotations({ identifier: 'CodeCoverageResult' }));
-export type CodeCoverageResult = Schema.Schema.Type<typeof CodeCoverageResultSchema>;
 
 export type TestRunIdResult = {
   testRunId: string;
@@ -534,52 +474,6 @@ export const TestResultRawSchema = Schema.Struct({
   codecoverage: Schema.Array(CodeCoverageResultSchema).pipe(Schema.mutable, Schema.optional)
 }).pipe(Schema.mutable, Schema.annotations({ identifier: 'TestResultRaw' }));
 export type TestResultRaw = Schema.Schema.Type<typeof TestResultRawSchema>;
-
-export type ApexCodeCoverageRecord = {
-  ApexClassOrTrigger: {
-    Id: string;
-    Name: string;
-  };
-  ApexTestClassId: string;
-  TestMethodName: string;
-  NumLinesCovered: number;
-  NumLinesUncovered: number;
-  Coverage?: {
-    coveredLines: number[];
-    uncoveredLines: number[];
-  };
-};
-
-export type ApexCodeCoverage = {
-  done: boolean;
-  totalSize: number;
-  records: ApexCodeCoverageRecord[];
-};
-
-export type ApexCodeCoverageAggregateRecord = {
-  ApexClassOrTrigger: {
-    Id: string;
-    Name: string;
-  };
-  NumLinesCovered: number;
-  NumLinesUncovered: number;
-  Coverage: {
-    coveredLines: number[];
-    uncoveredLines: number[];
-  };
-};
-
-export type ApexCodeCoverageAggregate = {
-  done: boolean;
-  totalSize: number;
-  records: ApexCodeCoverageAggregateRecord[];
-};
-
-export type ApexOrgWideCoverage = {
-  done: boolean;
-  totalSize: number;
-  records: { PercentCovered: string }[];
-};
 
 export type NamespaceInfo = {
   installedNs: boolean;
