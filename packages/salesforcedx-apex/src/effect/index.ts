@@ -8,11 +8,10 @@
 export { executeAnonymous } from './executeAnonymous';
 export { ExecuteAnonymousOptionsSchema, ExecuteAnonymousOutcomeSchema } from './schema/executeAnonymous';
 export type { ExecuteAnonymousOptions, ExecuteAnonymousOutcome } from './schema/executeAnonymous';
-export { getDiagnostic } from './diagnostics';
+export { ApexDiagnosticSchema, getDiagnostic } from './diagnostics';
 export { formatSyncResults, runTestSynchronous } from './syncTests';
 export { transformTestResult } from './testResults';
 export {
-  ApexDiagnosticSchema,
   ApexTestResultDataSchema,
   ApexTestResultDataRawSchema,
   ApexTestResultOutcomeSchema,
