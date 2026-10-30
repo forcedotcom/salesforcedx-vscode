@@ -12,10 +12,12 @@ import * as PubSub from 'effect/PubSub';
 import * as Queue from 'effect/Queue';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
+import { makeScopedFibers } from './scopedFiber.js';
 
 /** Registers once per layer scope and waits for registration before publishing acquisition success. */
 export const SettingsWatcherLayer = Layer.effectDiscard(
   Effect.gen(function* () {
+    const scopedFibers = yield* makeScopedFibers;
     const events = yield* SettingsChangePubSub;
     const subscribed = yield* Deferred.make<void>();
     yield* Stream.callback<vscode.ConfigurationChangeEvent>(queue =>
@@ -35,7 +37,7 @@ export const SettingsWatcherLayer = Layer.effectDiscard(
       )
     ).pipe(
       Stream.runForEach(event => PubSub.publish(events, event)),
-      Effect.forkScoped
+      scopedFibers.fork
     );
     yield* Deferred.await(subscribed);
   })

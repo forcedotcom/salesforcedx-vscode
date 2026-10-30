@@ -29,7 +29,15 @@ export type SalesforceVSCodeServicesApiV2 = {
 
 export { AliasService } from './aliasService.js';
 export { ConfigService } from './configService.js';
-export { ConnectionService } from './connectionService.js';
+export { ConnectionService, type ConnectionError, type OrgAuthorizationSummary } from './connectionService.js';
+export {
+  AuthFields,
+  authFieldsFrom,
+  authFieldsFromConnection,
+  orgIdFrom,
+  orgIdFromConnection,
+  type AuthInfoFields
+} from './authFields.js';
 export { TargetOrgRef } from './targetOrgRef.js';
 export { WorkspaceService, type WorkspaceInfo, type WorkspaceWithFolder } from './workspaceService.js';
 export { SettingsService, WebSessionContextSchema, type WebSessionContext } from './settingsService.js';
@@ -51,5 +59,9 @@ export {
   ConfigWriteError,
   FsServiceError,
   HostFileNotFoundError,
-  HostFileWatchError
+  HostFileWatchError,
+  FailedToSaveAuthInfoError,
+  FailedToListAuthorizationsError,
+  GetAuthFieldsError,
+  InactiveOrgOperationError
 } from './errors.js';

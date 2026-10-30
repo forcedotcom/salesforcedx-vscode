@@ -19,6 +19,18 @@
     "./hostFileSystem": {
       "types": "./out/hostFileSystem.d.ts",
       "default": "./out/hostFileSystem.js"
+    },
+    "./connectionLayers": {
+      "types": "./out/connectionLayers.d.ts",
+      "default": "./out/connectionLayers.js"
+    },
+    "./connectionHost": {
+      "types": "./out/connectionHost.d.ts",
+      "default": "./out/connectionHost.js"
+    },
+    "./connectionRuntime": {
+      "types": "./out/connectionRuntime.d.ts",
+      "default": "./out/connectionRuntime.js"
     }
   },
   "files": [
@@ -30,6 +42,7 @@
   "dependencies": {
     "@salesforce/core": "^9.3.6",
     "@salesforce/vscode-services-v2": "*",
+    "@salesforce/vscode-services-v3-compat": "*",
     "effect": "4.0.6",
     "vscode-uri": "^3.1.0"
   },
@@ -45,7 +58,8 @@
     "compile": {
       "command": "tsc --pretty",
       "dependencies": [
-        "../salesforcedx-vscode-services-v2:compile"
+        "../salesforcedx-vscode-services-v2:compile",
+        "../salesforcedx-vscode-services-v3-compat:compile"
       ],
       "files": [
         "src/**/*.ts",

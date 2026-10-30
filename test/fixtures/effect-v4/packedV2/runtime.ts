@@ -24,7 +24,7 @@ const orgRef = Effect.runSync(
 );
 const runtime = ManagedRuntime.make(
   Layer.mergeAll(
-    Layer.succeed(ConnectionService, {
+    Layer.mock(ConnectionService, {
       getConnection: () => Effect.fail(new NoTargetOrgConfiguredError({ message: 'No target org configured' }))
     }),
     Layer.mock(AliasService, { getAliasesFromUsername: () => Effect.succeed(['configured-alias']) }),

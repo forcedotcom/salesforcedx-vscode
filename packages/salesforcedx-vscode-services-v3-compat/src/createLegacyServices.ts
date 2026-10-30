@@ -51,7 +51,7 @@ const hostCause = <D, E>(reasons: readonly HostReason<D>[], decode: (data: D) =>
     Cause.empty
   );
 
-const fromHostExit = <A, D, E>(exit: HostExit<A, D>, decode: (data: D) => E) =>
+export const fromHostExit = <A, D, E>(exit: HostExit<A, D>, decode: (data: D) => E) =>
   exit._tag === 'Success' ? Effect.succeed(exit.value) : Effect.failCause(hostCause(exit.reasons, decode));
 
 const completeHost = <A, D>(run: () => Promise<HostExit<A, D>>) => {
@@ -165,6 +165,8 @@ const makeLegacyServices = Effect.fn('V3Compatibility.makeLegacyServices')(funct
               )
             ),
             Effect.orDie,
+            // This separate V3 runner cannot inherit V4's masked commit acknowledgment.
+            Effect.uninterruptible,
             Effect.runPromise
           )
         )

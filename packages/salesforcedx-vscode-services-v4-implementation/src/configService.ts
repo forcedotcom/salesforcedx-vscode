@@ -22,6 +22,9 @@ import * as Layer from 'effect/Layer';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { unknownToErrorCause } from './errorCause.js';
+import { makeScopedFibers } from './scopedFiber.js';
+import { ServiceOperations, ServiceOperationsLayer } from './serviceOperations.js';
+import { OrgChanges } from './targetOrgRef.js';
 
 // The resolved config can contain a decrypted live session id. Never spread it onto spans.
 const spanSafeKeys: readonly string[] = [
@@ -53,6 +56,9 @@ export const ConfigServiceLayer = Layer.effect(
   Effect.gen(function* () {
     const workspace = yield* WorkspaceService;
     const orgRef = yield* TargetOrgRef;
+    const orgChanges = yield* OrgChanges;
+    const operations = yield* ServiceOperations;
+    const scopedFibers = yield* makeScopedFibers;
     const cache = yield* Cache.make({ capacity: 5, timeToLive: Duration.minutes(30), lookup: createAggregator });
     yield* Effect.addFinalizer(() => Cache.invalidateAll(cache));
     const subscribed = yield* Deferred.make<void>();
@@ -61,7 +67,7 @@ export const ConfigServiceLayer = Layer.effect(
       // An empty, already-closed subscription is not successful initialization.
       // Deferred.done is a no-op after the first snapshot acknowledged readiness.
       Effect.onExit(exit => Deferred.done(subscribed, Exit.isSuccess(exit) ? Exit.interrupt() : exit)),
-      Effect.forkScoped
+      scopedFibers.fork
     );
     // Publish the service only after its initial snapshot/invalidation and subscription are established.
     yield* Deferred.await(subscribed);
@@ -76,7 +82,7 @@ export const ConfigServiceLayer = Layer.effect(
         : Effect.promise(() => aggregator.reload());
       yield* Effect.annotateCurrentSpan(spanSafeConfig(reloaded.getConfig()));
       return reloaded;
-    });
+    }, operations.run);
     const invalidateConfigAggregator = Effect.fn('ConfigService.invalidateConfigAggregator')(() =>
       Cache.invalidateAll(cache)
     );
@@ -112,23 +118,21 @@ export const ConfigServiceLayer = Layer.effect(
         config.set(OrgConfigProperties.TARGET_ORG, usernameOrAlias);
         yield* Effect.tryPromise({ try: () => config.write(), catch: writeError });
         yield* invalidateConfigAggregator();
-      }),
+      }, operations.run),
       unsetTargetOrg: Effect.fn('ConfigService.unsetTargetOrg')(function* () {
+        const generation = yield* orgChanges.begin;
         const config = yield* Effect.promise(() => Config.create(Config.getDefaultOptions()));
         config.unset(OrgConfigProperties.TARGET_ORG);
         yield* Effect.promise(() => config.write());
         yield* invalidateConfigAggregator();
-        yield* SubscriptionRef.update(orgRef, current => ({
-          ...(current.webUserId ? { webUserId: current.webUserId } : {}),
-          ...(current.cliId ? { cliId: current.cliId } : {})
-        }));
-      }),
+        yield* orgChanges.clearIfCurrent(generation);
+      }, operations.run),
       unsetTargetDevHub: Effect.fn('ConfigService.unsetTargetDevHub')(function* () {
         const config = yield* Effect.promise(() => Config.create(Config.getDefaultOptions()));
         config.unset(OrgConfigProperties.TARGET_DEV_HUB);
         yield* Effect.promise(() => config.write());
         yield* invalidateConfigAggregator();
-      })
+      }, operations.run)
     });
   })
-);
+).pipe(Layer.provideMerge(ServiceOperationsLayer));

@@ -19,6 +19,7 @@ const cli = path.join(root, 'node_modules/@effect/language-service/cli.js');
 
 try {
   const packedPackages = [
+    packServicesPackage(path.join(root, 'packages/salesforcedx-vscode-services-v3-compat'), directory, 'compat.tgz'),
     packServicesPackage(path.join(root, 'packages/salesforcedx-vscode-services-v2'), directory, 'v2.tgz'),
     packServicesPackage(
       path.join(root, 'packages/salesforcedx-vscode-services-v4-implementation'),
