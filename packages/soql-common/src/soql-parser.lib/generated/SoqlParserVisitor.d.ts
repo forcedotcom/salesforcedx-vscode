@@ -5,6 +5,8 @@ import { SoqlSelectColumnExprContext } from "./SoqlParser";
 import { SoqlSelectInnerQueryExprContext } from "./SoqlParser";
 import { SoqlSelectTypeofExprContext } from "./SoqlParser";
 import { SoqlSelectDistanceExprContext } from "./SoqlParser";
+import { SoqlForUpdateOptionContext } from "./SoqlParser";
+import { SoqlGenericOptionContext } from "./SoqlParser";
 import { SoqlUsingPre192ExprWithScopeContext } from "./SoqlParser";
 import { SoqlUsingPre192ExprDefaultContext } from "./SoqlParser";
 import { SoqlUsingPre192ExprWithNoScopeContext } from "./SoqlParser";
@@ -14,13 +16,14 @@ import { SoqlLiteralLikeValueContext } from "./SoqlParser";
 import { SoqlColonLikeValueContext } from "./SoqlParser";
 import { SoqlWhereAndOrExprContext } from "./SoqlParser";
 import { SoqlWhereNotExprContext } from "./SoqlParser";
-import { SoqlWhereClauseMethodContext } from "./SoqlParser";
 import { SoqlSelectCountClauseContext } from "./SoqlParser";
 import { SoqlSelectExprsClauseContext } from "./SoqlParser";
 import { SoqlForViewContext } from "./SoqlParser";
 import { SoqlForReferenceContext } from "./SoqlParser";
 import { SoqlLikeStringLiteralContext } from "./SoqlParser";
 import { SoqlLikeCommonLiteralsContext } from "./SoqlParser";
+import { SoqlSetOptionsKeyValuesClauseContext } from "./SoqlParser";
+import { SoqlSetOptionsColonClauseContext } from "./SoqlParser";
 import { SoqlStringWithValueContext } from "./SoqlParser";
 import { SoqlColonExprWithValueContext } from "./SoqlParser";
 import { SoqlWithIdentifierTupleClauseContext } from "./SoqlParser";
@@ -31,9 +34,9 @@ import { SoqlDateLiteralContext } from "./SoqlParser";
 import { SoqlDateTimeLiteralContext } from "./SoqlParser";
 import { SoqlTimeLiteralContext } from "./SoqlParser";
 import { SoqlNumberLiteralContext } from "./SoqlParser";
-import { SoqlNullLiteralContext } from "./SoqlParser";
 import { SoqlBooleanLiteralContext } from "./SoqlParser";
-import { SoqlDateFormulaLiteralContext } from "./SoqlParser";
+import { SoqlFixedRangeDateFormulaLiteralContext } from "./SoqlParser";
+import { SoqlVariableRangeDateFormulaLiteralContext } from "./SoqlParser";
 import { SoqlMultiCurrencyContext } from "./SoqlParser";
 import { SoqlLiteralLiteralValueContext } from "./SoqlParser";
 import { SoqlColonExprLiteralValueContext } from "./SoqlParser";
@@ -41,9 +44,11 @@ import { SoqlWithDataCategoryClauseContext } from "./SoqlParser";
 import { SoqlWithEqualsClauseContext } from "./SoqlParser";
 import { SoqlStringLiteralContext } from "./SoqlParser";
 import { SoqlLiteralCommonLiteralsContext } from "./SoqlParser";
+import { SoqlNullLiteralContext } from "./SoqlParser";
 import { NestedWhereExprContext } from "./SoqlParser";
 import { CalculatedWhereExprContext } from "./SoqlParser";
 import { DistanceWhereExprContext } from "./SoqlParser";
+import { FormulaWhereExprContext } from "./SoqlParser";
 import { SimpleWhereExprContext } from "./SoqlParser";
 import { LikeWhereExprContext } from "./SoqlParser";
 import { IncludesWhereExprContext } from "./SoqlParser";
@@ -51,12 +56,16 @@ import { InWhereExprWithSemiJoinContext } from "./SoqlParser";
 import { InWhereExprContext } from "./SoqlParser";
 import { InWhereExprForColonExprContext } from "./SoqlParser";
 import { SoqlLiteralNumberValueContext } from "./SoqlParser";
+import { SoqlColonExprNumberValueContext } from "./SoqlParser";
 import { SoqlOrderByColumnExprContext } from "./SoqlParser";
 import { SoqlOrderByDistanceExprContext } from "./SoqlParser";
-import { ParseReservedForFieldNameContext } from "./SoqlParser";
+import { AllowedKeywordContext } from "./SoqlParser";
+import { AllowedKeywordForFunctionsContext } from "./SoqlParser";
+import { AllowedSoqlKeywordContext } from "./SoqlParser";
+import { IdentifierContext } from "./SoqlParser";
 import { SoqlIdentifierContext } from "./SoqlParser";
-import { SoqlIdentifierNoReservedContext } from "./SoqlParser";
-import { SoqlIdentifiersContext } from "./SoqlParser";
+import { IdentifierNoKeywordContext } from "./SoqlParser";
+import { FunctionIdentifierContext } from "./SoqlParser";
 import { SoqlFieldContext } from "./SoqlParser";
 import { SoqlTypeofOperandContext } from "./SoqlParser";
 import { SoqlWhenOperandContext } from "./SoqlParser";
@@ -69,8 +78,10 @@ import { SoqlIntegerContext } from "./SoqlParser";
 import { SoqlIntegerValueContext } from "./SoqlParser";
 import { SoqlNumberContext } from "./SoqlParser";
 import { SoqlNumberValueContext } from "./SoqlParser";
+import { SoqlGeolocationContext } from "./SoqlParser";
 import { SoqlGeolocationValueContext } from "./SoqlParser";
 import { SoqlDistanceExprContext } from "./SoqlParser";
+import { SoqlFormulaExprContext } from "./SoqlParser";
 import { SoqlWhereClauseContext } from "./SoqlParser";
 import { SoqlWhereExprsContext } from "./SoqlParser";
 import { SoqlAndWhereContext } from "./SoqlParser";
@@ -111,6 +122,7 @@ import { SoqlWithValueContext } from "./SoqlParser";
 import { SoqlWithKeyValueContext } from "./SoqlParser";
 import { SoqlWithClauseContext } from "./SoqlParser";
 import { SoqlWithIdentifierClauseContext } from "./SoqlParser";
+import { SoqlSetOptionsClauseContext } from "./SoqlParser";
 import { SoqlLimitClauseContext } from "./SoqlParser";
 import { SoqlOffsetClauseContext } from "./SoqlParser";
 import { SoqlGroupByExprsContext } from "./SoqlParser";
@@ -128,7 +140,9 @@ import { SoqlUpdateStatsClauseContext } from "./SoqlParser";
 import { SoqlSelectClauseContext } from "./SoqlParser";
 import { SoqlSemiJoinContext } from "./SoqlParser";
 import { SoqlInnerQueryContext } from "./SoqlParser";
+import { SoqlOptionContext } from "./SoqlParser";
 import { SoqlQueryContext } from "./SoqlParser";
+import { SoqlStandaloneLiteralContext } from "./SoqlParser";
 /**
  * This interface defines a complete generic visitor for a parse tree produced
  * by `SoqlParser`.
@@ -179,6 +193,20 @@ export interface SoqlParserVisitor<Result> extends ParseTreeVisitor<Result> {
      * @return the visitor result
      */
     visitSoqlSelectDistanceExpr?: (ctx: SoqlSelectDistanceExprContext) => Result;
+    /**
+     * Visit a parse tree produced by the `soqlForUpdateOption`
+     * labeled alternative in `SoqlParser.soqlOption`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitSoqlForUpdateOption?: (ctx: SoqlForUpdateOptionContext) => Result;
+    /**
+     * Visit a parse tree produced by the `soqlGenericOption`
+     * labeled alternative in `SoqlParser.soqlOption`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitSoqlGenericOption?: (ctx: SoqlGenericOptionContext) => Result;
     /**
      * Visit a parse tree produced by the `soqlUsingPre192ExprWithScope`
      * labeled alternative in `SoqlParser.soqlUsingPre192Expr`.
@@ -243,13 +271,6 @@ export interface SoqlParserVisitor<Result> extends ParseTreeVisitor<Result> {
      */
     visitSoqlWhereNotExpr?: (ctx: SoqlWhereNotExprContext) => Result;
     /**
-     * Visit a parse tree produced by the `soqlWhereClauseMethod`
-     * labeled alternative in `SoqlParser.soqlWhereClause`.
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    visitSoqlWhereClauseMethod?: (ctx: SoqlWhereClauseMethodContext) => Result;
-    /**
      * Visit a parse tree produced by the `soqlSelectCountClause`
      * labeled alternative in `SoqlParser.soqlSelectClause`.
      * @param ctx the parse tree
@@ -291,6 +312,20 @@ export interface SoqlParserVisitor<Result> extends ParseTreeVisitor<Result> {
      * @return the visitor result
      */
     visitSoqlLikeCommonLiterals?: (ctx: SoqlLikeCommonLiteralsContext) => Result;
+    /**
+     * Visit a parse tree produced by the `soqlSetOptionsKeyValuesClause`
+     * labeled alternative in `SoqlParser.soqlSetOptionsClause`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitSoqlSetOptionsKeyValuesClause?: (ctx: SoqlSetOptionsKeyValuesClauseContext) => Result;
+    /**
+     * Visit a parse tree produced by the `soqlSetOptionsColonClause`
+     * labeled alternative in `SoqlParser.soqlSetOptionsClause`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitSoqlSetOptionsColonClause?: (ctx: SoqlSetOptionsColonClauseContext) => Result;
     /**
      * Visit a parse tree produced by the `soqlStringWithValue`
      * labeled alternative in `SoqlParser.soqlWithValue`.
@@ -362,13 +397,6 @@ export interface SoqlParserVisitor<Result> extends ParseTreeVisitor<Result> {
      */
     visitSoqlNumberLiteral?: (ctx: SoqlNumberLiteralContext) => Result;
     /**
-     * Visit a parse tree produced by the `soqlNullLiteral`
-     * labeled alternative in `SoqlParser.soqlCommonLiterals`.
-     * @param ctx the parse tree
-     * @return the visitor result
-     */
-    visitSoqlNullLiteral?: (ctx: SoqlNullLiteralContext) => Result;
-    /**
      * Visit a parse tree produced by the `soqlBooleanLiteral`
      * labeled alternative in `SoqlParser.soqlCommonLiterals`.
      * @param ctx the parse tree
@@ -376,12 +404,19 @@ export interface SoqlParserVisitor<Result> extends ParseTreeVisitor<Result> {
      */
     visitSoqlBooleanLiteral?: (ctx: SoqlBooleanLiteralContext) => Result;
     /**
-     * Visit a parse tree produced by the `soqlDateFormulaLiteral`
+     * Visit a parse tree produced by the `soqlFixedRangeDateFormulaLiteral`
      * labeled alternative in `SoqlParser.soqlCommonLiterals`.
      * @param ctx the parse tree
      * @return the visitor result
      */
-    visitSoqlDateFormulaLiteral?: (ctx: SoqlDateFormulaLiteralContext) => Result;
+    visitSoqlFixedRangeDateFormulaLiteral?: (ctx: SoqlFixedRangeDateFormulaLiteralContext) => Result;
+    /**
+     * Visit a parse tree produced by the `soqlVariableRangeDateFormulaLiteral`
+     * labeled alternative in `SoqlParser.soqlCommonLiterals`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitSoqlVariableRangeDateFormulaLiteral?: (ctx: SoqlVariableRangeDateFormulaLiteralContext) => Result;
     /**
      * Visit a parse tree produced by the `soqlMultiCurrency`
      * labeled alternative in `SoqlParser.soqlCommonLiterals`.
@@ -432,6 +467,13 @@ export interface SoqlParserVisitor<Result> extends ParseTreeVisitor<Result> {
      */
     visitSoqlLiteralCommonLiterals?: (ctx: SoqlLiteralCommonLiteralsContext) => Result;
     /**
+     * Visit a parse tree produced by the `soqlNullLiteral`
+     * labeled alternative in `SoqlParser.soqlLiteral`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitSoqlNullLiteral?: (ctx: SoqlNullLiteralContext) => Result;
+    /**
      * Visit a parse tree produced by the `nestedWhereExpr`
      * labeled alternative in `SoqlParser.soqlWhereExpr`.
      * @param ctx the parse tree
@@ -452,6 +494,13 @@ export interface SoqlParserVisitor<Result> extends ParseTreeVisitor<Result> {
      * @return the visitor result
      */
     visitDistanceWhereExpr?: (ctx: DistanceWhereExprContext) => Result;
+    /**
+     * Visit a parse tree produced by the `formulaWhereExpr`
+     * labeled alternative in `SoqlParser.soqlWhereExpr`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitFormulaWhereExpr?: (ctx: FormulaWhereExprContext) => Result;
     /**
      * Visit a parse tree produced by the `simpleWhereExpr`
      * labeled alternative in `SoqlParser.soqlWhereExpr`.
@@ -502,6 +551,13 @@ export interface SoqlParserVisitor<Result> extends ParseTreeVisitor<Result> {
      */
     visitSoqlLiteralNumberValue?: (ctx: SoqlLiteralNumberValueContext) => Result;
     /**
+     * Visit a parse tree produced by the `soqlColonExprNumberValue`
+     * labeled alternative in `SoqlParser.soqlNumberValue`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitSoqlColonExprNumberValue?: (ctx: SoqlColonExprNumberValueContext) => Result;
+    /**
      * Visit a parse tree produced by the `soqlOrderByColumnExpr`
      * labeled alternative in `SoqlParser.soqlOrderByClauseField`.
      * @param ctx the parse tree
@@ -516,11 +572,29 @@ export interface SoqlParserVisitor<Result> extends ParseTreeVisitor<Result> {
      */
     visitSoqlOrderByDistanceExpr?: (ctx: SoqlOrderByDistanceExprContext) => Result;
     /**
-     * Visit a parse tree produced by `SoqlParser.parseReservedForFieldName`.
+     * Visit a parse tree produced by `SoqlParser.allowedKeyword`.
      * @param ctx the parse tree
      * @return the visitor result
      */
-    visitParseReservedForFieldName?: (ctx: ParseReservedForFieldNameContext) => Result;
+    visitAllowedKeyword?: (ctx: AllowedKeywordContext) => Result;
+    /**
+     * Visit a parse tree produced by `SoqlParser.allowedKeywordForFunctions`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitAllowedKeywordForFunctions?: (ctx: AllowedKeywordForFunctionsContext) => Result;
+    /**
+     * Visit a parse tree produced by `SoqlParser.allowedSoqlKeyword`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitAllowedSoqlKeyword?: (ctx: AllowedSoqlKeywordContext) => Result;
+    /**
+     * Visit a parse tree produced by `SoqlParser.identifier`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitIdentifier?: (ctx: IdentifierContext) => Result;
     /**
      * Visit a parse tree produced by `SoqlParser.soqlIdentifier`.
      * @param ctx the parse tree
@@ -528,17 +602,17 @@ export interface SoqlParserVisitor<Result> extends ParseTreeVisitor<Result> {
      */
     visitSoqlIdentifier?: (ctx: SoqlIdentifierContext) => Result;
     /**
-     * Visit a parse tree produced by `SoqlParser.soqlIdentifierNoReserved`.
+     * Visit a parse tree produced by `SoqlParser.identifierNoKeyword`.
      * @param ctx the parse tree
      * @return the visitor result
      */
-    visitSoqlIdentifierNoReserved?: (ctx: SoqlIdentifierNoReservedContext) => Result;
+    visitIdentifierNoKeyword?: (ctx: IdentifierNoKeywordContext) => Result;
     /**
-     * Visit a parse tree produced by `SoqlParser.soqlIdentifiers`.
+     * Visit a parse tree produced by `SoqlParser.functionIdentifier`.
      * @param ctx the parse tree
      * @return the visitor result
      */
-    visitSoqlIdentifiers?: (ctx: SoqlIdentifiersContext) => Result;
+    visitFunctionIdentifier?: (ctx: FunctionIdentifierContext) => Result;
     /**
      * Visit a parse tree produced by `SoqlParser.soqlField`.
      * @param ctx the parse tree
@@ -612,6 +686,12 @@ export interface SoqlParserVisitor<Result> extends ParseTreeVisitor<Result> {
      */
     visitSoqlNumberValue?: (ctx: SoqlNumberValueContext) => Result;
     /**
+     * Visit a parse tree produced by `SoqlParser.soqlGeolocation`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitSoqlGeolocation?: (ctx: SoqlGeolocationContext) => Result;
+    /**
      * Visit a parse tree produced by `SoqlParser.soqlGeolocationValue`.
      * @param ctx the parse tree
      * @return the visitor result
@@ -623,6 +703,12 @@ export interface SoqlParserVisitor<Result> extends ParseTreeVisitor<Result> {
      * @return the visitor result
      */
     visitSoqlDistanceExpr?: (ctx: SoqlDistanceExprContext) => Result;
+    /**
+     * Visit a parse tree produced by `SoqlParser.soqlFormulaExpr`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitSoqlFormulaExpr?: (ctx: SoqlFormulaExprContext) => Result;
     /**
      * Visit a parse tree produced by `SoqlParser.soqlWhereClause`.
      * @param ctx the parse tree
@@ -864,6 +950,12 @@ export interface SoqlParserVisitor<Result> extends ParseTreeVisitor<Result> {
      */
     visitSoqlWithIdentifierClause?: (ctx: SoqlWithIdentifierClauseContext) => Result;
     /**
+     * Visit a parse tree produced by `SoqlParser.soqlSetOptionsClause`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitSoqlSetOptionsClause?: (ctx: SoqlSetOptionsClauseContext) => Result;
+    /**
      * Visit a parse tree produced by `SoqlParser.soqlLimitClause`.
      * @param ctx the parse tree
      * @return the visitor result
@@ -966,9 +1058,21 @@ export interface SoqlParserVisitor<Result> extends ParseTreeVisitor<Result> {
      */
     visitSoqlInnerQuery?: (ctx: SoqlInnerQueryContext) => Result;
     /**
+     * Visit a parse tree produced by `SoqlParser.soqlOption`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitSoqlOption?: (ctx: SoqlOptionContext) => Result;
+    /**
      * Visit a parse tree produced by `SoqlParser.soqlQuery`.
      * @param ctx the parse tree
      * @return the visitor result
      */
     visitSoqlQuery?: (ctx: SoqlQueryContext) => Result;
+    /**
+     * Visit a parse tree produced by `SoqlParser.soqlStandaloneLiteral`.
+     * @param ctx the parse tree
+     * @return the visitor result
+     */
+    visitSoqlStandaloneLiteral?: (ctx: SoqlStandaloneLiteralContext) => Result;
 }
