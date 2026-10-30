@@ -44,6 +44,7 @@ const testServicePrototype = TestService.prototype as unknown as TestServiceInte
 
 let mockConnection: Connection;
 let toolingRequestStub: SinonStub;
+let getConnectionOptionsStub: SinonStub;
 const testData = new MockTestOrgData();
 const formatTestErrorsMock = vi.mocked(diagnosticUtil.formatTestErrors);
 
@@ -71,7 +72,7 @@ describe('Run Apex tests synchronously', () => {
       ...mockConnection.getAuthInfoFields(),
       orgId: '00Dxx0000000001AAA'
     });
-    $$.SANDBOX.stub(mockConnection, 'getConnectionOptions').returns({
+    getConnectionOptionsStub = $$.SANDBOX.stub(mockConnection, 'getConnectionOptions').returns({
       ...mockConnection.getConnectionOptions(),
       userId: '005xx000000abcDAAU'
     });
@@ -130,6 +131,14 @@ describe('Run Apex tests synchronously', () => {
     expect(testResult.tests[0].runTime).toBe(107);
     expect(testResult.tests[0]).not.toHaveProperty('testTimestamp');
     expect(testResult.tests[0].fullName).toBe('TestSample.testOne');
+  });
+
+  it('formats synchronous results when the connection has no user ID', async () => {
+    getConnectionOptionsStub.returns({ ...mockConnection.getConnectionOptions(), userId: undefined });
+
+    const result = await new SyncTests(mockConnection).formatSyncResults(syncTestResultSimple, 1000);
+
+    expect(result.summary.userId).toBeUndefined();
   });
 
   it('should run a test with failures', async () => {

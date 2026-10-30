@@ -82,6 +82,7 @@ export class SyncTests {
       const globalTestFailed = apiTestResult.failures.length;
       const globalTestPassed = apiTestResult.successes.length;
       const username = this.connection.getUsername();
+      const userId = this.connection.getConnectionOptions().userId;
       const rawResult: TestResultRaw = {
         summary: {
           outcome: globalTestFailed === 0 ? 'Passed' : 'Failed',
@@ -99,7 +100,7 @@ export class SyncTests {
           hostname: this.connection.instanceUrl,
           orgId: Schema.decodeUnknownSync(OrgIdString)(this.connection.getAuthInfoFields().orgId),
           ...(username ? { username } : {}),
-          userId: Schema.decodeUnknownSync(UserIdString)(this.connection.getConnectionOptions().userId)
+          ...(userId === undefined ? {} : { userId: Schema.decodeUnknownSync(UserIdString)(userId) })
         },
         tests: testResults
       };

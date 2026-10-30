@@ -33,7 +33,8 @@ import {
   type AsyncTestArrayConfiguration,
   type AsyncTestConfiguration,
   type OutputDirConfig,
-  ResultFormat,
+  ResultFileFormatsSchema,
+  ResultFormatsSchema,
   type SyncTestConfiguration,
   type TestLevel,
   type TestResult,
@@ -42,7 +43,17 @@ import {
   type TestSuiteMembershipRecord
 } from './types';
 
-const validResultFormats = new Set<ResultFormat>(Object.values(ResultFormat));
+const ResultFormatsWithMessageSchema = ResultFormatsSchema.pipe(
+  Schema.annotations({ message: () => ({ message: nls.localize('resultFormatErr'), override: true }) })
+);
+const ResultFileFormatsWithMessageSchema = ResultFileFormatsSchema.pipe(
+  Schema.annotations({ message: () => ({ message: nls.localize('resultFileFormatErr'), override: true }) })
+);
+const assertResultFormats: Schema.Schema.ToAsserts<typeof ResultFormatsWithMessageSchema> =
+  Schema.asserts(ResultFormatsWithMessageSchema);
+const assertResultFileFormats: Schema.Schema.ToAsserts<typeof ResultFileFormatsWithMessageSchema> = Schema.asserts(
+  ResultFileFormatsWithMessageSchema
+);
 
 /**
  * Standalone function for writing test result files - easier to test
@@ -56,9 +67,7 @@ export const writeResultFiles = async (
   const filesWritten: string[] = [];
   const { dirPath, resultFormats, fileInfos } = outputDirConfig;
 
-  if (resultFormats && !resultFormats.every(format => validResultFormats.has(format))) {
-    throw new Error(nls.localize('resultFormatErr'));
-  }
+  assertResultFormats(resultFormats);
 
   await mkdir(dirPath, { recursive: true });
 
@@ -75,6 +84,7 @@ export const writeResultFiles = async (
   }
 
   if (resultFormats && hasTestResult) {
+    assertResultFileFormats(resultFormats);
     const fileId = testRunId || 'default';
     for (const format of resultFormats) {
       let filePath;

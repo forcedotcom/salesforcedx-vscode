@@ -14,18 +14,13 @@ export {
   ApexRuntimeError,
   causeMessage
 } from './errors';
-export {
-  ApexLogListItem,
-  ListLogsOptionsSchema,
-  LogStreamEventSchema,
-  ApexLogQueryError,
-  ApexLogBodyFetchError,
-  listLogs,
-  getLogBody,
-  streamLogs
-} from './logs';
+export { listLogs, getLogBody, streamLogs } from './logs';
+export { ApexLogQueryError, ApexLogBodyFetchError } from './schema/errors';
+export { ApexLogListItem } from './schema/wire/logs';
+export { ListLogsOptionsSchema, LogStreamEventSchema } from './schema/logs';
 export { QueryPageSchema } from './schema/queryPage';
-export type { ListLogsOptions, LogStreamEvent, StreamLogsOptions } from './logs';
+export type { ListLogsOptions } from './schema/logs';
+export type { LogStreamEvent, StreamLogsOptions } from './logs';
 export { BuildSyncPayloadOptionsSchema, BuildAsyncPayloadOptionsSchema } from './schema/testPayloads';
 export type { BuildSyncPayloadOptions, BuildAsyncPayloadOptions } from './schema/testPayloads';
 export { buildSyncPayload, buildAsyncPayload } from './testPayloads';

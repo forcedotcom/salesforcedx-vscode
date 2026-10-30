@@ -80,14 +80,19 @@ export const ResultFormatSchema = Schema.Literal('junit', 'tap', 'json', 'human'
   identifier: 'ResultFormat'
 });
 export type ResultFormat = typeof ResultFormatSchema.Type;
-export const ResultFormat = {
-  junit: ResultFormatSchema.literals[0],
-  tap: ResultFormatSchema.literals[1],
-  json: ResultFormatSchema.literals[2],
-  human: ResultFormatSchema.literals[3],
-  markdown: ResultFormatSchema.literals[4],
-  text: ResultFormatSchema.literals[5]
-} as const satisfies { [K in ResultFormat]: K };
+
+export const ResultFormatsSchema = ResultFormatSchema.pipe(
+  Schema.Array,
+  Schema.UndefinedOr,
+  Schema.annotations({ identifier: 'ResultFormats' })
+);
+
+const ResultFileFormatSchema = Schema.Literal('junit', 'tap', 'json', 'markdown', 'text').pipe(
+  Schema.annotations({ identifier: 'ResultFileFormat' })
+);
+export const ResultFileFormatsSchema = Schema.Array(ResultFileFormatSchema).pipe(
+  Schema.annotations({ identifier: 'ResultFileFormats' })
+);
 
 export type OutputDirConfig = {
   dirPath: string;
