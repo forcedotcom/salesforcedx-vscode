@@ -5,7 +5,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import * as esbuild from 'esbuild';
-import { installAndCompileFixture, packServicesPackage } from './packedServicesFixtures.mjs';
+import { installAndCompileFixtures, packServicesPackage } from './packedServicesFixtures.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const temp = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'salesforce-effect-bridge-'));
@@ -18,8 +18,10 @@ try {
     packServicesPackage(path.join(root, 'packages/salesforcedx-vscode-services-v2'), host, 'v2.tgz')
   ];
   fs.mkdirSync(consumer);
-  installAndCompileFixture('bridgeHost', host, artifacts);
-  installAndCompileFixture('bridgeConsumer', consumer, []);
+  await installAndCompileFixtures([
+    { fixture: 'bridgeHost', directory: host, packedPackages: artifacts },
+    { fixture: 'bridgeConsumer', directory: consumer, packedPackages: [] }
+  ]);
   execFileSync(process.execPath, ['--import', 'tsx', path.join(consumer, 'index.ts')], {
     cwd: root,
     stdio: 'inherit',

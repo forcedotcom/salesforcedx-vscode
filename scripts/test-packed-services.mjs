@@ -6,7 +6,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import * as esbuild from 'esbuild';
-import { installAndCompileFixture, packServicesPackage } from './packedServicesFixtures.mjs';
+import { installAndCompileFixtures, packServicesPackage } from './packedServicesFixtures.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const temp = fs.mkdtempSync(path.join(fs.realpathSync(os.tmpdir()), 'salesforce-effect-packed-'));
@@ -36,8 +36,21 @@ try {
     return { ...protocol, ...artifact };
   });
 
+  const mixed = path.join(temp, 'packedMixed');
+  fs.mkdirSync(mixed);
   for (const artifact of artifacts) {
-    installAndCompileFixture(artifact.fixture, artifact.directory, [artifact]);
+    fs.copyFileSync(path.join(artifact.directory, 'services.tgz'), path.join(mixed, `${artifact.fixture}.tgz`));
+  }
+  await installAndCompileFixtures([
+    ...artifacts.map(artifact => ({
+      fixture: artifact.fixture,
+      directory: artifact.directory,
+      packedPackages: [artifact]
+    })),
+    { fixture: 'packedMixed', directory: mixed, packedPackages: artifacts }
+  ]);
+
+  for (const artifact of artifacts) {
     const requireConsumer = createRequire(path.join(artifact.directory, 'package.json'));
     assert.equal(requireConsumer('effect/package.json').version, artifact.version);
     const tree = JSON.parse(
@@ -82,12 +95,6 @@ try {
     );
   }
 
-  const mixed = path.join(temp, 'packedMixed');
-  fs.mkdirSync(mixed);
-  for (const artifact of artifacts) {
-    fs.copyFileSync(path.join(artifact.directory, 'services.tgz'), path.join(mixed, `${artifact.fixture}.tgz`));
-  }
-  installAndCompileFixture('packedMixed', mixed, artifacts);
   console.log('PASS actual packed V3/V4 public contracts reject cross-major Effects, Contexts, Layers and refs');
 } catch (error) {
   console.error('Packed services check failed:', error);

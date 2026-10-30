@@ -1,12 +1,33 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { execFile, execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { promisify } from 'node:util';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
 const npmOptions = { cwd: root, encoding: 'utf8', shell: process.platform === 'win32', timeout: 180000 };
+const execFileAsync = promisify(execFile);
+
+const runCommand = async (file, args, options) => {
+  try {
+    const result = await execFileAsync(file, args, options);
+    if (result.stdout) process.stdout.write(result.stdout);
+    if (result.stderr) process.stderr.write(result.stderr);
+  } catch (error) {
+    if (error.stdout) process.stdout.write(error.stdout);
+    if (error.stderr) process.stderr.write(error.stderr);
+    throw error;
+  }
+};
+
+const finishAll = async (promises, phase) => {
+  // Do not clean up while a sibling install/typecheck still owns files in its directory.
+  const results = await Promise.allSettled(promises);
+  const failures = results.filter(result => result.status === 'rejected').map(result => result.reason);
+  if (failures.length > 0) throw new AggregateError(failures, `Packed fixture ${phase} failed`);
+};
 
 export const packServicesPackage = (packageDirectory, directory, archiveName) => {
   fs.mkdirSync(directory, { recursive: true });
@@ -19,7 +40,7 @@ export const packServicesPackage = (packageDirectory, directory, archiveName) =>
   return { name: publishedPackage.name, directory, archive, packed, publishedPackage };
 };
 
-export const installAndCompileFixture = (fixtureName, directory, packedPackages) => {
+const installFixture = async ({ fixture: fixtureName, directory, packedPackages }) => {
   const fixture = path.join(root, 'test/fixtures/effect-v4', fixtureName);
   for (const file of fs
     .readdirSync(fixture)
@@ -52,22 +73,31 @@ export const installAndCompileFixture = (fixtureName, directory, packedPackages)
   }
   if (updateLock) {
     // Existing registry versions/hashes survive unless changed dependencies require an update.
-    execFileSync(npm, ['install', '--package-lock-only'], {
+    await runCommand(npm, ['install', '--package-lock-only'], {
       ...npmOptions,
       cwd: directory,
-      stdio: 'inherit',
       timeout: 600000
     });
     fs.copyFileSync(path.join(directory, 'package-lock.json'), lockPath);
   }
-  execFileSync(npm, ['ci'], { ...npmOptions, cwd: directory, stdio: 'inherit', timeout: 600000 });
-  execFileSync(
-    process.execPath,
-    [path.join(directory, 'node_modules/typescript/bin/tsc'), '-p', path.join(directory, 'tsconfig.json')],
-    {
-      cwd: directory,
-      stdio: 'inherit',
-      timeout: 180000
-    }
+  await runCommand(npm, ['ci'], { ...npmOptions, cwd: directory, timeout: 600000 });
+};
+
+export const installAndCompileFixtures = async fixtures => {
+  await finishAll(fixtures.map(installFixture), 'installation');
+  // Consumer projects can import a sibling host project: install every dependency tree first.
+  await finishAll(
+    fixtures.map(({ directory }) =>
+      runCommand(
+        process.execPath,
+        [path.join(directory, 'node_modules/typescript/bin/tsc'), '-p', path.join(directory, 'tsconfig.json')],
+        {
+          cwd: directory,
+          encoding: 'utf8',
+          timeout: 180000
+        }
+      )
+    ),
+    'typecheck'
   );
 };
