@@ -89,6 +89,54 @@ describe('coverage Effect API', () => {
     expect(query).toHaveBeenCalledWith('SELECT PercentCovered FROM ApexOrgWideCoverage');
   });
 
+  it.each(['0', 0, '100', 100, '33.5', 33.5])('accepts boundary and fractional coverage %s', async PercentCovered => {
+    await expect(
+      Effect.runPromise(getOrgWideCoverage(makeConnection(vi.fn().mockResolvedValue(page([{ PercentCovered }])))))
+    ).resolves.toBe(`${PercentCovered}%`);
+  });
+
+  it.each(['garbage', '', 'NaN', 'Infinity', '-1', '101', -1, 101, NaN, Infinity])(
+    'rejects invalid org-wide coverage %s with its field and schema message',
+    async PercentCovered => {
+      const result = await Effect.runPromise(
+        getOrgWideCoverage(makeConnection(vi.fn().mockResolvedValue(page([{ PercentCovered }])))).pipe(Effect.flip)
+      );
+      expect(result).toMatchObject({
+        _tag: 'ApexResponseDecodeError',
+        operation: 'getOrgWideCoverage',
+        message: expect.stringContaining('Coverage percentage must be a finite number from 0 to 100')
+      });
+      expect(result.message).toContain('PercentCovered');
+    }
+  );
+
+  it.each([
+    { field: 'NumLinesCovered', value: -1 },
+    { field: 'NumLinesUncovered', value: -1 },
+    { field: 'NumLinesCovered', value: 1.5 },
+    { field: 'NumLinesCovered', value: NaN },
+    { field: 'NumLinesCovered', value: Infinity }
+  ])('rejects invalid $field=$value before calculating coverage', async ({ field, value }) => {
+    const connection = makeConnection(vi.fn().mockResolvedValue(page([{ ...record, [field]: value }])));
+    const result = await Effect.runPromise(getAggregateCodeCoverage(connection, new Set()).pipe(Effect.flip));
+
+    expect(result).toMatchObject({
+      _tag: 'ApexResponseDecodeError',
+      message: expect.stringContaining('Coverage line counts must be non-negative integers')
+    });
+    expect(result.message).toContain(field);
+  });
+
+  it.each([-1, 0, 1.5, NaN, Infinity])('rejects invalid coverage line %s through the Promise adapter', async line => {
+    const connection = makeConnection(
+      vi.fn().mockResolvedValue(page([{ ...record, Coverage: { coveredLines: [line], uncoveredLines: [] } }]))
+    );
+
+    await expect(new CodeCoverage(connection).getAggregateCodeCoverage(new Set())).rejects.toThrow(
+      'Coverage line numbers must be positive integers'
+    );
+  });
+
   it('returns 0% when no org-wide coverage exists', async () => {
     await expect(
       Effect.runPromise(getOrgWideCoverage(makeConnection(vi.fn().mockResolvedValue(page([])))))

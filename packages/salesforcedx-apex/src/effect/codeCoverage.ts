@@ -63,7 +63,7 @@ const queryCoverageRecords = <A, I>(
         Effect.fail(
           new ApexResponseDecodeError({
             operation,
-            message: 'Invalid Apex coverage response',
+            message: cause.message,
             cause: causeMessage(cause)
           })
         )

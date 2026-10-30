@@ -7,7 +7,12 @@
 
 import * as Schema from 'effect/Schema';
 import { ApexClassIdString } from '../../../schemas/salesforceId';
-import { ApexClassOrTriggerIdSchema, CoverageLinesSchema } from '../coverage';
+import {
+  ApexClassOrTriggerIdSchema,
+  CoverageLineCountSchema,
+  CoverageLinesSchema,
+  CoveragePercentSchema
+} from '../coverage';
 
 const ApexClassOrTriggerSchema = Schema.Struct({ Id: ApexClassOrTriggerIdSchema, Name: Schema.String }).pipe(
   Schema.mutable
@@ -17,8 +22,8 @@ export const ApexCodeCoverageRecordSchema = Schema.Struct({
   ApexClassOrTrigger: ApexClassOrTriggerSchema,
   ApexTestClassId: ApexClassIdString,
   TestMethodName: Schema.String,
-  NumLinesCovered: Schema.Number,
-  NumLinesUncovered: Schema.Number,
+  NumLinesCovered: CoverageLineCountSchema,
+  NumLinesUncovered: CoverageLineCountSchema,
   Coverage: Schema.optional(CoverageLinesSchema)
 })
   .pipe(Schema.mutable)
@@ -36,8 +41,8 @@ export type ApexCodeCoverage = typeof ApexCodeCoverageSchema.Type;
 
 export const ApexCodeCoverageAggregateRecordSchema = Schema.Struct({
   ApexClassOrTrigger: ApexClassOrTriggerSchema,
-  NumLinesCovered: Schema.Number,
-  NumLinesUncovered: Schema.Number,
+  NumLinesCovered: CoverageLineCountSchema,
+  NumLinesUncovered: CoverageLineCountSchema,
   Coverage: CoverageLinesSchema
 })
   .pipe(Schema.mutable)
@@ -63,5 +68,5 @@ export const ApexOrgWideCoverageSchema = Schema.Struct({
 export type ApexOrgWideCoverage = typeof ApexOrgWideCoverageSchema.Type;
 
 export const ApexOrgWideCoverageQueryRecordSchema = Schema.Struct({
-  PercentCovered: Schema.Union(Schema.Number, Schema.String)
-});
+  PercentCovered: CoveragePercentSchema
+}).annotations({ identifier: 'ApexOrgWideCoverageRecord' });

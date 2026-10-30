@@ -372,7 +372,7 @@ describe('Get code coverage results', () => {
       ]
     });
     await expect(new CodeCoverage(mockConnection).getPerClassCodeCoverage(new Set([testId]))).rejects.toThrow(
-      'Invalid Apex coverage response'
+      'ApexClass ID must contain 15 or 18 alphanumeric characters and start with 01p'
     );
   });
 

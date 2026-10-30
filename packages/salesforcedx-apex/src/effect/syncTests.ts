@@ -11,16 +11,12 @@ import * as Effect from 'effect/Effect';
 import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { OrgIdString, UserIdString } from '../schemas/salesforceId';
+import { type ApexTestResultData, type SyncTestConfiguration, type TestResultRaw } from '../tests/types';
 import { getDiagnostic } from './diagnostics';
 import { ApexOperationError, ApexResponseDecodeError, causeMessage } from './errors';
+import { SyncTestConfigurationSchema } from './schema/testPayloads';
 import { calculatePercentage, computeTestCategory, transformTestResult } from './testResults';
-import {
-  type ApexTestResultDataSchema,
-  type SyncTestConfiguration,
-  type TestResultRaw,
-  SyncTestConfigurationSchema,
-  SyncTestResultSchema
-} from './testSchemas';
+import { SyncTestResultSchema } from './testSchemas';
 
 const operation = 'runTestSynchronous';
 type SyncTestResult = typeof SyncTestResultSchema.Type;
@@ -29,7 +25,7 @@ const processTestResult = (
   item: SyncTestResult['successes'][number] | SyncTestResult['failures'][number],
   apexLogId: SyncTestResult['apexLogId'],
   outcome: 'Pass' | 'Fail'
-): typeof ApexTestResultDataSchema.Type => {
+): ApexTestResultData => {
   const failure = 'message' in item ? item : undefined;
   const namespace = item.namespace ? (outcome === 'Fail' ? `${item.namespace}__` : `${item.namespace}.`) : '';
   return {
@@ -62,7 +58,7 @@ export const formatSyncResults = Effect.fn('Apex.formatSyncResults')(function* (
       Effect.fail(
         new ApexResponseDecodeError({
           operation,
-          message: 'Invalid synchronous Apex test response',
+          message: cause.message,
           cause: causeMessage(cause)
         })
       )
@@ -77,7 +73,7 @@ export const formatSyncResults = Effect.fn('Apex.formatSyncResults')(function* (
       cause =>
         new ApexResponseDecodeError({
           operation,
-          message: 'Invalid organization ID for synchronous Apex test result',
+          message: cause.message,
           cause: causeMessage(cause)
         })
     )
@@ -89,7 +85,7 @@ export const formatSyncResults = Effect.fn('Apex.formatSyncResults')(function* (
           cause =>
             new ApexResponseDecodeError({
               operation,
-              message: 'Invalid user ID for synchronous Apex test result',
+              message: cause.message,
               cause: causeMessage(cause)
             })
         )

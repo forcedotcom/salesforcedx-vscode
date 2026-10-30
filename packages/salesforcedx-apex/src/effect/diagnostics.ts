@@ -5,17 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Schema from 'effect/Schema';
+import type { ApexDiagnosticSchema } from '../tests/types';
 
-/** Diagnostic data independent of editor ranges, files, or terminal output. */
-export const ApexDiagnosticSchema = Schema.Struct({
-  lineNumber: Schema.optional(Schema.Number),
-  columnNumber: Schema.optional(Schema.Number),
-  exceptionMessage: Schema.optional(Schema.NonEmptyString),
-  compileProblem: Schema.optional(Schema.NonEmptyString),
-  exceptionStackTrace: Schema.optional(Schema.NonEmptyString),
-  className: Schema.optional(Schema.String)
-}).annotations({ identifier: 'ApexDiagnostic' });
 export type ApexDiagnostic = typeof ApexDiagnosticSchema.Type;
 
 export const getDiagnostic = (record: { message?: string | null; stackTrace?: string | null }): ApexDiagnostic => {

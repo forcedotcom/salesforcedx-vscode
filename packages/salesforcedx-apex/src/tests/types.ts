@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { SyncTestConfigurationSchema, TestItemSchema } from '../effect/schema/testPayloads';
 import * as Schema from 'effect/Schema';
 import { CodeCoverageResultSchema, PerClassCoverageSchema } from '../effect/coverageSchemas';
 import {
@@ -111,26 +112,7 @@ export type OutputDirConfig = {
 /**
  * array of objects that represent Apex test classes
  */
-export type TestItem = {
-  /**
-   * Apex Class name. Should include namespace if needed e.g. namespace.ClassName
-   */
-  className?: string;
-  /**
-   * Apex Class Id
-   */
-  classId?: string;
-  /**
-   * Array of test names to run. Not specifying it will run all test methods in a test class
-   */
-  testMethods?: string[];
-  /**
-   * Namespace associated with the test class or method
-   */
-  namespace?: string;
-
-  category?: string;
-};
+export type TestItem = typeof TestItemSchema.Type;
 
 export type AsyncTestArrayConfiguration = {
   tests: TestItem[];
@@ -156,30 +138,7 @@ export type AsyncTestArrayConfiguration = {
   category?: string[];
 };
 
-export type SyncTestConfiguration = {
-  classNames?: string;
-  /**
-   * Specifies which test class to run. Only one class is allowed for synchronous runs.
-   */
-  tests?: TestItem[];
-  /**
-   * Specifies which tests to run. The only valid value is RunSpecifiedTests.
-   */
-  testLevel?: string;
-  /**
-   * Limits the test run from executing new tests after a given number of tests fail.
-   * Valid value ranges from 0 to 1,000,000. A value of 0 causes the test run to stop if any failure occurs.
-   */
-  maxFailedTests?: number;
-  /**
-   * Allows for faster tests by skipping code coverage
-   */
-  skipCodeCoverage?: boolean;
-  /**
-   * Category for this run, for Flow or Apex
-   */
-  category?: string[];
-};
+export type SyncTestConfiguration = typeof SyncTestConfigurationSchema.Type;
 
 type SyncTestSuccess = {
   id: string;

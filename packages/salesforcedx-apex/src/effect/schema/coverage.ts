@@ -10,7 +10,25 @@ import { ApexClassIdString, ApexTriggerIdString } from '../../schemas/salesforce
 
 export const ApexClassOrTriggerIdSchema = Schema.Union(ApexClassIdString, ApexTriggerIdString);
 
-export const CoverageNumberArraySchema = Schema.Number.pipe(Schema.Array, Schema.mutable);
+export const CoverageLineCountSchema = Schema.NonNegativeInt.annotations({
+  identifier: 'CoverageLineCount',
+  message: () => ({ message: 'Coverage line counts must be non-negative integers', override: true })
+});
+
+const CoverageLineNumberSchema = Schema.Int.pipe(Schema.positive()).annotations({
+  identifier: 'CoverageLineNumber',
+  message: () => ({ message: 'Coverage line numbers must be positive integers', override: true })
+});
+
+/** Tooling returns a number; older clients supply its string representation. */
+export const CoveragePercentSchema = Schema.Union(Schema.Number, Schema.NumberFromString)
+  .pipe(Schema.finite(), Schema.between(0, 100))
+  .annotations({
+    identifier: 'CoveragePercent',
+    message: () => ({ message: 'Coverage percentage must be a finite number from 0 to 100', override: true })
+  });
+
+export const CoverageNumberArraySchema = CoverageLineNumberSchema.pipe(Schema.Array, Schema.mutable);
 export const CoverageLinesSchema = Schema.Struct({
   coveredLines: CoverageNumberArraySchema,
   uncoveredLines: CoverageNumberArraySchema

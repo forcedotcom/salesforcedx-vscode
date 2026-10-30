@@ -7,7 +7,12 @@
 
 import * as Schema from 'effect/Schema';
 import { ApexClassIdString } from '../schemas/salesforceId';
-import { ApexClassOrTriggerIdSchema, CoverageLinesSchema, CoverageNumberArraySchema } from './schema/coverage';
+import {
+  ApexClassOrTriggerIdSchema,
+  CoverageLineCountSchema,
+  CoverageLinesSchema,
+  CoverageNumberArraySchema
+} from './schema/coverage';
 
 // Keep the mutable arrays and string IDs accepted by existing coverage consumers.
 
@@ -16,8 +21,8 @@ export const PerClassCoverageSchema = Schema.Struct({
   apexClassOrTriggerId: ApexClassOrTriggerIdSchema,
   apexTestClassId: ApexClassIdString,
   apexTestMethodName: Schema.String,
-  numLinesCovered: Schema.Number,
-  numLinesUncovered: Schema.Number,
+  numLinesCovered: CoverageLineCountSchema,
+  numLinesUncovered: CoverageLineCountSchema,
   percentage: Schema.String,
   coverage: Schema.optional(CoverageLinesSchema)
 })
@@ -29,8 +34,8 @@ export const CodeCoverageResultSchema = Schema.Struct({
   apexId: ApexClassOrTriggerIdSchema,
   name: Schema.String,
   type: Schema.Literal('ApexClass', 'ApexTrigger'),
-  numLinesCovered: Schema.Number,
-  numLinesUncovered: Schema.Number,
+  numLinesCovered: CoverageLineCountSchema,
+  numLinesUncovered: CoverageLineCountSchema,
   percentage: Schema.String,
   coveredLines: CoverageNumberArraySchema,
   uncoveredLines: CoverageNumberArraySchema
@@ -41,8 +46,8 @@ export type CodeCoverageResult = typeof CodeCoverageResultSchema.Type;
 
 export const AggregateCodeCoverageResultSchema = Schema.Struct({
   codeCoverageResults: Schema.mutable(Schema.Array(CodeCoverageResultSchema)),
-  totalLines: Schema.Number,
-  coveredLines: Schema.Number
+  totalLines: CoverageLineCountSchema,
+  coveredLines: CoverageLineCountSchema
 })
   .pipe(Schema.mutable)
   .annotations({ identifier: 'AggregateCodeCoverageResult' });

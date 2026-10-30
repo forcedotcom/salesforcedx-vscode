@@ -7,22 +7,22 @@
 
 export { ExecuteAnonymousOptionsSchema, ExecuteAnonymousOutcomeSchema, executeAnonymous } from './executeAnonymous';
 export type { ExecuteAnonymousOptions, ExecuteAnonymousOutcome } from './executeAnonymous';
-export { ApexDiagnosticSchema, getDiagnostic } from './diagnostics';
-export type { ApexDiagnostic } from './diagnostics';
+export { getDiagnostic } from './diagnostics';
 export { formatSyncResults, runTestSynchronous } from './syncTests';
 export { transformTestResult } from './testResults';
 export {
+  ApexDiagnosticSchema,
   ApexTestResultDataSchema,
   ApexTestResultDataRawSchema,
   ApexTestResultOutcomeSchema,
   ApexTestSetupDataSchema,
-  SyncTestConfigurationSchema,
-  SyncTestResultSchema,
-  TestItemSchema,
   TestResultRawSchema,
   TestResultSchema
-} from './testSchemas';
-export type { SyncTestConfiguration, TestResult, TestResultRaw } from './testSchemas';
+} from '../tests/types';
+export type { SyncTestConfiguration, TestResult, TestResultRaw } from '../tests/types';
+export type { ApexDiagnostic } from './diagnostics';
+export { SyncTestResultSchema } from './testSchemas';
+export { SyncTestConfigurationSchema, TestItemSchema } from './schema/testPayloads';
 export { getOrgWideCoverage, getPerClassCodeCoverage, getAggregateCodeCoverage } from './codeCoverage';
 export { PerClassCoverageSchema, CodeCoverageResultSchema, AggregateCodeCoverageResultSchema } from './coverageSchemas';
 export type { PerClassCoverage, CodeCoverageResult, AggregateCodeCoverageResult } from './coverageSchemas';
