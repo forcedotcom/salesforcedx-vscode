@@ -92,15 +92,15 @@ export const createMetadataOperationTest = async ({
   vi.stubEnv('SF_USE_GENERIC_UNIX_KEYCHAIN', 'true');
   coreFs.setFs(coreFs.getVirtualFs());
   SfProject.clearInstances();
-  await StateAggregator.clearInstanceAsync();
   installVscodeFs(FsPromises);
   const directory = await FsPromises.mkdtemp(join(process.env.RUNNER_TEMP ?? tmpdir(), 'v4-metadata-operation-'));
   const root = URI.file(directory);
   const fs = coreFs.fs.promises;
-  vi.stubEnv('HOME', directory);
-  vi.spyOn(Global, 'SF_DIR', 'get').mockReturnValue(Utils.joinPath(root, 'home', '.sf').fsPath);
-  vi.spyOn(Global, 'SFDX_DIR', 'get').mockReturnValue(Utils.joinPath(root, 'home', '.sfdx').fsPath);
-  vi.spyOn(Global, 'DIR', 'get').mockReturnValue(Utils.joinPath(root, 'home', '.sfdx').fsPath);
+  const home = Utils.joinPath(root, 'home').fsPath;
+  // Core's CommonJS keychain uses real os.homedir (USERPROFILE on Windows), not the ESM test mock.
+  vi.stubEnv('HOME', home);
+  vi.stubEnv('USERPROFILE', home);
+  await StateAggregator.clearInstanceAsync();
   const classes = Utils.joinPath(root, 'force-app', 'main', 'default', 'classes');
   const source = Utils.joinPath(classes, 'Remote.cls');
   await fs.mkdir(Utils.joinPath(root, 'force-app').fsPath, { recursive: true });
