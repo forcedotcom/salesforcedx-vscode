@@ -1614,6 +1614,15 @@ importers:
         specifier: 4.0.6
         version: 4.0.6
 
+  packages/salesforcedx-vscode-services-v3-compat:
+    dependencies:
+      '@salesforce/core':
+        specifier: ^9.3.6
+        version: 9.3.6
+      effect:
+        specifier: 3.21.2
+        version: 3.21.2
+
   packages/salesforcedx-vscode-soql:
     dependencies:
       '@jsforce/jsforce-node':

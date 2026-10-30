@@ -48,6 +48,10 @@ UI-preview's vendored utils fork is not a direct API contract here. Inspect newl
 
 ## Org-ref consistency
 
+W-24615046's [bridge contract and verification](effect-v3-compatibility-bridge.md)
+define the concrete Promise/data boundary, resource ownership and acknowledged org
+commit protocol. Live binding remains W-24615059.
+
 - V4 owns authoritative org state and watchers. The V3 ref is a compatibility view, not a second source of org selection.
 - Subscribe before publishing exports. Initialize both views before activation resolves; no missed update between snapshot and subscription.
 - Serialize org commits: update the compatibility ref before acknowledging the corresponding V4 org-change operation. After a completed change, immediate reads from either API must agree. Preserve rapid-update order and initial snapshot semantics for every subscriber; do not prepend a duplicate initial value.
@@ -87,6 +91,7 @@ All files in each package belong to its WI below; no source/test import is exemp
 | `salesforcedx-vscode-services`: metadata/query/component operations | W-24615063 |
 | `salesforcedx-vscode-services`: remaining editor/UI/Apex/observability, activation/bootstrap | W-24615069 |
 | Compatibility-only implementation and independently installed fixtures | W-24615044, W-24615046 |
+| `salesforcedx-vscode-services-v3-compat`: genuine V3 proxies, lifecycle and encoded host boundary | W-24615046 |
 | `effect-ext-utils`, `salesforcedx-vscode-services-types`, new V2 types package, declaration generators | W-24615075; package boundaries/installation fixtures begin W-24615044 |
 | `salesforcedx-vscode-org`, `salesforcedx-vscode-org-browser`, `salesforcedx-vscode-metadata` | W-24615079 |
 | `salesforcedx-vscode-apex-log` | W-24615083 |
@@ -100,7 +105,7 @@ All files in each package belong to its WI below; no source/test import is exemp
 | LS/editor/CLI integration, dependency selection and diagnostic negative controls | W-24615044; per-slice fixes with each implementation; final enforcement W-24615101 |
 | Remaining V3 dependency/import gates, coding skills/examples | W-24615101 |
 
-Current tracked census identifies **28 packages** with imports or direct dependencies. Do not treat these counts as permanent gates: rerun at each boundary and reconcile new paths. The script excludes quoted test source inside strings from real imports; test-fixture migration still belongs to its package WI.
+Current tracked census identifies **29 packages** with imports or direct dependencies, including the private V3 compatibility implementation added by W-24615046. Do not treat these counts as permanent gates: rerun at each boundary and reconcile new paths. The script excludes quoted test source inside strings from real imports; test-fixture migration still belongs to its package WI.
 
 Rechecked after the stack rebase onto `1af06c186d`: the census still contains 28
 packages, now including `salesforcedx-vscode-services-v2` and excluding the removed
