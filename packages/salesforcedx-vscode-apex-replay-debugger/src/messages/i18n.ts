@@ -62,7 +62,8 @@ export const messages = {
     'No sfdx-project.json found in the root directory of your open project. Open a Salesforce DX project in VS Code.',
   launch_apex_replay_debugger_unsupported_file:
     'You can only run this command with Anonymous Apex files, Apex Test files, or Apex Debug Log files.',
-  launch_apex_replay_debugger_with_selected_file: 'Launch Apex Replay Debugger with Selected File'
+  launch_apex_replay_debugger_with_selected_file: 'Launch Apex Replay Debugger with Selected File',
+  apex_debug_codelens_registration_failed: 'Apex test debug CodeLenses could not be registered.'
 } as const;
 
 export type MessageKey = keyof typeof messages;

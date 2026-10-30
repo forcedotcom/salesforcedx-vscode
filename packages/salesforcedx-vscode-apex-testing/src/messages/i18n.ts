@@ -109,7 +109,8 @@ export const messages = {
   apex_test_failed_no_details_message: 'Test failed',
   apex_test_results_restored_message:
     'Test results restored from %d previous run(s), most recent: %s. Re-enable via setting: salesforcedx-vscode-apex-testing.restore-previous-results',
-  apex_test_results_restored_disable_action: "Don't Restore Again"
+  apex_test_results_restored_disable_action: "Don't Restore Again",
+  apex_test_codelens_registration_failed: 'Apex test run CodeLenses could not be registered.'
 } as const;
 
 export type MessageKey = keyof typeof messages;
