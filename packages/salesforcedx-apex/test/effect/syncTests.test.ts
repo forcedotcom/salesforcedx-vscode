@@ -8,7 +8,13 @@
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
-import { buildSyncPayload, formatSyncResults, runTestSynchronous, TestResultSchema } from '../../src/effect';
+import {
+  buildSyncPayload,
+  formatSyncResults,
+  runTestSynchronous,
+  SyncTestResultSchema,
+  TestResultSchema
+} from '../../src/effect';
 import { messages } from '../../src/i18n/i18n';
 import { SyncTests } from '../../src/tests/syncTests';
 import { type SyncTestConfiguration, TestResultSchema as PublicTestResultSchema } from '../../src/tests/types';
@@ -32,6 +38,31 @@ const makeConnection = (request = vi.fn().mockResolvedValue(response)): Connecti
   }) as unknown as Connection;
 
 describe('synchronous schema validation', () => {
+  it.each([null, undefined])('omits nullish failure text %#', async value => {
+    const failure = {
+      id: classId,
+      methodName: 'testOne',
+      name: 'Example',
+      namespace: null,
+      seeAllData: false,
+      message: value,
+      stackTrace: value,
+      type: 'Exception'
+    };
+    const decoded = Schema.decodeUnknownSync(SyncTestResultSchema)({
+      ...response,
+      failures: [failure]
+    });
+    expect(decoded.failures[0].message).toBeUndefined();
+    expect(decoded.failures[0].stackTrace).toBeUndefined();
+
+    const result = await Effect.runPromise(
+      formatSyncResults(makeConnection(), { ...response, failures: [failure] }, 1000)
+    );
+    expect(result.tests[0]).not.toHaveProperty('message');
+    expect(result.tests[0]).not.toHaveProperty('stackTrace');
+  });
+
   it.each<SyncTestConfiguration>([
     {},
     { tests: [] },

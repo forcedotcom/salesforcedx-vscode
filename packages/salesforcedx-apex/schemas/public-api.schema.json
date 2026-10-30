@@ -566,21 +566,21 @@
     },
     "ApexTestSetupData": {
       "type": "object",
-      "required": ["id", "asyncApexJobId", "methodName", "apexLogId", "apexClass", "testSetupTime", "fullName"],
+      "required": ["methodName", "apexClass", "testSetupTime", "fullName"],
       "properties": {
-        "id": { "$ref": "#/$defs/ApexTestResultId" },
-        "stackTrace": { "anyOf": [{ "$ref": "#/$defs/NonEmptyString" }, { "type": "null" }] },
-        "message": { "anyOf": [{ "$ref": "#/$defs/NonEmptyString" }, { "type": "null" }] },
+        "id": { "anyOf": [{ "$ref": "#/$defs/ApexTestResultId" }, { "$ref": "#/$defs/FlowTestResultId" }] },
+        "stackTrace": { "$ref": "#/$defs/NonEmptyString" },
+        "message": { "$ref": "#/$defs/NonEmptyString" },
         "asyncApexJobId": { "$ref": "#/$defs/AsyncApexJobId" },
         "methodName": { "type": "string" },
-        "apexLogId": { "anyOf": [{ "$ref": "#/$defs/ApexLogId" }, { "type": "null" }] },
+        "apexLogId": { "$ref": "#/$defs/ApexLogId" },
         "apexClass": {
           "type": "object",
-          "required": ["id", "name", "fullName"],
+          "required": ["name", "fullName"],
           "properties": {
             "id": { "$ref": "#/$defs/ApexClassId" },
             "name": { "type": "string" },
-            "namespacePrefix": { "anyOf": [{ "$ref": "#/$defs/NonEmptyString" }, { "type": "null" }] },
+            "namespacePrefix": { "$ref": "#/$defs/NonEmptyString" },
             "fullName": { "type": "string" }
           },
           "additionalProperties": false

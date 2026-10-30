@@ -19,8 +19,8 @@ const SyncTestMethodFields = {
 const SyncTestSuccessSchema = Schema.Struct(SyncTestMethodFields);
 const SyncTestFailureSchema = Schema.Struct({
   ...SyncTestMethodFields,
-  message: Schema.optionalWith(Schema.String, { nullable: true, default: () => '' }),
-  stackTrace: Schema.optionalWith(Schema.String, { nullable: true, default: () => '' }),
+  message: Schema.optionalWith(Schema.String, { nullable: true }),
+  stackTrace: Schema.optionalWith(Schema.String, { nullable: true }),
   type: Schema.String
 });
 

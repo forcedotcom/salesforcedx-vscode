@@ -411,16 +411,16 @@ export const ApexTestResultDataRawSchema = Schema.Struct({
 export type ApexTestResultDataRaw = Schema.Schema.Type<typeof ApexTestResultDataRawSchema>;
 
 export const ApexTestSetupDataSchema = Schema.Struct({
-  id: ApexTestResultIdString,
-  stackTrace: Schema.NonEmptyString.pipe(Schema.NullOr, Schema.optional),
-  message: Schema.NonEmptyString.pipe(Schema.NullOr, Schema.optional),
-  asyncApexJobId: TestRunIdString,
+  id: Schema.optional(Schema.Union(ApexTestResultIdString, FlowTestResultIdString)),
+  stackTrace: Schema.optional(Schema.NonEmptyString),
+  message: Schema.optional(Schema.NonEmptyString),
+  asyncApexJobId: Schema.optional(TestRunIdString),
   methodName: Schema.String,
-  apexLogId: Schema.NullOr(ApexLogIdString),
+  apexLogId: Schema.optional(ApexLogIdString),
   apexClass: Schema.Struct({
-    id: ApexClassIdString,
+    id: Schema.optional(ApexClassIdString),
     name: Schema.String,
-    namespacePrefix: Schema.NonEmptyString.pipe(Schema.NullOr, Schema.optional),
+    namespacePrefix: Schema.optional(Schema.NonEmptyString),
     fullName: Schema.String
   }).pipe(Schema.mutable),
   testSetupTime: Schema.Number,

@@ -26,7 +26,7 @@ const processTestResult = (
   apexLogId: SyncTestResult['apexLogId'],
   outcome: 'Pass' | 'Fail'
 ): ApexTestResultData => {
-  const failure = 'message' in item ? item : undefined;
+  const failure = 'type' in item ? item : undefined;
   const namespace = item.namespace ? (outcome === 'Fail' ? `${item.namespace}__` : `${item.namespace}.`) : '';
   return {
     ...(failure?.stackTrace ? { stackTrace: failure.stackTrace } : {}),

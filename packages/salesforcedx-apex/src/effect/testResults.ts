@@ -7,6 +7,7 @@
 
 import type { TestCategory, TestResult, TestResultRaw } from '../tests/types';
 import * as Arr from 'effect/Array';
+import { isNotNullable, isNotUndefined } from 'effect/Predicate';
 
 export const calculatePercentage = (dividend: number, divisor: number): string =>
   dividend > 0 ? `${((dividend / divisor) * 100).toFixed()}%` : '0%';
@@ -28,17 +29,22 @@ export const transformTestResult = (rawResult: TestResultRaw): TestResult => {
     },
     tests: regularTests.map(({ isTestSetup, ...test }) => test),
     setup: setupMethods.map(test => ({
-      id: test.id ?? '',
-      stackTrace: test.stackTrace ?? null,
-      message: test.message ?? null,
-      asyncApexJobId: test.asyncApexJobId ?? '',
+      ...(isNotUndefined(test.id) ? { id: test.id } : {}),
+      ...(isNotNullable(test.stackTrace) ? { stackTrace: test.stackTrace } : {}),
+      ...(isNotNullable(test.message) ? { message: test.message } : {}),
+      ...(isNotUndefined(test.asyncApexJobId) ? { asyncApexJobId: test.asyncApexJobId } : {}),
       methodName: test.methodName,
-      apexLogId: test.apexLogId ?? null,
-      apexClass: { ...test.apexClass, id: test.apexClass.id ?? '' },
+      ...(isNotNullable(test.apexLogId) ? { apexLogId: test.apexLogId } : {}),
+      apexClass: {
+        ...(isNotUndefined(test.apexClass.id) ? { id: test.apexClass.id } : {}),
+        name: test.apexClass.name,
+        ...(isNotNullable(test.apexClass.namespacePrefix) ? { namespacePrefix: test.apexClass.namespacePrefix } : {}),
+        fullName: test.apexClass.fullName
+      },
       testSetupTime: test.runTime,
-      testTimestamp: test.testTimestamp,
       fullName: test.fullName,
-      diagnostic: test.diagnostic
+      ...(isNotUndefined(test.testTimestamp) ? { testTimestamp: test.testTimestamp } : {}),
+      ...(isNotUndefined(test.diagnostic) ? { diagnostic: test.diagnostic } : {})
     })),
     codecoverage: rawResult.codecoverage
   };
