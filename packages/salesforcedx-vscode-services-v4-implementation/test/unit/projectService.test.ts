@@ -74,55 +74,44 @@ afterEach(async () => {
   await Promise.all(directories.splice(0).map(directory => rm(directory, { recursive: true, force: true })));
 });
 
-it.each(['node', 'memfs'])(
-  'uses real SDK project/registry instances and namespace/folder contracts on %s',
-  async backend => {
-    vi.stubEnv('FORCE_MEMFS', backend === 'memfs' ? 'true' : 'false');
-    vi.stubEnv('ESBUILD_PLATFORM', backend === 'memfs' ? 'web' : 'node');
-    coreFs.setFs(coreFs.getVirtualFs());
-    const directory = backend === 'node' ? await nodeProject() : '/v4-project-memory';
-    if (backend === 'memfs') {
-      await writeManifest(directory);
-      selectFolder(URI.parse(`memfs:${directory}`));
-    }
-    const runtime = ManagedRuntime.make(graph);
-    try {
-      const project = await runtime.runPromise(ProjectService.use(service => service.getSfProject()));
-      const registry = await runtime.runPromise(MetadataRegistryService.use(service => service.getRegistryAccess()));
-      expect(project).toBeInstanceOf(SfProject);
-      expect(registry).toBeInstanceOf(RegistryAccess);
-      expect(registry.getTypeByName('ApexClass').suffix).toBe('cls');
-      expect(await runtime.runPromise(ProjectService.use(service => service.getProjectNamespace()))).toBe('MyPackage');
-      expect(
-        await runtime.runPromise(
-          ProjectService.use(service => service.isArtifactNamespaceWorkspaceEligible('mypackage'))
+// Memfs contracts run in the packed browser fixture with shipped SDK path aliases, not the host's node:path.
+it('uses real Node SDK project/registry instances and namespace/folder contracts', async () => {
+  const directory = await nodeProject();
+  const runtime = ManagedRuntime.make(graph);
+  try {
+    const project = await runtime.runPromise(ProjectService.use(service => service.getSfProject()));
+    const registry = await runtime.runPromise(MetadataRegistryService.use(service => service.getRegistryAccess()));
+    expect(project).toBeInstanceOf(SfProject);
+    expect(registry).toBeInstanceOf(RegistryAccess);
+    expect(registry.getTypeByName('ApexClass').suffix).toBe('cls');
+    expect(await runtime.runPromise(ProjectService.use(service => service.getProjectNamespace()))).toBe('MyPackage');
+    expect(
+      await runtime.runPromise(ProjectService.use(service => service.isArtifactNamespaceWorkspaceEligible('mypackage')))
+    ).toBe(true);
+    expect(
+      await runtime.runPromise(ProjectService.use(service => service.isArtifactNamespaceWorkspaceEligible(null)))
+    ).toBe(false);
+    expect((await runtime.runPromise(ProjectService.use(service => service.getDebugLogsFolder()))).path).toBe(
+      `${URI.file(directory).path}/.sfdx/tools/debug/logs`
+    );
+    expect(
+      await runtime.runPromise(
+        ProjectService.use(service =>
+          service.isInPackageDirectories(Utils.joinPath(folders[0].uri, 'force-app', 'Foo.cls'))
         )
-      ).toBe(true);
-      expect(
-        await runtime.runPromise(ProjectService.use(service => service.isArtifactNamespaceWorkspaceEligible(null)))
-      ).toBe(false);
-      expect((await runtime.runPromise(ProjectService.use(service => service.getDebugLogsFolder()))).path).toBe(
-        `${URI.file(directory).path}/.sfdx/tools/debug/logs`
-      );
-      expect(
-        await runtime.runPromise(
-          ProjectService.use(service =>
-            service.isInPackageDirectories(Utils.joinPath(folders[0].uri, 'force-app', 'Foo.cls'))
-          )
-        )
-      ).toBe(true);
-      expect(
-        await runtime.runPromise(
-          ProjectService.use(service =>
-            service.ensureInPackageDirectories([Utils.joinPath(folders[0].uri, 'outside', 'Foo.cls')])
-          ).pipe(Effect.flip)
-        )
-      ).toMatchObject({ _tag: 'NotInPackageDirectoryError' });
-    } finally {
-      await runtime.dispose();
-    }
+      )
+    ).toBe(true);
+    expect(
+      await runtime.runPromise(
+        ProjectService.use(service =>
+          service.ensureInPackageDirectories([Utils.joinPath(folders[0].uri, 'outside', 'Foo.cls')])
+        ).pipe(Effect.flip)
+      )
+    ).toMatchObject({ _tag: 'NotInPackageDirectoryError' });
+  } finally {
+    await runtime.dispose();
   }
-);
+});
 
 it('memoizes shared layers and SDK lookups without duplicate project-opened notifications', async () => {
   await nodeProject();
