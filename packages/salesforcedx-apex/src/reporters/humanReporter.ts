@@ -9,6 +9,7 @@ import * as os from 'node:os';
 import { nls } from '../i18n';
 import { type ApexTestResultData, type CodeCoverageResult, type TestResult } from '../tests/types';
 import { elapsedTime, HeapMonitor, type Row, Table } from '../utils';
+import { formatTestTable } from './testTable';
 
 const UNCOVERED_LINES_ARRAY_LIMIT = 5;
 
@@ -117,31 +118,7 @@ export class HumanReporter {
         runtime: elem.outcome !== 'Fail' ? `${elem.runTime}` : ''
       }));
 
-    if (testRowArray.length > 0) {
-      return showCategory
-        ? new Table().createTable(
-            testRowArray,
-            [
-              { key: 'name', label: nls.localize('testNameColHeader') },
-              { key: 'category', label: nls.localize('categoryColHeader') },
-              { key: 'outcome', label: nls.localize('outcomeColHeader') },
-              { key: 'msg', label: nls.localize('msgColHeader') },
-              { key: 'runtime', label: nls.localize('runtimeColHeader') }
-            ],
-            nls.localize('testResultsHeader')
-          )
-        : new Table().createTable(
-            testRowArray,
-            [
-              { key: 'name', label: nls.localize('testNameColHeader') },
-              { key: 'outcome', label: nls.localize('outcomeColHeader') },
-              { key: 'msg', label: nls.localize('msgColHeader') },
-              { key: 'runtime', label: nls.localize('runtimeColHeader') }
-            ],
-            nls.localize('testResultsHeader')
-          );
-    }
-    return '';
+    return formatTestTable(testRowArray, nls.localize('testResultsHeader'), showCategory);
   }
 
   @elapsedTime()
@@ -200,63 +177,7 @@ export class HumanReporter {
         ];
       });
 
-    if (testRowArray.length > 0) {
-      if (showCategory) {
-        return new Table().createTable(
-          testRowArray,
-          [
-            {
-              key: 'name',
-              label: nls.localize('testNameColHeader')
-            },
-            {
-              key: 'coveredClassName',
-              label: nls.localize('classTestedHeader')
-            },
-            {
-              key: 'category',
-              label: nls.localize('categoryColHeader')
-            },
-            {
-              key: 'outcome',
-              label: nls.localize('outcomeColHeader')
-            },
-            {
-              key: 'coveredClassPercentage',
-              label: nls.localize('percentColHeader')
-            },
-            { key: 'msg', label: nls.localize('msgColHeader') },
-            { key: 'runtime', label: nls.localize('runtimeColHeader') }
-          ],
-          header
-        );
-      }
-      return new Table().createTable(
-        testRowArray,
-        [
-          {
-            key: 'name',
-            label: nls.localize('testNameColHeader')
-          },
-          {
-            key: 'coveredClassName',
-            label: nls.localize('classTestedHeader')
-          },
-          {
-            key: 'outcome',
-            label: nls.localize('outcomeColHeader')
-          },
-          {
-            key: 'coveredClassPercentage',
-            label: nls.localize('percentColHeader')
-          },
-          { key: 'msg', label: nls.localize('msgColHeader') },
-          { key: 'runtime', label: nls.localize('runtimeColHeader') }
-        ],
-        header
-      );
-    }
-    return '';
+    return formatTestTable(testRowArray, header, showCategory, true);
   }
 
   @elapsedTime()
