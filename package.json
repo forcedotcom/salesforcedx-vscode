@@ -41,6 +41,7 @@
     "@salesforce/core": "^9.3.6",
     "@salesforce/dev-config": "^4.3.2",
     "@salesforce/effect-octokit": "workspace:*",
+    "@salesforce/playwright-vscode-ext": "workspace:*",
     "@secretlint/node": "11.7.1",
     "@stylistic/eslint-plugin-ts": "2.13.0",
     "@tony.ganchev/eslint-plugin-header": "3.4.4",
@@ -58,6 +59,7 @@
     "@vscode/test-web": "^0.0.81",
     "@vscode/vsce": "3.5.0",
     "acorn": "8.15.0",
+    "applicationinsights": "1.8.10",
     "assert": "2.1.0",
     "browserify-zlib": "0.2.0",
     "buffer": "6.0.3",
@@ -137,7 +139,7 @@
     "test:ai-safeguards": "wireit",
     "test:manual-test-plan": "wireit",
     "test:scripts": "wireit",
-    "test-vsix": "ts-node scripts/installVSIXFromBranch.ts code",
+    "test-vsix": "node scripts/installVSIXFromBranch.mts code",
     "test:container:local": "wireit",
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 pnpm exec markdown-link-check --quiet --alive 200,206,429",
     "check:dupes": "pnpm exec jscpd",
@@ -165,12 +167,12 @@
     "vscode:sha256": "node ./scripts/generate-sha256.js >> ./SHA256",
     "vscode:publish": "pnpm --recursive --if-present run vscode:publish",
     "watch": "pnpm compile --watch",
-    "report:installs": "ts-node scripts/reportInstalls.ts",
-    "scrape:all:pages": "ts-node scripts/xsd/scrape-all-metadata-pages.ts",
-    "scrape:single:page": "ts-node scripts/xsd/scrape-single-page.ts",
-    "convert:json:to:xsd": "ts-node scripts/xsd/jsonToXsdConverter.ts",
-    "validate:xsd": "ts-node scripts/xsd/validateXsd.ts",
-    "fix:xsd:errors": "ts-node scripts/xsd/fixXsdErrors.ts"
+    "report:installs": "node scripts/reportInstalls.mts",
+    "scrape:all:pages": "node scripts/xsd/scrapeAllMetadataPages.mts",
+    "scrape:single:page": "node scripts/xsd/scrapeSinglePage.mts",
+    "convert:json:to:xsd": "node scripts/xsd/jsonToXsdConverter.mts",
+    "validate:xsd": "node scripts/xsd/validateXsd.mts",
+    "fix:xsd:errors": "node scripts/xsd/fixXsdErrors.mts"
   },
   "wireit": {
     "compile": {
@@ -336,9 +338,12 @@
     },
     "test:scripts": {
       "command": "vitest run --config vitest.config.mts",
+      "dependencies": [
+        "./packages/playwright-vscode-ext:compile"
+      ],
       "files": [
         "vitest.config.mts",
-        "scripts/**/*.ts",
+        "scripts/**/*.{ts,mts,cts}",
         "scripts/clean-wireit-cache.js",
         "scripts/releaseDashboard.sh",
         "scripts/rerunPushE2EGate.sh",
@@ -350,7 +355,7 @@
       "output": []
     },
     "test:container:local": {
-      "command": "ts-node scripts/codeBuilderLocalE2E.ts",
+      "command": "node scripts/codeBuilderLocalE2E.mts",
       "dependencies": [
         "./packages/playwright-vscode-ext:compile"
       ]
@@ -485,23 +490,23 @@
       "output": []
     },
     "check:actions": {
-      "command": "ts-node --project scripts/tsconfig.json scripts/validateActions.ts",
+      "command": "node scripts/validateActions.mts",
       "dependencies": [
         "check:scripts"
       ],
       "files": [
-        "scripts/validateActions.ts",
-        "scripts/shared/validateAction.ts",
-        "scripts/tsconfig.json",
+        "scripts/validateActions.mts",
+        "scripts/shared/validateAction.mts",
         ".github/workflows/*.{yml,yaml}",
         ".github/actions/*/action.{yml,yaml}"
       ],
       "output": []
     },
     "check:scripts": {
-      "command": "tsc --noEmit -p scripts/tsconfig.native.json && node --check scripts/category-approve.mts && node --check scripts/changelogBody/changelogBody.mts && node --check scripts/manualTestPlan/manualTestPlan.mts && node --check test/category-approve.test.mts && node --check scripts/manualTestPlan/test/unit/manualTestPlan.test.mts",
+      "command": "tsc --noEmit -p scripts/tsconfig.native.json && node --check scripts/category-approve.mts && node --check scripts/changelogBody/changelogBody.mts && node --check scripts/manualTestPlan/manualTestPlan.mts && node --check scripts/codeBuilderLocalE2E.mts && node --check scripts/installVSIXFromBranch.mts && node --check scripts/queryAppInsights.mts && node --check scripts/reportInstalls.mts && node --check scripts/validateActions.mts && node --check scripts/xsd/fixXsdErrors.mts && node --check scripts/xsd/jsonToXsdConverter.mts && node --check scripts/xsd/scrapeAllMetadataPages.mts && node --check scripts/xsd/scrapeSinglePage.mts && node --check scripts/xsd/validateXsd.mts && node --check test/category-approve.test.mts && node --check scripts/manualTestPlan/test/unit/manualTestPlan.test.mts",
       "dependencies": [
-        "./packages/effect-octokit:compile"
+        "./packages/effect-octokit:compile",
+        "./packages/playwright-vscode-ext:compile"
       ],
       "files": [
         "package.json",

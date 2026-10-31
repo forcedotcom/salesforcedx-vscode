@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import process from 'node:process';
+
 type AppInsightsQueryResponse = {
   tables: {
     name: string;
@@ -97,13 +99,13 @@ const queryAppInsights = async (kqlQuery: string): Promise<QueryResult> => {
 
 const testConnection = async (): Promise<QueryResult> => queryAppInsights('customEvents | take 1');
 
-if (require.main === module) {
+if (import.meta.main) {
   const args = process.argv.slice(2);
   const query = args.join(' ');
 
   if (!query) {
-    console.error('Usage: tsx queryAppInsights.ts <kql-query>');
-    console.error('Example: tsx queryAppInsights.ts "customEvents | take 5"');
+    console.error('Usage: node scripts/queryAppInsights.mts <kql-query>');
+    console.error('Example: node scripts/queryAppInsights.mts "customEvents | take 5"');
     process.exit(1);
   }
 

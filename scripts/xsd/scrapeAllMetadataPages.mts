@@ -8,15 +8,15 @@
 import { Effect } from 'effect';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
-import { chromium, Page, Browser, BrowserContext } from 'playwright';
+import { chromium, type Page, type BrowserContext } from 'playwright';
 import {
   loadMetadataPage,
   extractMetadataFromPage,
-  MetadataType,
-  MetadataTypesMap,
+  type MetadataType,
+  type MetadataTypesMap,
   BROWSER_LAUNCH_ARGS,
   createBrowserContext
-} from './scrapeUtils';
+} from './scrapeUtils.mts';
 
 const JSON_DOC_URL = 'https://developer.salesforce.com/docs/get_document/atlas.en-us.api_meta.meta';
 const BASE_DOC_URL = 'https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/';
@@ -573,7 +573,8 @@ const scrapeAll = async (outputFile?: string, isVisible: boolean = false): Promi
 
     // Save results
     const outputPath =
-      outputFile ?? path.join(__dirname, '../../packages/salesforcedx-vscode-core', 'metadata_types_map_scraped.json');
+      outputFile ??
+      path.join(import.meta.dirname, '../../packages/salesforcedx-vscode-core', 'metadata_types_map_scraped.json');
 
     const endTime = Date.now();
     const totalElapsedTime = formatElapsedTime(startTime, endTime);

@@ -7,10 +7,15 @@
  *   pnpm scrape:single:page https://developer.salesforce.com/docs/atlas.en-us.api_meta.meta/api_meta/meta_auradefinitionbundle.htm
  */
 
-import { chromium, Browser, BrowserContext } from 'playwright';
+import { chromium, type Browser, type BrowserContext } from 'playwright';
 import * as fs from 'fs';
 import * as path from 'path';
-import { loadMetadataPage, extractMetadataFromPage, BROWSER_LAUNCH_ARGS, createBrowserContext } from './scrapeUtils';
+import {
+  loadMetadataPage,
+  extractMetadataFromPage,
+  BROWSER_LAUNCH_ARGS,
+  createBrowserContext
+} from './scrapeUtils.mts';
 
 /** Main function */
 const main = async () => {
@@ -44,7 +49,7 @@ Options:
 
   const isVisible = args.includes('--visible');
   const outputIndex = args.indexOf('--output');
-  const outputFile = outputIndex >= 0 ? args[outputIndex + 1] : path.join(__dirname, 'debug-output.json');
+  const outputFile = outputIndex >= 0 ? args[outputIndex + 1] : path.join(import.meta.dirname, 'debug-output.json');
 
   console.log(`🚀 Single-Page Metadata Scraper${isVisible ? ' (VISIBLE MODE)' : ''}`);
   console.log(`🔗 URL: ${url}\n`);

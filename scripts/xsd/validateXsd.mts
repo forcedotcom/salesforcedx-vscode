@@ -276,7 +276,14 @@ const writeErrorsToFile = (errors: ValidationError[], outputPath: string): void 
  * Main validation function.
  */
 const main = async (): Promise<void> => {
-  const workspaceRoot = path.resolve(__dirname, '..', '..');
+  if (process.argv.includes('--help')) {
+    console.log(
+      'Usage: node scripts/xsd/validateXsd.mts\nValidate the metadata XSD file and write results to xsdErrors.txt.'
+    );
+    return;
+  }
+
+  const workspaceRoot = path.resolve(import.meta.dirname, '..', '..');
   const xsdFile = path.join(
     workspaceRoot,
     'packages/salesforcedx-vscode-core/resources/salesforce_metadata_api_common.xsd'
@@ -350,7 +357,7 @@ const main = async (): Promise<void> => {
 };
 
 // Run the script
-if (require.main === module) {
+if (import.meta.main) {
   main().catch(error => {
     console.error('Unhandled error:', error);
     process.exit(1);

@@ -5,7 +5,7 @@ name: Code Builder E2E (Playwright)
 # bytes about to ship, not a rebuild) swapped in. Linux-only single job: the code-server runtime is
 # identical regardless of host OS, and containers are Linux (plan §10.3).
 #
-# This workflow DRIVES the repo orchestrator (scripts/codeBuilderLocalE2E.ts, run via
+# This workflow DRIVES the repo orchestrator (scripts/codeBuilderLocalE2E.mts, run via
 # `pnpm test:container:local`) rather than re-implementing the pull → swap → restart → gate →
 # specs pipeline — the orchestrator is the local twin of this job, so the two cannot drift (plan
 # §9.1 "WF drives ORCH", §15). CI does the ghcr `docker login` (its GITHUB_TOKEN) and dev-hub auth;
