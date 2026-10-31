@@ -8,13 +8,13 @@ review: never
 
 Improve the automated changelog delta committed to `develop` by `promote-to-prerelease.yml`.
 
-Scope: the all-extensions release changelog at `packages/salesforcedx-vscode/CHANGELOG.md`. Root `CHANGELOG.md` contains full historical changelog (automatically prepended by `scripts/prepend-release-changelog.js`, run as part of the same promote job) — do not edit manually. Per-package `CHANGELOG.md` files (e.g. `packages/salesforcedx-vscode-i18n/CHANGELOG.md`) are scoped to their own package and out of scope here.
+Scope: polish at `packages/salesforcedx-vscode/CHANGELOG.md` (per-package `CHANGELOG.md` files scoped to their own packages, out of scope). Root `CHANGELOG.md` is auto-maintained: `promote-to-prerelease.yml` prepends each week's delta, then stable builds later fold those sections into one stable release section via `fold-stable-changelog.js` — do not edit root manually.
 
 ## When to use
 
 - User invokes `/changelog` or asks to prepare/review the changelog
 - On `develop`, after a `chore: changelog for prerelease vX.Y.Z` commit lands
-- **Timing matters**: polish it *before* `build-github-release.yml`'s next scheduled run (Wednesdays, 7 AM UTC). That job reads develop's current `packages/salesforcedx-vscode/CHANGELOG.md`, relabels the header to the stable version, and bakes it into the stable VSIX. Once that's run, the content is frozen inside the built artifact — fixing it afterward means manually re-injecting into the release's VSIX asset, not editing this file.
+- **Timing matters**: polish it *before* `build-github-release.yml` (Wednesdays, 7 AM UTC). Stable builds fold develop's root CHANGELOG.md and overlay polish from package CHANGELOG.md into the shipped release version, then bake into the VSIX. Once that's run, content is frozen in the artifact — fixing afterward requires manually re-injecting into the release's VSIX asset.
 
 ## File location
 
@@ -151,12 +151,12 @@ Use these `chore:` subjects for polish commits on `develop`:
 
 1. **compute-changelog-range** (promote-to-prerelease.yml): Outputs `fromRef` = newest `marketplace-prerelease-*` tag (set by last week's promote run) or latest stable `v*` tag (correct fallback before any tracking tag exists). Empty `fromRef` (identical to this week's nightly commit — a manual re-run or hotfix) skips changelog-body instead of feeding it an identical range.
 2. **changelog-body** (reusable workflow `.github/workflows/changelog-body.yml`): Calls Cursor-backed AI (guided by `.cursor/skills/changelog-judgment/SKILL.md`) to produce polished, customer-facing markdown body from commits in range `(fromRef, toRef]`. Already removes GUS refs, rewrites sentences ("We added/fixed/improved..."), dedupes multi-package PRs, consolidates Under-the-Hood. Returns `body` output.
-3. **write-changelog** (promote-to-prerelease.yml): Writes header `# <version> - <date>` + body to `packages/salesforcedx-vscode/CHANGELOG.md`. Immediately runs `scripts/prepend-release-changelog.js` to copy same content to root `CHANGELOG.md`. Both labeled with **prerelease** version (e.g. `67.17.9`). Committed directly to `develop`.
-4. **Polish (optional)** (`develop`, this skill): Human review/touch-up before next `build-github-release.yml` run. Model-generated body is typically ready, but catch edge cases/errors using Rules 1–5 as checklist. **Note:** because prepend already ran in step 3, root `CHANGELOG.md`'s copy of this version's section is *not* automatically re-synced by a polish edit.
-5. **Relabel to stable** (`build-github-release.yml`, next Wednesday 7 AM UTC): Pulls develop's current `packages/salesforcedx-vscode/CHANGELOG.md` (picking up any polish from step 4), relabels header from prerelease → stable version, bakes into stable VSIX.
-6. **Relabel history** (`publishVSCode.yml`, on final stable publish): Relabels same header in both changelogs from prerelease → stable, so history matches what shipped.
+3. **write-changelog** (promote-to-prerelease.yml): Writes header `# <version> - <date>` + body to `packages/salesforcedx-vscode/CHANGELOG.md`. Runs `scripts/prepend-release-changelog.js` to prepend same content to root `CHANGELOG.md`. Both labeled with **prerelease** version (e.g. `67.17.9`). Committed to `develop`.
+4. **Polish (optional)** (`develop`, this skill): Human review/touch-up before next `build-github-release.yml` run. Model-generated body is typically ready, but catch edge cases/errors using Rules 1–5 as checklist. **Note:** polish edits to package CHANGELOG.md are picked up by the stable build (via --overlay); edits to root are not auto-synced (folding process replaces root sections).
+5. **Fold to stable** (`build-github-release.yml`, Wednesday 7 AM UTC): For stable builds (skips emergency pre-releases): pulls develop's root CHANGELOG.md, overlays package CHANGELOG.md polish from step 4, folds every prerelease section it contains into one stable section (`fold-stable-changelog.js`), bakes into stable VSIX (package CHANGELOG.md).
+6. **Fold history** (`publishVSCode.yml`, on final stable publish): For stable releases (skips pre-release tags): folds develop's root CHANGELOG.md, so history matches shipped stable version; commits only root CHANGELOG.md to develop (no longer touches package changelog).
 
-`prepend-release-changelog.js` validates structure (version format, file existence, non-empty), runs idempotent (skips if already in root), reports errors (ENOSPC, EACCES, missing files).
+`prepend-release-changelog.js` validates structure (version format, file existence, non-empty), runs idempotent (skips if already in root), reports errors (ENOSPC, EACCES, missing files). `fold-stable-changelog.js` (run by build-github-release.yml and publishVSCode.yml) is also idempotent: no-op if root already starts with the stable version (pre-prepared branches), or if no prerelease sections fold into it (hotfixes of stable releases).
 
 ### Commit details
 
