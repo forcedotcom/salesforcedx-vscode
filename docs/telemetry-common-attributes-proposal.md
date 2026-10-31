@@ -1,5 +1,7 @@
 # Proposal: Additional Common Telemetry Attributes
 
+> Historical proposal for the retired class-based `salesforcedx-utils-vscode` telemetry implementation.
+
 ## Requested Properties
 
 | Property | Type | Source | Description |

@@ -71,5 +71,5 @@ export const buildMetadataRegistryScanConfig = getServicesApi.pipe(
       Effect.catchAllCause(() => Effect.void)
     )
   ),
-  Effect.catchTag('ServicesExtensionNotFoundError', () => Effect.void)
+  Effect.catchTag('ExtensionNotFoundError', () => Effect.void)
 );

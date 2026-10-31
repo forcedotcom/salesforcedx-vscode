@@ -6,22 +6,18 @@
  */
 
 import * as Context from 'effect/Context';
-import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
-import { isError } from 'effect/Predicate';
+import type * as ParseResult from 'effect/ParseResult';
 // Import from the npm package (symlinked in workspace) - wireit ensures it's compiled first
 export type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
-import * as vscode from 'vscode';
-
-export class ServicesExtensionNotFoundError extends Data.TaggedError('ServicesExtensionNotFoundError') {}
-export class InvalidServicesApiError extends Data.TaggedError('InvalidServicesApiError')<{ cause?: Error }> {}
+import { type ExtensionActivationError, type ExtensionNotFoundError, getExtensionExports } from './extensionExports';
 
 export type ExtensionProviderService = {
   /** Get the SalesforceVSCodeServicesApi, activating if needed */
   readonly getServicesApi: Effect.Effect<
     SalesforceVSCodeServicesApi,
-    ServicesExtensionNotFoundError | InvalidServicesApiError,
+    ExtensionNotFoundError | ExtensionActivationError | ParseResult.ParseError,
     never
   >;
 };
@@ -29,16 +25,12 @@ export type ExtensionProviderService = {
 export const ExtensionProviderService = Context.GenericTag<ExtensionProviderService>('ExtensionProviderService');
 
 /** connect to the Salesforce Services extension and get all of its API services */
-export const getServicesApi = Effect.sync(() =>
-  vscode.extensions.getExtension<SalesforceVSCodeServicesApi>('salesforce.salesforcedx-vscode-services')
-).pipe(
-  Effect.flatMap(ext => (ext ? Effect.succeed(ext) : Effect.fail(new ServicesExtensionNotFoundError()))),
-  Effect.flatMap(ext =>
-    ext.isActive
-      ? Effect.sync(() => ext.exports)
-      : Effect.tryPromise({
-          try: () => ext.activate(),
-          catch: e => new InvalidServicesApiError(isError(e) ? { cause: e } : { cause: new Error(String(e)) })
-        })
+export const getServicesApi: ExtensionProviderService['getServicesApi'] = getExtensionExports({
+  extId: 'salesforce.salesforcedx-vscode-services'
+}).pipe(
+  Effect.map(
+    // This first-party extension is compiled against the same public type; retain the existing typed wrapper.
+    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
+    exports => exports as SalesforceVSCodeServicesApi
   )
 );

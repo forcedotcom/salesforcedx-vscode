@@ -13,16 +13,22 @@ const extensionPackageJson = {
   publisher: 'salesforce',
   version: '67.17.17',
   displayName: 'Salesforce CLI',
+  aiKey: 'example-key',
+  enableO11y: 'true',
   o11yUploadEndpoint: 'https://example.com/o11y',
-  otelConnectionString: 'InstrumentationKey=example'
+  otelConnectionString: 'InstrumentationKey=example',
+  productFeatureId: 'aJC123',
+  enableCustomEventsFromSpans: true
 };
-const extensionPackageJsonFields = [
+const stringFields = [
   'name',
   'publisher',
   'version',
   'displayName',
+  'aiKey',
   'o11yUploadEndpoint',
-  'otelConnectionString'
+  'otelConnectionString',
+  'productFeatureId'
 ] satisfies ReadonlyArray<keyof typeof extensionPackageJson>;
 
 describe('ExtensionPackageJsonSchema', () => {
@@ -30,9 +36,24 @@ describe('ExtensionPackageJsonSchema', () => {
     expect(Schema.decodeUnknownSync(ExtensionPackageJsonSchema)(extensionPackageJson)).toEqual(extensionPackageJson);
   });
 
-  it.each(extensionPackageJsonFields)('rejects a non-string %s', field => {
+  it.each(stringFields)('rejects a non-string %s', field => {
     expect(() =>
       Schema.decodeUnknownSync(ExtensionPackageJsonSchema)({ ...extensionPackageJson, [field]: 1 })
+    ).toThrow();
+  });
+
+  it.each([true, false, 'true', 'false'])('accepts enableO11y value %s', enableO11y => {
+    expect(() =>
+      Schema.decodeUnknownSync(ExtensionPackageJsonSchema)({ ...extensionPackageJson, enableO11y })
+    ).not.toThrow();
+  });
+
+  it('rejects non-boolean enableCustomEventsFromSpans', () => {
+    expect(() =>
+      Schema.decodeUnknownSync(ExtensionPackageJsonSchema)({
+        ...extensionPackageJson,
+        enableCustomEventsFromSpans: 'true'
+      })
     ).toThrow();
   });
 });

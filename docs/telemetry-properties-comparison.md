@@ -1,5 +1,7 @@
 # Telemetry Properties Comparison: vscode-utils vs services
 
+> Historical comparison of the retired class-based VS Code utilities telemetry and the current services pipeline.
+
 Comparison of properties sent to Application Insights from the two telemetry implementations.
 
 ## Common Properties (set once, sent with every event)

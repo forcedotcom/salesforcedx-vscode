@@ -64,7 +64,7 @@ const readWorkspaceSettings = Effect.fn('ApexDebugger.readWorkspaceSettings')(fu
 
 const waitForLanguageClientReady = Effect.fn('ApexDebugger.waitForLanguageClientReady')(
   (extension: ActiveApexExtension) =>
-    Effect.sync(() => extension.exports.languageClientManager.getStatus()).pipe(
+    Effect.sync(() => extension.languageClientManager.getStatus()).pipe(
       Effect.filterOrFail(
         status => status.isReady() || !status.failedToInitialize(),
         status => new DebugConfigurationError({ message: status.getStatusMessage() })
@@ -95,7 +95,7 @@ const resolveDebugConfig = Effect.fn('ApexDebugger.resolveDebugConfig')(function
     Effect.tap(waitForLanguageClientReady),
     Effect.flatMap(extension =>
       Effect.tryPromise({
-        try: () => extension.exports.getLineBreakpointInfo(),
+        try: () => extension.getLineBreakpointInfo(),
         catch: cause => new DebugConfigurationError({ message: errorMessage(cause) })
       })
     )
