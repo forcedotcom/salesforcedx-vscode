@@ -86,6 +86,15 @@ spec uses.
 The orchestrator auto-discovers every package that declares a `test:container` script, so adding a
 suite to a new package wires it in with no orchestrator edit.
 
+**Orchestrator options** (`npm run test:container:local [flags]`):
+- `--image-tag <tag>` — CB image tag (default: `latest`)
+- `--image <ref>` — Full image reference (e.g. Falcon ECR build); overrides `--image-tag`, skips ghcr login (caller must `docker login` to that registry first). The workflow's `image` input passes this through, but CI has no ECR login yet
+- `--run-id <id>` — VSIX source: a Build All run's artifact
+- `--release-tag <tag>` — VSIX source: a published GitHub Release (e.g. `v68.8.0`); exclusive with `--run-id`
+- `--no-teardown` — Leave container + org running after tests
+- `--keep-org` — Reuse existing scratch org if present
+- `--debug` — Headed Playwright + inspector
+
 ### Origin-spec coverage tally
 
 How the container suite maps back to the original desktop/web (`.desktop`/`.headless`/`.spec`) specs

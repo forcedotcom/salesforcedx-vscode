@@ -117,7 +117,7 @@ See `references/full-suite-execution.md` for complete guide on running web/deskt
 ```bash
 npm run test:container:local
 ```
-(from repo root; pulls the image, builds your extensions + swaps them in, then runs all packages' container specs sequentially against 1 shared workbench — see the "Running Code Builder e2e locally" section above for flags/prereqs)
+(from repo root; pulls image, builds + swaps extensions in, runs all packages' container specs sequentially against 1 shared workbench — flags: `--image-tag TAG`, `--image REF` (ECR/Falcon), `--run-id ID` / `--release-tag TAG` (VSIX source), `--no-teardown`, `--keep-org`, `--debug`; see `references/full-suite-execution.md` for details)
 
 **Run 1 package:**
 ```bash

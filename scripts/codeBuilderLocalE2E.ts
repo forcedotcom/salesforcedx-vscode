@@ -42,6 +42,10 @@
  *   --no-teardown     Leave the container + scratch org up for debugging (default tears down).
  *   --keep-org        Reuse an existing `minimalTestOrg` scratch org if present (default reuses).
  *   --image-tag <tag> Code Builder image tag (default: latest).
+ *   --image <ref>     Full image reference to pull instead of the ghcr image (e.g. a Falcon build
+ *                     in the Code Builder team's ECR). Overrides --image-tag. No registry login is
+ *                     done for it: `docker login` to that registry first (e.g. `aws ecr
+ *                     get-login-password | docker login ...`).
  *   --debug           Run Playwright headed with the inspector (PWDEBUG=1).
  */
 
@@ -148,6 +152,8 @@ type Options = {
   grep?: string;
   teardown: boolean;
   imageTag: string;
+  // Full image ref overriding the ghcr image + imageTag (a registry the caller has already logged in to).
+  image?: string;
   debug: boolean;
   // Restrict the run to these package(s) (comma-separated). Undefined runs every discovered suite.
   // The CI workflow shards per-package by passing one name per matrix job so the full suite fits in
@@ -199,6 +205,9 @@ const parseArgs = (argv: string[]): Options => {
         break;
       case '--image-tag':
         parsed.imageTag = need('--image-tag', argv[++i]);
+        break;
+      case '--image':
+        parsed.image = need('--image', argv[++i]);
         break;
       case '--debug':
         parsed.debug = true;
@@ -331,7 +340,13 @@ if (opts.runId && opts.releaseTag) {
   console.error('--run-id and --release-tag are mutually exclusive VSIX sources — pass only one.');
   process.exit(2);
 }
-const image = `ghcr.io/forcedotcom/code-builder-images/workspace-manager/codebuilder:${opts.imageTag}`;
+if (opts.image && opts.imageTag !== 'latest') {
+  console.error('--image and --image-tag are mutually exclusive — --image is a full reference, tag included.');
+  process.exit(2);
+}
+const image = opts.image ?? `ghcr.io/forcedotcom/code-builder-images/workspace-manager/codebuilder:${opts.imageTag}`;
+// A non-ghcr --image comes from a registry the caller already logged in to; ghcr login would be pointless.
+const skipGhcrLogin = Boolean(process.env.CB_SKIP_GHCR_LOGIN) || opts.image !== undefined;
 const vsixDir = mkdtempSync(join(tmpdir(), 'cb-e2e-vsix-'));
 
 // Set once the container is actually started, so a preflight bail-out doesn't emit teardown noise
@@ -411,8 +426,9 @@ if (!has('docker')) {
  * CB_SKIP_GHCR_LOGIN opts out entirely: the caller has already `docker login`-ed to ghcr (CI does
  * this with its GITHUB_TOKEN), so this script relies on that ambient auth and neither logs in nor
  * requires gh for login. gh may still be needed for --run-id, which re-checks it at download time.
+ * --image (a non-ghcr registry) opts out the same way.
  */
-if (!process.env.CB_SKIP_GHCR_LOGIN && !process.env.CR_PAT) {
+if (!skipGhcrLogin && !process.env.CR_PAT) {
   if (!has('gh')) {
     problems.push(
       `gh (GitHub CLI) — not installed. Used to authenticate the image pull as your GitHub user.\n` +
@@ -653,7 +669,13 @@ const pullImage = async (): Promise<void> => {
       }
     }
   }
-  if (process.env.CB_SKIP_GHCR_LOGIN) {
+  if (opts.image) {
+    console.error(
+      `\nCould not pull ${image} (--image set — relying on the caller's ambient docker login to its registry).\n` +
+        '    Check that you are logged in to that registry (for ECR, logins expire after 12 hours) and that the\n' +
+        '    image reference exists.'
+    );
+  } else if (process.env.CB_SKIP_GHCR_LOGIN) {
     // Login here was the caller's ambient `docker login` (in CI, the job GITHUB_TOKEN), not gh/CR_PAT,
     // so the gh/CR_PAT remediation would point at the wrong cause. A 403 means that ambient login lacks
     // read on the image repo, or the requested tag does not exist.
@@ -689,7 +711,9 @@ const ensureOrg = async (): Promise<void> => {
 
 /* --- ghcr login (sync, quick) + image pull + scratch org (async, overlapped) --- */
 const setUpInfra = async (): Promise<BootEnv> => {
-  if (process.env.CB_SKIP_GHCR_LOGIN) {
+  if (opts.image) {
+    log(`Skipping ghcr login (--image set — using ambient docker auth for ${image})`);
+  } else if (process.env.CB_SKIP_GHCR_LOGIN) {
     // The caller already authenticated docker to ghcr (e.g. CI's `docker login` with GITHUB_TOKEN).
     log('Skipping ghcr login (CB_SKIP_GHCR_LOGIN set — using ambient docker auth)');
   } else if (process.env.CR_PAT) {

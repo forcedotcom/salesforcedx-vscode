@@ -196,9 +196,15 @@ After all web/desktop tests pass, optionally run **container** Playwright specs.
 
 **Run all at once (recommended):**
 ```bash
-npm run test:container:local
+npm run test:container:local [--image-tag TAG | --image REF] [--run-id ID | --release-tag TAG] [--no-teardown] [--keep-org] [--debug]
 ```
-(from repo root; pulls the image, builds + swaps your extensions in, discovers all `test:container` scripts, runs suites sequentially against 1 shared workbench)
+(from repo root; pulls the image, builds + swaps extensions in, discovers all `test:container` scripts, runs sequentially against 1 shared workbench)
+
+**Flags:**
+- `--image-tag TAG` — CB image tag (default: `latest`)
+- `--image REF` — Full image reference (e.g. Falcon ECR build); skips ghcr login, so `docker login` to that registry first
+- `--run-id ID`, `--release-tag TAG` — VSIX source (mutually exclusive)
+- `--no-teardown`, `--keep-org`, `--debug` — see orchestrator header comments in `scripts/codeBuilderLocalE2E.ts`
 
 **Run 1 package manually** (if container already running):
 ```bash

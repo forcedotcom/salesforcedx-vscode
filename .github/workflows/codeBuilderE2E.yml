@@ -37,6 +37,10 @@ on:
         required: false
         type: string
         default: 'latest'
+      image:
+        description: 'Full image reference outside ghcr (e.g. a Falcon build in the CB ECR). Overrides image_tag. Registry login for it is not wired up yet.'
+        required: false
+        type: string
   workflow_call:
     inputs:
       runId:
@@ -49,6 +53,9 @@ on:
         required: false
         type: string
         default: 'latest'
+      image:
+        required: false
+        type: string
 
 concurrency:
   group: ci-${{ github.ref }}-codeBuilderE2E
@@ -122,6 +129,8 @@ jobs:
       # Rolling tag by default. A trusted dispatch/call input; kept in env (never inlined into a
       # run: command) to avoid script injection.
       IMAGE_TAG: ${{ inputs.image_tag || 'latest' }}
+      # Full ECR image ref overriding IMAGE_TAG; same env-not-inline rule.
+      CB_IMAGE: ${{ inputs.image }}
       # The package this shard runs (from the matrix); via env, not inlined, per the same rule.
       PACKAGE: ${{ matrix.package }}
       # Sharded jobs are small (one package), so don't abort at the 3rd failure — run every spec so
@@ -234,11 +243,16 @@ jobs:
         # RELEASE_TAG and RUN_ID are mutually exclusive VSIX sources (see the workflow_dispatch/
         # workflow_call input descriptions above) -- prefer RELEASE_TAG when set, since it's the more
         # deliberate choice (testing an already-published release, not a Build All run).
+        # CB_IMAGE (a full non-ghcr ref) replaces --image-tag; the orchestrator rejects both together.
         run: |
+          image_args=(--image-tag "$IMAGE_TAG")
+          if [ -n "$CB_IMAGE" ]; then
+            image_args=(--image "$CB_IMAGE")
+          fi
           if [ -n "$RELEASE_TAG" ]; then
-            npm run test:container:local -- --release-tag "$RELEASE_TAG" --image-tag "$IMAGE_TAG" --only "$PACKAGE"
+            npm run test:container:local -- --release-tag "$RELEASE_TAG" "${image_args[@]}" --only "$PACKAGE"
           else
-            npm run test:container:local -- --run-id "$RUN_ID" --image-tag "$IMAGE_TAG" --only "$PACKAGE"
+            npm run test:container:local -- --run-id "$RUN_ID" "${image_args[@]}" --only "$PACKAGE"
           fi
 
       # This shard runs one package (--only), so only that package's report/results dir exists; the
