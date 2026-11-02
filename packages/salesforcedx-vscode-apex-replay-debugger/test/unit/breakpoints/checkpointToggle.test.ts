@@ -14,7 +14,6 @@ import { EditorService } from 'salesforcedx-vscode-services/src/vscode/editorSer
 import { CHECKPOINT } from '../../../src/debuggerConstants';
 
 vi.mock('../../../src/apexExtension', () => ({
-  salesforceApexExtension: { isActive: true, activate: vi.fn() },
   retrieveLineBreakpointInfo: () => Effect.void
 }));
 
