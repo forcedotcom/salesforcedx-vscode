@@ -77,6 +77,7 @@
         "test/fixtures/no-nested-effect-gen-catch-tags/tsconfig.json",
         "vitest.config.mts",
         "../../config/vitest.base.config.mts",
+        "../../eslint.config.mjs",
         "../../config/__mocks__/o11y_schema_sf_pdp.js",
         "../../scripts/setupVitest.ts",
         "../../scripts/vscodeMock.ts",

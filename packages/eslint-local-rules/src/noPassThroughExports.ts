@@ -99,8 +99,13 @@ export const noPassThroughExports = RuleCreator.withoutDocs({
           context.report({ node, messageId: 'passThrough' });
         }
       },
+      TSExportAssignment: node => {
+        if (node.expression.type === AST_NODE_TYPES.Identifier && isImportedBinding(node, node.expression.name)) {
+          context.report({ node, messageId: 'passThrough' });
+        }
+      },
       ExportNamedDeclaration: (node: TSESTree.ExportNamedDeclaration) => {
-        if (node.source) {
+        if (node.source || node.declaration?.type === AST_NODE_TYPES.TSImportEqualsDeclaration) {
           context.report({ node, messageId: 'passThrough' });
           return;
         }

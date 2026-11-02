@@ -122,6 +122,8 @@ export default [
   },
   {
     files: ['**/*.{ts,tsx,mts,cts}'],
+    // Rule tests and synthetic fixtures use the syntax-only configuration below.
+    ignores: ['packages/eslint-local-rules/test/**'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -998,9 +1000,19 @@ export default [
       '@typescript-eslint/consistent-type-assertions': 'off'
     }
   },
-  // Ignore test files for eslint-local-rules
+  // Enforce exports in rule tests and synthetic fixtures without type-aware extension rules.
   {
-    ignores: ['packages/eslint-local-rules/test/**']
+    files: ['packages/eslint-local-rules/test/**/*.{ts,tsx,mts,cts}'],
+    languageOptions: {
+      parser: tsParser
+    },
+    plugins: {
+      '@typescript-eslint': typescriptEslint,
+      local: localPlugin
+    },
+    rules: {
+      'local/no-pass-through-exports': 'error'
+    }
   },
   // Dependency ranges apply to root and workspace manifests
   {

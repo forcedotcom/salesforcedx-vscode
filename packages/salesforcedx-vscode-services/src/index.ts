@@ -259,7 +259,7 @@ export {
   type CreateParams,
   type TemplateOptionsFor
 } from './core/templateService';
-export { TemplateType } from '@salesforce/templates';
+export { TemplateType, type CreateOutput } from '@salesforce/templates';
 export type { TemplatesManifestLoadError, TemplatesRootPathNotAvailableError } from './core/templateService';
 export type {
   NonEmptyComponentSet,

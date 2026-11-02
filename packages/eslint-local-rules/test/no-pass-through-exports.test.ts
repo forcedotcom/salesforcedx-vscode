@@ -7,6 +7,7 @@
 
 import * as path from 'node:path';
 import { RuleTester } from '@typescript-eslint/rule-tester';
+import { ESLint } from 'eslint';
 import { noPassThroughExports } from '../src/noPassThroughExports';
 
 const ruleTester = new RuleTester();
@@ -19,10 +20,12 @@ ruleTester.run('no-pass-through-exports', noPassThroughExports, {
     { code: 'const value = 1; export { value, value as renamed };', filename: internalFilename },
     { code: 'type Local = string; export type { Local };', filename: internalFilename },
     { code: 'const value = 1; export default value;', filename: internalFilename },
+    { code: 'const value = 1; export = value;', filename: internalFilename },
     { code: 'export default function local() {}', filename: internalFilename },
     { code: "import { value } from './other'; export default value + 1;", filename: internalFilename },
     { code: 'export function local() {} export class Local {} export interface Shape {}', filename: internalFilename },
     { code: "import { value } from './other'; export const result = value + 1;", filename: internalFilename },
+    { code: "import value = require('other'); export const result = value + 1;", filename: internalFilename },
     {
       code: "import type { Shape } from './other'; export type Local = Shape & { id: string };",
       filename: internalFilename
@@ -30,6 +33,9 @@ ruleTester.run('no-pass-through-exports', noPassThroughExports, {
     { code: "export { value } from './other';", filename: fixturePath('src/public.ts') },
     { code: "export * from 'other';", filename: fixturePath('src/public.ts') },
     { code: "import value from './other'; export default value;", filename: fixturePath('src/public.ts') },
+    { code: "import value = require('other'); export = value;", filename: fixturePath('src/public.ts') },
+    { code: "export import value = require('other');", filename: fixturePath('src/public.ts') },
+    { code: "export import type Shape = require('other');", filename: fixturePath('src/public.ts') },
     {
       code: "import type { Shape } from './other'; export type { Shape };",
       filename: fixturePath('src/nested/entry.ts')
@@ -59,6 +65,12 @@ ruleTester.run('no-pass-through-exports', noPassThroughExports, {
       "import type { Shape } from 'other'; export type { Shape };",
       "import { type Shape } from 'other'; export { type Shape as Renamed };",
       "import values = require('other'); export { values };",
+      "export import value = require('other');",
+      "export import type Shape = require('other');",
+      "import value = require('other'); export = value;",
+      "import value from 'other'; export = value;",
+      "import { value } from './other'; export = value;",
+      "import * as values from 'other'; export = values;",
       "import { value } from 'other'; const local = 1; export { local, value };"
     ].map(code => ({ code, filename: internalFilename, errors: [{ messageId: 'passThrough' as const }] })),
     {
@@ -82,4 +94,14 @@ ruleTester.run('no-pass-through-exports', noPassThroughExports, {
       errors: [{ messageId: 'passThrough' }]
     }
   ]
+});
+
+describe('repository configuration', () => {
+  it.each(['ts', 'tsx', 'mts', 'cts'])('enforces exports in local-rule test .%s files', async extension => {
+    const eslint = new ESLint({ cwd: path.resolve(__dirname, '../../..') });
+    const [result] = await eslint.lintText("export { value } from './other';", {
+      filePath: path.join(__dirname, `scope.${extension}`)
+    });
+    expect(result.messages.map(message => message.ruleId)).toEqual(['local/no-pass-through-exports']);
+  });
 });

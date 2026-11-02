@@ -45,7 +45,8 @@ export enum ClientStatus {
   Ready
 }
 
-class LanguageClientStatus {
+/** @public Named return type of the Apex activation API; required for downstream declaration emit. */
+export class LanguageClientStatus {
   private status: ClientStatus;
   private message: string;
 
@@ -164,7 +165,8 @@ const removeApexDB = (): Promise<void> =>
     getRuntime().runPromise
   );
 
-class LanguageClientManager {
+/** @public Named singleton type in the Apex activation API; required for downstream declaration emit. */
+export class LanguageClientManager {
   private static instance: LanguageClientManager;
   private clientInstance: ApexLanguageClient | undefined;
   private status: LanguageClientStatus;

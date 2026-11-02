@@ -113,12 +113,5 @@ export type ApexVSCodeApi = {
   getExceptionBreakpointInfo: typeof getExceptionBreakpointInfo;
   gatherOpenAPIContext: typeof gatherOpenAPIContext;
   isOpenAPIEligible: typeof isOpenAPIEligible;
-  languageClientManager: {
-    getStatus: () => {
-      failedToInitialize: () => boolean;
-      getStatusMessage: () => string;
-      isReady: () => boolean;
-    };
-    getClientInstance: () => unknown;
-  };
+  languageClientManager: typeof languageClientManager;
 };
