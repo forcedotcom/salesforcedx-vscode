@@ -18,8 +18,8 @@ import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vit
 import { type StackFrame } from '@vscode/debugadapter';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { type LaunchRequestArguments } from '../../../src/adapter/types';
-import { breakpointUtil } from '../../../src/breakpoints';
 import { type ApexExecutionOverlayResultCommandSuccess } from '../../../src/commands/apexExecutionOverlayResultCommand';
+import type { BreakpointMappings } from '../../../src/breakpoints';
 import {
   EVENT_CODE_UNIT_FINISHED,
   EVENT_CODE_UNIT_STARTED,
@@ -45,6 +45,12 @@ import { NoOpState } from '../../../src/states/noOpState';
 import { StatementExecuteState } from '../../../src/states/statementExecuteState';
 import { UserDebugState } from '../../../src/states/userDebugState';
 
+class MappableApexReplayDebug extends ApexReplayDebug {
+  public setBreakpointMappings(mappings: BreakpointMappings): void {
+    this.breakpointMappings = mappings;
+  }
+}
+
 describe('LogContext', () => {
   let context: LogContext;
   let readLogFileSpy: VitestMockInstance;
@@ -52,7 +58,6 @@ describe('LogContext', () => {
   let shouldTraceLogFileStub: VitestMock;
   let printToDebugConsoleSpy: VitestMockInstance;
   let revertStateAfterHeapDumpSpy: VitestMockInstance;
-  let getTyperefMappingSpy: VitestMockInstance;
   const launchRequestArgs: LaunchRequestArguments = {
     logFileContents: 'test log content',
     logFilePath: '/path/foo.log',
@@ -77,7 +82,6 @@ describe('LogContext', () => {
     shouldTraceLogFileStub.mockRestore();
     printToDebugConsoleSpy.mockRestore();
     revertStateAfterHeapDumpSpy.mockRestore();
-    if (getTyperefMappingSpy) getTyperefMappingSpy.mockRestore();
     vi.restoreAllMocks();
   });
 
@@ -437,14 +441,6 @@ describe('LogContext', () => {
       ['__sfdc_trigger/namespace/MyTrigger', '/path/MyTrigger.trigger']
     ]);
 
-    beforeEach(() => {
-      getTyperefMappingSpy = vi.spyOn(breakpointUtil, 'getTyperefMapping').mockReturnValue(typerefMapping);
-    });
-
-    afterEach(() => {
-      if (getTyperefMappingSpy) getTyperefMappingSpy.mockRestore();
-    });
-
     it('Should return debug log fs path for execute anonymous signature when no apex file path set', () => {
       expect(context.getUriFromSignature(EXEC_ANON_SIGNATURE)).toBe(context.getLogFilePath());
     });
@@ -456,13 +452,22 @@ describe('LogContext', () => {
     });
 
     it('Should return URI for inner class', () => {
+      const adapter = new MappableApexReplayDebug();
+      adapter.setBreakpointMappings({ lineNumbers: new Map(), typerefs: typerefMapping });
+      const mappedContext = new LogContext(launchRequestArgs, adapter);
       expect(
-        context.getUriFromSignature('namespace.Foo.Bar(namespace.Foo.Bar, String, Map<String,String>, List<String>)')
+        mappedContext.getUriFromSignature(
+          'namespace.Foo.Bar(namespace.Foo.Bar, String, Map<String,String>, List<String>)'
+        )
       ).toBe('/path/foo.cls');
     });
 
     it('Should return URI for trigger', () => {
-      expect(context.getUriFromSignature('__sfdc_trigger/namespace/MyTrigger')).toBe('/path/MyTrigger.trigger');
+      const adapter = new MappableApexReplayDebug();
+      adapter.setBreakpointMappings({ lineNumbers: new Map(), typerefs: typerefMapping });
+      expect(new LogContext(launchRequestArgs, adapter).getUriFromSignature('__sfdc_trigger/namespace/MyTrigger')).toBe(
+        '/path/MyTrigger.trigger'
+      );
     });
   });
 });

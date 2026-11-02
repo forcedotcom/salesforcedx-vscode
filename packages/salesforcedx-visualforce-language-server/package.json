@@ -21,6 +21,7 @@
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache",
     "compile": "wireit",
     "lint": "wireit",
+    "lint:fix": "eslint --color --cache --cache-location .eslintcache --fix .",
     "test": "wireit",
     "test:compile": "wireit"
   },

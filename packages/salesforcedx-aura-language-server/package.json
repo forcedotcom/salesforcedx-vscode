@@ -26,6 +26,7 @@
     "compile": "wireit",
     "test": "wireit",
     "lint": "wireit",
+    "lint:fix": "eslint --color --cache --cache-location .eslintcache --fix .",
     "check:effect-diagnostics": "wireit"
   },
   "wireit": {

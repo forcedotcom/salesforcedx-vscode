@@ -5,16 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CallableSchema, ExtensionProviderService, getExtensionExports } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { extractAnonApexSource, type HeapDumpResult } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { errorToString } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isString, isUndefined } from 'effect/Predicate';
-import * as Schema from 'effect/Schema';
-import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { getDialogStartingPath, updateLastOpened } from '../activation/getDialogStartingPath';
+import { ensureLineBreakpointMetadata } from '../breakpoints/lineBreakpointMetadata';
 import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '../debuggerConstants';
 import { nls } from '../messages';
 import { fetchHeapDumpOverlayResults } from '../services/heapDumpOverlayFetch';
@@ -23,14 +22,6 @@ import { getRuntime } from '../services/runtime';
 
 const LOG_FILE_PROMPT = '${command:AskForLogFileName}';
 
-// Preserve the manager instance because getStatus reads its state through `this`.
-const languageClientManagerSchema: Schema.Schema<Pick<ApexVSCodeApi['languageClientManager'], 'getStatus'>> =
-  Schema.declare(
-    Schema.is(Schema.Struct({ getStatus: CallableSchema<ApexVSCodeApi['languageClientManager']['getStatus']>() }), {
-      exact: false
-    })
-  );
-
 type SelectedLogFile = {
   readonly contents: string;
   readonly path: string;
@@ -38,8 +29,30 @@ type SelectedLogFile = {
 };
 
 type ReplayDebugConfiguration = vscode.DebugConfiguration & {
-  lineBreakpointInfo?: Awaited<ReturnType<ApexVSCodeApi['getLineBreakpointInfo']>>;
+  lineBreakpointInfo?: Awaited<ReturnType<typeof ensureLineBreakpointMetadata>>;
 };
+
+const isApexSourceBreakpoint = (breakpoint: vscode.Breakpoint): breakpoint is vscode.SourceBreakpoint => {
+  if (
+    !('location' in breakpoint) ||
+    typeof breakpoint.location !== 'object' ||
+    breakpoint.location === null ||
+    !('uri' in breakpoint.location)
+  ) {
+    return false;
+  }
+  const { uri } = breakpoint.location;
+  return (
+    typeof uri === 'object' &&
+    uri !== null &&
+    'path' in uri &&
+    typeof uri.path === 'string' &&
+    /\.(cls|trigger)$/i.test(uri.path)
+  );
+};
+
+const apexBreakpointUris = (): string[] =>
+  (vscode.debug.breakpoints ?? []).filter(isApexSourceBreakpoint).map(breakpoint => breakpoint.location.uri.toString());
 
 const selectLogFile = Effect.fn('ApexReplayDebugger.selectLogFile')(function* (
   config: vscode.DebugConfiguration,
@@ -130,18 +143,10 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       config.trace = true;
     }
 
-    const apexApi = await getRuntime().runPromise(
-      getExtensionExports({
-        extId: 'salesforce.salesforcedx-vscode-apex',
-        schema: Schema.Struct({
-          getLineBreakpointInfo: CallableSchema<ApexVSCodeApi['getLineBreakpointInfo']>(),
-          languageClientManager: languageClientManagerSchema
-        })
-      }).pipe(Effect.catchTag('ExtensionNotFoundError', () => Effect.void))
-    );
-    if (apexApi) {
-      await this.isLanguageClientReady(apexApi);
-      config.lineBreakpointInfo = await apexApi.getLineBreakpointInfo();
+    try {
+      config.lineBreakpointInfo = await ensureLineBreakpointMetadata(apexBreakpointUris());
+    } catch {
+      throw new Error(nls.localize('apex_language_server_breakpoint_metadata_unavailable'));
     }
 
     // Handle log file reading for web compatibility
@@ -188,27 +193,6 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
     }
 
     return config;
-  }
-
-  private async isLanguageClientReady(apexApi: {
-    languageClientManager: Pick<ApexVSCodeApi['languageClientManager'], 'getStatus'>;
-  }): Promise<void> {
-    let expired = false;
-    let i = 0;
-    while (!apexApi.languageClientManager.getStatus().isReady() && !expired) {
-      if (apexApi.languageClientManager.getStatus().failedToInitialize()) {
-        throw Error(apexApi.languageClientManager.getStatus().getStatusMessage());
-      }
-
-      await new Promise(resolve => setTimeout(resolve, 100));
-      if (i >= 30) {
-        expired = true;
-      }
-      i++;
-    }
-    if (expired) {
-      throw new Error(nls.localize('language_client_not_ready'));
-    }
   }
 }
 

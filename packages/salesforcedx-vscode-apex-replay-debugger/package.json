@@ -41,14 +41,12 @@
     "@playwright/test": "^1.64.1",
     "@salesforce/core": "^9.3.0",
     "@salesforce/playwright-vscode-ext": "workspace:*",
-    "salesforcedx-vscode-apex": "workspace:*",
     "salesforcedx-vscode-apex-testing": "workspace:*",
     "salesforcedx-vscode-metadata": "workspace:*",
     "salesforcedx-vscode-services": "workspace:*"
   },
   "extensionDependencies": [
     "salesforce.apex-language-server-extension",
-    "salesforce.salesforcedx-vscode-apex",
     "salesforce.salesforcedx-vscode-apex-log",
     "salesforce.salesforcedx-vscode-services"
   ],
@@ -62,6 +60,7 @@
     "vscode:publish": "node ../../scripts/publish-vsix.js",
     "compile": "wireit",
     "lint": "wireit",
+    "lint:fix": "eslint --color --cache --cache-location .eslintcache --fix .",
     "check:circular-deps": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache .circular-deps.json *.vsix",
     "test": "wireit",
@@ -78,7 +77,6 @@
         "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-apex-log:compile",
         "../salesforcedx-vscode-i18n:compile",
-        "../salesforcedx-vscode-apex:compile",
         "../salesforcedx-vscode-services:compile",
         "../effect-ext-utils:compile",
         "../salesforcedx-vscode-metadata:compile"
@@ -205,7 +203,6 @@
         "vscode:package",
         "../salesforcedx-vscode-services:vscode:package",
         "../salesforcedx-vscode-core:vscode:package",
-        "../salesforcedx-vscode-apex:vscode:package",
         "../salesforcedx-vscode-apex-log:vscode:package",
         "../salesforcedx-vscode-apex-testing:vscode:package",
         "../salesforcedx-vscode-metadata:vscode:package",
