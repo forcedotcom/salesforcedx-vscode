@@ -70,7 +70,11 @@
     "compile": "wireit",
     "lint": "wireit",
     "check:circular-deps": "wireit",
+<<<<<<< HEAD
     "lint:fix": "eslint --color --fix .",
+=======
+    "lint:fix": "eslint --color --cache --cache-location .eslintcache --fix .",
+>>>>>>> 531f1eeb3 (feat: use new apex ls for breakpoint lines)
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json",
     "test": "wireit",
     "test:compile": "wireit",

@@ -62,6 +62,7 @@
     "compile": "wireit",
     "bundle": "wireit",
     "lint": "wireit",
+    "lint:fix": "eslint --color --cache --cache-location .eslintcache --fix .",
     "clean": "shx rm -rf node_modules out dist .test-dist coverage test-results .wireit .eslintcache .circular-deps.json",
     "test": "wireit",
     "test:browser": "wireit",

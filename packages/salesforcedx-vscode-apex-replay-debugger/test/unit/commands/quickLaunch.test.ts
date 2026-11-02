@@ -12,8 +12,6 @@ import { PromptService } from 'salesforcedx-vscode-services/src/vscode/prompts/p
 import type { Mock as VitestMock } from 'vitest';
 import * as vscode from 'vscode';
 
-// quickLaunch does not exercise Apex extension exports.
-vi.mock('../../../src/apexExtension', () => ({ retrieveLineBreakpointInfo: () => Effect.void }));
 vi.mock('../../../src/commands/launchFromLogFile', () => ({ launchFromLogFile: vi.fn() }));
 vi.mock('vscode', async () => ({
   ...(await vi.importActual<typeof vscode>('vscode')),

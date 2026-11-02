@@ -13,6 +13,7 @@ import * as Cause from 'effect/Cause';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
+import { isError } from 'effect/Predicate';
 import type { NotificationModeService } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
@@ -20,6 +21,7 @@ import { checkpointService, sfCreateCheckpointsCommand } from '../breakpoints/ch
 import { DEBUGGER_TYPE } from '../debuggerConstants';
 import { nls } from '../messages';
 import { ensureTraceFlagsForCurrentUser } from '../services/ensureTraceFlags';
+import { getRuntime } from '../services/runtime';
 import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { retrieveTestCodeCoverage } from '../utils/settings';
 import { launchFromLogFile } from './launchFromLogFile';
@@ -154,42 +156,42 @@ const launchAndAwaitEnd = Effect.fn('ApexReplayDebugger.launchAndAwaitEnd')(func
  * debugged. Notification progress regardless of the user's mode: only a notification shows the Cancel button,
  * which stops before the next log.
  */
-export const replayInOrder = Effect.fn('ApexReplayDebugger.replayInOrder')(function* (logs: readonly ReplayLog[]) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  yield* promptService
-    .withProgressReporting({
-      title: nls.localize('debug_test_replay_progress_title'),
-      location: vscode.ProgressLocation.Notification,
-      cancellable: true,
-      interruptOnCancel: false
-    })((progress, token) =>
-      Effect.forEach(
-        logs,
-        ({ label, logPath }, index) =>
-          token.isCancellationRequested
-            ? Effect.void
-            : Effect.sync(() =>
-                progress.report({
-                  message: nls.localize('debug_test_replay_progress_message', index + 1, logs.length, label)
-                })
-              ).pipe(
-                Effect.andThen(awaitNoActiveSession(token)),
-                Effect.andThen(
-                  Effect.suspend(() =>
-                    token.isCancellationRequested ? Effect.void : launchAndAwaitEnd(logPath, token)
-                  )
-                )
-              ),
-        { concurrency: 1, discard: true }
-      )
+export const replayInOrder = (logs: readonly ReplayLog[]) =>
+  Effect.promise(() =>
+    vscode.window.withProgress(
+      {
+        location: vscode.ProgressLocation.Notification,
+        title: nls.localize('debug_test_replay_progress_title'),
+        cancellable: true
+      },
+      (progress, token) =>
+        Effect.runPromise(
+          Effect.forEach(
+            logs,
+            ({ label, logPath }, index) =>
+              token.isCancellationRequested
+                ? Effect.void
+                : Effect.sync(() =>
+                    progress.report({
+                      message: nls.localize('debug_test_replay_progress_message', index + 1, logs.length, label)
+                    })
+                  ).pipe(
+                    Effect.andThen(awaitNoActiveSession(token)),
+                    Effect.andThen(
+                      Effect.suspend(() =>
+                        token.isCancellationRequested ? Effect.void : launchAndAwaitEnd(logPath, token)
+                      )
+                    )
+                  ),
+            { concurrency: 1, discard: true }
+          )
+        )
     )
-    .pipe(
-      Effect.catchAllDefect(defect =>
-        Effect.sync(() => void vscode.window.showErrorMessage(nls.localize('debug_test_failed', String(defect))))
-      )
-    );
-});
+  ).pipe(
+    Effect.catchAllDefect(defect =>
+      Effect.sync(() => void vscode.window.showErrorMessage(nls.localize('debug_test_failed', String(defect))))
+    )
+  );
 
 /** Run every target, show one notification for the whole batch, then replay each run's log. */
 const debugTests = Effect.fn('ApexReplayDebugger.debugTests')(function* (targets: readonly DebugTarget[]) {
@@ -257,20 +259,41 @@ const debugTests = Effect.fn('ApexReplayDebugger.debugTests')(function* (targets
   return true;
 });
 
-const setupAndDebugTests = Effect.fn('ApexReplayDebugger.setupAndDebugTests')(function* (
-  targets: readonly DebugTarget[]
-) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  yield* debugTests(targets).pipe(
-    promptService.withProgress({
-      command: COMMAND,
-      title: `Running ${nls.localize('debug_test_exec_name')}`,
-      cancellable: false
-    }),
-    Effect.catchAllCause(reportDebugTestFailure)
+export const getDebugTestFailureMessage = (cause: Cause.Cause<unknown>): string => {
+  const error = Cause.squash(cause);
+  return isError(error) ? error.message : String(error);
+};
+
+const setupAndDebugTests = async (targets: readonly DebugTarget[]): Promise<void> => {
+  const progressLocation = await getRuntime().runPromise(
+    Effect.gen(function* () {
+      const api = yield* (yield* ExtensionProviderService).getServicesApi;
+      const notificationMode = yield* api.services.NotificationModeService;
+      return yield* notificationMode.getProgressLocation(COMMAND);
+    })
   );
-});
+  try {
+    await vscode.window.withProgress(
+      {
+        location: progressLocation,
+        title: `Running ${nls.localize('debug_test_exec_name')}`,
+        cancellable: false
+      },
+      () =>
+        getRuntime().runPromise(
+          debugTests(targets).pipe(
+            Effect.catchAllCause(cause =>
+              Effect.sync(() =>
+                void vscode.window.showErrorMessage(nls.localize('debug_test_failed', getDebugTestFailureMessage(cause)))
+              )
+            )
+          )
+        )
+    );
+  } catch (error) {
+    void vscode.window.showErrorMessage(nls.localize('debug_test_failed', String(error)));
+  }
+};
 
 /**
  * `{ name }`: one class (code lens, Launch Apex Replay Debugger with Current File).
@@ -281,9 +304,9 @@ export type DebugTestsArg = { name: string } | { classNames: readonly string[]; 
 
 export const debugTestsCommand = Effect.fn('debugTestsCommand')(function* (arg: DebugTestsArg) {
   const targets = 'name' in arg ? [{ className: arg.name }] : toDebugTargets(arg.classNames, arg.methodNames);
-  yield* setupAndDebugTests(targets);
+  yield* Effect.promise(() => setupAndDebugTests(targets));
 });
 
 export const debugSingleTestCommand = Effect.fn('debugSingleTestCommand')(function* (test: { name: string }) {
-  yield* setupAndDebugTests(toDebugTargets([], [test.name]));
+  yield* Effect.promise(() => setupAndDebugTests(toDebugTargets([], [test.name])));
 });
