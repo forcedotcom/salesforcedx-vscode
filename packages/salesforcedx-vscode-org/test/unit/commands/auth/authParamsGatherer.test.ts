@@ -219,6 +219,9 @@ describe('AuthParamsGatherer', () => {
       expect(validateUrl?.('http://localhost:1717/oauth/callback')).toBeUndefined();
       expect(validateUrl?.('ftp://my.salesforce.com')).toBe(nls.localize('auth_invalid_url'));
       expect(validateUrl?.('https://my.salesforce.com/path?query=value')).toBe(nls.localize('auth_invalid_url'));
+      // This passes the safe-character pattern but fails the URL transformation.
+      expect(validateUrl?.('https://my.salesforce.com:99999')).toBe(nls.localize('auth_invalid_url'));
+      expect(validateUrl?.('')).toBe(nls.localize('auth_invalid_url'));
 
       // second prompt = alias: rejects shell metachars, accepts alphanumeric, hyphens, and empty (use default)
       const validateAlias = spy.mock.calls[1][0]?.validateInput?.bind(undefined);
@@ -227,5 +230,25 @@ describe('AuthParamsGatherer', () => {
       expect(validateAlias?.('my-scratch-org')).toBeUndefined();
       expect(validateAlias?.('')).toBeUndefined();
     });
+  });
+
+  it('uses the same inline URL validation for custom web-login URLs', async () => {
+    vi.spyOn(vscode.window, 'showQuickPick').mockImplementation(async items =>
+      (await items).find(choice => choice.label === nls.localize('auth_custom_label'))
+    );
+    const input = vi
+      .spyOn(vscode.window, 'showInputBox')
+      .mockResolvedValueOnce('http://localhost:1717/login')
+      .mockResolvedValueOnce('');
+
+    expect(
+      await getOrgRuntime().runPromiseExit(
+        gatherAuthParams({ instanceUrl: undefined, reauthAliasOrUsername: undefined })
+      )
+    ).toStrictEqual(Exit.succeed({ alias: DEFAULT_ALIAS, loginUrl: 'http://localhost:1717/login' }));
+    const validate = input.mock.calls[0][0]?.validateInput?.bind(undefined);
+    expect(validate?.('')).toBe(nls.localize('auth_invalid_url'));
+    expect(validate?.('https://example.com:99999')).toBe(nls.localize('auth_invalid_url'));
+    expect(validate?.('http://localhost:1717/login')).toBeUndefined();
   });
 });

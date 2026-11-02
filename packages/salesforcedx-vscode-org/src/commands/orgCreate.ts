@@ -8,9 +8,10 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Either from 'effect/Either';
 import { identity } from 'effect/Function';
 import * as Match from 'effect/Match';
-import * as Option from 'effect/Option';
+import * as ParseResult from 'effect/ParseResult';
 import { isError, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
@@ -18,15 +19,19 @@ import { Utils } from 'vscode-uri';
 import { ORG_LOGIN_WEB_DEV_HUB } from '../constants';
 import { nls } from '../messages';
 import { decodeTaggedCliResponse } from '../util/cliJson';
-import { isValidOrgAlias } from '../util/orgAlias';
+import { isValidOrgAlias, validateRequiredAliasInput } from '../util/orgAlias';
 import { updateConfigAndStateAggregators } from '../util/orgUtil';
 import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 
 /** settings key (no ellipsis); for success notifications, pass the display-text key (`org_create_default_scratch_org_text`) to nls.localize instead, which includes the ellipsis. */
 const COMMAND: ProgressAndSuccessCommandKey = 'SFDX: Create a Default Scratch Org';
 
-const decodeExpirationDays = Schema.decodeUnknownOption(
-  Schema.NumberFromString.pipe(Schema.int(), Schema.between(1, 30))
+const decodeExpirationDays = Schema.decodeUnknownEither(
+  Schema.NumberFromString.pipe(
+    Schema.int(),
+    Schema.between(1, 30),
+    Schema.annotations({ message: () => ({ message: nls.localize('error_invalid_expiration_days'), override: true }) })
+  )
 );
 
 const DEFAULT_ALIAS = 'vscodeScratchOrg';
@@ -115,7 +120,7 @@ const gatherOrgCreateInputs = Effect.fn('orgCreateCommand.gatherInputs')(functio
     vscode.window.showInputBox({
       prompt: nls.localize('parameter_gatherer_enter_alias_name'),
       value: defaultAlias,
-      validateInput: value => (isValidOrgAlias(value) ? undefined : nls.localize('error_invalid_org_alias'))
+      validateInput: validateRequiredAliasInput
     })
   ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
 
@@ -124,7 +129,9 @@ const gatherOrgCreateInputs = Effect.fn('orgCreateCommand.gatherInputs')(functio
       prompt: nls.localize('parameter_gatherer_enter_scratch_org_expiration_days'),
       value: DEFAULT_EXPIRATION_DAYS,
       validateInput: value =>
-        Option.isSome(decodeExpirationDays(value)) ? undefined : nls.localize('error_invalid_expiration_days')
+        decodeExpirationDays(value).pipe(
+          Either.match({ onLeft: ParseResult.TreeFormatter.formatErrorSync, onRight: () => undefined })
+        )
     })
   ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
 

@@ -11,7 +11,9 @@ import * as Arr from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Either from 'effect/Either';
 import * as Option from 'effect/Option';
+import * as ParseResult from 'effect/ParseResult';
 import { isError, isRecord, isUndefined } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
@@ -24,7 +26,10 @@ import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 
 const COMMAND: ProgressAndSuccessCommandKey = messages.package_install_text;
 
-const PackageIdSchema = SalesforceIdSchema.pipe(Schema.startsWith('04t'));
+const PackageIdSchema = SalesforceIdSchema.pipe(
+  Schema.startsWith('04t'),
+  Schema.annotations({ message: () => ({ message: nls.localize('package_install_id_validation'), override: true }) })
+);
 
 // Live tooling API returns Status as uppercase (e.g. 'SUCCESS'); @salesforce/types' enum casing is wrong.
 // Verified against live record 0HfE2000005KJObKAO; matches @salesforce/packaging which polls on ['SUCCESS','ERROR'].
@@ -44,7 +49,11 @@ const gatherPackageId = Effect.fn('packageInstall.gatherPackageId')(function* ()
       placeHolder: nls.localize('package_install_id_placeholder'),
       ignoreFocusOut: true,
       validateInput: value =>
-        value === '' || Schema.is(PackageIdSchema)(value) ? undefined : nls.localize('package_install_id_validation')
+        value === ''
+          ? undefined
+          : Schema.decodeUnknownEither(PackageIdSchema)(value).pipe(
+              Either.match({ onLeft: ParseResult.TreeFormatter.formatErrorSync, onRight: () => undefined })
+            )
     })
   );
   return yield* promptService.considerUndefinedAsCancellation(result);

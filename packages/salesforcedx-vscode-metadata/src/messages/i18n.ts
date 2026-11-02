@@ -153,7 +153,7 @@ export const messages = {
   package_install_text: 'SFDX: Install Package',
   package_install_id_prompt: 'Enter the ID of the package to install',
   package_install_id_placeholder: '04t...',
-  package_install_id_validation: 'Package ID should be a 15 or 18 character Id that starts with 04t',
+  package_install_id_validation: 'Package ID should be a 15 or 18 character Id that starts with 04t.',
   package_install_key_prompt: 'Installation key for key-protected package (leave blank for unprotected packages)',
   package_install_poll_prompt: 'Wait for package installation to complete?',
   package_install_poll_yes: 'Yes',

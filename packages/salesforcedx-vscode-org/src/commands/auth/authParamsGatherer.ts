@@ -7,7 +7,8 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as Option from 'effect/Option';
+import * as Either from 'effect/Either';
+import * as ParseResult from 'effect/ParseResult';
 import { isNotUndefined, isUndefined } from 'effect/Predicate';
 import * as Rec from 'effect/Record';
 import * as Schema from 'effect/Schema';
@@ -21,9 +22,10 @@ const SANDBOX_URL = 'https://test.salesforce.com';
 const INSTANCE_URL_PLACEHOLDER = 'https://na35.salesforce.com';
 const SafeInstanceUrl = Schema.String.pipe(
   Schema.pattern(/^https?:\/\/[\w.-]+(:\d+)?(\/[\w./~-]*)?$/),
-  Schema.compose(Schema.URL)
+  Schema.compose(Schema.URL),
+  Schema.annotations({ message: () => ({ message: nls.localize('auth_invalid_url'), override: true }) })
 );
-const decodeSafeInstanceUrl = Schema.decodeUnknownOption(SafeInstanceUrl);
+const decodeSafeInstanceUrl = Schema.decodeUnknownEither(SafeInstanceUrl);
 
 const inputInstanceUrl = async (): Promise<string | undefined> =>
   vscode.window.showInputBox({
@@ -68,7 +70,9 @@ const inputAccessToken = async (): Promise<string | undefined> =>
 
 // http(s):// host/port/path only — rejects shell metachars (`;|&$()`, backticks, quotes, spaces) so the CLI --instance-url arg stays injection-safe
 const validateUrl = (url: string): string | undefined =>
-  Option.isSome(decodeSafeInstanceUrl(url)) ? undefined : nls.localize('auth_invalid_url');
+  decodeSafeInstanceUrl(url).pipe(
+    Either.match({ onLeft: ParseResult.TreeFormatter.formatErrorSync, onRight: () => undefined })
+  );
 
 const normalizeUrl = (value: string): string | undefined => {
   if (isNotUndefined(validateUrl(value))) return undefined;
