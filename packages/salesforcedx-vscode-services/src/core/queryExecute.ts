@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { QueryPageSchema } from '@salesforce/apex-node/effect';
 import type { Connection } from '@salesforce/core';
 import { UnknownException } from 'effect/Cause';
 import * as Chunk from 'effect/Chunk';
@@ -54,22 +55,7 @@ const JsforceApiFailure = Schema.Struct({
   )
 });
 
-const QueryEnvelope = <A, I>(recordSchema: Schema.Schema<A, I, never>) =>
-  Schema.Struct({
-    totalSize: Schema.Number,
-    done: Schema.optionalWith(Schema.Boolean, { default: () => true }),
-    nextRecordsUrl: Schema.optional(Schema.String),
-    records: Schema.optionalWith(Schema.Array(recordSchema), { default: () => [] })
-  });
-
-type QueryEnvelopeType<A> = {
-  readonly totalSize: number;
-  readonly done: boolean;
-  readonly nextRecordsUrl?: string;
-  readonly records: readonly A[];
-};
-
-const refineSoqlError = (soql: string, error: unknown): SoqlError | FieldError | UnknownException => {
+export const refineSoqlError = (soql: string, error: unknown): SoqlError | FieldError | UnknownException => {
   const decoded = Schema.decodeUnknownOption(JsforceApiFailure)(error);
   if (Option.isNone(decoded)) {
     return new UnknownException(error);
@@ -99,7 +85,7 @@ const fetchPage = <A, I>(
   return Effect.tryPromise({
     try: () => Promise.resolve('first' in page ? api.query(soql, { scanAll }) : api.queryMore(page.nextRecordsUrl)),
     catch: error => refineSoqlError(soql, error)
-  }).pipe(Effect.flatMap(body => Schema.decodeUnknown(QueryEnvelope(recordSchema))(body)));
+  }).pipe(Effect.flatMap(body => Schema.decodeUnknown(QueryPageSchema(recordSchema))(body)));
 };
 
 const fetchRecordsPage =
@@ -122,7 +108,7 @@ export const executeQuery = <A, I>(
   const tooling = options.tooling ?? false;
   const scanAll = options.scanAll ?? false;
   return fetchPage(connection, recordSchema, soql, tooling, scanAll, { first: true }).pipe(
-    Effect.map((firstPage: QueryEnvelopeType<A>) => ({
+    Effect.map(firstPage => ({
       totalSize: firstPage.totalSize,
       records: Stream.fromIterable(firstPage.records).pipe(
         Stream.concat(

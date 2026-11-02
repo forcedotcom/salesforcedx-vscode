@@ -170,8 +170,8 @@ export class ApexTestController {
         Effect.catchTags({
           NoDefaultOrgError: error => Effect.logWarning('Failed to delete test results folder', { error }),
           NoWorkspaceOpenError: error => Effect.logWarning('Failed to delete test results folder', { error }),
-          ServicesExtensionNotFoundError: error => Effect.logWarning('Failed to delete test results folder', { error }),
-          InvalidServicesApiError: error => Effect.logWarning('Failed to delete test results folder', { error })
+          ExtensionNotFoundError: error => Effect.logWarning('Failed to delete test results folder', { error }),
+          ExtensionActivationError: error => Effect.logWarning('Failed to delete test results folder', { error })
         }),
         Effect.withSpan('ApexTestController.clearResults')
       )
@@ -306,8 +306,8 @@ export class ApexTestController {
         // failed-execution notice. catchTags keyed to the inferred failure tags — never a blanket swallow.
         Effect.catchTags({
           MetadataRetrieveError: error => notifyRetrieveFailure(error, executionName),
-          ServicesExtensionNotFoundError: error => notifyRetrieveFailure(error, executionName),
-          InvalidServicesApiError: error => notifyRetrieveFailure(error, executionName),
+          ExtensionNotFoundError: error => notifyRetrieveFailure(error, executionName),
+          ExtensionActivationError: error => notifyRetrieveFailure(error, executionName),
           FsServiceError: error => notifyRetrieveFailure(error, executionName)
         })
       )

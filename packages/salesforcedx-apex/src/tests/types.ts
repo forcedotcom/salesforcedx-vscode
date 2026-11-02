@@ -5,7 +5,29 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { type ApexDiagnostic } from '../utils';
+import type { SyncTestConfigurationSchema, TestItemSchema } from '../effect/schema/testPayloads';
+import * as Schema from 'effect/Schema';
+import { CodeCoverageResultSchema, PerClassCoverageSchema } from '../effect/coverageSchemas';
+import { ApexDiagnosticSchema } from '../effect/diagnostics';
+import {
+  ApexLogIdString,
+  ApexClassIdString,
+  ApexTestQueueItemIdString,
+  ApexTestResultIdString,
+  FlowTestResultIdString,
+  OrgIdString,
+  TestRunIdString,
+  UserIdString
+} from '../schemas/salesforceId';
+
+export type {
+  ApexCodeCoverage,
+  ApexCodeCoverageAggregate,
+  ApexCodeCoverageAggregateRecord,
+  ApexCodeCoverageRecord,
+  ApexOrgWideCoverage
+} from '../effect/schema/wire/coverage';
+export type { CodeCoverageResult, PerClassCoverage } from '../effect/coverageSchemas';
 
 /**
  * Specifies which Apex tests run.
@@ -14,10 +36,14 @@ import { type ApexDiagnostic } from '../utils';
  * - `RunAllTestsInOrg`: all local and managed-package tests
  * - `RunSpecifiedTests`: only explicitly selected tests
  */
-export type TestLevel = 'RunLocalTests' | 'RunAllTestsInOrg' | 'RunSpecifiedTests';
+export const TestLevelSchema = Schema.Literal('RunLocalTests', 'RunAllTestsInOrg', 'RunSpecifiedTests').annotations({
+  identifier: 'TestLevel'
+});
+export type TestLevel = typeof TestLevelSchema.Type;
 
 /** Test implementation category. */
-export type TestCategory = 'Apex' | 'Flow';
+export const TestCategorySchema = Schema.Literal('Apex', 'Flow');
+export type TestCategory = Schema.Schema.Type<typeof TestCategorySchema>;
 
 export type AsyncTestConfiguration = {
   /**
@@ -60,7 +86,23 @@ export type AsyncTestConfiguration = {
   category?: string[];
 };
 
-export type ResultFormat = 'junit' | 'tap' | 'json' | 'human' | 'markdown' | 'text';
+export const ResultFormatSchema = Schema.Literal('junit', 'tap', 'json', 'human', 'markdown', 'text').annotations({
+  identifier: 'ResultFormat'
+});
+export type ResultFormat = typeof ResultFormatSchema.Type;
+
+export const ResultFormatsSchema = ResultFormatSchema.pipe(
+  Schema.Array,
+  Schema.UndefinedOr,
+  Schema.annotations({ identifier: 'ResultFormats' })
+);
+
+const ResultFileFormatSchema = Schema.Literal('junit', 'tap', 'json', 'markdown', 'text').pipe(
+  Schema.annotations({ identifier: 'ResultFileFormat' })
+);
+export const ResultFileFormatsSchema = Schema.Array(ResultFileFormatSchema).pipe(
+  Schema.annotations({ identifier: 'ResultFileFormats' })
+);
 
 export type OutputDirConfig = {
   dirPath: string;
@@ -71,26 +113,7 @@ export type OutputDirConfig = {
 /**
  * array of objects that represent Apex test classes
  */
-export type TestItem = {
-  /**
-   * Apex Class name. Should include namespace if needed e.g. namespace.ClassName
-   */
-  className?: string;
-  /**
-   * Apex Class Id
-   */
-  classId?: string;
-  /**
-   * Array of test names to run. Not specifying it will run all test methods in a test class
-   */
-  testMethods?: string[];
-  /**
-   * Namespace associated with the test class or method
-   */
-  namespace?: string;
-
-  category?: string;
-};
+export type TestItem = typeof TestItemSchema.Type;
 
 export type AsyncTestArrayConfiguration = {
   tests: TestItem[];
@@ -116,30 +139,7 @@ export type AsyncTestArrayConfiguration = {
   category?: string[];
 };
 
-export type SyncTestConfiguration = {
-  classNames?: string;
-  /**
-   * Specifies which test class to run. Only one class is allowed for synchronous runs.
-   */
-  tests?: TestItem[];
-  /**
-   * Specifies which tests to run. The only valid value is RunSpecifiedTests.
-   */
-  testLevel?: string;
-  /**
-   * Limits the test run from executing new tests after a given number of tests fail.
-   * Valid value ranges from 0 to 1,000,000. A value of 0 causes the test run to stop if any failure occurs.
-   */
-  maxFailedTests?: number;
-  /**
-   * Allows for faster tests by skipping code coverage
-   */
-  skipCodeCoverage?: boolean;
-  /**
-   * Category for this run, for Flow or Apex
-   */
-  category?: string[];
-};
+export type SyncTestConfiguration = typeof SyncTestConfigurationSchema.Type;
 
 type SyncTestSuccess = {
   id: string;
@@ -152,12 +152,12 @@ type SyncTestSuccess = {
 
 export type SyncTestFailure = {
   id: string;
-  message: string;
+  message?: string | null;
   methodName: string;
   name: string;
   namespace: string | null;
   seeAllData: boolean;
-  stackTrace: string;
+  stackTrace?: string | null;
   time: number;
   type: string; // might change it to an enum
 };
@@ -171,7 +171,10 @@ export type SyncTestResult = {
   totalTime: number;
 };
 
-export type ApexTestResultOutcome = 'Pass' | 'Fail' | 'CompileFail' | 'Skip';
+export const ApexTestResultOutcomeSchema = Schema.Literal('Pass', 'Fail', 'CompileFail', 'Skip').pipe(
+  Schema.annotations({ identifier: 'ApexTestResultOutcome' })
+);
+export type ApexTestResultOutcome = Schema.Schema.Type<typeof ApexTestResultOutcomeSchema>;
 
 type FlowTestResultRecord = {
   Id: string;
@@ -185,7 +188,7 @@ type FlowTestResultRecord = {
   };
   FlowDefinition: {
     DeveloperName: string;
-    NamespacePrefix: string;
+    NamespacePrefix: string | null;
   };
 
   /**
@@ -204,15 +207,13 @@ export type ApexTestResultRecord = {
   /**
    * The Apex stack trace if the test failed; otherwise, null.
    */
-  StackTrace: string | null;
+  StackTrace?: string | null;
   /**
    * The exception error message if a test failure occurs; otherwise, null.
    */
-  Message: string | null;
-  /**
-   * Points to the AsyncApexJob that represents the entire test run
-   */
-  AsyncApexJobId: string;
+  Message?: string | null;
+  /** Absent for Flow test results. */
+  AsyncApexJobId?: string;
   /**
    * The name of the test method.
    */
@@ -221,16 +222,15 @@ export type ApexTestResultRecord = {
    * The result of the test
    */
   Outcome: ApexTestResultOutcome;
-  /**
-   * Points to the ApexLog for this test method execution if debug logging is enabled; otherwise, null.
-   */
-  ApexLogId: string | null;
+  /** Absent for Flow test results; otherwise null when debug logging is disabled. */
+  ApexLogId?: string | null;
   /**
    * Indicates if the results are for a test setup method. The default is false.
    */
   IsTestSetup?: boolean;
   ApexClass: {
-    Id: string;
+    /** Absent for Flow test results. */
+    Id?: string;
     /**
      * Name of the class (up to 255 characters)
      */
@@ -238,7 +238,7 @@ export type ApexTestResultRecord = {
     /**
      * The namespace prefix associated with this ApexClass
      */
-    NamespacePrefix: string;
+    NamespacePrefix: string | null;
     /**
      * The full name of the associated ApexClass
      */
@@ -251,12 +251,12 @@ export type ApexTestResultRecord = {
   /**
    * The start time of the test method.
    */
-  TestTimestamp: string;
+  TestTimestamp?: string;
 };
 
 export type ApexTestResult = {
   done: boolean;
-  category?: string;
+  category?: TestCategory;
   totalSize: number;
   records: ApexTestResultRecord[];
 };
@@ -267,14 +267,16 @@ export type FlowTestResult = {
   records: FlowTestResultRecord[];
 };
 
-export type ApexTestRunResultStatus =
-  | 'Queued'
-  | 'Processing'
-  | 'Aborted'
-  | 'Passed'
-  | 'Failed'
-  | 'Completed'
-  | 'Skipped';
+export const ApexTestRunResultStatusSchema = Schema.Literal(
+  'Queued',
+  'Processing',
+  'Aborted',
+  'Passed',
+  'Failed',
+  'Completed',
+  'Skipped'
+).pipe(Schema.annotations({ identifier: 'ApexTestRunResultStatus' }));
+export type ApexTestRunResultStatus = Schema.Schema.Type<typeof ApexTestRunResultStatusSchema>;
 
 export type ApexTestRunResult = {
   /**
@@ -316,7 +318,7 @@ export type ApexTestRunResult = {
   /**
    * The user who ran the test run
    */
-  UserId: string;
+  UserId?: string;
 };
 
 export type ApexTestQueueItemStatus =
@@ -347,212 +349,131 @@ export type ApexTestQueueItem = {
   records: ApexTestQueueItemRecord[];
 };
 
-export type ApexTestResultData = {
-  id: string;
-  /**
-   * Points to the ApexTestQueueItem which is the class that this test method is part of
-   */
-  queueItemId: string;
-  /**
-   * The Apex stack trace if the test failed; otherwise, null.
-   */
-  stackTrace: string | null;
-  /**
-   * The exception error message if a test failure occurs; otherwise, null.
-   */
-  message: string | null;
-  /**
-   * Points to the AsyncApexJob that represents the entire test run
-   */
-  asyncApexJobId: string;
-  /**
-   * The name of the test method.
-   */
-  methodName: string;
-  /**
-   * The result of the test
-   */
-  outcome: ApexTestResultOutcome;
-  /**
-   * Points to the ApexLog for this test method execution if debug logging is enabled; otherwise, null.
-   */
-  apexLogId: string | null;
-  apexClass: {
-    id: string;
-    /**
-     * Name of the class (up to 255 characters)
-     */
-    name: string;
-    /**
-     * The namespace prefix associated with this ApexClass
-     */
-    namespacePrefix: string;
-    /**
-     * The full name of the associated ApexClass
-     */
-    fullName: string;
-  };
-  /**
-   * The time it took the test method to run, in seconds.
-   */
-  runTime: number;
-  /**
-   * The start time of the test method.
-   */
-  testTimestamp: string;
-  /**
-   * The full name of the associated ApexClass method
-   */
-  fullName: string;
-  /**
-   * The associated ApexCodeCoverage object
-   */
-  perClassCoverage?: PerClassCoverage[];
-  diagnostic?: ApexDiagnostic;
-  /**
-   * The category of the test (Apex or Flow)
-   */
-  category?: string;
+const ApexTestResultDataFields = {
+  /** Salesforce Apex or Flow test result ID; absent for synchronous results. */
+  id: Schema.optional(Schema.Union(ApexTestResultIdString, FlowTestResultIdString)),
+  /** Queue item for async tests; absent for synchronous results. */
+  queueItemId: Schema.optional(ApexTestQueueItemIdString),
+  /** The Apex stack trace if the test failed; otherwise, null. */
+  stackTrace: Schema.NonEmptyString.pipe(Schema.NullOr, Schema.optional),
+  /** The exception error message if a test failure occurs; otherwise, null. */
+  message: Schema.NonEmptyString.pipe(Schema.NullOr, Schema.optional),
+  /** AsyncApexJob for async Apex runs; absent for synchronous and Flow tests. */
+  asyncApexJobId: Schema.optional(TestRunIdString),
+  /** The name of the test method. */
+  methodName: Schema.String,
+  /** The result of the test. */
+  outcome: ApexTestResultOutcomeSchema,
+  /** Apex log ID, or null when debug logging is disabled; absent for Flow tests. */
+  apexLogId: ApexLogIdString.pipe(Schema.NullOr, Schema.optional),
+  apexClass: Schema.Struct({
+    /** Apex class ID; absent for Flow tests. */
+    id: Schema.optional(ApexClassIdString),
+    /** Name of the class (up to 255 characters). */
+    name: Schema.String,
+    /** The namespace prefix associated with this ApexClass; null for the default namespace. */
+    namespacePrefix: Schema.NonEmptyString.pipe(Schema.NullOr, Schema.optional),
+    /** The full name of the associated ApexClass. */
+    fullName: Schema.String
+  }).pipe(Schema.mutable),
+  /** The time it took the test method to run, in seconds. */
+  runTime: Schema.Number,
+  /** The start time of the test method. */
+  testTimestamp: Schema.optional(Schema.NonEmptyString),
+  /** The full name of the associated ApexClass method. */
+  fullName: Schema.String,
+  /** The associated ApexCodeCoverage object. */
+  perClassCoverage: Schema.Array(PerClassCoverageSchema).pipe(Schema.mutable, Schema.optional),
+  diagnostic: Schema.optional(ApexDiagnosticSchema),
+  /** The category of the test (Apex or Flow). */
+  category: Schema.optional(TestCategorySchema)
 };
 
-export type ApexTestResultDataRaw = ApexTestResultData & {
-  /**
-   * Indicates if the results are for a test setup method. The default is false.
-   */
-  isTestSetup?: boolean;
-};
+export const ApexTestResultDataSchema = Schema.Struct(ApexTestResultDataFields).pipe(
+  Schema.mutable,
+  Schema.annotations({ identifier: 'ApexTestResultData' })
+);
+export type ApexTestResultData = Schema.Schema.Type<typeof ApexTestResultDataSchema>;
 
-export type ApexTestSetupData = {
-  id: string;
-  stackTrace: string | null;
-  message: string | null;
-  asyncApexJobId: string;
-  methodName: string;
-  apexLogId: string | null;
-  apexClass: {
-    id: string;
-    name: string;
-    namespacePrefix: string;
-    fullName: string;
-  };
-  testSetupTime: number;
-  testTimestamp: string;
-  fullName: string;
-  diagnostic?: ApexDiagnostic;
-};
+export const ApexTestResultDataRawSchema = Schema.Struct({
+  ...ApexTestResultDataFields,
+  /** Indicates if the results are for a test setup method. The default is false. */
+  isTestSetup: Schema.optional(Schema.Boolean)
+}).pipe(Schema.mutable, Schema.annotations({ identifier: 'ApexTestResultDataRaw' }));
+export type ApexTestResultDataRaw = Schema.Schema.Type<typeof ApexTestResultDataRawSchema>;
 
-export type CodeCoverageResult = {
-  apexId: string;
-  name: string;
-  type: 'ApexClass' | 'ApexTrigger';
-  numLinesCovered: number;
-  numLinesUncovered: number;
-  percentage: string;
-  coveredLines: number[];
-  uncoveredLines: number[];
-};
+export const ApexTestSetupDataSchema = Schema.Struct({
+  id: Schema.optional(Schema.Union(ApexTestResultIdString, FlowTestResultIdString)),
+  stackTrace: Schema.optional(Schema.NonEmptyString),
+  message: Schema.optional(Schema.NonEmptyString),
+  asyncApexJobId: Schema.optional(TestRunIdString),
+  methodName: Schema.String,
+  apexLogId: Schema.optional(ApexLogIdString),
+  apexClass: Schema.Struct({
+    id: Schema.optional(ApexClassIdString),
+    name: Schema.String,
+    namespacePrefix: Schema.optional(Schema.NonEmptyString),
+    fullName: Schema.String
+  }).pipe(Schema.mutable),
+  testSetupTime: Schema.Number,
+  testTimestamp: Schema.optional(Schema.NonEmptyString),
+  fullName: Schema.String,
+  diagnostic: Schema.optional(ApexDiagnosticSchema)
+}).pipe(Schema.mutable, Schema.annotations({ identifier: 'ApexTestSetupData' }));
+export type ApexTestSetupData = Schema.Schema.Type<typeof ApexTestSetupDataSchema>;
 
 export type TestRunIdResult = {
   testRunId: string;
 };
 
-export type TestResult = {
-  summary: TestResultRaw['summary'];
-  tests: ApexTestResultData[];
-  setup?: ApexTestSetupData[];
-  codecoverage?: CodeCoverageResult[];
-};
+export const TestResultSummarySchema = Schema.Struct({
+  failRate: Schema.String,
+  testsRan: Schema.Number,
+  orgId: OrgIdString,
+  outcome: ApexTestRunResultStatusSchema,
+  passing: Schema.Number,
+  failing: Schema.Number,
+  skipped: Schema.Number,
+  passRate: Schema.String,
+  skipRate: Schema.String,
+  testStartTime: Schema.String,
+  testExecutionTimeInMs: Schema.Number,
+  testTotalTimeInMs: Schema.Number,
+  testSetupTimeInMs: Schema.optional(Schema.Number),
+  commandTimeInMs: Schema.Number,
+  hostname: Schema.String,
+  username: Schema.optional(Schema.NonEmptyString),
+  /** Absent for synchronous test results. */
+  testRunId: Schema.optional(TestRunIdString),
+  userId: Schema.optional(UserIdString),
+  testRunCoverage: Schema.optional(Schema.String),
+  orgWideCoverage: Schema.optional(Schema.String),
+  totalLines: Schema.optional(Schema.Number),
+  coveredLines: Schema.optional(Schema.Number)
+}).pipe(Schema.mutable);
+/** Formatted Apex test results written by the test service. */
+export const TestResultSchema = Schema.Struct({
+  summary: TestResultSummarySchema,
+  tests: Schema.Array(ApexTestResultDataSchema).pipe(Schema.mutable),
+  setup: Schema.Array(ApexTestSetupDataSchema).pipe(Schema.mutable, Schema.optional),
+  codecoverage: Schema.Array(CodeCoverageResultSchema).pipe(Schema.mutable, Schema.optional)
+}).pipe(Schema.mutable, Schema.annotations({ identifier: 'TestResult' }));
+export type TestResult = Schema.Schema.Type<typeof TestResultSchema>;
 
-export type TestResultRaw = {
-  summary: {
-    failRate: string;
-    testsRan: number;
-    orgId: string;
-    outcome: string;
-    passing: number;
-    failing: number;
-    skipped: number;
-    passRate: string;
-    skipRate: string;
-    testStartTime: string;
-    testExecutionTimeInMs: number;
-    testTotalTimeInMs: number;
-    testSetupTimeInMs?: number;
-    commandTimeInMs: number;
-    hostname: string;
-    username: string;
-    testRunId: string;
-    userId: string;
-    testRunCoverage?: string;
-    orgWideCoverage?: string;
-    totalLines?: number;
-    coveredLines?: number;
-  };
-  tests: ApexTestResultDataRaw[];
-  codecoverage?: CodeCoverageResult[];
-};
-
-export type ApexCodeCoverageRecord = {
-  ApexClassOrTrigger: {
-    Id: string;
-    Name: string;
-  };
-  ApexTestClassId: string;
-  TestMethodName: string;
-  NumLinesCovered: number;
-  NumLinesUncovered: number;
-  Coverage?: {
-    coveredLines: number[];
-    uncoveredLines: number[];
-  };
-};
-
-export type ApexCodeCoverage = {
-  done: boolean;
-  totalSize: number;
-  records: ApexCodeCoverageRecord[];
-};
-
-export type PerClassCoverage = {
-  apexClassOrTriggerName: string;
-  apexClassOrTriggerId: string;
-  apexTestClassId: string;
-  apexTestMethodName: string;
-  numLinesCovered: number;
-  numLinesUncovered: number;
-  percentage: string;
-  coverage?: { coveredLines: number[]; uncoveredLines: number[] };
-};
-
-export type ApexCodeCoverageAggregateRecord = {
-  ApexClassOrTrigger: {
-    Id: string;
-    Name: string;
-  };
-  NumLinesCovered: number;
-  NumLinesUncovered: number;
-  Coverage: {
-    coveredLines: number[];
-    uncoveredLines: number[];
-  };
-};
-
-export type ApexCodeCoverageAggregate = {
-  done: boolean;
-  totalSize: number;
-  records: ApexCodeCoverageAggregateRecord[];
-};
-
-export type ApexOrgWideCoverage = {
-  done: boolean;
-  totalSize: number;
-  records: { PercentCovered: string }[];
-};
+export const TestResultRawSchema = Schema.Struct({
+  summary: TestResultSummarySchema,
+  tests: Schema.Array(ApexTestResultDataRawSchema).pipe(Schema.mutable),
+  codecoverage: Schema.Array(CodeCoverageResultSchema).pipe(Schema.mutable, Schema.optional)
+}).pipe(Schema.mutable, Schema.annotations({ identifier: 'TestResultRaw' }));
+export type TestResultRaw = Schema.Schema.Type<typeof TestResultRawSchema>;
 
 export type NamespaceInfo = {
   installedNs: boolean;
   namespace: string;
 };
+
+/** @internal Progress callback used by the co-repo extension's Promise test API. */
+export type ApexTestProgressReporter = { report: (value: ApexTestProgressValue) => void };
 
 export type ApexTestProgressValue =
   | {

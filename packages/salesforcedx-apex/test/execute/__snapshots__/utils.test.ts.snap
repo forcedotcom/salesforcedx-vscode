@@ -1,0 +1,48 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`encodeBody for execute request > should correctly return encoded body given parameters with characters that must be escaped 1`] = `
+"<env:Envelope xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:cmd="http://soap.sforce.com/2006/08/apex"
+xmlns:apex="http://soap.sforce.com/2006/08/apex">
+    <env:Header xmlns="http://soap.sforce.com/2006/08/apex">
+        <cmd:SessionHeader>
+            <cmd:sessionId>0000000000x189</cmd:sessionId>
+        </cmd:SessionHeader>
+        <apex:DebuggingHeader>
+            <apex:categories><apex:category>Apex_code</apex:category><apex:level>Finest</apex:level></apex:categories>
+            <apex:categories><apex:category>Visualforce</apex:category><apex:level>Finer</apex:level></apex:categories>
+            <apex:categories><apex:category>Apex_profiling</apex:category><apex:level>Info</apex:level></apex:categories>
+        </apex:DebuggingHeader>
+    </env:Header>
+    <env:Body>
+        <executeAnonymous xmlns="http://soap.sforce.com/2006/08/apex">
+            <apexcode>System.assert(true);
+// &gt; &amp; &lt; &amp; &apos;&quot;&apos; &quot;&apos;&quot;</apexcode>
+        </executeAnonymous>
+    </env:Body>
+</env:Envelope>"
+`;
+
+exports[`encodeBody for execute request > should correctly return encoded body given the parameters 1`] = `
+"<env:Envelope xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"
+xmlns:cmd="http://soap.sforce.com/2006/08/apex"
+xmlns:apex="http://soap.sforce.com/2006/08/apex">
+    <env:Header xmlns="http://soap.sforce.com/2006/08/apex">
+        <cmd:SessionHeader>
+            <cmd:sessionId>0000000000x189</cmd:sessionId>
+        </cmd:SessionHeader>
+        <apex:DebuggingHeader>
+            <apex:categories><apex:category>Apex_code</apex:category><apex:level>Finest</apex:level></apex:categories>
+            <apex:categories><apex:category>Visualforce</apex:category><apex:level>Finer</apex:level></apex:categories>
+            <apex:categories><apex:category>Apex_profiling</apex:category><apex:level>Info</apex:level></apex:categories>
+        </apex:DebuggingHeader>
+    </env:Header>
+    <env:Body>
+        <executeAnonymous xmlns="http://soap.sforce.com/2006/08/apex">
+            <apexcode>System.assert(true);</apexcode>
+        </executeAnonymous>
+    </env:Body>
+</env:Envelope>"
+`;
