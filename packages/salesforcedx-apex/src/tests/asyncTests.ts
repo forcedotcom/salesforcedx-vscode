@@ -5,10 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { AuthInfo, Connection, Logger, LoggerLevel, PollingClient } from '@salesforce/core';
+import { AuthInfo, Connection, Logger, LoggerLevel } from '@salesforce/core';
 import { Duration } from '@salesforce/kit';
-import { isNotNull, isNull, isNotUndefined } from 'effect/Predicate';
+import * as EffectDuration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
+import { isNotNull, isNotUndefined, isNull, isUndefined } from 'effect/Predicate';
+import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
 import { JsonStreamStringify } from 'json-stream-stringify';
 import { createWriteStream } from 'node:fs';
 import * as fs from 'node:fs/promises';
@@ -16,26 +21,21 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import * as util from 'node:util';
-import { type CancellationToken, type Progress } from '../common';
+import { getDiagnostic } from '../effect/diagnostics';
+import { causeMessage } from '../effect/errors';
+import { queryRecords } from '../effect/records';
+import { ApexOperationError } from '../effect/schema/errors';
+import { ApexClassIdsSchema, ApexTestSuiteIdsSchema, TestRunId } from '../effect/schema/salesforceId';
+import { ApexTestRunSummarySchema } from '../effect/schema/wire/asyncTests';
 import { nls } from '../i18n';
-import {
-  ApexClassId,
-  ApexLogId,
-  ApexTestQueueItemId,
-  ApexTestResultId,
-  FlowTestResultId,
-  OrgIdString,
-  TestRunId,
-  TestRunIdString,
-  UserIdString
-} from '../schemas/salesforceId';
-import { type AsyncTestRun, StreamingClient } from '../streaming';
-import { elapsedTime, formatStartTime, getCurrentTime, HeapMonitor } from '../utils';
+import { type AsyncTestRun } from '../streaming';
+import { formatStartTime, getCurrentTime } from '../utils';
+import { type CancellationToken } from './cancellation';
 import { CodeCoverage } from './codeCoverage';
 import { QUERY_RECORD_LIMIT } from './constants';
-import { formatTestErrors, getDiagnostic } from './diagnosticUtil';
+import { formatTestErrors } from './diagnosticUtil';
 import {
-  type ApexTestProgressValue,
+  type ApexTestProgressReporter,
   type ApexTestQueueItem,
   type ApexTestQueueItemRecord,
   type ApexTestResult,
@@ -64,10 +64,46 @@ export const writeAsyncResultsToFile = async (formattedResults: TestResult, runI
 };
 
 const finishedStatuses = new Set<ApexTestRunResultStatus>(['Aborted', 'Failed', 'Completed', 'Passed', 'Skipped']);
+const asyncTestIdListsSchema = Schema.Struct({
+  classids: Schema.optional(ApexClassIdsSchema),
+  suiteids: Schema.optional(ApexTestSuiteIdsSchema)
+});
 
 const MIN_VERSION_TO_SUPPORT_TEST_SETUP_METHODS = 61.0;
 const POLLING_FREQUENCY = Duration.seconds(1);
 const POLLING_TIMEOUT = Duration.hours(4);
+
+type PollingResult<A> = {
+  completed: boolean;
+  payload: A;
+};
+
+const pollUntilComplete = Effect.fn('AsyncTests.pollUntilComplete')(function* <A>(
+  poll: () => Promise<PollingResult<A>>,
+  interval: Duration,
+  timeout: Duration,
+  operation: string
+) {
+  const pollResult = Effect.tryPromise({
+    try: poll,
+    catch: cause =>
+      new ApexOperationError({
+        operation,
+        message: causeMessage(cause),
+        cause: causeMessage(cause)
+      })
+  });
+
+  return yield* Stream.repeatEffectWithSchedule(
+    pollResult,
+    Schedule.spaced(EffectDuration.millis(interval.milliseconds))
+  ).pipe(
+    Stream.takeUntil(result => result.completed),
+    Stream.runLast,
+    Effect.timeoutOption(EffectDuration.millis(timeout.milliseconds)),
+    Effect.map(result => Option.map(Option.flatten(result), ({ payload }) => payload))
+  );
+});
 
 export class AsyncTests {
   public readonly connection: Connection;
@@ -87,20 +123,18 @@ export class AsyncTests {
    * @param exitOnTestRunId should not wait for test run to complete, return test run id immediately
    * @param progress progress reporter
    * @param token cancellation token
-   * @param timeout Duration to wait before returning a TestRunIdResult. If the polling client times out,
+   * @param timeout Duration to wait before returning a TestRunIdResult. If polling times out,
    * the method will return the test run ID so you can retrieve results later.
    */
-  @elapsedTime()
   public async runTests(
     options: AsyncTestConfiguration | AsyncTestArrayConfiguration,
     codeCoverage = false,
     exitOnTestRunId = false,
-    progress?: Progress<ApexTestProgressValue>,
+    progress?: ApexTestProgressReporter,
     token?: CancellationToken,
     timeout?: Duration,
     interval: Duration = POLLING_FREQUENCY
   ): Promise<TestResult | TestRunIdResult> {
-    HeapMonitor.getInstance().checkHeapSize('asyncTests.runTests');
     let testRunId = '';
 
     try {
@@ -114,119 +148,115 @@ export class AsyncTests {
         throw new Error(nls.localize('testRunCancelled'));
       }
 
-      const pollingClient = await PollingClient.create({
-        poll: async (): Promise<{
-          completed: boolean;
-          payload: ApexTestQueueItem;
-        }> => {
-          if (token?.isCancellationRequested) {
-            await this.abortTestRun(testRunId, progress);
-            return {
-              completed: true,
-              payload: {
-                done: true,
-                totalSize: 0,
-                records: []
-              }
+      const queueItem = await Effect.runPromise(
+        pollUntilComplete(
+          async (): Promise<PollingResult<ApexTestQueueItem>> => {
+            if (token?.isCancellationRequested) {
+              await this.abortTestRun(testRunId, progress);
+              return {
+                completed: true,
+                payload: {
+                  done: true,
+                  totalSize: 0,
+                  records: []
+                }
+              };
+            }
+
+            const testRunSummaries = await Effect.runPromise(
+              queryRecords({
+                connection: this.connection,
+                operation: 'AsyncTests.runTests',
+                soql: `SELECT Status, ClassesCompleted, ClassesEnqueued FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`,
+                record: ApexTestRunSummarySchema,
+                tooling: true
+              })
+            );
+
+            // Query for test run summary first to check overall status
+            const summary = testRunSummaries[0];
+            if (isUndefined(summary)) {
+              throw new Error(`No test run summary found for test run ID: ${testRunId}`);
+            }
+
+            const isCompleted = finishedStatuses.has(summary.Status);
+
+            progress?.report({
+              type: 'PollingClientProgress',
+              value: 'pollingProcessingTestRun',
+              message: nls.localize('pollingProcessingTestRun', testRunId),
+              testRunId,
+              classesCompleted: summary.ClassesCompleted,
+              classesEnqueued: summary.ClassesEnqueued
+            });
+
+            // Query queue items to get detailed status (use queryAll to fetch all pages)
+            const queryResult = await queryAll<ApexTestQueueItemRecord>(
+              this.connection,
+              `SELECT Id, Status, ApexClassId, TestRunResultId, ParentJobId FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`,
+              true
+            );
+
+            if (!queryResult.records || queryResult.records.length === 0) {
+              throw new Error(`No test queue items found for test run ID: ${testRunId}`);
+            }
+
+            const queueItem: ApexTestQueueItem = {
+              done: isCompleted,
+              totalSize: queryResult.records.length,
+              records: queryResult.records.map(record => ({
+                Id: record.Id,
+                Status: record.Status,
+                ApexClassId: record.ApexClassId,
+                TestRunResultId: record.TestRunResultId
+              }))
             };
-          }
 
-          const hasTestSetupTimeField = await this.supportsTestSetupFeature();
-          const testRunSummaryQuery = hasTestSetupTimeField
-            ? `SELECT AsyncApexJobId, Status, ClassesCompleted, ClassesEnqueued, MethodsEnqueued, StartTime, EndTime, TestTime, TestSetupTime, UserId FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`
-            : `SELECT AsyncApexJobId, Status, ClassesCompleted, ClassesEnqueued, MethodsEnqueued, StartTime, EndTime, TestTime, UserId FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`;
-
-          // Query for test run summary first to check overall status
-          const testRunSummary = await this.connection.tooling.query<ApexTestRunResult>(testRunSummaryQuery);
-
-          if (!testRunSummary?.records || testRunSummary.records.length === 0) {
-            throw new Error(`No test run summary found for test run ID: ${testRunId}`);
-          }
-
-          const summary = testRunSummary.records[0];
-          const isCompleted = finishedStatuses.has(summary.Status);
-
-          progress?.report({
-            type: 'PollingClientProgress',
-            value: 'pollingProcessingTestRun',
-            message: nls.localize('pollingProcessingTestRun', testRunId),
-            testRunId,
-            classesCompleted: summary.ClassesCompleted,
-            classesEnqueued: summary.ClassesEnqueued
-          });
-
-          // Query queue items to get detailed status (use queryAll to fetch all pages)
-          const queryResult = await queryAll<ApexTestQueueItemRecord>(
-            this.connection,
-            `SELECT Id, Status, ApexClassId, TestRunResultId, ParentJobId FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`,
-            true
-          );
-
-          if (!queryResult.records || queryResult.records.length === 0) {
-            throw new Error(`No test queue items found for test run ID: ${testRunId}`);
-          }
-
-          const queueItem: ApexTestQueueItem = {
-            done: isCompleted,
-            totalSize: queryResult.records.length,
-            records: queryResult.records.map(record => ({
-              Id: record.Id,
-              Status: record.Status,
-              ApexClassId: record.ApexClassId,
-              TestRunResultId: record.TestRunResultId
-            }))
-          };
-
-          return {
-            completed: isCompleted,
-            payload: queueItem
-          };
-        },
-        frequency: interval,
-        timeout: timeout ?? POLLING_TIMEOUT
-      });
-
-      const queueItem = (await pollingClient.subscribe()) as ApexTestQueueItem;
-      const runResult = await this.checkRunStatus(testRunId, progress);
-
-      const formattedResults = await this.formatAsyncResults(
-        { runId: testRunId, queueItem },
-        getCurrentTime(),
-        codeCoverage,
-        runResult.testRunSummary,
-        progress
+            return {
+              completed: isCompleted,
+              payload: queueItem
+            };
+          },
+          interval,
+          timeout ?? POLLING_TIMEOUT,
+          'AsyncTests.runTests'
+        )
       );
 
-      await this.writeResultsToFile(formattedResults, testRunId);
-      return formattedResults;
+      return await Option.match(queueItem, {
+        onNone: async () => {
+          this.logger.debug(
+            `Polling timed out for test run ${testRunId}. Returning test run ID for later result retrieval.`
+          );
+
+          const username = this.connection.getUsername() ?? '';
+          this.logger.info(nls.localize('runTestReportCommand', [testRunId, username]));
+
+          return { testRunId };
+        },
+        onSome: async queueItem => {
+          const runResult = await this.checkRunStatus(testRunId, progress);
+          const formattedResults = await this.formatAsyncResults(
+            { runId: testRunId, queueItem },
+            getCurrentTime(),
+            codeCoverage,
+            runResult.testRunSummary,
+            progress
+          );
+
+          await this.writeResultsToFile(formattedResults, testRunId);
+          return formattedResults;
+        }
+      });
     } catch (e) {
-      // If it's a PollingClientTimeout, return the test run ID so results can be retrieved later
-      if (e.name === 'PollingClientTimeout') {
-        this.logger.debug(
-          `Polling client timed out for test run ${testRunId}. Returning test run ID for later result retrieval.`
-        );
-
-        // Log the proper 'apex get test' command for the user to run later
-        const username = this.connection.getUsername() ?? '';
-        this.logger.info(nls.localize('runTestReportCommand', [testRunId, username]));
-
-        return { testRunId };
-      }
       throw formatTestErrors(e);
-    } finally {
-      HeapMonitor.getInstance().checkHeapSize('asyncTests.runTests');
     }
   }
 
   private async writeResultsToFile(formattedResults: TestResult, runId: string): Promise<void> {
-    HeapMonitor.getInstance().checkHeapSize('asyncTests.writeResultsToFile');
-    try {
-      if (this.logger.shouldLog(LoggerLevel.DEBUG)) {
-        await writeAsyncResultsToFile(formattedResults, runId);
-        this.logger.debug(`Raw results written to: ${path.join(os.tmpdir(), runId, 'rawResults.json')}`);
-      }
-    } finally {
-      HeapMonitor.getInstance().checkHeapSize('asyncTests.writeResultsToFile');
+    if (this.logger.shouldLog(LoggerLevel.DEBUG)) {
+      await writeAsyncResultsToFile(formattedResults, runId);
+      this.logger.debug(`Raw results written to: ${path.join(os.tmpdir(), runId, 'rawResults.json')}`);
     }
   }
 
@@ -236,37 +266,61 @@ export class AsyncTests {
    * @param codeCoverage should report code coverages
    * @param token cancellation token
    */
-  @elapsedTime()
   public async reportAsyncResults(
     testRunId: string,
     codeCoverage = false,
     token?: CancellationToken
   ): Promise<TestResult> {
-    HeapMonitor.getInstance().checkHeapSize('asyncTests.reportAsyncResults');
     try {
-      const sClient = new StreamingClient(this.connection);
-      await sClient.init();
-      await sClient.handshake();
-      let queueItem: ApexTestQueueItem | null;
-      let runResult = await this.checkRunStatus(testRunId);
-
-      if (runResult.testsComplete) {
-        queueItem = await sClient.handler(undefined, testRunId);
-      } else {
-        queueItem = ((await sClient.subscribe(undefined, testRunId)) as AsyncTestRun).queueItem;
-        runResult = await this.checkRunStatus(testRunId);
-      }
-
-      token?.onCancellationRequested(async () => {
-        sClient.disconnect();
+      const runResultOption = await Effect.runPromise(
+        pollUntilComplete(
+          async () => {
+            const runResult = await this.checkRunStatus(testRunId);
+            return {
+              completed: runResult.testsComplete || Boolean(token?.isCancellationRequested),
+              payload: runResult
+            };
+          },
+          POLLING_FREQUENCY,
+          POLLING_TIMEOUT,
+          'AsyncTests.reportAsyncResults'
+        )
+      );
+      const runResult = Option.match(runResultOption, {
+        onNone: () => {
+          throw new ApexOperationError({
+            operation: 'AsyncTests.reportAsyncResults',
+            message: 'Timed out while waiting for the asynchronous test run to complete'
+          });
+        },
+        onSome: runResult => runResult
       });
 
       if (token?.isCancellationRequested) {
         throw new Error(nls.localize('testRunCancelled'));
       }
 
+      const queryResult = await queryAll<ApexTestQueueItemRecord>(
+        this.connection,
+        `SELECT Id, Status, ApexClassId, TestRunResultId FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`,
+        true
+      );
+      if (queryResult.records.length === 0) {
+        throw new Error(`No test queue items found for test run ID: ${testRunId}`);
+      }
+      const queueItem: ApexTestQueueItem = {
+        done: true,
+        totalSize: queryResult.records.length,
+        records: queryResult.records.map(({ Id, Status, ApexClassId, TestRunResultId }) => ({
+          Id,
+          Status,
+          ApexClassId,
+          TestRunResultId
+        }))
+      };
+
       const formattedResults = await this.formatAsyncResults(
-        { queueItem: queueItem as ApexTestQueueItem, runId: testRunId },
+        { queueItem, runId: testRunId },
         getCurrentTime(),
         codeCoverage,
         runResult.testRunSummary
@@ -277,15 +331,12 @@ export class AsyncTests {
       return formattedResults;
     } catch (e) {
       throw formatTestErrors(e);
-    } finally {
-      HeapMonitor.getInstance().checkHeapSize('asyncTests.reportAsyncResults');
     }
   }
 
-  @elapsedTime()
   public async checkRunStatus(
     testRunId: string,
-    progress?: Progress<ApexTestProgressValue>
+    progress?: ApexTestProgressReporter
   ): Promise<{
     testsComplete: boolean;
     testRunSummary: ApexTestRunResult;
@@ -324,16 +375,12 @@ export class AsyncTests {
           return {
             testsComplete: true,
             testRunSummary: {
-              AsyncApexJobId: testRunId,
-              ClassesCompleted: 0,
-              ClassesEnqueued: 0,
-              MethodsEnqueued: 0,
+              AsyncApexJobId: testRunId as string,
               Status: 'Aborted',
               StartTime: new Date().toISOString(),
-              EndTime: undefined,
               TestTime: 0,
-              TestSetupTime: undefined
-            }
+              UserId: ''
+            } as ApexTestRunResult
           };
         }
         throw new Error(
@@ -370,81 +417,66 @@ export class AsyncTests {
    * @param progress progress reporter
    * @returns
    */
-  @elapsedTime()
   public async formatAsyncResults(
     asyncRunResult: AsyncTestRun,
     commandStartTime: number,
     codeCoverage = false,
     testRunSummary: ApexTestRunResult,
-    progress?: Progress<ApexTestProgressValue>
+    progress?: ApexTestProgressReporter
   ): Promise<TestResult> {
-    HeapMonitor.getInstance().checkHeapSize('asyncTests.formatAsyncResults');
-    try {
-      const apexTestResults = await this.getAsyncTestResults(asyncRunResult.queueItem);
-      const { apexTestClassIdSet, testResults, globalTests } = await this.buildAsyncTestResults(apexTestResults);
+    const apexTestResults = await this.getAsyncTestResults(asyncRunResult.queueItem);
+    const { apexTestClassIdSet, testResults, globalTests } = await this.buildAsyncTestResults(apexTestResults);
 
-      let outcome = testRunSummary.Status;
-      if (globalTests.failed > 0) {
-        outcome = 'Failed';
-      } else if (globalTests.passed === 0) {
-        outcome = 'Skipped';
-      } else if (testRunSummary.Status === 'Completed') {
-        outcome = 'Passed';
-      }
-
-      const username = this.connection.getUsername();
-      const rawResult: TestResultRaw = {
-        summary: {
-          outcome,
-          testsRan: testResults.length,
-          passing: globalTests.passed,
-          failing: globalTests.failed,
-          skipped: globalTests.skipped,
-          passRate: calculatePercentage(globalTests.passed, testResults.length),
-          failRate: calculatePercentage(globalTests.failed, testResults.length),
-          skipRate: calculatePercentage(globalTests.skipped, testResults.length),
-          testStartTime: formatStartTime(testRunSummary.StartTime, 'ISO'),
-          testSetupTimeInMs: testRunSummary.TestSetupTime,
-          testExecutionTimeInMs: testRunSummary.TestTime ?? 0,
-          testTotalTimeInMs: testRunSummary.TestTime ?? 0,
-          commandTimeInMs: getCurrentTime() - commandStartTime,
-          hostname: this.connection.instanceUrl,
-          orgId: Schema.decodeUnknownSync(OrgIdString)(this.connection.getAuthInfoFields().orgId),
-          ...(username ? { username } : {}),
-          testRunId: Schema.decodeUnknownSync(TestRunIdString)(asyncRunResult.runId),
-          ...(isNotUndefined(testRunSummary.UserId)
-            ? { userId: Schema.decodeUnknownSync(UserIdString)(testRunSummary.UserId) }
-            : {})
-        },
-        tests: testResults
-      };
-
-      await calculateCodeCoverage(this.codecoverage, codeCoverage, apexTestClassIdSet, rawResult, true, progress);
-      return transformTestResult(rawResult);
-    } finally {
-      HeapMonitor.getInstance().checkHeapSize('asyncTests.formatAsyncResults');
+    let outcome = testRunSummary.Status;
+    if (globalTests.failed > 0) {
+      outcome = 'Failed';
+    } else if (globalTests.passed === 0) {
+      outcome = 'Skipped';
+    } else if (testRunSummary.Status === 'Completed') {
+      outcome = 'Passed';
     }
+
+    const rawResult: TestResultRaw = {
+      summary: {
+        outcome,
+        testsRan: testResults.length,
+        passing: globalTests.passed,
+        failing: globalTests.failed,
+        skipped: globalTests.skipped,
+        passRate: calculatePercentage(globalTests.passed, testResults.length),
+        failRate: calculatePercentage(globalTests.failed, testResults.length),
+        skipRate: calculatePercentage(globalTests.skipped, testResults.length),
+        testStartTime: formatStartTime(testRunSummary.StartTime, 'ISO'),
+        testSetupTimeInMs: testRunSummary.TestSetupTime,
+        testExecutionTimeInMs: testRunSummary.TestTime ?? 0,
+        testTotalTimeInMs: testRunSummary.TestTime ?? 0,
+        commandTimeInMs: getCurrentTime() - commandStartTime,
+        hostname: this.connection.instanceUrl,
+        orgId: this.connection.getAuthInfoFields().orgId ?? '',
+        username: this.connection.getUsername() ?? '',
+        testRunId: asyncRunResult.runId,
+        userId: testRunSummary.UserId
+      },
+      tests: testResults
+    };
+
+    await calculateCodeCoverage(this.codecoverage, codeCoverage, apexTestClassIdSet, rawResult, true, progress);
+    return transformTestResult(rawResult);
   }
 
-  @elapsedTime()
   public async getAsyncTestResults(testQueueResult: ApexTestQueueItem): Promise<ApexTestResult[]> {
-    HeapMonitor.getInstance().checkHeapSize('asyncTests.getAsyncTestResults');
     const hasIsTestSetupField = await this.supportsTestSetupFeature();
-    try {
-      const { apexTestIds, flowTestIds } = this.mapTestResultsByCategory(testQueueResult.records);
+    const { apexTestIds, flowTestIds } = this.mapTestResultsByCategory(testQueueResult.records);
 
-      const allTestResults: ApexTestResult[] = [];
-      if (apexTestIds.length > 0) {
-        allTestResults.push(...(await this.getApexTestResults(apexTestIds, hasIsTestSetupField)));
-      }
-      if (flowTestIds.length > 0) {
-        allTestResults.push(...(await this.getFlowTestResults(flowTestIds)));
-      }
-
-      return allTestResults as ApexTestResult[];
-    } finally {
-      HeapMonitor.getInstance().checkHeapSize('asyncTests.getAsyncTestResults');
+    const allTestResults: ApexTestResult[] = [];
+    if (apexTestIds.length > 0) {
+      allTestResults.push(...(await this.getApexTestResults(apexTestIds, hasIsTestSetupField)));
     }
+    if (flowTestIds.length > 0) {
+      allTestResults.push(...(await this.getFlowTestResults(flowTestIds)));
+    }
+
+    return allTestResults as ApexTestResult[];
   }
   /**
    * @returns Convert FlowTest result to ApexTestResult type
@@ -455,10 +487,15 @@ export class AsyncTests {
       const tmpRecords: ApexTestResultRecord[] = flowtestResult.records.map(record => ({
         Id: record.Id,
         QueueItemId: record.ApexTestQueueItemId,
+        StackTrace: '', // Default value
+        Message: '', // Default value
+        AsyncApexJobId: record.ApexTestQueueItemId, // Assuming this maps from ApexTestQueueItem
         MethodName: record.FlowTest.DeveloperName,
         Outcome: record.Result,
+        ApexLogId: '', // Default value
         IsTestSetup: false,
         ApexClass: {
+          Id: record.ApexTestQueueItemId,
           Name: record.FlowDefinition.DeveloperName,
           NamespacePrefix: record.FlowDefinition.NamespacePrefix,
           FullName: record.FlowDefinition.NamespacePrefix
@@ -482,7 +519,6 @@ export class AsyncTests {
     });
   }
 
-  @elapsedTime()
   private async buildAsyncTestResults(apexTestResults: ApexTestResult[]): Promise<{
     apexTestClassIdSet: Set<string>;
     testResults: ApexTestResultDataRaw[];
@@ -492,77 +528,73 @@ export class AsyncTests {
       failed: number;
     };
   }> {
-    HeapMonitor.getInstance().checkHeapSize('asyncTests.buildAsyncTestResults');
-    try {
-      const apexTestClassIdSet = new Set<string>();
-      let passed = 0;
-      let failed = 0;
-      let skipped = 0;
+    const apexTestClassIdSet = new Set<string>();
+    let passed = 0;
+    let failed = 0;
+    let skipped = 0;
 
-      // Iterate over test results, format and add them as results.tests
-      const testResults: ApexTestResultDataRaw[] = [];
-      for (const result of apexTestResults) {
-        result.records.forEach(item => {
-          switch (item.Outcome) {
-            case 'Pass':
-              passed++;
-              break;
-            case 'Fail':
-            case 'CompileFail':
-              failed++;
-              break;
-            case 'Skip':
-              skipped++;
-              break;
-          }
+    // Iterate over test results, format and add them as results.tests
+    const testResults: ApexTestResultDataRaw[] = [];
+    for (const result of apexTestResults) {
+      result.records.forEach(item => {
+        switch (item.Outcome) {
+          case 'Pass':
+            passed++;
+            break;
+          case 'Fail':
+          case 'CompileFail':
+            failed++;
+            break;
+          case 'Skip':
+            skipped++;
+            break;
+        }
 
-          if (isNotUndefined(item.ApexClass.Id)) apexTestClassIdSet.add(item.ApexClass.Id);
-          // Can only query the FullName field if a single record is returned, so manually build the field
-          item.ApexClass.FullName = item.ApexClass.NamespacePrefix
-            ? `${item.ApexClass.NamespacePrefix}.${item.ApexClass.Name}`
-            : item.ApexClass.Name;
+        if (isNotUndefined(item.ApexClass.Id)) apexTestClassIdSet.add(item.ApexClass.Id);
+        // Can only query the FullName field if a single record is returned, so manually build the field
+        item.ApexClass.FullName = item.ApexClass.NamespacePrefix
+          ? `${item.ApexClass.NamespacePrefix}.${item.ApexClass.Name}`
+          : item.ApexClass.Name;
 
-          const diagnostic = item.Message || item.StackTrace ? getDiagnostic(item) : null;
+        const diagnostic =
+          item.Message || item.StackTrace
+            ? getDiagnostic({ message: item.Message, stackTrace: item.StackTrace })
+            : null;
 
-          testResults.push({
-            id: Schema.decodeUnknownSync(result.category === 'Flow' ? FlowTestResultId : ApexTestResultId)(item.Id),
-            queueItemId: Schema.decodeUnknownSync(ApexTestQueueItemId)(item.QueueItemId),
-            ...(item.StackTrace ? { stackTrace: item.StackTrace } : {}),
-            ...(item.Message ? { message: item.Message } : {}),
-            ...(isNotUndefined(item.AsyncApexJobId)
-              ? { asyncApexJobId: Schema.decodeUnknownSync(TestRunId)(item.AsyncApexJobId) }
+        testResults.push({
+          ...(item.Id ? { id: item.Id } : {}),
+          ...(item.QueueItemId ? { queueItemId: item.QueueItemId } : {}),
+          ...(item.StackTrace ? { stackTrace: item.StackTrace } : {}),
+          ...(item.Message ? { message: item.Message } : {}),
+          ...(result.category !== 'Flow' && item.AsyncApexJobId ? { asyncApexJobId: item.AsyncApexJobId } : {}),
+          methodName: item.MethodName,
+          outcome: item.Outcome,
+          ...(result.category !== 'Flow' && item.ApexLogId !== undefined
+            ? { apexLogId: item.ApexLogId }
+            : item.ApexLogId
+              ? { apexLogId: item.ApexLogId }
               : {}),
-            methodName: item.MethodName,
-            outcome: item.Outcome,
-            ...(isNotUndefined(item.ApexLogId)
-              ? { apexLogId: isNull(item.ApexLogId) ? null : Schema.decodeUnknownSync(ApexLogId)(item.ApexLogId) }
-              : {}),
-            isTestSetup: item.IsTestSetup,
-            apexClass: {
-              ...(isNotUndefined(item.ApexClass.Id)
-                ? { id: Schema.decodeUnknownSync(ApexClassId)(item.ApexClass.Id) }
-                : {}),
-              name: item.ApexClass.Name,
-              ...(item.ApexClass.NamespacePrefix ? { namespacePrefix: item.ApexClass.NamespacePrefix } : {}),
-              fullName: item.ApexClass.FullName
-            },
-            runTime: item.RunTime ?? 0,
-            ...(item.TestTimestamp ? { testTimestamp: item.TestTimestamp } : {}), // TODO: convert timestamp
-            fullName: `${item.ApexClass.FullName}.${item.MethodName}`,
-            ...(diagnostic ? { diagnostic } : {}),
-            category: result.category
-          });
+          ...(item.IsTestSetup ? { isTestSetup: true } : {}),
+          apexClass: {
+            ...(result.category !== 'Flow' && item.ApexClass.Id ? { id: item.ApexClass.Id } : {}),
+            name: item.ApexClass.Name,
+            ...(item.ApexClass.NamespacePrefix ? { namespacePrefix: item.ApexClass.NamespacePrefix } : {}),
+            fullName: item.ApexClass.FullName
+          },
+          runTime: item.RunTime ?? 0,
+          ...(item.TestTimestamp ? { testTimestamp: item.TestTimestamp } : {}), // TODO: convert timestamp
+          fullName: `${item.ApexClass.FullName}.${item.MethodName}`,
+          ...(diagnostic ? { diagnostic } : {}),
+          category: result.category
         });
-      }
-
-      return {
-        apexTestClassIdSet,
-        testResults,
-        globalTests: { passed, failed, skipped }
-      };
-    } finally {
-      HeapMonitor.getInstance().checkHeapSize('asyncTests.buildAsyncTestResults');
+      });
     }
+
+    return {
+      apexTestClassIdSet,
+      testResults,
+      globalTests: { passed, failed, skipped }
+    };
   }
 
   /**
@@ -570,7 +602,7 @@ export class AsyncTests {
    * @param testRunId
    * @param progress
    */
-  public async abortTestRun(testRunId: string, progress?: Progress<ApexTestProgressValue>): Promise<void> {
+  public async abortTestRun(testRunId: string, progress?: ApexTestProgressReporter): Promise<void> {
     progress?.report({
       type: 'AbortTestRunProgress',
       value: 'abortingTestRun',
@@ -599,6 +631,10 @@ export class AsyncTests {
     options: AsyncTestConfiguration | AsyncTestArrayConfiguration
   ): () => Promise<string> {
     return async (): Promise<string> => {
+      Schema.decodeUnknownSync(asyncTestIdListsSchema)({
+        classids: 'classids' in options ? options.classids : undefined,
+        suiteids: 'suiteids' in options ? options.suiteids : undefined
+      });
       const url = `${this.connection.tooling._baseUrl()}/runTestsAsynchronous`;
 
       return this.connection.tooling.request<string>({

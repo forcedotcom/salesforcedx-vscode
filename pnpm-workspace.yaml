@@ -12,6 +12,8 @@ minimumReleaseAgeExclude:
 
 overrides:
   '@azure/monitor-opentelemetry-exporter': 1.0.0-beta.43
+  '@vscode/test-web>playwright': 1.64.1
+  '@vscode/test-web>@playwright/browser-chromium': 1.64.1
   jest: 30.4.2
   vscode-languageserver-textdocument: 1.0.12
   wireit>brace-expansion: 5.0.9

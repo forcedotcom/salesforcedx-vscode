@@ -74,9 +74,9 @@ const result = await Effect.runPromise(operation.pipe(Effect.provide(connectionL
 
 A fixed layer captures its connection when constructed. An extension that needs the current default org should resolve the connection for each operation, as in the services example.
 
-### Execute anonymous input migration
+### Execute anonymous input
 
-The Effect API requires `{ apexCode: string }` and never reads files or terminal input. `ExecuteService.executeAnonymous` accepts `{ apexCode: string | Buffer }` and retains the existing `apexFilePath` and `userInput` options for CLI compatibility. Explicit source content takes precedence; an empty source string is submitted to Salesforce for validation.
+Both `executeAnonymous` APIs accept `{ apexCode: string }`. The caller reads files or stdin and passes the resulting source text. `ExecuteService` no longer accepts `apexFilePath`, `userInput`, or `Buffer` source values. An empty source string is still submitted to Salesforce for validation.
 
 ```ts
 import { readFile } from 'node:fs/promises';
@@ -86,7 +86,7 @@ const apexCode = await readFile(file, 'utf8');
 const result = await new ExecuteService(connection).executeAnonymous({ apexCode });
 ```
 
-The [CLI command at c8fdf707](https://github.com/salesforcecli/plugin-apex/blob/c8fdf7073ce194deb75fc7fd12c0b981ee2b97f4/src/commands/apex/run.ts) still passes `apexFilePath` or `userInput`. The class retains those reads, the input prompt, per-line 60-second idle timeout, platform line endings, and input-error messages. **Do not remove these options until the CLI reads `--file` or stdin itself, passes `apexCode`, and verifies file, piped-input, interactive-input, timeout, and error cases.** That consumer migration is not included here; this change preserves its existing input contract.
+CLI hosts must implement `--file`, piped stdin, and interactive input themselves, then pass the source as `apexCode`.
 
 The Effect API returns a success-only outcome. Compilation and runtime failures use `ApexCompileError` and `ApexRuntimeError`, carrying host-neutral line/column, diagnostic text, and any debug log; malformed SOAP produces `ApexResponseDecodeError`. `ExecuteService` adapts compile/runtime errors back to the CLI's `compiled`, `success`, `logs`, and `diagnostic` response, while other errors remain rejected Promises with plain messages. The VS Code services adapter handles the typed execution failures as diagnostic data for its editor and output-channel contract.
 
@@ -124,6 +124,27 @@ Failed tests remain in `result.tests` with a failed summary, not on the Effect e
 Both ID-filtered operations batch at 500 IDs and retrieve every Tooling query page. Request failures use `ApexOperationError`; malformed responses use `ApexResponseDecodeError`. Interruption stops further retrieval, but cannot cancel a request already submitted through the connection.
 
 Coverage schemas are exported from `./effect`. The existing root coverage types derive from those schemas without changing their fields, string IDs, mutable arrays, optional per-test coverage, or percentage rounding. Existing `TestService` consumers continue to use the Promise adapter; test execution, reporting, and coverage decorations are unchanged.
+### Asynchronous test execution
+
+`runTestAsynchronous(connection, options, polling?)` is an Effect that submits the Tooling API request and returns `{ id, stream, cancel }`. Consume the stream within the same scoped Effect. It polls `ApexTestRunResult` lazily, emitting `Progress` events and a terminal `Result` with the test run ID and final summary. Request and malformed-response failures use `ApexOperationError` and `ApexResponseDecodeError`.
+
+```ts
+import { runTestAsynchronous } from '@salesforce/apex-node/effect';
+import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
+
+const run = runTestAsynchronous(connection, { testLevel: 'RunLocalTests' }).pipe(
+  Effect.flatMap(({ id, stream }) =>
+    Stream.runForEach(stream, event => Effect.log('Apex test run', { testRunId: id, event }))
+  ),
+  Effect.scoped
+);
+await Effect.runPromise(run);
+```
+
+Closing the scope before the stream completes aborts unfinished queue items, including paginated queue items. Call `cancel()` to request an explicit abort. Cleanup failures surface as defects rather than being silently ignored. Keep the scope around the stream consumer, not the entire application.
+
+Polling defaults to two seconds; `polling.interval` accepts an Effect `DurationInput`. There is no CometD fallback. Consumers own deadlines and UI formatting. This API reports execution progress; result formatting, coverage, and file output remain separate operations.
 
 ## Getting Started
 

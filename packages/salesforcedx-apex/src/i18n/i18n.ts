@@ -17,15 +17,10 @@
  */
 export const messages = {
   unexpectedExecuteCommandError: 'Unexpected error while executing anonymous apex. %s',
-  fileNotFoundError: 'File not found at the specified path: %s',
   missingInfoLogError: 'To retrieve logs, specify the log ID or the number of logs.',
   numLogsError: 'Expected number of logs to be greater than 0.',
   optionExecAnonError: 'Please specify an option to execute anonymous Apex.',
-  unexpectedExecAnonInputError: 'Unexpected error while reading user input. %s',
   coverageReportCreationError: 'Unexpected error occurred while creating coverage reports. %s',
-  execAnonInputPrompt:
-    'Start typing Apex code. Press the Enter key after each line, then press CTRL+D when finished.\n',
-  execAnonInputTimeout: 'Timed out while waiting for user input.',
   testRunCancelled: 'The test run was cancelled.',
   noTestResultSummary: 'No test results were found for test run %s',
   noTestQueueResults: 'No test results were found in the queue for test run %s',
