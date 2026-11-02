@@ -13,6 +13,7 @@ import {
 } from '@salesforce/apex-node/effect';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
+import { isUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 import { ExecuteAnonymousError } from '../errors/executeAnonymousErrors';
@@ -21,7 +22,7 @@ import { ConnectionService } from './connectionService';
 
 /** Discriminated outcomes; diagnostics exist only on their matching failures. */
 export type ExecuteAnonymousResult =
-  | Pick<ExecuteAnonymousOutcome, 'compiled' | 'success' | 'line' | 'column'>
+  | Pick<ExecuteAnonymousOutcome, 'compiled' | 'success'>
   | (Pick<ApexCompileError, 'line' | 'column' | 'compileProblem'> & { compiled: false; success: false })
   | (Pick<ApexRuntimeError, 'line' | 'column' | 'exceptionMessage' | 'exceptionStackTrace'> & {
       compiled: true;
@@ -32,6 +33,7 @@ const ANON_APEX_ERRORS_COLLECTION = 'apex-anon-errors';
 const UNEXPECTED_ERROR = 'Unexpected error during anonymous Apex execution';
 const diagnosticMessage = (message: string | null): string =>
   message === null || message === '' ? UNEXPECTED_ERROR : message;
+const optionalLogBody = (logBody: string | undefined) => (isUndefined(logBody) ? {} : { logBody });
 
 /** Keeps the services result contract while delegating execution to apex-node. */
 export const executeAnonymousWithConnection = Effect.fn('ExecuteAnonymousService.executeAnonymousWithConnection')(
@@ -43,7 +45,7 @@ export const executeAnonymousWithConnection = Effect.fn('ExecuteAnonymousService
     const { result, logBody } = yield* executeAnonymous(connection, { apexCode: code }).pipe(
       Effect.map(({ logBody: outcomeLogBody, ...outcomeResult }) => ({
         result: outcomeResult satisfies ExecuteAnonymousResult,
-        logBody: outcomeLogBody ?? ''
+        ...optionalLogBody(outcomeLogBody)
       })),
       Effect.catchTags({
         ApexCompileError: error =>
@@ -55,7 +57,7 @@ export const executeAnonymousWithConnection = Effect.fn('ExecuteAnonymousService
               column: error.column,
               compileProblem: error.compileProblem
             } satisfies ExecuteAnonymousResult,
-            logBody: error.logBody ?? ''
+            ...optionalLogBody(error.logBody)
           }),
         ApexRuntimeError: error =>
           Effect.succeed({
@@ -67,7 +69,7 @@ export const executeAnonymousWithConnection = Effect.fn('ExecuteAnonymousService
               exceptionMessage: error.exceptionMessage,
               exceptionStackTrace: error.exceptionStackTrace
             } satisfies ExecuteAnonymousResult,
-            logBody: error.logBody ?? ''
+            ...optionalLogBody(error.logBody)
           })
       }),
       Effect.catchTags({
@@ -87,7 +89,7 @@ export const executeAnonymousWithConnection = Effect.fn('ExecuteAnonymousService
           )
       })
     );
-    return { result, logBody, logId: undefined };
+    return { result, ...optionalLogBody(logBody), logId: undefined };
   }
 );
 
