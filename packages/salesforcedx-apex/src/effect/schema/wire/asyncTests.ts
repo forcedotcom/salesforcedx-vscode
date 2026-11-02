@@ -45,12 +45,12 @@ export const AsyncTestOptionsSchema = Schema.Struct({
 }).annotations({ identifier: 'AsyncTestOptions' });
 export type AsyncTestOptions = typeof AsyncTestOptionsSchema.Type;
 
-const summarySchema = Schema.Struct({
+export const ApexTestRunSummarySchema = Schema.Struct({
   Status: AsyncTestRunStatusSchema,
-  ClassesCompleted: Schema.Number,
-  ClassesEnqueued: Schema.Number
-});
-export const summariesSchema = Schema.Struct({ records: Schema.Tuple(summarySchema) });
+  ClassesCompleted: Schema.optionalWith(Schema.Number, { default: () => 0, nullable: true }),
+  ClassesEnqueued: Schema.optionalWith(Schema.Number, { default: () => 0, nullable: true })
+}).annotations({ identifier: 'ApexTestRunSummary' });
+export const summariesSchema = Schema.Struct({ records: Schema.Tuple(ApexTestRunSummarySchema) });
 
 const queueRecordsSchema = Schema.Array(
   Schema.Struct({

@@ -28,11 +28,6 @@ export type CommonOptions = typeof CommonOptionsSchema.Type;
 
 export type { ApexDiagnostic } from '../effect/diagnostics';
 
-export type QueryRecords = {
-  totalSize: number;
-  records: IdRecord[];
-};
-
 type DebugLevelRecord = {
   ApexCode: string;
   VisualForce: string;
