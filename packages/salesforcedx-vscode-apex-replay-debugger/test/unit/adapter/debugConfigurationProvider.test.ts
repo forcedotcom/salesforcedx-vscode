@@ -23,6 +23,7 @@ describe('DebugConfigurationProvider log-file prompt', () => {
   const readFile = vi.fn();
   const getEntries = vi.fn();
   const workspaceStateUpdate = vi.fn();
+  const openTextDocument = vi.fn();
   const extensionContext = {
     workspaceState: { update: workspaceStateUpdate }
   } as unknown as vscode.ExtensionContext;
@@ -34,6 +35,9 @@ describe('DebugConfigurationProvider log-file prompt', () => {
     (vscode.window as unknown as { showOpenDialog: VitestMock }).showOpenDialog = vi.fn();
     (vscode.window.showErrorMessage as VitestMock).mockResolvedValue(undefined);
     (vscode.extensions.getExtension as VitestMock).mockReturnValue(undefined);
+    openTextDocument.mockResolvedValue(undefined);
+    Object.defineProperty(vscode, 'workspace', { configurable: true, value: { openTextDocument } });
+    Object.defineProperty(vscode, 'debug', { configurable: true, value: { breakpoints: [] } });
     setAllServicesLayer(
       Layer.mergeAll(
         Layer.succeed(ExtensionProviderService, {
@@ -113,23 +117,26 @@ describe('DebugConfigurationProvider log-file prompt', () => {
 
     expect(getEntries).toHaveBeenCalledExactlyOnceWith([{ type: 'ApexClass', fullName: 'Remote' }]);
     expect(resolved?.sourceUriMapping).toEqual({ Remote: entry.documentUri.toString() });
-    expect(resolved?.lineBreakpointInfo).toBeUndefined();
+    expect(resolved?.lineBreakpointInfo).toEqual([]);
   });
 
-  it('continues replay launch when disabled debug breakpoints return no information', async () => {
+  it('gets document breakpoint metadata from the new language server extension', async () => {
     const getLineBreakpointInfo = vi.fn().mockResolvedValue([]);
+    const breakpointUri = URI.file('/workspace/Example.cls');
+    Object.defineProperty(vscode, 'debug', {
+      configurable: true,
+      value: {
+        breakpoints: [
+          {
+            location: { uri: breakpointUri }
+          } as vscode.SourceBreakpoint
+        ]
+      }
+    });
     (vscode.extensions.getExtension as VitestMock).mockReturnValue({
       isActive: true,
       exports: {
-        getLineBreakpointInfo,
-        languageClientManager: {
-          getClientInstance: () => undefined,
-          getStatus: () => ({
-            isReady: () => true,
-            failedToInitialize: () => false,
-            getStatusMessage: () => ''
-          })
-        }
+        client: { getLineBreakpointInfo }
       }
     });
 
@@ -140,8 +147,111 @@ describe('DebugConfigurationProvider log-file prompt', () => {
       logFile: '/logs/selected.log'
     });
 
-    expect(getLineBreakpointInfo).toHaveBeenCalledOnce();
+    expect(getLineBreakpointInfo).toHaveBeenCalledExactlyOnceWith(breakpointUri.toString());
+    expect(openTextDocument).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ path: breakpointUri.path }));
     expect(resolved).toMatchObject({ lineBreakpointInfo: [] });
     expect(vscode.window.showErrorMessage).not.toHaveBeenCalled();
+  });
+
+  it('retries while the language server registers an opened breakpoint document', async () => {
+    const breakpointUri = URI.file('/workspace/Registering.cls');
+    const getLineBreakpointInfo = vi
+      .fn()
+      .mockRejectedValueOnce({
+        error: `Request failed: ${'No document state is available'} for ${breakpointUri.toString()}`
+      })
+      .mockResolvedValue([]);
+    Object.defineProperty(vscode, 'debug', {
+      configurable: true,
+      value: { breakpoints: [{ location: { uri: breakpointUri } } as vscode.SourceBreakpoint] }
+    });
+    (vscode.extensions.getExtension as VitestMock).mockReturnValue({
+      isActive: true,
+      exports: { client: { getLineBreakpointInfo } }
+    });
+
+    const resolved = await new DebugConfigurationProvider(extensionContext).resolveDebugConfiguration(undefined, {
+      name: 'Replay while registering breakpoint document',
+      type: 'apex-replay',
+      request: 'launch',
+      logFile: '/logs/selected.log'
+    });
+
+    expect(resolved).toMatchObject({ lineBreakpointInfo: [] });
+    expect(getLineBreakpointInfo).toHaveBeenCalledTimes(2);
+  });
+
+  it('accepts breakpoint information exposed by a language server client class instance', async () => {
+    class ApexClientCore {
+      public getLineBreakpointInfo = vi.fn().mockResolvedValue([]);
+    }
+    const client = new ApexClientCore();
+    const breakpointUri = URI.file('/workspace/ClassClient.cls');
+    Object.defineProperty(vscode, 'debug', {
+      configurable: true,
+      value: { breakpoints: [{ location: { uri: breakpointUri } } as vscode.SourceBreakpoint] }
+    });
+    (vscode.extensions.getExtension as VitestMock).mockReturnValue({
+      isActive: true,
+      exports: { client }
+    });
+
+    await new DebugConfigurationProvider(extensionContext).resolveDebugConfiguration(undefined, {
+      name: 'Replay with class client',
+      type: 'apex-replay',
+      request: 'launch',
+      logFile: '/logs/selected.log'
+    });
+
+    expect(client.getLineBreakpointInfo).toHaveBeenCalledExactlyOnceWith(breakpointUri.toString());
+  });
+
+  it('gets document breakpoint metadata for an Apex trigger breakpoint', async () => {
+    const getLineBreakpointInfo = vi.fn().mockResolvedValue([]);
+    const breakpointUri = URI.file('/workspace/Example.trigger');
+    Object.defineProperty(vscode, 'debug', {
+      configurable: true,
+      value: { breakpoints: [{ location: { uri: breakpointUri } } as vscode.SourceBreakpoint] }
+    });
+    (vscode.extensions.getExtension as VitestMock).mockReturnValue({
+      isActive: true,
+      exports: { client: { getLineBreakpointInfo } }
+    });
+
+    await new DebugConfigurationProvider(extensionContext).resolveDebugConfiguration(undefined, {
+      name: 'Replay trigger breakpoint',
+      type: 'apex-replay',
+      request: 'launch',
+      logFile: '/logs/selected.log'
+    });
+
+    expect(getLineBreakpointInfo).toHaveBeenCalledExactlyOnceWith(breakpointUri.toString());
+  });
+
+  it('reports a clear error when the language server cannot provide metadata for a source breakpoint', async () => {
+    const breakpointUri = URI.file('/workspace/Unavailable.cls');
+    Object.defineProperty(vscode, 'debug', {
+      configurable: true,
+      value: { breakpoints: [{ location: { uri: breakpointUri } } as vscode.SourceBreakpoint] }
+    });
+    (vscode.extensions.getExtension as VitestMock).mockReturnValue({
+      isActive: true,
+      exports: {
+        client: { getLineBreakpointInfo: vi.fn().mockRejectedValue(new Error('language server unavailable')) }
+      }
+    });
+
+    const resolved = await new DebugConfigurationProvider(extensionContext).resolveDebugConfiguration(undefined, {
+      name: 'Replay with unavailable language server',
+      type: 'apex-replay',
+      request: 'launch',
+      logFile: '/logs/selected.log'
+    });
+
+    expect(resolved).toBeUndefined();
+    expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
+      expect.stringContaining('could not validate existing Apex breakpoints'),
+      { modal: true }
+    );
   });
 });

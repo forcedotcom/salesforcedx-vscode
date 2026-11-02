@@ -5,74 +5,56 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { BreakpointUtil } from '../../../src/breakpoints/breakpointUtil';
+import {
+  canSetLineBreakpoint,
+  createBreakpointMappings,
+  emptyBreakpointMappings,
+  getTopLevelTyperefForUri
+} from '../../../src/breakpoints';
 
 describe('Breakpoint utilities', () => {
-  let util: BreakpointUtil;
-
-  it('Should not have line number mapping', () => {
-    util = new BreakpointUtil();
-
-    expect(util.getLineNumberMapping().size).toBe(0);
+  it('starts without mappings', () => {
+    expect(emptyBreakpointMappings().lineNumbers.size).toBe(0);
   });
 
-  it('Should return line number mapping', () => {
-    const lineNumberMapping: Map<string, number[]> = new Map([
-      ['file:///foo.cls', [1, 2]],
-      ['file:///bar.cls', [3, 4]]
+  it('creates line number and typeref mappings', () => {
+    const mappings = createBreakpointMappings([
+      { uri: 'file:///foo.cls', typeref: 'foo', lines: [1, 2] },
+      { uri: 'file:///bar.cls', typeref: 'bar', lines: [3, 4] }
     ]);
-    const typerefMapping: Map<string, string> = new Map([
-      ['foo', 'file:///foo.cls'],
-      ['bar', 'file:///bar.cls']
-    ]);
-    util = new BreakpointUtil();
 
-    util.setValidLines(lineNumberMapping, typerefMapping);
-
-    expect(util.getLineNumberMapping()).toStrictEqual(lineNumberMapping);
-    expect(util.getTyperefMapping()).toStrictEqual(typerefMapping);
+    expect(mappings.lineNumbers).toStrictEqual(
+      new Map([
+        ['file:///foo.cls', [1, 2]],
+        ['file:///bar.cls', [3, 4]]
+      ])
+    );
+    expect(mappings.typerefs).toStrictEqual(
+      new Map([
+        ['foo', 'file:///foo.cls'],
+        ['bar', 'file:///bar.cls']
+      ])
+    );
   });
 
-  it('Should verify line breakpoint', () => {
-    const expectedMapping: Map<string, number[]> = new Map([['file:///foo.cls', [1]]]);
-    util = new BreakpointUtil();
+  it('verifies mapped source lines', () => {
+    const mappings = createBreakpointMappings([{ uri: 'file:///foo.cls', typeref: 'foo', lines: [1] }]);
 
-    util.setValidLines(expectedMapping, new Map());
-
-    expect(util.canSetLineBreakpoint('file:///foo.cls', 1)).toBe(true);
-    expect(util.canSetLineBreakpoint('file:///foo.cls', 2)).toBe(false);
-    expect(util.canSetLineBreakpoint('file:///bar.cls', 1)).toBe(false);
+    expect(canSetLineBreakpoint(mappings, 'file:///foo.cls', 1)).toBe(true);
+    expect(canSetLineBreakpoint(mappings, 'file:///foo.cls', 2)).toBe(false);
+    expect(canSetLineBreakpoint(mappings, 'file:///bar.cls', 1)).toBe(false);
   });
 
-  it('Should return top level typeRef for URI', () => {
-    const lineNumberMapping: Map<string, number[]> = new Map();
-    const typerefMapping: Map<string, string> = new Map([
-      ['YourClassName', 'file:///ClassWithNoNamespace.cls'],
-      ['YourClassName$InnerClass', 'file:///ClassWithNoNamespace.cls'],
-      ['YourClassName$InnerClass$InnerInnerClass', 'file:///ClassWithNoNamespace.cls'],
-      ['YourNamespace/YourClassName$InnerClass$InnerInnerClass', 'file:///ClassWithNamespace.cls'],
-      ['YourNamespace/YourClassName', 'file:///ClassWithNamespace.cls'],
-      ['YourNamespace/YourClassName$InnerClass', 'file:///ClassWithNamespace.cls'],
-      ['__sfdc_trigger/YourTriggerName$TriggerInnerClass', 'file:///triggerNoNamespace.trigger'],
-      ['__sfdc_trigger/YourTriggerName', 'file:///triggerNoNamespace.trigger'],
-      ['__sfdc_trigger/YourTriggerName$TriggerInnerClass$TriggerInnerInnerClass', 'file:///triggerNoNamespace.trigger'],
-      ['__sfdc_trigger/Namespace/YourTriggerName/$InnerTriggerClass', 'file:///triggerWithNamespace.trigger'],
-      [
-        '__sfdc_trigger/Namespace/YourTriggerName/$InnerTriggerClass$TriggerInnerInnerClass',
-        'file:///triggerWithNamespace.trigger'
-      ],
-      // It should be noted that the order of insertion is intentionally being mixed  up to ensure
-      // that insertion order doesn't play any part in what is returned.
-      ['__sfdc_trigger/Namespace/YourTriggerName', 'file:///triggerWithNamespace.trigger']
+  it('returns the top-level typeref for a URI', () => {
+    const mappings = createBreakpointMappings([
+      { uri: 'file:///Class.cls', typeref: 'YourClassName$InnerClass', lines: [] },
+      { uri: 'file:///Class.cls', typeref: 'YourClassName', lines: [] },
+      { uri: 'file:///Trigger.trigger', typeref: '__sfdc_trigger/Namespace/YourTriggerName$Inner', lines: [] },
+      { uri: 'file:///Trigger.trigger', typeref: '__sfdc_trigger/Namespace/YourTriggerName', lines: [] }
     ]);
 
-    util = new BreakpointUtil();
-    util.setValidLines(lineNumberMapping, typerefMapping);
-
-    expect(util.getTopLevelTyperefForUri('file:///ClassWithNoNamespace.cls')).toBe('YourClassName');
-    expect(util.getTopLevelTyperefForUri('file:///ClassWithNamespace.cls')).toBe('YourNamespace/YourClassName');
-    expect(util.getTopLevelTyperefForUri('file:///triggerNoNamespace.trigger')).toBe('__sfdc_trigger/YourTriggerName');
-    expect(util.getTopLevelTyperefForUri('file:///triggerWithNamespace.trigger')).toBe(
+    expect(getTopLevelTyperefForUri(mappings, 'file:///Class.cls')).toBe('YourClassName');
+    expect(getTopLevelTyperefForUri(mappings, 'file:///Trigger.trigger')).toBe(
       '__sfdc_trigger/Namespace/YourTriggerName'
     );
   });

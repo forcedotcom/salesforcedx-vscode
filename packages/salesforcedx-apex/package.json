@@ -55,6 +55,7 @@
     "schema:update": "wireit",
     "compile": "wireit",
     "lint": "wireit",
+    "lint:fix": "eslint --color --cache --cache-location .eslintcache --fix .",
     "check:circular-deps": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .wireit .eslintcache .circular-deps.json",
     "test:compile": "wireit",

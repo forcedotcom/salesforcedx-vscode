@@ -44,11 +44,10 @@ export const messages: Partial<Record<MessageKey, string>> = {
   cannot_delete_existing_checkpoint: '既存のチェックポイントを削除できません。',
   unable_to_retrieve_active_user_for_sf_project: 'SFDX プロジェクトの有効なユーザを取得できませんでした。',
   unable_to_query_for_existing_checkpoints: '既存のチェックポイントをクエリできませんでした。',
-  no_line_breakpoint_information_for_current_project:
-    '現在のプロジェクトにはブレークポイントの情報を含む行がありません。',
-  line_breakpoint_information_success: '言語サーバからブレークポイントの行を取得しました。',
-  language_client_not_ready:
-    '言語サーバからブレークポイントの情報を取得できませんでした。言語サーバが起動していません。',
+  apex_language_server_breakpoint_metadata_unavailable:
+    'Apex 言語サーバーからブレークポイント情報を取得できないため、Apex Replay Debugger は既存の Apex ブレークポイントを検証できませんでした。ブレークポイントを削除してブレークポイント検証なしでログを確認するか、Apex 言語サーバーを再起動してからもう一度実行してください。',
+  apex_language_server_breakpoint_metadata_refresh_failed:
+    'Apex 言語サーバーからブレークポイント情報を取得できないため、Apex Replay Debugger はブレークポイントの検証を更新できませんでした。既存のブレークポイントの検証は変更されません。',
   unable_to_retrieve_org_info: 'OrgInfo を取得できませんでした。',
   debug_test_exec_name: 'テストをデバッグ',
   debug_test_success: 'テストが正常に実行されました',

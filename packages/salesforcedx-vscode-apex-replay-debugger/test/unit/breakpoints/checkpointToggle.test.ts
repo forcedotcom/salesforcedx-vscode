@@ -13,10 +13,6 @@ import { URI } from 'vscode-uri';
 import { EditorService } from 'salesforcedx-vscode-services/src/vscode/editorService';
 import { CHECKPOINT } from '../../../src/debuggerConstants';
 
-vi.mock('../../../src/apexExtension', () => ({
-  retrieveLineBreakpointInfo: () => Effect.void
-}));
-
 import { sfToggleCheckpointCommand } from '../../../src/breakpoints/checkpointService';
 
 describe('sfToggleCheckpointCommand', () => {
