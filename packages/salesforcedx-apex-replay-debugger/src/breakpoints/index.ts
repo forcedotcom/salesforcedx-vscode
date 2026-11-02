@@ -5,6 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { BreakpointUtil } from './breakpointUtil';
-
-export const breakpointUtil = BreakpointUtil.getInstance();
+export {
+  canSetLineBreakpoint,
+  createBreakpointMappings,
+  emptyBreakpointMappings,
+  getTopLevelTyperefForUri,
+  replaceBreakpointMappingsForUri,
+  returnLinesForLoggingFromBreakpointArgs
+} from './breakpointUtil';
+export type { BreakpointMappings } from './breakpointUtil';

@@ -1165,9 +1165,6 @@ importers:
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
-      salesforcedx-vscode-apex:
-        specifier: workspace:*
-        version: link:../salesforcedx-vscode-apex
       salesforcedx-vscode-apex-testing:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-apex-testing
