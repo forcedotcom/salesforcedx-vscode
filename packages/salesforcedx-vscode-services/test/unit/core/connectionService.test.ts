@@ -6,7 +6,7 @@
  */
 
 import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
-import { AuthInfo, Connection, OrgConfigProperties, type ConfigAggregator } from '@salesforce/core';
+import { AuthInfo, Connection, Org, OrgConfigProperties, type ConfigAggregator } from '@salesforce/core';
 import * as Cause from 'effect/Cause';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -41,7 +41,8 @@ import type * as childProcess from 'node:child_process';
 vi.mock('@salesforce/core', async () => ({
   ...(await vi.importActual<typeof salesforceCore>('@salesforce/core')),
   AuthInfo: { create: vi.fn() },
-  Connection: { create: vi.fn() }
+  Connection: { create: vi.fn() },
+  Org: { create: vi.fn() }
 }));
 
 // getCliId runs `sf telemetry --json` once per process. Under a full suite that
@@ -386,6 +387,7 @@ const TARGET_ORG_KEY: string = OrgConfigProperties.TARGET_ORG;
 const getPropertyValueMock = vi.fn();
 const getTargetOrgMock = vi.fn();
 const getUsernameFromAliasMock = vi.fn();
+const TEST_CONFIG_AGGREGATOR = { getPropertyValue: getPropertyValueMock } as unknown as ConfigAggregator;
 
 // A connection whose getAuthInfoFields returns enough for maybeUpdateDefaultOrgRef to run without a network call.
 // tracksSource is present so the ref-update path skips the Org.create-backed getTracksSourceFromOrg fallback.
@@ -429,8 +431,7 @@ const makeDesktopConn = (
 const MockConfigServiceLayer = Layer.succeed(
   ConfigService,
   ConfigService.make({
-    getConfigAggregator: () =>
-      Effect.succeed({ getPropertyValue: getPropertyValueMock } as unknown as ConfigAggregator),
+    getConfigAggregator: () => Effect.succeed(TEST_CONFIG_AGGREGATOR),
     invalidateConfigAggregator: () => Effect.void,
     getTargetOrg: () => Effect.succeed(getTargetOrgMock()),
     getTargetDevHub: () => Effect.succeed(undefined),
@@ -638,6 +639,34 @@ describe('ConnectionService.getConnection (desktop)', () => {
 
     expect(getPropertyValueMock).toHaveBeenCalledWith(OrgConfigProperties.TARGET_ORG);
     expect(authInfoCreateMock).toHaveBeenCalledWith({ username: 'default@example.com' });
+  });
+
+  it('uses the workspace config aggregator to read source tracking from the org', async () => {
+    getPropertyValueMock.mockImplementation((prop: string) =>
+      prop === TARGET_ORG_KEY ? 'default@example.com' : undefined
+    );
+    connectionCreateMock.mockResolvedValue(
+      makeDesktopConn('default@example.com', {
+        getAuthInfoFields: () => ({
+          username: 'default@example.com',
+          orgId: '00D000000000005',
+          instanceName: 'USA9S',
+          isScratch: false,
+          isSandbox: false
+        })
+      })
+    );
+    const tracksSource = vi.fn().mockResolvedValue(false);
+    const orgCreateMock = vi.mocked(Org.create);
+    orgCreateMock.mockResolvedValue({ tracksSource } as unknown as Org);
+
+    await run(ConnectionService.getConnection());
+    await waitUntil(() => orgCreateMock.mock.calls.length > 0);
+
+    expect(orgCreateMock).toHaveBeenCalledWith(
+      expect.objectContaining({ aggregator: TEST_CONFIG_AGGREGATOR, connection: expect.anything() })
+    );
+    expect(tracksSource).toHaveBeenCalledOnce();
   });
 
   it('caches the configured alias with the resolved default-org identity', async () => {
