@@ -59,6 +59,11 @@ const templateItems: readonly (ProjectTemplateItem | SeparatorItem)[] = [
     detail: nls.localize('project_generate_angular_b2e_template'),
     projectTemplate: 'angularinternalapp'
   },
+  {
+    label: nls.localize('project_generate_vue_internal_app_display_text'),
+    detail: nls.localize('project_generate_vue_b2e_template'),
+    projectTemplate: 'vueinternalapp'
+  },
   { label: nls.localize('project_generate_separator_external_apps'), kind: vscode.QuickPickItemKind.Separator },
   {
     label: nls.localize('project_generate_react_external_app_display_text'),
