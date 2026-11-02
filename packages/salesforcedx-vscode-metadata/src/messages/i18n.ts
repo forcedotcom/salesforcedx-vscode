@@ -94,6 +94,7 @@ export const messages = {
   project_generate_angular_b2x_template: 'For users signing in outside your org',
   project_generate_separator_internal_apps: 'Internal Apps',
   project_generate_separator_external_apps: 'External Apps',
+  project_generate_separator_other: 'Other',
   project_generate_manifest_text: 'SFDX: Generate Manifest File',
   analytics_generate_template_text: 'SFDX: Create Sample Analytics Template',
   analytics_template_name_text: 'template name',
