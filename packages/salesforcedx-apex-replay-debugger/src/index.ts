@@ -11,7 +11,8 @@ export {
   EXTENT_TRIGGER_PREFIX,
   SEND_METRIC_LAUNCH_EVENT
 } from './constants';
-export { breakpointUtil } from './breakpoints/index';
+export { canSetLineBreakpoint, createBreakpointMappings, getTopLevelTyperefForUri } from './breakpoints';
+export type { BreakpointMappings } from './breakpoints';
 export type { OrgInfoError } from './commands/index';
 export { extractHeapDumpIdsFromLog } from './core/extractHeapDumpIds';
 export type { HeapDumpLogEntry } from './core/extractHeapDumpIds';
