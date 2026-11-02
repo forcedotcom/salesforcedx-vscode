@@ -4,6 +4,12 @@ Custom ESLint rules for Salesforce VSCode extensions.
 
 ## Rules
 
+### no-schema-is-throw-guard
+
+Reports `if (!Schema.is(Id)(value)) { throw ... }` and success checks with a throwing `else`, including checks of an unchanged boolean initialized from `Schema.is(Id)(value)`. Ordinary predicates, filters, and non-throwing branches remain allowed. Like other AST-only Effect rules, it matches the `Schema` identifier.
+
+Use `Schema.asserts` or `Schema.decodeUnknownSync`, with a custom `Schema.annotations` message or `Schema.filter` failure message on the schema. No autofix: the schema may live in another module.
+
 ### no-legacy-telemetry-service
 
 Disallows value imports of `TelemetryService` and value namespace imports from the retired `@salesforce/salesforcedx-utils-vscode` package, calls to `TelemetryService.getInstance()`, and identifiers named `telemetryService`. Namespace imports are rejected because they can access the legacy service via members or destructuring. Wrap work in Effect and use `annotateRootSpan` ([ADR-0012](../../docs/adr/0012-spans-only-observability.md)); `fireSpan` is a last resort, not the default. Type-only imports remain allowed.
