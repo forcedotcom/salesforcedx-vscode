@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.9.0",
+  "version": "68.9.4",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -38,7 +38,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@playwright/test": "1.60.0",
+    "@playwright/test": "1.64.1",
     "@salesforce/core": "^9.3.0",
     "@salesforce/playwright-vscode-ext": "workspace:*",
     "salesforcedx-vscode-apex": "workspace:*",

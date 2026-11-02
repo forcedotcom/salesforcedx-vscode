@@ -9,17 +9,23 @@ import { expect } from '@playwright/test';
 
 import {
   APEX_TRACE_FLAG_STATUS_BAR,
+  EDITOR_WITH_URI,
   closeSettingsTab,
+  createMinimalOrg,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  hidePanel,
+  openFileFromExplorerTree,
   removeAllDebugLevels,
   saveScreenshot,
+  selectOutputChannel,
   setupConsoleMonitoring,
   setupMinimalOrgAndAuth,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
   upsertSettings,
-  verifyCommandExists
+  verifyCommandExists,
+  waitForOutputChannelText
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
@@ -69,13 +75,49 @@ test('Auto-collection: poll interval setting, trace flag triggers collector, dis
     await saveScreenshot(page, 'auto-collect.poll-interval-set.png');
   });
 
-  await test.step('create trace flag for current user (triggers auto-collection when logs exist)', async () => {
+  await test.step('create trace flag for current user', async () => {
     await verifyCommandExists(page, packageNls['apexLog.command.traceFlagsCreateForCurrentUser'], 60_000);
     await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsCreateForCurrentUser']);
     await expect(page.locator(APEX_TRACE_FLAG_STATUS_BAR).filter({ hasText: /Tracing until/ })).toBeVisible({
       timeout: 60_000
     });
     await saveScreenshot(page, 'auto-collect.trace-flag-created.png');
+  });
+
+  await test.step('generate an ApexLog and verify its auto-collected file and content', async () => {
+    const { instanceUrl, accessToken, instanceApiVersion } = await createMinimalOrg();
+    const toolingUrl = `${instanceUrl}/services/data/v${instanceApiVersion}/tooling`;
+    const headers = { Authorization: `Bearer ${accessToken}` };
+    const marker = `AutoCollection${Date.now()}`;
+    const startedAt = new Date(Math.floor(Date.now() / 1000) * 1000).toISOString();
+    // Generate outside the extension: its execute-anonymous command saves separately and is excluded from collection.
+    const execution = await page.request.get(`${toolingUrl}/executeAnonymous`, {
+      headers,
+      params: { anonymousBody: `System.debug('${marker}');` }
+    });
+    expect(execution.ok(), 'Tooling API executeAnonymous succeeds').toBe(true);
+    expect(await execution.json(), 'Apex compiles and executes').toMatchObject({ compiled: true, success: true });
+
+    const queryLogs = async () => {
+      const response = await page.request.get(`${toolingUrl}/query`, {
+        headers,
+        params: {
+          q: `SELECT Id FROM ApexLog WHERE StartTime >= ${startedAt} AND Operation LIKE '%executeAnonymous%' ORDER BY StartTime DESC LIMIT 1`
+        }
+      });
+      expect(response.ok(), 'Tooling API log query succeeds').toBe(true);
+      return response.json() as Promise<{ records: { Id: string }[] }>;
+    };
+    await expect.poll(async () => (await queryLogs()).records.length, { timeout: 60_000 }).toBe(1);
+    const [{ Id: logId }] = (await queryLogs()).records;
+    await selectOutputChannel(page, 'Salesforce Apex Log');
+    await waitForOutputChannelText(page, { expectedText: `Auto-collected log ${logId}`, timeout: 60_000 });
+    await hidePanel(page);
+    // Opening the folder/file does not retrieve a log; this file must have been written by auto-collection.
+    await executeCommandWithCommandPalette(page, packageNls['apexLog.command.openLogsFolder']);
+    await openFileFromExplorerTree(page, `${logId}.log`, ['.sfdx', 'tools', 'debug', 'logs']);
+    await expect(page.locator(`${EDITOR_WITH_URI}[data-uri$="/${logId}.log"]`)).toContainText(marker);
+    await saveScreenshot(page, 'auto-collect.saved-log.png');
   });
 
   await test.step('set logPollIntervalSeconds to 0 to disable auto-collection', async () => {

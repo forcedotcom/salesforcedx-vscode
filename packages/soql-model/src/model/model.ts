@@ -13,6 +13,7 @@ export type ModelError = {
   lineNumber: number;
   charInLine: number;
   grammarRule?: string;
+  isSecondaryRecovery?: boolean;
 };
 
 export type ErrorType =

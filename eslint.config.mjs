@@ -190,6 +190,7 @@ export default [
       'local/no-nested-effect-ternary': 'error',
       'local/require-effect-fn-span-name': 'error',
       'local/no-raw-duration': 'error',
+      'local/no-schema-is-throw-guard': 'error',
       'local/effect-fn-catch-middleware-last': 'error',
       'local/no-standalone-pipeable-value': 'error',
       'local/no-duplicate-i18n-values': 'error',
@@ -770,6 +771,13 @@ export default [
       '@typescript-eslint/restrict-template-expressions': 'off',
       '@typescript-eslint/require-await': 'off',
       '@typescript-eslint/no-misused-promises': 'off'
+    }
+  },
+  {
+    // New apex-node Effect code does not use TypeScript assertions.
+    files: ['packages/salesforcedx-apex/src/effect/**/*.ts'],
+    rules: {
+      '@typescript-eslint/consistent-type-assertions': ['error', { assertionStyle: 'never' }]
     }
   },
   {

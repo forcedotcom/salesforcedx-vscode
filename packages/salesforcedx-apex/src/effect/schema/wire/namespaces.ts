@@ -7,7 +7,5 @@
 
 import * as Schema from 'effect/Schema';
 
-export class ApexLogBodyFetchError extends Schema.TaggedError<ApexLogBodyFetchError>()('ApexLogBodyFetchError', {
-  message: Schema.String,
-  cause: Schema.optional(Schema.Unknown)
-}) {}
+export const NamespacePrefixRecordSchema = Schema.Struct({ NamespacePrefix: Schema.OptionFromNullOr(Schema.String) });
+export const InstalledSubscriberPackageRecordSchema = Schema.Struct({ SubscriberPackage: NamespacePrefixRecordSchema });
