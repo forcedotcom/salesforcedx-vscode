@@ -20,7 +20,7 @@ import {
   type MetadataRetrieveOptions,
   type NonEmptyComponentSet,
   type OrgId
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';

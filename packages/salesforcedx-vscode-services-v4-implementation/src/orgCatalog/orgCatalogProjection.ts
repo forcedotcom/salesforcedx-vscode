@@ -11,7 +11,7 @@ import {
   type ArtifactNamespace,
   type OrgId,
   type OrgMetadataCatalogInternalEntry
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as Arr from 'effect/Array';
 import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';

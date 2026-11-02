@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
-import type { SalesforceVSCodeServicesApiV2 } from '@salesforce/vscode-services-v2';
+import type { SalesforceVSCodeServicesApiV2 } from '@salesforce/vscode-services/v2';
 import * as V3Effect from 'effect-v3/Effect';
 import * as V3Layer from 'effect-v3/Layer';
 import * as V3SubscriptionRef from 'effect-v3/SubscriptionRef';

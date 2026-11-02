@@ -12,7 +12,7 @@ import {
   FailedToCreateConfigAggregatorError,
   TargetOrgRef,
   WorkspaceService
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as Cache from 'effect/Cache';
 import * as Deferred from 'effect/Deferred';
 import * as Duration from 'effect/Duration';

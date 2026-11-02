@@ -14,8 +14,8 @@ import {
   WorkspaceService,
   orgIdFromOrgMetadataUri,
   type FileChangeEvent
-} from '@salesforce/vscode-services-v2';
-import { isUriEqualOrWithin } from '@salesforce/vscode-services-v2/uriComparison';
+} from '@salesforce/vscode-services/v2';
+import { isUriEqualOrWithin } from '@salesforce/vscode-services/v2/uriComparison';
 import type * as Context from 'effect/Context';
 import * as Deferred from 'effect/Deferred';
 import * as Duration from 'effect/Duration';

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { Connection } from '@salesforce/core';
-import type { SalesforceVSCodeServicesApiV2 } from '@salesforce/vscode-services-v2';
+import type { SalesforceVSCodeServicesApiV2 } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Stream from 'effect/Stream';

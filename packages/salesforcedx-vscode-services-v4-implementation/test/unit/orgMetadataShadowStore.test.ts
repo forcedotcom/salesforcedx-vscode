@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import coreFs from '@salesforce/core/fs';
-import { OrgId } from '@salesforce/vscode-services-v2';
+import { OrgId } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Fiber from 'effect/Fiber';

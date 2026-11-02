@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { PersistedTypeInventory } from './orgMetadataCatalogStore.js';
-import type { OrgMetadataCatalogInternalEntry, OrgMetadataComponentReference } from '@salesforce/vscode-services-v2';
+import type { OrgMetadataCatalogInternalEntry, OrgMetadataComponentReference } from '@salesforce/vscode-services/v2';
 import type * as HashMap from 'effect/HashMap';
 
 export type ListedMetadataComponent = {

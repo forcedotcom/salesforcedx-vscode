@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { OrgChanges } from './targetOrgRef.js';
-import { publicServiceKeys, type PublicServices } from '@salesforce/vscode-services-v2';
+import { publicServiceKeys, type PublicServices } from '@salesforce/vscode-services/v2';
 import type { CompatibilityHost } from '@salesforce/vscode-services-v3-compat/host';
 import type * as Layer from 'effect/Layer';
 import { createConnectionRuntime } from './connectionRuntime.js';

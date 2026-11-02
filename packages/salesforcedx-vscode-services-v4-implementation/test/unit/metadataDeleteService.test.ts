@@ -6,7 +6,7 @@
  */
 import coreFs from '@salesforce/core/fs';
 import { ComponentSet, DestructiveChangesType, SourceComponent } from '@salesforce/source-deploy-retrieve';
-import { MetadataDeleteService } from '@salesforce/vscode-services-v2';
+import { MetadataDeleteService } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import assert from 'node:assert/strict';

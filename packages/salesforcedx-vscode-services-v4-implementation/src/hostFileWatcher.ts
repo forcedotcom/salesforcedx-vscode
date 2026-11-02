@@ -9,7 +9,7 @@ import {
   HostFileWatchError,
   HostFileWatcher,
   type FileChangeEvent
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as Cause from 'effect/Cause';
 import * as Context from 'effect/Context';
 import * as Deferred from 'effect/Deferred';

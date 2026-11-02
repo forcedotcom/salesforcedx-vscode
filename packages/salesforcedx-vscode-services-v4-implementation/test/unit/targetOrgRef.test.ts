@@ -10,7 +10,7 @@ import {
   OrgId,
   TargetOrgRef,
   type DefaultOrgInfoSchema
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';

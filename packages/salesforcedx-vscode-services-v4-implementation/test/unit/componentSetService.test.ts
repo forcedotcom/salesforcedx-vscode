@@ -7,7 +7,7 @@
 import { SfProject } from '@salesforce/core';
 import coreFs from '@salesforce/core/fs';
 import { ComponentSet } from '@salesforce/source-deploy-retrieve';
-import { ComponentSetService } from '@salesforce/vscode-services-v2';
+import { ComponentSetService } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';

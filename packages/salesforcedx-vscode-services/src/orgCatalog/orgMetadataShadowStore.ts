@@ -10,7 +10,7 @@ import {
   isUriEqualOrWithin,
   pathSuffixWithin,
   uriPathIncludesSegments
-} from '@salesforce/vscode-services-v2/uriComparison';
+} from '@salesforce/vscode-services/v2/uriComparison';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Encoding from 'effect/Encoding';

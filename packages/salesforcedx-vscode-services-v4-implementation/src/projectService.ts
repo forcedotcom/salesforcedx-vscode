@@ -14,8 +14,8 @@ import {
   type ArtifactNamespace,
   type FileChangeEvent,
   type WorkspaceInfo
-} from '@salesforce/vscode-services-v2';
-import { isUriEqualOrWithin } from '@salesforce/vscode-services-v2/uriComparison';
+} from '@salesforce/vscode-services/v2';
+import { isUriEqualOrWithin } from '@salesforce/vscode-services/v2/uriComparison';
 import * as Cache from 'effect/Cache';
 import * as Context from 'effect/Context';
 import * as Duration from 'effect/Duration';

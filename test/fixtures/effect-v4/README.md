@@ -10,15 +10,15 @@ Run `pnpm test:effect-v4-compat` from repository root. Also runs in root `test` 
 - Missing V4 layer/service dependencies fail a separate negative TypeScript project. Raw V4 Layers fail in an isolated V3 child process.
 - Same `@effect/language-service` as editor and existing package gates; inherited plugin configuration. No separate V4-only LS, no disabled V3 checks. `typescript.enablePromptUseWorkspaceTsdk` keeps the configured workspace TypeScript visible in VS Code.
 
-Workspace version validation still requires one shared first-party Effect spec and resolved copy. `config/effect-version-boundaries.json` names exact reviewed exceptions (currently only the legacy declaration package). Each companion must satisfy its peer range and resolve its owner's Effect copy. Independently installed fixture trees are tested by their own gates, not mistaken for workspace runtime consumers by a filesystem-wide glob. Manifest, lockfile and boundary-config changes invalidate the consistency test's Wireit cache.
+Workspace version validation requires exact reviewed Effect versions and copies. `config/effect-version-boundaries.json` records ordinary dependencies and the public package's V3 alias separately. Companion peers must resolve their owner's Effect copy. Independent fixture installations are verified by their own gates. Manifest, lockfile and boundary-config changes invalidate the consistency test's Wireit cache.
 
 IAC/core compile fixture exercises the actual core exports' Channel/Workspace/CommandEventDispatcher/getOrgShape/telemetry calls, not substitute class declarations. Runtime IAC behavior still needs its integrated tests. Do not treat the protocol fixture as complete external API coverage.
 
 ## Actual packed legacy declarations
 
-`pnpm test:packed-services` builds and packs the real `@salesforce/vscode-services` package, copies only fixture source/manifests into a fresh directory outside this checkout, installs its locked dependencies, asserts no Effect V4 is required, and typechecks real static accessor/Context/ref calls with V3 **3.21.2**, `strict:true`, `skipLibCheck:false`. No checkout's node_modules is reused.
+`pnpm test:packed-services` builds and packs the real `@salesforce/vscode-services` package into independent V3-root, V4-`/v2`, and mixed consumers outside the checkout. Each owns a normal locked install. The package installs ordinary V4 and aliased V3; root imports must not load V4. V3 **3.21.2** consumers typecheck actual accessor/Context/ref calls with `strict:true`, `skipLibCheck:false`. No node_modules directory is reused.
 
-The public declaration entry preserves the generated source's type-only exports over an internal bundled declaration module. Packed controls reject runtime use of `GetAuthFieldsError` / `DefaultOrgInfoSchema`, and verify that the runtime root exports only `ICONS`.
+The unversioned declaration exposes only the audited Connection/Alias/Config operations, target-org ref and prebuilt Context/Layer. Controls reject internal schema/error exports, unused service members and runtime use of the API type. The runtime root exports only `ICONS`.
 
 This caught two real failures: an unpublished sibling declaration import (`TS2307`) and incompatible V3 declaration identities caused by ranged Effect/platform versions. Legacy declarations are now bundled and validated; the legacy Effect ecosystem versions stay pinned independently of the future V4 implementation. No `--no-check` or other gate bypass.
 
@@ -26,13 +26,13 @@ When the packed public artifact changes, regenerate its consumer lock intentiona
 
 ## Actual packed V2 declarations
 
-The same gate packs `@salesforce/vscode-services-v2` from its real package-owned V4
-service keys, schemas and errors. An independent V4-only installation typechecks
+The same public package exposes `/v2` with its real V4 service keys, schemas and
+errors. A consumer using ordinary V4 typechecks
 Connection/Alias/Config/org-ref calls and Context/Layer provisioning. Node/browser
 bundles execute those actual keys with injected test implementations. This verifies
 the initial public contract, not production V4 activation or Salesforce auth.
 
-A third independent installation contains both actual public packages and rejects
+A third independent installation imports both endpoints from that same package and rejects
 cross-major Effect, Context, Layer and SubscriptionRef usage. All three consumers
 use `strict:true`, `skipLibCheck:false`, separate node_modules and committed registry
 locks. Regenerate only a selected lock with `--update-lock=packedV2` or
@@ -42,10 +42,18 @@ Lock regeneration starts from the existing registry lock, retaining unrelated
 versions/hashes while npm updates dependencies required by a changed public
 manifest. Normal CI still rejects manifest/lock dependency drift before `npm ci`.
 
-The legacy build now consumes a provenance-recorded V3 declaration snapshot rather
-than the provider's changing implementation. It synchronizes only release versions,
-not provider dependencies. V2's package-owned keys become the implementation's keys
-in later WIs; no live service graph is created by this package.
+The private compatibility package generates a selected declaration bundle from the
+provenance-recorded full V3 snapshot in its V3 scope. The public build rewrites only
+Effect module specifiers to `effect-v3`, then strictly checks the final artifact.
+The published subset contains no private-package or V3 companion-library imports.
+Full internal V3 ABI probes use the existing private compatibility package. V4 keys
+remain canonical; neither public endpoint constructs a live graph.
+
+Two physical Effect 4.0.6 copies fail when one decodes the other's schema. Running
+an Effect produced by the schema owner's decoder succeeds. This is independently
+reproduced, not fixed by ordinary dependency naming. Caller-owned query/JSON decoding
+and separate-bundle verification remain provider acceptance requirements; the
+single-installation packed gates do not establish that broader interoperability.
 
 ## Existing diagnostic rule compatibility
 

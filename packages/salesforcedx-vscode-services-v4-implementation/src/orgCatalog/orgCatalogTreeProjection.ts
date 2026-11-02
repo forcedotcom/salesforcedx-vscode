@@ -15,7 +15,7 @@ import {
   type OrgMetadataCatalogInternalEntry,
   type OrgMetadataReference,
   type OrgSObjectDescription
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as Arr from 'effect/Array';
 import * as Context from 'effect/Context';
 import * as DateTime from 'effect/DateTime';

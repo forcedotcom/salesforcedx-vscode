@@ -22,7 +22,7 @@ import {
   publicServiceKeys,
   type SalesforceVSCodeServicesApiV2,
   type DescribeSObjectResult
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as Duration from 'effect/Duration';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';

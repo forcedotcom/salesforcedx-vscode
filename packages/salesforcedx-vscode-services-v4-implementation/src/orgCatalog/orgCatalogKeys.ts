@@ -13,7 +13,7 @@ import {
   type OrgId,
   type OrgMetadataCatalogInternalEntry,
   type OrgMetadataComponentReference
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as HashMap from 'effect/HashMap';
 import * as Option from 'effect/Option';
 

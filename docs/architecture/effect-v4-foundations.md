@@ -8,7 +8,7 @@ graphs, not production V4 activation.
 `@salesforce/vscode-services-v4-implementation` is private, with ordinary
 `effect: 4.0.6`. It contains host implementations and composition, not another
 runtime owner. It depends on the canonical keys/errors in
-`@salesforce/vscode-services-v2`; it never depends back on the services extension.
+`@salesforce/vscode-services/v2`; it never depends back on the services extension.
 
 Do not place V3 and V4 implementations in one compiler project via an alias:
 installed LS 0.87.2 selects one Effect major per program. The private package gets

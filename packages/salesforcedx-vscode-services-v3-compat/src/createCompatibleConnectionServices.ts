@@ -8,7 +8,8 @@ import type { CompatibilityHost, HostExit } from './compatibilityHost.js';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import { identity } from 'effect/Function';
-import { createLegacyServices, fromHostExit } from './createLegacyServices.js';
+import { createLegacyServices } from './createLegacyServices.js';
+import { fromHostExit } from './legacyHostOperations.js';
 
 const finish = (exit: HostExit<void, never>) => fromHostExit(exit, identity<never>);
 

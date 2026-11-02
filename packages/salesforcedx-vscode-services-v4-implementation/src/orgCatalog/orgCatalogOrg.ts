@@ -11,7 +11,7 @@ import {
   authFieldsFromConnection,
   orgIdFromConnection,
   type OrgId
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { ConnectionHost } from '../connectionHost.js';

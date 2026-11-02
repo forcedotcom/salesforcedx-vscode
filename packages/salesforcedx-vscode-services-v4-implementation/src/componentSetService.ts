@@ -21,7 +21,7 @@ import {
   toComponentStatusChangeType,
   toRequestStatus,
   type NonEmptyComponentSet
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as Brand from 'effect/Brand';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';

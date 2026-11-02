@@ -11,12 +11,12 @@ import {
   WorkspaceService,
   type OrgId,
   type OrgMetadataComponentReference
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import {
   isUriEqualOrWithin,
   pathSuffixWithin,
   uriPathIncludesSegments
-} from '@salesforce/vscode-services-v2/uriComparison';
+} from '@salesforce/vscode-services/v2/uriComparison';
 import * as Clock from 'effect/Clock';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';

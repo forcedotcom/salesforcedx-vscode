@@ -7,7 +7,7 @@
 import { SfProject } from '@salesforce/core';
 import coreFs from '@salesforce/core/fs';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
-import { FileChangePubSub, MetadataRegistryService, ProjectService } from '@salesforce/vscode-services-v2';
+import { FileChangePubSub, MetadataRegistryService, ProjectService } from '@salesforce/vscode-services/v2';
 import * as Context from 'effect/Context';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';

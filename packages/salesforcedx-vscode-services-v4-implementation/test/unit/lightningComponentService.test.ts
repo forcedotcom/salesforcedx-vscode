@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import coreFs from '@salesforce/core/fs';
-import { LightningComponentService } from '@salesforce/vscode-services-v2';
+import { LightningComponentService } from '@salesforce/vscode-services/v2';
 import * as Exit from 'effect/Exit';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';

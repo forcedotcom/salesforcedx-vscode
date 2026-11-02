@@ -61,12 +61,15 @@ commit protocol. Live binding remains W-24615059.
 ## Published declarations
 
 - Existing `@salesforce/vscode-services` root retains the legacy externally required V3 API type. Generate it from the compatibility surface, not by re-exporting migrated V4 implementation declarations.
-- Publish `@salesforce/vscode-services-v2` separately with its own V4 dependency. The legacy package retains V3 `effect` and must not depend on or re-export the V4 package. No package-wide optional V4 peer on the V3 package: optional peers still reject an installed incompatible V3 version. No `/v2` subpath that makes the root package require both dependency protocols.
+- Publish one `@salesforce/vscode-services` package. Its unversioned root exposes the audited external V3 subset; `/v2` exposes V4. Use ordinary `effect` V4 and an explicit `effect-v3` dependency alias for legacy declarations. Both majors are installed; root imports must not load V4. Do not use an incompatible optional peer or cast runnable values across majors. This user-directed decision supersedes the separate V4 package design.
 - Runtime activation returns both `services` and `v2.services`; consumer-local structural types remain valid. Internal providers request the V2 entry/type. Never repoint `api.services` or the existing package root to V4.
-- Replace `generateEntry.ts` / `syncDeps.ts`'s unconditional parent-service dependency/type copying. Packed legacy consumer fixture must install and typecheck with V3 and no installed V4; separate V2-package fixture must install and typecheck with V4. A root import must not transitively load V4 through an activation-return-type alias. Test independently installed/bundled V3 **3.21.2**, then every other supported locked consumer version discovered in the refreshed census. Do not infer arbitrary V3 minor-version compatibility from matching runtime results.
+- Generate the external V3 declaration subset under the existing private compatibility package's ordinary-V3 compiler scope, preserving the original identifiers and typed failures. Inline only its selected service declarations, then rewrite import/import-type module specifiers to `effect-v3` and strictly validate the final public artifact. The full frozen snapshot and V3 UI/NodeSdk declaration dependencies stay private; neither may become a published root dependency. Pack the SAME public package into independent V3-root and V4-`/v2` consumers with `skipLibCheck: false`, reject cross-major values, and verify root imports never load V4. Test independently installed/bundled V3 **3.21.2**, then other supported locked versions from the refreshed census. Do not infer arbitrary minor-version compatibility from matching runtime results.
 
-W-24615044 establishes the real `@salesforce/vscode-services-v2` package with
-package-owned V4 Connection/Alias/Config/org-ref keys, schemas and typed failures.
+Effect 4.0.6 schemas are not portable between physical module copies: a schema from copy A decoded by copy B fails inside the schema parser. An Effect produced by A's decoder runs successfully in B. Ordinary dependency naming removes the prototype's alias duplication within an installation, not this cross-extension/bundle limitation. Query/JSON decoding must remain caller-owned; require actual separate-install/bundle controls before provider acceptance. Do not rely on deduplication, cast schema internals or patch installed Effect code.
+
+W-24615044 establishes real V4 Connection/Alias/Config/org-ref keys, schemas and
+typed failures. Their current package endpoint is `@salesforce/vscode-services/v2`;
+W-24615069 consolidates the earlier separate declaration package at the user's direction.
 These are the initial contracts for later migrated implementation layers, not
 handwritten fixture declarations or a claim that production `api.v2` activation
 already exists. W-24615046 implements adapters, W-24615059 binds real connection/org
@@ -78,9 +81,9 @@ only their release version tracks the provider thereafter.
 
 ## Inventory and WI ownership
 
-Reproduce every tracked static import/re-export, dynamic literal import/require, import type and direct dependency with `node scripts/effect-v4-inventory.mjs`. Output includes file paths, module specifiers, manifests and dependency sections; tests/fakes and root scripts are included. Generated declarations/build output are deliberately excluded. Check computed/dynamic module loading separately before final cutover; the script is a source census, not a bundle proof.
+Reproduce static imports/re-exports, dynamic literal imports/requires, import types and direct dependencies with `node scripts/effect-v4-inventory.mjs`. Include tracked and pending unignored source files, both Effect aliases, tests/fakes and root scripts; omit deleted files and ignored build/install output. Check computed/dynamic module loading separately before final cutover; the script is a source census, not a bundle proof.
 
-All files in each package belong to its WI below; no source/test import is exempt. Packages with no current Effect import/dependency need no migration unless new inventory findings add them.
+All files in each package belong to its WI below; no source/test import is exempt. These WIs track implementation dependencies within one consolidated PR, not separate delivery slices. Packages with no current Effect import/dependency need no migration unless new inventory findings add them.
 
 | Package / paths                                                                                                                                                       | WI                                                                                     |
 | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- |
@@ -94,7 +97,7 @@ All files in each package belong to its WI below; no source/test import is exemp
 | Compatibility-only implementation and independently installed fixtures                                                                                                | W-24615044, W-24615046                                                                 |
 | `salesforcedx-vscode-services-v3-compat`: genuine V3 proxies, lifecycle and encoded host boundary                                                                     | W-24615046 introduces; W-24615059 binds actual connection graph                          |
 | `salesforcedx-vscode-services-v4-implementation`: temporary isolated V4 host implementations/layers                                                                   | W-24615055 introduces; W-24615059/60/63 extend; W-24615069 folds into provider/removes |
-| `effect-ext-utils`, `salesforcedx-vscode-services-types`, new V2 types package, declaration generators                                                                | W-24615075; package boundaries/installation fixtures begin W-24615044                  |
+| `effect-ext-utils`, `salesforcedx-vscode-services-types` root and `/v2`, declaration generators                                                                         | W-24615075; package boundaries/installation fixtures begin W-24615044; consolidation W-24615069 |
 | `salesforcedx-vscode-org`, `salesforcedx-vscode-org-browser`, `salesforcedx-vscode-metadata`                                                                          | W-24615079                                                                             |
 | `salesforcedx-vscode-apex-log`                                                                                                                                        | W-24615083                                                                             |
 | `salesforcedx-vscode-apex-testing`                                                                                                                                    | W-24615086                                                                             |
@@ -115,8 +118,8 @@ W-24615060 extends that graph through Project/catalog/SourceTracking and documen
 see [project/catalog ownership and verification](effect-v4-project-catalog.md).
 Describe/query/ComponentSet/nonmerge-retrieve readers move into this slice as real
 prerequisites. W-24615063 retains merged retrieve/deploy/delete and remaining operations.
-The expected census becomes **30 packages** when that source is tracked; rerun
-the inventory rather than treating the count as a fixed gate. The script excludes
+The current census is **29 packages** after consolidating V4 contracts into services-types;
+rerun the inventory rather than treating the count as a fixed gate. The script excludes
 quoted test source inside strings from real imports; test-fixture migration still
 belongs to its package WI.
 
@@ -135,9 +138,10 @@ Promise/AbortSignal/data protocol, not a foreign runnable Effect. See
 [Apex packaging and transitional contract](apex-effect-v4.md). No earlier services
 graph migration or second execution implementation.
 
-Rechecked after the stack rebase onto `1af06c186d`: the census still contains 28
-packages, now including `salesforcedx-vscode-services-v2` and excluding the removed
-`salesforcedx-utils-vscode`. Its paths moved into core remain owned by W-24615098;
+The earlier stack rebase onto `1af06c186d` removed `salesforcedx-utils-vscode`.
+The later single-package consolidation also removes `salesforcedx-vscode-services-v2`;
+its contracts now live in `salesforcedx-vscode-services-types/v2`.
+The former utils paths moved into core remain owned by W-24615098;
 paths moved into services follow the corresponding services WI. Do not recreate
 the removed package.
 The tracked frozen V3 declaration snapshot is an intentional compatibility input,
@@ -145,21 +149,23 @@ not a first-party V4 migration target. Retain upstream dependency updates when
 rebasing, then intentionally refresh affected packed-consumer locks and rerun their
 strict checks; never suppress manifest/lock drift assertions.
 
-## Sequential stack and activation dependency closure
+## One consolidated PR and activation dependency closure
 
-Order: W-24615037 → W-24615044 → W-24615046 → W-24615048 → W-24615055 → W-24615059 → W-24615060 → W-24615063 → W-24615069 → W-24615075 → W-24615079 → W-24615083 → W-24615086 → W-24615089 → W-24615093 → W-24615098 → W-24615100 → W-24615101 → W-24615103. Use one focused PR per WI, each based on its immediate predecessor, even where the epic permits parallel work. Self-review each PR against its parent, not the cumulative stack.
+Deliver the entire Effect V4 migration in one draft PR targeting `develop`. This supersedes the native eight-PR stack and the proposed runtime/tooling two-PR split. Keep runtime changes, direct tests, developer tooling and first-party consumer migration together. Do not merge the old stack or publish a partial migration.
 
-Register every PR in GitHub native stack **8542** (base `develop`), initially #8520 → #8521.
-Use `gh stack link` or `gh api` with the [REST stack endpoints](https://docs.github.com/en/rest/pulls/stacks):
-create with `POST /repos/forcedotcom/salesforcedx-vscode/stacks`, append with
-`POST /repos/forcedotcom/salesforcedx-vscode/stacks/8542/add`, and verify ordered
-membership with `GET /repos/forcedotcom/salesforcedx-vscode/stacks/8542`.
-Send ordered integer `pull_requests` and API version `2026-03-10`.
-Base-branch chaining or PR-body links alone do not satisfy native stack membership.
+The public package is `@salesforce/vscode-services`: unversioned root and `api.services` retain the externally required genuine V3 subset; `/v2` and `api.v2.services` provide V4. All first-party consumers in this repository must use V2 before acceptance. No separate public V4 services package and no first-party fallback to the legacy API.
 
-Activation currently builds the complete services graph (`servicesLayers.ts`, `index.ts`); web filesystem bootstrap also needs registry services. Intermediate service slices therefore cannot promise fully working activation. Keep those changes on a non-releasing integration stack, use focused graphs with real migrated service instances, and perform full packaged activation after W-24615069. Do not satisfy intermediate checks by constructing a duplicate full V3 service graph, disabling checks, or silently routing first-party V4 callers back to V3.
+Activation currently builds the complete V3 services graph (`servicesLayers.ts`, `index.ts`), and first-party consumers still request that API. The consolidated PR therefore remains unfinished even when the package and focused V4 graph fixtures pass. Acceptance requires:
 
-Dependency selection must also account for shared declarations and test-tool imports: introduce explicit transitional package boundaries only where necessary; remove them by W-24615101. If a slice needs an unmigrated dependency, move that prerequisite into the earlier slice or revise the integration order with documented evidence, not casts. Required branch checks remain authoritative; preparation PRs may merge independently only when fully green and release-safe.
+- Complete remaining V4 services, telemetry and web filesystem bootstrap; fold the staging implementations into the real provider.
+- Activate one authoritative V4 graph and expose both API versions, with only the externally required V3 compatibility surface.
+- Migrate first-party consumers, helpers, tests and tooling to V4/V2; remove transitional internal V3 APIs and dependencies.
+- Resolve caller-owned schema decoding across independent V4 bundles and retain external V3/native SDK compatibility.
+- Pass repository gates and exact-head GitHub desktop/web verification of the integrated extension artifacts.
+
+Do not satisfy these requirements by constructing a duplicate full V3 graph, disabling checks or silently routing first-party V4 callers back to V3.
+
+Dependency selection must also account for shared declarations and test-tool imports: introduce transitional boundaries only where necessary and remove them before final acceptance. Resolve prerequisites within the consolidated PR, not with casts. Required branch checks remain authoritative; preparation commits are not independently releasable migrations.
 
 ## Effect conventions and LS gates
 
@@ -171,8 +177,8 @@ Dependency selection must also account for shared declarations and test-tool imp
 
 ## Verification and cutover
 
-Every implementation slice: frozen consumer fixtures, compile, lint, unit/integration tests, affected Effect diagnostics, Node/web bundles, dependency/declaration checks, duplicates, self `/code-review` Standards + Spec against its immediate parent, and Effect-advocate review. Record exact commands and exit status; do not inherit old POC claims. Doc-only PR runs inventory/format/link validation plus baseline checks; it does not establish migration runtime success.
+Verify focused changes and the complete PR against `develop`: frozen consumer fixtures, compile, lint, unit/integration tests, affected Effect diagnostics, Node/web bundles, dependency/declaration checks, duplicates, Standards + Spec review and Effect review. Record exact commands and exit status; do not inherit old POC or parent-PR results as proof for the consolidated head.
 
-Integrated services and final stack: repository-owned Playwright desktop/web commands with `--retries 0`, actual VSIX artifacts, auth/reauth/org switch, metadata operations, Apex/log/test/debugger, SOQL, language activation and tooling. Include shutdown/cancellation/finalizers, ref ordering, one cache/watcher graph, redaction and tracing. Refresh all external shipping revisions and packed type/runtime fixtures before release. Run all branch-required CI, not only local smoke tests.
+Integrated services: exact-head GitHub Playwright desktop/web jobs and actual VSIX artifacts, auth/reauth/org switch, metadata operations, Apex/log/test/debugger, SOQL, language activation and tooling. Do not run further local VS Code E2E. Include shutdown/cancellation/finalizers, ref ordering, one cache/watcher graph, redaction and tracing. Refresh external shipping revisions and packed type/runtime fixtures before release. Run all branch-required CI, not only local smoke tests.
 
-No sf-effect-sdk adoption, Apex feature scope, external dependency changes or core API retirement. No partial V4 release. Merge only with required reviews/checks; keep rollback as a coordinated stack revert restoring matching manifests, lockfile and declarations, never a single mixed-major service revert. Retain `api.services` and the legacy V3 declaration package until a separately approved retirement after external consumers migrate.
+No sf-effect-sdk adoption, Apex feature scope, external dependency changes or core API retirement. No partial V4 release. Merge only with required reviews/checks; rollback must restore matching manifests, lockfile and declarations together. Retain `api.services` and the public package's unversioned V3 subset until a separately approved retirement after external consumers migrate.

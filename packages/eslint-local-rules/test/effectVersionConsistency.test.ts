@@ -31,15 +31,15 @@ const readJson = (relative: string): PackageJson =>
 
 const packageEffectVersions = JSON.parse(
   fs.readFileSync(path.join(REPO_ROOT, 'config/effect-version-boundaries.json'), 'utf8')
-) as Record<string, string>;
+) as Record<string, Record<string, string>>;
 const workspaceFiles = [
   'package.json',
   ...fs.globSync('packages/*/package.json', { cwd: REPO_ROOT }).map(file => file.split(path.sep).join('/'))
 ];
 const effectSpec = (pkg: PackageJson): string | undefined => pkg.dependencies?.effect ?? pkg.devDependencies?.effect;
 const requireFrom = (file: string): NodeJS.Require => createRequire(path.join(REPO_ROOT, file));
-const resolvedEffect = (file: string): { version: string; file: string } => {
-  const effectFile = requireFrom(file).resolve('effect/package.json');
+const resolvedEffect = (file: string, dependency = 'effect'): { version: string; file: string } => {
+  const effectFile = requireFrom(file).resolve(`${dependency}/package.json`);
   return {
     version: (JSON.parse(fs.readFileSync(effectFile, 'utf8')) as { version: string }).version,
     file: effectFile
@@ -48,10 +48,15 @@ const resolvedEffect = (file: string): { version: string; file: string } => {
 
 describe('effect version consistency', () => {
   it('declares one first-party effect spec with exact reviewed boundaries', () => {
-    Object.entries(packageEffectVersions).forEach(([file, version]) => {
+    Object.entries(packageEffectVersions).forEach(([file, dependencies]) => {
       expect(workspaceFiles).toContain(file);
-      expect(semver.valid(version)).not.toBeNull();
-      expect(effectSpec(readJson(file))).toBe(version);
+      Object.entries(dependencies).forEach(([dependency, version]) => {
+        expect(semver.valid(version)).not.toBeNull();
+        const pkg = readJson(file);
+        const spec = pkg.dependencies?.[dependency] ?? pkg.devDependencies?.[dependency];
+        expect(spec).toBe(dependency === 'effect' ? version : `npm:effect@${version}`);
+        expect(resolvedEffect(file, dependency).version).toBe(version);
+      });
     });
     const offenders = workspaceFiles
       .filter(file => file !== 'package.json')
@@ -66,7 +71,7 @@ describe('effect version consistency', () => {
     // on failure jest prints every offending file:spec so the skew is obvious
     const byFile = offenders.map(entry => `${entry.file}: ${entry.spec}`);
     const violations = offenders.filter(
-      entry => entry.spec !== (packageEffectVersions[entry.file] ?? effectSpec(readJson('package.json')))
+      entry => entry.spec !== (packageEffectVersions[entry.file]?.effect ?? effectSpec(readJson('package.json')))
     );
     expect(violations.length === 0 ? [] : byFile).toEqual([]);
   });
@@ -77,7 +82,7 @@ describe('effect version consistency', () => {
       .filter(file => effectSpec(readJson(file)) !== undefined)
       .forEach(file => {
         const resolved = resolvedEffect(file);
-        expect(resolved.version, file).toBe(packageEffectVersions[file] ?? firstParty.version);
+        expect(resolved.version, file).toBe(packageEffectVersions[file]?.effect ?? firstParty.version);
         if (packageEffectVersions[file] === undefined) expect(resolved.file, file).toBe(firstParty.file);
       });
   }, 15_000);
@@ -118,7 +123,7 @@ describe('effect version consistency', () => {
       const manifestFile = fs.realpathSync(file);
       const relativeFile = path.relative(REPO_ROOT, manifestFile).split(path.sep).join('/');
       const expectedEffectFile =
-        packageEffectVersions[relativeFile] === undefined ? ownerEffectFile : resolvedEffect(relativeFile).file;
+        packageEffectVersions[relativeFile]?.effect === undefined ? ownerEffectFile : resolvedEffect(relativeFile).file;
       const key = `${manifestFile}\0${expectedEffectFile}`;
       if (visited.has(key)) return;
       visited.add(key);
@@ -145,7 +150,10 @@ describe('effect version consistency', () => {
           .paths(name)
           ?.map(directory => path.join(directory, name, 'package.json'))
           .find(candidate => fs.existsSync(candidate));
-        if (dependencyFile !== undefined) visit(dependencyFile, expectedEffectFile);
+        if (dependencyFile !== undefined) {
+          const reviewedAlias = name !== 'effect' && packageEffectVersions[relativeFile]?.[name] !== undefined;
+          visit(dependencyFile, reviewedAlias ? resolvedEffect(relativeFile, name).file : expectedEffectFile);
+        }
       });
     };
     const rootEffectFile = resolvedEffect('package.json').file;

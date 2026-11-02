@@ -7,7 +7,7 @@
 import { AuthInfo, Connection, Global, SfProject, StateAggregator } from '@salesforce/core';
 import coreFs from '@salesforce/core/fs';
 import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
-import { ComponentSetService, ConnectionService, MetadataRetrieveService, OrgId } from '@salesforce/vscode-services-v2';
+import { ComponentSetService, ConnectionService, MetadataRetrieveService, OrgId } from '@salesforce/vscode-services/v2';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as Schema from 'effect/Schema';

@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { AuthInfo, Connection, Org } from '@salesforce/core';
+import { AuthInfo, ConfigAggregator, Connection, Org } from '@salesforce/core';
 
 export const createOfflineConnection = async () => {
   const authInfo = await AuthInfo.create({ username: '00D000000000001!offline' });
@@ -15,3 +15,8 @@ export const createOfflineConnection = async () => {
   if (org.getConnection() !== connection) throw new Error('Org replaced its provided Connection');
   return connection;
 };
+
+export const createAbiSdkValues = async () => ({
+  connection: await createOfflineConnection(),
+  config: await ConfigAggregator.create({ projectPath: process.cwd() })
+});

@@ -7,7 +7,7 @@
 
 import type { FileChangeEvent } from '../vscode/fileChangePubSub';
 import { Global, SfProject } from '@salesforce/core';
-import { isUriEqualOrWithin } from '@salesforce/vscode-services-v2/uriComparison';
+import { isUriEqualOrWithin } from '@salesforce/vscode-services/v2/uriComparison';
 import * as Cache from 'effect/Cache';
 import * as Chunk from 'effect/Chunk';
 import * as Data from 'effect/Data';

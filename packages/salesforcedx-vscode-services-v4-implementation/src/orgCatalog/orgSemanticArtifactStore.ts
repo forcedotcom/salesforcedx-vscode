@@ -14,7 +14,7 @@ import {
   artifactIdentitiesEqual,
   normalizeArtifactIdentityPart,
   normalizeArtifactNamespace
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as Clock from 'effect/Clock';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';

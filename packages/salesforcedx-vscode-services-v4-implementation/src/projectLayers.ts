@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { FileChangePubSub, WorkspaceService } from '@salesforce/vscode-services-v2';
+import { FileChangePubSub, WorkspaceService } from '@salesforce/vscode-services/v2';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';

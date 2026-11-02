@@ -18,7 +18,7 @@ import {
   type OrgId,
   type OrgSObjectDescription,
   type OrgSObjectSummary
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as Cause from 'effect/Cause';
 import * as Clock from 'effect/Clock';
 import * as Context from 'effect/Context';

@@ -2,11 +2,15 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import ts from 'typescript';
 
-// Tracked inputs only: reproducible, excludes installed packages and build output.
-const files = execFileSync('git', ['ls-files', '-z'], { encoding: 'utf8' }).split('\0').filter(Boolean);
+// Include pending source moves/additions, but never ignored installed packages or build output.
+const files = execFileSync('git', ['ls-files', '--cached', '--others', '--exclude-standard', '-z'], {
+  encoding: 'utf8'
+})
+  .split('\0')
+  .filter(file => file && fs.existsSync(file));
 const packages = new Map();
 const otherFiles = [];
-const effectImport = /^(?:effect(?:\/|$)|@effect[^/]*\/)/;
+const effectImport = /^(?:effect(?:-v[34])?(?:\/|$)|@effect[^/]*\/)/;
 const importsFrom = (file, text) => {
   const imports = new Set();
   const source = ts.createSourceFile(file, text, ts.ScriptTarget.Latest, true);
@@ -35,7 +39,7 @@ for (const file of files) {
   const dependencies = Object.fromEntries(
     ['dependencies', 'devDependencies', 'peerDependencies'].flatMap(section =>
       Object.entries(manifest?.[section] ?? {})
-        .filter(([name]) => name === 'effect' || name.startsWith('@effect'))
+        .filter(([name]) => /^effect(?:-v[34])?$/.test(name) || name.startsWith('@effect'))
         .map(([name, version]) => [`${section}.${name}`, version])
     )
   );

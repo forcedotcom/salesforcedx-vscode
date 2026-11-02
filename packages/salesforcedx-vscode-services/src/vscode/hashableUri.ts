@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { comparisonPath } from '@salesforce/vscode-services-v2/uriComparison';
+import { comparisonPath } from '@salesforce/vscode-services/v2/uriComparison';
 import * as Equal from 'effect/Equal';
 import { dual } from 'effect/Function';
 import * as Hash from 'effect/Hash';

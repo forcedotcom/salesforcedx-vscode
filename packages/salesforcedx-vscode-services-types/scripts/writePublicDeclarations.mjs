@@ -12,7 +12,7 @@ const statements = source.statements.map(statement =>
   ts.isExportDeclaration(statement) &&
   statement.moduleSpecifier &&
   ts.isStringLiteral(statement.moduleSpecifier) &&
-  statement.moduleSpecifier.text === '../legacy/services'
+  statement.moduleSpecifier.text === './externalServices'
     ? ts.factory.updateExportDeclaration(
         statement,
         statement.modifiers,

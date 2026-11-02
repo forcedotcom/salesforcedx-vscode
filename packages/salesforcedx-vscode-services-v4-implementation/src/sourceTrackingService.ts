@@ -26,7 +26,7 @@ import {
   type OrgId,
   type SourceTrackingOperationError,
   type SourceTrackingStatusOptions
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as Context from 'effect/Context';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { Connection } from '@salesforce/core';
-import { FieldError, SoqlError, type QueryOptions } from '@salesforce/vscode-services-v2';
+import { FieldError, SoqlError, type QueryOptions } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';

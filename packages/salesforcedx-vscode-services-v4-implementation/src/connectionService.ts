@@ -22,10 +22,9 @@ import {
   authFieldsFromConnection,
   orgIdFrom,
   orgIdFromConnection,
-  type ConnectionError,
   type DefaultOrgInfo,
   type OrgId
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as Arr from 'effect/Array';
 import * as Cache from 'effect/Cache';
 import * as Context from 'effect/Context';
@@ -47,6 +46,7 @@ import * as vscode from 'vscode';
 import { ConnectionHost } from './connectionHost.js';
 import { fetchCliId, setWebUserId, UNAUTHENTICATED_USER } from './connectionTelemetry.js';
 import { unknownToErrorCause } from './errorCause.js';
+import { NativeConnectionOperations, type ReauthenticationError } from './nativeConnectionOperations.js';
 import { executeQuery } from './queryExecute.js';
 import { makeScopedFibers } from './scopedFiber.js';
 import { ServiceOperations, ServiceOperationsLayer } from './serviceOperations.js';
@@ -250,7 +250,7 @@ export const ConnectionServiceLayer = Layer.effectContext(
     const promptReauth = Effect.fn('ConnectionService.promptReauth')(function* (
       connection: Connection,
       username: string
-    ): Effect.fn.Return<never, ConnectionError> {
+    ): Effect.fn.Return<never, ReauthenticationError> {
       const target = yield* config.getTargetOrg();
       const selection = yield* Effect.promise(() =>
         vscode.window.showErrorMessage(
@@ -442,6 +442,21 @@ export const ConnectionServiceLayer = Layer.effectContext(
     const getConnection = Effect.fn('ConnectionService.getConnection')(function* (username?: string) {
       return yield* isUndefined(username) ? selectDefault(false) : resolveConnection(username);
     }, operations.run);
+    const listAllAuthorizations = Effect.fn('ConnectionService.listAllAuthorizations')(function* () {
+      // StateAggregator's orgs.readAll only adds to its cached map: auth files removed by another
+      // process remain listed. Reset before reading so logged-out orgs disappear from pickers.
+      yield* Effect.promise(() => StateAggregator.clearInstanceAsync());
+      return yield* Effect.tryPromise({
+        try: () => AuthInfo.listAllAuthorizations(),
+        catch: error => {
+          const { cause } = unknownToErrorCause(error);
+          return new FailedToListAuthorizationsError({
+            message: `Failed to list authorizations: ${cause.message}`,
+            cause
+          });
+        }
+      });
+    }, operations.run);
     const service = ConnectionService.of({
       getConnection,
       validateAccessTokenOrPromptReauth,
@@ -474,24 +489,11 @@ export const ConnectionServiceLayer = Layer.effectContext(
           });
         return Schema.encodeSync(AuthFields)(fields.value);
       }, operations.run),
-      listAllAuthorizations: Effect.fn('ConnectionService.listAllAuthorizations')(function* () {
-        // StateAggregator's orgs.readAll only adds to its cached map: auth files removed by another
-        // process remain listed. Reset before reading so logged-out orgs disappear from pickers.
-        yield* Effect.promise(() => StateAggregator.clearInstanceAsync());
-        return yield* Effect.tryPromise({
-          try: () => AuthInfo.listAllAuthorizations(),
-          catch: error => {
-            const { cause } = unknownToErrorCause(error);
-            return new FailedToListAuthorizationsError({
-              message: `Failed to list authorizations: ${cause.message}`,
-              cause
-            });
-          }
-        });
-      }, operations.run)
+      listAllAuthorizations
     });
     yield* Effect.addFinalizer(() => operations.close);
     return Context.make(ConnectionService, service).pipe(
+      Context.add(NativeConnectionOperations, { validateAccessTokenOrPromptReauth, listAllAuthorizations }),
       Context.add(DefaultOrgConnection, {
         refresh: selectDefault(true).pipe(
           Effect.asVoid,

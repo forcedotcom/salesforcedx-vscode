@@ -13,7 +13,7 @@ import {
   type MetadataChangeEvent,
   type MetadataOperationEvent,
   type OrgMetadataCatalogChange
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as Arr from 'effect/Array';
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';

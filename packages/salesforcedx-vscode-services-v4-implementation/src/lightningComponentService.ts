@@ -9,7 +9,7 @@ import {
   LightningComponentService,
   type LightningComponentKind,
   type RenameBundleParams
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Stream from 'effect/Stream';

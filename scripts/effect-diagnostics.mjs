@@ -86,7 +86,7 @@ const violations =
   result.skipped || result.failed
     ? []
     : result.diagnostics.filter(
-        d => enforcedSet.has(d.name) && !(d.name === 'extendsNativeError' && d.file.endsWith('.d.ts'))
+        d => enforcedSet.has(d.name) && !(d.name === 'extendsNativeError' && /\.d\.[cm]?ts$/.test(d.file))
       );
 
 const isGithubActions = process.env.GITHUB_ACTIONS === 'true';

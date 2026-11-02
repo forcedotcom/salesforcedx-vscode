@@ -22,7 +22,7 @@ import {
   orgIdFromConnection,
   type DescribeSObjectResult,
   type OrgId
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as Arr from 'effect/Array';
 import * as Cache from 'effect/Cache';
 import * as Context from 'effect/Context';

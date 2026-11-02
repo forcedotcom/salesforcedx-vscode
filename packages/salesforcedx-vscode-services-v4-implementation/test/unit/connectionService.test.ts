@@ -15,7 +15,7 @@ import {
   SettingsChangePubSub,
   TargetOrgRef,
   authFieldsFrom
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as Duration from 'effect/Duration';
 import * as Context from 'effect/Context';
 import * as Cause from 'effect/Cause';
@@ -38,6 +38,7 @@ import { ConnectionServiceLayer } from '../../src/connectionService.js';
 import { createConnectionRuntime } from '../../src/connectionRuntime.js';
 import { ConnectionWatcherLayer } from '../../src/connectionWatchers.js';
 import { HostFileSystem } from '../../src/hostFileSystem.js';
+import { NativeConnectionOperations } from '../../src/nativeConnectionOperations.js';
 import { foundationalLayers } from '../../src/foundationalLayers.js';
 import { QueryServiceLayer } from '../../src/queryService.js';
 import { OrgChanges } from '../../src/targetOrgRef.js';
@@ -259,6 +260,29 @@ it('shares native SDK connections and real foundational aliases/config across ca
     ).not.toHaveProperty('accessToken');
     await runtime.runPromise(ConnectionService.use(service => service.invalidateCachedConnections()));
     expect(await runtime.runPromise(getConnection('AliasA'))).not.toBe(connections[0]);
+  } finally {
+    await runtime.dispose();
+  }
+});
+
+it('retains the precise native functions and full authorization records behind the public V2 shape', async () => {
+  await Promise.all([...auths.values()].map(auth => auth.save()));
+  const runtime = await start();
+  try {
+    const native = await runtime.runPromise(NativeConnectionOperations);
+    const publicService = await runtime.runPromise(ConnectionService);
+    expect(native.listAllAuthorizations).toBe(publicService.listAllAuthorizations);
+    expect(native.validateAccessTokenOrPromptReauth).toBe(publicService.validateAccessTokenOrPromptReauth);
+    const records: Awaited<ReturnType<typeof AuthInfo.listAllAuthorizations>> = await runtime.runPromise(
+      native.listAllAuthorizations()
+    );
+    expect(records.find(record => record.username === usernameA)).toMatchObject({
+      orgId: '00D000000000001',
+      oauthMethod: 'web',
+      instanceUrl: 'https://fixture.example'
+    });
+    const connection = await runtime.runPromise(getConnection('AliasA'));
+    await runtime.runPromise(native.validateAccessTokenOrPromptReauth(connection));
   } finally {
     await runtime.dispose();
   }

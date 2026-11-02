@@ -6,7 +6,7 @@
  */
 import { foundationalWatcherLayers } from '@salesforce/vscode-services-v4-implementation';
 import { WebFileSystemProvider } from '@salesforce/vscode-services-v4-implementation/webFileSystemProvider';
-import { ChannelService, WorkspaceService } from '@salesforce/vscode-services-v2';
+import { ChannelService, WorkspaceService } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';

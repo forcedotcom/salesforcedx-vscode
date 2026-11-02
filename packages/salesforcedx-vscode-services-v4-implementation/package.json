@@ -71,7 +71,7 @@
     "@salesforce/core": "^9.3.6",
     "@salesforce/source-deploy-retrieve": "^13.5.0",
     "@salesforce/source-tracking": "^8.1.7",
-    "@salesforce/vscode-services-v2": "*",
+    "@salesforce/vscode-services": "*",
     "@salesforce/vscode-services-v3-compat": "*",
     "effect": "4.0.6",
     "vscode-uri": "^3.1.0"
@@ -88,7 +88,7 @@
     "compile": {
       "command": "tsc --pretty",
       "dependencies": [
-        "../salesforcedx-vscode-services-v2:compile",
+        "../salesforcedx-vscode-services-types:compile",
         "../salesforcedx-vscode-services-v3-compat:compile"
       ],
       "files": [
@@ -147,7 +147,8 @@
     "test:packed": {
       "command": "node ../../scripts/test-foundational-services.mjs",
       "dependencies": [
-        "compile"
+        "compile",
+        "../salesforcedx-vscode-services-types:compile"
       ],
       "env": {
         "RUNNER_TEMP": {

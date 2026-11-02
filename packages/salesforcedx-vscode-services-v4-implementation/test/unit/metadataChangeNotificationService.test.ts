@@ -9,7 +9,7 @@ import {
   MetadataChangeNotificationService,
   OrgMetadataCatalogChangePubSub,
   dedupeMetadataChanges
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
-import { GetRegistryAccessError, MetadataRegistryService, WorkspaceService } from '@salesforce/vscode-services-v2';
+import { GetRegistryAccessError, MetadataRegistryService, WorkspaceService } from '@salesforce/vscode-services/v2';
 import * as Cache from 'effect/Cache';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';

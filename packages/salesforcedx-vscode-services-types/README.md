@@ -4,7 +4,12 @@ TypeScript type definitions for the Salesforce VS Code Services extension API.
 
 ## Overview
 
-This package provides the legacy Effect V3 type definitions for consuming the Salesforce VS Code Services extension API. Its only runtime export is `ICONS`.
+One package, two API endpoints:
+
+- `@salesforce/vscode-services`: legacy V3 declarations for `api.services`; its runtime export is `ICONS`.
+- `@salesforce/vscode-services/v2`: V4 keys, schemas and declarations for `api.v2.services`.
+
+The package installs ordinary Effect V4 and the `effect-v3` alias. The root does not load V4. Neither endpoint owns another provider graph. The published root declarations expose only Connection/Alias/Config operations, the target-org ref, and prebuilt Context/Layer required by audited external consumers. The full frozen V3 snapshot remains a private transitional input.
 
 ## Installation
 
@@ -26,7 +31,7 @@ const api: SalesforceVSCodeServicesApi | undefined = extension?.exports;
 
 if (api) {
   // Access services with full type support
-  const { ConnectionService, ProjectService, ChannelService } = api.services;
+  const { ConnectionService, AliasService, ConfigService } = api.services;
 
   // Use the services in your extension
   // All methods and properties are fully typed
@@ -52,10 +57,9 @@ export const activate = async (context: vscode.ExtensionContext) => {
 
   // Now you have access to all services with full type safety
   // services.ConnectionService
-  // services.ProjectService
-  // services.ChannelService
-  // services.WorkspaceService
-  // ... and more
+  // services.AliasService
+  // services.ConfigService
+  // services.TargetOrgRef
 };
 ```
 
@@ -63,12 +67,10 @@ export const activate = async (context: vscode.ExtensionContext) => {
 
 This package exports:
 
-- **`SalesforceVSCodeServicesApi`** - The complete type definition for the extension's public API
-  - Includes type definitions for all service classes
-  - Provides access to service tags and implementations
-  - Fully typed method signatures and return types
+- **`SalesforceVSCodeServicesApi`** - The externally required V3 API subset, with its original identifiers and failure types.
+- **`SalesforceVSCodeServicesApiV2`** at `/v2` - The V4 contracts for first-party consumers.
 
-**All internal implementation details are protected.** The package uses Node.js `exports` field to restrict imports to only the main entry point. You cannot directly import internal types or constants.
+The package's `exports` restrict imports to the root, `/v2`, and the browser-safe `/v2/uriComparison` helper. Provider implementations remain private.
 
 ## Package Contents
 
@@ -76,14 +78,19 @@ This package bundles:
 
 - Type definitions for the public API
 - Type definitions for all transitive dependencies
-- Runtime `ICONS`; service exports are type-only
+- Root runtime `ICONS`; legacy service exports are type-only
+- V4 keys/schemas and API declarations at `/v2`
 
 ## Development
 
-The public entry is generated over the frozen declarations in `legacy/services.d.ts`.
-Only the release version tracks the extension; declaration dependencies remain
-independent of its future V4 implementation. Run `pnpm test:packed-services` from
-the repository root to verify a real packed installation with Effect V3 and no V4.
+The compatibility package generates and prunes the external subset from the frozen
+`legacy/services.d.ts` input in its V3 scope. This package rewrites that result's
+Effect imports to `effect-v3`, then validates it strictly. No private compatibility
+package or V3 companion-library dependency is published. V4 contracts in `v2/` use
+ordinary `effect`. Run `pnpm test:packed-services` from the repository root to verify
+independently installed root/V3 and `/v2`/V4 consumers, strict declarations, negative
+cross-major controls, and Node/browser bundle isolation. Registry publication waits
+for the coordinated provider/consumer cutover.
 
 ## License
 

@@ -12,7 +12,7 @@ import { ConnectionHost } from '@salesforce/vscode-services-v4-implementation/co
 import { MetadataOperationMessages } from '@salesforce/vscode-services-v4-implementation/metadataOperationMessages';
 import { OrgCatalogMessages } from '@salesforce/vscode-services-v4-implementation/orgCatalogMessages';
 import { WebFileSystemProvider } from '@salesforce/vscode-services-v4-implementation/webFileSystemProvider';
-import { ActiveMetadataOperationRef, ComponentSetService, ConnectionService, LightningComponentService, MetadataDeleteService, MetadataDeployService, MetadataRetrieveService, OrgId, OrgMetadataCatalogChangePubSub, QueryService, SalesforceId, TargetOrgRef, publicServiceKeys } from '@salesforce/vscode-services-v2';
+import { ActiveMetadataOperationRef, ComponentSetService, ConnectionService, LightningComponentService, MetadataDeleteService, MetadataDeployService, MetadataRetrieveService, OrgId, OrgMetadataCatalogChangePubSub, QueryService, SalesforceId, TargetOrgRef, publicServiceKeys } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as PubSub from 'effect/PubSub';

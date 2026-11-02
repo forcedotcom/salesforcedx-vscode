@@ -13,7 +13,7 @@ import {
   isSDRSuccess,
   toComponentStatusChangeType,
   type MetadataOperationEvent
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as Context from 'effect/Context';
 import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';

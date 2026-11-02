@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
@@ -15,11 +15,12 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const temp = createPackedFixturesDirectory('salesforce-effect-bridge-');
 const host = path.join(temp, 'bridgeHost');
 const consumer = path.join(temp, 'bridgeConsumer');
+const abi = path.join(temp, 'legacyAbi');
 
 try {
   const artifacts = [
+    packServicesPackage(path.join(root, 'packages/salesforcedx-vscode-services-types'), host, 'legacy.tgz'),
     packServicesPackage(path.join(root, 'packages/salesforcedx-vscode-services-v3-compat'), host, 'v3.tgz'),
-    packServicesPackage(path.join(root, 'packages/salesforcedx-vscode-services-v2'), host, 'v2.tgz'),
     packServicesPackage(
       path.join(root, 'packages/salesforcedx-vscode-services-v4-implementation'),
       host,
@@ -27,10 +28,73 @@ try {
     )
   ];
   fs.mkdirSync(consumer);
+  const abiArtifacts = [
+    packServicesPackage(path.join(root, 'packages/salesforcedx-vscode-services-v3-compat'), abi, 'compat.tgz')
+  ];
   await installAndCompileFixtures([
     { fixture: 'bridgeHost', directory: host, packedPackages: artifacts },
-    { fixture: 'bridgeConsumer', directory: consumer, packedPackages: [] }
+    { fixture: 'bridgeConsumer', directory: consumer, packedPackages: [] },
+    { fixture: 'legacyAbi', directory: abi, packedPackages: abiArtifacts }
   ]);
+  for (const [file, expected] of [
+    ['negativeMissingMethod.ts', 'getConnectionForOrg'],
+    ['negativeMissingDefault.ts', 'DefaultWithoutDependencies']
+  ]) {
+    const result = spawnSync(
+      process.execPath,
+      [
+        path.join(abi, 'node_modules/typescript/bin/tsc'),
+        '--ignoreConfig',
+        '--noEmit',
+        '--strict',
+        '--skipLibCheck',
+        'false',
+        '--target',
+        'ES2024',
+        '--module',
+        'NodeNext',
+        '--moduleResolution',
+        'NodeNext',
+        path.join(abi, file)
+      ],
+      { cwd: abi, encoding: 'utf8', timeout: 180000 }
+    );
+    assert.equal(result.error, undefined);
+    assert.notEqual(result.status, 0, `${file} must reject an incomplete frozen ABI`);
+    assert.match(result.stdout, /TS2741/);
+    assert.ok(result.stdout.includes(expected), result.stdout);
+    assert.doesNotMatch(result.stdout, /Cannot find module/);
+  }
+  const abiHome = path.join(abi, 'home');
+  fs.mkdirSync(abiHome);
+  execFileSync(process.execPath, ['--import', 'tsx', path.join(abi, 'index.ts')], {
+    cwd: root,
+    stdio: 'inherit',
+    timeout: 180000,
+    env: { ...process.env, HOME: abiHome, USERPROFILE: abiHome, SF_USE_GENERIC_UNIX_KEYCHAIN: 'true' }
+  });
+  for (const platform of ['node', 'browser']) {
+    const bundle = await esbuild.build({
+      entryPoints: [path.join(abi, 'sourceFallback.mjs')],
+      bundle: true,
+      platform,
+      format: 'esm',
+      write: false,
+      // Assertions belong to the Node runner, not the browser-target compatibility modules.
+      external: ['node:assert/strict'],
+      plugins: [
+        {
+          name: 'legacy-source-default-host',
+          setup: bundler => {
+            bundler.onResolve({ filter: /^vscode$/ }, () => ({ path: path.join(abi, 'vscode.mjs') }));
+          }
+        }
+      ]
+    });
+    await import(
+      `data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString('base64')}#legacy-default-${platform}`
+    );
+  }
   execFileSync(process.execPath, ['--import', 'tsx', path.join(consumer, 'index.ts')], {
     cwd: root,
     stdio: 'inherit',

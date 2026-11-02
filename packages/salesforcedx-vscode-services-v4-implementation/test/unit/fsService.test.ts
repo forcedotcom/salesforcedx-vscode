@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { DocumentUriSchema, FsService, HashableUri, OrgId, type FsProvider } from '@salesforce/vscode-services-v2';
+import { DocumentUriSchema, FsService, HashableUri, OrgId, type FsProvider } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Equal from 'effect/Equal';
 import * as HashSet from 'effect/HashSet';

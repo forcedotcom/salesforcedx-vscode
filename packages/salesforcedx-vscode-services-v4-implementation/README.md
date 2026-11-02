@@ -2,7 +2,7 @@
 
 This private package contains the migrated service implementations while the
 services extension still runs its V3 production graph. It uses ordinary Effect
-4.0.6 and the canonical keys from `@salesforce/vscode-services-v2`.
+4.0.6 and the canonical keys from `@salesforce/vscode-services/v2`.
 
 The foundation, connection, project and catalog layers are stable values, not
 runtime factories. Dependent slices must compose those same values so caches,

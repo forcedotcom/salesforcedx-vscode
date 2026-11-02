@@ -61,7 +61,7 @@ export default [
       '**/.test-dist/**',
       '**/packages/**/coverage',
       '**/test-workspaces/**',
-      '**/*.d.ts',
+      '**/*.d.{ts,cts,mts}',
       '**/jest.integration.config.js',
       '**/.wireit/**',
       '.opencode/**',
@@ -121,7 +121,12 @@ export default [
     }
   },
   {
-    files: ['**/*.ts', '**/*.mts', 'packages/salesforcedx-vscode-services-v2/src/uriComparison.cts'],
+    files: [
+      '**/*.ts',
+      '**/*.mts',
+      'packages/salesforcedx-vscode-services-types/v2/uriComparison.cts',
+      'packages/salesforcedx-vscode-services-v3-compat/src/externalServices.cts'
+    ],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -907,10 +912,24 @@ export default [
   {
     // Allow top-level src/index.ts files as barrel files (public API exports),
     // including export-* aggregation of a package's public surface.
-    files: ['packages/**/src/index.ts'],
+    files: ['packages/**/src/index.ts', 'packages/salesforcedx-vscode-services-types/v2/index.ts'],
     rules: {
       'barrel-files/avoid-barrel-files': 'off',
       'barrel-files/avoid-re-export-all': 'off'
+    }
+  },
+  {
+    // v2/package.json sets ESM scope only; dependencies belong to the one published parent package.
+    files: ['packages/salesforcedx-vscode-services-types/v2/**/*.{ts,cts}'],
+    rules: {
+      'import/no-extraneous-dependencies': [
+        'error',
+        {
+          packageDir: path.join(import.meta.dirname, 'packages/salesforcedx-vscode-services-types'),
+          devDependencies: false,
+          optionalDependencies: false
+        }
+      ]
     }
   },
   {

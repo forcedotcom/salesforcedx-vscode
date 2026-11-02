@@ -16,7 +16,7 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { createLegacyServices, makeV4Host, V3DefaultOrgInfoSchema, type Connection } from '../bridgeHost/host.js';
 
 /** Browser-safe conformance: the optional Node-injected value is a real SDK Connection. */
-export const basicConformance = async (connection?: Connection) => {
+export const basicConformance = async (connection?: Connection, checkNativeConnection?: (value: unknown) => Promise<void>) => {
   const owner = await makeV4Host(connection);
   const legacy = await createLegacyServices(owner.host);
   const { services } = legacy;
@@ -27,6 +27,7 @@ export const basicConformance = async (connection?: Connection) => {
   const prebuiltExit = await Effect.runPromiseExit(
     services.ConnectionService.getConnection().pipe(Effect.provide(services.prebuiltServicesLayer))
   );
+  if (checkNativeConnection && Exit.isSuccess(connectionExit)) await checkNativeConnection(connectionExit.value);
   const ref = await Effect.runPromise(services.TargetOrgRef());
   const stableRef = ref === (await Effect.runPromise(services.TargetOrgRef()));
   const first = await Effect.runPromise(ref.changes.pipe(Stream.take(1), Stream.runCollect));

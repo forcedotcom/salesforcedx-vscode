@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "dependencies": {
+    "@salesforce/core": "8.31.3",
     "@types/node": "24.19.2",
     "effect": "3.21.2",
     "typescript": "6.0.3"

@@ -12,7 +12,7 @@ import {
   MetadataDeployService,
   ConnectionService,
   UserCancellationError
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as PubSub from 'effect/PubSub';

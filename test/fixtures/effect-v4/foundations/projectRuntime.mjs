@@ -9,7 +9,7 @@ import coreFs from '@salesforce/core/fs';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import { projectLayers } from '@salesforce/vscode-services-v4-implementation/projectLayers';
 import { WebFileSystemProvider } from '@salesforce/vscode-services-v4-implementation/webFileSystemProvider';
-import { ComponentSetService, MetadataRegistryService, ProjectService } from '@salesforce/vscode-services-v2';
+import { ComponentSetService, MetadataRegistryService, ProjectService } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';

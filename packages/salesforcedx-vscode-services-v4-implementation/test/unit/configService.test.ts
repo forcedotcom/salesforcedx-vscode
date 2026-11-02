@@ -7,7 +7,7 @@
 import { Config, OrgConfigProperties, SfConfigProperties } from '@salesforce/core';
 import type * as SalesforceCore from '@salesforce/core';
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
-import { CliId, ConfigService, TargetOrgRef, type DefaultOrgInfo } from '@salesforce/vscode-services-v2';
+import { CliId, ConfigService, TargetOrgRef, type DefaultOrgInfo } from '@salesforce/vscode-services/v2';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Duration from 'effect/Duration';

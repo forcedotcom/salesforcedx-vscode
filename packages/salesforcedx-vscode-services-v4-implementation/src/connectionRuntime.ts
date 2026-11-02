@@ -16,7 +16,7 @@ import {
   NoWorkspaceOpenError,
   SettingsError,
   TargetOrgRef
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import type { CompatibilityHost, HostExit, HostReason } from '@salesforce/vscode-services-v3-compat/host';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';

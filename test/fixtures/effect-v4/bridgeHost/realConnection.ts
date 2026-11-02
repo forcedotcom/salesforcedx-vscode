@@ -6,7 +6,7 @@
  */
 import { AuthInfo, Connection, Global, StateAggregator } from '@salesforce/core';
 import coreFs from '@salesforce/core/fs';
-import { CliId, ChannelService, ConnectionService, TargetOrgRef } from '@salesforce/vscode-services-v2';
+import { CliId, ChannelService, ConnectionService, TargetOrgRef } from '@salesforce/vscode-services/v2';
 import { ConnectionHost } from '@salesforce/vscode-services-v4-implementation/connectionHost';
 import { connectionWatcherLayers } from '@salesforce/vscode-services-v4-implementation/connectionLayers';
 import { createConnectionRuntime } from '@salesforce/vscode-services-v4-implementation/connectionRuntime';

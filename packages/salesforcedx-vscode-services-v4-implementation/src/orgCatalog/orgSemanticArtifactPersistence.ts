@@ -9,7 +9,7 @@ import {
   TransmogrifierService,
   type OrgId,
   type RestSObjectDescribeTransmogrifierInput
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';

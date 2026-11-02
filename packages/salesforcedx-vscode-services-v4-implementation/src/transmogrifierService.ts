@@ -17,7 +17,7 @@ import {
   type DescribeSObjectResult,
   type SObject,
   type TransmogrifierInput
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as HashMap from 'effect/HashMap';
 import * as Layer from 'effect/Layer';

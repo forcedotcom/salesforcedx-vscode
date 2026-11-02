@@ -8,7 +8,7 @@ This slice owns Project, Registry, SourceTracking, catalog state/stores, workspa
 
 Real reader prerequisites move forward from W-24615063: describe/cache/invalidation, query, ComponentSet construction/properties, nonmerge retrieve-to-directory, Transmogrifier/models, Channel, metadata notifications, and active-operation state. W-24615063 retains merged workspace retrieve, deploy, delete, and remaining operation services.
 
-Canonical V4 keys, schemas, errors, and domain data live in `@salesforce/vscode-services-v2`. Implementations remain temporarily in `@salesforce/vscode-services-v4-implementation`; W-24615069 folds them into the provider and removes superseded V3 implementations. No runnable V3 services enter the V4 graph.
+Canonical V4 keys, schemas, errors, and domain data live at `@salesforce/vscode-services/v2`. Implementations remain temporarily in `@salesforce/vscode-services-v4-implementation`; W-24615069 folds them into the provider and removes superseded V3 implementations. No runnable V3 services enter the V4 graph.
 
 ## One graph and public Context
 

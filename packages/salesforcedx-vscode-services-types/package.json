@@ -16,10 +16,21 @@
     ".": {
       "types": "./out/index.d.ts",
       "default": "./out/index.js"
+    },
+    "./v2": {
+      "types": "./out/v2/index.d.ts",
+      "default": "./out/v2/index.js"
+    },
+    "./v2/uriComparison": {
+      "types": "./out/v2/uriComparison.d.cts",
+      "default": "./out/v2/uriComparison.cjs"
     }
   },
   "files": [
-    "out/**",
+    "out/index.*",
+    "out/icons.*",
+    "out/services.d.ts",
+    "out/v2/**",
     "README.md",
     "LICENSE.txt"
   ],
@@ -30,12 +41,16 @@
     "generate-entry": "ts-node scripts/generateEntry.ts",
     "sync-deps": "ts-node scripts/syncDeps.ts",
     "compile": "wireit",
+    "lint": "wireit",
     "clean": "shx rm -rf src out dist node_modules .wireit .eslintcache *.tgz",
     "check:effect-diagnostics": "wireit"
   },
   "wireit": {
     "generate-src": {
       "command": "ts-node scripts/generateEntry.ts && ts-node scripts/syncDeps.ts",
+      "dependencies": [
+        "../salesforcedx-vscode-services-v3-compat:compile"
+      ],
       "files": [
         "../salesforcedx-vscode-services/package.json",
         "legacy/**/*.d.ts",
@@ -43,10 +58,17 @@
       ],
       "output": [
         "src/index.ts",
-        "src/icons.ts"
+        "src/icons.ts",
+        "src/externalServices.d.ts"
       ]
     },
     "compile": {
+      "dependencies": [
+        "compile:legacy",
+        "compile:v2"
+      ]
+    },
+    "compile:legacy": {
       "command": "tsc --pretty && dts-bundle-generator --project tsconfig.json --export-referenced-types false --out-file out/services.d.ts src/index.ts && node scripts/writePublicDeclarations.mjs",
       "clean": "if-file-deleted",
       "dependencies": [
@@ -61,11 +83,40 @@
         "package.json"
       ],
       "output": [
-        "out/**"
+        "out/index.*",
+        "out/icons.*",
+        "out/services.d.ts"
       ]
     },
+    "compile:v2": {
+      "command": "tsc -p v2/tsconfig.json --pretty && shx cp v2/package.json out/v2/package.json",
+      "files": [
+        "v2/**/*.{ts,cts,json}",
+        "../../tsconfig.common.json",
+        "../../pnpm-lock.yaml",
+        "package.json"
+      ],
+      "output": [
+        "out/v2/**"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color src v2 package.json",
+      "dependencies": [
+        "compile",
+        "../eslint-local-rules:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "v2/**/*.{ts,cts,json}",
+        "package.json",
+        "tsconfig.json",
+        "../../eslint.config.mjs"
+      ],
+      "output": []
+    },
     "check:effect-diagnostics": {
-      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "command": "node ../../scripts/effect-diagnostics.mjs . && node ../../scripts/effect-diagnostics.mjs v2",
       "dependencies": [
         "compile"
       ],
@@ -80,8 +131,6 @@
   "version": "68.9.0",
   "dependencies": {
     "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.43",
-    "@effect/opentelemetry": "0.63.0",
-    "@effect/platform": "0.96.1",
     "@jsforce/jsforce-node": "^3.10.24",
     "@opentelemetry/api": "1.9.1",
     "@opentelemetry/core": "2.8.0",
@@ -96,11 +145,13 @@
     "@salesforce/source-tracking": "^8.1.7",
     "@salesforce/templates": "^66.17.2",
     "@types/vscode": "^1.129.0",
-    "effect": "3.21.2",
+    "effect": "4.0.6",
+    "effect-v3": "npm:effect@3.21.2",
     "jsforce": "^3.10.24",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
+    "@salesforce/vscode-services-v3-compat": "*",
     "shx": "^0.4.0",
     "ts-node": "^10.9.2"
   },

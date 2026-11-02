@@ -20,12 +20,14 @@ const protocols = [
     fixture: 'packedLegacy',
     directory: 'salesforcedx-vscode-services-types',
     name: '@salesforce/vscode-services',
+    endpoint: '@salesforce/vscode-services',
     version: '3.21.2'
   },
   {
     fixture: 'packedV2',
-    directory: 'salesforcedx-vscode-services-v2',
-    name: '@salesforce/vscode-services-v2',
+    directory: 'salesforcedx-vscode-services-types',
+    name: '@salesforce/vscode-services',
+    endpoint: '@salesforce/vscode-services/v2',
     version: '4.0.6'
   }
 ];
@@ -41,33 +43,54 @@ try {
 
   const mixed = path.join(temp, 'packedMixed');
   fs.mkdirSync(mixed);
-  for (const artifact of artifacts) {
-    fs.copyFileSync(path.join(artifact.directory, 'services.tgz'), path.join(mixed, `${artifact.fixture}.tgz`));
-  }
+  fs.copyFileSync(artifacts[0].archive, path.join(mixed, 'packedLegacy.tgz'));
   await installAndCompileFixtures([
     ...artifacts.map(artifact => ({
       fixture: artifact.fixture,
       directory: artifact.directory,
       packedPackages: [artifact]
     })),
-    { fixture: 'packedMixed', directory: mixed, packedPackages: artifacts }
+    { fixture: 'packedMixed', directory: mixed, packedPackages: [artifacts[0]] }
   ]);
 
   for (const artifact of artifacts) {
     const requireConsumer = createRequire(path.join(artifact.directory, 'package.json'));
     assert.equal(requireConsumer('effect/package.json').version, artifact.version);
-    const tree = JSON.parse(
-      execFileSync(npm, ['ls', 'effect', '--all', '--json'], { ...npmOptions, cwd: artifact.directory })
+    const requireServices = createRequire(requireConsumer.resolve(artifact.name));
+    assert.equal(requireServices('effect/package.json').version, '4.0.6');
+    assert.equal(requireServices('effect-v3/package.json').version, '3.21.2');
+    assert.ok(!Object.keys(artifact.publishedPackage.dependencies).includes('@salesforce/vscode-services-v3-compat'));
+    const declarations = fs.readFileSync(
+      path.join(artifact.directory, 'node_modules/@salesforce/vscode-services/out/services.d.ts'),
+      'utf8'
     );
-    const assertEffectVersion = dependencies =>
-      Object.entries(dependencies ?? {}).forEach(([name, dependency]) => {
-        if (name === 'effect')
-          assert.equal(dependency.version, artifact.version, `${artifact.fixture}: unintended Effect runtime`);
-        assertEffectVersion(dependency.dependencies);
-      });
-    assertEffectVersion(tree.dependencies);
+    assert.doesNotMatch(declarations, /@effect\/|vscode-services-v3-compat|from\s+["']effect\//);
+    // Both majors are intentional dependencies; npm must still report a valid peer/dependency tree.
+    execFileSync(npm, ['ls', '--all', '--json'], { ...npmOptions, cwd: artifact.directory });
     if (artifact.fixture === 'packedLegacy') {
       assert.deepEqual(Object.keys(requireConsumer(artifact.name)), ['ICONS']);
+      for (const platform of ['node', 'browser']) {
+        const bundle = await esbuild.build({
+          entryPoints: [path.join(artifact.directory, 'runtime.ts')],
+          bundle: true,
+          platform,
+          format: 'esm',
+          write: false,
+          metafile: true
+        });
+        const inputs = Object.keys(bundle.metafile.inputs);
+        const v4Directory = path.dirname(requireServices.resolve('effect/package.json'));
+        assert.ok(
+          inputs.every(
+            file => !path.resolve(root, file).startsWith(`${v4Directory}${path.sep}`) && !file.includes('/out/v2/')
+          ),
+          'unversioned root must not load V4 contracts or its runtime'
+        );
+        const result = await import(
+          `data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString('base64')}#root-${platform}`
+        );
+        assert.equal(result.observed, '$(sf-org-leaf)');
+      }
     } else {
       for (const platform of ['node', 'browser']) {
         const bundle = await esbuild.build({
@@ -79,8 +102,17 @@ try {
           metafile: true
         });
         assert.ok(Object.keys(bundle.metafile.inputs).some(file => file.includes('node_modules/effect/')));
+        const legacyEffectDirectory = path.dirname(requireServices.resolve('effect-v3/package.json'));
         assert.ok(
-          Object.keys(bundle.metafile.inputs).every(file => !file.includes('node_modules/@salesforce/vscode-services/'))
+          Object.keys(bundle.metafile.inputs).every(
+            file => !path.resolve(root, file).startsWith(`${legacyEffectDirectory}${path.sep}`)
+          ),
+          '/v2 must not load the package-owned V3 runtime'
+        );
+        assert.equal(
+          requireServices.resolve('effect/Schema'),
+          requireConsumer.resolve('effect/Schema'),
+          '/v2 and a consumer in this installation must resolve the same ordinary V4 copy'
         );
         const result = await import(
           `data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString('base64')}`
@@ -94,7 +126,7 @@ try {
       }
     }
     console.log(
-      `PASS actual packed ${artifact.name} declarations in an independent Effect ${artifact.version}-only installation`
+      `PASS actual packed ${artifact.endpoint} declarations and bundle isolation with independent consumer Effect ${artifact.version}`
     );
   }
 

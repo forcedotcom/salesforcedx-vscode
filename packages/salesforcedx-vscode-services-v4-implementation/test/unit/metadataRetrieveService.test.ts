@@ -15,7 +15,7 @@ import {
   MetadataRetrieveError,
   MetadataRetrieveService,
   OrgId
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Fiber from 'effect/Fiber';

@@ -10,7 +10,7 @@ import {
   OrgMetadataCatalog,
   OrgId,
   ConnectionService
-} from '@salesforce/vscode-services-v2';
+} from '@salesforce/vscode-services/v2';
 import coreFs from '@salesforce/core/fs';
 import { SourceTracking } from '@salesforce/source-tracking';
 import * as Effect from 'effect/Effect';

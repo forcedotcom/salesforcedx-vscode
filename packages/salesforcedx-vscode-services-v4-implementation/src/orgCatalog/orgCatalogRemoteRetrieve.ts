@@ -19,8 +19,8 @@ import {
   type FsServiceError,
   type OrgId,
   type OrgMetadataComponentReference
-} from '@salesforce/vscode-services-v2';
-import { isUriEqualOrWithin, pathSuffixWithin } from '@salesforce/vscode-services-v2/uriComparison';
+} from '@salesforce/vscode-services/v2';
+import { isUriEqualOrWithin, pathSuffixWithin } from '@salesforce/vscode-services/v2/uriComparison';
 import * as Arr from 'effect/Array';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';

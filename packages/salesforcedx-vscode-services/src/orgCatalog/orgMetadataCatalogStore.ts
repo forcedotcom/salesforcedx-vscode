@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isUriEqualOrWithin, uriPathIncludesSegments } from '@salesforce/vscode-services-v2/uriComparison';
+import { isUriEqualOrWithin, uriPathIncludesSegments } from '@salesforce/vscode-services/v2/uriComparison';
 import * as Effect from 'effect/Effect';
 import * as Encoding from 'effect/Encoding';
 import * as Schema from 'effect/Schema';
