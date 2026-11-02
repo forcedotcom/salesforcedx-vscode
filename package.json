@@ -503,7 +503,7 @@
       "output": []
     },
     "check:scripts": {
-      "command": "tsc --noEmit -p scripts/tsconfig.native.json && node --check scripts/category-approve.mts && node --check scripts/changelogBody/changelogBody.mts && node --check scripts/manualTestPlan/manualTestPlan.mts && node --check scripts/codeBuilderLocalE2E.mts && node --check scripts/installVSIXFromBranch.mts && node --check scripts/queryAppInsights.mts && node --check scripts/reportInstalls.mts && node --check scripts/validateActions.mts && node --check scripts/xsd/fixXsdErrors.mts && node --check scripts/xsd/jsonToXsdConverter.mts && node --check scripts/xsd/scrapeAllMetadataPages.mts && node --check scripts/xsd/scrapeSinglePage.mts && node --check scripts/xsd/validateXsd.mts && node --check test/category-approve.test.mts && node --check scripts/manualTestPlan/test/unit/manualTestPlan.test.mts",
+      "command": "tsc --noEmit -p scripts/tsconfig.native.json",
       "dependencies": [
         "./packages/effect-octokit:compile",
         "./packages/playwright-vscode-ext:compile"
