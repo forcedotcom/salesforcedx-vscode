@@ -56,6 +56,17 @@ import { getExtensionScope } from '../../src/vscode/extensionScope';
 import { ConfigService } from '../../src/core/configService';
 import { ConnectionService } from '../../src/core/connectionService';
 
+const { mockSeedTelemetryIdentities } = vi.hoisted(() => ({
+  mockSeedTelemetryIdentities: vi.fn()
+}));
+
+vi.mock('../../src/observability/seedTelemetryIdentities', () => ({
+  seedTelemetryIdentities: () => {
+    mockSeedTelemetryIdentities();
+    return Effect.void;
+  }
+}));
+
 // Mock indexedDB API for Node.js environment
 const mockIndexedDB: Partial<IDBFactory> = {
   open: vi.fn().mockReturnValue({
@@ -233,6 +244,7 @@ const mockExtensionUri = URI.file('/mock/extension');
 
 describe('Extension', () => {
   beforeEach(() => {
+    mockSeedTelemetryIdentities.mockClear();
     // Mock workspace.workspaceFolders to have at least one folder
     Object.assign(vscode.extensions, {
       getExtension: vi.fn().mockReturnValue({ extensionUri: mockExtensionUri }),
@@ -287,6 +299,7 @@ describe('Extension', () => {
     } as unknown as ExtensionContext;
 
     const api = await activate(context);
+    expect(mockSeedTelemetryIdentities).toHaveBeenCalledOnce();
     expect(api).toBeDefined();
     expect(api.services).toBeDefined();
     expect(api.services.ConnectionService).toBeDefined();
