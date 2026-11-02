@@ -67,7 +67,7 @@
     "compile": "wireit",
     "lint": "wireit",
     "check:circular-deps": "wireit",
-    "lint:fix": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-apex-testing lint --fix",
+    "lint:fix": "eslint --color --cache --cache-location .eslintcache --fix .",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json",
     "test": "wireit",
     "test:compile": "wireit",

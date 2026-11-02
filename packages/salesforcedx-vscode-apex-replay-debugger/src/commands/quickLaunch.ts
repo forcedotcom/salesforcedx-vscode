@@ -9,9 +9,11 @@ import { LogService, type TestResult, TestService } from '@salesforce/apex-node'
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { Context } from 'effect';
 import * as Arr from 'effect/Array';
+import * as Cause from 'effect/Cause';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
+import { isError } from 'effect/Predicate';
 import type { NotificationModeService } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
@@ -251,6 +253,11 @@ const debugTests = Effect.fn('ApexReplayDebugger.debugTests')(function* (targets
   return true;
 });
 
+export const getDebugTestFailureMessage = (cause: Cause.Cause<unknown>): string => {
+  const error = Cause.squash(cause);
+  return isError(error) ? error.message : String(error);
+};
+
 const setupAndDebugTests = async (targets: readonly DebugTarget[]): Promise<void> => {
   const progressLocation = await getRuntime().runPromise(
     Effect.gen(function* () {
@@ -266,7 +273,19 @@ const setupAndDebugTests = async (targets: readonly DebugTarget[]): Promise<void
         title: `Running ${nls.localize('debug_test_exec_name')}`,
         cancellable: false
       },
-      () => getRuntime().runPromise(debugTests(targets))
+      () =>
+        getRuntime().runPromise(
+          debugTests(targets).pipe(
+            Effect.catchAllCause(cause =>
+              Effect.sync(
+                () =>
+                  void vscode.window.showErrorMessage(
+                    nls.localize('debug_test_failed', getDebugTestFailureMessage(cause))
+                  )
+              )
+            )
+          )
+        )
     );
   } catch (error) {
     void vscode.window.showErrorMessage(nls.localize('debug_test_failed', String(error)));

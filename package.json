@@ -135,6 +135,7 @@
     "compile": "wireit",
     "compile:github-actions": "wireit",
     "lint": "wireit",
+    "lint:fix": "eslint --color --fix package.json && pnpm --filter './packages/*' --if-present run lint:fix",
     "test": "wireit",
     "test:ai-safeguards": "wireit",
     "test:manual-test-plan": "wireit",

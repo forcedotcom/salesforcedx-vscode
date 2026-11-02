@@ -7,7 +7,6 @@
 
 import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
-import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -19,15 +18,15 @@ import { QueryService } from 'salesforcedx-vscode-services/src/core/queryService
 import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
 import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
-import { retrieveLineBreakpointInfo } from '../../../src/apexExtension';
 import { checkpointService, sfCreateCheckpointsCommand } from '../../../src/breakpoints/checkpointService';
 import { writeToDebuggerOutputWindow } from '../../../src/channels';
 import { FIELD_INTEGRITY_EXCEPTION } from '../../../src/debuggerConstants';
+import { ensureLineBreakpointMetadata } from '../../../src/breakpoints/lineBreakpointMetadata';
 import { nls } from '../../../src/messages';
 import { setAllServicesLayer } from '../../../src/services/extensionProvider';
 import { disposeRuntime, getRuntime } from '../../../src/services/runtime';
 
-vi.mock('../../../src/apexExtension', () => ({ retrieveLineBreakpointInfo: vi.fn() }));
+vi.mock('../../../src/breakpoints/lineBreakpointMetadata', () => ({ ensureLineBreakpointMetadata: vi.fn() }));
 vi.mock('../../../src/channels', () => ({ writeToDebuggerOutputWindow: vi.fn() }));
 
 describe('checkpoint upload Effects', () => {
@@ -75,9 +74,9 @@ describe('checkpoint upload Effects', () => {
     deleteCheckpoint.mockResolvedValue({ success: true });
     createCheckpoint.mockResolvedValue({ success: true, id: 'overlay-id' });
     sobject.mockReturnValue({ delete: deleteCheckpoint, create: createCheckpoint });
-    vi.mocked(retrieveLineBreakpointInfo).mockReturnValue(Effect.succeed(true));
-    vi.spyOn(breakpointUtil, 'canSetLineBreakpoint').mockReturnValue(true);
-    vi.spyOn(breakpointUtil, 'getTopLevelTyperefForUri').mockReturnValue('Example');
+    vi.mocked(ensureLineBreakpointMetadata).mockResolvedValue([
+      { uri: checkpointUri, typeref: 'Example', lines: [7, 9] }
+    ]);
     vi.mocked(vscode.window.withProgress).mockImplementation(async (_options, task) =>
       task(progress, new vscode.CancellationTokenSource().token)
     );
@@ -182,7 +181,7 @@ describe('checkpoint upload Effects', () => {
     expectError(`${nls.localize('unable_to_retrieve_org_info')} : connection failed`);
     expect(createCheckpoint).not.toHaveBeenCalled();
     expect(node.getActionCommandResultId()).toBeUndefined();
-    if (successfulConnections === 0) expect(retrieveLineBreakpointInfo).not.toHaveBeenCalled();
+    if (successfulConnections === 0) expect(ensureLineBreakpointMetadata).not.toHaveBeenCalled();
   });
 
   it('does not query or create without an active user', async () => {

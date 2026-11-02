@@ -49,6 +49,7 @@
     "compile": "wireit",
     "clean": "shx rm -rf node_modules .wireit out .eslintcache tsconfig.tsbuildinfo .circular-deps.json",
     "lint": "wireit",
+    "lint:fix": "eslint --color --cache --cache-location .eslintcache --fix .",
     "test:web": "wireit",
     "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/playwright-vscode-ext test:web --headed",
     "test:web:debug": "pnpm --dir ../.. --filter ./packages/playwright-vscode-ext test:web --debug",

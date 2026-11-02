@@ -6,11 +6,10 @@
  */
 
 import * as Effect from 'effect/Effect';
+import * as Cause from 'effect/Cause';
 import type { Mock as VitestMock } from 'vitest';
 import * as vscode from 'vscode';
 
-// quickLaunch does not exercise Apex extension exports.
-vi.mock('../../../src/apexExtension', () => ({ retrieveLineBreakpointInfo: () => Effect.void }));
 vi.mock('../../../src/commands/launchFromLogFile', () => ({ launchFromLogFile: vi.fn() }));
 vi.mock('vscode', async () => ({
   ...(await vi.importActual<typeof vscode>('vscode')),
@@ -18,7 +17,12 @@ vi.mock('vscode', async () => ({
 }));
 
 import { launchFromLogFile } from '../../../src/commands/launchFromLogFile';
-import { replayInOrder, showDebugTestOutcome, toDebugTargets } from '../../../src/commands/quickLaunch';
+import {
+  getDebugTestFailureMessage,
+  replayInOrder,
+  showDebugTestOutcome,
+  toDebugTargets
+} from '../../../src/commands/quickLaunch';
 
 const showSuccessNotification = vi.fn((..._a: unknown[]) => Effect.void);
 const notificationMode = { showSuccessNotification } as unknown as Parameters<typeof showDebugTestOutcome>[0];
@@ -43,6 +47,14 @@ describe('showDebugTestOutcome', () => {
     await Effect.runPromise(showDebugTestOutcome(notificationMode, 2));
     expect(showSuccessNotification).not.toHaveBeenCalled();
     expect(vscode.window.showErrorMessage).toHaveBeenCalledWith('Debug Test(s) completed with 2 failing test(s)');
+  });
+});
+
+describe('getDebugTestFailureMessage', () => {
+  it('returns the underlying server error message without Effect stack frames', () => {
+    expect(
+      getDebugTestFailureMessage(Cause.die(new Error("This class name's value is invalid: FileUtilitiesTest.")))
+    ).toBe("This class name's value is invalid: FileUtilitiesTest.");
   });
 });
 
