@@ -2,7 +2,6 @@
   "apex_oas_general_class_access_modifiers": "The general eligibility of class access modifiers for the generation of Apex Open API Specs.",
   "apex_oas_general_method_access_modifiers": "The general eligibility of method access modifiers for the generation of Apex Open API Specs.",
   "apex_oas_general_property_access_modifiers": "The general eligibility of property access modifiers for the generation of Apex Open API Specs.",
-  "apex_oas_generation_strategy": "The strategy used to generate Apex Open API Specs.",
   "apex_oas_generation_schema": "Include OpenAPI Schema in generation.",
   "apex_generation_output_token_limit": "The maximum number of tokens to generate in the output.",
   "apex_oas_enable_rest_gen": "Enable OpenAPI document generation for Apex REST (@RestResource) classes. Disabled by default because it depends on an external AI model service. AuraEnabled classes are unaffected.",
