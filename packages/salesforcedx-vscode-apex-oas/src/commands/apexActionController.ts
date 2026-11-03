@@ -15,7 +15,8 @@ import { messages } from '../messages/i18n';
 import { nls } from '../messages/nls';
 import { processOasDocument } from '../oas/documentProcessorPipeline/oasProcessor';
 import { generateEsrMD, pathExists } from '../oas/externalServiceRegistrationManager';
-import { selectStrategyByBidRule } from '../oas/promptGenerationOrchestrator';
+import { createApexRestStrategy } from '../oas/generationStrategy/json/apexRest';
+import { createAuraEnabledStrategy } from '../oas/generationStrategy/json/auraEnabledStrategy';
 import {
   checkIfESRIsDecomposed,
   diagnoseIneligibility,
@@ -89,8 +90,10 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
     yield* LLMService.ensureAvailable();
   }
 
-  // Step 3-4: Select the generation strategy by bid rule
-  const strategy = yield* selectStrategyByBidRule(eligibilityResult, context);
+  // Step 3-4: The framework qualification above selects exactly one generator.
+  const strategy = hasValidRestAnnotations(context)
+    ? yield* createApexRestStrategy(eligibilityResult, context)
+    : yield* Effect.promise(() => createAuraEnabledStrategy(context));
 
   // Step 5: Determine filename
   const name = path.basename(eligibilityResult.resourceUri.fsPath, '.cls');
