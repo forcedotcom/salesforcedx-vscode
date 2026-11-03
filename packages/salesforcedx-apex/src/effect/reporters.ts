@@ -79,13 +79,26 @@ export const formatJUnitReport = Effect.fn('Apex.formatJUnitReport')((testResult
   formatStream('junit', () => formatJUnitChunks(testResult))
 );
 
-/** Preserves Markdown/text defaults; the default timestamp comes from the Effect clock. */
-export const formatMarkdownTextReport = Effect.fn('Apex.formatMarkdownTextReport')(function* (
+/** Returns a chunked Markdown/text report stream; the default timestamp comes from the Effect clock. */
+export const formatMarkdownTextReportStream = Effect.fn('Apex.formatMarkdownTextReportStream')(function* (
   testResult: TestResult,
   options: MarkdownTextReporterOptions = {}
 ) {
   const timestamp = options.timestamp ?? new Date(yield* Clock.currentTimeMillis);
-  return yield* formatStream(options.format ?? 'markdown', () =>
-    formatMarkdownTextChunks(testResult, { ...options, timestamp })
-  );
+  return yield* Effect.try({
+    try: () => formatMarkdownTextChunks(testResult, { ...options, timestamp }),
+    catch: cause => {
+      const format = options.format ?? 'markdown';
+      return new ApexReportError({ format, message: causeMessage(cause), cause: causeMessage(cause) });
+    }
+  });
+});
+
+/** Collects the Markdown/text stream for callers that need a complete string. */
+export const formatMarkdownTextReport = Effect.fn('Apex.formatMarkdownTextReport')(function* (
+  testResult: TestResult,
+  options: MarkdownTextReporterOptions = {}
+) {
+  const chunks = yield* formatMarkdownTextReportStream(testResult, options);
+  return yield* collectReportChunks(options.format ?? 'markdown', chunks);
 });

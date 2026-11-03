@@ -5,13 +5,16 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { type TestResult, type OutputFormat, type TestSortOrder } from '@salesforce/apex-node';
-import { formatMarkdownTextReport } from '@salesforce/apex-node/effect';
+import { formatMarkdownTextReportStream } from '@salesforce/apex-node/effect';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
 import { APEX_TESTING_SECTION } from '../constants';
 import { nls } from '../messages';
+import { normalizeTextStreamToLf } from './newlineUtils';
 
 /** Generates report URI using the library's format: test-result-{testRunId}.{ext} */
 const generateReportUri = (outputDir: URI, testRunId: string | undefined, extension: string): URI => {
@@ -58,7 +61,7 @@ export const writeAndOpenTestReport = Effect.fn('writeAndOpenTestReport')(functi
     75
   );
 
-  const content = yield* formatMarkdownTextReport(result, {
+  const report = yield* formatMarkdownTextReportStream(result, {
     format,
     sortOrder,
     performanceThresholdMs,
@@ -66,6 +69,11 @@ export const writeAndOpenTestReport = Effect.fn('writeAndOpenTestReport')(functi
     codeCoverage,
     timestamp: new Date()
   });
+  const content = yield* normalizeTextStreamToLf(report).pipe(
+    Stream.runCollect,
+    Effect.map(Chunk.toArray),
+    Effect.map(chunks => chunks.join(''))
+  );
 
   // Generate filename using library's format: test-result-{testRunId}.{ext}
   const extension = format === 'markdown' ? '.md' : '.txt';

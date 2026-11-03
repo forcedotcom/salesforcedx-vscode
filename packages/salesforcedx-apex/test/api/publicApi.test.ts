@@ -104,6 +104,7 @@ describe('@salesforce/apex-node public API', () => {
       'formatHumanReport',
       'formatJUnitReport',
       'formatMarkdownTextReport',
+      'formatMarkdownTextReportStream',
       'formatSyncResults',
       'formatTapReport',
       'generateCoverageReports',

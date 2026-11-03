@@ -68,7 +68,13 @@ export { runTestAsynchronous } from './asyncTests';
 export type { AsyncTestOptions } from './schema/wire/asyncTests';
 export type { AsyncTestProgress, AsyncTestRunEvent, AsyncTestRunSummary } from './schema/asyncTests';
 export type { AsyncTestPollingOptions, AsyncTestRun } from './asyncTests';
-export { formatHumanReport, formatTapReport, formatJUnitReport, formatMarkdownTextReport } from './reporters';
+export {
+  formatHumanReport,
+  formatTapReport,
+  formatJUnitReport,
+  formatMarkdownTextReport,
+  formatMarkdownTextReportStream
+} from './reporters';
 export type { HumanReporterOptions } from './reporters';
 export type { MarkdownTextReporterOptions, OutputFormat, TestSortOrder } from '../reporters/markdownTextReporter';
 export { buildCoverageMap, generateCoverageReports, IstanbulReports } from './coverageReports';
