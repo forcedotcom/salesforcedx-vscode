@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { OrgAuthResult, OrgDisplayResult } from './types';
+import type { OrgAuthResult, OrgDisplayResult, OrgDisplayUserResult } from './types';
+import { AuthInfo } from '@salesforce/core';
 import * as Schema from 'effect/Schema';
 import { exec } from 'node:child_process';
 import * as fs from 'node:fs/promises';
@@ -40,11 +41,14 @@ export const runScratchOrgCreate = async (command: string, cwd: string): Promise
   }
 };
 
-/** Read metadata from org display and the credential from the dedicated auth command. */
+/** Read credentials and saved org metadata for the Web Console authentication settings. */
 export const getOrgAuthFields = async (orgAlias: string): Promise<OrgAuthResult> => {
   const displayResponse = JSON.parse(
     (await execAsync(`sf org display -o ${orgAlias} --json`, { env })).stdout
   ) as OrgDisplayResult;
+  if (displayResponse.result.status === 'Deleted') {
+    throw new Error(`Org ${orgAlias} is deleted.`);
+  }
   const tokenResponse = Schema.decodeUnknownSync(ShowAccessTokenResponse)(
     JSON.parse((await execAsync(`sf org auth show-access-token -o ${orgAlias} --json`, { env })).stdout)
   );
@@ -53,10 +57,28 @@ export const getOrgAuthFields = async (orgAlias: string): Promise<OrgAuthResult>
     throw new Error(`Org ${orgAlias} did not return an instance URL, API version, and access token.`);
   }
 
+  const userResponse = JSON.parse(
+    (await execAsync(`sf org display user -o ${orgAlias} --json`, { env })).stdout
+  ) as OrgDisplayUserResult;
+  const authFields = (await AuthInfo.create({ username: displayResponse.result.username })).getFields();
+  const { username, orgId, instanceName, orgEdition, namespacePrefix, isDevHub, isScratch, isSandbox } = authFields;
+
   return {
     accessToken: tokenResponse.result.accessToken,
     instanceUrl: displayResponse.result.instanceUrl,
-    instanceApiVersion: displayResponse.result.apiVersion
+    instanceApiVersion: displayResponse.result.apiVersion,
+    sessionContext: {
+      username,
+      orgId: orgId ?? userResponse.result.orgId,
+      userId: userResponse.result.id,
+      instanceName,
+      orgEdition,
+      // Core persists a confirmed no-namespace result as null; the Web Console setting uses strings.
+      namespacePrefix: namespacePrefix === null ? '' : namespacePrefix,
+      isDevHub,
+      isScratch,
+      isSandbox
+    }
   };
 };
 
