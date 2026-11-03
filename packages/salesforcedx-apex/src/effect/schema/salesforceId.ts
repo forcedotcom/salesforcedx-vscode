@@ -7,23 +7,77 @@
 
 import * as Schema from 'effect/Schema';
 import * as SchemaGetter from 'effect/SchemaGetter';
-import { ApexTestSuiteId, TestRunIdString } from '../../schemas/salesforceId.js';
+import { messages } from '../../i18n/i18n.js';
+
+const salesforceIdPattern = /^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$/;
+const SalesforceIdString = Schema.String.check(
+  Schema.isPattern(salesforceIdPattern, { message: 'ID must contain 15 or 18 alphanumeric characters' })
+);
+const prefixedSalesforceIdString = (prefix: string, recordType: string) => {
+  const message = `${recordType} ID must contain 15 or 18 alphanumeric characters and start with ${prefix}`;
+  return Schema.String.check(
+    Schema.isPattern(salesforceIdPattern, { message }),
+    Schema.isStartingWith(prefix, { message })
+  ).annotate({ identifier: `${recordType}Id` });
+};
 
 /** A 15- or 18-character Salesforce record ID. */
-export const SalesforceId = Schema.String.check(Schema.isPattern(/^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$/)).pipe(
-  Schema.brand('@salesforcedx-apex/SalesforceId')
-);
+export const SalesforceId = SalesforceIdString.pipe(Schema.brand('@salesforcedx-apex/SalesforceId'));
 export type SalesforceId = typeof SalesforceId.Type;
 
+/** Salesforce User record ID. */
+export const UserIdString = prefixedSalesforceIdString('005', 'User');
+export const UserId = UserIdString.pipe(Schema.brand('@salesforcedx-apex/UserId'));
+export type UserId = typeof UserId.Type;
+
+/** Salesforce Organization record ID. */
+export const OrgIdString = prefixedSalesforceIdString('00D', 'Organization');
+
 /** Salesforce ApexClass record ID. */
-export const ApexClassId = SalesforceId.check(Schema.isStartingWith('01p')).pipe(
-  Schema.brand('@salesforcedx-apex/ApexClassId')
-);
+export const ApexClassIdString = prefixedSalesforceIdString('01p', 'ApexClass');
+export const ApexClassId = ApexClassIdString.pipe(Schema.brand('@salesforcedx-apex/ApexClassId'));
 export type ApexClassId = typeof ApexClassId.Type;
 
+/** Salesforce ApexTrigger record ID. */
+export const ApexTriggerIdString = prefixedSalesforceIdString('01q', 'ApexTrigger');
+export const ApexTriggerId = ApexTriggerIdString.pipe(Schema.brand('@salesforcedx-apex/ApexTriggerId'));
+export type ApexTriggerId = typeof ApexTriggerId.Type;
+
+/** Salesforce Tooling API ApexLog record ID. */
+export const ApexLogIdString = prefixedSalesforceIdString('07L', 'ApexLog');
+export const ApexLogId = ApexLogIdString.pipe(Schema.brand('@salesforcedx-apex/ApexLogId'));
+export type ApexLogId = typeof ApexLogId.Type;
+
 /** Salesforce Apex test run ID. */
+export const TestRunIdString = Schema.String.check(
+  Schema.makeFilter(
+    input =>
+      /^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$/.test(input) && input.startsWith('707')
+        ? undefined
+        : messages.invalidTestRunIdErr.replace('%s', () => input),
+    { identifier: 'AsyncApexJobId' }
+  )
+).annotate({ identifier: 'AsyncApexJobId' });
 export const TestRunId = TestRunIdString.pipe(Schema.brand('@salesforcedx-apex/TestRunId'));
 export type TestRunId = typeof TestRunId.Type;
+
+/** Salesforce ApexTestSuite record ID. */
+export const ApexTestSuiteIdString = prefixedSalesforceIdString('05F', 'ApexTestSuite');
+export const ApexTestSuiteId = ApexTestSuiteIdString.pipe(Schema.brand('@salesforcedx-apex/ApexTestSuiteId'));
+export type ApexTestSuiteId = typeof ApexTestSuiteId.Type;
+
+/** Salesforce Apex test result ID. */
+export const ApexTestResultIdString = prefixedSalesforceIdString('07M', 'ApexTestResult');
+
+/** Salesforce Flow test result ID. */
+export const FlowTestResultIdString = prefixedSalesforceIdString('2hU', 'FlowTestResult');
+
+/** Salesforce Apex test queue item ID. */
+export const ApexTestQueueItemIdString = prefixedSalesforceIdString('709', 'ApexTestQueueItem');
+export const ApexTestQueueItemId = ApexTestQueueItemIdString.pipe(
+  Schema.brand('@salesforcedx-apex/ApexTestQueueItemId')
+);
+export type ApexTestQueueItemId = typeof ApexTestQueueItemId.Type;
 
 export const ApexClassIdsSchema = Schema.String.pipe(
   Schema.decodeTo(Schema.Array(ApexClassId), {

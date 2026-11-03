@@ -33,8 +33,9 @@ in W-24615069; no first-party services caller crosses Effect majors.
   string encodings or nullable optional fields. Runtime schemas retain their
   existing numeric/undefined behavior.
 - `publicApiSchemaContract.mjs` normalizes references, annotations, equivalent
-  union nesting and ordering. Validation hash matches parent `bb6b6458fa`:
-  `9f2619054426b7cf824185855af06081a5532e990fbfb47f3de5cd252550725d`.
+  union nesting and ordering. The schema includes current develop's optional Apex
+  result fields, narrowed execute options, and the V4 payload builder; its hash is
+  `6a5e5eea941c3a4638f8ea0e9d037eed374fc874f8de7b938ec0acd61c44066c`.
 - Public Istanbul declaration dependencies belong in package dependencies, not
   devDependencies; isolated strict root consumers require them.
 

@@ -7,13 +7,16 @@
 
 import * as Schema from 'effect/Schema';
 import * as SchemaGetter from 'effect/SchemaGetter';
-import { ApexClassId, ApexTestSuiteId, ApexTestSuiteIdString } from '../../../schemas/salesforceId.js';
+import { ApexClassId, ApexTestSuiteId, ApexTestSuiteIdString } from '../salesforceId.js';
 import { TestSuiteSchema } from '../testSuites.js';
 
 export const TestSuiteIdQueryResponseSchema = Schema.Struct({ Id: ApexTestSuiteId });
 export const ApexClassIdQueryResponseSchema = Schema.Struct({ Id: ApexClassId });
 
-export const TestSuiteRecordSchema = Schema.Union([TestSuiteSchema, Schema.Struct({ Id: ApexTestSuiteIdString, TestSuiteName: Schema.String })]).pipe(
+export const TestSuiteRecordSchema = Schema.Union([
+  TestSuiteSchema,
+  Schema.Struct({ Id: ApexTestSuiteIdString, TestSuiteName: Schema.String })
+]).pipe(
   Schema.decodeTo(TestSuiteSchema, {
     decode: SchemaGetter.transform(record => ({
       id: 'id' in record ? record.id : record.Id,

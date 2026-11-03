@@ -7,7 +7,7 @@
 import { LoggerLevel } from '@salesforce/core';
 import { isNull, isString, isUndefined } from 'effect/Predicate';
 import { isEmpty } from 'effect/String';
-import { type ApexTestResultData, type TestResult } from '../tests/types';
+import { type ApexTestResultData, type TestResult } from '../tests/apiTypes';
 import { elapsedTime, formatStartTime, HeapMonitor, msToSecond } from '../utils';
 
 // cli currently has spaces in multiples of four for junit format

@@ -12,7 +12,6 @@ import {
 } from '@salesforce/effect-ext-utils';
 import { type LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
-import { pipe } from 'effect/Function';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Scope from 'effect/Scope';
 import * as vscode from 'vscode';
@@ -107,8 +106,7 @@ const removeApexDbEffect = Effect.fn('LanguageClientManager.removeApexDB')(funct
   }
   // A failed listing (e.g. the tools dir doesn't exist yet) ⇒ nothing to clean.
   // safeDelete swallows per-folder failures, matching the old swallow-and-continue behavior.
-  yield* pipe(
-    fsService.readDirectoryWithTypes(Utils.joinPath(info.uri, '.sfdx', 'tools')),
+  yield* fsService.readDirectoryWithTypes(Utils.joinPath(info.uri, '.sfdx', 'tools')).pipe(
     Effect.catchTag('FsServiceError', () => Effect.succeed<ToolsEntry[]>([])),
     Effect.map(toolsDirsToDelete),
     Effect.flatMap(uris =>
@@ -155,8 +153,8 @@ const removeApexDB = (): Promise<void> =>
   removeApexDbEffect().pipe(
     // No services extension ⇒ skip DB cleanup.
     Effect.catchTags({
-      ExtensionNotFoundError: () => Effect.void,
-      ExtensionActivationError: () => Effect.void
+      ServicesExtensionNotFoundError: () => Effect.void,
+      InvalidServicesApiError: () => Effect.void
     }),
     // Provide the service locally so the runtime (real AllServicesLayer in prod, tracer-only mock in vitest)
     // needn't supply ExtensionProviderService.

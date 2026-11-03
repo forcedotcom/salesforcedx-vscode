@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { ExtensionProviderService, getServicesApi } from './extensionProvider';
+export {
+  ExtensionProviderService,
+  getServicesApi,
+  InvalidServicesApiError,
+  ServicesExtensionNotFoundError
+} from './extensionProvider';
 
 export { buildAllServicesLayer } from './allServicesLayer';
 export { getExtensionExports, ExtensionNotFoundError, ExtensionActivationError } from './extensionExports';

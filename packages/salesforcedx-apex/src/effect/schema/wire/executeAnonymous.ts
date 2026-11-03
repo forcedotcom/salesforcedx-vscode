@@ -11,7 +11,6 @@ import * as SchemaGetter from 'effect/SchemaGetter';
 export const soapEnv = 'soapenv:Envelope';
 export const soapBody = 'soapenv:Body';
 export const soapHeader = 'soapenv:Header';
-export const executeAnonymousAction = 'executeAnonymous';
 
 // Generic Connection.request uses xml2js: nil elements retain their attributes; empty elements may be {}.
 const SoapText = Schema.Union([
@@ -24,7 +23,13 @@ const SoapText = Schema.Union([
     encode: SchemaGetter.transform(value => value ?? { $: { 'xsi:nil': 'true' as const } })
   })
 );
-const SoapInteger = Schema.Union([Schema.Int, Schema.NumberFromString.check(Schema.isInt())]);
+const SoapIntegerText = Schema.String.check(Schema.isPattern(/\S/)).pipe(
+  Schema.decodeTo(Schema.Int, {
+    decode: SchemaGetter.transform(Number),
+    encode: SchemaGetter.transform(String)
+  })
+);
+const SoapInteger = Schema.Union([Schema.Int, SoapIntegerText]);
 const SoapBoolean = Schema.Literals(['true', 'false']).pipe(
   Schema.decodeTo(Schema.Boolean, {
     decode: SchemaGetter.transform(value => value === 'true'),
@@ -38,13 +43,17 @@ const resultFields = {
   exceptionStackTrace: Schema.NullOr(Schema.String)
 };
 const failureResultFields = { ...resultFields, line: Schema.Number, column: Schema.Number };
-export const executionResultSchema = Schema.Union([Schema.Struct({ ...failureResultFields, compiled: Schema.Literal(false), success: Schema.Literal(false) }), Schema.Struct({ ...failureResultFields, compiled: Schema.Literal(true), success: Schema.Literal(false) }), Schema.Struct({
+export const executionResultSchema = Schema.Union([
+  Schema.Struct({ ...failureResultFields, compiled: Schema.Literal(false), success: Schema.Literal(false) }),
+  Schema.Struct({ ...failureResultFields, compiled: Schema.Literal(true), success: Schema.Literal(false) }),
+  Schema.Struct({
     ...resultFields,
     line: Schema.Literal(-1),
     column: Schema.Literal(-1),
     compiled: Schema.Literal(true),
     success: Schema.Literal(true)
-  })]);
+  })
+]);
 
 const invalidSessionErrorSchema = Schema.Struct({
   name: Schema.Literal('ERROR_HTTP_500'),

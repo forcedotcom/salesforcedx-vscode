@@ -6,7 +6,7 @@
  */
 import { Logger } from '@salesforce/core';
 import { Readable, type ReadableOptions } from 'node:stream';
-import { type ApexTestResultData, type TestResult } from '../tests/types';
+import { type ApexTestResultData, type TestResult } from '../tests/apiTypes';
 import { elapsedTime, HeapMonitor } from '../utils';
 import { buildTapDiagnostics } from './buildTapDiagnostics';
 

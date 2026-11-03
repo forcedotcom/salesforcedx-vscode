@@ -454,7 +454,7 @@ describe('Language Client Manager', () => {
         type: 'reset'
       });
 
-      // No services extension → getServicesApi fails ExtensionNotFoundError.
+      // No services extension → getServicesApi fails ServicesExtensionNotFoundError.
       const settingsApi = {
         isActive: true,
         exports: { v2: { services: { SettingsService } } }

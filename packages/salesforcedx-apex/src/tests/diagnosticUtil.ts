@@ -8,7 +8,7 @@
 import { getDiagnostic as getTestDiagnostic } from '../effect/diagnostics';
 import { nls } from '../i18n';
 import { type ApexDiagnostic } from '../utils';
-import { type ApexTestResultRecord, type SyncTestFailure } from './types';
+import { type ApexTestResultRecord, type SyncTestFailure } from './apiTypes';
 
 export function formatTestErrors(error: Error): Error {
   const matches = error.message?.match(/\bsObject type ["'](.*?)["'] is not supported\b/);

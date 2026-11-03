@@ -7,15 +7,15 @@
 
 import { type Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
-import * as Result from 'effect/Result';
 import { isNotUndefined } from 'effect/Predicate';
+import * as Result from 'effect/Result';
 import { formatSyncResults, requestSyncTests } from '../effect/syncTests';
 import { nls } from '../i18n';
 import { elapsedTime, getCurrentTime, HeapMonitor } from '../utils';
+import { type SyncTestConfiguration, type TestResult } from './apiTypes';
 import { type CancellationToken } from './cancellation';
 import { CodeCoverage } from './codeCoverage';
 import { formatTestErrors } from './diagnosticUtil';
-import { type SyncTestConfiguration, type TestResult } from './apiTypes';
 import { calculateCodeCoverage } from './utils';
 
 export class SyncTests {

@@ -22,6 +22,7 @@ import * as Exit from 'effect/Exit';
 import * as FiberSet from 'effect/FiberSet';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
+import * as Match from 'effect/Match';
 import { isError } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
@@ -106,42 +107,59 @@ const toolError = (error: unknown): CallToolResult => ({
 
 const callTool = Effect.fn('McpServer.callTool')(function* (name: string, args: unknown) {
   const controller = yield* ControllerService;
-  switch (name) {
-    case 'start': {
-      const value = yield* decodeInput(StartInput, args);
-      const session = yield* controller.start(value.objective, value);
-      return textResult({ runId: session.runId, artifactDir: session.artifactDir, workspaceDir: session.workspaceDir });
-    }
-    case 'observe': {
-      yield* decodeInput(EmptyInput, args);
-      const { observation, screenshot } = yield* controller.observeForMcp;
-      return {
-        content: [
-          { type: 'text', text: JSON.stringify(redactValue(observation), undefined, 2) },
-          { type: 'image', data: Buffer.from(screenshot).toString('base64'), mimeType: 'image/png' }
-        ]
-      } satisfies CallToolResult;
-    }
-    case 'act': {
-      const value = yield* decodeInput(ActInput, args);
-      yield* controller.act({ ...value.action, observationSequence: value.observationSequence });
-      return textResult({ acted: true, observationSequence: value.observationSequence });
-    }
-    case 'add_finding': {
-      const finding = yield* decodeInput(DrivableVscodeFinding, args);
-      yield* controller.addFinding(finding);
-      return textResult({ added: true });
-    }
-    case 'status':
-      yield* decodeInput(EmptyInput, args);
-      return textResult(yield* controller.status);
-    case 'finish':
-      yield* decodeInput(EmptyInput, args);
-      yield* controller.finish;
-      return textResult(yield* controller.status);
-    default:
-      return yield* Effect.fail(new McpError(ErrorCode.InvalidParams, `Tool ${name} not found`));
-  }
+  return yield* Match.value(name).pipe(
+    Match.when('start', () =>
+      decodeInput(StartInput, args).pipe(
+        Effect.flatMap(value => controller.start(value.objective, value)),
+        Effect.map(session =>
+          textResult({ runId: session.runId, artifactDir: session.artifactDir, workspaceDir: session.workspaceDir })
+        )
+      )
+    ),
+    Match.when('observe', () =>
+      decodeInput(EmptyInput, args).pipe(
+        Effect.flatMap(() => controller.observeForMcp),
+        Effect.map(
+          ({ observation, screenshot }) =>
+            ({
+              content: [
+                { type: 'text', text: JSON.stringify(redactValue(observation), undefined, 2) },
+                { type: 'image', data: Buffer.from(screenshot).toString('base64'), mimeType: 'image/png' }
+              ]
+            }) satisfies CallToolResult
+        )
+      )
+    ),
+    Match.when('act', () =>
+      decodeInput(ActInput, args).pipe(
+        Effect.flatMap(value =>
+          controller
+            .act({ ...value.action, observationSequence: value.observationSequence })
+            .pipe(Effect.as(textResult({ acted: true, observationSequence: value.observationSequence })))
+        )
+      )
+    ),
+    Match.when('add_finding', () =>
+      decodeInput(DrivableVscodeFinding, args).pipe(
+        Effect.flatMap(controller.addFinding),
+        Effect.as(textResult({ added: true }))
+      )
+    ),
+    Match.when('status', () =>
+      decodeInput(EmptyInput, args).pipe(
+        Effect.flatMap(() => controller.status),
+        Effect.map(textResult)
+      )
+    ),
+    Match.when('finish', () =>
+      decodeInput(EmptyInput, args).pipe(
+        Effect.flatMap(() => controller.finish),
+        Effect.flatMap(() => controller.status),
+        Effect.map(textResult)
+      )
+    ),
+    Match.orElse(toolName => Effect.fail(new McpError(ErrorCode.InvalidParams, `Tool ${toolName} not found`)))
+  );
 });
 
 /** Creates the MCP server independently of stdio for contract testing. */

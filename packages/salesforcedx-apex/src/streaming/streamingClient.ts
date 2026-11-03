@@ -16,7 +16,7 @@ import {
   type ApexTestQueueItem,
   type ApexTestQueueItemRecord,
   type TestRunIdResult
-} from '../tests/types';
+} from '../tests/apiTypes';
 import { queryAll } from '../tests/utils';
 import { elapsedTime, refreshAuth } from '../utils';
 import { RetrieveResultsInterval, type StreamMessage, StreamingErrors, type TestResultMessage } from './types';

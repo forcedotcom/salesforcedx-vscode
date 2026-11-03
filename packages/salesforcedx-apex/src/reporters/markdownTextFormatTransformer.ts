@@ -8,7 +8,7 @@
 import { Logger } from '@salesforce/core';
 import * as Order from 'effect/Order';
 import { Readable, type ReadableOptions } from 'node:stream';
-import { type TestResult, type ApexTestResultData } from '../tests/types';
+import { type TestResult, type ApexTestResultData } from '../tests/apiTypes';
 import { elapsedTime, HeapMonitor } from '../utils';
 import {
   type ReportData,

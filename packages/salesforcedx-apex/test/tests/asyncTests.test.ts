@@ -18,7 +18,7 @@ import {
   type ApexTestResult,
   type ApexTestQueueItemRecord,
   type TestRunIdResult
-} from '../../src/tests/types';
+} from '../../src/tests/apiTypes';
 import { StreamingClient } from '../../src/streaming';
 import { fail } from 'node:assert';
 import { nls } from '../../src/i18n';

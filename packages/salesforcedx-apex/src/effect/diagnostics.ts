@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Schema from 'effect/Schema';
 import type { Mutable } from '../utils/mutable.js';
+import * as Schema from 'effect/Schema';
 
 export const ApexDiagnosticSchema = Schema.Struct({
   lineNumber: Schema.optional(Schema.Number),

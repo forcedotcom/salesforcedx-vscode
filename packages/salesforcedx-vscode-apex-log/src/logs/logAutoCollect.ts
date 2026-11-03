@@ -39,6 +39,8 @@ const collectNewLogs = Effect.fn('LogAutoCollect.collectNewLogs', {
   attributes: { telemetryIgnore: true }
 })(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const targetOrgRef = yield* api.v2.services.TargetOrgRef;
+  const collectionOrgId = (yield* SubscriptionRef.get(targetOrgRef)).orgId;
   const collectorRef = yield* LogCollectorStateRef;
   const knownIdsRef = yield* KnownLogIdsRef;
   const knownIds = yield* Ref.get(knownIdsRef);
@@ -92,13 +94,18 @@ const collectNewLogs = Effect.fn('LogAutoCollect.collectNewLogs', {
   yield* Stream.fromIterable(newLogs).pipe(
     Stream.runForEach(log =>
       api.v2.services.ApexLogService.use(service => service.getLogBody(log.Id)).pipe(
-        Effect.flatMap(body => saveLog(log.Id, body)),
-        Effect.flatMap(() =>
-          channelService.appendToChannel(
-            nls.localize('log_auto_collect_fetched', log.Id, log.LogUser?.Name ?? 'Unknown', log.Operation ?? '')
-          )
+        Effect.flatMap(body =>
+          Effect.gen(function* () {
+            const { orgId } = yield* SubscriptionRef.get(targetOrgRef);
+            // Never write a body that completed after the user switched orgs.
+            if (orgId !== collectionOrgId) return;
+            yield* saveLog(log.Id, body);
+            yield* channelService.appendToChannel(
+              nls.localize('log_auto_collect_fetched', log.Id, log.LogUser?.Name ?? 'Unknown', log.Operation ?? '')
+            );
+            yield* Ref.update(knownIdsRef, set => HashSet.add(set, log.Id));
+          })
         ),
-        Effect.tap(() => Ref.update(knownIdsRef, set => HashSet.add(set, log.Id))),
         Effect.catch(e => Effect.log('LogAutoCollect: failed to save log', { logId: log.Id, error: String(e) }))
       )
     )
@@ -131,40 +138,25 @@ export const createLogAutoCollect = Effect.fn('ApexLog.createLogAutoCollect')(fu
     Effect.forkChild
   );
 
-  // when the org changes, clear the knownIds
-  yield* Effect.forkChild(
-    targetOrgRef.pipe(
-      SubscriptionRef.changes,
-      Stream.map(orgInfo => orgInfo.orgId),
-      Stream.changes,
-      Stream.as(undefined),
-      Stream.runForEach(() => Ref.set(knownIdsRef, HashSet.empty<string>()).pipe(Effect.asVoid))
-    )
-  );
-
   const dynamicPollStream = SubscriptionRef.changes(pollIntervalRef).pipe(
-    Stream.filter(d => Duration.isGreaterThan(d, Duration.zero)), // 0 means don't poll
     Stream.switchMap(interval =>
-      Schedule.spaced(interval).pipe(
-        Stream.fromSchedule,
-        Stream.filter(() => vscode.window.state.active)
-      )
+      Duration.isGreaterThan(interval, Duration.zero)
+        ? Schedule.spaced(interval).pipe(
+            Stream.fromSchedule,
+            Stream.filter(() => vscode.window.state.active)
+          )
+        : Stream.empty
     )
   );
   const refreshStream = SubscriptionRef.changes(traceFlagRefreshRef).pipe(Stream.as(undefined));
-  // When org becomes ready, status bar fetches trace flags and sets the ref. LogAutoCollect must also
-  // react to org changes so it doesn't miss the initial ref update (race on workspace reload).
   const orgChangeStream = SubscriptionRef.changes(targetOrgRef).pipe(
     Stream.map(orgInfo => orgInfo.orgId),
     Stream.changes,
-    Stream.as(undefined)
+    Stream.mapEffect(() => Ref.set(knownIdsRef, HashSet.empty<string>()).pipe(Effect.as(undefined)))
   );
-
   yield* Effect.forkChild(
-    // run when we know something changed OR when it's time based on polling
     Stream.mergeAll([dynamicPollStream, refreshStream, orgChangeStream], { concurrency: 'unbounded' }).pipe(
-      // if the polling interval === the debounce, events don't make it through the stream
-      // 1s is fine except when the polling interval is very low
+      // If the polling interval equals the debounce, events may not pass through.
       Stream.debounce(calculateDebounce(pollIntervalSeconds)),
       Stream.runForEach(() => collectNewLogs())
     )

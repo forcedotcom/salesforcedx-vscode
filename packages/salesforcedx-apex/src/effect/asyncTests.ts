@@ -74,20 +74,17 @@ const abortTestRun = Effect.fn('Apex.abortTestRun')(function* (
   // Fetch all pages before marking queue items Aborted; those updates can change later query results.
   type QueueItem = Schema.Schema.Type<typeof queueSchema>['records'][number];
   const initialNextRecordsUrl: string | undefined = undefined;
-  yield* Stream.paginate<
-    string | undefined,
-    QueueItem,
-    ApexOperationError | ApexResponseDecodeError,
-    never
-  >(initialNextRecordsUrl, nextRecordsUrl =>
-    request(() =>
-      isUndefined(nextRecordsUrl)
-        ? connection.tooling.query(`SELECT Id, Status FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`)
-        : connection.tooling.queryMore(nextRecordsUrl)
-    ).pipe(
-      Effect.flatMap(response => decode(queueSchema, response)),
-      Effect.map(page => [page.records, page.done ? Option.none() : Option.some(page.nextRecordsUrl)] as const)
-    )
+  yield* Stream.paginate<string | undefined, QueueItem, ApexOperationError | ApexResponseDecodeError, never>(
+    initialNextRecordsUrl,
+    nextRecordsUrl =>
+      request(() =>
+        isUndefined(nextRecordsUrl)
+          ? connection.tooling.query(`SELECT Id, Status FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`)
+          : connection.tooling.queryMore(nextRecordsUrl)
+      ).pipe(
+        Effect.flatMap(response => decode(queueSchema, response)),
+        Effect.map(page => [page.records, page.done ? Option.none() : Option.some(page.nextRecordsUrl)] as const)
+      )
   ).pipe(
     Stream.filter(record => !HashSet.has(finishedStatuses, record.Status)),
     Stream.runCollect,
@@ -111,7 +108,7 @@ const abortTestRun = Effect.fn('Apex.abortTestRun')(function* (
               ).pipe(Effect.mapError(messages => new ApexOperationError({ operation, message: messages.join('; ') })))
             )
           )
-      )
+    )
   );
 });
 
@@ -191,14 +188,16 @@ export const runTestAsynchronous = Effect.fn('Apex.runTestAsynchronous')(functio
   );
   const pending = yield* Ref.make(true);
   const id = yield* Effect.acquireRelease(
-    request(() =>
-      connection.tooling.request({
-        method: 'POST',
-        url: `${connection.tooling._baseUrl()}/runTestsAsynchronous`,
-        body: JSON.stringify(encodedOptions),
-        headers: { 'content-type': 'application/json' }
-      })
-    ).pipe(Effect.flatMap(response => decode(TestRunId, response))),
+    Effect.uninterruptible(
+      request(() =>
+        connection.tooling.request({
+          method: 'POST',
+          url: `${connection.tooling._baseUrl()}/runTestsAsynchronous`,
+          body: JSON.stringify(encodedOptions),
+          headers: { 'content-type': 'application/json' }
+        })
+      ).pipe(Effect.flatMap(response => decode(TestRunId, response)))
+    ),
     testRunId => cancelTestRun(connection, testRunId, pending).pipe(Effect.orDie)
   );
   return {

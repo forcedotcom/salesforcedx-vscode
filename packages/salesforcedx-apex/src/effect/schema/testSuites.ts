@@ -6,7 +6,7 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { ApexClassId, ApexTestSuiteIdString } from '../../schemas/salesforceId.js';
+import { ApexClassId, ApexTestSuiteIdString } from './salesforceId.js';
 
 export const TestSuiteSchema = Schema.Struct({ id: ApexTestSuiteIdString, TestSuiteName: Schema.String }).annotate({
   identifier: 'TestSuite'

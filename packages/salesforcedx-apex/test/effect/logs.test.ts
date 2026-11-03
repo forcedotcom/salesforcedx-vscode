@@ -14,7 +14,7 @@ import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { apexLogId } from '../schemaHelpers';
-import { UserId } from '../../src/schemas/salesforceId';
+import { UserId } from '../../src/effect/schema/salesforceId';
 import { getLogBody, listLogs, streamLogs } from '../../src/effect/logs';
 
 const firstUserId = Schema.decodeUnknownSync(UserId)('0053t000007OxppAAC');
@@ -89,13 +89,13 @@ describe('Effect Apex logs', () => {
   it('fails decoding a continuing page without a nonempty nextRecordsUrl', async () => {
     const { connection, query } = makeConnection();
     query.mockResolvedValue({ totalSize: 2, done: false, records: [log('1')] });
-    expect(await Effect.runPromise(Effect.flip(listLogs(connection)))).toMatchObject({ _tag: 'ParseError' });
+    expect(await Effect.runPromise(Effect.flip(listLogs(connection)))).toMatchObject({ _tag: 'SchemaError' });
   });
 
   it('rejects malformed user IDs before querying', async () => {
     const { connection, query } = makeConnection();
     expect(await Effect.runPromise(Effect.flip(listLogs(connection, { userIds: ['005invalid'] })))).toMatchObject({
-      _tag: 'ParseError'
+      _tag: 'SchemaError'
     });
     expect(query).not.toHaveBeenCalled();
   });
@@ -103,7 +103,7 @@ describe('Effect Apex logs', () => {
   it('rejects a valid Salesforce ID with the wrong ApexLog prefix', async () => {
     const { connection, query } = makeConnection();
     query.mockResolvedValue({ totalSize: 1, done: true, records: [{ ...log('1'), Id: firstUserId }] });
-    expect(await Effect.runPromise(Effect.flip(listLogs(connection)))).toMatchObject({ _tag: 'ParseError' });
+    expect(await Effect.runPromise(Effect.flip(listLogs(connection)))).toMatchObject({ _tag: 'SchemaError' });
     expect(
       await Effect.runPromise(
         Effect.flip(
@@ -112,7 +112,7 @@ describe('Effect Apex logs', () => {
           })
         )
       )
-    ).toMatchObject({ _tag: 'ParseError' });
+    ).toMatchObject({ _tag: 'SchemaError' });
     expect(query).toHaveBeenCalledTimes(1);
   });
 
@@ -126,7 +126,7 @@ describe('Effect Apex logs', () => {
       soql: expect.stringContaining('FROM ApexLog')
     });
     query.mockResolvedValue({ totalSize: 1, records: [{ Id: 'invalid' }] });
-    expect(await Effect.runPromise(Effect.flip(listLogs(connection)))).toMatchObject({ _tag: 'ParseError' });
+    expect(await Effect.runPromise(Effect.flip(listLogs(connection)))).toMatchObject({ _tag: 'SchemaError' });
   });
 
   it('retrieves bodies and preserves string conversion and tagged failures', async () => {
@@ -197,9 +197,7 @@ describe('Effect Apex logs', () => {
     queryMore.mockResolvedValue({ totalSize: 2, done: true, records: [log('2')] });
     request.mockRejectedValueOnce(new Error('body unavailable'));
     const events = await Effect.runPromise(
-      streamLogs(connection, { schedule: Schedule.recurs(0) }).pipe(
-        Stream.runCollect
-      )
+      streamLogs(connection, { schedule: Schedule.recurs(0) }).pipe(Stream.runCollect)
     );
     expect(events).toMatchObject([
       { _tag: 'BodyError', log: { Id: log('1').Id } },
@@ -214,9 +212,7 @@ describe('Effect Apex logs', () => {
     query.mockResolvedValue({ totalSize: 2, done: false, nextRecordsUrl: '/next', records: [log('1')] });
     queryMore.mockRejectedValue(new Error('queryMore unavailable'));
     const events = await Effect.runPromise(
-      streamLogs(connection, { schedule: Schedule.recurs(0) }).pipe(
-        Stream.runCollect
-      )
+      streamLogs(connection, { schedule: Schedule.recurs(0) }).pipe(Stream.runCollect)
     );
     expect(events.map(event => event._tag)).toEqual(['Log', 'QueryError']);
     expect(queryMore).toHaveBeenCalledWith('/next');

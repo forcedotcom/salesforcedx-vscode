@@ -66,9 +66,9 @@ export const publicApiSchemaHash = schema =>
     .update(JSON.stringify(normalizeSchema(schema, schema)))
     .digest('hex');
 
-// W-24615048 is a runtime migration, not a JSON contract revision. Baseline: bb6b6458fa.
+// Baseline includes current develop's optional Apex results, execute options, and V4 payload builder.
 assert.equal(
   publicApiSchemaHash(JSON.parse(readFileSync(new URL('../schemas/public-api.schema.json', import.meta.url), 'utf8'))),
-  '9f2619054426b7cf824185855af06081a5532e990fbfb47f3de5cd252550725d',
-  'Apex public JSON validation changed from the pre-V4 contract'
+  '6a5e5eea941c3a4638f8ea0e9d037eed374fc874f8de7b938ec0acd61c44066c',
+  'Apex public JSON validation changed from the current develop API contract'
 );

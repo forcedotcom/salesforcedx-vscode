@@ -144,9 +144,9 @@ const killOne = Effect.fn('apex.orphan.killOne')(function* (processInfo: Process
 const findOrphanedProcessesSafe = Effect.fn('apex.orphan.findOrphanedSafe')(function* () {
   return yield* findOrphanedProcesses().pipe(
     Effect.catchTags({
-      ExtensionNotFoundError: e => annotateRootSpan('orphanCheckError', String(e)).pipe(Effect.as<ProcessDetail[]>([])),
-      ExtensionActivationError: e =>
-        annotateRootSpan('orphanCheckError', e.message).pipe(Effect.as<ProcessDetail[]>([]))
+      ServicesExtensionNotFoundError: e =>
+        annotateRootSpan('orphanCheckError', String(e)).pipe(Effect.as<ProcessDetail[]>([])),
+      InvalidServicesApiError: e => annotateRootSpan('orphanCheckError', e.message).pipe(Effect.as<ProcessDetail[]>([]))
     })
   );
 });
@@ -163,8 +163,8 @@ const isAutoTerminateEnabled = Effect.fn('apex.orphan.isAutoTerminateEnabled')(
   },
   Effect.catchTags({
     MissingSettingsError: () => Effect.succeed(false),
-    ExtensionNotFoundError: () => Effect.succeed(false),
-    ExtensionActivationError: () => Effect.succeed(false)
+    ServicesExtensionNotFoundError: () => Effect.succeed(false),
+    InvalidServicesApiError: () => Effect.succeed(false)
   })
 );
 
@@ -312,8 +312,8 @@ const alwaysAutoTerminateConfirmation = Effect.fn('apex.orphan.alwaysAutoTermina
     Effect.flatMap(settings => settings.setValue(APEX_SETTINGS_SECTION, AUTO_TERMINATE_KEY, true)),
     Effect.catchTags({
       MissingSettingsError: e => annotateRootSpan('settingsWriteError', e.message),
-      ExtensionNotFoundError: e => annotateRootSpan('settingsWriteError', String(e)),
-      ExtensionActivationError: e => annotateRootSpan('settingsWriteError', e.message)
+      ServicesExtensionNotFoundError: e => annotateRootSpan('settingsWriteError', String(e)),
+      InvalidServicesApiError: e => annotateRootSpan('settingsWriteError', e.message)
     })
   );
   return true;

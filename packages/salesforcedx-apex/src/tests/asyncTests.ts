@@ -30,10 +30,6 @@ import { ApexTestRunSummarySchema } from '../effect/schema/wire/asyncTests';
 import { nls } from '../i18n';
 import { type AsyncTestRun } from '../streaming';
 import { formatStartTime, getCurrentTime } from '../utils';
-import { type CancellationToken } from './cancellation';
-import { CodeCoverage } from './codeCoverage';
-import { QUERY_RECORD_LIMIT } from './constants';
-import { formatTestErrors } from './diagnosticUtil';
 import {
   type ApexTestProgressReporter,
   type ApexTestQueueItem,
@@ -49,7 +45,11 @@ import {
   type TestRunIdResult,
   type FlowTestResult,
   type ApexTestResultRecord
-} from './types';
+} from './apiTypes';
+import { type CancellationToken } from './cancellation';
+import { CodeCoverage } from './codeCoverage';
+import { QUERY_RECORD_LIMIT } from './constants';
+import { formatTestErrors } from './diagnosticUtil';
 import { calculatePercentage, transformTestResult, queryAll, calculateCodeCoverage } from './utils';
 
 /**

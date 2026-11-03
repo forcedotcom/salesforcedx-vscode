@@ -6,13 +6,13 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { ApexClassIdString } from '../../../schemas/salesforceId.js';
 import {
   ApexClassOrTriggerIdSchema,
   CoverageLineCountSchema,
   CoverageLinesSchema,
   CoveragePercentSchema
 } from '../coverage.js';
+import { ApexClassIdString } from '../salesforceId.js';
 
 const ApexClassOrTriggerSchema = Schema.Struct({ Id: ApexClassOrTriggerIdSchema, Name: Schema.String });
 
@@ -52,8 +52,7 @@ export const ApexOrgWideCoverageSchema = Schema.Struct({
   done: Schema.Boolean,
   totalSize: Schema.Number,
   records: Schema.mutable(Schema.Array(Schema.Struct({ PercentCovered: Schema.String })))
-})
-  .annotate({ identifier: 'ApexOrgWideCoverage' });
+}).annotate({ identifier: 'ApexOrgWideCoverage' });
 export type ApexOrgWideCoverage = typeof ApexOrgWideCoverageSchema.Type;
 
 export const ApexOrgWideCoverageQueryRecordSchema = Schema.Struct({

@@ -16,7 +16,7 @@ import {
   type ApexCodeCoverage,
   type OutputDirConfig,
   type TestResult
-} from '../../src/tests/types';
+} from '../../src/tests/apiTypes';
 import { nls } from '../../src/i18n';
 import {
   codeCoverageQueryResult,

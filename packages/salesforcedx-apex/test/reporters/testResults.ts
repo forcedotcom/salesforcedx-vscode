@@ -6,7 +6,7 @@
  */
 
 import * as util from 'node:util';
-import { type TestResult } from '../../src/tests/types';
+import { type TestResult } from '../../src/tests/apiTypes';
 import { apexClassId, salesforceId } from '../schemaHelpers';
 
 const asyncApexJobId = salesforceId('7073t000061uwZIAAY');

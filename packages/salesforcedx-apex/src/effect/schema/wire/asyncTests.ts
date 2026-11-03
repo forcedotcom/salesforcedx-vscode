@@ -6,15 +6,22 @@
  */
 
 import * as Effect from 'effect/Effect';
+import { isNull } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as SchemaGetter from 'effect/SchemaGetter';
-import { isNull } from 'effect/Predicate';
-import { ApexTestQueueItemId } from '../../../schemas/salesforceId.js';
-import { ApexClassId, ApexClassIdsSchema, ApexTestSuiteIdsSchema } from '../salesforceId.js';
+import { ApexClassId, ApexClassIdsSchema, ApexTestQueueItemId, ApexTestSuiteIdsSchema } from '../salesforceId.js';
 
 const testLevelSchema = Schema.Literals(['RunLocalTests', 'RunAllTestsInOrg', 'RunSpecifiedTests']);
 const testCategorySchema = Schema.Literals(['Apex', 'Flow']);
-export const AsyncTestRunStatusSchema = Schema.Literals(['Queued', 'Processing', 'Aborted', 'Failed', 'Completed', 'Passed', 'Skipped']);
+export const AsyncTestRunStatusSchema = Schema.Literals([
+  'Queued',
+  'Processing',
+  'Aborted',
+  'Failed',
+  'Completed',
+  'Passed',
+  'Skipped'
+]);
 
 /** Asynchronous request options; decoded ID lists are encoded as comma-separated strings for the API. */
 export const AsyncTestOptionsSchema = Schema.Struct({
@@ -60,6 +67,9 @@ const queueRecordsSchema = Schema.Array(
     Status: Schema.Literals(['Queued', 'Holding', 'Preparing', 'Processing', 'Aborted', 'Completed', 'Failed'])
   })
 );
-export const queueSchema = Schema.Union([Schema.Struct({ done: Schema.Literal(true), records: queueRecordsSchema }), Schema.Struct({ done: Schema.Literal(false), records: queueRecordsSchema, nextRecordsUrl: Schema.String })]);
+export const queueSchema = Schema.Union([
+  Schema.Struct({ done: Schema.Literal(true), records: queueRecordsSchema }),
+  Schema.Struct({ done: Schema.Literal(false), records: queueRecordsSchema, nextRecordsUrl: Schema.String })
+]);
 
 export const updateResultsSchema = Schema.Array(Schema.Struct({ success: Schema.Boolean }));

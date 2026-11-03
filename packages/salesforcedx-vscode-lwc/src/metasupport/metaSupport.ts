@@ -54,11 +54,9 @@ export const activateMetaSupport = Effect.fn('activateMetaSupport')(function* (e
       }
     ];
     yield* Effect.tryPromise(async () => {
-      if (!redHatExtension.isActive) {
-        await redHatExtension.activate();
-      }
-      redHatExtension.exports.addXMLCatalogs(catalogs);
-      redHatExtension.exports.addXMLFileAssociations(fileAssociations);
+      const xmlApi = redHatExtension.isActive ? redHatExtension.exports : await redHatExtension.activate();
+      xmlApi.addXMLCatalogs(catalogs);
+      xmlApi.addXMLFileAssociations(fileAssociations);
     }).pipe(Effect.catch(() => channelService.appendToChannel(nls.localize('lightning_lwc_fail_redhat_extension'))));
   } else if (minor === 15) {
     yield* channelService.appendToChannel(nls.localize('lightning_lwc_redhat_extension_regression'));

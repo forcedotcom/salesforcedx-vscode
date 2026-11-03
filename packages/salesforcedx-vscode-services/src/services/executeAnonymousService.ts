@@ -35,7 +35,7 @@ export const executeAnonymousWithConnection: (
     return yield* new ExecuteAnonymousError({ message: 'Execute anonymous failed: no access token' });
   const { result, logBody } = yield* executeAnonymous(connection, { apexCode: code }).pipe(
     Effect.map(({ logBody: log, ...outcomeResult }) => ({
-      result: outcomeResult satisfies ExecuteAnonymousResult,
+      result: { ...outcomeResult, line: -1, column: -1 } satisfies ExecuteAnonymousResult,
       logBody: log ?? ''
     })),
     Effect.catchTags({

@@ -35,8 +35,8 @@ const connection = {
 const success = {
   compiled: 'true',
   success: 'true',
-  line: 1,
-  column: 5,
+  line: -1,
+  column: -1,
   compileProblem: '',
   exceptionMessage: '',
   exceptionStackTrace: ''
@@ -89,7 +89,11 @@ it('executes the actual V4 Apex SOAP operation and preserves the services result
       await runtime.runPromise(
         ExecuteAnonymousService.use(service => service.executeAndRetrieveLog('System.debug(1);'))
       )
-    ).toEqual({ result: { compiled: true, success: true, line: 1, column: 5 }, logBody: 'LOG BODY', logId: undefined });
+    ).toEqual({
+      result: { compiled: true, success: true, line: -1, column: -1 },
+      logBody: 'LOG BODY',
+      logId: undefined
+    });
     expect(request).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({ method: 'POST', url: 'https://fixture.example/services/Soap/s/67.0/00D000000000001' })
     );

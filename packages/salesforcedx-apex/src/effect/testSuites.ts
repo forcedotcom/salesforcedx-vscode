@@ -13,13 +13,13 @@ import * as Option from 'effect/Option';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { messages } from '../i18n/i18n.js';
+import { createRecord, queryRecords } from './records.js';
+import { ApexOperationError, ApexResponseDecodeError } from './schema/errors.js';
 import {
   ApexTestSuiteId,
   type ApexTestSuiteId as ApexTestSuiteIdType,
   type ApexClassId
-} from '../schemas/salesforceId.js';
-import { createRecord, queryRecords } from './records.js';
-import { ApexOperationError, ApexResponseDecodeError } from './schema/errors.js';
+} from './schema/salesforceId.js';
 import { TestSuiteMembershipSchema } from './schema/testSuites.js';
 import {
   ApexClassIdQueryResponseSchema,

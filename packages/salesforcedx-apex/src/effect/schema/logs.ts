@@ -6,21 +6,21 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { ApexLogId, UserId } from '../../schemas/salesforceId.js';
 import { ApexLogBodyFetchError, ApexLogQueryError } from './errors.js';
+import { ApexLogId, UserId } from './salesforceId.js';
 import { ApexLogListItem } from './wire/logs.js';
 
 export const ListLogsOptionsSchema = Schema.Struct({
-    /** Filter to logs for these users; pass one ID for a single user. */
-    userIds: Schema.optional(Schema.mutable(Schema.Array(UserId))),
-    /** Filter to logs whose Operation contains this string (e.g. 'executeAnonymous'). */
-    operationContains: Schema.optional(Schema.String),
-    /** Inclusive ISO StartTime lower bound. */
-    startTimeAfter: Schema.optional(Schema.String),
-    /** Cursor for incremental polling; omitting id includes all records at startTime. */
-    cursor: Schema.optional(Schema.Struct({ startTime: Schema.String, id: Schema.optional(ApexLogId) })),
-    /** Result ordering; defaults to descending, except cursor queries default to ascending. */
-    orderBy: Schema.optional(Schema.Literals(['ASC', 'DESC']))
+  /** Filter to logs for these users; pass one ID for a single user. */
+  userIds: Schema.optional(Schema.mutable(Schema.Array(UserId))),
+  /** Filter to logs whose Operation contains this string (e.g. 'executeAnonymous'). */
+  operationContains: Schema.optional(Schema.String),
+  /** Inclusive ISO StartTime lower bound. */
+  startTimeAfter: Schema.optional(Schema.String),
+  /** Cursor for incremental polling; omitting id includes all records at startTime. */
+  cursor: Schema.optional(Schema.Struct({ startTime: Schema.String, id: Schema.optional(ApexLogId) })),
+  /** Result ordering; defaults to descending, except cursor queries default to ascending. */
+  orderBy: Schema.optional(Schema.Literals(['ASC', 'DESC']))
 }).annotate({ identifier: 'ListLogsOptions' });
 /** Caller-facing wire form; decoding validates its user IDs as `UserId`. */
 export type ListLogsOptions = Schema.Codec.Encoded<typeof ListLogsOptionsSchema>;
@@ -28,7 +28,9 @@ export type DecodedListLogsOptions = Schema.Schema.Type<typeof ListLogsOptionsSc
 
 export const LogStreamEventSchema = Schema.Union([
   Schema.TaggedStruct('Log', { log: ApexLogListItem, body: Schema.String }),
-  Schema.TaggedStruct('QueryError', { error: Schema.Union([ApexLogQueryError, Schema.instanceOf(Schema.SchemaError)]) }),
+  Schema.TaggedStruct('QueryError', {
+    error: Schema.Union([ApexLogQueryError, Schema.instanceOf(Schema.SchemaError)])
+  }),
   Schema.TaggedStruct('BodyError', { log: ApexLogListItem, error: ApexLogBodyFetchError })
 ]);
 export type LogStreamEvent = typeof LogStreamEventSchema.Type;

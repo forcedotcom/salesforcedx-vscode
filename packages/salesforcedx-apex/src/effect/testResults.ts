@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { TestCategory, TestResult, TestResultRaw } from '../tests/types.js';
+import type { TestCategory, TestResult, TestResultRaw } from '../tests/apiTypes.js';
 import { isNotNull, isNotUndefined } from 'effect/Predicate';
 
 export const calculatePercentage = (dividend: number, divisor: number): string =>

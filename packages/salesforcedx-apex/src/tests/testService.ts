@@ -4,32 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { type Connection } from '@salesforce/core';
-import { type Duration } from '@salesforce/kit';
-import * as Effect from 'effect/Effect';
-import * as Logger from 'effect/Logger';
-import * as Option from 'effect/Option';
-import { isNotUndefined } from 'effect/Predicate';
-import * as Result from 'effect/Result';
-import * as Schema from 'effect/Schema';
-import { JsonStreamStringify } from 'json-stream-stringify';
-import { createWriteStream } from 'node:fs';
-import { mkdir, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import { Readable, type Writable, type Transform } from 'node:stream';
-import { pipeline } from 'node:stream/promises';
-import { ApexOperationError, ApexResponseDecodeError } from '../effect/schema/errors';
-import { buildAsyncPayload, buildSyncPayload } from '../effect/testPayloads';
-import { buildSuite, getTestsInSuite, retrieveAllSuites, retrieveSuiteId } from '../effect/testSuites';
-import { nls } from '../i18n';
-import { JUnitFormatTransformer, TapFormatTransformer, MarkdownTextFormatTransformer } from '../reporters';
-import { ApexTestSuiteId } from '../schemas/salesforceId';
-import { TestResultStringifyStream } from '../streaming';
-import { elapsedTime, HeapMonitor } from '../utils';
-import { AsyncTests } from './asyncTests';
-import { type CancellationToken } from './cancellation';
-import { formatTestErrors } from './diagnosticUtil';
-import { SyncTests } from './syncTests';
 import type {
   ApexTestProgressReporter,
   AsyncTestArrayConfiguration,
@@ -41,16 +15,47 @@ import type {
   TestRunIdResult,
   TestSuiteMembershipRecord
 } from './apiTypes';
-import { ResultFileFormatsSchema, ResultFormatsSchema } from './types';
+import { type Connection } from '@salesforce/core';
+import { type Duration } from '@salesforce/kit';
+import * as Effect from 'effect/Effect';
+import * as Option from 'effect/Option';
+import { isNotUndefined } from 'effect/Predicate';
+import * as Result from 'effect/Result';
+import * as Schema from 'effect/Schema';
+import { JsonStreamStringify } from 'json-stream-stringify';
+import { createWriteStream } from 'node:fs';
+import { mkdir, writeFile } from 'node:fs/promises';
+import { join } from 'node:path';
+import { Readable, type Writable, type Transform } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
+import { ApexOperationError, ApexResponseDecodeError } from '../effect/schema/errors';
+import { ApexTestSuiteId } from '../effect/schema/salesforceId';
+import { buildAsyncPayload, buildSyncPayload } from '../effect/testPayloads';
+import { buildSuite, getTestsInSuite, retrieveAllSuites, retrieveSuiteId } from '../effect/testSuites';
+import { ResultFileFormatsSchema, ResultFormatsSchema } from '../effect/testTypes';
+import { nls } from '../i18n';
+import { JUnitFormatTransformer, TapFormatTransformer, MarkdownTextFormatTransformer } from '../reporters';
+import { TestResultStringifyStream } from '../streaming';
+import { elapsedTime, HeapMonitor } from '../utils';
+import { AsyncTests } from './asyncTests';
+import { type CancellationToken } from './cancellation';
+import { formatTestErrors } from './diagnosticUtil';
+import { SyncTests } from './syncTests';
 
-const ResultFormatsWithMessageSchema = ResultFormatsSchema.pipe(
-  Schema.annotate({ message: nls.localize('resultFormatErr') })
-);
-const ResultFileFormatsWithMessageSchema = ResultFileFormatsSchema.pipe(
-  Schema.annotate({ message: nls.localize('resultFileFormatErr') })
-);
-const assertResultFormats = Schema.decodeUnknownSync(ResultFormatsWithMessageSchema);
-const assertResultFileFormats = Schema.decodeUnknownSync(ResultFileFormatsWithMessageSchema);
+const assertResultFormats = (value: unknown): void => {
+  try {
+    Schema.decodeUnknownSync(ResultFormatsSchema)(value);
+  } catch {
+    throw new Error(nls.localize('resultFormatErr'));
+  }
+};
+const assertResultFileFormats = (value: unknown): void => {
+  try {
+    Schema.decodeUnknownSync(ResultFileFormatsSchema)(value);
+  } catch {
+    throw new Error(nls.localize('resultFileFormatErr'));
+  }
+};
 
 /**
  * Standalone function for writing test result files - easier to test
@@ -146,9 +151,6 @@ export const writeResultFiles = async (
 const runTestServiceOperation = async <A, E extends Error>(operation: Effect.Effect<A, E>): Promise<A> =>
   Result.getOrThrowWith(await operation.pipe(Effect.result, Effect.runPromise), formatTestErrors);
 
-// Preserve the class API's plain console messages while Effect consumers select their own logger.
-const suiteConsoleLogger = Logger.make(({ message }) => console.log(...(Array.isArray(message) ? message : [message])));
-
 export class TestService {
   private readonly connection: Connection;
   private readonly asyncService: AsyncTests;
@@ -218,11 +220,7 @@ export class TestService {
    * @internal Used by the co-repo Apex Testing extension; not part of the supported npm API.
    */
   public async buildSuite(suitename: string, testClasses: string[]): Promise<void> {
-    return runTestServiceOperation(
-      buildSuite(this.connection, suitename, testClasses).pipe(
-        Effect.provide(Logger.layer([suiteConsoleLogger]))
-      )
-    );
+    return runTestServiceOperation(buildSuite(this.connection, suitename, testClasses));
   }
 
   /**

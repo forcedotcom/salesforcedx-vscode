@@ -6,7 +6,7 @@
  */
 import { Logger } from '@salesforce/core';
 import { Readable, type ReadableOptions } from 'node:stream';
-import { type TestResult } from '../tests/types';
+import { type TestResult } from '../tests/apiTypes';
 import { elapsedTime } from '../utils';
 
 const BUFFER_SIZE = 256;

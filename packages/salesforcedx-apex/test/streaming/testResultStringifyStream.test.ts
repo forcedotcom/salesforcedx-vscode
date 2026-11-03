@@ -7,7 +7,7 @@
 import { once } from 'node:events';
 import { TestResultStringifyStream } from '../../src/streaming';
 import { type CodeCoverageResult, type TestResult } from '../../src/tests';
-import { type PerClassCoverage } from '../../src/tests/types';
+import { type PerClassCoverage } from '../../src/tests/apiTypes';
 import { apexClassId, salesforceId } from '../schemaHelpers';
 
 const firstAsyncApexJobId = salesforceId('707000000000001AAA');

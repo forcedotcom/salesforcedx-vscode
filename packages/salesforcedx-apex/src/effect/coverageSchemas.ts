@@ -5,15 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Schema from 'effect/Schema';
 import type { Mutable } from '../utils/mutable.js';
-import { ApexClassIdString } from '../schemas/salesforceId.js';
+import * as Schema from 'effect/Schema';
 import {
   ApexClassOrTriggerIdSchema,
   CoverageLineCountSchema,
   CoverageLinesSchema,
   CoverageNumberArraySchema
 } from './schema/coverage.js';
+import { ApexClassIdString } from './schema/salesforceId.js';
 
 // Keep the mutable arrays and string IDs accepted by existing coverage consumers.
 

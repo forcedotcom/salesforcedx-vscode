@@ -8,7 +8,7 @@
 import { MarkdownTextFormatTransformer } from '../../src';
 import { pipeline, Writable } from 'node:stream';
 import { getTestData, successResult } from './testResults';
-import type { TestResult } from '../../src/tests/types';
+import type { TestResult } from '../../src/tests/apiTypes';
 import { apexClassId } from '../schemaHelpers';
 
 const { testResults } = getTestData();

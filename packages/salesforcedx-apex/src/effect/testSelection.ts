@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { NamespaceInfo, TestItem } from '../tests/types.js';
+import type { NamespaceInfo, TestItem } from '../tests/apiTypes.js';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
-import { ApexClassId } from '../schemas/salesforceId.js';
+import { ApexClassId } from './schema/salesforceId.js';
 import {
   AmbiguousApexSelectionSchema,
   AmbiguousFlowSelectionSchema,

@@ -6,7 +6,7 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { SalesforceId } from '../../../schemas/salesforceId.js';
+import { SalesforceId } from '../salesforceId.js';
 
 /** A minimal Salesforce query record containing its record ID. */
 export const IdRecordSchema = Schema.Struct({ Id: SalesforceId });

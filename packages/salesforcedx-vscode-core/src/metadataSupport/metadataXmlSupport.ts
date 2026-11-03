@@ -122,11 +122,9 @@ const setupRedhatXml = Effect.fn('metadataXmlSupport.setupRedhatXml')(
 
     yield* Effect.tryPromise({
       try: async () => {
-        if (!redHatExtension.isActive) {
-          await redHatExtension.activate();
-        }
-        redHatExtension.exports.addXMLCatalogs(inputCatalogs);
-        redHatExtension.exports.addXMLFileAssociations(inputFileAssociations);
+        const xmlApi = redHatExtension.isActive ? redHatExtension.exports : await redHatExtension.activate();
+        xmlApi.addXMLCatalogs(inputCatalogs);
+        xmlApi.addXMLFileAssociations(inputFileAssociations);
       },
       catch: cause =>
         new RedHatXmlExtensionSetupError({

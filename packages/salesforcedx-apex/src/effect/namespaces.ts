@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { NamespaceInfo } from '../tests/types.js';
+import type { NamespaceInfo } from '../tests/apiTypes.js';
 import type { Connection } from '@salesforce/core';
 import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';

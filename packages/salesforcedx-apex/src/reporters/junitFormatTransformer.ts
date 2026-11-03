@@ -8,7 +8,7 @@ import { Logger } from '@salesforce/core';
 import { isNull, isString, isUndefined } from 'effect/Predicate';
 import { isEmpty } from 'effect/String';
 import { Readable, type ReadableOptions } from 'node:stream';
-import { type TestResult } from '../tests/types';
+import { type TestResult } from '../tests/apiTypes';
 import { elapsedTime, formatStartTime, HeapMonitor, msToSecond } from '../utils';
 
 // cli currently has spaces in multiples of four for junit format

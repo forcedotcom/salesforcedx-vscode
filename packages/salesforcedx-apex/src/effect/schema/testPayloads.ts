@@ -9,8 +9,8 @@ import * as HashSet from 'effect/HashSet';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { messages } from '../../i18n/i18n.js';
-import { ApexClassIdString } from '../../schemas/salesforceId.js';
-import { TestLevelSchema } from '../../tests/types.js';
+import { TestLevelSchema } from '../testTypes.js';
+import { ApexClassIdString } from './salesforceId.js';
 
 /** A selected test class, optionally restricted to named methods. */
 export const TestItemSchema = Schema.Struct({
@@ -37,7 +37,7 @@ export const TestItemSchema = Schema.Struct({
 );
 
 /** Synchronous selections identify exactly one class, allowing repeated selections and multiple methods. */
-export const SyncTestItemsSchema = Schema.Array(TestItemSchema)
+const SyncTestItemsSchema = Schema.Array(TestItemSchema)
   .pipe(Schema.mutable)
   .check(
     Schema.isMinLength(1, { message: messages.syncClassErr }),
@@ -60,13 +60,17 @@ export const SyncTestItemsSchema = Schema.Array(TestItemSchema)
 /** Tooling synchronous request; test selection and request limits are validated before sending. */
 export const SyncTestConfigurationSchema = Schema.Struct({
   classNames: Schema.optional(
-    Schema.NonEmptyString.check(Schema.isTrimmed()).check(Schema.isPattern(/^[^,]+$/, { message: messages.syncClassErr }))
+    Schema.NonEmptyString.check(Schema.isTrimmed()).check(
+      Schema.isPattern(/^[^,]+$/, { message: messages.syncClassErr })
+    )
   ),
   /** Only one distinct class is allowed for synchronous runs. */
   tests: Schema.optional(SyncTestItemsSchema),
   /** The only supported synchronous test level is RunSpecifiedTests. */
   testLevel: Schema.optional(
-    Schema.String.check(Schema.isPattern(/^RunSpecifiedTests$/, { message: 'Synchronous tests require RunSpecifiedTests' }))
+    Schema.String.check(
+      Schema.isPattern(/^RunSpecifiedTests$/, { message: 'Synchronous tests require RunSpecifiedTests' })
+    )
   ),
   /** Stop scheduling tests after this many failures; 0 stops after any failure. */
   maxFailedTests: Schema.optional(
@@ -105,10 +109,13 @@ const payloadOptions = {
 };
 
 export const BuildSyncPayloadOptionsSchema = Schema.Struct(payloadOptions).check(
-  Schema.makeFilter(({ tests, classNames, category }) => (tests || classNames || category ? undefined : messages.payloadErr), {
-    identifier: 'BuildSyncPayloadOptions',
-    description: 'Requires a non-empty tests, classNames, or category selection.'
-  })
+  Schema.makeFilter(
+    ({ tests, classNames, category }) => (tests || classNames || category ? undefined : messages.payloadErr),
+    {
+      identifier: 'BuildSyncPayloadOptions',
+      description: 'Requires a non-empty tests, classNames, or category selection.'
+    }
+  )
 );
 export type BuildSyncPayloadOptions = typeof BuildSyncPayloadOptionsSchema.Type;
 

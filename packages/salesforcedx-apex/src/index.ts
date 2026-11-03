@@ -7,20 +7,11 @@
 
 export { CancellationTokenSource } from './tests/cancellation';
 export type { CancellationToken } from './tests/cancellation';
-export type { ApexTestProgressReporter } from './tests/types';
+export type { ApexTestProgressReporter } from './tests/apiTypes';
 export type { ExecuteAnonymousResponse, ApexExecuteOptions } from './execute/types';
 export { ExecuteService } from './execute/executeService';
 export { LogService } from './logs';
 export type { ApexLogGetOptions, LogRecord, LogResult } from './logs';
-export {
-  ApexClassId,
-  ApexLogId,
-  ApexTestSuiteId,
-  ApexTriggerId,
-  SalesforceId,
-  TestRunId,
-  UserId
-} from './schemas/salesforceId';
 export {
   JUnitReporter,
   TapReporter,

@@ -29,13 +29,6 @@ export type ApexDiagnostic = {
   className?: string;
 };
 
-export type QueryResult<T = QueryRecord> = { records: T[] };
-type QueryRecord = { Id: string };
-export type QueryRecords = {
-  totalSize: number;
-  records: IdRecord[];
-};
-
 type DebugLevelRecord = {
   ApexCode: string;
   VisualForce: string;

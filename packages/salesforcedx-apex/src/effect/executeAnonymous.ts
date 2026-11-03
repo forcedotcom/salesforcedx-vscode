@@ -10,6 +10,7 @@ import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
+import { executeAnonymousAction } from '../execute/constants.js';
 import { encodeBody } from '../execute/utils.js';
 import { messages } from '../i18n/i18n.js';
 import {
@@ -21,7 +22,6 @@ import {
 } from './errors.js';
 import { ApexRequestError, InvalidSessionError } from './schema/errors.js';
 import {
-  executeAnonymousAction,
   executionResultSchema,
   isInvalidSessionError,
   soapBody,
@@ -140,7 +140,10 @@ export const executeAnonymous = Effect.fn('Apex.executeAnonymous')(function* (
     ),
     Effect.catchTag('ApexRequestError', error =>
       Effect.fail(
-        operationError(error.message, messages.unexpectedExecuteCommandError.replace('%s', () => error.message))
+        operationError(
+          error.message,
+          messages.unexpectedExecuteCommandError.replace('%s', () => error.message)
+        )
       )
     ),
     Effect.flatMap(parseResponse),

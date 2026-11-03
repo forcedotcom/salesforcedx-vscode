@@ -6,10 +6,10 @@
  */
 
 import * as Effect from 'effect/Effect';
+import { isNull } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as SchemaGetter from 'effect/SchemaGetter';
-import { isNull } from 'effect/Predicate';
-import { ApexClassIdString, ApexLogIdString } from '../schemas/salesforceId.js';
+import { ApexClassIdString, ApexLogIdString } from './schema/salesforceId.js';
 
 const nullableNumberWithDefaultZero = Schema.NullOr(Schema.Number).pipe(
   Schema.decodeTo(Schema.Number, {
@@ -28,10 +28,16 @@ const SyncTestMethodFields = {
   time: nullableNumberWithDefaultZero
 };
 const SyncTestSuccessSchema = Schema.Struct(SyncTestMethodFields);
+const OptionalFailureTextSchema = Schema.NullOr(Schema.String).pipe(
+  Schema.decodeTo(Schema.UndefinedOr(Schema.String), {
+    decode: SchemaGetter.transform(value => (isNull(value) ? undefined : value)),
+    encode: SchemaGetter.transform(value => value ?? null)
+  })
+);
 const SyncTestFailureSchema = Schema.Struct({
   ...SyncTestMethodFields,
-  message: Schema.optional(Schema.NullOr(Schema.String)),
-  stackTrace: Schema.optional(Schema.NullOr(Schema.String)),
+  message: Schema.optional(OptionalFailureTextSchema),
+  stackTrace: Schema.optional(OptionalFailureTextSchema),
   type: Schema.String
 });
 

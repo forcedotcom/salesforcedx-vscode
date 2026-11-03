@@ -11,7 +11,7 @@ import {
   type ApexTestResultRecord,
   type SyncTestResult,
   type TestResult
-} from '../src/tests/types';
+} from '../src/tests/apiTypes';
 import { salesforceId } from './schemaHelpers';
 
 export const syncTestResultSimple: SyncTestResult = {

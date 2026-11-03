@@ -15,12 +15,9 @@ import { waitForLanguageClientReady } from './languageClientReady';
 import { nls } from './messages';
 
 // Preserve the manager instance because getStatus reads its state through `this`.
-const languageClientManagerSchema: Schema.Schema<Pick<ApexVSCodeApi['languageClientManager'], 'getStatus'>> =
-  Schema.declare(
-    Schema.is(Schema.Struct({ getStatus: CallableSchema<ApexVSCodeApi['languageClientManager']['getStatus']>() }), {
-      exact: false
-    })
-  );
+const languageClientManagerSchema = Schema.Struct({
+  getStatus: CallableSchema<ApexVSCodeApi['languageClientManager']['getStatus']>()
+}).pipe(Schema.is, Schema.declare<Pick<ApexVSCodeApi['languageClientManager'], 'getStatus'>>);
 
 export const retrieveLineBreakpointInfo = Effect.fn('ApexReplayDebugger.retrieveLineBreakpointInfo')(function* () {
   const apexApi = yield* getExtensionExports({

@@ -17,13 +17,17 @@ export {
   ApexTestSetupDataSchema,
   TestResultRawSchema,
   TestResultSchema
-} from '../tests/types.js';
-export type { SyncTestConfiguration, TestResult, TestResultRaw } from '../tests/types.js';
+} from './testTypes.js';
+export type { SyncTestConfiguration, TestResult, TestResultRaw } from '../tests/apiTypes.js';
 export type { ApexDiagnostic } from './diagnostics.js';
 export { SyncTestResultSchema } from './testSchemas.js';
 export { SyncTestConfigurationSchema, TestItemSchema } from './schema/testPayloads.js';
 export { getOrgWideCoverage, getPerClassCodeCoverage, getAggregateCodeCoverage } from './codeCoverage.js';
-export { PerClassCoverageSchema, CodeCoverageResultSchema, AggregateCodeCoverageResultSchema } from './coverageSchemas.js';
+export {
+  PerClassCoverageSchema,
+  CodeCoverageResultSchema,
+  AggregateCodeCoverageResultSchema
+} from './coverageSchemas.js';
 export type { PerClassCoverage, CodeCoverageResult, AggregateCodeCoverageResult } from './coverageSchemas.js';
 export {
   ApexCodeCoverageSchema,
@@ -59,7 +63,15 @@ export type { BuildSyncPayloadOptions, BuildAsyncPayloadOptions } from './schema
 export { TestSuiteSchema, TestSuiteMembershipSchema } from './schema/testSuites.js';
 export { retrieveAllSuites, getTestsInSuite, buildSuite } from './testSuites.js';
 export type { TestSuite, TestSuiteMembership } from './schema/testSuites.js';
-export { ApexTestSuiteId } from '../schemas/salesforceId.js';
+export {
+  ApexClassId,
+  ApexLogId,
+  ApexTestSuiteId,
+  ApexTriggerId,
+  SalesforceId,
+  TestRunId,
+  UserId
+} from './schema/salesforceId.js';
 export { AsyncTestOptionsSchema } from './schema/wire/asyncTests.js';
 export { AsyncTestProgressSchema, AsyncTestResultSchema, AsyncTestRunEventSchema } from './schema/asyncTests.js';
 export { runTestAsynchronous } from './asyncTests.js';

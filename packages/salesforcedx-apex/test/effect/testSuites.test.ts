@@ -9,7 +9,7 @@ import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
-import { ApexTestSuiteId } from '../../src/schemas/salesforceId';
+import { ApexTestSuiteId } from '../../src/effect/schema/salesforceId';
 import { getApexClassIds, getTestsInSuite, retrieveAllSuites } from '../../src/effect/testSuites';
 
 describe('Effect suite discovery', () => {

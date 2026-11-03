@@ -17,7 +17,7 @@ import {
   type ApexCodeCoverageAggregate,
   type ApexCodeCoverageAggregateRecord,
   type ApexCodeCoverageRecord
-} from '../tests/types';
+} from '../tests/apiTypes';
 import { elapsedTime } from '../utils';
 
 const startOfSource = (source: string): number => {

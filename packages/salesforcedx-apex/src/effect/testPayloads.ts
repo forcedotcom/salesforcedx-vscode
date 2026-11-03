@@ -11,10 +11,15 @@ import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import { ApexClassId } from '../schemas/salesforceId.js';
-import { type AsyncTestArrayConfiguration, type AsyncTestConfiguration, type TestItem } from '../tests/types.js';
+import {
+  type AsyncTestArrayConfiguration,
+  type AsyncTestConfiguration,
+  type SyncTestConfiguration,
+  type TestItem
+} from '../tests/apiTypes.js';
 import { queryNamespaces } from './namespaces.js';
 import { ApexOperationError } from './schema/errors.js';
+import { ApexClassId } from './schema/salesforceId.js';
 import {
   type BuildAsyncPayloadOptions,
   type BuildSyncPayloadOptions,
@@ -96,15 +101,18 @@ export const buildSyncPayload = Effect.fn('Apex.buildSyncPayload')(
   function* (connection: Connection, options: BuildSyncPayloadOptions) {
     yield* Schema.decodeUnknownEffect(BuildSyncPayloadOptionsSchema)(options);
     const { testLevel, tests, classNames, category, skipCodeCoverage = false } = options;
+    if (!tests && !classNames && category) {
+      return { testLevel, category: category.split(','), skipCodeCoverage } satisfies SyncTestConfiguration;
+    }
     const payload = tests
       ? yield* buildTestPayload(connection, tests, skipCodeCoverage)
       : classNames && category
         ? classPayload(classNames, skipCodeCoverage, true)
         : classNames
           ? {
-        tests: classNames.split(',').map(classItem),
-        testLevel,
-        skipCodeCoverage
+              tests: classNames.split(',').map(classItem),
+              testLevel,
+              skipCodeCoverage
             }
           : { testLevel, ...(category && { category: category.split(',') }), skipCodeCoverage };
     return yield* Schema.decodeUnknownEffect(SyncTestConfigurationSchema)(payload).pipe(

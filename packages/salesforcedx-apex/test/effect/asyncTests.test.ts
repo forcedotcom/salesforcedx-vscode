@@ -280,6 +280,7 @@ describe('Effect asynchronous tests', () => {
         const fiber = yield* runTestAsynchronous(connection, options).pipe(Effect.scoped, Effect.forkChild);
         yield* Deferred.await(submitting);
         const interruptFiber = yield* Fiber.interrupt(fiber).pipe(Effect.forkChild);
+        yield* Effect.yieldNow;
         yield* Deferred.succeed(accepted, testRunId);
         yield* Fiber.join(interruptFiber);
         return yield* Fiber.await(fiber);

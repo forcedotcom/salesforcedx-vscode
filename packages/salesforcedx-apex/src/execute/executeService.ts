@@ -7,6 +7,7 @@
 import type { ApexExecuteOptions, ExecuteAnonymousResponse } from './types';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
+import * as Match from 'effect/Match';
 import * as Result from 'effect/Result';
 import { executeAnonymous } from '../effect';
 import { elapsedTime } from '../utils/elapsedTime';
@@ -20,41 +21,36 @@ export class ExecuteService {
     const execution = await executeAnonymous(this.connection, options).pipe(Effect.result, Effect.runPromise);
     // Unwrap typed failures outside the Effect runtime so CLI errors do not acquire a FiberFailure prefix.
     if (Result.isFailure(execution)) {
-      const error = execution.failure;
-      switch (error._tag) {
-        case 'ApexCompileError':
-          return {
-            compiled: false,
-            success: false,
-            ...(error.logBody === undefined ? {} : { logs: error.logBody }),
-            diagnostic: [
-              {
-                ...(error.line === undefined ? {} : { lineNumber: error.line }),
-                ...(error.column === undefined ? {} : { columnNumber: error.column }),
-                compileProblem: error.compileProblem ?? '',
-                exceptionMessage: '',
-                exceptionStackTrace: ''
-              }
-            ]
-          };
-        case 'ApexRuntimeError':
-          return {
-            compiled: true,
-            success: false,
-            ...(error.logBody === undefined ? {} : { logs: error.logBody }),
-            diagnostic: [
-              {
-                ...(error.line === undefined ? {} : { lineNumber: error.line }),
-                ...(error.column === undefined ? {} : { columnNumber: error.column }),
-                compileProblem: '',
-                exceptionMessage: error.exceptionMessage ?? '',
-                exceptionStackTrace: error.exceptionStackTrace ?? ''
-              }
-            ]
-          };
-        default:
+      return Match.value(execution.failure).pipe(
+        Match.when({ _tag: 'ApexCompileError' }, error => ({
+          compiled: false,
+          success: false,
+          ...(error.logBody === undefined ? {} : { logs: error.logBody }),
+          diagnostic: [
+            {
+              ...(error.line === undefined ? {} : { lineNumber: error.line }),
+              ...(error.column === undefined ? {} : { columnNumber: error.column }),
+              compileProblem: error.compileProblem ?? ''
+            }
+          ]
+        })),
+        Match.when({ _tag: 'ApexRuntimeError' }, error => ({
+          compiled: true,
+          success: false,
+          ...(error.logBody === undefined ? {} : { logs: error.logBody }),
+          diagnostic: [
+            {
+              ...(error.line === undefined ? {} : { lineNumber: error.line }),
+              ...(error.column === undefined ? {} : { columnNumber: error.column }),
+              exceptionMessage: error.exceptionMessage ?? '',
+              exceptionStackTrace: error.exceptionStackTrace ?? ''
+            }
+          ]
+        })),
+        Match.orElse(error => {
           throw new Error(error.message);
-      }
+        })
+      );
     }
     const result = execution.success;
     return {
