@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as JSONSchema from 'effect/JSONSchema';
+import * as JSONSchema from 'effect/JsonSchema';
 import * as Schema from 'effect/Schema';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
