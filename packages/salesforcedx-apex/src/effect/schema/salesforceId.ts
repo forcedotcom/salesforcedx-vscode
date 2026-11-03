@@ -6,6 +6,7 @@
  */
 
 import * as Schema from 'effect/Schema';
+import { ApexTestSuiteId, TestRunIdString } from '../../schemas/salesforceId';
 
 /** A 15- or 18-character Salesforce record ID. */
 export const SalesforceId = Schema.String.pipe(
@@ -19,16 +20,12 @@ export const ApexClassId = SalesforceId.pipe(Schema.startsWith('01p'), Schema.br
 export type ApexClassId = typeof ApexClassId.Type;
 
 /** Salesforce Apex test run ID. */
-export const TestRunId = SalesforceId.pipe(Schema.startsWith('707'), Schema.brand('@salesforcedx-apex/TestRunId'));
+export const TestRunId = TestRunIdString.pipe(Schema.brand('@salesforcedx-apex/TestRunId'));
 export type TestRunId = typeof TestRunId.Type;
 
-const apexClassIdPattern = '01p[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?';
-const apexTestSuiteIdPattern = '05F[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?';
-
-export const ApexClassIdsSchema = Schema.String.pipe(
-  Schema.pattern(new RegExp(`^${apexClassIdPattern}(?:,${apexClassIdPattern})*$`, 'u'))
-);
-
-export const ApexTestSuiteIdsSchema = Schema.String.pipe(
-  Schema.pattern(new RegExp(`^${apexTestSuiteIdPattern}(?:,${apexTestSuiteIdPattern})*$`, 'u'))
-);
+export const ApexClassIdsSchema = Schema.compose(Schema.split(','), Schema.Array(ApexClassId)).annotations({
+  description: 'a comma-separated list of 15- or 18-character ApexClass IDs'
+});
+export const ApexTestSuiteIdsSchema = Schema.compose(Schema.split(','), Schema.Array(ApexTestSuiteId)).annotations({
+  description: 'a comma-separated list of 15- or 18-character ApexTestSuite IDs'
+});

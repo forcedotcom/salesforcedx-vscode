@@ -1,4 +1,5 @@
 import { ParserRuleContext, TokenStream, Token, ANTLRInputStream } from "antlr4ts";
+import { ErrorCode } from "./parserError";
 export declare class SOQLParseResult {
     private success;
     private tokenStream;
@@ -17,18 +18,25 @@ export declare class ParserError {
     private lineNumber;
     private charInLine;
     private token?;
-    constructor(message: string, lineNumber: number, charInLine: number, token?: Token);
+    private errorCode?;
+    private tokenText?;
+    constructor(message: string, lineNumber: number, charInLine: number, token?: Token, errorCode?: ErrorCode, tokenText?: string);
     getToken(): Token | undefined;
     getMessage(): string;
     getLineNumber(): number;
     getCharacterPositionInLine(): number;
-    static error(errorMessage: string, line: number, column: number, token?: Token): ParserError;
+    getErrorCode(): ErrorCode | undefined;
+    getTokenText(): string | undefined;
+    static error(errorMessage: string, line: number, column: number, token?: Token, errorCode?: ErrorCode, tokenText?: string): ParserError;
 }
 export interface SOQLParser {
     parseQuery(queryString: string): SOQLParseResult;
 }
 export interface SOQLParserConfig {
-    isApex: boolean;
+    isApex?: boolean;
+    allowApexSyntax?: boolean;
+    hasApexContext?: boolean;
+    allowColonExpressions?: boolean;
     isMultiCurrencyEnabled: boolean;
     apiVersion: number;
 }

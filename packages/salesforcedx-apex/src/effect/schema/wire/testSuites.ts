@@ -6,14 +6,15 @@
  */
 
 import * as Schema from 'effect/Schema';
+import { ApexClassId, ApexTestSuiteId, ApexTestSuiteIdString } from '../../../schemas/salesforceId';
 import { TestSuiteSchema } from '../testSuites';
 
-export const TestSuiteIdQueryResponseSchema = Schema.Struct({ Id: Schema.String });
-export const ApexClassIdQueryResponseSchema = Schema.Struct({ Id: Schema.String });
+export const TestSuiteIdQueryResponseSchema = Schema.Struct({ Id: ApexTestSuiteId });
+export const ApexClassIdQueryResponseSchema = Schema.Struct({ Id: ApexClassId });
 
 export const TestSuiteRecordSchema = Schema.Union(
   TestSuiteSchema,
-  Schema.Struct({ Id: Schema.String, TestSuiteName: Schema.String })
+  Schema.Struct({ Id: ApexTestSuiteIdString, TestSuiteName: Schema.String })
 ).pipe(
   Schema.transform(TestSuiteSchema, {
     strict: true,

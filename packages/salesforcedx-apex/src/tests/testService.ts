@@ -25,7 +25,7 @@ import { buildAsyncPayload, buildSyncPayload } from '../effect/testPayloads';
 import { buildSuite, getTestsInSuite, retrieveAllSuites, retrieveSuiteId } from '../effect/testSuites';
 import { nls } from '../i18n';
 import { JUnitFormatTransformer, TapFormatTransformer, MarkdownTextFormatTransformer } from '../reporters';
-import { SalesforceId } from '../schemas/salesforceId';
+import { ApexTestSuiteId } from '../schemas/salesforceId';
 import { TestResultStringifyStream } from '../streaming';
 import { elapsedTime, HeapMonitor } from '../utils';
 import { AsyncTests } from './asyncTests';
@@ -200,7 +200,7 @@ export class TestService {
                 })
               ),
             onSome: id =>
-              Schema.decodeUnknown(SalesforceId)(id).pipe(
+              Schema.decodeUnknown(ApexTestSuiteId)(id).pipe(
                 Effect.mapError(
                   cause =>
                     new ApexResponseDecodeError({

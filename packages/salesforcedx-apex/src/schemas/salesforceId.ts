@@ -6,6 +6,7 @@
  */
 
 import * as Schema from 'effect/Schema';
+import { messages } from '../i18n/i18n';
 
 const SalesforceIdString = Schema.String.pipe(Schema.pattern(/^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$/));
 const prefixedSalesforceIdString = (prefix: string, recordType: string) =>
@@ -45,9 +46,22 @@ export const ApexLogId = ApexLogIdString.pipe(Schema.brand('@salesforcedx-apex/A
 export type ApexLogId = typeof ApexLogId.Type;
 
 /** Salesforce Apex test run ID. */
-export const TestRunIdString = prefixedSalesforceIdString('707', 'AsyncApexJob');
+export const TestRunIdString = prefixedSalesforceIdString('707', 'AsyncApexJob').annotations({
+  identifier: 'AsyncApexJobId',
+  message: issue => ({
+    message: messages.invalidTestRunIdErr.replace('%s', () =>
+      'actual' in issue && typeof issue.actual === 'string' ? issue.actual : ''
+    ),
+    override: true
+  })
+});
 export const TestRunId = TestRunIdString.pipe(Schema.brand('@salesforcedx-apex/TestRunId'));
 export type TestRunId = typeof TestRunId.Type;
+
+/** Salesforce ApexTestSuite record ID. */
+export const ApexTestSuiteIdString = prefixedSalesforceIdString('05F', 'ApexTestSuite');
+export const ApexTestSuiteId = ApexTestSuiteIdString.pipe(Schema.brand('@salesforcedx-apex/ApexTestSuiteId'));
+export type ApexTestSuiteId = typeof ApexTestSuiteId.Type;
 
 /** Salesforce Apex test result ID. */
 export const ApexTestResultIdString = prefixedSalesforceIdString('07M', 'ApexTestResult');
@@ -57,3 +71,7 @@ export const FlowTestResultIdString = prefixedSalesforceIdString('2hU', 'FlowTes
 
 /** Salesforce Apex test queue item ID. */
 export const ApexTestQueueItemIdString = prefixedSalesforceIdString('709', 'ApexTestQueueItem');
+export const ApexTestQueueItemId = ApexTestQueueItemIdString.pipe(
+  Schema.brand('@salesforcedx-apex/ApexTestQueueItemId')
+);
+export type ApexTestQueueItemId = typeof ApexTestQueueItemId.Type;

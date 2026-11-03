@@ -127,11 +127,9 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       const deployFiber = yield* Effect.fork(
         Effect.tryPromise({
           try: async () => {
-            const deployOperation = await components.deploy({
-              usernameOrConnection: connection
-            });
-
             const progressLocation = options?.progressLocation ?? vscode.ProgressLocation.Notification;
+            // Show progress before the initial deploy request: on a busy org that request can take many seconds,
+            // and the user should see "Deploying" immediately.
             const deployResult = await vscode.window.withProgress(
               {
                 location: progressLocation,
@@ -139,11 +137,15 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
                 cancellable: true
               },
               async (_, token) => {
+                const deployOperation = await components.deploy({
+                  usernameOrConnection: connection
+                });
                 // Only send the cancel request to the server — do NOT interrupt the fiber.
                 // pollStatus() will resolve with Canceled/Canceling if the server honored it,
                 // or Succeeded if the deploy completed before the cancel arrived. Either way
                 // we get the real outcome and can update source tracking correctly.
                 token.onCancellationRequested(() => void deployOperation.cancel());
+                if (token.isCancellationRequested) void deployOperation.cancel();
                 return await deployOperation.pollStatus();
               }
             );

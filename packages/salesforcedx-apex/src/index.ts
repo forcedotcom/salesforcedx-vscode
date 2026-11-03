@@ -12,7 +12,15 @@ export type { ExecuteAnonymousResponse, ApexExecuteOptions } from './execute/typ
 export { ExecuteService } from './execute/executeService';
 export { LogService } from './logs';
 export type { ApexLogGetOptions, LogRecord, LogResult } from './logs';
-export { ApexClassId, ApexLogId, ApexTriggerId, SalesforceId, TestRunId, UserId } from './schemas/salesforceId';
+export {
+  ApexClassId,
+  ApexLogId,
+  ApexTestSuiteId,
+  ApexTriggerId,
+  SalesforceId,
+  TestRunId,
+  UserId
+} from './schemas/salesforceId';
 export {
   JUnitReporter,
   TapReporter,

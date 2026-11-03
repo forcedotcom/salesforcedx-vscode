@@ -41,9 +41,9 @@ export const TestLevelSchema = Schema.Literal('RunLocalTests', 'RunAllTestsInOrg
 });
 export type TestLevel = typeof TestLevelSchema.Type;
 export const TestLevel = {
-  RunLocalTests: TestLevelSchema.literals[0],
-  RunAllTestsInOrg: TestLevelSchema.literals[1],
-  RunSpecifiedTests: TestLevelSchema.literals[2]
+  RunLocalTests: 'RunLocalTests',
+  RunAllTestsInOrg: 'RunAllTestsInOrg',
+  RunSpecifiedTests: 'RunSpecifiedTests'
 } as const satisfies { [K in TestLevel]: K };
 
 /** Test implementation category. */
@@ -96,12 +96,12 @@ export const ResultFormatSchema = Schema.Literal('junit', 'tap', 'json', 'human'
 });
 export type ResultFormat = typeof ResultFormatSchema.Type;
 export const ResultFormat = {
-  junit: ResultFormatSchema.literals[0],
-  tap: ResultFormatSchema.literals[1],
-  json: ResultFormatSchema.literals[2],
-  human: ResultFormatSchema.literals[3],
-  markdown: ResultFormatSchema.literals[4],
-  text: ResultFormatSchema.literals[5]
+  junit: 'junit',
+  tap: 'tap',
+  json: 'json',
+  human: 'human',
+  markdown: 'markdown',
+  text: 'text'
 } as const satisfies { [K in ResultFormat]: K };
 
 export const ResultFormatsSchema = ResultFormatSchema.pipe(

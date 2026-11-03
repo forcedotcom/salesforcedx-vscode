@@ -105,6 +105,18 @@ describe('Run Apex tests asynchronously', () => {
     formatTestErrorsMock.mockClear();
   });
 
+  it.each([{ classids: '001000000000001AAA' }, { suiteids: '01p000000000001AAA' }])(
+    'rejects an invalid ID list before submitting the test run',
+    async idOptions => {
+      const asyncTestSrv = new AsyncTests(mockConnection);
+
+      await expect(
+        asyncTestSrv.runTests({ testLevel: 'RunSpecifiedTests', ...idOptions }, false, true)
+      ).rejects.toThrow();
+      expect(toolingRequestStub.notCalled).toBe(true);
+    }
+  );
+
   it('should run a successful test', async () => {
     const requestOptions: AsyncTestConfiguration = {
       classNames: 'TestSample',

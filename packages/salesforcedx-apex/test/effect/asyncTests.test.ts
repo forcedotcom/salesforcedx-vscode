@@ -15,6 +15,7 @@ import * as Fiber from 'effect/Fiber';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { AsyncTestOptionsSchema, runTestAsynchronous } from '../../src/effect';
+import { queueSchema } from '../../src/effect/schema/wire/asyncTests';
 
 const testRunId = '707000000000001AAA';
 const options = { testLevel: 'RunLocalTests' as const, category: ['Apex', 'Flow'] as const };
@@ -43,24 +44,66 @@ const drainRun = (connection: Connection, polling: { interval?: Duration.Duratio
   );
 
 describe('Effect asynchronous tests', () => {
-  it('validates documented categories and comma-separated suite IDs', () => {
-    const isValidOptions = Schema.is(AsyncTestOptionsSchema);
-    const validOptions = {
+  it('validates queued IDs as ApexTestQueueItem IDs', () => {
+    const isValidQueue = Schema.is(queueSchema);
+
+    expect(isValidQueue({ done: true, records: [{ Id: '709000000000001AAA', Status: 'Queued' }] })).toBe(true);
+    expect(isValidQueue({ done: true, records: [{ Id: '01p000000000001AAA', Status: 'Queued' }] })).toBe(false);
+  });
+
+  it('decodes comma-separated class and suite IDs as prefixed ID arrays', () => {
+    const encodedOptions = {
       testLevel: 'RunSpecifiedTests',
       classids: '01p000000000001AAA,01p000000000002AAA',
       suiteids: '05F000000000001AAA,05F000000000002AAA',
       category: ['Apex', 'Flow'],
       tests: [{ className: 'ExampleTest', classId: '01p000000000001AAA', category: 'Apex' }]
     };
+    const options = Schema.decodeUnknownSync(AsyncTestOptionsSchema)(encodedOptions);
 
-    expect(isValidOptions(validOptions)).toBe(true);
-    expect(isValidOptions({ ...validOptions, category: ['Other'] })).toBe(false);
-    expect(isValidOptions({ ...validOptions, classids: '001000000000001AAA' })).toBe(false);
-    expect(isValidOptions({ ...validOptions, suiteids: 'not-a-suite-id' })).toBe(false);
-    expect(
-      isValidOptions({ ...validOptions, tests: [{ className: 'ExampleTest', classId: '001000000000001AAA' }] })
-    ).toBe(false);
-    expect(isValidOptions({ ...validOptions, tests: [{ className: 'ExampleTest', category: 'Other' }] })).toBe(false);
+    expect(options.classids).toEqual(['01p000000000001AAA', '01p000000000002AAA']);
+    expect(options.suiteids).toEqual(['05F000000000001AAA', '05F000000000002AAA']);
+    expect(Schema.encodeSync(AsyncTestOptionsSchema)(options)).toEqual(encodedOptions);
+    expect(() =>
+      Schema.decodeUnknownSync(AsyncTestOptionsSchema)({ ...encodedOptions, category: ['Other'] })
+    ).toThrow();
+    expect(() =>
+      Schema.decodeUnknownSync(AsyncTestOptionsSchema)({ ...encodedOptions, classids: '001000000000001AAA' })
+    ).toThrow();
+    expect(() =>
+      Schema.decodeUnknownSync(AsyncTestOptionsSchema)({ ...encodedOptions, suiteids: 'not-a-suite-id' })
+    ).toThrow();
+    expect(() =>
+      Schema.decodeUnknownSync(AsyncTestOptionsSchema)({
+        ...encodedOptions,
+        tests: [{ className: 'ExampleTest', classId: '001000000000001AAA' }]
+      })
+    ).toThrow();
+    expect(() =>
+      Schema.decodeUnknownSync(AsyncTestOptionsSchema)({
+        ...encodedOptions,
+        tests: [{ className: 'ExampleTest', category: 'Other' }]
+      })
+    ).toThrow();
+  });
+
+  it('encodes decoded ID arrays as comma-separated API fields', async () => {
+    const { connection, tooling } = makeConnection();
+    const encodedOptions = {
+      testLevel: 'RunSpecifiedTests',
+      classids: '01p000000000001AAA,01p000000000002AAA',
+      suiteids: '05F000000000001AAA,05F000000000002AAA'
+    };
+    const options = Schema.decodeUnknownSync(AsyncTestOptionsSchema)(encodedOptions);
+
+    await Effect.runPromise(
+      runTestAsynchronous(connection, options, { interval: Duration.zero }).pipe(
+        Effect.flatMap(({ stream }) => Stream.runDrain(stream)),
+        Effect.scoped
+      )
+    );
+
+    expect(tooling.request.mock.calls[0][0]).toMatchObject({ body: JSON.stringify(encodedOptions) });
   });
 
   it('returns an ID before lazily polling class progress and emitting the terminal summary', async () => {

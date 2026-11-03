@@ -52,6 +52,7 @@ import {
   ApexCodeCoverageAggregateRecordSchema,
   ApexCodeCoverageRecordSchema,
   ApexDiagnosticSchema,
+  ApexTestSuiteId,
   ApexCompileError,
   ApexLogListItem,
   ApexLogQueryError,
@@ -279,6 +280,7 @@ const PublicApiSchema = Schema.Union(
   TestResultSchema,
   TestResultRawSchema,
   TestRunIdResultSchema,
+  ApexTestSuiteId,
   TestSuiteSchema,
   TestSuiteMembershipSchema
 ).annotations({
