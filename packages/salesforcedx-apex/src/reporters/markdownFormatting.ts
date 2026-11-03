@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Arr from 'effect/Array';
 import * as Order from 'effect/Order';
 import { type TestResult, type ApexTestResultData } from '../tests/types';
 import { escapeMarkdown } from './escaping';
@@ -65,9 +66,10 @@ export const formatMarkdownText = (testResult: TestResult, options: MarkdownText
     // Helper function to sort tests based on sort order
     const sortTests = (tests: ApexTestResultData[]): ApexTestResultData[] => [...tests].sort(testOrder);
     // Build data structures using spread operators
-    const failedTests = testResult.tests?.filter(test => test.outcome?.toString() === 'Fail') ?? [];
-    const passedTests = testResult.tests?.filter(test => test.outcome?.toString() === 'Pass') ?? [];
-    const skippedTests = testResult.tests?.filter(test => test.outcome?.toString() === 'Skip') ?? [];
+    const testsByOutcome = Arr.groupBy(testResult.tests ?? [], test => test.outcome?.toString() ?? 'Unknown');
+    const failedTests = testsByOutcome.Fail ?? [];
+    const passedTests = testsByOutcome.Pass ?? [];
+    const skippedTests = testsByOutcome.Skip ?? [];
 
     // Build failures data
     const failures: FailureTest[] = failedTests.map(test => {
