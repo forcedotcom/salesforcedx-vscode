@@ -15,7 +15,10 @@
  *   - no nightly tag (a stable section): stop; everything from here down is shipped history
  *
  * Usage:
- *   node scripts/fold-stable-changelog.js --changelog <file> --ref <git-ref> --version <X.Y.Z> --date <"Month D, YYYY">
+ *   node scripts/fold-stable-changelog.js --changelog <file> --ref <git-ref> --version <X.Y.Z>
+ *     [--date <"Month D, YYYY">]   stable section date. Defaults to the newest folded section's date, which
+ *                                  promote-to-prerelease.yml sets to the expected stable ship date, so the build
+ *                                  (stable VSIX) and publish (develop history) runs agree whatever day each runs
  *     [--overlay <file>]           replace the same-version section with this file's top section before folding
  *                                  (picks up polish applied to packages/salesforcedx-vscode/CHANGELOG.md)
  *     [--section-out <file>]       write only the stable section (the stable VSIX's package CHANGELOG.md). Left
@@ -32,6 +35,7 @@ const { execFileSync } = require('child_process');
 const fs = require('fs');
 
 const HEADER = /^# (\d+\.\d+\.\d+)(?:\s.*)?$/;
+const HEADER_DATE = /^# \d+\.\d+\.\d+ - (.+)$/;
 const GENERIC_UNDER_THE_HOOD = /^- We made some under the hood changes\. \((.*)\)$/;
 const CATEGORY_ORDER = ['Added', 'Changed', 'Deprecated', 'Removed', 'Fixed', 'Security'];
 const UNDER_THE_HOOD = 'Under the Hood';
@@ -53,7 +57,7 @@ const parseArgs = argv => {
       fail(`Unexpected argument: ${arg}`);
     }
   }
-  for (const required of ['changelog', 'ref', 'version', 'date']) {
+  for (const required of ['changelog', 'ref', 'version']) {
     if (!opts[required]) fail(`--${required} is required`);
   }
   if (!/^\d+\.\d+\.\d+$/.test(opts.version)) fail(`--version must be X.Y.Z, got ${opts.version}`);
@@ -176,6 +180,18 @@ const renderStableSection = (version, date, sections) => {
   return lines;
 };
 
+const todayUtc = () =>
+  new Date().toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
+
+/** --date, else the newest folded section's date, else today (a header without a date). */
+const stableDate = (opts, folded) => {
+  if (opts.date) return opts.date;
+  const fromSection = HEADER_DATE.exec(folded[0].lines[0])?.[1].trim();
+  if (fromSection) return fromSection;
+  console.log(`# ${folded[0].version} has no date; using today's`);
+  return todayUtc();
+};
+
 const main = () => {
   const opts = parseArgs(process.argv.slice(2));
   const { lead, sections } = splitSections(fs.readFileSync(opts.changelog, 'utf8'));
@@ -207,7 +223,7 @@ const main = () => {
   const stableSection = existing
     ? existing.lines
     : folded.length > 0
-      ? renderStableSection(opts.version, opts.date, folded)
+      ? renderStableSection(opts.version, stableDate(opts, folded), folded)
       : undefined;
   if (existing) console.log(`# ${opts.version} already in ${opts.changelog}`);
   else if (folded.length > 0)

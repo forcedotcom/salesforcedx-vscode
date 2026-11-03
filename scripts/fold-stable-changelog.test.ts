@@ -235,6 +235,27 @@ describe('fold-stable-changelog', () => {
     expect(read('package.md')).toBe('unchanged\n');
   });
 
+  test('without --date, uses the newest folded section date so build and publish agree', () => {
+    write('package.md', '# 1.3.1 - January 15, 2026\n');
+    const runWithoutDate = (...args: string[]) =>
+      execFileSync(process.execPath, [script, ...args], { cwd: repo, encoding: 'utf8' });
+
+    runWithoutDate(
+      '--changelog',
+      'CHANGELOG.md',
+      '--ref',
+      'v1.4.0',
+      '--version',
+      '1.4.0',
+      '--section-out',
+      'package.md'
+    );
+    runWithoutDate('--changelog', 'CHANGELOG.md', '--ref', 'v1.4.0', '--version', '1.4.0', '--write');
+
+    expect(read('package.md').split('\n')[0]).toBe('# 1.4.0 - January 15, 2026');
+    expect(read('CHANGELOG.md')).toContain('\n# 1.4.0 - January 15, 2026\n');
+  });
+
   test('fails instead of skipping when the ref does not exist', () => {
     expect(() => run('--changelog', 'CHANGELOG.md', '--ref', 'v9.9.9', '--version', '9.9.9', '--write')).toThrow();
     expect(read('CHANGELOG.md')).toBe(PRERELEASE_HISTORY);

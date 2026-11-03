@@ -242,7 +242,6 @@ jobs:
             --overlay packages/salesforcedx-vscode/CHANGELOG.md \
             --ref "$RELEASE_TAG" \
             --version "$RELEASE_VERSION" \
-            --date "$(date -u '+%B %-d, %Y')" \
             --fallback-section "$RUNNER_TEMP/release-CHANGELOG.md" \
             --write
 

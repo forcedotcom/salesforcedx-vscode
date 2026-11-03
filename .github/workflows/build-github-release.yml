@@ -352,7 +352,6 @@ jobs:
             --overlay "$RUNNER_TEMP/develop-package-CHANGELOG.md" \
             --ref HEAD \
             --version "$RELEASE_VERSION" \
-            --date "$(date -u '+%B %-d, %Y')" \
             --section-out packages/salesforcedx-vscode/CHANGELOG.md
           head -1 packages/salesforcedx-vscode/CHANGELOG.md
 
