@@ -122,7 +122,7 @@ const makeConn = ({ isAccessTokenFlow = true, identity, username = USERNAME, org
     getAuthInfo: () => ({ isAccessTokenFlow: () => isAccessTokenFlow }),
     getUsername: () => username,
     getApiVersion: () => '66.0',
-    getAuthInfoFields: () => ({ username, orgId }),
+    getAuthInfoFields: () => ({ username, orgId, tracksSource: false }),
     instanceUrl: INSTANCE_URL,
     identity: identity ?? vi.fn().mockResolvedValue({ user_id: '005' }),
     request: async () => ({ totalSize: 0, done: true, records: [] as { Id: string; Username: string }[] })
@@ -661,7 +661,7 @@ describe('ConnectionService.getConnection (desktop)', () => {
     orgCreateMock.mockResolvedValue({ tracksSource } as unknown as Org);
 
     await run(ConnectionService.getConnection());
-    await waitUntil(() => orgCreateMock.mock.calls.length > 0);
+    await waitUntil(() => tracksSource.mock.calls.length > 0);
 
     expect(orgCreateMock).toHaveBeenCalledWith(
       expect.objectContaining({ aggregator: TEST_CONFIG_AGGREGATOR, connection: expect.anything() })
