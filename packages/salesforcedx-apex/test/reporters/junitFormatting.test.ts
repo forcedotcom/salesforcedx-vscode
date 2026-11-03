@@ -6,49 +6,31 @@
  */
 import { formatJUnit } from '../../src';
 import { getTestData } from './testResults';
+import { normalizeFormatterOutput } from './formattingSnapshot';
 
-const {
-  testResults,
-  junitResult,
-  junitSuccess,
-  junitCodeCov,
-  junitMissingVal,
-  junitSetup,
-  setupResult,
-  successResult
-} = getTestData();
+const { testResults, setupResult, successResult } = getTestData();
+const expectSnapshot = (output: string): void => {
+  expect(normalizeFormatterOutput(output)).toMatchSnapshot();
+};
 
 describe('JUnit Formatting Tests', () => {
   it('should format test results with failures', () => {
-    const result = formatJUnit(testResults);
-    expect(result).not.toHaveLength(0);
-    expect(result).toEqual(junitResult);
-    expect(result).toContain('</failure>');
+    expectSnapshot(formatJUnit(testResults));
   });
 
-  it('should format tests with 0 failures', async () => {
-    const result = formatJUnit(successResult);
-    expect(result).not.toHaveLength(0);
-    expect(result).toEqual(junitSuccess);
-    expect(result).not.toContain('</failure>');
+  it('should format tests with 0 failures', () => {
+    expectSnapshot(formatJUnit(successResult));
   });
 
-  it('should format tests with setup methods', async () => {
-    const result = formatJUnit(setupResult);
-    expect(result).not.toHaveLength(0);
-    expect(result).toEqual(junitSetup);
-    expect(result).not.toContain('</failure>');
+  it('should format tests with setup methods', () => {
+    expectSnapshot(formatJUnit(setupResult));
   });
 
   it('should format test results with undefined or empty values', () => {
     successResult.summary.testRunId = undefined;
     successResult.summary.userId = undefined;
 
-    const result = formatJUnit(successResult);
-    expect(result).not.toHaveLength(0);
-    expect(result).toEqual(junitMissingVal);
-    expect(result).not.toContain('testRunId');
-    expect(result).not.toContain('userId');
+    expectSnapshot(formatJUnit(successResult));
   });
 
   it('should format test results with code coverage', () => {
@@ -65,9 +47,6 @@ describe('JUnit Formatting Tests', () => {
       }
     ];
     successResult.summary.orgWideCoverage = '85%';
-    const result = formatJUnit(successResult);
-    expect(result).not.toHaveLength(0);
-    expect(result).toEqual(junitCodeCov);
-    expect(result).toContain('orgWideCoverage');
+    expectSnapshot(formatJUnit(successResult));
   });
 });

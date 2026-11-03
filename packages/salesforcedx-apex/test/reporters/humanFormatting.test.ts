@@ -15,180 +15,49 @@ import {
   coverageResultWithCategory,
   coverageFailResultWithCategory
 } from './testResults';
+import { normalizeFormatterOutput } from './formattingSnapshot';
+
+const expectSnapshot = (output: string): void => {
+  expect(normalizeFormatterOutput(output)).toMatchSnapshot();
+};
 
 describe('Human Formatting Tests', () => {
-  it('should format test results with failures', () => {
-    const result = formatHuman(testResults, false);
-    expect(result).not.toHaveLength(0);
-    expect(result).toContain(
-      'AnimalLocatorTest.testMissingAnimal                  Fail     System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:'
-    );
-    expect(result).toContain('Class.AnimalLocatorTest.testMissingAnimal: line 22, column 1');
-    expect(result).toContain('=== Test Results');
-    expect(result).toContain('=== Test Summary');
-  });
+  it('formats test failures', () => expectSnapshot(formatHuman(testResults, false)));
 
-  it('should format tests with 0 failures', () => {
-    const result = formatHuman(successResult, false);
-    expect(result).not.toHaveLength(0);
-    expect(result).toContain('AccountServiceTest.should_create_account  Pass              86 ');
-    expect(result).toContain('AwesomeCalculatorTest.testCallout         Pass              23');
-    expect(result).toContain('=== Test Results');
-    expect(result).toContain('=== Test Summary');
-  });
+  it('formats passing tests', () => expectSnapshot(formatHuman(successResult, false)));
 
-  it('should format test results with code coverage', () => {
-    const result = formatHuman(coverageResult, false);
-    expect(result).not.toHaveLength(0);
-    expect(result).toContain('=== Apex Code Coverage by Class');
-    expect(result).toContain('ApexTestClass  12.5%    9,10');
-    expect(result).toContain('=== Test Results');
-    expect(result).toContain('=== Test Summary');
-  });
+  it('formats code coverage', () => expectSnapshot(formatHuman(coverageResult, false)));
 
-  it('should format test results with setup methods', () => {
-    const result = formatHuman(setupResult, false);
-    expect(result).not.toHaveLength(0);
-    expect(result).toContain('=== Apex Code Coverage by Class');
-    expect(result).toContain('=== Test Results');
-    expect(result).toContain('=== Test Summary');
-    expect(result).toContain('=== Test Setup Time by Test Class for Run 7073t000061uwZI');
-    expect(result).toContain('AccountServiceTest.setup_method  24');
-    expect(result).toContain('Test Setup Time      24 ms');
-    expect(result).toContain('Test Total Time      5487 ms');
-  });
+  it('formats setup methods', () => expectSnapshot(formatHuman(setupResult, false)));
 
-  it('should not display test setup summary if class has no setup methods', () => {
-    const result = formatHuman(successResult, false);
-    expect(result).not.toHaveLength(0);
-    expect(result).toContain('=== Test Results');
-    expect(result).toContain('=== Test Summary');
-    expect(result).not.toContain('=== Test Setup Time by Test Class for Run 7073t000061uwZI');
-    expect(result).not.toContain('AccountServiceTest.setup_method  24');
-    expect(result).toContain('Test Setup Time      0 ms');
-    expect(result).toContain('Test Total Time      5463 ms');
-  });
+  it('omits setup details when there are no setup methods', () => expectSnapshot(formatHuman(successResult, false)));
 
-  it('should not display test setup summary if concise is true', () => {
-    const result = formatHuman(setupResult, false, true);
-    expect(result).not.toHaveLength(0);
-    expect(result).not.toContain('=== Test Setup Time by Test Class for Run 7073t000061uwZI');
-    expect(result).not.toContain('AccountServiceTest.setup_method  24');
-  });
+  it('omits setup details in concise mode', () => expectSnapshot(formatHuman(setupResult, false, true)));
 
-  it('should format test results with detailed coverage specified', () => {
-    const result = formatHuman(coverageResult, true);
-    expect(result).not.toHaveLength(0);
-    expect(result).toContain('=== Apex Code Coverage by Class');
-    expect(result).toContain('ApexTestClass  12.5%    9,10');
-    expect(result).not.toContain('=== Test Results');
-    expect(result).toContain('=== Apex Code Coverage for Test Run 7073t000061uwZI');
-    expect(result).toContain(
-      'AccountServiceTest.should_create_account                      Pass                       86'
-    );
-    expect(result).toContain('=== Test Summary');
-  });
+  it('formats detailed coverage', () => expectSnapshot(formatHuman(coverageResult, true)));
 
-  it('should format test results with failures with detailed coverage specified', () => {
-    const result = formatHuman(coverageFailResult, true);
-    expect(result).not.toHaveLength(0);
-    expect(result).toContain('=== Apex Code Coverage by Class');
-    expect(result).toContain('ApexTestClass  12.5%    9,10');
-    expect(result).not.toContain('=== Test Results');
-    expect(result).toContain('=== Apex Code Coverage for Test Run 7073t000061uwZI');
-    expect(result).toContain(
-      'AccountServiceTest.should_create_account                      Pass                                                                                                                    86'
-    );
-    expect(result).toContain(
-      'AnimalLocatorTest.testMissingAnimal                           Fail              System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual'
-    );
-    expect(result).toContain('Class.AnimalLocatorTest.testMissingAnimal: line 22, column 1');
-    expect(result).toContain('=== Test Summary');
-  });
+  it('formats failures with detailed coverage', () => expectSnapshot(formatHuman(coverageFailResult, true)));
 
-  it('should format test results and skip successful tests if concise is true', () => {
-    const result = formatHuman(testResults, false, true);
-    expect(result).not.toHaveLength(0);
-    expect(result).not.toContain(
-      'AccountServiceTest.should_create_account             Pass                                                                                                           86'
-    );
-    expect(result).toContain('AwesomeCalculatorTest.testCallout       Fail');
-    expect(result).toContain('=== Test Results');
-    expect(result).toContain('=== Test Summary');
-  });
+  it('omits passing tests in concise mode', () => expectSnapshot(formatHuman(testResults, false, true)));
 
-  it('should format test results and not display coverage results if concise is true', () => {
-    const result = formatHuman(coverageFailResult, true, true);
-    expect(result).not.toHaveLength(0);
-    expect(result).not.toContain('=== Apex Code Coverage by Class');
-    expect(result).not.toContain('ApexTestClass  12.5%    9,10');
-    expect(result).toContain('=== Apex Code Coverage for Test Run 7073t000061uwZI');
-    expect(result).not.toContain(
-      'AccountServiceTest.should_create_account             Pass                                                                                                           86'
-    );
-    expect(result).toContain(
-      'AnimalLocatorTest.testMissingAnimal                      Fail              System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:'
-    );
-    expect(result).toContain('=== Test Summary');
-  });
+  it('omits overall coverage in concise mode', () => expectSnapshot(formatHuman(coverageFailResult, true, true)));
 
   // Tests for showCategory functionality
-  it('should show category column when showCategory is true', () => {
-    const result = formatHuman(testResultsWithCategory, false, false, true);
-    expect(result).not.toHaveLength(0);
-    expect(result).toContain('=== Test Results');
-    expect(result).toContain('CATEGORY');
-    expect(result).toContain('Apex');
-    expect(result).toContain('Flow');
-    expect(result).toContain('AccountServiceTest.should_create_account');
-    expect(result).toContain('AwesomeCalculatorTest.testCallout');
-    expect(result).toContain('AnimalLocatorTest.testMissingAnimal');
-  });
+  it('shows test categories when enabled', () =>
+    expectSnapshot(formatHuman(testResultsWithCategory, false, false, true)));
 
-  it('should not show category column when showCategory is false', () => {
-    const result = formatHuman(testResultsWithCategory, false, false, false);
-    expect(result).not.toHaveLength(0);
-    expect(result).toContain('=== Test Results');
-    expect(result).not.toContain('CATEGORY');
-    // Should still contain the test names but not the category column
-    expect(result).toContain('AccountServiceTest.should_create_account');
-    expect(result).toContain('AwesomeCalculatorTest.testCallout');
-    expect(result).toContain('AnimalLocatorTest.testMissingAnimal');
-  });
+  it('omits test categories when disabled', () =>
+    expectSnapshot(formatHuman(testResultsWithCategory, false, false, false)));
 
-  it('should show category column in detailed coverage when showCategory is true', () => {
-    const result = formatHuman(coverageResultWithCategory, true, false, true);
-    expect(result).not.toHaveLength(0);
-    expect(result).toContain('=== Apex Code Coverage for Test Run 7073t000061uwZI');
-    expect(result).toContain('CATEGORY');
-    expect(result).toContain('Apex');
-    expect(result).toContain('Flow');
-    expect(result).toContain('AccountService');
-    expect(result).toContain('CalculatorUtils');
-  });
+  it('shows categories in detailed coverage when enabled', () =>
+    expectSnapshot(formatHuman(coverageResultWithCategory, true, false, true)));
 
-  it('should not show category column in detailed coverage when showCategory is false', () => {
-    const result = formatHuman(coverageResultWithCategory, true, false, false);
-    expect(result).not.toHaveLength(0);
-    expect(result).toContain('=== Apex Code Coverage for Test Run 7073t000061uwZI');
-    expect(result).not.toContain('CATEGORY');
-    // Should still contain the covered class names
-    expect(result).toContain('AccountService');
-    expect(result).toContain('CalculatorUtils');
-  });
+  it('omits categories in detailed coverage when disabled', () =>
+    expectSnapshot(formatHuman(coverageResultWithCategory, true, false, false)));
 
-  it('should show category column with concise mode when showCategory is true', () => {
-    const result = formatHuman(testResultsWithCategory, false, true, true);
-    expect(result).not.toHaveLength(0);
-    expect(result).toContain('=== Test Results');
-    expect(result).toContain('CATEGORY');
-  });
+  it('shows categories in concise mode when enabled', () =>
+    expectSnapshot(formatHuman(testResultsWithCategory, false, true, true)));
 
-  it('should show category column in detailed coverage with concise mode when showCategory is true', () => {
-    const result = formatHuman(coverageFailResultWithCategory, true, true, true);
-    expect(result).not.toHaveLength(0);
-    expect(result).toContain('=== Apex Code Coverage for Test Run 7073t000061uwZI');
-    expect(result).toContain('CATEGORY');
-    expect(result).not.toContain('=== Apex Code Coverage by Class');
-  });
+  it('shows categories in concise detailed coverage', () =>
+    expectSnapshot(formatHuman(coverageFailResultWithCategory, true, true, true)));
 });

@@ -7,26 +7,21 @@
 import { formatTap } from '../../src';
 import { buildTapResults } from '../../src/reporters/tapFormatting';
 import { testResults } from './testResults';
+import { normalizeFormatterOutput } from './formattingSnapshot';
+
+const expectSnapshot = (output: string): void => {
+  expect(normalizeFormatterOutput(output)).toMatchSnapshot();
+};
 
 describe('TAP Formatting Tests', () => {
   const failures = new Set([1, 5, 8, 12]);
 
   it('should format test results', () => {
-    const result = formatTap(testResults);
-    expect(result).not.toHaveLength(0);
-    expect(result).toContain('1..16');
-    expect(result).toContain('ok 1 AccountServiceTest.should_create_account');
-    expect(result).toContain(
-      'not ok 6 AnimalLocatorTest.testMissingAnimal\n# System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:\n# Class.AnimalLocatorTest.testMissingAnimal: line 22, column 1\n'
-    );
+    expectSnapshot(formatTap(testResults));
   });
 
   it('should format test results and epilog', () => {
-    const result = formatTap(testResults, ['One', 'Two', 'Three']);
-    expect(result).not.toHaveLength(0);
-    expect(result).toContain('1..16');
-    expect(result).toContain('ok 1 AccountServiceTest.should_create_account');
-    expect(result).toMatch(new RegExp('ok 16 DailyLeadProcessorTest.testLeadProcessing\n# One\n# Two\n# Three\n$'));
+    expectSnapshot(formatTap(testResults, ['One', 'Two', 'Three']));
   });
 
   it('should report the correct number of test points', async () => {
@@ -41,7 +36,7 @@ describe('TAP Formatting Tests', () => {
       expect(r.testNumber).toBe(i + 1);
       if (failures.has(i)) {
         expect(r.outcome).toBe('not ok');
-        expect(r.diagnostics).not.toBeNull();
+        expect(r.diagnostics.length).toBeGreaterThan(0);
       } else {
         expect(r.outcome).toBe('ok');
         expect(r.diagnostics).toEqual([]);
