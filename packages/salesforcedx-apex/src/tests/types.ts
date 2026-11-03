@@ -40,6 +40,11 @@ export const TestLevelSchema = Schema.Literal('RunLocalTests', 'RunAllTestsInOrg
   identifier: 'TestLevel'
 });
 export type TestLevel = typeof TestLevelSchema.Type;
+export const TestLevel = {
+  RunLocalTests: 'RunLocalTests',
+  RunAllTestsInOrg: 'RunAllTestsInOrg',
+  RunSpecifiedTests: 'RunSpecifiedTests'
+} as const satisfies { [K in TestLevel]: K };
 
 /** Test implementation category. */
 export const TestCategorySchema = Schema.Literal('Apex', 'Flow');
@@ -90,6 +95,14 @@ export const ResultFormatSchema = Schema.Literal('junit', 'tap', 'json', 'human'
   identifier: 'ResultFormat'
 });
 export type ResultFormat = typeof ResultFormatSchema.Type;
+export const ResultFormat = {
+  junit: 'junit',
+  tap: 'tap',
+  json: 'json',
+  human: 'human',
+  markdown: 'markdown',
+  text: 'text'
+} as const satisfies { [K in ResultFormat]: K };
 
 export const ResultFormatsSchema = ResultFormatSchema.pipe(
   Schema.Array,

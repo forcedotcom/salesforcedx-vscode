@@ -20,8 +20,10 @@ The baseline retains externally used services, reporters, result values, and
 the types reachable through them. `DefaultWatermarks` remains public because an
 external consumer subclasses `CoverageReporter` and supplies it.
 
-Published enum values become type-only string unions. Type-only packages remain
-development dependencies.
+`TestLevel` and `ResultFormat` retain runtime values for CLI consumers as const
+objects, with string-union types derived from those objects. Other unused enum
+values become type-only string unions. Type-only packages remain development
+dependencies.
 
 VS Code-only declarations remain available where the co-repo extension needs
 them, but carry `@internal` and are excluded from the public JSON schema and
