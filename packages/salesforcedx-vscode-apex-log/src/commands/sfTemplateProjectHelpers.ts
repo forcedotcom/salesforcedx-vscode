@@ -32,25 +32,16 @@ const getStandardApexTypeNameMessages = () => ({
   reservedDefault: nls.localize('name_cannot_be_default')
 });
 
-const apexTypeNameSchema = (messages: ApexTypeNameMessages, maxLength: number) =>
-  Schema.String.pipe(
+const apexTypeNameSchema = (messages: ApexTypeNameMessages) =>
+  Schema.Trim.pipe(
     Schema.minLength(1, { message: () => messages.empty }),
     Schema.filter(value => value.toLowerCase() !== 'default', { message: () => messages.reservedDefault }),
     Schema.pattern(LetterStartNamePattern, { message: () => messages.invalidFormat }),
-    Schema.maxLength(maxLength, { message: () => messages.maxLength })
+    Schema.maxLength(APEX_NAME_MAX_LENGTH, { message: () => messages.maxLength })
   );
 
-const validateApexTypeName = (
-  value: string,
-  messages: ApexTypeNameMessages,
-  options?: { readonly maxLength?: number }
-): string | undefined => {
-  const maxLen = options?.maxLength ?? APEX_NAME_MAX_LENGTH;
-  const normalized = String.trim(value);
-  return Schema.decodeUnknownEither(apexTypeNameSchema(messages, maxLen))(normalized).pipe(
-    parseErrorToValidationMessage
-  );
-};
+const validateApexTypeName = (value: string, messages: ApexTypeNameMessages): string | undefined =>
+  Schema.decodeUnknownEither(apexTypeNameSchema(messages))(value).pipe(parseErrorToValidationMessage);
 
 type PromptForApexTypeNameParams = {
   readonly prompt: string;
@@ -66,10 +57,7 @@ export const promptForApexTypeName = Effect.fn('promptForApexTypeName')(function
   return yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: params.prompt,
-      validateInput: (value: string) =>
-        validateApexTypeName(value, messages, {
-          maxLength: APEX_NAME_MAX_LENGTH
-        })
+      validateInput: (value: string) => validateApexTypeName(value, messages)
     })
   ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation), Effect.map(String.trim));
 });

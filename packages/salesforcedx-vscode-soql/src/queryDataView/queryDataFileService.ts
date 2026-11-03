@@ -53,13 +53,11 @@ const getExportFileStemFromDocument = (document: vscode.TextDocument, fileExtens
 
 const validateExportResultsFileNameInput = (value: string, fileExtension: string): string | undefined =>
   Schema.decodeUnknownEither(
-    Schema.String.pipe(
-      Schema.filter(input => input.trim().length > 0, {
-        message: () => nls.localize('soql_export_results_file_name_empty_error')
-      }),
+    Schema.Trim.pipe(
+      Schema.minLength(1, { message: () => nls.localize('soql_export_results_file_name_empty_error') }),
       Schema.filter(
         input => {
-          const base = stripTrailingExtension(input.trim(), fileExtension);
+          const base = stripTrailingExtension(input, fileExtension);
           return base.length > 0 && base !== '.' && base !== '..' && !invalidFileNameCharRegExp.test(base);
         },
         { message: () => nls.localize('soql_export_results_file_name_format_error') }

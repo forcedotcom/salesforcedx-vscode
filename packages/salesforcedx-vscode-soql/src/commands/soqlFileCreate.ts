@@ -17,7 +17,7 @@ import { type URI, Utils } from 'vscode-uri';
 import { BUILDER_VIEW_TYPE, EDITOR_VIEW_TYPE, OPEN_WITH_COMMAND } from '../constants';
 import { nls } from '../messages';
 
-const SoqlFileNameSchema = Schema.String.pipe(
+const SoqlFileNameSchema = Schema.Trim.pipe(
   Schema.minLength(1, { message: () => nls.localize('soql_file_name_empty_error') }),
   Schema.pattern(LetterStartNamePattern, { message: () => nls.localize('soql_file_name_format_error') })
 );
@@ -28,10 +28,8 @@ const promptForFileName = Effect.fn('soqlFileCreate.promptForFileName')(function
   return yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: nls.localize('soql_file_name_prompt'),
-      validateInput: (value: string) => {
-        const normalized = value.trim();
-        return Schema.decodeUnknownEither(SoqlFileNameSchema)(normalized).pipe(parseErrorToValidationMessage);
-      }
+      validateInput: (value: string) =>
+        Schema.decodeUnknownEither(SoqlFileNameSchema)(value).pipe(parseErrorToValidationMessage)
     })
   ).pipe(
     Effect.map(n => n?.trim()),

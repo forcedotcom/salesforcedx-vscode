@@ -6,19 +6,16 @@
  */
 
 import type { MessageKey } from '../messages/i18n';
-import {
-  ExtensionProviderService,
-  LetterStartNamePattern,
-  parseErrorToValidationMessage
-} from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, LetterStartNamePattern } from '@salesforce/effect-ext-utils';
 import { hasFileNameCollision } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as Effect from 'effect/Effect';
-import { isNotUndefined } from 'effect/Predicate';
+import * as Either from 'effect/Either';
+import * as ParseResult from 'effect/ParseResult';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
-const AuraComponentNameSchema = Schema.String.pipe(
+const AuraComponentNameSchema = Schema.Trim.pipe(
   Schema.minLength(1, { message: () => nls.localize('aura_component_name_empty_error') }),
   Schema.pattern(LetterStartNamePattern, { message: () => nls.localize('aura_component_name_format_error') })
 );
@@ -41,17 +38,19 @@ export const promptForAuraName = Effect.fn('promptForAuraName')(function* (opts:
     vscode.window.showInputBox({
       value: opts.initialValue,
       prompt: nls.localize(opts.promptKey ?? 'aura_component_name_prompt'),
-      validateInput: (value: string) => {
-        const trimmed = value.trim();
-        const validationMessage =
-          Schema.decodeUnknownEither(AuraComponentNameSchema)(trimmed).pipe(parseErrorToValidationMessage);
-        if (isNotUndefined(validationMessage)) return validationMessage;
-        if (opts.existingNames?.has(trimmed.toLowerCase())) return nls.localize('component_input_dup_error');
-        if (opts.bundleFileNames && hasFileNameCollision(opts.bundleFileNames, trimmed)) {
-          return nls.localize('rename_component_input_dup_file_name_error');
-        }
-        return undefined;
-      }
+      validateInput: (value: string) =>
+        Schema.decodeUnknownEither(AuraComponentNameSchema)(value).pipe(
+          Either.match({
+            onLeft: ParseResult.TreeFormatter.formatErrorSync,
+            onRight: trimmed => {
+              if (opts.existingNames?.has(trimmed.toLowerCase())) return nls.localize('component_input_dup_error');
+              if (opts.bundleFileNames && hasFileNameCollision(opts.bundleFileNames, trimmed)) {
+                return nls.localize('rename_component_input_dup_file_name_error');
+              }
+              return undefined;
+            }
+          })
+        )
     })
   ).pipe(
     Effect.map(raw => raw?.trim()),

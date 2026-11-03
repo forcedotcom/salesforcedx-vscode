@@ -17,7 +17,7 @@ import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
 
-const ScriptNameSchema = Schema.String.pipe(
+const ScriptNameSchema = Schema.Trim.pipe(
   Schema.minLength(1, { message: () => nls.localize('create_script_name_empty_error') }),
   Schema.pattern(LetterStartNamePattern, { message: () => nls.localize('create_script_name_format_error') })
 );
@@ -30,7 +30,7 @@ const promptForScriptName = Effect.fn('promptForScriptName')(function* () {
     vscode.window.showInputBox({
       prompt: nls.localize('create_script_name_prompt'),
       validateInput: (value: string) =>
-        Schema.decodeUnknownEither(ScriptNameSchema)(value.trim()).pipe(parseErrorToValidationMessage)
+        Schema.decodeUnknownEither(ScriptNameSchema)(value).pipe(parseErrorToValidationMessage)
     })
   ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation), Effect.map(String.trim));
 });
