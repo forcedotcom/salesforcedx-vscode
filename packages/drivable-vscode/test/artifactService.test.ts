@@ -7,11 +7,13 @@
 
 import * as FileSystem from 'effect/FileSystem';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import { ArtifactService, ArtifactServiceLayer } from '../src/artifactService';
+import { drivablePlatformLayer } from '../src/platformLayer';
 
 vi.mock('@salesforce/playwright-vscode-ext', () => ({ redactValue: (value: unknown) => value }));
 
-const TestLayer = ArtifactServiceLayer;
+const TestLayer = ArtifactServiceLayer.pipe(Layer.provideMerge(drivablePlatformLayer));
 
 describe('ArtifactService', () => {
   test('writes JSONL plus typed finding and summary deliverables', async () => {

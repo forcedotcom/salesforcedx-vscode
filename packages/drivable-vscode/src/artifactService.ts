@@ -20,7 +20,6 @@ import * as Layer from 'effect/Layer';
 import * as Path from 'effect/Path';
 import * as Semaphore from 'effect/Semaphore';
 import { causeMessage, DrivableVscodeArtifactError } from './errors';
-import { drivablePlatformLayer } from './platformLayer';
 
 type ArtifactWrite = { filePath: string; contents: string; append: boolean };
 const json = (value: unknown, pretty = false) =>
@@ -125,6 +124,4 @@ export class ArtifactService extends Context.Service<ArtifactService, Effect.Suc
   'DrivableVscode/ArtifactService'
 ) {}
 
-export const ArtifactServiceLayer = Layer.effect(ArtifactService, makeArtifactService).pipe(
-  Layer.provideMerge(drivablePlatformLayer)
-);
+export const ArtifactServiceLayer = Layer.effect(ArtifactService, makeArtifactService);

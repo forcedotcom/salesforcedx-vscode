@@ -12,7 +12,6 @@ import * as Layer from 'effect/Layer';
 import * as Path from 'effect/Path';
 import * as Schema from 'effect/Schema';
 import { causeMessage, DrivableVscodeWorkspaceError } from './errors';
-import { drivablePlatformLayer } from './platformLayer';
 
 const makeWorkspaceService = Effect.gen(function* () {
   const fs = yield* FileSystem.FileSystem;
@@ -115,6 +114,4 @@ export class WorkspaceService extends Context.Service<WorkspaceService, Effect.S
   'DrivableVscode/WorkspaceService'
 ) {}
 
-export const WorkspaceServiceLayer = Layer.effect(WorkspaceService, makeWorkspaceService).pipe(
-  Layer.provideMerge(drivablePlatformLayer)
-);
+export const WorkspaceServiceLayer = Layer.effect(WorkspaceService, makeWorkspaceService);

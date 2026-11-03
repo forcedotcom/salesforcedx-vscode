@@ -39,7 +39,7 @@ Catch only where the caller can recover or improve the message. Don't replace un
 
 - `Effect.partition(items, f)` — run every item and return successes and failures.
 - `Effect.validate(items, f)` — run every item; fail with all typed failures, otherwise return all successes.
-- `Effect.validateFirst(items, f)` — stop at the first success.
+- `Effect.firstSuccessOf(effects)` — stop at the first success.
 
 Typed-error accumulation does not capture interruption; cancellation still aborts the whole operation.
 

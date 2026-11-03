@@ -16,7 +16,6 @@ import * as Schema from 'effect/Schema';
 import { execFileSync } from 'node:child_process';
 import { DRIVABLE_VSCODE_EXTENSION_DIRS } from './constants';
 import { causeMessage, DrivableVscodeExtensionError } from './errors';
-import { drivablePlatformLayer } from './platformLayer';
 
 const RequiredExtensionPackageJsonSchema = Schema.Struct({
   name: Schema.String,
@@ -97,6 +96,4 @@ export class ExtensionService extends Context.Service<ExtensionService, Effect.S
   'DrivableVscode/ExtensionService'
 ) {}
 
-export const ExtensionServiceLayer = Layer.effect(ExtensionService, makeExtensionService).pipe(
-  Layer.provideMerge(drivablePlatformLayer)
-);
+export const ExtensionServiceLayer = Layer.effect(ExtensionService, makeExtensionService);

@@ -219,7 +219,7 @@ const config = Config.all({
 })
 
 // Use in layer
-const ServerLive = Layer.unwrapEffect(
+const ServerLive = Layer.unwrap(
     Effect.gen(function* () {
         const { port, host, env } = yield* config
         return Layer.succeed(ServerConfig, { port, host, env })
@@ -294,7 +294,7 @@ const appConfig = Config.all({
 import { Logger, LogLevel } from "effect"
 
 // Set log level via config
-const LoggerLive = Layer.unwrapEffect(
+const LoggerLive = Layer.unwrap(
     Effect.gen(function* () {
         const level = yield* Config.Literals(
             ["debug", "info", "warning", "error"], "LOG_LEVEL"

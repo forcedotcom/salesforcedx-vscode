@@ -112,6 +112,20 @@ describe('drivable VS Code MCP server', () => {
     expect(act).not.toHaveBeenCalled();
   });
 
+  test('decodes JSON nulls for optional MCP fields consistently with the advertised schema', async () => {
+    const started = await callTool(client, 'start', {
+      objective: 'Start with omitted optional values',
+      artifactRoot: null
+    });
+    expect(started.isError).not.toBe(true);
+
+    const acted = await callTool(client, 'act', {
+      observationSequence: 1,
+      action: { kind: 'click', role: 'button', name: 'Continue', exact: null }
+    });
+    expect(acted.isError).not.toBe(true);
+  });
+
   test('reports the underlying VS Code launch failure', async () => {
     start.mockImplementation(() =>
       Effect.fail(

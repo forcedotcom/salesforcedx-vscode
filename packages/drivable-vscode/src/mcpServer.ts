@@ -20,6 +20,7 @@ import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as FiberSet from 'effect/FiberSet';
+import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import { isError } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
@@ -28,10 +29,11 @@ import * as Scope from 'effect/Scope';
 import process = require('node:process');
 import { ControllerService, ControllerServiceLayer } from './controllerService';
 import { causeMessage, DrivableVscodeMcpShutdownError } from './errors';
+import { drivablePlatformLayer } from './platformLayer';
 import { ActInput, StartInput, DrivableVscodeFinding } from './schemas';
 
 const SERVER_INFO = { name: 'drivable-vscode', version: '0.1.0' };
-const AppLayer = ControllerServiceLayer;
+const AppLayer = ControllerServiceLayer.pipe(Layer.provideMerge(drivablePlatformLayer));
 const EmptyInput = Schema.Struct({});
 const emptyInputSchema = {
   type: 'object',
@@ -40,12 +42,14 @@ const emptyInputSchema = {
   additionalProperties: false
 } satisfies Tool['inputSchema'];
 const inputSchema = <S extends Schema.Constraint>(schema: S): Tool['inputSchema'] => {
-  const jsonSchema = Schema.toJsonSchemaDocument(schema).schema;
+  const jsonSchema = Schema.toJsonSchemaDocument(Schema.toCodecJson(schema)).schema;
   if (!('type' in jsonSchema) || jsonSchema.type !== 'object')
     // eslint-disable-next-line functional/no-throw-statements -- MCP requires object schemas; fail startup on invalid definitions.
     throw new TypeError('MCP tool input schema must be an object');
   return { ...jsonSchema, type: 'object' };
 };
+const decodeInput = <S extends Schema.ConstraintDecoder<unknown, never>>(schema: S, input: unknown) =>
+  Effect.fromResult(Schema.decodeUnknownResult(Schema.toCodecJson(schema))(input));
 const tools = [
   { name: 'start', description: 'Start the single drivable VS Code session.', inputSchema: inputSchema(StartInput) },
   {
@@ -104,12 +108,12 @@ const callTool = Effect.fn('McpServer.callTool')(function* (name: string, args: 
   const controller = yield* ControllerService;
   switch (name) {
     case 'start': {
-      const value = yield* Effect.fromResult(Schema.decodeUnknownResult(StartInput)(args));
+      const value = yield* decodeInput(StartInput, args);
       const session = yield* controller.start(value.objective, value);
       return textResult({ runId: session.runId, artifactDir: session.artifactDir, workspaceDir: session.workspaceDir });
     }
     case 'observe': {
-      yield* Effect.fromResult(Schema.decodeUnknownResult(EmptyInput)(args));
+      yield* decodeInput(EmptyInput, args);
       const { observation, screenshot } = yield* controller.observeForMcp;
       return {
         content: [
@@ -119,20 +123,20 @@ const callTool = Effect.fn('McpServer.callTool')(function* (name: string, args: 
       } satisfies CallToolResult;
     }
     case 'act': {
-      const value = yield* Effect.fromResult(Schema.decodeUnknownResult(ActInput)(args));
+      const value = yield* decodeInput(ActInput, args);
       yield* controller.act({ ...value.action, observationSequence: value.observationSequence });
       return textResult({ acted: true, observationSequence: value.observationSequence });
     }
     case 'add_finding': {
-      const finding = yield* Effect.fromResult(Schema.decodeUnknownResult(DrivableVscodeFinding)(args));
+      const finding = yield* decodeInput(DrivableVscodeFinding, args);
       yield* controller.addFinding(finding);
       return textResult({ added: true });
     }
     case 'status':
-      yield* Effect.fromResult(Schema.decodeUnknownResult(EmptyInput)(args));
+      yield* decodeInput(EmptyInput, args);
       return textResult(yield* controller.status);
     case 'finish':
-      yield* Effect.fromResult(Schema.decodeUnknownResult(EmptyInput)(args));
+      yield* decodeInput(EmptyInput, args);
       yield* controller.finish;
       return textResult(yield* controller.status);
     default:

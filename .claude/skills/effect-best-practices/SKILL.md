@@ -32,7 +32,7 @@ npx effect-language-service diagnostics --project tsconfig.json
 | Errors            | `Schema.TaggedError` with `message` field                | Plain classes or generic Error                                   |
 | Error Specificity | Split tags when catch arms or field shapes differ; telemetry dimensions are fields on one tag | Extra tags that all print `message` / fire the same span |
 | Error Handling    | `catchTag`/`catchTags`; catch only when needed           | broad `Effect.catch`; swallowing; catching "just in case"        |
-| IDs               | Salesforce record/org: `SalesforceId`/`OrgId` (`core/schemas/salesforceId.ts`). `DefaultOrgInfoSchema.orgId`/`devHubOrgId`: `Schema.optional(OrgId)` like `cliId`. Else `Schema.UUID.pipe(Schema.brand("@App/EntityId"))` | Plain `string`; `getAuthInfoFields().orgId` ad hoc; `optionalWith` as Option on DefaultOrgInfo |
+| IDs               | Salesforce record/org: `SalesforceId`/`OrgId` (`core/schemas/salesforceId.ts`). `DefaultOrgInfoSchema.orgId`/`devHubOrgId`: `Schema.optional(OrgId)` like `cliId`. Else `Schema.String.check(Schema.isUUID()).pipe(Schema.brand("@App/EntityId"))` | Plain `string`; `getAuthInfoFields().orgId` ad hoc; `optionalWith` as Option on DefaultOrgInfo |
 | Functions         | `Effect.fn` for reusable traced functions; `Effect.gen` inline | Anonymous reusable generators; nested `Effect.gen` just to attach recovery |
 | Composition       | `.pipe`; `local/inline-single-use-yield-binding` for yielded values; `local/no-standalone-pipeable-value` for Effect/Stream/Schema values. Details: `references/composition-style.md` | — |
 | Params vs deps    | Params = runtime data; dependencies = yield from context | Passing Ref/PubSub/service as params                             |
@@ -172,7 +172,7 @@ Split tags when **catch arms or field shapes** differ — e.g. `message`+`cause`
 
 ### Accumulating Errors Across a Collection
 
-To **continue past failures** instead of short-circuiting on the first, don't hand-roll `Result` + `catchTag` + a re-loop. Use `Effect.partition` (both buckets), `Effect.validate` (all-or-nothing), or `Effect.validateFirst`. These recover the typed error channel per item but do NOT capture interruption — so a Cancel still aborts the whole loop.
+To **continue past failures** instead of short-circuiting on the first, don't hand-roll `Result` + `catchTag` + a re-loop. Use `Effect.partition` (both buckets) or `Effect.validate` (all-or-nothing). Use `Effect.firstSuccessOf` to try alternatives until one succeeds. Collection validation does not capture interruption — Cancel still aborts the whole loop.
 
 See `references/error-patterns.md` for the accumulation/interruption nuance, error remapping, and retry patterns.
 
@@ -186,10 +186,10 @@ This repo — Salesforce record/org ids are not UUIDs. Use `SalesforceId`/`OrgId
 import { Schema } from 'effect';
 
 // Entity IDs - always branded
-export const UserId = Schema.UUID.pipe(Schema.brand('@App/UserId'));
+export const UserId = Schema.String.check(Schema.isUUID()).pipe(Schema.brand('@App/UserId'));
 export type UserId = Schema.Schema.Type<typeof UserId>;
 
-export const TenantId = Schema.UUID.pipe(Schema.brand('@App/TenantId'));
+export const TenantId = Schema.String.check(Schema.isUUID()).pipe(Schema.brand('@App/TenantId'));
 export type TenantId = Schema.Schema.Type<typeof TenantId>;
 
 // Domain types - use Schema.Struct

@@ -7,12 +7,14 @@
 
 import * as FileSystem from 'effect/FileSystem';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import { DRIVABLE_VSCODE_EXTENSION_DIRS } from '../src/constants';
 import { ExtensionService, ExtensionServiceLayer } from '../src/extensionService';
+import { drivablePlatformLayer } from '../src/platformLayer';
 
 vi.mock('@salesforce/playwright-vscode-ext', () => ({ prepareVsixExtensions: vi.fn() }));
 
-const TestLayer = ExtensionServiceLayer;
+const TestLayer = ExtensionServiceLayer.pipe(Layer.provideMerge(drivablePlatformLayer));
 
 describe('ExtensionService', () => {
   test('rejects a development extension package missing version', async () => {

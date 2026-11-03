@@ -10,16 +10,16 @@ This repo: Salesforce record/org → `SalesforceId`/`OrgId` (branding convention
 import { Schema } from "effect"
 
 // Entity IDs - always branded with namespace
-export const UserId = Schema.UUID.pipe(Schema.brand("@App/UserId"))
+export const UserId = Schema.String.check(Schema.isUUID()).pipe(Schema.brand("@App/UserId"))
 export type UserId = Schema.Schema.Type<typeof UserId>
 
-export const TenantId = Schema.UUID.pipe(Schema.brand("@App/TenantId"))
+export const TenantId = Schema.String.check(Schema.isUUID()).pipe(Schema.brand("@App/TenantId"))
 export type TenantId = Schema.Schema.Type<typeof TenantId>
 
-export const OrderId = Schema.UUID.pipe(Schema.brand("@App/OrderId"))
+export const OrderId = Schema.String.check(Schema.isUUID()).pipe(Schema.brand("@App/OrderId"))
 export type OrderId = Schema.Schema.Type<typeof OrderId>
 
-export const ProductId = Schema.UUID.pipe(Schema.brand("@App/ProductId"))
+export const ProductId = Schema.String.check(Schema.isUUID()).pipe(Schema.brand("@App/ProductId"))
 export type ProductId = Schema.Schema.Type<typeof ProductId>
 ```
 
