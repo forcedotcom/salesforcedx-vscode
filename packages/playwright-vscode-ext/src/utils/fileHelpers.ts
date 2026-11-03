@@ -96,6 +96,8 @@ export const createApexClass = async (page: Page, className: string, content?: s
   const quickInput = activeQuickInputWidget(page);
   const classNamePrompt = quickInput.getByText(/Enter Apex class name/i);
   await selectFirstQuickInputOption(page, {
+    // The web extension host can take longer to surface this picker after activating the project.
+    retryTimeout: 30_000,
     confirmCommitted: () =>
       classNamePrompt
         .isVisible()

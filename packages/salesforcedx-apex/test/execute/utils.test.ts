@@ -10,32 +10,11 @@ import { encodeBody } from '../../src/execute/utils';
 
 describe('encodeBody for execute request', () => {
   const accessToken = '0000000000x189';
-  let actionBody = 'System.assert(true);';
-  const debugHeader = `<apex:DebuggingHeader>
-            <apex:categories><apex:category>Apex_code</apex:category><apex:level>Finest</apex:level></apex:categories>
-            <apex:categories><apex:category>Visualforce</apex:category><apex:level>Finer</apex:level></apex:categories>
-            <apex:categories><apex:category>Apex_profiling</apex:category><apex:level>Info</apex:level></apex:categories>
-        </apex:DebuggingHeader>`;
-  const action = 'executeAnonymous';
-  const expectedBody = `<env:Envelope xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"
-xmlns:cmd="http://soap.sforce.com/2006/08/apex"
-xmlns:apex="http://soap.sforce.com/2006/08/apex">
-    <env:Header xmlns="http://soap.sforce.com/2006/08/apex">
-        <cmd:SessionHeader>
-            <cmd:sessionId>${accessToken}</cmd:sessionId>
-        </cmd:SessionHeader>
-        ${debugHeader}
-    </env:Header>
-    <env:Body>
-        <${action} xmlns="http://soap.sforce.com/2006/08/apex">
-            <apexcode>${actionBody}</apexcode>
-        </${action}>
-    </env:Body>
-</env:Envelope>`;
+
   it('should correctly return encoded body given the parameters', () => {
+    const actionBody = 'System.assert(true);';
     const encodedBody = encodeBody(accessToken, actionBody);
-    expect(encodedBody).toEqual(expectedBody);
+    expect(encodedBody).toMatchSnapshot();
   });
 
   it.each([false, true])(
@@ -84,24 +63,8 @@ xmlns:apex="http://soap.sforce.com/2006/08/apex">
   );
 
   it('should correctly return encoded body given parameters with characters that must be escaped', () => {
-    actionBody = 'System.assert(true);\n// > & < & \'"\' "\'"';
-    const expectedResponse = `<env:Envelope xmlns:xsd="http://www.w3.org/2001/XMLSchema"
-xmlns:env="http://schemas.xmlsoap.org/soap/envelope/"
-xmlns:cmd="http://soap.sforce.com/2006/08/apex"
-xmlns:apex="http://soap.sforce.com/2006/08/apex">
-    <env:Header xmlns="http://soap.sforce.com/2006/08/apex">
-        <cmd:SessionHeader>
-            <cmd:sessionId>${accessToken}</cmd:sessionId>
-        </cmd:SessionHeader>
-        ${debugHeader}
-    </env:Header>
-    <env:Body>
-        <${action} xmlns="http://soap.sforce.com/2006/08/apex">
-            <apexcode>System.assert(true);\n// &gt; &amp; &lt; &amp; &apos;&quot;&apos; &quot;&apos;&quot;</apexcode>
-        </${action}>
-    </env:Body>
-</env:Envelope>`;
+    const actionBody = 'System.assert(true);\n// > & < & \'"\' "\'"';
     const encodedBody = encodeBody(accessToken, actionBody);
-    expect(encodedBody).toEqual(expectedResponse);
+    expect(encodedBody).toMatchSnapshot();
   });
 });

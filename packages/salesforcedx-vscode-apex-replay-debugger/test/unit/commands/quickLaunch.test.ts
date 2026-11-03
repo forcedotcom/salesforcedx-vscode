@@ -9,8 +9,8 @@ import * as Effect from 'effect/Effect';
 import type { Mock as VitestMock } from 'vitest';
 import * as vscode from 'vscode';
 
-// quickLaunch imports checkpointService, which requires the Apex extension at module load
-vi.mock('../../../src/apexExtension', () => ({ salesforceApexExtension: { isActive: true, activate: vi.fn() } }));
+// quickLaunch does not exercise Apex extension exports.
+vi.mock('../../../src/apexExtension', () => ({ retrieveLineBreakpointInfo: () => Effect.void }));
 vi.mock('../../../src/commands/launchFromLogFile', () => ({ launchFromLogFile: vi.fn() }));
 vi.mock('vscode', async () => ({
   ...(await vi.importActual<typeof vscode>('vscode')),

@@ -37,13 +37,12 @@
   },
   "dependencies": {
     "@effect/platform": "^0.96.1",
-    "@playwright/test": "^1.60.0",
+    "@playwright/test": "^1.64.1",
+    "@salesforce/core": "^9.3.0",
     "@vscode/test-electron": "3.1.0",
     "@vscode/test-web": "^0.0.81",
-    "effect": "^3.21.2"
-  },
-  "devDependencies": {
-    "@salesforce/core": "^9.3.0"
+    "effect": "^3.21.2",
+    "jsonc-parser": "^3.3.1"
   },
   "scripts": {
     "check:circular-deps": "wireit",

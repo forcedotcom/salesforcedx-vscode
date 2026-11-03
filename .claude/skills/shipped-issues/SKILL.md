@@ -11,7 +11,7 @@ Cross-reference open GitHub issues against closed GUS work items and the shipped
 ## Inputs
 
 - Repo: `forcedotcom/salesforcedx-vscode`
-- Changelog: `packages/salesforcedx-vscode/CHANGELOG.md` (on `develop`; pull latest first)
+- Changelog: root `CHANGELOG.md` on `develop` (full shipped history; each stable section folds every pre-release it contains). Not `packages/salesforcedx-vscode/CHANGELOG.md` — that holds only the latest pre-release delta.
 - GUS alias: `gus` (see `.claude/skills/gus-cli/SKILL.md`)
 
 ## Workflow
@@ -20,7 +20,7 @@ Cross-reference open GitHub issues against closed GUS work items and the shipped
 
 ```bash
 git fetch origin develop
-git show origin/develop:packages/salesforcedx-vscode/CHANGELOG.md > /tmp/shipped-changelog.md
+git show origin/develop:CHANGELOG.md > /tmp/shipped-changelog.md
 ```
 
 Do not switch branches; run from wherever the user is.

@@ -333,7 +333,7 @@ export const waitForOutputChannelText = async (
 ): Promise<void> => {
   const { expectedText, timeout = 30_000, failIfChannelIncludes } = opts;
 
-  if (!(await waitForOutputContent(page, Math.min(timeout, 30_000)))) {
+  if (!(await waitForOutputContent(page, Math.min(timeout, 60_000)))) {
     throw new Error(`Output channel did not have content within ${timeout}ms`);
   }
 

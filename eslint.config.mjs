@@ -86,7 +86,7 @@ export default [
       'packages/salesforcedx-vscode-soql/src/soql-common/soql-parser.lib/**',
       'packages/soql-common/src/soql-parser.lib/**',
       'scripts/vsce-bundled-extension.ts',
-      'scripts/reportInstalls.ts',
+      'scripts/reportInstalls.mts',
       'packages/salesforcedx-lwc-language-server/test/javascript/fixtures/**',
       'packages/salesforcedx-lightning-lsp-common/src/resources/**',
       'packages/salesforcedx-lightning-lsp-common/src/html-language-service/**',
@@ -190,6 +190,7 @@ export default [
       'local/no-nested-effect-ternary': 'error',
       'local/require-effect-fn-span-name': 'error',
       'local/no-raw-duration': 'error',
+      'local/no-schema-is-throw-guard': 'error',
       'local/effect-fn-catch-middleware-last': 'error',
       'local/no-standalone-pipeable-value': 'error',
       'local/no-duplicate-i18n-values': 'error',
@@ -988,7 +989,11 @@ export default [
     }
   },
   {
-    files: ['scripts/validateActions.ts', 'scripts/changelogBody/changelogBody.mts', 'scripts/manualTestPlan/**/*.mts'],
+    files: [
+      'scripts/validateActions.mts',
+      'scripts/changelogBody/changelogBody.mts',
+      'scripts/manualTestPlan/**/*.mts'
+    ],
     rules: {
       'no-restricted-imports': 'off'
     }

@@ -6,46 +6,6 @@
  */
 
 import { isError } from 'effect/Predicate';
-import * as Schema from 'effect/Schema';
-
-const OperationErrorFields = {
-  operation: Schema.NonEmptyTrimmedString,
-  message: Schema.String,
-  cause: Schema.optional(Schema.String)
-};
-
-/** A request made by an Apex operation failed. */
-export class ApexOperationError extends Schema.TaggedError<ApexOperationError>()(
-  'ApexOperationError',
-  OperationErrorFields
-) {}
-
-/** An Apex operation received a response that did not match its public schema. */
-export class ApexResponseDecodeError extends Schema.TaggedError<ApexResponseDecodeError>()(
-  'ApexResponseDecodeError',
-  OperationErrorFields
-) {}
-
-const AnonymousExecutionErrorFields = {
-  operation: Schema.NonEmptyTrimmedString,
-  message: Schema.String,
-  line: Schema.Number,
-  column: Schema.Number,
-  logBody: Schema.optional(Schema.String)
-};
-
-/** Anonymous Apex compiled unsuccessfully; diagnostics remain on the error. */
-export class ApexCompileError extends Schema.TaggedError<ApexCompileError>()('ApexCompileError', {
-  ...AnonymousExecutionErrorFields,
-  compileProblem: Schema.NullOr(Schema.String)
-}) {}
-
-/** Anonymous Apex compiled but failed during execution. */
-export class ApexRuntimeError extends Schema.TaggedError<ApexRuntimeError>()('ApexRuntimeError', {
-  ...AnonymousExecutionErrorFields,
-  exceptionMessage: Schema.NullOr(Schema.String),
-  exceptionStackTrace: Schema.NullOr(Schema.String)
-}) {}
 
 /** Produces the serializable cause carried by public operation errors. */
 export const causeMessage = (cause: unknown): string => (isError(cause) ? cause.message : String(cause));

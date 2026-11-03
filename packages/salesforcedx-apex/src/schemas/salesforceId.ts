@@ -6,56 +6,71 @@
  */
 
 import * as Schema from 'effect/Schema';
+import { messages } from '../i18n/i18n';
 
 const SalesforceIdString = Schema.String.pipe(Schema.pattern(/^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$/));
-const prefixedSalesforceIdString = (prefix: string) => SalesforceIdString.pipe(Schema.startsWith(prefix));
+const prefixedSalesforceIdString = (prefix: string, recordType: string) =>
+  SalesforceIdString.pipe(Schema.startsWith(prefix)).annotations({
+    identifier: `${recordType}Id`,
+    message: () => ({
+      message: `${recordType} ID must contain 15 or 18 alphanumeric characters and start with ${prefix}`,
+      override: true
+    })
+  });
 
 /** A 15- or 18-character alphanumeric Salesforce record ID. */
 export const SalesforceId = SalesforceIdString.pipe(Schema.brand('@salesforcedx-apex/SalesforceId'));
 export type SalesforceId = typeof SalesforceId.Type;
 
 /** Salesforce User record ID. */
-export const UserIdString = prefixedSalesforceIdString('005');
+export const UserIdString = prefixedSalesforceIdString('005', 'User');
 export const UserId = UserIdString.pipe(Schema.brand('@salesforcedx-apex/UserId'));
 export type UserId = typeof UserId.Type;
 
 /** Salesforce Organization record ID. */
-export const OrgIdString = prefixedSalesforceIdString('00D');
+export const OrgIdString = prefixedSalesforceIdString('00D', 'Organization');
 
 /** Salesforce ApexClass record ID. */
-export const ApexClassIdString = prefixedSalesforceIdString('01p');
+export const ApexClassIdString = prefixedSalesforceIdString('01p', 'ApexClass');
 export const ApexClassId = ApexClassIdString.pipe(Schema.brand('@salesforcedx-apex/ApexClassId'));
 export type ApexClassId = typeof ApexClassId.Type;
 
 /** Salesforce ApexTrigger record ID. */
-export const ApexTriggerId = SalesforceId.pipe(
-  Schema.startsWith('01q'),
-  Schema.brand('@salesforcedx-apex/ApexTriggerId')
-);
+export const ApexTriggerIdString = prefixedSalesforceIdString('01q', 'ApexTrigger');
+export const ApexTriggerId = ApexTriggerIdString.pipe(Schema.brand('@salesforcedx-apex/ApexTriggerId'));
 export type ApexTriggerId = typeof ApexTriggerId.Type;
 
 /** Salesforce Tooling API ApexLog record ID. */
-export const ApexLogIdString = prefixedSalesforceIdString('07L');
+export const ApexLogIdString = prefixedSalesforceIdString('07L', 'ApexLog');
 export const ApexLogId = ApexLogIdString.pipe(Schema.brand('@salesforcedx-apex/ApexLogId'));
 export type ApexLogId = typeof ApexLogId.Type;
 
 /** Salesforce Apex test run ID. */
-export const TestRunIdString = prefixedSalesforceIdString('707');
+export const TestRunIdString = prefixedSalesforceIdString('707', 'AsyncApexJob').annotations({
+  identifier: 'AsyncApexJobId',
+  message: issue => ({
+    message: messages.invalidTestRunIdErr.replace('%s', () =>
+      'actual' in issue && typeof issue.actual === 'string' ? issue.actual : ''
+    ),
+    override: true
+  })
+});
 export const TestRunId = TestRunIdString.pipe(Schema.brand('@salesforcedx-apex/TestRunId'));
 export type TestRunId = typeof TestRunId.Type;
 
+/** Salesforce ApexTestSuite record ID. */
+export const ApexTestSuiteIdString = prefixedSalesforceIdString('05F', 'ApexTestSuite');
+export const ApexTestSuiteId = ApexTestSuiteIdString.pipe(Schema.brand('@salesforcedx-apex/ApexTestSuiteId'));
+export type ApexTestSuiteId = typeof ApexTestSuiteId.Type;
+
 /** Salesforce Apex test result ID. */
-export const ApexTestResultIdString = prefixedSalesforceIdString('07M');
-export const ApexTestResultId = ApexTestResultIdString.pipe(Schema.brand('@salesforcedx-apex/ApexTestResultId'));
-export type ApexTestResultId = typeof ApexTestResultId.Type;
+export const ApexTestResultIdString = prefixedSalesforceIdString('07M', 'ApexTestResult');
 
 /** Salesforce Flow test result ID. */
-export const FlowTestResultIdString = prefixedSalesforceIdString('2hU');
-export const FlowTestResultId = FlowTestResultIdString.pipe(Schema.brand('@salesforcedx-apex/FlowTestResultId'));
-export type FlowTestResultId = typeof FlowTestResultId.Type;
+export const FlowTestResultIdString = prefixedSalesforceIdString('2hU', 'FlowTestResult');
 
 /** Salesforce Apex test queue item ID. */
-export const ApexTestQueueItemIdString = prefixedSalesforceIdString('709');
+export const ApexTestQueueItemIdString = prefixedSalesforceIdString('709', 'ApexTestQueueItem');
 export const ApexTestQueueItemId = ApexTestQueueItemIdString.pipe(
   Schema.brand('@salesforcedx-apex/ApexTestQueueItemId')
 );
