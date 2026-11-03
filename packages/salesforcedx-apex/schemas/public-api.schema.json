@@ -704,7 +704,13 @@
       "required": ["_tag", "testRunId", "result"],
       "properties": {
         "_tag": { "type": "string", "enum": ["Result"] },
-        "testRunId": { "$ref": "#/$defs/AsyncApexJobId" },
+        "testRunId": {
+          "type": "string",
+          "description": "a string starting with \"707\"",
+          "pattern": "^707",
+          "title": "startsWith(\"707\")",
+          "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+        },
         "result": {
           "type": "object",
           "required": ["status", "classesCompleted", "classesEnqueued"],
