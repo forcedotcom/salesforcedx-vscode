@@ -7,9 +7,11 @@
 
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
+import * as Cause from 'effect/Cause';
+import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import { probeReady } from '../../../src/services/apexMetadataService';
 
-type Manager = Parameters<typeof probeReady>[0];
+type Manager = ApexVSCodeApi['languageClientManager'];
 
 /** Build a fake languageClientManager with a controllable status + client instance. */
 const makeManager = (opts: {
@@ -39,13 +41,13 @@ describe('probeReady', () => {
   it('fails with ApexLspNotReady (retryable) while still indexing', async () => {
     const exit = await run(probeReady(makeManager({ hasClient: true, isReady: false })));
     expect(Exit.isFailure(exit)).toBe(true);
-    if (Exit.isFailure(exit)) expect(String(Exit.causeOption(exit))).toContain('ApexLspNotReady');
+    if (Exit.isFailure(exit)) expect(String(Cause.squash(exit.cause))).toContain('ApexLspNotReady');
   });
 
   it('fails with ApexLspNotReady when no client instance exists yet', async () => {
     const exit = await run(probeReady(makeManager({ hasClient: false, isReady: false })));
     expect(Exit.isFailure(exit)).toBe(true);
-    if (Exit.isFailure(exit)) expect(String(Exit.causeOption(exit))).toContain('ApexLspNotReady');
+    if (Exit.isFailure(exit)) expect(String(Cause.squash(exit.cause))).toContain('ApexLspNotReady');
   });
 
   it('fails fast with ApexLspRequestFailed (non-retryable) when init failed', async () => {
@@ -53,6 +55,6 @@ describe('probeReady', () => {
       probeReady(makeManager({ hasClient: false, isReady: false, failedToInitialize: true, message: 'boom' }))
     );
     expect(Exit.isFailure(exit)).toBe(true);
-    if (Exit.isFailure(exit)) expect(String(Exit.causeOption(exit))).toContain('ApexLspRequestFailed');
+    if (Exit.isFailure(exit)) expect(String(Cause.squash(exit.cause))).toContain('ApexLspRequestFailed');
   });
 });

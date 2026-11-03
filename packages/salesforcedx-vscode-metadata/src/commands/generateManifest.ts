@@ -20,7 +20,7 @@ const appendExtension = (input: string): string => `${toManifestBaseName(input)}
 
 const promptForFileName = Effect.fn('promptForFileName')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   const inputOptions: vscode.InputBoxOptions = {
     placeHolder: nls.localize('manifest_input_save_placeholder'),
     prompt: nls.localize('manifest_input_save_prompt'),
@@ -41,7 +41,9 @@ const promptForFileName = Effect.fn('promptForFileName')(function* () {
 const generateManifestFromUris = Effect.fn('generateManifestFromUris')(function* (uris: URI[]) {
   yield* Effect.annotateCurrentSpan('uriCount', uris.length);
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const componentSet = yield* api.services.ComponentSetService.getComponentSetFromUris(Array.from(uris));
+  const componentSet = yield* api.v2.services.ComponentSetService.use(service =>
+    service.getComponentSetFromUris(Array.from(uris))
+  );
   return yield* Effect.promise(() => componentSet.getPackageXml());
 });
 
@@ -52,17 +54,17 @@ const saveManifestFile = Effect.fn('saveManifestFile')(function* (
 ) {
   yield* Effect.annotateCurrentSpan({ fileName, workspacePath: workspacePath.toString() });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelService = yield* api.services.ChannelService;
-  const promptService = yield* api.services.PromptService;
+  const channelService = yield* api.v2.services.ChannelService;
+  const promptService = yield* api.v2.services.PromptService;
   // Build manifest directory path
   const manifestFileUri = Utils.joinPath(workspacePath, 'manifest', fileName);
 
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [manifestFileUri] });
 
-  yield* api.services.FsService.safeWriteFile(manifestFileUri, packageXML);
+  yield* api.v2.services.FsService.use(service => service.safeWriteFile(manifestFileUri, packageXML));
   yield* channelService.appendToChannel(`Manifest file created: ${manifestFileUri.toString()}`);
 
-  yield* api.services.FsService.showTextDocument(manifestFileUri);
+  yield* api.v2.services.FsService.use(service => service.showTextDocument(manifestFileUri));
 
   return manifestFileUri;
 });
@@ -77,7 +79,7 @@ export const generateManifestCommand = Effect.fn('generateManifest')(function* (
   // Resolve source URI from parameter or active editor
   const resolvedSourceUri =
     sourceUri ??
-    (yield* api.services.EditorService.getActiveEditorUri().pipe(
+    (yield* api.v2.services.EditorService.use(service => service.getActiveEditorUri()).pipe(
       Effect.catchTag('NoActiveEditorError', () =>
         Effect.sync(() => {
           void vscode.window.showErrorMessage(nls.localize('generate_manifest_select_file_or_directory'));
@@ -91,7 +93,11 @@ export const generateManifestCommand = Effect.fn('generateManifest')(function* (
 
   // Resolve URIs
   const resolvedUris = uris?.length ? [resolvedSourceUri, ...uris] : [resolvedSourceUri];
-  if (!(yield* Effect.all(resolvedUris.map(uri => api.services.FsService.fileOrFolderExists(uri)))).every(Boolean)) {
+  if (
+    !(yield* Effect.all(
+      resolvedUris.map(uri => api.v2.services.FsService.use(service => service.fileOrFolderExists(uri)))
+    )).every(Boolean)
+  ) {
     yield* Effect.promise(() =>
       vscode.window.showErrorMessage(nls.localize('generate_manifest_select_file_or_directory'))
     );
@@ -99,7 +105,7 @@ export const generateManifestCommand = Effect.fn('generateManifest')(function* (
   }
 
   // Get workspace info for manifest directory
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+  const workspaceInfo = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
 
   // Prompt for filename and generate package XML in parallel so it's ready as soon as the user responds
   const [fileName, packageXML] = yield* Effect.all([promptForFileName(), generateManifestFromUris(resolvedUris)], {

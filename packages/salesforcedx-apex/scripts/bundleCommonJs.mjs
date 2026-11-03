@@ -15,7 +15,7 @@ await copyFile('src/effect/package.json', 'out/src/effect/package.json');
 // Node 22.0 cannot require ESM. Embed V4 only in the Promise/class entries;
 // /effect remains native ESM using the installed V4 dependency.
 await Promise.all(
-  ['index', 'executeAnonymousCompat'].map(async name => {
+  ['index'].map(async name => {
     const entry = `src/${name}.ts`;
     const result = await build({
       entryPoints: [entry],

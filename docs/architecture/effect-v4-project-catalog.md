@@ -1,6 +1,6 @@
 # Effect V4 project and catalog services
 
-W-24615060 extends the isolated V4 graph from W-24615059. Production activation remains V3 until W-24615069; this is not a partial V4 release.
+W-24615060 extended the V4 graph from W-24615059. W-24615069 integrated that graph into production activation; this is not a partial V4 release.
 
 ## Dependency closure
 
@@ -8,7 +8,7 @@ This slice owns Project, Registry, SourceTracking, catalog state/stores, workspa
 
 Real reader prerequisites move forward from W-24615063: describe/cache/invalidation, query, ComponentSet construction/properties, nonmerge retrieve-to-directory, Transmogrifier/models, Channel, metadata notifications, and active-operation state. W-24615063 retains merged workspace retrieve, deploy, delete, and remaining operation services.
 
-Canonical V4 keys, schemas, errors, and domain data live at `@salesforce/vscode-services/v2`. Implementations remain temporarily in `@salesforce/vscode-services-v4-implementation`; W-24615069 folds them into the provider and removes superseded V3 implementations. No runnable V3 services enter the V4 graph.
+Canonical V4 keys, schemas, errors, and domain data live at `@salesforce/vscode-services/v2`. Implementations live in `salesforcedx-vscode-services/src/services`; W-24615069 removed the temporary compiler package and superseded V3 implementations. No runnable V3 services enter the V4 graph.
 
 ## One graph and public Context
 
@@ -54,8 +54,8 @@ Workspace changes under `.sf` do not invalidate their producing catalog. Other c
 
 ## Verification
 
-- `pnpm --filter @salesforce/vscode-services-v4-implementation test`: normal task, including test compilation, packed fixtures and unit tests.
-- Both packages' normal lint and 28-rule `check:effect-diagnostics` tasks.
+- `pnpm --filter salesforcedx-vscode-services test`: provider test task, including test compilation, packed fixtures and unit tests.
+- The services provider and contracts packages' normal lint and Effect diagnostics tasks.
 - `scripts/test-foundational-services.mjs`: strict packed declarations/LS controls; actual packed Node and browser-target Project discovery, native ZIP/binary shadow materialization, registered document notifications, public-only Context, native Connection identity, and teardown.
 - Frozen V3/V4/mixed declarations and independently installed genuine V3 adapter fixtures, including real connection graphs.
 - Normal repository gates/hooks, inventory, fresh-parent duplication comparison, Standards/Spec/Effect reviews, then exact-head GitHub desktop/web E2E before W-24615063.

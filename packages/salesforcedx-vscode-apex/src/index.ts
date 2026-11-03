@@ -49,9 +49,9 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex')(f
 ) {
   // fails with the typed NoWorkspaceOpenError from WorkspaceService when no workspace is open
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+  yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
 
-  const isSalesforceProject = yield* api.services.ProjectService.isSalesforceProject();
+  const isSalesforceProject = yield* api.v2.services.ProjectService.use(service => service.isSalesforceProject());
 
   if (!isSalesforceProject) {
     return;

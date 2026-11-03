@@ -15,7 +15,7 @@ import { nls } from '../messages';
 
 const promptForFileName = Effect.fn('soqlFileCreate.promptForFileName')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   return yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: nls.localize('soql_file_name_prompt'),
@@ -38,19 +38,19 @@ const createAndOpenFile = Effect.fn('soqlFileCreate.createAndOpenFile')(function
   viewType: string
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   const fileUri = Utils.joinPath(outputDir, `${fileName}.soql`);
 
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [fileUri] });
 
-  yield* api.services.FsService.safeWriteFile(fileUri, '');
+  yield* api.v2.services.FsService.use(service => service.safeWriteFile(fileUri, ''));
   yield* Effect.promise(() => vscode.commands.executeCommand(OPEN_WITH_COMMAND, fileUri, viewType));
 });
 
 export const soqlOpenNewBuilder = Effect.fn('soql_open_new_builder')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+  const promptService = yield* api.v2.services.PromptService;
+  const workspaceInfo = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
 
   const fileName = yield* promptForFileName();
 
@@ -66,8 +66,8 @@ export const soqlOpenNewBuilder = Effect.fn('soql_open_new_builder')(function* (
 
 export const soqlOpenNewTextEditor = Effect.fn('soql_open_new_text_editor')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+  const promptService = yield* api.v2.services.PromptService;
+  const workspaceInfo = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
 
   const fileName = yield* promptForFileName();
 

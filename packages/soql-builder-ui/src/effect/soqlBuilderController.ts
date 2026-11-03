@@ -6,7 +6,9 @@
  */
 
 import type { SoqlBuilderServiceError, SoqlBuilderState } from '../domain.js';
+import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { SoqlBuilderService } from './soqlBuilderService.js';
@@ -16,25 +18,28 @@ const stateWithServiceError = (state: SoqlBuilderState, error: SoqlBuilderServic
   errorMessage: error.message
 });
 
-export class SoqlBuilderController extends Effect.Service<SoqlBuilderController>()(
-  '@salesforce/soql-builder-ui/controller',
-  {
-    accessors: true,
-    scoped: Effect.gen(function* () {
-      const service = yield* SoqlBuilderService;
-      const initialState = yield* service.initialState;
-      const state = yield* SubscriptionRef.make(initialState);
+const makeSoqlBuilderController = Effect.gen(function* () {
+  const service = yield* SoqlBuilderService;
+  const initialState = yield* service.initialState;
+  const state = yield* SubscriptionRef.make(initialState);
 
-      yield* service.stateChanges.pipe(
-        Stream.runForEach(nextState => SubscriptionRef.set(state, nextState)),
-        Effect.catchAll(error => SubscriptionRef.update(state, current => stateWithServiceError(current, error))),
-        Effect.forkScoped
-      );
+  yield* Effect.forkScoped(
+    Effect.catch(
+      Stream.runForEach(service.stateChanges, nextState => SubscriptionRef.set(state, nextState)),
+      error => SubscriptionRef.update(state, current => stateWithServiceError(current, error))
+    )
+  );
+  yield* Effect.yieldNow;
 
-      return {
-        dispatch: service.dispatch,
-        states: state.changes
-      };
-    })
-  }
-) {}
+  return {
+    dispatch: service.dispatch,
+    states: SubscriptionRef.changes(state)
+  };
+});
+
+export class SoqlBuilderController extends Context.Service<
+  SoqlBuilderController,
+  Effect.Success<typeof makeSoqlBuilderController>
+>()('@salesforce/soql-builder-ui/controller') {
+  public static readonly layer = Layer.effect(SoqlBuilderController, makeSoqlBuilderController);
+}

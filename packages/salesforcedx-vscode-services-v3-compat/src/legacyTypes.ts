@@ -24,6 +24,7 @@ export type LegacyServiceConstructor<Name extends LegacyServiceName> = Extract<
 export type LegacyServiceBody<Name extends LegacyServiceName> = ConstructorParameters<
   LegacyServiceConstructor<Name>
 >[0];
+/** Preserve the frozen identifier even when an adapter's service body exposes only selected operations. */
 export type LegacyServiceInstance<Name extends LegacyServiceName> = InstanceType<LegacyServiceConstructor<Name>>;
 export type LegacyPrebuiltServices =
   LegacyServices['prebuiltServicesDependencies'] extends Context.Context<infer R> ? R : never;

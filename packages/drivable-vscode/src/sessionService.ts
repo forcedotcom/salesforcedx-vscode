@@ -359,7 +359,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
           Effect.flatMap(value =>
             value[phase]
               ? Effect.void
-              : operation.pipe(Effect.zipRight(Ref.update(state, next => ({ ...next, [phase]: true }))))
+              : operation.pipe(Effect.andThen(Ref.update(state, next => ({ ...next, [phase]: true }))))
           )
         );
       const removeDirectory = (directory: string, label: string) =>
@@ -529,7 +529,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
         yield* scoped(
           Effect.acquireRelease(
             Effect.sync(() => page.on('console', recordConsole)).pipe(
-              Effect.zipRight(Ref.set(consoleListenerAttached, true))
+              Effect.andThen(Ref.set(consoleListenerAttached, true))
             ),
             () => finalizer(runPhase('consoleListenerRemoved', removeConsoleListener))
           )
@@ -741,7 +741,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
               limitations
             })
             .pipe(
-              Effect.zipRight(
+              Effect.andThen(
                 runPhase(
                   'artifactsFlushed',
                   artifacts.flush.pipe(

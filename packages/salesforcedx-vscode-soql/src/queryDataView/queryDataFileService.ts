@@ -79,9 +79,9 @@ const writeQueryResultsAndNotify = Effect.fn('queryDataFileService.writeQueryRes
 }) {
   const { fileUri, fileContentString } = params;
   const api = yield* getServicesApi;
-  const notificationMode = yield* api.services.NotificationModeService;
-  yield* api.services.FsService.writeFile(fileUri, fileContentString);
-  const { fsPath } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+  const notificationMode = yield* api.v2.services.NotificationModeService;
+  yield* api.v2.services.FsService.use(service => service.writeFile(fileUri, fileContentString));
+  const { fsPath } = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
   showFileInExplorer(fileUri, fsPath);
   yield* notificationMode.showSuccessNotification(
     SAVE_COMMAND,
@@ -99,8 +99,8 @@ const saveQueryResultsViaMemfsPrompts = Effect.fn('queryDataFileService.saveQuer
   }) {
     const { queryText, queryData, dataProvider, document } = params;
     const api = yield* getServicesApi;
-    const promptService = yield* api.services.PromptService;
-    const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+    const promptService = yield* api.v2.services.PromptService;
+    const workspaceInfo = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
 
     const defaultStem = getExportFileStemFromDocument(document, dataProvider.fileExtension);
 

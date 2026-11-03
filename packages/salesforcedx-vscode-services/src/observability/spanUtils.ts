@@ -6,8 +6,8 @@
  */
 import { type Attributes, type HrTime } from '@opentelemetry/api';
 import { type ReadableSpan } from '@opentelemetry/sdk-trace-base';
-import * as Option from 'effect/Option';
-import { isNotNullable, isNotUndefined, isUndefined } from 'effect/Predicate';
+import { pipe } from 'effect/Function';
+import { isNotNullish, isNotUndefined, isUndefined } from 'effect/Predicate';
 import * as Rec from 'effect/Record';
 import { LEGACY_TELEMETRY_SOURCE_ATTR, LEGACY_TELEMETRY_SOURCE_VALUE } from './legacyTelemetrySender';
 
@@ -26,10 +26,10 @@ export const isSpanValidForProductionTelemetry = (span: ReadableSpan): boolean =
 
 /** Convert span attributes to string key-value pairs, filtering out undefined/null values */
 export const convertAttributes = (attributes: Attributes): Attributes =>
-  Rec.filterMap(attributes, (value, key) =>
-    isNotNullable(value) && key !== 'extension.name' && key !== 'extension.version'
-      ? Option.some(String(value))
-      : Option.none()
+  pipe(
+    attributes,
+    Rec.filter((value, key) => isNotNullish(value) && key !== 'extension.name' && key !== 'extension.version'),
+    Rec.map(String)
   );
 
 /** Calculate span duration in milliseconds */

@@ -12,18 +12,22 @@ import { makeTreeRefreshCoordinator } from '../../src/tree/treeRefreshCoordinato
 describe('tree refresh coordinator', () => {
   it('coalesces requests made while a root projection is active', async () => {
     let refreshes = 0;
-    const coordinator = await Effect.runPromise(
-      makeTreeRefreshCoordinator(() => {
-        refreshes += 1;
-      }, Duration.millis(1))
+    const observed = await Effect.runPromise(
+      Effect.scoped(
+        Effect.gen(function* () {
+          const coordinator = yield* makeTreeRefreshCoordinator(() => {
+            refreshes += 1;
+          }, Duration.millis(1));
+          yield* coordinator.requestRefresh(true);
+          yield* coordinator.requestRefresh();
+          yield* coordinator.requestRefresh();
+          yield* coordinator.projectionFinished();
+          yield* Effect.promise(() => new Promise(resolve => setTimeout(resolve, 10)));
+          return refreshes;
+        })
+      )
     );
 
-    await Effect.runPromise(coordinator.requestRefresh(true));
-    await Effect.runPromise(coordinator.requestRefresh());
-    await Effect.runPromise(coordinator.requestRefresh());
-    await Effect.runPromise(coordinator.projectionFinished());
-    await new Promise(resolve => setTimeout(resolve, 10));
-
-    expect(refreshes).toBe(2);
+    expect(observed).toBe(2);
   });
 });

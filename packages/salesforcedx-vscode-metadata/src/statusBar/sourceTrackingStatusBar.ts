@@ -9,6 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { StatusOutputRow } from '@salesforce/source-tracking';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import { isNotUndefined } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -23,7 +24,7 @@ import { buildCombinedHoverText } from './hover';
 const refresh = Effect.fn('statusBarRefresh', { root: true, attributes: { telemetryIgnore: true } })(
   function* (statusBarItem: vscode.StatusBarItem) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const sourceTracking = yield* api.services.SourceTrackingService;
+    const sourceTracking = yield* api.v2.services.SourceTrackingService;
 
     const hasTracking = yield* sourceTracking.hasTracking();
 
@@ -43,7 +44,7 @@ const refresh = Effect.fn('statusBarRefresh', { root: true, attributes: { teleme
     const status = yield* sourceTracking.getStatus({ local: true, remote: true });
     updateDisplay(statusBarItem)(dedupeStatus(status));
   },
-  Effect.catchAll(() => Effect.void) // ignore errors in refresh
+  Effect.catch(() => Effect.void) // ignore errors in refresh
 );
 
 /** Show a transient refreshing state while a metadata operation is in flight */
@@ -90,7 +91,7 @@ const updateDisplay =
 /** Helper to read polling interval config */
 const getPollingIntervalSeconds = Effect.fn('getPollingIntervalSeconds')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* (yield* api.services.SettingsService).getValueOrElse(
+  return yield* (yield* api.v2.services.SettingsService).getValueOrElse(
     EXTENSION_NAME,
     'sourceTracking.pollingIntervalSeconds',
     60
@@ -107,18 +108,18 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
     45
   );
   statusBarItem.name = 'Salesforce: Source Tracking';
-  const fileChangePubSub = yield* api.services.FileChangePubSub;
+  const fileChangePubSub = yield* api.v2.services.FileChangePubSub;
 
-  const targetOrgRef = yield* api.services.TargetOrgRef();
-  const activeOpRef = yield* api.services.ActiveMetadataOperationRef();
+  const targetOrgRef = yield* api.v2.services.TargetOrgRef;
+  const activeOpRef = yield* api.v2.services.ActiveMetadataOperationRef;
 
   // Reusable stream transformer: suppress any stream while a metadata operation is in flight
   const suppressDuringOperation = Stream.filterEffect(() =>
-    SubscriptionRef.get(activeOpRef).pipe(Effect.andThen(count => count === 0))
+    SubscriptionRef.get(activeOpRef).pipe(Effect.map(count => count === 0))
   );
 
   // Setup dynamic polling interval that responds to config changes
-  const settingsChangePubSub = yield* api.services.SettingsChangePubSub;
+  const settingsChangePubSub = yield* api.v2.services.SettingsChangePubSub;
   const pollIntervalRef = yield* SubscriptionRef.make(Duration.seconds(yield* getPollingIntervalSeconds()));
 
   // Watch setting changes to update poll frequency dynamically
@@ -131,7 +132,7 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
         Effect.flatMap(seconds => SubscriptionRef.set(pollIntervalRef, Duration.seconds(seconds)))
       )
     ),
-    Effect.fork
+    Effect.forkChild
   );
 
   // Watch conflict detection setting changes to trigger immediate refresh
@@ -141,11 +142,11 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
     ),
     Stream.as('conflictDetectionSettingChange')
   );
-  const orgChangeStream = targetOrgRef.changes.pipe(
+  const orgChangeStream = SubscriptionRef.changes(targetOrgRef).pipe(
     // Pass when tracking status is known ('tracksSource' present) OR the ref has no orgId — the cleared
     // state after the default org is deleted/logged out. Without the `!orgInfo.orgId` branch that cleared
     // state is dropped and the icons linger on the gone org. (W-23950821)
-    Stream.filter(orgInfo => orgInfo && typeof orgInfo === 'object' && ('tracksSource' in orgInfo || !orgInfo.orgId)),
+    Stream.filter(orgInfo => isNotUndefined(orgInfo.tracksSource) || !orgInfo.orgId),
     Stream.tap(orgInfo =>
       Effect.sync(() => {
         if (!orgInfo.tracksSource || !orgInfo.orgId) {
@@ -160,15 +161,13 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
   );
 
   // Dynamic poll stream that restarts when interval changes
-  const dynamicPollStream = pollIntervalRef.changes.pipe(
-    Stream.filter(d => Duration.greaterThan(d, Duration.zero)), // 0 means don't poll
-    Stream.flatMap(
-      interval =>
-        Schedule.fixed(interval).pipe(
-          Stream.fromSchedule,
-          Stream.filter(() => vscode.window.state.active)
-        ),
-      { switch: true } // Restart schedule when interval changes
+  const dynamicPollStream = SubscriptionRef.changes(pollIntervalRef).pipe(
+    Stream.filter(d => Duration.isGreaterThan(d, Duration.zero)), // 0 means don't poll
+    Stream.switchMap(interval =>
+      Schedule.fixed(interval).pipe(
+        Stream.fromSchedule,
+        Stream.filter(() => vscode.window.state.active)
+      )
     )
   );
 
@@ -181,19 +180,19 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
     Stream.debounce(Duration.millis(500)),
     // we don't care about file events if source tracking is not enabled
     Stream.filterEffect(() =>
-      SubscriptionRef.get(targetOrgRef).pipe(Effect.andThen(orgInfo => Boolean(orgInfo.tracksSource)))
+      SubscriptionRef.get(targetOrgRef).pipe(Effect.map(orgInfo => Boolean(orgInfo.tracksSource)))
     ),
     // suppress events while a metadata operation is running
     suppressDuringOperation
   );
 
   // Show spinner while in-flight; emit 'operationComplete' when it drains to 0
-  const operationCompleteStream = activeOpRef.changes.pipe(
+  const operationCompleteStream = SubscriptionRef.changes(activeOpRef).pipe(
     Stream.tap(count => (count > 0 ? Effect.sync(() => showRefreshingState(statusBarItem)) : Effect.void)),
     Stream.filter(count => count === 0)
   );
 
-  yield* Effect.fork(
+  yield* Effect.forkChild(
     Stream.mergeAll({ concurrency: 'unbounded' })([
       orgChangeStream,
       fileChangeStream,
@@ -206,9 +205,9 @@ export const createSourceTrackingStatusBar = Effect.fn('createSourceTrackingStat
   );
 
   // Now that the pubsub is running, if the org ref is not set, get the connection which will set it
-  yield* api.services.ConnectionService.getConnection().pipe(
+  yield* api.v2.services.ConnectionService.use(service => service.getConnection()).pipe(
     // If there is no connection or an error, that's fine.
-    Effect.catchAll(e => Effect.logError(e).pipe(Effect.as(undefined)))
+    Effect.catch(e => Effect.logError(e).pipe(Effect.as(undefined)))
   );
   yield* Effect.addFinalizer(() => Effect.sync(() => statusBarItem.dispose()));
   yield* Effect.sleep(Duration.infinity); // persist the ui component until the extensionscope closes

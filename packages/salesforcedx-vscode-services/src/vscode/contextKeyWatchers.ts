@@ -5,12 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { FileChangePubSub } from '@salesforce/vscode-services/v2';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
-import { ExtensionsService } from './extensionsService';
-import { FileChangePubSub } from './fileChangePubSub';
+import { ExtensionsService } from '../services/extensionsService';
 
 const MULE_DX_API_EXTENSION_ID = 'salesforce.mule-dx-agentforce-api-component';
 const SFDX_PROJECT_FILE = 'sfdx-project.json';
@@ -27,7 +28,7 @@ const setContext = (key: string, value: boolean) =>
  */
 export const watchMuleDxApiInactiveContext = Effect.fn('watchMuleDxApiInactiveContext')(function* () {
   const extensionsService = yield* ExtensionsService;
-  yield* Stream.merge(Stream.fromEffect(extensionsService.get), extensionsService.changes).pipe(
+  yield* extensionsService.changes.pipe(
     Stream.map(installed => !installed.has(MULE_DX_API_EXTENSION_ID)),
     Stream.changes,
     Stream.runForEach(value => setContext('sf:muleDxApiInactive', value))
@@ -38,15 +39,15 @@ const readSfdxProject = Effect.fn('readSfdxProject')(function* () {
   const folders = vscode.workspace.workspaceFolders;
   if (!folders?.length) return undefined;
   const uri = vscode.Uri.joinPath(folders[0].uri, SFDX_PROJECT_FILE);
-  const bytes = yield* Effect.tryPromise({
-    try: () => Promise.resolve(vscode.workspace.fs.readFile(uri)),
-    catch: () => undefined
-  }).pipe(Effect.catchAll(() => Effect.void));
+  const bytes = yield* Effect.tryPromise(() => Promise.resolve(vscode.workspace.fs.readFile(uri))).pipe(
+    Effect.catchTag('UnknownError', () => Effect.void)
+  );
   if (!bytes) return undefined;
-  return yield* Effect.try({
-    try: (): { sourceBehaviorOptions?: readonly string[] } => JSON.parse(Buffer.from(bytes).toString('utf8')),
-    catch: () => undefined
-  }).pipe(Effect.catchAll(() => Effect.void));
+  return yield* Schema.decodeUnknownEffect(
+    Schema.Struct({ sourceBehaviorOptions: Schema.String.pipe(Schema.Array, Schema.optional) }).pipe(
+      Schema.fromJsonString
+    )
+  )(Buffer.from(bytes).toString('utf8')).pipe(Effect.catchTag('SchemaError', () => Effect.void));
 });
 
 const isEsrDecomposed = Effect.fn('isEsrDecomposed')(function* () {

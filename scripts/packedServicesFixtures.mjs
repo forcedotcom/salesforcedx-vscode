@@ -62,6 +62,20 @@ export const packServicesPackage = (packageDirectory, directory, archiveName) =>
   return { name: publishedPackage.name, directory, archive, packed, publishedPackage };
 };
 
+/** Pack the real private services extension's compiled V4 modules for isolated implementation fixtures. */
+export const packServicesExtension = (packageDirectory, directory, archiveName) => {
+  const staging = fs.mkdtempSync(path.join(path.dirname(directory), 'services-extension-pack-'));
+  try {
+    const publishedPackage = JSON.parse(fs.readFileSync(path.join(packageDirectory, 'package.json'), 'utf8'));
+    delete publishedPackage.scripts?.preinstall;
+    fs.writeFileSync(path.join(staging, 'package.json'), JSON.stringify(publishedPackage));
+    fs.cpSync(path.join(packageDirectory, 'out/src'), path.join(staging, 'out/src'), { recursive: true });
+    return packServicesPackage(staging, directory, archiveName);
+  } finally {
+    fs.rmSync(staging, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+  }
+};
+
 const installFixture = async ({ fixture: fixtureName, directory, packedPackages }) => {
   const fixture = path.join(root, 'test/fixtures/effect-v4', fixtureName);
   for (const file of fs

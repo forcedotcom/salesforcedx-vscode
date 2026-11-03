@@ -9,14 +9,16 @@ import type { JsonObject } from '../json';
 import type { MessageType } from '../soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
 import type { QueryResult } from '../types';
 import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
-import debounce = require('debounce');
+import type { SObject } from '@salesforce/vscode-services/v2';
+import debounce from 'debounce';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
 import { isError } from 'effect/Predicate';
+import * as Queue from 'effect/Queue';
 import * as Stream from 'effect/Stream';
-import type { SObject } from 'salesforcedx-vscode-services';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { executeQueryPlan } from '../commands/queryPlan';
 import { SOQL_CONFIGURATION_NAME } from '../constants';
@@ -38,21 +40,20 @@ import { runQuery } from './queryRunner';
 const COMMAND: ProgressOnlyCommandKey = 'SOQL Builder Run Query';
 
 const appendToChannel = (message: string) =>
-  getServicesApi.pipe(
-    Effect.flatMap(api => api.services.ChannelService),
-    Effect.flatMap(svc => svc.appendToChannel(message))
+  Effect.flatMap(getServicesApi, api =>
+    api.v2.services.ChannelService.use(service => service.appendToChannel(message))
   );
 
 const reportMessageError = (event: SoqlEditorEvent) =>
   appendToChannel(nls.localize('error_unknown_error', `message_${event.type}`)).pipe(
-    Effect.tapErrorCause(Effect.logError),
+    Effect.tapCause(Effect.logError),
     Effect.ignore
   );
 
 const retrieveSObject = Effect.fn('retrieveSObject')(function* (sobjectName: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const metadataDescribe = yield* api.services.MetadataDescribeService;
-  const transmogrifier = yield* api.services.TransmogrifierService;
+  const metadataDescribe = yield* api.v2.services.MetadataDescribeService;
+  const transmogrifier = yield* api.v2.services.TransmogrifierService;
   return yield* metadataDescribe.describeCustomObject(sobjectName).pipe(
     Effect.flatMap(transmogrifier.toMinimalSObject),
     Effect.orElseSucceed(() => undefined)
@@ -114,7 +115,7 @@ const runBuilderQueryEffect = Effect.fn('SOQLEditor.runBuilderQuery')(function* 
   }
   const queryText = document.getText();
   const api = yield* getServicesApi;
-  const notificationMode = yield* api.services.NotificationModeService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
   const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
   const queryData = yield* Effect.promise(() =>
     vscode.window.withProgress(
@@ -150,30 +151,31 @@ export class SOQLEditorInstance {
       this.subscriptions
     );
 
+    const editorInstance = this;
     const instanceFiber = getSoqlRuntime().runFork(
-      Effect.gen(this, function* () {
-        const messages = Stream.async<SoqlEditorEvent>(emit => {
+      Effect.gen(function* () {
+        const messages = Stream.callback<SoqlEditorEvent>(queue => {
           const disposable = webviewPanel.webview.onDidReceiveMessage((event: SoqlEditorEvent) => {
-            void emit.single(event);
+            Queue.offerUnsafe(queue, event);
           });
           return Effect.sync(() => {
             disposable.dispose();
           });
         }).pipe(
           Stream.mapEffect(
-            event => this.handleMessageEffect(event).pipe(Effect.catchAllCause(() => reportMessageError(event))),
+            event => editorInstance.handleMessageEffect(event).pipe(Effect.catchCause(() => reportMessageError(event))),
             { concurrency: 'unbounded' }
           ),
           Stream.runDrain
         );
 
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        const targetOrgRef = yield* api.services.TargetOrgRef();
-        const connectionChanges = targetOrgRef.changes.pipe(
+        const targetOrgRef = yield* api.v2.services.TargetOrgRef;
+        const connectionChanges = SubscriptionRef.changes(targetOrgRef).pipe(
           Stream.map(org => org.orgId),
           Stream.changes,
           Stream.runForEach(orgId =>
-            invalidateMetadataRequests(this.sendMessageToUi(orgId ? 'connection_changed' : 'no_default_org'))
+            invalidateMetadataRequests(editorInstance.sendMessageToUi(orgId ? 'connection_changed' : 'no_default_org'))
           )
         );
 
@@ -197,7 +199,7 @@ export class SOQLEditorInstance {
   protected sendMessageToUi(type: MessageType, payload?: string | string[] | SObject) {
     return Effect.promise<boolean>(() => this.webviewPanel.webview.postMessage({ type, payload })).pipe(
       Effect.asVoid,
-      Effect.catchAllCause(cause =>
+      Effect.catchCause(cause =>
         appendToChannel(nls.localize('error_unknown_error', 'web_view_post_message')).pipe(
           Effect.andThen(appendToChannel(`soql_error_${type}: ${String(Cause.squash(cause))}`))
         )
@@ -262,14 +264,14 @@ export class SOQLEditorInstance {
         return runForCurrentMetadataGeneration(retrieveSObject(event.payload), sobject =>
           sobject ? this.updateSObjectMetadata(sobject) : Effect.void
         ).pipe(
-          Effect.catchAll(() => appendToChannel(nls.localize('error_sobject_metadata_request', event.payload))),
+          Effect.catch(() => appendToChannel(nls.localize('error_sobject_metadata_request', event.payload))),
           Effect.withSpan('SOQLEditor.sobject_metadata_request', { attributes: { sobjectName: event.payload } })
         );
       }
 
       case 'sobjects_request': {
         return runForCurrentMetadataGeneration(listSObjectNamesEffect, names => this.updateSObjects(names)).pipe(
-          Effect.catchAll(() => appendToChannel(nls.localize('error_sobjects_request'))),
+          Effect.catch(() => appendToChannel(nls.localize('error_sobjects_request'))),
           Effect.withSpan('SOQLEditor.sobjects_request')
         );
       }
@@ -282,12 +284,12 @@ export class SOQLEditorInstance {
           getSoqlRuntime().runPromise(
             Effect.gen(function* () {
               const api = yield* (yield* ExtensionProviderService).getServicesApi;
-              const maxRows = yield* (yield* api.services.SettingsService).getValue<number>(
+              const maxRows = yield* (yield* api.v2.services.SettingsService).getValue<number>(
                 SOQL_CONFIGURATION_NAME,
                 'maxQueryLimit'
               );
               yield* runBuilderQueryEffect(document, maxRows, openQueryDataView, runQueryDone).pipe(
-                Effect.catchAllCause(cause => {
+                Effect.catchCause(cause => {
                   const err = Cause.squash(cause);
                   const message = nls.localize('error_run_soql_query', isError(err) ? err.message : String(err));
                   return appendToChannel(message).pipe(
@@ -322,7 +324,7 @@ export class SOQLEditorInstance {
           );
           yield* getQueryPlanDone();
         }).pipe(
-          Effect.catchAllCause(cause => {
+          Effect.catchCause(cause => {
             const err = Cause.squash(cause);
             return appendToChannel(nls.localize('error_run_soql_query', isError(err) ? err.message : String(err))).pipe(
               Effect.andThen(this.getQueryPlanDone())

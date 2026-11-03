@@ -7,6 +7,7 @@
 /* eslint-disable jsdoc/check-indentation */
 
 import * as Schema from 'effect/Schema';
+import * as SchemaGetter from 'effect/SchemaGetter';
 
 const ToolingTestMethod = Schema.Struct({
   name: Schema.String,
@@ -19,16 +20,29 @@ const ToolingTestMethod = Schema.Struct({
  * `Option<string>` at the parse boundary. `id` absent (some flow tests) = `Option.none`; `namespacePrefix`
  * none = default Apex namespace, `Option.some('FlowTesting[.Namespace]')` = flow test.
  */
+const NonEmptyTrimmedString = Schema.String.pipe(
+  Schema.decodeTo(Schema.NonEmptyString, {
+    decode: SchemaGetter.transform(value => value.trim()),
+    encode: SchemaGetter.transform(value => value)
+  })
+);
+const OptionFromNonEmptyTrimmedString = Schema.String.pipe(
+  Schema.decodeTo(Schema.OptionFromNullOr(NonEmptyTrimmedString), {
+    decode: SchemaGetter.transform(value => (value.trim() === '' ? null : value)),
+    encode: SchemaGetter.transform(value => value ?? '')
+  })
+);
+
 export const ToolingTestClass = Schema.Struct({
-  id: Schema.OptionFromNonEmptyTrimmedString,
+  id: OptionFromNonEmptyTrimmedString,
   name: Schema.String,
-  namespacePrefix: Schema.OptionFromNonEmptyTrimmedString,
+  namespacePrefix: OptionFromNonEmptyTrimmedString,
   testMethods: Schema.Array(ToolingTestMethod)
 });
 export type ToolingTestClass = Schema.Schema.Type<typeof ToolingTestClass>;
 
 /** Raw Tooling REST shape (pre-decode): `id`/`namespacePrefix` are plain strings, possibly `""`. */
-type ToolingTestClassWire = Schema.Schema.Encoded<typeof ToolingTestClass>;
+type ToolingTestClassWire = Schema.Codec.Encoded<typeof ToolingTestClass>;
 
 export type TestDiscoveryResult = {
   classes: ToolingTestClass[];
@@ -56,7 +70,7 @@ export type DiscoverTestsOptions = {
 };
 
 /** Package2.ContainerOptions discriminates Unlocked vs Managed packages (see Skyline sfCli.ts). */
-export const ContainerOption = Schema.Literal('Unlocked', 'Managed');
+export const ContainerOption = Schema.Literals(['Unlocked', 'Managed']);
 export type ContainerOption = Schema.Schema.Type<typeof ContainerOption>;
 
 /**
@@ -79,7 +93,7 @@ export const Package2Row = Schema.Struct({
   Id: Schema.String,
   Name: Schema.String,
   SubscriberPackageId: Schema.String,
-  ContainerOptions: Schema.optionalWith(ContainerOption, { as: 'Option', nullable: true })
+  ContainerOptions: ContainerOption.pipe(Schema.NullOr, Schema.OptionFromOptionalKey)
 });
 export type Package2Row = Schema.Schema.Type<typeof Package2Row>;
 
@@ -98,7 +112,7 @@ export const InstalledSubscriberPackageRow = Schema.Struct({
   SubscriberPackageId: Schema.String,
   SubscriberPackage: Schema.Struct({
     Name: Schema.String,
-    NamespacePrefix: Schema.optionalWith(Schema.String, { as: 'Option', nullable: true })
+    NamespacePrefix: Schema.String.pipe(Schema.NullOr, Schema.OptionFromOptionalKey)
   })
 });
 export type InstalledSubscriberPackageRow = Schema.Schema.Type<typeof InstalledSubscriberPackageRow>;
@@ -106,6 +120,6 @@ export type InstalledSubscriberPackageRow = Schema.Schema.Type<typeof InstalledS
 /** ApexClass ManageableState row (unpackaged detection for the single no-namespace package). */
 export const ApexClassManageableStateRow = Schema.Struct({
   Id: Schema.String,
-  ManageableState: Schema.optionalWith(Schema.String, { as: 'Option', nullable: true })
+  ManageableState: Schema.String.pipe(Schema.NullOr, Schema.OptionFromOptionalKey)
 });
 export type ApexClassManageableStateRow = Schema.Schema.Type<typeof ApexClassManageableStateRow>;

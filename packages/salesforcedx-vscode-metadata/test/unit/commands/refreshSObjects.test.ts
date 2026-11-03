@@ -6,12 +6,11 @@
  */
 
 import type { Mock as VitestMock } from 'vitest';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
-import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
+import { ChannelService, PromptService, UserCancellationError } from '@salesforce/vscode-services/v2';
 import * as vscode from 'vscode';
-import { getErrorMessage } from 'salesforcedx-vscode-services/src/vscode/errorHandlerService';
 
 // Control the artifact writers so we can drive success / failure exit paths.
 const streamAndWriteSobjectArtifacts = vi.fn();
@@ -33,7 +32,7 @@ const appendToChannel = vi.fn(() => Effect.void);
 // progress + uncancelled token in the same fiber, so a typed failure propagates unchanged.
 const mockPromptService = {
   considerUndefinedAsCancellation: <T>(value: T | undefined) =>
-    value === undefined ? Effect.fail(new UserCancellationError()) : Effect.succeed(value),
+    value === undefined ? Effect.fail(new UserCancellationError({ message: 'User cancelled' })) : Effect.succeed(value),
   withCancellableProgressReporting:
     (_title: string, _location?: vscode.ProgressLocation) =>
     <A, E, R>(build: (progress: unknown, token: unknown) => Effect.Effect<A, E, R>) =>
@@ -41,15 +40,17 @@ const mockPromptService = {
 };
 
 const createMockServicesApi = () => ({
-  services: {
-    ChannelService: Effect.succeed({ appendToChannel }),
-    PromptService: Effect.succeed(mockPromptService),
-    UserCancellationError
+  v2: {
+    services: {
+      ChannelService,
+      PromptService,
+      UserCancellationError
+    }
   }
 });
 
 const createMockExtensionProvider = () =>
-  ({ getServicesApi: Effect.succeed(createMockServicesApi()) }) as unknown as ExtensionProviderService;
+  ({ getServicesApi: Effect.succeed(createMockServicesApi()) }) as unknown as ExtensionProviderService['Service'];
 
 // Mirror registerCommand's outer handling: swallow UserCancellationError, route other causes through the
 // real getErrorMessage (walks the cause chain to the real message) then showErrorMessage — the shared toast path.
@@ -59,10 +60,12 @@ const runCommand = (source?: Parameters<typeof refreshSObjectsCommand>[0]) =>
   Effect.runPromiseExit(
     refreshSObjectsCommand(source).pipe(
       Effect.catchTag('UserCancellationError', () => Effect.void),
-      Effect.catchAllCause(cause =>
-        Effect.sync(() => void vscode.window.showErrorMessage(cause.pipe(Cause.squash, getErrorMessage)))
+      Effect.catchCause(cause =>
+        Effect.sync(() => void vscode.window.showErrorMessage(getMessageFromError(Cause.squash(cause))))
       ),
-      Effect.provideService(ExtensionProviderService, createMockExtensionProvider())
+      Effect.provideService(ExtensionProviderService, createMockExtensionProvider()),
+      Effect.provideService(ChannelService, { appendToChannel } as unknown as ChannelService['Service']),
+      Effect.provideService(PromptService, mockPromptService as unknown as PromptService['Service'])
     ) as Effect.Effect<unknown, never, never>
   );
 

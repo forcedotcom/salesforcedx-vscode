@@ -6,7 +6,6 @@
  */
 import { type Column, createTable, getServicesApi, type Row } from '@salesforce/effect-ext-utils';
 import * as Cause from 'effect/Cause';
-import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import * as Schema from 'effect/Schema';
@@ -14,13 +13,11 @@ import { SFDX_CORE_SECTION } from '../constants';
 import { nls } from '../messages';
 import { formatErrorMessage, getDocumentQueryInputsForPlan, getQueryInputsForPlan } from './queryUtils';
 
-const QueryPlanNote = Schema.Data(
-  Schema.Struct({
-    description: Schema.String,
-    fields: Schema.Chunk(Schema.String),
-    tableEnumOrId: Schema.String
-  })
-);
+const QueryPlanNote = Schema.Struct({
+  description: Schema.String,
+  fields: Schema.Array(Schema.String),
+  tableEnumOrId: Schema.String
+});
 
 const QueryPlanEntry = Schema.Struct({
   cardinality: Schema.Number,
@@ -68,35 +65,37 @@ export const formatQueryPlanResults = (response: Schema.Schema.Type<typeof Query
     return table;
   }
 
-  const notesLines = HashSet.toValues(allNotes).map(
+  const notesLines = [...allNotes].map(
     note =>
-      `${nls.localize('query_plan_notes_description')}: ${note.description}\n${nls.localize('query_plan_notes_table')}: ${note.tableEnumOrId}\n${nls.localize('query_plan_notes_fields')}: ${Chunk.toArray(note.fields).join(', ')}`
+      `${nls.localize('query_plan_notes_description')}: ${note.description}\n${nls.localize('query_plan_notes_table')}: ${note.tableEnumOrId}\n${nls.localize('query_plan_notes_fields')}: ${note.fields.join(', ')}`
   );
   return `${table}\n${nls.localize('query_plan_notes_header')}:\n${notesLines.join('\n\n')}`;
 };
 
 export const executeQueryPlan = Effect.fn('executeQueryPlan')(function* (query: string) {
   const servicesApi = yield* getServicesApi;
-  const channelService = yield* servicesApi.services.ChannelService;
+  const channelService = yield* servicesApi.v2.services.ChannelService;
 
-  if (yield* (yield* servicesApi.services.SettingsService).getValueOrElse(SFDX_CORE_SECTION, 'clearOutputTab', false)) {
+  if (
+    yield* (yield* servicesApi.v2.services.SettingsService).getValueOrElse(SFDX_CORE_SECTION, 'clearOutputTab', false)
+  ) {
     yield* channelService.clearChannel;
   }
 
   yield* Effect.gen(function* () {
-    const connection = yield* servicesApi.services.ConnectionService.getConnection();
+    const connection = yield* servicesApi.v2.services.ConnectionService.use(service => service.getConnection());
     yield* channelService.appendToChannel(nls.localize('query_plan_running', nls.localize('REST_API')));
 
     const encodedQuery = encodeURIComponent(query);
     const path = `/query?explain=${encodedQuery}`;
 
     const result = yield* Effect.promise(() => connection.request(path)).pipe(
-      Effect.flatMap(Schema.decodeUnknown(QueryPlanResponse))
+      Effect.flatMap(Schema.decodeUnknownEffect(QueryPlanResponse))
     );
     yield* channelService.appendToChannel(`\n${formatQueryPlanResults(result)}\n`);
     yield* channelService.appendToChannel(nls.localize('query_plan_complete'));
   }).pipe(
-    Effect.catchAllCause(cause => cause.pipe(Cause.squash, formatErrorMessage, channelService.appendToChannel)),
+    Effect.catchCause(cause => cause.pipe(Cause.squash, formatErrorMessage, channelService.appendToChannel)),
     Effect.ensuring(channelService.showChannel)
   );
 });
@@ -104,13 +103,13 @@ export const executeQueryPlan = Effect.fn('executeQueryPlan')(function* (query: 
 export const queryPlan = Effect.fn('sf.data.query.explain')(function* () {
   const servicesApi = yield* getServicesApi;
   // precondition: fails with FailedToResolveSfProjectError when there's no project
-  yield* servicesApi.services.ProjectService.getSfProject();
+  yield* servicesApi.v2.services.ProjectService.use(service => service.getSfProject());
   yield* getQueryInputsForPlan().pipe(Effect.flatMap(executeQueryPlan));
 });
 
 export const queryPlanDocument = Effect.fn('sf.data.query.explain.document')(function* () {
   const servicesApi = yield* getServicesApi;
   // precondition: fails with FailedToResolveSfProjectError when there's no project
-  yield* servicesApi.services.ProjectService.getSfProject();
+  yield* servicesApi.v2.services.ProjectService.use(service => service.getSfProject());
   yield* getDocumentQueryInputsForPlan().pipe(Effect.flatMap(executeQueryPlan));
 });

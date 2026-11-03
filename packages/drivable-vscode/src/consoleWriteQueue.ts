@@ -26,7 +26,7 @@ export const consumeConsoleWrites = (
     Effect.flatMap(item =>
       Match.value(item).pipe(
         Match.when({ _tag: 'Entry' }, ({ entry }) =>
-          persist(entry).pipe(Effect.zipRight(Effect.suspend(() => consumeConsoleWrites(queue, persist))))
+          persist(entry).pipe(Effect.andThen(Effect.suspend(() => consumeConsoleWrites(queue, persist))))
         ),
         Match.when({ _tag: 'Stop' }, () => Effect.void),
         Match.exhaustive
@@ -40,7 +40,7 @@ export const drainConsoleWrites = (
 ) =>
   Effect.uninterruptible(
     Queue.offer(queue, { _tag: 'Stop' }).pipe(
-      Effect.zipRight(Fiber.join(consumer)),
+      Effect.andThen(Fiber.join(consumer)),
       Effect.ensuring(Queue.shutdown(queue))
     )
   );

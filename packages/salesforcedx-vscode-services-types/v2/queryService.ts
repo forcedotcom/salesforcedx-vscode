@@ -10,7 +10,6 @@ import type { FieldError, InactiveOrgOperationError, SoqlError } from './errors.
 import type { UnknownError } from 'effect/Cause';
 import * as Context from 'effect/Context';
 import type * as Effect from 'effect/Effect';
-import type * as Schema from 'effect/Schema';
 import type * as Stream from 'effect/Stream';
 
 export type QueryOptions = {
@@ -19,17 +18,23 @@ export type QueryOptions = {
   readonly scanAll?: boolean;
   readonly orgId?: OrgId;
 };
-export type QueryPageError = UnknownError | Schema.SchemaError | FieldError | SoqlError | InactiveOrgOperationError;
-export type QueryServiceResult<S extends Schema.Constraint> = {
+export type QueryPageError = UnknownError | FieldError | SoqlError | InactiveOrgOperationError;
+export type QueryPage<A> = {
   readonly totalSize: number;
-  readonly records: Stream.Stream<S['Type'], QueryPageError, S['DecodingServices']>;
+  readonly done?: boolean;
+  readonly nextRecordsUrl?: string;
+  readonly records?: readonly A[];
+};
+export type QueryServiceResult<A, E = never, R = never> = {
+  readonly totalSize: number;
+  readonly records: Stream.Stream<A, QueryPageError | E, R>;
 };
 export class QueryService extends Context.Service<
   QueryService,
   {
-    readonly query: <S extends Schema.Constraint>(
+    readonly query: <A, E, R>(
       options: QueryOptions,
-      recordSchema: S
-    ) => Effect.Effect<QueryServiceResult<S>, ConnectionError | QueryPageError, S['DecodingServices']>;
+      decodePage: (input: unknown) => Effect.Effect<QueryPage<A>, E, R>
+    ) => Effect.Effect<QueryServiceResult<A, E, R>, ConnectionError | QueryPageError | E, R>;
   }
 >()('@salesforce/vscode-services/v2/QueryService') {}

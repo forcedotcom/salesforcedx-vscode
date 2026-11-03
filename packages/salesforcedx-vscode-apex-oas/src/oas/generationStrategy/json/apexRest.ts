@@ -6,11 +6,10 @@
  */
 import type { PromptGenerationResult } from '../../schemas';
 import { annotateRootSpan, ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import { identity } from 'effect/Function';
 import * as Option from 'effect/Option';
+import * as Result from 'effect/Result';
 import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
 import type {
@@ -53,7 +52,7 @@ const keepOrLog =
   <A, E, R>(effect: Effect.Effect<A, E, R>) =>
     effect.pipe(
       Effect.map(Option.some),
-      Effect.catchAll(e => Effect.logDebug(`${label} failed with error ${String(e)}`).pipe(Effect.as(Option.none<A>())))
+      Effect.catch(e => Effect.logDebug(`${label} failed with error ${String(e)}`).pipe(Effect.as(Option.none<A>())))
     );
 
 const buildGenState = Effect.fn('ApexOas.ApexRest.buildGenState')(function* (
@@ -121,7 +120,7 @@ const prevalidateLLMResponse = Effect.fn('ApexOas.ApexRest.prevalidateLLMRespons
   methodsContextMap: Map<string, ApexOASMethodDetail>,
   urlMapping: string
 ) {
-  const chunk = yield* Stream.fromIterable(responses.entries()).pipe(
+  return yield* Stream.fromIterable(responses.entries()).pipe(
     Stream.filterEffect(([methodName, response]) =>
       response === ''
         ? Effect.logDebug(`LLM response for ${methodName} is empty.`).pipe(Effect.as(false))
@@ -134,7 +133,7 @@ const prevalidateLLMResponse = Effect.fn('ApexOas.ApexRest.prevalidateLLMRespons
         keepOrLog('Cleanup')
       )
     ),
-    Stream.filterMap(identity),
+    Stream.filterMap(value => Result.fromOption(value, () => undefined)),
     Stream.mapEffect(([methodName, cleaned]) =>
       Effect.try({
         try: () => parseOASDocFromJson(cleaned),
@@ -144,7 +143,7 @@ const prevalidateLLMResponse = Effect.fn('ApexOas.ApexRest.prevalidateLLMRespons
         keepOrLog('JSON parse')
       )
     ),
-    Stream.filterMap(identity),
+    Stream.filterMap(value => Result.fromOption(value, () => undefined)),
     Stream.mapEffect(([methodName, parsed]) =>
       Effect.gen(function* () {
         yield* excludeUnrelatedMethods(parsed, methodName, methodsContextMap);
@@ -165,13 +164,11 @@ const prevalidateLLMResponse = Effect.fn('ApexOas.ApexRest.prevalidateLLMRespons
     ),
     Stream.runCollect
   );
-  return Chunk.toReadonlyArray(chunk);
 });
 
 // Retry up to 5 times with exponential backoff (1s base, doubling), capped at 30s between attempts.
 const LLM_RETRY_SCHEDULE = Schedule.exponential(Duration.seconds(1), 2.0).pipe(
-  Schedule.either(Schedule.spaced(Duration.seconds(30))),
-  Schedule.intersect(Schedule.recurs(5))
+  Schedule.upTo({ duration: Duration.seconds(30) })
 );
 
 export const callLLMWithRetry = Effect.fn('ApexOas.ApexRest.callLLMWithRetry')(function* (
@@ -179,11 +176,9 @@ export const callLLMWithRetry = Effect.fn('ApexOas.ApexRest.callLLMWithRetry')(f
   tokenLimit: number,
   onAttempt: () => void
 ) {
-  return yield* LLMService.callLLM(prompt, undefined, tokenLimit).pipe(
-    Effect.tapBoth({
-      onSuccess: () => Effect.sync(onAttempt),
-      onFailure: () => Effect.sync(onAttempt)
-    }),
+  return yield* LLMService.use(service => service.callLLM(prompt, undefined, tokenLimit)).pipe(
+    Effect.tapError(() => Effect.sync(onAttempt)),
+    Effect.tap(() => Effect.sync(onAttempt)),
     // An empty response is never valid; treat it as a transient failure so it is retried.
     Effect.flatMap(response =>
       response === '' ? new LLMEmptyResponse({ message: 'LLM returned an empty response' }) : Effect.succeed(response)
@@ -193,7 +188,7 @@ export const callLLMWithRetry = Effect.fn('ApexOas.ApexRest.callLLMWithRetry')(f
     // other failure (including a connection error, which is often a transient network blip) stays in the
     // retry loop and, only if all attempts fail, becomes LLMRetriesExhausted so the per-method handler can
     // degrade it to empty content — its reason is preserved in the exhaustion message.
-    Effect.retry({ schedule: LLM_RETRY_SCHEDULE, while: error => error._tag !== 'LLMRateLimited' }),
+    Effect.retry({ schedule: LLM_RETRY_SCHEDULE, times: 5, while: error => error._tag !== 'LLMRateLimited' }),
     Effect.mapError(cause =>
       cause._tag === 'LLMRateLimited'
         ? cause
@@ -209,13 +204,13 @@ export const createApexRestStrategy = Effect.fn('ApexOas.ApexRest.createApexRest
   context: ApexClassOASGatherContextResponse
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const sourceText = yield* api.services.FsService.readFile(metadata.resourceUri.fsPath);
+  const sourceText = yield* api.v2.services.FsService.use(service => service.readFile(metadata.resourceUri.fsPath));
   const classPrompt = buildClassPrompt(context.classDetail);
 
   const urlMapping =
     context.classDetail.annotations.find(a => AA_CLASS_REST_ANNOTATIONS.includes(a.name))?.parameters.urlMapping ??
     `/${context.classDetail.name}/`;
-  const outputTokenLimit = yield* (yield* api.services.SettingsService).getValueOrElse(
+  const outputTokenLimit = yield* (yield* api.v2.services.SettingsService).getValueOrElse(
     EXTENSION_NAME,
     'generation_output_token_limit',
     750

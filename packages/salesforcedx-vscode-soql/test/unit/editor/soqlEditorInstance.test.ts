@@ -15,6 +15,7 @@ import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
+import { NotificationModeService, QueryService, SettingsService } from '@salesforce/vscode-services/v2';
 import * as vscode from 'vscode';
 import * as queryPlan from '../../../src/commands/queryPlan';
 import { SOQLEditorInstance } from '../../../src/editor/soqlEditorInstance';
@@ -25,15 +26,20 @@ describe('SOQL Builder Run Query', () => {
   it('sends prepared SOQL while leaving header comments in the document', async () => {
     const text = '// header\nSELECT Id FROM Account;';
     const document = { getText: vi.fn(() => text) } as unknown as vscode.TextDocument;
-    const query = vi.fn(() => Effect.succeed({ totalSize: 0, records: Stream.empty }));
+    const query = vi.fn((_options: unknown, _decodePage: unknown) =>
+      Effect.succeed({ totalSize: 0, records: Stream.empty })
+    );
     const servicesApi = {
-      services: {
-        SettingsService: Effect.succeed({ getValue: () => Effect.succeed(50) }),
-        NotificationModeService: Effect.succeed({
-          getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification)
-        }),
-        QueryService: Effect.succeed({ query })
+      v2: {
+        services: { SettingsService, NotificationModeService, QueryService }
       }
+    };
+    const serviceValues = {
+      settings: { getValue: () => Effect.succeed(50) } as unknown as SettingsService['Service'],
+      notificationMode: {
+        getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification)
+      } as unknown as NotificationModeService['Service'],
+      query: { query } as unknown as QueryService['Service']
     };
     (vscode.extensions.getExtension as VitestMock).mockReturnValue({ isActive: true, exports: servicesApi });
     (vscode.window.withProgress as VitestMock).mockImplementation((_options: unknown, run: () => Promise<unknown>) =>
@@ -44,7 +50,10 @@ describe('SOQL Builder Run Query', () => {
     mockRunPromise.mockImplementation(effect =>
       Effect.runPromise(
         effect.pipe(
-          Effect.provideService(ExtensionProviderService, { getServicesApi: Effect.succeed(servicesApi as never) })
+          Effect.provideService(ExtensionProviderService, { getServicesApi: Effect.succeed(servicesApi as never) }),
+          Effect.provideService(SettingsService, serviceValues.settings),
+          Effect.provideService(NotificationModeService, serviceValues.notificationMode),
+          Effect.provideService(QueryService, serviceValues.query)
         )
       )
     );

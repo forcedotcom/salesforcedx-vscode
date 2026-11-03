@@ -10,11 +10,14 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
-import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
-import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
-import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
+import {
+  UserCancellationError,
+  NotificationModeService,
+  type NonEmptyComponentSet
+} from '@salesforce/vscode-services/v2';
 import { withPreparationProgress } from '../../../src/utils/withPreparationProgress';
 import { ConflictsDetectedError } from '../../../src/conflict/conflictErrors';
+import { setAllServicesLayer } from '../../../src/services/extensionProvider';
 
 // Minimal branded NonEmptyComponentSet for testing
 const makeCS = (size = 1) => ({ size }) as unknown as NonEmptyComponentSet;
@@ -22,31 +25,32 @@ const makeCS = (size = 1) => ({ size }) as unknown as NonEmptyComponentSet;
 const mockUserCancellationError = UserCancellationError;
 
 const createMockServicesApi = () => ({
-  services: {
-    UserCancellationError: mockUserCancellationError,
-    NotificationModeService
+  v2: {
+    services: {
+      UserCancellationError: mockUserCancellationError,
+      NotificationModeService
+    }
   }
 });
 
 const createMockExtensionProvider = () =>
   ({
     getServicesApi: Effect.succeed(createMockServicesApi())
-  }) as unknown as ExtensionProviderService;
+  }) as unknown as ExtensionProviderService['Service'];
 
 const notificationMode = {
   getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification),
   showSuccessNotification: () => Effect.void
-} as unknown as NotificationModeService;
+} as unknown as NotificationModeService['Service'];
 
-const provideServices = (e: Effect.Effect<unknown, unknown, unknown>) =>
-  e.pipe(
-    Effect.provide(
-      Layer.mergeAll(
-        Layer.succeed(ExtensionProviderService, createMockExtensionProvider()),
-        Layer.succeed(NotificationModeService, notificationMode)
-      )
-    )
-  );
+const provideServices = (e: Effect.Effect<unknown, unknown, unknown>) => e.pipe(Effect.provide(mockServicesLayer));
+
+const mockServicesLayer = Layer.mergeAll(
+  Layer.succeed(ExtensionProviderService, createMockExtensionProvider()),
+  Layer.succeed(NotificationModeService, notificationMode)
+);
+
+setAllServicesLayer(mockServicesLayer as never);
 
 const runWithServices = <A>(effect: Effect.Effect<A, unknown, NotificationModeService | ExtensionProviderService>) =>
   Effect.runPromise(effect.pipe(provideServices) as Effect.Effect<A, unknown, never>);

@@ -8,7 +8,6 @@
 import type { DiffFilePair } from '../shared/diff/diffTypes';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
-import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import { isString } from 'effect/Predicate';
@@ -25,10 +24,10 @@ export const detectConflictsFromTracking = Effect.fn('detectConflictsFromTrackin
   componentSet?: ComponentSet
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [sourceTracking, componentSetService, HashableUri] = yield* Effect.all(
-    [api.services.SourceTrackingService, api.services.ComponentSetService, api.services.FsService.HashableUri],
-    { concurrency: 'unbounded' }
-  );
+  const sourceTracking = yield* api.v2.services.SourceTrackingService;
+  const componentSetService = yield* api.v2.services.ComponentSetService;
+  const fsService = yield* api.v2.services.FsService;
+  const HashableUri = fsService.HashableUri;
 
   const uris = yield* sourceTracking.getStatus({ local: true, remote: true }).pipe(
     Stream.fromIterableEffect,
@@ -38,11 +37,11 @@ export const detectConflictsFromTracking = Effect.fn('detectConflictsFromTrackin
         (!componentSet ||
           (isString(c.type) && isString(c.fullName) && componentSet.has({ type: c.type, fullName: c.fullName })))
     ),
-    Stream.mapConcat(c => (c.filePath ? [c.filePath] : [])),
+    Stream.map(c => (c.filePath ? [c.filePath] : [])),
+    Stream.flattenIterable,
     Stream.filter(isString),
-    Stream.mapEffect(p => api.services.FsService.toUri(p)),
-    Stream.runCollect,
-    Effect.map(Chunk.toArray)
+    Stream.mapEffect(p => api.v2.services.FsService.use(service => service.toUri(p))),
+    Stream.runCollect
   );
   if (uris.length === 0) return [] satisfies DiffFilePair[];
 
@@ -55,7 +54,6 @@ export const detectConflictsFromTracking = Effect.fn('detectConflictsFromTrackin
   return yield* (yield* materializeRemoteComponents(localComponentSet, localUriFilter)).pipe(
     Stream.fromIterable,
     Stream.filterEffect(filesAreNotIdentical),
-    Stream.runCollect,
-    Effect.map(Chunk.toArray)
+    Stream.runCollect
   );
 });

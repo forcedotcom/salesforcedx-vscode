@@ -12,7 +12,7 @@ export { getExtensionExports, ExtensionNotFoundError, ExtensionActivationError }
 export { CallableSchema } from './callableSchema';
 export { ExtensionPackageJsonSchema, type ExtensionPackageJson } from './extensionPackageJson';
 export { closeExtensionScope, getExtensionScope } from './extensionScope';
-export type { SalesforceVSCodeServicesApi } from './extensionProvider';
+export type { SalesforceVSCodeServicesApiV2 } from './extensionProvider';
 
 export { createTable } from './table';
 export type { Column, Row } from './table';

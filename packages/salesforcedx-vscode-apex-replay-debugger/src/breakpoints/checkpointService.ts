@@ -10,11 +10,11 @@
 import { annotateRootSpan, code2ProtocolConverter, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger';
 import * as Arr from 'effect/Array';
-import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isError, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
+import * as Semaphore from 'effect/Semaphore';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
@@ -68,7 +68,9 @@ const mapCheckpointConnectionError = <A, E extends { message: string }, R>(effec
 
 const getCheckpointConnection = Effect.fn('getCheckpointConnection')(function* () {
   return yield* mapCheckpointConnectionError((yield* ExtensionProviderService).getServicesApi).pipe(
-    Effect.flatMap(api => mapCheckpointConnectionError(api.services.ConnectionService.getConnection()))
+    Effect.flatMap(api =>
+      mapCheckpointConnectionError(api.v2.services.ConnectionService.use(service => service.getConnection()))
+    )
   );
 });
 
@@ -97,42 +99,37 @@ const reportCheckpointError = (error: CheckpointOperationError) =>
 /** Clears existing checkpoints from the org, making VS Code the source of truth */
 const clearExistingCheckpoints = Effect.fn('clearExistingCheckpoints')(function* () {
   const api = yield* mapCheckpointQueryError((yield* ExtensionProviderService).getServicesApi);
-  yield* api.services.TargetOrgRef().pipe(
-    Effect.flatMap(SubscriptionRef.get),
-    Effect.map(({ userId }) => userId),
+  const targetOrgRef = yield* api.v2.services.TargetOrgRef;
+  const userId = yield* SubscriptionRef.get(targetOrgRef).pipe(
+    Effect.map(({ userId: activeUserId }) => activeUserId),
     Effect.filterOrFail(
       Schema.is(Schema.NonEmptyString),
       () => new CheckpointOperationError({ message: nls.localize('unable_to_retrieve_active_user_for_sf_project') })
-    ),
-    Effect.bindTo('userId'),
-    Effect.bind('connection', () => getCheckpointConnection()),
-    Effect.bind('queryService', () => mapCheckpointQueryError(api.services.QueryService)),
-    Effect.bind('queryResult', ({ queryService, userId }) =>
-      mapCheckpointQueryError(
-        queryService.query(
-          {
-            soql: `SELECT Id FROM ApexExecutionOverlayAction WHERE ScopeId = '${userId}'`,
-            tooling: true
-          },
-          Schema.Struct({ Id: Schema.String })
-        )
-      )
-    ),
-    Effect.bind('recordChunk', ({ queryResult }) =>
-      mapCheckpointQueryError(queryResult.records.pipe(Stream.runCollect))
-    ),
-    Effect.map(({ recordChunk, ...context }) => ({ ...context, records: Chunk.toReadonlyArray(recordChunk) })),
-    // Attempt every delete and wait for all results, even when one fails.
-    Effect.flatMap(({ connection, records }) =>
-      Effect.mapError(
-        Effect.validateAll(
-          records,
-          record => Effect.tryPromise(() => connection.tooling.sobject('ApexExecutionOverlayAction').delete(record.Id)),
-          { concurrency: 'unbounded' }
-        ),
-        () => new CheckpointOperationError({ message: nls.localize('cannot_delete_existing_checkpoint') })
-      )
     )
+  );
+  const connection = yield* getCheckpointConnection();
+  const queryService = yield* api.v2.services.QueryService;
+  const queryResult = yield* mapCheckpointQueryError(
+    queryService.query(
+      {
+        soql: `SELECT Id FROM ApexExecutionOverlayAction WHERE ScopeId = '${userId}'`,
+        tooling: true
+      },
+      input =>
+        Schema.decodeUnknownEffect(
+          Schema.Struct({ totalSize: Schema.Number, records: Schema.Array(Schema.Struct({ Id: Schema.String })) })
+        )(input)
+    )
+  );
+  const records = yield* queryResult.records.pipe(Stream.runCollect, mapCheckpointQueryError);
+
+  // Attempt every delete and wait for all results, even when one fails.
+  yield* Effect.validate(
+    records,
+    record => Effect.tryPromise(() => connection.tooling.sobject('ApexExecutionOverlayAction').delete(record.Id)),
+    { concurrency: 'unbounded' }
+  ).pipe(
+    Effect.mapError(() => new CheckpointOperationError({ message: nls.localize('cannot_delete_existing_checkpoint') }))
   );
   return true;
 });
@@ -432,11 +429,11 @@ class CheckpointInfoIterationNode extends BaseNode {
 
 // The lock is necessary to prevent the user from deleting the underlying breakpoints
 // associated with the checkpoints while checkpoints are being uploaded to the server.
-const lock = Effect.runSync(Effect.makeSemaphore(1));
+const lock = Semaphore.makeUnsafe(1);
 
 // Non-blocking guard shared by checkpoint upload and toggle commands. The existing
 // lock above separately serializes upload against breakpoint-change event handling.
-const checkpointOperationSemaphore = Effect.runSync(Effect.makeSemaphore(1));
+const checkpointOperationSemaphore = Semaphore.makeUnsafe(1);
 
 // This is the function registered for vscode.debug.onDidChangeBreakpoints. This
 // particular event fires breakpoint events without an active debug session which
@@ -559,71 +556,71 @@ const reportCheckpointStep = (
 // 3. Remove any existing checkpoints
 // 4. Create the new checkpoints
 /** Uploads enabled checkpoints, reporting each step. Returns true when the org is up to date. */
-const uploadCheckpoints = Effect.fn('uploadCheckpoints')(
-  function* (progress: CheckpointProgress, localizedProgressMessage: string) {
-    yield* reportCheckpointStep(
-      progress,
-      localizedProgressMessage,
-      0,
-      nls.localize('checkpoint_creation_status_org_info')
-    );
+const uploadCheckpoints = Effect.fn('uploadCheckpoints')(function* (
+  progress: CheckpointProgress,
+  localizedProgressMessage: string
+) {
+  yield* reportCheckpointStep(
+    progress,
+    localizedProgressMessage,
+    0,
+    nls.localize('checkpoint_creation_status_org_info')
+  );
 
-    yield* getCheckpointConnection();
+  yield* getCheckpointConnection();
 
-    yield* reportCheckpointStep(
-      progress,
-      localizedProgressMessage,
-      20,
-      nls.localize('checkpoint_creation_status_source_line_info')
-    );
-    const sourceLineInfoRetrieved = yield* retrieveLineBreakpointInfo();
-    // If we didn't get the source line information that'll be reported at that time, just return
-    if (!sourceLineInfoRetrieved) return false;
+  yield* reportCheckpointStep(
+    progress,
+    localizedProgressMessage,
+    20,
+    nls.localize('checkpoint_creation_status_source_line_info')
+  );
+  const sourceLineInfoRetrieved = yield* retrieveLineBreakpointInfo();
+  // If we didn't get the source line information that'll be reported at that time, just return
+  if (!sourceLineInfoRetrieved) return false;
 
-    // There can be a max of five active checkpoints
-    if (!checkpointService.hasFiveOrLessActiveCheckpoints()) return false;
+  // There can be a max of five active checkpoints
+  if (!checkpointService.hasFiveOrLessActiveCheckpoints()) return false;
 
-    yield* reportCheckpointStep(
-      progress,
-      localizedProgressMessage,
-      50,
-      nls.localize('checkpoint_creation_status_setting_typeref')
-    );
-    // For the active checkpoints set the typeRefs using the source/line info
-    if (!setTypeRefsForEnabledCheckpoints()) return false;
+  yield* reportCheckpointStep(
+    progress,
+    localizedProgressMessage,
+    50,
+    nls.localize('checkpoint_creation_status_setting_typeref')
+  );
+  // For the active checkpoints set the typeRefs using the source/line info
+  if (!setTypeRefsForEnabledCheckpoints()) return false;
 
-    yield* reportCheckpointStep(
-      progress,
-      localizedProgressMessage,
-      50,
-      nls.localize('checkpoint_creation_status_clearing_existing_checkpoints')
-    );
-    // remove any existing checkpoints on the server
-    yield* clearExistingCheckpoints();
+  yield* reportCheckpointStep(
+    progress,
+    localizedProgressMessage,
+    50,
+    nls.localize('checkpoint_creation_status_clearing_existing_checkpoints')
+  );
+  // remove any existing checkpoints on the server
+  yield* clearExistingCheckpoints();
 
-    yield* reportCheckpointStep(
-      progress,
-      localizedProgressMessage,
-      70,
-      nls.localize('checkpoint_creation_status_uploading_checkpoints')
-    );
-    const [failedCheckpointUploads] = yield* Effect.partition(
-      (checkpointService.getChildren() as CheckpointNode[]).filter(cpNode => cpNode.isCheckpointEnabled()),
-      cpNode => executeCreateApexExecutionOverlayActionCommand(cpNode).pipe(Effect.tapError(reportCheckpointError)),
-      { concurrency: 'unbounded' }
-    );
-    if (failedCheckpointUploads.length > 0) return false;
+  yield* reportCheckpointStep(
+    progress,
+    localizedProgressMessage,
+    70,
+    nls.localize('checkpoint_creation_status_uploading_checkpoints')
+  );
+  const [, failedCheckpointUploads] = yield* Effect.partition(
+    (checkpointService.getChildren() as CheckpointNode[]).filter(cpNode => cpNode.isCheckpointEnabled()),
+    cpNode => executeCreateApexExecutionOverlayActionCommand(cpNode).pipe(Effect.tapError(reportCheckpointError)),
+    { concurrency: 'unbounded' }
+  );
+  if (failedCheckpointUploads.length > 0) return false;
 
-    yield* Effect.sync(() => progress.report({ increment: 100, message: localizedProgressMessage }));
-    yield* Effect.sync(() =>
-      writeToDebuggerOutputWindow(
-        `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_processing_complete_success')}`
-      )
-    );
-    return true;
-  },
-  Effect.catchTag('CheckpointOperationError', error => reportCheckpointError(error).pipe(Effect.as(false)))
-);
+  yield* Effect.sync(() => progress.report({ increment: 100, message: localizedProgressMessage }));
+  yield* Effect.sync(() =>
+    writeToDebuggerOutputWindow(
+      `${localizedProgressMessage}, ${nls.localize('checkpoint_creation_status_processing_complete_success')}`
+    )
+  );
+  return true;
+});
 
 /** Creates checkpoints in the org by uploading enabled checkpoint nodes */
 const createCheckpoints = Effect.fn('createCheckpoints')(function* () {
@@ -632,11 +629,11 @@ const createCheckpoints = Effect.fn('createCheckpoints')(function* () {
   // The status message isn't changing, localize it once and reuse it in the progress report.
   const localizedProgressMessage = nls.localize('sf_update_checkpoints_in_org');
   const progressLocation = yield* (yield* ExtensionProviderService).getServicesApi.pipe(
-    Effect.flatMap(api => api.services.NotificationModeService),
+    Effect.flatMap(api => api.v2.services.NotificationModeService),
     Effect.flatMap(notificationMode => notificationMode.getProgressLocation(COMMAND))
   );
 
-  const succeeded = yield* Effect.zipRight(
+  const succeeded = yield* Effect.andThen(
     Effect.sync(() => writeToDebuggerOutputWindow(`${nls.localize('long_command_start')} ${localizedProgressMessage}`)),
     Effect.promise(() =>
       vscode.window.withProgress(
@@ -645,7 +642,12 @@ const createCheckpoints = Effect.fn('createCheckpoints')(function* () {
           title: localizedProgressMessage,
           cancellable: false
         },
-        (progress, _token) => getRuntime().runPromise(uploadCheckpoints(progress, localizedProgressMessage))
+        (progress, _token) =>
+          getRuntime().runPromise(
+            uploadCheckpoints(progress, localizedProgressMessage).pipe(
+              Effect.catchTag('CheckpointOperationError', error => reportCheckpointError(error).pipe(Effect.as(false)))
+            )
+          )
       )
     )
   ).pipe(
@@ -690,13 +692,11 @@ export const sfCreateCheckpointsCommand = Effect.fn('sfCreateCheckpointsCommand'
   const result = yield* checkpointOperationSemaphore.withPermitsIfAvailable(1)(
     createCheckpoints().pipe(
       Effect.mapError(error => new CreateCheckpointsError({ message: isError(error) ? error.message : String(error) })),
-      Effect.catchAllDefect(defect =>
+      Effect.catchDefect(defect =>
         Effect.fail(new CreateCheckpointsError({ message: isError(defect) ? defect.message : String(defect) }))
       ),
-      Effect.tapBoth({
-        onFailure: error => annotateRootSpan({ errorMessage: error.message }),
-        onSuccess: annotateCheckpointUpload
-      })
+      Effect.tapError(error => annotateRootSpan({ errorMessage: error.message })),
+      Effect.tap(annotateCheckpointUpload)
     )
   );
   return yield* Option.match(result, {
@@ -718,7 +718,7 @@ export const sfCreateCheckpointsCommand = Effect.fn('sfCreateCheckpointsCommand'
 //    checkpoints for user input SOQL or Apex.
 const toggleCheckpoint = Effect.fn('toggleCheckpoint')(function* () {
   const editorContextOption = yield* (yield* ExtensionProviderService).getServicesApi.pipe(
-    Effect.flatMap(api => api.services.EditorService.getActiveEditorContext(true)),
+    Effect.flatMap(api => api.v2.services.EditorService.use(service => service.getActiveEditorContext(true))),
     Effect.map(Option.some),
     Effect.catchTag('NoActiveEditorError', () => Effect.succeed(Option.none()))
   );

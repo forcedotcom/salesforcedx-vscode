@@ -5,6 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as Schema from 'effect/Schema';
+
+export class NoActiveEditorError extends Schema.TaggedError<NoActiveEditorError>()('NoActiveEditorError', {
+  message: Schema.String
+}) {}
 import { OrgId } from './defaultOrgInfo.js';
 import { UriSchema } from './uriSchema.js';
 

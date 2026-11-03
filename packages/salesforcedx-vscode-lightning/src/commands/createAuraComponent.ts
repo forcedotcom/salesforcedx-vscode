@@ -19,20 +19,16 @@ const AURA_COMPONENT_TEMPLATE_DESCRIPTIONS: Record<string, string> = {
 const promptForTemplate = Effect.fn('promptForAuraComponentTemplate')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
-  const customTemplateNames = yield* api.services.TemplateService.getCustomTemplateSubdirNames(
-    'lightningcomponent',
-    'aura',
-    /\.cmp$/
+  const customTemplateNames = yield* api.v2.services.TemplateService.use(service =>
+    service.getCustomTemplateSubdirNames('lightningcomponent', 'aura', /\.cmp$/)
   );
   if (customTemplateNames.length === 0) {
     return 'default';
   }
 
-  const promptService = yield* api.services.PromptService;
-  const builtInNames = yield* api.services.TemplateService.getBuiltInTemplateSubdirNames(
-    'lightningcomponent',
-    'aura',
-    /\.cmp$/
+  const promptService = yield* api.v2.services.PromptService;
+  const builtInNames = yield* api.v2.services.TemplateService.use(service =>
+    service.getBuiltInTemplateSubdirNames('lightningcomponent', 'aura', /\.cmp$/)
   );
   const builtInItems = builtInNames.map(label => ({
     label,
@@ -62,10 +58,11 @@ export const createAuraComponentCommand = Effect.fn('createAuraComponentCommand'
   options?: { internal?: boolean }
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const project = yield* api.services.ProjectService.getSfProject();
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-  const fsService = yield* api.services.FsService;
+  const promptService = yield* api.v2.services.PromptService;
+  const project = yield* api.v2.services.ProjectService.use(service => service.getSfProject());
+  const workspaceInfo = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
+  const fsService = yield* api.v2.services.FsService;
+  const cwd = yield* fsService.uriToPath(workspaceInfo.uri);
 
   const template = yield* promptForTemplate();
   const componentName = yield* promptForAuraName();
@@ -83,19 +80,21 @@ export const createAuraComponentCommand = Effect.fn('createAuraComponentCommand'
   const componentDirUri = Utils.joinPath(outputDirUri, componentName);
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [componentDirUri] });
 
-  yield* api.services.TemplateService.create({
-    cwd: yield* fsService.uriToPath(workspaceInfo.uri),
-    templateType: api.services.TemplateType.LightningComponent,
-    outputdir: outputDirUri,
-    options: {
-      componentname: componentName,
-      template,
-      type: 'aura',
-      internal: options?.internal ?? false
-    }
-  });
+  yield* api.v2.services.TemplateService.use(service =>
+    service.create({
+      cwd,
+      templateType: api.v2.services.TemplateType.LightningComponent,
+      outputdir: outputDirUri,
+      options: {
+        componentname: componentName,
+        template,
+        type: 'aura',
+        internal: options?.internal ?? false
+      }
+    })
+  );
 
-  const channelService = yield* api.services.ChannelService;
+  const channelService = yield* api.v2.services.ChannelService;
   yield* channelService.appendToChannel(nls.localize('aura_generate_component_success'));
   yield* fsService.showTextDocument(Utils.joinPath(componentDirUri, `${componentName}.cmp`));
 });

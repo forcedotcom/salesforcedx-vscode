@@ -86,12 +86,14 @@ export const openTestReport = Effect.fn('writeAndOpenTestReport.openReport')(fun
 ) {
   if (format === 'markdown') {
     yield* Effect.tryPromise(() => vscode.commands.executeCommand('markdown.preview.refresh')).pipe(
-      Effect.catchAll(() => Effect.void)
+      Effect.catch(() => Effect.void)
     );
     yield* Effect.tryPromise(() => vscode.commands.executeCommand('markdown.showPreview', reportUri));
   } else {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    yield* api.services.FsService.showTextDocument(reportUri, { preview: false, preserveFocus: false });
+    yield* api.v2.services.FsService.use(service =>
+      service.showTextDocument(reportUri, { preview: false, preserveFocus: false })
+    );
   }
 });
 
@@ -105,8 +107,8 @@ export const writeAndOpenTestReport = Effect.fn('writeAndOpenTestReport')(functi
 ) {
   yield* Effect.annotateCurrentSpan({ outputFormat: format });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelSvc = yield* api.services.ChannelService;
-  const settings = yield* api.services.SettingsService;
+  const channelSvc = yield* api.v2.services.ChannelService;
+  const settings = yield* api.v2.services.SettingsService;
   const performanceThresholdMs = yield* settings.getValueOrElse(
     APEX_TESTING_SECTION,
     'testPerformanceThresholdMs',
@@ -136,7 +138,7 @@ export const writeAndOpenTestReport = Effect.fn('writeAndOpenTestReport')(functi
   const uint8Array = yield* Effect.tryPromise(() => streamToNormalizedUtf8Bytes(transformer));
   const content = new TextDecoder('utf-8').decode(uint8Array);
 
-  yield* api.services.FsService.safeWriteFile(reportUri, content).pipe(
+  yield* api.v2.services.FsService.use(service => service.safeWriteFile(reportUri, content)).pipe(
     Effect.tapError(error => channelSvc.appendToChannel(`Failed to write test report: ${String(error)}`))
   );
 

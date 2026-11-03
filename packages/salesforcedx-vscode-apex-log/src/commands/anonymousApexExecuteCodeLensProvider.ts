@@ -37,7 +37,7 @@ export const provideAnonymousApexExecuteLenses = (document: TextDocument, target
 
 const hasTargetOrg = Effect.fn('ApexLog.CodeLensProvider.hasTargetOrg')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const info = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+  const info = yield* SubscriptionRef.get(yield* api.v2.services.TargetOrgRef);
   return Boolean(info.orgId ?? info.username);
 });
 
@@ -46,11 +46,14 @@ export const registerAnonymousApexExecuteCodeLensProvider = Effect.fn(
 )(function* (context: ExtensionContext) {
   const changeEmitter = new EventEmitter<void>();
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const ref = yield* api.services.TargetOrgRef();
+  const ref = yield* api.v2.services.TargetOrgRef;
   const abortController = new AbortController();
-  void getRuntime().runPromise(ref.changes.pipe(Stream.runForEach(() => Effect.sync(() => changeEmitter.fire()))), {
-    signal: abortController.signal
-  });
+  void getRuntime().runPromise(
+    SubscriptionRef.changes(ref).pipe(Stream.runForEach(() => Effect.sync(() => changeEmitter.fire()))),
+    {
+      signal: abortController.signal
+    }
+  );
 
   const provider = {
     onDidChangeCodeLenses: changeEmitter.event,
@@ -58,7 +61,7 @@ export const registerAnonymousApexExecuteCodeLensProvider = Effect.fn(
       hasTargetOrg().pipe(
         Effect.map(targetOrgSet => provideAnonymousApexExecuteLenses(document, targetOrgSet)),
         Effect.tapError(e => Effect.logError(String(e))),
-        Effect.catchAll(() => Effect.succeed<CodeLens[]>([])),
+        Effect.catch(() => Effect.succeed<CodeLens[]>([])),
         getRuntime().runPromise
       )
   };

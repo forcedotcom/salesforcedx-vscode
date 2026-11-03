@@ -6,12 +6,12 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { type DebugLevelItem, type TraceFlagItem } from '@salesforce/vscode-services/v2';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Record from 'effect/Record';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import { type DebugLevelItem, type TraceFlagItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { isTraceFlagActive } from '../../traceFlags/traceFlagActive';
@@ -33,7 +33,7 @@ const noOrgWarning = () => Effect.promise(() => vscode.window.showWarningMessage
 /** Resolves { api, orgId, userId? }. Shows warning and returns None when org (or userId if required) is missing. */
 const requireOrgContext = Effect.fn('ApexLog.requireOrgContext')(function* (opts?: { requireUserId?: boolean }) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const ref = yield* api.services.TargetOrgRef();
+  const ref = yield* api.v2.services.TargetOrgRef;
   const { orgId, userId } = yield* SubscriptionRef.get(ref);
   if (!(orgId && (!opts?.requireUserId || userId))) {
     yield* noOrgWarning();
@@ -48,12 +48,12 @@ export const openTraceFlagsCommand = Effect.fn('ApexLog.Command.openTraceFlags')
   if (Option.isNone(ctx)) return;
   const { api, orgId } = ctx.value;
   const uri = createTraceFlagsUri(orgId);
-  yield* api.services.FsService.showTextDocument(uri);
+  yield* api.v2.services.FsService.use(service => service.showTextDocument(uri));
 });
 
 /** Pick a debug level id, or undefined when the org has none (proceed with org default). Fails with UserCancellationError on dismiss. */
 const pickDebugLevelIdOrDefault = Effect.fn('ApexLog.pickDebugLevelIdOrDefault')(function* (
-  debugLevels: DebugLevelItem[]
+  debugLevels: readonly DebugLevelItem[]
 ) {
   return debugLevels.length === 0 ? undefined : yield* pickDebugLevel(debugLevels);
 });
@@ -64,7 +64,7 @@ export const createTraceFlagForCurrentUserCommand = Effect.fn('ApexLog.Command.c
     const ctx = yield* requireOrgContext({ requireUserId: true });
     if (Option.isNone(ctx)) return;
     const { api, orgId, userId } = ctx.value;
-    const traceFlagService = yield* api.services.TraceFlagService;
+    const traceFlagService = yield* api.v2.services.TraceFlagService;
     const debugLevels = yield* traceFlagService.getDebugLevels();
     const debugLevelId = yield* pickDebugLevelIdOrDefault(debugLevels);
     const minutes = yield* readDefaultDurationMinutes();
@@ -79,8 +79,8 @@ export const deleteTraceFlagForCurrentUserCommand = Effect.fn('ApexLog.Command.d
     const ctx = yield* requireOrgContext({ requireUserId: true });
     if (Option.isNone(ctx)) return;
     const { api, orgId, userId } = ctx.value;
-    const notificationMode = yield* api.services.NotificationModeService;
-    const traceFlagService = yield* api.services.TraceFlagService;
+    const notificationMode = yield* api.v2.services.NotificationModeService;
+    const traceFlagService = yield* api.v2.services.TraceFlagService;
     const existing = yield* traceFlagService.getTraceFlagForUser(userId!);
     if (Option.isNone(existing)) {
       yield* notificationMode.showSuccessNotification(
@@ -103,11 +103,11 @@ export const createTraceFlagForUserCommand = Effect.fn('ApexLog.Command.createTr
   const ctx = yield* requireOrgContext({ requireUserId: true });
   if (Option.isNone(ctx)) return;
   const { api, orgId, userId: currentUserId } = ctx.value;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   const picked = yield* pickOrgUser(currentUserId!);
   yield* Effect.annotateCurrentSpan('createTraceFlagForUser', { attributes: { userId: picked?.userId ?? 'none' } });
   const user = yield* promptService.considerUndefinedAsCancellation(picked);
-  const traceFlagService = yield* api.services.TraceFlagService;
+  const traceFlagService = yield* api.v2.services.TraceFlagService;
   const debugLevels = yield* traceFlagService.getDebugLevels();
   const debugLevelId = yield* pickDebugLevelIdOrDefault(debugLevels);
   const minutes = yield* readDefaultDurationMinutes();
@@ -133,7 +133,7 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
   const ctx = yield* requireOrgContext();
   if (Option.isNone(ctx)) return;
   const { api, orgId } = ctx.value;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
 
   const masterLabel = yield* Effect.promise(() =>
     vscode.window.showInputBox({
@@ -190,7 +190,7 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
     Workflow: levels.workflow ?? 'NONE'
   };
 
-  const traceFlagService = yield* api.services.TraceFlagService;
+  const traceFlagService = yield* api.v2.services.TraceFlagService;
   yield* traceFlagService.createDebugLevel(payload).pipe(
     Effect.flatMap(() => refreshTraceFlagsView(orgId)),
     Effect.catchTag('DebugLevelCreateError', () =>
@@ -201,11 +201,11 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
 
 /** Resolve a trace flag id via QuickPick over the active subset of `flags`; shows an info message and returns undefined when none are active. */
 const promptForActiveTraceFlagId = Effect.fn('ApexLog.promptForActiveTraceFlagId')(function* (
-  flags: TraceFlagItem[],
+  flags: readonly TraceFlagItem[],
   command: SuccessOnlyCommandKey
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const notificationMode = yield* api.services.NotificationModeService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
   const active = flags.filter(isTraceFlagActive);
   if (active.length === 0) {
     yield* notificationMode.showSuccessNotification(command, nls.localize('trace_flags_none_active'));
@@ -221,8 +221,8 @@ export const deleteTraceFlagForIdCommand = Effect.fn('ApexLog.Command.deleteTrac
   const ctx = yield* requireOrgContext();
   if (Option.isNone(ctx)) return;
   const { api, orgId } = ctx.value;
-  const notificationMode = yield* api.services.NotificationModeService;
-  const traceFlagService = yield* api.services.TraceFlagService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
+  const traceFlagService = yield* api.v2.services.TraceFlagService;
   const resolvedId =
     traceFlagId ??
     (yield* promptForActiveTraceFlagId(yield* traceFlagService.getTraceFlags(), 'SFDX: Remove Trace Flag'));
@@ -238,7 +238,7 @@ export const changeDebugLevelCommand = Effect.fn('ApexLog.Command.changeDebugLev
   const ctx = yield* requireOrgContext();
   if (Option.isNone(ctx)) return;
   const { api, orgId } = ctx.value;
-  const traceFlagService = yield* api.services.TraceFlagService;
+  const traceFlagService = yield* api.v2.services.TraceFlagService;
   const debugLevels = yield* traceFlagService.getDebugLevels();
   const debugLevelId = yield* pickDebugLevel(debugLevels);
   yield* traceFlagService.changeTraceFlagDebugLevel(traceFlagId, debugLevelId);
@@ -247,11 +247,11 @@ export const changeDebugLevelCommand = Effect.fn('ApexLog.Command.changeDebugLev
 
 /** Resolve a debug level id via QuickPick; shows an info message and returns undefined when none exist. */
 const promptForDebugLevelId = Effect.fn('ApexLog.promptForDebugLevelId')(function* (
-  levels: DebugLevelItem[],
+  levels: readonly DebugLevelItem[],
   command: SuccessOnlyCommandKey
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const notificationMode = yield* api.services.NotificationModeService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
   if (levels.length === 0) {
     yield* notificationMode.showSuccessNotification(command, nls.localize('trace_flags_no_debug_levels'));
     return undefined;
@@ -266,8 +266,8 @@ export const deleteDebugLevelForIdCommand = Effect.fn('ApexLog.Command.deleteDeb
   const ctx = yield* requireOrgContext();
   if (Option.isNone(ctx)) return;
   const { api, orgId } = ctx.value;
-  const notificationMode = yield* api.services.NotificationModeService;
-  const traceFlagService = yield* api.services.TraceFlagService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
+  const traceFlagService = yield* api.v2.services.TraceFlagService;
   const resolvedId =
     debugLevelId ??
     (yield* promptForDebugLevelId(yield* traceFlagService.getDebugLevels(), 'SFDX: Remove Debug Level'));

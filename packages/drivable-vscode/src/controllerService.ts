@@ -133,8 +133,8 @@ export class ControllerService extends Effect.Service<ControllerService>()('Driv
               }),
             onSome: session =>
               Ref.update(state, value => ({ ...value, lifecycle: 'stopping' as const })).pipe(
-                Effect.zipRight(session.close),
-                Effect.zipRight(Ref.update(state, value => ({ ...value, lifecycle: 'closed' as const })))
+                Effect.andThen(session.close),
+                Effect.andThen(Ref.update(state, value => ({ ...value, lifecycle: 'closed' as const })))
               )
           })
         )

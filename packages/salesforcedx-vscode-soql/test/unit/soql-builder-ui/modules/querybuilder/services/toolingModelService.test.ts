@@ -49,7 +49,7 @@ const runWithModelService = <A>(
   Effect.runPromise(
     Effect.gen(function* () {
       return yield* ToolingModelService.pipe(Effect.flatMap(body));
-    }).pipe(Effect.provide(Layer.provide(ToolingModelService.Default, layer)))
+    }).pipe(Effect.provide(Layer.provide(ToolingModelService.layer, layer)))
   );
 
 describe('Tooling Model Service', () => {

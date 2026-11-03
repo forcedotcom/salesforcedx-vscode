@@ -1,6 +1,6 @@
 # Effect V4 metadata operations
 
-W-24615063 completes merged retrieve, deploy, destructive marking/local deletion and Lightning bundle rename on W60's existing V4 graph. Describe/query, ComponentSet, Transmogrifier and nonmerge retrieve remain the real W60 implementations. Production activation stays V3 until W-24615069; no second production graph or sf-effect-sdk adoption.
+W-24615063 completed merged retrieve, deploy, destructive marking/local deletion and Lightning bundle rename on W60's existing V4 graph. Describe/query, ComponentSet, Transmogrifier and nonmerge retrieve remain the real W60 implementations. W-24615069 integrated this graph into production activation; there is no second production graph or sf-effect-sdk adoption.
 
 ## One owner and captured org
 

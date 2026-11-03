@@ -49,11 +49,20 @@ The published subset contains no private-package or V3 companion-library imports
 Full internal V3 ABI probes use the existing private compatibility package. V4 keys
 remain canonical; neither public endpoint constructs a live graph.
 
-Two physical Effect 4.0.6 copies fail when one decodes the other's schema. Running
-an Effect produced by the schema owner's decoder succeeds. This is independently
-reproduced, not fixed by ordinary dependency naming. Caller-owned query/JSON decoding
-and separate-bundle verification remain provider acceptance requirements; the
-single-installation packed gates do not establish that broader interoperability.
+Two physical Effect 4.0.6 copies fail when one decodes the other's schema. V2
+query/JSON APIs therefore accept caller-owned decoder functions, not Schema objects.
+Query's callback decodes the whole page so nested issue paths and transforms stay
+inside the caller's schema graph. Caller errors and requirements are preserved;
+JSON wraps only typed decoder failures in its existing filesystem error contract.
+
+The foundation gate also installs `decoderConsumer` independently and verifies
+different physical paths and live Schema modules. Consumer/provider Node and
+browser-target bundles are built separately. The real Fs/Query graph exercises
+branded/transformed values, required services, typed errors, defects, full-page
+schema paths, acquisition timing, lazy replay, tracing and interruption finalizers.
+Raw foreign-schema decoding remains a failing negative control. Browser bundles
+execute under Node/jsdom, not VS Code E2E; the harness restores browser-installed
+globals and retains Node's real process for nonzero failure status.
 
 ## Existing diagnostic rule compatibility
 

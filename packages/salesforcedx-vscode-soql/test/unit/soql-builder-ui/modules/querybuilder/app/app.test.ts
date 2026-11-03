@@ -48,7 +48,7 @@ const makeTestMessageLayer = () => {
   };
   const emit = (event: HostToUiSoqlEditorEvent) => listeners.forEach(l => l(event));
   const layer = Layer.succeed(MessageService, service);
-  return { layer, emit, sendMessage };
+  return { layer, emit, sendMessage, listenerCount: () => listeners.length };
 };
 
 class TestApp extends App {
@@ -64,10 +64,13 @@ class TestApp extends App {
   public isQueryRunning = false;
 }
 
+const flushLwc = () => new Promise<void>(resolve => setTimeout(resolve, 0));
+
 describe('App should', () => {
   let app: TestApp;
   let emitMessage: (e: HostToUiSoqlEditorEvent) => void;
   let sendMessage: VitestMock;
+  let listenerCount: () => number;
   const accountQuery = 'SELECT Id FROM Account';
   const soqlEditorEvent: HostToUiSoqlEditorEvent = {
     type: MessageType.TEXT_SOQL_CHANGED,
@@ -85,14 +88,16 @@ describe('App should', () => {
   });
 
   beforeEach(async () => {
-    const { layer, emit, sendMessage: sm } = makeTestMessageLayer();
+    const { layer, emit, sendMessage: sm, listenerCount: getListenerCount } = makeTestMessageLayer();
     emitMessage = emit;
     sendMessage = sm;
+    listenerCount = getListenerCount;
     document.body.setAttribute('class', 'vscode-dark');
     app = createElement('querybuilder-app', { is: TestApp });
     app.appLayer = layer;
     document.body.appendChild(app);
     await app._ready;
+    expect(listenerCount()).toBe(2);
   });
 
   afterEach(() => {
@@ -120,7 +125,7 @@ describe('App should', () => {
       expect(sendMessage).not.toHaveBeenCalledWith({ type: MessageType.SOBJECT_METADATA_REQUEST, payload: 'Account' });
       app.fields = [];
       emitMessage(createSoqlEditorEvent(accountQuery));
-      await Promise.resolve();
+      await flushLwc();
       expect(sendMessage).toHaveBeenCalledWith({ type: MessageType.SOBJECT_METADATA_REQUEST, payload: 'Account' });
       expect(app.fields.length).toEqual(0);
     });
@@ -128,27 +133,27 @@ describe('App should', () => {
     it('should send a runquery message to vs code with runquery event', async () => {
       const header = app.shadowRoot.querySelector('querybuilder-header');
       header.dispatchEvent(new Event('header__run_query'));
-      await Promise.resolve();
+      await flushLwc();
       expect(sendMessage).toHaveBeenCalledWith({ type: MessageType.RUN_SOQL_QUERY });
     });
 
     it('should clear isQueryRunning flag when run query returns', async () => {
       app.isQueryRunning = true;
       emitMessage({ type: MessageType.RUN_SOQL_QUERY_DONE });
-      await Promise.resolve();
+      await flushLwc();
       expect(app.isQueryRunning).toEqual(false);
     });
 
     it('not process an incoming message if the soql statement has not changed', async () => {
       let soqlStatement = accountQuery;
       emitMessage(createSoqlEditorEvent(soqlStatement));
-      await Promise.resolve();
+      await flushLwc();
       expect(app.query.originalSoqlStatement).toEqual(soqlStatement);
       expect(app.query.fields.length).toEqual(1);
 
       soqlStatement = 'Select Id, Name from Account';
       emitMessage(createSoqlEditorEvent(soqlStatement));
-      await Promise.resolve();
+      await flushLwc();
       expect(app.query.originalSoqlStatement).toEqual(soqlStatement);
       expect(app.query.fields.length).toEqual(2);
     });
@@ -157,12 +162,12 @@ describe('App should', () => {
   describe('FIELD SELECTION', () => {
     it('should send message to vs code with Field Selection event', async () => {
       emitMessage(createSoqlEditorEvent(accountQuery));
-      await Promise.resolve();
+      await flushLwc();
       const fields = app.shadowRoot.querySelector('querybuilder-fields');
       sendMessage.mockClear();
       const eventPayload = { detail: { fields: ['Id', 'Name'] } };
       fields.dispatchEvent(new CustomEvent('fields__selected', eventPayload));
-      await Promise.resolve();
+      await flushLwc();
       expect(sendMessage).toHaveBeenCalled();
       expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
       expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).payload).toContain(
@@ -172,11 +177,11 @@ describe('App should', () => {
 
     it('should send message to vs code with Clear All Fields event', async () => {
       emitMessage(createSoqlEditorEvent(accountQuery));
-      await Promise.resolve();
+      await flushLwc();
       const fields = app.shadowRoot.querySelector('querybuilder-fields');
       sendMessage.mockClear();
       fields.dispatchEvent(new CustomEvent('fields__clearall', {}));
-      await Promise.resolve();
+      await flushLwc();
       expect(sendMessage).toHaveBeenCalled();
       expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
       expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).payload).not.toContain('SELECT Id');
@@ -189,11 +194,11 @@ describe('App should', () => {
         type: MessageType.SOBJECT_METADATA_RESPONSE,
         payload: { fields: accountFields.map(name => ({ name, type: 'string' })) } as any
       });
-      await Promise.resolve();
+      await flushLwc();
       const fields = app.shadowRoot.querySelector('querybuilder-fields');
       sendMessage.mockClear();
       fields.dispatchEvent(new CustomEvent('fields__selectall', {}));
-      await Promise.resolve();
+      await flushLwc();
       expect(sendMessage).toHaveBeenCalled();
       expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
       expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).payload).toContain(
@@ -218,22 +223,22 @@ describe('App should', () => {
         expect.objectContaining({ type: MessageType.SOBJECT_METADATA_REQUEST })
       );
       emitMessage(createSoqlEditorEvent());
-      await Promise.resolve();
+      await flushLwc();
       expect(sendMessage).toHaveBeenCalledWith({ type: MessageType.SOBJECT_METADATA_REQUEST, payload: 'Account' });
       expect(app.isFieldsLoading).toEqual(true);
       emitMessage({ type: MessageType.SOBJECT_METADATA_RESPONSE, payload: { fields: [] } as any });
-      await Promise.resolve();
+      await flushLwc();
       expect(app.isFieldsLoading).toEqual(false);
     });
 
     it('should request sobject metadata when sobject is changed', async () => {
       emitMessage(createSoqlEditorEvent());
-      await Promise.resolve();
+      await flushLwc();
       const metaCalls = sendMessage.mock.calls.filter((c: any[]) => c[0].type === MessageType.SOBJECT_METADATA_REQUEST);
       expect(metaCalls.length).toEqual(1);
 
       emitMessage(createSoqlEditorEvent('SELECT Id FROM Contact'));
-      await Promise.resolve();
+      await flushLwc();
       const metaCalls2 = sendMessage.mock.calls.filter(
         (c: any[]) => c[0].type === MessageType.SOBJECT_METADATA_REQUEST
       );
@@ -244,7 +249,7 @@ describe('App should', () => {
     it('should stop the loading flag when sobjects return', async () => {
       expect(app.isFromLoading).toEqual(true);
       emitMessage({ type: MessageType.SOBJECTS_RESPONSE, payload: ['Hey', 'Joe'] });
-      await Promise.resolve();
+      await flushLwc();
       expect(app.isFromLoading).toEqual(false);
     });
   });
@@ -316,7 +321,7 @@ describe('App should', () => {
         }
       };
       where.dispatchEvent(new CustomEvent('where__group_selection', eventPayload));
-      await Promise.resolve();
+      await flushLwc();
       expect(sendMessage).toHaveBeenCalled();
       expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
       expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).payload).toContain(
@@ -329,7 +334,7 @@ describe('App should', () => {
       sendMessage.mockClear();
       const eventPayload = { detail: { fieldCompareExpr: { field: 'test', index: 0 } } };
       where.dispatchEvent(new CustomEvent('where__condition_removed', eventPayload));
-      await Promise.resolve();
+      await flushLwc();
       expect(sendMessage).toHaveBeenCalled();
       expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
     });
@@ -338,7 +343,7 @@ describe('App should', () => {
       const where = app.shadowRoot.querySelector('querybuilder-where');
       sendMessage.mockClear();
       where.dispatchEvent(new CustomEvent('where__andor_selection', { detail: { andOr: 'AND' } }));
-      await Promise.resolve();
+      await flushLwc();
       expect(sendMessage).toHaveBeenCalled();
       expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
     });
@@ -350,7 +355,7 @@ describe('App should', () => {
       sendMessage.mockClear();
       const eventPayload = { detail: { field: 'People are Strange' } };
       orderBy.dispatchEvent(new CustomEvent('orderby__selected', eventPayload));
-      await Promise.resolve();
+      await flushLwc();
       expect(sendMessage).toHaveBeenCalled();
       expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
       expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).payload).toContain(eventPayload.detail.field);
@@ -361,7 +366,7 @@ describe('App should', () => {
       sendMessage.mockClear();
       const eventPayload = { detail: { field: 'People are Strange' } };
       orderBy.dispatchEvent(new CustomEvent('orderby__removed', eventPayload));
-      await Promise.resolve();
+      await flushLwc();
       expect(sendMessage).toHaveBeenCalled();
       expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
     });
@@ -373,7 +378,7 @@ describe('App should', () => {
       sendMessage.mockClear();
       const eventPayload = { detail: { limit: '11' } };
       limit.dispatchEvent(new CustomEvent('limit__changed', eventPayload));
-      await Promise.resolve();
+      await flushLwc();
       expect(sendMessage).toHaveBeenCalled();
       expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
       expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).payload).toContain(eventPayload.detail.limit);

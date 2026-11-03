@@ -6,14 +6,18 @@
  */
 import { ActiveMetadataOperationRef } from './activeMetadataOperationRef.js';
 import { AliasService } from './aliasService.js';
+import { ApexLogService } from './apexLogService.js';
 import { ChannelService } from './channelService.js';
 import { ComponentSetService } from './componentSetService.js';
 import { ConfigService } from './configService.js';
 import { ConnectionService } from './connectionService.js';
+import { EditorService } from './editorService.js';
+import { ExecuteAnonymousService } from './executeAnonymousService.js';
 import { FileChangePubSub } from './fileChangePubSub.js';
 import { FsService } from './fsService.js';
 import { HostFileWatcher } from './hostFileWatcher.js';
 import { LightningComponentService } from './lightningComponentService.js';
+import { MediaService } from './mediaService.js';
 import { MetadataChangeNotificationService } from './metadataChangeNotificationService.js';
 import { MetadataDeleteService } from './metadataDeleteService.js';
 import { MetadataDeployService } from './metadataDeployService.js';
@@ -23,11 +27,15 @@ import { MetadataRetrieveService } from './metadataRetrieveService.js';
 import { OrgMetadataCatalog } from './orgMetadataCatalog.js';
 import { OrgMetadataCatalogChangePubSub } from './orgMetadataCatalogChangePubSub.js';
 import { ProjectService } from './projectService.js';
+import { PromptService } from './promptService.js';
 import { QueryService } from './queryService.js';
 import { SettingsChangePubSub } from './settingsChangePubSub.js';
 import { SettingsService } from './settingsService.js';
 import { SourceTrackingService } from './sourceTrackingService.js';
 import { TargetOrgRef } from './targetOrgRef.js';
+import { TemplateService } from './templateService.js';
+import { TerminalService } from './terminalService.js';
+import { TraceFlagService } from './traceFlagService.js';
 import { TransmogrifierService } from './transmogrifierService.js';
 import { WorkspaceService } from './workspaceService.js';
 
@@ -35,14 +43,18 @@ import { WorkspaceService } from './workspaceService.js';
 export const publicServiceKeys = {
   ActiveMetadataOperationRef,
   AliasService,
+  ApexLogService,
   ChannelService,
   ComponentSetService,
   ConfigService,
   ConnectionService,
+  EditorService,
+  ExecuteAnonymousService,
   FileChangePubSub,
   FsService,
   HostFileWatcher,
   LightningComponentService,
+  MediaService,
   MetadataChangeNotificationService,
   MetadataDescribeService,
   MetadataDeployService,
@@ -52,11 +64,15 @@ export const publicServiceKeys = {
   OrgMetadataCatalog,
   OrgMetadataCatalogChangePubSub,
   ProjectService,
+  PromptService,
   QueryService,
   SettingsChangePubSub,
   SettingsService,
   SourceTrackingService,
   TargetOrgRef,
+  TemplateService,
+  TerminalService,
+  TraceFlagService,
   TransmogrifierService,
   WorkspaceService
 } as const;

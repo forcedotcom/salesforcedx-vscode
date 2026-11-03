@@ -56,3 +56,6 @@ export class OrgMetadataCatalog extends Context.Service<
     >;
   }
 >()('@salesforce/vscode-services/v2/OrgMetadataCatalog') {}
+
+/** The service value yielded from the Context tag. */
+export type OrgMetadataCatalogService = OrgMetadataCatalog['Service'];

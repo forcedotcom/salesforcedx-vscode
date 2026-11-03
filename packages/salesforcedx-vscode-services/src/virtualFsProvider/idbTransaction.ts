@@ -6,7 +6,7 @@
  */
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import { unknownToErrorCause } from '../core/shared';
+import { unknownToErrorCause } from '../services/errorCause';
 import { VirtualFsProviderError } from './virtualFsProviderError';
 
 const IDB_TRANSACTION_TIMEOUT = Duration.seconds(5);
@@ -21,9 +21,9 @@ export const settleIdbTransaction = <A>(
   transaction: IdbTransactionHandlers,
   request: IdbRequestHandlers<A>,
   mode: IDBTransactionMode,
-  timeout: Duration.DurationInput = IDB_TRANSACTION_TIMEOUT
+  timeout: Duration.Input = IDB_TRANSACTION_TIMEOUT
 ) =>
-  Effect.async<A, VirtualFsProviderError>(resume => {
+  Effect.callback<A, VirtualFsProviderError>(resume => {
     const fail = (error: unknown, message: string): void => {
       resume(Effect.fail(new VirtualFsProviderError({ ...unknownToErrorCause(error), message })));
     };
@@ -48,9 +48,9 @@ export const settleIdbTransaction = <A>(
       }
     });
   }).pipe(
-    Effect.timeoutFail({
+    Effect.timeoutOrElse({
       duration: timeout,
-      onTimeout: () =>
+      orElse: () =>
         new VirtualFsProviderError({
           message: `IndexedDB ${mode} transaction timed out`
         })

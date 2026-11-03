@@ -8,7 +8,7 @@
 import * as Schema from 'effect/Schema';
 import { nls } from '../messages';
 
-const OrgAlias = Schema.String.pipe(Schema.pattern(/^[\w-]+( *[\w-]*)*$/));
+const OrgAlias = Schema.String.check(Schema.isPattern(/^[\w-]+( *[\w-]*)*$/));
 
 /**
  * Org alias validator: underscores, hyphens, spaces, and alphanumerics only. Hyphens are common in org

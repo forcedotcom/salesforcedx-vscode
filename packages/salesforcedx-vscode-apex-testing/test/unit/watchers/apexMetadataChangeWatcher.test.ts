@@ -11,14 +11,13 @@ import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import * as PubSub from 'effect/PubSub';
 import type * as Scope from 'effect/Scope';
-import * as TestClock from 'effect/TestClock';
-import * as TestContext from 'effect/TestContext';
+import * as TestClock from 'effect/testing/TestClock';
 import {
+  FsService,
   MetadataChangeNotificationService,
   type MetadataChangeEvent as MetadataChangeEventType,
   type MetadataOperationEvent as MetadataOperationEventType
-} from 'salesforcedx-vscode-services/src/core/metadataChangeNotificationService';
-import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
+} from '@salesforce/vscode-services/v2';
 import { URI } from 'vscode-uri';
 import { setupApexMetadataChangeWatcher } from '../../../src/watchers/apexMetadataChangeWatcher';
 
@@ -63,12 +62,14 @@ const setupHarness = Effect.fn('setupHarness')(function* (
   const readFileFn = vi.fn((uri: unknown) => Effect.succeed(readFileResponses.get(String(uri)) ?? NON_TEST_CONTENT));
 
   const notificationLayer = Layer.succeed(MetadataChangeNotificationService, { pubsub } as any);
-  const fsLayer = Layer.succeed(FsService, { readFile: readFileFn } as unknown as InstanceType<typeof FsService>);
+  const fsLayer = Layer.succeed(FsService, { readFile: readFileFn } as unknown as FsService['Service']);
   const extensionProviderLayer = Layer.succeed(ExtensionProviderService, {
     getServicesApi: Effect.succeed({
-      services: {
-        MetadataChangeNotificationService,
-        FsService
+      v2: {
+        services: {
+          MetadataChangeNotificationService,
+          FsService
+        }
       }
     })
   } as any);
@@ -84,7 +85,7 @@ const setupHarness = Effect.fn('setupHarness')(function* (
 const advance = TestClock.adjust(DEBOUNCE_PLUS_MARGIN);
 
 const runTest = <A>(effect: Effect.Effect<A, unknown, Scope.Scope>) =>
-  Effect.runPromise(effect.pipe(Effect.scoped, Effect.provide(TestContext.TestContext)));
+  Effect.runPromise(Effect.scoped(Effect.provide(effect, TestClock.layer())));
 
 describe('setupApexMetadataChangeWatcher', () => {
   it('ignores metadata changes before discovery is requested', () =>

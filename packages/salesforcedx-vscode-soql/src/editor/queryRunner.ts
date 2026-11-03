@@ -7,30 +7,26 @@
 
 import type { QueryResult } from '../types';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { JsonObject } from '../json';
 import { prepareQuery } from '../prepareQuery';
 
 export const runQuery = Effect.fn('runQuery')(function* (queryText: string, options?: { readonly maxRows?: number }) {
   const maxRows = options?.maxRows ?? 50_000;
-  return yield* Effect.flatMap(ExtensionProviderService, provider => provider.getServicesApi).pipe(
-    Effect.flatMap(api => api.services.QueryService),
-    Effect.flatMap(queryService => queryService.query(prepareQuery(queryText), JsonObject)),
-    Effect.flatMap(({ totalSize, records }) =>
-      Stream.take(records, maxRows).pipe(
-        Stream.runCollect,
-        Effect.map(
-          (chunk): QueryResult<JsonObject> => ({
-            done: true,
-            totalSize,
-            records: flattenQueryRecords(chunk.pipe(Chunk.toReadonlyArray))
-          })
-        )
-      )
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const queryResult = yield* api.v2.services.QueryService.use(service =>
+    service.query(prepareQuery(queryText), input =>
+      Schema.decodeUnknownEffect(Schema.Struct({ totalSize: Schema.Number, records: Schema.Array(JsonObject) }))(input)
     )
   );
+  const records = yield* Stream.take(queryResult.records, maxRows).pipe(Stream.runCollect);
+  return {
+    done: true,
+    totalSize: queryResult.totalSize,
+    records: flattenQueryRecords(records)
+  } satisfies QueryResult<JsonObject>;
 });
 /**
   As query complexity grows

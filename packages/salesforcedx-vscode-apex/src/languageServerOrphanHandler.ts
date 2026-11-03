@@ -79,13 +79,13 @@ const parseProcessList = (stdout: string): ProcessDetail[] =>
 
 const getChannel = Effect.fn('apex.orphan.getChannel')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* api.services.ChannelService;
+  return yield* api.v2.services.ChannelService;
 });
 
 /** Find Apex Language Server processes whose parent no longer exists. */
 const findOrphanedProcesses = Effect.fn('apex.orphan.findOrphaned')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const terminal = yield* api.services.TerminalService;
+  const terminal = yield* api.v2.services.TerminalService;
 
   // Windows-only guard: powershell must be present to list processes.
   if (isWindows) {
@@ -130,7 +130,7 @@ const killOne = Effect.fn('apex.orphan.killOne')(function* (processInfo: Process
         message: getMessageFromError(e)
       })
   }).pipe(
-    Effect.retry(Schedule.exponential('2 seconds').pipe(Schedule.intersect(Schedule.recurs(2)))),
+    Effect.retry({ schedule: Schedule.exponential(Duration.seconds(2)), times: 2 }),
     Effect.withSpan('apex.orphan.killOne.succeeded', { attributes: { pid: processInfo.pid } }),
     Effect.tap(() => showProcessTerminated(processInfo)),
     Effect.catchTag('ProcessTerminationError', error =>
@@ -155,7 +155,7 @@ const findOrphanedProcessesSafe = Effect.fn('apex.orphan.findOrphanedSafe')(func
 const isAutoTerminateEnabled = Effect.fn('apex.orphan.isAutoTerminateEnabled')(
   function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    return yield* (yield* api.services.SettingsService).getValueOrElse(
+    return yield* (yield* api.v2.services.SettingsService).getValueOrElse(
       APEX_SETTINGS_SECTION,
       AUTO_TERMINATE_KEY,
       false
@@ -170,7 +170,7 @@ const isAutoTerminateEnabled = Effect.fn('apex.orphan.isAutoTerminateEnabled')(
 
 export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.checkAndResolve')(function* (
   numTries = 3,
-  delayBetweenTries: Duration.DurationInput = Duration.seconds(2)
+  delayBetweenTries: Duration.Input = Duration.seconds(2)
 ) {
   // Check up to numTries times, pausing between checks: a process may self-exit between checks
   // (e.g. a previous session's LSP completing its own graceful shutdown, which can take a second
@@ -180,13 +180,11 @@ export const checkAndResolveOrphanedLanguageServers = Effect.fn('apex.orphan.che
   const confirmedOrphans = yield* numTries <= 0
     ? Effect.succeed<ProcessDetail[]>([])
     : findOrphanedProcessesSafe().pipe(
-        Effect.repeat(
-          Schedule.recurWhile((orphans: ProcessDetail[]) => orphans.length > 0).pipe(
-            Schedule.intersect(Schedule.recurs(numTries - 1)),
-            Schedule.map(([orphans]) => orphans),
-            Schedule.addDelay(() => delayBetweenTries)
-          )
-        )
+        Effect.repeat({
+          schedule: Schedule.spaced(delayBetweenTries),
+          times: numTries - 1,
+          until: (orphans: ProcessDetail[]) => orphans.length === 0
+        })
       );
   yield* annotateRootSpan('orphanCount', confirmedOrphans.length);
   if (confirmedOrphans.length === 0) return;
@@ -220,7 +218,7 @@ const promptOnce = Effect.fn('apex.orphan.promptOnce')(function* (orphanedProces
       nls.localize('terminate_show_processes'),
       nls.localize('always_auto_terminate')
     )
-  ).pipe(Effect.flatMap((yield* api.services.PromptService).considerUndefinedAsCancellation));
+  ).pipe(Effect.flatMap((yield* api.v2.services.PromptService).considerUndefinedAsCancellation));
 
   if (requestsTermination(choice)) {
     return yield* terminationConfirmation(orphanedCount);
@@ -239,16 +237,15 @@ const promptOnce = Effect.fn('apex.orphan.promptOnce')(function* (orphanedProces
  * Ask the user how to resolve found orphaned language server instances.
  * Re-prompts while the user views the process table; fails with `UserCancellationError` on dismissal.
  */
-const getResolutionForOrphanProcesses = Effect.fn('apex.orphan.getResolution')(function* (
+const getResolutionForOrphanProcesses: (
   orphanedProcesses: ProcessDetail[]
-) {
-  const initialState: Resolution = 'continue';
-  return (
-    (yield* Effect.iterate(initialState, {
-      while: state => state === 'continue',
-      body: () => promptOnce(orphanedProcesses)
-    })) === true
-  );
+) => Effect.Effect<
+  Resolution,
+  Effect.Error<ReturnType<typeof promptOnce>>,
+  Effect.Services<ReturnType<typeof promptOnce>>
+> = Effect.fn('apex.orphan.getResolution')(function* (orphanedProcesses: ProcessDetail[]) {
+  const resolution = yield* promptOnce(orphanedProcesses);
+  return resolution === 'continue' ? yield* getResolutionForOrphanProcesses(orphanedProcesses) : resolution;
 });
 
 const showOrphansInChannel = Effect.fn('apex.orphan.showOrphansInChannel')(function* (
@@ -311,7 +308,7 @@ const alwaysAutoTerminateConfirmation = Effect.fn('apex.orphan.alwaysAutoTermina
   // but non-fatal: the user already confirmed, so the kill proceeds regardless of whether the write stuck.
   yield* ExtensionProviderService.pipe(
     Effect.flatMap(provider => provider.getServicesApi),
-    Effect.flatMap(api => api.services.SettingsService),
+    Effect.flatMap(api => api.v2.services.SettingsService),
     Effect.flatMap(settings => settings.setValue(APEX_SETTINGS_SECTION, AUTO_TERMINATE_KEY, true)),
     Effect.catchTags({
       MissingSettingsError: e => annotateRootSpan('settingsWriteError', e.message),

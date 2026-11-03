@@ -8,7 +8,7 @@
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
-import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
+import type { SalesforceVSCodeServicesApiV2 } from '@salesforce/vscode-services/v2';
 
 /**
  * Load the bridge from a fresh module graph with a mock AllServicesLayer already set.
@@ -22,7 +22,7 @@ const loadBridgeWithMockLayer = async () => {
   vi.resetModules();
   const freshVscode = await import('vscode');
   const { ExtensionProviderService } = await import('@salesforce/effect-ext-utils');
-  const { ChannelService } = await import('salesforcedx-vscode-services/out/src/vscode/channelService.js');
+  const { ChannelService } = await import('@salesforce/vscode-services/v2');
   const { setAllServicesLayer } = await import('../../../src/services/extensionProvider.js');
 
   const channel = {
@@ -34,7 +34,7 @@ const loadBridgeWithMockLayer = async () => {
     })
   } as unknown as vscode.OutputChannel;
 
-  const channelService = new ChannelService({
+  const channelService = ChannelService.of({
     getChannel: Effect.sync(() => channel),
     showChannel: Effect.sync(() => {
       calls.push('showChannel');
@@ -49,8 +49,10 @@ const loadBridgeWithMockLayer = async () => {
   setAllServicesLayer(
     Layer.mergeAll(
       Layer.succeed(ExtensionProviderService, {
-        getServicesApi: Effect.succeed({ services: { ChannelService } } as unknown as SalesforceVSCodeServicesApi)
-      }),
+        getServicesApi: Effect.succeed({
+          v2: { services: { ChannelService } }
+        } as unknown as SalesforceVSCodeServicesApiV2)
+      } as never),
       Layer.succeed(ChannelService, channelService)
     ) as unknown as Parameters<typeof setAllServicesLayer>[0]
   );

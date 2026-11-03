@@ -103,7 +103,7 @@ const EXCEPTION_BREAK_MODES: BreakModeItem[] = [
 
 const configureExceptionBreakpoint = Effect.fn('configureExceptionBreakpoint')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   const salesforceApexExtension = yield* getActiveApexExtension();
   const exceptionBreakpointInfos = (yield* Effect.promise(() =>
     salesforceApexExtension.getExceptionBreakpointInfo()
@@ -260,7 +260,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-deb
     );
   });
 
-  const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
+  const registerCommand = api.v2.services.registerCommandWithRuntime(getRuntime());
   yield* registerCommand('sf.debug.exception.breakpoint', configureExceptionBreakpoint);
   yield* registerCommand('sf.debugger.stop', debuggerStop);
   yield* registerCommand('sf.debug.isv.bootstrap', isvDebugBootstrap);

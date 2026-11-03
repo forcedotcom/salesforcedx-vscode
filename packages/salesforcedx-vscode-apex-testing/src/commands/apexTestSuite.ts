@@ -9,7 +9,6 @@ import type { ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { TestService } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
-import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Order from 'effect/Order';
@@ -32,16 +31,31 @@ const MembershipRow = Schema.Struct({ Id: Schema.String, ApexClassId: Schema.Str
 const ClassIdRow = Schema.Struct({
   Id: Schema.String,
   Name: Schema.String,
-  NamespacePrefix: Schema.optionalWith(Schema.String, { nullable: true })
+  NamespacePrefix: Schema.String.pipe(Schema.NullOr, Schema.optional)
 });
 
-const toolingRecords = <A, I>(soql: string, schema: Schema.Schema<A, I, never>) =>
-  Effect.flatMap(ExtensionProviderService, provider => provider.getServicesApi).pipe(
-    Effect.flatMap(api => api.services.QueryService),
-    Effect.flatMap(queryService => queryService.query({ soql, tooling: true }, schema)),
-    Effect.flatMap(({ records }) => Stream.runCollect(records)),
-    Effect.map(Chunk.toReadonlyArray)
-  );
+const toolingRecords = <A, I>(soql: string, schema: Schema.Codec<A, I>) =>
+  Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const query = yield* api.v2.services.QueryService.use(service =>
+      service.query({ soql, tooling: true }, input =>
+        Schema.decodeUnknownEffect(
+          Schema.Struct({
+            totalSize: Schema.Number,
+            done: Schema.optional(Schema.Boolean),
+            nextRecordsUrl: Schema.optional(Schema.String),
+            records: Schema.optional(Schema.Array(Schema.Unknown))
+          })
+        )(input).pipe(
+          Effect.map(page => ({
+            ...page,
+            records: (page.records ?? []).flatMap(row => Option.toArray(Schema.decodeUnknownOption(schema)(row)))
+          }))
+        )
+      )
+    );
+    return yield* Stream.runCollect(query.records);
+  });
 
 class SuiteMembershipDeleteError extends Schema.TaggedError<SuiteMembershipDeleteError>()(
   'SuiteMembershipDeleteError',
@@ -52,8 +66,8 @@ class SuiteMembershipDeleteError extends Schema.TaggedError<SuiteMembershipDelet
 
 /** Sort by label, tie-break on fully-qualified name — case-insensitive so `zebraTest` doesn't follow every PascalCase name */
 const byClassName = Order.combine(
-  Order.mapInput(Order.string, (item: ApexTestQuickPickItem) => item.label.toLowerCase()),
-  Order.mapInput(Order.string, (item: ApexTestQuickPickItem) => (item.fullClassName ?? '').toLowerCase())
+  Order.mapInput(Order.String, (item: ApexTestQuickPickItem) => item.label.toLowerCase()),
+  Order.mapInput(Order.String, (item: ApexTestQuickPickItem) => (item.fullClassName ?? '').toLowerCase())
 );
 
 const listApexClassItems = Effect.fn('apexTestSuite.listApexClassItems')(() =>
@@ -81,7 +95,7 @@ const listApexTestSuiteItems = Effect.fn('apexTestSuite.listApexTestSuiteItems')
 
   if (result.length === 0) {
     void vscode.window.showInformationMessage(nls.localize('apex_test_suite_no_suites_message'));
-    return yield* new api.services.UserCancellationError();
+    return yield* new api.v2.services.UserCancellationError({ message: 'User cancelled' });
   }
 
   return result.map(
@@ -99,10 +113,8 @@ const selectApexClasses = Effect.fn('apexTestSuite.selectApexClasses')(function*
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const selection = yield* Effect.all({
-    promptService: api.services.PromptService,
-    progressLocation: api.services.NotificationModeService.pipe(
-      Effect.flatMap(notificationMode => notificationMode.getProgressLocation(command))
-    )
+    promptService: api.v2.services.PromptService,
+    progressLocation: api.v2.services.NotificationModeService.use(service => service.getProgressLocation(command))
   }).pipe(
     Effect.flatMap(({ promptService, progressLocation }) =>
       listApexClassItems().pipe(
@@ -115,7 +127,7 @@ const selectApexClasses = Effect.fn('apexTestSuite.selectApexClasses')(function*
   );
   // considerUndefinedAsCancellation does not handle empty arrays, so guard explicitly
   if (!selection || selection.length === 0) {
-    return yield* new api.services.UserCancellationError();
+    return yield* new api.v2.services.UserCancellationError({ message: 'User cancelled' });
   }
   return selection.map(item => item.fullClassName ?? item.label);
 });
@@ -127,7 +139,7 @@ type EditableSuiteClassItem = ApexTestQuickPickItem & { membershipId?: string; p
 const gatherCreateOptions = Effect.fn('apexTestSuite.gatherCreateOptions')(function* () {
   return yield* Effect.all({
     suitename: Effect.flatMap(ExtensionProviderService, provider => provider.getServicesApi).pipe(
-      Effect.flatMap(api => api.services.PromptService),
+      Effect.flatMap(api => api.v2.services.PromptService),
       Effect.flatMap(promptService =>
         Effect.flatMap(
           Effect.promise(() =>
@@ -144,7 +156,7 @@ const gatherCreateOptions = Effect.fn('apexTestSuite.gatherCreateOptions')(funct
 /** Gather edit options: pick suite, show all classes with current members pre-checked. Returns diff to apply. */
 const gatherEditOptions = Effect.fn('apexTestSuite.gatherEditOptions')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
 
   // Pick the suite
   const testSuite = yield* listApexTestSuiteItems().pipe(
@@ -165,13 +177,16 @@ const gatherEditOptions = Effect.fn('apexTestSuite.gatherEditOptions')(function*
         `SELECT Id, ApexClassId FROM TestSuiteMembership WHERE ApexTestSuiteId = '${(testSuite.description ?? '').replaceAll("'", "''")}'`,
         MembershipRow
       ).pipe(Effect.map(rows => new Map(rows.map(row => [row.ApexClassId, row.Id])))),
-      classes: api.services.NotificationModeService.pipe(
-        Effect.flatMap(notificationMode => notificationMode.getProgressLocation(messages.apex_test_suite_edit_text)),
-        Effect.flatMap(progressLocation =>
-          listApexClassItems().pipe(
-            promptService.withCancellableProgress(nls.localize('retrieving_tests_message'), progressLocation)
+      classes: api.v2.services.NotificationModeService.use(service =>
+        service
+          .getProgressLocation(messages.apex_test_suite_edit_text)
+          .pipe(
+            Effect.flatMap(progressLocation =>
+              listApexClassItems().pipe(
+                promptService.withCancellableProgress(nls.localize('retrieving_tests_message'), progressLocation)
+              )
+            )
           )
-        )
       )
     },
     { concurrency: 'unbounded' }
@@ -208,7 +223,7 @@ const gatherEditOptions = Effect.fn('apexTestSuite.gatherEditOptions')(function*
   );
   // undefined means dismissed (click outside / Escape) — cancel without modifying the suite
   if (isUndefined(selection)) {
-    return yield* new api.services.UserCancellationError();
+    return yield* new api.v2.services.UserCancellationError({ message: 'User cancelled' });
   }
   // Diff: newly checked → add, unchecked → remove.
   // Key on fullClassName/label (unique per class), NOT description (namespace prefix — empty for all local classes,
@@ -230,20 +245,21 @@ const buildSuite = Effect.fn('apexTestSuite.buildSuite')(function* (
   command: ProgressAndSuccessCommandKey
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelService = yield* api.services.ChannelService;
-  const notificationMode = yield* api.services.NotificationModeService;
+  const channelService = yield* api.v2.services.ChannelService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
   const executionName = nls.localize(executionNameKey);
   // e2e specs gate completion on the `Ended SFDX: …` channel sentinel
   const appendEnded = channelService.appendToChannel(`Ended ${executionName}`);
 
   yield* Effect.all({
-    promptService: api.services.PromptService,
+    promptService: api.v2.services.PromptService,
     progressLocation: notificationMode.getProgressLocation(command),
-    connection: api.services.ConnectionService.getConnection()
+    connection: api.v2.services.ConnectionService.use(service => service.getConnection())
   }).pipe(
     Effect.flatMap(({ promptService, progressLocation, connection }) =>
       Effect.promise(() => new TestService(connection).buildSuite(options.suitename, options.tests)).pipe(
-        Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
+        Effect.tapError(() => appendEnded),
+        Effect.tap(() => appendEnded),
         promptService.withCancellableProgress(executionName, progressLocation)
       )
     )
@@ -267,14 +283,14 @@ const applyEdits = Effect.fn('apexTestSuite.applyEdits')(function* (
   toRemove: string[]
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelService = yield* api.services.ChannelService;
-  const notificationMode = yield* api.services.NotificationModeService;
+  const channelService = yield* api.v2.services.ChannelService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
   const executionName = nls.localize('apex_test_suite_edit_text');
   const appendEnded = channelService.appendToChannel(`Ended ${executionName}`);
 
-  const connection = yield* api.services.ConnectionService.getConnection();
+  const connection = yield* api.v2.services.ConnectionService.use(service => service.getConnection());
   yield* Effect.all({
-    promptService: api.services.PromptService,
+    promptService: api.v2.services.PromptService,
     progressLocation: notificationMode.getProgressLocation(messages.apex_test_suite_edit_text)
   }).pipe(
     Effect.flatMap(({ promptService, progressLocation }) =>
@@ -303,7 +319,8 @@ const applyEdits = Effect.fn('apexTestSuite.applyEdits')(function* (
         ],
         { concurrency: 'unbounded' }
       ).pipe(
-        Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
+        Effect.tapError(() => appendEnded),
+        Effect.tap(() => appendEnded),
         promptService.withCancellableProgress(executionName, progressLocation)
       )
     )
@@ -322,7 +339,7 @@ const applyEdits = Effect.fn('apexTestSuite.applyEdits')(function* (
 
 export const apexTestSuiteEdit = Effect.fn('apexTestSuiteEdit')(function* () {
   yield* Effect.flatMap(ExtensionProviderService, provider => provider.getServicesApi).pipe(
-    Effect.flatMap(api => api.services.ProjectService.getSfProject())
+    Effect.flatMap(api => api.v2.services.ProjectService.use(service => service.getSfProject()))
   );
   yield* gatherEditOptions().pipe(
     Effect.flatMap(({ suitename, toAdd, toRemove }) => applyEdits(suitename, toAdd, toRemove))
@@ -331,7 +348,7 @@ export const apexTestSuiteEdit = Effect.fn('apexTestSuiteEdit')(function* () {
 
 export const apexTestSuiteCreate = Effect.fn('apexTestSuiteCreate')(function* () {
   yield* Effect.flatMap(ExtensionProviderService, provider => provider.getServicesApi).pipe(
-    Effect.flatMap(api => api.services.ProjectService.getSfProject())
+    Effect.flatMap(api => api.v2.services.ProjectService.use(service => service.getSfProject()))
   );
   yield* gatherCreateOptions().pipe(
     Effect.flatMap(options => buildSuite(options, 'apex_test_suite_create_text', messages.apex_test_suite_create_text))
@@ -340,9 +357,9 @@ export const apexTestSuiteCreate = Effect.fn('apexTestSuiteCreate')(function* ()
 
 export const apexTestSuiteRun = Effect.fn('apexTestSuiteRun')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  yield* api.services.ProjectService.getSfProject();
+  yield* api.v2.services.ProjectService.use(service => service.getSfProject());
   yield* Effect.all({
-    promptService: api.services.PromptService,
+    promptService: api.v2.services.PromptService,
     quickPickItems: listApexTestSuiteItems()
   }).pipe(
     Effect.flatMap(({ promptService, quickPickItems }) =>

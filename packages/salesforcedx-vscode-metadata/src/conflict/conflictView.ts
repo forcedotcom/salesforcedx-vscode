@@ -59,7 +59,7 @@ export const conflictOpenCommandEffect = (node: ConflictTreeItem) => {
   return pair
     ? Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        yield* api.services.FsService.showTextDocument(pair.localUri.uri);
+        yield* api.v2.services.FsService.use(service => service.showTextDocument(pair.localUri.uri));
       }).pipe(Effect.withSpan('conflictOpenCommandEffect'))
     : Effect.void;
 };

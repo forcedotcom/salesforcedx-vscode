@@ -115,7 +115,7 @@ const callTool = Effect.fn('McpServer.callTool')(function* (name: string, args: 
     ),
     Match.when('observe', () =>
       Schema.decodeUnknown(EmptyInput)(args).pipe(
-        Effect.zipRight(ControllerService.observeForMcp),
+        Effect.andThen(ControllerService.observeForMcp),
         Effect.map(
           ({ observation, screenshot }) =>
             ({
@@ -143,12 +143,12 @@ const callTool = Effect.fn('McpServer.callTool')(function* (name: string, args: 
       )
     ),
     Match.when('status', () =>
-      Schema.decodeUnknown(EmptyInput)(args).pipe(Effect.zipRight(ControllerService.status), Effect.map(textResult))
+      Schema.decodeUnknown(EmptyInput)(args).pipe(Effect.andThen(ControllerService.status), Effect.map(textResult))
     ),
     Match.when('finish', () =>
       Schema.decodeUnknown(EmptyInput)(args).pipe(
-        Effect.zipRight(ControllerService.finish),
-        Effect.zipRight(ControllerService.status),
+        Effect.andThen(ControllerService.finish),
+        Effect.andThen(ControllerService.status),
         Effect.map(textResult)
       )
     ),

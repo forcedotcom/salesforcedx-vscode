@@ -10,7 +10,7 @@ import { toEntries } from 'effect/Record';
 import { Buffer } from 'node:buffer';
 import * as os from 'node:os';
 import { URI } from 'vscode-uri';
-import { unknownToErrorCause } from '../core/shared';
+import { unknownToErrorCause } from '../services/errorCause';
 import { type FsProvider } from './fsTypes';
 import { getProjectRoot } from './projectRoot';
 import { TEMPLATES, metadataDirs } from './templates/templates';
@@ -30,15 +30,20 @@ const getDirsToCreate = (sampleProjectPath: string): string[] => [
   ...metadataDirs.map(dir => `${sampleProjectPath}/force-app/main/default/${dir}`)
 ];
 
-const createConfigFiles = (fsp: FsProvider, sampleProjectPath: string): void => {
-  toEntries(TEMPLATES).forEach(([name, content]) => {
-    const uri = URI.parse(`${sampleProjectPath}/${name}`);
-    fsp.writeFile(uri, new Uint8Array(Buffer.from(content.join('\n'))), {
-      create: true,
-      overwrite: true
-    });
-  });
-};
+const writeProjectFile = Effect.fn('projectInit.writeFile')((fsp: FsProvider, uri: URI, content: string) =>
+  Effect.tryPromise({
+    try: async () => {
+      await fsp.writeFile(uri, new Uint8Array(Buffer.from(content)), { create: true, overwrite: true });
+    },
+    catch: cause => new VirtualFsProviderError({ ...unknownToErrorCause(cause), path: uri.path })
+  }).pipe(Effect.uninterruptible)
+);
+const createConfigFiles = (fsp: FsProvider, sampleProjectPath: string) =>
+  Effect.forEach(
+    toEntries(TEMPLATES),
+    ([name, content]) => writeProjectFile(fsp, URI.parse(`${sampleProjectPath}/${name}`), content.join('\n')),
+    { discard: true }
+  );
 
 /** Creates the project directory structure and files */
 const createProjectStructure = Effect.fn('projectInit: createProjectStructure')(function* (
@@ -49,49 +54,34 @@ const createProjectStructure = Effect.fn('projectInit: createProjectStructure')(
   const dirsToCreate = getDirsToCreate(sampleProjectPath);
   yield* Effect.annotateCurrentSpan({ dirsToCreate });
 
-  yield* Effect.tryPromise({
-    try: () =>
-      Promise.all(
-        dirsToCreate
-          .map(dir => URI.parse(dir))
-          .filter(not(fsp.exists))
-          .map(uri => fsp.createDirectory(uri))
-      ),
-    catch: (error: unknown) => new VirtualFsProviderError(unknownToErrorCause(error))
-  });
-
-  yield* Effect.all(
-    [
-      Effect.sync(() => createConfigFiles(fsp, sampleProjectPath)),
-      Effect.sync(() => createVSCodeFiles(fsp, sampleProjectPath))
-    ],
-    {
-      concurrency: 'unbounded'
-    }
+  yield* Effect.forEach(
+    dirsToCreate.map(dir => URI.parse(dir)).filter(not(fsp.exists)),
+    uri =>
+      Effect.tryPromise({
+        try: async () => {
+          await fsp.createDirectory(uri);
+        },
+        catch: cause => new VirtualFsProviderError({ ...unknownToErrorCause(cause), path: uri.path })
+      }).pipe(Effect.uninterruptible),
+    { concurrency: 'unbounded', discard: true }
   );
+
+  yield* Effect.all([createConfigFiles(fsp, sampleProjectPath), createVSCodeFiles(fsp, sampleProjectPath)], {
+    concurrency: 'unbounded'
+  });
 });
 
-const createVSCodeFiles = (fsp: FsProvider, sampleProjectPath: string): void => {
-  // Create .vscode directory and config files
-  fsp.writeFile(
-    URI.parse(`${sampleProjectPath}/.vscode/tasks.json`),
-    new Uint8Array(Buffer.from(JSON.stringify({ version: '2.0.0', tasks: [] }, null, 2))),
-    { create: true, overwrite: true }
+const createVSCodeFiles = (fsp: FsProvider, sampleProjectPath: string) =>
+  Effect.forEach(
+    [
+      { name: 'tasks.json', content: { version: '2.0.0', tasks: [] } },
+      { name: 'launch.json', content: { version: '0.2.0', configurations: [] } },
+      { name: 'mcp.json', content: {} }
+    ],
+    ({ name, content }) =>
+      writeProjectFile(fsp, URI.parse(`${sampleProjectPath}/.vscode/${name}`), JSON.stringify(content, null, 2)),
+    { discard: true }
   );
-  fsp.writeFile(
-    URI.parse(`${sampleProjectPath}/.vscode/launch.json`),
-    new Uint8Array(Buffer.from(JSON.stringify({ version: '0.2.0', configurations: [] }, null, 2))),
-    { create: true, overwrite: true }
-  );
-  fsp.writeFile(
-    URI.parse(`${sampleProjectPath}/.vscode/mcp.json`),
-    new Uint8Array(Buffer.from(JSON.stringify({}, null, 2))),
-    {
-      create: true,
-      overwrite: true
-    }
-  );
-};
 
 /** Creates the files for an empty sfdx project */
 export const projectFiles = Effect.fn('projectFiles')(function* (fsp: FsProvider) {

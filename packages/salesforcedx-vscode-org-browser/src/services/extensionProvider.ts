@@ -15,13 +15,13 @@ import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import type { ExtensionContext } from 'vscode';
 import { EXTENSION_NAME } from '../constants';
-import { OrgBrowserRetrieveService } from './orgBrowserMetadataRetrieveService';
+import { OrgBrowserRetrieveServiceLayer } from './orgBrowserMetadataRetrieveService';
 
 /** Apply the Services-owned target-org guard. */
 export const preventOrgChanges = <A, E, R>(command: Effect.Effect<A, E, R>) =>
   ExtensionProviderService.pipe(
     Effect.flatMap(provider => provider.getServicesApi),
-    Effect.flatMap(api => api.services.preventOrgChanges(command))
+    Effect.flatMap(api => api.v2.services.preventOrgChanges(command))
   );
 
 /**
@@ -29,12 +29,12 @@ export const preventOrgChanges = <A, E, R>(command: Effect.Effect<A, E, R>) =>
  * OrgBrowserRetrieveService (which needs only ExtensionProviderService, present in the shared build).
  */
 export const buildAllServicesLayer = (context: ExtensionContext) =>
-  Layer.unwrapEffect(
+  Layer.unwrap(
     Effect.map(getServicesApi, api =>
       Layer.mergeAll(
         buildSharedServicesLayer(context, 'Salesforce Org Browser'),
-        OrgBrowserRetrieveService.Default,
-        api.services.NotificationModeService.Default(
+        OrgBrowserRetrieveServiceLayer,
+        api.v2.services.NotificationModeServiceLayer(
           EXTENSION_NAME,
           'sf-org-browser-notifications',
           'Salesforce: Org Browser Notifications'
@@ -56,8 +56,8 @@ export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLay
  * stateful services on each tree-node expansion
  */
 type OrgBrowserRuntime = ManagedRuntime.ManagedRuntime<
-  Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>,
-  Layer.Layer.Error<ReturnType<typeof buildAllServicesLayer>>
+  Layer.Success<ReturnType<typeof buildAllServicesLayer>>,
+  Layer.Error<ReturnType<typeof buildAllServicesLayer>>
 >;
 // eslint-disable-next-line functional/no-let
 let _orgBrowserRuntime: OrgBrowserRuntime | undefined;

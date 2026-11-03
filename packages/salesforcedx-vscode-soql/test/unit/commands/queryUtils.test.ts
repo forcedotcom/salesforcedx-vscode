@@ -7,8 +7,7 @@
 
 import type { Mock as VitestMock } from 'vitest';
 import * as Effect from 'effect/Effect';
-import { EditorService } from 'salesforcedx-vscode-services/out/src/vscode/editorService';
-import { PromptService } from 'salesforcedx-vscode-services/out/src/vscode/prompts/promptService';
+import { EditorService, PromptService } from '@salesforce/vscode-services/v2';
 import * as vscode from 'vscode';
 import {
   getDocumentQueryAndApiInputs,
@@ -24,9 +23,11 @@ describe('SOQL command inputs', () => {
     (vscode.extensions.getExtension as VitestMock).mockReturnValue({
       isActive: true,
       exports: {
-        services: {
-          EditorService: Effect.succeed({ getActiveEditorText }),
-          PromptService: Effect.succeed({ considerUndefinedAsCancellation: (value: string) => Effect.succeed(value) })
+        v2: {
+          services: {
+            EditorService,
+            PromptService
+          }
         }
       }
     });
@@ -38,8 +39,11 @@ describe('SOQL command inputs', () => {
   const run = <A, E>(effect: Effect.Effect<A, E, EditorService | PromptService>) =>
     Effect.runPromise(
       effect.pipe(
-        Effect.provideService(EditorService, {} as EditorService),
-        Effect.provideService(PromptService, {} as PromptService)
+        Effect.provideService(EditorService, { getActiveEditorText } as unknown as EditorService['Service']),
+        Effect.provideService(PromptService, {
+          considerUndefinedAsCancellation: (value: string | undefined) =>
+            value === undefined ? Effect.fail(new Error('cancelled')) : Effect.succeed(value)
+        } as unknown as PromptService['Service'])
       )
     );
 

@@ -10,6 +10,7 @@ import type { QueryResult } from '../types';
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
+import * as Queue from 'effect/Queue';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
@@ -34,7 +35,7 @@ import { getHtml } from './queryDataHtml';
 
 const appendToChannel = (message: string) =>
   getServicesApi.pipe(
-    Effect.flatMap(api => api.services.ChannelService),
+    Effect.flatMap(api => api.v2.services.ChannelService),
     Effect.flatMap(svc => svc.appendToChannel(message))
   );
 
@@ -71,7 +72,7 @@ const saveRecordsEffect = Effect.fn('QueryDataView.save_records')(function* ({
 }) {
   const fileService = new FileService(queryText, queryData, format, document);
   yield* Effect.promise(() => fileService.save()).pipe(
-    Effect.catchAllCause(() =>
+    Effect.catchCause(() =>
       Effect.sync(() => {
         vscode.window.showErrorMessage(nls.localize('error_data_view_save'));
       })
@@ -111,7 +112,7 @@ export class QueryDataViewService {
         }) ?? Promise.resolve(false)
     ).pipe(
       Effect.asVoid,
-      Effect.catchAllCause(cause =>
+      Effect.catchCause(cause =>
         appendToChannel(nls.localize('error_unknown_error', 'data_view_post_message')).pipe(
           Effect.andThen(appendToChannel(`soql_error_data_view_post_message: ${String(cause)}`))
         )
@@ -163,9 +164,9 @@ export class QueryDataViewService {
     // Stream-based message handling: each message dispatched as a named OTel span
     const panel = this.currentPanel;
     const messageFiber = getSoqlRuntime().runFork(
-      Stream.async<DataViewEvent>(emit => {
+      Stream.callback<DataViewEvent>(queue => {
         const disposable = panel.webview.onDidReceiveMessage((event: DataViewEvent) => {
-          void emit.single(event);
+          Queue.offerUnsafe(queue, event);
         });
         return Effect.sync(() => {
           disposable.dispose();
@@ -174,7 +175,7 @@ export class QueryDataViewService {
         Stream.mapEffect(
           event =>
             this.handleMessageEffect(event).pipe(
-              Effect.catchAllCause(() => appendToChannel(nls.localize('error_unknown_error', event.type)))
+              Effect.catchCause(() => appendToChannel(nls.localize('error_unknown_error', event.type)))
             ),
           { concurrency: 'unbounded' }
         ),

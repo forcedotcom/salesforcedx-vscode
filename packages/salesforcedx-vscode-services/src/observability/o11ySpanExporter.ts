@@ -4,17 +4,18 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as HttpClient from '@effect/platform/HttpClient';
-import * as HttpClientRequest from '@effect/platform/HttpClientRequest';
 import { SpanStatusCode } from '@opentelemetry/api';
 import { type ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { type ReadableSpan, type SpanExporter } from '@opentelemetry/sdk-trace-base';
 import { O11yService } from '@salesforce/o11y-reporter';
+import { ConnectionService } from '@salesforce/vscode-services/v2';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
+import * as HttpClient from 'effect/http/HttpClient';
+import * as HttpClientRequest from 'effect/http/HttpClientRequest';
 import { isError, isString } from 'effect/Predicate';
-import { ConnectionService } from '../core/connectionService';
-import { unknownToErrorCause } from '../core/shared';
+import * as Schema from 'effect/Schema';
+import { unknownToErrorCause } from '../services/errorCause';
 import { getServicesRuntime, isServicesRuntimeReady } from '../servicesRuntime';
 import { exportResultFromHttpStatus } from './httpExportResult';
 import { makeLocalHttpRuntime } from './localHttpRuntime';
@@ -32,7 +33,7 @@ const getTelemetryConnection = Effect.fn('O11ySpanExporter.getConnection', {
   root: true,
   attributes: { telemetryIgnore: true }
 })(function* () {
-  return yield* ConnectionService.getConnection();
+  return yield* ConnectionService.use(service => service.getConnection());
 });
 
 // o11y_schema is ESM-only; load via dynamic import() so it works when this package is required as CJS
@@ -53,6 +54,11 @@ const getConnection = () =>
       Effect.flatMap(runtime => Effect.promise(() => runtime.runPromise(getTelemetryConnection())))
     )
   );
+
+class O11yExportError extends Schema.TaggedError<O11yExportError>()('O11yExportError', {
+  message: Schema.String,
+  cause: Schema.instanceOf(Error)
+}) {}
 
 /** Build the O11y event payload for a span — the exact shape passed to o11yService.logEvent. */
 export const toO11yEvent = (span: ReadableSpan, identity: { userId?: string; cliId?: string; webUserId?: string }) => ({
@@ -159,9 +165,9 @@ export class O11ySpanExporter implements SpanExporter {
         });
         resultCallback({ code: ExportResultCode.SUCCESS });
       },
-      catch: err => unknownToErrorCause(err)
+      catch: err => new O11yExportError(unknownToErrorCause(err))
     }).pipe(
-      Effect.catchAll(err =>
+      Effect.catchTag('O11yExportError', err =>
         Effect.logError('O11ySpanExporter export failed:', Cause.fail(err.cause)).pipe(
           Effect.andThen(
             Effect.sync(() => {
@@ -191,7 +197,7 @@ export class O11ySpanExporter implements SpanExporter {
         HttpClientRequest.bodyJson({ extensionName: this.extensionName, events }),
         Effect.flatMap(HttpClient.execute),
         Effect.map(res => exportResultFromHttpStatus(res.status, status => `local /o11y responded ${status}`)),
-        Effect.catchAll(error => {
+        Effect.catchTag(['HttpClientError', 'HttpBodyError'], error => {
           const result = {
             code: ExportResultCode.FAILED,
             error: isError(error) ? error : new Error(String(error))
@@ -209,9 +215,11 @@ export class O11ySpanExporter implements SpanExporter {
   }
 
   public shutdown(): Promise<void> {
-    // In local-divert mode no spans are buffered in o11yService; otherwise flush if the shared services runtime is ready.
-    const flush =
-      this.localIngestionEndpoint || !isServicesRuntimeReady() ? Promise.resolve() : this.o11yService.forceFlush();
-    return flush.finally(() => this.localHttpRuntime.dispose());
+    return this.forceFlush().finally(() => this.localHttpRuntime.dispose());
+  }
+
+  public forceFlush(): Promise<void> {
+    // Activation calls the shared Flusher before closing connection admission; shutdown is a final fallback.
+    return this.localIngestionEndpoint || !isServicesRuntimeReady() ? Promise.resolve() : this.o11yService.forceFlush();
   }
 }

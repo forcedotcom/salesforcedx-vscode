@@ -9,7 +9,12 @@ import {
   ExtensionProviderService,
   type ExtensionProviderService as ExtensionProviderServiceType
 } from '@salesforce/effect-ext-utils';
-import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
+import {
+  NotificationModeService,
+  ProjectService,
+  PromptService,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
@@ -35,25 +40,25 @@ import {
 describe('AuthParamsGatherer', () => {
   const buildLayer = (confirm = true, projectLoginUrl?: string) => {
     const mockServicesApi = {
-      services: {
-        // PromptService has accessors:false, so consumers `yield*` the service first
-        PromptService: Effect.succeed({ considerUndefinedAsCancellation, confirmOrThrow: makeConfirmOrThrow(confirm) }),
-        ProjectService: {
-          getSfProject: () =>
-            Effect.succeed({
-              retrieveSfProjectJson: () => Promise.resolve({ get: () => projectLoginUrl })
-            })
-        },
-        NotificationModeService: Effect.succeed({
-          getProgressLocation: () => Effect.succeed(1),
-          showSuccessNotification: () => Effect.void
-        }),
-        UserCancellationError
-      }
-    } as unknown as SalesforceVSCodeServicesApi;
-    return Layer.succeed(ExtensionProviderService, {
-      getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
-    });
+      v2: { services: { PromptService, ProjectService, NotificationModeService, UserCancellationError } }
+    } as unknown as SalesforceVSCodeServicesApiV2;
+    return Layer.mergeAll(
+      Layer.succeed(ExtensionProviderService, {
+        getServicesApi: Effect.succeed(mockServicesApi)
+      } as unknown as ExtensionProviderServiceType['Service']),
+      Layer.succeed(PromptService, {
+        considerUndefinedAsCancellation,
+        confirmOrThrow: makeConfirmOrThrow(confirm)
+      } as never),
+      Layer.succeed(ProjectService, {
+        getSfProject: () =>
+          Effect.succeed({ retrieveSfProjectJson: () => Promise.resolve({ get: () => projectLoginUrl }) })
+      } as never),
+      Layer.succeed(NotificationModeService, {
+        getProgressLocation: () => Effect.succeed(1),
+        showSuccessNotification: () => Effect.void
+      } as never)
+    );
   };
 
   const useLayer = (confirm = true, projectLoginUrl?: string): void => {

@@ -12,7 +12,7 @@ import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
-const LwcComponentNameSchema = Schema.String.pipe(Schema.pattern(/^[a-z][A-Za-z0-9_]*$/));
+const LwcComponentNameSchema = Schema.String.check(Schema.isPattern(/^[a-z][A-Za-z0-9_]*$/));
 
 export type PromptForLwcNameOptions = {
   /** Project-wide LWC + Aura component names (lowercase) for cross-bundle collision detection. */
@@ -25,7 +25,7 @@ export type PromptForLwcNameOptions = {
 
 export const promptForLwcName = Effect.fn('promptForLwcName')(function* (opts: PromptForLwcNameOptions) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   return yield* Effect.promise(() =>
     vscode.window.showInputBox({
       value: opts.initialValue,

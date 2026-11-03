@@ -6,8 +6,8 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { NonEmptyComponentSet } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
-import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { type ProgressAndSuccessCommandKey } from '../../utils/notificationMode';
@@ -21,21 +21,25 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
 }) {
   const { componentSet, command } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const notificationMode = yield* api.services.NotificationModeService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
   const [channelService, componentSetService] = yield* Effect.all(
-    [api.services.ChannelService, api.services.ComponentSetService],
+    [api.v2.services.ChannelService, api.v2.services.ComponentSetService],
     { concurrency: 'unbounded' }
   );
 
   // Mark components for deletion
-  const deleteSet = yield* api.services.MetadataDeleteService.markComponentsForDeletion(componentSet);
+  const deleteSet = yield* api.v2.services.MetadataDeleteService.use(service =>
+    service.markComponentsForDeletion(componentSet)
+  );
 
   yield* channelService.appendToChannel(`Deleting ${deleteSet.size} component${deleteSet.size === 1 ? '' : 's'}...`);
 
   const progressLocation = command
     ? yield* notificationMode.getProgressLocation(command)
     : vscode.ProgressLocation.Notification;
-  const result = yield* api.services.MetadataDeployService.deploy(deleteSet, { progressLocation });
+  const result = yield* api.v2.services.MetadataDeployService.use(service =>
+    service.deploy(deleteSet, { progressLocation })
+  );
 
   const { isSDRFailure } = componentSetService;
 
@@ -49,6 +53,6 @@ export const deleteComponentSet = Effect.fn('deleteComponentSet')(function* (opt
   }
 
   // Delete local files after successful deploy
-  yield* api.services.MetadataDeleteService.deleteLocalFiles(componentSet);
+  yield* api.v2.services.MetadataDeleteService.use(service => service.deleteLocalFiles(componentSet));
   yield* channelService.appendToChannel(yield* formatDeployOutput(result));
 });

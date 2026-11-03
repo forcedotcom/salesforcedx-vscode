@@ -11,6 +11,7 @@ import * as Option from 'effect/Option';
 import { isNotUndefined, isUndefined } from 'effect/Predicate';
 import * as Rec from 'effect/Record';
 import * as Schema from 'effect/Schema';
+import * as SchemaTransformation from 'effect/SchemaTransformation';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { validateAliasInput } from '../../util/orgAlias';
@@ -19,9 +20,8 @@ export const DEFAULT_ALIAS = 'vscodeOrg';
 const PRODUCTION_URL = 'https://login.salesforce.com';
 const SANDBOX_URL = 'https://test.salesforce.com';
 const INSTANCE_URL_PLACEHOLDER = 'https://na35.salesforce.com';
-const SafeInstanceUrl = Schema.String.pipe(
-  Schema.pattern(/^https?:\/\/[\w.-]+(:\d+)?(\/[\w./~-]*)?$/),
-  Schema.compose(Schema.URL)
+const SafeInstanceUrl = Schema.String.check(Schema.isPattern(/^https?:\/\/[\w.-]+(:\d+)?(\/[\w./~-]*)?$/)).pipe(
+  Schema.decodeTo(Schema.URL, SchemaTransformation.urlFromString)
 );
 const decodeSafeInstanceUrl = Schema.decodeUnknownOption(SafeInstanceUrl);
 
@@ -50,7 +50,7 @@ const inputAlias = async (): Promise<string | undefined> =>
 export const promptForAlias = Effect.fn('AuthParamsGatherer.promptForAlias')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const value = yield* Effect.promise(inputAlias).pipe(
-    Effect.filterOrFail(isNotUndefined, () => new api.services.UserCancellationError({}))
+    Effect.filterOrFail(isNotUndefined, () => new api.v2.services.UserCancellationError({ message: 'User cancelled' }))
   );
   return value || DEFAULT_ALIAS;
 });
@@ -105,7 +105,7 @@ const buildOrgTypes = (projectUrl: string | undefined): Record<string, vscode.Qu
 // pre-supplied; extracted so it carries its own trace span instead of an anonymous generator.
 const pickInstanceUrl = Effect.fn('AuthParamsGatherer.pickInstanceUrl')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   const projectUrl = yield* getProjectLoginUrl();
   const orgTypes = buildOrgTypes(projectUrl);
   const selection = yield* Effect.promise(() => vscode.window.showQuickPick(Object.values(orgTypes))).pipe(
@@ -153,7 +153,7 @@ export const gatherAuthParams = Effect.fn('AuthParamsGatherer.gather')(function*
 
 export const gatherAccessTokenParams = Effect.fn('AccessTokenParamsGatherer.gather')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
 
   const instanceUrl = yield* Effect.promise(inputInstanceUrl).pipe(
     Effect.flatMap(promptService.considerUndefinedAsCancellation)
@@ -174,7 +174,7 @@ export const gatherAccessTokenParams = Effect.fn('AccessTokenParamsGatherer.gath
 
 const getProjectLoginUrl = Effect.fn('AuthParamsGatherer.getProjectLoginUrl')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const project = yield* api.services.ProjectService.getSfProject();
+  const project = yield* api.v2.services.ProjectService.use(service => service.getSfProject());
   const projectJson = yield* Effect.tryPromise(() => project.retrieveSfProjectJson());
   const projectUrl = projectJson.get('sfdcLoginUrl');
   if (isUndefined(projectUrl)) return undefined;

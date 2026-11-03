@@ -10,7 +10,14 @@ import {
   ExtensionProviderService,
   type ExtensionProviderService as ExtensionProviderServiceType
 } from '@salesforce/effect-ext-utils';
-import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
+import {
+  ChannelService,
+  ConfigService,
+  ConnectionService,
+  TargetOrgRef,
+  type DefaultOrgInfo,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -30,21 +37,22 @@ describe('orgUtil tests', () => {
   let appendToChannelMock: VitestMock;
   let showChannelMock: VitestMock;
   let listAllAuthorizationsSpy: VitestMock;
-  let getAuthInfoFieldsSpy: VitestMock<(username: string) => unknown>;
+  let getAuthInfoFieldsSpy: VitestMock<(username?: string) => unknown>;
   let mockWatcher: any;
 
   // ChannelService entry provided in every seeded ExtensionProviderService layer.
-  const channelServiceStub = () =>
-    Effect.succeed({
+  const channelServiceStub = (): ChannelService['Service'] =>
+    ({
       appendToChannel: (message: string) => Effect.sync(() => appendToChannelMock(message)),
       showChannel: Effect.sync(() => showChannelMock())
-    });
+    }) as ChannelService['Service'];
 
   // Both authorization listing and connection resolution are provided by services.
-  const connectionServiceStub = () => ({
-    listAllAuthorizations: () => Effect.promise(() => listAllAuthorizationsSpy()),
-    getAuthInfoFields: (username: string) => Effect.sync(() => getAuthInfoFieldsSpy(username))
-  });
+  const connectionServiceStub = (): ConnectionService['Service'] =>
+    ({
+      listAllAuthorizations: () => Effect.promise(() => listAllAuthorizationsSpy()),
+      getAuthInfoFields: (username?: string) => Effect.sync(() => getAuthInfoFieldsSpy(username))
+    }) as unknown as ConnectionService['Service'];
 
   // checkForSoonToBeExpiredOrgs leaks ChannelService / ConnectionService into its R channel (it yields
   // those off the services api); the seeded mockLayer's mock api satisfies them at runtime, so widen R
@@ -62,10 +70,20 @@ describe('orgUtil tests', () => {
   const yesterday = new Date(now.getTime() - 24 * 60 * 60_000);
 
   // Create mock TargetOrgRef function
-  const createMockTargetOrgRef = (username?: string) => () =>
-    Effect.gen(function* () {
-      return yield* SubscriptionRef.make<{ username?: string }>({ username });
-    });
+  const createMockTargetOrgRef = (username?: string) =>
+    Effect.runSync(SubscriptionRef.make<DefaultOrgInfo>({ username }));
+
+  const buildOrgUtilServicesLayer = (targetOrgUsername?: string) => {
+    const servicesApi: SalesforceVSCodeServicesApiV2 = {
+      v2: { services: { TargetOrgRef, ChannelService, ConnectionService } }
+    } as SalesforceVSCodeServicesApiV2;
+    return Layer.mergeAll(
+      Layer.succeed(ExtensionProviderService, { getServicesApi: Effect.succeed(servicesApi) }),
+      Layer.succeed(TargetOrgRef, createMockTargetOrgRef(targetOrgUsername)),
+      Layer.succeed(ChannelService, channelServiceStub()),
+      Layer.succeed(ConnectionService, connectionServiceStub())
+    );
+  };
 
   beforeEach(() => {
     mockWatcher = {
@@ -100,7 +118,7 @@ describe('orgUtil tests', () => {
     appendToChannelMock = vi.fn();
     showChannelMock = vi.fn();
     listAllAuthorizationsSpy = vi.fn();
-    getAuthInfoFieldsSpy = vi.fn<(username: string) => unknown>();
+    getAuthInfoFieldsSpy = vi.fn<(username?: string) => unknown>();
   });
 
   afterEach(() => {
@@ -109,16 +127,7 @@ describe('orgUtil tests', () => {
 
   it('should not display a notification when no orgs are present', async () => {
     listAllAuthorizationsSpy.mockResolvedValue([]);
-    const mockServicesApi = {
-      services: {
-        TargetOrgRef: createMockTargetOrgRef(),
-        ChannelService: channelServiceStub(),
-        ConnectionService: connectionServiceStub()
-      }
-    } as unknown as SalesforceVSCodeServicesApi;
-    const mockLayer = Layer.succeed(ExtensionProviderService, {
-      getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
-    });
+    const mockLayer = buildOrgUtilServicesLayer();
     await runCheck(mockLayer);
 
     expect(showWarningMessageSpy).not.toHaveBeenCalled();
@@ -139,16 +148,7 @@ describe('orgUtil tests', () => {
         aliases: [orgName2]
       }
     ]);
-    const mockServicesApi = {
-      services: {
-        TargetOrgRef: createMockTargetOrgRef(),
-        ChannelService: channelServiceStub(),
-        ConnectionService: connectionServiceStub()
-      }
-    } as unknown as SalesforceVSCodeServicesApi;
-    const mockLayer = Layer.succeed(ExtensionProviderService, {
-      getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
-    });
+    const mockLayer = buildOrgUtilServicesLayer();
     await runCheck(mockLayer);
 
     expect(showWarningMessageSpy).not.toHaveBeenCalled();
@@ -172,16 +172,7 @@ describe('orgUtil tests', () => {
       alias: orgName1,
       expirationDate: `${yesterday.getFullYear()}-${yesterday.getMonth() + 1}-${yesterday.getDate()}`
     });
-    const mockServicesApi = {
-      services: {
-        TargetOrgRef: createMockTargetOrgRef('foo'),
-        ChannelService: channelServiceStub(),
-        ConnectionService: connectionServiceStub()
-      }
-    } as unknown as SalesforceVSCodeServicesApi;
-    const mockLayer = Layer.succeed(ExtensionProviderService, {
-      getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
-    });
+    const mockLayer = buildOrgUtilServicesLayer('foo');
     await runCheck(mockLayer);
 
     expect(showWarningMessageSpy).toHaveBeenCalled();
@@ -207,16 +198,7 @@ describe('orgUtil tests', () => {
       alias: orgName1,
       expirationDate: `${threeDaysFromNow.getFullYear()}-${threeDaysFromNow.getMonth() + 1}-${threeDaysFromNow.getDate()}`
     });
-    const mockServicesApi = {
-      services: {
-        TargetOrgRef: createMockTargetOrgRef(),
-        ChannelService: channelServiceStub(),
-        ConnectionService: connectionServiceStub()
-      }
-    } as unknown as SalesforceVSCodeServicesApi;
-    const mockLayer = Layer.succeed(ExtensionProviderService, {
-      getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
-    });
+    const mockLayer = buildOrgUtilServicesLayer();
     await runCheck(mockLayer);
 
     expect(showWarningMessageSpy).toHaveBeenCalled();
@@ -253,16 +235,7 @@ describe('orgUtil tests', () => {
         alias: orgName2,
         expirationDate: `${threeDaysFromNow.getFullYear()}-${threeDaysFromNow.getMonth() + 1}-${threeDaysFromNow.getDate()}`
       });
-    const mockServicesApi = {
-      services: {
-        TargetOrgRef: createMockTargetOrgRef(),
-        ChannelService: channelServiceStub(),
-        ConnectionService: connectionServiceStub()
-      }
-    } as unknown as SalesforceVSCodeServicesApi;
-    const mockLayer = Layer.succeed(ExtensionProviderService, {
-      getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
-    });
+    const mockLayer = buildOrgUtilServicesLayer();
     await runCheck(mockLayer);
 
     expect(showWarningMessageSpy).toHaveBeenCalled();
@@ -313,16 +286,7 @@ describe('orgUtil tests', () => {
       alias: orgNameExpired,
       expirationDate: `${expiredDate.getFullYear()}-${expiredDate.getMonth() + 1}-${expiredDate.getDate()}`
     });
-    const mockServicesApi = {
-      services: {
-        TargetOrgRef: createMockTargetOrgRef('expired-org@salesforce.com'),
-        ChannelService: channelServiceStub(),
-        ConnectionService: connectionServiceStub()
-      }
-    } as unknown as SalesforceVSCodeServicesApi;
-    const mockLayer = Layer.succeed(ExtensionProviderService, {
-      getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
-    });
+    const mockLayer = buildOrgUtilServicesLayer('expired-org@salesforce.com');
     await runCheck(mockLayer);
 
     // Assert that the notifications for both orgs are displayed
@@ -358,25 +322,21 @@ describe('updateConfigAndStateAggregators', () => {
     listAllAuthorizationsMock = vi.fn().mockReturnValue(Effect.succeed([]));
 
     const mockServicesApi = {
-      services: {
-        ConfigService: {
-          invalidateConfigAggregator: invalidateConfigAggregatorMock
-        },
-        ConnectionService: {
-          getConnection: getConnectionMock,
-          invalidateCachedConnections: invalidateCachedConnectionsMock,
-          listAllAuthorizations: listAllAuthorizationsMock
-        },
-        NotificationModeService: Effect.succeed({
-          getProgressLocation: () => Effect.succeed(1),
-          showSuccessNotification: () => Effect.void
-        })
-      }
-    } as unknown as SalesforceVSCodeServicesApi;
-
-    const layer = Layer.succeed(ExtensionProviderService, {
-      getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
-    });
+      v2: { services: { ConfigService, ConnectionService } }
+    } as unknown as SalesforceVSCodeServicesApiV2;
+    const layer = Layer.mergeAll(
+      Layer.succeed(ExtensionProviderService, {
+        getServicesApi: Effect.succeed(mockServicesApi)
+      } as unknown as ExtensionProviderServiceType['Service']),
+      Layer.succeed(ConfigService, {
+        invalidateConfigAggregator: invalidateConfigAggregatorMock
+      } as unknown as ConfigService['Service']),
+      Layer.succeed(ConnectionService, {
+        getConnection: getConnectionMock,
+        invalidateCachedConnections: invalidateCachedConnectionsMock,
+        listAllAuthorizations: listAllAuthorizationsMock
+      } as unknown as ConnectionService['Service'])
+    );
 
     resetOrgRuntimeForTesting();
     setAllServicesLayer(layer as ReturnType<typeof buildAllServicesLayer>);

@@ -7,10 +7,11 @@
 import { AuthInfo, Connection, Global, StateAggregator } from '@salesforce/core';
 import coreFs from '@salesforce/core/fs';
 import { CliId, ChannelService, ConnectionService, TargetOrgRef } from '@salesforce/vscode-services/v2';
-import { ConnectionHost } from '@salesforce/vscode-services-v4-implementation/connectionHost';
-import { connectionWatcherLayers } from '@salesforce/vscode-services-v4-implementation/connectionLayers';
-import { createConnectionRuntime } from '@salesforce/vscode-services-v4-implementation/connectionRuntime';
-import { WebFileSystemProvider } from '@salesforce/vscode-services-v4-implementation/webFileSystemProvider';
+import { ConnectionHost } from 'salesforcedx-vscode-services/out/src/services/connectionHost.js';
+import { connectionWatcherLayers } from 'salesforcedx-vscode-services/out/src/services/connectionLayers.js';
+import { createConnectionRuntime } from 'salesforcedx-vscode-services/out/src/services/connectionRuntime.js';
+import { HostFileSystem } from 'salesforcedx-vscode-services/out/src/services/hostFileSystem.js';
+import { WebFileSystemProvider } from 'salesforcedx-vscode-services/out/src/services/webFileSystemProvider.js';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -44,7 +45,9 @@ export const makeRealConnection = async () => {
     globalState: { get: () => undefined, keys: () => [], setKeysForSync: () => {}, update: () => Promise.resolve() },
     messages: { expired: 'Expired', expiredDetail: 'Login again', login: 'Login', refreshFailed: 'Login failed', orgChanged: orgId => `Org changed: ${orgId}` }
   });
+  const hostFileSystem = Layer.succeed(HostFileSystem, { get: () => ({ watch: coreFs.fs.watch }) });
   const graph = connectionWatcherLayers.pipe(Layer.provide(Layer.mergeAll(host,
+    hostFileSystem,
     Layer.succeed(WebFileSystemProvider, { get: () => undefined }),
     Layer.mock(ChannelService, { appendToChannel: () => Effect.void })
   )), Layer.orDie);

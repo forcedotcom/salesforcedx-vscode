@@ -5,32 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { Mock as VitestMock } from 'vitest';
-import type * as ContextModule from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import { getDefaultOrgInfo } from '../../../src/context/defaultOrgInfo';
 import { getOrgShape, shapeFrom } from '../../../src/context/workspaceOrgShape';
 
 // Mutable workspace info the WorkspaceService mock returns; tests flip `isEmpty`.
 const mockWorkspaceInfo = { isEmpty: false };
-
-vi.mock('@salesforce/effect-ext-utils', async () => {
-  const EffectLib = await vi.importActual<typeof Effect>('effect/Effect');
-  const Context = await vi.importActual<typeof ContextModule>('effect/Context');
-  const MockExtensionProviderService = Context.GenericTag('ExtensionProviderService');
-  const mockServicesApi = {
-    services: {
-      WorkspaceService: {
-        getWorkspaceInfo: () => EffectLib.sync(() => mockWorkspaceInfo)
-      }
-    }
-  };
-  return {
-    ExtensionProviderService: Object.assign(MockExtensionProviderService, {
-      // ExtensionProviderService is a Context.GenericTag, yielded as a service value
-      getServicesApi: EffectLib.succeed(mockServicesApi)
-    })
-  };
-});
 
 vi.mock('../../../src/context/defaultOrgInfo', () => ({
   getDefaultOrgInfo: vi.fn()
@@ -41,11 +21,20 @@ vi.mock('../../../src/context/defaultOrgInfo', () => ({
 vi.mock('../../../src/services/runtime', async () => {
   const EffectLib = await vi.importActual<typeof Effect>('effect/Effect');
   const { ExtensionProviderService } = await import('@salesforce/effect-ext-utils');
+  const { WorkspaceService } = await import('@salesforce/vscode-services/v2');
+  const mockServicesApi = { v2: { services: { WorkspaceService } } };
   return {
     getRuntime: () => ({
       runPromise: (effect: Effect.Effect<unknown>) =>
         EffectLib.runPromise(
-          EffectLib.provideService(effect, ExtensionProviderService, ExtensionProviderService as never)
+          effect.pipe(
+            EffectLib.provideService(ExtensionProviderService, {
+              getServicesApi: EffectLib.succeed(mockServicesApi)
+            } as never),
+            EffectLib.provideService(WorkspaceService, {
+              getWorkspaceInfo: () => EffectLib.sync(() => mockWorkspaceInfo)
+            } as never)
+          )
         )
     })
   };

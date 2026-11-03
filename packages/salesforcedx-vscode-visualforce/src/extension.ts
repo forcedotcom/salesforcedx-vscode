@@ -25,7 +25,7 @@ import { startLanguageServer } from './startLanguageServer';
 export const activate = async (context: ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(context, 'Visualforce'));
-  await getRuntime().runPromise(activation(context).pipe(Scope.extend(extensionScope)));
+  await getRuntime().runPromise(Scope.provide(extensionScope)(activation(context)));
 };
 
 export const deactivate = async (): Promise<void> => getRuntime().runPromise(deactivation());
@@ -33,11 +33,9 @@ export const deactivate = async (): Promise<void> => getRuntime().runPromise(dea
 const activation = Effect.fn('activation')(function* (context: ExtensionContext) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
-  yield* api.services.ChannelService.pipe(
-    Effect.flatMap(svc => svc.appendToChannel('Visualforce extension activating'))
-  );
+  yield* api.v2.services.ChannelService.use(service => service.appendToChannel('Visualforce extension activating'));
 
-  const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
+  const registerCommand = api.v2.services.registerCommandWithRuntime(getRuntime());
 
   yield* Effect.all([
     startLanguageServer(context),
@@ -46,15 +44,13 @@ const activation = Effect.fn('activation')(function* (context: ExtensionContext)
     configureLanguages()
   ]);
 
-  yield* api.services.ChannelService.pipe(
-    Effect.flatMap(svc => svc.appendToChannel('Visualforce extension activation complete.'))
+  yield* api.v2.services.ChannelService.use(service =>
+    service.appendToChannel('Visualforce extension activation complete.')
   );
 });
 
 const deactivation = Effect.fn('deactivation')(function* () {
   yield* closeExtensionScope();
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  yield* api.services.ChannelService.pipe(
-    Effect.flatMap(svc => svc.appendToChannel('Visualforce extension deactivated.'))
-  );
+  yield* api.v2.services.ChannelService.use(service => service.appendToChannel('Visualforce extension deactivated.'));
 });

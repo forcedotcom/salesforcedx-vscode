@@ -7,8 +7,8 @@
 import { SfProject } from '@salesforce/core';
 import coreFs from '@salesforce/core/fs';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
-import { projectLayers } from '@salesforce/vscode-services-v4-implementation/projectLayers';
-import { WebFileSystemProvider } from '@salesforce/vscode-services-v4-implementation/webFileSystemProvider';
+import { projectLayers } from 'salesforcedx-vscode-services/out/src/services/projectLayers.js';
+import { WebFileSystemProvider } from 'salesforcedx-vscode-services/out/src/services/webFileSystemProvider.js';
 import { ComponentSetService, MetadataRegistryService, ProjectService } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';

@@ -54,7 +54,8 @@
       "files": [
         "../salesforcedx-vscode-services/package.json",
         "legacy/**/*.d.ts",
-        "scripts/*.ts"
+        "scripts/*.ts",
+        "v2/icons.ts"
       ],
       "output": [
         "src/index.ts",
@@ -130,6 +131,7 @@
   "name": "@salesforce/vscode-services",
   "version": "68.9.0",
   "dependencies": {
+    "@effect/opentelemetry": "4.0.6",
     "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.43",
     "@jsforce/jsforce-node": "^3.10.24",
     "@opentelemetry/api": "1.9.1",

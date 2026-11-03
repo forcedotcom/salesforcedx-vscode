@@ -9,9 +9,16 @@ import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import type { OrgMetadataCatalogComponentEntry } from 'salesforcedx-vscode-services';
-import { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
-import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
+import * as Schema from 'effect/Schema';
+import {
+  FsService,
+  OrgId,
+  OrgMetadataCatalog,
+  UserCancellationError,
+  WorkspaceService,
+  type OrgMetadataCatalogComponentEntry,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { DebugConfigurationProvider } from '../../../src/adapter/debugConfigurationProvider';
@@ -38,15 +45,21 @@ describe('DebugConfigurationProvider log-file prompt', () => {
       Layer.mergeAll(
         Layer.succeed(ExtensionProviderService, {
           getServicesApi: Effect.succeed({
-            services: {
-              FsService: { readFile },
-              OrgMetadataCatalog,
-              UserCancellationError,
-              WorkspaceService: { getWorkspaceInfo: () => Effect.succeed({ isEmpty: true }) }
+            v2: {
+              services: {
+                FsService,
+                OrgMetadataCatalog,
+                UserCancellationError,
+                WorkspaceService
+              }
             }
-          })
-        } as unknown as ExtensionProviderService),
-        Layer.succeed(OrgMetadataCatalog, { getEntries } as unknown as OrgMetadataCatalog)
+          } as unknown as SalesforceVSCodeServicesApiV2)
+        } as unknown as ExtensionProviderService['Service']),
+        Layer.succeed(OrgMetadataCatalog, { getEntries } as unknown as OrgMetadataCatalog['Service']),
+        Layer.succeed(FsService, { readFile } as unknown as FsService['Service']),
+        Layer.succeed(WorkspaceService, {
+          getWorkspaceInfo: () => Effect.succeed({ isEmpty: true })
+        } as unknown as WorkspaceService['Service'])
       ) as ReturnType<typeof buildAllServicesLayer>
     );
   });
@@ -95,7 +108,7 @@ describe('DebugConfigurationProvider log-file prompt', () => {
     const entry: OrgMetadataCatalogComponentEntry = {
       kind: 'component',
       reference: { type: 'ApexClass', fullName: 'Remote' },
-      orgId: '00D000000000001',
+      orgId: Schema.decodeUnknownSync(OrgId)('00D000000000001'),
       observedAt: '2026-10-20T00:00:00.000Z',
       provenance: 'metadata-api',
       name: 'Remote',

@@ -15,7 +15,7 @@ import { nls } from '../messages';
 
 const promptForScriptName = Effect.fn('promptForScriptName')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
 
   return yield* Effect.promise(() =>
     vscode.window.showInputBox({
@@ -32,9 +32,9 @@ const promptForScriptName = Effect.fn('promptForScriptName')(function* () {
 
 export const createAnonymousApexScriptCommand = Effect.fn('ApexLog.Command.createAnonymousApexScript')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fsService = yield* api.services.FsService;
-  const promptService = yield* api.services.PromptService;
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+  const fsService = yield* api.v2.services.FsService;
+  const promptService = yield* api.v2.services.PromptService;
+  const workspaceInfo = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
 
   const scriptName = yield* promptForScriptName();
 

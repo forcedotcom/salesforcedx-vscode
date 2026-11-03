@@ -10,8 +10,14 @@ import {
   ExtensionProviderService,
   type ExtensionProviderService as ExtensionProviderServiceType
 } from '@salesforce/effect-ext-utils';
-import { ICONS } from '@salesforce/vscode-services';
-import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
+import {
+  AliasService,
+  ConfigService,
+  ConnectionService,
+  ICONS,
+  PromptService,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
@@ -104,35 +110,43 @@ describe('OrgList tests', () => {
       // registerCommandWithRuntime swallows it, so a failed Exit here == cancellation path.
       const run = () => {
         const mockServicesApi = {
-          services: {
-            // setDefaultOrg loads orgs through ConnectionService (not AuthInfo direct) post-migration,
-            // then writes config via ConfigService.setTargetOrg and refreshes defaultOrgRef via getConnection.
-            ConnectionService: {
-              listAllAuthorizations: listAllAuthorizationsMock,
-              invalidateCachedConnections: invalidateCachedConnectionsMock,
-              getConnection: getConnectionMock
-            },
-            // getFreshAuthorizations yields ConfigService (default-org config) + AliasService (disk aliases);
-            // stub both so the data-loading path runs against fakes (no real I/O). ConfigService is used via
-            // static accessors: getTargetDevHub/getTargetOrg (default-org config) and setTargetOrg (picker).
-            ConfigService: Object.assign(Effect.succeed({}), {
-              getTargetDevHub: () => Effect.void,
-              getTargetOrg: () => Effect.void,
-              setTargetOrg: setTargetOrgMock
-            }),
-            AliasService: Effect.succeed({
-              getAllAliases: () => Effect.succeed({}),
-              getUsernameFromAlias: () => Effect.succeed(Option.none())
-            }),
-            // PromptService has accessors:false, so consumers `yield*` the service first
-            PromptService: Effect.succeed({ considerUndefinedAsCancellation })
+          v2: {
+            services: {
+              // setDefaultOrg loads orgs through ConnectionService (not AuthInfo direct) post-migration,
+              // then writes config via ConfigService.setTargetOrg and refreshes defaultOrgRef via getConnection.
+              ConnectionService,
+              // getFreshAuthorizations yields ConfigService (default-org config) + AliasService (disk aliases);
+              // stub both so the data-loading path runs against fakes (no real I/O). ConfigService is used via
+              // static accessors: getTargetDevHub/getTargetOrg (default-org config) and setTargetOrg (picker).
+              ConfigService,
+              AliasService,
+              // PromptService has accessors:false, so consumers `yield*` the service first
+              PromptService
+            }
           }
-        } as unknown as SalesforceVSCodeServicesApi;
+        } as unknown as SalesforceVSCodeServicesApiV2;
         return Effect.runPromiseExit(
           orgListModule.setDefaultOrg().pipe(
             Effect.provideService(ExtensionProviderService, {
-              getServicesApi: Effect.succeed(mockServicesApi) as ExtensionProviderServiceType['getServicesApi']
-            })
+              getServicesApi: Effect.succeed(
+                mockServicesApi
+              ) as ExtensionProviderServiceType['Service']['getServicesApi']
+            }),
+            Effect.provideService(ConnectionService, {
+              listAllAuthorizations: listAllAuthorizationsMock,
+              invalidateCachedConnections: invalidateCachedConnectionsMock,
+              getConnection: getConnectionMock
+            } as never),
+            Effect.provideService(ConfigService, {
+              getTargetDevHub: () => Effect.void,
+              getTargetOrg: () => Effect.void,
+              setTargetOrg: setTargetOrgMock
+            } as never),
+            Effect.provideService(AliasService, {
+              getAllAliases: () => Effect.succeed({}),
+              getUsernameFromAlias: () => Effect.succeed(Option.none())
+            } as never),
+            Effect.provideService(PromptService, { considerUndefinedAsCancellation } as never)
           ) as Effect.Effect<void, unknown, never>
         );
       };

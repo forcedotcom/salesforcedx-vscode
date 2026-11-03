@@ -33,14 +33,15 @@ const COMMAND: ProgressAndSuccessCommandKey = messages.retrieve_this_source_text
 export const retrieveSourcePathsCommand = Effect.fn('retrieveSourcePathsCommand')(
   function* (sourceUri: URI | undefined, uris: URI[] | undefined) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const notificationMode = yield* api.services.NotificationModeService;
-    const resolvedSourceUri = sourceUri ?? (yield* api.services.EditorService.getActiveEditorUri());
+    const notificationMode = yield* api.v2.services.NotificationModeService;
+    const resolvedSourceUri =
+      sourceUri ?? (yield* api.v2.services.EditorService.use(service => service.getActiveEditorUri()));
 
     if (!resolvedSourceUri) return;
 
-    const componentSetService = yield* api.services.ComponentSetService;
+    const componentSetService = yield* api.v2.services.ComponentSetService;
     const resolvedUris = uris?.length ? uris : [resolvedSourceUri];
-    yield* api.services.ProjectService.ensureInPackageDirectories(resolvedUris);
+    yield* api.v2.services.ProjectService.use(service => service.ensureInPackageDirectories(resolvedUris));
 
     // we can ignore conflicts because we already did the detectConflicts check
     yield* Effect.succeed(Array.from(resolvedUris)).pipe(

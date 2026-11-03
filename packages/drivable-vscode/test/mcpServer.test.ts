@@ -141,7 +141,7 @@ describe('drivable VS Code MCP server', () => {
       start,
       observe: Effect.die('unused'),
       observeForMcp: Deferred.succeed(active, undefined).pipe(
-        Effect.zipRight(Effect.never),
+        Effect.andThen(Effect.never),
         Effect.onInterrupt(() => Deferred.succeed(interrupted, undefined))
       ),
       act,
@@ -152,7 +152,7 @@ describe('drivable VS Code MCP server', () => {
     const blockingRuntime = Runtime.defaultRuntime.pipe(Runtime.provideService(ControllerService, blockingService));
     const blockingServer = createDrivableVscodeMcpServer(
       blockingRuntime,
-      Deferred.await(interrupted).pipe(Effect.zipRight(Effect.sync(() => finishOrder.push('finish'))))
+      Deferred.await(interrupted).pipe(Effect.andThen(Effect.sync(() => finishOrder.push('finish'))))
     );
     const blockingClient = new Client({ name: 'drivable-vscode-shutdown-test', version: '1.0.0' });
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();

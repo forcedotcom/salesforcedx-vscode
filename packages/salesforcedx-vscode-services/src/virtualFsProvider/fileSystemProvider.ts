@@ -11,20 +11,16 @@
 /* eslint-disable functional/no-try-statements */
 
 import { fs } from '@salesforce/core/fs';
-import type { MetadataType } from '@salesforce/source-deploy-retrieve';
+import type { MetadataType, RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
-import { isError, isNullable, isString } from 'effect/Predicate';
+import { isError, isNullish, isString } from 'effect/Predicate';
 import { Buffer } from 'node:buffer';
 // eslint-disable-next-line no-restricted-imports
 import type { Dirent } from 'node:fs';
 import * as vscode from 'vscode';
 import { Utils, type URI } from 'vscode-uri';
-import { MetadataRegistryService } from '../core/metadataRegistryService';
-import { unknownToErrorCause } from '../core/shared';
-import { getServicesRuntime, isServicesRuntimeReady } from '../servicesRuntime';
+import { unknownToErrorCause } from '../services/errorCause';
 import { joinPathWithBase } from '../vscode/uriUtils';
-import { WorkspaceService } from '../vscode/workspaceService';
 import { emitter } from './memfsWatcher';
 import { VirtualFsProviderError } from './virtualFsProviderError';
 
@@ -45,44 +41,19 @@ const suffixFromPath = (uri: URI): string | undefined => {
   return ext || undefined;
 };
 
-/** Effect that uses MetadataRegistryService (cached) to resolve metadata type from URI */
-const checkIsReadOnly = Effect.fn('isItReadOnly')(function* (readOnlyTypes: MetadataType[], uri: URI) {
-  if (readOnlyTypes.length === 0) return false;
+/** Bootstrap captures the shared native registry; imperative FS callbacks never run asynchronous service admission. */
+const isItReadOnly = (readOnly: FsProvider['readOnly'], uri: URI): boolean => {
+  if (!readOnly || readOnly.types.length === 0) return false;
   const suffix = suffixFromPath(uri);
   if (!suffix) return false;
-  const registryAccess = yield* MetadataRegistryService.getRegistryAccess();
-  const metadataType = registryAccess.getTypeBySuffix(suffix);
+  const metadataType = readOnly.registry.getTypeBySuffix(suffix);
   if (!metadataType) return false;
-  return readOnlyTypes.some(opt => opt.id === metadataType.id);
-});
-
-/** Layer required to run isItReadOnly*/
-export const isItReadOnlyLayer = Layer.mergeAll(MetadataRegistryService.Default, WorkspaceService.Default);
-
-/**
- * Synchronous read-only check for the imperative FS boundary.
- * - empty readOnly → false without touching the runtime (hot path + setup-time timing).
- * - runtime ready → reuse activation-built services (shared caches).
- * - runtime not ready (defensive: non-empty readOnly before publish) → build a throwaway graph.
- */
-const isItReadOnly = (readOnlyTypes: MetadataType[], uri: URI): boolean => {
-  if (readOnlyTypes.length === 0) return false;
-  return isServicesRuntimeReady()
-    ? getServicesRuntime().pipe(
-        Effect.map(runtime => runtime.runSync(checkIsReadOnly(readOnlyTypes, uri))),
-        Effect.runSync
-      )
-    : isItReadOnlyLayer.pipe(
-        Layer.toRuntime,
-        Effect.flatMap(runtime => checkIsReadOnly(readOnlyTypes, uri).pipe(Effect.provide(runtime))),
-        Effect.scoped,
-        Effect.runSync
-      );
+  return readOnly.types.some(opt => opt.id === metadataType.id);
 };
 
 export class FsProvider implements vscode.FileSystemProvider {
   public readonly onDidChangeFile: vscode.Event<vscode.FileChangeEvent[]> = emitter.event;
-  public readOnly: MetadataType[] = [];
+  public readOnly: { readonly types: readonly MetadataType[]; readonly registry: RegistryAccess } | undefined;
 
   public exists(uri: URI): boolean {
     return fs.existsSync(uri.path);
@@ -191,7 +162,7 @@ export class FsProvider implements vscode.FileSystemProvider {
       (typeof include === 'object' && 'baseUri' in include ? include.baseUri : undefined) ??
       vscode.workspace.workspaceFolders?.[0]?.uri;
     if (!baseUri) return [];
-    const excludeArr = isNullable(exclude) ? undefined : isString(exclude) ? [exclude] : [exclude.pattern];
+    const excludeArr = isNullish(exclude) ? undefined : isString(exclude) ? [exclude] : [exclude.pattern];
     // Only runs on web (memfs); node:fs.glob returns AsyncIterator but we never hit that path
     // this is fixed in higher memfs versions, but there's other conflicts there (would break sfdx-core support for node 20)
     // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- web-only, memfs returns Promise<string[]>

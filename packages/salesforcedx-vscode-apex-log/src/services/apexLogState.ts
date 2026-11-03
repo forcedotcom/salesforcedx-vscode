@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { TraceFlagItem } from '@salesforce/vscode-services/v2';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import type * as HashSet from 'effect/HashSet';
 import type * as Ref from 'effect/Ref';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { TraceFlagItem } from 'salesforcedx-vscode-services';
 
 export type LogCollectorState = {
   readonly isCollecting: boolean;
@@ -20,14 +20,19 @@ export type LogCollectorState = {
 const initialState: LogCollectorState = { isCollecting: false, collectedCount: 0 };
 
 // updates when the trace flags change, usually as a result of commands being run
-export const CurrentTraceFlags = Context.GenericTag<SubscriptionRef.SubscriptionRef<TraceFlagItem[]>>(
-  'TraceFlagRefreshSubscriptionRef'
-);
-export const LogCollectorStateRef =
-  Context.GenericTag<SubscriptionRef.SubscriptionRef<LogCollectorState>>('LogCollectorStateRef');
+export class CurrentTraceFlags extends Context.Service<
+  CurrentTraceFlags,
+  SubscriptionRef.SubscriptionRef<TraceFlagItem[]>
+>()('TraceFlagRefreshSubscriptionRef') {}
+export class LogCollectorStateRef extends Context.Service<
+  LogCollectorStateRef,
+  SubscriptionRef.SubscriptionRef<LogCollectorState>
+>()('LogCollectorStateRef') {}
 
 // tracks log Ids already collected by the activation-run auto-collect stream; commands never touch it
-export const KnownLogIdsRef = Context.GenericTag<Ref.Ref<HashSet.HashSet<string>>>('KnownLogIdsRef');
+export class KnownLogIdsRef extends Context.Service<KnownLogIdsRef, Ref.Ref<HashSet.HashSet<string>>>()(
+  'KnownLogIdsRef'
+) {}
 
 /** Module-level singletons. Commands run in separate Effect.runFork; layer memoization is per-run, so we'd get distinct PubSub/Ref per run. These ensure status bar (activation run) and commands (command run) share the same instances. */
 // eslint-disable-next-line functional/no-let -- singleton for cross-run sharing

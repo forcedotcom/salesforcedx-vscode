@@ -124,7 +124,7 @@ const uriValidator = (value: string): string | undefined => {
 /** Prompts for the forceide:// URL and parses its login URL / session id / org name. Esc → UserCancellationError. */
 const gatherForceIdeUri = Effect.fn('isvDebugBootstrap.gatherForceIdeUri')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   const forceIdeUri = yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: nls.localize('parameter_gatherer_paste_forceide_url'),
@@ -151,7 +151,7 @@ const gatherProjectNameAndFolder = Effect.fn('isvDebugBootstrap.gatherProjectNam
   orgName: string
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
 
   const projectName = yield* Effect.promise(() =>
     vscode.window.showInputBox({
@@ -199,10 +199,10 @@ const gatherProjectNameAndFolder = Effect.fn('isvDebugBootstrap.gatherProjectNam
  */
 export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const terminalService = yield* api.services.TerminalService;
-  const promptService = yield* api.services.PromptService;
-  const notificationMode = yield* api.services.NotificationModeService;
-  const fs = api.services.FsService;
+  const terminalService = yield* api.v2.services.TerminalService;
+  const promptService = yield* api.v2.services.PromptService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
+  const fs = yield* api.v2.services.FsService;
 
   const { loginUrl, sessionId, orgName } = yield* gatherForceIdeUri();
   const { projectName, projectParentUri, projectUri } = yield* gatherProjectNameAndFolder(orgName);

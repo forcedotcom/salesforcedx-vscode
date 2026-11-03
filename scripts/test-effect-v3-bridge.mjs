@@ -8,6 +8,7 @@ import { commonConfigBrowser } from './bundling/web.mjs';
 import {
   createPackedFixturesDirectory,
   installAndCompileFixtures,
+  packServicesExtension,
   packServicesPackage
 } from './packedServicesFixtures.mjs';
 
@@ -19,13 +20,12 @@ const abi = path.join(temp, 'legacyAbi');
 
 try {
   const artifacts = [
+    packServicesPackage(path.join(root, 'packages/salesforcedx-apex'), host, 'apex.tgz'),
+    packServicesPackage(path.join(root, 'packages/salesforcedx-utils'), host, 'utils.tgz'),
+    packServicesPackage(path.join(root, 'packages/salesforcedx-vscode-i18n'), host, 'i18n.tgz'),
     packServicesPackage(path.join(root, 'packages/salesforcedx-vscode-services-types'), host, 'legacy.tgz'),
     packServicesPackage(path.join(root, 'packages/salesforcedx-vscode-services-v3-compat'), host, 'v3.tgz'),
-    packServicesPackage(
-      path.join(root, 'packages/salesforcedx-vscode-services-v4-implementation'),
-      host,
-      'implementation.tgz'
-    )
+    packServicesExtension(path.join(root, 'packages/salesforcedx-vscode-services'), host, 'services.tgz')
   ];
   fs.mkdirSync(consumer);
   const abiArtifacts = [
@@ -190,7 +190,7 @@ try {
     });
     assert(
       Object.keys(result.metafile.inputs).some(file =>
-        file.includes('vscode-services-v4-implementation/out/connectionService.js')
+        file.includes('salesforcedx-vscode-services/out/src/services/connectionService.js')
       )
     );
     const runner = path.join(host, `run-real-${platform}.mjs`);

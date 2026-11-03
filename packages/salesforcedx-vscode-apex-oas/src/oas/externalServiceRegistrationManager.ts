@@ -52,7 +52,7 @@ const isOperationObject = (op: unknown): op is OpenAPIV3.OperationObject =>
 export const buildESRYaml = Effect.fn('ApexOas.Esr.buildESRYaml')(function* (esrXmlPath: string, safeOasSpec: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const esrYamlPath = replaceXmlToYaml(esrXmlPath);
-  yield* api.services.FsService.writeFile(esrYamlPath, safeOasSpec);
+  yield* api.v2.services.FsService.use(service => service.writeFile(esrYamlPath, safeOasSpec));
 });
 
 /**
@@ -129,8 +129,10 @@ export const handleExistingESR = async (): Promise<string> =>
 
 export const getFolderForArtifact = Effect.fn('ApexOas.Esr.getFolderForArtifact')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const registryAccess = yield* api.services.MetadataRegistryService.getRegistryAccess().pipe(
+  const promptService = yield* api.v2.services.PromptService;
+  const registryAccess = yield* api.v2.services.MetadataRegistryService.use(service =>
+    service.getRegistryAccess()
+  ).pipe(
     Effect.mapError(
       cause => new EsrPathResolutionFailed({ message: `${nls.localize('registry_access_failed')}: ${String(cause)}` })
     )
@@ -141,7 +143,7 @@ export const getFolderForArtifact = Effect.fn('ApexOas.Esr.getFolderForArtifact'
       new EsrPathResolutionFailed({ message: `${nls.localize('registry_access_failed')}: ${String(cause)}` })
   });
   if (!esrDefaultDirectoryName) return undefined;
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow().pipe(
+  const workspaceInfo = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow()).pipe(
     Effect.mapError(
       cause => new EsrPathResolutionFailed({ message: `${nls.localize('no_folder_selected')}: ${String(cause)}` })
     )
@@ -163,7 +165,7 @@ export const getFolderForArtifact = Effect.fn('ApexOas.Esr.getFolderForArtifact'
  */
 export const pathExists = Effect.fn('ApexOas.Esr.pathExists')(function* (filename: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fsService = api.services.FsService;
+  const fsService = yield* api.v2.services.FsService;
   // Step 1: Prompt for Folder
   const folder = yield* getFolderForArtifact();
   if (!folder) {
@@ -186,9 +188,9 @@ export const pathExists = Effect.fn('ApexOas.Esr.pathExists')(function* (filenam
       const currentTimestamp = getCurrentTimestamp();
       const namePart = path.basename(filename, '.externalServiceRegistration-meta.xml');
       const newFileName = `${namePart}_${currentTimestamp}.externalServiceRegistration-meta.xml`;
-      const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow().pipe(
-        Effect.mapError(cause => new EsrPathResolutionFailed({ message: String(cause) }))
-      );
+      const workspaceInfo = yield* api.v2.services.WorkspaceService.use(service =>
+        service.getWorkspaceInfoOrThrow()
+      ).pipe(Effect.mapError(cause => new EsrPathResolutionFailed({ message: String(cause) })));
       const esrFilesForMergeFolder = path.join(workspaceInfo.fsPath, 'esr_files_for_merge');
       yield* fsService
         .createDirectory(esrFilesForMergeFolder)
@@ -298,10 +300,10 @@ const writeAndOpenEsrFile = Effect.fn('ApexOas.Esr.writeAndOpenEsrFile')(functio
   updatedContent: string
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  yield* api.services.FsService.writeFile(ctx.newPath, updatedContent);
-  yield* api.services.FsService.showTextDocument(ctx.newPath);
+  yield* api.v2.services.FsService.use(service => service.writeFile(ctx.newPath, updatedContent));
+  yield* api.v2.services.FsService.use(service => service.showTextDocument(ctx.newPath));
   if (ctx.isESRDecomposed) {
-    yield* api.services.FsService.showTextDocument(replaceXmlToYaml(ctx.newPath));
+    yield* api.v2.services.FsService.use(service => service.showTextDocument(replaceXmlToYaml(ctx.newPath)));
   }
 });
 
@@ -342,7 +344,7 @@ export const generateEsrMD = Effect.fn('ApexOas.Esr.generateEsrMD')(function* (
   };
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fsService = api.services.FsService;
+  const fsService = yield* api.v2.services.FsService;
   const exists = yield* fsService.fileOrFolderExists(ctx.newPath);
   const existingContent = exists ? yield* fsService.readFile(ctx.newPath) : undefined;
   //Step 1: Build the content of the ESR Xml file

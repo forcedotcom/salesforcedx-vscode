@@ -8,9 +8,9 @@ import type { prepareQuery } from '../prepareQuery';
 import type { QueryResult } from '../types';
 import { type Column, createTable, ExtensionProviderService, type Row } from '@salesforce/effect-ext-utils';
 import * as Cause from 'effect/Cause';
-import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
-import { isBoolean, isDate, isNull, isNullable, isNumber, isRecord, isUndefined } from 'effect/Predicate';
+import { isBoolean, isDate, isNull, isNullish, isNumber, isObject, isUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { Utils } from 'vscode-uri';
 import { SFDX_CORE_SECTION, SOQL_CONFIGURATION_NAME } from '../constants';
@@ -38,39 +38,28 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
-  yield* api.services.ChannelService.pipe(
-    Effect.flatMap(channelService =>
-      channelService.appendToChannel(
-        nls.localize('data_query_running_query', useTooling ? nls.localize('tooling_API') : nls.localize('REST_API'))
-      )
+  yield* api.v2.services.ChannelService.use(service =>
+    service.appendToChannel(
+      nls.localize('data_query_running_query', useTooling ? nls.localize('tooling_API') : nls.localize('REST_API'))
     )
   );
+  const promptService = yield* api.v2.services.PromptService;
+  const progressLocation = yield* api.v2.services.NotificationModeService.use(service =>
+    service.getProgressLocation(COMMAND)
+  );
+  const maxRows = yield* api.v2.services.SettingsService.use(service =>
+    service.getValueOrElse(SOQL_CONFIGURATION_NAME, 'maxQueryLimit', 50_000)
+  );
 
-  return yield* Effect.all({
-    maxRows: api.services.SettingsService.pipe(
-      Effect.flatMap(settings => settings.getValueOrElse(SOQL_CONFIGURATION_NAME, 'maxQueryLimit', 50_000))
-    ),
-    promptService: api.services.PromptService,
-    progressLocation: api.services.NotificationModeService.pipe(
-      Effect.flatMap(notificationMode => notificationMode.getProgressLocation(COMMAND))
-    ),
-    queryService: api.services.QueryService
-  }).pipe(
-    Effect.flatMap(({ maxRows, promptService, progressLocation, queryService }) =>
-      queryService.query({ ...query, tooling: useTooling }, JsonObject).pipe(
-        Effect.flatMap(({ totalSize, records }) =>
-          Stream.take(records, maxRows).pipe(
-            Stream.runCollect,
-            Effect.map(chunk => ({
-              done: true as const,
-              totalSize,
-              records: [...Chunk.toReadonlyArray(chunk)]
-            }))
-          )
-        ),
-        promptService.withProgress(nls.localize('progress_running_query'), progressLocation)
-      )
+  const queryResult = yield* api.v2.services.QueryService.use(service =>
+    service.query({ ...query, tooling: useTooling }, input =>
+      Schema.decodeUnknownEffect(Schema.Struct({ totalSize: Schema.Number, records: Schema.Array(JsonObject) }))(input)
     )
+  );
+  return yield* Stream.take(queryResult.records, maxRows).pipe(
+    Stream.runCollect,
+    Effect.map(records => ({ done: true as const, totalSize: queryResult.totalSize, records })),
+    promptService.withProgress(nls.localize('progress_running_query'), progressLocation)
   );
 });
 
@@ -80,10 +69,12 @@ const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: Q
   const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
   const fileName = `soql-query-${timestamp}.csv`;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const notificationMode = yield* api.services.NotificationModeService;
-  const { uri: workspaceUri } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+  const notificationMode = yield* api.v2.services.NotificationModeService;
+  const { uri: workspaceUri } = yield* api.v2.services.WorkspaceService.use(service =>
+    service.getWorkspaceInfoOrThrow()
+  );
   const fileUri = Utils.joinPath(workspaceUri, '.sfdx', 'data', fileName);
-  yield* api.services.FsService.writeFile(fileUri, csvContent);
+  yield* api.v2.services.FsService.use(service => service.writeFile(fileUri, csvContent));
 
   const successMessage = nls.localize('data_query_success_message', queryResult.totalSize, fileUri.fsPath);
   yield* notificationMode.showSuccessNotification(COMMAND, successMessage, true, [
@@ -91,7 +82,7 @@ const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: Q
       label: nls.localize('data_query_open_file'),
       run: () =>
         getSoqlRuntime()
-          .runPromise(api.services.FsService.showTextDocument(fileUri))
+          .runPromise(api.v2.services.FsService.use(service => service.showTextDocument(fileUri)))
           .then(() => undefined)
     }
   ]);
@@ -102,9 +93,9 @@ export const executeDataQuery = Effect.fn('executeDataQuery')(function* (
   queryApi: 'REST' | 'TOOLING'
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelService = yield* api.services.ChannelService;
+  const channelService = yield* api.v2.services.ChannelService;
 
-  if (yield* (yield* api.services.SettingsService).getValueOrElse(SFDX_CORE_SECTION, 'clearOutputTab', false)) {
+  if (yield* (yield* api.v2.services.SettingsService).getValueOrElse(SFDX_CORE_SECTION, 'clearOutputTab', false)) {
     yield* channelService.clearChannel;
   }
 
@@ -125,7 +116,7 @@ export const executeDataQuery = Effect.fn('executeDataQuery')(function* (
     yield* channelService.showChannel;
     yield* saveResultsToCSV(queryResult);
   }).pipe(
-    Effect.catchAllCause(cause =>
+    Effect.catchCause(cause =>
       cause.pipe(
         Cause.squash,
         formatErrorMessage,
@@ -150,7 +141,7 @@ export const dataQueryDocument = Effect.fn('sf.data.query.document')(function* (
 const buildFlattenedGridModel = (
   records: QueryResult<JsonObject>['records']
 ): { flattenedFields: string[]; rows: Record<string, unknown>[] } | null => {
-  const recs = records?.filter(isRecord) ?? [];
+  const recs = records?.filter(isObject) ?? [];
   if (recs.length === 0) {
     return null;
   }
@@ -199,7 +190,7 @@ export const generateTableOutput = (records: QueryResult<JsonObject>['records'],
 
 /** Checks if a value is a Salesforce sub-query result (e.g. SELECT … FROM Contacts) */
 const isSubQueryResult = (value: unknown): value is { totalSize: number; done: boolean; records: unknown[] } => {
-  if (!isRecord(value)) {
+  if (!isObject(value)) {
     return false;
   }
   return isNumber(value.totalSize) && isBoolean(value.done) && Array.isArray(value.records);
@@ -210,7 +201,7 @@ const SUBQUERY_FLATTEN_MAX_DEPTH = 5;
 
 /** True for nested SObjects / relationship blobs, false for sub-query envelopes. */
 const isNestedRelationshipObject = (value: unknown): value is Record<string, unknown> =>
-  isRecord(value) && !isSubQueryResult(value);
+  isObject(value) && !isSubQueryResult(value);
 
 /**
  * Flattens a relationship-shaped object into dotted keys on `row` (e.g. Owner.Manager.Name).
@@ -304,7 +295,7 @@ const flattenRecordWithSubQueryDepth = (
       }
       if (value.records.length > 0) {
         const expandedRows = value.records
-          .filter(isRecord)
+          .filter(isObject)
           .flatMap(subRecord => flattenRecordWithSubQueryDepth(subRecord, depthRemaining - 1, pathPrefix));
         if (expandedRows.length > 0) {
           subQueryExpansions.push(expandedRows);
@@ -312,7 +303,7 @@ const flattenRecordWithSubQueryDepth = (
       }
       // When totalSize === 0 no expansion is pushed; the parent row is emitted as-is
       // with undefined sub-columns, which display as empty strings.
-    } else if (isRecord(value)) {
+    } else if (isObject(value)) {
       // Flatten relationship objects into dot-notation columns (multi-level)
       for (const [nestedKey, nestedValue] of Object.entries(value)) {
         if (nestedKey === 'attributes') {
@@ -378,7 +369,7 @@ const collectSubQueryFieldPaths = (
     return;
   }
   for (const subRecord of value.records) {
-    if (!isRecord(subRecord)) {
+    if (!isObject(subRecord)) {
       continue;
     }
     for (const [subKey, subValue] of Object.entries(subRecord)) {
@@ -423,7 +414,7 @@ const getAllFlattenedFields = (records: Record<string, unknown>[]): string[] => 
       }
       if (isSubQueryResult(value)) {
         subQueryKeys.add(key);
-      } else if (isRecord(value)) {
+      } else if (isObject(value)) {
         relationshipKeys.add(key);
       }
     }
@@ -452,7 +443,7 @@ const getAllFlattenedFields = (records: Record<string, unknown>[]): string[] => 
     } else if (relationshipKeys.has(key)) {
       for (const record of records) {
         const value = record[key];
-        if (isRecord(value)) {
+        if (isObject(value)) {
           for (const nestedKey of Object.keys(value)) {
             if (nestedKey === 'attributes') {
               continue;
@@ -486,7 +477,7 @@ const getSubQueryKeyPrefixesFromRecords = (records: Record<string, unknown>[]): 
   return [...prefixes];
 };
 
-const isEmptyCsvCell = (value: unknown): boolean => isNullable(value) || value === '';
+const isEmptyCsvCell = (value: unknown): boolean => isNullish(value) || value === '';
 
 /**
  * Within one parent record's flattened rows, repeat parent-column values on sub-query overflow rows
@@ -519,7 +510,7 @@ export const convertToCSV = (records: QueryResult<JsonObject>['records']): strin
   if (!model) {
     return '';
   }
-  const recs = records?.filter(isRecord) ?? [];
+  const recs = records?.filter(isObject) ?? [];
   const { flattenedFields } = model;
   const subPrefixes = getSubQueryKeyPrefixesFromRecords(recs);
   const parentFields = flattenedFields.filter(f => !subPrefixes.some(p => f.startsWith(p)));
@@ -537,7 +528,7 @@ export const escapeCSVField = (field: string): string =>
 
 /** Formats a field value for CSV export */
 export const formatFieldValue = (value: unknown): string => {
-  if (isNullable(value)) {
+  if (isNullish(value)) {
     return '';
   }
   if (typeof value === 'object') {
@@ -567,7 +558,7 @@ const formatNestedDisplayValue = (value: unknown, depthRemaining: number): strin
     const joined = value.map(v => formatNestedDisplayValue(v, depthRemaining)).join(',');
     return joined.length > 50 ? `${joined.substring(0, 47)}...` : joined;
   }
-  if (isRecord(value)) {
+  if (isObject(value)) {
     if (depthRemaining <= 0) {
       return '[Object]';
     }
@@ -584,7 +575,7 @@ const formatNestedDisplayValue = (value: unknown, depthRemaining: number): strin
 
 /** Formats a field value for table display (recurses into nested plain objects). */
 export const formatFieldValueForDisplay = (value: unknown, depthRemaining = DISPLAY_OBJECT_MAX_DEPTH): string => {
-  if (isNullable(value)) {
+  if (isNullish(value)) {
     return '';
   }
   return formatNestedDisplayValue(value, depthRemaining);
@@ -593,7 +584,7 @@ export const formatFieldValueForDisplay = (value: unknown, depthRemaining = DISP
 /** Displays query results in table format */
 export const displayTableResults = Effect.fn('displayTableResults')(function* (queryResult: QueryResult<JsonObject>) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelService = yield* api.services.ChannelService;
+  const channelService = yield* api.v2.services.ChannelService;
 
   if (!queryResult.records?.length) {
     yield* channelService.appendToChannel(nls.localize('data_query_no_records'));

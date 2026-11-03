@@ -9,7 +9,19 @@ import { URI } from 'vscode-uri';
 export const stats = { workspaceWatchers: 0, workspaceDisposed: 0, settingsWatchers: 0, settingsDisposed: 0 };
 export const FileType = { File: 1, Directory: 2 };
 export const ConfigurationTarget = { Global: 1 };
-export const ProgressLocation = { Notification: 15 };
+export const ProgressLocation = { Notification: 15, Window: 10 };
+export const StatusBarAlignment = { Left: 1, Right: 2 };
+export const ExtensionMode = { Development: 1, Test: 3, Production: 2 };
+export const UIKind = { Desktop: 1, Web: 2 };
+export const version = '1.129.0';
+export const env = {
+  appName: 'Code',
+  appHost: 'web',
+  language: 'en',
+  machineId: 'fixture-machine',
+  sessionId: 'fixture-session',
+  uiKind: UIKind.Web
+};
 export class EventEmitter {
   listeners = new Set();
   event = listener => { this.listeners.add(listener); return { dispose: () => this.listeners.delete(listener) }; };
@@ -18,6 +30,10 @@ export class EventEmitter {
 }
 export class TabInputText { constructor(uri) { this.uri = uri; } }
 export class TabInputTextDiff { constructor(original, modified) { this.original = original; this.modified = modified; } }
+export class Position { constructor(line, character) { this.line = line; this.character = character; } }
+export class Range { constructor(start, end) { this.start = start; this.end = end; } }
+export const DiagnosticSeverity = { Error: 0 };
+export const languages = { createDiagnosticCollection: () => ({ delete() {}, set() {}, dispose() {} }) };
 export class FileSystemError extends Error {
   static FileNotFound(value) { return new FileSystemError(`File not found: ${value}`); }
   static FileNotADirectory(value) { return new FileSystemError(`Not a directory: ${value}`); }
@@ -34,6 +50,7 @@ export const workspace = {
   name: 'fixture',
   getConfiguration: section => ({
     get: key => settings.get(`${section}.${key}`),
+    inspect: key => settings.has(`${section}.${key}`) ? { key, globalValue: settings.get(`${section}.${key}`) } : undefined,
     update: async (key, value) => {
       settings.set(`${section}.${key}`, value);
     }
@@ -70,3 +87,4 @@ export const workspace = {
 };
 export const window = { showTextDocument: async () => ({}) };
 export const commands = { executeCommand: async () => undefined };
+export const extensions = { all: [], getExtension: () => undefined, onDidChange: () => ({ dispose() {} }) };

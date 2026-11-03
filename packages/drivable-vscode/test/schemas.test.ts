@@ -79,7 +79,7 @@ describe('drivable VS Code contracts', () => {
 
   test('attempts every release when releases fail', async () => {
     const attempted: string[] = [];
-    const release = (name: string) => Effect.sync(() => attempted.push(name)).pipe(Effect.zipRight(Effect.fail(name)));
+    const release = (name: string) => Effect.sync(() => attempted.push(name)).pipe(Effect.andThen(Effect.fail(name)));
     expect(
       Exit.isFailure(
         await Effect.runPromiseExit(releaseAll([release('electron'), release('workspace'), release('listeners')]))
@@ -94,7 +94,7 @@ describe('drivable VS Code contracts', () => {
       Effect.gen(function* () {
         const scope = yield* Scope.make(ExecutionStrategy.sequential);
         yield* Effect.forEach(['workspace', 'electron', 'listener'], name =>
-          Scope.addFinalizer(scope, Effect.sync(() => attempted.push(name)).pipe(Effect.zipRight(Effect.die(name))))
+          Scope.addFinalizer(scope, Effect.sync(() => attempted.push(name)).pipe(Effect.andThen(Effect.die(name))))
         );
         yield* Scope.close(scope, Exit.void);
       })

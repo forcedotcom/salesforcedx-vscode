@@ -4,10 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { OrgMetadataCatalogChange } from 'salesforcedx-vscode-services';
-import * as Chunk from 'effect/Chunk';
+import { OrgId, type OrgMetadataCatalogChange } from '@salesforce/vscode-services/v2';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { coalesceTreeRefreshes, shouldRefreshTreeForCatalogChange } from '../../src/tree/catalogChange';
 
@@ -30,13 +30,15 @@ describe('shouldRefreshTreeForCatalogChange', () => {
   });
 
   it('refreshes for non-operation catalog changes', () => {
-    expect(shouldRefreshTreeForCatalogChange({ kind: 'org', orgId: '00D' })).toBe(true);
+    expect(
+      shouldRefreshTreeForCatalogChange({ kind: 'org', orgId: Schema.decodeUnknownSync(OrgId)('00D000000000001') })
+    ).toBe(true);
   });
 
   it('coalesces a burst of catalog changes into one tree refresh', async () => {
     const changes: OrgMetadataCatalogChange[] = [
       { kind: 'workspace', events: [] },
-      { kind: 'org', orgId: '00D' },
+      { kind: 'org', orgId: Schema.decodeUnknownSync(OrgId)('00D000000000001') },
       operation('deploy')
     ];
 
@@ -44,6 +46,6 @@ describe('shouldRefreshTreeForCatalogChange', () => {
       coalesceTreeRefreshes(Stream.fromIterable(changes), Duration.millis(1)).pipe(Stream.runCollect)
     );
 
-    expect(Chunk.toReadonlyArray(refreshes)).toEqual([operation('deploy')]);
+    expect(refreshes).toEqual([operation('deploy')]);
   });
 });

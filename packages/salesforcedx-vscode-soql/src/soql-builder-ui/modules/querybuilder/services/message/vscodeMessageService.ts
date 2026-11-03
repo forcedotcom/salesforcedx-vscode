@@ -65,7 +65,7 @@ export const makeVscodeMessageService = (): VscodeMessageService => {
   return { onMessage, sendMessage, setState, getState, dispose };
 };
 
-export const VscodeMessageServiceLive: Layer.Layer<MessageService> = Layer.scoped(
+export const VscodeMessageServiceLive: Layer.Layer<MessageService> = Layer.effect(
   MessageService,
   Effect.acquireRelease(
     Effect.sync(() => makeVscodeMessageService()),

@@ -5,16 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Data from 'effect/Data';
-import { isRecord, isString } from 'effect/Predicate';
+import type { HashableUri } from '@salesforce/vscode-services/v2';
+import { isObject, isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import type { HashableUri } from 'salesforcedx-vscode-services';
 
 /** Cross-bundle safe: HashableUri from services extension fails instanceof URI in metadata bundle. Use structural check. */
 const isHashableUri = (u: unknown): u is HashableUri => {
-  if (!isRecord(u) || !('uri' in u)) return false;
-  const inner = Object(u).uri;
-  return isRecord(inner) && isString(inner.scheme);
+  if (!isObject(u) || !('uri' in u)) return false;
+  const inner = u.uri;
+  return isObject(inner) && isString(inner.scheme);
 };
 
 const HashableUriSchema = Schema.declare<HashableUri>(isHashableUri);
@@ -31,6 +30,6 @@ export const createDiffFilePair = (props: {
   localUri: HashableUri;
   remoteUri: HashableUri;
   fileName: string;
-}): DiffFilePair => Data.struct(props);
+}): DiffFilePair => props;
 
 export const isDiffFilePair = Schema.is(DiffFilePairSchema);

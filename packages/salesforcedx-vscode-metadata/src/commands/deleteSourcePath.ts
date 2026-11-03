@@ -24,7 +24,7 @@ const COMMAND: ProgressAndSuccessCommandKey = messages.delete_source_text;
 /** throws the standard UserCancellationError if the user cancels the deletion */
 const showDeleteConfirmation = Effect.fn('showDeleteConfirmation')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  yield* (yield* api.services.PromptService).confirmOrThrow({
+  yield* (yield* api.v2.services.PromptService).confirmOrThrow({
     message: nls.localize('delete_source_confirmation_message'),
     confirmLabel: nls.localize('confirm_delete_source_button_text')
   });
@@ -32,7 +32,7 @@ const showDeleteConfirmation = Effect.fn('showDeleteConfirmation')(function* () 
 
 const deletePaths = Effect.fn('deletePaths')(function* (uris: URI[]) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const componentSetService = yield* api.services.ComponentSetService;
+  const componentSetService = yield* api.v2.services.ComponentSetService;
   return yield* componentSetService.getComponentSetFromUris(uris).pipe(
     Effect.flatMap(componentSetService.ensureNonEmptyComponentSet),
     withPreparationProgress('delete', cs => detectConflicts(cs, 'delete'), COMMAND),
@@ -45,13 +45,14 @@ export const deleteSourcePathsCommand = Effect.fn('deleteSourcePaths')(
   function* (sourceUri: URI | undefined, uris: URI[] | undefined) {
     yield* Effect.annotateCurrentSpan({ sourceUri, uris });
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const channelService = yield* api.services.ChannelService;
-    const notificationMode = yield* api.services.NotificationModeService;
+    const channelService = yield* api.v2.services.ChannelService;
+    const notificationMode = yield* api.v2.services.NotificationModeService;
 
     // Resolve source URI from parameter or active editor
-    const resolvedSourceUri = sourceUri ?? (yield* api.services.EditorService.getActiveEditorUri());
+    const resolvedSourceUri =
+      sourceUri ?? (yield* api.v2.services.EditorService.use(service => service.getActiveEditorUri()));
     const resolvedUris = uris?.length ? [resolvedSourceUri, ...uris] : [resolvedSourceUri];
-    yield* api.services.ProjectService.ensureInPackageDirectories(resolvedUris);
+    yield* api.v2.services.ProjectService.use(service => service.ensureInPackageDirectories(resolvedUris));
 
     // User confirmation
     yield* showDeleteConfirmation();

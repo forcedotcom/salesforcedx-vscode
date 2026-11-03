@@ -26,7 +26,7 @@ export type PromptForAuraNameOptions = {
 
 export const promptForAuraName = Effect.fn('promptForAuraName')(function* (opts: PromptForAuraNameOptions = {}) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   return yield* Effect.promise(() =>
     vscode.window.showInputBox({
       value: opts.initialValue,

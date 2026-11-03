@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Either from 'effect/Either';
+import * as Option from 'effect/Option';
 import * as Rec from 'effect/Record';
 import * as Schema from 'effect/Schema';
 
 /** Apex debug level verbosity */
-const DebugLevelSchema = Schema.Literal(
+const DebugLevelSchema = Schema.Literals([
   'NONE',
   'INTERNAL',
   'FINEST',
@@ -20,38 +20,36 @@ const DebugLevelSchema = Schema.Literal(
   'INFO',
   'WARN',
   'ERROR'
-);
+]);
 
 /** Log category verbosity — NONE through FINEST (cumulative). */
-const LogCategoryLevel = Schema.Literal('NONE', 'ERROR', 'WARN', 'INFO', 'DEBUG', 'FINE', 'FINER', 'FINEST');
+const LogCategoryLevel = Schema.Literals(['NONE', 'ERROR', 'WARN', 'INFO', 'DEBUG', 'FINE', 'FINER', 'FINEST']);
 
 /** Shape for DebugLevel items in the JSON file (camelCase, all fields). https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/tooling_api_objects_debuglevel.htm */
 const DebugLevelItemStruct = Schema.Struct({
-  id: Schema.String.pipe(Schema.annotations({ description: 'Salesforce record ID of the DebugLevel.' })),
-  developerName: Schema.String.pipe(Schema.annotations({ description: 'Unique API name for this debug level.' })),
-  masterLabel: Schema.String.pipe(Schema.annotations({ description: 'User-facing label for this debug level.' })),
-  language: Schema.NullOr(Schema.String).pipe(Schema.annotations({ description: 'Language of the MasterLabel.' })),
+  id: Schema.String.pipe(Schema.annotate({ description: 'Salesforce record ID of the DebugLevel.' })),
+  developerName: Schema.String.pipe(Schema.annotate({ description: 'Unique API name for this debug level.' })),
+  masterLabel: Schema.String.pipe(Schema.annotate({ description: 'User-facing label for this debug level.' })),
+  language: Schema.NullOr(Schema.String).pipe(Schema.annotate({ description: 'Language of the MasterLabel.' })),
   apexCode: LogCategoryLevel.pipe(
-    Schema.annotations({ description: 'Apex code execution: DML, SOQL/SOSL, triggers, and test methods.' })
+    Schema.annotate({ description: 'Apex code execution: DML, SOQL/SOSL, triggers, and test methods.' })
   ),
   apexProfiling: LogCategoryLevel.pipe(
-    Schema.annotations({ description: 'Cumulative profiling info: namespace limits, emails sent.' })
+    Schema.annotate({ description: 'Cumulative profiling info: namespace limits, emails sent.' })
   ),
   callout: LogCategoryLevel.pipe(
-    Schema.annotations({ description: 'Request-response XML from external web service and API calls.' })
+    Schema.annotate({ description: 'Request-response XML from external web service and API calls.' })
   ),
-  database: LogCategoryLevel.pipe(Schema.annotations({ description: 'DML statements and inline SOQL/SOSL queries.' })),
-  nba: LogCategoryLevel.pipe(Schema.annotations({ description: 'Einstein Next Best Action strategy execution.' })),
-  system: LogCategoryLevel.pipe(Schema.annotations({ description: 'System method calls such as System.debug().' })),
-  validation: LogCategoryLevel.pipe(
-    Schema.annotations({ description: 'Validation rule names and evaluation results.' })
-  ),
+  database: LogCategoryLevel.pipe(Schema.annotate({ description: 'DML statements and inline SOQL/SOSL queries.' })),
+  nba: LogCategoryLevel.pipe(Schema.annotate({ description: 'Einstein Next Best Action strategy execution.' })),
+  system: LogCategoryLevel.pipe(Schema.annotate({ description: 'System method calls such as System.debug().' })),
+  validation: LogCategoryLevel.pipe(Schema.annotate({ description: 'Validation rule names and evaluation results.' })),
   visualforce: LogCategoryLevel.pipe(
-    Schema.annotations({ description: 'Visualforce events, view state serialization/deserialization.' })
+    Schema.annotate({ description: 'Visualforce events, view state serialization/deserialization.' })
   ),
-  wave: LogCategoryLevel.pipe(Schema.annotations({ description: 'CRM Analytics (Wave) logging.' })),
+  wave: LogCategoryLevel.pipe(Schema.annotate({ description: 'CRM Analytics (Wave) logging.' })),
   workflow: LogCategoryLevel.pipe(
-    Schema.annotations({ description: 'Workflow rules, flows, and process builder actions.' })
+    Schema.annotate({ description: 'Workflow rules, flows, and process builder actions.' })
   )
 });
 
@@ -60,46 +58,46 @@ const DebugLevelItemArray = Schema.Array(DebugLevelItemStruct);
 const isRecord = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 
 /** Build trace-flags JSON schemas from the shared TraceFlagItemStruct (provided by services API at runtime, or directly in build scripts). The struct already carries debugLevelName from the TraceFlag→DebugLevel relationship join. */
-export const buildTraceFlagsSchemas = <A, I>(itemStruct: Schema.Schema<A, I, never>) => {
+export const buildTraceFlagsSchemas = <A, I>(itemStruct: Schema.Codec<A, I, never, never>) => {
   /** Shared by every logType group below — one array schema, annotated per group. */
   const ItemArray = Schema.Array(itemStruct);
 
   const TraceFlagsByLogTypeSchema = Schema.Struct({
     DEVELOPER_LOG: Schema.optional(
       ItemArray.pipe(
-        Schema.annotations({
+        Schema.annotate({
           description: 'Standard debug logs for users. Captures Apex execution, database operations, and system events.'
         })
       )
     ),
     USER_DEBUG: Schema.optional(
       ItemArray.pipe(
-        Schema.annotations({
+        Schema.annotate({
           description: 'User debug statements (System.debug). Captures output from Debug.log() and similar.'
         })
       )
     ),
     CLASS_TRACING: Schema.optional(
       ItemArray.pipe(
-        Schema.annotations({
+        Schema.annotate({
           description: 'Apex class execution traces. Used for profiling and debugging specific classes.'
         })
       )
     ),
     TRIGGERS: Schema.optional(
-      ItemArray.pipe(Schema.annotations({ description: 'Apex trigger execution traces. TracedEntityId prefix 01q.' }))
+      ItemArray.pipe(Schema.annotate({ description: 'Apex trigger execution traces. TracedEntityId prefix 01q.' }))
     ),
-    OTHER: Schema.optional(ItemArray.pipe(Schema.annotations({ description: 'Other trace flag types.' })))
+    OTHER: Schema.optional(ItemArray.pipe(Schema.annotate({ description: 'Other trace flag types.' })))
   });
 
   /** Schema for trace flags virtual doc - used for decode/encode and JSON Schema generation. traceFlags grouped by logType, active only. defaultDurationMinutes now in workspace config. */
   const TraceFlagsConfigSchema = Schema.Struct({
-    defaultDebugLevels: Schema.optional(Schema.Record({ key: Schema.String, value: DebugLevelSchema })),
+    defaultDebugLevels: Schema.optional(Schema.Record(Schema.String, DebugLevelSchema)),
     traceFlags: Schema.optional(TraceFlagsByLogTypeSchema),
     debugLevels: Schema.optional(
-      DebugLevelItemArray.pipe(Schema.annotations({ description: 'All DebugLevel records from the org.' }))
+      DebugLevelItemArray.pipe(Schema.annotate({ description: 'All DebugLevel records from the org.' }))
     )
-  }).pipe(Schema.annotations({ jsonSchema: { title: 'Trace Flags Configuration' } }));
+  }).pipe(Schema.annotate({ jsonSchema: { title: 'Trace Flags Configuration' } }));
 
   /** Desired key order for trace flag items: debugLevelName next to debugLevelId. */
   const TRACE_FLAG_ORDER = [
@@ -142,7 +140,7 @@ export const buildTraceFlagsSchemas = <A, I>(itemStruct: Schema.Schema<A, I, nev
   const decodeTraceFlagsConfigFromJson = (
     json: string
   ): Schema.Schema.Type<typeof TraceFlagsConfigSchema> | undefined =>
-    Either.getOrElse(Schema.decodeUnknownEither(Schema.parseJson(TraceFlagsConfigSchema))(json), () => undefined);
+    Option.getOrUndefined(Schema.decodeUnknownOption(Schema.fromJsonString(TraceFlagsConfigSchema))(json));
 
   return { TraceFlagsConfigSchema, encodeTraceFlagsConfigToJson, decodeTraceFlagsConfigFromJson };
 };

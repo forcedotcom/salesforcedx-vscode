@@ -6,25 +6,24 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { DebugLevelItem, TraceFlagItem } from '@salesforce/vscode-services/v2';
 import * as Deferred from 'effect/Deferred';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import * as Exit from 'effect/Exit';
 import * as Order from 'effect/Order';
 import * as Queue from 'effect/Queue';
 import * as Ref from 'effect/Ref';
-import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { APEX_LOG_SETTINGS_SECTION } from '../constants';
 import { nls } from '../messages';
+import { getRuntime } from '../services/runtime';
 import { TraceFlagsContentProviderService } from './traceFlagsContentProvider';
 
 export const readDefaultDurationMinutes = Effect.fn('ApexLog.readDefaultDurationMinutes')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const settings = yield* api.services.SettingsService;
+  const settings = yield* api.v2.services.SettingsService;
   const val = yield* settings.getValueOrElse(APEX_LOG_SETTINGS_SECTION, 'traceFlagsDefaultDurationMinutes', 30);
   return val > 0 ? val : 30;
 });
@@ -52,9 +51,9 @@ const userTypeGroup = (record: UserRecord): number => {
 };
 
 const userOrder = Order.combineAll([
-  Order.mapInput(Order.number, userTypeGroup),
-  Order.mapInput(Order.string, (record: UserRecord) => record.LastName),
-  Order.mapInput(Order.string, (record: UserRecord) => record.FirstName)
+  Order.mapInput(Order.Number, userTypeGroup),
+  Order.mapInput(Order.String, (record: UserRecord) => record.LastName),
+  Order.mapInput(Order.String, (record: UserRecord) => record.FirstName)
 ]);
 
 const SOSL_DEBOUNCE_MS = 300;
@@ -122,13 +121,11 @@ const searchUsersEffect = (
 /** Show a QuickPick that searches org users via SOSL as the user types (debounced). */
 export const pickOrgUser = Effect.fn('ApexLog.pickOrgUser')(function* (currentUserId: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const conn = yield* (yield* api.services.ConnectionService).getConnection();
-  const runtime = yield* Effect.runtime();
-  const run = Runtime.runFork(runtime);
-
+  const conn = yield* (yield* api.v2.services.ConnectionService).getConnection();
   const queue = yield* Queue.unbounded<string>();
   const deferred = yield* Deferred.make<UserQuickPickItem | undefined>();
   const acceptedRef = yield* Ref.make(false);
+  const run = getRuntime().runFork;
 
   const picker = vscode.window.createQuickPick<vscode.QuickPickItem>();
   picker.placeholder = nls.localize('trace_flag_pick_user');
@@ -136,22 +133,23 @@ export const pickOrgUser = Effect.fn('ApexLog.pickOrgUser')(function* (currentUs
   picker.items = [];
 
   const accept = (item: UserQuickPickItem | undefined) =>
-    Runtime.runCallback(runtime)(
-      Ref.modify(acceptedRef, (a: boolean) => [a, true]),
-      {
-        onExit: (exit: Exit.Exit<boolean, never>) => {
-          if (Exit.isSuccess(exit) && !exit.value) {
-            run(
-              Effect.gen(function* () {
-                yield* Queue.shutdown(queue);
-                yield* Deferred.succeed(deferred, item);
-              })
-            );
-          }
-          picker.dispose();
+    getRuntime()
+      .runPromise(Ref.modify(acceptedRef, (accepted: boolean) => [accepted, true]))
+      .then(alreadyAccepted => {
+        if (!alreadyAccepted) {
+          getRuntime().runFork(
+            Effect.gen(function* () {
+              yield* Queue.shutdown(queue);
+              yield* Deferred.succeed(deferred, item);
+            })
+          );
         }
-      }
-    )();
+        picker.dispose();
+      })
+      .catch(error => {
+        picker.dispose();
+        getRuntime().runFork(Effect.logError('Failed to accept Apex Log user selection', error));
+      });
 
   picker.onDidChangeValue(value => {
     value.length < SOSL_MIN_CHARS ? (picker.items = []) : run(Queue.offer(queue, value));
@@ -164,7 +162,7 @@ export const pickOrgUser = Effect.fn('ApexLog.pickOrgUser')(function* (currentUs
     Stream.debounce(Duration.millis(SOSL_DEBOUNCE_MS)),
     Stream.filter(s => s.length >= SOSL_MIN_CHARS),
     Stream.runForEach(term => searchUsersEffect(term, picker, conn, currentUserId)),
-    Effect.fork
+    Effect.forkChild
   );
   picker.show();
 
@@ -176,8 +174,8 @@ type DebugLevelQuickPickItem = vscode.QuickPickItem & { debugLevelId: string };
 /** Show a QuickPick of the given DebugLevels; resolves to the picked item's id.
  * Fails with UserCancellationError when the user dismisses the picker. Caller must pass a non-empty list. */
 const debugLevelPicker = (spanName: string, placeHolderKey: Parameters<typeof nls.localize>[0]) =>
-  Effect.fn(spanName)(function* (items: DebugLevelItem[]) {
-    const promptService = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.PromptService;
+  Effect.fn(spanName)(function* (items: readonly DebugLevelItem[]) {
+    const promptService = yield* (yield* (yield* ExtensionProviderService).getServicesApi).v2.services.PromptService;
     return yield* Effect.promise(() =>
       vscode.window.showQuickPick<DebugLevelQuickPickItem>(
         items.map(dl => ({
@@ -204,8 +202,8 @@ export type TraceFlagQuickPickItem = vscode.QuickPickItem & { traceFlagId: strin
 
 /** Show a QuickPick of the given (already active) trace flags; resolves to the picked flag's id.
  * Fails with UserCancellationError when the user dismisses the picker. Caller must pass a non-empty list. */
-export const pickTraceFlag = Effect.fn('ApexLog.pickTraceFlag')(function* (active: TraceFlagItem[]) {
-  const promptService = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.PromptService;
+export const pickTraceFlag = Effect.fn('ApexLog.pickTraceFlag')(function* (active: readonly TraceFlagItem[]) {
+  const promptService = yield* (yield* (yield* ExtensionProviderService).getServicesApi).v2.services.PromptService;
   return yield* Effect.promise(() =>
     vscode.window.showQuickPick<TraceFlagQuickPickItem>(
       active.map(tf => ({

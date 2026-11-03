@@ -15,10 +15,6 @@
     "./effect": {
       "types": "./out/src/effect/index.d.ts",
       "default": "./out/src/effect/index.js"
-    },
-    "./execute-anonymous-compat": {
-      "types": "./out/src/executeAnonymousCompat.d.ts",
-      "default": "./out/src/executeAnonymousCompat.js"
     }
   },
   "dependencies": {
@@ -147,9 +143,7 @@
         "out/**",
         "package.json",
         "scripts/verify-packed-web-consumer.mjs",
-        "../../test/fixtures/effect-v4/apexV3/**",
         "../../test/fixtures/effect-v4/apexV4/**",
-        "../salesforcedx-vscode-services/src/core/executeAnonymousCompat.ts",
         "../../scripts/packedServicesFixtures.mjs",
         "../../scripts/bundling/*.js",
         "../../scripts/bundling/*.mjs"

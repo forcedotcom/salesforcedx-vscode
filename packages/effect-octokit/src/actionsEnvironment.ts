@@ -17,8 +17,10 @@ const optionalText = (name: string) => Config.option(Config.string(name));
 /** Default environment variables GitHub sets for every workflow step. */
 const repository = Config.string('GITHUB_REPOSITORY').pipe(
   Config.mapOrFail(value => {
-    const [owner, repo, extra] = value.split('/');
-    return Schema.is(Schema.NonEmptyString)(owner) && Schema.is(Schema.NonEmptyString)(repo) && isUndefined(extra)
+    const [owner, repo] = value.split('/');
+    return Schema.is(Schema.NonEmptyString)(owner) &&
+      Schema.is(Schema.NonEmptyString)(repo) &&
+      isUndefined(value.split('/')[2])
       ? Either.right({ owner, repo })
       : Either.left(ConfigError.InvalidData([], 'Expected GITHUB_REPOSITORY to be owner/repo'));
   })

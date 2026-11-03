@@ -1,24 +1,22 @@
 # V4 foundational services
 
-W-24615055; parent `f0a0fc563b`. These are real V4 implementations tested in focused
-graphs, not production V4 activation.
+W-24615055; parent `f0a0fc563b`. This document records the V4 foundation contracts
+that W-24615069 folded into the production services provider.
 
-## Temporary implementation boundary
+## Provider boundary
 
-`@salesforce/vscode-services-v4-implementation` is private, with ordinary
-`effect: 4.0.6`. It contains host implementations and composition, not another
-runtime owner. It depends on the canonical keys/errors in
-`@salesforce/vscode-services/v2`; it never depends back on the services extension.
+V4 implementations live in `salesforcedx-vscode-services/src/services` and compile
+with the production provider against `effect: 4.0.6`. Canonical keys/errors remain
+in `@salesforce/vscode-services/v2`; genuine V3 proxies remain in the isolated
+`salesforcedx-vscode-services-v3-compat` package. The temporary V4 compiler/fixture
+package was removed by W-24615069.
 
-Do not place V3 and V4 implementations in one compiler project via an alias:
-installed LS 0.87.2 selects one Effect major per program. The private package gets
-its own TypeScript/LS program and the same 28-rule diagnostics gate as other packages.
+Keep V3 and V4 modules in their own compiler programs: the language service selects
+one Effect major per program. Production activation acquires one V4 graph and shares
+its memo map across filesystem bootstrap and provider layers.
 
-W59/W60/W63 extend this package and reuse its stable layer values. W69 moves the
-implementations into the provider, changes ordinary dependencies to V4, removes
-this temporary package and superseded V3 implementations, and acquires one graph.
-Until then, production activation remains unchanged; do not activate both sets of
-watchers or claim that old V3 activation E2E proves V4 activation.
+W59/W60/W63 extended these stable layer values. W69 activated them in the provider,
+removed superseded V3 implementations, and exposed both API versions from that owner.
 
 ## Layer ownership
 
@@ -39,16 +37,15 @@ watchers or claim that old V3 activation E2E proves V4 activation.
 - File listeners are acquired separately: a later registration failure releases
   already-acquired listeners and the enclosing watcher exactly once.
 
-Connection-dependent `configFileWatcher` and org-state `aliasFileWatcher` integration
-remain W59. Auth/retrieve-on-load settings handlers follow their connection/domain
-closure. The existing terminal/HTTP `@effect/platform` imports belong to W69; this
-foundation implementation has no stale platform or unstable-module imports.
+Connection-dependent configuration/alias watchers, auth and retrieve-on-load
+settings handlers are wired into the same connection/domain closure. The V4
+TerminalService uses the existing `@effect/platform` child-process boundary.
 
 ## Platform and data contracts
 
 - Canonical V2 keys are extended, not redeclared. Host implementation stays out of
-  the public contracts package. ChannelService's host implementation belongs to the
-  private implementation package, not the V2 contracts.
+  the public contracts package; ChannelService's implementation belongs to the
+  production services provider.
 - The pure `uriComparison` module moved to a V2 subpath shared by the old provider
   and V4 HashableUri. It imports no Effect runtime and passes no runnable value
   across majors. Its `.cjs`/`.d.cts` artifacts support both native ESM and existing
@@ -76,8 +73,8 @@ cache sharing/capacity/invalidation, fresh workspace reads, settings/aliases/err
 redaction, scoped singletons, event delivery, failed registration, partial rollback,
 startup cancellation, real Node/memfs watches and late backend replacement.
 
-`scripts/test-foundational-services.mjs` packs the actual implementation/contracts,
-installs them outside the checkout and checks strict declarations, real V4 LS
+`scripts/test-foundational-services.mjs` packs the production services package and
+contracts, installs them outside the checkout and checks strict declarations, real V4 LS
 positive/negative controls, and missing-provider/channel TypeScript failures.
 Node and browser-target bundles execute the actual graph; the latter uses jsdom
 under Node for the SDK's browser globals. This is not a browser or VS Code E2E run.

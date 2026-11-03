@@ -38,7 +38,7 @@ const notDeployedOutcomeLabel = (change: ComponentChangeKind): string => {
 /** Format deploy results for output */
 export const formatDeployOutput = Effect.fn('formatDeployOutput')(function* (result: DeployResult) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { isSDRSuccess, getComponentState } = yield* api.services.ComponentSetService;
+  const { isSDRSuccess, getComponentState } = yield* api.v2.services.ComponentSetService;
   const failed = yield* getMergedDeployFailures(result);
   const applied = deployAppliedToOrg(result);
 

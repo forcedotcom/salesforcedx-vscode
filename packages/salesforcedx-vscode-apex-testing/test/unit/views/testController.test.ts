@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type * as PackageResolutionModule from '../../../src/testDiscovery/packageResolution';
+
 vi.mock('../../../src/services/extensionProvider', async () => {
   const EffectLib = await vi.importActual<typeof Effect>('effect/Effect');
   const SubscriptionRef = await vi.importActual<typeof SubscriptionRefModule>('effect/SubscriptionRef');
@@ -20,11 +22,14 @@ vi.mock('../../../src/services/extensionProvider', async () => {
   const { ApexTestExecutionService: ApexTestExecutionServiceActual } = await vi.importActual<typeof ApexTestExecution>(
     '../../../src/views/apexTestExecutionService'
   );
-  const { URI: UriClass } = await vi.importActual<typeof VscodeUri>('vscode-uri');
-  const { HashableUri } = await vi.importActual<typeof HashableUriModule>(
-    'salesforcedx-vscode-services/src/vscode/hashableUri'
+  const { PackageResolutionService } = await vi.importActual<typeof PackageResolutionModule>(
+    '../../../src/testDiscovery/packageResolution'
   );
+  const V2 = await import('@salesforce/vscode-services/v2');
+  const { URI: UriClass } = await vi.importActual<typeof VscodeUri>('vscode-uri');
+  const { HashableUri } = await vi.importActual<typeof HashableUriModule>('@salesforce/vscode-services/v2');
   const vscodeMock = await import('vscode');
+  type DefaultOrgInfo = typeof V2.DefaultOrgInfoSchema.Type;
 
   let mockConnectionRef: any;
   let mockOrgId: string | undefined = 'org123';
@@ -63,8 +68,8 @@ vi.mock('../../../src/services/extensionProvider', async () => {
     safeWriteFile: () => EffectLib.void,
     writeFile: () => EffectLib.void,
     toUri: (filePath: string) => EffectLib.succeed(UriClass.parse(`memfs:${filePath}`)),
-    // accessor form: `yield* api.services.FsService.HashableUri` resolves the value namespace.
-    HashableUri: EffectLib.succeed(HashableUri),
+    // accessor form: `yield* api.v2.services.FsService.HashableUri` resolves the value namespace.
+    HashableUri,
     showTextDocument: (uri: unknown, options?: unknown) =>
       EffectLib.tryPromise({
         try: () =>
@@ -83,57 +88,71 @@ vi.mock('../../../src/services/extensionProvider', async () => {
     getProgressLocation: vi.fn(() => EffectLib.succeed(vscodeMock.ProgressLocation.Window))
   };
   const mockServicesApi = {
-    services: {
-      ConnectionService: MockConnectionService,
-      FsService: mockFsService,
-      // Yielded as an instance in the execution service (yield* api.services.ChannelService), so wrap in
-      // Effect.succeed — same seam as testReportGenerator.test.ts.
-      ChannelService: EffectLib.succeed(mockChannelService),
-      NotificationModeService: EffectLib.succeed(mockNotificationModeService),
-      WorkspaceService: MockWorkspaceService,
-      MetadataRetrieveService: {
-        retrieve: mockMetadataRetrieve
-      },
-      ORG_METADATA_SCHEME: 'sf-org-metadata',
-      OrgMetadataCatalog: EffectLib.succeed(mockOrgMetadataCatalog),
-      // restore-previous-results defaults false so discovery's restore step short-circuits in tests not
-      // exercising it; other keys fall through to their provided default. Yielded as an instance
-      // (yield* api.services.SettingsService), so wrap in Effect.succeed.
-      SettingsService: EffectLib.succeed({
-        getValue: (_section: string, key: string, defaultValue: unknown) =>
-          EffectLib.succeed(key === 'restore-previous-results' ? false : defaultValue),
-        getValueOrElse: (_section: string, key: string, defaultValue: unknown) =>
-          EffectLib.succeed(key === 'restore-previous-results' ? false : defaultValue)
-      }),
-      // Backs the inline getDefaultOrgInfo helper in the real ApexTestTreeService:
-      // persistDiscoveredClasses/addClassToTree/applyIncrementalDiff yield* api.services.TargetOrgRef() then
-      // SubscriptionRef.get for the org key. Fresh ref per call. Mirrors watchers/testDiscovery.test.ts.
-      TargetOrgRef: () => SubscriptionRef.make({ orgId: mockOrgId, username: 'user@example.com' })
+    v2: {
+      services: {
+        ConnectionService: V2.ConnectionService,
+        FsService: V2.FsService,
+        ChannelService: V2.ChannelService,
+        NotificationModeService: V2.NotificationModeService,
+        WorkspaceService: V2.WorkspaceService,
+        MetadataRetrieveService: V2.MetadataRetrieveService,
+        ORG_METADATA_SCHEME: V2.ORG_METADATA_SCHEME,
+        OrgMetadataCatalog: V2.OrgMetadataCatalog,
+        SettingsService: V2.SettingsService,
+        TargetOrgRef: V2.TargetOrgRef,
+        QueryService: V2.QueryService
+      }
     }
   };
-  const ExtensionProviderLayer = Layer.effect(
-    ExtensionProviderService,
-    EffectLib.sync(
-      () =>
-        ({
-          getServicesApi: EffectLib.succeed(mockServicesApi)
-        }) as unknown as EffectExtUtils.ExtensionProviderService
-    )
+  const ExtensionProviderLayer = Layer.succeed(ExtensionProviderService, {
+    getServicesApi: EffectLib.succeed(mockServicesApi)
+  } as never);
+  let mockTargetOrgRef: any;
+  const serviceValuesLayer = Layer.mergeAll(
+    Layer.succeed(V2.ConnectionService, MockConnectionService as never),
+    Layer.succeed(V2.FsService, mockFsService as never),
+    Layer.succeed(V2.ChannelService, mockChannelService as never),
+    Layer.succeed(V2.NotificationModeService, mockNotificationModeService as never),
+    Layer.succeed(V2.WorkspaceService, MockWorkspaceService as never),
+    Layer.succeed(V2.MetadataRetrieveService, { retrieve: mockMetadataRetrieve } as never),
+    Layer.succeed(V2.OrgMetadataCatalog, mockOrgMetadataCatalog as never),
+    Layer.succeed(V2.SettingsService, {
+      getValue: (_section: string, key: string, defaultValue: unknown) =>
+        EffectLib.succeed(key === 'restore-previous-results' ? false : defaultValue),
+      getValueOrElse: (_section: string, key: string, defaultValue: unknown) =>
+        EffectLib.succeed(key === 'restore-previous-results' ? false : defaultValue)
+    } as never),
+    Layer.succeed(V2.QueryService, { query: () => EffectLib.succeed({ totalSize: 0, records: [] }) } as never),
+    Layer.effect(
+      V2.TargetOrgRef,
+      EffectLib.flatMap(
+        SubscriptionRef.make<DefaultOrgInfo>({
+          orgId: mockOrgId as DefaultOrgInfo['orgId'],
+          username: 'user@example.com'
+        }),
+        ref => {
+          mockTargetOrgRef = ref;
+          return EffectLib.succeed(ref);
+        }
+      )
+    ),
+    Layer.succeed(PackageResolutionService, { resolve: () => EffectLib.succeed(new Map()) } as never)
   );
   // ApexTestTreeService owns the tree Refs; the shell reads them via this runtime, so the mock runtime
   // must provide its Default layer. Built lazily (not at module-eval) to avoid the import cycle
   // apexTestTreeService -> testUtils -> extensionProvider (this mock).
   let mockRuntime: any;
   let MockAllServicesLayer: any;
-  let treeService: any;
+  let treeService: typeof ApexTestTreeServiceActual;
   const ensureRuntime = () => {
     if (!mockRuntime) {
       treeService = ApexTestTreeServiceActual;
       MockAllServicesLayer = Layer.mergeAll(
         ExtensionProviderLayer,
-        treeService.Default,
-        ApexTestExecutionServiceActual.Default,
-        ApexTestRunCacheService.Default
+        serviceValuesLayer,
+        treeService.layer,
+        ApexTestExecutionServiceActual.layer,
+        ApexTestRunCacheService.layer
       );
       // One persistent runtime so the tree-state Refs survive across the shell's runSync/runPromise
       // calls within a test (matching the production single-runtime behavior).
@@ -154,6 +173,14 @@ vi.mock('../../../src/services/extensionProvider', async () => {
     },
     __setMockOrgId: (orgId: string | undefined) => {
       mockOrgId = orgId;
+      if (mockTargetOrgRef) {
+        EffectLib.runSync(
+          SubscriptionRef.set(mockTargetOrgRef, {
+            orgId: orgId as DefaultOrgInfo['orgId'],
+            username: 'user@example.com'
+          })
+        );
+      }
     },
     __setMockReadFileResult: (s: string) => {
       mockReadFileResult = s;
@@ -169,8 +196,8 @@ vi.mock('../../../src/services/extensionProvider', async () => {
     // Clear the shared tree Refs between tests so the singleton runtime's maps don't leak state.
     __resetTree: () => {
       ensureRuntime();
-      mockRuntime.runSync(treeService.reset());
-      mockRuntime.runSync(treeService.clearRestoredResults());
+      mockRuntime.runSync(treeService.use(service => service.reset()));
+      mockRuntime.runSync(treeService.use(service => service.clearRestoredResults()));
     }
   };
 });
@@ -182,12 +209,6 @@ vi.mock('../../../src/utils/testUtils', async () => {
     ...actual,
     readTestRunIdFile: vi.fn(() => EffectLib.succeed(undefined))
   };
-});
-
-vi.mock('../../../src/testDiscovery/packageResolution', async () => {
-  const EffectLib = await vi.importActual<typeof Effect>('effect/Effect');
-  // resolve is a static accessor (PackageResolutionService.resolve(...)) returning an Effect<Map>.
-  return { PackageResolutionService: { resolve: () => EffectLib.succeed(new Map()) } };
 });
 
 // Mock TestService before imports
@@ -225,7 +246,7 @@ import type * as SubscriptionRefModule from 'effect/SubscriptionRef';
 import type * as LayerModule from 'effect/Layer';
 import type * as ManagedRuntimeModule from 'effect/ManagedRuntime';
 import type * as VscodeUri from 'vscode-uri';
-import type * as HashableUriModule from 'salesforcedx-vscode-services/src/vscode/hashableUri';
+import type * as HashableUriModule from '@salesforce/vscode-services/v2';
 import type * as ApexTestRunCache from '../../../src/testRunCache/apexTestRunCacheService';
 import type * as ApexTestTree from '../../../src/views/apexTestTreeService';
 import type * as ApexTestExecution from '../../../src/views/apexTestExecutionService';
@@ -248,8 +269,17 @@ class MockFailure extends Schema.TaggedError<MockFailure>()('MockFailure', { mes
 
 // The tree maps live in ApexTestTreeService Refs; read the live Map through the mock runtime (same path
 // the production module accessors use) to seed test state.
-const treeMap = (key: 'getSuiteItems' | 'getClassItems' | 'getMethodItems'): Map<string, vscode.TestItem> =>
-  extensionProvider.getApexTestingRuntime().runSync(ApexTestTreeService[key]());
+const treeMap = (key: 'getSuiteItems' | 'getClassItems' | 'getMethodItems'): Map<string, vscode.TestItem> => {
+  const runSync = extensionProvider.getApexTestingRuntime().runSync;
+  switch (key) {
+    case 'getSuiteItems':
+      return runSync(ApexTestTreeService.use(service => service.getSuiteItems()));
+    case 'getClassItems':
+      return runSync(ApexTestTreeService.use(service => service.getClassItems()));
+    case 'getMethodItems':
+      return runSync(ApexTestTreeService.use(service => service.getMethodItems()));
+  }
+};
 
 // Mock vscode.tests API
 const mockTestController = {

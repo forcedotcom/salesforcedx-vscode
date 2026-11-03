@@ -7,64 +7,72 @@
 
 import type { Mock as VitestMock } from 'vitest';
 import type { ResolvedPackageInfo } from '../../../src/testDiscovery/schemas';
-import type { Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import {
+  QueryService,
+  TargetOrgRef,
+  type DefaultOrgInfo,
+  type QueryOptions,
+  type QueryPage,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 import { PackageResolutionService } from '../../../src/testDiscovery/packageResolution';
 
 // PackageResolutionService.resolve resolves the connection via ConnectionService.getConnection() and the
 // org key via TargetOrgRef, both reached ambiently through ExtensionProviderService. The tests drive the
 // service through a stub ExtensionProviderService layer; QueryService.query is the controllable seam.
-// buildLayer() constructs a fresh service instance (fresh Ref state) per run, so cache/unavailable state
+// buildLayer() constructs a fresh V4 service instance (fresh Ref state) per run, so cache/unavailable state
 // never leaks between tests. runWith resolves the service once and runs the whole program in one runtime,
 // so multiple resolve() calls in one test share that instance's cache.
 describe('PackageResolutionService', () => {
   let mockToolingQuery: VitestMock;
-  let mockConnection: Partial<Connection>;
-  let orgInfo: { orgId?: string; username?: string };
+  let orgInfo: DefaultOrgInfo;
 
   beforeEach(() => {
     mockToolingQuery = vi.fn();
-    mockConnection = { tooling: { query: mockToolingQuery } as unknown as Connection['tooling'] };
-    orgInfo = { orgId: 'org123', username: 'user@example.com' };
+    orgInfo = { orgId: 'org123' as DefaultOrgInfo['orgId'], username: 'user@example.com' };
   });
 
   const buildLayer = () => {
     const mockApi = {
-      services: {
-        ConnectionService: { getConnection: () => Effect.succeed(mockConnection as Connection) },
-        QueryService: Effect.succeed({
-          query: (options: { soql: string }) =>
-            Effect.tryPromise({
-              try: () => mockToolingQuery(options.soql) as Promise<{ records?: unknown[]; totalSize?: number }>,
-              catch: (error: unknown) => error
-            }).pipe(
-              Effect.map(result => ({
-                totalSize: result.totalSize ?? result.records?.length ?? 0,
-                records: Stream.fromIterable(result.records ?? [])
-              }))
-            )
-        }),
-        TargetOrgRef: () => SubscriptionRef.make(orgInfo)
-      }
-    };
+      v2: { services: { QueryService, TargetOrgRef } }
+    } as unknown as SalesforceVSCodeServicesApiV2;
+    const queryService = {
+      query: <A, E, R>(options: QueryOptions, decodePage: (input: unknown) => Effect.Effect<QueryPage<A>, E, R>) =>
+        Effect.tryPromise({
+          try: () => mockToolingQuery(options.soql) as Promise<{ records?: unknown[]; totalSize?: number }>,
+          catch: (error: unknown) => (error instanceof Error ? error : new Error(String(error)))
+        }).pipe(
+          Effect.flatMap(result =>
+            decodePage({
+              totalSize: result.totalSize ?? result.records?.length ?? 0,
+              records: result.records ?? []
+            })
+          ),
+          Effect.map(page => ({ totalSize: page.totalSize, records: Stream.fromIterable(page.records ?? []) }))
+        )
+    } as unknown as QueryService['Service'];
     const ExtProviderLayer = Layer.succeed(ExtensionProviderService, {
       getServicesApi: Effect.succeed(mockApi)
-    } as unknown as ExtensionProviderService);
-    // Provide the ext provider to the service AND keep it ambient (resolve yields it at call time).
-    return Layer.merge(Layer.provide(PackageResolutionService.Default, ExtProviderLayer), ExtProviderLayer);
+    } as unknown as ExtensionProviderService['Service']);
+    const serviceLayers = Layer.mergeAll(
+      Layer.succeed(QueryService, queryService),
+      Layer.effect(TargetOrgRef, SubscriptionRef.make<DefaultOrgInfo>(orgInfo))
+    );
+    return Layer.mergeAll(PackageResolutionService.layer, serviceLayers, ExtProviderLayer);
   };
 
   // The mock api provides ConnectionService/TargetOrgRef at runtime, but resolve's type still declares them
   // in R (via the static accessor types); erase R to never at the boundary, like apexTestExecutionService.test.
-  const runWith = <A, E, R>(program: (svc: PackageResolutionService) => Effect.Effect<A, E, R>): Promise<A> =>
-    Effect.runPromise(
-      Effect.flatMap(PackageResolutionService, program).pipe(Effect.provide(buildLayer())) as Effect.Effect<A>
-    );
+  const runWith = <A, E, R>(
+    program: (svc: PackageResolutionService['Service']) => Effect.Effect<A, E, R>
+  ): Promise<A> =>
+    Effect.runPromise(PackageResolutionService.use(program).pipe(Effect.provide(buildLayer())) as Effect.Effect<A>);
 
   const resolve = (
     ids: string[],

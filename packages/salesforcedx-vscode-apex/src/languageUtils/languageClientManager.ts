@@ -79,7 +79,7 @@ const promptForRestartOption = Effect.fn('LanguageClientManager.promptForRestart
   items: RestartQuickPickItem[]
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   return yield* Effect.promise(() =>
     vscode.window.showQuickPick(items, {
       placeHolder: nls.localize('apex_language_server_restart_dialog_prompt')
@@ -100,19 +100,19 @@ const telemetryError = (cause: unknown): { error?: unknown } =>
 
 const removeApexDbEffect = Effect.fn('LanguageClientManager.removeApexDB')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const info = yield* api.services.WorkspaceService.getWorkspaceInfo();
+  const fsService = yield* api.v2.services.FsService;
+  const info = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfo());
   if (info.isEmpty) {
     return;
   }
   // A failed listing (e.g. the tools dir doesn't exist yet) ⇒ nothing to clean.
   // safeDelete swallows per-folder failures, matching the old swallow-and-continue behavior.
   yield* pipe(
-    Utils.joinPath(info.uri, '.sfdx', 'tools'),
-    api.services.FsService.readDirectoryWithTypes,
+    fsService.readDirectoryWithTypes(Utils.joinPath(info.uri, '.sfdx', 'tools')),
     Effect.catchTag('FsServiceError', () => Effect.succeed<ToolsEntry[]>([])),
     Effect.map(toolsDirsToDelete),
     Effect.flatMap(uris =>
-      Effect.forEach(uris, uri => api.services.FsService.safeDelete(uri, { recursive: true, useTrash: true }), {
+      Effect.forEach(uris, uri => fsService.safeDelete(uri, { recursive: true, useTrash: true }), {
         concurrency: 'unbounded',
         discard: true
       })
@@ -311,7 +311,7 @@ export class LanguageClientManager {
       statusBarInstance.restarting();
       await getRuntime().runPromise(
         Effect.tryPromise({ try: () => alc.stop(), catch: getMessageFromError }).pipe(
-          Effect.catchAll(message =>
+          Effect.catch(message =>
             Effect.sync(() => {
               void vscode.window.showWarningMessage(
                 `${nls.localize('apex_language_server_restart_dialog_restart_only')} - ${message}`
@@ -327,7 +327,7 @@ export class LanguageClientManager {
         // strand this.isRestarting = true.
         await getRuntime().runPromise(
           Effect.tryPromise({ try: removeApexDB, catch: error => ({ error }) }).pipe(
-            Effect.catchAll(({ error }) => Effect.logWarning('Failed to remove Apex DB', { error }))
+            Effect.catch(({ error }) => Effect.logWarning('Failed to remove Apex DB', { error }))
           )
         );
       }
@@ -349,9 +349,9 @@ export class LanguageClientManager {
           },
           catch: error => ({ error, message: getMessageFromError(error) })
         }).pipe(
-          Effect.catchAll(({ error, message }) =>
+          Effect.catch(({ error, message }) =>
             Effect.logError('Error creating language client', { error }).pipe(
-              Effect.zipRight(
+              Effect.andThen(
                 Effect.sync(() => {
                   void vscode.window.showErrorMessage(
                     `${nls.localize('apex_language_server_failed_activate')} - ${message}`
@@ -394,19 +394,21 @@ export class LanguageClientManager {
       // Keep one channel across restarts; the extension scope owns and disposes it on deactivation.
       if (!this.outputChannel) {
         const extensionScope = yield* getExtensionScope();
-        this.outputChannel = yield* Effect.acquireRelease(
-          Effect.try({
-            try: () => vscode.window.createOutputChannel(nls.localize('client_name')),
-            catch: cause => languageClientSetupError('outputChannel', cause)
-          }),
-          outputChannel =>
-            Effect.sync(() => {
-              outputChannel.dispose();
-              if (this.outputChannel === outputChannel) {
-                this.outputChannel = undefined;
-              }
-            })
-        ).pipe(Scope.extend(extensionScope));
+        this.outputChannel = yield* Scope.provide(extensionScope)(
+          Effect.acquireRelease(
+            Effect.try({
+              try: () => vscode.window.createOutputChannel(nls.localize('client_name')),
+              catch: cause => languageClientSetupError('outputChannel', cause)
+            }),
+            outputChannel =>
+              Effect.sync(() => {
+                outputChannel.dispose();
+                if (this.outputChannel === outputChannel) {
+                  this.outputChannel = undefined;
+                }
+              })
+          )
+        );
       }
 
       const languageClient = yield* createLanguageServer(extensionContext, this.outputChannel);
@@ -448,7 +450,7 @@ export class LanguageClientManager {
       effect.pipe(
         Effect.catchTag('ApexLanguageClientSetupError', error =>
           Effect.sync(() => fireErrorSpan(LSP_ERR, telemetryError(error.cause), { phase: error.phase })).pipe(
-            Effect.zipRight(this.reportLanguageClientSetupError(error.message, languageServerStatusBarItem))
+            Effect.andThen(this.reportLanguageClientSetupError(error.message, languageServerStatusBarItem))
           )
         )
       )

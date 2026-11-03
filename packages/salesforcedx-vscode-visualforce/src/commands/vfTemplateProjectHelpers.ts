@@ -24,7 +24,7 @@ const validateVfTypeName = (value: string): string | undefined => {
 
 export const promptForVfTypeName = Effect.fn('promptForVfTypeName')(function* (prompt: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   return yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt,

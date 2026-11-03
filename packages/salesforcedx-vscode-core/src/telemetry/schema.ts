@@ -6,22 +6,17 @@
  */
 import { ExtensionPackageJsonSchema } from '@salesforce/effect-ext-utils';
 import * as Schema from 'effect/Schema';
+import * as SchemaGetter from 'effect/SchemaGetter';
 
-const requiredPackageJsonString = (message: string) =>
-  Schema.propertySignature(
-    Schema.Unknown.pipe(
-      Schema.filter((value): value is string => typeof value === 'string', { message: () => message })
-    )
-  ).annotations({ missingMessage: () => message });
+const requiredPackageJsonString = (message: string) => Schema.String.annotate({ message });
 
-const BooleanString = Schema.transform(
-  Schema.String.pipe(Schema.pattern(/^(?:true|1|yes|on|enabled|false|0|no|off|disabled)$/i)),
-  Schema.Boolean,
-  {
-    strict: true,
-    decode: value => /^(?:true|1|yes|on|enabled)$/i.test(value),
-    encode: value => (value ? 'true' : 'false')
-  }
+const BooleanString = Schema.String.check(
+  Schema.isPattern(/^(?:true|1|yes|on|enabled|false|0|no|off|disabled)$/i)
+).pipe(
+  Schema.decodeTo(Schema.Boolean, {
+    decode: SchemaGetter.transform(value => /^(?:true|1|yes|on|enabled)$/i.test(value)),
+    encode: SchemaGetter.transform(value => (value ? 'true' : 'false'))
+  })
 );
 
 export const extensionPackageJsonSchema = Schema.Struct({
@@ -30,5 +25,5 @@ export const extensionPackageJsonSchema = Schema.Struct({
   version: requiredPackageJsonString('Extension version is not defined in package.json'),
   // original o11y (that is, sending most events and having them end up in splunk)
   enableO11y: Schema.optional(BooleanString),
-  productFeatureId: Schema.optional(Schema.String.pipe(Schema.startsWith('aJC')))
+  productFeatureId: Schema.optional(Schema.String.check(Schema.isPattern(/^aJC/)))
 });

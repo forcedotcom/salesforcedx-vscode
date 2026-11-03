@@ -7,4 +7,4 @@
 import * as Order from 'effect/Order';
 import { type FieldDeclaration } from './types/general';
 
-export const byFieldName = Order.mapInput(Order.string, (d: FieldDeclaration) => d.name);
+export const byFieldName = Order.mapInput(Order.String, (d: FieldDeclaration) => d.name);

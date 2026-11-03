@@ -7,7 +7,7 @@
 
 import * as Schema from 'effect/Schema';
 import { URI } from 'vscode-uri';
-import { OrgMetadataCatalogEntrySchema } from '../../../src/orgCatalog/orgMetadataCatalogTypes';
+import { OrgMetadataCatalogEntrySchema } from '@salesforce/vscode-services/v2';
 
 const isCatalogEntry = Schema.is(OrgMetadataCatalogEntrySchema);
 

@@ -1,6 +1,6 @@
 # V4 connection migration
 
-W-24615059 extends the temporary private V4 implementation package. Production activation remains V3 until W-24615069; this slice verifies the actual connection graph independently, not a second activated provider graph.
+W-24615059 extended the temporary private V4 implementation package. W-24615069 integrated its connection graph into production activation; this document records the ownership invariants, not a second provider graph.
 
 ## Ownership
 
@@ -38,5 +38,5 @@ The V3-only `createCompatibleConnectionServices` initializes the bridge before r
 
 - W60 adds the [project/catalog graph and document provider](effect-v4-project-catalog.md), including the actual QueryService reader over Connection's query executor. W63 retains merged workspace retrieve, deploy, delete and remaining operations.
 - W69 folds the private implementations into the provider, supplies host/observability services, replaces production activation, and removes superseded V3 implementations and temporary package wiring.
-- W75 migrates shared first-party consumer plumbing; final-cutover work verifies packaged auth/org-switch acceptance and external shipping refs.
+- W75 migrated shared first-party consumer plumbing; final-cutover verification still covers packaged auth/org-switch acceptance and external shipping refs.
 - No sf-effect-sdk adoption, legacy declaration repointing, core Connection substitution or public `api.v1` alias.

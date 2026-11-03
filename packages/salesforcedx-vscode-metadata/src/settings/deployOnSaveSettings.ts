@@ -17,7 +17,7 @@ import {
 /** Check if deploy on save is enabled */
 export const getDeployOnSaveEnabled = Effect.fn('getDeployOnSaveEnabled')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* (yield* api.services.SettingsService).getValueOrElse(
+  return yield* (yield* api.v2.services.SettingsService).getValueOrElse(
     CORE_CONFIG_SECTION,
     DEPLOY_ON_SAVE_ENABLED,
     false
@@ -27,7 +27,7 @@ export const getDeployOnSaveEnabled = Effect.fn('getDeployOnSaveEnabled')(functi
 /** Check if conflicts should be ignored during deploy on save */
 export const getIgnoreConflicts = Effect.fn('getIgnoreConflicts')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* (yield* api.services.SettingsService).getValueOrElse(
+  return yield* (yield* api.v2.services.SettingsService).getValueOrElse(
     CORE_CONFIG_SECTION,
     DEPLOY_ON_SAVE_IGNORE_CONFLICTS,
     false
@@ -37,7 +37,7 @@ export const getIgnoreConflicts = Effect.fn('getIgnoreConflicts')(function* () {
 /** Check if conflict detection is enabled for deploy/retrieve on non-tracking orgs (reads from core for backward compat). Tracking orgs always check. */
 export const getDetectConflictsForDeployAndRetrieve = Effect.fn('getDetectConflictsForDeployAndRetrieve')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* (yield* api.services.SettingsService).getValueOrElse(
+  return yield* (yield* api.v2.services.SettingsService).getValueOrElse(
     CORE_CONFIG_SECTION,
     DETECT_CONFLICTS_FOR_DEPLOY_AND_RETRIEVE,
     false

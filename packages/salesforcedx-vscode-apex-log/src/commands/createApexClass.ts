@@ -23,7 +23,7 @@ const APEX_CLASS_TEMPLATE_DESCRIPTIONS: Record<string, string> = {
   Queueable: nls.localize('apex_class_queueable_template_description')
 };
 
-const UriSchema = Schema.Unknown.pipe(Schema.filter((u): u is URI => URI.isUri(u), { message: () => 'Expected URI' }));
+const UriSchema = Schema.declare<URI>(URI.isUri, { message: 'Expected URI' });
 
 const CreateApexClassParams = Schema.Struct({
   name: Schema.optional(Schema.String),
@@ -34,16 +34,20 @@ type CreateApexClassParams = Schema.Schema.Type<typeof CreateApexClassParams>;
 
 const promptForTemplate = Effect.fn('promptForTemplate')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
 
-  const builtInNames = yield* api.services.TemplateService.getBuiltInTemplateNames('apexclass', /\.cls$/);
+  const builtInNames = yield* api.v2.services.TemplateService.use(service =>
+    service.getBuiltInTemplateNames('apexclass', /\.cls$/)
+  );
   const sortedNames = ['DefaultApexClass', ...builtInNames.filter((n: string) => n !== 'DefaultApexClass')];
   const builtInItems = sortedNames.map((label: string) => ({
     label,
     description: APEX_CLASS_TEMPLATE_DESCRIPTIONS[label] ?? ''
   }));
 
-  const customTemplateNames = yield* api.services.TemplateService.getCustomTemplateNames('apexclass', '.cls');
+  const customTemplateNames = yield* api.v2.services.TemplateService.use(service =>
+    service.getCustomTemplateNames('apexclass', '.cls')
+  );
   const customItems = customTemplateNames.map(label => ({ label, description: '' }));
   const customNameSet = new Set(customTemplateNames);
   const nonOverriddenBuiltInItems = builtInItems.filter(item => !customNameSet.has(item.label));
@@ -77,9 +81,9 @@ export const createApexClassCommand = Effect.fn('createApexClassCommand')(functi
   arg?: URI | CreateApexClassParams
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const project = yield* api.services.ProjectService.getSfProject();
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+  const promptService = yield* api.v2.services.PromptService;
+  const project = yield* api.v2.services.ProjectService.use(service => service.getSfProject());
+  const workspaceInfo = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
 
   const params = Schema.is(CreateApexClassParams)(arg) ? arg : undefined;
   const template = params?.template ?? (yield* promptForTemplate());
@@ -98,17 +102,20 @@ export const createApexClassCommand = Effect.fn('createApexClassCommand')(functi
     }));
 
   const uris = [`${className}.cls`, `${className}.cls-meta.xml`].map(uri => Utils.joinPath(outputDirUri, uri));
-  const fsService = yield* api.services.FsService;
+  const fsService = yield* api.v2.services.FsService;
+  const cwd = yield* fsService.uriToPath(workspaceInfo.uri);
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris });
 
-  yield* api.services.TemplateService.create({
-    cwd: yield* api.services.FsService.uriToPath(workspaceInfo.uri),
-    templateType: api.services.TemplateType.ApexClass,
-    outputdir: outputDirUri,
-    options: { template, classname: className }
-  });
+  yield* api.v2.services.TemplateService.use(service =>
+    service.create({
+      cwd,
+      templateType: api.v2.services.TemplateType.ApexClass,
+      outputdir: outputDirUri,
+      options: { template, classname: className }
+    })
+  );
 
-  const channelService = yield* api.services.ChannelService;
+  const channelService = yield* api.v2.services.ChannelService;
   yield* channelService.appendToChannel(nls.localize('apex_generate_class_success'));
   yield* fsService.showTextDocument(uris[0]);
 

@@ -47,26 +47,32 @@ type EnvInfo = {
 
 const gatherMetadataInfo = Effect.fn('gatherMetadataInfo')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const componentSet = yield* api.services.ComponentSetService.getComponentSetFromProjectDirectories();
-  const project = yield* api.services.ProjectService.getSfProject();
-  const fsService = yield* api.services.FsService;
+  const componentSet = yield* api.v2.services.ComponentSetService.use(service =>
+    service.getComponentSetFromProjectDirectories()
+  );
+  const project = yield* api.v2.services.ProjectService.use(service => service.getSfProject());
+  const fsService = yield* api.v2.services.FsService;
 
   const components = Array.from(componentSet.getSourceComponents());
 
   const typeGroups = Map.groupBy(components, comp => comp.type.name);
 
   const fileSizesMap = yield* Stream.fromIterable(components).pipe(
-    Stream.mapConcat(comp => sourceComponentToPaths(comp).map(file => ({ typeName: comp.type.name, file }))),
+    Stream.map(comp => sourceComponentToPaths(comp).map(file => ({ typeName: comp.type.name, file }))),
+    Stream.flattenIterable,
     Stream.mapEffect(({ typeName, file }) =>
       fsService.stat(file).pipe(
         Effect.map(s => ({ typeName, size: s.size })),
         Effect.orElseSucceed(() => ({ typeName, size: 0 }))
       )
     ),
-    Stream.runFold(new Map<string, { totalSize: number; fileCount: number }>(), (acc, { typeName, size }) => {
-      const prev = acc.get(typeName) ?? { totalSize: 0, fileCount: 0 };
-      return acc.set(typeName, { totalSize: prev.totalSize + size, fileCount: prev.fileCount + 1 });
-    })
+    Stream.runFold(
+      () => new Map<string, { totalSize: number; fileCount: number }>(),
+      (acc, { typeName, size }) => {
+        const prev = acc.get(typeName) ?? { totalSize: 0, fileCount: 0 };
+        return acc.set(typeName, { totalSize: prev.totalSize + size, fileCount: prev.fileCount + 1 });
+      }
+    )
   );
 
   const typeStats = [...typeGroups.keys()]
@@ -94,15 +100,18 @@ const gatherMetadataInfo = Effect.fn('gatherMetadataInfo')(function* () {
 const gatherOrgInfo = Effect.fn('gatherOrgInfo')(
   function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const ref = yield* api.services.TargetOrgRef();
+    const ref = yield* api.v2.services.TargetOrgRef;
     const orgInfo = yield* SubscriptionRef.get(ref);
     const orgType = orgInfo.isScratch ? 'scratch' : orgInfo.isSandbox ? 'sandbox' : 'production';
 
     const sourceMemberCount = orgInfo.tracksSource
-      ? yield* api.services.QueryService.pipe(
-          Effect.flatMap(queryService =>
-            queryService.query({ soql: 'SELECT COUNT() FROM SourceMember', tooling: true }, Schema.Unknown)
-          ),
+      ? yield* api.v2.services.QueryService.use(service =>
+          service.query({ soql: 'SELECT COUNT() FROM SourceMember', tooling: true }, input =>
+            Schema.decodeUnknownEffect(
+              Schema.Struct({ totalSize: Schema.Number, records: Schema.Array(Schema.Unknown) })
+            )(input)
+          )
+        ).pipe(
           Effect.map(({ totalSize }) => totalSize),
           Effect.orElseSucceed(() => 'query failed')
         )
@@ -115,7 +124,7 @@ const gatherOrgInfo = Effect.fn('gatherOrgInfo')(
     };
   },
   // Org section degrades gracefully so the report is always produced
-  Effect.catchAll(() =>
+  Effect.catch(() =>
     Effect.succeed<OrgInfo>({
       orgType: 'N/A',
       tracksSource: undefined,
@@ -127,7 +136,7 @@ const gatherOrgInfo = Effect.fn('gatherOrgInfo')(
 const getSettingEntry = Effect.fn('getSettingEntry')(function* (fullKey: string) {
   const firstDot = fullKey.indexOf('.');
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const value = yield* (yield* api.services.SettingsService).getValue(
+  const value = yield* (yield* api.v2.services.SettingsService).getValue(
     fullKey.slice(0, firstDot),
     fullKey.slice(firstDot + 1)
   );
@@ -158,7 +167,7 @@ const gatherSettings = () =>
 
 const gatherEnvironment = Effect.fn('gatherEnvironment')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const terminalService = yield* api.services.TerminalService;
+  const terminalService = yield* api.v2.services.TerminalService;
   const [cliVersion, javaVersion] = yield* Effect.all(
     [
       terminalService
@@ -301,18 +310,18 @@ const doProjectInfo = Effect.fn('doProjectInfo')(function* () {
 
   const content = renderMarkdown({ metadataInfo, orgInfo, settings, envInfo });
 
-  const workspaceService = yield* api.services.WorkspaceService;
+  const workspaceService = yield* api.v2.services.WorkspaceService;
   const { uri: workspaceUri } = yield* workspaceService.getWorkspaceInfo();
   const outputUri = Utils.joinPath(workspaceUri, '.sf', 'project-info.md');
 
-  yield* api.services.FsService.safeWriteFile(outputUri, content);
+  yield* api.v2.services.FsService.use(service => service.safeWriteFile(outputUri, content));
 
   return outputUri;
 });
 
 export const projectInfoCommand = Effect.fn('projectInfoCommand')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   const outputUri = yield* doProjectInfo().pipe(
     promptService.withProgress(nls.localize('project_info_gathering_progress'))
   );
@@ -320,6 +329,6 @@ export const projectInfoCommand = Effect.fn('projectInfoCommand')(function* () {
     vscode.window.showInformationMessage(nls.localize('project_info_written_message'), nls.localize('open_button'))
   );
   if (selection === nls.localize('open_button')) {
-    yield* api.services.FsService.showTextDocument(outputUri);
+    yield* api.v2.services.FsService.use(service => service.showTextDocument(outputUri));
   }
 });

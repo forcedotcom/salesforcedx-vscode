@@ -31,11 +31,11 @@ export const renameLwcCommand = Effect.fn('renameLwcCommand')(function* (
   selectedUris?: readonly URI[]
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fsService = yield* api.services.FsService;
-  const editorService = yield* api.services.EditorService;
-  const promptService = yield* api.services.PromptService;
-  const componentSetService = yield* api.services.ComponentSetService;
-  const lightningComponentService = yield* api.services.LightningComponentService;
+  const fsService = yield* api.v2.services.FsService;
+  const editorService = yield* api.v2.services.EditorService;
+  const promptService = yield* api.v2.services.PromptService;
+  const componentSetService = yield* api.v2.services.ComponentSetService;
+  const lightningComponentService = yield* api.v2.services.LightningComponentService;
 
   const resolvedSource = yield* promptService.considerUndefinedAsCancellation(
     selectedUris?.[0] ??

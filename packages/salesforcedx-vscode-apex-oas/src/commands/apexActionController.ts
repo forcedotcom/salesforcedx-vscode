@@ -49,7 +49,7 @@ export class RestOASGenerationDisabled extends Data.TaggedError('RestOASGenerati
  */
 export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(function* (sourceUri: URI | URI[]) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const notificationMode = yield* api.services.NotificationModeService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
 
   // Step 1: Validate eligibility
   const eligibilityResult = yield* validateMetadata(sourceUri);
@@ -78,7 +78,7 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
   // starting — whatever extension provides it — so the cause surfaces up front rather than midway through
   // generation. The AuraEnabled path generates from the org connection alone and skips both checks.
   if (hasValidRestAnnotations(context)) {
-    const isRestOASGenEnabled = yield* (yield* api.services.SettingsService).getValueOrElse(
+    const isRestOASGenEnabled = yield* (yield* api.v2.services.SettingsService).getValueOrElse(
       EXTENSION_NAME,
       'enableRestOASGen',
       false
@@ -86,7 +86,7 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
     if (!isRestOASGenEnabled) {
       return yield* new RestOASGenerationDisabled({ message: nls.localize('rest_oas_gen_disabled') });
     }
-    yield* LLMService.ensureAvailable();
+    yield* LLMService.use(service => service.ensureAvailable());
   }
 
   // Step 3-4: Select the generation strategy by bid rule

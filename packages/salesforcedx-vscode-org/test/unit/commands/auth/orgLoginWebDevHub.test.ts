@@ -11,6 +11,14 @@ import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import { identity } from 'effect/Function';
 import * as vscode from 'vscode';
+import {
+  ChannelService,
+  NotificationModeService,
+  ProjectService,
+  PromptService,
+  TerminalService,
+  UserCancellationError
+} from '@salesforce/vscode-services/v2';
 import { DEFAULT_ALIAS } from '../../../../src/commands/auth/authParamsGatherer';
 import { orgLoginWebDevHubCommand } from '../../../../src/commands/auth/orgLoginWebDevHub';
 import { updateConfigAndStateAggregators } from '../../../../src/util/orgUtil';
@@ -36,16 +44,14 @@ const buildServices = (opts: {
 }) => ({
   // getSfProject sets the project context and fails when there's no project; the command ignores the
   // returned SfProject, so the success path yields a sentinel.
-  ProjectService: {
+  project: {
     getSfProject: () =>
       opts.isProject ? Effect.succeed({}) : Effect.fail({ _tag: 'FailedToResolveSfProjectError' as const })
   },
-  TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
+  terminal: { simpleExec: opts.simpleExec },
   // withCancellableProgress is a pipeable operator; the stub is identity so the exec effect runs unchanged.
-  PromptService: Effect.succeed({
-    withCancellableProgress: () => identity
-  }),
-  ChannelService: Effect.succeed({
+  prompt: { withCancellableProgress: () => identity },
+  channel: {
     appendToChannel: (msg: string) =>
       Effect.sync(() => {
         opts.appendToChannel(msg);
@@ -53,13 +59,10 @@ const buildServices = (opts: {
     showChannel: Effect.sync(() => {
       opts.showChannel();
     })
-  }),
-  NotificationModeService: Effect.succeed({
+  },
+  notificationMode: {
     getProgressLocation: () => Effect.succeed(1),
     showSuccessNotification: () => Effect.void
-  }),
-  UserCancellationError: class {
-    public readonly _tag = 'UserCancellationError';
   }
 });
 
@@ -68,14 +71,32 @@ const run = (opts: {
   simpleExec: VitestMock;
   appendToChannel: VitestMock;
   showChannel: VitestMock;
-}) =>
-  Effect.runPromiseExit(
+}) => {
+  const services = buildServices(opts);
+  return Effect.runPromiseExit(
     orgLoginWebDevHubCommand().pipe(
       Effect.provideService(ExtensionProviderService, {
-        getServicesApi: Effect.succeed({ services: buildServices(opts) })
-      } as unknown as ExtensionProviderService)
+        getServicesApi: Effect.succeed({
+          v2: {
+            services: {
+              ProjectService,
+              TerminalService,
+              PromptService,
+              ChannelService,
+              NotificationModeService,
+              UserCancellationError
+            }
+          }
+        })
+      } as unknown as ExtensionProviderService['Service']),
+      Effect.provideService(ProjectService, services.project as never),
+      Effect.provideService(TerminalService, services.terminal as never),
+      Effect.provideService(PromptService, services.prompt as never),
+      Effect.provideService(ChannelService, services.channel as never),
+      Effect.provideService(NotificationModeService, services.notificationMode as never)
     ) as Effect.Effect<void, unknown, never>
   );
+};
 
 describe('orgLoginWebDevHubCommand', () => {
   let appendToChannel: VitestMock;

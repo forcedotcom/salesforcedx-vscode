@@ -26,7 +26,7 @@ describe('convertToCSV (Query Data View / SOQL Builder save)', () => {
   });
 
   it('preserves column order from field discovery and leaves missing cells empty', () => {
-    const data = [{ Name: 'Charlie' }, { Name: 'Dee', Age: 40 }];
+    const data: JsonObject[] = [{ Name: 'Charlie' }, { Name: 'Dee', Age: 40 }];
     expect(convertToCSV(data)).toBe('Name,Age\nCharlie,\nDee,40');
   });
 

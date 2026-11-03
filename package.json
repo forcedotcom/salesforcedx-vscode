@@ -207,7 +207,6 @@
         "./packages/salesforcedx-vscode-services:compile",
         "./packages/salesforcedx-vscode-metadata:compile",
         "./packages/salesforcedx-vscode-services-types:compile",
-        "./packages/salesforcedx-vscode-services-v4-implementation:compile",
         "./packages/salesforcedx-vscode-services-v3-compat:compile",
         "./packages/salesforcedx-vscode-org:compile",
         "./packages/salesforcedx-vscode-org-browser:compile",
@@ -242,7 +241,6 @@
         "./packages/salesforcedx-vscode-visualforce:lint",
         "./packages/salesforcedx-vscode-services:lint",
         "./packages/salesforcedx-vscode-services-types:lint",
-        "./packages/salesforcedx-vscode-services-v4-implementation:lint",
         "./packages/salesforcedx-vscode-services-v3-compat:lint",
         "./packages/salesforcedx-vscode-metadata:lint",
         "./packages/salesforcedx-vscode-org:lint",
@@ -294,7 +292,6 @@
         "./packages/salesforcedx-vscode-soql:test",
         "./packages/salesforcedx-vscode-visualforce:test",
         "./packages/salesforcedx-vscode-services:test",
-        "./packages/salesforcedx-vscode-services-v4-implementation:test",
         "./packages/salesforcedx-vscode-org:test",
         "./packages/salesforcedx-vscode-org-browser:test",
         "./packages/drivable-vscode:test",
@@ -390,7 +387,7 @@
       "dependencies": [
         "./packages/salesforcedx-vscode-services-types:compile",
         "./packages/salesforcedx-vscode-services-v3-compat:compile",
-        "./packages/salesforcedx-vscode-services-v4-implementation:compile"
+        "./packages/salesforcedx-vscode-services:compile"
       ],
       "files": [
         "scripts/test-effect-v3-bridge.mjs",
@@ -636,7 +633,6 @@
         "./packages/salesforcedx-vscode-metadata:check:effect-diagnostics",
         "./packages/salesforcedx-vscode-services-types:check:effect-diagnostics",
         "./packages/salesforcedx-vscode-services-v3-compat:check:effect-diagnostics",
-        "./packages/salesforcedx-vscode-services-v4-implementation:check:effect-diagnostics",
         "./packages/salesforcedx-vscode-org:check:effect-diagnostics",
         "./packages/salesforcedx-vscode-org-browser:check:effect-diagnostics",
         "./packages/drivable-vscode:check:effect-diagnostics",

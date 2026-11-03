@@ -74,29 +74,7 @@ export { ICONS, type IconId } from './icons';
   console.log('Generated entry point at', entryPath);
 
   const iconsPath = path.join(srcDir, 'icons.ts');
-  const iconsContent = `/*
- * Copyright (c) ${copyrightYear}, salesforce.com, inc.
- * All rights reserved.
- * Licensed under the BSD 3-Clause license.
- * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
- */
-
-// This file is auto-generated. Do not edit manually.
-/** Well-known icon IDs for VS Code UI strings. */
-export const ICONS = {
-  SF_DEFAULT_ORG: '$(sf-org-leaf)',
-  SF_DEFAULT_HUB: '$(sf-org-tree)',
-  ORG_TYPE_DEVHUB: '$(server)',
-  ORG_TYPE_SANDBOX: '$(beaker)',
-  ORG_TYPE_SCRATCH: '$(zap)',
-  ORG_TYPE_ORG: '$(cloud)',
-  ADD: '$(plus)',
-  BROWSER: '$(browser)',
-  WARNING: '$(warning)'
-} as const;
-
-export type IconId = (typeof ICONS)[keyof typeof ICONS];
-`;
+  const iconsContent = fs.readFileSync(path.join(__dirname, '..', 'v2', 'icons.ts'), 'utf8');
   fs.writeFileSync(iconsPath, iconsContent, 'utf8');
   console.log('Generated icons at', iconsPath);
 };

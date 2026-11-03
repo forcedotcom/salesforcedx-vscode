@@ -8,9 +8,7 @@
 import type { Mock as VitestMock } from 'vitest';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
-import { ChannelService } from 'salesforcedx-vscode-services/out/src/vscode/channelService';
-import { ConnectionService } from 'salesforcedx-vscode-services/out/src/core/connectionService';
-import { SettingsService } from 'salesforcedx-vscode-services/out/src/vscode/settingsService';
+import { ChannelService, ConnectionService, SettingsService } from '@salesforce/vscode-services/v2';
 import * as vscode from 'vscode';
 import { executeQueryPlan, formatQueryPlanResults, QueryPlanResponse } from '../../../src/commands/queryPlan';
 import { formatErrorMessage } from '../../../src/commands/queryUtils';
@@ -18,10 +16,10 @@ import { nls } from '../../../src/messages';
 import { prepareQuery } from '../../../src/prepareQuery';
 
 const decode = Schema.decodeUnknownSync(QueryPlanResponse);
-const settingsService = SettingsService.make({
+const settingsService = {
   getValue: (_section: string, _key: string, defaultValue?: unknown) => Effect.succeed(defaultValue),
   getValueOrElse: (_section: string, _key: string, defaultValue: unknown) => Effect.succeed(defaultValue)
-} as never);
+} as unknown as SettingsService['Service'];
 
 const rawNote = {
   description: 'Not considering filter for optimization because unindexed',
@@ -74,22 +72,26 @@ describe('executeQueryPlan', () => {
   const setup = (request: VitestMock) => {
     const show = vi.fn();
     const appendToChannel = vi.fn((_msg: string) => Effect.void);
+    const channelService = {
+      appendToChannel,
+      clearChannel: Effect.void,
+      getChannel: Effect.succeed({ show }),
+      showChannel: Effect.sync(() => show())
+    } as unknown as ChannelService['Service'];
+    const connectionService = {
+      getConnection: () => Effect.succeed({ request })
+    } as unknown as ConnectionService['Service'];
     const servicesApi = {
-      services: {
-        ConnectionService: { getConnection: () => Effect.succeed({ request }) },
-        ChannelService: Effect.succeed({
-          appendToChannel,
-          clearChannel: Effect.void,
-          getChannel: Effect.succeed({ show }),
-          showChannel: Effect.sync(() => {
-            show();
-          })
-        }),
-        SettingsService
+      v2: {
+        services: {
+          ConnectionService,
+          ChannelService,
+          SettingsService
+        }
       }
     };
     (vscode.extensions.getExtension as VitestMock).mockReturnValue({ isActive: true, exports: servicesApi });
-    return { show, appendToChannel };
+    return { show, appendToChannel, channelService, connectionService };
   };
 
   afterEach(() => {
@@ -97,11 +99,13 @@ describe('executeQueryPlan', () => {
   });
 
   it('routes a request rejection through catchAllCause and shows channel once via ensuring', async () => {
-    const { show, appendToChannel } = setup(vi.fn().mockRejectedValue(new Error('boom')));
+    const { show, appendToChannel, channelService, connectionService } = setup(
+      vi.fn().mockRejectedValue(new Error('boom'))
+    );
     await Effect.runPromise(
       executeQueryPlan('SELECT Id FROM Account').pipe(
-        Effect.provideService(ChannelService, {} as unknown as ChannelService),
-        Effect.provideService(ConnectionService, {} as unknown as ConnectionService),
+        Effect.provideService(ChannelService, channelService),
+        Effect.provideService(ConnectionService, connectionService),
         Effect.provideService(SettingsService, settingsService)
       )
     );
@@ -110,11 +114,13 @@ describe('executeQueryPlan', () => {
   });
 
   it('shows channel exactly once on success (ensuring runs like finally)', async () => {
-    const { show, appendToChannel } = setup(vi.fn().mockResolvedValue({ plans: [] }));
+    const { show, appendToChannel, channelService, connectionService } = setup(
+      vi.fn().mockResolvedValue({ plans: [] })
+    );
     await Effect.runPromise(
       executeQueryPlan('SELECT Id FROM Account').pipe(
-        Effect.provideService(ChannelService, {} as unknown as ChannelService),
-        Effect.provideService(ConnectionService, {} as unknown as ConnectionService),
+        Effect.provideService(ChannelService, channelService),
+        Effect.provideService(ConnectionService, connectionService),
         Effect.provideService(SettingsService, settingsService)
       )
     );
@@ -124,12 +130,12 @@ describe('executeQueryPlan', () => {
 
   it('encodes the same prepared SOQL used for Run Query in explain=', async () => {
     const request = vi.fn().mockResolvedValue({ plans: [] });
-    setup(request);
+    const { channelService, connectionService } = setup(request);
     const query = '// header\nSELECT Id FROM Account ALL ROWS;';
     await Effect.runPromise(
       executeQueryPlan(prepareQuery(query).soql).pipe(
-        Effect.provideService(ChannelService, {} as unknown as ChannelService),
-        Effect.provideService(ConnectionService, {} as unknown as ConnectionService),
+        Effect.provideService(ChannelService, channelService),
+        Effect.provideService(ConnectionService, connectionService),
         Effect.provideService(SettingsService, settingsService)
       )
     );

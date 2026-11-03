@@ -6,14 +6,15 @@
  */
 
 import { fs } from '@salesforce/core/fs';
-import * as Chunk from 'effect/Chunk';
+import { ChannelService } from '@salesforce/vscode-services/v2';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 // eslint-disable-next-line no-restricted-imports
 import type { FileChangeInfo } from 'node:fs/promises';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
-import { ChannelService } from '../vscode/channelService';
+import { makeScopedFibers } from '../services/scopedFiber';
 import { IndexedDBStorageService } from './indexedDbStorage';
 import { getProjectRoot } from './projectRoot';
 import { VirtualFsProviderError } from './virtualFsProviderError';
@@ -67,22 +68,32 @@ export const startWatch = Effect.fn('startWatch')(
     // Ensure the directory exists before watching
     fs.mkdirSync(projectPath, { recursive: true });
 
+    const watcher = yield* Effect.acquireRelease(
+      Effect.sync(() => {
+        const controller = new AbortController();
+        return { controller, events: fs.promises.watch(projectPath, { recursive: true, signal: controller.signal }) };
+      }),
+      value =>
+        Effect.sync(() => {
+          value.controller.abort();
+        })
+    );
+    // Join the consuming fiber before aborting the native iterator; shutdown is not a persistence failure.
+    const fibers = yield* makeScopedFibers;
+
     // this watches files in the project/workspace only, not the global sfdx folders, tmp, home, etc.
-    yield* Stream.fromAsyncIterable(
-      fs.promises.watch(projectPath, { recursive: true }),
-      e => new VirtualFsProviderError({ message: String(e) })
-    ).pipe(
+    yield* Stream.fromAsyncIterable(watcher.events, e => new VirtualFsProviderError({ message: String(e) })).pipe(
       // if there are "change" events AND non-change events for the same file, drop the change events.  We prefer the "rename" (create) event.
       Stream.changesWith((a, b) => a.eventType === 'change' && b.eventType !== 'change' && a.filename === b.filename),
       Stream.changesWith((a, b) => b.eventType === 'change' && a.eventType !== 'change' && a.filename === b.filename),
       Stream.throttle({
-        cost: Chunk.size,
-        duration: '10 millis',
+        cost: batch => batch.length,
+        duration: Duration.millis(10),
         units: 1
       }),
       Stream.mapEffect(updateIDB),
       Stream.runDrain,
-      Effect.forkScoped // Run in a daemon fiber that won't block
+      fibers.fork
     );
 
     yield* channelService.appendToChannel('File watcher started successfully');

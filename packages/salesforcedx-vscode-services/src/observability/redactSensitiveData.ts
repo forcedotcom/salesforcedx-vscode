@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { flow } from 'effect/Function';
-import { isNotUndefined, isRecord } from 'effect/Predicate';
+import { isNotUndefined, isObject } from 'effect/Predicate';
 
 // Web-safe: no `node:` imports — this module is consumed by spansWeb.ts as well as spansNode.ts.
 
@@ -66,7 +66,7 @@ const COMBINED_VALUE_PATTERN = new RegExp(
 
 /** The last argument a `String.replace` callback receives is the named-groups object. */
 const labelFor = (groups: unknown): string | undefined =>
-  isRecord(groups) ? VALUE_PATTERNS.find(([, group]) => isNotUndefined(groups[group]))?.[0] : undefined;
+  isObject(groups) ? VALUE_PATTERNS.find(([, group]) => isNotUndefined(Reflect.get(groups, group)))?.[0] : undefined;
 
 /** Replace known secret and PII value shapes with their labels; returns `value` itself when no hint matches. */
 const redactRecognizableValues = (value: string): string =>

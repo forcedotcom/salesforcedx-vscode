@@ -13,8 +13,7 @@ const settingsValues: { restorePrevious: boolean; disableWarnings: boolean } = {
 };
 const mockAppendToChannel = vi.fn();
 
-// Build a real CodeCoverageService.Default over a mock ExtensionProviderService whose api.services
-// exposes a controllable SettingsService + ChannelService. getApexTestingRuntime runs effects for real.
+// Build the real V4 CodeCoverageService layer over controllable V2 service values.
 vi.mock('../../../src/services/extensionProvider', async () => {
   const EffectActual = await vi.importActual<typeof Effect>('effect/Effect');
   const LayerActual = await vi.importActual<typeof Layer>('effect/Layer');
@@ -23,6 +22,7 @@ vi.mock('../../../src/services/extensionProvider', async () => {
   const { CodeCoverageService: CodeCoverageServiceActual } = await vi.importActual<typeof CodeCoverage>(
     '../../../src/codecoverage/codeCoverageService'
   );
+  const { ChannelService, FsService, SettingsService } = await import('@salesforce/vscode-services/v2');
   const vscodeMock = await import('vscode');
   const { Utils: UtilsActual } = await import('vscode-uri');
 
@@ -54,20 +54,29 @@ vi.mock('../../../src/services/extensionProvider', async () => {
       )
   };
   const mockServicesApi = {
-    services: {
-      SettingsService: EffectActual.succeed(mockSettingsService),
-      ChannelService: EffectActual.succeed(mockChannelService),
-      // FsService methods are reached via static accessors (api.services.FsService.readFile), not yielded,
-      // so expose the object directly rather than wrapping in Effect.succeed.
-      FsService: mockFsService
+    v2: {
+      services: {
+        SettingsService,
+        ChannelService,
+        FsService
+      }
     }
   };
   const ExtensionProviderLive = LayerActual.succeed(ExtensionProviderService, {
     getServicesApi: EffectActual.succeed(mockServicesApi)
-  } as unknown as EffectExtUtils.ExtensionProviderService);
+  } as never);
+  const SettingsServiceLive = LayerActual.succeed(SettingsService, mockSettingsService as never);
+  const ChannelServiceLive = LayerActual.succeed(ChannelService, mockChannelService as never);
+  const FsServiceLive = LayerActual.succeed(FsService, mockFsService as never);
   // merge (not provide): ExtensionProviderService is yielded at call time, so it must remain in the
   // runtime context (mirrors production, where buildAllServicesLayer keeps it ambient).
-  const TestLayer = LayerActual.merge(CodeCoverageServiceActual.Default, ExtensionProviderLive);
+  const TestLayer = LayerActual.mergeAll(
+    CodeCoverageServiceActual.layer,
+    ExtensionProviderLive,
+    SettingsServiceLive,
+    ChannelServiceLive,
+    FsServiceLive
+  );
 
   return {
     ExtensionProviderService,
@@ -198,6 +207,13 @@ describe('CodeCoverageService', () => {
   // ExtensionProviderService and SettingsService — both are provided by TestLayer at runtime.
 
   const run = <A, E>(effect: Effect.Effect<A, E, any>) => runtime.runPromise(effect);
+  const getRanges = () => CodeCoverageService.use(service => service.getRanges());
+  const clear = () => CodeCoverageService.use(service => service.clear());
+  const applyForEditor = (document: vscode.TextDocument) =>
+    CodeCoverageService.use(service => service.applyForEditor(document));
+  const handleCoverageException = (
+    error: Parameters<(typeof CodeCoverageService)['Service']['handleCoverageException']>[0]
+  ) => CodeCoverageService.use(service => service.handleCoverageException(error));
 
   beforeEach(() => {
     vi.restoreAllMocks();
@@ -216,7 +232,7 @@ describe('CodeCoverageService', () => {
   describe('Ref state', () => {
     it('getRanges starts empty, reflects applyForEditor, then clear resets it', async () => {
       const classADoc = () => makeDocument('/workspace/project/force-app/main/default/classes/ClassA.cls');
-      expect(await run(CodeCoverageService.getRanges())).toEqual({ coveredLines: [], uncoveredLines: [] });
+      expect(await run(getRanges())).toEqual({ coveredLines: [], uncoveredLines: [] });
 
       vi.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([
         ['test-result-001.json', vscode.FileType.File]
@@ -226,14 +242,14 @@ describe('CodeCoverageService', () => {
         encode({ codecoverage: [{ name: 'ClassA', coveredLines: [1], uncoveredLines: [2] }] })
       );
 
-      await run(CodeCoverageService.applyForEditor(classADoc()));
-      const populated = await run(CodeCoverageService.getRanges());
+      await run(applyForEditor(classADoc()));
+      const populated = await run(getRanges());
       expect(lineNumbers(populated.coveredLines)).toEqual([0]);
       expect(lineNumbers(populated.uncoveredLines)).toEqual([1]);
 
-      const cleared = await run(CodeCoverageService.clear());
+      const cleared = await run(clear());
       expect(cleared).toEqual({ coveredLines: [], uncoveredLines: [] });
-      expect(await run(CodeCoverageService.getRanges())).toEqual({ coveredLines: [], uncoveredLines: [] });
+      expect(await run(getRanges())).toEqual({ coveredLines: [], uncoveredLines: [] });
     });
   });
 
@@ -257,7 +273,7 @@ describe('CodeCoverageService', () => {
         );
       });
 
-      const ranges = await run(CodeCoverageService.applyForEditor(classADoc()));
+      const ranges = await run(applyForEditor(classADoc()));
       // File 002 wins: 3 covered lines, 0 uncovered
       expect(lineNumbers(ranges.coveredLines)).toEqual([0, 1, 2]);
       expect(lineNumbers(ranges.uncoveredLines)).toEqual([]);
@@ -279,7 +295,7 @@ describe('CodeCoverageService', () => {
       });
 
       const ranges = await run(
-        CodeCoverageService.applyForEditor(makeDocument('/workspace/project/force-app/main/default/classes/ClassB.cls'))
+        applyForEditor(makeDocument('/workspace/project/force-app/main/default/classes/ClassB.cls'))
       );
       expect(lineNumbers(ranges.coveredLines)).toEqual([4, 5]);
       expect(lineNumbers(ranges.uncoveredLines)).toEqual([6]);
@@ -307,7 +323,7 @@ describe('CodeCoverageService', () => {
         );
       });
 
-      const ranges = await run(CodeCoverageService.applyForEditor(classADoc()));
+      const ranges = await run(applyForEditor(classADoc()));
       // Only file 002 (recent) used — 5 covered, 0 uncovered
       expect(lineNumbers(ranges.coveredLines)).toEqual([0, 1, 2, 3, 4]);
       expect(lineNumbers(ranges.uncoveredLines)).toEqual([]);
@@ -326,7 +342,7 @@ describe('CodeCoverageService', () => {
         return Promise.reject(new Error(`unexpected read: ${uri.path}`));
       });
 
-      await run(CodeCoverageService.applyForEditor(classADoc()));
+      await run(applyForEditor(classADoc()));
 
       const readPaths = readFileSpy.mock.calls.map(([uri]) => (uri as URI).path);
       expect(readPaths.some(p => p.endsWith('-codecoverage.json'))).toBe(false);
@@ -354,7 +370,7 @@ describe('CodeCoverageService', () => {
         return Promise.reject(new Error(`unexpected read: ${uri.path}`));
       });
 
-      await run(CodeCoverageService.applyForEditor(classADoc()));
+      await run(applyForEditor(classADoc()));
 
       expect(readCalls.some(p => p.endsWith('test-result-001.json'))).toBe(false);
       expect(readCalls.some(p => p.endsWith('test-result-002.json'))).toBe(true);
@@ -384,7 +400,7 @@ describe('CodeCoverageService', () => {
         return Promise.reject(new Error(`unexpected read: ${uri.path}`));
       });
 
-      const ranges = await run(CodeCoverageService.applyForEditor(classADoc()));
+      const ranges = await run(applyForEditor(classADoc()));
 
       expect(readCalls.some(p => p.endsWith('test-result-707xx0000099999.json'))).toBe(false);
       expect(readCalls.some(p => p.endsWith('test-result-707xx0000011111.json'))).toBe(true);
@@ -398,13 +414,13 @@ describe('CodeCoverageService', () => {
 
     it('NoCoverageOnProjectError when results directory is empty', async () => {
       vi.spyOn(vscode.workspace.fs, 'readDirectory').mockResolvedValue([]);
-      const failure = await run(CodeCoverageService.applyForEditor(classADoc()).pipe(Effect.flip));
+      const failure = await run(applyForEditor(classADoc()).pipe(Effect.flip));
       expect(failure).toBeInstanceOf(NoCoverageOnProjectError);
     });
 
     it('NoCoverageOnProjectError when readDirectory fails', async () => {
       vi.spyOn(vscode.workspace.fs, 'readDirectory').mockRejectedValue(new Error('boom'));
-      const failure = await run(CodeCoverageService.applyForEditor(classADoc()).pipe(Effect.flip));
+      const failure = await run(applyForEditor(classADoc()).pipe(Effect.flip));
       expect(failure).toBeInstanceOf(NoCoverageOnProjectError);
     });
 
@@ -415,7 +431,7 @@ describe('CodeCoverageService', () => {
       vi.spyOn(vscode.workspace.fs, 'stat').mockResolvedValue({ mtime: recentMtime } as vscode.FileStat);
       vi.spyOn(vscode.workspace.fs, 'readFile').mockResolvedValue(encode({ tests: [{ outcome: 'Pass' }] }));
 
-      const failure = await run(CodeCoverageService.applyForEditor(classADoc()).pipe(Effect.flip));
+      const failure = await run(applyForEditor(classADoc()).pipe(Effect.flip));
       expect(failure).toBeInstanceOf(StaleResultsError);
     });
 
@@ -428,7 +444,7 @@ describe('CodeCoverageService', () => {
         encode({ codecoverage: [{ name: 'OtherClass', coveredLines: [1], uncoveredLines: [] }] })
       );
 
-      const failure = await run(CodeCoverageService.applyForEditor(classADoc()).pipe(Effect.flip));
+      const failure = await run(applyForEditor(classADoc()).pipe(Effect.flip));
       expect(failure).toBeInstanceOf(NoCoverageForFileError);
     });
 
@@ -445,7 +461,7 @@ describe('CodeCoverageService', () => {
         encode({ codecoverage: [{ name: 'ClassA', coveredLines: [999], uncoveredLines: [] }] })
       );
 
-      const failure = await run(CodeCoverageService.applyForEditor(doc).pipe(Effect.flip));
+      const failure = await run(applyForEditor(doc).pipe(Effect.flip));
       expect(failure).toBeInstanceOf(OutOfSyncCoverageError);
     });
   });
@@ -453,7 +469,7 @@ describe('CodeCoverageService', () => {
   describe('handleCoverageException routing', () => {
     it('appends to channel when disable-warnings is enabled', async () => {
       settingsValues.disableWarnings = true;
-      await run(CodeCoverageService.handleCoverageException(new StaleResultsError({ message: 'no coverage' })));
+      await run(handleCoverageException(new StaleResultsError({ message: 'no coverage' })));
       expect(mockAppendToChannel).toHaveBeenCalledWith('no coverage');
     });
 
@@ -462,7 +478,7 @@ describe('CodeCoverageService', () => {
       const showWarning = vi
         .spyOn(vscode.window, 'showWarningMessage')
         .mockResolvedValue(undefined as unknown as vscode.MessageItem);
-      await run(CodeCoverageService.handleCoverageException(new StaleResultsError({ message: 'no coverage' })));
+      await run(handleCoverageException(new StaleResultsError({ message: 'no coverage' })));
       expect(showWarning).toHaveBeenCalled();
       expect(mockAppendToChannel).not.toHaveBeenCalled();
     });

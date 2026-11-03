@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { WorkspaceService } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import { sampleProjectName } from '../constants';
-import { WorkspaceService } from '../vscode/workspaceService';
 import { fsPrefix } from './constants';
 
 /**
@@ -20,7 +20,7 @@ import { fsPrefix } from './constants';
  * Falls back to `sampleProjectName` for empty-window + non-memfs folders.
  */
 export const getProjectRoot = Effect.fn('getProjectRoot')(function* () {
-  const { isEmpty, uri, fsPath } = yield* WorkspaceService.getWorkspaceInfo();
+  const { isEmpty, uri, fsPath } = yield* WorkspaceService.use(service => service.getWorkspaceInfo());
   // consumers build `${fsPath}/${filename}`; strip trailing slash so `memfs:/dx-project/`
   // can't yield a double slash.
   const hostPath = isEmpty || uri.scheme !== fsPrefix ? undefined : fsPath.replace(/\/+$/, '') || undefined;

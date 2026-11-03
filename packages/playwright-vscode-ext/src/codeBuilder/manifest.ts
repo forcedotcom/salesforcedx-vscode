@@ -71,8 +71,6 @@ export const readManifest = (path: string): Manifest => {
   const parsed: unknown = JSON.parse(readFileSync(path, 'utf-8'));
   const result = decodeEither(parsed);
   if (Either.isLeft(result)) {
-    // TreeFormatter renders the schema ParseError as a readable field-by-field tree; String(...)
-    // would just print "[object Object]".
     throw new Error(`invalid manifest at ${path}: ${ParseResult.TreeFormatter.formatErrorSync(result.left)}`);
   }
   return result.right;

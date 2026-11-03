@@ -168,6 +168,8 @@ export const createVSCodeMock = (mockFunction: MockFactory) => {
       UIKind: { Desktop: 1, Web: 2 },
       version: '1.0.0-test',
       extensions: {
+        all: [],
+        onDidChange: mockFunction(),
         getExtension: mockFunction()
       },
       languages: {
@@ -175,6 +177,7 @@ export const createVSCodeMock = (mockFunction: MockFactory) => {
         createLanguageStatusItem: mockCreateLanguageStatusItem,
         registerCodeLensProvider: mockFunction().mockReturnValue({ dispose: mockFunction() })
       },
+      DiagnosticSeverity: { Error: 0, Warning: 1, Information: 2, Hint: 3 },
       Uri: {
         ...Uri,
         parse: Uri.parse,
@@ -332,6 +335,7 @@ export const createVSCodeMock = (mockFunction: MockFactory) => {
           dispose: mockFunction()
         }),
         workspaceFolders: [],
+        updateWorkspaceFolders: mockFunction(),
         textDocuments: [],
         openTextDocument: mockFunction().mockResolvedValue({
           getText: mockFunction().mockReturnValue(''),

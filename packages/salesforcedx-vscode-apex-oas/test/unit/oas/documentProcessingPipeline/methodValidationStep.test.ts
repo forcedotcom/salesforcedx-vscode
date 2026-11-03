@@ -12,8 +12,6 @@ import { URI } from 'vscode-uri';
 import { nls } from '../../../../src/messages/nls';
 import type { ProcessorInputOutput } from '../../../../src/oas/documentProcessorPipeline/processorStep';
 
-Object.assign(vscode, { DiagnosticSeverity: { Error: 0 } });
-
 describe('methodValidationStep', () => {
   it('preserves source order for multiple method mismatches', async () => {
     vi.mocked(vscode.languages.createDiagnosticCollection).mockReturnValue({

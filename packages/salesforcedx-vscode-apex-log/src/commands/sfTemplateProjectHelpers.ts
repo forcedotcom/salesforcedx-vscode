@@ -50,7 +50,7 @@ export const promptForApexTypeName = Effect.fn('promptForApexTypeName')(function
   params: PromptForApexTypeNameParams
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   const messages = params.messages ?? getStandardApexTypeNameMessages();
   return yield* Effect.promise(() =>
     vscode.window.showInputBox({

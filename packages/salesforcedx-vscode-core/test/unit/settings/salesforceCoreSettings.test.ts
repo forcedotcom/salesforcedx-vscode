@@ -6,7 +6,7 @@
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
+import { SettingsService, type SalesforceVSCodeServicesApiV2 } from '@salesforce/vscode-services/v2';
 import { ALL_EXCEPTION_CATCHER_ENABLED, SFDX_CORE_EXTENSION_NAME } from '../../../src/constants';
 import { getEnableAllExceptionCatcher } from '../../../src/settings/salesforceCoreSettings';
 
@@ -17,10 +17,10 @@ describe('getEnableAllExceptionCatcher', () => {
       getEnableAllExceptionCatcher().pipe(
         Effect.provideService(ExtensionProviderService, {
           getServicesApi: Effect.succeed({
-            services: { SettingsService }
-          } as never)
-        }),
-        Effect.provideService(SettingsService, SettingsService.make({ getValueOrElse } as never))
+            v2: { services: { SettingsService } }
+          } as unknown as SalesforceVSCodeServicesApiV2)
+        } as unknown as ExtensionProviderService['Service']),
+        Effect.provideService(SettingsService, SettingsService.of({ getValueOrElse } as never))
       )
     );
 

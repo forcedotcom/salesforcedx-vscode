@@ -32,13 +32,14 @@
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/salesforcedx-apex-debugger": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
-    "effect": "^3.21.2",
+    "effect": "4.0.6",
     "sanitize-filename": "^1.6.1",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "workspace:*",
     "@vscode/debugprotocol": "1.68.0",
+    "@salesforce/vscode-services": "workspace:*",
     "salesforcedx-vscode-apex": "workspace:*",
     "salesforcedx-vscode-services": "workspace:*"
   },

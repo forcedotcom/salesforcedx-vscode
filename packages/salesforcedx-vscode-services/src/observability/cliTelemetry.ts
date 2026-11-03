@@ -5,13 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { CliId } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
-
-/** Branded UUID identifying a single CLI install. */
-export const CliId = Schema.UUID.pipe(Schema.brand('@services/CliId'));
-export type CliId = Schema.Schema.Type<typeof CliId>;
 
 // Schema for sf telemetry --json output
 const SfTelemetryResultSchema = Schema.Struct({
@@ -39,19 +36,16 @@ const fetchCliIdFromCli = () => {
   }).pipe(
     Effect.tap(output => Effect.log(`sf telemetry output: ${output.stdout}`)),
     Effect.tapError(error => Effect.log(`sf telemetry error: ${String(error)}`)),
-    Effect.flatMap(output => Schema.decodeUnknown(SfTelemetryResultSchema)(JSON.parse(output.stdout))),
-    Effect.map(parsed => parsed.result.cliId),
-    Effect.catchAll(error =>
-      Effect.log(`Failed to fetch cliId: ${String(error)}`).pipe(Effect.as<CliId | undefined>(undefined))
+    Effect.flatMap(output => Schema.decodeUnknownEffect(Schema.fromJsonString(SfTelemetryResultSchema))(output.stdout)),
+    Effect.map(parsed => Option.some(parsed.result.cliId)),
+    Effect.catchTag(['FetchCliIdError', 'SchemaError'], error =>
+      Effect.log(`Failed to fetch cliId: ${String(error)}`).pipe(Effect.as(Option.none<CliId>()))
     ),
     Effect.withSpan('fetchCliId', { attributes: { command } })
   );
 };
 
-const cliIdEffect =
-  process.env.ESBUILD_PLATFORM === 'web'
-    ? Effect.succeed(Option.none<CliId>())
-    : fetchCliIdFromCli().pipe(Effect.map(Option.fromNullable));
+const cliIdEffect = process.env.ESBUILD_PLATFORM === 'web' ? Effect.succeed(Option.none<CliId>()) : fetchCliIdFromCli();
 
 // memo wrapper built once at module scope; the inner sf telemetry effect runs at most once per session and is shared across all getCliId() calls
 const cachedCliId = cliIdEffect.pipe(Effect.cached, Effect.runSync);

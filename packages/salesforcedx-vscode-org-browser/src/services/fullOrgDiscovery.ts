@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { OrgMetadataCatalogEntry, OrgMetadataCatalogService } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Ref from 'effect/Ref';
-import type { OrgMetadataCatalog, OrgMetadataCatalogEntry } from 'salesforcedx-vscode-services';
 import { isFolderType } from '../tree/orgBrowserNode';
 
 export type FullOrgDiscoveryProgress = {
@@ -17,7 +17,7 @@ export type FullOrgDiscoveryProgress = {
   readonly componentTotal: number;
 };
 
-type CatalogChildrenError = Effect.Effect.Error<ReturnType<OrgMetadataCatalog['getChildren']>>;
+type CatalogChildrenError = Effect.Error<ReturnType<OrgMetadataCatalogService['getChildren']>>;
 
 const componentEntries = (entries: readonly OrgMetadataCatalogEntry[]) =>
   entries.filter(
@@ -33,7 +33,7 @@ const folderEntries = (entries: readonly OrgMetadataCatalogEntry[]) =>
 
 /** Acquires every branch that the Org Browser currently exposes, without changing the view state. */
 export const discoverFullOrgMetadata = (
-  catalog: OrgMetadataCatalog,
+  catalog: OrgMetadataCatalogService,
   reportProgress: (progress: FullOrgDiscoveryProgress) => void
 ) =>
   Effect.gen(function* () {
@@ -77,7 +77,7 @@ export const discoverFullOrgMetadata = (
         folders,
         folder =>
           discoverFolder(type, folder.reference.fullName, reportFolderCompleted).pipe(
-            Effect.catchAll(continueAfterFailure)
+            Effect.catch(continueAfterFailure)
           ),
         { concurrency: 5, discard: true }
       );
@@ -93,14 +93,14 @@ export const discoverFullOrgMetadata = (
           if (isFolderType(type.reference.type)) {
             const folders = folderEntries(children);
             const reportFolderCompleted = () =>
-              Ref.update(componentCompleted, current => current + 1).pipe(Effect.zipRight(report()));
+              Ref.update(componentCompleted, current => current + 1).pipe(Effect.andThen(report()));
             yield* Ref.update(componentTotal, current => current + folders.length);
             yield* report();
             yield* Effect.forEach(
               folders,
               folder =>
                 discoverFolder(type.reference.type, folder.reference.fullName, reportFolderCompleted).pipe(
-                  Effect.catchAll(continueAfterFailure)
+                  Effect.catch(continueAfterFailure)
                 ),
               { concurrency: 5, discard: true }
             );
@@ -114,21 +114,21 @@ export const discoverFullOrgMetadata = (
                 catalog
                   .getChildren({ type: 'CustomObject', fullName: component.reference.fullName })
                   .pipe(
-                    Effect.catchAll(continueAfterFailure),
+                    Effect.catch(continueAfterFailure),
                     Effect.ensuring(
-                      Ref.update(componentCompleted, current => current + 1).pipe(Effect.zipRight(report()))
+                      Ref.update(componentCompleted, current => current + 1).pipe(Effect.andThen(report()))
                     )
                   ),
               { concurrency: 5, discard: true }
             );
           }
         }).pipe(
-          Effect.catchAll(continueAfterFailure),
-          Effect.ensuring(Ref.update(completed, current => current + 1).pipe(Effect.zipRight(report())))
+          Effect.catch(continueAfterFailure),
+          Effect.ensuring(Ref.update(completed, current => current + 1).pipe(Effect.andThen(report())))
         ),
       { concurrency: 10, discard: true }
     );
   }).pipe(
-    Effect.catchAll(error => Effect.logWarning('Failed to discover Org Browser metadata branch', error)),
+    Effect.catch(error => Effect.logWarning('Failed to discover Org Browser metadata branch', error)),
     Effect.withSpan('OrgBrowser.fullMetadataDiscovery')
   );

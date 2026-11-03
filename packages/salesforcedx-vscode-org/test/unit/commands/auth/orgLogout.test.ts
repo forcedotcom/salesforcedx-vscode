@@ -12,6 +12,17 @@ import * as Exit from 'effect/Exit';
 import { identity } from 'effect/Function';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
+import {
+  ChannelService,
+  ConfigService,
+  NotificationModeService,
+  ProjectService,
+  PromptService,
+  TargetOrgRef,
+  TerminalService,
+  WorkspaceService,
+  type DefaultOrgInfo
+} from '@salesforce/vscode-services/v2';
 import { orgLogoutDefaultCommand } from '../../../../src/commands/auth/orgLogout';
 import type * as orgUtil from '../../../../src/util/orgUtil';
 import { makeConfirmOrThrow, UserCancellationError } from '../../testHelpers/promptServiceStub';
@@ -33,19 +44,18 @@ const buildServices = (opts: {
   clearDefaultOrgRef: VitestMock;
   simpleExec: VitestMock;
 }) => ({
-  ProjectService: {
+  project: {
     getSfProject: () =>
       opts.isProject ? Effect.succeed({}) : Effect.fail({ _tag: 'FailedToResolveSfProjectError' as const })
   },
-  PromptService: Effect.succeed({ confirmOrThrow: makeConfirmOrThrow(opts.confirm) }),
-  TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
-  WorkspaceService: { getWorkspaceInfoOrThrow: () => Effect.succeed({ fsPath: '/workspace' }) },
-  ConfigService: {
+  prompt: { confirmOrThrow: makeConfirmOrThrow(opts.confirm) },
+  terminal: { simpleExec: opts.simpleExec },
+  workspace: { getWorkspaceInfoOrThrow: () => Effect.succeed({ fsPath: '/workspace' }) },
+  config: {
     isCurrentTargetOrg: () => Effect.succeed(opts.isCurrentTargetOrg)
   },
-  ClearDefaultOrgRef: opts.clearDefaultOrgRef,
-  TargetOrgRef: () => SubscriptionRef.make(opts.orgInfo),
-  UserCancellationError
+  clearDefaultOrgRef: opts.clearDefaultOrgRef,
+  targetOrgRef: Effect.runSync(SubscriptionRef.make<DefaultOrgInfo>(opts.orgInfo as DefaultOrgInfo))
 });
 
 const run = (opts: {
@@ -54,16 +64,42 @@ const run = (opts: {
   orgInfo: OrgSnapshot;
   isCurrentTargetOrg?: boolean;
   clearDefaultOrgRef: VitestMock;
-}) =>
-  Effect.runPromiseExit(
+}) => {
+  const services = buildServices({ isCurrentTargetOrg: true, simpleExec: logoutMock, ...opts });
+  return Effect.runPromiseExit(
     orgLogoutDefaultCommand().pipe(
       Effect.provideService(ExtensionProviderService, {
         getServicesApi: Effect.succeed({
-          services: buildServices({ isCurrentTargetOrg: true, simpleExec: logoutMock, ...opts })
+          v2: {
+            services: {
+              ProjectService,
+              PromptService,
+              TerminalService,
+              WorkspaceService,
+              ConfigService,
+              TargetOrgRef,
+              UserCancellationError,
+              ChannelService,
+              NotificationModeService,
+              ClearDefaultOrgRef: () => services.clearDefaultOrgRef()
+            }
+          }
         })
-      } as unknown as ExtensionProviderService)
+      } as unknown as ExtensionProviderService['Service']),
+      Effect.provideService(ProjectService, services.project as never),
+      Effect.provideService(PromptService, services.prompt as never),
+      Effect.provideService(TerminalService, services.terminal as never),
+      Effect.provideService(WorkspaceService, services.workspace as never),
+      Effect.provideService(ConfigService, services.config as never),
+      Effect.provideService(TargetOrgRef, services.targetOrgRef),
+      Effect.provideService(ChannelService, { appendToChannel: () => Effect.void, showChannel: Effect.void } as never),
+      Effect.provideService(NotificationModeService, {
+        getProgressLocation: () => Effect.succeed(1),
+        showSuccessNotification: () => Effect.void
+      } as never)
     ) as Effect.Effect<void, unknown, never>
   );
+};
 
 describe('orgLogoutDefaultCommand', () => {
   let clearDefaultOrgRefMock: VitestMock;

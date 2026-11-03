@@ -7,4 +7,4 @@
 
 import * as Schema from 'effect/Schema';
 
-export const LetterStartNameSchema = Schema.String.pipe(Schema.pattern(/^[A-Za-z][A-Za-z0-9_]*$/));
+export const LetterStartNameSchema = Schema.String.check(Schema.isPattern(/^[A-Za-z][A-Za-z0-9_]*$/));

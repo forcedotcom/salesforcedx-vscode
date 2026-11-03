@@ -9,8 +9,18 @@ import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
-import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
+import {
+  ChannelService,
+  ConfigService,
+  FsService,
+  NotificationModeService,
+  ProjectService,
+  PromptService,
+  TerminalService,
+  UserCancellationError,
+  WorkspaceService
+} from '@salesforce/vscode-services/v2';
 
 // resetMocks: true (vitest.base.config) wipes implementations before each test, so the implementations are
 // (re)installed in beforeEach; the factories only forward to these stable vi.fn references.
@@ -22,10 +32,6 @@ vi.mock('../../../src/util/orgUtil', () => ({
 // imported after mocks so the command picks up the mocked org utility
 import { orgCreateCommand } from '../../../src/commands/orgCreate';
 import { nls } from '../../../src/messages';
-
-class UserCancellationError extends Schema.TaggedError<UserCancellationError>()('UserCancellationError', {
-  message: Schema.optional(Schema.String)
-}) {}
 
 const SUCCESS_STDOUT = JSON.stringify({ status: 0, result: { orgId: '00Dxx', username: 'me@scratch.org' } });
 
@@ -39,31 +45,26 @@ type Services = {
 };
 
 const buildServices = (opts: Services) => ({
-  ProjectService: {
+  project: {
     getSfProject: () =>
       opts.isProject === false ? Effect.fail({ _tag: 'FailedToResolveSfProjectError' as const }) : Effect.succeed({})
   },
-  ConfigService: { getTargetDevHub: () => Effect.succeed(opts.devHub) },
-  // forward to the vscode.workspace.findFiles Vitest mock so the existing `findFiles.mock*` setup drives it
-  FsService: {
-    findFiles: (include: string) => Effect.promise(() => vscode.workspace.findFiles(include))
-  },
-  // alias default derives from Utils.basename(uri) → 'my-project' → sanitized 'myproject'
-  WorkspaceService: {
-    getWorkspaceInfo: () => Effect.succeed({ uri: { path: '/repo/my-project' } })
-  },
-  PromptService: Effect.succeed({
+  config: { getTargetDevHub: () => Effect.succeed(opts.devHub) },
+  fs: { findFiles: (include: string) => Effect.promise(() => vscode.workspace.findFiles(include)) },
+  workspace: { getWorkspaceInfo: () => Effect.succeed({ uri: { path: '/repo/my-project' } }) },
+  prompt: {
     // production: fails on undefined/empty-trimmed; here we only need undefined → cancel
     considerUndefinedAsCancellation: <T>(value: T | undefined) =>
-      value === undefined ? Effect.fail(new UserCancellationError({})) : Effect.succeed(value),
-    // identity: run the wrapped effect directly (no real vscode progress in Vitest)
+      value === undefined
+        ? Effect.fail(new UserCancellationError({ message: 'User cancelled' }))
+        : Effect.succeed(value),
     withCancellableProgress:
       () =>
       <A, E, R>(self: Effect.Effect<A, E, R>) =>
         self
-  }),
-  TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
-  ChannelService: Effect.succeed({
+  },
+  terminal: { simpleExec: opts.simpleExec },
+  channel: {
     appendToChannel: (msg: string) =>
       Effect.sync(() => {
         opts.appendToChannel(msg);
@@ -71,23 +72,47 @@ const buildServices = (opts: Services) => ({
     showChannel: Effect.sync(() => {
       opts.show();
     })
-  }),
-  NotificationModeService: Effect.succeed({
+  },
+  notificationMode: {
     getProgressLocation: () => Effect.succeed(1),
     showSuccessNotification: (command: string, message: string) =>
       Effect.sync(() => void opts.showSuccessNotification?.(command, message))
-  }),
-  UserCancellationError
+  }
 });
 
-const run = (opts: Services) =>
-  Effect.runPromiseExit(
+const run = (opts: Services) => {
+  const services = buildServices(opts);
+  const servicesApi = {
+    v2: {
+      services: {
+        ProjectService,
+        ConfigService,
+        FsService,
+        WorkspaceService,
+        PromptService,
+        TerminalService,
+        ChannelService,
+        NotificationModeService,
+        UserCancellationError
+      }
+    }
+  };
+  return Effect.runPromiseExit(
     orgCreateCommand().pipe(
       Effect.provideService(ExtensionProviderService, {
-        getServicesApi: Effect.succeed({ services: buildServices(opts) })
-      } as unknown as ExtensionProviderService)
+        getServicesApi: Effect.succeed(servicesApi)
+      } as never),
+      Effect.provideService(ProjectService, services.project as never),
+      Effect.provideService(ConfigService, services.config as never),
+      Effect.provideService(FsService, services.fs as never),
+      Effect.provideService(WorkspaceService, services.workspace as never),
+      Effect.provideService(PromptService, services.prompt as never),
+      Effect.provideService(TerminalService, services.terminal as never),
+      Effect.provideService(ChannelService, services.channel as never),
+      Effect.provideService(NotificationModeService, services.notificationMode as never)
     ) as Effect.Effect<void, unknown, never>
   );
+};
 
 describe('orgCreateCommand', () => {
   let showQuickPick: VitestMock;
@@ -281,7 +306,7 @@ describe('orgCreateCommand', () => {
     (vscode.commands.executeCommand as unknown as VitestMock).mockRejectedValueOnce(new Error('command failed'));
 
     const exit = await run({ devHub: undefined, simpleExec, appendToChannel, show });
-    await Effect.runPromise(Effect.yieldNow());
+    await Effect.runPromise(Effect.yieldNow);
 
     expect(Exit.isFailure(exit)).toBe(true);
     expect(showErrorMessage).toHaveBeenCalledWith('Could not start SFDX: Authorize a Dev Hub. command failed');

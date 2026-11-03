@@ -13,19 +13,19 @@ const ruleTester = new RuleTester();
 ruleTester.run('no-direct-services-imports', noDirectServicesImports, {
   valid: [
     {
-      code: `import type { EditorService } from 'salesforcedx-vscode-services/src/vscode/editorService';`,
+      code: `import { EditorService } from '@salesforce/vscode-services/v2';`,
       filename: 'packages/salesforcedx-vscode-metadata/src/test.ts'
     },
     {
-      code: `import type { foo, bar } from 'salesforcedx-vscode-services/src/vscode/editorService';`,
+      code: `import type { foo, bar } from '@salesforce/vscode-services/v2';`,
       filename: 'packages/salesforcedx-vscode-metadata/src/test.ts'
     },
     {
-      code: `import { type EditorService, type NoActiveEditorError } from 'salesforcedx-vscode-services/src/vscode/editorService';`,
+      code: `import { type EditorService, type NoActiveEditorError } from '@salesforce/vscode-services/v2';`,
       filename: 'packages/salesforcedx-vscode-metadata/src/test.ts'
     },
     {
-      code: `import { type foo, type bar } from 'salesforcedx-vscode-services/src/vscode/editorService';`,
+      code: `import { type foo, type bar } from '@salesforce/vscode-services/v2';`,
       filename: 'packages/salesforcedx-vscode-metadata/src/test.ts'
     },
     {
@@ -43,7 +43,7 @@ ruleTester.run('no-direct-services-imports', noDirectServicesImports, {
   ],
   invalid: [
     {
-      code: `import { EditorService } from 'salesforcedx-vscode-services/src/vscode/editorService';`,
+      code: `import { EditorService } from 'salesforcedx-vscode-services/out/src/vscode/editorService';`,
       filename: 'packages/salesforcedx-vscode-metadata/src/test.ts',
       errors: [
         {
@@ -52,7 +52,7 @@ ruleTester.run('no-direct-services-imports', noDirectServicesImports, {
       ]
     },
     {
-      code: `import { foo, type bar } from 'salesforcedx-vscode-services/src/vscode/editorService';`,
+      code: `import { foo, type bar } from 'salesforcedx-vscode-services/out/src/core/projectService';`,
       filename: 'packages/salesforcedx-vscode-metadata/src/test.ts',
       errors: [
         {

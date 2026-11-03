@@ -39,13 +39,13 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
 
   // Check if we're in a Salesforce project (also sets VS Code context as side effect)
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const projectService = yield* api.services.ProjectService;
+  const projectService = yield* api.v2.services.ProjectService;
   const isSalesforceProject = yield* projectService.isSalesforceProject();
 
   // Only set up project-specific features if we're in a Salesforce project
   if (isSalesforceProject) {
     // Register the output channel at activation; test discovery no longer writes to it until requested.
-    yield* (yield* api.services.ChannelService).getChannel;
+    yield* (yield* api.v2.services.ChannelService).getChannel;
     const testController = getTestController();
     yield* Effect.log('[Apex Testing] Test controller created');
 
@@ -64,7 +64,7 @@ const activateEffect = Effect.fn('apex-testing.activation')(function* (context: 
 
   // Register Effect-pipeline commands via the runtime so spans/tracing/error-handling and
   // UserCancellationError swallowing are wired by registerCommandWithRuntime.
-  const registerCommand = api.services.registerCommandWithRuntime(getApexTestingRuntime());
+  const registerCommand = api.v2.services.registerCommandWithRuntime(getApexTestingRuntime());
   yield* Effect.all([
     registerCommand('sf.apex.test.run', apexTestRun),
     registerCommand('sf.apex.test.suite.create', apexTestSuiteCreate),
@@ -91,7 +91,7 @@ export const activate = (context: vscode.ExtensionContext) => {
   setAllServicesLayer(buildAllServicesLayer(context, nls.localize('channel_name')));
   const extensionScope = getApexTestingRuntime().runSync(getExtensionScope());
 
-  return getApexTestingRuntime().runPromise(activateEffect(context).pipe(Scope.extend(extensionScope)));
+  return getApexTestingRuntime().runPromise(Scope.provide(extensionScope)(activateEffect(context)));
 };
 
 const registerCommands = (): { commands: vscode.Disposable; statusBarToggle: StatusBarToggle } => {

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
@@ -26,7 +26,10 @@ import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 const COMMAND: ProgressAndSuccessCommandKey = 'SFDX: Create a Default Scratch Org';
 
 const decodeExpirationDays = Schema.decodeUnknownOption(
-  Schema.NumberFromString.pipe(Schema.int(), Schema.between(1, 30))
+  Schema.NumberFromString.pipe(
+    Schema.check(Schema.isInt()),
+    Schema.check(Schema.isBetween({ minimum: 1, maximum: 30 }))
+  )
 );
 
 const DEFAULT_ALIAS = 'vscodeScratchOrg';
@@ -62,7 +65,7 @@ const OrgCreateFailure = Schema.TaggedStruct('OrgCreateFailure', {
   message: Schema.String
 });
 
-const OrgCreateResponse = Schema.Union(OrgCreateSuccess, OrgCreateFailure);
+const OrgCreateResponse = Schema.Union([OrgCreateSuccess, OrgCreateFailure]);
 type OrgCreateResponse = Schema.Schema.Type<typeof OrgCreateResponse>;
 type OrgCreateSuccess = Schema.Schema.Type<typeof OrgCreateSuccess>;
 type OrgCreateFailure = Schema.Schema.Type<typeof OrgCreateFailure>;
@@ -83,17 +86,17 @@ const decodeOrgCreateResponse = decodeTaggedCliResponse(OrgCreateResponse, raw =
  */
 const gatherOrgCreateInputs = Effect.fn('orgCreateCommand.gatherInputs')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
 
   // def-file pick: empty match → show the no-scratch-def error and cancel (parity with FileSelector).
   // FsService.findFiles routes through the web/virtual FS provider when ESBUILD_PLATFORM === 'web'
   // (vscode.workspace.findFiles is desktop-only).
-  const files = yield* api.services.FsService.findFiles('config/**/*-scratch-def.json');
+  const files = yield* api.v2.services.FsService.use(service => service.findFiles('config/**/*-scratch-def.json'));
   if (files.length === 0) {
     yield* Effect.promise(() => vscode.window.showErrorMessage(nls.localize('error_no_scratch_def'))).pipe(
       Effect.ignore
     );
-    return yield* new api.services.UserCancellationError({});
+    return yield* new api.v2.services.UserCancellationError({ message: 'User cancelled' });
   }
   const fileItems = files.map(file => ({ label: Utils.basename(file), description: file.fsPath }));
   const selection = yield* Effect.promise(() =>
@@ -108,7 +111,7 @@ const gatherOrgCreateInputs = Effect.fn('orgCreateCommand.gatherInputs')(functio
   // alias default = sanitized workspace folder name (or DEFAULT_ALIAS), pre-filled as the input `value`
   // so Enter accepts it. The default is always a valid value, so an empty box only happens if the user
   // clears it (validation then rejects it); Esc → undefined → considerUndefinedAsCancellation.
-  const { uri } = yield* api.services.WorkspaceService.getWorkspaceInfo();
+  const { uri } = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfo());
   const folderName = Utils.basename(uri).replaceAll(/\W/g, '');
   const defaultAlias = isValidOrgAlias(folderName) ? folderName : DEFAULT_ALIAS;
   const alias = yield* Effect.promise(() =>
@@ -147,7 +150,10 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
   // getTargetDevHub yields ConfigService directly (NOT the old checkDevHubConfigured, which nested a
   // runPromise inside an Effect).
   const [, devHub] = yield* Effect.all(
-    [api.services.ProjectService.getSfProject(), api.services.ConfigService.getTargetDevHub()],
+    [
+      api.v2.services.ProjectService.use(service => service.getSfProject()),
+      api.v2.services.ConfigService.use(service => service.getTargetDevHub())
+    ],
     { concurrency: 'unbounded' }
   );
   // no devhub → offer authorization, then cancel this create attempt.
@@ -157,7 +163,7 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
       vscode.window.showInformationMessage(nls.localize('error_no_target_dev_hub'), authorizeDevHub)
     );
     if (selection === authorizeDevHub) {
-      yield* Effect.forkDaemon(
+      yield* Effect.forkIn(
         Effect.tryPromise({
           try: () => vscode.commands.executeCommand(ORG_LOGIN_WEB_DEV_HUB),
           catch: cause =>
@@ -173,17 +179,19 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
               void vscode.window.showErrorMessage(error.message);
             })
           )
-        )
+        ),
+        yield* getExtensionScope(),
+        { startImmediately: true }
       );
     }
-    return yield* new api.services.UserCancellationError({});
+    return yield* new api.v2.services.UserCancellationError({ message: 'User cancelled' });
   }
 
   const { defFilePath, alias, days } = yield* gatherOrgCreateInputs();
 
-  const promptService = yield* api.services.PromptService;
-  const terminalService = yield* api.services.TerminalService;
-  const notificationMode = yield* api.services.NotificationModeService;
+  const promptService = yield* api.v2.services.PromptService;
+  const terminalService = yield* api.v2.services.TerminalService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
   const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
   // wrap in a cancellable progress: clicking Cancel interrupts this fiber, killing the sf child.
   const stdout = yield* terminalService
@@ -214,7 +222,7 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
   const handleSuccess = Effect.fn('orgCreateCommand.handleSuccess')(function* ({
     result: { orgId, username }
   }: OrgCreateSuccess) {
-    const channel = yield* api.services.ChannelService;
+    const channel = yield* api.v2.services.ChannelService;
     yield* Effect.promise(() => updateConfigAndStateAggregators());
     yield* channel.appendToChannel(nls.localize('org_create_success', alias, username, orgId));
     yield* channel.showChannel;
@@ -226,7 +234,7 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
 
   // failure branch: sf prints `{ status, message }` — surface the message to the channel (no aggregator refresh).
   const handleFailure = Effect.fn('orgCreateCommand.handleFailure')(function* ({ message }: OrgCreateFailure) {
-    const channel = yield* api.services.ChannelService;
+    const channel = yield* api.v2.services.ChannelService;
     yield* channel.appendToChannel(message);
     yield* channel.showChannel;
   });

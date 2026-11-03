@@ -9,6 +9,7 @@ import type { SoqlBuilderService } from './effect/soqlBuilderService.js';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
+import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as Queue from 'effect/Queue';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -28,13 +29,19 @@ export type SoqlBuilderView = {
   readonly removeEventListener: (type: string, listener: EventListener) => void;
 };
 
+const makeSessionLayer = (serviceLayer: Layer.Layer<SoqlBuilderService, SoqlBuilderServiceError>) =>
+  SoqlBuilderController.layer.pipe(Layer.provide(serviceLayer));
+type SessionLayer = ReturnType<typeof makeSessionLayer>;
+type SessionRuntime = ManagedRuntime.ManagedRuntime<Layer.Success<SessionLayer>, Layer.Error<SessionLayer>>;
+
 const isSoqlBuilderAction = Schema.is(SoqlBuilderActionSchema);
 
 const isSoqlBuilderActionEvent = (event: Event): event is Event & { readonly detail: SoqlBuilderAction } =>
   event.type === SOQL_BUILDER_ACTION_EVENT && 'detail' in event && isSoqlBuilderAction(event.detail);
 
 export class SoqlBuilderApplication {
-  private sessionFiber: Fiber.RuntimeFiber<void, never> | undefined;
+  private sessionFiber: Fiber.Fiber<unknown, unknown> | undefined;
+  private sessionRuntime: SessionRuntime | undefined;
 
   constructor(
     private readonly view: SoqlBuilderView,
@@ -51,55 +58,51 @@ export class SoqlBuilderApplication {
           errorMessage: error.message
         };
       });
-    const session = SoqlBuilderController.Default.pipe(
-      Layer.provide(this.serviceLayer),
-      Layer.toRuntime,
-      Effect.flatMap(runtime =>
-        Effect.gen(this, function* () {
-          const controller = yield* SoqlBuilderController;
-          const actions = yield* Queue.unbounded<SoqlBuilderAction>();
-          const actionListener: EventListener = event => {
-            if (isSoqlBuilderActionEvent(event)) actions.unsafeOffer(event.detail);
-          };
-
-          yield* Effect.acquireRelease(
-            Effect.sync(() => this.view.addEventListener(SOQL_BUILDER_ACTION_EVENT, actionListener)),
-            () =>
-              Effect.sync(() => this.view.removeEventListener(SOQL_BUILDER_ACTION_EVENT, actionListener)).pipe(
-                Effect.andThen(Queue.shutdown(actions))
-              )
-          );
-
-          yield* Effect.all(
-            [
-              controller.states.pipe(
-                Stream.runForEach(state =>
-                  Effect.sync(() => {
-                    this.view.viewState = state;
-                  })
-                )
-              ),
-              Stream.fromQueue(actions).pipe(Stream.runForEach(controller.dispatch))
-            ],
-            { concurrency: 'unbounded', discard: true }
-          );
-        }).pipe(Effect.provide(runtime))
-      ),
+    const view = this.view;
+    const actions = Effect.runSync(Queue.unbounded<SoqlBuilderAction>());
+    const actionListener: EventListener = event => {
+      if (isSoqlBuilderActionEvent(event)) Queue.offerUnsafe(actions, event.detail);
+    };
+    view.addEventListener(SOQL_BUILDER_ACTION_EVENT, actionListener);
+    const runtime = ManagedRuntime.make(this.serviceLayer.pipe(makeSessionLayer));
+    this.sessionRuntime = runtime;
+    const session = Effect.gen(function* () {
+      const controller = yield* SoqlBuilderController;
+      yield* Effect.all(
+        [
+          controller.states.pipe(
+            Stream.runForEach(state =>
+              Effect.sync(() => {
+                view.viewState = state;
+              })
+            )
+          ),
+          Stream.fromQueue(actions).pipe(Stream.runForEach(controller.dispatch))
+        ],
+        { concurrency: 'unbounded', discard: true }
+      );
+    }).pipe(
       Effect.scoped,
       Effect.catchTags({
         InvalidSoqlBuilderMetadataError: reportServiceError,
         SoqlBuilderMessageChannelError: reportServiceError,
         SoqlBuilderQueryError: reportServiceError
-      })
-    );
-    const sessionFiber = Effect.yieldNow().pipe(
-      Effect.andThen(session),
+      }),
       Effect.ensuring(
-        Effect.sync(() => {
-          if (this.sessionFiber === sessionFiber) this.sessionFiber = undefined;
-        })
-      ),
-      Effect.runFork
+        Effect.sync(() => view.removeEventListener(SOQL_BUILDER_ACTION_EVENT, actionListener)).pipe(
+          Effect.andThen(Queue.shutdown(actions))
+        )
+      )
+    );
+    const sessionFiber = runtime.runFork(
+      Effect.yieldNow.pipe(
+        Effect.andThen(session),
+        Effect.ensuring(
+          Effect.sync(() => {
+            if (this.sessionFiber === sessionFiber) this.sessionFiber = undefined;
+          })
+        )
+      )
     );
     this.sessionFiber = sessionFiber;
   };
@@ -108,5 +111,8 @@ export class SoqlBuilderApplication {
     const sessionFiber = this.sessionFiber;
     this.sessionFiber = undefined;
     if (sessionFiber) await sessionFiber.pipe(Fiber.interrupt, Effect.runPromise);
+    const runtime = this.sessionRuntime;
+    this.sessionRuntime = undefined;
+    if (runtime) await runtime.dispose();
   };
 }

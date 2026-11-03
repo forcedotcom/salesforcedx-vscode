@@ -6,10 +6,10 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { OrgAuthorizationSummary } from '@salesforce/vscode-services/v2';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import type { OrgAuthorizationSummary } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { buildOrgQuickPickItems, isOrgItem } from '../orgPicker/orgList';
@@ -22,7 +22,7 @@ const isDeletable = (org: OrgAuthorizationSummary): boolean => org.isScratchOrg 
 /** Multi-select QuickPick filtered to scratch orgs and sandboxes with a delete confirmation. */
 export const gather = Effect.fn('SelectDeletableOrg.gather')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   const { defaultConfig, freshAuthorizations } = yield* getFreshAuthorizations();
 
   const items = buildOrgQuickPickItems(freshAuthorizations, defaultConfig, isDeletable);
@@ -47,7 +47,7 @@ export const gather = Effect.fn('SelectDeletableOrg.gather')(function* () {
   });
 
   if (targetOrgs.length === 0) {
-    return yield* new api.services.UserCancellationError({});
+    return yield* new api.v2.services.UserCancellationError({ message: 'User cancelled' });
   }
 
   yield* promptService.confirmOrThrow({

@@ -11,13 +11,18 @@ import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
-import { ComponentSetService } from 'salesforcedx-vscode-services/src/core/componentSetService';
-import { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
-import { SourceTrackingService } from 'salesforcedx-vscode-services/src/core/sourceTrackingService';
-import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
-import { HashableUri } from 'salesforcedx-vscode-services/src/vscode/hashableUri';
-import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
-import { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
+import {
+  ComponentSetService,
+  OrgMetadataCatalog,
+  SourceTrackingService,
+  FsService,
+  HashableUri,
+  NotificationModeService,
+  WorkspaceService,
+  MetadataRetrieveService,
+  TargetOrgRef,
+  type DefaultOrgInfo
+} from '@salesforce/vscode-services/v2';
 import { URI } from 'vscode-uri';
 
 const mockBuildTimestampIndex = vi.fn();
@@ -71,20 +76,20 @@ const makeHarness = () => {
       }))
     )
   );
-  const catalog = { getEntries } as unknown as InstanceType<typeof OrgMetadataCatalog>;
-  const sourceTracking = { getStatus } as unknown as InstanceType<typeof SourceTrackingService>;
+  const catalog = { getEntries } as unknown as OrgMetadataCatalog['Service'];
+  const sourceTracking = { getStatus } as unknown as SourceTrackingService['Service'];
   const toUri = vi.fn((path: string | URI) => Effect.succeed(typeof path === 'string' ? URI.file(path) : path));
   const readFile = vi.fn((uri: string | URI) =>
     Effect.succeed(uri.toString().includes('metadata-shadow') ? 'remote source' : 'local source')
   );
   const safeDelete = vi.fn(() => Effect.void);
-  const fsService = { HashableUri, readFile, safeDelete, toUri } as unknown as InstanceType<typeof FsService>;
+  const fsService = { HashableUri, readFile, safeDelete, toUri } as unknown as FsService['Service'];
   const getComponentSetFromUris = vi.fn(() => Effect.succeed(componentSet));
   const ensureNonEmptyComponentSet = vi.fn((value: ComponentSet) => Effect.succeed(value));
   const componentSetService = {
     ensureNonEmptyComponentSet,
     getComponentSetFromUris
-  } as unknown as InstanceType<typeof ComponentSetService>;
+  } as unknown as ComponentSetService['Service'];
   const remoteComponentSet = {
     getComponentFilenamesByNameAndType: () => [remoteUri.fsPath]
   } as unknown as ComponentSet;
@@ -92,25 +97,34 @@ const makeHarness = () => {
   const retrieveComponentSetToDirectory = vi.fn(() => Effect.succeed({ components: remoteComponentSet }));
   const workspaceService = {
     getWorkspaceInfoOrThrow: () => Effect.succeed({ uri: URI.file('/workspace') })
-  } as unknown as InstanceType<typeof WorkspaceService>;
+  } as unknown as WorkspaceService['Service'];
   const notificationMode = {
     getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification),
     showSuccessNotification: () => Effect.void
-  } as unknown as NotificationModeService;
+  } as unknown as NotificationModeService['Service'];
+  const metadataRetrieveService = {
+    buildComponentSet,
+    retrieveComponentSetToDirectory
+  } as unknown as MetadataRetrieveService['Service'];
+  const targetOrgRef = Effect.runSync(
+    SubscriptionRef.make<DefaultOrgInfo>({ orgId: '00D000000000001' as DefaultOrgInfo['orgId'] })
+  );
   const provider = {
     getServicesApi: Effect.succeed({
-      services: {
-        ComponentSetService,
-        FsService,
-        MetadataRetrieveService: { buildComponentSet, retrieveComponentSetToDirectory },
-        NotificationModeService,
-        OrgMetadataCatalog,
-        SourceTrackingService,
-        TargetOrgRef: () => SubscriptionRef.make({ orgId: 'org-one' }),
-        WorkspaceService
+      v2: {
+        services: {
+          ComponentSetService,
+          FsService,
+          MetadataRetrieveService,
+          NotificationModeService,
+          OrgMetadataCatalog,
+          SourceTrackingService,
+          TargetOrgRef,
+          WorkspaceService
+        }
       }
     })
-  } as unknown as ExtensionProviderService;
+  } as unknown as ExtensionProviderService['Service'];
 
   return {
     mocks: {
@@ -123,7 +137,16 @@ const makeHarness = () => {
       toUri
     },
     provider,
-    services: { catalog, componentSetService, fsService, notificationMode, sourceTracking, workspaceService }
+    services: {
+      catalog,
+      componentSetService,
+      fsService,
+      notificationMode,
+      metadataRetrieveService,
+      targetOrgRef,
+      sourceTracking,
+      workspaceService
+    }
   };
 };
 
@@ -133,6 +156,8 @@ const runWithHarness = <A, E, R>(effect: Effect.Effect<A, E, R>, harness: Return
       Effect.provideService(ExtensionProviderService, harness.provider),
       Effect.provideService(FsService, harness.services.fsService),
       Effect.provideService(NotificationModeService, harness.services.notificationMode),
+      Effect.provideService(MetadataRetrieveService, harness.services.metadataRetrieveService),
+      Effect.provideService(TargetOrgRef, harness.services.targetOrgRef),
       Effect.provideService(OrgMetadataCatalog, harness.services.catalog),
       Effect.provideService(SourceTrackingService, harness.services.sourceTracking),
       Effect.provideService(ComponentSetService, harness.services.componentSetService),
@@ -161,7 +186,7 @@ describe('conflict detection catalog integration', () => {
   it('uses catalog timestamps and materialized source for non-tracking deploy conflicts', async () => {
     const harness = makeHarness();
     mockBuildTimestampIndex.mockReturnValue(
-      Effect.succeed(new Map([['ApexClass:ConflictTest', DateTime.unsafeMake(new Date('2026-07-30T00:00:00.000Z'))]]))
+      Effect.succeed(new Map([['ApexClass:ConflictTest', DateTime.makeUnsafe(new Date('2026-07-30T00:00:00.000Z'))]]))
     );
 
     const conflicts = await runWithHarness(detectConflictsFromTimestamps(componentSet, 'deploy'), harness);
@@ -177,7 +202,7 @@ describe('conflict detection catalog integration', () => {
   it('does not materialize remote source when catalog timestamps show no deploy conflict', async () => {
     const harness = makeHarness();
     mockBuildTimestampIndex.mockReturnValue(
-      Effect.succeed(new Map([['ApexClass:ConflictTest', DateTime.unsafeMake(new Date('2026-08-01T00:00:00.000Z'))]]))
+      Effect.succeed(new Map([['ApexClass:ConflictTest', DateTime.makeUnsafe(new Date('2026-08-01T00:00:00.000Z'))]]))
     );
 
     const conflicts = await runWithHarness(detectConflictsFromTimestamps(componentSet, 'deploy'), harness);

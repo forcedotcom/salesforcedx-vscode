@@ -14,27 +14,30 @@ import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { createLegacyServices, makeV4Host, V3DefaultOrgInfoSchema, type Connection } from '../bridgeHost/host.js';
+import type { PublicLegacyServicesApi } from '../bridgeHost/legacyClasses.js';
 
 /** Browser-safe conformance: the optional Node-injected value is a real SDK Connection. */
 export const basicConformance = async (connection?: Connection, checkNativeConnection?: (value: unknown) => Promise<void>) => {
   const owner = await makeV4Host(connection);
   const legacy = await createLegacyServices(owner.host);
+  const publicApi: PublicLegacyServicesApi = legacy;
+  const publicServices = publicApi.services;
   const { services } = legacy;
-  const context = Layer.succeedContext(services.prebuiltServicesDependencies);
+  const context = Layer.succeedContext(publicServices.prebuiltServicesDependencies);
   const connectionExit = await Effect.runPromiseExit(
-    services.ConnectionService.getConnection().pipe(Effect.provide(context))
+    publicServices.ConnectionService.getConnection().pipe(Effect.provide(context))
   );
   const prebuiltExit = await Effect.runPromiseExit(
-    services.ConnectionService.getConnection().pipe(Effect.provide(services.prebuiltServicesLayer))
+    publicServices.ConnectionService.getConnection().pipe(Effect.provide(publicServices.prebuiltServicesLayer))
   );
   if (checkNativeConnection && Exit.isSuccess(connectionExit)) await checkNativeConnection(connectionExit.value);
-  const ref = await Effect.runPromise(services.TargetOrgRef());
-  const stableRef = ref === (await Effect.runPromise(services.TargetOrgRef()));
+  const ref = await Effect.runPromise(publicServices.TargetOrgRef());
+  const stableRef = ref === (await Effect.runPromise(publicServices.TargetOrgRef()));
   const first = await Effect.runPromise(ref.changes.pipe(Stream.take(1), Stream.runCollect));
   const aliases = await Effect.runPromise(
-    services.AliasService.getAliasesFromUsername('fixture').pipe(Effect.provide(context))
+    publicServices.AliasService.getAliasesFromUsername('fixture').pipe(Effect.provide(context))
   );
-  const configured = await Effect.runPromise(services.ConfigService.getTargetOrg().pipe(Effect.provide(context)));
+  const configured = await Effect.runPromise(publicServices.ConfigService.getTargetOrg().pipe(Effect.provide(context)));
   const override = await Effect.runPromise(
     services.ConfigService.getTargetOrg().pipe(
       Effect.provide(

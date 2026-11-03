@@ -6,10 +6,10 @@
  */
 import type { ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { OrgMetadataComponentReference } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Equal from 'effect/Equal';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { OrgMetadataComponentReference } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../messages';
@@ -25,7 +25,7 @@ const TEST_CONTROLLER_ID = 'sf.apex.testController';
 
 /** Clear all suite children so they re-query from the org (delegates to the tree service). */
 export const clearAllSuiteChildren = (): void =>
-  getApexTestingRuntime().runSync(ApexTestTreeService.clearAllSuiteChildren());
+  getApexTestingRuntime().runSync(ApexTestTreeService.use(service => service.clearAllSuiteChildren()));
 
 export class ApexTestController {
   private controller: vscode.TestController;
@@ -75,7 +75,7 @@ export class ApexTestController {
       .runPromise(
         Effect.gen(function* () {
           const api = yield* (yield* ExtensionProviderService).getServicesApi;
-          return (yield* SubscriptionRef.get(yield* api.services.TargetOrgRef())).orgId;
+          return (yield* SubscriptionRef.get(yield* api.v2.services.TargetOrgRef)).orgId;
         })
       )
       .then(orgId => {
@@ -122,8 +122,8 @@ export class ApexTestController {
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
         // Drop the shared cached connection so the next getConnection() reloads AuthInfo from disk.
-        yield* api.services.ConnectionService.invalidateCachedConnections();
-        yield* ApexTestTreeService.clearRestoredResults();
+        yield* api.v2.services.ConnectionService.use(service => service.invalidateCachedConnections());
+        yield* ApexTestTreeService.use(service => service.clearRestoredResults());
       })
     );
   }
@@ -139,7 +139,7 @@ export class ApexTestController {
       clearTree: () => this.clearTestItems(),
       updateTestResults: (uri: URI) =>
         getApexTestingRuntime().runPromise(
-          ApexTestExecutionService.updateTestResults(this.buildExecutionContext(), uri)
+          ApexTestExecutionService.use(service => service.updateTestResults(this.buildExecutionContext(), uri))
         ),
       staleTag: this.staleTag
     };
@@ -165,7 +165,7 @@ export class ApexTestController {
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
         const resultDir = yield* getTestResultsFolder();
-        yield* api.services.FsService.safeDelete(resultDir, { recursive: true });
+        yield* api.v2.services.FsService.use(service => service.safeDelete(resultDir, { recursive: true }));
       }).pipe(
         Effect.catchTags({
           NoDefaultOrgError: error => Effect.logWarning('Failed to delete test results folder', { error }),
@@ -180,7 +180,9 @@ export class ApexTestController {
 
   public async discoverTests(): Promise<void> {
     // Single-shot dedup + catchTags-based failure notification live in the tree service (discover).
-    await getApexTestingRuntime().runPromise(ApexTestTreeService.discover(this.buildDiscoveryContext()));
+    await getApexTestingRuntime().runPromise(
+      ApexTestTreeService.use(service => service.discover(this.buildDiscoveryContext()))
+    );
   }
 
   /**
@@ -189,14 +191,18 @@ export class ApexTestController {
    */
   public async incrementalUpdate(changes: Map<string, string>, includesSuiteChange: boolean): Promise<void> {
     await getApexTestingRuntime().runPromise(
-      ApexTestTreeService.incrementalUpdate(this.buildTreeMutationContext(), changes, includesSuiteChange)
+      ApexTestTreeService.use(service =>
+        service.incrementalUpdate(this.buildTreeMutationContext(), changes, includesSuiteChange)
+      )
     );
   }
 
   // Watcher boundary: the execution service owns the dedup (lastProcessedResultFile Ref) + result apply.
   public async onResultFileCreate(apexTestDir: URI, testResultUri: URI): Promise<void> {
     await getApexTestingRuntime().runPromise(
-      ApexTestExecutionService.onResultFileCreate(this.buildExecutionContext(), apexTestDir, testResultUri)
+      ApexTestExecutionService.use(service =>
+        service.onResultFileCreate(this.buildExecutionContext(), apexTestDir, testResultUri)
+      )
     );
   }
 
@@ -204,7 +210,7 @@ export class ApexTestController {
     void vscode.commands.executeCommand('testing.clearTestResults');
     this.controller.items.replace([]);
     // The suite/class/method/classToParent/suiteToClasses maps live in the tree service; reset clears them in place.
-    getApexTestingRuntime().runSync(ApexTestTreeService.reset());
+    getApexTestingRuntime().runSync(ApexTestTreeService.use(service => service.reset()));
   }
 
   private setupRunProfiles(): void {
@@ -319,7 +325,7 @@ export class ApexTestController {
   private async resolveSuiteChildren(suiteItem: vscode.TestItem): Promise<void> {
     const ctx = this.buildTreeMutationContext();
     await getApexTestingRuntime().runPromise(
-      ApexTestTreeService.resolveSuiteChildren(ctx, suiteItem).pipe(
+      ApexTestTreeService.use(service => service.resolveSuiteChildren(ctx, suiteItem)).pipe(
         Effect.catchTag('ResolveSuiteChildrenError', error =>
           Effect.sync(
             () =>
@@ -351,7 +357,9 @@ export class ApexTestController {
   ): Promise<void> {
     if (!this.discoveryRequested && !request.include?.length) await this.refresh();
     await getApexTestingRuntime().runPromise(
-      ApexTestExecutionService.runTests(this.buildExecutionContext(), request, token, isDebug, runScope)
+      ApexTestExecutionService.use(service =>
+        service.runTests(this.buildExecutionContext(), request, token, isDebug, runScope)
+      )
     );
   }
 
@@ -378,22 +386,26 @@ const retrieveOrgOnlyClass = Effect.fn('ApexTestController.retrieveOrgOnlyClassF
   executionName: string
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const catalog = yield* api.services.OrgMetadataCatalog;
-  const notificationMode = yield* api.services.NotificationModeService;
+  const catalog = yield* api.v2.services.OrgMetadataCatalog;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
   const command: ProgressAndSuccessCommandKey = messages.apex_test_retrieve_org_only_class_text;
   const progressLocation = yield* notificationMode.getProgressLocation(command);
-  yield* api.services.MetadataRetrieveService.retrieve([{ type: reference.xmlName, fullName: reference.fullName }], {
-    ignoreConflicts: true,
-    progressLocation
-  }).pipe(
+  yield* api.v2.services.MetadataRetrieveService.use(service =>
+    service.retrieve([{ type: reference.xmlName, fullName: reference.fullName }], {
+      ignoreConflicts: true,
+      progressLocation
+    })
+  ).pipe(
     Effect.andThen(catalog.resolveComponents([{ type: reference.xmlName, fullName: reference.fullName }])),
     Effect.flatMap(([resolution]) =>
       resolution
-        ? api.services.FsService.showTextDocument(resolution.preferredUri, {
-            preview: false,
-            viewColumn: vscode.ViewColumn.Active,
-            preserveFocus: false
-          }).pipe(Effect.andThen(closeEditorTabByUri(uri)))
+        ? api.v2.services.FsService.use(service =>
+            service.showTextDocument(resolution.preferredUri, {
+              preview: false,
+              viewColumn: vscode.ViewColumn.Active,
+              preserveFocus: false
+            })
+          ).pipe(Effect.andThen(closeEditorTabByUri(uri)))
         : Effect.void
     ),
     Effect.tap(() =>
@@ -413,10 +425,12 @@ const openOrgOnlyTest = async (test: vscode.TestItem): Promise<void> => {
   const editor = await getApexTestingRuntime().runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      return yield* api.services.FsService.showTextDocument(testUri, {
-        preview: false,
-        viewColumn: vscode.ViewColumn.Active
-      });
+      return yield* api.v2.services.FsService.use(service =>
+        service.showTextDocument(testUri, {
+          preview: false,
+          viewColumn: vscode.ViewColumn.Active
+        })
+      );
     }).pipe(Effect.withSpan('ApexTesting.openOrgOnlyTest'))
   );
   if (isMethod(test.id) && test.range) {
@@ -439,9 +453,9 @@ const apexClassReferenceFromUri = (
 
 const getApexClassReference = Effect.fn('ApexTesting.getApexClassReference')(function* (uri: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const location = apexClassReferenceFromUri(uri, api.services.ORG_METADATA_SCHEME);
+  const location = apexClassReferenceFromUri(uri, api.v2.services.ORG_METADATA_SCHEME);
   if (!location) return undefined;
-  const activeOrgId = (yield* SubscriptionRef.get(yield* api.services.TargetOrgRef())).orgId;
+  const activeOrgId = (yield* SubscriptionRef.get(yield* api.v2.services.TargetOrgRef)).orgId;
   return location.orgId === activeOrgId ? location.reference : undefined;
 });
 
@@ -462,7 +476,7 @@ const closeMatchingTabs = Effect.fn('ApexTesting.closeMatchingTabs')(function* (
 const closeEditorTabByUri = Effect.fn('ApexTesting.closeEditorTabByUri')(function* (uri: URI) {
   // Compare via FsService.HashableUri (structural Equal) rather than hand-rolled toString().
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const HashableUri = yield* api.services.FsService.HashableUri;
+  const HashableUri = (yield* api.v2.services.FsService).HashableUri;
   const target = HashableUri.fromUri(uri);
   yield* closeMatchingTabs(tabUri => Equal.equals(HashableUri.fromUri(tabUri), target));
 });

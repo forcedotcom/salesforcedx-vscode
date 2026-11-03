@@ -8,7 +8,6 @@ import type { FsServiceError } from './errors.js';
 import type { HashableUri } from './hashableUri.js';
 import * as Context from 'effect/Context';
 import type * as Effect from 'effect/Effect';
-import type * as Schema from 'effect/Schema';
 import type * as vscode from 'vscode';
 import type { URI } from 'vscode-uri';
 
@@ -68,9 +67,9 @@ export class FsService extends Context.Service<
       target: string | URI,
       options?: { readonly overwrite?: boolean }
     ) => Effect.Effect<void, FsServiceError>;
-    readonly readJSON: <S extends Schema.Constraint>(
+    readonly readJSON: <A, E, R>(
       filePath: string,
-      schema: S
-    ) => Effect.Effect<S['Type'], FsServiceError, S['DecodingServices']>;
+      decode: (input: unknown) => Effect.Effect<A, E, R>
+    ) => Effect.Effect<A, FsServiceError, R>;
   }
 >()('@salesforce/vscode-services/v2/FsService') {}

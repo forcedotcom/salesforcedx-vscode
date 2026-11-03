@@ -5,39 +5,39 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// Mocks are hoisted; static import is fine
+// Mocks are hoisted; static import is fine.
+import type * as EffectExtUtils from '@salesforce/effect-ext-utils';
+import type * as V2Services from '@salesforce/vscode-services/v2';
 
 vi.mock('../../../src/services/extensionProvider', async () => {
   const EffectLib = await vi.importActual<typeof Effect>('effect/Effect');
-  const Context = await vi.importActual<typeof ContextModule>('effect/Context');
   const Layer = await vi.importActual<typeof LayerModule>('effect/Layer');
   const ManagedRuntime = await vi.importActual<typeof ManagedRuntimeModule>('effect/ManagedRuntime');
-
-  const MockExtensionProviderService = Context.GenericTag('ExtensionProviderService');
+  const { ExtensionProviderService } = await vi.importActual<typeof EffectExtUtils>('@salesforce/effect-ext-utils');
+  const { ConnectionService } = await vi.importActual<typeof V2Services>('@salesforce/vscode-services/v2');
 
   // This will be set by tests via __setMockConnection
   let mockConnectionRef: any;
 
-  // Mock ConnectionService as a class-like object with static accessor method
-  const MockConnectionService = {
-    getConnection: () => EffectLib.succeed(mockConnectionRef)
-  };
-
   const mockServicesApi = {
-    services: {
-      ConnectionService: MockConnectionService
+    v2: {
+      services: {
+        ConnectionService
+      }
     }
   };
 
-  const MockAllServicesLayer = Layer.effect(
-    MockExtensionProviderService,
-    EffectLib.sync(() => ({
+  const MockAllServicesLayer = Layer.mergeAll(
+    Layer.succeed(ExtensionProviderService, {
       getServicesApi: EffectLib.succeed(mockServicesApi)
-    }))
+    } as never),
+    Layer.succeed(ConnectionService, {
+      getConnection: () => EffectLib.succeed(mockConnectionRef)
+    } as never)
   );
 
   return {
-    ExtensionProviderService: MockExtensionProviderService,
+    ExtensionProviderService,
     AllServicesLayer: MockAllServicesLayer,
     getApexTestingRuntime: () => ManagedRuntime.make(MockAllServicesLayer),
     // Export a function to set the mock connection
@@ -49,7 +49,6 @@ vi.mock('../../../src/services/extensionProvider', async () => {
 
 import type { Mock as VitestMock } from 'vitest';
 import type * as Effect from 'effect/Effect';
-import type * as ContextModule from 'effect/Context';
 import type * as LayerModule from 'effect/Layer';
 import type * as ManagedRuntimeModule from 'effect/ManagedRuntime';
 import * as Option from 'effect/Option';

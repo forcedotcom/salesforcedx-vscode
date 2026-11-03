@@ -5,19 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { MockInstance as VitestMockInstance } from 'vitest';
 import { type fs, resetFs, setFs } from '@salesforce/core/fs';
 import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
-import * as Effect from 'effect/Effect';
-import type * as Layer from 'effect/Layer';
-import * as ManagedRuntime from 'effect/ManagedRuntime';
 import { createFsFromVolume, Volume } from 'memfs';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import * as servicesRuntime from '../../../src/servicesRuntime';
-import { FsProvider, isItReadOnlyLayer } from '../../../src/virtualFsProvider/fileSystemProvider';
+import { FsProvider } from '../../../src/virtualFsProvider/fileSystemProvider';
 
 const registryAccess = new RegistryAccess();
+const originalGetTypeBySuffix = registryAccess.getTypeBySuffix.bind(registryAccess);
 
 // POSIX workspace path so uri.path is drive-less and identical across platforms.
 // The provider addresses files by uri.path (memfs/web semantics), so on Windows a
@@ -54,70 +50,55 @@ describe('FsProvider read-only checks', () => {
   const clsUri = (): URI => URI.file(`${workspaceDir}/MyClass.cls`);
   const txtUri = (): URI => URI.file(`${workspaceDir}/foo.txt`);
 
-  describe('runtime-ready (routed through shared runtime)', () => {
-    let runtime: ManagedRuntime.ManagedRuntime<Layer.Layer.Success<typeof isItReadOnlyLayer>, never>;
-    let getRuntimeSpy: VitestMockInstance;
-
-    beforeAll(() => {
-      runtime = ManagedRuntime.make(isItReadOnlyLayer);
-    });
-
-    afterAll(async () => {
-      await Effect.runPromise(runtime.disposeEffect);
-    });
-
-    // resetMocks wipes spies between tests, so re-arm each test. getRuntimeSpy proves the
-    // runtime-ready branch actually consumed the shared runtime (mutating it away fails these).
+  describe('uses the bootstrap-acquired registry without requiring runtime publication', () => {
     beforeEach(() => {
-      vi.spyOn(servicesRuntime, 'isServicesRuntimeReady').mockReturnValue(true);
-      getRuntimeSpy = vi
-        .spyOn(servicesRuntime, 'getServicesRuntime')
-        .mockReturnValue(Effect.succeed(runtime) as ReturnType<typeof servicesRuntime.getServicesRuntime>);
+      vi.spyOn(registryAccess, 'getTypeBySuffix').mockImplementation(originalGetTypeBySuffix);
     });
+    afterEach(() => vi.restoreAllMocks());
 
     it('stat marks a read-only metadata type Readonly via the shared runtime', async () => {
       const provider = new FsProvider();
-      provider.readOnly = [registryAccess.getTypeByName('ApexClass')];
+      provider.readOnly = { registry: registryAccess, types: [registryAccess.getTypeByName('ApexClass')] };
 
       const stat = await provider.stat(clsUri());
 
       expect(stat.permissions).toBe(vscode.FilePermission.Readonly);
-      expect(getRuntimeSpy).toHaveBeenCalled();
+      expect(registryAccess.getTypeBySuffix).toHaveBeenCalledTimes(1);
     });
 
     it('writeFile rejects a read-only metadata type via the shared runtime', async () => {
       const provider = new FsProvider();
-      provider.readOnly = [registryAccess.getTypeByName('ApexClass')];
+      provider.readOnly = { registry: registryAccess, types: [registryAccess.getTypeByName('ApexClass')] };
 
       await expect(
         provider.writeFile(clsUri(), new TextEncoder().encode('x'), { create: false, overwrite: true })
       ).rejects.toMatchObject({ code: 'NoPermissions' });
-      expect(getRuntimeSpy).toHaveBeenCalled();
+      expect(registryAccess.getTypeBySuffix).toHaveBeenCalledTimes(1);
     });
 
     it('delete rejects a read-only metadata type via the shared runtime', async () => {
       const provider = new FsProvider();
-      provider.readOnly = [registryAccess.getTypeByName('ApexClass')];
+      provider.readOnly = { registry: registryAccess, types: [registryAccess.getTypeByName('ApexClass')] };
 
       await expect(provider.delete(clsUri(), { recursive: false })).rejects.toMatchObject({
         code: 'NoPermissions'
       });
-      expect(getRuntimeSpy).toHaveBeenCalled();
+      expect(registryAccess.getTypeBySuffix).toHaveBeenCalledTimes(1);
     });
 
     it('rename rejects a read-only metadata type via the shared runtime', async () => {
       const provider = new FsProvider();
-      provider.readOnly = [registryAccess.getTypeByName('ApexClass')];
+      provider.readOnly = { registry: registryAccess, types: [registryAccess.getTypeByName('ApexClass')] };
 
       await expect(
         provider.rename(clsUri(), URI.file(`${workspaceDir}/Renamed.cls`), { overwrite: true })
       ).rejects.toMatchObject({ code: 'NoPermissions' });
-      expect(getRuntimeSpy).toHaveBeenCalled();
+      expect(registryAccess.getTypeBySuffix).toHaveBeenCalledTimes(1);
     });
 
     it('does not mark a non-metadata suffix Readonly', async () => {
       const provider = new FsProvider();
-      provider.readOnly = [registryAccess.getTypeByName('ApexClass')];
+      provider.readOnly = { registry: registryAccess, types: [registryAccess.getTypeByName('ApexClass')] };
 
       const stat = await provider.stat(txtUri());
 
@@ -130,16 +111,14 @@ describe('FsProvider read-only checks', () => {
       const stat = await provider.stat(clsUri());
 
       expect(stat.permissions).toBeUndefined();
-      // empty readOnly short-circuits before the runtime is ever consulted
-      expect(getRuntimeSpy).not.toHaveBeenCalled();
+      expect(registryAccess.getTypeBySuffix).not.toHaveBeenCalled();
     });
   });
 
-  describe('runtime not ready (fallback layer)', () => {
-    // isServicesRuntimeReady() is false by default (no runtime published) → fallback branch
-    it('still resolves read-only via the fallback layer', async () => {
+  describe('runtime not published', () => {
+    it('still enforces read-only using the captured registry', async () => {
       const provider = new FsProvider();
-      provider.readOnly = [registryAccess.getTypeByName('ApexClass')];
+      provider.readOnly = { registry: registryAccess, types: [registryAccess.getTypeByName('ApexClass')] };
 
       const stat = await provider.stat(clsUri());
 

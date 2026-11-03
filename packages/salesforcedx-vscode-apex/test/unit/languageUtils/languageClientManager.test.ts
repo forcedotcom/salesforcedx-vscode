@@ -7,8 +7,13 @@
 
 import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
 import * as Effect from 'effect/Effect';
-import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
-import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
+import {
+  FsService,
+  PromptService,
+  SettingsService,
+  UserCancellationError,
+  WorkspaceService
+} from '@salesforce/vscode-services/v2';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { type ApexLanguageClient } from '../../../src/apexLanguageClient';
@@ -28,11 +33,11 @@ const restartFlag = languageClientManager as unknown as { isRestarting: boolean 
 // Spans emitted via getRuntime().runFork are recorded so restart telemetry (name + attributes) can be asserted.
 // Prefixed `mock*` so vi.mock's factory may reference it (vi.mock hoists the factory above imports).
 const mockRecordedSpans: RecordedSpan[] = [];
-const promptService = {
-  considerUndefinedAsCancellation: <T>(value: T | undefined) =>
-    value === undefined ? Effect.fail(new UserCancellationError()) : Effect.succeed(value)
-};
 const mockGetSetting = vi.fn((_section: string, _key: string, defaultValue?: unknown) => Effect.succeed(defaultValue));
+const mockPromptConsider = vi.fn<PromptService['Service']['considerUndefinedAsCancellation']>();
+const mockWorkspaceGetInfo = vi.fn<WorkspaceService['Service']['getWorkspaceInfo']>();
+const mockFsReadDirectory = vi.fn<FsService['Service']['readDirectoryWithTypes']>();
+const mockFsSafeDelete = vi.fn<FsService['Service']['safeDelete']>();
 
 const spanAttributes = (name: string): Record<string, unknown> | undefined => {
   const hit = mockRecordedSpans.find(s => s.name === name);
@@ -42,7 +47,14 @@ const spanAttributes = (name: string): Record<string, unknown> | undefined => {
 vi.mock('../../../src/services/runtime', async () => {
   const { createRecordingRuntimeMock } = await import('../testUtils/recordingTracer.js');
   return createRecordingRuntimeMock(() => mockRecordedSpans, {
-    settingsGetValue: (...args: [string, string, unknown?]) => mockGetSetting(...args)
+    settingsGetValue: (...args: [string, string, unknown?]) => mockGetSetting(...args),
+    promptService: { considerUndefinedAsCancellation: <A>(value: A | undefined) => mockPromptConsider(value) } as never,
+    workspaceService: { getWorkspaceInfo: () => mockWorkspaceGetInfo() } as never,
+    fsService: {
+      readDirectoryWithTypes: (path: string | URI) => mockFsReadDirectory(path),
+      safeDelete: (uri: string | URI, options?: { readonly recursive?: boolean; readonly useTrash?: boolean }) =>
+        mockFsSafeDelete(uri, options)
+    } as never
   });
 });
 
@@ -263,6 +275,14 @@ describe('Language Client Manager', () => {
       vi.clearAllTimers();
       mockRecordedSpans.length = 0;
       mockGetSetting.mockImplementation((_section, _key, defaultValue) => Effect.succeed(defaultValue));
+      mockPromptConsider.mockImplementation(value =>
+        value === undefined
+          ? Effect.fail(new UserCancellationError({ message: 'User canceled' }))
+          : Effect.succeed(value)
+      );
+      mockWorkspaceGetInfo.mockReturnValue(Effect.succeed({ isEmpty: true }) as never);
+      mockFsReadDirectory.mockReturnValue(Effect.succeed([]) as never);
+      mockFsSafeDelete.mockReturnValue(Effect.void as never);
 
       // Setup setTimeout spy
       setTimeoutSpy = vi.spyOn(global, 'setTimeout');
@@ -290,13 +310,7 @@ describe('Language Client Manager', () => {
       (vscode.extensions.getExtension as VitestMock).mockReturnValue({
         isActive: true,
         exports: {
-          services: {
-            PromptService: Effect.succeed(promptService),
-            SettingsService,
-            WorkspaceService: {
-              getWorkspaceInfo: () => Effect.succeed({ isEmpty: true })
-            }
-          }
+          v2: { services: { PromptService, SettingsService, WorkspaceService, FsService } }
         }
       });
 
@@ -381,34 +395,31 @@ describe('Language Client Manager', () => {
       const toolsUri = Utils.joinPath(workspaceUri, '.sfdx', 'tools');
       // FsService.readDirectoryWithTypes yields typed entries; safeDelete records the URIs it removes.
       const safeDelete = vi.fn().mockImplementation(() => Effect.void);
+      mockWorkspaceGetInfo.mockReturnValue(
+        Effect.succeed({
+          uri: workspaceUri,
+          path: workspaceUri.path,
+          fsPath: workspaceUri.fsPath,
+          isEmpty: false,
+          isVirtualFs: false,
+          cwd: '/workspace'
+        }) as never
+      );
+      mockFsReadDirectory.mockReturnValue(
+        Effect.succeed([
+          { uri: Utils.joinPath(toolsUri, '123'), type: vscode.FileType.Directory },
+          { uri: Utils.joinPath(toolsUri, '456'), type: vscode.FileType.Directory },
+          { uri: Utils.joinPath(toolsUri, 'notes'), type: vscode.FileType.File }
+        ]) as never
+      );
+      mockFsSafeDelete.mockImplementation(uri => {
+        safeDelete(uri);
+        return Effect.void;
+      });
       (vscode.extensions.getExtension as VitestMock).mockReturnValue({
         isActive: true,
         exports: {
-          services: {
-            PromptService: Effect.succeed(promptService),
-            SettingsService,
-            WorkspaceService: {
-              getWorkspaceInfo: () =>
-                Effect.succeed({
-                  uri: workspaceUri,
-                  path: workspaceUri.path,
-                  fsPath: workspaceUri.fsPath,
-                  isEmpty: false,
-                  isVirtualFs: false,
-                  cwd: '/workspace'
-                })
-            },
-            FsService: {
-              // Two NNN dirs and a non-matching entry.
-              readDirectoryWithTypes: () =>
-                Effect.succeed([
-                  { uri: Utils.joinPath(toolsUri, '123'), type: vscode.FileType.Directory },
-                  { uri: Utils.joinPath(toolsUri, '456'), type: vscode.FileType.Directory },
-                  { uri: Utils.joinPath(toolsUri, 'notes'), type: vscode.FileType.File }
-                ]),
-              safeDelete
-            }
-          }
+          v2: { services: { PromptService, SettingsService, WorkspaceService, FsService } }
         }
       });
 
@@ -425,8 +436,8 @@ describe('Language Client Manager', () => {
       expect(mockStatusBar.restarting).toHaveBeenCalled();
 
       // Only the NNN tools dirs are deleted (behavior preserved).
-      expect(safeDelete).toHaveBeenCalledTimes(2);
-      const deletedPaths = safeDelete.mock.calls.map(([uri]) => (uri as URI).path).toSorted();
+      expect(mockFsSafeDelete).toHaveBeenCalledTimes(2);
+      const deletedPaths = mockFsSafeDelete.mock.calls.map(([uri]) => (uri as URI).path).toSorted();
       expect(deletedPaths).toEqual(['/workspace/.sfdx/tools/123', '/workspace/.sfdx/tools/456']);
 
       // Drain the timer callback's async dispose → create chain.
@@ -446,11 +457,11 @@ describe('Language Client Manager', () => {
       // No services extension → getServicesApi fails ExtensionNotFoundError.
       const settingsApi = {
         isActive: true,
-        exports: { services: { SettingsService } }
+        exports: { v2: { services: { SettingsService } } }
       };
       const promptApi = {
         isActive: true,
-        exports: { services: { PromptService: Effect.succeed(promptService) } }
+        exports: { v2: { services: { PromptService } } }
       };
       (vscode.extensions.getExtension as VitestMock)
         .mockReturnValueOnce(settingsApi)

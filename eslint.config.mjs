@@ -630,7 +630,7 @@ export default [
     // Only queryExecute calls jsforce query/queryMore; keep the other syntax guards here.
     files: [
       'packages/salesforcedx-vscode-services/src/core/queryExecute.ts',
-      'packages/salesforcedx-vscode-services-v4-implementation/src/queryExecute.ts'
+      'packages/salesforcedx-vscode-services/src/services/queryExecute.ts'
     ],
     rules: {
       'local/no-jsforce-query': 'off',

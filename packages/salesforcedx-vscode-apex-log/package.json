@@ -30,8 +30,9 @@
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/types": "^1.8.0",
     "@salesforce/vscode-i18n": "workspace:*",
-    "effect": "^3.21.2",
-    "vscode-uri": "^3.1.0"
+    "effect": "4.0.6",
+    "vscode-uri": "^3.1.0",
+    "@salesforce/vscode-services": "*"
   },
   "devDependencies": {
     "@salesforce/core": "^9.3.0",
@@ -61,7 +62,7 @@
   },
   "wireit": {
     "compile": {
-      "command": "tsc --pretty && ts-node --project tsconfig.scripts.json scripts/generateTraceFlagsSchema.ts",
+      "command": "tsc --pretty && node scripts/generateTraceFlagsSchema.mjs",
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
@@ -70,7 +71,7 @@
       ],
       "files": [
         "src/**/*.ts",
-        "scripts/**/*.ts",
+        "scripts/**/*.mjs",
         "tsconfig.json",
         "tsconfig.scripts.json",
         "../../tsconfig.common.json",

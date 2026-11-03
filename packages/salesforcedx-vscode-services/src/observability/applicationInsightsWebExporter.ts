@@ -22,7 +22,7 @@ import * as Match from 'effect/Match';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { workspace } from 'vscode';
-import { unknownToErrorCause } from '../core/shared';
+import { unknownToErrorCause } from '../services/errorCause';
 import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
 import { getSpanCreationIdentity } from './spanTransformProcessor';
 import {
@@ -119,10 +119,12 @@ const exportSpan = Effect.fn('exportSpan')(function* (span: ReadableSpan, getRep
             success
               ? getReporter().sendDangerousTelemetryEvent(span.name, props, measurements)
               : getReporter().sendDangerousTelemetryErrorEvent(span.name, props, measurements),
-          catch: error => unknownToErrorCause(error)
+          catch: error => new AppInsightsWebFileExportError(unknownToErrorCause(error))
         });
   yield* send.pipe(
-    Effect.catchAll(error => Console.error('❌ Failed to send dangerous telemetry:', JSON.stringify(error.cause)))
+    Effect.catchTag('AppInsightsWebFileExportError', error =>
+      Console.error('❌ Failed to send dangerous telemetry:', JSON.stringify(error.cause))
+    )
   );
 });
 

@@ -38,13 +38,13 @@ export class OrgDeleteFailedError extends Schema.TaggedError<OrgDeleteFailedErro
  */
 export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   yield* promptService.confirmOrThrow({
     message: nls.localize('parameter_gatherer_placeholder_delete_default_org'),
     confirmLabel: nls.localize('org_delete_default_text')
   });
 
-  const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+  const orgInfo = yield* SubscriptionRef.get(yield* api.v2.services.TargetOrgRef);
   // Defensive guard: the UI when-clause (sf:default_org_deletable) hides this command for
   // non-scratch/non-sandbox orgs, but it remains callable via executeCommand. Without this
   // check a production default org would fall through to `org delete scratch`.
@@ -56,8 +56,8 @@ export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(func
   // pass --target-org so the delete resolves the default org by username rather than depending on
   // the extension-host cwd (simpleExec runs without a workspace cwd, unlike the picker-based runDeleteCli)
   const targetOrgArgs = orgInfo.username ? ['--target-org', orgInfo.username] : [];
-  const terminalService = yield* api.services.TerminalService;
-  const notificationMode = yield* api.services.NotificationModeService;
+  const terminalService = yield* api.v2.services.TerminalService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
   const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
   // wrap in a cancellable progress: clicking Cancel interrupts this fiber, killing the long-running sf child.
   const output = yield* terminalService
@@ -69,7 +69,7 @@ export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(func
     })
     .pipe(promptService.withCancellableProgress(nls.localize('org_delete_default_progress'), progressLocation));
 
-  const channel = yield* api.services.ChannelService;
+  const channel = yield* api.v2.services.ChannelService;
   yield* channel.appendToChannel(output || nls.localize('org_delete_success', orgInfo.username ?? ''));
   yield* channel.showChannel;
 
@@ -82,7 +82,7 @@ export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(func
   // defaultOrgRef is never cleared and reactive consumers (e.g. the source tracking status bar) linger on
   // the deleted org. The CLI already unset config, so reset only the reactive ref here; unconditional
   // because this command deletes the default org by definition. (W-23950821; cf. logout fix W-23069610.)
-  yield* api.services.ClearDefaultOrgRef();
+  yield* api.v2.services.ClearDefaultOrgRef();
 });
 
 /** Display label for an org's type, used in user-facing channel/notification text. */
@@ -98,11 +98,11 @@ const orgTypeLabel = (orgType: OrgToDelete['orgType']): string => (orgType === '
 export const orgDeleteUsernameCommand = Effect.fn('orgDeleteUsernameCommand')(function* () {
   const { orgs } = yield* gather();
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channel = yield* api.services.ChannelService;
+  const channel = yield* api.v2.services.ChannelService;
   // services are stateless and constant across orgs: resolve once, capture by closure in deleteOne
-  const promptService = yield* api.services.PromptService;
-  const terminalService = yield* api.services.TerminalService;
-  const notificationMode = yield* api.services.NotificationModeService;
+  const promptService = yield* api.v2.services.PromptService;
+  const terminalService = yield* api.v2.services.TerminalService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
   const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
 
   /** Runs `sf org delete scratch|sandbox --target-org <username> --no-prompt` for a single org, tagging the
@@ -126,7 +126,7 @@ export const orgDeleteUsernameCommand = Effect.fn('orgDeleteUsernameCommand')(fu
   // One cancellable progress around the WHOLE loop: Cancel interrupts this fiber, killing the running sf child
   // and stopping the loop. The interrupt is NOT a typed failure, so `Effect.partition`'s per-element
   // `Effect.either` does not capture it; it propagates as a `UserCancellationError` the command boundary swallows.
-  const [failed, successes] = yield* Effect.partition(orgs, deleteOne, { concurrency: 1 }).pipe(
+  const [successes, failed] = yield* Effect.partition(orgs, deleteOne, { concurrency: 1 }).pipe(
     promptService.withCancellableProgress(nls.localize('org_delete_username_text'), progressLocation)
   );
 
