@@ -11,9 +11,13 @@ import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
 import * as TestClock from 'effect/TestClock';
 import * as TestContext from 'effect/TestContext';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { LLMConnectionFailed } from '../../../../src/errors';
-import { callLLMWithRetry } from '../../../../src/oas/generationStrategy/json/apexRest';
+import { callLLMWithRetry, createApexRestStrategy } from '../../../../src/oas/generationStrategy/json/apexRest';
 import { LLMService } from '../../../../src/services/llmService';
+import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
+import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
+import { URI } from 'vscode-uri';
 
 // Beyond the 5-retry exponential schedule's worst case (1+2+4+8+16+32 = 63s, capped at 30s each).
 const PAST_ALL_RETRIES = '200 seconds';
@@ -121,5 +125,44 @@ describe('callLLMWithRetry', () => {
     );
 
     expect(onAttempt).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('createApexRestStrategy', () => {
+  it('fails before LLM generation when no eligible method prompt can be built', async () => {
+    const effect = createApexRestStrategy(
+      {
+        isApexOasEligible: true,
+        isEligible: true,
+        resourceUri: URI.file('/project/classes/EmptyRest.cls'),
+        symbols: []
+      } as never,
+      {
+        classDetail: {
+          name: 'EmptyRest',
+          annotations: [{ name: 'RestResource', parameters: {} }]
+        },
+        methods: []
+      } as never
+    ).pipe(
+      Effect.provideService(ExtensionProviderService, {
+        getServicesApi: Effect.succeed({
+          services: {
+            FsService: { readFile: () => Effect.succeed('global class EmptyRest {}') },
+            SettingsService: Effect.succeed({ getValueOrElse: () => Effect.succeed(750) })
+          }
+        } as never)
+      }),
+      Effect.provideService(FsService, { readFile: () => Effect.succeed('global class EmptyRest {}') } as never),
+      Effect.provideService(
+        SettingsService,
+        SettingsService.make({ getValueOrElse: () => Effect.succeed(750) } as never)
+      )
+    );
+
+    const error = await Effect.runPromise(effect.pipe(Effect.flip));
+
+    expect(error._tag).toBe('OasGenerationFailed');
+    expect(error.message).toBe('No generation strategy is qualified for the selected class or method.');
   });
 });
