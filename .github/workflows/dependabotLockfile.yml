@@ -1,0 +1,131 @@
+name: Update Dependabot pnpm lockfile
+
+on:
+  workflow_run:
+    workflows: [Validate PR]
+    types: [completed]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: dependabot-lockfile-${{ github.event.workflow_run.head_branch }}
+  cancel-in-progress: false
+
+jobs:
+  update-lockfile:
+    if: >-
+      github.event.workflow_run.event == 'pull_request' &&
+      startsWith(github.event.workflow_run.head_branch, 'dependabot/')
+    runs-on: ubuntu-latest
+    steps:
+      # workflow_run has secrets, so only accept the exact, open Dependabot PR
+      # that produced this run and only when it changes manifests and the lockfile.
+      - name: Verify Dependabot PR
+        id: inspect
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const run = context.payload.workflow_run;
+            const pullRequest = run.pull_requests?.[0];
+            if (!pullRequest) {
+              core.setOutput('eligible', 'false');
+              return;
+            }
+
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pullRequest.number,
+            });
+
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+            });
+            const onlyManifestsAndLockfile = files.length > 0 && files.length < 3000 && files.every(({ filename }) =>
+              filename === 'package.json' ||
+              filename.endsWith('/package.json') ||
+              filename === 'pnpm-lock.yaml'
+            );
+
+            const eligible =
+              pr.state === 'open' &&
+              pr.user.login === 'dependabot[bot]' &&
+              pr.head.repo?.full_name === context.payload.repository.full_name &&
+              pr.head.sha === run.head_sha &&
+              onlyManifestsAndLockfile;
+            core.setOutput('eligible', String(eligible));
+            if (eligible) {
+              core.setOutput('head_ref', pr.head.ref);
+              core.setOutput('head_sha', pr.head.sha);
+            } else {
+              core.notice('Skipping lockfile update: PR is stale, not an open same-repository Dependabot PR, or changes files outside the manifest/lockfile allowlist.');
+            }
+
+      # Keep setup actions and the pnpm version from the trusted default branch.
+      - name: Checkout default branch
+        if: steps.inspect.outputs.eligible == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          persist-credentials: false
+
+      - name: Set up pnpm
+        if: steps.inspect.outputs.eligible == 'true'
+        uses: ./.github/actions/setup-pnpm
+        with:
+          install: false
+
+      - name: Checkout Dependabot branch
+        if: steps.inspect.outputs.eligible == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.inspect.outputs.head_sha }}
+          repository: ${{ github.repository }}
+          path: dependabot-pr
+          persist-credentials: false
+
+      - name: Check package manager version
+        if: steps.inspect.outputs.eligible == 'true'
+        working-directory: dependabot-pr
+        run: |
+          node -e "
+            const base = require('../package.json').packageManager;
+            const head = require('./package.json').packageManager;
+            if (head !== base) throw new Error('Dependabot changed packageManager; refusing to run pnpm.');
+          "
+
+      - name: Refresh pnpm lockfile
+        if: steps.inspect.outputs.eligible == 'true'
+        working-directory: dependabot-pr
+        run: pnpm install --lockfile-only --ignore-scripts --no-frozen-lockfile
+
+      - name: Commit and push lockfile
+        if: steps.inspect.outputs.eligible == 'true'
+        env:
+          GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+          PR_HEAD_REF: ${{ steps.inspect.outputs.head_ref }}
+        run: |
+          git -C dependabot-pr add pnpm-lock.yaml
+          if git -C dependabot-pr diff --cached --quiet; then
+            echo 'pnpm-lock.yaml is already up to date.'
+            exit 0
+          fi
+
+          git -C dependabot-pr config user.name 'github-actions[bot]'
+          git -C dependabot-pr config user.email 'github-actions[bot]@users.noreply.github.com'
+          git -C dependabot-pr commit -m 'chore(deps): update pnpm lockfile'
+
+          cat > "$RUNNER_TEMP/askpass.sh" <<'EOF'
+          #!/bin/sh
+          case "$1" in
+            *Username*) printf '%s\n' x-access-token ;;
+            *Password*) printf '%s\n' "$GH_TOKEN" ;;
+          esac
+          EOF
+          chmod 700 "$RUNNER_TEMP/askpass.sh"
+          GIT_ASKPASS="$RUNNER_TEMP/askpass.sh" GIT_TERMINAL_PROMPT=0 \
+            git -C dependabot-pr push origin "HEAD:refs/heads/$PR_HEAD_REF"

@@ -20,6 +20,7 @@ import { URI } from 'vscode-uri';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { type LaunchRequestArguments } from '../../../src/adapter/types';
 import { ApexVariableContainer } from '../../../src/adapter/variableContainer';
+import { breakpointUtil } from '../../../src/breakpoints';
 import { LogContext } from '../../../src/core';
 import { FrameEntryState } from '../../../src/states';
 
@@ -67,7 +68,7 @@ describe('Frame entry event', () => {
       name: 'signature',
       source: {
         name: 'foo.cls',
-        path: URI.parse(uriFromSignature).fsPath,
+        path: uriFromSignature,
         sourceReference: 0
       }
     } as StackFrame);
@@ -85,7 +86,7 @@ describe('Frame entry event', () => {
 
     expect(context.getFrames()[0].source).toEqual({
       name: 'Foo.cls',
-      path: URI.file('C:/work/Foo.cls').fsPath,
+      path: URI.file('C:/work/Foo.cls').toString(),
       sourceReference: 0
     });
   });
@@ -106,7 +107,7 @@ describe('Frame entry event', () => {
       name: 'className.method',
       source: {
         name: 'foo.cls',
-        path: URI.parse(uriFromSignature).fsPath,
+        path: uriFromSignature,
         sourceReference: 0
       }
     } as StackFrame);
@@ -130,11 +131,67 @@ describe('Frame entry event', () => {
       name: 'previousClass.seenBefore',
       source: {
         name: 'foo.cls',
-        path: URI.parse(uriFromSignature).fsPath,
+        path: uriFromSignature,
         sourceReference: 0
       }
     } as StackFrame);
     expect(Array.from(context.getStaticVariablesClassMap().keys())).toContain('previousClass');
     expect(context.getStaticVariablesClassMap().get('previousClass')).toEqual(map.get('previousClass'));
   });
+});
+
+describe('Resolved frame sources', () => {
+  const args: LaunchRequestArguments = {
+    logFileContents: '',
+    logFilePath: '/logs/replay.log',
+    logFileName: 'replay.log'
+  };
+
+  beforeEach(() => breakpointUtil.createMappingsFromLineBreakpointInfo([]));
+  afterEach(() => breakpointUtil.createMappingsFromLineBreakpointInfo([]));
+
+  it('preserves the complete org URI for nested-class source', () => {
+    const uri = 'sf-org-metadata:/orgs/00D000000000001/ApexClass/Outer.cls?version=1#source';
+    const context = new LogContext({ ...args, sourceUriMapping: { Outer: uri } }, new ApexReplayDebug());
+    new FrameEntryState('time|METHOD_ENTRY|[1]|01p|Outer.Inner.run()'.split('|')).handle(context);
+
+    expect(context.getTopFrame()?.source).toMatchObject({ name: 'Outer.cls', path: uri });
+  });
+
+  it('uses the workspace typeref mapping before catalog source without changing breakpoint lines', () => {
+    const lineBreakpointInfo = [{ typeref: 'ns/Outer$Inner', uri: 'memfs:/workspace/Outer.cls', lines: [3, 8] }];
+    breakpointUtil.createMappingsFromLineBreakpointInfo(lineBreakpointInfo);
+    const context = new LogContext(
+      { ...args, sourceUriMapping: { 'ns.Outer': 'sf-org-metadata:/orgs/00D/ApexClass/Outer.cls' } },
+      new ApexReplayDebug()
+    );
+    new FrameEntryState('time|CONSTRUCTOR_ENTRY|[1]|01p|<init>()|ns/Outer.Inner'.split('|')).handle(context);
+
+    expect(context.getTopFrame()?.source?.path).toBe('memfs:/workspace/Outer.cls');
+    expect(breakpointUtil.getLineNumberMapping().get(lineBreakpointInfo[0].uri)).toEqual([3, 8]);
+    expect(breakpointUtil.getTyperefMapping().size).toBe(1);
+  });
+
+  it('omits Source when neither workspace nor catalog resolves the type', () => {
+    const context = new LogContext(args, new ApexReplayDebug());
+    new FrameEntryState('time|METHOD_ENTRY|[1]|01p|Missing.run()'.split('|')).handle(context);
+
+    expect(context.getTopFrame()?.source).toBeUndefined();
+    expect(JSON.stringify(context.getTopFrame())).not.toContain('"source"');
+  });
+
+  it.each(['__sfdc_trigger/ns/MyTrigger', '__sfdc_trigger/ns/MyTrigger$Inner'])(
+    'resolves trigger %s through the catalog mapping',
+    signature => {
+      const uri = 'sf-org-metadata:/orgs/00D/ApexTrigger/ns.MyTrigger.trigger';
+      const context = new LogContext(
+        { ...args, sourceUriMapping: { '__sfdc_trigger/ns/MyTrigger': uri } },
+        new ApexReplayDebug()
+      );
+      new FrameEntryState(`time|CODE_UNIT_STARTED|[EXTERNAL]|01q|${signature}`.split('|')).handle(context);
+
+      expect(context.getTopFrame()?.source?.path).toBe(uri);
+      expect(context.isRunningApexTrigger()).toBe(true);
+    }
+  );
 });

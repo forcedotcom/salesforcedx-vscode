@@ -4,7 +4,7 @@ Browse metadata in an authenticated Salesforce org, inspect its contents, and re
 
 ## Requirements
 
-- VS Code 1.90.0 or later
+- VS Code 1.129.0 or later
 - An authenticated Salesforce org
 - A selected default org
 - Salesforce Extension Pack for Visual Studio Code, which installs the required Salesforce Services extension

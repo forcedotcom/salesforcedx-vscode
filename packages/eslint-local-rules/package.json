@@ -1,5 +1,8 @@
 {
   "name": "@salesforce/eslint-plugin-vscode-extensions",
+  "engines": {
+    "node": ">=24.18.0"
+  },
   "version": "65.14.0",
   "versionedIndependently": true,
   "description": "Custom ESLint rules for Salesforce VSCode extensions",
@@ -123,15 +126,15 @@
   },
   "dependencies": {
     "@humanwhocodes/momoa": "^3.3.10",
-    "@typescript-eslint/parser": "^8.71.1",
-    "@typescript-eslint/utils": "^8.71.1",
+    "@typescript-eslint/parser": "^8.72.0",
+    "@typescript-eslint/utils": "^8.72.0",
     "minimatch": "^10.2.6"
   },
   "devDependencies": {
     "@types/eslint": "^9.0.0",
     "@types/estree": "^1.0.0",
     "@types/semver": "7.5.8",
-    "@typescript-eslint/rule-tester": "^8.71.1",
+    "@typescript-eslint/rule-tester": "^8.72.0",
     "semver": "^7.5.4"
   }
 }

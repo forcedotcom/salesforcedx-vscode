@@ -19,6 +19,7 @@ import { Layer } from 'effect';
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 import App from 'querybuilder/app';
+import { messages } from '../../../../../../src/soql-builder-ui/modules/querybuilder/messages/i18n';
 import {
   toolingModelTemplate,
   ToolingModelJson
@@ -376,6 +377,34 @@ describe('App should', () => {
       expect(sendMessage).toHaveBeenCalled();
       expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).type).toEqual(MessageType.UI_SOQL_CHANGED);
       expect((sendMessage.mock.calls[0][0] as SoqlEditorEvent).payload).toContain(eventPayload.detail.limit);
+    });
+  });
+
+  describe('NO DEFAULT ORG', () => {
+    const infoSelector = '.info-notification';
+    const setDefaultOrgButtonSelector = '.info-notification__dismiss button';
+    const flushLwc = () => new Promise(r => setTimeout(r, 0));
+
+    afterEach(() => {
+      delete document.body.dataset.canSetDefaultOrg;
+    });
+
+    it('shows the Set a Default Org button and full copy when the org extension is available', async () => {
+      document.body.dataset.canSetDefaultOrg = 'true';
+      emitMessage({ type: MessageType.NO_DEFAULT_ORG });
+      await flushLwc();
+      expect(app.shadowRoot.querySelector(infoSelector).textContent).toContain('Set a Default Org');
+      expect(app.shadowRoot.querySelector(setDefaultOrgButtonSelector)).toBeTruthy();
+    });
+
+    it('hides the Set a Default Org button when the org extension is unavailable', async () => {
+      document.body.dataset.canSetDefaultOrg = 'false';
+      emitMessage({ type: MessageType.NO_DEFAULT_ORG });
+      await flushLwc();
+      const info = app.shadowRoot.querySelector(infoSelector);
+      expect(info.textContent).toContain(messages.label_no_default_org_without_org_extension);
+      expect(info.textContent).not.toContain('Set a Default Org');
+      expect(app.shadowRoot.querySelector(setDefaultOrgButtonSelector)).toBeNull();
     });
   });
 });

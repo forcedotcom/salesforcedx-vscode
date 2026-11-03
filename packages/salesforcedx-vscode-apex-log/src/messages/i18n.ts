@@ -77,6 +77,7 @@ export const messages = {
   exec_anon_codelens: 'Execute',
   exec_anon_compile_error: 'Line %s, Column %s: %s',
   exec_anon_compile_unknown: 'Unknown compile error',
+  exec_anon_runtime_unknown: 'Anonymous Apex threw an unhandled exception.',
   exec_anon_progress_title: 'Executing anonymous Apex...',
   exec_anon_success: 'Anonymous Apex executed successfully',
   open_log: 'Open Log',

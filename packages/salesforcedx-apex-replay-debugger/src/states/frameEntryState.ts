@@ -14,12 +14,13 @@ import { FrameState } from './frameState';
 
 export class FrameEntryState extends FrameState implements DebugLogState {
   public handle(logContext: LogContext): boolean {
-    const sourceUriString = logContext.getUriFromSignature(this._signature);
-    const sourceUri = sourceUriString
-      ? /^[a-zA-Z]:[\\/]/u.test(sourceUriString)
-        ? URI.file(sourceUriString.replaceAll('\\', '/'))
-        : URI.parse(sourceUriString)
-      : undefined;
+    const sourceLocation = logContext.getUriFromSignature(this._signature);
+    const sourceUriString = /^[a-zA-Z]:[\\/]/u.test(sourceLocation)
+      ? URI.file(sourceLocation.replaceAll('\\', '/')).toString()
+      : sourceLocation.startsWith('/')
+        ? URI.file(sourceLocation).toString()
+        : sourceLocation;
+    const sourceUri = sourceUriString ? URI.parse(sourceUriString) : undefined;
     const frame = new ApexDebugStackFrameInfo(logContext.getFrames().length, this._signature);
     const id = logContext.getFrameHandler().create(frame);
     const className = this._signature.includes('.')
@@ -36,7 +37,7 @@ export class FrameEntryState extends FrameState implements DebugLogState {
         new StackFrame(
           id,
           this._frameName,
-          sourceUri ? new Source(Utils.basename(sourceUri), sourceUri.fsPath) : undefined,
+          sourceUri ? new Source(Utils.basename(sourceUri), sourceUriString) : undefined,
           undefined
         )
       );

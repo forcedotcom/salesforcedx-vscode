@@ -15,11 +15,11 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "68.7.2",
+  "version": "68.9.5",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.100.0"
+    "vscode": "^1.129.0"
   },
   "categories": [
     "Programming Languages"

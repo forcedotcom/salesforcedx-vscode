@@ -24,16 +24,18 @@
         <template if:true={showNoDefaultOrgNotification}>
           <div class="info-notification">
             <div class="info-notification__message">
-              {i18n.label_no_default_org}
+              {noDefaultOrgLabel}
             </div>
-            <div class="info-notification__dismiss">
-              <button
-                class="text-center"
-                onclick={handleSetDefaultOrg}
-              >
-                {i18n.action_set_default_org}
-              </button>
-            </div>
+            <template if:true={showSetDefaultOrgAction}>
+              <div class="info-notification__dismiss">
+                <button
+                  class="text-center"
+                  onclick={handleSetDefaultOrg}
+                >
+                  {i18n.action_set_default_org}
+                </button>
+              </div>
+            </template>
           </div>
         </template>
         <template if:true={showQueryBuilderForm}>

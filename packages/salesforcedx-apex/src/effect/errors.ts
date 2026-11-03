@@ -6,25 +6,6 @@
  */
 
 import { isError } from 'effect/Predicate';
-import * as Schema from 'effect/Schema';
-
-const OperationErrorFields = {
-  operation: Schema.NonEmptyTrimmedString,
-  message: Schema.String,
-  cause: Schema.optional(Schema.String)
-};
-
-/** A request made by an Apex operation failed. */
-export class ApexOperationError extends Schema.TaggedError<ApexOperationError>('ApexOperationError')(
-  'ApexOperationError',
-  OperationErrorFields
-) {}
-
-/** An Apex operation received a response that did not match its public schema. */
-export class ApexResponseDecodeError extends Schema.TaggedError<ApexResponseDecodeError>('ApexResponseDecodeError')(
-  'ApexResponseDecodeError',
-  OperationErrorFields
-) {}
 
 /** Produces the serializable cause carried by public operation errors. */
 export const causeMessage = (cause: unknown): string => (isError(cause) ? cause.message : String(cause));

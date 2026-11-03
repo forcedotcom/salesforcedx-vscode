@@ -13,7 +13,6 @@ import {
   type BufferConfig,
   type ReadableSpan
 } from '@opentelemetry/sdk-trace-base';
-import { classifyOrgForTelemetry, type TelemetryClassification } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isString } from 'effect/Predicate';
 // aliased to Rec so the global `Record<K, V>` utility type stays usable in this file
@@ -23,6 +22,7 @@ import * as os from 'node:os';
 import { env, UIKind, version, workspace } from 'vscode';
 import { SFDX_CORE_SECTION } from '../constants';
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
+import { classifyOrgForTelemetry, type TelemetryClassification } from './classifyOrgForTelemetry';
 
 export type SpanCreationIdentity = Readonly<
   Pick<

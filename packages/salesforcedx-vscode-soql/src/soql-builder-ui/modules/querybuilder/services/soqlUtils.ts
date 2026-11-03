@@ -94,7 +94,7 @@ const convertSoqlModelToUiModel = (queryModel: Query): ToolingModelJson => {
 
   const limit = queryModel.limit ? queryModel.limit.limit.toString() : undefined;
 
-  const errors = queryModel.errors;
+  const errors = queryModel.errors?.filter(error => !error.isSecondaryRecovery);
   for (const key in queryModel) {
     // eslint-disable-next-line no-prototype-builtins
     if (queryModel.hasOwnProperty(key)) {

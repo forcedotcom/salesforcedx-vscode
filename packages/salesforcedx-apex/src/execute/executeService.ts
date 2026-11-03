@@ -4,153 +4,60 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { HttpRequest } from '@jsforce/jsforce-node';
-import { type Connection } from '@salesforce/core';
-import { existsSync, readFileSync } from 'node:fs';
-import * as os from 'node:os';
-import * as readline from 'node:readline';
-import { nls } from '../i18n';
-import { refreshAuth } from '../utils';
+import type { ApexExecuteOptions, ExecuteAnonymousResponse } from './types';
+import type { Connection } from '@salesforce/core';
+import * as Effect from 'effect/Effect';
+import * as Either from 'effect/Either';
+import { executeAnonymous } from '../effect';
 import { elapsedTime } from '../utils/elapsedTime';
-import {
-  type ApexExecuteOptions,
-  type ExecuteAnonymousResponse,
-  type SoapResponse,
-  action,
-  soapBody,
-  soapEnv,
-  soapHeader
-} from './types';
-import { encodeBody } from './utils';
 
+/** Promise adapter for CLI consumers; the Effect API owns execution and diagnostics. */
 export class ExecuteService {
-  private readonly connection: Connection;
-
-  constructor(connection: Connection) {
-    this.connection = connection;
-  }
+  constructor(private readonly connection: Connection) {}
 
   @elapsedTime()
   public async executeAnonymous(options: ApexExecuteOptions): Promise<ExecuteAnonymousResponse> {
-    const data = await this.getApexCode(options);
-
-    let count = 0;
-    while (count < 2) {
-      try {
-        const request = this.buildExecRequest(data);
-        const result = await this.connectionRequest(request);
-        return this.jsonFormat(result);
-      } catch (e) {
-        if (e.name === 'ERROR_HTTP_500' && e.message?.includes('INVALID_SESSION_ID')) {
-          await refreshAuth(this.connection);
-          count += 1;
-        } else {
-          throw new Error(nls.localize('unexpectedExecuteCommandError', e.message));
-        }
+    const execution = await executeAnonymous(this.connection, options).pipe(Effect.either, Effect.runPromise);
+    // Unwrap typed failures outside the Effect runtime so CLI errors do not acquire a FiberFailure prefix.
+    if (Either.isLeft(execution)) {
+      const error = execution.left;
+      switch (error._tag) {
+        case 'ApexCompileError':
+          return {
+            compiled: false,
+            success: false,
+            ...(error.logBody === undefined ? {} : { logs: error.logBody }),
+            diagnostic: [
+              {
+                ...(error.line === undefined ? {} : { lineNumber: error.line }),
+                ...(error.column === undefined ? {} : { columnNumber: error.column }),
+                compileProblem: error.compileProblem ?? ''
+              }
+            ]
+          };
+        case 'ApexRuntimeError':
+          return {
+            compiled: true,
+            success: false,
+            ...(error.logBody === undefined ? {} : { logs: error.logBody }),
+            diagnostic: [
+              {
+                ...(error.line === undefined ? {} : { lineNumber: error.line }),
+                ...(error.column === undefined ? {} : { columnNumber: error.column }),
+                ...(error.exceptionMessage ? { exceptionMessage: error.exceptionMessage } : {}),
+                ...(error.exceptionStackTrace ? { exceptionStackTrace: error.exceptionStackTrace } : {})
+              }
+            ]
+          };
+        default:
+          throw new Error(error.message);
       }
     }
-    throw new Error(nls.localize('authForAnonymousApexFailed'));
-  }
-
-  @elapsedTime()
-  private async getApexCode(options: ApexExecuteOptions): Promise<string> {
-    if (options.apexCode) {
-      return String(options.apexCode);
-    } else if (options.apexFilePath) {
-      return this.readApexFile(options.apexFilePath);
-    } else if (options.userInput) {
-      return await this.getUserInput();
-    } else {
-      throw new Error(nls.localize('optionExecAnonError'));
-    }
-  }
-
-  @elapsedTime()
-  private readApexFile(filepath: string): string {
-    if (!existsSync(filepath)) {
-      throw new Error(nls.localize('fileNotFoundError', filepath));
-    }
-    return readFileSync(filepath, 'utf8');
-  }
-
-  @elapsedTime()
-  private async getUserInput(): Promise<string> {
-    process.stdout.write(nls.localize('execAnonInputPrompt'));
-    return new Promise<string>((resolve, reject) => {
-      const readInterface = readline.createInterface(process.stdin, process.stdout);
-      const timeout = setTimeout(() => {
-        reject(new Error(nls.localize('execAnonInputTimeout')));
-        readInterface.close();
-      }, 60_000);
-
-      let apexCode = '';
-      readInterface.on('line', (input: string) => {
-        timeout.refresh();
-        apexCode = apexCode + input + os.EOL;
-      });
-      readInterface.on('close', () => {
-        resolve(apexCode);
-        clearTimeout(timeout);
-      });
-      readInterface.on('error', (err: Error) => {
-        reject(new Error(nls.localize('unexpectedExecAnonInputError', err.message)));
-      });
-    });
-  }
-
-  // Tooling API execute anonymous apex REST endpoint was not used because
-  // it requires multiple api calls to turn on trace flag, execute anonymous apex, and get the generated debug log
-  private buildExecRequest(data: string): HttpRequest {
-    const accessToken = this.connection.accessToken ?? '';
-    const body = encodeBody(accessToken, data);
-    const postEndpoint = `${this.connection.instanceUrl}/services/Soap/s/${
-      this.connection.version
-    }/${accessToken.split('!')[0]}`;
-
+    const result = execution.right;
     return {
-      method: 'POST',
-      url: postEndpoint,
-      body,
-      headers: {
-        'content-type': 'text/xml',
-        soapaction: action
-      }
+      compiled: result.compiled,
+      success: result.success,
+      ...(result.logBody === undefined ? {} : { logs: result.logBody })
     };
-  }
-
-  @elapsedTime()
-  private jsonFormat(soapResponse: SoapResponse): ExecuteAnonymousResponse {
-    const envelope = soapResponse[soapEnv];
-    if (!envelope) {
-      throw new Error(nls.localize('unexpectedExecuteCommandError', ''));
-    }
-    const execAnonResponse = envelope[soapBody].executeAnonymousResponse.result;
-
-    const formattedResponse: ExecuteAnonymousResponse = {
-      compiled: execAnonResponse.compiled === 'true',
-      success: execAnonResponse.success === 'true',
-      logs: envelope[soapHeader]?.DebuggingInfo.debugLog
-    };
-
-    if (!formattedResponse.success) {
-      formattedResponse.diagnostic = [
-        {
-          lineNumber: execAnonResponse.line,
-          columnNumber: execAnonResponse.column,
-          compileProblem: typeof execAnonResponse.compileProblem === 'object' ? '' : execAnonResponse.compileProblem,
-          exceptionMessage:
-            typeof execAnonResponse.exceptionMessage === 'object' ? '' : execAnonResponse.exceptionMessage,
-          exceptionStackTrace:
-            typeof execAnonResponse.exceptionStackTrace === 'object' ? '' : execAnonResponse.exceptionStackTrace
-        }
-      ];
-    }
-
-    return formattedResponse;
-  }
-
-  @elapsedTime()
-  private async connectionRequest(requestData: HttpRequest): Promise<SoapResponse> {
-    return this.connection.request(requestData);
   }
 }

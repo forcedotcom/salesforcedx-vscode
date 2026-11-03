@@ -6,10 +6,21 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { type OrgShape, shapeFrom } from '@salesforce/salesforcedx-utils-vscode';
 import * as Effect from 'effect/Effect';
+import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
 import { getRuntime } from '../services/runtime';
 import { getDefaultOrgInfo } from './defaultOrgInfo';
+
+export type OrgShape = 'Scratch' | 'Sandbox' | 'Production' | 'Undefined';
+type OrgShapeInfo = Pick<typeof DefaultOrgInfoSchema.Type, 'isScratch' | 'isSandbox' | 'alias' | 'username'>;
+
+/** Maps DefaultOrgInfo fields to their org shape. */
+export const shapeFrom = (info: OrgShapeInfo): OrgShape => {
+  if (info.isScratch) return 'Scratch';
+  if (info.isSandbox) return 'Sandbox';
+  if (info.alias ?? info.username) return 'Production';
+  return 'Undefined';
+};
 
 const getOrgShapeEffect = Effect.fn('workspaceOrgShape.getOrgShape')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;

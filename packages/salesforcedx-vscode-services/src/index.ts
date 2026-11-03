@@ -318,7 +318,7 @@ export type { SObject, SObjectField, ChildRelationship } from './core/schemas/sO
 export type { AuthInfoFields } from './core/schemas/authFields';
 export type { ExecuteAnonymousResult } from './core/executeAnonymousService';
 export type { ExecuteAnonymousError } from './errors/executeAnonymousErrors';
-export type { ApexLogBodyFetchError } from './errors/apexLogErrors';
+export type { ApexLogBodyFetchError } from '@salesforce/apex-node/effect';
 export type {
   DebugLevelCreateError,
   DebugLevelDeleteError,

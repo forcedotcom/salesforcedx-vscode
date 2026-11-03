@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig.common.json",
   "compilerOptions": {
+    "lib": ["ES2024", "DOM"],
     "noEmit": true,
     "rootDir": ".",
     "outDir": "out"

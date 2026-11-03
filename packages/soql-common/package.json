@@ -1,6 +1,9 @@
 {
   "name": "@salesforce/soql-common",
-  "version": "2.0.0",
+  "engines": {
+    "node": ">=24.18.0"
+  },
+  "version": "2.0.1",
   "versionedIndependently": true,
   "description": "Common SOQL parsing utilities",
   "publisher": "salesforce",

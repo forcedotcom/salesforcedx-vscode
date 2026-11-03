@@ -483,14 +483,9 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       await page.pause();
     }
 
-    // Rename video with test name for easy identification
-    const video = page.video();
-    if (video) {
-      const videoPath = await video.path();
-      const safeName = testInfo.titlePath.join('-').replaceAll(/[^a-zA-Z0-9-]/g, '_');
-      const newPath = path.join(path.dirname(videoPath), `${safeName}.webm`);
-      await fs.rename(videoPath, newPath).catch(() => {});
-    }
+    // Do not rename page.video().path() here: Playwright still owns the temporary file until
+    // the browser context closes, and renaming it in afterEach prevents Playwright from saving
+    // the video artifact. The native video.webm attachment is finalized during fixture teardown.
   });
   return test;
 };

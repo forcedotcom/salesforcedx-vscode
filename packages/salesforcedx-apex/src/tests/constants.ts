@@ -10,5 +10,3 @@
 // Through experimentation, the record limit is around 550 before the REST API limit is hit.
 // To err on the side of caution, the limit is reduced down  to 500.
 export const QUERY_RECORD_LIMIT = 500;
-export const CLASS_ID_PREFIX = '01p';
-export const TEST_RUN_ID_PREFIX = '707';

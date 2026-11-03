@@ -22,7 +22,7 @@ await build({
   outfile: join(repoRoot, 'packages/salesforcedx-apex-debugger/dist/apexDebug.js'),
   format: 'cjs',
   platform: 'node',
-  target: 'es2023',
+  target: 'node24.18.0',
   keepNames: true,
   minify,
   sourcemap: true,

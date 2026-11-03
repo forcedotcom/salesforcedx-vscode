@@ -19,14 +19,7 @@ vi.mock('../../../src/util/orgUtil', () => ({
   updateConfigAndStateAggregators: () => updateConfigAndStateAggregators()
 }));
 
-vi.mock('@salesforce/salesforcedx-utils-vscode', () => ({
-  ChannelService: {
-    getInstance: () => ({}),
-    getChannel: () => ({})
-  }
-}));
-
-// imported after mocks so the command picks up the mocked utils module
+// imported after mocks so the command picks up the mocked org utility
 import { orgCreateCommand } from '../../../src/commands/orgCreate';
 import { nls } from '../../../src/messages';
 

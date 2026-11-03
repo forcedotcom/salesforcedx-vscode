@@ -15,14 +15,14 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.7.2",
+  "version": "68.9.5",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
   "productFeatureId": "aJCEE0000000mLm4AI",
   "license": "BSD-3-Clause",
   "engines": {
-    "vscode": "^1.100.0"
+    "vscode": "^1.129.0"
   },
   "categories": [
     "Debuggers"
@@ -38,7 +38,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "@playwright/test": "1.60.0",
+    "@playwright/test": "^1.64.1",
     "@salesforce/core": "^9.3.0",
     "@salesforce/playwright-vscode-ext": "workspace:*",
     "salesforcedx-vscode-apex": "workspace:*",

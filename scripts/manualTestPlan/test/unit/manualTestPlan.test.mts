@@ -6,6 +6,7 @@
  */
 
 import * as NodeContext from '@effect/platform-node/NodeContext';
+import { GitHub } from '@salesforce/effect-octokit';
 import { ConfigProvider, Effect } from 'effect';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
@@ -31,6 +32,7 @@ const config = ConfigProvider.fromMap(
   new Map(
     Object.entries({
       CI: 'true',
+      IDEE_GH_TOKEN: 'test-token',
       GITHUB_ACTION: '__run',
       GITHUB_ACTIONS: 'true',
       GITHUB_ACTOR: 'octocat',
@@ -120,7 +122,7 @@ const run = (
         state.body = body;
         state.writes.push(body);
       })
-  }).pipe(Effect.provide(NodeContext.layer), Effect.withConfigProvider(config), Effect.runPromise);
+  }).pipe(Effect.provide([NodeContext.layer, GitHub.Default]), Effect.withConfigProvider(config), Effect.runPromise);
 
 const replies =
   (lines: readonly string[]) =>

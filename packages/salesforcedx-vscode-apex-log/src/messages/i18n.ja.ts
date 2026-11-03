@@ -31,5 +31,6 @@ export const messages: Partial<Record<MessageKey, string>> = {
   apex_trigger_default_template_description: '標準 Apex トリガ',
   apex_trigger_builtin_templates_label: '組み込みテンプレート',
   apex_trigger_custom_templates_label: 'カスタムテンプレート',
-  apex_generate_trigger_success: 'Apex トリガが作成されました'
+  apex_generate_trigger_success: 'Apex トリガが作成されました',
+  exec_anon_runtime_unknown: '匿名 Apex の実行中に未処理の例外が発生しました。'
 };

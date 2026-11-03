@@ -78,6 +78,39 @@ describe('Replay debugger adapter - integration', () => {
     await dc.continueRequest({ threadId: THREAD_ID });
     expect(await breakpoint).toMatchSnapshot();
   });
+
+  it('replays org-only nested-class source and unresolved frames', async () => {
+    const orgUri = 'sf-org-metadata:/orgs/00D000000000001/ApexClass/Remote.cls';
+    const logFilePath = join(CONFIG_DIR, 'org-source.log');
+    const args: LaunchRequestArguments = {
+      logFileContents: [
+        '64.0 APEX_CODE,FINEST;VISUALFORCE,FINER',
+        'time|CODE_UNIT_STARTED|[EXTERNAL]|01p|Remote.Inner.run()',
+        'time|STATEMENT_EXECUTE|[7]',
+        'time|METHOD_ENTRY|[7]|01p|Missing.run()',
+        'time|STATEMENT_EXECUTE|[12]'
+      ].join('\n'),
+      logFilePath,
+      logFileName: 'org-source.log',
+      stopOnEntry: true,
+      lineBreakpointInfo: [],
+      sourceUriMapping: { Remote: orgUri }
+    };
+    expect((await dc.launchRequest(args)).success).toBe(true);
+    await assertStoppedOnEntry(dc, logFilePath);
+
+    const orgFrame = dc.assertStoppedLocation('step', { path: orgUri, line: 7 });
+    await dc.stepInRequest({ threadId: THREAD_ID });
+    expect((await orgFrame).body.stackFrames[0].source?.path).toBe(orgUri);
+
+    const missingFrame = dc.waitForEvent('stopped');
+    await dc.stepInRequest({ threadId: THREAD_ID });
+    await missingFrame;
+    const frames = (await dc.stackTraceRequest({ threadId: THREAD_ID })).body.stackFrames;
+    expect(frames[0].name).toBe('Missing.run()');
+    expect(frames[0]).not.toHaveProperty('source');
+    expect(frames[1].source?.path).toBe(orgUri);
+  });
 });
 
 const launch = async (dc: DebugClient, logFilePath: string, lineBreakpointInfo: LineBreakpointInfo[]) => {
@@ -115,7 +148,7 @@ const assertStoppedOnEntry = async (dc: DebugClient, logFilePath: string) => {
 };
 
 const readStoppedState = async (dc: DebugClient, reason: string, path: string, line: number, frames: 'top' | 'all') => {
-  const response = await dc.assertStoppedLocation(reason, { path, line });
+  const response = await dc.assertStoppedLocation(reason, { path: pathToFileURL(path).href, line });
   const stackFrames = response.body.stackFrames;
   const variables = await Promise.all(
     (frames === 'top' ? stackFrames.slice(0, 1) : stackFrames).map(async frame => {
@@ -134,7 +167,7 @@ const readStoppedState = async (dc: DebugClient, reason: string, path: string, l
         source: {
           ...frame.source,
           ...(frame.source.path && {
-            path: `<fixtures>/${relative(CONFIG_DIR, frame.source.path).replaceAll('\\', '/')}`
+            path: `<fixtures>/${relative(CONFIG_DIR, URI.parse(frame.source.path).fsPath).replaceAll('\\', '/')}`
           })
         }
       })

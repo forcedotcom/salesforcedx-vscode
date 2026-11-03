@@ -39,17 +39,22 @@ const IssueCommentEventSchema = Schema.Struct({
 
 const PullRequestEventSchema = Schema.Struct({ pull_request: PullRequestNumber });
 
+const PullRequestAssociation = Schema.Struct({
+  number: Schema.Number,
+  base: Schema.Struct({ repo: Schema.Struct({ id: Schema.Number }) })
+});
+
 const CompletedChecksEventSchema = Schema.Struct({
   check_suite: Schema.optional(
     Schema.Struct({
       head_sha: Schema.String,
-      pull_requests: Schema.Array(PullRequestNumber)
+      pull_requests: Schema.Array(PullRequestAssociation)
     })
   ),
   workflow_run: Schema.optional(
     Schema.Struct({
       head_sha: Schema.String,
-      pull_requests: Schema.Array(PullRequestNumber)
+      pull_requests: Schema.Array(PullRequestAssociation)
     })
   )
 });

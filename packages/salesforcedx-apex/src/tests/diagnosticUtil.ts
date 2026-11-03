@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { getDiagnostic as getTestDiagnostic } from '../effect/diagnostics';
 import { nls } from '../i18n';
 import { type ApexDiagnostic } from '../utils';
 import { type ApexTestResultRecord, type SyncTestFailure } from './types';
@@ -20,22 +21,12 @@ export function formatTestErrors(error: Error): Error {
 }
 
 export function getDiagnostic(record: SyncTestFailure | ApexTestResultRecord): ApexDiagnostic {
-  const { message, stackTrace } =
-    'message' in record
-      ? record
-      : {
-          message: record.Message,
-          stackTrace: record.StackTrace
-        };
-
-  const matches = stackTrace?.match(/(line (\d+), column (\d+))/);
-
+  const diagnostic = getTestDiagnostic(
+    'MethodName' in record ? { message: record.Message, stackTrace: record.StackTrace } : record
+  );
   return {
-    exceptionMessage: message ?? '',
-    exceptionStackTrace: stackTrace ?? '',
-    className: stackTrace ? stackTrace.split('.')[1] : undefined,
-    compileProblem: '',
-    ...(matches?.[2] && { lineNumber: Number(matches[2]) }),
-    ...(matches?.[3] && { columnNumber: Number(matches[3]) })
+    ...diagnostic,
+    exceptionMessage: diagnostic.exceptionMessage ?? '',
+    exceptionStackTrace: diagnostic.exceptionStackTrace ?? ''
   };
 }

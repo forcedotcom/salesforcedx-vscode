@@ -4,15 +4,12 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import * as HttpClient from '@effect/platform/HttpClient';
-import * as HttpClientRequest from '@effect/platform/HttpClientRequest';
 import { type ExportResult, ExportResultCode } from '@opentelemetry/core';
 import { type ReadableSpan, type SpanExporter } from '@opentelemetry/sdk-trace-base';
 import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { exportResultFromHttpStatus } from './httpExportResult';
-import { makeLocalHttpRuntime } from './localHttpRuntime';
 import { runOnServicesRuntime } from './redactingConsoleLogger';
 import { serializeSpanOtlp } from './spanUtils';
 
@@ -20,35 +17,47 @@ const OTLP_SPAN_FILE_SERVER_URL = 'http://localhost:3003/otlp-spans';
 
 const localExportFailureLogged = { logged: false };
 
-class OtlpSpanSerializationError extends Schema.TaggedError<OtlpSpanSerializationError>()(
-  'OtlpSpanSerializationError',
-  { message: Schema.String, cause: Schema.Unknown }
-) {}
+// Use the browser fetch implementation with an absolute URL; Effect HttpClient fails from blob workers.
+const postLocalOtlpSpans = (lines: string[]) =>
+  // @effect-diagnostics-next-line effect/globalFetch:off
+  globalThis.fetch(OTLP_SPAN_FILE_SERVER_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ lines })
+  });
+
+class OtlpSpanExportError extends Schema.TaggedError<OtlpSpanExportError>()('OtlpSpanExportError', {
+  message: Schema.String,
+  cause: Schema.Unknown
+}) {}
 
 /** Span exporter that POSTs normalized OTLP span lines to local span file server (port 3003). */
 export class OtlpFileSpanExporterWeb implements SpanExporter {
-  private readonly localHttpRuntime = makeLocalHttpRuntime();
-
+  // eslint-disable-next-line class-methods-use-this -- SpanExporter interface requires export
   public export(spans: ReadableSpan[], resultCallback: (result: ExportResult) => void): void {
     if (spans.length === 0) {
       resultCallback({ code: ExportResultCode.SUCCESS });
       return;
     }
 
-    void this.localHttpRuntime.runPromise(
+    Effect.runFork(
       Effect.try({
         try: () => spans.map(span => serializeSpanOtlp(span)),
         catch: cause =>
-          new OtlpSpanSerializationError({
+          new OtlpSpanExportError({
             message: 'Failed to serialize local OTLP spans',
             cause
           })
       }).pipe(
         Effect.flatMap(lines =>
-          HttpClientRequest.post(OTLP_SPAN_FILE_SERVER_URL).pipe(
-            HttpClientRequest.bodyJson({ lines }),
-            Effect.flatMap(HttpClient.execute)
-          )
+          Effect.tryPromise({
+            try: () => postLocalOtlpSpans(lines),
+            catch: cause =>
+              new OtlpSpanExportError({
+                message: 'Failed to send local OTLP spans',
+                cause
+              })
+          })
         ),
         Effect.map(res => resultCallback(exportResultFromHttpStatus(res.status, status => `HTTP ${status}`))),
         Effect.catchAll(error => {
@@ -69,7 +78,8 @@ export class OtlpFileSpanExporterWeb implements SpanExporter {
     );
   }
 
+  // eslint-disable-next-line class-methods-use-this -- SpanExporter interface requires shutdown
   public shutdown(): Promise<void> {
-    return this.localHttpRuntime.dispose();
+    return Promise.resolve();
   }
 }

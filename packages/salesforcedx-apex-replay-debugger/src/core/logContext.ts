@@ -27,8 +27,7 @@ import {
   EVENT_VARIABLE_SCOPE_BEGIN,
   EVENT_VF_APEX_CALL_END,
   EVENT_VF_APEX_CALL_START,
-  EXEC_ANON_SIGNATURE,
-  SFDC_TRIGGER
+  EXEC_ANON_SIGNATURE
 } from '../constants';
 import { nls } from '../messages';
 import {
@@ -47,6 +46,7 @@ import { extractHeapDumpIdsFromLog } from './extractHeapDumpIds';
 import { Handles } from './handles';
 import { ApexHeapDump } from './heapDump';
 import { getFileSizeFromContents, readLogFileFromContents, stripBrackets } from './logContextUtil';
+import { getSourceUri } from './sourceUriMapping';
 
 const HEAP_DUMP_MARKER = /\|HEAP_DUMP\|/;
 
@@ -298,20 +298,11 @@ export class LogContext {
     if (signature === EXEC_ANON_SIGNATURE) {
       return this.launchArgs.anonApexFilePath ?? this.getLogFilePath();
     }
-    const processedSignature = signature.endsWith(')')
-      ? signature.substring(0, signature.substring(0, signature.indexOf('(')).lastIndexOf('.'))
-      : signature;
-    const typerefMapping = breakpointUtil.getTyperefMapping();
-    let uri = '';
-    typerefMapping.forEach((value, key) => {
-      let processedKey = '';
-      processedKey = key.startsWith(SFDC_TRIGGER) ? key : key.replace('/', '.').replace('$', '.');
-
-      if (processedKey === processedSignature) {
-        uri = value;
-      }
-    });
-    return uri;
+    return (
+      getSourceUri(signature, breakpointUtil.getTyperefMapping()) ??
+      getSourceUri(signature, Object.entries(this.launchArgs.sourceUriMapping ?? {})) ??
+      ''
+    );
   }
 
   public hasFrames(): boolean {
