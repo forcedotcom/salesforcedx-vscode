@@ -5,13 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, LetterStartNameSchema } from '@salesforce/effect-ext-utils';
+import {
+  ExtensionProviderService,
+  LetterStartNamePattern,
+  parseErrorToValidationMessage
+} from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
 import { BUILDER_VIEW_TYPE, EDITOR_VIEW_TYPE, OPEN_WITH_COMMAND } from '../constants';
 import { nls } from '../messages';
+
+const SoqlFileNameSchema = Schema.String.pipe(
+  Schema.minLength(1, { message: () => nls.localize('soql_file_name_empty_error') }),
+  Schema.pattern(LetterStartNamePattern, { message: () => nls.localize('soql_file_name_format_error') })
+);
 
 const promptForFileName = Effect.fn('soqlFileCreate.promptForFileName')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -21,9 +30,7 @@ const promptForFileName = Effect.fn('soqlFileCreate.promptForFileName')(function
       prompt: nls.localize('soql_file_name_prompt'),
       validateInput: (value: string) => {
         const normalized = value.trim();
-        if (!normalized) return nls.localize('soql_file_name_empty_error');
-        if (!Schema.is(LetterStartNameSchema)(normalized)) return nls.localize('soql_file_name_format_error');
-        return undefined;
+        return Schema.decodeUnknownEither(SoqlFileNameSchema)(normalized).pipe(parseErrorToValidationMessage);
       }
     })
   ).pipe(

@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Either from 'effect/Either';
-import * as ParseResult from 'effect/ParseResult';
+import { parseErrorToValidationMessage } from '@salesforce/effect-ext-utils';
 import * as Schema from 'effect/Schema';
 import { nls } from '../messages';
 
@@ -22,9 +21,7 @@ export const isValidOrgAlias = Schema.is(OrgAlias);
 
 /** showInputBox validateInput for a required org alias. */
 export const validateRequiredAliasInput = (value: string): string | undefined =>
-  Schema.decodeUnknownEither(OrgAlias)(value).pipe(
-    Either.match({ onLeft: ParseResult.TreeFormatter.formatErrorSync, onRight: () => undefined })
-  );
+  Schema.decodeUnknownEither(OrgAlias)(value).pipe(parseErrorToValidationMessage);
 
 /** showInputBox validateInput for an org alias: empty = use default. */
 export const validateAliasInput = (value: string): string | undefined =>

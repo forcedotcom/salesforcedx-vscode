@@ -5,11 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, parseErrorToValidationMessage } from '@salesforce/effect-ext-utils';
 import { hasFileNameCollision } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as Effect from 'effect/Effect';
-import * as Either from 'effect/Either';
-import * as ParseResult from 'effect/ParseResult';
+import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
@@ -31,7 +30,8 @@ export type PromptForLwcNameOptions = {
 export const validateLwcName = (value: string, opts: PromptForLwcNameOptions) => {
   const trimmed = value.trim();
   const decoded = Schema.decodeUnknownEither(LwcComponentNameSchema)(trimmed);
-  if (Either.isLeft(decoded)) return ParseResult.TreeFormatter.formatErrorSync(decoded.left);
+  const validationMessage = decoded.pipe(parseErrorToValidationMessage);
+  if (isNotUndefined(validationMessage)) return validationMessage;
   if (opts.existingNames.has(trimmed.toLowerCase())) return nls.localize('component_input_dup_error');
   if (opts.bundleFileNames && hasFileNameCollision(opts.bundleFileNames, trimmed)) {
     return nls.localize('rename_component_input_dup_file_name_error');

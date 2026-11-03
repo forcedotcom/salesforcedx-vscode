@@ -161,7 +161,7 @@ describe('AuthParamsGatherer', () => {
 
   describe('AccessTokenParamsGatherer', () => {
     const instanceUrl = 'https://demo.my.salesforce.com';
-    const accessToken = 'token123';
+    const accessToken = '00D000000000000!AQE-plant=+abc123';
 
     it('CONTINUE happy path with explicit alias', async () => {
       vi.spyOn(vscode.window, 'showInputBox')
@@ -203,7 +203,7 @@ describe('AuthParamsGatherer', () => {
       if (Exit.isFailure(exit)) expect(JSON.stringify(exit.cause)).toContain('UserCancellationError');
     });
 
-    it('wires validateInput on the instance-url and alias prompts', async () => {
+    it('validates the instance URL, alias, and Salesforce session ID prompts', async () => {
       const spy = vi
         .spyOn(vscode.window, 'showInputBox')
         .mockResolvedValueOnce(instanceUrl)
@@ -229,6 +229,19 @@ describe('AuthParamsGatherer', () => {
       expect(validateAlias?.('GoodAlias')).toBeUndefined();
       expect(validateAlias?.('my-scratch-org')).toBeUndefined();
       expect(validateAlias?.('')).toBeUndefined();
+
+      const validateAccessToken = spy.mock.calls[2][0]?.validateInput?.bind(undefined);
+      expect(validateAccessToken?.(accessToken)).toBeUndefined();
+      expect(validateAccessToken?.('00D000000000000AAA!AQ-1=')).toBeUndefined();
+      expect(validateAccessToken?.('token123')).toBe(
+        nls.localize('parameter_gatherer_enter_session_id_diagnostic_message')
+      );
+      expect(validateAccessToken?.('04t000000000000!AQ-1=')).toBe(
+        nls.localize('parameter_gatherer_enter_session_id_diagnostic_message')
+      );
+      expect(validateAccessToken?.('00D000000000000!token with spaces')).toBe(
+        nls.localize('parameter_gatherer_enter_session_id_diagnostic_message')
+      );
     });
   });
 

@@ -5,7 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, LetterStartNameSchema } from '@salesforce/effect-ext-utils';
+import {
+  ExtensionProviderService,
+  LetterStartNamePattern,
+  parseErrorToValidationMessage
+} from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
@@ -18,6 +22,11 @@ const toManifestBaseName = (input: string): string => input.trim().replace(/\.xm
 
 const appendExtension = (input: string): string => `${toManifestBaseName(input)}.xml`;
 
+const ManifestFileNameSchema = Schema.String.pipe(
+  Schema.minLength(1, { message: () => nls.localize('manifest_file_name_empty_error') }),
+  Schema.pattern(LetterStartNamePattern, { message: () => nls.localize('manifest_file_name_format_error') })
+);
+
 const promptForFileName = Effect.fn('promptForFileName')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
@@ -25,12 +34,8 @@ const promptForFileName = Effect.fn('promptForFileName')(function* () {
     placeHolder: nls.localize('manifest_input_save_placeholder'),
     prompt: nls.localize('manifest_input_save_prompt'),
     value: DEFAULT_MANIFEST,
-    validateInput: (value: string) => {
-      const baseName = toManifestBaseName(value);
-      if (!baseName) return nls.localize('manifest_file_name_empty_error');
-      if (!Schema.is(LetterStartNameSchema)(baseName)) return nls.localize('manifest_file_name_format_error');
-      return undefined;
-    }
+    validateInput: (value: string) =>
+      Schema.decodeUnknownEither(ManifestFileNameSchema)(toManifestBaseName(value)).pipe(parseErrorToValidationMessage)
   };
   return yield* Effect.promise(() => vscode.window.showInputBox(inputOptions)).pipe(
     Effect.map(s => (s ? appendExtension(s) : undefined)),

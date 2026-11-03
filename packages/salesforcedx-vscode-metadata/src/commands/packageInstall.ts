@@ -5,15 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, SalesforceIdSchema } from '@salesforce/effect-ext-utils';
+import {
+  ExtensionProviderService,
+  parseErrorToValidationMessage,
+  SalesforceIdSchema
+} from '@salesforce/effect-ext-utils';
 import type { PackageInstallRequest as ToolingPackageInstallRequest } from '@salesforce/types/tooling';
 import * as Arr from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import * as Either from 'effect/Either';
 import * as Option from 'effect/Option';
-import * as ParseResult from 'effect/ParseResult';
 import { isError, isRecord, isUndefined } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
@@ -48,12 +50,7 @@ const gatherPackageId = Effect.fn('packageInstall.gatherPackageId')(function* ()
       prompt: nls.localize('package_install_id_prompt'),
       placeHolder: nls.localize('package_install_id_placeholder'),
       ignoreFocusOut: true,
-      validateInput: value =>
-        value === ''
-          ? undefined
-          : Schema.decodeUnknownEither(PackageIdSchema)(value).pipe(
-              Either.match({ onLeft: ParseResult.TreeFormatter.formatErrorSync, onRight: () => undefined })
-            )
+      validateInput: value => Schema.decodeUnknownEither(PackageIdSchema)(value).pipe(parseErrorToValidationMessage)
     })
   );
   return yield* promptService.considerUndefinedAsCancellation(result);

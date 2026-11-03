@@ -7,8 +7,9 @@
 
 import type { JsonObject } from '../json';
 import type { QueryResult } from '../types';
-import { getServicesApi } from '@salesforce/effect-ext-utils';
+import { getServicesApi, parseErrorToValidationMessage } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
 import { getDocumentName } from '../commonUtils';
@@ -50,23 +51,21 @@ const getExportFileStemFromDocument = (document: vscode.TextDocument, fileExtens
   return `soql-query-results-${timestamp}`;
 };
 
-const validateExportResultsFileNameInput = (value: string, fileExtension: string): string | undefined => {
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return nls.localize('soql_export_results_file_name_empty_error');
-  }
-  const base = stripTrailingExtension(trimmed, fileExtension);
-  if (!base) {
-    return nls.localize('soql_export_results_file_name_format_error');
-  }
-  if (base === '.' || base === '..') {
-    return nls.localize('soql_export_results_file_name_format_error');
-  }
-  if (invalidFileNameCharRegExp.test(base)) {
-    return nls.localize('soql_export_results_file_name_format_error');
-  }
-  return undefined;
-};
+const validateExportResultsFileNameInput = (value: string, fileExtension: string): string | undefined =>
+  Schema.decodeUnknownEither(
+    Schema.String.pipe(
+      Schema.filter(input => input.trim().length > 0, {
+        message: () => nls.localize('soql_export_results_file_name_empty_error')
+      }),
+      Schema.filter(
+        input => {
+          const base = stripTrailingExtension(input.trim(), fileExtension);
+          return base.length > 0 && base !== '.' && base !== '..' && !invalidFileNameCharRegExp.test(base);
+        },
+        { message: () => nls.localize('soql_export_results_file_name_format_error') }
+      )
+    )
+  )(value).pipe(parseErrorToValidationMessage);
 
 const normalizeExportResultsFileBaseName = (value: string, fileExtension: string): string =>
   stripTrailingExtension(value.trim(), fileExtension);

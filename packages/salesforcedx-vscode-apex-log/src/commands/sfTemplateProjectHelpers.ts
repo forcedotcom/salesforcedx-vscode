@@ -5,7 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, LetterStartNameSchema } from '@salesforce/effect-ext-utils';
+import {
+  ExtensionProviderService,
+  LetterStartNamePattern,
+  parseErrorToValidationMessage
+} from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as String from 'effect/String';
@@ -28,6 +32,14 @@ const getStandardApexTypeNameMessages = () => ({
   reservedDefault: nls.localize('name_cannot_be_default')
 });
 
+const apexTypeNameSchema = (messages: ApexTypeNameMessages, maxLength: number) =>
+  Schema.String.pipe(
+    Schema.minLength(1, { message: () => messages.empty }),
+    Schema.filter(value => value.toLowerCase() !== 'default', { message: () => messages.reservedDefault }),
+    Schema.pattern(LetterStartNamePattern, { message: () => messages.invalidFormat }),
+    Schema.maxLength(maxLength, { message: () => messages.maxLength })
+  );
+
 const validateApexTypeName = (
   value: string,
   messages: ApexTypeNameMessages,
@@ -35,10 +47,9 @@ const validateApexTypeName = (
 ): string | undefined => {
   const maxLen = options?.maxLength ?? APEX_NAME_MAX_LENGTH;
   const normalized = String.trim(value);
-  if (!normalized) return messages.empty;
-  if (normalized.toLowerCase() === 'default') return messages.reservedDefault;
-  if (!Schema.is(LetterStartNameSchema)(normalized)) return messages.invalidFormat;
-  return normalized.length > maxLen ? messages.maxLength : undefined;
+  return Schema.decodeUnknownEither(apexTypeNameSchema(messages, maxLen))(normalized).pipe(
+    parseErrorToValidationMessage
+  );
 };
 
 type PromptForApexTypeNameParams = {

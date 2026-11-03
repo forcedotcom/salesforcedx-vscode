@@ -5,13 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, parseErrorToValidationMessage } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import * as Either from 'effect/Either';
 import { identity } from 'effect/Function';
 import * as Match from 'effect/Match';
-import * as ParseResult from 'effect/ParseResult';
 import { isError, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
@@ -128,10 +126,7 @@ const gatherOrgCreateInputs = Effect.fn('orgCreateCommand.gatherInputs')(functio
     vscode.window.showInputBox({
       prompt: nls.localize('parameter_gatherer_enter_scratch_org_expiration_days'),
       value: DEFAULT_EXPIRATION_DAYS,
-      validateInput: value =>
-        decodeExpirationDays(value).pipe(
-          Either.match({ onLeft: ParseResult.TreeFormatter.formatErrorSync, onRight: () => undefined })
-        )
+      validateInput: value => decodeExpirationDays(value).pipe(parseErrorToValidationMessage)
     })
   ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
 
