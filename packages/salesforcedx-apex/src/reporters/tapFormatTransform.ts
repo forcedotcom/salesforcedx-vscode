@@ -7,7 +7,6 @@
 import { Logger } from '@salesforce/core';
 import { Readable, type ReadableOptions } from 'node:stream';
 import { type TestResult } from '../tests/types';
-import { elapsedTime, HeapMonitor } from '../utils';
 import { buildTapResults, formatTap, formatTapResults } from './tapFormatting';
 
 export class TapFormatTransformer extends Readable {
@@ -24,19 +23,15 @@ export class TapFormatTransformer extends Readable {
 
   _read(): void {
     this.logger.trace('starting format');
-    HeapMonitor.getInstance().checkHeapSize('TapFormatTransformer._read');
     this.push(this.format());
     this.push(null); // Signal the end of the stream
     this.logger.trace('finishing format');
-    HeapMonitor.getInstance().checkHeapSize('TapFormatTransformer._read');
   }
 
-  @elapsedTime()
   public format(): string {
     return formatTap(this.testResult, this.epilogue);
   }
 
-  @elapsedTime()
   public buildTapResults(): string {
     return formatTapResults(buildTapResults(this.testResult));
   }

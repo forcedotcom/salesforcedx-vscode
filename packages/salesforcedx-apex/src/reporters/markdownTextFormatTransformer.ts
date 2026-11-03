@@ -8,7 +8,6 @@
 import { Logger } from '@salesforce/core';
 import { Readable, type ReadableOptions } from 'node:stream';
 import { type TestResult } from '../tests/types';
-import { HeapMonitor } from '../utils';
 import { formatMarkdownText } from './markdownFormatting';
 import { type MarkdownTextReporterOptions } from './markdownTextReporter';
 
@@ -31,10 +30,8 @@ export class MarkdownTextFormatTransformer extends Readable {
 
   _read(): void {
     this.logger.trace('starting format');
-    HeapMonitor.getInstance().checkHeapSize('MarkdownTextFormatTransformer._read');
     this.push(formatMarkdownText(this.testResult, this.options));
     this.push(null); // Signal the end of the stream
     this.logger.trace('finishing format');
-    HeapMonitor.getInstance().checkHeapSize('MarkdownTextFormatTransformer._read');
   }
 }
