@@ -16,16 +16,6 @@ export type ExternalServiceOperation = {
   active: boolean;
 };
 
-export type PromptGenerationResult = {
-  callCounts: number;
-  maxBudget: number;
-};
-
-// to be populated with more discussed metrics
-export type PromptGenerationStrategyBid = {
-  result: PromptGenerationResult;
-};
-
 type HttpRequestMethod = 'get' | 'post' | 'put' | 'patch' | 'delete';
 
 export const httpMethodMap: Record<string, HttpRequestMethod> = {

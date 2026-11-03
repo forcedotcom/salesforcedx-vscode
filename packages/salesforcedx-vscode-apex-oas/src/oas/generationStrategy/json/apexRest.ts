@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { PromptGenerationResult } from '../../schemas';
 import { annotateRootSpan, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
@@ -22,12 +21,7 @@ import type { DocumentSymbol } from 'vscode-languageserver-protocol';
 import { EXTENSION_NAME } from '../../../constants';
 import { InvalidJsonDocument, LLMEmptyResponse, LLMRetriesExhausted, OasGenerationFailed } from '../../../errors';
 import { nls } from '../../../messages/nls';
-import {
-  AA_CLASS_REST_ANNOTATIONS,
-  cleanupGeneratedDoc,
-  hasValidRestAnnotations,
-  parseOASDocFromJson
-} from '../../../oasUtils';
+import { AA_CLASS_REST_ANNOTATIONS, cleanupGeneratedDoc, parseOASDocFromJson } from '../../../oasUtils';
 import { LLMService } from '../../../services/llmService';
 import { buildClassPrompt, generatePromptForMethod } from '../buildPromptUtils';
 import { IMPOSED_FACTOR, PROMPT_TOKEN_MAX_LIMIT, SUM_TOKEN_MAX_LIMIT } from '../constants';
@@ -222,18 +216,13 @@ export const createApexRestStrategy = Effect.fn('ApexOas.ApexRest.createApexRest
   );
 
   const genState = yield* buildGenState(metadata, context, classPrompt, sourceText);
+  if (genState.biddedCallCount === 0) {
+    return yield* new OasGenerationFailed({ message: nls.localize('strategy_not_qualified') });
+  }
   // eslint-disable-next-line functional/no-let
   let llmCallCount = 0;
   const incrementLlmCallCount = () => {
     llmCallCount++;
-  };
-
-  const bid = () => {
-    // First check if the class has valid REST annotations; if missing, the strategy declines via a zero bid
-    const result: PromptGenerationResult = hasValidRestAnnotations(context)
-      ? { maxBudget: genState.maxBudget, callCounts: genState.biddedCallCount }
-      : { maxBudget: 0, callCounts: 0 };
-    return Effect.succeed({ result });
   };
 
   const generateOAS = Effect.fn('ApexOas.ApexRest.generateOAS')(function* () {
@@ -283,7 +272,6 @@ export const createApexRestStrategy = Effect.fn('ApexOas.ApexRest.createApexRest
   });
 
   return {
-    bid,
     generateOAS
   };
 });

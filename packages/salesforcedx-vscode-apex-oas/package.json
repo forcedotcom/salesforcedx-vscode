@@ -348,15 +348,6 @@
           ],
           "description": "%apex_oas_general_property_access_modifiers%"
         },
-        "salesforcedx-vscode-apex-oas.generation_strategy": {
-          "type": "string",
-          "enum": [
-            "LEAST_CALLS",
-            "MOST_CALLS"
-          ],
-          "default": "LEAST_CALLS",
-          "description": "%apex_oas_generation_strategy%"
-        },
         "salesforcedx-vscode-apex-oas.generation_include_schema": {
           "type": "boolean",
           "default": false,
