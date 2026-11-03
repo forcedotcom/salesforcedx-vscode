@@ -72,15 +72,18 @@ it('keeps real nonzero-exit stdout JSON and stderr', async () => {
   });
 });
 
-it('reports a missing native executable as a spawn error', async () => {
+it('reports a missing native executable using its platform process result', async () => {
   const missingExecutable = join(tmpdir(), 'missing-v4-fixture-executable.exe');
-  expect(
-    await Effect.runPromise(
-      TerminalService.use(service =>
-        service.simpleExec({ executable: missingExecutable, args: [], parse: value => value })
-      ).pipe(Effect.provide(terminal), Effect.flip)
-    )
-  ).toMatchObject({ errorType: 'spawn_error', message: 'Command failed (NotFound)' });
+  const error = await Effect.runPromise(
+    TerminalService.use(service =>
+      service.simpleExec({ executable: missingExecutable, args: [], parse: value => value })
+    ).pipe(Effect.provide(terminal), Effect.flip)
+  );
+  expect(error).toMatchObject(
+    process.platform === 'win32'
+      ? { errorType: 'nonzero_exit', exitCode: 1 }
+      : { errorType: 'spawn_error', message: 'Command failed (NotFound)' }
+  );
 });
 
 it('kills and joins a real sleeping process when interrupted while an output pull is pending', async () => {
