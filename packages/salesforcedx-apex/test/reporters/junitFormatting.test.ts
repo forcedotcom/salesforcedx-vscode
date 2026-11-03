@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { JUnitReporter } from '../../src';
+import { formatJUnit } from '../../src';
 import { getTestData } from './testResults';
 
 const {
@@ -18,25 +18,23 @@ const {
   successResult
 } = getTestData();
 
-describe('JUnit Reporter Tests', () => {
-  const reporter = new JUnitReporter();
-
+describe('JUnit Formatting Tests', () => {
   it('should format test results with failures', () => {
-    const result = reporter.format(testResults);
+    const result = formatJUnit(testResults);
     expect(result).not.toHaveLength(0);
     expect(result).toEqual(junitResult);
     expect(result).toContain('</failure>');
   });
 
   it('should format tests with 0 failures', async () => {
-    const result = reporter.format(successResult);
+    const result = formatJUnit(successResult);
     expect(result).not.toHaveLength(0);
     expect(result).toEqual(junitSuccess);
     expect(result).not.toContain('</failure>');
   });
 
   it('should format tests with setup methods', async () => {
-    const result = reporter.format(setupResult);
+    const result = formatJUnit(setupResult);
     expect(result).not.toHaveLength(0);
     expect(result).toEqual(junitSetup);
     expect(result).not.toContain('</failure>');
@@ -46,7 +44,7 @@ describe('JUnit Reporter Tests', () => {
     successResult.summary.testRunId = undefined;
     successResult.summary.userId = undefined;
 
-    const result = reporter.format(successResult);
+    const result = formatJUnit(successResult);
     expect(result).not.toHaveLength(0);
     expect(result).toEqual(junitMissingVal);
     expect(result).not.toContain('testRunId');
@@ -67,7 +65,7 @@ describe('JUnit Reporter Tests', () => {
       }
     ];
     successResult.summary.orgWideCoverage = '85%';
-    const result = reporter.format(successResult);
+    const result = formatJUnit(successResult);
     expect(result).not.toHaveLength(0);
     expect(result).toEqual(junitCodeCov);
     expect(result).toContain('orgWideCoverage');

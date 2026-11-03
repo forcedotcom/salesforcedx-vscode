@@ -33,7 +33,7 @@ export class TapFormatTransformer extends Readable {
 
   @elapsedTime()
   public format(): string {
-    return formatTap(buildTapResults(this.testResult), this.epilogue);
+    return formatTap(this.testResult, this.epilogue);
   }
 
   @elapsedTime()

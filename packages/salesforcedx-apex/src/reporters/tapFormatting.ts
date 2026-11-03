@@ -23,5 +23,7 @@ export const formatTapResults = (results: ReturnType<typeof buildTapResults>): s
     .map(test => `${test.outcome} ${test.testNumber} ${test.description}\n${formatComments(test.diagnostics)}`)
     .join('');
 
-export const formatTap = (results: ReturnType<typeof buildTapResults>, epilog: string[] = []): string =>
-  `1..${results.length}\n${formatTapResults(results)}${formatComments(epilog)}`;
+export const formatTap = (testResult: TestResult, epilog: string[] = []): string => {
+  const results = buildTapResults(testResult);
+  return `1..${results.length}\n${formatTapResults(results)}${formatComments(epilog)}`;
+};

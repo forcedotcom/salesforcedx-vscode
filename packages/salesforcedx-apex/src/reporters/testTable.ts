@@ -6,7 +6,7 @@
  */
 
 import { nls } from '../i18n';
-import { type Row, Table } from '../utils';
+import { createTable, type Row } from '../utils';
 
 export const formatTestTable = (
   rows: Row[],
@@ -15,7 +15,7 @@ export const formatTestTable = (
   detailedCoverage: boolean = false
 ): string =>
   rows.length > 0
-    ? new Table().createTable(
+    ? createTable(
         rows,
         [
           { key: 'name', label: nls.localize('testNameColHeader') },

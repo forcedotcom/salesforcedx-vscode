@@ -13,9 +13,9 @@ export { LogService } from './logs';
 export type { ApexLogGetOptions, LogRecord, LogResult } from './logs';
 export { ApexClassId, ApexLogId, ApexTriggerId, SalesforceId, TestRunId, UserId } from './schemas/salesforceId';
 export {
-  JUnitReporter,
-  TapReporter,
-  HumanReporter,
+  formatJUnit,
+  formatTap,
+  formatHuman,
   CoverageReporter,
   DefaultReportOptions,
   DefaultWatermarks,
