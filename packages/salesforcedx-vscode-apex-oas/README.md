@@ -36,7 +36,6 @@ For AuraEnabled classes (`@AuraEnabled` annotation):
 | `salesforcedx-vscode-apex-oas.general.class.access-modifiers` | array | `["global", "public"]` | Class access modifiers eligible for OAS generation. |
 | `salesforcedx-vscode-apex-oas.general.method.access-modifiers` | array | `["global", "public"]` | Method access modifiers eligible for OAS generation. |
 | `salesforcedx-vscode-apex-oas.general.property.access-modifiers` | array | `["global", "public"]` | Property access modifiers eligible for OAS generation. |
-| `salesforcedx-vscode-apex-oas.generation_strategy` | string | `"LEAST_CALLS"` | Strategy for OAS generation. Options: `"LEAST_CALLS"`, `"MOST_CALLS"`. |
 | `salesforcedx-vscode-apex-oas.generation_include_schema` | boolean | `false` | Include OpenAPI schema in generation. |
 | `salesforcedx-vscode-apex-oas.generation_output_token_limit` | number | `750` | Maximum number of tokens for generation output. |
 | `salesforcedx-vscode-apex-oas.enableRestOASGen` | boolean | `false` | Enable OpenAPI document generation for Apex REST (`@RestResource`) classes. Disabled by default because it depends on an external AI model service; AuraEnabled classes are unaffected. |
