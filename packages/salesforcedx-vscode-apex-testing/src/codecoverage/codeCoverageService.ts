@@ -8,6 +8,7 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
+import * as HashMap from 'effect/HashMap';
 import * as Option from 'effect/Option';
 import * as Record from 'effect/Record';
 import * as Ref from 'effect/Ref';
@@ -194,11 +195,14 @@ export class CodeCoverageService extends Effect.Service<CodeCoverageService>()('
           Effect.partition(({ name }) => readResult(apexTestResultsUri, name), { concurrency: 'unbounded' })
         ),
         Effect.map(([, perFileItems]) => perFileItems.flat()),
-        // Effect collection combinators preserve input order, so newer coverage remains last.
-        Effect.map(
-          items => new Map<string, CoverageItem | CoverageResult>(items.map(item => [item.name, item] as const))
+        // Files are oldest-first, so HashMap.set keeps the newest coverage per class.
+        Effect.map((items: (CoverageItem | CoverageResult)[]) =>
+          HashMap.toValues(
+            Arr.reduce(items, HashMap.empty<string, CoverageItem | CoverageResult>(), (byName, item) =>
+              HashMap.set(byName, item.name, item)
+            )
+          )
         ),
-        Effect.map(coverageByName => [...coverageByName.values()]),
         Effect.filterOrFail(
           Arr.isNonEmptyReadonlyArray,
           () =>
