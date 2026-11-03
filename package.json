@@ -513,6 +513,7 @@
         "package.json",
         "scripts/tsconfig.native.json",
         "scripts/**/*.{mts,cts}",
+        "packages/salesforcedx-vscode-services-types/scripts/**/*.mts",
         "scripts/shared/categoryGates.cjs",
         "test/**/*.{mts,cts}"
       ],

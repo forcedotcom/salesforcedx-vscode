@@ -1599,9 +1599,6 @@ importers:
       shx:
         specifier: ^0.4.0
         version: 0.4.0
-      ts-node:
-        specifier: ^10.9.2
-        version: 10.9.2(@types/node@24.19.2)(typescript@6.0.3)
 
   packages/salesforcedx-vscode-soql:
     dependencies:
