@@ -20,6 +20,7 @@ import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as nodeFs from 'node:fs';
+import { relative } from 'node:path';
 import { setImmediate } from 'node:timers/promises';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
@@ -200,7 +201,7 @@ it('applies project defaults without overwriting supplied namespace/login URL an
         ns: '',
         loginurl: 'https://login.salesforce.com',
         apiversion: '67.0',
-        outputdir: '../elsewhere/output'
+        outputdir: relative('/project', '/elsewhere/output')
       },
       undefined
     );

@@ -10,6 +10,8 @@ import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import * as ChildProcess from 'effect/process/ChildProcess';
 import { ChildProcessSpawner } from 'effect/process/ChildProcessSpawner';
 import * as Stream from 'effect/Stream';
@@ -71,10 +73,11 @@ it('keeps real nonzero-exit stdout JSON and stderr', async () => {
 });
 
 it('reports a missing native executable as a spawn error', async () => {
+  const missingExecutable = join(tmpdir(), 'missing-v4-fixture-executable.exe');
   expect(
     await Effect.runPromise(
       TerminalService.use(service =>
-        service.simpleExec({ executable: 'missing-v4-fixture-executable', args: [], parse: value => value })
+        service.simpleExec({ executable: missingExecutable, args: [], parse: value => value })
       ).pipe(Effect.provide(terminal), Effect.flip)
     )
   ).toMatchObject({ errorType: 'spawn_error', message: 'Command failed (NotFound)' });
