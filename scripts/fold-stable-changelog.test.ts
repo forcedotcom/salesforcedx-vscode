@@ -14,12 +14,14 @@ import path from 'node:path';
 
 const script = path.resolve(__dirname, 'fold-stable-changelog.js');
 const pr = (n: number) => `[PR #${n}](https://example.com/pull/${n})`;
+// Git hooks export GIT_* variables that would redirect these commands to the parent repo.
+const gitEnv = Object.fromEntries(Object.entries(process.env).filter(([name]) => !name.startsWith('GIT_')));
 
 // History: nightly 1.1.1 -> nightly 1.3.1 -> stable v1.4.0 -> hotfix v1.4.1 (branch)
 //                                       \-> nightly 1.5.1 (newer pre-release, not in v1.4.0)
 const createRepo = () => {
   const repo = fs.mkdtempSync(path.join(os.tmpdir(), 'fold-changelog-'));
-  const git = (...args: string[]) => execFileSync('git', args, { cwd: repo, stdio: 'pipe' });
+  const git = (...args: string[]) => execFileSync('git', args, { cwd: repo, stdio: 'pipe', env: gitEnv });
   const commit = (message: string) => git('commit', '--allow-empty', '-q', '-m', message);
   git('init', '-q');
   git('config', 'user.email', 'test@example.com');
@@ -124,7 +126,11 @@ describe('fold-stable-changelog', () => {
   const read = (name: string) => fs.readFileSync(file(name), 'utf8');
   const write = (name: string, contents: string) => fs.writeFileSync(file(name), contents);
   const run = (...args: string[]) =>
-    execFileSync(process.execPath, [script, '--date', 'January 21, 2026', ...args], { cwd: repo, encoding: 'utf8' });
+    execFileSync(process.execPath, [script, '--date', 'January 21, 2026', ...args], {
+      cwd: repo,
+      encoding: 'utf8',
+      env: gitEnv
+    });
 
   beforeEach(() => {
     repo = createRepo();
