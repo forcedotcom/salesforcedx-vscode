@@ -1,6 +1,6 @@
 {
   "packages/effect-ext-utils/package.json": { "effect": "4.0.6" },
-  "packages/drivable-vscode/package.json": { "effect": "3.21.2" },
+  "packages/drivable-vscode/package.json": { "effect": "4.0.6" },
   "packages/salesforcedx-lightning-lsp-common/package.json": { "effect": "4.0.6" },
   "packages/salesforcedx-apex/package.json": { "effect": "4.0.6" },
   "packages/salesforcedx-apex-debugger/package.json": { "effect": "4.0.6" },
@@ -19,7 +19,7 @@
   "packages/salesforcedx-vscode-metadata/package.json": { "effect": "4.0.6" },
   "packages/salesforcedx-vscode-org/package.json": { "effect": "4.0.6" },
   "packages/salesforcedx-vscode-org-browser/package.json": { "effect": "4.0.6" },
-  "packages/playwright-vscode-ext/package.json": { "effect": "3.21.2" },
+  "packages/playwright-vscode-ext/package.json": { "effect": "4.0.6" },
   "packages/salesforcedx-vscode-services-types/package.json": { "effect": "4.0.6", "effect-v3": "3.21.2" },
   "packages/salesforcedx-vscode-services/package.json": { "effect": "4.0.6" },
   "packages/salesforcedx-vscode-services-v3-compat/package.json": { "effect": "3.21.2" },

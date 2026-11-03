@@ -45,7 +45,7 @@ const getPdpEventSchema = async (): Promise<Record<string, unknown>> => {
   pdpEventSchemaCache.promise ??= import('o11y_schema/sf_pdp').then(m => m.pdpEventSchema);
   return pdpEventSchemaCache.promise;
 };
-// Run via shared runtime, not Effect.provide(ConnectionService.Default) (rebuilds per call).
+// Run via shared runtime, not a new per-call connection layer.
 // Fails fast if runtime unpublished. MUST NOT retry: SDK layer built before setServicesRuntime runs,
 // blocking would deadlock activation. Early spans stay buffered; post-activation autobatch uploads them.
 const getConnection = () =>

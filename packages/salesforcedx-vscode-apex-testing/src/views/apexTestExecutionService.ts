@@ -81,9 +81,9 @@ type RunTestPipelineParams = {
 /**
  * Owns the run/debug/result-processing region extracted from ApexTestController. Owns the
  * lastProcessedResultFile Ref (Option<URI>). Cross-extension services (ChannelService/FsService) are
- * reached through the api.services bridge — the apex-testing convention every service/command/watcher in
+ * reached through the api.v2.services graph — the apex-testing convention every service/command/watcher in
  * this package follows (see codeCoverageService, apexTestTreeService, testReportGenerator). Declaring them
- * as `.Default` deps would build a second, wrong-named channel (the runtime provides ChannelService via a
+ * as eager layer dependencies would build a second, wrong-named channel (the runtime provides ChannelService via a
  * named ChannelServiceLayer('Apex Testing')). Still substitutable in tests by stubbing api.v2.services.
  */
 const makeApexTestExecutionService = Effect.gen(function* () {
@@ -92,7 +92,7 @@ const makeApexTestExecutionService = Effect.gen(function* () {
   const lastProcessedResultFile = yield* Ref.make(Option.none<URI>());
 
   // ChannelService / FsService are yielded lazily inside the methods (not in this service-constructor
-  // body) so ApexTestExecutionService.Default carries no build-time requirement — the runtime layer
+  // body) so the execution methods carry no build-time requirement — the runtime layer
   // (ChannelServiceLayer('Apex Testing') + the prebuilt FsService) provides them when methods run, the
   // same lazy pattern ApexTestTreeService uses for ExtensionProviderService.
 
@@ -283,7 +283,7 @@ const makeApexTestExecutionService = Effect.gen(function* () {
         ? nls.localize('apex_test_class_run_text')
         : nls.localize('apex_test_run_text');
     // Sentinel (run path only): e2e gates run completion on `Ended SFDX: Run Apex Tests`. Uses the
-    // ambient 'Apex Testing' ChannelService (api.services), same channel the run-command files emit to.
+    // ambient 'Apex Testing' ChannelService (api.v2.services), same channel the run-command files emit to.
     const channelService = yield* api.v2.services.ChannelService;
     yield* channelService.appendToChannel(`Ended ${executionName}`);
     if (totalCount > 0) {

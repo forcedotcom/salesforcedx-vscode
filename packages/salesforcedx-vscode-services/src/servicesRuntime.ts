@@ -22,7 +22,7 @@ type ServicesRuntime = ManagedRuntime.ManagedRuntime<
 
 /**
  * Single shared runtime for imperative boundaries (e.g., O11y SpanExporter). Reused to share connection
- * and reauth caches; `Effect.provide(SomeService.Default)` rebuilds the graph on each call.
+ * and reauth caches; providing an individual service layer per call rebuilds its graph.
  */
 // eslint-disable-next-line functional/no-let
 let servicesRuntime: ServicesRuntime | undefined;

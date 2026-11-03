@@ -178,7 +178,7 @@ intermediate — is a single point-free `pipe`. Reserve `function*` for **depend
 
 Any step that can throw (parsing, JSON, non-Effect FFI) must be lifted with
 `Effect.try`/`Effect.tryPromise` — a bare throw inside the pipe's input becomes an
-uncatchable `Die` defect, not a typed failure (`catchTag`/`catchAll` won't see it).
+uncatchable `Die` defect, not a typed failure (`catchTag`/`Effect.catch` won't see it).
 Same rule as "no throw inside Effect.gen" in `anti-patterns.md`, applied to
 point-free pipes too.
 
@@ -241,7 +241,7 @@ nesting and duplication both go — and it closes gaps where one copy forgot a s
 
 ```typescript
 const decodeOrFail = <A, I>(schema: Schema.Schema<A, I>, label: string) => (input: unknown) =>
-  Schema.decodeUnknown(schema)(input).pipe(
+  Schema.decodeUnknownEffect(schema)(input).pipe(
     Effect.mapError((e: ParseResult.ParseError) =>
       new TraceFlagNotFoundError({ message: `Failed to decode ${label}: ${ParseResult.TreeFormatter.formatErrorSync(e)}` }))
   );
@@ -261,51 +261,48 @@ Inside an already-running gen, recover a span of yields by piping from that span
 
 ```typescript
 // PREFERRED — pipe from the first Effect being recovered
-yield* api.services.QueryService.pipe(
-  Effect.flatMap(qs =>
-    qs.query({ soql: 'SELECT COUNT() FROM SourceMember', tooling: true }, Schema.Unknown)
-  ),
+yield* api.v2.services.QueryService.use(qs =>
+  qs.query({ soql: 'SELECT COUNT() FROM SourceMember', tooling: true }, Schema.Unknown)
+).pipe(
   Effect.map(({ totalSize }) => totalSize),
   Effect.orElseSucceed(() => 'query failed')
 )
 
 // AVOID — nested gen whose only job is to make the sequence pipeable
 yield* Effect.gen(function* () {
-  const qs = yield* api.services.QueryService
-  const { totalSize } = yield* qs.query(
-    { soql: 'SELECT COUNT() FROM SourceMember', tooling: true },
-    Schema.Unknown
+  const { totalSize } = yield* api.v2.services.QueryService.use(qs =>
+    qs.query({ soql: 'SELECT COUNT() FROM SourceMember', tooling: true }, Schema.Unknown)
   )
   return totalSize
 }).pipe(Effect.orElseSucceed(() => 'query failed'))
 ```
 
-`unnecessaryEffectGen` misses this (1 `yield* X` only). 2+ yields + trailing recovery still need this rewrite. `orElseSucceed` / `catchAllCause` stay judgment.
+`unnecessaryEffectGen` misses this (1 `yield* X` only). 2+ yields + trailing recovery still need this rewrite. `orElseSucceed` / `catchCause` stay judgment.
 
-Keep recovery on the recovered subject. A nested pipe over a *different* subject is load-bearing when the inner chain has its own recovery. Hoisting `catchAllCause` / `orElseSucceed` onto an outer lookup pipe changes which failures recover.
+Keep recovery on the recovered subject. A nested pipe over a *different* subject is load-bearing when the inner chain has its own recovery. Hoisting `catchCause` / `orElseSucceed` onto an outer lookup pipe changes which failures recover.
 
 ```typescript
 // PREFERRED — only the query recovers; getServicesApi / getValue still fail
 getServicesApi.pipe(
   Effect.flatMap(api =>
-    Effect.flatMap(api.services.SettingsService, settings =>
+    Effect.flatMap(api.v2.services.SettingsService.use(settings =>
       settings.getValue<number>(SOQL_CONFIGURATION_NAME, 'maxQueryLimit')
-    )
+    ))
   ),
   Effect.flatMap(maxRows =>
-    runBuilderQueryEffect(maxRows).pipe(Effect.catchAllCause(recover))
+    runBuilderQueryEffect(maxRows).pipe(Effect.catchCause(recover))
   )
 )
 
 // AVOID — lookup failure now takes the recover path
 getServicesApi.pipe(
   Effect.flatMap(api =>
-    Effect.flatMap(api.services.SettingsService, settings =>
+    Effect.flatMap(api.v2.services.SettingsService.use(settings =>
       settings.getValue<number>(SOQL_CONFIGURATION_NAME, 'maxQueryLimit')
-    )
+    ))
   ),
   Effect.flatMap(maxRows => runBuilderQueryEffect(maxRows)),
-  Effect.catchAllCause(recover)
+  Effect.catchCause(recover)
 )
 ```
 
@@ -331,5 +328,5 @@ getServicesApi.pipe(
 | Single-use inner pipe / payload | inline it in the one pipe (goal: one large pipe, no intermediate vars) | extract a single-use `const`/helper just to shorten the pipe |
 | Nested pipe that only sequences steps | flatten to sibling steps | leave nesting that adds no branching |
 | Nested pipe with real branching or its own `Stream`/sub-chain | keep nested — it's genuine composition | flatten mechanically and lose the structure |
-| Recovery around a subsequence of an outer gen | pipe from first Effect; recovery as sibling. `catchTags` inside `Effect.fn`: `local/no-nested-effect-gen-catch-tags` | `yield* Effect.gen(function* () { … }).pipe(orElseSucceed / catchAllCause / catchTags)` |
-| Inner chain has its own recovery | keep the nested pipe on that subject | hoist `catchAllCause` / `orElseSucceed` onto an outer lookup pipe |
+| Recovery around a subsequence of an outer gen | pipe from first Effect; recovery as sibling. `catchTags` inside `Effect.fn`: `local/no-nested-effect-gen-catch-tags` | `yield* Effect.gen(function* () { … }).pipe(orElseSucceed / catchCause / catchTags)` |
+| Inner chain has its own recovery | keep the nested pipe on that subject | hoist `catchCause` / `orElseSucceed` onto an outer lookup pipe |

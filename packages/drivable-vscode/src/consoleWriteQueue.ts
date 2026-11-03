@@ -9,7 +9,6 @@ import type { DrivableVscodeArtifactError } from './errors';
 import type { DrivableVscodeRendererConsoleEntry } from './schemas';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
-import * as Match from 'effect/Match';
 import * as Queue from 'effect/Queue';
 
 export type ConsoleWrite =
@@ -21,17 +20,10 @@ export const consumeConsoleWrites = (
   persist: (entry: DrivableVscodeRendererConsoleEntry) => Effect.Effect<void, DrivableVscodeArtifactError>
   // eslint-disable-next-line local/no-explicit-effect-return-type -- Recursive implementation requires an annotation.
 ): Effect.Effect<void, DrivableVscodeArtifactError> =>
-  queue.pipe(
-    Queue.take,
-    Effect.flatMap(item =>
-      Match.value(item).pipe(
-        Match.when({ _tag: 'Entry' }, ({ entry }) =>
-          persist(entry).pipe(Effect.andThen(Effect.suspend(() => consumeConsoleWrites(queue, persist))))
-        ),
-        Match.when({ _tag: 'Stop' }, () => Effect.void),
-        Match.exhaustive
-      )
-    )
+  Effect.flatMap(Queue.take(queue), item =>
+    item._tag === 'Stop'
+      ? Effect.void
+      : persist(item.entry).pipe(Effect.andThen(Effect.suspend(() => consumeConsoleWrites(queue, persist))))
   );
 
 export const drainConsoleWrites = (

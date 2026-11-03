@@ -6,12 +6,13 @@
  */
 
 import { Agent, type ToolName } from '@cursor/sdk';
-import * as Command from '@effect/platform/Command';
-import * as FileSystem from '@effect/platform/FileSystem';
-import * as Path from '@effect/platform/Path';
-import * as NodeContext from '@effect/platform-node/NodeContext';
-import { actionsEnvironment, GitHub, readPullRequestEvent } from '@salesforce/effect-octokit';
-import { Config, Effect, Either, Exit, Layer, Logger, Option, pipe, Redacted, Schema, Stream } from 'effect';
+import * as FileSystem from 'effect/FileSystem';
+import * as Path from 'effect/Path';
+import * as ChildProcess from 'effect/process/ChildProcess';
+import * as ChildProcessSpawner from 'effect/process/ChildProcessSpawner';
+import * as NodeServices from '@effect/platform-node/NodeServices';
+import { actionsEnvironment, GitHub, GitHubLayer, readPullRequestEvent } from '@salesforce/effect-octokit';
+import { Config, Effect, Exit, Layer, Logger, Option, pipe, Redacted, Result, Schema, Stream } from 'effect';
 import { pathToFileURL } from 'node:url';
 import { CommandFailed, CursorRunFailed, InvalidBaseRef, Judgment, type Item } from './schema.mts';
 
@@ -105,11 +106,10 @@ export const spliceManualTestPlan = (body: string, block: string) => {
 };
 
 const git = Effect.fn('manualTestPlan.git')(function* (cwd: string, args: readonly string[]) {
+  const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
   const [text, code] = yield* pipe(
-    Command.make('git', ...args),
-    Command.workingDirectory(cwd),
-    Command.env(gitLocalEnv),
-    Command.start,
+    ChildProcess.make('git', args, { cwd, env: gitLocalEnv, extendEnv: true }),
+    spawner.spawn,
     Effect.flatMap(proc =>
       Effect.all(
         [
@@ -178,7 +178,7 @@ export const judgmentError = Effect.fn('manualTestPlan.judgmentError')(function*
       ? Effect.succeed(Option.none<string>())
       : fs
           .exists(path.join(cwd, item.spec))
-          .pipe(Effect.map(exists => Option.fromNullable(watchVideoProblem(exists, workflows, item))))
+          .pipe(Effect.map(exists => Option.fromUndefinedOr(watchVideoProblem(exists, workflows, item))))
   );
   const messages = problems.flatMap(problem => (Option.isNone(problem) ? [] : [problem.value]));
   return messages.length === 0 ? undefined : messages.join('\n');
@@ -190,7 +190,7 @@ const finishedText = (run: {
   readonly error?: { readonly message: string };
 }) =>
   run.status === 'finished'
-    ? Option.match(Option.fromNullable(run.result), {
+    ? Option.match(Option.fromUndefinedOr(run.result), {
         onNone: () =>
           Effect.fail(new CursorRunFailed({ status: run.status, message: 'Cursor run finished without text' })),
         onSome: Effect.succeed
@@ -200,7 +200,7 @@ const finishedText = (run: {
       );
 
 const cursorPrompt = Effect.fn('manualTestPlan.cursorPrompt')(function* (cwd: string, input: PromptInput) {
-  const apiKey = yield* Config.redacted('CURSOR_API_KEY').pipe(
+  const apiKey = yield* Config.Redacted('CURSOR_API_KEY').pipe(
     Effect.mapError(error => new CursorRunFailed({ status: 'config', message: error.message }))
   );
   const correction = input.correction === undefined ? '' : `\n\nPrevious reply failed validation:\n${input.correction}`;
@@ -217,7 +217,8 @@ const cursorPrompt = Effect.fn('manualTestPlan.cursorPrompt')(function* (cwd: st
 });
 
 const readPrBody = Effect.fn('manualTestPlan.readPrBody')(function* (owner: string, repo: string, pr: number) {
-  return yield* GitHub.pullBody(owner, repo, pr);
+  const github = yield* GitHub;
+  return yield* github.pullBody(owner, repo, pr);
 });
 
 const writePrBody = Effect.fn('manualTestPlan.writePrBody')(function* (
@@ -226,7 +227,8 @@ const writePrBody = Effect.fn('manualTestPlan.writePrBody')(function* (
   pr: number,
   body: string
 ) {
-  yield* GitHub.updatePullBody(owner, repo, pr, body);
+  const github = yield* GitHub;
+  yield* github.updatePullBody(owner, repo, pr, body);
 });
 
 const skip = (reason: string, message: string) =>
@@ -241,19 +243,19 @@ const attempt = Effect.fn('manualTestPlan.attempt')(function* (
   cwd: string,
   correction: string | undefined
 ) {
-  const text = yield* prompt({ skill, diff, ...(correction === undefined ? {} : { correction }) }).pipe(Effect.either);
-  if (Either.isLeft(text)) return { _tag: 'cursor', message: text.left.message } satisfies Attempt;
-  const decoded = yield* Schema.decodeUnknown(Schema.parseJson(Judgment))(text.right).pipe(Effect.either);
-  if (Either.isLeft(decoded))
+  const text = yield* prompt({ skill, diff, ...(correction === undefined ? {} : { correction }) }).pipe(Effect.result);
+  if (Result.isFailure(text)) return { _tag: 'cursor', message: text.failure.message } satisfies Attempt;
+  const decoded = Schema.decodeUnknownResult(Schema.fromJsonString(Judgment))(text.success);
+  if (Result.isFailure(decoded))
     return {
       _tag: 'retry',
-      text: text.right,
-      error: `judgment JSON failed schema: ${decoded.left.message}`
+      text: text.success,
+      error: `judgment JSON failed schema: ${decoded.failure.message}`
     } satisfies Attempt;
-  const problem = yield* judgmentError(cwd, decoded.right);
+  const problem = yield* judgmentError(cwd, decoded.success);
   return problem === undefined
-    ? ({ _tag: 'ok', judgment: decoded.right } satisfies Attempt)
-    : ({ _tag: 'retry', text: text.right, error: problem } satisfies Attempt);
+    ? ({ _tag: 'ok', judgment: decoded.success } satisfies Attempt)
+    : ({ _tag: 'retry', text: text.success, error: problem } satisfies Attempt);
 });
 
 export type ManualTestPlanDeps = {
@@ -264,7 +266,7 @@ export type ManualTestPlanDeps = {
 };
 
 export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(function* (deps?: ManualTestPlanDeps) {
-  const env = yield* actionsEnvironment;
+  const env = yield* actionsEnvironment();
   const base = yield* Option.match(env.baseRef, {
     onNone: () => Effect.fail(new InvalidBaseRef({ ref: 'GITHUB_BASE_REF', message: 'GITHUB_BASE_REF is missing' })),
     onSome: ref =>
@@ -315,7 +317,7 @@ if (isDirectRun) {
       })
     ),
     Effect.provide(
-      Layer.mergeAll(GitHub.Default, NodeContext.layer, Logger.replace(Logger.defaultLogger, stderrLogger))
+      Layer.mergeAll(GitHubLayer, NodeServices.layer, Logger.layer([stderrLogger], { mergeWithExisting: false }))
     ),
     Effect.runPromise
   );

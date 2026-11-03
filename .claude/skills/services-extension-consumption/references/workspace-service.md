@@ -9,7 +9,7 @@ Workspace info access. Accessor pattern: call methods directly.
 Get workspace info (may be empty):
 
 ```typescript
-const info = yield* api.services.WorkspaceService.getWorkspaceInfo();
+const info = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfo());
 // { uri, path, fsPath, isEmpty, isVirtualFs, cwd }
 ```
 
@@ -18,7 +18,7 @@ const info = yield* api.services.WorkspaceService.getWorkspaceInfo();
 Get workspace info, throws if none open:
 
 ```typescript
-const info = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+const info = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
 // { uri, path, fsPath, isEmpty: false, isVirtualFs, cwd }
 // Throws: NoWorkspaceOpenError
 ```
@@ -28,8 +28,9 @@ const info = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
 From `salesforcedx-vscode-metadata`:
 
 ```typescript
-const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-const packageDirs = (yield* api.services.ProjectService.getSfProject()).getPackageDirectories();
+const workspaceInfo = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
+const project = yield* api.v2.services.ProjectService.use(service => service.getSfProject());
+const packageDirs = project.getPackageDirectories();
 ```
 
 ## Notes

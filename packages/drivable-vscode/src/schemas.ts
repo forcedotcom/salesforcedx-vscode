@@ -7,9 +7,10 @@
 
 import * as Schema from 'effect/Schema';
 
-const NonEmptyString = Schema.String.pipe(Schema.minLength(1));
+const NonEmptyString = Schema.NonEmptyString;
+const PositiveInteger = Schema.Int.check(Schema.isGreaterThan(0));
 const OptionalObservationSequence = {
-  observationSequence: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.positive()))
+  observationSequence: Schema.optional(PositiveInteger)
 };
 export const Within = Schema.Struct({ role: NonEmptyString, name: NonEmptyString });
 export type Within = Schema.Schema.Type<typeof Within>;
@@ -21,7 +22,7 @@ const RoleTargetFields = {
   ...OptionalObservationSequence
 };
 
-const ExtensionMode = Schema.Literal('dev', 'vsix');
+const ExtensionMode = Schema.Literals(['dev', 'vsix']);
 
 export const DrivableVscodeExtension = Schema.Struct({
   directory: NonEmptyString,
@@ -39,13 +40,13 @@ export const DrivableVscodeLaunchOptions = Schema.Struct({
   repoRoot: Schema.optional(NonEmptyString),
   vscodeExecutable: Schema.optional(NonEmptyString),
   artifactRoot: Schema.optional(NonEmptyString),
-  userSettings: Schema.optional(Schema.Record({ key: Schema.String, value: Schema.Unknown })),
+  userSettings: Schema.optional(Schema.Record(Schema.String, Schema.Json)),
   orgAlias: Schema.optional(NonEmptyString)
 });
 export type DrivableVscodeLaunchOptions = Schema.Schema.Type<typeof DrivableVscodeLaunchOptions>;
 
 export const DrivableVscodeObservation = Schema.Struct({
-  sequence: Schema.Number.pipe(Schema.int(), Schema.positive()),
+  sequence: PositiveInteger,
   capturedAt: NonEmptyString,
   title: Schema.String,
   url: Schema.String,
@@ -61,7 +62,7 @@ export const DrivableVscodeObservation = Schema.Struct({
 });
 export type DrivableVscodeObservation = Schema.Schema.Type<typeof DrivableVscodeObservation>;
 
-export const DrivableVscodeAction = Schema.Union(
+export const DrivableVscodeAction = Schema.Union([
   Schema.Struct({
     kind: Schema.Literal('click'),
     ...RoleTargetFields
@@ -78,20 +79,20 @@ export const DrivableVscodeAction = Schema.Union(
     kind: Schema.Literal('waitForText'),
     text: NonEmptyString,
     exact: Schema.optional(Schema.Boolean),
-    timeoutMs: Schema.optional(Schema.Number.pipe(Schema.int(), Schema.positive(), Schema.lessThanOrEqualTo(30_000))),
+    timeoutMs: Schema.optional(PositiveInteger.check(Schema.isLessThanOrEqualTo(30_000))),
     ...OptionalObservationSequence
   })
-);
+]);
 export type DrivableVscodeAction = Schema.Schema.Type<typeof DrivableVscodeAction>;
 
 export const DrivableVscodeFinding = Schema.Struct({
   title: NonEmptyString,
-  severity: Schema.Literal('critical', 'high', 'medium', 'low'),
+  severity: Schema.Literals(['critical', 'high', 'medium', 'low']),
   area: NonEmptyString,
   steps: Schema.NonEmptyArray(NonEmptyString),
   expected: NonEmptyString,
   actual: NonEmptyString,
-  confidence: Schema.Literal('high', 'medium', 'low'),
+  confidence: Schema.Literals(['high', 'medium', 'low']),
   evidence: NonEmptyString.pipe(Schema.Array, Schema.optional)
 });
 export type DrivableVscodeFinding = Schema.Schema.Type<typeof DrivableVscodeFinding>;
@@ -113,22 +114,22 @@ export type DrivableVscodeManifest = Schema.Schema.Type<typeof DrivableVscodeMan
 export const DrivableVscodeSummary = Schema.Struct({
   objective: NonEmptyString,
   runId: NonEmptyString,
-  exploredCount: Schema.Number.pipe(Schema.int(), Schema.nonNegative()),
-  actionCount: Schema.Number.pipe(Schema.int(), Schema.nonNegative()),
-  observationCount: Schema.Number.pipe(Schema.int(), Schema.nonNegative()),
-  findingCount: Schema.Number.pipe(Schema.int(), Schema.nonNegative()),
-  status: Schema.Literal('completed', 'completed-with-limitations', 'failed'),
+  exploredCount: Schema.Natural,
+  actionCount: Schema.Natural,
+  observationCount: Schema.Natural,
+  findingCount: Schema.Natural,
+  status: Schema.Literals(['completed', 'completed-with-limitations', 'failed']),
   limitations: Schema.Array(NonEmptyString)
 });
 export type DrivableVscodeSummary = Schema.Schema.Type<typeof DrivableVscodeSummary>;
 
 const ActionRecord = {
-  sequence: Schema.Number.pipe(Schema.int(), Schema.positive()),
-  observationSequence: Schema.Number.pipe(Schema.int(), Schema.nonNegative()),
+  sequence: PositiveInteger,
+  observationSequence: Schema.Natural,
   startedAt: NonEmptyString,
   action: DrivableVscodeAction
 };
-export const DrivableVscodeActionRecord = Schema.Union(
+export const DrivableVscodeActionRecord = Schema.Union([
   Schema.Struct({ kind: Schema.Literal('observation'), ...DrivableVscodeObservation.fields }),
   Schema.Struct({ kind: Schema.Literal('action-started'), ...ActionRecord }),
   Schema.Struct({ kind: Schema.Literal('action-succeeded'), ...ActionRecord, completedAt: NonEmptyString }),
@@ -139,7 +140,7 @@ export const DrivableVscodeActionRecord = Schema.Union(
     error: Schema.Unknown
   }),
   Schema.Struct({ kind: Schema.Literal('session-closing'), capturedAt: NonEmptyString })
-);
+]);
 export type DrivableVscodeActionRecord = Schema.Schema.Type<typeof DrivableVscodeActionRecord>;
 
 export const DrivableVscodeRendererConsoleEntry = Schema.Struct({
@@ -150,14 +151,14 @@ export const DrivableVscodeRendererConsoleEntry = Schema.Struct({
 });
 export type DrivableVscodeRendererConsoleEntry = Schema.Schema.Type<typeof DrivableVscodeRendererConsoleEntry>;
 
-const ControllerLifecycle = Schema.Literal('new', 'starting', 'running', 'stopping', 'closed');
+const ControllerLifecycle = Schema.Literals(['new', 'starting', 'running', 'stopping', 'closed']);
 
 export const DrivableVscodeStatus = Schema.Struct({
   state: ControllerLifecycle,
   objective: Schema.optional(NonEmptyString),
   runId: Schema.optional(NonEmptyString),
   artifactDir: Schema.optional(NonEmptyString),
-  findingCount: Schema.Number.pipe(Schema.int(), Schema.nonNegative())
+  findingCount: Schema.Natural
 });
 export type DrivableVscodeStatus = Schema.Schema.Type<typeof DrivableVscodeStatus>;
 
@@ -165,12 +166,12 @@ export const StartInput = Schema.Struct({
   objective: NonEmptyString,
   artifactRoot: Schema.optional(NonEmptyString),
   orgAlias: Schema.optional(NonEmptyString),
-  extensionMode: Schema.optionalWith(ExtensionMode, { default: () => 'vsix' as const })
+  extensionMode: Schema.optional(ExtensionMode)
 });
 export type StartInput = Schema.Schema.Type<typeof StartInput>;
 
 export const ActInput = Schema.Struct({
-  observationSequence: Schema.Number.pipe(Schema.int(), Schema.positive()),
+  observationSequence: PositiveInteger,
   action: DrivableVscodeAction
 });
 export type ActInput = Schema.Schema.Type<typeof ActInput>;

@@ -31,10 +31,10 @@ ruleTester.run('no-standalone-pipeable-value', noStandalonePipeableValue, {
   valid: [
     { filename, code: `${imports}pipe([1, 2], xs => xs.length);` },
     { filename, code: `${imports}pipe('hello', s => s.length);` },
-    { filename, code: `${imports}pipe(JSON.parse('{}'), Schema.decodeUnknown(Schema.Unknown));` },
+    { filename, code: `${imports}pipe(JSON.parse('{}'), Schema.decodeUnknownSync(Schema.Unknown));` },
     { filename, code: `${imports}Effect.succeed(1).pipe(Effect.map(n => n + 1));` },
     { filename, code: `${imports}Stream.fromIterable([1]).pipe(Stream.map(n => n + 1));` },
-    { filename, code: `${imports}Schema.String.pipe(Schema.minLength(1));` },
+    { filename, code: `${imports}Schema.String.pipe(Schema.check(Schema.isMinLength(1)));` },
     {
       filename,
       code: `${imports}const choice = Math.random() > 0.5 ? Effect.void : 1;
@@ -76,13 +76,13 @@ pipe(effect, Effect.map(n => n + 1));`,
     },
     {
       filename,
-      code: `${imports}pipe(Schema.String, Schema.minLength(1));`,
+      code: `${imports}pipe(Schema.String, Schema.check(Schema.isMinLength(1)));`,
       errors: [{ messageId: 'useMethodPipe' }]
     },
     {
       filename,
       code: `${imports}const schema: Schema.Schema<string> = Schema.String;
-pipe(schema, Schema.minLength(1));`,
+pipe(schema, Schema.check(Schema.isMinLength(1)));`,
       errors: [{ messageId: 'useMethodPipe' }]
     },
     {

@@ -10,7 +10,7 @@ Direct-in-gen: `yield*` instead of `Effect.run*`. In a vscode callback: capture 
 
 ## FORBIDDEN: Global Error in Effect Failure Channel / Catch Handler
 
-Enforced by Effect LS rules `globalErrorInEffectFailure` + `globalErrorInEffectCatch` (in `config/effect-diagnostics.json` `enforcedRules`; build fails on any hit). A `new Error(...)` in an E-channel position — a failure channel or catch callback whose result flows to `E` (`Effect.fail`, `Effect.async<A, Error>`, `catchAll`, `Stream.fromAsyncIterable` error map), caught by `globalErrorInEffectFailure` — or in a `try*` catch handler (`tryPromise`/`try`/`tryMap`/`tryMapPromise` `catch`), caught by `globalErrorInEffectCatch`, can't be discriminated by `catchTag`. Use a `Schema.TaggedError` with a `message` field (colocate module-local; export only when it crosses a package `.d.ts` boundary — see `ts4023-effect-errors`).
+Enforced by Effect LS rules `globalErrorInEffectFailure` + `globalErrorInEffectCatch` (in `config/effect-diagnostics.json` `enforcedRules`; build fails on any hit). A `new Error(...)` in an E-channel position — a failure channel or catch callback whose result flows to `E` (`Effect.fail`, `Effect.async<A, Error>`, `Effect.catch`, `Stream.fromAsyncIterable` error map), caught by `globalErrorInEffectFailure` — or in a `try*` catch handler (`tryPromise`/`try`/`tryMap`/`tryMapPromise` `catch`), caught by `globalErrorInEffectCatch`, can't be discriminated by `catchTag`. Use a `Schema.TaggedError` with a `message` field (colocate module-local; export only when it crosses a package `.d.ts` boundary — see `ts4023-effect-errors`).
 
 ## FORBIDDEN: throw Inside Effect.gen
 
@@ -38,14 +38,14 @@ yield* Effect.gen(function* () {
 })
 ```
 
-`try/catch` inside `Effect.gen` is equally forbidden — enforced by LS rule `tryCatchInEffectGen` (config-enforced). Catches thrown JS; misses failures/defects in the Effect error channel. Correct: `catchTag`/`catchTags` for typed E; `catchAllCause` + `Cause.squash` when defects must be caught too (e.g. rejected `Effect.promise`); `Effect.try`/`tryPromise` to wrap throwing sync/async at the boundary.
+`try/catch` inside `Effect.gen` is equally forbidden — enforced by LS rule `tryCatchInEffectGen` (config-enforced). Catches thrown JS; misses failures/defects in the Effect error channel. Correct: `catchTag`/`catchTags` for typed errors; `Effect.catchCause` when defects must be caught too; `Effect.try`/`tryPromise` to wrap throwing sync/async at the boundary.
 
-## FORBIDDEN: catchAll Losing Type Information
+## FORBIDDEN: Broad catch Losing Type Information
 
 ```typescript
 // FORBIDDEN
 yield* someEffect.pipe(
-    Effect.catchAll((err) =>
+    Effect.catch((err) =>
         Effect.fail(new GenericError({ message: "Something failed" }))
     )
 )
@@ -76,7 +76,7 @@ const result = (await fetch(url)) as unknown as MyType
 **Correct:**
 ```typescript
 // Use Schema for parsing unknown data
-const result = yield* Schema.decodeUnknown(MyType)(someValue)
+const result = yield* Schema.decodeUnknownEffect(MyType)(someValue)
 
 // Or explicit type guards
 if (isMyType(someValue)) {
@@ -107,15 +107,12 @@ telemetryService.sendException(APEX_LSP_ORPHAN, error.message)
 
 ```typescript
 // FORBIDDEN
-export class UserService extends Effect.Service<UserService>()("UserService", {
-    effect: Effect.gen(function* () {
-        return {
-            findById: async (id: UserId): Promise<User> => {
-                // Using Promise instead of Effect
-            }
-        }
-    }),
-}) {}
+export class UserService extends Context.Service<UserService, {
+    readonly findById: (id: UserId) => Effect.Effect<User, UserNotFoundError>
+}>()("myapp/UserService") {}
+
+// WRONG: a Promise-returning implementation does not satisfy the service contract.
+const findById = async (id: UserId): Promise<User> => getUserFromDatabase(id)
 ```
 
 **Why:** Loses Effect's error handling, can't compose with other Effects, loses tracing/metrics.
@@ -158,8 +155,8 @@ const port = parseInt(process.env.PORT || "3000")
 **Correct:**
 ```typescript
 const config = yield* Config.all({
-    apiKey: Config.secret("API_KEY"),
-    port: Config.integer("PORT").pipe(Config.withDefault(3000)),
+    apiKey: Config.Secret("API_KEY"),
+    port: Config.Int("PORT").pipe(Config.withDefault(3000)),
 })
 ```
 
@@ -180,8 +177,9 @@ type User = {
 ```typescript
 const User = Schema.Struct({
     name: Schema.String,
-    bio: Schema.Option(Schema.String),
-    avatar: Schema.Option(Schema.String),
+    // Wire null/absence becomes an explicit Option at the boundary.
+    bio: Schema.OptionFromNullishOr(Schema.String),
+    avatar: Schema.OptionFromUndefinedOr(Schema.String),
 })
 ```
 
@@ -210,28 +208,24 @@ const name = Option.getOrElse(maybeName, () => "Anonymous")
 const upperName = Option.map(maybeName, (n) => n.toUpperCase())
 ```
 
-## FORBIDDEN: Context.Tag for Business Services
+## Use Effect 4 service contracts
 
 ```typescript
-// FORBIDDEN
-export class UserService extends Context.Tag("UserService")<
+// Effect 4: define a service contract and provide its implementation with a Layer.
+export class UserService extends Context.Service<UserService, {
+    readonly findById: (id: UserId) => Effect.Effect<User, UserNotFoundError>
+}>()("myapp/UserService") {}
+
+const UserServiceLayer = Layer.effect(
     UserService,
-    { findById: (id: UserId) => Effect.Effect<User, UserNotFoundError> }
->() {
-    static Default = Layer.effect(this, Effect.gen(function* () { ... }))
-}
+    Effect.gen(function* () {
+        const repo = yield* UserRepo
+        return UserService.of({ findById: id => repo.findById(id) })
+    })
+)
 ```
 
-**Why:** Requires manual layer creation, no built-in accessors, more boilerplate.
-
-**Correct:**
-```typescript
-export class UserService extends Effect.Service<UserService>()("UserService", {
-    accessors: true,
-    dependencies: [...],
-    effect: Effect.gen(function* () { ... }),
-}) {}
-```
+V3 `Effect.Service` / `.Default` patterns are confined to `salesforcedx-vscode-services-v3-compat`.
 
 ## FORBIDDEN: Ignoring Errors with orDie
 

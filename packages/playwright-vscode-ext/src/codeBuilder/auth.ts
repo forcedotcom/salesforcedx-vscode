@@ -64,7 +64,7 @@ export const resolveOrgBootEnv = (orgAlias: string, options: ResolveOrgBootEnvOp
    * banner to stdout (the "hard-won" class of bug), a bare JSON.parse throws an opaque
    * "Unexpected token" with no clue which command or org. Rethrow with the argv + a stdout snippet.
    */
-  const runSfJson = <A>(args: string[], schema: Schema.Schema<A>): A => {
+  const runSfJson = <S extends Schema.ConstraintDecoder<unknown>>(args: string[], schema: S): S['Type'] => {
     const out = runner('sf', args);
     let parsed: unknown;
     try {

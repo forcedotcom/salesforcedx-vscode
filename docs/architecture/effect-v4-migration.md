@@ -112,6 +112,8 @@ All files in each package belong to its WI below; no source/test import is exemp
 | LS/editor/CLI integration, dependency selection and diagnostic negative controls                                                                                      | W-24615044; per-slice fixes with each implementation; final enforcement W-24615101     |
 | Remaining V3 dependency/import gates, coding skills/examples                                                                                                          | W-24615101                                                                             |
 
+W-24615100 / W-24615101 tooling cutover: `drivable-vscode`, `playwright-vscode-ext`, `effect-octokit`, root scripts, and the separately installed changelog script now use Effect 4. The source inventory leaves V3 only in the compatibility implementation, legacy declarations/generator, and isolated compatibility fixtures. The exact-head branch and GitHub acceptance gates below still apply.
+
 W-24615055 initially isolated the V4 compiler/LS program from the V3 provider. W-24615069
 removed that temporary package after moving the implementation into the production provider.
 See [foundation ownership and verification](effect-v4-foundations.md).

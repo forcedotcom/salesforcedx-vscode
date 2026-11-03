@@ -31,7 +31,7 @@ Use `@Namespace/EntityName` format:
 - `@External/StripeCustomerId` - External system IDs
 - `@services/SalesforceId` / `@services/OrgId` - this repo's Salesforce record/org ids (`core/schemas/salesforceId.ts`). 15/18 char, not UUID. Org ids start `00D`
 
-`getAuthInfoFields()` / `getFields()` → `authFieldsFrom` / `authFieldsFromConnection` (`core/schemas/authFields.ts`). orgId: `orgIdFrom` / `orgIdFromConnection` (not `authFieldsFrom` then `.orgId`). All `Option`. Fields: `optionalWith(..., { as: 'Option' })`. `instanceName`: `Schema.Trim` (decode, not consumers). Invalid orgId → whole decode `None` (`decodeUnknownOption`). Fail-if-missing: `Option.match`.
+`getAuthInfoFields()` / `getFields()` → `authFieldsFrom` / `authFieldsFromConnection` (`core/schemas/authFields.ts`). orgId: `orgIdFrom` / `orgIdFromConnection` (not `authFieldsFrom` then `.orgId`). All `Option`. For wire sentinels, use `Schema.OptionFromNullOr` with `Schema.decodeTo`. `instanceName`: `Schema.Trim` (decode, not consumers). Invalid orgId → whole decode `None` (`decodeUnknownOption`). Fail-if-missing: `Option.match`.
 
 `DefaultOrgInfoSchema.orgId` / `devHubOrgId`: `Schema.optional(OrgId)` like `cliId` — not `optionalWith` as Option. `Option.getOrUndefined` only at that `OrgId | undefined` interop (`connectionService`).
 
@@ -56,7 +56,7 @@ Don't brand simple strings that don't need type safety:
 // NOT branded - acceptable
 export const Url = Schema.String
 export const FilePath = Schema.String
-export const EmailAddress = Schema.String.pipe(Schema.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/))
+export const EmailAddress = Schema.String.pipe(Schema.check(Schema.isPattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)))
 
 // These don't need branding because:
 // 1. They don't cross service boundaries in ways that could be confused
@@ -74,7 +74,7 @@ export const User = Schema.Struct({
     email: Schema.String,
     name: Schema.String,
     tenantId: TenantId,
-    role: Schema.Literal("admin", "member", "viewer"),
+    role: Schema.Literals(["admin", "member", "viewer"]),
     createdAt: Schema.DateTimeUtc,
     updatedAt: Schema.DateTimeUtc,
 })
@@ -89,90 +89,37 @@ export type UserEncoded = Schema.Schema.Encoded<typeof User>
 ```typescript
 export const CreateUserInput = Schema.Struct({
     email: Schema.String.pipe(
-        Schema.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/),
-        Schema.annotations({ description: "Valid email address" }),
+        Schema.check(Schema.isPattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)),
+        Schema.annotate({ description: "Valid email address" }),
     ),
-    name: Schema.String.pipe(
-        Schema.minLength(1),
-        Schema.maxLength(100),
-    ),
+    name: Schema.String.pipe(Schema.check(Schema.isMinLength(1), Schema.isMaxLength(100))),
     tenantId: TenantId,
-    role: Schema.optionalWith(
-        Schema.Literal("admin", "member", "viewer"),
-        { default: () => "member" as const }
-    ),
+    role: Schema.optional(Schema.Literals(["admin", "member", "viewer"])),
 })
 export type CreateUserInput = Schema.Schema.Type<typeof CreateUserInput>
 
 export const UpdateUserInput = Schema.Struct({
-    name: Schema.optional(Schema.String.pipe(Schema.minLength(1))),
-    role: Schema.optional(Schema.Literal("admin", "member", "viewer")),
+    name: Schema.optional(Schema.String.pipe(Schema.check(Schema.isMinLength(1)))),
+    role: Schema.optional(Schema.Literals(["admin", "member", "viewer"])),
 })
 export type UpdateUserInput = Schema.Schema.Type<typeof UpdateUserInput>
 ```
 
-## Schema.transform and transformOrFail
+## Schema transformations
 
-**Use transforms** instead of manual parsing:
-
-```typescript
-// Transform string to Date
-export const DateFromString = Schema.transform(
-    Schema.String,
-    Schema.DateTimeUtc,
-    {
-        decode: (s) => new Date(s),
-        encode: (d) => d.toISOString(),
-    }
-)
-
-// Transform with validation (can fail)
-export const PositiveNumber = Schema.transformOrFail(
-    Schema.Number,
-    Schema.Number.pipe(Schema.brand("PositiveNumber")),
-    {
-        decode: (n, _, ast) =>
-            n > 0
-                ? ParseResult.succeed(n as Schema.Schema.Type<typeof PositiveNumber>)
-                : ParseResult.fail(new ParseResult.Type(ast, n, "Must be positive")),
-        encode: ParseResult.succeed,
-    }
-)
-```
-
-### Common Transforms
+Use `Schema.decodeTo` with `SchemaGetter` when encoded and decoded types differ. Use `Schema.fromJsonString` for JSON text.
 
 ```typescript
-// JSON string to object
-export const JsonFromString = <A, I>(schema: Schema.Schema<A, I>) =>
-    Schema.transform(
-        Schema.String,
-        schema,
-        {
-            decode: (s) => JSON.parse(s),
-            encode: (a) => JSON.stringify(a),
-        }
-    )
+import { Schema, SchemaGetter } from "effect"
 
-// Comma-separated string to array
-export const CommaSeparatedList = Schema.transform(
-    Schema.String,
-    Schema.Array(Schema.String),
-    {
-        decode: (s) => s.split(",").map((x) => x.trim()).filter(Boolean),
-        encode: (arr) => arr.join(","),
-    }
+const NumberFromString = Schema.String.pipe(
+  Schema.decodeTo(Schema.Number, {
+    decode: SchemaGetter.transform((value: string) => Number(value)),
+    encode: SchemaGetter.transform((value: number) => String(value))
+  })
 )
 
-// Cents to dollars
-export const DollarsFromCents = Schema.transform(
-    Schema.Number.pipe(Schema.int()),
-    Schema.Number,
-    {
-        decode: (cents) => cents / 100,
-        encode: (dollars) => Math.round(dollars * 100),
-    }
-)
+const UserFromJson = Schema.fromJsonString(User)
 ```
 
 ## Schema.Class for Entities with Methods
@@ -184,7 +131,7 @@ export class User extends Schema.Class<User>("User")({
     id: UserId,
     email: Schema.String,
     name: Schema.String,
-    role: Schema.Literal("admin", "member", "viewer"),
+    role: Schema.Literals(["admin", "member", "viewer"]),
     createdAt: Schema.DateTimeUtc,
 }) {
     get isAdmin(): boolean {
@@ -214,76 +161,68 @@ console.log(user.displayName) // "Alice"
 console.log(user.isAdmin) // false
 ```
 
-## Schema.annotations
+## Schema annotations
 
 Add annotations for documentation and validation messages:
 
 ```typescript
 export const CreateOrderInput = Schema.Struct({
-    productId: ProductId.pipe(
-        Schema.annotations({ description: "The product to order" }),
-    ),
-    quantity: Schema.Number.pipe(
-        Schema.int(),
-        Schema.positive(),
-        Schema.annotations({
+    productId: Schema.annotate({ description: "The product to order" })(ProductId),
+    quantity: Schema.Int.pipe(
+        Schema.check(Schema.isGreaterThan(0)),
+        Schema.annotate({
             description: "Number of items to order",
             examples: [1, 5, 10],
         }),
     ),
     shippingAddress: Schema.Struct({
-        line1: Schema.String.pipe(Schema.annotations({ description: "Street address" })),
+        line1: Schema.annotate({ description: "Street address" })(Schema.String),
         line2: Schema.optional(Schema.String),
         city: Schema.String,
-        state: Schema.String.pipe(Schema.length(2)),
-        zip: Schema.String.pipe(Schema.pattern(/^\d{5}(-\d{4})?$/)),
-    }).pipe(Schema.annotations({ description: "Shipping destination" })),
-}).pipe(
-    Schema.annotations({
+        state: Schema.String.pipe(Schema.check(Schema.isBetweenLength(2, 2))),
+        zip: Schema.String.pipe(Schema.check(Schema.isPattern(/^\d{5}(-\d{4})?$/))),
+    }),
+}).pipe(Schema.annotate({
         title: "Create Order Input",
         description: "Input for creating a new order",
-    }),
-)
+    }))
 ```
 
 ## Optional Fields
 
-Use `Schema.optional` and `Schema.optionalWith`:
+Use `Schema.optional` for a field that may be absent or `undefined`. Use `withDecodingDefaultTypeKey` for an encoded optional field that decodes to a default.
 
 ```typescript
+import * as Effect from "effect/Effect"
+
 export const UserPreferences = Schema.Struct({
     // Optional, undefined if not provided
-    theme: Schema.optional(Schema.Literal("light", "dark")),
+    theme: Schema.optional(Schema.Literals(["light", "dark"])),
 
     // DefaultOrgInfo orgId/devHubOrgId — branded optional, undefined not Option (like cliId)
     orgId: Schema.optional(OrgId),
 
-    // Optional as Option (AuthFields decode)
-    nickname: Schema.optionalWith(Schema.String, { as: "Option" }),
-
-    // Optional with default value
-    language: Schema.optionalWith(Schema.String, { default: () => "en" }),
+    // Optional with default decoded value
+    language: Schema.withDecodingDefaultTypeKey(Effect.succeed("en" as const))(Schema.String),
 
     // Optional with null support (for database compatibility)
     bio: Schema.NullOr(Schema.String),
 
     // Optional but must be present if set (no undefined)
-    timezone: Schema.optional(Schema.String, { exact: true }),
+    timezone: Schema.optionalKey(Schema.String),
 })
 ```
+
+Use `Schema.OptionFromNullOr` and `Schema.decodeTo` when a wire sentinel (for example `null` or `""`) must become an `Option`; see `packages/salesforcedx-vscode-apex-testing/src/testDiscovery/schemas.ts`.
 
 ## Union Types and Discriminated Unions
 
 ```typescript
 // Simple union
-export const PaymentMethod = Schema.Union(
-    Schema.Literal("card"),
-    Schema.Literal("bank_transfer"),
-    Schema.Literal("crypto"),
-)
+export const PaymentMethod = Schema.Literals(["card", "bank_transfer", "crypto"])
 
 // Discriminated union (tagged)
-export const PaymentDetails = Schema.Union(
+export const PaymentDetails = Schema.Union([
     Schema.Struct({
         _tag: Schema.Literal("Card"),
         cardNumber: Schema.String,
@@ -298,9 +237,9 @@ export const PaymentDetails = Schema.Union(
     Schema.Struct({
         _tag: Schema.Literal("Crypto"),
         walletAddress: Schema.String,
-        network: Schema.Literal("ethereum", "bitcoin", "solana"),
+        network: Schema.Literals(["ethereum", "bitcoin", "solana"]),
     }),
-)
+])
 export type PaymentDetails = Schema.Schema.Type<typeof PaymentDetails>
 
 // Usage with match
@@ -320,11 +259,11 @@ const processPayment = (details: PaymentDetails) => {
 
 ```typescript
 // Use Literal for small, fixed sets
-export const UserRole = Schema.Literal("admin", "member", "viewer")
+export const UserRole = Schema.Literals(["admin", "member", "viewer"])
 export type UserRole = Schema.Schema.Type<typeof UserRole>
 
 // Use Enums for larger sets or when you need runtime values
-export const OrderStatus = Schema.Enums({
+export const OrderStatus = Schema.Enum({
     Pending: "pending",
     Processing: "processing",
     Shipped: "shipped",
@@ -369,7 +308,7 @@ Effect.filterOrFail(Schema.is(Schema.NonEmptyString), () => vscode.FileSystemErr
 
 ```typescript
 // Decode (parse) - use in services
-const parseUser = Schema.decodeUnknown(User)
+const parseUser = Schema.decodeUnknownEffect(User)
 const result = yield* parseUser(rawData) // Effect<User, ParseError>
 
 // Option (AuthFields helpers) — decode fail → None
@@ -379,19 +318,18 @@ Schema.decodeUnknownOption(AuthFields)(fields)
 const user = Schema.decodeUnknownSync(User)(rawData)
 
 // Encode - for serialization
-const encodeUser = Schema.encode(User)
+const encodeUser = Schema.encodeEffect(User)
 const encoded = yield* encodeUser(user) // Effect<UserEncoded, ParseError>
 ```
 
-## JSON strings: Schema.parseJson
+## JSON strings: Schema.fromJsonString
 
-Use `Schema.parseJson(schema)` instead of `JSON.parse` + manual decode. Handles invalid JSON (returns `Left`) and schema validation in one step.
+Use `Schema.fromJsonString(schema)` with a decoder instead of `JSON.parse` + manual decode.
 
 ```typescript
-// JSON string → validated A. No try/catch — parse errors become Left
-const decoded = Schema.decodeUnknownEither(Schema.parseJson(MySchema))(jsonStr)
-const value = Either.getOrElse(decoded, () => undefined)
+// JSON string → typed Effect; parse and schema failures stay in the error channel
+const decoded = Schema.decodeUnknownEffect(Schema.fromJsonString(MySchema))(jsonStr)
 
 // Sync decode (throws on invalid JSON or schema mismatch)
-const config = Schema.decodeUnknownSync(Schema.parseJson(ConfigSchema))(jsonStr)
+const config = Schema.decodeUnknownSync(Schema.fromJsonString(ConfigSchema))(jsonStr)
 ```

@@ -10,7 +10,8 @@ import { InMemoryTransport } from '@modelcontextprotocol/sdk/inMemory.js';
 import { CallToolResultSchema, type CallToolResult } from '@modelcontextprotocol/sdk/types.js';
 import * as Effect from 'effect/Effect';
 import * as Deferred from 'effect/Deferred';
-import * as Runtime from 'effect/Runtime';
+import * as Layer from 'effect/Layer';
+import * as ManagedRuntime from 'effect/ManagedRuntime';
 import { ControllerService } from '../src/controllerService';
 import { DrivableVscodeLaunchError } from '../src/errors';
 import { createDrivableVscodeMcpServer, shutdownDrivableVscodeMcpServer } from '../src/mcpServer';
@@ -54,12 +55,13 @@ describe('drivable VS Code MCP server', () => {
     addFinding,
     status,
     finish
-  } as unknown as InstanceType<typeof ControllerService>;
-  const runtime = Runtime.defaultRuntime.pipe(Runtime.provideService(ControllerService, service));
-  const server = createDrivableVscodeMcpServer(runtime);
+  } as unknown as ControllerService['Service'];
+  const runtime = ManagedRuntime.make(Layer.succeed(ControllerService, service));
+  let server: Awaited<ReturnType<typeof createDrivableVscodeMcpServer>>;
   const client = new Client({ name: 'drivable-vscode-contract-test', version: '1.0.0' });
 
   beforeAll(async () => {
+    server = await createDrivableVscodeMcpServer(runtime);
     const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
     await Promise.all([server.connect(serverTransport), client.connect(clientTransport)]);
   });
@@ -148,9 +150,9 @@ describe('drivable VS Code MCP server', () => {
       addFinding,
       status,
       finish
-    } as unknown as InstanceType<typeof ControllerService>;
-    const blockingRuntime = Runtime.defaultRuntime.pipe(Runtime.provideService(ControllerService, blockingService));
-    const blockingServer = createDrivableVscodeMcpServer(
+    } as unknown as ControllerService['Service'];
+    const blockingRuntime = ManagedRuntime.make(Layer.succeed(ControllerService, blockingService));
+    const blockingServer = await createDrivableVscodeMcpServer(
       blockingRuntime,
       Deferred.await(interrupted).pipe(Effect.andThen(Effect.sync(() => finishOrder.push('finish'))))
     );

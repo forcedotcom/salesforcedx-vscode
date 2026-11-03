@@ -516,7 +516,7 @@ describe('ApexTestTreeService', () => {
         logged.push({ message: options.message, annotations: options.fiber.getRef(References.CurrentLogAnnotations) });
       });
 
-      // R carries WorkspaceService | FsService from the restore body's ambient api.services reads; the
+      // R carries WorkspaceService | FsService from the restore body's ambient api.v2.services reads; the
       // mocked api satisfies them at runtime, so narrow R to what layerWithFs provides (matches `run`).
       await Effect.runPromise(
         Effect.provide(

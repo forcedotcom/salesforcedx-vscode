@@ -195,7 +195,7 @@ const notifyDiscoveryFailure = Effect.fn('ApexTestTreeService.notifyDiscoveryFai
  * in place, and the Ref keeps pointing at the same object, so no per-entry write-back is needed. reset
  * clears the Maps in place (same object identity).
  *
- * SettingsService / FsService / ConnectionService etc. are reached ambiently via api.services; they are
+ * SettingsService / FsService / ConnectionService etc. are reached ambiently via api.v2.services; they are
  * NOT declared as hard Default dependencies (that would double-provision at runtime).
  */
 const makeApexTestTreeService = Effect.gen(function* () {

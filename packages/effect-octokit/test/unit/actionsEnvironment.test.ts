@@ -7,6 +7,8 @@
 
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import * as ConfigProvider from 'effect/ConfigProvider';
+import * as Result from 'effect/Result';
 import { actionsEnvironment } from '../../src/actionsEnvironment.js';
 
 const sample = {
@@ -49,37 +51,14 @@ const sample = {
   RUNNER_TOOL_CACHE: '/tmp/tool-cache'
 };
 
-const absent = [
-  'GITHUB_ACTION_PATH',
-  'GITHUB_ACTION_REPOSITORY',
-  'GITHUB_BASE_REF',
-  'GITHUB_HEAD_REF',
-  'GITHUB_REF',
-  'GITHUB_REF_NAME',
-  'GITHUB_REF_PROTECTED',
-  'GITHUB_REF_TYPE',
-  'RUNNER_DEBUG'
-];
-
 const withSample = <A, E>(effect: Effect.Effect<A, E, never>, patch?: Record<string, string>): Promise<A> => {
-  const previous = Object.fromEntries([...Object.keys(sample), ...absent].map(key => [key, process.env[key]]));
-  Object.assign(process.env, sample, patch);
-  absent.forEach(key => delete process.env[key]);
-  return effect.pipe(
-    Effect.ensuring(
-      Effect.sync(() => {
-        Object.entries(previous).forEach(([key, value]) =>
-          value === undefined ? delete process.env[key] : (process.env[key] = value)
-        );
-      })
-    ),
-    Effect.runPromise
-  );
+  const provider = ConfigProvider.fromEnvRecord({ ...sample, ...patch });
+  return Effect.runPromise(Effect.provide(effect, ConfigProvider.layer(provider)));
 };
 
 describe('actionsEnvironment', () => {
   it('parses the workflow environment', async () => {
-    const env = await withSample(actionsEnvironment);
+    const env = await withSample(actionsEnvironment());
     expect(env.owner).toBe('forcedotcom');
     expect(env.repo).toBe('salesforcedx-vscode');
     expect(env.runId).toBe(1_658_821_493);
@@ -88,9 +67,11 @@ describe('actionsEnvironment', () => {
   });
 
   it('rejects a repository that is not owner/repo', async () => {
-    const exit = await withSample(actionsEnvironment.pipe(Effect.either), { GITHUB_REPOSITORY: 'nope' });
-    expect(exit._tag === 'Left' && exit.left._op === 'InvalidData' ? exit.left.message : undefined).toContain(
-      'owner/repo'
-    );
+    const exit = await withSample(actionsEnvironment().pipe(Effect.result), { GITHUB_REPOSITORY: 'nope' });
+    expect(
+      Result.isFailure(exit) && exit.failure._tag === 'InvalidActionsEnvironmentError'
+        ? exit.failure.message
+        : undefined
+    ).toContain('owner/repo');
   });
 });

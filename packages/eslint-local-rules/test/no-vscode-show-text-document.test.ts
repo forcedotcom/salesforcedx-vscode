@@ -20,7 +20,7 @@ ruleTester.run('no-vscode-show-text-document', noVscodeShowTextDocument, {
       filename: 'packages/salesforcedx-vscode-apex-log/src/test.ts'
     },
     {
-      code: `const editor = yield* api.services.FsService.showTextDocument(uri);`,
+      code: `const editor = yield* api.v2.services.FsService.use(service => service.showTextDocument(uri));`,
       filename: 'packages/salesforcedx-vscode-soql/src/commands/test.ts'
     },
     {

@@ -142,9 +142,11 @@
   },
   "dependencies": {
     "effect": "4.0.6",
-    "@salesforce/vscode-services": "*",
     "@types/vscode": "^1.90.0",
     "vscode-uri": "^3.1.0"
+  },
+  "devDependencies": {
+    "@salesforce/vscode-services": "*"
   },
   "engines": {
     "node": ">=24.18.0"

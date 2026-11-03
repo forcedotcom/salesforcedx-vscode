@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-import * as NodeContext from '@effect/platform-node/NodeContext';
+import * as NodeServices from '@effect/platform-node/NodeServices';
 import {
   actionsEnvironment,
   GitHub,
+  GitHubLayer,
   readCompletedChecksEvent,
   readIssueCommentEvent,
   readSynchronizeEvent
@@ -12,7 +13,7 @@ import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
 import * as Logger from 'effect/Logger';
-import { isNullable } from 'effect/Predicate';
+import { isNullish } from 'effect/Predicate';
 import { pathToFileURL } from 'node:url';
 import {
   authorStandaloneAiAutoComments,
@@ -83,7 +84,7 @@ const approveIfDecided = Effect.fn('aiAutoApprove.approveIfDecided')(
     yield* logDecision(decision);
     if (decision.action !== 'approve') return;
     const latest = yield* github.pullRequest(owner, repo, pullNumber);
-    if (isNullable(latest) || latest.headRefOid !== headSha) {
+    if (isNullish(latest) || latest.headRefOid !== headSha) {
       yield* Effect.log(`decision: skip (#${pullNumber} head moved before approve)`);
       return;
     }
@@ -100,7 +101,7 @@ const approveIfDecided = Effect.fn('aiAutoApprove.approveIfDecided')(
 /** Comment just posted. `hold` leaves the comment; checks completion re-decides on the same head. */
 const onIssueComment = Effect.fn('aiAutoApprove.issueComment')(function* (env, github) {
   const { comment, issue } = yield* readIssueCommentEvent(env.eventPath);
-  if (isNullable(comment) || isNullable(issue)) {
+  if (isNullish(comment) || isNullish(issue)) {
     yield* Effect.log('decision: skip (no comment/issue on event)');
     return;
   }
@@ -114,7 +115,7 @@ const onIssueComment = Effect.fn('aiAutoApprove.issueComment')(function* (env, g
     return;
   }
   const pull = yield* github.pullRequest(env.owner, env.repo, issue.number);
-  if (isNullable(pull)) {
+  if (isNullish(pull)) {
     yield* Effect.log('decision: skip (pull request not found)');
     return;
   }
@@ -137,7 +138,7 @@ const onIssueComment = Effect.fn('aiAutoApprove.issueComment')(function* (env, g
 const onChecksComplete = Effect.fn('aiAutoApprove.checksComplete')(function* (env, github) {
   const event = yield* readCompletedChecksEvent(env.eventPath);
   const completed = event.check_suite ?? event.workflow_run;
-  if (isNullable(completed)) {
+  if (isNullish(completed)) {
     yield* Effect.log('decision: skip (completed checks have no head sha or pull requests)');
     return;
   }
@@ -149,7 +150,7 @@ const onChecksComplete = Effect.fn('aiAutoApprove.checksComplete')(function* (en
         return;
       }
       const pull = yield* github.pullRequest(env.owner, env.repo, pullNumber);
-      if (isNullable(pull) || pull.headRefOid !== completed.head_sha) {
+      if (isNullish(pull) || pull.headRefOid !== completed.head_sha) {
         yield* Effect.log(`decision: skip (#${pullNumber} head is not ${completed.head_sha})`);
         return;
       }
@@ -165,7 +166,7 @@ const onChecksComplete = Effect.fn('aiAutoApprove.checksComplete')(function* (en
         })),
         pull.author?.login
       )[0];
-      if (isNullable(author)) {
+      if (isNullish(author)) {
         yield* Effect.log(`decision: skip (no author /ai-auto approve on #${pullNumber})`);
         return;
       }
@@ -194,7 +195,7 @@ const onSynchronize = Effect.fn('aiAutoApprove.synchronize')(function* (env, git
   }
   const pullNumber = event.pull_request.number;
   const pull = yield* github.pullRequest(env.owner, env.repo, pullNumber);
-  if (isNullable(pull)) {
+  if (isNullish(pull)) {
     yield* Effect.log(`decision: skip (#${pullNumber} not found)`);
     return;
   }
@@ -222,7 +223,7 @@ const onSynchronize = Effect.fn('aiAutoApprove.synchronize')(function* (env, git
 });
 
 export const aiAutoApproveProgram = Effect.fn('aiAutoApprove.program')(function* () {
-  const env = yield* actionsEnvironment;
+  const env = yield* actionsEnvironment();
   const github = yield* GitHub;
   switch (env.eventName) {
     case 'issue_comment':
@@ -240,21 +241,23 @@ export const aiAutoApproveProgram = Effect.fn('aiAutoApprove.program')(function*
 export const aiAutoApproveMain = aiAutoApproveProgram().pipe(
   Effect.provide(
     Layer.mergeAll(
-      GitHub.Default,
-      NodeContext.layer,
-      Logger.replace(
-        Logger.defaultLogger,
-        Logger.make(({ message }) =>
-          process.stdout.write(
-            `${
-              Array.isArray(message)
-                ? message.map(value => (typeof value === 'string' ? value : JSON.stringify(value))).join(' ')
-                : typeof message === 'string'
-                  ? message
-                  : JSON.stringify(message)
-            }\n`
+      GitHubLayer,
+      NodeServices.layer,
+      Logger.layer(
+        [
+          Logger.make(({ message }) =>
+            process.stdout.write(
+              `${
+                Array.isArray(message)
+                  ? message.map(value => (typeof value === 'string' ? value : JSON.stringify(value))).join(' ')
+                  : typeof message === 'string'
+                    ? message
+                    : JSON.stringify(message)
+              }\n`
+            )
           )
-        )
+        ],
+        { mergeWithExisting: false }
       )
     )
   )

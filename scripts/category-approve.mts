@@ -1,8 +1,9 @@
 #!/usr/bin/env node
-import * as Command from '@effect/platform/Command';
-import * as FileSystem from '@effect/platform/FileSystem';
-import * as Path from '@effect/platform/Path';
-import * as NodeContext from '@effect/platform-node/NodeContext';
+import * as FileSystem from 'effect/FileSystem';
+import * as Path from 'effect/Path';
+import * as ChildProcess from 'effect/process/ChildProcess';
+import * as ChildProcessSpawner from 'effect/process/ChildProcessSpawner';
+import * as NodeServices from '@effect/platform-node/NodeServices';
 import * as Config from 'effect/Config';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
@@ -17,6 +18,7 @@ import {
   type CheckEvent,
   findApprovedReviewOnHead,
   GitHub,
+  GitHubLayer,
   readCheckEvent,
   withoutWorkflowRun
 } from '@salesforce/effect-octokit';
@@ -36,7 +38,7 @@ import {
   parseAgentResult
 } from './shared/categoryDecision.mts';
 
-// Command.env merges over process.env (NodeCommandExecutor). Blank inherited values so the agent only sees its allowlist.
+// Blank inherited values so the agent only sees its allowlist.
 const agentEnvironment = (home: string, pathEnv: string, apiKey: string) => ({
   ...Object.fromEntries(
     Object.entries(process.env).flatMap(([key, value]) => (value === undefined ? [] : [[key, '']]))
@@ -46,8 +48,9 @@ const agentEnvironment = (home: string, pathEnv: string, apiKey: string) => ({
   CURSOR_API_KEY: apiKey
 });
 
-const commandOutput = Effect.fn('categoryApprove.commandOutput')(function* (command: Command.Command) {
-  const handle = yield* Command.start(command);
+const commandOutput = Effect.fn('categoryApprove.commandOutput')(function* (command: ChildProcess.Command) {
+  const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
+  const handle = yield* spawner.spawn(command);
   return yield* Effect.all(
     [
       Stream.mkString(Stream.decodeText(handle.stdout)),
@@ -59,7 +62,7 @@ const commandOutput = Effect.fn('categoryApprove.commandOutput')(function* (comm
 });
 
 const gitText = (args: ReadonlyArray<string>) =>
-  commandOutput(Command.make('git', ...args)).pipe(
+  commandOutput(ChildProcess.make('git', args)).pipe(
     Effect.scoped,
     Effect.filterOrFail(
       ([, , code]) => code === 0,
@@ -84,21 +87,20 @@ const listChecks = Effect.fn('categoryApprove.listChecks')(function* (
 });
 
 const classify = Effect.fn('categoryApprove.classify')(function* (policy: string, diffPath: string) {
-  return yield* Effect.all([Config.string('CURSOR_API_KEY'), Config.string('PATH'), Config.string('HOME')], {
+  return yield* Effect.all([Config.String('CURSOR_API_KEY'), Config.String('PATH'), Config.String('HOME')], {
     concurrency: 'unbounded'
   }).pipe(
     Effect.flatMap(([apiKey, pathEnv, home]) =>
       commandOutput(
-        Command.make(
+        ChildProcess.make(
           'agent',
-          '--trust',
-          '-p',
-          '--model',
-          MODEL,
-          '--output-format',
-          'json',
-          buildPrompt(policy, diffPath)
-        ).pipe(Command.env(agentEnvironment(home, pathEnv, apiKey)), Command.stdin(Stream.empty))
+          ['--trust', '-p', '--model', MODEL, '--output-format', 'json', buildPrompt(policy, diffPath)],
+          {
+            env: agentEnvironment(home, pathEnv, apiKey),
+            extendEnv: true,
+            stdin: Stream.empty
+          }
+        )
       ).pipe(Effect.scoped)
     ),
     Effect.filterOrFail(
@@ -112,7 +114,8 @@ const classify = Effect.fn('categoryApprove.classify')(function* (policy: string
 const writeDiff = Effect.fn('categoryApprove.writeDiff')(function* (policy: string, diff: string) {
   const fs = yield* FileSystem.FileSystem;
   const dir = yield* fs.makeTempDirectoryScoped({ prefix: 'category-approve-' });
-  const diffPath = yield* Path.Path.pipe(Effect.map(path => path.join(dir, 'pr.diff')));
+  const path = yield* Path.Path;
+  const diffPath = path.join(dir, 'pr.diff');
   yield* fs.writeFileString(diffPath, diff);
   return yield* classify(policy, diffPath);
 });
@@ -165,7 +168,7 @@ const act = (
     Match.tag('Dismiss', dismissed =>
       Effect.log(`#${pullNumber} dismiss (${dismissed.reason})`).pipe(
         Effect.andThen(
-          Option.match(Option.fromNullable(findApprovedReviewOnHead(reviews, headSha, BOT_LOGIN)), {
+          Option.match(Option.fromUndefinedOr(findApprovedReviewOnHead(reviews, headSha, BOT_LOGIN)), {
             onNone: () => Effect.void,
             onSome: review => dismiss(owner, repo, pullNumber, review.id)
           })
@@ -284,7 +287,7 @@ const pullNumbers = Effect.fn('categoryApprove.pullNumbers')(function* (
 });
 
 const categoryApprove = Effect.fn('categoryApprove')(function* () {
-  const env = yield* actionsEnvironment;
+  const env = yield* actionsEnvironment();
   const event = yield* readCheckEvent(env.eventPath);
   if (event.check_run?.name === 'category-approve') {
     yield* Effect.log('skip: own check run');
@@ -300,9 +303,9 @@ const categoryApprove = Effect.fn('categoryApprove')(function* () {
   });
 });
 
-const program = categoryApprove().pipe(Effect.provide(Layer.mergeAll(GitHub.Default, NodeContext.layer)));
+const program = categoryApprove().pipe(Effect.provide(Layer.mergeAll(GitHubLayer, NodeServices.layer)));
 
 await program.pipe(
-  Effect.tapErrorCause(cause => Effect.logError(Cause.pretty(cause))),
+  Effect.tapCause(cause => Effect.logError(Cause.pretty(cause))),
   Effect.runPromise
 );

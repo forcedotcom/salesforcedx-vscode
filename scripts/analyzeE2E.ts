@@ -26,7 +26,7 @@ type WorkflowStatus = {
 };
 
 const byCreatedAtDescending = Order.mapInput(
-  Order.reverse(Order.Date),
+  Order.flip(Order.Date),
   (workflow: WorkflowRun) => new Date(workflow.createdAt)
 );
 

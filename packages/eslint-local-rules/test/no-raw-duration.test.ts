@@ -76,7 +76,7 @@ Effect.sleep(ms);`,
     {
       filename,
       code: `${effectImport}
-const opts: { timeout?: Duration.DurationInput } = { timeout: 1 };`,
+const opts: { timeout?: Duration.Input } = { timeout: 1 };`,
       errors: [{ messageId: 'useMillis' }]
     }
   ]

@@ -133,7 +133,7 @@ const readResult = Effect.fn('CodeCoverageService.readResult')(function* (apexTe
 /**
  * CodeCoverageService — owns coverage Ref state and the coverage-data pipeline.
  * SettingsService and ChannelService are reached ambiently (prebuiltServicesDependencies) via
- * api.services; they are NOT declared as hard Default dependencies (that would double-provision
+ * api.v2.services; they are NOT declared as hard dependencies (that would double-provision
  * and conflict at runtime).
  */
 const makeCodeCoverageService = Effect.gen(function* () {

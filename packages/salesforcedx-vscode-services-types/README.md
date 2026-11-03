@@ -19,7 +19,11 @@ npm install --save-dev @salesforce/vscode-services
 
 ## Usage
 
-Import the type definitions in your VS Code extension to get type safety when consuming the Salesforce Services API:
+The unversioned package root is only for audited external V3 consumers. First-party repository consumers use `/v2` and `api.v2.services`.
+
+#### Legacy external V3 API
+
+Import the root declarations only when maintaining an existing external V3 consumer:
 
 ```typescript
 import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
@@ -38,7 +42,25 @@ if (api) {
 }
 ```
 
-### Example: Using Services in Your Extension
+### First-party V4 API
+
+```typescript
+import type { SalesforceVSCodeServicesApiV2 } from '@salesforce/vscode-services/v2';
+import * as Effect from 'effect/Effect';
+import * as vscode from 'vscode';
+
+const extension = vscode.extensions.getExtension<SalesforceVSCodeServicesApiV2>(
+  'salesforce.salesforcedx-vscode-services'
+);
+
+const getConnection = Effect.gen(function* () {
+  const api = extension?.exports;
+  if (!api) return;
+  return yield* api.v2.services.ConnectionService.use(service => service.getConnection());
+});
+```
+
+### Legacy external V3 example
 
 ```typescript
 import type { SalesforceVSCodeServicesApi } from '@salesforce/vscode-services';
