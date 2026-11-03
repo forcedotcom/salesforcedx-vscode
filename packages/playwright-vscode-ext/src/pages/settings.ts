@@ -66,7 +66,8 @@ export const upsertScratchOrgAuthFieldsToSettings = async (
   if (waitForProject) {
     await waitForProject();
   }
-  // One JSON edit avoids enabling the auth watcher before the session metadata is present.
+  // JSON-editor saves do not fire onDidChangeConfiguration in VS Code Web, so write the session metadata object
+  // first, then the three auth settings through the Settings UI, which triggers the auth watcher.
   await upsertSettings(page, {
     [`${CODE_BUILDER_WEB_SECTION}.${SESSION_CONTEXT_KEY}`]: authFields.sessionContext,
     [`${CODE_BUILDER_WEB_SECTION}.${INSTANCE_URL_KEY}`]: authFields.instanceUrl,
@@ -123,7 +124,7 @@ export const upsertSettings = async (
         `Invalid workspace settings JSON: ${errors.map(error => printParseErrorCode(error.error)).join(', ')}`
       );
     const updatedSettings = parsedDocument;
-    for (const [settingId, value] of Object.entries(settings)) {
+    for (const [settingId, value] of objectSettings) {
       const settingPath = settingId.split('.');
       const key = settingPath.pop();
       if (!key) throw new Error(`Invalid setting ID: ${settingId}`);
@@ -184,10 +185,10 @@ export const upsertSettings = async (
       expect(actual).toMatchObject(value as Record<string, unknown>);
     }
     await page.keyboard.press('Control+W');
-    return;
   }
 
   const scalarSettings = Object.entries(settings).filter(([, value]) => typeof value !== 'object');
+  if (scalarSettings.length === 0) return;
 
   await openSettingsUI(page);
   const debugAria = process.env.E2E_ARIA_DEBUG === '1';
