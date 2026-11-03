@@ -339,6 +339,8 @@
       "files": [
         "vitest.config.mts",
         "scripts/**/*.ts",
+        "scripts/bundling/process-global.js",
+        "scripts/bundling/process-polyfill.js",
         "scripts/clean-wireit-cache.js",
         "scripts/releaseDashboard.sh",
         "scripts/rerunPushE2EGate.sh",

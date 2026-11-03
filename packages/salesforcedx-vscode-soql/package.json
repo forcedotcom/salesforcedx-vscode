@@ -183,6 +183,7 @@
         "src/soql-builder-ui/modules/querybuilder/services/message/**",
         "src/soql-builder-ui/esbuild.lit.config.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/process-polyfill.js",
         "../soql-builder-ui/out/**",
         "package.json"
       ],
@@ -263,6 +264,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/process-polyfill.js",
         "out/**",
         "src/soql-builder-ui/dist/**",
         "src/soql-data-view/**"
@@ -284,6 +286,7 @@
         "scripts/verify-lit-migration-parity.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/process-polyfill.js",
         "out/**",
         "src/soql-builder-ui/dist-lit/**",
         "src/soql-data-view/**"
@@ -304,6 +307,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/process-polyfill.js",
         "out/**",
         "src/soql-builder-ui/dist/**",
         "src/soql-data-view/**"

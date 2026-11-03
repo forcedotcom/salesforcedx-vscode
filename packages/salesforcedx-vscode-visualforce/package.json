@@ -100,6 +100,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/process-polyfill.js",
         "../../scripts/bundling/fs-polyfill.js",
         "../../scripts/bundling/assert-web-safe.mjs",
         "out/**"
@@ -118,6 +119,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/process-polyfill.js",
         "../../scripts/bundling/fs-polyfill.js",
         "../../scripts/bundling/assert-web-safe.mjs",
         "out/**"
