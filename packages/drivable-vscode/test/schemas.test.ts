@@ -33,7 +33,8 @@ describe('drivable VS Code contracts', () => {
 
   test('decodes MCP inputs through canonical Effect schemas', () => {
     expect(Schema.decodeUnknownSync(StartInput)({ objective: 'Validate URL feedback' })).toEqual({
-      objective: 'Validate URL feedback'
+      objective: 'Validate URL feedback',
+      extensionMode: 'vsix'
     });
     expect(
       Schema.decodeUnknownSync(ActInput)({

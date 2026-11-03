@@ -96,7 +96,7 @@ yield *
       uri
         ? projectService.isInPackageDirectories(uri).pipe(
             Effect.flatMap(setInPackageDirectoriesContext),
-            Effect.catchAll(() => setInPackageDirectoriesContext(false))
+            Effect.catch(() => setInPackageDirectoriesContext(false))
           )
         : setInPackageDirectoriesContext(false)
     )

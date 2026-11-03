@@ -35,29 +35,24 @@ const run = <A, E>(effect: Effect.Effect<A, E, GitHub>) => {
   );
 };
 
-const githubEffect = <A, E>(use: (github: GitHub['Service']) => Effect.Effect<A, E>) =>
-  Effect.gen(function* () {
-    return yield* use(yield* GitHub);
-  });
-
 describe('GitHub', () => {
   it('maps an HTTP error onto GitHubRequestError', async () => {
     globalThis.fetch = async () => json({ message: 'nope' }, 500);
     const exit = await run(
-      githubEffect(github => github.teamMembership('forcedotcom', 'ide-experience', 'someone').pipe(Effect.result))
+      GitHub.use(github => github.teamMembership('forcedotcom', 'ide-experience', 'someone').pipe(Effect.result))
     );
     expect(Result.isFailure(exit) && exit.failure.status === 500 ? exit.failure.message : undefined).toContain('nope');
   });
 
   it('treats a missing team membership as none', async () => {
     globalThis.fetch = async () => json({ message: 'Not Found' }, 404);
-    const state = await run(githubEffect(github => github.teamMembership('forcedotcom', 'ide-experience', 'someone')));
+    const state = await run(GitHub.use(github => github.teamMembership('forcedotcom', 'ide-experience', 'someone')));
     expect(state).toBe('none');
   });
 
   it('maps a GraphQL error payload onto GitHubRequestError', async () => {
     globalThis.fetch = async () => json({ data: undefined, errors: [{ message: 'boom' }] });
-    const exit = await run(githubEffect(github => github.graphql('query { viewer { login } }').pipe(Effect.result)));
+    const exit = await run(GitHub.use(github => github.graphql('query { viewer { login } }').pipe(Effect.result)));
     expect(Result.isFailure(exit) && exit.failure.status === 200 ? exit.failure.message : undefined).toContain('boom');
   });
 
@@ -70,7 +65,7 @@ describe('GitHub', () => {
             link: '<https://api.github.com/repos/o/r/pulls/1/files?page=2>; rel="next"'
           });
     };
-    const files = await run(githubEffect(github => github.pullFiles('o', 'r', 1)));
+    const files = await run(GitHub.use(github => github.pullFiles('o', 'r', 1)));
     expect(files.map(file => file.filename)).toEqual(['a.ts', 'b.ts']);
   });
 
@@ -80,7 +75,7 @@ describe('GitHub', () => {
         total_count: 1,
         check_runs: [{ name: 'lint', status: 'completed', conclusion: 'success', details_url: 'https://example.test' }]
       });
-    const runs = await run(githubEffect(github => github.checkRuns('o', 'r', 'abc')));
+    const runs = await run(GitHub.use(github => github.checkRuns('o', 'r', 'abc')));
     expect(runs).toEqual([
       { name: 'lint', status: 'completed', conclusion: 'success', details_url: 'https://example.test' }
     ]);
@@ -88,13 +83,13 @@ describe('GitHub', () => {
 
   it('reads a pull request body', async () => {
     globalThis.fetch = async () => json({ body: 'hello' });
-    const body = await run(githubEffect(github => github.pullBody('o', 'r', 12)));
+    const body = await run(GitHub.use(github => github.pullBody('o', 'r', 12)));
     expect(body).toBe('hello');
   });
 
   it('reads a null pull request body as an empty string', async () => {
     globalThis.fetch = async () => json({ body: null });
-    const body = await run(githubEffect(github => github.pullBody('o', 'r', 12)));
+    const body = await run(GitHub.use(github => github.pullBody('o', 'r', 12)));
     expect(body).toBe('');
   });
 
@@ -108,7 +103,7 @@ describe('GitHub', () => {
       });
       return json({ body: 'next' });
     };
-    await run(githubEffect(github => github.updatePullBody('o', 'r', 12, 'next')));
+    await run(GitHub.use(github => github.updatePullBody('o', 'r', 12, 'next')));
     expect(calls).toEqual([
       expect.objectContaining({
         method: 'PATCH',
@@ -126,7 +121,7 @@ describe('GitHub', () => {
         ? json({ message: 'slow down' }, 429, { 'retry-after': '0' })
         : json({ state: 'active' });
     };
-    const state = await run(githubEffect(github => github.teamMembership('forcedotcom', 'ide-experience', 'someone')));
+    const state = await run(GitHub.use(github => github.teamMembership('forcedotcom', 'ide-experience', 'someone')));
     expect(state).toBe('active');
     expect(attempts).toEqual([0, 1]);
   });

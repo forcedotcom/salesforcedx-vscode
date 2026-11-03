@@ -57,10 +57,10 @@ const ApiClientLayer = Layer.effect(
 
 ## Scoped resources
 
-Use `Layer.scoped` or `Layer.effect` with `Effect.acquireRelease` for resources owned by a layer. Closing its `ManagedRuntime` runs finalizers.
+Use `Layer.effect` with `Effect.acquireRelease` or `Effect.addFinalizer` for resources owned by a layer. Closing its `ManagedRuntime` runs finalizers.
 
 ```ts
-const StatusServiceLayer = Layer.scoped(
+const StatusServiceLayer = Layer.effect(
   StatusService,
   Effect.gen(function* () {
     const item = vscode.window.createStatusBarItem();

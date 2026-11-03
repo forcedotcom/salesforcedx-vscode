@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 
 const NonEmptyString = Schema.NonEmptyString;
@@ -23,6 +24,9 @@ const RoleTargetFields = {
 };
 
 const ExtensionMode = Schema.Literals(['dev', 'vsix']);
+const DefaultExtensionMode = Schema.withDecodingDefaultTypeKey<typeof ExtensionMode>(Effect.succeed('vsix'))(
+  ExtensionMode
+);
 
 export const DrivableVscodeExtension = Schema.Struct({
   directory: NonEmptyString,
@@ -166,7 +170,7 @@ export const StartInput = Schema.Struct({
   objective: NonEmptyString,
   artifactRoot: Schema.optional(NonEmptyString),
   orgAlias: Schema.optional(NonEmptyString),
-  extensionMode: Schema.optional(ExtensionMode)
+  extensionMode: DefaultExtensionMode
 });
 export type StartInput = Schema.Schema.Type<typeof StartInput>;
 

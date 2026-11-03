@@ -230,21 +230,20 @@ const ServerLive = Layer.unwrapEffect(
 ### Config with Validation
 
 ```typescript
+import * as Schema from "effect/Schema"
+
 const dbConfig = Config.all({
     host: Config.String("DB_HOST"),
-    port: Config.Int("DB_PORT").pipe(
-        Config.validate({
-            message: "Port must be between 1 and 65535",
-            validation: (p) => p >= 1 && p <= 65535,
-        })
+    port: Config.schema(
+        Schema.NumberFromString.pipe(
+            Schema.check(Schema.isGreaterThanOrEqualTo(1), Schema.isLessThanOrEqualTo(65535))
+        ),
+        "DB_PORT"
     ),
     database: Config.String("DB_NAME"),
-    maxConnections: Config.Int("DB_MAX_CONNECTIONS").pipe(
-        Config.withDefault(10),
-        Config.validate({
-            message: "Max connections must be positive",
-            validation: (n) => n > 0,
-        })
+    maxConnections: Config.schema(
+        Schema.NumberFromString.pipe(Schema.check(Schema.isGreaterThan(0))),
+        "DB_MAX_CONNECTIONS"
     ),
 })
 ```
@@ -254,8 +253,8 @@ const dbConfig = Config.all({
 ```typescript
 // For sensitive values that shouldn't be logged
 const secretConfig = Config.all({
-    apiKey: Config.Secret("API_KEY"),           // Returns Redacted<string>
-    dbPassword: Config.Secret("DB_PASSWORD"),
+    apiKey: Config.Redacted("API_KEY"),           // Returns Redacted<string>
+    dbPassword: Config.Redacted("DB_PASSWORD"),
 })
 
 // Using secrets

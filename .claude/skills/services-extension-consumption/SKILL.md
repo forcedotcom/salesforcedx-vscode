@@ -163,7 +163,7 @@ export const activateEffect = Effect.fn(`activation:${EXTENSION_NAME}`)(function
 
 ### Success handling
 
-`Effect.fn` middleware runs left to right after the generator. `Effect.tap` and `*SuccessNotification` before catch* (`catch`, `catchAll`, `catchAllCause`, `catchCause`, `catchCauseIf`, `catchIf`, `catchSome`, `catchSomeCause`, `catchTag`, `catchTags`) — a success combinator after catch treats recovery as success. Later catch valid. Later non-success guard (`preventOrgChanges`) valid. Lint: `local/effect-fn-catch-middleware-last` on spanned `Effect.fn` (`fn('span')`, `fn('name', options)`). Skips `fnUntraced`, unspanned `fn(function*)`, generator-body catch, `.pipe` catch.
+`Effect.fn` middleware runs left to right after the generator. Put `Effect.tap` / success notification before recovery (`Effect.catch`, `catchCause`, `catchIf`, `catchSome`, `catchSomeCause`, `catchTag`, `catchTags`) — a success combinator after recovery also runs on the recovered value. Later guards such as `preventOrgChanges` remain valid. Lint: `local/effect-fn-catch-middleware-last` on spanned `Effect.fn` (`fn('span')`, `fn('name', options)`). Skips `fnUntraced`, unspanned `fn(function*)`, generator-body catch, and `.pipe` catch.
 
 ```typescript
 export const deployActiveEditorCommand = Effect.fn('deploySourcePath.deployActiveEditor')(

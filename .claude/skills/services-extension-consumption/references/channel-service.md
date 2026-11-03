@@ -39,4 +39,4 @@ yield* api.v2.services.ChannelService.use(service =>
 - Logging is "best effort", won't cause failures
 - Use extension-specific channel via `ChannelServiceLayer`
 - Provide `ChannelServiceLayer` before `ErrorHandlerService`
-- `ChannelServiceLayer` is `Layer.scoped`. Finalizer disposes the cached `OutputChannel` and invalidates the cache entry when the layer scope closes (`ManagedRuntime.dispose`). Scope owns that channel.
+- `ChannelServiceLayer` owns the cached `OutputChannel` in its scope. Its finalizer disposes the channel and invalidates the cache entry when the layer scope closes (`ManagedRuntime.dispose`).

@@ -123,7 +123,8 @@ const MyConfigSchema = Schema.Struct({
   orgs: Schema.Record(Schema.String, Schema.String)
 });
 
-const data = yield* api.v2.services.FsService.use(service => service.readJSON(filePath, MyConfigSchema));
+const decodeMyConfig = Schema.decodeUnknownEffect(MyConfigSchema);
+const data = yield* api.v2.services.FsService.use(service => service.readJSON(filePath, decodeMyConfig));
 // data is typed as { orgs: Record<string, string> }
 ```
 

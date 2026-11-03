@@ -155,7 +155,7 @@ const port = parseInt(process.env.PORT || "3000")
 **Correct:**
 ```typescript
 const config = yield* Config.all({
-    apiKey: Config.Secret("API_KEY"),
+    apiKey: Config.Redacted("API_KEY"),
     port: Config.Int("PORT").pipe(Config.withDefault(3000)),
 })
 ```

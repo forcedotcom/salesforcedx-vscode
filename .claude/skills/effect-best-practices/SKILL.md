@@ -304,7 +304,7 @@ Resources created inside an Effect service/layer belong to its scope. Prefer `sc
 export class StatusService extends Context.Service<StatusService, { readonly show: Effect.Effect<void> }>()(
   'myapp/StatusService'
 ) {
-  static readonly layer = Layer.scoped(
+  static readonly layer = Layer.effect(
     StatusService,
     Effect.gen(function* () {
       const item = vscode.window.createStatusBarItem();
@@ -495,11 +495,14 @@ const orderCounter = Metric.counter('orders_processed');
 yield * Metric.increment(orderCounter);
 
 // Config with validation
+import * as Schema from 'effect/Schema';
+
 const config = Config.all({
   port: Config.Int('PORT').pipe(Config.withDefault(3000)),
-  apiKey: Config.Secret('API_KEY'),
-  maxRetries: Config.Int('MAX_RETRIES').pipe(
-    Config.validate({ message: 'Must be positive', validation: n => n > 0 })
+  apiKey: Config.Redacted('API_KEY'),
+  maxRetries: Config.schema(
+    Schema.NumberFromString.pipe(Schema.check(Schema.isGreaterThan(0))),
+    'MAX_RETRIES'
   )
 });
 ```

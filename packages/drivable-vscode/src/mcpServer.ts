@@ -16,7 +16,6 @@ import {
   type Tool
 } from '@modelcontextprotocol/sdk/types.js';
 import { redactValue } from '@salesforce/playwright-vscode-ext';
-import * as Context from 'effect/Context';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -101,18 +100,12 @@ const toolError = (error: unknown): CallToolResult => ({
   isError: true
 });
 
-const callTool = Effect.fn('McpServer.callTool')(function* (
-  controller: ControllerService['Service'],
-  name: string,
-  args: unknown
-) {
+const callTool = Effect.fn('McpServer.callTool')(function* (name: string, args: unknown) {
+  const controller = yield* ControllerService;
   switch (name) {
     case 'start': {
       const value = yield* Effect.fromResult(Schema.decodeUnknownResult(StartInput)(args));
-      const session = yield* controller.start(value.objective, {
-        ...value,
-        extensionMode: value.extensionMode ?? 'vsix'
-      });
+      const session = yield* controller.start(value.objective, value);
       return textResult({ runId: session.runId, artifactDir: session.artifactDir, workspaceDir: session.workspaceDir });
     }
     case 'observe': {
@@ -160,7 +153,6 @@ export const createDrivableVscodeMcpServer = async (
   finish: typeof finishController = finishController,
   dispose: Effect.Effect<void> = Effect.void
 ): Promise<Server> => {
-  const controller = Context.get(await runtime.context(), ControllerService);
   const server = new Server(SERVER_INFO, {
     capabilities: { tools: {} },
     instructions:
@@ -169,13 +161,13 @@ export const createDrivableVscodeMcpServer = async (
   const accepting = Ref.makeUnsafe(true);
   const handlerScope = Effect.runSync(Scope.make());
   const activeHandlers = FiberSet.make<CallToolResult, McpError>().pipe(Scope.provide(handlerScope), Effect.runSync);
-  const runHandler = Effect.runSync(FiberSet.runtimePromise(activeHandlers)<never>());
+  const runHandler = await runtime.runPromise(FiberSet.runtimePromise(activeHandlers)<ControllerService>());
   server.setRequestHandler(ListToolsRequestSchema, () => ({ tools }));
   server.setRequestHandler(CallToolRequestSchema, (request, extra) => {
     if (!accepting.pipe(Ref.get, Effect.runSync))
       return Promise.reject(new McpError(ErrorCode.InternalError, 'drivable-vscode MCP server is shutting down'));
     return runHandler(
-      callTool(controller, request.params.name, request.params.arguments ?? {}).pipe(
+      callTool(request.params.name, request.params.arguments ?? {}).pipe(
         Effect.match({ onFailure: toolError, onSuccess: value => value })
       ),
       { signal: extra.signal, propagateInterruption: true }
@@ -229,7 +221,7 @@ const serverProgram = Effect.fn('McpServer.serverProgram')(function* () {
   const runtime = ManagedRuntime.make(AppLayer);
   yield* Effect.addFinalizer(() => runtime.disposeEffect.pipe(Effect.orDie));
   const server = yield* Effect.tryPromise({
-    try: () => createDrivableVscodeMcpServer(runtime),
+    try: () => createDrivableVscodeMcpServer(runtime, undefined, Effect.void),
     catch: cause =>
       new DrivableVscodeMcpShutdownError({
         message: 'Failed to initialize drivable VS Code MCP server',
