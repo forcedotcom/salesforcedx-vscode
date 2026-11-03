@@ -25,7 +25,6 @@ import {
   syncTestResultSimple,
   syncTestResultWithFailures
 } from '../testData';
-import { JUnitFormatTransformer } from '../../src/reporters/junitFormatTransformer';
 import * as diagnosticUtil from '../../src/tests/diagnosticUtil';
 import { fail } from 'node:assert';
 import { SyncTests } from '../../src/tests/syncTests';
@@ -58,7 +57,6 @@ describe('Run Apex tests synchronously', () => {
   };
 
   let testServiceSpy: SinonSpy;
-  let junitSpy: SinonSpy;
   beforeEach(async () => {
     await $$.stubAuths(testData);
     // Stub retrieveMaxApiVersion to get over "Domain Not Found: The org cannot be found" error
@@ -92,7 +90,6 @@ describe('Run Apex tests synchronously', () => {
       })
     );
 
-    junitSpy = $$.SANDBOX.spy(JUnitFormatTransformer.prototype, 'format');
     formatTestErrorsMock.mockClear();
   });
 
@@ -243,7 +240,6 @@ describe('Run Apex tests synchronously', () => {
       await testSrv.writeResultFiles(syncResult, config);
 
       expect(testServiceSpy.getCall(0).firstArg).toBe(join(config.dirPath, 'test-result-default-junit.xml'));
-      expect(junitSpy.calledOnce).toBe(true);
       expect(testServiceSpy.callCount).toBe(1);
     });
   });

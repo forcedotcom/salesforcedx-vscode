@@ -7,12 +7,15 @@
 
 import type { MarkdownTextReporterOptions } from '../reporters/markdownTextReporter';
 import type { TestResult } from '../tests/types';
+import * as Cause from 'effect/Cause';
+import * as Chunk from 'effect/Chunk';
 import * as Clock from 'effect/Clock';
 import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
 import { formatHuman } from '../reporters/formatHuman';
-import { formatJUnit } from '../reporters/formatJUnit';
-import { formatMarkdownText } from '../reporters/formatMarkdownText';
-import { formatTap } from '../reporters/formatTap';
+import { formatJUnitChunks } from '../reporters/formatJUnit';
+import { formatMarkdownTextChunks } from '../reporters/formatMarkdownText';
+import { formatTapChunks } from '../reporters/formatTap';
 import { ApexReportError, causeMessage } from './errors';
 
 export interface HumanReporterOptions {
@@ -27,6 +30,30 @@ const formatReport = (format: string, render: () => string): Effect.Effect<strin
     try: render,
     catch: cause => new ApexReportError({ format, message: causeMessage(cause), cause: causeMessage(cause) })
   });
+
+const collectReportChunks = (format: string, chunks: Stream.Stream<string>): Effect.Effect<string, ApexReportError> =>
+  Stream.runCollect(chunks).pipe(
+    Effect.map(Chunk.toArray),
+    Effect.map(reportChunks => reportChunks.join('')),
+    Effect.catchAllCause(cause =>
+      Effect.fail(
+        new ApexReportError({
+          format,
+          message: cause.pipe(Cause.squash, causeMessage),
+          cause: cause.pipe(Cause.squash, causeMessage)
+        })
+      )
+    )
+  );
+
+const formatStream = (
+  format: string,
+  createChunks: () => Stream.Stream<string>
+): Effect.Effect<string, ApexReportError> =>
+  Effect.try({
+    try: createChunks,
+    catch: cause => new ApexReportError({ format, message: causeMessage(cause), cause: causeMessage(cause) })
+  }).pipe(Effect.flatMap(chunks => collectReportChunks(format, chunks)));
 
 /** Formats a human-readable test report without owning a file or output stream. */
 export const formatHumanReport = Effect.fn('Apex.formatHumanReport')(
@@ -45,11 +72,11 @@ export const formatHumanReport = Effect.fn('Apex.formatHumanReport')(
 
 export const formatTapReport = Effect.fn('Apex.formatTapReport')(
   (testResult: TestResult, epilog?: string[], lineEnding: '\n' | '\r\n' = '\n') =>
-    formatReport('tap', () => formatTap(testResult, epilog, lineEnding))
+    formatStream('tap', () => formatTapChunks(testResult, epilog, lineEnding))
 );
 
 export const formatJUnitReport = Effect.fn('Apex.formatJUnitReport')((testResult: TestResult) =>
-  formatReport('junit', () => formatJUnit(testResult))
+  formatStream('junit', () => formatJUnitChunks(testResult))
 );
 
 /** Preserves Markdown/text defaults; the default timestamp comes from the Effect clock. */
@@ -58,7 +85,7 @@ export const formatMarkdownTextReport = Effect.fn('Apex.formatMarkdownTextReport
   options: MarkdownTextReporterOptions = {}
 ) {
   const timestamp = options.timestamp ?? new Date(yield* Clock.currentTimeMillis);
-  return yield* formatReport(options.format ?? 'markdown', () =>
-    formatMarkdownText(testResult, { ...options, timestamp })
+  return yield* formatStream(options.format ?? 'markdown', () =>
+    formatMarkdownTextChunks(testResult, { ...options, timestamp })
   );
 });

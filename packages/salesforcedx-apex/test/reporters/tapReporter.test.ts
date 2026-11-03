@@ -5,29 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TapReporter } from '../../src';
+import { buildTapResults } from '../../src/reporters/formatTap';
 import { testResults } from './testResults';
 
-type TapResult = {
-  description: string;
-  diagnostics: string[];
-  outcome: string;
-  testNumber: number;
-};
-
-type TapReporterInternals = {
-  buildTapResults: (testResult: Parameters<TapReporter['format']>[0]) => TapResult[];
-};
-
-const buildTapResults = (reporter: TapReporter): TapResult[] =>
-  (reporter as unknown as TapReporterInternals).buildTapResults(testResults);
-
 describe('TAP Reporter Tests', () => {
-  let reporter: TapReporter;
+  const reporter = new TapReporter();
   const failures = new Set([1, 5, 8, 12]);
-
-  beforeEach(async () => {
-    reporter = new TapReporter();
-  });
 
   it('should format test results', () => {
     const result = reporter.format(testResults);
@@ -48,13 +31,13 @@ describe('TAP Reporter Tests', () => {
   });
 
   it('should report the correct number of test points', async () => {
-    const result = buildTapResults(reporter);
+    const result = buildTapResults(testResults);
     expect(result).not.toHaveLength(0);
     expect(result).toHaveLength(16);
   });
 
   it('should report test outcome', () => {
-    const result = buildTapResults(reporter);
+    const result = buildTapResults(testResults);
     result.forEach((r, i) => {
       expect(r.testNumber).toBe(i + 1);
       if (failures.has(i)) {
@@ -68,7 +51,7 @@ describe('TAP Reporter Tests', () => {
   });
 
   it('should report test diagnostics', () => {
-    const result = buildTapResults(reporter);
+    const result = buildTapResults(testResults);
     expect(result[1].diagnostics).toEqual(['Unknown error']);
     expect(result[5].diagnostics).toEqual([
       'System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:',

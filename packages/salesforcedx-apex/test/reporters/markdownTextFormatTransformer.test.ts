@@ -6,16 +6,21 @@
  */
 
 import { MarkdownTextFormatTransformer } from '../../src';
-import { pipeline, Writable } from 'node:stream';
+import * as Effect from 'effect/Effect';
+import { pipeline, type Readable, Writable } from 'node:stream';
 import { formatMarkdownText } from '../../src/reporters/formatMarkdownText';
 import { getTestData, successResult } from './testResults';
 import type { TestResult } from '../../src/tests/types';
+import type { MarkdownTextFormatTransformerOptions } from '../../src/reporters/markdownTextFormatTransformer';
 import { apexClassId } from '../schemaHelpers';
 
 const { testResults } = getTestData();
 
 describe('MarkdownTextFormatTransformer', () => {
-  const runPipeline = (reporter: MarkdownTextFormatTransformer): Promise<string> =>
+  const createReportStream = (testResult: TestResult, options?: MarkdownTextFormatTransformerOptions): Readable =>
+    Effect.runSync(MarkdownTextFormatTransformer(testResult, options));
+
+  const runPipeline = (reporter: Readable): Promise<string> =>
     new Promise((resolve, reject) => {
       let result = '';
       const writable = new Writable({
@@ -32,20 +37,18 @@ describe('MarkdownTextFormatTransformer', () => {
       });
     });
 
-  const createWritableAndPipeline = async (
-    reporter: MarkdownTextFormatTransformer,
-    callback: (result: string) => void
-  ): Promise<void> => {
+  const createWritableAndPipeline = async (reporter: Readable, callback: (result: string) => void): Promise<void> => {
     callback(await runPipeline(reporter));
   };
 
   it.each(['markdown', 'text'] as const)('streams %s incrementally and resumes after backpressure', async format => {
     const options = { format, codeCoverage: true, timestamp: new Date('2026-01-02T03:04:05Z'), highWaterMark: 1 };
-    const reporter = new MarkdownTextFormatTransformer(testResults, options);
+    const reporter = createReportStream(testResults, options);
+    const firstReadable = new Promise<void>(resolve => reporter.once('readable', resolve));
     reporter.read(0);
-    expect(reporter.readableLength).toBe(
-      Buffer.byteLength(format === 'markdown' ? '# Apex Test Results\n' : 'Apex Test Results\n==================\n\n')
-    );
+    await firstReadable;
+    expect(reporter.readableLength).toBeGreaterThan(0);
+    expect(reporter.readableLength).toBeLessThan(Buffer.byteLength(formatMarkdownText(testResults, options)));
     await expect(runPipeline(reporter)).resolves.toBe(formatMarkdownText(testResults, options));
   });
 
@@ -71,13 +74,13 @@ describe('MarkdownTextFormatTransformer', () => {
       };
 
       const markdownResult = await runPipeline(
-        new MarkdownTextFormatTransformer(testDataWithCoverage, {
+        createReportStream(testDataWithCoverage, {
           format: 'markdown',
           codeCoverage: true
         })
       );
       const textResult = await runPipeline(
-        new MarkdownTextFormatTransformer(testDataWithCoverage, {
+        createReportStream(testDataWithCoverage, {
           format: 'text',
           codeCoverage: true
         })
@@ -95,7 +98,7 @@ describe('MarkdownTextFormatTransformer', () => {
 
   describe('summary accuracy', () => {
     it('should accurately reflect test counts in summary', async () => {
-      const reporter = new MarkdownTextFormatTransformer(testResults, {
+      const reporter = createReportStream(testResults, {
         format: 'markdown'
       });
       await createWritableAndPipeline(reporter, result => {
@@ -121,7 +124,7 @@ describe('MarkdownTextFormatTransformer', () => {
     });
 
     it('should format duration correctly', async () => {
-      const reporter = new MarkdownTextFormatTransformer(testResults, {
+      const reporter = createReportStream(testResults, {
         format: 'markdown'
       });
       await createWritableAndPipeline(reporter, result => {
@@ -158,7 +161,7 @@ describe('MarkdownTextFormatTransformer', () => {
         ]
       };
 
-      const reporter = new MarkdownTextFormatTransformer(testDataWithRuntimes, {
+      const reporter = createReportStream(testDataWithRuntimes, {
         format: 'markdown',
         sortOrder: 'runtime'
       });
@@ -209,7 +212,7 @@ describe('MarkdownTextFormatTransformer', () => {
         ]
       };
 
-      const reporter = new MarkdownTextFormatTransformer(testDataWithFailures, {
+      const reporter = createReportStream(testDataWithFailures, {
         format: 'markdown',
         sortOrder: 'severity'
       });
@@ -242,7 +245,7 @@ describe('MarkdownTextFormatTransformer', () => {
         }
       };
 
-      const reporter = new MarkdownTextFormatTransformer(testDataWithSlowTest, {
+      const reporter = createReportStream(testDataWithSlowTest, {
         format: 'markdown',
         performanceThresholdMs: 5000
       });
@@ -279,7 +282,7 @@ describe('MarkdownTextFormatTransformer', () => {
         ]
       };
 
-      const reporter = new MarkdownTextFormatTransformer(testDataWithLowCoverage, {
+      const reporter = createReportStream(testDataWithLowCoverage, {
         format: 'markdown',
         codeCoverage: true,
         coverageThresholdPercent: 75
@@ -319,7 +322,7 @@ describe('MarkdownTextFormatTransformer', () => {
         ]
       };
 
-      const reporter = new MarkdownTextFormatTransformer(testDataWithGoodTest, {
+      const reporter = createReportStream(testDataWithGoodTest, {
         format: 'markdown',
         codeCoverage: true,
         performanceThresholdMs: 5000,
@@ -354,7 +357,7 @@ describe('MarkdownTextFormatTransformer', () => {
         }
       };
 
-      const reporter = new MarkdownTextFormatTransformer(testDataWithFailure, {
+      const reporter = createReportStream(testDataWithFailure, {
         format: 'markdown'
       });
       await createWritableAndPipeline(reporter, result => {
@@ -392,7 +395,7 @@ describe('MarkdownTextFormatTransformer', () => {
         }
       };
 
-      const reporter = new MarkdownTextFormatTransformer(testDataWithFailure, {
+      const reporter = createReportStream(testDataWithFailure, {
         format: 'markdown'
       });
       await createWritableAndPipeline(reporter, result => {
@@ -435,7 +438,7 @@ describe('MarkdownTextFormatTransformer', () => {
         ]
       };
 
-      const reporter = new MarkdownTextFormatTransformer(testDataWithUnderscoreMethod, {
+      const reporter = createReportStream(testDataWithUnderscoreMethod, {
         format: 'markdown',
         codeCoverage: true
       });
@@ -474,7 +477,7 @@ describe('MarkdownTextFormatTransformer', () => {
         ]
       };
 
-      const reporter = new MarkdownTextFormatTransformer(testDataWithCoverage, {
+      const reporter = createReportStream(testDataWithCoverage, {
         format: 'markdown',
         codeCoverage: true
       });
@@ -507,7 +510,7 @@ describe('MarkdownTextFormatTransformer', () => {
         ]
       };
 
-      const reporter = new MarkdownTextFormatTransformer(testDataWithCoverage, {
+      const reporter = createReportStream(testDataWithCoverage, {
         format: 'markdown',
         codeCoverage: false
       });
@@ -544,7 +547,7 @@ describe('MarkdownTextFormatTransformer', () => {
         tests: []
       };
 
-      const reporter = new MarkdownTextFormatTransformer(emptyResult, {
+      const reporter = createReportStream(emptyResult, {
         format: 'markdown'
       });
       await createWritableAndPipeline(reporter, result => {
@@ -571,7 +574,7 @@ describe('MarkdownTextFormatTransformer', () => {
         }
       };
 
-      const reporter = new MarkdownTextFormatTransformer(testDataWithMissingFields, {
+      const reporter = createReportStream(testDataWithMissingFields, {
         format: 'markdown'
       });
       await createWritableAndPipeline(reporter, result => {
@@ -582,7 +585,7 @@ describe('MarkdownTextFormatTransformer', () => {
     });
 
     it('should use default options when none provided', async () => {
-      const reporter = new MarkdownTextFormatTransformer(testResults);
+      const reporter = createReportStream(testResults);
       await createWritableAndPipeline(reporter, result => {
         // Should default to markdown format
         expect(result).toContain('# Apex Test Results');
@@ -599,7 +602,7 @@ describe('MarkdownTextFormatTransformer', () => {
   describe('timestamp formatting', () => {
     it('should use provided timestamp', async () => {
       const timestamp = new Date('2025-01-15T10:30:00Z');
-      const reporter = new MarkdownTextFormatTransformer(testResults, {
+      const reporter = createReportStream(testResults, {
         format: 'markdown',
         timestamp
       });
@@ -613,7 +616,7 @@ describe('MarkdownTextFormatTransformer', () => {
     });
 
     it('should use current time when timestamp not provided', async () => {
-      const reporter = new MarkdownTextFormatTransformer(testResults, {
+      const reporter = createReportStream(testResults, {
         format: 'markdown'
       });
       await createWritableAndPipeline(reporter, result => {

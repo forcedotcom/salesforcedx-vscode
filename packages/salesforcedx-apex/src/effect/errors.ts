@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Effect from 'effect/Effect';
+import * as Either from 'effect/Either';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 
@@ -17,3 +19,11 @@ export class ApexReportError extends Schema.TaggedError<ApexReportError>()('Apex
 
 /** Produces the serializable cause carried by public operation errors. */
 export const causeMessage = (cause: unknown): string => (isError(cause) ? cause.message : String(cause));
+
+/** Synchronous compatibility adapter that preserves the typed report error. */
+export const runReportSync = <A>(report: Effect.Effect<A, ApexReportError>): A =>
+  report.pipe(
+    Effect.either,
+    Effect.runSync,
+    Either.getOrThrowWith(error => error)
+  );

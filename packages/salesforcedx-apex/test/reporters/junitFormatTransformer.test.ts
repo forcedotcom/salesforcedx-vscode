@@ -6,13 +6,14 @@
  */
 
 import { JUnitFormatTransformer } from '../../src/reporters/junitFormatTransformer';
-import { pipeline, Writable } from 'node:stream';
+import * as Effect from 'effect/Effect';
+import { pipeline, type Readable, Writable } from 'node:stream';
 import { getTestData, junitSetup, setupResult } from './testResults';
 
 const { testResults, junitResult, junitSuccess, junitCodeCov, junitMissingVal, successResult } = getTestData();
 
 describe('JUnitFormatTransformer', () => {
-  const runPipeline = (reporter: JUnitFormatTransformer): Promise<string> =>
+  const runPipeline = (reporter: Readable): Promise<string> =>
     new Promise((resolve, reject) => {
       let result = '';
       const writable = new Writable({
@@ -30,21 +31,21 @@ describe('JUnitFormatTransformer', () => {
     });
 
   it('should format test results with failures', async () => {
-    const result = await runPipeline(new JUnitFormatTransformer(testResults));
+    const result = await runPipeline(await Effect.runPromise(JUnitFormatTransformer(testResults)));
     expect(result).not.toHaveLength(0);
     expect(result).toEqual(junitResult);
     expect(result).toContain('</failure>');
   });
 
   it('should format tests with 0 failures', async () => {
-    const result = await runPipeline(new JUnitFormatTransformer(successResult));
+    const result = await runPipeline(await Effect.runPromise(JUnitFormatTransformer(successResult)));
     expect(result).not.toHaveLength(0);
     expect(result).toEqual(junitSuccess);
     expect(result).not.toContain('</failure>');
   });
 
   it('should format tests with setup methods', async () => {
-    const result = await runPipeline(new JUnitFormatTransformer(setupResult));
+    const result = await runPipeline(await Effect.runPromise(JUnitFormatTransformer(setupResult)));
     expect(result).not.toHaveLength(0);
     expect(result).toEqual(junitSetup);
     expect(result).not.toContain('</failure>');
@@ -53,7 +54,7 @@ describe('JUnitFormatTransformer', () => {
   it('should format test results with undefined or empty values', async () => {
     successResult.summary.testRunId = '';
     successResult.summary.userId = '';
-    const result = await runPipeline(new JUnitFormatTransformer(successResult));
+    const result = await runPipeline(await Effect.runPromise(JUnitFormatTransformer(successResult)));
     expect(result).not.toHaveLength(0);
     expect(result).toEqual(junitMissingVal);
     expect(result).not.toContain('testRunId');
@@ -74,7 +75,7 @@ describe('JUnitFormatTransformer', () => {
       }
     ];
     successResult.summary.orgWideCoverage = '85%';
-    const result = await runPipeline(new JUnitFormatTransformer(successResult));
+    const result = await runPipeline(await Effect.runPromise(JUnitFormatTransformer(successResult)));
     expect(result).not.toHaveLength(0);
     expect(result).toEqual(junitCodeCov);
     expect(result).toContain('orgWideCoverage');

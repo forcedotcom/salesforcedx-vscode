@@ -100,25 +100,19 @@ export const writeResultFiles = async (
           break;
         case 'tap':
           filePath = join(dirPath, `test-result-${fileId}-tap.txt`);
-          readable = new TapFormatTransformer(result);
+          readable = Effect.runSync(TapFormatTransformer(result));
           break;
         case 'junit':
           filePath = join(dirPath, `test-result-${fileId}-junit.xml`);
-          readable = new JUnitFormatTransformer(result);
+          readable = Effect.runSync(JUnitFormatTransformer(result));
           break;
         case 'markdown':
           filePath = join(dirPath, `test-result-${fileId}.md`);
-          readable = new MarkdownTextFormatTransformer(result, {
-            format: 'markdown',
-            codeCoverage
-          });
+          readable = Effect.runSync(MarkdownTextFormatTransformer(result, { format: 'markdown', codeCoverage }));
           break;
         case 'text':
           filePath = join(dirPath, `test-result-${fileId}.txt`);
-          readable = new MarkdownTextFormatTransformer(result, {
-            format: 'text',
-            codeCoverage
-          });
+          readable = Effect.runSync(MarkdownTextFormatTransformer(result, { format: 'text', codeCoverage }));
           break;
         default:
           throw new Error(nls.localize('resultFormatErr'));

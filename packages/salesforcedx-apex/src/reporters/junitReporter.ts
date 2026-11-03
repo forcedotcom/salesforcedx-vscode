@@ -5,17 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { TestResult } from '../tests/types';
-import { elapsedTime, HeapMonitor } from '../utils';
-import { formatJUnit } from './formatJUnit';
+import { runReportSync } from '../effect/errors';
+import { formatJUnitReport } from '../effect/reporters';
 
+/** Compatibility adapter for the Effect-native JUnit reporter. */
 export class JUnitReporter {
-  @elapsedTime()
   public format(testResult: TestResult): string {
-    HeapMonitor.getInstance().checkHeapSize('JUnitReporter.format');
-    try {
-      return formatJUnit(testResult);
-    } finally {
-      HeapMonitor.getInstance().checkHeapSize('JUnitReporter.format');
-    }
+    return runReportSync(formatJUnitReport(testResult));
   }
 }

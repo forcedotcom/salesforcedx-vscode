@@ -6,18 +6,12 @@
  */
 
 import type { TestResult } from '../tests/types';
-import * as os from 'node:os';
-import { elapsedTime, HeapMonitor } from '../utils';
-import { formatHuman } from './formatHuman';
+import { runReportSync } from '../effect/errors';
+import { formatHumanReport } from '../effect/reporters';
 
+/** Compatibility adapter for the Effect-native human reporter. */
 export class HumanReporter {
-  @elapsedTime()
   public format(testResult: TestResult, detailedCoverage: boolean, concise = false, showCategory = false): string {
-    HeapMonitor.getInstance().checkHeapSize('HumanReporter.format');
-    try {
-      return formatHuman(testResult, detailedCoverage, concise, showCategory, os.EOL);
-    } finally {
-      HeapMonitor.getInstance().checkHeapSize('HumanReporter.format');
-    }
+    return runReportSync(formatHumanReport(testResult, { detailedCoverage, concise, showCategory }));
   }
 }

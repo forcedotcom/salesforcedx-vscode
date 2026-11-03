@@ -5,23 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { TestResult } from '../tests/types';
-import * as os from 'node:os';
-import { elapsedTime, HeapMonitor } from '../utils';
-import { buildTapResults, formatTapResults } from './formatTap';
+import { runReportSync } from '../effect/errors';
+import { formatTapReport } from '../effect/reporters';
 
+/** Compatibility adapter for the Effect-native TAP reporter. */
 export class TapReporter {
-  @elapsedTime()
   public format(testResult: TestResult, epilog?: string[]): string {
-    HeapMonitor.getInstance().checkHeapSize('TapReporter.format');
-    try {
-      return formatTapResults(this.buildTapResults(testResult), epilog);
-    } finally {
-      HeapMonitor.getInstance().checkHeapSize('TapReporter.format');
-    }
-  }
-
-  @elapsedTime()
-  private buildTapResults(testResult: TestResult): ReturnType<typeof buildTapResults> {
-    return buildTapResults(testResult, os.EOL);
+    return runReportSync(formatTapReport(testResult, epilog));
   }
 }

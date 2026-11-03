@@ -8,6 +8,7 @@
 import type { ReportData } from './markdownReportTemplate';
 import type { ApexTestResultData, TestResult } from '../tests/types';
 import * as Order from 'effect/Order';
+import * as Stream from 'effect/Stream';
 import {
   escapeHtml,
   escapeMarkdown,
@@ -283,10 +284,10 @@ function* renderText(data: ReportData): Generator<string, void> {
   }
 }
 
-export function* formatMarkdownTextChunks(
+const formatMarkdownTextChunkIterable = (
   testResult: TestResult,
   options: MarkdownTextReporterOptions = {}
-): Generator<string, void> {
+): Generator<string, void> => {
   const defaults = {
     format: options.format ?? 'markdown',
     sortOrder: options.sortOrder ?? 'runtime',
@@ -296,8 +297,13 @@ export function* formatMarkdownTextChunks(
     timestamp: options.timestamp ?? new Date()
   };
   const data = buildReportData(testResult, defaults);
-  yield* defaults.format === 'markdown' ? renderMarkdown(data, defaults) : renderText(data);
-}
+  return defaults.format === 'markdown' ? renderMarkdown(data, defaults) : renderText(data);
+};
+
+export const formatMarkdownTextChunks = (
+  testResult: TestResult,
+  options: MarkdownTextReporterOptions = {}
+): Stream.Stream<string> => Stream.fromIterable(formatMarkdownTextChunkIterable(testResult, options));
 
 export const formatMarkdownText = (testResult: TestResult, options: MarkdownTextReporterOptions = {}): string =>
-  Array.from(formatMarkdownTextChunks(testResult, options)).join('');
+  Array.from(formatMarkdownTextChunkIterable(testResult, options)).join('');

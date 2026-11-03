@@ -4,70 +4,16 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { Logger } from '@salesforce/core';
+
+import type { TestResult } from '../tests/types';
+import * as Effect from 'effect/Effect';
 import * as os from 'node:os';
-import { Readable, type ReadableOptions } from 'node:stream';
-import { type ApexTestResultData, type TestResult } from '../tests/types';
-import { elapsedTime, HeapMonitor } from '../utils';
-import { buildTapDiagnostics } from './buildTapDiagnostics';
+import type { ReadableOptions } from 'node:stream';
+import { reportStreamToReadable } from '../utils/reportStream';
+import { formatTapChunks } from './formatTap';
 
-const BUFFER_SIZE = 256;
-
-export class TapFormatTransformer extends Readable {
-  private readonly logger: Logger;
-  private testResult: TestResult;
-  private epilogue?: string[];
-  private buffer: string;
-
-  constructor(testResult: TestResult, epilogue?: string[], options?: ReadableOptions) {
-    super(options);
-    this.testResult = testResult;
-    this.epilogue = epilogue;
-    this.logger = Logger.childFromRoot('TapFormatTransformer');
-    this.buffer = '';
-  }
-
-  private pushToBuffer(chunk: string): void {
-    this.buffer += chunk;
-    if (this.buffer.length >= BUFFER_SIZE) {
-      this.push(this.buffer);
-      this.buffer = '';
-    }
-  }
-
-  _read(): void {
-    this.logger.trace('starting format');
-    HeapMonitor.getInstance().checkHeapSize('TapFormatTransformer._read');
-    this.format();
-    if (this.buffer.length > 0) {
-      this.push(this.buffer);
-    }
-    this.push(null); // Signal the end of the stream
-    this.logger.trace('finishing format');
-    HeapMonitor.getInstance().checkHeapSize('TapFormatTransformer._read');
-  }
-
-  @elapsedTime()
-  public format(): void {
-    const testPointCount = this.testResult.tests.length;
-
-    this.pushToBuffer(`1..${testPointCount}\n`);
-    this.buildTapResults();
-
-    this.epilogue?.forEach(c => {
-      this.pushToBuffer(`# ${c}\n`);
-    });
-  }
-
-  @elapsedTime()
-  public buildTapResults(): void {
-    this.testResult.tests.forEach((test: ApexTestResultData, index: number) => {
-      const testNumber = index + 1;
-      const outcome = test.outcome === 'Pass' ? 'ok' : 'not ok';
-      this.pushToBuffer(`${outcome} ${testNumber} ${test.fullName}\n`);
-      buildTapDiagnostics(test, os.EOL).forEach(s => {
-        this.pushToBuffer(`# ${s}\n`);
-      });
-    });
-  }
-}
+/** Creates a Node readable for compatibility with existing file writers. */
+export const TapFormatTransformer = Effect.fn('Apex.TapFormatTransformer')(
+  (testResult: TestResult, epilog?: string[], options?: ReadableOptions) =>
+    Effect.sync(() => reportStreamToReadable(formatTapChunks(testResult, epilog, os.EOL), options))
+);

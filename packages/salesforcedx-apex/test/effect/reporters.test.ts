@@ -111,7 +111,7 @@ describe('Effect reporters', () => {
         coverageThresholdPercent: 90,
         timestamp
       };
-      const stream = new MarkdownTextFormatTransformer(coverageFailResult, options);
+      const stream = await Effect.runPromise(MarkdownTextFormatTransformer(coverageFailResult, options));
       const chunks: string[] = [];
       for await (const chunk of stream) chunks.push(String(chunk));
       await expect(Effect.runPromise(formatMarkdownTextReport(coverageFailResult, options))).resolves.toBe(
@@ -150,5 +150,15 @@ describe('Effect reporters', () => {
       message: 'bad summary',
       cause: 'bad summary'
     });
+  });
+
+  it('preserves the typed report error in the root compatibility adapter', () => {
+    const result = structuredClone(successResult);
+    Object.defineProperty(result.summary, 'outcome', {
+      get: () => {
+        throw new Error('bad summary');
+      }
+    });
+    expect(() => new HumanReporter().format(result, false)).toThrow('bad summary');
   });
 });

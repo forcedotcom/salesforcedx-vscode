@@ -10,8 +10,6 @@ import * as apexUtils from '../../src/utils';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import * as sinon from 'sinon';
 import { TestService, type OutputDirConfig, type ApexTestProgressReporter, CancellationTokenSource } from '../../src';
-import { JUnitFormatTransformer } from '../../src/reporters/junitFormatTransformer';
-import { TapFormatTransformer } from '../../src/reporters/tapFormatTransform';
 import {
   type AsyncTestConfiguration,
   type ApexTestQueueItem,
@@ -1780,8 +1778,6 @@ describe('elapsedTime', () => {
 
 describe('Create Result Files', () => {
   let testServiceSpy: sinon.SinonSpy;
-  let junitSpy: sinon.SinonSpy;
-  let tapSpy: sinon.SinonSpy;
   let sandboxStub1: sinon.SinonSandbox;
 
   beforeEach(async () => {
@@ -1795,8 +1791,6 @@ describe('Create Result Files', () => {
         }
       })
     );
-    junitSpy = sandboxStub1.spy(JUnitFormatTransformer.prototype, 'format');
-    tapSpy = sandboxStub1.spy(TapFormatTransformer.prototype, 'format');
   });
 
   afterEach(() => {
@@ -1861,7 +1855,6 @@ describe('Create Result Files', () => {
     await testSrv.writeResultFiles(testResultData, config);
 
     expect(testServiceSpy.calledWith(join(config.dirPath, `test-result-${testRunId}-junit.xml`))).toBe(true);
-    expect(junitSpy.calledOnce).toBe(true);
     expect(testServiceSpy.callCount).toBe(1);
   });
 
@@ -1874,7 +1867,6 @@ describe('Create Result Files', () => {
     await testSrv.writeResultFiles(testResultData, config);
 
     expect(testServiceSpy.calledWith(join(config.dirPath, `test-result-${testRunId}-tap.txt`))).toBe(true);
-    expect(tapSpy.calledOnce).toBe(true);
     expect(testServiceSpy.callCount).toBe(1);
   });
 

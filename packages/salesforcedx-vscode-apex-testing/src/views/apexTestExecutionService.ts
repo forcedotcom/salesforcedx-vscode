@@ -5,12 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { ProgressAndSuccessCommandKey } from '../utils/notificationMode';
-import { type TestResult, TestService } from '@salesforce/apex-node';
+import { TestService } from '@salesforce/apex-node';
+import { TestResultSchema } from '@salesforce/apex-node/effect';
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
+import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
 import { APEX_TESTING_SECTION } from '../constants';
@@ -97,14 +99,15 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
     // (ChannelServiceLayer('Apex Testing') + the prebuilt FsService) provides them when methods run, the
     // same lazy pattern ApexTestTreeService uses for ExtensionProviderService.
 
-    /** Read the JSON result file and parse it as a TestResult. */
+    /** Read and validate a persisted TestResult JSON file at its boundary. */
     const readTestResult = Effect.fn('ApexTestExecutionService.readTestResult')(function* (testResultUri: URI) {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const resultText = yield* api.services.FsService.readFile(testResultUri).pipe(
         Effect.mapError(e => new TestExecutionError({ message: getMessageFromError(e) }))
       );
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      return JSON.parse(resultText) as TestResult;
+      return yield* Schema.decodeUnknown(Schema.parseJson(TestResultSchema))(resultText).pipe(
+        Effect.mapError(error => new TestExecutionError({ message: getMessageFromError(error) }))
+      );
     });
 
     /** Test results folder for the run, failing with TestTempFolderError when no workspace can be resolved. */
@@ -206,9 +209,9 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
           }
         : yield* buildTestPayload(testService, testsToRun, testNames, codeCoverage);
 
-      const result = yield* Effect.tryPromise({
-        try: async (): Promise<TestResult> => {
-          const raw = await testService.runTestAsynchronous(
+      const rawResult = yield* Effect.tryPromise({
+        try: () =>
+          testService.runTestAsynchronous(
             payload,
             codeCoverage,
             false,
@@ -220,13 +223,12 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
               }
             },
             token
-          );
-          // TODO: fix in apex-node W-18453221
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          return raw as TestResult;
-        },
+          ),
         catch: e => new TestExecutionError({ message: toUserFriendlyApexTestError(e) })
       });
+      const result = yield* Schema.decodeUnknown(TestResultSchema)(rawResult).pipe(
+        Effect.mapError(error => new TestExecutionError({ message: getMessageFromError(error) }))
+      );
 
       if (token.isCancellationRequested) {
         return;

@@ -105,6 +105,9 @@ import { URI } from 'vscode-uri';
 import { getApexTestingRuntime } from '../../../src/services/extensionProvider';
 import { openTestReport, writeAndOpenTestReport } from '../../../src/utils/testReportGenerator';
 
+const runEffect = async <A, E>(effect: EffectModule.Effect<A, E, never>): Promise<A> =>
+  (await import('effect/Effect')).runPromise(effect);
+
 // Additional mock functions for vscode APIs
 const mockOpenTextDocument = vi.fn().mockResolvedValue({});
 const mockShowTextDocument = vi.fn().mockResolvedValue(undefined);
@@ -171,14 +174,16 @@ describe('testReportGenerator', () => {
     // Mirror the SettingsService defaults the source reads (testPerformanceThresholdMs=5000, %=75).
     const performanceThresholdMs = 5000;
     const coverageThresholdPercent = 75;
-    const transformer = new MarkdownTextFormatTransformer(result, {
-      format: 'markdown',
-      sortOrder,
-      performanceThresholdMs,
-      coverageThresholdPercent,
-      codeCoverage,
-      timestamp
-    });
+    const transformer = await runEffect(
+      MarkdownTextFormatTransformer(result, {
+        format: 'markdown',
+        sortOrder,
+        performanceThresholdMs,
+        coverageThresholdPercent,
+        codeCoverage,
+        timestamp
+      })
+    );
     return streamToString(transformer);
   };
 
@@ -191,14 +196,16 @@ describe('testReportGenerator', () => {
     // Mirror the SettingsService defaults the source reads (testPerformanceThresholdMs=5000, %=75).
     const performanceThresholdMs = 5000;
     const coverageThresholdPercent = 75;
-    const transformer = new MarkdownTextFormatTransformer(result, {
-      format: 'text',
-      sortOrder: 'runtime',
-      performanceThresholdMs,
-      coverageThresholdPercent,
-      codeCoverage,
-      timestamp
-    });
+    const transformer = await runEffect(
+      MarkdownTextFormatTransformer(result, {
+        format: 'text',
+        sortOrder: 'runtime',
+        performanceThresholdMs,
+        coverageThresholdPercent,
+        codeCoverage,
+        timestamp
+      })
+    );
     return streamToString(transformer);
   };
 

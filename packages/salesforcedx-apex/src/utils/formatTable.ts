@@ -11,8 +11,6 @@ const fillColumn = (label: string, width: number, filler: string, isLastColumn: 
   `${label}${filler.repeat(Math.max(0, width - label.length))}${isLastColumn ? '' : '  '}`;
 
 export const formatTable = (rows: Row[], columns: Column[], title?: string): string => {
-  if (!rows) throw Error('rows cannot be undefined');
-  if (!columns) throw Error('columns cannot be undefined');
   const widths = new Map<string, number>();
   columns.forEach(column =>
     rows.forEach(row => {

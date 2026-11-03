@@ -55,24 +55,6 @@ const streamToNormalizedUtf8Bytes = async (stream: NodeJS.ReadableStream): Promi
   ).out;
 };
 
-/** Builds the MarkdownTextFormatTransformer for the given result and settings */
-const createReportTransformer = (
-  result: TestResult,
-  format: OutputFormat,
-  codeCoverage: boolean,
-  sortOrder: TestSortOrder,
-  performanceThresholdMs: number,
-  coverageThresholdPercent: number
-): MarkdownTextFormatTransformer =>
-  new MarkdownTextFormatTransformer(result, {
-    format,
-    sortOrder,
-    performanceThresholdMs,
-    coverageThresholdPercent,
-    codeCoverage,
-    timestamp: new Date()
-  });
-
 /** Generates report URI using the library's format: test-result-{testRunId}.{ext} */
 const generateReportUri = (outputDir: URI, testRunId: string | undefined, extension: string): URI => {
   const filename = testRunId ? `test-result-${testRunId}${extension}` : `test-result${extension}`;
@@ -119,14 +101,14 @@ export const writeAndOpenTestReport = Effect.fn('writeAndOpenTestReport')(functi
   );
 
   // Write directly to UTF-8 bytes (with LF newlines) without building a large intermediate string.
-  const transformer = createReportTransformer(
-    result,
+  const transformer = yield* MarkdownTextFormatTransformer(result, {
     format,
-    codeCoverage,
     sortOrder,
     performanceThresholdMs,
-    coverageThresholdPercent
-  );
+    coverageThresholdPercent,
+    codeCoverage,
+    timestamp: new Date()
+  });
 
   // Generate filename using library's format: test-result-{testRunId}.{ext}
   const extension = format === 'markdown' ? '.md' : '.txt';

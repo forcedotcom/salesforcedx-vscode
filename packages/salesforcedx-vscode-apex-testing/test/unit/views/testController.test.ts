@@ -231,7 +231,8 @@ import type * as ApexTestTree from '../../../src/views/apexTestTreeService';
 import type * as ApexTestExecution from '../../../src/views/apexTestExecutionService';
 import type * as TestUtils from '../../../src/utils/testUtils';
 import * as path from 'node:path';
-import { type TestResult, TestService } from '@salesforce/apex-node';
+import { TestService } from '@salesforce/apex-node';
+import { TestResultSchema } from '@salesforce/apex-node/effect';
 import { URI } from 'vscode-uri';
 import * as vscode from 'vscode';
 import * as testDiscovery from '../../../src/testDiscovery/testDiscovery';
@@ -245,6 +246,35 @@ import { ApexTestTreeService } from '../../../src/views/apexTestTreeService';
 import { ApexTestController, getTestController } from '../../../src/views/testController';
 
 class MockFailure extends Schema.TaggedError<MockFailure>()('MockFailure', { message: Schema.String }) {}
+
+const makeTestResult = () =>
+  Schema.decodeUnknownSync(TestResultSchema)({
+    tests: [
+      {
+        apexClass: { name: 'TestClass1', fullName: 'TestClass1', namespacePrefix: null },
+        methodName: 'testMethod1',
+        fullName: 'TestClass1.testMethod1',
+        outcome: 'Pass',
+        runTime: 100
+      }
+    ],
+    summary: {
+      failRate: '0%',
+      testsRan: 1,
+      orgId: '00D3t000001vIruEAE',
+      outcome: 'Passed',
+      passing: 1,
+      failing: 0,
+      skipped: 0,
+      passRate: '100%',
+      skipRate: '0%',
+      testStartTime: '2026-01-02T03:04:05.000Z',
+      testExecutionTimeInMs: 100,
+      testTotalTimeInMs: 100,
+      commandTimeInMs: 0,
+      hostname: 'localhost'
+    }
+  });
 
 // The tree maps live in ApexTestTreeService Refs; read the live Map through the mock runtime (same path
 // the production module accessors use) to seed test state.
@@ -982,17 +1012,7 @@ describe('ApexTestController', () => {
 
   describe('onResultFileCreate', () => {
     it('should update test results from file', async () => {
-      const testResult = {
-        tests: [
-          {
-            apexClass: { name: 'TestClass1', namespacePrefix: null },
-            methodName: 'testMethod1',
-            outcome: 'Pass',
-            runTime: 100
-          }
-        ],
-        summary: { testsRan: 1, passing: 1, failing: 0 }
-      } as unknown as TestResult;
+      const testResult = makeTestResult();
 
       (extensionProvider as unknown as { __setMockReadFileResult: (s: string) => void }).__setMockReadFileResult(
         JSON.stringify(testResult)
@@ -1022,17 +1042,7 @@ describe('ApexTestController', () => {
       (mockTestController.createTestRun as VitestMock).mockReturnValue(mockTestRun);
       (mockTestController.createTestItem as VitestMock).mockReturnValue(mockTestItem1);
 
-      const testResult = {
-        tests: [
-          {
-            apexClass: { name: 'TestClass1', namespacePrefix: null },
-            methodName: 'testMethod1',
-            outcome: 'Pass',
-            runTime: 100
-          }
-        ],
-        summary: { testsRan: 1, passing: 1, failing: 0 }
-      } as unknown as TestResult;
+      const testResult = makeTestResult();
 
       mockTestServiceMethods.runTestAsynchronous.mockResolvedValue(testResult);
 

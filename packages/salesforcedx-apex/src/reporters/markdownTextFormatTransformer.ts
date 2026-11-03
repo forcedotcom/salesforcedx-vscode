@@ -7,31 +7,22 @@
 
 import type { MarkdownTextReporterOptions } from './markdownTextReporter';
 import type { TestResult } from '../tests/types';
-import { Logger } from '@salesforce/core';
-import { Readable, type ReadableOptions } from 'node:stream';
-import { elapsedTime, HeapMonitor } from '../utils';
-import { pushReportChunks } from '../utils/pushReportChunks';
+import * as Clock from 'effect/Clock';
+import * as Effect from 'effect/Effect';
+import type { ReadableOptions } from 'node:stream';
+import { reportStreamToReadable } from '../utils/reportStream';
 import { formatMarkdownTextChunks } from './formatMarkdownText';
 
 /** @internal Used by the co-repo Apex Testing extension; not part of the supported npm API. */
 export type MarkdownTextFormatTransformerOptions = ReadableOptions & MarkdownTextReporterOptions;
 
-/** @internal Used by the co-repo Apex Testing extension; not part of the supported npm API. */
-export class MarkdownTextFormatTransformer extends Readable {
-  private readonly logger = Logger.childFromRoot('MarkdownTextFormatTransformer');
-  private readonly chunks: ReturnType<typeof formatMarkdownTextChunks>;
-
-  constructor(testResult: TestResult, options?: MarkdownTextFormatTransformerOptions) {
-    super(options);
-    this.chunks = formatMarkdownTextChunks(testResult, { ...options, timestamp: options?.timestamp ?? new Date() });
-  }
-
-  @elapsedTime()
-  _read(): void {
-    this.logger.trace('starting format');
-    HeapMonitor.getInstance().checkHeapSize('MarkdownTextFormatTransformer._read');
-    pushReportChunks(this, this.chunks);
-    this.logger.trace('finishing format');
-    HeapMonitor.getInstance().checkHeapSize('MarkdownTextFormatTransformer._read');
-  }
-}
+/** @internal Node-readable adapter for the Effect Markdown/text reporter. */
+export const MarkdownTextFormatTransformer = Effect.fn('Apex.MarkdownTextFormatTransformer')(function* (
+  testResult: TestResult,
+  options?: MarkdownTextFormatTransformerOptions
+) {
+  const timestamp = options?.timestamp ?? new Date(yield* Clock.currentTimeMillis);
+  return yield* Effect.sync(() =>
+    reportStreamToReadable(formatMarkdownTextChunks(testResult, { ...options, timestamp }), options)
+  );
+});

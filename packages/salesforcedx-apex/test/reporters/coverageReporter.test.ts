@@ -158,6 +158,10 @@ describe('coverageReports', () => {
     const dirEntries = await fs.promises.readdir(testResultsDir);
     expect(dirEntries).toHaveLength(1);
   });
+  it('wraps destination errors with the legacy coverage-report message', () => {
+    const reporter = new CoverageReporter(multipleCoverageAggregate, path.join(testResultsDir, 'missing'), 'foo');
+    expect(() => reporter.generateReports()).toThrow(/Unexpected error occurred while creating coverage reports/);
+  });
   it('should handle aggregate object with no coverage entries', async () => {
     const coverageAggregate = structuredClone(multipleCoverageAggregate);
     coverageAggregate.totalSize = 0;

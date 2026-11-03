@@ -6,6 +6,7 @@
  */
 
 import type { ApexTestResultData, TestResult } from '../tests/types';
+import * as Stream from 'effect/Stream';
 import { isEmpty } from '../narrowing';
 import { formatStartTime, msToSecond } from '../utils/dateUtil';
 
@@ -23,7 +24,7 @@ const xmlEscape = (value: string): string =>
     .replaceAll('"', '&quot;')
     .replaceAll("'", '&apos;');
 
-export function* formatJUnitPropertyChunks(testResult: TestResult): Generator<string, void> {
+function* formatJUnitPropertyChunkIterable(testResult: TestResult): Generator<string, void> {
   yield `${tab}${tab}<properties>\n`;
   for (const [key, value] of Object.entries(testResult.summary)) {
     if (isEmpty(value) || skippedProperties.has(key)) continue;
@@ -40,7 +41,7 @@ export function* formatJUnitPropertyChunks(testResult: TestResult): Generator<st
   yield `${tab}${tab}</properties>\n`;
 }
 
-export function* formatJUnitTestCaseChunks(tests: ApexTestResultData[]): Generator<string, void> {
+function* formatJUnitTestCaseChunkIterable(tests: ApexTestResultData[]): Generator<string, void> {
   for (const test of tests) {
     yield `${tab}${tab}<testcase name="${xmlEscape(test.methodName)}" classname="${test.apexClass.fullName}" time="${msToSecond(test.runTime)}">\n`;
     if (test.outcome === 'Fail' || test.outcome === 'CompileFail') {
@@ -52,13 +53,14 @@ export function* formatJUnitTestCaseChunks(tests: ApexTestResultData[]): Generat
   }
 }
 
-export function* formatJUnitChunks(testResult: TestResult): Generator<string, void> {
+function* formatJUnitChunkIterable(testResult: TestResult): Generator<string, void> {
   const { summary } = testResult;
   yield '<?xml version="1.0" encoding="UTF-8"?>\n<testsuites>\n';
   yield `${tab}<testsuite name="force.apex" timestamp="${summary.testStartTime}" hostname="${summary.hostname}" tests="${summary.testsRan}" failures="${summary.failing}"  errors="0"  time="${msToSecond(summary.testExecutionTimeInMs)}">\n`;
-  yield* formatJUnitPropertyChunks(testResult);
-  yield* formatJUnitTestCaseChunks(testResult.tests);
+  yield* formatJUnitPropertyChunkIterable(testResult);
+  yield* formatJUnitTestCaseChunkIterable(testResult.tests);
   yield `${tab}</testsuite>\n</testsuites>\n`;
 }
 
-export const formatJUnit = (testResult: TestResult): string => Array.from(formatJUnitChunks(testResult)).join('');
+export const formatJUnitChunks = (testResult: TestResult): Stream.Stream<string> =>
+  Stream.fromIterable(formatJUnitChunkIterable(testResult));

@@ -11,7 +11,7 @@ import * as libCoverage from 'istanbul-lib-coverage';
 /** Resolved source supplied by the caller; discovery and reading belong to the host. */
 export interface CoverageSource {
   path: string;
-  content: string;
+  content?: string;
 }
 
 const startOfSource = (source: string | undefined): number => (source ? source.search(/\S/) || 0 : 0);
