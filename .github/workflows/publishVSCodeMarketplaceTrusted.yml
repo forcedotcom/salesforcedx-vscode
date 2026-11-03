@@ -40,5 +40,4 @@ jobs:
     with:
       release-tag: ${{ inputs.release-tag }}
       dry-run: ${{ inputs.dry-run || false }}
-      oidc: true
     secrets: inherit
