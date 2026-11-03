@@ -94,7 +94,7 @@ jobs:
           - salesforcedx-vscode-services
           - salesforcedx-vscode-soql
           - salesforcedx-vscode-visualforce
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     # Multi-shape packages run several full container cycles in one job (apex-log = 4 phases:
     # dx-project + no-project + multi-package + no-org; metadata = 3; apex-testing = 2), each a
     # re-seed + restart + verify-gate + suite. Give headroom over the single-phase original so a
