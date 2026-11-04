@@ -6,8 +6,9 @@
  */
 
 import * as os from 'node:os';
+import { type CodeCoverageResult } from '../effect/coverageSchemas';
 import { nls } from '../i18n';
-import { type ApexTestResultData, type CodeCoverageResult, type TestResult } from '../tests/types';
+import { type ApexTestResultData, type TestResult } from '../tests/types';
 import { elapsedTime } from '../utils/elapsedTime';
 import { HeapMonitor } from '../utils/heapMonitor';
 import { Table } from '../utils/table';

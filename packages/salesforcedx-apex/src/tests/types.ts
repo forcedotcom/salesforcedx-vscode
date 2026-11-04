@@ -6,13 +6,6 @@
  */
 
 import type { SyncTestConfigurationSchema, TestItemSchema } from '../effect/schema/testPayloads';
-import type {
-  ApexCodeCoverage as ApexCodeCoverageWire,
-  ApexCodeCoverageAggregate as ApexCodeCoverageAggregateWire,
-  ApexCodeCoverageAggregateRecord as ApexCodeCoverageAggregateRecordWire,
-  ApexCodeCoverageRecord as ApexCodeCoverageRecordWire,
-  ApexOrgWideCoverage as ApexOrgWideCoverageWire
-} from '../effect/schema/wire/coverage';
 import * as Schema from 'effect/Schema';
 import { CodeCoverageResultSchema, PerClassCoverageSchema } from '../effect/coverageSchemas';
 import { ApexDiagnosticSchema } from '../effect/diagnostics';
@@ -26,14 +19,6 @@ import {
   TestRunIdString,
   UserIdString
 } from '../schemas/salesforceId';
-
-export type ApexCodeCoverage = ApexCodeCoverageWire;
-export type ApexCodeCoverageAggregate = ApexCodeCoverageAggregateWire;
-export type ApexCodeCoverageAggregateRecord = ApexCodeCoverageAggregateRecordWire;
-export type ApexCodeCoverageRecord = ApexCodeCoverageRecordWire;
-export type ApexOrgWideCoverage = ApexOrgWideCoverageWire;
-export type CodeCoverageResult = typeof CodeCoverageResultSchema.Type;
-export type PerClassCoverage = typeof PerClassCoverageSchema.Type;
 
 /**
  * Specifies which Apex tests run.

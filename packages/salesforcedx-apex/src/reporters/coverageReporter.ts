@@ -11,13 +11,13 @@ import * as reports from 'istanbul-reports';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { nls } from '../i18n';
 import {
   type ApexCodeCoverage,
   type ApexCodeCoverageAggregate,
   type ApexCodeCoverageAggregateRecord,
   type ApexCodeCoverageRecord
-} from '../tests/types';
+} from '../effect/schema/wire/coverage';
+import { nls } from '../i18n';
 import { elapsedTime } from '../utils/elapsedTime';
 
 const startOfSource = (source: string): number => {
