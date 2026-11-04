@@ -81,6 +81,7 @@ const baseTest = createDesktopTest({
 const snippetBaseTest = createDesktopTest({
   fixturesDir: __dirname,
   marketplaceExtensions: ['salesforce.apex-language-server-extension'],
+  minimumMarketplaceExtensionVersions: { 'salesforce.apex-language-server-extension': '0.11.0' },
   disableOtherExtensions: false,
   userSettings
 });
