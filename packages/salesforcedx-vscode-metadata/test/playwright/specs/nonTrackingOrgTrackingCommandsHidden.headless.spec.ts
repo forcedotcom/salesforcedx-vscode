@@ -9,29 +9,20 @@
  * Covers: when the DEFAULT org has NO source tracking, every source-tracking command (push/pull,
  * view-changes, reset) and the tracking status bar are hidden.
  *
- * Container: the container image boots a source-TRACKING scratch org (minimalTestOrg) as the default,
- * so we cannot assert "hidden" against it directly. Instead this leans on the multi-org capability
- * (W-23898526): switch the DEFAULT to a second, NON-tracking org (nonTrackingTestOrg,
- * CB_EXTRA_ORG_ALIASES) through the status-bar picker, then RESTORE the boot org as default so the
- * shared serial session is not contaminated (REQUIRED) — a genuinely different, container-specific
- * mechanism from desktop's per-run createNonTrackingOrg, so it is branched rather than unified.
+ * Desktop's fixture opens with a fresh non-tracking org as the default. The container boots a
+ * source-TRACKING org as its default, so it uses the multi-org capability (W-23898526): switch the
+ * DEFAULT to the second, NON-tracking org (nonTrackingTestOrg, CB_EXTRA_ORG_ALIASES) via the status-bar
+ * picker and RESTORE the boot org afterwards (REQUIRED) so the shared serial session is not
+ * contaminated. Everything between is shared. The container skips (never false-fails) when the extra
+ * org isn't authed.
  *
- * fixme (W-23898526, CONTAINER ONLY): the metadata extension's source-tracking status bar does NOT
- * re-evaluate when the default org is switched at runtime in the code-server container, so it keeps
- * polling the boot (tracking) org and never hides. Root cause: that widget reacts to default-org
- * changes only through the config-file watcher (services `watchConfigFiles` -> `FileChangePubSub` on
- * the GLOBAL ~/.sf/config.json). The org picker's OWN status bar updates because the org extension
- * performs the config write in-process; the metadata extension is a separate host and learns of the
- * switch only via that file-change event, which code-server does not deliver cross-extension for a
- * file outside the workspace. CI run 34544008449 proved this: `.not.toBeVisible({ timeout: 60_000 })`
- * failed on all three attempts with the widget actively refreshing the boot org's Remote/Local/
- * Conflicts counts the whole time (a missing event, not lag). The sibling
- * nonTrackingOrgDeployRetrieve* specs PASS in the container because deploy/retrieve re-resolve the
- * target org fresh from config at command time, so only the reactive status-bar refresh is affected.
- * Fixing this needs a product change (metadata ext observing the org switch without a reload) or a
- * window reload, which code-server cannot do. Re-enable once the metadata source-tracking widget
- * refreshes on a runtime switch. Desktop is NOT fixme'd — it creates a fresh non-tracking org per run
- * and never hits this cross-extension-host runtime-switch path.
+ * fixme (W-23898526, CONTAINER ONLY): after a runtime switch to the non-tracking org, the metadata
+ * extension's source-tracking status bar never hides. It keeps showing tracking counts, so
+ * `.not.toBeVisible({ timeout: 60_000 })` fails. Seen in CI run 34544008449 (all three attempts) and
+ * reproduced locally on 2026-10-27 with the switch itself confirmed in the org picker. Desktop never
+ * switches at runtime, so it is unaffected. The sibling nonTrackingOrgDeployRetrieve* specs pass in the
+ * container because deploy/retrieve resolve the target org at command time. Re-enable once the widget
+ * reacts to a runtime default-org switch.
  */
 
 import { expect } from '@playwright/test';
@@ -47,16 +38,14 @@ import {
   validateNoCriticalErrors,
   ensureSecondarySideBarHidden,
   isDesktop,
-  clickOrgPickerStatusBar,
   env,
   execAsync,
-  expectOrgPickerListsOrg,
   expectOrgPickerStatusBar,
   MINIMAL_ORG_ALIAS,
   NON_TRACKING_ORG_ALIAS,
   resetContainerWorkbench,
   saveScreenshot,
-  selectOrgInPicker
+  switchDefaultOrgViaPicker
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import packageNls from '../../../package.nls.json';
@@ -86,11 +75,6 @@ if (isContainer) {
 (isContainer ? test.fixme.bind(test) : isDesktop() ? test : test.skip.bind(test))(
   'Non-Tracking Org: source tracking commands and status bar hidden',
   async ({ page }) => {
-    if (isContainer) {
-      // Switching + restoring the default org are quick config writes; the generous budget only covers
-      // slow container startup and the async org/context refresh, not org creation (there is none here).
-      test.setTimeout(180_000);
-    }
     const consoleErrors = setupConsoleMonitoring(page);
     const networkErrors = setupNetworkMonitoring(page);
 
@@ -111,25 +95,24 @@ if (isContainer) {
     }
 
     await test.step('setup', async () => {
-      if (isContainer) {
-        // The containerTest fixture already awaited workbench readiness before handing over `page`.
-        await closeWelcomeTabs(page);
-        await ensureSecondarySideBarHidden(page);
-        await saveScreenshot(page, 'nonTrackingCommandsHidden.01-ready.png');
-      } else {
-        const createResult = await createNonTrackingOrg();
+      // The container's fixture already awaited the workbench, and its boot org is already authed.
+      const createResult = isContainer ? undefined : await createNonTrackingOrg();
+      if (!isContainer) {
         await waitForVSCodeWorkbench(page);
-        await closeWelcomeTabs(page);
-        await ensureSecondarySideBarHidden(page);
+      }
+      await closeWelcomeTabs(page);
+      await ensureSecondarySideBarHidden(page);
+      if (createResult) {
         await upsertScratchOrgAuthFieldsToSettings(page, createResult);
       }
+      await saveScreenshot(page, 'nonTrackingCommandsHidden.01-ready.png');
     });
 
-    // Wait for extension activation: sobjects_refresh is gated on sf:project_opened only,
-    // so its presence confirms the metadata extension is fully initialized before
-    // we assert tracking commands are absent (avoids false passes on slow startup).
+    // sobjects_refresh is gated on sf:project_opened && sf:has_target_org, so its presence confirms the
+    // metadata extension activated and has an org before we assert tracking commands are absent (avoids
+    // a false pass on slow startup).
     await test.step('verify extension-activated commands are present', async () => {
-      await verifyCommandExists(page, packageNls.sobjects_refresh, isContainer ? 60_000 : 30_000);
+      await verifyCommandExists(page, packageNls.sobjects_refresh, 60_000);
     });
 
     let switchedToExtra = false;
@@ -138,11 +121,14 @@ if (isContainer) {
         await test.step('switch default org to nonTrackingTestOrg and assert it took', async () => {
           // Boot org is the default, so the status bar shows its username.
           await expectOrgPickerStatusBar(page, bootOrgLabel);
-          await clickOrgPickerStatusBar(page, bootOrgLabel);
-          await expectOrgPickerListsOrg(page, NON_TRACKING_ORG_ALIAS);
-          await selectOrgInPicker(page, NON_TRACKING_ORG_ALIAS);
+          // Re-drives the picker if the status-bar switch doesn't take (container config-watcher race).
           switchedToExtra = true;
-          await expectOrgPickerStatusBar(page, NON_TRACKING_ORG_ALIAS);
+          await switchDefaultOrgViaPicker(page, {
+            fromLabel: bootOrgLabel,
+            filterText: NON_TRACKING_ORG_ALIAS,
+            expectLabel: NON_TRACKING_ORG_ALIAS,
+            assertListsOrg: NON_TRACKING_ORG_ALIAS
+          });
           await saveScreenshot(page, 'nonTrackingCommandsHidden.02-switched-to-nontracking.png');
         });
       }
@@ -153,10 +139,8 @@ if (isContainer) {
         // refresh completed before we assert the tracking commands are gone (avoids a false pass on
         // stale, still-tracking context).
         const statusBar = new SourceTrackingStatusBarPage(page);
-        await expect(statusBar.statusBarItem).not.toBeVisible({ timeout: isContainer ? 60_000 : 30_000 });
-        if (isContainer) {
-          await saveScreenshot(page, 'nonTrackingCommandsHidden.03-status-bar-hidden.png');
-        }
+        await expect(statusBar.statusBarItem).not.toBeVisible({ timeout: 60_000 });
+        await saveScreenshot(page, 'nonTrackingCommandsHidden.03-status-bar-hidden.png');
       });
 
       await test.step('verify push/pull and view-changes commands do not exist', async () => {
@@ -177,9 +161,13 @@ if (isContainer) {
         await page.keyboard.press('Escape').catch(() => {});
         if (switchedToExtra) {
           await test.step('restore default org back to the boot org', async () => {
-            await clickOrgPickerStatusBar(page, NON_TRACKING_ORG_ALIAS);
-            await selectOrgInPicker(page, bootOrgLabel);
-            await expectOrgPickerStatusBar(page, bootOrgLabel);
+            // Re-drives the picker if the restore doesn't take, so the shared serial session isn't left
+            // on nonTrackingTestOrg (which cascades into the next spec's pre-switch assertion).
+            await switchDefaultOrgViaPicker(page, {
+              fromLabel: NON_TRACKING_ORG_ALIAS,
+              filterText: bootOrgLabel,
+              expectLabel: bootOrgLabel
+            });
             await saveScreenshot(page, 'nonTrackingCommandsHidden.04-restored-boot-org.png');
           });
         }

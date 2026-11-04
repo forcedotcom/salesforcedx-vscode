@@ -218,9 +218,9 @@ Ported this way: org `orgPicker`/`orgPickers`, core `workspaceContextOrgSwitch`,
 and org-browser `customObject`/`customTab`/`folderedReport`/`textFilterDreamhouse`.
 
 **Documented `test.fixme` (code-server limitation):** metadata `nonTrackingOrgTrackingCommandsHidden`
-and `nonTrackingOrgTrackingUIHidden`. The metadata source-tracking status bar re-evaluates only on a
-`~/.sf/config.json` file event, which code-server does not deliver cross-extension-host for a RUNTIME
-org switch — so the tracking UI doesn't hide after switching to a non-tracking org. A window reload
+and `nonTrackingOrgTrackingUIHidden`. After a RUNTIME switch to a non-tracking org, the metadata
+source-tracking status bar keeps showing tracking counts and never hides (CI run 34544008449; reproduced
+locally for both specs, with the switch itself confirmed in the org picker). A window reload
 *would* refresh it (reload works in code-server), but that would mask the real gap — the metadata
 extension is a separate host and should observe the switch without a reload — so these are `fixme`'d
 pending a product fix rather than papered over. (`sourceTrackingStatusBar` avoids this by testing the
