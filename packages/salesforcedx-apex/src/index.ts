@@ -30,6 +30,7 @@ export type { CoverageReporterOptions, CoverageReportFormats } from './reporters
 export type { MarkdownTextFormatTransformerOptions } from './reporters/markdownTextFormatTransformer';
 export type { MarkdownTextReporterOptions, OutputFormat, TestSortOrder } from './reporters/markdownTextReporter';
 export { TestService } from './tests/testService';
+export { ResultFormat, ResultFormatSchema, TestLevel, TestLevelSchema } from './tests/types';
 export type {
   ApexCodeCoverage,
   ApexCodeCoverageRecord,
@@ -50,9 +51,7 @@ export type {
   AsyncTestArrayConfiguration,
   AsyncTestConfiguration,
   OutputDirConfig,
-  ResultFormat,
   SyncTestConfiguration,
-  TestLevel,
   TestItem,
   TestResult,
   TestResultRaw,
