@@ -13,8 +13,8 @@ import * as PubSub from 'effect/PubSub';
 import type * as Scope from 'effect/Scope';
 import * as TestClock from 'effect/TestClock';
 import * as TestContext from 'effect/TestContext';
+import { MetadataChangeNotificationService } from 'salesforcedx-vscode-services/src/core/metadataChangeNotificationService';
 import {
-  MetadataChangeNotificationService,
   type MetadataChangeEvent as MetadataChangeEventType,
   type MetadataOperationEvent as MetadataOperationEventType
 } from 'salesforcedx-vscode-services';

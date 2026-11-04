@@ -35,7 +35,8 @@ import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import { PromptService } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
 import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
-import { NotificationModeService, type SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
+import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
+import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import {

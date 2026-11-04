@@ -10,7 +10,7 @@ import type { ComponentSet, SourceComponent } from '@salesforce/source-deploy-re
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
-import { HashableUri } from 'salesforcedx-vscode-services';
+import { HashableUri } from 'salesforcedx-vscode-services/src/vscode/hashableUri';
 import { toUri } from 'salesforcedx-vscode-services/src/vscode/uriUtils';
 import { URI } from 'vscode-uri';
 import type { DiffFilePair } from '../../../../src/shared/diff/diffTypes';

@@ -45,11 +45,8 @@ import {
   ExtensionProviderService,
   type ExtensionProviderService as ExtensionProviderServiceType
 } from '@salesforce/effect-ext-utils';
-import {
-  NotificationModeService,
-  type ComponentSetService,
-  type SalesforceVSCodeServicesApi
-} from 'salesforcedx-vscode-services';
+import { type ComponentSetService, type SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
+import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
 import * as vscode from 'vscode';
 import { Effect, Layer } from 'effect';
 import * as Fiber from 'effect/Fiber';

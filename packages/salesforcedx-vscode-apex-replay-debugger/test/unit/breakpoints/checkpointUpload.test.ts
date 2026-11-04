@@ -16,7 +16,8 @@ import {
   FailedToCreateConnectionError
 } from 'salesforcedx-vscode-services/src/core/connectionService';
 import { QueryService } from 'salesforcedx-vscode-services/src/core/queryService';
-import { type DefaultOrgInfoSchema, NotificationModeService } from 'salesforcedx-vscode-services';
+import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
+import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { retrieveLineBreakpointInfo } from '../../../src/apexExtension';
 import { checkpointService, sfCreateCheckpointsCommand } from '../../../src/breakpoints/checkpointService';

@@ -35,10 +35,6 @@ export default defineConfig({
         replacement: repositoryFile('packages/salesforcedx-lightning-lsp-common/src/index.ts')
       },
       {
-        find: /^salesforcedx-vscode-services$/,
-        replacement: repositoryFile('packages/salesforcedx-vscode-services/src/index.ts')
-      },
-      {
         find: /^salesforcedx-vscode-services\/out\/src\/(.+?)(?:\.js)?$/,
         replacement: repositoryFile('packages/salesforcedx-vscode-services/src/$1.ts')
       },

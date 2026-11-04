@@ -11,7 +11,7 @@ import { EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS } from '@salesforce/salesforcedx
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
-import { NotificationModeService } from 'salesforcedx-vscode-services';
+import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
 import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
 import * as vscode from 'vscode';
 import { activateEffect, getExceptionBreakpointCache, type ExceptionBreakpointItem } from '../../src/index';
