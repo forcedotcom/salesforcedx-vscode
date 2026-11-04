@@ -15,6 +15,7 @@ const baseTest = createDesktopTest({
   fixturesDir: __dirname,
   skipCurrentPackage: true,
   marketplaceExtensions: [APEX_LANGUAGE_SERVER_EXTENSION_ID],
+  minimumMarketplaceExtensionVersions: { [APEX_LANGUAGE_SERVER_EXTENSION_ID]: '0.11.0' },
   disableOtherExtensions: false,
   userSettings: outlineLanguageServerSettings
 });
