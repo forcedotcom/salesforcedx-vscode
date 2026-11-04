@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { extractSourceTypesFromLog, getSourceUri } from '@salesforce/salesforcedx-apex-replay-debugger';
 import type { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
-import type { OrgMetadataCatalogComponentReference } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalogTypes';
+import type { OrgMetadataCatalogComponentReference } from 'salesforcedx-vscode-services';
 
 const triggerPrefix = '__sfdc_trigger/';
 

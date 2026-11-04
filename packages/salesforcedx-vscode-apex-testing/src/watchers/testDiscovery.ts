@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
-import type { OrgMetadataCatalogChange } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalogChangePubSub';
+import type { OrgMetadataCatalogChange } from 'salesforcedx-vscode-services';
 import { type URI, Utils } from 'vscode-uri';
 import { type getTestController } from '../views/testController';
 

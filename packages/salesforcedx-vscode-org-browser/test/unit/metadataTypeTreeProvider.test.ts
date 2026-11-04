@@ -7,7 +7,7 @@
 import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
-import type { OrgMetadataCatalogEntry } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalogTypes';
+import type { OrgMetadataCatalogEntry } from 'salesforcedx-vscode-services';
 import { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
 import * as vscode from 'vscode';
 import {

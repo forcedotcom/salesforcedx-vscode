@@ -6,7 +6,7 @@
  */
 
 import * as Effect from 'effect/Effect';
-import type { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
+import type { OrgMetadataCatalog } from 'salesforcedx-vscode-services';
 
 const metadataTypesToPreload = ['ApexClass'] as const;
 

@@ -6,7 +6,7 @@
  */
 import * as Duration from 'effect/Duration';
 import * as Stream from 'effect/Stream';
-import type { OrgMetadataCatalogChange } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalogChangePubSub';
+import type { OrgMetadataCatalogChange } from 'salesforcedx-vscode-services';
 
 /**
  * Retrieve commands update their affected tree row when they complete. A second,

@@ -7,8 +7,7 @@
 
 import * as Effect from 'effect/Effect';
 import * as Ref from 'effect/Ref';
-import type { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
-import type { OrgMetadataCatalogEntry } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalogTypes';
+import type { OrgMetadataCatalog, OrgMetadataCatalogEntry } from 'salesforcedx-vscode-services';
 import { isFolderType } from '../tree/orgBrowserNode';
 
 export type FullOrgDiscoveryProgress = {
