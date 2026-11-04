@@ -129,6 +129,8 @@ type CreateDesktopTestOptions = {
   testExtensionPaths?: string[];
   /** Marketplace extension IDs (publisher.name) installed via `code --install-extension` once per worker. Use for hard `extensionDependencies` not built locally. */
   marketplaceExtensions?: string[];
+  /** Minimum Marketplace extension versions required for a desktop test to run. Tests skip when an installed version is missing, malformed, or older. */
+  minimumMarketplaceExtensionVersions?: Record<string, string>;
   /**
    * Omit the fixture package (`--extensionDevelopmentPath` and VSIX cache). Marketplace ids still install.
    * Set `disableOtherExtensions: false`; `--disable-extensions` blocks that install.
@@ -177,6 +179,38 @@ const installMarketplaceExtensions = (
   }
 };
 
+const marketplaceExtensionVersions = (
+  extensionsDir: string,
+  userDataDir: string,
+  vscodeExecutable: string
+): Readonly<Record<string, string>> => {
+  const cli = resolveCliPathFromVSCodeExecutablePath(vscodeExecutable);
+  const result = spawnSync(
+    cli,
+    ['--extensions-dir', extensionsDir, '--user-data-dir', userDataDir, '--list-extensions', '--show-versions'],
+    { encoding: 'utf8', shell: process.platform === 'win32' }
+  );
+  if (result.status !== 0) return {};
+  return Object.fromEntries(
+    result.stdout
+      .split('\n')
+      .map(line => line.trim().match(/^(.+)@([0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?)$/u))
+      .filter((match): match is RegExpMatchArray => match !== null)
+      .map(([, id, version]) => [id.toLowerCase(), version])
+  );
+};
+
+export const meetsMinimumMarketplaceExtensionVersion = (version: string, minimum: string): boolean => {
+  const parse = (value: string) => value.match(/^(\d+)\.(\d+)\.(\d+)/u)?.slice(1).map(Number);
+  const current = parse(version);
+  const required = parse(minimum);
+  if (!current || !required) return false;
+  for (const [index, part] of current.entries()) {
+    if (part !== required[index]) return part > required[index];
+  }
+  return true;
+};
+
 /** Creates a Playwright test instance configured for desktop Electron testing with services extension */
 export const createDesktopTest = (options: CreateDesktopTestOptions) => {
   const {
@@ -186,6 +220,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     additionalExtensionDirs = [],
     testExtensionPaths = [],
     marketplaceExtensions = [],
+    minimumMarketplaceExtensionVersions = {},
     skipCurrentPackage = false,
     disableOtherExtensions = true,
     userSettings,
@@ -241,7 +276,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     },
 
     // Launch fresh Electron instance per test
-    electronApp: async ({ vscodeExecutable, workspaceDir, installedExtensionsDir }, use): Promise<void> => {
+      electronApp: async ({ vscodeExecutable, workspaceDir, installedExtensionsDir }, use): Promise<void> => {
       // User data dir must live OUTSIDE the opened workspace folder. On VS Code 1.124 (Chromium 148)
       // placing it inside the workspace makes the Electron main process exit before the first window
       // opens ("Waiting for the debugger to disconnect"), so electronApp.firstWindow() throws
@@ -325,10 +360,10 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         : await (async (): Promise<string[]> => {
           // Keep the extensions dir outside the opened workspace folder for the same reason as userDataDir.
           // Nested under userDataDir so it shares its lifetime and is removed by the same teardown cleanup.
-          const extensionsDir = path.join(userDataDir, 'extensions');
-          await fs.mkdir(extensionsDir, { recursive: true });
+          const temporaryExtensionsDir = path.join(userDataDir, 'extensions');
+          await fs.mkdir(temporaryExtensionsDir, { recursive: true });
           // Install marketplace deps (e.g. extensionDependencies not built locally) into the per-test extensions dir
-          installMarketplaceExtensions(extensionsDir, userDataDir, marketplaceExtensions, vscodeExecutable);
+          installMarketplaceExtensions(temporaryExtensionsDir, userDataDir, marketplaceExtensions, vscodeExecutable);
           const extensionArgs = [
             // Extension path is the package root (contains package.json and bundled dist/index.js)
             ...(skipCurrentPackage ? [] : [packageRoot]),
@@ -338,7 +373,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
           ].map(p => `--extensionDevelopmentPath=${p}`);
           return [
             `--user-data-dir=${userDataDir}`,
-            `--extensions-dir=${extensionsDir}`,
+            `--extensions-dir=${temporaryExtensionsDir}`,
             ...extensionArgs,
             ...testExtensionArgs,
             ...(disableOtherExtensions ? ['--disable-extensions'] : []),
@@ -346,6 +381,10 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
             ...startupArgs
           ];
         })();
+      const extensionsDir = launchArgs.find(arg => arg.startsWith('--extensions-dir='))?.slice('--extensions-dir='.length);
+      const installedMarketplaceExtensionVersions = extensionsDir
+        ? marketplaceExtensionVersions(extensionsDir, userDataDir, vscodeExecutable)
+        : {};
 
       const launchElectron = (): Promise<ElectronApplication> =>
         electron.launch({
@@ -410,7 +449,7 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
       };
 
       try {
-        await use({ app: firstApp, relaunch });
+        await use({ app: firstApp, relaunch, marketplaceExtensionVersions: installedMarketplaceExtensionVersions });
       } finally {
         await killApp(current.app);
         // Remove the temp user-data dir (and its nested extensions dir) now that the process is gone.
@@ -434,7 +473,16 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     // whole app is relaunched once for a fresh window; if that still fails, a named error
     // triggers Playwright's test-level retries (fresh worker + fresh app).
     page: [
-      async ({ electronApp }, use) => {
+      async ({ electronApp }, use, testInfo) => {
+        const incompatibleExtension = Object.entries(minimumMarketplaceExtensionVersions).find(([id, minimum]) => {
+          const version = electronApp.marketplaceExtensionVersions[id.toLowerCase()];
+          return !version || !meetsMinimumMarketplaceExtensionVersion(version, minimum);
+        });
+        if (incompatibleExtension) {
+          const [id, minimum] = incompatibleExtension;
+          const version = electronApp.marketplaceExtensionVersions[id.toLowerCase()];
+          testInfo.skip(true, `${id} ${minimum} or newer is required; found ${version ?? 'no installed version'}.`);
+        }
         const setupPage = async (app: ElectronApplication): Promise<Page> => {
           const page = await waitForWorkbenchWindow(app, WORKBENCH_TIMEOUT_MS);
 
