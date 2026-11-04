@@ -405,6 +405,10 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
       return dirNames.filter((_, i) => matches[i]);
     });
 
+    const getProjectTemplateNames = Effect.fn('TemplateService.getProjectTemplateNames')(() =>
+      Effect.succeed<readonly SfTemplates.ProjectTemplate[]>(SfTemplates.PROJECT_TEMPLATES)
+    );
+
     const create = Effect.fn('TemplateService.create')(function* (params: CreateParams<SfTemplates.TemplateType>) {
       const { templatesRootPath } = yield* getTemplatesRootCached;
       yield* ensureTemplatesInFsOnce;
@@ -430,7 +434,8 @@ export class TemplateService extends Effect.Service<TemplateService>()('Template
       getBuiltInTemplateNames,
       getCustomTemplateNames,
       getBuiltInTemplateSubdirNames,
-      getCustomTemplateSubdirNames
+      getCustomTemplateSubdirNames,
+      getProjectTemplateNames
     };
   })
 }) {}
