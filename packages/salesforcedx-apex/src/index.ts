@@ -21,9 +21,9 @@ export {
   TestRunId,
   UserId
 } from './schemas/salesforceId';
-export { JUnitReporter } from './reporters/junitReporter';
-export { TapReporter } from './reporters/tapReporter';
-export { HumanReporter } from './reporters/humanReporter';
+export { formatJUnit } from './reporters/junitFormatting';
+export { formatTap } from './reporters/tapFormatting';
+export { formatHuman } from './reporters/humanFormatting';
 export { CoverageReporter, DefaultReportOptions, DefaultWatermarks } from './reporters/coverageReporter';
 export { MarkdownTextFormatTransformer } from './reporters/markdownTextFormatTransformer';
 export type { CoverageReporterOptions, CoverageReportFormats } from './reporters/coverageReporter';
