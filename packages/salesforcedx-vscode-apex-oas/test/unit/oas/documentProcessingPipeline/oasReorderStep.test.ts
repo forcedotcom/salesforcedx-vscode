@@ -20,8 +20,7 @@ describe('oasReorderStep', () => {
           description: 'An example API'
         },
         paths: {}
-      },
-      context: undefined
+      }
     };
 
     const output = await Effect.runPromise(oasReorderStep(input));
@@ -54,8 +53,7 @@ describe('oasReorderStep', () => {
             }
           }
         }
-      },
-      context: undefined
+      }
     };
 
     const output = await Effect.runPromise(oasReorderStep(input));
@@ -100,8 +98,7 @@ describe('oasReorderStep', () => {
             }
           }
         }
-      },
-      context: undefined
+      }
     };
 
     const output = await Effect.runPromise(oasReorderStep(input));
@@ -127,8 +124,7 @@ describe('oasReorderStep', () => {
             }
           }
         }
-      },
-      context: undefined
+      }
     };
 
     const output = await Effect.runPromise(oasReorderStep(input));
@@ -146,8 +142,7 @@ describe('oasReorderStep', () => {
           version: '1.0.0'
         },
         paths: {}
-      },
-      context: undefined
+      }
     };
 
     const output = await Effect.runPromise(oasReorderStep(input));

@@ -13,7 +13,6 @@ import {
   ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
-  NOTIFICATION_LIST_ITEM,
   QUICK_INPUT_WIDGET,
   selectOutputChannel,
   upsertScratchOrgAuthFieldsToSettings,
@@ -37,14 +36,8 @@ export const setupWorkbenchAndAuth = async (page: Page): Promise<void> => {
   await upsertScratchOrgAuthFieldsToSettings(page, createResult);
 };
 
-/** Wait until all extensions finish activating and the OAS commands are registered.
- *
- * The commands are no longer gated by `salesforcedx-einstein-gpt.isEnabled`, so their presence proves only
- * that the OAS extension is active — not that the LLM service the REST path needs has been registered with the
- * service provider yet. The REST path obtains that service fail-fast, so a spec that triggers generation before
- * the providing extension finishes registering its command would flake. Waiting for all extensions to finish
- * activating closes that race. The AuraEnabled path needs only an active org. */
-export const waitForA4VAndOasCommands = async (page: Page): Promise<void> => {
+/** Wait until all extensions finish activating and the Apex-LS-gated OAS command is registered. */
+export const waitForOasCommands = async (page: Page): Promise<void> => {
   await waitForExtensionsActivated(page);
   await verifyCommandExists(page, 'SFDX: Create OpenAPI Document from This Class', 60_000);
 };
@@ -116,47 +109,4 @@ export const waitForEsrFile = async (workspaceDir: string, baseName: string, tim
     }
   }
   throw new Error(`ESR file not found after ${timeoutMs}ms: ${target}`);
-};
-
-/** The error notification createApexAction shows when the shared Core model is out of monthly quota.
- * Mirrors the `llm_monthly_rate_limit` message in the extension's i18n. */
-const RATE_LIMIT_NOTIFICATION = /monthly rate limit/i;
-
-/**
- * Run an A4V generation's success assertion, but skip the test instead of failing when the cause is
- * the shared Core model's exhausted monthly quota.
- *
- * The extension now surfaces a quota exhaustion as a real error notification ("...hit its monthly
- * rate limit...") rather than swallowing it into the generic "LLM did not return any content", so a
- * spec detects it straight from the UI — no OTEL span file scan needed. A quota outage resets monthly
- * and isn't a product bug, so it's a skip; any other generation failure still fails the test.
- *
- * `success` is the success assertion (e.g. `expect(tab).toBeVisible()` or `waitForEsrFile(...)`). It
- * races the rate-limit notification so a quota outage skips promptly rather than waiting out the
- * assertion's full timeout (the on-disk ESR signal can poll for minutes). If `success` settles first:
- * resolve → done, reject → rethrow. If the notification appears first: `test.skip`.
- *
- * @param test The Playwright `test` object (for `test.skip`).
- * @param page Playwright page.
- * @param success The success assertion; rejects when generation didn't produce its artifact.
- */
-export const assertGenerationOrSkipOnRateLimit = async (
-  test: { skip: (condition: boolean, description: string) => void },
-  page: Page,
-  success: Promise<unknown>
-): Promise<void> => {
-  // The watcher only ever *wins* the race by becoming visible; its own timeout must not settle the
-  // race (that's `success`'s job), so a not-found resolves to a promise that never settles. Its
-  // timeout is long enough to outlast the slowest generation success window (ESR poll ~240s).
-  const rateLimit: Promise<'rate-limit'> = page
-    .locator(NOTIFICATION_LIST_ITEM)
-    .filter({ hasText: RATE_LIMIT_NOTIFICATION })
-    .first()
-    .waitFor({ state: 'visible', timeout: 300_000 })
-    .then(
-      () => 'rate-limit' as const,
-      () => new Promise<never>(() => {})
-    );
-  const outcome = await Promise.race([success.then(() => 'success' as const), rateLimit]);
-  test.skip(outcome === 'rate-limit', 'A4V Core model monthly rate limit hit; generation could not run');
 };

@@ -165,7 +165,6 @@ settings:
 overrides:
   '@salesforce/core': 9.6.0
   '@azure/monitor-opentelemetry-exporter': 1.0.0-beta.47
-  '@jsforce/jsforce-node': 3.13.1
   '@vscode/test-web>playwright': ^1.64.1
   '@vscode/test-web>@playwright/browser-chromium': ^1.64.1
   jest: 30.4.2
@@ -684,8 +683,8 @@ importers:
         version: 0.2.17
     devDependencies:
       '@jsforce/jsforce-node':
-        specifier: 3.13.1
-        version: 3.13.1
+        specifier: ^3.13.1
+        version: 3.13.4
       '@types/istanbul-lib-coverage':
         specifier: ^2.0.6
         version: 2.0.6
@@ -1490,8 +1489,8 @@ importers:
         specifier: 0.61.2
         version: 0.61.2(@effect/cluster@0.60.5(@effect/platform@0.97.4(effect@3.22.5))(@effect/rpc@0.76.4(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(@effect/sql@0.52.2(@effect/experimental@0.61.3(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(@effect/workflow@0.19.1(@effect/experimental@0.61.3(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(@effect/platform@0.97.4(effect@3.22.5))(@effect/rpc@0.76.4(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(effect@3.22.5))(effect@3.22.5))(@effect/platform@0.97.4(effect@3.22.5))(@effect/rpc@0.76.4(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(@effect/sql@0.52.2(@effect/experimental@0.61.3(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(@effect/platform@0.97.4(effect@3.22.5))(effect@3.22.5))(effect@3.22.5)
       '@jsforce/jsforce-node':
-        specifier: 3.13.1
-        version: 3.13.1
+        specifier: ^3.13.1
+        version: 3.13.4
       '@opentelemetry/api':
         specifier: 1.9.1
         version: 1.9.1
@@ -1639,8 +1638,8 @@ importers:
   packages/salesforcedx-vscode-soql:
     dependencies:
       '@jsforce/jsforce-node':
-        specifier: 3.13.1
-        version: 3.13.1
+        specifier: ^3.13.1
+        version: 3.13.4
       '@salesforce/effect-ext-utils':
         specifier: workspace:*
         version: link:../effect-ext-utils
@@ -3143,8 +3142,8 @@ packages:
     peerDependencies:
       jsep: ^0.4.0||^1.0.0
 
-  '@jsforce/jsforce-node@3.13.1':
-    resolution: {integrity: sha512-vpHhwc+Wcufk9vARzL4oxYSzg8ndNButSn88D6pMImjns7/NTkwPZ9qQwD2F/P4c+A0lwTyDl4Alry0BMgFsTg==}
+  '@jsforce/jsforce-node@3.13.4':
+    resolution: {integrity: sha512-qAaK03OwByrCfSNj4Rz/1kLOZtHFaLujqvlEMCG+I+8ypT3FcBKX/1xNnYCp399ThrmSIyKk+LRwwpCJSXNe1Q==}
     engines: {node: '>=22'}
 
   '@jsonjoy.com/base64@1.1.2':
@@ -13575,7 +13574,7 @@ snapshots:
     dependencies:
       jsep: 1.4.0
 
-  '@jsforce/jsforce-node@3.13.1':
+  '@jsforce/jsforce-node@3.13.4':
     dependencies:
       '@sindresorhus/is': 4.6.0
       base64url: 3.0.1
@@ -14886,7 +14885,7 @@ snapshots:
 
   '@salesforce/core@9.6.0':
     dependencies:
-      '@jsforce/jsforce-node': 3.13.1
+      '@jsforce/jsforce-node': 3.13.4
       '@salesforce/kit': 4.0.10
       '@salesforce/ts-types': 3.2.4
       ajv: 8.20.0
