@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isUndefined } from 'effect/Predicate';
-import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services/src/core/schemas/traceFlagSchemas';
+import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { buildTraceFlagsSchemas } from '../schemas/traceFlagsSchema';

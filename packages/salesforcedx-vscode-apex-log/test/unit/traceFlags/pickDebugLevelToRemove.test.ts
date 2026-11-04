@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import { isString } from 'effect/Predicate';
-import type { DebugLevelItem } from 'salesforcedx-vscode-services/src/core/schemas/traceFlagSchemas';
+import type { DebugLevelItem } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { pickDebugLevelToRemove } from '../../../src/traceFlags/traceFlagJsonSync';
 

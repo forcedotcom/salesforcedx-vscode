@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isString } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { TraceFlagItem } from 'salesforcedx-vscode-services/src/core/schemas/traceFlagSchemas';
+import type { TraceFlagItem } from 'salesforcedx-vscode-services';
 import { type CancellationToken, CodeLens, type ExtensionContext, languages, Range, type TextDocument } from 'vscode';
 import { nls } from '../messages';
 import { buildTraceFlagsSchemas } from '../schemas/traceFlagsSchema';

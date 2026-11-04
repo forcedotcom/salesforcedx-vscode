@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import type * as HashSet from 'effect/HashSet';
 import type * as Ref from 'effect/Ref';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { TraceFlagItem } from 'salesforcedx-vscode-services/src/core/schemas/traceFlagSchemas';
+import type { TraceFlagItem } from 'salesforcedx-vscode-services';
 
 export type LogCollectorState = {
   readonly isCollecting: boolean;

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services/src/core/schemas/traceFlagSchemas';
+import type { DebugLevelItem, TraceFlagItem } from 'salesforcedx-vscode-services';
 import { orphanLensTargets } from '../../../src/traceFlags/traceFlagsCodeLensProvider';
 import { enrichTraceFlags, isOrphanedTraceFlag } from '../../../src/traceFlags/traceFlagsContentProvider';
 
