@@ -45,7 +45,7 @@ export enum ClientStatus {
   Ready
 }
 
-/** @public Named return type of the Apex activation API; required for downstream declaration emit. */
+/** @public */
 export class LanguageClientStatus {
   private status: ClientStatus;
   private message: string;
