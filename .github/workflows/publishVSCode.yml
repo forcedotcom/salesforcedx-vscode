@@ -141,7 +141,8 @@ jobs:
   ctc-open:
     needs: [prepare-release-metadata]
     if: inputs.dry-run != true
-    uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@main
+    # TEMPORARY: testing salesforcecli/github-workflows#205's pnpm-cache fix before merge.
+    uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@ms/W-24787945-drop-ctc-pnpm-cache
     secrets: inherit
 
   validate-vsix:
@@ -176,7 +177,8 @@ jobs:
   ctcCloseSuccess:
     needs: [ctc-open, publish]
     if: always() && needs.ctc-open.result == 'success' && needs.publish.result == 'success' && needs.ctc-open.outputs.changeCaseId
-    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
+    # TEMPORARY: testing salesforcecli/github-workflows#205's pnpm-cache fix before merge.
+    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@ms/W-24787945-drop-ctc-pnpm-cache
     secrets: inherit
     with:
       changeCaseId: ${{needs.ctc-open.outputs.changeCaseId}}
@@ -184,7 +186,8 @@ jobs:
   ctcCloseFail:
     needs: [ctc-open, publish]
     if: always() && needs.ctc-open.result == 'success' && needs.ctc-open.outputs.changeCaseId && needs.publish.result != 'success'
-    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
+    # TEMPORARY: testing salesforcecli/github-workflows#205's pnpm-cache fix before merge.
+    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@ms/W-24787945-drop-ctc-pnpm-cache
     secrets: inherit
     with:
       changeCaseId: ${{ needs.ctc-open.outputs.changeCaseId }}
