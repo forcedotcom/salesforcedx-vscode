@@ -18,6 +18,11 @@ const sharedExtensionDirs = [
   'salesforcedx-vscode-apex-log',
   'salesforcedx-vscode-apex'
 ];
+const APEX_LANGUAGE_SERVER_EXTENSION_ID = 'salesforce.apex-language-server-extension';
+const apexLanguageServer = {
+  marketplaceExtensions: [APEX_LANGUAGE_SERVER_EXTENSION_ID],
+  minimumMarketplaceExtensionVersions: { [APEX_LANGUAGE_SERVER_EXTENSION_ID]: '0.11.0' }
+};
 
 const sharedUserSettings = {
   'git.terminalAuthentication': false,
@@ -34,6 +39,7 @@ export const desktopTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: NON_TRACKING_ORG_ALIAS,
   additionalExtensionDirs: sharedExtensionDirs,
+  ...apexLanguageServer,
   disableOtherExtensions: false,
   userSettings: sharedUserSettings
 });
@@ -44,6 +50,7 @@ export const trackingDesktopTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: MINIMAL_ORG_ALIAS,
   additionalExtensionDirs: sharedExtensionDirs,
+  ...apexLanguageServer,
   disableOtherExtensions: false,
   userSettings: sharedUserSettings
 });
@@ -60,6 +67,7 @@ export const logoutDesktopTest = createDesktopTest({
     'salesforcedx-vscode-apex-log',
     'salesforcedx-vscode-apex'
   ],
+  ...apexLanguageServer,
   disableOtherExtensions: false,
   userSettings: {
     'git.terminalAuthentication': false,
@@ -75,6 +83,7 @@ export const noOrgDesktopTest = createDesktopTest({
     'salesforcedx-vscode-apex-log',
     'salesforcedx-vscode-apex'
   ],
+  ...apexLanguageServer,
   disableOtherExtensions: false,
   userSettings: {
     'git.terminalAuthentication': false,
@@ -90,6 +99,7 @@ export const emptyWorkspaceDesktopTest = createDesktopTest({
     'salesforcedx-vscode-apex-log',
     'salesforcedx-vscode-apex'
   ],
+  ...apexLanguageServer,
   disableOtherExtensions: false,
   userSettings: {
     'git.terminalAuthentication': false,
