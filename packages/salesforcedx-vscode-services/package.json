@@ -31,6 +31,7 @@
     "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.43",
     "@effect/opentelemetry": "0.63.0",
     "@effect/platform": "^0.96.1",
+    "@effect/platform-node": "0.106.0",
     "@effect/platform-node-shared": "0.59.0",
     "@jsforce/jsforce-node": "^3.10.24",
     "@opentelemetry/api": "1.9.1",
@@ -78,6 +79,7 @@
     "test": "wireit",
     "run:web": "wireit",
     "test:web": "wireit",
+    "test:sdr-worker": "wireit",
     "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-services test:web --headed",
     "test:web:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-services test:web --debug",
     "test:e2e": "wireit",
@@ -144,11 +146,14 @@
         "../../scripts/bundling/web.mjs",
         "../../scripts/bundling/fs-polyfill.js",
         "out/**",
+        "out/src/sdrStlWorker/**",
         "node_modules/@salesforce/templates/lib/**",
         "../../node_modules/@salesforce/templates/lib/**"
       ],
       "output": [
-        "dist"
+        "dist",
+        "dist/sdr-stl-worker.cjs",
+        "dist/sdr-stl-worker-client.cjs"
       ]
     },
     "vscode:bundle:local": {
@@ -191,6 +196,19 @@
       "output": [
         "coverage"
       ]
+    },
+    "test:sdr-worker": {
+      "command": "node scripts/test-sdr-worker.mjs",
+      "dependencies": [
+        "vscode:bundle"
+      ],
+      "files": [
+        "src/sdrStlWorker/**/*.ts",
+        "scripts/test-sdr-worker.mjs",
+        "esbuild.config.mjs",
+        "../../scripts/bundling/node.mjs"
+      ],
+      "output": []
     },
     "check:circular-deps": {
       "command": "dpdm --transform --no-warning --no-tree --exit-code circular:1 -o .circular-deps.json src",
@@ -471,6 +489,10 @@
       {
         "command": "sf.internal.showOrgMetadataCatalogState",
         "title": "%orgMetadataCatalog.showState%"
+      },
+      {
+        "command": "sf.internal.testSdrStlWorkerDeploy",
+        "title": "%sdrStlWorker.testDeploy%"
       }
     ],
     "menus": {
@@ -478,6 +500,9 @@
         {
           "command": "sf.internal.showOrgMetadataCatalogState",
           "when": "sf:internal_dev"
+        },
+        {
+          "command": "sf.internal.testSdrStlWorkerDeploy"
         }
       ]
     },

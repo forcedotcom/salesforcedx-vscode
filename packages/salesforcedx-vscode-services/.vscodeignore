@@ -10,6 +10,8 @@ test/**
 **/*.map
 **/*.node
 dist/*-metafile.json
+dist/sdr-worker-client-test.cjs
+dist/sdr-worker-client-metafile.json
 playwright*.ts
 playwright-report/**
 test-results/**
