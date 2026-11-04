@@ -12,11 +12,11 @@ The package uses Node.js `exports` field to enforce that only the main `Salesfor
 
 The source code is **not committed** to git. Instead, it's generated on-demand from the parent package:
 
-1. `scripts/generateEntry.ts` creates `src/index.ts` that re-exports only `SalesforceVSCodeServicesApi`
+1. `scripts/generateEntry.mts` creates `src/index.ts` that re-exports only `SalesforceVSCodeServicesApi`
 2. TypeScript compiles this along with all referenced types from the parent package
 3. The output `out/` directory contains all necessary `.d.ts` files
 
-Scripts are written in TypeScript and executed via `ts-node` for type safety.
+Scripts are written as `.mts` files and executed directly by Node.js 24; TypeScript checking is separate.
 
 ### Dependency Sync
 

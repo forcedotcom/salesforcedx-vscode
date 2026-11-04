@@ -29,18 +29,18 @@
     "access": "public"
   },
   "scripts": {
-    "generate-entry": "ts-node scripts/generateEntry.ts",
-    "sync-deps": "ts-node scripts/syncDeps.ts",
+    "generate-entry": "node scripts/generateEntry.mts",
+    "sync-deps": "node scripts/syncDeps.mts",
     "compile": "wireit",
     "clean": "shx rm -rf src out dist node_modules .wireit .eslintcache *.tgz",
     "check:effect-diagnostics": "wireit"
   },
   "wireit": {
     "generate-src": {
-      "command": "ts-node scripts/generateEntry.ts && ts-node scripts/syncDeps.ts",
+      "command": "node scripts/generateEntry.mts && node scripts/syncDeps.mts",
       "files": [
         "../salesforcedx-vscode-services/src/**/*.ts",
-        "scripts/*.ts"
+        "scripts/*.mts"
       ],
       "output": [
         "src/index.ts",
@@ -96,8 +96,7 @@
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
-    "shx": "^0.4.0",
-    "ts-node": "^10.9.2"
+    "shx": "^0.4.0"
   },
   "engines": {
     "node": ">=24.18.0"

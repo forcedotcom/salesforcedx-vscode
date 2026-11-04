@@ -11,5 +11,11 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["**/*.mts", "**/*.cts", "../test/**/*.mts", "../test/**/*.cts"]
+  "include": [
+    "**/*.mts",
+    "**/*.cts",
+    "../test/**/*.mts",
+    "../test/**/*.cts",
+    "../packages/salesforcedx-vscode-services-types/scripts/**/*.mts"
+  ]
 }

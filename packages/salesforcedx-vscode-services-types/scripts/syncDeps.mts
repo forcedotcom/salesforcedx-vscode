@@ -20,8 +20,8 @@ type PackageJson = {
 
 /** Syncs dependency versions from parent package to types package */
 const syncDeps = (): void => {
-  const parentPkgPath = path.join(__dirname, '..', '..', 'salesforcedx-vscode-services', 'package.json');
-  const typesPkgPath = path.join(__dirname, '..', 'package.json');
+  const parentPkgPath = path.join(import.meta.dirname, '..', '..', 'salesforcedx-vscode-services', 'package.json');
+  const typesPkgPath = path.join(import.meta.dirname, '..', 'package.json');
 
   const parentPkg: PackageJson = JSON.parse(fs.readFileSync(parentPkgPath, 'utf8'));
   const typesPkg: PackageJson = JSON.parse(fs.readFileSync(typesPkgPath, 'utf8'));
