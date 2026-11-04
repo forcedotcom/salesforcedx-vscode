@@ -29,6 +29,16 @@ export const ineligibleApexClassText = [
   '}'
 ].join('\n');
 
+export const restResourceClassText = [
+  "@RestResource(urlMapping='/apex-rest-examples/v1/*')",
+  'global with sharing class RestResourceClass {',
+  '  @HttpGet',
+  '  global static String getResource() {',
+  "    return 'resource';",
+  '  }',
+  '}'
+].join('\n');
+
 // Mixes Apex REST (@RestResource + @HttpGet) with an @AuraEnabled method — not allowed for OAS generation.
 export const mixedFrameworksClassText = [
   "@RestResource(urlMapping='/apex-rest-examples/v1/mixed/*')",
