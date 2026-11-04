@@ -17,11 +17,11 @@ Query Azure Application Insights telemetry to answer questions about command usa
 ## Workflow
 
 1. **Validate credentials** - check env vars exist
-2. **Test API** - `tsx scripts/queryAppInsights.ts "customEvents | take 1"`
+2. **Test API** - `node scripts/queryAppInsights.mts "customEvents | take 1"`
 3. **Interpret question** - identify commands, extensions, time ranges, metrics
 4. **Find executor name** - if checking a command, find its executor name (see references)
 5. **Build KQL query** - use executor names, not command IDs
-6. **Execute** - `tsx scripts/queryAppInsights.ts "<kql-query>"`
+6. **Execute** - `node scripts/queryAppInsights.mts "<kql-query>"`
 7. **Answer** - interpret results, format clearly
 
 ## Key Points
