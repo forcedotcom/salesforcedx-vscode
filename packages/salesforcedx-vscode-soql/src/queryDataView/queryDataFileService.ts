@@ -41,6 +41,11 @@ const stripTrailingExtension = (base: string, ext: string): string => {
   return base;
 };
 
+const isValidExportResultsFileName = (value: string, extension: string): boolean => {
+  const base = stripTrailingExtension(value, extension);
+  return base.length > 0 && base !== '.' && base !== '..' && !invalidFileNameCharRegExp.test(base);
+};
+
 const getExportFileStemFromDocument = (document: vscode.TextDocument, fileExtension: string): string => {
   let stem = stripTrailingExtension(getDocumentName(document).trim(), fileExtension);
   stem = stripTrailingExtension(stem, 'soql');
@@ -55,13 +60,9 @@ const validateExportResultsFileNameInput = (value: string, fileExtension: string
   Schema.decodeUnknownEither(
     Schema.Trim.pipe(
       Schema.minLength(1, { message: () => nls.localize('soql_export_results_file_name_empty_error') }),
-      Schema.filter(
-        input => {
-          const base = stripTrailingExtension(input, fileExtension);
-          return base.length > 0 && base !== '.' && base !== '..' && !invalidFileNameCharRegExp.test(base);
-        },
-        { message: () => nls.localize('soql_export_results_file_name_format_error') }
-      )
+      Schema.filter(input => isValidExportResultsFileName(input, fileExtension), {
+        message: () => nls.localize('soql_export_results_file_name_format_error')
+      })
     )
   )(value).pipe(parseErrorToValidationMessage);
 

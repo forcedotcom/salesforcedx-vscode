@@ -23,7 +23,6 @@ const SafeInstanceUrl = Schema.String.pipe(
   Schema.compose(Schema.URL),
   Schema.annotations({ message: () => ({ message: nls.localize('auth_invalid_url'), override: true }) })
 );
-const decodeSafeInstanceUrl = Schema.decodeUnknownEither(SafeInstanceUrl);
 // Salesforce session IDs match redactSensitiveData's access-token shape: org ID + `!` + opaque token.
 const SalesforceSessionIdSchema = Schema.String.pipe(
   Schema.pattern(/^00D[A-Za-z0-9]{12,15}![^\s'"]+$/),
@@ -74,7 +73,8 @@ const inputAccessToken = async (): Promise<string | undefined> =>
   });
 
 // http(s):// host/port/path only — rejects shell metachars (`;|&$()`, backticks, quotes, spaces) so the CLI --instance-url arg stays injection-safe
-const validateUrl = (url: string): string | undefined => decodeSafeInstanceUrl(url).pipe(parseErrorToValidationMessage);
+const validateUrl = (url: string): string | undefined =>
+  Schema.decodeUnknownEither(SafeInstanceUrl)(url).pipe(parseErrorToValidationMessage);
 
 const normalizeUrl = (value: string): string | undefined => {
   if (isNotUndefined(validateUrl(value))) return undefined;

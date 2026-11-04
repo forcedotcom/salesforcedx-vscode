@@ -13,8 +13,8 @@ import { nls } from '../messages';
 
 const VF_NAME_MAX_LENGTH = 40;
 
-const VfTypeNameSchema = Schema.String.pipe(
-  Schema.filter(value => value.trim().length > 0, { message: () => nls.localize('name_empty_error') }),
+const VfTypeNameSchema = Schema.Trim.pipe(
+  Schema.minLength(1, { message: () => nls.localize('name_empty_error') }),
   Schema.maxLength(VF_NAME_MAX_LENGTH, { message: () => nls.localize('name_max_length_error', VF_NAME_MAX_LENGTH) }),
   Schema.pattern(/^[A-Za-z]([A-Za-z0-9]*(_[A-Za-z0-9]+)*)?$/, { message: () => nls.localize('name_format_error') })
 );

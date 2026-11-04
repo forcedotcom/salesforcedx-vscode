@@ -24,12 +24,10 @@ import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 /** settings key (no ellipsis); for success notifications, pass the display-text key (`org_create_default_scratch_org_text`) to nls.localize instead, which includes the ellipsis. */
 const COMMAND: ProgressAndSuccessCommandKey = 'SFDX: Create a Default Scratch Org';
 
-const decodeExpirationDays = Schema.decodeUnknownEither(
-  Schema.NumberFromString.pipe(
-    Schema.int(),
-    Schema.between(1, 30),
-    Schema.annotations({ message: () => ({ message: nls.localize('error_invalid_expiration_days'), override: true }) })
-  )
+const ExpirationDaysSchema = Schema.NumberFromString.pipe(
+  Schema.int(),
+  Schema.between(1, 30),
+  Schema.annotations({ message: () => ({ message: nls.localize('error_invalid_expiration_days'), override: true }) })
 );
 
 const DEFAULT_ALIAS = 'vscodeScratchOrg';
@@ -126,7 +124,8 @@ const gatherOrgCreateInputs = Effect.fn('orgCreateCommand.gatherInputs')(functio
     vscode.window.showInputBox({
       prompt: nls.localize('parameter_gatherer_enter_scratch_org_expiration_days'),
       value: DEFAULT_EXPIRATION_DAYS,
-      validateInput: value => decodeExpirationDays(value).pipe(parseErrorToValidationMessage)
+      validateInput: value =>
+        Schema.decodeUnknownEither(ExpirationDaysSchema)(value).pipe(parseErrorToValidationMessage)
     })
   ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
 
