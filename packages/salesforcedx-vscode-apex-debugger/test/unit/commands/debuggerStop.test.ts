@@ -15,7 +15,8 @@ import { NotificationModeService } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { debuggerStop } from '../../../src/commands/debuggerStop';
 
-vi.mock('@salesforce/core', () => ({
+vi.mock(import('@salesforce/core'), async importOriginal => ({
+  ...(await importOriginal()),
   AuthInfo: { create: vi.fn() },
   Connection: { create: vi.fn() }
 }));
