@@ -7,13 +7,14 @@ run-name: "VS Code Marketplace OIDC test: ${{ inputs.release-tag }}"
 # name until it exists on the repo's default branch, even when the intent is to run a different
 # branch's content via `--ref`.
 #
-# Unlike Open VSX's trusted-publisher match (confirmed to key off the OIDC token's workflow_ref
-# claim, not job_workflow_ref), it isn't yet known whether the Marketplace's trust check behaves
-# the same way when the actual `vsce publish --oidc` step runs nested inside a cross-repo reusable
-# workflow (salesforcecli/github-workflows). This file is the empirical test for that -- register a
-# Trusted Publishing policy for this repo + this exact workflow filename on the Marketplace
-# publisher management page, then dispatch against an already-published, --skip-duplicate-safe
-# tag. See W-24756661.
+# TEMPORARY variant: the nested-call version of this file (dispatching
+# salesforcecli/github-workflows's vscode-publish-release-vsix.yml) got a 401 Unauthorized from
+# every extension/repo it was tried against, even with a Trusted Publishing policy registered
+# and active for this repo + this workflow filename. This version inlines the publish step
+# directly in this workflow (no cross-repo `uses:` in between) to test whether the Marketplace's
+# trust check keys off job_workflow_ref (which would differ for a nested reusable workflow in
+# another repo) rather than workflow_ref (which Open VSX is confirmed to use, and which stays the
+# same whether nested or not). See W-24756661.
 #
 # Not wired into any real release channel yet -- that depends on what this test finds.
 
@@ -31,13 +32,27 @@ on:
 
 jobs:
   publish:
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: write
-    # TEMPORARY: pinned to the github-workflows PR branch adding --oidc support
-    # (salesforcecli/github-workflows#203), to validate end-to-end before that PR merges.
-    uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-release-vsix.yml@ms/W-24756661-vsce-trusted-publishing
-    with:
-      release-tag: ${{ inputs.release-tag }}
-      dry-run: ${{ inputs.dry-run || false }}
-    secrets: inherit
+    steps:
+      - name: Download one release VSIX
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_TAG: ${{ inputs.release-tag }}
+        run: |
+          mkdir extensions
+          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern 'salesforcedx-vscode-visualforce-*.vsix' --dir extensions
+          find extensions -type f -name '*.vsix'
+
+      - name: Publish VSIX
+        env:
+          DRY_RUN: ${{ inputs.dry-run }}
+        run: |
+          vsix=$(find extensions -type f -name '*.vsix' -print -quit)
+          if [ "$DRY_RUN" = true ]; then
+            echo "Would publish $vsix to the VS Code Marketplace: @vscode/vsce publish --packagePath $vsix --oidc --skip-duplicate"
+            exit 0
+          fi
+          npx @vscode/vsce publish --packagePath "$vsix" --oidc --skip-duplicate
