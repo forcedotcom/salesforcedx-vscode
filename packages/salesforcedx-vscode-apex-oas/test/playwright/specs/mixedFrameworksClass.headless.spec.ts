@@ -14,7 +14,7 @@ import {
   openFileByName
 } from '@salesforce/playwright-vscode-ext';
 import { mixedFrameworksClassText } from '../testData/sampleClassData';
-import { pushSource, setupWorkbenchAndAuth, waitForA4VAndOasCommands } from '../utils/oasHelpers';
+import { pushSource, setupWorkbenchAndAuth, waitForOasCommands } from '../utils/oasHelpers';
 
 test.setTimeout(360_000);
 
@@ -23,8 +23,8 @@ test('OAS: class mixing Apex REST and AuraEnabled frameworks shows error notific
     await setupWorkbenchAndAuth(page);
   });
 
-  await test.step('wait for A4V + OAS commands available', async () => {
-    await waitForA4VAndOasCommands(page);
+  await test.step('wait for OAS commands available', async () => {
+    await waitForOasCommands(page);
   });
 
   await test.step('create mixed-frameworks class and push', async () => {
