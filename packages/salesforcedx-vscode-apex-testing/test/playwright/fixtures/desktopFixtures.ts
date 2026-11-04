@@ -21,7 +21,7 @@ const sharedExtensionDirs = [
 const APEX_LANGUAGE_SERVER_EXTENSION_ID = 'salesforce.apex-language-server-extension';
 const apexLanguageServer = {
   marketplaceExtensions: [APEX_LANGUAGE_SERVER_EXTENSION_ID],
-  minimumMarketplaceExtensionVersions: { [APEX_LANGUAGE_SERVER_EXTENSION_ID]: '0.11.0' }
+  minimumMarketplaceExtensionVersions: { [APEX_LANGUAGE_SERVER_EXTENSION_ID]: '0.12.0' }
 };
 
 const sharedUserSettings = {

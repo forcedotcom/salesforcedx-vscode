@@ -19,7 +19,7 @@ export const desktopTest = createDesktopTest({
     'salesforcedx-vscode-metadata'
   ],
   marketplaceExtensions: [APEX_LANGUAGE_SERVER_EXTENSION_ID],
-  minimumMarketplaceExtensionVersions: { [APEX_LANGUAGE_SERVER_EXTENSION_ID]: '0.11.0' },
+  minimumMarketplaceExtensionVersions: { [APEX_LANGUAGE_SERVER_EXTENSION_ID]: '0.12.0' },
   disableOtherExtensions: false,
   userSettings: {
     'git.terminalAuthentication': false,
