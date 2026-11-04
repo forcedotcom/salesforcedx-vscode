@@ -12,7 +12,7 @@ import { isError, isRecord } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { globSync, readFileSync } from 'node:fs';
 import { parse as parseYaml } from 'yaml';
-import { validateAction } from './shared/validateAction';
+import { validateAction } from './shared/validateAction.mts';
 
 // The bundled @action-validator/core schema predates schemastore's parallel-steps keys
 // (background/wait/wait-all, schemastore PR #5845). Those keys are valid GitHub Actions YAML,
@@ -230,4 +230,4 @@ const program = Stream.concat(
   Effect.tap(failureCount => Console.log(`${failureCount} failed.`))
 );
 
-void Effect.runPromise(program).then(failureCount => process.exit(failureCount > 0 ? 1 : 0));
+process.exit((await Effect.runPromise(program)) > 0 ? 1 : 0);

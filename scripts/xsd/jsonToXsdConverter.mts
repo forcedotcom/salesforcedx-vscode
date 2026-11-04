@@ -3,9 +3,9 @@
  * Convert metadata_types_map_scraped.json to XSD file compatible with the RedHat XML extension.
  */
 
+import type { MetadataTypesMap } from './scrapeUtils.mts';
 import * as fs from 'fs';
 import * as path from 'path';
-import { MetadataTypesMap } from './scrapeUtils';
 
 /**
  * Remove zero-width characters that cause XSD validation errors.
@@ -276,7 +276,14 @@ const createXsdFromJson = (jsonFilePath: string, outputFilePath: string): number
  * Main function to convert JSON to XSD.
  */
 const main = (): void => {
-  const workspaceRoot = path.resolve(__dirname, '..', '..');
+  if (process.argv.includes('--help')) {
+    console.log(
+      'Usage: node scripts/xsd/jsonToXsdConverter.mts\nConvert scraped metadata JSON to the metadata XSD file.'
+    );
+    return;
+  }
+
+  const workspaceRoot = path.resolve(import.meta.dirname, '..', '..');
   const jsonFile = path.join(workspaceRoot, 'packages/salesforcedx-vscode-core/metadata_types_map_scraped.json');
   const xsdFile = path.join(
     workspaceRoot,
@@ -306,7 +313,7 @@ const main = (): void => {
 };
 
 // Run the script
-if (require.main === module) {
+if (import.meta.main) {
   main();
 }
 
