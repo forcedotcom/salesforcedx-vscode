@@ -4,7 +4,7 @@
 
 #### salesforcedx-vscode-soql
 
-- We fixed a bug where **SOQL Builder** showed secondary recovery and duplicate parser errors for incomplete queries. ([PR #8400](https://github.com/forcedotcom/salesforcedx-vscode/pull/8400))
+- We fixed a bug where **SOQL Builder** showed duplicate or secondary parser recovery errors for incomplete queries. ([PR #8400](https://github.com/forcedotcom/salesforcedx-vscode/pull/8400))
 
 ## Under the Hood
 
