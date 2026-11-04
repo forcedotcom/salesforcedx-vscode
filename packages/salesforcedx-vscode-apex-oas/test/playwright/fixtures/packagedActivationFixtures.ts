@@ -12,6 +12,6 @@ export const oasVsixSmokeTest = createDesktopTest({
   fixturesDir: __dirname,
   useVsix: true,
   marketplaceExtensions: [APEX_LANGUAGE_SERVER_EXTENSION_ID],
-  minimumMarketplaceExtensionVersions: { [APEX_LANGUAGE_SERVER_EXTENSION_ID]: '0.11.0' },
+  minimumMarketplaceExtensionVersions: { [APEX_LANGUAGE_SERVER_EXTENSION_ID]: '0.12.0' },
   testExtensionPaths: ['test/playwright/fixtureExtensions/packagedActivation']
 });
