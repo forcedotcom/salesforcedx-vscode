@@ -7,12 +7,14 @@
 
 import { expect } from '@playwright/test';
 import {
+  clearAllNotifications,
   closeWelcomeTabs,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
   goToDefinition,
   goToLineCol,
   openFileByName,
+  openFileFromExplorerTree,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
@@ -22,8 +24,12 @@ import {
   WORKBENCH
 } from '@salesforce/playwright-vscode-ext';
 
-import { test } from '../fixtures';
+import { isContainer, test } from '../fixtures';
 import { waitForAuraLspReady } from '../utils/auraLspUtils';
+
+// force-app/main/default/aura/aura1 on desktop (fixtures/desktopFixtures.ts seeds it there); the
+// container's bind-mounted fixture project uses the same layout, so the path is shared.
+const AURA1_DIR = ['force-app', 'main', 'default', 'aura', 'aura1'];
 
 // The aura1 bundle is pre-seeded onto disk before launch (fixtures/desktopFixtures.ts); the Aura LS
 // indexes it on its startup scan. Go to Definition here is WITHIN-file: ref site L8
@@ -37,18 +43,31 @@ import { waitForAuraLspReady } from '../utils/auraLspUtils';
 // resolves the L8 binding correctly when the request fires at 8:15. `preserveSelection` skips that
 // focus-click (and the selection-clearing Escape), keeping the cursor where the test placed it.
 test('Aura LSP: go to definition', async ({ page }) => {
+  if (isContainer) {
+    test.setTimeout(3 * 60 * 1000);
+  }
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
   await test.step('setup', async () => {
+    // No-op once ready (container's fixture already awaited it); the real wait on desktop.
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
-    await waitForWorkspaceReady(page);
+    if (isContainer) {
+      // First container boot stacks telemetry/what's-new toasts that can cover the editor.
+      await clearAllNotifications(page);
+    } else {
+      await waitForWorkspaceReady(page);
+    }
   });
 
   await test.step('open aura1.cmp and wait for indexing complete', async () => {
-    await openFileByName(page, 'aura1.cmp');
+    if (isContainer) {
+      await openFileFromExplorerTree(page, 'aura1.cmp', AURA1_DIR);
+    } else {
+      await openFileByName(page, 'aura1.cmp');
+    }
     await waitForAuraLspReady(page);
     await saveScreenshot(page, 'auraLspGoToDefinition.indexing-complete.png');
   });

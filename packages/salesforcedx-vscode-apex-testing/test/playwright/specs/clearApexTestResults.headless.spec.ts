@@ -8,10 +8,14 @@
 import { expect } from '@playwright/test';
 
 import {
+  clearOutputChannel,
   createAndDeployApexTestClass,
+  ensureOutputPanelOpen,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
+  resetContainerWorkbench,
   saveScreenshot,
+  selectOutputChannel,
   setupConsoleMonitoring,
   setupNonTrackingOrgAndAuth,
   setupNetworkMonitoring,
@@ -19,7 +23,7 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
-import { test } from '../fixtures';
+import { isContainer, sharedTest as test } from '../fixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
 import {
   STALE_AUTOCOMPLETE_OPTION,
@@ -31,17 +35,27 @@ import {
   runAllTestsAndWaitForCompletion
 } from '../helpers/testExplorerHelpers';
 
+test.beforeEach(async ({ page }) => {
+  if (isContainer) {
+    await resetContainerWorkbench(page);
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Apex Testing');
+    await clearOutputChannel(page);
+  }
+});
+
 test('Clear Apex Test Results removes result files', async ({ page }) => {
   test.setTimeout(TEST_RUN_TIMEOUT);
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
-  let testClassName: string;
-
-  await test.step('setup non-tracking org with Apex test class', async () => {
-    await setupNonTrackingOrgAndAuth(page);
+  await test.step('setup Apex test class', async () => {
+    // The container uses its boot org, already authed at startup.
+    if (!isContainer) {
+      await setupNonTrackingOrgAndAuth(page);
+    }
     await ensureSecondarySideBarHidden(page);
-    testClassName = `ClearTestClass${Date.now()}`;
+    const testClassName = `ClearTestClass${Date.now()}`;
     const testClassContent = [
       '@isTest',
       `public class ${testClassName} {`,

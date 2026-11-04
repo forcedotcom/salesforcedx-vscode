@@ -1106,6 +1106,7 @@ export default [
             'createAuraTemplate',
             'createVisualforceTemplate',
             'runRefreshAndVerify',
+            'triggerLspRestart',
             'upsertSettings',
             'waitForEsrFile',
             'waitForItem',

@@ -8,8 +8,10 @@
 import { test as webTest } from '@playwright/test';
 
 import { desktopTest, emptyWorkspaceDesktopTest, noOrgDesktopTest, trackingDesktopTest } from './desktopFixtures';
+import { containerTest, containerWorkspaceTest } from './containerFixtures';
 
 const isDesktop = process.env.VSCODE_DESKTOP === '1';
+export const isContainer = process.env.VSCODE_CONTAINER === '1';
 
 // Keep browser open on test failure when in debug mode
 webTest.afterEach(async ({ page }, testInfo) => {
@@ -20,9 +22,16 @@ webTest.afterEach(async ({ page }, testInfo) => {
   }
 });
 
-// Export the appropriate test based on environment (fixtures differ)
-// expect is the same for both, so just re-export it directly
-export const test = isDesktop ? desktopTest : webTest;
-export const trackingTest = isDesktop ? trackingDesktopTest : webTest;
-export const emptyWorkspaceTest = isDesktop ? emptyWorkspaceDesktopTest : webTest;
-export const noOrgTest = isDesktop ? noOrgDesktopTest : webTest;
+// Shared variants additionally route through the container fixture when running inside Code
+// Builder (VSCODE_CONTAINER=1). The three-way ternary is mandatory: falling back to
+// `isDesktop ? X : webTest` (rather than just `X`) keeps a plain `npm run test:web` run (neither
+// VSCODE_DESKTOP nor VSCODE_CONTAINER set) on the plain-browser webTest fixture instead of
+// accidentally launching Electron via the desktop fixture.
+export const sharedTest = isContainer ? containerTest : isDesktop ? desktopTest : webTest;
+export const sharedTrackingTest = isContainer ? containerTest : isDesktop ? trackingDesktopTest : webTest;
+export const sharedNoOrgTest = isContainer ? containerTest : isDesktop ? noOrgDesktopTest : webTest;
+export const sharedEmptyWorkspaceTest = isContainer ? containerTest : isDesktop ? emptyWorkspaceDesktopTest : webTest;
+// For specs that touch workspace files via `workspaceDir` (desktop: the real workspace; container: the
+// host side of the fixture bind mount). No webTest branch — webTest has no `workspaceDir`, so such specs
+// skip on web and only collect there.
+export const sharedWorkspaceDirTest = isContainer ? containerWorkspaceTest : desktopTest;

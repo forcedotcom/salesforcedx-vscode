@@ -7,7 +7,10 @@
 
 import { expect, type Locator, type Page } from '@playwright/test';
 import {
+  activeQuickInputTextField,
   executeCommandWithCommandPalette,
+  openCommandPalette,
+  QUICK_INPUT_LIST_ROW,
   TEST_EXPLORER_PANEL,
   TEST_EXPLORER_TREE_ITEM,
   verifyNoTestRunInProgress
@@ -113,7 +116,22 @@ export const runAllTestsAndWaitForCompletion = async (page: Page, timeout: numbe
   const testResultsTab = page.locator(TEST_RESULTS_TAB);
   await testResultsTab.waitFor({ state: 'visible', timeout: 30_000 });
   await expect(page.getByText(/Pass Rate/i)).toBeVisible({ timeout });
-  await verifyNoTestRunInProgress(page);
+  try {
+    await verifyNoTestRunInProgress(page);
+  } catch (err) {
+    // TEMP DIAGNOSTIC (remove once root-caused): a 30s timeout bump here didn't help — confirmed via
+    // CI that this genuinely never clears within 30s, not a brief settling lag. An earlier version of
+    // this diagnostic filtered the palette by the generic '>Test:' prefix, which returned a loosely
+    // MRU-ranked top-N list that didn't actually prove whether the real check's exact-name query
+    // ('>Test: Cancel Test Run') would find it too — not an apples-to-apples comparison. Use the same
+    // exact filter the real check uses this time.
+    await openCommandPalette(page);
+    await activeQuickInputTextField(page).fill('>Test: Cancel Test Run');
+    const rows = await page.locator(QUICK_INPUT_LIST_ROW).allTextContents();
+    console.log('[diag:cancel-test-run-exact-filter]', JSON.stringify(rows));
+    await page.keyboard.press('Escape');
+    throw err;
+  }
 };
 
 /**

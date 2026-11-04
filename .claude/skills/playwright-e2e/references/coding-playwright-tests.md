@@ -55,6 +55,24 @@ await setWorkspaceApiVersion(workspaceDir, '66.0');
 - Load extra extensions via `additionalExtensionDirs` (e.g. metadata for LWC create). **Web** `headlessServer`: metadata + apex-log only (no core/apex, desktop only). **Desktop** fixture: metadata + apex-log + apex + core (core required for apex-testing UI features).
 - LWC LSP ready (`waitForLwcLspReady` in `salesforcedx-vscode-lwc` `test/playwright/utils/lwcUtils.ts`): **web** — `LWC Extension` output line `LWC Language Server: indexing complete`; **desktop** — Editor Language Status / legacy status text `Indexing complete` (language status item often missing on web)
 
+## Container Specs
+
+Container reuses workspace across specs; desktop isolates per-test. When specs modify settings via `upsertSettings`, reset them in `test.afterEach` when `isContainer` to prevent later specs inheriting changes:
+
+```typescript
+test.afterEach(async ({ page }) => {
+  if (isContainer) {
+    await upsertSettings(page, { 'setting.name': 'default-value' });
+  }
+});
+```
+
+**Metadata / file cleanup:** the container's workbench persists across specs, so a spec that creates throwaway classes or files records them and removes them in a container-only `test.afterEach` (metadata: `test/playwright/utils/containerCleanup.ts`):
+- `cleanupContainerApexClasses(classNames)` — deletes from project + org with tracking; if the org delete fails (never deployed) it warns and removes the files anyway
+- `cleanupContainerFiles(relativePaths)` — removes project-relative files (e.g. generated manifests)
+
+Both need `CB_CONTAINER_NAME` / `CB_FIXTURE_CONTAINER_DIR`, published by the orchestrator. See docs/codeBuilderContainerParity.md "Shared-workbench cleanup".
+
 ## Virtualized DOM
 
 VS Code API (tree views, editors, output panels) only contains visible DOM lines (rest not present until scrolled into view).
@@ -63,6 +81,8 @@ VS Code API (tree views, editors, output panels) only contains visible DOM lines
 - Don't rely on `scrollTo` - target element won't exist
 - `scrollIntoViewIfNeeded` probably won't help
 - **Tree item count:** Use `aria-setsize` (VS Code's tree model count) instead of `.count()` (DOM nodes). Reads full child count regardless of viewport. Pattern: `getByRole('treeitem', { level: 1 }).first().getAttribute('aria-setsize')`. See `OrgBrowserPage` helpers: `getRootTypeCount()`, `waitForRootTypeCount(expected)`, `getStableRootTypeCount()` (tolerates scroll/unmount race)
+- **Monaco editors after `insertText`:** `page.keyboard.insertText(content)` leaves the cursor — and therefore Monaco's scroll position — at the end of the pasted content, so `.view-lines` no longer renders line 1. If you then assert `.view-lines` contains text from near the top of the file (e.g. an `@IsTest` annotation), press `Control+Home` first to scroll back to the start before checking.
+- **Searching editor content beyond viewport:** `.view-lines` omits off-screen text. Use `find(page)` to open Find widget (searches full model). Pattern: `assertOpenEditorContainsText` (`salesforcedx-vscode-lwc/test/playwright/utils/lwcUtils.ts`). Supports `string` (literal) or `RegExp` (toggles regex checkbox).
 
 ## Modal Dialog Buttons
 
@@ -85,7 +105,7 @@ await page.keyboard.press('Escape');
 - Prefer `aria` (getByRole) over css selectors
 - `expect` assertions need clear error messages. Import `expect` from playwright
 - `playwright/expect-expect` error (`eslint.config.mjs`) — `test()`: `assert*`/`expect*`/`verify*` or a named helper. outer-helper `expect`: ignored
-- `playwright/no-conditional-expect` error — `expect` outside `if` / `catch` / `?:` / `&&` / `||` / `??` / `switch`, off `.catch()`. assert outcome
+- `playwright/no-conditional-expect` error — `expect` outside conditionals (`if`, `catch`, `?:`, `&&`, `||`, `??`, `switch`). When branching on runtime conditions (e.g., `isContainer`), split into separate helpers: `const verifyDesktop = async () => { await expect(…) }` and `const verifyContainer = async () => { await expect(…) }`, then dispatch via `await (isContainer ? verifyContainer : verifyDesktop)()`. Keeps assertions unconditional while allowing environment-specific logic.
 - Fail early, avoid fallbacks/retries
 - Reusable locators belong in `locators.ts` - check before creating new ones
 
@@ -115,6 +135,7 @@ Reference: `salesforcedx-vscode-lwc` `lwcRunTests.desktop.spec.ts` / `lwcDebugTe
 
 - Use `f1` for commands, not meta-shift-P
 - Use `Control` for all. No ControlOrMeta
+- Debug Step Into: Alt+F11 in code-server, F11 on desktop — browser reserves F11 for fullscreen
 
 ## Native VS Code Commands
 
@@ -175,6 +196,31 @@ await clickCodeLens(page, 'Debug'); // or run debug command
 
 Use `ensureOutputPanelOpen(page)` to prepare output during setup; close before each debug trigger to prevent interference.
 
+**Commands with active editor context:** Commands gated by active-editor `when` clauses (e.g., `SFDX: Deploy This Source to Org`, `generateManifest` with no explorer selection) silently fail if the editor isn't focused. Output-panel operations (`ensureOutputPanelOpen`, `selectOutputChannel`, `clearOutputChannel`) shift focus away from the editor, so commands that need it must re-focus the editor first:
+
+```typescript
+// Output panel work shifts active view
+await ensureOutputPanelOpen(page);
+await selectOutputChannel(page, 'Output Channel');
+await clearOutputChannel(page);
+
+// Editor-context command now needs editor re-focused
+const editor = page.locator(`[data-uri*="MyFile.apex"]`).first();
+await editor.click(); // Re-focus the editor tab
+await executeCommandWithCommandPalette(page, editorContextCommand);
+```
+
+**Output text with a variable gap:** don't put column spacing in `expectedText` (web filters by it literally; wrapped rows change whitespace). Filter by a plain substring, assert the rest with `expectedPattern`:
+
+```typescript
+await waitForOutputChannelText(page, {
+  expectedText: 'Class.method',
+  expectedPattern: /Class\.method\s+(?:\S+\s+)?Pass\b/
+});
+```
+
+Apex per-method rows: `waitForApexMethodPassLine` (apex-testing `helpers/waitForApexRunOutputLine.ts`).
+
 ## Notifications and Toast Messages
 
 Click notification action buttons IMMEDIATELY after the toast appears — palette/maximize ops hide toasts before deferred clicks.
@@ -193,7 +239,7 @@ await acceptNotification(page, /pattern/, 'Action Name', { timeout: 60_000 });
 // Step 2: Separate step to verify output channel after action completed
 await test.step('verify output channel', async () => {
   await selectOutputChannel(page, 'Output Channel Name');
-  await waitForOutputChannelText(page, /expected text/);
+  await waitForOutputChannelText(page, { expectedText: 'expected text' });
 });
 ```
 

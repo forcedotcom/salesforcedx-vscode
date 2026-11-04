@@ -1,0 +1,24 @@
+# This fixture is bind-mounted into a running Code Builder container (and copied for desktop/web
+# runs), so "SFDX: Create/Generate ..." specs and anonymous-Apex/SOQL-script specs scaffold real,
+# uniquely (Date.now()-suffixed) named files anywhere under force-app/main/default/ or scripts/ on
+# every local run. Ignore everything in those trees except the fixture's own seed files, so a local
+# run never shows up as untracked changes to commit.
+
+force-app/main/default/**
+!force-app/main/default/classes/
+!force-app/main/default/classes/ExampleClass.cls
+!force-app/main/default/classes/ExampleClass.cls-meta.xml
+!force-app/main/default/classes/ExampleClassTest.cls
+!force-app/main/default/classes/ExampleClassTest.cls-meta.xml
+!force-app/main/default/classes/PagedResult.cls
+!force-app/main/default/classes/PagedResult.cls-meta.xml
+!force-app/main/default/classes/PagedResultTest.cls
+!force-app/main/default/classes/PagedResultTest.cls-meta.xml
+!force-app/main/default/aura/
+!force-app/main/default/aura/aura1/
+!force-app/main/default/aura/aura1/aura1.cmp
+!force-app/main/default/aura/aura1/aura1.cmp-meta.xml
+
+scripts/**
+!scripts/apex/
+!scripts/apex/ExampleAnon.apex

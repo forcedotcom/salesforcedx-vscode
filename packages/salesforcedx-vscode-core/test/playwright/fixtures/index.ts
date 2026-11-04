@@ -5,5 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-// Core Playwright tests are desktop-only (no web variant)
-export { desktopTest as test } from './desktopFixtures';
+import { containerTest } from './containerFixtures';
+import { desktopTest } from './desktopFixtures';
+
+export const isContainer = process.env.VSCODE_CONTAINER === '1';
+
+// Core Playwright tests are desktop-only (no web variant); this is for the handful that also share
+// coverage with container. Runs on `desktopTest` normally; on `containerTest` in container mode.
+export const test = isContainer ? containerTest : desktopTest;

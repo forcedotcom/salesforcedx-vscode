@@ -23,7 +23,7 @@ import {
   waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
-import { test } from '../fixtures';
+import { isContainer, sharedTest as test } from '../fixtures';
 
 test('LWC Generate Component: creates new LWC via command palette', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
@@ -31,10 +31,15 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
   const componentName = `generateLwcTest${Date.now()}`;
 
   await test.step('setup with no org', async () => {
-    await waitForVSCodeWorkbench(page);
+    // The containerTest fixture already awaited workbench readiness before handing over `page`.
+    if (!isContainer) {
+      await waitForVSCodeWorkbench(page);
+    }
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
-    await waitForWorkspaceReady(page);
+    if (!isContainer) {
+      await waitForWorkspaceReady(page);
+    }
     await saveScreenshot(page, 'setup.after-workbench.png');
   });
 
@@ -79,31 +84,31 @@ test('LWC Generate Component: creates new LWC via command palette', async ({ pag
 
   await test.step('verify component was created correctly', async () => {
     const editorTab = page.locator('[role="tab"]').filter({ hasText: new RegExp(`${componentName}\\.js`, 'i') });
-    await expect(editorTab).toBeVisible({ timeout: 1000 });
+    await expect(editorTab).toBeVisible({ timeout: 5000 });
     await saveScreenshot(page, 'step2.tab-visible.png');
 
     const explorerFolder = page
       .locator('[role="treeitem"]')
       .filter({ hasText: new RegExp(`${componentName}$`, 'i') })
       .first();
-    await expect(explorerFolder).toBeVisible({ timeout: 500 });
+    await expect(explorerFolder).toBeVisible({ timeout: 5000 });
     await saveScreenshot(page, 'step2.folder-in-explorer.png');
 
     const editorContent = page.locator(`[data-uri*="${componentName}.js"]`).first();
-    await expect(editorContent).toBeVisible({ timeout: 500 });
+    await expect(editorContent).toBeVisible({ timeout: 5000 });
 
     const editorText = page.locator('.view-lines').first();
-    await expect(editorText).toContainText('import { LightningElement }', { timeout: 100 });
+    await expect(editorText).toContainText('import { LightningElement }', { timeout: 5000 });
     await saveScreenshot(page, 'step2.component-content-verified.png');
 
-    // Explorer: folder auto-expanded when .js opened. Same on web and desktop.
+    // Explorer: folder auto-expanded when .js opened. Same on web, desktop, and container.
     await expect(page.getByRole('treeitem', { name: new RegExp(`${componentName}\\.html$`, 'i') })).toBeVisible({
-      timeout: 2000
+      timeout: 5000
     });
     await expect(
       page.getByRole('treeitem', { name: new RegExp(`${componentName}\\.js-meta\\.xml$`, 'i') })
-    ).toBeVisible({ timeout: 2000 });
-    await expect(page.getByRole('treeitem', { name: '__tests__' })).toBeVisible({ timeout: 2000 });
+    ).toBeVisible({ timeout: 5000 });
+    await expect(page.getByRole('treeitem', { name: '__tests__' })).toBeVisible({ timeout: 5000 });
     await saveScreenshot(page, 'step2.all-files-verified.png');
   });
 

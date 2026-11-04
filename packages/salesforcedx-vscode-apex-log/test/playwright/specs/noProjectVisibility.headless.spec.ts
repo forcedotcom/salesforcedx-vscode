@@ -13,9 +13,16 @@ import {
   isDesktop
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
-import { emptyWorkspaceTest as test } from '../fixtures';
+import { emptyWorkspaceTest, isContainer, test as containerTest } from '../fixtures';
 
-(isDesktop() ? test : test.skip.bind(test))(
+// The container runs this in its NON-project phase: the orchestrator opens the standard DX fixture
+// first, then re-seeds coder.json to the container-noproject mount + restarts and runs this suite
+// (test:container:noproject). It re-runs the extension verify gate after that restart, so reaching this
+// spec there means the apex-log extension IS installed — a command missing from the palette is the
+// project gate hiding it, not a failure to load the extension.
+const test = isContainer ? containerTest : emptyWorkspaceTest;
+
+(isDesktop() || isContainer ? test : test.skip.bind(test))(
   'Apex Log commands are hidden when no project is open',
   async ({ page }) => {
     const consoleErrors = setupConsoleMonitoring(page);

@@ -6,10 +6,11 @@
  */
 
 /*
- * "SFDX: Stop Apex Debugger Session" against a real org.
+ * "SFDX: Stop Apex Debugger Session" against a real org. Runs on desktop (real Electron host, a fresh
+ * minimal scratch org) and, unchanged, against the Code Builder container's boot-authed org.
  *
- * Branch (a) — no active ApexDebuggerSession — is exercised here end-to-end: a fresh minimal scratch org
- * has no active session, so the command must report `debugger_stop_none_found_text`.
+ * Branch (a) — no active ApexDebuggerSession — is exercised here end-to-end: the org has no active
+ * session, so the command must report `debugger_stop_none_found_text`.
  *
  * Branch (b) — an active session detached via the tooling update — requires an ACTIVE ApexDebuggerSession
  * record, which only exists while an Apex Debugger session (an ISV-licensed / Debug-Only-licensed capability)
@@ -19,6 +20,7 @@
  */
 
 import {
+  clearAllNotifications,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
@@ -31,7 +33,7 @@ import {
   waitForVSCodeWorkbench,
   waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
-import { debuggerDesktopTest as test } from '../fixtures';
+import { debuggerTest as test } from '../fixtures';
 import packageNls from '../../../package.nls.json';
 import { messages } from '../../../src/messages/i18n';
 
@@ -42,9 +44,13 @@ test('Stop Apex Debugger Session: reports none found when no active session exis
   const networkErrors = setupNetworkMonitoring(page);
 
   await test.step('wait for workbench', async () => {
+    // No-op once ready (container's fixture already awaited it); the real wait on desktop.
     await waitForVSCodeWorkbench(page);
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
+    // Best-effort: only container's shared, persistent workbench can carry a notification over
+    // from a prior spec.
+    await clearAllNotifications(page);
     await waitForWorkspaceReady(page);
     await saveScreenshot(page, 'debuggerStop.01-ready.png');
   });
