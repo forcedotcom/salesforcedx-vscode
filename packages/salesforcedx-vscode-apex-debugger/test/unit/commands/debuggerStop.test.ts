@@ -7,6 +7,7 @@
 
 import type { Mock as VitestMock } from 'vitest';
 import { AuthInfo, Connection } from '@salesforce/core';
+import type * as SalesforceCore from '@salesforce/core';
 import * as effectExtUtils from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
@@ -15,8 +16,8 @@ import { NotificationModeService } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { debuggerStop } from '../../../src/commands/debuggerStop';
 
-vi.mock(import('@salesforce/core'), async importOriginal => ({
-  ...(await importOriginal()),
+vi.mock('@salesforce/core', async () => ({
+  ...(await vi.importActual<typeof SalesforceCore>('@salesforce/core')),
   AuthInfo: { create: vi.fn() },
   Connection: { create: vi.fn() }
 }));
