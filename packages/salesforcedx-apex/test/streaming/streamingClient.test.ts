@@ -10,9 +10,8 @@ import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import { StreamingClient, Deferred } from '../../src/streaming/streamingClient';
 import { Client, Subscription } from 'faye';
 import { fail } from 'node:assert';
-import { type Progress } from '../../src';
+import { type ApexTestProgressReporter } from '../../src';
 import { type StreamMessage, type TestResultMessage } from '../../src/streaming/types';
-import { type ApexTestProgressValue } from '../../src/tests/types';
 import { nls } from '../../src/i18n';
 import { EventEmitter } from 'node:events';
 import { Duration } from '@salesforce/kit';
@@ -219,7 +218,7 @@ describe('Streaming API Client', () => {
 
   it('should report streamingTransportUp progress', () => {
     const reportStub = $$.SANDBOX.stub();
-    const progressReporter: Progress<ApexTestProgressValue> = {
+    const progressReporter: ApexTestProgressReporter = {
       report: reportStub
     };
     const mockApexFayeClient = new EventEmitter();
@@ -241,7 +240,7 @@ describe('Streaming API Client', () => {
 
   it('should report streamingTransportDown progress', () => {
     const reportStub = $$.SANDBOX.stub();
-    const progressReporter: Progress<ApexTestProgressValue> = {
+    const progressReporter: ApexTestProgressReporter = {
       report: reportStub
     };
     const mockApexFayeClient = new EventEmitter();
@@ -276,7 +275,7 @@ describe('Streaming API Client', () => {
       ]
     });
     const reportStub = $$.SANDBOX.stub();
-    const progressReporter: Progress<ApexTestProgressValue> = {
+    const progressReporter: ApexTestProgressReporter = {
       report: reportStub
     };
 
@@ -308,7 +307,7 @@ describe('Streaming API Client', () => {
       ]
     });
     const reportStub = $$.SANDBOX.stub();
-    const progressReporter: Progress<ApexTestProgressValue> = {
+    const progressReporter: ApexTestProgressReporter = {
       report: reportStub
     };
 

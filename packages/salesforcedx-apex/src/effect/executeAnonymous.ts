@@ -8,88 +8,32 @@
 import type { HttpRequest } from '@jsforce/jsforce-node';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
+import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import { action, soapBody, soapEnv, soapHeader } from '../execute/types';
 import { encodeBody } from '../execute/utils';
 import { messages } from '../i18n/i18n';
+import { causeMessage } from './errors';
 import {
   ApexCompileError,
   ApexOperationError,
+  ApexRequestError,
   ApexResponseDecodeError,
   ApexRuntimeError,
-  causeMessage
-} from './errors';
+  InvalidSessionError
+} from './schema/errors';
+import { ExecuteAnonymousOptionsSchema, type ExecuteAnonymousOptions } from './schema/executeAnonymous';
+import {
+  executeAnonymousAction,
+  executionResultSchema,
+  isInvalidSessionError,
+  soapBody,
+  soapEnv,
+  soapHeader,
+  soapResponseSchema
+} from './schema/wire/executeAnonymous';
 
 const operation = 'executeAnonymous';
-class ApexRequestError extends Schema.TaggedError<ApexRequestError>()('ApexRequestError', {
-  message: Schema.String,
-  invalidSession: Schema.Boolean
-}) {}
-
-/** Apex source selected by the caller; file and terminal input belong to the host. */
-export const ExecuteAnonymousOptionsSchema = Schema.Struct({ apexCode: Schema.String }).annotations({
-  identifier: 'ExecuteAnonymousOptions'
-});
-export type ExecuteAnonymousOptions = typeof ExecuteAnonymousOptionsSchema.Type;
-
-/** Execution details and the debug log returned by the Apex SOAP endpoint. */
-const resultFields = {
-  compileProblem: Schema.NullOr(Schema.String),
-  line: Schema.Number,
-  column: Schema.Number,
-  exceptionMessage: Schema.NullOr(Schema.String),
-  exceptionStackTrace: Schema.NullOr(Schema.String)
-};
-const ExecutionResultSchema = Schema.Union(
-  Schema.Struct({ ...resultFields, compiled: Schema.Literal(false), success: Schema.Literal(false) }),
-  Schema.Struct({ ...resultFields, compiled: Schema.Literal(true), success: Schema.Literal(false) }),
-  Schema.Struct({ ...resultFields, compiled: Schema.Literal(true), success: Schema.Literal(true) })
-);
-export const ExecuteAnonymousOutcomeSchema = Schema.Struct({
-  compiled: Schema.Literal(true),
-  success: Schema.Literal(true),
-  line: Schema.Number,
-  column: Schema.Number,
-  logBody: Schema.optional(Schema.String)
-}).annotations({ identifier: 'ExecuteAnonymousOutcome' });
-export type ExecuteAnonymousOutcome = typeof ExecuteAnonymousOutcomeSchema.Type;
-
-// Generic Connection.request uses xml2js: nil elements retain their attributes; empty elements may be {}.
-const soapNilText: { $: { 'xsi:nil': 'true' } } = { $: { 'xsi:nil': 'true' } };
-const SoapText = Schema.transform(
-  Schema.Union(
-    Schema.String,
-    Schema.Struct({ $: Schema.Struct({ 'xsi:nil': Schema.Literal('true') }) }),
-    Schema.Record({ key: Schema.String, value: Schema.Never })
-  ),
-  Schema.NullOr(Schema.String),
-  {
-    strict: true,
-    decode: value => (typeof value === 'string' ? value : null),
-    encode: value => value ?? soapNilText
-  }
-);
-const SoapInteger = Schema.Union(Schema.Int, Schema.NumberFromString.pipe(Schema.int()));
-const SoapResponseSchema = Schema.Struct({
-  [soapEnv]: Schema.Struct({
-    [soapHeader]: Schema.optional(
-      Schema.Struct({ DebuggingInfo: Schema.optional(Schema.Struct({ debugLog: Schema.String })) })
-    ),
-    [soapBody]: Schema.Struct({
-      executeAnonymousResponse: Schema.Struct({
-        result: Schema.Struct({
-          compiled: Schema.BooleanFromString,
-          success: Schema.BooleanFromString,
-          line: SoapInteger,
-          column: SoapInteger,
-          compileProblem: SoapText,
-          exceptionMessage: SoapText,
-          exceptionStackTrace: SoapText
-        })
-      })
-    })
-  })
-});
+const optionalLogBody = (logBody: string | undefined) => (isUndefined(logBody) ? {} : { logBody });
 
 const operationError = (cause: unknown, message = causeMessage(cause)): ApexOperationError =>
   new ApexOperationError({ operation, message, cause: causeMessage(cause) });
@@ -101,22 +45,15 @@ const buildRequest = (connection: Connection, code: string): HttpRequest => {
     method: 'POST',
     url: `${connection.instanceUrl}/services/Soap/s/${connection.version}/${accessToken.split('!')[0]}`,
     body: encodeBody(accessToken, code),
-    headers: { 'content-type': 'text/xml', soapaction: action }
+    headers: { 'content-type': 'text/xml', soapaction: executeAnonymousAction }
   };
 };
 
-const InvalidSessionErrorSchema = Schema.Struct({
-  name: Schema.Literal('ERROR_HTTP_500'),
-  message: Schema.String.pipe(Schema.pattern(/INVALID_SESSION_ID/))
-});
-const isInvalidSession = Schema.is(InvalidSessionErrorSchema);
-
 const parseResponse = (response: unknown) =>
-  Schema.decodeUnknown(SoapResponseSchema)(response).pipe(
+  Schema.decodeUnknown(soapResponseSchema)(response).pipe(
     Effect.flatMap(({ [soapEnv]: envelope }) =>
-      Schema.decodeUnknown(ExecutionResultSchema)(envelope[soapBody].executeAnonymousResponse.result).pipe(
-        // Keep absent and empty logs distinct for the class/CLI response contract.
-        Effect.map(result => ({ ...result, logBody: envelope[soapHeader]?.DebuggingInfo?.debugLog }))
+      Schema.decodeUnknown(executionResultSchema)(envelope[soapBody].executeAnonymousResponse.result).pipe(
+        Effect.map(result => ({ ...result, ...optionalLogBody(envelope[soapHeader]?.DebuggingInfo?.debugLog) }))
       )
     ),
     Effect.catchTag('ParseError', cause =>
@@ -140,7 +77,7 @@ const refineExecutionResult = Effect.fn('Apex.refineExecutionResult')(function* 
       line: result.line,
       column: result.column,
       compileProblem: result.compileProblem,
-      logBody: result.logBody
+      ...optionalLogBody(result.logBody)
     });
   }
   if (!result.success) {
@@ -151,22 +88,23 @@ const refineExecutionResult = Effect.fn('Apex.refineExecutionResult')(function* 
       column: result.column,
       exceptionMessage: result.exceptionMessage,
       exceptionStackTrace: result.exceptionStackTrace,
-      logBody: result.logBody
+      ...optionalLogBody(result.logBody)
     });
   }
-  return yield* Effect.succeed<ExecuteAnonymousOutcome>({
-    compiled: true,
-    success: true,
-    line: result.line,
-    column: result.column,
-    logBody: result.logBody
-  });
+  return {
+    compiled: true as const,
+    success: true as const,
+    ...optionalLogBody(result.logBody)
+  };
 });
 
 const sendRequest = (connection: Connection, code: string) =>
   Effect.tryPromise({
     try: () => connection.request<unknown>(buildRequest(connection, code)),
-    catch: cause => new ApexRequestError({ message: causeMessage(cause), invalidSession: isInvalidSession(cause) })
+    catch: cause =>
+      isInvalidSessionError(cause)
+        ? new InvalidSessionError({ message: causeMessage(cause) })
+        : new ApexRequestError({ message: causeMessage(cause) })
   });
 
 /** Executes anonymous Apex and exposes compilation/runtime failures as typed errors. */
@@ -179,21 +117,20 @@ export const executeAnonymous = Effect.fn('Apex.executeAnonymous')(function* (
   );
   return yield* sendRequest(connection, apexCode).pipe(
     // Only the first SOAP session fault triggers refresh. Rebuild the request after the token changes.
-    Effect.catchTag('ApexRequestError', error =>
-      error.invalidSession
-        ? Effect.tryPromise({
-            try: () => connection.request({ url: connection.baseUrl(), method: 'GET' }),
-            catch: refreshCause => operationError(refreshCause)
-          }).pipe(Effect.flatMap(() => sendRequest(connection, apexCode)))
-        : Effect.fail(error)
+    Effect.catchTag('InvalidSessionError', () =>
+      Effect.tryPromise({
+        try: () => connection.request({ url: connection.baseUrl(), method: 'GET' }),
+        catch: refreshCause => operationError(refreshCause)
+      }).pipe(Effect.flatMap(() => sendRequest(connection, apexCode)))
+    ),
+    Effect.catchTag('InvalidSessionError', error =>
+      Effect.fail(operationError(error.message, messages.authForAnonymousApexFailed))
     ),
     Effect.catchTag('ApexRequestError', error =>
       Effect.fail(
         operationError(
           error.message,
-          error.invalidSession
-            ? messages.authForAnonymousApexFailed
-            : messages.unexpectedExecuteCommandError.replace('%s', () => error.message)
+          messages.unexpectedExecuteCommandError.replace('%s', () => error.message)
         )
       )
     ),

@@ -5,9 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getDiagnostic as getTestDiagnostic } from '../effect/diagnostics';
+import { getDiagnostic as getTestDiagnostic, type ApexDiagnostic } from '../effect/diagnostics';
 import { nls } from '../i18n';
-import { type ApexDiagnostic } from '../utils/types';
 import { type ApexTestResultRecord, type SyncTestFailure } from './types';
 
 export function formatTestErrors(error: Error): Error {
@@ -21,7 +20,12 @@ export function formatTestErrors(error: Error): Error {
 }
 
 export function getDiagnostic(record: SyncTestFailure | ApexTestResultRecord): ApexDiagnostic {
-  return getTestDiagnostic(
+  const diagnostic = getTestDiagnostic(
     'MethodName' in record ? { message: record.Message, stackTrace: record.StackTrace } : record
   );
+  return {
+    ...diagnostic,
+    exceptionMessage: diagnostic.exceptionMessage ?? '',
+    exceptionStackTrace: diagnostic.exceptionStackTrace ?? ''
+  };
 }

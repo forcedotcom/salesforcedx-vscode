@@ -8,7 +8,11 @@ import { type Connection } from '@salesforce/core';
 import { type Duration } from '@salesforce/kit';
 import * as Effect from 'effect/Effect';
 import * as Either from 'effect/Either';
+import * as FiberRef from 'effect/FiberRef';
+import * as HashSet from 'effect/HashSet';
+import * as Logger from 'effect/Logger';
 import * as Option from 'effect/Option';
+import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { JsonStreamStringify } from 'json-stream-stringify';
 import { createWriteStream } from 'node:fs';
@@ -16,24 +20,23 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Readable, type Writable, type Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
-import { type CancellationToken } from '../common/cancellation';
-import { type Progress } from '../common/types';
-import { ApexOperationError, ApexResponseDecodeError } from '../effect/errors';
+import { ApexOperationError, ApexResponseDecodeError } from '../effect/schema/errors';
 import { buildAsyncPayload, buildSyncPayload } from '../effect/testPayloads';
 import { buildSuite, getTestsInSuite, retrieveAllSuites, retrieveSuiteId } from '../effect/testSuites';
 import { nls } from '../i18n';
 import { JUnitFormatTransformer } from '../reporters/junitFormatTransformer';
 import { MarkdownTextFormatTransformer } from '../reporters/markdownTextFormatTransformer';
 import { TapFormatTransformer } from '../reporters/tapFormatTransform';
-import { SalesforceId } from '../schemas/salesforceId';
+import { ApexTestSuiteId } from '../schemas/salesforceId';
 import { TestResultStringifyStream } from '../streaming/testResultStringifyStream';
 import { elapsedTime } from '../utils/elapsedTime';
 import { HeapMonitor } from '../utils/heapMonitor';
 import { AsyncTests } from './asyncTests';
+import { type CancellationToken } from './cancellation';
 import { formatTestErrors } from './diagnosticUtil';
 import { SyncTests } from './syncTests';
 import {
-  type ApexTestProgressValue,
+  type ApexTestProgressReporter,
   type AsyncTestArrayConfiguration,
   type AsyncTestConfiguration,
   type OutputDirConfig,
@@ -77,8 +80,9 @@ export const writeResultFiles = async (
 
   const hasTestResult = Schema.is(TestResultSchema)(result);
   const testRunId = hasTestResult ? result.summary.testRunId : result.testRunId;
+  const fileId = testRunId || 'default';
 
-  if (testRunId) {
+  if (isNotUndefined(testRunId)) {
     try {
       await writeFile(join(dirPath, 'test-run-id.txt'), testRunId);
       filesWritten.push(join(dirPath, 'test-run-id.txt'));
@@ -89,7 +93,6 @@ export const writeResultFiles = async (
 
   if (resultFormats && hasTestResult) {
     assertResultFileFormats(resultFormats);
-    const fileId = testRunId || 'default';
     for (const format of resultFormats) {
       let filePath;
       let readable;
@@ -130,7 +133,6 @@ export const writeResultFiles = async (
   }
 
   if (codeCoverage && hasTestResult) {
-    const fileId = testRunId || 'default';
     const filePath = join(dirPath, `test-result-${fileId}-codecoverage.json`);
     const c = result.tests.map(record => record.perClassCoverage).filter(pcc => pcc?.length);
     filesWritten.push(await runPipeline(new JsonStreamStringify(c), filePath));
@@ -153,6 +155,9 @@ export const writeResultFiles = async (
 /** Keeps typed failures as ordinary Promise rejections for existing class consumers. */
 const runTestServiceOperation = async <A, E extends Error>(operation: Effect.Effect<A, E>): Promise<A> =>
   Either.getOrThrowWith(await operation.pipe(Effect.either, Effect.runPromise), formatTestErrors);
+
+// Preserve the class API's plain console messages while Effect consumers select their own logger.
+const suiteConsoleLogger = Logger.make(({ message }) => console.log(...(Array.isArray(message) ? message : [message])));
 
 export class TestService {
   private readonly connection: Connection;
@@ -198,7 +203,7 @@ export class TestService {
                 })
               ),
             onSome: id =>
-              Schema.decodeUnknown(SalesforceId)(id).pipe(
+              Schema.decodeUnknown(ApexTestSuiteId)(id).pipe(
                 Effect.mapError(
                   cause =>
                     new ApexResponseDecodeError({
@@ -223,7 +228,13 @@ export class TestService {
    * @internal Used by the co-repo Apex Testing extension; not part of the supported npm API.
    */
   public async buildSuite(suitename: string, testClasses: string[]): Promise<void> {
-    return runTestServiceOperation(buildSuite(this.connection, suitename, testClasses));
+    return runTestServiceOperation(
+      buildSuite(this.connection, suitename, testClasses).pipe(
+        Effect.locallyWith(FiberRef.currentLoggers, loggers =>
+          loggers.pipe(HashSet.remove(Logger.defaultLogger), HashSet.add(suiteConsoleLogger))
+        )
+      )
+    );
   }
 
   /**
@@ -260,7 +271,7 @@ export class TestService {
     options: AsyncTestConfiguration | AsyncTestArrayConfiguration,
     codeCoverage = false,
     immediatelyReturn = false,
-    progress?: Progress<ApexTestProgressValue>,
+    progress?: ApexTestProgressReporter,
     token?: CancellationToken,
     timeout?: Duration,
     interval?: Duration

@@ -5,14 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export { CancellationTokenSource } from './common/cancellation';
-export type { CancellationToken } from './common/cancellation';
-export type { Progress } from './common/types';
+export { CancellationTokenSource } from './tests/cancellation';
+export type { CancellationToken } from './tests/cancellation';
+export type { ApexTestProgressReporter } from './tests/types';
 export type { ExecuteAnonymousResponse, ApexExecuteOptions } from './execute/types';
 export { ExecuteService } from './execute/executeService';
 export { LogService } from './logs/logService';
 export type { ApexLogGetOptions, LogRecord, LogResult } from './logs/types';
-export { ApexClassId, ApexLogId, ApexTriggerId, SalesforceId, TestRunId, UserId } from './schemas/salesforceId';
+export {
+  ApexClassId,
+  ApexLogId,
+  ApexTestSuiteId,
+  ApexTriggerId,
+  SalesforceId,
+  TestRunId,
+  UserId
+} from './schemas/salesforceId';
 export { JUnitReporter } from './reporters/junitReporter';
 export { TapReporter } from './reporters/tapReporter';
 export { HumanReporter } from './reporters/humanReporter';
@@ -51,4 +59,5 @@ export type {
   TestRunIdResult,
   TestSuiteMembershipRecord
 } from './tests/types';
-export type { ApexDiagnostic, CommonOptions, LogLevel } from './utils/types';
+export type { ApexDiagnostic } from './effect/diagnostics';
+export type { CommonOptions, LogLevel } from './utils/types';

@@ -15,6 +15,7 @@ import type {
 } from '../effect/schema/wire/coverage';
 import * as Schema from 'effect/Schema';
 import { CodeCoverageResultSchema, PerClassCoverageSchema } from '../effect/coverageSchemas';
+import { ApexDiagnosticSchema } from '../effect/diagnostics';
 import {
   ApexLogIdString,
   ApexClassIdString,
@@ -354,15 +355,6 @@ export type ApexTestQueueItem = {
   records: ApexTestQueueItemRecord[];
 };
 
-export const ApexDiagnosticSchema = Schema.Struct({
-  lineNumber: Schema.optional(Schema.Number),
-  columnNumber: Schema.optional(Schema.Number),
-  exceptionMessage: Schema.optional(Schema.NonEmptyString),
-  compileProblem: Schema.optional(Schema.NonEmptyString),
-  exceptionStackTrace: Schema.optional(Schema.NonEmptyString),
-  className: Schema.optional(Schema.String)
-}).pipe(Schema.mutable, Schema.annotations({ identifier: 'ApexDiagnostic' }));
-
 const ApexTestResultDataFields = {
   /** Salesforce Apex or Flow test result ID; absent for synchronous results. */
   id: Schema.optional(Schema.Union(ApexTestResultIdString, FlowTestResultIdString)),
@@ -485,6 +477,9 @@ export type NamespaceInfo = {
   installedNs: boolean;
   namespace: string;
 };
+
+/** @internal Progress callback used by the co-repo extension's Promise test API. */
+export type ApexTestProgressReporter = { report: (value: ApexTestProgressValue) => void };
 
 export type ApexTestProgressValue =
   | {

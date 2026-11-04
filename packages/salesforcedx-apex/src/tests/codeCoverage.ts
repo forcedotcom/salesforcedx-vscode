@@ -7,7 +7,7 @@
 
 import type { PerClassCoverage } from './types';
 import type { AggregateCodeCoverageResult } from '../effect/coverageSchemas';
-import type { ApexOperationError, ApexResponseDecodeError } from '../effect/errors';
+import type { ApexOperationError, ApexResponseDecodeError } from '../effect/schema/errors';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as Either from 'effect/Either';
