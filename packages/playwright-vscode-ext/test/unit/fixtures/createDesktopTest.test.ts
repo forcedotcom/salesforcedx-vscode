@@ -9,13 +9,13 @@ import { meetsMinimumMarketplaceExtensionVersion } from '../../../src/fixtures/c
 
 describe('meetsMinimumMarketplaceExtensionVersion', () => {
   it.each([
-    ['0.10.9', false],
-    ['0.11.0', true],
-    ['0.11.1', true],
+    ['0.11.9', false],
     ['0.12.0', true],
+    ['0.12.1', true],
+    ['0.13.0', true],
     ['1.0.0', true],
     ['invalid', false]
-  ])('requires Apex LS 0.11.0 or newer: %s', (version, expected) => {
-    expect(meetsMinimumMarketplaceExtensionVersion(version, '0.11.0')).toBe(expected);
+  ])('requires stable Apex LS 0.12.0 or newer: %s', (version, expected) => {
+    expect(meetsMinimumMarketplaceExtensionVersion(version, '0.12.0')).toBe(expected);
   });
 });
