@@ -582,6 +582,8 @@ export default [
   },
   {
     files: ['packages/**/*.{ts,tsx,mts,cts}'],
+    // Test configs intentionally compose the shared Vitest config by forwarding its default export.
+    ignores: ['packages/**/vitest.config.*'],
     rules: {
       'local/no-pass-through-exports': 'error'
     }

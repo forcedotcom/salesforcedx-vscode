@@ -96,6 +96,14 @@ ruleTester.run('no-pass-through-exports', noPassThroughExports, {
 });
 
 describe('repository configuration', () => {
+  it('allows Vitest configs to forward the shared base config', async () => {
+    const eslint = new ESLint({ cwd: path.resolve(__dirname, '../../..') });
+    const [result] = await eslint.lintText("export { default } from '../../config/vitest.base.config.mts';", {
+      filePath: path.resolve(__dirname, '../../effect-octokit/vitest.config.mts')
+    });
+    expect(result.messages.map(message => message.ruleId)).not.toContain('local/no-pass-through-exports');
+  });
+
   it.each(['ts', 'tsx', 'mts', 'cts'])('enforces exports in local-rule test .%s files', async extension => {
     const eslint = new ESLint({ cwd: path.resolve(__dirname, '../../..') });
     const [result] = await eslint.lintText("export { value } from './other';", {
