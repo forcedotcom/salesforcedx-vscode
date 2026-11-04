@@ -37,6 +37,14 @@ const packageEntryTargets = (packageJson: ReturnType<typeof readJsonRecord>): st
 
 const packageCache = new Map<string, { targets: string[]; config: ts.ParsedCommandLine | undefined }>();
 
+const isSamePath = (left: string, right: string): boolean => {
+  const normalizedLeft = path.resolve(left);
+  const normalizedRight = path.resolve(right);
+  return ts.sys.useCaseSensitiveFileNames
+    ? normalizedLeft === normalizedRight
+    : normalizedLeft.toLowerCase() === normalizedRight.toLowerCase();
+};
+
 const isPackageEntryPoint = (filename: string): boolean => {
   const absoluteFilename = path.resolve(filename);
   for (let directory = path.dirname(absoluteFilename); ; directory = path.dirname(directory)) {
@@ -48,7 +56,7 @@ const isPackageEntryPoint = (filename: string): boolean => {
           targets: packageEntryTargets(readJsonRecord(packagePath)),
           config: fs.existsSync(configPath)
             ? ts.parseJsonConfigFileContent(
-                ts.readConfigFile(configPath, ts.sys.readFile).config,
+                ts.readConfigFile(configPath, fileName => ts.sys.readFile(fileName)).config,
                 ts.sys,
                 directory,
                 {},
@@ -59,16 +67,10 @@ const isPackageEntryPoint = (filename: string): boolean => {
       }
       const { targets, config } = packageCache.get(packagePath)!;
       // Compare both source targets and emitted targets; rootDir/outDir come from the package's tsconfig.
-      const candidates = [
-        absoluteFilename,
-        ...(config
-          ? ts.getOutputFileNames(
-              { ...config, fileNames: [...new Set([...config.fileNames, absoluteFilename])] },
-              absoluteFilename,
-              false
-            )
-          : [])
-      ].flatMap(candidate => {
+      const emittedFiles = config?.fileNames.some(fileName => isSamePath(fileName, absoluteFilename))
+        ? ts.getOutputFileNames(config, absoluteFilename, false)
+        : [];
+      const candidates = [absoluteFilename, ...emittedFiles].flatMap(candidate => {
         const relative = `./${path.relative(directory, candidate).split(path.sep).join('/')}`;
         const declaration = relative.endsWith('.mjs')
           ? `${relative.slice(0, -4)}.d.mts`

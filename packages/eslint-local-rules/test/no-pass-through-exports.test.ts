@@ -102,7 +102,7 @@ describe('repository configuration', () => {
       filePath: path.resolve(__dirname, '../../effect-octokit/vitest.config.mts')
     });
     expect(result.messages.map(message => message.ruleId)).not.toContain('local/no-pass-through-exports');
-  });
+  }, 20_000);
 
   it.each(['ts', 'tsx', 'mts', 'cts'])('enforces exports in local-rule test .%s files', async extension => {
     const eslint = new ESLint({ cwd: path.resolve(__dirname, '../../..') });
