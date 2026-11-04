@@ -9,7 +9,7 @@ import * as path from 'node:path';
 
 /** Generates the entry point that re-exports the public API type and ICONS */
 const generateEntry = (): void => {
-  const srcDir = path.join(__dirname, '..', 'src');
+  const srcDir = path.join(import.meta.dirname, '..', 'src');
   const entryPath = path.join(srcDir, 'index.ts');
 
   // Create src directory if it doesn't exist

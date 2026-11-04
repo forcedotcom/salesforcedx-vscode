@@ -121,10 +121,10 @@
       ]
     },
     "generate-types": {
-      "command": "ts-node ../salesforcedx-vscode-services-types/scripts/generateEntry.ts && ts-node ../salesforcedx-vscode-services-types/scripts/syncDeps.ts",
+      "command": "node ../salesforcedx-vscode-services-types/scripts/generateEntry.mts && node ../salesforcedx-vscode-services-types/scripts/syncDeps.mts",
       "files": [
         "src/**/*.ts",
-        "../salesforcedx-vscode-services-types/scripts/*.ts"
+        "../salesforcedx-vscode-services-types/scripts/*.mts"
       ],
       "output": []
     },

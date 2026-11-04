@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Frame, Page } from 'playwright';
+import type { Browser, Frame, Page } from 'playwright';
 
 type MetadataField = {
   Description: string;
@@ -35,7 +35,7 @@ export const BROWSER_LAUNCH_ARGS = [
 ];
 
 /** Create a browser context with standard configuration */
-export const createBrowserContext = async (browser: any) => {
+export const createBrowserContext = async (browser: Browser) => {
   const context = await browser.newContext({
     userAgent:
       'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
