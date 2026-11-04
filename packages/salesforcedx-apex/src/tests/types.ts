@@ -8,6 +8,7 @@
 import type { SyncTestConfigurationSchema, TestItemSchema } from '../effect/schema/testPayloads';
 import * as Schema from 'effect/Schema';
 import { CodeCoverageResultSchema, PerClassCoverageSchema } from '../effect/coverageSchemas';
+import { ApexDiagnosticSchema } from '../effect/diagnostics';
 import {
   ApexLogIdString,
   ApexClassIdString,
@@ -39,6 +40,11 @@ export const TestLevelSchema = Schema.Literal('RunLocalTests', 'RunAllTestsInOrg
   identifier: 'TestLevel'
 });
 export type TestLevel = typeof TestLevelSchema.Type;
+export const TestLevel = {
+  RunLocalTests: 'RunLocalTests',
+  RunAllTestsInOrg: 'RunAllTestsInOrg',
+  RunSpecifiedTests: 'RunSpecifiedTests'
+} as const satisfies { [K in TestLevel]: K };
 
 /** Test implementation category. */
 export const TestCategorySchema = Schema.Literal('Apex', 'Flow');
@@ -89,6 +95,14 @@ export const ResultFormatSchema = Schema.Literal('junit', 'tap', 'json', 'human'
   identifier: 'ResultFormat'
 });
 export type ResultFormat = typeof ResultFormatSchema.Type;
+export const ResultFormat = {
+  junit: 'junit',
+  tap: 'tap',
+  json: 'json',
+  human: 'human',
+  markdown: 'markdown',
+  text: 'text'
+} as const satisfies { [K in ResultFormat]: K };
 
 export const ResultFormatsSchema = ResultFormatSchema.pipe(
   Schema.Array,
@@ -348,15 +362,6 @@ export type ApexTestQueueItem = {
   records: ApexTestQueueItemRecord[];
 };
 
-export const ApexDiagnosticSchema = Schema.Struct({
-  lineNumber: Schema.optional(Schema.Number),
-  columnNumber: Schema.optional(Schema.Number),
-  exceptionMessage: Schema.optional(Schema.NonEmptyString),
-  compileProblem: Schema.optional(Schema.NonEmptyString),
-  exceptionStackTrace: Schema.optional(Schema.NonEmptyString),
-  className: Schema.optional(Schema.String)
-}).pipe(Schema.mutable, Schema.annotations({ identifier: 'ApexDiagnostic' }));
-
 const ApexTestResultDataFields = {
   /** Salesforce Apex or Flow test result ID; absent for synchronous results. */
   id: Schema.optional(Schema.Union(ApexTestResultIdString, FlowTestResultIdString)),
@@ -479,6 +484,9 @@ export type NamespaceInfo = {
   installedNs: boolean;
   namespace: string;
 };
+
+/** @internal Progress callback used by the co-repo extension's Promise test API. */
+export type ApexTestProgressReporter = { report: (value: ApexTestProgressValue) => void };
 
 export type ApexTestProgressValue =
   | {

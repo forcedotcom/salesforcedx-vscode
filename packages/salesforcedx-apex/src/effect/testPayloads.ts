@@ -13,8 +13,8 @@ import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { ApexClassId } from '../schemas/salesforceId';
 import { type AsyncTestArrayConfiguration, type AsyncTestConfiguration, type TestItem } from '../tests/types';
-import { ApexOperationError } from './errors';
 import { queryNamespaces } from './namespaces';
+import { ApexOperationError } from './schema/errors';
 import {
   type BuildAsyncPayloadOptions,
   type BuildSyncPayloadOptions,

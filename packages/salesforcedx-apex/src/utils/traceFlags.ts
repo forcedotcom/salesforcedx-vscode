@@ -5,12 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { type Connection } from '@salesforce/core';
+import * as Effect from 'effect/Effect';
+import { queryRecords } from '../effect/records';
+import { IdRecordSchema } from '../effect/schema/wire/records';
 import { nls } from '../i18n';
 import { DEFAULT_DEBUG_LEVEL_NAME, LOG_TIMER_LENGTH_MINUTES, LOG_TYPE } from '../logs/constants';
 import { escapeXml } from './authUtil';
 import { MILLISECONDS_PER_MINUTE } from './dateUtil';
 import { elapsedTime } from './elapsedTime';
-import { type IdRecord, type DataRecordResult, type QueryRecords, type TraceFlagRecord } from './types';
+import { type IdRecord, type DataRecordResult, type TraceFlagRecord } from './types';
 
 export class TraceFlags {
   private connection: Connection;
@@ -72,8 +75,16 @@ export class TraceFlags {
   private async findDebugLevel(debugLevelName: string): Promise<string | undefined> {
     const escapedDebugLevel = escapeXml(debugLevelName);
     const query = `SELECT Id FROM DebugLevel WHERE DeveloperName = '${escapedDebugLevel}'`;
-    const result = (await this.connection.tooling.query(query)) as QueryRecords;
-    return result.totalSize && result.totalSize > 0 && result.records ? result.records[0].Id : undefined;
+    const records = await Effect.runPromise(
+      queryRecords({
+        connection: this.connection,
+        operation: 'TraceFlags.findDebugLevel',
+        soql: query,
+        record: IdRecordSchema,
+        tooling: true
+      })
+    );
+    return records[0]?.Id;
   }
 
   @elapsedTime()

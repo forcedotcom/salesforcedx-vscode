@@ -527,8 +527,9 @@ export class ConnectionService extends Effect.Service<ConnectionService>()('Conn
   })
 }) {}
 
-const getTracksSourceFromOrg = (conn: Connection) =>
-  getOrgFromConnection(conn).pipe(
+const getTracksSourceFromOrg = (conn: Connection, configService: ConfigService) =>
+  configService.getConfigAggregator().pipe(
+    Effect.andThen(aggregator => getOrgFromConnection(conn, aggregator)),
     Effect.andThen(org =>
       Effect.tryPromise({
         try: () => org.tracksSource(),
@@ -627,7 +628,7 @@ const maybeUpdateDefaultOrgRef = Effect.fn('maybeUpdateDefaultOrgRef')(function*
       orgId,
       instanceName,
       devHubUsername,
-      tracksSource: tracksSource ?? (yield* getTracksSourceFromOrg(conn)),
+      tracksSource: tracksSource ?? (yield* getTracksSourceFromOrg(conn, configService)),
       isScratch,
       isSandbox,
       devHubOrgId,

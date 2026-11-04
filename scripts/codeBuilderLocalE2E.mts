@@ -31,7 +31,7 @@
  * Env: set CB_SKIP_GHCR_LOGIN=1 when the caller has already `docker login`-ed to ghcr (e.g. CI,
  * which authenticates with its GITHUB_TOKEN) so this script skips its own gh/CR_PAT login.
  *
- * Usage: ts-node scripts/codeBuilderLocalE2E.ts [options]
+ * Usage: node scripts/codeBuilderLocalE2E.mts [options]
  *   --run-id <id>        Pull the VSIX from that Build All run instead of building locally.
  *   --release-tag <tag>  Pull the VSIX assets from that published GitHub Release (e.g. v68.4.0)
  *                        instead of a Build All run or a local build. Mutually exclusive with --run-id.
@@ -70,7 +70,7 @@ import { closeSync, cpSync, mkdtempSync, openSync, readFileSync, readdirSync, rm
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 
-const REPO_ROOT = resolve(__dirname, '..');
+const REPO_ROOT = resolve(import.meta.dirname, '..');
 // Read from env so the orchestrator and the CI workflow's cleanup step (`docker rm -f
 // "$CONTAINER_NAME"`) share one name — mirroring ORG_ALIAS below. Otherwise a rename in one file
 // silently desyncs from the other and the cleanup's `|| true` quietly no-ops against a stale name,
@@ -214,7 +214,7 @@ const parseArgs = (argv: string[]): Options => {
         break;
       case '-h':
       case '--help':
-        console.log('See header of scripts/codeBuilderLocalE2E.ts for usage.');
+        console.log('See header of scripts/codeBuilderLocalE2E.mts for usage.');
         process.exit(0);
         break;
       default:

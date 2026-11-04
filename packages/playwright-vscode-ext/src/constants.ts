@@ -10,3 +10,4 @@ export const CODE_BUILDER_WEB_SECTION = 'salesforce-web-console';
 export const INSTANCE_URL_KEY = 'instanceUrl';
 export const ACCESS_TOKEN_KEY = 'accessToken';
 export const API_VERSION_KEY = 'apiVersion';
+export const SESSION_CONTEXT_KEY = 'sessionContext';

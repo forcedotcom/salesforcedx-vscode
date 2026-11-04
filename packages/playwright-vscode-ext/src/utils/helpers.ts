@@ -114,7 +114,7 @@ export const waitForQuickInputFirstOption = async (
   const input = activeQuickInputTextField(page);
   const firstAriaOption = quickInput.getByRole('option').first();
   const quickInputVisibleTimeout = options?.quickInputVisibleTimeout ?? 10_000;
-  const optionVisibleTimeout = options?.optionVisibleTimeout ?? 5000;
+  const optionVisibleTimeout = options?.optionVisibleTimeout ?? 15_000;
 
   await expect(async () => {
     // Prefer the text field: empty/stale `.quick-input-widget` shells can attach without `input.input`

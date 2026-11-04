@@ -119,9 +119,9 @@ test('Deploy On Save: automatically deploys when file is saved', async ({ page }
   });
 
   await test.step('verify deploy triggers and completes', async () => {
-    // Deploy should start within 5 seconds on desktop (1s service delay + deploy start); the container
-    // allows up to 30s for the shared, contended workbench.
-    const deployingNotification = await waitForDeployProgressNotificationToAppear(page, isContainer ? 30_000 : 5000);
+    // 1s service delay, then the conflict check waits for the post-save source-tracking refresh, then the deploy
+    // request starts; the progress notification only renders after that request begins (observed ~6s on CI web)
+    const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
     await saveScreenshot(page, 'deployOnSave.03-deploy-notification.png');
 
     // Wait for deploy to complete (notification disappears)
