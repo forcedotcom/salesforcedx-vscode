@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { escapeHtml } from '../../src/reporters/markdownTextReporter';
+import { escapeHtml } from '../../src/reporters/escaping';
 
 describe('Markdown text reporter utilities', () => {
   describe('escapeHtml', () => {

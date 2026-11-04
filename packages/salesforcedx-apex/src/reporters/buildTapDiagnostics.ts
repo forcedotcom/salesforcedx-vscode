@@ -15,7 +15,7 @@ import { type ApexTestResultData } from '../tests/types';
     ]);
     so it has been left as is
  */
-const startsWithNewlineRegex = new RegExp(/^[/\r\n|\r|\n][\w]*/gim);
+const startsWithNewlineRegex = new RegExp(/^[/\r\n|\r|\n][\w]*/im);
 
 export const buildTapDiagnostics = (testResult: ApexTestResultData): string[] => {
   if (testResult.outcome === 'Pass') {

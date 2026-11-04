@@ -7,7 +7,7 @@
 import {
   type ApexTestProgressValue,
   type AsyncTestConfiguration,
-  HumanReporter,
+  formatHuman,
   type TestResult,
   TestService
 } from '@salesforce/apex-node';
@@ -107,7 +107,7 @@ const appendTestOutput = Effect.fn('runApexTests.appendTestOutput')(function* (
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const svc = yield* api.services.ChannelService;
   yield* Stream.fromIterable(
-    new HumanReporter().format(result, codeCoverage, concise)?.split(/\r?\n/) ?? [
+    formatHuman(result, codeCoverage, concise)?.split(/\r?\n/) ?? [
       `Test execution completed. Tests ran: ${result.summary.testsRan ?? 0}, Passed: ${result.summary.passing ?? 0}, Failed: ${result.summary.failing ?? 0}`
     ]
   ).pipe(
