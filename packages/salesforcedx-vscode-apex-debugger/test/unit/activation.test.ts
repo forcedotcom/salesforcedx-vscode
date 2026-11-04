@@ -7,7 +7,7 @@
 
 import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS } from '@salesforce/salesforcedx-apex-debugger/out/src/constants';
+import { EXCEPTION_BREAKPOINT_BREAK_MODE_ALWAYS } from '@salesforce/salesforcedx-apex-debugger';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
