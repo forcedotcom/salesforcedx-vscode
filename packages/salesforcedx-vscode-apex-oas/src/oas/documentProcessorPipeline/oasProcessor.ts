@@ -7,7 +7,6 @@
 
 import * as Effect from 'effect/Effect';
 import type { OpenAPIV3 } from 'openapi-types';
-import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
 import { methodValidationStep } from './methodValidationStep';
 import { oasReorderStep } from './oasReorderStep';
 import { oasValidationStep } from './oasValidationStep';
@@ -15,8 +14,7 @@ import { propertyCorrectionStep } from './propertyCorrectionStep';
 import { reconcileDuplicateSemanticPathsStep } from './reconcileDuplicateSemanticPathsStep';
 
 type ProcessOasDocumentOptions = {
-  context?: ApexClassOASGatherContextResponse;
-  eligibleResult?: ApexClassOASEligibleResponse;
+  eligibleMethodNames?: readonly string[];
   isRevalidation?: boolean;
 };
 
@@ -27,8 +25,7 @@ export const processOasDocument = Effect.fn('ApexOas.Process.run')(function* (
   return yield* Effect.succeed({
     openAPIDoc: document,
     errors: [],
-    eligibilityResult: options?.eligibleResult,
-    context: options?.context
+    eligibleMethodNames: options?.eligibleMethodNames
   }).pipe(
     Effect.tap(() => Effect.logDebug({ event: 'pipelineInput', document })),
     Effect.flatMap(io => (options?.isRevalidation === true ? Effect.succeed(io) : propertyCorrectionStep(io))),

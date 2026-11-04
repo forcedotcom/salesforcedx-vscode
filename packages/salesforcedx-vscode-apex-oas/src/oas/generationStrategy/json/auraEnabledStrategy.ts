@@ -5,20 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { OasClassContext } from '../../apexSourceMetadata';
 import type { GenerationStrategy } from '../generationStrategy';
 import { ExtensionProviderService, annotateRootSpan } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import type { ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
 import { OasGenerationFailed } from '../../../errors';
 
-export const createAuraEnabledStrategy = async (
-  context: ApexClassOASGatherContextResponse
-): Promise<GenerationStrategy> => {
+export const createAuraEnabledStrategy = async (classContext: OasClassContext): Promise<GenerationStrategy> => {
   const generateOAS = Effect.fn('ApexOas.AuraEnabled.generateOAS')(
     function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const connection = yield* api.services.ConnectionService.getConnection();
-      const endpoint = `/specifications/oas3/apex/${context.classDetail.name}`;
+      const endpoint = `/specifications/oas3/apex/${classContext.name}`;
       const result = yield* Effect.tryPromise({
         try: () => connection.request({ method: 'GET', url: endpoint }),
         catch: cause =>

@@ -12,7 +12,6 @@ import * as ManagedRuntime from 'effect/ManagedRuntime';
 import type { ExtensionContext } from 'vscode';
 import { EXTENSION_NAME } from '../constants';
 import { ApexMetadataService } from './apexMetadataService';
-import { LLMService } from './llmService';
 
 export const buildAllServicesLayer = (context: ExtensionContext, fallbackDisplayName: string) =>
   Layer.unwrapEffect(
@@ -20,7 +19,6 @@ export const buildAllServicesLayer = (context: ExtensionContext, fallbackDisplay
       Layer.mergeAll(
         buildBaseServicesLayer(context, fallbackDisplayName),
         ApexMetadataService.Default,
-        LLMService.Default,
         api.services.NotificationModeService.Default(
           EXTENSION_NAME,
           'sf-apex-oas-notifications',
