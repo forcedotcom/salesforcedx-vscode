@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { type LineBreakpointInfo } from '@salesforce/salesforcedx-utils/out/src/types/debugger';
+import { type LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import { DebugClient } from '@vscode/debugadapter-testsupport';
 import { readFile } from 'node:fs/promises';
 import { basename, join, relative } from 'node:path';

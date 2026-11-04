@@ -7,10 +7,7 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
-import type {
-  ApexClassOASEligibleResponse,
-  ApexClassOASGatherContextResponse
-} from 'salesforcedx-vscode-apex/out/src/oasSchemas';
+import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
 import { URI } from 'vscode-uri';
 import type { GenerationStrategy } from '../../../src/oas/generationStrategy/generationStrategy';
 import * as factory from '../../../src/oas/generationStrategy/generationStrategyFactory';

@@ -12,7 +12,7 @@ import { isNotUndefined } from 'effect/Predicate';
 import * as Runtime from 'effect/Runtime';
 import * as path from 'node:path';
 import type { OpenAPIV3 } from 'openapi-types';
-import type { ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex/out/src/oasSchemas';
+import type { ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { parse as yamlParse } from 'yaml';

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as Effect from 'effect/Effect';
-import type { ApexClassOASEligibleResponse } from 'salesforcedx-vscode-apex/out/src/oasSchemas';
+import type { ApexClassOASEligibleResponse } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { SymbolKind } from 'vscode-languageserver-protocol';
 import { URI } from 'vscode-uri';

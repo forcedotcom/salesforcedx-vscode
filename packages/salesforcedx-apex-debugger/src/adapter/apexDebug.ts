@@ -8,7 +8,7 @@
 
 import { type Connection, Org } from '@salesforce/core';
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
-import { type LineBreakpointInfo } from '@salesforce/salesforcedx-utils/out/src/types/debugger';
+import { type LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import {
   DebugSession,
   Event,

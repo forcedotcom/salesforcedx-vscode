@@ -9,7 +9,7 @@
 import type { MockInstance as VitestMockInstance } from 'vitest';
 import { Org } from '@salesforce/core';
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
-import { type LineBreakpointInfo } from '@salesforce/salesforcedx-utils/out/src/types/debugger';
+import { type LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import { type OutputEvent, Source, StackFrame, type StoppedEvent, type ThreadEvent } from '@vscode/debugadapter';
 import { type DebugProtocol } from '@vscode/debugprotocol';
 import * as AsyncLock from 'async-lock';

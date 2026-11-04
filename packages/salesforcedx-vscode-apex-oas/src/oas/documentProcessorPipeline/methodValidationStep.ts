@@ -11,7 +11,7 @@ import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import { JSONPath } from 'jsonpath-plus';
 import type { OpenAPIV3 } from 'openapi-types';
-import type { ApexClassOASEligibleResponse } from 'salesforcedx-vscode-apex/out/src/oasSchemas';
+import type { ApexClassOASEligibleResponse } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { OasValidationFailed } from '../../errors';
 import { nls } from '../../messages/nls';

@@ -6,9 +6,11 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { type HeapDumpResult } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/adapter/types';
-import { type ApexExecutionOverlayResultCommandSuccess } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/commands/apexExecutionOverlayResultCommand';
-import { extractHeapDumpIdsFromLog } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/core/extractHeapDumpIds';
+import {
+  extractHeapDumpIdsFromLog,
+  type ApexExecutionOverlayResultCommandSuccess,
+  type HeapDumpResult
+} from '@salesforce/salesforcedx-apex-replay-debugger';
 import * as Arr from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';

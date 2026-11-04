@@ -65,6 +65,8 @@ const SynchronizeEventSchema = Schema.Struct({
 });
 
 export type CheckEvent = typeof CheckEventSchema.Type;
+export type CompletedChecksEvent = typeof CompletedChecksEventSchema.Type;
+export type SynchronizeEvent = typeof SynchronizeEventSchema.Type;
 
 /** Read and validate the JSON payload at GITHUB_EVENT_PATH. */
 const readActionsEvent = Effect.fn('GitHub.readActionsEvent')(function* <A, I>(

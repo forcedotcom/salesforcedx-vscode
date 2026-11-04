@@ -11,7 +11,7 @@ import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as path from 'node:path';
-import type { ApexClassOASEligibleRequest, ApexOASEligiblePayload } from 'salesforcedx-vscode-apex/out/src/oasSchemas';
+import type { ApexClassOASEligibleRequest, ApexOASEligiblePayload } from 'salesforcedx-vscode-apex';
 import type { URI } from 'vscode-uri';
 import { ApexLspRequestFailed } from '../errors';
 import { nls } from '../messages/nls';

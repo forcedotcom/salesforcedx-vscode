@@ -6,11 +6,8 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import {
-  extractSourceTypesFromLog,
-  getSourceUri
-} from '@salesforce/salesforcedx-apex-replay-debugger/out/src/core/sourceUriMapping';
-import type { LineBreakpointInfo } from '@salesforce/salesforcedx-utils/out/src/types/debugger';
+import { extractSourceTypesFromLog, getSourceUri } from '@salesforce/salesforcedx-apex-replay-debugger';
+import type { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import type { OrgMetadataCatalogComponentReference } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalogTypes';
 

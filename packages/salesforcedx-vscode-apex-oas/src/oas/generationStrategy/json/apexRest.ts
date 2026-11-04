@@ -17,7 +17,7 @@ import type {
   ApexClassOASEligibleResponse,
   ApexClassOASGatherContextResponse,
   ApexOASMethodDetail
-} from 'salesforcedx-vscode-apex/out/src/oasSchemas';
+} from 'salesforcedx-vscode-apex';
 import type { DocumentSymbol } from 'vscode-languageserver-protocol';
 import { EXTENSION_NAME } from '../../../constants';
 import { InvalidJsonDocument, LLMEmptyResponse, LLMRetriesExhausted, OasGenerationFailed } from '../../../errors';

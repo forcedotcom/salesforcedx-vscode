@@ -6,9 +6,8 @@
  */
 
 import { CallableSchema, ExtensionProviderService, getExtensionExports } from '@salesforce/effect-ext-utils';
-import { type HeapDumpResult } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/adapter/types';
-import { extractAnonApexSource } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/core/logContextUtil';
-import { errorToString } from '@salesforce/salesforcedx-utils/out/src/helpers/errorToString';
+import { extractAnonApexSource, type HeapDumpResult } from '@salesforce/salesforcedx-apex-replay-debugger';
+import { errorToString } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isString, isUndefined } from 'effect/Predicate';

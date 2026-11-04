@@ -11,8 +11,7 @@ import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
-import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
-import type { ApexOASEligiblePayload } from 'salesforcedx-vscode-apex/out/src/oasSchemas';
+import type { ApexOASEligiblePayload, ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import type { URI } from 'vscode-uri';
 import { ApexExtensionUnavailable, ApexLspNotReady, ApexLspRequestFailed } from '../errors';
 import { nls } from '../messages/nls';
@@ -50,11 +49,12 @@ export const probeReady = Effect.fn('ApexOas.Lsp.probeReady')(function* (
         })
     )
   );
-  return yield* Effect.succeed(apexClient).pipe(
+  yield* Effect.succeed(apexClient).pipe(
     Effect.filterOrFail(
       (client): client is NonNullable<typeof apexClient> => isNotUndefined(client) && languageClientStatus.isReady(),
       () => new ApexLspNotReady({ message: nls.localize('apex_lsp_not_ready') })
-    )
+    ),
+    Effect.asVoid
   );
 });
 

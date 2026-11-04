@@ -6,7 +6,7 @@
  */
 
 import type { MockInstance as VitestMockInstance } from 'vitest';
-import type { LineBreakpointInfo } from '@salesforce/salesforcedx-utils/out/src/types/debugger';
+import type { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 // Mock DebugSession.run to prevent it from executing during tests
 vi.mock(import('@vscode/debugadapter'), async importOriginal => {
   const actual = await importOriginal();

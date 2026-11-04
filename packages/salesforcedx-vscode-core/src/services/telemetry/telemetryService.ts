@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { getServicesApi, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
-import { errorToString } from '@salesforce/salesforcedx-utils/out/src/helpers/errorToString';
+import { errorToString } from '@salesforce/salesforcedx-utils';
 import {
   type Properties,
   type Measurements,

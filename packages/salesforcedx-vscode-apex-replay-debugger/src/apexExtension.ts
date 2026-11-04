@@ -6,7 +6,7 @@
  */
 
 import { CallableSchema, getExtensionExports } from '@salesforce/effect-ext-utils';
-import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/breakpoints/index';
+import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';

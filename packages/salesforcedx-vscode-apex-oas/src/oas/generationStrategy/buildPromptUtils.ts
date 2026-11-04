@@ -8,11 +8,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import * as ejs from 'ejs';
-import type {
-  ApexAnnotationDetail,
-  ApexOASClassDetail,
-  ApexOASMethodDetail
-} from 'salesforcedx-vscode-apex/out/src/oasSchemas';
+import type { ApexAnnotationDetail, ApexOASClassDetail, ApexOASMethodDetail } from 'salesforcedx-vscode-apex';
 import type { DocumentSymbol } from 'vscode-languageserver-protocol';
 import { MethodNotFoundInDocSymbols } from '../../errors';
 import { nls } from '../../messages/nls';

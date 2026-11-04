@@ -10,7 +10,7 @@ import type {
   ApexClassOASGatherContextResponse,
   ApexOASClassDetail,
   ApexOASMethodDetail
-} from 'salesforcedx-vscode-apex/out/src/oasSchemas';
+} from 'salesforcedx-vscode-apex';
 import {
   hasValidRestAnnotations,
   hasAuraFrameworkCapability,

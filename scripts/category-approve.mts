@@ -3,9 +3,14 @@ import * as Command from '@effect/platform/Command';
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
 import * as NodeContext from '@effect/platform-node/NodeContext';
-import { findApprovedReviewOnHead, GitHub, withoutWorkflowRun } from '@salesforce/effect-octokit';
-import { actionsEnvironment } from '@salesforce/effect-octokit/out/src/actionsEnvironment.js';
-import { type CheckEvent, readCheckEvent } from '@salesforce/effect-octokit/out/src/actionsEvent.js';
+import {
+  actionsEnvironment,
+  findApprovedReviewOnHead,
+  GitHub,
+  readCheckEvent,
+  type CheckEvent,
+  withoutWorkflowRun
+} from '@salesforce/effect-octokit';
 import * as Cause from 'effect/Cause';
 import * as Config from 'effect/Config';
 import * as Effect from 'effect/Effect';

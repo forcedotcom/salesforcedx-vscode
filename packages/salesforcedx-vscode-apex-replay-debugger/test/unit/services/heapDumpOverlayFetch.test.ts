@@ -7,7 +7,7 @@
 
 import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
-import type { HeapDumpResult } from '@salesforce/salesforcedx-apex-replay-debugger/out/src/adapter/types';
+import type { HeapDumpResult } from '@salesforce/salesforcedx-apex-replay-debugger';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Stream from 'effect/Stream';
