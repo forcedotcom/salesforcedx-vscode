@@ -5,14 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { OpenAPIV3 } from 'openapi-types';
-import type { ApexClassOASEligibleResponse, ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 
 export type ProcessorInputOutput = {
   openAPIDoc: OpenAPIV3.Document;
   errors: vscode.Diagnostic[];
-  readonly eligibilityResult?: ApexClassOASEligibleResponse;
-  context?: ApexClassOASGatherContextResponse;
+  readonly eligibleMethodNames?: readonly string[];
 };
 
 export const oasDiagnosticCollection: vscode.DiagnosticCollection =

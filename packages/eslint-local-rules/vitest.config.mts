@@ -11,6 +11,8 @@ export default defineConfig({
   ...baseConfig,
   test: {
     ...baseConfig.test,
-    include: ['test/**/*.test.ts']
+    include: ['test/**/*.test.ts'],
+    // RuleTester cases start TypeScript project services; reusing workers prevents concurrent startup contention.
+    isolate: false
   }
 });

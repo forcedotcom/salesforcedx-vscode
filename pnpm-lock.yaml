@@ -1083,9 +1083,6 @@ importers:
       '@salesforce/vscode-i18n':
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
-      '@salesforce/vscode-service-provider':
-        specifier: ^1.5.0
-        version: 1.5.0
       '@stoplight/spectral-core':
         specifier: 1.23.1
         version: 1.23.1(encoding@0.1.13)
@@ -1098,15 +1095,15 @@ importers:
       effect:
         specifier: ^3.21.2
         version: 3.22.2
-      ejs:
-        specifier: 3.1.10
-        version: 3.1.10
       fast-xml-parser:
         specifier: ^5.7.1
         version: 5.11.2
       jsonpath-plus:
         specifier: 10.4.0
         version: 10.4.0
+      vscode-languageserver-protocol:
+        specifier: 3.17.5
+        version: 3.17.5
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
@@ -1117,21 +1114,12 @@ importers:
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
-      '@types/ejs':
-        specifier: 3.1.5
-        version: 3.1.5
       openapi-types:
         specifier: 12.1.3
         version: 12.1.3
-      salesforcedx-vscode-apex:
-        specifier: workspace:*
-        version: link:../salesforcedx-vscode-apex
       salesforcedx-vscode-services:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-services
-      vscode-languageserver-protocol:
-        specifier: 3.17.5
-        version: 3.17.5
 
   packages/salesforcedx-vscode-apex-replay-debugger:
     dependencies:

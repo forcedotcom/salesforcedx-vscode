@@ -64,8 +64,7 @@ describe('propertyCorrectionStep', () => {
   const run = async (doc: OpenAPIV3.Document): Promise<OpenAPIV3.Document> => {
     const input: ProcessorInputOutput = {
       errors: [],
-      openAPIDoc: doc,
-      context: undefined
+      openAPIDoc: doc
     };
     const output = await Effect.runPromise(propertyCorrectionStep(input));
     return output.openAPIDoc;
@@ -76,9 +75,9 @@ describe('propertyCorrectionStep', () => {
     expect(result.info.version).toBe('1.0.0');
   });
 
-  it('ensures servers are present', async () => {
+  it('preserves the Aura server response', async () => {
     const result = await run(openAPIDoc);
-    expect(result.servers).toEqual([{ url: '/services/apexrest' }]);
+    expect(result.servers).toBeUndefined();
   });
 
   it('preserves existing response descriptions', async () => {
