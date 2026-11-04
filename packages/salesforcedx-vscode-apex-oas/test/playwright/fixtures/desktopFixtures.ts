@@ -24,7 +24,7 @@ export const oasDesktopTest = createDesktopTest({
   orgAlias: MINIMAL_ORG_ALIAS,
   additionalExtensionDirs: baseExtensionDirs,
   marketplaceExtensions: [APEX_LANGUAGE_SERVER_EXTENSION_ID],
-  minimumMarketplaceExtensionVersions: { [APEX_LANGUAGE_SERVER_EXTENSION_ID]: '0.11.0' },
+  minimumMarketplaceExtensionVersions: { [APEX_LANGUAGE_SERVER_EXTENSION_ID]: '0.12.0' },
   // Marketplace-installed Apex LS must load; --disable-extensions blocks it.
   disableOtherExtensions: false,
   userSettings: {
