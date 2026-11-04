@@ -12,7 +12,7 @@ import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { packageInstallCommand } from '../../../src/commands/packageInstall';
 import { nls } from '../../../src/messages';
-import type { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
+import type { NotificationModeService } from 'salesforcedx-vscode-services';
 
 class UserCancellationError extends Schema.TaggedError<UserCancellationError>()('UserCancellationError', {}) {}
 

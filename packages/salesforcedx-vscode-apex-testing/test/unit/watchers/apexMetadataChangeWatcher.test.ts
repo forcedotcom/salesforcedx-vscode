@@ -17,7 +17,7 @@ import {
   MetadataChangeNotificationService,
   type MetadataChangeEvent as MetadataChangeEventType,
   type MetadataOperationEvent as MetadataOperationEventType
-} from 'salesforcedx-vscode-services/src/core/metadataChangeNotificationService';
+} from 'salesforcedx-vscode-services';
 import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import { URI } from 'vscode-uri';
 import { setupApexMetadataChangeWatcher } from '../../../src/watchers/apexMetadataChangeWatcher';

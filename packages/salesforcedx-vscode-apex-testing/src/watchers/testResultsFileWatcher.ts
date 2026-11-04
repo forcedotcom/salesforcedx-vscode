@@ -8,7 +8,7 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
-import type { FileChangeEvent } from 'salesforcedx-vscode-services/src/vscode/fileChangePubSub';
+import type { FileChangeEvent } from 'salesforcedx-vscode-services';
 import { Utils } from 'vscode-uri';
 import { type getTestController } from '../views/testController';
 

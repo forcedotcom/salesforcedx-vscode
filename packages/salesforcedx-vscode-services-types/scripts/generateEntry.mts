@@ -24,11 +24,16 @@ const generateEntry = (): void => {
  */
 
 // This file is auto-generated. Do not edit manually.
-export type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
-export type { AuthInfoFields } from 'salesforcedx-vscode-services/src/core/schemas/authFields';
-export type { GetAuthFieldsError, OrgAuthorizationSummary } from 'salesforcedx-vscode-services/src/core/connectionService';
-export type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services/src/core/schemas/defaultOrgInfo';
-export type { ChildRelationship, SObject, SObjectField } from 'salesforcedx-vscode-services/src/core/schemas/sObject';
+export type {
+  SalesforceVSCodeServicesApi,
+  AuthInfoFields,
+  GetAuthFieldsError,
+  OrgAuthorizationSummary,
+  DefaultOrgInfoSchema,
+  ChildRelationship,
+  SObject,
+  SObjectField
+} from 'salesforcedx-vscode-services';
 export { ICONS, type IconId } from './icons';
 `;
 

@@ -45,7 +45,11 @@ import {
   ExtensionProviderService,
   type ExtensionProviderService as ExtensionProviderServiceType
 } from '@salesforce/effect-ext-utils';
-import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
+import {
+  NotificationModeService,
+  type ComponentSetService,
+  type SalesforceVSCodeServicesApi
+} from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { Effect, Layer } from 'effect';
 import * as Fiber from 'effect/Fiber';
@@ -53,7 +57,6 @@ import * as Option from 'effect/Option';
 import * as Redacted from 'effect/Redacted';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { activateEffect, deactivateEffect } from '../../src/index';
-import { type ComponentSetService } from 'salesforcedx-vscode-services/src/core/componentSetService';
 import { ConnectionService } from 'salesforcedx-vscode-services/src/core/connectionService';
 import { ProjectService } from 'salesforcedx-vscode-services/src/core/projectService';
 import { type MetadataDeleteService } from 'salesforcedx-vscode-services/src/core/metadataDeleteService';
@@ -73,7 +76,6 @@ import { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/
 import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
 import { ErrorHandlerService } from 'salesforcedx-vscode-services/src/vscode/errorHandlerService';
 import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode/extensionContextService';
-import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import { OrgBrowserRetrieveService } from '../../src/services/orgBrowserMetadataRetrieveService';
 import type { Connection } from '@salesforce/core';
 import type { ConfigAggregator } from '@salesforce/core/configAggregator';

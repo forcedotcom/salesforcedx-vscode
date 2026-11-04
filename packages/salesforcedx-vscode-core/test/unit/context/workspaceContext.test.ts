@@ -10,7 +10,7 @@ import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services/src/core/schemas/defaultOrgInfo';
+import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
 import { ConnectionService } from 'salesforcedx-vscode-services/src/core/connectionService';
 import { OrgId } from 'salesforcedx-vscode-services/src/core/schemas/salesforceId';
 import { WorkspaceContext } from '../../../src/context/workspaceContext';

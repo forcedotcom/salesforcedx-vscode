@@ -9,7 +9,7 @@ import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services/src/core/componentSetService';
+import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import { detectConflicts } from '../../../src/conflict/conflictFlow';
 import * as conflictDetection from '../../../src/conflict/conflictDetection';

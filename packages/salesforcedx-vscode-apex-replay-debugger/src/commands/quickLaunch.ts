@@ -12,7 +12,7 @@ import * as Arr from 'effect/Array';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
-import type { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
+import type { NotificationModeService } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { checkpointService, sfCreateCheckpointsCommand } from '../breakpoints/checkpointService';

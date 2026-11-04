@@ -10,7 +10,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Ref from 'effect/Ref';
 import * as Stream from 'effect/Stream';
-import type { SObject } from 'salesforcedx-vscode-services/src/core/schemas/sObject';
+import type { SObject } from 'salesforcedx-vscode-services';
 import type * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { generateSObjectDefinition } from '../sobjects/declarationGenerator';

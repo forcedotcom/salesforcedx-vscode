@@ -15,8 +15,7 @@ import { ComponentSetService } from 'salesforcedx-vscode-services/src/core/compo
 import { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
 import { SourceTrackingService } from 'salesforcedx-vscode-services/src/core/sourceTrackingService';
 import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
-import { HashableUri } from 'salesforcedx-vscode-services/src/vscode/hashableUri';
-import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
+import { HashableUri, NotificationModeService } from 'salesforcedx-vscode-services';
 import { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
 import { URI } from 'vscode-uri';
 

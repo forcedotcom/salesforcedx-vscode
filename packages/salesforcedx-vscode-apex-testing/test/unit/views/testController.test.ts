@@ -21,9 +21,7 @@ vi.mock('../../../src/services/extensionProvider', async () => {
     '../../../src/views/apexTestExecutionService'
   );
   const { URI: UriClass } = await vi.importActual<typeof VscodeUri>('vscode-uri');
-  const { HashableUri } = await vi.importActual<typeof HashableUriModule>(
-    'salesforcedx-vscode-services/src/vscode/hashableUri'
-  );
+  const { HashableUri } = await vi.importActual<typeof HashableUriModule>('salesforcedx-vscode-services');
   const vscodeMock = await import('vscode');
 
   let mockConnectionRef: any;
@@ -225,7 +223,7 @@ import type * as SubscriptionRefModule from 'effect/SubscriptionRef';
 import type * as LayerModule from 'effect/Layer';
 import type * as ManagedRuntimeModule from 'effect/ManagedRuntime';
 import type * as VscodeUri from 'vscode-uri';
-import type * as HashableUriModule from 'salesforcedx-vscode-services/src/vscode/hashableUri';
+import type * as HashableUriModule from 'salesforcedx-vscode-services';
 import type * as ApexTestRunCache from '../../../src/testRunCache/apexTestRunCacheService';
 import type * as ApexTestTree from '../../../src/views/apexTestTreeService';
 import type * as ApexTestExecution from '../../../src/views/apexTestExecutionService';

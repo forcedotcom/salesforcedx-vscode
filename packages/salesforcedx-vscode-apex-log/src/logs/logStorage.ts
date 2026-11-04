@@ -9,7 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isNotUndefined } from 'effect/Predicate';
-import type { ExecuteAnonymousResult } from 'salesforcedx-vscode-services/src/core/executeAnonymousService';
+import type { ExecuteAnonymousResult } from 'salesforcedx-vscode-services';
 import { Utils } from 'vscode-uri';
 
 const DEBUG_LOGS_SUBPATH = ['.sfdx', 'tools', 'debug', 'logs'] as const;

@@ -11,7 +11,7 @@ import * as effectExtUtils from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import * as Layer from 'effect/Layer';
-import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
+import { NotificationModeService } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { debuggerStop } from '../../../src/commands/debuggerStop';
 

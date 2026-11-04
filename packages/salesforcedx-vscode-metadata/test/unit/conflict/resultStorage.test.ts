@@ -11,7 +11,7 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Ref from 'effect/Ref';
 import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
-import { HashableUri } from 'salesforcedx-vscode-services/src/vscode/hashableUri';
+import { HashableUri } from 'salesforcedx-vscode-services';
 import { URI, Utils } from 'vscode-uri';
 import { buildTimestampIndexFromDir } from '../../../src/conflict/resultStorage';
 

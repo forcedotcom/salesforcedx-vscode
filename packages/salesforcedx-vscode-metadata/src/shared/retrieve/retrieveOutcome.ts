@@ -10,7 +10,7 @@ import type { RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import { isUndefined } from 'effect/Predicate';
-import type { RequestStatusValue } from 'salesforcedx-vscode-services/src/core/sdrGuards';
+import type { RequestStatusValue } from 'salesforcedx-vscode-services';
 
 /** Retrieve finished but the org reported failures (file responses and/or retrieve status). */
 export class RetrieveCompletedWithErrorsError extends Data.TaggedError('RetrieveCompletedWithErrorsError')<{

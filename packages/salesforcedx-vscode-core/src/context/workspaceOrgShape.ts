@@ -7,7 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services/src/core/schemas/defaultOrgInfo';
+import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
 import { getRuntime } from '../services/runtime';
 import { getDefaultOrgInfo } from './defaultOrgInfo';
 
