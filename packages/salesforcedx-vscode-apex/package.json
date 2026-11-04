@@ -283,12 +283,6 @@
   ],
   "main": "./dist/index.mjs",
   "types": "./out/src/index.d.ts",
-  "exports": {
-    ".": {
-      "types": "./out/src/index.d.ts",
-      "default": "./dist/index.mjs"
-    }
-  },
   "languageServerDir": "dist",
   "contributes": {
     "menus": {

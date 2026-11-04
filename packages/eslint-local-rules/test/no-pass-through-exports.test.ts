@@ -40,6 +40,10 @@ ruleTester.run('no-pass-through-exports', noPassThroughExports, {
       code: "import type { Shape } from './other'; export type { Shape };",
       filename: fixturePath('src/nested/entry.ts')
     },
+    {
+      code: "export { value } from './other';",
+      filename: fixturePath('no-exports/index.ts')
+    },
     { code: "export type * from './other';", filename: fixturePath('src/source.ts') },
     { code: "export { value } from './other';", filename: fixturePath('src/features/nested/feature.ts') },
     { code: "export { value } from './other';", filename: fixturePath('src/choice.ts') }
@@ -76,11 +80,6 @@ ruleTester.run('no-pass-through-exports', noPassThroughExports, {
     {
       code: "export { value } from './other';",
       filename: fixturePath('src/index.ts'),
-      errors: [{ messageId: 'passThrough' }]
-    },
-    {
-      code: "export { value } from './other';",
-      filename: fixturePath('no-exports/index.ts'),
       errors: [{ messageId: 'passThrough' }]
     },
     {

@@ -21,6 +21,20 @@ const exportTargets = (value: unknown): string[] =>
         ? Object.values(value).flatMap(exportTargets)
         : [];
 
+const packageEntryTargets = (packageJson: ReturnType<typeof readJsonRecord>): string[] => {
+  const entryFields = ['main', 'types', 'typings'].flatMap(field => {
+    const target = packageJson?.[field];
+    return typeof target === 'string' ? [target] : [];
+  });
+  return [...exportTargets(packageJson?.exports), ...entryFields].flatMap(target => {
+    if (path.posix.isAbsolute(target) || target.startsWith('../')) return [];
+    const relativeTarget = target.startsWith('./') ? target : `./${target}`;
+    if (relativeTarget.includes('*') || path.posix.extname(relativeTarget)) return [relativeTarget];
+    const directory = relativeTarget.replace(/\/+$/, '');
+    return ['.js', '.mjs', '.cjs', '.d.ts', '.d.mts', '.d.cts'].map(extension => `${directory}/index${extension}`);
+  });
+};
+
 const packageCache = new Map<string, { targets: string[]; config: ts.ParsedCommandLine | undefined }>();
 
 const isPackageEntryPoint = (filename: string): boolean => {
@@ -31,7 +45,7 @@ const isPackageEntryPoint = (filename: string): boolean => {
       if (!packageCache.has(packagePath)) {
         const configPath = path.join(directory, 'tsconfig.json');
         packageCache.set(packagePath, {
-          targets: exportTargets(readJsonRecord(packagePath)?.exports).filter(target => target.startsWith('./')),
+          targets: packageEntryTargets(readJsonRecord(packagePath)),
           config: fs.existsSync(configPath)
             ? ts.parseJsonConfigFileContent(
                 ts.readConfigFile(configPath, ts.sys.readFile).config,
@@ -54,7 +68,17 @@ const isPackageEntryPoint = (filename: string): boolean => {
               false
             )
           : [])
-      ].map(candidate => `./${path.relative(directory, candidate).split(path.sep).join('/')}`);
+      ].flatMap(candidate => {
+        const relative = `./${path.relative(directory, candidate).split(path.sep).join('/')}`;
+        const declaration = relative.endsWith('.mjs')
+          ? `${relative.slice(0, -4)}.d.mts`
+          : relative.endsWith('.cjs')
+            ? `${relative.slice(0, -4)}.d.cts`
+            : relative.endsWith('.js')
+              ? `${relative.slice(0, -3)}.d.ts`
+              : relative;
+        return declaration === relative ? [relative] : [relative, declaration];
+      });
       return targets.some(target => {
         // Node export patterns allow '*' to include directory separators.
         const pattern = new RegExp(
@@ -74,12 +98,12 @@ export const noPassThroughExports = RuleCreator.withoutDocs({
   meta: {
     type: 'problem',
     docs: {
-      description: 'Disallow pass-through exports outside entry points declared in package.json exports'
+      description: 'Disallow pass-through exports outside entry points declared in package.json'
     },
     schema: [],
     messages: {
       passThrough:
-        'Pass-through exports are only allowed in package.json exports entry points. Import directly from the defining module instead.'
+        'Pass-through exports are only allowed in package.json entry points. Import directly from the defining module instead.'
     }
   },
   defaultOptions: [],

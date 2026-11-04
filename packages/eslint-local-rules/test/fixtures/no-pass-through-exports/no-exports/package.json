@@ -1,5 +1,5 @@
 {
   "name": "no-exports-fixture",
-  "main": "index.ts",
-  "types": "index.ts"
+  "main": "./build/index.js",
+  "types": "./build/index.d.ts"
 }

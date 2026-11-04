@@ -9,12 +9,6 @@
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "main": "out/src",
-  "exports": {
-    ".": {
-      "types": "./out/src/index.d.ts",
-      "default": "./out/src/index.js"
-    }
-  },
   "scripts": {
     "compile": "wireit",
     "lint": "wireit",

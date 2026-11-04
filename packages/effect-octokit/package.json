@@ -19,12 +19,6 @@
   "homepage": "https://github.com/forcedotcom/salesforcedx-vscode/tree/develop/packages/effect-octokit",
   "main": "out/src/github.js",
   "types": "out/src/github.d.ts",
-  "exports": {
-    ".": {
-      "types": "./out/src/github.d.ts",
-      "default": "./out/src/github.js"
-    }
-  },
   "scripts": {
     "compile": "wireit",
     "lint": "wireit",
