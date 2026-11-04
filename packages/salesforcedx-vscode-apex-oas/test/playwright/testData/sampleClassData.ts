@@ -6,32 +6,19 @@
  */
 
 export const caseManagerClassText = [
-  "@RestResource(urlMapping='/apex-rest-examples/v1/Cases/*')",
   'global with sharing class CaseManager {',
-  '  @HttpPost',
-  '  global static ID createCase(String subject, String status,',
-  '    String origin, String priority) {',
-  '    Case thisCase = new Case(',
-  '      Subject=subject,',
-  '      Status=status,',
-  '      Origin=origin,',
-  '      Priority=priority);',
-  '    insert thisCase;',
-  '    return thisCase.Id;',
+  '  @AuraEnabled',
+  '  public static String createCase() {',
+  "    return 'created';",
   '  }',
   '}'
 ].join('\n');
 
 export const simpleAccountResourceClassText = [
-  "@RestResource(urlMapping='/apex-rest-examples/v1/*')",
   'global with sharing class SimpleAccountResource {',
-  '  @HttpGet',
-  '  global static Account getAccount() {',
-  '    RestRequest req = RestContext.request;',
-  '    RestResponse res = RestContext.response;',
-  "    String accountId = req.requestURI.substring(req.requestURI.lastIndexOf('/')+1);",
-  '    Account result = [SELECT Id, Name, Phone, Website FROM Account WHERE Id = :accountId];',
-  '    return result;',
+  '  @AuraEnabled',
+  '  public static String getAccount() {',
+  "    return 'account';",
   '  }',
   '}'
 ].join('\n');
@@ -39,17 +26,6 @@ export const simpleAccountResourceClassText = [
 export const ineligibleApexClassText = [
   'public with sharing class IneligibleApexClass {',
   '  public IneligibleApexClass() {}',
-  '}'
-].join('\n');
-
-// Has @RestResource but no @Http___ method and no @AuraEnabled — passes eligibility + mixed-frameworks
-// checks but no generation strategy qualifies, so it must fail early with strategy_not_qualified.
-export const restResourceNoHttpMethodClassText = [
-  "@RestResource(urlMapping='/apex-rest-examples/v1/noHttp/*')",
-  'global with sharing class RestResourceNoHttpMethod {',
-  '  global static Account getAccount(Id accountId) {',
-  '    return [SELECT Id, Name, Phone, Website FROM Account WHERE Id = :accountId];',
-  '  }',
   '}'
 ].join('\n');
 

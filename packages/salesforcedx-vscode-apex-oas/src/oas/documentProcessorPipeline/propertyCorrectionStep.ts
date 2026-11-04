@@ -10,19 +10,11 @@ import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
 import { JSONPath } from 'jsonpath-plus';
 import type { OpenAPIV3 } from 'openapi-types';
-import { hasAuraFrameworkCapability } from '../../oasUtils';
 
 const ensureInfoVersionIsPresent = (oasDoc: OpenAPIV3.Document): OpenAPIV3.Document => ({
   ...oasDoc,
   info: { ...oasDoc.info, version: '1.0.0' }
 });
-
-const ensureServersIsPresent =
-  (input: ProcessorInputOutput) =>
-  (oasDoc: OpenAPIV3.Document): OpenAPIV3.Document =>
-    input.context && hasAuraFrameworkCapability(input.context)
-      ? oasDoc
-      : { ...oasDoc, servers: [{ url: '/services/apexrest' }] };
 
 const ensureDescriptionsAt =
   (jsonPath: string, defaultDescription: string) =>
@@ -62,7 +54,6 @@ export const propertyCorrectionStep = Effect.fn('ApexOas.Process.propertyCorrect
 ) {
   const fixedOASDoc = pipe(
     input.openAPIDoc,
-    ensureServersIsPresent(input),
     ensureInfoVersionIsPresent,
     ensureDescriptionsAt('$.paths[*]', 'Default description for the path.'),
     ensureDescriptionsAt('$.paths[*][*]', 'Default description for the operation.'),

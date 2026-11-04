@@ -26,12 +26,11 @@ import {
 import { caseManagerClassText } from '../testData/sampleClassData';
 import { getIdealCaseManagerOASDoc } from '../testData/oasDocs';
 import {
-  assertGenerationOrSkipOnRateLimit,
   confirmEsrFolderPrompt,
   pushSource,
   setupWorkbenchAndAuth,
   setWorkspaceApiVersion,
-  waitForA4VAndOasCommands,
+  waitForOasCommands,
   waitForEsrFile,
   writeWorkspaceFile
 } from '../utils/oasHelpers';
@@ -50,8 +49,8 @@ test('OAS: composed mode → overwrite → revalidate → deploy', async ({ page
     await reloadWindow(page);
   });
 
-  await test.step('wait for A4V + OAS commands available', async () => {
-    await waitForA4VAndOasCommands(page);
+  await test.step('wait for OAS commands available', async () => {
+    await waitForOasCommands(page);
   });
 
   await test.step('create CaseManager class and push', async () => {
@@ -66,8 +65,7 @@ test('OAS: composed mode → overwrite → revalidate → deploy', async ({ page
     await clickModalDialogButton(page, 'Overwrite').catch(() => {});
 
     // Info toasts auto-dismiss in seconds; the ESR file is the durable success signal.
-    // A monthly A4V quota outage surfaces a rate-limit notification instead — skip, don't fail.
-    await assertGenerationOrSkipOnRateLimit(test, page, waitForEsrFile(workspaceDir, 'CaseManager'));
+    await waitForEsrFile(workspaceDir, 'CaseManager');
   });
 
   await test.step('replace generated ESR with ideal solution and revalidate', async () => {
