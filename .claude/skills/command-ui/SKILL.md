@@ -39,7 +39,7 @@ Done: `%key%` in `package.json` + `package.nls.json` + `i18n.ts`; slot key equal
 
 ### 2. Register
 
-Once: `api.services.registerCommandWithRuntime(getRuntime())`.
+Once: `api.v2.services.registerCommandWithRuntime(getRuntime())`.
 
 Palette `when` gates enablement (`sf:project_opened`, `sf:has_target_org`). `when: never` for internals (conflict helpers, status-bar click-to-toast).
 
@@ -55,7 +55,7 @@ Same command ID. Handler accepts optional args from the _surface_; palette path 
 export const myCommand = Effect.fn('myCommand')(function* (sourceUri?: URI, uris: URI[] = []) {
   const targets = sourceUri
     ? new Set([sourceUri, ...uris])
-    : new Set([yield* api.services.EditorService.getActiveEditorUri()]);
+    : new Set([yield* api.v2.services.EditorService.use(service => service.getActiveEditorUri())]);
 });
 
 new CodeLens(range, { command: 'sf.my.command', title, arguments: [uri] });
@@ -65,7 +65,7 @@ Done: every CodeLens / menu / `TreeItem.command` uses that ID.
 
 ### 4. Layer + slot
 
-Merge `NotificationModeService.Default(extensionSection, statusBarId, statusBarName)` into `AllServicesLayer`. Copy an existing `Default(...)` in that package's `extensionProvider.ts`. Dispose the `ManagedRuntime` on deactivation.
+Merge `api.v2.services.NotificationModeServiceLayer(extensionSection, statusBarId, statusBarName)` into `AllServicesLayer`. Dispose the `ManagedRuntime` on deactivation.
 
 Lookup: command → `extensionLevelNotifications` → global `salesforcedx-vscode-services.notifications`.
 
@@ -85,13 +85,13 @@ export type ProgressAndSuccessCommandKey = Exclude<CommandNotificationKey, Progr
 
 ESLint `notificationSlotMatchesPackageJson` checks SuccessOnly / ProgressOnly aliases against the slot enum.
 
-Done: `Default(...)` in the layer; slot exists; `COMMAND` typed.
+Done: `NotificationModeServiceLayer(...)` in the layer; slot exists; `COMMAND` typed.
 
 ### 5. Progress + success
 
 ```typescript
 const COMMAND: ProgressAndSuccessCommandKey = messages.deploy_this_source_text;
-const notificationMode = yield* api.services.NotificationModeService;
+const notificationMode = yield* api.v2.services.NotificationModeService;
 const location = yield* notificationMode.getProgressLocation(COMMAND);
 
 yield* work.pipe(

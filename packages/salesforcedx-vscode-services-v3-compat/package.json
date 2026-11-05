@@ -1,0 +1,110 @@
+{
+  "name": "@salesforce/vscode-services-v3-compat",
+  "version": "68.9.0",
+  "private": true,
+  "description": "Effect V3 compatibility adapters for the V4-owned Salesforce services runtime",
+  "license": "BSD-3-Clause",
+  "type": "module",
+  "main": "out/index.js",
+  "types": "out/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./out/index.d.ts",
+      "default": "./out/index.js"
+    },
+    "./host": {
+      "types": "./out/compatibilityHost.d.ts",
+      "default": "./out/compatibilityHost.js"
+    },
+    "./legacyWorkspaceService": {
+      "types": "./out/legacyWorkspaceService.d.ts",
+      "default": "./out/legacyWorkspaceService.js"
+    },
+    "./legacyAliasService": {
+      "types": "./out/legacyAliasService.d.ts",
+      "default": "./out/legacyAliasService.js"
+    },
+    "./legacyConfigService": {
+      "types": "./out/legacyConfigService.d.ts",
+      "default": "./out/legacyConfigService.js"
+    },
+    "./legacyConnectionService": {
+      "types": "./out/legacyConnectionService.d.ts",
+      "default": "./out/legacyConnectionService.js"
+    },
+    "./legacyQueryService": {
+      "types": "./out/legacyQueryService.d.ts",
+      "default": "./out/legacyQueryService.js"
+    },
+    "./legacyTypes": {
+      "types": "./out/legacyTypes.d.ts",
+      "default": "./out/legacyTypes.js"
+    }
+  },
+  "files": [
+    "out/**",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=24.18.0"
+  },
+  "dependencies": {
+    "@effect/opentelemetry": "0.63.0",
+    "@effect/platform": "0.96.1",
+    "@jsforce/jsforce-node": "^3.10.24",
+    "@salesforce/core": "^9.3.6",
+    "@salesforce/source-deploy-retrieve": "^13.5.0",
+    "@salesforce/source-tracking": "^8.1.7",
+    "@salesforce/templates": "^66.19.0",
+    "@types/vscode": "^1.129.0",
+    "effect": "3.21.2",
+    "jsforce": "^3.10.24",
+    "vscode-uri": "^3.1.0"
+  },
+  "scripts": {
+    "compile": "wireit",
+    "lint": "wireit",
+    "check:effect-diagnostics": "wireit"
+  },
+  "wireit": {
+    "compile": {
+      "command": "node scripts/prepareLegacyDeclarations.mjs && tsc --pretty && dts-bundle-generator --project tsconfig.json --export-referenced-types false --out-file out/externalServices.d.cts src/externalServices.cts",
+      "files": [
+        "src/**/*.{ts,cts}",
+        "scripts/*.mjs",
+        "../salesforcedx-vscode-services-types/legacy/services.d.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
+        "../../pnpm-lock.yaml",
+        "package.json"
+      ],
+      "output": [
+        "out/**"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color src package.json",
+      "dependencies": [
+        "../eslint-local-rules:compile"
+      ],
+      "files": [
+        "src/**/*.{ts,cts}",
+        "package.json",
+        "tsconfig.json",
+        "../../eslint.config.mjs"
+      ],
+      "output": []
+    },
+    "check:effect-diagnostics": {
+      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "../../config/effect-diagnostics.json",
+        "../../scripts/effect-diagnostics.mjs"
+      ],
+      "output": []
+    }
+  }
+}

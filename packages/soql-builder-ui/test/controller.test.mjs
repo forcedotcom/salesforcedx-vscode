@@ -1,6 +1,5 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import * as Chunk from 'effect/Chunk';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
@@ -23,7 +22,7 @@ test('the scoped controller streams service state and records actions determinis
   const result = await Effect.runPromise(
     Effect.gen(function* () {
       const fake = yield* makeFakeSoqlBuilderService(initialState);
-      const controllerLayer = SoqlBuilderController.Default.pipe(Layer.provide(fake.layer));
+      const controllerLayer = Layer.provide(SoqlBuilderController.layer, fake.layer);
 
       return yield* Effect.gen(function* () {
         const controller = yield* SoqlBuilderController;
@@ -32,7 +31,7 @@ test('the scoped controller streams service state and records actions determinis
           Stream.tap(() => Deferred.succeed(subscribed, undefined)),
           Stream.take(2),
           Stream.runCollect,
-          Effect.fork
+          Effect.forkChild
         );
 
         yield* Deferred.await(subscribed);
@@ -41,7 +40,7 @@ test('the scoped controller streams service state and records actions determinis
 
         return {
           actions: yield* fake.recordedActions,
-          states: Chunk.toReadonlyArray(yield* Fiber.join(stateFiber))
+          states: yield* Fiber.join(stateFiber)
         };
       }).pipe(Effect.provide(controllerLayer), Effect.scoped);
     })
@@ -59,7 +58,7 @@ test('the fake service propagates typed failures through controller state', asyn
   const states = await Effect.runPromise(
     Effect.gen(function* () {
       const fake = yield* makeFakeSoqlBuilderService(initialState);
-      const controllerLayer = SoqlBuilderController.Default.pipe(Layer.provide(fake.layer));
+      const controllerLayer = Layer.provide(SoqlBuilderController.layer, fake.layer);
 
       return yield* Effect.gen(function* () {
         const controller = yield* SoqlBuilderController;
@@ -68,7 +67,7 @@ test('the fake service propagates typed failures through controller state', asyn
           Stream.tap(() => Deferred.succeed(subscribed, undefined)),
           Stream.take(2),
           Stream.runCollect,
-          Effect.fork
+          Effect.forkChild
         );
         yield* Deferred.await(subscribed);
         yield* fake.fail(
@@ -76,7 +75,7 @@ test('the fake service propagates typed failures through controller state', asyn
             details: 'metadata subscription failed'
           })
         );
-        return Chunk.toReadonlyArray(yield* Fiber.join(stateFiber));
+        return yield* Fiber.join(stateFiber);
       }).pipe(Effect.provide(controllerLayer), Effect.scoped);
     })
   );

@@ -26,6 +26,9 @@ jest.config.js
 tsconfig.json
 tsconfig.scripts.json
 .eslint.json
+CONTEXT.md
+jest.transformer.cjs
+vitest.config.mts
 
 # unique to this package
 scripts/**

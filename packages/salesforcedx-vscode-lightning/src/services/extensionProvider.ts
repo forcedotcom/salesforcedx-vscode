@@ -19,8 +19,8 @@ export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLay
 // eslint-disable-next-line functional/no-let -- Lazy singleton runtime
 let _auraRuntime:
   | ManagedRuntime.ManagedRuntime<
-      Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>,
-      Layer.Layer.Error<ReturnType<typeof buildAllServicesLayer>>
+      Layer.Success<ReturnType<typeof buildAllServicesLayer>>,
+      Layer.Error<ReturnType<typeof buildAllServicesLayer>>
     >
   | undefined;
 

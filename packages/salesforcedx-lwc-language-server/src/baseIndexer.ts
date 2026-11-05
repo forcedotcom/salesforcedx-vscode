@@ -39,10 +39,24 @@ const isSfdxProjectConfig = (value: unknown): value is SfdxProjectConfig => {
   );
 };
 
-// Normalizes the workspace root for consistency.
-// Relative roots are kept relative: web memfs roots (e.g. "dx-project") have no leading slash, and
-// workspace/findFiles results are normalized the same way, so resolving against process.cwd() would break prefix matching.
-export const getWorkspaceRoot = (workspaceRoot: string): NormalizedPath => normalizePath(workspaceRoot);
+// Utility function to resolve workspace root
+// Normalizes the path to ensure consistency (path.resolve() may reintroduce backslashes on Windows)
+// On Windows, path.isAbsolute() returns false for Windows-style paths on non-Windows platforms
+// So we check for Windows drive letter pattern explicitly
+export const getWorkspaceRoot = (workspaceRoot: string): NormalizedPath => {
+  // Check if path is already absolute (Unix absolute or Windows absolute)
+  // Windows absolute paths start with a drive letter followed by colon and slash (e.g., "d:/" or "D:/")
+  const isWindowsAbsolute = /^[A-Za-z]:[/\\]/.test(workspaceRoot);
+  const isUnixAbsolute = path.isAbsolute(workspaceRoot);
+
+  if (isUnixAbsolute || isWindowsAbsolute) {
+    // Path is already absolute, just normalize it
+    return normalizePath(workspaceRoot);
+  }
+  // Otherwise, resolve relative paths
+  const resolved = path.resolve(workspaceRoot);
+  return normalizePath(resolved);
+};
 
 /** Get SFDX configuration from sfdx-project.json */
 const getSfdxConfig = async (

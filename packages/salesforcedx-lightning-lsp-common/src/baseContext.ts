@@ -6,7 +6,7 @@
  */
 
 import * as Arr from 'effect/Array';
-import { isError, isRecord, isString, isUndefined } from 'effect/Predicate';
+import { isError, isObject, isString, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as path from 'node:path';
 import { type Connection } from 'vscode-languageserver';
@@ -37,7 +37,7 @@ export interface Indexer {
 }
 
 const isSfdxPackageDirectoryConfig = (value: unknown): value is SfdxPackageDirectoryConfig => {
-  if (!isRecord(value)) return false;
+  if (!isObject(value)) return false;
   return 'path' in value && isString(value.path);
 };
 
@@ -48,16 +48,16 @@ const JSON_INDENT = 2;
  * Uses Schema.suspend for recursive types (arrays and objects can contain JSON values).
  * This allows Effect Schema to validate and provide structural equality checking.
  */
-const JsonValueSchema: Schema.Schema<JsonValue> = Schema.suspend(() =>
-  Schema.Union(
+const JsonValueSchema: Schema.Codec<JsonValue, JsonValue, never, never> = Schema.suspend(() =>
+  Schema.Union([
     Schema.Null,
     Schema.Undefined,
     Schema.String,
     Schema.Number,
     Schema.Boolean,
     Schema.Array(JsonValueSchema),
-    Schema.Record({ key: Schema.String, value: JsonValueSchema })
-  )
+    Schema.Record(Schema.String, JsonValueSchema)
+  ])
 );
 
 // Type representing a JSON-serializable value
@@ -91,7 +91,7 @@ export const areJsonValuesEqual = (a: unknown, b: unknown): boolean => {
     const decodedA = Schema.decodeUnknownSync(JsonValueSchema)(a);
     const decodedB = Schema.decodeUnknownSync(JsonValueSchema)(b);
 
-    return Schema.equivalence(JsonValueSchema)(decodedA, decodedB);
+    return Schema.toEquivalence(JsonValueSchema)(decodedA, decodedB);
   } catch {
     // If schema validation fails, values are not equal
     return false;
@@ -117,7 +117,7 @@ const readSfdxProjectConfig = async (
 
   try {
     const config: unknown = JSON.parse(configText);
-    if (!isRecord(config)) {
+    if (!isObject(config)) {
       throw new Error(nls.localize('invalid_config_format_message'));
     }
     const packageDirectories = Array.isArray(config.packageDirectories)
@@ -441,7 +441,7 @@ export abstract class BaseWorkspaceContext {
             throw new Error(nls.localize('existing_config_content_not_found_message'));
           }
           const existingConfig: unknown = JSON.parse(existingConfigContent);
-          if (!isRecord(existingConfig)) {
+          if (!isObject(existingConfig)) {
             throw new Error(nls.localize('invalid_existing_config_format_message'));
           }
 
@@ -473,8 +473,8 @@ export abstract class BaseWorkspaceContext {
             ...existingConfig,
             ...jsconfigSfdx,
             compilerOptions: {
-              ...(isRecord(existingCompilerOptions) ? existingCompilerOptions : {}),
-              ...(isRecord(templateCompilerOptions) ? templateCompilerOptions : {})
+              ...(isObject(existingCompilerOptions) ? existingCompilerOptions : {}),
+              ...(isObject(templateCompilerOptions) ? templateCompilerOptions : {})
             },
             include: Arr.dedupe([...userInclude, ...jsconfigSfdx.include, typingsInclude])
           };

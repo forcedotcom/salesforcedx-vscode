@@ -10,11 +10,9 @@ import type { OutputFormat, TestResult } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
-import * as Runtime from 'effect/Runtime';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
-import { openTestReport } from './testReportGenerator';
 
 /**
  * Simple notification service wrapper that uses vscode.window directly.
@@ -47,14 +45,20 @@ export const showRunOutcomeNotification = Effect.fn('ApexTesting.showRunOutcomeN
   reportUri: URI | undefined,
   outputFormat: OutputFormat
 ) {
-  const notificationMode = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services
+  const notificationMode = yield* (yield* (yield* ExtensionProviderService).getServicesApi).v2.services
     .NotificationModeService;
-  const runtime = yield* Effect.runtime<Effect.Effect.Context<ReturnType<typeof openTestReport>>>();
   const openReportActions = reportUri
     ? [
         {
           label: nls.localize('apex_test_report_open_action'),
-          run: () => Runtime.runPromise(runtime)(openTestReport(reportUri, outputFormat))
+          run: async () => {
+            if (outputFormat === 'markdown') {
+              await vscode.commands.executeCommand('markdown.preview.refresh');
+              await vscode.commands.executeCommand('markdown.showPreview', reportUri);
+            } else {
+              await vscode.commands.executeCommand('vscode.open', reportUri);
+            }
+          }
         }
       ]
     : [];

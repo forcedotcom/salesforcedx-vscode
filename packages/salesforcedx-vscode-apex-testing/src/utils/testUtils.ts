@@ -17,7 +17,7 @@ const writeTestResultJson = Effect.fn('testUtils.writeTestResultJson')(function*
   const jsonContent = JSON.stringify(result, null, 2);
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const jsonFileUri = Utils.joinPath(outputDir, jsonFilename);
-  yield* api.services.FsService.safeWriteFile(jsonFileUri, jsonContent);
+  yield* api.v2.services.FsService.use(service => service.safeWriteFile(jsonFileUri, jsonContent));
 });
 
 /** Writes test-run-id.txt using FsService (works in both desktop and web) so file watcher and controller can read it */
@@ -28,7 +28,7 @@ const writeTestRunIdFile = Effect.fn('testUtils.writeTestRunIdFile')(function* (
   }
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const fileUri = Utils.joinPath(outputDir, 'test-run-id.txt');
-  yield* api.services.FsService.writeFile(fileUri, testRunId);
+  yield* api.v2.services.FsService.use(service => service.writeFile(fileUri, testRunId));
 });
 
 /** Writes test-result-<runId>-codecoverage.json using FsService (same content as apex-node writeResultFiles; works on web and desktop) */
@@ -46,7 +46,7 @@ const writeCodeCoverageJson = Effect.fn('testUtils.writeCodeCoverageJson')(funct
   const jsonContent = JSON.stringify(coverageData, null, 2);
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const jsonFileUri = Utils.joinPath(outputDir, `test-result-${testRunId}-codecoverage.json`);
-  yield* api.services.FsService.writeFile(jsonFileUri, jsonContent);
+  yield* api.v2.services.FsService.use(service => service.writeFile(jsonFileUri, jsonContent));
 });
 
 /** Reads test-run-id.txt using FsService (works in both desktop and web) */
@@ -54,7 +54,7 @@ export const readTestRunIdFile = Effect.fn('testUtils.readTestRunIdFile')(
   function* (apexTestDir: URI) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     const fileUri = Utils.joinPath(apexTestDir, 'test-run-id.txt');
-    const content = yield* api.services.FsService.readFile(fileUri);
+    const content = yield* api.v2.services.FsService.use(service => service.readFile(fileUri));
     return content.trim();
   },
   Effect.orElseSucceed(() => undefined)

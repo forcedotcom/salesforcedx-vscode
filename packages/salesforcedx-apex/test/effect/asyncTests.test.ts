@@ -37,7 +37,7 @@ const makeConnection = () => {
   return { tooling, connection: { tooling } as unknown as Connection };
 };
 const queue = (records: { Id: string; Status: string }[]) => ({ done: true, records });
-const drainRun = (connection: Connection, polling: { interval?: Duration.DurationInput } = {}) =>
+const drainRun = (connection: Connection, polling: { interval?: Duration.Input } = {}) =>
   runTestAsynchronous(connection, options, polling).pipe(
     Effect.flatMap(({ stream }) => Stream.runDrain(stream)),
     Effect.scoped
@@ -249,14 +249,15 @@ describe('Effect asynchronous tests', () => {
           Stream.tap(() => Deferred.succeed(polled, undefined)),
           Stream.runDrain,
           Effect.scoped,
-          Effect.fork
+          Effect.forkChild
         );
         yield* Deferred.await(polled);
-        return yield* Fiber.interrupt(fiber);
+        yield* Fiber.interrupt(fiber);
+        return yield* Fiber.await(fiber);
       }).pipe(Effect.scoped)
     );
 
-    expect(Exit.isFailure(exit) && Cause.isInterrupted(exit.cause)).toBe(true);
+    expect(Exit.isFailure(exit) && Cause.hasInterrupts(exit.cause)).toBe(true);
     expect(tooling.update).toHaveBeenCalledWith(
       'ApexTestQueueItem',
       [{ Id: '709000000000001AAA', Status: 'Aborted' }],
@@ -276,15 +277,17 @@ describe('Effect asynchronous tests', () => {
         tooling.request.mockImplementation(() =>
           Effect.runPromise(Deferred.succeed(submitting, undefined).pipe(Effect.andThen(Deferred.await(accepted))))
         );
-        const fiber = yield* runTestAsynchronous(connection, options).pipe(Effect.scoped, Effect.fork);
+        const fiber = yield* runTestAsynchronous(connection, options).pipe(Effect.scoped, Effect.forkChild);
         yield* Deferred.await(submitting);
-        yield* Fiber.interruptFork(fiber);
+        const interruptFiber = yield* Fiber.interrupt(fiber).pipe(Effect.forkChild);
+        yield* Effect.yieldNow;
         yield* Deferred.succeed(accepted, testRunId);
+        yield* Fiber.join(interruptFiber);
         return yield* Fiber.await(fiber);
       })
     );
 
-    expect(Exit.isFailure(exit) && Cause.isInterrupted(exit.cause)).toBe(true);
+    expect(Exit.isFailure(exit) && Cause.hasInterrupts(exit.cause)).toBe(true);
     expect(tooling.update).toHaveBeenCalledWith(
       'ApexTestQueueItem',
       [{ Id: '709000000000001AAA', Status: 'Aborted' }],

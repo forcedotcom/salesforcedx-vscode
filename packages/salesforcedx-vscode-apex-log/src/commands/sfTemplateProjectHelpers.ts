@@ -5,11 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  ExtensionProviderService,
-  LetterStartNamePattern,
-  parseErrorToValidationMessage
-} from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, LetterStartNameSchema } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as String from 'effect/String';
@@ -32,16 +28,18 @@ const getStandardApexTypeNameMessages = () => ({
   reservedDefault: nls.localize('name_cannot_be_default')
 });
 
-const apexTypeNameSchema = (messages: ApexTypeNameMessages) =>
-  Schema.Trim.pipe(
-    Schema.minLength(1, { message: () => messages.empty }),
-    Schema.filter(value => value.toLowerCase() !== 'default', { message: () => messages.reservedDefault }),
-    Schema.pattern(LetterStartNamePattern, { message: () => messages.invalidFormat }),
-    Schema.maxLength(APEX_NAME_MAX_LENGTH, { message: () => messages.maxLength })
-  );
-
-const validateApexTypeName = (value: string, messages: ApexTypeNameMessages): string | undefined =>
-  Schema.decodeUnknownEither(apexTypeNameSchema(messages))(value).pipe(parseErrorToValidationMessage);
+const validateApexTypeName = (
+  value: string,
+  messages: ApexTypeNameMessages,
+  options?: { readonly maxLength?: number }
+): string | undefined => {
+  const maxLen = options?.maxLength ?? APEX_NAME_MAX_LENGTH;
+  const normalized = String.trim(value);
+  if (!normalized) return messages.empty;
+  if (normalized.toLowerCase() === 'default') return messages.reservedDefault;
+  if (!Schema.is(LetterStartNameSchema)(normalized)) return messages.invalidFormat;
+  return normalized.length > maxLen ? messages.maxLength : undefined;
+};
 
 type PromptForApexTypeNameParams = {
   readonly prompt: string;
@@ -52,12 +50,15 @@ export const promptForApexTypeName = Effect.fn('promptForApexTypeName')(function
   params: PromptForApexTypeNameParams
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   const messages = params.messages ?? getStandardApexTypeNameMessages();
   return yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: params.prompt,
-      validateInput: (value: string) => validateApexTypeName(value, messages)
+      validateInput: (value: string) =>
+        validateApexTypeName(value, messages, {
+          maxLength: APEX_NAME_MAX_LENGTH
+        })
     })
   ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation), Effect.map(String.trim));
 });

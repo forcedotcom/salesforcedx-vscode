@@ -5,12 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Schema from 'effect/Schema';
-
-export const LogLevelSchema = Schema.Literal('trace', 'debug', 'info', 'warn', 'error', 'fatal').annotations({
-  identifier: 'LogLevel'
-});
-export type LogLevel = typeof LogLevelSchema.Type;
+export type LogLevel = 'trace' | 'debug' | 'info' | 'warn' | 'error' | 'fatal';
 
 export const xmlCharMap: { [index: string]: string } = {
   '<': '&lt;',
@@ -20,11 +15,19 @@ export const xmlCharMap: { [index: string]: string } = {
   "'": '&apos;'
 };
 
-export const CommonOptionsSchema = Schema.Struct({
-  json: Schema.optional(Schema.Boolean),
-  loglevel: Schema.optional(LogLevelSchema)
-}).annotations({ identifier: 'CommonOptions' });
-export type CommonOptions = typeof CommonOptionsSchema.Type;
+export type CommonOptions = {
+  json?: boolean;
+  loglevel?: LogLevel;
+};
+
+export type ApexDiagnostic = {
+  lineNumber?: number;
+  columnNumber?: number;
+  exceptionMessage?: string;
+  compileProblem?: string;
+  exceptionStackTrace?: string;
+  className?: string;
+};
 
 type DebugLevelRecord = {
   ApexCode: string;
@@ -49,3 +52,12 @@ export type DataRecordResult = {
 export type IdRecord = {
   Id: string;
 };
+
+export interface Row {
+  [column: string]: string;
+}
+
+export interface Column {
+  key: string;
+  label: string;
+}

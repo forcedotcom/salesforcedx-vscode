@@ -6,11 +6,11 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { TraceFlagItem } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isString } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { TraceFlagItem } from 'salesforcedx-vscode-services';
 import { type CancellationToken, CodeLens, type ExtensionContext, languages, Range, type TextDocument } from 'vscode';
 import { nls } from '../messages';
 import { buildTraceFlagsSchemas } from '../schemas/traceFlagsSchema';
@@ -21,16 +21,16 @@ import { isOrphanedTraceFlag } from './traceFlagsContentProvider';
 const TRACE_FLAGS_DOCUMENT_SELECTOR = { language: 'json', scheme: 'sf-traceflags' };
 
 /** Active trace flags whose debug level could not be resolved — each gets a warning "reassign" CodeLens (#7528). */
-export const orphanLensTargets = (items: TraceFlagItem[]): { traceFlagId: string; debugLevelId: string }[] =>
+export const orphanLensTargets = (items: readonly TraceFlagItem[]): { traceFlagId: string; debugLevelId: string }[] =>
   items
     .filter(item => item.isActive && isOrphanedTraceFlag(item))
     .map(item => ({ traceFlagId: item.id, debugLevelId: item.debugLevelId! }));
 
 const hasActiveTraceFlagEffect = Effect.fn('ApexLog.hasActiveTraceFlag')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { userId } = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+  const { userId } = yield* SubscriptionRef.get(yield* api.v2.services.TargetOrgRef);
   if (!userId) return false;
-  const traceFlagService = yield* api.services.TraceFlagService;
+  const traceFlagService = yield* api.v2.services.TraceFlagService;
   const existing = yield* traceFlagService.getTraceFlagForUser(userId);
   return Option.isSome(existing) && isTraceFlagActive(existing.value);
 });
@@ -39,8 +39,7 @@ const provideTraceFlagsCodeLens = Effect.fn('ApexLog.CodeLensProvider.provideTra
   document: TextDocument,
   _token: CancellationToken
 ) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { decodeTraceFlagsConfigFromJson } = buildTraceFlagsSchemas(api.services.TraceFlagItemStruct);
+  const { decodeTraceFlagsConfigFromJson } = buildTraceFlagsSchemas();
   const parsed = decodeTraceFlagsConfigFromJson(document.getText());
   const text = document.getText();
   const allActiveItems = Object.values(parsed?.traceFlags ?? {})
@@ -95,7 +94,7 @@ const provideTraceFlagsCodeLens = Effect.fn('ApexLog.CodeLensProvider.provideTra
 
   const hasActive = yield* hasActiveTraceFlagEffect().pipe(
     Effect.tapError(e => Effect.logWarning(String(e))),
-    Effect.catchAll(() => Effect.succeed(false))
+    Effect.catch(() => Effect.succeed(false))
   );
   const devLogIdx = text.indexOf('"DEVELOPER_LOG"');
   const createLenses =
@@ -168,11 +167,7 @@ export const registerTraceFlagsCodeLensProvider = Effect.fn(
 )(function* (context: ExtensionContext) {
   const provider = {
     provideCodeLenses: (document: TextDocument, token: CancellationToken) =>
-      provideTraceFlagsCodeLens(document, token).pipe(
-        Effect.tapError(e => Effect.logError(String(e))),
-        Effect.catchAll(() => Effect.succeed<CodeLens[]>([])),
-        getRuntime().runPromise
-      )
+      getRuntime().runPromise(provideTraceFlagsCodeLens(document, token))
   };
   context.subscriptions.push(languages.registerCodeLensProvider(TRACE_FLAGS_DOCUMENT_SELECTOR, provider));
 });

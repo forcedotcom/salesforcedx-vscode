@@ -25,17 +25,12 @@ import { getDiagnostic } from '../effect/diagnostics';
 import { causeMessage } from '../effect/errors';
 import { queryRecords } from '../effect/records';
 import { ApexOperationError } from '../effect/schema/errors';
-import { ApexClassIdsSchema, ApexTestSuiteIdsSchema } from '../effect/schema/salesforceId';
+import { ApexClassIdsSchema, ApexTestSuiteIdsSchema, TestRunId } from '../effect/schema/salesforceId';
 import { ApexTestRunSummarySchema } from '../effect/schema/wire/asyncTests';
 import { calculatePercentage, transformTestResult } from '../effect/testResults';
 import { nls } from '../i18n';
-import { TestRunId } from '../schemas/salesforceId';
 import { type AsyncTestRun } from '../streaming/streamingClient';
 import { formatStartTime, getCurrentTime } from '../utils/dateUtil';
-import { type CancellationToken } from './cancellation';
-import { CodeCoverage } from './codeCoverage';
-import { QUERY_RECORD_LIMIT } from './constants';
-import { formatTestErrors } from './diagnosticUtil';
 import {
   type ApexTestProgressReporter,
   type ApexTestQueueItem,
@@ -51,7 +46,11 @@ import {
   type TestRunIdResult,
   type FlowTestResult,
   type ApexTestResultRecord
-} from './types';
+} from './apiTypes';
+import { type CancellationToken } from './cancellation';
+import { CodeCoverage } from './codeCoverage';
+import { QUERY_RECORD_LIMIT } from './constants';
+import { formatTestErrors } from './diagnosticUtil';
 import { queryAll, calculateCodeCoverage } from './utils';
 
 /**
@@ -96,7 +95,7 @@ const pollUntilComplete = Effect.fn('AsyncTests.pollUntilComplete')(function* <A
       })
   });
 
-  return yield* Stream.repeatEffectWithSchedule(
+  return yield* Stream.fromEffectSchedule(
     pollResult,
     Schedule.spaced(EffectDuration.millis(interval.milliseconds))
   ).pipe(
@@ -343,8 +342,7 @@ export class AsyncTests {
     testsComplete: boolean;
     testRunSummary: ApexTestRunResult;
   }> {
-    const assertTestRunId: Schema.Schema.ToAsserts<typeof TestRunId> = Schema.asserts(TestRunId);
-    assertTestRunId(testRunId);
+    Schema.decodeUnknownSync(TestRunId)(testRunId);
     const hasTestSetupTimeField = await this.supportsTestSetupFeature();
 
     const fields = [

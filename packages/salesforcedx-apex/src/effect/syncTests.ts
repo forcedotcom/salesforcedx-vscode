@@ -10,14 +10,14 @@ import * as Clock from 'effect/Clock';
 import * as Effect from 'effect/Effect';
 import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import { OrgIdString, UserIdString } from '../schemas/salesforceId';
-import { type ApexTestResultData, type SyncTestConfiguration, type TestResultRaw } from '../tests/types';
-import { getDiagnostic } from './diagnostics';
-import { causeMessage } from './errors';
-import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
-import { SyncTestConfigurationSchema } from './schema/testPayloads';
-import { calculatePercentage, computeTestCategory, transformTestResult } from './testResults';
-import { SyncTestResultSchema } from './testSchemas';
+import { type ApexTestResultData, type SyncTestConfiguration, type TestResultRaw } from '../tests/apiTypes.js';
+import { getDiagnostic } from './diagnostics.js';
+import { causeMessage } from './errors.js';
+import { ApexOperationError, ApexResponseDecodeError } from './schema/errors.js';
+import { OrgIdString, UserIdString } from './schema/salesforceId.js';
+import { SyncTestConfigurationSchema } from './schema/testPayloads.js';
+import { calculatePercentage, computeTestCategory, transformTestResult } from './testResults.js';
+import { SyncTestResultSchema } from './testSchemas.js';
 
 const operation = 'runTestSynchronous';
 type SyncTestResult = typeof SyncTestResultSchema.Type;
@@ -54,8 +54,8 @@ export const formatSyncResults = Effect.fn('Apex.formatSyncResults')(function* (
   response: unknown,
   startTime: number
 ) {
-  const result = yield* Schema.decodeUnknown(SyncTestResultSchema)(response).pipe(
-    Effect.catchTag('ParseError', cause =>
+  const result = yield* Schema.decodeUnknownEffect(SyncTestResultSchema)(response).pipe(
+    Effect.catchTag('SchemaError', cause =>
       Effect.fail(
         new ApexResponseDecodeError({
           operation,
@@ -69,7 +69,7 @@ export const formatSyncResults = Effect.fn('Apex.formatSyncResults')(function* (
   const failed = result.failures.length;
   const username = connection.getUsername();
   const userId = connection.getConnectionOptions().userId;
-  const orgId = yield* Schema.decodeUnknown(OrgIdString)(connection.getAuthInfoFields().orgId).pipe(
+  const orgId = yield* Schema.decodeUnknownEffect(OrgIdString)(connection.getAuthInfoFields().orgId).pipe(
     Effect.mapError(
       cause =>
         new ApexResponseDecodeError({
@@ -81,7 +81,7 @@ export const formatSyncResults = Effect.fn('Apex.formatSyncResults')(function* (
   );
   const decodedUserId = isUndefined(userId)
     ? undefined
-    : yield* Schema.decodeUnknown(UserIdString)(userId).pipe(
+    : yield* Schema.decodeUnknownEffect(UserIdString)(userId).pipe(
         Effect.mapError(
           cause =>
             new ApexResponseDecodeError({
@@ -123,8 +123,8 @@ export const requestSyncTests = Effect.fn('Apex.requestSyncTests')(function* (
   connection: Connection,
   options: SyncTestConfiguration
 ) {
-  yield* Schema.decodeUnknown(SyncTestConfigurationSchema)(options).pipe(
-    Effect.catchTag('ParseError', cause =>
+  yield* Schema.decodeUnknownEffect(SyncTestConfigurationSchema)(options).pipe(
+    Effect.catchTag('SchemaError', cause =>
       Effect.fail(new ApexOperationError({ operation, message: causeMessage(cause), cause: causeMessage(cause) }))
     )
   );

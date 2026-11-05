@@ -22,8 +22,8 @@ const toDeployMessageArray = (raw: DeployMessage | DeployMessage[] | undefined):
  * plugin-deploy-retrieve `DeployResultFormatter.getFileResponseFailures` / `sf project deploy start`.
  */
 export const getMergedDeployFailures = Effect.fn('getMergedDeployFailures')(function* (result: DeployResult) {
-  const { isSDRFailure, makeFileResponseFailure } = yield* (yield* (yield* ExtensionProviderService).getServicesApi)
-    .services.ComponentSetService;
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const { isSDRFailure, makeFileResponseFailure } = yield* api.v2.services.ComponentSetService;
 
   const failures = result.getFileResponses().filter(isSDRFailure);
   const deployMessages = toDeployMessageArray(result.response?.details?.componentFailures);

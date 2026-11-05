@@ -5,72 +5,102 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isNonEmpty, isString } from 'effect/String';
-
-export type Row = {
-  [column: string]: string | number | boolean;
-};
-
-export type Column = {
-  key: string;
-  label: string;
-};
+import { LoggerLevel } from '@salesforce/core';
+import { elapsedTime } from './elapsedTime';
+import { type Column, type Row } from './types';
 
 const COLUMN_SEPARATOR = '  ';
 const COLUMN_FILLER = ' ';
 const HEADER_FILLER = '─';
 
-/** Creates a formatted table from rows and columns. */
-export const createTable = (rows: Row[], cols: Column[], title?: string): string => {
-  const maxColWidths = calculateMaxColumnWidths(rows, cols);
+export class Table {
+  @elapsedTime()
+  public createTable(rows: Row[], cols: Column[], title?: string): string {
+    if (!rows) {
+      throw Error('rows cannot be undefined');
+    }
+    if (!cols) {
+      throw Error('columns cannot be undefined');
+    }
+    const maxColWidths = this.calculateMaxColumnWidths(rows, cols);
+    let table = title ? `=== ${title}` : '';
 
-  const columnsToDisplay = cols.filter(col => maxColWidths.has(col.key));
-  const headerRow = columnsToDisplay
-    .map(col => fillColumn(col.label || col.key, maxColWidths.get(col.key)!, COLUMN_FILLER))
-    .join(COLUMN_SEPARATOR);
-  const headerSeparatorRow = columnsToDisplay
-    .map(col => fillColumn('', maxColWidths.get(col.key)!, HEADER_FILLER))
-    .join(COLUMN_SEPARATOR);
+    let columnHeader = '';
+    let headerSeparator = '';
+    cols.forEach((col, index, arr) => {
+      const width = maxColWidths.get(col.key);
+      if (width) {
+        const isLastCol = index === arr.length - 1;
+        columnHeader += this.fillColumn(col.label || col.key, width, COLUMN_FILLER, isLastCol);
+        headerSeparator += this.fillColumn('', width, HEADER_FILLER, isLastCol);
+      }
+    });
 
-  return [
-    title ? `=== ${title}` : '',
-    headerRow,
-    headerSeparatorRow,
-    ...rows.map(row => createTableRow(row, cols, maxColWidths))
-  ]
-    .filter(isNonEmpty)
-    .concat(['']) // empty row for spacing
-    .join('\n');
-};
+    if (columnHeader && headerSeparator) {
+      table += `${title ? '\n' : ''}${columnHeader}\n${headerSeparator}\n`;
+    }
 
-const fillColumn = (label: string, width: number, filler: string): string => label.padEnd(width, filler);
+    rows.forEach(row => {
+      let outputRow = '';
+      cols.forEach((col, colIndex, colArr) => {
+        const cell = row[col.key];
+        const isLastCol = colIndex === colArr.length - 1;
+        const rowWidth = outputRow.length;
+        cell.split('\n').forEach((line, lineIndex) => {
+          const cellWidth = maxColWidths.get(col.key);
+          if (cellWidth) {
+            // If the cell is multiline, add an additional line to the table
+            // and pad it to the beginning of the current column.
+            // Only add col separator padding once to additional line.
+            outputRow +=
+              lineIndex === 0
+                ? this.fillColumn(line, cellWidth, COLUMN_FILLER, isLastCol)
+                : `\n${this.fillColumn('', rowWidth, COLUMN_FILLER, true)}${this.fillColumn(line, cellWidth, COLUMN_FILLER, isLastCol)}`;
+          }
+        });
+      });
+      table += `${outputRow}\n`;
+    });
 
-const calculateMaxColumnWidths = (rows: Row[], cols: Column[]): Map<string, number> =>
-  new Map(cols.map(col => [col.key, calculateMaxColumnWidth(rows, col)]));
+    return table;
+  }
 
-const longestCellWidth = (cell: string): number => Math.max(...cell.split('\n').map(line => line.length));
+  private calculateMaxColumnWidths(rows: Row[], cols: Column[]): Map<string, number> {
+    const maxColWidths = new Map<string, number>();
+    cols.forEach(col => {
+      rows.forEach(row => {
+        const cell = row[col.key];
+        if (cell === undefined) {
+          throw Error(`Row is missing the key ${col.key}`);
+        }
 
-const calculateMaxColumnWidth = (rows: Row[], col: Column): number =>
-  Math.max(
-    (col.label || col.key).length,
-    ...rows
-      .map(row => row[col.key] ?? undefined)
-      .filter(isString)
-      .filter(isNonEmpty)
-      .map(longestCellWidth)
-  );
+        let maxColWidth = maxColWidths.get(col.key);
+        if (maxColWidth === undefined) {
+          maxColWidth = (col.label || col.key).length;
+          maxColWidths.set(col.key, maxColWidth);
+        }
 
-const createTableRow = (row: Row, cols: Column[], maxColWidths: Map<string, number>): string => {
-  const columnsToDisplay = cols.filter(col => maxColWidths.has(col.key));
-  const allCellLines = columnsToDisplay.map(col => String(row[col.key] ?? '').split('\n'));
-  const maxLines = Math.max(...allCellLines.map(lines => lines.length), 1);
-  return Array.from({ length: maxLines }, (_, lineIndex) =>
-    columnsToDisplay
-      .map((col, colIndex) => {
-        const cellWidth = maxColWidths.get(col.key)!;
-        const line = allCellLines[colIndex][lineIndex] ?? '';
-        return fillColumn(line, cellWidth, COLUMN_FILLER);
-      })
-      .join(COLUMN_SEPARATOR)
-  ).join('\n');
-};
+        // if a cell is multiline, find the line that's the longest
+        const longestLineWidth = cell
+          .split('\n')
+          .reduce((maxLine, line) => (line.length > maxLine.length ? line : maxLine)).length;
+        if (longestLineWidth > maxColWidth) {
+          maxColWidths.set(col.key, longestLineWidth);
+        }
+      });
+    });
+    return maxColWidths;
+  }
+
+  @elapsedTime('elapsedTime', LoggerLevel.TRACE)
+  private fillColumn(label: string, width: number, filler: string, isLastCol: boolean): string {
+    let filled = label;
+    for (let i = 0; i < width - label.length; i++) {
+      filled += filler;
+    }
+    if (!isLastCol) {
+      filled += COLUMN_SEPARATOR;
+    }
+    return filled;
+  }
+}

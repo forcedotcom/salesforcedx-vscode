@@ -12,21 +12,21 @@ import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import { messages } from '../i18n/i18n';
+import { messages } from '../i18n/i18n.js';
+import { createRecord, queryRecords } from './records.js';
+import { ApexOperationError, ApexResponseDecodeError } from './schema/errors.js';
 import {
   ApexTestSuiteId,
   type ApexTestSuiteId as ApexTestSuiteIdType,
   type ApexClassId
-} from '../schemas/salesforceId';
-import { createRecord, queryRecords } from './records';
-import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
-import { TestSuiteMembershipSchema } from './schema/testSuites';
+} from './schema/salesforceId.js';
+import { TestSuiteMembershipSchema } from './schema/testSuites.js';
 import {
   ApexClassIdQueryResponseSchema,
   TestSuiteIdQueryResponseSchema,
   TestSuiteRecordSchema
-} from './schema/wire/testSuites';
-import { parseDottedName } from './testSelection';
+} from './schema/wire/testSuites.js';
+import { parseDottedName } from './testSelection.js';
 
 const quote = (value: string): string => value.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
 
@@ -111,7 +111,7 @@ export const buildSuite = Effect.fn('Apex.buildSuite')(function* (
       })
     ),
     Effect.flatMap(id =>
-      Schema.decodeUnknown(ApexTestSuiteId)(id).pipe(
+      Schema.decodeUnknownEffect(ApexTestSuiteId)(id).pipe(
         Effect.mapError(
           cause =>
             new ApexResponseDecodeError({

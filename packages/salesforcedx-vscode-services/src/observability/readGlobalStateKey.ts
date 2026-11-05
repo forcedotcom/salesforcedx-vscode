@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionContextService } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { ExtensionContextService } from '../vscode/extensionContextService';
 
 /** Read a string-valued globalState key as Option. */
 export const readGlobalStateKey = Effect.fn('readGlobalStateKey')(function* (key: string) {
   const contextService = yield* ExtensionContextService;
   const extensionContext = yield* contextService.getContext;
-  return Option.fromNullable(extensionContext.globalState.get<string | undefined>(key));
+  return Option.fromNullishOr(extensionContext.globalState.get<string | undefined>(key));
 });

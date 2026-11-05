@@ -7,7 +7,7 @@ Output channel for extension messages. Accessor pattern: call methods directly.
 Extension-specific channel in layer setup:
 
 ```typescript
-const channelLayer = api.services.ChannelServiceLayer(extension?.packageJSON.displayName);
+const channelLayer = api.v2.services.ChannelServiceLayer(extension?.packageJSON.displayName ?? 'Extension');
 ```
 
 ## Usage
@@ -15,13 +15,13 @@ const channelLayer = api.services.ChannelServiceLayer(extension?.packageJSON.dis
 Append messages:
 
 ```typescript
-yield* api.services.ChannelService.appendToChannel('Message');
+yield* api.v2.services.ChannelService.use(service => service.appendToChannel('Message'));
 ```
 
 Get OutputChannel:
 
 ```typescript
-const channel = yield* api.services.ChannelService.getChannel();
+const channel = yield* api.v2.services.ChannelService.use(service => service.getChannel());
 ```
 
 ## Examples
@@ -29,7 +29,9 @@ const channel = yield* api.services.ChannelService.getChannel();
 From `salesforcedx-vscode-metadata`:
 
 ```typescript
-yield* api.services.ChannelService.appendToChannel('Salesforce Metadata extension activating');
+yield* api.v2.services.ChannelService.use(service =>
+  service.appendToChannel('Salesforce Metadata extension activating')
+);
 ```
 
 ## Notes
@@ -37,4 +39,4 @@ yield* api.services.ChannelService.appendToChannel('Salesforce Metadata extensio
 - Logging is "best effort", won't cause failures
 - Use extension-specific channel via `ChannelServiceLayer`
 - Provide `ChannelServiceLayer` before `ErrorHandlerService`
-- `ChannelServiceLayer` is `Layer.scoped`. Finalizer disposes the cached `OutputChannel` and invalidates the cache entry when the layer scope closes (`ManagedRuntime.dispose`). Scope owns that channel.
+- `ChannelServiceLayer` owns the cached `OutputChannel` in its scope. Its finalizer disposes the channel and invalidates the cache entry when the layer scope closes (`ManagedRuntime.dispose`).

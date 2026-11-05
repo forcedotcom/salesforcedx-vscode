@@ -6,9 +6,9 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { FileChangeEvent } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
-import type { FileChangeEvent } from 'salesforcedx-vscode-services';
 import { Utils } from 'vscode-uri';
 import { type getTestController } from '../views/testController';
 
@@ -22,7 +22,7 @@ export const setupTestResultsFileWatcher = Effect.fn('apex-testing.watchTestResu
   testController: ReturnType<typeof getTestController>
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fileChangePubSub = yield* api.services.FileChangePubSub;
+  const fileChangePubSub = yield* api.v2.services.FileChangePubSub;
 
   yield* Stream.fromPubSub(fileChangePubSub).pipe(
     Stream.filter(e => e.type !== 'delete'),

@@ -31,7 +31,7 @@ export class OrgListCleanError extends Schema.TaggedError<OrgListCleanError>()('
  */
 export const orgListCleanCommand = Effect.fn('orgListCleanCommand')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channel = yield* api.services.ChannelService;
+  const channel = yield* api.v2.services.ChannelService;
 
   const removable = yield* findRemovableOrgs().pipe(
     Effect.catchTag(
@@ -40,7 +40,7 @@ export const orgListCleanCommand = Effect.fn('orgListCleanCommand')(function* ()
     )
   );
 
-  const notificationMode = yield* api.services.NotificationModeService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
 
   // Nothing to remove: tell the user instead of asking them to confirm a no-op.
   if (removable.length === 0) {
@@ -49,7 +49,7 @@ export const orgListCleanCommand = Effect.fn('orgListCleanCommand')(function* ()
     return;
   }
 
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   yield* promptService.confirmOrThrow({
     message: nls.localize('parameter_gatherer_placeholder_org_list_clean'),
     confirmLabel: nls.localize('org_list_clean_confirm_label')

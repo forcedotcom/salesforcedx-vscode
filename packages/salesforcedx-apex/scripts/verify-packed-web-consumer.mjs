@@ -4,179 +4,85 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-
-import { execFileSync } from 'node:child_process';
 import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { execFileSync } from 'node:child_process';
+import { copyFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { runInNewContext } from 'node:vm';
 import { build } from 'esbuild';
 import { commonConfigBrowser } from '../../../scripts/bundling/web.mjs';
+import {
+  createPackedFixturesDirectory,
+  installAndCompileFixtures,
+  packServicesPackage
+} from '../../../scripts/packedServicesFixtures.mjs';
 
 const packageRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
-const tempParent = join(packageRoot, 'temp');
-mkdirSync(tempParent, { recursive: true });
-const consumerRoot = mkdtempSync(join(tempParent, 'packed-web-consumer-'));
+const root = resolve(packageRoot, '../..');
+const temp = createPackedFixturesDirectory('apex-packed-consumers-');
+const v4 = join(temp, 'apexV4');
 
 try {
-  const packResult = JSON.parse(
-    execFileSync(
-      process.platform === 'win32' ? 'npm.cmd' : 'npm',
-      ['pack', '--json', '--pack-destination', consumerRoot],
-      {
-        cwd: packageRoot,
-        encoding: 'utf8',
-        shell: process.platform === 'win32',
-        env: { ...process.env, npm_config_cache: join(consumerRoot, '.npm-cache') }
-      }
-    )
-  );
-  const tarballPath = join(consumerRoot, packResult[0].filename);
-  const installedPackage = join(consumerRoot, 'node_modules', '@salesforce', 'apex-node');
-  mkdirSync(installedPackage, { recursive: true });
-  execFileSync('tar', ['-xzf', tarballPath, '--strip-components=1', '-C', installedPackage]);
-
-  const effectEntry = join(consumerRoot, 'effect-consumer.mjs');
-  writeFileSync(
-    effectEntry,
-    `import {
-      executeAnonymous, ApexOperationError, buildSyncPayload, buildAsyncPayload, retrieveAllSuites, getTestsInSuite,
-      buildSuite, runTestSynchronous, runTestAsynchronous, transformTestResult, SyncTestResultSchema, TestResultSchema,
-      getOrgWideCoverage, getPerClassCodeCoverage, getAggregateCodeCoverage, CodeCoverageResultSchema
-    } from '@salesforce/apex-node/effect';
-    import * as Effect from 'effect/Effect';
-    import * as Schema from 'effect/Schema';
-    globalThis.apexEffectApi = {
-      executeAnonymous, ApexOperationError, buildSyncPayload, buildAsyncPayload, retrieveAllSuites, getTestsInSuite,
-      buildSuite, runTestAsynchronous, getOrgWideCoverage, getPerClassCodeCoverage, getAggregateCodeCoverage,
-      CodeCoverageResultSchema, transformTestResult,
-      run: (connection, options) => runTestSynchronous(connection, options).pipe(Effect.either, Effect.runPromise),
-      decodeSyncResult: Schema.decodeUnknownSync(SyncTestResultSchema, { onExcessProperty: 'error' }),
-      decodeResult: Schema.decodeUnknownSync(TestResultSchema)
-    };
-    `
-  );
-  const effectBundle = await build({
-    entryPoints: [effectEntry],
-    bundle: true,
-    conditions: ['import', 'module', 'default'],
-    format: 'iife',
-    platform: 'browser',
-    write: false
-  });
-
-  // Run the packed Effect API without process, Buffer, require, or a VS Code host.
-  const browser = { AbortController, Error, URL, TextEncoder, TextDecoder, setTimeout, clearTimeout };
-  runInNewContext(effectBundle.outputFiles[0].text, browser);
-  const api = browser.apexEffectApi;
-  const method = {
-    id: '01pxx00000NWwb3AAD',
-    methodName: 'testOne',
-    name: 'TestSample',
-    namespace: null,
-    seeAllData: false,
-    time: 12
-  };
-  const response = {
-    apexLogId: '07Lxx00000cxy6YUAQ',
-    numFailures: 1,
-    numTestsRun: 3,
-    totalTime: 30,
-    successes: [method, { ...method, namespace: 'FlowTesting.MyFlow' }],
-    failures: [
-      {
-        ...method,
-        namespace: 'pkg',
-        message: 'Assertion failed',
-        stackTrace: 'Class.TestSample.testOne: line 27, column 1',
-        type: 'Class'
-      }
-    ]
-  };
-  assert.deepEqual(JSON.parse(JSON.stringify(api.decodeSyncResult(response))), response);
-  const requests = [];
-  const connection = {
-    instanceUrl: 'https://example.my.salesforce.com',
-    getAuthInfoFields: () => ({ orgId: '00Dxx0000000001' }),
-    getUsername: () => 'test@example.com',
-    getConnectionOptions: () => ({ userId: '005xx0000000001' }),
-    tooling: {
-      _baseUrl: () => 'https://example.my.salesforce.com/services/data/v65.0/tooling',
-      request: async request => {
-        requests.push(request);
-        return response;
-      }
+  const fixtures = [
+    {
+      fixture: 'apexV4',
+      directory: v4,
+      packedPackages: [packServicesPackage(packageRoot, v4, 'apex.tgz')]
     }
-  };
-  const options = { tests: [{ className: 'TestSample' }], testLevel: 'RunSpecifiedTests' };
-  const execution = await api.run(connection, options);
-  assert.equal(execution._tag, 'Right');
-  const result = JSON.parse(JSON.stringify(execution.right));
-  assert.equal(result.summary.outcome, 'Failed');
-  assert.equal(result.summary.passRate, '67%');
-  assert.equal(result.summary.failRate, '33%');
-  assert.equal(result.summary.testExecutionTimeInMs, 30);
-  assert.equal(result.tests[0].fullName, 'TestSample.testOne');
-  assert.equal(result.tests[1].category, 'Flow');
-  assert.equal(result.tests[2].fullName, 'pkg__TestSample.testOne');
-  assert.equal(result.tests[2].diagnostic.lineNumber, 27);
-  assert.equal(result.tests[2].diagnostic.columnNumber, 1);
-  assert.equal(requests.length, 1);
-  assert.equal(requests[0].method, 'POST');
-  assert.equal(requests[0].url, `${connection.tooling._baseUrl()}/runTestsSynchronous`);
-  assert.deepEqual(JSON.parse(requests[0].body), options);
-  assert.deepEqual(JSON.parse(JSON.stringify(api.decodeResult(result))), result);
+  ];
+  copyFileSync(join(root, 'test/fixtures/effect-v4/apexV4/root.ts'), join(v4, 'root.cts'));
+  await installAndCompileFixtures(fixtures);
+  // The root's CommonJS declarations must also work with older Node16 resolution.
+  execFileSync(
+    process.execPath,
+    [
+      join(v4, 'node_modules/typescript/bin/tsc'),
+      '--ignoreConfig',
+      '--noEmit',
+      '--strict',
+      '--skipLibCheck',
+      'false',
+      '--module',
+      'Node16',
+      '--moduleResolution',
+      'Node16',
+      '--target',
+      'ES2023',
+      join(v4, 'root.cts')
+    ],
+    { cwd: v4, stdio: 'inherit', timeout: 180000 }
+  );
+  execFileSync(
+    join(v4, 'node_modules/node/bin', process.platform === 'win32' ? 'node.exe' : 'node'),
+    [join(v4, 'node22.mjs')],
+    {
+      cwd: v4,
+      stdio: 'inherit',
+      timeout: 180000
+    }
+  );
 
-  const normalized = api.transformTestResult({
-    ...result,
-    summary: { ...result.summary, testSetupTimeInMs: 12 },
-    tests: result.tests.map((test, index) => ({ ...test, isTestSetup: index === 0 }))
+  const bundle = await build({
+    entryPoints: [join(v4, 'index.ts')],
+    bundle: true,
+    format: 'esm',
+    platform: 'browser',
+    conditions: ['import', 'module', 'default'],
+    write: false,
+    metafile: true
   });
-  assert.equal(normalized.tests.length, 2);
-  assert.equal(normalized.setup.length, 1);
-  assert.equal(normalized.setup[0].testSetupTime, 12);
-  assert.equal(normalized.summary.testTotalTimeInMs, 42);
-  assert.equal('isTestSetup' in normalized.tests[0], false);
-
-  connection.tooling.request = async () => ({
-    ...response,
-    successes: [{ ...method, time: undefined }],
-    failures: [],
-    numFailures: 0,
-    numTestsRun: 1,
-    totalTime: null
-  });
-  const defaults = await api.run(connection, options);
-  assert.equal(defaults.right.summary.outcome, 'Passed');
-  assert.equal(defaults.right.tests[0].runTime, 0);
-  assert.equal(defaults.right.summary.testExecutionTimeInMs, 0);
-
-  connection.tooling.request = async () => ({ ...response, successes: 'invalid' });
-  const malformed = await api.run(connection, options);
-  assert.equal(malformed.left._tag, 'ApexResponseDecodeError');
-  connection.tooling.request = async () => {
-    throw new Error('Request rejected');
-  };
-  const rejected = await api.run(connection, options);
-  assert.equal(rejected.left._tag, 'ApexOperationError');
-  assert.equal(rejected.left.message, 'Request rejected');
-  const invalidOptions = await api.run(connection, { tests: [{ className: 123 }] });
-  assert.equal(invalidOptions.left._tag, 'ApexOperationError');
-
-  const fullEntry = join(consumerRoot, 'full-consumer.mjs');
+  const inputs = Object.keys(bundle.metafile.inputs);
+  assert(inputs.some(file => file.replaceAll('\\', '/').includes('apexV4/node_modules/effect/')));
+  assert(inputs.some(file => file.includes('@salesforce/apex-node/out/src/')));
+  const fullEntry = join(v4, 'full-consumer.mjs');
   writeFileSync(
     fullEntry,
     "import { TestService } from '@salesforce/apex-node';\n" +
-      "import { executeAnonymous, runTestSynchronous } from '@salesforce/apex-node/effect';\n" +
-      'globalThis.apexNodeApi = { TestService, executeAnonymous, runTestSynchronous };\n'
+      "import { executeAnonymous } from '@salesforce/apex-node/effect';\n" +
+      'globalThis.apexNodeApi = { TestService, executeAnonymous };\n'
   );
-  await build({
-    ...commonConfigBrowser,
-    entryPoints: [fullEntry],
-    sourcemap: false,
-    write: false
-  });
+  await build({ ...commonConfigBrowser, entryPoints: [fullEntry], sourcemap: false, write: false });
+  console.log('PASS isolated packed V4 declarations and browser bundle, including full Apex root');
 } finally {
-  rmSync(consumerRoot, { recursive: true, force: true });
+  rmSync(temp, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
 }

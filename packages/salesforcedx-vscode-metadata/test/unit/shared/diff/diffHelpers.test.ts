@@ -9,9 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet, SourceComponent } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
-import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
-import { HashableUri } from 'salesforcedx-vscode-services/src/vscode/hashableUri';
-import { toUri } from 'salesforcedx-vscode-services/src/vscode/uriUtils';
+import { FsService, HashableUri } from '@salesforce/vscode-services/v2';
 import { URI } from 'vscode-uri';
 import type { DiffFilePair } from '../../../../src/shared/diff/diffTypes';
 import {
@@ -19,6 +17,8 @@ import {
   matchUrisToComponents,
   sourceComponentToPaths
 } from '../../../../src/shared/diff/diffHelpers';
+
+const toUri = (filePath: string | URI): URI => (typeof filePath === 'string' ? URI.file(filePath) : filePath);
 
 const createMockComponent = (
   fullName = 'ConflictsTest',
@@ -48,7 +48,7 @@ const createMockRetrievedSet = (remoteComponents: SourceComponent[]): ComponentS
       )
   }) as unknown as ComponentSet;
 
-/** api.services.FsService is an Effect that yields the service */
+/** api.v2.services.FsService is an Effect that yields the service */
 const createMockFsService = (overrides?: { readFile?: (path: string | URI) => Effect.Effect<string> }) => {
   const base = {
     toUri: (path: string | URI) => Effect.succeed(toUri(path)),
@@ -60,16 +60,16 @@ const createMockFsService = (overrides?: { readFile?: (path: string | URI) => Ef
 const createMockExtensionProvider = () =>
   ({
     getServicesApi: Effect.succeed({
-      services: { FsService }
+      v2: { services: { FsService } }
     })
-  }) as unknown as ExtensionProviderService;
+  }) as unknown as ExtensionProviderService['Service'];
 
 const provideMocks =
   (fsService = createMockFsService()) =>
   (e: Effect.Effect<unknown, unknown, unknown>) =>
     e.pipe(
       Effect.provideService(ExtensionProviderService, createMockExtensionProvider()),
-      Effect.provideService(FsService, fsService as InstanceType<typeof FsService>)
+      Effect.provideService(FsService, fsService as FsService['Service'])
     );
 
 /** Run effect with mocks - cast to satisfy runPromise's never requirement */
@@ -91,7 +91,7 @@ describe('matchUrisToComponents', () => {
     )) as HashSet.HashSet<DiffFilePair>;
 
     expect(HashSet.size(result)).toBe(1);
-    const [pair] = [...HashSet.toValues(result)];
+    const [pair] = [...result];
     expect(pair.fileName).toBe('ConflictsTest.cls');
     expect(pair.localUri.uri.path).toContain('ConflictsTest.cls');
     expect(pair.remoteUri.uri.path).toContain('ConflictsTest.cls');
@@ -127,7 +127,7 @@ describe('matchUrisToComponents', () => {
     )) as HashSet.HashSet<DiffFilePair>;
 
     expect(HashSet.size(result)).toBe(1);
-    const [pair] = [...HashSet.toValues(result)];
+    const [pair] = [...result];
     expect(pair.remoteUri.uri.path).toBe(remoteCls);
     expect(pair.remoteUri.uri.path.endsWith('.cls-meta.xml')).toBe(false);
   });
@@ -189,7 +189,7 @@ describe('matchUrisToComponents', () => {
     )) as HashSet.HashSet<DiffFilePair>;
 
     expect(HashSet.size(result)).toBe(1);
-    const [pair] = [...HashSet.toValues(result)];
+    const [pair] = [...result];
     expect(pair.localUri.uri.path).toContain('controllers/MyClass.cls');
     expect(pair.remoteUri.uri.path).toContain('classes/MyClass.cls');
   });

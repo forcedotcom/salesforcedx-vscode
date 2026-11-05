@@ -13,9 +13,10 @@ import { type SyncTestConfiguration, TestService } from '../../src';
 import {
   type ApexOrgWideCoverage,
   type ApexCodeCoverageAggregate,
-  type ApexCodeCoverage
-} from '../../src/effect/schema/wire/coverage';
-import { type OutputDirConfig, type TestResult } from '../../src/tests/types';
+  type ApexCodeCoverage,
+  type OutputDirConfig,
+  type TestResult
+} from '../../src/tests/apiTypes';
 import { nls } from '../../src/i18n';
 import {
   codeCoverageQueryResult,

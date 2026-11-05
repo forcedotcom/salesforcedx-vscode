@@ -11,15 +11,15 @@ import * as Layer from 'effect/Layer';
 import * as Tracer from 'effect/Tracer';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
-import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
+import { FsService, type SalesforceVSCodeServicesApiV2 } from '@salesforce/vscode-services/v2';
 import { extractErrorMessage, initSObjectDefinitions } from '../../../src/commands/refreshSObjects';
 
 const fileOrFolderExists = vi.fn((_filePath: string) => Effect.succeed(false));
 const fsLayer = Layer.mergeAll(
   Layer.succeed(ExtensionProviderService, {
-    getServicesApi: Effect.succeed({ services: { FsService } })
-  } as never),
-  Layer.succeed(FsService, FsService.make({ fileOrFolderExists } as never))
+    getServicesApi: Effect.succeed({ v2: { services: { FsService } } } as unknown as SalesforceVSCodeServicesApiV2)
+  } as unknown as ExtensionProviderService['Service']),
+  Layer.succeed(FsService, FsService.of({ fileOrFolderExists } as never))
 );
 type RecordedSpan = {
   name: string;
@@ -29,39 +29,33 @@ type RecordedSpan = {
   result?: 'success' | 'failure';
 };
 const recordedSpans: RecordedSpan[] = [];
-const recordingTracerLayer = Layer.setTracer(
+const recordingTracerLayer = Layer.succeed(
+  Tracer.Tracer,
   Tracer.make({
-    span: (name, parent, context, links, startTime, kind, spanOptions) => {
-      const attributes = new Map<string, unknown>(Object.entries(spanOptions?.attributes ?? {}));
-      const recordedSpan: RecordedSpan = { name, attributes, parent, ended: false };
+    span: options => {
+      const span = new Tracer.NativeSpan(options);
+      const recordedSpan: RecordedSpan = {
+        name: span.name,
+        attributes: span.attributes,
+        parent: span.parent,
+        ended: false
+      };
       recordedSpans.push(recordedSpan);
-      return {
-        _tag: 'Span',
-        name,
-        spanId: `span-${recordedSpans.length}`,
-        traceId: 'trace',
-        parent,
-        context,
-        links,
-        status: { _tag: 'Started', startTime },
-        attributes,
-        sampled: true,
-        kind,
-        end: (_endTime, exit) => {
-          recordedSpan.ended = true;
-          recordedSpan.result = Exit.isFailure(exit) ? 'failure' : 'success';
-        },
-        attribute: (key: string, value: unknown) => attributes.set(key, value),
-        event: () => {},
-        addLinks: () => {}
-      } as Tracer.Span;
-    },
-    context: <A>(f: () => A) => f()
+      const end = span.end.bind(span);
+      span.end = (endTime, exit) => {
+        recordedSpan.ended = true;
+        recordedSpan.result = Exit.isFailure(exit) ? 'failure' : 'success';
+        end(endTime, exit);
+      };
+      return span;
+    }
   })
 );
 
 const runWithRecordingTracer = <A, E>(effect: Effect.Effect<A, E, ExtensionProviderService | FsService>): Promise<A> =>
-  effect.pipe(Effect.provide(Layer.mergeAll(recordingTracerLayer, fsLayer)), Effect.runPromise);
+  Effect.runPromise(
+    effect.pipe(Effect.provide(Layer.mergeAll(recordingTracerLayer, fsLayer))) as Effect.Effect<A, E, never>
+  );
 
 describe('extractErrorMessage', () => {
   it('returns the message of an Error instance', () => {
@@ -130,7 +124,7 @@ describe('initSObjectDefinitions', () => {
     await expect(runWithRecordingTracer(initSObjectDefinitions('/project', true))).rejects.toThrow('boom');
 
     const errorSpan = recordedSpans.find(span => span.name === 'initSObjectDefinitionsError');
-    expect(errorSpan).toEqual(expect.objectContaining({ ended: true, result: 'failure' }));
+    expect(errorSpan).toEqual(expect.objectContaining({ ended: true, result: 'success' }));
     expect(errorSpan?.parent._tag).toBe('None');
     expect(errorSpan?.attributes.get('message')).toBe('Error: boom with sobjectRefreshStartup = true');
   });

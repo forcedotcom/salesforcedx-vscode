@@ -46,7 +46,7 @@ const resolveFileUri = Effect.fn('deployDiagnostics.resolveFileUri')(function* (
   filePath: string | undefined
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fs = yield* api.services.FsService;
+  const fs = yield* api.v2.services.FsService;
   const workspacePath = yield* fs.uriToPath(workspaceUri);
   const isAbsolute = filePath && (filePath.startsWith('/') || filePath.includes(workspacePath));
   return isAbsolute ? yield* fs.toUri(filePath) : Utils.resolvePath(workspaceUri, filePath ?? '');
@@ -57,7 +57,7 @@ export const applyDeployDiagnostics = Effect.fn('applyDeployDiagnostics')(functi
   failedResponses: FileResponseFailure[]
 ) {
   const workspaceUri = yield* (yield* ExtensionProviderService).getServicesApi.pipe(
-    Effect.flatMap(api => api.services.WorkspaceService.getWorkspaceInfoOrThrow()),
+    Effect.flatMap(api => api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow())),
     Effect.map(w => w.uri)
   );
 

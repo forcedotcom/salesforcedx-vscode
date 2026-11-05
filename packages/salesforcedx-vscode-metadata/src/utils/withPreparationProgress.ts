@@ -5,17 +5,21 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { detectConflicts } from '../conflict/conflictFlow';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { NonEmptyComponentSet, UserCancellationError } from '@salesforce/vscode-services/v2';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
-import * as Runtime from 'effect/Runtime';
-import type { NonEmptyComponentSet, UserCancellationError } from 'salesforcedx-vscode-services';
+import type * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { type buildAllServicesLayer, getMetadataRuntime } from '../services/extensionProvider';
 import { type CommandKey } from './notificationMode';
 
 type OperationType = 'deploy' | 'retrieve' | 'delete';
+type MetadataServices = Layer.Success<ReturnType<typeof buildAllServicesLayer>>;
+type ConflictDetection = ReturnType<typeof detectConflicts>;
 
 const titleKey = (op: OperationType) =>
   op === 'deploy'
@@ -74,16 +78,18 @@ const titleKey = (op: OperationType) =>
 export const withPreparationProgress =
   // ConflictsE/ConflictsR capture the error and requirements of detectConflictsFn so callers
   // can still catchTag('ConflictsDetectedError', ...) and the runtime requirement is explicit.
-  <ConflictsE = never, ConflictsR = never>(
+  <
+      ConflictsE = Effect.Error<ConflictDetection>,
+      ConflictsR extends MetadataServices = Effect.Services<ConflictDetection>
+    >(
       operationType: OperationType,
       detectConflictsFn?: (cs: NonEmptyComponentSet) => Effect.Effect<void, ConflictsE, ConflictsR>,
       command?: CommandKey
     ) =>
-    <E, R>(prepare: Effect.Effect<NonEmptyComponentSet, E, R>) =>
+    <E, R extends MetadataServices>(prepare: Effect.Effect<NonEmptyComponentSet, E, R>) =>
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        const notificationMode = yield* api.services.NotificationModeService;
-        const runtime = yield* Effect.runtime<R | ConflictsR>();
+        const notificationMode = yield* api.v2.services.NotificationModeService;
         const cancelDeferred = yield* Deferred.make<never, UserCancellationError>();
 
         const raceWithCancel = <A, E2, R2>(effect: Effect.Effect<A, E2, R2>) =>
@@ -92,8 +98,8 @@ export const withPreparationProgress =
         const progressLocation = command
           ? yield* notificationMode.getProgressLocation(command)
           : vscode.ProgressLocation.Notification;
-        return yield* Effect.async<NonEmptyComponentSet, E | ConflictsE | UserCancellationError>(resume => {
-          void vscode.window.withProgress(
+        return yield* Effect.callback<NonEmptyComponentSet, E | ConflictsE | UserCancellationError>(resume => {
+          const progressPromise = vscode.window.withProgress(
             {
               location: progressLocation,
               cancellable: true
@@ -101,8 +107,11 @@ export const withPreparationProgress =
             async (progress, token) => {
               token.onCancellationRequested(
                 () =>
-                  void Runtime.runPromise(runtime)(
-                    Deferred.fail(cancelDeferred, new api.services.UserCancellationError())
+                  void getMetadataRuntime().runPromise(
+                    Deferred.fail(
+                      cancelDeferred,
+                      new api.v2.services.UserCancellationError({ message: 'User cancelled' })
+                    )
                   )
               );
 
@@ -119,9 +128,11 @@ export const withPreparationProgress =
                 return cs;
               });
 
-              const exit = await pipeline.pipe(Effect.exit, Runtime.runPromise(runtime));
+              const exit = await getMetadataRuntime().runPromise(pipeline.pipe(Effect.exit));
               resume(Exit.isSuccess(exit) ? Effect.succeed(exit.value) : Effect.failCause(exit.cause));
             }
           );
+          Promise.resolve(progressPromise).catch(error => resume(Effect.die(error)));
+          return Effect.void;
         });
       });

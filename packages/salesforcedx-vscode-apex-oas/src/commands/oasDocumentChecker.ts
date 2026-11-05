@@ -27,7 +27,9 @@ const COMMAND: SuccessOnlyCommandKey = messages.validate_oas_document;
 const ensureValidRegistrationProviderType = Effect.fn('ApexOas.OasChecker.ensureValidRegistrationProviderType')(
   function* (xmlFilePath: string) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const xmlContent = yield* api.services.FsService.readFile(xmlFilePath).pipe(Effect.catchAll(() => Effect.void));
+    const xmlContent = yield* api.v2.services.FsService.use(service => service.readFile(xmlFilePath)).pipe(
+      Effect.catch(() => Effect.void)
+    );
     if (!xmlContent) {
       return yield* new OasValidationFailed({ message: nls.localize('invalid_file_for_generating_oas_doc') });
     }
@@ -46,7 +48,7 @@ const ensureValidRegistrationProviderType = Effect.fn('ApexOas.OasChecker.ensure
  */
 const extractOpenApiDocument = Effect.fn('ApexOas.OasChecker.extractOpenApiDocument')(function* (fullPath: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const content = yield* api.services.FsService.readFile(fullPath);
+  const content = yield* api.v2.services.FsService.use(service => service.readFile(fullPath));
   if (!fullPath.endsWith('.xml')) return content;
   const jsonObj = new XMLParser().parse(content);
   const schema: unknown = jsonObj.ExternalServiceRegistration?.schema;
@@ -79,10 +81,10 @@ export const validateOpenApiDocument = Effect.fn('ApexOas.Command.validateOpenAp
     return yield* new OasValidationFailed({ message: nls.localize('invalid_file_for_generating_oas_doc') });
   }
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const notificationMode = yield* api.services.NotificationModeService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
   const fullPath = sourceUri
     ? sourceUri.fsPath
-    : yield* api.services.EditorService.getActiveEditorUri().pipe(
+    : yield* api.v2.services.EditorService.use(service => service.getActiveEditorUri()).pipe(
         Effect.map(uri => uri.fsPath),
         Effect.catchTag('NoActiveEditorError', () => Effect.succeed(''))
       );

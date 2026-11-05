@@ -10,11 +10,11 @@ import { expect } from '@playwright/test';
 import {
   TEST_EXPLORER_PANEL,
   clearFilter,
-  focusAndTypeInFilter,
   createAndDeployApexTestClass,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   saveScreenshot,
+  focusAndTypeInFilter,
   setupConsoleMonitoring,
   setupNonTrackingOrgAndAuth,
   setupNetworkMonitoring,

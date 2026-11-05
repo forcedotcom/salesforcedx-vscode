@@ -5,8 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as NodeFileSystem from '@effect/platform-node/NodeFileSystem';
-import * as NodePath from '@effect/platform-node/NodePath';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
@@ -21,40 +19,44 @@ import { redactValue } from '@salesforce/playwright-vscode-ext';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
-import * as Fiber from 'effect/Fiber';
 import * as FiberSet from 'effect/FiberSet';
-import * as JSONSchema from 'effect/JSONSchema';
 import * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as Match from 'effect/Match';
 import { isError } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
-import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
 import * as Scope from 'effect/Scope';
 import process = require('node:process');
-import { ControllerService } from './controllerService';
+import { ControllerService, ControllerServiceLayer } from './controllerService';
 import { causeMessage, DrivableVscodeMcpShutdownError } from './errors';
+import { drivablePlatformLayer } from './platformLayer';
 import { ActInput, StartInput, DrivableVscodeFinding } from './schemas';
 
 const SERVER_INFO = { name: 'drivable-vscode', version: '0.1.0' };
-const AppLayer = ControllerService.Default.pipe(Layer.provide(Layer.merge(NodeFileSystem.layer, NodePath.layer)));
-const EmptyInput = Schema.Struct({}).annotations({
-  jsonSchema: { type: 'object', properties: {}, required: [], additionalProperties: false }
-});
-const inputSchema = <A, I>(schema: Schema.Schema<A, I>): Tool['inputSchema'] => {
-  const jsonSchema = JSONSchema.make(schema);
+const AppLayer = ControllerServiceLayer.pipe(Layer.provideMerge(drivablePlatformLayer));
+const EmptyInput = Schema.Struct({});
+const emptyInputSchema = {
+  type: 'object',
+  properties: {},
+  required: [],
+  additionalProperties: false
+} satisfies Tool['inputSchema'];
+const inputSchema = <S extends Schema.Constraint>(schema: S): Tool['inputSchema'] => {
+  const jsonSchema = Schema.toJsonSchemaDocument(Schema.toCodecJson(schema)).schema;
   if (!('type' in jsonSchema) || jsonSchema.type !== 'object')
     // eslint-disable-next-line functional/no-throw-statements -- MCP requires object schemas; fail startup on invalid definitions.
     throw new TypeError('MCP tool input schema must be an object');
-  return { ...jsonSchema };
+  return { ...jsonSchema, type: 'object' };
 };
+const decodeInput = <S extends Schema.ConstraintDecoder<unknown, never>>(schema: S, input: unknown) =>
+  Effect.fromResult(Schema.decodeUnknownResult(Schema.toCodecJson(schema))(input));
 const tools = [
   { name: 'start', description: 'Start the single drivable VS Code session.', inputSchema: inputSchema(StartInput) },
   {
     name: 'observe',
     description: 'Capture the current bounded UI state and screenshot.',
-    inputSchema: inputSchema(EmptyInput)
+    inputSchema: emptyInputSchema
   },
   {
     name: 'act',
@@ -69,12 +71,12 @@ const tools = [
   {
     name: 'status',
     description: 'Report session state, artifacts, and finding count.',
-    inputSchema: inputSchema(EmptyInput)
+    inputSchema: emptyInputSchema
   },
   {
     name: 'finish',
     description: 'Capture final evidence and idempotently close the session.',
-    inputSchema: inputSchema(EmptyInput)
+    inputSchema: emptyInputSchema
   }
 ] satisfies Tool[];
 
@@ -104,18 +106,19 @@ const toolError = (error: unknown): CallToolResult => ({
 });
 
 const callTool = Effect.fn('McpServer.callTool')(function* (name: string, args: unknown) {
+  const controller = yield* ControllerService;
   return yield* Match.value(name).pipe(
     Match.when('start', () =>
-      Schema.decodeUnknown(StartInput)(args).pipe(
-        Effect.flatMap(value => ControllerService.start(value.objective, value)),
+      decodeInput(StartInput, args).pipe(
+        Effect.flatMap(value => controller.start(value.objective, value)),
         Effect.map(session =>
           textResult({ runId: session.runId, artifactDir: session.artifactDir, workspaceDir: session.workspaceDir })
         )
       )
     ),
     Match.when('observe', () =>
-      Schema.decodeUnknown(EmptyInput)(args).pipe(
-        Effect.zipRight(ControllerService.observeForMcp),
+      decodeInput(EmptyInput, args).pipe(
+        Effect.flatMap(() => controller.observeForMcp),
         Effect.map(
           ({ observation, screenshot }) =>
             ({
@@ -128,27 +131,30 @@ const callTool = Effect.fn('McpServer.callTool')(function* (name: string, args: 
       )
     ),
     Match.when('act', () =>
-      Schema.decodeUnknown(ActInput)(args).pipe(
+      decodeInput(ActInput, args).pipe(
         Effect.flatMap(value =>
-          ControllerService.act({ ...value.action, observationSequence: value.observationSequence }).pipe(
-            Effect.as(textResult({ acted: true, observationSequence: value.observationSequence }))
-          )
+          controller
+            .act({ ...value.action, observationSequence: value.observationSequence })
+            .pipe(Effect.as(textResult({ acted: true, observationSequence: value.observationSequence })))
         )
       )
     ),
     Match.when('add_finding', () =>
-      Schema.decodeUnknown(DrivableVscodeFinding)(args).pipe(
-        Effect.flatMap(ControllerService.addFinding),
+      decodeInput(DrivableVscodeFinding, args).pipe(
+        Effect.flatMap(controller.addFinding),
         Effect.as(textResult({ added: true }))
       )
     ),
     Match.when('status', () =>
-      Schema.decodeUnknown(EmptyInput)(args).pipe(Effect.zipRight(ControllerService.status), Effect.map(textResult))
+      decodeInput(EmptyInput, args).pipe(
+        Effect.flatMap(() => controller.status),
+        Effect.map(textResult)
+      )
     ),
     Match.when('finish', () =>
-      Schema.decodeUnknown(EmptyInput)(args).pipe(
-        Effect.zipRight(ControllerService.finish),
-        Effect.zipRight(ControllerService.status),
+      decodeInput(EmptyInput, args).pipe(
+        Effect.flatMap(() => controller.finish),
+        Effect.flatMap(() => controller.status),
         Effect.map(textResult)
       )
     ),
@@ -159,46 +165,43 @@ const callTool = Effect.fn('McpServer.callTool')(function* (name: string, args: 
 /** Creates the MCP server independently of stdio for contract testing. */
 type ServerShutdown = Effect.Effect<void, DrivableVscodeMcpShutdownError>;
 const serverShutdowns = new WeakMap<Server, ServerShutdown>();
+const finishController = Effect.gen(function* () {
+  const controller = yield* ControllerService;
+  return yield* controller.finish;
+});
 
-export const createDrivableVscodeMcpServer = (
-  runtime: Runtime.Runtime<ControllerService>,
-  finish: typeof ControllerService.finish = ControllerService.finish,
+export const createDrivableVscodeMcpServer = async (
+  runtime: ManagedRuntime.ManagedRuntime<ControllerService, never>,
+  finish: typeof finishController = finishController,
   dispose: Effect.Effect<void> = Effect.void
-): Server => {
+): Promise<Server> => {
   const server = new Server(SERVER_INFO, {
     capabilities: { tools: {} },
     instructions:
       'Run one drivable-vscode session at a time: start, observe before acting, use the latest observation sequence, record findings immediately, then finish. After finish, start another session as needed.'
   });
-  const accepting = Ref.unsafeMake(true);
+  const accepting = Ref.makeUnsafe(true);
   const handlerScope = Effect.runSync(Scope.make());
-  const activeHandlers = Effect.runSync(FiberSet.make<CallToolResult>().pipe(Scope.extend(handlerScope)));
+  const activeHandlers = FiberSet.make<CallToolResult, McpError>().pipe(Scope.provide(handlerScope), Effect.runSync);
+  const runHandler = await runtime.runPromise(FiberSet.runtimePromise(activeHandlers)<ControllerService>());
   server.setRequestHandler(ListToolsRequestSchema, () => ({ tools }));
-  server.setRequestHandler(CallToolRequestSchema, (request, extra) =>
-    Runtime.runPromise(runtime)(
-      Ref.get(accepting).pipe(
-        Effect.flatMap(isAccepting =>
-          isAccepting
-            ? FiberSet.run(
-                activeHandlers,
-                callTool(request.params.name, request.params.arguments ?? {}).pipe(
-                  Effect.match({ onFailure: toolError, onSuccess: value => value })
-                ),
-                { propagateInterruption: true }
-              ).pipe(Effect.flatMap(Fiber.join))
-            : Effect.fail(new McpError(ErrorCode.InternalError, 'drivable-vscode MCP server is shutting down'))
-        )
+  server.setRequestHandler(CallToolRequestSchema, (request, extra) => {
+    if (!accepting.pipe(Ref.get, Effect.runSync))
+      return Promise.reject(new McpError(ErrorCode.InternalError, 'drivable-vscode MCP server is shutting down'));
+    return runHandler(
+      callTool(request.params.name, request.params.arguments ?? {}).pipe(
+        Effect.match({ onFailure: toolError, onSuccess: value => value })
       ),
-      { signal: extra.signal }
-    )
-  );
+      { signal: extra.signal, propagateInterruption: true }
+    );
+  });
   const shutdown = Effect.fn('McpServer.shutdown')(function* () {
     yield* Ref.set(accepting, false);
     yield* FiberSet.clear(activeHandlers);
     yield* FiberSet.awaitEmpty(activeHandlers);
     const finishExit = yield* Effect.exit(
       Effect.tryPromise({
-        try: () => Runtime.runPromise(runtime)(finish),
+        try: () => runtime.runPromise(finish),
         catch: cause =>
           new DrivableVscodeMcpShutdownError({
             message: 'Failed to finish drivable VS Code session',
@@ -238,15 +241,21 @@ export const shutdownDrivableVscodeMcpServer = (server: Server): ServerShutdown 
 
 const serverProgram = Effect.fn('McpServer.serverProgram')(function* () {
   const runtime = ManagedRuntime.make(AppLayer);
-  const server = createDrivableVscodeMcpServer(
-    yield* runtime.runtimeEffect,
-    ControllerService.finish,
-    runtime.disposeEffect
-  );
+  yield* Effect.addFinalizer(() => runtime.disposeEffect.pipe(Effect.orDie));
+  const server = yield* Effect.tryPromise({
+    try: () => createDrivableVscodeMcpServer(runtime, undefined, Effect.void),
+    catch: cause =>
+      new DrivableVscodeMcpShutdownError({
+        message: 'Failed to initialize drivable VS Code MCP server',
+        cause: causeMessage(cause)
+      })
+  });
   yield* Effect.addFinalizer(() => shutdownDrivableVscodeMcpServer(server).pipe(Effect.orDie));
   const transport = new StdioServerTransport();
   const stopped = yield* Deferred.make<void>();
-  const stop = () => Runtime.runFork(Runtime.defaultRuntime)(Deferred.succeed(stopped, undefined));
+  const context = yield* Effect.context<never>();
+  const runSyncWithContext = Effect.runSyncWith(context);
+  const stop = () => runSyncWithContext(Deferred.succeed(stopped, undefined));
   yield* Effect.acquireRelease(
     Effect.sync(() => {
       process.stdin.once('end', stop);

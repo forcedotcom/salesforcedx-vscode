@@ -13,8 +13,8 @@ import { ApexExtensionUnavailable, ApexLspRequestFailed } from '../../../src/err
 import { ApexMetadataService } from '../../../src/services/apexMetadataService';
 
 const gatherContext = () =>
-  ApexMetadataService.gatherOpenAPIContext(URI.file('/project/Example.cls')).pipe(
-    Effect.provide(ApexMetadataService.Default)
+  ApexMetadataService.use(service => service.gatherOpenAPIContext(URI.file('/project/Example.cls'))).pipe(
+    Effect.provide(ApexMetadataService.layer)
   );
 
 describe('Apex metadata extension activation', () => {

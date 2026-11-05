@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.11.1",
+  "version": "68.9.5",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -31,7 +31,7 @@
   "dependencies": {
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
-    "effect": "^3.21.2",
+    "effect": "4.0.6",
     "@salesforce/vscode-service-provider": "^1.5.0",
     "@stoplight/spectral-core": "1.23.1",
     "@stoplight/spectral-functions": "1.10.5",
@@ -40,7 +40,8 @@
     "fast-xml-parser": "^5.7.1",
     "jsonpath-plus": "10.4.0",
     "vscode-uri": "^3.1.0",
-    "yaml": "^2.9.0"
+    "yaml": "^2.9.0",
+    "@salesforce/vscode-services": "*"
   },
   "devDependencies": {
     "@salesforce/playwright-vscode-ext": "workspace:*",

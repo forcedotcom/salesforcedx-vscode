@@ -7,33 +7,33 @@
 
 import { spawnSync } from 'node:child_process';
 
-const runNode = (args: string[]) => spawnSync(process.execPath, args, { encoding: 'utf8', timeout: 30_000 });
+const runTsx = (args: string[]) =>
+  spawnSync(process.execPath, ['--import', 'tsx', ...args], { encoding: 'utf8', timeout: 60_000 });
 
-describe('native TypeScript scripts', () => {
+describe('TypeScript script entry points', () => {
   it.each([
-    'scripts/xsd/scrapeAllMetadataPages.mts',
-    'scripts/xsd/scrapeSinglePage.mts',
-    'scripts/codeBuilderLocalE2E.mts',
-    'scripts/installVSIXFromBranch.mts',
-    'scripts/reportInstalls.mts',
-    'scripts/xsd/fixXsdErrors.mts',
-    'scripts/xsd/jsonToXsdConverter.mts',
-    'scripts/xsd/validateXsd.mts'
-  ])('%s starts and prints help without running external operations', script => {
-    const result = runNode(['--permission', '--allow-fs-read=*', script, '--help']);
-    expect(result.stderr).toBe('');
-    expect(result.status).toBe(0);
-    expect(result.stdout).toMatch(/[Uu]sage/);
-  });
+    'scripts/xsd/scrape-all-metadata-pages.ts',
+    'scripts/xsd/scrape-single-page.ts',
+    'scripts/codeBuilderLocalE2E.ts'
+  ])(
+    '%s prints help without running external operations',
+    script => {
+      const result = runTsx([script, '--help']);
+      expect(result.stderr).toBe('');
+      expect(result.status).toBe(0);
+      expect(result.stdout).toMatch(/[Uu]sage/);
+    },
+    60_000
+  );
 
   it('prints the native App Insights command when no query is supplied', () => {
-    const result = runNode(['scripts/queryAppInsights.mts']);
+    const result = runTsx(['scripts/queryAppInsights.ts']);
     expect(result.status).toBe(1);
-    expect(result.stderr).toContain('Usage: node scripts/queryAppInsights.mts <kql-query>');
+    expect(result.stderr).toContain('Usage: tsx queryAppInsights.ts <kql-query>');
   });
 
   it('imports guarded entry points without running their CLIs and converts and validates an XSD fixture', () => {
-    const result = runNode([
+    const result = runTsx([
       '--input-type=module',
       '--eval',
       `
@@ -41,11 +41,11 @@ describe('native TypeScript scripts', () => {
         import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
         import { tmpdir } from 'node:os';
         import { join } from 'node:path';
-        import { createXsdFromJson } from './scripts/xsd/jsonToXsdConverter.mts';
+        import { createXsdFromJson } from './scripts/xsd/jsonToXsdConverter.ts';
         import {
           validateWellFormedXml, validateSchemaReferences, validateNoDuplicateTypes, validateEncoding
-        } from './scripts/xsd/validateXsd.mts';
-        import { queryAppInsights } from './scripts/queryAppInsights.mts';
+        } from './scripts/xsd/validateXsd.ts';
+        import { queryAppInsights } from './scripts/queryAppInsights.ts';
 
         assert.equal(typeof queryAppInsights, 'function');
         const directory = mkdtempSync(join(tmpdir(), 'native-xsd-'));

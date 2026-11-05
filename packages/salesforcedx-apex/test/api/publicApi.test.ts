@@ -26,33 +26,23 @@ describe('@salesforce/apex-node public API', () => {
     const supportedSymbols = Object.keys(publicApi).filter(symbol => !coRepoOnlySymbols.has(symbol));
 
     expect(supportedSymbols.sort()).toEqual([
-      'ApexClassId',
-      'ApexLogId',
-      'ApexTestSuiteId',
-      'ApexTriggerId',
       'CancellationTokenSource',
       'CoverageReporter',
       'DefaultReportOptions',
       'DefaultWatermarks',
       'ExecuteService',
+      'HumanReporter',
+      'JUnitReporter',
       'LogService',
-      'ResultFormat',
-      'ResultFormatSchema',
-      'SalesforceId',
-      'TestLevel',
-      'TestLevelSchema',
-      'TestRunId',
-      'TestService',
-      'UserId',
-      'formatHuman',
-      'formatJUnit',
-      'formatTap'
+      'TapReporter',
+      'TestService'
     ]);
   });
 
   it('exports the Effect foundation from its isolated entry point', () => {
     expect(Object.keys(effectApi).sort()).toEqual([
       'AggregateCodeCoverageResultSchema',
+      'ApexClassId',
       'ApexCodeCoverageAggregateRecordSchema',
       'ApexCodeCoverageAggregateSchema',
       'ApexCodeCoverageRecordSchema',
@@ -60,6 +50,7 @@ describe('@salesforce/apex-node public API', () => {
       'ApexCompileError',
       'ApexDiagnosticSchema',
       'ApexLogBodyFetchError',
+      'ApexLogId',
       'ApexLogListItem',
       'ApexLogQueryError',
       'ApexOperationError',
@@ -71,6 +62,7 @@ describe('@salesforce/apex-node public API', () => {
       'ApexTestResultOutcomeSchema',
       'ApexTestSetupDataSchema',
       'ApexTestSuiteId',
+      'ApexTriggerId',
       'AsyncTestOptionsSchema',
       'AsyncTestProgressSchema',
       'AsyncTestResultSchema',
@@ -84,13 +76,16 @@ describe('@salesforce/apex-node public API', () => {
       'LogStreamEventSchema',
       'PerClassCoverageSchema',
       'QueryPageSchema',
+      'SalesforceId',
       'SyncTestConfigurationSchema',
       'SyncTestResultSchema',
       'TestItemSchema',
       'TestResultRawSchema',
       'TestResultSchema',
+      'TestRunId',
       'TestSuiteMembershipSchema',
       'TestSuiteSchema',
+      'UserId',
       'buildAsyncPayload',
       'buildSuite',
       'buildSyncPayload',

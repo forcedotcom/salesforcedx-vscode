@@ -13,9 +13,9 @@ import {
   ApexTestRunResultStatusSchema,
   TestCategorySchema,
   TestResultSchema,
-  TestResultSummarySchema,
-  type TestResultRaw
-} from '../../src/tests/types';
+  TestResultSummarySchema
+} from '../../src/effect/testTypes';
+import type { TestResultRaw } from '../../src/tests/apiTypes';
 import { flowTestResultData, syncResult } from '../testData';
 
 describe('ApexTestResultDataSchema', () => {

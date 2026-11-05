@@ -5,7 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { buildAllServicesLayer, ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import {
+  buildAllServicesLayer,
+  closeExtensionScope,
+  ExtensionProviderService,
+  getExtensionScope
+} from '@salesforce/effect-ext-utils';
 import {
   isLWC,
   LIGHTNING_SETTINGS_SECTION,
@@ -18,6 +23,7 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
+import * as Scope from 'effect/Scope';
 import * as Stream from 'effect/Stream';
 import { type ExtensionContext, workspace } from 'vscode';
 import type { BaseLanguageClient } from 'vscode-languageclient';
@@ -60,14 +66,15 @@ const createLanguageClientEffect = (
 export const activate = async (extensionContext: ExtensionContext) => {
   // Initialize services layer first so ChannelService and other services are available throughout activation.
   setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
-  await getRuntime().runPromise(activateEffect(extensionContext));
+  const extensionScope = Effect.runSync(getExtensionScope());
+  await getRuntime().runPromise(Scope.provide(extensionScope)(activateEffect(extensionContext)));
 };
 
 export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(function* (
   extensionContext: ExtensionContext
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelSvc = yield* api.services.ChannelService;
+  const channelSvc = yield* api.v2.services.ChannelService;
 
   yield* channelSvc.appendToChannel(nls.localize('lwc_extension_activating'));
 
@@ -93,7 +100,9 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   );
   const isSalesforceProject =
     detected === 'UNKNOWN'
-      ? yield* api.services.ProjectService.isSalesforceProject().pipe(Effect.orElseSucceed(() => false))
+      ? yield* api.v2.services.ProjectService.use(service => service.isSalesforceProject()).pipe(
+          Effect.orElseSucceed(() => false)
+        )
       : false;
   const workspaceType: WorkspaceType = detected !== 'UNKNOWN' ? detected : isSalesforceProject ? 'SFDX' : detected;
 
@@ -113,9 +122,11 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   ).toString();
 
   // Get package directories from sfdx-project.json to scope file watchers (performance optimization)
-  const packageDirectoryUris = yield* api.services.ProjectService.getSfProject().pipe(
+  const packageDirectoryUris = yield* api.v2.services.ProjectService.use(service => service.getSfProject()).pipe(
     Effect.flatMap(project =>
-      Effect.forEach(project.getPackageDirectories(), dir => api.services.FsService.toUri(dir.fullPath))
+      Effect.forEach(project.getPackageDirectories(), dir =>
+        api.v2.services.FsService.use(service => service.toUri(dir.fullPath))
+      )
     ),
     Effect.orElseSucceed(() => undefined)
   );
@@ -148,7 +159,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
 
   yield* channelSvc.appendToChannel(nls.localize('lwc_language_server_starting'));
   // Register workspace read file handler before start so the server can read files (e.g. sfdx-project.json) during initialize
-  const fsService = yield* api.services.FsService;
+  const fsService = yield* api.v2.services.FsService;
   registerWorkspaceReadFileHandler(client, { fsService, runPromise: getRuntime().runPromise }, channelAdapter);
 
   yield* Effect.tryPromise({
@@ -169,7 +180,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   yield* channelSvc.appendToChannel(nls.localize('lwc_language_server_started'));
   yield* channelSvc.appendToChannel(nls.localize('lwc_language_server_output_channel_hint'));
 
-  const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
+  const registerCommand = api.v2.services.registerCommandWithRuntime(getRuntime());
   yield* registerCommand('sf.metadata.lightning.generate.lwc', (outputDirParam?: URI) =>
     createLwcCommand(outputDirParam)
   );
@@ -177,9 +188,10 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
   yield* registerCommand('sf.internal.lightning.generate.lwc', (sourceUri?: URI) =>
     createLwcCommand(sourceUri, { internal: true })
   );
-  yield* Effect.forkDaemon(startLwcFileWatcher());
+  const extensionScope = yield* getExtensionScope();
+  yield* Effect.forkIn(startLwcFileWatcher(), extensionScope);
   // Watch sfdx-project.json for changes and restart the client to pick up new packageDirectories
-  yield* Effect.forkDaemon(watchSfProjectForLwcClient());
+  yield* Effect.forkIn(watchSfProjectForLwcClient(), extensionScope);
   // Creates resources for js-meta.xml to work
   yield* activateMetaSupport(extensionContext.extensionUri);
 
@@ -192,7 +204,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
           ? Effect.sync(() => testSupport.activateLwcTestSupport(extensionContext, workspaceType))
           : Effect.void
       ),
-      Effect.catchAll(e => channelSvc.appendToChannel(nls.localize('lwc_test_support_load_failed', String(e))))
+      Effect.catch(e => channelSvc.appendToChannel(nls.localize('lwc_test_support_load_failed', String(e))))
     );
   }
 
@@ -206,9 +218,9 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
  */
 const watchSfProjectForLwcClient = Effect.fn('watchSfProjectForLwcClient')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const projectService = yield* api.services.ProjectService;
-  const channelSvc = yield* api.services.ChannelService;
-  const fsService = yield* api.services.FsService;
+  const projectService = yield* api.v2.services.ProjectService;
+  const channelSvc = yield* api.v2.services.ChannelService;
+  const fsService = yield* api.v2.services.FsService;
 
   yield* projectService.projectConfigChanges.pipe(
     Stream.filter(() => !!languageClient),
@@ -220,7 +232,9 @@ const watchSfProjectForLwcClient = Effect.fn('watchSfProjectForLwcClient')(funct
         // Fetch updated package directories
         const packageDirectoryUris: URI[] | undefined = yield* projectService.getSfProject().pipe(
           Effect.flatMap(project =>
-            Effect.forEach(project.getPackageDirectories(), dir => api.services.FsService.toUri(dir.fullPath))
+            Effect.forEach(project.getPackageDirectories(), dir =>
+              api.v2.services.FsService.use(service => service.toUri(dir.fullPath))
+            )
           ),
           Effect.orElseSucceed(() => undefined)
         );
@@ -247,7 +261,7 @@ const watchSfProjectForLwcClient = Effect.fn('watchSfProjectForLwcClient')(funct
 
         yield* channelSvc.appendToChannel(nls.localize('lwc_language_server_restarted'));
       }).pipe(
-        Effect.catchAll(error =>
+        Effect.catch(error =>
           channelSvc.appendToChannel(
             nls.localize('lwc_language_server_restart_failed', isError(error) ? error.message : String(error))
           )
@@ -257,14 +271,16 @@ const watchSfProjectForLwcClient = Effect.fn('watchSfProjectForLwcClient')(funct
   );
 });
 
-export const deactivate = () => {
+export const deactivate = async (): Promise<void> => {
   log('Lightning Web Components Extension Deactivated');
-  getRuntime().runFork(Effect.void.pipe(Effect.withSpan('extensionDeactivated')));
+  Effect.runSync(closeExtensionScope());
+  await getRuntime().runPromise(Effect.void.pipe(Effect.withSpan('extensionDeactivated')));
+  await getRuntime().dispose();
 };
 
 const getActivationMode = Effect.fn('lwc:getActivationMode')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* (yield* api.services.SettingsService).getValueOrElse(
+  return yield* (yield* api.v2.services.SettingsService).getValueOrElse(
     LIGHTNING_SETTINGS_SECTION,
     'activationMode',
     'autodetect'

@@ -213,13 +213,13 @@ const timedEffect = effect.pipe(
 import { Config, Effect } from "effect"
 
 const config = Config.all({
-    port: Config.integer("PORT").pipe(Config.withDefault(3000)),
-    host: Config.string("HOST").pipe(Config.withDefault("localhost")),
-    env: Config.literal("development", "staging", "production")("NODE_ENV"),
+    port: Config.Int("PORT").pipe(Config.withDefault(3000)),
+    host: Config.String("HOST").pipe(Config.withDefault("localhost")),
+    env: Config.Literals(["development", "staging", "production"], "NODE_ENV"),
 })
 
 // Use in layer
-const ServerLive = Layer.unwrapEffect(
+const ServerLive = Layer.unwrap(
     Effect.gen(function* () {
         const { port, host, env } = yield* config
         return Layer.succeed(ServerConfig, { port, host, env })
@@ -230,21 +230,20 @@ const ServerLive = Layer.unwrapEffect(
 ### Config with Validation
 
 ```typescript
+import * as Schema from "effect/Schema"
+
 const dbConfig = Config.all({
-    host: Config.string("DB_HOST"),
-    port: Config.integer("DB_PORT").pipe(
-        Config.validate({
-            message: "Port must be between 1 and 65535",
-            validation: (p) => p >= 1 && p <= 65535,
-        })
+    host: Config.String("DB_HOST"),
+    port: Config.schema(
+        Schema.NumberFromString.pipe(
+            Schema.check(Schema.isGreaterThanOrEqualTo(1), Schema.isLessThanOrEqualTo(65535))
+        ),
+        "DB_PORT"
     ),
-    database: Config.string("DB_NAME"),
-    maxConnections: Config.integer("DB_MAX_CONNECTIONS").pipe(
-        Config.withDefault(10),
-        Config.validate({
-            message: "Max connections must be positive",
-            validation: (n) => n > 0,
-        })
+    database: Config.String("DB_NAME"),
+    maxConnections: Config.schema(
+        Schema.NumberFromString.pipe(Schema.check(Schema.isGreaterThan(0))),
+        "DB_MAX_CONNECTIONS"
     ),
 })
 ```
@@ -254,16 +253,16 @@ const dbConfig = Config.all({
 ```typescript
 // For sensitive values that shouldn't be logged
 const secretConfig = Config.all({
-    apiKey: Config.secret("API_KEY"),           // Returns Secret<string>
-    dbPassword: Config.secret("DB_PASSWORD"),
+    apiKey: Config.Redacted("API_KEY"),           // Returns Redacted<string>
+    dbPassword: Config.Redacted("DB_PASSWORD"),
 })
 
 // Using secrets
 const program = Effect.gen(function* () {
     const { apiKey, dbPassword } = yield* secretConfig
 
-    // Secret values are wrapped - use Secret.value to unwrap
-    const key = Secret.value(apiKey)
+    // Redacted values are wrapped; use Redacted.value only at the boundary
+    const key = Redacted.value(apiKey)
 
     // Logging a Secret shows "[REDACTED]"
     yield* Effect.log("Config loaded", { apiKey }) // Safe - shows [REDACTED]
@@ -275,16 +274,16 @@ const program = Effect.gen(function* () {
 ```typescript
 const appConfig = Config.all({
     server: Config.all({
-        port: Config.integer("SERVER_PORT"),
-        host: Config.string("SERVER_HOST"),
+        port: Config.Int("SERVER_PORT"),
+        host: Config.String("SERVER_HOST"),
     }),
     database: Config.all({
-        url: Config.string("DATABASE_URL"),
-        pool: Config.integer("DATABASE_POOL_SIZE").pipe(Config.withDefault(10)),
+        url: Config.String("DATABASE_URL"),
+        pool: Config.Int("DATABASE_POOL_SIZE").pipe(Config.withDefault(10)),
     }),
     features: Config.all({
-        enableBeta: Config.boolean("ENABLE_BETA").pipe(Config.withDefault(false)),
-        maxUploadSize: Config.integer("MAX_UPLOAD_SIZE").pipe(Config.withDefault(10485760)),
+        enableBeta: Config.Boolean("ENABLE_BETA").pipe(Config.withDefault(false)),
+        maxUploadSize: Config.Int("MAX_UPLOAD_SIZE").pipe(Config.withDefault(10485760)),
     }),
 })
 ```
@@ -295,11 +294,11 @@ const appConfig = Config.all({
 import { Logger, LogLevel } from "effect"
 
 // Set log level via config
-const LoggerLive = Layer.unwrapEffect(
+const LoggerLive = Layer.unwrap(
     Effect.gen(function* () {
-        const level = yield* Config.literal(
-            "debug", "info", "warning", "error"
-        )("LOG_LEVEL").pipe(Config.withDefault("info"))
+        const level = yield* Config.Literals(
+            ["debug", "info", "warning", "error"], "LOG_LEVEL"
+        ).pipe(Config.withDefault("info"))
 
         const logLevel = {
             debug: LogLevel.Debug,

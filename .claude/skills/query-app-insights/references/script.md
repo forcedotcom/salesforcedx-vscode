@@ -1,11 +1,11 @@
 # Query Script Implementation
 
-Location: `scripts/queryAppInsights.mts`
+Location: `scripts/queryAppInsights.ts`
 
 ## Usage
 
 ```bash
-node scripts/queryAppInsights.mts "<kql-query>"
+tsx scripts/queryAppInsights.ts "<kql-query>"
 ```
 
 ## Implementation

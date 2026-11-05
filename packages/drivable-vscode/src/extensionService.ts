@@ -6,11 +6,12 @@
  */
 
 import type { DrivableVscodeExtension } from './schemas';
-import * as FileSystem from '@effect/platform/FileSystem';
-import * as Path from '@effect/platform/Path';
 import { prepareVsixExtensions } from '@salesforce/playwright-vscode-ext';
+import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
+import * as FileSystem from 'effect/FileSystem';
 import * as Layer from 'effect/Layer';
+import * as Path from 'effect/Path';
 import * as Schema from 'effect/Schema';
 import { execFileSync } from 'node:child_process';
 import { DRIVABLE_VSCODE_EXTENSION_DIRS } from './constants';
@@ -21,79 +22,78 @@ const RequiredExtensionPackageJsonSchema = Schema.Struct({
   publisher: Schema.String,
   version: Schema.String
 });
-const decodeExtensionPackage = Schema.decodeUnknown(Schema.parseJson(RequiredExtensionPackageJsonSchema));
+const decodeExtensionPackage = Schema.decodeUnknownEffect(Schema.fromJsonString(RequiredExtensionPackageJsonSchema));
 
-export class ExtensionService extends Effect.Service<ExtensionService>()('DrivableVscode/ExtensionService', {
-  accessors: true,
-  dependencies: [Layer.service(FileSystem.FileSystem), Layer.service(Path.Path)],
-  effect: Effect.gen(function* () {
-    const fs = yield* FileSystem.FileSystem;
-    const path = yield* Path.Path;
-    const resolveDevExtension = Effect.fn('ExtensionService.resolveDevExtension')(function* (
-      repoRoot: string,
-      directory: string
-    ) {
-      const packagePath = path.join(repoRoot, 'packages', directory, 'package.json');
-      const extensionPackage = yield* fs.readFileString(packagePath).pipe(Effect.flatMap(decodeExtensionPackage));
-      return {
-        directory,
-        id: `${extensionPackage.publisher}.${extensionPackage.name}`,
-        version: extensionPackage.version,
-        mode: 'dev' as const,
-        path: path.join(repoRoot, 'packages', directory)
-      };
-    });
-    const resolveDev = Effect.fn('ExtensionService.resolveDev')(function* (repoRoot: string) {
-      return yield* Effect.forEach(DRIVABLE_VSCODE_EXTENSION_DIRS, directory =>
-        resolveDevExtension(repoRoot, directory)
-      ).pipe(
-        Effect.mapError(
-          cause =>
-            new DrivableVscodeExtensionError({
-              message: 'Failed to resolve canonical development extensions',
-              cause: causeMessage(cause)
-            })
-        )
-      );
-    });
-
-    const resolveVsix = Effect.fn('ExtensionService.resolveVsix')(function* (
-      repoRoot: string,
-      vscodeExecutable: string
-    ) {
-      const prepared = yield* Effect.tryPromise({
-        try: async () => {
-          execFileSync('npm', ['run', 'vscode:package'], { cwd: repoRoot, stdio: 'pipe' });
-          return await prepareVsixExtensions({
-            repoRoot,
-            packageDirs: [...DRIVABLE_VSCODE_EXTENSION_DIRS],
-            vscodeExecutable
-          });
-        },
-        catch: cause =>
+const makeExtensionService = Effect.gen(function* () {
+  const fs = yield* FileSystem.FileSystem;
+  const path = yield* Path.Path;
+  const resolveDevExtension = Effect.fn('ExtensionService.resolveDevExtension')(function* (
+    repoRoot: string,
+    directory: string
+  ) {
+    const packagePath = path.join(repoRoot, 'packages', directory, 'package.json');
+    const extensionPackage = yield* fs.readFileString(packagePath).pipe(Effect.flatMap(decodeExtensionPackage));
+    return {
+      directory,
+      id: `${extensionPackage.publisher}.${extensionPackage.name}`,
+      version: extensionPackage.version,
+      mode: 'dev' as const,
+      path: path.join(repoRoot, 'packages', directory)
+    };
+  });
+  const resolveDev = Effect.fn('ExtensionService.resolveDev')(function* (repoRoot: string) {
+    return yield* Effect.forEach(DRIVABLE_VSCODE_EXTENSION_DIRS, directory =>
+      resolveDevExtension(repoRoot, directory)
+    ).pipe(
+      Effect.mapError(
+        cause =>
           new DrivableVscodeExtensionError({
-            message: 'Failed to prepare canonical VSIX extensions',
+            message: 'Failed to resolve canonical development extensions',
             cause: causeMessage(cause)
           })
-      });
-      const directoryById = new Map(
-        DRIVABLE_VSCODE_EXTENSION_DIRS.map(directory => [directory.toLowerCase(), directory])
-      );
-      return {
-        extensionsDir: prepared.extensionsDir,
-        extensions: prepared.extensions.map(
-          extension =>
-            ({
-              directory: directoryById.get(extension.id.replace(/^salesforce\./u, '').toLowerCase()) ?? extension.id,
-              id: extension.id,
-              version: extension.version,
-              mode: 'vsix' as const,
-              path: extension.vsixPath,
-              hash: extension.sha256
-            }) satisfies DrivableVscodeExtension
-        )
-      };
+      )
+    );
+  });
+
+  const resolveVsix = Effect.fn('ExtensionService.resolveVsix')(function* (repoRoot: string, vscodeExecutable: string) {
+    const prepared = yield* Effect.tryPromise({
+      try: async () => {
+        execFileSync('npm', ['run', 'vscode:package'], { cwd: repoRoot, stdio: 'pipe' });
+        return await prepareVsixExtensions({
+          repoRoot,
+          packageDirs: [...DRIVABLE_VSCODE_EXTENSION_DIRS],
+          vscodeExecutable
+        });
+      },
+      catch: cause =>
+        new DrivableVscodeExtensionError({
+          message: 'Failed to prepare canonical VSIX extensions',
+          cause: causeMessage(cause)
+        })
     });
-    return { resolveDev, resolveVsix };
-  })
-}) {}
+    const directoryById = new Map(
+      DRIVABLE_VSCODE_EXTENSION_DIRS.map(directory => [directory.toLowerCase(), directory])
+    );
+    return {
+      extensionsDir: prepared.extensionsDir,
+      extensions: prepared.extensions.map(
+        extension =>
+          ({
+            directory: directoryById.get(extension.id.replace(/^salesforce\./u, '').toLowerCase()) ?? extension.id,
+            id: extension.id,
+            version: extension.version,
+            mode: 'vsix' as const,
+            path: extension.vsixPath,
+            hash: extension.sha256
+          }) satisfies DrivableVscodeExtension
+      )
+    };
+  });
+  return { resolveDev, resolveVsix };
+});
+
+export class ExtensionService extends Context.Service<ExtensionService, Effect.Success<typeof makeExtensionService>>()(
+  'DrivableVscode/ExtensionService'
+) {}
+
+export const ExtensionServiceLayer = Layer.effect(ExtensionService, makeExtensionService);

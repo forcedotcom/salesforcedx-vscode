@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.11.1",
+  "version": "68.9.5",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -32,8 +32,9 @@
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/types": "^1.8.0",
     "@salesforce/vscode-i18n": "workspace:*",
-    "effect": "^3.21.2",
-    "vscode-uri": "^3.1.0"
+    "effect": "4.0.6",
+    "vscode-uri": "^3.1.0",
+    "@salesforce/vscode-services": "*"
   },
   "devDependencies": {
     "@salesforce/core": "^9.3.0",
@@ -109,7 +110,6 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
-        "../../scripts/bundling/process-polyfill.js",
         "../../scripts/bundling/assert-web-safe.mjs",
         "out/**"
       ],
@@ -127,7 +127,6 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
-        "../../scripts/bundling/process-polyfill.js",
         "../../scripts/bundling/assert-web-safe.mjs",
         "out/**"
       ],
@@ -222,6 +221,7 @@
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
         "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-core:vscode:bundle",
         "../salesforcedx-vscode-metadata:vscode:bundle",
         "../salesforcedx-vscode-apex-log:vscode:bundle",
         "../salesforcedx-vscode-apex:vscode:bundle",
@@ -272,6 +272,7 @@
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
         "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-core:vscode:bundle",
         "../salesforcedx-vscode-metadata:vscode:bundle",
         "../salesforcedx-vscode-apex-log:vscode:bundle",
         "../salesforcedx-vscode-apex:vscode:bundle",
@@ -295,6 +296,7 @@
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
         "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-core:vscode:bundle",
         "../salesforcedx-vscode-metadata:vscode:bundle",
         "../salesforcedx-vscode-apex-log:vscode:bundle",
         "../salesforcedx-vscode-apex:vscode:bundle",
@@ -318,6 +320,7 @@
         "vscode:bundle",
         "../salesforcedx-vscode-services:vscode:bundle",
         "../salesforcedx-vscode-services:spans:server",
+        "../salesforcedx-vscode-core:vscode:bundle",
         "../salesforcedx-vscode-metadata:vscode:bundle",
         "../salesforcedx-vscode-apex-log:vscode:bundle",
         "../salesforcedx-vscode-apex:vscode:bundle",

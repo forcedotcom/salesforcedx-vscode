@@ -8,7 +8,6 @@ import { AuthInfo, Connection } from '@salesforce/core';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { SF_CONFIG_ISV_DEBUGGER_SID, SF_CONFIG_ISV_DEBUGGER_URL } from '@salesforce/salesforcedx-apex-debugger';
 import * as Array from 'effect/Array';
-import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isError } from 'effect/Predicate';
@@ -54,15 +53,15 @@ const queryError = (e: unknown) => new DebuggerSessionQueryError({ message: isEr
 
 export const debuggerStop = Effect.fn('debuggerStop')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const notificationMode = yield* api.services.NotificationModeService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
 
   // Precondition: getSfProject sets the sf:project_opened context and fails with a typed
   // FailedToResolveSfProjectError (rendered by ErrorHandlerService) when there's no project.
-  yield* api.services.ProjectService.getSfProject();
+  yield* api.v2.services.ProjectService.use(service => service.getSfProject());
 
   // ISV Debugger projects authenticate via org-isv-debugger-sid/url stored in project-local config,
   // not a target-org — getConnection() would fail with NoTargetOrgConfiguredError for these projects.
-  const configAggregator = yield* api.services.ConfigService.getConfigAggregator();
+  const configAggregator = yield* api.v2.services.ConfigService.use(service => service.getConfigAggregator());
   const isvSid = configAggregator.getPropertyValue<string>(SF_CONFIG_ISV_DEBUGGER_SID);
   const isvUrl = configAggregator.getPropertyValue<string>(SF_CONFIG_ISV_DEBUGGER_URL);
 
@@ -74,7 +73,7 @@ export const debuggerStop = Effect.fn('debuggerStop')(function* () {
           ),
         catch: queryError
       })
-    : api.services.ConnectionService.getConnection();
+    : api.v2.services.ConnectionService.use(service => service.getConnection());
 
   // Keep the ISV sid/url exception here: QueryService resolves configured orgs, not caller-supplied connections.
   // All other debugger sessions still query through QueryService.
@@ -86,23 +85,29 @@ export const debuggerStop = Effect.fn('debuggerStop')(function* () {
           catch: queryError
         }).pipe(
           Effect.flatMap(page =>
-            Schema.decodeUnknown(Schema.Struct({ records: Schema.Array(SessionRow) }))(page).pipe(
-              Effect.map(decoded => decoded.records),
+            Schema.decodeUnknownEffect(Schema.Struct({ records: Schema.Array(SessionRow) }))(page).pipe(
+              Effect.map(decoded => [...decoded.records]),
               Effect.mapError(queryError)
             )
           )
         )
-      : Effect.flatMap(api.services.QueryService, queryService =>
-          queryService.query({ soql: SESSION_SOQL, tooling: true }, SessionRow).pipe(
-            Effect.flatMap(({ records }) => Stream.runCollect(records)),
-            Effect.map(Chunk.toReadonlyArray),
-            Effect.mapError(queryError)
-          )
+      : Effect.flatMap(api.v2.services.QueryService, queryService =>
+          queryService
+            .query({ soql: SESSION_SOQL, tooling: true }, input =>
+              Schema.decodeUnknownEffect(
+                Schema.Struct({ totalSize: Schema.Number, records: Schema.Array(SessionRow) })
+              )(input)
+            )
+            .pipe(
+              Effect.flatMap(({ records }) => Stream.runCollect(records)),
+              Effect.map(records => [...records]),
+              Effect.mapError(queryError)
+            )
         );
 
   yield* Effect.all({
     progressLocation: notificationMode.getProgressLocation(COMMAND),
-    promptService: api.services.PromptService
+    promptService: api.v2.services.PromptService
   }).pipe(
     Effect.flatMap(({ progressLocation, promptService }) =>
       sessionRecords.pipe(

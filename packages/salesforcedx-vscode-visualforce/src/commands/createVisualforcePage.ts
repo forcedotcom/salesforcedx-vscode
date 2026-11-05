@@ -19,13 +19,17 @@ const VF_PAGE_TEMPLATE_DESCRIPTIONS: Record<string, string> = {
 const promptForTemplate = Effect.fn('promptForVisualforcePageTemplate')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
 
-  const customTemplateNames = yield* api.services.TemplateService.getCustomTemplateNames('visualforcepage', '.page');
+  const customTemplateNames = yield* api.v2.services.TemplateService.use(service =>
+    service.getCustomTemplateNames('visualforcepage', '.page')
+  );
   if (customTemplateNames.length === 0) {
     return 'DefaultVFPage';
   }
 
-  const promptService = yield* api.services.PromptService;
-  const builtInNames = yield* api.services.TemplateService.getBuiltInTemplateNames('visualforcepage', /\.page$/);
+  const promptService = yield* api.v2.services.PromptService;
+  const builtInNames = yield* api.v2.services.TemplateService.use(service =>
+    service.getBuiltInTemplateNames('visualforcepage', /\.page$/)
+  );
   const builtInItems = builtInNames.map(label => ({ label, description: VF_PAGE_TEMPLATE_DESCRIPTIONS[label] ?? '' }));
   const customItems = customTemplateNames.map(label => ({ label, description: '' }));
   const customNameSet = new Set(customTemplateNames);
@@ -48,9 +52,9 @@ const promptForTemplate = Effect.fn('promptForVisualforcePageTemplate')(function
 
 export const createVisualforcePageCommand = Effect.fn('createVisualforcePageCommand')(function* (arg?: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const project = yield* api.services.ProjectService.getSfProject();
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+  const promptService = yield* api.v2.services.PromptService;
+  const project = yield* api.v2.services.ProjectService.use(service => service.getSfProject());
+  const workspaceInfo = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
 
   const template = yield* promptForTemplate();
   const pageName = yield* promptForVfTypeName(nls.localize('vf_page_name_prompt'));
@@ -65,17 +69,20 @@ export const createVisualforcePageCommand = Effect.fn('createVisualforcePageComm
     }));
 
   const uris = [`${pageName}.page`, `${pageName}.page-meta.xml`].map(f => Utils.joinPath(outputDirUri, f));
-  const fsService = yield* api.services.FsService;
+  const fsService = yield* api.v2.services.FsService;
+  const cwd = yield* fsService.uriToPath(workspaceInfo.uri);
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris });
 
-  yield* api.services.TemplateService.create({
-    cwd: yield* api.services.FsService.uriToPath(workspaceInfo.uri),
-    templateType: api.services.TemplateType.VisualforcePage,
-    outputdir: outputDirUri,
-    options: { pagename: pageName, label: pageName, template }
-  });
+  yield* api.v2.services.TemplateService.use(service =>
+    service.create({
+      cwd,
+      templateType: api.v2.services.TemplateType.VisualforcePage,
+      outputdir: outputDirUri,
+      options: { pagename: pageName, label: pageName, template }
+    })
+  );
 
-  const channelService = yield* api.services.ChannelService;
+  const channelService = yield* api.v2.services.ChannelService;
   yield* channelService.appendToChannel(nls.localize('vf_generate_page_success'));
   yield* fsService.showTextDocument(uris[0]);
 

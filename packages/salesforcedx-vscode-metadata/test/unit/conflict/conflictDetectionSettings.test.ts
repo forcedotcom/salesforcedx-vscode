@@ -7,18 +7,18 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
+import { SettingsService } from '@salesforce/vscode-services/v2';
 import { isConflictDetectionEnabled } from '../../../src/conflict/conflictDetectionSettings';
 
 describe('conflictDetectionSettings', () => {
   const getValueOrElse = vi.fn();
-  const settingsService = SettingsService.make({ getValueOrElse } as never);
+  const settingsService = { getValueOrElse } as unknown as SettingsService['Service'];
   const run = () =>
     Effect.runPromise(
       isConflictDetectionEnabled().pipe(
         Effect.provideService(ExtensionProviderService, {
           getServicesApi: Effect.succeed({
-            services: { SettingsService }
+            v2: { services: { SettingsService } }
           } as never)
         }),
         Effect.provideService(SettingsService, settingsService)

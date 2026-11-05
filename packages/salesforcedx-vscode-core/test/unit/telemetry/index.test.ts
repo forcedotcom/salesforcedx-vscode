@@ -27,8 +27,10 @@ describe('Telemetry', () => {
     vi.spyOn(extensions, 'getExtension').mockReturnValue({
       isActive: true,
       exports: {
-        services: {
-          getLegacyTelemetrySender: () => vi.fn(() => vi.fn().mockResolvedValue(undefined))
+        v2: {
+          services: {
+            getLegacyTelemetrySender: () => vi.fn(() => vi.fn().mockResolvedValue(undefined))
+          }
         }
       }
     } as unknown as ReturnType<typeof extensions.getExtension>);

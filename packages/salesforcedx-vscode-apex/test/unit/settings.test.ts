@@ -6,7 +6,7 @@
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
+import { SettingsService, type SalesforceVSCodeServicesApiV2 } from '@salesforce/vscode-services/v2';
 import {
   apexLanguageServerSettings,
   getLanguageServerCapabilityPolicy,
@@ -15,15 +15,15 @@ import {
 
 describe('settings Unit Tests.', () => {
   const getValue = vi.fn();
-  const settingsService = SettingsService.make({ getValue, getValueOrElse: getValue } as never);
+  const settingsService = SettingsService.of({ getValue, getValueOrElse: getValue } as never);
   const run = <A, E>(effect: Effect.Effect<A, E, ExtensionProviderService | SettingsService>) =>
     Effect.runPromise(
       effect.pipe(
         Effect.provideService(ExtensionProviderService, {
           getServicesApi: Effect.succeed({
-            services: { SettingsService }
-          } as never)
-        }),
+            v2: { services: { SettingsService } }
+          } as unknown as SalesforceVSCodeServicesApiV2)
+        } as unknown as ExtensionProviderService['Service']),
         Effect.provideService(SettingsService, settingsService)
       )
     );

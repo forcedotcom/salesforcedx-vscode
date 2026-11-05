@@ -37,7 +37,7 @@ const getPlatformSpecificBinary = (binary: string): string => (process.platform 
 
 const readJavaConfig = Effect.fn('requirements.readJavaConfig')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* (yield* api.services.SettingsService).getValue<string>(APEX_SETTINGS_SECTION, 'java.home');
+  return yield* (yield* api.v2.services.SettingsService).getValue<string>(APEX_SETTINGS_SECTION, 'java.home');
 });
 
 const validateJavaInstallation = Effect.fn('requirements.validateJavaInstallation')(function* (javaHome: string) {
@@ -49,7 +49,7 @@ const validateJavaInstallation = Effect.fn('requirements.validateJavaInstallatio
   const binDir = path.join(javaHome, 'bin');
 
   // Check if bin directory exists and is accessible
-  if (!(yield* api.services.FsService.fileOrFolderExists(binDir))) {
+  if (!(yield* api.v2.services.FsService.use(service => service.fileOrFolderExists(binDir)))) {
     return yield* new JavaRequirementsError({ message: nls.localize('java_bin_missing_text', javaHome) });
   }
 
@@ -59,7 +59,9 @@ const validateJavaInstallation = Effect.fn('requirements.validateJavaInstallatio
     ['java', 'javac'],
     binary => {
       const platformBinary = getPlatformSpecificBinary(binary);
-      return api.services.FsService.fileOrFolderExists(path.join(binDir, platformBinary)).pipe(
+      return api.v2.services.FsService.use(service =>
+        service.fileOrFolderExists(path.join(binDir, platformBinary))
+      ).pipe(
         Effect.filterOrFail(
           exists => exists,
           () =>
@@ -74,7 +76,7 @@ const validateJavaInstallation = Effect.fn('requirements.validateJavaInstallatio
 });
 
 const detectJavaHome = Effect.fn('requirements.detectJavaHome')(function* () {
-  return yield* Effect.async<string, JavaRequirementsError>(resume => {
+  return yield* Effect.callback<string, JavaRequirementsError>(resume => {
     findJavaHome((err: Error | undefined, home: string | undefined) => {
       resume(
         err || !home || !isString(home)
@@ -130,7 +132,7 @@ const checkJavaRuntime = Effect.fn('requirements.checkJavaRuntime')(function* ()
   }
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  if (!(yield* api.services.FsService.fileOrFolderExists(expandedHome))) {
+  if (!(yield* api.v2.services.FsService.use(service => service.fileOrFolderExists(expandedHome)))) {
     return yield* new JavaRequirementsError({
       message: nls.localize('source_missing_text', source, SET_JAVA_DOC_LINK)
     });
@@ -143,7 +145,7 @@ const checkJavaRuntime = Effect.fn('requirements.checkJavaRuntime')(function* ()
 export const resolveRequirements = Effect.fn('requirements.resolveRequirements')(function* () {
   const javaHome = yield* checkJavaRuntime();
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const javaMemory = yield* (yield* api.services.SettingsService).getValue<number>(
+  const javaMemory = yield* (yield* api.v2.services.SettingsService).getValue<number>(
     APEX_SETTINGS_SECTION,
     'java.memory'
   );
@@ -161,7 +163,7 @@ export const checkJavaVersion = Effect.fn('requirements.checkJavaVersion')(funct
 
   const cmdFile = path.join(javaHome, 'bin', getPlatformSpecificBinary('java'));
   const commandOptions = ['-XshowSettings:properties', '-version'];
-  const stderr = yield* Effect.async<string, JavaRequirementsError>((resume, signal) => {
+  const stderr = yield* Effect.callback<string, JavaRequirementsError>((resume, signal) => {
     cp.execFile(cmdFile, commandOptions, { encoding: 'utf8', signal }, (error, _stdout, execStderr) => {
       resume(
         error

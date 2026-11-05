@@ -4,14 +4,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { ICONS, type DefaultOrgInfoSchema, type OrgAuthorizationSummary } from '@salesforce/vscode-services';
+import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
+import { ICONS, type DefaultOrgInfoSchema, type OrgAuthorizationSummary } from '@salesforce/vscode-services/v2';
 import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Order from 'effect/Order';
 import * as Stream from 'effect/Stream';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { ORG_OPEN_COMMAND } from '../constants';
 import { nls } from '../messages';
@@ -75,7 +76,7 @@ interface OrgQuickPickItem extends vscode.QuickPickItem {
 type DefaultOrgConfig = Awaited<ReturnType<typeof getDefaultOrgConfiguration>>;
 
 const byTypeAndMarkers = (): Order.Order<OrgAuthorizationSummary> =>
-  Order.mapInput(Order.number, (o: OrgAuthorizationSummary) => {
+  Order.mapInput(Order.Number, (o: OrgAuthorizationSummary) => {
     if (o.isScratchOrg) return 0;
     if (o.isSandbox) return 1;
     if (o.isDevHub) return 3;
@@ -83,12 +84,12 @@ const byTypeAndMarkers = (): Order.Order<OrgAuthorizationSummary> =>
   });
 
 const byAliasFirst: Order.Order<OrgAuthorizationSummary> = Order.mapInput(
-  Order.reverse(Order.boolean),
+  Order.flip(Order.Boolean),
   (o: OrgAuthorizationSummary) => Option.getOrElse(Option.map(Arr.head(o.aliases ?? []), Boolean), () => false)
 );
 
 const byAliasOrUsername: Order.Order<OrgAuthorizationSummary> = Order.mapInput(
-  Order.string,
+  Order.String,
   (o: OrgAuthorizationSummary) => Option.getOrElse(Arr.head(o.aliases ?? []), () => o.username ?? '').toLowerCase()
 );
 
@@ -187,7 +188,7 @@ export const buildOrgQuickPickItems = (
 
 export const setDefaultOrg = Effect.fn('OrgList.setDefaultOrg')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   const { defaultConfig, freshAuthorizations } = yield* getFreshAuthorizations();
 
   const quickPickList = [...ACTION_ITEMS, ...buildOrgQuickPickItems(freshAuthorizations, defaultConfig)];
@@ -207,12 +208,12 @@ export const setDefaultOrg = Effect.fn('OrgList.setDefaultOrg')(function* () {
 
   const usernameOrAlias = selection.orgAlias ?? selection.orgUsername ?? '';
   // picker excludes expired orgs, so no Org.create existence/expiry guard needed
-  yield* api.services.ConfigService.setTargetOrg(usernameOrAlias);
+  yield* api.v2.services.ConfigService.use(service => service.setTargetOrg(usernameOrAlias));
   // refresh defaultOrgRef (status bar) via getConnection's forked ref-set
-  yield* api.services.ConnectionService.invalidateCachedConnections();
+  yield* api.v2.services.ConnectionService.use(service => service.invalidateCachedConnections());
   // tolerate any post-write connection failure
-  yield* api.services.ConnectionService.getConnection().pipe(
-    Effect.catchAll(e => Effect.logWarning('setDefaultOrg: connection refresh failed', e))
+  yield* api.v2.services.ConnectionService.use(service => service.getConnection()).pipe(
+    Effect.catch(e => Effect.logWarning('setDefaultOrg: connection refresh failed', e))
   );
 });
 
@@ -236,10 +237,11 @@ export const createOrgPicker = Effect.fn('OrgPicker.createOrgPicker')(function* 
   orgPickerStatuBarItem.show();
 
   // watch for org changes
-  const targetOrgRef = yield* api.services.TargetOrgRef();
+  const targetOrgRef = yield* api.v2.services.TargetOrgRef;
+  const extensionScope = yield* getExtensionScope();
 
-  yield* Effect.forkDaemon(
-    targetOrgRef.changes.pipe(
+  yield* Effect.forkIn(
+    SubscriptionRef.changes(targetOrgRef).pipe(
       Stream.tap(orgInfo => Effect.log('Org Extension:orgChange', orgInfo)),
       Stream.tap(orgInfo =>
         Effect.sync(() => (orgInfo.username ? orgOpenStatusBarItem.show() : orgOpenStatusBarItem.hide()))
@@ -251,7 +253,8 @@ export const createOrgPicker = Effect.fn('OrgPicker.createOrgPicker')(function* 
           orgPickerStatuBarItem.tooltip = tooltip;
         })
       )
-    )
+    ),
+    extensionScope
   );
 
   // These statusBarItems stay on the page until the extension is deactivated

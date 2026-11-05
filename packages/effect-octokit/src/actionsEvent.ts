@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as FileSystem from '@effect/platform/FileSystem';
 import * as Effect from 'effect/Effect';
+import * as FileSystem from 'effect/FileSystem';
 import * as Schema from 'effect/Schema';
 
 const PullRequestNumber = Schema.Struct({ number: Schema.Number });
@@ -69,14 +69,13 @@ export type CompletedChecksEvent = typeof CompletedChecksEventSchema.Type;
 export type SynchronizeEvent = typeof SynchronizeEventSchema.Type;
 
 /** Read and validate the JSON payload at GITHUB_EVENT_PATH. */
-const readActionsEvent = Effect.fn('GitHub.readActionsEvent')(function* <A, I>(
+const readActionsEvent = Effect.fn('GitHub.readActionsEvent')(function* <S extends Schema.Constraint>(
   eventPath: string,
-  schema: Schema.Schema<A, I>
+  schema: S
 ) {
-  return yield* FileSystem.FileSystem.pipe(
-    Effect.flatMap(fs => fs.readFileString(eventPath)),
-    Effect.flatMap(Schema.decodeUnknown(Schema.parseJson(schema)))
-  );
+  const fs = yield* FileSystem.FileSystem;
+  const content = yield* fs.readFileString(eventPath);
+  return yield* Schema.decodeUnknownEffect(Schema.fromJsonString(schema))(content);
 });
 
 export const readCheckEvent = (eventPath: string) => readActionsEvent(eventPath, CheckEventSchema);

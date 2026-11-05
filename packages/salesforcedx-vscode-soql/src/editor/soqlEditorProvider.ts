@@ -49,7 +49,7 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
       const message = noDefaultOrgMessage();
       getSoqlRuntime().runFork(
         getServicesApi.pipe(
-          Effect.flatMap(api => api.services.ChannelService),
+          Effect.flatMap(api => api.v2.services.ChannelService),
           Effect.flatMap(svc => svc.appendToChannel(message))
         )
       );
@@ -62,7 +62,9 @@ export class SOQLEditorProvider implements vscode.CustomTextEditorProvider {
     const htmlContent = await getSoqlRuntime().runPromise(
       Effect.gen(function* () {
         const api = yield* getServicesApi;
-        return yield* api.services.FsService.readFile(Utils.joinPath(soqlBuilderUri, HTML_FILE));
+        return yield* api.v2.services.FsService.use(service =>
+          service.readFile(Utils.joinPath(soqlBuilderUri, HTML_FILE))
+        );
       })
     );
     return transformHtml(htmlContent, soqlBuilderUri, webview, isOrgExtensionInstalled());

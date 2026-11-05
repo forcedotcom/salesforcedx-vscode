@@ -6,11 +6,10 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import * as Chunk from 'effect/Chunk';
+import type { NonEmptyComponentSet, HashableUri } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import * as Stream from 'effect/Stream';
-import type { NonEmptyComponentSet, HashableUri } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { filesAreNotIdentical, materializeRemoteComponents } from './diffHelpers';
@@ -22,7 +21,7 @@ export const diffComponentSet = Effect.fn('diffComponentSet')(function* (options
 }) {
   const { componentSet, localUriFilter } = options;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelService = yield* api.services.ChannelService;
+  const channelService = yield* api.v2.services.ChannelService;
 
   yield* channelService.appendToChannel(
     `Retrieving ${componentSet.size} component${componentSet.size === 1 ? '' : 's'} for diff...`
@@ -41,7 +40,6 @@ export const diffComponentSet = Effect.fn('diffComponentSet')(function* (options
   const diffsOpen = yield* Stream.fromIterable(pairsSet).pipe(
     Stream.filterEffect(filesAreNotIdentical),
     Stream.runCollect,
-    Effect.map(Chunk.toArray),
     Effect.tap(arr =>
       arr.length === 0
         ? Effect.sync(() => {

@@ -18,17 +18,16 @@ import { EXTENSION_NAME } from '../constants';
 
 /** Apply the Services-owned target-org guard. */
 export const preventOrgChanges = <A, E, R>(command: Effect.Effect<A, E, R>) =>
-  ExtensionProviderService.pipe(
-    Effect.flatMap(provider => provider.getServicesApi),
-    Effect.flatMap(api => api.services.preventOrgChanges(command))
+  ExtensionProviderService.use(provider =>
+    provider.getServicesApi.pipe(Effect.flatMap(api => api.v2.services.preventOrgChanges(command)))
   );
 
 export const buildAllServicesLayer = (context: ExtensionContext) =>
-  Layer.unwrapEffect(
+  Layer.unwrap(
     Effect.map(getServicesApi, api =>
       Layer.mergeAll(
         buildSharedServicesLayer(context, 'Salesforce Metadata'),
-        api.services.NotificationModeService.Default(
+        api.v2.services.NotificationModeServiceLayer(
           EXTENSION_NAME,
           'sf-metadata-notifications',
           'Salesforce: Metadata Notifications'
@@ -49,8 +48,8 @@ export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLay
  * Built once on first use to avoid rebuilding services across command invocations.
  */
 type MetadataRuntime = ManagedRuntime.ManagedRuntime<
-  Layer.Layer.Success<ReturnType<typeof buildAllServicesLayer>>,
-  Layer.Layer.Error<ReturnType<typeof buildAllServicesLayer>>
+  Layer.Success<ReturnType<typeof buildAllServicesLayer>>,
+  Layer.Error<ReturnType<typeof buildAllServicesLayer>>
 >;
 // eslint-disable-next-line functional/no-let
 let _metadataRuntime: MetadataRuntime | undefined;

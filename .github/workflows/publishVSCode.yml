@@ -141,8 +141,13 @@ jobs:
   ctc-open:
     needs: [prepare-release-metadata]
     if: inputs.dry-run != true
-    # TEMPORARY: testing salesforcecli/github-workflows#205's pnpm-cache fix before merge.
-    uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@ms/W-24787945-drop-ctc-pnpm-cache
+    uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@main
+    with:
+      package-manager: pnpm
+      # Empty string, not a pin: pnpm/action-setup only errors on a *mismatched* explicit
+      # version, so leaving this blank lets it read packageManager from package.json instead
+      # of drifting out of sync with it on every pnpm bump.
+      package-manager-version: ''
     secrets: inherit
 
   validate-vsix:
@@ -177,21 +182,23 @@ jobs:
   ctcCloseSuccess:
     needs: [ctc-open, publish]
     if: always() && needs.ctc-open.result == 'success' && needs.publish.result == 'success' && needs.ctc-open.outputs.changeCaseId
-    # TEMPORARY: testing salesforcecli/github-workflows#205's pnpm-cache fix before merge.
-    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@ms/W-24787945-drop-ctc-pnpm-cache
+    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
     secrets: inherit
     with:
       changeCaseId: ${{needs.ctc-open.outputs.changeCaseId}}
+      package-manager: pnpm
+      package-manager-version: ''
 
   ctcCloseFail:
     needs: [ctc-open, publish]
     if: always() && needs.ctc-open.result == 'success' && needs.ctc-open.outputs.changeCaseId && needs.publish.result != 'success'
-    # TEMPORARY: testing salesforcecli/github-workflows#205's pnpm-cache fix before merge.
-    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@ms/W-24787945-drop-ctc-pnpm-cache
+    uses: salesforcecli/github-workflows/.github/workflows/ctcClose.yml@main
     secrets: inherit
     with:
       changeCaseId: ${{ needs.ctc-open.outputs.changeCaseId }}
       status: Not Implemented
+      package-manager: pnpm
+      package-manager-version: ''
 
   # promote-to-prerelease.yml prepended one root CHANGELOG.md section per promoted pre-release,
   # labeled with the pre-release version. Now that this release has shipped stable, fold every

@@ -9,7 +9,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { URI } from 'vscode-uri';
 import { getProjectRoot } from '../../../src/virtualFsProvider/projectRoot';
-import { WorkspaceService } from '../../../src/vscode/workspaceService';
+import { WorkspaceService } from '@salesforce/vscode-services/v2';
 
 const run = (folderUri?: string): Promise<{ fsPath: string; uri: string }> => {
   const uri = folderUri === undefined ? URI.parse('') : URI.parse(folderUri);
@@ -21,10 +21,7 @@ const run = (folderUri?: string): Promise<{ fsPath: string; uri: string }> => {
     isVirtualFs: uri.scheme !== 'file',
     cwd: '/'
   };
-  const layer = Layer.succeed(
-    WorkspaceService,
-    new WorkspaceService({ getWorkspaceInfo: () => Effect.succeed(info) } as unknown as WorkspaceService)
-  );
+  const layer = Layer.mock(WorkspaceService, { getWorkspaceInfo: () => Effect.succeed(info) });
   return Effect.runPromise(getProjectRoot().pipe(Effect.provide(layer)));
 };
 

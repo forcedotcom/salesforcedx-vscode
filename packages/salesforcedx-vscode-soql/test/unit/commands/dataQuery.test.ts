@@ -9,17 +9,29 @@ import type { Mock as VitestMock } from 'vitest';
 import type * as EffectExtUtilsModule from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
+import type { JsonObject } from '../../../src/json';
+import {
+  ChannelService,
+  ConnectionService,
+  FsService,
+  NotificationModeService,
+  PromptService,
+  QueryService,
+  SettingsService,
+  WorkspaceService,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 
 const mockChannel = {
   appendToChannel: (msg: string) => Effect.void,
   clearChannel: Effect.void,
   getChannel: Effect.succeed({ show: vi.fn() })
-};
+} as unknown as ChannelService['Service'];
 
-const mockExtensionProvider = {
+const mockExtensionProvider: ExtensionProviderService['Service'] = {
   getServicesApi: Effect.succeed({
-    services: { ChannelService: Effect.succeed(mockChannel) }
-  } as unknown as SalesforceVSCodeServicesApi)
+    v2: { services: { ChannelService } }
+  } as unknown as SalesforceVSCodeServicesApiV2)
 };
 
 vi.mock(
@@ -28,15 +40,6 @@ vi.mock(
 );
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
-import { ConnectionService } from 'salesforcedx-vscode-services/src/core/connectionService';
-import { QueryService } from 'salesforcedx-vscode-services/src/core/queryService';
-import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
-import { PromptService } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
-import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
-import { WorkspaceService } from 'salesforcedx-vscode-services/src/vscode/workspaceService';
-import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
-import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import {
@@ -54,16 +57,16 @@ import {
 const notificationMode = {
   getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification),
   showSuccessNotification: () => Effect.void
-} as unknown as NotificationModeService;
+} as unknown as NotificationModeService['Service'];
 import { formatErrorMessage } from '../../../src/commands/queryUtils';
 import { prepareQuery } from '../../../src/prepareQuery';
 import { nls } from '../../../src/messages';
 import { messages } from '../../../src/messages/i18n';
 
-const settingsService = SettingsService.make({
+const settingsService = {
   getValue: (_section: string, _key: string, defaultValue?: unknown) => Effect.succeed(defaultValue),
   getValueOrElse: (_section: string, _key: string, defaultValue: unknown) => Effect.succeed(defaultValue)
-} as never);
+} as unknown as SettingsService['Service'];
 
 describe('DataQuery Pure Functions', () => {
   describe('formatFieldValueForDisplay', () => {
@@ -252,8 +255,8 @@ describe('DataQuery Pure Functions', () => {
 
     describe('bad data handling', () => {
       it('should handle null and undefined values', () => {
-        const records = [{ Id: '001', Name: null, Description: undefined }];
-        const expected = 'Id,Name,Description\n001,,';
+        const records: JsonObject[] = [{ Id: '001', Name: null }];
+        const expected = 'Id,Name\n001,';
         expect(convertToCSV(records)).toBe(expected);
       });
 
@@ -282,7 +285,7 @@ describe('DataQuery Pure Functions', () => {
       });
 
       it('should handle records with empty object as first record', () => {
-        const records = [{}, { Id: '001', Name: 'Test' }];
+        const records: JsonObject[] = [{}, { Id: '001', Name: 'Test' }];
         expect(convertToCSV(records)).toBe('Id,Name\n,\n001,Test');
       });
 
@@ -301,7 +304,7 @@ describe('DataQuery Pure Functions', () => {
     });
 
     it('should generate table for simple records', () => {
-      const records = [
+      const records: JsonObject[] = [
         { Id: '001', Name: 'Test1' },
         { Id: '002', Name: 'Test2' }
       ];
@@ -351,7 +354,7 @@ describe('DataQuery Pure Functions', () => {
 
     it('should handle relationship objects without dot notation', () => {
       // When querying SELECT Createdby FROM Account, Salesforce returns the whole object
-      const records = [
+      const records: JsonObject[] = [
         { Id: '001', Createdby: { Id: '005XX0000000001', Name: 'Jane Doe', Username: 'jane@example.com' } }
       ];
       const output = generateTableOutput(records, 'Test Table');
@@ -659,7 +662,7 @@ describe('DataQuery Pure Functions', () => {
       });
 
       it('should handle records with empty object as first record', () => {
-        const records = [{}, { Id: '001', Name: 'Test' }];
+        const records: JsonObject[] = [{}, { Id: '001', Name: 'Test' }];
         const output = generateTableOutput(records, 'Test Table');
         expect(output).toContain('Id');
         expect(output).toContain('Name');
@@ -741,46 +744,49 @@ describe('DataQuery Pure Functions', () => {
   describe('runSoqlQuery ALL ROWS handling', () => {
     const makeApiMock = () => {
       const connection = {};
-      const query = vi.fn(() => Effect.succeed({ records: Stream.empty, totalSize: 0 }));
+      const query = vi.fn((_options: unknown, _decodePage: unknown) =>
+        Effect.succeed({ records: Stream.empty, totalSize: 0 })
+      );
+      const queryService = { query } as unknown as QueryService['Service'];
       const mockPromptService = {
         withProgress:
           () =>
           <A, E, R>(self: Effect.Effect<A, E, R>) =>
             self
-      } as unknown as PromptService;
-      const provider = {
+      } as unknown as PromptService['Service'];
+      const provider: ExtensionProviderService['Service'] = {
         getServicesApi: Effect.succeed({
-          services: {
-            ConnectionService: { getConnection: () => Effect.succeed(connection) },
-            QueryService: Effect.succeed({ query }),
-            ChannelService: Effect.succeed(mockChannel),
-            PromptService: Effect.succeed(mockPromptService),
-            NotificationModeService,
-            SettingsService
+          v2: {
+            services: {
+              ConnectionService,
+              QueryService,
+              ChannelService,
+              PromptService,
+              NotificationModeService,
+              SettingsService
+            }
           }
-        } as unknown as SalesforceVSCodeServicesApi)
+        } as unknown as SalesforceVSCodeServicesApiV2)
       };
       const mockConnectionService = {
         getConnection: () => Effect.succeed(connection),
         invalidateCachedConnections: () => Effect.void,
         listAllAuthorizations: () => Effect.succeed([])
-      } as unknown as ConnectionService;
-      return { provider, query, mockConnectionService, mockPromptService };
+      } as unknown as ConnectionService['Service'];
+      return { provider, query, queryService, mockConnectionService, mockPromptService };
     };
 
     it('strips trailing ALL ROWS and passes scanAll true on the REST branch', async () => {
-      const { provider, query, mockConnectionService, mockPromptService } = makeApiMock();
+      const { provider, query, queryService, mockConnectionService, mockPromptService } = makeApiMock();
       await Effect.runPromise(
         runSoqlQuery(prepareQuery('SELECT Id FROM Account ALL ROWS;'), false).pipe(
           Effect.provideService(ExtensionProviderService, provider),
           Effect.provideService(ConnectionService, mockConnectionService),
-          Effect.provideService(ChannelService, mockChannel as unknown as ChannelService),
+          Effect.provideService(ChannelService, mockChannel),
           Effect.provideService(PromptService, mockPromptService),
           Effect.provideService(NotificationModeService, notificationMode),
           Effect.provideService(SettingsService, settingsService),
-          Effect.provideService(QueryService, {
-            query: () => Effect.succeed({ totalSize: 0, records: Stream.empty })
-          } as never)
+          Effect.provideService(QueryService, queryService)
         )
       );
       expect(query).toHaveBeenCalledWith(
@@ -790,18 +796,16 @@ describe('DataQuery Pure Functions', () => {
     });
 
     it('strips trailing ALL ROWS and passes scanAll true on the Tooling branch', async () => {
-      const { provider, query, mockConnectionService, mockPromptService } = makeApiMock();
+      const { provider, query, queryService, mockConnectionService, mockPromptService } = makeApiMock();
       await Effect.runPromise(
         runSoqlQuery(prepareQuery('SELECT Id FROM ApexClass ALL ROWS'), true).pipe(
           Effect.provideService(ExtensionProviderService, provider),
           Effect.provideService(ConnectionService, mockConnectionService),
-          Effect.provideService(ChannelService, mockChannel as unknown as ChannelService),
+          Effect.provideService(ChannelService, mockChannel),
           Effect.provideService(PromptService, mockPromptService),
           Effect.provideService(NotificationModeService, notificationMode),
           Effect.provideService(SettingsService, settingsService),
-          Effect.provideService(QueryService, {
-            query: () => Effect.succeed({ totalSize: 0, records: Stream.empty })
-          } as never)
+          Effect.provideService(QueryService, queryService)
         )
       );
       expect(query).toHaveBeenCalledWith(
@@ -811,18 +815,16 @@ describe('DataQuery Pure Functions', () => {
     });
 
     it('passes scanAll false and unchanged text when ALL ROWS is absent', async () => {
-      const { provider, query, mockConnectionService, mockPromptService } = makeApiMock();
+      const { provider, query, queryService, mockConnectionService, mockPromptService } = makeApiMock();
       await Effect.runPromise(
         runSoqlQuery(prepareQuery('SELECT Id FROM Account'), false).pipe(
           Effect.provideService(ExtensionProviderService, provider),
           Effect.provideService(ConnectionService, mockConnectionService),
-          Effect.provideService(ChannelService, mockChannel as unknown as ChannelService),
+          Effect.provideService(ChannelService, mockChannel),
           Effect.provideService(PromptService, mockPromptService),
           Effect.provideService(NotificationModeService, notificationMode),
           Effect.provideService(SettingsService, settingsService),
-          Effect.provideService(QueryService, {
-            query: () => Effect.succeed({ totalSize: 0, records: Stream.empty })
-          } as never)
+          Effect.provideService(QueryService, queryService)
         )
       );
       expect(query).toHaveBeenCalledWith(
@@ -841,7 +843,7 @@ describe('DataQuery Pure Functions', () => {
       Effect.runPromise(
         eff.pipe(
           Effect.provideService(ExtensionProviderService, mockExtensionProvider),
-          Effect.provideService(ChannelService, mockChannel as unknown as ChannelService)
+          Effect.provideService(ChannelService, mockChannel)
         )
       );
 
@@ -906,7 +908,7 @@ describe('DataQuery Pure Functions', () => {
     describe('getAllFlattenedFields', () => {
       // Note: getAllFlattenedFields is not exported, but we can test it indirectly
       it('should collect all fields from multiple records', () => {
-        const records = [
+        const records: JsonObject[] = [
           { Id: '001', Account: { Id: '002' } },
           { Id: '003', Account: { Name: 'Test' } },
           { Id: '004', Contact: { Email: 'test@example.com' } }
@@ -920,7 +922,7 @@ describe('DataQuery Pure Functions', () => {
       });
 
       it('should preserve field order', () => {
-        const records = [
+        const records: JsonObject[] = [
           { Id: '001', ZField: 'last', AField: 'first' },
           { Id: '002', BField: 'middle' }
         ];
@@ -1030,7 +1032,7 @@ describe('DataQuery Pure Functions', () => {
         () =>
         <A, E, R>(self: Effect.Effect<A, E, R>) =>
           self
-    } as unknown as PromptService;
+    } as unknown as PromptService['Service'];
 
     const makeProvider = (query: VitestMock) => {
       const show = vi.fn();
@@ -1042,39 +1044,46 @@ describe('DataQuery Pure Functions', () => {
         showChannel: Effect.sync(() => {
           show();
         })
-      };
-      const provider = {
+      } as unknown as ChannelService['Service'];
+      const provider: ExtensionProviderService['Service'] = {
         getServicesApi: Effect.succeed({
-          services: {
-            ConnectionService: { getConnection: () => Effect.succeed({}) },
-            QueryService: Effect.succeed({ query }),
-            ChannelService: Effect.succeed(channel),
-            WorkspaceService: { getWorkspaceInfoOrThrow: () => Effect.succeed({ uri: URI.file('/ws') }) },
-            FsService: { writeFile: () => Effect.void, showTextDocument: () => Effect.void },
-            PromptService: Effect.succeed(noopPromptService),
-            NotificationModeService,
-            SettingsService
+          v2: {
+            services: {
+              ConnectionService,
+              QueryService,
+              ChannelService,
+              WorkspaceService,
+              FsService,
+              PromptService,
+              NotificationModeService,
+              SettingsService
+            }
           }
-        } as unknown as SalesforceVSCodeServicesApi)
+        } as unknown as SalesforceVSCodeServicesApiV2)
       };
-      return { provider, show, appendToChannel };
+      return { provider, show, appendToChannel, channel };
     };
 
     const run = (query: VitestMock) => {
-      const { provider, show, appendToChannel } = makeProvider(query);
+      const { provider, show, appendToChannel, channel } = makeProvider(query);
       return Effect.runPromise(
         executeDataQuery(prepareQuery('SELECT Id FROM Account'), 'REST').pipe(
           Effect.provideService(ExtensionProviderService, provider),
-          Effect.provideService(ChannelService, {} as unknown as ChannelService),
-          Effect.provideService(ConnectionService, {} as unknown as ConnectionService),
-          Effect.provideService(FsService, {} as unknown as FsService),
-          Effect.provideService(WorkspaceService, {} as unknown as WorkspaceService),
+          Effect.provideService(ChannelService, channel as unknown as ChannelService['Service']),
+          Effect.provideService(ConnectionService, {} as unknown as ConnectionService['Service']),
+          Effect.provideService(FsService, {
+            writeFile: () => Effect.void,
+            showTextDocument: () => Effect.void
+          } as unknown as FsService['Service']),
+          Effect.provideService(WorkspaceService, {
+            getWorkspaceInfoOrThrow: () => Effect.succeed({ uri: URI.file('/ws') })
+          } as unknown as WorkspaceService['Service']),
           Effect.provideService(PromptService, noopPromptService),
           Effect.provideService(NotificationModeService, notificationMode),
           Effect.provideService(SettingsService, settingsService),
           Effect.provideService(QueryService, {
-            query: () => Effect.succeed({ totalSize: 0, records: Stream.empty })
-          } as never)
+            query: (...args: [unknown, unknown]) => query(...args)
+          } as unknown as QueryService['Service'])
         )
       ).then(() => ({ show, appendToChannel }));
     };

@@ -9,16 +9,16 @@ import * as Schema from 'effect/Schema';
 
 type Json = string | number | boolean | null | readonly Json[] | { readonly [key: string]: Json | undefined };
 
-const Json: Schema.Schema<Json> = Schema.suspend(() =>
-  Schema.Union(
+const Json: Schema.Codec<Json> = Schema.suspend(() =>
+  Schema.Union([
     Schema.String,
-    Schema.JsonNumber,
+    Schema.Finite,
     Schema.Boolean,
     Schema.Null,
     Schema.Array(Json),
-    Schema.Record({ key: Schema.String, value: Schema.UndefinedOr(Json) })
-  )
+    Schema.Record(Schema.String, Schema.UndefinedOr(Json))
+  ])
 );
 
 /** Index includes `undefined` so it accepts the streaming client's message object. */
-export type JsonObject = { readonly [key: string]: Schema.Schema.Type<typeof Json> | undefined };
+export type JsonObject = { readonly [key: string]: typeof Json.Type | undefined };

@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { NamespaceInfo, TestItem } from '../tests/types';
+import type { NamespaceInfo, TestItem } from '../tests/apiTypes.js';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
-import { ApexClassId } from '../schemas/salesforceId';
+import { ApexClassId } from './schema/salesforceId.js';
 import {
   AmbiguousApexSelectionSchema,
   AmbiguousFlowSelectionSchema,
@@ -23,7 +23,7 @@ import {
   type TestSelection,
   QualifiedNameSchema,
   UnqualifiedNameSchema
-} from './schema/testSelection';
+} from './schema/testSelection.js';
 
 const flowTestingPrefix = 'FlowTesting.';
 
@@ -113,7 +113,7 @@ export const resolveTestSelection = (
       namespaceInfos.some(info => info.namespace === namespace) ? classCandidate : methodCandidate
     ),
     Match.tag('AmbiguousFlow', ({ namespace, classCandidate, methodCandidate }) =>
-      Option.match(Option.fromNullable(namespaceInfos.find(info => info.namespace === namespace)), {
+      Option.match(Option.fromNullishOr(namespaceInfos.find(info => info.namespace === namespace)), {
         onNone: () => methodCandidate,
         onSome: namespaceInfo =>
           FlowClassSelectionSchema.make({

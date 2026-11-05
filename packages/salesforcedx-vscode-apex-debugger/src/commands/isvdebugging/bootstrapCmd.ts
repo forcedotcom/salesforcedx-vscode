@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Global } from '@salesforce/core/global';
-import { ExtensionProviderService, parseErrorToValidationMessage } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -106,37 +106,25 @@ export const parsePackageInstalledListJson = (packagesJson: string): InstalledPa
  * session ids / login URLs. Not the injection boundary — that is simpleExec's argv spawn. */
 const FORCEIDE_DISALLOWED = /[`$\\"'|&;<>()\s]/;
 
-const ForceIdeUriSchema = Schema.String.pipe(
-  Schema.filter(
-    value => {
-      try {
-        const parameter = new URL(value).searchParams;
-        const url = parameter.get('url');
-        const sessionId = parameter.get('sessionId');
-        // `''` passes FORCEIDE_DISALLOWED, so require non-empty here — keeps gatherForceIdeUri's parse total.
-        return (
-          url !== null &&
-          url.length > 0 &&
-          sessionId !== null &&
-          sessionId.length > 0 &&
-          !FORCEIDE_DISALLOWED.test(url) &&
-          !FORCEIDE_DISALLOWED.test(sessionId)
-        );
-      } catch {
-        return false;
-      }
-    },
-    { message: () => nls.localize('parameter_gatherer_invalid_forceide_url') }
-  )
-);
-
-const uriValidator = (value: string): string | undefined =>
-  Schema.decodeUnknownEither(ForceIdeUriSchema)(value).pipe(parseErrorToValidationMessage);
+const uriValidator = (value: string): string | undefined => {
+  try {
+    const parameter = new URL(value).searchParams;
+    const url = parameter.get('url');
+    const sessionId = parameter.get('sessionId');
+    // `''` passes FORCEIDE_DISALLOWED, so require non-empty here — keeps gatherForceIdeUri's parse total.
+    if (!url || !sessionId || FORCEIDE_DISALLOWED.test(url) || FORCEIDE_DISALLOWED.test(sessionId)) {
+      return nls.localize('parameter_gatherer_invalid_forceide_url');
+    }
+  } catch {
+    return nls.localize('parameter_gatherer_invalid_forceide_url');
+  }
+  return undefined;
+};
 
 /** Prompts for the forceide:// URL and parses its login URL / session id / org name. Esc → UserCancellationError. */
 const gatherForceIdeUri = Effect.fn('isvDebugBootstrap.gatherForceIdeUri')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   const forceIdeUri = yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: nls.localize('parameter_gatherer_paste_forceide_url'),
@@ -163,7 +151,7 @@ const gatherProjectNameAndFolder = Effect.fn('isvDebugBootstrap.gatherProjectNam
   orgName: string
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
 
   const projectName = yield* Effect.promise(() =>
     vscode.window.showInputBox({
@@ -211,10 +199,10 @@ const gatherProjectNameAndFolder = Effect.fn('isvDebugBootstrap.gatherProjectNam
  */
 export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const terminalService = yield* api.services.TerminalService;
-  const promptService = yield* api.services.PromptService;
-  const notificationMode = yield* api.services.NotificationModeService;
-  const fs = api.services.FsService;
+  const terminalService = yield* api.v2.services.TerminalService;
+  const promptService = yield* api.v2.services.PromptService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
+  const fs = yield* api.v2.services.FsService;
 
   const { loginUrl, sessionId, orgName } = yield* gatherForceIdeUri();
   const { projectName, projectParentUri, projectUri } = yield* gatherProjectNameAndFolder(orgName);

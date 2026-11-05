@@ -7,14 +7,18 @@
 
 import { expectTypeOf } from 'vitest';
 import * as Effect from 'effect/Effect';
-import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
+import type { SalesforceVSCodeServicesApiV2 } from '@salesforce/vscode-services/v2';
 import * as vscode from 'vscode';
-import { ExtensionActivationError, ExtensionNotFoundError } from '../../src/extensionExports';
-import { type ExtensionProviderService, getServicesApi } from '../../src/extensionProvider';
+import {
+  InvalidServicesApiError,
+  ServicesExtensionNotFoundError,
+  type ExtensionProviderService,
+  getServicesApi
+} from '../../src/extensionProvider';
 
 describe('getServicesApi', () => {
   it('preserves the public result and error types', () => {
-    expectTypeOf(getServicesApi).toEqualTypeOf<ExtensionProviderService['getServicesApi']>();
+    expectTypeOf(getServicesApi).toEqualTypeOf<ExtensionProviderService['Service']['getServicesApi']>();
   });
 
   it('preserves the missing services extension error', async () => {
@@ -22,19 +26,18 @@ describe('getServicesApi', () => {
 
     const error = await Effect.runPromise(Effect.flip(getServicesApi));
 
-    expect(error).toBeInstanceOf(ExtensionNotFoundError);
-    expect(error).toMatchObject({ extId: 'salesforce.salesforcedx-vscode-services' });
+    expect(error).toBeInstanceOf(ServicesExtensionNotFoundError);
     expect(vscode.extensions.getExtension).toHaveBeenCalledExactlyOnceWith('salesforce.salesforcedx-vscode-services');
   });
 
   it.each([true, false])('returns the services API when isActive is %s', async isActive => {
-    const api = { services: {} } as SalesforceVSCodeServicesApi;
+    const api = { v2: { services: {} } } as SalesforceVSCodeServicesApiV2;
     const activate = vi.fn().mockResolvedValue(api);
     vi.mocked(vscode.extensions.getExtension).mockReturnValue({
       isActive,
       exports: api,
       activate
-    } as unknown as vscode.Extension<SalesforceVSCodeServicesApi>);
+    } as unknown as vscode.Extension<SalesforceVSCodeServicesApiV2>);
 
     expect(await Effect.runPromise(getServicesApi)).toBe(api);
     expect(activate).toHaveBeenCalledTimes(isActive ? 0 : 1);
@@ -46,17 +49,15 @@ describe('getServicesApi', () => {
       vi.mocked(vscode.extensions.getExtension).mockReturnValue({
         isActive: false,
         activate: vi.fn().mockRejectedValue(cause)
-      } as unknown as vscode.Extension<SalesforceVSCodeServicesApi>);
+      } as unknown as vscode.Extension<SalesforceVSCodeServicesApiV2>);
 
       const error = await Effect.runPromise(Effect.flip(getServicesApi));
 
-      expect(error).toBeInstanceOf(ExtensionActivationError);
+      expect(error).toBeInstanceOf(InvalidServicesApiError);
       expect(error).toMatchObject({
-        extId: 'salesforce.salesforcedx-vscode-services',
-        message: "Failed to activate extension 'salesforce.salesforcedx-vscode-services': activation failed",
-        cause
+        cause: cause instanceof Error ? cause : new Error(String(cause))
       });
-      if (error instanceof ExtensionActivationError && cause instanceof Error) {
+      if (error instanceof InvalidServicesApiError && cause instanceof Error) {
         expect(error.cause).toBe(cause);
       }
     }

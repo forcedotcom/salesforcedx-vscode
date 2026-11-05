@@ -40,131 +40,205 @@ import type {
   TestResultRaw,
   TestRunIdResult
 } from '../src';
-import * as JSONSchema from 'effect/JSONSchema';
 import * as Schema from 'effect/Schema';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import * as Prettier from 'prettier';
 import {
-  ApexDiagnosticSchema,
-  ApexTestSuiteId,
   ApexCompileError,
-  ApexLogListItem,
-  ApexLogQueryError,
-  ApexLogBodyFetchError,
-  ListLogsOptionsSchema,
   ApexOperationError,
   ApexResponseDecodeError,
   ApexRuntimeError,
-  AsyncTestOptionsSchema,
-  AsyncTestProgressSchema,
-  AsyncTestResultSchema,
-  AsyncTestRunEventSchema,
-  AggregateCodeCoverageResultSchema,
-  ApexCodeCoverageAggregateRecordSchema,
-  ApexCodeCoverageAggregateSchema,
-  ApexCodeCoverageRecordSchema,
-  ApexCodeCoverageSchema,
-  ApexOrgWideCoverageSchema,
-  BuildSyncPayloadOptionsSchema,
-  BuildAsyncPayloadOptionsSchema,
-  CodeCoverageResultSchema,
-  PerClassCoverageSchema,
   ExecuteAnonymousOptionsSchema,
   ExecuteAnonymousOutcomeSchema,
-  SyncTestConfigurationSchema,
-  SyncTestResultSchema,
-  TestItemSchema,
-  TestSuiteSchema,
-  TestSuiteMembershipSchema
+  type BuildSyncPayloadOptions
 } from '../src/effect';
-import {
-  ApexTestResultDataSchema,
-  ApexTestResultDataRawSchema,
-  ApexTestResultOutcomeSchema,
-  ApexTestRunResultStatusSchema,
-  ApexTestSetupDataSchema,
-  ResultFormatSchema,
-  TestLevelSchema,
-  TestResultSchema,
-  TestResultRawSchema
-} from '../src/tests/types';
-import { CommonOptionsSchema, LogLevelSchema } from '../src/utils/types';
 
-const optional = Schema.optional;
+// JSON omits absent fields; V4's optional() JSON codec would instead admit null.
+const optional = Schema.optionalKey;
 const StringArray = Schema.Array(Schema.String);
+const NumberArray = Schema.Array(Schema.Finite);
+
+const LogLevelSchema = Schema.Literals(['trace', 'debug', 'info', 'warn', 'error', 'fatal']).annotate({
+  identifier: 'LogLevel'
+});
+
+const CommonOptionsSchema = Schema.Struct({
+  json: optional(Schema.Boolean),
+  loglevel: optional(LogLevelSchema)
+}).annotate({ identifier: 'CommonOptions' });
+
+const ApexDiagnosticSchema = Schema.Struct({
+  lineNumber: optional(Schema.Finite),
+  columnNumber: optional(Schema.Finite),
+  exceptionMessage: optional(Schema.String),
+  compileProblem: optional(Schema.String),
+  exceptionStackTrace: optional(Schema.String),
+  className: optional(Schema.String)
+}).annotate({ identifier: 'ApexDiagnostic' });
 
 const ApexExecuteOptionsSchema = Schema.Struct({
   apexCode: Schema.String
-}).annotations({ identifier: 'ApexExecuteOptions' });
+}).annotate({ identifier: 'ApexExecuteOptions' });
 
 const ExecuteAnonymousResponseSchema = Schema.Struct({
   compiled: Schema.Boolean,
   success: Schema.Boolean,
   logs: optional(Schema.String),
   diagnostic: ApexDiagnosticSchema.pipe(Schema.Array, optional)
-}).annotations({ identifier: 'ExecuteAnonymousResponse' });
+}).annotate({ identifier: 'ExecuteAnonymousResponse' });
 
 const ApexLogGetOptionsSchema = Schema.Struct({
   json: optional(Schema.Boolean),
   loglevel: optional(LogLevelSchema),
-  numberOfLogs: optional(Schema.Number),
+  numberOfLogs: optional(Schema.Finite),
   logId: optional(Schema.String),
   outputDir: optional(Schema.String)
-}).annotations({ identifier: 'ApexLogGetOptions' });
+}).annotate({ identifier: 'ApexLogGetOptions' });
 
 const LogRecordSchema = Schema.Struct({
   Id: Schema.String,
   Application: Schema.String,
-  DurationMilliseconds: Schema.Number,
+  DurationMilliseconds: Schema.Finite,
   Location: Schema.String,
-  LogLength: Schema.Number,
+  LogLength: Schema.Finite,
   LogUser: Schema.Struct({
-    attributes: Schema.Record({ key: Schema.String, value: Schema.Unknown }),
+    attributes: Schema.Record(Schema.String, Schema.Unknown),
     Name: Schema.String
   }),
   Operation: Schema.String,
   Request: Schema.String,
   StartTime: Schema.String,
   Status: Schema.String
-}).annotations({ identifier: 'LogRecord' });
+}).annotate({ identifier: 'LogRecord' });
 
 const LogResultSchema = Schema.Struct({
   logPath: optional(Schema.String),
   log: Schema.String
-}).annotations({ identifier: 'LogResult' });
+}).annotate({ identifier: 'LogResult' });
+
+const TestLevelSchema = Schema.Literals(['RunLocalTests', 'RunAllTestsInOrg', 'RunSpecifiedTests']).annotate({
+  identifier: 'TestLevel'
+});
+
+const ResultFormatSchema = Schema.Literals(['junit', 'tap', 'json', 'human', 'markdown', 'text']).annotate({
+  identifier: 'ResultFormat'
+});
+
+const TestItemSchema = Schema.Struct({
+  className: optional(Schema.String),
+  classId: optional(Schema.String),
+  testMethods: optional(StringArray),
+  namespace: optional(Schema.String),
+  category: optional(Schema.String)
+}).annotate({ identifier: 'TestItem' });
 
 const AsyncTestConfigurationSchema = Schema.Struct({
   classNames: optional(Schema.String),
   classids: optional(Schema.String),
   suiteNames: optional(Schema.String),
   suiteids: optional(Schema.String),
-  maxFailedTests: optional(Schema.Number),
+  maxFailedTests: optional(Schema.Finite),
   testLevel: TestLevelSchema,
   skipCodeCoverage: optional(Schema.Boolean),
   exitOnTestRunId: optional(Schema.Boolean),
   category: optional(StringArray)
-}).annotations({ identifier: 'AsyncTestConfiguration' });
+}).annotate({ identifier: 'AsyncTestConfiguration' });
 
 const AsyncTestArrayConfigurationSchema = Schema.Struct({
   tests: Schema.Array(TestItemSchema),
-  maxFailedTests: optional(Schema.Number),
+  maxFailedTests: optional(Schema.Finite),
   testLevel: TestLevelSchema,
   exitOnTestRunId: optional(Schema.Boolean),
   skipCodeCoverage: optional(Schema.Boolean),
   category: optional(StringArray)
-}).annotations({ identifier: 'AsyncTestArrayConfiguration' });
+}).annotate({ identifier: 'AsyncTestArrayConfiguration' });
+
+const BuildSyncPayloadOptionsSchema = Schema.Struct({
+  testLevel: TestLevelSchema,
+  tests: optional(Schema.String),
+  classNames: optional(Schema.String),
+  category: optional(Schema.String),
+  skipCodeCoverage: optional(Schema.Boolean)
+}).annotate({ identifier: 'BuildSyncPayloadOptions' });
+
+const SyncTestConfigurationSchema = Schema.Struct({
+  classNames: optional(Schema.String),
+  tests: TestItemSchema.pipe(Schema.Array, optional),
+  testLevel: optional(Schema.String),
+  maxFailedTests: optional(Schema.Finite),
+  skipCodeCoverage: optional(Schema.Boolean),
+  category: optional(StringArray)
+}).annotate({ identifier: 'SyncTestConfiguration' });
 
 const OutputDirConfigSchema = Schema.Struct({
   dirPath: Schema.String,
   resultFormats: ResultFormatSchema.pipe(Schema.Array, optional),
   fileInfos: Schema.Struct({
     filename: Schema.String,
-    content: Schema.Union(Schema.String, Schema.Object)
+    content: Schema.Union([Schema.String, Schema.ObjectKeyword])
   }).pipe(Schema.Array, optional)
-}).annotations({ identifier: 'OutputDirConfig' });
+}).annotate({ identifier: 'OutputDirConfig' });
 
-const ApexTestQueueItemStatusSchema = Schema.Literal(
+const CoverageLinesSchema = Schema.Struct({
+  coveredLines: NumberArray,
+  uncoveredLines: NumberArray
+});
+
+const ApexCodeCoverageRecordSchema = Schema.Struct({
+  ApexClassOrTrigger: Schema.Struct({ Id: Schema.String, Name: Schema.String }),
+  ApexTestClassId: Schema.String,
+  TestMethodName: Schema.String,
+  NumLinesCovered: Schema.Finite,
+  NumLinesUncovered: Schema.Finite,
+  Coverage: optional(CoverageLinesSchema)
+}).annotate({ identifier: 'ApexCodeCoverageRecord' });
+
+const ApexCodeCoverageSchema = Schema.Struct({
+  done: Schema.Boolean,
+  totalSize: Schema.Finite,
+  records: Schema.Array(ApexCodeCoverageRecordSchema)
+}).annotate({ identifier: 'ApexCodeCoverage' });
+
+const ApexCodeCoverageAggregateRecordSchema = Schema.Struct({
+  ApexClassOrTrigger: Schema.Struct({ Id: Schema.String, Name: Schema.String }),
+  NumLinesCovered: Schema.Finite,
+  NumLinesUncovered: Schema.Finite,
+  Coverage: CoverageLinesSchema
+}).annotate({ identifier: 'ApexCodeCoverageAggregateRecord' });
+
+const ApexCodeCoverageAggregateSchema = Schema.Struct({
+  done: Schema.Boolean,
+  totalSize: Schema.Finite,
+  records: Schema.Array(ApexCodeCoverageAggregateRecordSchema)
+}).annotate({ identifier: 'ApexCodeCoverageAggregate' });
+
+const PerClassCoverageSchema = Schema.Struct({
+  apexClassOrTriggerName: Schema.String,
+  apexClassOrTriggerId: Schema.String,
+  apexTestClassId: Schema.String,
+  apexTestMethodName: Schema.String,
+  numLinesCovered: Schema.Finite,
+  numLinesUncovered: Schema.Finite,
+  percentage: Schema.String,
+  coverage: optional(CoverageLinesSchema)
+}).annotate({ identifier: 'PerClassCoverage' });
+
+const ApexTestResultOutcomeSchema = Schema.Literals(['Pass', 'Fail', 'CompileFail', 'Skip']).annotate({
+  identifier: 'ApexTestResultOutcome'
+});
+
+const ApexTestRunResultStatusSchema = Schema.Literals([
+  'Queued',
+  'Processing',
+  'Aborted',
+  'Passed',
+  'Failed',
+  'Completed',
+  'Skipped'
+]).annotate({ identifier: 'ApexTestRunResultStatus' });
+
+const ApexTestQueueItemStatusSchema = Schema.Literals([
   'Holding',
   'Queued',
   'Preparing',
@@ -172,9 +246,108 @@ const ApexTestQueueItemStatusSchema = Schema.Literal(
   'Aborted',
   'Completed',
   'Failed'
-).annotations({ identifier: 'ApexTestQueueItemStatus' });
+]).annotate({ identifier: 'ApexTestQueueItemStatus' });
 
-const TestRunIdResultSchema = Schema.Struct({ testRunId: Schema.String }).annotations({
+const ApexTestResultClassSchema = Schema.Struct({
+  id: optional(Schema.String),
+  name: Schema.String,
+  namespacePrefix: Schema.String.pipe(Schema.NullOr, optional),
+  fullName: Schema.String
+});
+const ApexTestSetupClassSchema = Schema.Struct({
+  id: optional(Schema.String),
+  name: Schema.String,
+  namespacePrefix: optional(Schema.String),
+  fullName: Schema.String
+});
+
+const ApexTestResultDataSchema = Schema.Struct({
+  id: optional(Schema.String),
+  queueItemId: optional(Schema.String),
+  stackTrace: optional(Schema.NullOr(Schema.String)),
+  message: optional(Schema.NullOr(Schema.String)),
+  asyncApexJobId: optional(Schema.String),
+  methodName: Schema.String,
+  outcome: ApexTestResultOutcomeSchema,
+  apexLogId: optional(Schema.NullOr(Schema.String)),
+  apexClass: ApexTestResultClassSchema,
+  runTime: Schema.Finite,
+  testTimestamp: optional(Schema.String),
+  fullName: Schema.String,
+  perClassCoverage: PerClassCoverageSchema.pipe(Schema.Array, optional),
+  diagnostic: optional(ApexDiagnosticSchema),
+  category: optional(Schema.Literals(['Apex', 'Flow']))
+}).annotate({ identifier: 'ApexTestResultData' });
+
+const ApexTestResultDataRawSchema = Schema.Struct({
+  ...ApexTestResultDataSchema.fields,
+  isTestSetup: optional(Schema.Boolean)
+}).annotate({ identifier: 'ApexTestResultDataRaw' });
+
+const ApexTestSetupDataSchema = Schema.Struct({
+  id: optional(Schema.String),
+  stackTrace: optional(Schema.String),
+  message: optional(Schema.String),
+  asyncApexJobId: optional(Schema.String),
+  methodName: Schema.String,
+  apexLogId: optional(Schema.String),
+  apexClass: ApexTestSetupClassSchema,
+  testSetupTime: Schema.Finite,
+  testTimestamp: optional(Schema.String),
+  fullName: Schema.String,
+  diagnostic: optional(ApexDiagnosticSchema)
+}).annotate({ identifier: 'ApexTestSetupData' });
+
+const CodeCoverageResultSchema = Schema.Struct({
+  apexId: Schema.String,
+  name: Schema.String,
+  type: Schema.Literals(['ApexClass', 'ApexTrigger']),
+  numLinesCovered: Schema.Finite,
+  numLinesUncovered: Schema.Finite,
+  percentage: Schema.String,
+  coveredLines: NumberArray,
+  uncoveredLines: NumberArray
+}).annotate({ identifier: 'CodeCoverageResult' });
+
+const TestResultSummarySchema = Schema.Struct({
+  failRate: Schema.String,
+  testsRan: Schema.Finite,
+  orgId: Schema.String,
+  outcome: ApexTestRunResultStatusSchema,
+  passing: Schema.Finite,
+  failing: Schema.Finite,
+  skipped: Schema.Finite,
+  passRate: Schema.String,
+  skipRate: Schema.String,
+  testStartTime: Schema.String,
+  testExecutionTimeInMs: Schema.Finite,
+  testTotalTimeInMs: Schema.Finite,
+  testSetupTimeInMs: optional(Schema.Finite),
+  commandTimeInMs: Schema.Finite,
+  hostname: Schema.String,
+  username: optional(Schema.String),
+  testRunId: optional(Schema.String),
+  userId: optional(Schema.String),
+  testRunCoverage: optional(Schema.String),
+  orgWideCoverage: optional(Schema.String),
+  totalLines: optional(Schema.Finite),
+  coveredLines: optional(Schema.Finite)
+});
+
+const TestResultRawSchema = Schema.Struct({
+  summary: TestResultSummarySchema,
+  tests: Schema.Array(ApexTestResultDataRawSchema),
+  codecoverage: CodeCoverageResultSchema.pipe(Schema.Array, optional)
+}).annotate({ identifier: 'TestResultRaw' });
+
+const TestResultSchema = Schema.Struct({
+  summary: TestResultSummarySchema,
+  tests: Schema.Array(ApexTestResultDataSchema),
+  setup: ApexTestSetupDataSchema.pipe(Schema.Array, optional),
+  codecoverage: CodeCoverageResultSchema.pipe(Schema.Array, optional)
+}).annotate({ identifier: 'TestResult' });
+
+const TestRunIdResultSchema = Schema.Struct({ testRunId: Schema.String }).annotate({
   identifier: 'TestRunIdResult'
 });
 
@@ -183,18 +356,18 @@ const ApexTestQueueItemRecordSchema = Schema.Struct({
   Status: ApexTestQueueItemStatusSchema,
   ApexClassId: Schema.NullOr(Schema.String),
   TestRunResultId: Schema.String
-}).annotations({ identifier: 'ApexTestQueueItemRecord' });
+}).annotate({ identifier: 'ApexTestQueueItemRecord' });
 
 const ApexTestQueueItemSchema = Schema.Struct({
   done: Schema.Boolean,
-  totalSize: Schema.Number,
+  totalSize: Schema.Finite,
   records: Schema.Array(ApexTestQueueItemRecordSchema)
-}).annotations({ identifier: 'ApexTestQueueItem' });
+}).annotate({ identifier: 'ApexTestQueueItem' });
 
-const ApexTestProgressValueSchema = Schema.Union(
+const ApexTestProgressValueSchema = Schema.Union([
   Schema.Struct({
     type: Schema.Literal('StreamingClientProgress'),
-    value: Schema.Literal('streamingTransportUp', 'streamingTransportDown'),
+    value: Schema.Literals(['streamingTransportUp', 'streamingTransportDown']),
     message: Schema.String
   }),
   Schema.Struct({
@@ -208,37 +381,31 @@ const ApexTestProgressValueSchema = Schema.Union(
     value: Schema.Literal('pollingProcessingTestRun'),
     testRunId: Schema.String,
     message: Schema.String,
-    classesCompleted: Schema.Number,
-    classesEnqueued: Schema.Number
+    classesCompleted: Schema.Finite,
+    classesEnqueued: Schema.Finite
   }),
   Schema.Struct({ type: Schema.Literal('TestQueueProgress'), value: ApexTestQueueItemSchema }),
   Schema.Struct({
     type: Schema.Literal('FormatTestResultProgress'),
-    value: Schema.Literal('retrievingTestRunSummary', 'queryingForAggregateCodeCoverage'),
+    value: Schema.Literals(['retrievingTestRunSummary', 'queryingForAggregateCodeCoverage']),
     message: Schema.String
   }),
   Schema.Struct({
     type: Schema.Literal('AbortTestRunProgress'),
-    value: Schema.Literal('abortingTestRun', 'abortingTestRunRequested'),
+    value: Schema.Literals(['abortingTestRun', 'abortingTestRunRequested']),
     message: Schema.String,
     testRunId: Schema.String
   })
-).annotations({ identifier: 'ApexTestProgressValue' });
+]).annotate({ identifier: 'ApexTestProgressValue' });
 
-const PublicApiSchema = Schema.Union(
-  AggregateCodeCoverageResultSchema,
+const PublicApiSchema = Schema.Union([
   ApexCodeCoverageSchema,
   ApexCodeCoverageAggregateSchema,
   ApexCodeCoverageAggregateRecordSchema,
   ApexCodeCoverageRecordSchema,
-  ApexOrgWideCoverageSchema,
   ApexDiagnosticSchema,
   ApexExecuteOptionsSchema,
   ApexLogGetOptionsSchema,
-  ApexLogListItem,
-  ApexLogQueryError,
-  ApexLogBodyFetchError,
-  ListLogsOptionsSchema,
   ApexTestProgressValueSchema,
   ApexTestQueueItemSchema,
   ApexTestQueueItemRecordSchema,
@@ -248,22 +415,42 @@ const PublicApiSchema = Schema.Union(
   ApexTestResultOutcomeSchema,
   ApexTestRunResultStatusSchema,
   ApexTestSetupDataSchema,
-  ApexCompileError,
-  ApexOperationError,
-  ApexResponseDecodeError,
-  ApexRuntimeError,
+  Schema.Struct({
+    ...ApexCompileError.fields,
+    line: Schema.Finite,
+    column: Schema.Finite,
+    logBody: optional(Schema.String)
+  }).annotate({
+    identifier: 'ApexCompileError'
+  }),
+  Schema.Struct({ ...ApexOperationError.fields, cause: optional(Schema.String) }).annotate({
+    identifier: 'ApexOperationError'
+  }),
+  Schema.Struct({ ...ApexResponseDecodeError.fields, cause: optional(Schema.String) }).annotate({
+    identifier: 'ApexResponseDecodeError'
+  }),
+  Schema.Struct({
+    ...ApexRuntimeError.fields,
+    line: Schema.Finite,
+    column: Schema.Finite,
+    logBody: optional(Schema.String)
+  }).annotate({
+    identifier: 'ApexRuntimeError'
+  }),
   AsyncTestArrayConfigurationSchema,
   AsyncTestConfigurationSchema,
-  AsyncTestOptionsSchema,
-  AsyncTestProgressSchema,
-  AsyncTestResultSchema,
-  AsyncTestRunEventSchema,
+  BuildSyncPayloadOptionsSchema,
   CodeCoverageResultSchema,
   CommonOptionsSchema,
-  BuildSyncPayloadOptionsSchema,
-  BuildAsyncPayloadOptionsSchema,
   ExecuteAnonymousOptionsSchema,
-  ExecuteAnonymousOutcomeSchema,
+  Schema.Struct({
+    ...ExecuteAnonymousOutcomeSchema.fields,
+    line: Schema.Finite,
+    column: Schema.Finite,
+    logBody: optional(Schema.String)
+  }).annotate({
+    identifier: 'ExecuteAnonymousOutcome'
+  }),
   ExecuteAnonymousResponseSchema,
   LogLevelSchema,
   LogRecordSchema,
@@ -272,16 +459,12 @@ const PublicApiSchema = Schema.Union(
   PerClassCoverageSchema,
   ResultFormatSchema,
   SyncTestConfigurationSchema,
-  SyncTestResultSchema,
   TestItemSchema,
   TestLevelSchema,
   TestResultSchema,
   TestResultRawSchema,
-  TestRunIdResultSchema,
-  ApexTestSuiteId,
-  TestSuiteSchema,
-  TestSuiteMembershipSchema
-).annotations({
+  TestRunIdResultSchema
+]).annotate({
   title: '@salesforce/apex-node public JSON API',
   description: 'JSON-representable values accepted or returned by the supported @salesforce/apex-node API.'
 });
@@ -300,9 +483,9 @@ type Equal<Left, Right> =
       ? true
       : false
     : false;
-type Matches<Contract, Definition extends Schema.Schema.Any> = Equal<
+type Matches<Contract, Definition extends Schema.Constraint> = Equal<
   JsonContract<Contract>,
-  JsonContract<Schema.Schema.Type<Definition>>
+  JsonContract<Definition['Type']>
 >;
 type SerializableLogRecord = Omit<LogRecord, 'LogUser'> & {
   LogUser: { attributes: Record<string, unknown>; Name: string };
@@ -328,6 +511,7 @@ type PublicContractChecks = {
   ApexTestResultOutcome: Matches<ApexTestResultOutcome, typeof ApexTestResultOutcomeSchema>;
   ApexTestRunResultStatus: Matches<ApexTestRunResultStatus, typeof ApexTestRunResultStatusSchema>;
   ApexTestSetupData: Matches<ApexTestSetupData, typeof ApexTestSetupDataSchema>;
+  BuildSyncPayloadOptions: Matches<BuildSyncPayloadOptions, typeof BuildSyncPayloadOptionsSchema>;
   AsyncTestArrayConfiguration: Matches<AsyncTestArrayConfiguration, typeof AsyncTestArrayConfigurationSchema>;
   AsyncTestConfiguration: Matches<AsyncTestConfiguration, typeof AsyncTestConfigurationSchema>;
   CodeCoverageResult: Matches<CodeCoverageResult, typeof CodeCoverageResultSchema>;
@@ -356,10 +540,19 @@ void publicContractChecks;
 const schemaPath = join(__dirname, '..', 'schemas', 'public-api.schema.json');
 
 const main = async (): Promise<void> => {
-  const generatedSchema = await Prettier.format(JSON.stringify(JSONSchema.make(PublicApiSchema)), {
-    ...(await Prettier.resolveConfig(schemaPath)),
-    filepath: schemaPath
-  });
+  const document = Schema.toJsonSchemaDocument(PublicApiSchema, { onExcessProperty: 'error' });
+  // Keep the existing Draft-07 envelope and $defs reference paths for downstream validators.
+  const generatedSchema = await Prettier.format(
+    JSON.stringify({
+      $schema: 'http://json-schema.org/draft-07/schema#',
+      $defs: document.definitions,
+      ...document.schema
+    }),
+    {
+      ...(await Prettier.resolveConfig(schemaPath)),
+      filepath: schemaPath
+    }
+  );
 
   if (process.argv.includes('--check')) {
     const currentSchema = await readFile(schemaPath, 'utf-8').catch(() => '');

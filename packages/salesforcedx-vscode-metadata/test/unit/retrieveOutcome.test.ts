@@ -13,25 +13,26 @@ import {
   type RetrieveResult
 } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
-import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
-import { isSDRFailure, toRequestStatus } from 'salesforcedx-vscode-services/src/core/sdrGuards';
+import {
+  isSDRFailure,
+  toRequestStatus,
+  ComponentSetService,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 import { retrieveHasErrors } from '../../src/shared/retrieve/retrieveOutcome';
 
-const mockExtensionProvider: ExtensionProviderService = {
+const mockExtensionProvider: ExtensionProviderService['Service'] = {
   getServicesApi: Effect.succeed({
-    services: {
-      ComponentSetService: Effect.succeed({ isSDRFailure, toRequestStatus })
-    }
-  } as unknown as SalesforceVSCodeServicesApi)
+    v2: { services: { ComponentSetService } }
+  } as unknown as SalesforceVSCodeServicesApiV2)
 };
 
 const run = <A>(effect: Effect.Effect<A, unknown, unknown>) =>
   Effect.runPromise(
-    effect.pipe(Effect.provideService(ExtensionProviderService, mockExtensionProvider)) as Effect.Effect<
-      A,
-      never,
-      never
-    >
+    effect.pipe(
+      Effect.provideService(ExtensionProviderService, mockExtensionProvider),
+      Effect.provideService(ComponentSetService, { isSDRFailure, toRequestStatus } as ComponentSetService['Service'])
+    ) as Effect.Effect<A, never, never>
   );
 
 const makeResult = (partial: {

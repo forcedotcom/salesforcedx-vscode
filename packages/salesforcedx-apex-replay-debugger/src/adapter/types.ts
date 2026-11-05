@@ -13,7 +13,7 @@ export type TraceCategory = 'all' | 'protocol' | 'logfile' | 'launch' | 'breakpo
 export type Step = 'Over' | 'In' | 'Out' | 'Run';
 export type ScopeType = 'local' | 'static' | 'global';
 
-export const SourceUriMappingSchema = Schema.Record({ key: Schema.String, value: Schema.String });
+export const SourceUriMappingSchema = Schema.Record(Schema.String, Schema.String);
 
 /** Overlay-result fetch outcome for a single heap dump, resolved host-side and passed to the adapter. */
 export type HeapDumpResult = { heapDumpId: string } & (

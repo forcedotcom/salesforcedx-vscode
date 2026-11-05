@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.11.1",
+  "version": "68.9.5",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -29,12 +29,13 @@
   ],
   "dependencies": {
     "@salesforce/effect-ext-utils": "workspace:*",
-    "effect": "^3.21.2",
+    "@salesforce/templates": "^66.19.0",
+    "effect": "4.0.6",
     "@salesforce/vscode-i18n": "workspace:*",
-    "vscode-uri": "^3.1.0"
+    "vscode-uri": "^3.1.0",
+    "@salesforce/vscode-services": "*"
   },
   "devDependencies": {
-    "@salesforce/templates": "^66.19.0",
     "@salesforce/source-deploy-retrieve": "^13.5.0",
     "@salesforce/source-tracking": "^8.1.7",
     "@salesforce/types": "^1.8.0",
@@ -104,7 +105,6 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
-        "../../scripts/bundling/process-polyfill.js",
         "out/**",
         "package.json"
       ],
@@ -123,7 +123,6 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
-        "../../scripts/bundling/process-polyfill.js",
         "out/**",
         "package.json"
       ],

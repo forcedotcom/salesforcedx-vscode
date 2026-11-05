@@ -6,12 +6,12 @@
  */
 import type { AttributeValue, Attributes } from '@opentelemetry/api';
 import { NoopSpanProcessor, type Span } from '@opentelemetry/sdk-trace-base';
-import { isNotUndefined, isNullable, isString, isUndefined } from 'effect/Predicate';
+import { isNotUndefined, isNullish, isString, isUndefined } from 'effect/Predicate';
 import * as Rec from 'effect/Record';
 import { redactSensitiveData } from './redactSensitiveData';
 
 const isStringArray = (value: AttributeValue): value is (string | null | undefined)[] =>
-  Array.isArray(value) && value.every(item => isNullable(item) || isString(item));
+  Array.isArray(value) && value.every(item => isNullish(item) || isString(item));
 
 const redactAttributeValue = (value: AttributeValue): AttributeValue => {
   if (isString(value)) {

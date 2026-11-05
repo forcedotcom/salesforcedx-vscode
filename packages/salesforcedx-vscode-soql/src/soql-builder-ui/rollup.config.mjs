@@ -102,7 +102,7 @@ export default {
           find: '@salesforce/vscode-services',
           replacement: path.resolve(
             __dirname,
-            '../../../salesforcedx-vscode-services/src/core/schemas/sObject.ts'
+            '../../../salesforcedx-vscode-services-types/v2/sObject.ts'
           )
         },
         // Non-component module: messages catalog (path ends with messages/i18n.ts for eslint-local-rules)

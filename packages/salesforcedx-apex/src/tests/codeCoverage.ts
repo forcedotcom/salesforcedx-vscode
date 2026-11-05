@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { AggregateCodeCoverageResult, PerClassCoverage } from '../effect/coverageSchemas';
+import type { PerClassCoverage } from './apiTypes';
+import type { AggregateCodeCoverageResult } from '../effect/coverageSchemas';
 import type { ApexOperationError, ApexResponseDecodeError } from '../effect/schema/errors';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
-import * as Either from 'effect/Either';
+import * as Result from 'effect/Result';
 import { getAggregateCodeCoverage, getOrgWideCoverage, getPerClassCodeCoverage } from '../effect/codeCoverage';
 import { HeapMonitor } from '../utils/heapMonitor';
 
@@ -19,10 +20,10 @@ const runCoverage = async <A>(
 ): Promise<A> => {
   HeapMonitor.getInstance().checkHeapSize(name);
   try {
-    const result = await operation.pipe(Effect.either, Effect.runPromise);
+    const result = await operation.pipe(Effect.result, Effect.runPromise);
     // Preserve plain Promise rejection messages rather than exposing a FiberFailure prefix to CLI callers.
-    if (Either.isLeft(result)) throw new Error(result.left.message);
-    return result.right;
+    if (Result.isFailure(result)) throw new Error(result.failure.message);
+    return result.success;
   } finally {
     HeapMonitor.getInstance().checkHeapSize(name);
   }

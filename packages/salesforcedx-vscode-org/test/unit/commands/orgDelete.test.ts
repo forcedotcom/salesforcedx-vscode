@@ -13,6 +13,14 @@ import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import {
+  ChannelService,
+  NotificationModeService,
+  PromptService,
+  TargetOrgRef,
+  TerminalService,
+  type DefaultOrgInfo
+} from '@salesforce/vscode-services/v2';
 import { orgDeleteDefaultCommand, orgDeleteUsernameCommand } from '../../../src/commands/orgDelete';
 import type { OrgToDelete } from '../../../src/parameterGatherers/selectDeletableOrg';
 
@@ -40,35 +48,59 @@ const buildServices = (
   simpleExec: VitestMock,
   onAppend: VitestMock = vi.fn(() => Effect.void)
 ) => ({
-  PromptService: Effect.succeed({
+  prompt: {
     confirmOrThrow: (_params: { message: string; confirmLabel: string }) =>
       confirm ? Effect.void : Effect.fail(userCancellationError),
     withCancellableProgress:
       <A, E>(_message: string, _location?: unknown) =>
       (effect: Effect.Effect<A, E>) =>
         effect
-  }),
-  TerminalService: Effect.succeed({ simpleExec }),
-  ChannelService: Effect.succeed({
+  },
+  terminal: { simpleExec },
+  channel: {
     appendToChannel: (msg: string) => onAppend(msg),
     showChannel: Effect.void
-  }),
-  NotificationModeService: Effect.succeed({
+  },
+  notificationMode: {
     getProgressLocation: () => Effect.succeed(1),
     showSuccessNotification: () => Effect.void
-  }),
-  TargetOrgRef: () => SubscriptionRef.make(orgInfo),
-  ClearDefaultOrgRef: mockClearDefaultOrgRef
+  },
+  targetOrgRef: Effect.runSync(
+    SubscriptionRef.make<DefaultOrgInfo>({
+      orgId: orgInfo.orgId as DefaultOrgInfo['orgId'],
+      username: orgInfo.username,
+      isScratch: orgInfo.isScratch,
+      isSandbox: orgInfo.isSandbox
+    })
+  )
 });
 
-const run = (orgInfo: OrgSnapshot, confirm: boolean, simpleExec: VitestMock, onAppend?: VitestMock) =>
-  Effect.runPromiseExit(
+const run = (orgInfo: OrgSnapshot, confirm: boolean, simpleExec: VitestMock, onAppend?: VitestMock) => {
+  const services = buildServices(orgInfo, confirm, simpleExec, onAppend);
+  return Effect.runPromiseExit(
     orgDeleteDefaultCommand().pipe(
       Effect.provideService(ExtensionProviderService, {
-        getServicesApi: Effect.succeed({ services: buildServices(orgInfo, confirm, simpleExec, onAppend) })
-      } as unknown as ExtensionProviderService)
+        getServicesApi: Effect.succeed({
+          v2: {
+            services: {
+              PromptService,
+              TerminalService,
+              ChannelService,
+              NotificationModeService,
+              TargetOrgRef,
+              ClearDefaultOrgRef: () => mockClearDefaultOrgRef()
+            }
+          }
+        })
+      } as unknown as ExtensionProviderService['Service']),
+      Effect.provideService(PromptService, services.prompt as never),
+      Effect.provideService(TerminalService, services.terminal as never),
+      Effect.provideService(ChannelService, services.channel as never),
+      Effect.provideService(NotificationModeService, services.notificationMode as never),
+      Effect.provideService(TargetOrgRef, services.targetOrgRef)
     ) as Effect.Effect<void, unknown, never>
   );
+};
 
 describe('orgDeleteDefaultCommand', () => {
   beforeEach(() => {
@@ -172,36 +204,44 @@ const appendToChannel = vi.fn<(_username: string) => Effect.Effect<void>>();
 // typed UserCancellationError. Modeling it this way lets the cancellation test interrupt mid-loop the same way
 // clicking Cancel does, instead of faking a typed failure out of simpleExec.
 const buildUsernameServices = (simpleExec: VitestMock) => ({
-  PromptService: Effect.succeed({
+  prompt: {
     withCancellableProgress:
       <A, E>(_message: string, _location?: unknown) =>
       (effect: Effect.Effect<A, E>) =>
         effect.pipe(
-          Effect.catchAllCause(cause =>
-            Cause.isInterruptedOnly(cause)
+          Effect.catchCause(cause =>
+            Cause.hasInterruptsOnly(cause)
               ? Effect.fail<UserCancellationError | E>(
                   new UserCancellationError({ message: 'User cancelled progress' })
                 )
               : Effect.failCause<UserCancellationError | E>(cause)
           )
         )
-  }),
-  TerminalService: Effect.succeed({ simpleExec }),
-  ChannelService: Effect.succeed({ appendToChannel, showChannel: Effect.void }),
-  NotificationModeService: Effect.succeed({
+  },
+  terminal: { simpleExec },
+  channel: { appendToChannel, showChannel: Effect.void },
+  notificationMode: {
     getProgressLocation: () => Effect.succeed(1),
     showSuccessNotification: () => Effect.void
-  })
+  }
 });
 
-const runUsername = (simpleExec: VitestMock) =>
-  Effect.runPromiseExit(
+const runUsername = (simpleExec: VitestMock) => {
+  const services = buildUsernameServices(simpleExec);
+  return Effect.runPromiseExit(
     orgDeleteUsernameCommand().pipe(
       Effect.provideService(ExtensionProviderService, {
-        getServicesApi: Effect.succeed({ services: buildUsernameServices(simpleExec) })
-      } as unknown as ExtensionProviderService)
+        getServicesApi: Effect.succeed({
+          v2: { services: { PromptService, TerminalService, ChannelService, NotificationModeService } }
+        })
+      } as unknown as ExtensionProviderService['Service']),
+      Effect.provideService(PromptService, services.prompt as never),
+      Effect.provideService(TerminalService, services.terminal as never),
+      Effect.provideService(ChannelService, services.channel as never),
+      Effect.provideService(NotificationModeService, services.notificationMode as never)
     ) as Effect.Effect<void, unknown, never>
   );
+};
 
 const scratchOrg: OrgToDelete = { username: 'a@scratch.org', orgType: 'scratch' };
 const sandboxOrg: OrgToDelete = { username: 'b@sandbox.org', orgType: 'sandbox' };

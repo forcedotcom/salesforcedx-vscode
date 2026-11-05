@@ -7,8 +7,8 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { DeployResult, RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import type { HashableUri } from '@salesforce/vscode-services/v2';
 import * as Arr from 'effect/Array';
-import * as Chunk from 'effect/Chunk';
 import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
@@ -18,7 +18,6 @@ import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { HashableUri } from 'salesforcedx-vscode-services';
 import { type URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 import { MissingDefaultOrgError } from '../shared/diff/diffErrors';
@@ -37,15 +36,15 @@ const StoredComponentSchema = Schema.Struct({
  * and when the operation happened. Stored under .sfdx/fileResponses/{orgId}/. */
 const StoredResultSchema = Schema.Struct({
   /** the timestamp from the deploy/retrieve operation */
-  timestamp: Schema.DateTimeUtc,
-  operation: Schema.Literal('deploy', 'retrieve'),
+  timestamp: Schema.DateTimeUtcFromString,
+  operation: Schema.Literals(['deploy', 'retrieve']),
   components: Schema.Array(StoredComponentSchema)
 });
 
 type StoredComponent = Schema.Schema.Type<typeof StoredComponentSchema>;
 
 /** Codec that round-trips StoredResult through JSON string ↔ typed object. */
-const StoredResultJsonSchema = Schema.parseJson(StoredResultSchema);
+const StoredResultJsonSchema = Schema.fromJsonString(StoredResultSchema);
 
 /** Intermediate row used while building the timestamp index. Flattens each component with its
  * resolved lastModifiedDate (server value when available, else file timestamp) and the parent
@@ -66,13 +65,10 @@ const toStoredComponent = (metadataType: string, fullName: string, lastModifiedD
 /** Resolve the per-org storage directory: {workspaceRoot}/.sfdx/fileResponses/{orgId}/ */
 const getFileResponsesDirUri = Effect.fn('resultStorage.getFileResponsesDirUri')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [workspaceInfo, defaultOrgRef] = yield* Effect.all(
-    [api.services.WorkspaceService.getWorkspaceInfoOrThrow(), Effect.succeed(api.services.TargetOrgRef)],
-    { concurrency: 'unbounded' }
-  );
-  const orgId = yield* defaultOrgRef().pipe(
-    Effect.flatMap(SubscriptionRef.get),
-    Effect.map(orgInfo => orgInfo.orgId),
+  const workspaceInfo = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
+  const targetOrgRef = yield* api.v2.services.TargetOrgRef;
+  const orgInfo = yield* SubscriptionRef.get(targetOrgRef);
+  const orgId = yield* Effect.succeed(orgInfo.orgId).pipe(
     Effect.filterOrFail(
       isNotUndefined,
       () => new MissingDefaultOrgError({ message: nls.localize('missing_default_org') })
@@ -89,11 +85,13 @@ const storeResult = Effect.fn('resultStorage.storeResult')(function* (
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const dirUri = yield* getFileResponsesDirUri();
-  yield* api.services.FsService.createDirectory(dirUri);
-  const json = yield* Schema.encode(StoredResultJsonSchema)({ timestamp, operation, components });
-  yield* api.services.FsService.safeWriteFile(
-    Utils.joinPath(dirUri, `${operation}-${DateTime.formatIso(timestamp).replaceAll(/[:.]/g, '-')}.json`),
-    json
+  yield* api.v2.services.FsService.use(service => service.createDirectory(dirUri));
+  const json = yield* Schema.encodeEffect(StoredResultJsonSchema)({ timestamp, operation, components });
+  yield* api.v2.services.FsService.use(service =>
+    service.safeWriteFile(
+      Utils.joinPath(dirUri, `${operation}-${DateTime.formatIso(timestamp).replaceAll(/[:.]/g, '-')}.json`),
+      json
+    )
   );
 });
 
@@ -101,7 +99,8 @@ const isSucceeded = (status: string | undefined) => status === 'Succeeded' || st
 
 const orgTracksSource = Effect.fn('resultStorage.orgTracksSource')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+  const targetOrgRef = yield* api.v2.services.TargetOrgRef;
+  const orgInfo = yield* SubscriptionRef.get(targetOrgRef);
   return orgInfo.tracksSource === true;
 });
 
@@ -113,8 +112,8 @@ export const maybeStoreDeployResult = Effect.fn('resultStorage.maybeStoreDeployR
   if (!isSucceeded(result.response?.status) || (yield* orgTracksSource())) return;
 
   const timestamp = result.response?.completedDate
-    ? DateTime.unsafeMake(new Date(result.response.completedDate))
-    : DateTime.unsafeMake(new Date());
+    ? DateTime.fromDateUnsafe(new Date(result.response.completedDate))
+    : DateTime.fromDateUnsafe(new Date());
   const components = result
     .getFileResponses() // we don't have timestamps on fileResponse
     .map(fr => toStoredComponent(fr.type, fr.fullName, DateTime.formatIso(timestamp)));
@@ -128,7 +127,7 @@ export const maybeStoreRetrieveResult = Effect.fn('resultStorage.maybeStoreRetri
 ) {
   if (!isSucceeded(result.response?.status) || (yield* orgTracksSource())) return;
 
-  const timestamp = DateTime.unsafeMake(new Date());
+  const timestamp = DateTime.fromDateUnsafe(new Date());
   const components = getFileProperties(result).map(fp => toStoredComponent(fp.type, fp.fullName, fp.lastModifiedDate));
   yield* storeResult('retrieve', components, timestamp);
 });
@@ -140,7 +139,7 @@ export const buildTimestampIndexFromDir = Effect.fn('resultStorage.buildTimestam
   dirUri: URI
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fs = yield* api.services.FsService;
+  const fs = yield* api.v2.services.FsService;
 
   const exists = yield* fs.fileOrFolderExists(dirUri);
   if (!exists) return new Map<string, DateTime.Utc>();
@@ -161,7 +160,7 @@ export const buildTimestampIndexFromDir = Effect.fn('resultStorage.buildTimestam
         }))
       )
     ),
-    Stream.mapConcat(({ uri, stored }) =>
+    Stream.map(({ uri, stored }) =>
       Option.match(stored, {
         onNone: () => [],
         onSome: s =>
@@ -179,12 +178,13 @@ export const buildTimestampIndexFromDir = Effect.fn('resultStorage.buildTimestam
           )
       })
     ),
+    Stream.flattenIterable,
     Stream.runCollect,
-    Effect.map(chunk => Chunk.toReadonlyArray(chunk).toSorted(byFileTimestampDesc)),
+    Effect.map(rows => rows.toSorted(byFileTimestampDesc)),
     // Group by component key; first entry wins because rows are sorted newest-first.
     Effect.map(sortedArray => Arr.groupBy(sortedArray, (x: TimestampRow) => x.key)),
     // Delete stale files in the background — best-effort, must not block the caller.
-    Effect.tap(bk => Effect.forkDaemon(Effect.forEach(getStaleUris(bk, allJsonUris), uri => fs.safeDelete(uri.uri))))
+    Effect.tap(bk => Effect.forkChild(Effect.forEach(getStaleUris(bk, allJsonUris), uri => fs.safeDelete(uri.uri))))
   );
 
   return new Map(Object.entries(byKey).map(([key, rows]) => [key, rows[0].lastModifiedDate]));
@@ -197,6 +197,6 @@ export const buildTimestampIndex = Effect.fn('resultStorage.buildTimestampIndex'
   return yield* getFileResponsesDirUri().pipe(Effect.flatMap(buildTimestampIndexFromDir));
 });
 
-const byFileTimestampDesc = Order.reverse(
-  Order.mapInput(Order.number, (x: TimestampRow) => DateTime.toEpochMillis(x.fileTimestamp))
+const byFileTimestampDesc = Order.flip(
+  Order.mapInput(Order.Number, (x: TimestampRow) => DateTime.toEpochMillis(x.fileTimestamp))
 );

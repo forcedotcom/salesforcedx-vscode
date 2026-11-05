@@ -27,34 +27,22 @@ This extension provides services used by other Salesforce extensions and is not 
 
 ## Usage Example: Consuming Services from Other Extensions
 
-**Important**: Do not directly import from `salesforcedx-vscode-services`. Instead, access services through the extension API.
+**Important:** First-party extensions use `api.v2.services`. The unversioned `api.services` endpoint remains the external V3 compatibility API.
 
 ### Step 1: Create an Extension Provider
 
-Create a file `src/services/extensionProvider.ts` in your extension:
+Build the per-extension layer with `buildAllServicesLayer` from `@salesforce/effect-ext-utils`:
 
 ```ts
-import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
-import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
+import { buildAllServicesLayer } from '@salesforce/effect-ext-utils';
 
-export const ExtensionProviderServiceLive = Layer.succeed(
-  ExtensionProviderService,
-  { getServicesApi }
-);
+export let AllServicesLayer: ReturnType<typeof buildAllServicesLayer>;
+export const setAllServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) => {
+  AllServicesLayer = layer;
+};
 
-export const AllServicesLayer = Layer.unwrapEffect(
-  Effect.gen(function* () {
-    const extensionProvider = yield* ExtensionProviderService;
-    const api = yield* extensionProvider.getServicesApi;
-    return Layer.mergeAll(
-      ExtensionProviderServiceLive,
-      api.services.ConfigService.Default,
-      api.services.WorkspaceService.Default // Required dependency of ConfigService
-      // Add other services and their dependencies as needed
-    );
-  }).pipe(Effect.provide(ExtensionProviderServiceLive))
-);
+// In activate(context):
+setAllServicesLayer(buildAllServicesLayer(context, nls.localize('channel_name')));
 ```
 
 ### Step 2: Use Services in Your Effect Programs
@@ -66,8 +54,7 @@ import { getRuntime } from './services/runtime';
 
 const myProgram = Effect.gen(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const configService = yield* api.services.ConfigService;
-  const configAggregator = yield* configService.getConfigAggregator;
+  const configAggregator = yield* api.v2.services.ConfigService.use(service => service.getConfigAggregator());
   return configAggregator;
 });
 

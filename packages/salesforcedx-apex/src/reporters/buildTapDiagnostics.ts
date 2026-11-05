@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as os from 'node:os';
-import { type ApexTestResultData } from '../tests/types';
+import { type ApexTestResultData } from '../tests/apiTypes';
 /**
  * this regex is flagged as likely incorrect by Cursor, BUT there is a unit test that specs
  * expect(result[12].diagnostics).to.eql([
@@ -15,7 +15,7 @@ import { type ApexTestResultData } from '../tests/types';
     ]);
     so it has been left as is
  */
-const startsWithNewlineRegex = new RegExp(/^[/\r\n|\r|\n][\w]*/im);
+const startsWithNewlineRegex = new RegExp(/^[/\r\n|\r|\n][\w]*/gim);
 
 export const buildTapDiagnostics = (testResult: ApexTestResultData): string[] => {
   if (testResult.outcome === 'Pass') {

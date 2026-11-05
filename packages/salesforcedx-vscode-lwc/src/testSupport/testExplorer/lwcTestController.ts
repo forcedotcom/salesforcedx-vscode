@@ -38,7 +38,7 @@ const TEST_FILE_SUFFIX_RE = /\.test\.[jt]s$/;
 
 type ItemKind = 'file' | 'case';
 
-const byLabel = Order.mapInput(Order.string, (item: vscode.TestItem) => item.label);
+const byLabel = Order.mapInput(Order.String, (item: vscode.TestItem) => item.label);
 
 const getFileLabel = (testUri: URI): string => {
   const base = Utils.basename(testUri);
@@ -439,7 +439,7 @@ class LwcTestController {
   };
 
   private runAllAsDirectory = async (): Promise<TestDirectoryInfo | undefined> => {
-    const workspaceFolder = await getRuntime().runPromise(workspace.getTestWorkspaceFolder());
+    const workspaceFolder = await getRuntime().runPromise(workspace.getTestWorkspaceFolder(undefined));
     if (!workspaceFolder) {
       return undefined;
     }
@@ -891,7 +891,7 @@ const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(r
 
 const readJestResultsFile = Effect.fn('readJestResultsFile')(function* (filePath: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* api.services.FsService.readFile(filePath).pipe(
+  return yield* api.v2.services.FsService.use(service => service.readFile(filePath)).pipe(
     Effect.tapError(error => Effect.logDebug('Failed to read LWC test results JSON:', error))
   );
 });

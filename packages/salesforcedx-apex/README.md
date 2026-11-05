@@ -32,7 +32,7 @@ import * as Effect from 'effect/Effect';
 
 const executeWithServices = Effect.gen(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const connection = yield* api.services.ConnectionService.getConnection();
+  const connection = yield* api.v2.services.ConnectionService.use(service => service.getConnection());
   return yield* executeAnonymous(connection, { apexCode: 'System.debug(1);' });
 });
 ```
@@ -41,7 +41,9 @@ The services extension also keeps its `ExecuteAnonymousService` API for callers 
 
 ```ts
 const api = yield * (yield * ExtensionProviderService).getServicesApi;
-const { result, logBody, logId } = yield * api.services.ExecuteAnonymousService.executeAndRetrieveLog(code);
+const { result, logBody, logId } = yield* api.v2.services.ExecuteAnonymousService.use(service =>
+  service.executeAndRetrieveLog(code)
+);
 ```
 
 A consumer outside VS Code passes its own connection without depending on services:

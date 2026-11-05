@@ -7,6 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import { AliasService, ChannelService } from '@salesforce/vscode-services/v2';
 import { aliasListCommand } from '../../../src/commands/aliasList';
 
 describe('aliasListCommand', () => {
@@ -20,19 +21,20 @@ describe('aliasListCommand', () => {
     const appendToChannel = vi.fn<(_alias: string) => Effect.Effect<void>>(() => Effect.void);
     const show = vi.fn();
 
+    const aliasService = { getAllAliases } as unknown as AliasService['Service'];
+    const channelService = {
+      appendToChannel,
+      showChannel: Effect.sync(() => show())
+    } as unknown as ChannelService['Service'];
     await Effect.runPromise(
       aliasListCommand().pipe(
         Effect.provideService(ExtensionProviderService, {
           getServicesApi: Effect.succeed({
-            services: {
-              AliasService: { getAllAliases },
-              ChannelService: Effect.succeed({
-                appendToChannel,
-                showChannel: Effect.sync(() => show())
-              })
-            }
+            v2: { services: { AliasService, ChannelService } }
           })
-        } as unknown as ExtensionProviderService)
+        } as unknown as ExtensionProviderService['Service']),
+        Effect.provideService(AliasService, aliasService),
+        Effect.provideService(ChannelService, channelService)
       ) as Effect.Effect<void, unknown, never>
     );
 

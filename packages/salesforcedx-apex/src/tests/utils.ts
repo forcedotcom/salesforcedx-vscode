@@ -12,8 +12,9 @@ import * as Effect from 'effect/Effect';
 import { isUndefined } from 'effect/Predicate';
 import { queryNamespaces as queryNamespaceInfos } from '../effect/namespaces';
 import * as TestResults from '../effect/testResults';
+
 import { nls } from '../i18n';
-import { type ApexTestProgressReporter, type NamespaceInfo, type TestResultRaw } from './types';
+import { type ApexTestProgressReporter, type NamespaceInfo, type TestResultRaw } from './apiTypes';
 
 export const queryNamespaces = (connection: Connection): Promise<NamespaceInfo[]> =>
   queryNamespaceInfos(connection).pipe(Effect.runPromise);

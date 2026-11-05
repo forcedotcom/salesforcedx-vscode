@@ -6,11 +6,18 @@
  */
 
 import type { Mock as VitestMock } from 'vitest';
-import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { HeapDumpResult } from '@salesforce/salesforcedx-apex-replay-debugger';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Stream from 'effect/Stream';
+import {
+  QueryService,
+  type QueryOptions,
+  type QueryPage,
+  type QueryServiceResult,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 import { fetchHeapDumpOverlayResults } from '../../../src/services/heapDumpOverlayFetch';
 
 const heapDumpLine = (id: string) => `<TimeInfo>|HEAP_DUMP|[11]|${id}|ClassName1|ns1|11`;
@@ -33,24 +40,25 @@ const overlayRecord = (id: string) => ({
 
 /** Layer that hands the fetch a fake QueryService through the services-extension API. */
 const provideQuery = (query: VitestMock) =>
-  Layer.succeed(ExtensionProviderService, {
-    getServicesApi: Effect.succeed({
-      services: {
-        QueryService: Effect.succeed({
-          query: (options: { soql: string }) =>
-            Effect.tryPromise({
-              try: () => query(options.soql) as Promise<{ records: unknown[] }>,
-              catch: (error: unknown) => error
-            }).pipe(
-              Effect.map(result => ({
-                totalSize: result.records.length,
-                records: Stream.fromIterable(result.records)
-              }))
-            )
-        })
-      }
-    } as unknown as SalesforceVSCodeServicesApi)
-  });
+  Layer.mergeAll(
+    Layer.succeed(ExtensionProviderService, {
+      getServicesApi: Effect.succeed({ v2: { services: { QueryService } } } as unknown as SalesforceVSCodeServicesApiV2)
+    } as unknown as ExtensionProviderService['Service']),
+    Layer.succeed(QueryService, {
+      query: <A, E, R>(
+        options: QueryOptions,
+        decodePage: (input: unknown) => Effect.Effect<QueryPage<A>, E, R>
+      ): Effect.Effect<QueryServiceResult<A, E, R>, unknown, R> =>
+        Effect.tryPromise({
+          try: () => query(options.soql) as Promise<{ totalSize?: number; records: unknown[] }>,
+          catch: (error: unknown) => error
+        }).pipe(
+          Effect.map(page => ({ ...page, totalSize: page.totalSize ?? page.records.length })),
+          Effect.flatMap(decodePage),
+          Effect.map(page => ({ totalSize: page.totalSize, records: Stream.fromIterable(page.records ?? []) }))
+        )
+    } as unknown as QueryService['Service'])
+  );
 
 const run = (query: VitestMock, log: string) =>
   fetchHeapDumpOverlayResults(log).pipe(Effect.provide(provideQuery(query))) as Effect.Effect<

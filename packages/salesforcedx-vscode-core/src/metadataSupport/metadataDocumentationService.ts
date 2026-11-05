@@ -7,9 +7,9 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
 import { isError, isString } from 'effect/Predicate';
 import { toEntries } from 'effect/Record';
-import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
 import { XMLParser } from 'fast-xml-parser';
 import * as path from 'node:path';
@@ -50,26 +50,24 @@ const loadMetadataDocumentation = Effect.fn('MetadataDocumentationService.loadMe
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     // Path resolution: works for both development (out/) and production (dist/) builds
     // Find the extension root by looking for package.json
-    const { dir: extensionRoot } = yield* Effect.iterate(
-      { dir: __dirname, found: false },
-      {
-        while: ({ dir, found }) => !found && dir !== path.dirname(dir),
-        body: ({ dir }) =>
-          api.services.FsService.fileOrFolderExists(path.join(dir, 'package.json')).pipe(
-            Effect.map(exists => (exists ? { dir, found: true } : { dir: path.dirname(dir), found: false }))
-          )
-      }
-    );
+    let extensionRoot = __dirname;
+    let found = false;
+    while (!found && extensionRoot !== path.dirname(extensionRoot)) {
+      found = yield* api.v2.services.FsService.use(service =>
+        service.fileOrFolderExists(path.join(extensionRoot, 'package.json'))
+      );
+      if (!found) extensionRoot = path.dirname(extensionRoot);
+    }
 
     const xsdPath = path.join(extensionRoot, 'resources', 'salesforce_metadata_api_common.xsd');
     yield* Effect.log(`Loading XSD file from: ${xsdPath}`, { xsdPath });
 
-    if (!(yield* api.services.FsService.fileOrFolderExists(xsdPath))) {
+    if (!(yield* api.v2.services.FsService.use(service => service.fileOrFolderExists(xsdPath)))) {
       yield* Effect.logWarning('XSD file not found - no metadata documentation will be available');
       return;
     }
 
-    const schema = yield* api.services.FsService.readFile(xsdPath).pipe(
+    const schema = yield* api.v2.services.FsService.use(service => service.readFile(xsdPath)).pipe(
       Effect.flatMap(xsdContent =>
         Effect.try({
           try: () =>
@@ -153,14 +151,13 @@ export class MetadataDocumentationService {
       return;
     }
 
-    try {
-      await loadMetadataDocumentation(this.documentationMap, this.extractFieldsFromComplexType).pipe(
-        getRuntime().runPromise
-      );
+    const exit = await getRuntime().runPromise(
+      Effect.exit(loadMetadataDocumentation(this.documentationMap, this.extractFieldsFromComplexType))
+    );
+    if (Exit.isSuccess(exit)) {
       this.initialized = true;
-    } catch (error) {
-      if (Runtime.isFiberFailure(error) && Cause.isInterruptedOnly(error[Runtime.FiberFailureCauseId])) throw error;
-      console.error('Failed to initialize metadata documentation service:', error);
+    } else if (!Cause.hasInterruptsOnly(exit.cause)) {
+      console.error('Failed to initialize metadata documentation service:', Cause.squash(exit.cause));
     }
   }
 

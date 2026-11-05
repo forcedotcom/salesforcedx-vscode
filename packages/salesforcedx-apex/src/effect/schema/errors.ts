@@ -8,7 +8,7 @@
 import * as Schema from 'effect/Schema';
 
 const OperationErrorFields = {
-  operation: Schema.NonEmptyTrimmedString,
+  operation: Schema.NonEmptyString.check(Schema.isTrimmed()),
   message: Schema.String,
   cause: Schema.optional(Schema.String)
 };
@@ -24,27 +24,6 @@ export class ApexResponseDecodeError extends Schema.TaggedError<ApexResponseDeco
   'ApexResponseDecodeError',
   OperationErrorFields
 ) {}
-
-const AnonymousExecutionErrorFields = {
-  operation: Schema.NonEmptyTrimmedString,
-  message: Schema.String,
-  line: Schema.Number,
-  column: Schema.Number,
-  logBody: Schema.optional(Schema.String)
-};
-
-/** Anonymous Apex compiled unsuccessfully; diagnostics remain on the error. */
-export class ApexCompileError extends Schema.TaggedError<ApexCompileError>()('ApexCompileError', {
-  ...AnonymousExecutionErrorFields,
-  compileProblem: Schema.NullOr(Schema.String)
-}) {}
-
-/** Anonymous Apex compiled but failed during execution. */
-export class ApexRuntimeError extends Schema.TaggedError<ApexRuntimeError>()('ApexRuntimeError', {
-  ...AnonymousExecutionErrorFields,
-  exceptionMessage: Schema.NullOr(Schema.String),
-  exceptionStackTrace: Schema.NullOr(Schema.String)
-}) {}
 
 /** An execute-anonymous request failed with an invalid Salesforce session. */
 export class InvalidSessionError extends Schema.TaggedError<InvalidSessionError>()('InvalidSessionError', {

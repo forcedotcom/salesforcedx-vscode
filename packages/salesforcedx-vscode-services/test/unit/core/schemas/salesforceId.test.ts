@@ -6,7 +6,7 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { OrgId, SalesforceId } from '../../../../src/core/schemas/salesforceId';
+import { OrgId, SalesforceId } from '@salesforce/vscode-services/v2';
 
 describe('SalesforceId', () => {
   it.each(['001000000000000', '001000000000000AAA'])('accepts %p', value => {

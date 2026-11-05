@@ -9,6 +9,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
+import * as Semaphore from 'effect/Semaphore';
 import * as vscode from 'vscode';
 import { CORE_EXTENSION_ID } from '../constants';
 import { nls } from '../messages';
@@ -19,11 +20,11 @@ import { streamAndWriteSobjectArtifacts, writeSobjectArtifacts } from './sobject
 /** Command ID for cross-extension refresh completion notification */
 export const SOBJECT_REFRESH_COMPLETE_CMD = 'sf.internal.sobjectrefresh.complete';
 
-const refreshSemaphore = Effect.runSync(Effect.makeSemaphore(1));
+const refreshSemaphore = Semaphore.makeUnsafe(1);
 
 const gatherCategory = Effect.fn('gatherSObjectCategory')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   const options = [
     nls.localize('sobject_refresh_all'),
     nls.localize('sobject_refresh_custom'),
@@ -48,8 +49,8 @@ const executeRefresh = Effect.fn('executeRefresh')(function* (
   source: SObjectRefreshSource | undefined
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelService = yield* api.services.ChannelService;
-  const promptService = yield* api.services.PromptService;
+  const channelService = yield* api.v2.services.ChannelService;
+  const promptService = yield* api.v2.services.PromptService;
 
   yield* channelService.appendToChannel(`Starting ${nls.localize('sobjects_refresh')}`);
 
@@ -89,7 +90,7 @@ const executeRefresh = Effect.fn('executeRefresh')(function* (
           );
         }
         // token-based cancel returns cancelled=true without failing; treat it as a failed exit for completion.
-        if (cancelled) return yield* new api.services.UserCancellationError();
+        if (cancelled) return yield* new api.v2.services.UserCancellationError({ message: 'User cancelled' });
       })
     )
     // onExit fires on success, typed failure, defect, and interrupt — the single place both completion

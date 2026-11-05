@@ -8,11 +8,11 @@
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
-import { causeMessage } from './errors';
-import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
-import { createRecordResponseSchema, queryRecordsResponseSchema } from './schema/wire/records';
+import { causeMessage } from './errors.js';
+import { ApexOperationError, ApexResponseDecodeError } from './schema/errors.js';
+import { createRecordResponseSchema, queryRecordsResponseSchema } from './schema/wire/records.js';
 
-export const queryRecords = Effect.fn('Apex.queryRecords')(function* <A, I>({
+export const queryRecords = Effect.fn('Apex.queryRecords')(function* <A>({
   connection,
   operation,
   soql,
@@ -22,15 +22,15 @@ export const queryRecords = Effect.fn('Apex.queryRecords')(function* <A, I>({
   connection: Connection;
   operation: string;
   soql: string;
-  record: Schema.Schema<A, I>;
+  record: Schema.ConstraintDecoder<A, never>;
   tooling?: boolean;
 }) {
   return yield* Effect.tryPromise({
     try: () => Promise.resolve((tooling ? connection.tooling : connection).query(soql)),
     catch: cause => new ApexOperationError({ operation, message: causeMessage(cause), cause: causeMessage(cause) })
   }).pipe(
-    Effect.flatMap(Schema.decodeUnknown(queryRecordsResponseSchema(record))),
-    Effect.catchTag('ParseError', cause =>
+    Effect.flatMap(Schema.decodeUnknownEffect(queryRecordsResponseSchema(record))),
+    Effect.catchTag('SchemaError', cause =>
       Effect.fail(new ApexResponseDecodeError({ operation, message: 'Invalid query response', cause: cause.message }))
     ),
     Effect.map(result => result.records)
@@ -52,8 +52,8 @@ export const createRecord = Effect.fn('Apex.createRecord')(function* ({
     try: () => Promise.resolve(connection.tooling.create(type, fields)),
     catch: cause => new ApexOperationError({ operation, message: causeMessage(cause), cause: causeMessage(cause) })
   }).pipe(
-    Effect.flatMap(Schema.decodeUnknown(createRecordResponseSchema)),
-    Effect.catchTag('ParseError', cause =>
+    Effect.flatMap(Schema.decodeUnknownEffect(createRecordResponseSchema)),
+    Effect.catchTag('SchemaError', cause =>
       Effect.fail(new ApexResponseDecodeError({ operation, message: 'Invalid create response', cause: cause.message }))
     )
   );

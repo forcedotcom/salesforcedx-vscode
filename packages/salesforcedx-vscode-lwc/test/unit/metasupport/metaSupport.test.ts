@@ -6,9 +6,9 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ChannelService } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../../../src/messages';
@@ -22,9 +22,9 @@ describe('LWC XML extension support', () => {
         Effect.provide(
           Layer.mergeAll(
             Layer.succeed(ExtensionProviderService, {
-              getServicesApi: Effect.succeed({ services: { ChannelService } })
-            } as unknown as ExtensionProviderService),
-            Layer.succeed(ChannelService, { appendToChannel } as unknown as ChannelService)
+              getServicesApi: Effect.succeed({ v2: { services: { ChannelService } } })
+            } as unknown as ExtensionProviderService['Service']),
+            Layer.succeed(ChannelService, { appendToChannel } as unknown as ChannelService['Service'])
           )
         )
       )

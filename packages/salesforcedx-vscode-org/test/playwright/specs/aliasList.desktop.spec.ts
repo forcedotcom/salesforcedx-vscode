@@ -22,7 +22,7 @@ import * as Schema from 'effect/Schema';
 import packageNls from '../../../package.nls.json';
 import { orgDesktopMinimalDefaultTest as test } from '../fixtures/desktopFixtures';
 
-const orgDisplayResponseSchema = Schema.parseJson(
+const orgDisplayResponseSchema = Schema.fromJsonString(
   Schema.Struct({ result: Schema.Struct({ username: Schema.String }) })
 );
 

@@ -230,7 +230,7 @@
   },
   "dependencies": {
     "@vscode-elements/elements": "^2.5.1",
-    "effect": "^3.21.2",
+    "effect": "4.0.6",
     "lit": "3.3.3"
   }
 }

@@ -7,13 +7,14 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet, SourceComponent } from '@salesforce/source-deploy-retrieve';
+import type { HashableUri, NonEmptyComponentSet } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import * as Option from 'effect/Option';
 import { isNotUndefined, isString } from 'effect/Predicate';
+import * as Result from 'effect/Result';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { NonEmptyComponentSet, HashableUri } from 'salesforcedx-vscode-services';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../../messages';
 import { type ProgressOnlyCommandKey } from '../../utils/notificationMode';
@@ -27,13 +28,10 @@ export const sourceComponentToPaths = (component: SourceComponent) =>
 
 const getCacheDirectory = Effect.fn('getCacheDirectory')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const [workspaceInfo, defaultOrgRef] = yield* Effect.all(
-    [api.services.WorkspaceService.getWorkspaceInfoOrThrow(), Effect.succeed(api.services.TargetOrgRef)],
-    { concurrency: 'unbounded' }
-  );
-  const orgId = yield* defaultOrgRef().pipe(
-    Effect.flatMap(SubscriptionRef.get),
-    Effect.map(orgInfo => orgInfo.orgId),
+  const workspaceInfo = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
+  const defaultOrgRef = yield* api.v2.services.TargetOrgRef;
+  const orgInfo = yield* SubscriptionRef.get(defaultOrgRef);
+  const orgId = yield* Effect.succeed(orgInfo.orgId).pipe(
     Effect.filterOrFail(
       isNotUndefined,
       () => new MissingDefaultOrgError({ message: nls.localize('missing_default_org') })
@@ -44,15 +42,18 @@ const getCacheDirectory = Effect.fn('getCacheDirectory')(function* () {
 
 const retrieveToCacheDirectory = Effect.fn('retrieveToCacheDirectory')(function* (componentSet: NonEmptyComponentSet) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const notificationMode = yield* api.services.NotificationModeService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
   const cache = yield* getCacheDirectory();
+  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
 
-  yield* api.services.FsService.safeDelete(cache.uri, { recursive: true });
+  yield* api.v2.services.FsService.use(service => service.safeDelete(cache.uri, { recursive: true }));
 
-  return yield* api.services.MetadataRetrieveService.retrieveComponentSetToDirectory(componentSet, cache.uri, {
-    progressLocation: yield* notificationMode.getProgressLocation(COMMAND),
-    expectedOrgId: cache.orgId
-  });
+  return yield* api.v2.services.MetadataRetrieveService.use(service =>
+    service.retrieveComponentSetToDirectory(componentSet, cache.uri, {
+      progressLocation,
+      expectedOrgId: cache.orgId
+    })
+  );
 });
 
 /**
@@ -80,11 +81,14 @@ export const materializeRemoteComponents = Effect.fn('materializeRemoteComponent
   });
 
   if (projectComponents.length === 0) return HashSet.empty<DiffFilePair>();
-  const remoteComponentSet = yield* api.services.MetadataRetrieveService.buildComponentSet(
-    projectComponents.map(component => ({ type: component.type.name, fullName: component.fullName }))
+  const remoteComponentSet = yield* api.v2.services.MetadataRetrieveService.use(service =>
+    service.buildComponentSet(
+      projectComponents.map(component => ({ type: component.type.name, fullName: component.fullName }))
+    )
   );
-  const nonEmptyRemoteComponentSet =
-    yield* api.services.ComponentSetService.ensureNonEmptyComponentSet(remoteComponentSet);
+  const nonEmptyRemoteComponentSet = yield* api.v2.services.ComponentSetService.use(service =>
+    service.ensureNonEmptyComponentSet(remoteComponentSet)
+  );
   const retrieved = yield* retrieveToCacheDirectory(nonEmptyRemoteComponentSet);
 
   return yield* matchUrisToComponents(projectComponentSet, retrieved.components, localUriFilter, componentFilter);
@@ -97,7 +101,7 @@ export const matchUrisToComponents = Effect.fn('matchUrisToComponents')(function
   componentFilter?: (component: SourceComponent) => boolean
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fsService = yield* api.services.FsService;
+  const fsService = yield* api.v2.services.FsService;
   const allProjectComponents = projectComponentSet.getSourceComponents().toArray();
   const projectComponents = componentFilter ? allProjectComponents.filter(componentFilter) : allProjectComponents;
 
@@ -121,8 +125,12 @@ export const matchUrisToComponents = Effect.fn('matchUrisToComponents')(function
         ),
         Stream.filter(({ localUri }) => !localUriFilter || HashSet.has(localUriFilter, localUri)),
         Stream.filterMap(({ localUri }) =>
-          Option.fromNullable(byBasename.get(Utils.basename(localUri.uri))).pipe(
-            Option.map(remotePath => ({ localUri, remotePath }))
+          Result.fromOption(
+            Option.map(Option.fromNullishOr(byBasename.get(Utils.basename(localUri.uri))), remotePath => ({
+              localUri,
+              remotePath
+            })),
+            () => undefined
           )
         ),
         Stream.mapEffect(({ localUri, remotePath }) =>
@@ -147,7 +155,10 @@ export const matchUrisToComponents = Effect.fn('matchUrisToComponents')(function
 export const filesAreNotIdentical = Effect.fn('filesAreNotIdentical')(function* (pair: DiffFilePair) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const [buffer1, buffer2] = (yield* Effect.all(
-    [api.services.FsService.readFile(pair.remoteUri.uri), api.services.FsService.readFile(pair.localUri.uri)],
+    [
+      api.v2.services.FsService.use(service => service.readFile(pair.remoteUri.uri)),
+      api.v2.services.FsService.use(service => service.readFile(pair.localUri.uri))
+    ],
     { concurrency: 'unbounded' }
   ).pipe(
     Effect.tapError(e => Effect.logWarning('filesAreNotIdentical: readFile failed, skipping pair', e)),

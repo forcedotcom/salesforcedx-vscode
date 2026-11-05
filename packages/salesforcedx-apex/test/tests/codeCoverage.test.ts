@@ -15,7 +15,7 @@ import {
   type ApexCodeCoverage,
   type ApexCodeCoverageRecord,
   type ApexCodeCoverageAggregateRecord
-} from '../../src/effect/schema/wire/coverage';
+} from '../../src/tests/apiTypes';
 import { QUERY_RECORD_LIMIT } from '../../src/tests/constants';
 
 const testClassId = (index: number): string => `01p${String(index).padStart(15, '0')}`;

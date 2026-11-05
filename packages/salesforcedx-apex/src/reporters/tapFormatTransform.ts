@@ -6,33 +6,68 @@
  */
 import { Logger } from '@salesforce/core';
 import { Readable, type ReadableOptions } from 'node:stream';
-import { type TestResult } from '../tests/types';
-import { buildTapResults, formatTap, formatTapResults } from './tapFormatting';
+import { type ApexTestResultData, type TestResult } from '../tests/apiTypes';
+import { elapsedTime } from '../utils/elapsedTime';
+import { HeapMonitor } from '../utils/heapMonitor';
+import { buildTapDiagnostics } from './buildTapDiagnostics';
+
+const BUFFER_SIZE = 256;
 
 export class TapFormatTransformer extends Readable {
   private readonly logger: Logger;
-  private readonly testResult: TestResult;
-  private readonly epilogue?: string[];
+  private testResult: TestResult;
+  private epilogue?: string[];
+  private buffer: string;
 
   constructor(testResult: TestResult, epilogue?: string[], options?: ReadableOptions) {
     super(options);
     this.testResult = testResult;
     this.epilogue = epilogue;
     this.logger = Logger.childFromRoot('TapFormatTransformer');
+    this.buffer = '';
+  }
+
+  private pushToBuffer(chunk: string): void {
+    this.buffer += chunk;
+    if (this.buffer.length >= BUFFER_SIZE) {
+      this.push(this.buffer);
+      this.buffer = '';
+    }
   }
 
   _read(): void {
     this.logger.trace('starting format');
-    this.push(this.format());
+    HeapMonitor.getInstance().checkHeapSize('TapFormatTransformer._read');
+    this.format();
+    if (this.buffer.length > 0) {
+      this.push(this.buffer);
+    }
     this.push(null); // Signal the end of the stream
     this.logger.trace('finishing format');
+    HeapMonitor.getInstance().checkHeapSize('TapFormatTransformer._read');
   }
 
-  public format(): string {
-    return formatTap(this.testResult, this.epilogue);
+  @elapsedTime()
+  public format(): void {
+    const testPointCount = this.testResult.tests.length;
+
+    this.pushToBuffer(`1..${testPointCount}\n`);
+    this.buildTapResults();
+
+    this.epilogue?.forEach(c => {
+      this.pushToBuffer(`# ${c}\n`);
+    });
   }
 
-  public buildTapResults(): string {
-    return formatTapResults(buildTapResults(this.testResult));
+  @elapsedTime()
+  public buildTapResults(): void {
+    this.testResult.tests.forEach((test: ApexTestResultData, index: number) => {
+      const testNumber = index + 1;
+      const outcome = test.outcome === 'Pass' ? 'ok' : 'not ok';
+      this.pushToBuffer(`${outcome} ${testNumber} ${test.fullName}\n`);
+      buildTapDiagnostics(test).forEach(s => {
+        this.pushToBuffer(`# ${s}\n`);
+      });
+    });
   }
 }

@@ -9,8 +9,18 @@ import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
-import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import {
+  ChannelService,
+  NotificationModeService,
+  ProjectService,
+  PromptService,
+  TargetOrgRef,
+  TerminalService,
+  TerminalServiceError,
+  UserCancellationError,
+  type DefaultOrgInfo
+} from '@salesforce/vscode-services/v2';
 import { orgDisplayDefaultCommand, orgDisplayUsernameCommand } from '../../../src/commands/orgDisplay';
 
 // Both commands use Org Display for metadata and the dedicated auth commands for credentials.
@@ -19,15 +29,6 @@ const gatherOrgForDisplay = vi.fn();
 vi.mock('../../../src/parameterGatherers/selectOrgForDisplay', () => ({
   gatherOrgForDisplay: () => gatherOrgForDisplay()
 }));
-
-class UserCancellationError extends Schema.TaggedError<UserCancellationError>()('UserCancellationError', {
-  message: Schema.optional(Schema.String)
-}) {}
-
-/** Same tag as the real services error, so the command's catchTag recovers it. */
-class TerminalServiceError extends Schema.TaggedError<TerminalServiceError>()('TerminalServiceError', {
-  message: Schema.String
-}) {}
 
 const SCRATCH_RESULT = {
   id: '00Dxx',
@@ -79,24 +80,24 @@ type Opts = {
 };
 
 const buildServices = (opts: Opts) => ({
-  ProjectService: {
+  project: {
     getSfProject: () =>
       opts.isProject === false ? Effect.fail({ _tag: 'FailedToResolveSfProjectError' as const }) : Effect.succeed({})
   },
-  TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
-  PromptService: Effect.succeed({
+  terminal: { simpleExec: opts.simpleExec },
+  prompt: {
     withCancellableProgress:
       <A, E>(_message: string, _location?: unknown) =>
       (effect: Effect.Effect<A, E>) => {
         opts.withProgress?.(_message);
         return effect;
       }
-  }),
-  NotificationModeService: Effect.succeed({
+  },
+  notificationMode: {
     getProgressLocation: () => Effect.succeed(1),
     showSuccessNotification: () => Effect.void
-  }),
-  ChannelService: Effect.succeed({
+  },
+  channel: {
     appendToChannel: (msg: string) =>
       Effect.sync(() => {
         opts.appendToChannel(msg);
@@ -104,18 +105,44 @@ const buildServices = (opts: Opts) => ({
     showChannel: Effect.sync(() => {
       opts.show();
     })
-  }),
-  TargetOrgRef: () => SubscriptionRef.make(opts.orgInfo ?? { username: 'me@scratch.org' })
+  },
+  targetOrgRef: Effect.runSync(
+    SubscriptionRef.make<DefaultOrgInfo>({
+      ...(opts.orgInfo ?? { username: 'me@scratch.org' }),
+      orgId: opts.orgInfo?.orgId as DefaultOrgInfo['orgId']
+    })
+  )
 });
 
-const run = (command: typeof orgDisplayDefaultCommand | typeof orgDisplayUsernameCommand, opts: Opts) =>
-  Effect.runPromiseExit(
+const run = (command: typeof orgDisplayDefaultCommand | typeof orgDisplayUsernameCommand, opts: Opts) => {
+  const services = buildServices(opts);
+  return Effect.runPromiseExit(
     (command() as Effect.Effect<void, unknown, ExtensionProviderService>).pipe(
       Effect.provideService(ExtensionProviderService, {
-        getServicesApi: Effect.succeed({ services: buildServices(opts) })
-      } as unknown as ExtensionProviderService)
+        getServicesApi: Effect.succeed({
+          v2: {
+            services: {
+              ProjectService,
+              TerminalService,
+              PromptService,
+              NotificationModeService,
+              ChannelService,
+              TargetOrgRef,
+              UserCancellationError,
+              TerminalServiceError
+            }
+          }
+        })
+      } as unknown as ExtensionProviderService['Service']),
+      Effect.provideService(ProjectService, services.project as never),
+      Effect.provideService(TerminalService, services.terminal as never),
+      Effect.provideService(PromptService, services.prompt as never),
+      Effect.provideService(NotificationModeService, services.notificationMode as never),
+      Effect.provideService(ChannelService, services.channel as never),
+      Effect.provideService(TargetOrgRef, services.targetOrgRef)
     ) as Effect.Effect<void, unknown, never>
   );
+};
 
 describe('orgDisplayDefaultCommand', () => {
   let simpleExec: VitestMock;
@@ -284,7 +311,10 @@ describe('orgDisplayDefaultCommand', () => {
     simpleExec = vi.fn(() =>
       Effect.fail(
         new TerminalServiceError({
-          message: `Command failed\n${JSON.stringify({ status: 2, message: 'No authorization information found' })}`
+          message: `Command failed\n${JSON.stringify({ status: 2, message: 'No authorization information found' })}`,
+          errorType: 'nonzero_exit',
+          stdoutBytes: 0,
+          stderrBytes: 0
         })
       )
     );
@@ -299,7 +329,16 @@ describe('orgDisplayDefaultCommand', () => {
   it('propagates a TerminalServiceError whose message carries no JSON (sf missing/spawn failure)', async () => {
     // infra failure, not a CLI-reported one: there is nothing to decode, so the typed error must reach
     // ErrorHandlerService with its real diagnostic instead of becoming an opaque OrgDisplayParseError.
-    simpleExec = vi.fn(() => Effect.fail(new TerminalServiceError({ message: 'sh: sf: command not found' })));
+    simpleExec = vi.fn(() =>
+      Effect.fail(
+        new TerminalServiceError({
+          message: 'sh: sf: command not found',
+          errorType: 'spawn_error',
+          stdoutBytes: 0,
+          stderrBytes: 0
+        })
+      )
+    );
 
     const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show });
 
@@ -383,7 +422,7 @@ describe('orgDisplayUsernameCommand', () => {
   });
 
   it('propagates UserCancellationError (no exec, no channel writes) when the picker is cancelled', async () => {
-    gatherOrgForDisplay.mockReturnValue(Effect.fail(new UserCancellationError({})));
+    gatherOrgForDisplay.mockReturnValue(Effect.fail(new UserCancellationError({ message: 'User canceled' })));
 
     const exit = await run(orgDisplayUsernameCommand, { simpleExec, appendToChannel, show });
 

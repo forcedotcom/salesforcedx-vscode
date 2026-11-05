@@ -9,6 +9,7 @@ import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
+import { ChannelService, ProjectService, TerminalService } from '@salesforce/vscode-services/v2';
 import { orgLoginAccessTokenCommand } from '../../../../src/commands/auth/orgLoginAccessToken';
 
 const userCancellationError = { _tag: 'UserCancellationError', message: 'User cancelled' } as const;
@@ -25,19 +26,24 @@ vi.mock('../../../../src/util/orgUtil', () => ({
 }));
 
 const buildServices = (simpleExec: VitestMock) => ({
-  TerminalService: Effect.succeed({ simpleExec }),
-  ChannelService: Effect.succeed({ appendToChannel: () => Effect.void, showChannel: Effect.void }),
-  ProjectService: { getSfProject: () => Effect.void }
+  terminal: { simpleExec },
+  channel: { appendToChannel: () => Effect.void, showChannel: Effect.void },
+  project: { getSfProject: () => Effect.void }
 });
 
-const run = (simpleExec: VitestMock) =>
-  Effect.runPromiseExit(
+const run = (simpleExec: VitestMock) => {
+  const services = buildServices(simpleExec);
+  return Effect.runPromiseExit(
     orgLoginAccessTokenCommand().pipe(
       Effect.provideService(ExtensionProviderService, {
-        getServicesApi: Effect.succeed({ services: buildServices(simpleExec) })
-      } as unknown as ExtensionProviderService)
+        getServicesApi: Effect.succeed({ v2: { services: { ProjectService, TerminalService, ChannelService } } })
+      } as unknown as ExtensionProviderService['Service']),
+      Effect.provideService(ProjectService, services.project as never),
+      Effect.provideService(TerminalService, services.terminal as never),
+      Effect.provideService(ChannelService, services.channel as never)
     ) as Effect.Effect<void, unknown, never>
   );
+};
 
 describe('orgLoginAccessTokenCommand', () => {
   beforeEach(() => {

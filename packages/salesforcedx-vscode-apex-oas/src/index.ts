@@ -23,7 +23,7 @@ export const activate = async (_context: vscode.ExtensionContext) => {
 const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-oas')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   // Create registerCommand pre-loaded with the runtime for proper tracing
-  const registerCommand = api.services.registerCommandWithRuntime(getApexOasRuntime());
+  const registerCommand = api.v2.services.registerCommandWithRuntime(getApexOasRuntime());
   yield* Effect.all(
     [
       registerCommand('sf.create.apex.action.class', (sourceUri: URI | URI[]) => createApexAction(sourceUri)),

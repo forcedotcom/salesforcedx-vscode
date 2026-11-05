@@ -5,10 +5,12 @@
     "node": ">=24.18.0"
   },
   "type": "module",
+  "overrides": {
+    "@effect/platform-node-shared": "4.0.6"
+  },
   "dependencies": {
     "@cursor/sdk": "1.0.40",
-    "@effect/platform": "0.96.1",
-    "@effect/platform-node": "0.106.0",
-    "effect": "3.21.2"
+    "@effect/platform-node": "4.0.6",
+    "effect": "4.0.6"
   }
 }

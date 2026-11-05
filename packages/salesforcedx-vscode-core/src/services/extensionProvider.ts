@@ -16,7 +16,7 @@ import { WorkspaceContextService } from '../context/workspaceContextService';
 export let AllServicesLayer: ReturnType<typeof buildCoreServicesLayer>;
 
 export const buildCoreServicesLayer = (layer: ReturnType<typeof buildAllServicesLayer>) =>
-  Layer.merge(layer, Layer.provide(WorkspaceContextService.Default, layer));
+  WorkspaceContextService.layer.pipe(Layer.provideMerge(layer));
 
 export const setAllServicesLayer = (layer: ReturnType<typeof buildCoreServicesLayer>) => {
   AllServicesLayer = layer;

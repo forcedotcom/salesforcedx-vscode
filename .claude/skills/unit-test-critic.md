@@ -66,7 +66,7 @@ Partial application = test many scenarios without repeating setup.
 Extract logic from classes → standalone pure functions.
 
 #### 4. Effect services
-Hard-wired deps → Effect.Service + Layer. Testable via Layer substitution, no mocks.
+Hard-wired deps → `Context.Service` + explicit Layer. Test via Layer substitution, not mocks.
 
 #### 5. Accept data, don't fetch
 Signature takes data, not path/URL. Caller handles I/O, function handles logic.

@@ -24,7 +24,9 @@ export const getHtml = async (
   let html = await getSoqlRuntime().runPromise(
     Effect.gen(function* () {
       const api = yield* getServicesApi;
-      return yield* api.services.FsService.readFile(Utils.joinPath(dataViewDistUri, HTML_FILE));
+      return yield* api.v2.services.FsService.use(service =>
+        service.readFile(Utils.joinPath(dataViewDistUri, HTML_FILE))
+      );
     })
   );
   /*

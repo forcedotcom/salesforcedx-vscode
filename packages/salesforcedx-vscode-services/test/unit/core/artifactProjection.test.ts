@@ -13,7 +13,7 @@ import {
   SObjectSemanticModelSchema,
   SourceDocumentSchema,
   type SObjectSemanticModel
-} from '../../../src/core/artifactProjection';
+} from '@salesforce/vscode-services/v2';
 
 describe('canonical artifact projections', () => {
   it('decodes an actual source URI and encodes it back to a JSON-safe string', () => {

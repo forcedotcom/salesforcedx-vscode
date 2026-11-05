@@ -5,14 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type * as EffectOpenTelemetryModule from '@effect/opentelemetry';
+import type * as OtelTracer from '@effect/opentelemetry/OtelTracer';
 import { trace } from '@opentelemetry/api';
 import * as Effect from 'effect/Effect';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { ExtensionContext } from 'vscode';
-import { type CliId } from '../../../src/observability/cliTelemetry';
-import { type OrgId } from '../../../src/core/schemas/salesforceId';
-import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
+import type { ExtensionContext, OutputChannel } from 'vscode';
+import * as vscode from 'vscode';
+import type { MockInstance } from 'vitest';
+import { ChannelService, TargetOrgRef, type CliId, type OrgId } from '@salesforce/vscode-services/v2';
+import * as Layer from 'effect/Layer';
+import * as ManagedRuntime from 'effect/ManagedRuntime';
+import { orgLayers } from '../../../src/services/targetOrgRef';
+import { ChannelServiceLayer } from '../../../src/services/channelService';
 import { getSpanCreationIdentity, setSpanCreationIdentity } from '../../../src/observability/spanTransformProcessor';
 import {
   buildLegacySpanAttributes,
@@ -30,21 +34,42 @@ import {
 
 const { mockCurrentOtelSpan } = vi.hoisted(() => ({
   mockCurrentOtelSpan: {
-    effect: undefined as typeof EffectOpenTelemetryModule.Tracer.currentOtelSpan | undefined
+    effect: undefined as typeof OtelTracer.currentOtelSpan | undefined
   }
 }));
-vi.mock('@effect/opentelemetry', async importOriginal => {
-  const actual = await importOriginal<typeof EffectOpenTelemetryModule>();
+vi.mock('@effect/opentelemetry/OtelTracer', async importOriginal => {
+  const actual = await importOriginal<typeof OtelTracer>();
   return {
     ...actual,
-    Tracer: {
-      ...actual.Tracer,
-      get currentOtelSpan() {
-        return mockCurrentOtelSpan.effect ?? actual.Tracer.currentOtelSpan;
-      }
+    get currentOtelSpan() {
+      return mockCurrentOtelSpan.effect ?? actual.currentOtelSpan;
     }
   };
 });
+
+const warning = vi.fn();
+const makeTelemetryRuntime = () =>
+  ManagedRuntime.make(
+    Layer.merge(
+      orgLayers,
+      Layer.mock(ChannelService, {
+        appendToChannel: (message: string) =>
+          Effect.sync(() => {
+            warning(message);
+          })
+      })
+    )
+  );
+const telemetryRuntime = makeTelemetryRuntime();
+let publishedRuntime = telemetryRuntime;
+beforeEach(() => {
+  publishedRuntime = telemetryRuntime;
+});
+beforeAll(() => telemetryRuntime.runPromise(TargetOrgRef));
+afterAll(() => telemetryRuntime.dispose());
+vi.mock('../../../src/servicesRuntime', () => ({
+  getServicesRuntime: () => Effect.succeed(publishedRuntime)
+}));
 
 vi.mock('../../../src/observability/redactingConsoleLogger', () => ({
   runOnServicesRuntime: (effect: unknown) => effect
@@ -217,7 +242,7 @@ describe('getLegacyTelemetrySender', () => {
       extension: { packageJSON: { name: 'test-ext', version: '1.0.0' } },
       extensionMode: 1
     } as unknown as ExtensionContext;
-    const ref = await Effect.runPromise(getDefaultOrgRef());
+    const ref = await telemetryRuntime.runPromise(TargetOrgRef);
     await Effect.runPromise(
       SubscriptionRef.set(ref, {
         cliId: 'first-cli' as CliId,
@@ -256,8 +281,58 @@ describe('getLegacyTelemetrySender', () => {
       extensionMode: 1
     } as unknown as ExtensionContext;
 
-    await getLegacyTelemetrySender(context)({ kind: 'event', name: 'e' });
+    captureOtelSpan();
+    await getLegacyTelemetrySender(context)({ kind: 'event', name: 'e' })();
 
     expect(getTracer).not.toHaveBeenCalled();
+    expect(warning).toHaveBeenCalledWith('test-ext: telemetry seed missing — degraded session');
+  });
+
+  it('keeps deferred sends bound to their owner instead of running through a replacement runtime', async () => {
+    const owner = makeTelemetryRuntime();
+    await owner.runPromise(TargetOrgRef);
+    publishedRuntime = owner;
+    const context = {
+      extension: { packageJSON: { name: 'test-ext', version: '1.0.0' } },
+      extensionMode: 1
+    } as unknown as ExtensionContext;
+    const sender = getLegacyTelemetrySender(context);
+    await owner.dispose();
+    publishedRuntime = telemetryRuntime;
+    const { attributes } = captureOtelSpan();
+    const deferred = sender({ kind: 'event', name: 'closed-owner' });
+    await expect(deferred()).rejects.toBeDefined();
+    expect(attributes.size).toBe(0);
+  });
+
+  it('writes the degraded-session warning through the actual owned channel without disposing it', async () => {
+    const output = {
+      name: 'Services',
+      append: vi.fn(),
+      appendLine: vi.fn(),
+      clear: vi.fn(),
+      replace: vi.fn(),
+      show: vi.fn(),
+      hide: vi.fn(),
+      dispose: vi.fn()
+    } satisfies OutputChannel;
+    const createOutput: MockInstance = vi.mocked(vscode.window.createOutputChannel);
+    createOutput.mockReturnValue(output);
+    const owner = ManagedRuntime.make(Layer.merge(orgLayers, ChannelServiceLayer));
+    await owner.runPromise(TargetOrgRef);
+    publishedRuntime = owner;
+    try {
+      const context = {
+        extension: { packageJSON: { name: 'test-ext', version: '1.0.0' } },
+        extensionMode: 1
+      } as unknown as ExtensionContext;
+      expect(() => getLegacyTelemetrySender(context)).not.toThrow();
+      expect(output.appendLine).toHaveBeenCalledExactlyOnceWith('test-ext: telemetry seed missing — degraded session');
+      expect(output.dispose).not.toHaveBeenCalled();
+    } finally {
+      publishedRuntime = telemetryRuntime;
+      await owner.dispose();
+    }
+    expect(output.dispose).toHaveBeenCalledTimes(1);
   });
 });

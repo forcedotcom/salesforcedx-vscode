@@ -41,8 +41,8 @@ class NoCachedTestError extends Schema.TaggedError<NoCachedTestError>()('NoCache
 /** Run the given test class/method names, write diagnostics, and notify. */
 const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (tests: string[]) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  yield* api.services.ProjectService.getSfProject();
-  const notificationMode = yield* api.services.NotificationModeService;
+  yield* api.v2.services.ProjectService.use(service => service.getSfProject());
+  const notificationMode = yield* api.v2.services.NotificationModeService;
   const { promptService, channelService, executionName, appendEnded } = yield* getRunCommandContext();
 
   const { codeCoverage, concise, payload, outputDir } = yield* resolveRunInputs(
@@ -71,7 +71,10 @@ const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (
       concise,
       telemetryTrigger: 'codeAction',
       progress
-    }).pipe(Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }))
+    }).pipe(
+      Effect.tapError(() => appendEnded),
+      Effect.tap(() => appendEnded)
+    )
   );
 
   yield* channelService.showChannel;
@@ -90,7 +93,7 @@ const handleDiagnostics = Effect.fn('apexTestRunCodeAction.handleDiagnostics')(f
   }
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const maybeProject = yield* Effect.option(api.services.ProjectService.getSfProject());
+  const maybeProject = yield* Effect.option(api.v2.services.ProjectService.use(service => service.getSfProject()));
   if (Option.isNone(maybeProject)) {
     return;
   }
@@ -127,9 +130,11 @@ const mapApexArtifactToFilesystem = Effect.fn('apexTestRunCodeAction.mapApexArti
   return yield* Effect.forEach(
     packageDirectories,
     pkgDir =>
-      api.services.FsService.toUri(pkgDir.fullPath).pipe(
+      api.v2.services.FsService.use(service => service.toUri(pkgDir.fullPath)).pipe(
         Effect.map(packageDirUri => new vscode.RelativePattern(packageDirUri, '**/*.cls')),
-        Effect.flatMap(pattern => api.services.FsService.findFiles(pattern, '**/node_modules/**'))
+        Effect.flatMap(pattern =>
+          api.v2.services.FsService.use(service => service.findFiles(pattern, '**/node_modules/**'))
+        )
       ),
     { concurrency: 'unbounded' }
   ).pipe(
@@ -171,13 +176,13 @@ export const apexTestClassRunCodeActionDelegate = (testClass: string) => {
 
 // invokes apex test run on all tests in a class; caches the class for later re-run
 export const apexTestClassRunCodeAction = Effect.fn('apexTestClassRunCodeAction')(function* (testClass: string) {
-  yield* ApexTestRunCacheService.setCachedClassTestParam(testClass);
+  yield* ApexTestRunCacheService.use(service => service.setCachedClassTestParam(testClass));
   yield* apexTestRunCodeAction([testClass]);
 });
 
 // re-runs the last cached test class; invoked with no param, so resolves from cache
 export const apexTestLastClassRunCodeAction = Effect.fn('apexTestLastClassRunCodeAction')(function* () {
-  const cached = yield* ApexTestRunCacheService.getLastClassTestParam();
+  const cached = yield* ApexTestRunCacheService.use(service => service.getLastClassTestParam());
   if (Option.isNone(cached)) {
     // no cached class: nothing to re-run — surface a real error (the runtime toasts the message)
     return yield* new NoCachedTestError({
@@ -201,13 +206,13 @@ export const apexDebugMethodRunCodeActionDelegate = (testMethod: string) => {
 
 // invokes apex test run on a test method; caches the method for later re-run
 export const apexTestMethodRunCodeAction = Effect.fn('apexTestMethodRunCodeAction')(function* (testMethod: string) {
-  yield* ApexTestRunCacheService.setCachedMethodTestParam(testMethod);
+  yield* ApexTestRunCacheService.use(service => service.setCachedMethodTestParam(testMethod));
   yield* apexTestRunCodeAction([testMethod]);
 });
 
 // re-runs the last cached test method; invoked with no param, so resolves from cache
 export const apexTestLastMethodRunCodeAction = Effect.fn('apexTestLastMethodRunCodeAction')(function* () {
-  const cached = yield* ApexTestRunCacheService.getLastMethodTestParam();
+  const cached = yield* ApexTestRunCacheService.use(service => service.getLastMethodTestParam());
   if (Option.isNone(cached)) {
     // no cached method: nothing to re-run — surface a real error (the runtime toasts the message)
     return yield* new NoCachedTestError({

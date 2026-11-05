@@ -4,22 +4,27 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { SdkLayerConfig } from './sdkLayerConfig';
 import { AzureMonitorTraceExporter } from '@azure/monitor-opentelemetry-exporter';
-import { NodeSdk, OtlpLogger, OtlpSerialization } from '@effect/opentelemetry';
-import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
+import * as NodeSdk from '@effect/opentelemetry/NodeSdk';
 import type { ExportResult } from '@opentelemetry/core';
 import { OTLPTraceExporter } from '@opentelemetry/exporter-trace-otlp-http';
 import { SimpleLogRecordProcessor } from '@opentelemetry/sdk-logs';
 import { ConsoleSpanExporter, type ReadableSpan } from '@opentelemetry/sdk-trace-base';
 import { Global } from '@salesforce/core/global';
+import type { SdkLayerConfig } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
+import * as FetchHttpClient from 'effect/http/FetchHttpClient';
 import * as Layer from 'effect/Layer';
-import * as Logger from 'effect/Logger';
+import * as OtlpExporter from 'effect/observability/OtlpExporter';
+import * as OtlpLogger from 'effect/observability/OtlpLogger';
+import * as OtlpSerialization from 'effect/observability/OtlpSerialization';
+import * as References from 'effect/References';
 import { join } from 'node:path';
 import { DEFAULT_AI_CONNECTION_STRING } from './appInsights';
 import { AppInsightsRoutingExporter } from './appInsightsRoutingExporter';
 import { ApplicationInsightsNodeExporter } from './applicationInsightsNodeExporter';
+import { trackExportCallbacks } from './exportCallbacks';
+import { flushProcessors } from './flushProcessors';
 import { GatedSpanExporter } from './gatedSpanExporter';
 import { makeLocalEnvelopeSender } from './localEnvelopeSender';
 import { getConsoleTracesEnabled, getFileTracesEnabled, getLocalTracesEnabled, getLogLevel } from './localTracing';
@@ -28,7 +33,7 @@ import { O11ySpanExporter } from './o11ySpanExporter';
 import { OtlpFileLogExporterNode } from './otlpFileLogExporterNode';
 import { OtlpFileSpanExporterNode } from './otlpFileSpanExporterNode';
 import { RedactingSpanProcessor } from './redactingSpanProcessor';
-import { SpanTransformProcessor } from './spanTransformProcessor';
+import { SpanTransformProcessor, spanIdentitySnapshot } from './spanTransformProcessor';
 import { isSpanValidForProductionTelemetry } from './spanUtils';
 
 export class FilteredAzureMonitorTraceExporter extends AzureMonitorTraceExporter {
@@ -67,9 +72,12 @@ export const NodeSdkLayerFor = ({
   // localIngestionEndpoint is set in dev/test (sdkLayerConfig.resolveLocalIngestionEndpoint) and, when
   // present, diverts App Insights envelopes to the local span file server (see exporters below).
 
-  return NodeSdk.layer(
+  return Layer.unwrap(
     Effect.gen(function* () {
-      return {
+      const getIdentitySnapshot = yield* spanIdentitySnapshot;
+      const flusher = yield* OtlpExporter.Flusher;
+      const fileLogExporter = getFileTracesEnabled() ? trackExportCallbacks(new OtlpFileLogExporterNode()) : undefined;
+      const config = {
         resource: {
           serviceName: extensionName,
           //manually bump this to cause rebuilds/bust cache
@@ -83,11 +91,14 @@ export const NodeSdkLayerFor = ({
           // first and unconditional: rewrites sensitive-data-shaped text during onEnding, which MultiSpanProcessor
           // runs on every processor before any onEnd, so every sink below receives redacted spans
           new RedactingSpanProcessor(),
-          ...(getConsoleTracesEnabled() ? [new SpanTransformProcessor({ exporter: new ConsoleSpanExporter() })] : []),
+          ...(getConsoleTracesEnabled()
+            ? [new SpanTransformProcessor({ exporter: new ConsoleSpanExporter(), getIdentitySnapshot })]
+            : []),
           // AI processor always present; GatedSpanExporter re-checks the telemetry setting per export
           // (mid-session toggle) and lazily constructs the delegate on first enabled export so a
           // disabled session runs no delegate ctor (no Azure Statsbeat/network setup).
           new SpanTransformProcessor({
+            getIdentitySnapshot,
             exporter: new GatedSpanExporter({
               // legacy spans (telemetrySource=legacy) route to per-caller keys inside the router
               make: () =>
@@ -122,6 +133,7 @@ export const NodeSdkLayerFor = ({
           // configured no endpoint. The gate (localhost bypass + telemetry
           // setting) now lives in GatedSpanExporter and is re-checked per export.
           new SpanTransformProcessor({
+            getIdentitySnapshot,
             exporter: new GatedSpanExporter({
               // localIngestionEndpoint (dev/test) diverts O11y events to the local span file server's
               // /o11y route instead of uploading through the org connection — mirrors the AI divert.
@@ -137,24 +149,46 @@ export const NodeSdkLayerFor = ({
               bypassGovernance: Boolean(localIngestionEndpoint)
             })
           }),
-          ...(getLocalTracesEnabled() ? [new SpanTransformProcessor({ exporter: new OTLPTraceExporter() })] : []),
-          ...(getFileTracesEnabled() ? [new SpanTransformProcessor({ exporter: new OtlpFileSpanExporterNode() })] : [])
+          ...(getLocalTracesEnabled()
+            ? [new SpanTransformProcessor({ exporter: new OTLPTraceExporter(), getIdentitySnapshot })]
+            : []),
+          ...(getFileTracesEnabled()
+            ? [new SpanTransformProcessor({ exporter: new OtlpFileSpanExporterNode(), getIdentitySnapshot })]
+            : [])
         ],
-        logRecordProcessor: [
-          ...(getFileTracesEnabled() ? [new SimpleLogRecordProcessor(new OtlpFileLogExporterNode())] : [])
-        ]
+        loggerMergeWithExisting: true,
+        logRecordProcessor: [...(fileLogExporter ? [new SimpleLogRecordProcessor(fileLogExporter)] : [])]
       };
+      return NodeSdk.layer(() => config).pipe(
+        Layer.provideMerge(
+          Layer.effectDiscard(
+            flusher.register(
+              Effect.promise(async () => {
+                await flushProcessors([
+                  ...config.spanProcessor,
+                  ...config.logRecordProcessor,
+                  ...(fileLogExporter ? [fileLogExporter] : [])
+                ]);
+              })
+            )
+          )
+        )
+      );
     })
   ).pipe(
-    Layer.merge(Logger.minimumLogLevel(getLogLevel())),
-    Layer.merge(
+    Layer.provideMerge(OtlpExporter.layerFlusher),
+    Layer.merge(Layer.succeed(References.MinimumLogLevel, getLogLevel())),
+    sdk =>
       getLocalTracesEnabled()
         ? OtlpLogger.layer({
             // OTLPTraceExporter reads OTEL_EXPORTER_OTLP_ENDPOINT internally; OtlpLogger does not, so we resolve it here
             url: `${process.env.OTEL_EXPORTER_OTLP_ENDPOINT ?? 'http://localhost:4318'}/v1/logs`,
             resource: { serviceName: extensionName, serviceVersion: extensionVersion }
-          }).pipe(Layer.provide(FetchHttpClient.layer), Layer.provide(OtlpSerialization.layerJson))
-        : Layer.empty
-    )
+          }).pipe(
+            Layer.provide(FetchHttpClient.layer),
+            Layer.provide(OtlpSerialization.layerJson),
+            Layer.provideMerge(sdk)
+          )
+        : sdk
   );
 };

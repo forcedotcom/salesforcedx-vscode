@@ -16,7 +16,7 @@ import { tmpdir } from 'node:os';
 import { resolve } from 'node:path';
 
 const repoRoot = resolve(__dirname, '../../../../..');
-const startedSession = Schema.parseJson(
+const startedSession = Schema.fromJsonString(
   Schema.Struct({ runId: Schema.String, artifactDir: Schema.String, workspaceDir: Schema.String })
 );
 const text = (result: CallToolResult): string => {

@@ -10,9 +10,9 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { SoqlItemContext } from '@salesforce/soql-language-server';
+import type { SObject, SObjectField } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
-import type { SObject, SObjectField } from 'salesforcedx-vscode-services';
 import { type CompletionItem, CompletionItemKind, SnippetString } from 'vscode';
 import ProtocolCompletionItem from 'vscode-languageclient/lib/common/protocolCompletionItem';
 import type { Middleware } from 'vscode-languageclient/node';
@@ -197,8 +197,8 @@ const safeRetrieveSObject = async (sobjectName?: string): Promise<SObject | unde
   return getSoqlRuntime().runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const metadataDescribe = yield* api.services.MetadataDescribeService;
-      const transmogrifier = yield* api.services.TransmogrifierService;
+      const metadataDescribe = yield* api.v2.services.MetadataDescribeService;
+      const transmogrifier = yield* api.v2.services.TransmogrifierService;
       return yield* metadataDescribe.describeCustomObject(sobjectName).pipe(
         Effect.flatMap(transmogrifier.toMinimalSObject),
         Effect.orElseSucceed(() => undefined)

@@ -35,11 +35,11 @@ const manifestById = new Map(manifestEntries.map(([svgName, { id }]) => [id, svg
 const customIconIds = manifestEntries.map(([, { id }]) => id);
 
 /**
- * Parse ICONS values from mediaService.ts source to avoid importing it
+ * Parse ICONS values from the shared V2 icon declaration to avoid importing it
  * (which would pull in Effect, nls, and other deps that need mocking).
  */
-const mediaServiceSrc = fs.readFileSync(path.join(PKG_DIR, 'src/vscode/mediaService.ts'), 'utf8');
-const iconRefs = [...mediaServiceSrc.matchAll(/'\$\(([^)]+)\)'/g)].map(m => m[1]);
+const iconsSrc = fs.readFileSync(path.join(PKG_DIR, '../salesforcedx-vscode-services-types/v2/icons.ts'), 'utf8');
+const iconRefs = [...iconsSrc.matchAll(/'\$\(([^)]+)\)'/g)].map(m => m[1]);
 const customIconRefs = iconRefs.filter(id => id.startsWith('sf-'));
 
 describe('Icon consistency', () => {

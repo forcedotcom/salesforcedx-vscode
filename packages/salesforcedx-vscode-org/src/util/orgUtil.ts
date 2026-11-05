@@ -6,13 +6,13 @@
  */
 
 import { type Column, createTable, type Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { ICONS, type OrgAuthorizationSummary } from '@salesforce/vscode-services';
-import * as Chunk from 'effect/Chunk';
+import { ICONS, type OrgAuthorizationSummary } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
 import * as Option from 'effect/Option';
 import { isError, isNotUndefined, isString, not } from 'effect/Predicate';
 import * as Record from 'effect/Record';
+import * as Result from 'effect/Result';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -34,7 +34,7 @@ class RemoveAuthError extends Schema.TaggedError<RemoveAuthError>()('RemoveAuthE
   username: Schema.String
 }) {}
 
-type OrgAuthFields = Effect.Effect.Success<ReturnType<typeof getAuthFieldsFor>>;
+type OrgAuthFields = Effect.Success<ReturnType<typeof getAuthFieldsFor>>;
 
 const orgExpiresSoon = (authFields: OrgAuthFields) =>
   isString(authFields.expirationDate) &&
@@ -48,9 +48,9 @@ export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeEx
   const daysUntilExpiration = new Date();
   daysUntilExpiration.setDate(daysUntilExpiration.getDate() + DAYS_BEFORE_EXPIRE);
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channel = yield* api.services.ChannelService;
+  const channel = yield* api.v2.services.ChannelService;
 
-  const defaultOrgRef = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+  const defaultOrgRef = yield* SubscriptionRef.get(yield* api.v2.services.TargetOrgRef);
   const results = yield* Stream.fromIterableEffect(
     listAllAuthorizationsEffect().pipe(
       Effect.tapError(e => Effect.logWarning('listAllAuthorizations failed', e)),
@@ -67,7 +67,7 @@ export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeEx
         Effect.option
       )
     ),
-    Stream.filterMap(o => o),
+    Stream.filterMap(o => Result.fromOption(o, () => undefined)),
     Stream.tap(o =>
       // special warning about when default orgs expire
       defaultOrgRef.username && o.username === defaultOrgRef.username && orgIsExpired(o)
@@ -90,11 +90,7 @@ export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeEx
   }
 
   yield* channel.appendToChannel(
-    nls.localize(
-      'pending_org_expiration_output_channel_message',
-      DAYS_BEFORE_EXPIRE,
-      Chunk.toArray(results).join('\n\n')
-    )
+    nls.localize('pending_org_expiration_output_channel_message', DAYS_BEFORE_EXPIRE, results.join('\n\n'))
   );
 
   // Runs unbidden (forkDaemon), so must not reveal the channel: focus-out cancels an open picker.
@@ -114,7 +110,7 @@ export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeEx
 /** Fetch auth fields through the shared connection service. */
 export const getAuthFieldsFor = Effect.fn('OrgUtil.getAuthFieldsFor')(function* (username: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* api.services.ConnectionService.getAuthInfoFields(username);
+  return yield* api.v2.services.ConnectionService.use(service => service.getAuthInfoFields(username));
 });
 /**
  * Effect form of {@link updateConfigAndStateAggregators}. Invalidates services' config/connection
@@ -127,10 +123,12 @@ export const updateConfigAndStateAggregatorsEffect = Effect.fn('updateConfigAndS
   attributes: { telemetryIgnore: true }
 })(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  yield* api.services.ConfigService.invalidateConfigAggregator();
-  yield* api.services.ConnectionService.invalidateCachedConnections();
-  yield* api.services.ConnectionService.listAllAuthorizations();
-  yield* api.services.ConnectionService.getConnection().pipe(Effect.catchAll(() => Effect.void));
+  yield* api.v2.services.ConfigService.use(service => service.invalidateConfigAggregator());
+  yield* api.v2.services.ConnectionService.use(service => service.invalidateCachedConnections());
+  yield* api.v2.services.ConnectionService.use(service => service.listAllAuthorizations());
+  yield* api.v2.services.ConnectionService.use(service => service.getConnection()).pipe(
+    Effect.catch(() => Effect.void)
+  );
 });
 
 export class ConfigRefreshError extends Schema.TaggedError<ConfigRefreshError>()('ConfigRefreshError', {
@@ -172,10 +170,12 @@ export const shouldRemoveOrg = (err: any): boolean => {
 export const determineConnectedStatusForNonScratchOrg = Effect.fn('OrgUtil.determineConnectedStatusForNonScratchOrg')(
   function* (username: string) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const conn = yield* api.services.ConnectionService.getConnection(username);
+    const conn = yield* api.v2.services.ConnectionService.use(service => service.getConnection(username));
 
     // Skip connection testing for scratch orgs (they have a devHubUsername)
-    const devHubUsername = (yield* api.services.ConnectionService.getAuthInfoFields(username)).devHubUsername;
+    const devHubUsername = (yield* api.v2.services.ConnectionService.use(service =>
+      service.getAuthInfoFields(username)
+    )).devHubUsername;
     return devHubUsername
       ? undefined
       : yield* Effect.tryPromise({
@@ -208,7 +208,7 @@ type RemovableOrg = { username: string; logLine: string };
 /** Classify a single org for removal WITHOUT mutating auth state, so the caller can confirm first. */
 const classifyOrgForRemoval = Effect.fn('OrgUtil.classifyOrgForRemoval')(function* (orgAuth: OrgAuthorizationSummary) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channel = yield* api.services.ChannelService;
+  const channel = yield* api.v2.services.ChannelService;
 
   // Skip dev hubs
   if (orgAuth.isDevHub) {
@@ -261,14 +261,16 @@ const toOrgAuthorizationSummary = (org: OrgAuthorizationSummary): OrgAuthorizati
 /** Lists all org authorizations through services, with no core types exposed in org. */
 const listAllAuthorizationsEffect = Effect.fn('OrgUtil.listAllAuthorizations')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return (yield* api.services.ConnectionService.listAllAuthorizations()).map(toOrgAuthorizationSummary);
+  return (yield* api.v2.services.ConnectionService.use(service => service.listAllAuthorizations())).map(
+    toOrgAuthorizationSummary
+  );
 });
 
 /** Logout by username; sf handles aliases and default-org config as well as the auth file. */
 export const logoutOrg = Effect.fn('OrgUtil.logoutOrg')(function* (username: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const terminalService = yield* api.services.TerminalService;
-  const { fsPath: cwd } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+  const terminalService = yield* api.v2.services.TerminalService;
+  const { fsPath: cwd } = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
   return yield* terminalService.simpleExec({
     executable: 'sf',
     args: ['org', 'logout', '--target-org', username, '--no-prompt'],
@@ -295,9 +297,9 @@ export const removeExpiredAndDeletedOrgs = Effect.fn('OrgUtil.removeExpiredAndDe
   removable: readonly RemovableOrg[]
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channel = yield* api.services.ChannelService;
+  const channel = yield* api.v2.services.ChannelService;
   // Remove sequentially: each CLI invocation writes shared auth, alias, and config files.
-  const [failures, removed] = yield* Effect.partition(
+  const [removed, failures] = yield* Effect.partition(
     removable,
     ({ username, logLine }) =>
       channel
@@ -337,7 +339,7 @@ const resolveUsernameFromAliasEffect = Effect.fn('OrgUtil.resolveUsernameFromAli
   aliasOrUsername: string
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const aliasService = yield* api.services.AliasService;
+  const aliasService = yield* api.v2.services.AliasService;
   const opt = yield* aliasService.getUsernameFromAlias(aliasOrUsername);
   return Option.getOrElse(opt, () => aliasOrUsername);
 });
@@ -348,7 +350,7 @@ const resolveUsernameFromAliasEffect = Effect.fn('OrgUtil.resolveUsernameFromAli
  */
 const readAliasesByUsernameFromDiskEffect = Effect.fn('OrgUtil.readAliasesByUsernameFromDisk')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const aliasService = yield* api.services.AliasService;
+  const aliasService = yield* api.v2.services.AliasService;
   const orgs = yield* aliasService.getAllAliases();
   return Record.reduce(orgs, new Map<string, string[]>(), (result, username, alias) => {
     result.set(username, [...(result.get(username) ?? []), alias]);
@@ -380,8 +382,8 @@ export const getFreshAuthorizations = Effect.fn('orgUtil.getFreshAuthorizations'
 const getDefaultOrgConfigurationEffect = Effect.fn('OrgUtil.getDefaultOrgConfiguration')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const [defaultDevHubProperty, defaultOrgProperty] = yield* Effect.all([
-    api.services.ConfigService.getTargetDevHub(),
-    api.services.ConfigService.getTargetOrg()
+    api.v2.services.ConfigService.use(service => service.getTargetDevHub()),
+    api.v2.services.ConfigService.use(service => service.getTargetOrg())
   ]);
 
   return {
@@ -481,7 +483,7 @@ const ORG_TABLE_COLUMNS: Column[] = [
 /** Create and display the org table via the Effect ChannelService (same channel as the command). */
 const createAndDisplayOrgTable = Effect.fn('OrgUtil.createAndDisplayOrgTable')(function* (orgData: Row[]) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channel = yield* api.services.ChannelService;
+  const channel = yield* api.v2.services.ChannelService;
 
   if (orgData.length === 0) {
     yield* channel.appendToChannel(`\n${nls.localize('org_list_no_orgs_found')}`);
@@ -498,7 +500,7 @@ const createAndDisplayOrgTable = Effect.fn('OrgUtil.createAndDisplayOrgTable')(f
 /** Display remaining orgs in a table format */
 export const displayRemainingOrgs = Effect.fn('OrgUtil.displayRemainingOrgs')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channel = yield* api.services.ChannelService;
+  const channel = yield* api.v2.services.ChannelService;
 
   // Log-and-swallow ALL display failures (list auths, config aggregator, per-org processing) so a
   // display error after a successful clean never surfaces as an unrelated command error to the user.
@@ -520,7 +522,7 @@ export const displayRemainingOrgs = Effect.fn('OrgUtil.displayRemainingOrgs')(fu
     // Create and display the table
     yield* createAndDisplayOrgTable(orgData);
   }).pipe(
-    Effect.catchAll(error =>
+    Effect.catch(error =>
       channel.appendToChannel(
         `\n${nls.localize('org_list_display_error', 'message' in error ? error.message : String(error))}`
       )

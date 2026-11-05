@@ -6,8 +6,8 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { TestRunId } from './salesforceId';
-import { AsyncTestRunStatusSchema } from './wire/asyncTests';
+import { TestRunId } from './salesforceId.js';
+import { AsyncTestRunStatusSchema } from './wire/asyncTests.js';
 
 const asyncTestRunSummarySchema = Schema.Struct({
   status: AsyncTestRunStatusSchema,
@@ -19,16 +19,16 @@ export type AsyncTestRunSummary = typeof asyncTestRunSummarySchema.Type;
 /** Progress values contain domain data, not UI messages or VS Code progress shapes. */
 export const AsyncTestProgressSchema = Schema.TaggedStruct('Progress', {
   ...asyncTestRunSummarySchema.fields
-}).annotations({ identifier: 'AsyncTestProgress' });
+}).annotate({ identifier: 'AsyncTestProgress' });
 export type AsyncTestProgress = typeof AsyncTestProgressSchema.Type;
 
 export const AsyncTestResultSchema = Schema.TaggedStruct('Result', {
   testRunId: TestRunId,
   result: asyncTestRunSummarySchema
-}).annotations({ identifier: 'AsyncTestResult' });
+}).annotate({ identifier: 'AsyncTestResult' });
 
 /** Progress updates followed by the terminal run summary. */
-export const AsyncTestRunEventSchema = Schema.Union(AsyncTestProgressSchema, AsyncTestResultSchema).annotations({
+export const AsyncTestRunEventSchema = Schema.Union([AsyncTestProgressSchema, AsyncTestResultSchema]).annotate({
   identifier: 'AsyncTestRunEvent'
 });
 export type AsyncTestRunEvent = typeof AsyncTestRunEventSchema.Type;

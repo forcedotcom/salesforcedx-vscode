@@ -35,7 +35,7 @@ const removeAuth = Effect.fn('orgLogout.removeAuth')(function* (username: string
 /** Multi-select QuickPick + confirmation modal yielding the usernames to log out. */
 const selectOrgsForLogout = Effect.fn('orgLogoutAllCommand.selectOrgs')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   const { defaultConfig, freshAuthorizations } = yield* getFreshAuthorizations();
 
   const items = buildOrgQuickPickItems(freshAuthorizations, defaultConfig);
@@ -59,7 +59,7 @@ const selectOrgsForLogout = Effect.fn('orgLogoutAllCommand.selectOrgs')(function
   );
 
   if (targetAuthorizations.length === 0) {
-    return yield* new api.services.UserCancellationError({});
+    return yield* new api.v2.services.UserCancellationError({ message: 'User cancelled' });
   }
 
   const hasScratchOrSandbox = targetAuthorizations.some(org => org.isScratchOrg === true || org.isSandbox === true);
@@ -83,7 +83,7 @@ export const orgLogoutAllCommand = Effect.fn('orgLogoutAllCommand')(
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     // precondition: fails with a typed FailedToResolveSfProjectError (rendered by ErrorHandlerService)
     // when there's no project.
-    yield* api.services.ProjectService.getSfProject();
+    yield* api.v2.services.ProjectService.use(service => service.getSfProject());
 
     const usernames = yield* selectOrgsForLogout();
     // Sequential: each CLI invocation writes shared auth, alias, and config files.
@@ -103,7 +103,7 @@ export const orgLogoutDefaultCommand = Effect.fn('orgLogoutDefaultCommand')(
   function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
     // precondition: typed FailedToResolveSfProjectError (rendered by ErrorHandlerService) when no project
-    yield* api.services.ProjectService.getSfProject();
+    yield* api.v2.services.ProjectService.use(service => service.getSfProject());
 
     const { username, isScratch, aliases } = yield* resolveTargetOrg();
     if (!username) {
@@ -115,7 +115,7 @@ export const orgLogoutDefaultCommand = Effect.fn('orgLogoutDefaultCommand')(
     if (isScratch) {
       // confirm logout for scratch orgs due to special considerations:
       // https://developer.salesforce.com/docs/atlas.en-us.sfdx_dev.meta/sfdx_dev/sfdx_dev_auth_logout.htm
-      const promptService = yield* api.services.PromptService;
+      const promptService = yield* api.v2.services.PromptService;
       yield* promptService.confirmOrThrow({
         message: nls.localize('org_logout_scratch_prompt', aliases[0] ?? username),
         confirmLabel: nls.localize('org_logout_scratch_logout')
@@ -123,7 +123,9 @@ export const orgLogoutDefaultCommand = Effect.fn('orgLogoutDefaultCommand')(
     }
 
     // Check before logout: the CLI may unset the target-org config.
-    const wasTargetOrg = yield* api.services.ConfigService.isCurrentTargetOrg(username, aliases);
+    const wasTargetOrg = yield* api.v2.services.ConfigService.use(service =>
+      service.isCurrentTargetOrg(username, aliases)
+    );
 
     yield* removeAuth(username);
     yield* updateConfigAndStateAggregatorsEffect();
@@ -132,7 +134,7 @@ export const orgLogoutDefaultCommand = Effect.fn('orgLogoutDefaultCommand')(
     // does not clear the in-process ref; reset it without writing config again from the extension-host cwd.
     // Only clear it when the logged-out org was the target.
     if (wasTargetOrg) {
-      yield* api.services.ClearDefaultOrgRef();
+      yield* api.v2.services.ClearDefaultOrgRef();
     }
   },
   // Declined scratch confirm is intentional; swallow it. All other errors surface to ErrorHandlerService.
@@ -141,7 +143,7 @@ export const orgLogoutDefaultCommand = Effect.fn('orgLogoutDefaultCommand')(
 
 const resolveTargetOrg = Effect.fn('OrgLogout.resolveTargetOrg')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+  const orgInfo = yield* SubscriptionRef.get(yield* api.v2.services.TargetOrgRef);
 
   return {
     username: orgInfo.username,

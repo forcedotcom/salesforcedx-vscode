@@ -47,7 +47,7 @@ const eligibilityDelegate = Effect.fn('ApexOas.Metadata.eligibilityDelegate')(fu
     classNumbers: requests.payload.length,
     requestTarget: buildRequestTarget(requests)
   });
-  return yield* ApexMetadataService.isOpenAPIEligible(requests).pipe(
+  return yield* ApexMetadataService.use(service => service.isOpenAPIEligible(requests)).pipe(
     Effect.mapError(
       cause => new ApexLspRequestFailed({ message: nls.localize('cannot_get_apexoaseligibility_response'), cause })
     )
@@ -69,7 +69,7 @@ const buildRequests = Effect.fn('ApexOas.Metadata.buildRequests')(function* (sou
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const resourceUri =
     sourceUri ??
-    (yield* api.services.EditorService.getActiveEditorUri().pipe(
+    (yield* api.v2.services.EditorService.use(service => service.getActiveEditorUri()).pipe(
       Effect.catchTag(
         'NoActiveEditorError',
         () =>
@@ -146,7 +146,7 @@ export const gatherContext = Effect.fn('ApexOas.Metadata.gatherContext')(functio
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const uri =
     sourceUri ??
-    (yield* api.services.EditorService.getActiveEditorUri().pipe(
+    (yield* api.v2.services.EditorService.use(service => service.getActiveEditorUri()).pipe(
       Effect.catchTag(
         'NoActiveEditorError',
         () => new ContextGatheringFailed({ message: nls.localize('cannot_gather_context') })
@@ -155,7 +155,7 @@ export const gatherContext = Effect.fn('ApexOas.Metadata.gatherContext')(functio
   if (Array.isArray(uri)) {
     return yield* new ContextGatheringFailed({ message: nls.localize('cannot_gather_context') });
   }
-  return yield* ApexMetadataService.gatherOpenAPIContext(uri).pipe(
+  return yield* ApexMetadataService.use(service => service.gatherOpenAPIContext(uri)).pipe(
     Effect.mapError(cause => new ContextGatheringFailed({ message: nls.localize('cannot_gather_context'), cause })),
     Effect.tap(response =>
       Effect.annotateCurrentSpan({

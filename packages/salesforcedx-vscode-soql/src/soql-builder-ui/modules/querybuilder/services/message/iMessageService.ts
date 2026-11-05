@@ -15,7 +15,7 @@ export type IMessageService = {
   getState(): unknown;
 };
 
-export class MessageService extends Context.Tag('MessageService')<
+export class MessageService extends Context.Service<
   MessageService,
   IMessageService
->() {}
+>()('MessageService') {}

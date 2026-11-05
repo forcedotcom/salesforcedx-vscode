@@ -10,7 +10,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "68.11.1",
+  "version": "68.9.5",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -44,10 +44,11 @@
     "@salesforce/vscode-i18n": "workspace:*",
     "antlr4ts": "^0.5.0-alpha.3",
     "debounce": "^2.2.0",
-    "effect": "^3.21.2",
+    "effect": "4.0.6",
     "papaparse": "^5.3.0",
     "vscode-languageclient": "^9.0.1",
-    "vscode-uri": "^3.1.0"
+    "vscode-uri": "^3.1.0",
+    "@salesforce/vscode-services": "*"
   },
   "devDependencies": {
     "@babel/plugin-syntax-decorators": "7.29.7",
@@ -161,7 +162,7 @@
         "../soql-model:compile"
       ],
       "files": [
-        "../salesforcedx-vscode-services/src/core/schemas/sObject.ts",
+        "../salesforcedx-vscode-services-types/v2/sObject.ts",
         "src/soql-builder-ui/*.{ts,html}",
         "src/soql-builder-ui/modules/**",
         "src/soql-builder-ui/rollup.config.mjs"
@@ -183,7 +184,6 @@
         "src/soql-builder-ui/modules/querybuilder/services/message/**",
         "src/soql-builder-ui/esbuild.lit.config.mjs",
         "../../scripts/bundling/web.mjs",
-        "../../scripts/bundling/process-polyfill.js",
         "../soql-builder-ui/out/**",
         "package.json"
       ],
@@ -264,7 +264,6 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
-        "../../scripts/bundling/process-polyfill.js",
         "out/**",
         "src/soql-builder-ui/dist/**",
         "src/soql-data-view/**"
@@ -286,7 +285,6 @@
         "scripts/verify-lit-migration-parity.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
-        "../../scripts/bundling/process-polyfill.js",
         "out/**",
         "src/soql-builder-ui/dist-lit/**",
         "src/soql-data-view/**"
@@ -307,7 +305,6 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
-        "../../scripts/bundling/process-polyfill.js",
         "out/**",
         "src/soql-builder-ui/dist/**",
         "src/soql-data-view/**"

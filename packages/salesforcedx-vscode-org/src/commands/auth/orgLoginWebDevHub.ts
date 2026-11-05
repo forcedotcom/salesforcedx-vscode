@@ -31,7 +31,7 @@ export const orgLoginWebDevHubCommand = Effect.fn('orgLoginWebDevHubCommand')(fu
 
   // precondition: getSfProject sets the sf:project_opened context and fails with a typed
   // FailedToResolveSfProjectError (rendered by ErrorHandlerService) when there's no project.
-  yield* api.services.ProjectService.getSfProject();
+  yield* api.v2.services.ProjectService.use(service => service.getSfProject());
 
   const alias = yield* promptForAlias();
 

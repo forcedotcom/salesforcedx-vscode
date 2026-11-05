@@ -10,32 +10,33 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import * as Option from 'effect/Option';
+import { isUndefined } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { causeMessage } from './errors';
+import { causeMessage } from './errors.js';
 import {
   AsyncTestProgressSchema,
   AsyncTestResultSchema,
   type AsyncTestProgress,
   type AsyncTestRunEvent
-} from './schema/asyncTests';
-import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
-import { TestRunId } from './schema/salesforceId';
+} from './schema/asyncTests.js';
+import { ApexOperationError, ApexResponseDecodeError } from './schema/errors.js';
+import { TestRunId } from './schema/salesforceId.js';
 import {
   AsyncTestOptionsSchema,
   queueSchema,
   summariesSchema,
   updateResultsSchema,
   type AsyncTestOptions
-} from './schema/wire/asyncTests';
+} from './schema/wire/asyncTests.js';
 
 const operation = 'runTestAsynchronous';
 
 /** Override the default two-second delay between status queries. */
 export type AsyncTestPollingOptions = {
-  interval?: Duration.DurationInput;
+  interval?: Duration.Input;
 };
 
 const finishedStatuses = HashSet.make('Aborted', 'Failed', 'Completed', 'Passed', 'Skipped');
@@ -54,8 +55,8 @@ const request = <A>(action: () => PromiseLike<A>) =>
     catch: cause => new ApexOperationError({ operation, message: causeMessage(cause), cause: causeMessage(cause) })
   });
 
-const decode = <A, I>(schema: Schema.Schema<A, I>, response: unknown) =>
-  Schema.decodeUnknown(schema)(response).pipe(
+const decode = <S extends Schema.ConstraintDecoder<unknown, never>>(schema: S, response: unknown) =>
+  Schema.decodeUnknownEffect(schema)(response).pipe(
     Effect.mapError(
       cause =>
         new ApexResponseDecodeError({
@@ -71,24 +72,22 @@ const abortTestRun = Effect.fn('Apex.abortTestRun')(function* (
   testRunId: typeof TestRunId.Type
 ) {
   // Fetch all pages before marking queue items Aborted; those updates can change later query results.
-  yield* Stream.paginateEffect(Option.none<string>(), nextRecordsUrl =>
-    request(() =>
-      Option.match(nextRecordsUrl, {
-        onNone: () =>
-          connection.tooling.query(`SELECT Id, Status FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`),
-        onSome: url => connection.tooling.queryMore(url)
-      })
-    ).pipe(
-      Effect.flatMap(response => decode(queueSchema, response)),
-      Effect.map(
-        page => [page.records, page.done ? Option.none() : Option.some(Option.some(page.nextRecordsUrl))] as const
+  type QueueItem = Schema.Schema.Type<typeof queueSchema>['records'][number];
+  const initialNextRecordsUrl: string | undefined = undefined;
+  yield* Stream.paginate<string | undefined, QueueItem, ApexOperationError | ApexResponseDecodeError, never>(
+    initialNextRecordsUrl,
+    nextRecordsUrl =>
+      request(() =>
+        isUndefined(nextRecordsUrl)
+          ? connection.tooling.query(`SELECT Id, Status FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`)
+          : connection.tooling.queryMore(nextRecordsUrl)
+      ).pipe(
+        Effect.flatMap(response => decode(queueSchema, response)),
+        Effect.map(page => [page.records, page.done ? Option.none() : Option.some(page.nextRecordsUrl)] as const)
       )
-    )
   ).pipe(
-    Stream.mapConcat(records => records),
     Stream.filter(record => !HashSet.has(finishedStatuses, record.Status)),
     Stream.runCollect,
-    Effect.map(records => Array.from(records)),
     Effect.flatMap(records =>
       records.length === 0
         ? Effect.void
@@ -101,7 +100,7 @@ const abortTestRun = Effect.fn('Apex.abortTestRun')(function* (
           ).pipe(
             Effect.flatMap(response => decode(updateResultsSchema, response)),
             Effect.flatMap(results =>
-              Effect.validateAll(
+              Effect.validate(
                 results,
                 (result, index) =>
                   result.success ? Effect.void : Effect.fail(`Could not abort test queue item ${records[index].Id}`),
@@ -130,7 +129,7 @@ const pollTestRun = (
   polling: AsyncTestPollingOptions,
   pending: Ref.Ref<boolean>
 ): AsyncTestRun['stream'] =>
-  Stream.repeatEffectWithSchedule(
+  Stream.fromEffectSchedule(
     request(() =>
       connection.tooling.query(
         `SELECT Status, ClassesCompleted, ClassesEnqueued FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`
@@ -177,7 +176,7 @@ export const runTestAsynchronous = Effect.fn('Apex.runTestAsynchronous')(functio
   options: AsyncTestOptions,
   polling: AsyncTestPollingOptions = {}
 ) {
-  const encodedOptions = yield* Schema.encodeUnknown(AsyncTestOptionsSchema)(options).pipe(
+  const encodedOptions = yield* Schema.encodeUnknownEffect(AsyncTestOptionsSchema)(options).pipe(
     Effect.mapError(
       cause =>
         new ApexOperationError({
@@ -189,14 +188,16 @@ export const runTestAsynchronous = Effect.fn('Apex.runTestAsynchronous')(functio
   );
   const pending = yield* Ref.make(true);
   const id = yield* Effect.acquireRelease(
-    request(() =>
-      connection.tooling.request({
-        method: 'POST',
-        url: `${connection.tooling._baseUrl()}/runTestsAsynchronous`,
-        body: JSON.stringify(encodedOptions),
-        headers: { 'content-type': 'application/json' }
-      })
-    ).pipe(Effect.flatMap(response => decode(TestRunId, response))),
+    Effect.uninterruptible(
+      request(() =>
+        connection.tooling.request({
+          method: 'POST',
+          url: `${connection.tooling._baseUrl()}/runTestsAsynchronous`,
+          body: JSON.stringify(encodedOptions),
+          headers: { 'content-type': 'application/json' }
+        })
+      ).pipe(Effect.flatMap(response => decode(TestRunId, response)))
+    ),
     testRunId => cancelTestRun(connection, testRunId, pending).pipe(Effect.orDie)
   );
   return {

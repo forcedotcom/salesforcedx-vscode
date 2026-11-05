@@ -33,15 +33,15 @@ const isRunnableTestClass = and(not(isFlowTest), (cls: ToolingTestClass) => (cls
 /** Prompt the user to pick a test target (suite, class, or all). Fails with UserCancellationError on dismiss. */
 const selectTests = Effect.fn('apexTestRun.selectTests')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const notificationMode = yield* api.services.NotificationModeService;
+  const promptService = yield* api.v2.services.PromptService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
   const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
 
   const buildItems = Effect.fn('apexTestRun.selectTests.buildItems')(function* () {
     const suiteAndClassItems = yield* Effect.all(
       {
         suiteItems: Effect.gen(function* () {
-          const connection = yield* api.services.ConnectionService.getConnection();
+          const connection = yield* api.v2.services.ConnectionService.use(service => service.getConnection());
           const suites = yield* Effect.promise(() => new TestService(connection).retrieveAllSuites());
           return suites.map(
             (suite): ApexTestQuickPickItem => ({
@@ -67,7 +67,7 @@ const selectTests = Effect.fn('apexTestRun.selectTests')(function* () {
       { concurrency: 'unbounded' }
     ).pipe(
       // No org or discovery failed; quick pick will only show All/AllLocal
-      Effect.catchAll(() => Effect.succeed({ suiteItems: [], classItems: [] }))
+      Effect.catch(() => Effect.succeed({ suiteItems: [], classItems: [] }))
     );
 
     return [
@@ -96,7 +96,7 @@ const selectTests = Effect.fn('apexTestRun.selectTests')(function* () {
 /** Command entrypoint: pick a test target and run it. */
 export const apexTestRun = Effect.fn('apexTestRun')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  yield* api.services.ProjectService.getSfProject();
+  yield* api.v2.services.ProjectService.use(service => service.getSfProject());
   yield* runSelectedTests(yield* selectTests());
 });
 
@@ -108,15 +108,15 @@ export const apexTestRun = Effect.fn('apexTestRun')(function* () {
  * Used by the run-tests command palette and the suite-run command. */
 export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selection: ApexTestQuickPickItem) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const notificationMode = yield* api.services.NotificationModeService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
   const { promptService, channelService, executionName, appendEnded } = yield* getRunCommandContext();
 
   if (selection.type === 'Suite') {
-    const connection = yield* api.services.ConnectionService.getConnection();
+    const connection = yield* api.v2.services.ConnectionService.use(service => service.getConnection());
     const members = yield* Effect.tryPromise(() => new TestService(connection).getTestsInSuite(selection.label));
     if (members.length === 0) {
       void window.showErrorMessage(nls.localize('apex_test_suite_empty_message_notification', selection.label));
-      return yield* new api.services.UserCancellationError();
+      return yield* new api.v2.services.UserCancellationError({ message: 'User cancelled' });
     }
   }
 
@@ -125,8 +125,9 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
     getTestResultsFolder()
   );
 
-  if (selection.type === 'Class' && selection.fullClassName) {
-    yield* ApexTestRunCacheService.setCachedClassTestParam(selection.fullClassName);
+  const fullClassName = selection.fullClassName;
+  if (selection.type === 'Class' && fullClassName) {
+    yield* ApexTestRunCacheService.use(service => service.setCachedClassTestParam(fullClassName));
   }
 
   const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
@@ -143,7 +144,8 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
       telemetryTrigger: 'quickPick',
       progress
     }).pipe(
-      Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
+      Effect.tapError(() => appendEnded),
+      Effect.tap(() => appendEnded),
       // Terminal notify on the success value, keyed on the run outcome (undefined result = soft failure:
       // timeout/no summary). Cancellation stays on the failure channel, so this tap never fires a bogus toast.
       Effect.tap(() => channelService.showChannel),

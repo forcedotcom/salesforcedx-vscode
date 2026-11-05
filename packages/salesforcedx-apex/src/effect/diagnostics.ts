@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Mutable } from '../utils/mutable.js';
 import * as Schema from 'effect/Schema';
 
 export const ApexDiagnosticSchema = Schema.Struct({
@@ -14,10 +15,9 @@ export const ApexDiagnosticSchema = Schema.Struct({
   compileProblem: Schema.optional(Schema.NonEmptyString),
   exceptionStackTrace: Schema.optional(Schema.NonEmptyString),
   className: Schema.optional(Schema.String)
-}).pipe(Schema.mutable, Schema.annotations({ identifier: 'ApexDiagnostic' }));
+}).annotate({ identifier: 'ApexDiagnostic' });
 
-/** Diagnostic data independent of editor ranges, files, or terminal output. */
-export type ApexDiagnostic = typeof ApexDiagnosticSchema.Type;
+export type ApexDiagnostic = Mutable<typeof ApexDiagnosticSchema.Type>;
 
 export const getDiagnostic = (record: { message?: string | null; stackTrace?: string | null }): ApexDiagnostic => {
   const { message, stackTrace } = record;

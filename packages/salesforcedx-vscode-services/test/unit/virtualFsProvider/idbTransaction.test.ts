@@ -41,8 +41,8 @@ describe('settleIdbTransaction', () => {
     const { transaction, request } = fakeIdb();
     const result = await Effect.runPromise(
       Effect.gen(function* () {
-        const fiber = yield* Effect.fork(settleIdbTransaction(transaction, request, 'readwrite'));
-        yield* Effect.yieldNow();
+        const fiber = yield* Effect.forkChild(settleIdbTransaction(transaction, request, 'readwrite'));
+        yield* Effect.yieldNow;
         yield* Effect.sync(() => {
           fire(transaction.oncomplete, 'complete');
         });
@@ -56,8 +56,8 @@ describe('settleIdbTransaction', () => {
     const { transaction, request } = fakeIdb();
     const exit = await Effect.runPromise(
       Effect.gen(function* () {
-        const fiber = yield* Effect.fork(settleIdbTransaction(transaction, request, 'readwrite'));
-        yield* Effect.yieldNow();
+        const fiber = yield* Effect.forkChild(settleIdbTransaction(transaction, request, 'readwrite'));
+        yield* Effect.yieldNow;
         yield* Effect.sync(() => {
           fire(transaction.onabort, 'abort');
         });
@@ -94,8 +94,8 @@ describe('settleIdbTransaction', () => {
 
     const secondResult = await Effect.runPromise(
       Effect.gen(function* () {
-        const nextFiber = yield* Effect.fork(settleIdbTransaction(next.transaction, next.request, 'readwrite'));
-        yield* Effect.yieldNow();
+        const nextFiber = yield* Effect.forkChild(settleIdbTransaction(next.transaction, next.request, 'readwrite'));
+        yield* Effect.yieldNow;
         yield* Effect.sync(() => {
           fire(next.transaction.oncomplete, 'complete');
         });

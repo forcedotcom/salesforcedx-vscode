@@ -17,7 +17,8 @@ import {
 } from '../../src/effect';
 import { messages } from '../../src/i18n/i18n';
 import { SyncTests } from '../../src/tests/syncTests';
-import { type SyncTestConfiguration, TestResultSchema as PublicTestResultSchema } from '../../src/tests/types';
+import type { SyncTestConfiguration } from '../../src/tests/apiTypes';
+import { TestResultSchema as PublicTestResultSchema } from '../../src/effect/testTypes';
 
 const classId = '01p000000000001AAA';
 const response = {
