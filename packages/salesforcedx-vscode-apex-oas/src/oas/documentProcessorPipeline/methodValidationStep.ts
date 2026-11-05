@@ -15,9 +15,6 @@ import * as vscode from 'vscode';
 import { OasValidationFailed } from '../../errors';
 import { nls } from '../../messages/nls';
 
-const methodValidationDiagnosticCollection: vscode.DiagnosticCollection =
-  vscode.languages.createDiagnosticCollection('OAS Method Validations');
-
 const collectMethodMismatches = (
   oasYaml: OpenAPIV3.Document,
   eligibleMethodNames: readonly string[]
@@ -63,7 +60,6 @@ export const methodValidationStep = Effect.fn('ApexOas.Process.methodValidation'
   if (input.eligibleMethodNames.length === 0) {
     return yield* new OasValidationFailed({ message: nls.localize('no_eligible_method') });
   }
-  methodValidationDiagnosticCollection.clear();
   const diagnostics = collectMethodMismatches(input.openAPIDoc, input.eligibleMethodNames);
   return { ...input, errors: [...input.errors, ...diagnostics] };
 });
