@@ -733,7 +733,7 @@ export class ApexDebug extends LoggingDebugSession {
           }
           const validLines: LineBreakpointsInTyperef = {
             typeref: info.typeref,
-            lines: info.lines
+            lines: [...info.lines]
           };
           lineNumberMapping.get(info.uri)!.push(validLines);
           typerefMapping.set(info.typeref, info.uri);

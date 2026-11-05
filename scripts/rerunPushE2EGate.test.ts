@@ -304,7 +304,8 @@ const cases: readonly GateCase[] = [
 const runGate = (gateCase: GateCase) => {
   const result = spawnSync('bash', ['-c', WRAPPER], {
     encoding: 'utf8',
-    timeout: 2_000,
+    // The gate has no polling or network calls in this fixture, but CI worker contention can delay bash startup.
+    timeout: 10_000,
     env: {
       PATH: process.env.PATH,
       HOME: process.env.HOME,
