@@ -80,7 +80,7 @@ export const produceTestRunCodeLens = (lens: vscode.CodeLens): vscode.CodeLens |
 const hasDefaultOrg = Effect.fn('ApexTesting.hasDefaultOrg')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const targetOrg = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
-  return Boolean(targetOrg.orgId ?? targetOrg.username);
+  return Boolean(targetOrg.orgId);
 });
 
 export const registerTestRunCodeLensProducer = Effect.fn('ApexTesting.registerTestRunCodeLensProducer')(function* (
