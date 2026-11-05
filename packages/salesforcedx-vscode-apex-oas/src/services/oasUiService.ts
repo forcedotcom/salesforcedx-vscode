@@ -25,17 +25,6 @@ export class OasUiService extends Effect.Service<OasUiService>()('OasUiService',
             nls.localize('merge')
           ),
         catch: cause => new OasUiRequestFailed({ message: 'Failed to show existing ESR prompt', cause })
-      }).pipe(Effect.map(choice => choice ?? 'cancel'));
-    });
-
-    const chooseFolder = Effect.fn('OasUiService.chooseFolder')(function* (defaultFolder: string) {
-      return yield* Effect.tryPromise({
-        try: () =>
-          vscode.window.showInputBox({
-            prompt: nls.localize('select_folder_for_oas'),
-            value: defaultFolder
-          }),
-        catch: cause => new OasUiRequestFailed({ message: 'Failed to show ESR folder prompt', cause })
       });
     });
 
@@ -62,6 +51,6 @@ export class OasUiService extends Effect.Service<OasUiService>()('OasUiService',
           )
         );
 
-    return { chooseExistingEsrAction, chooseFolder, openDiff, withSteppedProgress };
+    return { chooseExistingEsrAction, openDiff, withSteppedProgress };
   })
 }) {}
