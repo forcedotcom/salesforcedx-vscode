@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { TraceFlagItemStruct } from '@salesforce/vscode-services/v2';
 import * as Option from 'effect/Option';
 import * as Rec from 'effect/Record';
 import * as Schema from 'effect/Schema';
@@ -57,10 +58,10 @@ const DebugLevelItemArray = Schema.Array(DebugLevelItemStruct);
 
 const isRecord = (x: unknown): x is Record<string, unknown> => typeof x === 'object' && x !== null && !Array.isArray(x);
 
-/** Build trace-flags JSON schemas from the shared TraceFlagItemStruct (provided by services API at runtime, or directly in build scripts). The struct already carries debugLevelName from the TraceFlag→DebugLevel relationship join. */
-export const buildTraceFlagsSchemas = <A, I>(itemStruct: Schema.Codec<A, I, never, never>) => {
+/** Build JSON schemas from the shared V2 contract bundled with this extension's Effect runtime. */
+export const buildTraceFlagsSchemas = () => {
   /** Shared by every logType group below — one array schema, annotated per group. */
-  const ItemArray = Schema.Array(itemStruct);
+  const ItemArray = Schema.Array(TraceFlagItemStruct);
 
   const TraceFlagsByLogTypeSchema = Schema.Struct({
     DEVELOPER_LOG: Schema.optional(

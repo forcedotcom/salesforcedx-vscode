@@ -105,6 +105,7 @@
       "dependencies": [
         "build:icons",
         "generate-types",
+        "check:scripts",
         "../salesforcedx-apex:compile",
         "../salesforcedx-vscode-services-types:compile",
         "../salesforcedx-vscode-services-v3-compat:compile",
@@ -121,6 +122,15 @@
       "output": [
         "out/**"
       ]
+    },
+    "check:scripts": {
+      "command": "tsc --pretty -p tsconfig.scripts.json --noEmit",
+      "files": [
+        "scripts/**/*.ts",
+        "scripts/package.json",
+        "tsconfig.scripts.json"
+      ],
+      "output": []
     },
     "generate-types": {
       "dependencies": [
@@ -214,7 +224,10 @@
       ],
       "files": [
         "src/**/*.ts",
+        "scripts/**/*.ts",
+        "scripts/package.json",
         "test/**/*.ts",
+        "tsconfig.scripts.json",
         "../../eslint.config.mjs",
         ".vscodeignore",
         "package.json",
@@ -276,18 +289,20 @@
       ]
     },
     "o11y:debug": {
-      "command": "ts-node --project tsconfig.scripts.json scripts/o11yDebugServer.ts",
+      "command": "tsx --tsconfig tsconfig.scripts.json scripts/o11yDebugServer.ts",
       "service": true,
       "files": [
         "scripts/o11yDebugServer.ts",
+        "scripts/package.json",
         "tsconfig.scripts.json"
       ]
     },
     "spans:server": {
-      "command": "ts-node --project tsconfig.scripts.json scripts/spanFileServer.ts",
+      "command": "tsx --tsconfig tsconfig.scripts.json scripts/spanFileServer.ts",
       "service": true,
       "files": [
         "scripts/spanFileServer.ts",
+        "scripts/package.json",
         "tsconfig.scripts.json"
       ]
     },

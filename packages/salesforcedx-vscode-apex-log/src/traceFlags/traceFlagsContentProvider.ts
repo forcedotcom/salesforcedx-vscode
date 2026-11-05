@@ -66,7 +66,7 @@ export const enrichTraceFlags = (
 
 const fetchTraceFlagsContent = Effect.fn('ApexLog.fetchTraceFlagsContent')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { encodeTraceFlagsConfigToJson } = buildTraceFlagsSchemas(api.v2.services.TraceFlagItemStruct);
+  const { encodeTraceFlagsConfigToJson } = buildTraceFlagsSchemas();
   const traceFlagService = yield* api.v2.services.TraceFlagService;
   const channelService = yield* api.v2.services.ChannelService;
 

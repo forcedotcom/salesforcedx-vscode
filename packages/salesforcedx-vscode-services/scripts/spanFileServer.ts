@@ -7,6 +7,7 @@
 /* eslint-disable no-restricted-imports -- standalone Node script, not extension code */
 /* eslint-disable functional/no-try-statements -- sync request handling */
 /* eslint-disable @typescript-eslint/consistent-type-assertions -- JSON.parse result */
+/* eslint-disable import/no-extraneous-dependencies -- Effect is provided by the parent extension package; this nested manifest only sets ESM scope. */
 import * as Predicate from 'effect/Predicate';
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, mkdirSync } from 'node:fs';

@@ -39,8 +39,7 @@ const provideTraceFlagsCodeLens = Effect.fn('ApexLog.CodeLensProvider.provideTra
   document: TextDocument,
   _token: CancellationToken
 ) {
-  const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { decodeTraceFlagsConfigFromJson } = buildTraceFlagsSchemas(api.v2.services.TraceFlagItemStruct);
+  const { decodeTraceFlagsConfigFromJson } = buildTraceFlagsSchemas();
   const parsed = decodeTraceFlagsConfigFromJson(document.getText());
   const text = document.getText();
   const allActiveItems = Object.values(parsed?.traceFlags ?? {})
@@ -168,11 +167,7 @@ export const registerTraceFlagsCodeLensProvider = Effect.fn(
 )(function* (context: ExtensionContext) {
   const provider = {
     provideCodeLenses: (document: TextDocument, token: CancellationToken) =>
-      provideTraceFlagsCodeLens(document, token).pipe(
-        Effect.tapError(e => Effect.logError(String(e))),
-        Effect.catch(() => Effect.succeed<CodeLens[]>([])),
-        getRuntime().runPromise
-      )
+      getRuntime().runPromise(provideTraceFlagsCodeLens(document, token))
   };
   context.subscriptions.push(languages.registerCodeLensProvider(TRACE_FLAGS_DOCUMENT_SELECTOR, provider));
 });
