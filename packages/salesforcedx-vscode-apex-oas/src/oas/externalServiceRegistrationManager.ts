@@ -113,17 +113,20 @@ export const getFolderForArtifact = Effect.fn('ApexOas.Esr.getFolderForArtifact'
     catch: cause =>
       new EsrPathResolutionFailed({ message: `${nls.localize('registry_access_failed')}: ${String(cause)}` })
   });
-  if (!esrDefaultDirectoryName) return undefined;
+  if (!esrDefaultDirectoryName)
+    return yield* new EsrPathResolutionFailed({ message: nls.localize('no_folder_selected') });
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow().pipe(
     Effect.mapError(
       cause => new EsrPathResolutionFailed({ message: `${nls.localize('no_folder_selected')}: ${String(cause)}` })
     )
   );
   const defaultESRFolder = path.join(workspaceInfo.fsPath, 'force-app', 'main', 'default', esrDefaultDirectoryName);
-  const folderUri = yield* OasUiService.chooseFolder(defaultESRFolder).pipe(
-    Effect.flatMap(promptService.considerUndefinedAsCancellation)
-  );
-  return path.resolve(folderUri);
+  const folderUri = yield* promptService.promptForOutputDir({
+    defaultUri: URI.file(defaultESRFolder),
+    pickerPlaceHolder: nls.localize('select_folder_for_oas'),
+    description: nls.localize('select_folder_for_oas')
+  });
+  return path.resolve(folderUri.fsPath);
 });
 
 /**
@@ -136,33 +139,24 @@ export const pathExists = Effect.fn('ApexOas.Esr.pathExists')(function* (filenam
   const fsService = api.services.FsService;
   // Step 1: Prompt for Folder
   const folder = yield* getFolderForArtifact();
-  if (!folder) {
-    return yield* new EsrPathResolutionFailed({ message: nls.localize('no_folder_selected') });
-  }
   // Step 2: Verify folder exists and if not create it
-  yield* fsService
-    .createDirectory(folder)
-    .pipe(Effect.mapError(cause => new EsrPathResolutionFailed({ message: String(cause) })));
+  yield* fsService.createDirectory(folder);
 
   // Step 3: Check if File Exists
   const fullPath = path.join(folder, filename);
   const exists = yield* fsService.fileOrFolderExists(fullPath);
   if (exists) {
-    const whatToDo = yield* OasUiService.chooseExistingEsrAction();
-    if (whatToDo === 'cancel') {
-      return yield* new EsrPathResolutionFailed({ message: nls.localize('operation_cancelled') });
-    }
+    const promptService = yield* api.services.PromptService;
+    const whatToDo = yield* OasUiService.chooseExistingEsrAction().pipe(
+      Effect.flatMap(promptService.considerUndefinedAsCancellation)
+    );
     if (whatToDo === nls.localize('merge')) {
       const currentTimestamp = yield* getCurrentTimestamp();
       const namePart = path.basename(filename, '.externalServiceRegistration-meta.xml');
       const newFileName = `${namePart}_${currentTimestamp}.externalServiceRegistration-meta.xml`;
-      const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow().pipe(
-        Effect.mapError(cause => new EsrPathResolutionFailed({ message: String(cause) }))
-      );
+      const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
       const esrFilesForMergeFolder = path.join(workspaceInfo.fsPath, 'esr_files_for_merge');
-      yield* fsService
-        .createDirectory(esrFilesForMergeFolder)
-        .pipe(Effect.mapError(cause => new EsrPathResolutionFailed({ message: String(cause) })));
+      yield* fsService.createDirectory(esrFilesForMergeFolder);
       const newFullPath = path.join(esrFilesForMergeFolder, newFileName);
       const mergeResult: FullPath = [fullPath, newFullPath];
       return mergeResult;
