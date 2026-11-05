@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { ReportLineEnding } from '../reporters/lineEnding';
 import type { MarkdownTextReporterOptions } from '../reporters/markdownTextReporter';
 import type { TestResult } from '../tests/types';
 import * as Cause from 'effect/Cause';
@@ -22,7 +23,7 @@ export interface HumanReporterOptions {
   detailedCoverage?: boolean;
   concise?: boolean;
   showCategory?: boolean;
-  lineEnding?: '\n' | '\r\n';
+  lineEnding?: ReportLineEnding;
 }
 
 const formatReport = (format: string, render: () => string): Effect.Effect<string, ApexReportError> =>
@@ -64,7 +65,7 @@ export const formatHumanReport = Effect.fn('Apex.formatHumanReport')(
 );
 
 export const formatTapReport = Effect.fn('Apex.formatTapReport')(
-  (testResult: TestResult, epilog?: string[], lineEnding: '\n' | '\r\n' = '\n') =>
+  (testResult: TestResult, epilog?: string[], lineEnding: ReportLineEnding = '\n') =>
     formatStream('tap', () => formatTapChunks(testResult, epilog, lineEnding))
 );
 

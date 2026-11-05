@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { ReportLineEnding } from '../reporters/lineEnding';
 import type { ApexCodeCoverage, ApexCodeCoverageAggregate } from './schema/wire/coverage';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
@@ -31,17 +32,15 @@ const coverageError = (cause: unknown): ApexReportError =>
     cause: causeMessage(cause)
   });
 
-type CoverageReportLineEnding = '\n' | '\r\n';
-
 export interface CoverageReportOptions extends CoverageReporterOptions {
-  lineEnding?: CoverageReportLineEnding;
+  lineEnding?: ReportLineEnding;
 }
 
 export const buildCoverageMap = Effect.fn('Apex.buildCoverageMap')(
   (
     coverage: ApexCodeCoverageAggregate | ApexCodeCoverage,
     sources: Readonly<Record<string, CoverageSource>>,
-    lineEnding: CoverageReportLineEnding = '\n'
+    lineEnding: ReportLineEnding = '\n'
   ) =>
     Effect.try({
       try: () => createCoverageMap(coverage, name => sources[name] ?? { path: name }, lineEnding),

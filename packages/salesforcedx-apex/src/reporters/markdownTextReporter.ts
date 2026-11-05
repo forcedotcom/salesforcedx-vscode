@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { ReportLineEnding } from './lineEnding';
 import { isNotNull } from 'effect/Predicate';
 import { type TestResult, type ApexTestResultData } from '../tests/types';
 
@@ -40,7 +41,7 @@ export interface MarkdownTextReporterOptions {
    */
   timestamp?: Date;
   /** Line ending for report text and embedded error details. Defaults to LF. */
-  lineEnding?: '\n' | '\r\n';
+  lineEnding?: ReportLineEnding;
 }
 
 /** Formats duration in milliseconds to a human-readable string */

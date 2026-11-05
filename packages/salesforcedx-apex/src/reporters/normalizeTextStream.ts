@@ -5,12 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { ReportLineEnding } from './lineEnding';
 import * as Stream from 'effect/Stream';
 
 type NewlineState = { hasTrailingCarriageReturn: boolean };
 
 /** Normalizes newlines across text chunks, including CRLF split between adjacent chunks. */
-export const normalizeTextStream = <E, R>(report: Stream.Stream<string, E, R>, lineEnding: '\n' | '\r\n') =>
+export const normalizeTextStream = <E, R>(report: Stream.Stream<string, E, R>, lineEnding: ReportLineEnding) =>
   report.pipe(
     Stream.concat(Stream.make('')),
     Stream.mapAccum<NewlineState, string, string>({ hasTrailingCarriageReturn: false }, (state, chunk) => {

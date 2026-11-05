@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { ReportLineEnding } from './lineEnding';
 import type { ApexCodeCoverage, ApexCodeCoverageAggregate } from '../effect/schema/wire/coverage';
 import * as libCoverage from 'istanbul-lib-coverage';
 import { splitLines } from '../utils/splitLines';
@@ -21,7 +22,7 @@ const endOfSource = (source: string | undefined): number => (source ? source.sea
 export const createCoverageMap = (
   coverage: ApexCodeCoverageAggregate | ApexCodeCoverage,
   sourceForClass: (name: string) => Pick<CoverageSource, 'path'> & Partial<CoverageSource>,
-  lineEnding = '\n'
+  lineEnding: ReportLineEnding = '\n'
 ): libCoverage.CoverageMap => {
   const coverageMap = libCoverage.createCoverageMap();
   coverage.records.forEach(record => {

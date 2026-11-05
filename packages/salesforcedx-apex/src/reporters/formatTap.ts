@@ -5,11 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { ReportLineEnding } from './lineEnding';
 import type { TestResult } from '../tests/types';
 import * as Stream from 'effect/Stream';
 import { buildTapDiagnostics } from './buildTapDiagnostics';
 
-const buildTapResults = (testResult: TestResult, lineEnding = '\n') =>
+const buildTapResults = (testResult: TestResult, lineEnding: ReportLineEnding = '\n') =>
   testResult.tests.map((test, index) => ({
     testNumber: index + 1,
     description: test.fullName,
@@ -20,7 +21,7 @@ const buildTapResults = (testResult: TestResult, lineEnding = '\n') =>
 function* formatTapChunkIterable(
   results: ReturnType<typeof buildTapResults>,
   epilog: string[] | undefined,
-  lineEnding: string
+  lineEnding: ReportLineEnding
 ): Generator<string, void> {
   yield `1..${results.length}${lineEnding}`;
   for (const test of results) {
@@ -34,5 +35,9 @@ function* formatTapChunkIterable(
   }
 }
 
-export const formatTapChunks = (testResult: TestResult, epilog?: string[], lineEnding = '\n'): Stream.Stream<string> =>
+export const formatTapChunks = (
+  testResult: TestResult,
+  epilog?: string[],
+  lineEnding: ReportLineEnding = '\n'
+): Stream.Stream<string> =>
   Stream.fromIterable(formatTapChunkIterable(buildTapResults(testResult, lineEnding), epilog, lineEnding));

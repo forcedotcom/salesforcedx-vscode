@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type { ReportLineEnding } from './lineEnding';
 import { type ApexTestResultData } from '../tests/types';
 import { splitLines } from '../utils/splitLines';
 /**
@@ -17,7 +18,7 @@ import { splitLines } from '../utils/splitLines';
  */
 const startsWithNewlineRegex = new RegExp(/^[/\r\n|\r|\n][\w]*/im);
 
-export const buildTapDiagnostics = (testResult: ApexTestResultData, lineEnding = '\n'): string[] => {
+export const buildTapDiagnostics = (testResult: ApexTestResultData, lineEnding: ReportLineEnding = '\n'): string[] => {
   if (testResult.outcome === 'Pass') {
     return [];
   }
