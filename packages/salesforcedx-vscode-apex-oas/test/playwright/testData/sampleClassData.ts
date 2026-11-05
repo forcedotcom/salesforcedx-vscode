@@ -39,7 +39,7 @@ export const restResourceClassText = [
   '}'
 ].join('\n');
 
-// Mixes Apex REST (@RestResource + @HttpGet) with an @AuraEnabled method — not allowed for OAS generation.
+// Mixes Apex REST (@RestResource + @HttpGet) with an @AuraEnabled method for Aura generation.
 export const mixedFrameworksClassText = [
   "@RestResource(urlMapping='/apex-rest-examples/v1/mixed/*')",
   'global with sharing class MixedFrameworksClass {',

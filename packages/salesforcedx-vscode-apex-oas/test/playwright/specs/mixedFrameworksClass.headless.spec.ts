@@ -7,18 +7,20 @@
 
 import { oasDesktopTest as test } from '../fixtures/desktopFixtures';
 import { expect } from '@playwright/test';
-import {
-  createApexClass,
-  executeCommandWithCommandPalette,
-  NOTIFICATION_LIST_ITEM,
-  openFileByName
-} from '@salesforce/playwright-vscode-ext';
+import { createApexClass, executeCommandWithCommandPalette, openFileByName } from '@salesforce/playwright-vscode-ext';
+import * as fs from 'node:fs/promises';
 import { mixedFrameworksClassText } from '../testData/sampleClassData';
-import { pushSource, setupWorkbenchAndAuth, waitForOasCommands } from '../utils/oasHelpers';
+import {
+  confirmEsrFolderPrompt,
+  pushSource,
+  setupWorkbenchAndAuth,
+  waitForEsrFile,
+  waitForOasCommands
+} from '../utils/oasHelpers';
 
 test.setTimeout(360_000);
 
-test('OAS: class mixing Apex REST and AuraEnabled frameworks shows error notification', async ({ page }) => {
+test('OAS: class mixing Apex REST and AuraEnabled generates an Aura ESR', async ({ page, workspaceDir }) => {
   await test.step('setup workbench + auth', async () => {
     await setupWorkbenchAndAuth(page);
   });
@@ -32,17 +34,15 @@ test('OAS: class mixing Apex REST and AuraEnabled frameworks shows error notific
     await pushSource(page);
   });
 
-  await test.step('attempt OAS generation and assert mixed-frameworks failure notification', async () => {
+  await test.step('generate an Aura OAS document', async () => {
     await openFileByName(page, 'MixedFrameworksClass.cls');
     await executeCommandWithCommandPalette(page, 'SFDX: Create OpenAPI Document from This Class');
-
-    const failureNotification = page
-      .locator(NOTIFICATION_LIST_ITEM)
-      .filter({
-        hasText:
-          /The Apex Class MixedFrameworksClass mixes Apex Rest and AuraEnabled frameworks, which is not allowed for OpenAPI document generation/i
-      })
-      .first();
-    await expect(failureNotification).toBeVisible({ timeout: 180_000 });
+    await confirmEsrFolderPrompt(page);
+    const esrPath = await waitForEsrFile(workspaceDir, 'MixedFrameworksClass');
+    const esr = await fs.readFile(esrPath, 'utf8');
+    expect(esr).toContain('<registrationProviderAsset>MixedFrameworksClass</registrationProviderAsset>');
+    expect(esr).toContain('<registrationProviderType>AuraEnabled</registrationProviderType>');
+    expect(esr).toContain('getAccountForAura');
+    expect(esr).not.toContain('operationId: getAccount\n');
   });
 });
