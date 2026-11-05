@@ -7,29 +7,15 @@
 
 import type { OasMethodContext, OasSourceAnalysis } from './apexSourceMetadata';
 
-const HTTP_ANNOTATIONS = new Set(['HttpGet', 'HttpPost', 'HttpPut', 'HttpPatch', 'HttpDelete']);
-
 export type OasQualification =
   | { readonly framework: 'aura'; readonly methods: readonly OasMethodContext[] }
-  | { readonly framework: 'restUnsupported' }
-  | { readonly framework: 'invalid'; readonly reason: OasIneligibilityReason };
-
-type OasIneligibilityReason = 'classAnnotationsBlockAura' | 'noEligibleMethods';
+  | { readonly framework: 'invalid'; readonly reason: 'noEligibleMethods' };
 
 /** Classifies OAS framework eligibility from OAS-owned parser-anchored source metadata. */
 export const qualifyOasAnalysis = (analysis: OasSourceAnalysis): OasQualification => {
   const auraMethods = eligibleAuraMethods(analysis.methods);
-  const hasRestResource = hasAnnotation(analysis.classContext.annotations, 'RestResource');
-  const hasRestIndicators = hasRestResource || analysis.methods.some(method => hasHttpAnnotation(method));
-  const hasNonRestClassAnnotations = analysis.classContext.annotations.some(
-    annotation => annotation.name !== 'RestResource'
-  );
 
-  if (!hasNonRestClassAnnotations && auraMethods.length > 0) return { framework: 'aura', methods: auraMethods };
-  if (hasRestIndicators) return { framework: 'restUnsupported' };
-  if (hasNonRestClassAnnotations && auraMethods.length > 0) {
-    return { framework: 'invalid', reason: 'classAnnotationsBlockAura' };
-  }
+  if (auraMethods.length > 0) return { framework: 'aura', methods: auraMethods };
   return { framework: 'invalid', reason: 'noEligibleMethods' };
 };
 
@@ -38,9 +24,3 @@ const eligibleAuraMethods = (methods: readonly OasMethodContext[]) =>
     method =>
       !method.modifiers.isConstructor && method.annotations.some(annotation => annotation.name === 'AuraEnabled')
   );
-
-const hasAnnotation = (annotations: OasSourceAnalysis['classContext']['annotations'], name: string) =>
-  annotations.some(annotation => annotation.name === name);
-
-const hasHttpAnnotation = (method: OasMethodContext) =>
-  method.annotations.some(annotation => HTTP_ANNOTATIONS.has(annotation.name));

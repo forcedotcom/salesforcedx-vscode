@@ -41,8 +41,6 @@ This extension depends on:
 - `salesforce.apex-language-server-extension`
 - `salesforce.salesforcedx-vscode-services`
 
-`@RestResource` and `@Http*` annotation-based OAS generation is retired. Existing `ApexRest` External Service Registration documents remain supported by the validation command.
-
 ## Activation
 
 This extension activates on demand when you run one of its commands. It does not activate automatically at workspace startup.
