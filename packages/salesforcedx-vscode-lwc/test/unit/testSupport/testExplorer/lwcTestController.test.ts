@@ -12,7 +12,8 @@ import type * as EffectLayer from 'effect/Layer';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
-import { workspace as lwcWorkspace, workspaceService } from '../../../../src/testSupport/workspace';
+import { workspace as lwcWorkspace } from '../../../../src/testSupport/workspace';
+import { workspaceService } from '../../../../src/testSupport/workspace/workspaceService';
 import { TestRunner } from '../../../../src/testSupport/testRunner/testRunner';
 import { taskService } from '../../../../src/testSupport/testRunner/taskService';
 import type { RecordedSpan } from '../../testUtils/recordingTracer';
@@ -48,7 +49,7 @@ vi.mock('../../../../src/services/extensionProvider', async () => {
   };
 });
 // Indexer is a singleton imported by the controller; mock it so discovery returns a known file + case.
-vi.mock('../../../../src/testSupport/testIndexer', () => ({
+vi.mock('../../../../src/testSupport/testIndexer/lwcTestIndexer', () => ({
   lwcTestIndexer: {
     onDidUpdateTestIndex: vi.fn(() => ({ dispose: vi.fn() })),
     onDidUpdateTestResultsIndex: vi.fn(() => ({ dispose: vi.fn() })),
@@ -65,12 +66,15 @@ vi.mock('../../../../src/testSupport/utils/isLwcJestTest', () => ({
 vi.mock('../../../../src/testSupport/workspace', () => ({
   workspace: {
     getTestWorkspaceFolder: vi.fn()
-  },
+  }
+}));
+
+vi.mock('../../../../src/testSupport/workspace/workspaceService', () => ({
   workspaceService: {
     getCurrentWorkspaceTypeForTelemetry: vi.fn(() => 'SFDX')
   }
 }));
-import { lwcTestIndexer } from '../../../../src/testSupport/testIndexer';
+import { lwcTestIndexer } from '../../../../src/testSupport/testIndexer/lwcTestIndexer';
 import { isLwcJestTest } from '../../../../src/testSupport/utils/isLwcJestTest';
 import {
   registerLwcTestController,

@@ -46,7 +46,7 @@
     "@salesforce/salesforcedx-utils": "*",
     "@salesforce/source-deploy-retrieve": "^13.5.0",
     "@salesforce/source-tracking": "^8.1.7",
-    "@salesforce/templates": "^66.17.4",
+    "@salesforce/templates": "^66.19.0",
     "@salesforce/vscode-i18n": "*",
     "@salesforce/vscode-services": "*",
     "@salesforce/vscode-services-v3-compat": "*",

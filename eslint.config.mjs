@@ -127,6 +127,7 @@ export default [
       'packages/salesforcedx-vscode-services-types/v2/uriComparison.cts',
       'packages/salesforcedx-vscode-services-v3-compat/src/externalServices.cts'
     ],
+    ignores: ['packages/eslint-local-rules/test/**'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -1036,9 +1037,27 @@ export default [
       '@typescript-eslint/consistent-type-assertions': 'off'
     }
   },
-  // Ignore test files for eslint-local-rules
   {
-    ignores: ['packages/eslint-local-rules/test/**']
+    files: ['packages/**/*.{ts,tsx,mts,cts}'],
+    // Test configs intentionally compose the shared Vitest config by forwarding its default export.
+    ignores: ['packages/**/vitest.config.*'],
+    rules: {
+      'local/no-pass-through-exports': 'error'
+    }
+  },
+  {
+    // Enforce exports in rule tests and synthetic fixtures without type-aware extension rules.
+    files: ['packages/eslint-local-rules/test/**/*.{ts,tsx,mts,cts}'],
+    languageOptions: {
+      parser: tsParser
+    },
+    plugins: {
+      '@typescript-eslint': typescriptEslint,
+      local: localPlugin
+    },
+    rules: {
+      'local/no-pass-through-exports': 'error'
+    }
   },
   // Dependency ranges apply to root and workspace manifests
   {

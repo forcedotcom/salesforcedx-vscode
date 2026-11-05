@@ -28,7 +28,7 @@ import { ApexErrorHandler } from './apexErrorHandler';
 import { ApexLanguageClient } from './apexLanguageClient';
 import { APEX_SETTINGS_SECTION, UBER_JAR_NAME } from './constants';
 import { dropLsAnonymousApexExecuteLenses } from './dropLsAnonymousApexExecuteLenses';
-import { soqlMiddleware } from './embeddedSoql';
+import { soqlMiddleware } from './embeddedSoql/soqlCompletion';
 import { languageClientSetupError } from './languageClientSetupErrors';
 import { resolveLanguageServerCapabilities } from './languageServerCapabilities';
 import { buildMetadataRegistryScanConfig } from './languageServerScanConfig';

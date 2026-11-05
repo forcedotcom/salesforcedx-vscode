@@ -8,7 +8,9 @@ import { LoggerLevel } from '@salesforce/core';
 import { isNull, isString, isUndefined } from 'effect/Predicate';
 import { isEmpty } from 'effect/String';
 import { type ApexTestResultData, type TestResult } from '../tests/apiTypes';
-import { elapsedTime, formatStartTime, HeapMonitor, msToSecond } from '../utils';
+import { formatStartTime, msToSecond } from '../utils/dateUtil';
+import { elapsedTime } from '../utils/elapsedTime';
+import { HeapMonitor } from '../utils/heapMonitor';
 
 // cli currently has spaces in multiples of four for junit format
 const tab = '    ';

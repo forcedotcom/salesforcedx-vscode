@@ -5,10 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { Row } from '../utils/types';
+
 import * as os from 'node:os';
 import { nls } from '../i18n';
 import { type ApexTestResultData, type CodeCoverageResult, type TestResult } from '../tests/apiTypes';
-import { elapsedTime, HeapMonitor, type Row, Table } from '../utils';
+import { elapsedTime } from '../utils/elapsedTime';
+import { HeapMonitor } from '../utils/heapMonitor';
+import { Table } from '../utils/table';
 
 const UNCOVERED_LINES_ARRAY_LIMIT = 5;
 

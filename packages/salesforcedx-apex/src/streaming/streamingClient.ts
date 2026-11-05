@@ -18,7 +18,8 @@ import {
   type TestRunIdResult
 } from '../tests/apiTypes';
 import { queryAll } from '../tests/utils';
-import { elapsedTime, refreshAuth } from '../utils';
+import { refreshAuth } from '../utils/authUtil';
+import { elapsedTime } from '../utils/elapsedTime';
 import { RetrieveResultsInterval, type StreamMessage, StreamingErrors, type TestResultMessage } from './types';
 
 const TEST_RESULT_CHANNEL = '/systemTopic/TestResult';

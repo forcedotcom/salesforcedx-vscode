@@ -25,7 +25,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import metadataNls from 'salesforcedx-vscode-metadata/package.nls.json';
 import packageNls from '../../../package.nls.json';
-import { test } from '../fixtures';
+import { desktopTest as test } from '../fixtures/desktopFixtures';
 
 // ── Spec 1: Unsupported file type ─────────────────────────────────────────────
 

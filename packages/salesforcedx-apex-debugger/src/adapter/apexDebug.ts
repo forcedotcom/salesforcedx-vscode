@@ -34,20 +34,12 @@ import * as os from 'node:os';
 import { URI, Utils } from 'vscode-uri';
 import { type ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
 import { type LineBreakpointsInTyperef } from '../breakpoints/lineBreakpoint';
-import {
-  type DebuggerResponse,
-  FrameCommand,
-  type LocalValue,
-  type Reference,
-  ReferencesCommand,
-  RunCommand,
-  StateCommand,
-  StepIntoCommand,
-  StepOutCommand,
-  StepOverCommand,
-  type Tuple,
-  type Value
-} from '../commands';
+import { FrameCommand } from '../commands/frameCommand';
+import { type DebuggerResponse, type LocalValue, type Reference, type Tuple, type Value } from '../commands/protocol';
+import { ReferencesCommand } from '../commands/referencesCommand';
+import { RunCommand } from '../commands/runCommand';
+import { StateCommand } from '../commands/stateCommand';
+import { StepIntoCommand, StepOutCommand, StepOverCommand } from '../commands/stepCommands';
 import {
   DEFAULT_IDLE_TIMEOUT_MS,
   DEFAULT_IDLE_WARN1_MS,
@@ -66,14 +58,10 @@ import {
   SHOW_MESSAGE_EVENT,
   TRIGGER_EXCEPTION_PREFIX
 } from '../constants';
-import {
-  BreakpointService,
-  type DebuggerMessage,
-  SessionService,
-  type StreamingClientInfo,
-  StreamingClientInfoBuilder,
-  StreamingService
-} from '../core';
+import { BreakpointService } from '../core/breakpointService';
+import { SessionService } from '../core/sessionService';
+import { type DebuggerMessage, type StreamingClientInfo, StreamingClientInfoBuilder } from '../core/streamingClient';
+import { StreamingService } from '../core/streamingService';
 import { extractJsonObject } from '../extractJsonObject';
 import { nls } from '../messages';
 import { RequestService } from '../requestService/requestService';

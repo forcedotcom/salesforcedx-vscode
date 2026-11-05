@@ -41,8 +41,7 @@ import { URI } from 'vscode-uri';
 import { type ApexLanguageClient } from '../../src/apexLanguageClient';
 import { API } from '../../src/constants';
 import * as index from '../../src/index';
-import { languageClientManager } from '../../src/languageUtils';
-import { ClientStatus } from '../../src/languageUtils/languageClientManager';
+import { languageClientManager, ClientStatus } from '../../src/languageUtils/languageClientManager';
 import ApexLSPStatusBarItem from './../../src/apexLspStatusBarItem';
 
 describe('index tests', () => {

@@ -50,5 +50,9 @@ export const messages: Partial<Record<MessageKey, string>> = {
   package_install_failed_message: 'パッケージのインストールに失敗しました: %s',
   package_install_not_found:
     'パッケージが見つかりません [%s]。リクエストされたパッケージはまだ存在しないか、削除されています。最近作成されたパッケージバージョンの場合は、数分後にもう一度お試しいただくか、パッケージの公開元にお問い合わせください。',
-  package_install_verifying_progress: 'パッケージ %s の存在を確認中...'
+  package_install_verifying_progress: 'パッケージ %s の存在を確認中...',
+
+  project_generate_vue_internal_app_display_text: 'Vue 内部アプリ',
+  project_generate_vue_b2e_template: '従業員向け (Salesforce ログイン)',
+  project_generate_separator_other: 'その他'
 };

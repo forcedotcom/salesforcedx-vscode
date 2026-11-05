@@ -16,15 +16,15 @@ import * as vscode from 'vscode';
 import ApexLSPStatusBarItem from './apexLspStatusBarItem';
 import { checkAndResolveOrphanedLanguageServers } from './languageServerOrphanHandler';
 import {
-  configureApexLanguage,
   getExceptionBreakpointInfo,
   getLineBreakpointInfo,
   gatherOpenAPIContext,
   isOpenAPIEligible,
-  languageClientManager,
   restartLanguageServerAndClient,
   createLanguageClient
 } from './languageUtils';
+import { configureApexLanguage } from './languageUtils/apexLanguageConfiguration';
+import { languageClientManager } from './languageUtils/languageClientManager';
 import { nls } from './messages';
 import { setAllServicesLayer } from './services/extensionProvider';
 import { disposeRuntime, getRuntime } from './services/runtime';

@@ -23,6 +23,17 @@ export type PromptForLwcNameOptions = {
   readonly bundleFileNames?: readonly string[];
 };
 
+export const validateLwcName = (value: string, opts: PromptForLwcNameOptions): string | undefined => {
+  const trimmed = value.trim();
+  if (!trimmed) return nls.localize('lwc_component_name_empty_error');
+  if (!Schema.is(LwcComponentNameSchema)(trimmed)) return nls.localize('lwc_component_name_format_error');
+  if (opts.existingNames.has(trimmed.toLowerCase())) return nls.localize('component_input_dup_error');
+  if (opts.bundleFileNames && hasFileNameCollision(opts.bundleFileNames, trimmed)) {
+    return nls.localize('rename_component_input_dup_file_name_error');
+  }
+  return undefined;
+};
+
 export const promptForLwcName = Effect.fn('promptForLwcName')(function* (opts: PromptForLwcNameOptions) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.v2.services.PromptService;
@@ -31,16 +42,7 @@ export const promptForLwcName = Effect.fn('promptForLwcName')(function* (opts: P
       value: opts.initialValue,
       prompt: nls.localize('lwc_component_name_prompt'),
       placeHolder: nls.localize('lwc_component_name_placeholder'),
-      validateInput: (value: string) => {
-        const trimmed = value?.trim();
-        if (!trimmed) return nls.localize('lwc_component_name_empty_error');
-        if (!Schema.is(LwcComponentNameSchema)(trimmed)) return nls.localize('lwc_component_name_format_error');
-        if (opts.existingNames.has(trimmed.toLowerCase())) return nls.localize('component_input_dup_error');
-        if (opts.bundleFileNames && hasFileNameCollision(opts.bundleFileNames, trimmed)) {
-          return nls.localize('rename_component_input_dup_file_name_error');
-        }
-        return undefined;
-      }
+      validateInput: (value: string) => validateLwcName(value, opts)
     })
   ).pipe(
     Effect.map(raw => raw?.trim()),

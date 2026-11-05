@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { type ApexTestResultData, type TestResult } from '../tests/apiTypes';
-import { elapsedTime, HeapMonitor } from '../utils';
+import { elapsedTime } from '../utils/elapsedTime';
+import { HeapMonitor } from '../utils/heapMonitor';
 import { buildTapDiagnostics } from './buildTapDiagnostics';
 
 interface TapResult {

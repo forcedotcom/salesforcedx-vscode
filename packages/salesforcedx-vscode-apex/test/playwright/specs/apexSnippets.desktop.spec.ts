@@ -24,7 +24,7 @@ import {
   waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
 
-import { snippetTest as test } from '../fixtures';
+import { snippetDesktopTest as test } from '../fixtures/desktopFixtures';
 
 /** Monaco may use NBSP; snippets can be one line or multiline — collapse for assertions. */
 const collapseEditorWhitespace = (text: string): string =>

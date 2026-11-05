@@ -10,26 +10,17 @@ export type { CancellationToken } from './tests/cancellation';
 export type { ApexTestProgressReporter } from './tests/apiTypes';
 export type { ExecuteAnonymousResponse, ApexExecuteOptions } from './execute/types';
 export { ExecuteService } from './execute/executeService';
-export { LogService } from './logs';
-export type { ApexLogGetOptions, LogRecord, LogResult } from './logs';
-export {
-  JUnitReporter,
-  TapReporter,
-  HumanReporter,
-  CoverageReporter,
-  DefaultReportOptions,
-  DefaultWatermarks,
-  MarkdownTextFormatTransformer
-} from './reporters';
-export type {
-  CoverageReporterOptions,
-  CoverageReportFormats,
-  MarkdownTextFormatTransformerOptions,
-  MarkdownTextReporterOptions,
-  OutputFormat,
-  TestSortOrder
-} from './reporters';
-export { TestService } from './tests';
+export { LogService } from './logs/logService';
+export type { ApexLogGetOptions, LogRecord, LogResult } from './logs/types';
+export { JUnitReporter } from './reporters/junitReporter';
+export { TapReporter } from './reporters/tapReporter';
+export { HumanReporter } from './reporters/humanReporter';
+export { CoverageReporter, DefaultReportOptions, DefaultWatermarks } from './reporters/coverageReporter';
+export { MarkdownTextFormatTransformer } from './reporters/markdownTextFormatTransformer';
+export type { CoverageReporterOptions, CoverageReportFormats } from './reporters/coverageReporter';
+export type { MarkdownTextFormatTransformerOptions } from './reporters/markdownTextFormatTransformer';
+export type { MarkdownTextReporterOptions, OutputFormat, TestSortOrder } from './reporters/markdownTextReporter';
+export { TestService } from './tests/testService';
 export type {
   ApexCodeCoverage,
   ApexCodeCoverageRecord,
@@ -57,5 +48,5 @@ export type {
   TestRunIdResult,
   TestSuiteMembershipRecord,
   PerClassCoverage
-} from './tests';
-export type { ApexDiagnostic, CommonOptions, LogLevel } from './utils';
+} from './tests/apiTypes';
+export type { ApexDiagnostic, CommonOptions, LogLevel } from './utils/types';

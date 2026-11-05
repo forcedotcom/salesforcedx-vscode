@@ -11,7 +11,7 @@ import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { type URI } from 'vscode-uri';
 import { getRuntime } from '../../services/runtime';
-import { lwcTestIndexer } from '../testIndexer';
+import { lwcTestIndexer } from '../testIndexer/lwcTestIndexer';
 
 const updateTestResultsFromTestResultsJson = Effect.fn('updateTestResultsFromTestResultsJson')(function* (
   testResultsUri: URI

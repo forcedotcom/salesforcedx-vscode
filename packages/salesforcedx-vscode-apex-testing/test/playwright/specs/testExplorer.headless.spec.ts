@@ -8,6 +8,9 @@
 import { expect } from '@playwright/test';
 
 import {
+  TEST_EXPLORER_PANEL,
+  TEST_EXPLORER_TREE_ITEM,
+  verifyNoTestRunInProgress,
   clearOutputChannel,
   createAndDeployApexTestClass,
   ensureOutputPanelOpen,
@@ -29,13 +32,10 @@ import { TEST_RUN_TIMEOUT, TEST_SETUP_TIMEOUT } from '../constants';
 import {
   CMD_RUN_ALL_TESTS,
   CMD_TOGGLE_MAXIMIZED_PANEL,
-  TEST_EXPLORER_PANEL,
-  TEST_EXPLORER_TREE_ITEM,
   TEST_RESULTS_TAB,
   clickTreeItemAction,
   findTestExplorerItem,
-  openTestExplorerAndDiscover,
-  verifyNoTestRunInProgress
+  openTestExplorerAndDiscover
 } from '../helpers/testExplorerHelpers';
 import { waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
 

@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { type Connection, Logger } from '@salesforce/core';
-import { elapsedTime } from '../../src/utils';
-import * as apexUtils from '../../src/utils';
+import { elapsedTime } from '../../src/utils/elapsedTime';
+import { getCurrentTime } from '../../src/utils/dateUtil';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import * as sinon from 'sinon';
 import { TestService, type OutputDirConfig, type ApexTestProgressReporter, CancellationTokenSource } from '../../src';
@@ -19,7 +19,7 @@ import {
   type ApexTestQueueItemRecord,
   type TestRunIdResult
 } from '../../src/tests/apiTypes';
-import { StreamingClient } from '../../src/streaming';
+import { StreamingClient } from '../../src/streaming/streamingClient';
 import { fail } from 'node:assert';
 import { nls } from '../../src/i18n';
 import {
@@ -47,7 +47,7 @@ vi.mock(import('../../src/tests/diagnosticUtil'), async importOriginal => {
   const actual = await importOriginal();
   return { ...actual, formatTestErrors: vi.fn(actual.formatTestErrors) };
 });
-vi.mock(import('../../src/utils'), async importOriginal => ({
+vi.mock(import('../../src/utils/dateUtil'), async importOriginal => ({
   ...(await importOriginal()),
   getCurrentTime: vi.fn()
 }));
@@ -69,7 +69,7 @@ let retrieveMaxApiVersionStub: sinon.SinonStub;
 const testData = new MockTestOrgData();
 const formatTestErrorsMock = vi.mocked(diagnosticUtil.formatTestErrors);
 const writeFileMock = vi.mocked(fs.writeFile);
-const getCurrentTimeMock = vi.mocked(apexUtils.getCurrentTime);
+const getCurrentTimeMock = vi.mocked(getCurrentTime);
 const pollResponse: ApexTestQueueItem = {
   done: true,
   totalSize: 1,
@@ -278,7 +278,7 @@ describe('Run Apex tests asynchronously', () => {
     };
     const getTestResultData = await asyncTestSrv.formatAsyncResults(
       { queueItem: pollResponseForFlowTest, runId: testRunId },
-      apexUtils.getCurrentTime(),
+      getCurrentTime(),
       undefined,
       runResult.testRunSummary
     );
@@ -335,7 +335,7 @@ describe('Run Apex tests asynchronously', () => {
     const runResult = await asyncTestSrv.checkRunStatus(testRunId);
     const testResultData = await asyncTestSrv.formatAsyncResults(
       { queueItem: pollResponse, runId: testRunId },
-      apexUtils.getCurrentTime(),
+      getCurrentTime(),
       false,
       runResult.testRunSummary
     );
@@ -379,7 +379,7 @@ describe('Run Apex tests asynchronously', () => {
     const runResult = await asyncTestSrv.checkRunStatus(testRunId);
     const getTestResultData = await asyncTestSrv.formatAsyncResults(
       { queueItem: pollResponse, runId: testRunId },
-      apexUtils.getCurrentTime(),
+      getCurrentTime(),
       undefined,
       runResult.testRunSummary
     );
@@ -488,7 +488,7 @@ describe('Run Apex tests asynchronously', () => {
     const runResult = await asyncTestSrv.checkRunStatus(testRunId);
     const getTestResultData = await asyncTestSrv.formatAsyncResults(
       { queueItem: pollResponse, runId: testRunId },
-      apexUtils.getCurrentTime(),
+      getCurrentTime(),
       false,
       runResult.testRunSummary
     );
@@ -546,7 +546,7 @@ describe('Run Apex tests asynchronously', () => {
     const runResult = await asyncTestSrv.checkRunStatus(testRunId);
     const getTestResultData = await asyncTestSrv.formatAsyncResults(
       { queueItem: pollResponse, runId: testRunId },
-      apexUtils.getCurrentTime(),
+      getCurrentTime(),
       false,
       runResult.testRunSummary
     );
@@ -567,7 +567,7 @@ describe('Run Apex tests asynchronously', () => {
       const runResult = await asyncTestSrv.checkRunStatus(testRunId);
       await asyncTestSrv.formatAsyncResults(
         { queueItem: pollResponse, runId: testRunId },
-        apexUtils.getCurrentTime(),
+        getCurrentTime(),
         false,
         runResult.testRunSummary
       );
@@ -688,7 +688,7 @@ describe('Run Apex tests asynchronously', () => {
     const runResult = await asyncTestSrv.checkRunStatus(testRunId);
     const getTestResultData = await asyncTestSrv.formatAsyncResults(
       { queueItem: pollResponse, runId: testRunId },
-      apexUtils.getCurrentTime(),
+      getCurrentTime(),
       true,
       runResult.testRunSummary
     );
@@ -759,7 +759,7 @@ describe('Run Apex tests asynchronously', () => {
     const runResult = await asyncTestSrv.checkRunStatus(testRunId, progressReporter);
     await asyncTestSrv.formatAsyncResults(
       { queueItem: pollResponse, runId: testRunId },
-      apexUtils.getCurrentTime(),
+      getCurrentTime(),
       true,
       runResult.testRunSummary,
       progressReporter

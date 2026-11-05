@@ -32,7 +32,7 @@ import {
 import apexLogNls from 'salesforcedx-vscode-apex-log/package.nls.json';
 import metadataNls from 'salesforcedx-vscode-metadata/package.nls.json';
 import packageNls from '../../../package.nls.json';
-import { test } from '../fixtures';
+import { desktopTest as test } from '../fixtures/desktopFixtures';
 
 // Class that builds nested SObject relationships in memory so they serialize as a
 // nested-object VARIABLE_ASSIGNMENT (`{"Account":{"Name":"Acme"}}`) in the debug log.

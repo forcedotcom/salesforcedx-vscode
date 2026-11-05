@@ -13,6 +13,7 @@ import {
   NotificationModeService,
   ProjectService,
   PromptService,
+  UserCancellationError,
   type SalesforceVSCodeServicesApiV2
 } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
@@ -31,11 +32,7 @@ import {
   setAllServicesLayer
 } from '../../../../src/extensionProvider';
 import { nls } from '../../../../src/messages';
-import {
-  considerUndefinedAsCancellation,
-  makeConfirmOrThrow,
-  UserCancellationError
-} from '../../testHelpers/promptServiceStub';
+import { considerUndefinedAsCancellation, makeConfirmOrThrow } from '../../testHelpers/promptServiceStub';
 
 describe('AuthParamsGatherer', () => {
   const buildLayer = (confirm = true, projectLoginUrl?: string) => {

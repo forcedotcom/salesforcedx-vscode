@@ -39,8 +39,9 @@ class MissingProjectSourceApiVersionError extends Schema.TaggedError<MissingProj
 ) {}
 const TemplateManifestSchema = Schema.String.pipe(Schema.Array, Schema.fromJsonString);
 const causeMessage = (cause: unknown) => (isError(cause) ? cause.message : String(cause));
+const ProjectTemplateTypeSchema = Schema.Literal(SfTemplates.TemplateType.Project);
 const isProjectParams = (params: CreateParams): params is CreateParams<SfTemplates.TemplateType.Project> =>
-  params.templateType === SfTemplates.TemplateType.Project;
+  Schema.is(ProjectTemplateTypeSchema)(params.templateType);
 /** @salesforce/templates requires ns/loginurl as strings even when the caller omits them. */
 const withProjectDefaults = (params: CreateParams): CreateParams =>
   isProjectParams(params)

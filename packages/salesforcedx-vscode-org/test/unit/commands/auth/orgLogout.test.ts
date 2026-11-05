@@ -21,11 +21,12 @@ import {
   TargetOrgRef,
   TerminalService,
   WorkspaceService,
+  UserCancellationError,
   type DefaultOrgInfo
 } from '@salesforce/vscode-services/v2';
 import { orgLogoutDefaultCommand } from '../../../../src/commands/auth/orgLogout';
 import type * as orgUtil from '../../../../src/util/orgUtil';
-import { makeConfirmOrThrow, UserCancellationError } from '../../testHelpers/promptServiceStub';
+import { makeConfirmOrThrow } from '../../testHelpers/promptServiceStub';
 
 const mockUpdateConfigAndStateAggregatorsEffect = vi.fn<() => Effect.Effect<void, never, never>>(() => Effect.void);
 let logoutMock: VitestMock;

@@ -7,7 +7,8 @@
 import { Logger } from '@salesforce/core';
 import { Readable, type ReadableOptions } from 'node:stream';
 import { type ApexTestResultData, type TestResult } from '../tests/apiTypes';
-import { elapsedTime, HeapMonitor } from '../utils';
+import { elapsedTime } from '../utils/elapsedTime';
+import { HeapMonitor } from '../utils/heapMonitor';
 import { buildTapDiagnostics } from './buildTapDiagnostics';
 
 const BUFFER_SIZE = 256;

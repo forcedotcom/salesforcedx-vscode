@@ -27,9 +27,10 @@ import { queryRecords } from '../effect/records';
 import { ApexOperationError } from '../effect/schema/errors';
 import { ApexClassIdsSchema, ApexTestSuiteIdsSchema, TestRunId } from '../effect/schema/salesforceId';
 import { ApexTestRunSummarySchema } from '../effect/schema/wire/asyncTests';
+import { calculatePercentage, transformTestResult } from '../effect/testResults';
 import { nls } from '../i18n';
-import { type AsyncTestRun } from '../streaming';
-import { formatStartTime, getCurrentTime } from '../utils';
+import { type AsyncTestRun } from '../streaming/streamingClient';
+import { formatStartTime, getCurrentTime } from '../utils/dateUtil';
 import {
   type ApexTestProgressReporter,
   type ApexTestQueueItem,
@@ -50,7 +51,7 @@ import { type CancellationToken } from './cancellation';
 import { CodeCoverage } from './codeCoverage';
 import { QUERY_RECORD_LIMIT } from './constants';
 import { formatTestErrors } from './diagnosticUtil';
-import { calculatePercentage, transformTestResult, queryAll, calculateCodeCoverage } from './utils';
+import { queryAll, calculateCodeCoverage } from './utils';
 
 /**
  * Standalone function for writing async test results to file - easier to test

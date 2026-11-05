@@ -14,7 +14,7 @@ import {
   validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 
-import { test } from '../fixtures';
+import { desktopTest as test } from '../fixtures/desktopFixtures';
 import { waitForApexLspReady } from '../utils/apexLspUtils';
 
 test('Apex LSP: hover shows method signature for SayHello', async ({ page, workspaceDir }) => {

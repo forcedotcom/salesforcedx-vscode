@@ -29,13 +29,13 @@
   ],
   "dependencies": {
     "@salesforce/effect-ext-utils": "workspace:*",
+    "@salesforce/templates": "^66.19.0",
     "effect": "4.0.6",
     "@salesforce/vscode-i18n": "workspace:*",
     "vscode-uri": "^3.1.0",
     "@salesforce/vscode-services": "*"
   },
   "devDependencies": {
-    "@salesforce/templates": "^66.17.4",
     "@salesforce/source-deploy-retrieve": "^13.5.0",
     "@salesforce/source-tracking": "^8.1.7",
     "@salesforce/types": "^1.8.0",

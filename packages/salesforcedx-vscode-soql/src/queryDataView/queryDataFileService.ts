@@ -7,6 +7,7 @@
 
 import type { JsonObject } from '../json';
 import type { QueryResult } from '../types';
+import type { DataProvider } from './dataProviders/iDataProvider';
 import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
@@ -16,7 +17,8 @@ import { nls } from '../messages';
 import { messages } from '../messages/i18n';
 import { getSoqlRuntime } from '../services/extensionProvider';
 import { type SuccessOnlyCommandKey } from '../utils/notificationMode';
-import { CsvDataProvider, type DataProvider, JsonDataProvider } from './dataProviders';
+import { CsvDataProvider } from './dataProviders/csvDataProvider';
+import { JsonDataProvider } from './dataProviders/jsonDataProvider';
 
 export enum FileFormat {
   JSON = 'json',

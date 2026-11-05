@@ -29,7 +29,7 @@ import {
 
 import apexTestingNls from 'salesforcedx-vscode-apex-testing/package.nls.json';
 import metadataNls from 'salesforcedx-vscode-metadata/package.nls.json';
-import { test } from '../fixtures';
+import { desktopTest as test } from '../fixtures/desktopFixtures';
 import { continueDebugSession } from '../helpers/debugHelpers';
 
 /**

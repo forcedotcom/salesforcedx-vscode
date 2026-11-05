@@ -13,7 +13,8 @@ import { URI } from 'vscode-uri';
 import { unknownToErrorCause } from '../services/errorCause';
 import { type FsProvider } from './fsTypes';
 import { getProjectRoot } from './projectRoot';
-import { TEMPLATES, metadataDirs } from './templates/templates';
+import { metadataDirs } from './templates/metadataDirs';
+import { TEMPLATES } from './templates/templates';
 import { VirtualFsProviderError } from './virtualFsProviderError';
 
 const home = os.homedir();
