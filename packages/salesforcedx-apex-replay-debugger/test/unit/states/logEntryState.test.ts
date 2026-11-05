@@ -17,9 +17,9 @@ vi.mock(import('@vscode/debugadapter'), async importOriginal => {
 import type { MockInstance as VitestMockInstance } from 'vitest';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { type LaunchRequestArguments } from '../../../src/adapter/types';
-import { LogContext } from '../../../src/core';
+import { LogContext } from '../../../src/core/logContext';
 import * as logContextUtil from '../../../src/core/logContextUtil';
-import { LogEntryState } from '../../../src/states';
+import { LogEntryState } from '../../../src/states/logEntryState';
 
 describe('LogEntry event', () => {
   let readLogFileStub: VitestMockInstance;

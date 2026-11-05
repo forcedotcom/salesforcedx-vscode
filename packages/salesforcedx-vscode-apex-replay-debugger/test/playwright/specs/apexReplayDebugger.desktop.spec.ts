@@ -35,7 +35,7 @@ import { join } from 'node:path';
 import apexLogNls from 'salesforcedx-vscode-apex-log/package.nls.json';
 import metadataNls from 'salesforcedx-vscode-metadata/package.nls.json';
 import packageNls from '../../../package.nls.json';
-import { test } from '../fixtures';
+import { desktopTest as test } from '../fixtures/desktopFixtures';
 import { continueDebugSession } from '../helpers/debugHelpers';
 
 test('Apex Replay Debugger: trace flag, exec anon, replay from log and test class', async ({ page, workspaceDir }) => {

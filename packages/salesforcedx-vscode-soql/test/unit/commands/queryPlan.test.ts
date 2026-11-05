@@ -8,9 +8,9 @@
 import type { Mock as VitestMock } from 'vitest';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
-import { ChannelService } from 'salesforcedx-vscode-services/out/src/vscode/channelService';
-import { ConnectionService } from 'salesforcedx-vscode-services/out/src/core/connectionService';
-import { SettingsService } from 'salesforcedx-vscode-services/out/src/vscode/settingsService';
+import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
+import { ConnectionService } from 'salesforcedx-vscode-services/src/core/connectionService';
+import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import * as vscode from 'vscode';
 import { executeQueryPlan, formatQueryPlanResults, QueryPlanResponse } from '../../../src/commands/queryPlan';
 import { formatErrorMessage } from '../../../src/commands/queryUtils';

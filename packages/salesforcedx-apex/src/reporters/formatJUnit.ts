@@ -7,7 +7,7 @@
 
 import type { ApexTestResultData, TestResult } from '../tests/types';
 import * as Stream from 'effect/Stream';
-import { isEmpty } from '../narrowing';
+import { isEmpty } from '../narrowing/narrowing';
 import { formatStartTime, msToSecond } from '../utils/dateUtil';
 
 // CLI currently has spaces in multiples of four for junit format.

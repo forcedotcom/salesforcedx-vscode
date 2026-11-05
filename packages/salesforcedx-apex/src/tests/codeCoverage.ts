@@ -5,8 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { PerClassCoverage } from './types';
-import type { AggregateCodeCoverageResult } from '../effect/coverageSchemas';
+import type { AggregateCodeCoverageResult, PerClassCoverage } from '../effect/coverageSchemas';
 import type { ApexOperationError, ApexResponseDecodeError } from '../effect/schema/errors';
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';

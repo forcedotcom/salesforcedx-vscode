@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { ApexCodeCoverage, ApexCodeCoverageAggregate } from '../tests/types';
+import type { ApexCodeCoverage, ApexCodeCoverageAggregate } from '../effect/schema/wire/coverage';
 import * as libCoverage from 'istanbul-lib-coverage';
 
 /** Resolved source supplied by the caller; discovery and reading belong to the host. */

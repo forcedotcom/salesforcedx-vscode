@@ -25,7 +25,7 @@ import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import packageNls from '../../../package.nls.json';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
-import { desktopTest as test } from '../fixtures';
+import { desktopTest as test } from '../fixtures/desktopFixtures';
 
 // A *Package.xml file outside manifest/ must still get the forcesourcemanifest language
 // (filenamePatterns "**/*[Pp]ackage.xml"), so the in-manifest deploy/retrieve menus appear.

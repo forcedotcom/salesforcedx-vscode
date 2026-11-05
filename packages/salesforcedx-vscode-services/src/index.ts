@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Tracer as OtelTracer, type Resource } from '@effect/opentelemetry';
+import { TemplateType } from '@salesforce/templates';
 import * as Cause from 'effect/Cause';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
@@ -42,7 +43,7 @@ import { TraceFlagItemStruct } from './core/schemas/traceFlagSchemas';
 import { watchSfProjectFile } from './core/sfProjectFileWatcher';
 import { SourceTrackingService } from './core/sourceTrackingService';
 import { preventOrgChanges } from './core/targetOrgGuard';
-import { TemplateService, TemplateType } from './core/templateService';
+import { TemplateService } from './core/templateService';
 import { TraceFlagService } from './core/traceFlagService';
 import { TransmogrifierService } from './core/transmogrifierService';
 import { nls } from './messages';
@@ -255,11 +256,10 @@ export {
   type LightningInterfaceCreateOptions,
   type VisualforceComponentCreateOptions,
   type VisualforcePageCreateOptions,
-  type CreateOutput,
   type CreateParams,
-  type TemplateOptionsFor,
-  type TemplateType
+  type TemplateOptionsFor
 } from './core/templateService';
+export { TemplateType, type CreateOutput } from '@salesforce/templates';
 export type { TemplatesManifestLoadError, TemplatesRootPathNotAvailableError } from './core/templateService';
 export type {
   NonEmptyComponentSet,
@@ -652,7 +652,8 @@ export {
   MetadataDeleteService,
   type MetadataDeleteService as MetadataDeleteServiceType
 } from './core/metadataDeleteService';
-export { type ApexLogListItem, type ApexLogService, type ListLogsOptions } from './core/apexLogService';
+export type { ApexLogService } from './core/apexLogService';
+export type { ApexLogListItem, ListLogsOptions } from '@salesforce/apex-node/effect';
 export { type MetadataDescribeService } from './core/metadataDescribeService';
 export {
   dedupeMetadataChanges,

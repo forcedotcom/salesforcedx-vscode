@@ -15,8 +15,6 @@ import * as TestResults from '../effect/testResults';
 import { nls } from '../i18n';
 import { type ApexTestProgressReporter, type NamespaceInfo, type TestResultRaw } from './types';
 
-export { calculatePercentage, transformTestResult } from '../effect/testResults';
-
 export const queryNamespaces = (connection: Connection): Promise<NamespaceInfo[]> =>
   queryNamespaceInfos(connection).pipe(Effect.runPromise);
 

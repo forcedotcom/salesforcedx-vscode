@@ -20,8 +20,9 @@ import { strict as assert } from 'node:assert';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { type ApexVariable } from '../../../src/adapter/apexVariable';
 import { type LaunchRequestArguments } from '../../../src/adapter/types';
-import { LogContext } from '../../../src/core';
-import { FrameEntryState, VariableBeginState } from '../../../src/states';
+import { LogContext } from '../../../src/core/logContext';
+import { FrameEntryState } from '../../../src/states/frameEntryState';
+import { VariableBeginState } from '../../../src/states/variableBeginState';
 
 describe('Variable begin scope event', () => {
   let getUriFromSignatureStub: VitestMockInstance;

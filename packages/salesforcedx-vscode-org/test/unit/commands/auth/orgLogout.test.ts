@@ -14,7 +14,8 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { orgLogoutDefaultCommand } from '../../../../src/commands/auth/orgLogout';
 import type * as orgUtil from '../../../../src/util/orgUtil';
-import { makeConfirmOrThrow, UserCancellationError } from '../../testHelpers/promptServiceStub';
+import { makeConfirmOrThrow } from '../../testHelpers/promptServiceStub';
+import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
 
 const mockUpdateConfigAndStateAggregatorsEffect = vi.fn<() => Effect.Effect<void, never, never>>(() => Effect.void);
 let logoutMock: VitestMock;

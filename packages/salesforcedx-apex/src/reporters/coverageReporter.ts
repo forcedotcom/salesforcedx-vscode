@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { ApexCodeCoverage, ApexCodeCoverageAggregate } from '../tests/types';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as glob from 'fast-glob';
@@ -16,12 +15,10 @@ import * as os from 'node:os';
 import * as path from 'node:path';
 import { generateCoverageReports, IstanbulReports } from '../effect/coverageReports';
 import { ApexReportError, causeMessage, runReportSync } from '../effect/errors';
+import { type ApexCodeCoverage, type ApexCodeCoverageAggregate } from '../effect/schema/wire/coverage';
 import { nls } from '../i18n';
 import { type CoverageSource } from './coverageMap';
 import { type CoverageReporterOptions } from './coverageOptions';
-
-export { DefaultReportOptions, DefaultWatermarks } from './coverageOptions';
-export type { CoverageReporterOptions, CoverageReportFormats } from './coverageOptions';
 
 const resolveSources = (
   coverage: ApexCodeCoverageAggregate | ApexCodeCoverage,

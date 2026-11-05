@@ -16,7 +16,7 @@ import * as Ref from 'effect/Ref';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as TestClock from 'effect/TestClock';
 import * as TestContext from 'effect/TestContext';
-import type { TraceFlagItem } from 'salesforcedx-vscode-services';
+import type { TraceFlagItem } from '../../src/logs/logTypes';
 import { ApexLogService } from 'salesforcedx-vscode-services/src/core/apexLogService';
 import { ConnectionService } from 'salesforcedx-vscode-services/src/core/connectionService';
 import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';

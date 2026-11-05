@@ -214,7 +214,10 @@ describe('orgCreateCommand', () => {
     const validateAlias = aliasOptions?.validateInput?.bind(undefined);
     expect(validateAlias?.('my-scratch-org')).toBeUndefined();
     expect(validateAlias?.('GoodAlias')).toBeUndefined();
+    expect(validateAlias?.('my org_1')).toBeUndefined();
     expect(validateAlias?.('bad;alias')).toBe(nls.localize('error_invalid_org_alias'));
+    expect(validateAlias?.('')).toBe(nls.localize('error_invalid_org_alias'));
+    expect(validateAlias?.('   ')).toBe(nls.localize('error_invalid_org_alias'));
   });
 
   it('validates expiration-day boundaries and NumberFromString forms', async () => {
@@ -225,7 +228,7 @@ describe('orgCreateCommand', () => {
     const expirationOptions = showInputBox.mock.calls[1][0] as vscode.InputBoxOptions | undefined;
     const validateExpiration = expirationOptions?.validateInput?.bind(undefined);
     ['1', '30', '1e1', ' 10 ', '+10'].map(value => expect(validateExpiration?.(value)).toBeUndefined());
-    ['0', '31', '1.5', 'not-a-number'].map(value =>
+    ['', '   ', '0', '-1', '31', '1.5', 'not-a-number', 'NaN', 'Infinity'].map(value =>
       expect(validateExpiration?.(value)).toBe(nls.localize('error_invalid_expiration_days'))
     );
   });

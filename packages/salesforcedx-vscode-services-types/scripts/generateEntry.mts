@@ -33,7 +33,7 @@ export type {
   ChildRelationship,
   SObject,
   SObjectField
-} from '../../salesforcedx-vscode-services/out/src/index';
+} from 'salesforcedx-vscode-services';
 export { ICONS, type IconId } from './icons';
 `;
 

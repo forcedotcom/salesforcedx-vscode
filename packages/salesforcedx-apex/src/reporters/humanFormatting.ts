@@ -5,8 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { type CodeCoverageResult } from '../effect/coverageSchemas';
 import { messages } from '../i18n/i18n';
-import { type ApexTestResultData, type CodeCoverageResult, type TestResult } from '../tests/types';
+import { type ApexTestResultData, type TestResult } from '../tests/types';
 import { createTable, type Row } from '../utils/table';
 import { formatTestTable } from './testTable';
 

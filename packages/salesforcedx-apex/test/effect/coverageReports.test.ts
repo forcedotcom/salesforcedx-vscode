@@ -9,7 +9,7 @@ import * as Effect from 'effect/Effect';
 import * as libReport from 'istanbul-lib-report';
 import * as reports from 'istanbul-reports';
 import { buildCoverageMap, DefaultReportOptions, generateCoverageReports, IstanbulReports } from '../../src/effect';
-import type { ApexCodeCoverageAggregate } from '../../src/tests/types';
+import type { ApexCodeCoverageAggregate } from '../../src/effect/schema/wire/coverage';
 
 const coverage: ApexCodeCoverageAggregate = {
   done: true,

@@ -20,15 +20,6 @@ import {
   UserIdString
 } from '../schemas/salesforceId';
 
-export type {
-  ApexCodeCoverage,
-  ApexCodeCoverageAggregate,
-  ApexCodeCoverageAggregateRecord,
-  ApexCodeCoverageRecord,
-  ApexOrgWideCoverage
-} from '../effect/schema/wire/coverage';
-export type { CodeCoverageResult, PerClassCoverage } from '../effect/coverageSchemas';
-
 /**
  * Specifies which Apex tests run.
  *

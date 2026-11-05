@@ -7,7 +7,7 @@
 import { type LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import type { DebugProtocol } from '@vscode/debugprotocol';
 import * as Schema from 'effect/Schema';
-import { type ApexExecutionOverlayResultCommandSuccess } from '../commands';
+import { type ApexExecutionOverlayResultCommandSuccess } from '../commands/apexExecutionOverlayResultCommand';
 
 export type TraceCategory = 'all' | 'protocol' | 'logfile' | 'launch' | 'breakpoints';
 export type Step = 'Over' | 'In' | 'Out' | 'Run';

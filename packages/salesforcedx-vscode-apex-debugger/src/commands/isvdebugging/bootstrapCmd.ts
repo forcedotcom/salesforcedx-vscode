@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Global } from '@salesforce/core/global';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, parseErrorToValidationMessage } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -106,20 +106,32 @@ export const parsePackageInstalledListJson = (packagesJson: string): InstalledPa
  * session ids / login URLs. Not the injection boundary — that is simpleExec's argv spawn. */
 const FORCEIDE_DISALLOWED = /[`$\\"'|&;<>()\s]/;
 
-const uriValidator = (value: string): string | undefined => {
-  try {
-    const parameter = new URL(value).searchParams;
-    const url = parameter.get('url');
-    const sessionId = parameter.get('sessionId');
-    // `''` passes FORCEIDE_DISALLOWED, so require non-empty here — keeps gatherForceIdeUri's parse total.
-    if (!url || !sessionId || FORCEIDE_DISALLOWED.test(url) || FORCEIDE_DISALLOWED.test(sessionId)) {
-      return nls.localize('parameter_gatherer_invalid_forceide_url');
-    }
-  } catch {
-    return nls.localize('parameter_gatherer_invalid_forceide_url');
-  }
-  return undefined;
-};
+const ForceIdeUriSchema = Schema.String.pipe(
+  Schema.filter(
+    value => {
+      try {
+        const parameter = new URL(value).searchParams;
+        const url = parameter.get('url');
+        const sessionId = parameter.get('sessionId');
+        // `''` passes FORCEIDE_DISALLOWED, so require non-empty here — keeps gatherForceIdeUri's parse total.
+        return (
+          url !== null &&
+          url.length > 0 &&
+          sessionId !== null &&
+          sessionId.length > 0 &&
+          !FORCEIDE_DISALLOWED.test(url) &&
+          !FORCEIDE_DISALLOWED.test(sessionId)
+        );
+      } catch {
+        return false;
+      }
+    },
+    { message: () => nls.localize('parameter_gatherer_invalid_forceide_url') }
+  )
+);
+
+const uriValidator = (value: string): string | undefined =>
+  Schema.decodeUnknownEither(ForceIdeUriSchema)(value).pipe(parseErrorToValidationMessage);
 
 /** Prompts for the forceide:// URL and parses its login URL / session id / org name. Esc → UserCancellationError. */
 const gatherForceIdeUri = Effect.fn('isvDebugBootstrap.gatherForceIdeUri')(function* () {

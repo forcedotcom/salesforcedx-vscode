@@ -18,7 +18,7 @@ import {
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 import packageNls from '../../../package.nls.json';
-import { emptyWorkspaceDesktopTest as test } from '../fixtures';
+import { emptyWorkspaceDesktopTest as test } from '../fixtures/desktopFixtures';
 
 const PROJECT_NAME = `TestProjectEmptyWindow${Date.now()}`;
 
