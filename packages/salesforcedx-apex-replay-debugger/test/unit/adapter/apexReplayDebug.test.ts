@@ -68,11 +68,16 @@ export class MockApexReplayDebug extends ApexReplayDebug {
     return this.breakpoints;
   }
 
+  public setBreakpoints(uri: string, lines: number[]): void {
+    this.breakpoints.set(uri, []);
+    this.requestedBreakpoints.set(uri, lines);
+  }
+
   public shouldStopForBreakpoint(): boolean {
     return super.shouldStopForBreakpoint();
   }
 
-  public updateLineBreakpointInfo(uri: string, lineBreakpointInfo: LineBreakpointInfo[]): void {
+  public updateLineBreakpointInfo(uri: string, lineBreakpointInfo: unknown): void {
     super.customRequest('apexReplayDebugger/updateLineBreakpointInfo', this.getDefaultResponse(), {
       uri,
       lineBreakpointInfo
@@ -1019,6 +1024,41 @@ describe('Replay debugger adapter - unit', () => {
       );
       expect(adapter.getBreakpointMappings().typerefs.get('One')).toBe('file:///One.cls');
       expect(adapter.getBreakpointMappings().typerefs.get('Two')).toBe('file:///Two.cls');
+    });
+
+    it('ignores malformed metadata updates', () => {
+      adapter = new MockApexReplayDebug();
+      const mappings = adapter.getBreakpointMappings();
+
+      adapter.updateLineBreakpointInfo('file:///One.cls', [{ uri: 'file:///One.cls', typeref: 'One', lines: ['3'] }]);
+
+      expect(adapter.getBreakpointMappings()).toBe(mappings);
+    });
+
+    it('re-verifies requested breakpoints after metadata refresh', () => {
+      adapter = new MockApexReplayDebug();
+      const sendEventSpy = vi.spyOn(adapter as unknown as { sendEvent: () => void }, 'sendEvent');
+      adapter.setBreakpoints('file:///One.cls', [3]);
+
+      adapter.updateLineBreakpointInfo('file:///One.cls', [{ uri: 'file:///One.cls', typeref: 'One', lines: [3] }]);
+
+      expect(adapter.getBreakpoints().get('file:///One.cls')).toEqual([3]);
+      expect(sendEventSpy).toHaveBeenCalledWith(expect.objectContaining({ event: 'breakpoint' }));
+    });
+
+    it('reports breakpoints that become unverified after metadata refresh', () => {
+      adapter = new MockApexReplayDebug();
+      const sendEventSpy = vi.spyOn(adapter as unknown as { sendEvent: () => void }, 'sendEvent');
+      adapter.setBreakpoints('file:///One.cls', [3]);
+      adapter.updateLineBreakpointInfo('file:///One.cls', [{ uri: 'file:///One.cls', typeref: 'One', lines: [3] }]);
+      sendEventSpy.mockClear();
+
+      adapter.updateLineBreakpointInfo('file:///One.cls', [{ uri: 'file:///One.cls', typeref: 'One', lines: [5] }]);
+
+      expect(adapter.getBreakpoints().get('file:///One.cls')).toEqual([]);
+      expect(sendEventSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ body: expect.objectContaining({ breakpoint: { verified: false, line: 3 } }) })
+      );
     });
   });
 });
