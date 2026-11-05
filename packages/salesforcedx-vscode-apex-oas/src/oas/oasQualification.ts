@@ -12,7 +12,6 @@ const HTTP_ANNOTATIONS = new Set(['HttpGet', 'HttpPost', 'HttpPut', 'HttpPatch',
 export type OasQualification =
   | { readonly framework: 'aura'; readonly methods: readonly OasMethodContext[] }
   | { readonly framework: 'restUnsupported' }
-  | { readonly framework: 'mixed' }
   | { readonly framework: 'invalid'; readonly reason: OasIneligibilityReason };
 
 type OasIneligibilityReason = 'classAnnotationsBlockAura' | 'noEligibleMethods';
@@ -22,12 +21,13 @@ export const qualifyOasAnalysis = (analysis: OasSourceAnalysis): OasQualificatio
   const auraMethods = eligibleAuraMethods(analysis.methods);
   const hasRestResource = hasAnnotation(analysis.classContext.annotations, 'RestResource');
   const hasRestIndicators = hasRestResource || analysis.methods.some(method => hasHttpAnnotation(method));
+  const hasNonRestClassAnnotations = analysis.classContext.annotations.some(
+    annotation => annotation.name !== 'RestResource'
+  );
 
-  if (hasRestIndicators && auraMethods.length > 0) return { framework: 'mixed' };
+  if (!hasNonRestClassAnnotations && auraMethods.length > 0) return { framework: 'aura', methods: auraMethods };
   if (hasRestIndicators) return { framework: 'restUnsupported' };
-  if (analysis.classContext.annotations.length === 0 && auraMethods.length > 0)
-    return { framework: 'aura', methods: auraMethods };
-  if (analysis.classContext.annotations.length > 0 && auraMethods.length > 0) {
+  if (hasNonRestClassAnnotations && auraMethods.length > 0) {
     return { framework: 'invalid', reason: 'classAnnotationsBlockAura' };
   }
   return { framework: 'invalid', reason: 'noEligibleMethods' };
