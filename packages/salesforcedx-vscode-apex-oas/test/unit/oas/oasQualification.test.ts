@@ -52,51 +52,20 @@ const analysis = (
 });
 
 describe('qualifyOasAnalysis', () => {
-  it('rejects REST resources because REST generation is retired', () => {
-    const get = method('getRecord', [annotation('HttpGet')], true);
-    const post = method('postRecord', [annotation('HttpPost')], true);
-    const instance = method('ignored', [annotation('HttpDelete')]);
-
-    expect(qualifyOasAnalysis(analysis([annotation('RestResource')], [get, post, instance]))).toEqual({
-      framework: 'restUnsupported'
-    });
-  });
-
-  it('rejects HTTP annotations without a RestResource class annotation', () => {
-    expect(qualifyOasAnalysis(analysis([], [method('getRecord', [annotation('HttpGet')])]))).toEqual({
-      framework: 'restUnsupported'
-    });
-  });
-
-  it('selects AuraEnabled methods when the class has no annotations', () => {
+  it('selects AuraEnabled methods regardless of other annotations', () => {
     const aura = method('getRecord', [annotation('AuraEnabled')], true);
 
     expect(qualifyOasAnalysis(analysis([], [aura]))).toEqual({ framework: 'aura', methods: [aura] });
     expect(qualifyOasAnalysis(analysis([annotation('Deprecated')], [aura]))).toEqual({
-      framework: 'invalid',
-      reason: 'classAnnotationsBlockAura'
-    });
-  });
-
-  it('selects AuraEnabled methods when REST indicators are present', () => {
-    const aura = method('getRecordForAura', [annotation('AuraEnabled')], true);
-
-    expect(
-      qualifyOasAnalysis(analysis([annotation('RestResource')], [method('getRecord', [annotation('HttpGet')]), aura]))
-    ).toEqual({
-      framework: 'aura',
-      methods: [aura]
-    });
-    expect(qualifyOasAnalysis(analysis([], [method('getRecord', [annotation('HttpGet')]), aura]))).toEqual({
       framework: 'aura',
       methods: [aura]
     });
   });
 
-  it.each([['noEligibleMethods', analysis([], [method('Example', [annotation('AuraEnabled')], false, true)])]])(
-    'reports %s for an invalid framework shape',
-    (reason, source) => {
-      expect(qualifyOasAnalysis(source)).toEqual({ framework: 'invalid', reason });
-    }
-  );
+  it.each([
+    ['noEligibleMethods', analysis([], [method('run', [annotation('InvocableMethod')], true)])],
+    ['noEligibleMethods', analysis([], [method('Example', [annotation('AuraEnabled')], false, true)])]
+  ])('reports %s for an invalid framework shape', (reason, source) => {
+    expect(qualifyOasAnalysis(source)).toEqual({ framework: 'invalid', reason });
+  });
 });

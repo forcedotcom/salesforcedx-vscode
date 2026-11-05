@@ -40,7 +40,6 @@ export const messages = {
   operation_cancelled: 'Operation canceled',
   overwrite: 'Overwrite',
   registry_access_failed: 'Failed to retrieve ESR directory name from the registry.',
-  rest_oas_gen_retired: 'OpenAPI document generation for Apex REST (@RestResource) classes is no longer supported.',
   select_folder_for_oas: 'Select folder to store OpenAPI Document',
   validate_oas_document: 'SFDX: Validate OpenAPI Document'
 } as const;

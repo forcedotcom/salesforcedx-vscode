@@ -28,31 +28,3 @@ export const ineligibleApexClassText = [
   '  public IneligibleApexClass() {}',
   '}'
 ].join('\n');
-
-export const restResourceClassText = [
-  "@RestResource(urlMapping='/apex-rest-examples/v1/*')",
-  'global with sharing class RestResourceClass {',
-  '  @HttpGet',
-  '  global static String getResource() {',
-  "    return 'resource';",
-  '  }',
-  '}'
-].join('\n');
-
-// Mixes Apex REST (@RestResource + @HttpGet) with an @AuraEnabled method for Aura generation.
-export const mixedFrameworksClassText = [
-  "@RestResource(urlMapping='/apex-rest-examples/v1/mixed/*')",
-  'global with sharing class MixedFrameworksClass {',
-  '  @HttpGet',
-  '  global static Account getAccount() {',
-  '    RestRequest req = RestContext.request;',
-  "    String accountId = req.requestURI.substring(req.requestURI.lastIndexOf('/')+1);",
-  '    return [SELECT Id, Name, Phone, Website FROM Account WHERE Id = :accountId];',
-  '  }',
-  '',
-  '  @AuraEnabled',
-  '  public static Account getAccountForAura(Id accountId) {',
-  '    return [SELECT Id, Name, Phone, Website FROM Account WHERE Id = :accountId];',
-  '  }',
-  '}'
-].join('\n');

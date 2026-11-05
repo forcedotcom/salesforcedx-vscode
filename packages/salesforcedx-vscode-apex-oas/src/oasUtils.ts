@@ -140,6 +140,6 @@ export const getCurrentTimestamp = (): string => {
  * @returns {boolean} - True if the provider type is valid, false otherwise.
  */
 export const isValidRegistrationProviderType = (providerType: string | undefined): boolean => {
-  const validProviderTypes = ['Custom', 'ApexRest', 'AuraEnabled'];
+  const validProviderTypes = ['Custom', 'AuraEnabled'];
   return isNotUndefined(providerType) && validProviderTypes.includes(providerType);
 };

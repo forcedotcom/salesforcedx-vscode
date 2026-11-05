@@ -37,11 +37,11 @@ const runAnalysis = (exports: ReturnType<typeof apexLsExports>) =>
     Effect.provide(ApexMetadataService.Default),
     Effect.provideService(ExtensionProviderService, {
       getServicesApi: Effect.succeed({
-        services: { FsService: { readFile: () => Effect.succeed('@RestResource global class Example {}') } }
+        services: { FsService: { readFile: () => Effect.succeed('@CustomMarker global class Example {}') } }
       } as never)
     } as never),
     Effect.provideService(FsService, {
-      readFile: () => Effect.succeed('@RestResource global class Example {}')
+      readFile: () => Effect.succeed('@CustomMarker global class Example {}')
     } as never)
   );
 

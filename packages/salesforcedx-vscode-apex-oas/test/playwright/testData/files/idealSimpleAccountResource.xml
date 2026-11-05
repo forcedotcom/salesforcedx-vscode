@@ -13,6 +13,6 @@
   </operations>
   <registrationProvider>SimpleAccountResource</registrationProvider>
   <registrationProviderAsset>SimpleAccountResource</registrationProviderAsset>
-  <registrationProviderType>ApexRest</registrationProviderType>
+  <registrationProviderType>AuraEnabled</registrationProviderType>
   <namedCredential>null</namedCredential>
 </ExternalServiceRegistration>
