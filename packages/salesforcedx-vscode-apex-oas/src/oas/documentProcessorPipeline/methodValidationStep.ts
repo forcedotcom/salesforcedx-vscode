@@ -23,7 +23,7 @@ const collectMethodMismatches = (
   eligibleMethodNames: readonly string[]
 ): vscode.Diagnostic[] => {
   const methodNameValues = Arr.dedupe(eligibleMethodNames);
-  const methodNames = HashSet.fromIterable(methodNameValues);
+  const methodNames = HashSet.fromIterable(eligibleMethodNames);
   // Use JSONPath to find all operationIds in the OAS document
   const operationIdValues = Arr.dedupe(JSONPath<string[]>({ path: '$..operationId', json: oasYaml }));
   const operationIds = HashSet.fromIterable(operationIdValues);
