@@ -1,0 +1,52 @@
+name: classify-release
+description: "Determines whether a release is a hotfix, requiring the caller's compile+test gate"
+
+inputs:
+  release-tag:
+    description: 'Release tag to classify (for example, v67.10.0)'
+    required: true
+  github-token:
+    description: 'Token for gh release download'
+    required: true
+  dispatch-is-hotfix:
+    description: 'Manual workflow_dispatch isHotfix override, if any. Takes precedence over release metadata.'
+    required: false
+    default: ''
+
+outputs:
+  is-hotfix:
+    description: "'true' if the gate-check job should compile+test this release's commit before publish"
+    value: ${{ steps.classify.outputs.is-hotfix }}
+
+runs:
+  using: composite
+  steps:
+    - id: classify
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+        RELEASE_TAG: ${{ inputs.release-tag }}
+        DISPATCH_IS_HOTFIX: ${{ inputs.dispatch-is-hotfix }}
+      run: |
+        if [ "$DISPATCH_IS_HOTFIX" = "true" ]; then
+          echo "Manual dispatch override: isHotfix=true"
+          echo "is-hotfix=true" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        rm -f release-metadata.json
+        if ! gh release download "$RELEASE_TAG" --pattern release-metadata.json --clobber 2>/dev/null; then
+          echo "::warning::No release-metadata.json asset on $RELEASE_TAG -- forcing verification (fail-safe)"
+          echo "is-hotfix=true" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        IS_HOTFIX=$(jq -r '.isHotfix' release-metadata.json 2>/dev/null)
+        if [ "$IS_HOTFIX" != "true" ] && [ "$IS_HOTFIX" != "false" ]; then
+          echo "::warning::release-metadata.json on $RELEASE_TAG is missing/invalid isHotfix -- forcing verification (fail-safe)"
+          echo "is-hotfix=true" >> "$GITHUB_OUTPUT"
+          exit 0
+        fi
+
+        echo "Release metadata classifies $RELEASE_TAG as isHotfix=$IS_HOTFIX"
+        echo "is-hotfix=$IS_HOTFIX" >> "$GITHUB_OUTPUT"

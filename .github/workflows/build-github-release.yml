@@ -429,6 +429,38 @@ jobs:
           echo "Pre-release created: $RELEASE_TAG"
           echo "View at: https://github.com/${{ github.repository }}/releases/tag/$RELEASE_TAG"
 
+      - name: Record hotfix classification
+        # isHotfix is true exactly when the source did NOT come through nightly CI --
+        # same nightly-tag shape check as the relabel-changelog step above. This is the only
+        # place that knows SOURCE_TAG, so the classification has to be persisted here for
+        # publishVSCode.yml/publishOpenVSX.yml to read instead of requiring a manual
+        # isHotfix=true dispatch input on each of them.
+        env:
+          GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+          RELEASE_TAG: ${{ steps.calculate-version.outputs.release_tag }}
+          RELEASE_VERSION: ${{ steps.calculate-version.outputs.version }}
+          SOURCE_TAG: ${{ steps.detect-tag.outputs.tag }}
+          IS_EMERGENCY_PRERELEASE: ${{ steps.calculate-version.outputs.is_emergency_prerelease }}
+        run: |
+          IS_HOTFIX=true
+          if [[ "$SOURCE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-nightly\.develop\.[0-9]{8}$ ]]; then
+            IS_HOTFIX=false
+          fi
+
+          jq -n \
+            --argjson schemaVersion 1 \
+            --argjson isHotfix "$IS_HOTFIX" \
+            --arg sourceRef "$SOURCE_TAG" \
+            --arg version "$RELEASE_VERSION" \
+            --argjson emergencyPrerelease "$IS_EMERGENCY_PRERELEASE" \
+            '{schemaVersion: $schemaVersion, isHotfix: $isHotfix, sourceRef: $sourceRef, version: $version, emergencyPrerelease: $emergencyPrerelease}' \
+            > release-metadata.json
+
+          echo "Release metadata:"
+          cat release-metadata.json
+
+          gh release upload "$RELEASE_TAG" release-metadata.json
+
   # Stable releases always bump the source nightly's odd minor to the next even minor
   # (see calculate-release-version.js). Nightlies built on develop have no reason to know
   # that happened, so without this, develop keeps patch-bumping under the now-shipped odd
