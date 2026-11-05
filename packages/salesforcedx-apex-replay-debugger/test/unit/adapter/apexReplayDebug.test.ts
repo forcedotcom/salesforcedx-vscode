@@ -29,7 +29,7 @@ import {
 import { type DebugProtocol } from '@vscode/debugprotocol';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { type LaunchRequestArguments } from '../../../src/adapter/types';
-import type { BreakpointMappings } from '../../../src/breakpoints';
+import type { BreakpointMappings } from '../../../src/breakpoints/breakpointUtil';
 import { BreakpointUtil } from '../../../src/breakpoints/breakpointUtil';
 import { breakpointUtil } from '../../../src/breakpoints';
 import { SEND_METRIC_ERROR_EVENT, SEND_METRIC_GENERAL_EVENT, SEND_METRIC_LAUNCH_EVENT } from '../../../src/constants';
