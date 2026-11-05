@@ -17,7 +17,9 @@ import { nls } from '../messages';
 import { messages } from '../messages/i18n';
 import { getSoqlRuntime } from '../services/extensionProvider';
 import { type SuccessOnlyCommandKey } from '../utils/notificationMode';
-import { CsvDataProvider, type DataProvider, JsonDataProvider } from './dataProviders';
+import { CsvDataProvider } from './dataProviders/csvDataProvider';
+import { type DataProvider } from './dataProviders/iDataProvider';
+import { JsonDataProvider } from './dataProviders/jsonDataProvider';
 
 export enum FileFormat {
   JSON = 'json',

@@ -21,7 +21,7 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
-import { test } from '../fixtures';
+import { desktopTest as test } from '../fixtures/desktopFixtures';
 import { continueDebugSession } from '../helpers/debugHelpers';
 
 const ANON_APEX_CONTENT = "System.debug('hello from anonymous apex');";

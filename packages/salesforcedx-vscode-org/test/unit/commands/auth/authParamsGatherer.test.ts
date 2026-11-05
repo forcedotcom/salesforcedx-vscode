@@ -26,11 +26,8 @@ import {
   setAllServicesLayer
 } from '../../../../src/extensionProvider';
 import { nls } from '../../../../src/messages';
-import {
-  considerUndefinedAsCancellation,
-  makeConfirmOrThrow,
-  UserCancellationError
-} from '../../testHelpers/promptServiceStub';
+import { considerUndefinedAsCancellation, makeConfirmOrThrow } from '../../testHelpers/promptServiceStub';
+import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
 
 describe('AuthParamsGatherer', () => {
   const buildLayer = (confirm = true, projectLoginUrl?: string) => {

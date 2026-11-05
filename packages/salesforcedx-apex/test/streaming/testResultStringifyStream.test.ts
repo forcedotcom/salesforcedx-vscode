@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { once } from 'node:events';
-import { TestResultStringifyStream } from '../../src/streaming';
-import { type CodeCoverageResult, type TestResult } from '../../src/tests';
-import { type PerClassCoverage } from '../../src/tests/types';
+import { TestResultStringifyStream } from '../../src/streaming/testResultStringifyStream';
+import { type CodeCoverageResult, type PerClassCoverage } from '../../src/effect/coverageSchemas';
+import { type TestResult } from '../../src/tests/types';
 import { apexClassId, salesforceId } from '../schemaHelpers';
 
 const firstAsyncApexJobId = salesforceId('707000000000001AAA');

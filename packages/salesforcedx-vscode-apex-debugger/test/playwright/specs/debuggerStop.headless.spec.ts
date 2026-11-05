@@ -31,7 +31,7 @@ import {
   waitForVSCodeWorkbench,
   waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
-import { debuggerDesktopTest as test } from '../fixtures';
+import { debuggerDesktopTest as test } from '../fixtures/desktopFixtures';
 import packageNls from '../../../package.nls.json';
 import { messages } from '../../../src/messages/i18n';
 

@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { type Connection, Logger } from '@salesforce/core';
-import { elapsedTime } from '../../src/utils';
-import * as apexUtils from '../../src/utils';
+import { elapsedTime } from '../../src/utils/elapsedTime';
+import * as apexUtils from '../../src/utils/dateUtil';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import * as sinon from 'sinon';
 import { TestService, type OutputDirConfig, type ApexTestProgressReporter, CancellationTokenSource } from '../../src';
@@ -19,7 +19,7 @@ import {
   type ApexTestQueueItemRecord,
   type TestRunIdResult
 } from '../../src/tests/types';
-import { StreamingClient } from '../../src/streaming';
+import { StreamingClient } from '../../src/streaming/streamingClient';
 import { fail } from 'node:assert';
 import { nls } from '../../src/i18n';
 import {
@@ -47,7 +47,7 @@ vi.mock(import('../../src/tests/diagnosticUtil'), async importOriginal => {
   const actual = await importOriginal();
   return { ...actual, formatTestErrors: vi.fn(actual.formatTestErrors) };
 });
-vi.mock(import('../../src/utils'), async importOriginal => ({
+vi.mock(import('../../src/utils/dateUtil'), async importOriginal => ({
   ...(await importOriginal()),
   getCurrentTime: vi.fn()
 }));

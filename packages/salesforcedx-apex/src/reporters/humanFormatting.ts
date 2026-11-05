@@ -6,9 +6,10 @@
  */
 
 import * as os from 'node:os';
+import { type CodeCoverageResult } from '../effect/coverageSchemas';
 import { nls } from '../i18n';
-import { type ApexTestResultData, type CodeCoverageResult, type TestResult } from '../tests/types';
-import { createTable, type Row } from '../utils';
+import { type ApexTestResultData, type TestResult } from '../tests/types';
+import { createTable, type Row } from '../utils/table';
 import { formatTestTable } from './testTable';
 
 const UNCOVERED_LINES_ARRAY_LIMIT = 5;

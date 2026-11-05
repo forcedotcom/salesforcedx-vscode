@@ -10,8 +10,8 @@ export type { CancellationToken } from './tests/cancellation';
 export type { ApexTestProgressReporter } from './tests/types';
 export type { ExecuteAnonymousResponse, ApexExecuteOptions } from './execute/types';
 export { ExecuteService } from './execute/executeService';
-export { LogService } from './logs';
-export type { ApexLogGetOptions, LogRecord, LogResult } from './logs';
+export { LogService } from './logs/logService';
+export type { ApexLogGetOptions, LogRecord, LogResult } from './logs/types';
 export {
   ApexClassId,
   ApexLogId,
@@ -21,29 +21,24 @@ export {
   TestRunId,
   UserId
 } from './schemas/salesforceId';
-export {
-  formatJUnit,
-  formatTap,
-  formatHuman,
-  CoverageReporter,
-  DefaultReportOptions,
-  DefaultWatermarks,
-  MarkdownTextFormatTransformer
-} from './reporters';
-export type {
-  CoverageReporterOptions,
-  CoverageReportFormats,
-  MarkdownTextFormatTransformerOptions,
-  MarkdownTextReporterOptions,
-  OutputFormat,
-  TestSortOrder
-} from './reporters';
-export { TestService, ResultFormat, ResultFormatSchema, TestLevel, TestLevelSchema } from './tests';
+export { formatJUnit } from './reporters/junitFormatting';
+export { formatTap } from './reporters/tapFormatting';
+export { formatHuman } from './reporters/humanFormatting';
+export { CoverageReporter, DefaultReportOptions, DefaultWatermarks } from './reporters/coverageReporter';
+export { MarkdownTextFormatTransformer } from './reporters/markdownTextFormatTransformer';
+export type { CoverageReporterOptions, CoverageReportFormats } from './reporters/coverageReporter';
+export type { MarkdownTextFormatTransformerOptions } from './reporters/markdownTextFormatTransformer';
+export type { MarkdownTextReporterOptions, OutputFormat, TestSortOrder } from './reporters/markdownTextReporter';
+export { TestService } from './tests/testService';
+export { ResultFormat, ResultFormatSchema, TestLevel, TestLevelSchema } from './tests/types';
 export type {
   ApexCodeCoverage,
   ApexCodeCoverageRecord,
   ApexCodeCoverageAggregate,
-  ApexCodeCoverageAggregateRecord,
+  ApexCodeCoverageAggregateRecord
+} from './effect/schema/wire/coverage';
+export type { CodeCoverageResult, PerClassCoverage } from './effect/coverageSchemas';
+export type {
   ApexTestQueueItem,
   ApexTestQueueItemRecord,
   ApexTestQueueItemStatus,
@@ -55,14 +50,13 @@ export type {
   ApexTestSetupData,
   AsyncTestArrayConfiguration,
   AsyncTestConfiguration,
-  CodeCoverageResult,
   OutputDirConfig,
   SyncTestConfiguration,
   TestItem,
   TestResult,
   TestResultRaw,
   TestRunIdResult,
-  TestSuiteMembershipRecord,
-  PerClassCoverage
-} from './tests';
-export type { ApexDiagnostic, CommonOptions, LogLevel } from './utils';
+  TestSuiteMembershipRecord
+} from './tests/types';
+export type { ApexDiagnostic } from './effect/diagnostics';
+export type { CommonOptions, LogLevel } from './utils/types';

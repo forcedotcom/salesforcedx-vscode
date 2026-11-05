@@ -24,10 +24,13 @@ import { ApexOperationError, ApexResponseDecodeError } from '../effect/schema/er
 import { buildAsyncPayload, buildSyncPayload } from '../effect/testPayloads';
 import { buildSuite, getTestsInSuite, retrieveAllSuites, retrieveSuiteId } from '../effect/testSuites';
 import { nls } from '../i18n';
-import { JUnitFormatTransformer, TapFormatTransformer, MarkdownTextFormatTransformer } from '../reporters';
+import { JUnitFormatTransformer } from '../reporters/junitFormatTransformer';
+import { MarkdownTextFormatTransformer } from '../reporters/markdownTextFormatTransformer';
+import { TapFormatTransformer } from '../reporters/tapFormatTransform';
 import { ApexTestSuiteId } from '../schemas/salesforceId';
-import { TestResultStringifyStream } from '../streaming';
-import { elapsedTime, HeapMonitor } from '../utils';
+import { TestResultStringifyStream } from '../streaming/testResultStringifyStream';
+import { elapsedTime } from '../utils/elapsedTime';
+import { HeapMonitor } from '../utils/heapMonitor';
 import { AsyncTests } from './asyncTests';
 import { type CancellationToken } from './cancellation';
 import { formatTestErrors } from './diagnosticUtil';

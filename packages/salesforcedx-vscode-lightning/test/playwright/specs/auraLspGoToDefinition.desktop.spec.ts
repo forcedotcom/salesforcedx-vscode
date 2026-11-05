@@ -22,7 +22,7 @@ import {
   WORKBENCH
 } from '@salesforce/playwright-vscode-ext';
 
-import { test } from '../fixtures';
+import { noOrgDesktopTest as test } from '../fixtures/desktopFixtures';
 import { waitForAuraLspReady } from '../utils/auraLspUtils';
 
 // The aura1 bundle is pre-seeded onto disk before launch (fixtures/desktopFixtures.ts); the Aura LS

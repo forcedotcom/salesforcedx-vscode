@@ -7,8 +7,7 @@
 
 import { Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
-import { StreamingClient } from '../../src/streaming';
-import { Deferred } from '../../src/streaming/streamingClient';
+import { StreamingClient, Deferred } from '../../src/streaming/streamingClient';
 import { Client, Subscription } from 'faye';
 import { fail } from 'node:assert';
 import { type ApexTestProgressReporter } from '../../src';

@@ -8,7 +8,7 @@
 import { isNullable, isString } from 'effect/Predicate';
 import { isEmpty } from 'effect/String';
 import { type TestResult } from '../tests/types';
-import { formatStartTime, msToSecond } from '../utils';
+import { formatStartTime, msToSecond } from '../utils/dateUtil';
 import { escapeXml, xmlCdata } from './escaping';
 
 // cli currently has spaces in multiples of four for junit format

@@ -26,8 +26,6 @@ export const CommonOptionsSchema = Schema.Struct({
 }).annotations({ identifier: 'CommonOptions' });
 export type CommonOptions = typeof CommonOptionsSchema.Type;
 
-export type { ApexDiagnostic } from '../effect/diagnostics';
-
 type DebugLevelRecord = {
   ApexCode: string;
   VisualForce: string;

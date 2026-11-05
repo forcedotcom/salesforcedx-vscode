@@ -20,8 +20,10 @@ import { strict as assert } from 'node:assert';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { type LaunchRequestArguments } from '../../../src/adapter/types';
 import { type ApexVariableContainer } from '../../../src/adapter/variableContainer';
-import { LogContext } from '../../../src/core';
-import { FrameEntryState, VariableAssignmentState, VariableBeginState } from '../../../src/states';
+import { LogContext } from '../../../src/core/logContext';
+import { FrameEntryState } from '../../../src/states/frameEntryState';
+import { VariableAssignmentState } from '../../../src/states/variableAssignmentState';
+import { VariableBeginState } from '../../../src/states/variableBeginState';
 
 describe('Variable assignment event', () => {
   let getUriFromSignatureStub: VitestMockInstance;

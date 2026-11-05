@@ -9,7 +9,7 @@ import { expect } from '@playwright/test';
 import { QUICK_INPUT_WIDGET, setupMinimalOrgAndAuth } from '@salesforce/playwright-vscode-ext';
 import fs from 'node:fs/promises';
 import path from 'node:path';
-import { test } from '../fixtures';
+import { desktopTest as test } from '../fixtures/desktopFixtures';
 
 test('an apex-replay launch activates the extension and prompts for a log file', async ({ page, workspaceDir }) => {
   test.setTimeout(300_000);

@@ -21,7 +21,7 @@ import {
   waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
 
-import { test } from '../fixtures';
+import { noOrgDesktopTest as test } from '../fixtures/desktopFixtures';
 import { waitForAuraLspReady } from '../utils/auraLspUtils';
 
 // Specs are independent (separate VS Code session per spec), so the Aura LS re-indexes the

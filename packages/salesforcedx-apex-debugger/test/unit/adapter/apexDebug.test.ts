@@ -23,7 +23,9 @@ import {
   type SetExceptionBreakpointsArguments
 } from '../../../src/adapter/apexDebug';
 import { type LineBreakpointsInTyperef } from '../../../src/breakpoints/lineBreakpoint';
-import { RunCommand, StateCommand, StepIntoCommand, StepOutCommand, StepOverCommand } from '../../../src/commands';
+import { RunCommand } from '../../../src/commands/runCommand';
+import { StateCommand } from '../../../src/commands/stateCommand';
+import { StepIntoCommand, StepOutCommand, StepOverCommand } from '../../../src/commands/stepCommands';
 import {
   DEFAULT_CONNECTION_TIMEOUT_MS,
   DEFAULT_IDLE_TIMEOUT_MS,
@@ -41,14 +43,15 @@ import {
 } from '../../../src/constants';
 import {
   type ApexDebuggerEventType,
-  BreakpointService,
   type DebuggerMessage,
-  SessionService,
   StreamingClientInfo,
-  type StreamingEvent,
-  StreamingService
-} from '../../../src/core';
-import { type VscodeDebuggerMessage, VscodeDebuggerMessageType, type WorkspaceSettings } from '../../../src/index';
+  type StreamingEvent
+} from '../../../src/core/streamingClient';
+import { BreakpointService } from '../../../src/core/breakpointService';
+import { SessionService } from '../../../src/core/sessionService';
+import { StreamingService } from '../../../src/core/streamingService';
+import { type VscodeDebuggerMessage, VscodeDebuggerMessageType } from '../../../src/vscodeDebuggerMessage';
+import { type WorkspaceSettings } from '../../../src/workspaceSettings';
 import { nls } from '../../../src/messages';
 import { RequestService } from '../../../src/requestService/requestService';
 import { ApexDebugForTest } from './apexDebugForTest';

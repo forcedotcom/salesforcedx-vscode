@@ -17,7 +17,7 @@ import { existsSync } from 'node:fs';
 import * as fs from 'node:fs/promises';
 import * as path from 'node:path';
 
-import { test } from '../fixtures';
+import { desktopTest as test } from '../fixtures/desktopFixtures';
 import { findReleaseDir, triggerLspRestart, waitForApexLspReady } from '../utils/apexLspUtils';
 
 // Each matrix entry gets its own test-scoped workspace + Electron, so they're already isolated.
