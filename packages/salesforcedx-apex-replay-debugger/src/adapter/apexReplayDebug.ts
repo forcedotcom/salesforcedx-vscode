@@ -32,7 +32,7 @@ import {
   replaceBreakpointMappingsForUri,
   returnLinesForLoggingFromBreakpointArgs,
   type BreakpointMappings
-} from '../breakpoints';
+} from '../breakpoints/breakpointUtil';
 import { SEND_METRIC_GENERAL_EVENT, SEND_METRIC_ERROR_EVENT, SEND_METRIC_LAUNCH_EVENT } from '../constants';
 import { HeapDumpService } from '../core/heapDumpService';
 import { LogContext } from '../core/logContext';
