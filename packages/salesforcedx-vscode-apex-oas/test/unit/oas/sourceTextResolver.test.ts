@@ -29,6 +29,6 @@ describe('resolveSourceText', () => {
     const source = await Effect.runPromise(resolveSourceText(uri, [], readFile));
 
     expect(source).toBe('disk content');
-    expect(readFile).toHaveBeenCalledWith('/project/classes/Example.cls');
+    expect(readFile).toHaveBeenCalledWith(uri.fsPath);
   });
 });
