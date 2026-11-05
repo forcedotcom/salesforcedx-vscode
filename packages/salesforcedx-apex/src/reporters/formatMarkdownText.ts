@@ -21,6 +21,7 @@ import {
   isPoorlyPerforming,
   type MarkdownTextReporterOptions
 } from './markdownTextReporter';
+import { normalizeTextStream } from './normalizeTextStream';
 
 const buildReportData = (testResult: TestResult, options: Required<MarkdownTextReporterOptions>): ReportData => {
   const { passed, failed, skipped, total, duration } = getSummaryInfo(testResult.summary);
@@ -293,7 +294,8 @@ const formatMarkdownTextChunkIterable = (
     performanceThresholdMs: options.performanceThresholdMs ?? 5000,
     coverageThresholdPercent: options.coverageThresholdPercent ?? 75,
     codeCoverage: options.codeCoverage ?? false,
-    timestamp: options.timestamp ?? new Date()
+    timestamp: options.timestamp ?? new Date(),
+    lineEnding: options.lineEnding ?? '\n'
   };
   const data = buildReportData(testResult, defaults);
   return defaults.format === 'markdown' ? renderMarkdown(data, defaults) : renderText(data);
@@ -302,4 +304,8 @@ const formatMarkdownTextChunkIterable = (
 export const formatMarkdownTextChunks = (
   testResult: TestResult,
   options: MarkdownTextReporterOptions = {}
-): Stream.Stream<string> => Stream.fromIterable(formatMarkdownTextChunkIterable(testResult, options));
+): Stream.Stream<string> =>
+  normalizeTextStream(
+    Stream.fromIterable(formatMarkdownTextChunkIterable(testResult, options)),
+    options.lineEnding ?? '\n'
+  );

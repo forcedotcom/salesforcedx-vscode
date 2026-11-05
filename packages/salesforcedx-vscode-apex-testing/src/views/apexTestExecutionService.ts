@@ -18,6 +18,7 @@ import { type URI, Utils } from 'vscode-uri';
 import { APEX_TESTING_SECTION } from '../constants';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
+import { fileOutputFromFsService } from '../services/fsServiceFileOutput';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
 import { DebugDispatchError, TestExecutionError, TestTempFolderError } from '../utils/apexTestExecutionErrors';
@@ -40,15 +41,12 @@ import { updateTestRunResults } from '../utils/testResultProcessor';
 import { readTestRunIdFile, writeTestResultJsonFile } from '../utils/testUtils';
 import { ApexTestTreeService, type TreeMutationContext } from './apexTestTreeService';
 
-const TEST_RESULT_JSON_FILE = 'test-result.json';
-
 /** How the run profile constrains an implicit "run all" (no explicit test selection). */
 export type ApexTestRunScope = 'workspace-first' | 'all-org' | 'stale-workspace' | 'stale-org';
 
 /** Per-invocation runtime data (params, not service deps). Tree maps + suiteToClasses come from
  * ApexTestTreeService accessors; suite resolution delegates to ApexTestTreeService.resolveSuiteChildren.
- * Connection/TestService are no longer threaded in: methods acquire the connection on demand via
- * ConnectionService.getConnection() (cached) + `new TestService(conn)`. */
+ * Connection and FsService come from the shared API; TestService gets a FileOutput adapter over that FsService. */
 export type ExecutionContext = {
   controller: vscode.TestController;
   orgOnlyTag: vscode.TestTag | undefined;
@@ -163,10 +161,7 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       testResultUri: URI
     ) {
       const testRunId = yield* readTestRunIdFile(apexTestDir);
-      const expectedResultUri = Utils.joinPath(
-        apexTestDir,
-        testRunId ? `test-result-${testRunId}.json` : TEST_RESULT_JSON_FILE
-      );
+      const expectedResultUri = Utils.joinPath(apexTestDir, `test-result-${testRunId ?? 'default'}.json`);
       if (testResultUri.toString() !== expectedResultUri.toString()) {
         return;
       }
@@ -200,7 +195,11 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       const connection = yield* api.services.ConnectionService.getConnection().pipe(
         Effect.mapError(e => new TestExecutionError({ message: toUserFriendlyApexTestError(e) }))
       );
-      const testService = new TestService(connection);
+      const fsService = process.env.ESBUILD_PLATFORM === 'web' ? yield* api.services.FsService : undefined;
+      const testService =
+        fsService === undefined
+          ? new TestService(connection)
+          : new TestService(connection, fileOutputFromFsService(fsService));
       const { payload, hasSuite, hasClass } = runAllTestsInOrg
         ? {
             payload: { testLevel: 'RunAllTestsInOrg' as const, skipCodeCoverage: !codeCoverage },
@@ -239,11 +238,9 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       // Run-All group to "older results"; see W-… history in the shell). Non-fatal: a write failure logs
       // and the run continues (report + result push still happen), matching the legacy console.error path.
       yield* writeTestResultJsonFile(result, outputDir, codeCoverage).pipe(
-        Effect.catchTag('FsServiceError', error => Effect.logError('Failed to write JSON test result file', { error }))
+        Effect.catchTag('FileOutputError', error => Effect.logError('Failed to write JSON test result file', { error }))
       );
-      const writtenResultFilename = result.summary?.testRunId
-        ? `test-result-${result.summary.testRunId}.json`
-        : TEST_RESULT_JSON_FILE;
+      const writtenResultFilename = `test-result-${result.summary?.testRunId ?? 'default'}.json`;
       yield* Ref.set(lastProcessedResultFile, Option.some(Utils.joinPath(outputDir, writtenResultFilename)));
 
       // Generate and open the report (non-fatal: log + continue on failure).

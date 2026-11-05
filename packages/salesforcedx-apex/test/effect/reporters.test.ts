@@ -125,6 +125,20 @@ describe('Effect reporters', () => {
     }
   });
 
+  it('normalizes embedded error newlines to the requested line ending', async () => {
+    const result = structuredClone(coverageFailResult);
+    result.tests = result.tests.map(test =>
+      test.outcome === 'Fail' ? { ...test, message: 'first\r\nsecond\rthird\n' } : test
+    );
+    const report = await Effect.runPromise(
+      formatMarkdownTextReport(result, { format: 'text', timestamp, lineEnding: '\r\n' })
+    );
+
+    expect(report).toContain('first\r\nsecond\r\nthird\r\n');
+    expect(report.replaceAll('\r\n', '')).not.toContain('\n');
+    expect(report.replaceAll('\r\n', '')).not.toContain('\r');
+  });
+
   it('uses the Effect clock for the default Markdown timestamp and preserves defaults', async () => {
     const clock = Object.assign(Clock.make(), { currentTimeMillis: Effect.succeed(timestamp.getTime()) });
     const actual = await Effect.runPromise(formatMarkdownTextReport(successResult).pipe(Effect.withClock(clock)));

@@ -5,20 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as fs from 'node:fs';
+import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
 import * as path from 'node:path';
+import { FileOutput } from '../effect/fileOutput';
 
-/**
- * Method to save a file on disk.
- *
- * @param filePath path where to
- * @param fileContent file contents
- * @internal - Only used within salesforcedx-apex package
- */
-export function createFile(filePath: string, fileContent: string): void {
-  fs.mkdirSync(path.dirname(filePath), { recursive: true });
-  fs.closeSync(fs.openSync(filePath, 'w'));
-
-  const writeStream = fs.createWriteStream(filePath);
-  writeStream.write(fileContent);
-}
+/** Writes a file through the caller-provided output implementation. */
+export const createFile = Effect.fn('Apex.createFile')(function* (filePath: string, fileContent: string) {
+  const fileOutput = yield* FileOutput;
+  const directory = path.dirname(filePath);
+  yield* fileOutput.createDirectory(directory);
+  return yield* fileOutput.writeFile(directory, path.basename(filePath), Stream.make(fileContent));
+});

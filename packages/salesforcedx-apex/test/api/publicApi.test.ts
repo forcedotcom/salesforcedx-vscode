@@ -83,6 +83,8 @@ describe('@salesforce/apex-node public API', () => {
       'DefaultWatermarks',
       'ExecuteAnonymousOptionsSchema',
       'ExecuteAnonymousOutcomeSchema',
+      'FileOutput',
+      'FileOutputError',
       'IstanbulReports',
       'ListLogsOptionsSchema',
       'LogStreamEventSchema',
@@ -119,7 +121,8 @@ describe('@salesforce/apex-node public API', () => {
       'runTestAsynchronous',
       'runTestSynchronous',
       'streamLogs',
-      'transformTestResult'
+      'transformTestResult',
+      'writeResultFiles'
     ]);
   });
 

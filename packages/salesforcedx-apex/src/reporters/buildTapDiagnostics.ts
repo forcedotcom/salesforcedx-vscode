@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { type ApexTestResultData } from '../tests/types';
+import { splitLines } from '../utils/splitLines';
 /**
  * this regex is flagged as likely incorrect by Cursor, BUT there is a unit test that specs
  * expect(result[12].diagnostics).to.eql([
@@ -23,15 +24,12 @@ export const buildTapDiagnostics = (testResult: ApexTestResultData, lineEnding =
 
   const message = testResult.message
     ? startsWithNewlineRegex.test(testResult.message)
-      ? testResult.message
-          .split(/\r\n|\r|\n/g)
+      ? splitLines(testResult.message)
           .filter(msg => msg?.length > 0)
           .map(msg => msg.trim())
       : [testResult.message]
     : ['Unknown error'];
 
-  const stack = testResult.stackTrace
-    ? testResult.stackTrace.replaceAll(/\r\n|\r|\n/g, lineEnding).split(lineEnding)
-    : [];
+  const stack = testResult.stackTrace ? splitLines(testResult.stackTrace, lineEnding) : [];
   return [...message, ...stack];
 };

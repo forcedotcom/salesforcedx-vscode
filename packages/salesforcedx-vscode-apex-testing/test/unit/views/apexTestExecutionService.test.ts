@@ -66,6 +66,7 @@ import type * as TestUtils from '../../../src/utils/testUtils';
 import { type TestResult, type TestService } from '@salesforce/apex-node';
 import { TestResultSchema } from '@salesforce/apex-node/effect';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
@@ -101,6 +102,17 @@ const makeTestResult = (summary: Partial<TestResult['summary']> = {}): TestResul
     tests: []
   });
 const readFile = vi.fn((_uri: URI) => Effect.succeed(JSON.stringify(makeTestResult())));
+const mockFsService = {
+  createDirectory: () => Effect.void,
+  toUri: (path: string | URI) => Effect.succeed(typeof path === 'string' ? URI.parse(path) : path),
+  safeWriteFile: () => Effect.void,
+  readFile: (uri: URI) => readFile(uri),
+  fileOrFolderExists: () => Effect.succeed(false)
+};
+const FsServiceTag = Context.GenericTag<typeof mockFsService>('FsService');
+const MockFsService = Object.assign(FsServiceTag, {
+  readFile: (uri: URI) => Effect.flatMap(FsServiceTag, fsService => fsService.readFile(uri))
+});
 // Mirror the prior settings-mock defaults through the SettingsService accessor.
 const settingsValues: Record<string, unknown> = {
   'retrieve-test-code-coverage': false,
@@ -112,7 +124,7 @@ const mockApi = {
   services: {
     ChannelService: Effect.succeed({ appendToChannel }),
     NotificationModeService: Effect.succeed({ showSuccessNotification, showErrorWithActions }),
-    FsService: { readFile: (uri: URI) => readFile(uri) },
+    FsService: MockFsService,
     // Yielded as an instance (yield* api.services.SettingsService), so wrap in Effect.succeed.
     SettingsService: Effect.succeed({
       getValue: (_section: string, key: string, defaultValue: unknown) =>
@@ -125,9 +137,12 @@ const mockApi = {
     ConnectionService: { getConnection: () => Effect.succeed({}) }
   }
 };
-const ExtProviderLayer = Layer.succeed(ExtensionProviderService, {
-  getServicesApi: Effect.succeed(mockApi)
-} as unknown as ExtensionProviderService);
+const ExtProviderLayer = Layer.mergeAll(
+  Layer.succeed(ExtensionProviderService, {
+    getServicesApi: Effect.succeed(mockApi)
+  } as unknown as ExtensionProviderService),
+  Layer.succeed(FsServiceTag, mockFsService)
+);
 
 // Fresh tree + execution service (fresh Refs) per layer build; ExtProviderLayer also stays ambient for the
 // methods that yield ExtensionProviderService at call time.
@@ -638,7 +653,7 @@ describe('ApexTestExecutionService', () => {
       mockReadTestRunIdFile.mockReturnValue(Effect.succeed(undefined));
       const ctx = makeCtx();
       const dir = URI.file('/tmp');
-      const resultUri = URI.file('/tmp/test-result.json');
+      const resultUri = URI.file('/tmp/test-result-default.json');
       await runEff(
         Effect.gen(function* () {
           yield* ApexTestExecutionService.onResultFileCreate(ctx, dir, resultUri);

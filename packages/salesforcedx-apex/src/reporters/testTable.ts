@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { messages } from '../i18n/i18n';
+import { nls } from '../i18n';
 import { createTable, type Row } from '../utils/table';
 
 export const formatTestTable = (
@@ -18,13 +18,13 @@ export const formatTestTable = (
     ? createTable(
         rows,
         [
-          { key: 'name', label: messages.testNameColHeader },
-          ...(detailedCoverage ? [{ key: 'coveredClassName', label: messages.classTestedHeader }] : []),
-          ...(showCategory ? [{ key: 'category', label: messages.categoryColHeader }] : []),
-          { key: 'outcome', label: messages.outcomeColHeader },
-          ...(detailedCoverage ? [{ key: 'coveredClassPercentage', label: messages.percentColHeader }] : []),
-          { key: 'msg', label: messages.msgColHeader },
-          { key: 'runtime', label: messages.runtimeColHeader }
+          { key: 'name', label: nls.localize('testNameColHeader') },
+          ...(detailedCoverage ? [{ key: 'coveredClassName', label: nls.localize('classTestedHeader') }] : []),
+          ...(showCategory ? [{ key: 'category', label: nls.localize('categoryColHeader') }] : []),
+          { key: 'outcome', label: nls.localize('outcomeColHeader') },
+          ...(detailedCoverage ? [{ key: 'coveredClassPercentage', label: nls.localize('percentColHeader') }] : []),
+          { key: 'msg', label: nls.localize('msgColHeader') },
+          { key: 'runtime', label: nls.localize('runtimeColHeader') }
         ],
         title
       )

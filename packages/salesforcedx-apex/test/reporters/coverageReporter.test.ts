@@ -158,6 +158,34 @@ describe('coverageReports', () => {
     const dirEntries = await fs.promises.readdir(testResultsDir);
     expect(dirEntries).toHaveLength(1);
   });
+  it('should prefer shallower source files for matching class names', async () => {
+    const sourceDir = path.join(testResultsDir, 'source');
+    const deeperFile = path.join(sourceDir, 'a-deep', 'deeper', 'Widget.cls');
+    const shallowerFile = path.join(sourceDir, 'z-shallow', 'Widget.cls');
+    await fs.promises.mkdir(path.dirname(deeperFile), { recursive: true });
+    await fs.promises.mkdir(path.dirname(shallowerFile), { recursive: true });
+    await fs.promises.writeFile(deeperFile, 'deep');
+    await fs.promises.writeFile(shallowerFile, 'shallow');
+
+    const firstRecord = multipleCoverageAggregate.records[0];
+    const coverage = {
+      ...multipleCoverageAggregate,
+      records: [
+        {
+          ...firstRecord,
+          ApexClassOrTrigger: { ...firstRecord.ApexClassOrTrigger, Name: 'Widget' },
+          Coverage: { coveredLines: [1], uncoveredLines: [] }
+        }
+      ]
+    };
+    new CoverageReporter(coverage, testResultsDir, sourceDir, {
+      reportFormats: ['json'],
+      reportOptions: { json: { file: 'coverage.json' } }
+    }).generateReports();
+
+    const report = JSON.parse(await fs.promises.readFile(path.join(testResultsDir, 'coverage.json'), 'utf8'));
+    expect(Object.keys(report)).toEqual([shallowerFile]);
+  });
   it('wraps destination errors with the legacy coverage-report message', () => {
     const reporter = new CoverageReporter(multipleCoverageAggregate, path.join(testResultsDir, 'missing'), 'foo');
     expect(() => reporter.generateReports()).toThrow(/Unexpected error occurred while creating coverage reports/);

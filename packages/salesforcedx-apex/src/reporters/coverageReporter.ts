@@ -7,12 +7,12 @@
 
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
-import * as glob from 'fast-glob';
 import * as libReport from 'istanbul-lib-report';
 import * as reports from 'istanbul-reports';
 import * as fs from 'node:fs';
 import * as os from 'node:os';
 import * as path from 'node:path';
+import { globSync } from 'tinyglobby';
 import { generateCoverageReports, IstanbulReports } from '../effect/coverageReports';
 import { ApexReportError, causeMessage, runReportSync } from '../effect/errors';
 import { type ApexCodeCoverage, type ApexCodeCoverageAggregate } from '../effect/schema/wire/coverage';
@@ -24,7 +24,9 @@ const resolveSources = (
   coverage: ApexCodeCoverageAggregate | ApexCodeCoverage,
   sourceDir: string
 ): Readonly<Record<string, CoverageSource>> => {
-  const pathsToFiles = glob.sync('**/*.{cls,trigger}', { cwd: sourceDir });
+  const pathsToFiles = globSync('**/*.{cls,trigger}', { cwd: sourceDir, expandDirectories: false }).sort(
+    (left, right) => left.split('/').length - right.split('/').length
+  );
   return Object.fromEntries(
     coverage.records.map(record => {
       const name = record.ApexClassOrTrigger.Name;

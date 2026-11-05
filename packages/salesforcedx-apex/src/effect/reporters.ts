@@ -93,6 +93,7 @@ export const formatMarkdownTextReport = Effect.fn('Apex.formatMarkdownTextReport
   testResult: TestResult,
   options: MarkdownTextReporterOptions = {}
 ) {
-  const chunks = yield* formatMarkdownTextReportStream(testResult, options);
-  return yield* collectReportChunks(options.format ?? 'markdown', chunks);
+  return yield* formatMarkdownTextReportStream(testResult, options).pipe(
+    Effect.flatMap(chunks => collectReportChunks(options.format ?? 'markdown', chunks))
+  );
 });

@@ -101,11 +101,7 @@ describe('Effect coverage reports', () => {
       generateCoverageReports(coverage, sources).pipe(Effect.provideService(IstanbulReports, output))
     );
     expect(output.files.size).toBe(1);
-    expect(output.files.get('text-summary.txt')).toBe(
-      '\n=============================== Coverage summary ===============================\n' +
-        'Statements   : 50% ( 1/2 )\nBranches     : 100% ( 0/0 )\nFunctions    : 100% ( 0/0 )\n' +
-        'Lines        : 50% ( 1/2 )\n================================================================================\n'
-    );
+    expect(output.files.get('text-summary.txt')).toMatchSnapshot();
     expect(output.createReport).toHaveBeenCalledWith('text-summary', DefaultReportOptions['text-summary']);
     expect(output.createContext).toHaveBeenCalledWith(
       expect.objectContaining({

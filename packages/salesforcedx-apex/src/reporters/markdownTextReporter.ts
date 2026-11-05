@@ -39,6 +39,8 @@ export interface MarkdownTextReporterOptions {
    * Timestamp for the test run. If not provided, current time will be used.
    */
   timestamp?: Date;
+  /** Line ending for report text and embedded error details. Defaults to LF. */
+  lineEnding?: '\n' | '\r\n';
 }
 
 /** Formats duration in milliseconds to a human-readable string */

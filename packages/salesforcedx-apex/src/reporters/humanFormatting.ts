@@ -6,7 +6,7 @@
  */
 
 import { type CodeCoverageResult } from '../effect/coverageSchemas';
-import { messages } from '../i18n/i18n';
+import { nls } from '../i18n';
 import { type ApexTestResultData, type TestResult } from '../tests/types';
 import { createTable, type Row } from '../utils/table';
 import { formatTestTable } from './testTable';
@@ -31,29 +31,29 @@ export const formatHuman = (
 
 const formatSummary = (testResult: TestResult): string => {
   const summaryRowArray: Row[] = [
-    { name: messages.outcome, value: testResult.summary.outcome },
-    { name: messages.testsRan, value: String(testResult.summary.testsRan) },
-    { name: messages.passRate, value: testResult.summary.passRate },
-    { name: messages.failRate, value: testResult.summary.failRate },
-    { name: messages.skipRate, value: testResult.summary.skipRate },
-    ...(testResult.summary.testRunId ? [{ name: messages.testRunId, value: testResult.summary.testRunId }] : []),
-    { name: messages.testSetupTime, value: `${testResult.summary.testSetupTimeInMs || 0} ms` },
-    { name: messages.testExecutionTime, value: `${testResult.summary.testExecutionTimeInMs} ms` },
-    { name: messages.testTotalTime, value: `${testResult.summary.testTotalTimeInMs} ms` },
-    { name: messages.orgId, value: testResult.summary.orgId },
-    ...(testResult.summary.username ? [{ name: messages.username, value: testResult.summary.username }] : []),
+    { name: nls.localize('outcome'), value: testResult.summary.outcome },
+    { name: nls.localize('testsRan'), value: String(testResult.summary.testsRan) },
+    { name: nls.localize('passRate'), value: testResult.summary.passRate },
+    { name: nls.localize('failRate'), value: testResult.summary.failRate },
+    { name: nls.localize('skipRate'), value: testResult.summary.skipRate },
+    ...(testResult.summary.testRunId ? [{ name: nls.localize('testRunId'), value: testResult.summary.testRunId }] : []),
+    { name: nls.localize('testSetupTime'), value: `${testResult.summary.testSetupTimeInMs || 0} ms` },
+    { name: nls.localize('testExecutionTime'), value: `${testResult.summary.testExecutionTimeInMs} ms` },
+    { name: nls.localize('testTotalTime'), value: `${testResult.summary.testTotalTimeInMs} ms` },
+    { name: nls.localize('orgId'), value: testResult.summary.orgId },
+    ...(testResult.summary.username ? [{ name: nls.localize('username'), value: testResult.summary.username }] : []),
     ...(testResult.summary.orgWideCoverage
-      ? [{ name: messages.orgWideCoverage, value: String(testResult.summary.orgWideCoverage) }]
+      ? [{ name: nls.localize('orgWideCoverage'), value: String(testResult.summary.orgWideCoverage) }]
       : [])
   ];
 
   return createTable(
     summaryRowArray,
     [
-      { key: 'name', label: messages.nameColHeader },
-      { key: 'value', label: messages.valueColHeader }
+      { key: 'name', label: nls.localize('nameColHeader') },
+      { key: 'value', label: nls.localize('valueColHeader') }
     ],
-    messages.testSummaryHeader
+    nls.localize('testSummaryHeader')
   );
 };
 
@@ -68,7 +68,7 @@ const formatTestResults = (tests: ApexTestResultData[], concise: boolean, showCa
       runtime: elem.outcome !== 'Fail' ? `${elem.runTime}` : ''
     }));
 
-  return formatTestTable(testRowArray, messages.testResultsHeader, showCategory);
+  return formatTestTable(testRowArray, nls.localize('testResultsHeader'), showCategory);
 };
 
 const formatSetup = (testResult: TestResult): string => {
@@ -78,13 +78,13 @@ const formatSetup = (testResult: TestResult): string => {
   }));
   if (testRowArray.length > 0) {
     const header = testResult.summary.testRunId
-      ? messages.testSetupResultsHeader.replace('runId', testResult.summary.testRunId)
-      : messages.testSetupResultsHeaderNoRunId;
+      ? nls.localize('testSetupResultsHeader').replace('runId', testResult.summary.testRunId)
+      : nls.localize('testSetupResultsHeaderNoRunId');
     return createTable(
       testRowArray,
       [
-        { key: 'name', label: messages.testSetupMethodNameColHeader },
-        { key: 'time', label: messages.setupTimeColHeader }
+        { key: 'name', label: nls.localize('testSetupMethodNameColHeader') },
+        { key: 'time', label: nls.localize('setupTimeColHeader') }
       ],
       header
     );
@@ -94,8 +94,8 @@ const formatSetup = (testResult: TestResult): string => {
 
 const formatDetailedCoverage = (testResult: TestResult, concise: boolean, showCategory: boolean): string => {
   const header = testResult.summary.testRunId
-    ? messages.detailedCodeCovHeader.replace('%s', testResult.summary.testRunId)
-    : messages.detailedCodeCovHeaderNoRunId;
+    ? nls.localize('detailedCodeCovHeader', [testResult.summary.testRunId])
+    : nls.localize('detailedCodeCovHeaderNoRunId');
   const testRowArray: Row[] = testResult.tests
     .filter(elem => !concise || elem.outcome === 'Fail' || elem.outcome === 'CompileFail')
     .flatMap(elem => {
@@ -128,11 +128,11 @@ const formatCodeCoverage = (codeCoverages: CodeCoverageResult[]): string => {
   return createTable(
     codeCovRowArray,
     [
-      { key: 'name', label: messages.classesColHeader },
-      { key: 'percent', label: messages.percentColHeader },
-      { key: 'uncoveredLines', label: messages.uncoveredLinesColHeader }
+      { key: 'name', label: nls.localize('classesColHeader') },
+      { key: 'percent', label: nls.localize('percentColHeader') },
+      { key: 'uncoveredLines', label: nls.localize('uncoveredLinesColHeader') }
     ],
-    messages.codeCovHeader
+    nls.localize('codeCovHeader')
   );
 };
 

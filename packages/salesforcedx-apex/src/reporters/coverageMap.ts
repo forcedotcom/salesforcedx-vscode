@@ -7,6 +7,7 @@
 
 import type { ApexCodeCoverage, ApexCodeCoverageAggregate } from '../effect/schema/wire/coverage';
 import * as libCoverage from 'istanbul-lib-coverage';
+import { splitLines } from '../utils/splitLines';
 
 /** Resolved source supplied by the caller; discovery and reading belong to the host. */
 export interface CoverageSource {
@@ -25,7 +26,7 @@ export const createCoverageMap = (
   const coverageMap = libCoverage.createCoverageMap();
   coverage.records.forEach(record => {
     const source = sourceForClass(record.ApexClassOrTrigger.Name);
-    const sourceLines = source.content?.replaceAll(/\r\n|\r|\n/g, lineEnding).split(lineEnding) ?? [];
+    const sourceLines = source.content === undefined ? [] : splitLines(source.content, lineEnding);
     const coveredLines = record.Coverage?.coveredLines ?? [];
     const uncoveredLines = record.Coverage?.uncoveredLines ?? [];
     coverageMap.addFileCoverage({

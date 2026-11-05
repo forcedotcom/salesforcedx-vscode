@@ -5,20 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { type TestResult, type OutputFormat, type TestSortOrder } from '@salesforce/apex-node';
-import { formatMarkdownTextReportStream } from '@salesforce/apex-node/effect';
+import { FileOutput, writeResultFiles } from '@salesforce/apex-node/effect';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
-import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
 import { APEX_TESTING_SECTION } from '../constants';
 import { nls } from '../messages';
-import { normalizeTextStreamToLf } from './newlineUtils';
+import { fileOutputFromFsService } from '../services/fsServiceFileOutput';
 
 /** Generates report URI using the library's format: test-result-{testRunId}.{ext} */
 const generateReportUri = (outputDir: URI, testRunId: string | undefined, extension: string): URI => {
-  const filename = testRunId ? `test-result-${testRunId}${extension}` : `test-result${extension}`;
+  const filename = `test-result-${testRunId ?? 'default'}${extension}`;
   return Utils.joinPath(outputDir, filename);
 };
 
@@ -48,6 +46,7 @@ export const writeAndOpenTestReport = Effect.fn('writeAndOpenTestReport')(functi
 ) {
   yield* Effect.annotateCurrentSpan({ outputFormat: format });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const fsService = yield* api.services.FsService;
   const channelSvc = yield* api.services.ChannelService;
   const settings = yield* api.services.SettingsService;
   const performanceThresholdMs = yield* settings.getValueOrElse(
@@ -61,28 +60,28 @@ export const writeAndOpenTestReport = Effect.fn('writeAndOpenTestReport')(functi
     75
   );
 
-  const report = yield* formatMarkdownTextReportStream(result, {
-    format,
-    sortOrder,
-    performanceThresholdMs,
-    coverageThresholdPercent,
-    codeCoverage,
-    timestamp: new Date()
-  });
-  const content = yield* normalizeTextStreamToLf(report).pipe(
-    Stream.runCollect,
-    Effect.map(Chunk.toArray),
-    Effect.map(chunks => chunks.join(''))
+  yield* writeResultFiles(
+    result,
+    { dirPath: outputDir.toString(), resultFormats: [format] },
+    {
+      format,
+      sortOrder,
+      performanceThresholdMs,
+      coverageThresholdPercent,
+      codeCoverage,
+      timestamp: new Date(),
+      lineEnding: '\n',
+      writeTestRunId: false
+    }
+  ).pipe(
+    Effect.provideService(FileOutput, fileOutputFromFsService(fsService)),
+    Effect.tapError(error => channelSvc.appendToChannel(`Failed to write test report: ${String(error)}`))
   );
 
   // Generate filename using library's format: test-result-{testRunId}.{ext}
   const extension = format === 'markdown' ? '.md' : '.txt';
   const testRunId = result.summary?.testRunId;
   const reportUri = generateReportUri(outputDir, testRunId, extension);
-
-  yield* api.services.FsService.safeWriteFile(reportUri, content).pipe(
-    Effect.tapError(error => channelSvc.appendToChannel(`Failed to write test report: ${String(error)}`))
-  );
 
   // Always print the report location to the Apex Testing output channel so it's easy to find later.
   yield* channelSvc.appendToChannel(nls.localize('apex_test_report_written_to_message', reportUri.toString()));
