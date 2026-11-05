@@ -31,15 +31,17 @@ const coverageError = (cause: unknown): ApexReportError =>
     cause: causeMessage(cause)
   });
 
+type CoverageReportLineEnding = '\n' | '\r\n';
+
 export interface CoverageReportOptions extends CoverageReporterOptions {
-  lineEnding?: '\n' | '\r\n';
+  lineEnding?: CoverageReportLineEnding;
 }
 
 export const buildCoverageMap = Effect.fn('Apex.buildCoverageMap')(
   (
     coverage: ApexCodeCoverageAggregate | ApexCodeCoverage,
     sources: Readonly<Record<string, CoverageSource>>,
-    lineEnding: '\n' | '\r\n' = '\n'
+    lineEnding: CoverageReportLineEnding = '\n'
   ) =>
     Effect.try({
       try: () => createCoverageMap(coverage, name => sources[name] ?? { path: name }, lineEnding),
