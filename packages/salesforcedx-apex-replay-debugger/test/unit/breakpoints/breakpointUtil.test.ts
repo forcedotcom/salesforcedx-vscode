@@ -10,7 +10,7 @@ import {
   createBreakpointMappings,
   emptyBreakpointMappings,
   getTopLevelTyperefForUri
-} from '../../../src/breakpoints';
+} from '../../../src/breakpoints/breakpointUtil';
 
 describe('Breakpoint utilities', () => {
   it('starts without mappings', () => {
