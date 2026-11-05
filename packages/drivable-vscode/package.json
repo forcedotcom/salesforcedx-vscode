@@ -24,7 +24,6 @@
     "compile": "wireit",
     "clean": "shx rm -rf node_modules out coverage .wireit .eslintcache .circular-deps.json",
     "lint": "wireit",
-    "lint:fix": "eslint --color --cache --cache-location .eslintcache --fix .",
     "test": "wireit",
     "test:desktop": "wireit",
     "test:compile": "wireit",

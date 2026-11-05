@@ -5,9 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
+import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import {
   DebugSession,
+  BreakpointEvent,
   Event,
   InitializedEvent,
   logger,
@@ -54,6 +55,7 @@ export class ApexReplayDebug extends LoggingDebugSession {
   protected traceAll = false;
   private initializedResponse!: DebugProtocol.InitializeResponse;
   protected breakpoints: Map<string, number[]> = new Map();
+  protected requestedBreakpoints: Map<string, number[]> = new Map();
   protected breakpointMappings: BreakpointMappings = emptyBreakpointMappings();
 
   public getBreakpointMappings(): BreakpointMappings {
@@ -416,6 +418,10 @@ export class ApexReplayDebug extends LoggingDebugSession {
         } uri=${uri} lines=${returnLinesForLoggingFromBreakpointArgs(args.breakpoints)}`
       );
       this.breakpoints.set(uri, []);
+      this.requestedBreakpoints.set(
+        uri,
+        args.breakpoints.map(bp => this.convertClientLineToDebugger(bp.line))
+      );
       const isAnonApex = args.source.path?.endsWith('.apex') ?? false;
       for (const bp of args.breakpoints) {
         const isVerified =
@@ -468,6 +474,19 @@ export class ApexReplayDebug extends LoggingDebugSession {
         args.uri,
         args.lineBreakpointInfo
       );
+      const requestedLines = this.requestedBreakpoints.get(args.uri) ?? [];
+      const previousVerifiedLines = this.breakpoints.get(args.uri) ?? [];
+      const verifiedLines = requestedLines.filter(line =>
+        canSetLineBreakpoint(this.breakpointMappings, args.uri, line)
+      );
+      this.breakpoints.set(args.uri, verifiedLines);
+      for (const line of requestedLines) {
+        const wasVerified = previousVerifiedLines.includes(line);
+        const isVerified = verifiedLines.includes(line);
+        if (wasVerified !== isVerified) {
+          this.sendEvent(new BreakpointEvent('changed', { verified: isVerified, line }));
+        }
+      }
     }
     response.success = true;
     this.sendResponse(response);
@@ -510,6 +529,7 @@ const isLineBreakpointInfoUpdate = (
   'uri' in args &&
   typeof args.uri === 'string' &&
   'lineBreakpointInfo' in args &&
-  Array.isArray(args.lineBreakpointInfo);
+  Array.isArray(args.lineBreakpointInfo) &&
+  args.lineBreakpointInfo.every(Schema.is(LineBreakpointInfo));
 
 DebugSession.run(ApexReplayDebug);

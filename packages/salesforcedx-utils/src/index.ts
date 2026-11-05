@@ -5,5 +5,5 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export type { LineBreakpointInfo } from './types/debugger';
+export { LineBreakpointInfo } from './types/debugger';
 export { errorToString } from './helpers/errorToString';

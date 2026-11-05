@@ -16,6 +16,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { DebugConfigurationProvider } from '../../../src/adapter/debugConfigurationProvider';
 import { LAST_OPENED_LOG_FOLDER_KEY, LAST_OPENED_LOG_KEY } from '../../../src/debuggerConstants';
+import { LineBreakpointMetadataService } from '../../../src/services/lineBreakpointMetadataService';
 import { type buildAllServicesLayer, setAllServicesLayer } from '../../../src/services/extensionProvider';
 import { disposeRuntime } from '../../../src/services/runtime';
 
@@ -50,7 +51,8 @@ describe('DebugConfigurationProvider log-file prompt', () => {
             }
           })
         } as unknown as ExtensionProviderService),
-        Layer.succeed(OrgMetadataCatalog, { getEntries } as unknown as OrgMetadataCatalog)
+        Layer.succeed(OrgMetadataCatalog, { getEntries } as unknown as OrgMetadataCatalog),
+        LineBreakpointMetadataService.Default
       ) as ReturnType<typeof buildAllServicesLayer>
     );
   });
@@ -151,6 +153,35 @@ describe('DebugConfigurationProvider log-file prompt', () => {
     expect(openTextDocument).toHaveBeenCalledExactlyOnceWith(expect.objectContaining({ path: breakpointUri.path }));
     expect(resolved).toMatchObject({ lineBreakpointInfo: [] });
     expect(vscode.window.showErrorMessage).not.toHaveBeenCalled();
+  });
+
+  it('reuses cached metadata across replay launches', async () => {
+    const getLineBreakpointInfo = vi.fn().mockResolvedValue([]);
+    const breakpointUri = URI.file('/workspace/Cached.cls');
+    Object.defineProperty(vscode, 'debug', {
+      configurable: true,
+      value: { breakpoints: [{ location: { uri: breakpointUri } } as vscode.SourceBreakpoint] }
+    });
+    (vscode.extensions.getExtension as VitestMock).mockReturnValue({
+      isActive: true,
+      exports: { client: { getLineBreakpointInfo } }
+    });
+
+    const provider = new DebugConfigurationProvider(extensionContext);
+    await provider.resolveDebugConfiguration(undefined, {
+      name: 'First cached replay',
+      type: 'apex-replay',
+      request: 'launch',
+      logFile: '/logs/selected.log'
+    });
+    await provider.resolveDebugConfiguration(undefined, {
+      name: 'Second cached replay',
+      type: 'apex-replay',
+      request: 'launch',
+      logFile: '/logs/selected.log'
+    });
+
+    expect(getLineBreakpointInfo).toHaveBeenCalledExactlyOnceWith(breakpointUri.toString());
   });
 
   it('retries while the language server registers an opened breakpoint document', async () => {
