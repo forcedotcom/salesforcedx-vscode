@@ -215,13 +215,13 @@ importers:
         specifier: 1.0.35
         version: 1.0.35
       '@effect/eslint-plugin':
-        specifier: 0.3.2
+        specifier: ^0.3.2
         version: 0.3.2
       '@effect/language-service':
         specifier: ^0.87.2
         version: 0.87.2
       '@effect/platform-node':
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6(effect@4.0.6)(redis@6.3.1(@opentelemetry/api@1.9.1))
       '@eslint/json':
         specifier: ^0.14.0
@@ -344,7 +344,7 @@ importers:
         specifier: 9.5.1
         version: 9.5.1
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       esbuild:
         specifier: ^0.28.1
@@ -509,7 +509,7 @@ importers:
   packages/drivable-vscode:
     dependencies:
       '@effect/platform-node':
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6(effect@4.0.6)(redis@6.3.1(@opentelemetry/api@1.9.1))
       '@modelcontextprotocol/sdk':
         specifier: 1.32.0
@@ -524,7 +524,7 @@ importers:
         specifier: 3.1.0
         version: 3.1.0(supports-color@8.1.1)
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
 
   packages/effect-ext-utils:
@@ -533,7 +533,7 @@ importers:
         specifier: ^1.90.0
         version: 1.90.0
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       vscode-uri:
         specifier: ^3.1.0
@@ -561,7 +561,7 @@ importers:
         specifier: ^16.0.0
         version: 16.0.0
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
 
   packages/eslint-local-rules:
@@ -619,7 +619,7 @@ importers:
         specifier: ^0.0.81
         version: 0.0.81(supports-color@8.1.1)
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       jsonc-parser:
         specifier: ^3.3.1
@@ -640,7 +640,7 @@ importers:
         specifier: ^3.0.4
         version: 3.0.4
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       fast-glob:
         specifier: ^3.3.2
@@ -704,7 +704,7 @@ importers:
         specifier: 7.0.6
         version: 7.0.6
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       faye:
         specifier: 1.4.1
@@ -741,7 +741,7 @@ importers:
         specifier: 1.68.0
         version: 1.68.0
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       vscode-uri:
         specifier: ^3.1.0
@@ -772,7 +772,7 @@ importers:
         specifier: ^6.0.0
         version: 6.2.0
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       line-column:
         specifier: ^1.0.2
@@ -805,7 +805,7 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       ejs:
         specifier: ^3.1.10
@@ -884,7 +884,7 @@ importers:
         specifier: ^0.7.6
         version: 0.7.6
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       ejs:
         specifier: ^3.1.10
@@ -973,7 +973,7 @@ importers:
         specifier: '*'
         version: link:../salesforcedx-vscode-services-types
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       find-java-home:
         specifier: 1.2.2
@@ -1013,7 +1013,7 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       sanitize-filename:
         specifier: ^1.6.1
@@ -1053,7 +1053,7 @@ importers:
         specifier: '*'
         version: link:../salesforcedx-vscode-services-types
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       vscode-uri:
         specifier: ^3.1.0
@@ -1093,7 +1093,7 @@ importers:
         specifier: 1.22.6
         version: 1.22.6(encoding@0.1.13)
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       ejs:
         specifier: 3.1.10
@@ -1151,7 +1151,7 @@ importers:
         specifier: '*'
         version: link:../salesforcedx-vscode-services-types
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       salesforcedx-vscode-apex-log:
         specifier: workspace:*
@@ -1200,7 +1200,7 @@ importers:
         specifier: '*'
         version: link:../salesforcedx-vscode-services-types
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       vscode-uri:
         specifier: ^3.1.0
@@ -1237,7 +1237,7 @@ importers:
         specifier: '*'
         version: link:../salesforcedx-vscode-services-types
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       fast-xml-parser:
         specifier: ^5.7.1
@@ -1291,7 +1291,7 @@ importers:
         specifier: 1.8.10
         version: 1.8.10
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       vscode-html-languageservice:
         specifier: ^5.5.1
@@ -1322,7 +1322,7 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       jest-editor-support:
         specifier: 31.1.2
@@ -1377,7 +1377,7 @@ importers:
         specifier: '*'
         version: link:../salesforcedx-vscode-services-types
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       vscode-uri:
         specifier: ^3.1.0
@@ -1411,7 +1411,7 @@ importers:
         specifier: '*'
         version: link:../salesforcedx-vscode-services-types
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       vscode-uri:
         specifier: ^3.0.8
@@ -1439,7 +1439,7 @@ importers:
         specifier: '*'
         version: link:../salesforcedx-vscode-services-types
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       vscode-uri:
         specifier: ^3.1.0
@@ -1464,7 +1464,7 @@ importers:
         specifier: 1.0.0-beta.43
         version: 1.0.0-beta.43(supports-color@8.1.1)
       '@effect/opentelemetry':
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6(@opentelemetry/api-logs@0.219.0)(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.11.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@4.0.6)
       '@jsforce/jsforce-node':
         specifier: ^3.10.24
@@ -1533,7 +1533,7 @@ importers:
         specifier: 7.0.6
         version: 7.0.6
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       jsforce:
         specifier: ^3.10.24
@@ -1567,7 +1567,7 @@ importers:
         specifier: 1.0.0-beta.43
         version: 1.0.0-beta.43(supports-color@8.1.1)
       '@effect/opentelemetry':
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6(@opentelemetry/api-logs@0.219.0)(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@4.0.6)
       '@jsforce/jsforce-node':
         specifier: ^3.10.24
@@ -1612,10 +1612,10 @@ importers:
         specifier: ^1.129.0
         version: 1.140.0
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       effect-v3:
-        specifier: npm:effect@3.21.2
+        specifier: npm:effect@^3.21.2
         version: effect@3.21.2
       jsforce:
         specifier: ^3.10.24
@@ -1637,10 +1637,10 @@ importers:
   packages/salesforcedx-vscode-services-v3-compat:
     dependencies:
       '@effect/opentelemetry':
-        specifier: 0.63.0
+        specifier: ^0.63.0
         version: 0.63.0(@effect/platform@0.96.1(effect@3.21.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.21.2)
       '@effect/platform':
-        specifier: 0.96.1
+        specifier: ^0.96.1
         version: 0.96.1(effect@3.21.2)
       '@jsforce/jsforce-node':
         specifier: ^3.10.24
@@ -1661,7 +1661,7 @@ importers:
         specifier: ^1.129.0
         version: 1.140.0
       effect:
-        specifier: 3.21.2
+        specifier: ^3.21.2
         version: 3.21.2
       jsforce:
         specifier: ^3.10.24
@@ -1703,7 +1703,7 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       papaparse:
         specifier: ^5.3.0
@@ -1788,7 +1788,7 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       vscode-css-languageservice:
         specifier: ^6.3.7
@@ -1819,7 +1819,7 @@ importers:
         specifier: ^2.5.1
         version: 2.5.1(@vscode/codicons@0.0.45)
       effect:
-        specifier: 4.0.6
+        specifier: ^4.0.6
         version: 4.0.6
       lit:
         specifier: 3.3.3

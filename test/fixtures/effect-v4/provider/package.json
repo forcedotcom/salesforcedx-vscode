@@ -4,6 +4,6 @@
   "private": true,
   "type": "module",
   "dependencies": {
-    "effect": "3.21.2"
+    "effect": "^3.21.2"
   }
 }

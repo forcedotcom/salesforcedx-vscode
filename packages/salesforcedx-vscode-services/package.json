@@ -29,7 +29,7 @@
   ],
   "dependencies": {
     "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.43",
-    "@effect/opentelemetry": "4.0.6",
+    "@effect/opentelemetry": "^4.0.6",
     "@jsforce/jsforce-node": "^3.10.24",
     "@opentelemetry/api": "1.9.1",
     "@opentelemetry/core": "2.8.0",
@@ -52,7 +52,7 @@
     "@salesforce/vscode-services-v3-compat": "*",
     "@vscode/extension-telemetry": "^1.0.0",
     "cross-spawn": "7.0.6",
-    "effect": "4.0.6",
+    "effect": "^4.0.6",
     "jsforce": "^3.10.24",
     "o11y_schema": "^264.89.0",
     "vscode-uri": "^3.1.0"

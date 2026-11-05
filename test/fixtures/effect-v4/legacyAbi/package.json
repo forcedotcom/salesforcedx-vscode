@@ -6,7 +6,7 @@
   "dependencies": {
     "@salesforce/vscode-services-v3-compat": "file:./compat.tgz",
     "@types/node": "24.19.2",
-    "effect": "3.21.2",
+    "effect": "^3.21.2",
     "typescript": "6.0.3",
     "vscode-uri": "3.1.0"
   }

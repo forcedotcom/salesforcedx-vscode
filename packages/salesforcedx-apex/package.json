@@ -22,7 +22,7 @@
     "@salesforce/kit": "^4.0.0",
     "@types/istanbul-lib-report": "^3.0.3",
     "@types/istanbul-reports": "^3.0.4",
-    "effect": "4.0.6",
+    "effect": "^4.0.6",
     "fast-glob": "^3.3.2",
     "faye": "1.4.1",
     "istanbul-lib-coverage": "^3.2.2",
