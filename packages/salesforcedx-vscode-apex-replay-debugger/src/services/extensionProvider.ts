@@ -9,12 +9,14 @@ import { buildAllServicesLayer as buildBaseServicesLayer, getServicesApi } from 
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import type { ExtensionContext } from 'vscode';
+import { LineBreakpointMetadataService } from './lineBreakpointMetadataService';
 
 export const buildAllServicesLayer = (context: ExtensionContext, fallbackDisplayName: string) =>
   Layer.unwrapEffect(
     Effect.map(getServicesApi, api =>
-      Layer.merge(
+      Layer.mergeAll(
         buildBaseServicesLayer(context, fallbackDisplayName),
+        LineBreakpointMetadataService.Default,
         api.services.NotificationModeService.Default(
           'salesforcedx-vscode-apex-replay-debugger',
           'sf-apex-replay-debugger-notifications',

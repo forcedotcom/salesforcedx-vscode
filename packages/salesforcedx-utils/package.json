@@ -9,10 +9,12 @@
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "main": "out/src",
+  "dependencies": {
+    "effect": "^3.21.2"
+  },
   "scripts": {
     "compile": "wireit",
     "lint": "wireit",
-    "lint:fix": "eslint --color --cache --cache-location .eslintcache --fix .",
     "check:circular-deps": "wireit",
     "clean": "shx rm -rf node_modules out dist coverage .wireit .eslintcache .circular-deps.json",
     "test": "wireit",

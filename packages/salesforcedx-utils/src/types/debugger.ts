@@ -5,8 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export type LineBreakpointInfo = {
-  uri: string;
-  typeref: string;
-  lines: number[];
-};
+import * as Schema from 'effect/Schema';
+
+export const LineBreakpointInfo = Schema.Struct({
+  uri: Schema.String,
+  typeref: Schema.String,
+  lines: Schema.Array(Schema.Number)
+});
+
+export type LineBreakpointInfo = Schema.Schema.Type<typeof LineBreakpointInfo>;
