@@ -31,8 +31,6 @@ export const messages = {
   ineligible_method_in_doc: 'Method %s is not eligible for OAS generation, but present in the document',
   invalid_file_for_generating_oas_doc: 'Invalid file for generating OAS doc',
   merge: 'Manually merge with existing ESR',
-  mixed_frameworks_not_allowed:
-    'The Apex Class %s mixes Apex Rest and AuraEnabled frameworks, which is not allowed for OpenAPI document generation.',
   no_eligible_method: 'No eligible methods found in the class',
   no_folder_selected: 'Operation canceled: No folder selected.',
   no_oas_doc_in_file: 'No OAS doc detected in the file',

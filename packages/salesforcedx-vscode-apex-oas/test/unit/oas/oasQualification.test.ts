@@ -68,7 +68,7 @@ describe('qualifyOasAnalysis', () => {
     });
   });
 
-  it('selects AuraEnabled methods only when the class has no annotations', () => {
+  it('selects AuraEnabled methods when the class has no annotations', () => {
     const aura = method('getRecord', [annotation('AuraEnabled')], true);
 
     expect(qualifyOasAnalysis(analysis([], [aura]))).toEqual({ framework: 'aura', methods: [aura] });
@@ -78,11 +78,18 @@ describe('qualifyOasAnalysis', () => {
     });
   });
 
-  it('rejects mixed framework indicators before selecting a generator', () => {
+  it('selects AuraEnabled methods when REST indicators are present', () => {
+    const aura = method('getRecordForAura', [annotation('AuraEnabled')], true);
+
     expect(
-      qualifyOasAnalysis(analysis([annotation('RestResource')], [method('getRecord', [annotation('AuraEnabled')])]))
+      qualifyOasAnalysis(analysis([annotation('RestResource')], [method('getRecord', [annotation('HttpGet')]), aura]))
     ).toEqual({
-      framework: 'mixed'
+      framework: 'aura',
+      methods: [aura]
+    });
+    expect(qualifyOasAnalysis(analysis([], [method('getRecord', [annotation('HttpGet')]), aura]))).toEqual({
+      framework: 'aura',
+      methods: [aura]
     });
   });
 
