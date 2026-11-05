@@ -13,7 +13,7 @@ import { messages } from '../messages/i18n';
 import { nls } from '../messages/nls';
 import { processOasDocument } from '../oas/documentProcessorPipeline/oasProcessor';
 import { generateEsrMD, pathExists } from '../oas/externalServiceRegistrationManager';
-import { createAuraEnabledStrategy } from '../oas/generationStrategy/json/auraEnabledStrategy';
+import { generateAuraEnabledOas } from '../oas/generationStrategy/json/auraEnabledStrategy';
 import { checkIfESRIsDecomposed, parseOASDocFromJson, summarizeDiagnostics, withSteppedProgress } from '../oasUtils';
 import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 import { analyzeMetadata, ClassNotEligible } from './metadataOrchestrator';
@@ -41,9 +41,6 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
   }
   const qualification = analysis.qualification;
 
-  // Step 3-4: AuraEnabled is the sole supported OAS generation framework.
-  const strategy = yield* Effect.promise(() => createAuraEnabledStrategy(analysis.source.classContext));
-
   // Step 5: Determine filename
   const name = className;
   const openApiFileName = `${name}.externalServiceRegistration-meta.xml`;
@@ -57,9 +54,9 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
     nls.localize('generating_oas_progress_title', name),
     report =>
       Effect.gen(function* () {
-        // Step 7: Use the strategy to generate the OAS
+        // Step 7: AuraEnabled is the sole supported OAS generation framework.
         yield* report(nls.localize('generating_oas_progress_generating'));
-        const openApiDocument = yield* strategy.generateOAS();
+        const openApiDocument = yield* generateAuraEnabledOas(analysis.source.classContext);
 
         // Step 8: Process the OAS document
         yield* report(nls.localize('generating_oas_progress_processing'));
