@@ -344,6 +344,8 @@
       "files": [
         "vitest.config.mts",
         "scripts/**/*.{ts,mts,cts}",
+        "scripts/bundling/process-global.js",
+        "scripts/bundling/process-polyfill.js",
         "scripts/clean-wireit-cache.js",
         "scripts/fold-stable-changelog.js",
         "scripts/releaseDashboard.sh",

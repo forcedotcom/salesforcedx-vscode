@@ -5,13 +5,22 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, LetterStartNameSchema } from '@salesforce/effect-ext-utils';
+import {
+  ExtensionProviderService,
+  LetterStartNamePattern,
+  parseErrorToValidationMessage
+} from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as String from 'effect/String';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
+
+const ScriptNameSchema = Schema.Trim.pipe(
+  Schema.minLength(1, { message: () => nls.localize('create_script_name_empty_error') }),
+  Schema.pattern(LetterStartNamePattern, { message: () => nls.localize('create_script_name_format_error') })
+);
 
 const promptForScriptName = Effect.fn('promptForScriptName')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -20,12 +29,8 @@ const promptForScriptName = Effect.fn('promptForScriptName')(function* () {
   return yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: nls.localize('create_script_name_prompt'),
-      validateInput: (value: string) => {
-        const normalized = value.trim();
-        if (!normalized) return nls.localize('create_script_name_empty_error');
-        if (!Schema.is(LetterStartNameSchema)(normalized)) return nls.localize('create_script_name_format_error');
-        return undefined;
-      }
+      validateInput: (value: string) =>
+        Schema.decodeUnknownEither(ScriptNameSchema)(value).pipe(parseErrorToValidationMessage)
     })
   ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation), Effect.map(String.trim));
 });

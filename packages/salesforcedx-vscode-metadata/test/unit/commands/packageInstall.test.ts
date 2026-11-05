@@ -41,8 +41,8 @@ describe('packageInstallCommand package ID validation', () => {
     );
 
     const validatePackageId = showInputBox.mock.calls[0][0]?.validateInput?.bind(undefined);
-    ['', '04t000000000000', '04t000000000000000'].map(value => expect(validatePackageId?.(value)).toBeUndefined());
-    ['05t000000000000', '04t00000000000', '04t00000000000000', '04t00000000000!'].map(value =>
+    ['04t000000000000', '04t000000000000000'].map(value => expect(validatePackageId?.(value)).toBeUndefined());
+    ['', '05t000000000000', '04t00000000000', '04t00000000000000', '04t00000000000!', ' 04t000000000000 '].map(value =>
       expect(validatePackageId?.(value)).toBe(nls.localize('package_install_id_validation'))
     );
   });
