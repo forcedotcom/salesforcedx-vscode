@@ -33,8 +33,7 @@ const formatReport = (format: string, render: () => string): Effect.Effect<strin
 
 const collectReportChunks = (format: string, chunks: Stream.Stream<string>): Effect.Effect<string, ApexReportError> =>
   Stream.runCollect(chunks).pipe(
-    Effect.map(Chunk.toArray),
-    Effect.map(reportChunks => reportChunks.join('')),
+    Effect.map(Chunk.join('')),
     Effect.catchAllCause(cause =>
       Effect.fail(
         new ApexReportError({
