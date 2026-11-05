@@ -1,6 +1,6 @@
 openapi: 3.0.0
 servers:
-  - url: /services/apexrest
+  - url: /aura-controllers/custom
 info:
   title: SimpleAccountResource
   version: '1.0.0'

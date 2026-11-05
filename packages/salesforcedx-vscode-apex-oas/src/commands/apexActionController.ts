@@ -6,7 +6,6 @@
  */
 
 import { ExtensionProviderService, annotateRootSpan } from '@salesforce/effect-ext-utils';
-import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import type { URI } from 'vscode-uri';
@@ -21,11 +20,6 @@ import { analyzeMetadata, ClassNotEligible } from './metadataOrchestrator';
 
 const COMMAND: ProgressAndSuccessCommandKey = messages.create_openapi_doc_class;
 
-/** REST annotation-based OAS generation has been retired. @ExportTaggedError */
-export class RestOASGenerationRetired extends Data.TaggedError('RestOASGenerationRetired')<{
-  readonly message: string;
-}> {}
-
 /**
  * Creates an OpenAPI Document.
  */
@@ -36,9 +30,6 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
   // Step 1: Gather current source metadata and qualify AuraEnabled generation.
   const analysis = yield* analyzeMetadata(sourceUri);
   const className = path.basename(analysis.source.resourceUri.fsPath, '.cls');
-  if (analysis.qualification.framework === 'restUnsupported') {
-    return yield* new RestOASGenerationRetired({ message: nls.localize('rest_oas_gen_retired') });
-  }
   if (analysis.qualification.framework === 'invalid') {
     return yield* new ClassNotEligible({
       message: nls.localize(
@@ -113,8 +104,4 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
   yield* notificationMode.showSuccessNotification(COMMAND, message);
 });
 
-const qualificationReason = (reason: 'classAnnotationsBlockAura' | 'noEligibleMethods') =>
-  ({
-    classAnnotationsBlockAura: 'its @AuraEnabled methods are blocked by class-level annotations',
-    noEligibleMethods: 'it has no methods annotated for OpenAPI generation'
-  })[reason];
+const qualificationReason = (_reason: 'noEligibleMethods') => 'it has no methods annotated for OpenAPI generation';

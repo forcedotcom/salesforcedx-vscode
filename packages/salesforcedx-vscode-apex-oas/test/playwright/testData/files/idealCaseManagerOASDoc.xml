@@ -8,7 +8,7 @@ info:
   version: '1.0.0'
   description: This is the ideal OpenAPI v3 specification for CaseManager.cls.
 servers:
-  - url: /services/apexrest
+   - url: /aura-controllers/custom
     description: Apex rest
 paths:
   /apex-rest-examples/v1/Cases:
@@ -54,6 +54,6 @@ paths:
   </operations>
   <registrationProvider>CaseManager</registrationProvider>
   <registrationProviderAsset>CaseManager</registrationProviderAsset>
-  <registrationProviderType>ApexRest</registrationProviderType>
+   <registrationProviderType>AuraEnabled</registrationProviderType>
   <namedCredential>null</namedCredential>
 </ExternalServiceRegistration>

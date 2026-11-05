@@ -9,11 +9,11 @@ import { SymbolKind, type DocumentSymbol } from 'vscode-languageserver-protocol'
 import { URI } from 'vscode-uri';
 import { analyzeApexSource, type OasSourceToken } from '../../../src/oas/apexSourceMetadata';
 
-const text = `@RestResource(
+const text = `@CustomMarker(
   /* mapping, with commas */ urlMapping='/v1/foo/*'
 )
 global with sharing class ExampleResource {
-  @HttpGet
+   @TestApi
   global static String fetch() { return 'ok'; }
 
   @AuraEnabled(cacheable=true)
@@ -25,7 +25,7 @@ global with sharing class ExampleResource {
   static { System.debug('initializing'); }
 
   class Nested {
-    @HttpPost
+    @TestPost
     static void create() {}
   }
 }`;
@@ -34,15 +34,15 @@ const resourceUri = URI.file('/project/ExampleResource.cls');
 const documentedText = `/**
  * Outer resource documentation.
  */
-@RestResource(urlMapping='/v1/foo/*')
+@CustomMarker(urlMapping='/v1/foo/*')
 global class ExampleResource {
   /** Method documentation must not become class documentation. */
-  @HttpGet
+  @TestApi
   global static String fetch() { return 'ok'; }
 
   /** Nested documentation must not become outer documentation. */
   class Nested {
-    @HttpPost
+    @TestPost
     static void create() {}
   }
 }`;
@@ -94,14 +94,14 @@ describe('analyzeApexSource', () => {
       [
         token(0, 1, 12, 'decorator'),
         token(3, 26, 15, 'class', ['declaration']),
-        token(4, 3, 7, 'decorator'),
+        token(4, 4, 7, 'decorator'),
         token(5, 23, 5, 'method', ['declaration', 'static']),
         token(7, 3, 11, 'decorator'),
         token(8, 23, 7, 'method', ['declaration', 'static']),
         token(10, 3, 10, 'decorator'),
         token(11, 16, 8, 'property', ['declaration']),
         token(13, 8, 6, 'class', ['declaration']),
-        token(14, 5, 8, 'decorator'),
+        token(14, 6, 8, 'decorator'),
         token(15, 16, 6, 'method', ['declaration', 'static'])
       ],
       [
@@ -118,13 +118,13 @@ describe('analyzeApexSource', () => {
 
     expect(analysis?.classContext).toMatchObject({
       name: 'ExampleResource',
-      annotations: [{ name: 'RestResource', parameters: { urlMapping: '/v1/foo/*' } }],
+      annotations: [{ name: 'CustomMarker', parameters: { urlMapping: '/v1/foo/*' } }],
       modifiers: { visibility: 'global', isStatic: false, isConstructor: false }
     });
     expect(analysis?.methods).toMatchObject([
       {
         name: 'fetch',
-        annotations: [{ name: 'HttpGet' }],
+        annotations: [{ name: 'TestApi' }],
         modifiers: { visibility: 'global', isStatic: true, isConstructor: false }
       },
       {
@@ -161,7 +161,7 @@ describe('analyzeApexSource', () => {
   });
 
   it('preserves comment delimiters inside quoted annotation values', () => {
-    const annotationText = "@RestResource /* mapping */ (urlMapping='/v1/*foo*/bar')\nglobal class Example {}";
+    const annotationText = "@CustomMarker /* mapping */ (urlMapping='/v1/*foo*/bar')\nglobal class Example {}";
     const analysis = analyzeApexSource(
       resourceUri,
       annotationText,
