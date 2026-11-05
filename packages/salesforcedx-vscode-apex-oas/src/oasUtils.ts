@@ -7,43 +7,16 @@
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Clock from 'effect/Clock';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
-import * as Runtime from 'effect/Runtime';
 import type { OpenAPIV3 } from 'openapi-types';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { parse as yamlParse } from 'yaml';
-import { oasDiagnosticCollection, type ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
-
-/** Reports a step message into an active progress notification. */
-export type ProgressReporter = (message: string) => Effect.Effect<void>;
-
-/**
- * Runs `body` inside a non-cancellable VS Code progress notification, giving it a `report` callback to update
- * the notification message per step. Without this, long operations show no sign of
- * life between the folder prompt and the final toast. The notification closes when the Effect settles.
- * @param title - The notification title shown for the whole operation.
- * @param body - Receives `report` and returns the Effect to run; its message updates the notification.
- * @param location - Where to show the progress (toast vs status bar); defaults to a toast notification.
- */
-export const withSteppedProgress = <A, E, R>(
-  title: string,
-  body: (report: ProgressReporter) => Effect.Effect<A, E, R>,
-  location: vscode.ProgressLocation = vscode.ProgressLocation.Notification
-) =>
-  Effect.runtime<R>().pipe(
-    Effect.flatMap(runtime =>
-      Effect.async<A, E>(resume => {
-        void vscode.window.withProgress({ location, title, cancellable: false }, progress => {
-          const report: ProgressReporter = message => Effect.sync(() => progress.report({ message }));
-          return Runtime.runPromiseExit(runtime)(body(report)).then(exit => {
-            resume(exit._tag === 'Success' ? Effect.succeed(exit.value) : Effect.failCause(exit.cause));
-          });
-        });
-      })
-    )
-  );
+import { OasDocumentParseFailed } from './errors';
+import { type ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
+import { OasDiagnosticsService } from './services/oasDiagnosticsService';
 
 /**
  * Creates problem tab entries for an OAS document.
@@ -51,32 +24,29 @@ export const withSteppedProgress = <A, E, R>(
  * @param {ProcessorInputOutput} processedOasResult - The processed OAS result.
  * @param {boolean} isESRDecomposed - Whether the ESR is decomposed.
  */
-export const createProblemTabEntriesForOasDocument = (
-  fullPath: string,
-  processedOasResult: ProcessorInputOutput,
-  isESRDecomposed: boolean
-): void => {
-  const uri = URI.file(fullPath);
-  oasDiagnosticCollection.clear();
+export const createProblemTabEntriesForOasDocument = Effect.fn('ApexOas.Diagnostics.createProblemTabEntries')(
+  function* (fullPath: string, processedOasResult: ProcessorInputOutput, isESRDecomposed: boolean) {
+    const uri = URI.file(fullPath);
 
-  const adjustErrors = processedOasResult.errors.map(result => {
-    // if embedded inside of ESR.xml then position is hardcoded because of `apexActionController.createESRObject`
-    const lineAdjustment = isESRDecomposed ? 0 : 4;
-    const startCharacterAdjustment = isESRDecomposed ? 0 : 11;
-    const range = new vscode.Range(
-      result.range.start.line + lineAdjustment,
-      result.range.start.character + result.range.start.line <= 1 ? startCharacterAdjustment : 0,
-      result.range.end.line + lineAdjustment,
-      result.range.end.character + result.range.start.line <= 1 ? startCharacterAdjustment : 0
-    );
-    return new vscode.Diagnostic(range, result.message, result.severity);
-  });
+    const adjustErrors = processedOasResult.errors.map(result => {
+      // if embedded inside of ESR.xml then position is hardcoded because of `apexActionController.createESRObject`
+      const lineAdjustment = isESRDecomposed ? 0 : 4;
+      const startCharacterAdjustment = isESRDecomposed ? 0 : 11;
+      const range = new vscode.Range(
+        result.range.start.line + lineAdjustment,
+        result.range.start.character + result.range.start.line <= 1 ? startCharacterAdjustment : 0,
+        result.range.end.line + lineAdjustment,
+        result.range.end.character + result.range.start.line <= 1 ? startCharacterAdjustment : 0
+      );
+      return new vscode.Diagnostic(range, result.message, result.severity);
+    });
 
-  const mulesoftExtension = vscode.extensions.getExtension('salesforce.mule-dx-agentforce-api-component');
-  if (!mulesoftExtension?.isActive) {
-    oasDiagnosticCollection.set(uri, adjustErrors);
+    const mulesoftExtension = vscode.extensions.getExtension('salesforce.mule-dx-agentforce-api-component');
+    if (!mulesoftExtension?.isActive) {
+      yield* OasDiagnosticsService.replace(uri, adjustErrors);
+    }
   }
-};
+);
 
 /**
  * Detects ESR decomposition by inspecting the SDR registry's ExternalServiceRegistration type.
@@ -98,14 +68,24 @@ export const checkIfESRIsDecomposed = Effect.fn('ApexOas.checkIfESRIsDecomposed'
  * @param {string} doc - The JSON string representing the OAS document.
  * @returns {OpenAPIV3.Document} - The parsed OAS document.
  */
-export const parseOASDocFromJson = (doc: string): OpenAPIV3.Document => JSON.parse(doc) as OpenAPIV3.Document;
+export const parseOASDocFromJson = Effect.fn('ApexOas.parseJson')(function* (doc: string) {
+  return yield* Effect.try({
+    try: () => JSON.parse(doc) as OpenAPIV3.Document,
+    catch: cause => new OasDocumentParseFailed({ message: 'Generated OAS document is not valid JSON', cause })
+  });
+});
 
 /**
  * Parses an OAS document from a YAML string.
  * @param {string} doc - The YAML string representing the OAS document.
  * @returns {OpenAPIV3.Document} - The parsed OAS document.
  */
-export const parseOASDocFromYaml = (doc: string): OpenAPIV3.Document => yamlParse(doc) as OpenAPIV3.Document;
+export const parseOASDocFromYaml = Effect.fn('ApexOas.parseYaml')(function* (doc: string) {
+  return yield* Effect.try({
+    try: () => yamlParse(doc) as OpenAPIV3.Document,
+    catch: cause => new OasDocumentParseFailed({ message: 'OAS document is not valid YAML', cause })
+  });
+});
 
 /**
  * Summarizes diagnostics by severity.
@@ -122,8 +102,8 @@ export const summarizeDiagnostics = (diagnostics: vscode.Diagnostic[]): number[]
     [0, 0, 0, 0, 0]
   );
 
-export const getCurrentTimestamp = (): string => {
-  const now = new Date();
+export const getCurrentTimestamp = Effect.fn('ApexOas.getCurrentTimestamp')(function* () {
+  const now = new Date(yield* Clock.currentTimeMillis);
   const month = String(now.getMonth() + 1).padStart(2, '0');
   const day = String(now.getDate()).padStart(2, '0');
   const year = now.getFullYear();
@@ -132,7 +112,7 @@ export const getCurrentTimestamp = (): string => {
   const seconds = String(now.getSeconds()).padStart(2, '0');
   const formattedDate = `${month}${day}${year}_${hours}${minutes}${seconds}`;
   return formattedDate;
-};
+});
 
 /**
  * Validates if a registration provider type is one of the allowed values.

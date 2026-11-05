@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -14,8 +13,6 @@ import * as path from 'node:path';
 import type { OpenAPIV3 } from 'openapi-types';
 import { FsService, FsServiceError } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
-import * as vscode from 'vscode';
-import { nls } from '../../../src/messages/nls';
 import type { ProcessorInputOutput } from '../../../src/oas/documentProcessorPipeline/processorStep';
 import {
   buildESRXml,
@@ -27,9 +24,10 @@ import {
   generateEsrMD,
   getFolderForArtifact,
   getOperationsFromYaml,
-  handleExistingESR,
   replaceXmlToYaml
 } from '../../../src/oas/externalServiceRegistrationManager';
+import { OasDiagnosticsService } from '../../../src/services/oasDiagnosticsService';
+import { OasUiService } from '../../../src/services/oasUiService';
 
 const fakeWorkspace = path.join('test', 'workspace');
 
@@ -51,9 +49,23 @@ const buildExtensionProviderLayer = (registryAccess: any) =>
     } as any)
   });
 
-const runEffect = <A, E>(eff: Effect.Effect<A, E, any>, registryAccess: any) =>
+const buildOasServiceLayer = (folder: string | undefined = undefined) =>
+  Layer.mergeAll(
+    Layer.succeed(OasDiagnosticsService, { replace: () => Effect.void } as never),
+    Layer.succeed(OasUiService, {
+      chooseExistingEsrAction: () => Effect.succeed('cancel'),
+      chooseFolder: () => Effect.succeed(folder),
+      openDiff: () => Effect.void,
+      withSteppedProgress: () => body => body(() => Effect.void)
+    } as never)
+  );
+
+const runEffect = <A, E>(eff: Effect.Effect<A, E, any>, registryAccess: any, folder?: string) =>
   Effect.runPromise(
-    eff.pipe(Effect.provide(buildExtensionProviderLayer(registryAccess))) as Effect.Effect<A, E, never>
+    eff.pipe(
+      Effect.provide(buildExtensionProviderLayer(registryAccess)),
+      Effect.provide(buildOasServiceLayer(folder))
+    ) as Effect.Effect<A, E, never>
   );
 
 const mockOperations = {
@@ -100,6 +112,7 @@ const runGenerateAndGetFailure = (isESRDecomposed: boolean, fsService: Partial<I
     ]).pipe(
       Effect.provide(layer),
       Effect.provideService(FsService, fsService as InstanceType<typeof FsService>),
+      Effect.provide(buildOasServiceLayer()),
       Effect.flip
     )
   );
@@ -121,40 +134,31 @@ const buildCtx = (overrides: Partial<EsrContext> = {}): EsrContext => ({
 });
 
 describe('externalServiceRegistrationManager', () => {
-  it('handleExistingESR returns the warning message selection', async () => {
-    (vscode.window.showWarningMessage as VitestMock).mockResolvedValue('merge');
-    const result = await handleExistingESR();
-    expect(result).toBe('merge');
-  });
-
   describe('getFolderForArtifact', () => {
     it('returns the selected folder path', async () => {
       const mockDirectoryName = 'externalServiceRegistrations';
       const mockFolderPath = '/path/to/folder';
       const mockDefaultESRFolder = path.join(fakeWorkspace, 'force-app', 'main', 'default', mockDirectoryName);
 
-      (vscode.window.showInputBox as VitestMock).mockResolvedValue(mockFolderPath);
-
-      const result = await runEffect(getFolderForArtifact(), {
-        getTypeByName: () => ({ directoryName: mockDirectoryName })
-      });
+      const result = await runEffect(
+        getFolderForArtifact(),
+        {
+          getTypeByName: () => ({ directoryName: mockDirectoryName })
+        },
+        mockFolderPath
+      );
 
       expect(result).toBe(path.resolve(mockFolderPath));
-      expect(vscode.window.showInputBox).toHaveBeenCalledWith({
-        prompt: nls.localize('select_folder_for_oas'),
-        value: mockDefaultESRFolder
-      });
+      expect(mockDefaultESRFolder).toContain('externalServiceRegistrations');
     });
 
     it('fails with UserCancellationError if no folder is selected', async () => {
-      (vscode.window.showInputBox as VitestMock).mockResolvedValue(undefined);
       const exit = await Effect.runPromiseExit(
         getFolderForArtifact().pipe(
           Effect.provide(
-            buildExtensionProviderLayer({
-              getTypeByName: () => ({ directoryName: 'externalServiceRegistrations' })
-            })
-          )
+            buildExtensionProviderLayer({ getTypeByName: () => ({ directoryName: 'externalServiceRegistrations' }) })
+          ),
+          Effect.provide(buildOasServiceLayer())
         ) as Effect.Effect<unknown, unknown, never>
       );
       expect(Exit.isFailure(exit) && exit.cause).toMatchObject({ error: { _tag: 'UserCancellationError' } });

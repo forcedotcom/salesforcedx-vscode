@@ -74,7 +74,10 @@ const isDocumentSymbol = (symbol: DocumentSymbol | SymbolInformation): symbol is
 
 const ensureDocumentOpen = Effect.fn('ApexOas.Lsp.ensureDocumentOpen')(function* (resourceUri: URI) {
   // This registers an Explorer-selected file with the LS without revealing an editor.
-  yield* Effect.promise(() => vscode.workspace.openTextDocument(URI.parse(resourceUri.toString())));
+  yield* Effect.tryPromise({
+    try: () => vscode.workspace.openTextDocument(URI.parse(resourceUri.toString())),
+    catch: cause => new ApexLspRequestFailed({ message: `Failed to open Apex document: ${String(cause)}`, cause })
+  });
 });
 
 export class ApexMetadataService extends Effect.Service<ApexMetadataService>()('ApexMetadataService', {
