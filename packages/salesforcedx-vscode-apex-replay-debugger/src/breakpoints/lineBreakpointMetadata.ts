@@ -10,6 +10,3 @@ import { getRuntime } from '../services/runtime';
 
 export const ensureLineBreakpointMetadata = (uris: readonly string[]) =>
   getRuntime().runPromise(LineBreakpointMetadataService.ensure(uris));
-
-export const refreshLineBreakpointMetadata = (uri: string) =>
-  getRuntime().runPromise(LineBreakpointMetadataService.refresh(uri));
