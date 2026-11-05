@@ -21,11 +21,6 @@ import { analyzeMetadata, ClassNotEligible } from './metadataOrchestrator';
 
 const COMMAND: ProgressAndSuccessCommandKey = messages.create_openapi_doc_class;
 
-/** @ExportTaggedError */
-export class MixedFrameworksNotAllowed extends Data.TaggedError('MixedFrameworksNotAllowed')<{
-  readonly message: string;
-}> {}
-
 /** REST annotation-based OAS generation has been retired. @ExportTaggedError */
 export class RestOASGenerationRetired extends Data.TaggedError('RestOASGenerationRetired')<{
   readonly message: string;
@@ -38,12 +33,9 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const notificationMode = yield* api.services.NotificationModeService;
 
-  // Step 1: Gather current source metadata and qualify exactly one framework.
+  // Step 1: Gather current source metadata and qualify AuraEnabled generation.
   const analysis = yield* analyzeMetadata(sourceUri);
   const className = path.basename(analysis.source.resourceUri.fsPath, '.cls');
-  if (analysis.qualification.framework === 'mixed') {
-    return yield* new MixedFrameworksNotAllowed({ message: nls.localize('mixed_frameworks_not_allowed', className) });
-  }
   if (analysis.qualification.framework === 'restUnsupported') {
     return yield* new RestOASGenerationRetired({ message: nls.localize('rest_oas_gen_retired') });
   }
