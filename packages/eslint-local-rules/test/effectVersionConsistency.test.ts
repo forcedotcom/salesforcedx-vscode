@@ -37,6 +37,7 @@ const workspaceFiles = [
   ...fs.globSync('packages/*/package.json', { cwd: REPO_ROOT }).map(file => file.split(path.sep).join('/'))
 ];
 const effectSpec = (pkg: PackageJson): string | undefined => pkg.dependencies?.effect ?? pkg.devDependencies?.effect;
+const caretRange = (version: string): string => `^${version}`;
 const requireFrom = (file: string): NodeJS.Require => createRequire(path.join(REPO_ROOT, file));
 const resolvedEffect = (file: string, dependency = 'effect'): { version: string; file: string } => {
   const effectFile = requireFrom(file).resolve(`${dependency}/package.json`);
@@ -47,14 +48,14 @@ const resolvedEffect = (file: string, dependency = 'effect'): { version: string;
 };
 
 describe('effect version consistency', () => {
-  it('declares one first-party effect spec with exact reviewed boundaries', () => {
+  it('declares caret Effect specs with exact reviewed boundaries', () => {
     Object.entries(packageEffectVersions).forEach(([file, dependencies]) => {
       expect(workspaceFiles).toContain(file);
       Object.entries(dependencies).forEach(([dependency, version]) => {
         expect(semver.valid(version)).not.toBeNull();
         const pkg = readJson(file);
         const spec = pkg.dependencies?.[dependency] ?? pkg.devDependencies?.[dependency];
-        expect(spec).toBe(dependency === 'effect' ? version : `npm:effect@${version}`);
+        expect(spec).toBe(dependency === 'effect' ? caretRange(version) : `npm:effect@${caretRange(version)}`);
         expect(resolvedEffect(file, dependency).version).toBe(version);
       });
     });
@@ -70,8 +71,13 @@ describe('effect version consistency', () => {
 
     // on failure jest prints every offending file:spec so the skew is obvious
     const byFile = offenders.map(entry => `${entry.file}: ${entry.spec}`);
+    const rootEffectSpec = effectSpec(readJson('package.json'));
     const violations = offenders.filter(
-      entry => entry.spec !== (packageEffectVersions[entry.file]?.effect ?? effectSpec(readJson('package.json')))
+      entry =>
+        entry.spec !==
+        (packageEffectVersions[entry.file]?.effect === undefined
+          ? rootEffectSpec
+          : caretRange(packageEffectVersions[entry.file].effect))
     );
     expect(violations.length === 0 ? [] : byFile).toEqual([]);
   });
