@@ -22,7 +22,7 @@ import { type LaunchRequestArguments } from '../../../src/adapter/types';
 import { ApexVariableContainer } from '../../../src/adapter/variableContainer';
 import { LogContext } from '../../../src/core/logContext';
 import { FrameEntryState } from '../../../src/states/frameEntryState';
-import type { BreakpointMappings } from '../../../src/breakpoints';
+import type { BreakpointMappings } from '../../../src/breakpoints/breakpointUtil';
 
 class MappableApexReplayDebug extends ApexReplayDebug {
   public setBreakpointMappings(mappings: BreakpointMappings): void {
