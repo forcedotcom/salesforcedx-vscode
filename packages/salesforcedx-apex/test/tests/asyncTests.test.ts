@@ -1771,10 +1771,10 @@ describe('Create Result Files', () => {
     createDirectory: () => Effect.void,
     writeFile: (directory, fileName, content) =>
       Stream.runCollect(content).pipe(
-        Effect.map(Chunk.toArray),
-        Effect.map(chunks => {
+        Effect.map(Chunk.join('')),
+        Effect.map(content => {
           const path = join(directory, fileName);
-          writtenFiles.push({ path, content: chunks.join('') });
+          writtenFiles.push({ path, content });
           return path;
         })
       )

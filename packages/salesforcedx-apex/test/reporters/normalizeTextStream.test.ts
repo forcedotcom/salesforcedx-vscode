@@ -13,10 +13,10 @@ import { normalizeTextStream } from '../../src/reporters/normalizeTextStream';
 describe('normalizeTextStream', () => {
   it.each(['\n', '\r\n'] as const)('normalizes mixed newlines split across chunks to %j', async lineEnding => {
     const report = Stream.fromIterable(['first\r', '\nsecond\r', 'third\nlast\r']);
-    const chunks = await Effect.runPromise(
-      normalizeTextStream(report, lineEnding).pipe(Stream.runCollect, Effect.map(Chunk.toArray))
+    const normalized = await Effect.runPromise(
+      normalizeTextStream(report, lineEnding).pipe(Stream.runCollect, Effect.map(Chunk.join('')))
     );
 
-    expect(chunks.join('')).toBe(['first', 'second', 'third', 'last', ''].join(lineEnding));
+    expect(normalized).toBe(['first', 'second', 'third', 'last', ''].join(lineEnding));
   });
 });

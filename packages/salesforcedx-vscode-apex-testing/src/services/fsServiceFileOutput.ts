@@ -28,8 +28,7 @@ export const fileOutputFromFsService = (fsService: FsService): typeof FileOutput
   writeFile: Effect.fn('ApexTestingFileOutput.writeFile')(
     (directory: string, fileName: string, content: Stream.Stream<string, never, never>) =>
       Stream.runCollect(content).pipe(
-        Effect.map(Chunk.toArray),
-        Effect.map(chunks => chunks.join('')),
+        Effect.map(Chunk.join('')),
         Effect.flatMap(text =>
           fsService.toUri(directory).pipe(
             Effect.map(uri => Utils.joinPath(uri, fileName)),

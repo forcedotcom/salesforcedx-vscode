@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import { FileOutput } from '../../src/effect/fileOutput';
@@ -15,7 +16,7 @@ const createMemoryFileOutput = (files: Map<string, string>): typeof FileOutput.S
   createDirectory: () => Effect.void,
   writeFile: (directory, fileName, content) =>
     Stream.runCollect(content).pipe(
-      Effect.map(chunks => Array.from(chunks).join('')),
+      Effect.map(Chunk.join('')),
       Effect.map(content => {
         const path = `${directory}/${fileName}`;
         files.set(path, content);

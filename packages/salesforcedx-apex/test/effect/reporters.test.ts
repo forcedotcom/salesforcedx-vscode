@@ -113,14 +113,14 @@ describe('Effect reporters', () => {
         coverageThresholdPercent: 90,
         timestamp
       };
-      const chunks = await Effect.runPromise(
+      const streamedReport = await Effect.runPromise(
         formatMarkdownTextReportStream(coverageFailResult, options).pipe(
           Effect.flatMap(Stream.runCollect),
-          Effect.map(Chunk.toArray)
+          Effect.map(Chunk.join(''))
         )
       );
       await expect(Effect.runPromise(formatMarkdownTextReport(coverageFailResult, options))).resolves.toBe(
-        chunks.join('')
+        streamedReport
       );
     }
   });
