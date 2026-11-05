@@ -28,7 +28,6 @@
     "Other"
   ],
   "dependencies": {
-    "@salesforce/apex-language-server-extension-api": "^0.11.83-nightly.20261120",
     "@salesforce/apex-node": "workspace:*",
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/types": "^1.8.0",
@@ -70,11 +69,7 @@
     "compile": "wireit",
     "lint": "wireit",
     "check:circular-deps": "wireit",
-<<<<<<< HEAD
-    "lint:fix": "eslint --color --fix .",
-=======
-    "lint:fix": "eslint --color --cache --cache-location .eslintcache --fix .",
->>>>>>> 531f1eeb3 (feat: use new apex ls for breakpoint lines)
+    "lint:fix": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-apex-testing lint --fix",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json",
     "test": "wireit",
     "test:compile": "wireit",

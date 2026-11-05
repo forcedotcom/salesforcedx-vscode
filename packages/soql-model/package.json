@@ -29,7 +29,6 @@
     "preinstall": "node ../../scripts/require-root-install.js",
     "compile": "wireit",
     "lint": "wireit",
-    "lint:fix": "eslint --color --cache --cache-location .eslintcache --fix .",
     "clean": "shx rm -rf node_modules out dist coverage .wireit .eslintcache .circular-deps.json",
     "test": "wireit"
   },

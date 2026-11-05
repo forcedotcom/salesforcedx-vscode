@@ -74,7 +74,6 @@
     "compile": "wireit",
     "generate-types": "wireit",
     "lint": "wireit",
-    "lint:fix": "eslint --color --cache --cache-location .eslintcache --fix .",
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix .circular-deps.json resources",
     "test": "wireit",
     "run:web": "wireit",

@@ -40,7 +40,6 @@
     "test": "wireit",
     "test:compile": "wireit",
     "lint": "wireit",
-    "lint:fix": "eslint --color --cache --cache-location .eslintcache --fix .",
     "clean": "shx rm -rf out dist .wireit .eslintcache .circular-deps.json"
   },
   "wireit": {
