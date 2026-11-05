@@ -5,24 +5,33 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { MarkdownTextReporterOptions } from './markdownTextReporter';
-import type { TestResult } from '../tests/types';
-import * as Clock from 'effect/Clock';
-import * as Effect from 'effect/Effect';
-import type { ReadableOptions } from 'node:stream';
-import { reportStreamToReadable } from '../utils/reportStream';
-import { formatMarkdownTextChunks } from './formatMarkdownText';
+import { Logger } from '@salesforce/core';
+import { Readable, type ReadableOptions } from 'node:stream';
+import { type TestResult } from '../tests/types';
+import { formatMarkdownText } from './markdownFormatting';
+import { type MarkdownTextReporterOptions } from './markdownTextReporter';
 
 /** @internal Used by the co-repo Apex Testing extension; not part of the supported npm API. */
 export type MarkdownTextFormatTransformerOptions = ReadableOptions & MarkdownTextReporterOptions;
 
-/** @internal Node-readable adapter for the Effect Markdown/text reporter. */
-export const MarkdownTextFormatTransformer = Effect.fn('Apex.MarkdownTextFormatTransformer')(function* (
-  testResult: TestResult,
-  options?: MarkdownTextFormatTransformerOptions
-) {
-  const timestamp = options?.timestamp ?? new Date(yield* Clock.currentTimeMillis);
-  return yield* Effect.sync(() =>
-    reportStreamToReadable(formatMarkdownTextChunks(testResult, { ...options, timestamp }), options)
-  );
-});
+/** @internal Used by the co-repo Apex Testing extension; not part of the supported npm API. */
+export class MarkdownTextFormatTransformer extends Readable {
+  private readonly logger: Logger;
+  private readonly options: MarkdownTextReporterOptions;
+
+  constructor(
+    private readonly testResult: TestResult,
+    options?: MarkdownTextFormatTransformerOptions
+  ) {
+    super(options);
+    this.logger = Logger.childFromRoot('MarkdownTextFormatTransformer');
+    this.options = { ...options, timestamp: options?.timestamp ?? new Date() };
+  }
+
+  _read(): void {
+    this.logger.trace('starting format');
+    this.push(formatMarkdownText(this.testResult, this.options));
+    this.push(null); // Signal the end of the stream
+    this.logger.trace('finishing format');
+  }
+}

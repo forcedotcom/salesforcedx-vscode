@@ -51,12 +51,3 @@ export type DataRecordResult = {
 export type IdRecord = {
   Id: string;
 };
-
-export interface Row {
-  [column: string]: string;
-}
-
-export interface Column {
-  key: string;
-  label: string;
-}

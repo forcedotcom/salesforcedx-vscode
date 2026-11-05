@@ -22,9 +22,9 @@ export {
   UserId
 } from './schemas/salesforceId';
 export {
-  JUnitReporter,
-  TapReporter,
-  HumanReporter,
+  formatJUnit,
+  formatTap,
+  formatHuman,
   CoverageReporter,
   DefaultReportOptions,
   DefaultWatermarks,

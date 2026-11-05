@@ -210,13 +210,7 @@ vi.mock('@salesforce/apex-node', () => ({
       return mockTestServiceMethods;
     }
   ),
-  HumanReporter: vi.fn().mockImplementation(
-    // Vitest constructor mocks must use a constructable function.
-    // eslint-disable-next-line prefer-arrow/prefer-arrow-functions
-    function () {
-      return { format: vi.fn().mockReturnValue('') };
-    }
-  )
+  formatHuman: vi.fn().mockReturnValue('')
 }));
 
 import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';

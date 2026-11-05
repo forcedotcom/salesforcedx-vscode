@@ -6,14 +6,14 @@
  */
 
 import { JUnitFormatTransformer } from '../../src/reporters/junitFormatTransformer';
-import * as Effect from 'effect/Effect';
-import { pipeline, type Readable, Writable } from 'node:stream';
-import { getTestData, junitSetup, setupResult } from './testResults';
+import { formatJUnit } from '../../src/reporters/junitFormatting';
+import { pipeline, Writable } from 'node:stream';
+import { getTestData } from './testResults';
 
-const { testResults, junitResult, junitSuccess, junitCodeCov, junitMissingVal, successResult } = getTestData();
+const { testResults, setupResult, successResult } = getTestData();
 
 describe('JUnitFormatTransformer', () => {
-  const runPipeline = (reporter: Readable): Promise<string> =>
+  const runPipeline = (reporter: JUnitFormatTransformer): Promise<string> =>
     new Promise((resolve, reject) => {
       let result = '';
       const writable = new Writable({
@@ -31,32 +31,32 @@ describe('JUnitFormatTransformer', () => {
     });
 
   it('should format test results with failures', async () => {
-    const result = await runPipeline(await Effect.runPromise(JUnitFormatTransformer(testResults)));
+    const result = await runPipeline(new JUnitFormatTransformer(testResults));
     expect(result).not.toHaveLength(0);
-    expect(result).toEqual(junitResult);
+    expect(result).toBe(formatJUnit(testResults));
     expect(result).toContain('</failure>');
   });
 
   it('should format tests with 0 failures', async () => {
-    const result = await runPipeline(await Effect.runPromise(JUnitFormatTransformer(successResult)));
+    const result = await runPipeline(new JUnitFormatTransformer(successResult));
     expect(result).not.toHaveLength(0);
-    expect(result).toEqual(junitSuccess);
+    expect(result).toBe(formatJUnit(successResult));
     expect(result).not.toContain('</failure>');
   });
 
   it('should format tests with setup methods', async () => {
-    const result = await runPipeline(await Effect.runPromise(JUnitFormatTransformer(setupResult)));
+    const result = await runPipeline(new JUnitFormatTransformer(setupResult));
     expect(result).not.toHaveLength(0);
-    expect(result).toEqual(junitSetup);
+    expect(result).toBe(formatJUnit(setupResult));
     expect(result).not.toContain('</failure>');
   });
 
   it('should format test results with undefined or empty values', async () => {
-    successResult.summary.testRunId = '';
-    successResult.summary.userId = '';
-    const result = await runPipeline(await Effect.runPromise(JUnitFormatTransformer(successResult)));
+    successResult.summary.testRunId = undefined;
+    successResult.summary.userId = undefined;
+    const result = await runPipeline(new JUnitFormatTransformer(successResult));
     expect(result).not.toHaveLength(0);
-    expect(result).toEqual(junitMissingVal);
+    expect(result).toBe(formatJUnit(successResult));
     expect(result).not.toContain('testRunId');
     expect(result).not.toContain('userId');
   });
@@ -75,9 +75,9 @@ describe('JUnitFormatTransformer', () => {
       }
     ];
     successResult.summary.orgWideCoverage = '85%';
-    const result = await runPipeline(await Effect.runPromise(JUnitFormatTransformer(successResult)));
+    const result = await runPipeline(new JUnitFormatTransformer(successResult));
     expect(result).not.toHaveLength(0);
-    expect(result).toEqual(junitCodeCov);
+    expect(result).toBe(formatJUnit(successResult));
     expect(result).toContain('orgWideCoverage');
   });
 });

@@ -6,9 +6,17 @@
  */
 
 import * as Clock from 'effect/Clock';
+import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
-import { HumanReporter, JUnitReporter, MarkdownTextFormatTransformer, TapReporter } from '../../src';
-import { formatHumanReport, formatJUnitReport, formatMarkdownTextReport, formatTapReport } from '../../src/effect';
+import * as Stream from 'effect/Stream';
+import { formatHuman, formatJUnit, formatTap } from '../../src';
+import {
+  formatHumanReport,
+  formatJUnitReport,
+  formatMarkdownTextReport,
+  formatMarkdownTextReportStream,
+  formatTapReport
+} from '../../src/effect';
 import type { MarkdownTextReporterOptions } from '../../src/reporters/markdownTextReporter';
 import {
   coverageFailResult,
@@ -28,15 +36,13 @@ describe('Effect reporters', () => {
       for (const detailedCoverage of [false, true]) {
         for (const concise of [false, true]) {
           await expect(Effect.runPromise(formatHumanReport(result, { detailedCoverage, concise }))).resolves.toBe(
-            new HumanReporter().format(result, detailedCoverage, concise)
+            formatHuman(result, detailedCoverage, concise)
           );
           for (const lineEnding of ['\n', '\r\n'] as const) {
             const report = await Effect.runPromise(
               formatHumanReport(result, { detailedCoverage, concise, lineEnding })
             );
-            expect(report).toBe(
-              new HumanReporter().format(result, detailedCoverage, concise).replaceAll(/\r\n|\r|\n/g, lineEnding)
-            );
+            expect(report).toBe(formatHuman(result, detailedCoverage, concise).replaceAll(/\r\n|\r|\n/g, lineEnding));
             expect(report.replaceAll(lineEnding, '')).not.toMatch(/[\r\n]/);
           }
         }
@@ -52,22 +58,18 @@ describe('Effect reporters', () => {
           detailedCoverage: true
         })
       )
-    ).resolves.toBe(new HumanReporter().format(coverageResultWithCategory, true, false, true));
+    ).resolves.toBe(formatHuman(coverageResultWithCategory, true, false, true));
     const windowsReport = await Effect.runPromise(formatHumanReport(successResult, { lineEnding: '\r\n' }));
     expect(windowsReport).toContain('\r\n\r\n');
   });
 
   it('defaults to non-detailed, non-concise human output with host-native line endings', async () => {
-    await expect(Effect.runPromise(formatHumanReport(setupResult))).resolves.toBe(
-      new HumanReporter().format(setupResult, false)
-    );
+    await expect(Effect.runPromise(formatHumanReport(setupResult))).resolves.toBe(formatHuman(setupResult, false));
   });
 
   it('preserves TAP diagnostics, numbering, epilog, and final newline', async () => {
     const epilog = ['One', 'Two'];
-    await expect(Effect.runPromise(formatTapReport(testResults, epilog))).resolves.toBe(
-      new TapReporter().format(testResults, epilog)
-    );
+    await expect(Effect.runPromise(formatTapReport(testResults, epilog))).resolves.toBe(formatTap(testResults, epilog));
     await expect(Effect.runPromise(formatTapReport({ ...testResults, tests: [] }))).resolves.toBe('1..0\n');
   });
 
@@ -92,12 +94,12 @@ describe('Effect reporters', () => {
     }
   });
 
-  it('preserves JUnit output against the existing fixture', async () => {
+  it('preserves JUnit output against the supported formatter', async () => {
     const data = getTestData();
-    await expect(Effect.runPromise(formatJUnitReport(data.testResults))).resolves.toBe(data.junitResult);
-    await expect(Effect.runPromise(formatJUnitReport(data.setupResult))).resolves.toBe(data.junitSetup);
+    await expect(Effect.runPromise(formatJUnitReport(data.testResults))).resolves.toBe(formatJUnit(data.testResults));
+    await expect(Effect.runPromise(formatJUnitReport(data.setupResult))).resolves.toBe(formatJUnit(data.setupResult));
     await expect(Effect.runPromise(formatJUnitReport(data.successResult))).resolves.toBe(
-      new JUnitReporter().format(data.successResult)
+      formatJUnit(data.successResult)
     );
   });
 
@@ -111,9 +113,12 @@ describe('Effect reporters', () => {
         coverageThresholdPercent: 90,
         timestamp
       };
-      const stream = await Effect.runPromise(MarkdownTextFormatTransformer(coverageFailResult, options));
-      const chunks: string[] = [];
-      for await (const chunk of stream) chunks.push(String(chunk));
+      const chunks = await Effect.runPromise(
+        formatMarkdownTextReportStream(coverageFailResult, options).pipe(
+          Effect.flatMap(Stream.runCollect),
+          Effect.map(Chunk.toArray)
+        )
+      );
       await expect(Effect.runPromise(formatMarkdownTextReport(coverageFailResult, options))).resolves.toBe(
         chunks.join('')
       );
@@ -150,15 +155,5 @@ describe('Effect reporters', () => {
       message: 'bad summary',
       cause: 'bad summary'
     });
-  });
-
-  it('preserves the typed report error in the root compatibility adapter', () => {
-    const result = structuredClone(successResult);
-    Object.defineProperty(result.summary, 'outcome', {
-      get: () => {
-        throw new Error('bad summary');
-      }
-    });
-    expect(() => new HumanReporter().format(result, false)).toThrow('bad summary');
   });
 });

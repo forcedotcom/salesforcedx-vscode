@@ -9,7 +9,7 @@ import type { TestResult } from '../tests/types';
 import * as Stream from 'effect/Stream';
 import { buildTapDiagnostics } from './buildTapDiagnostics';
 
-export const buildTapResults = (testResult: TestResult, lineEnding = '\n') =>
+const buildTapResults = (testResult: TestResult, lineEnding = '\n') =>
   testResult.tests.map((test, index) => ({
     testNumber: index + 1,
     description: test.fullName,

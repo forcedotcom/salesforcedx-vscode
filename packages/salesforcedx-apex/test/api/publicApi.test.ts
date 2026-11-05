@@ -35,18 +35,18 @@ describe('@salesforce/apex-node public API', () => {
       'DefaultReportOptions',
       'DefaultWatermarks',
       'ExecuteService',
-      'HumanReporter',
-      'JUnitReporter',
       'LogService',
       'ResultFormat',
       'ResultFormatSchema',
       'SalesforceId',
-      'TapReporter',
       'TestLevel',
       'TestLevelSchema',
       'TestRunId',
       'TestService',
-      'UserId'
+      'UserId',
+      'formatHuman',
+      'formatJUnit',
+      'formatTap'
     ]);
   });
 

@@ -8,6 +8,13 @@
 import { execSync } from 'node:child_process';
 import { existsSync, rmSync } from 'node:fs';
 
+if (process.argv.includes('--help')) {
+  console.log(
+    'Usage: node scripts/installVSIXFromBranch.mts <ide>\nDownload and install VSIX files from the current branch.'
+  );
+  process.exit(0);
+}
+
 type WorkflowRun = {
   databaseId: string;
 };

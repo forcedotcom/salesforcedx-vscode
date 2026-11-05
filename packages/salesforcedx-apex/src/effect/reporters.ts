@@ -12,10 +12,10 @@ import * as Chunk from 'effect/Chunk';
 import * as Clock from 'effect/Clock';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
-import { formatHuman } from '../reporters/formatHuman';
 import { formatJUnitChunks } from '../reporters/formatJUnit';
 import { formatMarkdownTextChunks } from '../reporters/formatMarkdownText';
 import { formatTapChunks } from '../reporters/formatTap';
+import { formatHuman } from '../reporters/humanFormatting';
 import { ApexReportError, causeMessage } from './errors';
 
 export interface HumanReporterOptions {
@@ -59,13 +59,7 @@ const formatStream = (
 export const formatHumanReport = Effect.fn('Apex.formatHumanReport')(
   (testResult: TestResult, options: HumanReporterOptions = {}) =>
     formatReport('human', () => {
-      const report = formatHuman(
-        testResult,
-        options.detailedCoverage ?? false,
-        options.concise,
-        options.showCategory,
-        options.lineEnding
-      );
+      const report = formatHuman(testResult, options.detailedCoverage ?? false, options.concise, options.showCategory);
       return options.lineEnding ? report.replaceAll(/\r\n|\r|\n/g, options.lineEnding) : report;
     })
 );

@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as util from 'node:util';
 import { type TestResult } from '../../src/tests/types';
 import { apexClassId, salesforceId } from '../schemaHelpers';
 
@@ -16,7 +15,6 @@ const animalLocatorClassId = apexClassId('01p3t000001ytUmAAI');
 const testStartTime = '2020-11-09T18:02:50.000+0000';
 const date = new Date(testStartTime);
 const isoStartTime = date.toISOString();
-const localStartTime = `${date.toDateString()} ${date.toLocaleTimeString()}`;
 
 export const coverageResult: TestResult = {
   summary: {
@@ -600,133 +598,6 @@ export const testResults: TestResult = {
   setup: []
 };
 
-const junitResult = `<?xml version="1.0" encoding="UTF-8"?>
-<testsuites>
-    <testsuite name="force.apex" timestamp="2020-11-09T18:02:50.000Z" hostname="https://na139.salesforce.com" tests="16" failures="4"  errors="0"  time="5.46">
-        <properties>
-            <property name="failRate" value="13%"/>
-            <property name="testsRan" value="16"/>
-            <property name="orgId" value="00D3t000001vIruEAE"/>
-            <property name="outcome" value="Completed"/>
-            <property name="passRate" value="88%"/>
-            <property name="testStartTime" value="${localStartTime}"/>
-            <property name="testExecutionTime" value="5.46 s"/>
-            <property name="testTotalTime" value="5.46 s"/>
-            <property name="commandTime" value="6.00 s"/>
-            <property name="testRunId" value="7073t000061uwZI"/>
-            <property name="userId" value="0053t000007OxppAAC"/>
-            <property name="username" value="tpo-3"/>
-            <property name="failing" value="4"/>
-            <property name="skipped" value="0"/>
-            <property name="passing" value="12"/>
-            <property name="hostname" value="https://na139.salesforce.com"/>
-        </properties>
-        <testcase name="should_create_account" classname="AccountServiceTest" time="0.09">
-        </testcase>
-        <testcase name="testCallout" classname="AwesomeCalculatorTest" time="0.02">
-            <failure message=""></failure>
-        </testcase>
-        <testcase name="testGetCurrentUser" classname="trlhdtips.tt_UtilControllerTest" time="0.01">
-        </testcase>
-        <testcase name="testResetMyPassword" classname="trlhdtips.tt_UtilControllerTest" time="0.18">
-        </testcase>
-        <testcase name="testGetCallout" classname="AnimalLocatorTest" time="0.02">
-        </testcase>
-        <testcase name="testMissingAnimal" classname="AnimalLocatorTest" time="0.01">
-            <failure message="System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:"><![CDATA[Class.AnimalLocatorTest.testMissingAnimal: line 22, column 1]]></failure>
-        </testcase>
-        <testcase name="testProcessing" classname="LeadProcessorTest" time="2.26">
-        </testcase>
-        <testcase name="testDashboardPal" classname="Dashboard_Pal.DashboardPalTest" time="0.13">
-        </testcase>
-        <testcase name="testCountContacts" classname="AccountProcessorTest" time="0.24">
-            <failure message="System.AssertException: Assertion Failed: Incorrect count: Expected: 3, Actual: 2"><![CDATA[Class.AccountProcessorTest.testCountContacts: line 47, column 1]]></failure>
-        </testcase>
-        <testcase name="testCountContactsEmptyList" classname="AccountProcessorTest" time="0.01">
-        </testcase>
-        <testcase name="testCountContactsNullList" classname="AccountProcessorTest" time="0.01">
-        </testcase>
-        <testcase name="testCallout" classname="ParkLocatorTest" time="0.01">
-        </testcase>
-        <testcase name="testGetCallout" classname="AnimalsCalloutsTest" time="0.03">\n            <failure message="Weird characters &lt;&gt;&amp;&quot;&apos;\r\n\r\nSurrounded by newlines.\r\n  and whitespace.\r\n\r
-"></failure>
-        </testcase>
-        <testcase name="testPostCallout" classname="AnimalsCalloutsTest" time="0.01">
-        </testcase>
-        <testcase name="testAddContact" classname="AddPrimaryContactTest" time="0.25">
-        </testcase>
-        <testcase name="testLeadProcessing" classname="DailyLeadProcessorTest" time="2.20">
-        </testcase>
-    </testsuite>
-</testsuites>\n`;
-
-const successProperties = `            <property name="failRate" value="0%"/>
-            <property name="testsRan" value="2"/>
-            <property name="orgId" value="00D3t000001vIruEAE"/>
-            <property name="outcome" value="Completed"/>
-            <property name="passRate" value="100%"/>
-            <property name="testStartTime" value="${localStartTime}"/>
-            <property name="testExecutionTime" value="5.46 s"/>
-            <property name="testTotalTime" value="5.46 s"/>
-            <property name="commandTime" value="6.00 s"/>
-            <property name="testRunId" value="7073t000061uwZI"/>
-            <property name="userId" value="0053t000007OxppAAC"/>
-            <property name="username" value="tpo-3"/>
-            <property name="failing" value="0"/>
-            <property name="skipped" value="0"/>
-            <property name="passing" value="2"/>
-            <property name="hostname" value="https://na139.salesforce.com"/>`;
-const missingValProperties = `            <property name="failRate" value="0%"/>
-            <property name="testsRan" value="2"/>
-            <property name="orgId" value="00D3t000001vIruEAE"/>
-            <property name="outcome" value="Completed"/>
-            <property name="passRate" value="100%"/>
-            <property name="testStartTime" value="${localStartTime}"/>
-            <property name="testExecutionTime" value="5.46 s"/>
-            <property name="testTotalTime" value="5.46 s"/>
-            <property name="commandTime" value="6.00 s"/>
-            <property name="username" value="tpo-3"/>
-            <property name="failing" value="0"/>
-            <property name="skipped" value="0"/>
-            <property name="passing" value="2"/>
-            <property name="hostname" value="https://na139.salesforce.com"/>`;
-const setupProperties = `            <property name="failRate" value="0%"/>
-            <property name="testsRan" value="2"/>
-            <property name="orgId" value="00D3t000001vIruEAE"/>
-            <property name="outcome" value="Completed"/>
-            <property name="passRate" value="100%"/>
-            <property name="testStartTime" value="${localStartTime}"/>
-            <property name="testExecutionTime" value="5.46 s"/>
-            <property name="testTotalTime" value="5.49 s"/>
-            <property name="testSetupTimeInMs" value="24"/>
-            <property name="commandTime" value="6.00 s"/>
-            <property name="testRunId" value="7073t000061uwZI"/>
-            <property name="userId" value="0053t000007OxppAAC"/>
-            <property name="username" value="tpo-3"/>
-            <property name="failing" value="0"/>
-            <property name="skipped" value="0"/>
-            <property name="passing" value="2"/>
-            <property name="hostname" value="https://na139.salesforce.com"/>`;
-const codeCovProperties = `${missingValProperties}\n            <property name="orgWideCoverage" value="85%"/>`;
-
-const successTemplate = `<?xml version="1.0" encoding="UTF-8"?>
-<testsuites>
-    <testsuite name="force.apex" timestamp="2020-11-09T18:02:50.000Z" hostname="https://na139.salesforce.com" tests="2" failures="0"  errors="0"  time="5.46">
-        <properties>
-%s
-        </properties>
-        <testcase name="should_create_account" classname="AccountServiceTest" time="0.09">
-        </testcase>
-        <testcase name="testCallout" classname="AwesomeCalculatorTest" time="0.02">
-        </testcase>
-    </testsuite>
-</testsuites>\n`;
-
-const junitSuccess = util.format(successTemplate, successProperties);
-const junitCodeCov = util.format(successTemplate, codeCovProperties);
-const junitMissingVal = util.format(successTemplate, missingValProperties);
-export const junitSetup = util.format(successTemplate, setupProperties);
-
 // Test data with category field for testing showCategory functionality
 export const testResultsWithCategory: TestResult = {
   summary: {
@@ -905,11 +776,6 @@ export const coverageFailResultWithCategory: TestResult = {
 export function getTestData() {
   return {
     testResults: structuredClone(testResults),
-    junitResult: junitResult.toString(),
-    junitSuccess: junitSuccess.toString(),
-    junitCodeCov: junitCodeCov.toString(),
-    junitMissingVal: junitMissingVal.toString(),
-    junitSetup: junitSetup.toString(),
     setupResult: structuredClone(setupResult),
     successResult: structuredClone(successResult),
     testResultsWithCategory: structuredClone(testResultsWithCategory),

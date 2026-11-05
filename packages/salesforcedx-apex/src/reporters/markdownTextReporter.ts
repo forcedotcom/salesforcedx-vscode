@@ -41,18 +41,6 @@ export interface MarkdownTextReporterOptions {
   timestamp?: Date;
 }
 
-/** Escapes markdown special characters */
-export const escapeMarkdown = (text: string): string => text.replaceAll(/[\\`*_{}[\]()#+\-!]/g, '\\$&');
-
-/** Escapes HTML special characters */
-export const escapeHtml = (text: string): string =>
-  text
-    .replaceAll('&', '&amp;')
-    .replaceAll('<', '&lt;')
-    .replaceAll('>', '&gt;')
-    .replaceAll('"', '&quot;')
-    .replaceAll("'", '&#39;');
-
 /** Formats duration in milliseconds to a human-readable string */
 export const formatDuration = (ms: number): string => {
   if (ms < 1000) {

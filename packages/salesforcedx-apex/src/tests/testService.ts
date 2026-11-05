@@ -20,14 +20,17 @@ import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { Readable, type Writable, type Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
+import { formatMarkdownTextReportStream } from '../effect/reporters';
 import { ApexOperationError, ApexResponseDecodeError } from '../effect/schema/errors';
 import { buildAsyncPayload, buildSyncPayload } from '../effect/testPayloads';
 import { buildSuite, getTestsInSuite, retrieveAllSuites, retrieveSuiteId } from '../effect/testSuites';
 import { nls } from '../i18n';
-import { JUnitFormatTransformer, TapFormatTransformer, MarkdownTextFormatTransformer } from '../reporters';
+import { formatJUnitChunks } from '../reporters/formatJUnit';
+import { formatTapChunks } from '../reporters/formatTap';
 import { ApexTestSuiteId } from '../schemas/salesforceId';
 import { TestResultStringifyStream } from '../streaming';
 import { elapsedTime, HeapMonitor } from '../utils';
+import { reportStreamToReadable } from '../utils/reportStream';
 import { AsyncTests } from './asyncTests';
 import { type CancellationToken } from './cancellation';
 import { formatTestErrors } from './diagnosticUtil';
@@ -100,19 +103,23 @@ export const writeResultFiles = async (
           break;
         case 'tap':
           filePath = join(dirPath, `test-result-${fileId}-tap.txt`);
-          readable = Effect.runSync(TapFormatTransformer(result));
+          readable = reportStreamToReadable(formatTapChunks(result));
           break;
         case 'junit':
           filePath = join(dirPath, `test-result-${fileId}-junit.xml`);
-          readable = Effect.runSync(JUnitFormatTransformer(result));
+          readable = reportStreamToReadable(formatJUnitChunks(result));
           break;
         case 'markdown':
           filePath = join(dirPath, `test-result-${fileId}.md`);
-          readable = Effect.runSync(MarkdownTextFormatTransformer(result, { format: 'markdown', codeCoverage }));
+          readable = reportStreamToReadable(
+            formatMarkdownTextReportStream(result, { format: 'markdown', codeCoverage }).pipe(Effect.runSync)
+          );
           break;
         case 'text':
           filePath = join(dirPath, `test-result-${fileId}.txt`);
-          readable = Effect.runSync(MarkdownTextFormatTransformer(result, { format: 'text', codeCoverage }));
+          readable = reportStreamToReadable(
+            formatMarkdownTextReportStream(result, { format: 'text', codeCoverage }).pipe(Effect.runSync)
+          );
           break;
         default:
           throw new Error(nls.localize('resultFormatErr'));

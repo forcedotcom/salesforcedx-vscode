@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { TapFormatTransformer } from '../../src/reporters/tapFormatTransform';
-import * as Effect from 'effect/Effect';
+import { formatTap } from '../../src/reporters/tapFormatting';
 import { testResults } from './testResults';
-import { Writable, pipeline, type Readable } from 'node:stream';
+import { Writable, pipeline } from 'node:stream';
 
-const runPipeline = (reporter: Readable): Promise<string> =>
+const runPipeline = (reporter: TapFormatTransformer): Promise<string> =>
   new Promise((resolve, reject) => {
     let result = '';
     const writable = new Writable({
@@ -28,22 +28,12 @@ const runPipeline = (reporter: Readable): Promise<string> =>
 
 describe('TapFormatTransformer Tests', () => {
   it('should format test results', async () => {
-    const result = await runPipeline(await Effect.runPromise(TapFormatTransformer(testResults)));
-    expect(result).not.toHaveLength(0);
-    expect(result).toContain('1..16');
-    expect(result).toContain('ok 1 AccountServiceTest.should_create_account');
-    expect(result).toContain(
-      'not ok 6 AnimalLocatorTest.testMissingAnimal\n# System.AssertException: Assertion Failed: Should not have found an animal: Expected: FooBar, Actual:\n# Class.AnimalLocatorTest.testMissingAnimal: line 22, column 1\n'
-    );
+    const result = await runPipeline(new TapFormatTransformer(testResults));
+    expect(result).toBe(formatTap(testResults));
   });
 
   it('should format test results and epilog', async () => {
-    const result = await runPipeline(
-      await Effect.runPromise(TapFormatTransformer(testResults, ['One', 'Two', 'Three']))
-    );
-    expect(result).not.toHaveLength(0);
-    expect(result).toContain('1..16');
-    expect(result).toContain('ok 1 AccountServiceTest.should_create_account');
-    expect(result).toMatch(new RegExp('ok 16 DailyLeadProcessorTest.testLeadProcessing\n# One\n# Two\n# Three\n$'));
+    const result = await runPipeline(new TapFormatTransformer(testResults, ['One', 'Two', 'Three']));
+    expect(result).toBe(formatTap(testResults, ['One', 'Two', 'Three']));
   });
 });
