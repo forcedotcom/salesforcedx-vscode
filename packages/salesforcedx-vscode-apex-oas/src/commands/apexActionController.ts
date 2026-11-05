@@ -9,14 +9,16 @@ import { ExtensionProviderService, annotateRootSpan } from '@salesforce/effect-e
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import type { URI } from 'vscode-uri';
+import { ClassNotEligible } from '../errors';
 import { messages } from '../messages/i18n';
 import { nls } from '../messages/nls';
 import { processOasDocument } from '../oas/documentProcessorPipeline/oasProcessor';
 import { generateEsrMD, pathExists } from '../oas/externalServiceRegistrationManager';
 import { generateAuraEnabledOas } from '../oas/generationStrategy/json/auraEnabledStrategy';
-import { checkIfESRIsDecomposed, parseOASDocFromJson, summarizeDiagnostics, withSteppedProgress } from '../oasUtils';
+import { checkIfESRIsDecomposed, parseOASDocFromJson, summarizeDiagnostics } from '../oasUtils';
+import { OasUiService } from '../services/oasUiService';
 import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
-import { analyzeMetadata, ClassNotEligible } from './metadataOrchestrator';
+import { analyzeMetadata } from './metadataOrchestrator';
 
 const COMMAND: ProgressAndSuccessCommandKey = messages.create_openapi_doc_class;
 
@@ -50,29 +52,30 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
 
   // Steps 7-9 run inside a progress notification so the user sees activity between the folder prompt and final toast.
   const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
-  const processedOasResult = yield* withSteppedProgress(
+  const oasUi = yield* OasUiService;
+  const processedOasResult = yield* oasUi.withSteppedProgress(
     nls.localize('generating_oas_progress_title', name),
-    report =>
-      Effect.gen(function* () {
-        // Step 7: AuraEnabled is the sole supported OAS generation framework.
-        yield* report(nls.localize('generating_oas_progress_generating'));
-        const openApiDocument = yield* generateAuraEnabledOas(analysis.source.classContext);
-
-        // Step 8: Process the OAS document
-        yield* report(nls.localize('generating_oas_progress_processing'));
-        const result = yield* processOasDocument(parseOASDocFromJson(openApiDocument), {
-          eligibleMethodNames: qualification.methods.map(method => method.name),
-          isRevalidation: false
-        });
-
-        // Step 9: Write OpenAPI Document to File
-        yield* report(nls.localize('generating_oas_progress_writing'));
-        yield* checkIfESRIsDecomposed().pipe(
-          Effect.flatMap(isDecomposed => generateEsrMD(isDecomposed, result, fullPath))
-        );
-        return result;
-      }),
     progressLocation
+  )(report =>
+    Effect.gen(function* () {
+      // Step 7: AuraEnabled is the sole supported OAS generation framework.
+      yield* report(nls.localize('generating_oas_progress_generating'));
+      const openApiDocument = yield* generateAuraEnabledOas(analysis.source.classContext);
+
+      // Step 8: Process the OAS document
+      yield* report(nls.localize('generating_oas_progress_processing'));
+      const result = yield* processOasDocument(yield* parseOASDocFromJson(openApiDocument), {
+        eligibleMethodNames: qualification.methods.map(method => method.name),
+        isRevalidation: false
+      });
+
+      // Step 9: Write OpenAPI Document to File
+      yield* report(nls.localize('generating_oas_progress_writing'));
+      yield* checkIfESRIsDecomposed().pipe(
+        Effect.flatMap(isDecomposed => generateEsrMD(isDecomposed, result, fullPath))
+      );
+      return result;
+    })
   );
 
   // Step 11: Gather metrics

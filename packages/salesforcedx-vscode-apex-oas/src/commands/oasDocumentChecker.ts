@@ -27,7 +27,9 @@ const COMMAND: SuccessOnlyCommandKey = messages.validate_oas_document;
 const ensureValidRegistrationProviderType = Effect.fn('ApexOas.OasChecker.ensureValidRegistrationProviderType')(
   function* (xmlFilePath: string) {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    const xmlContent = yield* api.services.FsService.readFile(xmlFilePath).pipe(Effect.catchAll(() => Effect.void));
+    const xmlContent = yield* api.services.FsService.readFile(xmlFilePath).pipe(
+      Effect.catchTag('FsServiceError', () => Effect.void)
+    );
     if (!xmlContent) {
       return yield* new OasValidationFailed({ message: nls.localize('invalid_file_for_generating_oas_doc') });
     }
@@ -99,12 +101,12 @@ export const validateOpenApiDocument = Effect.fn('ApexOas.Command.validateOpenAp
 
   // Step 3: Process the OAS document
   const isESRDecomposed = yield* checkIfESRIsDecomposed();
-  const processedOasResult = yield* processOasDocument(parseOASDocFromYaml(openApiDocument), {
+  const processedOasResult = yield* processOasDocument(yield* parseOASDocFromYaml(openApiDocument), {
     isRevalidation: true
   });
 
   // Step 4: Report/Refresh problems found
-  createProblemTabEntriesForOasDocument(fullPath, processedOasResult, isESRDecomposed);
+  yield* createProblemTabEntriesForOasDocument(fullPath, processedOasResult, isESRDecomposed);
 
   // Step 5: Notify Success
   yield* notificationMode.showSuccessNotification(
