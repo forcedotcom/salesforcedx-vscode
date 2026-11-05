@@ -81,7 +81,6 @@
     "compile": "wireit",
     "compile:lit-ui": "wireit",
     "lint": "wireit",
-    "lint:fix": "../../node_modules/.bin/eslint --color --cache --cache-location .eslintcache --fix .",
     "clean": "shx rm -rf node_modules out dist dist-migration coverage .nyc_output .wireit .eslintcache *.vsix src/soql-builder-ui/dist src/soql-builder-ui/dist-lit src/soql-builder-ui/node_modules .circular-deps.json",
     "copy:grammars": "wireit",
     "build:soql-builder-ui": "wireit",

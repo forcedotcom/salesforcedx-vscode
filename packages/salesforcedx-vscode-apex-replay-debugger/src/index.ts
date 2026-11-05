@@ -16,6 +16,7 @@ import {
   SEND_METRIC_LAUNCH_EVENT
 } from '@salesforce/salesforcedx-apex-replay-debugger';
 import * as Effect from 'effect/Effect';
+import * as HashSet from 'effect/HashSet';
 import * as vscode from 'vscode';
 import { type URI } from 'vscode-uri';
 import { updateLastOpened } from './activation/getDialogStartingPath';
@@ -26,7 +27,6 @@ import {
   sfCreateCheckpointsCommand,
   sfToggleCheckpointCommand
 } from './breakpoints/checkpointService';
-import { refreshLineBreakpointMetadata } from './breakpoints/lineBreakpointMetadata';
 import { getDebuggerOutputChannel } from './channels';
 import { registerTestDebugCodeLensProducer } from './codelens/testDebugCodeLensProducer';
 import { anonApexDebugCommand } from './commands/anonApexDebug';
@@ -41,6 +41,7 @@ import {
 } from './debuggerConstants';
 import { nls } from './messages';
 import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { LineBreakpointMetadataService } from './services/lineBreakpointMetadataService';
 import { disposeRuntime, getRuntime } from './services/runtime';
 
 const launchFromLogFileCommand = Effect.fn('ApexReplayDebugger.launchFromLogFileCommand')(function* (
@@ -118,44 +119,43 @@ const registerDebugHandlers = (): vscode.Disposable => {
 
 const UPDATE_LINE_BREAKPOINT_INFO_REQUEST = 'apexReplayDebugger/updateLineBreakpointInfo';
 
-const breakpointUris = (event: vscode.BreakpointsChangeEvent): string[] =>
-  event.added.flatMap(breakpoint => {
+const breakpointUris = (event: vscode.BreakpointsChangeEvent): URI[] =>
+  [...event.added, ...event.changed].flatMap(breakpoint => {
     const sourceBreakpoint = breakpoint as vscode.SourceBreakpoint;
-    return sourceBreakpoint.location?.uri.path.match(/\.(cls|trigger)$/i)
-      ? [sourceBreakpoint.location.uri.toString()]
-      : [];
+    return sourceBreakpoint.location?.uri.path.match(/\.(cls|trigger)$/i) ? [sourceBreakpoint.location.uri] : [];
   });
 
 const refreshActiveReplayBreakpointMetadata = Effect.fn('ApexReplayDebugger.refreshBreakpointInformation')(function* (
   event: vscode.BreakpointsChangeEvent,
   replaySessions: ReadonlySet<vscode.DebugSession>
 ) {
-  const uris = [...new Set(breakpointUris(event))];
-  yield* Effect.logDebug('Refreshing Apex breakpoint information after breakpoint change', {
-    uriCount: uris.length,
-    replaySessionCount: replaySessions.size
-  });
-  const refreshed = yield* Effect.promise(() =>
-    Promise.all(
-      uris.map(async uri => {
-        try {
-          const lineBreakpointInfo = await refreshLineBreakpointMetadata(uri);
-          await Promise.all(
-            [...replaySessions].map(session =>
-              session.customRequest(UPDATE_LINE_BREAKPOINT_INFO_REQUEST, { uri, lineBreakpointInfo })
-            )
-          );
-          return true;
-        } catch {
-          return false;
-        }
-      })
-    )
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const HashableUri = yield* api.services.FsService.HashableUri;
+  const uris = HashSet.fromIterable(breakpointUris(event).map(HashableUri.fromUri));
+  yield* Effect.annotateCurrentSpan({ uriCount: HashSet.size(uris), replaySessionCount: replaySessions.size });
+  const refreshed = yield* Effect.forEach(
+    uris,
+    uri =>
+      LineBreakpointMetadataService.refresh(uri.uri.toString()).pipe(
+        Effect.flatMap(lineBreakpointInfo =>
+          Effect.forEach(
+            replaySessions,
+            session =>
+              Effect.promise(() =>
+                session.customRequest(UPDATE_LINE_BREAKPOINT_INFO_REQUEST, {
+                  uri: uri.uri.toString(),
+                  lineBreakpointInfo
+                })
+              ),
+            { concurrency: 'unbounded', discard: true }
+          )
+        ),
+        Effect.as(true),
+        Effect.catchAllCause(() => Effect.succeed(false))
+      ),
+    { concurrency: 'unbounded' }
   );
-  yield* Effect.logDebug('Finished refreshing Apex breakpoint information', {
-    uriCount: uris.length,
-    refreshedUriCount: refreshed.filter(Boolean).length
-  });
+  yield* Effect.annotateCurrentSpan('refreshedUriCount', refreshed.filter(Boolean).length);
   return refreshed.every(Boolean);
 });
 
