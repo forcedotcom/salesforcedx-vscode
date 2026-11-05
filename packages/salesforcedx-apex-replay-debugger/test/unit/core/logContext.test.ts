@@ -19,7 +19,7 @@ import { type StackFrame } from '@vscode/debugadapter';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { type LaunchRequestArguments } from '../../../src/adapter/types';
 import { type ApexExecutionOverlayResultCommandSuccess } from '../../../src/commands/apexExecutionOverlayResultCommand';
-import type { BreakpointMappings } from '../../../src/breakpoints';
+import type { BreakpointMappings } from '../../../src/breakpoints/breakpointUtil';
 import {
   EVENT_CODE_UNIT_FINISHED,
   EVENT_CODE_UNIT_STARTED,
