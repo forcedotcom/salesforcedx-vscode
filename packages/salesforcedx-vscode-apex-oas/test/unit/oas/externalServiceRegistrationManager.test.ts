@@ -261,11 +261,11 @@ describe('externalServiceRegistrationManager', () => {
       expect(parsed.ExternalServiceRegistration.operations).toEqual({ name: 'getPets', active: true });
     });
 
-    it('replaces an existing ApexRest provider type with AuraEnabled', async () => {
+    it('writes the AuraEnabled provider type when replacing an existing registration', async () => {
       const existingXml = `<?xml version="1.0" encoding="UTF-8"?>
 <ExternalServiceRegistration xmlns="http://soap.sforce.com/2006/04/metadata">
   <schema>existing schema</schema>
-  <registrationProviderType>ApexRest</registrationProviderType>
+  <registrationProviderType>Custom</registrationProviderType>
 </ExternalServiceRegistration>`;
       const result = await runBuild(buildCtx(), existingXml);
       const parsed = new XMLParser({ ignoreAttributes: false }).parse(result);
