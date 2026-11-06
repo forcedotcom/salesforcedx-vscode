@@ -18,11 +18,9 @@ import {
   apexDebugClassRunCodeActionDelegate,
   apexDebugMethodRunCodeActionDelegate,
   apexTestClassRunCodeAction,
-  apexTestClassRunCodeActionDelegate,
   apexTestLastClassRunCodeAction,
   apexTestLastMethodRunCodeAction,
-  apexTestMethodRunCodeAction,
-  apexTestMethodRunCodeActionDelegate
+  apexTestMethodRunCodeAction
 } from './commands/apexTestRunCodeAction';
 import { apexTestSuiteCreate, apexTestSuiteEdit, apexTestSuiteRun } from './commands/apexTestSuite';
 import { nls } from './messages';
@@ -105,17 +103,9 @@ const registerCommands = (): { commands: vscode.Disposable; statusBarToggle: Sta
   );
 
   // Customer-facing commands
-  const apexTestClassRunDelegateCmd = vscode.commands.registerCommand(
-    'sf.apex.test.class.run.delegate',
-    apexTestClassRunCodeActionDelegate
-  );
   const apexDebugClassRunDelegateCmd = vscode.commands.registerCommand(
     'sf.apex.debug.class.run.delegate',
     apexDebugClassRunCodeActionDelegate
-  );
-  const apexTestMethodRunDelegateCmd = vscode.commands.registerCommand(
-    'sf.apex.test.method.run.delegate',
-    apexTestMethodRunCodeActionDelegate
   );
   const apexDebugMethodRunDelegateCmd = vscode.commands.registerCommand(
     'sf.apex.debug.method.run.delegate',
@@ -161,9 +151,7 @@ const registerCommands = (): { commands: vscode.Disposable; statusBarToggle: Sta
   const commands = vscode.Disposable.from(
     apexToggleColorizerCmd,
     statusBarToggle,
-    apexTestClassRunDelegateCmd,
     apexDebugClassRunDelegateCmd,
-    apexTestMethodRunDelegateCmd,
     apexDebugMethodRunDelegateCmd,
     retrieveOrgOnlyClassCmd,
     openOrgOnlyTestCmd,

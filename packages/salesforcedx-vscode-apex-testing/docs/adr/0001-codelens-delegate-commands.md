@@ -1,15 +1,14 @@
-# CodeLens "delegate" commands
+# CodeLens commands
 
-The Apex Language Server (Jorje) emits **Run Test / Debug Test / Run All Tests** CodeLenses with hard-coded IDs — `sf.apex.{test,debug}.{class,method}.run.delegate` — and `ns.class.method` string arguments. The extension registers thin delegate handlers (`apexTestRunCodeAction.ts`) that `executeCommand` the real target.
+The Apex Language Server (Jorje) emits **Run Test / Debug Test / Run All Tests** CodeLenses with `ns.class.method` string arguments. Run Test lenses use the Apex Testing commands directly: `sf.apex.test.{class,method}.run`. Debug Test lenses use `sf.apex.debug.{class,method}.run.delegate` and are delegated by Apex Testing to Replay Debugger commands.
 
-## Why delegates
+## Why debug delegates
 
-Repointing the LS requires a simultaneous LS+extension release, which we avoid. A uniform lens shape (every lens → one `*.delegate` ID) keeps routing decisions in the extension, not Jorje. One LS contract fans out to different targets:
+Debug commands must adapt the raw language-server string argument to the `{ name }` object accepted by Replay Debugger. The delegate keeps that routing decision in Apex Testing instead of Jorje:
 
-- **run** → `sf.apex.test.{class,method}.run` (the `Effect.fn` test-run pipeline)
 - **debug** → `sf.test.view.{debugTests,debugSingleTest}` in `salesforcedx-vscode-apex-replay-debugger`, reshaping the raw `string` arg into the `{ name }` object that command expects
 
-The **run** delegates are pure passthroughs (no reshaping) — kept for contract uniformity.
+Run commands require no argument reshaping, so Apex Testing registers them directly with the CodeLens API and does not register pass-through delegate commands.
 
 ## Namespace caveat
 
@@ -17,5 +16,5 @@ The **run** delegates are pure passthroughs (no reshaping) — kept for contract
 
 ## Consequences
 
-- `*.run.delegate` IDs are an LS contract; renaming silently breaks all CodeLenses. Absent from `package.json` — not user-invokable.
-- New lens behavior routes through a delegate, not a new LS-emitted ID.
+- Debug `*.run.delegate` IDs are an LS contract; renaming silently breaks Debug Test CodeLenses. They are absent from `package.json` and not user-invokable.
+- Run Test CodeLenses target Apex Testing commands directly, so Replay Debugger has no runtime dependency on the Apex extension.
