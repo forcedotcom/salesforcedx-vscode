@@ -355,7 +355,7 @@ void publicContractChecks;
 
 const schemaPath = join(import.meta.dirname, '..', 'schemas', 'public-api.schema.json');
 
-const main = async (): Promise<void> => {
+try {
   const generatedSchema = await Prettier.format(JSON.stringify(JSONSchema.make(PublicApiSchema)), {
     ...(await Prettier.resolveConfig(schemaPath)),
     filepath: schemaPath
@@ -366,15 +366,10 @@ const main = async (): Promise<void> => {
     if (currentSchema !== generatedSchema) {
       throw new Error('Public API schema is out of date. Run `npm run schema:update -w @salesforce/apex-node`.');
     }
-    return;
+  } else {
+    await writeFile(schemaPath, generatedSchema, 'utf-8');
   }
-
-  await writeFile(schemaPath, generatedSchema, 'utf-8');
-};
-
-if (import.meta.main) {
-  main().catch(error => {
-    console.error(error);
-    process.exitCode = 1;
-  });
+} catch (error) {
+  console.error(error);
+  process.exitCode = 1;
 }

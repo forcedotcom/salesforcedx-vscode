@@ -7,7 +7,5 @@
 
 import { createHeadlessServer, setupSignalHandlers } from '@salesforce/playwright-vscode-ext';
 
-if (import.meta.main) {
-  setupSignalHandlers();
-  await createHeadlessServer({ extensionName: 'Org Browser', callerDirname: import.meta.dirname });
-}
+setupSignalHandlers();
+await createHeadlessServer({ extensionName: 'Org Browser', callerDirname: import.meta.dirname });

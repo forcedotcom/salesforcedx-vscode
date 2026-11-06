@@ -194,58 +194,56 @@ const handleTrack = (raw: Buffer, contentEncoding: string | undefined, res: http
   send(res, 200, JSON.stringify({ itemsReceived: lines.length, itemsAccepted: lines.length, errors: [] }));
 };
 
-if (import.meta.main) {
-  const server = http.createServer(handleRequest);
+const server = http.createServer(handleRequest);
 
-  const onListening = (): void => {
-    console.log(`Span file server listening on http://localhost:${PORT}`);
-    console.log(`Spans → ${SPANS_DIR}`);
-    console.log(`App Insights telemetry (POST /v2.1/track, Node + web) → ${APP_INSIGHTS_DIR}`);
-    console.log(`O11y events (POST /o11y, dev/test divert) → ${O11Y_DIR}\n`);
-  };
+const onListening = (): void => {
+  console.log(`Span file server listening on http://localhost:${PORT}`);
+  console.log(`Spans → ${SPANS_DIR}`);
+  console.log(`App Insights telemetry (POST /v2.1/track, Node + web) → ${APP_INSIGHTS_DIR}`);
+  console.log(`O11y events (POST /o11y, dev/test divert) → ${O11Y_DIR}\n`);
+};
 
-  server.listen(PORT, onListening);
+server.listen(PORT, onListening);
 
-  // In CI, a step's timeout can SIGKILL wireit before it tears down this service. wireit spawns it
-  // detached in its own process group, so an orphaned server keeps holding PORT 3003 and the next
-  // step's server then fails with EADDRINUSE. Watching ppid doesn't help: the intermediate `sh -c`
-  // that wireit launches survives the orphaning, so our parent never changes. Instead, on EADDRINUSE
-  // reclaim the port by killing whatever holds it, then retry once. Gated to non-Windows: `lsof` isn't
-  // available there, and Windows kills the whole process tree so the orphan never happens anyway.
-  const IS_WINDOWS = process.platform === 'win32';
-  const reclaimState = { attempted: false };
+// In CI, a step's timeout can SIGKILL wireit before it tears down this service. wireit spawns it
+// detached in its own process group, so an orphaned server keeps holding PORT 3003 and the next
+// step's server then fails with EADDRINUSE. Watching ppid doesn't help: the intermediate `sh -c`
+// that wireit launches survives the orphaning, so our parent never changes. Instead, on EADDRINUSE
+// reclaim the port by killing whatever holds it, then retry once. Gated to non-Windows: `lsof` isn't
+// available there, and Windows kills the whole process tree so the orphan never happens anyway.
+const IS_WINDOWS = process.platform === 'win32';
+const reclaimState = { attempted: false };
 
-  const reclaimPortAndRetry = (): void => {
-    reclaimState.attempted = true;
-    const result = spawnSync('lsof', ['-ti', `tcp:${PORT}`], { encoding: 'utf8' });
-    const pids = (result.stdout ?? '')
-      .split('\n')
-      .map(s => Number.parseInt(s.trim(), 10))
-      .filter(pid => Number.isInteger(pid) && pid !== process.pid);
-    pids.forEach(pid => {
-      try {
-        process.kill(pid, 'SIGKILL');
-      } catch {
-        /* already gone */
-      }
-    });
-    console.error(`Span file server: reclaimed port ${PORT} from pid(s) ${pids.join(', ') || 'none'}; retrying`);
-    setTimeout(() => server.listen(PORT, onListening), 500);
-  };
-
-  server.on('error', (err: NodeJS.ErrnoException) => {
-    if (err.code === 'EADDRINUSE' && !IS_WINDOWS && !reclaimState.attempted) {
-      reclaimPortAndRetry();
-      return;
+const reclaimPortAndRetry = (): void => {
+  reclaimState.attempted = true;
+  const result = spawnSync('lsof', ['-ti', `tcp:${PORT}`], { encoding: 'utf8' });
+  const pids = (result.stdout ?? '')
+    .split('\n')
+    .map(s => Number.parseInt(s.trim(), 10))
+    .filter(pid => Number.isInteger(pid) && pid !== process.pid);
+  pids.forEach(pid => {
+    try {
+      process.kill(pid, 'SIGKILL');
+    } catch {
+      /* already gone */
     }
-    console.error('Server error:', err);
-    process.exit(1);
   });
+  console.error(`Span file server: reclaimed port ${PORT} from pid(s) ${pids.join(', ') || 'none'}; retrying`);
+  setTimeout(() => server.listen(PORT, onListening), 500);
+};
 
-  const shutdown = (): void => {
-    server.close(() => process.exit(0));
-  };
+server.on('error', (err: NodeJS.ErrnoException) => {
+  if (err.code === 'EADDRINUSE' && !IS_WINDOWS && !reclaimState.attempted) {
+    reclaimPortAndRetry();
+    return;
+  }
+  console.error('Server error:', err);
+  process.exit(1);
+});
 
-  process.on('SIGTERM', shutdown);
-  process.on('SIGINT', shutdown);
-}
+const shutdown = (): void => {
+  server.close(() => process.exit(0));
+};
+
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);

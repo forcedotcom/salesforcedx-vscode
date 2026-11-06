@@ -1,8 +1,10 @@
 {
-  "extends": "../tsconfig.json",
+  "extends": "../../../scripts/tsconfig.native.json",
   "compilerOptions": {
-    "noEmit": true,
-    "allowImportingTsExtensions": true
+    "verbatimModuleSyntax": false,
+    "erasableSyntaxOnly": false,
+    "experimentalDecorators": true,
+    "useUnknownInCatchVariables": false
   },
-  "include": ["**/*.mts", "../typings/**/*.d.ts"]
+  "include": ["**/*.mts"]
 }
