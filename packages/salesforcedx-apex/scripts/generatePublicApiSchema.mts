@@ -39,7 +39,7 @@ import type {
   TestResult,
   TestResultRaw,
   TestRunIdResult
-} from '../out/src/index.js';
+} from '../src/index.ts';
 import * as JSONSchema from 'effect/JSONSchema';
 import * as Schema from 'effect/Schema';
 import { readFile, writeFile } from 'node:fs/promises';
