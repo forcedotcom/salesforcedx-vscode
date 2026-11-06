@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-const Context = require('effect/Context');
 const Effect = require('effect/Effect');
 const vscode = require('vscode');
 
@@ -23,6 +22,11 @@ const getExtensionApi = async id => {
 const activate = async extensionContext => {
   const coreApi = await getExtensionApi(CORE_EXTENSION_ID);
   const servicesApi = await getExtensionApi(SERVICES_EXTENSION_ID);
+  const services = servicesApi.v2.services;
+  const configService = services.ConfigService;
+  const connectionService = services.ConnectionService;
+  const runWithServices = effect =>
+    Effect.runPromise(Effect.provideContext(effect, services.prebuiltServicesDependencies));
   const workspaceContext = coreApi.services.WorkspaceContext.getInstance();
   const workspace = vscode.workspace.workspaceFolders?.[0];
   if (!workspace) throw new Error('Workspace Context Playwright requires an open workspace');
@@ -67,16 +71,13 @@ const activate = async extensionContext => {
       capturing = true;
       const username = workspaceContext.username;
       if (!username) throw new Error('WorkspaceContext has no username');
-      const dependencies = servicesApi.services.prebuiltServicesDependencies;
-      const configService = Context.get(dependencies, servicesApi.services.ConfigService);
-      const connectionService = Context.get(dependencies, servicesApi.services.ConnectionService);
-      await Effect.runPromise(
-        configService
-          .setTargetOrg(username)
-          .pipe(
-            Effect.zipRight(connectionService.invalidateCachedConnections()),
-            Effect.zipRight(connectionService.getConnection())
+      await runWithServices(
+        configService.use(config =>
+          config.setTargetOrg(username).pipe(
+            Effect.andThen(connectionService.use(connection => connection.invalidateCachedConnections())),
+            Effect.andThen(connectionService.use(connection => connection.getConnection()))
           )
+        )
       );
     }),
     vscode.commands.registerCommand(SELECT_ORG_COMMAND, async () => {

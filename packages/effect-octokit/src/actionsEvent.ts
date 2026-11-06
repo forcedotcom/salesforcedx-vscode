@@ -74,8 +74,9 @@ const readActionsEvent = Effect.fn('GitHub.readActionsEvent')(function* <S exten
   schema: S
 ) {
   const fs = yield* FileSystem.FileSystem;
-  const content = yield* fs.readFileString(eventPath);
-  return yield* Schema.decodeUnknownEffect(Schema.fromJsonString(schema))(content);
+  return yield* fs
+    .readFileString(eventPath)
+    .pipe(Effect.flatMap(Schema.decodeUnknownEffect(Schema.fromJsonString(schema))));
 });
 
 export const readCheckEvent = (eventPath: string) => readActionsEvent(eventPath, CheckEventSchema);

@@ -39,24 +39,8 @@ const isSfdxProjectConfig = (value: unknown): value is SfdxProjectConfig => {
   );
 };
 
-// Utility function to resolve workspace root
-// Normalizes the path to ensure consistency (path.resolve() may reintroduce backslashes on Windows)
-// On Windows, path.isAbsolute() returns false for Windows-style paths on non-Windows platforms
-// So we check for Windows drive letter pattern explicitly
-export const getWorkspaceRoot = (workspaceRoot: string): NormalizedPath => {
-  // Check if path is already absolute (Unix absolute or Windows absolute)
-  // Windows absolute paths start with a drive letter followed by colon and slash (e.g., "d:/" or "D:/")
-  const isWindowsAbsolute = /^[A-Za-z]:[/\\]/.test(workspaceRoot);
-  const isUnixAbsolute = path.isAbsolute(workspaceRoot);
-
-  if (isUnixAbsolute || isWindowsAbsolute) {
-    // Path is already absolute, just normalize it
-    return normalizePath(workspaceRoot);
-  }
-  // Otherwise, resolve relative paths
-  const resolved = path.resolve(workspaceRoot);
-  return normalizePath(resolved);
-};
+// Keep relative roots relative: browser virtual workspaces return relative paths from workspace/findFiles too.
+export const getWorkspaceRoot = (workspaceRoot: string): NormalizedPath => normalizePath(workspaceRoot);
 
 /** Get SFDX configuration from sfdx-project.json */
 const getSfdxConfig = async (

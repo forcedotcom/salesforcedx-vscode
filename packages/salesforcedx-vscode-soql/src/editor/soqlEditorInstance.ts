@@ -61,7 +61,7 @@ const retrieveSObject = Effect.fn('retrieveSObject')(function* (sobjectName: str
 });
 
 // TODO: This should be exported from soql-builder-ui
-type SoqlEditorEvent =
+export type SoqlEditorEvent =
   | {
       type: 'ui_activated';
       payload: never;
@@ -141,7 +141,8 @@ export class SOQLEditorInstance {
   constructor(
     protected document: vscode.TextDocument,
     protected webviewPanel: vscode.WebviewPanel,
-    protected _token: vscode.CancellationToken
+    protected _token: vscode.CancellationToken,
+    incomingMessages: Queue.Queue<SoqlEditorEvent> = Effect.runSync(Queue.unbounded<SoqlEditorEvent>())
   ) {
     vscode.workspace.onDidChangeTextDocument(
       debounce((event: vscode.TextDocumentChangeEvent) => {
@@ -154,14 +155,8 @@ export class SOQLEditorInstance {
     const editorInstance = this;
     const instanceFiber = getSoqlRuntime().runFork(
       Effect.gen(function* () {
-        const messages = Stream.callback<SoqlEditorEvent>(queue => {
-          const disposable = webviewPanel.webview.onDidReceiveMessage((event: SoqlEditorEvent) => {
-            Queue.offerUnsafe(queue, event);
-          });
-          return Effect.sync(() => {
-            disposable.dispose();
-          });
-        }).pipe(
+        yield* Effect.addFinalizer(() => Queue.shutdown(incomingMessages));
+        const messages = Stream.fromQueue(incomingMessages).pipe(
           Stream.mapEffect(
             event => editorInstance.handleMessageEffect(event).pipe(Effect.catchCause(() => reportMessageError(event))),
             { concurrency: 'unbounded' }
@@ -169,15 +164,19 @@ export class SOQLEditorInstance {
           Stream.runDrain
         );
 
-        const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        const targetOrgRef = yield* api.v2.services.TargetOrgRef;
-        const connectionChanges = SubscriptionRef.changes(targetOrgRef).pipe(
-          Stream.map(org => org.orgId),
-          Stream.changes,
-          Stream.runForEach(orgId =>
-            invalidateMetadataRequests(editorInstance.sendMessageToUi(orgId ? 'connection_changed' : 'no_default_org'))
-          )
-        );
+        const connectionChanges = Effect.gen(function* () {
+          const api = yield* (yield* ExtensionProviderService).getServicesApi;
+          const targetOrgRef = yield* api.v2.services.TargetOrgRef;
+          yield* SubscriptionRef.changes(targetOrgRef).pipe(
+            Stream.map(org => org.orgId),
+            Stream.changes,
+            Stream.runForEach(orgId =>
+              invalidateMetadataRequests(
+                editorInstance.sendMessageToUi(orgId ? 'connection_changed' : 'no_default_org')
+              )
+            )
+          );
+        });
 
         const metadataRequestContext = yield* Layer.build(MetadataRequestGenerationGateLive);
         yield* Effect.all([messages, connectionChanges], { concurrency: 'unbounded', discard: true }).pipe(

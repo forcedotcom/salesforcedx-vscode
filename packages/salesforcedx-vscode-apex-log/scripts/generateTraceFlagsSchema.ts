@@ -6,18 +6,21 @@
  */
 
 /* eslint-disable no-restricted-imports -- build script runs in Node only */
-import * as JSONSchema from 'effect/JSONSchema';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { buildTraceFlagsSchemas } from '../src/schemas/traceFlagsSchema';
 
 const outPath = join(process.cwd(), 'resources/traceFlags.schema.json');
 
 const main = async () => {
+  const [jsonSchema, schema, { buildTraceFlagsSchemas }] = await Promise.all([
+    import('effect/JsonSchema'),
+    import('effect/Schema'),
+    import('../out/src/schemas/traceFlagsSchema.js')
+  ]);
   await mkdir(dirname(outPath), { recursive: true });
   const { TraceFlagsConfigSchema } = buildTraceFlagsSchemas();
-  const jsonSchema = JSONSchema.make(TraceFlagsConfigSchema);
-  await writeFile(outPath, JSON.stringify(jsonSchema, undefined, 2), 'utf-8');
+  const document = jsonSchema.toDocumentDraft07(schema.toJsonSchemaDocument(TraceFlagsConfigSchema));
+  await writeFile(outPath, JSON.stringify(document, undefined, 2), 'utf-8');
 };
 
 main().catch(err => {

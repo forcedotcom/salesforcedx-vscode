@@ -62,7 +62,7 @@
   },
   "wireit": {
     "compile": {
-      "command": "tsc --pretty && node scripts/generateTraceFlagsSchema.mjs",
+      "command": "tsc --pretty && ts-node --project tsconfig.scripts.json scripts/generateTraceFlagsSchema.ts",
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
@@ -71,7 +71,7 @@
       ],
       "files": [
         "src/**/*.ts",
-        "scripts/**/*.mjs",
+        "scripts/**/*.ts",
         "tsconfig.json",
         "tsconfig.scripts.json",
         "../../tsconfig.common.json",

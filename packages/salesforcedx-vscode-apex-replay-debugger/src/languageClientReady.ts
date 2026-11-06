@@ -26,8 +26,6 @@ class LanguageClientNotReadyError extends Schema.TaggedError<LanguageClientNotRe
   {}
 ) {}
 
-const LANGUAGE_CLIENT_READY_SCHEDULE = Schedule.fixed(Duration.millis(100));
-
 export const waitForLanguageClientReady = Effect.fn('ApexReplayDebugger.waitForLanguageClientReady')(function* (
   getStatus: () => LanguageClientStatus
 ) {
@@ -42,7 +40,7 @@ export const waitForLanguageClientReady = Effect.fn('ApexReplayDebugger.waitForL
     ),
     Effect.as(true),
     Effect.retry({
-      schedule: LANGUAGE_CLIENT_READY_SCHEDULE,
+      schedule: Schedule.fixed(Duration.millis(100)),
       times: 30,
       while: error => error._tag === 'LanguageClientNotReadyError'
     }),

@@ -42,6 +42,7 @@ const isSoqlBuilderActionEvent = (event: Event): event is Event & { readonly det
 export class SoqlBuilderApplication {
   private sessionFiber: Fiber.Fiber<unknown, unknown> | undefined;
   private sessionRuntime: SessionRuntime | undefined;
+  private sessionCleanup: Promise<void> | undefined;
 
   constructor(
     private readonly view: SoqlBuilderView,
@@ -94,25 +95,24 @@ export class SoqlBuilderApplication {
         )
       )
     );
-    const sessionFiber = runtime.runFork(
-      Effect.yieldNow.pipe(
-        Effect.andThen(session),
-        Effect.ensuring(
-          Effect.sync(() => {
-            if (this.sessionFiber === sessionFiber) this.sessionFiber = undefined;
-          })
-        )
-      )
-    );
+    const sessionFiber = runtime.runFork(Effect.yieldNow.pipe(Effect.andThen(session)));
     this.sessionFiber = sessionFiber;
+    this.sessionCleanup = sessionFiber.pipe(
+      Fiber.await,
+      Effect.andThen(Effect.promise(() => runtime.dispose())),
+      Effect.tap(() =>
+        Effect.sync(() => {
+          if (this.sessionFiber === sessionFiber) this.sessionFiber = undefined;
+          if (this.sessionRuntime === runtime) this.sessionRuntime = undefined;
+        })
+      ),
+      Effect.runPromise
+    );
   };
 
   public readonly disconnect = async (): Promise<void> => {
     const sessionFiber = this.sessionFiber;
-    this.sessionFiber = undefined;
     if (sessionFiber) await sessionFiber.pipe(Fiber.interrupt, Effect.runPromise);
-    const runtime = this.sessionRuntime;
-    this.sessionRuntime = undefined;
-    if (runtime) await runtime.dispose();
+    await this.sessionCleanup;
   };
 }
