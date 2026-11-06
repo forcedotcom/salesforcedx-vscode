@@ -304,6 +304,8 @@ const cases: readonly GateCase[] = [
 const runGate = (gateCase: GateCase) => {
   const result = spawnSync('bash', ['-c', WRAPPER], {
     encoding: 'utf8',
+    // The gate has no polling or network calls in this fixture, but CI worker contention can delay bash startup.
+    timeout: 10_000,
     env: {
       PATH: process.env.PATH,
       HOME: process.env.HOME,
@@ -325,7 +327,8 @@ const runGate = (gateCase: GateCase) => {
     decisionLine: lines.find(line => line === 'rerun' || line.startsWith('skip:')),
     ghInvoked: lines.includes('GH_INVOKED=yes'),
     ghCalls: lines.flatMap(line => (line.startsWith('GH_CALL ') ? [line.slice('GH_CALL '.length)] : [])),
-    stderr: typeof result.stderr === 'string' ? result.stderr : ' '
+    stderr: typeof result.stderr === 'string' ? result.stderr : ' ',
+    error: result.error
   };
 };
 
@@ -356,6 +359,7 @@ const pushE2ENames = [
 describe('rerunPushE2EGate', () => {
   test.each(cases)('$name', gateCase => {
     const result = runGate(gateCase);
+    expect(result.error).toBeUndefined();
     expect(result.status).toBe(gateCase.expectStatus ?? 0);
     gateCase.expectStatus === undefined
       ? expect(result.stderr).not.toContain('live rerun')

@@ -20,9 +20,15 @@ import { URI } from 'vscode-uri';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { type LaunchRequestArguments } from '../../../src/adapter/types';
 import { ApexVariableContainer } from '../../../src/adapter/variableContainer';
-import { breakpointUtil } from '../../../src/breakpoints';
 import { LogContext } from '../../../src/core/logContext';
 import { FrameEntryState } from '../../../src/states/frameEntryState';
+import type { BreakpointMappings } from '../../../src/breakpoints/breakpointUtil';
+
+class MappableApexReplayDebug extends ApexReplayDebug {
+  public setBreakpointMappings(mappings: BreakpointMappings): void {
+    this.breakpointMappings = mappings;
+  }
+}
 
 describe('Frame entry event', () => {
   let getUriFromSignatureStub: VitestMockInstance;
@@ -147,9 +153,6 @@ describe('Resolved frame sources', () => {
     logFileName: 'replay.log'
   };
 
-  beforeEach(() => breakpointUtil.createMappingsFromLineBreakpointInfo([]));
-  afterEach(() => breakpointUtil.createMappingsFromLineBreakpointInfo([]));
-
   it('preserves the complete org URI for nested-class source', () => {
     const uri = 'sf-org-metadata:/orgs/00D000000000001/ApexClass/Outer.cls?version=1#source';
     const context = new LogContext({ ...args, sourceUriMapping: { Outer: uri } }, new ApexReplayDebug());
@@ -160,16 +163,20 @@ describe('Resolved frame sources', () => {
 
   it('uses the workspace typeref mapping before catalog source without changing breakpoint lines', () => {
     const lineBreakpointInfo = [{ typeref: 'ns/Outer$Inner', uri: 'memfs:/workspace/Outer.cls', lines: [3, 8] }];
-    breakpointUtil.createMappingsFromLineBreakpointInfo(lineBreakpointInfo);
+    const adapter = new MappableApexReplayDebug();
+    adapter.setBreakpointMappings({
+      lineNumbers: new Map([[lineBreakpointInfo[0].uri, lineBreakpointInfo[0].lines]]),
+      typerefs: new Map([[lineBreakpointInfo[0].typeref, lineBreakpointInfo[0].uri]])
+    });
     const context = new LogContext(
       { ...args, sourceUriMapping: { 'ns.Outer': 'sf-org-metadata:/orgs/00D/ApexClass/Outer.cls' } },
-      new ApexReplayDebug()
+      adapter
     );
     new FrameEntryState('time|CONSTRUCTOR_ENTRY|[1]|01p|<init>()|ns/Outer.Inner'.split('|')).handle(context);
 
     expect(context.getTopFrame()?.source?.path).toBe('memfs:/workspace/Outer.cls');
-    expect(breakpointUtil.getLineNumberMapping().get(lineBreakpointInfo[0].uri)).toEqual([3, 8]);
-    expect(breakpointUtil.getTyperefMapping().size).toBe(1);
+    expect(adapter.getBreakpointMappings().lineNumbers.get(lineBreakpointInfo[0].uri)).toEqual([3, 8]);
+    expect(adapter.getBreakpointMappings().typerefs.size).toBe(1);
   });
 
   it('omits Source when neither workspace nor catalog resolves the type', () => {

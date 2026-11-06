@@ -935,7 +935,11 @@ importers:
         specifier: 1.2.2
         version: 1.2.2
 
-  packages/salesforcedx-utils: {}
+  packages/salesforcedx-utils:
+    dependencies:
+      effect:
+        specifier: ^3.21.2
+        version: 3.22.2
 
   packages/salesforcedx-visualforce-language-server:
     dependencies:
@@ -1165,9 +1169,6 @@ importers:
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
-      salesforcedx-vscode-apex:
-        specifier: workspace:*
-        version: link:../salesforcedx-vscode-apex
       salesforcedx-vscode-apex-testing:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-apex-testing
