@@ -133,7 +133,105 @@ test('own check run does not start the approver', async () => {
 
 test('bot approval reviews do not start the job', () => {
   const workflow = parse(readFileSync(join(__dirname, '../.github/workflows/categoryApprove.yml'), 'utf8'));
-  assert.match(workflow.jobs['category-approve'].if, /github\.event\.review\.user\.login != 'svc-idee-bot'/);
+  assert.match(workflow.jobs['resolve-pulls'].if, /github\.event\.review\.user\.login != 'svc-idee-bot'/);
+});
+
+test('all event types use independent per-PR concurrency after resolving pull numbers', async () => {
+  const workflow = parse(readFileSync(join(__dirname, '../.github/workflows/categoryApprove.yml'), 'utf8'));
+  const resolver = workflow.jobs['resolve-pulls'];
+  const job = workflow.jobs['category-approve'];
+  assert.equal(workflow.concurrency, undefined);
+  assert.equal(resolver.outputs.pull_numbers, '${{ steps.pulls.outputs.result }}');
+  assert.equal(job.needs, 'resolve-pulls');
+  assert.equal(job.if, "needs.resolve-pulls.outputs.pull_numbers != '[]'");
+  assert.equal(job.strategy.matrix.pull_number, '${{ fromJSON(needs.resolve-pulls.outputs.pull_numbers) }}');
+  assert.equal(job.strategy['fail-fast'], false);
+  assert.deepEqual(job.concurrency, {
+    group: 'category-approve-${{ matrix.pull_number }}',
+    'cancel-in-progress': true
+  });
+
+  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+  const resolve = new AsyncFunction('github', 'context', resolver.steps[0].with.script);
+  const listed = { check_run: { head_sha: 'abc123', pull_requests: [{ number: 8314 }, { number: 8315 }] } };
+  assert.deepEqual(await resolve({}, { ...context, payload: listed }), [8314, 8315]);
+  assert.deepEqual(await resolve({}, context), [8314]);
+  assert.deepEqual(
+    await resolve({}, { ...context, payload: { action: 'opened', pull_request: { number: 8315 } } }),
+    [8315]
+  );
+  const calls = [];
+  const github = {
+    paginate: async (route, params) => {
+      calls.push({ route, params });
+      return [
+        { number: 8314, base: { ref: 'develop' }, state: 'open' },
+        { number: 8315, base: { ref: 'develop' }, state: 'open' },
+        { number: 8316, base: { ref: 'main' }, state: 'open' },
+        { number: 8317, base: { ref: 'develop' }, state: 'closed' }
+      ];
+    }
+  };
+  for (const pull_requests of [undefined, []]) {
+    assert.deepEqual(
+      await resolve(github, { ...context, payload: { check_run: { head_sha: 'abc123', pull_requests } } }),
+      [8314, 8315]
+    );
+  }
+  assert.deepEqual(calls[0], {
+    route: 'GET /repos/{owner}/{repo}/commits/{commit_sha}/pulls',
+    params: { ...context.repo, commit_sha: 'abc123', per_page: 100 }
+  });
+  assert.deepEqual(
+    await resolve({ paginate: async () => [] }, { ...context, payload: { check_run: { head_sha: 'abc123' } } }),
+    []
+  );
+});
+
+test('each matrix job scopes both trusted scripts to its PR, including SHA-resolved PRs', async () => {
+  const workflow = parse(readFileSync(join(__dirname, '../.github/workflows/categoryApprove.yml'), 'utf8'));
+  const job = workflow.jobs['category-approve'];
+  const step = job.steps.find(step => step.id === 'preflight');
+  assert.equal(step.env.PULL_NUMBER, '${{ matrix.pull_number }}');
+  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+  const run = new AsyncFunction('require', 'process', 'github', 'context', step.with.script);
+  for (const pull_requests of [[{ number: 8314 }, { number: 8315 }], []]) {
+    for (const number of [8314, 8315]) {
+      const scopedContext = { ...context, payload: { check_run: { head_sha: 'abc123', pull_requests } } };
+      const { github } = fixture();
+      const visited = [];
+      github.graphql = async (_, { number }) => {
+        visited.push(number);
+        return { repository: { pullRequest: pull } };
+      };
+      let savedPayload;
+      const requireTrusted = moduleName => {
+        if (moduleName === 'node:fs') {
+          return {
+            existsSync: () => true,
+            writeFileSync: (path, contents) => {
+              assert.equal(path, '/runner/category-approve-event.json');
+              savedPayload = JSON.parse(contents);
+            }
+          };
+        }
+        assert.equal(moduleName, '/runner/trusted-approver/scripts/category-approve-preflight.cjs');
+        return preflight;
+      };
+      assert.equal(
+        await run(
+          requireTrusted,
+          { env: { RUNNER_TEMP: '/runner', PULL_NUMBER: String(number) } },
+          github,
+          scopedContext
+        ),
+        true
+      );
+      assert.deepEqual(visited, [number]);
+      assert.equal(savedPayload.check_run.head_sha, 'abc123');
+      assert.deepEqual(savedPayload.check_run.pull_requests, [{ number }]);
+    }
+  }
 });
 
 test(
@@ -183,7 +281,15 @@ test('workflow runs trusted approver when develop does not yet contain the prefl
   const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
   const run = new AsyncFunction('require', 'process', 'github', 'context', script);
   const absent = moduleName => {
-    if (moduleName === 'node:fs') return { existsSync: () => false };
+    if (moduleName === 'node:fs') {
+      return {
+        existsSync: () => false,
+        writeFileSync: (path, contents) => {
+          assert.equal(path, '/runner/category-approve-event.json');
+          assert.deepEqual(JSON.parse(contents), context.payload);
+        }
+      };
+    }
     throw new Error(`unexpected require ${moduleName}`);
   };
   assert.equal(await run(absent, { env: { RUNNER_TEMP: '/runner' } }, {}, context), true);
@@ -195,17 +301,23 @@ for (const extension of ['ts', 'mts']) {
     t.after(() => rmSync(directory, { recursive: true, force: true }));
     const scripts = join(directory, 'trusted-approver', 'scripts');
     mkdirSync(scripts, { recursive: true });
-    writeFileSync(join(scripts, 'category-approve.ts'), 'console.log("trusted ts");\n');
+    writeFileSync(
+      join(scripts, 'category-approve.ts'),
+      'console.log("trusted ts"); console.log(process.env.GITHUB_EVENT_PATH);\n'
+    );
     if (extension === 'mts') {
-      writeFileSync(join(scripts, 'category-approve.mts'), 'console.log("trusted mts");\n');
+      writeFileSync(
+        join(scripts, 'category-approve.mts'),
+        'console.log("trusted mts"); console.log(process.env.GITHUB_EVENT_PATH);\n'
+      );
     }
     const workflow = parse(readFileSync(join(__dirname, '../.github/workflows/categoryApprove.yml'), 'utf8'));
     const script = workflow.jobs['category-approve'].steps.find(step => step.name === 'Decide and approve').run;
     const output = execFileSync('bash', ['-e', '-o', 'pipefail', '-c', script], {
       cwd: join(__dirname, '..'),
-      env: { ...process.env, RUNNER_TEMP: directory },
+      env: { ...process.env, RUNNER_TEMP: directory, GITHUB_EVENT_PATH: '/unscoped/event.json' },
       encoding: 'utf8'
     });
-    assert.equal(output.trim(), `trusted ${extension}`);
+    assert.equal(output.trim(), `trusted ${extension}\n${directory}/category-approve-event.json`);
   });
 }
