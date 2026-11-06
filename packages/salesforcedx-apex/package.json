@@ -65,9 +65,12 @@
   "versionedIndependently": true,
   "wireit": {
     "schema:update": {
-      "command": "ts-node scripts/generatePublicApiSchema.ts",
+      "command": "node scripts/generatePublicApiSchema.mts",
+      "dependencies": [
+        "compile"
+      ],
       "files": [
-        "scripts/generatePublicApiSchema.ts",
+        "scripts/generatePublicApiSchema.mts",
         "src/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
@@ -78,9 +81,12 @@
       ]
     },
     "schema:check": {
-      "command": "ts-node scripts/generatePublicApiSchema.ts --check",
+      "command": "node scripts/generatePublicApiSchema.mts --check",
+      "dependencies": [
+        "compile"
+      ],
       "files": [
-        "scripts/generatePublicApiSchema.ts",
+        "scripts/generatePublicApiSchema.mts",
         "schemas/public-api.schema.json",
         "src/**/*.ts",
         "tsconfig.json",
@@ -89,11 +95,13 @@
       ]
     },
     "compile": {
-      "command": "tsc --pretty",
+      "command": "tsc --pretty && tsc -p scripts/tsconfig.json",
       "clean": "if-file-deleted",
       "files": [
         "src/**/*.ts",
-        "scripts/**/*.ts",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
+        "../../scripts/tsconfig.native.json",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json"
@@ -155,7 +163,8 @@
       ],
       "files": [
         "src/**/*.ts",
-        "scripts/**/*.ts",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
         "test/**/*.ts",
         "../../eslint.config.mjs",
         "package.json"

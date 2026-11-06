@@ -69,4 +69,6 @@ const syncDeps = (): void => {
   console.log('Synced dependencies and version from parent package');
 };
 
-syncDeps();
+if (import.meta.main) {
+  syncDeps();
+}

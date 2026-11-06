@@ -164,14 +164,16 @@ const handleRequest = (req: http.IncomingMessage, res: http.ServerResponse): voi
   });
 };
 
-const server = http.createServer(handleRequest);
+if (import.meta.main) {
+  const server = http.createServer(handleRequest);
 
-server.listen(PORT, () => {
-  console.log(`O11y Debug Server listening on http://localhost:${PORT}`);
-  console.log('Waiting for requests...\n');
-});
+  server.listen(PORT, () => {
+    console.log(`O11y Debug Server listening on http://localhost:${PORT}`);
+    console.log('Waiting for requests...\n');
+  });
 
-server.on('error', err => {
-  console.error('Server error:', err);
-  process.exit(1);
-});
+  server.on('error', err => {
+    console.error('Server error:', err);
+    process.exit(1);
+  });
+}

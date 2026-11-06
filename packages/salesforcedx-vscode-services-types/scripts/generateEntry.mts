@@ -68,4 +68,6 @@ export type IconId = (typeof ICONS)[keyof typeof ICONS];
   console.log('Generated icons at', iconsPath);
 };
 
-generateEntry();
+if (import.meta.main) {
+  generateEntry();
+}

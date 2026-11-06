@@ -100,7 +100,7 @@
       ]
     },
     "compile": {
-      "command": "tsc --pretty",
+      "command": "tsc --pretty && tsc -p scripts/tsconfig.json",
       "clean": "if-file-deleted",
       "dependencies": [
         "build:icons",
@@ -111,6 +111,9 @@
       ],
       "files": [
         "src/**/*.ts",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
+        "../../scripts/tsconfig.native.json",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json",
@@ -217,6 +220,8 @@
       ],
       "files": [
         "src/**/*.ts",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
         "test/**/*.ts",
         "../../eslint.config.mjs",
         ".vscodeignore",
@@ -278,19 +283,17 @@
       ]
     },
     "o11y:debug": {
-      "command": "ts-node --project tsconfig.scripts.json scripts/o11yDebugServer.ts",
+      "command": "node scripts/o11yDebugServer.mts",
       "service": true,
       "files": [
-        "scripts/o11yDebugServer.ts",
-        "tsconfig.scripts.json"
+        "scripts/o11yDebugServer.mts"
       ]
     },
     "spans:server": {
-      "command": "ts-node --project tsconfig.scripts.json scripts/spanFileServer.ts",
+      "command": "node scripts/spanFileServer.mts",
       "service": true,
       "files": [
-        "scripts/spanFileServer.ts",
-        "tsconfig.scripts.json"
+        "scripts/spanFileServer.mts"
       ]
     },
     "test:compile": {

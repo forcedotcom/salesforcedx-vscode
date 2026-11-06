@@ -39,7 +39,7 @@ import type {
   TestResult,
   TestResultRaw,
   TestRunIdResult
-} from '../src';
+} from '../out/src/index.js';
 import * as JSONSchema from 'effect/JSONSchema';
 import * as Schema from 'effect/Schema';
 import { readFile, writeFile } from 'node:fs/promises';
@@ -77,7 +77,7 @@ import {
   TestItemSchema,
   TestSuiteSchema,
   TestSuiteMembershipSchema
-} from '../src/effect';
+} from '../out/src/effect/index.js';
 import {
   ApexTestResultDataSchema,
   ApexTestResultDataRawSchema,
@@ -88,8 +88,8 @@ import {
   TestLevelSchema,
   TestResultSchema,
   TestResultRawSchema
-} from '../src/tests/types';
-import { CommonOptionsSchema, LogLevelSchema } from '../src/utils/types';
+} from '../out/src/tests/types.js';
+import { CommonOptionsSchema, LogLevelSchema } from '../out/src/utils/types.js';
 
 const optional = Schema.optional;
 const StringArray = Schema.Array(Schema.String);
@@ -353,7 +353,7 @@ type FailedContracts = {
 const publicContractChecks: Record<FailedContracts, true> = {};
 void publicContractChecks;
 
-const schemaPath = join(__dirname, '..', 'schemas', 'public-api.schema.json');
+const schemaPath = join(import.meta.dirname, '..', 'schemas', 'public-api.schema.json');
 
 const main = async (): Promise<void> => {
   const generatedSchema = await Prettier.format(JSON.stringify(JSONSchema.make(PublicApiSchema)), {
@@ -372,7 +372,9 @@ const main = async (): Promise<void> => {
   await writeFile(schemaPath, generatedSchema, 'utf-8');
 };
 
-main().catch(error => {
-  console.error(error);
-  process.exitCode = 1;
-});
+if (import.meta.main) {
+  main().catch(error => {
+    console.error(error);
+    process.exitCode = 1;
+  });
+}
