@@ -183,14 +183,7 @@ const gatherProjectNameAndFolder = Effect.fn('isvDebugBootstrap.gatherProjectNam
       canSelectMany: false,
       openLabel: nls.localize('project_generate_open_dialog_create_label')
     })
-  ).pipe(
-    Effect.flatMap(folders =>
-      Option.match(Arr.head(folders ?? []), {
-        onNone: () => promptService.considerUndefinedAsCancellation<URI>(undefined),
-        onSome: folder => promptService.considerUndefinedAsCancellation(folder)
-      })
-    )
-  );
+  ).pipe(Effect.flatMap(promptService.considerEmptySelectionAsCancellation), Effect.map(Arr.headNonEmpty));
 
   const projectUri = Utils.joinPath(projectParentUri, projectName);
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [projectUri] });

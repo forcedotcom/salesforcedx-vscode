@@ -21,6 +21,7 @@ import { nls } from '../messages';
 import { messages, type MessageKey } from '../messages/i18n';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { type ApexTestQuickPickItem } from '../utils/fileHelpers';
+import { selectApexClasses } from '../utils/selectApexClasses';
 import { getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';
 import { clearAllSuiteChildren, getTestController } from '../views/testController';
 import { runSelectedTests } from './apexTestRun';
@@ -93,12 +94,12 @@ const listApexTestSuiteItems = Effect.fn('apexTestSuite.listApexTestSuiteItems')
   );
 });
 
-/** Prompt for the apex classes to include in a suite. Fails with UserCancellationError on dismiss/empty. */
-const selectApexClasses = Effect.fn('apexTestSuite.selectApexClasses')(function* (
+/** Retrieve available Apex classes and prompt for the suite's selection. */
+const gatherApexClasses = Effect.fn('apexTestSuite.gatherApexClasses')(function* (
   command: ProgressAndSuccessCommandKey
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const selection = yield* Effect.all({
+  return yield* Effect.all({
     promptService: api.services.PromptService,
     progressLocation: api.services.NotificationModeService.pipe(
       Effect.flatMap(notificationMode => notificationMode.getProgressLocation(command))
@@ -109,15 +110,8 @@ const selectApexClasses = Effect.fn('apexTestSuite.selectApexClasses')(function*
         promptService.withCancellableProgress(nls.localize('retrieving_tests_message'), progressLocation)
       )
     ),
-    Effect.flatMap(apexClassItems =>
-      Effect.promise(() => vscode.window.showQuickPick<ApexTestQuickPickItem>(apexClassItems, { canPickMany: true }))
-    )
+    Effect.flatMap(selectApexClasses)
   );
-  // considerUndefinedAsCancellation does not handle empty arrays, so guard explicitly
-  if (!selection || selection.length === 0) {
-    return yield* new api.services.UserCancellationError();
-  }
-  return selection.map(item => item.fullClassName ?? item.label);
 });
 
 /** QuickPickItem with optional membership ID and picked state for editing. */
@@ -137,7 +131,7 @@ const gatherCreateOptions = Effect.fn('apexTestSuite.gatherCreateOptions')(funct
         )
       )
     ),
-    tests: selectApexClasses(messages.apex_test_suite_create_text)
+    tests: gatherApexClasses(messages.apex_test_suite_create_text)
   });
 });
 
