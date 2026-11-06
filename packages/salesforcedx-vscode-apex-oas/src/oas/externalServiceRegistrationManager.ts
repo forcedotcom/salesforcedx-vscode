@@ -8,23 +8,24 @@
 import type { ProcessorInputOutput } from './documentProcessorPipeline/processorStep';
 import type { ApexOASInfo, ExternalServiceOperation } from './schemas';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import { XMLBuilder, XMLParser } from 'fast-xml-parser';
 import { JSONPath } from 'jsonpath-plus';
 import * as path from 'node:path';
 import type { OpenAPIV3 } from 'openapi-types';
-import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { stringify } from 'yaml';
 import { nls } from '../messages/nls';
 import { createProblemTabEntriesForOasDocument, getCurrentTimestamp } from '../oasUtils';
+import { OasUiService } from '../services/oasUiService';
 
 /** @ExportTaggedError */
-export class EsrPathResolutionFailed extends Data.TaggedError('EsrPathResolutionFailed')<{
-  readonly message: string;
-}> {}
+export class EsrPathResolutionFailed extends Schema.TaggedError<EsrPathResolutionFailed>()('EsrPathResolutionFailed', {
+  message: Schema.String,
+  cause: Schema.optional(Schema.Unknown)
+}) {}
 
 export type FullPath = [originalPath: string, newPath: string];
 
@@ -99,14 +100,6 @@ const cleanOasDocument = (doc: OpenAPIV3.Document): OpenAPIV3.Document => {
  * Handles the scenario where an ESR file already exists.
  * @returns A string indicating the user's choice: 'overwrite', 'merge', or 'cancel'.
  */
-export const handleExistingESR = async (): Promise<string> =>
-  (await vscode.window.showWarningMessage(
-    nls.localize('file_exists'),
-    { modal: true },
-    nls.localize('overwrite'),
-    nls.localize('merge')
-  )) ?? 'cancel';
-
 export const getFolderForArtifact = Effect.fn('ApexOas.Esr.getFolderForArtifact')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
@@ -120,59 +113,50 @@ export const getFolderForArtifact = Effect.fn('ApexOas.Esr.getFolderForArtifact'
     catch: cause =>
       new EsrPathResolutionFailed({ message: `${nls.localize('registry_access_failed')}: ${String(cause)}` })
   });
-  if (!esrDefaultDirectoryName) return undefined;
+  if (!esrDefaultDirectoryName)
+    return yield* new EsrPathResolutionFailed({ message: nls.localize('no_folder_selected') });
   const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow().pipe(
     Effect.mapError(
       cause => new EsrPathResolutionFailed({ message: `${nls.localize('no_folder_selected')}: ${String(cause)}` })
     )
   );
   const defaultESRFolder = path.join(workspaceInfo.fsPath, 'force-app', 'main', 'default', esrDefaultDirectoryName);
-  const folderUri = yield* Effect.promise(() =>
-    vscode.window.showInputBox({
-      prompt: nls.localize('select_folder_for_oas'),
-      value: defaultESRFolder
-    })
-  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
-  return path.resolve(folderUri);
+  const folderUri = yield* promptService.promptForOutputDir({
+    defaultUri: URI.file(defaultESRFolder),
+    pickerPlaceHolder: nls.localize('select_folder_for_oas'),
+    description: nls.localize('select_folder_for_oas')
+  });
+  return path.resolve(folderUri.fsPath);
 });
 
 /**
  * Checks if the ESR file already exists and prompts the user on what to do.
  * @param filename
- * @returns Promise<[string, string, boolean]> - [className.externalServiceRegistration-meta.xml, the file name of the generated ESR, a boolean indicating if the file already exists]
+ * @returns The original and destination ESR paths.
  */
 export const pathExists = Effect.fn('ApexOas.Esr.pathExists')(function* (filename: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const fsService = api.services.FsService;
   // Step 1: Prompt for Folder
   const folder = yield* getFolderForArtifact();
-  if (!folder) {
-    return yield* new EsrPathResolutionFailed({ message: nls.localize('no_folder_selected') });
-  }
   // Step 2: Verify folder exists and if not create it
-  yield* fsService
-    .createDirectory(folder)
-    .pipe(Effect.mapError(cause => new EsrPathResolutionFailed({ message: String(cause) })));
+  yield* fsService.createDirectory(folder);
 
   // Step 3: Check if File Exists
   const fullPath = path.join(folder, filename);
   const exists = yield* fsService.fileOrFolderExists(fullPath);
   if (exists) {
-    const whatToDo = yield* Effect.promise(() => handleExistingESR());
-    if (whatToDo === 'cancel') {
-      return yield* new EsrPathResolutionFailed({ message: nls.localize('operation_cancelled') });
-    }
+    const promptService = yield* api.services.PromptService;
+    const whatToDo = yield* OasUiService.chooseExistingEsrAction().pipe(
+      Effect.flatMap(promptService.considerUndefinedAsCancellation)
+    );
     if (whatToDo === nls.localize('merge')) {
-      const currentTimestamp = getCurrentTimestamp();
+      const currentTimestamp = yield* getCurrentTimestamp();
       const namePart = path.basename(filename, '.externalServiceRegistration-meta.xml');
       const newFileName = `${namePart}_${currentTimestamp}.externalServiceRegistration-meta.xml`;
-      const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow().pipe(
-        Effect.mapError(cause => new EsrPathResolutionFailed({ message: String(cause) }))
-      );
+      const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
       const esrFilesForMergeFolder = path.join(workspaceInfo.fsPath, 'esr_files_for_merge');
-      yield* fsService
-        .createDirectory(esrFilesForMergeFolder)
-        .pipe(Effect.mapError(cause => new EsrPathResolutionFailed({ message: String(cause) })));
+      yield* fsService.createDirectory(esrFilesForMergeFolder);
       const newFullPath = path.join(esrFilesForMergeFolder, newFileName);
       const mergeResult: FullPath = [fullPath, newFullPath];
       return mergeResult;
@@ -338,7 +322,7 @@ export const generateEsrMD = Effect.fn('ApexOas.Esr.generateEsrMD')(function* (
   yield* displayFileDifferences(ctx);
 
   // Step: 4 Create entries in problems tab for generated file
-  createProblemTabEntriesForOasDocument(
+  yield* createProblemTabEntriesForOasDocument(
     ctx.isESRDecomposed ? replaceXmlToYaml(ctx.newPath) : ctx.newPath,
     processedOasResult,
     ctx.isESRDecomposed
@@ -353,9 +337,5 @@ const openDiffFile = Effect.fn('ApexOas.Esr.openDiffFile')(function* (
   filepath2: string,
   diffWindowName: string
 ) {
-  yield* Effect.promise(() =>
-    Promise.resolve(
-      vscode.commands.executeCommand('vscode.diff', URI.file(filepath1), URI.file(filepath2), diffWindowName)
-    )
-  );
+  yield* OasUiService.openDiff(URI.file(filepath1), URI.file(filepath2), diffWindowName);
 });

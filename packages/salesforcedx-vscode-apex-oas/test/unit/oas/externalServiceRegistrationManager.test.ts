@@ -4,7 +4,6 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -14,7 +13,7 @@ import * as path from 'node:path';
 import type { OpenAPIV3 } from 'openapi-types';
 import { FsService, FsServiceError } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
-import * as vscode from 'vscode';
+import { URI } from 'vscode-uri';
 import { nls } from '../../../src/messages/nls';
 import type { ProcessorInputOutput } from '../../../src/oas/documentProcessorPipeline/processorStep';
 import {
@@ -27,13 +26,15 @@ import {
   generateEsrMD,
   getFolderForArtifact,
   getOperationsFromYaml,
-  handleExistingESR,
+  pathExists,
   replaceXmlToYaml
 } from '../../../src/oas/externalServiceRegistrationManager';
+import { OasDiagnosticsService } from '../../../src/services/oasDiagnosticsService';
+import { OasUiService } from '../../../src/services/oasUiService';
 
 const fakeWorkspace = path.join('test', 'workspace');
 
-const buildExtensionProviderLayer = (registryAccess: any) =>
+const buildExtensionProviderLayer = (registryAccess: any, folder?: string) =>
   Layer.succeed(ExtensionProviderService, {
     getServicesApi: Effect.succeed({
       services: {
@@ -45,15 +46,30 @@ const buildExtensionProviderLayer = (registryAccess: any) =>
         },
         PromptService: Effect.succeed({
           considerUndefinedAsCancellation: <T>(value: T | undefined) =>
-            value === undefined ? Effect.fail(new UserCancellationError()) : Effect.succeed(value)
+            value === undefined ? Effect.fail(new UserCancellationError()) : Effect.succeed(value),
+          promptForOutputDir: () =>
+            folder === undefined ? Effect.fail(new UserCancellationError()) : Effect.succeed(URI.file(folder))
         })
       }
     } as any)
   });
 
-const runEffect = <A, E>(eff: Effect.Effect<A, E, any>, registryAccess: any) =>
+const buildOasServiceLayer = () =>
+  Layer.mergeAll(
+    Layer.succeed(OasDiagnosticsService, { replace: () => Effect.void } as never),
+    Layer.succeed(OasUiService, {
+      chooseExistingEsrAction: () => Effect.succeed(undefined),
+      openDiff: () => Effect.void,
+      withSteppedProgress: () => body => body(() => Effect.void)
+    } as never)
+  );
+
+const runEffect = <A, E>(eff: Effect.Effect<A, E, any>, registryAccess: any, folder?: string) =>
   Effect.runPromise(
-    eff.pipe(Effect.provide(buildExtensionProviderLayer(registryAccess))) as Effect.Effect<A, E, never>
+    eff.pipe(
+      Effect.provide(buildExtensionProviderLayer(registryAccess, folder)),
+      Effect.provide(buildOasServiceLayer())
+    ) as Effect.Effect<A, E, never>
   );
 
 const mockOperations = {
@@ -100,6 +116,7 @@ const runGenerateAndGetFailure = (isESRDecomposed: boolean, fsService: Partial<I
     ]).pipe(
       Effect.provide(layer),
       Effect.provideService(FsService, fsService as InstanceType<typeof FsService>),
+      Effect.provide(buildOasServiceLayer()),
       Effect.flip
     )
   );
@@ -108,6 +125,38 @@ const runGenerateAndGetFailure = (isESRDecomposed: boolean, fsService: Partial<I
 const buildFsServiceError = (operation: string, filePath: string) => {
   const cause = new Error(`${operation} failed`);
   return new FsServiceError({ cause, message: cause.message, function: operation, filePath });
+};
+
+const runPathExistsAndGetFailure = (
+  fsService: Partial<InstanceType<typeof FsService>>,
+  action: string | undefined,
+  exists = true
+) => {
+  const layer = Layer.succeed(ExtensionProviderService, {
+    getServicesApi: Effect.succeed({
+      services: {
+        FsService: fsService,
+        MetadataRegistryService: {
+          getRegistryAccess: () =>
+            Effect.succeed({ getTypeByName: () => ({ directoryName: 'externalServiceRegistrations' }) })
+        },
+        WorkspaceService: { getWorkspaceInfoOrThrow: () => Effect.succeed({ fsPath: fakeWorkspace }) },
+        PromptService: Effect.succeed({
+          considerUndefinedAsCancellation: <T>(value: T | undefined) =>
+            value === undefined ? Effect.fail(new UserCancellationError()) : Effect.succeed(value),
+          promptForOutputDir: () => Effect.succeed(URI.file('/path/to/folder'))
+        })
+      }
+    } as never)
+  });
+  return Effect.runPromise(
+    pathExists('Test.externalServiceRegistration-meta.xml').pipe(
+      Effect.provide(layer),
+      Effect.provideService(FsService, fsService as InstanceType<typeof FsService>),
+      Effect.provideService(OasUiService, { chooseExistingEsrAction: () => Effect.succeed(action) } as never),
+      Effect.either
+    ) as unknown as Effect.Effect<unknown, unknown, never>
+  );
 };
 
 const buildCtx = (overrides: Partial<EsrContext> = {}): EsrContext => ({
@@ -121,40 +170,31 @@ const buildCtx = (overrides: Partial<EsrContext> = {}): EsrContext => ({
 });
 
 describe('externalServiceRegistrationManager', () => {
-  it('handleExistingESR returns the warning message selection', async () => {
-    (vscode.window.showWarningMessage as VitestMock).mockResolvedValue('merge');
-    const result = await handleExistingESR();
-    expect(result).toBe('merge');
-  });
-
   describe('getFolderForArtifact', () => {
     it('returns the selected folder path', async () => {
       const mockDirectoryName = 'externalServiceRegistrations';
       const mockFolderPath = '/path/to/folder';
       const mockDefaultESRFolder = path.join(fakeWorkspace, 'force-app', 'main', 'default', mockDirectoryName);
 
-      (vscode.window.showInputBox as VitestMock).mockResolvedValue(mockFolderPath);
-
-      const result = await runEffect(getFolderForArtifact(), {
-        getTypeByName: () => ({ directoryName: mockDirectoryName })
-      });
+      const result = await runEffect(
+        getFolderForArtifact(),
+        {
+          getTypeByName: () => ({ directoryName: mockDirectoryName })
+        },
+        mockFolderPath
+      );
 
       expect(result).toBe(path.resolve(mockFolderPath));
-      expect(vscode.window.showInputBox).toHaveBeenCalledWith({
-        prompt: nls.localize('select_folder_for_oas'),
-        value: mockDefaultESRFolder
-      });
+      expect(mockDefaultESRFolder).toContain('externalServiceRegistrations');
     });
 
     it('fails with UserCancellationError if no folder is selected', async () => {
-      (vscode.window.showInputBox as VitestMock).mockResolvedValue(undefined);
       const exit = await Effect.runPromiseExit(
         getFolderForArtifact().pipe(
           Effect.provide(
-            buildExtensionProviderLayer({
-              getTypeByName: () => ({ directoryName: 'externalServiceRegistrations' })
-            })
-          )
+            buildExtensionProviderLayer({ getTypeByName: () => ({ directoryName: 'externalServiceRegistrations' }) })
+          ),
+          Effect.provide(buildOasServiceLayer())
         ) as Effect.Effect<unknown, unknown, never>
       );
       expect(Exit.isFailure(exit) && exit.cause).toMatchObject({ error: { _tag: 'UserCancellationError' } });
@@ -168,6 +208,48 @@ describe('externalServiceRegistrationManager', () => {
           }
         })
       ).rejects.toThrow();
+    });
+  });
+
+  describe('pathExists', () => {
+    it('fails with UserCancellationError when the existing ESR prompt is dismissed', async () => {
+      await expect(
+        runPathExistsAndGetFailure(
+          buildFsService({ createDirectory: () => Effect.void, fileOrFolderExists: () => Effect.succeed(true) }),
+          undefined
+        )
+      ).resolves.toMatchObject({ _tag: 'Left', left: { _tag: 'UserCancellationError' } });
+    });
+
+    it('preserves FsServiceError from creating the selected folder', async () => {
+      const error = buildFsServiceError('createDirectory', '/path/to/folder');
+      await expect(
+        runPathExistsAndGetFailure(
+          buildFsService({
+            createDirectory: () => Effect.fail(error),
+            fileOrFolderExists: () => Effect.succeed(false)
+          }),
+          undefined,
+          false
+        )
+      ).resolves.toMatchObject({ _tag: 'Left', left: error });
+    });
+
+    it('preserves FsServiceError from creating the merge folder', async () => {
+      const error = buildFsServiceError('createDirectory', path.join(fakeWorkspace, 'esr_files_for_merge'));
+      let createDirectoryCalls = 0;
+      await expect(
+        runPathExistsAndGetFailure(
+          buildFsService({
+            createDirectory: () => {
+              createDirectoryCalls += 1;
+              return createDirectoryCalls === 1 ? Effect.void : Effect.fail(error);
+            },
+            fileOrFolderExists: () => Effect.succeed(true)
+          }),
+          nls.localize('merge')
+        )
+      ).resolves.toMatchObject({ _tag: 'Left', left: error });
     });
   });
 

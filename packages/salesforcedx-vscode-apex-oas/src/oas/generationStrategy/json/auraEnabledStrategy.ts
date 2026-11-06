@@ -8,6 +8,7 @@
 import type { OasClassContext } from '../../apexSourceMetadata';
 import { ExtensionProviderService, annotateRootSpan } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
 import { OasGenerationFailed } from '../../../errors';
 
 export const generateAuraEnabledOas = Effect.fn('ApexOas.AuraEnabled.generateOAS')(
@@ -26,7 +27,7 @@ export const generateAuraEnabledOas = Effect.fn('ApexOas.AuraEnabled.generateOAS
     annotateRootSpan({ strategyName: 'AuraEnabled', biddedCallCount: 0, llmCallCount: 0, generationSize: 0 })
   ),
   Effect.catchAll(cause =>
-    cause instanceof OasGenerationFailed
+    Schema.is(OasGenerationFailed)(cause)
       ? Effect.fail(cause)
       : Effect.fail(
           new OasGenerationFailed({ message: `Failed to fetch OAS specification from org: ${String(cause)}` })
