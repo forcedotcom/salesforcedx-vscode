@@ -14,54 +14,20 @@ permissions:
   pull-requests: read
 
 jobs:
-  resolve-pulls:
-    # Own check runs and fork PRs must not start a run (forks have no IDEE_GH_TOKEN).
-    # Title/body edits and comment-only reviews do not change a skip gate.
-    # The bot's APPROVED reviews are already covered by the approved-head skip.
+  category-approve:
+    name: category-approve
     if: >-
       (github.event_name == 'check_run' && github.event.check_run.name != 'category-approve' &&
       (github.event.check_run.pull_requests[0].head.repo.full_name == github.repository || github.event.check_run.pull_requests[0] == null)) ||
       (github.event.pull_request.head.repo.full_name == github.repository && github.event.pull_request.draft == false &&
       ((github.event_name == 'pull_request' && (github.event.action != 'edited' || github.event.changes.base.ref.from)) ||
-      (github.event_name == 'pull_request_review' && (github.event.action == 'dismissed' ||
-      ((github.event.review.state == 'APPROVED' || github.event.review.state == 'approved') &&
-      github.event.review.user.login != 'svc-idee-bot')))))
+       (github.event_name == 'pull_request_review' && (github.event.action == 'dismissed' ||
+       ((github.event.review.state == 'APPROVED' || github.event.review.state == 'approved') &&
+       github.event.review.user.login != 'svc-idee-bot')))))
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-    outputs:
-      pull_numbers: ${{ steps.pulls.outputs.result }}
-    steps:
-      - name: Resolve pull requests before applying per-PR concurrency
-        id: pulls
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { payload, repo: { owner, repo } } = context;
-            if (payload.pull_request) return [payload.pull_request.number];
-            const listed = payload.check_run.pull_requests ?? [];
-            if (listed.length > 0) return [...new Set(listed.map(pull => pull.number))];
-            const pulls = await github.paginate('GET /repos/{owner}/{repo}/commits/{commit_sha}/pulls', {
-              owner,
-              repo,
-              commit_sha: payload.check_run.head_sha,
-              per_page: 100
-            });
-            return [...new Set(pulls
-              .filter(pull => pull.base?.ref === 'develop' && pull.state === 'open')
-              .map(pull => pull.number))];
-
-  category-approve:
-    name: category-approve
-    needs: resolve-pulls
-    if: needs.resolve-pulls.outputs.pull_numbers != '[]'
-    strategy:
-      fail-fast: false
-      matrix:
-        pull_number: ${{ fromJSON(needs.resolve-pulls.outputs.pull_numbers) }}
     concurrency:
-      group: category-approve-${{ matrix.pull_number }}
+      group: category-approve-${{ github.event.pull_request.number || github.event.check_run.pull_requests[0].number || github.run_id }}
       cancel-in-progress: true
-    runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
@@ -77,19 +43,10 @@ jobs:
       - name: Check pre-classify gates
         id: preflight
         uses: actions/github-script@v7
-        env:
-          PULL_NUMBER: ${{ matrix.pull_number }}
         with:
           github-token: ${{ secrets.IDEE_GH_TOKEN }}
           script: |
             const fs = require('node:fs');
-            // Both trusted scripts must process only the PR in this job's concurrency group.
-            if (context.payload.check_run) {
-              const number = Number(process.env.PULL_NUMBER);
-              context.payload.check_run.pull_requests = [
-                context.payload.check_run.pull_requests?.find(pull => pull.number === number) ?? { number }
-              ];
-            }
             fs.writeFileSync(`${process.env.RUNNER_TEMP}/category-approve-event.json`, JSON.stringify(context.payload));
             const preflightPath = `${process.env.RUNNER_TEMP}/trusted-approver/scripts/category-approve-preflight.cjs`;
             // Until develop contains the helper, run the existing trusted approver without preflight skips.
