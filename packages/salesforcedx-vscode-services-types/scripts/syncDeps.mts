@@ -19,54 +19,50 @@ type PackageJson = {
 };
 
 /** Syncs dependency versions from parent package to types package */
-const syncDeps = (): void => {
-  const parentPkgPath = path.join(import.meta.dirname, '..', '..', 'salesforcedx-vscode-services', 'package.json');
-  const typesPkgPath = path.join(import.meta.dirname, '..', 'package.json');
+const parentPkgPath = path.join(import.meta.dirname, '..', '..', 'salesforcedx-vscode-services', 'package.json');
+const typesPkgPath = path.join(import.meta.dirname, '..', 'package.json');
 
-  const parentPkg: PackageJson = JSON.parse(fs.readFileSync(parentPkgPath, 'utf8'));
-  const typesPkg: PackageJson = JSON.parse(fs.readFileSync(typesPkgPath, 'utf8'));
+const parentPkg: PackageJson = JSON.parse(fs.readFileSync(parentPkgPath, 'utf8'));
+const typesPkg: PackageJson = JSON.parse(fs.readFileSync(typesPkgPath, 'utf8'));
 
-  // Dependencies to sync (these are needed for type resolution)
-  const depsToSync = [
-    '@azure/monitor-opentelemetry-exporter',
-    '@effect/opentelemetry',
-    '@opentelemetry/api',
-    '@opentelemetry/core',
-    '@opentelemetry/exporter-trace-otlp-http',
-    '@opentelemetry/sdk-logs',
-    '@opentelemetry/sdk-metrics',
-    '@opentelemetry/sdk-trace-base',
-    '@opentelemetry/sdk-trace-node',
-    '@opentelemetry/sdk-trace-web',
-    '@salesforce/core',
-    '@salesforce/source-deploy-retrieve',
-    '@salesforce/source-tracking',
-    'effect',
-    'jsforce',
-    'vscode-uri'
-  ];
+// Dependencies to sync (these are needed for type resolution)
+const depsToSync = [
+  '@azure/monitor-opentelemetry-exporter',
+  '@effect/opentelemetry',
+  '@opentelemetry/api',
+  '@opentelemetry/core',
+  '@opentelemetry/exporter-trace-otlp-http',
+  '@opentelemetry/sdk-logs',
+  '@opentelemetry/sdk-metrics',
+  '@opentelemetry/sdk-trace-base',
+  '@opentelemetry/sdk-trace-node',
+  '@opentelemetry/sdk-trace-web',
+  '@salesforce/core',
+  '@salesforce/source-deploy-retrieve',
+  '@salesforce/source-tracking',
+  'effect',
+  'jsforce',
+  'vscode-uri'
+];
 
-  // Sync versions
-  typesPkg.dependencies = typesPkg.dependencies || {};
-  depsToSync.forEach(dep => {
-    if (parentPkg.dependencies?.[dep]) {
-      typesPkg.dependencies![dep] = parentPkg.dependencies[dep];
-    }
-  });
-
-  // Add @types/vscode from parent's engines
-  if (parentPkg.engines?.vscode) {
-    const vscodeVersion = parentPkg.engines.vscode.replace('^', '');
-    typesPkg.dependencies['@types/vscode'] = `^${vscodeVersion}`;
+// Sync versions
+typesPkg.dependencies = typesPkg.dependencies || {};
+depsToSync.forEach(dep => {
+  if (parentPkg.dependencies?.[dep]) {
+    typesPkg.dependencies![dep] = parentPkg.dependencies[dep];
   }
+});
 
-  // Sync version number
-  typesPkg.version = parentPkg.version;
+// Add @types/vscode from parent's engines
+if (parentPkg.engines?.vscode) {
+  const vscodeVersion = parentPkg.engines.vscode.replace('^', '');
+  typesPkg.dependencies['@types/vscode'] = `^${vscodeVersion}`;
+}
 
-  const temporaryTypesPkgPath = `${typesPkgPath}.${process.pid}.tmp`;
-  fs.writeFileSync(temporaryTypesPkgPath, `${JSON.stringify(typesPkg, null, 2)}\n`, 'utf8');
-  fs.renameSync(temporaryTypesPkgPath, typesPkgPath);
-  console.log('Synced dependencies and version from parent package');
-};
+// Sync version number
+typesPkg.version = parentPkg.version;
 
-syncDeps();
+const temporaryTypesPkgPath = `${typesPkgPath}.${process.pid}.tmp`;
+fs.writeFileSync(temporaryTypesPkgPath, `${JSON.stringify(typesPkg, null, 2)}\n`, 'utf8');
+fs.renameSync(temporaryTypesPkgPath, typesPkgPath);
+console.log('Synced dependencies and version from parent package');
