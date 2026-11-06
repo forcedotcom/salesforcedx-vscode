@@ -1060,5 +1060,23 @@ describe('Replay debugger adapter - unit', () => {
         expect.objectContaining({ body: expect.objectContaining({ breakpoint: { verified: false, line: 3 } }) })
       );
     });
+
+    it('reports only breakpoints whose verification state changes', () => {
+      adapter = new MockApexReplayDebug();
+      const sendEventSpy = vi.spyOn(adapter as unknown as { sendEvent: () => void }, 'sendEvent');
+      adapter.setBreakpoints('file:///One.cls', [3, 5]);
+      adapter.updateLineBreakpointInfo('file:///One.cls', [{ uri: 'file:///One.cls', typeref: 'One', lines: [3] }]);
+      sendEventSpy.mockClear();
+
+      adapter.updateLineBreakpointInfo('file:///One.cls', [{ uri: 'file:///One.cls', typeref: 'One', lines: [5] }]);
+
+      expect(sendEventSpy).toHaveBeenCalledTimes(2);
+      expect(sendEventSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ body: expect.objectContaining({ breakpoint: { verified: false, line: 3 } }) })
+      );
+      expect(sendEventSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ body: expect.objectContaining({ breakpoint: { verified: true, line: 5 } }) })
+      );
+    });
   });
 });
