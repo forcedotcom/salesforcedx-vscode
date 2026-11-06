@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { readJsonlFiles, parseJsonlLines } from './jsonl';
@@ -40,7 +42,7 @@ export const waitForSpanRows = async (
     const rows = await read().catch(() => [] as SpanRow[]);
     if (predicate(rows)) return rows;
     if (Date.now() >= deadline) throw new Error(`Timed out after ${timeoutMs}ms waiting for ${message}`);
-    await new Promise(resolve => setTimeout(resolve, retryMs));
+    await Effect.sleep(Duration.millis(retryMs)).pipe(Effect.runPromise);
     return attempt();
   };
   return attempt();

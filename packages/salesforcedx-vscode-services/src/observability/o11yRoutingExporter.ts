@@ -6,6 +6,7 @@
  */
 import { type ExportResult, ExportResultCode } from '@opentelemetry/core';
 import type { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
+import * as Effect from 'effect/Effect';
 import { isError, isString } from 'effect/Predicate';
 import {
   isLegacySpan,
@@ -19,14 +20,16 @@ const exportVia = (make: () => SpanExporter, spans: ReadableSpan[]): Promise<Exp
   // eslint-disable-next-line functional/no-try-statements -- exporter boundary
   try {
     const delegate = make();
-    return new Promise(resolve => {
+    return Effect.async<ExportResult>(resume => {
       // eslint-disable-next-line functional/no-try-statements -- exporter boundary
       try {
-        delegate.export(spans, resolve);
+        delegate.export(spans, result => resume(Effect.succeed(result)));
       } catch (error) {
-        resolve({ code: ExportResultCode.FAILED, error: isError(error) ? error : new Error(String(error)) });
+        resume(
+          Effect.succeed({ code: ExportResultCode.FAILED, error: isError(error) ? error : new Error(String(error)) })
+        );
       }
-    });
+    }).pipe(Effect.runPromise);
   } catch (error) {
     return Promise.resolve({
       code: ExportResultCode.FAILED,

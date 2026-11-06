@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
 import * as path from 'node:path';
 import {
@@ -249,12 +251,9 @@ export class LspFileSystemAccessor {
         WORKSPACE_FIND_FILES_REQUEST,
         params
       );
-      let findFilesTimeoutId: ReturnType<typeof setTimeout>;
-      const findFilesTimeoutPromise = new Promise<WorkspaceFindFilesResult>((_, reject) => {
-        findFilesTimeoutId = setTimeout(() => reject(new Error('workspace/findFiles timeout')), 8000); // 8 seconds
-      });
-      const result = await Promise.race([findFilesRequestPromise, findFilesTimeoutPromise]).finally(() =>
-        clearTimeout(findFilesTimeoutId!)
+      const result = await Effect.promise(() => findFilesRequestPromise).pipe(
+        Effect.timeout(Duration.seconds(8)),
+        Effect.runPromise
       );
       if (result?.error || !result?.uris) {
         return [];

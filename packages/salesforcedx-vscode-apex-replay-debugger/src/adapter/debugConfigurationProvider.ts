@@ -8,6 +8,7 @@
 import { CallableSchema, ExtensionProviderService, getExtensionExports } from '@salesforce/effect-ext-utils';
 import { extractAnonApexSource, type HeapDumpResult } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { errorToString } from '@salesforce/salesforcedx-utils';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isString, isUndefined } from 'effect/Predicate';
@@ -200,7 +201,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
         throw Error(apexApi.languageClientManager.getStatus().getStatusMessage());
       }
 
-      await new Promise(resolve => setTimeout(resolve, 100));
+      await Effect.sleep(Duration.millis(100)).pipe(Effect.runPromise);
       if (i >= 30) {
         expired = true;
       }

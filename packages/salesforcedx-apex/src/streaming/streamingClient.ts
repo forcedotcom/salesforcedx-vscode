@@ -7,6 +7,8 @@
 
 import { type Connection, LoggerLevel } from '@salesforce/core';
 import { type Duration } from '@salesforce/kit';
+import * as Effect from 'effect/Effect';
+import * as Either from 'effect/Either';
 import * as Schema from 'effect/Schema';
 import { Client } from 'faye';
 import { TestRunId } from '../effect/schema/salesforceId';
@@ -34,7 +36,9 @@ export class Deferred<T> {
   public promise: Promise<T>;
   public resolve!: Function;
   constructor() {
-    this.promise = new Promise(resolve => (this.resolve = resolve));
+    this.promise = Effect.async<T>(resume => {
+      this.resolve = (value: T) => resume(Effect.succeed(value));
+    }).pipe(Effect.runPromise);
   }
 }
 
@@ -135,11 +139,11 @@ export class StreamingClient {
   }
 
   public handshake(): Promise<void> {
-    return new Promise(resolve => {
+    return Effect.async<void>(resume => {
       this.client.handshake(() => {
-        resolve();
+        resume(Effect.void);
       });
-    });
+    }).pipe(Effect.runPromise);
   }
 
   public disconnect(): void {
@@ -155,7 +159,11 @@ export class StreamingClient {
     testRunId?: string,
     timeout?: Duration
   ): Promise<AsyncTestRun | TestRunIdResult> {
-    return new Promise((subscriptionResolve, subscriptionReject) => {
+    // Preserve arbitrary rejection values at this Promise boundary without wrapping them.
+    // @effect-diagnostics-next-line effect/anyUnknownInErrorContext:off
+    return Effect.async<AsyncTestRun | TestRunIdResult, unknown>(resume => {
+      const subscriptionResolve = (result: AsyncTestRun | TestRunIdResult) => resume(Effect.succeed(result));
+      const subscriptionReject = (cause: unknown) => resume(Effect.fail(cause));
       let intervalId: NodeJS.Timeout | undefined;
       // start timeout
       const timeoutId = setTimeout(
@@ -235,7 +243,9 @@ export class StreamingClient {
         clearInterval(intervalId);
         subscriptionReject(e);
       }
-    });
+    })
+      .pipe(Effect.either, Effect.runPromise)
+      .then(Either.getOrThrowWith(error => error));
   }
 
   private isValidTestRunID(testRunId: string, subscribedId?: string): boolean {
