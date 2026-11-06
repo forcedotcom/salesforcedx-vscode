@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CallableSchema, ExtensionProviderService, getExtensionExports } from '@salesforce/effect-ext-utils';
+import { CallableSchema, ExtensionProviderService, getApexLanguageServerExports } from '@salesforce/effect-ext-utils';
 import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
@@ -16,8 +16,6 @@ import { nls } from '../messages';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 
 const testRunDescriptors = ['sf.apex.test.class.run', 'sf.apex.test.method.run'];
-
-const APEX_LANGUAGE_SERVER_EXTENSION_ID = 'salesforce.apex-language-server-extension';
 
 type ApexLanguageServerApi = {
   readonly codeLens: {
@@ -43,13 +41,9 @@ const ApexLanguageServerApiSchema = Schema.Struct({
   })
 });
 
-const getApexLanguageServer = () =>
-  getExtensionExports({
-    extId: APEX_LANGUAGE_SERVER_EXTENSION_ID,
-    schema: ApexLanguageServerApiSchema
-  });
+const getApexLanguageServerClient = () => getApexLanguageServerExports(ApexLanguageServerApiSchema);
 
-type GetLanguageServer = () => ReturnType<typeof getApexLanguageServer>;
+type GetLanguageServerClient = () => ReturnType<typeof getApexLanguageServerClient>;
 
 const getTestName = (lens: vscode.CodeLens): string | undefined => {
   const commandArguments = lens.command?.arguments;
@@ -79,15 +73,15 @@ const hasDefaultOrg = Effect.fn('ApexTesting.hasDefaultOrg')(function* () {
 export const registerTestRunCodeLensProducer = Effect.fn('ApexTesting.registerTestRunCodeLensProducer')(function* (
   context: vscode.ExtensionContext,
   isDefaultOrgAvailable = () => getApexTestingRuntime().runPromise(hasDefaultOrg()),
-  getLanguageServer: GetLanguageServer = getApexLanguageServer
+  getLanguageServerClient: GetLanguageServerClient = getApexLanguageServerClient
 ) {
-  const languageServer = yield* getLanguageServer().pipe(Effect.option);
-  if (languageServer._tag === 'None') return;
+  const languageServerClient = yield* getLanguageServerClient().pipe(Effect.option);
+  if (languageServerClient._tag === 'None') return;
 
   const registrations = yield* Effect.try({
     try: () =>
       testRunDescriptors.map(descriptor =>
-        languageServer.value.codeLens.register(descriptor, async (lens: vscode.CodeLens) =>
+        languageServerClient.value.codeLens.register(descriptor, async (lens: vscode.CodeLens) =>
           (await isDefaultOrgAvailable()) ? produceTestRunCodeLens(lens) : null
         )
       ),
