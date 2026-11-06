@@ -146,6 +146,8 @@ type CreateDesktopTestOptions = {
    * Defaults to false; set E2E_FROM_VSIX=1 to enable without code changes.
    */
   useVsix?: boolean;
+  /** Set false when the calling fixture starts recording after setup with page.screencast. Default true. */
+  recordVideo?: boolean;
 };
 
 /**
@@ -187,7 +189,8 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
     skipCurrentPackage = false,
     disableOtherExtensions = true,
     userSettings,
-    beforeLaunch
+    beforeLaunch,
+    recordVideo = true
   } = options;
 
   const useVsix = options.useVsix ?? process.env.E2E_FROM_VSIX === '1';
@@ -280,7 +283,9 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
         extensionPath => `--extensionDevelopmentPath=${path.resolve(packageRoot, extensionPath)}`
       );
       const videosDir = path.join(packageRoot, 'test-results', 'videos');
-      await fs.mkdir(videosDir, { recursive: true });
+      if (recordVideo) {
+        await fs.mkdir(videosDir, { recursive: true });
+      }
 
       // Explicitly disable built-in GitHub/Microsoft/Copilot/Chat extensions that can trigger
       // sign-in modals or the GitHub OAuth browser tab on startup. `--disable-extensions` only
@@ -354,10 +359,9 @@ export const createDesktopTest = (options: CreateDesktopTestOptions) => {
             VSCODE_DESKTOP: '1'
           } as Record<string, string>,
           timeout: 60_000,
-          recordVideo: {
-            dir: videosDir,
-            size: { width: 1920, height: 1080 }
-          }
+          recordVideo: recordVideo
+            ? { dir: videosDir, size: { width: 1920, height: 1080 } }
+            : undefined
         });
 
       // Best-effort kill of one app instance so a relaunch (or teardown) does not leak processes.
