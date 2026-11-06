@@ -188,9 +188,6 @@ importers:
       semver:
         specifier: ^7.5.4
         version: 7.8.5
-      ts-node:
-        specifier: 10.9.2
-        version: 10.9.2(@types/node@24.19.2)(typescript@6.0.3)
       url:
         specifier: 0.11.4
         version: 0.11.4
@@ -480,9 +477,6 @@ importers:
       ts-jest:
         specifier: 29.4.11
         version: 29.4.11(@babel/core@7.29.7(supports-color@8.1.1))(@jest/transform@30.4.1(supports-color@8.1.1))(@jest/types@30.5.1)(babel-jest@30.4.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(esbuild@0.28.2)(jest-util@30.5.1)(jest@30.4.2(@types/node@24.19.2)(supports-color@8.1.1)(ts-node@10.9.2(@types/node@24.19.2)(typescript@6.0.3)))(typescript@6.0.3)
-      tsx:
-        specifier: 4.22.4
-        version: 4.22.4
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -12856,6 +12850,7 @@ snapshots:
   '@cspotcode/source-map-support@0.8.1':
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
+    optional: true
 
   '@csstools/color-helpers@6.1.2': {}
 
@@ -13678,6 +13673,7 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.6.0
+    optional: true
 
   '@jscpd/badge-reporter@4.2.5':
     dependencies:
@@ -15634,13 +15630,17 @@ snapshots:
 
   '@tootallnate/quickjs-emscripten@0.23.0': {}
 
-  '@tsconfig/node10@1.0.13': {}
+  '@tsconfig/node10@1.0.13':
+    optional: true
 
-  '@tsconfig/node12@1.0.11': {}
+  '@tsconfig/node12@1.0.11':
+    optional: true
 
-  '@tsconfig/node14@1.0.3': {}
+  '@tsconfig/node14@1.0.3':
+    optional: true
 
-  '@tsconfig/node16@1.0.4': {}
+  '@tsconfig/node16@1.0.4':
+    optional: true
 
   '@tybys/wasm-util@0.10.3':
     dependencies:
@@ -16417,6 +16417,7 @@ snapshots:
   acorn-walk@8.3.5:
     dependencies:
       acorn: 8.15.0
+    optional: true
 
   acorn@6.4.2: {}
 
@@ -16523,7 +16524,8 @@ snapshots:
 
   are-docs-informative@0.0.2: {}
 
-  arg@4.1.3: {}
+  arg@4.1.3:
+    optional: true
 
   argparse@1.0.10:
     dependencies:
@@ -17435,7 +17437,8 @@ snapshots:
       safe-buffer: 5.2.1
       sha.js: 2.4.12
 
-  create-require@1.1.1: {}
+  create-require@1.1.1:
+    optional: true
 
   cross-spawn@6.0.6:
     dependencies:
@@ -17693,7 +17696,8 @@ snapshots:
 
   diff3@0.0.3: {}
 
-  diff@4.0.4: {}
+  diff@4.0.4:
+    optional: true
 
   diff@5.2.2: {}
 
@@ -23069,6 +23073,7 @@ snapshots:
       typescript: 6.0.3
       v8-compile-cache-lib: 3.0.1
       yn: 3.1.1
+    optional: true
 
   ts-retry-promise@0.8.1: {}
 
@@ -23090,6 +23095,7 @@ snapshots:
       esbuild: 0.28.2
     optionalDependencies:
       fsevents: 2.3.3
+    optional: true
 
   ttf2eot@3.1.0:
     dependencies:
@@ -23313,7 +23319,8 @@ snapshots:
 
   uuid@11.1.1: {}
 
-  v8-compile-cache-lib@3.0.1: {}
+  v8-compile-cache-lib@3.0.1:
+    optional: true
 
   v8-to-istanbul@9.3.0:
     dependencies:
@@ -23680,7 +23687,8 @@ snapshots:
 
   yerror@8.0.0: {}
 
-  yn@3.1.1: {}
+  yn@3.1.1:
+    optional: true
 
   yocto-queue@0.1.0: {}
 
