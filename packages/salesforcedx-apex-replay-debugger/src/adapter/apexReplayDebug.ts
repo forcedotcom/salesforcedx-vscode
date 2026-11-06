@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
+import type { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import {
   DebugSession,
   BreakpointEvent,
@@ -46,6 +46,15 @@ const TRACE_CATEGORY_PROTOCOL = 'protocol';
 const TRACE_CATEGORY_LOGFILE = 'logfile';
 const TRACE_CATEGORY_LAUNCH = 'launch';
 const TRACE_CATEGORY_BREAKPOINTS = 'breakpoints';
+
+const LineBreakpointInfoSchema = Schema.Struct({
+  uri: Schema.String,
+  typeref: Schema.String,
+  lines: Schema.Array(Schema.Number)
+});
+
+const isLineBreakpointInfo = (value: unknown): value is LineBreakpointInfo =>
+  Schema.is(LineBreakpointInfoSchema)(value);
 
 export class ApexReplayDebug extends LoggingDebugSession {
   public static THREAD_ID = 1;
@@ -475,14 +484,15 @@ export class ApexReplayDebug extends LoggingDebugSession {
         args.lineBreakpointInfo
       );
       const requestedLines = this.requestedBreakpoints.get(args.uri) ?? [];
-      const previousVerifiedLines = this.breakpoints.get(args.uri) ?? [];
+      const previousVerifiedLines = new Set(this.breakpoints.get(args.uri));
       const verifiedLines = requestedLines.filter(line =>
         canSetLineBreakpoint(this.breakpointMappings, args.uri, line)
       );
+      const verifiedLineSet = new Set(verifiedLines);
       this.breakpoints.set(args.uri, verifiedLines);
       for (const line of requestedLines) {
-        const wasVerified = previousVerifiedLines.includes(line);
-        const isVerified = verifiedLines.includes(line);
+        const wasVerified = previousVerifiedLines.has(line);
+        const isVerified = verifiedLineSet.has(line);
         if (wasVerified !== isVerified) {
           this.sendEvent(new BreakpointEvent('changed', { verified: isVerified, line }));
         }
@@ -530,6 +540,6 @@ const isLineBreakpointInfoUpdate = (
   typeof args.uri === 'string' &&
   'lineBreakpointInfo' in args &&
   Array.isArray(args.lineBreakpointInfo) &&
-  args.lineBreakpointInfo.every(Schema.is(LineBreakpointInfo));
+  args.lineBreakpointInfo.every(isLineBreakpointInfo);
 
 DebugSession.run(ApexReplayDebug);
