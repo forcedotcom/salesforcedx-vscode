@@ -47,7 +47,7 @@ const collectReportChunks = (format: string, chunks: Stream.Stream<string>): Eff
   );
 
 const formatStream = (
-  format: string,
+  format: 'tap' | 'junit',
   createChunks: () => Stream.Stream<string>
 ): Effect.Effect<string, ApexReportError> =>
   Effect.try({
