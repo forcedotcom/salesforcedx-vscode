@@ -9,7 +9,7 @@ import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import type { OrgMetadataCatalogComponentEntry } from 'salesforcedx-vscode-services';
+import { HashableUri, type OrgMetadataCatalogComponentEntry } from 'salesforcedx-vscode-services';
 import { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
 import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
 import * as vscode from 'vscode';
@@ -44,7 +44,7 @@ describe('DebugConfigurationProvider log-file prompt', () => {
         Layer.succeed(ExtensionProviderService, {
           getServicesApi: Effect.succeed({
             services: {
-              FsService: { readFile },
+              FsService: { readFile, HashableUri: Effect.succeed(HashableUri) },
               OrgMetadataCatalog,
               UserCancellationError,
               WorkspaceService: { getWorkspaceInfo: () => Effect.succeed({ isEmpty: true }) }

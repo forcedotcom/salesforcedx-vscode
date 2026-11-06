@@ -24,7 +24,7 @@ import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { type Event, EventEmitter, type TreeDataProvider, TreeItem, TreeItemCollapsibleState } from 'vscode';
-import { type URI } from 'vscode-uri';
+import { type URI, URI as Uri } from 'vscode-uri';
 import { writeToDebuggerOutputWindow } from '../channels';
 import {
   type ActionScriptType,
@@ -583,7 +583,7 @@ const uploadCheckpoints = Effect.fn('uploadCheckpoints')(
     );
     const enabledCheckpointUris = (checkpointService.getChildren() as CheckpointNode[])
       .filter(cpNode => cpNode.isCheckpointEnabled())
-      .map(cpNode => cpNode.getCheckpointUri());
+      .map(cpNode => Uri.parse(cpNode.getCheckpointUri()));
     const lineBreakpointInfo = yield* Effect.tryPromise(() => ensureLineBreakpointMetadata(enabledCheckpointUris));
     const mappings = createBreakpointMappings(lineBreakpointInfo);
 
