@@ -12,6 +12,7 @@ import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isString, isUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
+import type { URI } from 'vscode-uri';
 import { getDialogStartingPath, updateLastOpened } from '../activation/getDialogStartingPath';
 import { ensureLineBreakpointMetadata } from '../breakpoints/lineBreakpointMetadata';
 import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '../debuggerConstants';
@@ -51,8 +52,8 @@ const isApexSourceBreakpoint = (breakpoint: vscode.Breakpoint): breakpoint is vs
   );
 };
 
-const apexBreakpointUris = (): string[] =>
-  (vscode.debug.breakpoints ?? []).filter(isApexSourceBreakpoint).map(breakpoint => breakpoint.location.uri.toString());
+const apexBreakpointUris = (): URI[] =>
+  (vscode.debug.breakpoints ?? []).filter(isApexSourceBreakpoint).map(breakpoint => breakpoint.location.uri);
 
 const selectLogFile = Effect.fn('ApexReplayDebugger.selectLogFile')(function* (
   config: vscode.DebugConfiguration,

@@ -12,8 +12,8 @@ import * as Effect from 'effect/Effect';
 import * as Runtime from 'effect/Runtime';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
+import type { HashableUri } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
-import { URI } from 'vscode-uri';
 import { makeLineBreakpointMetadataCache } from '../breakpoints/lineBreakpointMetadataCache';
 
 const APEX_LANGUAGE_SERVER_EXTENSION_ID = 'salesforce.apex-language-server-extension';
@@ -51,16 +51,17 @@ export class LineBreakpointMetadataService extends Effect.Service<LineBreakpoint
     accessors: true,
     scoped: Effect.gen(function* () {
       const scope = yield* Effect.scope;
-      const getLineBreakpointInfo = Effect.fn('ApexReplayDebugger.getLineBreakpointInfo')(function* (uri: string) {
-        yield* Effect.annotateCurrentSpan('uri', uri);
-        yield* Effect.promise(() => vscode.workspace.openTextDocument(URI.parse(uri)));
+      const getLineBreakpointInfo = Effect.fn('ApexReplayDebugger.getLineBreakpointInfo')(function* (uri: HashableUri) {
+        const uriString = uri.uri.toString();
+        yield* Effect.annotateCurrentSpan('uri', uriString);
+        yield* Effect.promise(() => vscode.workspace.openTextDocument(uri.uri));
         const lineBreakpointInfo = yield* getExtensionExports({
           extId: APEX_LANGUAGE_SERVER_EXTENSION_ID,
           schema: ApexExtensionApiSchema
         }).pipe(
           Effect.flatMap(apexApi =>
             Effect.tryPromise({
-              try: () => apexApi.client.getLineBreakpointInfo(uri),
+              try: () => apexApi.client.getLineBreakpointInfo(uriString),
               catch: error => new ApexLanguageServerBreakpointInfoError({ message: getMessageFromError(error) })
             }).pipe(
               // Opening a document asynchronously notifies the language server. Retry only until that state is visible.
@@ -71,7 +72,10 @@ export class LineBreakpointMetadataService extends Effect.Service<LineBreakpoint
             )
           ),
           Effect.tapError(error =>
-            Effect.logWarning('Unable to retrieve Apex language server breakpoint information', { uri, error })
+            Effect.logWarning('Unable to retrieve Apex language server breakpoint information', {
+              uri: uriString,
+              error
+            })
           )
         );
         yield* Effect.annotateCurrentSpan('breakpointInfoCount', lineBreakpointInfo.length);
