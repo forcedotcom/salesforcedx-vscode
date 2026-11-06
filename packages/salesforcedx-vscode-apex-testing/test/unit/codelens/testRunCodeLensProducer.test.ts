@@ -15,23 +15,23 @@ const lens = (command: string, arguments_: unknown[] = ['ExampleTest']) =>
   ({ range, command: { command, title: 'Run Test', arguments: arguments_ } }) as vscode.CodeLens;
 
 describe('testRunCodeLensProducer', () => {
-  it.each([
-    ['sf.apex.test.class.run.delegate', 'sf.apex.test.class.run'],
-    ['sf.apex.test.method.run.delegate', 'sf.apex.test.method.run']
-  ])('maps %s to %s without changing its range', (delegate: string, target: string) => {
-    const result = produceTestRunCodeLens(lens(delegate));
+  it.each(['sf.apex.test.class.run', 'sf.apex.test.method.run'])(
+    'preserves %s without changing its range',
+    (command: string) => {
+      const result = produceTestRunCodeLens(lens(command));
 
-    expect(result).toMatchObject({
-      range,
-      command: { command: target, title: '$(run) Run Test', arguments: ['ExampleTest'] }
-    });
-  });
+      expect(result).toMatchObject({
+        range,
+        command: { command, title: '$(run) Run Test', arguments: ['ExampleTest'] }
+      });
+    }
+  );
 
   it.each([
     lens('unsupported.command'),
-    lens('sf.apex.test.class.run.delegate', []),
-    lens('sf.apex.test.class.run.delegate', [42]),
-    lens('sf.apex.test.class.run.delegate', ['', 'another'])
+    lens('sf.apex.test.class.run', []),
+    lens('sf.apex.test.class.run', [42]),
+    lens('sf.apex.test.class.run', ['', 'another'])
   ])('suppresses malformed or unsupported lenses', (candidate: vscode.CodeLens) => {
     expect(produceTestRunCodeLens(candidate)).toBeNull();
   });
@@ -61,10 +61,10 @@ describe('testRunCodeLensProducer', () => {
     );
 
     expect(register).toHaveBeenCalledTimes(2);
-    expect(register).toHaveBeenNthCalledWith(1, 'sf.apex.test.class.run.delegate', expect.any(Function));
-    expect(register).toHaveBeenNthCalledWith(2, 'sf.apex.test.method.run.delegate', expect.any(Function));
+    expect(register).toHaveBeenNthCalledWith(1, 'sf.apex.test.class.run', expect.any(Function));
+    expect(register).toHaveBeenNthCalledWith(2, 'sf.apex.test.method.run', expect.any(Function));
     expect(context.subscriptions).toEqual([disposable, disposable]);
-    await expect(registeredCallback?.(lens('sf.apex.test.class.run.delegate'))).resolves.toBeNull();
+    await expect(registeredCallback?.(lens('sf.apex.test.class.run'))).resolves.toBeNull();
   });
 
   it('does not register producers when the language server is unavailable', async () => {

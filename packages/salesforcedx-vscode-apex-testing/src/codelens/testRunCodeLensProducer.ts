@@ -15,12 +15,7 @@ import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { getApexTestingRuntime } from '../services/extensionProvider';
 
-const commandMappings = new Map([
-  ['sf.apex.test.class.run.delegate', 'sf.apex.test.class.run'],
-  ['sf.apex.test.method.run.delegate', 'sf.apex.test.method.run']
-]);
-
-const testRunDescriptors = [...commandMappings.keys()];
+const testRunDescriptors = ['sf.apex.test.class.run', 'sf.apex.test.method.run'];
 
 const APEX_LANGUAGE_SERVER_EXTENSION_ID = 'salesforce.apex-language-server-extension';
 
@@ -66,12 +61,10 @@ const getTestName = (lens: vscode.CodeLens): string | undefined => {
 export const produceTestRunCodeLens = (lens: vscode.CodeLens): vscode.CodeLens | null => {
   const command = lens.command;
   const testName = getTestName(lens);
-  const targetCommand = command ? commandMappings.get(command.command) : undefined;
-  if (!command || !targetCommand || !testName) return null;
+  if (!command || !testRunDescriptors.includes(command.command) || !testName) return null;
 
   return new vscode.CodeLens(lens.range, {
     ...command,
-    command: targetCommand,
     title: `$(run) ${command.title}`,
     arguments: [testName]
   });

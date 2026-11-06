@@ -163,10 +163,6 @@ export const apexDebugClassRunCodeActionDelegate = (testClass: string) => {
   });
 };
 
-export const apexTestClassRunCodeActionDelegate = (testClass: string) => {
-  void vscode.commands.executeCommand('sf.apex.test.class.run', testClass);
-};
-
 // invokes apex test run on all tests in a class; caches the class for later re-run
 export const apexTestClassRunCodeAction = Effect.fn('apexTestClassRunCodeAction')(function* (testClass: string) {
   yield* ApexTestRunCacheService.setCachedClassTestParam(testClass);
@@ -187,10 +183,6 @@ export const apexTestLastClassRunCodeAction = Effect.fn('apexTestLastClassRunCod
 
 //   T E S T   M E T H O D
 
-// redirects to run-test-method cmd
-export const apexTestMethodRunCodeActionDelegate = (testMethod: string) => {
-  void vscode.commands.executeCommand('sf.apex.test.method.run', testMethod);
-};
 export const apexDebugMethodRunCodeActionDelegate = (testMethod: string) => {
   void vscode.commands.executeCommand('sf.test.view.debugSingleTest', {
     name: testMethod

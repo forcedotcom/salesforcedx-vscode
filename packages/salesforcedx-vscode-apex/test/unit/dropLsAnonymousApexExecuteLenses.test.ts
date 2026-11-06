@@ -20,7 +20,7 @@ const lens = (command: string): vscode.CodeLens => ({
 describe('dropLsAnonymousApexExecuteLenses', () => {
   it('drops Jorje Execute and keeps Debug and test lenses', () => {
     const debug = lens('sf.anon.apex.debug.delegate');
-    const runTest = lens('sf.apex.test.class.run.delegate');
+    const runTest = lens('sf.apex.test.class.run');
     const result = dropLsAnonymousApexExecuteLenses([
       lens(LS_ANON_APEX_EXECUTE_COMMAND),
       debug,
@@ -29,7 +29,7 @@ describe('dropLsAnonymousApexExecuteLenses', () => {
     ]);
     expect(result.map(item => item.command?.command)).toEqual([
       'sf.anon.apex.debug.delegate',
-      'sf.apex.test.class.run.delegate',
+      'sf.apex.test.class.run',
       undefined
     ]);
   });
