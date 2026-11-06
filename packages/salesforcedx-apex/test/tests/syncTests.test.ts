@@ -5,9 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { SinonStub, SinonSpy } from 'sinon';
+import type { SinonStub } from 'sinon';
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
+import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
 import { join } from 'node:path';
 import { type SyncTestConfiguration, TestService } from '../../src';
 import {
@@ -24,22 +26,15 @@ import {
   syncTestResultSimple,
   syncTestResultWithFailures
 } from '../testData';
-import { JUnitFormatTransformer } from '../../src/reporters/junitFormatTransformer';
 import * as diagnosticUtil from '../../src/tests/diagnosticUtil';
 import { fail } from 'node:assert';
 import { SyncTests } from '../../src/tests/syncTests';
-import { Writable } from 'node:stream';
+import { type FileOutput } from '../../src/effect/fileOutput';
 
 vi.mock(import('../../src/tests/diagnosticUtil'), async importOriginal => {
   const actual = await importOriginal();
   return { ...actual, formatTestErrors: vi.fn(actual.formatTestErrors) };
 });
-
-type TestServiceInternals = {
-  createStream: (filePath: string) => Writable;
-};
-
-const testServicePrototype = TestService.prototype as unknown as TestServiceInternals;
 
 let mockConnection: Connection;
 let toolingRequestStub: SinonStub;
@@ -56,9 +51,20 @@ describe('Run Apex tests synchronously', () => {
     testLevel: 'RunSpecifiedTests'
   };
 
-  let testServiceSpy: SinonSpy;
-  let junitSpy: SinonSpy;
+  const writtenFilePaths: string[] = [];
+  const fileOutput: typeof FileOutput.Service = {
+    createDirectory: () => Effect.void,
+    writeFile: (directory, fileName, content) =>
+      Stream.runDrain(content).pipe(
+        Effect.map(() => {
+          const filePath = join(directory, fileName);
+          writtenFilePaths.push(filePath);
+          return filePath;
+        })
+      )
+  };
   beforeEach(async () => {
+    writtenFilePaths.length = 0;
     await $$.stubAuths(testData);
     // Stub retrieveMaxApiVersion to get over "Domain Not Found: The org cannot be found" error
     $$.SANDBOX.stub(Connection.prototype, 'retrieveMaxApiVersion').resolves('50.0');
@@ -83,15 +89,6 @@ describe('Run Apex tests synchronously', () => {
       headers: { 'content-type': 'application/json' }
     };
 
-    testServiceSpy = $$.SANDBOX.stub(testServicePrototype, 'createStream').returns(
-      new Writable({
-        write(chunk: unknown, encoding, callback) {
-          callback();
-        }
-      })
-    );
-
-    junitSpy = $$.SANDBOX.spy(JUnitFormatTransformer.prototype, 'format');
     formatTestErrorsMock.mockClear();
   });
 
@@ -226,11 +223,10 @@ describe('Run Apex tests synchronously', () => {
         dirPath: 'path/to/directory',
         resultFormats: ['json']
       } as OutputDirConfig;
-      const testSrv = new TestService(mockConnection);
+      const testSrv = new TestService(mockConnection, fileOutput);
       await testSrv.writeResultFiles(syncResult, config);
 
-      expect(testServiceSpy.getCall(0).firstArg).toBe(join(config.dirPath, 'test-result-default.json'));
-      expect(testServiceSpy.callCount).toBe(1);
+      expect(writtenFilePaths).toEqual([join(config.dirPath, 'test-result-default.json')]);
     });
 
     it('should create junit result file without testRunId for sync runs', async () => {
@@ -238,12 +234,10 @@ describe('Run Apex tests synchronously', () => {
         dirPath: 'path/to/directory',
         resultFormats: ['junit']
       } as OutputDirConfig;
-      const testSrv = new TestService(mockConnection);
+      const testSrv = new TestService(mockConnection, fileOutput);
       await testSrv.writeResultFiles(syncResult, config);
 
-      expect(testServiceSpy.getCall(0).firstArg).toBe(join(config.dirPath, 'test-result-default-junit.xml'));
-      expect(junitSpy.calledOnce).toBe(true);
-      expect(testServiceSpy.callCount).toBe(1);
+      expect(writtenFilePaths).toEqual([join(config.dirPath, 'test-result-default-junit.xml')]);
     });
   });
 

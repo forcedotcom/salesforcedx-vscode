@@ -6,7 +6,8 @@
  */
 
 import type { ToolingTestClass } from '../testDiscovery/schemas';
-import { type TestResult, TestService } from '@salesforce/apex-node';
+import { TestService } from '@salesforce/apex-node';
+import { TestResultSchema } from '@salesforce/apex-node/effect';
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
@@ -373,12 +374,10 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       if (resultText === undefined) {
         return new Set<string>();
       }
-      // Recover a corrupt/truncated file to "no ids" (matches the doc + legacy try/catch) so a bad file
-      // never becomes an uncaught defect that aborts the restore path.
-      const resultContent = yield* Effect.try(
-        // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-        () => JSON.parse(resultText) as TestResult
-      ).pipe(Effect.orElseSucceed(() => undefined));
+      // Recover corrupt or invalid JSON to "no ids" so a bad file never aborts the restore path.
+      const resultContent = yield* Schema.decodeUnknown(Schema.parseJson(TestResultSchema))(resultText).pipe(
+        Effect.orElseSucceed(() => undefined)
+      );
       return new Set(
         (resultContent?.tests ?? []).flatMap(test =>
           test.apexClass?.fullName && test.methodName ? [`${test.apexClass.fullName}.${test.methodName}`] : []

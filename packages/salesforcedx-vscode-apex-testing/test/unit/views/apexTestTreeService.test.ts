@@ -886,7 +886,10 @@ describe('ApexTestTreeService', () => {
       expect(applied).toEqual([u.path]);
     });
 
-    it('recovers a corrupt/truncated result file to an empty id set instead of failing the restore', async () => {
+    it.each([
+      ['malformed JSON', '{ this is not: valid json'],
+      ['JSON with an invalid TestResult shape', '{"tests":[],"summary":{"testsRan":0}}']
+    ])('recovers %s to an empty id set instead of failing the restore', async (_case, content) => {
       restorePreviousResultsValue = true;
       const now = Date.now();
       const u = { path: '/r/test-result.json', toString: () => '/r/test-result.json' } as unknown as URI;
@@ -894,8 +897,7 @@ describe('ApexTestTreeService', () => {
       const fsService = {
         readDirectory: () => Effect.succeed([u]),
         stat: () => Effect.succeed({ mtime: now - 1000 }),
-        // Malformed JSON: JSON.parse throws; the scan must recover (no uncaught defect) rather than die.
-        readFile: () => Effect.succeed('{ this is not: valid json')
+        readFile: () => Effect.succeed(content)
       };
       const ExtProviderWithFs = Layer.succeed(ExtensionProviderService, {
         getServicesApi: Effect.succeed({

@@ -5,10 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { type CodeCoverageResult } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
+import * as HashMap from 'effect/HashMap';
 import * as Option from 'effect/Option';
 import * as Record from 'effect/Record';
 import * as Ref from 'effect/Ref';
@@ -54,10 +54,17 @@ const CoverageItem = Schema.Struct({
 });
 type CoverageItem = Schema.Schema.Type<typeof CoverageItem>;
 
-type TestResultWithCoverage = {
-  codecoverage?: CodeCoverageResult[];
-  coverage?: { coverage: CodeCoverageResult[] };
-};
+const CoverageResultSchema = Schema.Struct({
+  name: Schema.String,
+  coveredLines: Schema.Int.pipe(Schema.Array, Schema.mutable),
+  uncoveredLines: Schema.Int.pipe(Schema.Array, Schema.mutable)
+}).pipe(Schema.mutable);
+type CoverageResult = Schema.Schema.Type<typeof CoverageResultSchema>;
+const CoverageResultsSchema = CoverageResultSchema.pipe(Schema.Array);
+const TestResultWithCoverageSchema = Schema.Struct({
+  codecoverage: CoverageResultsSchema.pipe(Schema.optional),
+  coverage: Schema.Struct({ coverage: CoverageResultsSchema }).pipe(Schema.optional)
+});
 
 export type CoverageRanges = { coveredLines: Range[]; uncoveredLines: Range[] };
 
@@ -120,10 +127,7 @@ const readResult = Effect.fn('CodeCoverageService.readResult')(function* (apexTe
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const uri = Utils.joinPath(apexTestResultsUri, name);
   const content = yield* api.services.FsService.readFile(uri);
-  const testResult = yield* Effect.try(
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- test result shape from apex-node
-    () => JSON.parse(content) as TestResultWithCoverage
-  );
+  const testResult = yield* Schema.decodeUnknown(Schema.parseJson(TestResultWithCoverageSchema))(content);
   return testResult.codecoverage ?? testResult.coverage?.coverage ?? [];
 });
 
@@ -191,11 +195,14 @@ export class CodeCoverageService extends Effect.Service<CodeCoverageService>()('
           Effect.partition(({ name }) => readResult(apexTestResultsUri, name), { concurrency: 'unbounded' })
         ),
         Effect.map(([, perFileItems]) => perFileItems.flat()),
-        // Effect collection combinators preserve input order, so newer coverage remains last.
-        Effect.map(
-          items => new Map<string, CoverageItem | CodeCoverageResult>(items.map(item => [item.name, item] as const))
+        // Files are oldest-first, so HashMap.set keeps the newest coverage per class.
+        Effect.map((items: (CoverageItem | CoverageResult)[]) =>
+          HashMap.toValues(
+            Arr.reduce(items, HashMap.empty<string, CoverageItem | CoverageResult>(), (byName, item) =>
+              HashMap.set(byName, item.name, item)
+            )
+          )
         ),
-        Effect.map(coverageByName => [...coverageByName.values()]),
         Effect.filterOrFail(
           Arr.isNonEmptyReadonlyArray,
           () =>

@@ -24,9 +24,10 @@ export {
 export { formatJUnit } from './reporters/junitFormatting';
 export { formatTap } from './reporters/tapFormatting';
 export { formatHuman } from './reporters/humanFormatting';
-export { CoverageReporter, DefaultReportOptions, DefaultWatermarks } from './reporters/coverageReporter';
+export { CoverageReporter } from './reporters/coverageReporter';
+export { DefaultReportOptions, DefaultWatermarks } from './reporters/coverageOptions';
 export { MarkdownTextFormatTransformer } from './reporters/markdownTextFormatTransformer';
-export type { CoverageReporterOptions, CoverageReportFormats } from './reporters/coverageReporter';
+export type { CoverageReporterOptions, CoverageReportFormats } from './reporters/coverageOptions';
 export type { MarkdownTextFormatTransformerOptions } from './reporters/markdownTextFormatTransformer';
 export type { MarkdownTextReporterOptions, OutputFormat, TestSortOrder } from './reporters/markdownTextReporter';
 export { TestService } from './tests/testService';

@@ -5,17 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { ProgressAndSuccessCommandKey } from '../utils/notificationMode';
-import { type TestResult, TestService } from '@salesforce/apex-node';
+import { TestService } from '@salesforce/apex-node';
+import { TestResultSchema } from '@salesforce/apex-node/effect';
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
+import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
 import { APEX_TESTING_SECTION } from '../constants';
 import { nls } from '../messages';
 import { messages } from '../messages/i18n';
+import { fileOutputFromFsService } from '../services/fsServiceFileOutput';
 import { ApexTestRunCacheService } from '../testRunCache/apexTestRunCacheService';
 import { toUserFriendlyApexTestError } from '../utils/apexTestErrorMapper';
 import { DebugDispatchError, TestExecutionError, TestTempFolderError } from '../utils/apexTestExecutionErrors';
@@ -38,15 +41,12 @@ import { updateTestRunResults } from '../utils/testResultProcessor';
 import { readTestRunIdFile, writeTestResultJsonFile } from '../utils/testUtils';
 import { ApexTestTreeService, type TreeMutationContext } from './apexTestTreeService';
 
-const TEST_RESULT_JSON_FILE = 'test-result.json';
-
 /** How the run profile constrains an implicit "run all" (no explicit test selection). */
 export type ApexTestRunScope = 'workspace-first' | 'all-org' | 'stale-workspace' | 'stale-org';
 
 /** Per-invocation runtime data (params, not service deps). Tree maps + suiteToClasses come from
  * ApexTestTreeService accessors; suite resolution delegates to ApexTestTreeService.resolveSuiteChildren.
- * Connection/TestService are no longer threaded in: methods acquire the connection on demand via
- * ConnectionService.getConnection() (cached) + `new TestService(conn)`. */
+ * Connection and FsService come from the shared API; TestService gets a FileOutput adapter over that FsService. */
 export type ExecutionContext = {
   controller: vscode.TestController;
   orgOnlyTag: vscode.TestTag | undefined;
@@ -97,14 +97,15 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
     // (ChannelServiceLayer('Apex Testing') + the prebuilt FsService) provides them when methods run, the
     // same lazy pattern ApexTestTreeService uses for ExtensionProviderService.
 
-    /** Read the JSON result file and parse it as a TestResult. */
+    /** Read and validate a persisted TestResult JSON file at its boundary. */
     const readTestResult = Effect.fn('ApexTestExecutionService.readTestResult')(function* (testResultUri: URI) {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const resultText = yield* api.services.FsService.readFile(testResultUri).pipe(
         Effect.mapError(e => new TestExecutionError({ message: getMessageFromError(e) }))
       );
-      // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-      return JSON.parse(resultText) as TestResult;
+      return yield* Schema.decodeUnknown(Schema.parseJson(TestResultSchema))(resultText).pipe(
+        Effect.mapError(error => new TestExecutionError({ message: getMessageFromError(error) }))
+      );
     });
 
     /** Test results folder for the run, failing with TestTempFolderError when no workspace can be resolved. */
@@ -160,10 +161,7 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       testResultUri: URI
     ) {
       const testRunId = yield* readTestRunIdFile(apexTestDir);
-      const expectedResultUri = Utils.joinPath(
-        apexTestDir,
-        testRunId ? `test-result-${testRunId}.json` : TEST_RESULT_JSON_FILE
-      );
+      const expectedResultUri = Utils.joinPath(apexTestDir, `test-result-${testRunId ?? 'default'}.json`);
       if (testResultUri.toString() !== expectedResultUri.toString()) {
         return;
       }
@@ -197,7 +195,11 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       const connection = yield* api.services.ConnectionService.getConnection().pipe(
         Effect.mapError(e => new TestExecutionError({ message: toUserFriendlyApexTestError(e) }))
       );
-      const testService = new TestService(connection);
+      const fsService = process.env.ESBUILD_PLATFORM === 'web' ? yield* api.services.FsService : undefined;
+      const testService =
+        fsService === undefined
+          ? new TestService(connection)
+          : new TestService(connection, fileOutputFromFsService(fsService));
       const { payload, hasSuite, hasClass } = runAllTestsInOrg
         ? {
             payload: { testLevel: 'RunAllTestsInOrg' as const, skipCodeCoverage: !codeCoverage },
@@ -206,9 +208,9 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
           }
         : yield* buildTestPayload(testService, testsToRun, testNames, codeCoverage);
 
-      const result = yield* Effect.tryPromise({
-        try: async (): Promise<TestResult> => {
-          const raw = await testService.runTestAsynchronous(
+      const rawResult = yield* Effect.tryPromise({
+        try: () =>
+          testService.runTestAsynchronous(
             payload,
             codeCoverage,
             false,
@@ -220,13 +222,12 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
               }
             },
             token
-          );
-          // TODO: fix in apex-node W-18453221
-          // eslint-disable-next-line @typescript-eslint/consistent-type-assertions
-          return raw as TestResult;
-        },
+          ),
         catch: e => new TestExecutionError({ message: toUserFriendlyApexTestError(e) })
       });
+      const result = yield* Schema.decodeUnknown(TestResultSchema)(rawResult).pipe(
+        Effect.mapError(error => new TestExecutionError({ message: getMessageFromError(error) }))
+      );
 
       if (token.isCancellationRequested) {
         return;
@@ -237,11 +238,9 @@ export class ApexTestExecutionService extends Effect.Service<ApexTestExecutionSe
       // Run-All group to "older results"; see W-… history in the shell). Non-fatal: a write failure logs
       // and the run continues (report + result push still happen), matching the legacy console.error path.
       yield* writeTestResultJsonFile(result, outputDir, codeCoverage).pipe(
-        Effect.catchTag('FsServiceError', error => Effect.logError('Failed to write JSON test result file', { error }))
+        Effect.catchTag('FileOutputError', error => Effect.logError('Failed to write JSON test result file', { error }))
       );
-      const writtenResultFilename = result.summary?.testRunId
-        ? `test-result-${result.summary.testRunId}.json`
-        : TEST_RESULT_JSON_FILE;
+      const writtenResultFilename = `test-result-${result.summary?.testRunId ?? 'default'}.json`;
       yield* Ref.set(lastProcessedResultFile, Option.some(Utils.joinPath(outputDir, writtenResultFilename)));
 
       // Generate and open the report (non-fatal: log + continue on failure).

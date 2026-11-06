@@ -4,8 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { once } from 'node:events';
-import { TestResultStringifyStream } from '../../src/streaming/testResultStringifyStream';
+import { stringifyTestResultChunks } from '../../src/streaming/testResultStringify';
 import { type CodeCoverageResult, type PerClassCoverage } from '../../src/effect/coverageSchemas';
 import { type TestResult } from '../../src/tests/types';
 import { apexClassId, salesforceId } from '../schemaHelpers';
@@ -105,9 +104,8 @@ const coverageData: CodeCoverageResult[] = [
     uncoveredLines: [7, 8, 9, 10]
   }
 ];
-describe('TestResultStringifyStream', () => {
+describe('TestResult JSON chunks', () => {
   let testResult: TestResult;
-  let stream: TestResultStringifyStream;
 
   beforeEach(() => {
     // Initialize testResult with some default values
@@ -140,48 +138,27 @@ describe('TestResultStringifyStream', () => {
     };
   });
 
-  it('should transform TestResult into a JSON string with empty tests and no coverage', async () => {
-    let output = '';
+  it('serializes an empty test list with no code coverage', () => {
     const emptyTestsNoCoverage = structuredClone(testResult);
     delete emptyTestsNoCoverage.codecoverage;
-    // Initialize the stream with the testResult
-    stream = new TestResultStringifyStream(emptyTestsNoCoverage);
-
-    stream.on('data', (chunk: string) => {
-      output += chunk;
-    });
-
-    const end = once(stream, 'end');
-    stream._read();
-    await end;
+    const output = [...stringifyTestResultChunks(emptyTestsNoCoverage)].join('');
     expect(() => JSON.parse(output)).not.toThrow();
     const expectedOutput = JSON.stringify(emptyTestsNoCoverage);
     expect(output).toBe(expectedOutput);
   });
-  it('should transform TestResult into a JSON string with tests and no coverage', async () => {
-    let output = '';
+  it('serializes tests without code coverage', () => {
     const testsWithoutCoverage = structuredClone(tests);
     const resultsWithTests = {
       ...testResult,
       tests: testsWithoutCoverage
     };
     delete resultsWithTests.codecoverage;
-    // Initialize the stream with the testResult
-    stream = new TestResultStringifyStream(resultsWithTests);
-
-    stream.on('data', (chunk: string) => {
-      output += chunk;
-    });
-
-    const end = once(stream, 'end');
-    stream._read();
-    await end;
+    const output = [...stringifyTestResultChunks(resultsWithTests)].join('');
     expect(() => JSON.parse(output)).not.toThrow();
     const expectedOutput = JSON.stringify(resultsWithTests);
     expect(output).toBe(expectedOutput);
   });
-  it('should transform TestResult into a JSON string with tests and coverage both present', async () => {
-    let output = '';
+  it('serializes tests and code coverage', () => {
     const testsWithCoverage = structuredClone(tests);
     testsWithCoverage[0].perClassCoverage = [perClassCoverageData[0]];
     testsWithCoverage[1].perClassCoverage = perClassCoverageData;
@@ -190,18 +167,35 @@ describe('TestResultStringifyStream', () => {
       tests: testsWithCoverage,
       codecoverage: coverageData
     };
-    // Initialize the stream with the testResult
-    stream = new TestResultStringifyStream(resultsWithTests);
-
-    stream.on('data', (chunk: string) => {
-      output += chunk;
-    });
-
-    const end = once(stream, 'end');
-    stream._read();
-    await end;
+    const output = [...stringifyTestResultChunks(resultsWithTests)].join('');
     expect(() => JSON.parse(output)).not.toThrow();
     const expectedOutput = JSON.stringify(resultsWithTests);
     expect(output).toBe(expectedOutput);
+  });
+
+  it('includes setup results only when requested', () => {
+    const result = {
+      ...testResult,
+      setup: [
+        {
+          methodName: 'testSetup',
+          apexClass: { name: 'SetupClass', fullName: 'SetupClass' },
+          testSetupTime: 1,
+          fullName: 'SetupClass.testSetup'
+        }
+      ]
+    };
+
+    expect([...stringifyTestResultChunks(result)].join('')).toBe(
+      JSON.stringify({ summary: result.summary, tests: result.tests, codecoverage: result.codecoverage })
+    );
+    expect([...stringifyTestResultChunks(result, { includeSetup: true })].join('')).toBe(
+      JSON.stringify({
+        summary: result.summary,
+        tests: result.tests,
+        setup: result.setup,
+        codecoverage: result.codecoverage
+      })
+    );
   });
 });

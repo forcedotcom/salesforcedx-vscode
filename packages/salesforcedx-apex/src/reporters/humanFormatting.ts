@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as os from 'node:os';
 import { type CodeCoverageResult } from '../effect/coverageSchemas';
 import { nls } from '../i18n';
 import { type ApexTestResultData, type TestResult } from '../tests/types';
@@ -28,7 +27,7 @@ export const formatHuman = (
     ...(testResult.codecoverage && !concise ? [formatCodeCoverage(testResult.codecoverage)] : []),
     ...(testResult.setup && !concise ? [formatSetup(testResult)] : []),
     formatSummary(testResult)
-  ].join(os.EOL.repeat(2));
+  ].join((globalThis.process?.platform === 'win32' ? '\r\n' : '\n').repeat(2));
 
 const formatSummary = (testResult: TestResult): string => {
   const summaryRowArray: Row[] = [
