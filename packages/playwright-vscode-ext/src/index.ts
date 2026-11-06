@@ -187,6 +187,7 @@ export {
 
 // Shared
 export { saveScreenshot } from './shared/screenshotUtils';
+export { startVideoRecording } from './shared/videoUtils';
 
 // Fixtures
 export { createEmptyTestWorkspace, createTestWorkspace } from './fixtures/desktopWorkspace';

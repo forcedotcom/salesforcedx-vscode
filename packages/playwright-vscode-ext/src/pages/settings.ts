@@ -14,7 +14,6 @@ import {
   INSTANCE_URL_KEY,
   SESSION_CONTEXT_KEY
 } from '../constants';
-import { saveScreenshot } from '../shared/screenshotUtils';
 import { focusMonacoInput } from '../utils/focusMonacoInput';
 import {
   waitForVSCodeWorkbench,
@@ -195,7 +194,7 @@ export const upsertSettings = async (
 
   for (const [id, value] of scalarSettings) {
     if (typeof value !== 'string') continue;
-    // Debug visibility: take screenshot and aria snapshot before each search
+    // Debug visibility: log an aria snapshot before each search
     if (debugAria) {
       try {
         const aria = await page.locator('body').ariaSnapshot();
@@ -205,18 +204,8 @@ export const upsertSettings = async (
 
     await settingsLocator(page).first().waitFor({ timeout: 3000 });
 
-    // Screenshot search box state before clear+type (debug: is previous search still there?)
-    if (Object.keys(settings).length > 1) {
-      await saveScreenshot(page, `settings.beforeSearch.${id.replaceAll('.', '_')}.png`, false);
-    }
-
     // First try an exact search by full id (section.key)
     await performSearch(page)(id);
-
-    // Screenshot search box state after clear+type (debug: did clear work, is query correct?)
-    if (Object.keys(settings).length > 1) {
-      await saveScreenshot(page, `settings.afterSearch.${id.replaceAll('.', '_')}.png`, false);
-    }
 
     // Wait for search results to appear - wait for any search result element to indicate search completed
     await page.locator('[data-id^="searchResultModel_"]').first().waitFor({ state: 'attached', timeout: 15_000 });
@@ -318,8 +307,6 @@ export const upsertSettings = async (
       }
     }
 
-    // Capture after state
-    await saveScreenshot(page, `settings.afterSet.${id}.png`, false);
     if (debugAria) {
       try {
         const ariaAfter = await page.locator('body').ariaSnapshot();

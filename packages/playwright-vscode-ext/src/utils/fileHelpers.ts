@@ -24,7 +24,6 @@ import {
   waitForOutputChannelText
 } from '../pages/outputChannel';
 import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
-import { saveScreenshot } from '../shared/screenshotUtils';
 import { focusMonacoInput } from './focusMonacoInput';
 import {
   closeSettingsTab,
@@ -439,9 +438,7 @@ const finishOrgAndAuthSetup = async (
     }
     await closeWelcomeTabs(page);
   }
-  await saveScreenshot(page, 'setup.after-workbench.png');
   await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-  await saveScreenshot(page, 'setup.after-auth-fields.png');
 };
 
 /**
@@ -494,6 +491,5 @@ export const createAndDeployApexTestClass = async (page: Page, className: string
     timeout: DEFAULT_DEPLOY_COMPLETE_TIMEOUT_MS
   });
 
-  await saveScreenshot(page, 'setup.apex-test-class-created.png');
   await clearOutputChannel(page);
 };

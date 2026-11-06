@@ -296,13 +296,10 @@ export const outputChannelContains = async (
   const shouldRestorePanel = isDesktop();
   if (shouldRestorePanel) await maximizeOutputPanel(page);
 
-  const safeName = searchText.replaceAll(/[^a-zA-Z0-9]/g, '_');
   try {
     await waitForOutputChannelTextCommon(page, searchText, timeout);
-    await page.screenshot({ path: `test-results/filter-${safeName}.png` });
     return true;
   } catch {
-    await page.screenshot({ path: `test-results/filter-${safeName}.png` });
     return false;
   } finally {
     if (shouldRestorePanel) await restoreOutputPanel(page);
