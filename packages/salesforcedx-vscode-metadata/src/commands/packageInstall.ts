@@ -10,13 +10,14 @@ import {
   parseErrorToValidationMessage,
   SalesforceIdSchema
 } from '@salesforce/effect-ext-utils';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import type { PackageInstallRequest as ToolingPackageInstallRequest } from '@salesforce/types/tooling';
 import * as Arr from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isError, isRecord, isUndefined } from 'effect/Predicate';
+import { isRecord, isUndefined } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -124,7 +125,7 @@ const submitInstallRequest = Effect.fn('packageInstall.submitInstallRequest')(fu
   };
   return yield* Effect.tryPromise({
     try: () => conn.tooling.create('PackageInstallRequest', body),
-    catch: e => new PackageInstallFailedError({ message: isError(e) ? e.message : String(e) })
+    catch: e => new PackageInstallFailedError({ message: getErrorMessage(e) })
   }).pipe(
     Effect.map(result => (Array.isArray(result) ? result[0] : result)),
     Effect.filterOrFail(

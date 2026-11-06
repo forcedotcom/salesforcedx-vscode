@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isError } from 'effect/Predicate';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as path from 'node:path';
 import {
   type Connection,
@@ -110,16 +110,13 @@ const getFileUriForPath = (filePath: NormalizedPath, workspaceFolderUri?: string
         return URI.from({ scheme: workspaceUri.scheme, path: fullPath }).toString();
       }
     } catch (error) {
-      Logger.error(`[getFileUriForPath] Error: ${isError(error) ? error.message : String(error)}`, error);
+      Logger.error(`[getFileUriForPath] Error: ${getErrorMessage(error)}`, error);
     }
   }
   try {
     return URI.file(filePath).toString();
   } catch (error) {
-    Logger.error(
-      `[getFileUriForPath] Error for path ${filePath}: ${isError(error) ? error.message : String(error)}`,
-      error
-    );
+    Logger.error(`[getFileUriForPath] Error for path ${filePath}: ${getErrorMessage(error)}`, error);
     return `file://${filePath}`;
   }
 };
@@ -167,10 +164,7 @@ export class LspFileSystemAccessor {
       }
       return result?.entries ?? getEmptyDirectoryListing(uri);
     } catch (error) {
-      Logger.error(
-        `[LspFileSystemAccessor] getDirectoryListing error for ${uri}: ${isError(error) ? error.message : String(error)}`,
-        error
-      );
+      Logger.error(`[LspFileSystemAccessor] getDirectoryListing error for ${uri}: ${getErrorMessage(error)}`, error);
       return getEmptyDirectoryListing(uri);
     }
   }
@@ -194,7 +188,7 @@ export class LspFileSystemAccessor {
           throw new Error(`Failed to create file ${normalizedUri}: ${result.failureReason ?? 'Unknown error'}`);
         }
       } catch (error) {
-        const errorMessage = isError(error) ? error.message : String(error);
+        const errorMessage = getErrorMessage(error);
         if (!errorMessage.includes('connection got disposed') && !errorMessage.includes('Pending response rejected')) {
           Logger.error(`[LspFileSystemAccessor] Failed to create file via LSP: ${normalizedUri}`, error);
           throw error;

@@ -6,6 +6,7 @@
  */
 
 import { expect, type Page } from '@playwright/test';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import { saveScreenshot } from '../shared/screenshotUtils';
 import { isDesktop } from '../utils/helpers';
 import { EDITOR, CONTEXT_MENU, EDITOR_WITH_URI, TAB, QUICK_INPUT_LIST_ROW } from '../utils/locators';
@@ -392,9 +393,7 @@ export const captureOutputChannelDetails = async (
   } catch (error) {
     // Fallback: if opening in editor fails (e.g., "More Actions" button not available in web),
     // just screenshot the output panel directly
-    console.log(
-      `Failed to open output in editor (${error instanceof Error ? error.message : String(error)}), falling back to output panel screenshot`
-    );
+    console.log(`Failed to open output in editor (${getErrorMessage(error)}), falling back to output panel screenshot`);
     await saveScreenshot(page, `test-results/${screenshotFileName}`, true);
   }
 };

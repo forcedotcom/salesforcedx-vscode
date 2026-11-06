@@ -7,6 +7,7 @@
 
 import { AuthInfo, Connection, Logger, LoggerLevel } from '@salesforce/core';
 import { Duration } from '@salesforce/kit';
+import { getErrorMessage as causeMessage } from '@salesforce/salesforcedx-utils';
 import * as EffectDuration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
@@ -22,7 +23,6 @@ import * as path from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import * as util from 'node:util';
 import { getDiagnostic } from '../effect/diagnostics';
-import { causeMessage } from '../effect/errors';
 import { queryRecords } from '../effect/records';
 import { ApexOperationError } from '../effect/schema/errors';
 import { ApexClassIdsSchema, ApexTestSuiteIdsSchema } from '../effect/schema/salesforceId';

@@ -6,9 +6,9 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
-import { isError } from 'effect/Predicate';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import * as vscode from 'vscode';
@@ -117,7 +117,7 @@ export const sourceDiffCommand = Effect.fn('sourceDiff')(function* (
     Effect.catchAll((error: unknown) =>
       Effect.gen(function* () {
         const channelService = yield* api.services.ChannelService;
-        const errorMessage = isError(error) ? error.message : String(error);
+        const errorMessage = getErrorMessage(error);
         yield* channelService.appendToChannel(`Diff failed: ${errorMessage}`);
         yield* channelService.getChannel.pipe(Effect.map(channel => channel.show()));
         yield* Effect.sync(() => {

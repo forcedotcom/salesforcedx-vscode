@@ -48,7 +48,8 @@ export {
   ApexResponseDecodeError,
   ApexRuntimeError
 } from './schema/errors';
-export { causeMessage } from './errors';
+/** Produces the serializable cause carried by public operation errors. */
+export { getErrorMessage as causeMessage } from '@salesforce/salesforcedx-utils';
 export { listLogs, getLogBody, streamLogs } from './logs';
 export { ApexLogListItem } from './schema/wire/logs';
 export { ListLogsOptionsSchema, LogStreamEventSchema } from './schema/logs';

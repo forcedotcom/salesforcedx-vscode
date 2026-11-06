@@ -5,7 +5,5 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isError } from 'effect/Predicate';
-
-/** Produces the serializable cause carried by public operation errors. */
-export const causeMessage = (cause: unknown): string => (isError(cause) ? cause.message : String(cause));
+/** Returns Error.message (including an empty message), otherwise String(error). */
+export const getErrorMessage = (error: unknown): string => (error instanceof Error ? error.message : String(error));

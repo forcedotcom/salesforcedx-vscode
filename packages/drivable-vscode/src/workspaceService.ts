@@ -7,10 +7,11 @@
 
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
+import { getErrorMessage as causeMessage } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Schema from 'effect/Schema';
-import { causeMessage, DrivableVscodeWorkspaceError } from './errors';
+import { DrivableVscodeWorkspaceError } from './errors';
 
 export class WorkspaceService extends Effect.Service<WorkspaceService>()('DrivableVscode/WorkspaceService', {
   accessors: true,

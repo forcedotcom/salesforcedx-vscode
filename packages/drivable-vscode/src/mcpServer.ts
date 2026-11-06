@@ -18,6 +18,7 @@ import {
   type Tool
 } from '@modelcontextprotocol/sdk/types.js';
 import { redactValue } from '@salesforce/playwright-vscode-ext';
+import { getErrorMessage as causeMessage } from '@salesforce/salesforcedx-utils';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -34,7 +35,7 @@ import * as Schema from 'effect/Schema';
 import * as Scope from 'effect/Scope';
 import process = require('node:process');
 import { ControllerService } from './controllerService';
-import { causeMessage, DrivableVscodeMcpShutdownError } from './errors';
+import { DrivableVscodeMcpShutdownError } from './errors';
 import { ActInput, StartInput, DrivableVscodeFinding } from './schemas';
 
 const SERVER_INFO = { name: 'drivable-vscode', version: '0.1.0' };

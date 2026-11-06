@@ -54,6 +54,7 @@
       "command": "tsc --pretty && tsc -p tsconfig.esm.json --pretty && node esbuild.esm.config.mjs",
       "clean": "if-file-deleted",
       "dependencies": [
+        "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-vscode-services:compile"
       ],
@@ -141,6 +142,7 @@
     }
   },
   "dependencies": {
+    "@salesforce/salesforcedx-utils": "*",
     "effect": "^3.21.2",
     "@types/vscode": "^1.90.0",
     "vscode-uri": "^3.1.0"

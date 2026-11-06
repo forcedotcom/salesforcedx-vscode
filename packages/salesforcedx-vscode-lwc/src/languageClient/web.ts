@@ -9,7 +9,7 @@ import {
   ApplyWorkspaceEditRequest,
   handleApplyEditWithFs
 } from '@salesforce/salesforcedx-lightning-lsp-common/applyEditHandler';
-import { isError } from 'effect/Predicate';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import { window, workspace } from 'vscode';
 import { LanguageClient, type LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient/browser';
 import type { URI } from 'vscode-uri';
@@ -48,7 +48,7 @@ export const createLanguageClient = (
       }
     };
   } catch (error) {
-    const errorMsg = `[LWC] Failed to create web worker: ${isError(error) ? error.message : String(error)}`;
+    const errorMsg = `[LWC] Failed to create web worker: ${getErrorMessage(error)}`;
     appendToChannel(errorMsg);
     appendToChannel(`Server path: ${serverPath}`);
     throw new Error(errorMsg);

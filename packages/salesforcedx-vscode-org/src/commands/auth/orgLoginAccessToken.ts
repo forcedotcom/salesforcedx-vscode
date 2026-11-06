@@ -6,9 +6,9 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
-import { isError } from 'effect/Predicate';
 import { ConfigRefreshError, updateConfigAndStateAggregators } from '../../util/orgUtil';
 import { gatherAccessTokenParams } from './authParamsGatherer';
 
@@ -47,6 +47,6 @@ export const orgLoginAccessTokenCommand = Effect.fn('orgLoginAccessTokenCommand'
   yield* Effect.annotateCurrentSpan('instanceUrl', instanceUrl);
   yield* Effect.tryPromise({
     try: () => updateConfigAndStateAggregators(),
-    catch: e => new ConfigRefreshError({ message: isError(e) ? e.message : String(e) })
+    catch: e => new ConfigRefreshError({ message: getErrorMessage(e) })
   });
 });

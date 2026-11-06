@@ -28,6 +28,7 @@
     "Debuggers"
   ],
   "dependencies": {
+    "@salesforce/salesforcedx-utils": "*",
     "@salesforce/core": "^9.3.0",
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/salesforcedx-apex-debugger": "workspace:*",
@@ -68,6 +69,7 @@
       "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
+        "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-apex:compile",
         "../effect-ext-utils:compile",
         "../salesforcedx-apex-debugger:compile",
