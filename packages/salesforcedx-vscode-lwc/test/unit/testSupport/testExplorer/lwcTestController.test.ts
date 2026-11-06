@@ -900,7 +900,7 @@ describe('LwcTestController public run API', () => {
     const erroredCalls = (mockRun.errored as VitestMock).mock.calls;
 
     // Find the call with the crash-extracted error (should contain "SyntaxError" in the message field)
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
+
     const crashErrorCall = erroredCalls.find((call: any[]) => {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
       const testMessage = call[1];

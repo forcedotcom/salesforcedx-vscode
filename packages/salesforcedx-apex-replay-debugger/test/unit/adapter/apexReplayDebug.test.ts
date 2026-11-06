@@ -29,8 +29,7 @@ import {
 import { type DebugProtocol } from '@vscode/debugprotocol';
 import { ApexReplayDebug } from '../../../src/adapter/apexReplayDebug';
 import { type LaunchRequestArguments } from '../../../src/adapter/types';
-import { BreakpointUtil } from '../../../src/breakpoints/breakpointUtil';
-import { breakpointUtil } from '../../../src/breakpoints';
+import type { BreakpointMappings } from '../../../src/breakpoints/breakpointUtil';
 import { SEND_METRIC_ERROR_EVENT, SEND_METRIC_LAUNCH_EVENT } from '../../../src/constants';
 import { LogContext } from '../../../src/core/logContext';
 import { HeapDumpService } from '../../../src/core/heapDumpService';
@@ -38,6 +37,10 @@ import * as logContextUtil from '../../../src/core/logContextUtil';
 import { nls } from '../../../src/messages';
 
 export class MockApexReplayDebug extends ApexReplayDebug {
+  public setBreakpointMappings(mappings: BreakpointMappings): void {
+    this.breakpointMappings = mappings;
+  }
+
   public setLogFile(args: LaunchRequestArguments) {
     this.logContext = new LogContext(args, this);
     this.heapDumpService = new HeapDumpService(this.logContext);
@@ -65,8 +68,20 @@ export class MockApexReplayDebug extends ApexReplayDebug {
     return this.breakpoints;
   }
 
+  public setBreakpoints(uri: string, lines: number[]): void {
+    this.breakpoints.set(uri, []);
+    this.requestedBreakpoints.set(uri, lines);
+  }
+
   public shouldStopForBreakpoint(): boolean {
     return super.shouldStopForBreakpoint();
+  }
+
+  public updateLineBreakpointInfo(uri: string, lineBreakpointInfo: unknown): void {
+    super.customRequest('apexReplayDebugger/updateLineBreakpointInfo', this.getDefaultResponse(), {
+      uri,
+      lineBreakpointInfo
+    });
   }
 }
 
@@ -732,7 +747,6 @@ describe('Replay debugger adapter - unit', () => {
   describe('Breakpoints', () => {
     let sendResponseSpy: VitestMockInstance;
     let sendEventSpy: VitestMockInstance;
-    let canSetLineBreakpointStub: VitestMockInstance;
     let getTopFrameStub: VitestMockInstance;
     let response: DebugProtocol.SetBreakpointsResponse;
     let args: DebugProtocol.SetBreakpointsArguments;
@@ -765,9 +779,6 @@ describe('Replay debugger adapter - unit', () => {
     afterEach(() => {
       sendResponseSpy.mockRestore();
       sendEventSpy.mockRestore();
-      if (canSetLineBreakpointStub) {
-        canSetLineBreakpointStub.mockRestore();
-      }
       if (getTopFrameStub) {
         getTopFrameStub.mockRestore();
       }
@@ -827,13 +838,11 @@ describe('Replay debugger adapter - unit', () => {
       expect(sendEventSpy.mock.calls[0][0].body.subject).toBe('setBreakPointsRequest - path or breakpoints invalid');
     });
 
-    it('Should verify all breakpoints for .apex files without calling canSetLineBreakpoint', () => {
+    it('Should verify all breakpoints for .apex files', () => {
       const apexFilePath = '/path/to/script.apex';
       args.source.path = apexFilePath;
       args.lines = [3, 7];
       args.breakpoints = [{ line: 3 }, { line: 7 }];
-      canSetLineBreakpointStub = vi.spyOn(BreakpointUtil.prototype, 'canSetLineBreakpoint');
-
       adapter.setBreakPointsRequest(response, args);
 
       expect(sendResponseSpy).toHaveBeenCalledTimes(1);
@@ -843,7 +852,6 @@ describe('Replay debugger adapter - unit', () => {
         { verified: true, source: { path: apexFilePath }, line: 3 },
         { verified: true, source: { path: apexFilePath }, line: 7 }
       ]);
-      expect(canSetLineBreakpointStub).not.toHaveBeenCalled();
     });
 
     it('Should return breakpoints', () => {
@@ -857,10 +865,10 @@ describe('Replay debugger adapter - unit', () => {
       args.lines = [1, 2];
       args.breakpoints = [];
       args.breakpoints.push({ line: 1 }, { line: 2 });
-      canSetLineBreakpointStub = vi
-        .spyOn(BreakpointUtil.prototype, 'canSetLineBreakpoint')
-        .mockReturnValueOnce(true)
-        .mockReturnValueOnce(false);
+      adapter.setBreakpointMappings({
+        lineNumbers: new Map([[uriFromLanguageServer, [1]]]),
+        typerefs: new Map([['foo', uriFromLanguageServer]])
+      });
 
       adapter.setBreakPointsRequest(response, args);
 
@@ -879,11 +887,6 @@ describe('Replay debugger adapter - unit', () => {
           line: 2
         }
       ]);
-      expect(canSetLineBreakpointStub).toHaveBeenCalledTimes(2);
-      expect(canSetLineBreakpointStub.mock.calls[0][0]).toEqual(uriFromLanguageServer);
-      expect(canSetLineBreakpointStub.mock.calls[0][1]).toBe(1);
-      expect(canSetLineBreakpointStub.mock.calls[1][0]).toEqual(uriFromLanguageServer);
-      expect(canSetLineBreakpointStub.mock.calls[1][1]).toBe(2);
       expect(sendEventSpy).toHaveBeenCalledTimes(2);
       expect(sendEventSpy.mock.calls[0][0]).toBeInstanceOf(Event);
       expect(sendEventSpy.mock.calls[0][0].body.subject).toBe('Failed to set breakpoint');
@@ -896,7 +899,6 @@ describe('Replay debugger adapter - unit', () => {
     describe('Line breakpoint info', () => {
       let sendEventSpy: VitestMockInstance;
       let sendResponseSpy: VitestMockInstance;
-      let createMappingsFromLineBreakpointInfo: VitestMockInstance;
       let hasLogLinesStub: VitestMockInstance;
       let meetsLogLevelRequirementsStub: VitestMockInstance;
       const initializedResponse = {
@@ -933,10 +935,6 @@ describe('Replay debugger adapter - unit', () => {
           return DebugSession.prototype.sendEvent.call(adapter, event);
         });
         sendResponseSpy = vi.spyOn(ApexReplayDebug.prototype, 'sendResponse');
-        createMappingsFromLineBreakpointInfo = vi.spyOn(
-          BreakpointUtil.prototype,
-          'createMappingsFromLineBreakpointInfo'
-        );
       });
 
       afterEach(() => {
@@ -944,7 +942,6 @@ describe('Replay debugger adapter - unit', () => {
         meetsLogLevelRequirementsStub.mockRestore();
         sendResponseSpy.mockRestore();
         sendEventSpy.mockRestore();
-        createMappingsFromLineBreakpointInfo.mockRestore();
       });
 
       it('Should handle undefined args', async () => {
@@ -953,7 +950,6 @@ describe('Replay debugger adapter - unit', () => {
           logFilePath,
           logFileName
         } as LaunchRequestArguments);
-        expect(createMappingsFromLineBreakpointInfo).toHaveBeenCalledTimes(0);
         expect(initializedResponse.message).toEqual(nls.localize('session_language_server_error_text'));
         expect(sendEventSpy).toHaveBeenCalledTimes(4);
         expect(sendEventSpy.mock.calls[1][0]).toBeInstanceOf(Event);
@@ -969,7 +965,6 @@ describe('Replay debugger adapter - unit', () => {
         };
 
         await adapter.launchRequest(initializedResponse, config as LaunchRequestArguments);
-        expect(createMappingsFromLineBreakpointInfo).toHaveBeenCalledTimes(1);
         expect(sendResponseSpy).toHaveBeenCalledTimes(1);
         const actualResponse: DebugProtocol.InitializeResponse = sendResponseSpy.mock.calls[0][0];
         expect(actualResponse.success).toBe(true);
@@ -995,15 +990,75 @@ describe('Replay debugger adapter - unit', () => {
         };
         await adapter.launchRequest(initializedResponse, config as LaunchRequestArguments);
 
-        expect(createMappingsFromLineBreakpointInfo).toHaveBeenCalledTimes(1);
-        expect(createMappingsFromLineBreakpointInfo.mock.calls[0][0]).toEqual(info);
         expect(sendResponseSpy).toHaveBeenCalledTimes(1);
         const actualResponse: DebugProtocol.InitializeResponse = sendResponseSpy.mock.calls[0][0];
         expect(actualResponse.success).toBe(true);
         expect(actualResponse).toEqual(initializedResponse);
         // Verify that the line number mapping is the expected line number mapping
-        expect(breakpointUtil.getLineNumberMapping()).toEqual(expectedLineNumberMapping);
+        expect(adapter.getBreakpointMappings().lineNumbers).toEqual(expectedLineNumberMapping);
       });
+    });
+  });
+
+  describe('Line breakpoint metadata refresh', () => {
+    it('replaces mappings for only the refreshed document', () => {
+      adapter = new MockApexReplayDebug();
+      adapter.setBreakpointMappings({
+        lineNumbers: new Map([
+          ['file:///One.cls', [1]],
+          ['file:///Two.cls', [2]]
+        ]),
+        typerefs: new Map([
+          ['One', 'file:///One.cls'],
+          ['Two', 'file:///Two.cls']
+        ])
+      });
+
+      adapter.updateLineBreakpointInfo('file:///One.cls', [{ uri: 'file:///One.cls', typeref: 'One', lines: [3] }]);
+
+      expect(adapter.getBreakpointMappings().lineNumbers).toEqual(
+        new Map([
+          ['file:///One.cls', [3]],
+          ['file:///Two.cls', [2]]
+        ])
+      );
+      expect(adapter.getBreakpointMappings().typerefs.get('One')).toBe('file:///One.cls');
+      expect(adapter.getBreakpointMappings().typerefs.get('Two')).toBe('file:///Two.cls');
+    });
+
+    it('ignores malformed metadata updates', () => {
+      adapter = new MockApexReplayDebug();
+      const mappings = adapter.getBreakpointMappings();
+
+      adapter.updateLineBreakpointInfo('file:///One.cls', [{ uri: 'file:///One.cls', typeref: 'One', lines: ['3'] }]);
+
+      expect(adapter.getBreakpointMappings()).toBe(mappings);
+    });
+
+    it('re-verifies requested breakpoints after metadata refresh', () => {
+      adapter = new MockApexReplayDebug();
+      const sendEventSpy = vi.spyOn(adapter as unknown as { sendEvent: () => void }, 'sendEvent');
+      adapter.setBreakpoints('file:///One.cls', [3]);
+
+      adapter.updateLineBreakpointInfo('file:///One.cls', [{ uri: 'file:///One.cls', typeref: 'One', lines: [3] }]);
+
+      expect(adapter.getBreakpoints().get('file:///One.cls')).toEqual([3]);
+      expect(sendEventSpy).toHaveBeenCalledWith(expect.objectContaining({ event: 'breakpoint' }));
+    });
+
+    it('reports breakpoints that become unverified after metadata refresh', () => {
+      adapter = new MockApexReplayDebug();
+      const sendEventSpy = vi.spyOn(adapter as unknown as { sendEvent: () => void }, 'sendEvent');
+      adapter.setBreakpoints('file:///One.cls', [3]);
+      adapter.updateLineBreakpointInfo('file:///One.cls', [{ uri: 'file:///One.cls', typeref: 'One', lines: [3] }]);
+      sendEventSpy.mockClear();
+
+      adapter.updateLineBreakpointInfo('file:///One.cls', [{ uri: 'file:///One.cls', typeref: 'One', lines: [5] }]);
+
+      expect(adapter.getBreakpoints().get('file:///One.cls')).toEqual([]);
+      expect(sendEventSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ body: expect.objectContaining({ breakpoint: { verified: false, line: 3 } }) })
+      );
     });
   });
 });

@@ -7,11 +7,6 @@
 
 import * as Effect from 'effect/Effect';
 
-// The emitters under test do not need Apex extension exports.
-vi.mock('../../src/apexExtension', () => ({
-  retrieveLineBreakpointInfo: () => Effect.void
-}));
-
 import { annotateCheckpointUpload } from '../../src/breakpoints/checkpointService';
 import { emitErrorMetric, emitGeneralMetric, emitLaunchMetric } from '../../src/index';
 import { nls } from '../../src/messages';

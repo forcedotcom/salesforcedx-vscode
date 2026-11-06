@@ -6,7 +6,7 @@
  */
 /* eslint-disable @typescript-eslint/consistent-type-assertions */
 
-import { annotateRootSpan, ExtensionProviderService, getExtensionExports } from '@salesforce/effect-ext-utils';
+import { annotateRootSpan, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import {
   type MetricError,
   type MetricGeneral,
@@ -16,6 +16,7 @@ import {
   SEND_METRIC_LAUNCH_EVENT
 } from '@salesforce/salesforcedx-apex-replay-debugger';
 import * as Effect from 'effect/Effect';
+import * as HashSet from 'effect/HashSet';
 import * as vscode from 'vscode';
 import { type URI } from 'vscode-uri';
 import { updateLastOpened } from './activation/getDialogStartingPath';
@@ -40,6 +41,7 @@ import {
 } from './debuggerConstants';
 import { nls } from './messages';
 import { buildAllServicesLayer, setAllServicesLayer } from './services/extensionProvider';
+import { LineBreakpointMetadataService } from './services/lineBreakpointMetadataService';
 import { disposeRuntime, getRuntime } from './services/runtime';
 
 const launchFromLogFileCommand = Effect.fn('ApexReplayDebugger.launchFromLogFileCommand')(function* (
@@ -115,6 +117,48 @@ const registerDebugHandlers = (): vscode.Disposable => {
   return vscode.Disposable.from(customEventHandler);
 };
 
+const UPDATE_LINE_BREAKPOINT_INFO_REQUEST = 'apexReplayDebugger/updateLineBreakpointInfo';
+
+const breakpointUris = (event: vscode.BreakpointsChangeEvent): URI[] =>
+  [...event.added, ...event.changed].flatMap(breakpoint => {
+    const sourceBreakpoint = breakpoint as vscode.SourceBreakpoint;
+    return sourceBreakpoint.location?.uri.path.match(/\.(cls|trigger)$/i) ? [sourceBreakpoint.location.uri] : [];
+  });
+
+const refreshActiveReplayBreakpointMetadata = Effect.fn('ApexReplayDebugger.refreshBreakpointInformation')(function* (
+  event: vscode.BreakpointsChangeEvent,
+  replaySessions: ReadonlySet<vscode.DebugSession>
+) {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const HashableUri = yield* api.services.FsService.HashableUri;
+  const uris = HashSet.fromIterable(breakpointUris(event).map(HashableUri.fromUri));
+  yield* Effect.annotateCurrentSpan({ uriCount: HashSet.size(uris), replaySessionCount: replaySessions.size });
+  const refreshed = yield* Effect.forEach(
+    uris,
+    uri =>
+      LineBreakpointMetadataService.refresh(uri.uri.toString()).pipe(
+        Effect.flatMap(lineBreakpointInfo =>
+          Effect.forEach(
+            replaySessions,
+            session =>
+              Effect.promise(() =>
+                session.customRequest(UPDATE_LINE_BREAKPOINT_INFO_REQUEST, {
+                  uri: uri.uri.toString(),
+                  lineBreakpointInfo
+                })
+              ),
+            { concurrency: 'unbounded', discard: true }
+          )
+        ),
+        Effect.as(true),
+        Effect.catchAllCause(() => Effect.succeed(false))
+      ),
+    { concurrency: 'unbounded' }
+  );
+  yield* Effect.annotateCurrentSpan('refreshedUriCount', refreshed.filter(Boolean).length);
+  return refreshed.every(Boolean);
+});
+
 export const activate = async (extensionContext: vscode.ExtensionContext) => {
   setAllServicesLayer(buildAllServicesLayer(extensionContext, nls.localize('channel_name')));
   await getRuntime().runPromise(activateEffect(extensionContext));
@@ -150,12 +194,23 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
   // 'Apex Replay Debugger' is missing from the Output dropdown until the first debugger write.
   const debuggerChannel = yield* getDebuggerOutputChannel;
   const checkpointsView = vscode.window.registerTreeDataProvider('sf.view.checkpoint', checkpointService);
-  const breakpointsSub = vscode.debug.onDidChangeBreakpoints(processBreakpointChangedForCheckpoints);
+  const replaySessions = new Set<vscode.DebugSession>();
+  let reportedBreakpointMetadataRefreshFailure = false;
+  const startSessionSub = vscode.debug.onDidStartDebugSession(async session => {
+    if ((await getDebuggerType(session)) === DEBUGGER_TYPE) replaySessions.add(session);
+  });
+  const endSessionSub = vscode.debug.onDidTerminateDebugSession(session => replaySessions.delete(session));
+  const breakpointsSub = vscode.debug.onDidChangeBreakpoints(async event => {
+    processBreakpointChangedForCheckpoints(event);
+    const refreshed = await getRuntime().runPromise(refreshActiveReplayBreakpointMetadata(event, replaySessions));
+    if (!refreshed && !reportedBreakpointMetadataRefreshFailure) {
+      reportedBreakpointMetadataRefreshFailure = true;
+      await vscode.window.showWarningMessage(nls.localize('apex_language_server_breakpoint_metadata_refresh_failed'));
+    } else if (refreshed) {
+      reportedBreakpointMetadataRefreshFailure = false;
+    }
+  });
 
-  // Activate Salesforce Apex Extension before replay debug commands need its API.
-  yield* getExtensionExports({
-    extId: 'salesforce.salesforcedx-vscode-apex'
-  }).pipe(Effect.asVoid);
   yield* registerTestDebugCodeLensProducer(extensionContext);
 
   extensionContext.subscriptions.push(
@@ -163,7 +218,9 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-rep
     debugHandlers,
     debugConfigProvider,
     checkpointsView,
-    breakpointsSub
+    breakpointsSub,
+    startSessionSub,
+    endSessionSub
   );
 });
 

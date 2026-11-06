@@ -41,9 +41,10 @@ export const messages = {
   cannot_delete_existing_checkpoint: 'Cannot delete existing checkpoint',
   unable_to_retrieve_active_user_for_sf_project: 'Unable to retrieve active user for SFDX Project',
   unable_to_query_for_existing_checkpoints: 'Unable to query for existing checkpoints',
-  no_line_breakpoint_information_for_current_project: 'There is no line breakpoint information for the current project',
-  line_breakpoint_information_success: 'Retrieved line breakpoint info from language server',
-  language_client_not_ready: 'Unable to retrieve breakpoint info from language server, language server is not ready',
+  apex_language_server_breakpoint_metadata_unavailable:
+    'Apex Replay Debugger could not validate existing Apex breakpoints because breakpoint information is unavailable from the Apex language server. Remove the breakpoints to inspect the log without breakpoint validation, or restart the Apex language server and try again.',
+  apex_language_server_breakpoint_metadata_refresh_failed:
+    'Apex Replay Debugger could not refresh breakpoint validation because breakpoint information is unavailable from the Apex language server. Existing breakpoint validation is unchanged.',
   unable_to_retrieve_org_info: 'Unable to retrieve OrgInfo',
   debug_test_exec_name: 'Debug Test(s)',
   debug_test_success: 'Debug Test(s) successfully ran',
