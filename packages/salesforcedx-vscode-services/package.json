@@ -217,6 +217,9 @@
       ],
       "files": [
         "src/**/*.ts",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
+        "../../scripts/tsconfig.native.json",
         "test/**/*.{ts,mts}",
         "../../eslint.config.mjs",
         ".vscodeignore",
@@ -278,19 +281,17 @@
       ]
     },
     "o11y:debug": {
-      "command": "ts-node --project tsconfig.scripts.json scripts/o11yDebugServer.ts",
+      "command": "node scripts/o11yDebugServer.mts",
       "service": true,
       "files": [
-        "scripts/o11yDebugServer.ts",
-        "tsconfig.scripts.json"
+        "scripts/o11yDebugServer.mts"
       ]
     },
     "spans:server": {
-      "command": "ts-node --project tsconfig.scripts.json scripts/spanFileServer.ts",
+      "command": "node scripts/spanFileServer.mts",
       "service": true,
       "files": [
-        "scripts/spanFileServer.ts",
-        "tsconfig.scripts.json"
+        "scripts/spanFileServer.mts"
       ]
     },
     "test:compile": {

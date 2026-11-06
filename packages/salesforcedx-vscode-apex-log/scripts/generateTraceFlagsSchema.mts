@@ -10,7 +10,7 @@ import * as JSONSchema from 'effect/JSONSchema';
 import * as Schema from 'effect/Schema';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { buildTraceFlagsSchemas } from '../src/schemas/traceFlagsSchema';
+import { buildTraceFlagsSchemas } from '../out/src/schemas/traceFlagsSchema.js';
 
 /** Mirrors services TraceFlagItemStruct — only used for JSON schema generation at build time. */
 const TraceFlagItemStruct = Schema.Struct({

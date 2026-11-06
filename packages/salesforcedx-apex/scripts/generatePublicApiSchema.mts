@@ -39,11 +39,12 @@ import type {
   TestResult,
   TestResultRaw,
   TestRunIdResult
-} from '../src';
+} from '../out/src/index.js';
 import * as JSONSchema from 'effect/JSONSchema';
 import * as Schema from 'effect/Schema';
+// eslint-disable-next-line no-restricted-imports -- schema generator runs in Node, not the extension host
 import { readFile, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import * as Prettier from 'prettier';
 import {
   AggregateCodeCoverageResultSchema,
@@ -78,7 +79,7 @@ import {
   TestItemSchema,
   TestSuiteSchema,
   TestSuiteMembershipSchema
-} from '../src/effect';
+} from '../out/src/effect/index.js';
 import {
   ApexTestResultDataSchema,
   ApexTestResultDataRawSchema,
@@ -89,8 +90,8 @@ import {
   TestLevelSchema,
   TestResultSchema,
   TestResultRawSchema
-} from '../src/tests/types';
-import { CommonOptionsSchema, LogLevelSchema } from '../src/utils/types';
+} from '../out/src/tests/types.js';
+import { CommonOptionsSchema, LogLevelSchema } from '../out/src/utils/types.js';
 
 const optional = Schema.optional;
 const StringArray = Schema.Array(Schema.String);
@@ -355,7 +356,7 @@ type FailedContracts = {
 const publicContractChecks: Record<FailedContracts, true> = {};
 void publicContractChecks;
 
-const schemaPath = join(__dirname, '..', 'schemas', 'public-api.schema.json');
+const schemaPath = fileURLToPath(new URL('../schemas/public-api.schema.json', import.meta.url));
 
 const main = async (): Promise<void> => {
   const generatedSchema = await Prettier.format(JSON.stringify(JSONSchema.make(PublicApiSchema)), {
