@@ -136,7 +136,7 @@ const refreshActiveReplayBreakpointMetadata = Effect.fn('ApexReplayDebugger.refr
   const refreshed = yield* Effect.forEach(
     uris,
     uri =>
-      LineBreakpointMetadataService.refresh(uri.uri.toString()).pipe(
+      LineBreakpointMetadataService.refresh(uri).pipe(
         Effect.flatMap(lineBreakpointInfo =>
           Effect.forEach(
             replaySessions,
