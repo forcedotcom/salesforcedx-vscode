@@ -5,10 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as Effect from 'effect/Effect';
-import type { ApexClassOASEligibleResponse } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
-import { SymbolKind } from 'vscode-languageserver-protocol';
-import { URI } from 'vscode-uri';
 import { nls } from '../../../../src/messages/nls';
 import type { ProcessorInputOutput } from '../../../../src/oas/documentProcessorPipeline/processorStep';
 
@@ -23,25 +20,9 @@ describe('methodValidationStep', () => {
       await import('../../../../src/oas/documentProcessorPipeline/methodValidationStep.js');
     const methodNames = ['firstMethod', 'secondMethod', 'thirdMethod', 'fourthMethod'];
     const operationIds = ['firstOperation', 'secondOperation', 'thirdOperation', 'fourthOperation'];
-    const position = { line: 0, character: 0 };
-    const eligibilityResult: ApexClassOASEligibleResponse = {
-      resourceUri: URI.file('/test.cls'),
-      isApexOasEligible: true,
-      isEligible: true,
-      symbols: methodNames.map(name => ({
-        isApexOasEligible: true,
-        isEligible: true,
-        docSymbol: {
-          name,
-          kind: SymbolKind.Method,
-          range: { start: position, end: position },
-          selectionRange: { start: position, end: position }
-        }
-      }))
-    };
     const input: ProcessorInputOutput = {
       errors: [],
-      eligibilityResult,
+      eligibleMethodNames: methodNames,
       openAPIDoc: {
         openapi: '3.0.0',
         info: { title: 'Test API', version: '1.0.0' },

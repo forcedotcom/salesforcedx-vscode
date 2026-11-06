@@ -6,44 +6,20 @@
  */
 
 import { ExtensionProviderService, annotateRootSpan } from '@salesforce/effect-ext-utils';
-import * as Data from 'effect/Data';
 import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 import type { URI } from 'vscode-uri';
-import { EXTENSION_NAME } from '../constants';
 import { messages } from '../messages/i18n';
 import { nls } from '../messages/nls';
 import { processOasDocument } from '../oas/documentProcessorPipeline/oasProcessor';
 import { generateEsrMD, pathExists } from '../oas/externalServiceRegistrationManager';
-import { selectStrategyByBidRule } from '../oas/promptGenerationOrchestrator';
-import {
-  checkIfESRIsDecomposed,
-  diagnoseIneligibility,
-  hasAuraFrameworkCapability,
-  hasMixedFrameworks,
-  hasValidRestAnnotations,
-  parseOASDocFromJson,
-  summarizeDiagnostics,
-  withSteppedProgress
-} from '../oasUtils';
-import { LLMService } from '../services/llmService';
+import { generateAuraEnabledOas } from '../oas/generationStrategy/json/auraEnabledStrategy';
+import { checkIfESRIsDecomposed, parseOASDocFromJson, summarizeDiagnostics, withSteppedProgress } from '../oasUtils';
 import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
-import { ClassNotEligible, gatherContext, validateMetadata } from './metadataOrchestrator';
+import { analyzeMetadata, ClassNotEligible } from './metadataOrchestrator';
 
 const COMMAND: ProgressAndSuccessCommandKey = messages.create_openapi_doc_class;
 
-/** @ExportTaggedError */
-export class MixedFrameworksNotAllowed extends Data.TaggedError('MixedFrameworksNotAllowed')<{
-  readonly message: string;
-}> {}
-
-/** The REST generation path is turned off via the `enableRestOASGen` setting. @ExportTaggedError */
-export class RestOASGenerationDisabled extends Data.TaggedError('RestOASGenerationDisabled')<{
-  readonly message: string;
-}> {}
-
-/** Whether REST (@RestResource) OpenAPI generation is enabled. Off by default — it depends on an external
- * AI model service that has proven unreliable; AuraEnabled generation is unaffected. */
 /**
  * Creates an OpenAPI Document.
  */
@@ -51,70 +27,41 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const notificationMode = yield* api.services.NotificationModeService;
 
-  // Step 1: Validate eligibility
-  const eligibilityResult = yield* validateMetadata(sourceUri);
-
-  // Step 2: Gather context
-  const context = yield* gatherContext(sourceUri);
-
-  // Step 2.5: Check for mixed frameworks (Apex Rest + AuraEnabled)
-  if (hasMixedFrameworks(context)) {
-    const className = path.basename(eligibilityResult.resourceUri.fsPath, '.cls');
-    return yield* new MixedFrameworksNotAllowed({ message: nls.localize('mixed_frameworks_not_allowed', className) });
-  }
-
-  // Step 2.6: Fail early when no strategy will qualify (e.g. @RestResource without an @Http___ method).
-  // Mirrors the bid eligibility of both strategies so valid Aura/REST classes still proceed.
-  if (!hasValidRestAnnotations(context) && !hasAuraFrameworkCapability(context)) {
-    const className = path.basename(eligibilityResult.resourceUri.fsPath, '.cls');
+  // Step 1: Gather current source metadata and qualify AuraEnabled generation.
+  const analysis = yield* analyzeMetadata(sourceUri);
+  const className = path.basename(analysis.source.resourceUri.fsPath, '.cls');
+  if (analysis.qualification.framework === 'invalid') {
     return yield* new ClassNotEligible({
-      message: nls.localize('apex_class_not_valid_detail', className, diagnoseIneligibility(context))
+      message: nls.localize(
+        'apex_class_not_valid_detail',
+        className,
+        qualificationReason(analysis.qualification.reason)
+      )
     });
   }
-
-  // Step 2.7 (REST path only): the REST strategy calls an LLM. It is gated behind the `enableRestOASGen`
-  // setting (off by default) because it depends on an external AI model service; when disabled, fail with a
-  // clear message. When enabled, require that an LLM service can be obtained from the service provider before
-  // starting — whatever extension provides it — so the cause surfaces up front rather than midway through
-  // generation. The AuraEnabled path generates from the org connection alone and skips both checks.
-  if (hasValidRestAnnotations(context)) {
-    const isRestOASGenEnabled = yield* (yield* api.services.SettingsService).getValueOrElse(
-      EXTENSION_NAME,
-      'enableRestOASGen',
-      false
-    );
-    if (!isRestOASGenEnabled) {
-      return yield* new RestOASGenerationDisabled({ message: nls.localize('rest_oas_gen_disabled') });
-    }
-    yield* LLMService.ensureAvailable();
-  }
-
-  // Step 3-4: Select the generation strategy by bid rule
-  const strategy = yield* selectStrategyByBidRule(eligibilityResult, context);
+  const qualification = analysis.qualification;
 
   // Step 5: Determine filename
-  const name = path.basename(eligibilityResult.resourceUri.fsPath, '.cls');
+  const name = className;
   const openApiFileName = `${name}.externalServiceRegistration-meta.xml`;
 
   // Step 6: Check if the file already exists
   const fullPath = yield* pathExists(openApiFileName);
 
-  // Steps 7-9 run inside a progress notification so the user sees activity instead of dead air between
-  // accepting the folder and the final toast (the REST LLM loop alone can take tens of seconds).
+  // Steps 7-9 run inside a progress notification so the user sees activity between the folder prompt and final toast.
   const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
   const processedOasResult = yield* withSteppedProgress(
     nls.localize('generating_oas_progress_title', name),
     report =>
       Effect.gen(function* () {
-        // Step 7: Use the strategy to generate the OAS
+        // Step 7: AuraEnabled is the sole supported OAS generation framework.
         yield* report(nls.localize('generating_oas_progress_generating'));
-        const openApiDocument = yield* strategy.generateOAS();
+        const openApiDocument = yield* generateAuraEnabledOas(analysis.source.classContext);
 
         // Step 8: Process the OAS document
         yield* report(nls.localize('generating_oas_progress_processing'));
         const result = yield* processOasDocument(parseOASDocFromJson(openApiDocument), {
-          context,
-          eligibleResult: eligibilityResult,
+          eligibleMethodNames: qualification.methods.map(method => method.name),
           isRevalidation: false
         });
 
@@ -153,3 +100,5 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
       );
   yield* notificationMode.showSuccessNotification(COMMAND, message);
 });
+
+const qualificationReason = (_reason: 'noEligibleMethods') => 'it has no methods annotated for OpenAPI generation';
