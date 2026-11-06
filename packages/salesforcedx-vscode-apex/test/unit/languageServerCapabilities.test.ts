@@ -10,7 +10,7 @@ import { resolveLanguageServerCapabilities, type CapabilityPolicy } from '../../
 const productionPolicy: CapabilityPolicy = {
   lsp: {
     provideCodeActions: true,
-    provideCodeLenses: true,
+    provideCodeLenses: false,
     provideCompletions: true,
     provideDefinition: true,
     provideDocumentSymbols: false,
@@ -26,7 +26,7 @@ describe('resolveLanguageServerCapabilities', () => {
 
     expect(resolved.lsp).toEqual({
       provideCodeActions: { supported: true, enabled: true },
-      provideCodeLenses: { supported: true, enabled: true },
+      provideCodeLenses: { supported: true, enabled: false },
       provideCompletions: { supported: true, enabled: true },
       provideDefinition: { supported: true, enabled: true },
       provideDocumentSymbols: { supported: true, enabled: false },
