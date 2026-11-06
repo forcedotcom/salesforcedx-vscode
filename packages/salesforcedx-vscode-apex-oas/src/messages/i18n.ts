@@ -37,7 +37,6 @@ export const messages = {
   openapi_doc_created: 'OpenAPI Document created for %s: %s.',
   openapi_doc_created_merge:
     'A new OpenAPI Document %s %s is created for %s. Manually merge the two files using the diff editor.',
-  operation_cancelled: 'Operation canceled',
   overwrite: 'Overwrite',
   registry_access_failed: 'Failed to retrieve ESR directory name from the registry.',
   select_folder_for_oas: 'Select folder to store OpenAPI Document',

@@ -9,6 +9,7 @@ import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { CallableSchema } from '../../src/callableSchema';
+import { APEX_LANGUAGE_SERVER_EXTENSION_ID, getApexLanguageServerExports } from '../../src/apexLanguageServer';
 import { ExtensionActivationError, ExtensionNotFoundError, getExtensionExports } from '../../src/extensionExports';
 
 const extensionId = 'publisher.extension';
@@ -153,5 +154,18 @@ describe('getExtensionExports', () => {
     extension.isActive = true;
     expect(await Effect.runPromise(effect)).toBe(exports);
     expect(activate).toHaveBeenCalledOnce();
+  });
+});
+
+describe('getApexLanguageServerExports', () => {
+  it('uses the New Apex LS marketplace extension ID', async () => {
+    vi.mocked(vscode.extensions.getExtension).mockReturnValue({
+      isActive: true,
+      exports
+    } as unknown as vscode.Extension<unknown>);
+
+    await Effect.runPromise(getApexLanguageServerExports(ExtensionApiSchema));
+
+    expect(vscode.extensions.getExtension).toHaveBeenCalledExactlyOnceWith(APEX_LANGUAGE_SERVER_EXTENSION_ID);
   });
 });

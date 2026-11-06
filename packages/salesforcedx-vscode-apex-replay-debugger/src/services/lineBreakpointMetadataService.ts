@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getExtensionExports, getMessageFromError } from '@salesforce/effect-ext-utils';
+import { getApexLanguageServerExports, getMessageFromError } from '@salesforce/effect-ext-utils';
 import type { LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -16,7 +16,6 @@ import type { HashableUri } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { makeLineBreakpointMetadataCache } from '../breakpoints/lineBreakpointMetadataCache';
 
-const APEX_LANGUAGE_SERVER_EXTENSION_ID = 'salesforce.apex-language-server-extension';
 const DOCUMENT_STATE_UNAVAILABLE = 'No document state is available';
 const DOCUMENT_STATE_READY_SCHEDULE = Schedule.fixed(Duration.millis(100)).pipe(
   Schedule.intersect(Schedule.recurs(30))
@@ -55,10 +54,7 @@ export class LineBreakpointMetadataService extends Effect.Service<LineBreakpoint
         const uriString = uri.uri.toString();
         yield* Effect.annotateCurrentSpan('uri', uriString);
         yield* Effect.promise(() => vscode.workspace.openTextDocument(uri.uri));
-        const lineBreakpointInfo = yield* getExtensionExports({
-          extId: APEX_LANGUAGE_SERVER_EXTENSION_ID,
-          schema: ApexExtensionApiSchema
-        }).pipe(
+        const lineBreakpointInfo = yield* getApexLanguageServerExports(ApexExtensionApiSchema).pipe(
           Effect.flatMap(apexApi =>
             Effect.tryPromise({
               try: () => apexApi.client.getLineBreakpointInfo(uriString),
