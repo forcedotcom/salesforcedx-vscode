@@ -6,6 +6,7 @@ import fs from 'node:fs';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 const emptyPolyfillsPath = join(__dirname, 'empty-polyfills.js');
+const modulePolyfillPath = join(__dirname, 'module-polyfill.mjs');
 const processGlobalPath = join(__dirname, 'process-global.js');
 const processPolyfillPath = join(__dirname, 'process-polyfill.js');
 const bufferGlobalPath = join(__dirname, 'buffer-global.js');
@@ -67,6 +68,8 @@ export const commonConfigBrowser = {
   },
   alias: {
     async_hooks: emptyPolyfillsPath,
+    module: modulePolyfillPath,
+    'node:module': modulePolyfillPath,
     // proper-lockfile and SDR use graceful-fs
     'graceful-fs': fsPolyfillPath,
     fs: fsPolyfillPath,

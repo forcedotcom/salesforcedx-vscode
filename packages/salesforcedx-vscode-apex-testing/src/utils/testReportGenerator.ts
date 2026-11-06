@@ -4,78 +4,19 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import {
-  type TestResult,
-  MarkdownTextFormatTransformer,
-  type OutputFormat,
-  type TestSortOrder
-} from '@salesforce/apex-node';
+import { type TestResult, type OutputFormat, type TestSortOrder } from '@salesforce/apex-node';
+import { FileOutput, writeResultFiles } from '@salesforce/apex-node/effect';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
 import { APEX_TESTING_SECTION } from '../constants';
 import { nls } from '../messages';
-import { type NewlineNormalizationState, normalizeTextChunkToLf } from './newlineUtils';
-
-/** Collects stream output into a UTF-8 encoded Uint8Array with LF line endings */
-const streamToNormalizedUtf8Bytes = async (stream: NodeJS.ReadableStream): Promise<Uint8Array> => {
-  const decoder = new TextDecoder('utf-8');
-  const encoder = new TextEncoder();
-  const parts: Uint8Array[] = [];
-
-  // Tracks a trailing '\r' from the previous decoded chunk so we can correctly normalize CRLF across boundaries.
-  const state: NewlineNormalizationState = { hasTrailingCarriageReturn: false };
-
-  await new Promise<void>((resolve, reject) => {
-    stream.on('data', (chunk: Buffer) => {
-      const decoded = decoder.decode(chunk, { stream: true });
-      const { normalizedText: normalizedChunkText } = normalizeTextChunkToLf(decoded, state);
-      if (normalizedChunkText.length > 0) {
-        parts.push(encoder.encode(normalizedChunkText));
-      }
-    });
-    stream.on('end', () => resolve());
-    stream.on('error', reject);
-  });
-
-  // Flush any final decoder state.
-  const { normalizedText: normalizedTailText } = normalizeTextChunkToLf(decoder.decode(), state);
-  if (normalizedTailText.length > 0) {
-    parts.push(encoder.encode(normalizedTailText));
-  }
-
-  const totalLength = parts.reduce((sum, part) => sum + part.length, 0);
-  return parts.reduce(
-    (acc, part) => {
-      acc.out.set(part, acc.offset);
-      return { out: acc.out, offset: acc.offset + part.length };
-    },
-    { out: new Uint8Array(totalLength), offset: 0 }
-  ).out;
-};
-
-/** Builds the MarkdownTextFormatTransformer for the given result and settings */
-const createReportTransformer = (
-  result: TestResult,
-  format: OutputFormat,
-  codeCoverage: boolean,
-  sortOrder: TestSortOrder,
-  performanceThresholdMs: number,
-  coverageThresholdPercent: number
-): MarkdownTextFormatTransformer =>
-  new MarkdownTextFormatTransformer(result, {
-    format,
-    sortOrder,
-    performanceThresholdMs,
-    coverageThresholdPercent,
-    codeCoverage,
-    timestamp: new Date()
-  });
+import { fileOutputFromFsService } from '../services/fsServiceFileOutput';
 
 /** Generates report URI using the library's format: test-result-{testRunId}.{ext} */
 const generateReportUri = (outputDir: URI, testRunId: string | undefined, extension: string): URI => {
-  const filename = testRunId ? `test-result-${testRunId}${extension}` : `test-result${extension}`;
+  const filename = `test-result-${testRunId ?? 'default'}${extension}`;
   return Utils.joinPath(outputDir, filename);
 };
 
@@ -105,6 +46,7 @@ export const writeAndOpenTestReport = Effect.fn('writeAndOpenTestReport')(functi
 ) {
   yield* Effect.annotateCurrentSpan({ outputFormat: format });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const fsService = yield* api.services.FsService;
   const channelSvc = yield* api.services.ChannelService;
   const settings = yield* api.services.SettingsService;
   const performanceThresholdMs = yield* settings.getValueOrElse(
@@ -118,27 +60,28 @@ export const writeAndOpenTestReport = Effect.fn('writeAndOpenTestReport')(functi
     75
   );
 
-  // Write directly to UTF-8 bytes (with LF newlines) without building a large intermediate string.
-  const transformer = createReportTransformer(
+  yield* writeResultFiles(
     result,
-    format,
-    codeCoverage,
-    sortOrder,
-    performanceThresholdMs,
-    coverageThresholdPercent
+    { dirPath: outputDir.toString(), resultFormats: [format] },
+    {
+      format,
+      sortOrder,
+      performanceThresholdMs,
+      coverageThresholdPercent,
+      codeCoverage,
+      timestamp: new Date(),
+      lineEnding: '\n',
+      writeTestRunId: false
+    }
+  ).pipe(
+    Effect.provideService(FileOutput, fileOutputFromFsService(fsService)),
+    Effect.tapError(error => channelSvc.appendToChannel(`Failed to write test report: ${String(error)}`))
   );
 
   // Generate filename using library's format: test-result-{testRunId}.{ext}
   const extension = format === 'markdown' ? '.md' : '.txt';
   const testRunId = result.summary?.testRunId;
   const reportUri = generateReportUri(outputDir, testRunId, extension);
-
-  const uint8Array = yield* Effect.tryPromise(() => streamToNormalizedUtf8Bytes(transformer));
-  const content = new TextDecoder('utf-8').decode(uint8Array);
-
-  yield* api.services.FsService.safeWriteFile(reportUri, content).pipe(
-    Effect.tapError(error => channelSvc.appendToChannel(`Failed to write test report: ${String(error)}`))
-  );
 
   // Always print the report location to the Apex Testing output channel so it's easy to find later.
   yield* channelSvc.appendToChannel(nls.localize('apex_test_report_written_to_message', reportUri.toString()));

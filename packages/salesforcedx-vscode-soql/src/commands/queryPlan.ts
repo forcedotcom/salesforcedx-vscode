@@ -70,7 +70,7 @@ export const formatQueryPlanResults = (response: Schema.Schema.Type<typeof Query
 
   const notesLines = HashSet.toValues(allNotes).map(
     note =>
-      `${nls.localize('query_plan_notes_description')}: ${note.description}\n${nls.localize('query_plan_notes_table')}: ${note.tableEnumOrId}\n${nls.localize('query_plan_notes_fields')}: ${Chunk.toArray(note.fields).join(', ')}`
+      `${nls.localize('query_plan_notes_description')}: ${note.description}\n${nls.localize('query_plan_notes_table')}: ${note.tableEnumOrId}\n${nls.localize('query_plan_notes_fields')}: ${Chunk.join(', ')(note.fields)}`
   );
   return `${table}\n${nls.localize('query_plan_notes_header')}:\n${notesLines.join('\n\n')}`;
 };
