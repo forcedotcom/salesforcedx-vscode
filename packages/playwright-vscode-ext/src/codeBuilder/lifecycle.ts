@@ -106,7 +106,7 @@ const defaultProbe: ReadinessProbe = async url => {
   }
 };
 
-const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms: number): Promise<void> => Effect.sleep(Duration.millis(ms)).pipe(Effect.runPromise);
 
 /** Poll until the workbench answers or the budget is exhausted; throw loud (with docker logs) on timeout. */
 const waitForWorkbench = async (
