@@ -6,6 +6,7 @@
  */
 
 import type { Connection } from '@salesforce/core';
+import { getErrorMessage as causeMessage } from '@salesforce/salesforcedx-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
@@ -14,7 +15,6 @@ import * as Ref from 'effect/Ref';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { causeMessage } from './errors';
 import {
   AsyncTestProgressSchema,
   AsyncTestResultSchema,

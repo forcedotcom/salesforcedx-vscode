@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import * as Order from 'effect/Order';
-import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../../messages';
@@ -666,7 +666,7 @@ class LwcTestController {
         appendLine(run, nls.localize('no_test_results_produced_message'));
       }
     } catch (error) {
-      const message = isError(error) ? error.message : String(error);
+      const message = getErrorMessage(error);
       if (sourceItem) {
         run.errored(sourceItem, new vscode.TestMessage(message));
       } else {

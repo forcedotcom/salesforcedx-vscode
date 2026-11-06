@@ -6,6 +6,7 @@
  */
 
 import type { Connection } from '@salesforce/core';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import { standardValueSet } from '@salesforce/source-deploy-retrieve';
 import * as Arr from 'effect/Array';
 import * as Cache from 'effect/Cache';
@@ -126,7 +127,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
           return new MetadataDescribeError({
             cause,
             function: 'describe',
-            message: `Failed to describe metadata: ${cause.message ?? String(cause)}`
+            message: `Failed to describe metadata: ${getErrorMessage(cause)}`
           });
         }
       }).pipe(
@@ -152,7 +153,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
           return new MetadataDescribeError({
             cause,
             function: 'listSObjects',
-            message: `Failed to list sobjects: ${cause.message ?? String(cause)}`
+            message: `Failed to list sobjects: ${getErrorMessage(cause)}`
           });
         }
       }).pipe(
@@ -189,7 +190,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
             cause,
             function: 'describeCustomObject',
             objectName,
-            message: `Failed to describe sobject ${objectName}: ${cause.message ?? String(cause)}`
+            message: `Failed to describe sobject ${objectName}: ${getErrorMessage(cause)}`
           });
         }
       }).pipe(Effect.withSpan('describeCustomObject (API call)', { attributes: { objectName } }));
@@ -223,7 +224,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
             cause,
             metadataType: type,
             folder,
-            message: `Failed to list metadata type ${type}${folder ? ` in folder ${folder}` : ''}: ${cause.message ?? String(cause)}`
+            message: `Failed to list metadata type ${type}${folder ? ` in folder ${folder}` : ''}: ${getErrorMessage(cause)}`
           });
         }
       }).pipe(
@@ -239,7 +240,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
             cause,
             metadataType: type,
             folder,
-            message: `Failed to decode list metadata result for type ${type}${folder ? ` in folder ${folder}` : ''}: ${cause.message ?? String(cause)}`
+            message: `Failed to decode list metadata result for type ${type}${folder ? ` in folder ${folder}` : ''}: ${getErrorMessage(cause)}`
           });
         })
       );
@@ -269,7 +270,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
           return new MetadataDescribeError({
             cause,
             function: 'describeCustomObjects',
-            message: `Failed to batch describe sobjects: ${cause.message ?? String(cause)}`
+            message: `Failed to batch describe sobjects: ${getErrorMessage(cause)}`
           });
         }
       }).pipe(Effect.map(res => res?.results));

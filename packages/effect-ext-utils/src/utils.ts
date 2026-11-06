@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import { isError, isString } from 'effect/Predicate';
 import type { URI } from 'vscode-uri';
 
@@ -105,11 +106,8 @@ export const extractJson = <T = unknown>(str: string): T => {
 export const stripAnsi = (str: string): string => (str ? str.replaceAll(ansiRegex(), '') : str);
 
 export const getMessageFromError = (err: unknown): string => {
-  if (isError(err)) {
-    return err.message;
-  }
-  if (isString(err)) {
-    return err;
+  if (isError(err) || isString(err)) {
+    return getErrorMessage(err);
   }
   if (err) {
     return `Unexpected error: ${JSON.stringify(err)}`;

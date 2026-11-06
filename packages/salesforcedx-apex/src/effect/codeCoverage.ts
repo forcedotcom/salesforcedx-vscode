@@ -6,6 +6,7 @@
  */
 
 import type { Connection } from '@salesforce/core';
+import { getErrorMessage as causeMessage } from '@salesforce/salesforcedx-utils';
 import * as Arr from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
@@ -14,7 +15,6 @@ import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { QUERY_RECORD_LIMIT } from '../tests/constants';
 import { type AggregateCodeCoverageResult, type PerClassCoverage } from './coverageSchemas';
-import { causeMessage } from './errors';
 import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
 import { QueryPageSchema } from './schema/queryPage';
 import {

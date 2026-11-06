@@ -7,12 +7,12 @@
 
 import type { HttpRequest } from '@jsforce/jsforce-node';
 import type { Connection } from '@salesforce/core';
+import { getErrorMessage as causeMessage } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { encodeBody } from '../execute/utils';
 import { messages } from '../i18n/i18n';
-import { causeMessage } from './errors';
 import {
   ApexCompileError,
   ApexOperationError,

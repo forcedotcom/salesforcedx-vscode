@@ -10,6 +10,7 @@ import type { GraphqlResponseError } from '@octokit/graphql';
 import { paginateRest } from '@octokit/plugin-paginate-rest';
 import type { RequestError } from '@octokit/request-error';
 import { type Endpoints } from '@octokit/types';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Config from 'effect/Config';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -158,7 +159,7 @@ const retryAfterMillis = (cause: unknown) => {
 const toError = (method: string, path: string, cause: unknown) => {
   const wait = retryAfterMillis(cause);
   return new GitHubRequestError({
-    message: isError(cause) ? cause.message : String(cause),
+    message: getErrorMessage(cause),
     status: isRequestError(cause) ? cause.status : isGraphqlResponseError(cause) ? 200 : 0,
     method,
     path,

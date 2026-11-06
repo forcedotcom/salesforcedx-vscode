@@ -7,9 +7,10 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE, type WorkspaceSettings } from '@salesforce/salesforcedx-apex-debugger';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import { isError, isString, isUndefined } from 'effect/Predicate';
+import { isString, isUndefined } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
@@ -26,8 +27,6 @@ class DebugConfigurationError extends Schema.TaggedError<DebugConfigurationError
 class LanguageClientNotReady extends Schema.TaggedError<LanguageClientNotReady>()('LanguageClientNotReady', {
   message: Schema.String
 }) {}
-
-const errorMessage = (cause: unknown): string => (isError(cause) ? cause.message : String(cause));
 
 const applyDebugConfigDefaults = Effect.fn('ApexDebugger.applyDebugConfigDefaults')(
   (folder: vscode.WorkspaceFolder | undefined, config: vscode.DebugConfiguration) =>
@@ -96,7 +95,7 @@ const resolveDebugConfig = Effect.fn('ApexDebugger.resolveDebugConfig')(function
     Effect.flatMap(extension =>
       Effect.tryPromise({
         try: () => extension.getLineBreakpointInfo(),
-        catch: cause => new DebugConfigurationError({ message: errorMessage(cause) })
+        catch: cause => new DebugConfigurationError({ message: getErrorMessage(cause) })
       })
     )
   );

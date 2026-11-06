@@ -6,6 +6,7 @@
  */
 
 import type { Connection } from '@salesforce/core';
+import { getErrorMessage as causeMessage } from '@salesforce/salesforcedx-utils';
 import * as Clock from 'effect/Clock';
 import * as Effect from 'effect/Effect';
 import { isUndefined } from 'effect/Predicate';
@@ -13,7 +14,6 @@ import * as Schema from 'effect/Schema';
 import { OrgIdString, UserIdString } from '../schemas/salesforceId';
 import { type ApexTestResultData, type SyncTestConfiguration, type TestResultRaw } from '../tests/types';
 import { getDiagnostic } from './diagnostics';
-import { causeMessage } from './errors';
 import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
 import { SyncTestConfigurationSchema } from './schema/testPayloads';
 import { calculatePercentage, computeTestCategory, transformTestResult } from './testResults';

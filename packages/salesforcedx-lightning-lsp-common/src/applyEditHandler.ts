@@ -15,7 +15,7 @@
  *
  * Used by both salesforcedx-vscode-lwc and salesforcedx-vscode-lightning (Aura).
  */
-import { isError } from 'effect/Predicate';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import { workspace } from 'vscode';
 import {
   TextDocumentEdit as TDE,
@@ -57,7 +57,7 @@ export const handleApplyEditWithFs = async (params: ApplyWorkspaceEditParams): P
     }
     return { applied: true };
   } catch (error) {
-    const message = isError(error) ? error.message : String(error);
+    const message = getErrorMessage(error);
     return { applied: false, failureReason: message };
   }
 };

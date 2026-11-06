@@ -9,6 +9,7 @@ import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
 import { _electron as electron, type ConsoleMessage, type ElectronApplication, type Page } from '@playwright/test';
 import { redactValue } from '@salesforce/playwright-vscode-ext';
+import { getErrorMessage as causeMessage } from '@salesforce/salesforcedx-utils';
 import { downloadAndUnzipVSCode, SilentReporter } from '@vscode/test-electron';
 import * as Cause from 'effect/Cause';
 import * as Duration from 'effect/Duration';
@@ -29,7 +30,6 @@ import { ArtifactService } from './artifactService';
 import { consumeConsoleWrites, drainConsoleWrites, type ConsoleWrite } from './consoleWriteQueue';
 import { QUICK_INPUT_WIDGET, WORKBENCH } from './constants';
 import {
-  causeMessage,
   DrivableVscodeActionError,
   type DrivableVscodeArtifactError,
   DrivableVscodeLaunchError,

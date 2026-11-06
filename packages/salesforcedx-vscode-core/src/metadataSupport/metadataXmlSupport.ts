@@ -10,10 +10,11 @@ import {
   ExtensionProviderService,
   getExtensionExports
 } from '@salesforce/effect-ext-utils';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
-import { isError, isNotUndefined, isUndefined } from 'effect/Predicate';
+import { isNotUndefined, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
@@ -99,8 +100,6 @@ export const shouldSetSchemaDocumentationTypeToNone = (inspection: SchemaDocumen
 
 const getLocalFilePaths = (extensionUri: URI, targetFileNames: string[]): string[] =>
   targetFileNames.map(targetFileName => Utils.joinPath(extensionUri, 'resources', targetFileName).fsPath);
-
-const getErrorMessage = (error: unknown): string => (isError(error) ? error.message : String(error));
 
 const reportToChannel = Effect.fn('metadataXmlSupport.reportToChannel')(function* (message: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;

@@ -15,9 +15,10 @@ import type {
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
 import { redactValue } from '@salesforce/playwright-vscode-ext';
+import { getErrorMessage as causeMessage } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import { causeMessage, DrivableVscodeArtifactError } from './errors';
+import { DrivableVscodeArtifactError } from './errors';
 
 type ArtifactWrite = { filePath: string; contents: string; append: boolean };
 const json = (value: unknown, pretty = false) =>

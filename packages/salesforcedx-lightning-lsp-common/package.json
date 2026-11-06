@@ -63,6 +63,7 @@
       "command": "tsc --pretty && node scripts/build.js",
       "clean": "if-file-deleted",
       "dependencies": [
+        "../salesforcedx-utils:compile",
         "../effect-ext-utils:compile",
         "../salesforcedx-vscode-i18n:compile"
       ],
@@ -122,6 +123,7 @@
     }
   },
   "dependencies": {
+    "@salesforce/salesforcedx-utils": "*",
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
     "effect": "^3.21.2",

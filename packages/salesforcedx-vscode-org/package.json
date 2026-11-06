@@ -28,6 +28,7 @@
     "Other"
   ],
   "dependencies": {
+    "@salesforce/salesforcedx-utils": "*",
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/vscode-services": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
@@ -64,6 +65,7 @@
       "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
+        "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../effect-ext-utils:compile",
         "../salesforcedx-vscode-services-types:compile"

@@ -6,6 +6,7 @@
  */
 
 import type { Connection } from '@salesforce/core';
+import { getErrorMessage as causeMessage } from '@salesforce/salesforcedx-utils';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
@@ -15,7 +16,6 @@ import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
 import type * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { causeMessage } from './errors';
 import { ApexLogBodyFetchError, ApexLogQueryError } from './schema/errors';
 import {
   ListLogsOptionsSchema,

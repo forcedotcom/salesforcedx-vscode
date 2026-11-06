@@ -8,7 +8,7 @@
 
 import { type Connection, Org } from '@salesforce/core';
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
-import { type LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
+import { getErrorMessage, type LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import {
   DebugSession,
   Event,
@@ -606,7 +606,7 @@ export class ApexDebug extends LoggingDebugSession {
           this.myRequestService.instanceUrl = conn.instanceUrl;
           this.myRequestService.accessToken = conn.accessToken;
         } catch (error) {
-          response.message = error instanceof Error ? error.message : String(error);
+          response.message = getErrorMessage(error);
           return this.sendResponse(response);
         }
       }

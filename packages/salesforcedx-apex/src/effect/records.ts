@@ -6,9 +6,9 @@
  */
 
 import type { Connection } from '@salesforce/core';
+import { getErrorMessage as causeMessage } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
-import { causeMessage } from './errors';
 import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
 import { createRecordResponseSchema, queryRecordsResponseSchema } from './schema/wire/records';
 
