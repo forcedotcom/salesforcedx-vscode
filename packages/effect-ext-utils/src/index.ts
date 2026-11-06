@@ -9,6 +9,7 @@ export { ExtensionProviderService, getServicesApi } from './extensionProvider';
 
 export { buildAllServicesLayer } from './allServicesLayer';
 export { getExtensionExports, ExtensionNotFoundError, ExtensionActivationError } from './extensionExports';
+export { APEX_LANGUAGE_SERVER_EXTENSION_ID, getApexLanguageServerExports } from './apexLanguageServer';
 export { CallableSchema } from './callableSchema';
 export { ExtensionPackageJsonSchema, type ExtensionPackageJson } from './extensionPackageJson';
 export { closeExtensionScope, getExtensionScope } from './extensionScope';

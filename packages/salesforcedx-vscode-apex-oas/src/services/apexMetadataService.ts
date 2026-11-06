@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getExtensionExports, ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { getApexLanguageServerExports, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Schedule from 'effect/Schedule';
@@ -17,7 +17,6 @@ import { ApexExtensionUnavailable, ApexLspRequestFailed } from '../errors';
 import { analyzeApexSource, type OasSourceToken } from '../oas/apexSourceMetadata';
 import { resolveSourceText } from '../oas/sourceTextResolver';
 
-const APEX_LANGUAGE_SERVER_EXTENSION_ID = 'salesforce.apex-language-server-extension';
 const DOCUMENT_STATE_UNAVAILABLE = 'No document state is available';
 const DOCUMENT_STATE_READY_SCHEDULE = Schedule.fixed(Duration.millis(100)).pipe(
   Schedule.intersect(Schedule.recurs(30))
@@ -49,7 +48,7 @@ const ApexExtensionApiSchema = Schema.Struct({
 });
 
 const getApexClient = Effect.fn('ApexOas.Lsp.getApexClient')(function* () {
-  return yield* getExtensionExports({ extId: APEX_LANGUAGE_SERVER_EXTENSION_ID, schema: ApexExtensionApiSchema }).pipe(
+  return yield* getApexLanguageServerExports(ApexExtensionApiSchema).pipe(
     Effect.map(api => api.client),
     Effect.catchTags({
       ExtensionNotFoundError: () =>
