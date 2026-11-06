@@ -222,7 +222,7 @@ jobs:
           echo "2. **If tests pass**, dispatch BOTH publish workflows (one does not trigger the other) with \`isHotfix=true\`:" >> $GITHUB_STEP_SUMMARY
           echo '   ```bash' >> $GITHUB_STEP_SUMMARY
           echo "   gh workflow run publishVSCode.yml -f version=$TAG -f isHotfix=true" >> $GITHUB_STEP_SUMMARY
-          echo "   gh workflow run publishOpenVSX.yml -f release-tag=$TAG -f isHotfix=true" >> $GITHUB_STEP_SUMMARY
+          echo "   gh workflow run publishOpenVSXTrusted.yml -f release-tag=$TAG -f isHotfix=true" >> $GITHUB_STEP_SUMMARY
           echo '   ```' >> $GITHUB_STEP_SUMMARY
           echo "3. **Cherry-pick fixes to develop** (see release notes for commands)" >> $GITHUB_STEP_SUMMARY
           echo "4. **Delete the release branch** after successful publish:" >> $GITHUB_STEP_SUMMARY

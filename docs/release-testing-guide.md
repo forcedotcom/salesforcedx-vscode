@@ -214,7 +214,7 @@ First, promote the release from pre-release to a full release. This is required,
 gh release edit v67.12.0 --prerelease=false --title "Release 67.12.0 - Tested & Approved" --latest --repo forcedotcom/salesforcedx-vscode
 ```
 
-This automatically fires both `publishVSCode.yml` and `publishOpenVSX.yml` via the `release: types: [released]` event (both still gated by the `publish` environment approval). If a run needs retrying, dispatch manually — these are two independent workflows, so dispatching one does not trigger the other:
+This automatically fires both `publishVSCode.yml` (gated by the `publish` environment approval) and `publishOpenVSXTrusted.yml` via the `release: types: [released]` event. If a run needs retrying, dispatch manually — these are two independent workflows, so dispatching one does not trigger the other:
 
 ```bash
 # Trigger marketplace publish workflow
@@ -223,12 +223,12 @@ gh workflow run publishVSCode.yml \
   --repo forcedotcom/salesforcedx-vscode
 
 # Trigger Open VSX publish workflow
-gh workflow run publishOpenVSX.yml \
+gh workflow run publishOpenVSXTrusted.yml \
   -f release-tag="v67.12.0" \
   --repo forcedotcom/salesforcedx-vscode
 ```
 
-Monitor the workflows at: https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml and https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSX.yml
+Monitor the workflows at: https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml and https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSXTrusted.yml
 
 ### Pre-release (Emergency Hotfix)
 
@@ -352,7 +352,7 @@ gh workflow run publishVSCode.yml \
   -f isHotfix=true \
   --repo forcedotcom/salesforcedx-vscode
 
-gh workflow run publishOpenVSX.yml \
+gh workflow run publishOpenVSXTrusted.yml \
   -f release-tag="v67.12.1" \
   -f isHotfix=true \
   --repo forcedotcom/salesforcedx-vscode

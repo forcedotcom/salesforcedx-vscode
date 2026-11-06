@@ -36,7 +36,7 @@ Uses scripts:
 - [`scripts/calculate-prerelease-hotfix-version.js`](../scripts/calculate-prerelease-hotfix-version.js) — query Marketplace/Open VSX, bump patch on max version
 - [`scripts/update-release-versions.js`](../scripts/update-release-versions.js) — update publishable packages' `package.json` + `pnpm-lock.yaml`
 
-Output: GitHub pre-release with VSIX artifacts + SHA256 checksums. Download + test; manually trigger `publishVSCode.yml` + `publishOpenVSX.yml` for marketplace publish if tests pass.
+Output: GitHub pre-release with VSIX artifacts + SHA256 checksums. Download + test; manually trigger `publishVSCode.yml` + `publishOpenVSXTrusted.yml` for marketplace publish if tests pass.
 
 ## Nightly Builds & Pre-release Promotion
 
@@ -104,7 +104,7 @@ Published releases extract extension names from VSIX filenames in release assets
 1. Promoted nightly tag exists (see [Pre-release promotion](#pre-release-promotion))
 2. Stable candidate auto-built by `trigger-stable-build` dispatch (same nightly, exact prerelease commit, automatic)
 3. Download + test VSIX files from GitHub pre-release
-4. Promote release from pre-release to full release: `gh release edit v67.12.0 --prerelease=false --title "Release 67.12.0 - Tested & Approved" --latest`. Required — publish pipeline reads `isPrerelease` flag and fails if set. This flip marks release stable + auto-fires both [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) and [`publishOpenVSX.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSX.yml) via `release: types: [released]` event. Title/`--latest` cosmetic (reflects testing passed, tags latest).
+4. Promote release from pre-release to full release: `gh release edit v67.12.0 --prerelease=false --title "Release 67.12.0 - Tested & Approved" --latest`. Required — publish pipeline reads `isPrerelease` flag and fails if set. This flip marks release stable + auto-fires both [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) and [`publishOpenVSXTrusted.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSXTrusted.yml) via `release: types: [released]` event. Title/`--latest` cosmetic (reflects testing passed, tags latest).
 5. If retry needed, dispatch manually: `-f version="v67.12.0"` / `-f release-tag="v67.12.0"`. Dispatching one does NOT trigger other. For hotfixes, add `-f isHotfix=true` so gate-check tests exact commit.
 6. Approve marketplace publish gates
 7. Marketplace updates (usually minutes)
