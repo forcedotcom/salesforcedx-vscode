@@ -3,7 +3,8 @@
   "compilerOptions": {
     "lib": ["ES2024", "DOM"],
     "noEmit": true,
+    "allowImportingTsExtensions": true,
     "composite": false
   },
-  "include": ["**/*.ts"]
+  "include": ["**/*.ts", "**/*.mts"]
 }

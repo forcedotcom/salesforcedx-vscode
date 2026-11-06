@@ -7,7 +7,7 @@
 
 import { createHeadlessServer, createTestWorkspace, setupSignalHandlers } from '@salesforce/playwright-vscode-ext';
 
-import { seedOutlineWorkspace } from '../fixtures/outlineWorkspace';
+import { seedOutlineWorkspace } from '../fixtures/outlineWorkspace.ts';
 
 const APEX_LANGUAGE_SERVER_EXTENSION_ID = 'salesforce.apex-language-server-extension';
 
@@ -16,14 +16,14 @@ const main = async (): Promise<void> => {
   await seedOutlineWorkspace(folderPath);
   await createHeadlessServer({
     extensionName: 'Apex',
-    callerDirname: __dirname,
+    callerDirname: import.meta.dirname,
     skipExtensionDevelopmentPath: true,
     extensionIds: [{ id: APEX_LANGUAGE_SERVER_EXTENSION_ID }],
     folderPath
   });
 };
 
-if (require.main === module) {
-  void main();
+if (import.meta.main) {
   setupSignalHandlers();
+  await main();
 }

@@ -62,7 +62,8 @@ export const createWebConfig = (options: WebConfigOptions) =>
       }
     ],
     webServer: {
-      command: 'tsx web/headlessServer.ts',
+      // Playwright runs this relative to the config file's directory, not process.cwd().
+      command: 'node web/headlessServer.mts',
       url: 'http://localhost:3001',
       timeout: 120 * 1000,
       // CI: always spawn headlessServer so runs are isolated. Local (`reuseExistingServer: !process.env.CI`): if 3001
