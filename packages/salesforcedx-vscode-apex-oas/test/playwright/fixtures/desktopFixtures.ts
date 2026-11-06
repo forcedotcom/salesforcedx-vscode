@@ -11,11 +11,10 @@ import {
   MINIMAL_ORG_ALIAS
 } from '@salesforce/playwright-vscode-ext';
 
-const A4V_EXTENSION_ID = 'salesforce.salesforcedx-einstein-gpt';
+const APEX_LANGUAGE_SERVER_EXTENSION_ID = 'salesforce.apex-language-server-extension';
 
 const baseExtensionDirs = [
   'salesforcedx-vscode-core',
-  'salesforcedx-vscode-apex',
   'salesforcedx-vscode-apex-log',
   'salesforcedx-vscode-metadata'
 ];
@@ -24,8 +23,9 @@ export const oasDesktopTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: MINIMAL_ORG_ALIAS,
   additionalExtensionDirs: baseExtensionDirs,
-  marketplaceExtensions: [A4V_EXTENSION_ID],
-  // Marketplace-installed A4V must load; --disable-extensions blocks it.
+  marketplaceExtensions: [APEX_LANGUAGE_SERVER_EXTENSION_ID],
+  minimumMarketplaceExtensionVersions: { [APEX_LANGUAGE_SERVER_EXTENSION_ID]: '0.12.0' },
+  // Marketplace-installed Apex LS must load; --disable-extensions blocks it.
   disableOtherExtensions: false,
   userSettings: {
     'salesforcedx-vscode-core.SF_LOG_LEVEL': 'debug',
@@ -34,17 +34,6 @@ export const oasDesktopTest = createDesktopTest({
     // so Playwright can click Overwrite/Manually-merge buttons. Native Electron dialogs are inaccessible.
     'window.dialogStyle': 'custom'
   }
-});
-
-// TODO: Unskip when OAS migrates off the A4V LLM service. A4V v4.0+ ("Agentforce Vibes",
-// marketplace id salesforce.salesforcedx-einstein-gpt, published 2026-06-13) dropped both the
-// `salesforcedx-einstein-gpt.isEnabled` context key (gates the OAS command's visibility) and the
-// `salesforcedx-einstein-gpt.getLLMServiceInstance` command / LLMService registration that OAS
-// generation invokes at runtime. The fixture installs A4V unpinned from the marketplace, so every
-// run now gets v4 and these specs hang waiting on a command that never appears. Skipping here (one
-// place — all 9 specs share this fixture) keeps CI green until OAS re-plumbs its LLM access.
-oasDesktopTest.beforeEach(() => {
-  oasDesktopTest.skip(true, 'A4V v4 removed the einstein-gpt isEnabled context key and LLMService — OAS commands unavailable');
 });
 
 // Match metadata specs: close editors at end so the next test starts clean and final state is tidy.

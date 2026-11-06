@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { enumeration, schema, truthy, undefined } from '@stoplight/spectral-functions';
+import { schema, truthy, undefined } from '@stoplight/spectral-functions';
 import { oas } from '@stoplight/spectral-rulesets';
 
 const ruleset = {
@@ -90,7 +90,7 @@ const ruleset = {
               patternProperties: {
                 url: {
                   type: 'string',
-                  pattern: '(/services/apexrest|/aura-controllers/custom)'
+                  pattern: '/aura-controllers/custom'
                 }
               }
             },
@@ -99,27 +99,6 @@ const ruleset = {
           }
         }
       }
-    },
-    'security-schemes': {
-      description: 'Apex REST supports these authentication mechanisms: Type: OAuth2 or Type: HTTP, Scheme: Bearer',
-      given: '$.components.securitySchemes.*',
-      message: 'Apex REST supports these authentication mechanisms: Type: OAuth2 or Type: HTTP, Scheme: Bearer',
-      then: [
-        {
-          field: 'type',
-          function: enumeration,
-          functionOptions: {
-            values: ['OAuth2', 'HTTP']
-          }
-        },
-        {
-          field: 'scheme',
-          function: enumeration,
-          functionOptions: {
-            values: ['Bearer']
-          }
-        }
-      ]
     },
     'paths-method-description': {
       description: 'paths.<method>.description is required',

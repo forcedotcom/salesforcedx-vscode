@@ -70,8 +70,7 @@
       "outFiles": ["${workspaceFolder}/packages/*/out/src/**/*.js", "${workspaceFolder}/packages/*/dist/**/*.js"],
       "env": {
         "LANGUAGE_SERVER_LOG_LEVEL": "${env:LANGUAGE_SERVER_LOG_LEVEL}",
-        "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}",
-        "APEX_LS_MODE": "development"
+        "SUSPEND_LANGUAGE_SERVER_STARTUP": "${env:SUSPEND_LANGUAGE_SERVER_STARTUP}"
       },
       "preLaunchTask": "Bundle then Select All Extensions",
       "resolveSourceMapLocations": [

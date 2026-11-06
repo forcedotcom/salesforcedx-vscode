@@ -19,12 +19,7 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { stringify } from 'yaml';
 import { nls } from '../messages/nls';
-import {
-  createProblemTabEntriesForOasDocument,
-  getCurrentTimestamp,
-  hasValidRestAnnotations,
-  hasAuraFrameworkCapability
-} from '../oasUtils';
+import { createProblemTabEntriesForOasDocument, getCurrentTimestamp } from '../oasUtils';
 
 /** @ExportTaggedError */
 export class EsrPathResolutionFailed extends Data.TaggedError('EsrPathResolutionFailed')<{
@@ -55,22 +50,7 @@ export const buildESRYaml = Effect.fn('ApexOas.Esr.buildESRYaml')(function* (esr
   yield* api.services.FsService.writeFile(esrYamlPath, safeOasSpec);
 });
 
-/**
- * Determines the provider type based on the annotations in the context.
- * @param context - The context containing class and method details with annotations
- * @returns
- * "ApexRest" if class has RestResource annotation and methods have Http* annotations,
- * "AuraEnabled" if no class annotation and methods have AuraEnabled annotations,
- * or undefined if neither pattern matches
- */
-const determineProviderType = (context?: ProcessorInputOutput['context']): string | undefined => {
-  if (!context) return undefined;
-  // ApexRest: has class RestResource annotation AND at least one Http* method annotation
-  if (hasValidRestAnnotations(context)) return 'ApexRest';
-  // AuraEnabled: no class annotation AND at least one AuraEnabled method annotation
-  if (hasAuraFrameworkCapability(context)) return 'AuraEnabled';
-  return undefined;
-};
+const AURA_ENABLED_PROVIDER_TYPE = 'AuraEnabled';
 
 /**
  * Cleans a description string by normalizing newlines and whitespace.
@@ -273,7 +253,12 @@ export const buildESRXml = Effect.fn('ApexOas.Esr.buildESRXml')(function* (
     if (parsed.ExternalServiceRegistration?.schema) {
       return {
         ...parsed,
-        ExternalServiceRegistration: { ...parsed.ExternalServiceRegistration, schema: safeOasSpec, operations }
+        ExternalServiceRegistration: {
+          ...parsed.ExternalServiceRegistration,
+          registrationProviderType: AURA_ENABLED_PROVIDER_TYPE,
+          schema: safeOasSpec,
+          operations
+        }
       };
     }
     return { ...esrObject, ExternalServiceRegistration: { ...esrObject.ExternalServiceRegistration, operations } };
@@ -338,7 +323,7 @@ export const generateEsrMD = Effect.fn('ApexOas.Esr.generateEsrMD')(function* (
     overwrite: fullPath[0] === fullPath[1],
     originalPath: fullPath[0],
     newPath: fullPath[1],
-    providerType: determineProviderType(processedOasResult.context)
+    providerType: AURA_ENABLED_PROVIDER_TYPE
   };
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;

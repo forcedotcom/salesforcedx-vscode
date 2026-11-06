@@ -7,6 +7,8 @@
 
 import { createDesktopTest, MINIMAL_ORG_ALIAS } from '@salesforce/playwright-vscode-ext';
 
+const APEX_LANGUAGE_SERVER_EXTENSION_ID = 'salesforce.apex-language-server-extension';
+
 export const desktopTest = createDesktopTest({
   fixturesDir: __dirname,
   orgAlias: MINIMAL_ORG_ALIAS,
@@ -16,6 +18,8 @@ export const desktopTest = createDesktopTest({
     'salesforcedx-vscode-apex-testing',
     'salesforcedx-vscode-metadata'
   ],
+  marketplaceExtensions: [APEX_LANGUAGE_SERVER_EXTENSION_ID],
+  minimumMarketplaceExtensionVersions: { [APEX_LANGUAGE_SERVER_EXTENSION_ID]: '0.12.0' },
   disableOtherExtensions: false,
   userSettings: {
     'git.terminalAuthentication': false,

@@ -11,7 +11,6 @@ import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import { JSONPath } from 'jsonpath-plus';
 import type { OpenAPIV3 } from 'openapi-types';
-import type { ApexClassOASEligibleResponse } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { OasValidationFailed } from '../../errors';
 import { nls } from '../../messages/nls';
@@ -21,13 +20,10 @@ const methodValidationDiagnosticCollection: vscode.DiagnosticCollection =
 
 const collectMethodMismatches = (
   oasYaml: OpenAPIV3.Document,
-  eligibilityResult: ApexClassOASEligibleResponse
+  eligibleMethodNames: readonly string[]
 ): vscode.Diagnostic[] => {
-  const symbols = eligibilityResult.symbols ?? [];
-  const methodNameValues = Arr.dedupe(
-    symbols.filter(symbol => symbol.isApexOasEligible).map(symbol => symbol.docSymbol.name)
-  );
-  const methodNames = HashSet.fromIterable(methodNameValues);
+  const methodNameValues = Arr.dedupe(eligibleMethodNames);
+  const methodNames = HashSet.fromIterable(eligibleMethodNames);
   // Use JSONPath to find all operationIds in the OAS document
   const operationIdValues = Arr.dedupe(JSONPath<string[]>({ path: '$..operationId', json: oasYaml }));
   const operationIds = HashSet.fromIterable(operationIdValues);
@@ -60,15 +56,14 @@ const collectMethodMismatches = (
 export const methodValidationStep = Effect.fn('ApexOas.Process.methodValidation')(function* (
   input: ProcessorInputOutput
 ) {
-  if (!input.eligibilityResult) {
+  if (!input.eligibleMethodNames) {
     yield* Effect.logDebug('skipping methodValidationStep as no eligibility results passed');
     return input;
   }
-  const symbols = input.eligibilityResult.symbols ?? [];
-  if (symbols.length === 0) {
+  if (input.eligibleMethodNames.length === 0) {
     return yield* new OasValidationFailed({ message: nls.localize('no_eligible_method') });
   }
   methodValidationDiagnosticCollection.clear();
-  const diagnostics = collectMethodMismatches(input.openAPIDoc, input.eligibilityResult);
+  const diagnostics = collectMethodMismatches(input.openAPIDoc, input.eligibleMethodNames);
   return { ...input, errors: [...input.errors, ...diagnostics] };
 });

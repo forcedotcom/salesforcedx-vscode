@@ -12,6 +12,7 @@ import type { URI } from 'vscode-uri';
 import { createApexAction } from './commands/apexActionController';
 import { validateOpenApiDocument } from './commands/oasDocumentChecker';
 import { nls } from './messages/nls';
+import { ensureApexLsAvailable } from './services/apexMetadataService';
 import { buildAllServicesLayer, getApexOasRuntime, setAllServicesLayer } from './services/extensionProvider';
 
 export const activate = async (_context: vscode.ExtensionContext) => {
@@ -22,6 +23,15 @@ export const activate = async (_context: vscode.ExtensionContext) => {
 
 const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex-oas')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const apexLsAvailable = yield* ensureApexLsAvailable().pipe(
+    Effect.as(true),
+    Effect.catchAll(error =>
+      Effect.logWarning('OAS commands were not registered because Apex Language Server is unavailable', { error }).pipe(
+        Effect.as(false)
+      )
+    )
+  );
+  if (!apexLsAvailable) return;
   // Create registerCommand pre-loaded with the runtime for proper tracing
   const registerCommand = api.services.registerCommandWithRuntime(getApexOasRuntime());
   yield* Effect.all(

@@ -14,21 +14,15 @@ const activate = async () => {
       const extension = vscode.extensions.getExtension('salesforce.salesforcedx-vscode-apex-oas');
       assert.ok(extension, 'Packaged Apex OAS extension must be installed');
       assert.equal(extension.packageJSON.main, './dist/index.js');
-      const [entryPoint, template] = await Promise.all([
-        vscode.workspace.fs.readFile(vscode.Uri.joinPath(extension.extensionUri, 'dist', 'index.js')),
-        vscode.workspace.fs.readFile(
-          vscode.Uri.joinPath(extension.extensionUri, 'resources', 'templates', 'methodByMethod.ejs')
-        )
-      ]);
+      const entryPoint = await vscode.workspace.fs.readFile(vscode.Uri.joinPath(extension.extensionUri, 'dist', 'index.js'));
       assert.ok(entryPoint.byteLength > 0, 'Packaged entry point must not be empty');
-      assert.ok(template.byteLength > 0, 'Packaged EJS template must not be empty');
 
       await extension.activate();
       assert.equal(extension.isActive, true, 'Packaged Apex OAS activation must complete');
       const commands = await vscode.commands.getCommands(true);
       assert.ok(commands.includes('sf.create.apex.action.class'), 'Generation command must register');
       assert.ok(commands.includes('sf.validate.oas.document'), 'Validation command must register');
-      // Invalid input exercises the registered handler without an org or LLM service.
+      // Invalid input exercises the registered handler without an org.
       await vscode.commands.executeCommand('sf.validate.oas.document', []);
       return { extensionPath: extension.extensionPath };
     } catch (error) {
