@@ -90,11 +90,7 @@ export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeEx
   }
 
   yield* channel.appendToChannel(
-    nls.localize(
-      'pending_org_expiration_output_channel_message',
-      DAYS_BEFORE_EXPIRE,
-      Chunk.toArray(results).join('\n\n')
-    )
+    nls.localize('pending_org_expiration_output_channel_message', DAYS_BEFORE_EXPIRE, Chunk.join('\n\n')(results))
   );
 
   // Runs unbidden (forkDaemon), so must not reveal the channel: focus-out cancels an open picker.

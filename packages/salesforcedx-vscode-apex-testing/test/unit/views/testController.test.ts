@@ -7,6 +7,7 @@
 
 vi.mock('../../../src/services/extensionProvider', async () => {
   const EffectLib = await vi.importActual<typeof Effect>('effect/Effect');
+  const Context = await vi.importActual<typeof ContextModule>('effect/Context');
   const SubscriptionRef = await vi.importActual<typeof SubscriptionRefModule>('effect/SubscriptionRef');
   const Layer = await vi.importActual<typeof LayerModule>('effect/Layer');
   const ManagedRuntime = await vi.importActual<typeof ManagedRuntimeModule>('effect/ManagedRuntime');
@@ -30,7 +31,7 @@ vi.mock('../../../src/services/extensionProvider', async () => {
   let mockOrgId: string | undefined = 'org123';
   let mockReadFileResult = '';
   let mockWorkspaceUris = new Map<string, ReturnType<typeof UriClass.parse>>();
-  const mockReadFile = vi.fn(() => EffectLib.succeed(mockReadFileResult));
+  const mockReadFile = vi.fn((_path: string | URI) => EffectLib.succeed(mockReadFileResult));
   const mockMetadataRetrieve = vi.fn((_members: unknown, _options: unknown) =>
     EffectLib.succeed({ getFileResponses: () => [] })
   );
@@ -58,11 +59,12 @@ vi.mock('../../../src/services/extensionProvider', async () => {
   };
   const mockFsService = {
     readFile: mockReadFile,
-    createDirectory: () => EffectLib.void,
-    safeDelete: () => EffectLib.void,
-    safeWriteFile: () => EffectLib.void,
-    writeFile: () => EffectLib.void,
-    toUri: (filePath: string) => EffectLib.succeed(UriClass.parse(`memfs:${filePath}`)),
+    createDirectory: (_filePath: string | URI) => EffectLib.void,
+    safeDelete: (_filePath: string) => EffectLib.void,
+    safeWriteFile: (_filePath: string | URI, _content: string) => EffectLib.void,
+    writeFile: (_filePath: string | URI, _content: string) => EffectLib.void,
+    toUri: (filePath: string | URI) =>
+      EffectLib.succeed(typeof filePath === 'string' ? UriClass.parse(`memfs:${filePath}`) : filePath),
     // accessor form: `yield* api.services.FsService.HashableUri` resolves the value namespace.
     HashableUri: EffectLib.succeed(HashableUri),
     showTextDocument: (uri: unknown, options?: unknown) =>
@@ -82,10 +84,25 @@ vi.mock('../../../src/services/extensionProvider', async () => {
     showSuccessNotification: mockShowSuccessNotification,
     getProgressLocation: vi.fn(() => EffectLib.succeed(vscodeMock.ProgressLocation.Window))
   };
+  const FsServiceTag = Context.GenericTag<typeof mockFsService>('FsService');
+  const MockFsService = Object.assign(FsServiceTag, {
+    readFile: (filePath: string | URI) => EffectLib.flatMap(FsServiceTag, fsService => fsService.readFile(filePath)),
+    createDirectory: (filePath: string | URI) =>
+      EffectLib.flatMap(FsServiceTag, fsService => fsService.createDirectory(String(filePath))),
+    safeDelete: (filePath: string) => EffectLib.flatMap(FsServiceTag, fsService => fsService.safeDelete(filePath)),
+    safeWriteFile: (filePath: string | URI, content: string) =>
+      EffectLib.flatMap(FsServiceTag, fsService => fsService.safeWriteFile(filePath, content)),
+    writeFile: (filePath: string | URI, content: string) =>
+      EffectLib.flatMap(FsServiceTag, fsService => fsService.writeFile(filePath, content)),
+    toUri: (filePath: string) => EffectLib.flatMap(FsServiceTag, fsService => fsService.toUri(filePath)),
+    HashableUri: mockFsService.HashableUri,
+    showTextDocument: (uri: unknown, options?: unknown) =>
+      EffectLib.flatMap(FsServiceTag, fsService => fsService.showTextDocument(uri, options))
+  });
   const mockServicesApi = {
     services: {
       ConnectionService: MockConnectionService,
-      FsService: mockFsService,
+      FsService: MockFsService,
       // Yielded as an instance in the execution service (yield* api.services.ChannelService), so wrap in
       // Effect.succeed — same seam as testReportGenerator.test.ts.
       ChannelService: EffectLib.succeed(mockChannelService),
@@ -111,14 +128,17 @@ vi.mock('../../../src/services/extensionProvider', async () => {
       TargetOrgRef: () => SubscriptionRef.make({ orgId: mockOrgId, username: 'user@example.com' })
     }
   };
-  const ExtensionProviderLayer = Layer.effect(
-    ExtensionProviderService,
-    EffectLib.sync(
-      () =>
-        ({
-          getServicesApi: EffectLib.succeed(mockServicesApi)
-        }) as unknown as EffectExtUtils.ExtensionProviderService
-    )
+  const ExtensionProviderLayer = Layer.mergeAll(
+    Layer.effect(
+      ExtensionProviderService,
+      EffectLib.sync(
+        () =>
+          ({
+            getServicesApi: EffectLib.succeed(mockServicesApi)
+          }) as unknown as EffectExtUtils.ExtensionProviderService
+      )
+    ),
+    Layer.succeed(FsServiceTag, mockFsService)
   );
   // ApexTestTreeService owns the tree Refs; the shell reads them via this runtime, so the mock runtime
   // must provide its Default layer. Built lazily (not at module-eval) to avoid the import cycle
@@ -215,6 +235,7 @@ vi.mock('@salesforce/apex-node', () => ({
 
 import type { Mock as VitestMock, MockInstance as VitestMockInstance } from 'vitest';
 import type * as EffectExtUtils from '@salesforce/effect-ext-utils';
+import type * as ContextModule from 'effect/Context';
 import type * as SubscriptionRefModule from 'effect/SubscriptionRef';
 import type * as LayerModule from 'effect/Layer';
 import type * as ManagedRuntimeModule from 'effect/ManagedRuntime';
@@ -225,7 +246,8 @@ import type * as ApexTestTree from '../../../src/views/apexTestTreeService';
 import type * as ApexTestExecution from '../../../src/views/apexTestExecutionService';
 import type * as TestUtils from '../../../src/utils/testUtils';
 import * as path from 'node:path';
-import { type TestResult, TestService } from '@salesforce/apex-node';
+import { TestService } from '@salesforce/apex-node';
+import { TestResultSchema } from '@salesforce/apex-node/effect';
 import { URI } from 'vscode-uri';
 import * as vscode from 'vscode';
 import * as testDiscovery from '../../../src/testDiscovery/testDiscovery';
@@ -239,6 +261,35 @@ import { ApexTestTreeService } from '../../../src/views/apexTestTreeService';
 import { ApexTestController, getTestController } from '../../../src/views/testController';
 
 class MockFailure extends Schema.TaggedError<MockFailure>()('MockFailure', { message: Schema.String }) {}
+
+const makeTestResult = () =>
+  Schema.decodeUnknownSync(TestResultSchema)({
+    tests: [
+      {
+        apexClass: { name: 'TestClass1', fullName: 'TestClass1', namespacePrefix: null },
+        methodName: 'testMethod1',
+        fullName: 'TestClass1.testMethod1',
+        outcome: 'Pass',
+        runTime: 100
+      }
+    ],
+    summary: {
+      failRate: '0%',
+      testsRan: 1,
+      orgId: '00D3t000001vIruEAE',
+      outcome: 'Passed',
+      passing: 1,
+      failing: 0,
+      skipped: 0,
+      passRate: '100%',
+      skipRate: '0%',
+      testStartTime: '2026-01-02T03:04:05.000Z',
+      testExecutionTimeInMs: 100,
+      testTotalTimeInMs: 100,
+      commandTimeInMs: 0,
+      hostname: 'localhost'
+    }
+  });
 
 // The tree maps live in ApexTestTreeService Refs; read the live Map through the mock runtime (same path
 // the production module accessors use) to seed test state.
@@ -976,17 +1027,7 @@ describe('ApexTestController', () => {
 
   describe('onResultFileCreate', () => {
     it('should update test results from file', async () => {
-      const testResult = {
-        tests: [
-          {
-            apexClass: { name: 'TestClass1', namespacePrefix: null },
-            methodName: 'testMethod1',
-            outcome: 'Pass',
-            runTime: 100
-          }
-        ],
-        summary: { testsRan: 1, passing: 1, failing: 0 }
-      } as unknown as TestResult;
+      const testResult = makeTestResult();
 
       (extensionProvider as unknown as { __setMockReadFileResult: (s: string) => void }).__setMockReadFileResult(
         JSON.stringify(testResult)
@@ -996,7 +1037,7 @@ describe('ApexTestController', () => {
       (mockTestController.createTestItem as VitestMock).mockReturnValue(mockTestItem);
 
       const apexTestDir = URI.file('/tmp');
-      const testResultUri = URI.file(path.join(apexTestDir.fsPath, 'test-result.json'));
+      const testResultUri = URI.file(path.join(apexTestDir.fsPath, 'test-result-default.json'));
       await controller.onResultFileCreate(apexTestDir, testResultUri);
 
       expect(
@@ -1016,17 +1057,7 @@ describe('ApexTestController', () => {
       (mockTestController.createTestRun as VitestMock).mockReturnValue(mockTestRun);
       (mockTestController.createTestItem as VitestMock).mockReturnValue(mockTestItem1);
 
-      const testResult = {
-        tests: [
-          {
-            apexClass: { name: 'TestClass1', namespacePrefix: null },
-            methodName: 'testMethod1',
-            outcome: 'Pass',
-            runTime: 100
-          }
-        ],
-        summary: { testsRan: 1, passing: 1, failing: 0 }
-      } as unknown as TestResult;
+      const testResult = makeTestResult();
 
       mockTestServiceMethods.runTestAsynchronous.mockResolvedValue(testResult);
 

@@ -20,6 +20,7 @@ import { CancellationTokenSource, type Progress } from 'vscode';
 import { type URI } from 'vscode-uri';
 import { APEX_TESTING_SECTION } from '../constants';
 import { nls } from '../messages';
+import { fileOutputFromFsService } from '../services/fsServiceFileOutput';
 import { writeAndOpenTestReport } from '../utils/testReportGenerator';
 import { writeTestResultJsonFile } from '../utils/testUtils';
 
@@ -142,7 +143,11 @@ export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTe
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const connection = yield* api.services.ConnectionService.getConnection();
-  const testService = new TestService(connection);
+  const fsService = process.env.ESBUILD_PLATFORM === 'web' ? yield* api.services.FsService : undefined;
+  const testService =
+    fsService === undefined
+      ? new TestService(connection)
+      : new TestService(connection, fileOutputFromFsService(fsService));
 
   // Bridge the fiber's interruption (e.g. user clicks Cancel on the progress notification) to a
   // vscode CancellationToken so apex-node stops polling the org server-side, not just the UI.

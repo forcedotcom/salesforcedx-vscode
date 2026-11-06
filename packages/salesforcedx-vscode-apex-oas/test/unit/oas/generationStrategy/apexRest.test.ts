@@ -9,6 +9,7 @@ import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
+import * as Option from 'effect/Option';
 import * as TestClock from 'effect/TestClock';
 import * as TestContext from 'effect/TestContext';
 import { LLMConnectionFailed } from '../../../../src/errors';
@@ -79,7 +80,7 @@ describe('callLLMWithRetry', () => {
 
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) {
-      const error = Exit.causeOption(exit).pipe(opt => (opt._tag === 'Some' ? opt.value : undefined));
+      const error = Exit.causeOption(exit).pipe(Option.match({ onNone: () => undefined, onSome: cause => cause }));
       expect(String(error)).toContain('LLMRetriesExhausted');
     }
     expect(callLLM).toHaveBeenCalledTimes(6);
@@ -98,7 +99,7 @@ describe('callLLMWithRetry', () => {
 
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) {
-      const error = Exit.causeOption(exit).pipe(opt => (opt._tag === 'Some' ? opt.value : undefined));
+      const error = Exit.causeOption(exit).pipe(Option.match({ onNone: () => undefined, onSome: cause => cause }));
       // A connection error is treated as transient: retried, then wrapped so the per-method handler degrades
       // it to empty content. The original reason rides along in the exhaustion message.
       expect(String(error)).toContain('LLMRetriesExhausted');

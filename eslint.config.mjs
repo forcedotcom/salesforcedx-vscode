@@ -189,6 +189,7 @@ export default [
       'local/inline-single-use-yield-binding': 'error',
       'local/no-nested-effect-gen-catch-tags': 'error',
       'local/no-nested-effect-ternary': 'error',
+      'local/no-option-tag': 'error',
       'local/require-effect-fn-span-name': 'error',
       'local/no-raw-duration': 'error',
       'local/no-schema-is-throw-guard': 'error',

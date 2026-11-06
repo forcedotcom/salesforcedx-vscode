@@ -83,6 +83,7 @@
         "../../scripts/vscodeMock.ts",
         "test/fixtures/no-raw-duration/tsconfig.json",
         "test/fixtures/no-standalone-pipeable-value/tsconfig.json",
+        "test/fixtures/no-option-tag/tsconfig.json",
         "test/fixtures/no-pass-through-exports/package.json",
         "test/fixtures/no-pass-through-exports/tsconfig.json",
         "test/fixtures/no-pass-through-exports/no-exports/package.json"
