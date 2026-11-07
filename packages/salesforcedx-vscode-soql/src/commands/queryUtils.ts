@@ -9,7 +9,7 @@ import { getServicesApi, getMessageFromError } from '@salesforce/effect-ext-util
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isError } from 'effect/Predicate';
+import { isError, isNullable } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { prepareQuery } from '../prepareQuery';
@@ -77,7 +77,9 @@ export const formatErrorMessage = (error: unknown): string => {
     ? getMessageFromError(error)
     : error && typeof error === 'object' && 'message' in error
       ? String(error.message)
-      : getMessageFromError(error);
+      : isNullable(error)
+        ? String(error)
+        : getMessageFromError(error);
   return Arr.findFirst(ERROR_PATTERNS, ({ match }) => match(errorString)).pipe(
     Option.match({
       onNone: () => nls.localize('data_query_error_message', errorString),
