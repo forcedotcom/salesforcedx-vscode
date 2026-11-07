@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getMessageFromError } from '@salesforce/effect-ext-utils';
+import { getMessageFromError } from '@salesforce/effect-ext-utils/utils';
 import * as path from 'node:path';
 import {
   type Connection,
