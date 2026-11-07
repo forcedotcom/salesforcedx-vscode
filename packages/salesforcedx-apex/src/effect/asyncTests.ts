@@ -6,7 +6,7 @@
  */
 
 import type { Connection } from '@salesforce/core';
-import { getErrorMessage as causeMessage } from '@salesforce/salesforcedx-utils';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
@@ -51,7 +51,8 @@ export type AsyncTestRun = {
 const request = <A>(action: () => PromiseLike<A>) =>
   Effect.tryPromise({
     try: action,
-    catch: cause => new ApexOperationError({ operation, message: causeMessage(cause), cause: causeMessage(cause) })
+    catch: cause =>
+      new ApexOperationError({ operation, message: getErrorMessage(cause), cause: getErrorMessage(cause) })
   });
 
 const decode = <A, I>(schema: Schema.Schema<A, I>, response: unknown) =>
@@ -61,7 +62,7 @@ const decode = <A, I>(schema: Schema.Schema<A, I>, response: unknown) =>
         new ApexResponseDecodeError({
           operation,
           message: 'Invalid asynchronous test response',
-          cause: causeMessage(cause)
+          cause: getErrorMessage(cause)
         })
     )
   );

@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { getErrorMessage } from '@salesforce/salesforcedx-utils';
+import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
+
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
 import { ConfigRefreshError, updateConfigAndStateAggregators } from '../../util/orgUtil';
@@ -47,6 +47,6 @@ export const orgLoginAccessTokenCommand = Effect.fn('orgLoginAccessTokenCommand'
   yield* Effect.annotateCurrentSpan('instanceUrl', instanceUrl);
   yield* Effect.tryPromise({
     try: () => updateConfigAndStateAggregators(),
-    catch: e => new ConfigRefreshError({ message: getErrorMessage(e) })
+    catch: e => new ConfigRefreshError({ message: getMessageFromError(e) })
   });
 });

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getErrorMessage } from '@salesforce/salesforcedx-utils';
+import { getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
 import { isError, isRecord, isString, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
@@ -132,7 +132,7 @@ const readSfdxProjectConfig = async (
     };
   } catch (e) {
     // JSON parsing errors are real problems - throw them
-    const errorMessage = getErrorMessage(e);
+    const errorMessage = getMessageFromError(e);
     throw new Error(nls.localize('sfdx_project_file_invalid_message', configPath, errorMessage));
   }
 };
@@ -513,7 +513,7 @@ export abstract class BaseWorkspaceContext {
 
         await this.fileSystemAccessor.updateFileContent(jsconfigPath, jsconfigContent);
       } catch (error) {
-        console.error(`writeSfdxJsconfig: Error reading/writing jsconfig: ${getErrorMessage(error)}`);
+        console.error(`writeSfdxJsconfig: Error reading/writing jsconfig: ${getMessageFromError(error)}`);
         if (isError(error)) {
           console.error(`Stack: ${error.stack}`);
         }

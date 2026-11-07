@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { getMessageFromError } from '@salesforce/effect-ext-utils';
 import {
   ApplyWorkspaceEditRequest,
   handleApplyEditWithFs
 } from '@salesforce/salesforcedx-lightning-lsp-common/applyEditHandler';
-import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import { window, workspace } from 'vscode';
 import { LanguageClient, type LanguageClientOptions, RevealOutputChannelOn } from 'vscode-languageclient/browser';
 import type { URI } from 'vscode-uri';
@@ -48,7 +48,7 @@ export const createLanguageClient = (
       }
     };
   } catch (error) {
-    const errorMsg = `[LWC] Failed to create web worker: ${getErrorMessage(error)}`;
+    const errorMsg = `[LWC] Failed to create web worker: ${getMessageFromError(error)}`;
     appendToChannel(errorMsg);
     appendToChannel(`Server path: ${serverPath}`);
     throw new Error(errorMsg);

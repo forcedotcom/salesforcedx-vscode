@@ -7,7 +7,7 @@
 
 import type { HttpRequest } from '@jsforce/jsforce-node';
 import type { Connection } from '@salesforce/core';
-import { getErrorMessage as causeMessage } from '@salesforce/salesforcedx-utils';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
@@ -35,8 +35,8 @@ import {
 const operation = 'executeAnonymous';
 const optionalLogBody = (logBody: string | undefined) => (isUndefined(logBody) ? {} : { logBody });
 
-const operationError = (cause: unknown, message = causeMessage(cause)): ApexOperationError =>
-  new ApexOperationError({ operation, message, cause: causeMessage(cause) });
+const operationError = (cause: unknown, message = getErrorMessage(cause)): ApexOperationError =>
+  new ApexOperationError({ operation, message, cause: getErrorMessage(cause) });
 
 // Tooling REST would require separate trace-flag, execution, and log-retrieval calls.
 const buildRequest = (connection: Connection, code: string): HttpRequest => {
@@ -61,7 +61,7 @@ const parseResponse = (response: unknown) =>
         new ApexResponseDecodeError({
           operation,
           message: 'Invalid execute anonymous SOAP response',
-          cause: causeMessage(cause)
+          cause: getErrorMessage(cause)
         })
       )
     )
@@ -103,8 +103,8 @@ const sendRequest = (connection: Connection, code: string) =>
     try: () => connection.request<unknown>(buildRequest(connection, code)),
     catch: cause =>
       isInvalidSessionError(cause)
-        ? new InvalidSessionError({ message: causeMessage(cause) })
-        : new ApexRequestError({ message: causeMessage(cause) })
+        ? new InvalidSessionError({ message: getErrorMessage(cause) })
+        : new ApexRequestError({ message: getErrorMessage(cause) })
   });
 
 /** Executes anonymous Apex and exposes compilation/runtime failures as typed errors. */

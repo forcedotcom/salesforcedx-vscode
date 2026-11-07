@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getErrorMessage } from '@salesforce/salesforcedx-utils';
+import { getMessageFromError } from '@salesforce/effect-ext-utils';
 import { isError, isNotUndefined, isRecord, isString } from 'effect/Predicate';
 import { nls } from '../messages';
 
@@ -46,7 +46,7 @@ const getMessageFromObject = (obj: object): string | undefined => {
 
 const getRawMessage = (error: unknown): string => {
   if (isError(error) || isString(error)) {
-    return getErrorMessage(error);
+    return getMessageFromError(error);
   }
   if (isRecord(error)) {
     const msg = getMessageFromObject(error);
@@ -71,7 +71,7 @@ const getRawMessage = (error: unknown): string => {
       }
     }
   }
-  return getErrorMessage(error);
+  return getMessageFromError(error);
 };
 
 /**

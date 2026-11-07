@@ -18,7 +18,7 @@ import {
   type Tool
 } from '@modelcontextprotocol/sdk/types.js';
 import { redactValue } from '@salesforce/playwright-vscode-ext';
-import { getErrorMessage as causeMessage } from '@salesforce/salesforcedx-utils';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -203,7 +203,7 @@ export const createDrivableVscodeMcpServer = (
         catch: cause =>
           new DrivableVscodeMcpShutdownError({
             message: 'Failed to finish drivable VS Code session',
-            cause: causeMessage(cause)
+            cause: getErrorMessage(cause)
           })
       })
     );
@@ -211,7 +211,7 @@ export const createDrivableVscodeMcpServer = (
       Effect.tryPromise({
         try: () => server.close(),
         catch: cause =>
-          new DrivableVscodeMcpShutdownError({ message: 'Failed to close MCP server', cause: causeMessage(cause) })
+          new DrivableVscodeMcpShutdownError({ message: 'Failed to close MCP server', cause: getErrorMessage(cause) })
       })
     );
     yield* Scope.close(handlerScope, Exit.void);
@@ -220,7 +220,7 @@ export const createDrivableVscodeMcpServer = (
     if (failures.length > 0) {
       return yield* new DrivableVscodeMcpShutdownError({
         message: 'Failed to shut down drivable VS Code MCP server',
-        cause: failures.map(failure => causeMessage(failure.cause)).join('\n')
+        cause: failures.map(failure => getErrorMessage(failure.cause)).join('\n')
       });
     }
   });
@@ -234,7 +234,7 @@ export const shutdownDrivableVscodeMcpServer = (server: Server): ServerShutdown 
   Effect.tryPromise({
     try: () => server.close(),
     catch: cause =>
-      new DrivableVscodeMcpShutdownError({ message: 'Failed to close MCP server', cause: causeMessage(cause) })
+      new DrivableVscodeMcpShutdownError({ message: 'Failed to close MCP server', cause: getErrorMessage(cause) })
   });
 
 const serverProgram = Effect.fn('McpServer.serverProgram')(function* () {

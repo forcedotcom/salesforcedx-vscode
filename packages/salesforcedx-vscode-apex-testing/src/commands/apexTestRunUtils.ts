@@ -11,8 +11,8 @@ import {
   type TestResult,
   TestService
 } from '@salesforce/apex-node';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { getErrorMessage } from '@salesforce/salesforcedx-utils';
+import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
+
 import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
@@ -128,11 +128,11 @@ export class ApexTestRunError extends Schema.TaggedError<ApexTestRunError>()('Ap
 const rejectionMessages = (error: unknown): readonly string[] =>
   isError(error)
     ? [
-        getErrorMessage(error),
+        getMessageFromError(error),
         ...(isError(error.cause) ? rejectionMessages(error.cause) : []),
         ...(error instanceof AggregateError ? error.errors.flatMap((nested: unknown) => rejectionMessages(nested)) : [])
       ]
-    : [getErrorMessage(error)];
+    : [getMessageFromError(error)];
 
 /** Runs Apex tests and writes results. Returns the completed (or soft-failed) test result plus the
  * generated report's location/format for callers to wire into a success toast's "Open Report" action.

@@ -28,7 +28,6 @@
     "Programming Languages"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils": "*",
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/salesforcedx-lightning-lsp-common": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
@@ -77,7 +76,6 @@
       "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
-        "../salesforcedx-utils:compile",
         "../effect-ext-utils:compile",
         "../salesforcedx-vscode-i18n:compile",
         "../salesforcedx-lwc-language-server:compile",

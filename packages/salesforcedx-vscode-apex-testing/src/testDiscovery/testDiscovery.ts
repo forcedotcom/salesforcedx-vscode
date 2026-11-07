@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { getErrorMessage } from '@salesforce/salesforcedx-utils';
+import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
+
 import * as Array from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
@@ -78,7 +78,7 @@ export const discoverTests = (options: DiscoverTestsOptions = {}) =>
                 connection.request<ToolingTestsPage>({ method: 'GET', url: urlToFetch, headers: requestHeaders }),
               catch: (error): TestDiscoveryFetchError =>
                 new TestDiscoveryFetchError({
-                  message: nls.localize('apex_test_discovery_fetch_failed_message', getErrorMessage(error))
+                  message: nls.localize('apex_test_discovery_fetch_failed_message', getMessageFromError(error))
                 })
             })
           );

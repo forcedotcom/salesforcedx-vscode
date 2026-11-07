@@ -9,7 +9,7 @@ import type { DrivableVscodeExtension } from './schemas';
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
 import { prepareVsixExtensions } from '@salesforce/playwright-vscode-ext';
-import { getErrorMessage as causeMessage } from '@salesforce/salesforcedx-utils';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Schema from 'effect/Schema';
@@ -52,7 +52,7 @@ export class ExtensionService extends Effect.Service<ExtensionService>()('Drivab
           cause =>
             new DrivableVscodeExtensionError({
               message: 'Failed to resolve canonical development extensions',
-              cause: causeMessage(cause)
+              cause: getErrorMessage(cause)
             })
         )
       );
@@ -74,7 +74,7 @@ export class ExtensionService extends Effect.Service<ExtensionService>()('Drivab
         catch: cause =>
           new DrivableVscodeExtensionError({
             message: 'Failed to prepare canonical VSIX extensions',
-            cause: causeMessage(cause)
+            cause: getErrorMessage(cause)
           })
       });
       const directoryById = new Map(

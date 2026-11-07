@@ -5,8 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { getErrorMessage } from '@salesforce/salesforcedx-utils';
+import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
+
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -117,7 +117,7 @@ export const sourceDiffCommand = Effect.fn('sourceDiff')(function* (
     Effect.catchAll((error: unknown) =>
       Effect.gen(function* () {
         const channelService = yield* api.services.ChannelService;
-        const errorMessage = getErrorMessage(error);
+        const errorMessage = getMessageFromError(error);
         yield* channelService.appendToChannel(`Diff failed: ${errorMessage}`);
         yield* channelService.getChannel.pipe(Effect.map(channel => channel.show()));
         yield* Effect.sync(() => {

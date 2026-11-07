@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
+import { getMessageFromError } from './utils';
 
 /** On the error channel of `getExtensionExports`. @ExportTaggedError */
 export class ExtensionNotFoundError extends Schema.TaggedError<ExtensionNotFoundError>()('ExtensionNotFoundError', {
@@ -41,7 +41,7 @@ const getRawExtensionExports = (extId: string) =>
             catch: cause =>
               new ExtensionActivationError({
                 extId,
-                message: `Failed to activate extension '${extId}': ${getErrorMessage(cause)}`,
+                message: `Failed to activate extension '${extId}': ${getMessageFromError(cause)}`,
                 cause
               })
           })

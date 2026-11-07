@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { CallableSchema, getExtensionExports } from '@salesforce/effect-ext-utils';
-import { getErrorMessage } from '@salesforce/salesforcedx-utils';
+import { CallableSchema, getExtensionExports, getMessageFromError } from '@salesforce/effect-ext-utils';
+
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
@@ -39,7 +39,7 @@ export const getActiveApexExtension = Effect.fn('ApexDebugger.getActiveApexExten
     Effect.catchTags({
       ExtensionNotFoundError: () => Effect.fail(new ApexExtensionUnavailable({ message: 'Apex extension not found' })),
       ExtensionActivationError: ({ cause }) =>
-        Effect.fail(new ApexExtensionUnavailable({ message: getErrorMessage(cause) }))
+        Effect.fail(new ApexExtensionUnavailable({ message: getMessageFromError(cause) }))
     })
   )
 );

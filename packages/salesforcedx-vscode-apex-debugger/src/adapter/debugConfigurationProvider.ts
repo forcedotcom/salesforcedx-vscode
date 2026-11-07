@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE, type WorkspaceSettings } from '@salesforce/salesforcedx-apex-debugger';
-import { getErrorMessage } from '@salesforce/salesforcedx-utils';
+
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { isString, isUndefined } from 'effect/Predicate';
@@ -95,7 +95,7 @@ const resolveDebugConfig = Effect.fn('ApexDebugger.resolveDebugConfig')(function
     Effect.flatMap(extension =>
       Effect.tryPromise({
         try: () => extension.getLineBreakpointInfo(),
-        catch: cause => new DebugConfigurationError({ message: getErrorMessage(cause) })
+        catch: cause => new DebugConfigurationError({ message: getMessageFromError(cause) })
       })
     )
   );

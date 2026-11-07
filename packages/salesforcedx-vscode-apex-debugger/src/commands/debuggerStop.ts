@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { AuthInfo, Connection } from '@salesforce/core';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import { SF_CONFIG_ISV_DEBUGGER_SID, SF_CONFIG_ISV_DEBUGGER_URL } from '@salesforce/salesforcedx-apex-debugger';
-import { getErrorMessage } from '@salesforce/salesforcedx-utils';
+
 import * as Array from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
@@ -50,7 +50,7 @@ const COMMAND: ProgressAndSuccessCommandKey = 'SFDX: Stop Apex Debugger Session'
 const SessionRow = Schema.Struct({ Id: Schema.String });
 const SESSION_SOQL = "SELECT Id FROM ApexDebuggerSession WHERE Status = 'Active' LIMIT 1";
 
-const queryError = (e: unknown) => new DebuggerSessionQueryError({ message: getErrorMessage(e) });
+const queryError = (e: unknown) => new DebuggerSessionQueryError({ message: getMessageFromError(e) });
 
 export const debuggerStop = Effect.fn('debuggerStop')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -114,7 +114,7 @@ export const debuggerStop = Effect.fn('debuggerStop')(function* () {
               Effect.as(
                 Effect.tryPromise({
                   try: () => conn.tooling.sobject('ApexDebuggerSession').update({ Id, Status: 'Detach' }),
-                  catch: e => new DebuggerSessionUpdateError({ message: getErrorMessage(e) })
+                  catch: e => new DebuggerSessionUpdateError({ message: getMessageFromError(e) })
                 }),
                 true as const
               )

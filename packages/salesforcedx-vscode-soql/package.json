@@ -35,7 +35,6 @@
     "soql builder"
   ],
   "dependencies": {
-    "@salesforce/salesforcedx-utils": "*",
     "@jsforce/jsforce-node": "^3.10.24",
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/soql-builder-ui": "workspace:*",
@@ -112,7 +111,6 @@
       "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
-        "../salesforcedx-utils:compile",
         "../effect-ext-utils:compile",
         "compile:lit-ui",
         "../soql-common:compile",

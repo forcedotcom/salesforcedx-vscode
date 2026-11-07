@@ -6,11 +6,11 @@
  */
 
 import {
+  getMessageFromError,
   ExtensionProviderService,
   parseErrorToValidationMessage,
   SalesforceIdSchema
 } from '@salesforce/effect-ext-utils';
-import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import type { PackageInstallRequest as ToolingPackageInstallRequest } from '@salesforce/types/tooling';
 import * as Arr from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
@@ -125,7 +125,7 @@ const submitInstallRequest = Effect.fn('packageInstall.submitInstallRequest')(fu
   };
   return yield* Effect.tryPromise({
     try: () => conn.tooling.create('PackageInstallRequest', body),
-    catch: e => new PackageInstallFailedError({ message: getErrorMessage(e) })
+    catch: e => new PackageInstallFailedError({ message: getMessageFromError(e) })
   }).pipe(
     Effect.map(result => (Array.isArray(result) ? result[0] : result)),
     Effect.filterOrFail(

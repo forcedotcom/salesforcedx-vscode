@@ -4,8 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { getServicesApi } from '@salesforce/effect-ext-utils';
-import { getErrorMessage } from '@salesforce/salesforcedx-utils';
+import { getServicesApi, getMessageFromError } from '@salesforce/effect-ext-utils';
+
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
@@ -74,10 +74,10 @@ const ERROR_PATTERNS = [
 /** Formats error messages for better user experience */
 export const formatErrorMessage = (error: unknown): string => {
   const errorString = isError(error)
-    ? getErrorMessage(error)
+    ? getMessageFromError(error)
     : error && typeof error === 'object' && 'message' in error
       ? String(error.message)
-      : getErrorMessage(error);
+      : getMessageFromError(error);
   return Arr.findFirst(ERROR_PATTERNS, ({ match }) => match(errorString)).pipe(
     Option.match({
       onNone: () => nls.localize('data_query_error_message', errorString),

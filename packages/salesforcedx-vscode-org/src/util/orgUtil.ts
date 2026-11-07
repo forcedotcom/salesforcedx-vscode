@@ -5,8 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { type Column, createTable, type Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { getErrorMessage } from '@salesforce/salesforcedx-utils';
+import {
+  type Column,
+  createTable,
+  type Row,
+  ExtensionProviderService,
+  getMessageFromError
+} from '@salesforce/effect-ext-utils';
+
 import { ICONS, type OrgAuthorizationSummary } from '@salesforce/vscode-services';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
@@ -140,7 +146,7 @@ export const updateConfigAndStateAggregators = async (): Promise<void> => {
 
 /** Get connection status from error */
 export const getConnectionStatusFromError = (err: any, username?: string): string => {
-  const message = getErrorMessage(err);
+  const message = getMessageFromError(err);
   const lowerMsg = message.toLowerCase();
 
   if (lowerMsg.includes('maintenance')) return 'Down (Maintenance)';
@@ -161,7 +167,7 @@ export const getConnectionStatusFromError = (err: any, username?: string): strin
 
 /** Check if org should be removed based on error */
 export const shouldRemoveOrg = (err: any): boolean => {
-  const lowerMsg = getErrorMessage(err).toLowerCase();
+  const lowerMsg = getMessageFromError(err).toLowerCase();
   return ['invalid_login', 'no such org', 'namedorgnotfound', 'noauthinfofound'].some(msg => lowerMsg.includes(msg));
 };
 
@@ -519,7 +525,7 @@ export const displayRemainingOrgs = Effect.fn('OrgUtil.displayRemainingOrgs')(fu
   }).pipe(
     Effect.catchAll(error =>
       channel.appendToChannel(
-        `\n${nls.localize('org_list_display_error', 'message' in error ? error.message : getErrorMessage(error))}`
+        `\n${nls.localize('org_list_display_error', 'message' in error ? error.message : getMessageFromError(error))}`
       )
     )
   );

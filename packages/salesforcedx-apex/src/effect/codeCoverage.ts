@@ -6,7 +6,7 @@
  */
 
 import type { Connection } from '@salesforce/core';
-import { getErrorMessage as causeMessage } from '@salesforce/salesforcedx-utils';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Arr from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
@@ -50,7 +50,8 @@ const queryCoverageRecords = <A, I>(
             onSome: url => connection.tooling.queryMore(url)
           })
         ),
-      catch: cause => new ApexOperationError({ operation, message: causeMessage(cause), cause: causeMessage(cause) })
+      catch: cause =>
+        new ApexOperationError({ operation, message: getErrorMessage(cause), cause: getErrorMessage(cause) })
     }).pipe(
       Effect.flatMap(Schema.decodeUnknown(pageSchema)),
       Effect.map(
@@ -65,7 +66,7 @@ const queryCoverageRecords = <A, I>(
           new ApexResponseDecodeError({
             operation,
             message: cause.message,
-            cause: causeMessage(cause)
+            cause: getErrorMessage(cause)
           })
         )
       )

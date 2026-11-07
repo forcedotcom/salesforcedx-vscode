@@ -9,7 +9,7 @@
  * Mock LSP client for workspace/findFiles. Simulates the client (e.g. VS Code) so the server
  * discovers files via the request instead of a server-side cache. Shared by Aura and LWC tests.
  */
-import { getErrorMessage } from '@salesforce/salesforcedx-utils';
+import { getMessageFromError } from '@salesforce/effect-ext-utils';
 import { isUndefined } from 'effect/Predicate';
 import { Minimatch } from 'minimatch';
 import * as fs from 'node:fs';
@@ -102,7 +102,7 @@ export const createMockWorkspaceFindFilesConnection = (
       const uris = files.map(f => URI.file(f).toString());
       return Promise.resolve({ uris });
     } catch (e) {
-      const message = getErrorMessage(e);
+      const message = getMessageFromError(e);
       return Promise.resolve({ error: message });
     }
   }

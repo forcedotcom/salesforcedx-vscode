@@ -6,7 +6,7 @@
  */
 
 import type { Connection } from '@salesforce/core';
-import { getErrorMessage as causeMessage } from '@salesforce/salesforcedx-utils';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Clock from 'effect/Clock';
 import * as Effect from 'effect/Effect';
 import { isUndefined } from 'effect/Predicate';
@@ -60,7 +60,7 @@ export const formatSyncResults = Effect.fn('Apex.formatSyncResults')(function* (
         new ApexResponseDecodeError({
           operation,
           message: cause.message,
-          cause: causeMessage(cause)
+          cause: getErrorMessage(cause)
         })
       )
     )
@@ -75,7 +75,7 @@ export const formatSyncResults = Effect.fn('Apex.formatSyncResults')(function* (
         new ApexResponseDecodeError({
           operation,
           message: cause.message,
-          cause: causeMessage(cause)
+          cause: getErrorMessage(cause)
         })
     )
   );
@@ -87,7 +87,7 @@ export const formatSyncResults = Effect.fn('Apex.formatSyncResults')(function* (
             new ApexResponseDecodeError({
               operation,
               message: cause.message,
-              cause: causeMessage(cause)
+              cause: getErrorMessage(cause)
             })
         )
       );
@@ -125,7 +125,7 @@ export const requestSyncTests = Effect.fn('Apex.requestSyncTests')(function* (
 ) {
   yield* Schema.decodeUnknown(SyncTestConfigurationSchema)(options).pipe(
     Effect.catchTag('ParseError', cause =>
-      Effect.fail(new ApexOperationError({ operation, message: causeMessage(cause), cause: causeMessage(cause) }))
+      Effect.fail(new ApexOperationError({ operation, message: getErrorMessage(cause), cause: getErrorMessage(cause) }))
     )
   );
   return yield* Effect.tryPromise({
@@ -136,7 +136,8 @@ export const requestSyncTests = Effect.fn('Apex.requestSyncTests')(function* (
         body: JSON.stringify(options),
         headers: { 'content-type': 'application/json' }
       }),
-    catch: cause => new ApexOperationError({ operation, message: causeMessage(cause), cause: causeMessage(cause) })
+    catch: cause =>
+      new ApexOperationError({ operation, message: getErrorMessage(cause), cause: getErrorMessage(cause) })
   });
 });
 

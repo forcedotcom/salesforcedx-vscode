@@ -6,8 +6,12 @@
  */
 
 import type { FileStat, DirectoryEntry } from './types/fileSystemTypes';
-import { type buildAllServicesLayer, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
-import { getErrorMessage } from '@salesforce/salesforcedx-utils';
+import {
+  type buildAllServicesLayer,
+  type SalesforceVSCodeServicesApi,
+  getMessageFromError
+} from '@salesforce/effect-ext-utils';
+
 import type * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import type * as Layer from 'effect/Layer';
@@ -153,8 +157,8 @@ export const registerWorkspaceReadFileHandler = (
     handleReadFile(params).pipe(
       Effect.catchAll(e =>
         Effect.sync(() => {
-          log.appendLine(`[readFile] error: ${getErrorMessage(e)}`);
-          return { error: getErrorMessage(e) };
+          log.appendLine(`[readFile] error: ${getMessageFromError(e)}`);
+          return { error: getMessageFromError(e) };
         })
       ),
       run
@@ -166,9 +170,9 @@ export const registerWorkspaceReadFileHandler = (
       Effect.catchAll(e =>
         Effect.sync(() => {
           log.appendLine(
-            `[stat] error uri=${JSON.stringify(params.uri)}: ${getErrorMessage(e) || `(no message) left=${JSON.stringify(e)}`}`
+            `[stat] error uri=${JSON.stringify(params.uri)}: ${getMessageFromError(e) || `(no message) left=${JSON.stringify(e)}`}`
           );
-          return { error: getErrorMessage(e) || 'Unknown stat error' };
+          return { error: getMessageFromError(e) || 'Unknown stat error' };
         })
       ),
       run
@@ -181,8 +185,8 @@ export const registerWorkspaceReadFileHandler = (
       handleReadDirectory(params).pipe(
         Effect.catchAll(e =>
           Effect.sync(() => {
-            log.appendLine(`[readDirectory] error: ${getErrorMessage(e)}`);
-            return { error: getErrorMessage(e) };
+            log.appendLine(`[readDirectory] error: ${getMessageFromError(e)}`);
+            return { error: getMessageFromError(e) };
           })
         ),
         run
@@ -193,7 +197,7 @@ export const registerWorkspaceReadFileHandler = (
     handleFindFiles(params).pipe(
       Effect.catchAll(e =>
         Effect.sync(() => {
-          const message = getErrorMessage(e);
+          const message = getMessageFromError(e);
           const stack = isError(e) ? e.stack : undefined;
           log.appendLine(`[findFiles] error: ${message}`);
           if (stack) log.appendLine(`[findFiles] stack: ${stack}`);
@@ -208,8 +212,8 @@ export const registerWorkspaceReadFileHandler = (
     handleDeleteFile(params).pipe(
       Effect.catchAll(e =>
         Effect.sync(() => {
-          log.appendLine(`[deleteFile] error: ${getErrorMessage(e)}`);
-          return { error: getErrorMessage(e) };
+          log.appendLine(`[deleteFile] error: ${getMessageFromError(e)}`);
+          return { error: getMessageFromError(e) };
         })
       ),
       run
