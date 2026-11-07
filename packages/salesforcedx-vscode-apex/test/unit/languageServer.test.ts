@@ -17,6 +17,8 @@ import type { RecordedSpan } from './testUtils/recordingTracer';
 // new one; onTelemetry writes attrs onto the current live span. Prefixed `mock*` for mock hoisting.
 const mockRecordedSpans: RecordedSpan[] = [];
 let mockHoverCapability = 'enabled';
+let mockCompletionCapability = 'enabled';
+let mockSoqlExtensionInstalled = false;
 
 const clientSpans = (): RecordedSpan[] => mockRecordedSpans.filter(s => s.name === 'apex.lsp.client');
 
@@ -29,9 +31,11 @@ vi.mock('../../src/services/runtime', async () => {
       succeed(
         key === 'advanced.capabilities.hover'
           ? mockHoverCapability
-          : key === 'advanced.capabilities.documentSymbols'
-            ? 'disabled'
-            : defaultValue
+          : key === 'advanced.capabilities.completions'
+            ? mockCompletionCapability
+            : key === 'advanced.capabilities.documentSymbols'
+              ? 'disabled'
+              : defaultValue
       )
   });
 });
@@ -70,6 +74,8 @@ describe('languageServer client span', () => {
     vi.clearAllMocks();
     mockRecordedSpans.length = 0;
     mockHoverCapability = 'enabled';
+    mockCompletionCapability = 'enabled';
+    mockSoqlExtensionInstalled = false;
     capturedOnTelemetry = undefined;
     // resetMocks:true wipes module-scope implementations before each test — re-establish them here.
     (resolveRequirements as VitestMock).mockReturnValue(Effect.succeed({ java_home: '/mock/java', java_memory: 4096 }));
@@ -98,7 +104,9 @@ describe('languageServer client span', () => {
               }
             }
           }
-        : undefined
+        : id === 'salesforce.salesforcedx-vscode-soql' && mockSoqlExtensionInstalled
+          ? {}
+          : undefined
     );
   });
 
@@ -191,5 +199,26 @@ describe('languageServer client span', () => {
     };
 
     expect(clientOptions.middleware.provideHover?.()).toBeNull();
+  });
+
+  it('suppresses code lenses when its setting is disabled', async () => {
+    await runCreateLanguageServer(mockContext);
+    const clientOptions = (ApexLanguageClient as unknown as VitestMock).mock.calls[0][3] as {
+      middleware: { provideCodeLenses?: () => null };
+    };
+
+    expect(clientOptions.middleware.provideCodeLenses?.()).toBeNull();
+  });
+
+  it('suppresses completions when its setting is disabled and embedded SOQL is installed', async () => {
+    mockCompletionCapability = 'disabled';
+    mockSoqlExtensionInstalled = true;
+
+    await runCreateLanguageServer(mockContext);
+    const clientOptions = (ApexLanguageClient as unknown as VitestMock).mock.calls[0][3] as {
+      middleware: { provideCompletionItem?: () => null };
+    };
+
+    expect(clientOptions.middleware.provideCompletionItem?.()).toBeNull();
   });
 });
