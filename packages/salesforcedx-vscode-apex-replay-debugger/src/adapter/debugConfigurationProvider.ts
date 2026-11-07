@@ -8,7 +8,6 @@
 import { CallableSchema, ExtensionProviderService, getExtensionExports } from '@salesforce/effect-ext-utils';
 import { extractAnonApexSource, type HeapDumpResult } from '@salesforce/salesforcedx-apex-replay-debugger';
 import { errorToString } from '@salesforce/salesforcedx-utils';
-import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isString, isUndefined } from 'effect/Predicate';
@@ -17,6 +16,7 @@ import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { getDialogStartingPath, updateLastOpened } from '../activation/getDialogStartingPath';
 import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '../debuggerConstants';
+import { waitForLanguageClientReady } from '../languageClientReady';
 import { nls } from '../messages';
 import { fetchHeapDumpOverlayResults } from '../services/heapDumpOverlayFetch';
 import { resolveReplaySourceUris } from '../services/replaySourceUris';
@@ -194,22 +194,10 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
   private async isLanguageClientReady(apexApi: {
     languageClientManager: Pick<ApexVSCodeApi['languageClientManager'], 'getStatus'>;
   }): Promise<void> {
-    let expired = false;
-    let i = 0;
-    while (!apexApi.languageClientManager.getStatus().isReady() && !expired) {
-      if (apexApi.languageClientManager.getStatus().failedToInitialize()) {
-        throw Error(apexApi.languageClientManager.getStatus().getStatusMessage());
-      }
-
-      await Effect.sleep(Duration.millis(100)).pipe(Effect.runPromise);
-      if (i >= 30) {
-        expired = true;
-      }
-      i++;
-    }
-    if (expired) {
-      throw new Error(nls.localize('language_client_not_ready'));
-    }
+    const ready = await getRuntime().runPromise(
+      waitForLanguageClientReady(() => apexApi.languageClientManager.getStatus())
+    );
+    if (!ready) throw new Error(nls.localize('language_client_not_ready'));
   }
 }
 

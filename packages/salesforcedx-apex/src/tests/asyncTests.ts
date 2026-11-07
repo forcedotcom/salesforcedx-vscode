@@ -28,7 +28,6 @@ import { ApexTestRunSummarySchema } from '../effect/schema/wire/asyncTests';
 import { calculatePercentage, transformTestResult } from '../effect/testResults';
 import { nls } from '../i18n';
 import { TestRunId } from '../schemas/salesforceId';
-import { type AsyncTestRun } from '../streaming/streamingClient';
 import { stringifyTestResultChunks } from '../streaming/testResultStringify';
 import { formatStartTime, getCurrentTime } from '../utils/dateUtil';
 import { type CancellationToken } from './cancellation';
@@ -78,6 +77,8 @@ export const writeAsyncResultsToFile = (
   );
 
 const finishedStatuses = new Set<ApexTestRunResultStatus>(['Aborted', 'Failed', 'Completed', 'Passed', 'Skipped']);
+type AsyncTestRun = { runId: string; queueItem: ApexTestQueueItem };
+
 const asyncTestIdListsSchema = Schema.Struct({
   classids: Schema.optional(ApexClassIdsSchema),
   suiteids: Schema.optional(ApexTestSuiteIdsSchema)

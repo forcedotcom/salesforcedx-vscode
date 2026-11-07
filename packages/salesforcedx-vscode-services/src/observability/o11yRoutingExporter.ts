@@ -16,27 +16,23 @@ import {
   LEGACY_PRODUCT_FEATURE_ID_ATTR
 } from './legacyTelemetrySender';
 
-const exportVia = (make: () => SpanExporter, spans: ReadableSpan[]): Promise<ExportResult> => {
-  // eslint-disable-next-line functional/no-try-statements -- exporter boundary
-  try {
-    const delegate = make();
-    return Effect.async<ExportResult>(resume => {
-      // eslint-disable-next-line functional/no-try-statements -- exporter boundary
-      try {
-        delegate.export(spans, result => resume(Effect.succeed(result)));
-      } catch (error) {
-        resume(
-          Effect.succeed({ code: ExportResultCode.FAILED, error: isError(error) ? error : new Error(String(error)) })
-        );
-      }
-    }).pipe(Effect.runPromise);
-  } catch (error) {
-    return Promise.resolve({
-      code: ExportResultCode.FAILED,
-      error: isError(error) ? error : new Error(String(error))
-    });
-  }
-};
+const exportVia = (make: () => SpanExporter, spans: ReadableSpan[]): Promise<ExportResult> =>
+  Effect.try({ try: make, catch: String }).pipe(
+    Effect.flatMap(delegate =>
+      Effect.async<ExportResult, string>(resume => {
+        // eslint-disable-next-line functional/no-try-statements -- exporter boundary
+        try {
+          delegate.export(spans, result => resume(Effect.succeed(result)));
+        } catch (error) {
+          resume(Effect.fail(String(error)));
+        }
+      })
+    ),
+    Effect.catchAll(error =>
+      Effect.succeed({ code: ExportResultCode.FAILED, error: isError(error) ? error : new Error(error) })
+    ),
+    Effect.runPromise
+  );
 
 type LegacyO11yGroup = {
   endpoint: string;

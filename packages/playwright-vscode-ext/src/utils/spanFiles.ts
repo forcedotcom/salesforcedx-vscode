@@ -7,6 +7,7 @@
 
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Schedule from 'effect/Schedule';
 import * as os from 'node:os';
 import * as path from 'node:path';
 import { readJsonlFiles, parseJsonlLines } from './jsonl';
@@ -37,13 +38,15 @@ export const waitForSpanRows = async (
   message: string,
   { retryMs = 1000, timeoutMs = 90_000 }: { retryMs?: number; timeoutMs?: number } = {}
 ): Promise<SpanRow[]> => {
-  const deadline = Date.now() + timeoutMs;
-  const attempt = async (): Promise<SpanRow[]> => {
-    const rows = await read().catch(() => [] as SpanRow[]);
-    if (predicate(rows)) return rows;
-    if (Date.now() >= deadline) throw new Error(`Timed out after ${timeoutMs}ms waiting for ${message}`);
-    await Effect.sleep(Duration.millis(retryMs)).pipe(Effect.runPromise);
-    return attempt();
-  };
-  return attempt();
+  const timeoutError = () => new Error(`Timed out after ${timeoutMs}ms waiting for ${message}`);
+  const readRows = Effect.promise(() => read().catch(() => [] as SpanRow[]));
+  const attempt = readRows.pipe(
+    Effect.filterOrFail(predicate, () => 'span-rows-not-ready' as const),
+    Effect.retry(Schedule.spaced(Duration.millis(retryMs)))
+  );
+  const wait =
+    timeoutMs <= 0
+      ? readRows.pipe(Effect.filterOrFail(predicate, timeoutError))
+      : attempt.pipe(Effect.timeoutFail({ duration: Duration.millis(timeoutMs), onTimeout: timeoutError }));
+  return Effect.runPromise(wait);
 };
