@@ -7,6 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ProjectTemplate } from '@salesforce/templates';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
@@ -137,18 +138,16 @@ const promptForParentFolder = Effect.fn('projectGenerate.promptForParentFolder')
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
-  return yield* (
-    isNonEmptyTrimmedString(initialProjectUri)
-      ? Effect.succeed(URI.file(initialProjectUri))
-      : Effect.promise(() =>
-          vscode.window.showOpenDialog({
-            canSelectFiles: false,
-            canSelectFolders: true,
-            canSelectMany: false,
-            openLabel: nls.localize('project_generate_open_dialog_create_label')
-          })
-        ).pipe(Effect.map(selection => selection?.[0]))
-  ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
+  return yield* isNonEmptyTrimmedString(initialProjectUri)
+    ? Effect.succeed(URI.file(initialProjectUri))
+    : Effect.promise(() =>
+        vscode.window.showOpenDialog({
+          canSelectFiles: false,
+          canSelectFolders: true,
+          canSelectMany: false,
+          openLabel: nls.localize('project_generate_open_dialog_create_label')
+        })
+      ).pipe(Effect.flatMap(promptService.considerEmptySelectionAsCancellation), Effect.map(Arr.headNonEmpty));
 });
 
 export const sfProjectGenerateCommand = Effect.fn('sfProjectGenerateCommand')(function* (args?: ProjectGenerateArgs) {
