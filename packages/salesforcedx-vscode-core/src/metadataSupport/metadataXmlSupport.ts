@@ -8,9 +8,9 @@ import {
   CallableSchema,
   ExtensionPackageJsonSchema,
   ExtensionProviderService,
-  getExtensionExports
+  getExtensionExports,
+  getMessageFromError
 } from '@salesforce/effect-ext-utils';
-import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
@@ -111,7 +111,7 @@ const reportCaughtMessage = (error: { message: string }) => reportToChannel(erro
 
 const reportSetupFailure = Effect.fn('metadataXmlSupport.reportSetupFailure')(function* (error: unknown) {
   yield* reportToChannel(nls.localize('metadata_xml_fail_redhat_extension'));
-  yield* reportToChannel(getErrorMessage(error));
+  yield* reportToChannel(getMessageFromError(error));
 });
 
 /** Setup Red Hat XML with Salesforce metadata schemas and settings. */
@@ -133,7 +133,7 @@ const setupRedhatXml = Effect.fn('metadataXmlSupport.setupRedhatXml')(
           },
           catch: cause =>
             new RedHatXmlExtensionSetupError({
-              message: getErrorMessage(cause),
+              message: getMessageFromError(cause),
               cause
             })
         })
@@ -145,7 +145,7 @@ const setupRedhatXml = Effect.fn('metadataXmlSupport.setupRedhatXml')(
         try: () => vscode.workspace.getConfiguration('xml').inspect<A>(setting),
         catch: cause =>
           new XmlConfigurationInspectError({
-            message: getErrorMessage(cause),
+            message: getMessageFromError(cause),
             cause,
             setting
           })

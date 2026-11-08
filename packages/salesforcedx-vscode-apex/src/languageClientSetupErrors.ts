@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { getErrorMessage } from '@salesforce/salesforcedx-utils';
+import { getMessageFromError } from '@salesforce/effect-ext-utils';
 import { isError, isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { nls } from './messages';
@@ -31,7 +31,7 @@ export class ApexLanguageClientSetupError extends Schema.TaggedError<ApexLanguag
 ) {}
 
 const languageClientSetupErrorMessage = (cause: unknown, unknownErrorMessage: string): string =>
-  isString(cause) || isError(cause) ? getErrorMessage(cause) : unknownErrorMessage;
+  isString(cause) || isError(cause) ? getMessageFromError(cause) : unknownErrorMessage;
 
 export const languageClientSetupError = (
   phase: ApexLanguageClientSetupPhase,
