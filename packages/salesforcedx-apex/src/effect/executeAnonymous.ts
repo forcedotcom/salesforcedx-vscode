@@ -13,14 +13,8 @@ import * as Schema from 'effect/Schema';
 import { executeAnonymousAction } from '../execute/constants.js';
 import { encodeBody } from '../execute/utils.js';
 import { messages } from '../i18n/i18n.js';
-import {
-  ApexCompileError,
-  ApexOperationError,
-  ApexResponseDecodeError,
-  ApexRuntimeError,
-  causeMessage
-} from './errors.js';
-import { ApexRequestError, InvalidSessionError } from './schema/errors.js';
+import { ApexCompileError, ApexRuntimeError, causeMessage } from './errors.js';
+import { ApexOperationError, ApexRequestError, ApexResponseDecodeError, InvalidSessionError } from './schema/errors.js';
 import {
   executionResultSchema,
   isInvalidSessionError,

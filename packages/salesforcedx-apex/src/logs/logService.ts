@@ -7,7 +7,10 @@
 import type { JsonObject } from '../json';
 import { type Connection, Logger, type Org, type StatusResult, StreamingClient } from '@salesforce/core';
 import { Duration } from '@salesforce/kit';
+import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
+import { FileOutput } from '../effect/fileOutput';
+import { NodeFileOutput } from '../effect/nodeFileOutput';
 import { nls } from '../i18n';
 import { elapsedTime } from '../utils/elapsedTime';
 import { createFile } from '../utils/fileSystemHandler';
@@ -45,21 +48,23 @@ export class LogService {
   // TODO: readableStream cannot be used until updates are made in jsforce and sfdx-core
   @elapsedTime()
   public async getLogs(options: ApexLogGetOptions): Promise<LogResult[]> {
-    const logs = (
-      await Promise.all(
-        (await this.getLogIds(options)).map(async id => ({
-          ...(await this.getLogById(id)),
-          logId: id
-        }))
-      )
-    ).map(({ log, logId }) => {
-      if (options.outputDir) {
-        const logPath = path.join(options.outputDir, `${logId}.log`);
-        createFile(logPath, log);
-        return { log, logPath };
-      }
-      return { log };
-    });
+    const logs = await Promise.all(
+      (
+        await Promise.all(
+          (await this.getLogIds(options)).map(async id => ({
+            ...(await this.getLogById(id)),
+            logId: id
+          }))
+        )
+      ).map(async ({ log, logId }) => {
+        if (options.outputDir) {
+          const logPath = path.join(options.outputDir, `${logId}.log`);
+          await Effect.runPromise(createFile(logPath, log).pipe(Effect.provideService(FileOutput, NodeFileOutput)));
+          return { log, logPath };
+        }
+        return { log };
+      })
+    );
 
     return logs;
   }

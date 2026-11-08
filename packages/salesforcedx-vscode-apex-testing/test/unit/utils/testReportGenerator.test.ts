@@ -21,10 +21,14 @@ vi.mock('../../../src/services/extensionProvider', async () => {
   const { ExtensionProviderService } = await vi.importActual<typeof EffectExtUtils>('@salesforce/effect-ext-utils');
   const { FsService, ChannelService, SettingsService } = await import('@salesforce/vscode-services/v2');
   const vscodeApi = await import('vscode');
+  const { URI: VscodeUri } = await import('vscode-uri');
 
   const mockFsWrite = (pathOrUri: unknown, _content: string) =>
     Effect.promise(async () => {
-      const filePath = typeof pathOrUri === 'string' ? pathOrUri : ((pathOrUri as { fsPath?: string })?.fsPath ?? '');
+      const filePath =
+        typeof pathOrUri === 'string'
+          ? pathOrUri
+          : ((pathOrUri as { fsPath?: string; path?: string })?.fsPath ?? (pathOrUri as { path?: string })?.path ?? '');
       const mockUri = {
         fsPath: filePath,
         path: filePath,
@@ -38,6 +42,11 @@ vi.mock('../../../src/services/extensionProvider', async () => {
     });
 
   const mockFsService = {
+    createDirectory: (_path: string) => Effect.void,
+    toUri: (pathOrUri: string | URI) =>
+      Effect.succeed(typeof pathOrUri === 'string' ? VscodeUri.parse(pathOrUri) : pathOrUri),
+    readFile: (_path: string | URI) => Effect.succeed(''),
+    fileOrFolderExists: (_path: string | URI) => Effect.succeed(false),
     writeFile: mockFsWrite,
     safeWriteFile: mockFsWrite,
     showTextDocument: (uri: unknown, options?: unknown) =>

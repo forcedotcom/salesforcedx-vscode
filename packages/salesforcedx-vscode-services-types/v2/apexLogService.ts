@@ -30,6 +30,8 @@ export type ListLogsOptions = {
   readonly userIds?: string[];
   readonly operationContains?: string;
   readonly startTimeAfter?: string;
+  /** Omit the SOQL row limit and consume all query pages. */
+  readonly noLimit?: boolean;
 };
 export class ApexLogBodyFetchError extends Schema.TaggedError<ApexLogBodyFetchError>()('ApexLogBodyFetchError', {
   message: Schema.String,

@@ -295,7 +295,7 @@ const findMatchingSourceFile = async (source: string): Promise<SourceMatch | und
         const result = yield* Effect.option(
           api.v2.services.FsService.use(service => service.readFile(candidate.fsPath))
         );
-        if (result._tag !== 'Some') {
+        if (Option.isNone(result)) {
           continue;
         }
         // Exact match (whole file is the source, e.g. a .apex file)

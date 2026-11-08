@@ -7,7 +7,6 @@
 
 import { expect } from '@playwright/test';
 import { openSettingsUI, upsertSettings } from '../../../src/pages/settings';
-import { saveScreenshot } from '../../../src/shared/screenshotUtils';
 import { waitForVSCodeWorkbench, closeWelcomeTabs } from '../../../src/utils/helpers';
 import { ensureSecondarySideBarHidden } from '../../../src/utils/workflows';
 import { SETTINGS_SEARCH_INPUT } from '../../../src/utils/locators';
@@ -33,7 +32,6 @@ test.describe.serial('Settings', () => {
     await test.step('Verify Workspace tab is active', async () => {
       const workspaceTab = page.getByRole('tab', { name: 'Workspace' });
       await expect(workspaceTab).toHaveAttribute('aria-selected', 'true', { timeout: 3000 });
-      await saveScreenshot(page, 'settings.workspaceTabActive.png', false);
     });
   });
 

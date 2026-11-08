@@ -35,7 +35,8 @@ const buildListLogsQuery = (limit: number, options?: ListLogsOptions): string =>
     : undefined;
   const since = options?.startTimeAfter ? `StartTime >= ${options.startTimeAfter}` : undefined;
   const conditions = [user, operation, since].filter(Boolean);
-  return `${BASE_SELECT}${conditions.length > 0 ? ` WHERE ${conditions.join(' AND ')}` : ''} ORDER BY StartTime DESC LIMIT ${limit}`;
+  const rowLimit = options?.noLimit ? '' : ` LIMIT ${limit}`;
+  return `${BASE_SELECT}${conditions.length > 0 ? ` WHERE ${conditions.join(' AND ')}` : ''} ORDER BY StartTime DESC${rowLimit}`;
 };
 const decodePage = Schema.decodeUnknownEffect(
   Schema.Struct({

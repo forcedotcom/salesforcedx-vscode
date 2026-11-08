@@ -7,7 +7,7 @@
 
 import { LoggerLevel } from '@salesforce/core';
 import { elapsedTime } from './elapsedTime';
-import { type Column, type Row } from './types';
+import { type Column as LegacyColumn, type Row as LegacyRow } from './types';
 
 const COLUMN_SEPARATOR = '  ';
 const COLUMN_FILLER = ' ';
@@ -15,7 +15,7 @@ const HEADER_FILLER = '─';
 
 export class Table {
   @elapsedTime()
-  public createTable(rows: Row[], cols: Column[], title?: string): string {
+  public createTable(rows: LegacyRow[], cols: LegacyColumn[], title?: string): string {
     if (!rows) {
       throw Error('rows cannot be undefined');
     }
@@ -65,7 +65,7 @@ export class Table {
     return table;
   }
 
-  private calculateMaxColumnWidths(rows: Row[], cols: Column[]): Map<string, number> {
+  private calculateMaxColumnWidths(rows: LegacyRow[], cols: LegacyColumn[]): Map<string, number> {
     const maxColWidths = new Map<string, number>();
     cols.forEach(col => {
       rows.forEach(row => {

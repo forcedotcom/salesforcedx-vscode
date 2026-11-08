@@ -21,4 +21,4 @@ const Json: Schema.Codec<Json> = Schema.suspend(() =>
 );
 
 /** Index includes `undefined` so it accepts the streaming client's message object. */
-export type JsonObject = { readonly [key: string]: typeof Json.Type | undefined };
+export type JsonObject = { readonly [key: string]: Json | undefined };

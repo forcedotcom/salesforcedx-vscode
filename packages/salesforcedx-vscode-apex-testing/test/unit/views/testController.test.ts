@@ -215,10 +215,7 @@ vi.mock('../../../src/utils/testUtils', async () => {
 const mockTestServiceMethods = {
   retrieveAllSuites: vi.fn().mockResolvedValue([]),
   buildAsyncPayload: vi.fn().mockResolvedValue({}),
-  runTestAsynchronous: vi.fn().mockResolvedValue({
-    tests: [],
-    summary: { outcome: 'Passed', testsRan: 0 }
-  }),
+  runTestAsynchronous: vi.fn(),
   writeResultFiles: vi.fn().mockResolvedValue(undefined),
   getTestsInSuite: vi.fn().mockResolvedValue([])
 };
@@ -253,6 +250,7 @@ import type * as ApexTestExecution from '../../../src/views/apexTestExecutionSer
 import type * as TestUtils from '../../../src/utils/testUtils';
 import * as path from 'node:path';
 import { type TestResult, TestService } from '@salesforce/apex-node';
+import { TestResultSchema } from '@salesforce/apex-node/effect';
 import { URI } from 'vscode-uri';
 import * as vscode from 'vscode';
 import * as testDiscovery from '../../../src/testDiscovery/testDiscovery';
@@ -266,6 +264,27 @@ import { ApexTestTreeService } from '../../../src/views/apexTestTreeService';
 import { ApexTestController, getTestController } from '../../../src/views/testController';
 
 class MockFailure extends Schema.TaggedError<MockFailure>()('MockFailure', { message: Schema.String }) {}
+
+const makeTestResult = (tests: TestResult['tests'] = []): TestResult =>
+  Schema.decodeUnknownSync(TestResultSchema)({
+    tests,
+    summary: {
+      failRate: '0%',
+      testsRan: tests.length,
+      orgId: '00D3t000001vIruEAE',
+      outcome: 'Passed',
+      passing: tests.length,
+      failing: 0,
+      skipped: 0,
+      passRate: tests.length === 0 ? '0%' : '100%',
+      skipRate: '0%',
+      testStartTime: '2026-01-02T03:04:05.000Z',
+      testExecutionTimeInMs: 100,
+      testTotalTimeInMs: 100,
+      commandTimeInMs: 0,
+      hostname: 'localhost'
+    }
+  });
 
 // The tree maps live in ApexTestTreeService Refs; read the live Map through the mock runtime (same path
 // the production module accessors use) to seed test state.
@@ -328,6 +347,7 @@ describe('ApexTestController', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    mockTestServiceMethods.runTestAsynchronous.mockResolvedValue(makeTestResult());
     (mockTestController.items.forEach as VitestMock) = vi.fn();
     (extensionProvider as unknown as { __setMockOrgId: (orgId: string | undefined) => void }).__setMockOrgId('org123');
     // Clear the singleton runtime's tree Refs so per-test map state does not leak.
@@ -475,10 +495,7 @@ describe('ApexTestController', () => {
         testLevel: 'RunSpecifiedTests',
         skipCodeCoverage: true
       });
-      mockTestServiceMethods.runTestAsynchronous.mockResolvedValue({
-        tests: [],
-        summary: { outcome: 'Passed', testsRan: 1 }
-      });
+      mockTestServiceMethods.runTestAsynchronous.mockResolvedValue(makeTestResult());
       (mockTestController.createTestRun as VitestMock).mockReturnValue(mockTestRun);
     });
 
@@ -1012,17 +1029,15 @@ describe('ApexTestController', () => {
 
   describe('onResultFileCreate', () => {
     it('should update test results from file', async () => {
-      const testResult = {
-        tests: [
-          {
-            apexClass: { name: 'TestClass1', namespacePrefix: null },
-            methodName: 'testMethod1',
-            outcome: 'Pass',
-            runTime: 100
-          }
-        ],
-        summary: { testsRan: 1, passing: 1, failing: 0 }
-      } as unknown as TestResult;
+      const testResult = makeTestResult([
+        {
+          apexClass: { name: 'TestClass1', fullName: 'TestClass1', namespacePrefix: null },
+          methodName: 'testMethod1',
+          fullName: 'TestClass1.testMethod1',
+          outcome: 'Pass',
+          runTime: 100
+        } as TestResult['tests'][number]
+      ]);
 
       (extensionProvider as unknown as { __setMockReadFileResult: (s: string) => void }).__setMockReadFileResult(
         JSON.stringify(testResult)
@@ -1032,7 +1047,7 @@ describe('ApexTestController', () => {
       (mockTestController.createTestItem as VitestMock).mockReturnValue(mockTestItem);
 
       const apexTestDir = URI.file('/tmp');
-      const testResultUri = URI.file(path.join(apexTestDir.fsPath, 'test-result.json'));
+      const testResultUri = URI.file(path.join(apexTestDir.fsPath, 'test-result-default.json'));
       await controller.onResultFileCreate(apexTestDir, testResultUri);
 
       expect(
@@ -1052,17 +1067,15 @@ describe('ApexTestController', () => {
       (mockTestController.createTestRun as VitestMock).mockReturnValue(mockTestRun);
       (mockTestController.createTestItem as VitestMock).mockReturnValue(mockTestItem1);
 
-      const testResult = {
-        tests: [
-          {
-            apexClass: { name: 'TestClass1', namespacePrefix: null },
-            methodName: 'testMethod1',
-            outcome: 'Pass',
-            runTime: 100
-          }
-        ],
-        summary: { testsRan: 1, passing: 1, failing: 0 }
-      } as unknown as TestResult;
+      const testResult = makeTestResult([
+        {
+          apexClass: { name: 'TestClass1', fullName: 'TestClass1', namespacePrefix: null },
+          methodName: 'testMethod1',
+          fullName: 'TestClass1.testMethod1',
+          outcome: 'Pass',
+          runTime: 100
+        } as TestResult['tests'][number]
+      ]);
 
       mockTestServiceMethods.runTestAsynchronous.mockResolvedValue(testResult);
 

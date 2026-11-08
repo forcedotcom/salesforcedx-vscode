@@ -61,7 +61,7 @@ const SyncTestItemsSchema = Schema.Array(TestItemSchema)
 export const SyncTestConfigurationSchema = Schema.Struct({
   classNames: Schema.optional(
     Schema.NonEmptyString.check(Schema.isTrimmed()).check(
-      Schema.isPattern(/^[^,]+$/, { message: messages.syncClassErr })
+      Schema.isPattern(/^[^,]+$/u, { message: messages.syncClassErr })
     )
   ),
   /** Only one distinct class is allowed for synchronous runs. */
@@ -69,7 +69,7 @@ export const SyncTestConfigurationSchema = Schema.Struct({
   /** The only supported synchronous test level is RunSpecifiedTests. */
   testLevel: Schema.optional(
     Schema.String.check(
-      Schema.isPattern(/^RunSpecifiedTests$/, { message: 'Synchronous tests require RunSpecifiedTests' })
+      Schema.isPattern(/^RunSpecifiedTests$/u, { message: 'Synchronous tests require RunSpecifiedTests' })
     )
   ),
   /** Stop scheduling tests after this many failures; 0 stops after any failure. */

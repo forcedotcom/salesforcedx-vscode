@@ -239,9 +239,12 @@ describe('PackageResolutionService', () => {
     expect(mockToolingQuery.mock.calls[2][0]).toContain('ManageableState');
   });
 
-  it('only resolves no-namespace classes with installed ManageableState (null/empty excluded)', async () => {
+  it('only resolves no-namespace classes with installed ManageableState (null/empty/unmanaged/absent excluded)', async () => {
     const installedId = '01p000000000001AAA';
-    const unpackagedId = '01p000000000002AAA';
+    const nullStateId = '01p000000000002AAA';
+    const emptyStateId = '01p000000000003AAA';
+    const unmanagedStateId = '01p000000000004AAA';
+    const absentStateId = '01p000000000005AAA';
     mockToolingQuery
       .mockRejectedValueOnce({
         _tag: 'SoqlError',
@@ -260,17 +263,29 @@ describe('PackageResolutionService', () => {
       .mockResolvedValueOnce({
         records: [
           { Id: installedId, ManageableState: 'installed' },
-          { Id: unpackagedId, ManageableState: null }
+          { Id: nullStateId, ManageableState: null },
+          { Id: emptyStateId, ManageableState: '' },
+          { Id: unmanagedStateId, ManageableState: 'unmanaged' },
+          { Id: absentStateId }
         ]
       });
     const classIdToNamespace = new Map<string, Option.Option<string>>([
       [installedId, Option.none()],
-      [unpackagedId, Option.none()]
+      [nullStateId, Option.none()],
+      [emptyStateId, Option.none()],
+      [unmanagedStateId, Option.none()],
+      [absentStateId, Option.none()]
     ]);
-    const result = await resolve([installedId, unpackagedId], classIdToNamespace);
+    const result = await resolve(
+      [installedId, nullStateId, emptyStateId, unmanagedStateId, absentStateId],
+      classIdToNamespace
+    );
     expect(result.size).toBe(1);
     expect(result.get(installedId)?.packageName).toBe('Trigger Actions Framework');
-    expect(result.has(unpackagedId)).toBe(false);
+    expect(result.has(nullStateId)).toBe(false);
+    expect(result.has(emptyStateId)).toBe(false);
+    expect(result.has(unmanagedStateId)).toBe(false);
+    expect(result.has(absentStateId)).toBe(false);
   });
 
   it('serves cached resolution and does not re-query once the org is marked unavailable', async () => {

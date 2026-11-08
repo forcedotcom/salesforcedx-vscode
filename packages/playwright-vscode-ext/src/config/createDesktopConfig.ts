@@ -36,8 +36,8 @@ export const createDesktopConfig = (options: DesktopConfigOptions) => {
     ...(workers ? { workers } : {}),
     reporter: createReporter('test-results/junit-desktop.xml'),
     use: {
-      trace: 'on',
-      screenshot: 'on',
+      trace: { mode: 'on', screenshots: false },
+      screenshot: 'off',
       // win32 file-handle contention slows individual actions; give them more room.
       actionTimeout: process.platform === 'win32' ? 20_000 : 15_000,
       viewport: { width: 1920, height: 1080 }

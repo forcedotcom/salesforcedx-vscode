@@ -66,9 +66,9 @@ export const publicApiSchemaHash = schema =>
     .update(JSON.stringify(normalizeSchema(schema, schema)))
     .digest('hex');
 
-// Baseline includes current develop's optional Apex results, execute options, and V4 payload builder.
+// Effect V4 validation tightens Salesforce IDs and coverage counts from the develop contract.
 assert.equal(
   publicApiSchemaHash(JSON.parse(readFileSync(new URL('../schemas/public-api.schema.json', import.meta.url), 'utf8'))),
-  '6a5e5eea941c3a4638f8ea0e9d037eed374fc874f8de7b938ec0acd61c44066c',
-  'Apex public JSON validation changed from the current develop API contract'
+  '939315e0b44a219b73ccf40b37cd563a46b339a9aed478965047940c1089d34e',
+  'Apex public JSON validation changed from the reviewed Effect V4 contract'
 );

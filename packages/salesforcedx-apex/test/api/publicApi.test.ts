@@ -21,6 +21,27 @@ describe('@salesforce/apex-node public API', () => {
     });
   });
 
+  it('exports tight Salesforce ID and coverage constraints', () => {
+    expect(publicSchema.$defs.ApexClassId).toMatchObject({
+      type: 'string',
+      pattern: '^01p[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$'
+    });
+    expect(publicSchema.$defs.ApexTriggerId).toMatchObject({
+      type: 'string',
+      pattern: '^01q[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$'
+    });
+    expect(publicSchema.$defs.AsyncApexJobId).toMatchObject({
+      type: 'string',
+      pattern: '^707[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$'
+    });
+    expect(publicSchema.$defs.CoverageLineCount).toMatchObject({ type: 'integer', minimum: 0 });
+    expect(publicSchema.$defs.ApexCodeCoverageRecord.properties).toMatchObject({
+      ApexTestClassId: { $ref: '#/$defs/ApexClassId' },
+      NumLinesCovered: { $ref: '#/$defs/CoverageLineCount' },
+      NumLinesUncovered: { $ref: '#/$defs/CoverageLineCount' }
+    });
+  });
+
   it('exports the target major-version runtime symbols', () => {
     const coRepoOnlySymbols = new Set(['MarkdownTextFormatTransformer']);
     const supportedSymbols = Object.keys(publicApi).filter(symbol => !coRepoOnlySymbols.has(symbol));
@@ -55,6 +76,8 @@ describe('@salesforce/apex-node public API', () => {
       'ApexLogQueryError',
       'ApexOperationError',
       'ApexOrgWideCoverageSchema',
+      'ApexReportError',
+      'ApexRequestError',
       'ApexResponseDecodeError',
       'ApexRuntimeError',
       'ApexTestResultDataRawSchema',
@@ -70,8 +93,14 @@ describe('@salesforce/apex-node public API', () => {
       'BuildAsyncPayloadOptionsSchema',
       'BuildSyncPayloadOptionsSchema',
       'CodeCoverageResultSchema',
+      'DefaultReportOptions',
+      'DefaultWatermarks',
       'ExecuteAnonymousOptionsSchema',
       'ExecuteAnonymousOutcomeSchema',
+      'FileOutput',
+      'FileOutputError',
+      'InvalidSessionError',
+      'IstanbulReports',
       'ListLogsOptionsSchema',
       'LogStreamEventSchema',
       'PerClassCoverageSchema',
@@ -87,11 +116,18 @@ describe('@salesforce/apex-node public API', () => {
       'TestSuiteSchema',
       'UserId',
       'buildAsyncPayload',
+      'buildCoverageMap',
       'buildSuite',
       'buildSyncPayload',
       'causeMessage',
       'executeAnonymous',
+      'formatHumanReport',
+      'formatJUnitReport',
+      'formatMarkdownTextReport',
+      'formatMarkdownTextReportStream',
       'formatSyncResults',
+      'formatTapReport',
+      'generateCoverageReports',
       'getAggregateCodeCoverage',
       'getDiagnostic',
       'getLogBody',
@@ -103,7 +139,8 @@ describe('@salesforce/apex-node public API', () => {
       'runTestAsynchronous',
       'runTestSynchronous',
       'streamLogs',
-      'transformTestResult'
+      'transformTestResult',
+      'writeResultFiles'
     ]);
   });
 

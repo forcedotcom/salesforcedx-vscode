@@ -63,11 +63,13 @@ import type { Mock as VitestMock } from 'vitest';
 import type * as ApexNode from '@salesforce/apex-node';
 import type * as VscodeUri from 'vscode-uri';
 import type * as TestUtils from '../../../src/utils/testUtils';
-import { type TestService } from '@salesforce/apex-node';
+import { type TestResult, type TestService } from '@salesforce/apex-node';
+import { TestResultSchema } from '@salesforce/apex-node/effect';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
+import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
@@ -91,7 +93,34 @@ import { ApexTestTreeService } from '../../../src/views/apexTestTreeService';
 const appendToChannel = vi.fn(() => Effect.void);
 const showSuccessNotification = vi.fn(() => Effect.void);
 const showErrorWithActions = vi.fn((..._args: unknown[]) => Effect.void);
-const readFile = vi.fn((_uri: URI) => Effect.succeed(JSON.stringify({ tests: [], summary: { testsRan: 0 } })));
+const makeTestResult = (summary: Partial<TestResult['summary']> = {}): TestResult =>
+  Schema.decodeUnknownSync(TestResultSchema)({
+    summary: {
+      failRate: '0%',
+      testsRan: 0,
+      orgId: '00D3t000001vIruEAE',
+      outcome: 'Passed',
+      passing: 0,
+      failing: 0,
+      skipped: 0,
+      passRate: '0%',
+      skipRate: '0%',
+      testStartTime: '2026-01-02T03:04:05.000Z',
+      testExecutionTimeInMs: 0,
+      testTotalTimeInMs: 0,
+      commandTimeInMs: 0,
+      hostname: 'localhost',
+      ...summary
+    },
+    tests: []
+  });
+const readFile = vi.fn((_uri: URI) => Effect.succeed(JSON.stringify(makeTestResult())));
+const mockFsService = {
+  createDirectory: (_path: string) => Effect.void,
+  toUri: (path: string | URI) => Effect.succeed(typeof path === 'string' ? URI.parse(path) : path),
+  safeWriteFile: () => Effect.void,
+  readFile: (uri: URI) => readFile(uri)
+};
 // Mirror the prior settings-mock defaults through the SettingsService accessor.
 const settingsValues: Record<string, unknown> = {
   'retrieve-test-code-coverage': false,
@@ -123,7 +152,7 @@ const ServiceValuesLayer = Layer.mergeAll(
     showSuccessNotification,
     showErrorWithActions
   } as unknown as NotificationModeService['Service']),
-  Layer.succeed(FsService, { readFile } as unknown as FsService['Service']),
+  Layer.succeed(FsService, mockFsService as unknown as FsService['Service']),
   Layer.succeed(SettingsService, {
     getValue: (_section: string, key: string, defaultValue: unknown) =>
       Effect.succeed(key in settingsValues ? settingsValues[key] : defaultValue),
@@ -219,8 +248,7 @@ const makeTestService = (
     buildAsyncPayload:
       overrides.buildAsyncPayload ??
       vi.fn().mockResolvedValue({ testLevel: 'RunSpecifiedTests', skipCodeCoverage: true }),
-    runTestAsynchronous:
-      overrides.runTestAsynchronous ?? vi.fn().mockResolvedValue({ tests: [], summary: { testsRan: 1 } })
+    runTestAsynchronous: overrides.runTestAsynchronous ?? vi.fn().mockResolvedValue(makeTestResult({ testsRan: 1 }))
   }) as unknown as TestService;
 
 const makeCtx = (overrides: Partial<ExecutionContext> = {}): ExecutionContext => ({
@@ -244,7 +272,7 @@ describe('ApexTestExecutionService', () => {
     // Default TestService for the in-body `new TestService(conn)`; individual tests override via setTestService.
     activeTestService = makeTestService();
     appendToChannel.mockImplementation(() => Effect.void);
-    readFile.mockImplementation(() => Effect.succeed(JSON.stringify({ tests: [], summary: { testsRan: 0 } })));
+    readFile.mockImplementation(() => Effect.succeed(JSON.stringify(makeTestResult())));
   });
 
   describe('executeTests', () => {
@@ -267,12 +295,18 @@ describe('ApexTestExecutionService', () => {
       expect(appendToChannel).toHaveBeenCalledWith('Ended SFDX: Run Apex Tests');
     });
 
-    const runWithOutcome = (outcome: string, failing = 0) => {
+    const runWithOutcome = (outcome: TestResult['summary']['outcome'], failing = 0) => {
       const method = fakeItem('method:MyClass.testA', 'testA');
       const { run } = fakeRun();
+      const testsRan = Math.max(failing, 1);
+      const passing = testsRan - failing;
       setTestService(
         makeTestService({
-          runTestAsynchronous: vi.fn().mockResolvedValue({ tests: [], summary: { outcome, testsRan: 1, failing } })
+          runTestAsynchronous: vi
+            .fn()
+            .mockResolvedValue(
+              makeTestResult({ outcome, testsRan, failing, passing, failRate: failing ? '100%' : '0%' })
+            )
         })
       );
       return runEff(
@@ -305,7 +339,7 @@ describe('ApexTestExecutionService', () => {
 
     it('uses the RunAllTestsInOrg payload (no buildAsyncPayload) when runAllTestsInOrg', async () => {
       const buildAsyncPayload = vi.fn();
-      const runTestAsynchronous = vi.fn().mockResolvedValue({ tests: [], summary: { testsRan: 1 } });
+      const runTestAsynchronous = vi.fn().mockResolvedValue(makeTestResult({ testsRan: 1 }));
       setTestService(makeTestService({ buildAsyncPayload, runTestAsynchronous }));
       const { run } = fakeRun();
       await runEff(
@@ -324,14 +358,40 @@ describe('ApexTestExecutionService', () => {
       expect(payload.testLevel).toBe('RunAllTestsInOrg');
     });
 
+    it('marks tests errored when apex-node returns an invalid TestResult', async () => {
+      const method = fakeItem('method:MyClass.testA', 'testA');
+      const { run, errored, end } = fakeRun();
+      setTestService(
+        makeTestService({ runTestAsynchronous: vi.fn().mockResolvedValue({ tests: [], summary: { testsRan: 1 } }) })
+      );
+      const ctx = makeCtx({
+        controller: {
+          items: { forEach: vi.fn() } as unknown as vscode.TestItemCollection,
+          createTestRun: vi.fn(() => run)
+        } as unknown as vscode.TestController
+      });
+      await runEff(
+        executionService.runTests(
+          ctx,
+          { include: [method] } as unknown as vscode.TestRunRequest,
+          cancellationToken,
+          false,
+          'workspace-first'
+        )
+      );
+      expect(errored.map(item => item.test)).toContain(method);
+      expect(end).toHaveBeenCalled();
+    });
+
     it('records lastProcessedResultFile so the watcher dedupes the same URI', async () => {
       const method = fakeItem('method:MyClass.testA', 'testA');
       const { run } = fakeRun();
-      const runTestAsynchronous = vi.fn().mockResolvedValue({ tests: [], summary: { testsRan: 1, testRunId: 'RID' } });
+      const testRunId = '7073t000061uwZI';
+      const runTestAsynchronous = vi.fn().mockResolvedValue(makeTestResult({ testsRan: 1, testRunId }));
       setTestService(makeTestService({ runTestAsynchronous }));
       const ctx = makeCtx();
       // executeTests writes the Ref; a subsequent onResultFileCreate for the same file must skip re-apply.
-      mockReadTestRunIdFile.mockReturnValue(Effect.succeed('RID'));
+      mockReadTestRunIdFile.mockReturnValue(Effect.succeed(testRunId));
       await runEff(
         Effect.gen(function* () {
           yield* executionService.executeTests({
@@ -344,7 +404,11 @@ describe('ApexTestExecutionService', () => {
             runAllTestsInOrg: false
           });
           mockUpdateTestRunResults.mockClear();
-          yield* executionService.onResultFileCreate(ctx, URI.file('/tmp'), URI.file('/tmp/test-result-RID.json'));
+          yield* executionService.onResultFileCreate(
+            ctx,
+            URI.file('/tmp'),
+            URI.file(`/tmp/test-result-${testRunId}.json`)
+          );
         })
       );
       // onResultFileCreate saw the same URI executeTests already claimed -> no second result apply.
@@ -594,11 +658,11 @@ describe('ApexTestExecutionService', () => {
 
   describe('onResultFileCreate', () => {
     it('applies results for the expected file and dedupes a repeat for the same URI', async () => {
-      readFile.mockImplementation(() => Effect.succeed(JSON.stringify({ tests: [], summary: { testsRan: 1 } })));
+      readFile.mockImplementation(() => Effect.succeed(JSON.stringify(makeTestResult({ testsRan: 1 }))));
       mockReadTestRunIdFile.mockReturnValue(Effect.succeed(undefined));
       const ctx = makeCtx();
       const dir = URI.file('/tmp');
-      const resultUri = URI.file('/tmp/test-result.json');
+      const resultUri = URI.file('/tmp/test-result-default.json');
       await runEff(
         Effect.gen(function* () {
           yield* executionService.onResultFileCreate(ctx, dir, resultUri);

@@ -92,7 +92,7 @@
       ],
       "files": [
         "src/**/*.ts",
-        "test/**/*.ts",
+        "test/**/*.{ts,mts}",
         "../../eslint.config.mjs"
       ],
       "output": []
@@ -111,7 +111,7 @@
       ],
       "files": [
         "src/**/*.ts",
-        "test/playwright/**/*.ts",
+        "test/playwright/**/*.{ts,mts}",
         "package*.json",
         "../../.github/**"
       ],

@@ -22,7 +22,12 @@ const runCoverage = async <A>(
   try {
     const result = await operation.pipe(Effect.result, Effect.runPromise);
     // Preserve plain Promise rejection messages rather than exposing a FiberFailure prefix to CLI callers.
-    if (Result.isFailure(result)) throw new Error(result.failure.message);
+    if (Result.isFailure(result)) {
+      const message = result.failure.message.includes('CoverageLineCount')
+        ? 'Coverage line counts must be non-negative integers'
+        : result.failure.message;
+      throw new Error(message);
+    }
     return result.success;
   } finally {
     HeapMonitor.getInstance().checkHeapSize(name);

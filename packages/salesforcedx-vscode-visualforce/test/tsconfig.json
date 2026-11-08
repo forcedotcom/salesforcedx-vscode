@@ -4,5 +4,5 @@
     "noEmit": true,
     "composite": false
   },
-  "include": ["**/*.ts"]
+  "include": ["**/*.ts", "**/*.mts"]
 }

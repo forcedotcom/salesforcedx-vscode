@@ -136,6 +136,54 @@ test('bot approval reviews do not start the job', () => {
   assert.match(workflow.jobs['category-approve'].if, /github\.event\.review\.user\.login != 'svc-idee-bot'/);
 });
 
+test('all event types use event-based concurrency without a resolver job', () => {
+  const workflow = parse(readFileSync(join(__dirname, '../.github/workflows/categoryApprove.yml'), 'utf8'));
+  const job = workflow.jobs['category-approve'];
+  assert.equal(workflow.concurrency, undefined);
+  assert.equal(workflow.jobs['resolve-pulls'], undefined);
+  assert.equal(job.needs, undefined);
+  assert.equal(job.strategy, undefined);
+  assert.deepEqual(job.concurrency, {
+    group:
+      'category-approve-${{ github.event.pull_request.number || github.event.check_run.pull_requests[0].number || github.run_id }}',
+    'cancel-in-progress': true
+  });
+});
+
+test('preflight receives the original check-run payload without matrix scoping', async () => {
+  const workflow = parse(readFileSync(join(__dirname, '../.github/workflows/categoryApprove.yml'), 'utf8'));
+  const job = workflow.jobs['category-approve'];
+  const step = job.steps.find(step => step.id === 'preflight');
+  assert.equal(step.env, undefined);
+  const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
+  const run = new AsyncFunction('require', 'process', 'github', 'context', step.with.script);
+  const checkRunPayload = { check_run: { head_sha: 'abc123', pull_requests: [{ number: 8314 }, { number: 8315 }] } };
+  const scopedContext = { ...context, payload: checkRunPayload };
+  const { github } = fixture();
+  const visited = [];
+  github.graphql = async (_, { number }) => {
+    visited.push(number);
+    return { repository: { pullRequest: pull } };
+  };
+  let savedPayload;
+  const requireTrusted = moduleName => {
+    if (moduleName === 'node:fs') {
+      return {
+        existsSync: () => true,
+        writeFileSync: (path, contents) => {
+          assert.equal(path, '/runner/category-approve-event.json');
+          savedPayload = JSON.parse(contents);
+        }
+      };
+    }
+    assert.equal(moduleName, '/runner/trusted-approver/scripts/category-approve-preflight.cjs');
+    return preflight;
+  };
+  assert.equal(await run(requireTrusted, { env: { RUNNER_TEMP: '/runner' } }, github, scopedContext), true);
+  assert.deepEqual(visited, [8314, 8315]);
+  assert.deepEqual(savedPayload, checkRunPayload);
+});
+
 test(
   'dependency retries install only in the trusted approver worktree and propagate failures',
   { skip: process.platform === 'win32' && 'Tests the Ubuntu-only workflow Bash command' },
@@ -183,7 +231,15 @@ test('workflow runs trusted approver when develop does not yet contain the prefl
   const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
   const run = new AsyncFunction('require', 'process', 'github', 'context', script);
   const absent = moduleName => {
-    if (moduleName === 'node:fs') return { existsSync: () => false };
+    if (moduleName === 'node:fs') {
+      return {
+        existsSync: () => false,
+        writeFileSync: (path, contents) => {
+          assert.equal(path, '/runner/category-approve-event.json');
+          assert.deepEqual(JSON.parse(contents), context.payload);
+        }
+      };
+    }
     throw new Error(`unexpected require ${moduleName}`);
   };
   assert.equal(await run(absent, { env: { RUNNER_TEMP: '/runner' } }, {}, context), true);
@@ -195,17 +251,23 @@ for (const extension of ['ts', 'mts']) {
     t.after(() => rmSync(directory, { recursive: true, force: true }));
     const scripts = join(directory, 'trusted-approver', 'scripts');
     mkdirSync(scripts, { recursive: true });
-    writeFileSync(join(scripts, 'category-approve.ts'), 'console.log("trusted ts");\n');
+    writeFileSync(
+      join(scripts, 'category-approve.ts'),
+      'console.log("trusted ts"); console.log(process.env.GITHUB_EVENT_PATH);\n'
+    );
     if (extension === 'mts') {
-      writeFileSync(join(scripts, 'category-approve.mts'), 'console.log("trusted mts");\n');
+      writeFileSync(
+        join(scripts, 'category-approve.mts'),
+        'console.log("trusted mts"); console.log(process.env.GITHUB_EVENT_PATH);\n'
+      );
     }
     const workflow = parse(readFileSync(join(__dirname, '../.github/workflows/categoryApprove.yml'), 'utf8'));
     const script = workflow.jobs['category-approve'].steps.find(step => step.name === 'Decide and approve').run;
     const output = execFileSync('bash', ['-e', '-o', 'pipefail', '-c', script], {
       cwd: join(__dirname, '..'),
-      env: { ...process.env, RUNNER_TEMP: directory },
+      env: { ...process.env, RUNNER_TEMP: directory, GITHUB_EVENT_PATH: '/unscoped/event.json' },
       encoding: 'utf8'
     });
-    assert.equal(output.trim(), `trusted ${extension}`);
+    assert.equal(output.trim(), `trusted ${extension}\n${directory}/category-approve-event.json`);
   });
 }

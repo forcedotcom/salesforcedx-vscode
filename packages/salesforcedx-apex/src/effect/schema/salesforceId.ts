@@ -9,15 +9,14 @@ import * as Schema from 'effect/Schema';
 import * as SchemaGetter from 'effect/SchemaGetter';
 import { messages } from '../../i18n/i18n.js';
 
-const salesforceIdPattern = /^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$/;
+const salesforceIdPattern = /^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$/u;
 const SalesforceIdString = Schema.String.check(
   Schema.isPattern(salesforceIdPattern, { message: 'ID must contain 15 or 18 alphanumeric characters' })
 );
 const prefixedSalesforceIdString = (prefix: string, recordType: string) => {
   const message = `${recordType} ID must contain 15 or 18 alphanumeric characters and start with ${prefix}`;
   return Schema.String.check(
-    Schema.isPattern(salesforceIdPattern, { message }),
-    Schema.isStartingWith(prefix, { message })
+    Schema.isPattern(new RegExp(`^${prefix}[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$`, 'u'), { message })
   ).annotate({ identifier: `${recordType}Id` });
 };
 
@@ -49,13 +48,14 @@ export const ApexLogId = ApexLogIdString.pipe(Schema.brand('@salesforcedx-apex/A
 export type ApexLogId = typeof ApexLogId.Type;
 
 /** Salesforce Apex test run ID. */
+const testRunIdPattern = /^707[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$/u;
 export const TestRunIdString = Schema.String.check(
   Schema.makeFilter(
-    input =>
-      /^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$/.test(input) && input.startsWith('707')
-        ? undefined
-        : messages.invalidTestRunIdErr.replace('%s', () => input),
-    { identifier: 'AsyncApexJobId' }
+    input => (testRunIdPattern.test(input) ? undefined : messages.invalidTestRunIdErr.replace('%s', () => input)),
+    {
+      identifier: 'AsyncApexJobId',
+      toJsonSchema: () => ({ pattern: testRunIdPattern.source })
+    }
   )
 ).annotate({ identifier: 'AsyncApexJobId' });
 export const TestRunId = TestRunIdString.pipe(Schema.brand('@salesforcedx-apex/TestRunId'));
@@ -79,15 +79,23 @@ export const ApexTestQueueItemId = ApexTestQueueItemIdString.pipe(
 );
 export type ApexTestQueueItemId = typeof ApexTestQueueItemId.Type;
 
-export const ApexClassIdsSchema = Schema.String.pipe(
-  Schema.decodeTo(Schema.Array(ApexClassId), {
-    decode: SchemaGetter.transform(value => value.split(',')),
-    encode: SchemaGetter.transform(values => values.join(','))
-  })
-).annotate({ description: 'a comma-separated list of 15- or 18-character ApexClass IDs' });
-export const ApexTestSuiteIdsSchema = Schema.String.pipe(
-  Schema.decodeTo(Schema.Array(ApexTestSuiteId), {
-    decode: SchemaGetter.transform(value => value.split(',')),
-    encode: SchemaGetter.transform(values => values.join(','))
-  })
-).annotate({ description: 'a comma-separated list of 15- or 18-character ApexTestSuite IDs' });
+export const ApexClassIdsSchema = Schema.String.check(
+  Schema.isPattern(/^01p[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?(?:,01p[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?)*$/u)
+)
+  .pipe(
+    Schema.decodeTo(Schema.Array(ApexClassId), {
+      decode: SchemaGetter.transform(value => value.split(',')),
+      encode: SchemaGetter.transform(values => values.join(','))
+    })
+  )
+  .annotate({ description: 'a comma-separated list of 15- or 18-character ApexClass IDs' });
+export const ApexTestSuiteIdsSchema = Schema.String.check(
+  Schema.isPattern(/^05F[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?(?:,05F[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?)*$/u)
+)
+  .pipe(
+    Schema.decodeTo(Schema.Array(ApexTestSuiteId), {
+      decode: SchemaGetter.transform(value => value.split(',')),
+      encode: SchemaGetter.transform(values => values.join(','))
+    })
+  )
+  .annotate({ description: 'a comma-separated list of 15- or 18-character ApexTestSuite IDs' });

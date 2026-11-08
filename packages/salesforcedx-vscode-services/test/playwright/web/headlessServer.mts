@@ -7,12 +7,7 @@
 
 import { createHeadlessServer, setupSignalHandlers } from '@salesforce/playwright-vscode-ext';
 
-if (require.main === module) {
-  void createHeadlessServer({
-    extensionName: 'Visualforce',
-    callerDirname: __dirname,
-    /** **SFDX: Create Visualforce Page/Component** wizards are needed by the metadata extension in web. */
-    additionalExtensionDirs: ['salesforcedx-vscode-metadata']
-  });
+if (import.meta.main) {
   setupSignalHandlers();
+  await createHeadlessServer({ extensionName: 'Services', callerDirname: import.meta.dirname });
 }

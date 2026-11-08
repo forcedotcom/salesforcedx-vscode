@@ -43,6 +43,8 @@ export const coverageResult: TestResult = {
     {
       id: '07M3t000003bQwqEAE',
       queueItemId: '7093t000000c0eWAAQ',
+      stackTrace: null,
+      message: null,
       asyncApexJobId,
       methodName: 'should_create_account',
       outcome: 'Pass',
@@ -60,6 +62,8 @@ export const coverageResult: TestResult = {
     {
       id: '07M3t000003bQwgEAE',
       queueItemId: '7093t000000c0eXAAQ',
+      stackTrace: null,
+      message: null,
       asyncApexJobId,
       methodName: 'testCallout',
       outcome: 'Pass',
@@ -115,6 +119,8 @@ export const setupResult: TestResult = {
     {
       id: '07M3t000003bQwqEAE',
       queueItemId: '7093t000000c0eWAAQ',
+      stackTrace: null,
+      message: null,
       asyncApexJobId,
       methodName: 'should_create_account',
       outcome: 'Pass',
@@ -132,6 +138,8 @@ export const setupResult: TestResult = {
     {
       id: '07M3t000003bQwgEAE',
       queueItemId: '7093t000000c0eXAAQ',
+      stackTrace: null,
+      message: null,
       asyncApexJobId,
       methodName: 'testCallout',
       outcome: 'Pass',
@@ -224,6 +232,8 @@ export const successResult: TestResult = {
     {
       id: '07M3t000003bQwqEAE',
       queueItemId: '7093t000000c0eWAAQ',
+      stackTrace: null,
+      message: null,
       asyncApexJobId,
       methodName: 'should_create_account',
       outcome: 'Pass',
@@ -241,6 +251,8 @@ export const successResult: TestResult = {
     {
       id: '07M3t000003bQwgEAE',
       queueItemId: '7093t000000c0eXAAQ',
+      stackTrace: null,
+      message: null,
       asyncApexJobId,
       methodName: 'testCallout',
       outcome: 'Pass',
@@ -283,6 +295,8 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQwqEAE',
       queueItemId: '7093t000000c0eWAAQ',
+      stackTrace: null,
+      message: null,
       asyncApexJobId,
       methodName: 'should_create_account',
       outcome: 'Pass',
@@ -300,6 +314,8 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQwgEAE',
       queueItemId: '7093t000000c0eXAAQ',
+      stackTrace: null,
+      message: null,
       asyncApexJobId,
       methodName: 'testCallout',
       outcome: 'Fail',
@@ -317,6 +333,8 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQwWEAU',
       queueItemId: '7093t000000c0eYAAQ',
+      stackTrace: null,
+      message: null,
       asyncApexJobId,
       methodName: 'testGetCurrentUser',
       outcome: 'Pass',
@@ -334,6 +352,8 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQwXEAU',
       queueItemId: '7093t000000c0eYAAQ',
+      stackTrace: null,
+      message: null,
       asyncApexJobId,
       methodName: 'testResetMyPassword',
       outcome: 'Pass',
@@ -351,6 +371,8 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQwlEAE',
       queueItemId: '7093t000000c0eZAAQ',
+      stackTrace: null,
+      message: null,
       asyncApexJobId,
       methodName: 'testGetCallout',
       outcome: 'Pass',
@@ -387,6 +409,8 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQxFEAU',
       queueItemId: '7093t000000c0ebAAA',
+      stackTrace: null,
+      message: null,
       asyncApexJobId,
       methodName: 'testProcessing',
       outcome: 'Pass',
@@ -404,6 +428,8 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQwvEAE',
       queueItemId: '7093t000000c0eeAAA',
+      stackTrace: null,
+      message: null,
       asyncApexJobId,
       methodName: 'testDashboardPal',
       outcome: 'Pass',
@@ -440,6 +466,8 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQx1EAE',
       queueItemId: '7093t000000c0efAAA',
+      stackTrace: null,
+      message: null,
       asyncApexJobId,
       methodName: 'testCountContactsEmptyList',
       outcome: 'Pass',
@@ -457,6 +485,8 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQx2EAE',
       queueItemId: '7093t000000c0efAAA',
+      stackTrace: null,
+      message: null,
       asyncApexJobId,
       methodName: 'testCountContactsNullList',
       outcome: 'Pass',
@@ -474,6 +504,8 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQwbEAE',
       queueItemId: '7093t000000c0ehAAA',
+      stackTrace: null,
+      message: null,
       asyncApexJobId,
       methodName: 'testCallout',
       outcome: 'Pass',
@@ -492,6 +524,7 @@ export const testResults: TestResult = {
       id: '07M3t000003bQwREAU',
       queueItemId: '7093t000000c0eiAAA',
       message: 'Weird characters <>&"\'\r\n\r\nSurrounded by newlines.\r\n  and whitespace.\r\n\r\n',
+      stackTrace: null,
       asyncApexJobId,
       methodName: 'testGetCallout',
       outcome: 'Fail',
@@ -509,6 +542,8 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQwSEAU',
       queueItemId: '7093t000000c0eiAAA',
+      stackTrace: null,
+      message: null,
       asyncApexJobId,
       methodName: 'testPostCallout',
       outcome: 'Pass',
@@ -526,6 +561,8 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQx5EAE',
       queueItemId: '7093t000000c0ejAAA',
+      stackTrace: null,
+      message: null,
       asyncApexJobId,
       methodName: 'testAddContact',
       outcome: 'Pass',
@@ -543,6 +580,8 @@ export const testResults: TestResult = {
     {
       id: '07M3t000003bQxAEAU',
       queueItemId: '7093t000000c0ekAAA',
+      stackTrace: null,
+      message: null,
       asyncApexJobId,
       methodName: 'testLeadProcessing',
       outcome: 'Pass',
@@ -713,6 +752,8 @@ export const testResultsWithCategory: TestResult = {
     {
       id: '07M3t000003bQwqEAE',
       queueItemId: '7093t000000c0eWAAQ',
+      stackTrace: null,
+      message: null,
       asyncApexJobId,
       methodName: 'should_create_account',
       outcome: 'Pass',
@@ -731,6 +772,8 @@ export const testResultsWithCategory: TestResult = {
     {
       id: '07M3t000003bQwgEAE',
       queueItemId: '7093t000000c0eXAAQ',
+      stackTrace: null,
+      message: null,
       asyncApexJobId,
       methodName: 'testCallout',
       outcome: 'Pass',

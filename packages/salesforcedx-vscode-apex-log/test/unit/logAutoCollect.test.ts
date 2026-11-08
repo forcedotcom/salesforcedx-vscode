@@ -174,7 +174,8 @@ describe('log auto collection', () => {
           );
           expect(listLogs).toHaveBeenCalledWith(25, {
             userIds: [userOne, userTwo],
-            startTimeAfter: '2026-10-23T10:00:00.000Z'
+            startTimeAfter: '2026-10-23T10:00:00.000Z',
+            noLimit: true
           });
           yield* advance(2);
           expect(listLogs.mock.calls.length).toBeGreaterThan(1);
@@ -228,6 +229,26 @@ describe('log auto collection', () => {
             vi.waitFor(() => expect(writeFile).toHaveBeenCalledTimes(logs.length), { timeout: 5000 })
           );
           expect(listLogs).toHaveBeenCalledExactlyOnceWith(25, expect.anything());
+        })
+      )
+    );
+  });
+
+  it('collects more than 500 logs when the service is asked to scan all pages', async () => {
+    await Effect.runPromise(
+      Effect.scoped(
+        Effect.gen(function* () {
+          const { listLogs, writeFile, advance } = yield* setup;
+          const logs = Array.from({ length: 503 }, (_, index) =>
+            log(String(index).padStart(12, '0'), userOne, '2026-10-23T12:00:00.000Z')
+          );
+          listLogs.mockReturnValue(Effect.succeed(logs as ApexLogListItem[]));
+
+          yield* advance(1);
+          yield* Effect.promise(() =>
+            vi.waitFor(() => expect(writeFile).toHaveBeenCalledTimes(logs.length), { timeout: 15_000 })
+          );
+          expect(listLogs).toHaveBeenCalledWith(25, expect.objectContaining({ noLimit: true }));
         })
       )
     );

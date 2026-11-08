@@ -7,12 +7,12 @@
 
 import { join } from 'node:path';
 import { mkdir, readFile, rm } from 'node:fs/promises';
-import { createWriteStream, existsSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
-import { type Readable } from 'node:stream';
-import { pipeline } from 'node:stream/promises';
-import { writeResultFiles } from '../../src/tests/testService';
+import * as Effect from 'effect/Effect';
+import { NodeFileOutputLayer } from '../../src/effect/nodeFileOutput';
+import { writeResultFiles as writeResultFilesEffect } from '../../src/effect/writeResultFiles';
 import { type TestResult, type OutputDirConfig, type CodeCoverageResult, type PerClassCoverage } from '../../src';
 import { apexClassId, salesforceId } from '../schemaHelpers';
 
@@ -39,11 +39,10 @@ describe('writeResultFiles - Snapshot Tests', () => {
       .replaceAll(/(Run completed:\*{0,2} ).+/g, '$1[TIMESTAMP]')
       .replaceAll(/(<property name="testStartTime" value=")[^"]+("\/>)/g, '$1[TIMESTAMP]$2');
 
-  // Mock runPipeline function for testing
-  const mockRunPipeline = async (readable: Readable, filePath: string): Promise<string> => {
-    await pipeline(readable, createWriteStream(filePath));
-    return filePath;
-  };
+  const writeResultFiles = (result: TestResult, config: OutputDirConfig, codeCoverage = false) =>
+    Effect.runPromise(
+      writeResultFilesEffect(result, config, { codeCoverage }).pipe(Effect.provide(NodeFileOutputLayer))
+    );
 
   const mockTestResult: TestResult = {
     summary: {
@@ -154,7 +153,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
       resultFormats: ['json']
     };
 
-    await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
+    await writeResultFiles(mockTestResult, outputConfig, false);
 
     const jsonFilePath = join(tempDir, 'test-result-707000000000002AAA.json');
     const content = await readFile(jsonFilePath, 'utf8');
@@ -170,7 +169,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
       resultFormats: ['tap']
     };
 
-    await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
+    await writeResultFiles(mockTestResult, outputConfig, false);
 
     const tapFilePath = join(tempDir, 'test-result-707000000000002AAA-tap.txt');
     const content = await readFile(tapFilePath, 'utf8');
@@ -185,7 +184,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
       resultFormats: ['junit']
     };
 
-    await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
+    await writeResultFiles(mockTestResult, outputConfig, false);
 
     const junitFilePath = join(tempDir, 'test-result-707000000000002AAA-junit.xml');
     const content = await readFile(junitFilePath, 'utf8');
@@ -212,7 +211,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
       resultFormats: ['markdown']
     };
 
-    await writeResultFiles(testResultWithCoverage, outputConfig, true, mockRunPipeline);
+    await writeResultFiles(testResultWithCoverage, outputConfig, true);
 
     const markdownFilePath = join(tempDir, 'test-result-707000000000002AAA.md');
     const content = await readFile(markdownFilePath, 'utf8');
@@ -239,7 +238,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
       resultFormats: ['text']
     };
 
-    await writeResultFiles(testResultWithCoverage, outputConfig, true, mockRunPipeline);
+    await writeResultFiles(testResultWithCoverage, outputConfig, true);
 
     const textFilePath = join(tempDir, 'test-result-707000000000002AAA.txt');
     const content = await readFile(textFilePath, 'utf8');
@@ -264,7 +263,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
       dirPath: tempDir
     };
 
-    await writeResultFiles(testResultWithCoverage, outputConfig, true, mockRunPipeline);
+    await writeResultFiles(testResultWithCoverage, outputConfig, true);
 
     const coverageFilePath = join(tempDir, 'test-result-707000000000002AAA-codecoverage.json');
     const content = await readFile(coverageFilePath, 'utf8');
@@ -299,7 +298,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
       ]
     };
 
-    await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
+    await writeResultFiles(mockTestResult, outputConfig, false);
 
     // Test string content
     const textFilePath = join(tempDir, 'snapshot-custom.txt');
@@ -346,7 +345,7 @@ describe('writeResultFiles - Snapshot Tests', () => {
       ]
     };
 
-    const result = await writeResultFiles(testResultWithCoverage, outputConfig, true, mockRunPipeline);
+    const result = await writeResultFiles(testResultWithCoverage, outputConfig, true);
 
     // Snapshot the list of created files (sorted for consistency)
     const sortedResult = result.map(path => path.replace(tempDir, '[TEMP_DIR]').replaceAll('\\', '/')).sort();

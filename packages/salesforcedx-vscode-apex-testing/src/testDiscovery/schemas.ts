@@ -117,7 +117,7 @@ export const InstalledSubscriberPackageRow = Schema.Struct({
 });
 export type InstalledSubscriberPackageRow = Schema.Schema.Type<typeof InstalledSubscriberPackageRow>;
 
-/** ApexClass ManageableState row (unpackaged detection for the single no-namespace package). */
+/** Preserve the wire's absent/null distinction; package resolution collapses both to Option.none(). */
 export const ApexClassManageableStateRow = Schema.Struct({
   Id: Schema.String,
   ManageableState: Schema.String.pipe(Schema.NullOr, Schema.OptionFromOptionalKey)

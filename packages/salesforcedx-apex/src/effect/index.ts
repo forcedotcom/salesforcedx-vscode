@@ -43,14 +43,18 @@ export type {
   ApexCodeCoverageAggregateRecord,
   ApexOrgWideCoverage
 } from './schema/wire/coverage.js';
-export { ApexLogBodyFetchError, ApexLogQueryError } from './schema/errors.js';
 export {
-  ApexCompileError,
+  ApexLogBodyFetchError,
+  ApexLogQueryError,
   ApexOperationError,
+  ApexRequestError,
   ApexResponseDecodeError,
-  ApexRuntimeError,
-  causeMessage
-} from './errors.js';
+  InvalidSessionError
+} from './schema/errors.js';
+export { ApexCompileError, ApexRuntimeError, ApexReportError, causeMessage } from './errors.js';
+export { FileOutput, FileOutputError } from './fileOutput.js';
+export { writeResultFiles } from './writeResultFiles.js';
+export type { WriteResultFilesOptions } from './writeResultFiles.js';
 export { listLogs, getLogBody, streamLogs } from './logs.js';
 export { ApexLogListItem } from './schema/wire/logs.js';
 export { ListLogsOptionsSchema, LogStreamEventSchema } from './schema/logs.js';
@@ -78,3 +82,17 @@ export { runTestAsynchronous } from './asyncTests.js';
 export type { AsyncTestOptions } from './schema/wire/asyncTests.js';
 export type { AsyncTestProgress, AsyncTestRunEvent, AsyncTestRunSummary } from './schema/asyncTests.js';
 export type { AsyncTestPollingOptions, AsyncTestRun } from './asyncTests.js';
+export {
+  formatHumanReport,
+  formatTapReport,
+  formatJUnitReport,
+  formatMarkdownTextReport,
+  formatMarkdownTextReportStream
+} from './reporters.js';
+export type { HumanReporterOptions } from './reporters.js';
+export type { MarkdownTextReporterOptions, OutputFormat, TestSortOrder } from '../reporters/markdownTextReporter.js';
+export { buildCoverageMap, generateCoverageReports, IstanbulReports } from './coverageReports.js';
+export type { CoverageReportOptions } from './coverageReports.js';
+export type { CoverageSource } from '../reporters/coverageMap.js';
+export { DefaultReportOptions, DefaultWatermarks } from '../reporters/coverageOptions.js';
+export type { CoverageReporterOptions, CoverageReportFormats } from '../reporters/coverageOptions.js';

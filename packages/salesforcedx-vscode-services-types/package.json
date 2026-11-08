@@ -129,7 +129,7 @@
     }
   },
   "name": "@salesforce/vscode-services",
-  "version": "68.9.5",
+  "version": "68.11.2",
   "dependencies": {
     "@effect/opentelemetry": "^4.0.6",
     "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.43",

@@ -7,12 +7,11 @@
 
 import { createHeadlessServer, setupSignalHandlers } from '@salesforce/playwright-vscode-ext';
 
-if (require.main === module) {
-  void createHeadlessServer({
-    extensionName: 'Lightning Web Components',
-    callerDirname: __dirname,
-    /** **SFDX: Create Lightning Web Component** is contributed by the Metadata extension. */
-    additionalExtensionDirs: ['salesforcedx-vscode-metadata']
-  });
+if (import.meta.main) {
   setupSignalHandlers();
+  await createHeadlessServer({
+    extensionName: 'Metadata',
+    callerDirname: import.meta.dirname,
+    additionalExtensionDirs: ['salesforcedx-vscode-apex-log']
+  });
 }

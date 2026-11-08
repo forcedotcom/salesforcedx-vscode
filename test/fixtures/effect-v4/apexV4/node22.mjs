@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import { executeAnonymous } from '@salesforce/apex-node/effect';
 import * as Effect from 'effect/Effect';
 
-assert.equal(process.version, 'v22.0.0');
+assert.equal(process.version, 'v22.19.0');
 const connection = {
   accessToken: '00D000000000001!token',
   instanceUrl: 'https://example.my.salesforce.com',
@@ -32,4 +32,4 @@ const connection = {
   })
 };
 assert.equal((await Effect.runPromise(executeAnonymous(connection, { apexCode: 'code' }))).success, true);
-console.log('PASS native Node 22.0.0 V4 ESM operation');
+console.log('PASS native Node 22.19.0 V4 ESM operation');

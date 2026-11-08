@@ -12,8 +12,8 @@ import { build } from 'esbuild';
 const require = createRequire(import.meta.url);
 await copyFile('src/effect/package.json', 'out/src/effect/package.json');
 
-// Node 22.0 cannot require ESM. Embed V4 only in the Promise/class entries;
-// /effect remains native ESM using the installed V4 dependency.
+// Keep the Promise/class entry CommonJS and /effect native ESM, without either
+// entry importing the other module format at runtime.
 await Promise.all(
   ['index'].map(async name => {
     const entry = `src/${name}.ts`;
@@ -23,7 +23,7 @@ await Promise.all(
       bundle: true,
       platform: 'node',
       format: 'cjs',
-      target: 'node22.0',
+      target: 'node22.19',
       keepNames: true,
       sourcemap: true,
       metafile: true,
@@ -43,7 +43,19 @@ await Promise.all(
       Object.values(result.metafile.outputs).every(output =>
         output.imports.every(imported => !imported.external || !/^effect(?:\/|$)/.test(imported.path))
       ),
-      `${entry} must not require Effect's ESM entry on Node 22.0`
+      `${entry} must not require Effect's ESM entry from the CommonJS bundle`
     );
   })
 );
+
+await build({
+  entryPoints: ['src/effect/index.ts'],
+  outfile: 'out/src/effect/index.js',
+  bundle: true,
+  platform: 'node',
+  format: 'esm',
+  target: 'node22.19',
+  keepNames: true,
+  sourcemap: true,
+  packages: 'external'
+});

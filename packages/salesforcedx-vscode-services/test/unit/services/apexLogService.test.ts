@@ -149,6 +149,20 @@ it('preserves filter escaping, multi-user precedence, date syntax and custom lim
     await runtime.dispose();
   }
 });
+it('omits the SOQL limit when collecting all paginated logs', async () => {
+  pages = [[required], [{ ...required, Id: '07L000000000002' }]];
+  const runtime = makeRuntime();
+  try {
+    expect(await runtime.runPromise(ApexLogService.use(service => service.listLogs(25, { noLimit: true })))).toEqual([
+      required,
+      { ...required, Id: '07L000000000002' }
+    ]);
+    expect(queries[0]?.soql).toContain('ORDER BY StartTime DESC');
+    expect(queries[0]?.soql).not.toContain(' LIMIT ');
+  } finally {
+    await runtime.dispose();
+  }
+});
 it('validates later query pages rather than returning malformed records', async () => {
   pages = [[required], [{ ...required, LogLength: 'bad' }]];
   const runtime = makeRuntime();

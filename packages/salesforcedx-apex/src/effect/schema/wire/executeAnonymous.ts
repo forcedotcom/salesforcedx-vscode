@@ -23,7 +23,7 @@ const SoapText = Schema.Union([
     encode: SchemaGetter.transform(value => value ?? { $: { 'xsi:nil': 'true' as const } })
   })
 );
-const SoapIntegerText = Schema.String.check(Schema.isPattern(/\S/)).pipe(
+const SoapIntegerText = Schema.String.check(Schema.isPattern(/\S/u)).pipe(
   Schema.decodeTo(Schema.Int, {
     decode: SchemaGetter.transform(Number),
     encode: SchemaGetter.transform(String)
@@ -57,7 +57,7 @@ export const executionResultSchema = Schema.Union([
 
 const invalidSessionErrorSchema = Schema.Struct({
   name: Schema.Literal('ERROR_HTTP_500'),
-  message: Schema.String.check(Schema.isPattern(/INVALID_SESSION_ID/))
+  message: Schema.String.check(Schema.isPattern(/INVALID_SESSION_ID/u))
 });
 export const isInvalidSessionError = Schema.is(invalidSessionErrorSchema);
 

@@ -141,6 +141,7 @@
     "test:scripts": "wireit",
     "test:effect-v4-compat": "wireit",
     "test:effect-v3-bridge": "wireit",
+    "test:foundational-services": "wireit",
     "test:packed-services": "wireit",
     "test-vsix": "ts-node scripts/installVSIXFromBranch.ts code",
     "test:container:local": "wireit",
@@ -267,6 +268,7 @@
         "test:scripts",
         "test:effect-v4-compat",
         "test:effect-v3-bridge",
+        "test:foundational-services",
         "test:packed-services",
         "./packages/eslint-local-rules:test",
         "./packages/salesforcedx-utils:test",
@@ -418,6 +420,34 @@
         "test/fixtures/effect-v4/packedLegacy/*.{ts,json}",
         "test/fixtures/effect-v4/packedV2/*.{ts,json}",
         "test/fixtures/effect-v4/packedMixed/*.{ts,json}",
+        "package.json",
+        "pnpm-lock.yaml"
+      ],
+      "output": []
+    },
+    "test:foundational-services": {
+      "command": "node scripts/test-foundational-services.mjs",
+      "env": {
+        "RUNNER_TEMP": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "./packages/salesforcedx-apex:compile",
+        "./packages/salesforcedx-utils:compile",
+        "./packages/salesforcedx-vscode-i18n:compile",
+        "./packages/salesforcedx-vscode-services-types:compile",
+        "./packages/salesforcedx-vscode-services-v3-compat:compile",
+        "./packages/salesforcedx-vscode-services:compile"
+      ],
+      "files": [
+        "scripts/test-foundational-services.mjs",
+        "scripts/packedServicesFixtures.mjs",
+        "scripts/effect-diagnostics.mjs",
+        "scripts/bundling/*.{js,mjs}",
+        "config/effect-diagnostics.json",
+        "test/fixtures/effect-v4/foundations/**",
+        "test/fixtures/effect-v4/decoderConsumer/**",
         "package.json",
         "pnpm-lock.yaml"
       ],

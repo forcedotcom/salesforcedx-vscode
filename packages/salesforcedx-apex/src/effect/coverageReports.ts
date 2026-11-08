@@ -1,0 +1,89 @@
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import type { ReportLineEnding } from '../reporters/lineEnding.js';
+import type { ApexCodeCoverage, ApexCodeCoverageAggregate } from './schema/wire/coverage.js';
+import * as Context from 'effect/Context';
+import * as Effect from 'effect/Effect';
+import type * as libReport from 'istanbul-lib-report';
+import type * as reports from 'istanbul-reports';
+import { messages } from '../i18n/i18n.js';
+import { createCoverageMap, type CoverageSource } from '../reporters/coverageMap.js';
+import { DefaultReportOptions, DefaultWatermarks, type CoverageReporterOptions } from '../reporters/coverageOptions.js';
+import { ApexReportError, causeMessage } from './errors.js';
+
+/** The host supplies Istanbul and owns its writer, source lookup, and report destination. */
+export class IstanbulReports extends Context.Service<
+  IstanbulReports,
+  {
+    createContext: (options: Omit<libReport.ContextOptions, 'dir'>) => libReport.Context;
+    createReport: typeof reports.create;
+  }
+>()('Apex.IstanbulReports') {}
+
+const coverageError = (cause: unknown): ApexReportError =>
+  new ApexReportError({
+    format: 'coverage',
+    message: messages.coverageReportCreationError.replace('%s', () => causeMessage(cause)),
+    cause: causeMessage(cause)
+  });
+
+export interface CoverageReportOptions extends CoverageReporterOptions {
+  lineEnding?: ReportLineEnding;
+}
+
+export const buildCoverageMap = Effect.fn('Apex.buildCoverageMap')(
+  (
+    coverage: ApexCodeCoverageAggregate | ApexCodeCoverage,
+    sources: Readonly<Record<string, CoverageSource>>,
+    lineEnding: ReportLineEnding = '\n'
+  ) =>
+    Effect.try({
+      try: () => createCoverageMap(coverage, name => sources[name] ?? { path: name }, lineEnding),
+      catch: coverageError
+    })
+);
+
+/** Generates the requested reports using caller-owned Istanbul output; defaults to text-summary. */
+export const generateCoverageReports = Effect.fn('Apex.generateCoverageReports')(function* (
+  coverage: ApexCodeCoverageAggregate | ApexCodeCoverage,
+  sources: Readonly<Record<string, CoverageSource>>,
+  options?: CoverageReportOptions
+) {
+  const istanbul = yield* IstanbulReports;
+  return yield* buildCoverageMap(coverage, sources, options?.lineEnding).pipe(
+    Effect.flatMap(coverageMap =>
+      Effect.try({
+        try: () => {
+          const sourceByPath = new Map(Object.values(sources).map(source => [source.path, source.content]));
+          const sourceFinder = (path: string): string => {
+            const content = sourceByPath.get(path);
+            if (content === undefined) throw new Error(`Source content was not supplied for ${path}`);
+            return content;
+          };
+          const formats = options?.reportFormats || ['text-summary'];
+          // Istanbul HTML annotation catches source lookup errors instead of failing the report.
+          if (formats.some(format => format === 'html' || format === 'html-spa')) {
+            coverageMap.files().forEach(sourceFinder);
+          }
+          const context = istanbul.createContext({
+            coverageMap,
+            defaultSummarizer: 'nested',
+            watermarks: options?.watermark || DefaultWatermarks,
+            sourceFinder
+          });
+          formats.forEach(format => {
+            istanbul
+              .createReport(format, options?.reportOptions?.[format] || DefaultReportOptions[format])
+              .execute(context);
+          });
+        },
+        catch: coverageError
+      })
+    )
+  );
+});

@@ -54,12 +54,16 @@ export const initSObjectDefinitions = Effect.fn('initSObjectDefinitions')(functi
         message: extractErrorMessage(defect),
         sobjectRefreshStartup: isSettingEnabled
       }).pipe(
+        Effect.andThen(Effect.die(defect)),
         Effect.withSpan('initSObjectDefinitionsError', {
           attributes: {
             message: `Error: ${extractErrorMessage(defect)} with sobjectRefreshStartup = ${isSettingEnabled}`
           },
           root: true
-        })
+        }),
+        // Capture the failed span so tapDefect can preserve the original command defect.
+        Effect.exit,
+        Effect.asVoid
       )
     )
   );

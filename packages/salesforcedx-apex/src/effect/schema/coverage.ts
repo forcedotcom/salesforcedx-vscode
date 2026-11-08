@@ -29,7 +29,7 @@ const CoverageLineNumberSchema = Schema.Number.check(
 
 /** Tooling returns a number; older clients supply its string representation. */
 const CoveragePercentStringSchema = Schema.String.check(
-  Schema.isPattern(/^\s*(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?\s*$/, { message: coveragePercentMessage })
+  Schema.isPattern(/^\s*(?:\d+(?:\.\d*)?|\.\d+)(?:[eE][+-]?\d+)?\s*$/u, { message: coveragePercentMessage })
 ).pipe(
   Schema.decodeTo(Schema.Number, {
     decode: SchemaGetter.transform(Number),

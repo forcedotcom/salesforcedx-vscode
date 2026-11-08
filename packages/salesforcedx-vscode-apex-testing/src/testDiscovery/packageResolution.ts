@@ -88,12 +88,16 @@ const toResolvedFromPackage2 = (pkg: Package2Row): ResolvedPackageInfo => ({
 });
 
 /** ManageableState absent/empty/'unmanaged' ⇒ unpackaged (keep the class out of the single no-namespace package). */
-const isUnpackagedState = (state: Option.Option<string | null>): boolean =>
-  UNPACKAGED_STATES.has((Option.getOrElse(state, () => null) ?? '').trim().toLowerCase());
+const isUnpackagedState = (state: Option.Option<string>): boolean =>
+  UNPACKAGED_STATES.has(
+    Option.getOrElse(state, () => '')
+      .trim()
+      .toLowerCase()
+  );
 
-/** Trim + drop empty so `''`/whitespace namespace behaves like `null`/absent (no-namespace bucket). */
-const trimmedNamespace = (ns: Option.Option<string | null>): Option.Option<string> =>
-  Option.flatMap(ns, Option.fromNullishOr).pipe(
+/** Trim and drop empty after callers normalize null/absent to None (no-namespace bucket). */
+const trimmedNamespace = (ns: Option.Option<string>): Option.Option<string> =>
+  ns.pipe(
     Option.map(value => value.trim()),
     Option.filter(value => value !== '')
   );
@@ -161,7 +165,7 @@ const getUnpackagedApexClassIds = Effect.fn('PackageResolutionService.getUnpacka
       classIds,
       chunk => `SELECT Id, ManageableState FROM ApexClass WHERE Id IN (${inClause(chunk)})`
     ).pipe(
-      Effect.map(Array.filter(row => isUnpackagedState(row.ManageableState))),
+      Effect.map(Array.filter(row => isUnpackagedState(Option.flatMap(row.ManageableState, Option.fromNullishOr)))),
       Effect.map(rows => HashSet.fromIterable(rows.map(row => normalizeId(row.Id)))),
       Effect.catch(() => Effect.succeed(HashSet.empty<string>()))
     )
@@ -187,15 +191,13 @@ const resolveFromInstalledSubscriberPackages = Effect.fn(
   ).pipe(Effect.catch(() => Effect.succeed(Array.empty<InstalledSubscriberPackageRow>())));
 
   const byNamespace = HashMap.fromIterable(
-    Array.filterMap(rows, row =>
-      Result.fromOption(
-        trimmedNamespace(row.SubscriberPackage.NamespacePrefix).pipe(Option.map(ns => [ns, row] as const)),
-        () => undefined
-      )
-    )
+    Array.filterMap(rows, row => {
+      const namespace = Option.flatMap(row.SubscriberPackage.NamespacePrefix, Option.fromNullishOr);
+      return Result.fromOption(trimmedNamespace(namespace).pipe(Option.map(ns => [ns, row] as const)), () => undefined);
+    })
   );
   const noNamespacePackages = rows.filter(row =>
-    trimmedNamespace(row.SubscriberPackage.NamespacePrefix).pipe(Option.isNone)
+    trimmedNamespace(Option.flatMap(row.SubscriberPackage.NamespacePrefix, Option.fromNullishOr)).pipe(Option.isNone)
   );
 
   const entries = [...classIdToNamespace.entries()];

@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { type CodeCoverageResult } from '@salesforce/apex-node';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
 import * as Context from 'effect/Context';
@@ -56,11 +55,18 @@ const CoverageItem = Schema.Struct({
   lines: Schema.Record(Schema.String, Schema.Number)
 });
 type CoverageItem = Schema.Schema.Type<typeof CoverageItem>;
-
-type TestResultWithCoverage = {
-  codecoverage?: CodeCoverageResult[];
-  coverage?: { coverage: CodeCoverageResult[] };
-};
+const CoverageResultSchema = Schema.Struct({
+  name: Schema.String,
+  coveredLines: Schema.Int.pipe(Schema.Array, Schema.mutable),
+  uncoveredLines: Schema.Int.pipe(Schema.Array, Schema.mutable)
+});
+const CoverageEntrySchema = Schema.Union([CoverageItem, CoverageResultSchema]);
+type CoverageEntry = Schema.Schema.Type<typeof CoverageEntrySchema>;
+const CoverageResultsSchema = CoverageEntrySchema.pipe(Schema.Array);
+const TestResultWithCoverageSchema = Schema.Struct({
+  codecoverage: CoverageResultsSchema.pipe(Schema.optional),
+  coverage: Schema.Struct({ coverage: CoverageResultsSchema }).pipe(Schema.optional)
+});
 
 export type CoverageRanges = { coveredLines: Range[]; uncoveredLines: Range[] };
 
@@ -123,10 +129,7 @@ const readResult = Effect.fn('CodeCoverageService.readResult')(function* (apexTe
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const uri = Utils.joinPath(apexTestResultsUri, name);
   const content = yield* api.v2.services.FsService.use(service => service.readFile(uri));
-  const testResult = yield* Effect.try(
-    // eslint-disable-next-line @typescript-eslint/consistent-type-assertions -- test result shape from apex-node
-    () => JSON.parse(content) as TestResultWithCoverage
-  );
+  const testResult = yield* Schema.decodeUnknownEffect(Schema.fromJsonString(TestResultWithCoverageSchema))(content);
   return testResult.codecoverage ?? testResult.coverage?.coverage ?? [];
 });
 
@@ -190,9 +193,7 @@ const makeCodeCoverageService = Effect.gen(function* () {
       ),
       Effect.map(([perFileItems]) => perFileItems.flat()),
       // Effect collection combinators preserve input order, so newer coverage remains last.
-      Effect.map(
-        items => new Map<string, CoverageItem | CodeCoverageResult>(items.map(item => [item.name, item] as const))
-      ),
+      Effect.map(items => new Map<string, CoverageEntry>(items.map(item => [item.name, item] as const))),
       Effect.map(coverageByName => [...coverageByName.values()]),
       Effect.filterOrFail(
         Arr.isReadonlyArrayNonEmpty,

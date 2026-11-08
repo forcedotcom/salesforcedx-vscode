@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { type Connection, Logger } from '@salesforce/core';
+import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
 import { elapsedTime } from '../../src/utils/elapsedTime';
 import { getCurrentTime } from '../../src/utils/dateUtil';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import * as sinon from 'sinon';
 import { TestService, type OutputDirConfig, type ApexTestProgressReporter, CancellationTokenSource } from '../../src';
-import { JUnitFormatTransformer } from '../../src/reporters/junitFormatTransformer';
-import { TapFormatTransformer } from '../../src/reporters/tapFormatTransform';
 import {
   type AsyncTestConfiguration,
   type ApexTestQueueItem,
@@ -36,12 +36,12 @@ import {
   flowTestResultData
 } from '../testData';
 import { join } from 'node:path';
-import * as fs from 'node:fs/promises';
 import * as diagnosticUtil from '../../src/tests/diagnosticUtil';
 import { AsyncTests } from '../../src/tests/asyncTests';
 import { QUERY_RECORD_LIMIT } from '../../src/tests/constants';
-import { Writable } from 'node:stream';
 import { Duration } from '@salesforce/kit';
+import { FileOutput } from '../../src/effect/fileOutput';
+import { writeResultFiles } from '../../src/effect/writeResultFiles';
 
 vi.mock(import('../../src/tests/diagnosticUtil'), async importOriginal => {
   const actual = await importOriginal();
@@ -51,24 +51,11 @@ vi.mock(import('../../src/utils/dateUtil'), async importOriginal => ({
   ...(await importOriginal()),
   getCurrentTime: vi.fn()
 }));
-vi.mock(import('node:fs/promises'), async importOriginal => ({
-  ...(await importOriginal()),
-  mkdir: vi.fn(),
-  writeFile: vi.fn()
-}));
-
-type TestServiceInternals = {
-  createStream: (filePath: string) => Writable;
-};
-
-const testServicePrototype = TestService.prototype as unknown as TestServiceInternals;
-
 let mockConnection: Connection;
 let toolingRequestStub: sinon.SinonStub;
 let retrieveMaxApiVersionStub: sinon.SinonStub;
 const testData = new MockTestOrgData();
 const formatTestErrorsMock = vi.mocked(diagnosticUtil.formatTestErrors);
-const writeFileMock = vi.mocked(fs.writeFile);
 const getCurrentTimeMock = vi.mocked(getCurrentTime);
 const pollResponse: ApexTestQueueItem = {
   done: true,
@@ -1779,39 +1766,35 @@ describe('elapsedTime', () => {
 });
 
 describe('Create Result Files', () => {
-  let testServiceSpy: sinon.SinonSpy;
-  let junitSpy: sinon.SinonSpy;
-  let tapSpy: sinon.SinonSpy;
-  let sandboxStub1: sinon.SinonSandbox;
-
-  beforeEach(async () => {
-    sandboxStub1 = sinon.createSandbox();
-    vi.mocked(fs.mkdir).mockClear();
-    writeFileMock.mockClear();
-    testServiceSpy = sandboxStub1.stub(testServicePrototype, 'createStream').returns(
-      new Writable({
-        write(chunk: unknown, encoding, callback) {
-          callback();
-        }
-      })
+  const writtenFiles: Array<{ path: string; content: string }> = [];
+  const fileOutput: typeof FileOutput.Service = {
+    createDirectory: () => Effect.void,
+    writeFile: (directory, fileName, content) =>
+      Stream.runCollect(content).pipe(
+        Effect.map(chunks => chunks.join('')),
+        Effect.map(content => {
+          const path = join(directory, fileName);
+          writtenFiles.push({ path, content });
+          return path;
+        })
+      )
+  };
+  const writeFiles = (result: Parameters<typeof writeResultFiles>[0], config: OutputDirConfig, codeCoverage = false) =>
+    Effect.runPromise(
+      writeResultFiles(result, config, { codeCoverage }).pipe(Effect.provideService(FileOutput, fileOutput))
     );
-    junitSpy = sandboxStub1.spy(JUnitFormatTransformer.prototype, 'format');
-    tapSpy = sandboxStub1.spy(TapFormatTransformer.prototype, 'format');
-  });
 
-  afterEach(() => {
-    sandboxStub1.restore();
+  beforeEach(() => {
+    writtenFiles.length = 0;
   });
 
   it('should create test-run-id.txt if no result format nor fileInfos are specified', async () => {
     const config = {
       dirPath: 'path/to/directory'
     } as OutputDirConfig;
-    const testSrv = new TestService(mockConnection);
-    await testSrv.writeResultFiles(testResultData, config);
+    await writeFiles(testResultData, config);
 
-    expect(writeFileMock).toHaveBeenCalledWith(join(config.dirPath, 'test-run-id.txt'), testRunId);
-    expect(testServiceSpy.callCount).toBe(0);
+    expect(writtenFiles).toEqual([{ path: join(config.dirPath, 'test-run-id.txt'), content: testRunId }]);
   });
 
   it('should still create test-run-id.txt if result format is specified with TestRunId result', async () => {
@@ -1820,11 +1803,9 @@ describe('Create Result Files', () => {
       resultFormats: ['tap']
     };
 
-    const testSrv = new TestService(mockConnection);
-    await testSrv.writeResultFiles({ testRunId } as TestRunIdResult, config, false);
+    await writeFiles({ testRunId } as TestRunIdResult, config);
 
-    expect(writeFileMock).toHaveBeenCalledWith(join(config.dirPath, 'test-run-id.txt'), testRunId);
-    expect(testServiceSpy.callCount).toBe(0);
+    expect(writtenFiles).toEqual([{ path: join(config.dirPath, 'test-run-id.txt'), content: testRunId }]);
   });
 
   it('should still create test-run-id.txt if code coverage is specified with TestRunId result', async () => {
@@ -1832,12 +1813,9 @@ describe('Create Result Files', () => {
       dirPath: 'path/to/directory'
     };
 
-    const testSrv = new TestService(mockConnection);
+    await writeFiles({ testRunId } as TestRunIdResult, config, true);
 
-    await testSrv.writeResultFiles({ testRunId } as TestRunIdResult, config, true);
-
-    expect(writeFileMock).toHaveBeenCalledWith(join(config.dirPath, 'test-run-id.txt'), testRunId);
-    expect(testServiceSpy.callCount).toBe(0);
+    expect(writtenFiles).toEqual([{ path: join(config.dirPath, 'test-run-id.txt'), content: testRunId }]);
   });
 
   it('should create the json files if json result format is specified', async () => {
@@ -1845,11 +1823,12 @@ describe('Create Result Files', () => {
       dirPath: 'path/to/directory',
       resultFormats: ['json']
     } as OutputDirConfig;
-    const testSrv = new TestService(mockConnection);
-    await testSrv.writeResultFiles(testResultData, config);
+    await writeFiles(testResultData, config);
 
-    expect(testServiceSpy.calledWith(join(config.dirPath, `test-result-${testRunId}.json`))).toBe(true);
-    expect(testServiceSpy.callCount).toBe(1);
+    expect(writtenFiles.map(file => file.path)).toEqual([
+      join(config.dirPath, 'test-run-id.txt'),
+      join(config.dirPath, `test-result-${testRunId}.json`)
+    ]);
   });
 
   it('should create the junit result files if junit result format is specified', async () => {
@@ -1857,12 +1836,12 @@ describe('Create Result Files', () => {
       dirPath: 'path/to/directory',
       resultFormats: ['junit']
     } as OutputDirConfig;
-    const testSrv = new TestService(mockConnection);
-    await testSrv.writeResultFiles(testResultData, config);
+    await writeFiles(testResultData, config);
 
-    expect(testServiceSpy.calledWith(join(config.dirPath, `test-result-${testRunId}-junit.xml`))).toBe(true);
-    expect(junitSpy.calledOnce).toBe(true);
-    expect(testServiceSpy.callCount).toBe(1);
+    expect(writtenFiles.map(file => file.path)).toEqual([
+      join(config.dirPath, 'test-run-id.txt'),
+      join(config.dirPath, `test-result-${testRunId}-junit.xml`)
+    ]);
   });
 
   it('should create the tap result files if result format is specified', async () => {
@@ -1870,12 +1849,12 @@ describe('Create Result Files', () => {
       dirPath: 'path/to/directory',
       resultFormats: ['tap']
     } as OutputDirConfig;
-    const testSrv = new TestService(mockConnection);
-    await testSrv.writeResultFiles(testResultData, config);
+    await writeFiles(testResultData, config);
 
-    expect(testServiceSpy.calledWith(join(config.dirPath, `test-result-${testRunId}-tap.txt`))).toBe(true);
-    expect(tapSpy.calledOnce).toBe(true);
-    expect(testServiceSpy.callCount).toBe(1);
+    expect(writtenFiles.map(file => file.path)).toEqual([
+      join(config.dirPath, 'test-run-id.txt'),
+      join(config.dirPath, `test-result-${testRunId}-tap.txt`)
+    ]);
   });
 
   it('should throw an error if unexpected type is specified for result format', async () => {
@@ -1883,10 +1862,9 @@ describe('Create Result Files', () => {
       dirPath: 'path/to/directory',
       resultFormats: ['rando']
     };
-    const testSrv = new TestService(mockConnection);
     try {
       // @ts-ignore
-      await testSrv.writeResultFiles(testResultData, config, true);
+      await writeFiles(testResultData, config, true);
       fail();
     } catch (e) {
       expect(e.message).toBe('Specified result formats must be one of json, junit, tap, human, markdown, or text');
@@ -1897,11 +1875,12 @@ describe('Create Result Files', () => {
     const config = {
       dirPath: 'path/to/directory'
     } as OutputDirConfig;
-    const testSrv = new TestService(mockConnection);
-    await testSrv.writeResultFiles(testResultData, config, true);
+    await writeFiles(testResultData, config, true);
 
-    expect(testServiceSpy.calledWith(join(config.dirPath, `test-result-${testRunId}-codecoverage.json`))).toBe(true);
-    expect(testServiceSpy.callCount).toBe(1);
+    expect(writtenFiles.map(file => file.path)).toEqual([
+      join(config.dirPath, 'test-run-id.txt'),
+      join(config.dirPath, `test-result-${testRunId}-codecoverage.json`)
+    ]);
   });
 
   it('should create any files provided in fileInfos', async () => {
@@ -1909,10 +1888,11 @@ describe('Create Result Files', () => {
       dirPath: 'path/to/directory',
       fileInfos: [{ filename: 'test-result-myFile.json', content: { summary: {} } }]
     } as OutputDirConfig;
-    const testSrv = new TestService(mockConnection);
-    await testSrv.writeResultFiles(testResultData, config);
+    await writeFiles(testResultData, config);
 
-    expect(testServiceSpy.calledWith(join(config.dirPath, 'test-result-myFile.json'))).toBe(true);
-    expect(testServiceSpy.callCount).toBe(1);
+    expect(writtenFiles.map(file => file.path)).toEqual([
+      join(config.dirPath, 'test-run-id.txt'),
+      join(config.dirPath, 'test-result-myFile.json')
+    ]);
   });
 });

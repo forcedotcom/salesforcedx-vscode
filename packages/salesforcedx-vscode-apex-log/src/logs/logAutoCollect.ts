@@ -71,10 +71,10 @@ const collectNewLogs = Effect.fn('LogAutoCollect.collectNewLogs', {
     startDateByUser.size > 0 ? [...startDateByUser.values()].reduce((a, b) => (a < b ? a : b)) : undefined;
 
   const newLogs = (yield* api.v2.services.ApexLogService.use(service =>
-    service.listLogs(
-      25,
-      userIds.length > 0 && minStart ? { userIds, startTimeAfter: minStart.toISOString() } : undefined
-    )
+    service.listLogs(25, {
+      ...(userIds.length > 0 && minStart ? { userIds, startTimeAfter: minStart.toISOString() } : {}),
+      noLimit: true
+    })
   ).pipe(
     Effect.catch(e =>
       channelService.appendToChannel(`[LogAutoCollect] listLogs failed: ${e.message}`).pipe(Effect.as([]))
