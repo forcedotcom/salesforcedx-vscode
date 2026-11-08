@@ -1,0 +1,10 @@
+{
+  "extends": "../../../scripts/tsconfig.native.json",
+  "compilerOptions": {
+    "verbatimModuleSyntax": false,
+    "erasableSyntaxOnly": false,
+    "experimentalDecorators": true,
+    "useUnknownInCatchVariables": false
+  },
+  "include": ["**/*.mts"]
+}

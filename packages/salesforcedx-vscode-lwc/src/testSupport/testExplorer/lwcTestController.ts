@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Order from 'effect/Order';
 import { isError } from 'effect/Predicate';
@@ -824,7 +825,7 @@ class LwcTestController {
 }
 
 const awaitTaskEnd = (sfTask: SfTask, token: vscode.CancellationToken): Promise<{ exitCode?: number }> =>
-  new Promise<{ exitCode?: number }>(resolve => {
+  Effect.async<{ exitCode?: number }>(resume => {
     let resolved = false;
     const safeResolve = (result: { exitCode?: number }) => {
       if (!resolved) {
@@ -832,7 +833,7 @@ const awaitTaskEnd = (sfTask: SfTask, token: vscode.CancellationToken): Promise<
         endHandler.dispose();
         endDisposable.dispose();
         cancelDisposable.dispose();
-        resolve(result);
+        resume(Effect.succeed(result));
       }
     };
 
@@ -851,7 +852,7 @@ const awaitTaskEnd = (sfTask: SfTask, token: vscode.CancellationToken): Promise<
       sfTask.terminate();
       safeResolve({ exitCode: undefined });
     });
-  });
+  }).pipe(Effect.runPromise);
 
 /**
  * Waits for the jest test-result file to appear on disk before reading.
@@ -887,7 +888,7 @@ const waitForResultFile = async (
   }
 };
 
-const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
+const delay = (ms: number): Promise<void> => Effect.sleep(Duration.millis(ms)).pipe(Effect.runPromise);
 
 const readJestResultsFile = Effect.fn('readJestResultsFile')(function* (filePath: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
