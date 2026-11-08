@@ -9,7 +9,6 @@
 import { ExtensionProviderService, getJsonCandidate, identifyJsonTypeInString } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
-import * as Runtime from 'effect/Runtime';
 import * as path from 'node:path';
 import type { OpenAPIV3 } from 'openapi-types';
 import type { ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
@@ -29,23 +28,20 @@ export type ProgressReporter = (message: string) => Effect.Effect<void>;
  * life between the folder prompt and the final toast. The notification closes when the Effect settles.
  * @param title - The notification title shown for the whole operation.
  * @param body - Receives `report` and returns the Effect to run; its message updates the notification.
- * @param location - Where to show the progress (toast vs status bar); defaults to a toast notification.
+ * @param command - Command whose notification settings determine the progress location.
  */
 export const withSteppedProgress = <A, E, R>(
   title: string,
   body: (report: ProgressReporter) => Effect.Effect<A, E, R>,
-  location: vscode.ProgressLocation = vscode.ProgressLocation.Notification
+  command: string
 ) =>
-  Effect.runtime<R>().pipe(
-    Effect.flatMap(runtime =>
-      Effect.async<A, E>(resume => {
-        void vscode.window.withProgress({ location, title, cancellable: false }, progress => {
-          const report: ProgressReporter = message => Effect.sync(() => progress.report({ message }));
-          return Runtime.runPromiseExit(runtime)(body(report)).then(exit => {
-            resume(exit._tag === 'Success' ? Effect.succeed(exit.value) : Effect.failCause(exit.cause));
-          });
-        });
-      })
+  ExtensionProviderService.pipe(
+    Effect.flatMap(provider => provider.getServicesApi),
+    Effect.flatMap(api => api.services.PromptService),
+    Effect.flatMap(promptService =>
+      promptService.withCancellableProgressReportingFor(command, title, { cancellable: false })(progress =>
+        body(message => Effect.sync(() => progress.report({ message })))
+      )
     )
   );
 

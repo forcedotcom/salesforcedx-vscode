@@ -98,15 +98,10 @@ const selectApexClasses = Effect.fn('apexTestSuite.selectApexClasses')(function*
   command: ProgressAndSuccessCommandKey
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const selection = yield* Effect.all({
-    promptService: api.services.PromptService,
-    progressLocation: api.services.NotificationModeService.pipe(
-      Effect.flatMap(notificationMode => notificationMode.getProgressLocation(command))
-    )
-  }).pipe(
-    Effect.flatMap(({ promptService, progressLocation }) =>
+  const selection = yield* api.services.PromptService.pipe(
+    Effect.flatMap(promptService =>
       listApexClassItems().pipe(
-        promptService.withCancellableProgress(nls.localize('retrieving_tests_message'), progressLocation)
+        promptService.withCancellableProgressFor(command, nls.localize('retrieving_tests_message'))
       )
     ),
     Effect.flatMap(apexClassItems =>
@@ -165,12 +160,10 @@ const gatherEditOptions = Effect.fn('apexTestSuite.gatherEditOptions')(function*
         `SELECT Id, ApexClassId FROM TestSuiteMembership WHERE ApexTestSuiteId = '${(testSuite.description ?? '').replaceAll("'", "''")}'`,
         MembershipRow
       ).pipe(Effect.map(rows => new Map(rows.map(row => [row.ApexClassId, row.Id])))),
-      classes: api.services.NotificationModeService.pipe(
-        Effect.flatMap(notificationMode => notificationMode.getProgressLocation(messages.apex_test_suite_edit_text)),
-        Effect.flatMap(progressLocation =>
-          listApexClassItems().pipe(
-            promptService.withCancellableProgress(nls.localize('retrieving_tests_message'), progressLocation)
-          )
+      classes: listApexClassItems().pipe(
+        promptService.withCancellableProgressFor(
+          messages.apex_test_suite_edit_text,
+          nls.localize('retrieving_tests_message')
         )
       )
     },
@@ -238,13 +231,12 @@ const buildSuite = Effect.fn('apexTestSuite.buildSuite')(function* (
 
   yield* Effect.all({
     promptService: api.services.PromptService,
-    progressLocation: notificationMode.getProgressLocation(command),
     connection: api.services.ConnectionService.getConnection()
   }).pipe(
-    Effect.flatMap(({ promptService, progressLocation, connection }) =>
+    Effect.flatMap(({ promptService, connection }) =>
       Effect.promise(() => new TestService(connection).buildSuite(options.suitename, options.tests)).pipe(
         Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
-        promptService.withCancellableProgress(executionName, progressLocation)
+        promptService.withCancellableProgressFor(command, executionName)
       )
     )
   );
@@ -273,11 +265,8 @@ const applyEdits = Effect.fn('apexTestSuite.applyEdits')(function* (
   const appendEnded = channelService.appendToChannel(`Ended ${executionName}`);
 
   const connection = yield* api.services.ConnectionService.getConnection();
-  yield* Effect.all({
-    promptService: api.services.PromptService,
-    progressLocation: notificationMode.getProgressLocation(messages.apex_test_suite_edit_text)
-  }).pipe(
-    Effect.flatMap(({ promptService, progressLocation }) =>
+  yield* api.services.PromptService.pipe(
+    Effect.flatMap(promptService =>
       Effect.all(
         [
           toAdd.length > 0
@@ -304,7 +293,7 @@ const applyEdits = Effect.fn('apexTestSuite.applyEdits')(function* (
         { concurrency: 'unbounded' }
       ).pipe(
         Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
-        promptService.withCancellableProgress(executionName, progressLocation)
+        promptService.withCancellableProgressFor(messages.apex_test_suite_edit_text, executionName)
       )
     )
   );

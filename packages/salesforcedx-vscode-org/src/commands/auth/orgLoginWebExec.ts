@@ -37,7 +37,6 @@ export const executeOrgLoginWeb = Effect.fn('executeOrgLoginWeb')(function* (par
 }) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channel = yield* api.services.ChannelService;
-  const notificationMode = yield* api.services.NotificationModeService;
 
   // Code Builder only (gated on CODE_BUILDER_STATE inside the helper). Fork so the modal does not
   // block the login child; forkDaemon keeps it alive independent of this fiber. Best-effort: a
@@ -68,12 +67,13 @@ export const executeOrgLoginWeb = Effect.fn('executeOrgLoginWeb')(function* (par
     });
   });
 
-  const progressLocation = yield* notificationMode.getProgressLocation(params.notificationCommand);
-
   yield* (yield* api.services.TerminalService)
     .simpleExec({ executable: 'sf', args: params.args, parse: identity, timeout: LOGIN_TIMEOUT })
     .pipe(
-      (yield* api.services.PromptService).withCancellableProgress(params.progressMessage, progressLocation),
+      (yield* api.services.PromptService).withCancellableProgressFor(
+        params.notificationCommand,
+        params.progressMessage
+      ),
       Effect.flatMap(handleSuccess),
       Effect.catchTag('TerminalServiceError', error =>
         isAuthPortConflictError(error.message)

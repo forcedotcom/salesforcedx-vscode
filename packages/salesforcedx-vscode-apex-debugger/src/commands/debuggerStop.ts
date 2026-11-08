@@ -100,11 +100,8 @@ export const debuggerStop = Effect.fn('debuggerStop')(function* () {
           )
         );
 
-  yield* Effect.all({
-    progressLocation: notificationMode.getProgressLocation(COMMAND),
-    promptService: api.services.PromptService
-  }).pipe(
-    Effect.flatMap(({ progressLocation, promptService }) =>
+  yield* api.services.PromptService.pipe(
+    Effect.flatMap(promptService =>
       sessionRecords.pipe(
         // LIMIT 1 → Array.head is None (nothing to stop) or Some(the session to detach).
         Effect.flatMap(records =>
@@ -127,7 +124,7 @@ export const debuggerStop = Effect.fn('debuggerStop')(function* () {
             false
           )
         ),
-        promptService.withProgress(nls.localize('debugger_stop_text'), progressLocation)
+        promptService.withProgressFor(COMMAND, nls.localize('debugger_stop_text'))
       )
     )
   );

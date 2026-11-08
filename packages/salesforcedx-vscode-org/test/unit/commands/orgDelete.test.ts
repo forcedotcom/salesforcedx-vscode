@@ -43,8 +43,8 @@ const buildServices = (
   PromptService: Effect.succeed({
     confirmOrThrow: (_params: { message: string; confirmLabel: string }) =>
       confirm ? Effect.void : Effect.fail(userCancellationError),
-    withCancellableProgress:
-      <A, E>(_message: string, _location?: unknown) =>
+    withCancellableProgressFor:
+      <A, E>(_command: string, _message: string) =>
       (effect: Effect.Effect<A, E>) =>
         effect
   }),
@@ -173,8 +173,8 @@ const appendToChannel = vi.fn<(_username: string) => Effect.Effect<void>>();
 // clicking Cancel does, instead of faking a typed failure out of simpleExec.
 const buildUsernameServices = (simpleExec: VitestMock) => ({
   PromptService: Effect.succeed({
-    withCancellableProgress:
-      <A, E>(_message: string, _location?: unknown) =>
+    withCancellableProgressFor:
+      <A, E>(_command: string, _message: string) =>
       (effect: Effect.Effect<A, E>) =>
         effect.pipe(
           Effect.catchAllCause(cause =>

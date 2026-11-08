@@ -13,6 +13,9 @@ const ruleTester = new RuleTester();
 ruleTester.run('no-vscode-progress-title-literals', noVscodeProgressTitleLiterals, {
   valid: [
     {
+      code: `fetchMetadata().pipe(promptService.withProgressFor('SFDX: Retrieve', nls.localize('fetching_metadata')));`
+    },
+    {
       code: `vscode.window.withProgress(
         { location: vscode.ProgressLocation.Notification, title: nls.localize('checking_conflicts'), cancellable: false },
         () => tracking.reReadLocalTrackingCache()
@@ -47,6 +50,10 @@ ruleTester.run('no-vscode-progress-title-literals', noVscodeProgressTitleLiteral
     }
   ],
   invalid: [
+    {
+      code: `fetchMetadata().pipe(promptService.withProgressFor(command, 'Fetching metadata'));`,
+      errors: [{ messageId: 'noLiteral' }]
+    },
     {
       code: `vscode.window.withProgress(
         { location: vscode.ProgressLocation.Notification, title: 'Checking for conflicts', cancellable: false },

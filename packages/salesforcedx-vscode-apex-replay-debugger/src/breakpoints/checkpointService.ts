@@ -29,7 +29,6 @@ import {
   MAX_ALLOWED_CHECKPOINTS
 } from '../debuggerConstants';
 import { nls } from '../messages';
-import { getRuntime } from '../services/runtime';
 import { type ProgressOnlyCommandKey } from '../utils/notificationMode';
 
 const COMMAND: ProgressOnlyCommandKey = 'Update Checkpoints in Org';
@@ -631,22 +630,14 @@ const createCheckpoints = Effect.fn('createCheckpoints')(function* () {
 
   // The status message isn't changing, localize it once and reuse it in the progress report.
   const localizedProgressMessage = nls.localize('sf_update_checkpoints_in_org');
-  const progressLocation = yield* (yield* ExtensionProviderService).getServicesApi.pipe(
-    Effect.flatMap(api => api.services.NotificationModeService),
-    Effect.flatMap(notificationMode => notificationMode.getProgressLocation(COMMAND))
+  const promptService = yield* (yield* ExtensionProviderService).getServicesApi.pipe(
+    Effect.flatMap(api => api.services.PromptService)
   );
 
   const succeeded = yield* Effect.zipRight(
     Effect.sync(() => writeToDebuggerOutputWindow(`${nls.localize('long_command_start')} ${localizedProgressMessage}`)),
-    Effect.promise(() =>
-      vscode.window.withProgress(
-        {
-          location: progressLocation,
-          title: localizedProgressMessage,
-          cancellable: false
-        },
-        (progress, _token) => getRuntime().runPromise(uploadCheckpoints(progress, localizedProgressMessage))
-      )
+    promptService.withCancellableProgressReportingFor(COMMAND, localizedProgressMessage, { cancellable: false })(
+      progress => uploadCheckpoints(progress, localizedProgressMessage)
     )
   ).pipe(
     // The lock prevents deleting the underlying breakpoints attached to the

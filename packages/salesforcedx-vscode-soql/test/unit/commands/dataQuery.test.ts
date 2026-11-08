@@ -743,7 +743,7 @@ describe('DataQuery Pure Functions', () => {
       const connection = {};
       const query = vi.fn(() => Effect.succeed({ records: Stream.empty, totalSize: 0 }));
       const mockPromptService = {
-        withProgress:
+        withProgressFor:
           () =>
           <A, E, R>(self: Effect.Effect<A, E, R>) =>
             self
@@ -1026,7 +1026,7 @@ describe('DataQuery Pure Functions', () => {
     });
 
     const noopPromptService = {
-      withProgress:
+      withProgressFor:
         () =>
         <A, E, R>(self: Effect.Effect<A, E, R>) =>
           self

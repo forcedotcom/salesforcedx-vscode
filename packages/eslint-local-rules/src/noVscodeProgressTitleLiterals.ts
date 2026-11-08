@@ -15,11 +15,11 @@ import {
   isVscodeWindowMethodCall
 } from './astUtils';
 
-/** Check if this is a promptService.withProgress(title) call (title as first arg, not in options object) */
+/** Check PromptService progress calls, whose title is a positional argument. */
 const isPromptServiceWithProgressCall = (node: TSESTree.CallExpression): boolean =>
   node.callee.type === AST_NODE_TYPES.MemberExpression &&
   node.callee.property.type === AST_NODE_TYPES.Identifier &&
-  node.callee.property.name === 'withProgress' &&
+  ['withProgress', 'withProgressFor'].includes(node.callee.property.name) &&
   !isVscodeWindowMethodCall(node, 'withProgress') &&
   node.arguments[0]?.type !== AST_NODE_TYPES.ObjectExpression;
 
@@ -63,7 +63,14 @@ export const noVscodeProgressTitleLiterals = RuleCreator.withoutDocs({
       }
 
       if (isPromptServiceWithProgressCall(node)) {
-        const titleArg = node.arguments[0];
+        const titleArg =
+          node.arguments[
+            node.callee.type === AST_NODE_TYPES.MemberExpression &&
+            node.callee.property.type === AST_NODE_TYPES.Identifier &&
+            node.callee.property.name === 'withProgressFor'
+              ? 1
+              : 0
+          ];
         if (!titleArg) return;
 
         if (isStringLiteralOrTemplateWithoutNls(titleArg as TSESTree.Expression)) {

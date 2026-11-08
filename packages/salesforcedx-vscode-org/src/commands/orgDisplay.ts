@@ -199,8 +199,6 @@ const displayOrg = Effect.fn('orgDisplay.displayOrg')(function* (
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channel = yield* api.services.ChannelService;
   const promptService = yield* api.services.PromptService;
-  const notificationMode = yield* api.services.NotificationModeService;
-  const progressLocation = yield* notificationMode.getProgressLocation(notificationCommand);
 
   yield* runOrgCommand(args).pipe(
     Effect.flatMap(decodeOrgDisplayResponse),
@@ -212,7 +210,7 @@ const displayOrg = Effect.fn('orgDisplay.displayOrg')(function* (
       )
     ),
     // Cancel interrupts the complete display + credential lookup before anything is written.
-    promptService.withCancellableProgress(nls.localize('org_display_progress'), progressLocation),
+    promptService.withCancellableProgressFor(notificationCommand, nls.localize('org_display_progress')),
     Effect.tap(text => channel.appendToChannel(text)),
     Effect.tap(() => channel.showChannel)
   );

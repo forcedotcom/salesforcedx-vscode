@@ -43,7 +43,7 @@ const buildServices = (opts: {
   TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
   // withCancellableProgress is a pipeable operator; the stub is identity so the exec effect runs unchanged.
   PromptService: Effect.succeed({
-    withCancellableProgress: () => identity
+    withCancellableProgressFor: () => identity
   }),
   ChannelService: Effect.succeed({
     appendToChannel: (msg: string) =>

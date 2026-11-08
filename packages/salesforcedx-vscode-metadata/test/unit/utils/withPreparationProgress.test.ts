@@ -8,9 +8,10 @@
 import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Deferred from 'effect/Deferred';
 import * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
-import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
+import { PromptService, UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
 import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
 import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import { withPreparationProgress } from '../../../src/utils/withPreparationProgress';
@@ -24,6 +25,7 @@ const mockUserCancellationError = UserCancellationError;
 const createMockServicesApi = () => ({
   services: {
     UserCancellationError: mockUserCancellationError,
+    PromptService,
     NotificationModeService
   }
 });
@@ -43,16 +45,18 @@ const provideServices = (e: Effect.Effect<unknown, unknown, unknown>) =>
     Effect.provide(
       Layer.mergeAll(
         Layer.succeed(ExtensionProviderService, createMockExtensionProvider()),
+        PromptService.Default,
         Layer.succeed(NotificationModeService, notificationMode)
       )
     )
   );
 
-const runWithServices = <A>(effect: Effect.Effect<A, unknown, NotificationModeService | ExtensionProviderService>) =>
-  Effect.runPromise(effect.pipe(provideServices) as Effect.Effect<A, unknown, never>);
+const runWithServices = <A>(
+  effect: Effect.Effect<A, unknown, PromptService | NotificationModeService | ExtensionProviderService>
+) => Effect.runPromise(effect.pipe(provideServices) as Effect.Effect<A, unknown, never>);
 
 const runWithServicesExit = <A>(
-  effect: Effect.Effect<A, unknown, NotificationModeService | ExtensionProviderService>
+  effect: Effect.Effect<A, unknown, PromptService | NotificationModeService | ExtensionProviderService>
 ) => Effect.runPromiseExit(effect.pipe(provideServices) as Effect.Effect<A, unknown, never>);
 
 /** Make withProgress call the task callback immediately, returning a controllable token */
@@ -194,5 +198,28 @@ describe('withPreparationProgress', () => {
       expect.objectContaining({ location: vscode.ProgressLocation.Notification }),
       expect.any(Function)
     );
+  });
+
+  it.each(['prepare', 'conflicts'] as const)('interrupts %s and closes progress on Cancel', async phase => {
+    const { cancel } = setupWithProgress();
+    const started = await Effect.runPromise(Deferred.make<void>());
+    const cleanup = vi.fn();
+    const pending = Deferred.succeed(started, undefined).pipe(
+      Effect.andThen(Effect.never),
+      Effect.ensuring(Effect.sync(cleanup))
+    );
+    const detectConflicts = vi.fn(() => (phase === 'conflicts' ? pending : Effect.void));
+    const done = runWithServicesExit(
+      (phase === 'prepare' ? pending : Effect.succeed(makeCS())).pipe(
+        withPreparationProgress('deploy', detectConflicts)
+      )
+    );
+    await Effect.runPromise(Deferred.await(started));
+    cancel();
+    const exit = await done;
+    expect(exit._tag).toBe('Failure');
+    expect(JSON.stringify(exit)).toContain('UserCancellationError');
+    expect(cleanup).toHaveBeenCalledOnce();
+    expect(detectConflicts).toHaveBeenCalledTimes(phase === 'conflicts' ? 1 : 0);
   });
 });

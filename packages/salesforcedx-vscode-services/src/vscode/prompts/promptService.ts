@@ -21,6 +21,7 @@ import { ProjectService } from '../../core/projectService';
 import { nls } from '../../messages';
 import { FsService } from '../fsService';
 import { HashableUri } from '../hashableUri';
+import { NotificationModeService } from '../notificationModeService';
 import { toUri } from '../uriUtils';
 import { WorkspaceService } from '../workspaceService';
 
@@ -32,6 +33,11 @@ export class UserCancellationError extends Schema.TaggedError<UserCancellationEr
     })
   )
 }) {}
+
+type ProgressTask<A, E, R> = (
+  progress: vscode.Progress<{ increment?: number; message?: string }>,
+  token: vscode.CancellationToken
+) => Effect.Effect<A, E, R>;
 
 export class PromptService extends Effect.Service<PromptService>()('PromptService', {
   accessors: false,
@@ -221,13 +227,17 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
      * fiber interrupt) interrupts the effect and surfaces a {@link UserCancellationError}; the notification
      * closes when the effect settles. `location` defaults to Notification. */
     const withCancellableProgressReporting =
-      (title: string, location: vscode.ProgressLocation = vscode.ProgressLocation.Notification) =>
-      <A, E, R>(
-        build: (
-          progress: vscode.Progress<{ increment?: number; message?: string }>,
-          token: vscode.CancellationToken
-        ) => Effect.Effect<A, E, R>
+      (
+        title: string,
+        location: vscode.ProgressLocation = vscode.ProgressLocation.Notification,
+        options: {
+          /** Hide Cancel for operations that only report progress. */
+          cancellable?: boolean;
+          /** Let the operation handle the token and return its server outcome instead of interrupting it. */
+          interruptOnCancel?: boolean;
+        } = {}
       ) =>
+      <A, E, R>(build: ProgressTask<A, E, R>) =>
         Effect.gen(function* () {
           const runtime = yield* Effect.runtime<R>();
           const cancelDeferred = yield* Deferred.make<never, UserCancellationError>();
@@ -241,19 +251,29 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
                   Deferred.fail(cancelDeferred, new UserCancellationError({ message: 'User cancelled progress' }))
                 )
             );
-            void vscode.window.withProgress({ location, title, cancellable: true }, async (progress, token) => {
-              token.onCancellationRequested(
-                () =>
-                  void Runtime.runPromise(runtime)(
-                    Deferred.fail(cancelDeferred, new UserCancellationError({ message: 'User cancelled progress' }))
-                  )
-              );
-              const exit = await Effect.raceFirst(build(progress, token), Deferred.await(cancelDeferred)).pipe(
-                Effect.exit,
-                Runtime.runPromise(runtime)
-              );
-              resume(Exit.isSuccess(exit) ? Effect.succeed(exit.value) : Effect.failCause(exit.cause));
-            });
+            void vscode.window.withProgress(
+              { location, title, cancellable: options.cancellable ?? true },
+              async (progress, token) => {
+                const cancellation =
+                  options.interruptOnCancel === false
+                    ? undefined
+                    : token.onCancellationRequested(
+                        () =>
+                          void Runtime.runPromise(runtime)(
+                            Deferred.fail(
+                              cancelDeferred,
+                              new UserCancellationError({ message: 'User cancelled progress' })
+                            )
+                          )
+                      );
+                const exit = await Effect.raceFirst(build(progress, token), Deferred.await(cancelDeferred)).pipe(
+                  Effect.exit,
+                  Effect.ensuring(Effect.sync(() => cancellation?.dispose())),
+                  Runtime.runPromise(runtime)
+                );
+                resume(Exit.isSuccess(exit) ? Effect.succeed(exit.value) : Effect.failCause(exit.cause));
+              }
+            );
           });
         });
 
@@ -264,6 +284,29 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
       (title: string, location: vscode.ProgressLocation = vscode.ProgressLocation.Notification) =>
       <A, E, R>(self: Effect.Effect<A, E, R>) =>
         withCancellableProgressReporting(title, location)(() => self);
+
+    // Resolve the per-extension service in the caller's context, not while constructing the shared
+    // PromptService layer. NotificationModeService has no PromptService dependency (or layer cycle).
+    const withProgressFor =
+      (command: string, title: string) =>
+      <A, E, R>(self: Effect.Effect<A, E, R>) =>
+        NotificationModeService.getProgressLocation(command).pipe(
+          Effect.flatMap(location => self.pipe(withProgress(title, location)))
+        );
+
+    const withCancellableProgressFor =
+      (command: string, title: string) =>
+      <A, E, R>(self: Effect.Effect<A, E, R>) =>
+        NotificationModeService.getProgressLocation(command).pipe(
+          Effect.flatMap(location => self.pipe(withCancellableProgress(title, location)))
+        );
+
+    const withCancellableProgressReportingFor =
+      (command: string, title: string, options?: Parameters<typeof withCancellableProgressReporting>[2]) =>
+      <A, E, R>(build: ProgressTask<A, E, R>) =>
+        NotificationModeService.getProgressLocation(command).pipe(
+          Effect.flatMap(location => withCancellableProgressReporting(title, location, options)(build))
+        );
 
     return {
       /** If any of `uris` exists, prompt to overwrite; on cancel fail with {@link UserCancellationError}.
@@ -287,7 +330,13 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
       withCancellableProgress,
       /** Ties a cancellable vscode progress notification to an Effect built from `(progress, token)`,
        * surfacing both to the wrapped effect. Cancel interrupts and surfaces {@link UserCancellationError}. */
-      withCancellableProgressReporting
+      withCancellableProgressReporting,
+      /** Progress placed according to the calling extension's notification settings for `command`. */
+      withProgressFor,
+      /** Cancellable progress placed according to the calling extension's settings for `command`. */
+      withCancellableProgressFor,
+      /** Command-aware progress with access to the progress reporter and cancellation token. */
+      withCancellableProgressReportingFor
     };
   })
 }) {}

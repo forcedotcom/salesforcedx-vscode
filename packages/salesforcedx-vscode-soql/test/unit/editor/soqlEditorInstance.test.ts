@@ -29,6 +29,12 @@ describe('SOQL Builder Run Query', () => {
     const servicesApi = {
       services: {
         SettingsService: Effect.succeed({ getValue: () => Effect.succeed(50) }),
+        PromptService: Effect.succeed({
+          withProgressFor:
+            () =>
+            <A, E, R>(effect: Effect.Effect<A, E, R>) =>
+              effect
+        }),
         NotificationModeService: Effect.succeed({
           getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification)
         }),
@@ -59,10 +65,9 @@ describe('SOQL Builder Run Query', () => {
     ).mockResolvedValue(undefined);
 
     await Effect.runPromise(
-      instance['handleMessageEffect']({ type: 'run_query', payload: undefined as never }) as Effect.Effect<
-        unknown,
-        unknown
-      >
+      instance['handleMessageEffect']({ type: 'run_query', payload: undefined as never }).pipe(
+        Effect.provideService(ExtensionProviderService, { getServicesApi: Effect.succeed(servicesApi as never) })
+      ) as Effect.Effect<unknown, unknown>
     );
 
     expect(query).toHaveBeenCalledWith({ soql: 'SELECT Id FROM Account', scanAll: false }, expect.anything());

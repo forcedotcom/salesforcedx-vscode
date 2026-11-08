@@ -51,12 +51,9 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (
       Effect.flatMap(settings => settings.getValueOrElse(SOQL_CONFIGURATION_NAME, 'maxQueryLimit', 50_000))
     ),
     promptService: api.services.PromptService,
-    progressLocation: api.services.NotificationModeService.pipe(
-      Effect.flatMap(notificationMode => notificationMode.getProgressLocation(COMMAND))
-    ),
     queryService: api.services.QueryService
   }).pipe(
-    Effect.flatMap(({ maxRows, promptService, progressLocation, queryService }) =>
+    Effect.flatMap(({ maxRows, promptService, queryService }) =>
       queryService.query({ ...query, tooling: useTooling }, JsonObject).pipe(
         Effect.flatMap(({ totalSize, records }) =>
           Stream.take(records, maxRows).pipe(
@@ -68,7 +65,7 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (
             }))
           )
         ),
-        promptService.withProgress(nls.localize('progress_running_query'), progressLocation)
+        promptService.withProgressFor(COMMAND, nls.localize('progress_running_query'))
       )
     )
   );

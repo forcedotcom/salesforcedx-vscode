@@ -66,7 +66,7 @@ const providerLayer = (
           ConnectionService: { getConnection: () => Effect.succeed(conn) },
           // withProgress is a pipeable operator; the mock passes the wrapped effect through unchanged.
           PromptService: Effect.succeed({
-            withProgress:
+            withProgressFor:
               () =>
               <A, E, R>(self: Effect.Effect<A, E, R>) =>
                 self

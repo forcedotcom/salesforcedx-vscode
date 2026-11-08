@@ -186,11 +186,10 @@ export const packageInstallCommand = Effect.fn('packageInstallCommand')(function
   const promptService = yield* api.services.PromptService;
   const notificationMode = yield* api.services.NotificationModeService;
 
-  const verifyProgressLocation = yield* notificationMode.getProgressLocation(COMMAND);
   const packageId = yield* gatherPackageId().pipe(
     Effect.flatMap(id =>
       verifyPackageAvailable(id).pipe(
-        promptService.withProgress(nls.localize('package_install_verifying_progress', id), verifyProgressLocation)
+        promptService.withProgressFor(COMMAND, nls.localize('package_install_verifying_progress', id))
       )
     ),
     Effect.tap(id => Effect.annotateCurrentSpan('packageId', id))
@@ -214,10 +213,7 @@ export const packageInstallCommand = Effect.fn('packageInstallCommand')(function
   }
 
   yield* pollUntilComplete(requestId).pipe(
-    promptService.withCancellableProgress(
-      nls.localize('package_install_polling_progress', packageId),
-      yield* notificationMode.getProgressLocation(COMMAND)
-    ),
+    promptService.withCancellableProgressFor(COMMAND, nls.localize('package_install_polling_progress', packageId)),
     Effect.tap(() =>
       notificationMode.showSuccessNotification(COMMAND, nls.localize('package_install_succeeded_message', packageId))
     ),
