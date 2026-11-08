@@ -14,7 +14,6 @@
     "jsforce": "^3.10.24",
     "memfs": "^4.32.0",
     "semver": "^7.5.4",
-    "ts-node": "10.9.2",
     "url": "0.11.4"
   },
   "devDependencies": {
@@ -113,8 +112,6 @@
     "stream-http": "3.2.0",
     "timers-browserify": "2.0.12",
     "ts-jest": "29.4.11",
-    "ts-node": "10.9.2",
-    "tsx": "4.22.4",
     "typescript": "6.0.3",
     "typescript-eslint": "^8.67.0",
     "util": "0.12.5",

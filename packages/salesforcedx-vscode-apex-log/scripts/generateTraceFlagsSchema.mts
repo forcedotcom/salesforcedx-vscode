@@ -10,7 +10,7 @@ import * as JSONSchema from 'effect/JSONSchema';
 import * as Schema from 'effect/Schema';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { dirname, join } from 'node:path';
-import { buildTraceFlagsSchemas } from '../src/schemas/traceFlagsSchema';
+import { buildTraceFlagsSchemas } from '../out/src/schemas/traceFlagsSchema.js';
 
 /** Mirrors services TraceFlagItemStruct — only used for JSON schema generation at build time. */
 const TraceFlagItemStruct = Schema.Struct({
@@ -25,16 +25,9 @@ const TraceFlagItemStruct = Schema.Struct({
   isActive: Schema.Boolean
 });
 
-const outPath = join(process.cwd(), 'resources/traceFlags.schema.json');
+const outPath = join(import.meta.dirname, '..', 'resources', 'traceFlags.schema.json');
 
-const main = async () => {
-  await mkdir(dirname(outPath), { recursive: true });
-  const { TraceFlagsConfigSchema } = buildTraceFlagsSchemas(TraceFlagItemStruct);
-  const jsonSchema = JSONSchema.make(TraceFlagsConfigSchema);
-  await writeFile(outPath, JSON.stringify(jsonSchema, undefined, 2), 'utf-8');
-};
-
-main().catch(err => {
-  console.error(err);
-  process.exit(1);
-});
+await mkdir(dirname(outPath), { recursive: true });
+const { TraceFlagsConfigSchema } = buildTraceFlagsSchemas(TraceFlagItemStruct);
+const jsonSchema = JSONSchema.make(TraceFlagsConfigSchema);
+await writeFile(outPath, JSON.stringify(jsonSchema, undefined, 2), 'utf-8');

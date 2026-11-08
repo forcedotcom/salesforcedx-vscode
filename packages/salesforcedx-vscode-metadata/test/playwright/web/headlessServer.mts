@@ -7,11 +7,9 @@
 
 import { createHeadlessServer, setupSignalHandlers } from '@salesforce/playwright-vscode-ext';
 
-if (import.meta.main) {
-  setupSignalHandlers();
-  await createHeadlessServer({
-    extensionName: 'Metadata',
-    callerDirname: import.meta.dirname,
-    additionalExtensionDirs: ['salesforcedx-vscode-apex-log']
-  });
-}
+setupSignalHandlers();
+await createHeadlessServer({
+  extensionName: 'Metadata',
+  callerDirname: import.meta.dirname,
+  additionalExtensionDirs: ['salesforcedx-vscode-apex-log']
+});
