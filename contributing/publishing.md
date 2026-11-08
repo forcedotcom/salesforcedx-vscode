@@ -87,7 +87,7 @@ Published releases extract extension names from VSIX filenames in release assets
 **Environment variables:**
 - `VSCE_PRE_RELEASE=true` — Set by wireit in legacy extension packaging to pass `--pre-release` flag to vsce
   - Used by: salesforcedx-vscode-core, lwc, lightning, apex-debugger, apex-oas
-  - Script: `scripts/vsce-bundled-extension.ts`
+  - Script: `scripts/vsceBundledExtension.mts`
 
 **Package scripts:**
 - `package:packages` — Stable packaging (calls `vscode:package`)

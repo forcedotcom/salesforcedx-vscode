@@ -25,16 +25,9 @@ const TraceFlagItemStruct = Schema.Struct({
   isActive: Schema.Boolean
 });
 
-const outPath = join(process.cwd(), 'resources/traceFlags.schema.json');
+const outPath = join(import.meta.dirname, '..', 'resources', 'traceFlags.schema.json');
 
-const main = async () => {
-  await mkdir(dirname(outPath), { recursive: true });
-  const { TraceFlagsConfigSchema } = buildTraceFlagsSchemas(TraceFlagItemStruct);
-  const jsonSchema = JSONSchema.make(TraceFlagsConfigSchema);
-  await writeFile(outPath, JSON.stringify(jsonSchema, undefined, 2), 'utf-8');
-};
-
-main().catch(err => {
-  console.error(err);
-  process.exit(1);
-});
+await mkdir(dirname(outPath), { recursive: true });
+const { TraceFlagsConfigSchema } = buildTraceFlagsSchemas(TraceFlagItemStruct);
+const jsonSchema = JSONSchema.make(TraceFlagsConfigSchema);
+await writeFile(outPath, JSON.stringify(jsonSchema, undefined, 2), 'utf-8');

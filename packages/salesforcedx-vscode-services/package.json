@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.11.2",
+  "version": "68.11.4",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -100,7 +100,7 @@
       ]
     },
     "compile": {
-      "command": "tsc --pretty",
+      "command": "tsc --pretty && tsc -p scripts/tsconfig.json",
       "clean": "if-file-deleted",
       "dependencies": [
         "build:icons",
@@ -111,6 +111,9 @@
       ],
       "files": [
         "src/**/*.ts",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
+        "../../scripts/tsconfig.native.json",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json",

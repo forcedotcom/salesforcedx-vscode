@@ -42,7 +42,6 @@ import type {
 } from '../out/src/index.js';
 import * as JSONSchema from 'effect/JSONSchema';
 import * as Schema from 'effect/Schema';
-// eslint-disable-next-line no-restricted-imports -- schema generator runs in Node, not the extension host
 import { readFile, writeFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 import * as Prettier from 'prettier';
@@ -358,7 +357,7 @@ void publicContractChecks;
 
 const schemaPath = fileURLToPath(new URL('../schemas/public-api.schema.json', import.meta.url));
 
-const main = async (): Promise<void> => {
+try {
   const generatedSchema = await Prettier.format(JSON.stringify(JSONSchema.make(PublicApiSchema)), {
     ...(await Prettier.resolveConfig(schemaPath)),
     filepath: schemaPath
@@ -369,13 +368,10 @@ const main = async (): Promise<void> => {
     if (currentSchema !== generatedSchema) {
       throw new Error('Public API schema is out of date. Run `npm run schema:update -w @salesforce/apex-node`.');
     }
-    return;
+  } else {
+    await writeFile(schemaPath, generatedSchema, 'utf-8');
   }
-
-  await writeFile(schemaPath, generatedSchema, 'utf-8');
-};
-
-main().catch(error => {
+} catch (error) {
   console.error(error);
   process.exitCode = 1;
-});
+}

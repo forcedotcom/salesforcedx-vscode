@@ -7,11 +7,9 @@
 
 import { createHeadlessServer, setupSignalHandlers } from '@salesforce/playwright-vscode-ext';
 
-if (import.meta.main) {
-  setupSignalHandlers();
-  await createHeadlessServer({
-    extensionName: 'SOQL',
-    callerDirname: import.meta.dirname,
-    additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log']
-  });
-}
+setupSignalHandlers();
+await createHeadlessServer({
+  extensionName: 'SOQL',
+  callerDirname: import.meta.dirname,
+  additionalExtensionDirs: ['salesforcedx-vscode-metadata', 'salesforcedx-vscode-apex-log']
+});

@@ -8,15 +8,14 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 
 /** Generates the entry point that re-exports the public API type and ICONS */
-const generateEntry = (): void => {
-  const srcDir = path.join(import.meta.dirname, '..', 'src');
-  const entryPath = path.join(srcDir, 'index.ts');
+const srcDir = path.join(import.meta.dirname, '..', 'src');
+const entryPath = path.join(srcDir, 'index.ts');
 
-  // Create src directory if it doesn't exist
-  fs.mkdirSync(srcDir, { recursive: true });
+// Create src directory if it doesn't exist
+fs.mkdirSync(srcDir, { recursive: true });
 
-  // Generate minimal entry point that only exports the public API
-  const content = `/*
+// Generate minimal entry point that only exports the public API
+const content = `/*
  * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
@@ -37,11 +36,11 @@ export type {
 export { ICONS, type IconId } from './icons';
 `;
 
-  fs.writeFileSync(entryPath, content, 'utf8');
-  console.log('Generated entry point at', entryPath);
+fs.writeFileSync(entryPath, content, 'utf8');
+console.log('Generated entry point at', entryPath);
 
-  const iconsPath = path.join(srcDir, 'icons.ts');
-  const iconsContent = `/*
+const iconsPath = path.join(srcDir, 'icons.ts');
+const iconsContent = `/*
  * Copyright (c) 2025, salesforce.com, inc.
  * All rights reserved.
  * Licensed under the BSD 3-Clause license.
@@ -64,8 +63,5 @@ export const ICONS = {
 
 export type IconId = (typeof ICONS)[keyof typeof ICONS];
 `;
-  fs.writeFileSync(iconsPath, iconsContent, 'utf8');
-  console.log('Generated icons at', iconsPath);
-};
-
-generateEntry();
+fs.writeFileSync(iconsPath, iconsContent, 'utf8');
+console.log('Generated icons at', iconsPath);

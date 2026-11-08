@@ -1,19 +1,22 @@
-import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, writeFileSync, unlinkSync } from 'fs';
-import { tmpdir } from 'os';
-import { execSync } from 'child_process';
+import {
+  copyFileSync,
+  cpSync,
+  existsSync,
+  mkdirSync,
+  readdirSync,
+  readFileSync,
+  writeFileSync,
+  unlinkSync
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import { execSync } from 'node:child_process';
 
-const logger = (msg: string, obj?: any) => {
-  if (!obj) {
-    console.log(`*** ${msg}`);
-  } else {
-    console.log(`*** ${msg}`, obj);
-  }
-};
+const logger = (msg: string, obj?: unknown) => console.log(`*** ${msg}`, ...(obj ? [obj] : []));
 
 const extensionDirectory = process.cwd();
 logger('CWD', { extensionDirectory });
 
-const packageContents = require(`${extensionDirectory}/package.json`);
+const packageContents = JSON.parse(readFileSync(`${extensionDirectory}/package.json`, 'utf8'));
 if (!packageContents) {
   console.error('Failed to find extension package.json');
   process.exit(2);

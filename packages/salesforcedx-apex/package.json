@@ -69,6 +69,9 @@
       ],
       "files": [
         "scripts/generatePublicApiSchema.mts",
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
         "package.json"
       ],
       "output": [
@@ -87,10 +90,13 @@
       ]
     },
     "compile": {
-      "command": "tsc --pretty",
+      "command": "tsc --pretty && tsc -p scripts/tsconfig.json",
       "clean": "if-file-deleted",
       "files": [
         "src/**/*.ts",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
+        "../../scripts/tsconfig.native.json",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json"

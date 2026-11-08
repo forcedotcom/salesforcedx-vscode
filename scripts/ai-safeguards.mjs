@@ -5,7 +5,8 @@ import { spawn, spawnSync } from 'node:child_process';
 const CONTROL_CHARS = /[\u0000-\u001f\u007f]/g;
 const VALUE_OPTIONS = new Set(['-C', '-c', '--config-env', '--exec-path', '--git-dir', '--work-tree', '--namespace']);
 
-export const NO_VERIFY_REASON = 'git with --no-verify is blocked. Run without --no-verify so hooks run.';
+export const NO_VERIFY_REASON =
+  'git with --no-verify/-n or core.hooksPath override is blocked. Run without skipping hooks so repository hooks run.';
 export const TRACKED_BASE_BRANCH_REASON =
   'Creating a branch from origin/develop or origin/main without --no-track is blocked. Add --no-track to avoid tracking the shared base branch.';
 const DYNAMIC_GIT_REASON =
@@ -116,6 +117,11 @@ const shellSegments = command => {
   return [...parsed.segments.slice(0, -1), last].filter(segment => segment.length);
 };
 
+const isHooksPathOverride = value =>
+  value === 'core.hooksPath' ||
+  value.startsWith('core.hooksPath=') ||
+  value.toLowerCase().startsWith('core.hookspath=');
+
 const gitCommand = words => {
   const values = words.map(word => (typeof word === 'string' ? word : word.value));
   const git = values.indexOf('git');
@@ -124,9 +130,13 @@ const gitCommand = words => {
     (state, word) => {
       if (state.subcommand) return { ...state, arguments: [...state.arguments, word] };
       if (state.awaiting) {
-        return state.awaiting === '-C'
-          ? { ...state, directory: decodeShellWord(word), awaiting: undefined }
-          : { ...state, awaiting: undefined };
+        if (state.awaiting === '-C') {
+          return { ...state, directory: decodeShellWord(word), awaiting: undefined };
+        }
+        if ((state.awaiting === '-c' || state.awaiting === '--config-env') && isHooksPathOverride(word)) {
+          return { ...state, hooksPathOverride: true, awaiting: undefined };
+        }
+        return { ...state, awaiting: undefined };
       }
       if (VALUE_OPTIONS.has(word)) {
         return word === '--git-dir' || word === '--work-tree'
@@ -136,10 +146,20 @@ const gitCommand = words => {
       if (word.startsWith('--git-dir=') || word.startsWith('--work-tree=')) {
         return { ...state, attachedDirectory: true };
       }
+      if (word.startsWith('-c') && word.includes('=') && isHooksPathOverride(word.slice(2).replace(/^=/, ''))) {
+        return { ...state, hooksPathOverride: true };
+      }
       if (word.startsWith('-')) return state;
       return { ...state, subcommand: word };
     },
-    { arguments: [], attachedDirectory: false, directory: undefined, awaiting: undefined, subcommand: undefined }
+    {
+      arguments: [],
+      attachedDirectory: false,
+      directory: undefined,
+      awaiting: undefined,
+      hooksPathOverride: false,
+      subcommand: undefined
+    }
   );
 };
 
@@ -214,14 +234,22 @@ const gitRoot = (directory, run) => {
   return result.ok ? result.output.trim() : undefined;
 };
 
+/** Subcommands where `-n` is the short form of `--no-verify` (not dry-run). */
+const NO_VERIFY_SHORT_N_SUBCOMMANDS = new Set(['commit']);
+
+const skipsHooks = git => {
+  if (!git) return false;
+  if (git.hooksPathOverride) return true;
+  if (hasLongOption(git.arguments, '--no-verify')) return true;
+  // `git commit -n` / `-nm` skip hooks; `git push -n` is dry-run and must stay allowed.
+  return NO_VERIFY_SHORT_N_SUBCOMMANDS.has(git.subcommand) && hasShortOption(git.arguments, 'n');
+};
+
 const noVerifyDenial = command =>
-  inspectCommand(command, process.cwd(), words =>
-    words.some(word => word.dynamic)
-      ? DYNAMIC_GIT_REASON
-      : words.some(word => word.value === '--no-verify')
-        ? NO_VERIFY_REASON
-        : undefined
-  ).reason;
+  inspectCommand(command, process.cwd(), words => {
+    if (words.some(word => word.dynamic)) return DYNAMIC_GIT_REASON;
+    return skipsHooks(gitCommand(words)) ? NO_VERIFY_REASON : undefined;
+  }).reason;
 
 const missingDependenciesDenial = ({ command, cwd, run = defaultRun }) => {
   const result = inspectCommand(command, cwd, (tokens, directory) => {
