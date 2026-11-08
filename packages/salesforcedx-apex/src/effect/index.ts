@@ -85,3 +85,38 @@ export type { CoverageReportOptions } from './coverageReports';
 export type { CoverageSource } from '../reporters/coverageMap';
 export { DefaultReportOptions, DefaultWatermarks } from '../reporters/coverageOptions';
 export type { CoverageReporterOptions, CoverageReportFormats } from '../reporters/coverageOptions';
+export {
+  getTraceFlags,
+  getTraceFlagForUser,
+  getDebugLevels,
+  findDebugLevel,
+  createDebugLevel,
+  updateDebugLevel,
+  deleteDebugLevel,
+  getOrCreateDebugLevel,
+  createTraceFlag,
+  updateTraceFlag,
+  deleteTraceFlag,
+  changeTraceFlagDebugLevel,
+  extendTraceFlag,
+  ensureTraceFlag,
+  traceFlagExpirationDate
+} from './traceFlags';
+export type { UpdateTraceFlagOptions, EnsureTraceFlagOptions } from './traceFlags';
+export {
+  TraceFlagLogType,
+  TraceFlagRecordSchema,
+  TraceFlagForUserSchema,
+  LogCategoryLevel,
+  DebugLevelRecordSchema,
+  CreateDebugLevelSchema,
+  UpdateDebugLevelSchema
+} from './schema/wire/traceFlags';
+export type {
+  TraceFlagRecord,
+  TraceFlagForUser,
+  DebugLevelRecord,
+  CreateDebugLevel,
+  UpdateDebugLevel
+} from './schema/wire/traceFlags';
+export { ApexToolingMutationError } from './schema/errors';

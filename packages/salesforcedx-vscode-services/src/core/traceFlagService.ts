@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as apex from '@salesforce/apex-node/effect';
 import * as Arr from 'effect/Array';
 import * as Cache from 'effect/Cache';
 import * as Chunk from 'effect/Chunk';
@@ -13,9 +14,9 @@ import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import * as ParseResult from 'effect/ParseResult';
-import { isString } from 'effect/Predicate';
+import { isNotUndefined } from 'effect/Predicate';
 import * as PubSub from 'effect/PubSub';
-import { keys as recordKeys, toEntries } from 'effect/Record';
+import { toEntries } from 'effect/Record';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -31,17 +32,13 @@ import { getExtensionScope } from '../vscode/extensionScope';
 import { ConnectionService } from './connectionService';
 import { getDefaultOrgRef } from './defaultOrgRef';
 import { QueryService } from './queryService';
-import { SalesforceId } from './schemas/salesforceId';
 import {
   DebugLevelItemSchema,
   TraceFlagItemSchema,
-  ToolingDebugLevelStruct,
-  ToolingTraceFlagRecordSchema,
   type CreateDebugLevelPayload,
   type TraceFlagItem,
   type TraceFlagLogType
 } from './schemas/traceFlagSchemas';
-import { unknownToErrorCause } from './shared';
 
 const APEX_CODE_DEBUG_LEVEL = 'FINEST';
 const VISUALFORCE_DEBUG_LEVEL = 'FINER';
@@ -49,23 +46,9 @@ const VISUALFORCE_DEBUG_LEVEL = 'FINER';
 /** DebugLevel.DeveloperName used for replay-debugger trace flags. Created on demand via getOrCreateDebugLevel. */
 const REPLAY_DEBUGGER_LEVELS = 'ReplayDebuggerLevels';
 
-const toToolingCreateTraceFlag = (
-  userId: string,
-  debugLevelId: string,
-  expirationDate: Date,
-  logType: TraceFlagLogType = 'DEVELOPER_LOG'
-): Record<string, unknown> => ({
-  TracedEntityId: userId,
-  LogType: logType,
-  DebugLevelId: debugLevelId,
-  StartDate: new Date().toISOString(),
-  ExpirationDate: expirationDate.toISOString()
-});
-
-const calculateExpirationDate = (from: Date, duration = Duration.minutes(30)): Date =>
-  new Date(from.getTime() + Duration.toMillis(duration));
-
 const idListToInClause = (ids: string[]) => ids.map(id => `'${id}'`).join(',');
+
+const decodeSalesforceId = Schema.decodeUnknown(apex.TraceFlagRecordSchema.fields.Id);
 
 /** Decode `input` against `schema`, remapping any ParseError to a labeled TraceFlagNotFoundError. */
 const decodeOrFail =
@@ -87,8 +70,6 @@ const getUserIdOrFail = Effect.gen(function* () {
   return userId ? userId : yield* new UserIdNotFoundError({ message: 'Could not determine user ID for trace flag' });
 });
 
-const IdRow = Schema.Struct({ Id: SalesforceId });
-
 const queryRows = <A, I>(soql: string, schema: Schema.Schema<A, I, never>, tooling = true) =>
   Effect.flatMap(QueryService, queryService =>
     queryService.query({ soql, tooling }, schema).pipe(
@@ -96,6 +77,8 @@ const queryRows = <A, I>(soql: string, schema: Schema.Schema<A, I, never>, tooli
       Effect.map(Chunk.toReadonlyArray)
     )
   );
+
+const queryIdName = (soql: string, tooling: boolean) => queryRows(soql, Schema.Unknown, tooling);
 
 export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceFlagService', {
   accessors: true,
@@ -126,19 +109,17 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
     );
 
     const getTraceFlags = Effect.fn('TraceFlagService.getTraceFlags')(function* () {
-      const traceFlagRecords = yield* queryRows(
-        `SELECT Id, LogType, StartDate, ExpirationDate, DebugLevelId, DebugLevel.ApexCode, DebugLevel.Visualforce, DebugLevel.DeveloperName, TracedEntityId
-        FROM TraceFlag`,
-        ToolingTraceFlagRecordSchema
+      const traceFlagRecords = yield* connectionService.getConnection().pipe(
+        Effect.flatMap(apex.getTraceFlags),
+        Effect.mapError(error => new TraceFlagNotFoundError({ message: error.message }))
       );
-      const entitiesToResolve = Arr.dedupe(traceFlagRecords.map(r => r.TracedEntityId).filter(isString));
+      const entitiesToResolve = Arr.dedupe(traceFlagRecords.map(r => r.TracedEntityId).filter(isNotUndefined));
 
       if (entitiesToResolve.length === 0) {
         return yield* Effect.all(traceFlagRecords.map(decodeOrFail(TraceFlagItemSchema, 'trace flag records')), {
           concurrency: 'unbounded'
         });
       }
-      const queryIdName = (soql: string, tooling: boolean) => queryRows(soql, Schema.Unknown, tooling);
 
       // Misses only, grouped by id prefix, then one SOQL batch per prefix. Rows fill the cache as they arrive.
       yield* Effect.filter(entitiesToResolve, id => idNameCache.contains(id), {
@@ -189,10 +170,9 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
     });
 
     const getDebugLevels = Effect.fn('TraceFlagService.getDebugLevels')(function* () {
-      return yield* queryRows(
-        `SELECT ${recordKeys(ToolingDebugLevelStruct.fields).join(', ')} FROM DebugLevel`,
-        ToolingDebugLevelStruct
-      ).pipe(
+      return yield* connectionService.getConnection().pipe(
+        Effect.flatMap(apex.getDebugLevels),
+        Effect.mapError(error => new TraceFlagNotFoundError({ message: error.message })),
         Effect.flatMap(debugLevelRecords =>
           Effect.all(debugLevelRecords.map(decodeOrFail(DebugLevelItemSchema, 'debug level records')), {
             concurrency: 'unbounded'
@@ -201,19 +181,26 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       );
     });
 
+    const publishTraceFlags = Effect.fn('TraceFlagService.publishTraceFlags')(function* () {
+      // A failed refresh must not turn a successful Tooling write into a reported write failure.
+      const flags = yield* getTraceFlags().pipe(Effect.catchAll(() => Effect.succeed([])));
+      yield* PubSub.publish(traceFlagsChanged, flags);
+    });
+
     const getTraceFlagForUser = Effect.fn('TraceFlagService.getTraceFlagForUser')(function* (
       userId: string,
       logType: TraceFlagLogType = 'DEVELOPER_LOG'
     ) {
-      return yield* queryRows(
-        `SELECT Id, LogType, StartDate, ExpirationDate, DebugLevelId, DebugLevel.ApexCode, DebugLevel.Visualforce, DebugLevel.DeveloperName
-        FROM TraceFlag
-        WHERE LogType='${logType}' AND TracedEntityId='${userId}'
-        ORDER BY ExpirationDate DESC LIMIT 1`,
-        ToolingTraceFlagRecordSchema
-      ).pipe(
-        Effect.map(Arr.head),
-        Effect.flatMap(Effect.transposeMapOption(decodeOrFail(TraceFlagItemSchema, 'trace flag')))
+      return yield* connectionService.getConnection().pipe(
+        Effect.flatMap(connection =>
+          decodeSalesforceId(userId).pipe(Effect.flatMap(id => apex.getTraceFlagForUser(connection, id, logType)))
+        ),
+        Effect.mapError(error => new TraceFlagNotFoundError({ message: error.message })),
+        Effect.flatMap(
+          Effect.transposeMapOption(record =>
+            decodeOrFail(TraceFlagItemSchema, 'trace flag')({ ...record, LogType: logType })
+          )
+        )
       );
     });
 
@@ -221,63 +208,54 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       payload: CreateDebugLevelPayload
     ) {
       const conn = yield* connectionService.getConnection();
-      const result = yield* Effect.tryPromise({
-        try: () => conn.tooling.create('DebugLevel', payload),
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new DebugLevelCreateError({ message: `Failed to create debug level: ${cause.message}`, cause: error });
-        }
-      });
-      return result.success && result.id
-        ? result.id
-        : yield* new DebugLevelCreateError({ message: 'Debug level create returned no ID' });
+      return yield* apex
+        .createDebugLevel(conn, payload)
+        .pipe(
+          Effect.mapError(
+            error =>
+              new DebugLevelCreateError({ message: `Failed to create debug level: ${error.message}`, cause: error })
+          )
+        );
     });
 
     const getOrCreateDebugLevel = Effect.fn('TraceFlagService.getOrCreateDebugLevel')(function* () {
-      return yield* queryRows(
-        `SELECT Id FROM DebugLevel WHERE DeveloperName = '${REPLAY_DEBUGGER_LEVELS}' LIMIT 1`,
-        IdRow
-      ).pipe(
-        Effect.map(existing =>
-          Arr.head(existing).pipe(
-            Option.flatMap(record => Option.fromNullable(record.Id)),
-            Option.filter(id => id.length > 0)
-          )
-        ),
-        Effect.flatMap(
-          Option.match({
-            onNone: () =>
-              createDebugLevel({
-                DeveloperName: REPLAY_DEBUGGER_LEVELS,
-                MasterLabel: REPLAY_DEBUGGER_LEVELS,
-                ApexCode: APEX_CODE_DEBUG_LEVEL,
-                ApexProfiling: 'NONE',
-                Callout: 'NONE',
-                Database: 'NONE',
-                Nba: 'NONE',
-                System: 'NONE',
-                Validation: 'NONE',
-                Visualforce: VISUALFORCE_DEBUG_LEVEL,
-                Wave: 'NONE',
-                Workflow: 'NONE'
-              }),
-            onSome: Effect.succeed
+      return yield* connectionService.getConnection().pipe(
+        Effect.flatMap(connection =>
+          apex.getOrCreateDebugLevel(connection, {
+            DeveloperName: REPLAY_DEBUGGER_LEVELS,
+            MasterLabel: REPLAY_DEBUGGER_LEVELS,
+            ApexCode: APEX_CODE_DEBUG_LEVEL,
+            ApexProfiling: 'NONE',
+            Callout: 'NONE',
+            Database: 'NONE',
+            Nba: 'NONE',
+            System: 'NONE',
+            Validation: 'NONE',
+            Visualforce: VISUALFORCE_DEBUG_LEVEL,
+            Wave: 'NONE',
+            Workflow: 'NONE'
           })
+        ),
+        Effect.mapError(
+          error =>
+            new DebugLevelCreateError({
+              message: `Failed to get or create debug level: ${error.message}`,
+              cause: error
+            })
         )
       );
     });
 
     const deleteDebugLevel = Effect.fn('TraceFlagService.deleteDebugLevel')(function* (debugLevelId: string) {
       const conn = yield* connectionService.getConnection();
-      yield* Effect.tryPromise({
-        try: () => conn.tooling.delete('DebugLevel', debugLevelId),
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new DebugLevelDeleteError({ message: `Failed to delete debug level: ${cause.message}`, cause: error });
-        }
-      });
-      const flags = yield* getTraceFlags().pipe(Effect.catchAll(() => Effect.succeed([])));
-      yield* PubSub.publish(traceFlagsChanged, flags);
+      yield* decodeSalesforceId(debugLevelId).pipe(
+        Effect.flatMap(id => apex.deleteDebugLevel(conn, id)),
+        Effect.mapError(
+          error =>
+            new DebugLevelDeleteError({ message: `Failed to delete debug level: ${error.message}`, cause: error })
+        )
+      );
+      yield* publishTraceFlags();
     });
 
     const createTraceFlag = Effect.fn('TraceFlagService.createTraceFlag')(function* (
@@ -287,23 +265,17 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       logType: TraceFlagLogType = 'DEVELOPER_LOG'
     ) {
       const conn = yield* connectionService.getConnection();
-      const expirationDate = calculateExpirationDate(new Date(), duration);
-      const result = yield* Effect.tryPromise({
-        try: () =>
-          conn.tooling.create('TraceFlag', toToolingCreateTraceFlag(userId, debugLevelId, expirationDate, logType)),
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new TraceFlagCreateError({
-            message: `Failed to create trace flag: ${cause.message}`,
-            cause: error
-          });
-        }
-      });
-      const flags = yield* getTraceFlags().pipe(Effect.catchAll(() => Effect.succeed([])));
-      yield* PubSub.publish(traceFlagsChanged, flags);
-      return result.success && result.id
-        ? result.id
-        : yield* new TraceFlagCreateError({ message: 'Trace flag create returned no ID' });
+      const traceFlagId = yield* Effect.all({
+        userId: decodeSalesforceId(userId),
+        debugLevelId: decodeSalesforceId(debugLevelId)
+      }).pipe(
+        Effect.flatMap(ids => apex.createTraceFlag(conn, ids.userId, ids.debugLevelId, duration, logType)),
+        Effect.mapError(
+          error => new TraceFlagCreateError({ message: `Failed to create trace flag: ${error.message}`, cause: error })
+        )
+      );
+      yield* publishTraceFlags();
+      return traceFlagId;
     });
 
     const updateTraceFlag = Effect.fn('TraceFlagService.updateTraceFlag')(function* (
@@ -311,57 +283,38 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       options?: { debugLevelId?: string; expirationDate?: Date }
     ) {
       const conn = yield* connectionService.getConnection();
-      const payload = {
-        Id: traceFlagId,
-        StartDate: new Date().toISOString(),
-        ...(options?.expirationDate ? { ExpirationDate: options.expirationDate.toISOString() } : {})
-      };
       if (options?.debugLevelId) {
-        const dlId = options.debugLevelId;
-        yield* Effect.tryPromise({
-          try: () =>
-            conn.tooling.update('DebugLevel', {
-              Id: dlId,
+        yield* decodeSalesforceId(options.debugLevelId).pipe(
+          Effect.flatMap(id =>
+            apex.updateDebugLevel(conn, id, {
               ApexCode: APEX_CODE_DEBUG_LEVEL,
               Visualforce: VISUALFORCE_DEBUG_LEVEL
-            }),
-          catch: error => {
-            const { cause } = unknownToErrorCause(error);
-            return new TraceFlagUpdateError({
-              message: `Failed to update debug level: ${cause.message}`,
-              cause: error
-            });
-          }
-        });
+            })
+          ),
+          Effect.mapError(
+            error =>
+              new TraceFlagUpdateError({ message: `Failed to update debug level: ${error.message}`, cause: error })
+          )
+        );
       }
-      yield* Effect.tryPromise({
-        try: () => conn.tooling.update('TraceFlag', payload),
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new TraceFlagUpdateError({
-            message: `Failed to update trace flag: ${cause.message}`,
-            cause: error
-          });
-        }
-      });
-      const flags = yield* getTraceFlags().pipe(Effect.catchAll(() => Effect.succeed([])));
-      yield* PubSub.publish(traceFlagsChanged, flags);
+      yield* decodeSalesforceId(traceFlagId).pipe(
+        Effect.flatMap(id => apex.updateTraceFlag(conn, id, { expirationDate: options?.expirationDate })),
+        Effect.mapError(
+          error => new TraceFlagUpdateError({ message: `Failed to update trace flag: ${error.message}`, cause: error })
+        )
+      );
+      yield* publishTraceFlags();
     });
 
     const deleteTraceFlag = Effect.fn('TraceFlagService.deleteTraceFlag')(function* (traceFlagId: string) {
       const conn = yield* connectionService.getConnection();
-      yield* Effect.tryPromise({
-        try: () => conn.tooling.delete('TraceFlag', traceFlagId),
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new TraceFlagUpdateError({
-            message: `Failed to delete trace flag: ${cause.message}`,
-            cause: error
-          });
-        }
-      });
-      const flags = yield* getTraceFlags().pipe(Effect.catchAll(() => Effect.succeed([])));
-      yield* PubSub.publish(traceFlagsChanged, flags);
+      yield* decodeSalesforceId(traceFlagId).pipe(
+        Effect.flatMap(id => apex.deleteTraceFlag(conn, id)),
+        Effect.mapError(
+          error => new TraceFlagUpdateError({ message: `Failed to delete trace flag: ${error.message}`, cause: error })
+        )
+      );
+      yield* publishTraceFlags();
     });
 
     const changeTraceFlagDebugLevel = Effect.fn('TraceFlagService.changeTraceFlagDebugLevel')(function* (
@@ -369,22 +322,20 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       newDebugLevelId: string
     ) {
       const conn = yield* connectionService.getConnection();
-      yield* Effect.tryPromise({
-        try: () =>
-          conn.tooling.update('TraceFlag', {
-            Id: traceFlagId,
-            DebugLevelId: newDebugLevelId
-          }),
-        catch: error => {
-          const { cause } = unknownToErrorCause(error);
-          return new TraceFlagUpdateError({
-            message: `Failed to change trace flag debug level: ${cause.message}`,
-            cause: error
-          });
-        }
-      });
-      const flags = yield* getTraceFlags().pipe(Effect.catchAll(() => Effect.succeed([])));
-      yield* PubSub.publish(traceFlagsChanged, flags);
+      yield* Effect.all({
+        traceFlagId: decodeSalesforceId(traceFlagId),
+        debugLevelId: decodeSalesforceId(newDebugLevelId)
+      }).pipe(
+        Effect.flatMap(ids => apex.changeTraceFlagDebugLevel(conn, ids.traceFlagId, ids.debugLevelId)),
+        Effect.mapError(
+          error =>
+            new TraceFlagUpdateError({
+              message: `Failed to change trace flag debug level: ${error.message}`,
+              cause: error
+            })
+        )
+      );
+      yield* publishTraceFlags();
     });
 
     const ensureTraceFlag = Effect.fn('TraceFlagService.ensureTraceFlag')(function* (
@@ -394,34 +345,40 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
       existingDebugLevelId?: string
     ) {
       const debugLevelId = existingDebugLevelId ?? (yield* getOrCreateDebugLevel());
-      return yield* getTraceFlagForUser(userId, logType).pipe(
-        Effect.flatMap(
-          Option.match({
-            onNone: () =>
-              Effect.gen(function* () {
-                const traceFlagId = yield* createTraceFlag(userId, debugLevelId, duration, logType);
-                return { created: true, traceFlagId };
-              }),
-            onSome: traceFlag =>
-              Effect.gen(function* () {
-                if (traceFlag.expirationDate < new Date()) {
-                  yield* deleteTraceFlag(traceFlag.id);
-                  const traceFlagId = yield* createTraceFlag(userId, debugLevelId, duration, logType);
-                  return { created: true, traceFlagId };
-                }
-                const validExpiration =
-                  traceFlag.expirationDate.getTime() - Date.now() > Duration.toMillis(duration)
-                    ? traceFlag.expirationDate
-                    : calculateExpirationDate(new Date(), duration);
-                if (debugLevelId !== traceFlag.debugLevelId) {
-                  yield* changeTraceFlagDebugLevel(traceFlag.id, debugLevelId);
-                }
-                if (validExpiration.getTime() !== traceFlag.expirationDate.getTime()) {
-                  yield* updateTraceFlag(traceFlag.id, { expirationDate: validExpiration });
-                }
-                return { created: false, traceFlagId: traceFlag.id };
-              })
-          })
+      const ids = yield* Effect.all({
+        userId: decodeOrFail(apex.TraceFlagRecordSchema.fields.Id, 'user ID')(userId),
+        debugLevelId: decodeOrFail(apex.TraceFlagRecordSchema.fields.Id, 'debug level ID')(debugLevelId)
+      });
+      return yield* connectionService.getConnection().pipe(
+        Effect.flatMap(connection =>
+          apex
+            .ensureTraceFlag(connection, ids.userId, ids.debugLevelId, {
+              duration,
+              logType,
+              onMutation: publishTraceFlags
+            })
+            .pipe(
+              Effect.mapError(error =>
+                Match.value(error.operation).pipe(
+                  Match.when(
+                    'createTraceFlag',
+                    () =>
+                      new TraceFlagCreateError({
+                        message: `Failed to create trace flag: ${error.message}`,
+                        cause: error
+                      })
+                  ),
+                  Match.when('getTraceFlagForUser', () => new TraceFlagNotFoundError({ message: error.message })),
+                  Match.orElse(
+                    () =>
+                      new TraceFlagUpdateError({
+                        message: `Failed to ensure trace flag: ${error.message}`,
+                        cause: error
+                      })
+                  )
+                )
+              )
+            )
         )
       );
     });

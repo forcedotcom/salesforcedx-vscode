@@ -7,6 +7,15 @@
 
 import * as Schema from 'effect/Schema';
 
+/** A Tooling write resolved without succeeding or without returning a created record ID. */
+export class ApexToolingMutationError extends Schema.TaggedError<ApexToolingMutationError>()(
+  'ApexToolingMutationError',
+  {
+    operation: Schema.String,
+    message: Schema.String
+  }
+) {}
+
 const OperationErrorFields = {
   operation: Schema.NonEmptyTrimmedString,
   message: Schema.String,

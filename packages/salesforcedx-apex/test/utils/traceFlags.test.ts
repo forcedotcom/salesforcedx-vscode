@@ -15,7 +15,7 @@ import { nls } from '../../src/i18n';
 describe('Trace Flags', () => {
   const $$ = new TestContext();
   const testData = new MockTestOrgData();
-  const USER_ID = 'abcd';
+  const USER_ID = '005000000000001';
   let mockConnection: Connection;
   let flags: TraceFlags;
   let queryStub: SinonStub;
@@ -49,8 +49,8 @@ describe('Trace Flags', () => {
       totalSize: 1,
       records: [
         {
-          Id: '1234',
-          DebugLevelId: '00A123456',
+          Id: '7tf000000000001',
+          DebugLevelId: '7dl000000000001',
           LogType: 'developer_log',
           StartDate: null,
           ExpirationDate: null,
@@ -72,13 +72,13 @@ describe('Trace Flags', () => {
 
     let updateArgs = toolingUpdateStub.getCall(0).args;
     expect(updateArgs[0]).toBe('DebugLevel');
-    expect(updateArgs[1].Id).toBe('00A123456');
+    expect(updateArgs[1].Id).toBe('7dl000000000001');
     expect(updateArgs[1].ApexCode).toBe('FINEST');
     expect(updateArgs[1].Visualforce).toBe('FINER');
 
     updateArgs = toolingUpdateStub.getCall(1).args;
     expect(updateArgs[0]).toBe('TraceFlag');
-    expect(updateArgs[1].Id).toBe('1234');
+    expect(updateArgs[1].Id).toBe('7tf000000000001');
     expect(updateArgs[1].StartDate).not.toBe('');
     const expDate = new Date(updateArgs[1].ExpirationDate);
     expect(expDate.getTime() - currDate).toBeGreaterThan(60_000 * 29);
@@ -98,8 +98,8 @@ describe('Trace Flags', () => {
       totalSize: 1,
       records: [
         {
-          Id: '1234',
-          DebugLevelId: '00A123456',
+          Id: '7tf000000000001',
+          DebugLevelId: '7dl000000000001',
           LogType: 'developer_log',
           StartDate: null,
           ExpirationDate: null,
@@ -131,9 +131,9 @@ describe('Trace Flags', () => {
 
     toolingCreateStub
       .onFirstCall()
-      .resolves({ success: true, id: 'aBcDeF' })
+      .resolves({ success: true, id: '7dl000000000002' })
       .onSecondCall()
-      .resolves({ success: true, id: '01020304' });
+      .resolves({ success: true, id: '7tf000000000002' });
 
     const ensure = await flags.ensureTraceFlags();
 
@@ -143,16 +143,16 @@ describe('Trace Flags', () => {
 
     let createArgs = toolingCreateStub.getCall(0).args;
     expect(createArgs[0]).toBe('DebugLevel');
-    expect(createArgs[1].developerName).toContain('SFDC_DevConsole');
+    expect(createArgs[1].DeveloperName).toContain('SFDC_DevConsole');
     expect(createArgs[1].MasterLabel).toContain('SFDC_DevConsole');
     expect(createArgs[1].ApexCode).toBe('FINEST');
     expect(createArgs[1].Visualforce).toBe('FINER');
 
     createArgs = toolingCreateStub.getCall(1).args;
     expect(createArgs[0]).toBe('TraceFlag');
-    expect(createArgs[1].tracedentityid).toBe(USER_ID);
-    expect(createArgs[1].logtype).toBe('DEVELOPER_LOG');
-    expect(createArgs[1].debuglevelid).toBe('aBcDeF');
+    expect(createArgs[1].TracedEntityId).toBe(USER_ID);
+    expect(createArgs[1].LogType).toBe('DEVELOPER_LOG');
+    expect(createArgs[1].DebugLevelId).toBe('7dl000000000002');
     expect(createArgs[1].StartDate).not.toBe('');
     const expDate = new Date(createArgs[1].ExpirationDate);
     expect(expDate.getTime() - currDate).toBeGreaterThan(60_000 * 29);
@@ -173,7 +173,7 @@ describe('Trace Flags', () => {
 
     toolingCreateStub
       .onFirstCall()
-      .resolves({ success: true, id: 'debug123' })
+      .resolves({ success: true, id: '7dl000000000003' })
       .onSecondCall()
       .resolves({ success: false });
 

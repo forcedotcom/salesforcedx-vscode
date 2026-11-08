@@ -26,26 +26,6 @@ export const CommonOptionsSchema = Schema.Struct({
 }).annotations({ identifier: 'CommonOptions' });
 export type CommonOptions = typeof CommonOptionsSchema.Type;
 
-type DebugLevelRecord = {
-  ApexCode: string;
-  VisualForce: string;
-};
-
-export type TraceFlagRecord = {
-  Id: string;
-  LogType: string;
-  DebugLevelId: string;
-  StartDate: Date | undefined;
-  ExpirationDate: Date | undefined;
-  DebugLevel: DebugLevelRecord;
-};
-
-export type DataRecordResult = {
-  id?: string;
-  errors?: string[];
-  success: boolean;
-};
-
 export type IdRecord = {
   Id: string;
 };

@@ -4,23 +4,38 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { type Connection } from '@salesforce/core';
+import type { IdRecord } from './types';
+import type { Connection } from '@salesforce/core';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import { queryRecords } from '../effect/records';
-import { IdRecordSchema } from '../effect/schema/wire/records';
+import * as Either from 'effect/Either';
+import * as Option from 'effect/Option';
+import * as Schema from 'effect/Schema';
+import { ApexToolingMutationError } from '../effect/schema/errors';
+import { SalesforceId } from '../effect/schema/salesforceId';
+import {
+  createDebugLevel,
+  createTraceFlag,
+  extendTraceFlag,
+  findDebugLevel,
+  getTraceFlagForUser,
+  updateDebugLevel
+} from '../effect/traceFlags';
 import { nls } from '../i18n';
 import { DEFAULT_DEBUG_LEVEL_NAME, LOG_TIMER_LENGTH_MINUTES, LOG_TYPE } from '../logs/constants';
 import { escapeXml } from './authUtil';
-import { MILLISECONDS_PER_MINUTE } from './dateUtil';
 import { elapsedTime } from './elapsedTime';
-import { type IdRecord, type DataRecordResult, type TraceFlagRecord } from './types';
 
+/** Unwrap outside the runtime so CLI errors do not acquire a FiberFailure prefix. */
+const run = async <A, E extends { readonly message: string }>(operation: Effect.Effect<A, E>): Promise<A> =>
+  operation.pipe(Effect.either, Effect.runPromise).then(Either.getOrThrowWith(error => new Error(error.message)));
+
+const cliDebugLevels = { ApexCode: 'FINEST', Visualforce: 'FINER' } as const;
+const cliDuration = Duration.minutes(LOG_TIMER_LENGTH_MINUTES);
+
+/** CLI policy adapter; Tooling operations and expiration mechanics live in the Effect API. */
 export class TraceFlags {
-  private connection: Connection;
-
-  constructor(connection: Connection) {
-    this.connection = connection;
-  }
+  constructor(private readonly connection: Connection) {}
 
   @elapsedTime()
   public async ensureTraceFlags(debugLevelName?: string): Promise<boolean> {
@@ -29,131 +44,59 @@ export class TraceFlags {
       throw new Error(nls.localize('error_no_default_username'));
     }
 
-    const userId = (await this.getUserIdOrThrow(username)).Id;
-    const traceFlag = await this.getTraceFlagForUser(userId);
-    if (traceFlag) {
-      // update existing debug level and trace flag
-      if (!(await this.updateDebugLevel(traceFlag.DebugLevelId))) {
-        return false;
-      }
-
-      const expirationDate = this.calculateExpirationDate(
-        traceFlag.ExpirationDate ? new Date(traceFlag.ExpirationDate) : new Date()
+    const userId = await this.getUserIdOrThrow(username);
+    const traceFlag = await run(getTraceFlagForUser(this.connection, userId, LOG_TYPE, 'CreatedDate'));
+    if (Option.isSome(traceFlag)) {
+      // Existing flags keep their level, even when the caller supplied a different name.
+      return run(
+        Schema.decodeUnknown(SalesforceId)(traceFlag.value.DebugLevelId).pipe(
+          Effect.flatMap(debugLevelId => updateDebugLevel(this.connection, debugLevelId, cliDebugLevels)),
+          Effect.flatMap(() => extendTraceFlag(this.connection, traceFlag.value, cliDuration)),
+          Effect.as(true),
+          Effect.catchTag('ApexToolingMutationError', () => Effect.succeed(false))
+        )
       );
-      return await this.updateTraceFlag(traceFlag.Id, expirationDate);
-    } else {
-      const debugLevelId = await this.getDebugLevelId(debugLevelName ?? '');
-
-      // create a trace flag
-      const expirationDate = this.calculateExpirationDate(new Date());
-      if (!(await this.createTraceFlag(userId ?? '', debugLevelId ?? '', expirationDate))) {
-        return false;
-      }
     }
 
-    return true;
+    return run(
+      createTraceFlag(this.connection, userId, await this.getDebugLevelId(debugLevelName), cliDuration, LOG_TYPE).pipe(
+        Effect.as(true),
+        Effect.catchTag('ApexToolingMutationError', () => Effect.succeed(false))
+      )
+    );
   }
 
   @elapsedTime()
-  private async getDebugLevelId(debugLevelName: string): Promise<string | undefined> {
-    let debugLevelId;
+  private async getDebugLevelId(debugLevelName?: string): Promise<SalesforceId> {
     if (debugLevelName) {
-      debugLevelId = await this.findDebugLevel(debugLevelName);
-      if (!debugLevelId) {
+      const debugLevelId = await run(findDebugLevel(this.connection, debugLevelName));
+      if (Option.isNone(debugLevelId)) {
         throw new Error(nls.localize('trace_flags_failed_to_find_debug_level', debugLevelName));
       }
-    } else {
-      debugLevelId = await this.createDebugLevel(DEFAULT_DEBUG_LEVEL_NAME);
-      if (!debugLevelId) {
-        throw new Error(nls.localize('trace_flags_failed_to_create_debug_level'));
-      }
+      return debugLevelId.value;
     }
-    return debugLevelId;
-  }
 
-  @elapsedTime()
-  private async findDebugLevel(debugLevelName: string): Promise<string | undefined> {
-    const escapedDebugLevel = escapeXml(debugLevelName);
-    const query = `SELECT Id FROM DebugLevel WHERE DeveloperName = '${escapedDebugLevel}'`;
-    const records = await Effect.runPromise(
-      queryRecords({
-        connection: this.connection,
-        operation: 'TraceFlags.findDebugLevel',
-        soql: query,
-        record: IdRecordSchema,
-        tooling: true
-      })
+    // CLI intentionally creates its default level; it does not reuse a same-named level.
+    return run(
+      createDebugLevel(this.connection, {
+        DeveloperName: DEFAULT_DEBUG_LEVEL_NAME,
+        MasterLabel: DEFAULT_DEBUG_LEVEL_NAME,
+        ...cliDebugLevels
+      }).pipe(
+        Effect.catchTag('ApexToolingMutationError', error =>
+          Effect.fail(
+            new ApexToolingMutationError({
+              operation: error.operation,
+              message: nls.localize('trace_flags_failed_to_create_debug_level')
+            })
+          )
+        )
+      )
     );
-    return records[0]?.Id;
   }
 
   @elapsedTime()
-  private async updateDebugLevel(id: string): Promise<boolean> {
-    const debugLevel = {
-      Id: id,
-      ApexCode: 'FINEST',
-      Visualforce: 'FINER'
-    };
-    const result = (await this.connection.tooling.update('DebugLevel', debugLevel)) as DataRecordResult;
-    return result.success;
-  }
-
-  @elapsedTime()
-  private async createDebugLevel(debugLevelName: string): Promise<string | undefined> {
-    const developerName = debugLevelName;
-    const debugLevel = {
-      developerName,
-      MasterLabel: developerName,
-      ApexCode: 'FINEST',
-      Visualforce: 'FINER'
-    };
-    const result = (await this.connection.tooling.create('DebugLevel', debugLevel)) as DataRecordResult;
-    return result.success && result.id ? result.id : undefined;
-  }
-
-  @elapsedTime()
-  private async updateTraceFlag(id: string, expirationDate: Date): Promise<boolean> {
-    const traceFlag = {
-      Id: id,
-      StartDate: Date.now(),
-      ExpirationDate: expirationDate.toUTCString()
-    };
-    const result = (await this.connection.tooling.update('TraceFlag', traceFlag)) as DataRecordResult;
-    return result.success;
-  }
-
-  @elapsedTime()
-  private async createTraceFlag(
-    userId: string,
-    debugLevelId: string,
-    expirationDate: Date
-  ): Promise<string | undefined> {
-    const traceFlag = {
-      tracedentityid: userId,
-      logtype: LOG_TYPE,
-      debuglevelid: debugLevelId,
-      StartDate: Date.now(),
-      ExpirationDate: expirationDate.toUTCString()
-    };
-
-    const result = (await this.connection.tooling.create('TraceFlag', traceFlag)) as DataRecordResult;
-    return result.success && result.id ? result.id : undefined;
-  }
-
-  private isValidDateLength(expirationDate: Date): boolean {
-    const currDate = Date.now();
-    return expirationDate.getTime() - currDate > LOG_TIMER_LENGTH_MINUTES * MILLISECONDS_PER_MINUTE;
-  }
-
-  private calculateExpirationDate(expirationDate: Date): Date {
-    if (!this.isValidDateLength(expirationDate)) {
-      expirationDate = new Date(Date.now() + LOG_TIMER_LENGTH_MINUTES * MILLISECONDS_PER_MINUTE);
-    }
-    return expirationDate;
-  }
-
-  @elapsedTime()
-  private async getUserIdOrThrow(username: string): Promise<IdRecord> {
+  private async getUserIdOrThrow(username: string): Promise<SalesforceId> {
     const escapedUsername = escapeXml(username);
     const userQuery = `SELECT Id FROM User WHERE username='${escapedUsername}'`;
     const userResult = await this.connection.query<IdRecord>(userQuery);
@@ -161,23 +104,6 @@ export class TraceFlags {
     if (userResult.totalSize === 0) {
       throw new Error(nls.localize('trace_flags_unknown_user'));
     }
-    return userResult.records[0];
-  }
-
-  @elapsedTime()
-  private async getTraceFlagForUser(userId: string): Promise<TraceFlagRecord | undefined> {
-    const traceFlagQuery = `
-      SELECT Id, logtype, startdate, expirationdate, debuglevelid, debuglevel.apexcode, debuglevel.visualforce
-      FROM TraceFlag
-      WHERE logtype='${LOG_TYPE}' AND TracedEntityId='${userId}'
-      ORDER BY CreatedDate DESC
-      LIMIT 1
-    `;
-    const traceFlagResult = await this.connection.tooling.query<TraceFlagRecord>(traceFlagQuery);
-
-    if (traceFlagResult.totalSize > 0) {
-      return traceFlagResult.records[0];
-    }
-    return undefined;
+    return run(Schema.decodeUnknown(SalesforceId)(userResult.records[0].Id));
   }
 }
