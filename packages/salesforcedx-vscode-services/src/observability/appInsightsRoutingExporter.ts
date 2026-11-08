@@ -6,6 +6,7 @@
  */
 import { type ExportResult, ExportResultCode } from '@opentelemetry/core';
 import type { ReadableSpan, SpanExporter } from '@opentelemetry/sdk-trace-base';
+import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { isLegacySpan, legacyCallerExtName, resolveLegacyConnectionString } from './legacyTelemetrySender';
@@ -19,25 +20,23 @@ const packageJSONFor = (extName: string): { otelConnectionString?: string; aiKey
   }
 };
 
-const exportVia = (make: () => SpanExporter, spans: ReadableSpan[]): Promise<ExportResult> => {
-  // eslint-disable-next-line functional/no-try-statements -- exporter boundary
-  try {
-    const delegate = make();
-    return new Promise(resolve => {
-      // eslint-disable-next-line functional/no-try-statements -- exporter boundary
-      try {
-        delegate.export(spans, resolve);
-      } catch (error) {
-        resolve({ code: ExportResultCode.FAILED, error: isError(error) ? error : new Error(String(error)) });
-      }
-    });
-  } catch (error) {
-    return Promise.resolve({
-      code: ExportResultCode.FAILED,
-      error: isError(error) ? error : new Error(String(error))
-    });
-  }
-};
+const exportVia = (make: () => SpanExporter, spans: ReadableSpan[]): Promise<ExportResult> =>
+  Effect.try({ try: make, catch: String }).pipe(
+    Effect.flatMap(delegate =>
+      Effect.async<ExportResult, string>(resume => {
+        // eslint-disable-next-line functional/no-try-statements -- exporter boundary
+        try {
+          delegate.export(spans, result => resume(Effect.succeed(result)));
+        } catch (error) {
+          resume(Effect.fail(String(error)));
+        }
+      })
+    ),
+    Effect.catchAll(error =>
+      Effect.succeed({ code: ExportResultCode.FAILED, error: isError(error) ? error : new Error(error) })
+    ),
+    Effect.runPromise
+  );
 
 /**
  * Splits AI export by span origin. Legacy spans carry per-caller keys resolved
