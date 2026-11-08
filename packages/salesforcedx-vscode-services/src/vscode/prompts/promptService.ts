@@ -197,7 +197,7 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
       ).pipe(Effect.flatMap(considerUndefinedAsCancellation));
 
       if (selected.label === CUSTOM_DIR_LABEL) {
-        const folders = yield* Effect.promise(() =>
+        return yield* Effect.promise(() =>
           vscode.window.showOpenDialog({
             canSelectFiles: false,
             canSelectFolders: true,
@@ -205,8 +205,7 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
             defaultUri: params.defaultUri,
             openLabel: nls.localize('select_folder')
           })
-        );
-        return yield* considerUndefinedAsCancellation(folders?.[0]);
+        ).pipe(Effect.flatMap(considerEmptySelectionAsCancellation), Effect.map(Arr.headNonEmpty));
       }
 
       return selected.uri!;

@@ -11,7 +11,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import type { OrgMetadataCatalogComponentEntry } from 'salesforcedx-vscode-services';
 import { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
-import { UserCancellationError } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
+import { PromptService } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { DebugConfigurationProvider } from '../../../src/adapter/debugConfigurationProvider';
@@ -41,12 +41,13 @@ describe('DebugConfigurationProvider log-file prompt', () => {
             services: {
               FsService: { readFile },
               OrgMetadataCatalog,
-              UserCancellationError,
+              PromptService,
               WorkspaceService: { getWorkspaceInfo: () => Effect.succeed({ isEmpty: true }) }
             }
           })
         } as unknown as ExtensionProviderService),
-        Layer.succeed(OrgMetadataCatalog, { getEntries } as unknown as OrgMetadataCatalog)
+        Layer.succeed(OrgMetadataCatalog, { getEntries } as unknown as OrgMetadataCatalog),
+        PromptService.Default
       ) as ReturnType<typeof buildAllServicesLayer>
     );
   });
@@ -74,8 +75,11 @@ describe('DebugConfigurationProvider log-file prompt', () => {
     expect(workspaceStateUpdate).toHaveBeenCalledWith(LAST_OPENED_LOG_FOLDER_KEY, URI.file('/logs').fsPath);
   });
 
-  it('silently cancels when no log file is selected', async () => {
-    (vscode.window.showOpenDialog as VitestMock).mockResolvedValue(undefined);
+  it.each([
+    { result: undefined, description: 'dismissed' },
+    { result: [], description: 'empty' }
+  ])('silently cancels when the log file selection is $description', async ({ result }) => {
+    (vscode.window.showOpenDialog as VitestMock).mockResolvedValue(result);
 
     const resolved = await new DebugConfigurationProvider(extensionContext).resolveDebugConfiguration(undefined, {
       name: 'Prompt for log',
@@ -86,6 +90,7 @@ describe('DebugConfigurationProvider log-file prompt', () => {
 
     expect(resolved).toBeUndefined();
     expect(readFile).not.toHaveBeenCalled();
+    expect(workspaceStateUpdate).not.toHaveBeenCalled();
     expect(vscode.window.showErrorMessage).not.toHaveBeenCalled();
   });
 
