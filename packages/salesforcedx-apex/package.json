@@ -86,9 +86,6 @@
       "files": [
         "scripts/generatePublicApiSchema.mts",
         "schemas/public-api.schema.json",
-        "src/**/*.ts",
-        "tsconfig.json",
-        "../../tsconfig.common.json",
         "package.json"
       ]
     },
@@ -163,6 +160,7 @@
         "src/**/*.ts",
         "scripts/**/*.mts",
         "scripts/tsconfig.json",
+        "../../scripts/tsconfig.native.json",
         "test/**/*.ts",
         "../../eslint.config.mjs",
         "package.json"

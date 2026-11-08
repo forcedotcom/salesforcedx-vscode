@@ -222,6 +222,7 @@
         "src/**/*.ts",
         "scripts/**/*.mts",
         "scripts/tsconfig.json",
+        "../../scripts/tsconfig.native.json",
         "test/**/*.{ts,mts}",
         "../../eslint.config.mjs",
         ".vscodeignore",
