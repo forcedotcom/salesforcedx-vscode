@@ -37,6 +37,15 @@ export type CheckRun =
   Endpoints['GET /repos/{owner}/{repo}/commits/{ref}/check-runs']['response']['data']['check_runs'][number];
 export type PullFile = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}/files']['response']['data'][number];
 
+export const WorkflowRunJob = Schema.Struct({
+  id: Schema.Number,
+  name: Schema.String,
+  conclusion: Schema.NullOr(Schema.String),
+  started_at: Schema.NullishOr(Schema.String),
+  completed_at: Schema.NullishOr(Schema.String)
+});
+export type WorkflowRunJob = typeof WorkflowRunJob.Type;
+
 type Check = {
   readonly state?: string;
   readonly status?: string | null;
@@ -97,6 +106,19 @@ export class GitHubRequestError extends Schema.TaggedError<GitHubRequestError>()
   path: Schema.String,
   retryAfterMillis: Schema.optional(Schema.Number)
 }) {}
+
+const decodeResponse = <A, I, R>(schema: Schema.Schema<A, I, R>, input: unknown, method: string, path: string) =>
+  Schema.decodeUnknown(schema)(input).pipe(
+    Effect.mapError(
+      error =>
+        new GitHubRequestError({
+          message: error.message,
+          status: 200,
+          method,
+          path
+        })
+    )
+  );
 
 export const PullRequest = Schema.Struct({
   reviewDecision: Schema.NullOr(Schema.String),
@@ -262,6 +284,15 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
       );
     });
 
+    const workflowRunJobs = Effect.fn('GitHub.workflowRunJobs')(function* (repository: string, runId: string) {
+      const path = `/repos/${repository}/actions/runs/${runId}/jobs`;
+      return yield* run('GET', path, () =>
+        octokit.paginate<unknown>(`GET ${path}`, {
+          per_page: 100
+        })
+      ).pipe(Effect.flatMap(jobs => decodeResponse(Schema.Array(WorkflowRunJob), jobs, 'GET', path)));
+    });
+
     const combinedStatus = Effect.fn('GitHub.combinedStatus')(function* (owner: string, repo: string, sha: string) {
       return yield* run('GET', `/repos/${owner}/${repo}/commits/${sha}/status`, () =>
         octokit
@@ -394,21 +425,12 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
     });
 
     const pullRequest = Effect.fn('GitHub.pullRequest')(function* (owner: string, repo: string, pullNumber: number) {
-      const data = yield* run('POST', '/graphql', () =>
+      return yield* run('POST', '/graphql', () =>
         octokit.graphql(pullQuery, { owner, name: repo, number: pullNumber })
+      ).pipe(
+        Effect.flatMap(data => decodeResponse(PullRequestQuery, data, 'POST', '/graphql')),
+        Effect.map(decoded => decoded.repository?.pullRequest ?? undefined)
       );
-      const decoded = yield* Schema.decodeUnknown(PullRequestQuery)(data).pipe(
-        Effect.mapError(
-          error =>
-            new GitHubRequestError({
-              message: error.message,
-              status: 200,
-              method: 'POST',
-              path: '/graphql'
-            })
-        )
-      );
-      return decoded.repository?.pullRequest ?? undefined;
     });
 
     return {
@@ -419,6 +441,7 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
       pullFiles,
       pullReviews,
       checkRuns,
+      workflowRunJobs,
       combinedStatus,
       headChecks,
       createReview,
