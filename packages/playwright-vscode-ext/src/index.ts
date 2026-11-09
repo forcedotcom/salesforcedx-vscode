@@ -74,7 +74,13 @@ export {
   CODELENS_ITEM
 } from './utils/locators';
 
-export { CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY, ACCESS_TOKEN_KEY, API_VERSION_KEY } from './constants';
+export {
+  CODE_BUILDER_WEB_SECTION,
+  INSTANCE_URL_KEY,
+  ACCESS_TOKEN_KEY,
+  API_VERSION_KEY,
+  SESSION_CONTEXT_KEY
+} from './constants';
 
 export { SPANS_DIR, readAllSpanRows, waitForSpanRows } from './utils/spanFiles';
 export type { SpanRow } from './utils/spanFiles';
@@ -116,6 +122,7 @@ export {
   goToFile,
   goToLineColumn,
   selectAll,
+  selectToBracket,
   paste,
   focusOnProblemsView,
   goToDefinition,
@@ -180,6 +187,7 @@ export {
 
 // Shared
 export { saveScreenshot } from './shared/screenshotUtils';
+export { startVideoRecording } from './shared/videoUtils';
 
 // Fixtures
 export { createEmptyTestWorkspace, createTestWorkspace } from './fixtures/desktopWorkspace';

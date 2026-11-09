@@ -15,9 +15,10 @@ import type {
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
 import { redactValue } from '@salesforce/playwright-vscode-ext';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import { causeMessage, DrivableVscodeArtifactError } from './errors';
+import { DrivableVscodeArtifactError } from './errors';
 
 type ArtifactWrite = { filePath: string; contents: string; append: boolean };
 const json = (value: unknown, pretty = false) =>
@@ -57,7 +58,7 @@ export class ArtifactService extends Effect.Service<ArtifactService>()('Drivable
           cause =>
             new DrivableVscodeArtifactError({
               message: 'Failed to create artifact directory',
-              cause: causeMessage(cause)
+              cause: getErrorMessage(cause)
             })
         )
       );
@@ -70,7 +71,7 @@ export class ArtifactService extends Effect.Service<ArtifactService>()('Drivable
               cause =>
                 new DrivableVscodeArtifactError({
                   message: `Failed to write ${item.filePath}`,
-                  cause: causeMessage(cause)
+                  cause: getErrorMessage(cause)
                 })
             )
           )
@@ -91,7 +92,7 @@ export class ArtifactService extends Effect.Service<ArtifactService>()('Drivable
               Effect.tap(() => Effect.sync(() => findings.push(finding))),
               Effect.mapError(
                 cause =>
-                  new DrivableVscodeArtifactError({ message: 'Failed to write finding', cause: causeMessage(cause) })
+                  new DrivableVscodeArtifactError({ message: 'Failed to write finding', cause: getErrorMessage(cause) })
               )
             )
           ),
@@ -110,7 +111,7 @@ export class ArtifactService extends Effect.Service<ArtifactService>()('Drivable
                 cause =>
                   new DrivableVscodeArtifactError({
                     message: 'Failed to write final artifacts',
-                    cause: causeMessage(cause)
+                    cause: getErrorMessage(cause)
                   })
               )
             )

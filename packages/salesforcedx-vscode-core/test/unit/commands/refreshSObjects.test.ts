@@ -8,6 +8,7 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
+import * as Option from 'effect/Option';
 import * as Tracer from 'effect/Tracer';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
@@ -76,6 +77,21 @@ describe('extractErrorMessage', () => {
     expect(extractErrorMessage({ message: 'plain' })).toBe('plain');
   });
 
+  it('prefers a nested Error over an object message, including an empty Error message', () => {
+    expect(extractErrorMessage({ error: new Error('nested'), message: 'outer' })).toBe('nested');
+    expect(extractErrorMessage({ error: new Error(), message: 'outer' })).toBe('');
+  });
+
+  it('does not unwrap non-Error values of error', () => {
+    expect(extractErrorMessage({ error: 'nested', message: 'outer' })).toBe('outer');
+    expect(extractErrorMessage({ error: { message: 'nested' } })).toBe('[object Object]');
+  });
+
+  it('preserves empty object messages and ignores non-string messages', () => {
+    expect(extractErrorMessage({ message: '' })).toBe('');
+    expect(extractErrorMessage({ message: 42 })).toBe('[object Object]');
+  });
+
   it('does not treat an array as a record (array-exclusion) and falls through to String()', () => {
     expect(extractErrorMessage([])).toBe('');
   });
@@ -109,7 +125,7 @@ describe('initSObjectDefinitions', () => {
     expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.internal.refreshsobjects', refreshSource);
     const notificationSpan = recordedSpans.find(span => span.name === 'sObjectRefreshNotification');
     expect(notificationSpan).toEqual(expect.objectContaining({ ended: true, result: 'success' }));
-    expect(notificationSpan?.parent._tag).toBe('None');
+    expect(notificationSpan && Option.isNone(notificationSpan.parent)).toBe(true);
     expect(notificationSpan?.attributes.get('type')).toBe(refreshSource);
   });
 
@@ -131,7 +147,7 @@ describe('initSObjectDefinitions', () => {
 
     const errorSpan = recordedSpans.find(span => span.name === 'initSObjectDefinitionsError');
     expect(errorSpan).toEqual(expect.objectContaining({ ended: true, result: 'failure' }));
-    expect(errorSpan?.parent._tag).toBe('None');
+    expect(errorSpan && Option.isNone(errorSpan.parent)).toBe(true);
     expect(errorSpan?.attributes.get('message')).toBe('Error: boom with sobjectRefreshStartup = true');
   });
 });

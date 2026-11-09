@@ -24,7 +24,6 @@ import {
   waitForOutputChannelText
 } from '../pages/outputChannel';
 import { upsertScratchOrgAuthFieldsToSettings } from '../pages/settings';
-import { saveScreenshot } from '../shared/screenshotUtils';
 import { focusMonacoInput } from './focusMonacoInput';
 import {
   closeSettingsTab,
@@ -96,6 +95,8 @@ export const createApexClass = async (page: Page, className: string, content?: s
   const quickInput = activeQuickInputWidget(page);
   const classNamePrompt = quickInput.getByText(/Enter Apex class name/i);
   await selectFirstQuickInputOption(page, {
+    // The web extension host can take longer to surface this picker after activating the project.
+    retryTimeout: 30_000,
     confirmCommitted: () =>
       classNamePrompt
         .isVisible()
@@ -437,9 +438,7 @@ const finishOrgAndAuthSetup = async (
     }
     await closeWelcomeTabs(page);
   }
-  await saveScreenshot(page, 'setup.after-workbench.png');
   await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-  await saveScreenshot(page, 'setup.after-auth-fields.png');
 };
 
 /**
@@ -492,6 +491,5 @@ export const createAndDeployApexTestClass = async (page: Page, className: string
     timeout: DEFAULT_DEPLOY_COMPLETE_TIMEOUT_MS
   });
 
-  await saveScreenshot(page, 'setup.apex-test-class-created.png');
   await clearOutputChannel(page);
 };

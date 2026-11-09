@@ -5,13 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Global } from '@salesforce/core/global';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import {
+  ExtensionProviderService,
+  parseErrorToValidationMessage,
+  getMessageFromError
+} from '@salesforce/effect-ext-utils';
+
 import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
 import * as Option from 'effect/Option';
-import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as path from 'node:path';
 import { URL } from 'node:url';
@@ -106,20 +110,32 @@ export const parsePackageInstalledListJson = (packagesJson: string): InstalledPa
  * session ids / login URLs. Not the injection boundary — that is simpleExec's argv spawn. */
 const FORCEIDE_DISALLOWED = /[`$\\"'|&;<>()\s]/;
 
-const uriValidator = (value: string): string | undefined => {
-  try {
-    const parameter = new URL(value).searchParams;
-    const url = parameter.get('url');
-    const sessionId = parameter.get('sessionId');
-    // `''` passes FORCEIDE_DISALLOWED, so require non-empty here — keeps gatherForceIdeUri's parse total.
-    if (!url || !sessionId || FORCEIDE_DISALLOWED.test(url) || FORCEIDE_DISALLOWED.test(sessionId)) {
-      return nls.localize('parameter_gatherer_invalid_forceide_url');
-    }
-  } catch {
-    return nls.localize('parameter_gatherer_invalid_forceide_url');
-  }
-  return undefined;
-};
+const ForceIdeUriSchema = Schema.String.pipe(
+  Schema.filter(
+    value => {
+      try {
+        const parameter = new URL(value).searchParams;
+        const url = parameter.get('url');
+        const sessionId = parameter.get('sessionId');
+        // `''` passes FORCEIDE_DISALLOWED, so require non-empty here — keeps gatherForceIdeUri's parse total.
+        return (
+          url !== null &&
+          url.length > 0 &&
+          sessionId !== null &&
+          sessionId.length > 0 &&
+          !FORCEIDE_DISALLOWED.test(url) &&
+          !FORCEIDE_DISALLOWED.test(sessionId)
+        );
+      } catch {
+        return false;
+      }
+    },
+    { message: () => nls.localize('parameter_gatherer_invalid_forceide_url') }
+  )
+);
+
+const uriValidator = (value: string): string | undefined =>
+  Schema.decodeUnknownEither(ForceIdeUriSchema)(value).pipe(parseErrorToValidationMessage);
 
 /** Prompts for the forceide:// URL and parses its login URL / session id / org name. Esc → UserCancellationError. */
 const gatherForceIdeUri = Effect.fn('isvDebugBootstrap.gatherForceIdeUri')(function* () {
@@ -171,14 +187,7 @@ const gatherProjectNameAndFolder = Effect.fn('isvDebugBootstrap.gatherProjectNam
       canSelectMany: false,
       openLabel: nls.localize('project_generate_open_dialog_create_label')
     })
-  ).pipe(
-    Effect.flatMap(folders =>
-      Option.match(Arr.head(folders ?? []), {
-        onNone: () => promptService.considerUndefinedAsCancellation<URI>(undefined),
-        onSome: folder => promptService.considerUndefinedAsCancellation(folder)
-      })
-    )
-  );
+  ).pipe(Effect.flatMap(promptService.considerEmptySelectionAsCancellation), Effect.map(Arr.headNonEmpty));
 
   const projectUri = Utils.joinPath(projectParentUri, projectName);
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [projectUri] });
@@ -276,7 +285,7 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
           config.namespace = parseOrgNamespaceQueryResultJson(orgNamespaceInfoResponseJson);
           return JSON.stringify(config, null, 2);
         },
-        catch: e => new IsvBootstrapProjectConfigError({ message: isError(e) ? e.message : String(e) })
+        catch: e => new IsvBootstrapProjectConfigError({ message: getMessageFromError(e) })
       });
       yield* fs.writeFile(salesforceProjectJsonUri, updatedProjectJson);
 

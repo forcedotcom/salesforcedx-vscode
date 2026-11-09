@@ -1,0 +1,43 @@
+name: Publish VS Code Marketplace (Trusted) [TEST]
+run-name: "VS Code Marketplace OIDC test: ${{ inputs.release-tag }}"
+
+# Dispatch-only, registration/test workflow for VS Code Marketplace OIDC trusted publishing
+# (vsce --oidc, shipped by Microsoft 2026-10-28). Exists purely so this file is registered on
+# develop and can be dispatched by filename -- GitHub won't run a workflow_dispatch workflow by
+# name until it exists on the repo's default branch, even when the intent is to run a different
+# branch's content via `--ref`.
+#
+# Unlike Open VSX's trusted-publisher match (confirmed to key off the OIDC token's workflow_ref
+# claim, not job_workflow_ref), it isn't yet known whether the Marketplace's trust check behaves
+# the same way when the actual `vsce publish --oidc` step runs nested inside a cross-repo reusable
+# workflow (salesforcecli/github-workflows). This file is the empirical test for that -- register a
+# Trusted Publishing policy for this repo + this exact workflow filename on the Marketplace
+# publisher management page, then dispatch against an already-published, --skip-duplicate-safe
+# tag. See W-24756661.
+#
+# Not wired into any real release channel yet -- that depends on what this test finds.
+
+on:
+  workflow_dispatch:
+    inputs:
+      release-tag:
+        description: 'Release tag to publish (stable, e.g. v67.10.0, or nightly, e.g. v67.13.7-nightly.develop.20260820)'
+        required: true
+        type: string
+      dry-run:
+        description: 'Download and inspect VSIXs without publishing'
+        type: boolean
+        default: false
+
+jobs:
+  publish:
+    permissions:
+      contents: read
+      id-token: write
+    # TEMPORARY: pinned to the github-workflows PR branch adding --oidc support
+    # (salesforcecli/github-workflows#203), to validate end-to-end before that PR merges.
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-release-vsix.yml@ms/W-24756661-vsce-trusted-publishing
+    with:
+      release-tag: ${{ inputs.release-tag }}
+      dry-run: ${{ inputs.dry-run || false }}
+    secrets: inherit

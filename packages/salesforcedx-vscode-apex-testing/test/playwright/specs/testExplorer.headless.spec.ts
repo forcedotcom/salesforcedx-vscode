@@ -8,6 +8,9 @@
 import { expect } from '@playwright/test';
 
 import {
+  TEST_EXPLORER_PANEL,
+  TEST_EXPLORER_TREE_ITEM,
+  verifyNoTestRunInProgress,
   clearOutputChannel,
   createAndDeployApexTestClass,
   ensureOutputPanelOpen,
@@ -29,13 +32,10 @@ import { TEST_RUN_TIMEOUT, TEST_SETUP_TIMEOUT } from '../constants';
 import {
   CMD_RUN_ALL_TESTS,
   CMD_TOGGLE_MAXIMIZED_PANEL,
-  TEST_EXPLORER_PANEL,
-  TEST_EXPLORER_TREE_ITEM,
   TEST_RESULTS_TAB,
   clickTreeItemAction,
   findTestExplorerItem,
-  openTestExplorerAndDiscover,
-  verifyNoTestRunInProgress
+  openTestExplorerAndDiscover
 } from '../helpers/testExplorerHelpers';
 import { waitForApexRunOutputLine } from '../helpers/waitForApexRunOutputLine';
 
@@ -147,7 +147,7 @@ test('Apex Tests via Test Explorer: run all, verify discovery', async ({ page })
     await methodRow.waitFor({ state: 'visible', timeout: 15_000 });
 
     // Gate on the completion sentinel only. The Explorer run path (ApexTestExecutionService) writes the
-    // HumanReporter detail — including the dotted "Class.method" line — to the TestRun output
+    // Human-formatted detail — including the dotted "Class.method" line — to the TestRun output
     // (run.appendOutput, Test Results panel), NOT to the Apex Testing channel; only "Ended SFDX: Run Apex
     // Tests" reaches the channel. So the dotted string never appears in the channel on this path (unlike the
     // command path used by Re-Run Last Method below). Verify the specific method via its durable "Passed"

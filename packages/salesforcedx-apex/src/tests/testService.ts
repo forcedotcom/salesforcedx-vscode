@@ -12,22 +12,17 @@ import * as FiberRef from 'effect/FiberRef';
 import * as HashSet from 'effect/HashSet';
 import * as Logger from 'effect/Logger';
 import * as Option from 'effect/Option';
-import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import { JsonStreamStringify } from 'json-stream-stringify';
-import { createWriteStream } from 'node:fs';
-import { mkdir, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
-import { Readable, type Writable, type Transform } from 'node:stream';
-import { pipeline } from 'node:stream/promises';
+import { FileOutput } from '../effect/fileOutput';
+import { NodeFileOutput } from '../effect/nodeFileOutput';
 import { ApexOperationError, ApexResponseDecodeError } from '../effect/schema/errors';
 import { buildAsyncPayload, buildSyncPayload } from '../effect/testPayloads';
 import { buildSuite, getTestsInSuite, retrieveAllSuites, retrieveSuiteId } from '../effect/testSuites';
+import { type WriteResultFilesOptions, writeResultFiles as writeResultFilesEffect } from '../effect/writeResultFiles';
 import { nls } from '../i18n';
-import { JUnitFormatTransformer, TapFormatTransformer, MarkdownTextFormatTransformer } from '../reporters';
 import { ApexTestSuiteId } from '../schemas/salesforceId';
-import { TestResultStringifyStream } from '../streaming';
-import { elapsedTime, HeapMonitor } from '../utils';
+import { elapsedTime } from '../utils/elapsedTime';
+import { HeapMonitor } from '../utils/heapMonitor';
 import { AsyncTests } from './asyncTests';
 import { type CancellationToken } from './cancellation';
 import { formatTestErrors } from './diagnosticUtil';
@@ -37,117 +32,12 @@ import {
   type AsyncTestArrayConfiguration,
   type AsyncTestConfiguration,
   type OutputDirConfig,
-  ResultFileFormatsSchema,
-  ResultFormatsSchema,
   type SyncTestConfiguration,
   type TestLevel,
   type TestResult,
-  TestResultSchema,
   type TestRunIdResult,
   type TestSuiteMembershipRecord
 } from './types';
-
-const ResultFormatsWithMessageSchema = ResultFormatsSchema.pipe(
-  Schema.annotations({ message: () => ({ message: nls.localize('resultFormatErr'), override: true }) })
-);
-const ResultFileFormatsWithMessageSchema = ResultFileFormatsSchema.pipe(
-  Schema.annotations({ message: () => ({ message: nls.localize('resultFileFormatErr'), override: true }) })
-);
-const assertResultFormats: Schema.Schema.ToAsserts<typeof ResultFormatsWithMessageSchema> =
-  Schema.asserts(ResultFormatsWithMessageSchema);
-const assertResultFileFormats: Schema.Schema.ToAsserts<typeof ResultFileFormatsWithMessageSchema> = Schema.asserts(
-  ResultFileFormatsWithMessageSchema
-);
-
-/**
- * Standalone function for writing test result files - easier to test
- */
-export const writeResultFiles = async (
-  result: TestResult | TestRunIdResult,
-  outputDirConfig: OutputDirConfig,
-  codeCoverage = false,
-  runPipeline: (readable: Readable, filePath: string, transform?: Transform) => Promise<string>
-): Promise<string[]> => {
-  const filesWritten: string[] = [];
-  const { dirPath, resultFormats, fileInfos } = outputDirConfig;
-
-  assertResultFormats(resultFormats);
-
-  await mkdir(dirPath, { recursive: true });
-
-  const hasTestResult = Schema.is(TestResultSchema)(result);
-  const testRunId = hasTestResult ? result.summary.testRunId : result.testRunId;
-  const fileId = testRunId || 'default';
-
-  if (isNotUndefined(testRunId)) {
-    try {
-      await writeFile(join(dirPath, 'test-run-id.txt'), testRunId);
-      filesWritten.push(join(dirPath, 'test-run-id.txt'));
-    } catch (err) {
-      console.error(`Error writing file: ${err}`);
-    }
-  }
-
-  if (resultFormats && hasTestResult) {
-    assertResultFileFormats(resultFormats);
-    for (const format of resultFormats) {
-      let filePath;
-      let readable;
-      switch (format) {
-        case 'json':
-          filePath = join(dirPath, `test-result-${fileId}.json`);
-          readable = TestResultStringifyStream.fromTestResult(result);
-          break;
-        case 'tap':
-          filePath = join(dirPath, `test-result-${fileId}-tap.txt`);
-          readable = new TapFormatTransformer(result);
-          break;
-        case 'junit':
-          filePath = join(dirPath, `test-result-${fileId}-junit.xml`);
-          readable = new JUnitFormatTransformer(result);
-          break;
-        case 'markdown':
-          filePath = join(dirPath, `test-result-${fileId}.md`);
-          readable = new MarkdownTextFormatTransformer(result, {
-            format: 'markdown',
-            codeCoverage
-          });
-          break;
-        case 'text':
-          filePath = join(dirPath, `test-result-${fileId}.txt`);
-          readable = new MarkdownTextFormatTransformer(result, {
-            format: 'text',
-            codeCoverage
-          });
-          break;
-        default:
-          throw new Error(nls.localize('resultFormatErr'));
-      }
-      if (filePath && readable) {
-        filesWritten.push(await runPipeline(readable, filePath));
-      }
-    }
-  }
-
-  if (codeCoverage && hasTestResult) {
-    const filePath = join(dirPath, `test-result-${fileId}-codecoverage.json`);
-    const c = result.tests.map(record => record.perClassCoverage).filter(pcc => pcc?.length);
-    filesWritten.push(await runPipeline(new JsonStreamStringify(c), filePath));
-  }
-
-  if (fileInfos) {
-    for (const fileInfo of fileInfos) {
-      const filePath = join(dirPath, fileInfo.filename);
-      const readable =
-        typeof fileInfo.content === 'string'
-          ? Readable.from([fileInfo.content])
-          : new JsonStreamStringify(fileInfo.content);
-      filesWritten.push(await runPipeline(readable, filePath));
-    }
-  }
-
-  return filesWritten;
-};
 
 /** Keeps typed failures as ordinary Promise rejections for existing class consumers. */
 const runTestServiceOperation = async <A, E extends Error>(operation: Effect.Effect<A, E>): Promise<A> =>
@@ -160,11 +50,13 @@ export class TestService {
   private readonly connection: Connection;
   private readonly asyncService: AsyncTests;
   private readonly syncService: SyncTests;
+  private readonly fileOutput: typeof FileOutput.Service;
 
-  constructor(connection: Connection) {
+  constructor(connection: Connection, fileOutput: typeof FileOutput.Service = NodeFileOutput) {
     this.connection = connection;
+    this.fileOutput = fileOutput;
     this.syncService = new SyncTests(connection);
-    this.asyncService = new AsyncTests(connection);
+    this.asyncService = new AsyncTests(connection, fileOutput);
   }
 
   /**
@@ -320,12 +212,17 @@ export class TestService {
   public async writeResultFiles(
     result: TestResult | TestRunIdResult,
     outputDirConfig: OutputDirConfig,
-    codeCoverage = false
+    codeCoverage = false,
+    reportOptions: Omit<WriteResultFilesOptions, 'codeCoverage'> = {}
   ): Promise<string[]> {
     HeapMonitor.getInstance().startMonitoring();
     HeapMonitor.getInstance().checkHeapSize('testService.writeResultFiles');
     try {
-      return await writeResultFiles(result, outputDirConfig, codeCoverage, this.runPipeline.bind(this));
+      return await runTestServiceOperation(
+        writeResultFilesEffect(result, outputDirConfig, { ...reportOptions, codeCoverage }).pipe(
+          Effect.provideService(FileOutput, this.fileOutput)
+        )
+      );
     } finally {
       HeapMonitor.getInstance().checkHeapSize('testService.writeResultFiles');
       HeapMonitor.getInstance().stopMonitoring();
@@ -375,19 +272,5 @@ export class TestService {
     return runTestServiceOperation(
       buildAsyncPayload(this.connection, { testLevel, tests, classNames, suiteNames, category, skipCodeCoverage })
     );
-  }
-
-  private async runPipeline(readable: Readable, filePath: string, transform?: Transform): Promise<string> {
-    const writable = this.createStream(filePath);
-    if (transform) {
-      await pipeline(readable, transform, writable);
-    } else {
-      await pipeline(readable, writable);
-    }
-    return filePath;
-  }
-
-  private createStream(filePath: string): Writable {
-    return createWriteStream(filePath, 'utf8');
   }
 }

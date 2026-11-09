@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.9.4",
+  "version": "68.11.5",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -48,7 +48,6 @@
   "scripts": {
     "preinstall": "node ../../scripts/require-root-install.js",
     "vscode:bundle": "wireit",
-    "vscode:bundle:build": "wireit",
     "vscode:package": "wireit",
     "vscode:package:prerelease": "wireit",
     "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
@@ -126,7 +125,7 @@
         "test:desktop"
       ]
     },
-    "vscode:bundle:build": {
+    "vscode:bundle": {
       "env": {
         "DEBUG_BUNDLE": {
           "external": true
@@ -146,20 +145,9 @@
       "output": [
         "dist/index.js",
         "dist/index.js.map",
-        "dist/node-metafile.json"
-      ]
-    },
-    "vscode:bundle": {
-      "command": "cp ../salesforcedx-apex-debugger/dist/apexDebug.js ./dist/",
-      "dependencies": [
-        "vscode:bundle:build",
-        "../salesforcedx-apex-debugger:bundle:debugger"
-      ],
-      "files": [
-        "../salesforcedx-apex-debugger/dist/apexDebug.js"
-      ],
-      "output": [
-        "dist/apexDebug.js"
+        "dist/node-metafile.json",
+        "dist/apexDebug.js",
+        "dist/apexDebug.js.map"
       ]
     },
     "test": {

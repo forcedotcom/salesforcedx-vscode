@@ -6,19 +6,15 @@
  */
 import { expect, type Page } from '@playwright/test';
 import {
-  closeWelcomeTabs,
-  DIRTY_EDITOR,
   EDITOR_WITH_URI,
-  ensureSecondarySideBarHidden,
   executeExplorerContextMenuCommand,
   EXPLORER_INLINE_INPUT,
+  QUICK_INPUT_WIDGET,
   saveFile,
-  saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
-  validateNoCriticalErrors,
-  waitForVSCodeWorkbench,
-  waitForWorkspaceReady
+  TAB,
+  validateNoCriticalErrors
 } from '@salesforce/playwright-vscode-ext';
 import { test } from '../fixtures';
 
@@ -48,16 +44,7 @@ const seedAndOpenPage = async (page: Page, name: string): Promise<void> => {
 };
 
 test.describe('Visualforce LSP', () => {
-  test.beforeEach(async ({ page }) => {
-    setupConsoleMonitoring(page);
-    setupNetworkMonitoring(page);
-    await waitForVSCodeWorkbench(page);
-    await closeWelcomeTabs(page);
-    await ensureSecondarySideBarHidden(page);
-    await waitForWorkspaceReady(page);
-  });
-
-  test('provides autocompletion for apex tags in .page files', async ({ page }) => {
+  test('provides autocompletion for apex tags in .page files', async ({ page, waitForVideoFrame }) => {
     test.setTimeout(3 * 60 * 1000);
 
     const name = `LspPage${Date.now()}`;
@@ -83,24 +70,28 @@ test.describe('Visualforce LSP', () => {
         hasPageMessage,
         `Expected "apex:pageMessage" in suggestions, got: ${suggestionTexts.slice(0, 5).join(' | ')}`
       ).toBe(true);
-      await saveScreenshot(page, 'vf-lsp-autocompletion.suggestions.png');
+      await waitForVideoFrame();
     });
 
     await test.step('accept the completion and save', async () => {
       const pageMessageRow = suggestions.filter({ hasText: /apex:pageMessage/i }).first();
       await pageMessageRow.click();
+      const tab = page.locator(TAB).filter({ hasText: `${name}.page` });
+      await expect(tab, 'Completion should leave the file unsaved').toHaveClass(/\bdirty\b/);
       await saveFile(page);
-      await expect(page.locator(DIRTY_EDITOR).first()).not.toBeVisible({ timeout: 10_000 });
+      await expect(page.locator(QUICK_INPUT_WIDGET), 'Save command picker should close').not.toBeVisible();
+      await expect(tab, 'Save should clear the file tab dirty indicator').not.toHaveClass(/\bdirty\b/, {
+        timeout: 10_000
+      });
     });
 
     await test.step('assert the inserted tag lands in the editor buffer', async () => {
       const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="${name}.page"]`);
       await expect(editor.locator('.view-lines')).toContainText('apex:pageMessage', { timeout: 10_000 });
-      await saveScreenshot(page, 'vf-lsp-autocompletion.inserted.png');
     });
   });
 
-  test('provides hover for mixed-case apex tags in .page files', async ({ page }) => {
+  test('provides hover for mixed-case apex tags in .page files', async ({ page, waitForVideoFrame }) => {
     test.setTimeout(3 * 60 * 1000);
 
     const name = `LspHoverPage${Date.now()}`;
@@ -134,16 +125,15 @@ test.describe('Visualforce LSP', () => {
           `Visualforce LSP hover card should show ${tagName}`
         ).toBeVisible({ timeout: 3000 });
       }).toPass({ timeout: 45_000 });
+      await waitForVideoFrame();
     };
 
     await test.step('hover apex:pageBlock and verify the hover card', async () => {
       await assertHover('apex:pageBlock');
-      await saveScreenshot(page, 'vf-lsp-hover.pageBlock.png');
     });
 
     await test.step('hover apex:outputField and verify the hover card', async () => {
       await assertHover('apex:outputField');
-      await saveScreenshot(page, 'vf-lsp-hover.outputField.png');
     });
   });
 

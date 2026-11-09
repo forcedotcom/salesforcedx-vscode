@@ -5,8 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as util from 'node:util';
-
 const MISSING_LABEL_MSG = '!!! MISSING LABEL !!!';
 // tslint:disable: no-any
 interface LocalizationProvider {
@@ -70,9 +68,7 @@ export class Message implements LocalizationProvider {
         console.log(`Arguments do not match for label '${label}', got ${args.length} but want ${expectedNumArgs}`);
       }
 
-      args.unshift(possibleLabel);
-
-      return util.format.apply(util, args);
+      return formatLocalizedMessage(possibleLabel, args);
     }
 
     return possibleLabel;
@@ -82,3 +78,9 @@ export class Message implements LocalizationProvider {
     return this.messages[label] ? this.messages[label] : undefined;
   }
 }
+
+const formatLocalizedMessage = (message: string, args: string[]): string => {
+  let argumentIndex = 0;
+  const formatted = message.replaceAll('%s', () => args[argumentIndex++] ?? '%s');
+  return argumentIndex < args.length ? `${formatted} ${args.slice(argumentIndex).join(' ')}` : formatted;
+};

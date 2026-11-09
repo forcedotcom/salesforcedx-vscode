@@ -32,7 +32,6 @@
     "@vscode/debugadapter-testsupport": "1.68.0"
   },
   "scripts": {
-    "bundle:debugger": "wireit",
     "compile": "wireit",
     "lint": "wireit",
     "check:circular-deps": "wireit",
@@ -70,25 +69,6 @@
       ],
       "output": []
     },
-    "bundle:debugger": {
-      "env": {
-        "DEBUG_BUNDLE": {
-          "external": true
-        }
-      },
-      "command": "node ../../scripts/bundling/bundle-debugger.mjs",
-      "dependencies": [
-        "compile"
-      ],
-      "files": [
-        "out/**",
-        "../../scripts/bundling/bundle-debugger.mjs"
-      ],
-      "output": [
-        "dist/apexDebug.js",
-        "dist/apexDebug.js.map"
-      ]
-    },
     "test": {
       "command": "vitest run",
       "dependencies": [
@@ -124,7 +104,7 @@
       "output": []
     },
     "check:circular-deps": {
-      "command": "dpdm --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json src/index.ts",
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json 'src/**/*.ts'",
       "dependencies": [
         "compile"
       ],

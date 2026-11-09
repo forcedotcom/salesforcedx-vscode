@@ -14,22 +14,22 @@ import { isNotNull, isNotUndefined, isNull, isUndefined } from 'effect/Predicate
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { JsonStreamStringify } from 'json-stream-stringify';
-import { createWriteStream } from 'node:fs';
-import * as fs from 'node:fs/promises';
 import * as os from 'node:os';
 import * as path from 'node:path';
-import { pipeline } from 'node:stream/promises';
 import * as util from 'node:util';
 import { getDiagnostic } from '../effect/diagnostics';
 import { causeMessage } from '../effect/errors';
+import { FileOutput } from '../effect/fileOutput';
+import { NodeFileOutput } from '../effect/nodeFileOutput';
 import { queryRecords } from '../effect/records';
 import { ApexOperationError } from '../effect/schema/errors';
-import { ApexClassIdsSchema, ApexTestSuiteIdsSchema, TestRunId } from '../effect/schema/salesforceId';
+import { ApexClassIdsSchema, ApexTestSuiteIdsSchema } from '../effect/schema/salesforceId';
 import { ApexTestRunSummarySchema } from '../effect/schema/wire/asyncTests';
+import { calculatePercentage, transformTestResult } from '../effect/testResults';
 import { nls } from '../i18n';
-import { type AsyncTestRun } from '../streaming';
-import { formatStartTime, getCurrentTime } from '../utils';
+import { TestRunId } from '../schemas/salesforceId';
+import { stringifyTestResultChunks } from '../streaming/testResultStringify';
+import { formatStartTime, getCurrentTime } from '../utils/dateUtil';
 import { type CancellationToken } from './cancellation';
 import { CodeCoverage } from './codeCoverage';
 import { QUERY_RECORD_LIMIT } from './constants';
@@ -50,20 +50,35 @@ import {
   type FlowTestResult,
   type ApexTestResultRecord
 } from './types';
-import { calculatePercentage, transformTestResult, queryAll, calculateCodeCoverage } from './utils';
+import { queryAll, calculateCodeCoverage } from './utils';
 
-/**
- * Standalone function for writing async test results to file - easier to test
- */
-export const writeAsyncResultsToFile = async (formattedResults: TestResult, runId: string): Promise<void> => {
-  const rawResultsPath = path.join(os.tmpdir(), runId, 'rawResults.json');
-  await fs.mkdir(path.dirname(rawResultsPath), { recursive: true });
-  const writeStream = createWriteStream(path.join(os.tmpdir(), runId, 'rawResults.json'));
-  const stringifyStream = new JsonStreamStringify(formattedResults);
-  return await pipeline(stringifyStream, writeStream);
-};
+const writeAsyncResultsToFileEffect = Effect.fn('AsyncTests.writeAsyncResultsToFile')(function* (
+  formattedResults: TestResult,
+  runId: string
+) {
+  const fileOutput = yield* FileOutput;
+  const outputDirectory = path.join(os.tmpdir(), runId);
+  yield* fileOutput.createDirectory(outputDirectory);
+  yield* fileOutput.writeFile(
+    outputDirectory,
+    'rawResults.json',
+    Stream.fromIterable(stringifyTestResultChunks(formattedResults, { includeSetup: true }))
+  );
+});
+
+/** Writes the raw asynchronous test result using the caller's filesystem implementation. */
+export const writeAsyncResultsToFile = (
+  formattedResults: TestResult,
+  runId: string,
+  fileOutput: typeof FileOutput.Service = NodeFileOutput
+): Promise<void> =>
+  Effect.runPromise(
+    writeAsyncResultsToFileEffect(formattedResults, runId).pipe(Effect.provideService(FileOutput, fileOutput))
+  );
 
 const finishedStatuses = new Set<ApexTestRunResultStatus>(['Aborted', 'Failed', 'Completed', 'Passed', 'Skipped']);
+type AsyncTestRun = { runId: string; queueItem: ApexTestQueueItem };
+
 const asyncTestIdListsSchema = Schema.Struct({
   classids: Schema.optional(ApexClassIdsSchema),
   suiteids: Schema.optional(ApexTestSuiteIdsSchema)
@@ -109,9 +124,11 @@ export class AsyncTests {
   public readonly connection: Connection;
   private readonly codecoverage: CodeCoverage;
   private readonly logger: Logger;
+  private readonly fileOutput: typeof FileOutput.Service;
 
-  constructor(connection: Connection) {
+  constructor(connection: Connection, fileOutput: typeof FileOutput.Service = NodeFileOutput) {
     this.connection = connection;
+    this.fileOutput = fileOutput;
     this.codecoverage = new CodeCoverage(this.connection);
     this.logger = Logger.childFromRoot('AsyncTests');
   }
@@ -255,7 +272,7 @@ export class AsyncTests {
 
   private async writeResultsToFile(formattedResults: TestResult, runId: string): Promise<void> {
     if (this.logger.shouldLog(LoggerLevel.DEBUG)) {
-      await writeAsyncResultsToFile(formattedResults, runId);
+      await writeAsyncResultsToFile(formattedResults, runId, this.fileOutput);
       this.logger.debug(`Raw results written to: ${path.join(os.tmpdir(), runId, 'rawResults.json')}`);
     }
   }

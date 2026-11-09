@@ -104,15 +104,15 @@ When a test fails:
 
 ### Step 3: Ask User
 
-Ask user: "Test failed. Would you like me to analyze screenshots, traces, and spans?"
+Ask user: "Test failed. Would you like me to analyze attached videos, traces, and spans?"
 
 ### Step 4: Analyze Artifacts (if user says yes)
 
-**Screenshots**:
+**Attached videos**:
 
-- Location: `packages/<package-name>/test-results/`
-- Read screenshot files matching test name
-- Describe what UI state is shown
+- Open the Playwright report, select the failed test + retry, and inspect its attached flow video from `packages/<package-name>/test-results/` or report data.
+- For downloaded GHA videos and optional frame extraction, see `references/analyze-e2e.md` → "Inspect attached videos" / "Optional frame extraction".
+- Automatic test/trace screenshots are not expected. Inspect intentional diagnostic/product screenshots only when present.
 
 **Span files**:
 
@@ -136,7 +136,7 @@ Ask user: "Test failed. Would you like me to analyze screenshots, traces, and sp
 ### Step 5: Synthesize Analysis
 
 - Identify what test was trying to do
-- Compare expected vs actual from screenshots
+- Compare expected vs actual from the attached video and failed assertions
 - Check span timing for timeouts/performance issues
 - Propose what might be wrong:
   - UI changed (locator needs update)
@@ -147,7 +147,7 @@ Ask user: "Test failed. Would you like me to analyze screenshots, traces, and sp
 
 ### Step 6: Present to User
 
-- Show analysis with evidence (screenshot descriptions, error messages, span data)
+- Show analysis with evidence (video timestamps/UI state, useful extracted frames, error messages, span data)
 - Propose potential fixes or investigations
 - **Ask how to proceed**:
   1. Fix the issue (but NEVER make code changes without explicit permission)

@@ -8,5 +8,6 @@ import { createDesktopTest } from '@salesforce/playwright-vscode-ext';
 
 export const desktopTest = createDesktopTest({
   fixturesDir: __dirname,
-  disableOtherExtensions: false
+  disableOtherExtensions: false,
+  recordVideo: false
 });

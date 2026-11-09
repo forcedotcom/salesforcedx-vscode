@@ -44,12 +44,16 @@ jobs:
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
-          # Extract the changelog section for this version (between its heading and the next one)
+          # Extract the changelog section for this version (between its heading and the next one).
+          # Root CHANGELOG.md, not packages/salesforcedx-vscode/CHANGELOG.md: publishVSCode.yml's
+          # fold-changelog job has already folded every pre-release this stable contains into one
+          # `# <version>` section there, whereas the package file holds only the latest promoted
+          # pre-release's delta. `( |$)` keeps e.g. 68.4.1 from matching 68.4.10 in the full history.
           CHANGELOG_SECTION=$(awk "
-            /^# ${VERSION}/{found=1; next}
+            /^# ${VERSION}( |$)/{found=1; next}
             found && /^# [0-9]/{exit}
             found{print}
-          " packages/salesforcedx-vscode/CHANGELOG.md)
+          " CHANGELOG.md)
 
           if [[ -z "$CHANGELOG_SECTION" ]]; then
             echo "::warning::No changelog section found for version ${VERSION}"

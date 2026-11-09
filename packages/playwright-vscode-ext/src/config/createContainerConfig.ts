@@ -24,7 +24,7 @@ type ContainerConfigOptions = {
  * Code Builder serves a Node-extension-host code-server over a browser UI, so the client is a
  * plain Chromium page navigating to the container URL (like web mode) while the workbench runs the
  * desktop extension build. The container is started, extension-swapped, and health-checked by the
- * orchestrator/CI (scripts/codeBuilderLocalE2E.ts, .github/workflows/codeBuilderE2E.yml) — there is
+ * orchestrator/CI (scripts/codeBuilderLocalE2E.mts, .github/workflows/codeBuilderE2E.yml) — there is
  * no Playwright `webServer` here. `CODE_BUILDER_URL` overrides the default port (58080 published to
  * 8123 by the orchestrator).
  */
@@ -40,8 +40,8 @@ export const createContainerConfig = (options: ContainerConfigOptions) =>
     use: {
       viewport: { width: 1920, height: 1080 },
       baseURL: process.env.CODE_BUILDER_URL ?? 'http://localhost:8123',
-      trace: process.env.CI ? 'on' : 'on-first-retry',
-      screenshot: process.env.CI ? 'on' : 'only-on-failure',
+      trace: { mode: process.env.CI ? 'on' : 'on-first-retry', screenshots: false },
+      screenshot: 'off',
       video: process.env.CI ? 'on' : 'retain-on-failure',
       actionTimeout: 15_000,
       navigationTimeout: 30_000,

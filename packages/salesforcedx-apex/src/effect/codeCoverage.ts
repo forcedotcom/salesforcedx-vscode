@@ -6,6 +6,7 @@
  */
 
 import type { Connection } from '@salesforce/core';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Arr from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
@@ -14,7 +15,6 @@ import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { QUERY_RECORD_LIMIT } from '../tests/constants';
 import { type AggregateCodeCoverageResult, type PerClassCoverage } from './coverageSchemas';
-import { causeMessage } from './errors';
 import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
 import { QueryPageSchema } from './schema/queryPage';
 import {
@@ -50,7 +50,8 @@ const queryCoverageRecords = <A, I>(
             onSome: url => connection.tooling.queryMore(url)
           })
         ),
-      catch: cause => new ApexOperationError({ operation, message: causeMessage(cause), cause: causeMessage(cause) })
+      catch: cause =>
+        new ApexOperationError({ operation, message: getErrorMessage(cause), cause: getErrorMessage(cause) })
     }).pipe(
       Effect.flatMap(Schema.decodeUnknown(pageSchema)),
       Effect.map(
@@ -65,7 +66,7 @@ const queryCoverageRecords = <A, I>(
           new ApexResponseDecodeError({
             operation,
             message: cause.message,
-            cause: causeMessage(cause)
+            cause: getErrorMessage(cause)
           })
         )
       )

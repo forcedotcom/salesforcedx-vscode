@@ -6,5 +6,5 @@
  */
 
 export type { LineBreakpointInfo } from './types/debugger';
-
 export { errorToString } from './helpers/errorToString';
+export { getErrorMessage } from './helpers/getErrorMessage';

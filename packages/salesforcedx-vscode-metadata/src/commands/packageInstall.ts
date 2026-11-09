@@ -5,14 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, SalesforceIdSchema } from '@salesforce/effect-ext-utils';
+import {
+  getMessageFromError,
+  ExtensionProviderService,
+  parseErrorToValidationMessage,
+  SalesforceIdSchema
+} from '@salesforce/effect-ext-utils';
 import type { PackageInstallRequest as ToolingPackageInstallRequest } from '@salesforce/types/tooling';
 import * as Arr from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isError, isRecord, isUndefined } from 'effect/Predicate';
+import { isRecord, isUndefined } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -24,7 +29,10 @@ import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 
 const COMMAND: ProgressAndSuccessCommandKey = messages.package_install_text;
 
-const PackageIdSchema = SalesforceIdSchema.pipe(Schema.startsWith('04t'));
+const PackageIdSchema = SalesforceIdSchema.pipe(
+  Schema.startsWith('04t'),
+  Schema.annotations({ message: () => ({ message: nls.localize('package_install_id_validation'), override: true }) })
+);
 
 // Live tooling API returns Status as uppercase (e.g. 'SUCCESS'); @salesforce/types' enum casing is wrong.
 // Verified against live record 0HfE2000005KJObKAO; matches @salesforce/packaging which polls on ['SUCCESS','ERROR'].
@@ -43,8 +51,7 @@ const gatherPackageId = Effect.fn('packageInstall.gatherPackageId')(function* ()
       prompt: nls.localize('package_install_id_prompt'),
       placeHolder: nls.localize('package_install_id_placeholder'),
       ignoreFocusOut: true,
-      validateInput: value =>
-        value === '' || Schema.is(PackageIdSchema)(value) ? undefined : nls.localize('package_install_id_validation')
+      validateInput: value => Schema.decodeUnknownEither(PackageIdSchema)(value).pipe(parseErrorToValidationMessage)
     })
   );
   return yield* promptService.considerUndefinedAsCancellation(result);
@@ -118,7 +125,7 @@ const submitInstallRequest = Effect.fn('packageInstall.submitInstallRequest')(fu
   };
   return yield* Effect.tryPromise({
     try: () => conn.tooling.create('PackageInstallRequest', body),
-    catch: e => new PackageInstallFailedError({ message: isError(e) ? e.message : String(e) })
+    catch: e => new PackageInstallFailedError({ message: getMessageFromError(e) })
   }).pipe(
     Effect.map(result => (Array.isArray(result) ? result[0] : result)),
     Effect.filterOrFail(

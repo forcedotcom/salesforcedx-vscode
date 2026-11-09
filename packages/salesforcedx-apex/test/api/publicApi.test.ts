@@ -35,14 +35,18 @@ describe('@salesforce/apex-node public API', () => {
       'DefaultReportOptions',
       'DefaultWatermarks',
       'ExecuteService',
-      'HumanReporter',
-      'JUnitReporter',
       'LogService',
+      'ResultFormat',
+      'ResultFormatSchema',
       'SalesforceId',
-      'TapReporter',
+      'TestLevel',
+      'TestLevelSchema',
       'TestRunId',
       'TestService',
-      'UserId'
+      'UserId',
+      'formatHuman',
+      'formatJUnit',
+      'formatTap'
     ]);
   });
 
@@ -60,6 +64,7 @@ describe('@salesforce/apex-node public API', () => {
       'ApexLogQueryError',
       'ApexOperationError',
       'ApexOrgWideCoverageSchema',
+      'ApexReportError',
       'ApexResponseDecodeError',
       'ApexRuntimeError',
       'ApexTestResultDataRawSchema',
@@ -74,8 +79,13 @@ describe('@salesforce/apex-node public API', () => {
       'BuildAsyncPayloadOptionsSchema',
       'BuildSyncPayloadOptionsSchema',
       'CodeCoverageResultSchema',
+      'DefaultReportOptions',
+      'DefaultWatermarks',
       'ExecuteAnonymousOptionsSchema',
       'ExecuteAnonymousOutcomeSchema',
+      'FileOutput',
+      'FileOutputError',
+      'IstanbulReports',
       'ListLogsOptionsSchema',
       'LogStreamEventSchema',
       'PerClassCoverageSchema',
@@ -88,11 +98,18 @@ describe('@salesforce/apex-node public API', () => {
       'TestSuiteMembershipSchema',
       'TestSuiteSchema',
       'buildAsyncPayload',
+      'buildCoverageMap',
       'buildSuite',
       'buildSyncPayload',
       'causeMessage',
       'executeAnonymous',
+      'formatHumanReport',
+      'formatJUnitReport',
+      'formatMarkdownTextReport',
+      'formatMarkdownTextReportStream',
       'formatSyncResults',
+      'formatTapReport',
+      'generateCoverageReports',
       'getAggregateCodeCoverage',
       'getDiagnostic',
       'getLogBody',
@@ -104,7 +121,8 @@ describe('@salesforce/apex-node public API', () => {
       'runTestAsynchronous',
       'runTestSynchronous',
       'streamLogs',
-      'transformTestResult'
+      'transformTestResult',
+      'writeResultFiles'
     ]);
   });
 

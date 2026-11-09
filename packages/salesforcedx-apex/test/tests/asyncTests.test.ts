@@ -5,13 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { type Connection, Logger } from '@salesforce/core';
-import { elapsedTime } from '../../src/utils';
-import * as apexUtils from '../../src/utils';
+import * as Chunk from 'effect/Chunk';
+import * as Effect from 'effect/Effect';
+import * as Stream from 'effect/Stream';
+import { elapsedTime } from '../../src/utils/elapsedTime';
+import * as apexUtils from '../../src/utils/dateUtil';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import * as sinon from 'sinon';
 import { TestService, type OutputDirConfig, type ApexTestProgressReporter, CancellationTokenSource } from '../../src';
-import { JUnitFormatTransformer } from '../../src/reporters/junitFormatTransformer';
-import { TapFormatTransformer } from '../../src/reporters/tapFormatTransform';
 import {
   type AsyncTestConfiguration,
   type ApexTestQueueItem,
@@ -19,7 +20,6 @@ import {
   type ApexTestQueueItemRecord,
   type TestRunIdResult
 } from '../../src/tests/types';
-import { StreamingClient } from '../../src/streaming';
 import { fail } from 'node:assert';
 import { nls } from '../../src/i18n';
 import {
@@ -36,39 +36,25 @@ import {
   flowTestResultData
 } from '../testData';
 import { join } from 'node:path';
-import * as fs from 'node:fs/promises';
 import * as diagnosticUtil from '../../src/tests/diagnosticUtil';
 import { AsyncTests } from '../../src/tests/asyncTests';
 import { QUERY_RECORD_LIMIT } from '../../src/tests/constants';
-import { Writable } from 'node:stream';
 import { Duration } from '@salesforce/kit';
+import { type FileOutput } from '../../src/effect/fileOutput';
 
 vi.mock(import('../../src/tests/diagnosticUtil'), async importOriginal => {
   const actual = await importOriginal();
   return { ...actual, formatTestErrors: vi.fn(actual.formatTestErrors) };
 });
-vi.mock(import('../../src/utils'), async importOriginal => ({
+vi.mock(import('../../src/utils/dateUtil'), async importOriginal => ({
   ...(await importOriginal()),
   getCurrentTime: vi.fn()
 }));
-vi.mock(import('node:fs/promises'), async importOriginal => ({
-  ...(await importOriginal()),
-  mkdir: vi.fn(),
-  writeFile: vi.fn()
-}));
-
-type TestServiceInternals = {
-  createStream: (filePath: string) => Writable;
-};
-
-const testServicePrototype = TestService.prototype as unknown as TestServiceInternals;
-
 let mockConnection: Connection;
 let toolingRequestStub: sinon.SinonStub;
 let retrieveMaxApiVersionStub: sinon.SinonStub;
 const testData = new MockTestOrgData();
 const formatTestErrorsMock = vi.mocked(diagnosticUtil.formatTestErrors);
-const writeFileMock = vi.mocked(fs.writeFile);
 const getCurrentTimeMock = vi.mocked(apexUtils.getCurrentTime);
 const pollResponse: ApexTestQueueItem = {
   done: true,
@@ -1160,7 +1146,6 @@ describe('Run Apex tests asynchronously', () => {
 
       const testSrv = new TestService(mockConnection);
       const errMsg = "sObject type 'ApexClass' is not supported.";
-      $$.SANDBOX.stub(StreamingClient.prototype, 'handshake').throws(new Error(errMsg));
       try {
         await testSrv.runTestAsynchronous(
           {
@@ -1181,7 +1166,7 @@ describe('Run Apex tests asynchronously', () => {
   });
 
   describe('Report Test Run Status', () => {
-    it('should poll the run status until complete without subscribing to Streaming API', async () => {
+    it('should poll the run status until complete', async () => {
       const asyncTestSrv = new AsyncTests(mockConnection);
       const mockToolingQueryProgress = $$.SANDBOX.stub(mockConnection.tooling, 'query');
       mockToolingQueryProgress
@@ -1227,33 +1212,10 @@ describe('Run Apex tests asynchronously', () => {
           ]
         });
       const formatResultsStub = $$.SANDBOX.stub(asyncTestSrv, 'formatAsyncResults');
-      const subscribeStub = $$.SANDBOX.stub(StreamingClient.prototype, 'subscribe').resolves({
-        queueItem: {
-          done: true,
-          totalSize: 1,
-          records: [
-            {
-              Status: 'Completed',
-              Id: 'xxx',
-              ApexClassId: 'xxxx',
-              TestRunResultId: 'xxx'
-            }
-          ]
-        } as ApexTestQueueItem,
-        runId: testRunId
-      });
-      const handlerStub = $$.SANDBOX.stub(StreamingClient.prototype, 'handler');
-      const initStub = $$.SANDBOX.stub(StreamingClient.prototype, 'init');
-      const handshakeStub = $$.SANDBOX.stub(StreamingClient.prototype, 'handshake');
-
       await asyncTestSrv.reportAsyncResults(testRunId);
 
       expect(mockToolingQueryProgress.calledThrice).toBe(true);
       expect(formatResultsStub.calledOnce).toBe(true);
-      expect(subscribeStub.notCalled).toBe(true);
-      expect(handlerStub.notCalled).toBe(true);
-      expect(initStub.notCalled).toBe(true);
-      expect(handshakeStub.notCalled).toBe(true);
     });
 
     it('should query for test run results if run is complete', async () => {
@@ -1288,33 +1250,10 @@ describe('Run Apex tests asynchronously', () => {
           ]
         });
       const formatResultsStub = $$.SANDBOX.stub(asyncTestSrv, 'formatAsyncResults');
-      const subscribeStub = $$.SANDBOX.stub(StreamingClient.prototype, 'subscribe').resolves({
-        queueItem: {
-          done: true,
-          totalSize: 1,
-          records: [
-            {
-              Status: 'Completed',
-              Id: 'xxx',
-              ApexClassId: 'xxxx',
-              TestRunResultId: 'xxx'
-            }
-          ]
-        } as ApexTestQueueItem,
-        runId: testRunId
-      });
-      const handlerStub = $$.SANDBOX.stub(StreamingClient.prototype, 'handler');
-      const initStub = $$.SANDBOX.stub(StreamingClient.prototype, 'init');
-      const handshakeStub = $$.SANDBOX.stub(StreamingClient.prototype, 'handshake');
-
       await asyncTestSrv.reportAsyncResults(testRunId);
 
       expect(mockToolingQueryComplete.calledTwice).toBe(true);
       expect(formatResultsStub.calledOnce).toBe(true);
-      expect(subscribeStub.notCalled).toBe(true);
-      expect(handlerStub.notCalled).toBe(true);
-      expect(initStub.notCalled).toBe(true);
-      expect(handshakeStub.notCalled).toBe(true);
     });
 
     it('should format results with retrieved test run summary', async () => {
@@ -1349,18 +1288,10 @@ describe('Run Apex tests asynchronously', () => {
           ]
         });
       const formatResultsStub = $$.SANDBOX.stub(asyncTestSrv, 'formatAsyncResults');
-      const subscribeStub = $$.SANDBOX.stub(StreamingClient.prototype, 'subscribe');
-      const handlerStub = $$.SANDBOX.stub(StreamingClient.prototype, 'handler');
-      const initStub = $$.SANDBOX.stub(StreamingClient.prototype, 'init');
-      const handshakeStub = $$.SANDBOX.stub(StreamingClient.prototype, 'handshake');
 
       await asyncTestSrv.reportAsyncResults(testRunId);
 
       expect(formatResultsStub.calledOnce).toBe(true);
-      expect(subscribeStub.notCalled).toBe(true);
-      expect(handlerStub.notCalled).toBe(true);
-      expect(initStub.notCalled).toBe(true);
-      expect(handshakeStub.notCalled).toBe(true);
     });
   });
 
@@ -1779,39 +1710,32 @@ describe('elapsedTime', () => {
 });
 
 describe('Create Result Files', () => {
-  let testServiceSpy: sinon.SinonSpy;
-  let junitSpy: sinon.SinonSpy;
-  let tapSpy: sinon.SinonSpy;
-  let sandboxStub1: sinon.SinonSandbox;
+  const writtenFiles: Array<{ path: string; content: string }> = [];
+  const fileOutput: typeof FileOutput.Service = {
+    createDirectory: () => Effect.void,
+    writeFile: (directory, fileName, content) =>
+      Stream.runCollect(content).pipe(
+        Effect.map(Chunk.join('')),
+        Effect.map(content => {
+          const path = join(directory, fileName);
+          writtenFiles.push({ path, content });
+          return path;
+        })
+      )
+  };
 
-  beforeEach(async () => {
-    sandboxStub1 = sinon.createSandbox();
-    vi.mocked(fs.mkdir).mockClear();
-    writeFileMock.mockClear();
-    testServiceSpy = sandboxStub1.stub(testServicePrototype, 'createStream').returns(
-      new Writable({
-        write(chunk: unknown, encoding, callback) {
-          callback();
-        }
-      })
-    );
-    junitSpy = sandboxStub1.spy(JUnitFormatTransformer.prototype, 'format');
-    tapSpy = sandboxStub1.spy(TapFormatTransformer.prototype, 'format');
-  });
-
-  afterEach(() => {
-    sandboxStub1.restore();
+  beforeEach(() => {
+    writtenFiles.length = 0;
   });
 
   it('should create test-run-id.txt if no result format nor fileInfos are specified', async () => {
     const config = {
       dirPath: 'path/to/directory'
     } as OutputDirConfig;
-    const testSrv = new TestService(mockConnection);
+    const testSrv = new TestService(mockConnection, fileOutput);
     await testSrv.writeResultFiles(testResultData, config);
 
-    expect(writeFileMock).toHaveBeenCalledWith(join(config.dirPath, 'test-run-id.txt'), testRunId);
-    expect(testServiceSpy.callCount).toBe(0);
+    expect(writtenFiles).toEqual([{ path: join(config.dirPath, 'test-run-id.txt'), content: testRunId }]);
   });
 
   it('should still create test-run-id.txt if result format is specified with TestRunId result', async () => {
@@ -1820,11 +1744,10 @@ describe('Create Result Files', () => {
       resultFormats: ['tap']
     };
 
-    const testSrv = new TestService(mockConnection);
+    const testSrv = new TestService(mockConnection, fileOutput);
     await testSrv.writeResultFiles({ testRunId } as TestRunIdResult, config, false);
 
-    expect(writeFileMock).toHaveBeenCalledWith(join(config.dirPath, 'test-run-id.txt'), testRunId);
-    expect(testServiceSpy.callCount).toBe(0);
+    expect(writtenFiles).toEqual([{ path: join(config.dirPath, 'test-run-id.txt'), content: testRunId }]);
   });
 
   it('should still create test-run-id.txt if code coverage is specified with TestRunId result', async () => {
@@ -1832,12 +1755,11 @@ describe('Create Result Files', () => {
       dirPath: 'path/to/directory'
     };
 
-    const testSrv = new TestService(mockConnection);
+    const testSrv = new TestService(mockConnection, fileOutput);
 
     await testSrv.writeResultFiles({ testRunId } as TestRunIdResult, config, true);
 
-    expect(writeFileMock).toHaveBeenCalledWith(join(config.dirPath, 'test-run-id.txt'), testRunId);
-    expect(testServiceSpy.callCount).toBe(0);
+    expect(writtenFiles).toEqual([{ path: join(config.dirPath, 'test-run-id.txt'), content: testRunId }]);
   });
 
   it('should create the json files if json result format is specified', async () => {
@@ -1845,11 +1767,13 @@ describe('Create Result Files', () => {
       dirPath: 'path/to/directory',
       resultFormats: ['json']
     } as OutputDirConfig;
-    const testSrv = new TestService(mockConnection);
+    const testSrv = new TestService(mockConnection, fileOutput);
     await testSrv.writeResultFiles(testResultData, config);
 
-    expect(testServiceSpy.calledWith(join(config.dirPath, `test-result-${testRunId}.json`))).toBe(true);
-    expect(testServiceSpy.callCount).toBe(1);
+    expect(writtenFiles.map(file => file.path)).toEqual([
+      join(config.dirPath, 'test-run-id.txt'),
+      join(config.dirPath, `test-result-${testRunId}.json`)
+    ]);
   });
 
   it('should create the junit result files if junit result format is specified', async () => {
@@ -1857,12 +1781,13 @@ describe('Create Result Files', () => {
       dirPath: 'path/to/directory',
       resultFormats: ['junit']
     } as OutputDirConfig;
-    const testSrv = new TestService(mockConnection);
+    const testSrv = new TestService(mockConnection, fileOutput);
     await testSrv.writeResultFiles(testResultData, config);
 
-    expect(testServiceSpy.calledWith(join(config.dirPath, `test-result-${testRunId}-junit.xml`))).toBe(true);
-    expect(junitSpy.calledOnce).toBe(true);
-    expect(testServiceSpy.callCount).toBe(1);
+    expect(writtenFiles.map(file => file.path)).toEqual([
+      join(config.dirPath, 'test-run-id.txt'),
+      join(config.dirPath, `test-result-${testRunId}-junit.xml`)
+    ]);
   });
 
   it('should create the tap result files if result format is specified', async () => {
@@ -1870,12 +1795,13 @@ describe('Create Result Files', () => {
       dirPath: 'path/to/directory',
       resultFormats: ['tap']
     } as OutputDirConfig;
-    const testSrv = new TestService(mockConnection);
+    const testSrv = new TestService(mockConnection, fileOutput);
     await testSrv.writeResultFiles(testResultData, config);
 
-    expect(testServiceSpy.calledWith(join(config.dirPath, `test-result-${testRunId}-tap.txt`))).toBe(true);
-    expect(tapSpy.calledOnce).toBe(true);
-    expect(testServiceSpy.callCount).toBe(1);
+    expect(writtenFiles.map(file => file.path)).toEqual([
+      join(config.dirPath, 'test-run-id.txt'),
+      join(config.dirPath, `test-result-${testRunId}-tap.txt`)
+    ]);
   });
 
   it('should throw an error if unexpected type is specified for result format', async () => {
@@ -1883,7 +1809,7 @@ describe('Create Result Files', () => {
       dirPath: 'path/to/directory',
       resultFormats: ['rando']
     };
-    const testSrv = new TestService(mockConnection);
+    const testSrv = new TestService(mockConnection, fileOutput);
     try {
       // @ts-ignore
       await testSrv.writeResultFiles(testResultData, config, true);
@@ -1897,11 +1823,13 @@ describe('Create Result Files', () => {
     const config = {
       dirPath: 'path/to/directory'
     } as OutputDirConfig;
-    const testSrv = new TestService(mockConnection);
+    const testSrv = new TestService(mockConnection, fileOutput);
     await testSrv.writeResultFiles(testResultData, config, true);
 
-    expect(testServiceSpy.calledWith(join(config.dirPath, `test-result-${testRunId}-codecoverage.json`))).toBe(true);
-    expect(testServiceSpy.callCount).toBe(1);
+    expect(writtenFiles.map(file => file.path)).toEqual([
+      join(config.dirPath, 'test-run-id.txt'),
+      join(config.dirPath, `test-result-${testRunId}-codecoverage.json`)
+    ]);
   });
 
   it('should create any files provided in fileInfos', async () => {
@@ -1909,10 +1837,12 @@ describe('Create Result Files', () => {
       dirPath: 'path/to/directory',
       fileInfos: [{ filename: 'test-result-myFile.json', content: { summary: {} } }]
     } as OutputDirConfig;
-    const testSrv = new TestService(mockConnection);
+    const testSrv = new TestService(mockConnection, fileOutput);
     await testSrv.writeResultFiles(testResultData, config);
 
-    expect(testServiceSpy.calledWith(join(config.dirPath, 'test-result-myFile.json'))).toBe(true);
-    expect(testServiceSpy.callCount).toBe(1);
+    expect(writtenFiles.map(file => file.path)).toEqual([
+      join(config.dirPath, 'test-run-id.txt'),
+      join(config.dirPath, 'test-result-myFile.json')
+    ]);
   });
 });

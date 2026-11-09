@@ -76,7 +76,7 @@
       "output": []
     },
     "check:circular-deps": {
-      "command": "dpdm --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json src/index.ts",
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json 'src/**/*.ts'",
       "dependencies": [
         "compile"
       ],

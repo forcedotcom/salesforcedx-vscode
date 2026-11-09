@@ -6,7 +6,7 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { ApexTestSuiteId } from '../../schemas/salesforceId';
+import { ApexTestSuiteId, TestRunIdString } from '../../schemas/salesforceId';
 
 /** A 15- or 18-character Salesforce record ID. */
 export const SalesforceId = Schema.String.pipe(
@@ -20,7 +20,7 @@ export const ApexClassId = SalesforceId.pipe(Schema.startsWith('01p'), Schema.br
 export type ApexClassId = typeof ApexClassId.Type;
 
 /** Salesforce Apex test run ID. */
-export const TestRunId = SalesforceId.pipe(Schema.startsWith('707'), Schema.brand('@salesforcedx-apex/TestRunId'));
+export const TestRunId = TestRunIdString.pipe(Schema.brand('@salesforcedx-apex/TestRunId'));
 export type TestRunId = typeof TestRunId.Type;
 
 export const ApexClassIdsSchema = Schema.compose(Schema.split(','), Schema.Array(ApexClassId)).annotations({

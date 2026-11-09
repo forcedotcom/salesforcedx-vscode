@@ -39,6 +39,9 @@ Don't write tests. file:line evidence.
 
 - All plan checks on actual changed files.
 - New `test(...)` asserting same as existing (across all `test/playwright/specs/`) → `must`. Merge or delete one.
+- Recording boundaries → `should`: setup finishes before flow recording starts; finalization + attachment run in `finally` on pass/failure, before cleanup or page/Electron teardown. Check competing full-session recording is disabled. See `coding-playwright-tests.md` → "Flow Recording and Screenshots".
+- Screenshot call removal → `should`: remove routine automatic-evidence captures in specs and shared setup/teardown helpers; preserve explicit APIs and intentional diagnostic/product screenshots.
+- Preserved assertions → `must`: screenshot removal or video migration must retain behavior assertions, required waits, and test actions. A video is evidence, not a pass/fail assertion.
 
 ## Output
 

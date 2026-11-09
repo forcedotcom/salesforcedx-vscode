@@ -6,6 +6,7 @@
  */
 
 import { expect, type Page } from '@playwright/test';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import { saveScreenshot } from '../shared/screenshotUtils';
 import { isDesktop } from '../utils/helpers';
 import { EDITOR, CONTEXT_MENU, EDITOR_WITH_URI, TAB, QUICK_INPUT_LIST_ROW } from '../utils/locators';
@@ -296,13 +297,10 @@ export const outputChannelContains = async (
   const shouldRestorePanel = isDesktop();
   if (shouldRestorePanel) await maximizeOutputPanel(page);
 
-  const safeName = searchText.replaceAll(/[^a-zA-Z0-9]/g, '_');
   try {
     await waitForOutputChannelTextCommon(page, searchText, timeout);
-    await page.screenshot({ path: `test-results/filter-${safeName}.png` });
     return true;
   } catch {
-    await page.screenshot({ path: `test-results/filter-${safeName}.png` });
     return false;
   } finally {
     if (shouldRestorePanel) await restoreOutputPanel(page);
@@ -333,7 +331,7 @@ export const waitForOutputChannelText = async (
 ): Promise<void> => {
   const { expectedText, timeout = 30_000, failIfChannelIncludes } = opts;
 
-  if (!(await waitForOutputContent(page, Math.min(timeout, 30_000)))) {
+  if (!(await waitForOutputContent(page, Math.min(timeout, 60_000)))) {
     throw new Error(`Output channel did not have content within ${timeout}ms`);
   }
 
@@ -392,9 +390,7 @@ export const captureOutputChannelDetails = async (
   } catch (error) {
     // Fallback: if opening in editor fails (e.g., "More Actions" button not available in web),
     // just screenshot the output panel directly
-    console.log(
-      `Failed to open output in editor (${error instanceof Error ? error.message : String(error)}), falling back to output panel screenshot`
-    );
+    console.log(`Failed to open output in editor (${getErrorMessage(error)}), falling back to output panel screenshot`);
     await saveScreenshot(page, `test-results/${screenshotFileName}`, true);
   }
 };

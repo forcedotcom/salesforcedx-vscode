@@ -30,6 +30,9 @@
     "compile": {
       "command": "tsc --pretty",
       "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-utils:compile"
+      ],
       "files": [
         "src/**/*.ts",
         "tsconfig.json",
@@ -97,6 +100,7 @@
     }
   },
   "dependencies": {
+    "@salesforce/salesforcedx-utils": "*",
     "@effect/platform": "0.96.1",
     "@octokit/core": "^7.0.6",
     "@octokit/graphql": "^9.0.3",

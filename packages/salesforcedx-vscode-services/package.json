@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.9.4",
+  "version": "68.11.5",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -48,7 +48,7 @@
     "@salesforce/salesforcedx-utils": "workspace:*",
     "@salesforce/source-deploy-retrieve": "^13.5.0",
     "@salesforce/source-tracking": "^8.1.7",
-    "@salesforce/templates": "^66.17.4",
+    "@salesforce/templates": "^66.19.0",
     "@salesforce/vscode-i18n": "workspace:*",
     "@vscode/extension-telemetry": "^1.0.0",
     "cross-spawn": "7.0.6",
@@ -100,7 +100,7 @@
       ]
     },
     "compile": {
-      "command": "tsc --pretty",
+      "command": "tsc --pretty && tsc -p scripts/tsconfig.json",
       "clean": "if-file-deleted",
       "dependencies": [
         "build:icons",
@@ -111,6 +111,9 @@
       ],
       "files": [
         "src/**/*.ts",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
+        "../../scripts/tsconfig.native.json",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json",
@@ -121,10 +124,10 @@
       ]
     },
     "generate-types": {
-      "command": "ts-node ../salesforcedx-vscode-services-types/scripts/generateEntry.ts && ts-node ../salesforcedx-vscode-services-types/scripts/syncDeps.ts",
+      "command": "node ../salesforcedx-vscode-services-types/scripts/generateEntry.mts && node ../salesforcedx-vscode-services-types/scripts/syncDeps.mts",
       "files": [
         "src/**/*.ts",
-        "../salesforcedx-vscode-services-types/scripts/*.ts"
+        "../salesforcedx-vscode-services-types/scripts/*.mts"
       ],
       "output": []
     },
@@ -142,6 +145,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/process-polyfill.js",
         "../../scripts/bundling/fs-polyfill.js",
         "out/**",
         "node_modules/@salesforce/templates/lib/**",
@@ -166,6 +170,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/process-polyfill.js",
         "../../scripts/bundling/fs-polyfill.js",
         "out/**",
         "../../.esbuild-web-extra-settings.json",
@@ -215,7 +220,10 @@
       ],
       "files": [
         "src/**/*.ts",
-        "test/**/*.ts",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
+        "../../scripts/tsconfig.native.json",
+        "test/**/*.{ts,mts}",
         "../../eslint.config.mjs",
         ".vscodeignore",
         "package.json",
@@ -254,7 +262,7 @@
         "spans:server"
       ],
       "files": [
-        "test/playwright/**/*.ts",
+        "test/playwright/**/*.{ts,mts}",
         "package*.json",
         "../../.github/**"
       ],
@@ -276,19 +284,17 @@
       ]
     },
     "o11y:debug": {
-      "command": "ts-node --project tsconfig.scripts.json scripts/o11yDebugServer.ts",
+      "command": "node scripts/o11yDebugServer.mts",
       "service": true,
       "files": [
-        "scripts/o11yDebugServer.ts",
-        "tsconfig.scripts.json"
+        "scripts/o11yDebugServer.mts"
       ]
     },
     "spans:server": {
-      "command": "ts-node --project tsconfig.scripts.json scripts/spanFileServer.ts",
+      "command": "node scripts/spanFileServer.mts",
       "service": true,
       "files": [
-        "scripts/spanFileServer.ts",
-        "tsconfig.scripts.json"
+        "scripts/spanFileServer.mts"
       ]
     },
     "test:compile": {
@@ -298,7 +304,7 @@
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "test/**/*.ts",
+        "test/**/*.{ts,mts}",
         "test/tsconfig.json"
       ],
       "output": []

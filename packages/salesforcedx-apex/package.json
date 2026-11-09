@@ -18,16 +18,15 @@
     }
   },
   "dependencies": {
-    "@effect/platform": "^0.96.1",
     "@salesforce/core": "^9.3.0",
     "@salesforce/kit": "^4.0.0",
+    "@salesforce/salesforcedx-utils": "*",
     "effect": "^3.21.2",
-    "fast-glob": "^3.3.2",
     "faye": "1.4.1",
     "istanbul-lib-coverage": "^3.2.2",
     "istanbul-lib-report": "^3.0.1",
     "istanbul-reports": "^3.2.0",
-    "json-stream-stringify": "^3.1.7"
+    "tinyglobby": "^0.2.17"
   },
   "devDependencies": {
     "@jsforce/jsforce-node": "^3.10.18",
@@ -65,9 +64,12 @@
   "versionedIndependently": true,
   "wireit": {
     "schema:update": {
-      "command": "ts-node scripts/generatePublicApiSchema.ts",
+      "command": "node scripts/generatePublicApiSchema.mts",
+      "dependencies": [
+        "compile"
+      ],
       "files": [
-        "scripts/generatePublicApiSchema.ts",
+        "scripts/generatePublicApiSchema.mts",
         "src/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
@@ -78,22 +80,27 @@
       ]
     },
     "schema:check": {
-      "command": "ts-node scripts/generatePublicApiSchema.ts --check",
+      "command": "node scripts/generatePublicApiSchema.mts --check",
+      "dependencies": [
+        "compile"
+      ],
       "files": [
-        "scripts/generatePublicApiSchema.ts",
+        "scripts/generatePublicApiSchema.mts",
         "schemas/public-api.schema.json",
-        "src/**/*.ts",
-        "tsconfig.json",
-        "../../tsconfig.common.json",
         "package.json"
       ]
     },
     "compile": {
-      "command": "tsc --pretty",
+      "command": "tsc --pretty && tsc -p scripts/tsconfig.json",
       "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-utils:compile"
+      ],
       "files": [
         "src/**/*.ts",
-        "scripts/**/*.ts",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
+        "../../scripts/tsconfig.native.json",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json"
@@ -155,7 +162,9 @@
       ],
       "files": [
         "src/**/*.ts",
-        "scripts/**/*.ts",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
+        "../../scripts/tsconfig.native.json",
         "test/**/*.ts",
         "../../eslint.config.mjs",
         "package.json"

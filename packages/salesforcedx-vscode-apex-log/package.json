@@ -7,7 +7,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "68.9.4",
+  "version": "68.11.5",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -61,7 +61,7 @@
   },
   "wireit": {
     "compile": {
-      "command": "tsc --pretty && ts-node --project tsconfig.scripts.json scripts/generateTraceFlagsSchema.ts",
+      "command": "tsc --pretty && tsc -p scripts/tsconfig.json && node scripts/generateTraceFlagsSchema.mts",
       "clean": "if-file-deleted",
       "dependencies": [
         "../effect-ext-utils:compile",
@@ -70,9 +70,10 @@
       ],
       "files": [
         "src/**/*.ts",
-        "scripts/**/*.ts",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
         "tsconfig.json",
-        "tsconfig.scripts.json",
+        "../../scripts/tsconfig.native.json",
         "../../tsconfig.common.json",
         "package.json",
         "package.nls*.json"
@@ -109,6 +110,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/process-polyfill.js",
         "out/**"
       ],
       "output": [
@@ -126,6 +128,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/process-polyfill.js",
         "out/**"
       ],
       "output": [
@@ -172,7 +175,10 @@
       ],
       "files": [
         "src/**/*.ts",
-        "test/**/*.ts",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
+        "../../scripts/tsconfig.native.json",
+        "test/**/*.{ts,mts}",
         "../../eslint.config.mjs",
         ".vscodeignore",
         "package.json",
@@ -215,7 +221,7 @@
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "test/playwright/**/*.ts",
+        "test/playwright/**/*.{ts,mts}",
         "package*.json",
         "../../.github/**"
       ],
@@ -270,7 +276,7 @@
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "test/**/*.ts",
+        "test/**/*.{ts,mts}",
         "test/tsconfig.json"
       ],
       "output": []

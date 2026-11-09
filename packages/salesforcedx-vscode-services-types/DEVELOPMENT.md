@@ -12,11 +12,18 @@ The package uses Node.js `exports` field to enforce that only the main `Salesfor
 
 The source code is **not committed** to git. Instead, it's generated on-demand from the parent package:
 
-1. `scripts/generateEntry.ts` creates `src/index.ts` that re-exports only `SalesforceVSCodeServicesApi`
+1. `scripts/generateEntry.mts` creates `src/index.ts` that re-exports only `SalesforceVSCodeServicesApi`
 2. TypeScript compiles this along with all referenced types from the parent package
 3. The output `out/` directory contains all necessary `.d.ts` files
 
-Scripts are written in TypeScript and executed via `ts-node` for type safety.
+Scripts require Node.js 24.18+ and run directly, without `ts-node` or a loader:
+
+```bash
+node packages/salesforcedx-vscode-services-types/scripts/generateEntry.mts
+node packages/salesforcedx-vscode-services-types/scripts/syncDeps.mts
+```
+
+Run these from the repository root. Paths resolve relative to each script, not the working directory. `npm run check:scripts` checks their types separately with NodeNext and erasable-only syntax.
 
 ### Dependency Sync
 
@@ -41,8 +48,9 @@ npm run compile
 
 This runs:
 
-1. `precompile` → `generate-entry` (creates `src/index.ts`)
-2. `tsc` compiles types from both local and parent source
+1. Wireit's `generate-src` runs `generateEntry.mts` and `syncDeps.mts`
+2. The services extension's `compile` dependency builds its declarations; its `generate-types` target also runs the same Node scripts
+3. `tsc` compiles this package's declarations against the services extension's declarations
 
 ### Publishing
 
