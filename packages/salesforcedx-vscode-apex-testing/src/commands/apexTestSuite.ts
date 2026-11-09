@@ -101,9 +101,11 @@ const gatherApexClasses = Effect.fn('apexTestSuite.gatherApexClasses')(function*
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   return yield* api.services.PromptService.pipe(
     Effect.flatMap(promptService =>
-      listApexClassItems().pipe(
-        promptService.withCancellableProgressFor({ command, title: nls.localize('retrieving_tests_message') })
-      )
+      promptService.withProgress({
+        command,
+        title: nls.localize('retrieving_tests_message'),
+        cancellable: true
+      })(listApexClassItems)
     ),
     Effect.flatMap(selectApexClasses)
   );
@@ -154,12 +156,11 @@ const gatherEditOptions = Effect.fn('apexTestSuite.gatherEditOptions')(function*
         `SELECT Id, ApexClassId FROM TestSuiteMembership WHERE ApexTestSuiteId = '${(testSuite.description ?? '').replaceAll("'", "''")}'`,
         MembershipRow
       ).pipe(Effect.map(rows => new Map(rows.map(row => [row.ApexClassId, row.Id])))),
-      classes: listApexClassItems().pipe(
-        promptService.withCancellableProgressFor({
-          command: messages.apex_test_suite_edit_text,
-          title: nls.localize('retrieving_tests_message')
-        })
-      )
+      classes: promptService.withProgress({
+        command: messages.apex_test_suite_edit_text,
+        title: nls.localize('retrieving_tests_message'),
+        cancellable: true
+      })(listApexClassItems)
     },
     { concurrency: 'unbounded' }
   ).pipe(
@@ -228,9 +229,10 @@ const buildSuite = Effect.fn('apexTestSuite.buildSuite')(function* (
     connection: api.services.ConnectionService.getConnection()
   }).pipe(
     Effect.flatMap(({ promptService, connection }) =>
-      Effect.promise(() => new TestService(connection).buildSuite(options.suitename, options.tests)).pipe(
-        Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
-        promptService.withCancellableProgressFor({ command, title: executionName })
+      promptService.withProgress({ command, title: executionName, cancellable: true })(() =>
+        Effect.promise(() => new TestService(connection).buildSuite(options.suitename, options.tests)).pipe(
+          Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded })
+        )
       )
     )
   );
@@ -261,33 +263,36 @@ const applyEdits = Effect.fn('apexTestSuite.applyEdits')(function* (
   const connection = yield* api.services.ConnectionService.getConnection();
   yield* api.services.PromptService.pipe(
     Effect.flatMap(promptService =>
-      Effect.all(
-        [
-          toAdd.length > 0
-            ? Effect.promise(() => new TestService(connection).buildSuite(suitename, toAdd))
-            : Effect.void,
-          toRemove.length > 0
-            ? Effect.flatMap(
-                Effect.tryPromise(() =>
-                  Promise.all(toRemove.map(id => connection.tooling.delete('TestSuiteMembership', id)))
-                ),
-                results => {
-                  const failures = results.filter(result => !result.success);
-                  return failures.length > 0
-                    ? Effect.fail(
-                        new SuiteMembershipDeleteError({
-                          message: nls.localize('apex_test_suite_membership_delete_failed_message', failures.length)
-                        })
-                      )
-                    : Effect.succeed(results);
-                }
-              )
-            : Effect.void
-        ],
-        { concurrency: 'unbounded' }
-      ).pipe(
-        Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
-        promptService.withCancellableProgressFor({ command: messages.apex_test_suite_edit_text, title: executionName })
+      promptService.withProgress({
+        command: messages.apex_test_suite_edit_text,
+        title: executionName,
+        cancellable: true
+      })(() =>
+        Effect.all(
+          [
+            toAdd.length > 0
+              ? Effect.promise(() => new TestService(connection).buildSuite(suitename, toAdd))
+              : Effect.void,
+            toRemove.length > 0
+              ? Effect.flatMap(
+                  Effect.tryPromise(() =>
+                    Promise.all(toRemove.map(id => connection.tooling.delete('TestSuiteMembership', id)))
+                  ),
+                  results => {
+                    const failures = results.filter(result => !result.success);
+                    return failures.length > 0
+                      ? Effect.fail(
+                          new SuiteMembershipDeleteError({
+                            message: nls.localize('apex_test_suite_membership_delete_failed_message', failures.length)
+                          })
+                        )
+                      : Effect.succeed(results);
+                  }
+                )
+              : Effect.void
+          ],
+          { concurrency: 'unbounded' }
+        ).pipe(Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }))
       )
     )
   );

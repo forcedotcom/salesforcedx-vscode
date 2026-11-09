@@ -188,12 +188,11 @@ export const packageInstallCommand = Effect.fn('packageInstallCommand')(function
 
   const packageId = yield* gatherPackageId().pipe(
     Effect.flatMap(id =>
-      verifyPackageAvailable(id).pipe(
-        promptService.withProgressFor({
-          command: COMMAND,
-          title: nls.localize('package_install_verifying_progress', id)
-        })
-      )
+      promptService.withProgress({
+        command: COMMAND,
+        title: nls.localize('package_install_verifying_progress', id),
+        cancellable: false
+      })(() => verifyPackageAvailable(id))
     ),
     Effect.tap(id => Effect.annotateCurrentSpan('packageId', id))
   );
@@ -215,21 +214,23 @@ export const packageInstallCommand = Effect.fn('packageInstallCommand')(function
     return;
   }
 
-  yield* pollUntilComplete(requestId).pipe(
-    promptService.withCancellableProgressFor({
+  yield* promptService
+    .withProgress({
       command: COMMAND,
-      title: nls.localize('package_install_polling_progress', packageId)
-    }),
-    Effect.tap(() =>
-      notificationMode.showSuccessNotification(COMMAND, nls.localize('package_install_succeeded_message', packageId))
-    ),
-    // custom message to make it clear how cancellation works; forceShow so it's never suppressed
-    Effect.tapErrorTag('UserCancellationError', () =>
-      notificationMode.showSuccessNotification(
-        COMMAND,
-        nls.localize('package_install_cancelled_message', requestId),
-        true
+      title: nls.localize('package_install_polling_progress', packageId),
+      cancellable: true
+    })(() => pollUntilComplete(requestId))
+    .pipe(
+      Effect.tap(() =>
+        notificationMode.showSuccessNotification(COMMAND, nls.localize('package_install_succeeded_message', packageId))
+      ),
+      // custom message to make it clear how cancellation works; forceShow so it's never suppressed
+      Effect.tapErrorTag('UserCancellationError', () =>
+        notificationMode.showSuccessNotification(
+          COMMAND,
+          nls.localize('package_install_cancelled_message', requestId),
+          true
+        )
       )
-    )
-  );
+    );
 });

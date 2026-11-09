@@ -15,13 +15,12 @@ import {
   isVscodeWindowMethodCall
 } from './astUtils';
 
-/** Check PromptService progress calls, whose title is a positional argument or a `withProgressFor` option. */
+/** Check PromptService progress calls; the canonical `withProgress` API takes an options object. */
 const isPromptServiceWithProgressCall = (node: TSESTree.CallExpression): boolean =>
   node.callee.type === AST_NODE_TYPES.MemberExpression &&
   node.callee.property.type === AST_NODE_TYPES.Identifier &&
-  ['withProgress', 'withProgressFor'].includes(node.callee.property.name) &&
-  !isVscodeWindowMethodCall(node, 'withProgress') &&
-  (node.callee.property.name === 'withProgressFor' || node.arguments[0]?.type !== AST_NODE_TYPES.ObjectExpression);
+  node.callee.property.name === 'withProgress' &&
+  !isVscodeWindowMethodCall(node, 'withProgress');
 
 export const noVscodeProgressTitleLiterals = RuleCreator.withoutDocs({
   meta: {
@@ -63,14 +62,11 @@ export const noVscodeProgressTitleLiterals = RuleCreator.withoutDocs({
       }
 
       if (isPromptServiceWithProgressCall(node)) {
+        const optionsArg = node.arguments[0];
         const titleArg =
-          node.callee.type === AST_NODE_TYPES.MemberExpression &&
-          node.callee.property.type === AST_NODE_TYPES.Identifier &&
-          node.callee.property.name === 'withProgressFor'
-            ? node.arguments[0]?.type === AST_NODE_TYPES.ObjectExpression
-              ? findObjectProperty(node.arguments[0], 'title')?.value
-              : undefined
-            : node.arguments[0];
+          optionsArg?.type === AST_NODE_TYPES.ObjectExpression
+            ? findObjectProperty(optionsArg, 'title')?.value
+            : undefined;
         if (!titleArg) return;
 
         if (isStringLiteralOrTemplateWithoutNls(titleArg as TSESTree.Expression)) {

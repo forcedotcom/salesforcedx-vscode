@@ -54,18 +54,23 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (
     queryService: api.services.QueryService
   }).pipe(
     Effect.flatMap(({ maxRows, promptService, queryService }) =>
-      queryService.query({ ...query, tooling: useTooling }, JsonObject).pipe(
-        Effect.flatMap(({ totalSize, records }) =>
-          Stream.take(records, maxRows).pipe(
-            Stream.runCollect,
-            Effect.map(chunk => ({
-              done: true as const,
-              totalSize,
-              records: [...Chunk.toReadonlyArray(chunk)]
-            }))
+      promptService.withProgress({
+        command: COMMAND,
+        title: nls.localize('progress_running_query'),
+        cancellable: false
+      })(() =>
+        queryService.query({ ...query, tooling: useTooling }, JsonObject).pipe(
+          Effect.flatMap(({ totalSize, records }) =>
+            Stream.take(records, maxRows).pipe(
+              Stream.runCollect,
+              Effect.map(chunk => ({
+                done: true as const,
+                totalSize,
+                records: [...Chunk.toReadonlyArray(chunk)]
+              }))
+            )
           )
-        ),
-        promptService.withProgressFor({ command: COMMAND, title: nls.localize('progress_running_query') })
+        )
       )
     )
   );

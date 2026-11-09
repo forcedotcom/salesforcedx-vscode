@@ -64,12 +64,12 @@ const providerLayer = (
           ProjectService: { getSfProject: () => Effect.void },
           ConfigService: makeConfigService(isvSid, isvUrl),
           ConnectionService: { getConnection: () => Effect.succeed(conn) },
-          // withProgress is a pipeable operator; the mock passes the wrapped effect through unchanged.
+          // Run the progress builder with inert reporter/token values.
           PromptService: Effect.succeed({
-            withProgressFor:
+            withProgress:
               () =>
-              <A, E, R>(self: Effect.Effect<A, E, R>) =>
-                self
+              <A, E, R>(build: (progress: unknown, token: unknown) => Effect.Effect<A, E, R>) =>
+                build({ report: vi.fn() }, undefined as never)
           }),
           NotificationModeService,
           QueryService: Effect.succeed({

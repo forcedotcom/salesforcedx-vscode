@@ -26,7 +26,7 @@ const LOGIN_TIMEOUT = Duration.minutes(5);
  * progress, port-1717 conflict handling, and success (channel output + config refresh). Callers gather
  * their own params and pass args + progress label + notification command key.
  *
- * The long-running child is wrapped in withCancellableProgress so the Cancel button interrupts the fiber
+ * The long-running child uses `withProgress` with cancellation enabled, so Cancel interrupts the fiber
  * and kills the child. Port-conflict failures get a custom notification + Show Output action; all other
  * TerminalServiceError failures rethrow to the generic ErrorHandlerService.
  */
@@ -67,13 +67,17 @@ export const executeOrgLoginWeb = Effect.fn('executeOrgLoginWeb')(function* (par
     });
   });
 
-  yield* (yield* api.services.TerminalService)
-    .simpleExec({ executable: 'sf', args: params.args, parse: identity, timeout: LOGIN_TIMEOUT })
+  const terminalService = yield* api.services.TerminalService;
+  const promptService = yield* api.services.PromptService;
+  yield* promptService
+    .withProgress({
+      command: params.notificationCommand,
+      title: params.progressMessage,
+      cancellable: true
+    })(() =>
+      terminalService.simpleExec({ executable: 'sf', args: params.args, parse: identity, timeout: LOGIN_TIMEOUT })
+    )
     .pipe(
-      (yield* api.services.PromptService).withCancellableProgressFor({
-        command: params.notificationCommand,
-        title: params.progressMessage
-      }),
       Effect.flatMap(handleSuccess),
       Effect.catchTag('TerminalServiceError', error =>
         isAuthPortConflictError(error.message)

@@ -500,7 +500,7 @@ const [failures, successes] = yield* Effect.partition(items, doThing, { concurre
 
 **Critical: `partition`/`validateAll` recover the typed error channel per item via `Effect.either` — they do NOT capture interruption.**
 
-- fiber interrupt (e.g. `withCancellableProgress` Cancel) still aborts the whole loop
+- fiber interrupt (e.g. `withProgress({ cancellable: true })` Cancel) still aborts the whole loop
 - exploit it: wrap the *entire* `partition` in one cancellable progress — Cancel stops, per-item typed failures accumulate
 - do NOT wrap each item — per-item wrap converts Cancel into a typed `UserCancellationError`, which `partition` buckets as a failure and keeps going
 

@@ -92,10 +92,11 @@ Done: `Default(...)` in the layer; slot exists; `COMMAND` typed.
 ```typescript
 const COMMAND: ProgressAndSuccessCommandKey = messages.deploy_this_source_text;
 const notificationMode = yield* api.services.NotificationModeService;
-const location = yield* notificationMode.getProgressLocation(COMMAND);
-
-yield* work.pipe(
-  promptService.withProgress(nls.localize('working'), location),
+yield* promptService.withProgress({
+  command: COMMAND,
+  title: nls.localize('working'),
+  cancellable: false
+})(() => work).pipe(
   Effect.tap(() =>
     notificationMode.showSuccessNotification(
       COMMAND,
@@ -105,7 +106,7 @@ yield* work.pipe(
 );
 ```
 
-Cancellable: `promptService.withCancellableProgress(title, location)`.
+Cancellable with token-driven interruption: `promptService.withProgress({ title, location, cancellable: true })(build)`.
 
 `forceShow: true` when the message must not be suppressed (request ID).
 

@@ -59,29 +59,33 @@ export const executeAnonymousCommand = Effect.fn('ApexLog.Command.executeAnonymo
     ? "SFDX: Execute Anonymous Apex with Editor's Selected Text"
     : 'SFDX: Execute Anonymous Apex with Currently Open Editor';
   // progress dismisses once execution+save resolve; the result notification follows
-  yield* api.services.EditorService.getActiveEditorContext(selectionOnly).pipe(
-    Effect.flatMap(executeAnonymous),
-    promptService.withProgressFor({ command, title: nls.localize('exec_anon_progress_title') }),
-    Effect.tap(({ result, logUri }) => {
-      const openLogActions = Option.match(logUri, {
-        onNone: () => [],
-        onSome: uri => [
-          {
-            label: nls.localize('open_log'),
-            run: () =>
-              getRuntime()
-                .runPromise(api.services.FsService.showTextDocument(uri))
-                .then(() => undefined)
-          }
-        ]
-      });
-      return result.success
-        ? notificationMode.showSuccessNotification(command, nls.localize('exec_anon_success'), false, openLogActions)
-        : notificationMode.showErrorWithActions(
-            result.exceptionMessage ?? nls.localize('exec_anon_runtime_unknown'),
-            openLogActions
-          );
-    }),
-    Effect.map(({ logUri }) => logUri)
-  );
+  yield* promptService
+    .withProgress({
+      command,
+      title: nls.localize('exec_anon_progress_title'),
+      cancellable: false
+    })(() => api.services.EditorService.getActiveEditorContext(selectionOnly).pipe(Effect.flatMap(executeAnonymous)))
+    .pipe(
+      Effect.tap(({ result, logUri }) => {
+        const openLogActions = Option.match(logUri, {
+          onNone: () => [],
+          onSome: uri => [
+            {
+              label: nls.localize('open_log'),
+              run: () =>
+                getRuntime()
+                  .runPromise(api.services.FsService.showTextDocument(uri))
+                  .then(() => undefined)
+            }
+          ]
+        });
+        return result.success
+          ? notificationMode.showSuccessNotification(command, nls.localize('exec_anon_success'), false, openLogActions)
+          : notificationMode.showErrorWithActions(
+              result.exceptionMessage ?? nls.localize('exec_anon_runtime_unknown'),
+              openLogActions
+            );
+      }),
+      Effect.map(({ logUri }) => logUri)
+    );
 });

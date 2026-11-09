@@ -200,23 +200,28 @@ const displayOrg = Effect.fn('orgDisplay.displayOrg')(function* (
   const channel = yield* api.services.ChannelService;
   const promptService = yield* api.services.PromptService;
 
-  yield* runOrgCommand(args).pipe(
-    Effect.flatMap(decodeOrgDisplayResponse),
-    Effect.flatMap(
-      Match.type<OrgDisplayResponse>().pipe(
-        Match.tag('OrgDisplayFailure', ({ message }) => Effect.succeed(message)),
-        Match.tag('OrgDisplaySuccess', ({ result }) => revealOrgCredentials(result)),
-        Match.exhaustive
-      )
-    ),
-    // Cancel interrupts the complete display + credential lookup before anything is written.
-    promptService.withCancellableProgressFor({
+  yield* promptService
+    .withProgress({
       command: notificationCommand,
-      title: nls.localize('org_display_progress')
-    }),
-    Effect.tap(text => channel.appendToChannel(text)),
-    Effect.tap(() => channel.showChannel)
-  );
+      title: nls.localize('org_display_progress'),
+      cancellable: true
+    })(() =>
+      runOrgCommand(args).pipe(
+        Effect.flatMap(decodeOrgDisplayResponse),
+        Effect.flatMap(
+          Match.type<OrgDisplayResponse>().pipe(
+            Match.tag('OrgDisplayFailure', ({ message }) => Effect.succeed(message)),
+            Match.tag('OrgDisplaySuccess', ({ result }) => revealOrgCredentials(result)),
+            Match.exhaustive
+          )
+        )
+      )
+    )
+    .pipe(
+      // Cancel interrupts the complete display + credential lookup before anything is written.
+      Effect.tap(text => channel.appendToChannel(text)),
+      Effect.tap(() => channel.showChannel)
+    );
 });
 
 /**

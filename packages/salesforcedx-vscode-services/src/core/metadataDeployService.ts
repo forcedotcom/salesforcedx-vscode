@@ -180,11 +180,12 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
 
       // Show progress before the initial deploy request: on a busy org that request can take many seconds,
       // and the user should see "Deploying" immediately.
-      const deployOutcome = yield* promptService.withCancellableProgressReporting(
-        getDeployMessage(components),
-        options?.progressLocation,
-        { interruptOnCancel: false }
-      )((_, token) =>
+      const deployOutcome = yield* promptService.withProgress({
+        title: getDeployMessage(components),
+        location: options?.progressLocation,
+        cancellable: true,
+        interruptOnCancel: false
+      })((_, token) =>
         deployAndUpdateTracking(() => components.deploy({ usernameOrConnection: connection }), token).pipe(
           Effect.provideService(SourceTrackingService, trackingService)
         )

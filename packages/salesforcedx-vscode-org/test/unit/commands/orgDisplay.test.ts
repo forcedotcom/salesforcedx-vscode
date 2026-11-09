@@ -85,11 +85,11 @@ const buildServices = (opts: Opts) => ({
   },
   TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
   PromptService: Effect.succeed({
-    withCancellableProgressFor:
-      <A, E>({ title: _message }: { command: string; title: string }) =>
-      (effect: Effect.Effect<A, E>) => {
+    withProgress:
+      <A, E, R>({ title: _message }: { command: string; title: string; cancellable: boolean }) =>
+      (build: (progress: unknown, token: unknown) => Effect.Effect<A, E, R>) => {
         opts.withProgress?.(_message);
-        return effect;
+        return build({ report: vi.fn() }, undefined as never);
       }
   }),
   NotificationModeService: Effect.succeed({

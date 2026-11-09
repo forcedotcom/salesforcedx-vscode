@@ -115,9 +115,11 @@ const runBuilderQueryEffect = Effect.fn('SOQLEditor.runBuilderQuery')(function* 
   const queryText = document.getText();
   const api = yield* getServicesApi;
   const promptService = yield* api.services.PromptService;
-  const queryData = yield* runQuery(queryText, { maxRows }).pipe(
-    promptService.withProgressFor({ command: COMMAND, title: nls.localize('progress_running_query') })
-  );
+  const queryData = yield* promptService.withProgress({
+    command: COMMAND,
+    title: nls.localize('progress_running_query'),
+    cancellable: false
+  })(() => runQuery(queryText, { maxRows }));
   yield* Effect.promise(() => openQueryDataView(queryData));
   yield* runQueryDone();
 });

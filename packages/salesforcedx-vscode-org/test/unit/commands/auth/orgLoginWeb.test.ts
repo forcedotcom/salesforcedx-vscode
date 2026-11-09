@@ -9,7 +9,6 @@ import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
-import { identity } from 'effect/Function';
 import * as vscode from 'vscode';
 import { orgLoginWebCommand } from '../../../../src/commands/auth/orgLoginWeb';
 import { nls } from '../../../../src/messages';
@@ -20,15 +19,6 @@ vi.mock('../../../../src/util/orgUtil', () => ({
 }));
 
 const SUCCESS_STDOUT = JSON.stringify({ status: 0, result: { username: 'me@org.com', orgId: '00Dxx' } });
-
-// withCancellableProgress forks the effect and reports via vscode.window.withProgress; the Vitest
-// vscode mock needs a withProgress that runs the task and returns its result so the fiber resolves.
-const stubWithProgress = () => {
-  (vscode.window as unknown as { withProgress: VitestMock }).withProgress = vi.fn(
-    (_opts: unknown, task: (progress: unknown, token: { onCancellationRequested: VitestMock }) => unknown) =>
-      task({ report: vi.fn() }, { onCancellationRequested: vi.fn() })
-  );
-};
 
 const buildServices = (opts: {
   isProject: boolean;
@@ -46,15 +36,21 @@ const buildServices = (opts: {
         : Effect.fail({ _tag: 'FailedToResolveSfProjectError' as const })
   },
   // gatherAuthParams pulls PromptService + (for the prod URL path) ProjectService; the test drives the
-  // org-type QuickPick + alias input box through the vscode mock, so PromptService just needs its
-  // cancellation helpers. withCancellableProgress is the only operator the command pipes through.
+  // org-type QuickPick + alias input box through the vscode mock, while this progress stub runs the builder.
   PromptService: Effect.succeed({
     considerUndefinedAsCancellation: (value: unknown) =>
       value === undefined ? Effect.fail({ _tag: 'UserCancellationError' as const }) : Effect.succeed(value),
-    withCancellableProgressFor: ({ title }: { command: string; title: string }) => {
-      opts.captureProgressTitle(title);
-      return identity;
-    }
+    withProgress:
+      ({ title }: { command: string; title: string; cancellable: boolean }) =>
+      <A, E, R>(
+        build: (
+          progress: vscode.Progress<{ increment?: number; message?: string }>,
+          token: vscode.CancellationToken
+        ) => Effect.Effect<A, E, R>
+      ) => {
+        opts.captureProgressTitle(title);
+        return build({ report: vi.fn() }, undefined as never);
+      }
   }),
   TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
   ChannelService: Effect.succeed({
@@ -103,7 +99,6 @@ describe('orgLoginWebCommand', () => {
     showChannel = vi.fn();
     showErrorMessage = vi.fn();
     captureProgressTitle = vi.fn();
-    stubWithProgress();
     (vscode.window as unknown as { showErrorMessage: VitestMock }).showErrorMessage = showErrorMessage;
     // gatherAuthParams: select the production org-type QuickPick option, then commit an empty alias
     // (empty string → DEFAULT_ALIAS). The prod option resolves to PRODUCTION_URL with no URL prompt.

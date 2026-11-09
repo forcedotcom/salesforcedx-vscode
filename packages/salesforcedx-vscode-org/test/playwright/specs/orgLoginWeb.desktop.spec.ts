@@ -57,7 +57,7 @@ const test = orgDesktopTest.extend<NonNullable<unknown>, { port1717: void }>({
 // 2. port-conflict mapping (TerminalServiceError → isAuthPortConflictError → showErrorMessage
 //    notification + Show Output) — the only deterministic offline-provable signal of the migrated
 //    failure branch; a real web OAuth cannot complete headless.
-// 3. withCancellableProgress wiring (progress title appears; the child is the long-running
+// 3. withProgress wiring (progress title appears; the child is the long-running
 //    interactive login that the conflict aborts).
 test('org extension: SFDX: Authorize an Org surfaces the port-1717 conflict notification', async ({ page }) => {
   test.setTimeout(180_000);

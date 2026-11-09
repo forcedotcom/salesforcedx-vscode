@@ -313,9 +313,10 @@ const doProjectInfo = Effect.fn('doProjectInfo')(function* () {
 export const projectInfoCommand = Effect.fn('projectInfoCommand')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
-  const outputUri = yield* doProjectInfo().pipe(
-    promptService.withProgress(nls.localize('project_info_gathering_progress'))
-  );
+  const outputUri = yield* promptService.withProgress({
+    title: nls.localize('project_info_gathering_progress'),
+    cancellable: false
+  })(doProjectInfo);
   const selection = yield* Effect.promise(() =>
     vscode.window.showInformationMessage(nls.localize('project_info_written_message'), nls.localize('open_button'))
   );

@@ -743,10 +743,10 @@ describe('DataQuery Pure Functions', () => {
       const connection = {};
       const query = vi.fn(() => Effect.succeed({ records: Stream.empty, totalSize: 0 }));
       const mockPromptService = {
-        withProgressFor:
+        withProgress:
           () =>
-          <A, E, R>(self: Effect.Effect<A, E, R>) =>
-            self
+          <A, E, R>(build: (progress: unknown, token: unknown) => Effect.Effect<A, E, R>) =>
+            build({ report: vi.fn() }, undefined as never)
       } as unknown as PromptService;
       const provider = {
         getServicesApi: Effect.succeed({
@@ -1026,10 +1026,10 @@ describe('DataQuery Pure Functions', () => {
     });
 
     const noopPromptService = {
-      withProgressFor:
+      withProgress:
         () =>
-        <A, E, R>(self: Effect.Effect<A, E, R>) =>
-          self
+        <A, E, R>(build: (progress: unknown, token: unknown) => Effect.Effect<A, E, R>) =>
+          build({ report: vi.fn() }, undefined as never)
     } as unknown as PromptService;
 
     const makeProvider = (query: VitestMock) => {

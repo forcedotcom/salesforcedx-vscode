@@ -80,10 +80,10 @@ export const withPreparationProgress =
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
         const promptService = yield* api.services.PromptService;
-        const withProgress = command
-          ? promptService.withCancellableProgressReportingFor({ command, title: '' })
-          : promptService.withCancellableProgressReporting('', vscode.ProgressLocation.Notification);
-        return yield* withProgress(progress =>
+        const progressParams = command
+          ? { command, title: '', cancellable: true as const }
+          : { location: vscode.ProgressLocation.Notification, title: '', cancellable: true as const };
+        return yield* promptService.withProgress(progressParams)(progress =>
           Effect.gen(function* () {
             yield* Effect.sync(() => progress.report({ message: nls.localize(titleKey(operationType)) }));
             const cs = yield* prepare;

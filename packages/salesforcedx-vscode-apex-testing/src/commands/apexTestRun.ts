@@ -84,11 +84,16 @@ const selectTests = Effect.fn('apexTestRun.selectTests')(function* () {
     ];
   });
 
-  return yield* buildItems().pipe(
-    promptService.withCancellableProgressFor({ command: COMMAND, title: nls.localize('retrieving_tests_message') }),
-    Effect.flatMap(items => Effect.promise(() => window.showQuickPick<ApexTestQuickPickItem>(items))),
-    Effect.flatMap(selection => promptService.considerUndefinedAsCancellation(selection))
-  );
+  return yield* promptService
+    .withProgress({
+      command: COMMAND,
+      title: nls.localize('retrieving_tests_message'),
+      cancellable: true
+    })(buildItems)
+    .pipe(
+      Effect.flatMap(items => Effect.promise(() => window.showQuickPick<ApexTestQuickPickItem>(items))),
+      Effect.flatMap(selection => promptService.considerUndefinedAsCancellation(selection))
+    );
 });
 
 /** Command entrypoint: pick a test target and run it. */
@@ -126,25 +131,24 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
     yield* ApexTestRunCacheService.setCachedClassTestParam(selection.fullClassName);
   }
 
-  return yield* promptService.withCancellableProgressReportingFor({ command: COMMAND, title: executionName })(
-    progress =>
-      runApexTests({
-        payload,
-        outputDir,
-        codeCoverage,
-        concise,
-        telemetryTrigger: 'quickPick',
-        progress
-      }).pipe(
-        Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
-        // Terminal notify on the success value, keyed on the run outcome (undefined result = soft failure:
-        // timeout/no summary). Cancellation stays on the failure channel, so this tap never fires a bogus toast.
-        Effect.tap(() => channelService.showChannel),
-        Effect.tap(({ result, reportUri, outputFormat }) =>
-          showRunOutcomeNotification(COMMAND, executionName, result, reportUri, outputFormat)
-        ),
-        Effect.map(({ result }) => result)
-      )
+  return yield* promptService.withProgress({ command: COMMAND, title: executionName, cancellable: true })(progress =>
+    runApexTests({
+      payload,
+      outputDir,
+      codeCoverage,
+      concise,
+      telemetryTrigger: 'quickPick',
+      progress
+    }).pipe(
+      Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
+      // Terminal notify on the success value, keyed on the run outcome (undefined result = soft failure:
+      // timeout/no summary). Cancellation stays on the failure channel, so this tap never fires a bogus toast.
+      Effect.tap(() => channelService.showChannel),
+      Effect.tap(({ result, reportUri, outputFormat }) =>
+        showRunOutcomeNotification(COMMAND, executionName, result, reportUri, outputFormat)
+      ),
+      Effect.map(({ result }) => result)
+    )
   );
 });
 

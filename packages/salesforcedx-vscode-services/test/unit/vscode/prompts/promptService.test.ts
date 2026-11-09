@@ -20,6 +20,7 @@ const runConfirm = (params: { message: string; confirmLabel: string }) =>
   Effect.runPromiseExit(
     Effect.flatMap(PromptService, svc => svc.confirmOrThrow(params)).pipe(Effect.provide(PromptService.Default))
   );
+const testTitle = (value: string) => value;
 
 describe('PromptService.confirmOrThrow', () => {
   let showWarningMessageSpy: VitestMockInstance;
@@ -53,7 +54,7 @@ describe('PromptService.confirmOrThrow', () => {
 
 describe('PromptService command-aware progress', () => {
   const command = 'SFDX: Run Tests';
-  const title = 'Running tests';
+  const title = testTitle('Running tests');
   const report = vi.fn();
   const getProgressLocation = vi.fn<NotificationModeService['getProgressLocation']>();
   let tokenSource: vscode.CancellationTokenSource;
@@ -80,23 +81,16 @@ describe('PromptService command-aware progress', () => {
     vi.clearAllMocks();
   });
 
-  it.each([
-    ['withProgressFor', false],
-    ['withCancellableProgressFor', true]
-  ] as const)(
-    '%s resolves settings lazily for each execution and preserves values/errors',
-    async (operator, cancellable) => {
+  it.each([false, true])(
+    'resolves command settings lazily and preserves results/errors (cancellable: %s)',
+    async cancellable => {
       const promptService = await Effect.runPromise(PromptService.pipe(Effect.provide(PromptService.Default)));
-      const withProgressFor = promptService.withProgressFor;
-      const withProgress =
-        operator === 'withProgressFor'
-          ? withProgressFor({ command, title })
-          : promptService.withCancellableProgressFor({ command, title });
+      const withProgress = promptService.withProgress({ command, title, cancellable });
       expect(getProgressLocation).not.toHaveBeenCalled();
 
       for (const location of [vscode.ProgressLocation.Notification, vscode.ProgressLocation.Window] as const) {
         getProgressLocation.mockImplementation(() => Effect.succeed(location));
-        expect(await Effect.runPromise(Effect.succeed(42).pipe(withProgress, run))).toBe(42);
+        expect(await Effect.runPromise(withProgress(() => Effect.succeed(42)).pipe(run))).toBe(42);
         await progressClosed;
         expect(vscode.window.withProgress).toHaveBeenLastCalledWith(
           { title, location, cancellable },
@@ -104,7 +98,7 @@ describe('PromptService command-aware progress', () => {
         );
       }
       const error = { _tag: 'WorkFailed', message: 'failure' };
-      const exit = await Effect.runPromiseExit(Effect.fail(error).pipe(withProgress, run));
+      const exit = await Effect.runPromiseExit(withProgress(() => Effect.fail(error)).pipe(run));
       await progressClosed;
       expect(Exit.isFailure(exit) && Cause.failureOption(exit.cause)).toEqual(Option.some(error));
       expect(getProgressLocation).toHaveBeenCalledTimes(3);
@@ -112,11 +106,11 @@ describe('PromptService command-aware progress', () => {
     }
   );
 
-  it('withCancellableProgressReportingFor supplies the reporter/token and uses the command location', async () => {
+  it('supplies the reporter/token and honors an explicit location', async () => {
     getProgressLocation.mockImplementation(() => Effect.succeed(vscode.ProgressLocation.Window));
     const result = await Effect.runPromise(
       Effect.flatMap(PromptService, prompts =>
-        prompts.withCancellableProgressReportingFor({ command, title, options: { cancellable: false } })(
+        prompts.withProgress({ title, location: vscode.ProgressLocation.Window, cancellable: false })(
           (progress, token) =>
             Effect.sync(() => {
               progress.report({ message: 'step', increment: 25 });
@@ -129,84 +123,44 @@ describe('PromptService command-aware progress', () => {
     await progressClosed;
     expect(result).toBe('done');
     expect(report).toHaveBeenCalledWith({ message: 'step', increment: 25 });
-    expect(getProgressLocation).toHaveBeenCalledWith(command);
+    expect(getProgressLocation).not.toHaveBeenCalled();
     expect(vscode.window.withProgress).toHaveBeenCalledWith(
       { title, location: vscode.ProgressLocation.Window, cancellable: false },
       expect.any(Function)
     );
   });
 
-  it('retains positional command-aware progress calls for older services consumers', async () => {
-    const promptService = await Effect.runPromise(PromptService.pipe(Effect.provide(PromptService.Default)));
-    const legacyWithProgressFor = promptService.withProgressFor;
-    const legacyWithCancellableProgressFor = promptService.withCancellableProgressFor;
-    const legacyWithCancellableProgressReportingFor = promptService.withCancellableProgressReportingFor;
-
-    expect(await Effect.runPromise(Effect.succeed('progress').pipe(legacyWithProgressFor(command, title), run))).toBe(
-      'progress'
-    );
-    await progressClosed;
-    expect(
-      await Effect.runPromise(Effect.succeed('cancellable').pipe(legacyWithCancellableProgressFor(command, title), run))
-    ).toBe('cancellable');
-    await progressClosed;
-    expect(
-      await Effect.runPromise(
-        legacyWithCancellableProgressReportingFor(command, title, { cancellable: false })(() =>
-          Effect.succeed('reporting')
-        ).pipe(run)
-      )
-    ).toBe('reporting');
-    await progressClosed;
-
-    expect(vscode.window.withProgress).toHaveBeenNthCalledWith(
-      1,
-      { title, location: vscode.ProgressLocation.Notification, cancellable: false },
-      expect.any(Function)
-    );
-    expect(vscode.window.withProgress).toHaveBeenNthCalledWith(
-      2,
-      { title, location: vscode.ProgressLocation.Notification, cancellable: true },
-      expect.any(Function)
-    );
-    expect(vscode.window.withProgress).toHaveBeenNthCalledWith(
-      3,
-      { title, location: vscode.ProgressLocation.Notification, cancellable: false },
-      expect.any(Function)
-    );
-  });
-
-  it.each(['withCancellableProgressFor', 'withCancellableProgressReportingFor'] as const)(
-    '%s interrupts work on Cancel and closes progress after cleanup',
-    async operator => {
-      const started = await Effect.runPromise(Deferred.make<void>());
-      const cleanup = vi.fn();
-      const fiber = Effect.flatMap(PromptService, prompts => {
-        const work = Deferred.succeed(started, undefined).pipe(
-          Effect.andThen(Effect.never),
-          Effect.ensuring(Effect.sync(cleanup))
-        );
-        return operator === 'withCancellableProgressFor'
-          ? work.pipe(prompts.withCancellableProgressFor({ command, title }))
-          : prompts.withCancellableProgressReportingFor({ command, title })(() => work);
-      }).pipe(run, Effect.runFork);
-      await Effect.runPromise(Deferred.await(started));
-      tokenSource.cancel();
-      const exit = await Effect.runPromise(Fiber.await(fiber));
-      await progressClosed;
-      expect(Exit.isFailure(exit) && Cause.failureOption(exit.cause)).toEqual(
-        Option.some(expect.objectContaining({ _tag: 'UserCancellationError' }))
+  it('interrupts work on Cancel and closes progress after cleanup', async () => {
+    const started = await Effect.runPromise(Deferred.make<void>());
+    const cleanup = vi.fn();
+    const fiber = Effect.flatMap(PromptService, prompts => {
+      const work = Deferred.succeed(started, undefined).pipe(
+        Effect.andThen(Effect.never),
+        Effect.ensuring(Effect.sync(cleanup))
       );
-      expect(cleanup).toHaveBeenCalledOnce();
-    }
-  );
+      return prompts.withProgress({ command, title, cancellable: true })(() => work);
+    }).pipe(run, Effect.runFork);
+    await Effect.runPromise(Deferred.await(started));
+    tokenSource.cancel();
+    const exit = await Effect.runPromise(Fiber.await(fiber));
+    await progressClosed;
+    expect(Exit.isFailure(exit) && Cause.failureOption(exit.cause)).toEqual(
+      Option.some(expect.objectContaining({ _tag: 'UserCancellationError' }))
+    );
+    expect(cleanup).toHaveBeenCalledOnce();
+  });
 
   it('lets token-handling work finish with its real result after Cancel', async () => {
     const started = await Effect.runPromise(Deferred.make<void>());
     const finish = await Effect.runPromise(Deferred.make<string>());
     const cancelled = vi.fn();
     const fiber = Effect.flatMap(PromptService, prompts =>
-      prompts.withCancellableProgressReporting(title, undefined, { interruptOnCancel: false })((_, token) =>
+      prompts.withProgress({
+        title,
+        command,
+        cancellable: true,
+        interruptOnCancel: false
+      })((_, token) =>
         Effect.acquireUseRelease(
           Effect.sync(() => token.onCancellationRequested(cancelled)),
           () => Deferred.succeed(started, undefined).pipe(Effect.andThen(Deferred.await(finish))),
@@ -224,7 +178,7 @@ describe('PromptService command-aware progress', () => {
   });
 });
 
-describe('PromptService.withCancellableProgressReporting', () => {
+describe('PromptService.withProgress', () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -238,7 +192,7 @@ describe('PromptService.withCancellableProgressReporting', () => {
 
     const exit = await Effect.runPromiseExit(
       Effect.flatMap(PromptService, svc =>
-        svc.withCancellableProgressReporting('Working')((progress, token) =>
+        svc.withProgress({ title: testTitle('Working'), cancellable: true })((progress, token) =>
           Effect.sync(() => {
             progress.report({ increment: 50 });
             return token.isCancellationRequested ? 'cancelled' : 'done';
@@ -261,9 +215,9 @@ describe('PromptService.withCancellableProgressReporting', () => {
     });
 
     const exit = await Effect.runPromiseExit(
-      Effect.flatMap(PromptService, svc => svc.withCancellableProgressReporting('Working')(() => Effect.never)).pipe(
-        Effect.provide(PromptService.Default)
-      )
+      Effect.flatMap(PromptService, svc =>
+        svc.withProgress({ title: testTitle('Working'), cancellable: true })(() => Effect.never)
+      ).pipe(Effect.provide(PromptService.Default))
     );
 
     expect(Exit.isFailure(exit)).toBe(true);

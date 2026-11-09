@@ -228,9 +228,10 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
 
   // Drive the whole bootstrap under a cancellable progress notification (each step reports its label). Cancel
   // interrupts the fiber, which simpleExec propagates to kill the in-flight `sf` child process.
-  yield* promptService.withCancellableProgressReportingFor({
+  yield* promptService.withProgress({
     command: COMMAND,
-    title: nls.localize('isv_debug_bootstrap_progress_title')
+    title: nls.localize('isv_debug_bootstrap_progress_title'),
+    cancellable: true
   })(progress =>
     Effect.gen(function* () {
       const report = (message: string) => Effect.sync(() => progress.report({ message }));

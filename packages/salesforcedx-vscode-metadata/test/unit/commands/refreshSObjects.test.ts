@@ -29,13 +29,13 @@ const FAILURE_CODE = 1;
 
 const appendToChannel = vi.fn(() => Effect.void);
 
-// Stand-in PromptService.withCancellableProgressReporting: runs the build effect with a mock
+// Stand-in PromptService.withProgress: runs the build effect with a mock
 // progress + uncancelled token in the same fiber, so a typed failure propagates unchanged.
 const mockPromptService = {
   considerUndefinedAsCancellation: <T>(value: T | undefined) =>
     value === undefined ? Effect.fail(new UserCancellationError()) : Effect.succeed(value),
-  withCancellableProgressReporting:
-    (_title: string, _location?: vscode.ProgressLocation) =>
+  withProgress:
+    () =>
     <A, E, R>(build: (progress: unknown, token: unknown) => Effect.Effect<A, E, R>) =>
       build({ report: vi.fn() }, { isCancellationRequested: false, onCancellationRequested: vi.fn() })
 };
