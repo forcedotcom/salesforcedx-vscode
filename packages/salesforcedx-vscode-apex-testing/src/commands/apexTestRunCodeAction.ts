@@ -57,10 +57,10 @@ const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (
     getTempFolder()
   );
 
-  const { result, reportUri, outputFormat } = yield* promptService.withCancellableProgressReportingFor(
-    COMMAND,
-    executionName
-  )(progress =>
+  const { result, reportUri, outputFormat } = yield* promptService.withCancellableProgressReportingFor({
+    command: COMMAND,
+    title: executionName
+  })(progress =>
     runApexTests({
       payload,
       outputDir,

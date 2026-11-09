@@ -205,7 +205,7 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
       parse: identity,
       timeout: CREATE_TIMEOUT
     })
-    .pipe(promptService.withCancellableProgressFor(COMMAND, nls.localize('org_create_progress')));
+    .pipe(promptService.withCancellableProgressFor({ command: COMMAND, title: nls.localize('org_create_progress') }));
 
   const response = yield* decodeOrgCreateResponse(stdout);
 

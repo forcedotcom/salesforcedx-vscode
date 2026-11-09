@@ -124,7 +124,7 @@ export const debuggerStop = Effect.fn('debuggerStop')(function* () {
             false
           )
         ),
-        promptService.withProgressFor(COMMAND, nls.localize('debugger_stop_text'))
+        promptService.withProgressFor({ command: COMMAND, title: nls.localize('debugger_stop_text') })
       )
     )
   );

@@ -61,7 +61,7 @@ export const executeAnonymousCommand = Effect.fn('ApexLog.Command.executeAnonymo
   // progress dismisses once execution+save resolve; the result notification follows
   yield* api.services.EditorService.getActiveEditorContext(selectionOnly).pipe(
     Effect.flatMap(executeAnonymous),
-    promptService.withProgressFor(command, nls.localize('exec_anon_progress_title')),
+    promptService.withProgressFor({ command, title: nls.localize('exec_anon_progress_title') }),
     Effect.tap(({ result, logUri }) => {
       const openLogActions = Option.match(logUri, {
         onNone: () => [],

@@ -65,7 +65,9 @@ export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(func
       parse: identity,
       timeout: DELETE_TIMEOUT
     })
-    .pipe(promptService.withCancellableProgressFor(COMMAND, nls.localize('org_delete_default_progress')));
+    .pipe(
+      promptService.withCancellableProgressFor({ command: COMMAND, title: nls.localize('org_delete_default_progress') })
+    );
 
   const channel = yield* api.services.ChannelService;
   yield* channel.appendToChannel(output || nls.localize('org_delete_success', orgInfo.username ?? ''));
@@ -123,7 +125,7 @@ export const orgDeleteUsernameCommand = Effect.fn('orgDeleteUsernameCommand')(fu
   // and stopping the loop. The interrupt is NOT a typed failure, so `Effect.partition`'s per-element
   // `Effect.either` does not capture it; it propagates as a `UserCancellationError` the command boundary swallows.
   const [failed, successes] = yield* Effect.partition(orgs, deleteOne, { concurrency: 1 }).pipe(
-    promptService.withCancellableProgressFor(COMMAND, nls.localize('org_delete_username_text'))
+    promptService.withCancellableProgressFor({ command: COMMAND, title: nls.localize('org_delete_username_text') })
   );
 
   yield* Effect.forEach(

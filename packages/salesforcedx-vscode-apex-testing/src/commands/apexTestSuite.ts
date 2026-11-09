@@ -102,7 +102,7 @@ const gatherApexClasses = Effect.fn('apexTestSuite.gatherApexClasses')(function*
   return yield* api.services.PromptService.pipe(
     Effect.flatMap(promptService =>
       listApexClassItems().pipe(
-        promptService.withCancellableProgressFor(command, nls.localize('retrieving_tests_message'))
+        promptService.withCancellableProgressFor({ command, title: nls.localize('retrieving_tests_message') })
       )
     ),
     Effect.flatMap(selectApexClasses)
@@ -155,10 +155,10 @@ const gatherEditOptions = Effect.fn('apexTestSuite.gatherEditOptions')(function*
         MembershipRow
       ).pipe(Effect.map(rows => new Map(rows.map(row => [row.ApexClassId, row.Id])))),
       classes: listApexClassItems().pipe(
-        promptService.withCancellableProgressFor(
-          messages.apex_test_suite_edit_text,
-          nls.localize('retrieving_tests_message')
-        )
+        promptService.withCancellableProgressFor({
+          command: messages.apex_test_suite_edit_text,
+          title: nls.localize('retrieving_tests_message')
+        })
       )
     },
     { concurrency: 'unbounded' }
@@ -230,7 +230,7 @@ const buildSuite = Effect.fn('apexTestSuite.buildSuite')(function* (
     Effect.flatMap(({ promptService, connection }) =>
       Effect.promise(() => new TestService(connection).buildSuite(options.suitename, options.tests)).pipe(
         Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
-        promptService.withCancellableProgressFor(command, executionName)
+        promptService.withCancellableProgressFor({ command, title: executionName })
       )
     )
   );
@@ -287,7 +287,7 @@ const applyEdits = Effect.fn('apexTestSuite.applyEdits')(function* (
         { concurrency: 'unbounded' }
       ).pipe(
         Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
-        promptService.withCancellableProgressFor(messages.apex_test_suite_edit_text, executionName)
+        promptService.withCancellableProgressFor({ command: messages.apex_test_suite_edit_text, title: executionName })
       )
     )
   );

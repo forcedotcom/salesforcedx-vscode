@@ -13,7 +13,7 @@ const ruleTester = new RuleTester();
 ruleTester.run('no-vscode-progress-title-literals', noVscodeProgressTitleLiterals, {
   valid: [
     {
-      code: `fetchMetadata().pipe(promptService.withProgressFor('SFDX: Retrieve', nls.localize('fetching_metadata')));`
+      code: `fetchMetadata().pipe(promptService.withProgressFor({ command: 'SFDX: Retrieve', title: nls.localize('fetching_metadata') }));`
     },
     {
       code: `vscode.window.withProgress(
@@ -51,7 +51,7 @@ ruleTester.run('no-vscode-progress-title-literals', noVscodeProgressTitleLiteral
   ],
   invalid: [
     {
-      code: `fetchMetadata().pipe(promptService.withProgressFor(command, 'Fetching metadata'));`,
+      code: `fetchMetadata().pipe(promptService.withProgressFor({ command, title: 'Fetching metadata' }));`,
       errors: [{ messageId: 'noLiteral' }]
     },
     {

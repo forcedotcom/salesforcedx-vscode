@@ -65,7 +65,7 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (
             }))
           )
         ),
-        promptService.withProgressFor(COMMAND, nls.localize('progress_running_query'))
+        promptService.withProgressFor({ command: COMMAND, title: nls.localize('progress_running_query') })
       )
     )
   );

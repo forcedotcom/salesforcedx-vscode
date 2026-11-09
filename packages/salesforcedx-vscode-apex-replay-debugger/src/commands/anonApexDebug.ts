@@ -107,7 +107,7 @@ export const anonApexDebugCommand = Effect.fn('ApexReplayDebugger.anonApexDebugC
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const prompts = yield* api.services.PromptService;
   yield* executeAnonApexDebug().pipe(
-    prompts.withProgressFor(COMMAND, nls.localize('apex_execute_text')),
+    prompts.withProgressFor({ command: COMMAND, title: nls.localize('apex_execute_text') }),
     Effect.catchAll(error =>
       Effect.sync(() => {
         void vscode.window.showErrorMessage(nls.localize('apex_execute_debug_failed', String(error)));

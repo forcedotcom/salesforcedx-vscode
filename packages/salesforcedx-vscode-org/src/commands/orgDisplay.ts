@@ -210,7 +210,10 @@ const displayOrg = Effect.fn('orgDisplay.displayOrg')(function* (
       )
     ),
     // Cancel interrupts the complete display + credential lookup before anything is written.
-    promptService.withCancellableProgressFor(notificationCommand, nls.localize('org_display_progress')),
+    promptService.withCancellableProgressFor({
+      command: notificationCommand,
+      title: nls.localize('org_display_progress')
+    }),
     Effect.tap(text => channel.appendToChannel(text)),
     Effect.tap(() => channel.showChannel)
   );

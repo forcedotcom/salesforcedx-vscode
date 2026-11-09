@@ -81,7 +81,7 @@ export const withPreparationProgress =
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
         const promptService = yield* api.services.PromptService;
         const withProgress = command
-          ? promptService.withCancellableProgressReportingFor(command, '')
+          ? promptService.withCancellableProgressReportingFor({ command, title: '' })
           : promptService.withCancellableProgressReporting('', vscode.ProgressLocation.Notification);
         return yield* withProgress(progress =>
           Effect.gen(function* () {

@@ -262,7 +262,7 @@ const setupAndDebugTests = Effect.fn('ApexReplayDebugger.setupAndDebugTests')(fu
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
   yield* debugTests(targets).pipe(
-    promptService.withProgressFor(COMMAND, `Running ${nls.localize('debug_test_exec_name')}`),
+    promptService.withProgressFor({ command: COMMAND, title: `Running ${nls.localize('debug_test_exec_name')}` }),
     Effect.catchAllCause(reportDebugTestFailure)
   );
 });

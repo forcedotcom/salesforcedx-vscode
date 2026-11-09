@@ -70,10 +70,10 @@ export const executeOrgLoginWeb = Effect.fn('executeOrgLoginWeb')(function* (par
   yield* (yield* api.services.TerminalService)
     .simpleExec({ executable: 'sf', args: params.args, parse: identity, timeout: LOGIN_TIMEOUT })
     .pipe(
-      (yield* api.services.PromptService).withCancellableProgressFor(
-        params.notificationCommand,
-        params.progressMessage
-      ),
+      (yield* api.services.PromptService).withCancellableProgressFor({
+        command: params.notificationCommand,
+        title: params.progressMessage
+      }),
       Effect.flatMap(handleSuccess),
       Effect.catchTag('TerminalServiceError', error =>
         isAuthPortConflictError(error.message)

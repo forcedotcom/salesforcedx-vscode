@@ -286,26 +286,79 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
 
     // Resolve the per-extension service in the caller's context, not while constructing the shared
     // PromptService layer. NotificationModeService has no PromptService dependency (or layer cycle).
-    const withProgressFor =
+    type CommandProgressParams = { command: string; title: string };
+
+    // Keep positional forms accepted for extensions compiled against an older services release.
+    const createWithProgressFor =
       (command: string, title: string) =>
       <A, E, R>(self: Effect.Effect<A, E, R>) =>
         NotificationModeService.getProgressLocation(command).pipe(
           Effect.flatMap(location => self.pipe(withProgress(title, location)))
         );
 
-    const withCancellableProgressFor =
+    type WithProgressFor = {
+      (params: CommandProgressParams): ReturnType<typeof createWithProgressFor>;
+      /** @deprecated Pass `{ command, title }` instead. */
+      (command: string, title: string): ReturnType<typeof createWithProgressFor>;
+    };
+    const withProgressFor: WithProgressFor = (paramsOrCommand: CommandProgressParams | string, legacyTitle?: string) =>
+      typeof paramsOrCommand === 'string'
+        ? createWithProgressFor(paramsOrCommand, legacyTitle ?? '')
+        : createWithProgressFor(paramsOrCommand.command, paramsOrCommand.title);
+
+    const createWithCancellableProgressFor =
       (command: string, title: string) =>
       <A, E, R>(self: Effect.Effect<A, E, R>) =>
         NotificationModeService.getProgressLocation(command).pipe(
           Effect.flatMap(location => self.pipe(withCancellableProgress(title, location)))
         );
 
-    const withCancellableProgressReportingFor =
-      (command: string, title: string, options?: Parameters<typeof withCancellableProgressReporting>[2]) =>
+    type WithCancellableProgressFor = {
+      (params: CommandProgressParams): ReturnType<typeof createWithCancellableProgressFor>;
+      /** @deprecated Pass `{ command, title }` instead. */
+      (command: string, title: string): ReturnType<typeof createWithCancellableProgressFor>;
+    };
+    const withCancellableProgressFor: WithCancellableProgressFor = (
+      paramsOrCommand: CommandProgressParams | string,
+      legacyTitle?: string
+    ) =>
+      typeof paramsOrCommand === 'string'
+        ? createWithCancellableProgressFor(paramsOrCommand, legacyTitle ?? '')
+        : createWithCancellableProgressFor(paramsOrCommand.command, paramsOrCommand.title);
+
+    type CancellableProgressReportingParams = CommandProgressParams & {
+      options?: Parameters<typeof withCancellableProgressReporting>[2];
+    };
+    type CancellableProgressReportingOptions = Parameters<typeof withCancellableProgressReporting>[2];
+
+    const createWithCancellableProgressReportingFor =
+      (command: string, title: string, options?: CancellableProgressReportingOptions) =>
       <A, E, R>(build: ProgressTask<A, E, R>) =>
         NotificationModeService.getProgressLocation(command).pipe(
           Effect.flatMap(location => withCancellableProgressReporting(title, location, options)(build))
         );
+
+    type WithCancellableProgressReportingFor = {
+      (params: CancellableProgressReportingParams): ReturnType<typeof createWithCancellableProgressReportingFor>;
+      /** @deprecated Pass `{ command, title, options }` instead. */
+      (
+        command: string,
+        title: string,
+        options?: CancellableProgressReportingOptions
+      ): ReturnType<typeof createWithCancellableProgressReportingFor>;
+    };
+    const withCancellableProgressReportingFor: WithCancellableProgressReportingFor = (
+      paramsOrCommand: CancellableProgressReportingParams | string,
+      legacyTitle?: string,
+      legacyOptions?: CancellableProgressReportingOptions
+    ) =>
+      typeof paramsOrCommand === 'string'
+        ? createWithCancellableProgressReportingFor(paramsOrCommand, legacyTitle ?? '', legacyOptions)
+        : createWithCancellableProgressReportingFor(
+            paramsOrCommand.command,
+            paramsOrCommand.title,
+            paramsOrCommand.options
+          );
 
     return {
       /** If any of `uris` exists, prompt to overwrite; on cancel fail with {@link UserCancellationError}.

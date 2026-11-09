@@ -39,7 +39,7 @@ export const withSteppedProgress = <A, E, R>(
     Effect.flatMap(provider => provider.getServicesApi),
     Effect.flatMap(api => api.services.PromptService),
     Effect.flatMap(promptService =>
-      promptService.withCancellableProgressReportingFor(command, title, { cancellable: false })(progress =>
+      promptService.withCancellableProgressReportingFor({ command, title, options: { cancellable: false } })(progress =>
         body(message => Effect.sync(() => progress.report({ message })))
       )
     )
