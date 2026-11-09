@@ -56,7 +56,11 @@ describe('Trace Flags', () => {
         }
       ]
     });
-    toolingUpdateStub.onFirstCall().resolves({ success: true }).onSecondCall().resolves({ success: true });
+    toolingUpdateStub
+      .onFirstCall()
+      .resolves({ success: true, id: '7dl000000000001', errors: [] })
+      .onSecondCall()
+      .resolves({ success: true, id: '7tf000000000001', errors: [] });
 
     const ensure = await ensureTraceFlags(mockConnection);
 
@@ -104,7 +108,7 @@ describe('Trace Flags', () => {
         }
       ]
     });
-    toolingUpdateStub.onFirstCall().resolves({ success: false });
+    toolingUpdateStub.onFirstCall().resolves({ success: false, errors: [{ message: 'update failed' }] });
 
     const ensure = await ensureTraceFlags(mockConnection);
 
@@ -127,9 +131,9 @@ describe('Trace Flags', () => {
 
     toolingCreateStub
       .onFirstCall()
-      .resolves({ success: true, id: '7dl000000000002' })
+      .resolves({ success: true, id: '7dl000000000002', errors: [] })
       .onSecondCall()
-      .resolves({ success: true, id: '7tf000000000002' });
+      .resolves({ success: true, id: '7tf000000000002', errors: [] });
 
     const ensure = await ensureTraceFlags(mockConnection);
 
@@ -168,9 +172,9 @@ describe('Trace Flags', () => {
 
     toolingCreateStub
       .onFirstCall()
-      .resolves({ success: true, id: '7dl000000000003' })
+      .resolves({ success: true, id: '7dl000000000003', errors: [] })
       .onSecondCall()
-      .resolves({ success: false });
+      .resolves({ success: false, errors: [{ message: 'create failed' }] });
 
     const ensure = await ensureTraceFlags(mockConnection);
 
@@ -210,7 +214,7 @@ describe('Trace Flags', () => {
       totalSize: 0,
       records: []
     });
-    toolingCreateStub.onFirstCall().resolves({ success: false, id: undefined });
+    toolingCreateStub.onFirstCall().resolves({ success: false, errors: [{ message: 'create failed' }] });
 
     try {
       await ensureTraceFlags(mockConnection);

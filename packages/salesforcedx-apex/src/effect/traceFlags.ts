@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { UserId } from '../schemas/salesforceId';
 import type { Connection } from '@salesforce/core';
 import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
@@ -13,7 +14,7 @@ import * as Option from 'effect/Option';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { createRecord, deleteRecord, queryRecords, updateRecord } from './records';
-import { DebugLevelId, TraceFlagId, type UserId } from './schema/salesforceId';
+import { DebugLevelId, TraceFlagId } from './schema/salesforceId';
 import {
   DebugLevelRecordSchema,
   TraceFlagForUserSchema,

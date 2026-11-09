@@ -6,8 +6,8 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { ApexTestQueueItemId } from '../../../schemas/salesforceId';
-import { ApexClassId, ApexClassIdsSchema, ApexTestSuiteIdsSchema } from '../salesforceId';
+import { ApexClassId, ApexTestQueueItemId } from '../../../schemas/salesforceId';
+import { ApexClassIdsSchema, ApexTestSuiteIdsSchema } from '../salesforceId';
 
 const testLevelSchema = Schema.Literal('RunLocalTests', 'RunAllTestsInOrg', 'RunSpecifiedTests');
 const testCategorySchema = Schema.Literal('Apex', 'Flow');

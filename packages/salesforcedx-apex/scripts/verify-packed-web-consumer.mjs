@@ -172,15 +172,15 @@ try {
       },
       create: async (type, payload) => {
         writes.push(['create', type, payload]);
-        return { success: true, id: type === 'DebugLevel' ? '7dl000000000001' : '7tf000000000001' };
+        return { success: true, id: type === 'DebugLevel' ? '7dl000000000001' : '7tf000000000001', errors: [] };
       },
       update: async (type, payload) => {
         writes.push(['update', type, payload]);
-        return { success: true };
+        return { success: true, id: payload.Id, errors: [] };
       },
       delete: async (type, id) => {
         writes.push(['delete', type, id]);
-        return { success: true };
+        return { success: true, id, errors: [] };
       }
     }
   };
@@ -252,7 +252,7 @@ try {
   assert.equal(notifications, 3);
   writes.length = 0;
   const create = toolingConnection.tooling.create;
-  toolingConnection.tooling.create = async () => ({ success: false });
+  toolingConnection.tooling.create = async () => ({ success: false, errors: [{ message: 'create failed' }] });
   const failedEnsure = await api.runTooling(
     'ensureTraceFlag',
     toolingConnection,
@@ -304,9 +304,9 @@ try {
     const original = toolingConnection.tooling[method];
     toolingConnection.tooling[method] = async () => ({ success: false, errors: ['denied'] });
     assert.equal((await api.runTooling(operation, toolingConnection, ...args)).left._tag, 'ApexToolingMutationError');
-    toolingConnection.tooling[method] = async () => ({ success: true });
+    toolingConnection.tooling[method] = async () => ({ success: true, errors: [] });
     if (method === 'create') {
-      assert.equal((await api.runTooling(operation, toolingConnection, ...args)).left._tag, 'ApexToolingMutationError');
+      assert.equal((await api.runTooling(operation, toolingConnection, ...args)).left._tag, 'ApexResponseDecodeError');
     }
     toolingConnection.tooling[method] = async () => ({ unexpected: true });
     assert.equal((await api.runTooling(operation, toolingConnection, ...args)).left._tag, 'ApexResponseDecodeError');

@@ -6,14 +6,8 @@
  */
 
 import * as Schema from 'effect/Schema';
-import {
-  ApexClassId,
-  DebugLevelId,
-  SalesforceId,
-  TestRunId,
-  TraceFlagId,
-  UserId
-} from '../../src/effect/schema/salesforceId';
+import { ApexClassId, SalesforceId, TestRunId, UserId } from '../../src/schemas/salesforceId';
+import { DebugLevelId, TraceFlagId } from '../../src/effect/schema/salesforceId';
 
 describe('Salesforce ID schemas', () => {
   it('accepts 15- and 18-character alphanumeric Salesforce IDs', () => {

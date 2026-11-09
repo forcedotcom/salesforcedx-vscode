@@ -12,7 +12,7 @@ import * as Either from 'effect/Either';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import { ApexToolingMutationError } from '../effect/schema/errors';
-import { DebugLevelId, UserId } from '../effect/schema/salesforceId';
+import { DebugLevelId } from '../effect/schema/salesforceId';
 import {
   createDebugLevel,
   createTraceFlag,
@@ -23,6 +23,7 @@ import {
 } from '../effect/traceFlags';
 import { nls } from '../i18n';
 import { DEFAULT_DEBUG_LEVEL_NAME, LOG_TIMER_LENGTH_MINUTES, LOG_TYPE } from '../logs/constants';
+import { UserId } from '../schemas/salesforceId';
 import { escapeXml } from './authUtil';
 
 /** Unwrap outside the runtime so CLI errors do not acquire a FiberFailure prefix. */

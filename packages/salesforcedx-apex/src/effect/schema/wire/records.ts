@@ -8,8 +8,15 @@
 import * as Schema from 'effect/Schema';
 
 export const RecordSaveResultSchema = <A, I, R>(idSchema: Schema.Schema<A, I, R>) =>
-  Schema.Struct({
-    success: Schema.Boolean,
-    id: Schema.optional(idSchema),
-    errors: Schema.Unknown.pipe(Schema.Array, Schema.optional)
-  });
+  Schema.Union(
+    Schema.Struct({
+      success: Schema.Literal(true),
+      id: idSchema,
+      errors: Schema.Array(Schema.Unknown)
+    }),
+    Schema.Struct({
+      success: Schema.Literal(false),
+      id: Schema.optionalWith(idSchema, { nullable: true }),
+      errors: Schema.NonEmptyArray(Schema.Unknown)
+    })
+  );

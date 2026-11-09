@@ -6,42 +6,16 @@
  */
 
 import type { CodeCoverage } from './codeCoverage';
-import type { QueryResult, Record as JsforceRecord } from '@jsforce/jsforce-node';
 import { type Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
-import * as Either from 'effect/Either';
 import { isUndefined } from 'effect/Predicate';
-import * as Schema from 'effect/Schema';
 import { queryNamespaces as queryNamespaceInfos } from '../effect/namespaces';
-import { collectQueryPages, queryRecordPages } from '../effect/records';
 import * as TestResults from '../effect/testResults';
 import { nls } from '../i18n';
 import { type ApexTestProgressReporter, type NamespaceInfo, type TestResultRaw } from './types';
 
 export const queryNamespaces = (connection: Connection): Promise<NamespaceInfo[]> =>
   queryNamespaceInfos(connection).pipe(Effect.runPromise);
-
-export const queryAll = async <R extends JsforceRecord>(
-  connection: Connection,
-  query: string,
-  tooling = false
-): Promise<QueryResult<R>> => {
-  const result = await Effect.runPromise(
-    queryRecordPages({
-      connection,
-      operation: 'queryAll',
-      soql: query,
-      record: Schema.Unknown,
-      tooling
-    }).pipe(collectQueryPages, Effect.either)
-  );
-  return Either.match(result, {
-    onLeft: error => {
-      throw error;
-    },
-    onRight: records => ({ done: true, totalSize: records.length, records: [...records] as R[] })
-  });
-};
 
 export const calculateCodeCoverage = async (
   codeCoverageInstance: CodeCoverage,

@@ -6,7 +6,8 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { DebugLevelId, SalesforceId, TraceFlagId } from '../salesforceId';
+import { SalesforceId } from '../../../schemas/salesforceId';
+import { DebugLevelId, TraceFlagId } from '../salesforceId';
 
 /** TraceFlag.LogType values — https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/tooling_api_objects_traceflag.htm */
 export const TraceFlagLogType = Schema.Literal('USER_DEBUG', 'DEVELOPER_LOG', 'CLASS_TRACING');

@@ -9,8 +9,41 @@ import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import { queryRecords } from '../../src/effect/records';
+import { DebugLevelId } from '../../src/effect/schema/salesforceId';
+import { RecordSaveResultSchema } from '../../src/effect/schema/wire/records';
 
 const RecordSchema = Schema.Struct({ Name: Schema.String });
+
+describe('RecordSaveResultSchema', () => {
+  const saveResultSchema = RecordSaveResultSchema(DebugLevelId);
+
+  it('decodes successful writes with their record ID', () => {
+    expect(
+      Schema.decodeUnknownSync(saveResultSchema)({
+        success: true,
+        id: '7dl000000000001',
+        errors: []
+      })
+    ).toEqual({ success: true, id: '7dl000000000001', errors: [] });
+  });
+
+  it('decodes failed writes with errors and no record ID', () => {
+    expect(
+      Schema.decodeUnknownSync(saveResultSchema)({
+        success: false,
+        id: null,
+        errors: [{ message: 'bad field', statusCode: 'INVALID_FIELD' }]
+      })
+    ).toEqual({ success: false, id: undefined, errors: [{ message: 'bad field', statusCode: 'INVALID_FIELD' }] });
+  });
+
+  it.each([
+    { success: true, errors: [] },
+    { success: false, id: null, errors: [] }
+  ])('rejects malformed SaveResult branches: %j', result => {
+    expect(Schema.decodeUnknownEither(saveResultSchema)(result)._tag).toBe('Left');
+  });
+});
 
 describe('queryRecords pagination', () => {
   it.each([

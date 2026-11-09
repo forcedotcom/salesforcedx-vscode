@@ -52,28 +52,4 @@ describe('Query Namespaces', () => {
       { installedNs: true, namespace: 'otherNamespace' }
     ]);
   });
-
-  it.each([
-    ['REST', false],
-    ['Tooling', true]
-  ] as const)('follows queryMore for %s queries', async (_name, tooling) => {
-    const queryConnection = tooling ? mockConnection.tooling : mockConnection;
-    const queryStub = $$.SANDBOX.stub(queryConnection, 'query').resolves({
-      done: false,
-      totalSize: 2,
-      records: [{ Id: '001000000000001' }],
-      nextRecordsUrl: '/next'
-    });
-    const queryMoreStub = $$.SANDBOX.stub(queryConnection, 'queryMore').resolves({
-      done: true,
-      totalSize: 2,
-      records: [{ Id: '001000000000002' }]
-    });
-
-    const result = await utils.queryAll(mockConnection, 'SELECT Id FROM Account', tooling);
-
-    expect(result.records).toEqual([{ Id: '001000000000001' }, { Id: '001000000000002' }]);
-    expect(queryStub.calledOnce).toBe(true);
-    expect(queryMoreStub.calledOnceWith('/next')).toBe(true);
-  });
 });

@@ -422,7 +422,7 @@ const buildGetOrCreateLayer = (opts: {
     records: opts.debugLevelRows,
     totalSize: opts.debugLevelRows.length
   }));
-  const createSpy: CreateSpy = vi.fn(async (_type, _payload) => ({ success: true, id: '7dl000000000002' }));
+  const createSpy: CreateSpy = vi.fn(async (_type, _payload) => ({ success: true, id: '7dl000000000002', errors: [] }));
   const layer = withQueryService(
     buildConnectionServiceLayer({ tooling: { query: querySpy, create: createSpy } }),
     querySpy,
@@ -470,16 +470,18 @@ describe('TraceFlagService.getOrCreateDebugLevel', () => {
   });
 });
 
-type CreateSpy = VitestMock<(type: string, record: unknown) => Promise<{ success: boolean; id?: string }>>;
-type DeleteSpy = VitestMock<(type: string, id: string) => Promise<{ success: boolean }>>;
+type CreateSpy = VitestMock<
+  (type: string, record: unknown) => Promise<{ success: boolean; id?: string; errors: unknown[] }>
+>;
+type DeleteSpy = VitestMock<(type: string, id: string) => Promise<{ success: boolean; id: string; errors: unknown[] }>>;
 
 const buildToolingMutationLayer = (opts: {
   create?: CreateSpy;
   delete?: DeleteSpy;
 }): { layer: Layer.Layer<ConnectionService | QueryService>; createSpy: CreateSpy; deleteSpy: DeleteSpy } => {
   const createSpy: CreateSpy =
-    opts.create ?? vi.fn(async (_type, _payload) => ({ success: true, id: '7dl000000000004' }));
-  const deleteSpy: DeleteSpy = opts.delete ?? vi.fn(async (_type, _id) => ({ success: true }));
+    opts.create ?? vi.fn(async (_type, _payload) => ({ success: true, id: '7dl000000000004', errors: [] }));
+  const deleteSpy: DeleteSpy = opts.delete ?? vi.fn(async (_type, id) => ({ success: true, id, errors: [] }));
   const querySpy: QuerySpy = vi.fn(async () => ({ records: [], totalSize: 0 }));
   const layer = withQueryService(
     buildConnectionServiceLayer({ tooling: { create: createSpy, delete: deleteSpy } }),
@@ -496,7 +498,7 @@ describe('TraceFlagService.createDebugLevel', () => {
 
   it('returns the created id and forwards the payload to tooling.create', async () => {
     const { layer, createSpy } = buildToolingMutationLayer({
-      create: vi.fn(async (_type, _payload) => ({ success: true, id: '7dl000000000005' }))
+      create: vi.fn(async (_type, _payload) => ({ success: true, id: '7dl000000000005', errors: [] }))
     });
     const payload = {
       DeveloperName: 'Custom',
@@ -527,7 +529,7 @@ describe('TraceFlagService.createDebugLevel', () => {
 
   it('fails with DebugLevelCreateError when create returns no id', async () => {
     const { layer } = buildToolingMutationLayer({
-      create: vi.fn(async (_type, _payload) => ({ success: true }))
+      create: vi.fn(async (_type, _payload) => ({ success: true, errors: [] }))
     });
 
     const exit = await Effect.gen(function* () {

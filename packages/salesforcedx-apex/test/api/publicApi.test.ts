@@ -115,8 +115,10 @@ describe('@salesforce/apex-node public API', () => {
       'causeMessage',
       'changeTraceFlagDebugLevel',
       'createDebugLevel',
+      'createRecord',
       'createTraceFlag',
       'deleteDebugLevel',
+      'deleteRecord',
       'deleteTraceFlag',
       'ensureTraceFlag',
       'executeAnonymous',
@@ -147,6 +149,7 @@ describe('@salesforce/apex-node public API', () => {
       'traceFlagExpirationDate',
       'transformTestResult',
       'updateDebugLevel',
+      'updateRecord',
       'updateTraceFlag',
       'writeResultFiles'
     ]);

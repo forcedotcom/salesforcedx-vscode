@@ -11,7 +11,7 @@ import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import type { ParseError } from 'effect/ParseResult';
-import { isNotUndefined, isUndefined } from 'effect/Predicate';
+import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import {
@@ -68,9 +68,6 @@ export const queryRecordPages = <A, I>({
   );
 };
 
-export const collectQueryPages = <A, E, R>(pages: Stream.Stream<readonly A[], E, R>) =>
-  pages.pipe(Stream.flatMap(Stream.fromIterable), Stream.runCollect, Effect.map(Chunk.toReadonlyArray));
-
 /** Runs a record write and validates its SaveResult with the expected record ID schema. */
 const requestSaveResult = <A, I, R>(
   operation: string,
@@ -92,7 +89,10 @@ const requestSaveResult = <A, I, R>(
       result.success
         ? Effect.succeed(result)
         : Effect.fail(
-            new ApexToolingMutationError({ operation, message: `Tooling ${operation} returned success=false` })
+            new ApexToolingMutationError({
+              operation,
+              message: `Tooling ${operation} returned errors: ${result.errors.map(requestErrorMessage).join('; ')}`
+            })
           )
     )
   );
@@ -122,7 +122,9 @@ export const queryRecords = Effect.fn('Apex.queryRecords')(function* <A, I>({
         ? new ApexOperationError({ operation, message: error.message, cause: getErrorMessage(error.cause) })
         : new ApexResponseDecodeError({ operation, message: error.message, cause: error.message })
     ),
-    collectQueryPages
+    Stream.flatMap(Stream.fromIterable),
+    Stream.runCollect,
+    Effect.map(Chunk.toReadonlyArray)
   );
 });
 
@@ -140,9 +142,6 @@ export const createRecord = Effect.fn('Apex.createRecord')(function* <A, I, R, F
   idSchema: Schema.Schema<A, I, R>;
 }) {
   const result = yield* requestSaveResult(operation, idSchema, () => connection.tooling.create(type, { ...fields }));
-  if (isUndefined(result.id)) {
-    return yield* new ApexToolingMutationError({ operation, message: `Tooling ${operation} returned no ID` });
-  }
   return { id: result.id };
 });
 
