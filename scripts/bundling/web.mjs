@@ -131,6 +131,7 @@ export const commonConfigBrowser = {
     querystring: 'querystring-es3',
     assert: 'assert',
     zlib: 'browserify-zlib',
+    'node:zlib': 'browserify-zlib',
     timers: 'timers-browserify',
     'node:timers': 'timers-browserify',
     'node:string_decoder': 'string_decoder'

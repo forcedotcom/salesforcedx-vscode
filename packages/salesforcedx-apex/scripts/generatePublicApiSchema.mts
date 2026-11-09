@@ -39,11 +39,11 @@ import type {
   TestResult,
   TestResultRaw,
   TestRunIdResult
-} from '../src/index.ts';
+} from '../out/src/index.js';
 import * as JSONSchema from 'effect/JSONSchema';
 import * as Schema from 'effect/Schema';
 import { readFile, writeFile } from 'node:fs/promises';
-import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import * as Prettier from 'prettier';
 import {
   AggregateCodeCoverageResultSchema,
@@ -355,7 +355,7 @@ type FailedContracts = {
 const publicContractChecks: Record<FailedContracts, true> = {};
 void publicContractChecks;
 
-const schemaPath = join(import.meta.dirname, '..', 'schemas', 'public-api.schema.json');
+const schemaPath = fileURLToPath(new URL('../schemas/public-api.schema.json', import.meta.url));
 
 try {
   const generatedSchema = await Prettier.format(JSON.stringify(JSONSchema.make(PublicApiSchema)), {

@@ -9,11 +9,12 @@
 
 import { annotateRootSpan, code2ProtocolConverter, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Arr from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isError, isUndefined } from 'effect/Predicate';
+import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -682,10 +683,8 @@ export const annotateCheckpointUpload = (succeeded: boolean) =>
 export const sfCreateCheckpointsCommand = Effect.fn('sfCreateCheckpointsCommand')(function* () {
   const result = yield* checkpointOperationSemaphore.withPermitsIfAvailable(1)(
     createCheckpoints().pipe(
-      Effect.mapError(error => new CreateCheckpointsError({ message: isError(error) ? error.message : String(error) })),
-      Effect.catchAllDefect(defect =>
-        Effect.fail(new CreateCheckpointsError({ message: isError(defect) ? defect.message : String(defect) }))
-      ),
+      Effect.mapError(error => new CreateCheckpointsError({ message: getErrorMessage(error) })),
+      Effect.catchAllDefect(defect => Effect.fail(new CreateCheckpointsError({ message: getErrorMessage(defect) }))),
       Effect.tapBoth({
         onFailure: error => annotateRootSpan({ errorMessage: error.message }),
         onSuccess: annotateCheckpointUpload
