@@ -30,7 +30,7 @@ const PackageIdSchema = SalesforceIdSchema.check(Schema.isPattern(/^04t/));
 type RuntimeInstallStatus = 'IN_PROGRESS' | 'SUCCESS' | 'ERROR' | 'CANCELED' | 'UNKNOWN';
 type PackageInstallRequest = Pick<ToolingPackageInstallRequest, 'Id'> & {
   Status?: RuntimeInstallStatus;
-  Errors?: { readonly errors?: readonly { readonly message?: string | undefined }[] | undefined } | undefined;
+  Errors?: { readonly errors?: readonly { readonly message?: string | undefined }[] | undefined } | null | undefined;
 };
 
 const PackageInstallErrorMessages = Schema.Struct({ message: Schema.optional(Schema.String) }).pipe(
@@ -41,10 +41,10 @@ const PackageInstallErrorMessages = Schema.Struct({ message: Schema.optional(Sch
 const PackageInstallRequestRow = Schema.Struct({
   Id: Schema.String,
   Status: Schema.optional(Schema.Literals(['IN_PROGRESS', 'SUCCESS', 'ERROR', 'CANCELED', 'UNKNOWN'])),
-  Errors: Schema.optional(Schema.Struct({ errors: PackageInstallErrorMessages }))
+  Errors: Schema.Struct({ errors: PackageInstallErrorMessages }).pipe(Schema.NullOr, Schema.optional)
 });
 
-const decodePackageInstallPage = (input: unknown) =>
+export const decodePackageInstallPage = (input: unknown) =>
   Schema.decodeUnknownEffect(
     Schema.Struct({ totalSize: Schema.Number, records: Schema.Array(PackageInstallRequestRow) })
   )(input);

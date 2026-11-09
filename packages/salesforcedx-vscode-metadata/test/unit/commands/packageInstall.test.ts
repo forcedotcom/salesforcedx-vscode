@@ -10,13 +10,21 @@ import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
-import { packageInstallCommand } from '../../../src/commands/packageInstall';
+import { decodePackageInstallPage, packageInstallCommand } from '../../../src/commands/packageInstall';
 import { nls } from '../../../src/messages';
 import { NotificationModeService, PromptService } from '@salesforce/vscode-services/v2';
 
 class UserCancellationError extends Schema.TaggedError<UserCancellationError>()('UserCancellationError', {}) {}
 
 describe('packageInstallCommand package ID validation', () => {
+  it('decodes a successful install row with nullable Errors', async () => {
+    const page = await Effect.runPromise(
+      decodePackageInstallPage({ totalSize: 1, records: [{ Id: '0Hf000000000001', Status: 'SUCCESS', Errors: null }] })
+    );
+
+    expect(page.records[0].Errors).toBeNull();
+  });
+
   it('accepts valid package IDs and empty input and rejects malformed IDs', async () => {
     const showInputBox = vscode.window.showInputBox as VitestMock;
     showInputBox.mockResolvedValueOnce(undefined);
