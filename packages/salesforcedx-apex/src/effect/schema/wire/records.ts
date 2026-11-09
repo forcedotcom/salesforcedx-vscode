@@ -7,7 +7,7 @@
 
 import * as Schema from 'effect/Schema';
 
-export const ToolingMutationResponseSchema = <A, I, R>(idSchema: Schema.Schema<A, I, R>) =>
+export const RecordSaveResultSchema = <A, I, R>(idSchema: Schema.Schema<A, I, R>) =>
   Schema.Struct({
     success: Schema.Boolean,
     id: Schema.optional(idSchema),

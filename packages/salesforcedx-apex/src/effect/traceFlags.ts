@@ -12,7 +12,7 @@ import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import { createRecord, queryRecords, toolingMutation } from './records';
+import { createRecord, deleteRecord, queryRecords, updateRecord } from './records';
 import { DebugLevelId, TraceFlagId, type UserId } from './schema/salesforceId';
 import {
   DebugLevelRecordSchema,
@@ -86,16 +86,25 @@ export const createDebugLevel = Effect.fn('Apex.createDebugLevel')(
 
 export const updateDebugLevel = Effect.fn('Apex.updateDebugLevel')(
   (connection: Connection, debugLevelId: DebugLevelId, payload: UpdateDebugLevel) =>
-    toolingMutation('updateDebugLevel', DebugLevelId, () =>
-      connection.tooling.update('DebugLevel', { ...payload, Id: debugLevelId })
-    ).pipe(Effect.asVoid)
+    updateRecord({
+      connection,
+      operation: 'updateDebugLevel',
+      type: 'DebugLevel',
+      recordId: debugLevelId,
+      fields: payload,
+      idSchema: DebugLevelId
+    })
 );
 
 export const deleteDebugLevel = Effect.fn('Apex.deleteDebugLevel')(
   (connection: Connection, debugLevelId: DebugLevelId) =>
-    toolingMutation('deleteDebugLevel', DebugLevelId, () => connection.tooling.delete('DebugLevel', debugLevelId)).pipe(
-      Effect.asVoid
-    )
+    deleteRecord({
+      connection,
+      operation: 'deleteDebugLevel',
+      type: 'DebugLevel',
+      recordId: debugLevelId,
+      idSchema: DebugLevelId
+    })
 );
 
 /** Reuses a named level without modifying it; the caller supplies its creation policy. */
@@ -146,28 +155,41 @@ export type UpdateTraceFlagOptions = {
 
 export const updateTraceFlag = Effect.fn('Apex.updateTraceFlag')(
   (connection: Connection, traceFlagId: TraceFlagId, options?: UpdateTraceFlagOptions) =>
-    toolingMutation('updateTraceFlag', TraceFlagId, () =>
-      connection.tooling.update('TraceFlag', {
-        Id: traceFlagId,
+    updateRecord({
+      connection,
+      operation: 'updateTraceFlag',
+      type: 'TraceFlag',
+      recordId: traceFlagId,
+      fields: {
         StartDate: new Date().toISOString(),
         ...(isNotUndefined(options?.expirationDate) ? { ExpirationDate: options.expirationDate.toISOString() } : {}),
         ...(isNotUndefined(options?.debugLevelId) ? { DebugLevelId: options.debugLevelId } : {})
-      })
-    ).pipe(Effect.asVoid)
+      },
+      idSchema: TraceFlagId
+    })
 );
 
 export const deleteTraceFlag = Effect.fn('Apex.deleteTraceFlag')((connection: Connection, traceFlagId: TraceFlagId) =>
-  toolingMutation('deleteTraceFlag', TraceFlagId, () => connection.tooling.delete('TraceFlag', traceFlagId)).pipe(
-    Effect.asVoid
-  )
+  deleteRecord({
+    connection,
+    operation: 'deleteTraceFlag',
+    type: 'TraceFlag',
+    recordId: traceFlagId,
+    idSchema: TraceFlagId
+  })
 );
 
 /** Changes the relationship only, without resetting StartDate or changing category levels. */
 export const changeTraceFlagDebugLevel = Effect.fn('Apex.changeTraceFlagDebugLevel')(
   (connection: Connection, traceFlagId: TraceFlagId, debugLevelId: DebugLevelId) =>
-    toolingMutation('changeTraceFlagDebugLevel', TraceFlagId, () =>
-      connection.tooling.update('TraceFlag', { Id: traceFlagId, DebugLevelId: debugLevelId })
-    ).pipe(Effect.asVoid)
+    updateRecord({
+      connection,
+      operation: 'changeTraceFlagDebugLevel',
+      type: 'TraceFlag',
+      recordId: traceFlagId,
+      fields: { DebugLevelId: debugLevelId },
+      idSchema: TraceFlagId
+    })
 );
 
 /** Renews an existing flag in place; CLI keeps this policy even for expired flags. */

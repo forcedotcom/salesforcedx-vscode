@@ -21,7 +21,7 @@ import {
   ApexToolingMutationError
 } from './schema/errors';
 import { QueryPageSchema } from './schema/queryPage';
-import { ToolingMutationResponseSchema } from './schema/wire/records';
+import { RecordSaveResultSchema } from './schema/wire/records';
 
 const requestErrorMessage = (cause: unknown): string => {
   if (cause instanceof Error) return cause.message;
@@ -71,8 +71,8 @@ export const queryRecordPages = <A, I>({
 export const collectQueryPages = <A, E, R>(pages: Stream.Stream<readonly A[], E, R>) =>
   pages.pipe(Stream.flatMap(Stream.fromIterable), Stream.runCollect, Effect.map(Chunk.toReadonlyArray));
 
-/** Runs a Tooling mutation and validates its SaveResult with the expected record ID schema. */
-export const toolingMutation = <A, I, R>(
+/** Runs a record write and validates its SaveResult with the expected record ID schema. */
+const requestSaveResult = <A, I, R>(
   operation: string,
   idSchema: Schema.Schema<A, I, R>,
   request: () => PromiseLike<unknown>
@@ -82,7 +82,7 @@ export const toolingMutation = <A, I, R>(
     catch: cause =>
       new ApexOperationError({ operation, message: getErrorMessage(cause), cause: getErrorMessage(cause) })
   }).pipe(
-    Effect.flatMap(Schema.decodeUnknown(ToolingMutationResponseSchema(idSchema))),
+    Effect.flatMap(Schema.decodeUnknown(RecordSaveResultSchema(idSchema))),
     Effect.catchTag('ParseError', cause =>
       Effect.fail(
         new ApexResponseDecodeError({ operation, message: 'Invalid Tooling mutation response', cause: cause.message })
@@ -139,9 +139,45 @@ export const createRecord = Effect.fn('Apex.createRecord')(function* <A, I, R, F
   fields: F;
   idSchema: Schema.Schema<A, I, R>;
 }) {
-  const result = yield* toolingMutation(operation, idSchema, () => connection.tooling.create(type, { ...fields }));
+  const result = yield* requestSaveResult(operation, idSchema, () => connection.tooling.create(type, { ...fields }));
   if (isUndefined(result.id)) {
     return yield* new ApexToolingMutationError({ operation, message: `Tooling ${operation} returned no ID` });
   }
   return { id: result.id };
+});
+
+export const updateRecord = Effect.fn('Apex.updateRecord')(function* <A extends string, I, R, F extends object>({
+  connection,
+  operation,
+  type,
+  recordId,
+  fields,
+  idSchema
+}: {
+  connection: Connection;
+  operation: string;
+  type: string;
+  recordId: A;
+  fields: F;
+  idSchema: Schema.Schema<A, I, R>;
+}) {
+  yield* requestSaveResult(operation, idSchema, () =>
+    connection.tooling.update(type, { ...fields, Id: recordId })
+  ).pipe(Effect.asVoid);
+});
+
+export const deleteRecord = Effect.fn('Apex.deleteRecord')(function* <A extends string, I, R>({
+  connection,
+  operation,
+  type,
+  recordId,
+  idSchema
+}: {
+  connection: Connection;
+  operation: string;
+  type: string;
+  recordId: A;
+  idSchema: Schema.Schema<A, I, R>;
+}) {
+  yield* requestSaveResult(operation, idSchema, () => connection.tooling.delete(type, recordId)).pipe(Effect.asVoid);
 });
