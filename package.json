@@ -127,7 +127,7 @@
     "postinstall": "wireit",
     "bootstrap": "pnpm install",
     "clean": "pnpm --recursive --if-present run clean && git clean -xfd",
-    "clean:build": "pnpm --filter @salesforce/salesforcedx-utils compile && node scripts/cleanBuildArtifacts.mts",
+    "clean:build": "node scripts/cleanBuildArtifacts.mts",
     "clean:wireit-cache": "node scripts/clean-wireit-cache.js",
     "clean:spans": "shx rm -rf ~/.sf/vscode-spans && shx mkdir -p ~/.sf/vscode-spans",
     "reinstall": "git checkout -- pnpm-lock.yaml && pnpm clean && pnpm install",
@@ -255,7 +255,7 @@
       "output": []
     },
     "lint:scripts": {
-      "command": "eslint --color \"scripts/*.mts\" scripts/shared/packageJsonSchema.mts \"packages/{salesforcedx-lightning-lsp-common,salesforcedx-aura-language-server,salesforcedx-lwc-language-server}/scripts/*.mts\"",
+      "command": "eslint --color \"scripts/*.mts\" \"packages/{salesforcedx-lightning-lsp-common,salesforcedx-aura-language-server,salesforcedx-lwc-language-server}/scripts/*.mts\"",
       "dependencies": [
         "./packages/eslint-local-rules:compile"
       ],
@@ -361,6 +361,7 @@
         "./packages/playwright-vscode-ext:compile"
       ],
       "files": [
+        "package.json",
         "vitest.config.mts",
         "scripts/**/*.{ts,mts,cts}",
         "packages/{salesforcedx-lightning-lsp-common,salesforcedx-aura-language-server,salesforcedx-lwc-language-server}/scripts/**/*.mts",
@@ -371,6 +372,8 @@
         "scripts/releaseDashboard.sh",
         "scripts/rerunPushE2EGate.sh",
         ".github/workflows/build-github-release.yml",
+        ".github/workflows/build-and-release-patch-branch.yml",
+        ".github/workflows/create-patch-release-branch.yml",
         ".github/workflows/nightly.yml",
         ".github/workflows/release-dashboard.yml",
         ".github/workflows/rerunPushE2E.yml",

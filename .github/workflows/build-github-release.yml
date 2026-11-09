@@ -196,7 +196,7 @@ jobs:
           # (Inlined from .github/actions/preserve-scripts to avoid action unavailability after checkout)
           mkdir -p /tmp/release-scripts
 
-          SCRIPTS="scripts/calculateReleaseVersion.mts scripts/updateReleaseVersions.mts scripts/releasePackageSelection.mts scripts/foldStableChangelog.mts scripts/concatenateSha256.mts"
+          SCRIPTS="scripts/calculateReleaseVersion.mts scripts/updateReleaseVersions.mts scripts/releasePackageSelection.mts scripts/parsePackageJson.mts scripts/foldStableChangelog.mts scripts/concatenateSha256.mts"
 
           # Copy each script
           for script in $SCRIPTS; do
@@ -210,7 +210,7 @@ jobs:
 
           # Generate checksums for integrity verification
           cd scripts
-          sha256sum calculateReleaseVersion.mts updateReleaseVersions.mts releasePackageSelection.mts foldStableChangelog.mts concatenateSha256.mts > /tmp/release-scripts/checksums.txt
+          sha256sum calculateReleaseVersion.mts updateReleaseVersions.mts releasePackageSelection.mts parsePackageJson.mts foldStableChangelog.mts concatenateSha256.mts > /tmp/release-scripts/checksums.txt
           cd ..
 
           echo "Generated checksums:"
@@ -249,7 +249,7 @@ jobs:
           # (Inlined from .github/actions/preserve-scripts to avoid action unavailability after checkout)
           mkdir -p scripts
 
-          SCRIPTS="scripts/calculateReleaseVersion.mts scripts/updateReleaseVersions.mts scripts/releasePackageSelection.mts scripts/foldStableChangelog.mts scripts/concatenateSha256.mts"
+          SCRIPTS="scripts/calculateReleaseVersion.mts scripts/updateReleaseVersions.mts scripts/releasePackageSelection.mts scripts/parsePackageJson.mts scripts/foldStableChangelog.mts scripts/concatenateSha256.mts"
 
           # Verify all scripts exist in temp
           for script in $SCRIPTS; do

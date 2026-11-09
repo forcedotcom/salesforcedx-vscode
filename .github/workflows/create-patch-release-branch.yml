@@ -102,7 +102,7 @@ jobs:
 
           # Preserve current scripts from develop for version tooling
           # Historical tags may not have these scripts or their dependencies
-          git checkout origin/develop -- scripts/calculateReleaseVersion.mts scripts/updateReleaseVersions.mts scripts/releasePackageSelection.mts 2>/dev/null || {
+          git checkout origin/develop -- scripts/calculateReleaseVersion.mts scripts/updateReleaseVersions.mts scripts/releasePackageSelection.mts scripts/parsePackageJson.mts 2>/dev/null || {
             echo "::warning::Could not restore version helper scripts from develop"
             echo "::warning::Branch will use scripts from the base tag (may be outdated)"
           }
@@ -117,7 +117,8 @@ jobs:
           Scripts updated:
           - scripts/calculateReleaseVersion.mts
           - scripts/updateReleaseVersions.mts
-          - scripts/releasePackageSelection.mts"
+          - scripts/releasePackageSelection.mts
+          - scripts/parsePackageJson.mts"
 
             echo "✓ Updated version helper scripts from develop"
           else

@@ -12,6 +12,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import packageJson from '../package.json' with { type: 'json' };
 import salesforcedxVscodeCorePackageJson from '../packages/salesforcedx-vscode-core/package.json' with { type: 'json' };
 
 const repoRoot = path.resolve(import.meta.dirname, '..');
@@ -29,11 +30,11 @@ const rootScripts = [
   'listVscodeExtensions',
   'loggerUtil',
   'parseExtensionNames',
+  'parsePackageJson',
   'prependReleaseChangelog',
   'publishVsix',
   'releasePackageSelection',
   'repoRoot',
-  'shared/packageJsonSchema',
   'updateReleaseVersions',
   'validationUtils'
 ].map(name => `scripts/${name}.mts`);
@@ -51,29 +52,15 @@ describe('converted automation', () => {
     fs.mkdirSync(path.dirname(file(name)), { recursive: true });
     fs.writeFileSync(file(name), contents);
   };
+  const copyScripts = (...scripts: string[]) =>
+    scripts.forEach(script => write(script, fs.readFileSync(path.join(repoRoot, script), 'utf8')));
   const run = (script: string, args: string[] = [], env: NodeJS.ProcessEnv = process.env) =>
-    spawnSync(process.execPath, [path.join(repoRoot, script), ...args], {
+    spawnSync(process.execPath, [path.resolve(repoRoot, script), ...args], {
       cwd: directory,
       encoding: 'utf8',
       timeout: 30_000,
       env
     });
-  const linkEffect = () => {
-    fs.mkdirSync(file('node_modules'), { recursive: true });
-    fs.symlinkSync(
-      path.join(repoRoot, 'node_modules/effect'),
-      file('node_modules/effect'),
-      process.platform === 'win32' ? 'junction' : 'dir'
-    );
-  };
-  const linkEffectExtUtils = () => {
-    fs.mkdirSync(file('node_modules/@salesforce'), { recursive: true });
-    fs.symlinkSync(
-      path.join(repoRoot, 'packages/effect-ext-utils'),
-      file('node_modules/@salesforce/effect-ext-utils'),
-      process.platform === 'win32' ? 'junction' : 'dir'
-    );
-  };
   const command = (name: string, contents: string) => {
     write(`bin/${name}.cjs`, contents);
     if (process.platform === 'win32') {
@@ -90,14 +77,11 @@ describe('converted automation', () => {
     };
   };
   const runHotfixWithFetch = (fetchSource: string) => {
+    copyScripts('scripts/calculatePrereleaseHotfixVersion.mts');
     write('fetch mock#.mjs', fetchSource);
     return spawnSync(
       process.execPath,
-      [
-        '--import',
-        pathToFileURL(file('fetch mock#.mjs')).href,
-        path.join(repoRoot, 'scripts/calculatePrereleaseHotfixVersion.mts')
-      ],
+      ['--import', pathToFileURL(file('fetch mock#.mjs')).href, file('scripts/calculatePrereleaseHotfixVersion.mts')],
       { encoding: 'utf8', timeout: 30_000 }
     );
   };
@@ -137,19 +121,15 @@ describe('converted automation', () => {
   });
 
   it('accepts a hotfix override without network access', () => {
+    copyScripts('scripts/calculatePrereleaseHotfixVersion.mts');
     const result = spawnSync(
       process.execPath,
-      [
-        '--permission',
-        '--allow-fs-read=*',
-        path.join(repoRoot, 'scripts/calculatePrereleaseHotfixVersion.mts'),
-        '67.17.20'
-      ],
+      ['--permission', '--allow-fs-read=*', file('scripts/calculatePrereleaseHotfixVersion.mts'), '67.17.20'],
       { encoding: 'utf8' }
     );
     expect(result.status).toBe(0);
     expect(result.stdout.trim()).toBe('67.17.20');
-    expect(run('scripts/calculatePrereleaseHotfixVersion.mts', ['invalid']).status).toBe(1);
+    expect(run(file('scripts/calculatePrereleaseHotfixVersion.mts'), ['invalid']).status).toBe(1);
   });
 
   it.each([
@@ -173,51 +153,83 @@ describe('converted automation', () => {
     expect(result.stderr).toContain('response did not contain a version');
   });
 
-  it('restores release tools that update selected packages, preserve fields, and refresh the lockfile', () => {
-    const workflow = fs.readFileSync(path.join(repoRoot, '.github/workflows/build-github-release.yml'), 'utf8');
-    const scriptLists = [...workflow.matchAll(/SCRIPTS="([^"]+)"/g)].map(match => match[1].split(' '));
-    expect(scriptLists).toHaveLength(2);
-    expect(scriptLists[0]).toEqual(scriptLists[1]);
-    scriptLists[1].forEach(script => write(script, fs.readFileSync(path.join(repoRoot, script), 'utf8')));
-    write(
-      'scripts/shared/packageJsonSchema.mts',
-      fs.readFileSync(path.join(repoRoot, 'scripts/shared/packageJsonSchema.mts'), 'utf8')
-    );
-    linkEffect();
-    const packages = {
-      extension: { version: '1.0.0', scripts: { 'vscode:publish': 'publish' }, description: 'keep me' },
-      library: { version: '1.0.0', publishConfig: { access: 'public' } },
-      private: { version: '1.0.0', private: true, publishConfig: { access: 'public' } },
-      independent: { version: '1.0.0', versionedIndependently: true, scripts: { 'vscode:publish': 'publish' } }
-    };
-    Object.entries(packages).forEach(([name, contents]) =>
-      write(`packages/${name}/package.json`, JSON.stringify(contents))
-    );
-    write('packages/broken/package.json', '{');
-    const env = command(
-      'pnpm',
-      "require('node:fs').writeFileSync('lock-command.json', JSON.stringify(process.argv.slice(2)));"
-    );
-    const result = spawnSync(process.execPath, [file('scripts/updateReleaseVersions.mts'), '2.0.0'], {
-      cwd: directory,
-      encoding: 'utf8',
-      timeout: 30_000,
-      env
-    });
-    expect(result.status).toBe(0);
-    expect(result.stderr).toContain(`Error parsing ${path.join('packages', 'broken', 'package.json')}`);
-    Object.entries(packages).forEach(([name, contents]) => {
-      expect(JSON.parse(fs.readFileSync(file(`packages/${name}/package.json`), 'utf8'))).toEqual({
-        ...contents,
-        version: name === 'extension' || name === 'library' ? '2.0.0' : '1.0.0'
-      });
-    });
-    expect(JSON.parse(fs.readFileSync(file('lock-command.json'), 'utf8'))).toEqual([
-      'install',
-      '--ignore-scripts',
-      '--lockfile-only'
-    ]);
+  it.each([
+    ['globalThis.fetch = async () => { throw new Error("offline"); };', 'Marketplace query failed: Error: offline'],
+    ['globalThis.fetch = async () => new Response("", { status: 503 });', 'Marketplace query failed: HTTP 503'],
+    ['globalThis.fetch = async () => new Response("{");', 'Marketplace response JSON parsing failed:'],
+    [
+      `globalThis.fetch = async url => new Response(JSON.stringify(
+        String(url).includes('marketplace.visualstudio.com')
+          ? { results: [{ extensions: [{ versions: [{ version: '67.17.9' }] }] }] }
+          : {}
+      ));`,
+      'Open VSX response did not contain a version'
+    ]
+  ])('reports registry failures with context: %s', (fetchSource, message) => {
+    const result = runHotfixWithFetch(fetchSource);
+    expect(result.status).toBe(1);
+    expect(result.stderr).toContain(message);
+    expect(result.stdout).toBe('');
   });
+
+  it.each([
+    { workflowName: 'build-github-release', pattern: /SCRIPTS="([^"]+)"/g, prefix: '' },
+    { workflowName: 'build-and-release-patch-branch', pattern: /for script in ([^;]+); do/g, prefix: 'scripts/' },
+    {
+      workflowName: 'create-patch-release-branch',
+      pattern: /git checkout origin\/develop -- (.+) 2>\/dev\/null/g,
+      prefix: ''
+    }
+  ])(
+    'restores $workflowName tools that update selected packages, preserve fields, and refresh the lockfile',
+    ({ workflowName, pattern, prefix }) => {
+      const workflow = fs.readFileSync(path.join(repoRoot, `.github/workflows/${workflowName}.yml`), 'utf8');
+      const scriptLists = [...workflow.matchAll(pattern)].map(match =>
+        match[1].split(' ').map(script => `${prefix}${script}`)
+      );
+      expect(scriptLists.length).toBeGreaterThan(0);
+      if (workflowName === 'build-github-release') {
+        expect(scriptLists).toHaveLength(2);
+        expect(scriptLists[0]).toEqual(scriptLists[1]);
+        const checksumScripts = workflow.match(/sha256sum (.+) > \/tmp\/release-scripts\/checksums.txt/);
+        expect(checksumScripts?.[1].split(' ').map(script => `scripts/${script}`)).toEqual(scriptLists[0]);
+      }
+      copyScripts(...scriptLists[0]);
+      const packages = {
+        extension: { version: '1.0.0', scripts: { 'vscode:publish': 'publish' }, description: 'keep me' },
+        library: { version: '1.0.0', publishConfig: { access: 'public' } },
+        private: { version: '1.0.0', private: true, publishConfig: { access: 'public' } },
+        independent: { version: '1.0.0', versionedIndependently: true, scripts: { 'vscode:publish': 'publish' } }
+      };
+      Object.entries(packages).forEach(([name, contents]) =>
+        write(`packages/${name}/package.json`, JSON.stringify(contents))
+      );
+      write('packages/broken/package.json', '{');
+      const env = command(
+        'pnpm',
+        "require('node:fs').writeFileSync('lock-command.json', JSON.stringify(process.argv.slice(2)));"
+      );
+      const result = spawnSync(process.execPath, [file('scripts/updateReleaseVersions.mts'), '2.0.0'], {
+        cwd: directory,
+        encoding: 'utf8',
+        timeout: 30_000,
+        env
+      });
+      expect(result.status).toBe(0);
+      expect(result.stderr).toContain(`Error parsing ${path.join('packages', 'broken', 'package.json')}`);
+      Object.entries(packages).forEach(([name, contents]) => {
+        expect(JSON.parse(fs.readFileSync(file(`packages/${name}/package.json`), 'utf8'))).toEqual({
+          ...contents,
+          version: name === 'extension' || name === 'library' ? '2.0.0' : '1.0.0'
+        });
+      });
+      expect(JSON.parse(fs.readFileSync(file('lock-command.json'), 'utf8'))).toEqual([
+        'install',
+        '--ignore-scripts',
+        '--lockfile-only'
+      ]);
+    }
+  );
 
   it('returns failure when the lockfile refresh fails', () => {
     write('packages/extension/package.json', JSON.stringify({ scripts: { 'vscode:publish': 'publish' } }));
@@ -227,7 +239,7 @@ describe('converted automation', () => {
   });
 
   it('publishes the version-matched VSIX through the CLI', () => {
-    linkEffectExtUtils();
+    copyScripts('scripts/publishVsix.mts', 'scripts/parsePackageJson.mts', 'scripts/loggerUtil.mts');
     write('package.json', JSON.stringify({ version: '1.2.3' }));
     write('example-1.2.3.vsix', 'vsix');
     write('example-1.2.2.vsix', 'old');
@@ -235,7 +247,7 @@ describe('converted automation', () => {
       'vsce',
       "require('node:fs').writeFileSync('publish-command.json', JSON.stringify(process.argv.slice(2)));"
     );
-    const result = run('scripts/publishVsix.mts', [], { ...env, VSCE_PERSONAL_ACCESS_TOKEN: 'fixture-token' });
+    const result = run(file('scripts/publishVsix.mts'), [], { ...env, VSCE_PERSONAL_ACCESS_TOKEN: 'fixture-token' });
     expect(result.status).toBe(0);
     expect(JSON.parse(fs.readFileSync(file('publish-command.json'), 'utf8'))).toEqual([
       'publish',
@@ -246,18 +258,21 @@ describe('converted automation', () => {
     ]);
   });
 
-  it('fails publishing when no matching VSIX exists or the CLI fails', () => {
-    linkEffectExtUtils();
-    write('package.json', '{}');
-    const missingVersion = run('scripts/publishVsix.mts');
+  it.each(['{}', '{"version":123}', '[]', 'null', '{'])('rejects invalid publishing metadata %s', contents => {
+    copyScripts('scripts/publishVsix.mts', 'scripts/parsePackageJson.mts', 'scripts/loggerUtil.mts');
+    write('package.json', contents);
+    const missingVersion = run(file('scripts/publishVsix.mts'));
     expect(missingVersion.status).toBe(1);
     expect(missingVersion.stdout).toContain('No version found in package.json');
+  });
 
+  it('fails publishing when no matching VSIX exists or the CLI fails', () => {
+    copyScripts('scripts/publishVsix.mts', 'scripts/parsePackageJson.mts', 'scripts/loggerUtil.mts');
     write('package.json', JSON.stringify({ version: '1.2.3' }));
     const env = command('vsce', 'process.exit(1);');
-    expect(run('scripts/publishVsix.mts', [], env).status).toBe(1);
+    expect(run(file('scripts/publishVsix.mts'), [], env).status).toBe(1);
     write('example-1.2.3.vsix', 'vsix');
-    expect(run('scripts/publishVsix.mts', [], env).status).toBe(1);
+    expect(run(file('scripts/publishVsix.mts'), [], env).status).toBe(1);
   });
 
   it('extracts sorted unique extension names, including prereleases', () => {
@@ -291,6 +306,7 @@ describe('converted automation', () => {
   });
 
   it('cleans build outputs from the script repository while preserving dependencies, sources, and Apex JARs', () => {
+    expect(packageJson.scripts['clean:build']).toBe('node scripts/cleanBuildArtifacts.mts');
     ['cleanBuildArtifacts', 'cleanAllButJar'].forEach(name =>
       write(`scripts/${name}.mts`, fs.readFileSync(path.join(repoRoot, `scripts/${name}.mts`), 'utf8'))
     );
@@ -327,11 +343,6 @@ describe('converted automation', () => {
       '.github/actions/example/src/index.ts'
     ];
     [...removed, ...preserved].forEach(name => write(name, name));
-    write(
-      'node_modules/@salesforce/salesforcedx-utils/index.js',
-      'exports.getErrorMessage = error => error instanceof Error ? error.message : String(error);'
-    );
-    write('node_modules/@salesforce/salesforcedx-utils/package.json', '{"main":"index.js"}');
     const result = spawnSync(process.execPath, [file('scripts/cleanBuildArtifacts.mts')], {
       cwd: file('packages/standard'),
       encoding: 'utf8',
@@ -346,15 +357,7 @@ describe('converted automation', () => {
   it('discovers publishable VS Code extensions with the main bundle first, then alphabetical', () => {
     const workflow = fs.readFileSync(path.join(repoRoot, '.github/workflows/nightly.yml'), 'utf8');
     expect(workflow).toContain('EXTENSIONS=$(node scripts/listVscodeExtensions.mts)');
-    write(
-      'scripts/listVscodeExtensions.mts',
-      fs.readFileSync(path.join(repoRoot, 'scripts/listVscodeExtensions.mts'), 'utf8')
-    );
-    write(
-      'scripts/shared/packageJsonSchema.mts',
-      fs.readFileSync(path.join(repoRoot, 'scripts/shared/packageJsonSchema.mts'), 'utf8')
-    );
-    linkEffect();
+    copyScripts('scripts/listVscodeExtensions.mts', 'scripts/parsePackageJson.mts');
     const extension = { engines: { vscode: '^1.90.0' }, publisher: 'salesforce', categories: ['Other'] };
     const packages = {
       'a-extension': { ...extension, name: 'salesforcedx-vscode-z' },
@@ -383,15 +386,7 @@ describe('converted automation', () => {
   });
 
   it('reports when no publishable VS Code extensions exist', () => {
-    write(
-      'scripts/listVscodeExtensions.mts',
-      fs.readFileSync(path.join(repoRoot, 'scripts/listVscodeExtensions.mts'), 'utf8')
-    );
-    write(
-      'scripts/shared/packageJsonSchema.mts',
-      fs.readFileSync(path.join(repoRoot, 'scripts/shared/packageJsonSchema.mts'), 'utf8')
-    );
-    linkEffect();
+    copyScripts('scripts/listVscodeExtensions.mts', 'scripts/parsePackageJson.mts');
     write('packages/library/package.json', JSON.stringify({ name: 'library' }));
     const result = spawnSync(process.execPath, [file('scripts/listVscodeExtensions.mts')], {
       encoding: 'utf8',

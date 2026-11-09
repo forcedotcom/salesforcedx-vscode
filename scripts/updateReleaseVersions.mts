@@ -13,12 +13,11 @@
  * Example: node updateReleaseVersions.mts 67.12.0
  */
 
-import { Schema } from 'effect';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { parsePackageJson } from './parsePackageJson.mts';
 import { shouldUpdateVersion } from './releasePackageSelection.mts';
-import { PackageJsonTextSchema } from './shared/packageJsonSchema.mts';
 
 const releaseVersion = process.argv[2];
 
@@ -48,7 +47,7 @@ packageFiles.forEach(pkgPath => {
   // Parse package.json with error handling
   try {
     const content = fs.readFileSync(pkgPath, 'utf8');
-    pkg = Schema.decodeUnknownSync(PackageJsonTextSchema)(content);
+    pkg = parsePackageJson(content);
   } catch (error) {
     console.error(`✗ Error parsing ${pkgPath}: ${error instanceof Error ? error.message : String(error)}`);
     errorCount++;

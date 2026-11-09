@@ -55,9 +55,9 @@ jobs:
           WORKFLOW_SHA: ${{ github.workflow_sha }}
         run: |
           # Historical release branches predate the native TypeScript filenames.
-          # Use this workflow revision's scripts, including their local helper.
+          # Use this workflow revision's scripts, including their local helpers.
           mkdir -p scripts
-          for script in updateReleaseVersions.mts releasePackageSelection.mts concatenateSha256.mts; do
+          for script in updateReleaseVersions.mts releasePackageSelection.mts parsePackageJson.mts concatenateSha256.mts; do
             git show "$WORKFLOW_SHA:scripts/$script" > "scripts/$script"
           done
 
