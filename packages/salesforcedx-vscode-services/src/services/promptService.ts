@@ -26,6 +26,9 @@ import { PromptMessages } from './promptMessages.js';
 import { withCancellableProgress, withCancellableProgressReporting, withProgress } from './promptProgress.js';
 import { toUri } from './uriUtils.js';
 
+const normalizeDrivePrefix = (path: string) =>
+  path.replace(/^\/?([a-z]):/iu, (_match, drive: string) => `/${drive.toLowerCase()}:`);
+
 export const PromptServiceLayer = Layer.effect(
   PromptService,
   Effect.gen(function* () {
@@ -109,7 +112,8 @@ export const PromptServiceLayer = Layer.effect(
     const promptForOutputDir = Effect.fn('PromptService.promptForOutputDir')(function* (params: OutputDirectoryPrompt) {
       const customLabel = `$(file-directory) ${messages.chooseDifferentFolder}`;
       const workspaceUri = (yield* workspace.getWorkspaceInfoOrThrow()).uri;
-      const prefix = workspaceUri.path.endsWith('/') ? workspaceUri.path : `${workspaceUri.path}/`;
+      const workspacePath = normalizeDrivePrefix(workspaceUri.path);
+      const prefix = workspacePath.endsWith('/') ? workspacePath : `${workspacePath}/`;
       const candidates = [
         params.defaultUri,
         ...(params.folderName
@@ -127,7 +131,9 @@ export const PromptServiceLayer = Layer.effect(
         vscode.window.showQuickPick(
           [
             ...candidates.map((uri, index) => ({
-              label: uri.path.startsWith(prefix) ? uri.path.slice(prefix.length) : uri.path,
+              label: normalizeDrivePrefix(uri.path).startsWith(prefix)
+                ? normalizeDrivePrefix(uri.path).slice(prefix.length)
+                : uri.path,
               description: index === 0 ? params.description : undefined,
               uri
             })),
