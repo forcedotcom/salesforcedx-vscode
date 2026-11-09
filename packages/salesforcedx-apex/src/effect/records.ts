@@ -142,8 +142,7 @@ export const createRecord = Effect.fn('Apex.createRecord')(function* <A, I, R, F
   fields: F;
   idSchema: Schema.Schema<A, I, R>;
 }) {
-  const result = yield* requestSaveResult(operation, idSchema, () => connection.tooling.create(type, { ...fields }));
-  return { id: result.id };
+  return yield* requestSaveResult(operation, idSchema, () => connection.tooling.create(type, { ...fields }));
 });
 
 export const updateRecord = Effect.fn('Apex.updateRecord')(function* <A extends string, I, R, F extends object>({
@@ -161,9 +160,9 @@ export const updateRecord = Effect.fn('Apex.updateRecord')(function* <A extends 
   fields: F;
   idSchema: Schema.Schema<A, I, R>;
 }) {
-  yield* requestSaveResult(operation, idSchema, () =>
+  return yield* requestSaveResult(operation, idSchema, () =>
     connection.tooling.update(type, { ...fields, Id: recordId })
-  ).pipe(Effect.asVoid);
+  );
 });
 
 export const deleteRecord = Effect.fn('Apex.deleteRecord')(function* <A extends string, I, R>({
@@ -179,5 +178,5 @@ export const deleteRecord = Effect.fn('Apex.deleteRecord')(function* <A extends 
   recordId: A;
   idSchema: Schema.Schema<A, I, R>;
 }) {
-  yield* requestSaveResult(operation, idSchema, () => connection.tooling.delete(type, recordId)).pipe(Effect.asVoid);
+  return yield* requestSaveResult(operation, idSchema, () => connection.tooling.delete(type, recordId));
 });

@@ -8,7 +8,7 @@
 import type { Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
-import { queryRecords } from '../../src/effect/records';
+import { deleteRecord, queryRecords } from '../../src/effect/records';
 import { DebugLevelId } from '../../src/effect/schema/salesforceId';
 import { RecordSaveResultSchema } from '../../src/effect/schema/wire/records';
 
@@ -42,6 +42,27 @@ describe('RecordSaveResultSchema', () => {
     { success: false, id: null, errors: [] }
   ])('rejects malformed SaveResult branches: %j', result => {
     expect(Schema.decodeUnknownEither(saveResultSchema)(result)._tag).toBe('Left');
+  });
+});
+
+describe('deleteRecord', () => {
+  it('returns the validated SaveResult instead of discarding its ID', async () => {
+    const id = Schema.decodeUnknownSync(DebugLevelId)('7dl000000000001');
+    const deleteSpy = vi.fn(async () => ({ success: true as const, id, errors: [] }));
+    const connection = { tooling: { delete: deleteSpy } } as unknown as Connection;
+
+    const result = await Effect.runPromise(
+      deleteRecord({
+        connection,
+        operation: 'deleteDebugLevel',
+        type: 'DebugLevel',
+        recordId: id,
+        idSchema: DebugLevelId
+      })
+    );
+
+    expect(result).toEqual({ success: true, id, errors: [] });
+    expect(deleteSpy).toHaveBeenCalledExactlyOnceWith('DebugLevel', id);
   });
 });
 
