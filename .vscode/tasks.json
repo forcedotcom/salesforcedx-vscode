@@ -125,7 +125,7 @@
     },
     {
       "label": "Build Language Server Jar (Jorje)",
-      "command": "./scripts/build-jorje.js",
+      "command": "node ./scripts/buildJorje.mts",
       "type": "shell",
       "args": ["${input:needSigning}"]
     },
