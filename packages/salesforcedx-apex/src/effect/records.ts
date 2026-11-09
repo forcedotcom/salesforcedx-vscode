@@ -9,6 +9,7 @@ import type { Connection } from '@salesforce/core';
 import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
+import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import type { ParseError } from 'effect/ParseResult';
 import { isNotUndefined } from 'effect/Predicate';
@@ -117,10 +118,18 @@ export const queryRecords = Effect.fn('Apex.queryRecords')(function* <A, I>({
     record,
     tooling
   }).pipe(
-    Stream.mapError(error =>
-      error._tag === 'ApexQueryRequestError'
-        ? new ApexOperationError({ operation, message: error.message, cause: getErrorMessage(error.cause) })
-        : new ApexResponseDecodeError({ operation, message: error.message, cause: error.message })
+    Stream.mapError(
+      Match.type<ApexQueryRequestError | ParseError>().pipe(
+        Match.tag(
+          'ApexQueryRequestError',
+          error => new ApexOperationError({ operation, message: error.message, cause: getErrorMessage(error.cause) })
+        ),
+        Match.tag(
+          'ParseError',
+          error => new ApexResponseDecodeError({ operation, message: error.message, cause: error.message })
+        ),
+        Match.exhaustive
+      )
     ),
     Stream.flatMap(Stream.fromIterable),
     Stream.runCollect,

@@ -10,6 +10,7 @@ import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
+import * as Match from 'effect/Match';
 import * as Ref from 'effect/Ref';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
@@ -80,13 +81,27 @@ const abortTestRun = Effect.fn('Apex.abortTestRun')(function* (
     tooling: true
   }).pipe(
     Stream.mapError(error =>
-      error._tag === 'ApexQueryRequestError'
-        ? new ApexOperationError({ operation, message: error.message, cause: getErrorMessage(error.cause) })
-        : new ApexResponseDecodeError({
-            operation,
-            message: 'Invalid asynchronous test response',
-            cause: error.message
-          })
+      Match.value(error).pipe(
+        Match.tag(
+          'ApexQueryRequestError',
+          requestError =>
+            new ApexOperationError({
+              operation,
+              message: requestError.message,
+              cause: getErrorMessage(requestError.cause)
+            })
+        ),
+        Match.tag(
+          'ParseError',
+          decodeError =>
+            new ApexResponseDecodeError({
+              operation,
+              message: 'Invalid asynchronous test response',
+              cause: decodeError.message
+            })
+        ),
+        Match.exhaustive
+      )
     ),
     Stream.flatMap(Stream.fromIterable),
     Stream.filter(record => !HashSet.has(finishedStatuses, record.Status)),
