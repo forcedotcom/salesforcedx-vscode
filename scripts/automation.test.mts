@@ -437,14 +437,14 @@ describe('converted automation', () => {
   });
 
   it('prepends release notes idempotently from a nested working directory', () => {
-    expect(spawnSync('git', ['init', '--quiet'], { cwd: directory }).status).toBe(0);
+    const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')));
+    expect(spawnSync('git', ['init', '--quiet'], { cwd: directory, env }).status).toBe(0);
     write('CHANGELOG.md', '# 1.0.0 - January 1, 2026\n\nOld notes.\n');
     write('packages/salesforcedx-vscode/CHANGELOG.md', '# 1.2.0 - January 8, 2026\n\nNew notes.\n');
     const script = path.join(repoRoot, 'scripts/prependReleaseChangelog.mts');
     const options = { cwd: file('packages/salesforcedx-vscode'), encoding: 'utf8' } satisfies Parameters<
       typeof spawnSync
     >[2];
-    const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('GIT_')));
     expect(spawnSync(process.execPath, [script], { ...options, env }).status).toBe(0);
     const once = fs.readFileSync(file('CHANGELOG.md'), 'utf8');
     expect(once).toBe('# 1.2.0 - January 8, 2026\n\nNew notes.\n\n# 1.0.0 - January 1, 2026\n\nOld notes.\n');
