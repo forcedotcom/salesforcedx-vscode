@@ -19,32 +19,6 @@ import { OAS_EXTENSION_ID } from './constants';
 import { ApexExtensionUnavailable, InvalidJsonDocument } from './errors';
 import { oasDiagnosticCollection, type ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
 
-/** Reports a step message into an active progress notification. */
-export type ProgressReporter = (message: string) => Effect.Effect<void>;
-
-/**
- * Runs `body` inside a non-cancellable VS Code progress notification, giving it a `report` callback to update
- * the notification message per step. Without this, long operations (e.g. the REST LLM loop) show no sign of
- * life between the folder prompt and the final toast. The notification closes when the Effect settles.
- * @param title - The notification title shown for the whole operation.
- * @param body - Receives `report` and returns the Effect to run; its message updates the notification.
- * @param command - Command whose notification settings determine the progress location.
- */
-export const withSteppedProgress = <A, E, R>(
-  title: string,
-  body: (report: ProgressReporter) => Effect.Effect<A, E, R>,
-  command: string
-) =>
-  ExtensionProviderService.pipe(
-    Effect.flatMap(provider => provider.getServicesApi),
-    Effect.flatMap(api => api.services.PromptService),
-    Effect.flatMap(promptService =>
-      promptService.withCancellableProgressReportingFor({ command, title, options: { cancellable: false } })(progress =>
-        body(message => Effect.sync(() => progress.report({ message })))
-      )
-    )
-  );
-
 // REST annotation names that should be present on the class
 export const AA_CLASS_REST_ANNOTATIONS: string[] = ['RestResource'];
 
