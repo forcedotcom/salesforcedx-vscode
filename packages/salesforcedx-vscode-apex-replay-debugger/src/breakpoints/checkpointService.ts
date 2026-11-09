@@ -637,11 +637,9 @@ const createCheckpoints = Effect.fn('createCheckpoints')(function* () {
 
   const succeeded = yield* Effect.zipRight(
     Effect.sync(() => writeToDebuggerOutputWindow(`${nls.localize('long_command_start')} ${localizedProgressMessage}`)),
-    promptService.withProgress({
-      command: COMMAND,
-      title: localizedProgressMessage,
-      cancellable: false
-    })(progress => uploadCheckpoints(progress, localizedProgressMessage))
+    promptService.withProgressReporting({ command: COMMAND, title: localizedProgressMessage, cancellable: false })(
+      progress => uploadCheckpoints(progress, localizedProgressMessage)
+    )
   ).pipe(
     // The lock prevents deleting the underlying breakpoints attached to the
     // checkpoints while they're being uploaded into the org.

@@ -36,20 +36,15 @@ const buildServices = (opts: {
         : Effect.fail({ _tag: 'FailedToResolveSfProjectError' as const })
   },
   // gatherAuthParams pulls PromptService + (for the prod URL path) ProjectService; the test drives the
-  // org-type QuickPick + alias input box through the vscode mock, while this progress stub runs the builder.
+  // org-type QuickPick + alias input box through the vscode mock, while this progress stub runs the Effect.
   PromptService: Effect.succeed({
     considerUndefinedAsCancellation: (value: unknown) =>
       value === undefined ? Effect.fail({ _tag: 'UserCancellationError' as const }) : Effect.succeed(value),
     withProgress:
-      ({ title }: { command: string; title: string; cancellable: boolean }) =>
-      <A, E, R>(
-        build: (
-          progress: vscode.Progress<{ increment?: number; message?: string }>,
-          token: vscode.CancellationToken
-        ) => Effect.Effect<A, E, R>
-      ) => {
+      ({ title }: { title: string }) =>
+      <A, E, R>(work: Effect.Effect<A, E, R>) => {
         opts.captureProgressTitle(title);
-        return build({ report: vi.fn() }, undefined as never);
+        return work;
       }
   }),
   TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),

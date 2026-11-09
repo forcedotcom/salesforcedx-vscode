@@ -39,10 +39,20 @@ type ProgressTask<A, E, R> = (
   token: vscode.CancellationToken
 ) => Effect.Effect<A, E, R>;
 
-type ProgressOptions = {
+type ProgressPresentation = {
   readonly title: string;
   /** Whether VS Code shows a Cancel button. */
   readonly cancellable: boolean;
+};
+
+type CommandProgressOptions = ProgressPresentation & { readonly command: string; readonly location?: never };
+type LocationProgressOptions = ProgressPresentation & {
+  readonly command?: never;
+  readonly location?: vscode.ProgressLocation | undefined;
+};
+type ProgressOptions = CommandProgressOptions | LocationProgressOptions;
+
+type ProgressReportingOptions = ProgressOptions & {
   /**
    * Controls how a click on VS Code's Cancel button affects `build`.
    * Defaults to `true`: PromptService interrupts `build` and fails with `UserCancellationError`.
@@ -53,17 +63,6 @@ type ProgressOptions = {
    */
   readonly interruptOnCancel?: boolean;
 };
-type CommandProgressParams = ProgressOptions & {
-  /** Resolve this extension's notification-mode location when the returned Effect runs. */
-  readonly command: string;
-  readonly location?: never;
-};
-type LocationProgressParams = ProgressOptions & {
-  readonly command?: never;
-  /** Use a fixed VS Code location; defaults to `Notification`. */
-  readonly location?: vscode.ProgressLocation | undefined;
-};
-type ProgressParams = CommandProgressParams | LocationProgressParams;
 
 export class PromptService extends Effect.Service<PromptService>()('PromptService', {
   accessors: false,
@@ -237,19 +236,9 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
       return selected.uri!;
     });
 
-    /**
-     * Run an Effect under VS Code progress. Choose either `command` to use the calling extension's notification
-     * setting, or `location` for fixed placement. Command settings resolve when the returned Effect runs, not
-     * while the shared PromptService layer is constructed. The build callback always receives a progress
-     * reporter and cancellation token; ignore either when not needed.
-     *
-     * On Cancel, the default is to interrupt `build` and fail with {@link UserCancellationError}. Set
-     * `interruptOnCancel: false` when `build` must handle cancellation cooperatively and settle with its real
-     * outcome (for example, let a server request settle or stop between steps). The progress UI stays open until
-     * `build` settles. A real Effect fiber interruption always interrupts `build`, regardless of this option.
-     */
-    const runWithProgressAtLocation = <A, E, R>(
-      params: ProgressOptions,
+    /** Run work with progress at an already-resolved VS Code location. */
+    const runWithProgress = <A, E, R>(
+      params: ProgressPresentation & Pick<ProgressReportingOptions, 'interruptOnCancel'>,
       location: vscode.ProgressLocation,
       build: ProgressTask<A, E, R>
     ) =>
@@ -291,29 +280,49 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
         });
       });
 
+    /** Pipeable progress operator for Effects that don't need the reporter or cancellation token. */
     function withProgress(
-      params: CommandProgressParams
+      params: CommandProgressOptions
     ): <A, E, R>(
-      build: ProgressTask<A, E, R>
+      self: Effect.Effect<A, E, R>
     ) => Effect.Effect<A, E | UserCancellationError, R | NotificationModeService>;
     function withProgress(
-      params: LocationProgressParams
-    ): <A, E, R>(build: ProgressTask<A, E, R>) => Effect.Effect<A, E | UserCancellationError, R>;
-    function withProgress(
-      params: ProgressParams
-    ): <A, E, R>(
-      build: ProgressTask<A, E, R>
-    ) => Effect.Effect<A, E | UserCancellationError, R | NotificationModeService>;
-    // Overloads keep the NotificationModeService requirement conditional on command placement.
+      params: LocationProgressOptions
+    ): <A, E, R>(self: Effect.Effect<A, E, R>) => Effect.Effect<A, E | UserCancellationError, R>;
     // eslint-disable-next-line prefer-arrow/prefer-arrow-functions -- TypeScript overloads require a function declaration.
-    function withProgress(params: ProgressParams) {
-      return <A, E, R>(build: ProgressTask<A, E, R>) =>
-        params.command !== undefined
-          ? NotificationModeService.getProgressLocation(params.command).pipe(
-              // Look up command-specific settings in the caller's context, not while constructing shared PromptService.
-              Effect.flatMap(location => runWithProgressAtLocation(params, location, build))
-            )
-          : runWithProgressAtLocation(params, params.location ?? vscode.ProgressLocation.Notification, build);
+    function withProgress(params: ProgressOptions) {
+      return <A, E, R>(self: Effect.Effect<A, E, R>) => {
+        const run = (location: vscode.ProgressLocation) =>
+          runWithProgress({ ...params, interruptOnCancel: true }, location, () => self);
+        return params.command !== undefined
+          ? NotificationModeService.getProgressLocation(params.command).pipe(Effect.flatMap(run))
+          : run(params.location ?? vscode.ProgressLocation.Notification);
+      };
+    }
+
+    /**
+     * Reporting variant for work that needs progress updates or must respond to the cancellation token itself.
+     * By default Cancel interrupts the work and fails with {@link UserCancellationError}. Set
+     * `interruptOnCancel: false` when the callback must handle cancellation cooperatively and return its real
+     * outcome, such as awaiting an in-flight server request or stopping between steps. Progress remains open
+     * until the callback settles. Real Effect fiber interruption always interrupts the callback.
+     */
+    function withProgressReporting(
+      params: CommandProgressOptions & Pick<ProgressReportingOptions, 'interruptOnCancel'>
+    ): <A, E, R>(
+      build: ProgressTask<A, E, R>
+    ) => Effect.Effect<A, E | UserCancellationError, R | NotificationModeService>;
+    function withProgressReporting(
+      params: LocationProgressOptions & Pick<ProgressReportingOptions, 'interruptOnCancel'>
+    ): <A, E, R>(build: ProgressTask<A, E, R>) => Effect.Effect<A, E | UserCancellationError, R>;
+    // eslint-disable-next-line prefer-arrow/prefer-arrow-functions -- TypeScript overloads require a function declaration.
+    function withProgressReporting(params: ProgressReportingOptions) {
+      return <A, E, R>(build: ProgressTask<A, E, R>) => {
+        const run = (location: vscode.ProgressLocation) => runWithProgress(params, location, build);
+        return params.command !== undefined
+          ? NotificationModeService.getProgressLocation(params.command).pipe(Effect.flatMap(run))
+          : run(params.location ?? vscode.ProgressLocation.Notification);
+      };
     }
 
     return {
@@ -330,7 +339,8 @@ export class PromptService extends Effect.Service<PromptService>()('PromptServic
       considerEmptySelectionAsCancellation,
       /** Prompt user to select output directory from available package directories, or choose a custom one. */
       promptForOutputDir,
-      withProgress
+      withProgress,
+      withProgressReporting
     };
   })
 }) {}

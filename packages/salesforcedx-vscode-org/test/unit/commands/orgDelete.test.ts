@@ -45,8 +45,8 @@ const buildServices = (
       confirm ? Effect.void : Effect.fail(userCancellationError),
     withProgress:
       () =>
-      <A, E, R>(build: (progress: unknown, token: unknown) => Effect.Effect<A, E, R>) =>
-        build({ report: vi.fn() }, undefined as never)
+      <A, E, R>(work: Effect.Effect<A, E, R>) =>
+        work
   }),
   TerminalService: Effect.succeed({ simpleExec }),
   ChannelService: Effect.succeed({
@@ -175,8 +175,8 @@ const buildUsernameServices = (simpleExec: VitestMock) => ({
   PromptService: Effect.succeed({
     withProgress:
       () =>
-      <A, E, R>(build: (progress: unknown, token: unknown) => Effect.Effect<A, E, R>) =>
-        build({ report: vi.fn() }, undefined as never).pipe(
+      <A, E, R>(work: Effect.Effect<A, E, R>) =>
+        work.pipe(
           Effect.catchAllCause(cause =>
             Cause.isInterruptedOnly(cause)
               ? Effect.fail<UserCancellationError | E>(

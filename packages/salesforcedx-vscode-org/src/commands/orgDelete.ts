@@ -58,18 +58,20 @@ export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(func
   const targetOrgArgs = orgInfo.username ? ['--target-org', orgInfo.username] : [];
   const terminalService = yield* api.services.TerminalService;
   // wrap in a cancellable progress: clicking Cancel interrupts this fiber, killing the long-running sf child.
-  const output = yield* promptService.withProgress({
-    command: COMMAND,
-    title: nls.localize('org_delete_default_progress'),
-    cancellable: true
-  })(() =>
-    terminalService.simpleExec({
+  const output = yield* terminalService
+    .simpleExec({
       executable: 'sf',
       args: ['org', 'delete', deleteKind, ...targetOrgArgs, '--no-prompt'],
       parse: identity,
       timeout: DELETE_TIMEOUT
     })
-  );
+    .pipe(
+      promptService.withProgress({
+        command: COMMAND,
+        title: nls.localize('org_delete_default_progress'),
+        cancellable: true
+      })
+    );
 
   const channel = yield* api.services.ChannelService;
   yield* channel.appendToChannel(output || nls.localize('org_delete_success', orgInfo.username ?? ''));
@@ -126,11 +128,9 @@ export const orgDeleteUsernameCommand = Effect.fn('orgDeleteUsernameCommand')(fu
   // One cancellable progress around the WHOLE loop: Cancel interrupts this fiber, killing the running sf child
   // and stopping the loop. The interrupt is NOT a typed failure, so `Effect.partition`'s per-element
   // `Effect.either` does not capture it; it propagates as a `UserCancellationError` the command boundary swallows.
-  const [failed, successes] = yield* promptService.withProgress({
-    command: COMMAND,
-    title: nls.localize('org_delete_username_text'),
-    cancellable: true
-  })(() => Effect.partition(orgs, deleteOne, { concurrency: 1 }));
+  const [failed, successes] = yield* Effect.partition(orgs, deleteOne, { concurrency: 1 }).pipe(
+    promptService.withProgress({ command: COMMAND, title: nls.localize('org_delete_username_text'), cancellable: true })
+  );
 
   yield* Effect.forEach(
     successes,

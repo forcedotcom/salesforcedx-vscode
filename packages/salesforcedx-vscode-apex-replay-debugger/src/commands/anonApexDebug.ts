@@ -106,17 +106,12 @@ const COMMAND: ProgressAndSuccessCommandKey = 'Debug Anonymous Apex';
 export const anonApexDebugCommand = Effect.fn('ApexReplayDebugger.anonApexDebugCommand')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const prompts = yield* api.services.PromptService;
-  yield* prompts
-    .withProgress({
-      command: COMMAND,
-      title: nls.localize('apex_execute_text'),
-      cancellable: false
-    })(executeAnonApexDebug)
-    .pipe(
-      Effect.catchAll(error =>
-        Effect.sync(() => {
-          void vscode.window.showErrorMessage(nls.localize('apex_execute_debug_failed', String(error)));
-        })
-      )
-    );
+  yield* executeAnonApexDebug().pipe(
+    prompts.withProgress({ command: COMMAND, title: nls.localize('apex_execute_text'), cancellable: false }),
+    Effect.catchAll(error =>
+      Effect.sync(() => {
+        void vscode.window.showErrorMessage(nls.localize('apex_execute_debug_failed', String(error)));
+      })
+    )
+  );
 });

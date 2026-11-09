@@ -64,12 +64,12 @@ const providerLayer = (
           ProjectService: { getSfProject: () => Effect.void },
           ConfigService: makeConfigService(isvSid, isvUrl),
           ConnectionService: { getConnection: () => Effect.succeed(conn) },
-          // Run the progress builder with inert reporter/token values.
+          // Run the wrapped Effect directly.
           PromptService: Effect.succeed({
             withProgress:
               () =>
-              <A, E, R>(build: (progress: unknown, token: unknown) => Effect.Effect<A, E, R>) =>
-                build({ report: vi.fn() }, undefined as never)
+              <A, E, R>(work: Effect.Effect<A, E, R>) =>
+                work
           }),
           NotificationModeService,
           QueryService: Effect.succeed({

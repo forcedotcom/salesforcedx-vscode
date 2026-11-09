@@ -32,8 +32,8 @@ export class MetadataDeployError extends Schema.TaggedError<MetadataDeployError>
   cause: Schema.optional(Schema.Unknown)
 }) {}
 
-/** Request cancellation without interrupting polling; update tracking from the server's final outcome. */
-export const deployAndUpdateTracking = Effect.fn('MetadataDeployService.deployAndUpdateTracking')(function* (
+/** Request cancellation without interrupting polling; return the server's final outcome. */
+export const pollDeploy = Effect.fn('MetadataDeployService.pollDeploy')(function* (
   startDeploy: () => ReturnType<ComponentSet['deploy']>,
   token: vscode.CancellationToken
 ) {
@@ -71,15 +71,6 @@ export const deployAndUpdateTracking = Effect.fn('MetadataDeployService.deployAn
     deployOutcome.response?.status === RequestStatus.Canceling
   ) {
     return yield* new UserCancellationError();
-  }
-
-  if (
-    deployOutcome.response?.status === RequestStatus.Succeeded ||
-    deployOutcome.response?.status === RequestStatus.SucceededPartial
-  ) {
-    yield* SourceTrackingService.maybeUpdateTrackingFromDeploy(deployOutcome).pipe(
-      Effect.withSpan('MetadataDeployService.maybeUpdateTrackingFromDeploy')
-    );
   }
 
   return deployOutcome;
@@ -180,22 +171,26 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
 
       // Show progress before the initial deploy request: on a busy org that request can take many seconds,
       // and the user should see "Deploying" immediately.
-      const deployOutcome = yield* promptService.withProgress({
+      const deployOutcome = yield* promptService.withProgressReporting({
         title: getDeployMessage(components),
         location: options?.progressLocation,
         cancellable: true,
         interruptOnCancel: false
-      })((_, token) =>
-        deployAndUpdateTracking(() => components.deploy({ usernameOrConnection: connection }), token).pipe(
-          Effect.provideService(SourceTrackingService, trackingService)
-        )
-      );
+      })((_, token) => pollDeploy(() => components.deploy({ usernameOrConnection: connection }), token));
 
       if (
         deployOutcome.response?.status === RequestStatus.Succeeded ||
         deployOutcome.response?.status === RequestStatus.SucceededPartial
       ) {
-        yield* publishDeployNotifications(deployOutcome, Option.getOrUndefined(orgIdFromConnection(connection)));
+        yield* Effect.all(
+          [
+            trackingService
+              .maybeUpdateTrackingFromDeploy(deployOutcome)
+              .pipe(Effect.withSpan('MetadataDeployService.maybeUpdateTrackingFromDeploy')),
+            publishDeployNotifications(deployOutcome, Option.getOrUndefined(orgIdFromConnection(connection)))
+          ],
+          { concurrency: 'unbounded' }
+        );
       }
 
       return deployOutcome;

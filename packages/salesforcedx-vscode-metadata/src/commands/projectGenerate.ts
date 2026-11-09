@@ -168,21 +168,16 @@ export const sfProjectGenerateCommand = Effect.fn('sfProjectGenerateCommand')(fu
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [projectDirUri] });
 
   const parentPath = yield* fsService.uriToPath(parentUri);
-  yield* promptService.withProgress({
-    title: nls.localize('project_generate_text'),
-    cancellable: false
-  })(() =>
-    api.services.TemplateService.create({
-      cwd: parentPath,
-      templateType: api.services.TemplateType.Project,
-      options: {
-        projectname: projectName,
-        template: projectTemplate,
-        defaultpackagedir: 'force-app',
-        manifest: args?.manifest ?? false
-      }
-    })
-  );
+  yield* api.services.TemplateService.create({
+    cwd: parentPath,
+    templateType: api.services.TemplateType.Project,
+    options: {
+      projectname: projectName,
+      template: projectTemplate,
+      defaultpackagedir: 'force-app',
+      manifest: args?.manifest ?? false
+    }
+  }).pipe(promptService.withProgress({ title: nls.localize('project_generate_text'), cancellable: false }));
 
   return yield* Effect.promise(() => vscode.commands.executeCommand('vscode.openFolder', projectDirUri));
 });

@@ -188,12 +188,8 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
   const terminalService = yield* api.services.TerminalService;
   const notificationMode = yield* api.services.NotificationModeService;
   // wrap in a cancellable progress: clicking Cancel interrupts this fiber, killing the sf child.
-  const stdout = yield* promptService.withProgress({
-    command: COMMAND,
-    title: nls.localize('org_create_progress'),
-    cancellable: true
-  })(() =>
-    terminalService.simpleExec({
+  const stdout = yield* terminalService
+    .simpleExec({
       executable: 'sf',
       args: [
         'org',
@@ -211,7 +207,9 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
       parse: identity,
       timeout: CREATE_TIMEOUT
     })
-  );
+    .pipe(
+      promptService.withProgress({ command: COMMAND, title: nls.localize('org_create_progress'), cancellable: true })
+    );
 
   const response = yield* decodeOrgCreateResponse(stdout);
 

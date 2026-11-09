@@ -158,7 +158,7 @@ export const replayInOrder = Effect.fn('ApexReplayDebugger.replayInOrder')(funct
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
   yield* promptService
-    .withProgress({
+    .withProgressReporting({
       title: nls.localize('debug_test_replay_progress_title'),
       location: vscode.ProgressLocation.Notification,
       cancellable: true,
@@ -262,13 +262,14 @@ const setupAndDebugTests = Effect.fn('ApexReplayDebugger.setupAndDebugTests')(fu
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
-  yield* promptService
-    .withProgress({
+  yield* debugTests(targets).pipe(
+    promptService.withProgress({
       command: COMMAND,
       title: `Running ${nls.localize('debug_test_exec_name')}`,
       cancellable: false
-    })(() => debugTests(targets))
-    .pipe(Effect.catchAllCause(reportDebugTestFailure));
+    }),
+    Effect.catchAllCause(reportDebugTestFailure)
+  );
 });
 
 /**

@@ -32,17 +32,12 @@ const buildServices = (opts: {
       opts.isProject ? Effect.succeed({}) : Effect.fail({ _tag: 'FailedToResolveSfProjectError' as const })
   },
   TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
-  // Run the progress builder with inert reporter/token values.
+  // Run the wrapped Effect directly.
   PromptService: Effect.succeed({
     withProgress:
       () =>
-      <A, E, R>(
-        build: (
-          progress: vscode.Progress<{ increment?: number; message?: string }>,
-          token: vscode.CancellationToken
-        ) => Effect.Effect<A, E, R>
-      ) =>
-        build({ report: vi.fn() }, undefined as never)
+      <A, E, R>(work: Effect.Effect<A, E, R>) =>
+        work
   }),
   ChannelService: Effect.succeed({
     appendToChannel: (msg: string) =>

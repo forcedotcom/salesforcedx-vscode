@@ -58,7 +58,7 @@ const executeRefresh = Effect.fn('executeRefresh')(function* (
   // Run the artifact effect in the current fiber (via the shared operator) so a typed FsServiceError
   // reaches the outer command error handler instead of being turned into a defect by a nested runtime.
   yield* promptService
-    .withProgress({
+    .withProgressReporting({
       title: nls.localize('sobjects_refresh'),
       location,
       cancellable: true

@@ -90,7 +90,7 @@ describe('PromptService command-aware progress', () => {
 
       for (const location of [vscode.ProgressLocation.Notification, vscode.ProgressLocation.Window] as const) {
         getProgressLocation.mockImplementation(() => Effect.succeed(location));
-        expect(await Effect.runPromise(withProgress(() => Effect.succeed(42)).pipe(run))).toBe(42);
+        expect(await Effect.runPromise(Effect.succeed(42).pipe(withProgress, run))).toBe(42);
         await progressClosed;
         expect(vscode.window.withProgress).toHaveBeenLastCalledWith(
           { title, location, cancellable },
@@ -98,7 +98,7 @@ describe('PromptService command-aware progress', () => {
         );
       }
       const error = { _tag: 'WorkFailed', message: 'failure' };
-      const exit = await Effect.runPromiseExit(withProgress(() => Effect.fail(error)).pipe(run));
+      const exit = await Effect.runPromiseExit(Effect.fail(error).pipe(withProgress, run));
       await progressClosed;
       expect(Exit.isFailure(exit) && Cause.failureOption(exit.cause)).toEqual(Option.some(error));
       expect(getProgressLocation).toHaveBeenCalledTimes(3);
@@ -110,7 +110,7 @@ describe('PromptService command-aware progress', () => {
     getProgressLocation.mockImplementation(() => Effect.succeed(vscode.ProgressLocation.Window));
     const result = await Effect.runPromise(
       Effect.flatMap(PromptService, prompts =>
-        prompts.withProgress({ title, location: vscode.ProgressLocation.Window, cancellable: false })(
+        prompts.withProgressReporting({ title, location: vscode.ProgressLocation.Window, cancellable: false })(
           (progress, token) =>
             Effect.sync(() => {
               progress.report({ message: 'step', increment: 25 });
@@ -138,7 +138,7 @@ describe('PromptService command-aware progress', () => {
         Effect.andThen(Effect.never),
         Effect.ensuring(Effect.sync(cleanup))
       );
-      return prompts.withProgress({ command, title, cancellable: true })(() => work);
+      return work.pipe(prompts.withProgress({ command, title, cancellable: true }));
     }).pipe(run, Effect.runFork);
     await Effect.runPromise(Deferred.await(started));
     tokenSource.cancel();
@@ -155,12 +155,7 @@ describe('PromptService command-aware progress', () => {
     const finish = await Effect.runPromise(Deferred.make<string>());
     const cancelled = vi.fn();
     const fiber = Effect.flatMap(PromptService, prompts =>
-      prompts.withProgress({
-        title,
-        command,
-        cancellable: true,
-        interruptOnCancel: false
-      })((_, token) =>
+      prompts.withProgressReporting({ command, title, cancellable: true, interruptOnCancel: false })((_, token) =>
         Effect.acquireUseRelease(
           Effect.sync(() => token.onCancellationRequested(cancelled)),
           () => Deferred.succeed(started, undefined).pipe(Effect.andThen(Deferred.await(finish))),
@@ -178,7 +173,7 @@ describe('PromptService command-aware progress', () => {
   });
 });
 
-describe('PromptService.withProgress', () => {
+describe('PromptService fixed-location progress', () => {
   afterEach(() => {
     vi.clearAllMocks();
   });
@@ -192,7 +187,7 @@ describe('PromptService.withProgress', () => {
 
     const exit = await Effect.runPromiseExit(
       Effect.flatMap(PromptService, svc =>
-        svc.withProgress({ title: testTitle('Working'), cancellable: true })((progress, token) =>
+        svc.withProgressReporting({ title: testTitle('Working'), cancellable: true })((progress, token) =>
           Effect.sync(() => {
             progress.report({ increment: 50 });
             return token.isCancellationRequested ? 'cancelled' : 'done';
@@ -216,7 +211,7 @@ describe('PromptService.withProgress', () => {
 
     const exit = await Effect.runPromiseExit(
       Effect.flatMap(PromptService, svc =>
-        svc.withProgress({ title: testTitle('Working'), cancellable: true })(() => Effect.never)
+        Effect.never.pipe(svc.withProgress({ title: testTitle('Working'), cancellable: true }))
       ).pipe(Effect.provide(PromptService.Default))
     );
 

@@ -54,23 +54,22 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (
     queryService: api.services.QueryService
   }).pipe(
     Effect.flatMap(({ maxRows, promptService, queryService }) =>
-      promptService.withProgress({
-        command: COMMAND,
-        title: nls.localize('progress_running_query'),
-        cancellable: false
-      })(() =>
-        queryService.query({ ...query, tooling: useTooling }, JsonObject).pipe(
-          Effect.flatMap(({ totalSize, records }) =>
-            Stream.take(records, maxRows).pipe(
-              Stream.runCollect,
-              Effect.map(chunk => ({
-                done: true as const,
-                totalSize,
-                records: [...Chunk.toReadonlyArray(chunk)]
-              }))
-            )
+      queryService.query({ ...query, tooling: useTooling }, JsonObject).pipe(
+        Effect.flatMap(({ totalSize, records }) =>
+          Stream.take(records, maxRows).pipe(
+            Stream.runCollect,
+            Effect.map(chunk => ({
+              done: true as const,
+              totalSize,
+              records: [...Chunk.toReadonlyArray(chunk)]
+            }))
           )
-        )
+        ),
+        promptService.withProgress({
+          command: COMMAND,
+          title: nls.localize('progress_running_query'),
+          cancellable: false
+        })
       )
     )
   );
@@ -105,6 +104,7 @@ export const executeDataQuery = Effect.fn('executeDataQuery')(function* (
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.services.ChannelService;
+  const promptService = yield* api.services.PromptService;
 
   if (yield* (yield* api.services.SettingsService).getValueOrElse(SFDX_CORE_SECTION, 'clearOutputTab', false)) {
     yield* channelService.clearChannel;
@@ -127,6 +127,7 @@ export const executeDataQuery = Effect.fn('executeDataQuery')(function* (
     yield* channelService.showChannel;
     yield* saveResultsToCSV(queryResult);
   }).pipe(
+    promptService.withProgress({ command: COMMAND, title: nls.localize('progress_running_query'), cancellable: false }),
     Effect.catchAllCause(cause =>
       cause.pipe(
         Cause.squash,

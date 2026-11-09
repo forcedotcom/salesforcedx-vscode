@@ -9,11 +9,10 @@ import { type ComponentSet, RequestStatus, type DeployResult } from '@salesforce
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as vscode from 'vscode';
-import { deployAndUpdateTracking } from '../../../src/core/metadataDeployService';
-import { SourceTrackingService } from '../../../src/core/sourceTrackingService';
+import { pollDeploy } from '../../../src/core/metadataDeployService';
 import { UserCancellationError } from '../../../src/vscode/prompts/promptService';
 
-describe('deployAndUpdateTracking cancellation', () => {
+describe('pollDeploy cancellation', () => {
   let tokenSource: vscode.CancellationTokenSource;
 
   beforeEach(() => {
@@ -45,21 +44,17 @@ describe('deployAndUpdateTracking cancellation', () => {
         RequestStatus.Canceled,
         RequestStatus.Canceling,
         RequestStatus.Failed
-      ])('uses server outcome %s to decide whether to update tracking', async status => {
+      ])('preserves server outcome %s after Cancel', async status => {
         const { promise: deployRequest, resolve: finishStart } =
           Promise.withResolvers<Awaited<ReturnType<ComponentSet['deploy']>>>();
         const { promise: starting, resolve: startedDeploy } = Promise.withResolvers<void>();
         const { promise: serverResult, resolve: finishDeploy } = Promise.withResolvers<DeployResult>();
         const { promise: polling, resolve: startedPolling } = Promise.withResolvers<void>();
         const cancel = vi.fn(cancelRequest);
-        const updateTracking = vi.fn(() => Effect.void);
-        const result = deployAndUpdateTracking(() => {
+        const result = pollDeploy(() => {
           startedDeploy();
           return deployRequest;
-        }, tokenSource.token).pipe(
-          Effect.provideService(SourceTrackingService, { maybeUpdateTrackingFromDeploy: updateTracking } as never),
-          Effect.runPromiseExit
-        );
+        }, tokenSource.token).pipe(Effect.runPromiseExit);
         await starting;
         if (timing === 'before polling') cancelProgress();
         finishStart({
@@ -72,7 +67,6 @@ describe('deployAndUpdateTracking cancellation', () => {
         await polling;
         if (timing === 'during polling') cancelProgress();
         expect(cancel).toHaveBeenCalledOnce();
-        expect(updateTracking).not.toHaveBeenCalled();
         const outcome = { response: { status }, getFileResponses: () => [] } as unknown as DeployResult;
         finishDeploy(outcome);
         const exit = await result;
@@ -80,11 +74,6 @@ describe('deployAndUpdateTracking cancellation', () => {
           expect(exit).toEqual(Exit.fail(new UserCancellationError()));
         } else {
           expect(exit).toEqual(Exit.succeed(outcome));
-        }
-        if (status === RequestStatus.Succeeded || status === RequestStatus.SucceededPartial) {
-          expect(updateTracking).toHaveBeenCalledExactlyOnceWith(outcome);
-        } else {
-          expect(updateTracking).not.toHaveBeenCalled();
         }
       });
     });

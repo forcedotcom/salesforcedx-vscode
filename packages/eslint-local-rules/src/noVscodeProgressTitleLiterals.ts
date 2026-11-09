@@ -15,11 +15,11 @@ import {
   isVscodeWindowMethodCall
 } from './astUtils';
 
-/** Check PromptService progress calls; the canonical `withProgress` API takes an options object. */
+/** Check the title in PromptService's progress operators. */
 const isPromptServiceWithProgressCall = (node: TSESTree.CallExpression): boolean =>
   node.callee.type === AST_NODE_TYPES.MemberExpression &&
   node.callee.property.type === AST_NODE_TYPES.Identifier &&
-  node.callee.property.name === 'withProgress' &&
+  ['withProgress', 'withProgressReporting'].includes(node.callee.property.name) &&
   !isVscodeWindowMethodCall(node, 'withProgress');
 
 export const noVscodeProgressTitleLiterals = RuleCreator.withoutDocs({
@@ -67,7 +67,7 @@ export const noVscodeProgressTitleLiterals = RuleCreator.withoutDocs({
           optionsArg?.type === AST_NODE_TYPES.ObjectExpression
             ? findObjectProperty(optionsArg, 'title')?.value
             : undefined;
-        if (!titleArg) return;
+        if (!titleArg || titleArg.type === AST_NODE_TYPES.AssignmentPattern) return;
 
         if (isStringLiteralOrTemplateWithoutNls(titleArg as TSESTree.Expression)) {
           context.report({ node: titleArg, messageId: 'noLiteral' });

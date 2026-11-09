@@ -12,7 +12,7 @@ const ruleTester = new RuleTester();
 
 ruleTester.run('no-vscode-with-progress', noVscodeWithProgress, {
   valid: [
-    { code: 'promptService.withProgress({ command, title, cancellable: true })(build);' },
+    { code: 'promptService.withProgressReporting({ command, title, cancellable: true })(build);' },
     { code: 'vscode.window.showQuickPick(items);' },
     {
       code: 'vscode.window.withProgress(options, task);',

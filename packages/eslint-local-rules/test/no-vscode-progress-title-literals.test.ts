@@ -13,6 +13,9 @@ const ruleTester = new RuleTester();
 ruleTester.run('no-vscode-progress-title-literals', noVscodeProgressTitleLiterals, {
   valid: [
     {
+      code: `promptService.withProgressReporting({ command: 'SFDX: Retrieve', title: nls.localize('fetching_metadata'), cancellable: true })(work);`
+    },
+    {
       code: `promptService.withProgress({ command: 'SFDX: Retrieve', title: nls.localize('fetching_metadata'), cancellable: false })(fetchMetadata);`
     },
     {
@@ -41,11 +44,15 @@ ruleTester.run('no-vscode-progress-title-literals', noVscodeProgressTitleLiteral
       options: []
     },
     {
-      code: `const title = nls.localize('fetching_metadata'); promptService.withProgress({ title, cancellable: false })(fetchMetadata);`,
+      code: `const title = nls.localize('fetching_metadata'); promptService.withProgress({ title, location, cancellable: false })(fetchMetadata);`,
       options: []
     }
   ],
   invalid: [
+    ...['withProgress', 'withProgressReporting'].map(method => ({
+      code: `promptService.${method}({ command, title: 'Fetching metadata', cancellable: true })(work);`,
+      errors: [{ messageId: 'noLiteral' as const }]
+    })),
     {
       code: `promptService.withProgress({ command, title: 'Fetching metadata', cancellable: false })(fetchMetadata);`,
       errors: [{ messageId: 'noLiteral' }]
@@ -66,7 +73,7 @@ ruleTester.run('no-vscode-progress-title-literals', noVscodeProgressTitleLiteral
       errors: [{ messageId: 'noLiteral' }]
     },
     {
-      code: `const t = 'Fetching metadata…'; promptService.withProgress({ title: t, cancellable: false })(fetchMetadata);`,
+      code: `const t = 'Fetching metadata…'; promptService.withProgress(t)(fetchMetadata);`,
       errors: [{ messageId: 'noLiteral' }]
     }
   ]

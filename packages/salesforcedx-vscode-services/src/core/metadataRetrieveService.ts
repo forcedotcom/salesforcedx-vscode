@@ -226,22 +226,17 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
           }),
         catch: e => new MetadataRetrieveError(unknownToErrorCause(e))
       });
-      const retrieveOutcome = yield* promptService.withProgress({
-        title: input.title,
-        location: input.progressLocation,
-        cancellable: true
-      })(() =>
-        Effect.tryPromise({
-          try: async () => {
-            await retrieveOperation.start();
-            return await retrieveOperation.pollStatus();
-          },
-          catch: e => new MetadataRetrieveError(unknownToErrorCause(e))
-        }).pipe(
-          Effect.tapError(e => e.pipe(Cause.fail, Effect.logError)),
-          Effect.withSpan('retrieve (API call)'),
-          Effect.onInterrupt(() => Effect.promise(() => retrieveOperation.cancel()).pipe(Effect.asVoid))
-        )
+      const retrieveOutcome = yield* Effect.tryPromise({
+        try: async () => {
+          await retrieveOperation.start();
+          return await retrieveOperation.pollStatus();
+        },
+        catch: e => new MetadataRetrieveError(unknownToErrorCause(e))
+      }).pipe(
+        Effect.tapError(e => e.pipe(Cause.fail, Effect.logError)),
+        Effect.withSpan('retrieve (API call)'),
+        Effect.onInterrupt(() => Effect.promise(() => retrieveOperation.cancel()).pipe(Effect.asVoid)),
+        promptService.withProgress({ title: input.title, location: input.progressLocation, cancellable: true })
       );
 
       yield* Effect.annotateCurrentSpan(retrieveSpanAttributes(retrieveOutcome));

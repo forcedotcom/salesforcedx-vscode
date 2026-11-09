@@ -32,8 +32,8 @@ describe('SOQL Builder Run Query', () => {
         PromptService: Effect.succeed({
           withProgress:
             () =>
-            <A, E, R>(build: (progress: unknown, token: unknown) => Effect.Effect<A, E, R>) =>
-              build({ report: vi.fn() }, undefined as never)
+            <A, E, R>(work: Effect.Effect<A, E, R>) =>
+              work
         }),
         NotificationModeService: Effect.succeed({
           getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification)

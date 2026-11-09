@@ -59,8 +59,8 @@ const buildServices = (opts: Services) => ({
     // identity: run the wrapped effect directly (no real vscode progress in Vitest)
     withProgress:
       () =>
-      <A, E, R>(build: (progress: unknown, token: unknown) => Effect.Effect<A, E, R>) =>
-        build({ report: vi.fn() }, undefined as never)
+      <A, E, R>(work: Effect.Effect<A, E, R>) =>
+        work
   }),
   TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
   ChannelService: Effect.succeed({

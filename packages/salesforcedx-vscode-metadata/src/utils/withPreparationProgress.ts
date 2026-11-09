@@ -29,8 +29,8 @@ const titleKey = (op: OperationType) =>
  * preparation effect runs — so users see feedback the moment they invoke the command.
  *
  * **Two-phase notification behavior:**
- * 1. `"Preparing {deployment|retrieval|deletion}..."` — shown while the ComponentSet is built by the upstream `prepare` effect.
- * 2. `"Checking for conflicts..."` — shown only when `detectConflictsFn` is provided and the ComponentSet was built successfully.
+ * 1. `"Preparing {deployment|retrieval|deletion}..."` — shown as the progress title while the ComponentSet is built.
+ * 2. `"Checking for conflicts..."` — reported only when `detectConflictsFn` is provided and the ComponentSet was built successfully.
  *
  * The notification closes automatically when the preparation completes (success or failure)
  * or when the user presses the Cancel button.
@@ -80,18 +80,21 @@ export const withPreparationProgress =
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
         const promptService = yield* api.services.PromptService;
-        const progressParams = command
-          ? { command, title: '', cancellable: true as const }
-          : { location: vscode.ProgressLocation.Notification, title: '', cancellable: true as const };
-        return yield* promptService.withProgress(progressParams)(progress =>
+        const title = nls.localize(titleKey(operationType));
+        const build = (progress: vscode.Progress<{ increment?: number; message?: string }>) =>
           Effect.gen(function* () {
-            yield* Effect.sync(() => progress.report({ message: nls.localize(titleKey(operationType)) }));
             const cs = yield* prepare;
             if (detectConflictsFn) {
               yield* Effect.sync(() => progress.report({ message: nls.localize('checking_for_conflicts') }));
               yield* detectConflictsFn(cs);
             }
             return cs;
-          })
-        );
+          });
+        return yield* command
+          ? promptService.withProgressReporting({ command, title, cancellable: true })(build)
+          : promptService.withProgressReporting({
+              location: vscode.ProgressLocation.Notification,
+              title,
+              cancellable: true
+            })(build);
       });

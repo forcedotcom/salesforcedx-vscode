@@ -80,31 +80,34 @@ const setupWithProgress = () => {
 };
 
 describe('withPreparationProgress', () => {
-  describe('initial progress message', () => {
-    it('reports "Preparing deployment..." for deploy', async () => {
-      const { progress } = setupWithProgress();
+  describe('progress title', () => {
+    it('shows "Preparing deployment..." for deploy', async () => {
+      setupWithProgress();
       const cs = makeCS();
       await runWithServices(Effect.succeed(cs).pipe(withPreparationProgress('deploy')));
-      expect(progress.report).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining('deployment') })
+      expect(vscode.window.withProgress).toHaveBeenCalledWith(
+        expect.objectContaining({ title: expect.stringContaining('deployment') }),
+        expect.any(Function)
       );
     });
 
-    it('reports "Preparing retrieval..." for retrieve', async () => {
-      const { progress } = setupWithProgress();
+    it('shows "Preparing retrieval..." for retrieve', async () => {
+      setupWithProgress();
       const cs = makeCS();
       await runWithServices(Effect.succeed(cs).pipe(withPreparationProgress('retrieve')));
-      expect(progress.report).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining('retrieval') })
+      expect(vscode.window.withProgress).toHaveBeenCalledWith(
+        expect.objectContaining({ title: expect.stringContaining('retrieval') }),
+        expect.any(Function)
       );
     });
 
-    it('reports "Preparing deletion..." for delete', async () => {
-      const { progress } = setupWithProgress();
+    it('shows "Preparing deletion..." for delete', async () => {
+      setupWithProgress();
       const cs = makeCS();
       await runWithServices(Effect.succeed(cs).pipe(withPreparationProgress('delete')));
-      expect(progress.report).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining('deletion') })
+      expect(vscode.window.withProgress).toHaveBeenCalledWith(
+        expect.objectContaining({ title: expect.stringContaining('deletion') }),
+        expect.any(Function)
       );
     });
   });
@@ -148,13 +151,13 @@ describe('withPreparationProgress', () => {
     expect(messageIdx).toBeLessThan(detectIdx);
   });
 
-  it('does not call detectConflictsFn when not provided', async () => {
+  it('does not report a phase update when detectConflictsFn is not provided', async () => {
     const { progress } = setupWithProgress();
     const cs = makeCS();
     const result = await runWithServices(Effect.succeed(cs).pipe(withPreparationProgress('deploy')));
 
     expect(result).toBe(cs);
-    expect(progress.report).toHaveBeenCalledTimes(1);
+    expect(progress.report).not.toHaveBeenCalled();
   });
 
   it('propagates prepare failures', async () => {
