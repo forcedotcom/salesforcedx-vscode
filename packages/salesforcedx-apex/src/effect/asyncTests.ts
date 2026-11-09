@@ -74,17 +74,10 @@ const abortTestRun = Effect.fn('Apex.abortTestRun')(function* (
   // Fetch all pages before marking queue items Aborted; those updates can change later query results.
   yield* queryRecordPages({
     connection,
+    operation,
     soql: `SELECT Id, Status FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`,
     record: queueRecordSchema,
-    tooling: true,
-    onRequestError: cause =>
-      new ApexOperationError({ operation, message: getErrorMessage(cause), cause: getErrorMessage(cause) }),
-    onDecodeError: cause =>
-      new ApexResponseDecodeError({
-        operation,
-        message: 'Invalid asynchronous test response',
-        cause: getErrorMessage(cause)
-      })
+    tooling: true
   }).pipe(
     Stream.flatMap(Stream.fromIterable),
     Stream.filter(record => !HashSet.has(finishedStatuses, record.Status)),

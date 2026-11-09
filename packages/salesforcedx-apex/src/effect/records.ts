@@ -10,7 +10,6 @@ import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import type { ParseError } from 'effect/ParseResult';
 import { isNotUndefined, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -18,37 +17,54 @@ import { ApexOperationError, ApexResponseDecodeError, ApexToolingMutationError }
 import { QueryPageSchema } from './schema/queryPage';
 import { ToolingMutationResponseSchema } from './schema/wire/records';
 
+const requestErrorMessage = (cause: unknown): string => {
+  if (cause instanceof Error) return cause.message;
+  if (typeof cause === 'object' && cause !== null && 'message' in cause && typeof cause.message === 'string') {
+    return cause.message;
+  }
+  return getErrorMessage(cause);
+};
+
 /** Streams decoded pages for either REST or Tooling queries, following each continuation URL. */
-export const queryRecordPages = <A, I, ERequest, EDecode>({
+export const queryRecordPages = <A, I>({
   connection,
+  operation,
   soql,
   record,
-  tooling = false,
-  onRequestError,
-  onDecodeError
+  tooling = false
 }: {
   connection: Connection;
+  operation: string;
   soql: string;
   record: Schema.Schema<A, I, never>;
   tooling?: boolean;
-  onRequestError: (cause: unknown) => ERequest;
-  onDecodeError: (cause: ParseError) => EDecode;
-}): Stream.Stream<readonly A[], ERequest | EDecode> => {
+}): Stream.Stream<readonly A[], ApexOperationError | ApexResponseDecodeError> => {
   const queryConnection = tooling ? connection.tooling : connection;
   const pageSchema = QueryPageSchema(record);
-  return Stream.paginateEffect<string | undefined, readonly A[], ERequest | EDecode, never>(undefined, nextRecordsUrl =>
-    Effect.tryPromise({
-      try: () =>
-        Promise.resolve(
-          isNotUndefined(nextRecordsUrl) ? queryConnection.queryMore(nextRecordsUrl) : queryConnection.query(soql)
+  return Stream.paginateEffect<string | undefined, readonly A[], ApexOperationError | ApexResponseDecodeError, never>(
+    undefined,
+    nextRecordsUrl =>
+      Effect.tryPromise({
+        try: () =>
+          Promise.resolve(
+            isNotUndefined(nextRecordsUrl) ? queryConnection.queryMore(nextRecordsUrl) : queryConnection.query(soql)
+          ),
+        catch: cause => {
+          const message = requestErrorMessage(cause);
+          return new ApexOperationError({ operation, message, cause: message });
+        }
+      }).pipe(
+        Effect.flatMap(response =>
+          Schema.decodeUnknown(pageSchema)(response).pipe(
+            Effect.mapError(
+              cause => new ApexResponseDecodeError({ operation, message: cause.message, cause: cause.message })
+            )
+          )
         ),
-      catch: onRequestError
-    }).pipe(
-      Effect.flatMap(response => Schema.decodeUnknown(pageSchema)(response).pipe(Effect.mapError(onDecodeError))),
-      Effect.map(
-        page => [page.records, page.done ? Option.none<string>() : Option.fromNullable(page.nextRecordsUrl)] as const
+        Effect.map(
+          page => [page.records, page.done ? Option.none<string>() : Option.fromNullable(page.nextRecordsUrl)] as const
+        )
       )
-    )
   );
 };
 
@@ -96,13 +112,10 @@ export const queryRecords = Effect.fn('Apex.queryRecords')(function* <A, I>({
 }) {
   return yield* queryRecordPages({
     connection,
+    operation,
     soql,
     record,
-    tooling,
-    onRequestError: cause =>
-      new ApexOperationError({ operation, message: getErrorMessage(cause), cause: getErrorMessage(cause) }),
-    onDecodeError: cause =>
-      new ApexResponseDecodeError({ operation, message: 'Invalid query response', cause: cause.message })
+    tooling
   }).pipe(collectQueryPages);
 });
 

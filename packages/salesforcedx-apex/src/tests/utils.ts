@@ -29,11 +29,10 @@ export const queryAll = async <R extends JsforceRecord>(
   const result = await Effect.runPromise(
     queryRecordPages({
       connection,
+      operation: 'queryAll',
       soql: query,
       record: Schema.Unknown,
-      tooling,
-      onRequestError: cause => cause,
-      onDecodeError: cause => cause
+      tooling
     }).pipe(collectQueryPages, Effect.either)
   );
   return Either.match(result, {

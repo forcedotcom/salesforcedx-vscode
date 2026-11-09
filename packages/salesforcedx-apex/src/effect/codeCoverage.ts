@@ -6,14 +6,12 @@
  */
 
 import type { Connection } from '@salesforce/core';
-import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import type * as Schema from 'effect/Schema';
 import { QUERY_RECORD_LIMIT } from '../tests/constants';
 import { type AggregateCodeCoverageResult, type PerClassCoverage } from './coverageSchemas';
-import { collectQueryPages, queryRecordPages } from './records';
-import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
+import { queryRecords } from './records';
 import {
   ApexCodeCoverageAggregateRecordSchema,
   ApexCodeCoverageRecordSchema,
@@ -37,16 +35,13 @@ const queryCoverageRecords = <A, I>(
   recordSchema: Schema.Schema<A, I, never>,
   operation: string
 ) =>
-  queryRecordPages({
+  queryRecords({
     connection,
+    operation,
     soql: query,
     record: recordSchema,
-    tooling: true,
-    onRequestError: cause =>
-      new ApexOperationError({ operation, message: getErrorMessage(cause), cause: getErrorMessage(cause) }),
-    onDecodeError: cause =>
-      new ApexResponseDecodeError({ operation, message: cause.message, cause: getErrorMessage(cause) })
-  }).pipe(collectQueryPages);
+    tooling: true
+  });
 
 const percentage = (covered: number, total: number): string =>
   covered > 0 ? `${((covered / total) * 100).toFixed()}%` : '0%';

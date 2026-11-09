@@ -47,12 +47,11 @@ const buildListLogsQuery = (options?: DecodedListLogsOptions): string => {
 const streamLogPagesForSoql = (connection: Connection, soql: string) =>
   queryRecordPages({
     connection,
+    operation: 'listLogs',
     soql,
     record: ApexLogListItem,
-    tooling: true,
-    onRequestError: cause => new ApexLogQueryError({ soql, message: getErrorMessage(cause), cause }),
-    onDecodeError: cause => cause
-  });
+    tooling: true
+  }).pipe(Stream.mapError(error => new ApexLogQueryError({ soql, message: error.message, cause: error })));
 
 const streamLogPages = (connection: Connection, options?: ListLogsOptions) =>
   Schema.decodeUnknown(ListLogsOptionsSchema)(options ?? {}).pipe(

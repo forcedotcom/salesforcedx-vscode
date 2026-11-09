@@ -12,9 +12,7 @@ import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import { causeMessage } from './errors';
-import { collectQueryPages, createRecord, queryRecordPages, queryRecords, toolingMutation } from './records';
-import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
+import { createRecord, queryRecords, toolingMutation } from './records';
 import { DebugLevelId, TraceFlagId, type UserId } from './schema/salesforceId';
 import {
   DebugLevelRecordSchema,
@@ -29,20 +27,13 @@ import {
 const quote = (value: string): string => value.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
 
 export const getTraceFlags = Effect.fn('Apex.getTraceFlags')((connection: Connection) =>
-  queryRecordPages({
+  queryRecords({
     connection,
+    operation: 'getTraceFlags',
     soql: 'SELECT Id, LogType, StartDate, ExpirationDate, DebugLevelId, DebugLevel.DeveloperName, TracedEntityId FROM TraceFlag',
     record: TraceFlagRecordSchema,
-    tooling: true,
-    onRequestError: cause =>
-      new ApexOperationError({ operation: 'getTraceFlags', message: causeMessage(cause), cause: causeMessage(cause) }),
-    onDecodeError: cause =>
-      new ApexResponseDecodeError({
-        operation: 'getTraceFlags',
-        message: 'Invalid Tooling query response',
-        cause: cause.message
-      })
-  }).pipe(collectQueryPages)
+    tooling: true
+  })
 );
 
 /** Finds the newest matching flag. CLI policy selects CreatedDate; other callers select ExpirationDate. */
@@ -63,20 +54,13 @@ export const getTraceFlagForUser = Effect.fn('Apex.getTraceFlagForUser')(
 );
 
 export const getDebugLevels = Effect.fn('Apex.getDebugLevels')((connection: Connection) =>
-  queryRecordPages({
+  queryRecords({
     connection,
+    operation: 'getDebugLevels',
     soql: `SELECT ${Object.keys(DebugLevelRecordSchema.fields).join(', ')} FROM DebugLevel`,
     record: DebugLevelRecordSchema,
-    tooling: true,
-    onRequestError: cause =>
-      new ApexOperationError({ operation: 'getDebugLevels', message: causeMessage(cause), cause: causeMessage(cause) }),
-    onDecodeError: cause =>
-      new ApexResponseDecodeError({
-        operation: 'getDebugLevels',
-        message: 'Invalid Tooling query response',
-        cause: cause.message
-      })
-  }).pipe(collectQueryPages)
+    tooling: true
+  })
 );
 
 export const findDebugLevel = Effect.fn('Apex.findDebugLevel')((connection: Connection, developerName: string) =>

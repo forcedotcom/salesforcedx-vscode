@@ -14,6 +14,7 @@ import * as Option from 'effect/Option';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
+import { ApexLogQueryError, ApexOperationError } from '../../src/effect/schema/errors';
 import { apexLogId } from '../schemaHelpers';
 import { UserId } from '../../src/schemas/salesforceId';
 import { getLogBody, listLogs, streamLogs } from '../../src/effect/logs';
@@ -90,7 +91,9 @@ describe('Effect Apex logs', () => {
   it('fails decoding a continuing page without a nonempty nextRecordsUrl', async () => {
     const { connection, query } = makeConnection();
     query.mockResolvedValue({ totalSize: 2, done: false, records: [log('1')] });
-    expect(await Effect.runPromise(Effect.flip(listLogs(connection)))).toMatchObject({ _tag: 'ParseError' });
+    const error = await Effect.runPromise(Effect.flip(listLogs(connection)));
+    if (!(error instanceof ApexLogQueryError)) throw error;
+    expect(error.message).toContain('nextRecordsUrl');
   });
 
   it('rejects malformed user IDs before querying', async () => {
@@ -104,7 +107,9 @@ describe('Effect Apex logs', () => {
   it('rejects a valid Salesforce ID with the wrong ApexLog prefix', async () => {
     const { connection, query } = makeConnection();
     query.mockResolvedValue({ totalSize: 1, done: true, records: [{ ...log('1'), Id: firstUserId }] });
-    expect(await Effect.runPromise(Effect.flip(listLogs(connection)))).toMatchObject({ _tag: 'ParseError' });
+    const error = await Effect.runPromise(Effect.flip(listLogs(connection)));
+    if (!(error instanceof ApexLogQueryError)) throw error;
+    expect(error.message).toContain('Id');
     expect(
       await Effect.runPromise(
         Effect.flip(
@@ -121,13 +126,16 @@ describe('Effect Apex logs', () => {
     const { connection, query } = makeConnection();
     const cause = { message: 'Invalid field', errorCode: 'INVALID_FIELD', fields: ['Operation'] };
     query.mockRejectedValueOnce(cause);
-    expect(await Effect.runPromise(Effect.flip(listLogs(connection)))).toMatchObject({
-      _tag: 'ApexLogQueryError',
-      cause,
-      soql: expect.stringContaining('FROM ApexLog')
-    });
+    const requestError = await Effect.runPromise(Effect.flip(listLogs(connection)));
+    if (!(requestError instanceof ApexLogQueryError)) throw requestError;
+    expect(requestError.cause).toBeInstanceOf(ApexOperationError);
+    if (!(requestError.cause instanceof ApexOperationError)) throw requestError.cause;
+    expect(requestError.cause.message).toBe('Invalid field');
+    expect(requestError.soql).toContain('FROM ApexLog');
     query.mockResolvedValue({ totalSize: 1, records: [{ Id: 'invalid' }] });
-    expect(await Effect.runPromise(Effect.flip(listLogs(connection)))).toMatchObject({ _tag: 'ParseError' });
+    const decodeError = await Effect.runPromise(Effect.flip(listLogs(connection)));
+    if (!(decodeError instanceof ApexLogQueryError)) throw decodeError;
+    expect(decodeError.message).toContain('Id');
   });
 
   it('retrieves bodies and preserves string conversion and tagged failures', async () => {
