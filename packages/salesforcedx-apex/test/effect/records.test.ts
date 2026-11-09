@@ -31,15 +31,15 @@ describe('RecordSaveResultSchema', () => {
     expect(
       Schema.decodeUnknownSync(saveResultSchema)({
         success: false,
-        id: null,
         errors: [{ message: 'bad field', statusCode: 'INVALID_FIELD' }]
       })
-    ).toEqual({ success: false, id: undefined, errors: [{ message: 'bad field', statusCode: 'INVALID_FIELD' }] });
+    ).toEqual({ success: false, errors: [{ message: 'bad field', statusCode: 'INVALID_FIELD' }] });
   });
 
   it.each([
     { success: true, errors: [] },
-    { success: false, id: null, errors: [] }
+    { success: false, errors: [] },
+    { success: false, id: null, errors: [{ message: 'bad field' }] }
   ])('rejects malformed SaveResult branches: %j', result => {
     expect(Schema.decodeUnknownEither(saveResultSchema)(result)._tag).toBe('Left');
   });

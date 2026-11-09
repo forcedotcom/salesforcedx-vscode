@@ -16,7 +16,7 @@ export const RecordSaveResultSchema = <A, I, R>(idSchema: Schema.Schema<A, I, R>
     }),
     Schema.Struct({
       success: Schema.Literal(false),
-      id: Schema.optionalWith(idSchema, { nullable: true }),
+      id: Schema.optional(idSchema),
       errors: Schema.NonEmptyArray(Schema.Unknown)
     })
   );
