@@ -6,6 +6,7 @@
  */
 /* eslint-disable no-restricted-imports -- standalone Node script, not extension code */
 /* eslint-disable @typescript-eslint/consistent-type-assertions -- JSON.parse result */
+import * as Either from 'effect/Either';
 import * as Predicate from 'effect/Predicate';
 import { spawnSync } from 'node:child_process';
 import { appendFileSync, mkdirSync } from 'node:fs';
@@ -93,7 +94,7 @@ const handleRequest = (req: http.IncomingMessage, res: http.ServerResponse): voi
   const chunks: Buffer[] = [];
   req.on('data', (chunk: Buffer) => chunks.push(chunk));
   req.on('end', () => {
-    try {
+    const result = Either.try(() => {
       // /v2.1/track receives App Insights telemetry from BOTH platforms; the handler sorts by
       // shape (gzipped Breeze envelopes from Node vs plain extension-telemetry events from web).
       if (req.url === '/v2.1/track') {
@@ -127,8 +128,9 @@ const handleRequest = (req: http.IncomingMessage, res: http.ServerResponse): voi
       if (lines) appendFileSync(filePath, lines);
 
       send(res, 200, JSON.stringify({ success: true }));
-    } catch (error) {
-      send(res, 400, JSON.stringify({ error: String(error) }));
+    });
+    if (Either.isLeft(result)) {
+      send(res, 400, JSON.stringify({ error: String(result.left) }));
     }
   });
 };
@@ -221,11 +223,8 @@ const reclaimPortAndRetry = (): void => {
     .map(s => Number.parseInt(s.trim(), 10))
     .filter(pid => Number.isInteger(pid) && pid !== process.pid);
   pids.forEach(pid => {
-    try {
-      process.kill(pid, 'SIGKILL');
-    } catch {
-      /* already gone */
-    }
+    // The process may already be gone.
+    Either.try(() => process.kill(pid, 'SIGKILL'));
   });
   console.error(`Span file server: reclaimed port ${PORT} from pid(s) ${pids.join(', ') || 'none'}; retrying`);
   setTimeout(() => server.listen(PORT, onListening), 500);
