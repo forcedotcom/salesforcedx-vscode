@@ -228,6 +228,9 @@ gh workflow run publishVSCode.yml \
   --repo forcedotcom/salesforcedx-vscode
 
 # Trigger Open VSX publish workflow
+# do-ctc=true opens/closes a CTC change case around the publish. The automatic
+# `release` event always implies this; a manual dispatch must say so explicitly
+# because the release tag alone can't tell a stable retry from a prerelease.
 gh workflow run publishOpenVSXTrusted.yml \
   -f release-tag="v67.12.0" \
   -f do-ctc=true \
@@ -350,7 +353,10 @@ The publishers read GitHub's `isPrerelease` flag. Leaving it `true` requests
 3. Identify the 2 automatically created release-event runs. **Do not approve
    them.** After explicit confirmation, cancel them or leave them unapproved.
 4. After explicit confirmation, manually dispatch **both** registries from
-   `develop` with the hotfix gate enabled:
+   `develop` with the hotfix gate enabled. `do-ctc=true` is required here too —
+   this stable hotfix retry has the same plain `vX.Y.Z` tag shape as an
+   emergency prerelease, so only the caller (you) can say this one is stable
+   and needs the CTC change case:
 
 ```bash
 gh workflow run publishVSCode.yml --ref develop \
