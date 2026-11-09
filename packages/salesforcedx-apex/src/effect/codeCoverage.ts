@@ -39,7 +39,7 @@ const queryCoverageRecords = <A, I>(
     connection,
     operation,
     soql: query,
-    record: recordSchema,
+    recordSchema,
     tooling: true
   });
 

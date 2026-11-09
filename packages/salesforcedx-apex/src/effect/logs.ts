@@ -50,7 +50,7 @@ const streamLogPagesForSoql = (connection: Connection, soql: string) =>
     connection,
     operation: 'listLogs',
     soql,
-    record: ApexLogListItem,
+    recordSchema: ApexLogListItem,
     tooling: true
   }).pipe(
     Stream.mapError(error =>

@@ -68,7 +68,7 @@ describe('queryRecords pagination', () => {
         connection,
         operation: 'testQuery',
         soql: 'SELECT Name FROM Account',
-        record: RecordSchema,
+        recordSchema: RecordSchema,
         tooling
       })
     );

@@ -77,7 +77,7 @@ const abortTestRun = Effect.fn('Apex.abortTestRun')(function* (
     connection,
     operation,
     soql: `SELECT Id, Status FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`,
-    record: queueRecordSchema,
+    recordSchema: queueRecordSchema,
     tooling: true
   }).pipe(
     Stream.mapError(error =>

@@ -32,7 +32,7 @@ export const getTraceFlags = Effect.fn('Apex.getTraceFlags')((connection: Connec
     connection,
     operation: 'getTraceFlags',
     soql: 'SELECT Id, LogType, StartDate, ExpirationDate, DebugLevelId, DebugLevel.DeveloperName, TracedEntityId FROM TraceFlag',
-    record: TraceFlagRecordSchema,
+    recordSchema: TraceFlagRecordSchema,
     tooling: true
   })
 );
@@ -49,7 +49,7 @@ export const getTraceFlagForUser = Effect.fn('Apex.getTraceFlagForUser')(
       connection,
       operation: 'getTraceFlagForUser',
       soql: `SELECT Id, StartDate, ExpirationDate, DebugLevelId, DebugLevel.DeveloperName FROM TraceFlag WHERE LogType='${quote(logType)}' AND TracedEntityId='${quote(userId)}' ORDER BY ${orderBy} DESC LIMIT 1`,
-      record: TraceFlagForUserSchema,
+      recordSchema: TraceFlagForUserSchema,
       tooling: true
     }).pipe(Effect.map(Arr.head))
 );
@@ -59,7 +59,7 @@ export const getDebugLevels = Effect.fn('Apex.getDebugLevels')((connection: Conn
     connection,
     operation: 'getDebugLevels',
     soql: `SELECT ${Object.keys(DebugLevelRecordSchema.fields).join(', ')} FROM DebugLevel`,
-    record: DebugLevelRecordSchema,
+    recordSchema: DebugLevelRecordSchema,
     tooling: true
   })
 );
@@ -69,7 +69,7 @@ export const findDebugLevel = Effect.fn('Apex.findDebugLevel')((connection: Conn
     connection,
     operation: 'findDebugLevel',
     soql: `SELECT Id FROM DebugLevel WHERE DeveloperName = '${quote(developerName)}' LIMIT 1`,
-    record: Schema.Struct({ Id: DebugLevelId }),
+    recordSchema: Schema.Struct({ Id: DebugLevelId }),
     tooling: true
   }).pipe(Effect.map(records => Arr.head(records).pipe(Option.map(record => record.Id))))
 );

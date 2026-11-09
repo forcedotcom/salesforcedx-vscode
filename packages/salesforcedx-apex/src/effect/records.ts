@@ -29,17 +29,17 @@ export const queryRecordPages = <A, I>({
   connection,
   operation,
   soql,
-  record,
+  recordSchema,
   tooling = false
 }: {
   connection: Connection;
   operation: string;
   soql: string;
-  record: Schema.Schema<A, I, never>;
+  recordSchema: Schema.Schema<A, I, never>;
   tooling?: boolean;
 }): Stream.Stream<readonly A[], ApexQueryRequestError | ParseError> => {
   const queryConnection = tooling ? connection.tooling : connection;
-  const pageSchema = QueryPageSchema(record);
+  const pageSchema = QueryPageSchema(recordSchema);
   return Stream.paginateEffect<string | undefined, readonly A[], ApexQueryRequestError | ParseError, never>(
     undefined,
     nextRecordsUrl =>
@@ -94,20 +94,20 @@ export const queryRecords = Effect.fn('Apex.queryRecords')(function* <A, I>({
   connection,
   operation,
   soql,
-  record,
+  recordSchema,
   tooling = false
 }: {
   connection: Connection;
   operation: string;
   soql: string;
-  record: Schema.Schema<A, I>;
+  recordSchema: Schema.Schema<A, I>;
   tooling?: boolean;
 }) {
   return yield* queryRecordPages({
     connection,
     operation,
     soql,
-    record,
+    recordSchema,
     tooling
   }).pipe(
     Stream.mapError(

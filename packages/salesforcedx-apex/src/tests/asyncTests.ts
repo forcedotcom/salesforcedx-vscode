@@ -185,7 +185,7 @@ export class AsyncTests {
                 connection: this.connection,
                 operation: 'AsyncTests.runTests',
                 soql: `SELECT Status, ClassesCompleted, ClassesEnqueued FROM ApexTestRunResult WHERE AsyncApexJobId = '${testRunId}'`,
-                record: ApexTestRunSummarySchema,
+                recordSchema: ApexTestRunSummarySchema,
                 tooling: true
               })
             );
@@ -213,7 +213,7 @@ export class AsyncTests {
                 connection: this.connection,
                 operation: 'AsyncTests.runTests',
                 soql: `SELECT Id, Status, ApexClassId, TestRunResultId, ParentJobId FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`,
-                record: Schema.Unknown,
+                recordSchema: Schema.Unknown,
                 tooling: true
               })
             )) as unknown as ApexTestQueueItemRecord[];
@@ -326,7 +326,7 @@ export class AsyncTests {
           connection: this.connection,
           operation: 'AsyncTests.reportAsyncResults',
           soql: `SELECT Id, Status, ApexClassId, TestRunResultId FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`,
-          record: Schema.Unknown,
+          recordSchema: Schema.Unknown,
           tooling: true
         })
       )) as unknown as ApexTestQueueItemRecord[];
@@ -762,7 +762,7 @@ export class AsyncTests {
             connection,
             operation: 'getFlowTestResults',
             soql: query,
-            record: Schema.Unknown,
+            recordSchema: Schema.Unknown,
             tooling: true
           }).pipe(Effect.map(records => ({ done: true, totalSize: records.length, records }))),
         { concurrency: 'unbounded' }
@@ -786,7 +786,7 @@ export class AsyncTests {
             connection,
             operation: 'getApexTestResults',
             soql: query,
-            record: Schema.Unknown,
+            recordSchema: Schema.Unknown,
             tooling: true
           }).pipe(Effect.map(records => ({ done: true, totalSize: records.length, records }))),
         { concurrency: 'unbounded' }

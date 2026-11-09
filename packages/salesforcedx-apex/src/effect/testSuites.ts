@@ -37,7 +37,7 @@ export const retrieveAllSuites = Effect.fn('Apex.retrieveAllSuites')(function* (
     connection,
     operation: 'retrieveAllSuites',
     soql: 'SELECT id, TestSuiteName FROM ApexTestSuite',
-    record: TestSuiteRecordSchema,
+    recordSchema: TestSuiteRecordSchema,
     tooling: true
   });
 });
@@ -47,7 +47,7 @@ export const retrieveSuiteId = Effect.fn('Apex.retrieveSuiteId')(function* (conn
     connection,
     operation: 'retrieveSuiteId',
     soql: `SELECT id FROM ApexTestSuite WHERE TestSuiteName = '${quote(suiteName)}'`,
-    record: TestSuiteIdQueryResponseSchema,
+    recordSchema: TestSuiteIdQueryResponseSchema,
     tooling: true
   }).pipe(Effect.map(records => Array.head(records).pipe(Option.map(record => record.Id))));
 });
@@ -61,7 +61,7 @@ export const getTestsInSuite = Effect.fn('Apex.getTestsInSuite')(function* (
     connection,
     operation: 'getTestsInSuite',
     soql: `SELECT ApexClassId FROM TestSuiteMembership WHERE ApexTestSuiteId = '${quote(suiteId)}'`,
-    record: TestSuiteMembershipSchema,
+    recordSchema: TestSuiteMembershipSchema,
     tooling: true
   });
 });
@@ -168,7 +168,7 @@ export const getApexClassIds = Effect.fn('Apex.getApexClassIds')(function* (
         connection,
         operation: 'buildSuite',
         soql: `SELECT Id FROM ApexClass WHERE Name = '${quote(name)}' AND ${namespaceFilter} LIMIT 1`,
-        record: ApexClassIdQueryResponseSchema,
+        recordSchema: ApexClassIdQueryResponseSchema,
         tooling: true
       }).pipe(
         Effect.map(Array.head),
