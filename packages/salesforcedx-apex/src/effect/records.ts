@@ -24,14 +24,6 @@ import {
 import { QueryPageSchema } from './schema/queryPage';
 import { RecordSaveResultSchema } from './schema/wire/records';
 
-const requestErrorMessage = (cause: unknown): string => {
-  if (cause instanceof Error) return cause.message;
-  if (typeof cause === 'object' && cause !== null && 'message' in cause && typeof cause.message === 'string') {
-    return cause.message;
-  }
-  return getErrorMessage(cause);
-};
-
 /** Streams decoded pages for either REST or Tooling queries, following each continuation URL. */
 export const queryRecordPages = <A, I>({
   connection,
@@ -57,7 +49,7 @@ export const queryRecordPages = <A, I>({
             isNotUndefined(nextRecordsUrl) ? queryConnection.queryMore(nextRecordsUrl) : queryConnection.query(soql)
           ),
         catch: cause => {
-          const message = requestErrorMessage(cause);
+          const message = getErrorMessage(cause);
           return new ApexQueryRequestError({ operation, message, cause });
         }
       }).pipe(
@@ -92,7 +84,7 @@ const requestSaveResult = <A, I, R>(
         : Effect.fail(
             new ApexToolingMutationError({
               operation,
-              message: `Tooling ${operation} returned errors: ${result.errors.map(requestErrorMessage).join('; ')}`
+              message: `Tooling ${operation} returned errors: ${result.errors.map(getErrorMessage).join('; ')}`
             })
           )
     )
