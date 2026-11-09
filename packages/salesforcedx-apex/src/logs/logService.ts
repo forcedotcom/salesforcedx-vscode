@@ -145,6 +145,7 @@ export class LogService {
     return { completed: false };
   }
 
+  @elapsedTime()
   public async prepareTraceFlag(requestedDebugLevel: string): Promise<void> {
     await ensureTraceFlags(this.connection, requestedDebugLevel);
   }
