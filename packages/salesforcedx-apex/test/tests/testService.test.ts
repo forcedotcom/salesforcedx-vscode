@@ -154,7 +154,7 @@ describe('Apex Test Suites', () => {
         .resolves(queryPage([{ Id: '01p000000000004' }]))
         .onCall(3)
         .resolves(queryPage([{ Id: '01p000000000006' }]));
-      toolingCreateStub.resolves({ id: '05F000000000001' });
+      toolingCreateStub.resolves({ success: true, id: '05F000000000001' });
 
       const testService = new TestService(mockConnection);
       await testService.buildSuite('testSuite', ['testClassOne', 'testClassTwo']);
@@ -173,7 +173,7 @@ describe('Apex Test Suites', () => {
         .resolves(queryPage([{ Id: '01p000000000004' }]))
         .onCall(3)
         .resolves(queryPage([{ Id: '01p000000000006' }]));
-      toolingCreateStub.resolves({ id: '05F000000000001' });
+      toolingCreateStub.resolves({ success: true, id: '05F000000000001' });
 
       const testService = new TestService(mockConnection);
       await testService.buildSuite('oldSuite', ['testClassOne', 'testClassTwo']);
@@ -192,7 +192,7 @@ describe('Apex Test Suites', () => {
         .resolves(queryPage([{ Id: '01p000000000004' }]))
         .onCall(3)
         .resolves(queryPage([{ Id: '01p000000000006' }]));
-      toolingCreateStub.resolves({ id: '05F000000000001' });
+      toolingCreateStub.resolves({ success: true, id: '05F000000000001' });
       const consoleSpy = $$.SANDBOX.spy(console, 'log');
 
       const testService = new TestService(mockConnection);
@@ -213,7 +213,7 @@ describe('Apex Test Suites', () => {
         .resolves(queryPage([{ Id: '01p000000000004' }]))
         .onCall(3)
         .resolves(queryPage([{ Id: '01p000000000006' }]));
-      toolingCreateStub.resolves({ id: '05F000000000001' });
+      toolingCreateStub.resolves({ success: true, id: '05F000000000001' });
       const consoleSpy = $$.SANDBOX.spy(console, 'log');
 
       const testService = new TestService(mockConnection);

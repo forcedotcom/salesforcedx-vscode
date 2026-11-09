@@ -15,6 +15,7 @@ import * as Schema from 'effect/Schema';
 import { messages } from '../i18n/i18n';
 import {
   ApexTestSuiteId,
+  SalesforceId,
   type ApexTestSuiteId as ApexTestSuiteIdType,
   type ApexClassId
 } from '../schemas/salesforceId';
@@ -86,7 +87,8 @@ const updateSuiteMembership = Effect.fn('Apex.buildSuite.updateMembership')(func
     fields: {
       ApexClassId: classId,
       ApexTestSuiteId: suiteId
-    }
+    },
+    idSchema: SalesforceId
   }).pipe(Effect.asVoid);
   yield* Effect.annotateCurrentSpan({ membership: 'added' });
 });
@@ -105,7 +107,8 @@ export const buildSuite = Effect.fn('Apex.buildSuite')(function* (
             connection,
             operation: 'buildSuite',
             type: 'ApexTestSuite',
-            fields: { TestSuiteName: suiteName }
+            fields: { TestSuiteName: suiteName },
+            idSchema: ApexTestSuiteId
           }).pipe(Effect.map(record => record.id)),
         onSome: Effect.succeed
       })
