@@ -36,6 +36,7 @@
       "command": "tsc -p . && node scripts/convert.mts && node scripts/build.mts",
       "clean": "if-file-deleted",
       "dependencies": [
+        "../salesforcedx-utils:compile",
         "../salesforcedx-lightning-lsp-common:compile",
         "../salesforcedx-vscode-i18n:compile"
       ],
@@ -98,6 +99,7 @@
     }
   },
   "dependencies": {
+    "@salesforce/salesforcedx-utils": "*",
     "@lwc/compiler": "9.0.3",
     "@lwc/errors": "9.0.3",
     "@lwc/metadata": "13.3.30",

@@ -6,9 +6,9 @@
  */
 
 import type { Connection } from '@salesforce/core';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
-import { causeMessage } from './errors';
 import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
 import { createRecordResponseSchema, queryRecordsResponseSchema } from './schema/wire/records';
 
@@ -27,7 +27,8 @@ export const queryRecords = Effect.fn('Apex.queryRecords')(function* <A, I>({
 }) {
   return yield* Effect.tryPromise({
     try: () => Promise.resolve((tooling ? connection.tooling : connection).query(soql)),
-    catch: cause => new ApexOperationError({ operation, message: causeMessage(cause), cause: causeMessage(cause) })
+    catch: cause =>
+      new ApexOperationError({ operation, message: getErrorMessage(cause), cause: getErrorMessage(cause) })
   }).pipe(
     Effect.flatMap(Schema.decodeUnknown(queryRecordsResponseSchema(record))),
     Effect.catchTag('ParseError', cause =>
@@ -50,7 +51,8 @@ export const createRecord = Effect.fn('Apex.createRecord')(function* ({
 }) {
   return yield* Effect.tryPromise({
     try: () => Promise.resolve(connection.tooling.create(type, fields)),
-    catch: cause => new ApexOperationError({ operation, message: causeMessage(cause), cause: causeMessage(cause) })
+    catch: cause =>
+      new ApexOperationError({ operation, message: getErrorMessage(cause), cause: getErrorMessage(cause) })
   }).pipe(
     Effect.flatMap(Schema.decodeUnknown(createRecordResponseSchema)),
     Effect.catchTag('ParseError', cause =>

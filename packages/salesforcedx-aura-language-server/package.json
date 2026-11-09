@@ -33,6 +33,7 @@
       "command": "tsc -p . && node scripts/build.mts",
       "clean": "if-file-deleted",
       "dependencies": [
+        "../salesforcedx-utils:compile",
         "../salesforcedx-lightning-lsp-common:compile",
         "../salesforcedx-vscode-i18n:compile"
       ],
@@ -93,6 +94,7 @@
     }
   },
   "dependencies": {
+    "@salesforce/salesforcedx-utils": "*",
     "@salesforce/salesforcedx-lightning-lsp-common": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
     "acorn": "^6.0.0",

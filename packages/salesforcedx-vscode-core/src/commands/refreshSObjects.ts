@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import { isError, isRecord, isString } from 'effect/Predicate';
@@ -20,9 +20,9 @@ const getStandardSObjectsDirectory = (projectPath: string) =>
   path.join(projectPath, '.sfdx', 'tools', SOBJECTS_DIR, STANDARDOBJECTS_DIR);
 
 export const extractErrorMessage = (error: unknown): string => {
-  if (isError(error)) return error.message;
+  if (isError(error)) return getMessageFromError(error);
   if (isRecord(error)) {
-    if ('error' in error && isError(error.error)) return error.error.message;
+    if ('error' in error && isError(error.error)) return getMessageFromError(error.error);
     if ('message' in error && isString(error.message)) return error.message;
   }
   return String(error);

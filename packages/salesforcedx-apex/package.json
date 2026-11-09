@@ -20,6 +20,7 @@
   "dependencies": {
     "@salesforce/core": "^9.3.0",
     "@salesforce/kit": "^4.0.0",
+    "@salesforce/salesforcedx-utils": "*",
     "effect": "^3.21.2",
     "faye": "1.4.1",
     "istanbul-lib-coverage": "^3.2.2",
@@ -86,15 +87,15 @@
       "files": [
         "scripts/generatePublicApiSchema.mts",
         "schemas/public-api.schema.json",
-        "src/**/*.ts",
-        "tsconfig.json",
-        "../../tsconfig.common.json",
         "package.json"
       ]
     },
     "compile": {
       "command": "tsc --pretty && tsc -p scripts/tsconfig.json",
       "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-utils:compile"
+      ],
       "files": [
         "src/**/*.ts",
         "scripts/**/*.mts",
@@ -163,6 +164,7 @@
         "src/**/*.ts",
         "scripts/**/*.mts",
         "scripts/tsconfig.json",
+        "../../scripts/tsconfig.native.json",
         "test/**/*.ts",
         "../../eslint.config.mjs",
         "package.json"

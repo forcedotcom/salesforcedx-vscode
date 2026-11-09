@@ -527,6 +527,8 @@
     "check:scripts": {
       "command": "tsc --noEmit -p scripts/tsconfig.native.json",
       "dependencies": [
+        "./packages/salesforcedx-apex:compile",
+        "./packages/salesforcedx-vscode-apex-log:compile",
         "./packages/effect-octokit:compile",
         "./packages/playwright-vscode-ext:compile"
       ],
@@ -534,6 +536,9 @@
         "package.json",
         "scripts/tsconfig.native.json",
         "scripts/**/*.{mts,cts}",
+        "packages/salesforcedx-apex/scripts/**/*.mts",
+        "packages/salesforcedx-vscode-apex-log/scripts/**/*.mts",
+        "packages/salesforcedx-vscode-services/scripts/**/*.mts",
         "packages/salesforcedx-vscode-services-types/scripts/**/*.mts",
         "packages/{salesforcedx-lightning-lsp-common,salesforcedx-aura-language-server,salesforcedx-lwc-language-server}/scripts/**/*.{mts,ts,json}",
         "packages/salesforcedx-lwc-language-server/src/build-time-resources/lwc-standard.json",

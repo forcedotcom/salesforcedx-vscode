@@ -8,6 +8,7 @@
 // This is Node.js test infrastructure, not extension code
 import type { WorkerFixtures, TestFixtures } from './desktopFixtureTypes';
 import { test as base, _electron as electron, type ElectronApplication, type Page } from '@playwright/test';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import { downloadAndUnzipVSCode, resolveCliPathFromVSCodeExecutablePath } from '@vscode/test-electron';
 import * as Data from 'effect/Data';
 import * as Duration from 'effect/Duration';
@@ -44,7 +45,7 @@ class WindowsDesktopLaunchInstabilityError extends Data.TaggedError('WindowsDesk
 }> {}
 
 const isWindowClosedError = (error: unknown): boolean => {
-  const message = error instanceof Error ? error.message : String(error);
+  const message = getErrorMessage(error);
   return message.includes('has been closed') || message.includes('Target page');
 };
 
