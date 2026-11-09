@@ -15,8 +15,17 @@ const WORKFLOW = join(process.cwd(), '.github', 'workflows', 'rerunPushE2E.yml')
 
 // Exercise the real effect-octokit reads without permitting any network request.
 const FETCH_WRAPPER = `
+  import childProcess from 'node:child_process';
   import { appendFileSync } from 'node:fs';
+  import { syncBuiltinESMExports } from 'node:module';
   import { pathToFileURL } from 'node:url';
+  // Native Windows spawning ignores extensionless Bash scripts. Invoke the stub explicitly.
+  const spawn = childProcess.spawn;
+  childProcess.spawn = (command, args, options) => {
+    if (command !== 'gh') throw new Error('Unexpected command: ' + command);
+    return spawn('bash', ['-c', 'exec "$GH_STUB" "$@"', 'gh', ...args], options);
+  };
+  syncBuiltinESMExports();
   globalThis.fetch = async input => {
     const url = String(input);
     const path = new URL(url).pathname;
@@ -52,7 +61,7 @@ const WRAPPER = [
   'dir=$(mktemp -d)',
   'log="$dir/calls"',
   'touch "$log"',
-  'cat > "$dir/gh" <<\'EOF\'',
+  'cat > "$dir/gh-stub" <<\'EOF\'',
   '#!/usr/bin/env bash',
   'printf \'%s\\n\' "$*" >> "$GH_CALL_LOG"',
   'if [[ "$*" == *"run rerun"* ]]; then',
@@ -65,9 +74,9 @@ const WRAPPER = [
   'echo "unexpected gh invocation" >&2',
   'exit 98',
   'EOF',
-  'chmod +x "$dir/gh"',
-  'export PATH="$dir:$PATH"',
+  'chmod +x "$dir/gh-stub"',
   'export GH_CALL_LOG="$log"',
+  'export GH_STUB="$dir/gh-stub"',
   'set +e',
   '"$NODE" --input-type=module --eval "$FETCH_WRAPPER"',
   'status=$?',
