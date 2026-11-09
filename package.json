@@ -358,6 +358,7 @@
     "test:scripts": {
       "command": "vitest run --config vitest.config.mts",
       "dependencies": [
+        "./packages/effect-octokit:compile",
         "./packages/playwright-vscode-ext:compile"
       ],
       "files": [
@@ -370,7 +371,6 @@
         "scripts/bundling/process-polyfill.js",
         "scripts/clean-wireit-cache.js",
         "scripts/releaseDashboard.sh",
-        "scripts/rerunPushE2EGate.sh",
         ".github/workflows/build-github-release.yml",
         ".github/workflows/build-and-release-patch-branch.yml",
         ".github/workflows/create-patch-release-branch.yml",

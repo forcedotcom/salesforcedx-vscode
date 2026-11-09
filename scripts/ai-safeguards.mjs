@@ -256,7 +256,7 @@ const missingDependenciesDenial = ({ command, cwd, run = defaultRun }) => {
     if (tokens.some(token => token.dynamic)) return DYNAMIC_GIT_REASON;
     const git = gitCommand(tokens);
     if (git?.subcommand !== 'push') return undefined;
-    if (hasLongOption(git.arguments, '--dry-run') || hasShortOption(git.arguments, 'n')) return undefined;
+    if (hasShortOption(git.arguments, 'n') || hasLongOption(git.arguments, '--dry-run')) return undefined;
     if (git.attachedDirectory) return ATTACHED_DIRECTORY_REASON;
     const target = git.directory ? resolveCommandDirectory(directory, git.directory) : directory;
     const root = gitRoot(target, run);
