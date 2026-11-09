@@ -14,7 +14,7 @@ import { NodeFileOutput } from '../effect/nodeFileOutput';
 import { nls } from '../i18n';
 import { elapsedTime } from '../utils/elapsedTime';
 import { createFile } from '../utils/fileSystemHandler';
-import { TraceFlags } from '../utils/traceFlags';
+import { ensureTraceFlags } from '../utils/traceFlags';
 import { LISTENER_ABORTED_ERROR_NAME, LOG_TIMER_LENGTH_MINUTES, MAX_NUM_LOGS, STREAMING_LOG_TOPIC } from './constants';
 import { type ApexLogGetOptions, type LogRecord, type LogResult } from './types';
 
@@ -146,8 +146,7 @@ export class LogService {
   }
 
   public async prepareTraceFlag(requestedDebugLevel: string): Promise<void> {
-    const flags = new TraceFlags(this.connection);
-    await flags.ensureTraceFlags(requestedDebugLevel);
+    await ensureTraceFlags(this.connection, requestedDebugLevel);
   }
 
   @elapsedTime()

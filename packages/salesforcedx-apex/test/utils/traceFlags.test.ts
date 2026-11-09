@@ -9,7 +9,7 @@ import type { SinonStub } from 'sinon';
 import { AuthInfo, ConfigAggregator, Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
 import { fail } from 'node:assert';
-import { TraceFlags } from '../../src/utils/traceFlags';
+import { ensureTraceFlags } from '../../src/utils/traceFlags';
 import { nls } from '../../src/i18n';
 
 describe('Trace Flags', () => {
@@ -17,7 +17,6 @@ describe('Trace Flags', () => {
   const testData = new MockTestOrgData();
   const USER_ID = '005000000000001';
   let mockConnection: Connection;
-  let flags: TraceFlags;
   let queryStub: SinonStub;
   let toolingCreateStub: SinonStub;
   let toolingQueryStub: SinonStub;
@@ -37,7 +36,6 @@ describe('Trace Flags', () => {
 
   it('should validate an existing trace flag', async () => {
     const currDate = Date.now();
-    flags = new TraceFlags(mockConnection);
     queryStub = $$.SANDBOX.stub(mockConnection, 'query');
     toolingCreateStub = $$.SANDBOX.stub(mockConnection.tooling, 'create');
     toolingQueryStub = $$.SANDBOX.stub(mockConnection.tooling, 'query');
@@ -60,7 +58,7 @@ describe('Trace Flags', () => {
     });
     toolingUpdateStub.onFirstCall().resolves({ success: true }).onSecondCall().resolves({ success: true });
 
-    const ensure = await flags.ensureTraceFlags();
+    const ensure = await ensureTraceFlags(mockConnection);
 
     expect(ensure).toBe(true);
     expect(queryStub.callCount).toBe(1);
@@ -87,7 +85,6 @@ describe('Trace Flags', () => {
   });
 
   it('should return false if updating the debug level fails', async () => {
-    flags = new TraceFlags(mockConnection);
     queryStub = $$.SANDBOX.stub(mockConnection, 'query');
     toolingQueryStub = $$.SANDBOX.stub(mockConnection.tooling, 'query');
     toolingUpdateStub = $$.SANDBOX.stub(mockConnection.tooling, 'update');
@@ -109,14 +106,13 @@ describe('Trace Flags', () => {
     });
     toolingUpdateStub.onFirstCall().resolves({ success: false });
 
-    const ensure = await flags.ensureTraceFlags();
+    const ensure = await ensureTraceFlags(mockConnection);
 
     expect(ensure).toBe(false);
   });
 
   it('should create a new trace flag', async () => {
     const currDate = Date.now();
-    flags = new TraceFlags(mockConnection);
     queryStub = $$.SANDBOX.stub(mockConnection, 'query');
     toolingCreateStub = $$.SANDBOX.stub(mockConnection.tooling, 'create');
     toolingQueryStub = $$.SANDBOX.stub(mockConnection.tooling, 'query');
@@ -135,7 +131,7 @@ describe('Trace Flags', () => {
       .onSecondCall()
       .resolves({ success: true, id: '7tf000000000002' });
 
-    const ensure = await flags.ensureTraceFlags();
+    const ensure = await ensureTraceFlags(mockConnection);
 
     expect(ensure).toBe(true);
     expect(queryStub.callCount).toBe(1);
@@ -159,7 +155,6 @@ describe('Trace Flags', () => {
   });
 
   it('should return false if creating trace flag fails', async () => {
-    flags = new TraceFlags(mockConnection);
     queryStub = $$.SANDBOX.stub(mockConnection, 'query');
     toolingCreateStub = $$.SANDBOX.stub(mockConnection.tooling, 'create');
     toolingQueryStub = $$.SANDBOX.stub(mockConnection.tooling, 'query');
@@ -177,17 +172,16 @@ describe('Trace Flags', () => {
       .onSecondCall()
       .resolves({ success: false });
 
-    const ensure = await flags.ensureTraceFlags();
+    const ensure = await ensureTraceFlags(mockConnection);
 
     expect(ensure).toBe(false);
   });
 
   it('should raise error for missing username', async () => {
-    flags = new TraceFlags(mockConnection);
     $$.SANDBOX.stub(mockConnection, 'getUsername').returns(undefined);
 
     try {
-      await flags.ensureTraceFlags();
+      await ensureTraceFlags(mockConnection);
       fail('Expected an error');
     } catch (err) {
       expect(err.message).toBe(nls.localize('error_no_default_username'));
@@ -195,11 +189,10 @@ describe('Trace Flags', () => {
   });
 
   it('should raise error for unknown user', async () => {
-    flags = new TraceFlags(mockConnection);
     $$.SANDBOX.stub(mockConnection, 'query').onFirstCall().resolves({ done: true, totalSize: 0, records: [] });
 
     try {
-      await flags.ensureTraceFlags();
+      await ensureTraceFlags(mockConnection);
       fail('Expected an error');
     } catch (err) {
       expect(err.message).toBe(nls.localize('trace_flags_unknown_user'));
@@ -207,7 +200,6 @@ describe('Trace Flags', () => {
   });
 
   it('should raise error on failure to create debug level', async () => {
-    flags = new TraceFlags(mockConnection);
     queryStub = $$.SANDBOX.stub(mockConnection, 'query');
     toolingCreateStub = $$.SANDBOX.stub(mockConnection.tooling, 'create');
     toolingQueryStub = $$.SANDBOX.stub(mockConnection.tooling, 'query');
@@ -221,7 +213,7 @@ describe('Trace Flags', () => {
     toolingCreateStub.onFirstCall().resolves({ success: false, id: undefined });
 
     try {
-      await flags.ensureTraceFlags();
+      await ensureTraceFlags(mockConnection);
       fail('Expected to raise an error');
     } catch (err) {
       expect(err.message).toBe(nls.localize('trace_flags_failed_to_create_debug_level'));
@@ -229,7 +221,6 @@ describe('Trace Flags', () => {
   });
 
   it('should raise error on failure to find debug level', async () => {
-    flags = new TraceFlags(mockConnection);
     queryStub = $$.SANDBOX.stub(mockConnection, 'query');
     toolingQueryStub = $$.SANDBOX.stub(mockConnection.tooling, 'query');
     const debugLevelName = "'" + 'SFDC_Test';
@@ -242,7 +233,7 @@ describe('Trace Flags', () => {
       .resolves({ done: true, totalSize: 0, records: [] });
 
     try {
-      await flags.ensureTraceFlags(debugLevelName);
+      await ensureTraceFlags(mockConnection, debugLevelName);
       fail('Expected to raise an error');
     } catch (err) {
       expect(err.message).toBe(nls.localize('trace_flags_failed_to_find_debug_level', debugLevelName));
