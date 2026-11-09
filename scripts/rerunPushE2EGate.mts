@@ -8,7 +8,7 @@
 
 import * as Command from '@effect/platform/Command';
 import * as NodeContext from '@effect/platform-node/NodeContext';
-import { GitHub } from '@salesforce/effect-octokit';
+import { GitHub, type WorkflowRunJob } from '@salesforce/effect-octokit';
 import * as Arr from 'effect/Array';
 import * as Cause from 'effect/Cause';
 import * as Config from 'effect/Config';
@@ -16,18 +16,8 @@ import * as Console from 'effect/Console';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import * as Schema from 'effect/Schema';
 
-// Only the fields the gate needs from the jobs API. Missing timestamps cannot qualify as timeouts.
-const Job = Schema.Struct({
-  id: Schema.Number,
-  name: Schema.String,
-  conclusion: Schema.NullOr(Schema.String),
-  started_at: Schema.NullishOr(Schema.String),
-  completed_at: Schema.NullishOr(Schema.String)
-});
-
-const reachedTimeout = (job: typeof Job.Type, workflowName: string) => {
+const reachedTimeout = (job: WorkflowRunJob, workflowName: string) => {
   if (job.conclusion !== 'cancelled' || !job.started_at || !job.completed_at) return false;
   // LWC run-tests, including "<job> (<matrix>)" names, is 90 minutes. Other push-suite jobs are 60.
   const timeout =
@@ -41,13 +31,12 @@ const reachedTimeout = (job: typeof Job.Type, workflowName: string) => {
 const skip = (reason: string) => Console.log(`skip: ${reason}`).pipe(Effect.as(0));
 
 const findTimeoutJob = Effect.fn('rerunPushE2EGate.findTimeoutJob')(function* (
-  repo: string,
+  repository: string,
   runId: string,
   workflowName: string
 ) {
   return yield* GitHub.pipe(
-    Effect.flatMap(github => github.paginate<unknown>(`GET /repos/${repo}/actions/runs/${runId}/jobs`)),
-    Effect.flatMap(Schema.decodeUnknown(Schema.Array(Job))),
+    Effect.flatMap(github => github.workflowRunJobs(repository, runId)),
     Effect.map(jobs => Arr.findFirst(jobs, job => reachedTimeout(job, workflowName))),
     Effect.provide(GitHub.Default)
   );

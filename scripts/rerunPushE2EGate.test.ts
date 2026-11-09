@@ -129,8 +129,8 @@ type GateCase = {
   readonly name: string;
   readonly env: Readonly<Record<string, string>>;
   readonly membership?: MembershipKind;
-  readonly jobs?: readonly ReturnType<typeof job>[];
-  readonly jobsPages?: readonly (readonly ReturnType<typeof job>[])[];
+  readonly jobs?: readonly unknown[];
+  readonly jobsPages?: readonly (readonly unknown[])[];
   readonly membershipStatus?: number;
   readonly jobsStatus?: number;
   readonly decision: Decision;
@@ -424,6 +424,14 @@ const cases: readonly GateCase[] = [
     name: 'jobs API failure fails without rerunning',
     env: { ...baseEnv, CONCLUSION: 'cancelled' },
     jobsStatus: 500,
+    decision: 'skip',
+    ghInvoked: true,
+    expectStatus: 1
+  },
+  {
+    name: 'invalid job response fails without rerunning',
+    env: { ...baseEnv, CONCLUSION: 'cancelled' },
+    jobs: [{ ...timedOutJob, id: '61' }],
     decision: 'skip',
     ghInvoked: true,
     expectStatus: 1
