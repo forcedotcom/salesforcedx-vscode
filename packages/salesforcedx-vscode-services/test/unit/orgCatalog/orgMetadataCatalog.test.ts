@@ -23,7 +23,11 @@ import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { ConnectionService, InactiveOrgOperationError } from '../../../src/core/connectionService';
 import { getDefaultOrgRef } from '../../../src/core/defaultOrgRef';
-import { ListMetadataError, MetadataDescribeService } from '../../../src/core/metadataDescribeService';
+import {
+  ListMetadataError,
+  MetadataDescribeError,
+  MetadataDescribeService
+} from '../../../src/core/metadataDescribeService';
 import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
 import { MetadataChangeNotificationService } from '../../../src/core/metadataChangeNotificationService';
 import { MetadataRetrieveService } from '../../../src/core/metadataRetrieveService';
@@ -218,9 +222,12 @@ const makeHarness = (options: HarnessOptions = {}) => {
     )
   );
   const listSObjects = vi.fn(() => Effect.succeed([...(options.sobjects ?? [])]));
-  const describeCustomObject = vi.fn((apiName: string) =>
-    Effect.succeed(descriptions[apiName] ?? emptySObject(apiName))
-  );
+  const describeCustomObject = vi.fn((apiName: string) => {
+    const description = descriptions[apiName];
+    return description instanceof MetadataDescribeError
+      ? Effect.fail(description)
+      : Effect.succeed(description ?? emptySObject(apiName));
+  });
   const describeCustomObjects = vi.fn((apiNames: readonly string[]) =>
     Effect.succeed(Stream.fromIterable(apiNames.map(apiName => descriptions[apiName] ?? emptySObject(apiName))))
   );
@@ -358,12 +365,129 @@ const getEntry = (
     .pipe(Effect.map(entries => entries[0]));
 
 describe('OrgMetadataCatalog contract', () => {
+  it('finds component and SObject records from catalog evidence', async () => {
+    const accountDescription = emptySObject('Account');
+    const { layer, mocks } = makeHarness({
+      metadataByType: { CustomObject: [{ fullName: 'Account' }] },
+      descriptions: { Account: accountDescription },
+      sobjects: [{ name: 'Account', custom: false, queryable: true }]
+    });
+
+    const results = await runWithCatalog(layer, catalog =>
+      catalog.find({
+        evidence: [{ type: 'CustomObject', fullName: 'Account' }],
+        resultKinds: ['component', 'sobject']
+      })
+    );
+
+    expect(results).toEqual([
+      expect.objectContaining({
+        kind: 'component',
+        entry: expect.objectContaining({ reference: { type: 'CustomObject', fullName: 'Account' } })
+      }),
+      expect.objectContaining({
+        kind: 'sobject',
+        description: expect.objectContaining({ name: 'Account', provenance: 'rest-api' })
+      })
+    ]);
+    expect(mocks.describeCustomObject).toHaveBeenCalledWith('Account', '00D000000000001');
+  });
+
+  it('finds an SObject without acquiring component inventory', async () => {
+    const { layer, mocks } = makeHarness({
+      descriptions: { Account: emptySObject('Account') },
+      sobjects: [{ name: 'Account', custom: false, queryable: true }]
+    });
+
+    const results = await runWithCatalog(layer, catalog =>
+      catalog.find({
+        evidence: [{ type: 'CustomObject', fullName: 'Account' }],
+        resultKinds: ['sobject']
+      })
+    );
+
+    expect(results).toEqual([
+      expect.objectContaining({ kind: 'sobject', description: expect.objectContaining({ name: 'Account' }) })
+    ]);
+    expect(mocks.listMetadata).not.toHaveBeenCalled();
+    expect(mocks.buildComponentSetFromSource).not.toHaveBeenCalled();
+  });
+
+  it('returns a typed miss when SObject evidence is absent from the org', async () => {
+    const { layer, mocks } = makeHarness({
+      descriptions: {
+        Missing__c: new MetadataDescribeError({
+          cause: new Error('The requested resource does not exist'),
+          function: 'describeCustomObject',
+          objectName: 'Missing__c',
+          notFound: true,
+          message: 'SObject Missing__c was not found'
+        }) as never
+      }
+    });
+
+    const results = await runWithCatalog(layer, catalog =>
+      catalog.find({
+        evidence: [{ type: 'CustomObject', fullName: 'Missing__c' }],
+        resultKinds: ['sobject']
+      })
+    );
+
+    expect(results).toEqual([
+      { kind: 'not-found', reference: { type: 'CustomObject', fullName: 'Missing__c' }, resultKind: 'sobject' }
+    ]);
+    expect(mocks.describeCustomObject).toHaveBeenCalledWith('Missing__c', '00D000000000001');
+    expect(mocks.listSObjects).not.toHaveBeenCalled();
+  });
+
+  it('returns a typed miss when component evidence is absent from the catalog', async () => {
+    const { layer } = makeHarness();
+
+    const results = await runWithCatalog(layer, catalog =>
+      catalog.find({
+        evidence: [{ type: 'ApexClass', fullName: 'MissingClass' }],
+        resultKinds: ['component']
+      })
+    );
+
+    expect(results).toEqual([
+      { kind: 'not-found', reference: { type: 'ApexClass', fullName: 'MissingClass' }, resultKind: 'component' }
+    ]);
+  });
+
+  it('finds a workspace component without acquiring org metadata inventory', async () => {
+    const { layer, mocks } = makeHarness({
+      workspaceComponents: [
+        {
+          type: { name: 'CustomObject' },
+          fullName: 'Local__c',
+          xml: '/workspace/force-app/main/default/objects/Local__c/Local__c.object-meta.xml'
+        }
+      ]
+    });
+
+    const results = await runWithCatalog(layer, catalog =>
+      catalog.find({
+        evidence: [{ type: 'CustomObject', fullName: 'Local__c' }],
+        resultKinds: ['component']
+      })
+    );
+
+    expect(results).toEqual([
+      expect.objectContaining({
+        kind: 'component',
+        entry: expect.objectContaining({ inOrg: false, inWorkspace: true, provenance: 'workspace' })
+      })
+    ]);
+    expect(mocks.listMetadata).not.toHaveBeenCalled();
+  });
+
   it('exposes only consumer-shaped operations', async () => {
     const { layer } = makeHarness();
 
     const keys = await runWithCatalog(layer, catalog => Effect.succeed(Object.keys(catalog).toSorted()));
 
-    expect(keys).toEqual(['getChildren', 'getEntries', 'hasTypeInventory', 'resolveComponents']);
+    expect(keys).toEqual(['find', 'getChildren', 'getEntries', 'hasTypeInventory', 'resolveComponents']);
   });
 
   it('resolves consumer-known components during startup before the default org ref is populated', async () => {

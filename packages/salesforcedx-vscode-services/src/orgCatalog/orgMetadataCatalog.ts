@@ -26,7 +26,10 @@ import { makeOrgCatalogWorkspace } from './orgCatalogWorkspace';
 import { OrgMetadataCatalogRecorder } from './orgMetadataCatalogRecorder';
 import {
   type OrgMetadataCatalogComponentReference,
+  type OrgMetadataCatalogComponentEntry,
   type OrgMetadataCatalogEntry,
+  type OrgMetadataCatalogFindQuery,
+  type OrgMetadataCatalogFindResult,
   type OrgMetadataCatalogInternalEntry,
   type OrgMetadataCatalogReference,
   type OrgMetadataConsistency,
@@ -65,16 +68,25 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
     TransmogrifierService.Default
   ],
   effect: Effect.gen(function* () {
-    const [connectionService, metadataDescribeService, inventories, state, treeProjection, workspace, recorder] =
-      yield* Effect.all([
-        ConnectionService,
-        MetadataDescribeService,
-        makeOrgCatalogInventory,
-        OrgCatalogState,
-        makeOrgCatalogTreeProjection,
-        makeOrgCatalogWorkspace,
-        OrgMetadataCatalogRecorder
-      ]);
+    const [
+      connectionService,
+      metadataDescribeService,
+      transmogrifier,
+      inventories,
+      state,
+      treeProjection,
+      workspace,
+      recorder
+    ] = yield* Effect.all([
+      ConnectionService,
+      MetadataDescribeService,
+      TransmogrifierService,
+      makeOrgCatalogInventory,
+      OrgCatalogState,
+      makeOrgCatalogTreeProjection,
+      makeOrgCatalogWorkspace,
+      OrgMetadataCatalogRecorder
+    ]);
     const getActiveOrgId = Effect.fn('OrgMetadataCatalog.getActiveOrgId')(function* () {
       const { orgId } = yield* SubscriptionRef.get(yield* getDefaultOrgRef());
       if (orgId) return orgId;
@@ -187,7 +199,104 @@ export class OrgMetadataCatalog extends Effect.Service<OrgMetadataCatalog>()('Or
       }).pipe(Effect.map(entries => entries.map(entry => (entry ? toCatalogEntry(entry) : entry))));
     });
 
+    const find = Effect.fn('OrgMetadataCatalog.find')(function* (query: OrgMetadataCatalogFindQuery) {
+      const orgId = yield* getActiveOrgId();
+      const results = yield* Effect.forEach(
+        query.evidence,
+        reference =>
+          Effect.gen(function* () {
+            const component = query.resultKinds.includes('component')
+              ? yield* workspace.findWorkspaceComponents([toInternalComponentReference(reference)]).pipe(
+                  Effect.flatMap(([workspaceResolution]) => {
+                    if (workspaceResolution?.workspaceUri) {
+                      return Effect.succeed<readonly OrgMetadataCatalogFindResult[]>([
+                        {
+                          kind: 'component' as const,
+                          reference,
+                          entry: {
+                            kind: 'component',
+                            reference,
+                            orgId,
+                            observedAt: new Date().toISOString(),
+                            provenance: 'workspace',
+                            name: reference.fullName,
+                            documentUri: workspaceResolution.workspaceUri,
+                            inOrg: false,
+                            inWorkspace: true,
+                            workspaceUri: workspaceResolution.workspaceUri
+                          } satisfies OrgMetadataCatalogComponentEntry
+                        }
+                      ]);
+                    }
+                    return inventories.getEntry(orgId, toInternalComponentReference(reference)).pipe(
+                      Effect.map((entry): readonly OrgMetadataCatalogFindResult[] =>
+                        entry?.kind === 'component'
+                          ? [
+                              {
+                                kind: 'component' as const,
+                                reference,
+                                entry: {
+                                  ...entry,
+                                  kind: 'component' as const,
+                                  reference: { type: entry.reference.xmlName, fullName: entry.reference.fullName }
+                                }
+                              }
+                            ]
+                          : [{ kind: 'not-found' as const, reference, resultKind: 'component' as const }]
+                      )
+                    );
+                  })
+                )
+              : [];
+            if (reference.type !== 'CustomObject' || !query.resultKinds.includes('sobject')) return component;
+
+            yield* state.ensureHydrated(orgId);
+            const cached = yield* state.getSObjectDescription(orgId, reference.fullName);
+            if (cached) {
+              return [...component, { kind: 'sobject' as const, reference, description: cached }];
+            }
+            const rawSObject = yield* metadataDescribeService
+              .describeCustomObject(reference.fullName, orgId)
+              .pipe(
+                Effect.catchTag('MetadataDescribeError', error => (error.notFound ? Effect.void : Effect.fail(error)))
+              );
+            if (rawSObject === undefined) {
+              return [...component, { kind: 'not-found' as const, reference, resultKind: 'sobject' as const }];
+            }
+            const transformed = yield* transmogrifier.toMinimalSObject(rawSObject);
+            const sobjectDescription = {
+              ...transformed,
+              orgId,
+              observedAt: new Date().toISOString(),
+              provenance: 'rest-api' as const
+            };
+            const description = yield* state
+              .getSObjectDescription(orgId, sobjectDescription.name)
+              .pipe(
+                Effect.flatMap(recorded =>
+                  recorded
+                    ? Effect.succeed(recorded)
+                    : state
+                        .setSObjectDescription(orgId, sobjectDescription)
+                        .pipe(Effect.andThen(state.queuePersist(orgId)), Effect.as(sobjectDescription))
+                )
+              );
+            return [
+              ...component,
+              {
+                kind: 'sobject' as const,
+                reference,
+                description
+              }
+            ];
+          }),
+        { concurrency: 'unbounded' }
+      );
+      return results.flat();
+    });
+
     return {
+      find,
       getChildren,
       getEntries,
       hasTypeInventory,

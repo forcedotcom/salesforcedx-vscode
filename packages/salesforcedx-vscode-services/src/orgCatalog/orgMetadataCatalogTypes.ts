@@ -6,9 +6,9 @@
  */
 
 import type { OrgMetadataReference } from './orgMetadataReference';
-import type { SObject } from '../core/schemas/sObject';
 import * as Schema from 'effect/Schema';
 import { URI } from 'vscode-uri';
+import { SObjectSchema, type SObject } from '../core/schemas/sObject';
 
 const UriSchema = Schema.declare((value): value is URI => URI.isUri(value), {
   identifier: 'URI',
@@ -33,7 +33,7 @@ export type OrgMetadataCatalogReference = {
   readonly fullName?: string;
 };
 
-const OrgMetadataCatalogComponentReferenceSchema = Schema.Struct({
+export const OrgMetadataCatalogComponentReferenceSchema = Schema.Struct({
   type: Schema.String.pipe(Schema.minLength(1)),
   fullName: Schema.String.pipe(Schema.minLength(1))
 });
@@ -56,6 +56,11 @@ type OrgCatalogObservation = typeof OrgCatalogObservationSchema.Type;
 
 export type OrgSObjectSummary = OrgCatalogObservation & Pick<SObject, 'name' | 'custom' | 'queryable'>;
 export type OrgSObjectDescription = SObject & OrgCatalogObservation;
+
+export const OrgSObjectDescriptionSchema = Schema.Struct({
+  ...SObjectSchema.fields,
+  ...OrgCatalogObservationSchema.fields
+});
 
 const OrgMetadataFieldDetailsSchema = Schema.Struct({
   name: Schema.String,
@@ -142,3 +147,42 @@ export const OrgMetadataCatalogEntrySchema = Schema.Union(
 );
 /** Consumer-facing catalog entry. */
 export type OrgMetadataCatalogEntry = typeof OrgMetadataCatalogEntrySchema.Type;
+
+export const OrgMetadataCatalogFindResultKindSchema = Schema.Literal('component', 'sobject');
+export type OrgMetadataCatalogFindResultKind = typeof OrgMetadataCatalogFindResultKindSchema.Type;
+
+/** Evidence-based query over the active org catalog. Each evidence item is an exact metadata identity. */
+export const OrgMetadataCatalogFindQuerySchema = Schema.Struct({
+  evidence: Schema.Array(OrgMetadataCatalogComponentReferenceSchema),
+  resultKinds: Schema.Array(OrgMetadataCatalogFindResultKindSchema)
+});
+export type OrgMetadataCatalogFindQuery = typeof OrgMetadataCatalogFindQuerySchema.Type;
+
+export const OrgMetadataCatalogComponentFindResultSchema = Schema.Struct({
+  kind: Schema.Literal('component'),
+  reference: OrgMetadataCatalogComponentReferenceSchema,
+  entry: OrgMetadataCatalogComponentEntrySchema
+});
+export type OrgMetadataCatalogComponentFindResult = typeof OrgMetadataCatalogComponentFindResultSchema.Type;
+
+export const OrgMetadataCatalogSObjectFindResultSchema = Schema.Struct({
+  kind: Schema.Literal('sobject'),
+  reference: OrgMetadataCatalogComponentReferenceSchema,
+  description: OrgSObjectDescriptionSchema
+});
+export type OrgMetadataCatalogSObjectFindResult = typeof OrgMetadataCatalogSObjectFindResultSchema.Type;
+
+export const OrgMetadataCatalogNotFoundResultSchema = Schema.Struct({
+  kind: Schema.Literal('not-found'),
+  reference: OrgMetadataCatalogComponentReferenceSchema,
+  resultKind: OrgMetadataCatalogFindResultKindSchema
+});
+export type OrgMetadataCatalogNotFoundResult = typeof OrgMetadataCatalogNotFoundResultSchema.Type;
+
+/** Catalog-native values returned by an evidence query. */
+export const OrgMetadataCatalogFindResultSchema = Schema.Union(
+  OrgMetadataCatalogComponentFindResultSchema,
+  OrgMetadataCatalogSObjectFindResultSchema,
+  OrgMetadataCatalogNotFoundResultSchema
+);
+export type OrgMetadataCatalogFindResult = typeof OrgMetadataCatalogFindResultSchema.Type;
