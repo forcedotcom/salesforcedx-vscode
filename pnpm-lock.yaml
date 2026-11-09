@@ -519,6 +519,9 @@ importers:
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
+      '@salesforce/salesforcedx-utils':
+        specifier: '*'
+        version: link:../salesforcedx-utils
       '@vscode/test-electron':
         specifier: 3.1.0
         version: 3.1.0(supports-color@8.1.1)
@@ -562,6 +565,9 @@ importers:
       '@octokit/types':
         specifier: ^16.0.0
         version: 16.0.0
+      '@salesforce/salesforcedx-utils':
+        specifier: '*'
+        version: link:../salesforcedx-utils
       effect:
         specifier: ^3.21.2
         version: 3.22.2
@@ -617,6 +623,9 @@ importers:
       '@salesforce/core':
         specifier: ^9.3.0
         version: 9.3.6
+      '@salesforce/salesforcedx-utils':
+        specifier: '*'
+        version: link:../salesforcedx-utils
       '@vscode/test-electron':
         specifier: 3.1.0
         version: 3.1.0(supports-color@8.1.1)
@@ -638,6 +647,9 @@ importers:
       '@salesforce/kit':
         specifier: ^4.0.0
         version: 4.0.0
+      '@salesforce/salesforcedx-utils':
+        specifier: '*'
+        version: link:../salesforcedx-utils
       effect:
         specifier: ^3.21.2
         version: 3.22.2
@@ -761,6 +773,9 @@ importers:
       '@salesforce/salesforcedx-lightning-lsp-common':
         specifier: workspace:*
         version: link:../salesforcedx-lightning-lsp-common
+      '@salesforce/salesforcedx-utils':
+        specifier: '*'
+        version: link:../salesforcedx-utils
       '@salesforce/vscode-i18n':
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
@@ -870,6 +885,9 @@ importers:
       '@salesforce/salesforcedx-lightning-lsp-common':
         specifier: workspace:*
         version: link:../salesforcedx-lightning-lsp-common
+      '@salesforce/salesforcedx-utils':
+        specifier: '*'
+        version: link:../salesforcedx-utils
       '@salesforce/schema':
         specifier: ^0.0.21
         version: 0.0.21

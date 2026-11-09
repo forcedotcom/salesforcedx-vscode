@@ -67,7 +67,9 @@ runs:
     - name: Compile shared Playwright utilities
       if: inputs.compile-playwright-utils == 'true'
       shell: bash
-      run: pnpm --filter @salesforce/playwright-vscode-ext exec tsc --pretty
+      run: |
+        pnpm --filter @salesforce/playwright-vscode-ext compile
+        pnpm --filter @salesforce/playwright-vscode-ext exec tsc --pretty
 
     # Wireit cache hits exit zero without requiring CLI, scratch orgs, or Chromium.
     - name: Try E2E tests
