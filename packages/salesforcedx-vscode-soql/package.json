@@ -100,8 +100,8 @@
     "vscode:package": "wireit",
     "vscode:bundle:migration": "wireit",
     "vscode:package:migration": "wireit",
-    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
-    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "vscode:sha256": "node ../../scripts/generateSha256.mts >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publishVsix.mts",
     "test:compile": "wireit",
     "vscode:package:prerelease": "wireit",
     "check:effect-diagnostics": "wireit"

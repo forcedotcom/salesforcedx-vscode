@@ -239,7 +239,7 @@ jobs:
         if: steps.stable.outputs.is_stable == 'true'
         run: |
           git show "$RELEASE_TAG:packages/salesforcedx-vscode/CHANGELOG.md" > "$RUNNER_TEMP/release-CHANGELOG.md"
-          node scripts/fold-stable-changelog.js \
+          node scripts/foldStableChangelog.mts \
             --changelog CHANGELOG.md \
             --overlay packages/salesforcedx-vscode/CHANGELOG.md \
             --ref "$RELEASE_TAG" \

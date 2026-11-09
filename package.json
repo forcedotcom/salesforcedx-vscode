@@ -10,7 +10,9 @@
     "node": ">=24.18.0"
   },
   "dependencies": {
+    "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/o11y-reporter": "^1.8.5",
+    "@salesforce/salesforcedx-utils": "workspace:*",
     "jsforce": "^3.10.24",
     "memfs": "^4.32.0",
     "semver": "^7.5.4",
