@@ -320,8 +320,9 @@ jobs:
   # directly -- and Open VSX allows only one trusted-publisher registration per extension.
   # `gh workflow run` below is a genuinely new, independent run rather than a nested call, so that
   # run's own workflow_ref is publishOpenVSXTrusted.yml -- the same file stable's `release` event
-  # also triggers directly. See publishOpenVSXTrusted.yml for the full explanation, including why
-  # it also skips the CTC moratorium check for this nightly dispatch specifically.
+  # also triggers directly. Omitting `do-ctc` below leaves it at its default false, correctly
+  # skipping the CTC moratorium check for this nightly -- see publishOpenVSXTrusted.yml for why
+  # that's an explicit opt-in rather than inferred from the tag.
   trigger-openvsx-publish:
     needs: [find-nightly, write-changelog, promote]
     if: always() && needs.promote.result == 'success' && (needs.write-changelog.result == 'success' || needs.write-changelog.result == 'skipped') && inputs.dry-run != true

@@ -230,6 +230,7 @@ gh workflow run publishVSCode.yml \
 # Trigger Open VSX publish workflow
 gh workflow run publishOpenVSXTrusted.yml \
   -f release-tag="v67.12.0" \
+  -f do-ctc=true \
   --repo forcedotcom/salesforcedx-vscode
 ```
 
@@ -356,7 +357,7 @@ gh workflow run publishVSCode.yml --ref develop \
   -f version="v68.4.1" -f isHotfix=true \
   --repo forcedotcom/salesforcedx-vscode
 gh workflow run publishOpenVSXTrusted.yml --ref develop \
-  -f release-tag="v68.4.1" -f isHotfix=true \
+  -f release-tag="v68.4.1" -f isHotfix=true -f do-ctc=true \
   --repo forcedotcom/salesforcedx-vscode
 ```
 

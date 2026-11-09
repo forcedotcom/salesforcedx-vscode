@@ -15,9 +15,13 @@ run-name: "Open VSX: ${{ inputs.release-tag || github.event.release.tag_name }}"
 # CTC (Change Traffic Control / release moratorium check) lives here too, not in a separate
 # workflow, because it has to actually gate `publish` via `needs:` -- a separate top-level
 # workflow triggered by the same `release` event would run concurrently with no ordering
-# guarantee, so a moratorium wouldn't block anything. It's skipped for nightly tags (see ctc-open
-# below): nightlies were never CTC-gated, and `-nightly` is the one signal that's reliable
-# regardless of whether this was reached via the `release` event or a workflow_dispatch.
+# guarantee, so a moratorium wouldn't block anything. Stable is the only CTC-gated channel: the
+# `release` event always means stable, and every stable workflow_dispatch (retry/hotfix) must
+# pass `do-ctc: true` explicitly. Nothing infers this from the release tag -- an emergency
+# prerelease (built via build-github-release.yml's emergencyPrerelease mode) and a stable hotfix
+# retry can both be plain `vX.Y.Z` tags dispatched with `isHotfix: true`; tag shape can't tell
+# them apart, only the caller knows which channel it's publishing. promote-to-prerelease.yml,
+# the only prerelease caller, leaves do-ctc at its default (false).
 #
 # Deliberately has no `environment: publish` (unlike the stable `prepare-release-metadata` this
 # replaced): that environment has a required-reviewers protection rule, which would turn every
@@ -38,6 +42,11 @@ on:
         default: false
       isHotfix:
         description: 'Test the exact release commit directly before publishing. Use for stable hotfixes built via build-github-release.yml startFromRef, which have no other automated test gate for this registry. Prerelease dispatches never need this -- promote-to-prerelease.yml already tested the commit before dispatching here.'
+        required: false
+        default: false
+        type: boolean
+      do-ctc:
+        description: 'Open and close a CTC change case around this publish. Set true for every stable dispatch (retry/hotfix) -- the release-tag shape alone cannot distinguish a stable hotfix from an emergency prerelease, so this is never inferred. Leave false for prerelease.'
         required: false
         default: false
         type: boolean
@@ -95,14 +104,13 @@ jobs:
           pnpm compile
           pnpm test
 
-  # Skipped for nightly tags -- nightlies were never CTC-gated, and dispatching a change case for
-  # every weekly prerelease (rather than just the ~monthly stable release) would be noise, not
-  # signal. `-nightly` is checked directly on the tag rather than on github.event_name, since both
-  # the nightly dispatch (promote-to-prerelease.yml) and a manual stable hotfix/retry dispatch
-  # arrive via workflow_dispatch -- event_name can't tell them apart, but the tag shape can.
+  # Runs for every real stable release (the automatic `release` event) and any stable
+  # workflow_dispatch that explicitly opts in via `do-ctc: true`. Dispatching a change case for
+  # every weekly prerelease would be noise, not signal, so prerelease callers leave do-ctc at its
+  # default false -- see the header comment for why this can't be inferred from the tag instead.
   ctc-open:
     needs: [prepare]
-    if: always() && needs.prepare.result == 'success' && !contains(needs.prepare.outputs.release-tag, '-nightly') && inputs.dry-run != true
+    if: always() && needs.prepare.result == 'success' && (github.event_name == 'release' || inputs.do-ctc == true) && inputs.dry-run != true
     uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@main
     secrets: inherit
 
@@ -122,10 +130,10 @@ jobs:
     secrets: inherit
 
   # Confirms the version actually landed on Open VSX before closing the change case. Skipped
-  # alongside ctc-open for nightly tags -- see that job's comment.
+  # alongside ctc-open when this isn't a CTC-gated run -- see that job's comment.
   verify-published:
     needs: [prepare, ctc-open, publish]
-    if: always() && needs.publish.result == 'success' && !contains(needs.prepare.outputs.release-tag, '-nightly') && inputs.dry-run != true
+    if: always() && needs.publish.result == 'success' && (github.event_name == 'release' || inputs.do-ctc == true) && inputs.dry-run != true
     runs-on: ubuntu-latest
     env:
       GH_TOKEN: ${{ github.token }}
