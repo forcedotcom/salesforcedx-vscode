@@ -10,6 +10,7 @@ import { createHash } from 'node:crypto';
 import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 const repoRoot = path.resolve(import.meta.dirname, '..');
@@ -72,10 +73,14 @@ describe('converted automation', () => {
     };
   };
   const runHotfixWithFetch = (fetchSource: string) => {
-    write('fetch.mjs', fetchSource);
+    write('fetch mock#.mjs', fetchSource);
     return spawnSync(
       process.execPath,
-      ['--import', file('fetch.mjs'), path.join(repoRoot, 'scripts/calculatePrereleaseHotfixVersion.mts')],
+      [
+        '--import',
+        pathToFileURL(file('fetch mock#.mjs')).href,
+        path.join(repoRoot, 'scripts/calculatePrereleaseHotfixVersion.mts')
+      ],
       { encoding: 'utf8', timeout: 30_000 }
     );
   };
