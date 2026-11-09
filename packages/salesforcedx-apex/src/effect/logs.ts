@@ -51,7 +51,13 @@ const streamLogPagesForSoql = (connection: Connection, soql: string) =>
     soql,
     record: ApexLogListItem,
     tooling: true
-  }).pipe(Stream.mapError(error => new ApexLogQueryError({ soql, message: error.message, cause: error })));
+  }).pipe(
+    Stream.mapError(error =>
+      error._tag === 'ApexQueryRequestError'
+        ? new ApexLogQueryError({ soql, message: error.message, cause: error.cause })
+        : error
+    )
+  );
 
 const streamLogPages = (connection: Connection, options?: ListLogsOptions) =>
   Schema.decodeUnknown(ListLogsOptionsSchema)(options ?? {}).pipe(

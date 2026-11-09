@@ -10,10 +10,16 @@ import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
+import type { ParseError } from 'effect/ParseResult';
 import { isNotUndefined, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { ApexOperationError, ApexResponseDecodeError, ApexToolingMutationError } from './schema/errors';
+import {
+  ApexOperationError,
+  ApexQueryRequestError,
+  ApexResponseDecodeError,
+  ApexToolingMutationError
+} from './schema/errors';
 import { QueryPageSchema } from './schema/queryPage';
 import { ToolingMutationResponseSchema } from './schema/wire/records';
 
@@ -38,10 +44,10 @@ export const queryRecordPages = <A, I>({
   soql: string;
   record: Schema.Schema<A, I, never>;
   tooling?: boolean;
-}): Stream.Stream<readonly A[], ApexOperationError | ApexResponseDecodeError> => {
+}): Stream.Stream<readonly A[], ApexQueryRequestError | ParseError> => {
   const queryConnection = tooling ? connection.tooling : connection;
   const pageSchema = QueryPageSchema(record);
-  return Stream.paginateEffect<string | undefined, readonly A[], ApexOperationError | ApexResponseDecodeError, never>(
+  return Stream.paginateEffect<string | undefined, readonly A[], ApexQueryRequestError | ParseError, never>(
     undefined,
     nextRecordsUrl =>
       Effect.tryPromise({
@@ -51,16 +57,10 @@ export const queryRecordPages = <A, I>({
           ),
         catch: cause => {
           const message = requestErrorMessage(cause);
-          return new ApexOperationError({ operation, message, cause: message });
+          return new ApexQueryRequestError({ operation, message, cause });
         }
       }).pipe(
-        Effect.flatMap(response =>
-          Schema.decodeUnknown(pageSchema)(response).pipe(
-            Effect.mapError(
-              cause => new ApexResponseDecodeError({ operation, message: cause.message, cause: cause.message })
-            )
-          )
-        ),
+        Effect.flatMap(Schema.decodeUnknown(pageSchema)),
         Effect.map(
           page => [page.records, page.done ? Option.none<string>() : Option.fromNullable(page.nextRecordsUrl)] as const
         )
@@ -116,7 +116,14 @@ export const queryRecords = Effect.fn('Apex.queryRecords')(function* <A, I>({
     soql,
     record,
     tooling
-  }).pipe(collectQueryPages);
+  }).pipe(
+    Stream.mapError(error =>
+      error._tag === 'ApexQueryRequestError'
+        ? new ApexOperationError({ operation, message: error.message, cause: getErrorMessage(error.cause) })
+        : new ApexResponseDecodeError({ operation, message: error.message, cause: error.message })
+    ),
+    collectQueryPages
+  );
 });
 
 export const createRecord = Effect.fn('Apex.createRecord')(function* <A, I, R, F extends object>({

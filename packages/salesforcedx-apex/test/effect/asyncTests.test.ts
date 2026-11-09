@@ -433,7 +433,7 @@ describe('Effect asynchronous tests', () => {
         Effect.exit
       )
     );
-    expect(Exit.isFailure(exit) && Cause.pretty(exit.cause)).toContain('ApexTestQueueItem ID must contain');
+    expect(Exit.isFailure(exit) && Cause.pretty(exit.cause)).toContain('Invalid asynchronous test response');
     expect(tooling.update).not.toHaveBeenCalled();
   });
 });

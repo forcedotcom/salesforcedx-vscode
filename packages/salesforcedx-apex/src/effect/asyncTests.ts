@@ -79,6 +79,15 @@ const abortTestRun = Effect.fn('Apex.abortTestRun')(function* (
     record: queueRecordSchema,
     tooling: true
   }).pipe(
+    Stream.mapError(error =>
+      error._tag === 'ApexQueryRequestError'
+        ? new ApexOperationError({ operation, message: error.message, cause: getErrorMessage(error.cause) })
+        : new ApexResponseDecodeError({
+            operation,
+            message: 'Invalid asynchronous test response',
+            cause: error.message
+          })
+    ),
     Stream.flatMap(Stream.fromIterable),
     Stream.filter(record => !HashSet.has(finishedStatuses, record.Status)),
     Stream.runCollect,

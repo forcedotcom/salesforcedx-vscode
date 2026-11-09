@@ -34,6 +34,13 @@ export class ApexResponseDecodeError extends Schema.TaggedError<ApexResponseDeco
   OperationErrorFields
 ) {}
 
+/** A query request failure; callers can refine the original client error if needed. */
+export class ApexQueryRequestError extends Schema.TaggedError<ApexQueryRequestError>()('ApexQueryRequestError', {
+  operation: Schema.NonEmptyTrimmedString,
+  message: Schema.String,
+  cause: Schema.Unknown
+}) {}
+
 const AnonymousExecutionErrorFields = {
   operation: Schema.NonEmptyTrimmedString,
   message: Schema.String,
