@@ -8,14 +8,13 @@
 import type { JsonObject } from '../json';
 import type { MessageType } from '../soql-builder-ui/modules/querybuilder/services/message/soqlEditorEvent';
 import type { QueryResult } from '../types';
-import { ExtensionProviderService, getServicesApi } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getServicesApi, getMessageFromError } from '@salesforce/effect-ext-utils';
 import type { SObject } from '@salesforce/vscode-services/v2';
 import debounce from 'debounce';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
 import * as Layer from 'effect/Layer';
-import { isError } from 'effect/Predicate';
 import * as Queue from 'effect/Queue';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -290,7 +289,7 @@ export class SOQLEditorInstance {
               yield* runBuilderQueryEffect(document, maxRows, openQueryDataView, runQueryDone).pipe(
                 Effect.catchCause(cause => {
                   const err = Cause.squash(cause);
-                  const message = nls.localize('error_run_soql_query', isError(err) ? err.message : String(err));
+                  const message = nls.localize('error_run_soql_query', getMessageFromError(err));
                   return appendToChannel(message).pipe(
                     Effect.tap(() =>
                       Effect.sync(() => {
@@ -325,7 +324,7 @@ export class SOQLEditorInstance {
         }).pipe(
           Effect.catchCause(cause => {
             const err = Cause.squash(cause);
-            return appendToChannel(nls.localize('error_run_soql_query', isError(err) ? err.message : String(err))).pipe(
+            return appendToChannel(nls.localize('error_run_soql_query', getMessageFromError(err))).pipe(
               Effect.andThen(this.getQueryPlanDone())
             );
           }),

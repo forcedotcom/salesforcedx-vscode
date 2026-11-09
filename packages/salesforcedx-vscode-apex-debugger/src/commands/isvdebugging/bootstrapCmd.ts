@@ -5,13 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Global } from '@salesforce/core/global';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
 import * as Option from 'effect/Option';
-import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as path from 'node:path';
 import { URL } from 'node:url';
@@ -171,14 +170,7 @@ const gatherProjectNameAndFolder = Effect.fn('isvDebugBootstrap.gatherProjectNam
       canSelectMany: false,
       openLabel: nls.localize('project_generate_open_dialog_create_label')
     })
-  ).pipe(
-    Effect.flatMap(folders =>
-      Option.match(Arr.head(folders ?? []), {
-        onNone: () => promptService.considerUndefinedAsCancellation<URI>(undefined),
-        onSome: folder => promptService.considerUndefinedAsCancellation(folder)
-      })
-    )
-  );
+  ).pipe(Effect.flatMap(promptService.considerEmptySelectionAsCancellation), Effect.map(Arr.headNonEmpty));
 
   const projectUri = Utils.joinPath(projectParentUri, projectName);
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [projectUri] });
@@ -276,7 +268,7 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
           config.namespace = parseOrgNamespaceQueryResultJson(orgNamespaceInfoResponseJson);
           return JSON.stringify(config, null, 2);
         },
-        catch: e => new IsvBootstrapProjectConfigError({ message: isError(e) ? e.message : String(e) })
+        catch: e => new IsvBootstrapProjectConfigError({ message: getMessageFromError(e) })
       });
       yield* fs.writeFile(salesforceProjectJsonUri, updatedProjectJson);
 

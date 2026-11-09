@@ -6,6 +6,7 @@
  */
 
 import type { Connection } from '@salesforce/core';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
 import * as Option from 'effect/Option';
@@ -14,7 +15,6 @@ import * as Result from 'effect/Result';
 import type * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { causeMessage } from './errors.js';
 import { ApexLogBodyFetchError, ApexLogQueryError } from './schema/errors.js';
 import {
   ListLogsOptionsSchema,
@@ -53,13 +53,10 @@ const streamLogPagesForSoql = (connection: Connection, soql: string) => {
           Promise.resolve(
             isUndefined(nextRecordsUrl) ? connection.tooling.query(soql) : connection.tooling.queryMore(nextRecordsUrl)
           ),
-        catch: cause => new ApexLogQueryError({ soql, message: causeMessage(cause), cause })
+        catch: cause => new ApexLogQueryError({ soql, message: getErrorMessage(cause), cause })
       }).pipe(
         Effect.flatMap(Schema.decodeUnknownEffect(ApexLogPageSchema)),
-        Effect.map(
-          page =>
-            [[page.records], page.done ? Option.none() : Option.some(page.nextRecordsUrl)] as const
-          )
+        Effect.map(page => [[page.records], page.done ? Option.none() : Option.some(page.nextRecordsUrl)] as const)
       )
   );
 };
@@ -84,7 +81,7 @@ export const getLogBody = Effect.fn('Apex.getLogBody')((connection: Connection, 
         url: `/tooling/sobjects/ApexLog/${logId}/Body`
       }),
     catch: cause =>
-      new ApexLogBodyFetchError({ message: `Failed to fetch ApexLog body: ${causeMessage(cause)}`, cause })
+      new ApexLogBodyFetchError({ message: `Failed to fetch ApexLog body: ${getErrorMessage(cause)}`, cause })
   }).pipe(Effect.map(body => (isString(body) ? body : String(body))))
 );
 

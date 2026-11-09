@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, SalesforceIdSchema } from '@salesforce/effect-ext-utils';
+import { getMessageFromError, ExtensionProviderService, SalesforceIdSchema } from '@salesforce/effect-ext-utils';
 import type { PackageInstallRequest as ToolingPackageInstallRequest } from '@salesforce/types/tooling';
 import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isError, isNotUndefined, isUndefined } from 'effect/Predicate';
+import { isNotUndefined, isUndefined } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -133,7 +133,7 @@ const submitInstallRequest = Effect.fn('packageInstall.submitInstallRequest')(fu
   };
   return yield* Effect.tryPromise({
     try: () => conn.tooling.create('PackageInstallRequest', body),
-    catch: e => new PackageInstallFailedError({ message: isError(e) ? e.message : String(e) })
+    catch: e => new PackageInstallFailedError({ message: getMessageFromError(e) })
   }).pipe(
     Effect.map(result => (Array.isArray(result) ? result[0] : result)),
     Effect.filterOrFail(

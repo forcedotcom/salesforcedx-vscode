@@ -6,6 +6,7 @@
  */
 
 import type { Connection } from '@salesforce/core';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
@@ -15,7 +16,6 @@ import * as Ref from 'effect/Ref';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { causeMessage } from './errors.js';
 import {
   AsyncTestProgressSchema,
   AsyncTestResultSchema,
@@ -52,7 +52,8 @@ export type AsyncTestRun = {
 const request = <A>(action: () => PromiseLike<A>) =>
   Effect.tryPromise({
     try: action,
-    catch: cause => new ApexOperationError({ operation, message: causeMessage(cause), cause: causeMessage(cause) })
+    catch: cause =>
+      new ApexOperationError({ operation, message: getErrorMessage(cause), cause: getErrorMessage(cause) })
   });
 
 const decode = <S extends Schema.ConstraintDecoder<unknown, never>>(schema: S, response: unknown) =>
@@ -62,7 +63,7 @@ const decode = <S extends Schema.ConstraintDecoder<unknown, never>>(schema: S, r
         new ApexResponseDecodeError({
           operation,
           message: 'Invalid asynchronous test response',
-          cause: causeMessage(cause)
+          cause: getErrorMessage(cause)
         })
     )
   );

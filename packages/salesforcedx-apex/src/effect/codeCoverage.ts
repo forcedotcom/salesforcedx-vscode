@@ -6,6 +6,7 @@
  */
 
 import type { Connection } from '@salesforce/core';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
@@ -14,7 +15,6 @@ import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { QUERY_RECORD_LIMIT } from '../tests/constants.js';
 import { type AggregateCodeCoverageResult, type PerClassCoverage } from './coverageSchemas.js';
-import { causeMessage } from './errors.js';
 import { ApexOperationError, ApexResponseDecodeError } from './schema/errors.js';
 import { QueryPageSchema } from './schema/queryPage.js';
 import {
@@ -45,28 +45,26 @@ const queryCoverageRecords = <S extends Schema.ConstraintDecoder<unknown, never>
   return Stream.paginate<string | undefined, S['Type'], ApexOperationError | ApexResponseDecodeError, never>(
     initialNextRecordsUrl,
     nextRecordsUrl =>
-    Effect.tryPromise({
-      try: () =>
-        Promise.resolve(
-          isUndefined(nextRecordsUrl) ? connection.tooling.query(query) : connection.tooling.queryMore(nextRecordsUrl)
-        ),
-      catch: cause => new ApexOperationError({ operation, message: causeMessage(cause), cause: causeMessage(cause) })
-    }).pipe(
-      Effect.flatMap(Schema.decodeUnknownEffect(pageSchema)),
-      Effect.map(
-        page =>
-          [page.records, page.done ? Option.none() : Option.some(page.nextRecordsUrl)] as const
-      ),
-      Effect.catchTag('SchemaError', cause =>
-        Effect.fail(
-          new ApexResponseDecodeError({
-            operation,
-            message: cause.message,
-            cause: causeMessage(cause)
-          })
+      Effect.tryPromise({
+        try: () =>
+          Promise.resolve(
+            isUndefined(nextRecordsUrl) ? connection.tooling.query(query) : connection.tooling.queryMore(nextRecordsUrl)
+          ),
+        catch: cause =>
+          new ApexOperationError({ operation, message: getErrorMessage(cause), cause: getErrorMessage(cause) })
+      }).pipe(
+        Effect.flatMap(Schema.decodeUnknownEffect(pageSchema)),
+        Effect.map(page => [page.records, page.done ? Option.none() : Option.some(page.nextRecordsUrl)] as const),
+        Effect.catchTag('SchemaError', cause =>
+          Effect.fail(
+            new ApexResponseDecodeError({
+              operation,
+              message: cause.message,
+              cause: getErrorMessage(cause)
+            })
+          )
         )
       )
-    )
   ).pipe(Stream.runCollect);
 };
 
@@ -105,12 +103,16 @@ export const getPerClassCodeCoverage = Effect.fn('Apex.getPerClassCodeCoverage')
     query => queryCoverageRecords(connection, query, ApexCodeCoverageRecordSchema, 'getPerClassCodeCoverage'),
     { concurrency: 'unbounded' }
   ).pipe(
-    Effect.map(records =>
-      new Map<string, PerClassCoverage[]>(
-        Object.entries(
-          Arr.groupBy(records.flat().map(toPerClassCoverage), item => `${item.apexTestClassId}-${item.apexTestMethodName}`)
+    Effect.map(
+      records =>
+        new Map<string, PerClassCoverage[]>(
+          Object.entries(
+            Arr.groupBy(
+              records.flat().map(toPerClassCoverage),
+              item => `${item.apexTestClassId}-${item.apexTestMethodName}`
+            )
+          )
         )
-      )
     )
   );
 });

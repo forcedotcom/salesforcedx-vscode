@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
-import { isError, isString } from 'effect/Predicate';
+import { isString } from 'effect/Predicate';
 import { toEntries } from 'effect/Record';
 import * as Schema from 'effect/Schema';
 import { XMLParser } from 'fast-xml-parser';
@@ -79,7 +79,7 @@ const loadMetadataDocumentation = Effect.fn('MetadataDocumentationService.loadMe
               parseTagValue: false,
               trimValues: true
             }).parse(xsdContent),
-          catch: cause => new XsdParseError({ message: isError(cause) ? cause.message : String(cause) })
+          catch: cause => new XsdParseError({ message: getMessageFromError(cause) })
         })
       ),
       Effect.map(parsed => parsed['xsd:schema'])

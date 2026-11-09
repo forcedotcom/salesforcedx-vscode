@@ -7,13 +7,14 @@
 
 import type { HttpRequest } from '@jsforce/jsforce-node';
 import type { Connection } from '@salesforce/core';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Effect from 'effect/Effect';
 import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { executeAnonymousAction } from '../execute/constants.js';
 import { encodeBody } from '../execute/utils.js';
 import { messages } from '../i18n/i18n.js';
-import { ApexCompileError, ApexRuntimeError, causeMessage } from './errors.js';
+import { ApexCompileError, ApexRuntimeError } from './errors.js';
 import { ApexOperationError, ApexRequestError, ApexResponseDecodeError, InvalidSessionError } from './schema/errors.js';
 import {
   executionResultSchema,
@@ -41,8 +42,8 @@ export const ExecuteAnonymousOutcomeSchema = Schema.Struct({
 }).annotate({ identifier: 'ExecuteAnonymousOutcome' });
 export type ExecuteAnonymousOutcome = typeof ExecuteAnonymousOutcomeSchema.Type;
 
-const operationError = (cause: unknown, message = causeMessage(cause)): ApexOperationError =>
-  new ApexOperationError({ operation, message, cause: causeMessage(cause) });
+const operationError = (cause: unknown, message = getErrorMessage(cause)): ApexOperationError =>
+  new ApexOperationError({ operation, message, cause: getErrorMessage(cause) });
 
 // Tooling REST would require separate trace-flag, execution, and log-retrieval calls.
 const buildRequest = (connection: Connection, code: string): HttpRequest => {
@@ -67,7 +68,7 @@ const parseResponse = (response: unknown) =>
         new ApexResponseDecodeError({
           operation,
           message: 'Invalid execute anonymous SOAP response',
-          cause: causeMessage(cause)
+          cause: getErrorMessage(cause)
         })
       )
     )
@@ -109,8 +110,8 @@ const sendRequest = (connection: Connection, code: string) =>
     try: () => connection.request<unknown>(buildRequest(connection, code)),
     catch: cause =>
       isInvalidSessionError(cause)
-        ? new InvalidSessionError({ message: causeMessage(cause) })
-        : new ApexRequestError({ message: causeMessage(cause) })
+        ? new InvalidSessionError({ message: getErrorMessage(cause) })
+        : new ApexRequestError({ message: getErrorMessage(cause) })
   });
 
 /** Executes anonymous Apex and exposes compilation/runtime failures as typed errors. */

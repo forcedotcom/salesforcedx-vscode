@@ -27,7 +27,10 @@ try {
     {
       fixture: 'apexV4',
       directory: v4,
-      packedPackages: [packServicesPackage(packageRoot, v4, 'apex.tgz')]
+      packedPackages: [
+        packServicesPackage(packageRoot, v4, 'apex.tgz'),
+        packServicesPackage(join(root, 'packages/salesforcedx-utils'), v4, 'utils.tgz')
+      ]
     }
   ];
   copyFileSync(join(root, 'test/fixtures/effect-v4/apexV4/root.ts'), join(v4, 'root.cts'));

@@ -4,11 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getExtensionScope, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
-import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { getPortKillInstructions, isAuthPortConflictError } from '../../util/authErrorParser';
@@ -66,7 +65,7 @@ export const executeOrgLoginWeb = Effect.fn('executeOrgLoginWeb')(function* (par
     yield* channel.showChannel;
     yield* Effect.tryPromise({
       try: () => updateConfigAndStateAggregators(),
-      catch: e => new ConfigRefreshError({ message: isError(e) ? e.message : String(e) })
+      catch: e => new ConfigRefreshError({ message: getMessageFromError(e) })
     });
   });
 

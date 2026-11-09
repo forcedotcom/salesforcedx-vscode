@@ -24,6 +24,7 @@
     "@types/istanbul-reports": "^3.0.4",
     "effect": "^4.0.6",
     "fast-glob": "^3.3.2",
+    "@salesforce/salesforcedx-utils": "*",
     "faye": "1.4.1",
     "istanbul-lib-coverage": "^3.2.2",
     "istanbul-lib-report": "^3.0.1",
@@ -97,6 +98,9 @@
     "compile": {
       "command": "tsc --pretty && tsc -p scripts/tsconfig.json && node scripts/bundleCommonJs.mjs",
       "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-utils:compile"
+      ],
       "files": [
         "src/**/*.ts",
         "scripts/**/*.mts",

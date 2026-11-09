@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
-import { isError, isNotUndefined, isUndefined } from 'effect/Predicate';
+import { isNotUndefined, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
@@ -94,8 +94,6 @@ export const shouldSetSchemaDocumentationTypeToNone = (inspection: SchemaDocumen
 const getLocalFilePaths = (extensionUri: URI, targetFileNames: string[]): string[] =>
   targetFileNames.map(targetFileName => Utils.joinPath(extensionUri, 'resources', targetFileName).fsPath);
 
-const getErrorMessage = (error: unknown): string => (isError(error) ? error.message : String(error));
-
 const reportToChannel = Effect.fn('metadataXmlSupport.reportToChannel')(function* (message: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channelService = yield* api.v2.services.ChannelService;
@@ -106,7 +104,7 @@ const reportCaughtMessage = (error: { message: string }) => reportToChannel(erro
 
 const reportSetupFailure = Effect.fn('metadataXmlSupport.reportSetupFailure')(function* (error: unknown) {
   yield* reportToChannel(nls.localize('metadata_xml_fail_redhat_extension'));
-  yield* reportToChannel(getErrorMessage(error));
+  yield* reportToChannel(getMessageFromError(error));
 });
 
 /** Setup Red Hat XML with Salesforce metadata schemas and settings. */
@@ -128,7 +126,7 @@ const setupRedhatXml = Effect.fn('metadataXmlSupport.setupRedhatXml')(
       },
       catch: cause =>
         new RedHatXmlExtensionSetupError({
-          message: getErrorMessage(cause),
+          message: getMessageFromError(cause),
           cause
         })
     });
@@ -138,7 +136,7 @@ const setupRedhatXml = Effect.fn('metadataXmlSupport.setupRedhatXml')(
         try: () => vscode.workspace.getConfiguration('xml').inspect<A>(setting),
         catch: cause =>
           new XmlConfigurationInspectError({
-            message: getErrorMessage(cause),
+            message: getMessageFromError(cause),
             cause,
             setting
           })

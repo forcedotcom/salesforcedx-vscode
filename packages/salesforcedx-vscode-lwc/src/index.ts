@@ -9,7 +9,8 @@ import {
   buildAllServicesLayer,
   closeExtensionScope,
   ExtensionProviderService,
-  getExtensionScope
+  getExtensionScope,
+  getMessageFromError
 } from '@salesforce/effect-ext-utils';
 import {
   isLWC,
@@ -19,9 +20,9 @@ import {
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { detectWorkspaceType } from '@salesforce/salesforcedx-lightning-lsp-common/detectWorkspaceTypeVscode';
 import { registerWorkspaceReadFileHandler } from '@salesforce/salesforcedx-lightning-lsp-common/workspaceReadFileHandler';
+
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Scope from 'effect/Scope';
 import * as Stream from 'effect/Stream';
@@ -60,7 +61,7 @@ const createLanguageClientEffect = (
 ) =>
   Effect.tryPromise({
     try: () => createLanguageClient(extUri, initOptions, packageDirectoryUris),
-    catch: e => new LwcLanguageServerError({ message: isError(e) ? e.message : String(e) })
+    catch: e => new LwcLanguageServerError({ message: getMessageFromError(e) })
   });
 
 export const activate = async (extensionContext: ExtensionContext) => {
@@ -137,9 +138,7 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
 
   const client = yield* createLanguageClientEffect(extensionUri, initializationOptions, packageDirectoryUris).pipe(
     Effect.tapError(error =>
-      channelSvc.appendToChannel(
-        nls.localize('lwc_language_server_start_failed', isError(error) ? error.message : String(error))
-      )
+      channelSvc.appendToChannel(nls.localize('lwc_language_server_start_failed', getMessageFromError(error)))
     )
   );
 
@@ -164,14 +163,11 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-lwc')(fu
 
   yield* Effect.tryPromise({
     try: () => client.start(),
-    catch: e => new LwcLanguageServerError({ message: isError(e) ? e.message : String(e) })
+    catch: e => new LwcLanguageServerError({ message: getMessageFromError(e) })
   }).pipe(
     Effect.tapError(startError =>
       channelSvc.appendToChannel(
-        nls.localize(
-          'lwc_language_server_client_start_failed',
-          isError(startError) ? startError.message : String(startError)
-        )
+        nls.localize('lwc_language_server_client_start_failed', getMessageFromError(startError))
       )
     )
   );
@@ -242,7 +238,7 @@ const watchSfProjectForLwcClient = Effect.fn('watchSfProjectForLwcClient')(funct
         // Stop the current client
         yield* Effect.tryPromise({
           try: () => languageClient!.stop(),
-          catch: e => new LwcLanguageServerError({ message: isError(e) ? e.message : String(e) })
+          catch: e => new LwcLanguageServerError({ message: getMessageFromError(e) })
         });
 
         // Create and start a new client with updated package directories
@@ -253,7 +249,7 @@ const watchSfProjectForLwcClient = Effect.fn('watchSfProjectForLwcClient')(funct
 
         yield* Effect.tryPromise({
           try: () => newClient.start(),
-          catch: e => new LwcLanguageServerError({ message: isError(e) ? e.message : String(e) })
+          catch: e => new LwcLanguageServerError({ message: getMessageFromError(e) })
         });
 
         // Update the module-level reference
@@ -262,9 +258,7 @@ const watchSfProjectForLwcClient = Effect.fn('watchSfProjectForLwcClient')(funct
         yield* channelSvc.appendToChannel(nls.localize('lwc_language_server_restarted'));
       }).pipe(
         Effect.catch(error =>
-          channelSvc.appendToChannel(
-            nls.localize('lwc_language_server_restart_failed', isError(error) ? error.message : String(error))
-          )
+          channelSvc.appendToChannel(nls.localize('lwc_language_server_restart_failed', getMessageFromError(error)))
         )
       )
     )

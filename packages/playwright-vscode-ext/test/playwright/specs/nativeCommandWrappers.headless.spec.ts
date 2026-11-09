@@ -64,11 +64,11 @@ test.describe('Native command wrappers', () => {
     const editor = page.locator(EDITOR_WITH_URI).first();
     await expect(editor).toBeVisible({ timeout: 10_000 });
     await editor.click();
-    // Append a blank line so the doc is dirty without breaking JSON (nothing reads it after).
+    // Insert a leading blank line so the doc is dirty without breaking JSON (nothing reads it after).
     await goToLineColumn(page);
     await page.keyboard.type('1:1');
     await page.keyboard.press('Enter');
-    await page.keyboard.type('\n');
+    await page.keyboard.press('Enter');
     // The unsaved-changes marker lives on the editor tab (`.tab.dirty`), not the editor body.
     const dirtyTab = page.locator(`${WORKBENCH} .tabs-container .tab.dirty`);
     await expect(dirtyTab).toBeVisible({ timeout: 10_000 });

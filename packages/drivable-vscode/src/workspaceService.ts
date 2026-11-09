@@ -5,13 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as FileSystem from 'effect/FileSystem';
 import * as Layer from 'effect/Layer';
 import * as Path from 'effect/Path';
 import * as Schema from 'effect/Schema';
-import { causeMessage, DrivableVscodeWorkspaceError } from './errors';
+import { DrivableVscodeWorkspaceError } from './errors';
 
 const makeWorkspaceService = Effect.gen(function* () {
   const fs = yield* FileSystem.FileSystem;
@@ -31,7 +32,7 @@ const makeWorkspaceService = Effect.gen(function* () {
         cause =>
           new DrivableVscodeWorkspaceError({
             message: 'Failed to create disposable workspace',
-            cause: causeMessage(cause)
+            cause: getErrorMessage(cause)
           })
       )
     );
@@ -100,7 +101,7 @@ const makeWorkspaceService = Effect.gen(function* () {
           ? cause
           : new DrivableVscodeWorkspaceError({
               message: 'Failed to populate disposable workspace',
-              cause: causeMessage(cause)
+              cause: getErrorMessage(cause)
             })
       ),
       Effect.tapError(() => fs.remove(workspaceDir, { recursive: true }))

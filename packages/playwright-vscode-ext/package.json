@@ -36,6 +36,7 @@
     "access": "public"
   },
   "dependencies": {
+    "@salesforce/salesforcedx-utils": "*",
     "@playwright/test": "^1.64.1",
     "@salesforce/core": "^9.3.0",
     "@vscode/test-electron": "3.1.0",
@@ -74,6 +75,9 @@
     "compile": {
       "command": "tsc --pretty",
       "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-utils:compile"
+      ],
       "files": [
         "src/**/*.ts",
         "tsconfig.json",

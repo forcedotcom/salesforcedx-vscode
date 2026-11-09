@@ -12,9 +12,9 @@ const runTsx = (args: string[]) =>
 
 describe('TypeScript script entry points', () => {
   it.each([
-    'scripts/xsd/scrape-all-metadata-pages.ts',
-    'scripts/xsd/scrape-single-page.ts',
-    'scripts/codeBuilderLocalE2E.ts'
+    'scripts/xsd/scrapeAllMetadataPages.mts',
+    'scripts/xsd/scrapeSinglePage.mts',
+    'scripts/codeBuilderLocalE2E.mts'
   ])(
     '%s prints help without running external operations',
     script => {
@@ -27,9 +27,9 @@ describe('TypeScript script entry points', () => {
   );
 
   it('prints the native App Insights command when no query is supplied', () => {
-    const result = runTsx(['scripts/queryAppInsights.ts']);
+    const result = runTsx(['scripts/queryAppInsights.mts']);
     expect(result.status).toBe(1);
-    expect(result.stderr).toContain('Usage: tsx queryAppInsights.ts <kql-query>');
+    expect(result.stderr).toContain('Usage: node scripts/queryAppInsights.mts <kql-query>');
   });
 
   it('imports guarded entry points without running their CLIs and converts and validates an XSD fixture', () => {
@@ -41,11 +41,11 @@ describe('TypeScript script entry points', () => {
         import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
         import { tmpdir } from 'node:os';
         import { join } from 'node:path';
-        import { createXsdFromJson } from './scripts/xsd/jsonToXsdConverter.ts';
+        import { createXsdFromJson } from './scripts/xsd/jsonToXsdConverter.mts';
         import {
           validateWellFormedXml, validateSchemaReferences, validateNoDuplicateTypes, validateEncoding
-        } from './scripts/xsd/validateXsd.ts';
-        import { queryAppInsights } from './scripts/queryAppInsights.ts';
+        } from './scripts/xsd/validateXsd.mts';
+        import { queryAppInsights } from './scripts/queryAppInsights.mts';
 
         assert.equal(typeof queryAppInsights, 'function');
         const directory = mkdtempSync(join(tmpdir(), 'native-xsd-'));

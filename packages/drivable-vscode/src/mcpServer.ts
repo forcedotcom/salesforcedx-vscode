@@ -16,6 +16,7 @@ import {
   type Tool
 } from '@modelcontextprotocol/sdk/types.js';
 import { redactValue } from '@salesforce/playwright-vscode-ext';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -29,7 +30,7 @@ import * as Schema from 'effect/Schema';
 import * as Scope from 'effect/Scope';
 import process = require('node:process');
 import { ControllerService, ControllerServiceLayer } from './controllerService';
-import { causeMessage, DrivableVscodeMcpShutdownError } from './errors';
+import { DrivableVscodeMcpShutdownError } from './errors';
 import { drivablePlatformLayer } from './platformLayer';
 import { ActInput, StartInput, DrivableVscodeFinding } from './schemas';
 
@@ -205,7 +206,7 @@ export const createDrivableVscodeMcpServer = async (
         catch: cause =>
           new DrivableVscodeMcpShutdownError({
             message: 'Failed to finish drivable VS Code session',
-            cause: causeMessage(cause)
+            cause: getErrorMessage(cause)
           })
       })
     );
@@ -213,7 +214,7 @@ export const createDrivableVscodeMcpServer = async (
       Effect.tryPromise({
         try: () => server.close(),
         catch: cause =>
-          new DrivableVscodeMcpShutdownError({ message: 'Failed to close MCP server', cause: causeMessage(cause) })
+          new DrivableVscodeMcpShutdownError({ message: 'Failed to close MCP server', cause: getErrorMessage(cause) })
       })
     );
     yield* Scope.close(handlerScope, Exit.void);
@@ -222,7 +223,7 @@ export const createDrivableVscodeMcpServer = async (
     if (failures.length > 0) {
       return yield* new DrivableVscodeMcpShutdownError({
         message: 'Failed to shut down drivable VS Code MCP server',
-        cause: failures.map(failure => causeMessage(failure.cause)).join('\n')
+        cause: failures.map(failure => getErrorMessage(failure.cause)).join('\n')
       });
     }
   });
@@ -236,7 +237,7 @@ export const shutdownDrivableVscodeMcpServer = (server: Server): ServerShutdown 
   Effect.tryPromise({
     try: () => server.close(),
     catch: cause =>
-      new DrivableVscodeMcpShutdownError({ message: 'Failed to close MCP server', cause: causeMessage(cause) })
+      new DrivableVscodeMcpShutdownError({ message: 'Failed to close MCP server', cause: getErrorMessage(cause) })
   });
 
 const serverProgram = Effect.fn('McpServer.serverProgram')(function* () {
@@ -247,7 +248,7 @@ const serverProgram = Effect.fn('McpServer.serverProgram')(function* () {
     catch: cause =>
       new DrivableVscodeMcpShutdownError({
         message: 'Failed to initialize drivable VS Code MCP server',
-        cause: causeMessage(cause)
+        cause: getErrorMessage(cause)
       })
   });
   yield* Effect.addFinalizer(() => shutdownDrivableVscodeMcpServer(server).pipe(Effect.orDie));

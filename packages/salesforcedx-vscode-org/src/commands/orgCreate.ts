@@ -5,13 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getExtensionScope, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
-import { isError, isUndefined } from 'effect/Predicate';
+import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
@@ -168,10 +168,7 @@ export const orgCreateCommand = Effect.fn('orgCreateCommand')(function* () {
           try: () => vscode.commands.executeCommand(ORG_LOGIN_WEB_DEV_HUB),
           catch: cause =>
             new AuthorizeDevHubCommandError({
-              message: nls.localize(
-                'org_create_authorize_dev_hub_failed',
-                isError(cause) ? cause.message : String(cause)
-              )
+              message: nls.localize('org_create_authorize_dev_hub_failed', getMessageFromError(cause))
             })
         }).pipe(
           Effect.catchTag('AuthorizeDevHubCommandError', error =>

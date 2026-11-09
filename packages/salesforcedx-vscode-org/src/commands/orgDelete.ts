@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
+
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
-import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { nls } from '../messages';
@@ -75,7 +75,7 @@ export const orgDeleteDefaultCommand = Effect.fn('orgDeleteDefaultCommand')(func
 
   yield* Effect.tryPromise({
     try: () => updateConfigAndStateAggregators(),
-    catch: e => new ConfigRefreshError({ message: isError(e) ? e.message : String(e) })
+    catch: e => new ConfigRefreshError({ message: getMessageFromError(e) })
   });
 
   // updateConfigAndStateAggregators swallows its post-delete getConnection failure, so the in-process

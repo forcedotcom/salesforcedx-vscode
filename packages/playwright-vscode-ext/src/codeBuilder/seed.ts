@@ -19,6 +19,7 @@
  */
 
 import type { ContainerHandle } from './lifecycle';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import { defaultRunner, type CommandRunner } from './runner';
 
 /** Default path the fixture project is bind-mounted to (keep in sync with the lifecycle run mount). */
@@ -103,7 +104,7 @@ export const seedWorkspace = (handle: ContainerHandle, options: SeedOptions = {}
     } catch {
       /* best-effort */
     }
-    const detail = err instanceof Error ? err.message : String(err);
+    const detail = getErrorMessage(err);
     throw new Error(`seedWorkspace failed for container "${handle.name}": ${detail}\n${logs}`);
   }
 };

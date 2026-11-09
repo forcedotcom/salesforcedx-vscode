@@ -7,6 +7,7 @@
 
 import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Schema from 'effect/Schema';
@@ -14,11 +15,13 @@ import {
   FsService,
   OrgId,
   OrgMetadataCatalog,
+  PromptService,
   UserCancellationError,
   WorkspaceService,
   type OrgMetadataCatalogComponentEntry,
   type SalesforceVSCodeServicesApiV2
 } from '@salesforce/vscode-services/v2';
+import { isNotUndefined } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { DebugConfigurationProvider } from '../../../src/adapter/debugConfigurationProvider';
@@ -30,6 +33,15 @@ describe('DebugConfigurationProvider log-file prompt', () => {
   const readFile = vi.fn();
   const getEntries = vi.fn();
   const workspaceStateUpdate = vi.fn();
+  const promptService = {
+    considerEmptySelectionAsCancellation: <T>(selection: readonly T[] | undefined) =>
+      Effect.succeed(selection).pipe(
+        Effect.filterOrFail(
+          (value): value is Arr.NonEmptyReadonlyArray<T> => isNotUndefined(value) && Arr.isReadonlyArrayNonEmpty(value),
+          () => new UserCancellationError({ message: 'User cancelled' })
+        )
+      )
+  };
   const extensionContext = {
     workspaceState: { update: workspaceStateUpdate }
   } as unknown as vscode.ExtensionContext;
@@ -49,6 +61,7 @@ describe('DebugConfigurationProvider log-file prompt', () => {
               services: {
                 FsService,
                 OrgMetadataCatalog,
+                PromptService,
                 UserCancellationError,
                 WorkspaceService
               }
@@ -59,7 +72,8 @@ describe('DebugConfigurationProvider log-file prompt', () => {
         Layer.succeed(FsService, { readFile } as unknown as FsService['Service']),
         Layer.succeed(WorkspaceService, {
           getWorkspaceInfo: () => Effect.succeed({ isEmpty: true })
-        } as unknown as WorkspaceService['Service'])
+        } as unknown as WorkspaceService['Service']),
+        Layer.succeed(PromptService, promptService as unknown as PromptService['Service'])
       ) as ReturnType<typeof buildAllServicesLayer>
     );
   });
@@ -87,8 +101,11 @@ describe('DebugConfigurationProvider log-file prompt', () => {
     expect(workspaceStateUpdate).toHaveBeenCalledWith(LAST_OPENED_LOG_FOLDER_KEY, URI.file('/logs').fsPath);
   });
 
-  it('silently cancels when no log file is selected', async () => {
-    (vscode.window.showOpenDialog as VitestMock).mockResolvedValue(undefined);
+  it.each([
+    { result: undefined, description: 'dismissed' },
+    { result: [], description: 'empty' }
+  ])('silently cancels when the log file selection is $description', async ({ result }) => {
+    (vscode.window.showOpenDialog as VitestMock).mockResolvedValue(result);
 
     const resolved = await new DebugConfigurationProvider(extensionContext).resolveDebugConfiguration(undefined, {
       name: 'Prompt for log',
@@ -99,6 +116,7 @@ describe('DebugConfigurationProvider log-file prompt', () => {
 
     expect(resolved).toBeUndefined();
     expect(readFile).not.toHaveBeenCalled();
+    expect(workspaceStateUpdate).not.toHaveBeenCalled();
     expect(vscode.window.showErrorMessage).not.toHaveBeenCalled();
   });
 

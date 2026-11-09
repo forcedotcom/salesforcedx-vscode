@@ -478,6 +478,9 @@ importers:
       ts-jest:
         specifier: 29.4.11
         version: 29.4.11(@babel/core@7.29.7(supports-color@8.1.1))(@jest/transform@30.4.1(supports-color@8.1.1))(@jest/types@30.5.1)(babel-jest@30.4.1(@babel/core@7.29.7(supports-color@8.1.1))(supports-color@8.1.1))(esbuild@0.28.2)(jest-util@30.5.1)(jest@30.4.2(@types/node@24.19.2)(supports-color@8.1.1)(ts-node@10.9.2(@types/node@24.19.2)(typescript@6.0.3)))(typescript@6.0.3)
+      tsx:
+        specifier: 4.22.4
+        version: 4.22.4
       typescript:
         specifier: 6.0.3
         version: 6.0.3
@@ -514,6 +517,9 @@ importers:
       '@salesforce/playwright-vscode-ext':
         specifier: workspace:*
         version: link:../playwright-vscode-ext
+      '@salesforce/salesforcedx-utils':
+        specifier: '*'
+        version: link:../salesforcedx-utils
       '@vscode/test-electron':
         specifier: 3.1.0
         version: 3.1.0(supports-color@8.1.1)
@@ -554,6 +560,9 @@ importers:
       '@octokit/types':
         specifier: ^16.0.0
         version: 16.0.0
+      '@salesforce/salesforcedx-utils':
+        specifier: '*'
+        version: link:../salesforcedx-utils
       effect:
         specifier: ^4.0.6
         version: 4.0.6
@@ -606,6 +615,9 @@ importers:
       '@salesforce/core':
         specifier: ^9.3.0
         version: 9.3.6
+      '@salesforce/salesforcedx-utils':
+        specifier: '*'
+        version: link:../salesforcedx-utils
       '@vscode/test-electron':
         specifier: 3.1.0
         version: 3.1.0(supports-color@8.1.1)
@@ -627,6 +639,9 @@ importers:
       '@salesforce/kit':
         specifier: ^4.0.0
         version: 4.0.0
+      '@salesforce/salesforcedx-utils':
+        specifier: '*'
+        version: link:../salesforcedx-utils
       '@types/istanbul-lib-report':
         specifier: ^3.0.3
         version: 3.0.3
@@ -753,6 +768,9 @@ importers:
       '@salesforce/salesforcedx-lightning-lsp-common':
         specifier: workspace:*
         version: link:../salesforcedx-lightning-lsp-common
+      '@salesforce/salesforcedx-utils':
+        specifier: '*'
+        version: link:../salesforcedx-utils
       '@salesforce/vscode-i18n':
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
@@ -862,6 +880,9 @@ importers:
       '@salesforce/salesforcedx-lightning-lsp-common':
         specifier: workspace:*
         version: link:../salesforcedx-lightning-lsp-common
+      '@salesforce/salesforcedx-utils':
+        specifier: '*'
+        version: link:../salesforcedx-utils
       '@salesforce/schema':
         specifier: ^0.0.21
         version: 0.0.21
@@ -23060,7 +23081,6 @@ snapshots:
       esbuild: 0.28.2
     optionalDependencies:
       fsevents: 2.3.3
-    optional: true
 
   ttf2eot@3.1.0:
     dependencies:

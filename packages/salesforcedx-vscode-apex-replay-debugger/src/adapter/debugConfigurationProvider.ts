@@ -46,6 +46,7 @@ const selectLogFile = Effect.fn('ApexReplayDebugger.selectLogFile')(function* (
   if ((config.logFile ?? LOG_FILE_PROMPT) !== LOG_FILE_PROMPT) return undefined;
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const promptService = yield* api.v2.services.PromptService;
   const defaultUri = yield* getDialogStartingPath(extensionContext);
   const fileUris = yield* Effect.promise(() =>
     vscode.window.showOpenDialog({
@@ -54,8 +55,7 @@ const selectLogFile = Effect.fn('ApexReplayDebugger.selectLogFile')(function* (
       canSelectMany: false,
       defaultUri
     })
-  );
-  if (fileUris?.length !== 1) return yield* new api.v2.services.UserCancellationError({ message: 'User cancelled' });
+  ).pipe(Effect.flatMap(promptService.considerEmptySelectionAsCancellation));
 
   const filePath = fileUris[0].fsPath;
   yield* Effect.sync(() => updateLastOpened(extensionContext, fileUris[0]));

@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isError } from 'effect/Predicate';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Schema from 'effect/Schema';
 
 const AnonymousExecutionErrorFields = {
@@ -37,4 +37,4 @@ export class ApexReportError extends Schema.TaggedError<ApexReportError>()('Apex
 }) {}
 
 /** Produces the serializable cause carried by public operation errors. */
-export const causeMessage = (cause: unknown): string => (isError(cause) ? cause.message : String(cause));
+export const causeMessage = (cause: unknown): string => getErrorMessage(cause);

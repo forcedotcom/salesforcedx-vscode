@@ -7,6 +7,7 @@
 
 import type { DrivableVscodeExtension } from './schemas';
 import { prepareVsixExtensions } from '@salesforce/playwright-vscode-ext';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as FileSystem from 'effect/FileSystem';
@@ -15,7 +16,7 @@ import * as Path from 'effect/Path';
 import * as Schema from 'effect/Schema';
 import { execFileSync } from 'node:child_process';
 import { DRIVABLE_VSCODE_EXTENSION_DIRS } from './constants';
-import { causeMessage, DrivableVscodeExtensionError } from './errors';
+import { DrivableVscodeExtensionError } from './errors';
 
 const RequiredExtensionPackageJsonSchema = Schema.Struct({
   name: Schema.String,
@@ -49,7 +50,7 @@ const makeExtensionService = Effect.gen(function* () {
         cause =>
           new DrivableVscodeExtensionError({
             message: 'Failed to resolve canonical development extensions',
-            cause: causeMessage(cause)
+            cause: getErrorMessage(cause)
           })
       )
     );
@@ -68,7 +69,7 @@ const makeExtensionService = Effect.gen(function* () {
       catch: cause =>
         new DrivableVscodeExtensionError({
           message: 'Failed to prepare canonical VSIX extensions',
-          cause: causeMessage(cause)
+          cause: getErrorMessage(cause)
         })
     });
     const directoryById = new Map(

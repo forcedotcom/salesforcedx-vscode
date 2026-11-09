@@ -10,6 +10,7 @@ import {
   type NormalizedPath,
   normalizePath
 } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as path from 'node:path';
 
 /** Package directory configuration in sfdx-project.json */
@@ -56,10 +57,7 @@ const getSfdxConfig = async (
       const parsed: unknown = JSON.parse(content);
       return isSfdxProjectConfig(parsed) ? parsed : {};
     } catch (error) {
-      Logger.error(
-        `[getSfdxConfig] Error parsing JSON: ${error instanceof Error ? error.message : String(error)}`,
-        error
-      );
+      Logger.error(`[getSfdxConfig] Error parsing JSON: ${getErrorMessage(error)}`, error);
     }
   }
   return {};
