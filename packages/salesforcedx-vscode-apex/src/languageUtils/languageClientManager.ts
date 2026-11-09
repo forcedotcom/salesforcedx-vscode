@@ -11,7 +11,9 @@ import {
   getServicesApi
 } from '@salesforce/effect-ext-utils';
 import { type LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Fiber from 'effect/Fiber';
 import { pipe } from 'effect/Function';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Scope from 'effect/Scope';
@@ -172,7 +174,7 @@ export class LanguageClientManager {
   private status: LanguageClientStatus;
   private statusBarItem: ApexLSPStatusBarItem | undefined;
   private isRestarting: boolean = false;
-  private restartTimeout: NodeJS.Timeout | undefined;
+  private restartTimeout: ReturnType<ReturnType<typeof getRuntime>['runFork']> | undefined;
   private outputChannel: vscode.OutputChannel | undefined;
 
   private readonly RESTART_OPTIONS = {
@@ -336,42 +338,41 @@ export class LanguageClientManager {
 
       // Clear any existing timeout
       if (this.restartTimeout) {
-        clearTimeout(this.restartTimeout);
+        this.restartTimeout.pipe(Fiber.interruptFork, Effect.runSync);
       }
 
       // Set a new timeout for the restart
-      this.restartTimeout = setTimeout(() => {
-        Effect.tryPromise({
-          try: async () => {
-            // Dispose the old client after stopping but before creating the new one.
-            // This deregisters providers, watchers, and middleware that would otherwise
-            // attempt to use the closed channel during the restart gap.
-            await alc.dispose();
-            await this.createLanguageClient(extensionContext, statusBarInstance);
-          },
-          catch: error => ({ error, message: getMessageFromError(error) })
-        }).pipe(
-          Effect.catchAll(({ error, message }) =>
-            Effect.logError('Error creating language client', { error }).pipe(
-              Effect.zipRight(
-                Effect.sync(() => {
-                  void vscode.window.showErrorMessage(
-                    `${nls.localize('apex_language_server_failed_activate')} - ${message}`
-                  );
-                })
-              )
+      this.restartTimeout = Effect.tryPromise({
+        try: async () => {
+          // Dispose the old client after stopping but before creating the new one.
+          // This deregisters providers, watchers, and middleware that would otherwise
+          // attempt to use the closed channel during the restart gap.
+          await alc.dispose();
+          await this.createLanguageClient(extensionContext, statusBarInstance);
+        },
+        catch: error => ({ error, message: getMessageFromError(error) })
+      }).pipe(
+        Effect.delay(Duration.millis(500)),
+        Effect.catchAll(({ error, message }) =>
+          Effect.logError('Error creating language client', { error }).pipe(
+            Effect.zipRight(
+              Effect.sync(() => {
+                void vscode.window.showErrorMessage(
+                  `${nls.localize('apex_language_server_failed_activate')} - ${message}`
+                );
+              })
             )
-          ),
-          Effect.ensuring(
-            Effect.sync(() => {
-              // Reset the restarting flag and clear the timeout reference
-              this.isRestarting = false;
-              this.restartTimeout = undefined;
-            })
-          ),
-          getRuntime().runFork
-        );
-      }, 500);
+          )
+        ),
+        Effect.ensuring(
+          Effect.sync(() => {
+            // Reset the restarting flag and clear the timeout reference
+            this.isRestarting = false;
+            this.restartTimeout = undefined;
+          })
+        ),
+        getRuntime().runFork
+      );
     } else {
       // Reset the restarting flag if there's no client instance
       this.isRestarting = false;

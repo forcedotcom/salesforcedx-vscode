@@ -572,65 +572,55 @@ describe('Interactive debugger adapter - unit', () => {
       vi.useRealTimers();
     });
 
-    it('Should clear idle timers', () => {
-      adapter.getIdleTimers().push(
-        setTimeout(() => {
-          // Do nothing
-        }, 10_000)
-      );
-
-      adapter.clearIdleTimers();
-
-      expect(adapter.getIdleTimers()).toHaveLength(0);
-    });
-
-    it('Should create idle timers', () => {
+    it('Should clear idle timers', async () => {
       adapter.resetIdleTimer();
 
-      setTimeout(() => {
-        expect(adapter.getEvents()[0].event).toBe('output');
-        expect((adapter.getEvents()[0] as OutputEvent).body.output).toContain(
-          nls.localize(
-            'idle_warn_text',
-            DEFAULT_IDLE_WARN1_MS / 60_000,
-            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN1_MS) / 60_000
-          )
-        );
-      }, DEFAULT_IDLE_WARN1_MS);
-      vi.advanceTimersByTime(DEFAULT_IDLE_WARN1_MS + 1);
+      adapter.clearIdleTimers();
+      await vi.advanceTimersByTimeAsync(DEFAULT_IDLE_TIMEOUT_MS);
 
-      setTimeout(() => {
-        expect(adapter.getEvents()[1].event).toBe('output');
-        expect((adapter.getEvents()[1] as OutputEvent).body.output).toContain(
-          nls.localize(
-            'idle_warn_text',
-            DEFAULT_IDLE_WARN2_MS / 60_000,
-            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN2_MS) / 60_000
-          )
-        );
-      }, DEFAULT_IDLE_WARN2_MS);
-      vi.advanceTimersByTime(DEFAULT_IDLE_WARN2_MS + 1);
+      expect(adapter.getIdleTimers()).toHaveLength(0);
+      expect(adapter.getEvents()).toHaveLength(0);
+    });
 
-      setTimeout(() => {
-        expect(adapter.getEvents()[2].event).toBe('output');
-        expect((adapter.getEvents()[2] as OutputEvent).body.output).toContain(
-          nls.localize(
-            'idle_warn_text',
-            DEFAULT_IDLE_WARN3_MS / 60_000,
-            (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN3_MS) / 60_000
-          )
-        );
-      }, DEFAULT_IDLE_WARN3_MS);
-      vi.advanceTimersByTime(DEFAULT_IDLE_WARN3_MS + 1);
+    it('Should create idle timers', async () => {
+      adapter.resetIdleTimer();
 
-      setTimeout(() => {
-        expect(adapter.getEvents()[3].event).toBe('output');
-        expect((adapter.getEvents()[3] as OutputEvent).body.output).toContain(
-          nls.localize('idle_terminated_text', DEFAULT_IDLE_TIMEOUT_MS / 60_000)
-        );
-        expect(adapter.getEvents()[4].event).toBe('terminated');
-      }, DEFAULT_IDLE_TIMEOUT_MS);
-      vi.advanceTimersByTime(DEFAULT_IDLE_TIMEOUT_MS + 1);
+      await vi.advanceTimersByTimeAsync(DEFAULT_IDLE_WARN1_MS);
+      expect(adapter.getEvents()[0].event).toBe('output');
+      expect((adapter.getEvents()[0] as OutputEvent).body.output).toContain(
+        nls.localize(
+          'idle_warn_text',
+          DEFAULT_IDLE_WARN1_MS / 60_000,
+          (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN1_MS) / 60_000
+        )
+      );
+
+      await vi.advanceTimersByTimeAsync(DEFAULT_IDLE_WARN2_MS - DEFAULT_IDLE_WARN1_MS);
+      expect(adapter.getEvents()[1].event).toBe('output');
+      expect((adapter.getEvents()[1] as OutputEvent).body.output).toContain(
+        nls.localize(
+          'idle_warn_text',
+          DEFAULT_IDLE_WARN2_MS / 60_000,
+          (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN2_MS) / 60_000
+        )
+      );
+
+      await vi.advanceTimersByTimeAsync(DEFAULT_IDLE_WARN3_MS - DEFAULT_IDLE_WARN2_MS);
+      expect(adapter.getEvents()[2].event).toBe('output');
+      expect((adapter.getEvents()[2] as OutputEvent).body.output).toContain(
+        nls.localize(
+          'idle_warn_text',
+          DEFAULT_IDLE_WARN3_MS / 60_000,
+          (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN3_MS) / 60_000
+        )
+      );
+
+      await vi.advanceTimersByTimeAsync(DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN3_MS);
+      expect(adapter.getEvents()[3].event).toBe('output');
+      expect((adapter.getEvents()[3] as OutputEvent).body.output).toContain(
+        nls.localize('idle_terminated_text', DEFAULT_IDLE_TIMEOUT_MS / 60_000)
+      );
+      expect(adapter.getEvents()[4].event).toBe('terminated');
     });
   });
 

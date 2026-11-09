@@ -552,6 +552,7 @@
         "./packages/salesforcedx-apex-debugger:check:effect-diagnostics",
         "./packages/salesforcedx-apex-replay-debugger:check:effect-diagnostics",
         "./packages/effect-ext-utils:check:effect-diagnostics",
+        "./packages/effect-octokit:check:effect-diagnostics",
         "./packages/salesforcedx-vscode-core:check:effect-diagnostics",
         "./packages/salesforcedx-vscode-apex:check:effect-diagnostics",
         "./packages/salesforcedx-vscode-apex-debugger:check:effect-diagnostics",
