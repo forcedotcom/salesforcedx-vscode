@@ -7,17 +7,8 @@
  */
 
 import fs from 'node:fs';
+import packageJson from '../packages/salesforcedx-vscode-core/package.json' with { type: 'json' };
 
-const packageJson: unknown = JSON.parse(fs.readFileSync('./packages/salesforcedx-vscode-core/package.json', 'utf8'));
-if (
-  typeof packageJson !== 'object' ||
-  packageJson === null ||
-  !('version' in packageJson) ||
-  typeof packageJson.version !== 'string'
-) {
-  console.error('No version found in packages/salesforcedx-vscode-core/package.json');
-  process.exit(1);
-}
 const packageVersion = packageJson.version;
 
 const HEADER = `Currently, Visual Studio Code extensions are not signed or verified on the

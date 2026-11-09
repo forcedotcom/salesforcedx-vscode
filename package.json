@@ -10,7 +10,9 @@
     "node": ">=24.18.0"
   },
   "dependencies": {
+    "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/o11y-reporter": "^1.8.5",
+    "@salesforce/salesforcedx-utils": "workspace:*",
     "jsforce": "^3.10.24",
     "memfs": "^4.32.0",
     "semver": "^7.5.4",
@@ -125,7 +127,7 @@
     "postinstall": "wireit",
     "bootstrap": "pnpm install",
     "clean": "pnpm --recursive --if-present run clean && git clean -xfd",
-    "clean:build": "node scripts/cleanBuildArtifacts.mts",
+    "clean:build": "pnpm --filter @salesforce/salesforcedx-utils compile && node scripts/cleanBuildArtifacts.mts",
     "clean:wireit-cache": "node scripts/clean-wireit-cache.js",
     "clean:spans": "shx rm -rf ~/.sf/vscode-spans && shx mkdir -p ~/.sf/vscode-spans",
     "reinstall": "git checkout -- pnpm-lock.yaml && pnpm clean && pnpm install",
@@ -137,7 +139,7 @@
     "test:ai-safeguards": "wireit",
     "test:manual-test-plan": "wireit",
     "test:scripts": "wireit",
-    "test-vsix": "node scripts/installVSIXFromBranch.mts code",
+    "test-vsix": "node scripts/installVsixFromBranch.mts code",
     "test:container:local": "wireit",
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 pnpm exec markdown-link-check --quiet --alive 200,206,429",
     "check:dupes": "pnpm exec jscpd",
@@ -253,12 +255,13 @@
       "output": []
     },
     "lint:scripts": {
-      "command": "eslint --color \"scripts/{buildJorje,calculatePrereleaseHotfixVersion,calculateReleaseVersion,checkBranch,cleanAllButJar,cleanBuildArtifacts,cleanupReleaseBranchAfterReleaseIssues,concatenateSha256,foldStableChangelog,generateSha256,listVscodeExtensions,loggerUtil,parseExtensionNames,prependReleaseChangelog,publishVsix,releasePackageSelection,repoRoot,updateReleaseVersions,validationUtils,automation.test}.mts\" \"packages/{salesforcedx-lightning-lsp-common,salesforcedx-aura-language-server,salesforcedx-lwc-language-server}/scripts/*.mts\"",
+      "command": "eslint --color \"scripts/*.mts\" scripts/shared/packageJsonSchema.mts \"packages/{salesforcedx-lightning-lsp-common,salesforcedx-aura-language-server,salesforcedx-lwc-language-server}/scripts/*.mts\"",
       "dependencies": [
         "./packages/eslint-local-rules:compile"
       ],
       "files": [
         "scripts/*.mts",
+        "scripts/shared/**/*.mts",
         "scripts/tsconfig.json",
         "scripts/tsconfig.native.json",
         "tsconfig.json",
@@ -325,7 +328,7 @@
         "scripts/ai-safeguards-cli.mjs",
         "scripts/ai-auto-approve.mjs",
         "scripts/ai-auto-approve-cli.mjs",
-        "scripts/category-approve.mts",
+        "scripts/categoryApprove.mts",
         "scripts/category-approve-preflight.cjs",
         "scripts/shared/categoryGates.cjs",
         "scripts/shared/categoryGates.d.cts",

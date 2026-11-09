@@ -17,11 +17,20 @@
  * Example output: salesforcedx-vscode-apex,salesforcedx-vscode-core,...
  */
 
+import { Either, Option, ParseResult, Schema } from 'effect';
 import fs from 'node:fs';
 import path from 'node:path';
+import { PackageJsonTextSchema } from './shared/packageJsonSchema.mts';
 
 const REPO_ROOT = path.resolve(import.meta.dirname, '..');
 const PACKAGES_DIR = path.join(REPO_ROOT, 'packages');
+const TruthySchema = Schema.Unknown.pipe(Schema.filter(Boolean));
+const PublishableExtensionSchema = Schema.Struct({
+  name: Schema.String.pipe(Schema.startsWith('salesforcedx-vscode')),
+  publisher: TruthySchema,
+  categories: Schema.NonEmptyArray(Schema.Unknown),
+  engines: Schema.Struct({ vscode: TruthySchema })
+});
 
 // Find all VS Code extensions in packages/
 const extensions: string[] = [];
@@ -35,29 +44,20 @@ for (const dir of packageDirs) {
   }
 
   try {
-    const pkg: unknown = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8'));
+    const parsedJson = Schema.decodeUnknownEither(PackageJsonTextSchema)(fs.readFileSync(packageJsonPath, 'utf8'));
+    if (Either.isLeft(parsedJson)) {
+      console.error(
+        `Warning: Failed to parse ${packageJsonPath}: ${ParseResult.TreeFormatter.formatErrorSync(parsedJson.left)}`
+      );
+      continue;
+    }
 
     // Publishable VS Code extensions have "engines.vscode", "publisher", "categories"
     // Includes main bundle (salesforcedx-vscode) + individual extensions (salesforcedx-vscode-*)
     // Filters out language servers, scoped packages, internal packages
-    if (
-      typeof pkg === 'object' &&
-      pkg !== null &&
-      'engines' in pkg &&
-      typeof pkg.engines === 'object' &&
-      pkg.engines !== null &&
-      'vscode' in pkg.engines &&
-      pkg.engines.vscode &&
-      'publisher' in pkg &&
-      pkg.publisher &&
-      'categories' in pkg &&
-      Array.isArray(pkg.categories) &&
-      pkg.categories.length > 0 &&
-      'name' in pkg &&
-      typeof pkg.name === 'string' &&
-      pkg.name.startsWith('salesforcedx-vscode')
-    ) {
-      extensions.push(pkg.name);
+    const pkg = Schema.decodeUnknownOption(PublishableExtensionSchema)(parsedJson.right);
+    if (Option.isSome(pkg)) {
+      extensions.push(pkg.value.name);
     }
   } catch (err) {
     console.error(`Warning: Failed to parse ${packageJsonPath}: ${err instanceof Error ? err.message : String(err)}`);

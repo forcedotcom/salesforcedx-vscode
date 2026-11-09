@@ -6,7 +6,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-export {};
+import { Effect, Schema } from 'effect';
 
 /*
  * Calculate the next emergency pre-release hotfix version.
@@ -27,6 +27,19 @@ export {};
 const MARKETPLACE_EXTENSION_ID = 'salesforce.salesforcedx-vscode';
 const OPENVSX_NAMESPACE = 'salesforce';
 const OPENVSX_EXTENSION = 'salesforcedx-vscode';
+
+const MarketplaceResponseSchema = Schema.Struct({
+  results: Schema.NonEmptyArray(
+    Schema.Struct({
+      extensions: Schema.NonEmptyArray(
+        Schema.Struct({
+          versions: Schema.NonEmptyArray(Schema.Struct({ version: Schema.NonEmptyString }))
+        })
+      )
+    })
+  )
+});
+const OpenVsxResponseSchema = Schema.Struct({ version: Schema.NonEmptyString });
 
 const overrideVersion = process.argv[2];
 
@@ -52,78 +65,80 @@ const compareVersions = (a: string, b: string) => {
   return 0;
 };
 
-const getMarketplaceVersion = async () => {
-  const response = await fetch('https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      Accept: 'application/json;api-version=3.0-preview.1'
-    },
-    body: JSON.stringify({
-      filters: [{ criteria: [{ filterType: 7, value: MARKETPLACE_EXTENSION_ID }] }],
-      flags: 439
-    })
+const fetchJson = Effect.fn('fetchJson')(function* (url: string, init: RequestInit | undefined, registry: string) {
+  const response = yield* Effect.tryPromise({
+    try: () => fetch(url, init),
+    catch: error => new Error(`${registry} query failed: ${String(error)}`)
   });
   if (!response.ok) {
-    throw new Error(`Marketplace query failed: HTTP ${response.status}`);
+    return yield* Effect.fail(new Error(`${registry} query failed: HTTP ${response.status}`));
   }
-  const data: unknown = await response.json();
-  if (typeof data !== 'object' || data === null || !('results' in data) || !Array.isArray(data.results)) {
-    throw new Error('Marketplace response did not contain a version');
-  }
-  const result: unknown = data.results[0];
-  const extensions: unknown =
-    typeof result === 'object' && result !== null && 'extensions' in result ? result.extensions : undefined;
-  const extension: unknown = Array.isArray(extensions) ? extensions[0] : undefined;
-  const versions: unknown =
-    typeof extension === 'object' && extension !== null && 'versions' in extension ? extension.versions : undefined;
-  const firstVersion: unknown = Array.isArray(versions) ? versions[0] : undefined;
-  const version =
-    typeof firstVersion === 'object' && firstVersion !== null && 'version' in firstVersion
-      ? firstVersion.version
-      : undefined;
-  if (typeof version !== 'string' || !version) {
-    throw new Error('Marketplace response did not contain a version');
-  }
-  return version;
-};
+  return yield* Effect.tryPromise({
+    try: () => response.json(),
+    catch: error => new Error(`${registry} response JSON parsing failed: ${String(error)}`)
+  }).pipe(Effect.map((data): unknown => data));
+});
 
-const getOpenVsxVersion = async () => {
-  const response = await fetch(`https://open-vsx.org/api/${OPENVSX_NAMESPACE}/${OPENVSX_EXTENSION}`);
-  if (!response.ok) {
-    throw new Error(`Open VSX query failed: HTTP ${response.status}`);
-  }
-  const data: unknown = await response.json();
-  if (
-    typeof data !== 'object' ||
-    data === null ||
-    !('version' in data) ||
-    typeof data.version !== 'string' ||
-    !data.version
-  ) {
-    throw new Error('Open VSX response did not contain a version');
-  }
-  return data.version;
-};
+const getMarketplaceVersion = Effect.fn('getMarketplaceVersion')(function* () {
+  const data = yield* fetchJson(
+    'https://marketplace.visualstudio.com/_apis/public/gallery/extensionquery',
+    {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Accept: 'application/json;api-version=3.0-preview.1'
+      },
+      body: JSON.stringify({
+        filters: [{ criteria: [{ filterType: 7, value: MARKETPLACE_EXTENSION_ID }] }],
+        flags: 439
+      })
+    },
+    'Marketplace'
+  );
+  const marketplaceResponse = yield* Schema.decodeUnknown(MarketplaceResponseSchema)(data).pipe(
+    Effect.mapError(() => new Error('Marketplace response did not contain a version'))
+  );
+  return marketplaceResponse.results[0].extensions[0].versions[0].version;
+});
 
-const main = async () => {
-  const [marketplaceVersion, openVsxVersion] = await Promise.all([getMarketplaceVersion(), getOpenVsxVersion()]);
+const getOpenVsxVersion = Effect.fn('getOpenVsxVersion')(function* () {
+  const data = yield* fetchJson(
+    `https://open-vsx.org/api/${OPENVSX_NAMESPACE}/${OPENVSX_EXTENSION}`,
+    undefined,
+    'Open VSX'
+  );
+  const openVsxResponse = yield* Schema.decodeUnknown(OpenVsxResponseSchema)(data).pipe(
+    Effect.mapError(() => new Error('Open VSX response did not contain a version'))
+  );
+  return openVsxResponse.version;
+});
 
-  console.error(`Marketplace latest published version: ${marketplaceVersion}`);
-  console.error(`Open VSX latest published version: ${openVsxVersion}`);
+const main = Effect.gen(function* () {
+  const [marketplaceVersion, openVsxVersion] = yield* Effect.all([getMarketplaceVersion(), getOpenVsxVersion()], {
+    concurrency: 'unbounded'
+  });
+
+  yield* Effect.sync(() => {
+    console.error(`Marketplace latest published version: ${marketplaceVersion}`);
+    console.error(`Open VSX latest published version: ${openVsxVersion}`);
+  });
 
   const latest = compareVersions(marketplaceVersion, openVsxVersion) >= 0 ? marketplaceVersion : openVsxVersion;
   const [major, minor, patch] = latest.split('.').map(n => parseInt(n, 10));
 
   if ([major, minor, patch].some(Number.isNaN)) {
-    console.error(`Error: Invalid version components in '${latest}'`);
-    process.exit(1);
+    return yield* Effect.fail(new Error(`Invalid version components in '${latest}'`));
   }
 
-  console.log(`${major}.${minor}.${patch + 1}`);
-};
-
-main().catch((error: unknown) => {
-  console.error(`Error: ${error instanceof Error ? error.message : String(error)}`);
-  process.exit(1);
+  yield* Effect.sync(() => console.log(`${major}.${minor}.${patch + 1}`));
 });
+
+await main.pipe(
+  Effect.catchAll(error =>
+    Effect.sync(() => {
+      console.error(`Error: ${error.message}`);
+      process.exitCode = 1;
+    })
+  ),
+  Effect.runPromise
+);

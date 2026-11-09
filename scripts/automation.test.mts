@@ -12,6 +12,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import salesforcedxVscodeCorePackageJson from '../packages/salesforcedx-vscode-core/package.json' with { type: 'json' };
 
 const repoRoot = path.resolve(import.meta.dirname, '..');
 const rootScripts = [
@@ -32,12 +33,12 @@ const rootScripts = [
   'publishVsix',
   'releasePackageSelection',
   'repoRoot',
+  'shared/packageJsonSchema',
   'updateReleaseVersions',
   'validationUtils'
 ].map(name => `scripts/${name}.mts`);
 const packageScripts = [
   'salesforcedx-lightning-lsp-common/scripts/build.mts',
-  'salesforcedx-lightning-lsp-common/scripts/copyTypings.mts',
   'salesforcedx-aura-language-server/scripts/build.mts',
   'salesforcedx-lwc-language-server/scripts/build.mts',
   'salesforcedx-lwc-language-server/scripts/convert.mts'
@@ -57,6 +58,22 @@ describe('converted automation', () => {
       timeout: 30_000,
       env
     });
+  const linkEffect = () => {
+    fs.mkdirSync(file('node_modules'), { recursive: true });
+    fs.symlinkSync(
+      path.join(repoRoot, 'node_modules/effect'),
+      file('node_modules/effect'),
+      process.platform === 'win32' ? 'junction' : 'dir'
+    );
+  };
+  const linkEffectExtUtils = () => {
+    fs.mkdirSync(file('node_modules/@salesforce'), { recursive: true });
+    fs.symlinkSync(
+      path.join(repoRoot, 'packages/effect-ext-utils'),
+      file('node_modules/@salesforce/effect-ext-utils'),
+      process.platform === 'win32' ? 'junction' : 'dir'
+    );
+  };
   const command = (name: string, contents: string) => {
     write(`bin/${name}.cjs`, contents);
     if (process.platform === 'win32') {
@@ -162,6 +179,11 @@ describe('converted automation', () => {
     expect(scriptLists).toHaveLength(2);
     expect(scriptLists[0]).toEqual(scriptLists[1]);
     scriptLists[1].forEach(script => write(script, fs.readFileSync(path.join(repoRoot, script), 'utf8')));
+    write(
+      'scripts/shared/packageJsonSchema.mts',
+      fs.readFileSync(path.join(repoRoot, 'scripts/shared/packageJsonSchema.mts'), 'utf8')
+    );
+    linkEffect();
     const packages = {
       extension: { version: '1.0.0', scripts: { 'vscode:publish': 'publish' }, description: 'keep me' },
       library: { version: '1.0.0', publishConfig: { access: 'public' } },
@@ -205,6 +227,7 @@ describe('converted automation', () => {
   });
 
   it('publishes the version-matched VSIX through the CLI', () => {
+    linkEffectExtUtils();
     write('package.json', JSON.stringify({ version: '1.2.3' }));
     write('example-1.2.3.vsix', 'vsix');
     write('example-1.2.2.vsix', 'old');
@@ -224,6 +247,12 @@ describe('converted automation', () => {
   });
 
   it('fails publishing when no matching VSIX exists or the CLI fails', () => {
+    linkEffectExtUtils();
+    write('package.json', '{}');
+    const missingVersion = run('scripts/publishVsix.mts');
+    expect(missingVersion.status).toBe(1);
+    expect(missingVersion.stdout).toContain('No version found in package.json');
+
     write('package.json', JSON.stringify({ version: '1.2.3' }));
     const env = command('vsce', 'process.exit(1);');
     expect(run('scripts/publishVsix.mts', [], env).status).toBe(1);
@@ -247,11 +276,10 @@ describe('converted automation', () => {
     expect(result.status).toBe(0);
     expect(result.stdout).toContain(createHash('sha256').update('vsix contents').digest('hex'));
     write('SHA256', result.stdout);
-    write('packages/salesforcedx-vscode-core/package.json', JSON.stringify({ version: '1.2.3' }));
     expect(run('scripts/concatenateSha256.mts').status).toBe(0);
     const document = fs.readFileSync(file('SHA256.md'), 'utf8');
     expect(document).toContain(result.stdout);
-    expect(document).toContain('/1.2.3/assetbyname/');
+    expect(document).toContain(`/${salesforcedxVscodeCorePackageJson.version}/assetbyname/`);
   });
 
   it('cleans non-JAR files and directories but keeps JARs', () => {
@@ -299,6 +327,11 @@ describe('converted automation', () => {
       '.github/actions/example/src/index.ts'
     ];
     [...removed, ...preserved].forEach(name => write(name, name));
+    write(
+      'node_modules/@salesforce/salesforcedx-utils/index.js',
+      'exports.getErrorMessage = error => error instanceof Error ? error.message : String(error);'
+    );
+    write('node_modules/@salesforce/salesforcedx-utils/package.json', '{"main":"index.js"}');
     const result = spawnSync(process.execPath, [file('scripts/cleanBuildArtifacts.mts')], {
       cwd: file('packages/standard'),
       encoding: 'utf8',
@@ -317,6 +350,11 @@ describe('converted automation', () => {
       'scripts/listVscodeExtensions.mts',
       fs.readFileSync(path.join(repoRoot, 'scripts/listVscodeExtensions.mts'), 'utf8')
     );
+    write(
+      'scripts/shared/packageJsonSchema.mts',
+      fs.readFileSync(path.join(repoRoot, 'scripts/shared/packageJsonSchema.mts'), 'utf8')
+    );
+    linkEffect();
     const extension = { engines: { vscode: '^1.90.0' }, publisher: 'salesforce', categories: ['Other'] };
     const packages = {
       'a-extension': { ...extension, name: 'salesforcedx-vscode-z' },
@@ -349,6 +387,11 @@ describe('converted automation', () => {
       'scripts/listVscodeExtensions.mts',
       fs.readFileSync(path.join(repoRoot, 'scripts/listVscodeExtensions.mts'), 'utf8')
     );
+    write(
+      'scripts/shared/packageJsonSchema.mts',
+      fs.readFileSync(path.join(repoRoot, 'scripts/shared/packageJsonSchema.mts'), 'utf8')
+    );
+    linkEffect();
     write('packages/library/package.json', JSON.stringify({ name: 'library' }));
     const result = spawnSync(process.execPath, [file('scripts/listVscodeExtensions.mts')], {
       encoding: 'utf8',

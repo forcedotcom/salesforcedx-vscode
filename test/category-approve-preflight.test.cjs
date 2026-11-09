@@ -252,12 +252,12 @@ for (const extension of ['ts', 'mts']) {
     const scripts = join(directory, 'trusted-approver', 'scripts');
     mkdirSync(scripts, { recursive: true });
     writeFileSync(
-      join(scripts, 'category-approve.ts'),
+      join(scripts, 'categoryApprove.ts'),
       'console.log("trusted ts"); console.log(process.env.GITHUB_EVENT_PATH);\n'
     );
     if (extension === 'mts') {
       writeFileSync(
-        join(scripts, 'category-approve.mts'),
+        join(scripts, 'categoryApprove.mts'),
         'console.log("trusted mts"); console.log(process.env.GITHUB_EVENT_PATH);\n'
       );
     }

@@ -6,23 +6,31 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ExtensionPackageJsonSchema } from '@salesforce/effect-ext-utils/extensionPackageJson';
+import { Option, Schema } from 'effect';
 import { execSync } from 'node:child_process';
 import fs from 'node:fs';
 import { logger } from './loggerUtil.mts';
 
 // Publishes the .vsix that matches the version in package.json
 
-const packageJson: unknown = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-if (
-  typeof packageJson !== 'object' ||
-  packageJson === null ||
-  !('version' in packageJson) ||
-  typeof packageJson.version !== 'string'
-) {
-  logger.error('No version found in package.json');
-  process.exit(1);
-}
-const packageVersion = packageJson.version;
+const packageVersion = Option.match(
+  Schema.decodeUnknownOption(
+    Schema.parseJson(
+      Schema.Struct({
+        ...ExtensionPackageJsonSchema.fields,
+        version: Schema.String
+      })
+    )
+  )(fs.readFileSync('package.json', 'utf8')),
+  {
+    onNone: () => {
+      logger.error('No version found in package.json');
+      process.exit(1);
+    },
+    onSome: packageJson => packageJson.version
+  }
+);
 const vsix = fs.readdirSync('.').filter(file => file.match(`-${packageVersion}.vsix`));
 
 if (vsix.length === 0) {

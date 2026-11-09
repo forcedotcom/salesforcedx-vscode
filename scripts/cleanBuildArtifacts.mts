@@ -11,6 +11,7 @@
  * For full reset (including deps), use `pnpm clean`.
  */
 
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import { spawnSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -21,7 +22,7 @@ const rmPath = (p: string) => {
   try {
     fs.rmSync(p, { recursive: true, force: true });
   } catch (err) {
-    console.error(`Failed to remove ${p}:`, err instanceof Error ? err.message : String(err));
+    console.error(`Failed to remove ${p}:`, getErrorMessage(err));
     process.exitCode = 1;
   }
 };
