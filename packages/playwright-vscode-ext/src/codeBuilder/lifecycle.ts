@@ -20,6 +20,7 @@ import * as Effect from 'effect/Effect';
 import * as FetchHttpClient from 'effect/http/FetchHttpClient';
 import * as HttpClient from 'effect/http/HttpClient';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
+import * as Schedule from 'effect/Schedule';
 import { bootEnvToDockerArgs, type BootEnv } from './auth';
 import { defaultRunner, type CommandRunner } from './runner';
 
@@ -103,9 +104,13 @@ const defaultProbe: ReadinessProbe = async url => {
   }
 };
 
-const sleep = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
-
-/** Poll until the workbench answers or the budget is exhausted; throw loud (with docker logs) on timeout. */
+/*
+ * Poll until the workbench answers or the budget is exhausted; throw loud (with docker logs) on timeout.
+ * Effect.retry probes immediately, then waits intervalMs between probes; the outer Effect.timeout
+ * interrupts the whole loop (including a sleep in progress), so the wait never exceeds timeoutMs.
+ * A probe returning false is turned into a failure so retry re-runs it; a probe that rejects is a
+ * defect and propagates, as before.
+ */
 const waitForWorkbench = async (
   runner: CommandRunner,
   handle: ContainerHandle,
@@ -114,17 +119,23 @@ const waitForWorkbench = async (
   const timeoutMs = readiness.timeoutMs ?? 120_000;
   const intervalMs = readiness.intervalMs ?? 2000;
   const probe = readiness.probe ?? defaultProbe;
-  const deadline = Date.now() + timeoutMs;
-  // Check the deadline BEFORE the trailing sleep (not after): the loop still probes first — an
-  // already-up container returns on the first iteration with zero wasted interval — but it never
-  // burns a full intervalMs sleep once the budget is spent, so the effective wait stays within
-  // timeoutMs (the do-while overshot by up to one interval) and a timeoutMs: 0 fast-fail probes zero
-  // times. Each probe is itself time-bounded (default Effect.timeout), so no probe can hang.
-  while (Date.now() < deadline) {
-    if (await probe(handle.publishedUrl)) {
-      return;
-    }
-    await sleep(intervalMs);
+  // timeoutMs <= 0: fail fast without probing (an already-spent budget must not burn a probe).
+  const ready =
+    timeoutMs <= 0
+      ? false
+      : await Effect.promise(() => probe(handle.publishedUrl)).pipe(
+          Effect.filterOrFail(
+            ok => ok,
+            () => 'not-ready' as const
+          ),
+          Effect.retry(Schedule.spaced(Duration.millis(intervalMs))),
+          Effect.timeout(Duration.millis(timeoutMs)),
+          Effect.as(true),
+          Effect.orElseSucceed(() => false),
+          Effect.runPromise
+        );
+  if (ready) {
+    return;
   }
   let logs = '';
   try {

@@ -122,7 +122,7 @@ You'll need a `.vscodeignore` file (to keep unwanted code out of the package).
 
 - downside: managing that ignore file. An alternative might be to ignore `*` and the unignore
 
-**Legacy:** `ts-node scripts/vsce-bundled-extension.ts`; uses `packaging` stanza to mutate package.json (main, dependencies, devDependencies) at package time. Runs sequentially (`WIREIT_PARALLEL=1`) due to chdir usage. Logs vsce commands (only public flags, no tokens/secrets); Example: [core](../packages/salesforcedx-vscode-core/package.json).
+**Legacy:** Run `node ../../scripts/vsceBundledExtension.mts` from the extension package directory (for example, `packages/salesforcedx-vscode-lightning`). Uses `packaging` stanza to mutate package.json (main, dependencies, devDependencies) at package time. Runs sequentially (`WIREIT_PARALLEL=1`) due to chdir usage. Logs vsce commands (only public flags, no tokens/secrets); Example: [core](../packages/salesforcedx-vscode-core/package.json).
 
 Prefer the modern approach: parallel execution, no package-time mutation, simplicity.
 

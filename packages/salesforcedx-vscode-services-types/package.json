@@ -1,4 +1,6 @@
 {
+  "name": "@salesforce/vscode-services",
+  "version": "68.11.4",
   "description": "TypeScript type definitions for Salesforce VS Code Services extension API",
   "author": "Salesforce",
   "license": "BSD-3-Clause",
@@ -38,8 +40,8 @@
     "access": "public"
   },
   "scripts": {
-    "generate-entry": "ts-node scripts/generateEntry.ts",
-    "sync-deps": "ts-node scripts/syncDeps.ts",
+    "generate-entry": "node scripts/generateEntry.mts",
+    "sync-deps": "node scripts/syncDeps.mts",
     "compile": "wireit",
     "lint": "wireit",
     "clean": "shx rm -rf src out dist node_modules .wireit .eslintcache *.tgz",
@@ -47,14 +49,14 @@
   },
   "wireit": {
     "generate-src": {
-      "command": "ts-node scripts/generateEntry.ts && ts-node scripts/syncDeps.ts",
+      "command": "node scripts/generateEntry.mts && node scripts/syncDeps.mts",
       "dependencies": [
         "../salesforcedx-vscode-services-v3-compat:compile"
       ],
       "files": [
         "../salesforcedx-vscode-services/package.json",
         "legacy/**/*.d.ts",
-        "scripts/*.ts",
+        "scripts/*.mts",
         "v2/icons.ts"
       ],
       "output": [
@@ -128,8 +130,6 @@
       "output": []
     }
   },
-  "name": "@salesforce/vscode-services",
-  "version": "68.11.2",
   "dependencies": {
     "@effect/opentelemetry": "^4.0.6",
     "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.43",
@@ -154,8 +154,7 @@
   },
   "devDependencies": {
     "@salesforce/vscode-services-v3-compat": "*",
-    "shx": "^0.4.0",
-    "ts-node": "^10.9.2"
+    "shx": "^0.4.0"
   },
   "engines": {
     "node": ">=24.18.0"

@@ -64,9 +64,12 @@
   "versionedIndependently": true,
   "wireit": {
     "schema:update": {
-      "command": "tsx scripts/generatePublicApiSchema.ts",
+      "command": "node scripts/generatePublicApiSchema.mts",
+      "dependencies": [
+        "compile"
+      ],
       "files": [
-        "scripts/generatePublicApiSchema.ts",
+        "scripts/generatePublicApiSchema.mts",
         "src/**/*.ts",
         "tsconfig.json",
         "../../tsconfig.common.json",
@@ -77,9 +80,12 @@
       ]
     },
     "schema:check": {
-      "command": "tsx scripts/generatePublicApiSchema.ts --check && node scripts/publicApiSchemaContract.mjs",
+      "command": "node scripts/generatePublicApiSchema.mts --check && node scripts/publicApiSchemaContract.mjs",
+      "dependencies": [
+        "compile"
+      ],
       "files": [
-        "scripts/generatePublicApiSchema.ts",
+        "scripts/generatePublicApiSchema.mts",
         "schemas/public-api.schema.json",
         "scripts/publicApiSchemaContract.mjs",
         "src/**/*.ts",
@@ -89,13 +95,15 @@
       ]
     },
     "compile": {
-      "command": "tsc --pretty && node scripts/bundleCommonJs.mjs",
+      "command": "tsc --pretty && tsc -p scripts/tsconfig.json && node scripts/bundleCommonJs.mjs",
       "clean": "if-file-deleted",
       "files": [
         "src/**/*.ts",
-        "scripts/**/*.ts",
+        "scripts/**/*.mts",
         "scripts/bundleCommonJs.mjs",
         "src/effect/package.json",
+        "scripts/tsconfig.json",
+        "../../scripts/tsconfig.native.json",
         "../../pnpm-lock.yaml",
         "tsconfig.json",
         "../../tsconfig.common.json",
@@ -165,7 +173,8 @@
       ],
       "files": [
         "src/**/*.ts",
-        "scripts/**/*.ts",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
         "test/**/*.ts",
         "../../eslint.config.mjs",
         "package.json"

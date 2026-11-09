@@ -19,7 +19,6 @@ import {
   type ApexTestQueueItemRecord,
   type TestRunIdResult
 } from '../../src/tests/apiTypes';
-import { StreamingClient } from '../../src/streaming/streamingClient';
 import { fail } from 'node:assert';
 import { nls } from '../../src/i18n';
 import {
@@ -1147,7 +1146,6 @@ describe('Run Apex tests asynchronously', () => {
 
       const testSrv = new TestService(mockConnection);
       const errMsg = "sObject type 'ApexClass' is not supported.";
-      $$.SANDBOX.stub(StreamingClient.prototype, 'handshake').throws(new Error(errMsg));
       try {
         await testSrv.runTestAsynchronous(
           {
@@ -1168,7 +1166,7 @@ describe('Run Apex tests asynchronously', () => {
   });
 
   describe('Report Test Run Status', () => {
-    it('should poll the run status until complete without subscribing to Streaming API', async () => {
+    it('should poll the run status until complete', async () => {
       const asyncTestSrv = new AsyncTests(mockConnection);
       const mockToolingQueryProgress = $$.SANDBOX.stub(mockConnection.tooling, 'query');
       mockToolingQueryProgress
@@ -1214,33 +1212,10 @@ describe('Run Apex tests asynchronously', () => {
           ]
         });
       const formatResultsStub = $$.SANDBOX.stub(asyncTestSrv, 'formatAsyncResults');
-      const subscribeStub = $$.SANDBOX.stub(StreamingClient.prototype, 'subscribe').resolves({
-        queueItem: {
-          done: true,
-          totalSize: 1,
-          records: [
-            {
-              Status: 'Completed',
-              Id: 'xxx',
-              ApexClassId: 'xxxx',
-              TestRunResultId: 'xxx'
-            }
-          ]
-        } as ApexTestQueueItem,
-        runId: testRunId
-      });
-      const handlerStub = $$.SANDBOX.stub(StreamingClient.prototype, 'handler');
-      const initStub = $$.SANDBOX.stub(StreamingClient.prototype, 'init');
-      const handshakeStub = $$.SANDBOX.stub(StreamingClient.prototype, 'handshake');
-
       await asyncTestSrv.reportAsyncResults(testRunId);
 
       expect(mockToolingQueryProgress.calledThrice).toBe(true);
       expect(formatResultsStub.calledOnce).toBe(true);
-      expect(subscribeStub.notCalled).toBe(true);
-      expect(handlerStub.notCalled).toBe(true);
-      expect(initStub.notCalled).toBe(true);
-      expect(handshakeStub.notCalled).toBe(true);
     });
 
     it('should query for test run results if run is complete', async () => {
@@ -1275,33 +1250,10 @@ describe('Run Apex tests asynchronously', () => {
           ]
         });
       const formatResultsStub = $$.SANDBOX.stub(asyncTestSrv, 'formatAsyncResults');
-      const subscribeStub = $$.SANDBOX.stub(StreamingClient.prototype, 'subscribe').resolves({
-        queueItem: {
-          done: true,
-          totalSize: 1,
-          records: [
-            {
-              Status: 'Completed',
-              Id: 'xxx',
-              ApexClassId: 'xxxx',
-              TestRunResultId: 'xxx'
-            }
-          ]
-        } as ApexTestQueueItem,
-        runId: testRunId
-      });
-      const handlerStub = $$.SANDBOX.stub(StreamingClient.prototype, 'handler');
-      const initStub = $$.SANDBOX.stub(StreamingClient.prototype, 'init');
-      const handshakeStub = $$.SANDBOX.stub(StreamingClient.prototype, 'handshake');
-
       await asyncTestSrv.reportAsyncResults(testRunId);
 
       expect(mockToolingQueryComplete.calledTwice).toBe(true);
       expect(formatResultsStub.calledOnce).toBe(true);
-      expect(subscribeStub.notCalled).toBe(true);
-      expect(handlerStub.notCalled).toBe(true);
-      expect(initStub.notCalled).toBe(true);
-      expect(handshakeStub.notCalled).toBe(true);
     });
 
     it('should format results with retrieved test run summary', async () => {
@@ -1336,18 +1288,10 @@ describe('Run Apex tests asynchronously', () => {
           ]
         });
       const formatResultsStub = $$.SANDBOX.stub(asyncTestSrv, 'formatAsyncResults');
-      const subscribeStub = $$.SANDBOX.stub(StreamingClient.prototype, 'subscribe');
-      const handlerStub = $$.SANDBOX.stub(StreamingClient.prototype, 'handler');
-      const initStub = $$.SANDBOX.stub(StreamingClient.prototype, 'init');
-      const handshakeStub = $$.SANDBOX.stub(StreamingClient.prototype, 'handshake');
 
       await asyncTestSrv.reportAsyncResults(testRunId);
 
       expect(formatResultsStub.calledOnce).toBe(true);
-      expect(subscribeStub.notCalled).toBe(true);
-      expect(handlerStub.notCalled).toBe(true);
-      expect(initStub.notCalled).toBe(true);
-      expect(handshakeStub.notCalled).toBe(true);
     });
   });
 

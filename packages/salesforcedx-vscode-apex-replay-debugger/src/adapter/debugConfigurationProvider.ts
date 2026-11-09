@@ -16,6 +16,7 @@ import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 import * as vscode from 'vscode';
 import { getDialogStartingPath, updateLastOpened } from '../activation/getDialogStartingPath';
 import { DEBUGGER_LAUNCH_TYPE, DEBUGGER_TYPE } from '../debuggerConstants';
+import { waitForLanguageClientReady } from '../languageClientReady';
 import { nls } from '../messages';
 import { fetchHeapDumpOverlayResults } from '../services/heapDumpOverlayFetch';
 import { resolveReplaySourceUris } from '../services/replaySourceUris';
@@ -190,22 +191,10 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
   private async isLanguageClientReady(apexApi: {
     languageClientManager: Pick<ApexVSCodeApi['languageClientManager'], 'getStatus'>;
   }): Promise<void> {
-    let expired = false;
-    let i = 0;
-    while (!apexApi.languageClientManager.getStatus().isReady() && !expired) {
-      if (apexApi.languageClientManager.getStatus().failedToInitialize()) {
-        throw Error(apexApi.languageClientManager.getStatus().getStatusMessage());
-      }
-
-      await new Promise(resolve => setTimeout(resolve, 100));
-      if (i >= 30) {
-        expired = true;
-      }
-      i++;
-    }
-    if (expired) {
-      throw new Error(nls.localize('language_client_not_ready'));
-    }
+    const ready = await getRuntime().runPromise(
+      waitForLanguageClientReady(() => apexApi.languageClientManager.getStatus())
+    );
+    if (!ready) throw new Error(nls.localize('language_client_not_ready'));
   }
 }
 

@@ -7,6 +7,8 @@
 import type { CancellationToken } from '../types/cancellationToken';
 import type { Command } from '../types/command';
 import type { CommandExecution } from '../types/commandExecution';
+import * as Effect from 'effect/Effect';
+import * as Result from 'effect/Result';
 import { type ChildProcess } from 'node:child_process';
 import { fromEvent, interval, type Observable, type Subscription } from 'rxjs';
 import * as treeKill from 'tree-kill';
@@ -95,11 +97,14 @@ export class CliCommandExecution implements CommandExecution {
  * children (grandchildren) processes are not necessarily killed
  */
 const killPromise = (processId: number, signal: string, treeKillFunction: TreeKillFunction): Promise<void> =>
-  new Promise<void>((resolve, reject) => {
+  Effect.callback<void, Error>(resume => {
     treeKillFunction(processId, signal, (err: Error | undefined) => {
       if (err) {
-        reject(err);
+        resume(Effect.fail(err));
+      } else {
+        resume(Effect.void);
       }
-      resolve();
     });
-  });
+  })
+    .pipe(Effect.result, Effect.runPromise)
+    .then(Result.getOrThrowWith(error => error));

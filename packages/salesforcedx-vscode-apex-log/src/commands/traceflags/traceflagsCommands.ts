@@ -168,9 +168,7 @@ export const createLogLevelCommand = Effect.fn('ApexLog.Command.createLogLevel')
     ? Record.fromIterableWith(DEBUG_LEVEL_CATEGORIES, category => [category.key, category.default])
     : yield* Effect.all(
         DEBUG_LEVEL_CATEGORIES.map(cat =>
-          Effect.promise(() => pickLogLevel(cat, cat.default)).pipe(
-            Effect.flatMap(promptService.considerUndefinedAsCancellation)
-          )
+          pickLogLevel(cat, cat.default).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation))
         ),
         { concurrency: 1 }
       ).pipe(Effect.map(picked => Record.fromEntries(DEBUG_LEVEL_CATEGORIES.map((c, i) => [c.key, picked[i]]))));

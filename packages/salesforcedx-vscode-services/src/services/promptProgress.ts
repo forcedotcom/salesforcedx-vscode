@@ -19,33 +19,36 @@ const startProgress = (options: vscode.ProgressOptions) => {
     readonly token: vscode.CancellationToken;
   }>();
   const failed = Deferred.makeUnsafe<never>();
-  // eslint-disable-next-line functional/no-let -- Promise executor assigns the native completion callback synchronously; the web SDK lacks Promise.withResolvers.
-  let finish: () => void;
-  // eslint-disable-next-line unicorn/prefer-promise-with-resolvers -- The real web SDK replaces global Promise with a polyfill lacking withResolvers.
-  const closed = new Promise<void>(resolve => {
-    finish = resolve;
-  });
-  const completed = new Promise<void>(resolve => {
-    resolve(
+  const closed = Deferred.makeUnsafe<void>();
+  const completed = Effect.promise(() =>
+    Promise.resolve(
       vscode.window.withProgress(options, (progress, token) => {
         Deferred.doneUnsafe(ready, Effect.succeed({ progress, token }));
-        return closed;
+        return Deferred.await(closed).pipe(Effect.runPromise);
       })
-    );
-  }).then(
-    () => {
-      // A host that closes before starting its task must not leave an acquisition waiting forever.
-      Deferred.doneUnsafe(ready, Effect.interrupt);
-      return Exit.void;
-    },
-    defect => {
-      const failure = Exit.die(defect);
-      Deferred.doneUnsafe(ready, failure);
-      Deferred.doneUnsafe(failed, failure);
-      return failure;
-    }
+    )
+  ).pipe(
+    Effect.exit,
+    Effect.map(exit => {
+      if (Exit.isSuccess(exit)) {
+        // A host that closes before starting its task must not leave an acquisition waiting forever.
+        Deferred.doneUnsafe(ready, Effect.interrupt);
+        return Exit.void;
+      }
+      Deferred.doneUnsafe(ready, Effect.failCause(exit.cause));
+      Deferred.doneUnsafe(failed, Effect.failCause(exit.cause));
+      return exit;
+    }),
+    Effect.runPromise
   );
-  return { ready, failed, completed, finish: Effect.sync(() => finish()) };
+  return {
+    ready,
+    failed,
+    completed,
+    finish: Effect.sync(() => {
+      Deferred.doneUnsafe(closed, Effect.void);
+    })
+  };
 };
 
 const closeProgress = <A, E>(native: ReturnType<typeof startProgress>, useExit: Exit.Exit<A, E>) =>

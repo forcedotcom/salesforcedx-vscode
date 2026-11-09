@@ -230,6 +230,7 @@
     },
     "ApexTestResultId": { "type": "string", "pattern": "^07M[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$" },
     "FlowTestResultId": { "type": "string", "pattern": "^2hU[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$" },
+    "ApexTestQueueItemId_1": { "type": "string", "pattern": "^709[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$" },
     "ApexTestResultOutcome": { "type": "string", "enum": ["Pass", "Fail", "CompileFail", "Skip"] },
     "PerClassCoverage": {
       "type": "object",
@@ -273,7 +274,7 @@
         "id": {
           "anyOf": [{ "$ref": "#/$defs/ApexTestResultId" }, { "$ref": "#/$defs/FlowTestResultId" }, { "type": "null" }]
         },
-        "queueItemId": { "anyOf": [{ "$ref": "#/$defs/ApexTestQueueItemId" }, { "type": "null" }] },
+        "queueItemId": { "anyOf": [{ "$ref": "#/$defs/ApexTestQueueItemId_1" }, { "type": "null" }] },
         "stackTrace": { "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }, { "type": "null" }] },
         "message": { "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }, { "type": "null" }] },
         "asyncApexJobId": { "anyOf": [{ "$ref": "#/$defs/AsyncApexJobId" }, { "type": "null" }] },
@@ -311,7 +312,7 @@
         "id": {
           "anyOf": [{ "$ref": "#/$defs/ApexTestResultId" }, { "$ref": "#/$defs/FlowTestResultId" }, { "type": "null" }]
         },
-        "queueItemId": { "anyOf": [{ "$ref": "#/$defs/ApexTestQueueItemId" }, { "type": "null" }] },
+        "queueItemId": { "anyOf": [{ "$ref": "#/$defs/ApexTestQueueItemId_1" }, { "type": "null" }] },
         "stackTrace": { "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }, { "type": "null" }] },
         "message": { "anyOf": [{ "type": "string", "minLength": 1 }, { "type": "null" }, { "type": "null" }] },
         "asyncApexJobId": { "anyOf": [{ "$ref": "#/$defs/AsyncApexJobId" }, { "type": "null" }] },
@@ -633,10 +634,11 @@
       "additionalProperties": false
     },
     "AsyncTestRunEvent": { "anyOf": [{ "$ref": "#/$defs/AsyncTestProgress" }, { "$ref": "#/$defs/AsyncTestResult" }] },
+    "TestLevel_1": { "type": "string", "enum": ["RunLocalTests", "RunAllTestsInOrg", "RunSpecifiedTests"] },
     "BuildAsyncPayloadOptions": {
       "type": "object",
       "properties": {
-        "testLevel": { "$ref": "#/$defs/TestLevel" },
+        "testLevel": { "$ref": "#/$defs/TestLevel_1" },
         "tests": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
         "classNames": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
         "category": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
@@ -649,7 +651,7 @@
     "BuildSyncPayloadOptions": {
       "type": "object",
       "properties": {
-        "testLevel": { "$ref": "#/$defs/TestLevel" },
+        "testLevel": { "$ref": "#/$defs/TestLevel_1" },
         "tests": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
         "classNames": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
         "category": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
@@ -890,6 +892,10 @@
       "additionalProperties": false
     },
     "OrganizationId": { "type": "string", "pattern": "^00D[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$" },
+    "ApexTestRunResultStatus_1": {
+      "type": "string",
+      "enum": ["Queued", "Processing", "Aborted", "Passed", "Failed", "Completed", "Skipped"]
+    },
     "UserId": { "type": "string", "pattern": "^005[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$" },
     "TestResult": {
       "type": "object",
@@ -902,7 +908,7 @@
               "anyOf": [{ "type": "number" }, { "type": "string", "enum": ["Infinity", "-Infinity", "NaN"] }]
             },
             "orgId": { "$ref": "#/$defs/OrganizationId" },
-            "outcome": { "$ref": "#/$defs/ApexTestRunResultStatus" },
+            "outcome": { "$ref": "#/$defs/ApexTestRunResultStatus_1" },
             "passing": {
               "anyOf": [{ "type": "number" }, { "type": "string", "enum": ["Infinity", "-Infinity", "NaN"] }]
             },
@@ -992,7 +998,7 @@
               "anyOf": [{ "type": "number" }, { "type": "string", "enum": ["Infinity", "-Infinity", "NaN"] }]
             },
             "orgId": { "$ref": "#/$defs/OrganizationId" },
-            "outcome": { "$ref": "#/$defs/ApexTestRunResultStatus" },
+            "outcome": { "$ref": "#/$defs/ApexTestRunResultStatus_1" },
             "passing": {
               "anyOf": [{ "type": "number" }, { "type": "string", "enum": ["Infinity", "-Infinity", "NaN"] }]
             },

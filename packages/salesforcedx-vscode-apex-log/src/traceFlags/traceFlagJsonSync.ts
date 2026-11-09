@@ -245,13 +245,13 @@ const LOG_LEVELS: LogCategoryLevel[] = ['NONE', 'ERROR', 'WARN', 'INFO', 'DEBUG'
 export const sanitizeDeveloperName = (s: string): string =>
   s.replaceAll(/\W+/g, '_').replaceAll(/^_|_$/g, '').toUpperCase() || 'DebugLevel';
 
-export const pickLogLevel = async (
+export const pickLogLevel = Effect.fn('ApexLog.pickLogLevel')(function* (
   category: DebugLevelCategory,
   defaultValue: LogCategoryLevel
-): Promise<LogCategoryLevel | undefined> => {
+) {
   const items = LOG_LEVELS.map(l => ({ label: l, level: l }));
   const defaultItem = items.find(i => i.level === defaultValue);
-  return new Promise<LogCategoryLevel | undefined>(resolve => {
+  return yield* Effect.callback<LogCategoryLevel | undefined>(resume => {
     const picker = vscode.window.createQuickPick<{ label: string; level: LogCategoryLevel }>();
     picker.items = items;
     picker.activeItems = defaultItem ? [defaultItem] : [];
@@ -259,13 +259,13 @@ export const pickLogLevel = async (
     picker.title = category.label;
     picker.onDidAccept(() => {
       const selected = picker.activeItems[0];
-      resolve(selected?.level);
+      resume(Effect.succeed(selected?.level));
       picker.dispose();
     });
     picker.onDidHide(() => {
       picker.dispose();
-      resolve(undefined);
+      resume(Effect.sync((): undefined => undefined));
     });
     picker.show();
   });
-};
+});

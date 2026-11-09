@@ -85,8 +85,9 @@ export default [
       'packages/salesforcedx-vscode-soql/test/unit/soql-builder-ui/**',
       'packages/salesforcedx-vscode-soql/src/soql-common/soql-parser.lib/**',
       'packages/soql-common/src/soql-parser.lib/**',
-      'scripts/vsce-bundled-extension.ts',
+      'scripts/vsceBundledExtension.mts',
       'scripts/reportInstalls.ts',
+      'scripts/reportInstalls.mts',
       'packages/salesforcedx-lwc-language-server/test/javascript/fixtures/**',
       'packages/salesforcedx-lightning-lsp-common/src/resources/**',
       'packages/salesforcedx-lightning-lsp-common/src/html-language-service/**',
@@ -599,7 +600,7 @@ export default [
       'packages/salesforcedx-lightning-lsp-common/**/*.ts',
       'packages/salesforcedx-vscode-apex/**/*.ts',
       'packages/salesforcedx-vscode-apex-debugger/**/*.ts',
-      'packages/salesforcedx-vscode-apex-log/**/*.ts',
+      'packages/salesforcedx-vscode-apex-log/**/*.{ts,mts}',
       'packages/salesforcedx-vscode-apex-oas/**/*.ts',
       'packages/salesforcedx-vscode-apex-replay-debugger/**/*.ts',
       'packages/salesforcedx-vscode-apex-testing/**/*.ts',
@@ -609,7 +610,7 @@ export default [
       'packages/salesforcedx-vscode-metadata/**/*.ts',
       'packages/salesforcedx-vscode-org/**/*.ts',
       'packages/salesforcedx-vscode-org-browser/**/*.ts',
-      'packages/salesforcedx-vscode-services/**/*.ts',
+      'packages/salesforcedx-vscode-services/**/*.{ts,mts}',
       'packages/salesforcedx-vscode-services-types/**/*.ts',
       'packages/salesforcedx-vscode-soql/**/*.ts',
       'packages/soql-builder-ui/**/*.ts',
@@ -752,7 +753,7 @@ export default [
     // published library predates the monorepo's stricter style rules. Single
     // exemption block for the whole package src (test/** relaxed separately above).
     // Surface shrinks as later refactors (methods->functions, Effect) land.
-    files: ['packages/salesforcedx-apex/**/*.ts'],
+    files: ['packages/salesforcedx-apex/**/*.{ts,mts}'],
     rules: {
       // apex-node does not depend on the services extension.
       'no-restricted-syntax': ['error', noHrtime],
@@ -802,11 +803,11 @@ export default [
     // apex-testing is folded in here (8.13 / W-23354498): the same functional set now applies to its src,
     // and no-loop-statements (below) is enforced across the package.
     files: [
-      'packages/salesforcedx-vscode-services/**/*.ts',
+      'packages/salesforcedx-vscode-services/**/*.{ts,mts}',
       'packages/salesforcedx-vscode-org-browser/**/*.ts',
       'packages/salesforcedx-vscode-metadata/**/*.ts',
       'packages/salesforcedx-vscode-apex/**/*.ts',
-      'packages/salesforcedx-vscode-apex-log/**/*.ts',
+      'packages/salesforcedx-vscode-apex-log/**/*.{ts,mts}',
       'packages/salesforcedx-vscode-apex-oas/**/*.ts',
       'packages/salesforcedx-vscode-apex-testing/**/*.ts',
       'packages/salesforcedx-vscode-lightning/src/services/**/*.ts',
@@ -905,7 +906,7 @@ export default [
   {
     // @ExportTaggedError is only for suppressing knip false-positives in packages that don't export errors externally.
     // salesforcedx-vscode-services exports errors for consumption by other packages — knip already sees them as used.
-    files: ['packages/salesforcedx-vscode-services/**/*.ts'],
+    files: ['packages/salesforcedx-vscode-services/**/*.{ts,mts}'],
     rules: {
       'local/no-export-tagged-error-in-services': 'error',
       'local/no-vscode-show-text-document': 'off'

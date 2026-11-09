@@ -6,7 +6,15 @@
  */
 import { promisify } from 'node:util';
 import { exec } from 'node:child_process';
-import * as appInsights from 'applicationinsights';
+
+if (process.argv.includes('--help')) {
+  console.log(
+    'Usage: node scripts/reportInstalls.mts\nReport Marketplace and Open VSX install counts to App Insights.'
+  );
+  process.exit(0);
+}
+
+const { default: appInsights } = await import('applicationinsights');
 
 const DEFAULT_AIKEY = 'ec3632a4-df47-47a4-98dc-8134cacbaf7e';
 

@@ -24,7 +24,6 @@ junit*
 esbuild.config.mjs
 jest.config.js
 tsconfig.json
-tsconfig.scripts.json
 .eslint.json
 CONTEXT.md
 jest.transformer.cjs

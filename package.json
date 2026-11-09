@@ -14,7 +14,6 @@
     "jsforce": "^3.10.24",
     "memfs": "^4.32.0",
     "semver": "^7.5.4",
-    "ts-node": "10.9.2",
     "url": "0.11.4"
   },
   "devDependencies": {
@@ -113,8 +112,6 @@
     "stream-http": "3.2.0",
     "timers-browserify": "2.0.12",
     "ts-jest": "29.4.11",
-    "ts-node": "10.9.2",
-    "tsx": "4.22.4",
     "typescript": "6.0.3",
     "typescript-eslint": "^8.67.0",
     "util": "0.12.5",
@@ -143,7 +140,7 @@
     "test:effect-v3-bridge": "wireit",
     "test:foundational-services": "wireit",
     "test:packed-services": "wireit",
-    "test-vsix": "ts-node scripts/installVSIXFromBranch.ts code",
+    "test-vsix": "node scripts/installVSIXFromBranch.mts code",
     "test:container:local": "wireit",
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 pnpm exec markdown-link-check --quiet --alive 200,206,429",
     "check:dupes": "pnpm exec jscpd",
@@ -171,12 +168,12 @@
     "vscode:sha256": "node ./scripts/generate-sha256.js >> ./SHA256",
     "vscode:publish": "pnpm --recursive --if-present run vscode:publish",
     "watch": "pnpm compile --watch",
-    "report:installs": "ts-node scripts/reportInstalls.ts",
-    "scrape:all:pages": "ts-node scripts/xsd/scrape-all-metadata-pages.ts",
-    "scrape:single:page": "ts-node scripts/xsd/scrape-single-page.ts",
-    "convert:json:to:xsd": "ts-node scripts/xsd/jsonToXsdConverter.ts",
-    "validate:xsd": "ts-node scripts/xsd/validateXsd.ts",
-    "fix:xsd:errors": "ts-node scripts/xsd/fixXsdErrors.ts"
+    "report:installs": "node scripts/reportInstalls.mts",
+    "scrape:all:pages": "node scripts/xsd/scrapeAllMetadataPages.mts",
+    "scrape:single:page": "node scripts/xsd/scrapeSinglePage.mts",
+    "convert:json:to:xsd": "node scripts/xsd/jsonToXsdConverter.mts",
+    "validate:xsd": "node scripts/xsd/validateXsd.mts",
+    "fix:xsd:errors": "node scripts/xsd/fixXsdErrors.mts"
   },
   "wireit": {
     "compile": {
@@ -349,9 +346,14 @@
     },
     "test:scripts": {
       "command": "vitest run --config vitest.config.mts",
+      "dependencies": [
+        "./packages/playwright-vscode-ext:compile"
+      ],
       "files": [
         "vitest.config.mts",
-        "scripts/**/*.ts",
+        "scripts/**/*.{ts,mts,cts}",
+        "scripts/bundling/process-global.js",
+        "scripts/bundling/process-polyfill.js",
         "scripts/clean-wireit-cache.js",
         "scripts/fold-stable-changelog.js",
         "scripts/releaseDashboard.sh",
@@ -454,7 +456,7 @@
       "output": []
     },
     "test:container:local": {
-      "command": "ts-node scripts/codeBuilderLocalE2E.ts",
+      "command": "node scripts/codeBuilderLocalE2E.mts",
       "dependencies": [
         "./packages/playwright-vscode-ext:compile"
       ]
@@ -589,14 +591,13 @@
       "output": []
     },
     "check:actions": {
-      "command": "ts-node --project scripts/tsconfig.json scripts/validateActions.ts",
+      "command": "node scripts/validateActions.mts",
       "dependencies": [
         "check:scripts"
       ],
       "files": [
-        "scripts/validateActions.ts",
-        "scripts/shared/validateAction.ts",
-        "scripts/tsconfig.json",
+        "scripts/validateActions.mts",
+        "scripts/shared/validateAction.mts",
         ".github/workflows/*.{yml,yaml}",
         ".github/actions/*/action.{yml,yaml}"
       ],
@@ -605,12 +606,14 @@
     "check:scripts": {
       "command": "tsc --noEmit -p scripts/tsconfig.native.json && node --check scripts/category-approve.mts && node --check scripts/changelogBody/changelogBody.mts && node --check scripts/manualTestPlan/manualTestPlan.mts && node --check test/category-approve.test.mts && node --check scripts/manualTestPlan/test/unit/manualTestPlan.test.mts",
       "dependencies": [
-        "./packages/effect-octokit:compile"
+        "./packages/effect-octokit:compile",
+        "./packages/playwright-vscode-ext:compile"
       ],
       "files": [
         "package.json",
         "scripts/tsconfig.native.json",
         "scripts/**/*.{mts,cts}",
+        "packages/salesforcedx-vscode-services-types/scripts/**/*.mts",
         "scripts/shared/categoryGates.cjs",
         "test/**/*.{mts,cts}"
       ],

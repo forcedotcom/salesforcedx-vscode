@@ -20,6 +20,7 @@ Monitor running e2e playwright tests for current branch, download artifacts on f
    - Search HTML reports: `playwright-report/index.html` or `**/playwright-report/index.html`
    - Search test results: `test-results/` directory
    - Search span traces: `test-results/spans/*.jsonl`
+   - Inspect the failed test's attached flow video (see below); automatic test/trace screenshots are not expected
    - Reference: `.claude/skills/playwright-e2e/references/coding-playwright-tests.md`, `.claude/skills/playwright-e2e/references/iterating-playwright-tests.md`
    - Offer: open HTML report, show test results, open workflow (`gh run view <run-id> --web`)
 
@@ -101,21 +102,23 @@ done
 
 Filter `workflowName` containing "(Playwright)". Examples: Metadata E2E, Services E2E, OrgBrowser E2E, LWC E2E.
 
-## Finding video
+## Inspect attached videos
 
-the video names are hard. You can often trust the test failures to be the longest (largest file size) videos because waiting for test timeout
+- Open the downloaded GHA Playwright HTML report, select the failed test + retry, and inspect its attached flow video (`video/webm`). Match the platform/lane to the downloaded artifact.
+- Use the report attachment to identify the exact `.webm` under `playwright-report/` or `playwright-test-results-*/`; filename or file size alone does not identify a test.
+- Compare the recorded actions and UI state with the failed assertion and job log. Flow recordings exclude fixture setup and teardown; timestamps are relative to recording start. A setup failure can occur before any flow video exists.
+- Automatic test/trace screenshots are not expected. Inspect explicit diagnostic/product screenshots only when present; their APIs remain supported.
 
-Video → screenshot to look at filenames in the test and see which test the video goes with
+## Optional frame extraction
 
-## Video → screenshots
-
-Extract frames from failing test `.webm` to step through a moment:
+Inspect the attached video first. Extract frames only when useful to examine a specific moment or transition; these are analysis images, not test-produced screenshots.
 
 - **Prereq:** `brew install ffmpeg` if missing
 - **Cmd** (e.g. 1:29–1:36 → -ss 89 -to 96):
 
 ```bash
-mkdir -p .e2e-artifacts/frames && ffmpeg -i .e2e-artifacts/<branch>/<run>/playwright-test-results-*/<video>.webm -ss 89 -to 96 -vf "fps=6" -q:v 2 .e2e-artifacts/frames/frame_%04d.png
+mkdir -p .e2e-artifacts/<branch>/<run>/frames
+ffmpeg -i "<exact-downloaded-video-path>.webm" -ss 89 -to 96 -vf "fps=6" -q:v 2 .e2e-artifacts/<branch>/<run>/frames/frame_%04d.png
 ```
 
 - `fps=6` ≈ 6 frames/sec; output `frame_0001.png`+

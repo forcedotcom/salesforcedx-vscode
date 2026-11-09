@@ -39,7 +39,7 @@ import type {
   TestResult,
   TestResultRaw,
   TestRunIdResult
-} from '../src';
+} from '../out/src/index.js';
 import * as Schema from 'effect/Schema';
 import { readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
@@ -83,9 +83,13 @@ import {
   ExecuteAnonymousOptionsSchema,
   ExecuteAnonymousOutcomeSchema,
   type BuildSyncPayloadOptions
-} from '../src/effect';
-import { ApexClassIdsSchema, ApexTestQueueItemId, ApexTestSuiteIdsSchema } from '../src/effect/schema/salesforceId';
-import { ApexTestRunResultStatusSchema, TestLevelSchema } from '../src/effect/testTypes';
+} from '../out/src/effect/index.js';
+import {
+  ApexClassIdsSchema,
+  ApexTestQueueItemId,
+  ApexTestSuiteIdsSchema
+} from '../out/src/effect/schema/salesforceId.js';
+import { ApexTestRunResultStatusSchema, TestLevelSchema } from '../out/src/effect/testTypes.js';
 
 // JSON omits absent fields; V4's optional() JSON codec would instead admit null.
 const optional = Schema.optionalKey;
@@ -384,9 +388,9 @@ type FailedContracts = {
 const publicContractChecks: Record<FailedContracts, true> = {};
 void publicContractChecks;
 
-const schemaPath = join(__dirname, '..', 'schemas', 'public-api.schema.json');
+const schemaPath = join(import.meta.dirname, '..', 'schemas', 'public-api.schema.json');
 
-const main = async (): Promise<void> => {
+try {
   const document = Schema.toJsonSchemaDocument(PublicApiSchema, { onExcessProperty: 'error' });
   // Keep the existing Draft-07 envelope and $defs reference paths for downstream validators.
   const generatedSchema = await Prettier.format(
@@ -406,13 +410,10 @@ const main = async (): Promise<void> => {
     if (currentSchema !== generatedSchema) {
       throw new Error('Public API schema is out of date. Run `npm run schema:update -w @salesforce/apex-node`.');
     }
-    return;
+  } else {
+    await writeFile(schemaPath, generatedSchema, 'utf-8');
   }
-
-  await writeFile(schemaPath, generatedSchema, 'utf-8');
-};
-
-main().catch(error => {
+} catch (error) {
   console.error(error);
   process.exitCode = 1;
-});
+}

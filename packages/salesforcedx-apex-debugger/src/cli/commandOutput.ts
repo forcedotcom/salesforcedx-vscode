@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Effect from 'effect/Effect';
+import * as Result from 'effect/Result';
 import { stripAnsiInJson } from '../helpers/utils';
 import { type CommandExecution } from '../types/commandExecution';
 import { JSON_FLAG } from './commandBuilder';
@@ -22,24 +24,30 @@ export class CommandOutput {
       this.stderrBuffer += realData.toString();
     });
 
-    return new Promise<string>((resolve: (result: string) => void, reject: (reason: string) => void) => {
+    return Effect.callback<string, string>(resume => {
       execution.processExitSubject.subscribe(data => {
         // Node child_process 'exit' emits (code, signal); RxJS fromEvent passes multiple args as an array
         const exitCode = Array.isArray(data) ? data[0] : data;
         if (exitCode !== undefined && exitCode !== null && String(exitCode) === '0') {
-          return resolve(stripAnsiInJson(this.stdoutBuffer, hasJsonEnabled));
+          return resume(Effect.succeed(stripAnsiInJson(this.stdoutBuffer, hasJsonEnabled)));
         } else {
           // Is the command is sf cli - if so, just use stdoutBuffer before stderrBuffer
           if (execution.command.command === 'sf') {
-            return reject(
-              stripAnsiInJson(this.stdoutBuffer, hasJsonEnabled) || stripAnsiInJson(this.stderrBuffer, hasJsonEnabled)
+            return resume(
+              Effect.fail(
+                stripAnsiInJson(this.stdoutBuffer, hasJsonEnabled) || stripAnsiInJson(this.stderrBuffer, hasJsonEnabled)
+              )
             );
           }
-          return reject(
-            stripAnsiInJson(this.stderrBuffer, hasJsonEnabled) || stripAnsiInJson(this.stdoutBuffer, hasJsonEnabled)
+          return resume(
+            Effect.fail(
+              stripAnsiInJson(this.stderrBuffer, hasJsonEnabled) || stripAnsiInJson(this.stdoutBuffer, hasJsonEnabled)
+            )
           );
         }
       });
-    });
+    })
+      .pipe(Effect.result, Effect.runPromise)
+      .then(Result.getOrThrowWith(error => error));
   }
 }

@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.11.2",
+  "version": "68.11.4",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -100,12 +100,11 @@
       ]
     },
     "compile": {
-      "command": "tsc --pretty",
+      "command": "tsc --pretty && tsc -p scripts/tsconfig.json",
       "clean": "if-file-deleted",
       "dependencies": [
         "build:icons",
         "generate-types",
-        "check:scripts",
         "../salesforcedx-apex:compile",
         "../salesforcedx-vscode-services-types:compile",
         "../salesforcedx-vscode-services-v3-compat:compile",
@@ -114,6 +113,9 @@
       ],
       "files": [
         "src/**/*.ts",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
+        "../../scripts/tsconfig.native.json",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json",
@@ -122,15 +124,6 @@
       "output": [
         "out/**"
       ]
-    },
-    "check:scripts": {
-      "command": "tsc --pretty -p tsconfig.scripts.json --noEmit",
-      "files": [
-        "scripts/**/*.ts",
-        "scripts/package.json",
-        "tsconfig.scripts.json"
-      ],
-      "output": []
     },
     "generate-types": {
       "dependencies": [
@@ -224,9 +217,8 @@
       ],
       "files": [
         "src/**/*.ts",
-        "scripts/**/*.ts",
-        "scripts/package.json",
-        "tsconfig.scripts.json",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
         "test/**/*.{ts,mts}",
         "../../eslint.config.mjs",
         ".vscodeignore",
@@ -289,21 +281,17 @@
       ]
     },
     "o11y:debug": {
-      "command": "tsx --tsconfig tsconfig.scripts.json scripts/o11yDebugServer.ts",
+      "command": "node scripts/o11yDebugServer.mts",
       "service": true,
       "files": [
-        "scripts/o11yDebugServer.ts",
-        "scripts/package.json",
-        "tsconfig.scripts.json"
+        "scripts/o11yDebugServer.mts"
       ]
     },
     "spans:server": {
-      "command": "tsx --tsconfig tsconfig.scripts.json scripts/spanFileServer.ts",
+      "command": "node scripts/spanFileServer.mts",
       "service": true,
       "files": [
-        "scripts/spanFileServer.ts",
-        "scripts/package.json",
-        "tsconfig.scripts.json"
+        "scripts/spanFileServer.mts"
       ]
     },
     "test:compile": {
