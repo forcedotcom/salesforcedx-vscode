@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -144,6 +144,7 @@ export const createDeployOnSaveService = Effect.fn('deployOnSave:createDeployOnS
 
   // Create a sliding queue to collect saved URIs
   const saveQueue = yield* Queue.unbounded<URI>();
+  const extensionScope = yield* getExtensionScope();
 
   // Start the stream processor that batches and deploys
   yield* Stream.fromQueue(saveQueue).pipe(
@@ -157,7 +158,7 @@ export const createDeployOnSaveService = Effect.fn('deployOnSave:createDeployOnS
         Effect.catch(() => Effect.void)
       )
     ),
-    Effect.forkChild
+    Effect.forkIn(extensionScope)
   );
 
   // Register the save handler

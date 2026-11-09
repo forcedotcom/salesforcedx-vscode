@@ -164,14 +164,19 @@ export class QueryDataViewService {
     // Stream-based message handling: each message dispatched as a named OTel span
     const panel = this.currentPanel;
     const messageFiber = getSoqlRuntime().runFork(
-      Stream.callback<DataViewEvent>(queue => {
-        const disposable = panel.webview.onDidReceiveMessage((event: DataViewEvent) => {
-          Queue.offerUnsafe(queue, event);
-        });
-        return Effect.sync(() => {
-          disposable.dispose();
-        });
-      }).pipe(
+      Stream.callback<DataViewEvent>(queue =>
+        Effect.acquireRelease(
+          Effect.sync(() =>
+            panel.webview.onDidReceiveMessage((event: DataViewEvent) => {
+              Queue.offerUnsafe(queue, event);
+            })
+          ),
+          disposable =>
+            Effect.sync(() => {
+              disposable.dispose();
+            })
+        )
+      ).pipe(
         Stream.mapEffect(
           event =>
             this.handleMessageEffect(event).pipe(

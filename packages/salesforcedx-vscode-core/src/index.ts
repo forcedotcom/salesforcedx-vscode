@@ -142,6 +142,7 @@ export const deactivate = async (): Promise<void> => {
     )
   );
   await getRuntime().runPromise(closeExtensionScope());
+  await getRuntime().dispose();
 
   telemetryService.dispose();
 };
