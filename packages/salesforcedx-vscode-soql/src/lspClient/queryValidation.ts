@@ -4,7 +4,8 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
+
 import { QueryValidationFeature } from '@salesforce/soql-language-server';
 import * as Effect from 'effect/Effect';
 import { isRecord, isString, isUndefined } from 'effect/Predicate';
@@ -33,7 +34,7 @@ const soqlQueryRequestError = (cause: unknown) => {
   const errorName = isString(record?.name) ? record.name : undefined;
   const errorCode = record?.errorCode;
   return new SoqlQueryRequestError({
-    message: isString(record?.message) ? record.message : String(cause),
+    message: isString(record?.message) ? record.message : getMessageFromError(cause),
     ...(isUndefined(errorName) ? {} : { errorName }),
     ...(isUndefined(errorCode) ? {} : { errorCode })
   });
