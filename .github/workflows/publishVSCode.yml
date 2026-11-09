@@ -23,11 +23,6 @@ on:
         required: false
         default: false
         type: boolean
-      isHotfix:
-        description: 'Test the exact release commit directly before publishing. Use for stable hotfixes built via build-github-release.yml startFromRef, which have no other automated test gate.'
-        required: false
-        default: false
-        type: boolean
 
 jobs:
   prepare-release-metadata:
@@ -104,9 +99,9 @@ jobs:
           echo "✅ Release $RELEASE_TAG exists"
 
   # Reads the isHotfix classification build-github-release.yml/build-and-release-patch-branch.yml
-  # persisted on the release (release-metadata.json asset), falling back to the manual isHotfix
-  # dispatch input or a fail-safe "true" when that metadata is missing/invalid. This is what lets
-  # gate-check below run automatically on the release:released trigger, not just on manual dispatch.
+  # persisted on the release (release-metadata.json asset), falling back to a fail-safe "true"
+  # when that metadata is missing/invalid. This is what lets gate-check below run automatically
+  # on the release:released trigger, not just on manual dispatch.
   classify-release:
     needs: [prepare-release-metadata]
     runs-on: ubuntu-latest
@@ -119,7 +114,6 @@ jobs:
         with:
           release-tag: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
-          dispatch-is-hotfix: ${{ github.event.inputs.isHotfix }}
 
   # Only needed for stable hotfixes (isHotfix=true): these are built via build-github-release.yml's
   # startFromRef, which never goes through develop's branch protection or any nightly pipeline,

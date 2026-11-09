@@ -8,10 +8,6 @@ inputs:
   github-token:
     description: 'Token for gh release download'
     required: true
-  dispatch-is-hotfix:
-    description: 'Manual workflow_dispatch isHotfix override, if any. Takes precedence over release metadata.'
-    required: false
-    default: ''
 
 outputs:
   is-hotfix:
@@ -26,14 +22,7 @@ runs:
       env:
         GH_TOKEN: ${{ inputs.github-token }}
         RELEASE_TAG: ${{ inputs.release-tag }}
-        DISPATCH_IS_HOTFIX: ${{ inputs.dispatch-is-hotfix }}
       run: |
-        if [ "$DISPATCH_IS_HOTFIX" = "true" ]; then
-          echo "Manual dispatch override: isHotfix=true"
-          echo "is-hotfix=true" >> "$GITHUB_OUTPUT"
-          exit 0
-        fi
-
         rm -f release-metadata.json
         if ! gh release download "$RELEASE_TAG" --pattern release-metadata.json --clobber 2>/dev/null; then
           echo "::warning::No release-metadata.json asset on $RELEASE_TAG -- forcing verification (fail-safe)"
