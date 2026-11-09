@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 /* eslint-disable no-restricted-imports -- standalone Node script, not extension code */
+/* eslint-disable functional/no-try-statements -- sync request handling */
 /* eslint-disable @typescript-eslint/consistent-type-assertions -- JSON.parse result */
 import * as Either from 'effect/Either';
 import * as Predicate from 'effect/Predicate';
