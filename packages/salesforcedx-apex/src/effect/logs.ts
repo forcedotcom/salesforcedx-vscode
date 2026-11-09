@@ -10,7 +10,6 @@ import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
-import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
 import type * as Schedule from 'effect/Schedule';
@@ -53,15 +52,8 @@ const streamLogPagesForSoql = (connection: Connection, soql: string) =>
     recordSchema: ApexLogListItem,
     tooling: true
   }).pipe(
-    Stream.mapError(error =>
-      Match.value(error).pipe(
-        Match.tag(
-          'ApexQueryRequestError',
-          requestError => new ApexLogQueryError({ soql, message: requestError.message, cause: requestError.cause })
-        ),
-        Match.tag('ParseError', error => error),
-        Match.exhaustive
-      )
+    Stream.catchTag('ApexQueryRequestError', requestError =>
+      Stream.fail(new ApexLogQueryError({ soql, message: requestError.message, cause: requestError.cause }))
     )
   );
 

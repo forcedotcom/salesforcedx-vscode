@@ -24,7 +24,7 @@ import { NodeFileOutput } from '../effect/nodeFileOutput';
 import { queryRecords } from '../effect/records';
 import { ApexOperationError } from '../effect/schema/errors';
 import { ApexClassIdsSchema, ApexTestSuiteIdsSchema } from '../effect/schema/salesforceId';
-import { ApexTestRunSummarySchema } from '../effect/schema/wire/asyncTests';
+import { ApexTestQueueItemRecordSchema, ApexTestRunSummarySchema } from '../effect/schema/wire/asyncTests';
 import { calculatePercentage, transformTestResult } from '../effect/testResults';
 import { nls } from '../i18n';
 import { TestRunId } from '../schemas/salesforceId';
@@ -35,19 +35,22 @@ import { CodeCoverage } from './codeCoverage';
 import { QUERY_RECORD_LIMIT } from './constants';
 import { formatTestErrors } from './diagnosticUtil';
 import {
+  ApexTestResultQueryRecordSchema,
+  FlowTestResultRecordSchema,
   type ApexTestProgressReporter,
   type ApexTestQueueItem,
   type ApexTestQueueItemRecord,
   type ApexTestResult,
   type ApexTestResultDataRaw,
+  type ApexTestResultQueryRecord,
   type ApexTestRunResult,
   type ApexTestRunResultStatus,
   type AsyncTestArrayConfiguration,
   type AsyncTestConfiguration,
+  type FlowTestResultRecord,
   type TestResult,
   type TestResultRaw,
   type TestRunIdResult,
-  type FlowTestResult,
   type ApexTestResultRecord
 } from './types';
 import { calculateCodeCoverage } from './utils';
@@ -208,15 +211,15 @@ export class AsyncTests {
             });
 
             // Query queue items to get detailed status; queryRecords follows all continuation pages.
-            const queueRecords = (await Effect.runPromise(
+            const queueRecords = await Effect.runPromise(
               queryRecords({
                 connection: this.connection,
                 operation: 'AsyncTests.runTests',
                 soql: `SELECT Id, Status, ApexClassId, TestRunResultId, ParentJobId FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`,
-                recordSchema: Schema.Unknown,
+                recordSchema: ApexTestQueueItemRecordSchema,
                 tooling: true
               })
-            )) as unknown as ApexTestQueueItemRecord[];
+            );
 
             if (queueRecords.length === 0) {
               throw new Error(`No test queue items found for test run ID: ${testRunId}`);
@@ -321,15 +324,15 @@ export class AsyncTests {
         throw new Error(nls.localize('testRunCancelled'));
       }
 
-      const queueRecords = (await Effect.runPromise(
+      const queueRecords = await Effect.runPromise(
         queryRecords({
           connection: this.connection,
           operation: 'AsyncTests.reportAsyncResults',
           soql: `SELECT Id, Status, ApexClassId, TestRunResultId FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`,
-          recordSchema: Schema.Unknown,
+          recordSchema: ApexTestQueueItemRecordSchema,
           tooling: true
         })
-      )) as unknown as ApexTestQueueItemRecord[];
+      );
       if (queueRecords.length === 0) {
         throw new Error(`No test queue items found for test run ID: ${testRunId}`);
       }
@@ -507,41 +510,60 @@ export class AsyncTests {
    * @returns Convert FlowTest result to ApexTestResult type
    */
 
-  private convertFlowTestResult(flowtestResults: FlowTestResult[]): ApexTestResult[] {
-    return flowtestResults.map(flowtestResult => {
-      const tmpRecords: ApexTestResultRecord[] = flowtestResult.records.map(record => ({
-        Id: record.Id,
-        QueueItemId: record.ApexTestQueueItemId,
-        StackTrace: '', // Default value
-        Message: '', // Default value
-        AsyncApexJobId: record.ApexTestQueueItemId, // Assuming this maps from ApexTestQueueItem
-        MethodName: record.FlowTest.DeveloperName,
-        Outcome: record.Result,
-        ApexLogId: '', // Default value
-        IsTestSetup: false,
-        ApexClass: {
-          Id: record.ApexTestQueueItemId,
-          Name: record.FlowDefinition.DeveloperName,
-          NamespacePrefix: record.FlowDefinition.NamespacePrefix,
-          FullName: record.FlowDefinition.NamespacePrefix
-            ? `${record.FlowDefinition.NamespacePrefix}.${record.FlowTest.DeveloperName}`
-            : record.FlowTest.DeveloperName
-        },
-        RunTime: Number.isNaN(Number(record.TestEndDateTime))
+  private convertFlowTestResult(records: readonly FlowTestResultRecord[]): ApexTestResult {
+    const convertedRecords: ApexTestResultRecord[] = records.map(record => ({
+      Id: record.Id,
+      QueueItemId: record.ApexTestQueueItemId,
+      StackTrace: '', // Default value
+      Message: '', // Default value
+      AsyncApexJobId: record.ApexTestQueueItemId, // Assuming this maps from ApexTestQueueItem
+      MethodName: record.FlowTest.DeveloperName,
+      Outcome: record.Result,
+      ApexLogId: '', // Default value
+      IsTestSetup: false,
+      ApexClass: {
+        Id: record.ApexTestQueueItemId,
+        Name: record.FlowDefinition.DeveloperName,
+        NamespacePrefix: record.FlowDefinition.NamespacePrefix ?? null,
+        FullName: record.FlowDefinition.NamespacePrefix
+          ? `${record.FlowDefinition.NamespacePrefix}.${record.FlowDefinition.DeveloperName}`
+          : record.FlowDefinition.DeveloperName
+      },
+      RunTime: Number.isNaN(Number(record.TestEndDateTime))
+        ? 0
+        : Number(record.TestEndDateTime) - Number(record.TestStartDateTime)
           ? 0
-          : Number(record.TestEndDateTime) - Number(record.TestStartDateTime)
-            ? 0
-            : Number(record.TestStartDateTime), // Default value, replace with actual runtime if available
-        TestTimestamp: record.TestStartDateTime
-      }));
+          : Number(record.TestStartDateTime), // Default value, replace with actual runtime if available
+      TestTimestamp: record.TestStartDateTime
+    }));
 
-      return {
-        done: flowtestResult.done,
-        totalSize: tmpRecords.length,
-        records: tmpRecords,
-        category: 'Flow'
-      };
-    });
+    return {
+      done: true,
+      totalSize: convertedRecords.length,
+      records: convertedRecords,
+      category: 'Flow'
+    };
+  }
+
+  private convertApexTestResult(records: readonly ApexTestResultQueryRecord[]): ApexTestResult {
+    const convertedRecords: ApexTestResultRecord[] = records.map(record => ({
+      ...record,
+      RunTime: record.RunTime ?? 0,
+      ApexClass: {
+        ...record.ApexClass,
+        NamespacePrefix: record.ApexClass.NamespacePrefix ?? null,
+        FullName: record.ApexClass.NamespacePrefix
+          ? `${record.ApexClass.NamespacePrefix}.${record.ApexClass.Name}`
+          : record.ApexClass.Name
+      }
+    }));
+
+    return {
+      done: true,
+      totalSize: convertedRecords.length,
+      records: convertedRecords,
+      category: 'Apex'
+    };
   }
 
   private async buildAsyncTestResults(apexTestResults: ApexTestResult[]): Promise<{
@@ -576,11 +598,6 @@ export class AsyncTests {
         }
 
         if (isNotUndefined(item.ApexClass.Id)) apexTestClassIdSet.add(item.ApexClass.Id);
-        // Can only query the FullName field if a single record is returned, so manually build the field
-        item.ApexClass.FullName = item.ApexClass.NamespacePrefix
-          ? `${item.ApexClass.NamespacePrefix}.${item.ApexClass.Name}`
-          : item.ApexClass.Name;
-
         const diagnostic =
           item.Message || item.StackTrace
             ? getDiagnostic({ message: item.Message, stackTrace: item.StackTrace })
@@ -754,7 +771,7 @@ export class AsyncTests {
     const queries = this.buildChunkedQueries(queryTemplate, recordIds);
 
     const connection = await this.defineApiVersion();
-    const testResults = await Effect.runPromise(
+    return Effect.runPromise(
       Effect.forEach(
         queries,
         query =>
@@ -762,13 +779,12 @@ export class AsyncTests {
             connection,
             operation: 'getFlowTestResults',
             soql: query,
-            recordSchema: Schema.Unknown,
+            recordSchema: FlowTestResultRecordSchema,
             tooling: true
-          }).pipe(Effect.map(records => ({ done: true, totalSize: records.length, records }))),
+          }).pipe(Effect.map(records => this.convertFlowTestResult(records))),
         { concurrency: 'unbounded' }
       )
     );
-    return this.convertFlowTestResult(testResults as unknown as FlowTestResult[]);
   }
 
   public async getApexTestResults(recordIds: string[], isTestSetup: boolean): Promise<ApexTestResult[]> {
@@ -778,7 +794,7 @@ export class AsyncTests {
     const queries = this.buildChunkedQueries(queryTemplate, recordIds);
 
     const connection = await this.defineApiVersion();
-    const testResults = await Effect.runPromise(
+    return Effect.runPromise(
       Effect.forEach(
         queries,
         query =>
@@ -786,18 +802,11 @@ export class AsyncTests {
             connection,
             operation: 'getApexTestResults',
             soql: query,
-            recordSchema: Schema.Unknown,
+            recordSchema: ApexTestResultQueryRecordSchema,
             tooling: true
-          }).pipe(Effect.map(records => ({ done: true, totalSize: records.length, records }))),
+          }).pipe(Effect.map(records => this.convertApexTestResult(records))),
         { concurrency: 'unbounded' }
       )
-    );
-    return testResults.map(
-      result =>
-        ({
-          ...result,
-          category: 'Apex'
-        }) as unknown as ApexTestResult
     );
   }
 

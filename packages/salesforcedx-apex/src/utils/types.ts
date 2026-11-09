@@ -25,7 +25,3 @@ export const CommonOptionsSchema = Schema.Struct({
   loglevel: Schema.optional(LogLevelSchema)
 }).annotations({ identifier: 'CommonOptions' });
 export type CommonOptions = typeof CommonOptionsSchema.Type;
-
-export type IdRecord = {
-  Id: string;
-};
