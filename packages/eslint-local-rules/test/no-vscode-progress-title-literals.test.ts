@@ -73,7 +73,7 @@ ruleTester.run('no-vscode-progress-title-literals', noVscodeProgressTitleLiteral
       errors: [{ messageId: 'noLiteral' }]
     },
     {
-      code: `const t = 'Fetching metadata…'; promptService.withProgress(t)(fetchMetadata);`,
+      code: `const t = 'Fetching metadata…'; promptService.withProgress({ title: t, location, cancellable: false })(fetchMetadata);`,
       errors: [{ messageId: 'noLiteral' }]
     }
   ]
