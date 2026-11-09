@@ -22,7 +22,6 @@ import { type WriteResultFilesOptions, writeResultFiles as writeResultFilesEffec
 import { nls } from '../i18n';
 import { ApexTestSuiteId } from '../schemas/salesforceId';
 import { elapsedTime } from '../utils/elapsedTime';
-import { HeapMonitor } from '../utils/heapMonitor';
 import { AsyncTests } from './asyncTests';
 import { type CancellationToken } from './cancellation';
 import { formatTestErrors } from './diagnosticUtil';
@@ -138,12 +137,7 @@ export class TestService {
     codeCoverage = false,
     token?: CancellationToken
   ): Promise<TestResult | TestRunIdResult> {
-    HeapMonitor.getInstance().startMonitoring();
-    try {
-      return await this.syncService.runTests(options, codeCoverage, token);
-    } finally {
-      HeapMonitor.getInstance().stopMonitoring();
-    }
+    return this.syncService.runTests(options, codeCoverage, token);
   }
 
   /**
@@ -165,20 +159,7 @@ export class TestService {
     timeout?: Duration,
     interval?: Duration
   ): Promise<TestResult | TestRunIdResult> {
-    HeapMonitor.getInstance().startMonitoring();
-    try {
-      return await this.asyncService.runTests(
-        options,
-        codeCoverage,
-        immediatelyReturn,
-        progress,
-        token,
-        timeout,
-        interval
-      );
-    } finally {
-      HeapMonitor.getInstance().stopMonitoring();
-    }
+    return this.asyncService.runTests(options, codeCoverage, immediatelyReturn, progress, token, timeout, interval);
   }
 
   /**
@@ -193,12 +174,7 @@ export class TestService {
     codeCoverage = false,
     token?: CancellationToken
   ): Promise<TestResult> {
-    HeapMonitor.getInstance().startMonitoring();
-    try {
-      return await this.asyncService.reportAsyncResults(testRunId, codeCoverage, token);
-    } finally {
-      HeapMonitor.getInstance().stopMonitoring();
-    }
+    return this.asyncService.reportAsyncResults(testRunId, codeCoverage, token);
   }
 
   /**
@@ -215,18 +191,11 @@ export class TestService {
     codeCoverage = false,
     reportOptions: Omit<WriteResultFilesOptions, 'codeCoverage'> = {}
   ): Promise<string[]> {
-    HeapMonitor.getInstance().startMonitoring();
-    HeapMonitor.getInstance().checkHeapSize('testService.writeResultFiles');
-    try {
-      return await runTestServiceOperation(
-        writeResultFilesEffect(result, outputDirConfig, { ...reportOptions, codeCoverage }).pipe(
-          Effect.provideService(FileOutput, this.fileOutput)
-        )
-      );
-    } finally {
-      HeapMonitor.getInstance().checkHeapSize('testService.writeResultFiles');
-      HeapMonitor.getInstance().stopMonitoring();
-    }
+    return runTestServiceOperation(
+      writeResultFilesEffect(result, outputDirConfig, { ...reportOptions, codeCoverage }).pipe(
+        Effect.provideService(FileOutput, this.fileOutput)
+      )
+    );
   }
 
   /**

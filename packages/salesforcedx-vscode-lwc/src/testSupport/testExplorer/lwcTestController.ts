@@ -843,9 +843,9 @@ const awaitTaskEnd = (sfTask: SfTask, token: vscode.CancellationToken): Promise<
     });
     const endDisposable = sfTask.onDidEnd(() => {
       // Fallback if onDidEndTaskProcess doesn't fire quickly
-      setTimeout(() => {
+      Effect.sync(() => {
         safeResolve({ exitCode: undefined });
-      }, 250);
+      }).pipe(Effect.delay(Duration.millis(250)), Effect.runFork);
     });
     const cancelDisposable = token.onCancellationRequested(() => {
       sfTask.terminate();

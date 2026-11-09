@@ -29,6 +29,9 @@ import {
 } from '@vscode/debugadapter';
 import { type DebugProtocol } from '@vscode/debugprotocol';
 import * as Arr from 'effect/Array';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
+import * as Fiber from 'effect/Fiber';
 import { isNull } from 'effect/Predicate';
 import * as os from 'node:os';
 import { URI, Utils } from 'vscode-uri';
@@ -469,7 +472,7 @@ export class ApexDebug extends LoggingDebugSession {
 
   private lock = new AsyncLock({ timeout: DEFAULT_LOCK_TIMEOUT_MS });
 
-  protected idleTimers: ReturnType<typeof setTimeout>[] = [];
+  protected idleTimers: Fiber.RuntimeFiber<void>[] = [];
 
   constructor() {
     super('apex-debug-adapter.log');
@@ -508,9 +511,9 @@ export class ApexDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  private getSessionIdleTimer(): ReturnType<typeof setTimeout>[] {
-    const timers: ReturnType<typeof setTimeout>[] = [
-      setTimeout(() => {
+  private getSessionIdleTimer(): Fiber.RuntimeFiber<void>[] {
+    return [
+      Effect.sync(() => {
         this.warnToDebugConsole(
           nls.localize(
             'idle_warn_text',
@@ -518,8 +521,8 @@ export class ApexDebug extends LoggingDebugSession {
             (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN1_MS) / 60_000
           )
         );
-      }, DEFAULT_IDLE_WARN1_MS),
-      setTimeout(() => {
+      }).pipe(Effect.delay(Duration.millis(DEFAULT_IDLE_WARN1_MS)), Effect.runFork),
+      Effect.sync(() => {
         this.warnToDebugConsole(
           nls.localize(
             'idle_warn_text',
@@ -527,8 +530,8 @@ export class ApexDebug extends LoggingDebugSession {
             (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN2_MS) / 60_000
           )
         );
-      }, DEFAULT_IDLE_WARN2_MS),
-      setTimeout(() => {
+      }).pipe(Effect.delay(Duration.millis(DEFAULT_IDLE_WARN2_MS)), Effect.runFork),
+      Effect.sync(() => {
         this.warnToDebugConsole(
           nls.localize(
             'idle_warn_text',
@@ -536,23 +539,22 @@ export class ApexDebug extends LoggingDebugSession {
             (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN3_MS) / 60_000
           )
         );
-      }, DEFAULT_IDLE_WARN3_MS),
-      setTimeout(() => {
+      }).pipe(Effect.delay(Duration.millis(DEFAULT_IDLE_WARN3_MS)), Effect.runFork),
+      Effect.sync(() => {
         this.warnToDebugConsole(nls.localize('idle_terminated_text', DEFAULT_IDLE_TIMEOUT_MS / 60_000));
         this.sendEvent(new TerminatedEvent());
-      }, DEFAULT_IDLE_TIMEOUT_MS)
+      }).pipe(Effect.delay(Duration.millis(DEFAULT_IDLE_TIMEOUT_MS)), Effect.runFork)
     ];
-    return timers;
   }
 
   public clearIdleTimers(): void {
     if (this.idleTimers) {
-      this.idleTimers.forEach(timer => clearTimeout(timer));
+      this.idleTimers.forEach(timer => timer.pipe(Fiber.interruptFork, Effect.runSync));
       this.idleTimers = [];
     }
   }
 
-  public resetIdleTimer(): ReturnType<typeof setTimeout>[] {
+  public resetIdleTimer(): Fiber.RuntimeFiber<void>[] {
     this.clearIdleTimers();
     this.idleTimers = this.getSessionIdleTimer();
     return this.idleTimers;
