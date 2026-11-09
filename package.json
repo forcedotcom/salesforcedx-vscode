@@ -328,7 +328,7 @@
         "scripts/ai-safeguards-cli.mjs",
         "scripts/ai-auto-approve.mjs",
         "scripts/ai-auto-approve-cli.mjs",
-        "scripts/category-approve.mts",
+        "scripts/categoryApprove.mts",
         "scripts/category-approve-preflight.cjs",
         "scripts/shared/categoryGates.cjs",
         "scripts/shared/categoryGates.d.cts",
