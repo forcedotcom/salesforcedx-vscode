@@ -1,8 +1,24 @@
 #!/usr/bin/env node
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 
-const fs = require('fs');
+import fs from 'node:fs';
 
-const packageVersion = JSON.parse(fs.readFileSync('./packages/salesforcedx-vscode-core/package.json', 'utf8')).version;
+const packageJson: unknown = JSON.parse(fs.readFileSync('./packages/salesforcedx-vscode-core/package.json', 'utf8'));
+if (
+  typeof packageJson !== 'object' ||
+  packageJson === null ||
+  !('version' in packageJson) ||
+  typeof packageJson.version !== 'string'
+) {
+  console.error('No version found in packages/salesforcedx-vscode-core/package.json');
+  process.exit(1);
+}
+const packageVersion = packageJson.version;
 
 const HEADER = `Currently, Visual Studio Code extensions are not signed or verified on the
 Microsoft Visual Studio Code Marketplace. Salesforce provides the Secure Hash

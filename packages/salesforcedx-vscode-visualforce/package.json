@@ -59,8 +59,8 @@
     "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-visualforce test:web --headed",
     "run:web": "wireit",
     "vscode:package": "wireit",
-    "vscode:publish": "node ../../scripts/publish-vsix.js",
-    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publishVsix.mts",
+    "vscode:sha256": "node ../../scripts/generateSha256.mts >> ../../SHA256",
     "vscode:package:prerelease": "wireit",
     "check:effect-diagnostics": "wireit"
   },

@@ -118,7 +118,7 @@ while IFS= read -r candidate_tracking_tag; do
   tracking_tag=$candidate_tracking_tag
   tracking_version=$candidate_version
   stable_source=$candidate_source
-  expected_stable="v$(node scripts/calculate-release-version.js "$stable_source")"
+  expected_stable="v$(node scripts/calculateReleaseVersion.mts "$stable_source")"
   if git rev-parse --verify --quiet "$expected_stable" >/dev/null; then
     stable_tag_state='already exists'
   else

@@ -397,7 +397,7 @@ Choose an unused version ahead of both registries, update source versions,
 and commit before building (illustrative version):
 
 ```bash
-node scripts/update-release-versions.js 68.5.6
+node scripts/updateReleaseVersions.mts 68.5.6
 git add packages/*/package.json pnpm-lock.yaml
 git commit -m "chore: bump emergency prerelease versions to 68.5.6"
 ```

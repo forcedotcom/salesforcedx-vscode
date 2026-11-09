@@ -187,7 +187,7 @@ Runs `check:scripts`, then schema-validates `.github/workflows/*.{yml,yaml}` and
 
 ### `pnpm run check:scripts`
 
-Type-checks native TypeScript scripts and their local helpers with `tsc --noEmit -p scripts/tsconfig.native.json`, then runs `node --check` on entry points. Runs in precommit and CI script validation; CI uses the minimum supported Node version, 24.18.0.
+Type-checks native TypeScript scripts and their local helpers with `tsc --noEmit -p scripts/tsconfig.native.json`. Runs in precommit and CI script validation; CI uses the minimum supported Node version, 24.18.0. `test:scripts` checks converted automation with `node --check` and exercises its CLIs.
 
 ### `npm run check:peer-deps`
 
@@ -219,7 +219,7 @@ Use `.mts` for TypeScript executed directly with `node`; use `.cts` only for int
 
 Node's [type stripping](https://nodejs.org/docs/v24.12.0/api/typescript.html) is stable starting in 24.12.0. Node ignores tsconfig and does not type-check. Native scripts must use erasable syntax: no enums, parameter properties, or namespaces containing runtime code. Do not rely on tsconfig path aliases or module transformations.
 
-`scripts/tsconfig.native.json` checks all `.mts`/`.cts` files under `scripts/` and `test/` with `NodeNext`, `erasableSyntaxOnly`, and `verbatimModuleSyntax`. Add each new native entry point to the `node --check` commands in root `check:scripts`; keep imported local helpers inside the config's include patterns. Legacy `ts-node` scripts continue to use `scripts/tsconfig.json`.
+`scripts/tsconfig.native.json` checks `.mts`/`.cts` files under `scripts/`, `test/`, and the included package script directories with `NodeNext`, `erasableSyntaxOnly`, and `verbatimModuleSyntax`. Add converted automation to `scripts/automation.test.mts` and `lint:scripts`; keep imported local helpers inside the config's include patterns. Package script directories use a local `tsconfig.json` extending the native config so ESLint checks the same types. Legacy `ts-node` scripts continue to use `scripts/tsconfig.json`.
 
 ### pnpm workspace
 
