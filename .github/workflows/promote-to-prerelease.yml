@@ -2,13 +2,9 @@ name: Promote to Pre-release
 
 on:
   schedule:
-    # Wednesdays at 8 AM UTC - promotes most recent CI-passing nightly to marketplace prerelease.
-    # trigger-stable-build (below) chains build-github-release.yml right after, pinned to this
-    # exact nightly via prereleaseTag -- so stable always ships the identical commit + changelog
-    # as the prerelease, regardless of whether this run itself fired on schedule or was
-    # dispatched manually. Publishing the resulting stable *candidate* to the Marketplace is a
-    # separate human/PagerDuty decision (typically held until the following Wednesday), not
-    # something enforced by timing here. -- W-24610381
+    # Wednesdays 8 AM UTC: promote most recent CI-passing nightly to marketplace prerelease.
+    # trigger-stable-build (below) then chains the stable build off this exact commit, pinned
+    # via prereleaseTag -- publishing to the Marketplace is a separate human decision. -- W-24610381
     - cron: '0 8 * * 3'
   workflow_dispatch:
     inputs:
@@ -55,16 +51,10 @@ jobs:
           fetch-depth: 0  # Need full history to check out an arbitrary hotfix commit-sha below
 
       - name: Check CI status
-        # Gate on the nightly's own build/release success, NOT unit-tests/build-all.
-        # Unit + e2e tests already ran on the PR (via validatePR.yml) before the change
-        # merged to develop. Those PR check-runs live on the PR head commit, which no longer
-        # exists after squash-merge, so they can't be found on the develop nightly commit.
-        # The meaningful, available signals here are that the nightly compiled/packaged the
-        # VSIXs and published the GitHub release cleanly.
-        #
-        # Skipped for isHotfix: tags built via build-github-release.yml's startFromRef never go
-        # through this repo's nightly pipeline, so these check-run names never exist on that
-        # commit regardless of outcome. See "Test hotfix commit directly" below instead.
+        # Gates on the nightly's own build/release check-runs, not unit-tests/build-all:
+        # those ran on the PR head commit via validatePR.yml, which no longer exists after
+        # squash-merge. Skipped for isHotfix since startFromRef tags never go through this
+        # nightly pipeline -- see "Checkout hotfix commit" below instead.
         if: ${{ !inputs.isHotfix }}
         uses: salesforcecli/github-workflows/.github/actions/vscode/check-ci-status@main
         with:
@@ -80,10 +70,8 @@ jobs:
           install: 'false'
 
       - name: Checkout hotfix commit
-        # No nightly-pipeline check-runs exist for a hotfix commit (it never went through
-        # build-extension-list/nightly-release), so verify it here instead: check out the
-        # exact commit being promoted and run the same compile+test gate develop's branch
-        # protection would have required had this gone through a normal PR.
+        # Hotfix commits have no nightly-pipeline check-runs, so verify by checking out the
+        # exact commit and running the same compile+test gate branch protection would require.
         if: ${{ inputs.isHotfix }}
         env:
           COMMIT_SHA: ${{ needs.find-nightly.outputs.commit-sha }}
@@ -101,10 +89,8 @@ jobs:
           pnpm compile
           pnpm test
 
-  # Step 3a: Find this week's changelog range -- (fromRef, toRef] -- so the polished body
-  # (Step 3b) and the raw commit facts it reads from cover exactly the same commits.
-  # Runs even in dry-run so changelog-body below can still be previewed in the Actions log --
-  # only Step 3c (the actual file write/commit/VSIX injection) is skipped for dry-run.
+  # Step 3a: Find this week's changelog range (fromRef, toRef] so steps 3b/3c cover identical commits.
+  # Runs in dry-run too (for log preview); only Step 3c's actual write/commit is skipped.
   compute-changelog-range:
     needs: [find-nightly, gate-check]
     if: always() && needs.gate-check.result == 'success'
@@ -120,15 +106,10 @@ jobs:
           fetch-depth: 0
 
       - name: Determine previous prerelease baseline
-        # Newest marketplace-prerelease-* tracking tag (set by last week's promote run) if
-        # present, else the last stable release tag -- the correct fallback before any
-        # tracking tag exists, since it covers everything since what actually shipped.
-        #
-        # Emits an empty from-ref (rather than passing an identical from/to pair downstream)
-        # when this baseline is the exact commit being promoted -- e.g. a manual re-run or an
-        # isHotfix releaseTag that happens to equal the last tracking tag. changelogBody.mts
-        # treats identical refs as a hard error, not "nothing new"; skipping changelog-body
-        # here keeps that a graceful no-op instead of a spurious failed job.
+        # Newest marketplace-prerelease-* tag if present, else last stable release tag.
+        # Emits empty from-ref when that baseline equals the commit being promoted (e.g. a
+        # re-run) -- changelogBody.mts treats identical refs as a hard error, so this keeps
+        # it a no-op instead of a spurious failure.
         id: range
         run: |
           FROM_REF=$(git tag -l 'marketplace-prerelease-*' --sort=-creatordate | head -1)
@@ -148,15 +129,11 @@ jobs:
             echo "from-ref=$FROM_REF" >> "$GITHUB_OUTPUT"
           fi
 
-  # Step 3b: Ask the Cursor-backed changelog body action (.github/workflows/changelog-body.yml)
-  # to turn this week's commits into a polished, customer-facing markdown body -- no GUS refs,
-  # package dedupe and Under-the-Hood consolidation already applied -- before it ever reaches
-  # develop or a marketplace VSIX.
+  # Step 3b: Turn this week's commits into a polished, customer-facing changelog body via
+  # .github/workflows/changelog-body.yml (Cursor-backed; strips GUS refs, dedupes packages).
   changelog-body:
     needs: [find-nightly, compute-changelog-range]
-    # Empty from-ref means compute-changelog-range found nothing new to compare (see its
-    # "Determine previous prerelease baseline" step) -- skip rather than calling
-    # changelogBody.mts with identical from/to refs, which it treats as a hard error.
+    # Skip rather than call changelogBody.mts with identical from/to refs (hard error there).
     if: always() && needs.compute-changelog-range.result == 'success' && needs.compute-changelog-range.outputs.from-ref != ''
     uses: ./.github/workflows/changelog-body.yml
     with:
@@ -164,19 +141,13 @@ jobs:
       to: ${{ needs.find-nightly.outputs.commit-sha }}
     secrets: inherit
 
-  # Step 3c: Write the polished body under this week's version header, bake it into the pack's
-  # prerelease VSIX asset so the Marketplace/Open VSX Changelog tab shows only this week's
-  # changes, and commit the same delta to develop so root CHANGELOG.md keeps the full cumulative
-  # history. Must complete before `promote`, since the reusable promote workflow re-downloads
+  # Step 3c: Bake the polished body into the prerelease VSIX and commit it to develop's
+  # CHANGELOG.md. Must complete before `promote`, since that reusable workflow re-downloads
   # this exact release asset.
   write-changelog:
     needs: [find-nightly, gate-check, changelog-body]
-    # A custom `if:` replaces (not augments) GitHub Actions' implicit needs-success gate, so
-    # gate-check's success must be checked explicitly here too -- same as `promote` below.
-    # changelog-body itself still runs in dry-run (so its polished body can be previewed in
-    # the Actions log), but this job's own `inputs.dry-run != true` skips the actual file
-    # write/commit/VSIX injection. changelog-body is allowed through when skipped too, since
-    # that happens whenever gate-check/compute-changelog-range failed upstream.
+    # Custom `if:` replaces the implicit needs-success gate, so gate-check must be re-checked.
+    # changelog-body is allowed through when skipped (dry-run, or no new commits) too.
     if: always() && needs.gate-check.result == 'success' && (needs.changelog-body.result == 'success' || needs.changelog-body.result == 'skipped') && inputs.dry-run != true
     runs-on: ubuntu-latest
     env:
@@ -212,8 +183,7 @@ jobs:
           echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Write this week's polished changelog delta
-        # Header format (bare "X.Y.Z - Month D, YYYY") must match what
-        # scripts/prepend-release-changelog.js expects to extract a version from.
+        # Header format must match what scripts/prepend-release-changelog.js expects.
         id: delta
         env:
           PRERELEASE_VERSION: ${{ steps.version.outputs.version }}
@@ -233,9 +203,7 @@ jobs:
           fi
 
       - name: Inject changelog into the prerelease VSIX
-        # Skip when nothing new was generated (e.g. only chore/ci commits this week) --
-        # otherwise this would re-ship last week's changelog mislabeled with this week's
-        # version, since the file is untouched from the last run.
+        # Skip if nothing generated, to avoid re-shipping last week's changelog mislabeled.
         if: steps.delta.outputs.generated == 'true'
         env:
           PRERELEASE_VERSION: ${{ steps.version.outputs.version }}
@@ -247,19 +215,15 @@ jobs:
           # adds a second, differently-cased entry instead of replacing this one.
           mkdir -p extension
           cp packages/salesforcedx-vscode/CHANGELOG.md extension/changelog.md
-          # -X: omit Unix UID/GID + timestamp extra fields. vsce's own zip writer never
-          # sets them; without -X, Open VSX's scanner blocks the whole VSIX with
-          # "contains zip entries with potentially harmful extra fields".
+          # -X: omit Unix UID/GID + timestamp extra fields, or Open VSX's scanner blocks the
+          # VSIX with "contains zip entries with potentially harmful extra fields".
           zip -X "$VSIX" extension/changelog.md
 
           gh release upload "$NIGHTLY_TAG" "$VSIX" --clobber
 
-          # --clobber deletes and recreates the asset (new asset ID); the release's
-          # asset-listing API isn't guaranteed to reflect that within seconds, so the
-          # promote job's download (which starts right after this job) can 404 on the
-          # stale asset. Poll until the listed digest matches what we just uploaded
-          # before letting this job report success, so promote's `needs: write-changelog`
-          # dependency actually means the new asset is visible.
+          # --clobber recreates the asset with a new ID that may not be visible via the API
+          # within seconds; poll for the new digest so `promote`'s download doesn't 404 on
+          # the stale asset.
           LOCAL_DIGEST="sha256:$(sha256sum "$VSIX" | cut -d' ' -f1)"
           for attempt in 1 2 3 4 5; do
             REMOTE_DIGEST=$(gh release view "$NIGHTLY_TAG" --json assets --jq ".assets[] | select(.name == \"$VSIX\") | .digest")
@@ -290,9 +254,8 @@ jobs:
           files: packages/salesforcedx-vscode/CHANGELOG.md CHANGELOG.md
           message: "chore: changelog for prerelease v${{ steps.version.outputs.version }} [skip ci]"
 
-  # Step 4: Promote to prerelease (only runs if gate-check passed and changelog is baked in).
-  # `write-changelog` is skipped (not failed) in dry-run mode, so allow skipped through as well
-  # as success -- otherwise dry-run would never reach the reusable workflow's own dry-run path.
+  # Step 4: Promote to prerelease. write-changelog may be skipped (dry-run), so allow that
+  # through too -- otherwise dry-run would never reach the reusable workflow's dry-run path.
   promote:
     needs: [find-nightly, gate-check, write-changelog]
     if: always() && needs.gate-check.result == 'success' && (needs.write-changelog.result == 'success' || needs.write-changelog.result == 'skipped')
@@ -306,32 +269,19 @@ jobs:
       dry-run: ${{ inputs.dry-run || false }}
     secrets: inherit
 
-  # Step 5: Chain the stable candidate off this exact prerelease. build-github-release.yml has no
-  # schedule of its own (see that file) -- it only runs from this dispatch or a manual hotfix --
-  # so stable is ALWAYS built from the nightly just promoted here, with prereleaseTag pinned
-  # explicitly rather than left to that workflow's own auto-detect (which picks whichever
-  # marketplace-prerelease-* tag happens to be newest at the moment it runs, and silently drifted
-  # from "last week's" once the scheduled crons started failing -- confirmed against v68.6.0,
-  # which auto-detected the *same* nightly as the then-current prerelease, v68.5.5). Dispatched
-  # immediately, with no artificial delay: the 7-day soak before the resulting candidate is
-  # actually published to the Marketplace is a separate PagerDuty decision, not something CI
-  # needs to enforce via timing. Skipped in dry-run, since build-github-release always pushes a
-  # real tag and cuts a real GitHub release -- there is no dry path for it to take.
-  #
-  # Also skipped for isHotfix: find-nightly's nightly-tag is then just the hotfix's own release
-  # tag (e.g. v67.12.1), passed through verbatim with no nightly-shape validation -- not a real
-  # nightly. build-github-release.yml's prereleaseTag input requires the
-  # vX.Y.Z-nightly.develop.YYYYMMDD shape and would reject it, and even if it didn't, chaining a
-  # full stable minor-bump build off a hotfix tag makes no sense: hotfixes publish directly via
-  # publishVSCode.yml/publishOpenVSX.yml with isHotfix=true, they don't go through this
-  # nightly-to-stable promotion chain.
-  # -- W-24610381
+  # Step 5: Chain the stable candidate off this exact prerelease, pinning prereleaseTag
+  # explicitly rather than relying on build-github-release.yml's own auto-detect (which drifted
+  # from "last week's" tag once the scheduled crons started failing -- see v68.6.0). The
+  # resulting candidate's actual Marketplace publish is a separate PagerDuty decision, not
+  # enforced here. Skipped in dry-run (no dry path exists downstream) and for isHotfix (a
+  # hotfix tag isn't nightly-shaped and shouldn't feed a minor-bump stable build; hotfixes
+  # publish directly via publishVSCode.yml/publishOpenVSX.yml). -- W-24610381
   trigger-stable-build:
     needs: [find-nightly, write-changelog, promote]
     if: always() && needs.promote.result == 'success' && (needs.write-changelog.result == 'success' || needs.write-changelog.result == 'skipped') && inputs.dry-run != true && !inputs.isHotfix
     runs-on: ubuntu-latest
     env:
-      # A PAT, not GITHUB_TOKEN: a GITHUB_TOKEN-triggered dispatch would not reliably cascade
+      # A PAT, not GITHUB_TOKEN: GITHUB_TOKEN-triggered dispatches don't reliably cascade
       # into the dispatched run's own tag-push/release-create events.
       GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
       NIGHTLY_TAG: ${{ needs.find-nightly.outputs.nightly-tag }}
@@ -343,10 +293,8 @@ jobs:
             --ref develop \
             -f prereleaseTag="$NIGHTLY_TAG"
 
-  # Step 6: Mark the nightly release as published. The reusable promote workflow only
-  # publishes VSIXs to the marketplaces -- it never touches the nightly release itself --
-  # so tag the title here to make it obvious at a glance on the Releases page which
-  # nightly has already gone out as this week's marketplace pre-release.
+  # Step 6: Mark the nightly release as published (promote only publishes VSIXs, never
+  # touches the nightly release's own title).
   mark-release-published:
     needs: [find-nightly, promote]
     if: always() && needs.promote.result == 'success' && inputs.dry-run != true
@@ -365,15 +313,8 @@ jobs:
             echo "Renamed release title to: $CURRENT_TITLE - published"
           fi
 
-  # Step 7: Notify Slack if any job above failed, so a broken promotion doesn't go
-  # unnoticed until someone happens to check Actions. failure() only fires for an
-  # actual 'failure' status among `needs` -- jobs skipped because an earlier gate
-  # (e.g. gate-check) failed don't themselves count, but that earlier job's own
-  # 'failure' status does, so this still catches the real failure.
-  #
-  # Posts directly to a Slack Workflow Builder webhook trigger (hooks.slack.com/triggers/...),
-  # not a classic incoming webhook -- the payload must be the flat set of input variables
-  # defined on that trigger (title, run_url, repository), not a free-form Block Kit message.
+  # Step 7: Notify Slack (Workflow Builder webhook trigger, not a classic incoming webhook --
+  # payload is the flat input-variable set, not Block Kit) on any job failure above.
   notify-on-failure:
     needs:
       [
@@ -399,10 +340,9 @@ jobs:
             -H 'Content-Type: application/json' \
             --data "$(jq -n --arg title ':x: Prerelease publishing failed' --arg run_url "$RUN_URL" --arg repository "$REPOSITORY" '{title: $title, run_url: $run_url, repository: $repository}')"
 
-  # Mirrors notify-on-failure above, but for the happy path. Gated on dry-run != true as well
-  # as success() -- mark-release-published (the real "did this actually publish" signal) is
-  # itself skipped during dry-run, and a skipped need doesn't count against success(), so without
-  # this guard a dry-run would falsely announce success despite publishing nothing for real.
+  # Mirrors notify-on-failure but for success. Gated on dry-run != true too: mark-release-published
+  # is itself skipped in dry-run, and a skipped need doesn't count against success(), so without
+  # this a dry-run would falsely announce success.
   notify-on-success:
     needs:
       [
