@@ -86,7 +86,7 @@ const buildServices = (opts: Opts) => ({
   TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
   PromptService: Effect.succeed({
     withCancellableProgressFor:
-      <A, E>(_command: string, _message: string) =>
+      <A, E>({ title: _message }: { command: string; title: string }) =>
       (effect: Effect.Effect<A, E>) => {
         opts.withProgress?.(_message);
         return effect;

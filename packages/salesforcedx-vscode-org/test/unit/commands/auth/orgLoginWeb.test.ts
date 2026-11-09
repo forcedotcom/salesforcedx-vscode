@@ -51,7 +51,7 @@ const buildServices = (opts: {
   PromptService: Effect.succeed({
     considerUndefinedAsCancellation: (value: unknown) =>
       value === undefined ? Effect.fail({ _tag: 'UserCancellationError' as const }) : Effect.succeed(value),
-    withCancellableProgressFor: (_command: string, title: string) => {
+    withCancellableProgressFor: ({ title }: { command: string; title: string }) => {
       opts.captureProgressTitle(title);
       return identity;
     }
