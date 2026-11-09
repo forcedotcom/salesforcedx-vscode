@@ -336,6 +336,7 @@
     "test:scripts": {
       "command": "vitest run --config vitest.config.mts",
       "dependencies": [
+        "./packages/effect-octokit:compile",
         "./packages/playwright-vscode-ext:compile"
       ],
       "files": [
@@ -346,7 +347,6 @@
         "scripts/clean-wireit-cache.js",
         "scripts/fold-stable-changelog.js",
         "scripts/releaseDashboard.sh",
-        "scripts/rerunPushE2EGate.sh",
         ".github/workflows/release-dashboard.yml",
         ".github/workflows/rerunPushE2E.yml",
         "scripts/tsconfig.json",
