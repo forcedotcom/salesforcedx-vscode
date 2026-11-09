@@ -7,18 +7,15 @@
 
 import type { Connection } from '@salesforce/core';
 import * as Arr from 'effect/Array';
-import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import * as Stream from 'effect/Stream';
 import { causeMessage } from './errors';
-import { queryRecords } from './records';
+import { collectQueryPages, queryRecordPages, queryRecords } from './records';
 import { ApexOperationError, ApexResponseDecodeError, ApexToolingMutationError } from './schema/errors';
-import { QueryPageSchema } from './schema/queryPage';
-import { SalesforceId } from './schema/salesforceId';
+import { DebugLevelId, TraceFlagId, type UserId } from './schema/salesforceId';
 import {
   DebugLevelRecordSchema,
   TraceFlagForUserSchema,
@@ -31,18 +28,23 @@ import {
 
 const quote = (value: string): string => value.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
 
-const mutationResponseSchema = Schema.Struct({
-  success: Schema.Boolean,
-  id: Schema.optional(SalesforceId),
-  errors: Schema.Unknown.pipe(Schema.Array, Schema.optional)
-});
+const mutationResponseSchema = <A, I, R>(idSchema: Schema.Schema<A, I, R>) =>
+  Schema.Struct({
+    success: Schema.Boolean,
+    id: Schema.optional(idSchema),
+    errors: Schema.Unknown.pipe(Schema.Array, Schema.optional)
+  });
 
-const mutate = Effect.fn('Apex.traceFlags.mutate')(function* (operation: string, request: () => PromiseLike<unknown>) {
+const mutate = Effect.fn('Apex.traceFlags.mutate')(function* <A, I, R>(
+  operation: string,
+  idSchema: Schema.Schema<A, I, R>,
+  request: () => PromiseLike<unknown>
+) {
   const result = yield* Effect.tryPromise({
     try: () => Promise.resolve(request()),
     catch: cause => new ApexOperationError({ operation, message: causeMessage(cause), cause: causeMessage(cause) })
   }).pipe(
-    Effect.flatMap(Schema.decodeUnknown(mutationResponseSchema)),
+    Effect.flatMap(Schema.decodeUnknown(mutationResponseSchema(idSchema))),
     Effect.catchTag('ParseError', cause =>
       Effect.fail(
         new ApexResponseDecodeError({ operation, message: 'Invalid Tooling mutation response', cause: cause.message })
@@ -55,58 +57,35 @@ const mutate = Effect.fn('Apex.traceFlags.mutate')(function* (operation: string,
   return result;
 });
 
-const createdId = (operation: string) => (result: typeof mutationResponseSchema.Type) =>
-  result.id
-    ? Effect.succeed(result.id)
-    : Effect.fail(new ApexToolingMutationError({ operation, message: `Tooling ${operation} returned no ID` }));
-
-const queryToolingRows = <A, I>(
-  connection: Connection,
-  operation: string,
-  soql: string,
-  record: Schema.Schema<A, I>
-) => {
-  const pageSchema = QueryPageSchema(record);
-  const initialNextRecordsUrl: string | undefined = undefined;
-  return Stream.paginateEffect<string | undefined, readonly A[], ApexOperationError | ApexResponseDecodeError, never>(
-    initialNextRecordsUrl,
-    nextRecordsUrl =>
-      Effect.tryPromise({
-        try: () =>
-          Promise.resolve(
-            isNotUndefined(nextRecordsUrl)
-              ? connection.tooling.queryMore(nextRecordsUrl)
-              : connection.tooling.query(soql)
-          ),
-        catch: cause => new ApexOperationError({ operation, message: causeMessage(cause), cause: causeMessage(cause) })
-      }).pipe(
-        Effect.flatMap(Schema.decodeUnknown(pageSchema)),
-        Effect.catchTag('ParseError', cause =>
-          Effect.fail(
-            new ApexResponseDecodeError({ operation, message: 'Invalid Tooling query response', cause: cause.message })
-          )
-        ),
-        Effect.map(
-          page => [page.records, page.done ? Option.none<string>() : Option.fromNullable(page.nextRecordsUrl)] as const
-        )
-      )
-  ).pipe(Stream.flatMap(Stream.fromIterable), Stream.runCollect, Effect.map(Chunk.toReadonlyArray));
-};
+const createdId =
+  <A>(operation: string) =>
+  (result: { readonly id?: A }) =>
+    result.id
+      ? Effect.succeed(result.id)
+      : Effect.fail(new ApexToolingMutationError({ operation, message: `Tooling ${operation} returned no ID` }));
 
 export const getTraceFlags = Effect.fn('Apex.getTraceFlags')((connection: Connection) =>
-  queryToolingRows(
+  queryRecordPages({
     connection,
-    'getTraceFlags',
-    'SELECT Id, LogType, StartDate, ExpirationDate, DebugLevelId, DebugLevel.DeveloperName, TracedEntityId FROM TraceFlag',
-    TraceFlagRecordSchema
-  )
+    soql: 'SELECT Id, LogType, StartDate, ExpirationDate, DebugLevelId, DebugLevel.DeveloperName, TracedEntityId FROM TraceFlag',
+    record: TraceFlagRecordSchema,
+    tooling: true,
+    onRequestError: cause =>
+      new ApexOperationError({ operation: 'getTraceFlags', message: causeMessage(cause), cause: causeMessage(cause) }),
+    onDecodeError: cause =>
+      new ApexResponseDecodeError({
+        operation: 'getTraceFlags',
+        message: 'Invalid Tooling query response',
+        cause: cause.message
+      })
+  }).pipe(collectQueryPages)
 );
 
 /** Finds the newest matching flag. CLI policy selects CreatedDate; other callers select ExpirationDate. */
 export const getTraceFlagForUser = Effect.fn('Apex.getTraceFlagForUser')(
   (
     connection: Connection,
-    userId: SalesforceId,
+    userId: UserId,
     logType: TraceFlagLogType = 'DEVELOPER_LOG',
     orderBy: 'CreatedDate' | 'ExpirationDate' = 'ExpirationDate'
   ) =>
@@ -120,12 +99,20 @@ export const getTraceFlagForUser = Effect.fn('Apex.getTraceFlagForUser')(
 );
 
 export const getDebugLevels = Effect.fn('Apex.getDebugLevels')((connection: Connection) =>
-  queryToolingRows(
+  queryRecordPages({
     connection,
-    'getDebugLevels',
-    `SELECT ${Object.keys(DebugLevelRecordSchema.fields).join(', ')} FROM DebugLevel`,
-    DebugLevelRecordSchema
-  )
+    soql: `SELECT ${Object.keys(DebugLevelRecordSchema.fields).join(', ')} FROM DebugLevel`,
+    record: DebugLevelRecordSchema,
+    tooling: true,
+    onRequestError: cause =>
+      new ApexOperationError({ operation: 'getDebugLevels', message: causeMessage(cause), cause: causeMessage(cause) }),
+    onDecodeError: cause =>
+      new ApexResponseDecodeError({
+        operation: 'getDebugLevels',
+        message: 'Invalid Tooling query response',
+        cause: cause.message
+      })
+  }).pipe(collectQueryPages)
 );
 
 export const findDebugLevel = Effect.fn('Apex.findDebugLevel')((connection: Connection, developerName: string) =>
@@ -133,28 +120,30 @@ export const findDebugLevel = Effect.fn('Apex.findDebugLevel')((connection: Conn
     connection,
     operation: 'findDebugLevel',
     soql: `SELECT Id FROM DebugLevel WHERE DeveloperName = '${quote(developerName)}' LIMIT 1`,
-    record: Schema.Struct({ Id: SalesforceId }),
+    record: Schema.Struct({ Id: DebugLevelId }),
     tooling: true
   }).pipe(Effect.map(records => Arr.head(records).pipe(Option.map(record => record.Id))))
 );
 
 export const createDebugLevel = Effect.fn('Apex.createDebugLevel')(
   (connection: Connection, payload: CreateDebugLevel) =>
-    mutate('createDebugLevel', () => connection.tooling.create('DebugLevel', payload)).pipe(
+    mutate('createDebugLevel', DebugLevelId, () => connection.tooling.create('DebugLevel', payload)).pipe(
       Effect.flatMap(createdId('createDebugLevel'))
     )
 );
 
 export const updateDebugLevel = Effect.fn('Apex.updateDebugLevel')(
-  (connection: Connection, debugLevelId: SalesforceId, payload: UpdateDebugLevel) =>
-    mutate('updateDebugLevel', () => connection.tooling.update('DebugLevel', { ...payload, Id: debugLevelId })).pipe(
-      Effect.asVoid
-    )
+  (connection: Connection, debugLevelId: DebugLevelId, payload: UpdateDebugLevel) =>
+    mutate('updateDebugLevel', DebugLevelId, () =>
+      connection.tooling.update('DebugLevel', { ...payload, Id: debugLevelId })
+    ).pipe(Effect.asVoid)
 );
 
 export const deleteDebugLevel = Effect.fn('Apex.deleteDebugLevel')(
-  (connection: Connection, debugLevelId: SalesforceId) =>
-    mutate('deleteDebugLevel', () => connection.tooling.delete('DebugLevel', debugLevelId)).pipe(Effect.asVoid)
+  (connection: Connection, debugLevelId: DebugLevelId) =>
+    mutate('deleteDebugLevel', DebugLevelId, () => connection.tooling.delete('DebugLevel', debugLevelId)).pipe(
+      Effect.asVoid
+    )
 );
 
 /** Reuses a named level without modifying it; the caller supplies its creation policy. */
@@ -178,12 +167,12 @@ export const traceFlagExpirationDate = (
 export const createTraceFlag = Effect.fn('Apex.createTraceFlag')(
   (
     connection: Connection,
-    userId: SalesforceId,
-    debugLevelId: SalesforceId,
+    userId: UserId,
+    debugLevelId: DebugLevelId,
     duration: Duration.DurationInput = Duration.minutes(30),
     logType: TraceFlagLogType = 'DEVELOPER_LOG'
   ) =>
-    mutate('createTraceFlag', () =>
+    mutate('createTraceFlag', TraceFlagId, () =>
       connection.tooling.create('TraceFlag', {
         TracedEntityId: userId,
         DebugLevelId: debugLevelId,
@@ -195,13 +184,13 @@ export const createTraceFlag = Effect.fn('Apex.createTraceFlag')(
 );
 
 export type UpdateTraceFlagOptions = {
-  readonly debugLevelId?: SalesforceId;
+  readonly debugLevelId?: DebugLevelId;
   readonly expirationDate?: Date;
 };
 
 export const updateTraceFlag = Effect.fn('Apex.updateTraceFlag')(
-  (connection: Connection, traceFlagId: SalesforceId, options?: UpdateTraceFlagOptions) =>
-    mutate('updateTraceFlag', () =>
+  (connection: Connection, traceFlagId: TraceFlagId, options?: UpdateTraceFlagOptions) =>
+    mutate('updateTraceFlag', TraceFlagId, () =>
       connection.tooling.update('TraceFlag', {
         Id: traceFlagId,
         StartDate: new Date().toISOString(),
@@ -211,14 +200,14 @@ export const updateTraceFlag = Effect.fn('Apex.updateTraceFlag')(
     ).pipe(Effect.asVoid)
 );
 
-export const deleteTraceFlag = Effect.fn('Apex.deleteTraceFlag')((connection: Connection, traceFlagId: SalesforceId) =>
-  mutate('deleteTraceFlag', () => connection.tooling.delete('TraceFlag', traceFlagId)).pipe(Effect.asVoid)
+export const deleteTraceFlag = Effect.fn('Apex.deleteTraceFlag')((connection: Connection, traceFlagId: TraceFlagId) =>
+  mutate('deleteTraceFlag', TraceFlagId, () => connection.tooling.delete('TraceFlag', traceFlagId)).pipe(Effect.asVoid)
 );
 
 /** Changes the relationship only, without resetting StartDate or changing category levels. */
 export const changeTraceFlagDebugLevel = Effect.fn('Apex.changeTraceFlagDebugLevel')(
-  (connection: Connection, traceFlagId: SalesforceId, debugLevelId: SalesforceId) =>
-    mutate('changeTraceFlagDebugLevel', () =>
+  (connection: Connection, traceFlagId: TraceFlagId, debugLevelId: DebugLevelId) =>
+    mutate('changeTraceFlagDebugLevel', TraceFlagId, () =>
       connection.tooling.update('TraceFlag', { Id: traceFlagId, DebugLevelId: debugLevelId })
     ).pipe(Effect.asVoid)
 );
@@ -242,8 +231,8 @@ export type EnsureTraceFlagOptions<E = never, R = never> = {
 /** Ensures a flag using the caller-selected level; expired flags are replaced, not renewed. */
 export const ensureTraceFlag = Effect.fn('Apex.ensureTraceFlag')(function* <E = never, R = never>(
   connection: Connection,
-  userId: SalesforceId,
-  debugLevelId: SalesforceId,
+  userId: UserId,
+  debugLevelId: DebugLevelId,
   options: EnsureTraceFlagOptions<E, R> = {}
 ) {
   const { duration = Duration.minutes(30), logType = 'DEVELOPER_LOG', onMutation = () => Effect.void } = options;

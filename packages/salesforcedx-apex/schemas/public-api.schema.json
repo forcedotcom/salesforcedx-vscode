@@ -1119,8 +1119,10 @@
       "properties": {
         "Id": {
           "type": "string",
-          "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
-          "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+          "description": "a string starting with \"7tf\"",
+          "pattern": "^7tf",
+          "title": "startsWith(\"7tf\")",
+          "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
         },
         "LogType": { "type": "string", "enum": ["USER_DEBUG", "DEVELOPER_LOG", "CLASS_TRACING"] },
         "StartDate": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
@@ -1129,12 +1131,15 @@
           "anyOf": [
             {
               "type": "string",
-              "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
-              "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+              "description": "a string starting with \"7dl\"",
+              "pattern": "^7dl",
+              "title": "startsWith(\"7dl\")",
+              "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
             },
             { "type": "null" }
           ],
-          "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+          "title": "startsWith(\"7dl\")",
+          "description": "a string starting with \"7dl\""
         },
         "DebugLevel": {
           "anyOf": [
@@ -1167,8 +1172,10 @@
       "properties": {
         "Id": {
           "type": "string",
-          "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
-          "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+          "description": "a string starting with \"7tf\"",
+          "pattern": "^7tf",
+          "title": "startsWith(\"7tf\")",
+          "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
         },
         "StartDate": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
         "ExpirationDate": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
@@ -1176,12 +1183,15 @@
           "anyOf": [
             {
               "type": "string",
-              "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
-              "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+              "description": "a string starting with \"7dl\"",
+              "pattern": "^7dl",
+              "title": "startsWith(\"7dl\")",
+              "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
             },
             { "type": "null" }
           ],
-          "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+          "title": "startsWith(\"7dl\")",
+          "description": "a string starting with \"7dl\""
         },
         "DebugLevel": {
           "anyOf": [
@@ -1204,7 +1214,9 @@
         "Id": {
           "type": "string",
           "description": "Salesforce record ID of the DebugLevel.",
-          "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+          "pattern": "^7dl",
+          "title": "startsWith(\"7dl\")",
+          "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
         },
         "DeveloperName": { "type": "string", "description": "Unique API name for this debug level." },
         "MasterLabel": { "type": "string", "description": "User-facing label for this debug level." },

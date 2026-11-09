@@ -166,7 +166,10 @@ try {
   let levels = [];
   const toolingConnection = {
     tooling: {
-      query: async soql => ({ records: soql.includes('FROM TraceFlag') ? flags : levels }),
+      query: async soql => {
+        const records = soql.includes('FROM TraceFlag') ? flags : levels;
+        return { done: true, totalSize: records.length, records };
+      },
       create: async (type, payload) => {
         writes.push(['create', type, payload]);
         return { success: true, id: type === 'DebugLevel' ? '7dl000000000001' : '7tf000000000001' };

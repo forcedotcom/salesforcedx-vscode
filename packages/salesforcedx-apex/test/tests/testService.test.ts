@@ -16,6 +16,7 @@ let mockConnection: Connection;
 let toolingCreateStub: SinonStub;
 let toolingQueryStub: SinonStub;
 const testData = new MockTestOrgData();
+const queryPage = (records: unknown[]) => ({ done: true, totalSize: records.length, records });
 
 const getApexClassIds = (connection: Connection, testClasses: string[]): Promise<string[]> =>
   Effect.runPromise(getApexClassIdsOperation(connection, testClasses));
@@ -37,7 +38,7 @@ describe('Apex Test Suites', () => {
   });
 
   it('should retrieve apex class id for non-namespaced class', async () => {
-    toolingQueryStub.resolves({ records: [{ Id: '01p000000000001' }] });
+    toolingQueryStub.resolves(queryPage([{ Id: '01p000000000001' }]));
 
     const ids = await getApexClassIds(mockConnection, ['firstTestClass']);
 
@@ -48,7 +49,7 @@ describe('Apex Test Suites', () => {
   });
 
   it('should retrieve apex class id for namespaced class (ns.ShortName)', async () => {
-    toolingQueryStub.resolves({ records: [{ Id: '01p000000000002' }] });
+    toolingQueryStub.resolves(queryPage([{ Id: '01p000000000002' }]));
 
     const ids = await getApexClassIds(mockConnection, ['myns.FooTest']);
 
@@ -60,17 +61,11 @@ describe('Apex Test Suites', () => {
   it('should retrieve apex class ids for multiple classes', async () => {
     toolingQueryStub
       .onFirstCall()
-      .resolves({
-        records: [{ Id: '01p000000000001' }]
-      })
+      .resolves(queryPage([{ Id: '01p000000000001' }]))
       .onSecondCall()
-      .resolves({
-        records: [{ Id: '01p000000000002' }]
-      })
+      .resolves(queryPage([{ Id: '01p000000000002' }]))
       .onThirdCall()
-      .resolves({
-        records: [{ Id: '01p000000000003' }]
-      });
+      .resolves(queryPage([{ Id: '01p000000000003' }]));
 
     const ids = await getApexClassIds(mockConnection, ['firstTestClass', 'secondTestClass', 'thirdTestClass']);
 
@@ -79,7 +74,7 @@ describe('Apex Test Suites', () => {
   });
 
   it('should retrieve 0 apex class ids when given 0 classes', async () => {
-    toolingQueryStub.resolves({ records: [{ Id: '01p000000000001' }] });
+    toolingQueryStub.resolves(queryPage([{ Id: '01p000000000001' }]));
 
     const ids = await getApexClassIds(mockConnection, []);
 
@@ -88,7 +83,7 @@ describe('Apex Test Suites', () => {
   });
 
   it('should throw an error if a given apex class does not exist', async () => {
-    toolingQueryStub.resolves({ records: [] });
+    toolingQueryStub.resolves(queryPage([]));
 
     await expect(getApexClassIds(mockConnection, ['MissingTest'])).rejects.toThrow('MissingTest');
   });
@@ -107,9 +102,9 @@ describe('Apex Test Suites', () => {
   it('should retrieve associated suite id if suitename is provided and return tests in suite', async () => {
     toolingQueryStub
       .onFirstCall()
-      .resolves({ records: [{ Id: '05F000000000001' }] })
+      .resolves(queryPage([{ Id: '05F000000000001' }]))
       .onSecondCall()
-      .resolves({ records: [{ ApexClassId: '01p000000000005' }] });
+      .resolves(queryPage([{ ApexClassId: '01p000000000005' }]));
 
     const testService = new TestService(mockConnection);
     const tests = await testService.getTestsInSuite('testSuite');
@@ -122,7 +117,7 @@ describe('Apex Test Suites', () => {
   });
 
   it('should return tests from suite when suite id is provided', async () => {
-    toolingQueryStub.onFirstCall().resolves({ records: [{ ApexClassId: '01p000000000005' }] });
+    toolingQueryStub.onFirstCall().resolves(queryPage([{ ApexClassId: '01p000000000005' }]));
 
     const testService = new TestService(mockConnection);
     const tests = await testService.getTestsInSuite(undefined, '05F000000000001');
@@ -139,9 +134,7 @@ describe('Apex Test Suites', () => {
   });
 
   it('should retrieve all suites associated with a given username', async () => {
-    toolingQueryStub.onFirstCall().resolves({
-      records: [{ id: '05F000000000002', TestSuiteName: 'testSuite' }]
-    });
+    toolingQueryStub.onFirstCall().resolves(queryPage([{ id: '05F000000000002', TestSuiteName: 'testSuite' }]));
 
     const testService = new TestService(mockConnection);
     const tests = await testService.retrieveAllSuites();
@@ -154,15 +147,13 @@ describe('Apex Test Suites', () => {
     it('should create test suite given a suitename that does not exist', async () => {
       toolingQueryStub
         .onFirstCall()
-        .resolves({
-          records: []
-        })
+        .resolves(queryPage([]))
         .onSecondCall()
-        .resolves({ records: [] })
+        .resolves(queryPage([]))
         .onThirdCall()
-        .resolves({ records: [{ Id: '01p000000000004' }] })
+        .resolves(queryPage([{ Id: '01p000000000004' }]))
         .onCall(3)
-        .resolves({ records: [{ Id: '01p000000000006' }] });
+        .resolves(queryPage([{ Id: '01p000000000006' }]));
       toolingCreateStub.resolves({ id: '05F000000000001' });
 
       const testService = new TestService(mockConnection);
@@ -175,15 +166,13 @@ describe('Apex Test Suites', () => {
     it('should retrieve associated suite id for suitename that exists', async () => {
       toolingQueryStub
         .onFirstCall()
-        .resolves({
-          records: [{ Id: '05F000000000001' }]
-        })
+        .resolves(queryPage([{ Id: '05F000000000001' }]))
         .onSecondCall()
-        .resolves({ records: [] })
+        .resolves(queryPage([]))
         .onThirdCall()
-        .resolves({ records: [{ Id: '01p000000000004' }] })
+        .resolves(queryPage([{ Id: '01p000000000004' }]))
         .onCall(3)
-        .resolves({ records: [{ Id: '01p000000000006' }] });
+        .resolves(queryPage([{ Id: '01p000000000006' }]));
       toolingCreateStub.resolves({ id: '05F000000000001' });
 
       const testService = new TestService(mockConnection);
@@ -196,17 +185,13 @@ describe('Apex Test Suites', () => {
     it('should not log when a test class already exists in the suite', async () => {
       toolingQueryStub
         .onFirstCall()
-        .resolves({
-          records: [{ Id: '05F000000000001' }]
-        })
+        .resolves(queryPage([{ Id: '05F000000000001' }]))
         .onSecondCall()
-        .resolves({
-          records: [{ ApexClassId: '01p000000000004' }, { ApexClassId: '01p000000000006' }]
-        })
+        .resolves(queryPage([{ ApexClassId: '01p000000000004' }, { ApexClassId: '01p000000000006' }]))
         .onThirdCall()
-        .resolves({ records: [{ Id: '01p000000000004' }] })
+        .resolves(queryPage([{ Id: '01p000000000004' }]))
         .onCall(3)
-        .resolves({ records: [{ Id: '01p000000000006' }] });
+        .resolves(queryPage([{ Id: '01p000000000006' }]));
       toolingCreateStub.resolves({ id: '05F000000000001' });
       const consoleSpy = $$.SANDBOX.spy(console, 'log');
 
@@ -221,15 +206,13 @@ describe('Apex Test Suites', () => {
     it('should add test classes to suite without logging to the console', async () => {
       toolingQueryStub
         .onFirstCall()
-        .resolves({
-          records: [{ Id: '05F000000000001' }]
-        })
+        .resolves(queryPage([{ Id: '05F000000000001' }]))
         .onSecondCall()
-        .resolves({ records: [] })
+        .resolves(queryPage([]))
         .onThirdCall()
-        .resolves({ records: [{ Id: '01p000000000004' }] })
+        .resolves(queryPage([{ Id: '01p000000000004' }]))
         .onCall(3)
-        .resolves({ records: [{ Id: '01p000000000006' }] });
+        .resolves(queryPage([{ Id: '01p000000000006' }]));
       toolingCreateStub.resolves({ id: '05F000000000001' });
       const consoleSpy = $$.SANDBOX.spy(console, 'log');
 

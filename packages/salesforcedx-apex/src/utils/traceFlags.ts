@@ -12,7 +12,7 @@ import * as Either from 'effect/Either';
 import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
 import { ApexToolingMutationError } from '../effect/schema/errors';
-import { SalesforceId } from '../effect/schema/salesforceId';
+import { DebugLevelId, UserId } from '../effect/schema/salesforceId';
 import {
   createDebugLevel,
   createTraceFlag,
@@ -49,7 +49,7 @@ export class TraceFlags {
     if (Option.isSome(traceFlag)) {
       // Existing flags keep their level, even when the caller supplied a different name.
       return run(
-        Schema.decodeUnknown(SalesforceId)(traceFlag.value.DebugLevelId).pipe(
+        Schema.decodeUnknown(DebugLevelId)(traceFlag.value.DebugLevelId).pipe(
           Effect.flatMap(debugLevelId => updateDebugLevel(this.connection, debugLevelId, cliDebugLevels)),
           Effect.flatMap(() => extendTraceFlag(this.connection, traceFlag.value, cliDuration)),
           Effect.as(true),
@@ -67,7 +67,7 @@ export class TraceFlags {
   }
 
   @elapsedTime()
-  private async getDebugLevelId(debugLevelName?: string): Promise<SalesforceId> {
+  private async getDebugLevelId(debugLevelName?: string): Promise<DebugLevelId> {
     if (debugLevelName) {
       const debugLevelId = await run(findDebugLevel(this.connection, debugLevelName));
       if (Option.isNone(debugLevelId)) {
@@ -96,7 +96,7 @@ export class TraceFlags {
   }
 
   @elapsedTime()
-  private async getUserIdOrThrow(username: string): Promise<SalesforceId> {
+  private async getUserIdOrThrow(username: string): Promise<UserId> {
     const escapedUsername = escapeXml(username);
     const userQuery = `SELECT Id FROM User WHERE username='${escapedUsername}'`;
     const userResult = await this.connection.query<IdRecord>(userQuery);
@@ -104,6 +104,6 @@ export class TraceFlags {
     if (userResult.totalSize === 0) {
       throw new Error(nls.localize('trace_flags_unknown_user'));
     }
-    return run(Schema.decodeUnknown(SalesforceId)(userResult.records[0].Id));
+    return run(Schema.decodeUnknown(UserId)(userResult.records[0].Id));
   }
 }

@@ -9,8 +9,11 @@ import type { CodeCoverage } from './codeCoverage';
 import type { QueryResult, Record as JsforceRecord } from '@jsforce/jsforce-node';
 import { type Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
+import * as Either from 'effect/Either';
 import { isUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import { queryNamespaces as queryNamespaceInfos } from '../effect/namespaces';
+import { collectQueryPages, queryRecordPages } from '../effect/records';
 import * as TestResults from '../effect/testResults';
 import { nls } from '../i18n';
 import { type ApexTestProgressReporter, type NamespaceInfo, type TestResultRaw } from './types';
@@ -23,20 +26,22 @@ export const queryAll = async <R extends JsforceRecord>(
   query: string,
   tooling = false
 ): Promise<QueryResult<R>> => {
-  const conn = tooling ? connection.tooling : connection;
-  const allRecords: R[] = [];
-  let result = await conn.query<R>(query);
-  allRecords.push(...result.records);
-  while (!result.done) {
-    result = (await conn.queryMore(result.nextRecordsUrl ?? '')) as QueryResult<R>;
-    allRecords.push(...result.records);
-  }
-
-  return {
-    done: true,
-    totalSize: allRecords.length,
-    records: allRecords
-  };
+  const result = await Effect.runPromise(
+    queryRecordPages({
+      connection,
+      soql: query,
+      record: Schema.Unknown,
+      tooling,
+      onRequestError: cause => cause,
+      onDecodeError: cause => cause
+    }).pipe(collectQueryPages, Effect.either)
+  );
+  return Either.match(result, {
+    onLeft: error => {
+      throw error;
+    },
+    onRight: records => ({ done: true, totalSize: records.length, records: [...records] as R[] })
+  });
 };
 
 export const calculateCodeCoverage = async (

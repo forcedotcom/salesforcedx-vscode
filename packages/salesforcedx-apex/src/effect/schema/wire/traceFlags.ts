@@ -6,7 +6,7 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { SalesforceId } from '../salesforceId';
+import { DebugLevelId, SalesforceId, TraceFlagId } from '../salesforceId';
 
 /** TraceFlag.LogType values — https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/tooling_api_objects_traceflag.htm */
 export const TraceFlagLogType = Schema.Literal('USER_DEBUG', 'DEVELOPER_LOG', 'CLASS_TRACING');
@@ -14,11 +14,11 @@ export type TraceFlagLogType = typeof TraceFlagLogType.Type;
 
 /** Tooling API fields only; hosts own entity-name resolution and active-state presentation. */
 export const TraceFlagRecordSchema = Schema.Struct({
-  Id: SalesforceId,
+  Id: TraceFlagId,
   LogType: TraceFlagLogType,
   StartDate: Schema.optionalWith(Schema.String, { nullable: true }),
   ExpirationDate: Schema.optionalWith(Schema.String, { nullable: true }),
-  DebugLevelId: Schema.optionalWith(SalesforceId, { nullable: true }),
+  DebugLevelId: Schema.optionalWith(DebugLevelId, { nullable: true }),
   DebugLevel: Schema.optionalWith(
     Schema.Struct({ DeveloperName: Schema.optionalWith(Schema.String, { nullable: true }) }),
     { nullable: true }
@@ -48,7 +48,7 @@ const ToolingLogCategoryLevel = Schema.optionalWith(LogCategoryLevel, {
 
 /** Tooling API DebugLevel record — https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/tooling_api_objects_debuglevel.htm */
 export const DebugLevelRecordSchema = Schema.Struct({
-  Id: SalesforceId.pipe(Schema.annotations({ description: 'Salesforce record ID of the DebugLevel.' })),
+  Id: DebugLevelId.pipe(Schema.annotations({ description: 'Salesforce record ID of the DebugLevel.' })),
   DeveloperName: Schema.String.pipe(Schema.annotations({ description: 'Unique API name for this debug level.' })),
   MasterLabel: Schema.String.pipe(Schema.annotations({ description: 'User-facing label for this debug level.' })),
   Language: Schema.NullOr(Schema.String).pipe(Schema.annotations({ description: 'Language of the MasterLabel.' })),

@@ -48,7 +48,9 @@ const REPLAY_DEBUGGER_LEVELS = 'ReplayDebuggerLevels';
 
 const idListToInClause = (ids: string[]) => ids.map(id => `'${id}'`).join(',');
 
-const decodeSalesforceId = Schema.decodeUnknown(apex.TraceFlagRecordSchema.fields.Id);
+const decodeTraceFlagId = Schema.decodeUnknown(apex.TraceFlagRecordSchema.fields.Id);
+const decodeDebugLevelId = Schema.decodeUnknown(apex.DebugLevelRecordSchema.fields.Id);
+const decodeUserId = Schema.decodeUnknown(apex.UserId);
 
 /** Decode `input` against `schema`, remapping any ParseError to a labeled TraceFlagNotFoundError. */
 const decodeOrFail =
@@ -193,7 +195,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
     ) {
       return yield* connectionService.getConnection().pipe(
         Effect.flatMap(connection =>
-          decodeSalesforceId(userId).pipe(Effect.flatMap(id => apex.getTraceFlagForUser(connection, id, logType)))
+          decodeUserId(userId).pipe(Effect.flatMap(id => apex.getTraceFlagForUser(connection, id, logType)))
         ),
         Effect.mapError(error => new TraceFlagNotFoundError({ message: error.message })),
         Effect.flatMap(
@@ -248,7 +250,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
 
     const deleteDebugLevel = Effect.fn('TraceFlagService.deleteDebugLevel')(function* (debugLevelId: string) {
       const conn = yield* connectionService.getConnection();
-      yield* decodeSalesforceId(debugLevelId).pipe(
+      yield* decodeDebugLevelId(debugLevelId).pipe(
         Effect.flatMap(id => apex.deleteDebugLevel(conn, id)),
         Effect.mapError(
           error =>
@@ -266,8 +268,8 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
     ) {
       const conn = yield* connectionService.getConnection();
       const traceFlagId = yield* Effect.all({
-        userId: decodeSalesforceId(userId),
-        debugLevelId: decodeSalesforceId(debugLevelId)
+        userId: decodeUserId(userId),
+        debugLevelId: decodeDebugLevelId(debugLevelId)
       }).pipe(
         Effect.flatMap(ids => apex.createTraceFlag(conn, ids.userId, ids.debugLevelId, duration, logType)),
         Effect.mapError(
@@ -284,7 +286,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
     ) {
       const conn = yield* connectionService.getConnection();
       if (options?.debugLevelId) {
-        yield* decodeSalesforceId(options.debugLevelId).pipe(
+        yield* decodeDebugLevelId(options.debugLevelId).pipe(
           Effect.flatMap(id =>
             apex.updateDebugLevel(conn, id, {
               ApexCode: APEX_CODE_DEBUG_LEVEL,
@@ -297,7 +299,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
           )
         );
       }
-      yield* decodeSalesforceId(traceFlagId).pipe(
+      yield* decodeTraceFlagId(traceFlagId).pipe(
         Effect.flatMap(id => apex.updateTraceFlag(conn, id, { expirationDate: options?.expirationDate })),
         Effect.mapError(
           error => new TraceFlagUpdateError({ message: `Failed to update trace flag: ${error.message}`, cause: error })
@@ -308,7 +310,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
 
     const deleteTraceFlag = Effect.fn('TraceFlagService.deleteTraceFlag')(function* (traceFlagId: string) {
       const conn = yield* connectionService.getConnection();
-      yield* decodeSalesforceId(traceFlagId).pipe(
+      yield* decodeTraceFlagId(traceFlagId).pipe(
         Effect.flatMap(id => apex.deleteTraceFlag(conn, id)),
         Effect.mapError(
           error => new TraceFlagUpdateError({ message: `Failed to delete trace flag: ${error.message}`, cause: error })
@@ -323,8 +325,8 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
     ) {
       const conn = yield* connectionService.getConnection();
       yield* Effect.all({
-        traceFlagId: decodeSalesforceId(traceFlagId),
-        debugLevelId: decodeSalesforceId(newDebugLevelId)
+        traceFlagId: decodeTraceFlagId(traceFlagId),
+        debugLevelId: decodeDebugLevelId(newDebugLevelId)
       }).pipe(
         Effect.flatMap(ids => apex.changeTraceFlagDebugLevel(conn, ids.traceFlagId, ids.debugLevelId)),
         Effect.mapError(
@@ -346,8 +348,8 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
     ) {
       const debugLevelId = existingDebugLevelId ?? (yield* getOrCreateDebugLevel());
       const ids = yield* Effect.all({
-        userId: decodeOrFail(apex.TraceFlagRecordSchema.fields.Id, 'user ID')(userId),
-        debugLevelId: decodeOrFail(apex.TraceFlagRecordSchema.fields.Id, 'debug level ID')(debugLevelId)
+        userId: decodeOrFail(apex.UserId, 'user ID')(userId),
+        debugLevelId: decodeOrFail(apex.DebugLevelRecordSchema.fields.Id, 'debug level ID')(debugLevelId)
       });
       return yield* connectionService.getConnection().pipe(
         Effect.flatMap(connection =>

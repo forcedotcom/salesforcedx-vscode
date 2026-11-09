@@ -52,15 +52,9 @@ export const ApexTestRunSummarySchema = Schema.Struct({
 }).annotations({ identifier: 'ApexTestRunSummary' });
 export const summariesSchema = Schema.Struct({ records: Schema.Tuple(ApexTestRunSummarySchema) });
 
-const queueRecordsSchema = Schema.Array(
-  Schema.Struct({
-    Id: ApexTestQueueItemId,
-    Status: Schema.Literal('Queued', 'Holding', 'Preparing', 'Processing', 'Aborted', 'Completed', 'Failed')
-  })
-);
-export const queueSchema = Schema.Union(
-  Schema.Struct({ done: Schema.Literal(true), records: queueRecordsSchema }),
-  Schema.Struct({ done: Schema.Literal(false), records: queueRecordsSchema, nextRecordsUrl: Schema.String })
-);
+export const queueRecordSchema = Schema.Struct({
+  Id: ApexTestQueueItemId,
+  Status: Schema.Literal('Queued', 'Holding', 'Preparing', 'Processing', 'Aborted', 'Completed', 'Failed')
+});
 
 export const updateResultsSchema = Schema.Array(Schema.Struct({ success: Schema.Boolean }));

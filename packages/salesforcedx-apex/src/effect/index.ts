@@ -65,6 +65,7 @@ export { TestSuiteSchema, TestSuiteMembershipSchema } from './schema/testSuites'
 export { retrieveAllSuites, getTestsInSuite, buildSuite } from './testSuites';
 export type { TestSuite, TestSuiteMembership } from './schema/testSuites';
 export { ApexTestSuiteId } from '../schemas/salesforceId';
+export { DebugLevelId, TraceFlagId, UserId } from './schema/salesforceId';
 export { AsyncTestOptionsSchema } from './schema/wire/asyncTests';
 export { AsyncTestProgressSchema, AsyncTestResultSchema, AsyncTestRunEventSchema } from './schema/asyncTests';
 export { runTestAsynchronous } from './asyncTests';

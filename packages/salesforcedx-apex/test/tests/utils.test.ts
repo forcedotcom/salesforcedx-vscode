@@ -10,6 +10,7 @@ import * as utils from '../../src/tests/utils';
 
 let mockConnection: Connection;
 const testData = new MockTestOrgData();
+const queryPage = (records: unknown[]) => ({ done: true, totalSize: records.length, records });
 
 describe('Query Namespaces', () => {
   const $$ = new TestContext();
@@ -29,7 +30,7 @@ describe('Query Namespaces', () => {
   it('should query for installed packages and namespaced orgs', async () => {
     const queryStub = $$.SANDBOX.stub(mockConnection, 'query')
       //@ts-ignore
-      .resolves({ records: [{ NamespacePrefix: 'myNamespace' }] });
+      .resolves(queryPage([{ NamespacePrefix: 'myNamespace' }]));
     await utils.queryNamespaces(mockConnection);
     expect(queryStub.calledTwice).toBe(true);
   });
@@ -39,13 +40,9 @@ describe('Query Namespaces', () => {
     queryStub
       .onFirstCall()
       //@ts-ignore
-      .resolves({
-        records: [{ NamespacePrefix: 'myNamespace' }, { NamespacePrefix: 'otherNamespace' }]
-      });
+      .resolves(queryPage([{ NamespacePrefix: 'myNamespace' }, { NamespacePrefix: 'otherNamespace' }]));
     //@ts-ignore
-    queryStub.onSecondCall().resolves({
-      records: [{ NamespacePrefix: 'otherNamespace' }]
-    });
+    queryStub.onSecondCall().resolves(queryPage([{ NamespacePrefix: 'otherNamespace' }]));
 
     const namespaces = await utils.queryNamespaces(mockConnection);
     expect(queryStub.calledTwice).toBe(true);
@@ -54,5 +51,29 @@ describe('Query Namespaces', () => {
       { installedNs: true, namespace: 'myNamespace' },
       { installedNs: true, namespace: 'otherNamespace' }
     ]);
+  });
+
+  it.each([
+    ['REST', false],
+    ['Tooling', true]
+  ] as const)('follows queryMore for %s queries', async (_name, tooling) => {
+    const queryConnection = tooling ? mockConnection.tooling : mockConnection;
+    const queryStub = $$.SANDBOX.stub(queryConnection, 'query').resolves({
+      done: false,
+      totalSize: 2,
+      records: [{ Id: '001000000000001' }],
+      nextRecordsUrl: '/next'
+    });
+    const queryMoreStub = $$.SANDBOX.stub(queryConnection, 'queryMore').resolves({
+      done: true,
+      totalSize: 2,
+      records: [{ Id: '001000000000002' }]
+    });
+
+    const result = await utils.queryAll(mockConnection, 'SELECT Id FROM Account', tooling);
+
+    expect(result.records).toEqual([{ Id: '001000000000001' }, { Id: '001000000000002' }]);
+    expect(queryStub.calledOnce).toBe(true);
+    expect(queryMoreStub.calledOnceWith('/next')).toBe(true);
   });
 });
