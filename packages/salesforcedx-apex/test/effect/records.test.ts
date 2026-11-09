@@ -39,7 +39,8 @@ describe('RecordSaveResultSchema', () => {
   it.each([
     { success: true, errors: [] },
     { success: false, errors: [] },
-    { success: false, id: null, errors: [{ message: 'bad field' }] }
+    { success: false, id: null, errors: [{ message: 'bad field' }] },
+    { success: false, id: '7dl000000000001', errors: [{ message: 'bad field' }] }
   ])('rejects malformed SaveResult branches: %j', result => {
     expect(Schema.decodeUnknownEither(saveResultSchema)(result)._tag).toBe('Left');
   });
