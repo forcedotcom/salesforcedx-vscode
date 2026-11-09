@@ -5,13 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Global } from '@salesforce/core/global';
-import { ExtensionProviderService, parseErrorToValidationMessage } from '@salesforce/effect-ext-utils';
+import {
+  ExtensionProviderService,
+  parseErrorToValidationMessage,
+  getMessageFromError
+} from '@salesforce/effect-ext-utils';
+
 import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
 import * as Option from 'effect/Option';
-import { isError } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as path from 'node:path';
 import { URL } from 'node:url';
@@ -281,7 +285,7 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
           config.namespace = parseOrgNamespaceQueryResultJson(orgNamespaceInfoResponseJson);
           return JSON.stringify(config, null, 2);
         },
-        catch: e => new IsvBootstrapProjectConfigError({ message: isError(e) ? e.message : String(e) })
+        catch: e => new IsvBootstrapProjectConfigError({ message: getMessageFromError(e) })
       });
       yield* fs.writeFile(salesforceProjectJsonUri, updatedProjectJson);
 

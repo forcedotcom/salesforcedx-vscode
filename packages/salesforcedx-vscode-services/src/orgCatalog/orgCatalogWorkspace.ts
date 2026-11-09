@@ -6,6 +6,7 @@
  */
 
 import type { WorkspaceTypeInventory } from './orgCatalogInternalTypes';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as HashMap from 'effect/HashMap';
@@ -70,7 +71,7 @@ export const makeOrgCatalogWorkspace = Effect.gen(function* () {
   ) {
     const missingContentFile = missingContentFileForError(error);
     const failure = Schema.is(FailedToBuildComponentSetError)(error) && error.cause ? error.cause : error;
-    const description = isError(failure) ? failure.message : String(failure);
+    const description = getErrorMessage(failure);
     const message = missingContentFile
       ? nls.localize(
           'org_metadata_catalog_workspace_presence_missing_content',

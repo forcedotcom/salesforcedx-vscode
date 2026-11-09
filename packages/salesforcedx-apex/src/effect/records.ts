@@ -6,6 +6,7 @@
  */
 
 import type { Connection } from '@salesforce/core';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
@@ -13,7 +14,6 @@ import type { ParseError } from 'effect/ParseResult';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { causeMessage } from './errors';
 import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
 import { QueryPageSchema } from './schema/queryPage';
 import { createRecordResponseSchema } from './schema/wire/records';
@@ -74,7 +74,7 @@ export const queryRecords = Effect.fn('Apex.queryRecords')(function* <A, I>({
     record,
     tooling,
     onRequestError: cause =>
-      new ApexOperationError({ operation, message: causeMessage(cause), cause: causeMessage(cause) }),
+      new ApexOperationError({ operation, message: getErrorMessage(cause), cause: getErrorMessage(cause) }),
     onDecodeError: cause =>
       new ApexResponseDecodeError({ operation, message: 'Invalid query response', cause: cause.message })
   }).pipe(collectQueryPages);
@@ -93,7 +93,8 @@ export const createRecord = Effect.fn('Apex.createRecord')(function* ({
 }) {
   return yield* Effect.tryPromise({
     try: () => Promise.resolve(connection.tooling.create(type, fields)),
-    catch: cause => new ApexOperationError({ operation, message: causeMessage(cause), cause: causeMessage(cause) })
+    catch: cause =>
+      new ApexOperationError({ operation, message: getErrorMessage(cause), cause: getErrorMessage(cause) })
   }).pipe(
     Effect.flatMap(Schema.decodeUnknown(createRecordResponseSchema)),
     Effect.catchTag('ParseError', cause =>

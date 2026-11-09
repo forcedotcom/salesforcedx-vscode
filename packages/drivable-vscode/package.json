@@ -34,6 +34,7 @@
       "command": "tsc --pretty",
       "clean": "if-file-deleted",
       "dependencies": [
+        "../salesforcedx-utils:compile",
         "../playwright-vscode-ext:compile"
       ],
       "files": [
@@ -135,6 +136,7 @@
     }
   },
   "dependencies": {
+    "@salesforce/salesforcedx-utils": "*",
     "@effect/platform": "0.96.1",
     "@effect/platform-node": "0.106.0",
     "@modelcontextprotocol/sdk": "1.32.0",

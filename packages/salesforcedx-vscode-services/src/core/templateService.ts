@@ -6,10 +6,10 @@
  */
 
 import { OrgConfigProperties } from '@salesforce/core';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as SfTemplates from '@salesforce/templates';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isError } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -175,7 +175,7 @@ const ensureTemplatesInFs = Effect.fn('TemplateService.ensureTemplatesInFs')(fun
     try: () => vscode.workspace.fs.readFile(Utils.joinPath(rootUri, 'manifest.json')),
     catch: e =>
       new TemplatesManifestLoadError({
-        message: nls.localize('template_service_manifest_load_failed', isError(e) ? e.message : String(e)),
+        message: nls.localize('template_service_manifest_load_failed', getErrorMessage(e)),
         cause: e
       })
   });
@@ -200,11 +200,7 @@ const ensureTemplatesInFs = Effect.fn('TemplateService.ensureTemplatesInFs')(fun
           },
           catch: e =>
             new TemplatesManifestLoadError({
-              message: nls.localize(
-                'template_service_file_copy_failed',
-                relativePath,
-                isError(e) ? e.message : String(e)
-              ),
+              message: nls.localize('template_service_file_copy_failed', relativePath, getErrorMessage(e)),
               cause: e
             })
         }).pipe(
@@ -276,9 +272,9 @@ const readDirectoryOrEmpty = (uri: URI) =>
         cause instanceof vscode.FileSystemError && (cause.code === 'FileNotFound' || cause.code === 'ENOENT');
       return isNotFound
         ? Effect.succeed<[string, vscode.FileType][]>([])
-        : Effect.logWarning(
-            `Failed to read custom templates from ${uri.fsPath}: ${isError(cause) ? cause.message : String(cause)}`
-          ).pipe(Effect.as<[string, vscode.FileType][]>([]));
+        : Effect.logWarning(`Failed to read custom templates from ${uri.fsPath}: ${getErrorMessage(cause)}`).pipe(
+            Effect.as<[string, vscode.FileType][]>([])
+          );
     })
   );
 

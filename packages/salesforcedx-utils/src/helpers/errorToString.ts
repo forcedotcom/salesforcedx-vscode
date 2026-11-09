@@ -5,10 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-/** Safely converts error-like values to strings for display. */
+import { getErrorMessage } from './getErrorMessage';
+
+/** Converts errors for display, using toString when an Error has an empty message. */
 export const errorToString = (error: unknown): string => {
-  if (error instanceof Error) return error.message || error.toString();
+  if (error instanceof Error) return getErrorMessage(error) || error.toString();
   if (typeof error === 'string') return error;
   if (typeof error === 'object' && error !== null && typeof error.toString === 'function') return error.toString();
-  return String(error);
+  return getErrorMessage(error);
 };
