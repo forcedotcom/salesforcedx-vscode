@@ -7,15 +7,14 @@
 
 /*
  * Covers manifest-driven retrieve reachable from the editor context menu and the explorer file
- * context menu, asserted from the "Retrieved Source" output line.
+ * context menu, asserted from the "Retrieved Source" output line. A throwaway class is deployed via a
+ * generated manifest first so the manifest has something in the org to retrieve.
  *
- * Container: generates the manifest from the seeded fixture class (PagedResult.cls, deployed first
- * directly so it exists to retrieve) under a unique name, rather than creating+deploying a throwaway
- * class via a manifest as desktop does — a genuinely different sequence, so it is branched rather than
- * unified.
+ * Container: runs against the container's boot-authed org instead of a freshly created minimal org.
+ * The throwaway class and manifest are uniquely named so the shared, persistent workbench never
+ * collides with a prior run's files, and are removed (the class from the org too) after the test.
  */
 
-import { expect } from '@playwright/test';
 import {
   activeQuickInputTextField,
   activeQuickInputWidget,
@@ -30,10 +29,6 @@ import {
   executeCommandWithCommandPalette,
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
-  focusOnFilesExplorer,
-  NOTIFICATION_LIST_ITEM,
-  openFileByName,
-  openFileFromExplorerTree,
   resetContainerWorkbench,
   saveScreenshot,
   selectOutputChannel,
@@ -41,22 +36,28 @@ import {
   setupNetworkMonitoring,
   upsertScratchOrgAuthFieldsToSettings,
   validateNoCriticalErrors,
-  verifyCommandExists,
   waitForOutputChannelText,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
-import { waitForDeployProgressNotificationToAppear } from '../pages/notifications';
 import { messages } from '../../../src/messages/i18n';
 import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT, RETRIEVE_TIMEOUT } from '../../constants';
 import { isContainer, sharedTest as test } from '../fixtures';
+import { cleanupContainerApexClasses, cleanupContainerFiles } from '../utils/containerCleanup';
 
-const FIXTURE_CLASS = 'PagedResult';
+// Container-only: throwaway classes (deleted from the project and org) and generated manifests this test
+// created, removed after it (pass or fail) so they don't pile up on the shared workbench — see utils/containerCleanup.
+const createdClasses: string[] = [];
+const createdFiles: string[] = [];
 
 if (isContainer) {
   test.beforeEach(async ({ page }) => {
     await resetContainerWorkbench(page);
+  });
+  test.afterEach(() => {
+    cleanupContainerApexClasses(createdClasses.splice(0));
+    cleanupContainerFiles(createdFiles.splice(0));
   });
 }
 
@@ -66,175 +67,87 @@ test('Retrieve In Manifest: retrieves via all entry points', async ({ page }) =>
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
-  let className: string;
-  let statusBarPage: SourceTrackingStatusBarPage;
-  // Unique per run so the container's shared, persistent workbench never overwrites an existing manifest.
-  const manifestFile = `retrieveManifest${Date.now()}.xml`;
+  const stamp = Date.now();
+  const className = `RetrieveManifestTest${stamp}`;
+  const manifestFile = `retrieveManifest${stamp}.xml`;
+  createdClasses.push(className);
+  createdFiles.push(`manifest/${manifestFile}`);
+  const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/${manifestFile}"]`).first();
+
+  // Start each operation from an empty Salesforce Metadata channel so its output waits can only match
+  // that operation, not an earlier step's.
+  const clearMetadataOutput = async (): Promise<void> => {
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
+    await clearOutputChannel(page);
+  };
 
   await test.step('setup', async () => {
-    if (isContainer) {
-      // The containerTest fixture already awaited workbench readiness before handing over `page`.
-      await closeWelcomeTabs(page);
-      await ensureSecondarySideBarHidden(page);
-      await saveScreenshot(page, 'retrieveInManifest.01-ready.png');
-    } else {
-      const createResult = await createMinimalOrg();
+    // The container's fixture already awaited the workbench, and its boot org is already authed.
+    const createResult = isContainer ? undefined : await createMinimalOrg();
+    if (!isContainer) {
       await waitForVSCodeWorkbench(page);
-      await closeWelcomeTabs(page);
-      await ensureSecondarySideBarHidden(page);
-      await saveScreenshot(page, 'setup.after-workbench.png');
-      await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-      await saveScreenshot(page, 'setup.after-auth-fields.png');
-
-      statusBarPage = new SourceTrackingStatusBarPage(page);
-      await statusBarPage.waitForVisible(120_000);
-      await saveScreenshot(page, 'setup.after-status-bar-visible.png');
     }
+    await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
+    if (createResult) {
+      await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+    }
+
+    // The status bar appearing means the metadata extension has resolved the default org.
+    const statusBarPage = new SourceTrackingStatusBarPage(page);
+    await statusBarPage.waitForVisible(120_000);
+    await saveScreenshot(page, 'retrieveInManifest.01-ready.png');
   });
 
-  const prepareManifestContainer = async (): Promise<void> => {
-    await test.step('deploy the fixture class so it exists in the org to retrieve', async () => {
-      // A prior spec may have left a different sidebar view (e.g. Search) focused; the Files Explorer
-      // tree needs to be the active view before locating items in it.
-      await focusOnFilesExplorer(page);
-      // The Explorer tree open can transiently flake on the shared workbench (virtual scrolling /
-      // focus), so retry the open+focus as a unit.
-      await expect(async () => {
-        await openFileFromExplorerTree(page, `${FIXTURE_CLASS}.cls`, ['force-app', 'main', 'default', 'classes']);
-        const editor = page.locator(`[data-uri*="${FIXTURE_CLASS}.cls"]`).first();
-        await editor.waitFor({ state: 'visible', timeout: 15_000 });
-        await editor.click();
-      }).toPass({ timeout: 90_000, intervals: [1000, 2000, 5000] });
-      await verifyCommandExists(page, packageNls.deploy_this_source_text, 60_000);
+  await test.step('create apex class', async () => {
+    // Opens the class editor, which "Generate Manifest File" below uses as its source.
+    await createApexClass(page, className);
+    await saveScreenshot(page, 'retrieveInManifest.02-class-created.png');
+  });
 
-      await ensureOutputPanelOpen(page);
-      await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
-      await clearOutputChannel(page);
+  await test.step('generate manifest from apex class', async () => {
+    await executeCommandWithCommandPalette(page, packageNls.project_generate_manifest_text);
 
-      await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
-      // The transient "Deploying" toast is racy on a shared org where the class may already be present;
-      // assert deploy completion via the output channel instead.
-      await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
-      await saveScreenshot(page, 'retrieveInManifest.02-deployed.png');
-    });
+    const quickInput = activeQuickInputWidget(page);
+    await quickInput.waitFor({ state: 'attached', timeout: 10_000 });
+    await quickInput.getByText(messages.manifest_input_save_prompt).waitFor({ state: 'attached', timeout: 10_000 });
 
-    await test.step('generate a manifest from the fixture class', async () => {
-      // The deploy step's output-channel work (ensureOutputPanelOpen/selectOutputChannel) left the
-      // Output panel active, not the fixture class editor — "Generate Manifest File" falls back to the
-      // active editor's URI when invoked with no explorer selection, so without re-focusing it here the
-      // command finds no active editor and silently no-ops (shows an error message, never opens the
-      // filename prompt).
-      const editor = page.locator(`[data-uri*="${FIXTURE_CLASS}.cls"]`).first();
-      await editor.click();
-      await executeCommandWithCommandPalette(page, packageNls.project_generate_manifest_text);
+    // Replace the pre-selected default "package.xml" (the .xml extension is added automatically).
+    await activeQuickInputTextField(page).fill(manifestFile.replace(/\.xml$/i, ''));
+    await page.keyboard.press('Enter');
 
-      const quickInput = activeQuickInputWidget(page);
-      await quickInput.waitFor({ state: 'attached', timeout: 10_000 });
-      await quickInput.getByText(messages.manifest_input_save_prompt).waitFor({ state: 'attached', timeout: 10_000 });
+    await manifestEditor.waitFor({ state: 'visible', timeout: 15_000 });
+    await saveScreenshot(page, 'retrieveInManifest.03-manifest.png');
+  });
 
-      await activeQuickInputTextField(page).fill(manifestFile.replace(/\.xml$/i, ''));
-      await page.keyboard.press('Enter');
+  await test.step('deploy class to org via manifest', async () => {
+    await clearMetadataOutput();
+    await manifestEditor.click();
+    await executeEditorContextMenuCommand(page, packageNls.deploy_in_manifest_text, `manifest/${manifestFile}`);
 
-      const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/${manifestFile}"]`).first();
-      await manifestEditor.waitFor({ state: 'visible', timeout: 15_000 });
-      await saveScreenshot(page, 'retrieveInManifest.03-manifest.png');
-    });
-  };
-  const prepareManifestDesktop = async (): Promise<void> => {
-    await test.step('create apex class', async () => {
-      // Create apex class (opens editor automatically)
-      className = `RetrieveManifestTest${Date.now()}`;
-      await createApexClass(page, className);
-      await saveScreenshot(page, 'setup.after-create-class.png');
-    });
-
-    await test.step('generate manifest from apex class', async () => {
-      // Generate manifest from the active editor (Apex class)
-      await executeCommandWithCommandPalette(page, packageNls.project_generate_manifest_text);
-
-      // Wait for input prompt
-      const quickInput = activeQuickInputWidget(page);
-      await quickInput.waitFor({ state: 'attached', timeout: 10_000 });
-      await quickInput.getByText(messages.manifest_input_save_prompt).waitFor({ state: 'attached', timeout: 10_000 });
-
-      // Replace the pre-selected default "package.xml" (the .xml extension is added automatically).
-      await activeQuickInputTextField(page).fill(manifestFile.replace(/\.xml$/i, ''));
-      await page.keyboard.press('Enter');
-
-      // Wait for manifest file to be created and opened
-      const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/${manifestFile}"]`).first();
-      await manifestEditor.waitFor({ state: 'visible', timeout: 15_000 });
-    });
-
-    await test.step('deploy class to org', async () => {
-      // Open the manifest file
-      await openFileByName(page, manifestFile);
-
-      // Ensure the manifest editor is focused and ready
-      const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/${manifestFile}"]`).first();
-      await manifestEditor.waitFor({ state: 'visible', timeout: 10_000 });
-      await manifestEditor.click();
-
-      // Deploy the manifest to push the class to the org
-      await executeEditorContextMenuCommand(page, packageNls.deploy_in_manifest_text, `manifest/${manifestFile}`);
-
-      // Verify deploy completes
-      const deployingNotification = await waitForDeployProgressNotificationToAppear(page, 30_000);
-      await expect(deployingNotification).not.toBeVisible({ timeout: RETRIEVE_TIMEOUT });
-
-      // Check for deploy error notifications
-      const postDeployNotifications = page.locator(NOTIFICATION_LIST_ITEM);
-      const deployErrorPattern = new RegExp(
-        `${messages.deploy_completed_with_errors_message}|${messages.deploy_failed.replaceAll('%s', '.*')}`,
-        'i'
-      );
-      const deployErrorNotification = postDeployNotifications.filter({ hasText: deployErrorPattern }).first();
-      const hasDeployError = await deployErrorNotification.isVisible({ timeout: 2000 }).catch(() => false);
-      if (hasDeployError) {
-        const errorText = await deployErrorNotification.textContent();
-        throw new Error(`Deploy failed with error notification: ${errorText}`);
-      }
-    });
-  };
-  await (isContainer ? prepareManifestContainer : prepareManifestDesktop)();
+    // "Deployed Source" is printed only for a deploy that reached the org. The transient "Deploying"
+    // toast is racy on a fast deploy, so completion is asserted via output alone.
+    await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
+    await saveScreenshot(page, 'retrieveInManifest.04-deployed.png');
+  });
 
   await test.step('1. Editor context menu', async () => {
-    if (isContainer) {
-      const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/${manifestFile}"]`).first();
-      await manifestEditor.waitFor({ state: 'visible', timeout: 10_000 });
-      await manifestEditor.click();
-    } else {
-      // Open the manifest file
-      await openFileByName(page, manifestFile);
-
-      // Ensure the manifest editor is focused and ready
-      const manifestEditor = page.locator(`${EDITOR}[data-uri*="manifest/${manifestFile}"]`).first();
-      await manifestEditor.waitFor({ state: 'visible', timeout: 10_000 });
-      await manifestEditor.click();
-    }
-
-    // Prepare output channel before triggering command
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Salesforce Metadata', isContainer ? 60_000 : undefined);
+    await clearMetadataOutput();
+    await manifestEditor.click();
 
     // Right-click the manifest editor → "SFDX: Retrieve Source in Manifest from Org"
     await executeEditorContextMenuCommand(page, packageNls.retrieve_in_manifest_text, `manifest/${manifestFile}`);
 
-    // Verify retrieve starts and completes via output channel
     await waitForOutputChannelText(page, { expectedText: 'Retrieving', timeout: 30_000 });
     await waitForOutputChannelText(page, { expectedText: 'Retrieved Source', timeout: RETRIEVE_TIMEOUT });
-    if (isContainer) {
-      await saveScreenshot(page, 'retrieveInManifest.04-editor-retrieve.png');
-    }
+    await saveScreenshot(page, 'retrieveInManifest.05-editor-retrieve.png');
   });
 
   await test.step('2. Explorer context menu (file)', async () => {
-    // Close any open editors to ensure clean state
+    // Close any open editors so the command runs from the explorer selection alone
     await closeAllEditors(page);
-
-    // Prepare output channel
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Salesforce Metadata', isContainer ? 60_000 : undefined);
+    await clearMetadataOutput();
 
     // Right-click manifest in explorer → "SFDX: Retrieve Source in Manifest from Org"
     await executeExplorerContextMenuCommand(
@@ -243,12 +156,9 @@ test('Retrieve In Manifest: retrieves via all entry points', async ({ page }) =>
       packageNls.retrieve_in_manifest_text
     );
 
-    // Verify retrieve starts and completes via output channel
     await waitForOutputChannelText(page, { expectedText: 'Retrieving', timeout: 30_000 });
     await waitForOutputChannelText(page, { expectedText: 'Retrieved Source', timeout: RETRIEVE_TIMEOUT });
-    if (isContainer) {
-      await saveScreenshot(page, 'retrieveInManifest.05-explorer-retrieve.png');
-    }
+    await saveScreenshot(page, 'retrieveInManifest.06-explorer-retrieve.png');
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
