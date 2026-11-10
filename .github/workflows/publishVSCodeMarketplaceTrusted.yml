@@ -10,15 +10,18 @@ run-name: "VS Code Marketplace OIDC test: ${{ inputs.release-tag }}"
 # TEMPORARY variant: the nested-call version of this file (dispatching
 # salesforcecli/github-workflows's vscode-publish-release-vsix.yml) got a 401 Unauthorized from
 # every extension/repo it was tried against, even with a Trusted Publishing policy registered
-# and active for this repo + this workflow filename. This version inlines the publish step
-# directly in this workflow (no cross-repo `uses:` in between) to test whether the Marketplace's
-# trust check keys off job_workflow_ref (which would differ for a nested reusable workflow in
-# another repo) rather than workflow_ref (which Open VSX is confirmed to use, and which stays the
-# same whether nested or not). See W-24756661.
+# and active for this repo + this workflow filename. The Marketplace's OIDC trust check keys off
+# job_workflow_ref, which for a nested reusable workflow always points at the other repo rather
+# than this one (unlike workflow_ref, which Open VSX is confirmed to use, and which stays the same
+# whether nested or not). See W-24756661.
 #
-# A single-VSIX smoke test with this shape already succeeded -- this version inlines the full
-# download+publish+retry logic (matching vscode-publish-release-vsix.yml@main's shape) so the
-# real multi-VSIX release path can be validated end-to-end before it's wired into publishVSCode.yml.
+# A single-VSIX smoke test inlining the publish step directly in this workflow (no cross-repo
+# `uses:` in between) succeeded, then so did the full multi-VSIX download+publish+retry version.
+# That logic has since been extracted to a reusable composite action (which runs as a step inside
+# this job rather than as a separate job, so job_workflow_ref still matches) --
+# salesforcecli/github-workflows#207. This version calls that action, pinned to its PR branch
+# until #207 merges, to validate the extracted shape end-to-end before it's wired into
+# publishVSCode.yml.
 #
 # Not wired into any real release channel yet -- that depends on what this test finds.
 
@@ -41,65 +44,9 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - name: Download release VSIXs
-        id: release
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RELEASE_TAG: ${{ inputs.release-tag }}
-        run: |
-          mkdir extensions
-          gh release download "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --pattern '*.vsix' --dir extensions
-
-          if ! find extensions -type f -name '*.vsix' -print -quit | grep -q .; then
-            echo "No VSIX files found in release $RELEASE_TAG"
-            exit 1
-          fi
-
-          echo 'Downloaded VSIX files:'
-          find extensions -type f -name '*.vsix'
-
-          if gh release view "$RELEASE_TAG" --repo "$GITHUB_REPOSITORY" --json isPrerelease --jq .isPrerelease | grep -qx true; then
-            echo 'pre-release=true' >> "$GITHUB_OUTPUT"
-          else
-            echo 'pre-release=false' >> "$GITHUB_OUTPUT"
-          fi
-
-      - name: Publish VSIXs
-        env:
-          DRY_RUN: ${{ inputs.dry-run }}
-          PRE_RELEASE: ${{ steps.release.outputs.pre-release }}
-        run: |
-          # Marketplace gallery requests can sit until typed-rest-client's 180s
-          # socket timeout. vsce has no timeout flag; retry per VSIX.
-          # --skip-duplicate makes a retry a no-op if the first attempt committed.
-          publish_with_retry() {
-            local attempt
-            for attempt in 1 2 3; do
-              echo "Publish attempt ${attempt}/3"
-              if "$@"; then
-                return 0
-              fi
-              if [ "$attempt" -lt 3 ]; then
-                echo "Publish failed; retrying in 15s..."
-                sleep 15
-              fi
-            done
-            return 1
-          }
-
-          while IFS= read -r -d '' vsix; do
-            args=(--packagePath "$vsix" --oidc --skip-duplicate)
-            if [ "$PRE_RELEASE" = true ]; then
-              args+=(--pre-release)
-            fi
-
-            if [ "$DRY_RUN" = true ]; then
-              echo "Would publish $vsix to the VS Code Marketplace with --skip-duplicate: @vscode/vsce publish ${args[*]}"
-              continue
-            fi
-
-            if ! publish_with_retry npx @vscode/vsce publish "${args[@]}"; then
-              echo "::error::Failed to publish $vsix after 3 attempts"
-              exit 1
-            fi
-          done < <(find extensions -type f -name '*.vsix' -print0)
+      # TEMPORARY: pinned to the github-workflows PR branch adding this action
+      # (salesforcecli/github-workflows#207), to validate end-to-end before that PR merges.
+      - uses: salesforcecli/github-workflows/.github/actions/vscode/publish-release-vsix@ms/W-24756661-vsce-oidc-composite-action
+        with:
+          release-tag: ${{ inputs.release-tag }}
+          dry-run: ${{ inputs.dry-run || false }}
