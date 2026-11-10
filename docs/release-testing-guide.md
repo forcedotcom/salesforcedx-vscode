@@ -219,7 +219,7 @@ First, promote the release from pre-release to a full release. This is required,
 gh release edit v67.12.0 --prerelease=false --title "Release 67.12.0 - Tested & Approved" --latest --repo forcedotcom/salesforcedx-vscode
 ```
 
-This automatically fires both `publishVSCode.yml` and `publishOpenVSX.yml` via the `release: types: [released]` event (both still gated by the `publish` environment approval). If a run needs retrying, dispatch manually — these are two independent workflows, so dispatching one does not trigger the other:
+This automatically fires both `publishVSCode.yml` and `publishOpenVSXTrusted.yml` via the `release: types: [released]` event (both still gated by the `publish` environment approval). If a run needs retrying, dispatch manually — these are two independent workflows, so dispatching one does not trigger the other:
 
 ```bash
 # Trigger marketplace publish workflow
@@ -228,12 +228,16 @@ gh workflow run publishVSCode.yml \
   --repo forcedotcom/salesforcedx-vscode
 
 # Trigger Open VSX publish workflow
-gh workflow run publishOpenVSX.yml \
+# do-ctc=true opens/closes a CTC change case around the publish. The automatic
+# `release` event always implies this; a manual dispatch must say so explicitly
+# because the release tag alone can't tell a stable retry from a prerelease.
+gh workflow run publishOpenVSXTrusted.yml \
   -f release-tag="v67.12.0" \
+  -f do-ctc=true \
   --repo forcedotcom/salesforcedx-vscode
 ```
 
-Monitor the workflows at: https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml and https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSX.yml
+Monitor the workflows at: https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml and https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSXTrusted.yml
 
 ### Pre-release (Emergency Hotfix)
 
@@ -327,7 +331,7 @@ follow [Publish a Stable Hotfix](#publish-a-stable-hotfix).
 ### Publish a Stable Hotfix
 
 **Current workflow limitation/workaround:** both `publishVSCode.yml` and
-`publishOpenVSX.yml` trigger on `release: released`, but `gate-check` runs only
+`publishOpenVSXTrusted.yml` trigger on `release: released`, but `gate-check` runs only
 when `github.event.inputs.isHotfix == 'true'`. Release events have no dispatch
 inputs, so those runs **skip compile/test**, and publication accepts a skipped
 gate. The human `publish` environment approval remains; it does not replace tests.
@@ -349,14 +353,17 @@ The publishers read GitHub's `isPrerelease` flag. Leaving it `true` requests
 3. Identify the 2 automatically created release-event runs. **Do not approve
    them.** After explicit confirmation, cancel them or leave them unapproved.
 4. After explicit confirmation, manually dispatch **both** registries from
-   `develop` with the hotfix gate enabled:
+   `develop` with the hotfix gate enabled. `do-ctc=true` is required here too —
+   this stable hotfix retry has the same plain `vX.Y.Z` tag shape as an
+   emergency prerelease, so only the caller (you) can say this one is stable
+   and needs the CTC change case:
 
 ```bash
 gh workflow run publishVSCode.yml --ref develop \
   -f version="v68.4.1" -f isHotfix=true \
   --repo forcedotcom/salesforcedx-vscode
-gh workflow run publishOpenVSX.yml --ref develop \
-  -f release-tag="v68.4.1" -f isHotfix=true \
+gh workflow run publishOpenVSXTrusted.yml --ref develop \
+  -f release-tag="v68.4.1" -f isHotfix=true -f do-ctc=true \
   --repo forcedotcom/salesforcedx-vscode
 ```
 
