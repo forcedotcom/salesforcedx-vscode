@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { type ValidationError, type ValidationState, validateWorkflow } from '@action-validator/core';
+import { type ValidationError, type ValidationState } from '@action-validator/core';
 import { Console, Effect, Stream } from 'effect';
 import * as Equivalence from 'effect/Equivalence';
 import { isError, isRecord } from 'effect/Predicate';
@@ -13,6 +13,7 @@ import * as Schema from 'effect/Schema';
 import { globSync, readFileSync } from 'node:fs';
 import { parse as parseYaml } from 'yaml';
 import { validateAction } from './shared/validateAction.mts';
+import { validateWorkflow } from './shared/validateWorkflow.mts';
 
 // The bundled @action-validator/core schema predates schemastore's parallel-steps keys
 // (background/wait/wait-all, schemastore PR #5845). Those keys are valid GitHub Actions YAML,

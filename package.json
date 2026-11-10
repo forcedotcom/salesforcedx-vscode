@@ -322,14 +322,18 @@
       "output": []
     },
     "test:manual-test-plan": {
-      "command": "node --test scripts/manualTestPlan/test/unit/manualTestPlan.test.mts",
+      "command": "node --test scripts/manualTestPlan/test/unit/*.test.mts",
       "dependencies": [
         "./packages/effect-octokit:compile"
       ],
       "files": [
         "scripts/manualTestPlan/**/*.mts",
+        "scripts/manualTestPlan/**/*.py",
         "scripts/manualTestPlan/tsconfig.json",
-        ".github/workflows/manual-test-plan.yml"
+        "scripts/shared/validateWorkflow.mts",
+        ".github/workflows/manual-test-plan*.yml",
+        ".github/workflows/*E2E.yml",
+        ".github/workflows/aiAutoApprove.yml"
       ],
       "output": []
     },
@@ -497,6 +501,7 @@
       "files": [
         "scripts/validateActions.mts",
         "scripts/shared/validateAction.mts",
+        "scripts/shared/validateWorkflow.mts",
         ".github/workflows/*.{yml,yaml}",
         ".github/actions/*/action.{yml,yaml}"
       ],

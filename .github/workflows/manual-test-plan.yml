@@ -11,6 +11,7 @@ permissions:
 concurrency:
   group: manual-test-plan-${{ github.event.pull_request.number }}
   cancel-in-progress: false
+  queue: max
 
 jobs:
   secret:
