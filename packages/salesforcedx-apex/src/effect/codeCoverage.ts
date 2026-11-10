@@ -7,16 +7,11 @@
 
 import type { Connection } from '@salesforce/core';
 import * as Arr from 'effect/Array';
-import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
-import * as Option from 'effect/Option';
-import * as Schema from 'effect/Schema';
-import * as Stream from 'effect/Stream';
+import type * as Schema from 'effect/Schema';
 import { QUERY_RECORD_LIMIT } from '../tests/constants';
 import { type AggregateCodeCoverageResult, type PerClassCoverage } from './coverageSchemas';
-import { causeMessage } from './errors';
-import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
-import { QueryPageSchema } from './schema/queryPage';
+import { queryRecords } from './records';
 import {
   ApexCodeCoverageAggregateRecordSchema,
   ApexCodeCoverageRecordSchema,
@@ -39,39 +34,14 @@ const queryCoverageRecords = <A, I>(
   query: string,
   recordSchema: Schema.Schema<A, I, never>,
   operation: string
-) => {
-  const pageSchema = QueryPageSchema(recordSchema);
-  return Stream.paginateChunkEffect(Option.none<string>(), nextRecordsUrl =>
-    Effect.tryPromise({
-      try: () =>
-        Promise.resolve(
-          Option.match(nextRecordsUrl, {
-            onNone: () => connection.tooling.query(query),
-            onSome: url => connection.tooling.queryMore(url)
-          })
-        ),
-      catch: cause => new ApexOperationError({ operation, message: causeMessage(cause), cause: causeMessage(cause) })
-    }).pipe(
-      Effect.flatMap(Schema.decodeUnknown(pageSchema)),
-      Effect.map(
-        page =>
-          [
-            Chunk.fromIterable(page.records),
-            page.done ? Option.none<Option.Option<string>>() : Option.some(Option.some(page.nextRecordsUrl))
-          ] as const
-      ),
-      Effect.catchTag('ParseError', cause =>
-        Effect.fail(
-          new ApexResponseDecodeError({
-            operation,
-            message: cause.message,
-            cause: causeMessage(cause)
-          })
-        )
-      )
-    )
-  ).pipe(Stream.runCollect, Effect.map(Chunk.toArray));
-};
+) =>
+  queryRecords({
+    connection,
+    operation,
+    soql: query,
+    recordSchema,
+    tooling: true
+  });
 
 const percentage = (covered: number, total: number): string =>
   covered > 0 ? `${((covered / total) * 100).toFixed()}%` : '0%';

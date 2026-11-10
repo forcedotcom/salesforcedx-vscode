@@ -4,11 +4,11 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
+
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
-import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { nls } from '../../messages';
 import { getPortKillInstructions, isAuthPortConflictError } from '../../util/authErrorParser';
@@ -26,7 +26,7 @@ const LOGIN_TIMEOUT = Duration.minutes(5);
  * progress, port-1717 conflict handling, and success (channel output + config refresh). Callers gather
  * their own params and pass args + progress label + notification command key.
  *
- * The long-running child is wrapped in withCancellableProgress so the Cancel button interrupts the fiber
+ * The long-running child uses `withProgress` with cancellation enabled, so Cancel interrupts the fiber
  * and kills the child. Port-conflict failures get a custom notification + Show Output action; all other
  * TerminalServiceError failures rethrow to the generic ErrorHandlerService.
  */
@@ -37,7 +37,6 @@ export const executeOrgLoginWeb = Effect.fn('executeOrgLoginWeb')(function* (par
 }) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channel = yield* api.services.ChannelService;
-  const notificationMode = yield* api.services.NotificationModeService;
 
   // Code Builder only (gated on CODE_BUILDER_STATE inside the helper). Fork so the modal does not
   // block the login child; forkDaemon keeps it alive independent of this fiber. Best-effort: a
@@ -64,16 +63,20 @@ export const executeOrgLoginWeb = Effect.fn('executeOrgLoginWeb')(function* (par
     yield* channel.showChannel;
     yield* Effect.tryPromise({
       try: () => updateConfigAndStateAggregators(),
-      catch: e => new ConfigRefreshError({ message: isError(e) ? e.message : String(e) })
+      catch: e => new ConfigRefreshError({ message: getMessageFromError(e) })
     });
   });
 
-  const progressLocation = yield* notificationMode.getProgressLocation(params.notificationCommand);
-
-  yield* (yield* api.services.TerminalService)
+  const terminalService = yield* api.services.TerminalService;
+  const promptService = yield* api.services.PromptService;
+  yield* terminalService
     .simpleExec({ executable: 'sf', args: params.args, parse: identity, timeout: LOGIN_TIMEOUT })
     .pipe(
-      (yield* api.services.PromptService).withCancellableProgress(params.progressMessage, progressLocation),
+      promptService.withProgress({
+        command: params.notificationCommand,
+        title: params.progressMessage,
+        cancellable: true
+      }),
       Effect.flatMap(handleSuccess),
       Effect.catchTag('TerminalServiceError', error =>
         isAuthPortConflictError(error.message)

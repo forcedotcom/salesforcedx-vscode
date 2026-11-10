@@ -10,5 +10,3 @@ export type OrgInfoError = {
   name: string;
   warnings: string[];
 };
-
-export type { ApexExecutionOverlayResultCommandSuccess } from './apexExecutionOverlayResultCommand';

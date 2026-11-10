@@ -5,13 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { type Column, createTable, type Row, ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import {
+  type Column,
+  createTable,
+  type Row,
+  ExtensionProviderService,
+  getMessageFromError
+} from '@salesforce/effect-ext-utils';
+
 import { ICONS, type OrgAuthorizationSummary } from '@salesforce/vscode-services';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
 import * as Option from 'effect/Option';
-import { isError, isNotUndefined, isString, not } from 'effect/Predicate';
+import { isNotUndefined, isString, not } from 'effect/Predicate';
 import * as Record from 'effect/Record';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -90,11 +97,7 @@ export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeEx
   }
 
   yield* channel.appendToChannel(
-    nls.localize(
-      'pending_org_expiration_output_channel_message',
-      DAYS_BEFORE_EXPIRE,
-      Chunk.toArray(results).join('\n\n')
-    )
+    nls.localize('pending_org_expiration_output_channel_message', DAYS_BEFORE_EXPIRE, Chunk.join('\n\n')(results))
   );
 
   // Runs unbidden (forkDaemon), so must not reveal the channel: focus-out cancels an open picker.
@@ -143,7 +146,7 @@ export const updateConfigAndStateAggregators = async (): Promise<void> => {
 
 /** Get connection status from error */
 export const getConnectionStatusFromError = (err: any, username?: string): string => {
-  const message = isError(err) ? err.message : String(err);
+  const message = getMessageFromError(err);
   const lowerMsg = message.toLowerCase();
 
   if (lowerMsg.includes('maintenance')) return 'Down (Maintenance)';
@@ -164,7 +167,7 @@ export const getConnectionStatusFromError = (err: any, username?: string): strin
 
 /** Check if org should be removed based on error */
 export const shouldRemoveOrg = (err: any): boolean => {
-  const lowerMsg = (isError(err) ? err.message : String(err)).toLowerCase();
+  const lowerMsg = getMessageFromError(err).toLowerCase();
   return ['invalid_login', 'no such org', 'namedorgnotfound', 'noauthinfofound'].some(msg => lowerMsg.includes(msg));
 };
 
@@ -522,7 +525,7 @@ export const displayRemainingOrgs = Effect.fn('OrgUtil.displayRemainingOrgs')(fu
   }).pipe(
     Effect.catchAll(error =>
       channel.appendToChannel(
-        `\n${nls.localize('org_list_display_error', 'message' in error ? error.message : String(error))}`
+        `\n${nls.localize('org_list_display_error', 'message' in error ? error.message : getMessageFromError(error))}`
       )
     )
   );

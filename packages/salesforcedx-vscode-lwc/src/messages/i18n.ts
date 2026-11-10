@@ -39,9 +39,9 @@ export const messages = {
     'Timed out waiting for LWC test results. The debug session may still be running.',
   lwc_test_failed_message: 'Test failed',
   task_windows_command_prompt_messaging: 'Default shell for running tasks is set to cmd.exe',
-  lwc_component_name_empty_error: 'Component name cannot be empty',
+  lwc_component_name_empty_error: 'Component name cannot be empty.',
   lwc_component_name_format_error:
-    'Component name must start with a lowercase letter and contain only alphanumeric characters and underscores',
+    'Component name must start with a lowercase letter and contain only alphanumeric characters and underscores.',
   lwc_component_name_prompt: 'Enter Lightning Web Component name',
   lwc_component_name_placeholder: 'e.g. myComponent',
   lwc_output_dir_prompt: 'Select output directory',

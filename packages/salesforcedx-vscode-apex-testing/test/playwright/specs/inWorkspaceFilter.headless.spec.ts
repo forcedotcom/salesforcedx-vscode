@@ -7,6 +7,8 @@
 
 import { expect, type Locator } from '@playwright/test';
 import {
+  TEST_EXPLORER_PANEL,
+  TEST_EXPLORER_TREE_ITEM,
   clearFilter,
   createApexClass,
   ensureSecondarySideBarHidden,
@@ -23,11 +25,7 @@ import {
 import { isContainer, sharedTest as test } from '../fixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
 import { deployApexTestClassesFromHost, isOrgAuthedOnHost, makeApexTestClass, ORG_ALIAS } from '../helpers/hostDeploy';
-import {
-  TEST_EXPLORER_PANEL,
-  TEST_EXPLORER_TREE_ITEM,
-  openTestExplorerAndDiscover
-} from '../helpers/testExplorerHelpers';
+import { openTestExplorerAndDiscover } from '../helpers/testExplorerHelpers';
 
 // Regression guard for W-22691592 / issue #7350: VS Code's Test Explorer tag filter matches by
 // TestTag id across ALL controllers. The Apex controller tags workspace classes `in-workspace` and

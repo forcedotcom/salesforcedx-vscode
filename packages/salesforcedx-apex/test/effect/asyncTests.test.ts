@@ -15,7 +15,7 @@ import * as Fiber from 'effect/Fiber';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { AsyncTestOptionsSchema, runTestAsynchronous } from '../../src/effect';
-import { queueSchema } from '../../src/effect/schema/wire/asyncTests';
+import { queueRecordSchema } from '../../src/effect/schema/wire/asyncTests';
 
 const testRunId = '707000000000001AAA';
 const options = { testLevel: 'RunLocalTests' as const, category: ['Apex', 'Flow'] as const };
@@ -36,7 +36,7 @@ const makeConnection = () => {
   };
   return { tooling, connection: { tooling } as unknown as Connection };
 };
-const queue = (records: { Id: string; Status: string }[]) => ({ done: true, records });
+const queue = (records: { Id: string; Status: string }[]) => ({ done: true, totalSize: records.length, records });
 const drainRun = (connection: Connection, polling: { interval?: Duration.DurationInput } = {}) =>
   runTestAsynchronous(connection, options, polling).pipe(
     Effect.flatMap(({ stream }) => Stream.runDrain(stream)),
@@ -45,10 +45,10 @@ const drainRun = (connection: Connection, polling: { interval?: Duration.Duratio
 
 describe('Effect asynchronous tests', () => {
   it('validates queued IDs as ApexTestQueueItem IDs', () => {
-    const isValidQueue = Schema.is(queueSchema);
+    const isValidQueueRecord = Schema.is(queueRecordSchema);
 
-    expect(isValidQueue({ done: true, records: [{ Id: '709000000000001AAA', Status: 'Queued' }] })).toBe(true);
-    expect(isValidQueue({ done: true, records: [{ Id: '01p000000000001AAA', Status: 'Queued' }] })).toBe(false);
+    expect(isValidQueueRecord({ Id: '709000000000001AAA', Status: 'Queued' })).toBe(true);
+    expect(isValidQueueRecord({ Id: '01p000000000001AAA', Status: 'Queued' })).toBe(false);
   });
 
   it('decodes comma-separated class and suite IDs as prefixed ID arrays', () => {
@@ -207,6 +207,7 @@ describe('Effect asynchronous tests', () => {
     const { connection, tooling } = makeConnection();
     tooling.query.mockResolvedValueOnce(summary('Processing')).mockResolvedValueOnce({
       done: false,
+      totalSize: 2,
       records: [
         { Id: '709000000000001AAA', Status: 'Queued' },
         { Id: '709000000000002AAA', Status: 'Completed' }
@@ -328,6 +329,7 @@ describe('Effect asynchronous tests', () => {
     const { connection, tooling } = makeConnection();
     tooling.query.mockResolvedValueOnce(summary('Processing')).mockResolvedValueOnce({
       done: false,
+      totalSize: 1,
       records: [{ Id: '709000000000001AAA', Status: 'Queued' }],
       nextRecordsUrl: '/next-page'
     });

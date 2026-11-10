@@ -7,12 +7,12 @@
 
 import { join } from 'node:path';
 import { mkdir, readFile, rm } from 'node:fs/promises';
-import { createWriteStream, existsSync } from 'node:fs';
+import { existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { randomUUID } from 'node:crypto';
-import { type Readable } from 'node:stream';
-import { pipeline } from 'node:stream/promises';
-import { writeResultFiles } from '../../src/tests/testService';
+import * as Effect from 'effect/Effect';
+import { NodeFileOutputLayer } from '../../src/effect/nodeFileOutput';
+import { writeResultFiles as writeResultFilesEffect } from '../../src/effect/writeResultFiles';
 import {
   type ResultFormat,
   type TestResult,
@@ -40,11 +40,10 @@ describe('writeResultFiles', () => {
     }
   });
 
-  // Mock runPipeline function for testing
-  const mockRunPipeline = async (readable: Readable, filePath: string): Promise<string> => {
-    await pipeline(readable, createWriteStream(filePath));
-    return filePath;
-  };
+  const writeResultFiles = (result: TestResult | TestRunIdResult, config: OutputDirConfig, codeCoverage = false) =>
+    Effect.runPromise(
+      writeResultFilesEffect(result, config, { codeCoverage }).pipe(Effect.provide(NodeFileOutputLayer))
+    );
 
   const mockTestResult: TestResult = {
     summary: {
@@ -135,7 +134,7 @@ describe('writeResultFiles', () => {
       dirPath: tempDir
     };
 
-    const result = await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
+    const result = await writeResultFiles(mockTestResult, outputConfig, false);
 
     expect(result).toContain(join(tempDir, 'test-run-id.txt'));
     const content = await readFile(join(tempDir, 'test-run-id.txt'), 'utf8');
@@ -148,7 +147,7 @@ describe('writeResultFiles', () => {
       resultFormats: ['json', 'tap', 'junit']
     };
 
-    const result = await writeResultFiles(syncResult, outputConfig, false, mockRunPipeline);
+    const result = await writeResultFiles(syncResult, outputConfig, false);
 
     expect(result).toEqual([
       join(tempDir, 'test-result-default.json'),
@@ -164,7 +163,7 @@ describe('writeResultFiles', () => {
       resultFormats: ['json']
     };
 
-    const result = await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
+    const result = await writeResultFiles(mockTestResult, outputConfig, false);
 
     const jsonFilePath = join(tempDir, 'test-result-707000000000001AAA.json');
     expect(result).toContain(jsonFilePath);
@@ -182,7 +181,7 @@ describe('writeResultFiles', () => {
       resultFormats: ['tap']
     };
 
-    const result = await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
+    const result = await writeResultFiles(mockTestResult, outputConfig, false);
 
     const tapFilePath = join(tempDir, 'test-result-707000000000001AAA-tap.txt');
     expect(result).toContain(tapFilePath);
@@ -200,7 +199,7 @@ describe('writeResultFiles', () => {
       resultFormats: ['junit']
     };
 
-    const result = await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
+    const result = await writeResultFiles(mockTestResult, outputConfig, false);
 
     const junitFilePath = join(tempDir, 'test-result-707000000000001AAA-junit.xml');
     expect(result).toContain(junitFilePath);
@@ -229,7 +228,7 @@ describe('writeResultFiles', () => {
       dirPath: tempDir
     };
 
-    const result = await writeResultFiles(testResultWithCoverage, outputConfig, true, mockRunPipeline);
+    const result = await writeResultFiles(testResultWithCoverage, outputConfig, true);
 
     const coverageFilePath = join(tempDir, 'test-result-707000000000001AAA-codecoverage.json');
     expect(result).toContain(coverageFilePath);
@@ -257,7 +256,7 @@ describe('writeResultFiles', () => {
       ]
     };
 
-    const result = await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
+    const result = await writeResultFiles(mockTestResult, outputConfig, false);
 
     const textFilePath = join(tempDir, 'custom.txt');
     const jsonFilePath = join(tempDir, 'custom.json');
@@ -283,7 +282,7 @@ describe('writeResultFiles', () => {
       dirPath: tempDir
     };
 
-    const result = await writeResultFiles(testRunIdResult, outputConfig, false, mockRunPipeline);
+    const result = await writeResultFiles(testRunIdResult, outputConfig, false);
 
     expect(result).toContain(join(tempDir, 'test-run-id.txt'));
     const content = await readFile(join(tempDir, 'test-run-id.txt'), 'utf8');
@@ -296,7 +295,7 @@ describe('writeResultFiles', () => {
       resultFormats: ['invalid' as ResultFormat]
     };
 
-    await expect(writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline)).rejects.toThrow(
+    await expect(writeResultFiles(mockTestResult, outputConfig, false)).rejects.toThrow(
       'Specified result formats must be one of json, junit, tap, human, markdown, or text'
     );
   });
@@ -307,7 +306,7 @@ describe('writeResultFiles', () => {
       resultFormats: ['human']
     };
 
-    await expect(writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline)).rejects.toThrow(
+    await expect(writeResultFiles(mockTestResult, outputConfig, false)).rejects.toThrow(
       'Result files can be written in json, junit, tap, markdown, or text format'
     );
   });
@@ -323,7 +322,7 @@ describe('writeResultFiles', () => {
     };
 
     // A TestRunIdResult is not a full TestResult, so result-format files are skipped.
-    const result = await writeResultFiles(testRunIdResult, outputConfig, false, mockRunPipeline);
+    const result = await writeResultFiles(testRunIdResult, outputConfig, false);
     expect(result).toEqual([join(tempDir, 'test-run-id.txt')]);
   });
 
@@ -336,7 +335,7 @@ describe('writeResultFiles', () => {
       dirPath: tempDir
     };
 
-    const result = await writeResultFiles(testRunIdResult, outputConfig, true, mockRunPipeline);
+    const result = await writeResultFiles(testRunIdResult, outputConfig, true);
     expect(result).toEqual([join(tempDir, 'test-run-id.txt')]);
   });
 
@@ -346,7 +345,7 @@ describe('writeResultFiles', () => {
       dirPath: nestedDir
     };
 
-    const result = await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
+    const result = await writeResultFiles(mockTestResult, outputConfig, false);
 
     expect(result).toContain(join(nestedDir, 'test-run-id.txt'));
     expect(existsSync(join(nestedDir, 'test-run-id.txt'))).toBe(true);
@@ -373,8 +372,7 @@ describe('writeResultFiles', () => {
     const result = await writeResultFiles(
       testResultWithCoverage,
       outputConfig,
-      true, // Enable code coverage to show table
-      mockRunPipeline
+      true // Enable code coverage to show table
     );
 
     const markdownFilePath = join(tempDir, 'test-result-707000000000001AAA.md');
@@ -395,7 +393,7 @@ describe('writeResultFiles', () => {
       resultFormats: ['text']
     };
 
-    const result = await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
+    const result = await writeResultFiles(mockTestResult, outputConfig, false);
 
     const textFilePath = join(tempDir, 'test-result-707000000000001AAA.txt');
     expect(result).toContain(textFilePath);
@@ -426,7 +424,7 @@ describe('writeResultFiles', () => {
       resultFormats: ['markdown']
     };
 
-    const result = await writeResultFiles(testResultWithCoverage, outputConfig, true, mockRunPipeline);
+    const result = await writeResultFiles(testResultWithCoverage, outputConfig, true);
 
     const markdownFilePath = join(tempDir, 'test-result-707000000000001AAA.md');
     expect(result).toContain(markdownFilePath);
@@ -442,7 +440,7 @@ describe('writeResultFiles', () => {
       resultFormats: ['json', 'tap', 'junit', 'markdown', 'text']
     };
 
-    const result = await writeResultFiles(mockTestResult, outputConfig, false, mockRunPipeline);
+    const result = await writeResultFiles(mockTestResult, outputConfig, false);
 
     expect(result).toHaveLength(6); // test-run-id.txt + 5 format files
     expect(result).toContain(join(tempDir, 'test-run-id.txt'));
@@ -480,7 +478,7 @@ describe('writeResultFiles', () => {
       ]
     };
 
-    const result = await writeResultFiles(testResultWithCoverage, outputConfig, true, mockRunPipeline);
+    const result = await writeResultFiles(testResultWithCoverage, outputConfig, true);
 
     // Should have: test-run-id.txt + 5 formats + 1 coverage + 2 custom files = 9 files
     expect(result).toHaveLength(9);

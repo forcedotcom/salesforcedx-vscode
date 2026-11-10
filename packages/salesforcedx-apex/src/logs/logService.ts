@@ -7,11 +7,14 @@
 import type { JsonObject } from '../json';
 import { type Connection, Logger, type Org, type StatusResult, StreamingClient } from '@salesforce/core';
 import { Duration } from '@salesforce/kit';
+import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
+import { FileOutput } from '../effect/fileOutput';
+import { NodeFileOutput } from '../effect/nodeFileOutput';
 import { nls } from '../i18n';
 import { elapsedTime } from '../utils/elapsedTime';
 import { createFile } from '../utils/fileSystemHandler';
-import { TraceFlags } from '../utils/traceFlags';
+import { ensureTraceFlags } from '../utils/traceFlags';
 import { LISTENER_ABORTED_ERROR_NAME, LOG_TIMER_LENGTH_MINUTES, MAX_NUM_LOGS, STREAMING_LOG_TOPIC } from './constants';
 import { type ApexLogGetOptions, type LogRecord, type LogResult } from './types';
 
@@ -22,11 +25,13 @@ type StreamingLogMessage = {
 
 export class LogService {
   private readonly connection: Connection;
+  private readonly fileOutput: typeof FileOutput.Service;
   private logger!: Logger;
   private logTailer?: (log: string) => void;
 
-  constructor(connection: Connection) {
+  constructor(connection: Connection, fileOutput: typeof FileOutput.Service = NodeFileOutput) {
     this.connection = connection;
+    this.fileOutput = fileOutput;
   }
 
   @elapsedTime()
@@ -45,21 +50,23 @@ export class LogService {
   // TODO: readableStream cannot be used until updates are made in jsforce and sfdx-core
   @elapsedTime()
   public async getLogs(options: ApexLogGetOptions): Promise<LogResult[]> {
-    const logs = (
-      await Promise.all(
-        (await this.getLogIds(options)).map(async id => ({
-          ...(await this.getLogById(id)),
-          logId: id
-        }))
-      )
-    ).map(({ log, logId }) => {
-      if (options.outputDir) {
-        const logPath = path.join(options.outputDir, `${logId}.log`);
-        createFile(logPath, log);
-        return { log, logPath };
-      }
-      return { log };
-    });
+    const logs = await Promise.all(
+      (
+        await Promise.all(
+          (await this.getLogIds(options)).map(async id => ({
+            ...(await this.getLogById(id)),
+            logId: id
+          }))
+        )
+      ).map(async ({ log, logId }) => {
+        if (options.outputDir) {
+          const logPath = path.join(options.outputDir, `${logId}.log`);
+          await Effect.runPromise(createFile(logPath, log).pipe(Effect.provideService(FileOutput, this.fileOutput)));
+          return { log, logPath };
+        }
+        return { log };
+      })
+    );
 
     return logs;
   }
@@ -138,9 +145,9 @@ export class LogService {
     return { completed: false };
   }
 
+  @elapsedTime()
   public async prepareTraceFlag(requestedDebugLevel: string): Promise<void> {
-    const flags = new TraceFlags(this.connection);
-    await flags.ensureTraceFlags(requestedDebugLevel);
+    await ensureTraceFlags(this.connection, requestedDebugLevel);
   }
 
   @elapsedTime()

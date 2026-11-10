@@ -28,7 +28,7 @@ import {
   verifyCommandExists,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
-import { debuggerEmptyWorkspaceDesktopTest as test } from '../fixtures';
+import { debuggerEmptyWorkspaceDesktopTest as test } from '../fixtures/desktopFixtures';
 import packageNls from '../../../package.nls.json';
 
 (isDesktop() ? test : test.skip.bind(test))(

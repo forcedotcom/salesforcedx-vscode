@@ -12,7 +12,7 @@ import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { packageInstallCommand } from '../../../src/commands/packageInstall';
 import { nls } from '../../../src/messages';
-import type { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
+import type { NotificationModeService } from 'salesforcedx-vscode-services';
 
 class UserCancellationError extends Schema.TaggedError<UserCancellationError>()('UserCancellationError', {}) {}
 
@@ -41,8 +41,8 @@ describe('packageInstallCommand package ID validation', () => {
     );
 
     const validatePackageId = showInputBox.mock.calls[0][0]?.validateInput?.bind(undefined);
-    ['', '04t000000000000', '04t000000000000000'].map(value => expect(validatePackageId?.(value)).toBeUndefined());
-    ['05t000000000000', '04t00000000000', '04t00000000000000', '04t00000000000!'].map(value =>
+    ['04t000000000000', '04t000000000000000'].map(value => expect(validatePackageId?.(value)).toBeUndefined());
+    ['', '05t000000000000', '04t00000000000', '04t00000000000000', '04t00000000000!', ' 04t000000000000 '].map(value =>
       expect(validatePackageId?.(value)).toBe(nls.localize('package_install_id_validation'))
     );
   });

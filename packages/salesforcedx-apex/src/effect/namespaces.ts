@@ -22,7 +22,7 @@ const installedSubscriberNsRecords = (connection: Connection) =>
     connection,
     operation: 'queryNamespaces',
     soql: 'SELECT SubscriberPackage.NamespacePrefix FROM InstalledSubscriberPackage',
-    record: InstalledSubscriberPackageRecordSchema,
+    recordSchema: InstalledSubscriberPackageRecordSchema,
     tooling: true
   }).pipe(Effect.map(records => records.map(record => record.SubscriberPackage)));
 
@@ -31,7 +31,7 @@ const installedNsRecords = (connection: Connection) =>
     connection,
     operation: 'queryNamespaces',
     soql: 'SELECT NamespacePrefix FROM PackageLicense',
-    record: NamespacePrefixRecordSchema
+    recordSchema: NamespacePrefixRecordSchema
   }).pipe(
     Effect.catchTags({
       ApexOperationError: () => installedSubscriberNsRecords(connection),
@@ -48,7 +48,7 @@ const orgNsRecords = (connection: Connection) =>
     connection,
     operation: 'queryNamespaces',
     soql: 'SELECT NamespacePrefix FROM Organization',
-    record: NamespacePrefixRecordSchema
+    recordSchema: NamespacePrefixRecordSchema
   }).pipe(
     Effect.catchTags({
       ApexOperationError: () => Effect.succeed(emptyNsRecords),

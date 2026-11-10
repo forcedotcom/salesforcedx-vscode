@@ -31,7 +31,7 @@ const makeManager = (opts: {
 const run = <A, E>(effect: Effect.Effect<A, E>) => Effect.runPromiseExit(effect);
 
 describe('probeReady', () => {
-  it('succeeds with the client when the LS is ready', async () => {
+  it('succeeds when the LS is ready', async () => {
     const exit = await run(probeReady(makeManager({ hasClient: true, isReady: true })));
     expect(Exit.isSuccess(exit)).toBe(true);
   });

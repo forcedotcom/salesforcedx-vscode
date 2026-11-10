@@ -8,7 +8,7 @@
 
 import { type Connection, Org } from '@salesforce/core';
 import { ConfigAggregator } from '@salesforce/core/configAggregator';
-import { type LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
+import { getErrorMessage, type LineBreakpointInfo } from '@salesforce/salesforcedx-utils';
 import {
   DebugSession,
   Event,
@@ -29,25 +29,20 @@ import {
 } from '@vscode/debugadapter';
 import { type DebugProtocol } from '@vscode/debugprotocol';
 import * as Arr from 'effect/Array';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
+import * as Fiber from 'effect/Fiber';
 import { isNull } from 'effect/Predicate';
 import * as os from 'node:os';
 import { URI, Utils } from 'vscode-uri';
 import { type ExceptionBreakpointInfo } from '../breakpoints/exceptionBreakpoint';
 import { type LineBreakpointsInTyperef } from '../breakpoints/lineBreakpoint';
-import {
-  type DebuggerResponse,
-  FrameCommand,
-  type LocalValue,
-  type Reference,
-  ReferencesCommand,
-  RunCommand,
-  StateCommand,
-  StepIntoCommand,
-  StepOutCommand,
-  StepOverCommand,
-  type Tuple,
-  type Value
-} from '../commands';
+import { FrameCommand } from '../commands/frameCommand';
+import { type DebuggerResponse, type LocalValue, type Reference, type Tuple, type Value } from '../commands/protocol';
+import { ReferencesCommand } from '../commands/referencesCommand';
+import { RunCommand } from '../commands/runCommand';
+import { StateCommand } from '../commands/stateCommand';
+import { StepIntoCommand, StepOutCommand, StepOverCommand } from '../commands/stepCommands';
 import {
   DEFAULT_IDLE_TIMEOUT_MS,
   DEFAULT_IDLE_WARN1_MS,
@@ -66,14 +61,10 @@ import {
   SHOW_MESSAGE_EVENT,
   TRIGGER_EXCEPTION_PREFIX
 } from '../constants';
-import {
-  BreakpointService,
-  type DebuggerMessage,
-  SessionService,
-  type StreamingClientInfo,
-  StreamingClientInfoBuilder,
-  StreamingService
-} from '../core';
+import { BreakpointService } from '../core/breakpointService';
+import { SessionService } from '../core/sessionService';
+import { type DebuggerMessage, type StreamingClientInfo, StreamingClientInfoBuilder } from '../core/streamingClient';
+import { StreamingService } from '../core/streamingService';
 import { extractJsonObject } from '../extractJsonObject';
 import { nls } from '../messages';
 import { RequestService } from '../requestService/requestService';
@@ -481,7 +472,7 @@ export class ApexDebug extends LoggingDebugSession {
 
   private lock = new AsyncLock({ timeout: DEFAULT_LOCK_TIMEOUT_MS });
 
-  protected idleTimers: ReturnType<typeof setTimeout>[] = [];
+  protected idleTimers: Fiber.RuntimeFiber<void>[] = [];
 
   constructor() {
     super('apex-debug-adapter.log');
@@ -520,9 +511,9 @@ export class ApexDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  private getSessionIdleTimer(): ReturnType<typeof setTimeout>[] {
-    const timers: ReturnType<typeof setTimeout>[] = [
-      setTimeout(() => {
+  private getSessionIdleTimer(): Fiber.RuntimeFiber<void>[] {
+    return [
+      Effect.sync(() => {
         this.warnToDebugConsole(
           nls.localize(
             'idle_warn_text',
@@ -530,8 +521,8 @@ export class ApexDebug extends LoggingDebugSession {
             (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN1_MS) / 60_000
           )
         );
-      }, DEFAULT_IDLE_WARN1_MS),
-      setTimeout(() => {
+      }).pipe(Effect.delay(Duration.millis(DEFAULT_IDLE_WARN1_MS)), Effect.runFork),
+      Effect.sync(() => {
         this.warnToDebugConsole(
           nls.localize(
             'idle_warn_text',
@@ -539,8 +530,8 @@ export class ApexDebug extends LoggingDebugSession {
             (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN2_MS) / 60_000
           )
         );
-      }, DEFAULT_IDLE_WARN2_MS),
-      setTimeout(() => {
+      }).pipe(Effect.delay(Duration.millis(DEFAULT_IDLE_WARN2_MS)), Effect.runFork),
+      Effect.sync(() => {
         this.warnToDebugConsole(
           nls.localize(
             'idle_warn_text',
@@ -548,23 +539,22 @@ export class ApexDebug extends LoggingDebugSession {
             (DEFAULT_IDLE_TIMEOUT_MS - DEFAULT_IDLE_WARN3_MS) / 60_000
           )
         );
-      }, DEFAULT_IDLE_WARN3_MS),
-      setTimeout(() => {
+      }).pipe(Effect.delay(Duration.millis(DEFAULT_IDLE_WARN3_MS)), Effect.runFork),
+      Effect.sync(() => {
         this.warnToDebugConsole(nls.localize('idle_terminated_text', DEFAULT_IDLE_TIMEOUT_MS / 60_000));
         this.sendEvent(new TerminatedEvent());
-      }, DEFAULT_IDLE_TIMEOUT_MS)
+      }).pipe(Effect.delay(Duration.millis(DEFAULT_IDLE_TIMEOUT_MS)), Effect.runFork)
     ];
-    return timers;
   }
 
   public clearIdleTimers(): void {
     if (this.idleTimers) {
-      this.idleTimers.forEach(timer => clearTimeout(timer));
+      this.idleTimers.forEach(timer => timer.pipe(Fiber.interruptFork, Effect.runSync));
       this.idleTimers = [];
     }
   }
 
-  public resetIdleTimer(): ReturnType<typeof setTimeout>[] {
+  public resetIdleTimer(): Fiber.RuntimeFiber<void>[] {
     this.clearIdleTimers();
     this.idleTimers = this.getSessionIdleTimer();
     return this.idleTimers;
@@ -618,7 +608,7 @@ export class ApexDebug extends LoggingDebugSession {
           this.myRequestService.instanceUrl = conn.instanceUrl;
           this.myRequestService.accessToken = conn.accessToken;
         } catch (error) {
-          response.message = error instanceof Error ? error.message : String(error);
+          response.message = getErrorMessage(error);
           return this.sendResponse(response);
         }
       }

@@ -7,7 +7,7 @@
 
 import { AuthInfo, Connection } from '@salesforce/core';
 import { MockTestOrgData, TestContext } from '@salesforce/core/testSetup';
-import { TestService } from '../../src/tests';
+import { TestService } from '../../src/tests/testService';
 import * as utils from '../../src/tests/utils';
 
 let mockConnection: Connection;

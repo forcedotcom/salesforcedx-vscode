@@ -45,6 +45,27 @@ test('denies git --no-verify', () => {
   assert.equal(commandDenial({ command: 'git commit --no-veri""fy', cwd: '/tmp' }), NO_VERIFY_REASON);
 });
 
+test('denies git commit -n short no-verify spellings', () => {
+  ['git commit -n -m "x"', 'git commit -nm "x"', 'git commit -qn -m "x"', 'git -C repo commit -n -m "x"'].forEach(
+    command => assert.equal(commandDenial({ command, cwd: '/tmp' }), NO_VERIFY_REASON, command)
+  );
+});
+
+test('denies git core.hooksPath overrides that skip hooks', () => {
+  [
+    'git -c core.hooksPath=/dev/null commit -m "x"',
+    'git -c core.hooksPath= commit -m "x"',
+    'git -c CORE.HOOKSPATH=/tmp/empty commit -m "x"',
+    'git -ccore.hooksPath=/tmp/empty commit -m "x"'
+  ].forEach(command => assert.equal(commandDenial({ command, cwd: '/tmp' }), NO_VERIFY_REASON, command));
+});
+
+test('allows git push -n dry-run and unrelated -n options', () => {
+  ['git push -n', 'git push --dry-run', 'git merge -n'].forEach(command =>
+    assert.equal(commandDenial({ command, cwd: '/tmp' }), undefined, command)
+  );
+});
+
 test('denies branches from remote bases without --no-track', () => {
   ['origin/develop', 'origin/main'].forEach(remoteBase => {
     [
@@ -423,7 +444,10 @@ test('OpenCode event subscription does not report normal cleanup abort', async (
 
 test('OpenCode blocks unsafe shell before execution', () => {
   const hooks = createSafeguards({ session: {}, worktree: '/tmp' });
-  assert.throws(() => hooks.denyUnsafeShell({ command: 'git commit --no-verify' }), /--no-verify is blocked/);
+  assert.throws(
+    () => hooks.denyUnsafeShell({ command: 'git commit --no-verify' }),
+    /--no-verify\/-n or core\.hooksPath override is blocked/
+  );
 });
 
 test('OpenCode appends edit failures and continues the same session once', async () =>

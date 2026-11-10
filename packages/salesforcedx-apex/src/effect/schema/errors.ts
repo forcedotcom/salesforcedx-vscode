@@ -7,6 +7,15 @@
 
 import * as Schema from 'effect/Schema';
 
+/** A Tooling write resolved without succeeding or without returning a created record ID. */
+export class ApexToolingMutationError extends Schema.TaggedError<ApexToolingMutationError>()(
+  'ApexToolingMutationError',
+  {
+    operation: Schema.String,
+    message: Schema.String
+  }
+) {}
+
 const OperationErrorFields = {
   operation: Schema.NonEmptyTrimmedString,
   message: Schema.String,
@@ -24,6 +33,13 @@ export class ApexResponseDecodeError extends Schema.TaggedError<ApexResponseDeco
   'ApexResponseDecodeError',
   OperationErrorFields
 ) {}
+
+/** A query request failure; callers can refine the original client error if needed. */
+export class ApexQueryRequestError extends Schema.TaggedError<ApexQueryRequestError>()('ApexQueryRequestError', {
+  operation: Schema.NonEmptyTrimmedString,
+  message: Schema.String,
+  cause: Schema.Unknown
+}) {}
 
 const AnonymousExecutionErrorFields = {
   operation: Schema.NonEmptyTrimmedString,

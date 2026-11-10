@@ -21,6 +21,7 @@ import { nls } from '../messages';
 import { messages, type MessageKey } from '../messages/i18n';
 import { discoverTests } from '../testDiscovery/testDiscovery';
 import { type ApexTestQuickPickItem } from '../utils/fileHelpers';
+import { selectApexClasses } from '../utils/selectApexClasses';
 import { getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';
 import { clearAllSuiteChildren, getTestController } from '../views/testController';
 import { runSelectedTests } from './apexTestRun';
@@ -93,31 +94,19 @@ const listApexTestSuiteItems = Effect.fn('apexTestSuite.listApexTestSuiteItems')
   );
 });
 
-/** Prompt for the apex classes to include in a suite. Fails with UserCancellationError on dismiss/empty. */
-const selectApexClasses = Effect.fn('apexTestSuite.selectApexClasses')(function* (
+/** Retrieve available Apex classes and prompt for the suite's selection. */
+const gatherApexClasses = Effect.fn('apexTestSuite.gatherApexClasses')(function* (
   command: ProgressAndSuccessCommandKey
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const selection = yield* Effect.all({
-    promptService: api.services.PromptService,
-    progressLocation: api.services.NotificationModeService.pipe(
-      Effect.flatMap(notificationMode => notificationMode.getProgressLocation(command))
-    )
-  }).pipe(
-    Effect.flatMap(({ promptService, progressLocation }) =>
+  return yield* api.services.PromptService.pipe(
+    Effect.flatMap(promptService =>
       listApexClassItems().pipe(
-        promptService.withCancellableProgress(nls.localize('retrieving_tests_message'), progressLocation)
+        promptService.withProgress({ command, title: nls.localize('retrieving_tests_message'), cancellable: true })
       )
     ),
-    Effect.flatMap(apexClassItems =>
-      Effect.promise(() => vscode.window.showQuickPick<ApexTestQuickPickItem>(apexClassItems, { canPickMany: true }))
-    )
+    Effect.flatMap(selectApexClasses)
   );
-  // considerUndefinedAsCancellation does not handle empty arrays, so guard explicitly
-  if (!selection || selection.length === 0) {
-    return yield* new api.services.UserCancellationError();
-  }
-  return selection.map(item => item.fullClassName ?? item.label);
 });
 
 /** QuickPickItem with optional membership ID and picked state for editing. */
@@ -137,7 +126,7 @@ const gatherCreateOptions = Effect.fn('apexTestSuite.gatherCreateOptions')(funct
         )
       )
     ),
-    tests: selectApexClasses(messages.apex_test_suite_create_text)
+    tests: gatherApexClasses(messages.apex_test_suite_create_text)
   });
 });
 
@@ -165,13 +154,12 @@ const gatherEditOptions = Effect.fn('apexTestSuite.gatherEditOptions')(function*
         `SELECT Id, ApexClassId FROM TestSuiteMembership WHERE ApexTestSuiteId = '${(testSuite.description ?? '').replaceAll("'", "''")}'`,
         MembershipRow
       ).pipe(Effect.map(rows => new Map(rows.map(row => [row.ApexClassId, row.Id])))),
-      classes: api.services.NotificationModeService.pipe(
-        Effect.flatMap(notificationMode => notificationMode.getProgressLocation(messages.apex_test_suite_edit_text)),
-        Effect.flatMap(progressLocation =>
-          listApexClassItems().pipe(
-            promptService.withCancellableProgress(nls.localize('retrieving_tests_message'), progressLocation)
-          )
-        )
+      classes: listApexClassItems().pipe(
+        promptService.withProgress({
+          command: messages.apex_test_suite_edit_text,
+          title: nls.localize('retrieving_tests_message'),
+          cancellable: true
+        })
       )
     },
     { concurrency: 'unbounded' }
@@ -238,13 +226,12 @@ const buildSuite = Effect.fn('apexTestSuite.buildSuite')(function* (
 
   yield* Effect.all({
     promptService: api.services.PromptService,
-    progressLocation: notificationMode.getProgressLocation(command),
     connection: api.services.ConnectionService.getConnection()
   }).pipe(
-    Effect.flatMap(({ promptService, progressLocation, connection }) =>
+    Effect.flatMap(({ promptService, connection }) =>
       Effect.promise(() => new TestService(connection).buildSuite(options.suitename, options.tests)).pipe(
         Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
-        promptService.withCancellableProgress(executionName, progressLocation)
+        promptService.withProgress({ command, title: executionName, cancellable: true })
       )
     )
   );
@@ -273,40 +260,36 @@ const applyEdits = Effect.fn('apexTestSuite.applyEdits')(function* (
   const appendEnded = channelService.appendToChannel(`Ended ${executionName}`);
 
   const connection = yield* api.services.ConnectionService.getConnection();
-  yield* Effect.all({
-    promptService: api.services.PromptService,
-    progressLocation: notificationMode.getProgressLocation(messages.apex_test_suite_edit_text)
-  }).pipe(
-    Effect.flatMap(({ promptService, progressLocation }) =>
-      Effect.all(
-        [
-          toAdd.length > 0
-            ? Effect.promise(() => new TestService(connection).buildSuite(suitename, toAdd))
-            : Effect.void,
-          toRemove.length > 0
-            ? Effect.flatMap(
-                Effect.tryPromise(() =>
-                  Promise.all(toRemove.map(id => connection.tooling.delete('TestSuiteMembership', id)))
-                ),
-                results => {
-                  const failures = results.filter(result => !result.success);
-                  return failures.length > 0
-                    ? Effect.fail(
-                        new SuiteMembershipDeleteError({
-                          message: nls.localize('apex_test_suite_membership_delete_failed_message', failures.length)
-                        })
-                      )
-                    : Effect.succeed(results);
-                }
-              )
-            : Effect.void
-        ],
-        { concurrency: 'unbounded' }
-      ).pipe(
-        Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
-        promptService.withCancellableProgress(executionName, progressLocation)
-      )
-    )
+  const promptService = yield* api.services.PromptService;
+  yield* Effect.all(
+    [
+      toAdd.length > 0 ? Effect.promise(() => new TestService(connection).buildSuite(suitename, toAdd)) : Effect.void,
+      toRemove.length > 0
+        ? Effect.flatMap(
+            Effect.tryPromise(() =>
+              Promise.all(toRemove.map(id => connection.tooling.delete('TestSuiteMembership', id)))
+            ),
+            results => {
+              const failures = results.filter(result => !result.success);
+              return failures.length > 0
+                ? Effect.fail(
+                    new SuiteMembershipDeleteError({
+                      message: nls.localize('apex_test_suite_membership_delete_failed_message', failures.length)
+                    })
+                  )
+                : Effect.succeed(results);
+            }
+          )
+        : Effect.void
+    ],
+    { concurrency: 'unbounded' }
+  ).pipe(
+    Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
+    promptService.withProgress({
+      command: messages.apex_test_suite_edit_text,
+      title: executionName,
+      cancellable: true
+    })
   );
 
   yield* channelService.showChannel;

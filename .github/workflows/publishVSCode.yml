@@ -142,12 +142,6 @@ jobs:
     needs: [prepare-release-metadata]
     if: inputs.dry-run != true
     uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@main
-    with:
-      package-manager: pnpm
-      # Empty string, not a pin: pnpm/action-setup only errors on a *mismatched* explicit
-      # version, so leaving this blank lets it read packageManager from package.json instead
-      # of drifting out of sync with it on every pnpm bump.
-      package-manager-version: ''
     secrets: inherit
 
   validate-vsix:
@@ -186,8 +180,6 @@ jobs:
     secrets: inherit
     with:
       changeCaseId: ${{needs.ctc-open.outputs.changeCaseId}}
-      package-manager: pnpm
-      package-manager-version: ''
 
   ctcCloseFail:
     needs: [ctc-open, publish]
@@ -197,8 +189,6 @@ jobs:
     with:
       changeCaseId: ${{ needs.ctc-open.outputs.changeCaseId }}
       status: Not Implemented
-      package-manager: pnpm
-      package-manager-version: ''
 
   # promote-to-prerelease.yml prepended one root CHANGELOG.md section per promoted pre-release,
   # labeled with the pre-release version. Now that this release has shipped stable, fold every

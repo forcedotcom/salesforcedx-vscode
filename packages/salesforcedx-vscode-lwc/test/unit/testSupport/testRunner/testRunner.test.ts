@@ -15,7 +15,7 @@ vi.mock('../../../../src/services/runtime', () => createRecordingRuntimeMock(() 
 
 import { getTestNamePatternArgs, TestRunner } from '../../../../src/testSupport/testRunner/testRunner';
 import { taskService, type SfTask } from '../../../../src/testSupport/testRunner/taskService';
-import { workspaceService } from '../../../../src/testSupport/workspace';
+import { workspaceService } from '../../../../src/testSupport/workspace/workspaceService';
 
 describe('testRunner Unit Tests.', () => {
   describe('test getTestNamePatternArgs', () => {

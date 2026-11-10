@@ -18,13 +18,7 @@ import {
 import { messages } from '../../../src/messages/i18n';
 
 // Re-exported from the shared package so existing spec imports from this module keep working.
-export {
-  TEST_EXPLORER_PANEL,
-  TEST_EXPLORER_TREE_ITEM,
-  focusAndTypeInFilter,
-  clearFilter,
-  verifyNoTestRunInProgress
-} from '@salesforce/playwright-vscode-ext';
+
 export const TEST_RESULTS_TAB = 'a.action-label[aria-label="Test Results"]';
 const LOCAL_NAMESPACE_LABEL = messages.test_explorer_local_namespace_label;
 const UNPACKAGED_METADATA_LABEL = messages.test_explorer_unpackaged_metadata_label;

@@ -34,7 +34,6 @@ webTest.afterEach(async ({ page }, testInfo) => {
 export const test = isDesktop ? desktopTest : webTest;
 export const nonTrackingTest = isDesktop ? nonTrackingDesktopTest : webTest;
 export const trackingConflictTest = isDesktop ? trackingConflictDesktopTest : webTrackingConflictTest;
-export { desktopTest } from './desktopFixtures';
 
 /** For specs unified across desktop, web, and the Code Builder container. */
 export const sharedTest = isContainer ? containerTest : isDesktop ? desktopTest : webTest;

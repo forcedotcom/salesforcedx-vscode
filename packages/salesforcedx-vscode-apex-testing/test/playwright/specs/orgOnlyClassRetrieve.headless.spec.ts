@@ -10,6 +10,7 @@ import * as path from 'node:path';
 
 import { expect } from '@playwright/test';
 import {
+  TEST_EXPLORER_TREE_ITEM,
   clickCodeLens,
   EDITOR_WITH_URI,
   ensureSecondarySideBarHidden,
@@ -33,11 +34,7 @@ import { TEST_RUN_TIMEOUT } from '../constants';
 import { deployApexTestClassesFromHost, isOrgAuthedOnHost, ORG_ALIAS } from '../helpers/hostDeploy';
 import { messages } from '../../../src/messages/i18n';
 import type { ToolingTestsPage } from '../../../src/testDiscovery/schemas';
-import {
-  TEST_EXPLORER_TREE_ITEM,
-  findTestExplorerItem,
-  openTestExplorerAndDiscover
-} from '../helpers/testExplorerHelpers';
+import { findTestExplorerItem, openTestExplorerAndDiscover } from '../helpers/testExplorerHelpers';
 
 // "Org-only" = the class exists in the org but NOT in local source. The retrieve flow
 // (testController.ts retrieveOrgOnlyClassFromUri -> MetadataRetrieveService.retrieve, then component resolution)

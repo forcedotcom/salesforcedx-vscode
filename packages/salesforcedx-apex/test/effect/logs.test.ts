@@ -14,6 +14,7 @@ import * as Option from 'effect/Option';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
+import { ApexLogQueryError } from '../../src/effect/schema/errors';
 import { apexLogId } from '../schemaHelpers';
 import { UserId } from '../../src/schemas/salesforceId';
 import { getLogBody, listLogs, streamLogs } from '../../src/effect/logs';
@@ -121,11 +122,10 @@ describe('Effect Apex logs', () => {
     const { connection, query } = makeConnection();
     const cause = { message: 'Invalid field', errorCode: 'INVALID_FIELD', fields: ['Operation'] };
     query.mockRejectedValueOnce(cause);
-    expect(await Effect.runPromise(Effect.flip(listLogs(connection)))).toMatchObject({
-      _tag: 'ApexLogQueryError',
-      cause,
-      soql: expect.stringContaining('FROM ApexLog')
-    });
+    const requestError = await Effect.runPromise(listLogs(connection).pipe(Effect.flip));
+    if (!(requestError instanceof ApexLogQueryError)) throw requestError;
+    expect(requestError.cause).toBe(cause);
+    expect(requestError.soql).toContain('FROM ApexLog');
     query.mockResolvedValue({ totalSize: 1, records: [{ Id: 'invalid' }] });
     expect(await Effect.runPromise(Effect.flip(listLogs(connection)))).toMatchObject({ _tag: 'ParseError' });
   });
