@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { UserId } from '../schemas/salesforceId';
+import type { SalesforceId, UserId } from '../schemas/salesforceId';
 import type { Connection } from '@salesforce/core';
 import * as Arr from 'effect/Array';
 import * as Duration from 'effect/Duration';
@@ -37,11 +37,11 @@ export const getTraceFlags = Effect.fn('Apex.getTraceFlags')((connection: Connec
   })
 );
 
-/** Finds the newest matching flag. CLI policy selects CreatedDate; other callers select ExpirationDate. */
+/** Finds the newest matching entity flag. CLI policy selects CreatedDate; other callers select ExpirationDate. */
 export const getTraceFlagForUser = Effect.fn('Apex.getTraceFlagForUser')(
   (
     connection: Connection,
-    userId: UserId,
+    userId: UserId | SalesforceId,
     logType: TraceFlagLogType = 'DEVELOPER_LOG',
     orderBy: 'CreatedDate' | 'ExpirationDate' = 'ExpirationDate'
   ) =>
@@ -128,7 +128,7 @@ export const traceFlagExpirationDate = (
 
 export const createTraceFlag = Effect.fn('Apex.createTraceFlag')(function* (
   connection: Connection,
-  userId: UserId,
+  userId: UserId | SalesforceId,
   debugLevelId: DebugLevelId,
   duration: Duration.DurationInput = Duration.minutes(30),
   logType: TraceFlagLogType = 'DEVELOPER_LOG'
@@ -212,7 +212,7 @@ export type EnsureTraceFlagOptions<E = never, R = never> = {
 /** Ensures a flag using the caller-selected level; expired flags are replaced, not renewed. */
 export const ensureTraceFlag = Effect.fn('Apex.ensureTraceFlag')(function* <E = never, R = never>(
   connection: Connection,
-  userId: UserId,
+  userId: UserId | SalesforceId,
   debugLevelId: DebugLevelId,
   options: EnsureTraceFlagOptions<E, R> = {}
 ) {

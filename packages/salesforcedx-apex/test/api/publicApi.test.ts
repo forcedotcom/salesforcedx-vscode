@@ -95,6 +95,7 @@ describe('@salesforce/apex-node public API', () => {
       'LogStreamEventSchema',
       'PerClassCoverageSchema',
       'QueryPageSchema',
+      'SalesforceId',
       'SyncTestConfigurationSchema',
       'SyncTestResultSchema',
       'TestItemSchema',
