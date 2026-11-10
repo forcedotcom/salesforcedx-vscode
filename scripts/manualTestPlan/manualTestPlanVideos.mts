@@ -291,7 +291,7 @@ export const updateManualTestPlanVideos = Effect.fn('manualTestPlanVideos.update
   )
     return;
   const existing = videoSection(latestBody);
-  if (existing?.includes(state) && !existing.includes('![](/')) return;
+  if (existing?.includes(state) && !existing.includes('![](')) return;
   const section = `${videosStart}\n${state}\n\n## Playwright videos\n\n${rows
     .map(
       row =>

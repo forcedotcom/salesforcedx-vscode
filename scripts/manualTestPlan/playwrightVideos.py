@@ -22,7 +22,8 @@ def safe_entries(archive):
         raise ValueError("Duplicate ZIP paths")
     for entry in entries:
         path = PurePosixPath(entry.filename)
-        if (path.is_absolute() or ".." in path.parts or "\\" in entry.filename
+        # ZipInfo.filename has already normalized backslashes on Windows.
+        if (path.is_absolute() or ".." in path.parts or "\\" in entry.orig_filename
                 or ":" in entry.filename or stat.S_ISLNK(entry.external_attr >> 16)):
             raise ValueError("Unsafe ZIP path")
     return entries

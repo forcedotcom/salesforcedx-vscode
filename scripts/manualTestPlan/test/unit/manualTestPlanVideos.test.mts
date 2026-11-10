@@ -245,12 +245,15 @@ test('pending then out-of-order green completions publish once, reruns replace w
 });
 
 test('partial gh uploads are retried rather than accepting the published fingerprint', async () => {
-  const state = fixture();
-  await update(state);
-  state.body = state.publishes[0]; // Unrewritten local reference left by an unsuccessful upload.
-  await update(state);
-  assert.equal(state.publishes.length, 2);
-  assert.equal(state.body.split(videosStart).length, 2);
+  for (const path of ['/tmp/videos/test.webm', 'C:/Temp/videos/test.webm', 'C:\\Temp\\videos\\test.webm']) {
+    const state = fixture();
+    await update(state);
+    // Unrewritten local reference left by an unsuccessful upload, independent of the test host OS.
+    state.body = state.publishes[0].replaceAll(/!\[\]\([^)]+\.webm\)/g, `![](${path})`);
+    await update(state);
+    assert.equal(state.publishes.length, 2, path);
+    assert.equal(state.body.split(videosStart).length, 2);
+  }
 });
 
 test('updater excludes itself, but rereads CI and latest body after collecting videos', async () => {

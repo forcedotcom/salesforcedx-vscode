@@ -7,6 +7,7 @@ from pathlib import Path
 import stat
 import tempfile
 import unittest
+from unittest.mock import patch
 import zipfile
 
 module = importlib.util.spec_from_file_location("playwrightVideos", Path(__file__).parents[2] / "playwrightVideos.py")
@@ -22,7 +23,10 @@ def archive_bytes(files):
     buffer = io.BytesIO()
     with zipfile.ZipFile(buffer, "w", zipfile.ZIP_DEFLATED) as archive:
         for name, content in files.items():
-            archive.writestr(name, content)
+            entry = zipfile.ZipInfo(name)
+            # Preserve deliberately unsafe names instead of normalizing them on Windows.
+            entry.filename = name
+            archive.writestr(entry, content, compress_type=zipfile.ZIP_DEFLATED)
     return buffer.getvalue()
 
 
@@ -111,6 +115,13 @@ class PlaywrightVideosTest(unittest.TestCase):
             entry.external_attr = (stat.S_IFLNK | 0o777) << 16
             archive.writestr(entry, "/secret")
         with zipfile.ZipFile(io.BytesIO(buffer.getvalue())) as archive:
+            with self.assertRaisesRegex(ValueError, "Unsafe ZIP"):
+                videos.safe_entries(archive)
+
+    def test_archive_backslashes_rejected_after_windows_normalization(self):
+        raw = archive_bytes({"test\\outside.webm": CONTENT})
+        with patch("zipfile.os.sep", "\\"), zipfile.ZipFile(io.BytesIO(raw)) as archive:
+            self.assertEqual(archive.infolist()[0].filename, "test/outside.webm")
             with self.assertRaisesRegex(ValueError, "Unsafe ZIP"):
                 videos.safe_entries(archive)
 
