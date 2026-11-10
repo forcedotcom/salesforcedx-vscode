@@ -16,9 +16,8 @@ This one fixture is shared by every package's container specs (it is the single 
 so the container opens it once and all specs run against it). Keep it small and add metadata only
 when a spec needs it — a change lands with the test that relies on it. Current contents:
 
-- `force-app/main/default/classes/PagedResult.cls` (+ test) — a plain Apex class/test used by the
-  core, metadata (retrieveSourcePath), apex-testing (discover/run), and apex-oas
-  (ineligible-class) specs.
+- `force-app/main/default/classes/PagedResult.cls` (+ test) — a plain Apex class/test the core
+  `seededWorkspace` spec opens to assert the seed reached the editor.
 - `force-app/main/default/classes/ExampleClass.cls` (+ `ExampleClassTest.cls`) and
   `scripts/apex/ExampleAnon.apex` — seeded verbatim from the apex package's desktop fixture so the
   apex LSP container specs (hover, go-to-definition, autocomplete, restart) hit the exact

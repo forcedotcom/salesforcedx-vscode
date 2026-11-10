@@ -938,14 +938,12 @@ const main = async (): Promise<number> => {
   spawnSync('git', ['clean', '-fdX', 'force-app', 'scripts'], { cwd: FIXTURE_HOST_DIR, stdio: 'ignore' });
   rmSync(join(FIXTURE_HOST_DIR, 'manifest'), { recursive: true, force: true });
 
-  // A different flavor of the same problem: projectDeployStart edits the SEEDED
-  // PagedResult.cls in place (appending a comment) to create a local change to deploy, with no
-  // revert — confirmed twice, hours apart, as the identical two-line diff. Because that edit lands in
-  // the bind-mounted fixture, the next run's boot org (deployed from an EARLIER, now-stale edit of
-  // this file) and the next run's local copy (a DIFFERENT accumulated edit) genuinely diverge, so a
-  // plain unmodified-file deploy in deploySourcePath correctly reports a real conflict. `git
-  // clean` only touches ignored/untracked paths, so it can't fix a tracked file; restore every tracked
-  // file in the fixture to its committed state too.
+  // A different flavor of the same problem: a run can mutate a TRACKED fixture file in place (e.g.
+  // settings upserts rewrite .vscode/settings.json; specs once edited the seeded classes). Because
+  // the fixture is bind-mounted, that edit would carry into the next run, where a seeded file that
+  // diverges from the boot org's copy surfaces as a real deploy conflict. `git clean` only touches
+  // ignored/untracked paths, so it can't fix a tracked file; restore every tracked file in the
+  // fixture to its committed state too.
   spawnSync('git', ['checkout', '--', '.'], { cwd: FIXTURE_HOST_DIR, stdio: 'ignore' });
 
   log(`Starting container ${CONTAINER_NAME}`);
