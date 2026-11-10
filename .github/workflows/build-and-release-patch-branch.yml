@@ -202,8 +202,8 @@ jobs:
 
       - name: Record hotfix classification
         # Every build from this workflow comes from an untested release-base/* branch, so
-        # isHotfix is unconditionally true here -- publishVSCode.yml/publishOpenVSX.yml read
-        # this instead of requiring a manual isHotfix=true dispatch input.
+        # isHotfix is unconditionally true here -- publishVSCode.yml/publishOpenVSXTrusted.yml
+        # read this instead of requiring a manual isHotfix=true dispatch input.
         env:
           GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
           TAG: ${{ steps.calculate-version.outputs.tag }}

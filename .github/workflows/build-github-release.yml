@@ -433,7 +433,7 @@ jobs:
         # isHotfix is true exactly when the source did NOT come through nightly CI --
         # same nightly-tag shape check as the relabel-changelog step above. This is the only
         # place that knows SOURCE_TAG, so the classification has to be persisted here for
-        # publishVSCode.yml/publishOpenVSX.yml to read instead of requiring a manual
+        # publishVSCode.yml/publishOpenVSXTrusted.yml to read instead of requiring a manual
         # isHotfix=true dispatch input on each of them.
         env:
           GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
