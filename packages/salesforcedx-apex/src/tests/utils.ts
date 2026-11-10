@@ -6,7 +6,6 @@
  */
 
 import type { CodeCoverage } from './codeCoverage';
-import type { QueryResult, Record as JsforceRecord } from '@jsforce/jsforce-node';
 import { type Connection } from '@salesforce/core';
 import * as Effect from 'effect/Effect';
 import { isUndefined } from 'effect/Predicate';
@@ -17,27 +16,6 @@ import { type ApexTestProgressReporter, type NamespaceInfo, type TestResultRaw }
 
 export const queryNamespaces = (connection: Connection): Promise<NamespaceInfo[]> =>
   queryNamespaceInfos(connection).pipe(Effect.runPromise);
-
-export const queryAll = async <R extends JsforceRecord>(
-  connection: Connection,
-  query: string,
-  tooling = false
-): Promise<QueryResult<R>> => {
-  const conn = tooling ? connection.tooling : connection;
-  const allRecords: R[] = [];
-  let result = await conn.query<R>(query);
-  allRecords.push(...result.records);
-  while (!result.done) {
-    result = (await conn.queryMore(result.nextRecordsUrl ?? '')) as QueryResult<R>;
-    allRecords.push(...result.records);
-  }
-
-  return {
-    done: true,
-    totalSize: allRecords.length,
-    records: allRecords
-  };
-};
 
 export const calculateCodeCoverage = async (
   codeCoverageInstance: CodeCoverage,

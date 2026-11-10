@@ -6,22 +6,18 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { ApexTestSuiteId, TestRunIdString } from '../../schemas/salesforceId';
+import { ApexClassId, ApexTestSuiteId, SalesforceId } from '../../schemas/salesforceId';
 
-/** A 15- or 18-character Salesforce record ID. */
-export const SalesforceId = Schema.String.pipe(
-  Schema.pattern(/^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$/),
-  Schema.brand('@salesforcedx-apex/SalesforceId')
+/** Salesforce DebugLevel record ID. */
+export const DebugLevelId = SalesforceId.pipe(
+  Schema.startsWith('7dl'),
+  Schema.brand('@salesforcedx-apex/DebugLevelId')
 );
-export type SalesforceId = typeof SalesforceId.Type;
+export type DebugLevelId = typeof DebugLevelId.Type;
 
-/** Salesforce ApexClass record ID. */
-export const ApexClassId = SalesforceId.pipe(Schema.startsWith('01p'), Schema.brand('@salesforcedx-apex/ApexClassId'));
-export type ApexClassId = typeof ApexClassId.Type;
-
-/** Salesforce Apex test run ID. */
-export const TestRunId = TestRunIdString.pipe(Schema.brand('@salesforcedx-apex/TestRunId'));
-export type TestRunId = typeof TestRunId.Type;
+/** Salesforce TraceFlag record ID. */
+export const TraceFlagId = SalesforceId.pipe(Schema.startsWith('7tf'), Schema.brand('@salesforcedx-apex/TraceFlagId'));
+export type TraceFlagId = typeof TraceFlagId.Type;
 
 export const ApexClassIdsSchema = Schema.compose(Schema.split(','), Schema.Array(ApexClassId)).annotations({
   description: 'a comma-separated list of 15- or 18-character ApexClass IDs'

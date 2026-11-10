@@ -10,11 +10,12 @@ import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
-import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
+import { TestRunId } from '../schemas/salesforceId';
+import { queryRecordPages } from './records';
 import {
   AsyncTestProgressSchema,
   AsyncTestResultSchema,
@@ -22,10 +23,9 @@ import {
   type AsyncTestRunEvent
 } from './schema/asyncTests';
 import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
-import { TestRunId } from './schema/salesforceId';
 import {
   AsyncTestOptionsSchema,
-  queueSchema,
+  queueRecordSchema,
   summariesSchema,
   updateResultsSchema,
   type AsyncTestOptions
@@ -72,21 +72,32 @@ const abortTestRun = Effect.fn('Apex.abortTestRun')(function* (
   testRunId: typeof TestRunId.Type
 ) {
   // Fetch all pages before marking queue items Aborted; those updates can change later query results.
-  yield* Stream.paginateEffect(Option.none<string>(), nextRecordsUrl =>
-    request(() =>
-      Option.match(nextRecordsUrl, {
-        onNone: () =>
-          connection.tooling.query(`SELECT Id, Status FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`),
-        onSome: url => connection.tooling.queryMore(url)
-      })
-    ).pipe(
-      Effect.flatMap(response => decode(queueSchema, response)),
-      Effect.map(
-        page => [page.records, page.done ? Option.none() : Option.some(Option.some(page.nextRecordsUrl))] as const
-      )
-    )
-  ).pipe(
-    Stream.mapConcat(records => records),
+  yield* queryRecordPages({
+    connection,
+    operation,
+    soql: `SELECT Id, Status FROM ApexTestQueueItem WHERE ParentJobId = '${testRunId}'`,
+    recordSchema: queueRecordSchema,
+    tooling: true
+  }).pipe(
+    Stream.catchTags({
+      ApexQueryRequestError: requestError =>
+        Stream.fail(
+          new ApexOperationError({
+            operation,
+            message: requestError.message,
+            cause: getErrorMessage(requestError.cause)
+          })
+        ),
+      ParseError: decodeError =>
+        Stream.fail(
+          new ApexResponseDecodeError({
+            operation,
+            message: 'Invalid asynchronous test response',
+            cause: decodeError.message
+          })
+        )
+    }),
+    Stream.flatMap(Stream.fromIterable),
     Stream.filter(record => !HashSet.has(finishedStatuses, record.Status)),
     Stream.runCollect,
     Effect.map(records => Array.from(records)),
