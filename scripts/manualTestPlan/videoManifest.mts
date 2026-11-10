@@ -13,7 +13,7 @@ export const VideoTarget = Schema.Struct({
   job: Schema.String.pipe(Schema.pattern(/^[\w-]+$/))
 });
 export type VideoTarget = typeof VideoTarget.Type;
-export const VideoManifest = Schema.Struct({ sha: Schema.NonEmptyString, targets: Schema.Array(VideoTarget) });
+const VideoManifest = Schema.Struct({ sha: Schema.NonEmptyString, targets: Schema.Array(VideoTarget) });
 
 const manifestMarker = '<!-- manual-test-plan-video-targets ';
 export const videosStart = '<!-- manual-test-plan-videos -->';
