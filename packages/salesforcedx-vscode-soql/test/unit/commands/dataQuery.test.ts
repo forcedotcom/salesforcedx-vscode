@@ -1023,14 +1023,15 @@ describe('DataQuery Pure Functions', () => {
   describe('executeDataQuery', () => {
     beforeEach(() => {
       (vscode.window.showInformationMessage as VitestMock).mockResolvedValue(undefined);
+      withProgress.mockClear();
     });
 
-    const noopPromptService = {
-      withProgress:
-        () =>
+    const withProgress = vi.fn(
+      () =>
         <A, E, R>(work: Effect.Effect<A, E, R>) =>
           work
-    } as unknown as PromptService;
+    );
+    const noopPromptService = { withProgress } as unknown as PromptService;
 
     const makeProvider = (query: VitestMock) => {
       const show = vi.fn();
@@ -1084,6 +1085,7 @@ describe('DataQuery Pure Functions', () => {
       const { show, appendToChannel } = await run(query);
       expect(appendToChannel).toHaveBeenCalledWith(nls.localize('data_query_error_message', 'boom'));
       expect(show).toHaveBeenCalledTimes(1);
+      expect(withProgress).toHaveBeenCalledTimes(1);
     });
 
     it('appends completion message and shows channel once on success', async () => {
@@ -1091,6 +1093,7 @@ describe('DataQuery Pure Functions', () => {
       const { show, appendToChannel } = await run(query);
       expect(appendToChannel).toHaveBeenCalledWith(nls.localize('data_query_complete', 1));
       expect(show).toHaveBeenCalledTimes(1);
+      expect(withProgress).toHaveBeenCalledTimes(1);
     });
   });
 });

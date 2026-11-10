@@ -50,10 +50,9 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (
     maxRows: api.services.SettingsService.pipe(
       Effect.flatMap(settings => settings.getValueOrElse(SOQL_CONFIGURATION_NAME, 'maxQueryLimit', 50_000))
     ),
-    promptService: api.services.PromptService,
     queryService: api.services.QueryService
   }).pipe(
-    Effect.flatMap(({ maxRows, promptService, queryService }) =>
+    Effect.flatMap(({ maxRows, queryService }) =>
       queryService.query({ ...query, tooling: useTooling }, JsonObject).pipe(
         Effect.flatMap(({ totalSize, records }) =>
           Stream.take(records, maxRows).pipe(
@@ -64,12 +63,7 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (
               records: [...Chunk.toReadonlyArray(chunk)]
             }))
           )
-        ),
-        promptService.withProgress({
-          command: COMMAND,
-          title: nls.localize('progress_running_query'),
-          cancellable: false
-        })
+        )
       )
     )
   );
