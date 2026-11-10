@@ -120,10 +120,7 @@ jobs:
     permissions:
       contents: read
       id-token: write
-    # TEMPORARY: pinned to the github-workflows PR branch with the --trusted-publishing migration
-    # (salesforcecli/github-workflows#199), to validate end-to-end before that PR merges. Switch
-    # back to @main before merging this PR.
-    uses: salesforcecli/github-workflows/.github/workflows/openvsx-publish-release-vsix.yml@ms/W-24666922-ovsx-trusted-publishing
+    uses: salesforcecli/github-workflows/.github/workflows/openvsx-publish-release-vsix.yml@main
     with:
       release-tag: ${{ needs.prepare.outputs.release-tag }}
       dry-run: ${{ inputs.dry-run || false }}

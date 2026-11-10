@@ -296,10 +296,7 @@ jobs:
   promote:
     needs: [find-nightly, gate-check, write-changelog]
     if: always() && needs.gate-check.result == 'success' && (needs.write-changelog.result == 'success' || needs.write-changelog.result == 'skipped')
-    # TEMPORARY: pinned to the github-workflows PR branch that removes vscode-promote-prerelease.yml's
-    # ovsx leg (salesforcecli/github-workflows#199), to validate end-to-end before that PR merges.
-    # Switch back to @main before merging this PR.
-    uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-prerelease.yml@ms/W-24666922-ovsx-trusted-publishing
+    uses: salesforcecli/github-workflows/.github/workflows/vscode-promote-prerelease.yml@main
     with:
       release-tag: ${{ needs.find-nightly.outputs.nightly-tag }}
       vsix-name-pattern: 'salesforcedx-vscode-*.vsix'
