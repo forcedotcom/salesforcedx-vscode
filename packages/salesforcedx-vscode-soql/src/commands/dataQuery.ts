@@ -9,6 +9,7 @@ import type { QueryResult } from '../types';
 import { type Column, createTable, ExtensionProviderService, type Row } from '@salesforce/effect-ext-utils';
 import * as Cause from 'effect/Cause';
 import * as Chunk from 'effect/Chunk';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import { isBoolean, isDate, isNull, isNullable, isNumber, isRecord, isUndefined } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
@@ -72,7 +73,7 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (
 const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: QueryResult<JsonObject>) {
   const csvContent = convertQueryResultToCSV(queryResult);
 
-  const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
+  const timestamp = DateTime.formatIso(yield* DateTime.now).replaceAll(/[:.]/g, '-');
   const fileName = `soql-query-${timestamp}.csv`;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const notificationMode = yield* api.services.NotificationModeService;

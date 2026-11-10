@@ -18,6 +18,7 @@ import {
 import * as Arr from 'effect/Array';
 import * as Cause from 'effect/Cause';
 import * as Data from 'effect/Data';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isUndefined } from 'effect/Predicate';
@@ -148,7 +149,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       const event = {
         ...(orgId ? { orgId } : {}),
         operation: 'retrieve',
-        completedAt: new Date().toISOString(),
+        completedAt: DateTime.formatIso(yield* DateTime.now),
         changes: [...changes]
       } as const;
       yield* notificationService.publishOperation(event);

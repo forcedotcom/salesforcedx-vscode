@@ -12,6 +12,7 @@ import { redactValue } from '@salesforce/playwright-vscode-ext';
 import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import { downloadAndUnzipVSCode, SilentReporter } from '@vscode/test-electron';
 import * as Cause from 'effect/Cause';
+import * as DateTime from 'effect/DateTime';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as ExecutionStrategy from 'effect/ExecutionStrategy';
@@ -335,7 +336,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
     const launch = Effect.fn('SessionService.launch')(function* (options: DrivableVscodeLaunchOptions = {}) {
       const repoRoot = options.repoRoot ?? process.cwd();
       const extensionMode = options.extensionMode ?? 'vsix';
-      const runId = `${new Date().toISOString().replaceAll(/[:.]/g, '-')}-${randomUUID().slice(0, 8)}`;
+      const runId = `${DateTime.formatIso(yield* DateTime.now).replaceAll(/[:.]/g, '-')}-${randomUUID().slice(0, 8)}`;
       const artifactRoot = options.artifactRoot ?? path.join(repoRoot, '.e2e-artifacts', 'drivable-vscode');
       const artifacts = yield* artifactService.create(artifactRoot, runId);
       const sessionScope = yield* Scope.make(ExecutionStrategy.sequential);
@@ -544,7 +545,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
           runId,
           objective: options.objective ?? 'Unspecified drivable VS Code objective',
           mode: extensionMode,
-          startedAt: new Date().toISOString(),
+          startedAt: DateTime.formatIso(yield* DateTime.now),
           repoRoot,
           workspaceDir,
           vscodeExecutable,
@@ -569,6 +570,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
           const sequence = current.observationSequence + 1;
           yield* Ref.set(state, { ...current, observationSequence: sequence });
           const screenshotPath = path.join(artifacts.screenshotsDir, `${String(sequence).padStart(4, '0')}.png`);
+          const clock = yield* Effect.clock;
           const observation = yield* Effect.tryPromise({
             try: async () => {
               const ariaSnapshot = await page.locator('body').ariaSnapshot();
@@ -581,7 +583,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
               };
               const redacted = redactValue({
                 sequence,
-                capturedAt: new Date().toISOString(),
+                capturedAt: DateTime.formatIso(DateTime.unsafeMake(clock.unsafeCurrentTimeMillis())),
                 title: await page.title(),
                 url: page.url(),
                 ariaSnapshot: ariaSnapshot.slice(0, ARIA_SNAPSHOT_LIMIT),
@@ -630,7 +632,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
           const record = {
             sequence: actionSequence,
             observationSequence: current.observationSequence,
-            startedAt: new Date().toISOString(),
+            startedAt: DateTime.formatIso(yield* DateTime.now),
             action
           };
           yield* artifacts.appendAction({ kind: 'action-started', ...record });
@@ -665,15 +667,17 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
           );
           const closingRecord = runPhase(
             'closingRecorded',
-            artifacts.appendAction({ kind: 'session-closing', capturedAt: new Date().toISOString() }).pipe(
-              Effect.mapError(
-                cause =>
-                  new DrivableVscodeTeardownError({
-                    message: 'Failed to record session close',
-                    cause: getErrorMessage(cause)
-                  })
+            artifacts
+              .appendAction({ kind: 'session-closing', capturedAt: DateTime.formatIso(yield* DateTime.now) })
+              .pipe(
+                Effect.mapError(
+                  cause =>
+                    new DrivableVscodeTeardownError({
+                      message: 'Failed to record session close',
+                      cause: getErrorMessage(cause)
+                    })
+                )
               )
-            )
           );
           const video = page.video();
           const videoSave = runPhase(
