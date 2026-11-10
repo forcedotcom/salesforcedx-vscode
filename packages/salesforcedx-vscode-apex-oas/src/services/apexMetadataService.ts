@@ -49,11 +49,12 @@ export const probeReady = Effect.fn('ApexOas.Lsp.probeReady')(function* (
         })
     )
   );
-  return yield* Effect.succeed(apexClient).pipe(
+  yield* Effect.succeed(apexClient).pipe(
     Effect.filterOrFail(
       (client): client is NonNullable<typeof apexClient> => isNotUndefined(client) && languageClientStatus.isReady(),
       () => new ApexLspNotReady({ message: nls.localize('apex_lsp_not_ready') })
-    )
+    ),
+    Effect.asVoid
   );
 });
 

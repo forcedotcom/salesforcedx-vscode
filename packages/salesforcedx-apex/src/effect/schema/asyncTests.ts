@@ -6,7 +6,7 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { TestRunId } from './salesforceId';
+import { TestRunId } from '../../schemas/salesforceId';
 import { AsyncTestRunStatusSchema } from './wire/asyncTests';
 
 const asyncTestRunSummarySchema = Schema.Struct({

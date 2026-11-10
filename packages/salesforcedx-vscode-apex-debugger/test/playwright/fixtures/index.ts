@@ -8,8 +8,6 @@
 import { containerTest } from './containerFixtures';
 import { debuggerDesktopTest } from './desktopFixtures';
 
-export { debuggerEmptyWorkspaceDesktopTest } from './desktopFixtures';
-
 // Container's org is boot-authed by the orchestrator, so a spec shared across desktop and container
 // only needs to branch on this to skip desktop-only setup in container mode — no spec needs it today.
 const isContainer = process.env.VSCODE_CONTAINER === '1';

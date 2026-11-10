@@ -8,6 +8,10 @@
 import { expect } from '@playwright/test';
 
 import {
+  TEST_EXPLORER_PANEL,
+  TEST_EXPLORER_TREE_ITEM,
+  clearFilter,
+  focusAndTypeInFilter,
   clearOutputChannel,
   createAndDeployApexTestClass,
   deployCurrentSourceToOrg,
@@ -30,10 +34,6 @@ import { isContainer, sharedTest as test } from '../fixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
 import {
   STALE_FILTER_TAG,
-  TEST_EXPLORER_PANEL,
-  TEST_EXPLORER_TREE_ITEM,
-  clearFilter,
-  focusAndTypeInFilter,
   openTestExplorerAndDiscover,
   runAllTestsAndWaitForCompletion
 } from '../helpers/testExplorerHelpers';

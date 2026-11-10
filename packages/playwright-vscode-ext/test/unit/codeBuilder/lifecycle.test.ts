@@ -129,6 +129,45 @@ describe('lifecycle', () => {
     expect(probes).toBe(0);
   });
 
+  it('keeps probing until the workbench answers, then resolves without further probes', async () => {
+    const { runner } = recorder();
+    let probes = 0;
+    const readyOnThird: ReadinessProbe = () => {
+      probes += 1;
+      return Promise.resolve(probes >= 3);
+    };
+    await run(
+      {
+        name: 'cb',
+        imageRef: 'img',
+        publishedPort: 8123,
+        bootEnv: BOOT_ENV,
+        readiness: { probe: readyOnThird, timeoutMs: 5000, intervalMs: 1 }
+      },
+      { runner }
+    );
+    expect(probes).toBe(3);
+  });
+
+  it('a hung probe is cut off by the overall budget (wait stays within timeoutMs)', async () => {
+    const { runner } = recorder();
+    const hung: ReadinessProbe = () => new Promise<boolean>(() => {});
+    const started = Date.now();
+    await expect(
+      run(
+        {
+          name: 'cb',
+          imageRef: 'img',
+          publishedPort: 8123,
+          bootEnv: BOOT_ENV,
+          readiness: { probe: hung, timeoutMs: 50, intervalMs: 1000 }
+        },
+        { runner }
+      )
+    ).rejects.toThrow(/never became reachable/);
+    expect(Date.now() - started).toBeLessThan(1000);
+  });
+
   it('restart issues docker restart then waits for readiness', async () => {
     const { runner, calls } = recorder();
     const handle = {

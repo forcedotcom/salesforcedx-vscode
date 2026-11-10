@@ -12,12 +12,6 @@ import { outlineDesktopTest } from './outlineFixtures';
 
 const isDesktop = process.env.VSCODE_DESKTOP === '1';
 
-// Unchanged from before: every existing desktop-only spec imports this, typed purely as the desktop
-// test (which has desktop-only fixtures like `workspaceDir` that `containerTest` doesn't declare).
-// Widening this to a union would break those specs' types, so specs shared with container use the
-// separately-typed exports below instead.
-export { desktopTest as test } from './desktopFixtures';
-
 export const isContainer = process.env.VSCODE_CONTAINER === '1';
 
 /** For specs shared with container mode only (no `workspaceDir`, so not the plain `test` above). */

@@ -82,7 +82,7 @@ nightly_runs=$(api "repos/$REPO/actions/workflows/nightly.yml/runs?per_page=100"
 promotion_runs=$(api "repos/$REPO/actions/workflows/promote-to-prerelease.yml/runs?per_page=100")
 stable_build_runs=$(api "repos/$REPO/actions/workflows/build-github-release.yml/runs?per_page=100")
 marketplace_runs=$(api "repos/$REPO/actions/workflows/publishVSCode.yml/runs?per_page=100")
-openvsx_runs=$(api "repos/$REPO/actions/workflows/publishOpenVSX.yml/runs?per_page=100")
+openvsx_runs=$(api "repos/$REPO/actions/workflows/publishOpenVSXTrusted.yml/runs?per_page=100")
 develop_sha=$(api "repos/$REPO/branches/develop" | jq -r '.commit.sha')
 develop_checks=$(check_runs_for "$develop_sha")
 develop_e2e_runs=$(api "repos/$REPO/actions/workflows/e2e.yml/runs?branch=develop&per_page=100")

@@ -24,12 +24,16 @@
     "lint": "wireit",
     "clean": "shx rm -rf node_modules out coverage .wireit .eslintcache .circular-deps.json",
     "test": "wireit",
-    "test:compile": "wireit"
+    "test:compile": "wireit",
+    "check:effect-diagnostics": "wireit"
   },
   "wireit": {
     "compile": {
       "command": "tsc --pretty",
       "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-utils:compile"
+      ],
       "files": [
         "src/**/*.ts",
         "tsconfig.json",
@@ -94,9 +98,21 @@
         "package.json"
       ],
       "output": []
+    },
+    "check:effect-diagnostics": {
+      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "dependencies": [
+        "compile"
+      ],
+      "files": [
+        "../../config/effect-diagnostics.json",
+        "../../scripts/effect-diagnostics.mjs"
+      ],
+      "output": []
     }
   },
   "dependencies": {
+    "@salesforce/salesforcedx-utils": "*",
     "@effect/platform": "0.96.1",
     "@octokit/core": "^7.0.6",
     "@octokit/graphql": "^9.0.3",

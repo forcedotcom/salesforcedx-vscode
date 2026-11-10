@@ -64,12 +64,12 @@ const providerLayer = (
           ProjectService: { getSfProject: () => Effect.void },
           ConfigService: makeConfigService(isvSid, isvUrl),
           ConnectionService: { getConnection: () => Effect.succeed(conn) },
-          // withProgress is a pipeable operator; the mock passes the wrapped effect through unchanged.
+          // Run the wrapped Effect directly.
           PromptService: Effect.succeed({
             withProgress:
               () =>
-              <A, E, R>(self: Effect.Effect<A, E, R>) =>
-                self
+              <A, E, R>(work: Effect.Effect<A, E, R>) =>
+                work
           }),
           NotificationModeService,
           QueryService: Effect.succeed({

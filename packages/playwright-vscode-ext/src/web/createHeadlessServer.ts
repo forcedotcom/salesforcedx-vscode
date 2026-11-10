@@ -12,7 +12,7 @@ import { resolveRepoRoot } from '../utils/repoRoot';
 type HeadlessServerOptions = {
   /** Extension name for logging (e.g., "Org Browser", "Metadata") */
   extensionName: string;
-  /** The __dirname from the calling headlessServer.ts file (used to resolve extension paths) */
+  /** import.meta.dirname from the calling test/playwright/web/headlessServer.mts entry (not the process cwd) */
   callerDirname: string;
   /** Additional extension directory names to load (services is always included automatically) */
   additionalExtensionDirs?: string[];
@@ -46,7 +46,7 @@ type HeadlessServerOptions = {
 /** Creates and starts a headless VS Code web server for testing an extension with services */
 export const createHeadlessServer = async (options: HeadlessServerOptions): Promise<void> => {
   try {
-    // callerDirname is '<pkg>/test/playwright/web' (tsx) -> go up three levels to '<pkg>'
+    // Resolve from the entry's location: '<pkg>/test/playwright/web' -> '<pkg>', independent of the process cwd.
     const packageRoot = path.resolve(options.callerDirname, '..', '..', '..');
     const extensionDevelopmentPath = options.skipExtensionDevelopmentPath ? undefined : packageRoot;
 

@@ -61,7 +61,7 @@ export default [
       '**/.test-dist/**',
       '**/packages/**/coverage',
       '**/test-workspaces/**',
-      '**/*.d.ts',
+      '**/*.d.{ts,mts,cts}',
       '**/jest.integration.config.js',
       '**/.wireit/**',
       '.opencode/**',
@@ -85,7 +85,7 @@ export default [
       'packages/salesforcedx-vscode-soql/test/unit/soql-builder-ui/**',
       'packages/salesforcedx-vscode-soql/src/soql-common/soql-parser.lib/**',
       'packages/soql-common/src/soql-parser.lib/**',
-      'scripts/vsce-bundled-extension.ts',
+      'scripts/vsceBundledExtension.mts',
       'scripts/reportInstalls.mts',
       'packages/salesforcedx-lwc-language-server/test/javascript/fixtures/**',
       'packages/salesforcedx-lightning-lsp-common/src/resources/**',
@@ -121,7 +121,9 @@ export default [
     }
   },
   {
-    files: ['**/*.ts', '**/*.mts'],
+    files: ['**/*.{ts,tsx,mts,cts}'],
+    // Rule tests and synthetic fixtures use the syntax-only configuration below.
+    ignores: ['packages/eslint-local-rules/test/**'],
     languageOptions: {
       parser: tsParser,
       parserOptions: {
@@ -150,7 +152,6 @@ export default [
       '@stylistic/eslint-plugin-ts': stylistic,
       unicorn: eslintPluginUnicorn,
       local: localPlugin,
-      'barrel-files': eslintPluginBarrelFiles,
       functional: functional,
       workspaces: eslintPluginWorkspaces,
       effect: effectPlugin
@@ -159,6 +160,7 @@ export default [
       'local/no-vscode-uri': 'error',
       'local/no-jsforce-query': 'error',
       'local/no-vscode-show-text-document': 'warn',
+      'local/no-vscode-with-progress': 'error',
       'local/no-inline-esbuild-platform': 'error',
       'local/no-legacy-telemetry-service': 'error',
       'local/command-must-be-in-package-json': [
@@ -188,6 +190,7 @@ export default [
       'local/inline-single-use-yield-binding': 'error',
       'local/no-nested-effect-gen-catch-tags': 'error',
       'local/no-nested-effect-ternary': 'error',
+      'local/no-option-tag': 'error',
       'local/require-effect-fn-span-name': 'error',
       'local/no-raw-duration': 'error',
       'local/no-schema-is-throw-guard': 'error',
@@ -201,8 +204,6 @@ export default [
       'local/no-vscode-validateinput-literals': 'error',
       'local/no-self-barrel-import': 'error',
       'local/notification-slot-matches-package-json': 'error',
-      'barrel-files/avoid-barrel-files': 'error',
-      'barrel-files/avoid-re-export-all': 'error',
       'workspaces/no-relative-imports': 'error',
       'unicorn/consistent-date-clone': 'error',
       'unicorn/consistent-empty-array-spread': 'error',
@@ -582,6 +583,25 @@ export default [
     }
   },
   {
+    files: ['packages/**/*.{ts,tsx,mts,cts}'],
+    // Test configs intentionally compose the shared Vitest config by forwarding its default export.
+    ignores: ['packages/**/vitest.config.*'],
+    rules: {
+      'local/no-pass-through-exports': 'error'
+    }
+  },
+  {
+    files: ['**/*.{ts,tsx,mts,cts}'],
+    ignores: ['packages/**'],
+    plugins: {
+      'barrel-files': eslintPluginBarrelFiles
+    },
+    rules: {
+      'barrel-files/avoid-barrel-files': 'error',
+      'barrel-files/avoid-re-export-all': 'error'
+    }
+  },
+  {
     // Opt-in: steer `x instanceof Error` to isError(x) and `x == null` to the matching
     // isUndefined/isNull/isNullable guard, all from effect/Predicate.
     // Scoped to effect-enabled packages only — non-effect packages can't import
@@ -592,7 +612,7 @@ export default [
       'packages/salesforcedx-lightning-lsp-common/**/*.ts',
       'packages/salesforcedx-vscode-apex/**/*.ts',
       'packages/salesforcedx-vscode-apex-debugger/**/*.ts',
-      'packages/salesforcedx-vscode-apex-log/**/*.ts',
+      'packages/salesforcedx-vscode-apex-log/**/*.{ts,mts}',
       'packages/salesforcedx-vscode-apex-oas/**/*.ts',
       'packages/salesforcedx-vscode-apex-replay-debugger/**/*.ts',
       'packages/salesforcedx-vscode-apex-testing/**/*.ts',
@@ -602,7 +622,7 @@ export default [
       'packages/salesforcedx-vscode-metadata/**/*.ts',
       'packages/salesforcedx-vscode-org/**/*.ts',
       'packages/salesforcedx-vscode-org-browser/**/*.ts',
-      'packages/salesforcedx-vscode-services/**/*.ts',
+      'packages/salesforcedx-vscode-services/**/*.{ts,mts}',
       'packages/salesforcedx-vscode-services-types/**/*.ts',
       'packages/salesforcedx-vscode-soql/**/*.ts',
       'packages/soql-builder-ui/**/*.ts',
@@ -742,7 +762,7 @@ export default [
     // published library predates the monorepo's stricter style rules. Single
     // exemption block for the whole package src (test/** relaxed separately above).
     // Surface shrinks as later refactors (methods->functions, Effect) land.
-    files: ['packages/salesforcedx-apex/**/*.ts'],
+    files: ['packages/salesforcedx-apex/**/*.{ts,mts}'],
     rules: {
       // apex-node does not depend on the services extension.
       'no-restricted-syntax': ['error', noHrtime],
@@ -757,7 +777,6 @@ export default [
       'unicorn/prefer-single-call': 'off',
       '@typescript-eslint/prefer-nullish-coalescing': 'off',
       'header/header': 'off',
-      'barrel-files/avoid-barrel-files': 'off',
       'prefer-arrow/prefer-arrow-functions': 'off',
       // unfixed type-safety debt: to be resolved by later refactors, not upstream style
       '@typescript-eslint/no-unsafe-enum-comparison': 'off',
@@ -792,11 +811,11 @@ export default [
     // apex-testing is folded in here (8.13 / W-23354498): the same functional set now applies to its src,
     // and no-loop-statements (below) is enforced across the package.
     files: [
-      'packages/salesforcedx-vscode-services/**/*.ts',
+      'packages/salesforcedx-vscode-services/**/*.{ts,mts}',
       'packages/salesforcedx-vscode-org-browser/**/*.ts',
       'packages/salesforcedx-vscode-metadata/**/*.ts',
       'packages/salesforcedx-vscode-apex/**/*.ts',
-      'packages/salesforcedx-vscode-apex-log/**/*.ts',
+      'packages/salesforcedx-vscode-apex-log/**/*.{ts,mts}',
       'packages/salesforcedx-vscode-apex-oas/**/*.ts',
       'packages/salesforcedx-vscode-apex-testing/**/*.ts',
       'packages/salesforcedx-vscode-lightning/src/services/**/*.ts',
@@ -811,8 +830,6 @@ export default [
     ],
     rules: {
       'effect/no-import-from-barrel-package': ['error', { packageNames: ['effect'] }],
-      'barrel-files/avoid-barrel-files': 'error',
-      'barrel-files/avoid-re-export-all': 'error',
       'functional/no-throw-statements': 'error',
       'functional/no-try-statements': 'error',
       'functional/no-let': 'error',
@@ -895,33 +912,10 @@ export default [
   {
     // @ExportTaggedError is only for suppressing knip false-positives in packages that don't export errors externally.
     // salesforcedx-vscode-services exports errors for consumption by other packages — knip already sees them as used.
-    files: ['packages/salesforcedx-vscode-services/**/*.ts'],
+    files: ['packages/salesforcedx-vscode-services/**/*.{ts,mts}'],
     rules: {
       'local/no-export-tagged-error-in-services': 'error',
       'local/no-vscode-show-text-document': 'off'
-    }
-  },
-  {
-    // Allow top-level src/index.ts files as barrel files (public API exports),
-    // including export-* aggregation of a package's public surface.
-    files: ['packages/**/src/index.ts'],
-    rules: {
-      'barrel-files/avoid-barrel-files': 'off',
-      'barrel-files/avoid-re-export-all': 'off'
-    }
-  },
-  {
-    // Legacy packages with pre-existing sub-directory barrels (out of scope for
-    // the no-barrel-files rollout in W-23031858). avoid-re-export-all stays ON.
-    // Cleaning up these barrels is a separate WI.
-    files: [
-      'packages/salesforcedx-apex-debugger/**/*.ts',
-      'packages/salesforcedx-apex-replay-debugger/**/*.ts',
-      'packages/salesforcedx-vscode-org/**/*.ts',
-      'packages/salesforcedx-vscode-core/**/*.ts'
-    ],
-    rules: {
-      'barrel-files/avoid-barrel-files': 'off'
     }
   },
   {
@@ -958,10 +952,6 @@ export default [
       'local/no-inline-esbuild-platform': 'off',
       // Deactivate import-order for tests to allow for mock-before-import
       'effect/no-import-from-barrel-package': ['off'],
-
-      // Tests may re-export fixtures / aggregate helpers
-      'barrel-files/avoid-barrel-files': 'off',
-      'barrel-files/avoid-re-export-all': 'off',
 
       'import/order': 'off',
       'functional/no-throw-statements': 'off',
@@ -1018,9 +1008,19 @@ export default [
       '@typescript-eslint/consistent-type-assertions': 'off'
     }
   },
-  // Ignore test files for eslint-local-rules
+  // Enforce exports in rule tests and synthetic fixtures without type-aware extension rules.
   {
-    ignores: ['packages/eslint-local-rules/test/**']
+    files: ['packages/eslint-local-rules/test/**/*.{ts,tsx,mts,cts}'],
+    languageOptions: {
+      parser: tsParser
+    },
+    plugins: {
+      '@typescript-eslint': typescriptEslint,
+      local: localPlugin
+    },
+    rules: {
+      'local/no-pass-through-exports': 'error'
+    }
   },
   // Dependency ranges apply to root and workspace manifests
   {

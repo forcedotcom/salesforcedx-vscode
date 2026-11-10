@@ -87,7 +87,7 @@ Published releases extract extension names from VSIX filenames in release assets
 **Environment variables:**
 - `VSCE_PRE_RELEASE=true` — Set by wireit in legacy extension packaging to pass `--pre-release` flag to vsce
   - Used by: salesforcedx-vscode-core, lwc, lightning, apex-debugger, apex-oas
-  - Script: `scripts/vsce-bundled-extension.ts`
+  - Script: `scripts/vsceBundledExtension.mts`
 
 **Package scripts:**
 - `package:packages` — Stable packaging (calls `vscode:package`)
@@ -128,7 +128,7 @@ stable registry is independent; neither publisher triggers the other.
 1. A promoted nightly tag exists (see [Pre-release promotion](#nightly-builds--pre-release-promotion)).
 2. The `trigger-stable-build` job automatically builds a stable candidate from that exact nightly.
 3. Download and test the VSIX files from the GitHub pre-release.
-4. Promote the release from pre-release to full release: `gh release edit v67.12.0 --prerelease=false --title "Release 67.12.0 - Tested & Approved" --latest`. This marks the release stable and triggers both [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) and [`publishOpenVSX.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSX.yml) via the `release: types: [released]` event. The title and `--latest` are cosmetic; the stable flag triggers publication.
+4. Promote the release from pre-release to full release: `gh release edit v67.12.0 --prerelease=false --title "Release 67.12.0 - Tested & Approved" --latest`. This marks the release stable and triggers both [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) and [`publishOpenVSXTrusted.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSXTrusted.yml) via the `release: types: [released]` event. The title and `--latest` are cosmetic; the stable flag triggers publication.
 5. Use the automatically created runs. For missing or failed runs, dispatch the corresponding publisher manually with the version. Dispatching one does **not** trigger the other; use the hotfix procedure above for stable hotfixes.
 6. Approve marketplace publish gates.
 7. Marketplace updates (usually within minutes).

@@ -36,8 +36,8 @@ export const createWebConfig = (options: WebConfigOptions) =>
     use: {
       viewport: { width: 1920, height: 1080 },
       baseURL: 'http://localhost:3001',
-      trace: process.env.CI ? 'on' : 'on-first-retry',
-      screenshot: process.env.CI ? 'on' : 'only-on-failure',
+      trace: { mode: process.env.CI ? 'on' : 'on-first-retry', screenshots: false },
+      screenshot: 'off',
       video: process.env.CI ? 'on' : 'retain-on-failure',
       actionTimeout: 15_000,
       navigationTimeout: 30_000,
@@ -62,7 +62,8 @@ export const createWebConfig = (options: WebConfigOptions) =>
       }
     ],
     webServer: {
-      command: 'tsx web/headlessServer.ts',
+      // Playwright runs this relative to the config file's directory, not process.cwd().
+      command: 'node web/headlessServer.mts',
       url: 'http://localhost:3001',
       timeout: 120 * 1000,
       // CI: always spawn headlessServer so runs are isolated. Local (`reuseExistingServer: !process.env.CI`): if 3001

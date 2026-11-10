@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService, LetterStartNameSchema } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, parseErrorToValidationMessage } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
@@ -14,9 +14,20 @@ import { nls } from '../messages';
 
 const DEFAULT_MANIFEST = 'package.xml';
 
-const toManifestBaseName = (input: string): string => input.trim().replace(/\.xml$/i, '');
+const stripManifestExtension = (input: string): string => input.replace(/\.xml$/i, '');
+
+const toManifestBaseName = (input: string): string => stripManifestExtension(input.trim());
 
 const appendExtension = (input: string): string => `${toManifestBaseName(input)}.xml`;
+
+const ManifestFileNameSchema = Schema.Trim.pipe(
+  Schema.filter(value => stripManifestExtension(value).length > 0, {
+    message: () => nls.localize('manifest_file_name_empty_error')
+  }),
+  Schema.pattern(/^[A-Za-z][A-Za-z0-9_]*(?:\.xml)?$/i, {
+    message: () => nls.localize('manifest_file_name_format_error')
+  })
+);
 
 const promptForFileName = Effect.fn('promptForFileName')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
@@ -25,12 +36,8 @@ const promptForFileName = Effect.fn('promptForFileName')(function* () {
     placeHolder: nls.localize('manifest_input_save_placeholder'),
     prompt: nls.localize('manifest_input_save_prompt'),
     value: DEFAULT_MANIFEST,
-    validateInput: (value: string) => {
-      const baseName = toManifestBaseName(value);
-      if (!baseName) return nls.localize('manifest_file_name_empty_error');
-      if (!Schema.is(LetterStartNameSchema)(baseName)) return nls.localize('manifest_file_name_format_error');
-      return undefined;
-    }
+    validateInput: (value: string) =>
+      Schema.decodeUnknownEither(ManifestFileNameSchema)(value).pipe(parseErrorToValidationMessage)
   };
   return yield* Effect.promise(() => vscode.window.showInputBox(inputOptions)).pipe(
     Effect.map(s => (s ? appendExtension(s) : undefined)),

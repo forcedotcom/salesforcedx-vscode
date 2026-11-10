@@ -10,6 +10,7 @@ import type { GraphqlResponseError } from '@octokit/graphql';
 import { paginateRest } from '@octokit/plugin-paginate-rest';
 import type { RequestError } from '@octokit/request-error';
 import { type Endpoints } from '@octokit/types';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Config from 'effect/Config';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -35,6 +36,15 @@ export type CommitStatus =
 export type CheckRun =
   Endpoints['GET /repos/{owner}/{repo}/commits/{ref}/check-runs']['response']['data']['check_runs'][number];
 export type PullFile = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}/files']['response']['data'][number];
+
+export const WorkflowRunJob = Schema.Struct({
+  id: Schema.Number,
+  name: Schema.String,
+  conclusion: Schema.NullOr(Schema.String),
+  started_at: Schema.NullishOr(Schema.String),
+  completed_at: Schema.NullishOr(Schema.String)
+});
+export type WorkflowRunJob = typeof WorkflowRunJob.Type;
 
 type Check = {
   readonly state?: string;
@@ -97,6 +107,19 @@ export class GitHubRequestError extends Schema.TaggedError<GitHubRequestError>()
   retryAfterMillis: Schema.optional(Schema.Number)
 }) {}
 
+const decodeResponse = <A, I, R>(schema: Schema.Schema<A, I, R>, input: unknown, method: string, path: string) =>
+  Schema.decodeUnknown(schema)(input).pipe(
+    Effect.mapError(
+      error =>
+        new GitHubRequestError({
+          message: error.message,
+          status: 200,
+          method,
+          path
+        })
+    )
+  );
+
 export const PullRequest = Schema.Struct({
   reviewDecision: Schema.NullOr(Schema.String),
   isDraft: Schema.Boolean,
@@ -158,7 +181,7 @@ const retryAfterMillis = (cause: unknown) => {
 const toError = (method: string, path: string, cause: unknown) => {
   const wait = retryAfterMillis(cause);
   return new GitHubRequestError({
-    message: isError(cause) ? cause.message : String(cause),
+    message: getErrorMessage(cause),
     status: isRequestError(cause) ? cause.status : isGraphqlResponseError(cause) ? 200 : 0,
     method,
     path,
@@ -259,6 +282,15 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
           per_page: 100
         })
       );
+    });
+
+    const workflowRunJobs = Effect.fn('GitHub.workflowRunJobs')(function* (repository: string, runId: string) {
+      const path = `/repos/${repository}/actions/runs/${runId}/jobs`;
+      return yield* run('GET', path, () =>
+        octokit.paginate<unknown>(`GET ${path}`, {
+          per_page: 100
+        })
+      ).pipe(Effect.flatMap(jobs => decodeResponse(Schema.Array(WorkflowRunJob), jobs, 'GET', path)));
     });
 
     const combinedStatus = Effect.fn('GitHub.combinedStatus')(function* (owner: string, repo: string, sha: string) {
@@ -393,21 +425,12 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
     });
 
     const pullRequest = Effect.fn('GitHub.pullRequest')(function* (owner: string, repo: string, pullNumber: number) {
-      const data = yield* run('POST', '/graphql', () =>
+      return yield* run('POST', '/graphql', () =>
         octokit.graphql(pullQuery, { owner, name: repo, number: pullNumber })
+      ).pipe(
+        Effect.flatMap(data => decodeResponse(PullRequestQuery, data, 'POST', '/graphql')),
+        Effect.map(decoded => decoded.repository?.pullRequest ?? undefined)
       );
-      const decoded = yield* Schema.decodeUnknown(PullRequestQuery)(data).pipe(
-        Effect.mapError(
-          error =>
-            new GitHubRequestError({
-              message: error.message,
-              status: 200,
-              method: 'POST',
-              path: '/graphql'
-            })
-        )
-      );
-      return decoded.repository?.pullRequest ?? undefined;
     });
 
     return {
@@ -418,6 +441,7 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
       pullFiles,
       pullReviews,
       checkRuns,
+      workflowRunJobs,
       combinedStatus,
       headChecks,
       createReview,

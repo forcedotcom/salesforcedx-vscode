@@ -9,11 +9,12 @@
 
 import { annotateRootSpan, code2ProtocolConverter, ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Arr from 'effect/Array';
 import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isError, isUndefined } from 'effect/Predicate';
+import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -29,7 +30,6 @@ import {
   MAX_ALLOWED_CHECKPOINTS
 } from '../debuggerConstants';
 import { nls } from '../messages';
-import { getRuntime } from '../services/runtime';
 import { type ProgressOnlyCommandKey } from '../utils/notificationMode';
 
 const COMMAND: ProgressOnlyCommandKey = 'Update Checkpoints in Org';
@@ -631,22 +631,14 @@ const createCheckpoints = Effect.fn('createCheckpoints')(function* () {
 
   // The status message isn't changing, localize it once and reuse it in the progress report.
   const localizedProgressMessage = nls.localize('sf_update_checkpoints_in_org');
-  const progressLocation = yield* (yield* ExtensionProviderService).getServicesApi.pipe(
-    Effect.flatMap(api => api.services.NotificationModeService),
-    Effect.flatMap(notificationMode => notificationMode.getProgressLocation(COMMAND))
+  const promptService = yield* (yield* ExtensionProviderService).getServicesApi.pipe(
+    Effect.flatMap(api => api.services.PromptService)
   );
 
   const succeeded = yield* Effect.zipRight(
     Effect.sync(() => writeToDebuggerOutputWindow(`${nls.localize('long_command_start')} ${localizedProgressMessage}`)),
-    Effect.promise(() =>
-      vscode.window.withProgress(
-        {
-          location: progressLocation,
-          title: localizedProgressMessage,
-          cancellable: false
-        },
-        (progress, _token) => getRuntime().runPromise(uploadCheckpoints(progress, localizedProgressMessage))
-      )
+    promptService.withProgressReporting({ command: COMMAND, title: localizedProgressMessage, cancellable: false })(
+      progress => uploadCheckpoints(progress, localizedProgressMessage)
     )
   ).pipe(
     // The lock prevents deleting the underlying breakpoints attached to the
@@ -689,10 +681,8 @@ export const annotateCheckpointUpload = (succeeded: boolean) =>
 export const sfCreateCheckpointsCommand = Effect.fn('sfCreateCheckpointsCommand')(function* () {
   const result = yield* checkpointOperationSemaphore.withPermitsIfAvailable(1)(
     createCheckpoints().pipe(
-      Effect.mapError(error => new CreateCheckpointsError({ message: isError(error) ? error.message : String(error) })),
-      Effect.catchAllDefect(defect =>
-        Effect.fail(new CreateCheckpointsError({ message: isError(defect) ? defect.message : String(defect) }))
-      ),
+      Effect.mapError(error => new CreateCheckpointsError({ message: getErrorMessage(error) })),
+      Effect.catchAllDefect(defect => Effect.fail(new CreateCheckpointsError({ message: getErrorMessage(defect) }))),
       Effect.tapBoth({
         onFailure: error => annotateRootSpan({ errorMessage: error.message }),
         onSuccess: annotateCheckpointUpload

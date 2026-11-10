@@ -48,7 +48,10 @@ export {
   ApexResponseDecodeError,
   ApexRuntimeError
 } from './schema/errors';
-export { causeMessage } from './errors';
+export { ApexReportError, causeMessage } from './errors';
+export { FileOutput, FileOutputError } from './fileOutput';
+export { writeResultFiles } from './writeResultFiles';
+export type { WriteResultFilesOptions } from './writeResultFiles';
 export { listLogs, getLogBody, streamLogs } from './logs';
 export { ApexLogListItem } from './schema/wire/logs';
 export { ListLogsOptionsSchema, LogStreamEventSchema } from './schema/logs';
@@ -62,9 +65,61 @@ export { TestSuiteSchema, TestSuiteMembershipSchema } from './schema/testSuites'
 export { retrieveAllSuites, getTestsInSuite, buildSuite } from './testSuites';
 export type { TestSuite, TestSuiteMembership } from './schema/testSuites';
 export { ApexTestSuiteId } from '../schemas/salesforceId';
+export { UserId } from '../schemas/salesforceId';
+export { DebugLevelId, TraceFlagId } from './schema/salesforceId';
+export { createRecord, deleteRecord, updateRecord } from './records';
 export { AsyncTestOptionsSchema } from './schema/wire/asyncTests';
 export { AsyncTestProgressSchema, AsyncTestResultSchema, AsyncTestRunEventSchema } from './schema/asyncTests';
 export { runTestAsynchronous } from './asyncTests';
 export type { AsyncTestOptions } from './schema/wire/asyncTests';
 export type { AsyncTestProgress, AsyncTestRunEvent, AsyncTestRunSummary } from './schema/asyncTests';
 export type { AsyncTestPollingOptions, AsyncTestRun } from './asyncTests';
+export {
+  formatHumanReport,
+  formatTapReport,
+  formatJUnitReport,
+  formatMarkdownTextReport,
+  formatMarkdownTextReportStream
+} from './reporters';
+export type { HumanReporterOptions } from './reporters';
+export type { MarkdownTextReporterOptions, OutputFormat, TestSortOrder } from '../reporters/markdownTextReporter';
+export { buildCoverageMap, generateCoverageReports, IstanbulReports } from './coverageReports';
+export type { CoverageReportOptions } from './coverageReports';
+export type { CoverageSource } from '../reporters/coverageMap';
+export { DefaultReportOptions, DefaultWatermarks } from '../reporters/coverageOptions';
+export type { CoverageReporterOptions, CoverageReportFormats } from '../reporters/coverageOptions';
+export {
+  getTraceFlags,
+  getTraceFlagForUser,
+  getDebugLevels,
+  findDebugLevel,
+  createDebugLevel,
+  updateDebugLevel,
+  deleteDebugLevel,
+  getOrCreateDebugLevel,
+  createTraceFlag,
+  updateTraceFlag,
+  deleteTraceFlag,
+  changeTraceFlagDebugLevel,
+  extendTraceFlag,
+  ensureTraceFlag,
+  traceFlagExpirationDate
+} from './traceFlags';
+export type { UpdateTraceFlagOptions, EnsureTraceFlagOptions } from './traceFlags';
+export {
+  TraceFlagLogType,
+  TraceFlagRecordSchema,
+  TraceFlagForUserSchema,
+  LogCategoryLevel,
+  DebugLevelRecordSchema,
+  CreateDebugLevelSchema,
+  UpdateDebugLevelSchema
+} from './schema/wire/traceFlags';
+export type {
+  TraceFlagRecord,
+  TraceFlagForUser,
+  DebugLevelRecord,
+  CreateDebugLevel,
+  UpdateDebugLevel
+} from './schema/wire/traceFlags';
+export { ApexToolingMutationError } from './schema/errors';

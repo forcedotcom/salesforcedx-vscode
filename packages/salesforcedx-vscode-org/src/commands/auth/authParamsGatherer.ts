@@ -5,9 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, parseErrorToValidationMessage } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as Option from 'effect/Option';
 import { isNotUndefined, isUndefined } from 'effect/Predicate';
 import * as Rec from 'effect/Record';
 import * as Schema from 'effect/Schema';
@@ -21,9 +20,16 @@ const SANDBOX_URL = 'https://test.salesforce.com';
 const INSTANCE_URL_PLACEHOLDER = 'https://na35.salesforce.com';
 const SafeInstanceUrl = Schema.String.pipe(
   Schema.pattern(/^https?:\/\/[\w.-]+(:\d+)?(\/[\w./~-]*)?$/),
-  Schema.compose(Schema.URL)
+  Schema.compose(Schema.URL),
+  Schema.annotations({ message: () => ({ message: nls.localize('auth_invalid_url'), override: true }) })
 );
-const decodeSafeInstanceUrl = Schema.decodeUnknownOption(SafeInstanceUrl);
+// Salesforce session IDs match redactSensitiveData's access-token shape: org ID + `!` + opaque token.
+const SalesforceSessionIdSchema = Schema.String.pipe(
+  Schema.pattern(/^00D[A-Za-z0-9]{12,15}![^\s'"]+$/),
+  Schema.annotations({
+    message: () => ({ message: nls.localize('parameter_gatherer_enter_session_id_diagnostic_message'), override: true })
+  })
+);
 
 const inputInstanceUrl = async (): Promise<string | undefined> =>
   vscode.window.showInputBox({
@@ -63,12 +69,12 @@ const inputAccessToken = async (): Promise<string | undefined> =>
     password: true,
     ignoreFocusOut: true,
     validateInput: text =>
-      text && text?.length > 0 ? null : nls.localize('parameter_gatherer_enter_session_id_diagnostic_message')
+      Schema.decodeUnknownEither(SalesforceSessionIdSchema)(text).pipe(parseErrorToValidationMessage)
   });
 
 // http(s):// host/port/path only — rejects shell metachars (`;|&$()`, backticks, quotes, spaces) so the CLI --instance-url arg stays injection-safe
 const validateUrl = (url: string): string | undefined =>
-  Option.isSome(decodeSafeInstanceUrl(url)) ? undefined : nls.localize('auth_invalid_url');
+  Schema.decodeUnknownEither(SafeInstanceUrl)(url).pipe(parseErrorToValidationMessage);
 
 const normalizeUrl = (value: string): string | undefined => {
   if (isNotUndefined(validateUrl(value))) return undefined;

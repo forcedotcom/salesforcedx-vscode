@@ -10,7 +10,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "68.9.5",
+  "version": "68.11.6",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -184,6 +184,7 @@
         "src/soql-builder-ui/modules/querybuilder/services/message/**",
         "src/soql-builder-ui/esbuild.lit.config.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/process-polyfill.js",
         "../soql-builder-ui/out/**",
         "package.json"
       ],
@@ -264,6 +265,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/process-polyfill.js",
         "out/**",
         "src/soql-builder-ui/dist/**",
         "src/soql-data-view/**"
@@ -285,6 +287,7 @@
         "scripts/verify-lit-migration-parity.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/process-polyfill.js",
         "out/**",
         "src/soql-builder-ui/dist-lit/**",
         "src/soql-data-view/**"
@@ -305,6 +308,7 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
+        "../../scripts/bundling/process-polyfill.js",
         "out/**",
         "src/soql-builder-ui/dist/**",
         "src/soql-data-view/**"
@@ -353,7 +357,7 @@
       "files": [
         "src/**/*.ts",
         "src/**/*.html",
-        "test/**/*.ts",
+        "test/**/*.{ts,mts}",
         "../../eslint.config.mjs",
         ".vscodeignore",
         "package.json",
@@ -391,7 +395,7 @@
         "../soql-builder-ui:test:browser"
       ],
       "files": [
-        "test/playwright/**/*.ts",
+        "test/playwright/**/*.{ts,mts}",
         "package*.json",
         "../../.github/**"
       ],
@@ -497,7 +501,7 @@
         "../playwright-vscode-ext:compile"
       ],
       "files": [
-        "test/**/*.ts",
+        "test/**/*.{ts,mts}",
         "test/tsconfig.json"
       ],
       "output": []

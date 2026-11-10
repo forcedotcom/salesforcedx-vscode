@@ -15,8 +15,10 @@ import {
   type LaunchRequestArguments,
   type VariableContainer
 } from '../../../src/adapter/apexDebug';
-import { type Reference } from '../../../src/commands';
-import { BreakpointService, SessionService, StreamingService } from '../../../src/core';
+import { type Reference } from '../../../src/commands/protocol';
+import { BreakpointService } from '../../../src/core/breakpointService';
+import { SessionService } from '../../../src/core/sessionService';
+import { StreamingService } from '../../../src/core/streamingService';
 import { type RequestService } from '../../../src/requestService/requestService';
 
 export class ApexDebugForTest extends ApexDebug {
@@ -195,7 +197,7 @@ export class ApexDebugForTest extends ApexDebug {
     return super.variablesRequest(response, args);
   }
 
-  public getIdleTimers(): ReturnType<typeof setTimeout>[] {
+  public getIdleTimers(): ReturnType<ApexDebugForTest['resetIdleTimer']> {
     return this.idleTimers;
   }
 }

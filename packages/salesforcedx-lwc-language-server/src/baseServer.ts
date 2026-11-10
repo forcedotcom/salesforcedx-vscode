@@ -16,6 +16,9 @@ import {
   type WorkspaceType,
   LWC_SERVER_READY_NOTIFICATION
 } from '@salesforce/salesforcedx-lightning-lsp-common';
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
 import { basename, dirname, parse } from 'node:path';
 import {
   getLanguageService,
@@ -192,14 +195,18 @@ export abstract class BaseServer {
     // Return capabilities immediately so the client sends the Initialize response and attaches
     // workspace/readFile and workspace/stat handlers. Defer performDelayedInitialization to the next tick
     // so the client has time to attach handlers before we send any workspace/readFile or workspace/stat.
-    setTimeout(() => {
-      void this.performDelayedInitialization().catch((err: unknown) => {
-        Logger.error(
-          `Delayed initialization failed: ${err instanceof Error ? err.message : String(err)}`,
-          err instanceof Error ? err : undefined
-        );
-      });
-    }, 0);
+    Effect.tryPromise({ try: () => this.performDelayedInitialization(), catch: err => ({ err }) }).pipe(
+      Effect.catchAll(({ err }) =>
+        Effect.sync(() => {
+          Logger.error(
+            `Delayed initialization failed: ${getErrorMessage(err)}`,
+            err instanceof Error ? err : undefined
+          );
+        })
+      ),
+      Effect.delay(Duration.zero),
+      Effect.runFork
+    );
 
     return this.capabilities;
   }
@@ -365,10 +372,7 @@ export abstract class BaseServer {
           return hoverResult;
         }
       } catch (error) {
-        Logger.error(
-          `[onHover] Error checking isLWCTemplate: ${error instanceof Error ? error.message : String(error)}`,
-          error
-        );
+        Logger.error(`[onHover] Error checking isLWCTemplate: ${getErrorMessage(error)}`, error);
       }
 
       try {
@@ -381,15 +385,12 @@ export abstract class BaseServer {
           return hoverResult;
         }
       } catch (error) {
-        Logger.error(
-          `[onHover] Error checking isAuraMarkup: ${error instanceof Error ? error.message : String(error)}`,
-          error
-        );
+        Logger.error(`[onHover] Error checking isAuraMarkup: ${getErrorMessage(error)}`, error);
       }
 
       return null;
     } catch (error) {
-      Logger.error(`[onHover] Unexpected error: ${error instanceof Error ? error.message : String(error)}`, error);
+      Logger.error(`[onHover] Unexpected error: ${getErrorMessage(error)}`, error);
       return null;
     }
   }
@@ -479,7 +480,7 @@ export abstract class BaseServer {
       } catch (e) {
         await this.connection.sendNotification(ShowMessageNotification.type, {
           type: MessageType.Error,
-          message: `Error updating tsconfig.sfdx.json path mapping: ${e instanceof Error ? e.message : String(e)}`
+          message: `Error updating tsconfig.sfdx.json path mapping: ${getErrorMessage(e)}`
         });
       }
 
@@ -512,7 +513,7 @@ export abstract class BaseServer {
         } catch (e) {
           await this.connection.sendNotification(ShowMessageNotification.type, {
             type: MessageType.Error,
-            message: `Error updating typings: ${e instanceof Error ? e.message : String(e)}`
+            message: `Error updating typings: ${getErrorMessage(e)}`
           });
         }
       }
@@ -566,7 +567,7 @@ export abstract class BaseServer {
               result = await getAllLocations(tag, this.fileSystemAccessor);
             } catch (error) {
               Logger.error(
-                `[onDefinition] Error getting all locations for tag ${cursorInfo.tag}: ${error instanceof Error ? error.message : String(error)}`,
+                `[onDefinition] Error getting all locations for tag ${cursorInfo.tag}: ${getErrorMessage(error)}`,
                 error
               );
               result = [];
@@ -608,17 +609,14 @@ export abstract class BaseServer {
                 );
               }
             } catch (error) {
-              Logger.error(
-                `[onDefinition] Error getting class member location: ${error instanceof Error ? error.message : String(error)}`,
-                error
-              );
+              Logger.error(`[onDefinition] Error getting class member location: ${getErrorMessage(error)}`, error);
             }
           }
           break;
       }
       return result;
     } catch (error) {
-      Logger.error(`[onDefinition] Unexpected error: ${error instanceof Error ? error.message : String(error)}`, error);
+      Logger.error(`[onDefinition] Unexpected error: ${getErrorMessage(error)}`, error);
       return [];
     }
   }
@@ -798,7 +796,7 @@ export abstract class BaseServer {
       this.isDelayedInitializationComplete = true;
     } catch (error: unknown) {
       Logger.error(
-        `Error during delayed initialization: ${error instanceof Error ? error.message : String(error)}`,
+        `Error during delayed initialization: ${getErrorMessage(error)}`,
         error instanceof Error ? error : undefined
       );
     }

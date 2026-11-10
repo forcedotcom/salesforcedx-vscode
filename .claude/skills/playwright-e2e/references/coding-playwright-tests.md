@@ -12,6 +12,21 @@ Check playwright ext for reuse before creating utilities/PageObjects
 
 One test per file. Many steps allowed.
 
+## Flow Recording and Screenshots
+
+Use video for automatic test evidence; keep assertions as the pass/fail checks.
+
+1. Disable competing full-session video: `use.video: 'off'` in web/container configs; `recordVideo: false` in `createDesktopTest`. Keep traces enabled; shared configs already disable runner and trace screenshots.
+2. Complete fixture setup before recording: workbench/workspace readiness and fixture-specific preparation.
+3. Call `startVideoRecording(page, testInfo)` from `@salesforce/playwright-vscode-ext` immediately before yielding to the test with `await use()`.
+4. Wrap `await use()` in `try/finally`; await the returned `stopRecording()` in `finally`. It attempts to finalize and attach the video on pass or failure, before cleanup, page closure, or Electron teardown. If no frame arrives within 10 seconds, it throws before stopping or attaching.
+
+Fixture example: [playwright-vscode-ext — Recording after setup](../../../../packages/playwright-vscode-ext/README.md#recording-after-setup).
+
+- Remove routine evidence-only screenshot calls from specs and shared setup/teardown helpers. Preserve assertions, waits, and test actions around those calls; video does not replace coverage.
+- Preserve explicit screenshot APIs (`saveScreenshot`, `page.screenshot`, purpose-specific helpers). Diagnostic captures and product screenshot behavior remain valid; distinguish those from automatic test evidence before removing a call.
+- Inspect attached flow videos when debugging; automatic test/trace screenshots are not expected. Frame extraction is optional analysis, not a reason to add screenshot calls back to tests.
+
 ## Waiting and Timing
 
 - Never `waitForTimeout` - wait for specific page elements

@@ -58,14 +58,20 @@ export const analyticsGenerateTemplate = Effect.fn('analyticsGenerateTemplate')(
   });
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [templateDirUri] });
 
+  const cwd = yield* fsService.uriToPath(workspaceInfo.uri);
   yield* api.services.TemplateService.create({
-    cwd: yield* fsService.uriToPath(workspaceInfo.uri),
+    cwd,
     templateType: api.services.TemplateType.AnalyticsTemplate,
     outputdir: outputDirUri,
     options: {
       templatename: templateName
     }
-  }).pipe(promptService.withProgress(nls.localize('analytics_generate_template_text')));
+  }).pipe(
+    promptService.withProgress({
+      title: nls.localize('analytics_generate_template_text'),
+      cancellable: false
+    })
+  );
 
   yield* fsService.showTextDocument(Utils.joinPath(templateDirUri, TEMPLATE_INFO_FILE));
 });

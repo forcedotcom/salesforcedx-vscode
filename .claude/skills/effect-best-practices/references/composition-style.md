@@ -90,17 +90,18 @@ at the end. The goal is one pipe that ends in execution: no imperative tail afte
 `yield*`/`await` re-inspecting the result.
 
 ```typescript
-// PREFERRED — terminal notify stays in the pipe as a tap on the success value
-return yield* runApexTests({ /* ... */ }).pipe(
-  Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
-  promptService.withCancellableProgress(executionName),
-  Effect.tap(() => channelService.showChannel),
-  Effect.tap(result =>
-    Effect.sync(() => {
-      void (result === undefined
-        ? vscode.window.showErrorMessage
-        : vscode.window.showInformationMessage)(executionName);
-    })
+// PREFERRED — one progress wrapper; the builder may ignore the reporter/token when unused.
+return yield* promptService.withProgress({ title: executionName, cancellable: true })(() =>
+  runApexTests({ /* ... */ }).pipe(
+    Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
+    Effect.tap(() => channelService.showChannel),
+    Effect.tap(result =>
+      Effect.sync(() => {
+        void (result === undefined
+          ? vscode.window.showErrorMessage
+          : vscode.window.showInformationMessage)(executionName);
+      })
+    )
   )
 );
 

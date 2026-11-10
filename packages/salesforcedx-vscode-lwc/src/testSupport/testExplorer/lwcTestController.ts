@@ -4,15 +4,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
+import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Order from 'effect/Order';
-import { isError } from 'effect/Predicate';
 import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../../messages';
 import { getRuntime } from '../../services/runtime';
-import { lwcTestIndexer } from '../testIndexer';
+import { lwcTestIndexer } from '../testIndexer/lwcTestIndexer';
 import { taskService, type SfTask } from '../testRunner/taskService';
 import { TestRunner } from '../testRunner/testRunner';
 import {
@@ -27,7 +27,8 @@ import {
 import { LWC_TEST_RUN_LOG_NAME, matchJestStackTraceLocation } from '../types/constants';
 import { isLwcJestTest } from '../utils/isLwcJestTest';
 import { normalizeJestFsPath } from '../utils/normalizeJestFsPath';
-import { workspace, workspaceService } from '../workspace';
+import { workspace } from '../workspace';
+import { workspaceService } from '../workspace/workspaceService';
 import { appendLine, appendRunHeader, appendTestResultsOutput, type TestItemLookup } from './testResultsOutput';
 
 const TEST_CONTROLLER_ID = 'sf.lwc.testController';
@@ -665,7 +666,7 @@ class LwcTestController {
         appendLine(run, nls.localize('no_test_results_produced_message'));
       }
     } catch (error) {
-      const message = isError(error) ? error.message : String(error);
+      const message = getMessageFromError(error);
       if (sourceItem) {
         run.errored(sourceItem, new vscode.TestMessage(message));
       } else {
@@ -823,7 +824,7 @@ class LwcTestController {
 }
 
 const awaitTaskEnd = (sfTask: SfTask, token: vscode.CancellationToken): Promise<{ exitCode?: number }> =>
-  new Promise<{ exitCode?: number }>(resolve => {
+  Effect.async<{ exitCode?: number }>(resume => {
     let resolved = false;
     const safeResolve = (result: { exitCode?: number }) => {
       if (!resolved) {
@@ -831,7 +832,7 @@ const awaitTaskEnd = (sfTask: SfTask, token: vscode.CancellationToken): Promise<
         endHandler.dispose();
         endDisposable.dispose();
         cancelDisposable.dispose();
-        resolve(result);
+        resume(Effect.succeed(result));
       }
     };
 
@@ -842,15 +843,15 @@ const awaitTaskEnd = (sfTask: SfTask, token: vscode.CancellationToken): Promise<
     });
     const endDisposable = sfTask.onDidEnd(() => {
       // Fallback if onDidEndTaskProcess doesn't fire quickly
-      setTimeout(() => {
+      Effect.sync(() => {
         safeResolve({ exitCode: undefined });
-      }, 250);
+      }).pipe(Effect.delay(Duration.millis(250)), Effect.runFork);
     });
     const cancelDisposable = token.onCancellationRequested(() => {
       sfTask.terminate();
       safeResolve({ exitCode: undefined });
     });
-  });
+  }).pipe(Effect.runPromise);
 
 /**
  * Waits for the jest test-result file to appear on disk before reading.
@@ -886,7 +887,7 @@ const waitForResultFile = async (
   }
 };
 
-const delay = (ms: number): Promise<void> => new Promise(resolve => setTimeout(resolve, ms));
+const delay = (ms: number): Promise<void> => Effect.sleep(Duration.millis(ms)).pipe(Effect.runPromise);
 
 const readJestResultsFile = Effect.fn('readJestResultsFile')(function* (filePath: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;

@@ -36,6 +36,7 @@
     "access": "public"
   },
   "dependencies": {
+    "@salesforce/salesforcedx-utils": "*",
     "@effect/platform": "^0.96.1",
     "@playwright/test": "^1.64.1",
     "@salesforce/core": "^9.3.0",
@@ -75,6 +76,9 @@
     "compile": {
       "command": "tsc --pretty",
       "clean": "if-file-deleted",
+      "dependencies": [
+        "../salesforcedx-utils:compile"
+      ],
       "files": [
         "src/**/*.ts",
         "tsconfig.json",
@@ -93,7 +97,7 @@
       ],
       "files": [
         "src/**/*.ts",
-        "test/**/*.ts",
+        "test/**/*.{ts,mts}",
         "../../eslint.config.mjs"
       ],
       "output": []
@@ -112,7 +116,7 @@
       ],
       "files": [
         "src/**/*.ts",
-        "test/playwright/**/*.ts",
+        "test/playwright/**/*.{ts,mts}",
         "package*.json",
         "../../.github/**"
       ],

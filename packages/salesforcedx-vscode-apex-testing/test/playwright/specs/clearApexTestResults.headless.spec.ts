@@ -8,6 +8,9 @@
 import { expect } from '@playwright/test';
 
 import {
+  TEST_EXPLORER_PANEL,
+  clearFilter,
+  focusAndTypeInFilter,
   clearOutputChannel,
   createAndDeployApexTestClass,
   ensureOutputPanelOpen,
@@ -27,9 +30,6 @@ import { isContainer, sharedTest as test } from '../fixtures';
 import { TEST_RUN_TIMEOUT } from '../constants';
 import {
   STALE_AUTOCOMPLETE_OPTION,
-  TEST_EXPLORER_PANEL,
-  clearFilter,
-  focusAndTypeInFilter,
   openTestExplorerAndDiscover,
   refreshTestsAndWaitForRebuild,
   runAllTestsAndWaitForCompletion

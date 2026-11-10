@@ -4,6 +4,12 @@ Custom ESLint rules for Salesforce VSCode extensions.
 
 ## Rules
 
+### no-option-tag
+
+Reports direct `_tag` reads on Effect Options, including computed properties and destructuring. Uses TypeScript declarations to distinguish Effect Options from unrelated tagged unions, including unions with the same `Some`/`None` tags. Requires type information.
+
+Use `Option.isNone` or `Option.isSome` for case checks, and `Option.match` when handling both cases. Enabled as an error in `eslint.config.mjs`.
+
 ### no-schema-is-throw-guard
 
 Reports `if (!Schema.is(Id)(value)) { throw ... }` and success checks with a throwing `else`, including checks of an unchanged boolean initialized from `Schema.is(Id)(value)`. Ordinary predicates, filters, and non-throwing branches remain allowed. Like other AST-only Effect rules, it matches the `Schema` identifier.
