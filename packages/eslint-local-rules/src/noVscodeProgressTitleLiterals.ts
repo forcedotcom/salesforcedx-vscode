@@ -15,13 +15,12 @@ import {
   isVscodeWindowMethodCall
 } from './astUtils';
 
-/** Check if this is a promptService.withProgress(title) call (title as first arg, not in options object) */
+/** Check the title in PromptService's progress operators. */
 const isPromptServiceWithProgressCall = (node: TSESTree.CallExpression): boolean =>
   node.callee.type === AST_NODE_TYPES.MemberExpression &&
   node.callee.property.type === AST_NODE_TYPES.Identifier &&
-  node.callee.property.name === 'withProgress' &&
-  !isVscodeWindowMethodCall(node, 'withProgress') &&
-  node.arguments[0]?.type !== AST_NODE_TYPES.ObjectExpression;
+  ['withProgress', 'withProgressReporting'].includes(node.callee.property.name) &&
+  !isVscodeWindowMethodCall(node, 'withProgress');
 
 export const noVscodeProgressTitleLiterals = RuleCreator.withoutDocs({
   meta: {
@@ -63,8 +62,12 @@ export const noVscodeProgressTitleLiterals = RuleCreator.withoutDocs({
       }
 
       if (isPromptServiceWithProgressCall(node)) {
-        const titleArg = node.arguments[0];
-        if (!titleArg) return;
+        const optionsArg = node.arguments[0];
+        const titleArg =
+          optionsArg?.type === AST_NODE_TYPES.ObjectExpression
+            ? findObjectProperty(optionsArg, 'title')?.value
+            : undefined;
+        if (!titleArg || titleArg.type === AST_NODE_TYPES.AssignmentPattern) return;
 
         if (isStringLiteralOrTemplateWithoutNls(titleArg as TSESTree.Expression)) {
           context.report({ node: titleArg, messageId: 'noLiteral' });

@@ -57,10 +57,10 @@ const buildServices = (opts: Services) => ({
     considerUndefinedAsCancellation: <T>(value: T | undefined) =>
       value === undefined ? Effect.fail(new UserCancellationError({})) : Effect.succeed(value),
     // identity: run the wrapped effect directly (no real vscode progress in Vitest)
-    withCancellableProgress:
+    withProgress:
       () =>
-      <A, E, R>(self: Effect.Effect<A, E, R>) =>
-        self
+      <A, E, R>(work: Effect.Effect<A, E, R>) =>
+        work
   }),
   TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
   ChannelService: Effect.succeed({
