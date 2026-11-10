@@ -30,7 +30,7 @@ runs:
           exit 0
         fi
 
-        IS_HOTFIX=$(jq -r '.isHotfix' release-metadata.json 2>/dev/null)
+        IS_HOTFIX=$(jq -r '.isHotfix' release-metadata.json 2>/dev/null) || IS_HOTFIX="invalid"
         if [ "$IS_HOTFIX" != "true" ] && [ "$IS_HOTFIX" != "false" ]; then
           echo "::warning::release-metadata.json on $RELEASE_TAG is missing/invalid isHotfix -- forcing verification (fail-safe)"
           echo "is-hotfix=true" >> "$GITHUB_OUTPUT"
