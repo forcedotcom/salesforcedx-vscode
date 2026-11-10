@@ -42,7 +42,7 @@ const makeTraceFlagRow = (id: string, tracedEntityId: string): TraceFlagRow => (
   LogType: 'DEVELOPER_LOG',
   StartDate: new Date().toISOString(),
   ExpirationDate: farFuture(),
-  DebugLevelId: 'dl1',
+  DebugLevelId: '7dl000000000001',
   TracedEntityId: tracedEntityId
 });
 
@@ -136,7 +136,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
   it('queries name lookups on first call, skips them on second call (warm cache)', async () => {
     const u1 = '005000000000001';
     const c1 = '01p000000000001';
-    const rows = [makeTraceFlagRow('7tf1', u1), makeTraceFlagRow('7tf2', c1)];
+    const rows = [makeTraceFlagRow('7tf000000000001', u1), makeTraceFlagRow('7tf000000000002', c1)];
     const { layer, toolingSpy, querySpy } = buildMockConnectionLayer({
       traceFlagRowsBySequence: [rows, rows],
       toolingNameRowsBySoql: new Map([[apexClassIdInClause([c1]), [{ Id: c1, Name: 'MyClass' }]]]),
@@ -154,9 +154,9 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
       layer
     );
 
-    expect(result.first.find(f => f.id === '7tf1')?.tracedEntityName).toBe('Alice');
-    expect(result.first.find(f => f.id === '7tf2')?.tracedEntityName).toBe('MyClass');
-    expect(result.second.find(f => f.id === '7tf1')?.tracedEntityName).toBe('Alice');
+    expect(result.first.find(f => f.id === '7tf000000000001')?.tracedEntityName).toBe('Alice');
+    expect(result.first.find(f => f.id === '7tf000000000002')?.tracedEntityName).toBe('MyClass');
+    expect(result.second.find(f => f.id === '7tf000000000001')?.tracedEntityName).toBe('Alice');
 
     const userQueries = querySpy.mock.calls.filter(c => c[0].includes('FROM User'));
     const classQueries = toolingSpy.mock.calls.filter(c => c[0].includes('FROM ApexClass'));
@@ -168,8 +168,8 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
     const u1 = '005000000000001';
     const c1 = '01p000000000001';
     const c2 = '01p000000000002';
-    const firstRows = [makeTraceFlagRow('7tf1', u1), makeTraceFlagRow('7tf2', c1)];
-    const secondRows = [...firstRows, makeTraceFlagRow('7tf3', c2)];
+    const firstRows = [makeTraceFlagRow('7tf000000000001', u1), makeTraceFlagRow('7tf000000000002', c1)];
+    const secondRows = [...firstRows, makeTraceFlagRow('7tf000000000003', c2)];
     const { layer, toolingSpy, querySpy } = buildMockConnectionLayer({
       traceFlagRowsBySequence: [firstRows, secondRows],
       toolingNameRowsBySoql: new Map([
@@ -189,7 +189,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
       layer
     );
 
-    expect(result.find(f => f.id === '7tf3')?.tracedEntityName).toBe('OtherClass');
+    expect(result.find(f => f.id === '7tf000000000003')?.tracedEntityName).toBe('OtherClass');
     const classCalls = toolingSpy.mock.calls.filter(c => c[0].includes('FROM ApexClass')).map(c => c[0]);
     expect(classCalls).toEqual([apexClassIdInClause([c1]), apexClassIdInClause([c2])]);
     expect(querySpy.mock.calls.filter(c => c[0].includes('FROM User'))).toHaveLength(1);
@@ -198,7 +198,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
   it('does not cache misses — re-queries an ID whose Name was never returned', async () => {
     const u1 = '005000000000001';
     const u2 = '005000000000002';
-    const rows = [makeTraceFlagRow('7tf1', u1), makeTraceFlagRow('7tf2', u2)];
+    const rows = [makeTraceFlagRow('7tf000000000001', u1), makeTraceFlagRow('7tf000000000002', u2)];
     const { layer, querySpy } = buildMockConnectionLayer({
       traceFlagRowsBySequence: [rows, rows],
       toolingNameRowsBySoql: new Map(),
@@ -223,7 +223,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
 
   it('invalidates the cache when default org changes', async () => {
     const u1 = '005000000000001';
-    const rows = [makeTraceFlagRow('7tf1', u1)];
+    const rows = [makeTraceFlagRow('7tf000000000001', u1)];
     const { layer, querySpy } = buildMockConnectionLayer({
       traceFlagRowsBySequence: [rows, rows],
       toolingNameRowsBySoql: new Map(),
@@ -248,7 +248,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
 
   it('does not invalidate the cache when a non-identity field (alias) changes on same org', async () => {
     const u1 = '005000000000001';
-    const rows = [makeTraceFlagRow('7tf1', u1)];
+    const rows = [makeTraceFlagRow('7tf000000000001', u1)];
     const { layer, querySpy } = buildMockConnectionLayer({
       traceFlagRowsBySequence: [rows, rows],
       toolingNameRowsBySoql: new Map(),
@@ -272,7 +272,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
 
   it('skips name resolution for unknown ID prefixes', async () => {
     const unknown = '999000000000001';
-    const rows = [makeTraceFlagRow('7tf1', unknown)];
+    const rows = [makeTraceFlagRow('7tf000000000001', unknown)];
     const { layer, toolingSpy, querySpy } = buildMockConnectionLayer({
       traceFlagRowsBySequence: [rows],
       toolingNameRowsBySoql: new Map(),
@@ -288,7 +288,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
       layer
     );
 
-    expect(result.find(f => f.id === '7tf1')?.tracedEntityName).toBeUndefined();
+    expect(result.find(f => f.id === '7tf000000000001')?.tracedEntityName).toBeUndefined();
     expect(toolingSpy.mock.calls.filter(c => !c[0].includes('FROM TraceFlag'))).toHaveLength(0);
     expect(querySpy).not.toHaveBeenCalled();
   });
@@ -297,7 +297,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
     const u1 = '005000000000001';
     const rows: TraceFlagRow[] = [
       {
-        ...makeTraceFlagRow('7tf1', u1),
+        ...makeTraceFlagRow('7tf000000000001', u1),
         DebugLevel: { DeveloperName: 'SFDC_DevConsole' }
       }
     ];
@@ -316,13 +316,13 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
       layer
     );
 
-    expect(result.find(f => f.id === '7tf1')?.debugLevelName).toBe('SFDC_DevConsole');
+    expect(result.find(f => f.id === '7tf000000000001')?.debugLevelName).toBe('SFDC_DevConsole');
   });
 
   it('leaves debugLevelName undefined when the DebugLevel relationship is absent (orphaned)', async () => {
     const u1 = '005000000000001';
     // DebugLevelId set, but the relationship row is missing — orphaned debug level
-    const rows: TraceFlagRow[] = [makeTraceFlagRow('7tf1', u1)];
+    const rows: TraceFlagRow[] = [makeTraceFlagRow('7tf000000000001', u1)];
     const { layer } = buildMockConnectionLayer({
       traceFlagRowsBySequence: [rows],
       toolingNameRowsBySoql: new Map(),
@@ -338,14 +338,14 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
       layer
     );
 
-    const flag = result.find(f => f.id === '7tf1');
-    expect(flag?.debugLevelId).toBe('dl1');
+    const flag = result.find(f => f.id === '7tf000000000001');
+    expect(flag?.debugLevelId).toBe('7dl000000000001');
     expect(flag?.debugLevelName).toBeUndefined();
   });
 
   it('queries ApexTrigger names with the 01q prefix branch', async () => {
     const t1 = '01q000000000001';
-    const rows = [makeTraceFlagRow('7tf1', t1)];
+    const rows = [makeTraceFlagRow('7tf000000000001', t1)];
     const { layer, toolingSpy } = buildMockConnectionLayer({
       traceFlagRowsBySequence: [rows],
       toolingNameRowsBySoql: new Map([[apexTriggerIdInClause([t1]), [{ Id: t1, Name: 'MyTrigger' }]]]),
@@ -361,7 +361,7 @@ describe('TraceFlagService.getTraceFlags id->name cache', () => {
       layer
     );
 
-    expect(result.find(f => f.id === '7tf1')?.tracedEntityName).toBe('MyTrigger');
+    expect(result.find(f => f.id === '7tf000000000001')?.tracedEntityName).toBe('MyTrigger');
     expect(toolingSpy.mock.calls.filter(c => c[0].includes('FROM ApexTrigger'))).toHaveLength(1);
   });
 });
@@ -391,7 +391,7 @@ describe('TraceFlagService.getTraceFlagForUser', () => {
   });
 
   it('returns Option.some with the decoded item when a record exists', async () => {
-    const row = makeTraceFlagRow('7tf1', '005000000000001');
+    const row = makeTraceFlagRow('7tf000000000001', '005000000000001');
     const { layer } = buildMockConnectionLayer({
       traceFlagRowsBySequence: [[row]],
       toolingNameRowsBySoql: new Map(),
@@ -408,8 +408,8 @@ describe('TraceFlagService.getTraceFlagForUser', () => {
     );
 
     const item = Option.getOrElse(result, () => undefined);
-    expect(item?.id).toBe('7tf1');
-    expect(item?.debugLevelId).toBe('dl1');
+    expect(item?.id).toBe('7tf000000000001');
+    expect(item?.debugLevelId).toBe('7dl000000000001');
   });
 });
 
@@ -422,7 +422,7 @@ const buildGetOrCreateLayer = (opts: {
     records: opts.debugLevelRows,
     totalSize: opts.debugLevelRows.length
   }));
-  const createSpy: CreateSpy = vi.fn(async (_type, _payload) => ({ success: true, id: 'dl-created' }));
+  const createSpy: CreateSpy = vi.fn(async (_type, _payload) => ({ success: true, id: '7dl000000000002', errors: [] }));
   const layer = withQueryService(
     buildConnectionServiceLayer({ tooling: { query: querySpy, create: createSpy } }),
     querySpy,
@@ -437,7 +437,7 @@ describe('TraceFlagService.getOrCreateDebugLevel', () => {
   });
 
   it('returns the existing debug level id without creating one', async () => {
-    const { layer, createSpy } = buildGetOrCreateLayer({ debugLevelRows: [{ Id: 'dl-existing' }] });
+    const { layer, createSpy } = buildGetOrCreateLayer({ debugLevelRows: [{ Id: '7dl000000000003' }] });
 
     const id = await runScoped(
       Effect.gen(function* () {
@@ -447,7 +447,7 @@ describe('TraceFlagService.getOrCreateDebugLevel', () => {
       layer
     );
 
-    expect(id).toBe('dl-existing');
+    expect(id).toBe('7dl000000000003');
     expect(createSpy).not.toHaveBeenCalled();
   });
 
@@ -462,7 +462,7 @@ describe('TraceFlagService.getOrCreateDebugLevel', () => {
       layer
     );
 
-    expect(id).toBe('dl-created');
+    expect(id).toBe('7dl000000000002');
     expect(createSpy).toHaveBeenCalledWith(
       'DebugLevel',
       expect.objectContaining({ DeveloperName: 'ReplayDebuggerLevels' })
@@ -470,15 +470,18 @@ describe('TraceFlagService.getOrCreateDebugLevel', () => {
   });
 });
 
-type CreateSpy = VitestMock<(type: string, record: unknown) => Promise<{ success: boolean; id?: string }>>;
-type DeleteSpy = VitestMock<(type: string, id: string) => Promise<{ success: boolean }>>;
+type CreateSpy = VitestMock<
+  (type: string, record: unknown) => Promise<{ success: boolean; id?: string; errors: unknown[] }>
+>;
+type DeleteSpy = VitestMock<(type: string, id: string) => Promise<{ success: boolean; id: string; errors: unknown[] }>>;
 
 const buildToolingMutationLayer = (opts: {
   create?: CreateSpy;
   delete?: DeleteSpy;
 }): { layer: Layer.Layer<ConnectionService | QueryService>; createSpy: CreateSpy; deleteSpy: DeleteSpy } => {
-  const createSpy: CreateSpy = opts.create ?? vi.fn(async (_type, _payload) => ({ success: true, id: 'dl-new' }));
-  const deleteSpy: DeleteSpy = opts.delete ?? vi.fn(async (_type, _id) => ({ success: true }));
+  const createSpy: CreateSpy =
+    opts.create ?? vi.fn(async (_type, _payload) => ({ success: true, id: '7dl000000000004', errors: [] }));
+  const deleteSpy: DeleteSpy = opts.delete ?? vi.fn(async (_type, id) => ({ success: true, id, errors: [] }));
   const querySpy: QuerySpy = vi.fn(async () => ({ records: [], totalSize: 0 }));
   const layer = withQueryService(
     buildConnectionServiceLayer({ tooling: { create: createSpy, delete: deleteSpy } }),
@@ -495,7 +498,7 @@ describe('TraceFlagService.createDebugLevel', () => {
 
   it('returns the created id and forwards the payload to tooling.create', async () => {
     const { layer, createSpy } = buildToolingMutationLayer({
-      create: vi.fn(async (_type, _payload) => ({ success: true, id: 'dl-123' }))
+      create: vi.fn(async (_type, _payload) => ({ success: true, id: '7dl000000000005', errors: [] }))
     });
     const payload = {
       DeveloperName: 'Custom',
@@ -520,13 +523,13 @@ describe('TraceFlagService.createDebugLevel', () => {
       layer
     );
 
-    expect(id).toBe('dl-123');
+    expect(id).toBe('7dl000000000005');
     expect(createSpy).toHaveBeenCalledWith('DebugLevel', payload);
   });
 
   it('fails with DebugLevelCreateError when create returns no id', async () => {
     const { layer } = buildToolingMutationLayer({
-      create: vi.fn(async (_type, _payload) => ({ success: true }))
+      create: vi.fn(async (_type, _payload) => ({ success: true, errors: [] }))
     });
 
     const exit = await Effect.gen(function* () {
@@ -600,12 +603,12 @@ describe('TraceFlagService.deleteDebugLevel', () => {
     await runScoped(
       Effect.gen(function* () {
         const svc = yield* TraceFlagService;
-        yield* svc.deleteDebugLevel('dl-9');
+        yield* svc.deleteDebugLevel('7dl000000000006');
       }),
       layer
     );
 
-    expect(deleteSpy).toHaveBeenCalledWith('DebugLevel', 'dl-9');
+    expect(deleteSpy).toHaveBeenCalledWith('DebugLevel', '7dl000000000006');
   });
 
   it('fails with DebugLevelDeleteError when tooling.delete rejects', async () => {
@@ -617,7 +620,7 @@ describe('TraceFlagService.deleteDebugLevel', () => {
 
     const exit = await Effect.gen(function* () {
       const svc = yield* TraceFlagService;
-      yield* svc.deleteDebugLevel('dl-9');
+      yield* svc.deleteDebugLevel('7dl000000000006');
     }).pipe(
       Effect.scoped,
       Effect.provide(layer),

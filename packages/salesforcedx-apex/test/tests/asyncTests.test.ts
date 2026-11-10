@@ -118,37 +118,32 @@ describe('Run Apex tests asynchronously', () => {
 
     toolingRequestStub.withArgs(testAsyncRequest).returns(testRunId);
 
-    $$.SANDBOX.stub(mockConnection.tooling, 'query').resolves({
-      done: true,
-      totalSize: 1,
-      records: [
-        {
-          Id: '07Mxx00000F2Xx6UAF',
-          AsyncApexJobId: testRunId,
-          Status: 'Completed',
-          StartTime: testStartTime,
-          TestTime: 1000,
-          UserId: '005xx000000abcDAAU',
-          ClassesCompleted: 1,
-          ClassesEnqueued: 1,
-          MethodsEnqueued: 1,
-          QueueItemId: '7092M000000Vt94QAC',
-          StackTrace: null,
-          Message: null,
-          MethodName: 'testLoggerLog',
-          Outcome: 'Pass',
-          ApexLogId: null,
-          ApexClass: {
-            Id: '01pxx00000O6tXZQAZ',
-            Name: 'TestLogger',
-            NamespacePrefix: 't3st',
-            FullName: 't3st__TestLogger'
-          },
-          RunTime: 8,
-          TestTimestamp: '3'
-        }
-      ]
-    });
+    $$.SANDBOX.stub(mockConnection.tooling, 'query')
+      .onFirstCall()
+      .resolves({
+        done: true,
+        totalSize: 1,
+        records: [
+          {
+            Status: 'Completed',
+            ClassesCompleted: 1,
+            ClassesEnqueued: 1
+          }
+        ]
+      })
+      .onSecondCall()
+      .resolves({
+        done: true,
+        totalSize: 1,
+        records: [
+          {
+            Id: '709000000000001',
+            Status: 'Completed',
+            ApexClassId: '01p000000000001',
+            TestRunResultId: '05m000000000001'
+          }
+        ]
+      });
 
     const testSrv = new TestService(mockConnection);
     const mockTestResultData = $$.SANDBOX.stub(AsyncTests.prototype, 'formatAsyncResults').resolves(testResultData);
@@ -923,16 +918,7 @@ describe('Run Apex tests asynchronously', () => {
     it('should format single query correctly', async () => {
       const mockToolingQuery = $$.SANDBOX.stub(mockConnection.tooling, 'query');
       const id = '7092M000000Vt94QAC';
-      mockToolingQuery.onFirstCall().resolves({
-        done: true,
-        totalSize: 1,
-        records: [
-          {
-            ApexClassId: 'xxxx'
-          }
-        ]
-      });
-      mockToolingQuery.onSecondCall().resolves({
+      mockToolingQuery.resolves({
         done: true,
         totalSize: 1,
         records: [
@@ -1205,8 +1191,8 @@ describe('Run Apex tests asynchronously', () => {
           records: [
             {
               Status: 'Completed',
-              Id: 'xxx',
-              ApexClassId: 'xxxx',
+              Id: '709000000000001',
+              ApexClassId: '01p000000000001',
               TestRunResultId: 'xxx'
             }
           ]
@@ -1243,8 +1229,8 @@ describe('Run Apex tests asynchronously', () => {
           records: [
             {
               Status: 'Completed',
-              Id: 'xxx',
-              ApexClassId: 'xxxx',
+              Id: '709000000000001',
+              ApexClassId: '01p000000000001',
               TestRunResultId: 'xxx'
             }
           ]
@@ -1281,8 +1267,8 @@ describe('Run Apex tests asynchronously', () => {
           records: [
             {
               Status: 'Completed',
-              Id: 'xxx',
-              ApexClassId: 'xxxx',
+              Id: '709000000000001',
+              ApexClassId: '01p000000000001',
               TestRunResultId: 'xxx'
             }
           ]
@@ -1525,19 +1511,19 @@ describe('Run Apex tests asynchronously', () => {
         totalSize: 3,
         records: [
           {
-            Id: 'apex1',
+            Id: '709000000000001',
             ApexClassId: '01p000000000001',
             Status: 'Completed',
             TestRunResultId: 'result1'
           } as ApexTestQueueItemRecord,
           {
-            Id: 'flow1',
+            Id: '709000000000002',
             ApexClassId: null,
             Status: 'Completed',
             TestRunResultId: 'result2'
           } as ApexTestQueueItemRecord,
           {
-            Id: 'apex2',
+            Id: '709000000000003',
             ApexClassId: '01p000000000002',
             Status: 'Completed',
             TestRunResultId: 'result3'
@@ -1551,13 +1537,13 @@ describe('Run Apex tests asynchronously', () => {
         totalSize: 2,
         records: [
           {
-            Id: 'apexResult1',
-            QueueItemId: 'apex1',
+            Id: '07M000000000001',
+            QueueItemId: '709000000000001',
             StackTrace: null as string | null,
             Message: null as string | null,
             RunTime: 100,
             TestTimestamp: '2023-01-01T10:00:00.000Z',
-            AsyncApexJobId: 'job1',
+            AsyncApexJobId: '707000000000001',
             MethodName: 'testMethod1',
             Outcome: 'Pass',
             ApexLogId: null as string | null,
@@ -1568,13 +1554,13 @@ describe('Run Apex tests asynchronously', () => {
             }
           },
           {
-            Id: 'apexResult2',
-            QueueItemId: 'apex2',
+            Id: '07M000000000002',
+            QueueItemId: '709000000000003',
             StackTrace: null as string | null,
             Message: null as string | null,
             RunTime: 150,
             TestTimestamp: '2023-01-01T10:00:00.000Z',
-            AsyncApexJobId: 'job1',
+            AsyncApexJobId: '707000000000001',
             MethodName: 'testMethod2',
             Outcome: 'Pass',
             ApexLogId: null as string | null,
@@ -1593,8 +1579,8 @@ describe('Run Apex tests asynchronously', () => {
         totalSize: 1,
         records: [
           {
-            Id: 'flowResult1',
-            ApexTestQueueItemId: 'flow1',
+            Id: '2hU000000000001',
+            ApexTestQueueItemId: '709000000000002',
             Result: 'Pass',
             TestStartDateTime: '2023-01-01T10:00:00.000Z',
             TestEndDateTime: '2023-01-01T10:00:05.000Z',
@@ -1630,18 +1616,18 @@ describe('Run Apex tests asynchronously', () => {
       expect(apexQuery).toBeDefined();
       expect(apexQuery!.args[0]).toContain('FROM ApexTestResult');
       expect(apexQuery!.args[0]).toContain('WHERE QueueItemId IN');
-      expect(apexQuery!.args[0]).toContain("'apex1'");
-      expect(apexQuery!.args[0]).toContain("'apex2'");
-      expect(apexQuery!.args[0]).not.toContain("'flow1'"); // Flow test should not be in Apex query
+      expect(apexQuery!.args[0]).toContain("'709000000000001'");
+      expect(apexQuery!.args[0]).toContain("'709000000000003'");
+      expect(apexQuery!.args[0]).not.toContain("'709000000000002'"); // Flow test should not be in Apex query
 
       // Verify FlowTestResult query was called correctly
       const flowQuery = mockToolingQuery.getCalls().find(call => call.args[0].includes('FlowTestResult'));
       expect(flowQuery).toBeDefined();
       expect(flowQuery!.args[0]).toContain('FROM FlowTestResult');
       expect(flowQuery!.args[0]).toContain('WHERE ApexTestQueueItemId IN');
-      expect(flowQuery!.args[0]).toContain("'flow1'");
-      expect(flowQuery!.args[0]).not.toContain("'apex1'"); // Apex tests should not be in Flow query
-      expect(flowQuery!.args[0]).not.toContain("'apex2'"); // Apex tests should not be in Flow query
+      expect(flowQuery!.args[0]).toContain("'709000000000002'");
+      expect(flowQuery!.args[0]).not.toContain("'709000000000001'"); // Apex tests should not be in Flow query
+      expect(flowQuery!.args[0]).not.toContain("'709000000000003'"); // Apex tests should not be in Flow query
 
       // Verify results structure and categories
       expect(results).toHaveLength(2);

@@ -46,6 +46,8 @@ try {
     globalThis.apexEffectApi = {
       ...apexEffectApi,
       run: (connection, options) => apexEffectApi.runTestSynchronous(connection, options).pipe(Effect.either, Effect.runPromise),
+      runTooling: (operation, ...args) => apexEffectApi[operation](...args).pipe(Effect.either, Effect.runPromise),
+      notify: callback => Effect.sync(callback),
       decodeSyncResult: Schema.decodeUnknownSync(apexEffectApi.SyncTestResultSchema, { onExcessProperty: 'error' }),
       decodeResult: Schema.decodeUnknownSync(apexEffectApi.TestResultSchema)
     };
@@ -157,6 +159,163 @@ try {
   assert.equal(rejected.left.message, 'Request rejected');
   const invalidOptions = await api.run(connection, { tests: [{ className: 123 }] });
   assert.equal(invalidOptions.left._tag, 'ApexOperationError');
+
+  // The trace-flag API must work in the same browser without host caches, services, or PubSub.
+  const writes = [];
+  let flags = [];
+  let levels = [];
+  const toolingConnection = {
+    tooling: {
+      query: async soql => {
+        const records = soql.includes('FROM TraceFlag') ? flags : levels;
+        return { done: true, totalSize: records.length, records };
+      },
+      create: async (type, payload) => {
+        writes.push(['create', type, payload]);
+        return { success: true, id: type === 'DebugLevel' ? '7dl000000000001' : '7tf000000000001', errors: [] };
+      },
+      update: async (type, payload) => {
+        writes.push(['update', type, payload]);
+        return { success: true, id: payload.Id, errors: [] };
+      },
+      delete: async (type, id) => {
+        writes.push(['delete', type, id]);
+        return { success: true, id, errors: [] };
+      }
+    }
+  };
+  const runTooling = async (operation, ...args) => {
+    const result = await api.runTooling(operation, toolingConnection, ...args);
+    assert.equal(result._tag, 'Right', result.left?.message);
+    return result.right;
+  };
+  const payload = { DeveloperName: 'CallerLevel', MasterLabel: 'Caller Level', ApexCode: 'DEBUG' };
+  assert.equal(await runTooling('getOrCreateDebugLevel', payload), '7dl000000000001');
+  assert.deepEqual(JSON.parse(JSON.stringify(writes.pop())), ['create', 'DebugLevel', payload]);
+  levels = [{ Id: '7dl000000000002' }];
+  assert.equal(await runTooling('getOrCreateDebugLevel', payload), '7dl000000000002');
+  assert.equal(writes.length, 0);
+
+  let queriedSoql;
+  const query = toolingConnection.tooling.query;
+  toolingConnection.tooling.query = async soql => {
+    queriedSoql = soql;
+    return query(soql);
+  };
+  await runTooling('findDebugLevel', "a'\\b");
+  assert.ok(queriedSoql.includes("DeveloperName = 'a\\'\\\\b'"));
+  await runTooling('getTraceFlagForUser', '005000000000001', 'USER_DEBUG', 'CreatedDate');
+  assert.ok(queriedSoql.includes("LogType='USER_DEBUG'"));
+  assert.ok(queriedSoql.includes('ORDER BY CreatedDate DESC LIMIT 1'));
+
+  const created = await runTooling('ensureTraceFlag', '005000000000001', '7dl000000000003', {
+    duration: '30 minutes',
+    logType: 'USER_DEBUG'
+  });
+  assert.equal(created.created, true);
+  assert.equal(created.traceFlagId, '7tf000000000001');
+  assert.equal(writes.length, 1);
+  assert.equal(writes[0][2].DebugLevelId, '7dl000000000003');
+  assert.equal(writes[0][2].LogType, 'USER_DEBUG');
+  writes.length = 0;
+
+  const later = new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString();
+  let notifications = 0;
+  const onMutation = () =>
+    api.notify(() => {
+      notifications += 1;
+    });
+  flags = [{ Id: '7tf000000000002', DebugLevelId: '7dl000000000003', ExpirationDate: later }];
+  const unchanged = await runTooling('ensureTraceFlag', '005000000000001', '7dl000000000003', { onMutation });
+  assert.equal(unchanged.created, false);
+  assert.equal(writes.length, 0);
+  assert.equal(notifications, 0);
+  await runTooling('ensureTraceFlag', '005000000000001', '7dl000000000004');
+  assert.deepEqual(JSON.parse(JSON.stringify(writes.pop())), [
+    'update',
+    'TraceFlag',
+    { Id: '7tf000000000002', DebugLevelId: '7dl000000000004' }
+  ]);
+  await runTooling('extendTraceFlag', flags[0]);
+  assert.equal(writes.pop()[2].ExpirationDate, later);
+
+  flags = [{ ...flags[0], ExpirationDate: new Date(Date.now() + 60_000).toISOString() }];
+  await runTooling('ensureTraceFlag', '005000000000001', '7dl000000000003', { onMutation });
+  const extended = writes.pop()[2];
+  assert.ok(new Date(extended.ExpirationDate).getTime() > Date.now() + 29 * 60_000);
+  flags = [{ ...flags[0], ExpirationDate: new Date(Date.now() - 60_000).toISOString() }];
+  await runTooling('ensureTraceFlag', '005000000000001', '7dl000000000003', { onMutation });
+  assert.deepEqual(
+    writes.map(([operation]) => operation),
+    ['delete', 'create']
+  );
+  assert.equal(notifications, 3);
+  writes.length = 0;
+  const create = toolingConnection.tooling.create;
+  toolingConnection.tooling.create = async () => ({ success: false, errors: [{ message: 'create failed' }] });
+  const failedEnsure = await api.runTooling(
+    'ensureTraceFlag',
+    toolingConnection,
+    '005000000000001',
+    '7dl000000000003',
+    {
+      onMutation
+    }
+  );
+  assert.equal(failedEnsure.left._tag, 'ApexToolingMutationError');
+  assert.equal(notifications, 4); // The successful delete still notified before the failed create.
+  toolingConnection.tooling.create = create;
+  writes.length = 0;
+  // CLI's renewal helper intentionally updates an expired flag in place.
+  await runTooling('extendTraceFlag', flags[0]);
+  assert.deepEqual(
+    writes.map(([operation]) => operation),
+    ['update']
+  );
+  writes.length = 0;
+
+  const toolingRecord = { Id: '7tf000000000002', LogType: 'USER_DEBUG', ExpirationDate: later };
+  toolingConnection.tooling.query = async () => ({
+    records: [toolingRecord],
+    totalSize: 2,
+    done: false,
+    nextRecordsUrl: '/next'
+  });
+  toolingConnection.tooling.queryMore = async url => {
+    assert.equal(url, '/next');
+    return { records: [{ ...toolingRecord, Id: '7tf000000000003' }], totalSize: 2, done: true };
+  };
+  assert.equal((await runTooling('getTraceFlags')).length, 2);
+  toolingConnection.tooling.query = async () => ({
+    totalSize: 1,
+    records: [{ Id: '7dl000000000005', DeveloperName: 'Level', MasterLabel: 'Level', Language: null, ApexCode: null }]
+  });
+  assert.equal((await runTooling('getDebugLevels'))[0].ApexCode, 'NONE');
+
+  for (const [operation, method, args] of [
+    ['createDebugLevel', 'create', [payload]],
+    ['updateDebugLevel', 'update', ['7dl000000000005', { ApexCode: 'FINEST' }]],
+    ['deleteDebugLevel', 'delete', ['7dl000000000005']],
+    ['createTraceFlag', 'create', ['005000000000001', '7dl000000000005']],
+    ['updateTraceFlag', 'update', ['7tf000000000002']],
+    ['deleteTraceFlag', 'delete', ['7tf000000000002']],
+    ['changeTraceFlagDebugLevel', 'update', ['7tf000000000002', '7dl000000000005']]
+  ]) {
+    const original = toolingConnection.tooling[method];
+    toolingConnection.tooling[method] = async () => ({ success: false, errors: ['denied'] });
+    assert.equal((await api.runTooling(operation, toolingConnection, ...args)).left._tag, 'ApexToolingMutationError');
+    toolingConnection.tooling[method] = async () => ({ success: true, errors: [] });
+    if (method === 'create') {
+      assert.equal((await api.runTooling(operation, toolingConnection, ...args)).left._tag, 'ApexResponseDecodeError');
+    }
+    toolingConnection.tooling[method] = async () => ({ unexpected: true });
+    assert.equal((await api.runTooling(operation, toolingConnection, ...args)).left._tag, 'ApexResponseDecodeError');
+    toolingConnection.tooling[method] = async () => {
+      throw new Error('denied');
+    };
+    assert.equal((await api.runTooling(operation, toolingConnection, ...args)).left._tag, 'ApexOperationError');
+    toolingConnection.tooling[method] = original;
+  }
 
   const fullEntry = join(consumerRoot, 'full-consumer.mjs');
   writeFileSync(

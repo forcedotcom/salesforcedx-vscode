@@ -5,31 +5,30 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import {
+  DebugLevelRecordSchema,
+  TraceFlagLogType as ApexTraceFlagLogType,
+  TraceFlagRecordSchema
+} from '@salesforce/apex-node/effect';
+import * as ParseResult from 'effect/ParseResult';
 import * as Schema from 'effect/Schema';
+
+export const TraceFlagLogType = ApexTraceFlagLogType;
+export type TraceFlagLogType = typeof TraceFlagLogType.Type;
 
 /** Pass-through for optional date strings; null/empty/whitespace → undefined so Date parse won't fail */
 const dateStringOrUndefined = (s: string | null | undefined): string | undefined => (s?.trim() ? s : undefined);
 
-/** TraceFlag.LogType enum per Tooling API — https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/tooling_api_objects_traceflag.htm */
-export const TraceFlagLogType = Schema.Literal('USER_DEBUG', 'DEVELOPER_LOG', 'CLASS_TRACING');
-export type TraceFlagLogType = Schema.Schema.Type<typeof TraceFlagLogType>;
-
-/** Nested DebugLevel relationship from the TraceFlag query (DebugLevel.DeveloperName). Absent when the trace flag references a missing/inaccessible DebugLevel. */
-const ToolingTraceFlagDebugLevel = Schema.Struct({
-  DeveloperName: Schema.optionalWith(Schema.String, { nullable: true })
-});
-
 /** Tooling API record shape from TraceFlag query. TracedEntityName is injected by getTraceFlags when resolving entity names. */
-export const ToolingTraceFlagRecordSchema = Schema.Struct({
-  Id: Schema.String,
-  LogType: TraceFlagLogType,
-  StartDate: Schema.optionalWith(Schema.String, { nullable: true }),
-  ExpirationDate: Schema.String,
-  DebugLevelId: Schema.optionalWith(Schema.String, { nullable: true }),
-  DebugLevel: Schema.optionalWith(ToolingTraceFlagDebugLevel, { nullable: true }),
-  TracedEntityId: Schema.optionalWith(Schema.String, { nullable: true }),
-  TracedEntityName: Schema.optionalWith(Schema.String, { nullable: true })
-});
+const ToolingTraceFlagRecordSchema = TraceFlagRecordSchema.pipe(
+  Schema.omit('ExpirationDate'),
+  Schema.extend(
+    Schema.Struct({
+      ExpirationDate: Schema.String,
+      TracedEntityName: Schema.optionalWith(Schema.String, { nullable: true })
+    })
+  )
+);
 
 /** Client-facing TraceFlagItem shape. Shared with consuming extensions via services API. */
 export const TraceFlagItemStruct = Schema.Struct({
@@ -45,77 +44,45 @@ export const TraceFlagItemStruct = Schema.Struct({
 });
 
 /** Transforms Tooling API TraceFlag record → client-facing TraceFlagItem */
-export const TraceFlagItemSchema = Schema.transform(ToolingTraceFlagRecordSchema, TraceFlagItemStruct, {
+export const TraceFlagItemSchema = Schema.transformOrFail(ToolingTraceFlagRecordSchema, TraceFlagItemStruct, {
   strict: true,
   // Server representation => Client representation
-  decode: rec => ({
-    id: rec.Id,
-    debugLevelId: rec.DebugLevelId,
-    debugLevelName: rec.DebugLevel?.DeveloperName,
-    tracedEntityId: rec.TracedEntityId,
-    tracedEntityName: rec.TracedEntityName,
-    logType: rec.LogType,
-    startDate: dateStringOrUndefined(rec.StartDate),
-    expirationDate: rec.ExpirationDate,
-    isActive: new Date(rec.ExpirationDate).getTime() > Date.now()
-  }),
+  decode: rec =>
+    ParseResult.succeed({
+      id: rec.Id,
+      debugLevelId: rec.DebugLevelId,
+      debugLevelName: rec.DebugLevel?.DeveloperName,
+      tracedEntityId: rec.TracedEntityId,
+      tracedEntityName: rec.TracedEntityName,
+      logType: rec.LogType,
+      startDate: dateStringOrUndefined(rec.StartDate),
+      expirationDate: rec.ExpirationDate,
+      isActive: new Date(rec.ExpirationDate).getTime() > Date.now()
+    }),
   // Client representation => Server representation
-  encode: (_toI, toA) => ({
-    Id: toA.id,
-    LogType: toA.logType,
-    ExpirationDate: toA.expirationDate.toISOString(),
-    DebugLevelId: toA.debugLevelId,
-    DebugLevel: toA.debugLevelName ? { DeveloperName: toA.debugLevelName } : undefined,
-    TracedEntityId: toA.tracedEntityId,
-    TracedEntityName: toA.tracedEntityName,
-    StartDate: toA.startDate?.toISOString()
-  })
+  encode: (_toI, _options, _ast, toA) =>
+    ParseResult.decodeUnknown(ToolingTraceFlagRecordSchema)({
+      Id: toA.id,
+      LogType: toA.logType,
+      ExpirationDate: toA.expirationDate.toISOString(),
+      DebugLevelId: toA.debugLevelId,
+      DebugLevel: toA.debugLevelName ? { DeveloperName: toA.debugLevelName } : undefined,
+      TracedEntityId: toA.tracedEntityId,
+      TracedEntityName: toA.tracedEntityName,
+      StartDate: toA.startDate?.toISOString()
+    })
 });
 
 export type TraceFlagItem = Schema.Schema.Type<typeof TraceFlagItemSchema>;
 
-/** Log category verbosity levels — shared across all DebugLevel category fields. Cumulative: selecting FINE includes all events at DEBUG, INFO, WARN, and ERROR. https://developer.salesforce.com/docs/atlas.en-us.apexcode.meta/apexcode/code_setting_debug_log_levels.htm */
-const LogCategoryLevel = Schema.Literal('NONE', 'ERROR', 'WARN', 'INFO', 'DEBUG', 'FINE', 'FINER', 'FINEST');
-
-/** null or a missing category decodes to `'NONE'`. */
-const ToolingLogCategoryLevel = Schema.optionalWith(LogCategoryLevel, {
-  nullable: true,
-  default: () => 'NONE'
-});
-
 /** Tooling API record shape from DebugLevel query — https://developer.salesforce.com/docs/atlas.en-us.api_tooling.meta/api_tooling/tooling_api_objects_debuglevel.htm */
-export const ToolingDebugLevelStruct = Schema.Struct({
-  Id: Schema.String.pipe(Schema.annotations({ description: 'Salesforce record ID of the DebugLevel.' })),
-  DeveloperName: Schema.String.pipe(Schema.annotations({ description: 'Unique API name for this debug level.' })),
-  MasterLabel: Schema.String.pipe(Schema.annotations({ description: 'User-facing label for this debug level.' })),
-  Language: Schema.NullOr(Schema.String).pipe(Schema.annotations({ description: 'Language of the MasterLabel.' })),
-  ApexCode: ToolingLogCategoryLevel.annotations({
-    description: 'Apex code execution: DML, SOQL/SOSL, triggers, and test methods.'
-  }),
-  ApexProfiling: ToolingLogCategoryLevel.annotations({
-    description: 'Cumulative profiling info: namespace limits, emails sent.'
-  }),
-  Callout: ToolingLogCategoryLevel.annotations({
-    description: 'Request-response XML from external web service and API calls.'
-  }),
-  Database: ToolingLogCategoryLevel.annotations({
-    description: 'DML statements and inline SOQL/SOSL queries.'
-  }),
-  Nba: ToolingLogCategoryLevel.annotations({
-    description: 'Einstein Next Best Action strategy execution.'
-  }),
-  System: ToolingLogCategoryLevel.annotations({
-    description: 'System method calls such as System.debug().'
-  }),
-  Validation: ToolingLogCategoryLevel.annotations({
-    description: 'Validation rule names and evaluation results.'
-  }),
-  Visualforce: ToolingLogCategoryLevel.annotations({
-    description: 'Visualforce events, view state serialization/deserialization.'
-  }),
-  Wave: ToolingLogCategoryLevel.annotations({ description: 'CRM Analytics (Wave) logging.' }),
-  Workflow: ToolingLogCategoryLevel.annotations({
-    description: 'Workflow rules, flows, and process builder actions.'
+const ToolingDebugLevelStruct = Schema.Struct({
+  ...DebugLevelRecordSchema.fields,
+  // Preserve string IDs in the Services API while validating against the shared wire schema.
+  Id: Schema.transformOrFail(DebugLevelRecordSchema.fields.Id, Schema.String, {
+    strict: true,
+    decode: ParseResult.succeed,
+    encode: ParseResult.decodeUnknown(DebugLevelRecordSchema.fields.Id)
   })
 });
 
