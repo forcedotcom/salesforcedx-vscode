@@ -122,7 +122,7 @@ describe('Effect Apex logs', () => {
     const { connection, query } = makeConnection();
     const cause = { message: 'Invalid field', errorCode: 'INVALID_FIELD', fields: ['Operation'] };
     query.mockRejectedValueOnce(cause);
-    const requestError = await Effect.runPromise(Effect.flip(listLogs(connection)));
+    const requestError = await Effect.runPromise(listLogs(connection).pipe(Effect.flip));
     if (!(requestError instanceof ApexLogQueryError)) throw requestError;
     expect(requestError.cause).toBe(cause);
     expect(requestError.soql).toContain('FROM ApexLog');

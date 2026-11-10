@@ -1,13 +1,5 @@
 name: End to End Tests
 on:
-  workflow_run:
-    workflows:
-      - Nightly Build Develop
-      - Test, Build, and Release
-      - Create and Test Beta Release Branch
-    types:
-      - completed
-
   workflow_call:
     inputs:
       vscodeVersion:

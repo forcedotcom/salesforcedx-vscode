@@ -5,8 +5,26 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+/*
+ * Covers "SFDX: Refresh SObject Definitions", which regenerates the faux Apex / typings under
+ * `.sfdx/tools/sobjects/...` from the default org's schema, for the Custom / Standard / All SObjects
+ * categories.
+ *
+ * Desktop's fixture opens with a Dreamhouse org (real custom objects) as the default. The container
+ * boots ONE minimal org (minimalTestOrg) with NO custom objects, so it uses the multi-org capability
+ * (W-23898526): switch the DEFAULT to the Dreamhouse org (DREAMHOUSE_ORG_ALIAS, CB_EXTRA_ORG_ALIASES)
+ * via the status-bar picker and RESTORE the boot org afterwards (REQUIRED) so the shared serial session
+ * is not contaminated. Everything between is shared. This is workable (unlike the source-tracking
+ * status-bar specs that hit the cross-extension-host config-watcher wall) because the refresh command
+ * re-resolves the target-org connection FRESH at command time. The container skips (never false-fails)
+ * when either org isn't authed on the host.
+ *
+ * The second test below (write-failure surfaces real error) is desktop-only — it forces an EACCES by
+ * chmod-ing the real filesystem `workspaceDir`, which has no container equivalent — so it uses the
+ * desktop fixture directly.
+ */
+
 import { type Page, expect } from '@playwright/test';
-import { dreamhouseTest as test } from '../fixtures';
 import { dreamhouseDesktopTest } from '../fixtures/desktopFixtures';
 import {
   setupConsoleMonitoring,
@@ -26,18 +44,63 @@ import {
   ensureSecondarySideBarHidden,
   selectQuickInputOption,
   isDesktop,
-  WORKBENCH
+  WORKBENCH,
+  DREAMHOUSE_ORG_ALIAS,
+  env,
+  execAsync,
+  MINIMAL_ORG_ALIAS,
+  resetContainerWorkbench,
+  saveScreenshot,
+  switchDefaultOrgViaPicker
 } from '@salesforce/playwright-vscode-ext';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 import packageNls from '../../../package.nls.json';
+import { isContainer, sharedDreamhouseTest as test } from '../fixtures';
 
 const GENERIC_ERROR = 'An error has occurred';
 
-const CUSTOM_TIMEOUT = 30_000;
-const STANDARD_TIMEOUT = 120_000;
+/** Per-refresh budget; a live describe against the org, the same for every category. */
+const REFRESH_TIMEOUT = 120_000;
 
-test.setTimeout(STANDARD_TIMEOUT + CUSTOM_TIMEOUT + 60_000);
+/** Resolve an org's username from the host CLI (the label the in-container picker shows for an unaliased org). */
+const resolveOrgUsername = async (alias: string): Promise<string | undefined> => {
+  const { stdout } = await execAsync(`sf org display -o ${alias} --json`, { env });
+  const parsed = JSON.parse(stdout) as { result?: { username?: string } };
+  return parsed.result?.username;
+};
+
+if (isContainer) {
+  // Shared, long-lived workbench: reset editor + notification state before each test rather than
+  // assuming a clean slate.
+  test.beforeEach(async ({ page }) => {
+    await resetContainerWorkbench(page);
+  });
+}
+
+// Covers the three refreshes plus setup (desktop org creation, or the container's org switch + restore).
+test.setTimeout(3 * REFRESH_TIMEOUT + 120_000);
+
+/**
+ * Bring the workbench to a Dreamhouse-authed, refresh-ready state with the Salesforce Metadata channel
+ * selected. The container's fixture already awaited the workbench, and its boot org is already authed.
+ */
+const setupRefreshReady = async (page: Page): Promise<void> => {
+  const createResult = isContainer ? undefined : await createDreamhouseOrg();
+  if (!isContainer) {
+    await waitForVSCodeWorkbench(page);
+  }
+  await closeWelcomeTabs(page);
+  await ensureSecondarySideBarHidden(page);
+  if (createResult) {
+    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+  }
+
+  await ensureOutputPanelOpen(page);
+  await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
+  // The command is gated on sf:has_target_org, so its presence confirms the extension is initialized.
+  await verifyCommandExists(page, packageNls.sobjects_refresh, 60_000);
+};
 
 const runRefreshAndVerify = async (
   page: Page,
@@ -60,52 +123,93 @@ test('Refresh SObject Definitions: Custom, Standard, All via output channel', as
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
-  await test.step('setup dreamhouse org', async () => {
-    const createResult = await createDreamhouseOrg();
-    await waitForVSCodeWorkbench(page);
-    await closeWelcomeTabs(page);
-    await ensureSecondarySideBarHidden(page);
-    await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+  let bootOrgLabel = '';
+  if (isContainer) {
+    // Boot org is unaliased in-container, so the picker/status bar show its USERNAME (resolve from host
+    // CLI); the Dreamhouse org keeps its alias in-container.
+    const bootOrgUsername = await resolveOrgUsername(MINIMAL_ORG_ALIAS).catch(() => undefined);
+    const dreamhouseAuthed = await resolveOrgUsername(DREAMHOUSE_ORG_ALIAS).catch(() => undefined);
 
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
-    await waitForOutputChannelText(page, {
-      expectedText: 'Salesforce Metadata activation complete',
-      timeout: 30_000
+    // Skip — never false-fail — when the host lacks either org, i.e. a run without the multi-org setup.
+    test.skip(
+      !bootOrgUsername || !dreamhouseAuthed,
+      `needs both "${MINIMAL_ORG_ALIAS}" (boot) and "${DREAMHOUSE_ORG_ALIAS}" (CB_EXTRA_ORG_ALIASES) authed on the host`
+    );
+    bootOrgLabel = bootOrgUsername!;
+  }
+
+  await test.step('setup', async () => {
+    await setupRefreshReady(page);
+    await saveScreenshot(page, 'refreshSObjectDefinitions.01-ready.png');
+  });
+
+  let switched = false;
+  try {
+    if (isContainer) {
+      await test.step('switch default org to the Dreamhouse org and assert it took', async () => {
+        await switchDefaultOrgViaPicker(page, {
+          fromLabel: bootOrgLabel,
+          filterText: DREAMHOUSE_ORG_ALIAS,
+          expectLabel: DREAMHOUSE_ORG_ALIAS,
+          assertListsOrg: DREAMHOUSE_ORG_ALIAS
+        });
+        switched = true;
+        await saveScreenshot(page, 'refreshSObjectDefinitions.02-switched-to-dreamhouse.png');
+      });
+    }
+
+    await test.step('Refresh SObject Definitions for Custom SObjects', async () => {
+      await runRefreshAndVerify(
+        page,
+        packageNls.sobject_refresh_custom,
+        packageNls.sobject_refresh_output_custom,
+        REFRESH_TIMEOUT
+      );
+      await saveScreenshot(page, 'refreshSObjectDefinitions.03-custom-refreshed.png');
     });
-    await verifyCommandExists(page, packageNls.sobjects_refresh, 30_000);
-  });
 
-  await test.step('Refresh SObject Definitions for Custom SObjects', async () => {
-    await runRefreshAndVerify(
-      page,
-      packageNls.sobject_refresh_custom,
-      packageNls.sobject_refresh_output_custom,
-      CUSTOM_TIMEOUT
-    );
-  });
-
-  await test.step('Refresh SObject Definitions for Standard SObjects', async () => {
-    await runRefreshAndVerify(
-      page,
-      packageNls.sobject_refresh_standard,
-      packageNls.sobject_refresh_output_standard,
-      STANDARD_TIMEOUT
-    );
-  });
-
-  await test.step('Refresh SObject Definitions for All SObjects', async () => {
-    await runRefreshAndVerify(
-      page,
-      packageNls.sobject_refresh_all,
-      packageNls.sobject_refresh_output_standard,
-      STANDARD_TIMEOUT
-    );
-    await waitForOutputChannelText(page, {
-      expectedText: packageNls.sobject_refresh_output_custom,
-      timeout: 10_000
+    await test.step('Refresh SObject Definitions for Standard SObjects', async () => {
+      await runRefreshAndVerify(
+        page,
+        packageNls.sobject_refresh_standard,
+        packageNls.sobject_refresh_output_standard,
+        REFRESH_TIMEOUT
+      );
+      await saveScreenshot(page, 'refreshSObjectDefinitions.04-standard-refreshed.png');
     });
-  });
+
+    await test.step('Refresh SObject Definitions for All SObjects', async () => {
+      await runRefreshAndVerify(
+        page,
+        packageNls.sobject_refresh_all,
+        packageNls.sobject_refresh_output_standard,
+        REFRESH_TIMEOUT
+      );
+      await waitForOutputChannelText(page, {
+        expectedText: packageNls.sobject_refresh_output_custom,
+        timeout: 10_000
+      });
+      await saveScreenshot(page, 'refreshSObjectDefinitions.05-all-refreshed.png');
+    });
+  } finally {
+    if (isContainer) {
+      // REQUIRED save/restore: this shared serial session must not be left with the Dreamhouse org as
+      // the default, or later container specs (which assume the boot org) run against the wrong org.
+      // Restore through the SAME picker UI. Defensive Escape closes any picker left open by a failed
+      // assertion.
+      await page.keyboard.press('Escape').catch(() => {});
+      if (switched) {
+        await test.step('restore the default org back to the boot org', async () => {
+          await switchDefaultOrgViaPicker(page, {
+            fromLabel: DREAMHOUSE_ORG_ALIAS,
+            filterText: bootOrgLabel,
+            expectLabel: bootOrgLabel
+          });
+          await saveScreenshot(page, 'refreshSObjectDefinitions.06-restored-boot-org.png');
+        });
+      }
+    }
+  }
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
 });
@@ -130,19 +234,7 @@ failureTest(
     const toolsDir = path.join(workspaceDir, '.sfdx', 'tools');
 
     await test.step('setup dreamhouse org', async () => {
-      const createResult = await createDreamhouseOrg();
-      await waitForVSCodeWorkbench(page);
-      await closeWelcomeTabs(page);
-      await ensureSecondarySideBarHidden(page);
-      await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-
-      await ensureOutputPanelOpen(page);
-      await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
-      await waitForOutputChannelText(page, {
-        expectedText: 'Salesforce Metadata activation complete',
-        timeout: 30_000
-      });
-      await verifyCommandExists(page, packageNls.sobjects_refresh, 30_000);
+      await setupRefreshReady(page);
     });
 
     try {

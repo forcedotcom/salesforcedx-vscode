@@ -11,19 +11,18 @@ import {
   activeQuickInputWidget,
   closeWelcomeTabs,
   ensureSecondarySideBarHidden,
-  executeCommandWithCommandPalette,
   executeEditorContextMenuCommand,
   executeExplorerContextMenuCommand,
   saveScreenshot,
   setupConsoleMonitoring,
   setupNetworkMonitoring,
   validateNoCriticalErrors,
-  waitForQuickInputFirstOption,
   waitForVSCodeWorkbench,
   waitForWorkspaceReady
 } from '@salesforce/playwright-vscode-ext';
 import packageNls from '../../../package.nls.json';
-import { test } from '../fixtures';
+import { isContainer, sharedTest as test } from '../fixtures';
+import { createLwc } from '../utils/lwcUtils';
 
 test('LWC Rename: renames an existing bundle via explorer context menu', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
@@ -32,34 +31,19 @@ test('LWC Rename: renames an existing bundle via explorer context menu', async (
   const newName = `renameLwcNew${Date.now()}`;
 
   await test.step('setup', async () => {
-    await waitForVSCodeWorkbench(page);
+    // The containerTest fixture already awaited workbench readiness before handing over `page`.
+    if (!isContainer) {
+      await waitForVSCodeWorkbench(page);
+    }
     await closeWelcomeTabs(page);
     await ensureSecondarySideBarHidden(page);
-    await waitForWorkspaceReady(page);
+    if (!isContainer) {
+      await waitForWorkspaceReady(page);
+    }
   });
 
   await test.step('seed bundle via SFDX: Create LWC', async () => {
-    await executeCommandWithCommandPalette(page, packageNls.lightning_generate_lwc_text);
-    const quickInput = activeQuickInputWidget(page);
-    await quickInput.waitFor({ state: 'attached', timeout: 30_000 });
-    await waitForQuickInputFirstOption(page);
-    const componentType = activeQuickInputWidget(page).getByRole('option').first();
-    await expect(componentType).toBeVisible({ timeout: 10_000 });
-    await componentType.click();
-    await activeQuickInputWidget(page)
-      .getByText(/Enter Lightning Web Component name/i)
-      .waitFor({ state: 'attached', timeout: 10_000 });
-    await page.keyboard.type(oldName);
-    await page.keyboard.press('Enter');
-    await waitForQuickInputFirstOption(page);
-    const outputDirectory = activeQuickInputWidget(page).getByRole('option').first();
-    await expect(outputDirectory).toBeVisible({ timeout: 10_000 });
-    await outputDirectory.click();
-    await page
-      .locator('[role="tab"]')
-      .filter({ hasText: new RegExp(`${oldName}\\.js`, 'i') })
-      .first()
-      .waitFor({ state: 'visible', timeout: 20_000 });
+    await createLwc(page, oldName);
     await saveScreenshot(page, 'rename.create-seeded-bundle.png');
   });
 
@@ -96,6 +80,7 @@ test('LWC Rename: renames an existing bundle via explorer context menu', async (
   await test.step('rename again via editor context menu', async () => {
     await executeEditorContextMenuCommand(page, packageNls.rename_lightning_component_text, `${newName}.js`);
     await activeQuickInputWidget(page).waitFor({ state: 'attached', timeout: 10_000 });
+    // Input box is pre-filled with the old name; fill atomically to avoid select-all/type focus race
     await activeQuickInputTextField(page).fill(finalName);
     await page.keyboard.press('Enter');
     await saveScreenshot(page, 'rename.editor-menu-fired.png');

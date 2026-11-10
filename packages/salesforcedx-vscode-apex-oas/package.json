@@ -65,6 +65,7 @@
     "clean": "shx rm -rf node_modules out dist coverage .nyc_output .wireit .eslintcache *.vsix",
     "test": "wireit",
     "test:compile": "wireit",
+    "test:container": "wireit",
     "test:desktop": "wireit",
     "test:desktop:smoke": "wireit",
     "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-apex-oas test:desktop --debug",
@@ -175,6 +176,29 @@
       "output": [
         "*.vsix"
       ]
+    },
+    "test:container": {
+      "command": "playwright test --config=test/playwright/playwright.config.container.ts",
+      "env": {
+        "VSCODE_CONTAINER": "1",
+        "CODE_BUILDER_URL": {
+          "external": true
+        },
+        "CB_GREP": {
+          "external": true
+        },
+        "CB_UNDER_TEST": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "../playwright-vscode-ext:compile"
+      ],
+      "files": [
+        "test/playwright/**",
+        "package*.json"
+      ],
+      "output": []
     },
     "test:desktop": {
       "command": "playwright test --config=test/playwright/playwright.config.desktop.ts",

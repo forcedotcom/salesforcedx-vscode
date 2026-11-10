@@ -10,6 +10,7 @@ import { expect } from '@playwright/test';
 import {
   APEX_TRACE_FLAG_STATUS_BAR,
   closeSettingsTab,
+  closeWelcomeTabs,
   ensureSecondarySideBarHidden,
   executeCommandWithCommandPalette,
   removeAllDebugLevels,
@@ -22,7 +23,7 @@ import {
 } from '@salesforce/playwright-vscode-ext';
 
 import packageNls from '../../../package.nls.json';
-import { test } from '../fixtures';
+import { isContainer, test } from '../fixtures';
 import { waitForTraceFlagStatusBar } from '../helpers';
 
 // Budget: flag expires ~60s after creation (1-min duration); the status-bar tick fires on the next
@@ -33,12 +34,29 @@ test.describe.configure({ mode: 'serial', timeout: 240_000 });
 
 const DURATION_SETTING = 'salesforcedx-vscode-apex-log.traceFlagsDefaultDurationMinutes';
 
+// Self-clean: remove any lingering trace flag and restore the default-duration setting, even if a step
+// above failed. Matters most for container's one shared, persistent workbench (it would otherwise
+// inherit the 1-minute expiry), but harmless everywhere else.
+test.afterEach(async ({ page }) => {
+  await executeCommandWithCommandPalette(page, packageNls['apexLog.command.traceFlagsDeleteForCurrentUser']).catch(
+    () => {}
+  );
+  await upsertSettings(page, { [DURATION_SETTING]: '30' }).catch(() => {});
+  await closeSettingsTab(page).catch(() => {});
+});
+
 test('Trace flag status bar clears automatically at natural expiry (no manual delete)', async ({ page }) => {
   const consoleErrors = setupConsoleMonitoring(page);
   const networkErrors = setupNetworkMonitoring(page);
 
-  await test.step('setup minimal org auth', async () => {
-    await setupMinimalOrgAndAuth(page);
+  await test.step('setup org auth', async () => {
+    // Container boots with the org already authed by the orchestrator; desktop/web must create it
+    // (idempotently — reuses the shared org if already created) before this spec can hit real APIs.
+    if (isContainer) {
+      await closeWelcomeTabs(page);
+    } else {
+      await setupMinimalOrgAndAuth(page);
+    }
     await closeSettingsTab(page);
     await ensureSecondarySideBarHidden(page);
 
