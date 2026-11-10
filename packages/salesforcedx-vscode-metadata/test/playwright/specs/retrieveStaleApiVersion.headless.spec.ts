@@ -14,10 +14,10 @@
  *
  * The scenario is entirely local (editor edits + manifest generation) — it does not touch the org.
  *
- * Container: runs against the container's boot workspace instead of a freshly created minimal org, and
- * uses per-run unique manifest filenames (rather than fixed pkgWarm.xml/pkgFresh.xml) to avoid
- * collisions on the shared persistent workbench, restoring sfdx-project.json to the fixture baseline
- * (64.0) afterward so the workbench is left as found.
+ * Container: runs against the container's boot workspace instead of a freshly created minimal org. The
+ * throwaway class and manifests are uniquely named so the shared, persistent workbench never collides
+ * with a prior run's files; afterward sfdx-project.json is restored to the fixture baseline (64.0) and
+ * the class + manifests are removed, so the workbench is left as found.
  */
 
 import { expect, type Page } from '@playwright/test';
@@ -44,11 +44,11 @@ import {
   resetContainerWorkbench,
   verifyCommandExists
 } from '@salesforce/playwright-vscode-ext';
-import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import packageNls from '../../../package.nls.json';
 import { messages } from '../../../src/messages/i18n';
 import { RETRIEVE_TIMEOUT } from '../../constants';
 import { isContainer, sharedTest as test } from '../fixtures';
+import { cleanupContainerFiles } from '../utils/containerCleanup';
 
 // Two distinct non-default values; the warm step pins the first so the test is independent of the
 // platform default (desktop fixture 64.0, web memfs template 67.0, container fixture 64.0).
@@ -118,9 +118,17 @@ const generateManifest = async (page: Page, fileName: string) => {
   return manifestEditor;
 };
 
+// Container-only: files this test created (the never-deployed throwaway class and both manifests),
+// removed after it (pass or fail) so they don't linger as local changes on the shared workbench — see
+// utils/containerCleanup.
+const createdFiles: string[] = [];
+
 if (isContainer) {
   test.beforeEach(async ({ page }) => {
     await resetContainerWorkbench(page);
+  });
+  test.afterEach(() => {
+    cleanupContainerFiles(createdFiles.splice(0));
   });
 }
 
@@ -130,43 +138,39 @@ test('manifest version tracks mid-session sourceApiVersion edit without reload',
   const networkErrors = setupNetworkMonitoring(page);
   const ts = Date.now();
   const className = `StaleApiVersion${ts}`;
-  // Per-run manifest names in the container avoid the overwrite modal / collisions in the shared
-  // persistent workbench; desktop/headless use fixed names since each run gets a fresh project.
-  const warmManifestFile = isContainer ? `pkgWarm${ts}.xml` : 'pkgWarm.xml';
-  const freshManifestFile = isContainer ? `pkgFresh${ts}.xml` : 'pkgFresh.xml';
+  // Unique per run so the container's shared, persistent workbench never overwrites an existing manifest.
+  const warmManifestFile = `pkgWarm${ts}.xml`;
+  const freshManifestFile = `pkgFresh${ts}.xml`;
+  createdFiles.push(
+    `force-app/main/default/classes/${className}.cls`,
+    `force-app/main/default/classes/${className}.cls-meta.xml`,
+    `manifest/${warmManifestFile}`,
+    `manifest/${freshManifestFile}`
+  );
 
   await test.step('setup', async () => {
-    if (isContainer) {
-      // The containerTest fixture already awaited workbench readiness before handing over `page`.
-      await closeWelcomeTabs(page);
-      await ensureSecondarySideBarHidden(page);
-      // Wait on a command that is always contributed once the extension activates. The Generate
-      // Manifest command is context-gated (it only surfaces when an editor inside a package directory
-      // is active), so probing for it here — before any file is open — flakes with "not found" on the
-      // shared workbench. "SFDX: Create Apex Class" (needed by the very next step) is the reliable
-      // activation signal.
-      await verifyCommandExists(page, 'SFDX: Create Apex Class', 60_000);
-      await saveScreenshot(page, 'retrieveStaleApiVersion.01-ready.png');
-    } else {
-      const createResult = await createMinimalOrg();
+    // The container's fixture already awaited the workbench, and its boot org is already authed.
+    const createResult = isContainer ? undefined : await createMinimalOrg();
+    if (!isContainer) {
       await waitForVSCodeWorkbench(page);
-      await closeWelcomeTabs(page);
-      await ensureSecondarySideBarHidden(page);
-      await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-
-      const statusBarPage = new SourceTrackingStatusBarPage(page);
-      await statusBarPage.waitForVisible(120_000);
-      await saveScreenshot(page, 'stale-api.after-setup.png');
     }
+    await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
+    if (createResult) {
+      await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+    }
+    // Wait on a command that is always contributed once the extension activates. The Generate
+    // Manifest command is context-gated (it only surfaces when an editor inside a package directory
+    // is active), so probing for it here — before any file is open — flakes with "not found".
+    // "SFDX: Create Apex Class" (needed by the very next step) is the reliable activation signal.
+    await verifyCommandExists(page, 'SFDX: Create Apex Class', 60_000);
+    await saveScreenshot(page, 'retrieveStaleApiVersion.01-ready.png');
   });
 
   try {
     await test.step('create apex class', async () => {
       await createApexClass(page, className);
-      await saveScreenshot(
-        page,
-        isContainer ? 'retrieveStaleApiVersion.02-create-class.png' : 'stale-api.after-create-class.png'
-      );
+      await saveScreenshot(page, 'retrieveStaleApiVersion.02-create-class.png');
     });
 
     await test.step(`pin baseline sourceApiVersion=${WARM_API_VERSION}`, async () => {
@@ -182,20 +186,14 @@ test('manifest version tracks mid-session sourceApiVersion edit without reload',
       await expect(warmManifest.locator('.view-lines'), 'warmed manifest version').toContainText(
         `<version>${WARM_API_VERSION}</version>`
       );
-      await saveScreenshot(
-        page,
-        isContainer ? 'retrieveStaleApiVersion.03-warm-manifest.png' : 'stale-api.warm-manifest.png'
-      );
+      await saveScreenshot(page, 'retrieveStaleApiVersion.03-warm-manifest.png');
     });
 
     await test.step(`edit sfdx-project.json sourceApiVersion ${WARM_API_VERSION} -> ${EDITED_API_VERSION} through the editor`, async () => {
       await writeProjectApiVersion(page, EDITED_API_VERSION);
       // The FileSystemWatcher -> FileChangePubSub -> 5ms debounce -> invalidateSfProjectCache pipeline is async.
       // Re-generating the manifest re-resolves a fresh SfProject; expect-with-retry below absorbs the latency.
-      await saveScreenshot(
-        page,
-        isContainer ? 'retrieveStaleApiVersion.04-after-edit.png' : 'stale-api.after-edit.png'
-      );
+      await saveScreenshot(page, 'retrieveStaleApiVersion.04-after-edit.png');
     });
 
     await test.step('regenerate manifest picks up the edited version (cache invalidated)', async () => {
@@ -207,14 +205,13 @@ test('manifest version tracks mid-session sourceApiVersion edit without reload',
       await expect(freshManifest.locator('.view-lines'), 'fresh manifest version after edit').toContainText(
         `<version>${EDITED_API_VERSION}</version>`
       );
-      await saveScreenshot(
-        page,
-        isContainer ? 'retrieveStaleApiVersion.05-fresh-manifest.png' : 'stale-api.fresh-manifest.png'
-      );
+      await saveScreenshot(page, 'retrieveStaleApiVersion.05-fresh-manifest.png');
     });
   } finally {
     if (isContainer) {
-      // Restore the fixture baseline so the shared persistent workbench is left as found.
+      // Restore the fixture baseline so the shared persistent workbench is left as found. Done through
+      // the editor (not removed with the files above) so the watcher also re-invalidates the cached
+      // SfProject for later specs.
       await writeProjectApiVersion(page, BASELINE_API_VERSION).catch(() => undefined);
     }
   }
