@@ -40,7 +40,7 @@ import {
   isMethod,
   isSuite
 } from '../utils/testItemUtils';
-import { getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';
+import { getCatalogFullClassName, getFullClassName, isFlowTest } from '../utils/toolingTestClassHelpers';
 import {
   buildClassIdToNamespace,
   buildNamespacePackageStructure,
@@ -466,7 +466,7 @@ export class ApexTestTreeService extends Effect.Service<ApexTestTreeService>()('
       const catalog = yield* api.services.OrgMetadataCatalog;
       const classNames = classes.map(getFullClassName);
       const resolutions = yield* catalog.resolveComponents(
-        classNames.map(fullName => ({ type: 'ApexClass', fullName }))
+        classes.map(cls => ({ type: 'ApexClass', fullName: getCatalogFullClassName(cls) }))
       );
       return new Map(
         resolutions.map((resolution, index) => [

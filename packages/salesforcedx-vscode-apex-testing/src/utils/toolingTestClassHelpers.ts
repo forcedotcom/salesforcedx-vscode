@@ -14,6 +14,10 @@ import * as Option from 'effect/Option';
 export const getFullClassName = (cls: ToolingTestClass): string =>
   Option.match(cls.namespacePrefix, { onNone: () => cls.name, onSome: ns => `${ns}.${cls.name}` });
 
+/** Builds the canonical SDR fullName used when addressing an ApexClass through the org metadata catalog. */
+export const getCatalogFullClassName = (cls: ToolingTestClass): string =>
+  Option.match(cls.namespacePrefix, { onNone: () => cls.name, onSome: ns => `${ns}__${cls.name}` });
+
 /**
  * Checks if a ToolingTestClass is a Flow test (Flow tests have namespacePrefix starting with 'FlowTesting')
  */

@@ -45,6 +45,7 @@ const OrgCatalogObservationSchema = Schema.Struct({
   provenance: Schema.Literal(
     'metadata-api',
     'rest-api',
+    'data-api',
     'tooling-api',
     'workspace',
     'metadata-api+workspace',

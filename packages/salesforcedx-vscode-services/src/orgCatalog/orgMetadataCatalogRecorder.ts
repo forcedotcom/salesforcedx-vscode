@@ -109,7 +109,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
       /** Records positive, possibly partial, evidence learned by another metadata-producing service. */
       const recordRemoteComponents = Effect.fn('OrgMetadataCatalogRecorder.recordRemoteComponents')(function* (
         orgId: string,
-        provenance: 'metadata-api' | 'tooling-api',
+        provenance: 'data-api' | 'metadata-api' | 'tooling-api',
         components: readonly {
           readonly type: string;
           readonly fullName: string;

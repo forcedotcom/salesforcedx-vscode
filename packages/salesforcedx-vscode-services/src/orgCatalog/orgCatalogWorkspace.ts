@@ -141,13 +141,19 @@ export const makeOrgCatalogWorkspace = Effect.gen(function* () {
         ).pipe(Effect.map(inventory => [xmlName, inventory] as const)),
       { concurrency: 10 }
     ).pipe(Effect.map(HashMap.fromIterable));
-    return references.map(reference => {
+    const resolutions = references.map(reference => {
       const inventory = Option.getOrUndefined(HashMap.get(inventories, reference.xmlName));
       const workspaceUri = inventory
         ? Option.getOrUndefined(HashMap.get(inventory.components, reference.fullName))
         : undefined;
       return { reference, workspaceUri, workspacePresenceAvailable: inventory?.workspacePresenceAvailable ?? false };
     });
+    yield* Effect.annotateCurrentSpan({
+      metadataTypeCount: xmlNames.length,
+      requestedComponentCount: references.length,
+      workspaceMatchCount: resolutions.filter(resolution => resolution.workspaceUri !== undefined).length
+    });
+    return resolutions;
   });
 
   const scanWorkspace = Effect.fn('OrgCatalogWorkspace.scanWorkspace')((xmlName: string) =>

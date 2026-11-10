@@ -26,7 +26,11 @@ export const makeOrgCatalogInventory = Effect.gen(function* () {
     MetadataRegistryService,
     MetadataDescribeService
   ]);
-  const loadType = Effect.fn('OrgCatalogInventory.loadType')(function* (orgId: string, xmlName: string) {
+  const loadType = Effect.fn('OrgCatalogInventory.loadType')(function* (
+    orgId: string,
+    xmlName: string,
+    requestedReference?: OrgMetadataComponentReference
+  ) {
     yield* state.ensureHydrated(orgId);
     const key = typeCacheKey(orgId, xmlName);
     const cached = yield* state.getInventory(orgId, xmlName);
@@ -36,8 +40,11 @@ export const makeOrgCatalogInventory = Effect.gen(function* () {
       const coalesced = yield* state.getInventory(orgId, xmlName);
       if (coalesced?.complete) return coalesced;
       const restored = yield* state.getPersistedInventory(orgId, xmlName);
+      const restoresRequestedComponent =
+        requestedReference !== undefined &&
+        restored?.components.some(component => component.fullName === requestedReference.fullName);
       const listOrgComponents =
-        isNotUndefined(restored) && restored.complete !== false
+        isNotUndefined(restored) && (restored.complete !== false || restoresRequestedComponent)
           ? Effect.succeed({ components: restored.components, folders: restored.folders })
           : Match.value(FOLDERED_METADATA_TYPES.has(xmlName)).pipe(
               Match.when(true, () =>
@@ -63,7 +70,7 @@ export const makeOrgCatalogInventory = Effect.gen(function* () {
       const observedAt = restored && restored.complete !== false ? restored.observedAt : new Date().toISOString();
       const inventory = {
         observedAt,
-        complete: true,
+        complete: restored?.complete ?? true,
         components: yield* mergeInventory({
           orgId,
           xmlName,
@@ -99,7 +106,7 @@ export const makeOrgCatalogInventory = Effect.gen(function* () {
     const inventory =
       cached && findInventoryComponent(cached.components, reference)
         ? cached
-        : yield* loadType(orgId, reference.xmlName);
+        : yield* loadType(orgId, reference.xmlName, reference);
     return (
       findInventoryComponent(inventory.components, reference) ??
       (yield* projectChildren(

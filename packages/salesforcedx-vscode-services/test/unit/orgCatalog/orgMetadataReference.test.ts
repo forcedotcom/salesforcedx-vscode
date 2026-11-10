@@ -48,16 +48,16 @@ describe('org metadata document references', () => {
       service.documentUri({
         orgId: '00Dxx0000000001',
         xmlName: 'ApexClass',
-        fullName: 'namespace.MyTest'
+        fullName: 'namespace__MyTest'
       })
     );
 
     expect(uri.scheme).toBe(ORG_METADATA_SCHEME);
-    expect(uri.path.endsWith('/namespace.MyTest.cls')).toBe(true);
+    expect(uri.path.endsWith('/namespace__MyTest.cls')).toBe(true);
     expect(run(service => service.parseDocumentUri(uri))).toEqual({
       orgId: '00Dxx0000000001',
       xmlName: 'ApexClass',
-      fullName: 'namespace.MyTest'
+      fullName: 'namespace__MyTest'
     });
   });
 
@@ -67,14 +67,14 @@ describe('org metadata document references', () => {
       service.documentUris([
         { orgId: '00Dxx0000000001', xmlName: 'ApexClass', fullName: 'FirstTest' },
         { orgId: '00Dxx0000000001', xmlName: 'Report', fullName: 'Public Reports/Pipeline' },
-        { orgId: '00Dxx0000000001', xmlName: 'ApexClass', fullName: 'namespace.SecondTest' }
+        { orgId: '00Dxx0000000001', xmlName: 'ApexClass', fullName: 'namespace__SecondTest' }
       ])
     );
 
     expect(uris.map(uri => uri.path)).toEqual([
       '/orgs/00Dxx0000000001/ApexClass/FirstTest.cls',
       '/orgs/00Dxx0000000001/Report/Public Reports/Pipeline.report',
-      '/orgs/00Dxx0000000001/ApexClass/namespace.SecondTest.cls'
+      '/orgs/00Dxx0000000001/ApexClass/namespace__SecondTest.cls'
     ]);
     expect(getRegistryAccess).toHaveBeenCalledTimes(2);
   });

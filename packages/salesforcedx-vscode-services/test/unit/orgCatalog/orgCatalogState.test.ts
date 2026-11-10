@@ -171,6 +171,52 @@ describe('OrgCatalogState', () => {
     expect(saved[0]?.generation).toBe(8);
   });
 
+  it('retains incomplete persisted inventory through broad org invalidation', async () => {
+    const snapshot: OrgMetadataCatalogSnapshot = {
+      version: 2,
+      orgId: 'org-one',
+      writtenAt: '2026-08-03T12:00:00.000Z',
+      generation: 7,
+      inventory: [
+        {
+          xmlName: 'ApexClass',
+          observedAt: '2026-08-03T11:00:00.000Z',
+          complete: false,
+          components: [
+            { fullName: 'RemoteTest', provenance: 'data-api', lastModifiedDate: '2026-08-03T10:00:00.000Z' }
+          ],
+          folders: []
+        }
+      ],
+      sobjects: { descriptions: [] },
+      tracking: [],
+      metadataTypes: [],
+      metadataListings: []
+    };
+    const { saved, stateLayer } = makeStore(snapshot);
+
+    const persisted = await Effect.runPromise(
+      Effect.gen(function* () {
+        const state = yield* OrgCatalogState;
+        yield* state.ensureHydrated('org-one');
+        yield* state.invalidateOrgInventories('org-one');
+        yield* state.persistOrg('org-one');
+        return yield* state.getPersistedInventory('org-one', 'ApexClass');
+      }).pipe(Effect.provide(stateLayer))
+    );
+
+    expect(persisted?.components).toEqual([
+      expect.objectContaining({ fullName: 'RemoteTest', provenance: 'data-api' })
+    ]);
+    expect(saved[0]?.inventory).toEqual([
+      expect.objectContaining({
+        xmlName: 'ApexClass',
+        complete: false,
+        components: [expect.objectContaining({ fullName: 'RemoteTest', provenance: 'data-api' })]
+      })
+    ]);
+  });
+
   it('flushes dirty state when its scope closes before the debounce elapses', async () => {
     const { saved, stateLayer } = makeStore();
 

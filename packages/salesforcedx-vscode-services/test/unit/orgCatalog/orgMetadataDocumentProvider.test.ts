@@ -34,7 +34,9 @@ const setOrg = (orgId: string) =>
 const makeHarness = (isEmpty: boolean) => {
   const invalidateOrgInventories = vi.fn(() => Effect.void);
   const invalidateWorkspaceInventories = vi.fn(() => Effect.void);
-  const readDocumentUri = vi.fn(() => Effect.succeed('body'));
+  const readDocumentUri = vi.fn<InstanceType<typeof OrgCatalogDocuments>['readDocumentUri']>(() =>
+    Effect.succeed('body')
+  );
   const layer = Layer.mergeAll(
     Layer.mock(OrgCatalogDocuments, { _tag: 'OrgCatalogDocuments', readDocumentUri }),
     Layer.mock(OrgCatalogState, {
@@ -106,6 +108,33 @@ describe('OrgMetadataDocumentProvider lifecycle', () => {
     expect(readDocumentUri).toHaveBeenCalledWith(
       '00D000000000001',
       expect.objectContaining({ path: '/orgs/00D000000000001/ApexClass/Stale.cls' })
+    );
+  });
+
+  it('notifies once with the source-load failure and preserves the rejected content request', async () => {
+    const { layer, readDocumentUri } = makeHarness(true);
+    const loadFailure = vscode.FileSystemError.Unavailable("sObject type 'ApexClass' is not supported.");
+    readDocumentUri.mockReturnValue(Effect.fail(loadFailure));
+    let provider: OrgMetadataDocumentProvider | undefined;
+    vi.mocked(vscode.workspace.registerTextDocumentContentProvider).mockImplementation((_scheme, value) => {
+      provider = value as OrgMetadataDocumentProvider;
+      return { dispose: vi.fn() };
+    });
+
+    await Effect.gen(function* () {
+      yield* setOrg('00D000000000001');
+      yield* Effect.forkScoped(runOrgMetadataDocumentProvider());
+      yield* Effect.yieldNow();
+      const registeredProvider = provider;
+      if (!registeredProvider) return yield* Effect.die('document provider was not registered');
+      const uri = documentUri('00D000000000001', 'Managed__Test');
+      yield* Effect.tryPromise(() => registeredProvider.provideTextDocumentContent(uri)).pipe(Effect.either);
+      yield* Effect.tryPromise(() => registeredProvider.provideTextDocumentContent(uri)).pipe(Effect.either);
+    }).pipe(Effect.scoped, Effect.provide(layer), Effect.timeout('2 seconds'), Effect.runPromise);
+
+    expect(vscode.window.showErrorMessage).toHaveBeenCalledTimes(1);
+    expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(
+      "Could not load org metadata source: sObject type 'ApexClass' is not supported."
     );
   });
 
