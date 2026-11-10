@@ -37,7 +37,7 @@
   },
   "dependencies": {
     "@salesforce/salesforcedx-utils": "*",
-    "@effect/platform": "^0.96.1",
+    "@effect/platform": "^0.97.1",
     "@playwright/test": "^1.64.1",
     "@salesforce/core": "^9.3.0",
     "@vscode/test-electron": "3.1.0",
