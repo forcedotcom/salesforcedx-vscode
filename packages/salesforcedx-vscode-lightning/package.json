@@ -231,12 +231,34 @@
       "command": "node ../../scripts/vsceBundledExtension.mts",
       "dependencies": [
         "vscode:bundle"
+      ],
+      "files": [
+        "../../scripts/vsceBundledExtension.mts",
+        "package.json",
+        "package.nls*.json",
+        "LICENSE.txt",
+        "README.md",
+        ".vscodeignore",
+        "OSSREADME.json",
+        "images/**",
+        "syntaxes/**"
       ]
     },
     "vscode:package:legacy:prerelease": {
       "command": "node ../../scripts/vsceBundledExtension.mts",
       "dependencies": [
         "vscode:bundle"
+      ],
+      "files": [
+        "../../scripts/vsceBundledExtension.mts",
+        "package.json",
+        "package.nls*.json",
+        "LICENSE.txt",
+        "README.md",
+        ".vscodeignore",
+        "OSSREADME.json",
+        "images/**",
+        "syntaxes/**"
       ],
       "env": {
         "VSCE_PRE_RELEASE": "true"
