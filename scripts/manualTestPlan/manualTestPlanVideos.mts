@@ -124,7 +124,7 @@ export const resolveVideoPulls = Effect.fn('manualTestPlanVideos.resolvePulls')(
     [...new Set(candidates)],
     Effect.fn('manualTestPlanVideos.resolvePull')(function* (number) {
       const pull = yield* GitHub.pullRequest(owner, repo, number);
-      return pull?.state.toLowerCase() === 'open' &&
+      return pull?.state === 'OPEN' &&
         pull.baseRepository?.nameWithOwner === repository &&
         (event.sha === undefined || pull.headRefOid === event.sha)
         ? [{ pr: number, sha: pull.headRefOid, clear: event.clear }]
@@ -195,14 +195,14 @@ export const updateManualTestPlanVideos = Effect.fn('manualTestPlanVideos.update
   const repository = yield* Config.string('GITHUB_REPOSITORY');
   const [owner, repo] = repository.split('/');
   const pull = yield* GitHub.pullRequest(owner, repo, input.pr);
-  if (pull?.state.toLowerCase() !== 'open' || pull.headRefOid !== input.sha) return;
+  if (pull?.state !== 'OPEN' || pull.headRefOid !== input.sha) return;
   const body = pull.body ?? '';
   if (input.clear) {
     const previousSection = videoSection(body);
     if (previousSection === undefined || previousSection.includes(`"sha":"${input.sha}"`)) return;
     // Reread immediately before writing, just as for publication.
     const current = yield* GitHub.pullRequest(owner, repo, input.pr);
-    if (current?.state.toLowerCase() === 'open' && current.headRefOid === input.sha) {
+    if (current?.state === 'OPEN' && current.headRefOid === input.sha) {
       yield* GitHub.updatePullBody(owner, repo, input.pr, removeVideoSection(current.body ?? ''));
     }
     return;
@@ -302,7 +302,7 @@ export const updateManualTestPlanVideos = Effect.fn('manualTestPlanVideos.update
   const state = `<!-- manual-test-plan-videos-state ${JSON.stringify({ sha: input.sha, fingerprint })} -->`;
   if (!(yield* green())) return;
   const latest = yield* GitHub.pullRequest(owner, repo, input.pr);
-  if (latest?.state.toLowerCase() !== 'open' || latest.headRefOid !== input.sha) return;
+  if (latest?.state !== 'OPEN' || latest.headRefOid !== input.sha) return;
   const latestBody = latest.body ?? '';
   // A plan regeneration or human edit during downloads must not be overwritten.
   if (JSON.stringify(readVideoManifest(latestBody)) !== JSON.stringify(manifest)) return;

@@ -141,10 +141,13 @@ const decodeResponse = <A, I, R>(schema: Schema.Schema<A, I, R>, input: unknown,
     )
   );
 
+export const PullRequestState = Schema.Literal('OPEN', 'CLOSED', 'MERGED');
+export type PullRequestState = typeof PullRequestState.Type;
+
 export const PullRequest = Schema.Struct({
   reviewDecision: Schema.NullOr(Schema.String),
   isDraft: Schema.Boolean,
-  state: Schema.String,
+  state: PullRequestState,
   body: Schema.NullOr(Schema.String).pipe(Schema.optional),
   baseRefName: Schema.String,
   headRefOid: Schema.String,

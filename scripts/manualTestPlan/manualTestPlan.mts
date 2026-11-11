@@ -10,7 +10,7 @@ import * as Command from '@effect/platform/Command';
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
 import * as NodeContext from '@effect/platform-node/NodeContext';
-import { actionsEnvironment, GitHub, readPullRequestEvent } from '@salesforce/effect-octokit';
+import { actionsEnvironment, GitHub, readPullRequestEvent, type PullRequestState } from '@salesforce/effect-octokit';
 import { Config, Effect, Either, Exit, Layer, Logger, Option, pipe, Redacted, Schema, Stream } from 'effect';
 import { pathToFileURL } from 'node:url';
 import { CommandFailed, CursorRunFailed, InvalidBaseRef, Judgment, type Item } from './schema.mts';
@@ -270,7 +270,7 @@ export type ManualTestPlanDeps = {
   readonly writeBody?: (pr: number, body: string) => Effect.Effect<void>;
   readonly readHead?: (
     pr: number
-  ) => Effect.Effect<{ readonly state: string; readonly headRefOid: string } | undefined>;
+  ) => Effect.Effect<{ readonly state: PullRequestState; readonly headRefOid: string } | undefined>;
 };
 
 export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(function* (deps?: ManualTestPlanDeps) {
@@ -304,7 +304,7 @@ export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(functio
   const block = renderManualTestPlan(judged.judgment, sha);
   const current = yield* deps?.readBody === undefined ? readPrBody(env.owner, env.repo, pr) : deps.readBody(pr);
   const latest = yield* deps?.readHead === undefined ? GitHub.pullRequest(env.owner, env.repo, pr) : deps.readHead(pr);
-  if (latest?.state.toLowerCase() !== 'open' || latest.headRefOid !== sha)
+  if (latest?.state !== 'OPEN' || latest.headRefOid !== sha)
     return yield* skip('stale-head', 'PR closed or head moved during manual plan generation');
   const next = spliceManualTestPlan(current, block);
   if (next === current) return { edited: false } satisfies Outcome;

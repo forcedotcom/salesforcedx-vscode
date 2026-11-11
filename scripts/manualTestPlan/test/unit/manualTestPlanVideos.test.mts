@@ -82,7 +82,7 @@ const artifact = (id: number, name: string) => ({
 
 const fixture = () => ({
   body: initialBody,
-  state: 'open',
+  state: 'OPEN',
   sha: 'head',
   nextSha: 'head',
   readCount: 0,
@@ -353,7 +353,7 @@ test('only matching successful matrix lanes are attached; a missing lane preserv
 });
 
 test('closed, stale heads and heads changing during downloads never write', async () => {
-  for (const change of [{ state: 'closed' }, { sha: 'old' }, { nextSha: 'new' }]) {
+  for (const change of [{ state: 'CLOSED' }, { sha: 'old' }, { nextSha: 'new' }]) {
     const state = { ...fixture(), ...change };
     await update(state);
     assert.equal(state.publishes.length, 0);
@@ -414,7 +414,7 @@ test('completion associations resolve through commit, excluding stale and closed
   ]);
   assert.deepEqual(await withGitHub(fixture(), resolveVideoPulls({ sha: 'old', clear: false })), []);
   const closed = fixture();
-  closed.state = 'closed';
+  closed.state = 'CLOSED';
   assert.deepEqual(await withGitHub(closed, resolveVideoPulls({ sha: 'head', clear: false })), []);
   assert.deepEqual(await withGitHub(fixture(), resolveVideoPulls({ pullNumber: 8497, clear: false })), [
     { pr: 8497, sha: 'head', clear: false }

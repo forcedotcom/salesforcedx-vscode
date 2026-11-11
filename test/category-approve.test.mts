@@ -1,7 +1,13 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
-import { withoutWorkflowRun, type CheckRun, type PullFile, type PullReview } from '@salesforce/effect-octokit';
+import {
+  PullRequest,
+  withoutWorkflowRun,
+  type CheckRun,
+  type PullFile,
+  type PullReview
+} from '@salesforce/effect-octokit';
 import { preClassifyDecision } from '../scripts/shared/categoryGates.cjs';
 import {
   BOT_LOGIN,
@@ -31,10 +37,10 @@ const file = (filename: string): PullFile => ({
   raw_url: 'https://github.com/acme/repo/raw/abc123/file',
   contents_url: 'https://api.github.com/repos/acme/repo/contents/file'
 });
-const pull = {
+const pull: typeof PullRequest.Type = {
   reviewDecision: 'REVIEW_REQUIRED',
   isDraft: false,
-  state: 'open',
+  state: 'OPEN',
   baseRefName: 'develop',
   headRefOid: 'abc123',
   author: { login: 'mshanemc' },
