@@ -20,6 +20,7 @@ import {
   showExplorer
 } from '../../../src/pages/nativeCommands';
 import { openFileByName } from '../../../src/utils/fileHelpers';
+import { focusMonacoInput } from '../../../src/utils/focusMonacoInput';
 import { waitForVSCodeWorkbench, closeWelcomeTabs, isDesktop } from '../../../src/utils/helpers';
 import { EDITOR_WITH_URI, QUICK_INPUT_WIDGET, TAB, WORKBENCH } from '../../../src/utils/locators';
 import { ensureSecondarySideBarHidden } from '../../../src/utils/workflows';
@@ -61,14 +62,11 @@ test.describe('Native command wrappers', () => {
 
     // sfdx-project.json is scaffolded into every desktop workspace by createTestWorkspace.
     await openFileByName(page, 'sfdx-project.json');
-    const editor = page.locator(EDITOR_WITH_URI).first();
+    const editor = page.locator(`${EDITOR_WITH_URI}[data-uri$="sfdx-project.json"]`);
     await expect(editor).toBeVisible({ timeout: 10_000 });
-    await editor.click();
+    await focusMonacoInput(editor);
     // Insert a leading blank line so the doc is dirty without breaking JSON (nothing reads it after).
-    await goToLineColumn(page);
-    await page.keyboard.type('1:1');
-    await page.keyboard.press('Enter');
-    await page.keyboard.press('Enter');
+    await page.keyboard.insertText('\n');
     // The unsaved-changes marker lives on the editor tab (`.tab.dirty`), not the editor body.
     const dirtyTab = page.locator(`${WORKBENCH} .tabs-container .tab.dirty`);
     await expect(dirtyTab).toBeVisible({ timeout: 10_000 });
