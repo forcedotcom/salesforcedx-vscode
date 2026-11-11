@@ -240,13 +240,4 @@ if (import.meta.main) {
   });
 }
 
-export {
-  main,
-  checkPrerequisites,
-  getCurrentBranch,
-  findPlaywrightWorkflows,
-  prioritizeWorkflows,
-  monitorWorkflows,
-  downloadArtifacts,
-  handleResults
-};
+export { findPlaywrightWorkflows, prioritizeWorkflows, monitorWorkflows, downloadArtifacts, handleResults };
