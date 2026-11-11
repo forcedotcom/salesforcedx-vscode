@@ -25,11 +25,9 @@ import { LifecycleWarningsLayer } from './core/lifecycleWarningListener.js';
 import { retrieveOnLoadEffect } from './core/retrieveOnLoad.js';
 import { nls } from './messages/index.js';
 import { annotateExtensionPackType } from './observability/extensionPackStatus.js';
-import { getLegacyTelemetrySender } from './observability/legacyTelemetrySender.js';
 import { redactSensitiveData } from './observability/redactSensitiveData.js';
-import { getSdkLayerConfigFromContext } from './observability/sdkLayerConfig.js';
 import { seedTelemetryIdentities } from './observability/seedTelemetryIdentities.js';
-import { SdkLayerFor, ServicesSdkLayer } from './observability/spans.js';
+import { ServicesSdkLayer } from './observability/spans.js';
 import { makeActivationHostLayers } from './services/activationHostLayers.js';
 import { bootstrapServiceLayers } from './services/bootstrapLayers.js';
 import { catalogProviderLayers } from './services/catalogLayers.js';
@@ -163,18 +161,7 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
       try {
         await runtime.runPromise(activationEffect(context, runtime));
         startRuntimeWork(runtime);
-        return {
-          ...owner,
-          v2: {
-            ...owner.v2,
-            services: {
-              ...owner.v2.services,
-              getSdkLayerConfigFromContext,
-              getLegacyTelemetrySender,
-              SdkLayerFor
-            }
-          }
-        };
+        return owner;
       } catch (error) {
         const close = await owner.close();
         clearServicesRuntime(runtime);
