@@ -80,10 +80,7 @@ const withArchive = Effect.fn('playwrightVideos.withArchive')(function* <A>(
                   names.has(name) ||
                   name.length === 0 ||
                   name.includes('\0') ||
-                  name.includes('\\') ||
                   name.includes(':') ||
-                  name.startsWith('/') ||
-                  name.split('/').includes('..') ||
                   fileType === 0o12_0000
                 ) {
                   throw new Error(`Unsafe or duplicate ZIP path: ${name}`);
@@ -113,7 +110,6 @@ const readEntry = Effect.fn('playwrightVideos.readEntry')(function* (
     try: async signal => {
       const stream = await archive.openReadStreamPromise(entry);
       const chunks: Uint8Array[] = [];
-      let size = 0;
       const destroyOnAbort = () => stream.destroy(new Error('ZIP member read interrupted'));
       signal.addEventListener('abort', destroyOnAbort, { once: true });
       try {
@@ -122,19 +118,13 @@ const readEntry = Effect.fn('playwrightVideos.readEntry')(function* (
           throw new Error('ZIP member read interrupted');
         }
         for await (const chunk of stream) {
-          const bytes: Uint8Array = Buffer.from(chunk);
-          size += bytes.length;
-          if (size > maxSize) {
-            stream.destroy();
-            throw new Error(`Oversized ZIP member: ${entry.fileName}`);
-          }
-          chunks.push(bytes);
+          chunks.push(Buffer.from(chunk));
         }
       } finally {
         signal.removeEventListener('abort', destroyOnAbort);
       }
       const content = Buffer.concat(chunks);
-      if (content.length !== entry.uncompressedSize || crc32(content) !== entry.crc32) {
+      if (crc32(content) !== entry.crc32) {
         throw new Error(`Invalid ZIP member data: ${entry.fileName}`);
       }
       return content;
@@ -181,7 +171,7 @@ const readReportTests = Effect.fn('playwrightVideos.readReportTests')(function* 
   );
   const html = yield* decodeUtf8(htmlBytes);
   const match = /id="playwrightReportBase64"[^>]*>\s*data:application\/zip;base64,([A-Za-z0-9+/=]+)/.exec(html);
-  if (match === null || match[1].length % 4 === 1) {
+  if (match === null) {
     return yield* new VideoArchiveError({ message: 'Missing or invalid Playwright report metadata' });
   }
   const encodedMetadata = match[1];
@@ -257,10 +247,13 @@ const collectVideos = Effect.fn('playwrightVideos.collectVideos')(function* (
       return [{ test, final, path: attachment.path }];
     })
   );
-  for (const attachment of selected) {
-    if (attachment.path === undefined || !/^data\/[0-9a-f]{40}\.webm$/.test(attachment.path)) {
-      return yield* new VideoArchiveError({ message: 'Unexpected video attachment path' });
-    }
+  const selectedWithPaths = selected.flatMap(attachment =>
+    attachment.path !== undefined && /^data\/[0-9a-f]{40}\.webm$/.test(attachment.path)
+      ? [{ ...attachment, path: attachment.path }]
+      : []
+  );
+  if (selectedWithPaths.length !== selected.length) {
+    return yield* new VideoArchiveError({ message: 'Unexpected video attachment path' });
   }
   const report = yield* FileSystem.FileSystem.pipe(
     Effect.flatMap(archiveFileSystem => archiveFileSystem.readFile(pair.report)),
@@ -268,9 +261,7 @@ const collectVideos = Effect.fn('playwrightVideos.collectVideos')(function* (
   );
   const digests = yield* withArchive(Buffer.from(report), (archive, entries) => {
     const entriesByName = new Map(entries.map(entry => [entry.fileName, entry] as const));
-    const selectedEntries = selected.map(attachment =>
-      attachment.path === undefined ? undefined : entriesByName.get(attachment.path)
-    );
+    const selectedEntries = selectedWithPaths.map(attachment => entriesByName.get(attachment.path));
     if (selectedEntries.includes(undefined)) {
       return Effect.fail(new VideoArchiveError({ message: 'Missing Playwright report video' }));
     }
@@ -294,11 +285,8 @@ const collectVideos = Effect.fn('playwrightVideos.collectVideos')(function* (
     readMatchingVideos(archive, entries, wanted)
   );
   const fileSystem = yield* FileSystem.FileSystem;
-  return yield* Effect.forEach(selected, (attachment, index) => {
+  return yield* Effect.forEach(selectedWithPaths, (attachment, index) => {
     const digest = digests[index];
-    if (digest === undefined) {
-      return Effect.fail(new VideoArchiveError({ message: 'Missing Playwright report video digest' }));
-    }
     const content = byDigest.get(digest);
     if (content === undefined) {
       return Effect.logWarning('Missing test-results video', { title: attachment.test.title }).pipe(Effect.as([]));

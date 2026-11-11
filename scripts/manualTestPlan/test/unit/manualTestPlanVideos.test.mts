@@ -409,14 +409,14 @@ test('synchronize removes stale video block only, leaves current-SHA videos alon
 });
 
 test('completion associations resolve through commit, excluding stale and closed PRs', async () => {
-  assert.deepEqual(await withGitHub(fixture(), resolveVideoPulls({ sha: 'head', clear: false })), [
+  assert.deepEqual(await withGitHub(fixture(), resolveVideoPulls({ kind: 'commit', sha: 'head' })), [
     { pr: 8497, sha: 'head', clear: false }
   ]);
-  assert.deepEqual(await withGitHub(fixture(), resolveVideoPulls({ sha: 'old', clear: false })), []);
+  assert.deepEqual(await withGitHub(fixture(), resolveVideoPulls({ kind: 'commit', sha: 'old' })), []);
   const closed = fixture();
   closed.state = 'CLOSED';
-  assert.deepEqual(await withGitHub(closed, resolveVideoPulls({ sha: 'head', clear: false })), []);
-  assert.deepEqual(await withGitHub(fixture(), resolveVideoPulls({ pullNumber: 8497, clear: false })), [
+  assert.deepEqual(await withGitHub(closed, resolveVideoPulls({ kind: 'commit', sha: 'head' })), []);
+  assert.deepEqual(await withGitHub(fixture(), resolveVideoPulls({ kind: 'pull', pullNumber: 8497, clear: false })), [
     { pr: 8497, sha: 'head', clear: false }
   ]);
 });
@@ -428,13 +428,13 @@ test('event resolution delegates payload decoding and keeps event-specific behav
   const resolve = (name: string) =>
     readPullResolution(name, eventPath).pipe(Effect.provide(NodeContext.layer), Effect.runPromise);
   writeFileSync(eventPath, JSON.stringify({ inputs: { pull_number: '8497' } }));
-  assert.deepEqual(await resolve('workflow_dispatch'), { pullNumber: 8497, clear: false });
+  assert.deepEqual(await resolve('workflow_dispatch'), { kind: 'pull', pullNumber: 8497, clear: false });
   writeFileSync(eventPath, JSON.stringify({ action: 'synchronize', pull_request: { number: 8497 } }));
-  assert.deepEqual(await resolve('pull_request_target'), { pullNumber: 8497, clear: true });
+  assert.deepEqual(await resolve('pull_request_target'), { kind: 'pull', pullNumber: 8497, clear: true });
   writeFileSync(eventPath, JSON.stringify({ check_suite: { head_sha: 'head', pull_requests: [] } }));
-  assert.deepEqual(await resolve('check_suite'), { sha: 'head', clear: false });
+  assert.deepEqual(await resolve('check_suite'), { kind: 'commit', sha: 'head' });
   writeFileSync(eventPath, JSON.stringify({ workflow_run: { head_sha: 'head', pull_requests: [] } }));
-  assert.deepEqual(await resolve('workflow_run'), { sha: 'head', clear: false });
+  assert.deepEqual(await resolve('workflow_run'), { kind: 'commit', sha: 'head' });
 });
 
 test('artifact and workflow selection use exact SHA and successful job upload timestamps', () => {

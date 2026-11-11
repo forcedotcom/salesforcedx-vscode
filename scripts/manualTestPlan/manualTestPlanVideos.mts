@@ -90,7 +90,10 @@ const command = Effect.fn('manualTestPlanVideos.command')(function* (file: strin
 const WorkflowDispatchInputs = Schema.Struct({ pull_number: Schema.String });
 export const VideoUpdate = Schema.Struct({ pr: Schema.Number, sha: Schema.String, clear: Schema.Boolean });
 
-type PullResolution = { readonly pullNumber?: number; readonly sha?: string; readonly clear: boolean };
+type PullResolution =
+  | { readonly kind: 'pull'; readonly pullNumber: number; readonly clear: boolean }
+  | { readonly kind: 'commit'; readonly sha: string }
+  | { readonly kind: 'none' };
 
 export const readPullResolution = Effect.fn('manualTestPlanVideos.readPullResolution')(function* (
   eventName: string,
@@ -99,15 +102,22 @@ export const readPullResolution = Effect.fn('manualTestPlanVideos.readPullResolu
   if (eventName === 'workflow_dispatch') {
     const dispatch = yield* readWorkflowDispatchEvent(eventPath, WorkflowDispatchInputs);
     const pullNumber = Number(dispatch.inputs.pull_number);
-    return Number.isSafeInteger(pullNumber) && pullNumber > 0 ? { pullNumber, clear: false } : { clear: false };
+    if (!Number.isSafeInteger(pullNumber) || pullNumber <= 0) return { kind: 'none' } satisfies PullResolution;
+    return { kind: 'pull', pullNumber, clear: false } satisfies PullResolution;
   }
   if (eventName === 'pull_request_target') {
     const synchronize = yield* readSynchronizeEvent(eventPath);
-    return { pullNumber: synchronize.pull_request.number, clear: synchronize.action === 'synchronize' };
+    return {
+      kind: 'pull',
+      pullNumber: synchronize.pull_request.number,
+      clear: synchronize.action === 'synchronize'
+    } satisfies PullResolution;
   }
   const completedChecks = yield* readCompletedChecksEvent(eventPath);
   const completed = completedChecks.check_suite ?? completedChecks.workflow_run;
-  return completed === undefined ? { clear: false } : { sha: completed.head_sha, clear: false };
+  return completed === undefined
+    ? ({ kind: 'none' } satisfies PullResolution)
+    : ({ kind: 'commit', sha: completed.head_sha } satisfies PullResolution);
 });
 
 /** Push workflows often have no pull_requests array. Resolve associations through the commit API. */
@@ -115,19 +125,20 @@ export const resolveVideoPulls = Effect.fn('manualTestPlanVideos.resolvePulls')(
   const repository = yield* Config.string('GITHUB_REPOSITORY');
   const [owner, repo] = repository.split('/');
   const candidates =
-    event.sha === undefined
-      ? event.pullNumber === undefined
-        ? []
-        : [event.pullNumber]
-      : (yield* GitHub.pullsForCommit(owner, repo, event.sha)).map(pull => pull.number);
+    event.kind === 'pull'
+      ? [event.pullNumber]
+      : event.kind === 'commit'
+        ? (yield* GitHub.pullsForCommit(owner, repo, event.sha)).map(pull => pull.number)
+        : [];
+  const sha = event.kind === 'commit' ? event.sha : undefined;
   return yield* Effect.forEach(
     [...new Set(candidates)],
     Effect.fn('manualTestPlanVideos.resolvePull')(function* (number) {
       const pull = yield* GitHub.pullRequest(owner, repo, number);
       return pull?.state === 'OPEN' &&
         pull.baseRepository?.nameWithOwner === repository &&
-        (event.sha === undefined || pull.headRefOid === event.sha)
-        ? [{ pr: number, sha: pull.headRefOid, clear: event.clear }]
+        (sha === undefined || pull.headRefOid === sha)
+        ? [{ pr: number, sha: pull.headRefOid, clear: event.kind === 'pull' && event.clear }]
         : [];
     })
   ).pipe(Effect.map(rows => rows.flat()));
