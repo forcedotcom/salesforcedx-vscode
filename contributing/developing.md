@@ -219,7 +219,7 @@ Use `.mts` for TypeScript executed directly with `node`; use `.cts` only for int
 
 Node's [type stripping](https://nodejs.org/docs/v24.12.0/api/typescript.html) is stable starting in 24.12.0. Node ignores tsconfig and does not type-check. Native scripts must use erasable syntax: no enums, parameter properties, or namespaces containing runtime code. Do not rely on tsconfig path aliases or module transformations.
 
-`scripts/tsconfig.native.json` checks all `.mts`/`.cts` files under `scripts/` and `test/` with `NodeNext`, `erasableSyntaxOnly`, and `verbatimModuleSyntax`. Add each new native entry point to the `node --check` commands in root `check:scripts`; keep imported local helpers inside the config's include patterns. Legacy `ts-node` scripts continue to use `scripts/tsconfig.json`.
+`pnpm check:scripts` uses `scripts/tsconfig.native.json` to check all `.mts`/`.cts` files under `scripts/` and `test/` with `NodeNext`, `erasableSyntaxOnly`, and `verbatimModuleSyntax`. Keep imported local helpers inside the config's include patterns. Repository tooling runs TypeScript directly with Node; `scripts/tsconfig.json` also checks test helpers used by Vitest.
 
 ### pnpm workspace
 
