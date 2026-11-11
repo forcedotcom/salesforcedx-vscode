@@ -33,6 +33,7 @@ import { OrgCatalogState } from './orgCatalog/orgCatalogState';
 import { OrgMetadataCatalog } from './orgCatalog/orgMetadataCatalog';
 import { OrgMetadataCatalogChangePubSub } from './orgCatalog/orgMetadataCatalogChangePubSub';
 import { OrgMetadataCatalogStore } from './orgCatalog/orgMetadataCatalogStore';
+import { SdrStlWorkerService } from './sdrStlWorker/sdrStlWorkerService';
 import { TerminalService, TerminalServiceWebLive } from './terminal/terminalService';
 import { EditorService } from './vscode/editorService';
 import { ExtensionContextService } from './vscode/extensionContextService';
@@ -94,6 +95,7 @@ const baseGlobalLayers = Layer.mergeAll(
   SettingsService.Default,
   SettingsChangePubSub.Default,
   SourceTrackingService.Default,
+  SdrStlWorkerService.Default,
   terminalServiceLayer,
   TransmogrifierService.Default,
   TraceFlagService.Default,

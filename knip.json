@@ -33,6 +33,9 @@
         "src/testSupport/testUtils.ts",
         "src/testSupport/mockWorkspaceFindFiles.ts"
       ]
+    },
+    "packages/salesforcedx-vscode-services": {
+      "entry": ["src/index.ts", "src/sdrStlWorker/nodeWorkerEntry.ts", "src/sdrStlWorker/nodeClient.ts"]
     }
   }
 }

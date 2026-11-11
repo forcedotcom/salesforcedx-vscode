@@ -9,7 +9,7 @@ import copy from 'esbuild-plugin-copy';
 import { createRequire } from 'module';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
-import { nodeEsmConfig } from '../../scripts/bundling/node.mjs';
+import { nodeConfig, nodeEsmConfig } from '../../scripts/bundling/node.mjs';
 import { commonConfigBrowser } from '../../scripts/bundling/web.mjs';
 
 import { writeFile, readFile, readdir, mkdir } from 'fs/promises';
@@ -157,6 +157,23 @@ const nodeBuild = await build({
   metafile: true
 });
 
+// SDR runs in a dedicated Node worker so source resolution and conversion do
+// not block the extension host. Bundle its production dependency through the
+// same VSE Node configuration as the desktop extension.
+const sdrStlWorkerBuild = await build({
+  ...nodeConfig,
+  entryPoints: ['./out/src/sdrStlWorker/nodeWorkerEntry.js'],
+  outfile: './dist/sdr-stl-worker.cjs',
+  metafile: true
+});
+
+const sdrStlWorkerClientBuild = await build({
+  ...nodeConfig,
+  entryPoints: ['./out/src/sdrStlWorker/nodeClient.js'],
+  outfile: './dist/sdr-stl-worker-client.cjs',
+  metafile: true
+});
+
 // Browser build (browser environment)
 const webConfigJson = await buildWebConfig();
 const browserDefine = {
@@ -175,5 +192,7 @@ const browserBuild = await build({
 });
 
 await writeFile('dist/node-metafile.json', JSON.stringify(nodeBuild.metafile, null, 2));
+await writeFile('dist/sdr-stl-worker-metafile.json', JSON.stringify(sdrStlWorkerBuild.metafile, null, 2));
+await writeFile('dist/sdr-stl-worker-client-metafile.json', JSON.stringify(sdrStlWorkerClientBuild.metafile, null, 2));
 await writeFile('dist/browser-metafile.json', JSON.stringify(browserBuild.metafile, null, 2));
 await generateTemplatesManifest();
