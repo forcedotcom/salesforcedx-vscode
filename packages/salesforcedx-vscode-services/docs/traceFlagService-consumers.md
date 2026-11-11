@@ -24,4 +24,4 @@ GitHub code searches for `TraceFlagService` in `org:forcedotcom` returned only t
 
 ## Compatibility boundary
 
-Keep Services' tag/context, public method signatures, item shapes, error tags, cache ownership, and PubSub lifecycle. Widen apex-node's entity input to accept its existing SalesforceId brand alongside UserId, retaining CLI UserId compatibility. No changes to ConnectionService, TargetOrgRef, or prebuiltServicesDependencies.
+Keep Services' tag/context, public method signatures, item shapes, error tags, cache ownership, and PubSub lifecycle. Apex-node accepts only UserId, ApexClassId, or ApexTriggerId for trace-flag entity operations and names its lookup `getTraceFlagForEntity`; Services keeps its existing public `getTraceFlagForUser` method for compatibility. No changes to ConnectionService, TargetOrgRef, or prebuiltServicesDependencies.

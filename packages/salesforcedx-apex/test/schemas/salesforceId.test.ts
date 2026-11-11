@@ -6,7 +6,7 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { ApexClassId, SalesforceId, TestRunId, UserId } from '../../src/schemas/salesforceId';
+import { ApexClassId, SalesforceId, TestRunId, TraceFlagEntityId, UserId } from '../../src/schemas/salesforceId';
 import { DebugLevelId, TraceFlagId } from '../../src/effect/schema/salesforceId';
 
 describe('Salesforce ID schemas', () => {
@@ -25,6 +25,13 @@ describe('Salesforce ID schemas', () => {
   it('accepts only IDs with the User prefix', () => {
     expect(Schema.is(UserId)('005xx0000000001')).toBe(true);
     expect(Schema.is(UserId)('7tfxx0000000001')).toBe(false);
+  });
+
+  it('accepts only User, ApexClass, or ApexTrigger IDs as trace-flag entities', () => {
+    expect(Schema.is(TraceFlagEntityId)('005xx0000000001')).toBe(true);
+    expect(Schema.is(TraceFlagEntityId)('01p2M00000O6tXZQAZ')).toBe(true);
+    expect(Schema.is(TraceFlagEntityId)('01q2M00000O6tXZQAZ')).toBe(true);
+    expect(Schema.is(TraceFlagEntityId)('001xx0000000001')).toBe(false);
   });
 
   it('accepts only IDs with the DebugLevel prefix', () => {
