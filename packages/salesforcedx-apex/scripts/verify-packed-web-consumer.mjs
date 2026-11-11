@@ -204,7 +204,7 @@ try {
   };
   await runTooling('findDebugLevel', "a'\\b");
   assert.ok(queriedSoql.includes("DeveloperName = 'a\\'\\\\b'"));
-  await runTooling('getTraceFlagForUser', '005000000000001', 'USER_DEBUG', 'CreatedDate');
+  await runTooling('getTraceFlagForEntity', '005000000000001', 'USER_DEBUG', 'CreatedDate');
   assert.ok(queriedSoql.includes("LogType='USER_DEBUG'"));
   assert.ok(queriedSoql.includes('ORDER BY CreatedDate DESC LIMIT 1'));
 

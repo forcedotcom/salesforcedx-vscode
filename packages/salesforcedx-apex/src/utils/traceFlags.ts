@@ -18,7 +18,7 @@ import {
   createTraceFlag,
   extendTraceFlag,
   findDebugLevel,
-  getTraceFlagForUser,
+  getTraceFlagForEntity,
   updateDebugLevel
 } from '../effect/traceFlags';
 import { nls } from '../i18n';
@@ -86,7 +86,7 @@ export const ensureTraceFlags = async (connection: Connection, debugLevelName?: 
   }
 
   const userId = await getUserIdOrThrow(connection, username);
-  const traceFlag = await run(getTraceFlagForUser(connection, userId, LOG_TYPE, 'CreatedDate'));
+  const traceFlag = await run(getTraceFlagForEntity(connection, userId, LOG_TYPE, 'CreatedDate'));
   if (Option.isSome(traceFlag)) {
     // Existing flags keep their level, even when the caller supplied a different name.
     return run(
