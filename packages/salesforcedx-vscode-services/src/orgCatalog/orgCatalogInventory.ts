@@ -7,6 +7,7 @@
 
 import type { TypeInventory } from './orgCatalogInternalTypes';
 import * as Arr from 'effect/Array';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import * as HashMap from 'effect/HashMap';
 import * as Match from 'effect/Match';
@@ -60,7 +61,8 @@ export const makeOrgCatalogInventory = Effect.gen(function* () {
         [listOrgComponents, workspace.scanWorkspaceInventory(xmlName)],
         { concurrency: 'unbounded' }
       );
-      const observedAt = restored && restored.complete !== false ? restored.observedAt : new Date().toISOString();
+      const observedAt =
+        restored && restored.complete !== false ? restored.observedAt : DateTime.formatIso(yield* DateTime.now);
       const inventory = {
         observedAt,
         complete: true,

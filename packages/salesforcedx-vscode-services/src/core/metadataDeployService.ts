@@ -6,6 +6,7 @@
  */
 
 import { ComponentSet, type DeployResult, RequestStatus } from '@salesforce/source-deploy-retrieve';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
@@ -143,7 +144,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       const event = {
         ...(orgId ? { orgId } : {}),
         operation: changes.every(change => change.changeType === 'deleted') ? 'delete' : 'deploy',
-        completedAt: new Date().toISOString(),
+        completedAt: DateTime.formatIso(yield* DateTime.now),
         changes: [...changes]
       } as const;
       yield* notificationService.publishOperation(event);

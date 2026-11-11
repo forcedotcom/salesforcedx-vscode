@@ -17,6 +17,7 @@ import type {
 } from './orgMetadataCatalogTypes';
 import type { MetadataOperationEvent } from '../core/metadataChangeNotificationService';
 import * as Arr from 'effect/Array';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import * as HashMap from 'effect/HashMap';
 import * as Option from 'effect/Option';
@@ -121,7 +122,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
       ) {
         if (components.length === 0) return;
         yield* state.ensureHydrated(orgId);
-        const observedAt = new Date().toISOString();
+        const observedAt = DateTime.formatIso(yield* DateTime.now);
         const componentsWithDocumentUris = yield* Effect.forEach(
           components,
           component =>
@@ -206,7 +207,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
         const previousComparable = previous?.map(type => ({ ...type, observedAt: '' }));
         const changed = JSON.stringify(previousComparable) !== JSON.stringify(normalized);
         if (changed) {
-          const observedAt = new Date().toISOString();
+          const observedAt = DateTime.formatIso(yield* DateTime.now);
           yield* state.setMetadataTypes(
             orgId,
             normalized.map(type => ({ ...type, observedAt }))
@@ -232,7 +233,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
           yield* state.setMetadataListing(orgId, {
             xmlName,
             ...(folder ? { folder } : {}),
-            observedAt: new Date().toISOString(),
+            observedAt: DateTime.formatIso(yield* DateTime.now),
             components: normalized
           });
           yield* state.queuePersist(orgId);
@@ -256,7 +257,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
         const previousComparable = previous?.map(({ name, custom, queryable }) => ({ name, custom, queryable }));
         const changed = JSON.stringify(previousComparable) !== JSON.stringify(comparable);
         if (changed) {
-          const observedAt = new Date().toISOString();
+          const observedAt = DateTime.formatIso(yield* DateTime.now);
           const observations: readonly OrgSObjectSummary[] = comparable.map(sobject => ({
             ...sobject,
             orgId,
@@ -284,7 +285,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
           const observation: OrgSObjectDescription = {
             ...sobject,
             orgId,
-            observedAt: new Date().toISOString(),
+            observedAt: DateTime.formatIso(yield* DateTime.now),
             provenance: 'rest-api'
           };
           yield* state.setSObjectDescription(orgId, observation);

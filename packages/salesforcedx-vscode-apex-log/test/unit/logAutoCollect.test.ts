@@ -202,8 +202,9 @@ describe('log auto collection', () => {
     await Effect.runPromise(
       Effect.scoped(
         Effect.gen(function* () {
+          yield* TestClock.setTime(Date.parse('2026-10-23T12:00:00.000Z'));
           const { query, advance } = yield* setup;
-          const startTime = new Date(Date.now() - 120_000).toISOString();
+          const startTime = '2026-10-23T11:58:00.000Z';
           query.mockResolvedValue({ totalSize: 1, records: [log('07Lcursor', userOne, startTime)] });
 
           yield* advance(1);
