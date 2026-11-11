@@ -10,12 +10,13 @@
  * conflict tree. Creates two uniquely-named throwaway classes, deploys and edits both, then diffs the
  * classes folder.
  *
- * Container: runs against the container's boot-authed org. Because the shared persistent workbench may
- * hold other locally changed classes, assertions become relative — the output-channel wait drops the
- * exact component/file counts, and "first diff opens automatically" asserts generically that SOME
- * remote/local diff tab opened (the first component is not necessarily classNameA) rather than
- * asserting on a specific class name — the conflict tree step still asserts both created classes are
- * present, which is what this spec actually cares about.
+ * Container: runs against the container's boot-authed org. The shared persistent workbench's classes
+ * folder also holds the seeded fixture classes and possibly other local changes, so the folder-diff
+ * output wait drops the exact component/file counts, and "first diff opens automatically" asserts that
+ * SOME remote/local diff tab opened (the first component sorted by name is not necessarily classNameA).
+ * The conflict-tree steps still assert both created classes are present, which is what this spec
+ * actually cares about. Local counts are asserted relative to their starting value, and both classes
+ * are removed (from the org too) after the test.
  */
 
 import { expect } from '@playwright/test';
@@ -26,11 +27,10 @@ import {
   closeWelcomeTabs,
   createMinimalOrg,
   upsertScratchOrgAuthFieldsToSettings,
-  upsertSettings,
   createApexClass,
-  deployCurrentSourceToOrg,
   editOpenFile,
   openFileByName,
+  executeCommandWithCommandPalette,
   executeExplorerContextMenuCommand,
   saveScreenshot,
   validateNoCriticalErrors,
@@ -39,20 +39,26 @@ import {
   clearOutputChannel,
   waitForOutputChannelText,
   ensureSecondarySideBarHidden,
-  verifyCommandExists,
   resetContainerWorkbench
 } from '@salesforce/playwright-vscode-ext';
 import { SourceTrackingStatusBarPage } from '../pages/sourceTrackingStatusBarPage';
 import { ConflictTreePage } from '../specs-conflicts/pages/conflictTreePage';
 import { DiffEditorPage } from '../specs-conflicts/pages/diffEditorPage';
-import { CORE_CONFIG_SECTION, DEPLOY_ON_SAVE_ENABLED } from '../../../src/constants';
 import packageNls from '../../../package.nls.json';
 import { DEPLOY_TIMEOUT } from '../../constants';
 import { isContainer, sharedTest as test } from '../fixtures';
+import { cleanupContainerApexClasses } from '../utils/containerCleanup';
+
+// Container-only: throwaway classes this test created, deleted from the project and org after it (pass
+// or fail) so they don't pile up on the shared workbench — see utils/containerCleanup.
+const createdClasses: string[] = [];
 
 if (isContainer) {
   test.beforeEach(async ({ page }) => {
     await resetContainerWorkbench(page);
+  });
+  test.afterEach(() => {
+    cleanupContainerApexClasses(createdClasses.splice(0));
   });
 }
 
@@ -64,55 +70,61 @@ test('Source Diff (multiple files): opens first diff and populates conflict tree
   const ts = Date.now();
   const classNameA = `DiffMultiA${ts}`;
   const classNameB = `DiffMultiB${ts}`;
+  createdClasses.push(classNameA, classNameB);
 
-  let statusBarPage: SourceTrackingStatusBarPage;
+  const statusBarPage = new SourceTrackingStatusBarPage(page);
+  let initialLocalCount: number;
+
+  // Start each operation from an empty Salesforce Metadata channel so its output waits can only match
+  // that operation — otherwise class B's deploy wait matches class A's earlier "Deployed Source" line
+  // even when B's deploy fails.
+  const clearMetadataOutput = async (): Promise<void> => {
+    await ensureOutputPanelOpen(page);
+    await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
+    await clearOutputChannel(page);
+  };
+
+  /** Create a class and deploy it, waiting until source tracking no longer counts it as a local change. */
+  const createAndDeployClass = async (className: string): Promise<void> => {
+    await createApexClass(page, className);
+    await statusBarPage.waitForCounts({ local: initialLocalCount + 1 }, 60_000);
+
+    await clearMetadataOutput();
+    // Re-open the class so "Deploy This Source" targets it, not whichever editor clearing output left active.
+    await openFileByName(page, `${className}.cls`);
+    await executeCommandWithCommandPalette(page, packageNls.deploy_this_source_text);
+
+    // "Deployed Source" is printed only for a deploy that reached the org. The transient "Deploying"
+    // toast is racy on a fast deploy, so completion is asserted via output alone.
+    await waitForOutputChannelText(page, { expectedText: 'Deployed Source', timeout: DEPLOY_TIMEOUT });
+    await statusBarPage.waitForCounts({ local: initialLocalCount }, 60_000);
+  };
 
   await test.step('setup', async () => {
-    if (isContainer) {
-      // The containerTest fixture already awaited workbench readiness before handing over `page`.
-      await closeWelcomeTabs(page);
-      await ensureSecondarySideBarHidden(page);
-      await saveScreenshot(page, 'sourceDiffMultiple.01-ready.png');
-    } else {
-      const createResult = await createMinimalOrg();
+    // The container's fixture already awaited the workbench, and its boot org is already authed.
+    const createResult = isContainer ? undefined : await createMinimalOrg();
+    if (!isContainer) {
       await waitForVSCodeWorkbench(page);
-      await closeWelcomeTabs(page);
-      await ensureSecondarySideBarHidden(page);
-      await upsertScratchOrgAuthFieldsToSettings(page, createResult);
-
-      statusBarPage = new SourceTrackingStatusBarPage(page);
-      await statusBarPage.waitForVisible(120_000);
-
-      await verifyCommandExists(page, 'SFDX: Create Apex Class', 30_000);
-
-      await upsertSettings(page, { [`${CORE_CONFIG_SECTION}.${DEPLOY_ON_SAVE_ENABLED}`]: 'false' });
     }
+    await closeWelcomeTabs(page);
+    await ensureSecondarySideBarHidden(page);
+    if (createResult) {
+      await upsertScratchOrgAuthFieldsToSettings(page, createResult);
+    }
+
+    await statusBarPage.waitForVisible(120_000);
+    initialLocalCount = (await statusBarPage.getCounts()).local;
+    await saveScreenshot(page, 'sourceDiffMultiple.01-ready.png');
   });
 
   await test.step('create and deploy first class', async () => {
-    await createApexClass(page, classNameA);
-    // The transient "Deploying" toast can flash past too fast to catch on a fast container deploy;
-    // assert completion via the output channel there instead.
-    await deployCurrentSourceToOrg(page, isContainer ? { waitViaOutputChannel: true } : undefined);
-    if (!isContainer) {
-      await statusBarPage.waitForCounts({ local: 0 }, DEPLOY_TIMEOUT);
-    }
-    await saveScreenshot(
-      page,
-      isContainer ? 'sourceDiffMultiple.02-classA-deployed.png' : 'diff-multi-1-classA-deployed.png'
-    );
+    await createAndDeployClass(classNameA);
+    await saveScreenshot(page, 'sourceDiffMultiple.02-classA-deployed.png');
   });
 
   await test.step('create and deploy second class', async () => {
-    await createApexClass(page, classNameB);
-    await deployCurrentSourceToOrg(page, isContainer ? { waitViaOutputChannel: true } : undefined);
-    if (!isContainer) {
-      await statusBarPage.waitForCounts({ local: 0 }, DEPLOY_TIMEOUT);
-    }
-    await saveScreenshot(
-      page,
-      isContainer ? 'sourceDiffMultiple.03-classB-deployed.png' : 'diff-multi-2-classB-deployed.png'
-    );
+    await createAndDeployClass(classNameB);
+    await saveScreenshot(page, 'sourceDiffMultiple.03-classB-deployed.png');
   });
 
   await test.step('edit both classes locally', async () => {
@@ -120,70 +132,51 @@ test('Source Diff (multiple files): opens first diff and populates conflict tree
     await editOpenFile(page, '// Local change A');
     await openFileByName(page, `${classNameB}.cls`);
     await editOpenFile(page, '// Local change B');
-    if (!isContainer) {
-      await statusBarPage.waitForCounts({ local: 2 }, 60_000);
-    }
-    await saveScreenshot(page, isContainer ? 'sourceDiffMultiple.04-both-edited.png' : 'diff-multi-3-both-edited.png');
+    await statusBarPage.waitForCounts({ local: initialLocalCount + 2 }, 60_000);
+    await saveScreenshot(page, 'sourceDiffMultiple.04-both-edited.png');
   });
 
   const tree = new ConflictTreePage(page);
   const diff = new DiffEditorPage(page);
 
   await test.step('diff classes folder via explorer context menu', async () => {
-    await ensureOutputPanelOpen(page);
-    await selectOutputChannel(page, 'Salesforce Metadata', 60_000);
-    await clearOutputChannel(page);
+    await clearMetadataOutput();
 
     await executeExplorerContextMenuCommand(page, /^classes$/, packageNls.diff_source_against_org_text);
 
-    if (isContainer) {
-      // Relative to the shared workbench: the folder may contain other changed classes, so wait only
-      // for the generic start/completion lines rather than exact component/file counts.
-      await waitForOutputChannelText(page, { expectedText: 'Retrieving', timeout: 30_000 });
-      await waitForOutputChannelText(page, { expectedText: 'Diff completed for', timeout: DEPLOY_TIMEOUT });
-      await saveScreenshot(page, 'sourceDiffMultiple.05-output-complete.png');
-    } else {
-      await waitForOutputChannelText(page, { expectedText: 'Retrieving 2 components for diff...', timeout: 30_000 });
-      await waitForOutputChannelText(page, { expectedText: 'Diff completed for 4 files', timeout: DEPLOY_TIMEOUT });
-      await saveScreenshot(page, 'diff-multi-4-output-complete.png');
-    }
+    // Desktop's classes folder holds only the two created classes, so the exact counts are known. The
+    // container's also holds the seeded fixture classes and any other local changes, so it waits only
+    // for the generic start/completion lines.
+    await waitForOutputChannelText(page, {
+      expectedText: isContainer ? 'Retrieving' : 'Retrieving 2 components for diff...',
+      timeout: 30_000
+    });
+    await waitForOutputChannelText(page, {
+      expectedText: isContainer ? 'Diff completed for' : 'Diff completed for 4 files',
+      timeout: DEPLOY_TIMEOUT
+    });
+    await saveScreenshot(page, 'sourceDiffMultiple.05-output-complete.png');
   });
 
   await test.step('first diff opens automatically', async () => {
-    const verifyFirstDiffAutoOpenContainer = async (): Promise<void> => {
-      // Parity with the headless twin's "first diff opens automatically" assertion: the multi-file
-      // diff auto-opens the first component's diff before any tree interaction. Because the shared
-      // workbench may hold other locally changed classes, the first component is not necessarily
-      // classNameA, so assert generically that a diff editor tab (remote ↔ local) opened on its own.
-      await expect(
-        page.getByRole('tab', { name: /↔/ }).first(),
-        'A diff editor tab should open automatically after invoking multi-file diff'
-      ).toBeVisible({ timeout: 30_000 });
-      await saveScreenshot(page, 'sourceDiffMultiple.055-first-diff-auto-open.png');
-    };
-    const verifyFirstDiffAutoOpenDesktop = async (): Promise<void> => {
-      await diff.waitForTab(classNameA);
-      await saveScreenshot(page, 'diff-multi-5-first-diff-open.png');
-    };
-    await (isContainer ? verifyFirstDiffAutoOpenContainer : verifyFirstDiffAutoOpenDesktop)();
+    // The multi-file diff auto-opens the first changed file by name before any tree interaction. On
+    // desktop that is classNameA; on the container another changed class can sort first, so it asserts
+    // that a remote ↔ local diff tab opened on its own.
+    const firstDiffTab = page.getByRole('tab', { name: isContainer ? /↔/ : new RegExp(`${classNameA}.*↔`) }).first();
+    await expect(firstDiffTab, 'The first diff editor tab should open automatically').toBeVisible({ timeout: 30_000 });
+    await saveScreenshot(page, 'sourceDiffMultiple.06-first-diff-auto-open.png');
   });
 
   await test.step('conflict tree shows both files', async () => {
     await tree.waitForItem(`${classNameA}.cls`);
     await tree.waitForItem(`${classNameB}.cls`);
-    await saveScreenshot(
-      page,
-      isContainer ? 'sourceDiffMultiple.06-tree-populated.png' : 'diff-multi-6-tree-populated.png'
-    );
+    await saveScreenshot(page, 'sourceDiffMultiple.07-tree-populated.png');
   });
 
   await test.step('clicking second tree item opens its diff', async () => {
     await tree.clickItem(`${classNameB}.cls`);
     await diff.waitForTab(classNameB);
-    await saveScreenshot(
-      page,
-      isContainer ? 'sourceDiffMultiple.07-diff-open.png' : 'diff-multi-7-second-diff-open.png'
-    );
+    await saveScreenshot(page, 'sourceDiffMultiple.08-second-diff-open.png');
   });
 
   await validateNoCriticalErrors(test, consoleErrors, networkErrors);
