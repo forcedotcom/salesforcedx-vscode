@@ -8,6 +8,8 @@
 import type { UserId } from '../schemas/salesforceId';
 import type { Connection } from '@salesforce/core';
 import * as Arr from 'effect/Array';
+import * as Clock from 'effect/Clock';
+import * as DateTime from 'effect/DateTime';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
@@ -141,7 +143,7 @@ export const createTraceFlag = Effect.fn('Apex.createTraceFlag')(function* (
       TracedEntityId: userId,
       DebugLevelId: debugLevelId,
       LogType: logType,
-      StartDate: new Date().toISOString(),
+      StartDate: DateTime.formatIso(yield* DateTime.now),
       ExpirationDate: traceFlagExpirationDate(undefined, duration).toISOString()
     },
     idSchema: TraceFlagId
@@ -227,7 +229,10 @@ export const ensureTraceFlag = Effect.fn('Apex.ensureTraceFlag')(function* <E = 
     };
   }
   const traceFlag = existing.value;
-  if (isNotUndefined(traceFlag.ExpirationDate) && new Date(traceFlag.ExpirationDate).getTime() < Date.now()) {
+  if (
+    isNotUndefined(traceFlag.ExpirationDate) &&
+    Date.parse(traceFlag.ExpirationDate) < (yield* Clock.currentTimeMillis)
+  ) {
     yield* deleteTraceFlag(connection, traceFlag.Id).pipe(Effect.tap(onMutation));
     return {
       created: true,
@@ -237,7 +242,7 @@ export const ensureTraceFlag = Effect.fn('Apex.ensureTraceFlag')(function* <E = 
     };
   }
   const expirationDate = traceFlagExpirationDate(traceFlag.ExpirationDate, duration);
-  const expirationChanged = expirationDate.getTime() !== new Date(traceFlag.ExpirationDate ?? '').getTime();
+  const expirationChanged = expirationDate.getTime() !== Date.parse(traceFlag.ExpirationDate ?? '');
   const levelChanged = traceFlag.DebugLevelId !== debugLevelId;
   if (levelChanged)
     yield* changeTraceFlagDebugLevel(connection, traceFlag.Id, debugLevelId).pipe(Effect.tap(onMutation));
