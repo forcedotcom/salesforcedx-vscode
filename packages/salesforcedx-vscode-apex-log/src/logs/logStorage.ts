@@ -10,6 +10,7 @@ import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import { isNotUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import type { ExecuteAnonymousResult } from 'salesforcedx-vscode-services';
 import { Utils } from 'vscode-uri';
 
@@ -93,7 +94,7 @@ export const saveExecResult = Effect.fn('LogStorage.saveExecResult')(function* (
     [
       api.services.FsService.writeFile(
         Utils.joinPath(runDirUri, 'result.json'),
-        JSON.stringify(resultWithExecutedAt, undefined, 2)
+        yield* Schema.encode(Schema.parseJson(Schema.Unknown, { space: 2 }))(resultWithExecutedAt)
       ),
       api.services.FsService.writeFile(Utils.joinPath(runDirUri, 'script.apex'), code),
       ...(isNotUndefined(logBody) ? [api.services.FsService.writeFile(logUri, logBody)] : [])

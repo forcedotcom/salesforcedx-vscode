@@ -12,6 +12,7 @@ import * as Fiber from 'effect/Fiber';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import { isUndefined } from 'effect/Predicate';
+import * as Schema from 'effect/Schema';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import type {
   InactiveOrgOperationError,
@@ -501,8 +502,12 @@ const getChildrenOfTreeItem = (element: OrgBrowserTreeItem | undefined, provider
 
       yield* Effect.annotateCurrentSpan({
         resultCount: result.length,
-        resultIds: JSON.stringify(result.slice(0, 10).map(node => node.id)),
-        resultLabels: JSON.stringify(result.slice(0, 10).map(node => getTreeItemLabel(node)))
+        resultIds: yield* Schema.encode(Schema.parseJson(Schema.Array(Schema.UndefinedOr(Schema.String))))(
+          result.slice(0, 10).map(node => node.id)
+        ),
+        resultLabels: yield* Schema.encode(Schema.parseJson(Schema.Array(Schema.UndefinedOr(Schema.String))))(
+          result.slice(0, 10).map(node => getTreeItemLabel(node))
+        )
       });
 
       yield* Effect.promise(() => provider.updateTreeEmptyContext(result.length === 0));

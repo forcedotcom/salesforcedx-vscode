@@ -415,20 +415,21 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
               })
           )
         );
-        yield* fs
-          .writeFileString(
-            path.join(userDataDir, 'User', 'settings.json'),
-            `${JSON.stringify({ ...defaultSettings, ...options.userSettings }, undefined, 2)}\n`
+        yield* Schema.encode(Schema.parseJson(Schema.Unknown, { space: 2 }))({
+          ...defaultSettings,
+          ...options.userSettings
+        }).pipe(
+          Effect.flatMap(settings =>
+            fs.writeFileString(path.join(userDataDir, 'User', 'settings.json'), `${settings}\n`)
+          ),
+          Effect.mapError(
+            cause =>
+              new DrivableVscodeLaunchError({
+                message: 'Failed to write VS Code settings',
+                cause: getErrorMessage(cause)
+              })
           )
-          .pipe(
-            Effect.mapError(
-              cause =>
-                new DrivableVscodeLaunchError({
-                  message: 'Failed to write VS Code settings',
-                  cause: getErrorMessage(cause)
-                })
-            )
-          );
+        );
         const vscodeExecutable =
           options.vscodeExecutable ??
           (yield* Effect.tryPromise({

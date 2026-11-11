@@ -261,7 +261,7 @@ class LwcTestIndexer implements Indexer, vscode.Disposable {
           const failureMessage = sanitizeFailureMessage(failureMessages[0]);
           const failurePosition =
             extractPositionFromFailureMessage(testFsPath, failureMessage) ??
-            new vscode.Position(location.line - 1, location.column - 1);
+            new vscode.Position((location?.line ?? 1) - 1, (location?.column ?? 1) - 1);
           const diagnostic = new vscode.Diagnostic(new vscode.Range(failurePosition, failurePosition), failureMessage);
           diagnosticsResult.push(diagnostic);
         }

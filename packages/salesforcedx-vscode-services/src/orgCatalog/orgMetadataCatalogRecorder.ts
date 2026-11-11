@@ -22,6 +22,7 @@ import * as Effect from 'effect/Effect';
 import * as HashMap from 'effect/HashMap';
 import * as Option from 'effect/Option';
 import * as PubSub from 'effect/PubSub';
+import * as Schema from 'effect/Schema';
 import * as Struct from 'effect/Struct';
 import type { URI } from 'vscode-uri';
 import { MetadataRegistryService } from '../core/metadataRegistryService';
@@ -35,6 +36,8 @@ import {
 import { OrgCatalogState } from './orgCatalogState';
 import { OrgMetadataCatalogChangePubSub } from './orgMetadataCatalogChangePubSub';
 import { documentUri, type OrgMetadataComponentReference } from './orgMetadataReference';
+
+const encodeJson = Schema.encode(Schema.parseJson(Schema.Unknown));
 
 type MetadataTypeResult = {
   readonly xmlName: string;
@@ -205,7 +208,8 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
           }))
           .toSorted((left, right) => left.xmlName.localeCompare(right.xmlName));
         const previousComparable = previous?.map(type => ({ ...type, observedAt: '' }));
-        const changed = JSON.stringify(previousComparable) !== JSON.stringify(normalized);
+        const changed =
+          !previousComparable || (yield* encodeJson(previousComparable)) !== (yield* encodeJson(normalized));
         if (changed) {
           const observedAt = DateTime.formatIso(yield* DateTime.now);
           yield* state.setMetadataTypes(
@@ -228,7 +232,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
         const normalized = components
           .map(componentObservation)
           .toSorted((left, right) => left.fullName.localeCompare(right.fullName));
-        const changed = JSON.stringify(previous?.components) !== JSON.stringify(normalized);
+        const changed = !previous || (yield* encodeJson(previous.components)) !== (yield* encodeJson(normalized));
         if (changed) {
           yield* state.setMetadataListing(orgId, {
             xmlName,
@@ -255,7 +259,8 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
           }))
           .toSorted((left, right) => left.name.localeCompare(right.name));
         const previousComparable = previous?.map(({ name, custom, queryable }) => ({ name, custom, queryable }));
-        const changed = JSON.stringify(previousComparable) !== JSON.stringify(comparable);
+        const changed =
+          !previousComparable || (yield* encodeJson(previousComparable)) !== (yield* encodeJson(comparable));
         if (changed) {
           const observedAt = DateTime.formatIso(yield* DateTime.now);
           const observations: readonly OrgSObjectSummary[] = comparable.map(sobject => ({
@@ -280,7 +285,7 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
         const previousComparable = previous
           ? Struct.omit(previous, 'orgId', 'observedAt', 'provenance', 'remoteLastModifiedDate')
           : undefined;
-        const changed = JSON.stringify(previousComparable) !== JSON.stringify(sobject);
+        const changed = !previousComparable || (yield* encodeJson(previousComparable)) !== (yield* encodeJson(sobject));
         if (changed) {
           const observation: OrgSObjectDescription = {
             ...sobject,

@@ -143,10 +143,7 @@ const executeCreateApexExecutionOverlayActionCommand = Effect.fn('executeCreateA
     yield* getCheckpointConnection().pipe(
       Effect.flatMap(connection =>
         Effect.tryPromise({
-          try: () =>
-            connection.tooling
-              .sobject('ApexExecutionOverlayAction')
-              .create(JSON.parse(theNode.createJSonStringForOverlayAction()) as ApexExecutionOverlayAction),
+          try: () => connection.tooling.sobject('ApexExecutionOverlayAction').create(theNode.getOverlayAction()),
           catch: error => checkpointCreationError(error, theNode)
         })
       ),
@@ -284,8 +281,8 @@ class CheckpointNode extends BaseNode {
     );
   }
 
-  public createJSonStringForOverlayAction(): string {
-    return JSON.stringify(this.checkpointOverlayAction);
+  public getOverlayAction(): ApexExecutionOverlayAction {
+    return { ...this.checkpointOverlayAction };
   }
 
   public isCheckpointEnabled(): boolean {

@@ -12,6 +12,7 @@ import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
 import * as Option from 'effect/Option';
 import * as Schedule from 'effect/Schedule';
+import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import type {
   ApexClassOASEligibleResponse,
@@ -158,7 +159,11 @@ const prevalidateLLMResponse = Effect.fn('ApexOas.ApexRest.prevalidateLLMRespons
           });
           updateOperationIds(parsed, methodName);
         }
-        const stringified = JSON.stringify(parsed);
+        const stringified = yield* Schema.encode(Schema.parseJson(Schema.Unknown))(parsed).pipe(
+          Effect.mapError(
+            cause => new OasGenerationFailed({ message: `Failed to serialize OAS document: ${String(cause)}` })
+          )
+        );
         yield* Effect.logDebug({ event: 'yamlParseResult', parsed: stringified });
         return stringified;
       })

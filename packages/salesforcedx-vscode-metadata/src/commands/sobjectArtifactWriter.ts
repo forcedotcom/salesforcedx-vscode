@@ -9,6 +9,7 @@ import type { SObjectCategory, SObjectRefreshSource } from '../sobjects/types/ge
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Ref from 'effect/Ref';
+import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import type { SObject } from 'salesforcedx-vscode-services';
 import type * as vscode from 'vscode';
@@ -75,7 +76,10 @@ const streamAndWriteSobjectArtifactsEffect = Effect.fn('streamAndWriteSobjectArt
   const incrementPer = total > 0 ? 100 / total : 0;
 
   // Phase 2: typeNames.json — sobjectNames known, dirs ready
-  yield* fs.writeFile(Utils.joinPath(soqlMeta, 'typeNames.json'), JSON.stringify(sobjectNames, null, 2));
+  yield* fs.writeFile(
+    Utils.joinPath(soqlMeta, 'typeNames.json'),
+    yield* Schema.encode(Schema.parseJson(Schema.Unknown, { space: 2 }))(sobjectNames)
+  );
 
   // Phase 3: describe stream + file writes overlapped.
   const standardRef = yield* Ref.make(0);
@@ -155,7 +159,10 @@ const writeSobjectArtifactsEffect = Effect.fn('writeSobjectArtifacts')(function*
       fs.safeDelete(typings, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(typings))),
       fs.safeDelete(soqlStandard, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(soqlStandard))),
       fs.safeDelete(soqlCustom, { recursive: true }).pipe(Effect.flatMap(() => fs.createDirectory(soqlCustom))),
-      fs.writeFile(Utils.joinPath(soqlMeta, 'typeNames.json'), JSON.stringify(sobjectNames, null, 2))
+      fs.writeFile(
+        Utils.joinPath(soqlMeta, 'typeNames.json'),
+        yield* Schema.encode(Schema.parseJson(Schema.Unknown, { space: 2 }))(sobjectNames)
+      )
     ],
     { concurrency: 'unbounded' }
   );

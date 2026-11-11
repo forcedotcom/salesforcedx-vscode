@@ -5,10 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
 import { JSONPath } from 'jsonpath-plus';
 import type { OpenAPIV3 } from 'openapi-types';
 import type { ApexOASMethodDetail } from 'salesforcedx-vscode-apex';
-import { MethodNotFoundInDocSymbols } from '../../errors';
+import { MethodNotFoundInDocSymbols, OasGenerationFailed } from '../../errors';
 import { nls } from '../../messages/nls';
 import { cleanupGeneratedDoc, parseOASDocFromJson } from '../../oasUtils';
 import { httpMethodMap } from '../schemas';
@@ -126,5 +127,7 @@ export const combineYamlByMethod = Effect.fn('ApexOas.Format.combineYamlByMethod
     })
   );
 
-  return JSON.stringify(combined);
+  return yield* Schema.encode(Schema.parseJson(Schema.Unknown))(combined).pipe(
+    Effect.mapError(cause => new OasGenerationFailed({ message: `Failed to serialize OAS document: ${String(cause)}` }))
+  );
 });

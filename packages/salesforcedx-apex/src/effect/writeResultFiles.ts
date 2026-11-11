@@ -145,6 +145,8 @@ export const writeResultFiles = Effect.fn('Apex.writeResultFiles')(function* (
             typeof content === 'string'
               ? content
               : yield* Effect.try({
+                  // parseJson rejects undefined from toJSON; preserve the custom-file null fallback.
+                  // @effect-diagnostics-next-line effect/preferSchemaOverJson:off
                   try: () => JSON.stringify(content) ?? 'null',
                   catch: cause =>
                     new FileOutputError({
