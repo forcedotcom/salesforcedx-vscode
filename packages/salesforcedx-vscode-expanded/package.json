@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.11.6",
+  "version": "68.13.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {

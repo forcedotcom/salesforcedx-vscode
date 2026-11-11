@@ -210,7 +210,7 @@ EMERGENCY PATCH RELEASE PATH (Stable version hotfix) - NEW!               │
            │
            ▼
    ┌──────────────────────────────────────────────────────┐
-   │ publishVSCode.yml + publishOpenVSX.yml               │
+   │ publishVSCode.yml + publishOpenVSXTrusted.yml        │
    │ Both dispatched with -f isHotfix=true, release-tag   │
    │ • Test patch commit (compile + test)                 │
    │ • Publish stable to VS Code Marketplace & Open VSX   │
