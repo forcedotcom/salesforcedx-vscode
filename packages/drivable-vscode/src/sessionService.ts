@@ -43,6 +43,7 @@ import { ExtensionService } from './extensionService';
 import {
   DrivableVscodeObservation,
   DrivableVscodeRendererConsoleEntry,
+  JsonValue,
   type DrivableVscodeAction,
   type Within,
   type DrivableVscodeExtension,
@@ -415,7 +416,7 @@ export class SessionService extends Effect.Service<SessionService>()('DrivableVs
               })
           )
         );
-        yield* Schema.encode(Schema.parseJson(Schema.Unknown, { space: 2 }))({
+        yield* Schema.encode(Schema.parseJson(JsonValue, { space: 2 }))({
           ...defaultSettings,
           ...options.userSettings
         }).pipe(

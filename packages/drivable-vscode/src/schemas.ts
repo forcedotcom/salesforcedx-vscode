@@ -6,6 +6,19 @@
  */
 
 import * as Schema from 'effect/Schema';
+import { DrivableVscodeActionError, DrivableVscodeArtifactError } from './errors';
+
+export type JsonValue = null | string | number | boolean | readonly JsonValue[] | { readonly [key: string]: JsonValue };
+export const JsonValue: Schema.Schema<JsonValue> = Schema.suspend(() =>
+  Schema.Union(
+    Schema.Null,
+    Schema.String,
+    Schema.JsonNumber,
+    Schema.Boolean,
+    Schema.Array(JsonValue),
+    Schema.Record({ key: Schema.String, value: JsonValue })
+  )
+);
 
 const NonEmptyString = Schema.String.pipe(Schema.minLength(1));
 const OptionalObservationSequence = {
@@ -39,7 +52,7 @@ export const DrivableVscodeLaunchOptions = Schema.Struct({
   repoRoot: Schema.optional(NonEmptyString),
   vscodeExecutable: Schema.optional(NonEmptyString),
   artifactRoot: Schema.optional(NonEmptyString),
-  userSettings: Schema.optional(Schema.Record({ key: Schema.String, value: Schema.Unknown })),
+  userSettings: Schema.optional(Schema.Record({ key: Schema.String, value: JsonValue })),
   orgAlias: Schema.optional(NonEmptyString)
 });
 export type DrivableVscodeLaunchOptions = Schema.Schema.Type<typeof DrivableVscodeLaunchOptions>;
@@ -136,7 +149,7 @@ export const DrivableVscodeActionRecord = Schema.Union(
     kind: Schema.Literal('action-failed'),
     ...ActionRecord,
     completedAt: NonEmptyString,
-    error: Schema.Unknown
+    error: Schema.Union(DrivableVscodeActionError, DrivableVscodeArtifactError)
   }),
   Schema.Struct({ kind: Schema.Literal('session-closing'), capturedAt: NonEmptyString })
 );

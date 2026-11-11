@@ -18,8 +18,9 @@ const updateTestResultsFromTestResultsJson = Effect.fn('updateTestResultsFromTes
   testResultsUri: URI
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const testResultsContent = yield* api.services.FsService.readFile(testResultsUri.fsPath);
-  const testResults = yield* Schema.decodeUnknown(Schema.parseJson(LwcJestTestResultsSchema))(testResultsContent);
+  const testResults = yield* api.services.FsService.readFile(testResultsUri).pipe(
+    Effect.flatMap(Schema.decodeUnknown(Schema.parseJson(LwcJestTestResultsSchema)))
+  );
   lwcTestIndexer.updateTestResults(testResults);
 });
 

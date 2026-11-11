@@ -14,11 +14,13 @@ import * as Scope from 'effect/Scope';
 import { DRIVABLE_VSCODE_EXTENSION_DIRS } from '../src/constants';
 import { consumeConsoleWrites, drainConsoleWrites, type ConsoleWrite } from '../src/consoleWriteQueue';
 import { releaseAll } from '../src/releaseAll';
+import { DrivableVscodeActionError } from '../src/errors';
 import {
   DrivableVscodeActionRecord,
   ActInput,
   StartInput,
   DrivableVscodeFinding,
+  JsonValue,
   DrivableVscodeManifest,
   DrivableVscodeRendererConsoleEntry,
   type DrivableVscodeRendererConsoleEntry as DrivableVscodeRendererConsoleEntryType
@@ -75,6 +77,26 @@ describe('drivable VS Code contracts', () => {
     expect(Schema.encodeSync(DrivableVscodeRendererConsoleEntry)(renderer)).toEqual(renderer);
     expect(() => Schema.decodeUnknownSync(DrivableVscodeActionRecord)({ kind: 'session-closing' })).toThrow();
     expect(() => Schema.decodeUnknownSync(DrivableVscodeManifest)({ runId: 'run' })).toThrow();
+  });
+
+  test('constrains settings to JSON values and action failures to the action error shape', () => {
+    expect(Schema.decodeUnknownSync(JsonValue)({ editor: { fontSize: 14, rulers: [80, 120], enabled: true } })).toEqual(
+      { editor: { fontSize: 14, rulers: [80, 120], enabled: true } }
+    );
+    expect(() => Schema.decodeUnknownSync(JsonValue)(() => undefined)).toThrow();
+    expect(
+      Schema.encodeSync(DrivableVscodeActionRecord)({
+        kind: 'action-failed',
+        sequence: 1,
+        observationSequence: 1,
+        startedAt: '2026-08-06T00:00:00.000Z',
+        completedAt: '2026-08-06T00:00:01.000Z',
+        action: { kind: 'press', key: 'Enter' },
+        error: new DrivableVscodeActionError({ message: 'Action failed', cause: 'No matching control' })
+      })
+    ).toMatchObject({
+      error: { _tag: 'DrivableVscodeActionError', message: 'Action failed', cause: 'No matching control' }
+    });
   });
 
   test('attempts every release when releases fail', async () => {
