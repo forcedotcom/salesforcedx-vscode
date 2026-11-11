@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { UserId } from '../schemas/salesforceId';
+import type { TraceFlagEntityId } from '../schemas/salesforceId';
 import type { Connection } from '@salesforce/core';
 import * as Arr from 'effect/Array';
 import * as Clock from 'effect/Clock';
@@ -19,10 +19,10 @@ import { createRecord, deleteRecord, queryRecords, updateRecord } from './record
 import { DebugLevelId, TraceFlagId } from './schema/salesforceId';
 import {
   DebugLevelRecordSchema,
-  TraceFlagForUserSchema,
+  TraceFlagForEntitySchema,
   TraceFlagRecordSchema,
   type CreateDebugLevel,
-  type TraceFlagForUser,
+  type TraceFlagForEntity,
   type TraceFlagLogType,
   type UpdateDebugLevel
 } from './schema/wire/traceFlags';
@@ -39,19 +39,19 @@ export const getTraceFlags = Effect.fn('Apex.getTraceFlags')((connection: Connec
   })
 );
 
-/** Finds the newest matching flag. CLI policy selects CreatedDate; other callers select ExpirationDate. */
-export const getTraceFlagForUser = Effect.fn('Apex.getTraceFlagForUser')(
+/** Finds the newest matching entity flag. CLI policy selects CreatedDate; other callers select ExpirationDate. */
+export const getTraceFlagForEntity = Effect.fn('Apex.getTraceFlagForEntity')(
   (
     connection: Connection,
-    userId: UserId,
+    entityId: TraceFlagEntityId,
     logType: TraceFlagLogType = 'DEVELOPER_LOG',
     orderBy: 'CreatedDate' | 'ExpirationDate' = 'ExpirationDate'
   ) =>
     queryRecords({
       connection,
-      operation: 'getTraceFlagForUser',
-      soql: `SELECT Id, StartDate, ExpirationDate, DebugLevelId, DebugLevel.DeveloperName FROM TraceFlag WHERE LogType='${quote(logType)}' AND TracedEntityId='${quote(userId)}' ORDER BY ${orderBy} DESC LIMIT 1`,
-      recordSchema: TraceFlagForUserSchema,
+      operation: 'getTraceFlagForEntity',
+      soql: `SELECT Id, StartDate, ExpirationDate, DebugLevelId, DebugLevel.DeveloperName FROM TraceFlag WHERE LogType='${quote(logType)}' AND TracedEntityId='${quote(entityId)}' ORDER BY ${orderBy} DESC LIMIT 1`,
+      recordSchema: TraceFlagForEntitySchema,
       tooling: true
     }).pipe(Effect.map(Arr.head))
 );
@@ -130,7 +130,7 @@ export const traceFlagExpirationDate = (
 
 export const createTraceFlag = Effect.fn('Apex.createTraceFlag')(function* (
   connection: Connection,
-  userId: UserId,
+  entityId: TraceFlagEntityId,
   debugLevelId: DebugLevelId,
   duration: Duration.DurationInput = Duration.minutes(30),
   logType: TraceFlagLogType = 'DEVELOPER_LOG'
@@ -140,7 +140,7 @@ export const createTraceFlag = Effect.fn('Apex.createTraceFlag')(function* (
     operation: 'createTraceFlag',
     type: 'TraceFlag',
     fields: {
-      TracedEntityId: userId,
+      TracedEntityId: entityId,
       DebugLevelId: debugLevelId,
       LogType: logType,
       StartDate: DateTime.formatIso(yield* DateTime.now),
@@ -197,7 +197,7 @@ export const changeTraceFlagDebugLevel = Effect.fn('Apex.changeTraceFlagDebugLev
 
 /** Renews an existing flag in place; CLI keeps this policy even for expired flags. */
 export const extendTraceFlag = Effect.fn('Apex.extendTraceFlag')(
-  (connection: Connection, traceFlag: TraceFlagForUser, duration: Duration.DurationInput = Duration.minutes(30)) =>
+  (connection: Connection, traceFlag: TraceFlagForEntity, duration: Duration.DurationInput = Duration.minutes(30)) =>
     updateTraceFlag(connection, traceFlag.Id, {
       expirationDate: traceFlagExpirationDate(traceFlag.ExpirationDate, duration)
     })
@@ -214,16 +214,16 @@ export type EnsureTraceFlagOptions<E = never, R = never> = {
 /** Ensures a flag using the caller-selected level; expired flags are replaced, not renewed. */
 export const ensureTraceFlag = Effect.fn('Apex.ensureTraceFlag')(function* <E = never, R = never>(
   connection: Connection,
-  userId: UserId,
+  entityId: TraceFlagEntityId,
   debugLevelId: DebugLevelId,
   options: EnsureTraceFlagOptions<E, R> = {}
 ) {
   const { duration = Duration.minutes(30), logType = 'DEVELOPER_LOG', onMutation = () => Effect.void } = options;
-  const existing = yield* getTraceFlagForUser(connection, userId, logType);
+  const existing = yield* getTraceFlagForEntity(connection, entityId, logType);
   if (Option.isNone(existing)) {
     return {
       created: true,
-      traceFlagId: yield* createTraceFlag(connection, userId, debugLevelId, duration, logType).pipe(
+      traceFlagId: yield* createTraceFlag(connection, entityId, debugLevelId, duration, logType).pipe(
         Effect.tap(onMutation)
       )
     };
@@ -236,7 +236,7 @@ export const ensureTraceFlag = Effect.fn('Apex.ensureTraceFlag')(function* <E = 
     yield* deleteTraceFlag(connection, traceFlag.Id).pipe(Effect.tap(onMutation));
     return {
       created: true,
-      traceFlagId: yield* createTraceFlag(connection, userId, debugLevelId, duration, logType).pipe(
+      traceFlagId: yield* createTraceFlag(connection, entityId, debugLevelId, duration, logType).pipe(
         Effect.tap(onMutation)
       )
     };

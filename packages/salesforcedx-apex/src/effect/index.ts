@@ -65,7 +65,7 @@ export { TestSuiteSchema, TestSuiteMembershipSchema } from './schema/testSuites'
 export { retrieveAllSuites, getTestsInSuite, buildSuite } from './testSuites';
 export type { TestSuite, TestSuiteMembership } from './schema/testSuites';
 export { ApexTestSuiteId } from '../schemas/salesforceId';
-export { UserId } from '../schemas/salesforceId';
+export { ApexClassId, ApexTriggerId, SalesforceId, TraceFlagEntityId, UserId } from '../schemas/salesforceId';
 export { DebugLevelId, TraceFlagId } from './schema/salesforceId';
 export { createRecord, deleteRecord, updateRecord } from './records';
 export { AsyncTestOptionsSchema } from './schema/wire/asyncTests';
@@ -90,7 +90,7 @@ export { DefaultReportOptions, DefaultWatermarks } from '../reporters/coverageOp
 export type { CoverageReporterOptions, CoverageReportFormats } from '../reporters/coverageOptions';
 export {
   getTraceFlags,
-  getTraceFlagForUser,
+  getTraceFlagForEntity,
   getDebugLevels,
   findDebugLevel,
   createDebugLevel,
@@ -109,7 +109,7 @@ export type { UpdateTraceFlagOptions, EnsureTraceFlagOptions } from './traceFlag
 export {
   TraceFlagLogType,
   TraceFlagRecordSchema,
-  TraceFlagForUserSchema,
+  TraceFlagForEntitySchema,
   LogCategoryLevel,
   DebugLevelRecordSchema,
   CreateDebugLevelSchema,
@@ -117,7 +117,7 @@ export {
 } from './schema/wire/traceFlags';
 export type {
   TraceFlagRecord,
-  TraceFlagForUser,
+  TraceFlagForEntity,
   DebugLevelRecord,
   CreateDebugLevel,
   UpdateDebugLevel

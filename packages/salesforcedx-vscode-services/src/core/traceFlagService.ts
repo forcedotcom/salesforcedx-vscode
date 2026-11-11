@@ -50,7 +50,7 @@ const idListToInClause = (ids: string[]) => ids.map(id => `'${id}'`).join(',');
 
 const decodeTraceFlagId = Schema.decodeUnknown(apex.TraceFlagRecordSchema.fields.Id);
 const decodeDebugLevelId = Schema.decodeUnknown(apex.DebugLevelRecordSchema.fields.Id);
-const decodeUserId = Schema.decodeUnknown(apex.UserId);
+const decodeTraceFlagEntityId = Schema.decodeUnknown(apex.TraceFlagEntityId);
 
 /** Decode `input` against `schema`, remapping any ParseError to a labeled TraceFlagNotFoundError. */
 const decodeOrFail =
@@ -195,7 +195,9 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
     ) {
       return yield* connectionService.getConnection().pipe(
         Effect.flatMap(connection =>
-          decodeUserId(userId).pipe(Effect.flatMap(id => apex.getTraceFlagForUser(connection, id, logType)))
+          decodeTraceFlagEntityId(userId).pipe(
+            Effect.flatMap(id => apex.getTraceFlagForEntity(connection, id, logType))
+          )
         ),
         Effect.mapError(error => new TraceFlagNotFoundError({ message: error.message })),
         Effect.flatMap(
@@ -268,7 +270,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
     ) {
       const conn = yield* connectionService.getConnection();
       const traceFlagId = yield* Effect.all({
-        userId: decodeUserId(userId),
+        userId: decodeTraceFlagEntityId(userId),
         debugLevelId: decodeDebugLevelId(debugLevelId)
       }).pipe(
         Effect.flatMap(ids => apex.createTraceFlag(conn, ids.userId, ids.debugLevelId, duration, logType)),
@@ -348,7 +350,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
     ) {
       const debugLevelId = existingDebugLevelId ?? (yield* getOrCreateDebugLevel());
       const ids = yield* Effect.all({
-        userId: decodeOrFail(apex.UserId, 'user ID')(userId),
+        userId: decodeOrFail(apex.TraceFlagEntityId, 'traced entity ID')(userId),
         debugLevelId: decodeOrFail(apex.DebugLevelRecordSchema.fields.Id, 'debug level ID')(debugLevelId)
       });
       return yield* connectionService.getConnection().pipe(
@@ -370,7 +372,7 @@ export class TraceFlagService extends Effect.Service<TraceFlagService>()('TraceF
                         cause: error
                       })
                   ),
-                  Match.when('getTraceFlagForUser', () => new TraceFlagNotFoundError({ message: error.message })),
+                  Match.when('getTraceFlagForEntity', () => new TraceFlagNotFoundError({ message: error.message })),
                   Match.orElse(
                     () =>
                       new TraceFlagUpdateError({
