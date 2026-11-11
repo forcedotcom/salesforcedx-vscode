@@ -25,7 +25,7 @@
     "@cursor/sdk": "1.0.35",
     "@effect/eslint-plugin": "0.3.2",
     "@effect/language-service": "^0.87.2",
-    "@effect/platform": "0.96.1",
+    "@effect/platform": "0.97.1",
     "@effect/platform-node": "0.106.0",
     "@eslint/json": "^0.14.0",
     "@html-eslint/eslint-plugin": "0.59.0",
