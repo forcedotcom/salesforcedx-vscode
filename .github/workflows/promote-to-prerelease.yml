@@ -352,8 +352,8 @@ jobs:
   # nightly. build-github-release.yml's prereleaseTag input requires the
   # vX.Y.Z-nightly.develop.YYYYMMDD shape and would reject it, and even if it didn't, chaining a
   # full stable minor-bump build off a hotfix tag makes no sense: hotfixes publish directly via
-  # publishVSCode.yml/publishOpenVSX.yml with isHotfix=true, they don't go through this
-  # nightly-to-stable promotion chain.
+  # publishVSCode.yml/publishOpenVSXTrusted.yml, which auto-detect isHotfix from the release's
+  # persisted metadata -- they don't go through this nightly-to-stable promotion chain.
   # -- W-24610381
   trigger-stable-build:
     needs: [find-nightly, write-changelog, promote]
