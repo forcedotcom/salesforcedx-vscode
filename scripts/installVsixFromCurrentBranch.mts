@@ -5,18 +5,15 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as Command from '@effect/platform/Command';
 import * as FileSystem from '@effect/platform/FileSystem';
+import * as Path from '@effect/platform/Path';
 import * as NodeContext from '@effect/platform-node/NodeContext';
 import { GitHub } from '@salesforce/effect-octokit';
 import * as Console from 'effect/Console';
 import * as Effect from 'effect/Effect';
-import { execSync } from 'node:child_process';
+import * as Schema from 'effect/Schema';
 import { GitHubCliLive } from './githubCli.mts';
-
-if (process.argv.includes('--help')) {
-  console.log('Usage: pnpm test-vsix\nDownload and install VSIX files from the current branch.');
-  process.exit(0);
-}
 
 // Order matters - uninstall dependent extensions first
 const EXTENSION_IDS = [
@@ -32,9 +29,39 @@ const EXTENSION_IDS = [
 ];
 
 const SAVE_DIRECTORY = './extensions';
-const IDE = process.argv[2];
+const IDE = process.argv[2] as string;
 
 const logger = (msg: string) => Console.log(`*** ${msg}`);
+
+class CommandFailed extends Schema.TaggedError<CommandFailed>()('CommandFailed', {
+  command: Schema.String,
+  exitCode: Schema.Number,
+  message: Schema.String
+}) {}
+
+const runCommand = Effect.fn('installVsixFromBranch.runCommand')(function* (executable: string, ...args: string[]) {
+  const exitCode = yield* Command.make(executable, ...args).pipe(
+    Command.stdin('inherit'),
+    Command.stdout('inherit'),
+    Command.stderr('inherit'),
+    Command.exitCode
+  );
+  if (exitCode !== 0) {
+    return yield* new CommandFailed({
+      command: JSON.stringify([executable, ...args]),
+      exitCode: Number(exitCode),
+      message: `Command exited with code ${String(exitCode)}`
+    });
+  }
+});
+
+const uninstallExtension = Effect.fn('installVsixFromBranch.uninstallExtension')(function* (
+  extensionId: string,
+  failureMessage: string
+) {
+  yield* logger('\n');
+  yield* runCommand(IDE, '--uninstall-extension', extensionId).pipe(Effect.catchAll(() => logger(failureMessage)));
+});
 
 const installVsixFromBranch = Effect.fn('installVsixFromBranch')(function* () {
   yield* logger('==========================');
@@ -42,12 +69,16 @@ const installVsixFromBranch = Effect.fn('installVsixFromBranch')(function* () {
   yield* logger('==========================\n');
 
   const fs = yield* FileSystem.FileSystem;
+  const path = yield* Path.Path;
   if (yield* fs.exists(SAVE_DIRECTORY)) {
     yield* logger('Deleting previous VSIX files. \n');
     yield* fs.remove(SAVE_DIRECTORY, { recursive: true, force: true });
   }
 
-  const currentBranch = execSync('git branch --show-current', { encoding: 'utf8' }).trim();
+  const currentBranch = yield* Command.make('git', 'branch', '--show-current').pipe(
+    Command.string,
+    Effect.map(branch => branch.trim())
+  );
   yield* logger(`The branch that you are testing with is: ${currentBranch}`);
   yield* logger('\n');
 
@@ -68,50 +99,58 @@ const installVsixFromBranch = Effect.fn('installVsixFromBranch')(function* () {
   }
 
   yield* logger(`Saving the resources for job ID ${latestWorkflowForBranch.id} \n`);
-  execSync(
-    `gh run download ${latestWorkflowForBranch.id} --repo forcedotcom/salesforcedx-vscode -D ${SAVE_DIRECTORY}`,
-    {
-      stdio: 'inherit'
-    }
+  yield* runCommand(
+    'gh',
+    'run',
+    'download',
+    String(latestWorkflowForBranch.id),
+    '--repo',
+    'forcedotcom/salesforcedx-vscode',
+    '-D',
+    SAVE_DIRECTORY
   );
-  execSync(`mv ${SAVE_DIRECTORY}/*/* ${SAVE_DIRECTORY}/`, { stdio: 'inherit' });
+
+  const artifactDirectories = yield* fs.readDirectory(SAVE_DIRECTORY);
+  yield* Effect.forEach(
+    artifactDirectories,
+    Effect.fn('installVsixFromBranch.flattenArtifactDirectory')(function* (directory: string) {
+      const directoryPath = path.join(SAVE_DIRECTORY, directory);
+      if ((yield* fs.stat(directoryPath)).type !== 'Directory') return;
+
+      const artifactFiles = yield* fs.readDirectory(directoryPath);
+      yield* Effect.forEach(
+        artifactFiles,
+        file => fs.rename(path.join(directoryPath, file), path.join(SAVE_DIRECTORY, file)),
+        { concurrency: 1, discard: true }
+      );
+    }),
+    { concurrency: 1, discard: true }
+  );
 
   yield* logger(`Downloaded the following resources for job ID ${latestWorkflowForBranch.id} \n`);
-  execSync(`ls ${SAVE_DIRECTORY}`, { stdio: 'inherit' });
+  yield* Console.log((yield* fs.readDirectory(SAVE_DIRECTORY)).join('\n'));
 
   // Find all VSIX files in the save directory
-  const vsixFiles = execSync(`find ${SAVE_DIRECTORY} -name "*.vsix"`, { encoding: 'utf8' }).split('\n').filter(Boolean);
+  const vsixFiles = (yield* fs.readDirectory(SAVE_DIRECTORY, { recursive: true }))
+    .filter(file => file.endsWith('.vsix'))
+    .map(file => path.join(SAVE_DIRECTORY, file));
 
   if (vsixFiles.length > 0) {
     yield* logger('\nCleaning up any old Salesforce extensions (if applicable) and installing the new VSIX files.');
 
     // First uninstall Agentforce Vibes
-    try {
-      yield* logger('\n');
-      execSync(`${IDE} --uninstall-extension salesforce.salesforcedx-einstein-gpt`, { stdio: 'inherit' });
-    } catch {
-      yield* logger('Agentforce Vibes was not installed, continuing...');
-    }
+    yield* uninstallExtension(
+      'salesforce.salesforcedx-einstein-gpt',
+      'Agentforce Vibes was not installed, continuing...'
+    );
 
     // Uninstall code-analyzer
-    try {
-      yield* logger('\n');
-      execSync(`${IDE} --uninstall-extension salesforce.sfdx-code-analyzer-vscode`, { stdio: 'inherit' });
-    } catch {
-      yield* logger('code-analyzer was not installed, continuing...');
-    }
+    yield* uninstallExtension('salesforce.sfdx-code-analyzer-vscode', 'code-analyzer was not installed, continuing...');
 
     // Uninstall all existing Salesforce extensions
     yield* Effect.forEach(
       EXTENSION_IDS,
-      Effect.fn('installVsixFromBranch.uninstallExtension')(function* (extensionId: string) {
-        try {
-          yield* logger('\n');
-          execSync(`${IDE} --uninstall-extension ${extensionId}`, { stdio: 'inherit' });
-        } catch {
-          yield* logger(`${extensionId} couldn't be uninstalled, continuing...`);
-        }
-      }),
+      extensionId => uninstallExtension(extensionId, `${extensionId} couldn't be uninstalled, continuing...`),
       { concurrency: 1, discard: true }
     );
 
@@ -120,7 +159,7 @@ const installVsixFromBranch = Effect.fn('installVsixFromBranch')(function* () {
       vsixFiles,
       Effect.fn('installVsixFromBranch.installExtension')(function* (vsixFile: string) {
         yield* logger('\n');
-        execSync(`${IDE} --install-extension ${vsixFile}`, { stdio: 'inherit' });
+        yield* runCommand(IDE, '--install-extension', vsixFile);
       }),
       { concurrency: 1, discard: true }
     );
@@ -133,4 +172,11 @@ const installVsixFromBranch = Effect.fn('installVsixFromBranch')(function* () {
   }
 });
 
-await installVsixFromBranch().pipe(Effect.provide([GitHubCliLive, NodeContext.layer]), Effect.runPromise);
+if (process.argv.includes('--help')) {
+  await Console.log('Usage: pnpm test-vsix\nDownload and install VSIX files from the current branch.').pipe(
+    Effect.provide(NodeContext.layer),
+    Effect.runPromise
+  );
+} else {
+  await installVsixFromBranch().pipe(Effect.provide([GitHubCliLive, NodeContext.layer]), Effect.runPromise);
+}
