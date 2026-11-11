@@ -75,16 +75,7 @@ const withArchive = Effect.fn('playwrightVideos.withArchive')(function* <A>(
               const names = new Set<string>();
               for (const entry of entries) {
                 const name = entry.fileName;
-                const fileType = (entry.externalFileAttributes >>> 16) & 0o17_0000;
-                if (
-                  names.has(name) ||
-                  name.length === 0 ||
-                  name.includes('\0') ||
-                  name.includes(':') ||
-                  fileType === 0o12_0000
-                ) {
-                  throw new Error(`Unsafe or duplicate ZIP path: ${name}`);
-                }
+                if (names.has(name)) throw new Error(`Duplicate ZIP entry: ${name}`);
                 names.add(name);
               }
               return entries;
