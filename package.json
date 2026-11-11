@@ -50,6 +50,7 @@
     "@types/semver": "7.5.8",
     "@types/vscode": "1.90.0",
     "@types/xml2js": "0.4.14",
+    "@types/yauzl": "3.4.0",
     "@typescript-eslint/eslint-plugin": "^8.72.0",
     "@typescript-eslint/parser": "^8.72.0",
     "@vitest/coverage-v8": "5.0.1",
@@ -118,7 +119,8 @@
     "vitest": "5.0.1",
     "wireit": "0.15.0",
     "xml2js": "0.6.2",
-    "yaml": "^2.9.0"
+    "yaml": "^2.9.0",
+    "yauzl": "3.4.0"
   },
   "scripts": {
     "build": "pnpm compile",
@@ -328,7 +330,6 @@
       ],
       "files": [
         "scripts/manualTestPlan/**/*.mts",
-        "scripts/manualTestPlan/**/*.py",
         "scripts/manualTestPlan/tsconfig.json",
         "scripts/shared/validateWorkflow.mts",
         ".github/workflows/manual-test-plan*.yml",

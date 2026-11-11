@@ -6,6 +6,7 @@
  */
 
 import type { VideoTarget } from './videoManifest.mts';
+import type { WorkflowArtifact, WorkflowRun, WorkflowRunJob } from '@salesforce/effect-octokit';
 import { Schema } from 'effect';
 
 const Step = Schema.Struct({
@@ -57,33 +58,11 @@ export const targetLanes = (workflow: typeof Workflow.Type, target: VideoTarget)
   });
 };
 
-export const WorkflowRun = Schema.Struct({
-  id: Schema.Number,
-  name: Schema.NullOr(Schema.String),
-  path: Schema.String,
-  head_sha: Schema.String,
-  status: Schema.NullOr(Schema.String),
-  conclusion: Schema.NullOr(Schema.String),
-  run_attempt: Schema.Number
-});
-export const Artifact = Schema.Struct({
-  id: Schema.Number,
-  name: Schema.String,
-  expired: Schema.Boolean,
-  created_at: Schema.String,
-  workflow_run: Schema.optional(Schema.Struct({ head_sha: Schema.String }))
-});
-
-export const latestTargetRun = (runs: readonly (typeof WorkflowRun.Type)[], sha: string, workflow: string) =>
+export const latestTargetRun = (runs: readonly WorkflowRun[], sha: string, workflow: string) =>
   runs.filter(run => run.head_sha === sha && run.name === workflow).toSorted((a, b) => b.id - a.id)[0];
 
 /** Reruns can leave identically named artifacts. Match each job attempt's upload window. */
-export const jobArtifact = (
-  artifacts: readonly (typeof Artifact.Type)[],
-  name: string,
-  sha: string,
-  job: { readonly started_at?: string | null; readonly completed_at?: string | null }
-) =>
+export const jobArtifact = (artifacts: readonly WorkflowArtifact[], name: string, sha: string, job: WorkflowRunJob) =>
   artifacts
     .filter(
       artifact =>

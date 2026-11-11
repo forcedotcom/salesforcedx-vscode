@@ -90,6 +90,83 @@ describe('GitHub', () => {
     expect(body).toBe('');
   });
 
+  it('includes the body in the reusable GraphQL pull request schema', async () => {
+    globalThis.fetch = async () =>
+      json({
+        data: {
+          repository: {
+            pullRequest: {
+              reviewDecision: null,
+              isDraft: false,
+              state: 'OPEN',
+              body: 'manual plan',
+              baseRefName: 'develop',
+              headRefOid: 'head',
+              author: { login: 'octocat' },
+              headRepository: { nameWithOwner: 'o/r' },
+              baseRepository: { nameWithOwner: 'o/r' }
+            }
+          }
+        }
+      });
+    const pull = await run(GitHub.pullRequest('o', 'r', 12));
+    expect(pull?.body).toBe('manual plan');
+  });
+
+  it('decodes workflow runs, job attempts, and workflow artifacts', async () => {
+    const urls: string[] = [];
+    globalThis.fetch = async input => {
+      const url = String(input);
+      urls.push(url);
+      const data = url.includes('/actions/runs/12/jobs')
+        ? {
+            total_count: 1,
+            jobs: [{ id: 3, name: 'web', conclusion: 'success', started_at: 'start', completed_at: 'end' }]
+          }
+        : url.includes('/actions/runs/12/artifacts')
+          ? {
+              total_count: 1,
+              artifacts: [
+                {
+                  id: 4,
+                  name: 'playwright-report',
+                  expired: false,
+                  created_at: 'created',
+                  workflow_run: { head_sha: 'head' }
+                }
+              ]
+            }
+          : {
+              total_count: 1,
+              workflow_runs: [
+                {
+                  id: 12,
+                  name: 'E2E',
+                  path: '.github/workflows/e2e.yml',
+                  head_sha: 'head',
+                  status: 'completed',
+                  conclusion: 'success',
+                  run_attempt: 1
+                }
+              ]
+            };
+      const response = new Response(JSON.stringify(data), { headers: { 'content-type': 'application/json' } });
+      Object.defineProperty(response, 'url', { value: url });
+      return response;
+    };
+    const [runs, jobs, artifacts] = await run(
+      Effect.all([
+        GitHub.workflowRuns('o/r', 'head'),
+        GitHub.workflowRunJobs('o/r', '12', 'all'),
+        GitHub.workflowRunArtifacts('o/r', '12')
+      ])
+    );
+    expect(runs[0]?.head_sha).toBe('head');
+    expect(jobs[0]?.started_at).toBe('start');
+    expect(artifacts[0]?.workflow_run?.head_sha).toBe('head');
+    expect(urls.find(url => url.includes('/actions/runs/12/jobs'))).toContain('filter=all');
+  });
+
   it('patches a pull request body', async () => {
     const calls: Array<{ readonly method: string; readonly url: string; readonly body: string }> = [];
     globalThis.fetch = async (input, init) => {

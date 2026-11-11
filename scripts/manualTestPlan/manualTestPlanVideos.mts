@@ -7,13 +7,24 @@
 
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as NodeContext from '@effect/platform-node/NodeContext';
-import { allGitHubChecksSuccessful, GitHub, WorkflowRunJob } from '@salesforce/effect-octokit';
+import {
+  allGitHubChecksSuccessful,
+  GitHub,
+  readCompletedChecksEvent,
+  readSynchronizeEvent,
+  readWorkflowDispatchEvent
+} from '@salesforce/effect-octokit';
 import { Config, Effect, Option, Redacted, Schema } from 'effect';
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
+import { createWriteStream } from 'node:fs';
+import { Readable, Transform } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
+import { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import { pathToFileURL } from 'node:url';
 import { promisify } from 'node:util';
 import { parse } from 'yaml';
+import { collectLane } from './playwrightVideos.mts';
 import { CommandFailed } from './schema.mts';
 import {
   appendVideoSection,
@@ -23,10 +34,48 @@ import {
   videosEnd,
   videosStart
 } from './videoManifest.mts';
-import { Artifact, jobArtifact, latestTargetRun, targetLanes, Workflow, WorkflowRun } from './videoTargets.mts';
+import { jobArtifact, latestTargetRun, targetLanes, Workflow } from './videoTargets.mts';
 
 const updaterPath = '.github/workflows/manual-test-plan-videos.yml';
+const MAX_ARTIFACT_SIZE = 1024 * 1024 * 1024;
 const exec = promisify(execFile);
+export const downloadArtifact = Effect.fn('manualTestPlanVideos.downloadArtifact')(function* (
+  repository: string,
+  artifactId: number,
+  path: string
+) {
+  const [owner, repo] = repository.split('/');
+  const body: unknown = yield* GitHub.request(
+    'GET /repos/{owner}/{repo}/actions/artifacts/{artifact_id}/{archive_format}',
+    {
+      owner,
+      repo,
+      artifact_id: artifactId,
+      archive_format: 'zip',
+      request: { parseSuccessResponseBody: false }
+    }
+  ).pipe(
+    Effect.catchTag('GitHubRequestError', error =>
+      Effect.fail(
+        new CommandFailed({ command: 'Octokit artifact download', code: error.status, message: error.message })
+      )
+    )
+  );
+  return yield* Effect.tryPromise({
+    try: async signal => {
+      if (!(body instanceof NodeReadableStream)) throw new Error('Octokit returned a non-stream artifact response');
+      let size = 0;
+      const sizeLimit = new Transform({
+        transform: (chunk: Buffer, _encoding, callback) => {
+          size += chunk.length;
+          callback(size > MAX_ARTIFACT_SIZE ? new Error('Artifact exceeds the 1 GiB size limit') : null, chunk);
+        }
+      });
+      await pipeline(Readable.fromWeb(body), sizeLimit, createWriteStream(path), { signal });
+    },
+    catch: error => new CommandFailed({ command: 'Octokit artifact download', code: 1, message: String(error) })
+  });
+});
 const command = Effect.fn('manualTestPlanVideos.command')(function* (file: string, args: readonly string[]) {
   const token = yield* Config.redacted('IDEE_GH_TOKEN');
   const result = yield* Effect.tryPromise({
@@ -38,57 +87,52 @@ const command = Effect.fn('manualTestPlanVideos.command')(function* (file: strin
   return result.stdout;
 });
 
-const Pull = Schema.Struct({
-  number: Schema.Number,
-  state: Schema.String,
-  body: Schema.NullOr(Schema.String),
-  head: Schema.Struct({ sha: Schema.String }),
-  base: Schema.Struct({ repo: Schema.Struct({ full_name: Schema.String }) })
-});
-const Event = Schema.Struct({
-  action: Schema.optional(Schema.String),
-  pull_request: Schema.optional(Schema.Struct({ number: Schema.Number })),
-  check_suite: Schema.optional(Schema.Struct({ head_sha: Schema.String })),
-  workflow_run: Schema.optional(Schema.Struct({ head_sha: Schema.String })),
-  inputs: Schema.optional(Schema.Struct({ pull_number: Schema.String }))
-});
+const WorkflowDispatchInputs = Schema.Struct({ pull_number: Schema.String });
 export const VideoUpdate = Schema.Struct({ pr: Schema.Number, sha: Schema.String, clear: Schema.Boolean });
 
-const readPull = Effect.fn('manualTestPlanVideos.readPull')(function* (repository: string, pr: number) {
-  return yield* GitHub.request(`GET /repos/${repository}/pulls/${pr}`).pipe(Effect.flatMap(Schema.decodeUnknown(Pull)));
+type PullResolution = { readonly pullNumber?: number; readonly sha?: string; readonly clear: boolean };
+
+export const readPullResolution = Effect.fn('manualTestPlanVideos.readPullResolution')(function* (
+  eventName: string,
+  eventPath: string
+) {
+  if (eventName === 'workflow_dispatch') {
+    const dispatch = yield* readWorkflowDispatchEvent(eventPath, WorkflowDispatchInputs);
+    const pullNumber = Number(dispatch.inputs.pull_number);
+    return Number.isSafeInteger(pullNumber) && pullNumber > 0 ? { pullNumber, clear: false } : { clear: false };
+  }
+  if (eventName === 'pull_request_target') {
+    const synchronize = yield* readSynchronizeEvent(eventPath);
+    return { pullNumber: synchronize.pull_request.number, clear: synchronize.action === 'synchronize' };
+  }
+  const completedChecks = yield* readCompletedChecksEvent(eventPath);
+  const completed = completedChecks.check_suite ?? completedChecks.workflow_run;
+  return completed === undefined ? { clear: false } : { sha: completed.head_sha, clear: false };
 });
 
 /** Push workflows often have no pull_requests array. Resolve associations through the commit API. */
-export const resolveVideoPulls = Effect.fn('manualTestPlanVideos.resolvePulls')(function* (event: typeof Event.Type) {
+export const resolveVideoPulls = Effect.fn('manualTestPlanVideos.resolvePulls')(function* (event: PullResolution) {
   const repository = yield* Config.string('GITHUB_REPOSITORY');
   const [owner, repo] = repository.split('/');
-  const completed = event.check_suite ?? event.workflow_run;
-  const pr = event.pull_request?.number ?? Number(event.inputs?.pull_number);
   const candidates =
-    completed === undefined
-      ? Number.isSafeInteger(pr) && pr > 0
-        ? [pr]
-        : []
-      : (yield* GitHub.pullsForCommit(owner, repo, completed.head_sha)).map(pull => pull.number);
+    event.sha === undefined
+      ? event.pullNumber === undefined
+        ? []
+        : [event.pullNumber]
+      : (yield* GitHub.pullsForCommit(owner, repo, event.sha)).map(pull => pull.number);
   return yield* Effect.forEach(
     [...new Set(candidates)],
     Effect.fn('manualTestPlanVideos.resolvePull')(function* (number) {
-      const pull = yield* readPull(repository, number);
-      return pull.state === 'open' &&
-        pull.base.repo.full_name === repository &&
-        (completed === undefined || pull.head.sha === completed.head_sha)
-        ? [{ pr: number, sha: pull.head.sha, clear: event.action === 'synchronize' }]
+      const pull = yield* GitHub.pullRequest(owner, repo, number);
+      return pull?.state.toLowerCase() === 'open' &&
+        pull.baseRepository?.nameWithOwner === repository &&
+        (event.sha === undefined || pull.headRefOid === event.sha)
+        ? [{ pr: number, sha: pull.headRefOid, clear: event.clear }]
         : [];
     })
   ).pipe(Effect.map(rows => rows.flat()));
 });
 
-const Video = Schema.Struct({
-  path: Schema.String,
-  title: Schema.String,
-  project: Schema.String,
-  retry: Schema.Number
-});
 const collect = Effect.fn('manualTestPlanVideos.collect')(function* (input: {
   readonly repository: string;
   readonly pairs: readonly { readonly report: number; readonly results: number }[];
@@ -96,40 +140,22 @@ const collect = Effect.fn('manualTestPlanVideos.collect')(function* (input: {
   readonly sha: string;
   readonly dir: string;
 }) {
-  const fs = yield* FileSystem.FileSystem;
   yield* Effect.forEach(
     [...new Set(input.pairs.flatMap(pair => [pair.report, pair.results]))],
     Effect.fn('manualTestPlanVideos.download')(function* (id) {
       // Artifact-controlled paths never reach the filesystem.
-      const token = yield* Config.redacted('IDEE_GH_TOKEN');
-      const bytes = yield* Effect.tryPromise({
-        try: () =>
-          exec('gh', ['api', `repos/${input.repository}/actions/artifacts/${id}/zip`], {
-            env: { ...process.env, GH_TOKEN: Redacted.value(token) },
-            encoding: 'buffer',
-            maxBuffer: 1024 * 1024 * 1024
-          }),
-        catch: error => new CommandFailed({ command: 'gh api', code: 1, message: String(error) })
-      });
-      yield* fs.writeFile(`${input.dir}/${id}.zip`, bytes.stdout);
+      yield* downloadArtifact(input.repository, id, `${input.dir}/${id}.zip`);
     })
   );
-  yield* fs.writeFileString(
-    `${input.dir}/pairs.json`,
-    JSON.stringify(
-      input.pairs.map(pair => ({
-        report: `${input.dir}/${pair.report}.zip`,
-        results: `${input.dir}/${pair.results}.zip`
-      }))
-    )
-  );
-  return yield* command('python3', [
-    'scripts/manualTestPlan/playwrightVideos.py',
-    `${input.dir}/pairs.json`,
+  return yield* collectLane(
+    input.pairs.map(pair => ({
+      report: `${input.dir}/${pair.report}.zip`,
+      results: `${input.dir}/${pair.results}.zip`
+    })),
     input.spec,
     input.sha,
     input.dir
-  ]).pipe(Effect.flatMap(Schema.decodeUnknown(Schema.parseJson(Schema.Array(Video)))));
+  );
 });
 
 const publish = Effect.fn('manualTestPlanVideos.publish')(function* (input: {
@@ -168,15 +194,15 @@ export const updateManualTestPlanVideos = Effect.fn('manualTestPlanVideos.update
 ) {
   const repository = yield* Config.string('GITHUB_REPOSITORY');
   const [owner, repo] = repository.split('/');
-  const pull = yield* readPull(repository, input.pr);
-  if (pull.state !== 'open' || pull.head.sha !== input.sha) return;
+  const pull = yield* GitHub.pullRequest(owner, repo, input.pr);
+  if (pull?.state.toLowerCase() !== 'open' || pull.headRefOid !== input.sha) return;
   const body = pull.body ?? '';
   if (input.clear) {
     const previousSection = videoSection(body);
     if (previousSection === undefined || previousSection.includes(`"sha":"${input.sha}"`)) return;
     // Reread immediately before writing, just as for publication.
-    const current = yield* readPull(repository, input.pr);
-    if (current.state === 'open' && current.head.sha === input.sha) {
+    const current = yield* GitHub.pullRequest(owner, repo, input.pr);
+    if (current?.state.toLowerCase() === 'open' && current.headRefOid === input.sha) {
       yield* GitHub.updatePullBody(owner, repo, input.pr, removeVideoSection(current.body ?? ''));
     }
     return;
@@ -196,10 +222,7 @@ export const updateManualTestPlanVideos = Effect.fn('manualTestPlanVideos.update
     })
   );
   if (targets.length === 0) return;
-  const github = yield* GitHub;
-  const runs = yield* github
-    .paginate<unknown>(`GET /repos/${repository}/actions/runs`, { head_sha: input.sha })
-    .pipe(Effect.flatMap(Schema.decodeUnknown(Schema.Array(WorkflowRun))));
+  const runs = yield* GitHub.workflowRuns(repository, input.sha);
   const fs = yield* FileSystem.FileSystem;
   const dir = yield* fs.makeTempDirectoryScoped({ prefix: 'manual-test-plan-videos-' });
   const rows = yield* Effect.forEach(
@@ -220,12 +243,8 @@ export const updateManualTestPlanVideos = Effect.fn('manualTestPlanVideos.update
       );
       const lanes = targetLanes(workflow, target);
       if (lanes.length === 0) yield* warning(`No artifact targets: ${target.workflow} / ${target.job}`);
-      const jobs = yield* github
-        .paginate<unknown>(`GET /repos/${repository}/actions/runs/${run.id}/jobs`, { filter: 'all' })
-        .pipe(Effect.flatMap(Schema.decodeUnknown(Schema.Array(WorkflowRunJob))));
-      const artifacts = yield* github
-        .paginate<unknown>(`GET /repos/${repository}/actions/runs/${run.id}/artifacts`)
-        .pipe(Effect.flatMap(Schema.decodeUnknown(Schema.Array(Artifact))));
+      const jobs = yield* GitHub.workflowRunJobs(repository, String(run.id), 'all');
+      const artifacts = yield* GitHub.workflowRunArtifacts(repository, String(run.id));
       return yield* Effect.forEach(
         lanes,
         Effect.fn('manualTestPlanVideos.lane')(function* (lane) {
@@ -257,7 +276,8 @@ export const updateManualTestPlanVideos = Effect.fn('manualTestPlanVideos.update
             dir
           }).pipe(
             Effect.catchTags({
-              CommandFailed: error => warning(error.message).pipe(Effect.as([]))
+              CommandFailed: error => warning(error.message).pipe(Effect.as([])),
+              VideoArchiveError: error => warning(error.message).pipe(Effect.as([]))
             })
           );
           if (videos.length === 0) yield* warning(`Missing successful video: ${target.spec} / ${lane.name}`);
@@ -281,15 +301,11 @@ export const updateManualTestPlanVideos = Effect.fn('manualTestPlanVideos.update
     .digest('hex');
   const state = `<!-- manual-test-plan-videos-state ${JSON.stringify({ sha: input.sha, fingerprint })} -->`;
   if (!(yield* green())) return;
-  const latest = yield* readPull(repository, input.pr);
+  const latest = yield* GitHub.pullRequest(owner, repo, input.pr);
+  if (latest?.state.toLowerCase() !== 'open' || latest.headRefOid !== input.sha) return;
   const latestBody = latest.body ?? '';
   // A plan regeneration or human edit during downloads must not be overwritten.
-  if (
-    latest.state !== 'open' ||
-    latest.head.sha !== input.sha ||
-    JSON.stringify(readVideoManifest(latestBody)) !== JSON.stringify(manifest)
-  )
-    return;
+  if (JSON.stringify(readVideoManifest(latestBody)) !== JSON.stringify(manifest)) return;
   const existing = videoSection(latestBody);
   if (existing?.includes(state) && !existing.includes('![](')) return;
   const section = `${videosStart}\n${state}\n\n## Playwright videos\n\n${rows
@@ -310,10 +326,9 @@ export const updateManualTestPlanVideos = Effect.fn('manualTestPlanVideos.update
 const main = Effect.fn('manualTestPlanVideos.main')(function* () {
   if (process.argv[2] === 'resolve') {
     const fs = yield* FileSystem.FileSystem;
+    const eventName = yield* Config.string('GITHUB_EVENT_NAME');
     const eventPath = yield* Config.string('GITHUB_EVENT_PATH');
-    const event = yield* fs
-      .readFileString(eventPath)
-      .pipe(Effect.flatMap(Schema.decodeUnknown(Schema.parseJson(Event))));
+    const event = yield* readPullResolution(eventName, eventPath);
     const pulls = yield* resolveVideoPulls(event);
     const output = yield* Config.string('GITHUB_OUTPUT');
     yield* fs.writeFileString(output, `pulls=${JSON.stringify(pulls)}\n`, { flag: 'a' });

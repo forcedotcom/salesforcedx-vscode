@@ -9,13 +9,19 @@ import * as NodeContext from '@effect/platform-node/NodeContext';
 import { GitHub } from '@salesforce/effect-octokit';
 import { ConfigProvider, Effect, Option, Schema } from 'effect';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { mock, test } from 'node:test';
 import { parse } from 'yaml';
 import { validateWorkflow } from '../../../shared/validateWorkflow.mts';
 import { renderManualTestPlan } from '../../manualTestPlan.mts';
-import { resolveVideoPulls, updateManualTestPlanVideos } from '../../manualTestPlanVideos.mts';
+import {
+  downloadArtifact,
+  readPullResolution,
+  resolveVideoPulls,
+  updateManualTestPlanVideos
+} from '../../manualTestPlanVideos.mts';
 import {
   appendVideoSection,
   readVideoManifest,
@@ -107,22 +113,33 @@ const withGitHub = async <A, E>(state: ReturnType<typeof fixture>, program: Effe
     state.urls.push(url.href);
     const path = url.pathname;
     const data = (() => {
-      if (path.endsWith('/pulls/8497')) {
-        if (options?.method === 'PATCH') {
-          const changed = Schema.decodeUnknownSync(Schema.parseJson(Schema.Struct({ body: Schema.String })))(
-            options.body
-          );
-          state.body = changed.body;
-          state.writes.push(changed.body);
-        }
+      if (path === '/graphql') {
         state.readCount += 1;
         return {
-          number: 8497,
-          state: state.state,
-          head: { sha: state.readCount > 1 ? state.nextSha : state.sha },
-          body: state.body,
-          base: { repo: { full_name: repository } }
+          data: {
+            repository: {
+              pullRequest: {
+                reviewDecision: null,
+                isDraft: false,
+                state: state.state,
+                body: state.body,
+                baseRefName: 'develop',
+                headRefOid: state.readCount > 1 ? state.nextSha : state.sha,
+                author: { login: 'test-user' },
+                headRepository: { nameWithOwner: repository },
+                baseRepository: { nameWithOwner: repository }
+              }
+            }
+          }
         };
+      }
+      if (path.endsWith('/pulls/8497') && options?.method === 'PATCH') {
+        const changed = Schema.decodeUnknownSync(Schema.parseJson(Schema.Struct({ body: Schema.String })))(
+          options.body
+        );
+        state.body = changed.body;
+        state.writes.push(changed.body);
+        return {};
       }
       if (path.endsWith('/commits/head/pulls') || path.endsWith('/commits/old/pulls')) return [{ number: 8497 }];
       if (path.endsWith('/status')) return { statuses: [{ id: 1, context: 'external-status', state: state.status }] };
@@ -168,6 +185,30 @@ const withGitHub = async <A, E>(state: ReturnType<typeof fixture>, program: Effe
     fetchMock.mock.restore();
   }
 };
+
+test('streams artifact bytes to disk through the local Octokit client', async t => {
+  const directory = mkdtempSync(join(tmpdir(), 'manual-test-plan-artifact-'));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const path = join(directory, '7.zip');
+  const bytes = Buffer.from([0x50, 0x4b, 0x03, 0x04]);
+  const fetchMock = mock.method(globalThis, 'fetch', (request: string | URL | Request) => {
+    const url = new URL(typeof request === 'string' ? request : request instanceof URL ? request.href : request.url);
+    assert.match(url.pathname, /\/repos\/forcedotcom\/salesforcedx-vscode\/actions\/artifacts\/7\/zip$/);
+    const response = new Response(bytes, { headers: { 'content-type': 'application/zip' } });
+    Object.defineProperty(response, 'url', { value: url.href });
+    return Promise.resolve(response);
+  });
+  try {
+    await downloadArtifact(repository, 7, path).pipe(
+      Effect.provide(GitHub.Default),
+      Effect.withConfigProvider(ConfigProvider.fromMap(new Map([['IDEE_GH_TOKEN', 'test-token']]))),
+      Effect.runPromise
+    );
+    assert.deepEqual(readFileSync(path), bytes);
+  } finally {
+    fetchMock.mock.restore();
+  }
+});
 
 const update = (state: ReturnType<typeof fixture>, clear = false, duringCollect?: () => void) =>
   withGitHub(
@@ -368,16 +409,32 @@ test('synchronize removes stale video block only, leaves current-SHA videos alon
 });
 
 test('completion associations resolve through commit, excluding stale and closed PRs', async () => {
-  for (const event of [{ check_suite: { head_sha: 'head' } }, { workflow_run: { head_sha: 'head' } }]) {
-    assert.deepEqual(await withGitHub(fixture(), resolveVideoPulls(event)), [{ pr: 8497, sha: 'head', clear: false }]);
-  }
-  assert.deepEqual(await withGitHub(fixture(), resolveVideoPulls({ workflow_run: { head_sha: 'old' } })), []);
-  const closed = fixture();
-  closed.state = 'closed';
-  assert.deepEqual(await withGitHub(closed, resolveVideoPulls({ check_suite: { head_sha: 'head' } })), []);
-  assert.deepEqual(await withGitHub(fixture(), resolveVideoPulls({ inputs: { pull_number: '8497' } })), [
+  assert.deepEqual(await withGitHub(fixture(), resolveVideoPulls({ sha: 'head', clear: false })), [
     { pr: 8497, sha: 'head', clear: false }
   ]);
+  assert.deepEqual(await withGitHub(fixture(), resolveVideoPulls({ sha: 'old', clear: false })), []);
+  const closed = fixture();
+  closed.state = 'closed';
+  assert.deepEqual(await withGitHub(closed, resolveVideoPulls({ sha: 'head', clear: false })), []);
+  assert.deepEqual(await withGitHub(fixture(), resolveVideoPulls({ pullNumber: 8497, clear: false })), [
+    { pr: 8497, sha: 'head', clear: false }
+  ]);
+});
+
+test('event resolution delegates payload decoding and keeps event-specific behavior', async t => {
+  const directory = mkdtempSync(join(tmpdir(), 'manual-test-plan-event-'));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const eventPath = join(directory, 'event.json');
+  const resolve = (name: string) =>
+    readPullResolution(name, eventPath).pipe(Effect.provide(NodeContext.layer), Effect.runPromise);
+  writeFileSync(eventPath, JSON.stringify({ inputs: { pull_number: '8497' } }));
+  assert.deepEqual(await resolve('workflow_dispatch'), { pullNumber: 8497, clear: false });
+  writeFileSync(eventPath, JSON.stringify({ action: 'synchronize', pull_request: { number: 8497 } }));
+  assert.deepEqual(await resolve('pull_request_target'), { pullNumber: 8497, clear: true });
+  writeFileSync(eventPath, JSON.stringify({ check_suite: { head_sha: 'head', pull_requests: [] } }));
+  assert.deepEqual(await resolve('check_suite'), { sha: 'head', clear: false });
+  writeFileSync(eventPath, JSON.stringify({ workflow_run: { head_sha: 'head', pull_requests: [] } }));
+  assert.deepEqual(await resolve('workflow_run'), { sha: 'head', clear: false });
 });
 
 test('artifact and workflow selection use exact SHA and successful job upload timestamps', () => {
@@ -433,14 +490,6 @@ test('manifest escapes HTML comments; updater triggers match approval workflows 
   assert.equal(workflow.includes('pull_request.head'), false);
   assert.equal(workflow.includes('CURSOR_API_KEY'), false);
   assert.ok(videoSection(initialBody) === undefined);
-});
-
-test('Playwright metadata, rerun merging, and ZIP security', () => {
-  execFileSync(
-    process.platform === 'win32' ? 'python' : 'python3',
-    ['-m', 'unittest', 'discover', '-s', 'scripts/manualTestPlan/test/unit', '-p', '*_test.py'],
-    { stdio: 'inherit' }
-  );
 });
 
 const queuedWorkflow = (queue: string, cancel = 'false', extra = '') => `
