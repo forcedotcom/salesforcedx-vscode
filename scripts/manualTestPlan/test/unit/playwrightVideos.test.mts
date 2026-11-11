@@ -240,12 +240,9 @@ test('rejects a report for a different commit and unsafe report paths', async t 
 test('strict ZIP filename validation rejects traversal and backslashes', async t => {
   const directory = mkdtempSync(join(tmpdir(), 'playwright-videos-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
-  for (const name of ['../outside.webm', '/outside.webm', 'C:/outside.webm', 'test\\outside.webm']) {
+  for (const [index, name] of ['../outside.webm', '/outside.webm', 'C:/outside.webm', 'test\\outside.webm'].entries()) {
     await assert.rejects(
-      run(
-        [savePair(directory, name.replaceAll('/', '-'), reportBytes(), zipBytes([{ name, content: CONTENT }]))],
-        directory
-      ),
+      run([savePair(directory, `unsafe-${index}`, reportBytes(), zipBytes([{ name, content: CONTENT }]))], directory),
       /Unsafe|invalid|absolute|relative/
     );
   }
