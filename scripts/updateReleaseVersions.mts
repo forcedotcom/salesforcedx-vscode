@@ -1,16 +1,23 @@
 #!/usr/bin/env node
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 
 /**
  * Update package.json versions for all publishable packages
- * Usage: node update-release-versions.js <version>
+ * Usage: node updateReleaseVersions.mts <version>
  *
- * Example: node update-release-versions.js 67.12.0
+ * Example: node updateReleaseVersions.mts 67.12.0
  */
 
-const fs = require('fs');
-const path = require('path');
-const { execSync } = require('child_process');
-const { shouldUpdateVersion } = require('./release-package-selection');
+import { execSync } from 'node:child_process';
+import fs from 'node:fs';
+import path from 'node:path';
+import { parsePackageJson } from './parsePackageJson.mts';
+import { shouldUpdateVersion } from './releasePackageSelection.mts';
 
 const releaseVersion = process.argv[2];
 
@@ -21,9 +28,9 @@ if (!releaseVersion) {
 
 console.log(`Updating packages to version ${releaseVersion}`);
 
-// Find all package.json files using fs.globSync (Node 20+)
+// Find all workspace package.json files using fs.globSync.
 const packageFiles = fs.globSync('packages/*/package.json', {
-  ignore: '**/node_modules/**'
+  exclude: ['**/node_modules/**']
 });
 
 if (packageFiles.length === 0) {
@@ -35,14 +42,14 @@ let updatedCount = 0;
 let errorCount = 0;
 
 packageFiles.forEach(pkgPath => {
-  let pkg;
+  let pkg: Record<string, unknown>;
 
   // Parse package.json with error handling
   try {
     const content = fs.readFileSync(pkgPath, 'utf8');
-    pkg = JSON.parse(content);
+    pkg = parsePackageJson(content);
   } catch (error) {
-    console.error(`✗ Error parsing ${pkgPath}: ${error.message}`);
+    console.error(`✗ Error parsing ${pkgPath}: ${error instanceof Error ? error.message : String(error)}`);
     errorCount++;
     return; // Skip this file, continue with others
   }
@@ -51,7 +58,7 @@ packageFiles.forEach(pkgPath => {
   if (shouldUpdateVersion(pkg)) {
     console.log(`  Updating ${path.dirname(pkgPath)}`);
     pkg.version = releaseVersion;
-    fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + '\n');
+    fs.writeFileSync(pkgPath, `${JSON.stringify(pkg, null, 2)}\n`);
     updatedCount++;
   }
 });
@@ -71,7 +78,7 @@ try {
   execSync('pnpm install --ignore-scripts --lockfile-only', { stdio: 'inherit' });
   console.log('✓ pnpm-lock.yaml updated successfully');
 } catch (error) {
-  console.error('Error updating pnpm-lock.yaml:', error.message);
+  console.error('Error updating pnpm-lock.yaml:', error instanceof Error ? error.message : String(error));
   console.error('This may cause version mismatches during build. Please fix manually.');
   process.exit(1);
 }

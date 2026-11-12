@@ -11,7 +11,7 @@ on:
       extensions:
         description: |
           Comma-separated extension names (e.g., "salesforcedx-vscode-apex,salesforcedx-vscode-core")
-          Leave empty to publish all extensions (dynamically discovered via scripts/list-vscode-extensions.js)
+          Leave empty to publish all extensions (dynamically discovered via scripts/listVscodeExtensions.mts)
         required: false
         default: ''
         type: string
@@ -90,7 +90,7 @@ jobs:
           # For scheduled runs or empty input, publish all extensions
           if [ "$EVENT_NAME" = "schedule" ] || [ -z "$INPUT_EXTENSIONS" ]; then
             # Dynamically discover all publishable VS Code extensions
-            EXTENSIONS=$(node scripts/list-vscode-extensions.js)
+            EXTENSIONS=$(node scripts/listVscodeExtensions.mts)
             EXTENSION_COUNT=$(echo "$EXTENSIONS" | tr ',' '\n' | wc -l)
             echo "Publishing all $EXTENSION_COUNT extensions: $EXTENSIONS"
           else

@@ -4,10 +4,10 @@ import { readFile, readdir } from 'node:fs/promises';
 import test from 'node:test';
 import { build } from 'esbuild';
 import { browserBundleOptions } from '../browserBundleOptions.mjs';
+import { shouldUpdateVersion } from '../../../scripts/releasePackageSelection.mts';
 
 const require = createRequire(import.meta.url);
 const packageJson = require('../package.json');
-const { shouldUpdateVersion } = require('../../../scripts/release-package-selection.js');
 
 test('the UI workspace cannot be published or release-versioned', () => {
   assert.equal(packageJson.private, true);

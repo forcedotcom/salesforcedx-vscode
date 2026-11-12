@@ -171,13 +171,13 @@ jobs:
               VERSION="${INPUT_VERSION#v}"
               echo "Using provided pre-release version: $VERSION"
             else
-              VERSION=$(node scripts/calculate-prerelease-hotfix-version.js)
+              VERSION=$(node scripts/calculatePrereleaseHotfixVersion.mts)
               echo "Auto-calculated pre-release version from registries: $VERSION"
             fi
             IS_EMERGENCY_PRERELEASE="true"
           else
             # Stable mode: Calculate using script (bumps version)
-            VERSION=$(node scripts/calculate-release-version.js \
+            VERSION=$(node scripts/calculateReleaseVersion.mts \
               "$SOURCE_TAG" \
               "$INPUT_VERSION")
             IS_EMERGENCY_PRERELEASE="false"
@@ -191,13 +191,12 @@ jobs:
           echo "Release version: $VERSION (prerelease: $IS_EMERGENCY_PRERELEASE)"
 
       - name: Preserve scripts before checkout
-        if: steps.calculate-version.outputs.is_emergency_prerelease != 'true'
         run: |
           # Copy scripts to temp location for restoration after checkout
           # (Inlined from .github/actions/preserve-scripts to avoid action unavailability after checkout)
           mkdir -p /tmp/release-scripts
 
-          SCRIPTS="scripts/calculate-release-version.js scripts/update-release-versions.js scripts/fold-stable-changelog.js"
+          SCRIPTS="scripts/calculateReleaseVersion.mts scripts/updateReleaseVersions.mts scripts/releasePackageSelection.mts scripts/parsePackageJson.mts scripts/foldStableChangelog.mts scripts/concatenateSha256.mts"
 
           # Copy each script
           for script in $SCRIPTS; do
@@ -211,7 +210,7 @@ jobs:
 
           # Generate checksums for integrity verification
           cd scripts
-          sha256sum calculate-release-version.js update-release-versions.js fold-stable-changelog.js > /tmp/release-scripts/checksums.txt
+          sha256sum calculateReleaseVersion.mts updateReleaseVersions.mts releasePackageSelection.mts parsePackageJson.mts foldStableChangelog.mts concatenateSha256.mts > /tmp/release-scripts/checksums.txt
           cd ..
 
           echo "Generated checksums:"
@@ -234,14 +233,23 @@ jobs:
           git checkout -b "$BRANCH_NAME" "$SOURCE_REF"
           echo "✓ Created isolated branch at $(git rev-parse HEAD)"
 
+      - name: Checkout source ref for pre-release
+        if: steps.calculate-version.outputs.is_emergency_prerelease == 'true'
+        env:
+          SOURCE_REF: ${{ steps.detect-tag.outputs.tag }}
+        run: |
+          # Emergency pre-releases tag the source directly, without version changes.
+          echo "Checking out source ref for emergency pre-release: $SOURCE_REF"
+          git checkout "$SOURCE_REF"
+          echo "✓ Checked out source at $(git rev-parse HEAD)"
+
       - name: Restore scripts
-        if: steps.calculate-version.outputs.is_emergency_prerelease != 'true'
         run: |
           # Restore scripts from temp location
           # (Inlined from .github/actions/preserve-scripts to avoid action unavailability after checkout)
           mkdir -p scripts
 
-          SCRIPTS="scripts/calculate-release-version.js scripts/update-release-versions.js scripts/fold-stable-changelog.js"
+          SCRIPTS="scripts/calculateReleaseVersion.mts scripts/updateReleaseVersions.mts scripts/releasePackageSelection.mts scripts/parsePackageJson.mts scripts/foldStableChangelog.mts scripts/concatenateSha256.mts"
 
           # Verify all scripts exist in temp
           for script in $SCRIPTS; do
@@ -276,7 +284,7 @@ jobs:
 
       - name: Update package versions
         if: steps.calculate-version.outputs.is_emergency_prerelease != 'true'
-        run: node scripts/update-release-versions.js ${{ steps.calculate-version.outputs.version }}
+        run: node scripts/updateReleaseVersions.mts ${{ steps.calculate-version.outputs.version }}
 
       - name: Commit release-only version changes
         if: steps.calculate-version.outputs.is_emergency_prerelease != 'true'
@@ -296,17 +304,6 @@ jobs:
           Source: ${{ steps.detect-tag.outputs.tag }}"
 
           echo "✓ Committed version changes at $(git rev-parse HEAD)"
-
-      - name: Checkout source ref for pre-release
-        if: steps.calculate-version.outputs.is_emergency_prerelease == 'true'
-        env:
-          SOURCE_REF: ${{ steps.detect-tag.outputs.tag }}
-        run: |
-          # For emergency pre-release, just checkout the source ref directly
-          # No isolated branch or version bumping needed
-          echo "Checking out source ref for emergency pre-release: $SOURCE_REF"
-          git checkout "$SOURCE_REF"
-          echo "✓ Checked out source at $(git rev-parse HEAD)"
 
       - name: Create and push release tag
         env:
@@ -347,7 +344,7 @@ jobs:
           git fetch origin develop
           git show origin/develop:CHANGELOG.md > "$RUNNER_TEMP/develop-CHANGELOG.md"
           git show origin/develop:packages/salesforcedx-vscode/CHANGELOG.md > "$RUNNER_TEMP/develop-package-CHANGELOG.md"
-          node scripts/fold-stable-changelog.js \
+          node scripts/foldStableChangelog.mts \
             --changelog "$RUNNER_TEMP/develop-CHANGELOG.md" \
             --overlay "$RUNNER_TEMP/develop-package-CHANGELOG.md" \
             --ref HEAD \
@@ -374,7 +371,7 @@ jobs:
       - name: Generate SHA256 checksums
         run: |
           pnpm vscode:sha256
-          scripts/concatenate-sha256.js
+          node scripts/concatenateSha256.mts
           rm ./SHA256
 
       - name: Create GitHub pre-release
@@ -429,8 +426,40 @@ jobs:
           echo "Pre-release created: $RELEASE_TAG"
           echo "View at: https://github.com/${{ github.repository }}/releases/tag/$RELEASE_TAG"
 
+      - name: Record hotfix classification
+        # isHotfix is true exactly when the source did NOT come through nightly CI --
+        # same nightly-tag shape check as the relabel-changelog step above. This is the only
+        # place that knows SOURCE_TAG, so the classification has to be persisted here for
+        # publishVSCode.yml/publishOpenVSXTrusted.yml to read instead of requiring a manual
+        # isHotfix=true dispatch input on each of them.
+        env:
+          GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+          RELEASE_TAG: ${{ steps.calculate-version.outputs.release_tag }}
+          RELEASE_VERSION: ${{ steps.calculate-version.outputs.version }}
+          SOURCE_TAG: ${{ steps.detect-tag.outputs.tag }}
+          IS_EMERGENCY_PRERELEASE: ${{ steps.calculate-version.outputs.is_emergency_prerelease }}
+        run: |
+          IS_HOTFIX=true
+          if [[ "$SOURCE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-nightly\.develop\.[0-9]{8}$ ]]; then
+            IS_HOTFIX=false
+          fi
+
+          jq -n \
+            --argjson schemaVersion 1 \
+            --argjson isHotfix "$IS_HOTFIX" \
+            --arg sourceRef "$SOURCE_TAG" \
+            --arg version "$RELEASE_VERSION" \
+            --argjson emergencyPrerelease "$IS_EMERGENCY_PRERELEASE" \
+            '{schemaVersion: $schemaVersion, isHotfix: $isHotfix, sourceRef: $sourceRef, version: $version, emergencyPrerelease: $emergencyPrerelease}' \
+            > release-metadata.json
+
+          echo "Release metadata:"
+          cat release-metadata.json
+
+          gh release upload "$RELEASE_TAG" release-metadata.json
+
   # Stable releases always bump the source nightly's odd minor to the next even minor
-  # (see calculate-release-version.js). Nightlies built on develop have no reason to know
+  # (see calculateReleaseVersion.mts). Nightlies built on develop have no reason to know
   # that happened, so without this, develop keeps patch-bumping under the now-shipped odd
   # minor indefinitely. Advance develop to the next odd minor past the stable release so
   # nightlies resume there instead. Skipped for emergency pre-releases (is_emergency_prerelease ==
@@ -470,7 +499,7 @@ jobs:
 
       # Guards against an out-of-order dispatch (e.g. manually rebuilding an older stable
       # candidate after a newer one already shipped) moving develop's version backward or
-      # sideways -- update-release-versions.js overwrites unconditionally with no monotonicity
+      # sideways -- updateReleaseVersions.mts overwrites unconditionally with no monotonicity
       # check of its own, so this has to happen before calling it.
       - name: Guard against non-monotonic version
         id: guard
@@ -486,7 +515,7 @@ jobs:
 
       - name: Bump develop to next odd minor
         if: steps.guard.outputs.skip != 'true'
-        run: node scripts/update-release-versions.js ${{ steps.next-odd.outputs.version }}
+        run: node scripts/updateReleaseVersions.mts ${{ steps.next-odd.outputs.version }}
 
       - uses: ./.github/actions/commitAndPushToDevelop
         if: steps.guard.outputs.skip != 'true'

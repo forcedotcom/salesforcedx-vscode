@@ -78,9 +78,12 @@ jobs:
           GITHUB_RUN_ID: ${{ github.run_id }}
         run: |
           export GITHUB_EVENT_PATH="$RUNNER_TEMP/category-approve-event.json"
-          if [ -f "$RUNNER_TEMP/trusted-approver/scripts/category-approve.mts" ]; then
+          if [ -f "$RUNNER_TEMP/trusted-approver/scripts/categoryApprove.mts" ]; then
+            node "$RUNNER_TEMP/trusted-approver/scripts/categoryApprove.mts"
+          elif [ -f "$RUNNER_TEMP/trusted-approver/scripts/category-approve.mts" ]; then
+            # Develop keeps this filename until the native-script rename merges.
             node "$RUNNER_TEMP/trusted-approver/scripts/category-approve.mts"
           else
             # Until develop contains the native ESM entry point, run its trusted .ts script.
-            node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "$RUNNER_TEMP/trusted-approver/scripts/category-approve.ts"
+            node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON "$RUNNER_TEMP/trusted-approver/scripts/categoryApprove.ts"
           fi
