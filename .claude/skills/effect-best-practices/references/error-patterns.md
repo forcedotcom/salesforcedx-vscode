@@ -62,3 +62,11 @@ const request = Effect.fn('GitHub.request')(function* (route: string) {
   );
 });
 ```
+
+**Critical: `partition`/`validateAll` recover the typed error channel per item via `Effect.either` — they do NOT capture interruption.**
+
+- fiber interrupt (e.g. `withProgress({ cancellable: true })` Cancel) still aborts the whole loop
+- exploit it: wrap the *entire* `partition` in one cancellable progress — Cancel stops, per-item typed failures accumulate
+- do NOT wrap each item — per-item wrap converts Cancel into a typed `UserCancellationError`, which `partition` buckets as a failure and keeps going
+
+`partition` keeps only the **error channel** on the failures side, not the input. To name the failing item, tag it on via an `Effect.fn` trailing pipeable: `Effect.fn('f')(function*(item){...}, (effect, item) => effect.pipe(Effect.mapError(() => item)))` — the pipeable receives `(self, ...args)`.

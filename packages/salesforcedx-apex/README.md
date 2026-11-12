@@ -113,7 +113,7 @@ Failed tests remain in `result.tests` with a failed summary, not on the Effect e
 
 `TestResultSchema`, `TestResultRawSchema`, and the component schemas describe the existing JSON result contract. `transformTestResult` separates setup methods from regular tests and combines setup/execution time without host APIs. The async class also uses this shared normalization.
 
-`TestService.runTestSynchronous(options, codeCoverage, token)` retains its Promise result, cancellation-token check, permission messages, coverage enrichment, and heap monitoring. Coverage retrieval remains in the existing class implementation; the new Effect operation returns execution results without querying coverage. Reporting and file output remain separate class operations.
+`TestService.runTestSynchronous(options, codeCoverage, token)` retains its Promise result, cancellation-token check, permission messages, and coverage enrichment. Coverage retrieval remains in the existing class implementation; the new Effect operation returns execution results without querying coverage. Reporting and file output remain separate class operations.
 
 ### Code coverage retrieval
 

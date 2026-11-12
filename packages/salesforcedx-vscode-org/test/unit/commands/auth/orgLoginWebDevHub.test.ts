@@ -27,15 +27,6 @@ vi.mock('../../../../src/util/orgUtil', () => ({
   updateConfigAndStateAggregators: vi.fn()
 }));
 
-// withCancellableProgress forks the effect and reports via vscode.window.withProgress; the Vitest
-// vscode mock needs a withProgress that runs the task and returns its result so the fiber resolves.
-const stubWithProgress = () => {
-  (vscode.window as unknown as { withProgress: VitestMock }).withProgress = vi.fn(
-    (_opts: unknown, task: (progress: unknown, token: { onCancellationRequested: VitestMock }) => unknown) =>
-      task({ report: vi.fn() }, { onCancellationRequested: vi.fn() })
-  );
-};
-
 const buildServices = (opts: {
   isProject: boolean;
   simpleExec: VitestMock;
@@ -109,7 +100,6 @@ describe('orgLoginWebDevHubCommand', () => {
     appendToChannel = vi.fn();
     showChannel = vi.fn();
     showErrorMessage = vi.fn();
-    stubWithProgress();
     (vscode.window as unknown as { showErrorMessage: VitestMock }).showErrorMessage = showErrorMessage;
   });
 

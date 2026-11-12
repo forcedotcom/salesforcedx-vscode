@@ -41,6 +41,7 @@ export const withSteppedProgress = <A, E, R extends ApexOasServices>(
   location: vscode.ProgressLocation = vscode.ProgressLocation.Notification
 ) =>
   Effect.callback<A, E>(resume => {
+    // eslint-disable-next-line local/no-vscode-with-progress -- The V2 PromptService has no non-cancellable progress-reporting operator.
     const progressTask = vscode.window.withProgress({ location, title, cancellable: false }, async progress => {
       const report: ProgressReporter = message => Effect.sync(() => progress.report({ message }));
       const exit = await getApexOasRuntime().runPromise(body(report).pipe(Effect.exit));
@@ -49,7 +50,6 @@ export const withSteppedProgress = <A, E, R extends ApexOasServices>(
     Promise.resolve(progressTask).catch(error => resume(Effect.die(error)));
     return Effect.void;
   });
-
 // REST annotation names that should be present on the class
 export const AA_CLASS_REST_ANNOTATIONS: string[] = ['RestResource'];
 

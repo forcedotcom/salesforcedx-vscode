@@ -637,6 +637,7 @@ const createCheckpoints = Effect.fn('createCheckpoints')(function* () {
   const succeeded = yield* Effect.andThen(
     Effect.sync(() => writeToDebuggerOutputWindow(`${nls.localize('long_command_start')} ${localizedProgressMessage}`)),
     Effect.promise(() =>
+      // eslint-disable-next-line local/no-vscode-with-progress -- Checkpoint upload is non-cancellable but reports per-step status.
       vscode.window.withProgress(
         {
           location: progressLocation,

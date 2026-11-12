@@ -7,6 +7,7 @@
 import { type TestResult, type OutputFormat, type TestSortOrder } from '@salesforce/apex-node';
 import { FileOutput, writeResultFiles } from '@salesforce/apex-node/effect';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
@@ -71,7 +72,7 @@ export const writeAndOpenTestReport = Effect.fn('writeAndOpenTestReport')(functi
       performanceThresholdMs,
       coverageThresholdPercent,
       codeCoverage,
-      timestamp: new Date(),
+      timestamp: yield* DateTime.nowAsDate,
       lineEnding: '\n',
       writeTestRunId: false
     }

@@ -60,6 +60,8 @@ const makeEvent = <T>() => {
 
 const flush = () => new Promise(resolve => setImmediate(resolve));
 
+const runReplay = (logs: Parameters<typeof replayInOrder>[0]) => Effect.runPromise(replayInOrder(logs));
+
 describe('replayInOrder', () => {
   const launch = launchFromLogFile as VitestMock;
   const logs = [
@@ -90,7 +92,7 @@ describe('replayInOrder', () => {
   });
 
   it('waits for each replay session to end before launching the next', async () => {
-    const done = Effect.runPromise(replayInOrder(logs));
+    const done = runReplay(logs);
     await flush();
     expect(launch.mock.calls).toEqual([['/logs/a.log', false]]);
 
@@ -107,7 +109,7 @@ describe('replayInOrder', () => {
   });
 
   it('ignores other debuggers ending', async () => {
-    const done = Effect.runPromise(replayInOrder(logs));
+    const done = runReplay(logs);
     await flush();
     terminated.fire({ type: 'node' });
     await flush();
@@ -120,7 +122,7 @@ describe('replayInOrder', () => {
   });
 
   it('waits for VS Code to clear the active session after a replay ends', async () => {
-    const done = Effect.runPromise(replayInOrder(logs));
+    const done = runReplay(logs);
     await flush();
     // The terminate event can fire while VS Code still reports the finished session as active
     debug.activeDebugSession = { type: 'apex-replay' };
@@ -138,7 +140,7 @@ describe('replayInOrder', () => {
   });
 
   it('stops before the next log when cancelled', async () => {
-    const done = Effect.runPromise(replayInOrder(logs));
+    const done = runReplay(logs);
     await flush();
     token.isCancellationRequested = true;
     cancelled.fire();
@@ -148,7 +150,7 @@ describe('replayInOrder', () => {
 
   it('shows an error when launching a replay fails', async () => {
     launch.mockReturnValue(Effect.die(new Error('launch boom')));
-    await Effect.runPromise(replayInOrder(logs));
+    await runReplay(logs);
     expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(expect.stringContaining('launch boom'));
   });
 });

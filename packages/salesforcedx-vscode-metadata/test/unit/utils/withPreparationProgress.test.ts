@@ -5,7 +5,6 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -13,11 +12,11 @@ import * as vscode from 'vscode';
 import {
   UserCancellationError,
   NotificationModeService,
+  PromptService,
   type NonEmptyComponentSet
 } from '@salesforce/vscode-services/v2';
 import { withPreparationProgress } from '../../../src/utils/withPreparationProgress';
 import { ConflictsDetectedError } from '../../../src/conflict/conflictErrors';
-import { setAllServicesLayer } from '../../../src/services/extensionProvider';
 
 // Minimal branded NonEmptyComponentSet for testing
 const makeCS = (size = 1) => ({ size }) as unknown as NonEmptyComponentSet;
@@ -28,7 +27,8 @@ const createMockServicesApi = () => ({
   v2: {
     services: {
       UserCancellationError: mockUserCancellationError,
-      NotificationModeService
+      NotificationModeService,
+      PromptService
     }
   }
 });
@@ -43,68 +43,73 @@ const notificationMode = {
   showSuccessNotification: () => Effect.void
 } as unknown as NotificationModeService['Service'];
 
+const progress = { report: vi.fn() };
+const token: vscode.CancellationToken = {
+  isCancellationRequested: false,
+  onCancellationRequested: vi.fn(() => ({ dispose: vi.fn() }))
+};
+const withCancellableProgressReporting = vi.fn(
+  (_title: string, _location?: vscode.ProgressLocation) =>
+    <A, E, R>(
+      build: (
+        progress: vscode.Progress<{ increment?: number; message?: string }>,
+        token: vscode.CancellationToken
+      ) => Effect.Effect<A, E, R>
+    ) =>
+      build(progress, token)
+);
+const promptService = { withCancellableProgressReporting } as unknown as PromptService['Service'];
+
 const provideServices = (e: Effect.Effect<unknown, unknown, unknown>) => e.pipe(Effect.provide(mockServicesLayer));
 
 const mockServicesLayer = Layer.mergeAll(
   Layer.succeed(ExtensionProviderService, createMockExtensionProvider()),
-  Layer.succeed(NotificationModeService, notificationMode)
+  Layer.succeed(NotificationModeService, notificationMode),
+  Layer.succeed(PromptService, promptService)
 );
 
-setAllServicesLayer(mockServicesLayer as never);
+const runWithServices = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
+  Effect.runPromise(effect.pipe(provideServices) as Effect.Effect<A, E, never>);
 
-const runWithServices = <A>(effect: Effect.Effect<A, unknown, NotificationModeService | ExtensionProviderService>) =>
-  Effect.runPromise(effect.pipe(provideServices) as Effect.Effect<A, unknown, never>);
+const runWithServicesExit = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
+  Effect.runPromiseExit(effect.pipe(provideServices) as Effect.Effect<A, E, never>);
 
-const runWithServicesExit = <A>(
-  effect: Effect.Effect<A, unknown, NotificationModeService | ExtensionProviderService>
-) => Effect.runPromiseExit(effect.pipe(provideServices) as Effect.Effect<A, unknown, never>);
-
-/** Make withProgress call the task callback immediately, returning a controllable token */
+/** Run the delegated progress operation with a mock progress reporter. */
 const setupWithProgress = () => {
-  const progress = { report: vi.fn() };
-  const cancellationListeners: (() => void)[] = [];
-  const token = {
-    isCancellationRequested: false,
-    onCancellationRequested: vi.fn((listener: () => void) => {
-      cancellationListeners.push(listener);
-      return { dispose: vi.fn() };
-    })
-  };
-
-  (vscode.window.withProgress as VitestMock).mockImplementation((_options: unknown, task: any) =>
-    task(progress, token)
-  );
-
-  const cancel = () => cancellationListeners.forEach(l => l());
-  return { progress, token, cancel };
+  vi.clearAllMocks();
+  withCancellableProgressReporting.mockImplementation((_title, _location) => build => build(progress, token));
+  return { progressReporter: progress };
 };
 
 describe('withPreparationProgress', () => {
-  describe('initial progress message', () => {
-    it('reports "Preparing deployment..." for deploy', async () => {
-      const { progress } = setupWithProgress();
+  describe('progress title', () => {
+    it('shows "Preparing deployment..." for deploy', async () => {
+      setupWithProgress();
       const cs = makeCS();
       await runWithServices(Effect.succeed(cs).pipe(withPreparationProgress('deploy')));
-      expect(progress.report).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining('deployment') })
+      expect(withCancellableProgressReporting).toHaveBeenCalledWith(
+        expect.stringContaining('deployment'),
+        vscode.ProgressLocation.Notification
       );
     });
 
-    it('reports "Preparing retrieval..." for retrieve', async () => {
-      const { progress } = setupWithProgress();
+    it('shows "Preparing retrieval..." for retrieve', async () => {
+      setupWithProgress();
       const cs = makeCS();
       await runWithServices(Effect.succeed(cs).pipe(withPreparationProgress('retrieve')));
-      expect(progress.report).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining('retrieval') })
+      expect(withCancellableProgressReporting).toHaveBeenCalledWith(
+        expect.stringContaining('retrieval'),
+        vscode.ProgressLocation.Notification
       );
     });
 
-    it('reports "Preparing deletion..." for delete', async () => {
-      const { progress } = setupWithProgress();
+    it('shows "Preparing deletion..." for delete', async () => {
+      setupWithProgress();
       const cs = makeCS();
       await runWithServices(Effect.succeed(cs).pipe(withPreparationProgress('delete')));
-      expect(progress.report).toHaveBeenCalledWith(
-        expect.objectContaining({ message: expect.stringContaining('deletion') })
+      expect(withCancellableProgressReporting).toHaveBeenCalledWith(
+        expect.stringContaining('deletion'),
+        vscode.ProgressLocation.Notification
       );
     });
   });
@@ -127,7 +132,7 @@ describe('withPreparationProgress', () => {
   });
 
   it('updates progress message to checking_for_conflicts before running detectConflictsFn', async () => {
-    const { progress } = setupWithProgress();
+    const { progressReporter } = setupWithProgress();
     const cs = makeCS();
     const calls: string[] = [];
 
@@ -136,7 +141,7 @@ describe('withPreparationProgress', () => {
       return Effect.void;
     });
 
-    vi.mocked(progress.report).mockImplementation(({ message }: { message?: string }) => {
+    vi.mocked(progressReporter.report).mockImplementation(({ message }: { message?: string }) => {
       if (message) calls.push(message);
     });
 
@@ -148,13 +153,13 @@ describe('withPreparationProgress', () => {
     expect(messageIdx).toBeLessThan(detectIdx);
   });
 
-  it('does not call detectConflictsFn when not provided', async () => {
-    const { progress } = setupWithProgress();
+  it('does not report a phase update when detectConflictsFn is not provided', async () => {
+    const { progressReporter } = setupWithProgress();
     const cs = makeCS();
     const result = await runWithServices(Effect.succeed(cs).pipe(withPreparationProgress('deploy')));
 
     expect(result).toBe(cs);
-    expect(progress.report).toHaveBeenCalledTimes(1);
+    expect(progressReporter.report).not.toHaveBeenCalled();
   });
 
   it('propagates prepare failures', async () => {
@@ -178,25 +183,14 @@ describe('withPreparationProgress', () => {
     expect(exit._tag).toBe('Failure');
   });
 
-  it('is cancellable — progress notification has cancellable: true', async () => {
+  it('propagates cancellation failures from PromptService', async () => {
     setupWithProgress();
-    const cs = makeCS();
-    await runWithServices(Effect.succeed(cs).pipe(withPreparationProgress('deploy')));
+    const error = new UserCancellationError({ message: 'User cancelled' });
+    withCancellableProgressReporting.mockImplementationOnce(() => () => Effect.fail(error) as never);
 
-    expect(vscode.window.withProgress).toHaveBeenCalledWith(
-      expect.objectContaining({ cancellable: true }),
-      expect.any(Function)
-    );
-  });
+    const exit = await runWithServicesExit(Effect.succeed(makeCS()).pipe(withPreparationProgress('deploy')));
 
-  it('uses ProgressLocation.Notification', async () => {
-    setupWithProgress();
-    const cs = makeCS();
-    await runWithServices(Effect.succeed(cs).pipe(withPreparationProgress('deploy')));
-
-    expect(vscode.window.withProgress).toHaveBeenCalledWith(
-      expect.objectContaining({ location: vscode.ProgressLocation.Notification }),
-      expect.any(Function)
-    );
+    expect(exit._tag).toBe('Failure');
+    expect(JSON.stringify(exit)).toContain('UserCancellationError');
   });
 });

@@ -13,6 +13,7 @@ import {
   getMessageFromError
 } from '@salesforce/effect-ext-utils';
 import { ICONS, type OrgAuthorizationSummary } from '@salesforce/vscode-services/v2';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
 import * as Option from 'effect/Option';
@@ -51,8 +52,6 @@ const orgIsExpired = (authFields: OrgAuthFields) =>
 
 /** One time notification about orgs that expire soon */
 export const checkForSoonToBeExpiredOrgs = Effect.fn('OrgUtil.checkForSoonToBeExpiredOrgs')(function* () {
-  const daysUntilExpiration = new Date();
-  daysUntilExpiration.setDate(daysUntilExpiration.getDate() + DAYS_BEFORE_EXPIRE);
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const channel = yield* api.v2.services.ChannelService;
 
@@ -467,7 +466,9 @@ const processOrgForDisplay = Effect.fn('OrgUtil.processOrgForDisplay')(
       Username: orgAuth.username,
       'Org Id': authFields.orgId ?? '',
       Status: status,
-      Expires: authFields.expirationDate ? new Date(authFields.expirationDate).toISOString().split('T')[0] : ''
+      Expires: authFields.expirationDate
+        ? DateTime.formatIsoDateUtc(DateTime.makeUnsafe(authFields.expirationDate))
+        : ''
     } satisfies Row;
   },
   // Skip orgs that we can't process; log for debugging but continue processing other orgs

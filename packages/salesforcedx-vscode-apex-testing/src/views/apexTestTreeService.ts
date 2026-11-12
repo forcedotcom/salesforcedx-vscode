@@ -10,7 +10,9 @@ import { TestService } from '@salesforce/apex-node';
 import { TestResultSchema } from '@salesforce/apex-node/effect';
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
+import * as Clock from 'effect/Clock';
 import * as Context from 'effect/Context';
+import * as DateTime from 'effect/DateTime';
 import * as Deferred from 'effect/Deferred';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
@@ -569,7 +571,7 @@ const makeApexTestTreeService = Effect.gen(function* () {
     // Filter to files within the age threshold and track which methods are pre-session. Per-file
     // (Effect.forEach) so a single unreadable file fails with its own RestoreResultsError context
     // rather than aborting the whole scan.
-    const now = Date.now();
+    const now = yield* Clock.currentTimeMillis;
     const staleMethodIds = new Set<string>();
     const sessionMethodIds = new Set<string>();
     const scanned = yield* Effect.forEach(resultUris, uri =>
@@ -649,7 +651,7 @@ const makeApexTestTreeService = Effect.gen(function* () {
     });
 
     // Most recent result's mtime (notification only); reuse the scan's mtime, no extra FsService.stat.
-    const runDate = new Date(sortedRecent.at(-1)!.mtime).toLocaleString();
+    const runDate = DateTime.formatLocal(DateTime.makeUnsafe(sortedRecent.at(-1)!.mtime));
     const disableAction = nls.localize('apex_test_results_restored_disable_action');
     const selection = yield* Effect.promise(() =>
       vscode.window.showInformationMessage(

@@ -8,6 +8,7 @@
 import type { Connection } from '@salesforce/core';
 import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Clock from 'effect/Clock';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import { isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
@@ -101,7 +102,7 @@ export const formatSyncResults = Effect.fn('Apex.formatSyncResults')(function* (
       passRate: calculatePercentage(passed, result.numTestsRun),
       failRate: calculatePercentage(failed, result.numTestsRun),
       skipRate: calculatePercentage(0, result.numTestsRun),
-      testStartTime: startTime ? new Date(startTime).toISOString() : '',
+      testStartTime: startTime ? DateTime.formatIso(DateTime.makeUnsafe(startTime)) : '',
       testExecutionTimeInMs: result.totalTime,
       testTotalTimeInMs: result.totalTime,
       commandTimeInMs: (yield* Clock.currentTimeMillis) - startTime,

@@ -112,8 +112,8 @@ export const maybeStoreDeployResult = Effect.fn('resultStorage.maybeStoreDeployR
   if (!isSucceeded(result.response?.status) || (yield* orgTracksSource())) return;
 
   const timestamp = result.response?.completedDate
-    ? DateTime.fromDateUnsafe(new Date(result.response.completedDate))
-    : DateTime.fromDateUnsafe(new Date());
+    ? DateTime.makeUnsafe(result.response.completedDate)
+    : yield* DateTime.now;
   const components = result
     .getFileResponses() // we don't have timestamps on fileResponse
     .map(fr => toStoredComponent(fr.type, fr.fullName, DateTime.formatIso(timestamp)));
@@ -127,7 +127,7 @@ export const maybeStoreRetrieveResult = Effect.fn('resultStorage.maybeStoreRetri
 ) {
   if (!isSucceeded(result.response?.status) || (yield* orgTracksSource())) return;
 
-  const timestamp = DateTime.fromDateUnsafe(new Date());
+  const timestamp = yield* DateTime.now;
   const components = getFileProperties(result).map(fp => toStoredComponent(fp.type, fp.fullName, fp.lastModifiedDate));
   yield* storeResult('retrieve', components, timestamp);
 });

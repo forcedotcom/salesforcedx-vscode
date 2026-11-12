@@ -194,6 +194,7 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
   const terminalService = yield* api.v2.services.TerminalService;
   const promptService = yield* api.v2.services.PromptService;
   const notificationMode = yield* api.v2.services.NotificationModeService;
+  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
   const fs = yield* api.v2.services.FsService;
 
   const { loginUrl, sessionId, orgName } = yield* gatherForceIdeUri();
@@ -218,7 +219,7 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
   // interrupts the fiber, which simpleExec propagates to kill the in-flight `sf` child process.
   yield* promptService.withCancellableProgressReporting(
     nls.localize('isv_debug_bootstrap_progress_title'),
-    yield* notificationMode.getProgressLocation(COMMAND)
+    progressLocation
   )(progress =>
     Effect.gen(function* () {
       const report = (message: string) => Effect.sync(() => progress.report({ message }));

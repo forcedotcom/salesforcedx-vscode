@@ -211,8 +211,8 @@ const displayOrg = Effect.fn('orgDisplay.displayOrg')(function* (
         Match.exhaustive
       )
     ),
-    // Cancel interrupts the complete display + credential lookup before anything is written.
     promptService.withCancellableProgress(nls.localize('org_display_progress'), progressLocation),
+    // Cancel interrupts the complete display + credential lookup before anything is written.
     Effect.tap(text => channel.appendToChannel(text)),
     Effect.tap(() => channel.showChannel)
   );

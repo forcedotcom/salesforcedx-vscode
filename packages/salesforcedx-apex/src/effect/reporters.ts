@@ -9,7 +9,7 @@ import type { ReportLineEnding } from '../reporters/lineEnding.js';
 import type { MarkdownTextReporterOptions } from '../reporters/markdownTextReporter.js';
 import type { TestResult } from '../tests/apiTypes.js';
 import * as Cause from 'effect/Cause';
-import * as Clock from 'effect/Clock';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
 import { formatJUnitChunks } from '../reporters/formatJUnit.js';
@@ -77,7 +77,7 @@ export const formatMarkdownTextReportStream = Effect.fn('Apex.formatMarkdownText
   testResult: TestResult,
   options: MarkdownTextReporterOptions = {}
 ) {
-  const timestamp = options.timestamp ?? new Date(yield* Clock.currentTimeMillis);
+  const timestamp = options.timestamp ?? (yield* DateTime.nowAsDate);
   return yield* Effect.try({
     try: () => formatMarkdownTextChunks(testResult, { ...options, timestamp }),
     catch: cause => {

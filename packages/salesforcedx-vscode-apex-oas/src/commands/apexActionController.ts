@@ -101,7 +101,9 @@ export const createApexAction = Effect.fn('ApexOas.Command.createApexAction')(fu
 
   // Steps 7-9 run inside a progress notification so the user sees activity instead of dead air between
   // accepting the folder and the final toast (the REST LLM loop alone can take tens of seconds).
-  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
+  const progressLocation = yield* api.v2.services.NotificationModeService.use(service =>
+    service.getProgressLocation(COMMAND)
+  );
   const processedOasResult = yield* withSteppedProgress(
     nls.localize('generating_oas_progress_title', name),
     report =>

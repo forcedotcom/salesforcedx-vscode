@@ -54,14 +54,14 @@ const executeRefresh = Effect.fn('executeRefresh')(function* (
 
   yield* channelService.appendToChannel(`Starting ${nls.localize('sobjects_refresh')}`);
 
-  const progressLocation = source === 'manual' ? vscode.ProgressLocation.Notification : vscode.ProgressLocation.Window;
+  const location = source === 'manual' ? vscode.ProgressLocation.Notification : vscode.ProgressLocation.Window;
 
   // Run the artifact effect in the current fiber (via the shared operator) so a typed FsServiceError
   // reaches the outer command error handler instead of being turned into a defect by a nested runtime.
   yield* promptService
     .withCancellableProgressReporting(
       nls.localize('sobjects_refresh'),
-      progressLocation
+      location
     )((progress, token) =>
       Effect.gen(function* () {
         const result = yield* source === 'startupmin'

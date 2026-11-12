@@ -166,6 +166,7 @@ export default [
       'local/no-vscode-uri': 'error',
       'local/no-jsforce-query': 'error',
       'local/no-vscode-show-text-document': 'warn',
+      'local/no-vscode-with-progress': 'error',
       'local/no-inline-esbuild-platform': 'error',
       'local/no-legacy-telemetry-service': 'error',
       'local/command-must-be-in-package-json': [

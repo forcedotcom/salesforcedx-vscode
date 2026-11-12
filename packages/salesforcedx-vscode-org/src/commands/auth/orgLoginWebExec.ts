@@ -25,7 +25,7 @@ const LOGIN_TIMEOUT = Duration.minutes(5);
  * progress, port-1717 conflict handling, and success (channel output + config refresh). Callers gather
  * their own params and pass args + progress label + notification command key.
  *
- * The long-running child is wrapped in withCancellableProgress so the Cancel button interrupts the fiber
+ * The long-running child uses `withProgress` with cancellation enabled, so Cancel interrupts the fiber
  * and kills the child. Port-conflict failures get a custom notification + Show Output action; all other
  * TerminalServiceError failures rethrow to the generic ErrorHandlerService.
  */

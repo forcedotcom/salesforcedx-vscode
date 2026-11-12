@@ -38,6 +38,7 @@ import { noVscodeQuickpickDescriptionLiterals } from './noVscodeQuickpickDescrip
 import { noVscodeShowTextDocument } from './noVscodeShowTextDocument';
 import { noVscodeUri } from './noVscodeUri';
 import { noVscodeValidateInputLiterals } from './noVscodeValidateInputLiterals';
+import { noVscodeWithProgress } from './noVscodeWithProgress';
 import { packageJsonCommandRefs } from './packageJsonCommandRefs';
 import { packageJsonExtensionIcon } from './packageJsonExtensionIcon';
 import { packageJsonI18nDescriptions } from './packageJsonI18nDescriptions';
@@ -92,6 +93,7 @@ const plugin: TSESLint.FlatConfig.Plugin = {
     'no-vscode-show-text-document': noVscodeShowTextDocument,
     'no-vscode-uri': noVscodeUri,
     'no-vscode-validateinput-literals': noVscodeValidateInputLiterals,
+    'no-vscode-with-progress': noVscodeWithProgress,
     'package-json-i18n-descriptions': packageJsonI18nDescriptions,
     'package-json-extension-icon': packageJsonExtensionIcon,
     'package-json-icon-paths': packageJsonIconPaths,

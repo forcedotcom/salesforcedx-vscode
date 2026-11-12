@@ -15,6 +15,8 @@ import {
   LspFileSystemAccessor
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { getErrorMessage } from '@salesforce/salesforcedx-utils';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
 import * as path from 'node:path';
 
 import { getLanguageService, type LanguageService, type CompletionList } from 'vscode-html-languageservice';
@@ -119,14 +121,18 @@ export default class Server {
 
       // Defer performDelayedInitialization to next tick (like LWC) so the client has time to attach
       // workspace/readFile and workspace/stat handlers before we send any requests.
-      setTimeout(() => {
-        void this.performDelayedInitialization().catch((err: unknown) => {
-          Logger.error(
-            `Aura delayed initialization failed: ${getErrorMessage(err)}`,
-            err instanceof Error ? err : undefined
-          );
-        });
-      }, 0);
+      Effect.tryPromise({ try: () => this.performDelayedInitialization(), catch: err => ({ err }) }).pipe(
+        Effect.catch(({ err }) =>
+          Effect.sync(() => {
+            Logger.error(
+              `Aura delayed initialization failed: ${getErrorMessage(err)}`,
+              err instanceof Error ? err : undefined
+            );
+          })
+        ),
+        Effect.delay(Duration.zero),
+        Effect.runFork
+      );
 
       this.htmlLS = getLanguageService();
       this.htmlLS.setDataProviders(true, [getAuraTagProvider()]);
@@ -179,13 +185,11 @@ export default class Server {
   }
 
   private startIndexing(): void {
-    setTimeout(() => {
-      void (async () => {
-        void this.connection.sendNotification('salesforce/indexingStarted');
-        await this.auraIndexer.configureAndIndex();
-        void this.connection.sendNotification('salesforce/indexingEnded');
-      })();
-    }, 0);
+    Effect.promise(async () => {
+      void this.connection.sendNotification('salesforce/indexingStarted');
+      await this.auraIndexer.configureAndIndex();
+      void this.connection.sendNotification('salesforce/indexingEnded');
+    }).pipe(Effect.delay(Duration.zero), Effect.runFork);
   }
 
   public async onCompletion(completionParams: CompletionParams): Promise<CompletionList> {

@@ -5,7 +5,10 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { Logger, LoggerLevel } from '@salesforce/core';
-import { clearInterval } from 'node:timers';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
+import * as Fiber from 'effect/Fiber';
+import * as Schedule from 'effect/Schedule';
 import * as v8 from 'node:v8';
 
 const INTERVAL_DEFAULT = 500;
@@ -25,7 +28,7 @@ export class NullHeapMonitor implements Disposable {
 export class HeapMonitor implements Disposable {
   private static instance: HeapMonitor | NullHeapMonitor | undefined;
   private logger: Logger;
-  private intervalId?: NodeJS.Timeout;
+  private monitoringFiber?: Fiber.Fiber<void>;
   private isMonitoring: boolean;
   private interval: number;
 
@@ -131,7 +134,10 @@ export class HeapMonitor implements Disposable {
       }
 
       this.checkHeapSize();
-      this.intervalId = setInterval(() => this.checkHeapSize(), this.interval);
+      this.monitoringFiber = Effect.repeat(
+        Effect.sleep(Duration.millis(this.interval)).pipe(Effect.andThen(Effect.sync(() => this.checkHeapSize()))),
+        Schedule.forever
+      ).pipe(Effect.asVoid, Effect.runFork);
     }
   }
 
@@ -146,9 +152,9 @@ export class HeapMonitor implements Disposable {
   public stopMonitoring(): void {
     if (this.isMonitoring) {
       this.isMonitoring = false;
-      if (this.intervalId) {
-        clearInterval(this.intervalId);
-        this.intervalId = undefined;
+      if (this.monitoringFiber) {
+        Fiber.interrupt(this.monitoringFiber).pipe(Effect.runFork);
+        this.monitoringFiber = undefined;
       }
     }
   }

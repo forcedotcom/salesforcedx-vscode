@@ -223,10 +223,11 @@ const reclaimPortAndRetry = (): void => {
     .map(s => Number.parseInt(s.trim(), 10))
     .filter(pid => Number.isInteger(pid) && pid !== process.pid);
   pids.forEach(pid => {
+    // The process may already be gone.
     try {
       process.kill(pid, 'SIGKILL');
     } catch {
-      /* already gone */
+      // It exited after lsof found it.
     }
   });
   console.error(`Span file server: reclaimed port ${PORT} from pid(s) ${pids.join(', ') || 'none'}; retrying`);

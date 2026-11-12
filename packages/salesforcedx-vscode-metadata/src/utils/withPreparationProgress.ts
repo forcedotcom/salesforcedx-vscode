@@ -7,14 +7,12 @@
 
 import type { detectConflicts } from '../conflict/conflictFlow';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { NonEmptyComponentSet, UserCancellationError } from '@salesforce/vscode-services/v2';
-import * as Deferred from 'effect/Deferred';
+import type { NonEmptyComponentSet } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
-import * as Exit from 'effect/Exit';
 import type * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
-import { type buildAllServicesLayer, getMetadataRuntime } from '../services/extensionProvider';
+import { type buildAllServicesLayer } from '../services/extensionProvider';
 import { type CommandKey } from './notificationMode';
 
 type OperationType = 'deploy' | 'retrieve' | 'delete';
@@ -36,15 +34,15 @@ const titleKey = (op: OperationType) =>
  * preparation effect runs — so users see feedback the moment they invoke the command.
  *
  * **Two-phase notification behavior:**
- * 1. `"Preparing {deployment|retrieval|deletion}..."` — shown while the ComponentSet is built by the upstream `prepare` effect.
- * 2. `"Checking for conflicts..."` — shown only when `detectConflictsFn` is provided and the ComponentSet was built successfully.
+ * 1. `"Preparing {deployment|retrieval|deletion}..."` — shown as the progress title while the ComponentSet is built.
+ * 2. `"Checking for conflicts..."` — reported only when `detectConflictsFn` is provided and the ComponentSet was built successfully.
  *
  * The notification closes automatically when the preparation completes (success or failure)
  * or when the user presses the Cancel button.
  *
  * **Cancellation:** When the user cancels, the active sub-effect (prepare or conflict detection)
- * is interrupted via a cancellation Deferred raced against each phase. The operator then fails
- * with {@link UserCancellationError}, which is silently swallowed by `registerCommandWithRuntime`
+ * is interrupted by PromptService. The operator then fails
+ * with `UserCancellationError`, which is silently swallowed by `registerCommandWithRuntime`
  * (same as all other command cancellations).
  *
  * **Conflict errors:** Any error thrown by `detectConflictsFn` (e.g. `ConflictsDetectedError`) is
@@ -89,50 +87,22 @@ export const withPreparationProgress =
     <E, R extends MetadataServices>(prepare: Effect.Effect<NonEmptyComponentSet, E, R>) =>
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
+        const promptService = yield* api.v2.services.PromptService;
         const notificationMode = yield* api.v2.services.NotificationModeService;
-        const cancelDeferred = yield* Deferred.make<never, UserCancellationError>();
-
-        const raceWithCancel = <A, E2, R2>(effect: Effect.Effect<A, E2, R2>) =>
-          Effect.raceFirst(effect, Deferred.await(cancelDeferred));
-
         const progressLocation = command
           ? yield* notificationMode.getProgressLocation(command)
           : vscode.ProgressLocation.Notification;
-        return yield* Effect.callback<NonEmptyComponentSet, E | ConflictsE | UserCancellationError>(resume => {
-          const progressPromise = vscode.window.withProgress(
-            {
-              location: progressLocation,
-              cancellable: true
-            },
-            async (progress, token) => {
-              token.onCancellationRequested(
-                () =>
-                  void getMetadataRuntime().runPromise(
-                    Deferred.fail(
-                      cancelDeferred,
-                      new api.v2.services.UserCancellationError({ message: 'User cancelled' })
-                    )
-                  )
-              );
-
-              const report = (key: Parameters<typeof nls.localize>[0]) =>
-                Effect.sync(() => progress.report({ message: nls.localize(key) }));
-
-              const pipeline = Effect.gen(function* () {
-                yield* report(titleKey(operationType));
-                const cs = yield* raceWithCancel(prepare);
-                if (detectConflictsFn) {
-                  yield* report('checking_for_conflicts');
-                  yield* raceWithCancel(detectConflictsFn(cs));
-                }
-                return cs;
-              });
-
-              const exit = await getMetadataRuntime().runPromise(pipeline.pipe(Effect.exit));
-              resume(Exit.isSuccess(exit) ? Effect.succeed(exit.value) : Effect.failCause(exit.cause));
+        return yield* promptService.withCancellableProgressReporting(
+          nls.localize(titleKey(operationType)),
+          progressLocation
+        )(progress =>
+          Effect.gen(function* () {
+            const cs = yield* prepare;
+            if (detectConflictsFn) {
+              yield* Effect.sync(() => progress.report({ message: nls.localize('checking_for_conflicts') }));
+              yield* detectConflictsFn(cs);
             }
-          );
-          Promise.resolve(progressPromise).catch(error => resume(Effect.die(error)));
-          return Effect.void;
-        });
+            return cs;
+          })
+        );
       });

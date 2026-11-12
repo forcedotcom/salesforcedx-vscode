@@ -89,7 +89,9 @@ describe('resolveLegacyConnectionString', () => {
   it('uses ec3632 key when no aiKey and no otelConnectionString', () => {
     expect(resolveLegacyConnectionString({})).toBe(LEGACY_DEFAULT_AI_CONNECTION_STRING);
     expect(resolveLegacyConnectionString(undefined)).toBe(LEGACY_DEFAULT_AI_CONNECTION_STRING);
-    expect(LEGACY_DEFAULT_AI_CONNECTION_STRING).toBe('InstrumentationKey=ec3632a4-df47-47a4-98dc-8134cacbaf7e');
+    expect(LEGACY_DEFAULT_AI_CONNECTION_STRING).toBe(
+      'InstrumentationKey=ec3632a4-df47-47a4-98dc-8134cacbaf7e;IngestionEndpoint=https://eastus-1.in.applicationinsights.azure.com/;LiveEndpoint=https://eastus.livediagnostics.monitor.azure.com/;ApplicationId=979a1e0f-0487-4941-85f5-85ef1ebb7919'
+    );
   });
 
   it('uses caller aiKey when present', () => {

@@ -7,6 +7,7 @@
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ExecuteAnonymousResult } from '@salesforce/vscode-services/v2';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import { Utils } from 'vscode-uri';
@@ -74,7 +75,9 @@ export const saveExecResult = Effect.fn('LogStorage.saveExecResult')(function* (
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const dirUri = yield* getLogsDirUri();
-  const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-').slice(0, 19);
+  const timestamp = DateTime.formatIso(yield* DateTime.now)
+    .replaceAll(/[:.]/g, '-')
+    .slice(0, 19);
   const folderName = logId
     ? `${EXEC_ANON_FOLDER_PREFIX}${timestamp}-${logId}`
     : `${EXEC_ANON_FOLDER_PREFIX}${timestamp}`;
@@ -83,7 +86,7 @@ export const saveExecResult = Effect.fn('LogStorage.saveExecResult')(function* (
 
   const resultWithExecutedAt: ResultWithExecutedAt = {
     ...result,
-    executedAt: new Date().toISOString(),
+    executedAt: DateTime.formatIso(yield* DateTime.now),
     ...(isNotUndefined(logId) && { logId })
   };
   yield* Effect.all(

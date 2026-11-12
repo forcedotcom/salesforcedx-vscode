@@ -29,15 +29,6 @@ vi.mock('../../../../src/util/orgUtil', () => ({
 
 const SUCCESS_STDOUT = JSON.stringify({ status: 0, result: { username: 'me@org.com', orgId: '00Dxx' } });
 
-// withCancellableProgress forks the effect and reports via vscode.window.withProgress; the Vitest
-// vscode mock needs a withProgress that runs the task and returns its result so the fiber resolves.
-const stubWithProgress = () => {
-  (vscode.window as unknown as { withProgress: VitestMock }).withProgress = vi.fn(
-    (_opts: unknown, task: (progress: unknown, token: { onCancellationRequested: VitestMock }) => unknown) =>
-      task({ report: vi.fn() }, { onCancellationRequested: vi.fn() })
-  );
-};
-
 const buildServices = (opts: {
   isProject: boolean;
   simpleExec: VitestMock;
@@ -126,7 +117,6 @@ describe('orgLoginWebCommand', () => {
     showChannel = vi.fn();
     showErrorMessage = vi.fn();
     captureProgressTitle = vi.fn();
-    stubWithProgress();
     (vscode.window as unknown as { showErrorMessage: VitestMock }).showErrorMessage = showErrorMessage;
     // gatherAuthParams: select the production org-type QuickPick option, then commit an empty alias
     // (empty string → DEFAULT_ALIAS). The prod option resolves to PRODUCTION_URL with no URL prompt.

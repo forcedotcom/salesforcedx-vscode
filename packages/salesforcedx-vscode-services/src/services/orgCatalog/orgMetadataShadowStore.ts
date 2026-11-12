@@ -19,6 +19,7 @@ import {
 } from '@salesforce/vscode-services/v2/uriComparison';
 import * as Clock from 'effect/Clock';
 import * as Context from 'effect/Context';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import * as Equal from 'effect/Equal';
 import * as HashSet from 'effect/HashSet';
@@ -252,9 +253,9 @@ const makeOrgMetadataShadowStore = Effect.gen(function* () {
             primaryPath,
             files: files.filter((path): path is string => Boolean(path)),
             remoteLastModifiedDate: input.remoteLastModifiedDate,
-            materializedAt: new Date(
-              yield* Ref.updateAndGet(lastMaterializedAt, previous => Math.max(now, previous + 1))
-            ).toISOString()
+            materializedAt: DateTime.formatIso(
+              DateTime.makeUnsafe(yield* Ref.updateAndGet(lastMaterializedAt, previous => Math.max(now, previous + 1)))
+            )
           };
           const content = JSON.stringify(yield* Schema.encodeEffect(Manifest)(manifest), null, 2);
           const backup = yield* getUnusedSiblingUri(root, '.__backup__');

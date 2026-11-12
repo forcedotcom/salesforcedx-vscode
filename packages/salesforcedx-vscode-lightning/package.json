@@ -15,7 +15,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "68.11.4",
+  "version": "68.13.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -231,12 +231,34 @@
       "command": "node ../../scripts/vsceBundledExtension.mts",
       "dependencies": [
         "vscode:bundle"
+      ],
+      "files": [
+        "../../scripts/vsceBundledExtension.mts",
+        "package.json",
+        "package.nls*.json",
+        "LICENSE.txt",
+        "README.md",
+        ".vscodeignore",
+        "OSSREADME.json",
+        "images/**",
+        "syntaxes/**"
       ]
     },
     "vscode:package:legacy:prerelease": {
       "command": "node ../../scripts/vsceBundledExtension.mts",
       "dependencies": [
         "vscode:bundle"
+      ],
+      "files": [
+        "../../scripts/vsceBundledExtension.mts",
+        "package.json",
+        "package.nls*.json",
+        "LICENSE.txt",
+        "README.md",
+        ".vscodeignore",
+        "OSSREADME.json",
+        "images/**",
+        "syntaxes/**"
       ],
       "env": {
         "VSCE_PRE_RELEASE": "true"

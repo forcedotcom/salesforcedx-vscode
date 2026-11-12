@@ -348,6 +348,7 @@
     "test:scripts": {
       "command": "vitest run --config vitest.config.mts",
       "dependencies": [
+        "./packages/effect-octokit:compile",
         "./packages/playwright-vscode-ext:compile"
       ],
       "files": [
@@ -358,7 +359,6 @@
         "scripts/clean-wireit-cache.js",
         "scripts/fold-stable-changelog.js",
         "scripts/releaseDashboard.sh",
-        "scripts/rerunPushE2EGate.sh",
         ".github/workflows/release-dashboard.yml",
         ".github/workflows/rerunPushE2E.yml",
         "scripts/tsconfig.json",
@@ -607,6 +607,8 @@
     "check:scripts": {
       "command": "tsc --noEmit -p scripts/tsconfig.native.json && node --check scripts/category-approve.mts && node --check scripts/changelogBody/changelogBody.mts && node --check scripts/manualTestPlan/manualTestPlan.mts && node --check test/category-approve.test.mts && node --check scripts/manualTestPlan/test/unit/manualTestPlan.test.mts",
       "dependencies": [
+        "./packages/salesforcedx-apex:compile",
+        "./packages/salesforcedx-vscode-apex-log:compile",
         "./packages/effect-octokit:compile",
         "./packages/playwright-vscode-ext:compile"
       ],
@@ -614,6 +616,9 @@
         "package.json",
         "scripts/tsconfig.native.json",
         "scripts/**/*.{mts,cts}",
+        "packages/salesforcedx-apex/scripts/**/*.mts",
+        "packages/salesforcedx-vscode-apex-log/scripts/**/*.mts",
+        "packages/salesforcedx-vscode-services/scripts/**/*.mts",
         "packages/salesforcedx-vscode-services-types/scripts/**/*.mts",
         "scripts/shared/categoryGates.cjs",
         "test/**/*.{mts,cts}"
@@ -654,6 +659,7 @@
         "./packages/salesforcedx-apex-debugger:check:effect-diagnostics",
         "./packages/salesforcedx-apex-replay-debugger:check:effect-diagnostics",
         "./packages/effect-ext-utils:check:effect-diagnostics",
+        "./packages/effect-octokit:check:effect-diagnostics",
         "./packages/salesforcedx-vscode-core:check:effect-diagnostics",
         "./packages/salesforcedx-vscode-apex:check:effect-diagnostics",
         "./packages/salesforcedx-vscode-apex-debugger:check:effect-diagnostics",

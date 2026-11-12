@@ -38,6 +38,14 @@ export type CommitStatus =
 export type CheckRun =
   Endpoints['GET /repos/{owner}/{repo}/commits/{ref}/check-runs']['response']['data']['check_runs'][number];
 export type PullFile = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}/files']['response']['data'][number];
+export const WorkflowRunJob = Schema.Struct({
+  id: Schema.Number,
+  name: Schema.String,
+  conclusion: Schema.NullOr(Schema.String),
+  started_at: Schema.NullishOr(Schema.String),
+  completed_at: Schema.NullishOr(Schema.String)
+});
+export type WorkflowRunJob = typeof WorkflowRunJob.Type;
 
 type Check = {
   readonly state?: string;
@@ -99,6 +107,19 @@ export class GitHubRequestError extends Schema.TaggedError<GitHubRequestError>()
   path: Schema.String,
   retryAfterMillis: Schema.optional(Schema.Number)
 }) {}
+
+const decodeResponse = <S extends Schema.Constraint>(schema: S, input: unknown, method: string, path: string) =>
+  Schema.decodeUnknownEffect(schema)(input).pipe(
+    Effect.mapError(
+      error =>
+        new GitHubRequestError({
+          message: error.message,
+          status: 200,
+          method,
+          path
+        })
+    )
+  );
 
 export const PullRequest = Schema.Struct({
   reviewDecision: Schema.NullOr(Schema.String),
@@ -262,6 +283,15 @@ const makeGitHub = Effect.gen(function* () {
     );
   });
 
+  const workflowRunJobs = Effect.fn('GitHub.workflowRunJobs')(function* (repository: string, runId: string) {
+    const path = `/repos/${repository}/actions/runs/${runId}/jobs`;
+    return yield* run('GET', path, () =>
+      octokit.paginate<unknown>(`GET ${path}`, {
+        per_page: 100
+      })
+    ).pipe(Effect.flatMap(jobs => decodeResponse(Schema.Array(WorkflowRunJob), jobs, 'GET', path)));
+  });
+
   const combinedStatus = Effect.fn('GitHub.combinedStatus')(function* (owner: string, repo: string, sha: string) {
     return yield* run('GET', `/repos/${owner}/${repo}/commits/${sha}/status`, () =>
       octokit
@@ -419,6 +449,7 @@ const makeGitHub = Effect.gen(function* () {
     pullFiles,
     pullReviews,
     checkRuns,
+    workflowRunJobs,
     combinedStatus,
     headChecks,
     createReview,

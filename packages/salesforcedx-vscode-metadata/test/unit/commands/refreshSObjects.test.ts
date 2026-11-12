@@ -28,7 +28,7 @@ const FAILURE_CODE = 1;
 
 const appendToChannel = vi.fn(() => Effect.void);
 
-// Stand-in PromptService.withCancellableProgressReporting: runs the build effect with a mock
+// Stand-in PromptService.withProgressReporting: runs the build effect with a mock
 // progress + uncancelled token in the same fiber, so a typed failure propagates unchanged.
 const mockPromptService = {
   considerUndefinedAsCancellation: <T>(value: T | undefined) =>

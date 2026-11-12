@@ -54,13 +54,11 @@ export const executeAnonymousCommand = Effect.fn('ApexLog.Command.executeAnonymo
   const command: ProgressAndSuccessCommandKey = selectionOnly
     ? "SFDX: Execute Anonymous Apex with Editor's Selected Text"
     : 'SFDX: Execute Anonymous Apex with Currently Open Editor';
+  const progressLocation = yield* notificationMode.getProgressLocation(command);
   // progress dismisses once execution+save resolve; the success toast (with its open-log action) follows
   yield* api.v2.services.EditorService.use(service => service.getActiveEditorContext(selectionOnly)).pipe(
     Effect.flatMap(executeAnonymous),
-    promptService.withProgress(
-      nls.localize('exec_anon_progress_title'),
-      yield* notificationMode.getProgressLocation(command)
-    ),
+    promptService.withProgress(nls.localize('exec_anon_progress_title'), progressLocation),
     Effect.tap(({ result, logUri }) => {
       const openLogAction = {
         label: nls.localize('open_log'),

@@ -7,7 +7,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "68.11.4",
+  "version": "68.13.0",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -176,6 +176,7 @@
         "src/**/*.ts",
         "scripts/**/*.mts",
         "scripts/tsconfig.json",
+        "../../scripts/tsconfig.native.json",
         "test/**/*.{ts,mts}",
         "../../eslint.config.mjs",
         ".vscodeignore",

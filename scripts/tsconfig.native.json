@@ -11,5 +11,14 @@
     "skipLibCheck": true,
     "types": ["node"]
   },
-  "include": ["**/*.mts", "**/*.cts", "../test/**/*.mts", "../test/**/*.cts"]
+  "include": [
+    "**/*.mts",
+    "**/*.cts",
+    "../test/**/*.mts",
+    "../test/**/*.cts",
+    "../packages/salesforcedx-vscode-services-types/scripts/**/*.mts",
+    "../packages/salesforcedx-apex/scripts/**/*.mts",
+    "../packages/salesforcedx-vscode-apex-log/scripts/**/*.mts",
+    "../packages/salesforcedx-vscode-services/scripts/**/*.mts"
+  ]
 }

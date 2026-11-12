@@ -7,6 +7,7 @@
 import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import { ICONS, type DefaultOrgInfoSchema, type OrgAuthorizationSummary } from '@salesforce/vscode-services/v2';
 import * as Arr from 'effect/Array';
+import * as Clock from 'effect/Clock';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
@@ -151,8 +152,7 @@ const ACTION_ITEMS: OrgQuickPickItem[] = [
 // exported for test
 export const isOrgExpired = Effect.fn('OrgList.isOrgExpired')(function* (targetOrgOrAlias: string) {
   const authFields = yield* getAuthFieldsFor(targetOrgOrAlias);
-  const expirationDate = authFields.expirationDate ? new Date(authFields.expirationDate) : undefined;
-  return expirationDate ? expirationDate < new Date() : false;
+  return authFields.expirationDate ? Date.parse(authFields.expirationDate) < (yield* Clock.currentTimeMillis) : false;
 });
 
 export const authorizationsToQuickPickItems = (

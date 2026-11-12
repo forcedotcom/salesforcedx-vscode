@@ -15,7 +15,13 @@ import type { Mock as VitestMock } from 'vitest';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
-import { NotificationModeService, QueryService, SettingsService } from '@salesforce/vscode-services/v2';
+import {
+  ChannelService,
+  NotificationModeService,
+  PromptService,
+  QueryService,
+  SettingsService
+} from '@salesforce/vscode-services/v2';
 import * as vscode from 'vscode';
 import * as queryPlan from '../../../src/commands/queryPlan';
 import { SOQLEditorInstance } from '../../../src/editor/soqlEditorInstance';
@@ -31,14 +37,21 @@ describe('SOQL Builder Run Query', () => {
     );
     const servicesApi = {
       v2: {
-        services: { SettingsService, NotificationModeService, QueryService }
+        services: { ChannelService, NotificationModeService, PromptService, QueryService, SettingsService }
       }
     };
     const serviceValues = {
+      channel: { appendToChannel: () => Effect.void } as unknown as ChannelService['Service'],
       settings: { getValue: () => Effect.succeed(50) } as unknown as SettingsService['Service'],
       notificationMode: {
         getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification)
       } as unknown as NotificationModeService['Service'],
+      prompt: {
+        withProgress:
+          () =>
+          <A, E, R>(self: Effect.Effect<A, E, R>) =>
+            self
+      } as unknown as PromptService['Service'],
       query: { query } as unknown as QueryService['Service']
     };
     (vscode.extensions.getExtension as VitestMock).mockReturnValue({ isActive: true, exports: servicesApi });
@@ -51,8 +64,10 @@ describe('SOQL Builder Run Query', () => {
       Effect.runPromise(
         effect.pipe(
           Effect.provideService(ExtensionProviderService, { getServicesApi: Effect.succeed(servicesApi as never) }),
+          Effect.provideService(ChannelService, serviceValues.channel),
           Effect.provideService(SettingsService, serviceValues.settings),
           Effect.provideService(NotificationModeService, serviceValues.notificationMode),
+          Effect.provideService(PromptService, serviceValues.prompt),
           Effect.provideService(QueryService, serviceValues.query)
         )
       )
@@ -68,10 +83,9 @@ describe('SOQL Builder Run Query', () => {
     ).mockResolvedValue(undefined);
 
     await Effect.runPromise(
-      instance['handleMessageEffect']({ type: 'run_query', payload: undefined as never }) as Effect.Effect<
-        unknown,
-        unknown
-      >
+      instance['handleMessageEffect']({ type: 'run_query', payload: undefined as never }).pipe(
+        Effect.provideService(ExtensionProviderService, { getServicesApi: Effect.succeed(servicesApi as never) })
+      ) as Effect.Effect<unknown, unknown>
     );
 
     expect(query).toHaveBeenCalledWith({ soql: 'SELECT Id FROM Account', scanAll: false }, expect.anything());

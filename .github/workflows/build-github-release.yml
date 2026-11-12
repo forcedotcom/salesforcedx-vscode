@@ -9,7 +9,7 @@ on:
   workflow_dispatch:
     inputs:
       startFromRef:
-        description: 'Any git ref (tag/branch/SHA) to build from. Overrides prereleaseTag. ⚠️ WARNING: Bypasses nightly validation and runs no tests here - promote-to-prerelease.yml/publishVSCode.yml/publishOpenVSX.yml test the commit directly (isHotfix=true) before it goes live. Ensure ref is reviewed/merged to develop before using.'
+        description: 'Any git ref (tag/branch/SHA) to build from. Overrides prereleaseTag. ⚠️ WARNING: Bypasses nightly validation and runs no tests here - promote-to-prerelease.yml/publishVSCode.yml/publishOpenVSXTrusted.yml test the commit directly (isHotfix=true) before it goes live. Ensure ref is reviewed/merged to develop before using.'
         required: false
         type: string
       prereleaseTag:

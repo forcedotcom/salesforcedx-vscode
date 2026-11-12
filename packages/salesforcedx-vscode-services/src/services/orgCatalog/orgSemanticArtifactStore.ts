@@ -17,6 +17,7 @@ import {
 } from '@salesforce/vscode-services/v2';
 import * as Clock from 'effect/Clock';
 import * as Context from 'effect/Context';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import * as Layer from 'effect/Layer';
@@ -156,9 +157,9 @@ const makeOrgSemanticArtifactStore = Effect.gen(function* () {
           const decodedKey = yield* Schema.decodeUnknownEffect(SemanticArtifactStoreKeySchema)(key);
           const uri = yield* getUri(decodedKey);
           const now = yield* Clock.currentTimeMillis;
-          const writtenAt = new Date(
-            yield* Ref.updateAndGet(lastWrittenAt, previous => Math.max(now, previous + 1))
-          ).toISOString();
+          const writtenAt = DateTime.formatIso(
+            DateTime.makeUnsafe(yield* Ref.updateAndGet(lastWrittenAt, previous => Math.max(now, previous + 1)))
+          );
           const manifest = { version: 1 as const, key: decodedKey, writtenAt, value };
           const content = yield* Effect.try({
             try: () => JSON.stringify(manifest, null, 2),

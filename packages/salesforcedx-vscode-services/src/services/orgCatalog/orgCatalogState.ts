@@ -22,6 +22,7 @@ import {
 import * as Cause from 'effect/Cause';
 import * as Clock from 'effect/Clock';
 import * as Context from 'effect/Context';
+import * as DateTime from 'effect/DateTime';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -161,7 +162,7 @@ const makeOrgCatalogState = Effect.gen(function* () {
           version: 2,
           orgId,
           generation,
-          writtenAt: new Date(yield* Clock.currentTimeMillis).toISOString(),
+          writtenAt: DateTime.formatIso(DateTime.makeUnsafe(yield* Clock.currentTimeMillis)),
           inventory: HashMap.toValues(inventories).toSorted(byXmlName),
           sobjects: {
             list: Option.getOrUndefined(HashMap.get(lists, orgId)),

@@ -17,6 +17,8 @@ import {
   LWC_SERVER_READY_NOTIFICATION
 } from '@salesforce/salesforcedx-lightning-lsp-common';
 import { getErrorMessage } from '@salesforce/salesforcedx-utils';
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
 import { basename, dirname, parse } from 'node:path';
 import {
   getLanguageService,
@@ -193,11 +195,18 @@ export abstract class BaseServer {
     // Return capabilities immediately so the client sends the Initialize response and attaches
     // workspace/readFile and workspace/stat handlers. Defer performDelayedInitialization to the next tick
     // so the client has time to attach handlers before we send any workspace/readFile or workspace/stat.
-    setTimeout(() => {
-      void this.performDelayedInitialization().catch((err: unknown) => {
-        Logger.error(`Delayed initialization failed: ${getErrorMessage(err)}`, err instanceof Error ? err : undefined);
-      });
-    }, 0);
+    Effect.tryPromise({ try: () => this.performDelayedInitialization(), catch: err => ({ err }) }).pipe(
+      Effect.catch(({ err }) =>
+        Effect.sync(() => {
+          Logger.error(
+            `Delayed initialization failed: ${getErrorMessage(err)}`,
+            err instanceof Error ? err : undefined
+          );
+        })
+      ),
+      Effect.delay(Duration.zero),
+      Effect.runFork
+    );
 
     return this.capabilities;
   }

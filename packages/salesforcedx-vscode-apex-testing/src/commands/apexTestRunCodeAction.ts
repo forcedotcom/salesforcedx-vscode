@@ -43,6 +43,7 @@ const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   yield* api.v2.services.ProjectService.use(service => service.getSfProject());
   const notificationMode = yield* api.v2.services.NotificationModeService;
+  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
   const { promptService, channelService, executionName, appendEnded } = yield* getRunCommandContext();
 
   const { codeCoverage, concise, payload, outputDir } = yield* resolveRunInputs(
@@ -57,8 +58,6 @@ const apexTestRunCodeAction = Effect.fn('apexTestRunCodeAction.run')(function* (
       ),
     getTempFolder()
   );
-
-  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
 
   const { result, reportUri, outputFormat } = yield* promptService.withCancellableProgressReporting(
     executionName,

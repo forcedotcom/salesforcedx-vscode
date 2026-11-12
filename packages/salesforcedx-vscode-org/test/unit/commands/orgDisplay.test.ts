@@ -22,6 +22,7 @@ import {
   type DefaultOrgInfo
 } from '@salesforce/vscode-services/v2';
 import { orgDisplayDefaultCommand, orgDisplayUsernameCommand } from '../../../src/commands/orgDisplay';
+import { nls } from '../../../src/messages';
 
 // Both commands use Org Display for metadata and the dedicated auth commands for credentials.
 // The picker is mocked so the tests assert command construction, table rendering, and failures.
@@ -258,7 +259,7 @@ describe('orgDisplayDefaultCommand', () => {
     const exit = await run(orgDisplayDefaultCommand, { simpleExec, appendToChannel, show, withProgress });
 
     expect(Exit.isSuccess(exit)).toBe(true);
-    expect(withProgress).toHaveBeenCalledWith('Getting org details');
+    expect(withProgress).toHaveBeenCalledWith(nls.localize('org_display_progress'));
   });
 
   it('omits --target-org (sf resolves its own default) when no default-org username is tracked', async () => {

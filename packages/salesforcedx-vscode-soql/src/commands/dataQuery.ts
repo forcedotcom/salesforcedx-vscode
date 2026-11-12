@@ -8,6 +8,7 @@ import type { prepareQuery } from '../prepareQuery';
 import type { QueryResult } from '../types';
 import { type Column, createTable, ExtensionProviderService, type Row } from '@salesforce/effect-ext-utils';
 import * as Cause from 'effect/Cause';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import { isBoolean, isDate, isNull, isNullish, isNumber, isObject, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
@@ -51,22 +52,25 @@ export const runSoqlQuery = Effect.fn('runSoqlQuery')(function* (
     service.getValueOrElse(SOQL_CONFIGURATION_NAME, 'maxQueryLimit', 50_000)
   );
 
-  const queryResult = yield* api.v2.services.QueryService.use(service =>
-    service.query({ ...query, tooling: useTooling }, input =>
-      Schema.decodeUnknownEffect(Schema.Struct({ totalSize: Schema.Number, records: Schema.Array(JsonObject) }))(input)
-    )
-  );
-  return yield* Stream.take(queryResult.records, maxRows).pipe(
-    Stream.runCollect,
-    Effect.map(records => ({ done: true as const, totalSize: queryResult.totalSize, records })),
-    promptService.withProgress(nls.localize('progress_running_query'), progressLocation)
-  );
+  return yield* Effect.gen(function* () {
+    const queryResult = yield* api.v2.services.QueryService.use(service =>
+      service.query({ ...query, tooling: useTooling }, input =>
+        Schema.decodeUnknownEffect(Schema.Struct({ totalSize: Schema.Number, records: Schema.Array(JsonObject) }))(
+          input
+        )
+      )
+    );
+    return yield* Stream.take(queryResult.records, maxRows).pipe(
+      Stream.runCollect,
+      Effect.map(records => ({ done: true as const, totalSize: queryResult.totalSize, records }))
+    );
+  }).pipe(promptService.withProgress(nls.localize('progress_running_query'), progressLocation));
 });
 
 const saveResultsToCSV = Effect.fn('saveResultsToCSV')(function* (queryResult: QueryResult<JsonObject>) {
   const csvContent = convertQueryResultToCSV(queryResult);
 
-  const timestamp = new Date().toISOString().replaceAll(/[:.]/g, '-');
+  const timestamp = DateTime.formatIso(yield* DateTime.now).replaceAll(/[:.]/g, '-');
   const fileName = `soql-query-${timestamp}.csv`;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const notificationMode = yield* api.v2.services.NotificationModeService;

@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import { format } from 'node:util';
 import * as vscode from 'vscode';
@@ -88,9 +89,10 @@ const executeAnonApexDebug = Effect.fn('ApexReplayDebugger.executeAnonApexDebug'
 
   if (!result.compiled || !result.success) return false;
 
+  const now = yield* DateTime.nowAsDate;
   const logFilePath = Utils.joinPath(
     yield* api.v2.services.ProjectService.use(service => service.getDebugLogsFolder()),
-    `${getYYYYMMddHHmmssDateFormat(new Date())}.log`
+    `${getYYYYMMddHHmmssDateFormat(now)}.log`
   );
   const success = yield* launchReplayDebugger(
     logFilePath,

@@ -146,6 +146,7 @@ const launchAndAwaitEnd = Effect.fn('ApexReplayDebugger.launchAndAwaitEnd')(func
  */
 export const replayInOrder = (logs: readonly ReplayLog[]) =>
   Effect.promise(() =>
+    // eslint-disable-next-line local/no-vscode-with-progress -- Cancel stops between logs; it must not interrupt an active replay session.
     vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
@@ -249,21 +250,22 @@ const debugTests = Effect.fn('ApexReplayDebugger.debugTests')(function* (targets
 });
 
 const setupAndDebugTests = async (targets: readonly DebugTarget[]): Promise<void> => {
-  const progressLocation = await getRuntime().runPromise(
+  const { promptService, progressLocation } = await getRuntime().runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const notificationMode = yield* api.v2.services.NotificationModeService;
-      return yield* notificationMode.getProgressLocation(COMMAND);
+      return {
+        promptService: yield* api.v2.services.PromptService,
+        progressLocation: yield* notificationMode.getProgressLocation(COMMAND)
+      };
     })
   );
   try {
-    await vscode.window.withProgress(
-      {
-        location: progressLocation,
-        title: `Running ${nls.localize('debug_test_exec_name')}`,
-        cancellable: false
-      },
-      () => getRuntime().runPromise(debugTests(targets))
+    await getRuntime().runPromise(
+      promptService.withProgress(
+        `Running ${nls.localize('debug_test_exec_name')}`,
+        progressLocation
+      )(debugTests(targets))
     );
   } catch (error) {
     void vscode.window.showErrorMessage(nls.localize('debug_test_failed', String(error)));
