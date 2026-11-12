@@ -151,6 +151,7 @@ type WorkspaceComponent = {
 type HarnessOptions = {
   readonly metadataByType?: Readonly<Record<string, readonly ListedComponent[]>>;
   readonly metadataByFolder?: Readonly<Record<string, readonly ListedComponent[]>>;
+  readonly metadataFoldersByType?: Readonly<Record<string, readonly ListedComponent[]>>;
   readonly workspaceComponents?: readonly WorkspaceComponent[];
   readonly sobjects?: readonly { readonly name: string; readonly custom: boolean; readonly queryable: boolean }[];
   readonly descriptions?: Readonly<Record<string, SObject>>;
@@ -227,6 +228,9 @@ const makeHarness = (options: HarnessOptions = {}) => {
     )
   );
   const listSObjects = vi.fn(() => Effect.succeed([...(options.sobjects ?? [])]));
+  const listMetadataFolders = vi.fn((xmlName: string, _expectedOrgId?: string) =>
+    Effect.succeed([...(options.metadataFoldersByType?.[xmlName] ?? metadataByType[`${xmlName}Folder`] ?? [])])
+  );
   const describeCustomObject = vi.fn((apiName: string) =>
     Effect.succeed(descriptions[apiName] ?? emptySObject(apiName))
   );
@@ -272,6 +276,7 @@ const makeHarness = (options: HarnessOptions = {}) => {
     Layer.succeed(MetadataDescribeService, {
       describe,
       listMetadata,
+      listMetadataFolders,
       listSObjects,
       describeCustomObject,
       describeCustomObjects,
@@ -337,6 +342,7 @@ const makeHarness = (options: HarnessOptions = {}) => {
       getConnectionForOrg,
       getRegistryAccess,
       listMetadata,
+      listMetadataFolders,
       listSObjects,
       storeLoad,
       storeSave
@@ -929,9 +935,13 @@ describe('OrgMetadataCatalog contract', () => {
 
   it('discovers Classic and Lightning email folders without workspace files and lists public templates once', async () => {
     const { layer, mocks } = makeHarness({
-      metadataByType: {
-        EmailFolder: [{ fullName: 'Classic' }, { fullName: 'unfiled$public' }],
-        EmailTemplateFolder: [{ fullName: 'Lightning' }, { fullName: 'EmptyLightning' }, { fullName: 'unfiled$public' }]
+      metadataFoldersByType: {
+        EmailTemplate: [
+          { fullName: 'Classic' },
+          { fullName: 'Lightning' },
+          { fullName: 'EmptyLightning' },
+          { fullName: 'unfiled$public' }
+        ]
       },
       metadataByFolder: {
         'EmailTemplate:Classic': [{ fullName: 'Classic/Text' }, { fullName: 'Classic/Visualforce' }],
@@ -955,6 +965,7 @@ describe('OrgMetadataCatalog contract', () => {
     expect(classic.map(template => template.name)).toEqual(['Text', 'Visualforce']);
     expect(lightning).toEqual([expect.objectContaining({ name: 'Template', inOrg: true, inWorkspace: false })]);
     expect(empty).toEqual([]);
+    expect(mocks.listMetadataFolders).toHaveBeenCalledWith('EmailTemplate', '00D000000000001');
     expect(
       mocks.listMetadata.mock.calls.filter(([type, folder]) => type === 'EmailTemplate' && folder === 'unfiled$public')
     ).toHaveLength(1);
@@ -986,13 +997,13 @@ describe('OrgMetadataCatalog contract', () => {
     ]);
     const { layer, mocks } = makeHarness({
       catalogSnapshots,
-      metadataByType: { EmailFolder: [{ fullName: 'Classic' }], EmailTemplateFolder: [{ fullName: 'Lightning' }] }
+      metadataFoldersByType: { EmailTemplate: [{ fullName: 'Classic' }, { fullName: 'Lightning' }] }
     });
 
     const folders = await runWithCatalog(layer, catalog => catalog.getChildren({ type: 'EmailTemplate' }));
 
     expect(folders.map(folder => folder.name)).toEqual(['Classic', 'Lightning']);
-    expect(mocks.listMetadata).toHaveBeenCalledWith('EmailFolder', undefined, '00D000000000001');
+    expect(mocks.listMetadataFolders).toHaveBeenCalledWith('EmailTemplate', '00D000000000001');
     expect(catalogSnapshots.get('00D000000000001')?.inventory).toEqual([
       expect.objectContaining({ xmlName: 'EmailTemplate', emailFolderListingComplete: true, complete: true })
     ]);
@@ -1003,6 +1014,7 @@ describe('OrgMetadataCatalog contract', () => {
     );
     expect(restoredFolders.map(folder => folder.name)).toEqual(['Classic', 'Lightning']);
     expect(restored.mocks.listMetadata).not.toHaveBeenCalled();
+    expect(restored.mocks.listMetadataFolders).not.toHaveBeenCalled();
   });
 
   it('reacquires a persisted SObject description older than Custom Field inventory', async () => {

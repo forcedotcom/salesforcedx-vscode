@@ -14,7 +14,6 @@ import * as Match from 'effect/Match';
 import { isNotUndefined } from 'effect/Predicate';
 import { FOLDERED_METADATA_TYPES, MetadataDescribeService } from '../core/metadataDescribeService';
 import { MetadataRegistryService } from '../core/metadataRegistryService';
-import { FilePropertiesByFullName } from '../core/schemas/fileProperties';
 import { componentIdentity, findInventoryComponent, typeCacheKey } from './orgCatalogKeys';
 import { mergeInventory, projectChildren } from './orgCatalogProjection';
 import { OrgCatalogState } from './orgCatalogState';
@@ -48,12 +47,7 @@ export const makeOrgCatalogInventory = Effect.gen(function* () {
         : Match.value(FOLDERED_METADATA_TYPES.has(xmlName)).pipe(
             Match.when(true, () =>
               Effect.gen(function* () {
-                // Metadata API lists Classic and Lightning email folders as separate types.
-                const folders = yield* Effect.forEach(
-                  xmlName === 'EmailTemplate' ? ['EmailFolder', 'EmailTemplateFolder'] : [`${xmlName}Folder`],
-                  folderType => metadataDescribeService.listMetadata(folderType, undefined, orgId),
-                  { concurrency: 'unbounded' }
-                ).pipe(Effect.map(Arr.flatten), Effect.map(Arr.dedupeWith(FilePropertiesByFullName)));
+                const folders = yield* metadataDescribeService.listMetadataFolders(xmlName, orgId);
                 const folderComponents = yield* Effect.all(
                   folders.map(folder => metadataDescribeService.listMetadata(xmlName, folder.fullName, orgId)),
                   { concurrency: 10 }
