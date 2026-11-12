@@ -1,6 +1,12 @@
 #!/usr/bin/env node
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 
-const fs = require('fs');
+import fs from 'node:fs';
 
 // Removes all files but .jar files at the top-level
 const files = fs.readdirSync('.');

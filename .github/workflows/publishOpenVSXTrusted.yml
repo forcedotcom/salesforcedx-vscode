@@ -19,9 +19,9 @@ run-name: "Open VSX: ${{ inputs.release-tag || github.event.release.tag_name }}"
 # `release` event always means stable, and every stable workflow_dispatch (retry/hotfix) must
 # pass `do-ctc: true` explicitly. Nothing infers this from the release tag -- an emergency
 # prerelease (built via build-github-release.yml's emergencyPrerelease mode) and a stable hotfix
-# retry can both be plain `vX.Y.Z` tags dispatched with `isHotfix: true`; tag shape can't tell
-# them apart, only the caller knows which channel it's publishing. promote-to-prerelease.yml,
-# the only prerelease caller, leaves do-ctc at its default (false).
+# retry can both be plain `vX.Y.Z` tags; tag shape can't tell them apart, only the caller knows
+# which channel it's publishing. promote-to-prerelease.yml, the only prerelease caller, leaves
+# do-ctc at its default (false).
 #
 # Deliberately has no `environment: publish` (unlike the stable `prepare-release-metadata` this
 # replaced): that environment has a required-reviewers protection rule, which would turn every
@@ -40,11 +40,6 @@ on:
         description: 'Download and inspect VSIXs without publishing'
         type: boolean
         default: false
-      isHotfix:
-        description: 'Test the exact release commit directly before publishing. Use for stable hotfixes built via build-github-release.yml startFromRef, which have no other automated test gate for this registry. Prerelease dispatches never need this -- promote-to-prerelease.yml already tested the commit before dispatching here.'
-        required: false
-        default: false
-        type: boolean
       do-ctc:
         description: 'Open and close a CTC change case around this publish. Set true for every stable dispatch (retry/hotfix) -- the release-tag shape alone cannot distinguish a stable hotfix from an emergency prerelease, so this is never inferred. Leave false for prerelease.'
         required: false
@@ -70,12 +65,38 @@ jobs:
           echo "tag=$RELEASE_TAG" >> "$GITHUB_OUTPUT"
           echo "version=${RELEASE_TAG#v}" >> "$GITHUB_OUTPUT"
 
-  # Only exercised on a manual isHotfix dispatch retry. The prerelease dispatch from
-  # promote-to-prerelease.yml never sets isHotfix -- that workflow's own gate-check already tested
-  # the commit before it ever got here.
-  gate-check:
+  # Reads the isHotfix classification build-github-release.yml/build-and-release-patch-branch.yml
+  # persisted on the release (release-metadata.json asset), falling back to a fail-safe "true"
+  # when that metadata is missing/invalid. This is what lets gate-check below run automatically
+  # on the release:released trigger, not just on manual dispatch.
+  #
+  # Skipped for nightly tags: those are dispatched here by promote-to-prerelease.yml (the only
+  # caller that ever passes a -nightly tag), which already ran its own gate-check on the exact
+  # same commit before dispatching -- and nightly builds never write release-metadata.json, so
+  # without this guard the fail-safe would wrongly force a redundant compile+test on every
+  # weekly prerelease promotion.
+  classify-release:
     needs: [prepare]
-    if: inputs.isHotfix == true
+    if: ${{ !contains(needs.prepare.outputs.release-tag, '-nightly') }}
+    runs-on: ubuntu-latest
+    outputs:
+      is-hotfix: ${{ steps.classify.outputs.is-hotfix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: classify
+        uses: ./.github/actions/classify-release
+        with:
+          release-tag: ${{ needs.prepare.outputs.release-tag }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+  # Only needed for stable hotfixes (isHotfix=true): these are built via build-github-release.yml's
+  # startFromRef, which never goes through develop's branch protection or any nightly pipeline,
+  # so there's no existing signal that the release commit was tested. Skipped for normal releases
+  # (including every prerelease dispatch from promote-to-prerelease.yml, which already tested the
+  # commit via its own gate-check before dispatching here).
+  gate-check:
+    needs: [prepare, classify-release]
+    if: always() && needs.classify-release.outputs.is-hotfix == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

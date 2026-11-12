@@ -1,14 +1,20 @@
 #!/usr/bin/env node
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 
-/**
+/*
  * Calculate release version from a prerelease tag
- * Usage: node calculate-release-version.js [prereleaseTag] [overrideVersion]
+ * Usage: node calculateReleaseVersion.mts [prereleaseTag] [overrideVersion]
  *
  * Examples:
- *   node calculate-release-version.js v67.11.1-nightly.develop.20260812
+ *   node calculateReleaseVersion.mts v67.11.1-nightly.develop.20260812
  *   # Output: 67.12.0
  *
- *   node calculate-release-version.js v67.11.1-nightly.develop.20260812 67.13.0
+ *   node calculateReleaseVersion.mts v67.11.1-nightly.develop.20260812 67.13.0
  *   # Output: 67.13.0 (override)
  */
 

@@ -33,7 +33,7 @@
   },
   "wireit": {
     "compile": {
-      "command": "tsc -p . && node scripts/convert.js && node scripts/build.js",
+      "command": "tsc -p . && node scripts/convert.mts && node scripts/build.mts",
       "clean": "if-file-deleted",
       "dependencies": [
         "../salesforcedx-utils:compile",
@@ -42,7 +42,9 @@
       ],
       "files": [
         "src/**/*.ts",
-        "scripts/**/*.js",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
+        "src/build-time-resources/lwc-standard.json",
         "tsconfig.json",
         "../../tsconfig.common.json"
       ],
@@ -59,6 +61,9 @@
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
+        "../../scripts/tsconfig.native.json",
         "../../eslint.config.mjs"
       ],
       "output": []

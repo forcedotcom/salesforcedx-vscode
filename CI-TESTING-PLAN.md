@@ -161,8 +161,8 @@ git ls-remote --tags ci-testing | grep marketplace-prerelease-salesforcedx-vscod
 
 **Expected Results:**
 - ✅ Creates `release-base/v67.11.x` from tag `v67.11.0`
-- ✅ Restores `scripts/calculate-release-version.js` from develop
-- ✅ Restores `scripts/update-release-versions.js` from develop
+- ✅ Restores `scripts/calculateReleaseVersion.mts` from develop
+- ✅ Restores `scripts/updateReleaseVersions.mts` from develop
 - ✅ Verifies script integrity via checksums
 - ✅ Commits script updates if needed
 
@@ -173,8 +173,8 @@ git fetch ci-testing
 git checkout -b local-patch ci-testing/release-base/v67.11.x
 
 # Verify scripts exist
-ls -la scripts/calculate-release-version.js
-ls -la scripts/update-release-versions.js
+ls -la scripts/calculateReleaseVersion.mts
+ls -la scripts/updateReleaseVersions.mts
 
 # Check for script update commit
 git log --oneline -5 | grep "chore: restore version helper scripts from develop"
@@ -235,10 +235,10 @@ gh release view v67.11.1 --repo forcedotcom/salesforcedx-vscode-ci-testing | gre
 cd /Users/madhur.shrivastava/salesforcedx-vscode
 
 # Test prerelease version parsing
-node scripts/calculate-release-version.js --prerelease-tag="v67.12.0-beta.1-nightly.develop.20260820"
+node scripts/calculateReleaseVersion.mts "v67.12.0-beta.1-nightly.develop.20260820"
 
 # Test version bounds
-node scripts/calculate-release-version.js --prerelease-tag="v9999.9999.9999-nightly.develop.20260820"
+node scripts/calculateReleaseVersion.mts "v9999.9999.9999-nightly.develop.20260820"
 ```
 
 **Expected Results:**
