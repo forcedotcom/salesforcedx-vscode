@@ -7,33 +7,33 @@
 
 import { spawnSync } from 'node:child_process';
 
-const runTsx = (args: string[]) =>
-  spawnSync(process.execPath, ['--import', 'tsx', ...args], { encoding: 'utf8', timeout: 60_000 });
+const runNode = (args: string[]) => spawnSync(process.execPath, args, { encoding: 'utf8', timeout: 30_000 });
 
-describe('TypeScript script entry points', () => {
+describe('native TypeScript scripts', () => {
   it.each([
     'scripts/xsd/scrapeAllMetadataPages.mts',
     'scripts/xsd/scrapeSinglePage.mts',
-    'scripts/codeBuilderLocalE2E.mts'
-  ])(
-    '%s prints help without running external operations',
-    script => {
-      const result = runTsx([script, '--help']);
-      expect(result.stderr).toBe('');
-      expect(result.status).toBe(0);
-      expect(result.stdout).toMatch(/[Uu]sage/);
-    },
-    60_000
-  );
+    'scripts/codeBuilderLocalE2E.mts',
+    'scripts/installVsixFromBranch.mts',
+    'scripts/reportInstalls.mts',
+    'scripts/xsd/fixXsdErrors.mts',
+    'scripts/xsd/jsonToXsdConverter.mts',
+    'scripts/xsd/validateXsd.mts'
+  ])('%s starts and prints help without running external operations', script => {
+    const result = runNode(['--permission', '--allow-fs-read=*', script, '--help']);
+    expect(result.stderr).toBe('');
+    expect(result.status).toBe(0);
+    expect(result.stdout).toMatch(/[Uu]sage/);
+  });
 
   it('prints the native App Insights command when no query is supplied', () => {
-    const result = runTsx(['scripts/queryAppInsights.mts']);
+    const result = runNode(['scripts/queryAppInsights.mts']);
     expect(result.status).toBe(1);
     expect(result.stderr).toContain('Usage: node scripts/queryAppInsights.mts <kql-query>');
   });
 
   it('imports guarded entry points without running their CLIs and converts and validates an XSD fixture', () => {
-    const result = runTsx([
+    const result = runNode([
       '--input-type=module',
       '--eval',
       `

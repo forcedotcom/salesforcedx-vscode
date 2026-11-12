@@ -10,7 +10,9 @@
     "node": ">=24.18.0"
   },
   "dependencies": {
+    "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/o11y-reporter": "^1.8.5",
+    "@salesforce/salesforcedx-utils": "workspace:*",
     "jsforce": "^3.10.24",
     "memfs": "^4.32.0",
     "semver": "^7.5.4",
@@ -126,13 +128,14 @@
     "postinstall": "wireit",
     "bootstrap": "pnpm install",
     "clean": "pnpm --recursive --if-present run clean && git clean -xfd",
-    "clean:build": "node scripts/clean-build-artifacts.js",
+    "clean:build": "node scripts/cleanBuildArtifacts.mts",
     "clean:wireit-cache": "node scripts/clean-wireit-cache.js",
     "clean:spans": "shx rm -rf ~/.sf/vscode-spans && shx mkdir -p ~/.sf/vscode-spans",
     "reinstall": "git checkout -- pnpm-lock.yaml && pnpm clean && pnpm install",
     "compile": "wireit",
     "compile:github-actions": "wireit",
     "lint": "wireit",
+    "lint:scripts": "wireit",
     "test": "wireit",
     "test:ai-safeguards": "wireit",
     "test:manual-test-plan": "wireit",
@@ -141,7 +144,7 @@
     "test:effect-v3-bridge": "wireit",
     "test:foundational-services": "wireit",
     "test:packed-services": "wireit",
-    "test-vsix": "node scripts/installVSIXFromBranch.mts code",
+    "test-vsix": "node scripts/installVsixFromBranch.mts code",
     "test:container:local": "wireit",
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 pnpm exec markdown-link-check --quiet --alive 200,206,429",
     "check:dupes": "pnpm exec jscpd",
@@ -166,7 +169,7 @@
     "run:web": "wireit",
     "vsix:install": "find ./packages -name '*.vsix' -exec code --install-extension {} --force \\;",
     "vsix:install-insiders": "find ./packages -name '*.vsix' -exec code-insiders --install-extension {} --force \\;",
-    "vscode:sha256": "node ./scripts/generate-sha256.js >> ./SHA256",
+    "vscode:sha256": "node ./scripts/generateSha256.mts >> ./SHA256",
     "vscode:publish": "pnpm --recursive --if-present run vscode:publish",
     "watch": "pnpm compile --watch",
     "report:installs": "node scripts/reportInstalls.mts",
@@ -217,6 +220,7 @@
     "lint": {
       "command": "eslint --color package.json",
       "dependencies": [
+        "lint:scripts",
         "./packages/eslint-local-rules:lint",
         "./packages/salesforcedx-utils:lint",
         "./packages/salesforcedx-vscode-i18n:lint",
@@ -254,6 +258,24 @@
       ],
       "files": [
         "package.json",
+        "eslint.config.mjs"
+      ],
+      "output": []
+    },
+    "lint:scripts": {
+      "command": "eslint --color \"scripts/*.mts\" --ignore-pattern scripts/categoryApprove.mts \"packages/{salesforcedx-lightning-lsp-common,salesforcedx-aura-language-server,salesforcedx-lwc-language-server}/scripts/*.mts\"",
+      "dependencies": [
+        "./packages/eslint-local-rules:compile"
+      ],
+      "files": [
+        "scripts/*.mts",
+        "scripts/shared/**/*.mts",
+        "scripts/tsconfig.json",
+        "scripts/tsconfig.native.json",
+        "tsconfig.json",
+        "tsconfig.common.json",
+        "packages/{salesforcedx-lightning-lsp-common,salesforcedx-aura-language-server,salesforcedx-lwc-language-server}/scripts/**/*.{mts,ts,json}",
+        "packages/salesforcedx-lwc-language-server/src/build-time-resources/lwc-standard.json",
         "eslint.config.mjs"
       ],
       "output": []
@@ -318,7 +340,7 @@
         "scripts/ai-safeguards-cli.mjs",
         "scripts/ai-auto-approve.mjs",
         "scripts/ai-auto-approve-cli.mjs",
-        "scripts/category-approve.mts",
+        "scripts/categoryApprove.mts",
         "scripts/category-approve-preflight.cjs",
         "scripts/shared/categoryGates.cjs",
         "scripts/shared/categoryGates.d.cts",
@@ -352,13 +374,19 @@
         "./packages/playwright-vscode-ext:compile"
       ],
       "files": [
+        "package.json",
         "vitest.config.mts",
         "scripts/**/*.{ts,mts,cts}",
+        "packages/{salesforcedx-lightning-lsp-common,salesforcedx-aura-language-server,salesforcedx-lwc-language-server}/scripts/**/*.mts",
+        "packages/salesforcedx-lwc-language-server/src/build-time-resources/lwc-standard.json",
         "scripts/bundling/process-global.js",
         "scripts/bundling/process-polyfill.js",
         "scripts/clean-wireit-cache.js",
-        "scripts/fold-stable-changelog.js",
         "scripts/releaseDashboard.sh",
+        ".github/workflows/build-github-release.yml",
+        ".github/workflows/build-and-release-patch-branch.yml",
+        ".github/workflows/create-patch-release-branch.yml",
+        ".github/workflows/nightly.yml",
         ".github/workflows/release-dashboard.yml",
         ".github/workflows/rerunPushE2E.yml",
         "scripts/tsconfig.json",
@@ -605,7 +633,7 @@
       "output": []
     },
     "check:scripts": {
-      "command": "tsc --noEmit -p scripts/tsconfig.native.json && node --check scripts/category-approve.mts && node --check scripts/changelogBody/changelogBody.mts && node --check scripts/manualTestPlan/manualTestPlan.mts && node --check test/category-approve.test.mts && node --check scripts/manualTestPlan/test/unit/manualTestPlan.test.mts",
+      "command": "tsc --noEmit -p scripts/tsconfig.native.json && node --check scripts/categoryApprove.mts && node --check scripts/changelogBody/changelogBody.mts && node --check scripts/manualTestPlan/manualTestPlan.mts && node --check test/category-approve.test.mts && node --check scripts/manualTestPlan/test/unit/manualTestPlan.test.mts",
       "dependencies": [
         "./packages/salesforcedx-apex:compile",
         "./packages/salesforcedx-vscode-apex-log:compile",
@@ -620,6 +648,8 @@
         "packages/salesforcedx-vscode-apex-log/scripts/**/*.mts",
         "packages/salesforcedx-vscode-services/scripts/**/*.mts",
         "packages/salesforcedx-vscode-services-types/scripts/**/*.mts",
+        "packages/{salesforcedx-lightning-lsp-common,salesforcedx-aura-language-server,salesforcedx-lwc-language-server}/scripts/**/*.{mts,ts,json}",
+        "packages/salesforcedx-lwc-language-server/src/build-time-resources/lwc-standard.json",
         "scripts/shared/categoryGates.cjs",
         "test/**/*.{mts,cts}"
       ],
@@ -688,7 +718,7 @@
       "command": "pretty-quick --staged"
     },
     "check:branch": {
-      "command": "node scripts/check-branch.js"
+      "command": "node scripts/checkBranch.mts"
     },
     "precommit": {
       "dependencies": [

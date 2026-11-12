@@ -30,7 +30,7 @@
   },
   "wireit": {
     "compile": {
-      "command": "tsc -p . && node scripts/build.js",
+      "command": "tsc -p . && node scripts/build.mts",
       "clean": "if-file-deleted",
       "dependencies": [
         "../salesforcedx-utils:compile",
@@ -39,7 +39,8 @@
       ],
       "files": [
         "src/**/*.ts",
-        "scripts/**/*.js",
+        "scripts/**/*.{js,mts}",
+        "scripts/tsconfig.json",
         "tsconfig.json",
         "../../tsconfig.common.json"
       ],
@@ -56,6 +57,9 @@
       "files": [
         "src/**/*.ts",
         "test/**/*.ts",
+        "scripts/**/*.mts",
+        "scripts/tsconfig.json",
+        "../../scripts/tsconfig.native.json",
         "../../eslint.config.mjs"
       ],
       "output": []

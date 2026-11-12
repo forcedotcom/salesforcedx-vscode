@@ -177,9 +177,15 @@ importers:
 
   .:
     dependencies:
+      '@salesforce/effect-ext-utils':
+        specifier: workspace:*
+        version: link:packages/effect-ext-utils
       '@salesforce/o11y-reporter':
         specifier: ^1.8.5
         version: 1.8.5
+      '@salesforce/salesforcedx-utils':
+        specifier: workspace:*
+        version: link:packages/salesforcedx-utils
       jsforce:
         specifier: ^3.10.24
         version: 3.10.25(@types/node@24.19.2)

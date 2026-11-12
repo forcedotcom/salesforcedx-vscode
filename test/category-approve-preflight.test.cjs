@@ -245,20 +245,26 @@ test('workflow runs trusted approver when develop does not yet contain the prefl
   assert.equal(await run(absent, { env: { RUNNER_TEMP: '/runner' } }, {}, context), true);
 });
 
-for (const extension of ['ts', 'mts']) {
-  test(`workflow runs trusted .${extension} approver from the PR working directory`, t => {
+for (const filename of ['categoryApprove.ts', 'category-approve.mts', 'categoryApprove.mts']) {
+  test(`workflow runs trusted ${filename} approver from the PR working directory`, t => {
     const directory = mkdtempSync(join(tmpdir(), 'category-approve-workflow-'));
     t.after(() => rmSync(directory, { recursive: true, force: true }));
     const scripts = join(directory, 'trusted-approver', 'scripts');
     mkdirSync(scripts, { recursive: true });
     writeFileSync(
-      join(scripts, 'category-approve.ts'),
-      'console.log("trusted ts"); console.log(process.env.GITHUB_EVENT_PATH);\n'
+      join(scripts, 'categoryApprove.ts'),
+      'console.log("trusted categoryApprove.ts"); console.log(process.env.GITHUB_EVENT_PATH);\n'
     );
-    if (extension === 'mts') {
+    if (filename !== 'categoryApprove.ts') {
       writeFileSync(
         join(scripts, 'category-approve.mts'),
-        'console.log("trusted mts"); console.log(process.env.GITHUB_EVENT_PATH);\n'
+        'console.log("trusted category-approve.mts"); console.log(process.env.GITHUB_EVENT_PATH);\n'
+      );
+    }
+    if (filename === 'categoryApprove.mts') {
+      writeFileSync(
+        join(scripts, 'categoryApprove.mts'),
+        'console.log("trusted categoryApprove.mts"); console.log(process.env.GITHUB_EVENT_PATH);\n'
       );
     }
     const workflow = parse(readFileSync(join(__dirname, '../.github/workflows/categoryApprove.yml'), 'utf8'));
@@ -268,6 +274,6 @@ for (const extension of ['ts', 'mts']) {
       env: { ...process.env, RUNNER_TEMP: directory, GITHUB_EVENT_PATH: '/unscoped/event.json' },
       encoding: 'utf8'
     });
-    assert.equal(output.trim(), `trusted ${extension}\n${directory}/category-approve-event.json`);
+    assert.equal(output.trim(), `trusted ${filename}\n${directory}/category-approve-event.json`);
   });
 }

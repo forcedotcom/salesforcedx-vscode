@@ -9,6 +9,7 @@
     "erasableSyntaxOnly": true,
     "verbatimModuleSyntax": true,
     "skipLibCheck": true,
+    "resolveJsonModule": true,
     "types": ["node"]
   },
   "include": [
@@ -17,6 +18,10 @@
     "../test/**/*.mts",
     "../test/**/*.cts",
     "../packages/salesforcedx-vscode-services-types/scripts/**/*.mts",
+    "../packages/salesforcedx-lightning-lsp-common/scripts/**/*.mts",
+    "../packages/salesforcedx-lightning-lsp-common/scripts/**/*.d.ts",
+    "../packages/salesforcedx-aura-language-server/scripts/**/*.mts",
+    "../packages/salesforcedx-lwc-language-server/scripts/**/*.mts",
     "../packages/salesforcedx-apex/scripts/**/*.mts",
     "../packages/salesforcedx-vscode-apex-log/scripts/**/*.mts",
     "../packages/salesforcedx-vscode-services/scripts/**/*.mts"
