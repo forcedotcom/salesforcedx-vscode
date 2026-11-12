@@ -17,8 +17,8 @@ import * as Effect from 'effect/Effect';
 import * as Order from 'effect/Order';
 import { isError } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
-import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
+import { commandFailed, commandOutput } from './commandOutput.mts';
 import { GitHubCliLive } from './githubCli.mts';
 
 type WorkflowRun = Effect.Effect.Success<ReturnType<typeof GitHub.workflowRuns>>[number];
@@ -29,12 +29,6 @@ const byCreatedAtDescending = Order.mapInput(
   Order.reverse(Order.Date),
   (workflow: WorkflowRun) => new Date(workflow.created_at)
 );
-
-class CommandFailed extends Schema.TaggedError<CommandFailed>()('CommandFailed', {
-  command: Schema.String,
-  exitCode: Schema.Number,
-  message: Schema.String
-}) {}
 
 const quietCommandExitCode = Effect.fn('analyzeE2E.quietCommandExitCode')(function* (
   executable: string,
@@ -78,11 +72,7 @@ const runCommand = Effect.fn('analyzeE2E.runCommand')(function* ({
         )
       : yield* quietCommandExitCode(executable, args);
   if (exitCode !== 0) {
-    return yield* new CommandFailed({
-      command: JSON.stringify([executable, ...args]),
-      exitCode: Number(exitCode),
-      message: `Command exited with code ${String(exitCode)}`
-    });
+    return yield* commandFailed(executable, args, Number(exitCode), '');
   }
 });
 
@@ -101,9 +91,9 @@ const checkPrerequisites = Effect.fn('analyzeE2E.checkPrerequisites')(function* 
 });
 
 const getCurrentBranch = Effect.fn('analyzeE2E.getCurrentBranch')(function* () {
-  const branch = yield* Command.make('git', 'branch', '--show-current').pipe(
-    Command.string,
-    Effect.map(value => value.trim())
+  const branch = yield* commandOutput({ executable: 'git', args: ['branch', '--show-current'] }).pipe(
+    Effect.map(({ stdout }) => stdout.trim()),
+    Effect.catchAll(() => Effect.succeed(''))
   );
   if (branch.length === 0) {
     yield* Console.error('No branch checked out. Please checkout a branch first.');

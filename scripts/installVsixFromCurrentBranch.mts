@@ -12,7 +12,7 @@ import * as NodeContext from '@effect/platform-node/NodeContext';
 import { GitHub } from '@salesforce/effect-octokit';
 import * as Console from 'effect/Console';
 import * as Effect from 'effect/Effect';
-import * as Schema from 'effect/Schema';
+import { commandFailed, commandOutput } from './commandOutput.mts';
 import { GitHubCliLive } from './githubCli.mts';
 
 // Order matters - uninstall dependent extensions first
@@ -33,12 +33,6 @@ const IDE = process.argv[2] ?? 'code';
 
 const logger = (msg: string) => Console.log(`*** ${msg}`);
 
-class CommandFailed extends Schema.TaggedError<CommandFailed>()('CommandFailed', {
-  command: Schema.String,
-  exitCode: Schema.Number,
-  message: Schema.String
-}) {}
-
 const runCommand = Effect.fn('installVsixFromBranch.runCommand')(function* (executable: string, ...args: string[]) {
   const exitCode = yield* Command.make(executable, ...args).pipe(
     Command.stdin('inherit'),
@@ -47,11 +41,7 @@ const runCommand = Effect.fn('installVsixFromBranch.runCommand')(function* (exec
     Command.exitCode
   );
   if (exitCode !== 0) {
-    return yield* new CommandFailed({
-      command: JSON.stringify([executable, ...args]),
-      exitCode: Number(exitCode),
-      message: `Command exited with code ${String(exitCode)}`
-    });
+    return yield* commandFailed(executable, args, Number(exitCode), '');
   }
 });
 
@@ -75,10 +65,8 @@ const installVsixFromBranch = Effect.fn('installVsixFromBranch')(function* () {
     yield* fs.remove(SAVE_DIRECTORY, { recursive: true, force: true });
   }
 
-  const currentBranch = yield* Command.make('git', 'branch', '--show-current').pipe(
-    Command.string,
-    Effect.map(branch => branch.trim())
-  );
+  const { stdout } = yield* commandOutput({ executable: 'git', args: ['branch', '--show-current'] });
+  const currentBranch = stdout.trim();
   yield* logger(`The branch that you are testing with is: ${currentBranch}`);
   yield* logger('\n');
 
