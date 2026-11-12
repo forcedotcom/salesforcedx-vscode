@@ -255,7 +255,7 @@
       "output": []
     },
     "lint:scripts": {
-      "command": "eslint --color \"scripts/*.mts\" --ignore-pattern scripts/category-approve.mts \"packages/{salesforcedx-lightning-lsp-common,salesforcedx-aura-language-server,salesforcedx-lwc-language-server}/scripts/*.mts\"",
+      "command": "eslint --color \"scripts/*.mts\" --ignore-pattern scripts/categoryApprove.mts \"packages/{salesforcedx-lightning-lsp-common,salesforcedx-aura-language-server,salesforcedx-lwc-language-server}/scripts/*.mts\"",
       "dependencies": [
         "./packages/eslint-local-rules:compile"
       ],
