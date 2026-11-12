@@ -179,19 +179,18 @@ const downloadArtifacts = Effect.fn('analyzeE2E.downloadArtifacts')(
     if (!downloaded) return undefined;
 
     // Extract zip files if needed
-    const zipFiles = (yield* fs.readDirectory(artifactDir, { recursive: true }).pipe(Effect.orElseSucceed(() => [])))
-      .filter(file => file.endsWith('.zip'))
-      .map(file => path.join(artifactDir, file));
-    yield* Effect.forEach(
+    const zipFiles = yield* fs.readDirectory(artifactDir, { recursive: true }).pipe(
+      Effect.orElseSucceed(() => []),
+      Effect.map(files => files.filter(file => file.endsWith('.zip')).map(file => path.join(artifactDir, file)))
+    );
+    return yield* Effect.forEach(
       zipFiles,
       zipFile =>
         runCommand({ executable: 'unzip', args: ['-o', zipFile, '-d', artifactDir], output: 'discard' }).pipe(
           Effect.catchAll(() => Effect.void)
         ),
       { concurrency: 1, discard: true }
-    );
-
-    return artifactDir;
+    ).pipe(Effect.as(artifactDir));
   },
   (effect, runId) =>
     effect.pipe(Effect.catchTag('GitHubRequestError', error => reportArtifactDownloadFailure(runId, error)))
