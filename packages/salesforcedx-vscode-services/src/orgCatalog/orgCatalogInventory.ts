@@ -14,6 +14,7 @@ import * as Match from 'effect/Match';
 import { isNotUndefined } from 'effect/Predicate';
 import { FOLDERED_METADATA_TYPES, MetadataDescribeService } from '../core/metadataDescribeService';
 import { MetadataRegistryService } from '../core/metadataRegistryService';
+import { FilePropertiesByFullName } from '../core/schemas/fileProperties';
 import { componentIdentity, findInventoryComponent, typeCacheKey } from './orgCatalogKeys';
 import { mergeInventory, projectChildren } from './orgCatalogProjection';
 import { OrgCatalogState } from './orgCatalogState';
@@ -37,32 +38,40 @@ export const makeOrgCatalogInventory = Effect.gen(function* () {
       const coalesced = yield* state.getInventory(orgId, xmlName);
       if (coalesced?.complete) return coalesced;
       const restored = yield* state.getPersistedInventory(orgId, xmlName);
-      const listOrgComponents =
-        isNotUndefined(restored) && restored.complete !== false
-          ? Effect.succeed({ components: restored.components, folders: restored.folders })
-          : Match.value(FOLDERED_METADATA_TYPES.has(xmlName)).pipe(
-              Match.when(true, () =>
-                Effect.gen(function* () {
-                  const folders = yield* metadataDescribeService.listMetadata(`${xmlName}Folder`, undefined, orgId);
-                  const folderComponents = yield* Effect.all(
-                    folders.map(folder => metadataDescribeService.listMetadata(xmlName, folder.fullName, orgId)),
-                    { concurrency: 10 }
-                  );
-                  return { components: folderComponents.flat(), folders };
-                })
-              ),
-              Match.orElse(() =>
-                metadataDescribeService
-                  .listMetadata(xmlName, undefined, orgId)
-                  .pipe(Effect.map(components => ({ components, folders: [] })))
-              )
-            );
+      // Older email inventories queried only EmailTemplateFolder, omitting Classic folders.
+      const restoreComplete =
+        isNotUndefined(restored) &&
+        restored.complete !== false &&
+        (xmlName !== 'EmailTemplate' || restored.emailFolderListingComplete === true);
+      const listOrgComponents = restoreComplete
+        ? Effect.succeed({ components: restored.components, folders: restored.folders })
+        : Match.value(FOLDERED_METADATA_TYPES.has(xmlName)).pipe(
+            Match.when(true, () =>
+              Effect.gen(function* () {
+                // Metadata API lists Classic and Lightning email folders as separate types.
+                const folders = yield* Effect.forEach(
+                  xmlName === 'EmailTemplate' ? ['EmailFolder', 'EmailTemplateFolder'] : [`${xmlName}Folder`],
+                  folderType => metadataDescribeService.listMetadata(folderType, undefined, orgId),
+                  { concurrency: 'unbounded' }
+                ).pipe(Effect.map(Arr.flatten), Effect.map(Arr.dedupeWith(FilePropertiesByFullName)));
+                const folderComponents = yield* Effect.all(
+                  folders.map(folder => metadataDescribeService.listMetadata(xmlName, folder.fullName, orgId)),
+                  { concurrency: 10 }
+                );
+                return { components: folderComponents.flat(), folders };
+              })
+            ),
+            Match.orElse(() =>
+              metadataDescribeService
+                .listMetadata(xmlName, undefined, orgId)
+                .pipe(Effect.map(components => ({ components, folders: [] })))
+            )
+          );
       const [orgListing, workspaceInventory] = yield* Effect.all(
         [listOrgComponents, workspace.scanWorkspaceInventory(xmlName)],
         { concurrency: 'unbounded' }
       );
-      const observedAt =
-        restored && restored.complete !== false ? restored.observedAt : DateTime.formatIso(yield* DateTime.now);
+      const observedAt = restoreComplete ? restored.observedAt : DateTime.formatIso(yield* DateTime.now);
       const inventory = {
         observedAt,
         complete: true,
@@ -88,7 +97,7 @@ export const makeOrgCatalogInventory = Effect.gen(function* () {
         folderFullNameOrder: Arr.dedupe(orgListing.folders.map(folder => folder.fullName))
       } satisfies TypeInventory;
       yield* state.setInventory(orgId, xmlName, inventory);
-      if (!restored) yield* state.queuePersist(orgId);
+      if (!restoreComplete) yield* state.queuePersist(orgId);
       return inventory;
     }).pipe(semaphore.withPermits(1));
   });
