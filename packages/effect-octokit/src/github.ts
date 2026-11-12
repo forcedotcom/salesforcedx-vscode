@@ -325,14 +325,6 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
       );
     });
 
-    const releases = Effect.fn('GitHub.releases')(function* (
-      parameters: Endpoints['GET /repos/{owner}/{repo}/releases']['parameters']
-    ) {
-      return yield* run('GET', `/repos/${parameters.owner}/${parameters.repo}/releases`, () =>
-        octokit.paginate('GET /repos/{owner}/{repo}/releases', { per_page: 100, ...parameters })
-      );
-    });
-
     const combinedStatus = Effect.fn('GitHub.combinedStatus')(function* (owner: string, repo: string, sha: string) {
       return yield* run('GET', `/repos/${owner}/${repo}/commits/${sha}/status`, () =>
         octokit
@@ -485,7 +477,6 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
       workflowRuns,
       workflowRun,
       workflowRunArtifacts,
-      releases,
       combinedStatus,
       headChecks,
       createReview,

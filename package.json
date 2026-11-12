@@ -137,7 +137,6 @@
     "test:manual-test-plan": "wireit",
     "test:scripts": "wireit",
     "test-vsix": "wireit",
-    "changelog:restore": "wireit",
     "test:container:local": "wireit",
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 pnpm exec markdown-link-check --quiet --alive 200,206,429",
     "check:dupes": "pnpm exec jscpd",
@@ -347,7 +346,6 @@
         "scripts/bundling/process-polyfill.js",
         "scripts/clean-wireit-cache.js",
         "scripts/fold-stable-changelog.js",
-        "scripts/restore-changelog-history-from-github.js",
         "scripts/releaseDashboard.sh",
         ".github/workflows/release-dashboard.yml",
         ".github/workflows/rerunPushE2E.yml",
@@ -358,12 +356,6 @@
     },
     "test-vsix": {
       "command": "node scripts/installVsixFromCurrentBranch.mts code",
-      "dependencies": [
-        "./packages/effect-octokit:compile"
-      ]
-    },
-    "changelog:restore": {
-      "command": "node scripts/restore-changelog-history-from-github.js",
       "dependencies": [
         "./packages/effect-octokit:compile"
       ]

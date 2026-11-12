@@ -16,13 +16,10 @@
  * - Must be run from the repository root
  *
  * Usage:
- *   pnpm changelog:restore [-- --dry-run]
+ *   node scripts/restore-changelog-history-from-github.js [--dry-run]
  */
 
-const { GitHub } = require('@salesforce/effect-octokit');
-const Effect = require('effect/Effect');
-const { GitHubCliLive } = require('./githubCli.mts');
-const { formatReleaseAsChangelog, selectExtensionReleases } = require('./changelogReleases.mts');
+const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
 
@@ -30,27 +27,53 @@ const path = require('path');
 // Root CHANGELOG.md = full history (default)
 // packages/salesforcedx-vscode/CHANGELOG.md = current release notes only
 const CHANGELOG_PATH = path.join(process.cwd(), 'CHANGELOG.md');
+const REPO = 'forcedotcom/salesforcedx-vscode';
 
 // Check for dry-run flag
 const isDryRun = process.argv.includes('--dry-run');
 
 /**
  * Fetches all extension releases (not npm package releases) from GitHub
- * @returns {Promise<Array>} List of releases sorted newest to oldest
+ * @returns {Array} List of releases sorted newest to oldest
  */
-async function fetchReleases() {
+function fetchReleases() {
   console.log('📥 Fetching releases from GitHub...');
 
   try {
-    // The paginated release API includes release bodies with the metadata.
-    const allReleases = await GitHub.releases({ owner: 'forcedotcom', repo: 'salesforcedx-vscode' }).pipe(
-      Effect.provide(GitHubCliLive),
-      Effect.runPromise
-    );
+    // First, get list of all release tags
+    const listOutput = execSync(`gh release list --repo ${REPO} --limit 1000 --json tagName,publishedAt`, {
+      encoding: 'utf8',
+      maxBuffer: 10 * 1024 * 1024
+    });
 
-    const extensionReleases = selectExtensionReleases(allReleases);
+    const allReleases = JSON.parse(listOutput);
 
-    console.log(`✅ Found ${extensionReleases.length} extension releases`);
+    // Filter to only main extension releases (v66.7.0 format, not soql-common-v1.0.0)
+    const extensionReleaseTags = allReleases.filter(r => {
+      return /^v\d+\.\d+\.\d+$/.test(r.tagName) && !r.tagName.includes('-v');
+    });
+
+    console.log(`✅ Found ${extensionReleaseTags.length} extension releases`);
+    console.log('📥 Fetching release bodies...');
+
+    // Now fetch each release's body individually
+    const extensionReleases = extensionReleaseTags.map((release, index) => {
+      if (index % 10 === 0 && index > 0) {
+        console.log(`   Progress: ${index}/${extensionReleaseTags.length}`);
+      }
+
+      try {
+        const viewOutput = execSync(
+          `gh release view ${release.tagName} --repo ${REPO} --json tagName,body,publishedAt`,
+          { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 }
+        );
+        return JSON.parse(viewOutput);
+      } catch {
+        console.warn(`⚠️  Could not fetch body for ${release.tagName}, using metadata only`);
+        return { ...release, body: '' };
+      }
+    });
+
     console.log(`✅ Fetched bodies for ${extensionReleases.length} releases`);
     return extensionReleases;
   } catch (error) {
@@ -58,6 +81,57 @@ async function fetchReleases() {
     console.error('Make sure gh CLI is installed and authenticated: gh auth login');
     process.exit(1);
   }
+}
+
+/**
+ * Parses release body to extract ONLY the first changelog section.
+ * Older releases included full historical changelog, so we extract only
+ * the section for THIS release (everything up to the next version header).
+ * @param {Object} release - Release object from GitHub
+ * @returns {string} Formatted changelog entry for this release only
+ */
+function formatReleaseAsChangelog(release) {
+  const version = release.tagName.replace(/^v/, '');
+  const date = new Date(release.publishedAt).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+
+  // If no body, create a minimal entry
+  if (!release.body || !release.body.trim()) {
+    return `# ${version} - ${date}\n\nSee [GitHub Release](https://github.com/${REPO}/releases/tag/v${version}) for details.\n`;
+  }
+
+  const body = release.body.trim();
+  const lines = body.split('\n');
+  const extractedLines = [];
+  let foundFirstHeader = false;
+
+  for (const line of lines) {
+    // Version headers start with "# " followed by a version number
+    const isVersionHeader = /^# \d+\.\d+\.\d+/.test(line);
+
+    if (isVersionHeader) {
+      if (foundFirstHeader) {
+        // Found the SECOND version header - stop here
+        // This release included historical changelog, we only want the first section
+        break;
+      }
+      foundFirstHeader = true;
+    }
+
+    extractedLines.push(line);
+  }
+
+  const extracted = extractedLines.join('\n').trim();
+
+  // Ensure it has the version header
+  if (!extracted.startsWith(`# ${version}`)) {
+    return `# ${version} - ${date}\n\n${extracted}`;
+  }
+
+  return extracted;
 }
 
 /**
@@ -78,7 +152,7 @@ function reconstructChangelog(releases) {
 /**
  * Main execution
  */
-async function main() {
+function main() {
   console.log('🔧 Starting changelog history restoration...\n');
 
   if (isDryRun) {
@@ -92,7 +166,7 @@ async function main() {
   }
 
   // Fetch releases
-  const releases = await fetchReleases();
+  const releases = fetchReleases();
 
   if (releases.length === 0) {
     console.error('❌ No releases found');
@@ -127,5 +201,3 @@ async function main() {
 if (require.main === module) {
   main();
 }
-
-module.exports = { fetchReleases, formatReleaseAsChangelog, reconstructChangelog };

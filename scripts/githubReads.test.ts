@@ -21,7 +21,6 @@ import {
   monitorWorkflows,
   prioritizeWorkflows
 } from './analyzeE2E.mts';
-import { formatReleaseAsChangelog, selectExtensionReleases } from './changelogReleases.mts';
 
 const originalFetch = globalThis.fetch;
 const repository = { owner: 'forcedotcom', repo: 'salesforcedx-vscode' };
@@ -163,19 +162,6 @@ describe('GitHub script reads', () => {
     expect(await run(downloadArtifacts(12, 'feature/a', 'LWC E2E (Playwright)'))).toBeUndefined();
   });
 
-  it('paginates releases with bodies included in the list response', async () => {
-    globalThis.fetch = input =>
-      String(input).includes('page=2')
-        ? json([{ tag_name: 'v1.0.0', body: 'older notes', published_at: '2026-10-01T00:00:00Z' }])
-        : json([{ tag_name: 'v2.0.0', body: 'new notes', published_at: '2026-11-01T00:00:00Z' }], {
-            link: '<https://api.github.com/repos/forcedotcom/salesforcedx-vscode/releases?page=2>; rel="next"'
-          });
-    expect(await run(GitHub.releases(repository))).toEqual([
-      { tag_name: 'v2.0.0', body: 'new notes', published_at: '2026-11-01T00:00:00Z' },
-      { tag_name: 'v1.0.0', body: 'older notes', published_at: '2026-10-01T00:00:00Z' }
-    ]);
-  });
-
   it('reports a manual-download fallback after an artifact metadata error and continues with the next workflow', async () => {
     const log = vi.spyOn(console, 'log').mockImplementation(() => {});
     const error = vi.spyOn(console, 'error').mockImplementation(() => {});
@@ -200,43 +186,5 @@ describe('GitHub script reads', () => {
       ['✓ E2E tests passed for workflow `LWC E2E (Playwright)` on branch `feature/a`'],
       ['View workflow: gh run view 13 --web']
     ]);
-  });
-
-  it('selects only stable extension tags and orders shuffled releases newest-first without changing the input', () => {
-    const releases = [
-      { tag_name: 'v1.0.0', published_at: '2026-09-01T00:00:00Z', body: 'old notes' },
-      { tag_name: 'soql-common-v3.0.0', published_at: '2026-12-01T00:00:00Z', body: 'package notes' },
-      { tag_name: 'v3.0.0', published_at: '2026-11-01T00:00:00Z', body: 'new notes' },
-      { tag_name: 'v4.0.0-beta.1', published_at: '2026-12-01T00:00:00Z', body: 'prerelease notes' },
-      { tag_name: 'v2.0.0', published_at: '2026-10-01T00:00:00Z', body: 'middle notes' }
-    ];
-    const original = structuredClone(releases);
-
-    expect(selectExtensionReleases(releases)).toEqual([releases[2], releases[4], releases[0]]);
-    expect(releases).toEqual(original);
-    expect(selectExtensionReleases([releases[1], releases[3]])).toEqual([]);
-    expect(selectExtensionReleases([])).toEqual([]);
-  });
-
-  it('formats REST release fields and keeps only the first changelog section', () => {
-    expect(
-      formatReleaseAsChangelog({
-        tag_name: 'v2.0.0',
-        published_at: '2026-11-01T12:00:00Z',
-        body: '# 2.0.0 - November 1, 2026\n\nNew notes\n\n# 1.0.0\n\nOld notes'
-      })
-    ).toBe('# 2.0.0 - November 1, 2026\n\nNew notes');
-  });
-
-  it('preserves the release link for an empty release body', () => {
-    expect(
-      formatReleaseAsChangelog({
-        tag_name: 'v2.0.0',
-        published_at: '2026-11-01T12:00:00Z',
-        body: null
-      })
-    ).toBe(
-      '# 2.0.0 - November 1, 2026\n\nSee [GitHub Release](https://github.com/forcedotcom/salesforcedx-vscode/releases/tag/v2.0.0) for details.\n'
-    );
   });
 });

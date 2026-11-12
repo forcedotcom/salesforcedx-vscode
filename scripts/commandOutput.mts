@@ -10,7 +10,7 @@ import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 
-export class CommandFailed extends Schema.TaggedError<CommandFailed>()('CommandFailed', {
+class CommandFailed extends Schema.TaggedError<CommandFailed>()('CommandFailed', {
   command: Schema.String,
   exitCode: Schema.Number,
   message: Schema.String
