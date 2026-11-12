@@ -192,8 +192,8 @@ test('merges reruns before filtering final status and never guesses missing vide
     []
   );
 
-  assert.deepEqual(
-    await run(
+  await assert.rejects(
+    run(
       [
         savePair(
           directory,
@@ -204,11 +204,11 @@ test('merges reruns before filtering final status and never guesses missing vide
       ],
       directory
     ),
-    []
+    /Missing test-results video/
   );
 });
 
-test('rejects a report for a different commit and unsafe report paths', async t => {
+test('rejects a report for a different commit and a missing report video', async t => {
   const directory = mkdtempSync(join(tmpdir(), 'playwright-videos-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
   await assert.rejects(run([savePair(directory, 'sha', reportBytes({ sha: 'other' }))], directory), /SHA/);
@@ -233,7 +233,7 @@ test('rejects a report for a different commit and unsafe report paths', async t 
       ],
       directory
     ),
-    /Unexpected video attachment path/
+    /Missing Playwright report video/
   );
 });
 

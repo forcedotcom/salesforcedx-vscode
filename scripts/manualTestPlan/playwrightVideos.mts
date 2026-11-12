@@ -9,14 +9,12 @@ import * as FileSystem from '@effect/platform/FileSystem';
 import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import { Effect, Schema } from 'effect';
 import { createHash } from 'node:crypto';
-import { crc32 } from 'node:zlib';
 import * as yauzl from 'yauzl';
 
 class VideoArchiveError extends Schema.TaggedError<VideoArchiveError>()('VideoArchiveError', {
   message: Schema.String
 }) {}
 
-const MAX_ENTRY_SIZE = 100 * 1024 * 1024;
 const ReportSummary = Schema.Struct({
   metadata: Schema.Struct({ ci: Schema.Struct({ commitHash: Schema.String }) }),
   files: Schema.Array(Schema.Struct({ fileName: Schema.String, fileId: Schema.String }))
@@ -70,46 +68,23 @@ const withArchive = Effect.fn('playwrightVideos.withArchive')(function* <A>(
   );
 });
 
-const readEntry = Effect.fn('playwrightVideos.readEntry')(function* (
-  archive: yauzl.ZipFile,
-  entry: yauzl.Entry,
-  maxSize: number
-) {
-  if (entry.uncompressedSize > maxSize) {
-    return yield* new VideoArchiveError({ message: `Oversized ZIP member: ${entry.fileName}` });
-  }
+const readEntry = Effect.fn('playwrightVideos.readEntry')(function* (archive: yauzl.ZipFile, entry: yauzl.Entry) {
   return yield* Effect.tryPromise({
-    try: async signal => {
+    try: async () => {
       const stream = await archive.openReadStreamPromise(entry);
       const chunks: Uint8Array[] = [];
-      const destroyOnAbort = () => stream.destroy(new Error('ZIP member read interrupted'));
-      signal.addEventListener('abort', destroyOnAbort, { once: true });
-      try {
-        if (signal.aborted) {
-          stream.destroy();
-          throw new Error('ZIP member read interrupted');
-        }
-        for await (const chunk of stream) {
-          chunks.push(Buffer.from(chunk));
-        }
-      } finally {
-        signal.removeEventListener('abort', destroyOnAbort);
-      }
-      const content = Buffer.concat(chunks);
-      if (crc32(content) !== entry.crc32) {
-        throw new Error(`Invalid ZIP member data: ${entry.fileName}`);
-      }
-      return content;
+      for await (const chunk of stream) chunks.push(Buffer.from(chunk));
+      return Buffer.concat(chunks);
     },
     catch: cause => new VideoArchiveError({ message: getErrorMessage(cause) })
   });
 });
 
-const readMember = (archive: yauzl.ZipFile, entries: readonly yauzl.Entry[], name: string, maxSize: number) => {
+const readMember = (archive: yauzl.ZipFile, entries: readonly yauzl.Entry[], name: string) => {
   const entry = entries.find(candidate => candidate.fileName === name);
   return entry === undefined
     ? Effect.fail(new VideoArchiveError({ message: `Missing ZIP member: ${name}` }))
-    : readEntry(archive, entry, maxSize);
+    : readEntry(archive, entry);
 };
 
 const decodeUtf8 = (bytes: Buffer) =>
@@ -120,16 +95,7 @@ const decodeUtf8 = (bytes: Buffer) =>
 
 const parseJson = <A, I>(bytes: Buffer, schema: Schema.Schema<A, I>) =>
   decodeUtf8(bytes).pipe(
-    Effect.flatMap(text =>
-      Effect.try({
-        try: () => {
-          const value: unknown = JSON.parse(text);
-          return value;
-        },
-        catch: cause => new VideoArchiveError({ message: `Invalid JSON: ${getErrorMessage(cause)}` })
-      })
-    ),
-    Effect.flatMap(Schema.decodeUnknown(schema)),
+    Effect.flatMap(Schema.decodeUnknown(Schema.parseJson(schema))),
     Effect.mapError(cause => new VideoArchiveError({ message: getErrorMessage(cause) }))
   );
 
@@ -138,23 +104,17 @@ const readReportTests = Effect.fn('playwrightVideos.readReportTests')(function* 
   spec: string,
   sha: string
 ) {
-  const match = yield* withArchive(report, (archive, entries) =>
-    readMember(archive, entries, 'index.html', MAX_ENTRY_SIZE)
-  ).pipe(
+  const match = yield* withArchive(report, (archive, entries) => readMember(archive, entries, 'index.html')).pipe(
     Effect.flatMap(decodeUtf8),
     Effect.map(html => /id="playwrightReportBase64"[^>]*>\s*data:application\/zip;base64,([A-Za-z0-9+/=]+)/.exec(html))
   );
   if (match === null) {
     return yield* new VideoArchiveError({ message: 'Missing or invalid Playwright report metadata' });
   }
-  const encodedMetadata = match[1];
-  const metadata = Buffer.from(encodedMetadata, 'base64');
-  if (metadata.toString('base64').replace(/=+$/, '') !== encodedMetadata.replace(/=+$/, '')) {
-    return yield* new VideoArchiveError({ message: 'Invalid Playwright report metadata encoding' });
-  }
-  const summary = yield* withArchive(metadata, (archive, entries) =>
-    readMember(archive, entries, 'report.json', MAX_ENTRY_SIZE)
-  ).pipe(Effect.flatMap(bytes => parseJson(bytes, ReportSummary)));
+  const metadata = Buffer.from(match[1], 'base64');
+  const summary = yield* withArchive(metadata, (archive, entries) => readMember(archive, entries, 'report.json')).pipe(
+    Effect.flatMap(bytes => parseJson(bytes, ReportSummary))
+  );
   if (summary.metadata.ci.commitHash !== sha) {
     return yield* new VideoArchiveError({ message: 'Playwright report SHA does not match PR head' });
   }
@@ -168,7 +128,7 @@ const readReportTests = Effect.fn('playwrightVideos.readReportTests')(function* 
     return [];
   }
   return yield* withArchive(metadata, (archive, entries) =>
-    readMember(archive, entries, `${matchingFile.fileId}.json`, MAX_ENTRY_SIZE)
+    readMember(archive, entries, `${matchingFile.fileId}.json`)
   ).pipe(
     Effect.flatMap(bytes => parseJson(bytes, PlaywrightFile)),
     Effect.map(data => data.tests)
@@ -190,8 +150,8 @@ const readMatchingVideos = Effect.fn('playwrightVideos.readMatchingVideos')(func
 ) {
   const videos = new Map<string, Buffer>();
   for (const entry of entries) {
-    if (!entry.fileName.endsWith('.webm') || entry.uncompressedSize > MAX_ENTRY_SIZE) continue;
-    const content = yield* readEntry(archive, entry, MAX_ENTRY_SIZE);
+    if (!entry.fileName.endsWith('.webm')) continue;
+    const content = yield* readEntry(archive, entry);
     const digest = createHash('sha256').update(content).digest('hex');
     if (!wanted.has(digest)) continue;
     videos.set(digest, content);
@@ -204,20 +164,13 @@ const collectVideos = Effect.fn('playwrightVideos.collectVideos')(function* (
   tests: readonly PlaywrightTest[],
   output: string
 ) {
-  const selected = successfulTests(tests).flatMap(({ test, final }) =>
-    (final.attachments ?? []).flatMap(attachment => {
-      if (attachment.name !== 'video' || attachment.contentType !== 'video/webm') return [];
-      return [{ test, final, path: attachment.path }];
-    })
+  const selectedWithPaths = successfulTests(tests).flatMap(({ test, final }) =>
+    (final.attachments ?? []).flatMap(attachment =>
+      attachment.name === 'video' && attachment.contentType === 'video/webm' && attachment.path !== undefined
+        ? [{ test, final, path: attachment.path }]
+        : []
+    )
   );
-  const selectedWithPaths = selected.flatMap(attachment =>
-    attachment.path !== undefined && /^data\/[0-9a-f]{40}\.webm$/.test(attachment.path)
-      ? [{ ...attachment, path: attachment.path }]
-      : []
-  );
-  if (selectedWithPaths.length !== selected.length) {
-    return yield* new VideoArchiveError({ message: 'Unexpected video attachment path' });
-  }
   const fileSystem = yield* FileSystem.FileSystem;
   const report = yield* fileSystem.readFile(pair.report);
   const digests = yield* withArchive(Buffer.from(report), (archive, entries) => {
@@ -228,9 +181,7 @@ const collectVideos = Effect.fn('playwrightVideos.collectVideos')(function* (
     }
     const resolvedEntries = selectedEntries.filter((entry): entry is yauzl.Entry => entry !== undefined);
     return Effect.forEach(resolvedEntries, entry =>
-      readEntry(archive, entry, MAX_ENTRY_SIZE).pipe(
-        Effect.map(content => createHash('sha256').update(content).digest('hex'))
-      )
+      readEntry(archive, entry).pipe(Effect.map(content => createHash('sha256').update(content).digest('hex')))
     );
   });
   const wanted = new Set(digests);
@@ -240,19 +191,18 @@ const collectVideos = Effect.fn('playwrightVideos.collectVideos')(function* (
   );
   return yield* Effect.forEach(selectedWithPaths, (attachment, index) => {
     const digest = digests[index];
-    const content = byDigest.get(digest);
-    if (content === undefined) {
-      return Effect.logWarning('Missing test-results video', { title: attachment.test.title }).pipe(Effect.as([]));
-    }
     const path = `${output}/${digest}.webm`;
-    return fileSystem
-      .writeFile(path, content)
-      .pipe(
-        Effect.as([
-          { path, title: attachment.test.title, project: attachment.test.projectName, retry: attachment.final.retry }
-        ])
-      );
-  }).pipe(Effect.map(videos => videos.flat()));
+    return Effect.fromNullable(byDigest.get(digest)).pipe(
+      Effect.mapError(() => new VideoArchiveError({ message: `Missing test-results video: ${attachment.test.title}` })),
+      Effect.flatMap(content => fileSystem.writeFile(path, content)),
+      Effect.as({
+        path,
+        title: attachment.test.title,
+        project: attachment.test.projectName,
+        retry: attachment.final.retry
+      })
+    );
+  });
 });
 
 export const collectLane = Effect.fn('playwrightVideos.collectLane')(function* (

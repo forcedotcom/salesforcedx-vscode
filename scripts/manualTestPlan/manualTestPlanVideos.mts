@@ -18,7 +18,7 @@ import { Config, Effect, Option, Redacted, Schema } from 'effect';
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { createWriteStream } from 'node:fs';
-import { Readable, Transform } from 'node:stream';
+import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { ReadableStream as NodeReadableStream } from 'node:stream/web';
 import { pathToFileURL } from 'node:url';
@@ -37,7 +37,6 @@ import {
 import { jobArtifact, latestTargetRun, targetLanes, Workflow } from './videoTargets.mts';
 
 const updaterPath = '.github/workflows/manual-test-plan-videos.yml';
-const MAX_ARTIFACT_SIZE = 1024 * 1024 * 1024;
 const exec = promisify(execFile);
 export const downloadArtifact = Effect.fn('manualTestPlanVideos.downloadArtifact')(function* (
   repository: string,
@@ -64,14 +63,7 @@ export const downloadArtifact = Effect.fn('manualTestPlanVideos.downloadArtifact
   return yield* Effect.tryPromise({
     try: async signal => {
       if (!(body instanceof NodeReadableStream)) throw new Error('Octokit returned a non-stream artifact response');
-      let size = 0;
-      const sizeLimit = new Transform({
-        transform: (chunk: Buffer, _encoding, callback) => {
-          size += chunk.length;
-          callback(size > MAX_ARTIFACT_SIZE ? new Error('Artifact exceeds the 1 GiB size limit') : null, chunk);
-        }
-      });
-      await pipeline(Readable.fromWeb(body), sizeLimit, createWriteStream(path), { signal });
+      await pipeline(Readable.fromWeb(body), createWriteStream(path), { signal });
     },
     catch: error => new CommandFailed({ command: 'Octokit artifact download', code: 1, message: String(error) })
   });
@@ -339,18 +331,19 @@ const main = Effect.fn('manualTestPlanVideos.main')(function* () {
     const fs = yield* FileSystem.FileSystem;
     const eventName = yield* Config.string('GITHUB_EVENT_NAME');
     const eventPath = yield* Config.string('GITHUB_EVENT_PATH');
-    const event = yield* readPullResolution(eventName, eventPath);
-    const pulls = yield* resolveVideoPulls(event);
+    const pulls = yield* readPullResolution(eventName, eventPath).pipe(Effect.flatMap(resolveVideoPulls));
     const output = yield* Config.string('GITHUB_OUTPUT');
     yield* fs.writeFileString(output, `pulls=${JSON.stringify(pulls)}\n`, { flag: 'a' });
     return;
   }
-  const input = yield* Config.all({
+  yield* Config.all({
     pr: Config.integer('VIDEO_PR'),
     sha: Config.string('VIDEO_SHA'),
     clear: Config.boolean('VIDEO_CLEAR')
-  });
-  yield* updateManualTestPlanVideos(input).pipe(Effect.scoped);
+  }).pipe(
+    Effect.flatMap(input => updateManualTestPlanVideos(input)),
+    Effect.scoped
+  );
 });
 
 if (process.argv[1] !== undefined && import.meta.url === pathToFileURL(process.argv[1]).href) {
