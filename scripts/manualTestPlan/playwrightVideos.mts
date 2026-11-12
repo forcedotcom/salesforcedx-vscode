@@ -65,23 +65,7 @@ const withArchive = Effect.fn('playwrightVideos.withArchive')(function* <A>(
           return entries;
         },
         catch: cause => new VideoArchiveError({ message: `Cannot read ZIP entries: ${getErrorMessage(cause)}` })
-      }).pipe(
-        Effect.flatMap(entries =>
-          Effect.try({
-            try: () => {
-              const names = new Set<string>();
-              for (const entry of entries) {
-                const name = entry.fileName;
-                if (names.has(name)) throw new Error(`Duplicate ZIP entry: ${name}`);
-                names.add(name);
-              }
-              return entries;
-            },
-            catch: cause => new VideoArchiveError({ message: getErrorMessage(cause) })
-          })
-        ),
-        Effect.flatMap(entries => use(current, entries))
-      ),
+      }).pipe(Effect.flatMap(entries => use(current, entries))),
     current => Effect.sync(() => current.close())
   );
 });
@@ -154,11 +138,12 @@ const readReportTests = Effect.fn('playwrightVideos.readReportTests')(function* 
   spec: string,
   sha: string
 ) {
-  const htmlBytes = yield* withArchive(report, (archive, entries) =>
+  const match = yield* withArchive(report, (archive, entries) =>
     readMember(archive, entries, 'index.html', MAX_ENTRY_SIZE)
+  ).pipe(
+    Effect.flatMap(decodeUtf8),
+    Effect.map(html => /id="playwrightReportBase64"[^>]*>\s*data:application\/zip;base64,([A-Za-z0-9+/=]+)/.exec(html))
   );
-  const html = yield* decodeUtf8(htmlBytes);
-  const match = /id="playwrightReportBase64"[^>]*>\s*data:application\/zip;base64,([A-Za-z0-9+/=]+)/.exec(html);
   if (match === null) {
     return yield* new VideoArchiveError({ message: 'Missing or invalid Playwright report metadata' });
   }
@@ -167,10 +152,9 @@ const readReportTests = Effect.fn('playwrightVideos.readReportTests')(function* 
   if (metadata.toString('base64').replace(/=+$/, '') !== encodedMetadata.replace(/=+$/, '')) {
     return yield* new VideoArchiveError({ message: 'Invalid Playwright report metadata encoding' });
   }
-  const summaryBytes = yield* withArchive(metadata, (archive, entries) =>
+  const summary = yield* withArchive(metadata, (archive, entries) =>
     readMember(archive, entries, 'report.json', MAX_ENTRY_SIZE)
-  );
-  const summary = yield* parseJson(summaryBytes, ReportSummary);
+  ).pipe(Effect.flatMap(bytes => parseJson(bytes, ReportSummary)));
   if (summary.metadata.ci.commitHash !== sha) {
     return yield* new VideoArchiveError({ message: 'Playwright report SHA does not match PR head' });
   }
@@ -183,10 +167,12 @@ const readReportTests = Effect.fn('playwrightVideos.readReportTests')(function* 
   ) {
     return [];
   }
-  const fileBytes = yield* withArchive(metadata, (archive, entries) =>
+  return yield* withArchive(metadata, (archive, entries) =>
     readMember(archive, entries, `${matchingFile.fileId}.json`, MAX_ENTRY_SIZE)
+  ).pipe(
+    Effect.flatMap(bytes => parseJson(bytes, PlaywrightFile)),
+    Effect.map(data => data.tests)
   );
-  return yield* parseJson(fileBytes, PlaywrightFile).pipe(Effect.map(data => data.tests));
 });
 
 const successfulTests = (tests: readonly PlaywrightTest[]) =>

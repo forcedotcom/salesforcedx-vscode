@@ -561,6 +561,8 @@
     },
     "check:effect-diagnostics": {
       "dependencies": [
+        "check:effect-diagnostics:scripts",
+        "./packages/eslint-local-rules:test",
         "./packages/soql-builder-ui:check:effect-diagnostics",
         "./packages/salesforcedx-apex:check:effect-diagnostics",
         "./packages/salesforcedx-apex-debugger:check:effect-diagnostics",
@@ -589,6 +591,21 @@
         "./packages/salesforcedx-aura-language-server:check:effect-diagnostics",
         "./packages/salesforcedx-lwc-language-server:check:effect-diagnostics"
       ]
+    },
+    "check:effect-diagnostics:scripts": {
+      "command": "node scripts/effect-diagnostics.mjs scripts/manualTestPlan",
+      "dependencies": [
+        "./packages/effect-octokit:compile",
+        "./packages/salesforcedx-utils:compile"
+      ],
+      "files": [
+        "config/effect-diagnostics.json",
+        "scripts/effect-diagnostics.mjs",
+        "scripts/tsconfig.native.json",
+        "scripts/manualTestPlan/tsconfig.json",
+        "scripts/manualTestPlan/**/*.mts"
+      ],
+      "output": []
     },
     "check:format:staged": {
       "command": "pretty-quick --staged"
