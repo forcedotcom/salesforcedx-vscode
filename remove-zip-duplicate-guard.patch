@@ -1,0 +1,19 @@
+diff --git a/scripts/manualTestPlan/playwrightVideos.mts b/scripts/manualTestPlan/playwrightVideos.mts
+index e3edde291e..26a30056ee 100644
+--- a/scripts/manualTestPlan/playwrightVideos.mts
++++ b/scripts/manualTestPlan/playwrightVideos.mts
+@@ -69,14 +69,0 @@ const withArchive = Effect.fn('playwrightVideos.withArchive')(function* <A>(
+-        Effect.flatMap(entries =>
+-          Effect.try({
+-            try: () => {
+-              const names = new Set<string>();
+-              for (const entry of entries) {
+-                const name = entry.fileName;
+-                if (names.has(name)) throw new Error(`Duplicate ZIP entry: ${name}`);
+-                names.add(name);
+-              }
+-              return entries;
+-            },
+-            catch: cause => new VideoArchiveError({ message: getErrorMessage(cause) })
+-          })
+-        ),
