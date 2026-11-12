@@ -1,0 +1,13 @@
+false_positive: []
+not_exploitable:
+  - id: .github/workflows/publishVSCode.yml:a707e0df59dea45aaa0f92a2c73207e93aab8c9204a8ac5054c5f0d89a6b96fc
+    justification: >
+      salesforcecli/github-workflows is an internally-owned Salesforce repo, not a third-party
+      dependency, so an @main reference does not cross a supply-chain trust boundary. This same
+      workflow file already has 5 other pre-existing @main references to the same org
+      (pnpmInstallWithRetries, ctcOpen, validateVsix, ctcClose x2), and the wider repo has 68
+      total @main references to salesforcecli/github-workflows across its workflows -- this is
+      an established, previously-unflagged pattern, not new risk introduced by this line. Genuine
+      third-party actions in this repo (e.g. TriPSs/conventional-changelog-action,
+      ncipollo/release-action) are pinned to commit SHAs, showing pinning is already applied where
+      the trust boundary is actually external.
