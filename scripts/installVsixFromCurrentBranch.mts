@@ -29,7 +29,7 @@ const EXTENSION_IDS = [
 ];
 
 const SAVE_DIRECTORY = './extensions';
-const IDE = process.argv[2] as string;
+const IDE = process.argv[2] ?? 'code';
 
 const logger = (msg: string) => Console.log(`*** ${msg}`);
 
