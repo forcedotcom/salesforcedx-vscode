@@ -3,8 +3,8 @@
 Run `pnpm test:effect-v4-compat` from repository root. Also runs in root `test` / pre-push / CI.
 
 - Provider and consumer each install their own locked **3.21.2** (`npm ci`), matching inspected Einstein `main` `eb3355df087303eeebca510e91d480ae884b6d57`. No shared/symlinked node_modules; checks physical resolution.
-- V4 host independently installs `effect`, `@effect/platform-node`, `@effect/opentelemetry` **4.1.4**; verifies each resolves the same major/version. Does not change first-party production resolution yet.
-- Frozen V3 accessor/Context/Layer/ref/alias/config protocol plus Debug Log Analyzer's `ApexLogService` and `FsService.safeWriteFile` calls compile and run across installations. These are contract fixtures, not claims that real Salesforce auth is implemented; W-24615046 replaces fixture provisioning with adapter integration.
+- V4 host independently installs `effect`, `@effect/platform-node`, `@effect/opentelemetry` **4.1.4**; verifies each resolves the same major/version. First-party production packages use the same reviewed V4 version.
+- Frozen V3 accessor/Context/Layer/ref/alias/config protocol plus Debug Log Analyzer's `ApexLogService` and `FsService.safeWriteFile` calls compile and run across installations. These contract fixtures do not claim real Salesforce auth; production adapters use the existing V4 service graph.
 - V4 positive `Context.Service`/Layer program typechecks and bundles for Node and browser. V3 bundles retain both independent installations and exclude V4. Bundles execute under Node; real browser/desktop E2E runs in GitHub CI.
 - V4 negative inputs must report `floatingEffect`, `anyUnknownInErrorContext` and `runEffectInsideEffect`; repository diagnostic wrapper must exit 1. Intentional negative files are not application source.
 - Missing V4 layer/service dependencies fail a separate negative TypeScript project. Raw V4 Layers fail in an isolated V3 child process.
@@ -20,7 +20,7 @@ IAC/core compile fixture exercises the actual core exports' Channel/Workspace/Co
 
 The unversioned declaration exposes the audited Connection/Alias/Config operations, target-org ref, prebuilt Context/Layer, Apex-log read methods and `FsService.safeWriteFile`. Controls reject internal schema/error exports, unused service members and runtime use of the API type. The runtime root exports only `ICONS`.
 
-This caught two real failures: an unpublished sibling declaration import (`TS2307`) and incompatible V3 declaration identities caused by ranged Effect/platform versions. Legacy declarations are now bundled and validated; the legacy Effect ecosystem versions stay pinned independently of the future V4 implementation. No `--no-check` or other gate bypass.
+This caught two real failures: an unpublished sibling declaration import (`TS2307`) and incompatible V3 declaration identities caused by ranged Effect/platform versions. Legacy declarations are now bundled and validated; the legacy Effect ecosystem versions stay pinned independently of V4. No `--no-check` or other gate bypass.
 
 When the packed public artifact changes, regenerate its consumer lock intentionally with `node scripts/test-packed-services.mjs --update-lock`; this still installs and typechecks the package. Normal CI uses `npm ci`, never updates the lock. This does not claim support for untested V3 minors.
 
