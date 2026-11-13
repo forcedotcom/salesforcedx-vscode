@@ -14,7 +14,7 @@ describe('native TypeScript scripts', () => {
     'scripts/xsd/scrapeAllMetadataPages.mts',
     'scripts/xsd/scrapeSinglePage.mts',
     'scripts/codeBuilderLocalE2E.mts',
-    'scripts/installVsixFromBranch.mts',
+    'scripts/installVsixFromCurrentBranch.mts',
     'scripts/reportInstalls.mts',
     'scripts/xsd/fixXsdErrors.mts',
     'scripts/xsd/jsonToXsdConverter.mts',

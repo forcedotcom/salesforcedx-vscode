@@ -139,7 +139,7 @@
     "test:ai-safeguards": "wireit",
     "test:manual-test-plan": "wireit",
     "test:scripts": "wireit",
-    "test-vsix": "node scripts/installVsixFromBranch.mts code",
+    "test-vsix": "wireit",
     "test:container:local": "wireit",
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 pnpm exec markdown-link-check --quiet --alive 200,206,429",
     "check:dupes": "pnpm exec jscpd",
@@ -381,6 +381,12 @@
         "tsconfig.json"
       ],
       "output": []
+    },
+    "test-vsix": {
+      "command": "node scripts/installVsixFromCurrentBranch.mts code",
+      "dependencies": [
+        "./packages/effect-octokit:compile"
+      ]
     },
     "test:container:local": {
       "command": "node scripts/codeBuilderLocalE2E.mts",

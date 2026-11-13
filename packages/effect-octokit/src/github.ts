@@ -293,6 +293,38 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
       ).pipe(Effect.flatMap(jobs => decodeResponse(Schema.Array(WorkflowRunJob), jobs, 'GET', path)));
     });
 
+    const workflowRuns = Effect.fn('GitHub.workflowRuns')(function* (
+      parameters: Endpoints['GET /repos/{owner}/{repo}/actions/runs']['parameters']
+    ) {
+      return yield* run('GET', `/repos/${parameters.owner}/${parameters.repo}/actions/runs`, () =>
+        octokit
+          .request('GET /repos/{owner}/{repo}/actions/runs', parameters)
+          .then(response => response.data.workflow_runs)
+      );
+    });
+
+    const workflowRun = Effect.fn('GitHub.workflowRun')(function* (
+      parameters: Endpoints['GET /repos/{owner}/{repo}/actions/runs/{run_id}']['parameters']
+    ) {
+      return yield* run('GET', `/repos/${parameters.owner}/${parameters.repo}/actions/runs/${parameters.run_id}`, () =>
+        octokit.request('GET /repos/{owner}/{repo}/actions/runs/{run_id}', parameters).then(response => response.data)
+      );
+    });
+
+    const workflowRunArtifacts = Effect.fn('GitHub.workflowRunArtifacts')(function* (
+      parameters: Endpoints['GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts']['parameters']
+    ) {
+      return yield* run(
+        'GET',
+        `/repos/${parameters.owner}/${parameters.repo}/actions/runs/${parameters.run_id}/artifacts`,
+        () =>
+          octokit.paginate('GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts', {
+            per_page: 100,
+            ...parameters
+          })
+      );
+    });
+
     const combinedStatus = Effect.fn('GitHub.combinedStatus')(function* (owner: string, repo: string, sha: string) {
       return yield* run('GET', `/repos/${owner}/${repo}/commits/${sha}/status`, () =>
         octokit
@@ -442,6 +474,9 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
       pullReviews,
       checkRuns,
       workflowRunJobs,
+      workflowRuns,
+      workflowRun,
+      workflowRunArtifacts,
       combinedStatus,
       headChecks,
       createReview,
