@@ -69,8 +69,11 @@ Via `vscode.extensions.getExtension('salesforce.salesforcedx-vscode-services')`:
 | Repo | Visibility | Consumed |
 |------|-----------|----------|
 | [einstein-gpt](https://github.com/forcedotcom/salesforcedx-vscode-einstein-gpt) | **Private** | `services.ConnectionService.getConnection`, `services.TargetOrgRef`, `services.prebuiltServicesDependencies` |
+| [debug-log-analyzer](https://github.com/certinia/debug-log-analyzer) | Public | `services.ApexLogService.{listLogs,getLogBody}`, `services.FsService.safeWriteFile`, `services.TargetOrgRef`, `services.prebuiltServicesDependencies` |
 
 > **einstein-gpt directly consumes the services extension API** (separate from its core dependency and its `@salesforce/vscode-service-provider` telemetry use). `packages/extension/src/services/auth/org-service.ts` (on the actively-shipping `main` branch, which now builds `afv-v4` via `release.yml`) resolves `salesforce.salesforcedx-vscode-services`, duplicates a local `SalesforceVSCodeServicesApi` type, and calls `api.services.ConnectionService.getConnection()`, `api.services.TargetOrgRef()`, and reads `api.services.prebuiltServicesDependencies`. **Check changes to `ConnectionService.getConnection`, `TargetOrgRef`, or `prebuiltServicesDependencies` against this consumer** — breaking any of them is a breaking change even though code search on `main` may not surface the duplicated type.
+
+> **debug-log-analyzer directly consumes the services extension API.** `lana/src/services/servicesRuntime.ts` validates `ApexLogService.listLogs/getLogBody` and `FsService.safeWriteFile` in `prebuiltServicesDependencies`; `lana/src/services/salesforceServices.ts` calls them and `TargetOrgRef()`. Check changes to these APIs against this consumer.
 
 ## `@salesforce/vscode-service-provider` consumers
 
@@ -101,7 +104,7 @@ No current in-repo `.exports` consumers of `SalesforceVSCodeCoreApi`.
 
 ## Keeping current
 
-Verified 2026-09-29. Before asserting "nobody uses X":
+Last full inventory audit: 2026-09-29; `debug-log-analyzer` added 2026-11-13. Before asserting "nobody uses X":
 1. Grep monorepo for `\.exports\.MEMBER`
 2. Search `org:forcedotcom` and `org:salesforcecli` via `gh api`
 3. Read private repos via contents API
