@@ -6,6 +6,7 @@
  */
 
 import type { FileProperties, RetrieveResult } from '@salesforce/source-deploy-retrieve';
+import * as Arr from 'effect/Array';
 
 export const getFileProperties = (result: RetrieveResult): FileProperties[] =>
-  Array.isArray(result.response.fileProperties) ? result.response.fileProperties : [result.response.fileProperties];
+  Arr.ensure(result.response.fileProperties);

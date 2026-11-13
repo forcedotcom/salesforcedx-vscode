@@ -254,9 +254,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
           { concurrency: 'unbounded', discard: true }
         );
       } else if (orgId) {
-        const fileProperties = Array.isArray(retrieveOutcome.response.fileProperties)
-          ? retrieveOutcome.response.fileProperties
-          : [retrieveOutcome.response.fileProperties];
+        const fileProperties = Arr.ensure(retrieveOutcome.response.fileProperties);
         const observationsByIdentity = fileProperties.reduce(
           (byIdentity, property) =>
             property?.type && property.fullName
