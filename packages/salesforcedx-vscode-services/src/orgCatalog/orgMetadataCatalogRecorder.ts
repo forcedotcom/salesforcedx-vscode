@@ -5,7 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { ListedMetadataComponent, RemoteTrackingObservations } from './orgCatalogInternalTypes';
+import type {
+  ListedMetadataComponent,
+  RemoteTrackingObservation,
+  RemoteTrackingObservations
+} from './orgCatalogInternalTypes';
 import type {
   OrgMetadataCatalogInternalEntry as OrgMetadataCatalogEntry,
   OrgSObjectDescription,
@@ -18,6 +22,7 @@ import * as Effect from 'effect/Effect';
 import * as HashMap from 'effect/HashMap';
 import * as Option from 'effect/Option';
 import * as PubSub from 'effect/PubSub';
+import * as Schedule from 'effect/Schedule';
 import * as Stream from 'effect/Stream';
 import * as Struct from 'effect/Struct';
 import type { URI } from 'vscode-uri';
@@ -305,10 +310,13 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
         remoteChanges: readonly TrackingRemoteChange[]
       ) {
         yield* state.ensureHydrated(orgId);
-        const revisionByIdentity = HashMap.fromIterable(
-          remoteChanges.map(
-            change =>
-              [
+        const revisionByIdentity = yield* Stream.fromIterable(remoteChanges).pipe(
+          Stream.grouped(1024),
+          Stream.schedule(Schedule.spaced('1 millis')),
+          Stream.runFold(HashMap.beginMutation(HashMap.empty<string, string>()), (revisions, changes) =>
+            Chunk.reduce(changes, revisions, (current, change) =>
+              HashMap.set(
+                current,
                 componentIdentity({ xmlName: change.type, fullName: change.name }),
                 JSON.stringify([
                   change.revisionCounter,
@@ -317,23 +325,26 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
                   change.deleted,
                   change.modified
                 ])
-              ] as const
-          )
+              )
+            )
+          ),
+          Effect.map(HashMap.endMutation)
         );
-        const observations = HashMap.fromIterable(
-          status
-            .filter(row => row.origin === 'remote')
-            .map(row => {
+        const observations = yield* Stream.fromIterable(status).pipe(
+          Stream.filter(row => row.origin === 'remote'),
+          Stream.grouped(1024),
+          Stream.schedule(Schedule.spaced('1 millis')),
+          Stream.runFold(HashMap.beginMutation(HashMap.empty<string, RemoteTrackingObservation>()), (tracking, rows) =>
+            Chunk.reduce(rows, tracking, (current, row) => {
               const reference = { xmlName: row.type, fullName: row.fullName };
               const key = componentIdentity(reference);
-              return [
-                key,
-                {
-                  reference,
-                  signature: `${row.state}\0${Option.getOrElse(HashMap.get(revisionByIdentity, key), () => '')}`
-                }
-              ] as const;
+              return HashMap.set(current, key, {
+                reference,
+                signature: `${row.state}\0${Option.getOrElse(HashMap.get(revisionByIdentity, key), () => '')}`
+              });
             })
+          ),
+          Effect.map(HashMap.endMutation)
         );
         const previous = yield* state.getTracking(orgId);
         const changedReferences = yield* compareTrackingObservations(previous, observations);

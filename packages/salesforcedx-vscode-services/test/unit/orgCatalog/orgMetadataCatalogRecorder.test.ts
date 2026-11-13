@@ -234,6 +234,41 @@ describe('OrgMetadataCatalogRecorder', () => {
     expect(result.unchanged).toEqual([]);
   });
 
+  it('records tracking across stream chunks and detects revision-only changes using the last remote change', async () => {
+    const { layer } = makeHarness();
+    const rows = Array.from({ length: 4100 }, (_, index) => ({
+      origin: 'remote',
+      type: 'ApexClass',
+      fullName: `Tracked${index}`,
+      state: 'modify'
+    }));
+    const remoteChanges = rows.map(row => ({ type: row.type, name: row.fullName, revisionCounter: 1 }));
+    const reference = { xmlName: 'ApexClass', fullName: 'Tracked0' };
+
+    const result = await Effect.runPromise(
+      Effect.gen(function* () {
+        const recorder = yield* OrgMetadataCatalogRecorder;
+        const state = yield* OrgCatalogState;
+        const added = yield* recorder.recordTrackingStatus('org-one', [...rows, rows[0]!], remoteChanges);
+        const unchanged = yield* recorder.recordTrackingStatus('org-one', rows, remoteChanges);
+        const changed = yield* recorder.recordTrackingStatus('org-one', rows, [
+          ...remoteChanges,
+          { type: 'ApexClass', name: reference.fullName, revisionCounter: 2 }
+        ]);
+        return { added, unchanged, changed, tracking: yield* state.getTracking('org-one') };
+      }).pipe(Effect.provide(layer))
+    );
+
+    expect(result.added).toHaveLength(rows.length);
+    expect(new Set(result.added.map(component => componentIdentity(component))).size).toBe(rows.length);
+    expect(result.unchanged).toEqual([]);
+    expect(result.changed).toEqual([reference]);
+    expect(HashMap.size(result.tracking)).toBe(rows.length);
+    expect(Option.getOrUndefined(HashMap.get(result.tracking, componentIdentity(reference)))?.signature).toBe(
+      `modify\0${JSON.stringify([2, undefined, undefined, undefined, undefined])}`
+    );
+  });
+
   it('invalidates affected state and publishes an operation before returning', async () => {
     const { catalogChanges, layer } = makeHarness();
 
