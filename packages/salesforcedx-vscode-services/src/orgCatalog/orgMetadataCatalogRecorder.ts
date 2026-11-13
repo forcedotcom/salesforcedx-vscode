@@ -66,7 +66,7 @@ export const compareTrackingObservations = (
   previous: RemoteTrackingObservations,
   current: RemoteTrackingObservations
 ): OrgMetadataComponentReference[] =>
-  // Set, not Arr.dedupe: dedupe is O(n^2) and blocked the extension host for 20s on a large org.
+  // Set, not Arr.dedupe: dedupe is O(n^2) and froze the extension host on large orgs.
   [...new Set([...previous.identityOrder, ...current.identityOrder])].flatMap(identity => {
     const previousObservation = Option.getOrUndefined(HashMap.get(previous.byIdentity, identity));
     const currentObservation = Option.getOrUndefined(HashMap.get(current.byIdentity, identity));
