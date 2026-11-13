@@ -45,7 +45,7 @@ const createMockConnectionService = (
         Effect.succeed({
           version: '60.0',
           metadata: {
-            list: vi.fn().mockResolvedValue(listResult)
+            list: listMock
           }
         } as unknown as Connection),
       validateAccessTokenOrPromptReauth: () => Effect.void,
@@ -143,6 +143,88 @@ const runListMetadataWithMock = (listResult: ListItem | ListItem[], type: string
     )
   };
 };
+
+const runListMetadataFolders = (listMock: VitestMock, type: string, invalidate = false) => {
+  const { layer } = createMockConnectionService([], listMock);
+  return Effect.runPromise(
+    Effect.gen(function* () {
+      yield* seedDefaultOrg;
+      const service = yield* MetadataDescribeService;
+      const first = yield* service.listMetadataFolders(type, ORG_ID);
+      if (invalidate) yield* service.invalidateAllListMetadata(ORG_ID);
+      const second = yield* service.listMetadataFolders(type, ORG_ID);
+      const folderType = type === 'EmailTemplate' ? 'EmailTemplateFolder' : `${type}Folder`;
+      const exactFolders = yield* service.listMetadata(folderType, undefined, ORG_ID);
+      const cachedFolders = yield* service.listMetadataCached(folderType, undefined, ORG_ID);
+      return { first, second, exactFolders, cachedFolders };
+    }).pipe(
+      Effect.provide(
+        Layer.provide(
+          MetadataDescribeService.DefaultWithoutDependencies,
+          Layer.mergeAll(layer, ChannelService.Default, mockOrgMetadataCatalogRecorder)
+        )
+      )
+    )
+  );
+};
+
+describe('MetadataDescribeService.listMetadataFolders', () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it('combines email folders once while preserving exact-type caches and recordings', async () => {
+    const classic = [
+      { fullName: 'Classic', type: 'EmailFolder' },
+      { fullName: 'unfiled$public', type: 'EmailFolder' }
+    ];
+    const lightning = [
+      { fullName: 'EmptyLightning', type: 'EmailTemplateFolder' },
+      { fullName: 'Lightning', type: 'EmailTemplateFolder' },
+      { fullName: 'unfiled$public', type: 'EmailTemplateFolder' }
+    ];
+    const listMock = vi
+      .fn()
+      .mockImplementation(async ({ type }: { type: string }) => (type === 'EmailFolder' ? classic : lightning));
+    const result = await runListMetadataFolders(listMock, 'EmailTemplate');
+
+    expect(result.first.map(folder => folder.fullName)).toEqual([
+      'Classic',
+      'unfiled$public',
+      'EmptyLightning',
+      'Lightning'
+    ]);
+    expect(result.second).toEqual(result.first);
+    expect(result.exactFolders).toEqual(lightning);
+    expect(result.cachedFolders).toEqual(expect.objectContaining({ value: lightning }));
+    expect(listMock).toHaveBeenCalledTimes(2);
+    expect(listMock).toHaveBeenCalledWith({ type: 'EmailFolder' });
+    expect(listMock).toHaveBeenCalledWith({ type: 'EmailTemplateFolder' });
+    expect(recordMetadataListing).toHaveBeenCalledWith(ORG_ID, 'EmailFolder', undefined, classic);
+    expect(recordMetadataListing).toHaveBeenCalledWith(ORG_ID, 'EmailTemplateFolder', undefined, lightning);
+    expect(recordMetadataListing).not.toHaveBeenCalledWith(ORG_ID, 'EmailTemplate', undefined, expect.anything());
+  });
+
+  it.each(['Report', 'Dashboard', 'Document'])('lists %s folders using the corresponding API type', async type => {
+    const listMock = vi.fn().mockResolvedValue([]);
+    await runListMetadataFolders(listMock, type);
+    expect(listMock).toHaveBeenCalledWith({ type: `${type}Folder` });
+    expect(listMock).toHaveBeenCalledTimes(1);
+  });
+
+  it('reacquires both email folder types after list cache invalidation', async () => {
+    const listMock = vi.fn().mockResolvedValue([]);
+    await runListMetadataFolders(listMock, 'EmailTemplate', true);
+    expect(listMock.mock.calls.filter(([query]) => query.type === 'EmailFolder')).toHaveLength(2);
+    expect(listMock.mock.calls.filter(([query]) => query.type === 'EmailTemplateFolder')).toHaveLength(2);
+  });
+
+  it('does not return a partial folder listing when one email folder type fails', async () => {
+    const listMock = vi.fn().mockImplementation(async ({ type }: { type: string }) => {
+      if (type === 'EmailTemplateFolder') throw new Error('Lightning folder listing failed');
+      return [{ fullName: 'Classic', type: 'EmailFolder' }];
+    });
+    await expect(runListMetadataFolders(listMock, 'EmailTemplate')).rejects.toThrow('Lightning folder listing failed');
+  });
+});
 
 describe('MetadataDescribeService.listMetadata', () => {
   beforeEach(() => vi.clearAllMocks());
