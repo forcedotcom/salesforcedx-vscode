@@ -69,8 +69,7 @@ export const discoverFullOrgMetadata = (
       fullName: string,
       reportFolderCompleted: () => Effect.Effect<void>
     ) {
-      const children = yield* catalog.getChildren({ type, fullName });
-      const folders = folderEntries(children);
+      const folders = yield* catalog.getChildren({ type, fullName }).pipe(Effect.map(folderEntries));
       yield* Ref.update(componentTotal, current => current + folders.length);
       yield* report();
       yield* Effect.forEach(
