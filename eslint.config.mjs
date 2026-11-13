@@ -1017,6 +1017,7 @@ export default [
   {
     files: [
       'scripts/validateActions.ts',
+      'scripts/analyzeE2E.ts',
       'scripts/**/*.mts',
       'packages/salesforcedx-lightning-lsp-common/scripts/**/*.mts',
       'packages/salesforcedx-aura-language-server/scripts/**/*.mts',

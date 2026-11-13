@@ -5,25 +5,25 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { glob } from 'glob';
 import * as Order from 'effect/Order';
-import { execSync, spawn } from 'node:child_process';
+import * as Schema from 'effect/Schema';
+import { glob } from 'glob';
+import { execFileSync, spawn } from 'node:child_process';
 import { mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 
-type WorkflowRun = {
-  databaseId: number;
-  status: 'queued' | 'in_progress' | 'completed';
-  conclusion: 'success' | 'failure' | 'cancelled' | null;
-  workflowName: string;
-  createdAt: string;
-  headBranch: string;
-};
-
-type WorkflowStatus = {
-  status: 'queued' | 'in_progress' | 'completed';
-  conclusion: 'success' | 'failure' | 'cancelled' | null;
-};
+const WorkflowRunSchema = Schema.Struct({
+  databaseId: Schema.Number,
+  status: Schema.String,
+  conclusion: Schema.NullOr(Schema.String),
+  workflowName: Schema.String,
+  createdAt: Schema.String,
+  headBranch: Schema.String
+});
+type WorkflowRun = typeof WorkflowRunSchema.Type;
+const WorkflowStatusSchema = Schema.Struct({ status: Schema.String, conclusion: Schema.NullOr(Schema.String) });
+const WorkflowArtifactsSchema = Schema.Struct({ artifacts: Schema.Array(Schema.Struct({ name: Schema.String })) });
+type WorkflowStatus = typeof WorkflowStatusSchema.Type;
 
 const byCreatedAtDescending = Order.mapInput(
   Order.flip(Order.Date),
@@ -32,14 +32,14 @@ const byCreatedAtDescending = Order.mapInput(
 
 const checkPrerequisites = (): void => {
   try {
-    execSync('which gh', { stdio: 'ignore' });
+    execFileSync('which', ['gh'], { stdio: 'ignore' });
   } catch {
     console.error('GitHub CLI (gh) not found. Install from: https://cli.github.com/');
     process.exit(1);
   }
 
   try {
-    execSync('gh auth status', { stdio: 'ignore' });
+    execFileSync('gh', ['auth', 'status'], { stdio: 'ignore' });
   } catch {
     console.error('GitHub CLI not authenticated. Run: gh auth login');
     process.exit(1);
@@ -48,7 +48,7 @@ const checkPrerequisites = (): void => {
 
 const getCurrentBranch = (): string => {
   try {
-    const branch = execSync('git branch --show-current', { encoding: 'utf-8' }).trim();
+    const branch = execFileSync('git', ['branch', '--show-current'], { encoding: 'utf-8' }).trim();
     if (!branch) {
       throw new Error('No branch checked out');
     }
@@ -61,11 +61,21 @@ const getCurrentBranch = (): string => {
 
 const findPlaywrightWorkflows = (branch: string): WorkflowRun[] => {
   try {
-    const output = execSync(
-      `gh run list -b ${branch} --limit 50 --json databaseId,status,conclusion,workflowName,createdAt,headBranch`,
+    const output = execFileSync(
+      'gh',
+      [
+        'run',
+        'list',
+        '-b',
+        branch,
+        '--limit',
+        '50',
+        '--json',
+        'databaseId,status,conclusion,workflowName,createdAt,headBranch'
+      ],
       { encoding: 'utf-8' }
     );
-    const runs = JSON.parse(output) as WorkflowRun[];
+    const runs = Schema.decodeUnknownSync(Schema.Array(WorkflowRunSchema))(JSON.parse(output));
     return runs.filter(run => run.workflowName.includes('(Playwright)'));
   } catch (error) {
     console.error(
@@ -83,7 +93,7 @@ const prioritizeWorkflows = (workflows: WorkflowRun[]): WorkflowRun[] => {
   }
   return workflows
     .filter(w => w.status === 'completed')
-    .sort(byCreatedAtDescending)
+    .toSorted(byCreatedAtDescending)
     .slice(0, 1);
 };
 
@@ -108,8 +118,10 @@ const watchWorkflow = (runId: number): Promise<void> =>
 
 const checkWorkflowStatus = (runId: number): WorkflowStatus => {
   try {
-    const output = execSync(`gh run view ${runId} --json status,conclusion`, { encoding: 'utf-8' });
-    return JSON.parse(output) as WorkflowStatus;
+    const output = execFileSync('gh', ['run', 'view', String(runId), '--json', 'status,conclusion'], {
+      encoding: 'utf-8'
+    });
+    return Schema.decodeUnknownSync(WorkflowStatusSchema)(JSON.parse(output));
   } catch (error) {
     console.error('Failed to check workflow status:', error instanceof Error ? error.message : String(error));
     return { status: 'completed', conclusion: null };
@@ -118,6 +130,7 @@ const checkWorkflowStatus = (runId: number): WorkflowStatus => {
 
 const monitorWorkflows = async (workflows: WorkflowRun[]): Promise<WorkflowRun[]> => {
   const running = workflows.filter(w => w.status === 'in_progress' || w.status === 'queued');
+  const finalStatuses = new Map<number, WorkflowStatus>();
 
   if (running.length === 0) {
     return workflows;
@@ -141,12 +154,13 @@ const monitorWorkflows = async (workflows: WorkflowRun[]): Promise<WorkflowRun[]
       status = checkWorkflowStatus(workflow.databaseId);
     }
 
-    // Update workflow with final status
-    workflow.status = status.status;
-    workflow.conclusion = status.conclusion;
+    finalStatuses.set(workflow.databaseId, status);
   }
 
-  return workflows;
+  return workflows.map(workflow => {
+    const status = finalStatuses.get(workflow.databaseId);
+    return status ? { ...workflow, ...status } : workflow;
+  });
 };
 
 const sanitizeWorkflowName = (name: string): string => name.replaceAll(/[^a-zA-Z0-9-]/g, '-').replaceAll(/-+/g, '-');
@@ -157,8 +171,10 @@ const downloadArtifacts = (runId: number, branch: string, workflowName: string):
 
   try {
     // Check if artifacts exist
-    const artifactsOutput = execSync(`gh run view ${runId} --json artifacts`, { encoding: 'utf-8' });
-    const artifacts = JSON.parse(artifactsOutput) as { artifacts: { name: string }[] };
+    const artifactsOutput = execFileSync('gh', ['run', 'view', String(runId), '--json', 'artifacts'], {
+      encoding: 'utf-8'
+    });
+    const artifacts = Schema.decodeUnknownSync(WorkflowArtifactsSchema)(JSON.parse(artifactsOutput));
 
     if (!artifacts.artifacts || artifacts.artifacts.length === 0) {
       console.log('No artifacts available for this workflow run.');
@@ -166,11 +182,13 @@ const downloadArtifacts = (runId: number, branch: string, workflowName: string):
     }
 
     mkdirSync(artifactDir, { recursive: true });
-    execSync(`gh run download ${runId} -D ${artifactDir}`, { stdio: 'inherit' });
+    execFileSync('gh', ['run', 'download', String(runId), '-D', artifactDir], { stdio: 'inherit' });
 
     // Extract zip files if needed
     try {
-      execSync(`find ${artifactDir} -name "*.zip" -exec unzip -o {} -d ${artifactDir} \\;`, { stdio: 'ignore' });
+      execFileSync('find', [artifactDir, '-name', '*.zip', '-exec', 'unzip', '-o', '{}', '-d', artifactDir, ';'], {
+        stdio: 'ignore'
+      });
     } catch {
       // No zip files or unzip failed, continue
     }
@@ -244,7 +262,7 @@ const main = async (): Promise<void> => {
 
   if (allWorkflows.length === 0) {
     try {
-      execSync(`git ls-remote --heads origin ${branch}`, { stdio: 'ignore' });
+      execFileSync('git', ['ls-remote', '--heads', 'origin', branch], { stdio: 'ignore' });
       console.log(`No e2e workflows found for branch \`${branch}\`. The branch may not have triggered workflows yet.`);
     } catch {
       console.log(
