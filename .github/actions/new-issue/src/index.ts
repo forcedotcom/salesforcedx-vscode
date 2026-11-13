@@ -6,8 +6,11 @@
  */
 
 import { getInput, setOutput, setFailed } from '@actions/core';
-import { context, getOctokit } from '@actions/github';
+import { context } from '@actions/github';
 import { Label } from '@octokit/webhooks-types';
+import { githubFromToken } from '@salesforce/effect-octokit';
+import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
 
 async function run() {
   try {
@@ -20,14 +23,14 @@ async function run() {
     }
 
     // Get input parameters.
-    const token = getInput('repo-token');
+    const token = getInput('repo-token', { required: true });
     const message = getInput('message');
     const label = getInput('label');
     console.log('message: ', message);
     console.log('label: ', label);
 
-    // Create a GitHub client.
-    const octokit = getOctokit(token);
+    // Use only the action input, never a token inherited from the runner environment.
+    const github = await githubFromToken(token).pipe(Effect.runPromise);
 
     // Get owner and repo from context
     const owner = context.repo.owner;
@@ -42,11 +45,7 @@ async function run() {
     const issueLabels = issue.labels as Label[];
     console.log('issue labels: ', issueLabels);
 
-    const { data: comments } = await octokit.rest.issues.listComments({
-      owner,
-      repo,
-      issue_number: issue.number
-    });
+    const comments = await github.issueComments(owner, repo, issue.number).pipe(Effect.runPromise);
 
     // If we have comments check out that this comment has not been previously commented
     if (comments.length) {
@@ -56,16 +55,18 @@ async function run() {
       }
     }
 
-    const response = await octokit.rest.issues.createComment({
-      owner,
-      repo,
-      // eslint-disable-next-line @typescript-eslint/camelcase
-      issue_number: issue.number,
-      body: message
-    });
-    console.log('created comment URL: ' + response.data.html_url);
+    const response = await github
+      .request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
+        owner,
+        repo,
+        // eslint-disable-next-line @typescript-eslint/camelcase
+        issue_number: issue.number,
+        body: message
+      })
+      .pipe(Effect.flatMap(Schema.decodeUnknown(Schema.Struct({ html_url: Schema.String }))), Effect.runPromise);
+    console.log('created comment URL: ' + response.html_url);
 
-    setOutput('comment-url', response.data.html_url);
+    setOutput('comment-url', response.html_url);
   } catch (err) {
     const error = err as Error;
     setFailed(error.message);

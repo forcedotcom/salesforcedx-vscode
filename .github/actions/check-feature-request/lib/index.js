@@ -8,6 +8,8 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@actions/core");
 const github_1 = require("@actions/github");
+const effect_octokit_1 = require("@salesforce/effect-octokit");
+const Effect = require("effect/Effect");
 async function run() {
     try {
         const issue = github_1.context.payload.issue;
@@ -24,22 +26,18 @@ async function run() {
             console.log("Issue was created before 6/14/2023, skipping");
             return;
         }
-        // Create a GitHub client
-        const token = (0, core_1.getInput)("repo-token");
-        const octokit = (0, github_1.getOctokit)(token);
+        // Use only the action input, never a token inherited from the runner environment.
+        const github = await (0, effect_octokit_1.githubFromToken)((0, core_1.getInput)("repo-token", { required: true })).pipe(Effect.runPromise);
         // Get owner and repo from context
-        const owner = github_1.context.repo.owner;
-        const repo = github_1.context.repo.repo;
+        const { owner, repo } = github_1.context.repo;
         const issue_number = issue.number;
         console.log("Issue URL:", issue.html_url);
-        const { body } = issue;
-        const { login: author } = issue.user;
-        const { data: comments } = await getAllComments();
+        const comments = await github.issueComments(owner, repo, issue_number).pipe(Effect.runPromise);
         // For version checks, we only care about comments from the author
-        const authorComments = comments.filter((comment) => comment?.user?.login === author);
+        const authorComments = comments.filter((comment) => comment?.user?.login === issue.user.login);
         // Build an array of the issue body and all of the comment bodies
         const bodies = [
-            body,
+            issue.body,
             ...authorComments.map((comment) => comment.body),
         ].filter((body) => body !== undefined);
         console.log('bodies = ' + JSON.stringify(bodies));
@@ -56,7 +54,7 @@ async function run() {
                 .flat();
             if (featureRequests.length > 0) {
                 console.log('This issue is a feature request!');
-                addLabel("type:enhancements");
+                await addLabel("type:enhancements");
                 core.setOutput("is_feature_request", "true");
             }
             else {
@@ -66,20 +64,15 @@ async function run() {
         // ---------
         // FUNCTIONS
         // ---------
-        async function getAllComments() {
-            return await octokit.rest.issues.listComments({
-                owner,
-                repo,
-                issue_number,
-            });
-        }
         async function addLabel(label) {
-            await octokit.rest.issues.addLabels({
+            await github
+                .request("POST /repos/{owner}/{repo}/issues/{issue_number}/labels", {
                 owner,
                 repo,
                 issue_number,
-                labels: [label],
-            });
+                labels: [label]
+            })
+                .pipe(Effect.runPromise);
         }
     }
     catch (err) {

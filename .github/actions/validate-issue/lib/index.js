@@ -8,6 +8,9 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@actions/core");
 const github_1 = require("@actions/github");
+const effect_octokit_1 = require("@salesforce/effect-octokit");
+const Effect = require("effect/Effect");
+const Schema = require("effect/Schema");
 const node_child_process_1 = require("node:child_process");
 const node_fs_1 = require("node:fs");
 const path = require("node:path");
@@ -29,9 +32,9 @@ async function run() {
             console.log('Issue was created before 6/14/2023, skipping');
             return;
         }
-        // Create a GitHub client
-        const token = (0, core_1.getInput)('repo-token');
-        const octokit = (0, github_1.getOctokit)(token);
+        // Use only the action input, never a token inherited from the runner environment.
+        const token = (0, core_1.getInput)('repo-token', { required: true });
+        const github = await (0, effect_octokit_1.githubFromToken)(token).pipe(Effect.runPromise);
         // Get owner and repo from context
         const owner = github_1.context.repo.owner;
         const repo = github_1.context.repo.repo;
@@ -39,7 +42,7 @@ async function run() {
         console.log('Issue URL:', issue.html_url);
         const { body } = issue;
         const { login: author } = issue.user;
-        const { data: comments } = await getAllComments();
+        const comments = await github.issueComments(owner, repo, issue_number).pipe(Effect.runPromise);
         // For version checks, we only care about comments from the author
         const authorComments = comments.filter(comment => comment?.user?.login === author);
         // Build an array of the issue body and all of the comment bodies
@@ -48,11 +51,11 @@ async function run() {
         console.log(`bodies.length = ${bodies.length}`);
         if (bodies[0] === null) {
             console.log('No content provided in issue body');
-            const message = getFile('../../messages/provide-version.md', {
+            const message = getFile('../messages/provide-version.md', {
                 THE_AUTHOR: issue.user.login
             });
-            postComment(message);
-            addLabel('missing required information');
+            await postComment(message);
+            await addLabel('missing required information');
         }
         else {
             let extensionsValid = true;
@@ -74,30 +77,30 @@ async function run() {
                 console.log('extensionsLatest', extensionsLatest);
                 const oneSatisfies = extensionsVersions.some(version => semver.gte(version, extensionsLatest));
                 if (!oneSatisfies) {
-                    const oldExtensions = getFile('../../messages/old-extensions.md', {
+                    const oldExtensions = getFile('../messages/old-extensions.md', {
                         THE_AUTHOR: author,
                         USER_VERSION: extensionsVersions.join('`, `'),
                         LATEST_VERSION: extensionsLatest
                     });
-                    postComment(oldExtensions);
+                    await postComment(oldExtensions);
                 }
                 if (extensionsValid) {
                     console.log('A valid extensions version is provided!');
                 }
                 else {
                     console.log('The extensions version provided is NOT valid');
-                    addLabel('missing required information');
+                    await addLabel('missing required information');
                 }
             }
             else {
                 console.log('Extensions version is NOT provided');
                 if (!provideVersionAlreadyRequested) {
-                    const message = getFile('../../messages/provide-version.md', {
+                    const message = getFile('../messages/provide-version.md', {
                         THE_AUTHOR: issue.user.login
                     });
-                    postComment(message);
+                    await postComment(message);
                     provideVersionAlreadyRequested = true;
-                    addLabel('missing required information');
+                    await addLabel('missing required information');
                 }
                 extensionsValid = false;
             }
@@ -109,16 +112,16 @@ async function run() {
                 .flat();
             console.log('vscodeVersions', vscodeVersions);
             if (vscodeVersions.length > 0) {
-                const vscodeMinVersion = getMinimumVSCodeVersion();
+                const vscodeMinVersion = await getMinimumVSCodeVersion();
                 console.log('vscodeMinVersion', vscodeMinVersion);
                 const oneSatisfies = vscodeVersions.some(version => semver.gte(version, vscodeMinVersion));
                 if (!oneSatisfies) {
-                    const oldVSCode = getFile('../../messages/unsupported-vscode.md', {
+                    const oldVSCode = getFile('../messages/unsupported-vscode.md', {
                         THE_AUTHOR: author,
                         USER_VERSION: vscodeVersions.join('`, `'),
                         MIN_VERSION: vscodeMinVersion
                     });
-                    postComment(oldVSCode);
+                    await postComment(oldVSCode);
                     vscodeValid = false;
                 }
                 if (vscodeValid) {
@@ -126,18 +129,18 @@ async function run() {
                 }
                 else {
                     console.log('The VSCode version provided is NOT valid');
-                    addLabel('missing required information');
+                    await addLabel('missing required information');
                 }
             }
             else {
                 console.log('VSCode version is NOT provided');
                 if (!provideVersionAlreadyRequested) {
-                    const message = getFile('../../messages/provide-version.md', {
+                    const message = getFile('../messages/provide-version.md', {
                         THE_AUTHOR: issue.user.login
                     });
-                    postComment(message);
+                    await postComment(message);
                     provideVersionAlreadyRequested = true;
-                    addLabel('missing required information');
+                    await addLabel('missing required information');
                 }
                 vscodeValid = false;
             }
@@ -154,12 +157,12 @@ async function run() {
             else {
                 console.log('OS and version is NOT provided');
                 if (!provideVersionAlreadyRequested) {
-                    const message = getFile('../../messages/provide-version.md', {
+                    const message = getFile('../messages/provide-version.md', {
                         THE_AUTHOR: issue.user.login
                     });
-                    postComment(message);
+                    await postComment(message);
                     provideVersionAlreadyRequested = true;
-                    addLabel('missing required information');
+                    await addLabel('missing required information');
                 }
                 osVersionValid = false;
             }
@@ -175,12 +178,12 @@ async function run() {
             else {
                 console.log('Last working version is NOT provided');
                 if (!provideVersionAlreadyRequested) {
-                    const message = getFile('../../messages/provide-version.md', {
+                    const message = getFile('../messages/provide-version.md', {
                         THE_AUTHOR: issue.user.login
                     });
-                    postComment(message);
+                    await postComment(message);
                     provideVersionAlreadyRequested = true;
-                    addLabel('missing required information');
+                    await addLabel('missing required information');
                 }
                 lastWorkingVersionValid = false;
             }
@@ -200,30 +203,30 @@ async function run() {
                     const oneSatisfies = sfVersions.some(version => semver.gte(version, '2.0.0'));
                     if (!oneSatisfies) {
                         // If not, share deprecation information
-                        const sfV1 = getFile('../../messages/deprecated-cli.md', {
+                        const sfV1 = getFile('../messages/deprecated-cli.md', {
                             THE_AUTHOR: author,
                             OLD_CLI: '`sf` (v1)'
                         });
-                        postComment(sfV1);
+                        await postComment(sfV1);
                         cliValid = false;
                     }
                 }
                 if (sfdxVersions.find(v => v.startsWith('7.')) && !sfVersions.find(v => v.startsWith('2.'))) {
-                    const noOldSfdx = getFile('../../messages/deprecated-cli.md', {
+                    const noOldSfdx = getFile('../messages/deprecated-cli.md', {
                         THE_AUTHOR: author,
                         OLD_CLI: '`sfdx` (v7)'
                     });
-                    postComment(noOldSfdx);
+                    await postComment(noOldSfdx);
                     cliValid = false;
                 }
                 if (nodeVersions.length > 0) {
                     if (!(await (0, nodeVersions_1.isAnyVersionValid)(new Date())(nodeVersions))) {
-                        const nodeVersionMessage = getFile('../../messages/unsupported-node.md', {
+                        const nodeVersionMessage = getFile('../messages/unsupported-node.md', {
                             THE_AUTHOR: author,
                             NODE_VERSION: nodeVersions.join('`, `')
                         });
-                        postComment(nodeVersionMessage);
-                        closeIssue();
+                        await postComment(nodeVersionMessage);
+                        await closeIssue();
                         cliValid = false;
                     }
                 }
@@ -232,47 +235,42 @@ async function run() {
                 }
                 else {
                     console.log('Information provided is NOT valid');
-                    addLabel('missing required information');
+                    await addLabel('missing required information');
                 }
             }
             else {
                 console.log('Full version information was not provided');
                 if (!provideVersionAlreadyRequested) {
-                    const message = getFile('../../messages/provide-version.md', {
+                    const message = getFile('../messages/provide-version.md', {
                         THE_AUTHOR: issue.user.login
                     });
-                    postComment(message);
+                    await postComment(message);
                     provideVersionAlreadyRequested = true;
-                    addLabel('missing required information');
+                    await addLabel('missing required information');
                 }
                 cliValid = false;
             }
             if (extensionsValid && vscodeValid && osVersionValid && cliValid && lastWorkingVersionValid) {
-                addLabel('validated');
-                removeLabel('missing required information');
+                await addLabel('validated');
+                await removeLabel('missing required information');
             }
             else {
                 console.log('You have one or more missing/invalid versions.');
-                addLabel('missing required information');
+                await addLabel('missing required information');
             }
         }
         // ---------
         // FUNCTIONS
         // ---------
         async function closeIssue() {
-            return await octokit.rest.issues.update({
+            return await github
+                .request('PATCH /repos/{owner}/{repo}/issues/{issue_number}', {
                 owner,
                 repo,
                 issue_number,
                 state: 'closed'
-            });
-        }
-        async function getAllComments() {
-            return await octokit.rest.issues.listComments({
-                owner,
-                repo,
-                issue_number
-            });
+            })
+                .pipe(Effect.runPromise);
         }
         async function postComment(body) {
             // Check that this comment has not been previously commented
@@ -282,48 +280,50 @@ async function run() {
                     return;
                 }
             }
-            return await octokit.rest.issues.createComment({
+            return await github
+                .request('POST /repos/{owner}/{repo}/issues/{issue_number}/comments', {
                 owner,
                 repo,
                 issue_number,
                 body
-            });
+            })
+                .pipe(Effect.runPromise);
         }
         async function addLabel(label) {
-            await octokit.rest.issues.addLabels({
+            await github
+                .request('POST /repos/{owner}/{repo}/issues/{issue_number}/labels', {
                 owner,
                 repo,
                 issue_number,
                 labels: [label]
-            });
+            })
+                .pipe(Effect.runPromise);
         }
         async function removeLabel(label) {
-            try {
-                await octokit.rest.issues.removeLabel({
-                    owner,
-                    repo,
-                    issue_number,
-                    name: label
-                });
-            }
-            catch (err) {
-                const error = err;
-                if (error.status === 404) {
-                    console.log(`Cannot remove label '${label}' since it was not applied`);
-                    return;
-                }
-                throw error;
-            }
+            await github
+                .request('DELETE /repos/{owner}/{repo}/issues/{issue_number}/labels/{name}', {
+                owner,
+                repo,
+                issue_number,
+                name: label
+            })
+                .pipe(Effect.catchTag('GitHubRequestError', error => error.status === 404
+                ? Effect.sync(() => console.log(`Cannot remove label '${label}' since it was not applied`))
+                : Effect.fail(error)), Effect.runPromise);
         }
         function getLatestExtensionsVersion() {
             const result = (0, node_child_process_1.execSync)('pnpm exec vsce show salesforce.salesforcedx-vscode --json').toString();
             return JSON.parse(result).versions[0].version;
         }
-        function getMinimumVSCodeVersion() {
+        async function getMinimumVSCodeVersion() {
             try {
-                // Get the latest VSCode version from GitHub API using curl
-                const result = (0, node_child_process_1.execSync)('curl -s -H "User-Agent: salesforcedx-vscode-actions" https://api.github.com/repos/microsoft/vscode/releases/latest').toString();
-                const release = JSON.parse(result);
+                // Use the same explicit action token for the public VS Code release lookup.
+                const release = await github
+                    .request('GET /repos/{owner}/{repo}/releases/latest', {
+                    owner: 'microsoft',
+                    repo: 'vscode'
+                })
+                    .pipe(Effect.flatMap(Schema.decodeUnknown(Schema.Struct({ tag_name: Schema.optional(Schema.String) }))), Effect.runPromise);
                 const latestVersion = release.tag_name ?? '1.103.0'; // e.g., "1.103.0"
                 // Parse version numbers
                 const versionParts = latestVersion.split('.').map(Number);

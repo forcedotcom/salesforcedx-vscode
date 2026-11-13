@@ -25,6 +25,8 @@ jobs:
           install: 'false'
       - name: Install dependencies
         uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
+      - name: Compile effect-octokit
+        run: pnpm --filter @salesforce/effect-octokit compile
       - name: Check if the issue is a feature request
         id: check_feature_request
         uses: ./.github/actions/check-feature-request
@@ -43,6 +45,8 @@ jobs:
           install: 'false'
       - name: Install dependencies
         uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
+      - name: Compile effect-octokit
+        run: pnpm --filter @salesforce/effect-octokit compile
       - name: issue comment
         id: issue_comment
         uses: ./.github/actions/new-issue
@@ -65,6 +69,8 @@ jobs:
           install: 'false'
       - name: Install dependencies
         uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
+      - name: Compile effect-octokit
+        run: pnpm --filter @salesforce/effect-octokit compile
       - name: Validate issue
         id: validate-issue
         uses: ./.github/actions/validate-issue

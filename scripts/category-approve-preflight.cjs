@@ -1,4 +1,6 @@
 // Runs from the trusted develop checkout before pnpm or Cursor is installed.
+// Direct-Octokit exception: use actions/github-script's injected client because
+// effect-octokit and its workspace dependencies are not installed or compiled yet.
 // Only skips decided pre-classify gates; the approver rechecks them before acting.
 const { BOT_LOGIN, preClassifyPull, preClassifyFiles, preClassifyDecision } = require('./shared/categoryGates.cjs');
 

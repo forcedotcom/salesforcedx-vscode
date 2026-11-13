@@ -336,12 +336,17 @@
     "test:scripts": {
       "command": "vitest run --config vitest.config.mts",
       "dependencies": [
+        "compile:github-actions",
         "./packages/effect-octokit:compile",
         "./packages/playwright-vscode-ext:compile"
       ],
       "files": [
         "vitest.config.mts",
         "scripts/**/*.{ts,mts,cts}",
+        ".github/actions/*/lib/**/*.js",
+        ".github/actions/*/messages/*.md",
+        ".github/workflows/validateNewIssues.yml",
+        ".github/workflows/validateUpdatedIssues.yml",
         "scripts/bundling/process-global.js",
         "scripts/bundling/process-polyfill.js",
         "scripts/clean-wireit-cache.js",
@@ -462,6 +467,9 @@
     },
     "compile:github-actions": {
       "command": "tsc -p .github/actions/new-issue/tsconfig.json && tsc -p .github/actions/validate-issue/tsconfig.json && tsc -p .github/actions/check-feature-request/tsconfig.json",
+      "dependencies": [
+        "./packages/effect-octokit:compile"
+      ],
       "files": [
         ".github/actions/*/src/**/*.ts",
         ".github/actions/*/tsconfig.json",

@@ -6,7 +6,9 @@
  */
 
 import { getInput, setFailed } from "@actions/core";
-import { context, getOctokit } from "@actions/github";
+import { context } from "@actions/github";
+import { githubFromToken } from "@salesforce/effect-octokit";
+import * as Effect from "effect/Effect";
 
 async function run() {
   try {
@@ -27,28 +29,24 @@ async function run() {
       return;
     }
 
-    // Create a GitHub client
-    const token = getInput("repo-token");
-    const octokit = getOctokit(token);
+    // Use only the action input, never a token inherited from the runner environment.
+    const github = await githubFromToken(getInput("repo-token", { required: true })).pipe(Effect.runPromise);
 
     // Get owner and repo from context
-    const owner = context.repo.owner;
-    const repo = context.repo.repo;
+    const { owner, repo } = context.repo;
     const issue_number = issue.number;
 
     console.log("Issue URL:", issue.html_url);
 
-    const { body } = issue;
-    const { login: author } = issue.user;
-    const { data: comments } = await getAllComments();
+    const comments = await github.issueComments(owner, repo, issue_number).pipe(Effect.runPromise);
 
     // For version checks, we only care about comments from the author
     const authorComments = comments.filter(
-      (comment) => comment?.user?.login === author
+      (comment) => comment?.user?.login === issue.user.login
     );
     // Build an array of the issue body and all of the comment bodies
     const bodies = [
-      body,
+      issue.body,
       ...authorComments.map((comment) => comment.body),
     ].filter((body): body is string => body !== undefined);
     console.log('bodies = ' + JSON.stringify(bodies));
@@ -69,7 +67,7 @@ async function run() {
 
       if (featureRequests.length > 0) {
         console.log('This issue is a feature request!');
-        addLabel("type:enhancements");
+        await addLabel("type:enhancements");
         core.setOutput("is_feature_request", "true");
       } else {
         core.setOutput("is_feature_request", "false");
@@ -80,23 +78,16 @@ async function run() {
     // FUNCTIONS
     // ---------
 
-    async function getAllComments() {
-      return await octokit.rest.issues.listComments({
-        owner,
-        repo,
-        issue_number,
-      });
-    }
-
     async function addLabel(label: string) {
-      await octokit.rest.issues.addLabels({
-        owner,
-        repo,
-        issue_number,
-        labels: [label],
-      });
+      await github
+        .request("POST /repos/{owner}/{repo}/issues/{issue_number}/labels", {
+          owner,
+          repo,
+          issue_number,
+          labels: [label]
+        })
+        .pipe(Effect.runPromise);
     }
-
   } catch (err) {
     const error = err as Error;
     setFailed(error.message);
