@@ -160,7 +160,7 @@ describe('OrgMetadataCatalogRecorder', () => {
     expect(entries.generated?.documentUri.toString()).toBe('sf-org-metadata:/orgs/org-one/ApexClass/Generated');
   });
 
-  it('publishes tracking changes in previous-then-current status order and suppresses an identical observation', async () => {
+  it('publishes added, changed, and removed tracking references and suppresses an identical observation', async () => {
     const { catalogChanges, layer } = makeHarness();
 
     const result = await Effect.runPromise(
@@ -191,10 +191,47 @@ describe('OrgMetadataCatalogRecorder', () => {
       { xmlName: 'ApexClass', fullName: 'Changed' },
       { xmlName: 'ApexClass', fullName: 'Added' }
     ];
-    expect(result.changed).toEqual(references);
+    expect(result.changed).toHaveLength(references.length);
+    expect(result.changed).toEqual(expect.arrayContaining(references));
     expect(result.unchanged).toEqual([]);
-    expect(result.event).toEqual({ kind: 'tracking', orgId: 'org-one', references });
+    expect(result.event).toEqual({ kind: 'tracking', orgId: 'org-one', references: result.changed });
     expect(result.queued).toBe(0);
+  });
+
+  it('stores and reports duplicate remote status identities once, using the last observation', async () => {
+    const { layer } = makeHarness();
+
+    const result = await Effect.runPromise(
+      Effect.gen(function* () {
+        const recorder = yield* OrgMetadataCatalogRecorder;
+        const state = yield* OrgCatalogState;
+        const rows = [
+          { origin: 'remote', type: 'ApexClass', fullName: 'Repeated', state: 'modify' },
+          { origin: 'remote', type: 'ApexClass', fullName: 'Other', state: 'modify' },
+          { origin: 'remote', type: 'ApexClass', fullName: 'Repeated', state: 'delete' },
+          { origin: 'local', type: 'ApexClass', fullName: 'LocalOnly', state: 'add' }
+        ];
+        const changed = yield* recorder.recordTrackingStatus('org-one', rows, []);
+        const tracking = yield* state.getTracking('org-one');
+        const unchanged = yield* recorder.recordTrackingStatus('org-one', [rows[2]!, rows[1]!], []);
+        return { changed, tracking, unchanged };
+      }).pipe(Effect.provide(layer))
+    );
+
+    expect(result.changed).toHaveLength(2);
+    expect(result.changed).toEqual(
+      expect.arrayContaining([
+        { xmlName: 'ApexClass', fullName: 'Repeated' },
+        { xmlName: 'ApexClass', fullName: 'Other' }
+      ])
+    );
+    expect(HashMap.size(result.tracking)).toBe(2);
+    expect(
+      Option.getOrUndefined(
+        HashMap.get(result.tracking, componentIdentity({ xmlName: 'ApexClass', fullName: 'Repeated' }))
+      )?.signature
+    ).toBe('delete\0');
+    expect(result.unchanged).toEqual([]);
   });
 
   it('invalidates affected state and publishes an operation before returning', async () => {
@@ -205,15 +242,15 @@ describe('OrgMetadataCatalogRecorder', () => {
         const recorder = yield* OrgMetadataCatalogRecorder;
         const state = yield* OrgCatalogState;
         const subscription = yield* PubSub.subscribe(catalogChanges);
-        yield* state.setTracking('org-one', {
-          byIdentity: HashMap.fromIterable([
+        yield* state.setTracking(
+          'org-one',
+          HashMap.fromIterable([
             [
               componentIdentity({ xmlName: 'ApexClass', fullName: 'Foo' }),
               { reference: { xmlName: 'ApexClass', fullName: 'Foo' }, signature: 'modify\0revision-1' }
             ]
-          ]),
-          identityOrder: [componentIdentity({ xmlName: 'ApexClass', fullName: 'Foo' })]
-        });
+          ])
+        );
         yield* recorder.recordOperation({
           orgId: 'org-one',
           operation: 'retrieve',
@@ -228,6 +265,6 @@ describe('OrgMetadataCatalogRecorder', () => {
     );
 
     expect(result.event).toMatchObject({ kind: 'operation', event: { orgId: 'org-one' } });
-    expect(HashMap.size(result.tracking.byIdentity)).toBe(0);
+    expect(HashMap.size(result.tracking)).toBe(0);
   });
 });
