@@ -12,6 +12,7 @@ import type * as HashMap from 'effect/HashMap';
 
 export type ListedMetadataComponent = {
   readonly fullName: string;
+  readonly provenance?: 'data-api' | 'metadata-api' | 'tooling-api';
   readonly namespacePrefix?: string;
   readonly manageableState?: string;
   readonly fileName?: string;

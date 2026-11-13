@@ -44,7 +44,7 @@ export const mergeInventory = Effect.fn('mergeInventory')(function* ({
             {
               orgId,
               observedAt,
-              provenance: 'metadata-api' as const,
+              provenance: component.provenance ?? ('metadata-api' as const),
               reference: { xmlName, fullName: component.fullName },
               documentUri: uri,
               name: component.fullName.split('/').at(-1) ?? component.fullName,

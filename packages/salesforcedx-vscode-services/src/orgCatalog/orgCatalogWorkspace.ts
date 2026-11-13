@@ -92,35 +92,69 @@ export const makeOrgCatalogWorkspace = Effect.gen(function* () {
     });
   });
 
-  const scanWorkspaceInventory = Effect.fn('OrgCatalogWorkspace.scanWorkspaceInventory')((xmlName: string) =>
-    Effect.gen(function* () {
-      const [project, namespace] = yield* Effect.all([
-        projectService.getSfProject(),
-        projectService.getProjectNamespace()
-      ]);
-      const packageDirectories = project.getPackageDirectories().map(directory => directory.fullPath);
-      const componentSet = yield* metadataRetrieveService.buildComponentSetFromSource(packageDirectories, [
-        { type: xmlName, fullName: '*' }
-      ]);
-      const components = [...componentSet.getSourceComponents()].reduce((workspaceUris, component) => {
-        if (component.type.name !== xmlName) return workspaceUris;
-        // Decomposed children (e.g. CustomField): xml is the workspace artifact when content is absent.
-        const sourcePath = component.content ?? component.xml;
-        if (!sourcePath) return workspaceUris;
-        const candidate = toUri(sourcePath);
-        const existing = Option.getOrUndefined(HashMap.get(workspaceUris, component.fullName));
-        if (!existing || candidate.path.length < existing.path.length) {
-          return HashMap.set(workspaceUris, component.fullName, candidate);
-        }
-        return workspaceUris;
-      }, HashMap.empty<string, URI>());
-      return { namespace, components, workspacePresenceAvailable: true } as const;
-    }).pipe(
-      Effect.catchAll(error =>
-        reportWorkspaceScanFailure(xmlName, error).pipe(Effect.as(unavailableWorkspaceInventory))
+  const workspaceInventory = Effect.fn('OrgCatalogWorkspace.workspaceInventory')(
+    (xmlName: string, fullNames: readonly string[]) =>
+      Effect.gen(function* () {
+        const [project, namespace] = yield* Effect.all([
+          projectService.getSfProject(),
+          projectService.getProjectNamespace()
+        ]);
+        const packageDirectories = project.getPackageDirectories().map(directory => directory.fullPath);
+        const componentSet = yield* metadataRetrieveService.buildComponentSetFromSource(
+          packageDirectories,
+          Array.from(fullNames, fullName => ({ type: xmlName, fullName }))
+        );
+        const components = [...componentSet.getSourceComponents()].reduce((workspaceUris, component) => {
+          if (component.type.name !== xmlName) return workspaceUris;
+          // Decomposed children (e.g. CustomField): xml is the workspace artifact when content is absent.
+          const sourcePath = component.content ?? component.xml;
+          if (!sourcePath) return workspaceUris;
+          const candidate = toUri(sourcePath);
+          const existing = Option.getOrUndefined(HashMap.get(workspaceUris, component.fullName));
+          if (!existing || candidate.path.length < existing.path.length) {
+            return HashMap.set(workspaceUris, component.fullName, candidate);
+          }
+          return workspaceUris;
+        }, HashMap.empty<string, URI>());
+        return { namespace, components, workspacePresenceAvailable: true } as const;
+      }).pipe(
+        Effect.catchAll(error =>
+          reportWorkspaceScanFailure(xmlName, error).pipe(Effect.as(unavailableWorkspaceInventory))
+        )
       )
-    )
   );
+
+  const scanWorkspaceInventory = Effect.fn('OrgCatalogWorkspace.scanWorkspaceInventory')((xmlName: string) =>
+    workspaceInventory(xmlName, ['*'])
+  );
+
+  const findWorkspaceComponents = Effect.fn('OrgCatalogWorkspace.findWorkspaceComponents')(function* (
+    references: readonly OrgMetadataComponentReference[]
+  ) {
+    const xmlNames = Arr.dedupe(references.map(reference => reference.xmlName));
+    const inventories = yield* Effect.forEach(
+      xmlNames,
+      xmlName =>
+        workspaceInventory(
+          xmlName,
+          references.filter(reference => reference.xmlName === xmlName).map(reference => reference.fullName)
+        ).pipe(Effect.map(inventory => [xmlName, inventory] as const)),
+      { concurrency: 10 }
+    ).pipe(Effect.map(HashMap.fromIterable));
+    const resolutions = references.map(reference => {
+      const inventory = Option.getOrUndefined(HashMap.get(inventories, reference.xmlName));
+      const workspaceUri = inventory
+        ? Option.getOrUndefined(HashMap.get(inventory.components, reference.fullName))
+        : undefined;
+      return { reference, workspaceUri, workspacePresenceAvailable: inventory?.workspacePresenceAvailable ?? false };
+    });
+    yield* Effect.annotateCurrentSpan({
+      metadataTypeCount: xmlNames.length,
+      requestedComponentCount: references.length,
+      workspaceMatchCount: resolutions.filter(resolution => resolution.workspaceUri !== undefined).length
+    });
+    return resolutions;
+  });
 
   const scanWorkspace = Effect.fn('OrgCatalogWorkspace.scanWorkspace')((xmlName: string) =>
     scanWorkspaceInventory(xmlName)
@@ -166,15 +200,15 @@ export const makeOrgCatalogWorkspace = Effect.gen(function* () {
       Effect.provideService(MetadataRegistryService, registry)
     );
     const resolutions = componentReferences.map((reference, index) => {
-      const workspaceInventory = Option.getOrUndefined(HashMap.get(workspaceByType, reference.xmlName));
-      const workspaceUri = workspaceInventory
-        ? Option.getOrUndefined(HashMap.get(workspaceInventory.components, reference.fullName))
+      const typeWorkspaceInventory = Option.getOrUndefined(HashMap.get(workspaceByType, reference.xmlName));
+      const workspaceUri = typeWorkspaceInventory
+        ? Option.getOrUndefined(HashMap.get(typeWorkspaceInventory.components, reference.fullName))
         : undefined;
       const orgUri = orgUris[index];
       return {
         reference,
         presence: workspaceUri ? ('both' as const) : ('org' as const),
-        workspacePresenceAvailable: workspaceInventory?.workspacePresenceAvailable ?? false,
+        workspacePresenceAvailable: typeWorkspaceInventory?.workspacePresenceAvailable ?? false,
         preferredUri: options.prefer === 'workspace' && workspaceUri ? workspaceUri : orgUri,
         orgUri,
         ...(workspaceUri ? { workspaceUri } : {})
@@ -188,6 +222,7 @@ export const makeOrgCatalogWorkspace = Effect.gen(function* () {
     return resolutions;
   });
   return {
+    findWorkspaceComponents,
     getWorkspaceMetadataTypes,
     resolveComponents,
     scanWorkspaceInventory

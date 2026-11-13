@@ -109,7 +109,7 @@ describe('OrgMetadataCatalogRecorder', () => {
       Effect.gen(function* () {
         const recorder = yield* OrgMetadataCatalogRecorder;
         const state = yield* OrgCatalogState;
-        yield* recorder.recordRemoteComponents('org-one', 'metadata-api', [
+        yield* recorder.recordRemoteComponents('org-one', 'data-api', [
           { type: 'ApexClass', fullName: 'DiscoveredTest', lastModifiedDate: '2026-08-13T00:00:00.000Z' }
         ]);
         const discovered = findInventoryComponent(
@@ -131,7 +131,7 @@ describe('OrgMetadataCatalogRecorder', () => {
       expect.objectContaining({
         xmlName: 'ApexClass',
         complete: false,
-        components: [expect.objectContaining({ fullName: 'DiscoveredTest' })]
+        components: [expect.objectContaining({ fullName: 'DiscoveredTest', provenance: 'data-api' })]
       })
     ]);
   });

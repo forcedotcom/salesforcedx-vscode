@@ -57,6 +57,16 @@ import { OrgCatalogState } from './orgCatalog/orgCatalogState';
 import { OrgMetadataCatalog } from './orgCatalog/orgMetadataCatalog';
 import { OrgMetadataCatalogChangePubSub } from './orgCatalog/orgMetadataCatalogChangePubSub';
 import { OrgMetadataCatalogStore } from './orgCatalog/orgMetadataCatalogStore';
+import {
+  OrgMetadataCatalogComponentFindResultSchema,
+  OrgMetadataCatalogComponentReferenceSchema,
+  OrgMetadataCatalogFindQuerySchema,
+  OrgMetadataCatalogFindResultKindSchema,
+  OrgMetadataCatalogFindResultSchema,
+  OrgMetadataCatalogNotFoundResultSchema,
+  OrgMetadataCatalogSObjectFindResultSchema,
+  OrgSObjectDescriptionSchema
+} from './orgCatalog/orgMetadataCatalogTypes';
 import { runOrgMetadataDocumentProvider } from './orgCatalog/orgMetadataDocumentProvider';
 import { ORG_METADATA_SCHEME } from './orgCatalog/orgMetadataReference';
 import { globalLayers } from './servicesLayers';
@@ -156,6 +166,16 @@ export type SalesforceVSCodeServicesApi = {
     MetadataChangeNotificationService: typeof MetadataChangeNotificationService;
     MetadataDeleteService: typeof MetadataDeleteService;
     OrgMetadataCatalog: typeof OrgMetadataCatalog;
+    OrgMetadataCatalogFindSchemas: {
+      OrgMetadataCatalogComponentFindResult: typeof OrgMetadataCatalogComponentFindResultSchema;
+      OrgMetadataCatalogComponentReference: typeof OrgMetadataCatalogComponentReferenceSchema;
+      OrgMetadataCatalogFindQuery: typeof OrgMetadataCatalogFindQuerySchema;
+      OrgMetadataCatalogFindResult: typeof OrgMetadataCatalogFindResultSchema;
+      OrgMetadataCatalogFindResultKind: typeof OrgMetadataCatalogFindResultKindSchema;
+      OrgMetadataCatalogNotFoundResult: typeof OrgMetadataCatalogNotFoundResultSchema;
+      OrgMetadataCatalogSObjectFindResult: typeof OrgMetadataCatalogSObjectFindResultSchema;
+      OrgSObjectDescription: typeof OrgSObjectDescriptionSchema;
+    };
     OrgMetadataCatalogChangePubSub: typeof OrgMetadataCatalogChangePubSub;
     ORG_METADATA_SCHEME: typeof ORG_METADATA_SCHEME;
     MetadataDeployService: typeof MetadataDeployService;
@@ -298,13 +318,30 @@ export type { OrgMetadataCatalogError } from './orgCatalog/orgMetadataCatalogErr
 export type {
   OrgMetadataCatalogComponentEntry,
   OrgMetadataCatalogComponentReference,
+  OrgMetadataCatalogComponentFindResult,
   OrgMetadataCatalogEntry,
+  OrgMetadataCatalogFindQuery,
+  OrgMetadataCatalogFindResult,
+  OrgMetadataCatalogFindResultKind,
+  OrgMetadataCatalogNotFoundResult,
   OrgMetadataCatalogFieldEntry,
   OrgMetadataCatalogFolderEntry,
+  OrgMetadataCatalogSObjectFindResult,
+  OrgSObjectDescription,
   OrgMetadataCatalogReference,
   OrgMetadataConsistency,
   OrgMetadataFieldDetails,
   OrgMetadataHierarchyConsistency
+} from './orgCatalog/orgMetadataCatalogTypes';
+export {
+  OrgMetadataCatalogComponentFindResultSchema,
+  OrgMetadataCatalogComponentReferenceSchema,
+  OrgMetadataCatalogFindQuerySchema,
+  OrgMetadataCatalogFindResultKindSchema,
+  OrgMetadataCatalogFindResultSchema,
+  OrgMetadataCatalogNotFoundResultSchema,
+  OrgMetadataCatalogSObjectFindResultSchema,
+  OrgSObjectDescriptionSchema
 } from './orgCatalog/orgMetadataCatalogTypes';
 export type { OrgMetadataComponentReference } from './orgCatalog/orgMetadataReference';
 export type { MetadataDeleteError } from './core/metadataDeleteService';
@@ -577,6 +614,16 @@ export const activate = async (context: vscode.ExtensionContext): Promise<Salesf
         MetadataChangeNotificationService,
         MetadataDeleteService,
         OrgMetadataCatalog,
+        OrgMetadataCatalogFindSchemas: {
+          OrgMetadataCatalogComponentFindResult: OrgMetadataCatalogComponentFindResultSchema,
+          OrgMetadataCatalogComponentReference: OrgMetadataCatalogComponentReferenceSchema,
+          OrgMetadataCatalogFindQuery: OrgMetadataCatalogFindQuerySchema,
+          OrgMetadataCatalogFindResult: OrgMetadataCatalogFindResultSchema,
+          OrgMetadataCatalogFindResultKind: OrgMetadataCatalogFindResultKindSchema,
+          OrgMetadataCatalogNotFoundResult: OrgMetadataCatalogNotFoundResultSchema,
+          OrgMetadataCatalogSObjectFindResult: OrgMetadataCatalogSObjectFindResultSchema,
+          OrgSObjectDescription: OrgSObjectDescriptionSchema
+        },
         OrgMetadataCatalogChangePubSub,
         ORG_METADATA_SCHEME,
         MetadataDescribeService,

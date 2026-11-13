@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -22,6 +23,7 @@ import { getActiveMetadataOperationRef } from '../core/activeMetadataOperationRe
 import { getDefaultOrgRef } from '../core/defaultOrgRef';
 import { MetadataChangeNotificationService } from '../core/metadataChangeNotificationService';
 import { OrgId } from '../core/schemas/salesforceId';
+import { nls } from '../messages';
 import { FileChangePubSub, type FileChangeEvent } from '../vscode/fileChangePubSub';
 import { isUriEqualOrWithin } from '../vscode/uriContainment';
 import { WorkspaceService } from '../vscode/workspaceService';
@@ -130,6 +132,7 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
     WorkspaceService
   ]);
   const runtime = yield* Effect.runtime();
+  const reportedDocumentLoadFailures = new Set<string>();
   const provider = new OrgMetadataDocumentProvider(uri =>
     Runtime.runPromise(runtime)(
       Effect.gen(function* () {
@@ -137,7 +140,16 @@ export const runOrgMetadataDocumentProvider = Effect.fn('runOrgMetadataDocumentP
           Effect.map(({ orgId }) => orgId),
           Effect.filterOrFail(Schema.is(OrgId), () => vscode.FileSystemError.FileNotFound(uri))
         );
-        return yield* documents.readDocumentUri(activeOrgId, uri);
+        return yield* documents.readDocumentUri(activeOrgId, uri).pipe(
+          Effect.tapError(error => {
+            const message = nls.localize('org_metadata_catalog_document_open_failed', getErrorMessage(error));
+            if (reportedDocumentLoadFailures.has(message)) return Effect.void;
+            reportedDocumentLoadFailures.add(message);
+            return Effect.sync(() => {
+              void vscode.window.showErrorMessage(message);
+            });
+          })
+        );
       })
     )
   );

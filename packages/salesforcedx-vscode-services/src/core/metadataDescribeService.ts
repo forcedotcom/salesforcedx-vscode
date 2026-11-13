@@ -15,6 +15,7 @@ import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
+import * as Predicate from 'effect/Predicate';
 import * as S from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -59,6 +60,7 @@ export class MetadataDescribeError extends S.TaggedError<MetadataDescribeError>(
   cause: S.Unknown,
   function: S.String,
   objectName: S.optional(S.String),
+  notFound: S.optional(S.Boolean),
   message: S.String
 }) {}
 
@@ -190,6 +192,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
             cause,
             function: 'describeCustomObject',
             objectName,
+            notFound: isSObjectNotFound(cause),
             message: `Failed to describe sobject ${objectName}: ${getErrorMessage(cause)}`
           });
         }
@@ -596,3 +599,6 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
 }) {}
 
 const ensureArray = <T>(value: T | T[]): T[] => (Array.isArray(value) ? value : [value]);
+
+const isSObjectNotFound = (cause: unknown): boolean =>
+  Predicate.isError(cause) && /does not exist|not found|invalid type|resource.*not.*found/i.test(cause.message);

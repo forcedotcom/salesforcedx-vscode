@@ -63,6 +63,9 @@ const toPersistedInventory = (xmlName: string, value: TypeInventory): PersistedT
                 fullName: isOrgMetadataComponentReference(component.reference)
                   ? component.reference.fullName
                   : component.name,
+                ...(component.provenance === 'data-api' || component.provenance === 'tooling-api'
+                  ? { provenance: component.provenance }
+                  : {}),
                 namespacePrefix: component.namespacePrefix,
                 manageableState: component.manageableState,
                 fileName: component.fileName,
@@ -356,7 +359,8 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
                 HashMap.filter(current, (_value, key) => !key.startsWith(`${orgId}\0`))
               ),
               Ref.update(persistedInventoryCache, current =>
-                HashMap.filter(current, (_value, key) => !key.startsWith(`${orgId}\0`))
+                // Keep exact, incomplete discoveries so a source read remains available after a broad invalidation.
+                HashMap.filter(current, (value, key) => !key.startsWith(`${orgId}\0`) || value.complete === false)
               ),
               Ref.update(workspaceTypeCache, current => HashMap.remove(current, orgId))
             ],

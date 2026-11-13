@@ -7,7 +7,10 @@
 
 import * as Schema from 'effect/Schema';
 import { URI } from 'vscode-uri';
-import { OrgMetadataCatalogEntrySchema } from '../../../src/orgCatalog/orgMetadataCatalogTypes';
+import {
+  OrgMetadataCatalogComponentReferenceSchema,
+  OrgMetadataCatalogEntrySchema
+} from '../../../src/orgCatalog/orgMetadataCatalogTypes';
 
 const isCatalogEntry = Schema.is(OrgMetadataCatalogEntrySchema);
 
@@ -32,6 +35,17 @@ describe('OrgMetadataCatalogEntrySchema', () => {
     ).toBe(true);
   });
 
+  it('accepts a component observed through the standard data query API', () => {
+    expect(
+      isCatalogEntry({
+        ...baseEntry,
+        provenance: 'data-api',
+        kind: 'component',
+        reference: { type: 'ApexClass', fullName: 'Example' }
+      })
+    ).toBe(true);
+  });
+
   it('rejects a component without a full name', () => {
     expect(
       isCatalogEntry({
@@ -40,5 +54,11 @@ describe('OrgMetadataCatalogEntrySchema', () => {
         reference: { type: 'ApexClass' }
       })
     ).toBe(false);
+  });
+});
+
+describe('OrgMetadataCatalogComponentReferenceSchema', () => {
+  it('accepts canonical namespaced component full names', () => {
+    expect(Schema.is(OrgMetadataCatalogComponentReferenceSchema)({ type: 'ApexClass', fullName: 'B__Foo' })).toBe(true);
   });
 });

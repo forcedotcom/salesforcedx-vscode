@@ -31,6 +31,7 @@ export const isOrgMetadataCatalogUri = (workspaceUri: URI, uri: URI): boolean =>
 const ProvenanceSchema = Schema.Literal(
   'metadata-api',
   'rest-api',
+  'data-api',
   'tooling-api',
   'workspace',
   'metadata-api+workspace',
@@ -39,6 +40,7 @@ const ProvenanceSchema = Schema.Literal(
 
 const PersistedListedComponentSchema = Schema.Struct({
   fullName: Schema.String,
+  provenance: Schema.optional(Schema.Literal('data-api', 'metadata-api', 'tooling-api')),
   namespacePrefix: Schema.optional(Schema.String),
   manageableState: Schema.optional(Schema.String),
   fileName: Schema.optional(Schema.String),
