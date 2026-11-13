@@ -16,7 +16,6 @@ import type {
   OrgSObjectSummary
 } from './orgMetadataCatalogTypes';
 import type { MetadataOperationEvent } from '../core/metadataChangeNotificationService';
-import * as Arr from 'effect/Array';
 import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import * as HashMap from 'effect/HashMap';
@@ -67,7 +66,8 @@ export const compareTrackingObservations = (
   previous: RemoteTrackingObservations,
   current: RemoteTrackingObservations
 ): OrgMetadataComponentReference[] =>
-  Arr.dedupe([...previous.identityOrder, ...current.identityOrder]).flatMap(identity => {
+  // Set, not Arr.dedupe: dedupe is O(n^2) and blocked the extension host for 20s on a large org.
+  [...new Set([...previous.identityOrder, ...current.identityOrder])].flatMap(identity => {
     const previousObservation = Option.getOrUndefined(HashMap.get(previous.byIdentity, identity));
     const currentObservation = Option.getOrUndefined(HashMap.get(current.byIdentity, identity));
     return previousObservation?.signature === currentObservation?.signature
@@ -325,9 +325,10 @@ export class OrgMetadataCatalogRecorder extends Effect.Service<OrgMetadataCatalo
               signature: `${row.state}\0${Option.getOrElse(HashMap.get(revisionByIdentity, key), () => '')}`
             });
           }, HashMap.empty<string, RemoteTrackingObservation>()),
-          identityOrder: Arr.dedupe(
-            remoteStatus.map(row => componentIdentity({ xmlName: row.type, fullName: row.fullName }))
-          )
+          // Set, not Arr.dedupe: see compareTrackingObservations.
+          identityOrder: [
+            ...new Set(remoteStatus.map(row => componentIdentity({ xmlName: row.type, fullName: row.fullName })))
+          ]
         };
         const previous = yield* state.getTracking(orgId);
         const changedReferences = compareTrackingObservations(previous, observations);
