@@ -10,10 +10,11 @@ import * as Command from '@effect/platform/Command';
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
 import * as NodeContext from '@effect/platform-node/NodeContext';
-import { actionsEnvironment, GitHub, readPullRequestEvent } from '@salesforce/effect-octokit';
+import { actionsEnvironment, GitHub, readPullRequestEvent, type PullRequestState } from '@salesforce/effect-octokit';
 import { Config, Effect, Either, Exit, Layer, Logger, Option, pipe, Redacted, Schema, Stream } from 'effect';
 import { pathToFileURL } from 'node:url';
 import { CommandFailed, CursorRunFailed, InvalidBaseRef, Judgment, type Item } from './schema.mts';
+import { removeVideoSection, renderVideoManifest } from './videoManifest.mts';
 
 const skillPath = '.cursor/skills/manual-test-plan-judgment/SKILL.md';
 const startMarker = '<!-- manual-test-plan -->';
@@ -88,10 +89,16 @@ const itemLine = (item: Item) =>
     ? `- [ ] Watch video: \`${item.spec}\` in \`${item.workflow}\` (\`${item.job}\`)`
     : `- [ ] ${item.step}`;
 
-export const renderManualTestPlan = (judgment: typeof Judgment.Type) => {
+export const renderManualTestPlan = (judgment: typeof Judgment.Type, sha: string) => {
   const body =
     judgment.kind === 'nothing' ? 'Nothing worth manually testing.' : judgment.items.map(itemLine).join('\n');
-  return `${startMarker}\n## Manual test plan\n\n${body}\n${endMarker}`;
+  const targets =
+    judgment.kind === 'nothing'
+      ? []
+      : judgment.items.flatMap(item =>
+          item.kind === 'watch-video' ? [{ spec: item.spec, workflow: item.workflow, job: item.job }] : []
+        );
+  return `${startMarker}\n## Manual test plan\n\n${body}\n${renderVideoManifest({ sha, targets })}\n${endMarker}`;
 };
 
 export const spliceManualTestPlan = (body: string, block: string) => {
@@ -261,6 +268,9 @@ export type ManualTestPlanDeps = {
   readonly prompt?: (input: PromptInput) => Effect.Effect<string, CursorRunFailed>;
   readonly readBody?: (pr: number) => Effect.Effect<string>;
   readonly writeBody?: (pr: number, body: string) => Effect.Effect<void>;
+  readonly readHead?: (
+    pr: number
+  ) => Effect.Effect<{ readonly state: PullRequestState; readonly headRefOid: string } | undefined>;
 };
 
 export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(function* (deps?: ManualTestPlanDeps) {
@@ -275,6 +285,7 @@ export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(functio
   const pr = yield* readPullRequestEvent(env.eventPath).pipe(Effect.map(event => event.pull_request.number));
   const cwd =
     deps?.cwd ?? (yield* git(process.cwd(), ['rev-parse', '--show-toplevel']).pipe(Effect.map(root => root.trim())));
+  const sha = yield* git(cwd, ['rev-parse', 'HEAD']).pipe(Effect.map(head => head.trim()));
   yield* Effect.annotateCurrentSpan('pr', String(pr));
   yield* git(cwd, ['fetch', 'origin', base]);
   const skill = yield* git(cwd, ['show', `origin/${base}:${skillPath}`]).pipe(Effect.option);
@@ -290,11 +301,16 @@ export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(functio
   );
   if (judged._tag === 'cursor') return yield* skip('cursor', judged.message);
   if (judged._tag === 'retry') return yield* skip('schema', judged.error);
-  const block = renderManualTestPlan(judged.judgment);
+  const block = renderManualTestPlan(judged.judgment, sha);
   const current = yield* deps?.readBody === undefined ? readPrBody(env.owner, env.repo, pr) : deps.readBody(pr);
+  const latest = yield* deps?.readHead === undefined ? GitHub.pullRequest(env.owner, env.repo, pr) : deps.readHead(pr);
+  if (latest?.state !== 'OPEN' || latest.headRefOid !== sha)
+    return yield* skip('stale-head', 'PR closed or head moved during manual plan generation');
   const next = spliceManualTestPlan(current, block);
   if (next === current) return { edited: false } satisfies Outcome;
-  yield* deps?.writeBody === undefined ? writePrBody(env.owner, env.repo, pr, next) : deps.writeBody(pr, next);
+  yield* deps?.writeBody === undefined
+    ? writePrBody(env.owner, env.repo, pr, removeVideoSection(next))
+    : deps.writeBody(pr, removeVideoSection(next));
   yield* Effect.logInfo('manual test plan updated', { pr });
   return { edited: true } satisfies Outcome;
 });

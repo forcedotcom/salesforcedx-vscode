@@ -65,8 +65,7 @@ export const createTraceFlagForCurrentUserCommand = Effect.fn('ApexLog.Command.c
     if (Option.isNone(ctx)) return;
     const { api, orgId, userId } = ctx.value;
     const traceFlagService = yield* api.services.TraceFlagService;
-    const debugLevels = yield* traceFlagService.getDebugLevels();
-    const debugLevelId = yield* pickDebugLevelIdOrDefault(debugLevels);
+    const debugLevelId = yield* traceFlagService.getDebugLevels().pipe(Effect.flatMap(pickDebugLevelIdOrDefault));
     const minutes = yield* readDefaultDurationMinutes();
     yield* traceFlagService.ensureTraceFlag(userId!, Duration.minutes(minutes), 'DEVELOPER_LOG', debugLevelId);
     yield* refreshTraceFlagsView(orgId);
@@ -108,8 +107,7 @@ export const createTraceFlagForUserCommand = Effect.fn('ApexLog.Command.createTr
   yield* Effect.annotateCurrentSpan('createTraceFlagForUser', { attributes: { userId: picked?.userId ?? 'none' } });
   const user = yield* promptService.considerUndefinedAsCancellation(picked);
   const traceFlagService = yield* api.services.TraceFlagService;
-  const debugLevels = yield* traceFlagService.getDebugLevels();
-  const debugLevelId = yield* pickDebugLevelIdOrDefault(debugLevels);
+  const debugLevelId = yield* traceFlagService.getDebugLevels().pipe(Effect.flatMap(pickDebugLevelIdOrDefault));
   const minutes = yield* readDefaultDurationMinutes();
   yield* traceFlagService.ensureTraceFlag(user.userId, Duration.minutes(minutes), 'USER_DEBUG', debugLevelId);
   yield* refreshTraceFlagsView(orgId);
@@ -237,8 +235,7 @@ export const changeDebugLevelCommand = Effect.fn('ApexLog.Command.changeDebugLev
   if (Option.isNone(ctx)) return;
   const { api, orgId } = ctx.value;
   const traceFlagService = yield* api.services.TraceFlagService;
-  const debugLevels = yield* traceFlagService.getDebugLevels();
-  const debugLevelId = yield* pickDebugLevel(debugLevels);
+  const debugLevelId = yield* traceFlagService.getDebugLevels().pipe(Effect.flatMap(pickDebugLevel));
   yield* traceFlagService.changeTraceFlagDebugLevel(traceFlagId, debugLevelId);
   yield* refreshTraceFlagsView(orgId);
 });

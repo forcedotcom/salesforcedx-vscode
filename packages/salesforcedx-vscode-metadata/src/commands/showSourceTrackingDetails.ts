@@ -34,8 +34,11 @@ export const viewChangesCommand = Effect.fn('viewChanges')(function* (options: V
   const channelService = yield* api.services.ChannelService;
   const channel = yield* channelService.getChannel;
 
-  const status = yield* api.services.SourceTrackingService.getStatus(options);
-  const { localChanges: allLocalChanges, remoteChanges: allRemoteChanges, conflicts } = separateChanges(status);
+  const {
+    localChanges: allLocalChanges,
+    remoteChanges: allRemoteChanges,
+    conflicts
+  } = yield* api.services.SourceTrackingService.getStatus(options).pipe(Effect.map(separateChanges));
 
   const remoteChanges = options.remote ? allRemoteChanges : undefined;
   const localChanges = options.local ? allLocalChanges : undefined;

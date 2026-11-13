@@ -10,6 +10,16 @@ import { RuleCreator } from '@typescript-eslint/utils/eslint-utils';
 
 /** Only direct, immediate uses; moving the yield across another evaluation changes execution order. */
 const reportableUse = (statement: TSESTree.Statement, reference: TSESTree.Identifier): boolean => {
+  if (statement.type === AST_NODE_TYPES.VariableDeclaration && statement.declarations.length === 1) {
+    const init = statement.declarations[0].init;
+    const argument = init?.type === AST_NODE_TYPES.YieldExpression && init.delegate ? init.argument : init;
+    return (
+      argument?.type === AST_NODE_TYPES.CallExpression &&
+      argument.callee.type === AST_NODE_TYPES.Identifier &&
+      argument.arguments.length === 1 &&
+      argument.arguments[0] === reference
+    );
+  }
   if (statement.type !== AST_NODE_TYPES.ReturnStatement && statement.type !== AST_NODE_TYPES.ExpressionStatement) {
     return false;
   }

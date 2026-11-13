@@ -22,6 +22,7 @@ import {
   type PromptInput
 } from '../../manualTestPlan.mts';
 import { CursorRunFailed } from '../../schema.mts';
+import { videosEnd, videosStart } from '../../videoManifest.mts';
 
 const repoRoot = join(import.meta.dirname, '..', '..', '..', '..');
 
@@ -111,11 +112,19 @@ const initRepo = (skill: boolean) => {
 const run = (
   cwd: string,
   prompt: (input: PromptInput) => Effect.Effect<string, CursorRunFailed>,
-  state: { body: string; writes: string[] }
+  state: { body: string; writes: string[] },
+  headMoved = false
 ) =>
   manualTestPlanProgram({
     cwd,
     prompt,
+    readHead: () =>
+      Effect.succeed({
+        state: 'OPEN',
+        headRefOid: headMoved
+          ? 'different-head'
+          : execFileSync('git', ['rev-parse', 'HEAD'], { cwd, env: gitEnv, encoding: 'utf8' }).trim()
+      }),
     readBody: () => Effect.succeed(state.body),
     writeBody: (_pr, body) =>
       Effect.sync(() => {
@@ -135,15 +144,18 @@ test('splice keeps surrounding sections and replaces only the marked block', () 
   const prefix = '## Summary\n\nkept\n\n## Plan\n\nlink\n';
   const first = spliceManualTestPlan(
     prefix,
-    renderManualTestPlan({
-      kind: 'checklist',
-      items: [{ kind: 'manual', step: 'Open the org browser' }]
-    })
+    renderManualTestPlan(
+      {
+        kind: 'checklist',
+        items: [{ kind: 'manual', step: 'Open the org browser' }]
+      },
+      'head'
+    )
   );
   assert.equal(first.slice(0, prefix.length), prefix);
   assert.equal(first.includes('## Manual test plan'), true);
   assert.equal(first.includes('- [ ] Open the org browser'), true);
-  const second = spliceManualTestPlan(first, renderManualTestPlan({ kind: 'nothing' }));
+  const second = spliceManualTestPlan(first, renderManualTestPlan({ kind: 'nothing' }, 'head'));
   assert.equal(second.slice(0, prefix.length), prefix);
   assert.equal(second.includes('Open the org browser'), false);
   assert.equal(second.includes('Nothing worth manually testing.'), true);
@@ -151,17 +163,20 @@ test('splice keeps surrounding sections and replaces only the marked block', () 
 });
 
 test('watch-video renders the spec, workflow, and job', () => {
-  const rendered = renderManualTestPlan({
-    kind: 'checklist',
-    items: [
-      {
-        kind: 'watch-video',
-        spec: 'packages/salesforcedx-vscode-core/test/playwright/specs/core.spec.ts',
-        workflow: 'Core E2E (Playwright)',
-        job: 'e2e-desktop'
-      }
-    ]
-  });
+  const rendered = renderManualTestPlan(
+    {
+      kind: 'checklist',
+      items: [
+        {
+          kind: 'watch-video',
+          spec: 'packages/salesforcedx-vscode-core/test/playwright/specs/core.spec.ts',
+          workflow: 'Core E2E (Playwright)',
+          job: 'e2e-desktop'
+        }
+      ]
+    },
+    'head'
+  );
   assert.match(
     rendered,
     /- \[ \] Watch video: `packages\/salesforcedx-vscode-core\/test\/playwright\/specs\/core\.spec\.ts` in `Core E2E \(Playwright\)` \(`e2e-desktop`\)/
@@ -240,6 +255,25 @@ test('a cursor failure does not retry', async () => {
   assert.deepEqual(outcome, { edited: false });
   assert.equal(calls.n, 1);
   assert.deepEqual(state.writes, []);
+});
+
+test('head moving during AI generation leaves the body intact', async () => {
+  const state: { body: string; writes: string[] } = { body: 'Keep existing manual plan', writes: [] };
+  const result = await run(initRepo(true), replies(['{"kind":"nothing"}']), state, true);
+  assert.deepEqual(result, { edited: false });
+  assert.equal(state.body, 'Keep existing manual plan');
+  assert.deepEqual(state.writes, []);
+});
+
+test('an unchanged plan does not clear its already published videos', async () => {
+  const cwd = initRepo(true);
+  const state: { body: string; writes: string[] } = { body: 'Summary\n', writes: [] };
+  await run(cwd, replies(['{"kind":"nothing"}']), state);
+  state.body = `${state.body}${videosStart}\nvideo\n${videosEnd}`;
+  const body = state.body;
+  assert.deepEqual(await run(cwd, replies(['{"kind":"nothing"}']), state), { edited: false });
+  assert.equal(state.body, body);
+  assert.equal(state.writes.length, 1);
 });
 
 test('schema and watch-video failures retry once', async () => {

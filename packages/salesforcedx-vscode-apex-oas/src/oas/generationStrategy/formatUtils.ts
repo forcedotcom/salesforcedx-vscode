@@ -107,8 +107,7 @@ export const combineYamlByMethod = Effect.fn('ApexOas.Format.combineYamlByMethod
 
   yield* Effect.forEach(docs, doc =>
     Effect.gen(function* () {
-      const cleanedOASDoc = yield* cleanupGeneratedDoc(doc);
-      const parsed = parseOASDocFromJson(cleanedOASDoc);
+      const parsed = yield* cleanupGeneratedDoc(doc).pipe(Effect.map(parseOASDocFromJson));
 
       // Merge paths
       if (parsed.paths) {

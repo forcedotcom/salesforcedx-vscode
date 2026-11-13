@@ -1,6 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 import { spawnSync } from 'child_process';
+import ts from 'typescript';
 import { fileURLToPath } from 'url';
 
 // Effect LS diagnostics ratchet.
@@ -37,8 +38,22 @@ if (!Array.isArray(enforcedRules)) {
 const enforcedSet = new Set(enforcedRules);
 // --lspconfig replaces the project's Effect plugin config; enable off-by-default rules
 // here without pinning them in tsconfig.common.json (which also affects editor/tsc).
+const { config: projectTsconfig, error: configError } = ts.parseConfigFileTextToJson(
+  tsconfig,
+  fs.readFileSync(tsconfig, 'utf8')
+);
+if (configError !== undefined) {
+  console.error(ts.flattenDiagnosticMessageText(configError.messageText, '\n'));
+  process.exit(1);
+}
+const projectDiagnosticSeverity = projectTsconfig.compilerOptions?.plugins?.find(
+  plugin => plugin.name === '@effect/language-service'
+)?.diagnosticSeverity;
 const lspConfig = JSON.stringify({
-  diagnosticSeverity: Object.fromEntries(enforcedRules.map(name => [name, 'error']))
+  diagnosticSeverity: {
+    ...Object.fromEntries(enforcedRules.map(name => [name, 'error'])),
+    ...projectDiagnosticSeverity
+  }
 });
 
 // Per-package CLI budget: bound a hung/runaway invocation instead of hanging the whole CI job.

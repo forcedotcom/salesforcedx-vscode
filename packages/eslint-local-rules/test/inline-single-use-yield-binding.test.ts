@@ -41,6 +41,16 @@ ruleTester.run('inline-single-use-yield-binding', inlineSingleUseYieldBinding, {
       errors: [{ messageId: 'inlineSingleUseYieldBinding' }]
     },
     {
+      code: 'function* g() { const x = yield* e; const y = yield* f(x); return y + y; }',
+      output: null,
+      errors: [{ messageId: 'inlineSingleUseYieldBinding' }]
+    },
+    {
+      code: 'function* g() { const x = yield* e; const y = f(x); return y + y; }',
+      output: null,
+      errors: [{ messageId: 'inlineSingleUseYieldBinding' }]
+    },
+    {
       code: 'function* g() { const x = yield* e; return f(x); }',
       output: null,
       errors: [{ messageId: 'inlineSingleUseYieldBinding' }]

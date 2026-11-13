@@ -84,3 +84,6 @@ export const readCompletedChecksEvent = (eventPath: string) => readActionsEvent(
 export const readIssueCommentEvent = (eventPath: string) => readActionsEvent(eventPath, IssueCommentEventSchema);
 export const readPullRequestEvent = (eventPath: string) => readActionsEvent(eventPath, PullRequestEventSchema);
 export const readSynchronizeEvent = (eventPath: string) => readActionsEvent(eventPath, SynchronizeEventSchema);
+
+export const readWorkflowDispatchEvent = <A, I>(eventPath: string, inputs: Schema.Schema<A, I>) =>
+  readActionsEvent(eventPath, Schema.Struct({ inputs }));
