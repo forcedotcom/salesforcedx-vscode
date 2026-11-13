@@ -5,7 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { FullLegacyServicesApi, PublicLegacyServicesApi } from '../bridgeHost/legacyClasses.js';
-import { AliasService, bindLegacyAliasService, ConfigService, bindLegacyConfigService, ConnectionService,
+import { AliasService, ApexLogService, bindLegacyAliasService, ConfigService, bindLegacyConfigService, ConnectionService,
+  FsService,
   bindLegacyConnectionService, WorkspaceService, bindLegacyWorkspaceService, QueryService, bindLegacyQueryService
 } from '../bridgeHost/legacyClasses.js';
 import { createAbiSdkValues } from '../bridgeHost/nodeConnection.js';
@@ -82,6 +83,11 @@ const queryBody: Body<'QueryService'> = {
       Effect.map(records => ({ totalSize: records.length, records: Stream.fromIterable(records) })))
 };
 const query = bindLegacyQueryService(queryBody);
+const apexLogs = ApexLogService.of({
+  listLogs: () => Effect.succeed([]),
+  getLogBody: () => Effect.succeed('')
+});
+const fs = FsService.of({ safeWriteFile: () => Effect.void });
 const constructors: Pick<Legacy, 'WorkspaceService' | 'ConnectionService' | 'ConfigService' | 'AliasService' | 'QueryService'> = {
   WorkspaceService: workspaceA.Service, ConnectionService: connection.Service, ConfigService: config.Service, AliasService: alias.Service,
   QueryService: query.Service
@@ -91,12 +97,13 @@ assert.equal(new constructors.ConnectionService(connectionBody).getConnection, c
 assert.equal(constructors.AliasService.make(aliasBody).getAllAliases, aliasBody.getAllAliases);
 const shared = Context.make(WorkspaceService, workspaceA.instance).pipe(
   Context.add(ConnectionService, connection.instance), Context.add(ConfigService, config.instance), Context.add(AliasService, alias.instance),
-  Context.add(QueryService, query.instance)
+  Context.add(QueryService, query.instance), Context.add(ApexLogService, apexLogs), Context.add(FsService, fs)
 );
 type OrgInfo = Effect.Effect.Success<ReturnType<Legacy['TargetOrgRef']>> extends SubscriptionRef.SubscriptionRef<infer A> ? A : never;
 const orgRef = await Effect.runPromise(SubscriptionRef.make<OrgInfo>({}));
 const publicApi: PublicLegacyServicesApi = { services: {
   ConnectionService: connection.Service, AliasService: alias.Service, ConfigService: config.Service,
+  ApexLogService, FsService,
   TargetOrgRef: () => Effect.succeed(orgRef), prebuiltServicesDependencies: shared,
   prebuiltServicesLayer: Layer.succeedContext(shared)
 } };

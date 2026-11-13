@@ -5,6 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import type { CompatibilityHost } from './compatibilityHost.js';
+import type { LegacyServiceInstance, LegacyServices } from './legacyTypes.js';
+import * as Cause from 'effect/Cause';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -17,7 +19,39 @@ import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { DefaultOrgInfoSchema, type DefaultOrgInfo } from './defaultOrgInfo.js';
 import { completeHost, fromHostExit, makeLegacyHostOperations } from './legacyHostOperations.js';
 import { ConfigFailureSchema, ConnectionFailureSchema } from './serviceErrors.js';
-import { AliasService, ConfigService, ConnectionService } from './services.js';
+import { AliasService, ApexLogService, ConfigService, ConnectionService, FsService } from './services.js';
+
+class ApexLogBodyFetchError extends Schema.TaggedError<ApexLogBodyFetchError>()('ApexLogBodyFetchError', {
+  message: Schema.String,
+  cause: Schema.optional(Schema.Unknown)
+}) {}
+
+class FsServiceError extends Schema.TaggedError<FsServiceError>()('FsServiceError', {
+  cause: Schema.instanceOf(Error),
+  message: Schema.String,
+  function: Schema.String,
+  filePath: Schema.String
+}) {}
+
+type LegacyBridgeServiceInstances =
+  | LegacyServiceInstance<'ConnectionService'>
+  | LegacyServiceInstance<'AliasService'>
+  | LegacyServiceInstance<'ConfigService'>
+  | LegacyServiceInstance<'ApexLogService'>
+  | LegacyServiceInstance<'FsService'>;
+type CreatedLegacyServices = {
+  readonly services: {
+    readonly ConnectionService: typeof ConnectionService;
+    readonly AliasService: typeof AliasService;
+    readonly ConfigService: typeof ConfigService;
+    readonly ApexLogService: typeof ApexLogService;
+    readonly FsService: typeof FsService;
+    readonly TargetOrgRef: LegacyServices['TargetOrgRef'];
+    readonly prebuiltServicesDependencies: Context.Context<LegacyBridgeServiceInstances>;
+    readonly prebuiltServicesLayer: Layer.Layer<LegacyBridgeServiceInstances>;
+  };
+  readonly dispose: () => Promise<void>;
+};
 
 const makeLegacyServices = Effect.fn('V3Compatibility.makeLegacyServices')(function* (host: CompatibilityHost) {
   const operations = yield* makeLegacyHostOperations();
@@ -40,6 +74,31 @@ const makeLegacyServices = Effect.fn('V3Compatibility.makeLegacyServices')(funct
     return yield* operations.isClosed.pipe(
       Effect.flatMap(closed => (closed ? Effect.interrupt : Effect.succeed(orgRef)))
     );
+  });
+  const apexLogService = ApexLogService.of({
+    listLogs: (limit, options) =>
+      fromHost(
+        signal => host.listLogs(limit, options, signal),
+        error => new Cause.UnknownException(new Error(error.message))
+      ),
+    getLogBody: logId =>
+      fromHost(
+        signal => host.getLogBody(logId, signal),
+        error => new ApexLogBodyFetchError({ message: error.message, cause: new Error(error.message) })
+      )
+  });
+  const fsService = FsService.of({
+    safeWriteFile: (filePath, content) =>
+      fromHost(
+        signal => host.safeWriteFile(filePath.toString(), content, signal),
+        error =>
+          new FsServiceError({
+            cause: new Error(error.message),
+            message: error.message,
+            function: error.function ?? 'safeWriteFile',
+            filePath: error.filePath ?? filePath.toString()
+          })
+      )
   });
 
   // Acquisition stays masked until the stop handle is registered, including startup cancellation.
@@ -71,12 +130,16 @@ const makeLegacyServices = Effect.fn('V3Compatibility.makeLegacyServices')(funct
 
   const context = Context.make(ConnectionService, ConnectionService.of({ getConnection })).pipe(
     Context.add(AliasService, AliasService.of({ getAliasesFromUsername })),
-    Context.add(ConfigService, ConfigService.of({ getTargetOrg }))
+    Context.add(ConfigService, ConfigService.of({ getTargetOrg })),
+    Context.add(ApexLogService, apexLogService),
+    Context.add(FsService, fsService)
   );
   return {
     ConnectionService,
     AliasService,
     ConfigService,
+    ApexLogService,
+    FsService,
     TargetOrgRef,
     prebuiltServicesDependencies: context,
     prebuiltServicesLayer: Layer.succeedContext(context).pipe(
@@ -88,7 +151,7 @@ const makeLegacyServices = Effect.fn('V3Compatibility.makeLegacyServices')(funct
 });
 
 /** Imperative ownership boundary: close this V3 scope before disposing the owning V4 runtime. */
-export const createLegacyServices = (host: CompatibilityHost, signal?: AbortSignal) =>
+export const createLegacyServices = (host: CompatibilityHost, signal?: AbortSignal): Promise<CreatedLegacyServices> =>
   (signal?.aborted
     ? Effect.interrupt
     : Effect.uninterruptibleMask(restore =>

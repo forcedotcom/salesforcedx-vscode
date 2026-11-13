@@ -4,7 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-export { AliasService, ConfigService, ConnectionService } from './services.js';
+export { AliasService, ApexLogService, ConfigService, ConnectionService, FsService } from './services.js';
 export { createLegacyServices } from './createLegacyServices.js';
 export { createCompatibleConnectionServices } from './createCompatibleConnectionServices.js';
 export { DefaultOrgInfoSchema, type DefaultOrgInfo } from './defaultOrgInfo.js';

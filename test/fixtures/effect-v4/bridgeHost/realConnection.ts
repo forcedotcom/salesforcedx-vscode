@@ -6,12 +6,18 @@
  */
 import { AuthInfo, Connection, Global, StateAggregator } from '@salesforce/core';
 import coreFs from '@salesforce/core/fs';
-import { CliId, ChannelService, ConnectionService, TargetOrgRef } from '@salesforce/vscode-services/v2';
+import {
+  CliId,
+  ChannelService,
+  ConnectionService,
+  TargetOrgRef
+} from '@salesforce/vscode-services/v2';
 import { ConnectionHost } from 'salesforcedx-vscode-services/out/src/services/connectionHost.js';
 import { connectionWatcherLayers } from 'salesforcedx-vscode-services/out/src/services/connectionLayers.js';
 import { createConnectionRuntime } from 'salesforcedx-vscode-services/out/src/services/connectionRuntime.js';
 import { HostFileSystem } from 'salesforcedx-vscode-services/out/src/services/hostFileSystem.js';
 import { WebFileSystemProvider } from 'salesforcedx-vscode-services/out/src/services/webFileSystemProvider.js';
+import type { CompatibilityHost, CompatibilityLogItem, CompatibilityServiceFailure, HostExit } from '@salesforce/vscode-services-v3-compat/host';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
@@ -52,13 +58,23 @@ export const makeRealConnection = async () => {
     Layer.mock(ChannelService, { appendToChannel: () => Effect.void })
   )), Layer.orDie);
   const owner = await createConnectionRuntime(Layer.mergeAll(graph, graph), text => text.replaceAll('fixture-secret', '<redacted>'));
+  const unavailable = <A>(): HostExit<A, CompatibilityServiceFailure> => ({
+    _tag: 'Failure',
+    reasons: [{ _tag: 'Die', defect: new Error('The connection-only fixture has no Apex Log or Fs service layer') }]
+  });
+  const compatibilityHost: CompatibilityHost = {
+    ...owner.host,
+    listLogs: (_limit, _options, _signal) => Promise.resolve(unavailable<readonly CompatibilityLogItem[]>()),
+    getLogBody: (_logId, _signal) => Promise.resolve(unavailable<string>()),
+    safeWriteFile: (_filePath, _content, _signal) => Promise.resolve(unavailable<void>())
+  };
   const services = owner.v2.services;
   const connection = Context.get(services.prebuiltServicesDependencies, ConnectionService);
   const ref = Context.get(services.prebuiltServicesDependencies, TargetOrgRef);
   // Activation's telemetry seed, before subscriptions/exports; not an authoritative org selection.
   await Effect.runPromise(SubscriptionRef.set(ref, { cliId: Schema.decodeUnknownSync(CliId)('00000000-0000-4000-8000-000000000001') }));
   return {
-    owner,
+    owner: { ...owner, host: compatibilityHost },
     direct: (username?: string) => Effect.runPromise(connection.getConnection(username)),
     readOrg: () => Effect.runPromise(SubscriptionRef.get(ref)),
     native: (value: unknown) => value instanceof Connection,

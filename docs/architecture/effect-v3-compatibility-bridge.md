@@ -10,12 +10,23 @@ Production connection/org binding remains W-24615059; no second service graph.
 Context, prebuilt Layer and a stable V3 SubscriptionRef. Its imperative `dispose`
 is the cross-major ownership boundary, not an exported extension command.
 
+The root V3 API remains consumed by Debug Log Analyzer. Its startup contract
+requires `ApexLogService.{listLogs,getLogBody}`, `FsService.safeWriteFile`, and
+`TargetOrgRef` in `prebuiltServicesDependencies`; the parallel V4 `/v2` services
+must also remain public. `test:effect-v3-bridge` checks the packed V3 consumer
+surface alongside the V2 packed contract.
+
+The V3 log/file accessors call the existing V4 `ApexLogService` and `FsService`
+through the owned runtime. Only log records, text, URI strings, and encoded error
+fields cross the boundary.
+
 The injected host enters an already-owned V4 runtime. Arguments/results contain
 Promises, AbortSignals, SDK Connection objects and schema-encoded data—not foreign
-runnable Effects, Contexts, Layers or refs. Error/org DTOs derive from V3 schemas'
-`Encoded` types, removing protocol-specific brands without casts. SDK Connection
-identity is retained. Typed errors are decoded into genuine V3 tagged errors;
-schema fields are preserved, not foreign error prototypes or tracing metadata.
+runnable Effects, Contexts, Layers or refs. Connection/config and org DTOs derive
+from V3 schemas' `Encoded` types, removing protocol-specific brands without casts.
+SDK Connection identity is retained. Log-list failures become V3 `UnknownException`,
+body failures V3 `ApexLogBodyFetchError`, and file-write failures V3 `FsServiceError`
+with message, function and path; no V4 error prototype crosses the boundary.
 
 Every V4 Cause reason becomes a fresh plain record in existing order. The V3 side
 folds all records into a sequential Cause; original topology is unavailable.
@@ -64,8 +75,9 @@ exported V3 service in the caller's V3 Context still works.
 
 `pnpm test:effect-v3-bridge` packs the real implementation and public V2 keys,
 installs separate V3 consumer/V4 host trees, and typechecks with `skipLibCheck:false`.
-It exercises a real offline SDK Connection, one V4 graph, errors/Causes, scopes,
-org acknowledgments, mutation policy, overrides and redaction. A deliberately
+It exercises Debug Log Analyzer's V3 log listing/body and safe-write calls through
+the V4 host, a real offline SDK Connection, errors/Causes, scopes, org acknowledgments,
+mutation policy, overrides and redaction. A deliberately
 interruptible test-host control reproduces the stale-write bug prevented by masking.
 Node/browser-target bundles retain the expected physical runtimes; browser-target
 unit bundles execute under Node. Actual desktop/web E2E comes from GitHub.

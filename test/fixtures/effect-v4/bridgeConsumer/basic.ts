@@ -6,6 +6,7 @@
  */
 import * as Cause from 'effect/Cause';
 import * as Chunk from 'effect/Chunk';
+import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Fiber from 'effect/Fiber';
@@ -15,6 +16,11 @@ import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import { createLegacyServices, makeV4Host, V3DefaultOrgInfoSchema, type Connection } from '../bridgeHost/host.js';
 import type { PublicLegacyServicesApi } from '../bridgeHost/legacyClasses.js';
+
+const getService = (context: unknown, tag: unknown): unknown =>
+  Context.isContext(context) && Context.isTag(tag) ? Context.getOrElse(context, tag, () => undefined) : undefined;
+const getProperty = (value: unknown, key: string): unknown =>
+  (typeof value === 'object' && value !== null) || typeof value === 'function' ? Reflect.get(value, key) : undefined;
 
 /** Browser-safe conformance: the optional Node-injected value is a real SDK Connection. */
 export const basicConformance = async (connection?: Connection, checkNativeConnection?: (value: unknown) => Promise<void>) => {
@@ -49,6 +55,37 @@ export const basicConformance = async (connection?: Connection, checkNativeConne
     )
   );
   const ownerConfigured = await owner.host.getTargetOrg(new AbortController().signal);
+  const legacyDependencies = Layer.succeedContext(publicServices.prebuiltServicesDependencies);
+  const apexLogInstance = getService(publicServices.prebuiltServicesDependencies, publicServices.ApexLogService);
+  const fsInstance = getService(publicServices.prebuiltServicesDependencies, publicServices.FsService);
+  const debugAnalyzerApiReady =
+    typeof getProperty(apexLogInstance, 'listLogs') === 'function' &&
+    typeof getProperty(apexLogInstance, 'getLogBody') === 'function' &&
+    typeof getProperty(fsInstance, 'safeWriteFile') === 'function';
+  const legacyLogRecords = await Effect.runPromise(
+    publicServices.ApexLogService.listLogs(10).pipe(Effect.provide(legacyDependencies))
+  );
+  const legacyLogBody = await Effect.runPromise(
+    publicServices.ApexLogService.getLogBody('07L000000000001').pipe(Effect.provide(legacyDependencies))
+  );
+  await Effect.runPromise(
+    publicServices.FsService.safeWriteFile('memfs:/logs/consumer.log', legacyLogBody).pipe(
+      Effect.provide(legacyDependencies)
+    )
+  );
+  const legacyLogListFailure = await Effect.runPromise(
+    publicServices.ApexLogService.listLogs(-1).pipe(Effect.provide(legacyDependencies), Effect.flip)
+  );
+  const legacyLogBodyFailure = await Effect.runPromise(
+    publicServices.ApexLogService.getLogBody('failure').pipe(Effect.provide(legacyDependencies), Effect.flip)
+  );
+  const legacyFileWriteFailure = await Effect.runPromise(
+    publicServices.FsService.safeWriteFile('memfs:/failure/consumer.log', legacyLogBody).pipe(
+      Effect.provide(legacyDependencies),
+      Effect.flip
+    )
+  );
+  const legacyLogWrites = await owner.readWrites();
 
   const fullSnapshot = {
     aliases: ['fixture-alias'],
@@ -114,6 +151,13 @@ export const basicConformance = async (connection?: Connection, checkNativeConne
     configured,
     override,
     ownerConfigured,
+    debugAnalyzerApiReady,
+    legacyLogRecords,
+    legacyLogBody,
+    legacyLogListFailure,
+    legacyLogBodyFailure,
+    legacyFileWriteFailure,
+    legacyLogWrites,
     immediate,
     fullState,
     ownerAfterLocalMutation,

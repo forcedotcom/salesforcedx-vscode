@@ -22,6 +22,25 @@ export const watchOrg = (api: SalesforceVSCodeServicesApiV2) => api.v2.services.
   Effect.runPromise
 );
 
+/** V4 endpoint kept for Debug Log Analyzer's Apex log and file-write operations. */
+export const listApexLogs = (api: SalesforceVSCodeServicesApiV2) =>
+  api.v2.services.ApexLogService.use(service => service.listLogs(10)).pipe(
+    Effect.provide(Layer.succeedContext(api.v2.services.prebuiltServicesDependencies)),
+    Effect.runPromise
+  );
+
+export const readApexLog = (api: SalesforceVSCodeServicesApiV2, logId: string) =>
+  api.v2.services.ApexLogService.use(service => service.getLogBody(logId)).pipe(
+    Effect.provide(api.v2.services.prebuiltServicesLayer),
+    Effect.runPromise
+  );
+
+export const writeApexLog = (api: SalesforceVSCodeServicesApiV2, path: string, content: string) =>
+  api.v2.services.FsService.use(service => service.safeWriteFile(path, content)).pipe(
+    Effect.provide(api.v2.services.prebuiltServicesLayer),
+    Effect.runPromise
+  );
+
 export const invalidV3Accessor = (api: SalesforceVSCodeServicesApiV2) => {
   // @ts-expect-error V4 Context.Service has no generated V3 static accessor.
   return api.v2.services.ConnectionService.getConnection();

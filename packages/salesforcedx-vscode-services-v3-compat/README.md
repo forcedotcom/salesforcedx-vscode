@@ -1,12 +1,17 @@
 # V3 compatibility implementation
 
-Private, pinned Effect 3.21.2 implementation for W-24615046; not a second services
-graph and not yet connected to production activation. See the
+Private, pinned Effect 3.21.2 adapter for W-24615046. Production activation binds
+it to the existing V4 owner; it does not build a second services graph. See the
 [bridge contract](../../docs/architecture/effect-v3-compatibility-bridge.md).
 
+The selected V3 surface includes Connection/Alias/Config, `TargetOrgRef`,
+`ApexLogService.{listLogs,getLogBody}`, and `FsService.safeWriteFile`. The log and
+file operations delegate to the V4 provider through the host boundary.
+
 The host boundary contains Promises, AbortSignals, plain SDK Connection values,
-schema-encoded org/error data and ordered Cause reasons. V4 Effects, Contexts,
-Layers and refs must never cross it. V3 classes and schemas here are genuine V3.
+schema-encoded org/connection data, service-failure DTOs and ordered Cause reasons.
+V4 Effects, Contexts, Layers and refs must never cross it. V3 classes and schemas
+here are genuine V3.
 
 The host must subscribe atomically, send the initial org snapshot before returning,
 and await each org callback before acknowledging its serialized authoritative

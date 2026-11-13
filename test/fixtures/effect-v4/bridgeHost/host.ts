@@ -11,15 +11,23 @@ import {
   ConnectionService,
   DefaultOrgInfoSchema,
   AccessTokenExpiredError,
+  ApexLogService,
   FailedToCreateAuthInfoError,
   FailedToCreateConfigAggregatorError,
   FailedToCreateConnectionError,
   NoTargetOrgConfiguredError,
   NoWorkspaceOpenError,
   SettingsError,
+  FsService,
+  HashableUri,
   TargetOrgRef
 } from '@salesforce/vscode-services/v2';
-import type { CompatibilityHost, HostExit, HostReason } from '@salesforce/vscode-services-v3-compat/host';
+import type {
+  CompatibilityHost,
+  CompatibilityServiceFailure,
+  HostExit,
+  HostReason
+} from '@salesforce/vscode-services-v3-compat/host';
 import * as Cause from 'effect/Cause';
 import * as Deferred from 'effect/Deferred';
 import * as Duration from 'effect/Duration';
@@ -85,9 +93,16 @@ const encodeExit = <A, E, D>(exit: Exit.Exit<A, E>, encode: (error: E) => D): Ho
         })
       };
 
+const serviceFailure = <A>(
+  message: string,
+  details: Pick<CompatibilityServiceFailure, 'function' | 'filePath'> = {}
+): Promise<HostExit<A, CompatibilityServiceFailure>> =>
+  Promise.resolve({ _tag: 'Failure', reasons: [{ _tag: 'Fail', error: { message, ...details } }] });
+
 type OrgCallback = Parameters<CompatibilityHost['subscribeOrgChanges']>[0];
 type ConnectionBehavior = ConnectionService['Service']['getConnection'];
 type Stats = { readonly graphBuilds: number; readonly graphDisposals: number; readonly connectionCalls: number };
+type FileWrite = { readonly filePath: string; readonly content: string };
 
 /** Test implementation only: one acquired V4 graph, with cancellation-safe acknowledged org commits. */
 export const makeV4Host = async (
@@ -96,6 +111,7 @@ export const makeV4Host = async (
 ) => {
   const stats = Effect.runSync(Ref.make<Stats>({ graphBuilds: 0, graphDisposals: 0, connectionCalls: 0 }));
   const callbacks = Effect.runSync(Ref.make<readonly OrgCallback[]>([]));
+  const writes = Effect.runSync(Ref.make<readonly FileWrite[]>([]));
   const permit = Effect.runSync(Semaphore.make(1));
   const orgRef = Effect.runSync(
     SubscriptionRef.make(Schema.decodeUnknownSync(DefaultOrgInfoSchema)({ orgId: '00D000000000001' }))
@@ -127,13 +143,29 @@ export const makeV4Host = async (
       // This host exercises the frozen bridge methods; unrelated V4 methods remain unimplemented.
       Layer.mock(AliasService, { getAliasesFromUsername: username => Effect.succeed([`${username}-alias`]) }),
       Layer.mock(ConfigService, { getTargetOrg: () => Effect.succeed('configured-alias') }),
+      Layer.mock(ApexLogService, {
+        listLogs: () =>
+          Effect.succeed([
+            { Id: '07L000000000001', LogLength: 42, StartTime: '2026-11-13T00:00:00Z', Status: 'Success' }
+          ]),
+        getLogBody: () => Effect.succeed('Apex log from the V4 provider')
+      }),
+      Layer.mock(FsService, {
+        HashableUri,
+        safeWriteFile: (filePath, content) =>
+          Ref.update(writes, current => [...current, { filePath: filePath.toString(), content }])
+      }),
       Layer.succeed(TargetOrgRef, orgRef)
     )
   );
   await runtime.runPromise(Effect.void);
 
   const run = <A, E, D>(
-    program: Effect.Effect<A, E, ConnectionService | AliasService | ConfigService | TargetOrgRef>,
+    program: Effect.Effect<
+      A,
+      E,
+      ConnectionService | AliasService | ConfigService | ApexLogService | FsService | TargetOrgRef
+    >,
     encode: (error: E) => D,
     signal?: AbortSignal
   ): Promise<HostExit<A, D>> =>
@@ -156,12 +188,40 @@ export const makeV4Host = async (
         identity<never>,
         signal
       ),
-    getTargetOrg: signal =>
-      run(
-        ConfigService.use(service => service.getTargetOrg()),
-        Schema.encodeSync(ConfigErrors),
-        signal
-      ),
+      getTargetOrg: signal =>
+        run(
+          ConfigService.use(service => service.getTargetOrg()),
+          Schema.encodeSync(ConfigErrors),
+          signal
+        ),
+      listLogs: (limit, options, signal) =>
+        limit === -1
+          ? serviceFailure('Apex log query failed')
+          : run(
+          ApexLogService.use(service => service.listLogs(limit, options ? {
+            ...(options.userIds === undefined ? {} : { userIds: [...options.userIds] }),
+            ...(options.operationContains === undefined ? {} : { operationContains: options.operationContains }),
+            ...(options.startTimeAfter === undefined ? {} : { startTimeAfter: options.startTimeAfter })
+          } : undefined)),
+          error => ({ message: String(error) }),
+          signal
+          ),
+      getLogBody: (logId, signal) =>
+        logId === 'failure'
+          ? serviceFailure('Apex log body failed')
+          : run(
+          ApexLogService.use(service => service.getLogBody(logId)),
+          error => ({ message: String(error) }),
+          signal
+          ),
+      safeWriteFile: (filePath, content, signal) =>
+        filePath.includes('/failure/')
+          ? serviceFailure('Apex log write failed', { function: 'safeWriteFile', filePath })
+          : run(
+          FsService.use(service => service.safeWriteFile(filePath, content)),
+          error => ({ message: String(error), function: 'safeWriteFile', filePath }),
+          signal
+          ),
     subscribeOrgChanges: callback =>
       run(
         permit.withPermit(
@@ -192,13 +252,18 @@ export const makeV4Host = async (
     host,
     runtime,
     run: <A>(
-      program: Effect.Effect<A, never, ConnectionService | AliasService | ConfigService | TargetOrgRef>,
+      program: Effect.Effect<
+        A,
+        never,
+        ConnectionService | AliasService | ConfigService | ApexLogService | FsService | TargetOrgRef
+      >,
       signal?: AbortSignal
     ) => run(program, identity<never>, signal),
     setConnectionBehavior: (next: ConnectionBehavior) => runtime.runPromise(Ref.set(behavior, next)),
     directConnection: (username?: string) =>
       runtime.runPromise(ConnectionService.use(service => service.getConnection(username))),
     readOrg: () => runtime.runPromise(SubscriptionRef.get(orgRef)),
+    readWrites: () => Effect.runPromise(Ref.get(writes)),
     commitOrg: (snapshot: typeof DefaultOrgInfoSchema.Encoded, signal?: AbortSignal) =>
       run(
         Schema.decodeUnknownEffect(DefaultOrgInfoSchema)(snapshot).pipe(

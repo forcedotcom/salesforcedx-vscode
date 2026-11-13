@@ -17,7 +17,7 @@ import {
   SettingsError,
   TargetOrgRef
 } from '@salesforce/vscode-services/v2';
-import type { CompatibilityHost, HostExit, HostReason } from '@salesforce/vscode-services-v3-compat/host';
+import type { ConnectionRuntimeHost, HostExit, HostReason } from '@salesforce/vscode-services-v3-compat/host';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
@@ -52,7 +52,7 @@ const encodeReason = <E, D>(
     return { _tag: 'Die', defect };
   }
 };
-const encodeExit = <A, E, D>(exit: Exit.Exit<A, E>, encode: (error: E) => D): HostExit<A, D> =>
+export const encodeCompatibilityExit = <A, E, D>(exit: Exit.Exit<A, E>, encode: (error: E) => D): HostExit<A, D> =>
   Exit.isSuccess(exit)
     ? { _tag: 'Success', value: exit.value }
     : { _tag: 'Failure', reasons: exit.cause.reasons.map(reason => encodeReason(reason, encode)) };
@@ -65,7 +65,7 @@ export const createConnectionRuntime = async <
   Keys extends readonly Context.Key<unknown, unknown>[] = readonly []
 >(
   layer: Layer.Layer<ConnectionGraph | R, E>,
-  redact: CompatibilityHost['redact'],
+  redact: ConnectionRuntimeHost['redact'],
   signal?: AbortSignal,
   additionalServiceKeys?: Keys,
   memoMap?: Layer.MemoMap
@@ -96,11 +96,13 @@ export const createConnectionRuntime = async <
     ): Promise<HostExit<A, D>> =>
       input?.aborted
         ? Promise.resolve({ _tag: 'Failure', reasons: [{ _tag: 'Interrupt', fiberId: undefined }] })
-        : runtime.runPromiseExit(operations.run(program), { signal: input }).then(exit => encodeExit(exit, encode));
+        : runtime
+            .runPromiseExit(operations.run(program), { signal: input })
+            .then(exit => encodeCompatibilityExit(exit, encode));
     const context = (await runtime.runPromise(Effect.context<ConnectionGraph | R>(), { signal })).pipe(
       Context.pick(ConnectionService, ConfigService, AliasService, TargetOrgRef, ...(additionalServiceKeys ?? []))
     );
-    const host: CompatibilityHost = {
+    const host: ConnectionRuntimeHost = {
       getConnection: (username, input) =>
         run(connection.getConnection(username), Schema.encodeSync(ConnectionErrors), input),
       getTargetOrg: input => run(config.getTargetOrg(), Schema.encodeSync(ConfigErrors), input),
@@ -112,7 +114,7 @@ export const createConnectionRuntime = async <
               ({ stop }) =>
                 // Unsubscription is privileged cleanup after admission has closed, before runtime disposal.
                 () =>
-                  runtime.runPromiseExit(stop).then(exit => encodeExit(exit, identity<never>))
+                  runtime.runPromiseExit(stop).then(exit => encodeCompatibilityExit(exit, identity<never>))
             )
           ),
           identity<never>
@@ -132,8 +134,8 @@ export const createConnectionRuntime = async <
       },
       host,
       runtime,
-      close: () => Effect.runPromiseExit(operations.close).then(exit => encodeExit(exit, identity<never>)),
-      dispose: () => Effect.runPromise(dispose).then(exit => encodeExit(exit, identity<never>))
+      close: () => Effect.runPromiseExit(operations.close).then(exit => encodeCompatibilityExit(exit, identity<never>)),
+      dispose: () => Effect.runPromise(dispose).then(exit => encodeCompatibilityExit(exit, identity<never>))
     };
   } catch (error) {
     const cleanup = await Effect.runPromise(runtime.disposeEffect.pipe(Effect.exit));

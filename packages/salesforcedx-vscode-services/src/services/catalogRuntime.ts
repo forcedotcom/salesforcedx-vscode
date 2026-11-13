@@ -6,6 +6,7 @@
  */
 import { TemplateType } from '@salesforce/templates';
 import {
+  ApexLogService,
   ExtensionContextService,
   ExtensionContextServiceLayer,
   ErrorHandlerService,
@@ -13,13 +14,20 @@ import {
   ORG_METADATA_SCHEME,
   TraceFlagItemStruct,
   UserCancellationError,
+  FsService,
   publicServiceKeys,
   type SalesforceVSCodeServicesApiV2,
   type OrgId,
   type PublicServices
 } from '@salesforce/vscode-services/v2';
-import type { CompatibilityHost, HostExit, HostReason } from '@salesforce/vscode-services-v3-compat/host';
+import type {
+  CompatibilityHost,
+  CompatibilityServiceFailure,
+  HostExit,
+  HostReason
+} from '@salesforce/vscode-services-v3-compat/host';
 import * as Context from 'effect/Context';
+import type * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import type * as Layer from 'effect/Layer';
 import * as OtlpExporter from 'effect/observability/OtlpExporter';
@@ -29,7 +37,7 @@ import { getSdkLayerConfigFromContext } from '../observability/sdkLayerConfig.js
 import { SdkLayerFor } from '../observability/spans.js';
 import { clearServicesRuntime } from '../servicesRuntime.js';
 import { makeChannelServiceLayer } from './channelService.js';
-import { createConnectionRuntime } from './connectionRuntime.js';
+import { createConnectionRuntime, encodeCompatibilityExit } from './connectionRuntime.js';
 import { getErrorMessage, makeErrorHandlerServiceLayer, type ErrorHandlerMessages } from './errorHandlerService.js';
 import { makeNotificationModeServiceLayer } from './notificationModeService.js';
 import { makePreventOrgChanges } from './preventOrgChanges.js';
@@ -58,6 +66,48 @@ export const createCatalogRuntime = async <R, E = never>(
   const owner = await createConnectionRuntime(layer, redact, signal, Object.values(publicServiceKeys), memoMap);
   const operations = owner.runtime.runSync(ServiceOperations);
   const changes = owner.runtime.runSync(OrgChanges);
+  const runCompatibility = <A, OperationError, Requirements extends PublicServices>(
+    program: Effect.Effect<A, OperationError, Requirements>,
+    input: AbortSignal,
+    encode: (error: OperationError) => CompatibilityServiceFailure
+  ): Promise<HostExit<A, CompatibilityServiceFailure>> =>
+    input.aborted
+      ? Promise.resolve({ _tag: 'Failure', reasons: [{ _tag: 'Interrupt', fiberId: undefined }] })
+      : owner.runtime
+          .runPromiseExit(operations.run(program), { signal: input })
+          .then(exit => encodeCompatibilityExit(exit, encode));
+  const host: CompatibilityHost = {
+    ...owner.host,
+    listLogs: (limit, options, input) =>
+      runCompatibility(
+        ApexLogService.use(service =>
+          service.listLogs(
+            limit,
+            options
+              ? {
+                  ...(options.userIds === undefined ? {} : { userIds: [...options.userIds] }),
+                  ...(options.operationContains === undefined ? {} : { operationContains: options.operationContains }),
+                  ...(options.startTimeAfter === undefined ? {} : { startTimeAfter: options.startTimeAfter })
+                }
+              : undefined
+          )
+        ),
+        input,
+        error => ({ message: getErrorMessage(error) })
+      ),
+    getLogBody: (logId, input) =>
+      runCompatibility(
+        ApexLogService.use(service => service.getLogBody(logId)),
+        input,
+        error => ({ message: getErrorMessage(error) })
+      ),
+    safeWriteFile: (filePath, content, input) =>
+      runCompatibility(
+        FsService.use(service => service.safeWriteFile(filePath, content)),
+        input,
+        error => ({ message: getErrorMessage(error), function: 'safeWriteFile', filePath })
+      )
+  };
   const closeOwner = async (): Promise<HostExit<void, never>> => {
     const flushExit = await owner.runtime.context().then(
       ownerContext => {
@@ -112,6 +162,7 @@ export const createCatalogRuntime = async <R, E = never>(
 
   return {
     ...owner,
+    host,
     close,
     dispose,
     v2: {

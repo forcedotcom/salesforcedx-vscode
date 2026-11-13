@@ -5,7 +5,7 @@ const snapshot = fs.readFileSync(
   'utf8'
 );
 // Preserve the original CommonJS declaration scope, including extensionless SDK type imports.
-const declarations = `${snapshot}\nexport type { ConnectionService, AliasService, ConfigService, getDefaultOrgRef };\n`;
+const declarations = `${snapshot}\nexport type { ConnectionService, AliasService, ConfigService, ApexLogService, FsService, getDefaultOrgRef };\n`;
 for (const relative of ['../src/legacy/services.d.cts', '../out/legacy/services.d.cts']) {
   const destination = new URL(relative, import.meta.url);
   fs.mkdirSync(new URL('.', destination), { recursive: true });

@@ -78,6 +78,15 @@ assert.deepEqual(result.aliases, ['fixture-alias']);
 assert.equal(result.configured, 'configured-alias');
 assert.equal(result.override, 'overridden');
 assert.deepEqual(result.ownerConfigured, { _tag: 'Success', value: 'configured-alias' });
+assert.equal(result.debugAnalyzerApiReady, true);
+assert.deepEqual(result.legacyLogRecords, [{ Id: '07L000000000001', LogLength: 42, StartTime: '2026-11-13T00:00:00Z', Status: 'Success' }]);
+assert.equal(result.legacyLogBody, 'Apex log from the V4 provider');
+assert.equal(result.legacyLogListFailure._tag, 'UnknownException');
+assert.equal(result.legacyLogBodyFailure._tag, 'ApexLogBodyFetchError');
+assert.equal(result.legacyFileWriteFailure._tag, 'FsServiceError');
+assert.deepEqual(result.legacyLogWrites, [
+  { filePath: 'memfs:/logs/consumer.log', content: 'Apex log from the V4 provider' }
+]);
 assert.equal(result.immediate, '00D000000000002');
 assert.deepEqual(result.fullState, {
   aliases: ['fixture-alias'],
@@ -106,6 +115,6 @@ assert.equal(result.graphDisposals, 1);
 assert.equal(result.subscribersAfterClose, 0);
 assert.equal(result.interruptedAfterClose, true);
 console.log(
-  'PASS actual packed V3 adapters over one V4 runtime: real SDK Connection identity, static accessors/Context/Layer, org commit acknowledgments, ordered subscribers, local-only V3 mutation, shutdown'
+  'PASS actual packed V3 adapters over one V4 runtime: Debug Log Analyzer ApexLog/Fs calls, SDK Connection identity, static accessors/Context/Layer, org acknowledgments, ordered subscribers, local-only V3 mutation, shutdown'
 );
 await advancedConformance(connection);

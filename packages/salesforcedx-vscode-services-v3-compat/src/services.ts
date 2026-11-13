@@ -40,3 +40,32 @@ const ConfigServiceBase: ReturnType<
   >
 > = createConfigTag<LegacyServiceInstance<'ConfigService'>, Pick<LegacyServiceBody<'ConfigService'>, 'getTargetOrg'>>();
 export class ConfigService extends ConfigServiceBase {}
+
+const createApexLogTag: ReturnType<typeof Effect.Tag<'ApexLogService'>> = Effect.Tag('ApexLogService');
+/** V4 owns QueryService; this V3 accessor delegates without requiring a V3 QueryService in the caller's Context. */
+type LegacyLogList = ReturnType<LegacyServiceBody<'ApexLogService'>['listLogs']>;
+type LegacyLogBody = ReturnType<LegacyServiceBody<'ApexLogService'>['getLogBody']>;
+type CompatibleApexLogService = {
+  readonly listLogs: (
+    ...args: Parameters<LegacyServiceBody<'ApexLogService'>['listLogs']>
+  ) => Effect.Effect<Effect.Effect.Success<LegacyLogList>, Effect.Effect.Error<LegacyLogList>, never>;
+  readonly getLogBody: (
+    ...args: Parameters<LegacyServiceBody<'ApexLogService'>['getLogBody']>
+  ) => Effect.Effect<Effect.Effect.Success<LegacyLogBody>, Effect.Effect.Error<LegacyLogBody>, never>;
+};
+const ApexLogServiceBase: ReturnType<
+  typeof createApexLogTag<LegacyServiceInstance<'ApexLogService'>, CompatibleApexLogService>
+> = createApexLogTag<LegacyServiceInstance<'ApexLogService'>, CompatibleApexLogService>();
+export class ApexLogService extends ApexLogServiceBase {}
+
+const createFsTag: ReturnType<typeof Effect.Tag<'FsService'>> = Effect.Tag('FsService');
+/** Keep the V3 filesystem operation required by Debug Log Analyzer; other Fs operations remain `/v2`-only. */
+type LegacySafeWrite = ReturnType<LegacyServiceBody<'FsService'>['safeWriteFile']>;
+type CompatibleFsService = {
+  readonly safeWriteFile: (
+    ...args: Parameters<LegacyServiceBody<'FsService'>['safeWriteFile']>
+  ) => Effect.Effect<Effect.Effect.Success<LegacySafeWrite>, Effect.Effect.Error<LegacySafeWrite>, never>;
+};
+const FsServiceBase: ReturnType<typeof createFsTag<LegacyServiceInstance<'FsService'>, CompatibleFsService>> =
+  createFsTag<LegacyServiceInstance<'FsService'>, CompatibleFsService>();
+export class FsService extends FsServiceBase {}
