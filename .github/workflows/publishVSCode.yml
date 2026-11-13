@@ -179,11 +179,15 @@ jobs:
   publish:
     needs: ['ctc-open', 'prepare-release-metadata', 'verify-release', 'classify-release', 'gate-check', 'validate-vsix']
     if: always() && needs.prepare-release-metadata.result == 'success' && needs.verify-release.result == 'success' && needs.validate-vsix.result == 'success' && needs.classify-release.result == 'success' && (needs.gate-check.result == 'success' || needs.gate-check.result == 'skipped') && (inputs.dry-run || needs.ctc-open.result == 'success')
-    uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-release-vsix.yml@main
-    with:
-      release-tag: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
-      dry-run: ${{ inputs.dry-run == true }}
-    secrets: inherit
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # vsce exchanges this job's OIDC token for a Marketplace publishing token
+    steps:
+      - uses: salesforcecli/github-workflows/.github/actions/vscode/publish-release-vsix@main
+        with:
+          release-tag: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
+          dry-run: ${{ inputs.dry-run == true }}
 
   ctcCloseSuccess:
     needs: [ctc-open, publish]
