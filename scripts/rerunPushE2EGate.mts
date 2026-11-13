@@ -6,16 +6,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as Command from '@effect/platform/Command';
-import * as NodeContext from '@effect/platform-node/NodeContext';
-import { GitHub, type WorkflowRunJob } from '@salesforce/effect-octokit';
+import * as NodeServices from '@effect/platform-node/NodeServices';
+import { GitHub, GitHubLayer, type WorkflowRunJob } from '@salesforce/effect-octokit';
 import * as Arr from 'effect/Array';
 import * as Cause from 'effect/Cause';
 import * as Config from 'effect/Config';
 import * as Console from 'effect/Console';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
+import * as ChildProcess from 'effect/process/ChildProcess';
+import * as ChildProcessSpawner from 'effect/process/ChildProcessSpawner';
 
 const reachedTimeout = (job: WorkflowRunJob, workflowName: string) => {
   if (job.conclusion !== 'cancelled' || !job.started_at || !job.completed_at) return false;
@@ -37,22 +39,21 @@ const findTimeoutJob = Effect.fn('rerunPushE2EGate.findTimeoutJob')(function* (
 ) {
   return yield* GitHub.pipe(
     Effect.flatMap(github => github.workflowRunJobs(repository, runId)),
-    Effect.map(jobs => Arr.findFirst(jobs, job => reachedTimeout(job, workflowName))),
-    Effect.provide(GitHub.Default)
+    Effect.map(jobs => Arr.findFirst(jobs, job => reachedTimeout(job, workflowName)))
   );
 });
 
 // Gate misses exit 0. A failed gh run rerun preserves its nonzero exit status.
 const rerunPushE2EGate = Effect.fn('rerunPushE2EGate')(function* () {
   const env = yield* Config.all({
-    event: Config.string('EVENT').pipe(Config.withDefault('')),
-    actor: Config.string('ACTOR').pipe(Config.withDefault('')),
-    conclusion: Config.string('CONCLUSION').pipe(Config.withDefault('')),
-    workflowName: Config.string('WORKFLOW_NAME').pipe(Config.withDefault('')),
-    runAttempt: Config.string('RUN_ATTEMPT').pipe(Config.withDefault('')),
-    runId: Config.string('RUN_ID').pipe(Config.withDefault('')),
-    repo: Config.string('REPO').pipe(Config.withDefault('')),
-    decideOnly: Config.string('RERUN_PUSH_E2E_DECIDE_ONLY').pipe(Config.withDefault(''))
+    event: Config.String('EVENT').pipe(Config.withDefault('')),
+    actor: Config.String('ACTOR').pipe(Config.withDefault('')),
+    conclusion: Config.String('CONCLUSION').pipe(Config.withDefault('')),
+    workflowName: Config.String('WORKFLOW_NAME').pipe(Config.withDefault('')),
+    runAttempt: Config.String('RUN_ATTEMPT').pipe(Config.withDefault('')),
+    runId: Config.String('RUN_ID').pipe(Config.withDefault('')),
+    repo: Config.String('REPO').pipe(Config.withDefault('')),
+    decideOnly: Config.String('RERUN_PUSH_E2E_DECIDE_ONLY').pipe(Config.withDefault(''))
   });
 
   if (env.event !== 'push') return yield* skip(`event=${env.event}`);
@@ -60,12 +61,8 @@ const rerunPushE2EGate = Effect.fn('rerunPushE2EGate')(function* () {
   if (env.actor !== 'svc-idee-bot' && env.actor !== 'dependabot[bot]') {
     const state = yield* GitHub.pipe(
       Effect.flatMap(github => github.teamMembership('forcedotcom', 'ide-foundations', env.actor)),
-      Effect.provide(GitHub.Default),
       // The shell gate skipped on every failed membership read, not just 404s.
-      Effect.catchTags({
-        GitHubRequestError: () => Effect.succeed(''),
-        ConfigError: () => Effect.succeed('')
-      })
+      Effect.catchTag('GitHubRequestError', () => Effect.succeed(''))
     );
     if (state !== 'active') return yield* skip(`membership=${state}`);
   }
@@ -83,8 +80,7 @@ const rerunPushE2EGate = Effect.fn('rerunPushE2EGate')(function* () {
   if (env.decideOnly === '1') return yield* Console.log('rerun').pipe(Effect.as(0));
   // A second /jobs/{id}/rerun 403s once the run is in progress. One --job this pass;
   // a later completed run with run_attempt < 4 takes a remaining timed-out id.
-  return yield* Command.make(
-    'gh',
+  const args = [
     'run',
     'rerun',
     ...Option.match(selected, {
@@ -93,12 +89,15 @@ const rerunPushE2EGate = Effect.fn('rerunPushE2EGate')(function* () {
     }),
     '--repo',
     env.repo
-  ).pipe(Command.stdout('inherit'), Command.stderr('inherit'), Command.exitCode);
+  ];
+  const spawner = yield* ChildProcessSpawner.ChildProcessSpawner;
+  const process = yield* spawner.spawn(ChildProcess.make('gh', args, { stdout: 'inherit', stderr: 'inherit' }));
+  return yield* process.exitCode;
 });
 
 process.exitCode = await rerunPushE2EGate().pipe(
   Effect.scoped,
-  Effect.provide(NodeContext.layer),
-  Effect.catchAllCause(cause => Console.error(Cause.pretty(cause)).pipe(Effect.as(1))),
+  Effect.provide(Layer.mergeAll(GitHubLayer, NodeServices.layer)),
+  Effect.catchCause(cause => Console.error(Cause.pretty(cause)).pipe(Effect.as(1))),
   Effect.runPromise
 );

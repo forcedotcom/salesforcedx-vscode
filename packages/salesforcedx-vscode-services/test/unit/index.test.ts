@@ -31,17 +31,19 @@ vi.mock('@salesforce/core', async () => ({
 
 vi.mock('@salesforce/core/fs', async () => {
   const actual = await vi.importActual<typeof SalesforceCoreFsModule>('@salesforce/core/fs');
-  return {
-    ...actual,
-    fs: {
-      ...actual.fs,
-      promises: {
-        ...actual.fs.promises,
-        watch: vi.fn(() => {
-          throw Object.assign(new Error('file watching disabled in unit tests'), { code: 'EACCES' });
-        })
-      }
+  const mockedFs = {
+    ...actual.fs,
+    promises: {
+      ...actual.fs.promises,
+      watch: vi.fn(() => {
+        throw Object.assign(new Error('file watching disabled in unit tests'), { code: 'EACCES' });
+      })
     }
+  };
+  const mockedModule = { ...actual, fs: mockedFs };
+  return {
+    ...mockedModule,
+    default: mockedModule
   };
 });
 
@@ -50,11 +52,10 @@ import { type ExtensionContext } from 'vscode';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as vscode from 'vscode';
 import { isServicesRuntimeReady } from '../../src/servicesRuntime';
-import { getExtensionScope } from '../../src/vscode/extensionScope';
-import { ConfigService } from '../../src/core/configService';
-import { ConnectionService } from '../../src/core/connectionService';
+import { ConnectionService, publicServiceKeys } from '@salesforce/vscode-services/v2';
 
 // Mock indexedDB API for Node.js environment
 const mockIndexedDB: Partial<IDBFactory> = {
@@ -207,6 +208,7 @@ vi.mock('node:os', () => ({
 vi.mock('node:fs', async () => ({
   ...(await vi.importActual<typeof NodeFsModule>('node:fs')),
   watch: vi.fn(() => ({
+    on: vi.fn(),
     close: vi.fn()
   })),
   promises: {
@@ -253,6 +255,36 @@ describe('Extension', () => {
         }
       ]
     });
+    vscode.workspace.createFileSystemWatcher = vi.fn(() => ({
+      onDidCreate: vi.fn(() => ({ dispose: vi.fn() })),
+      onDidChange: vi.fn(() => ({ dispose: vi.fn() })),
+      onDidDelete: vi.fn(() => ({ dispose: vi.fn() })),
+      dispose: vi.fn()
+    })) as unknown as typeof vscode.workspace.createFileSystemWatcher;
+    Object.defineProperty(vscode.workspace, 'onDidChangeConfiguration', {
+      configurable: true,
+      value: vi.fn(() => ({ dispose: vi.fn() }))
+    });
+    Object.defineProperty(vscode.window, 'onDidChangeActiveTextEditor', {
+      configurable: true,
+      value: vi.fn(() => ({ dispose: vi.fn() }))
+    });
+    vscode.workspace.registerTextDocumentContentProvider = vi.fn(() => ({
+      dispose: vi.fn()
+    })) as unknown as typeof vscode.workspace.registerTextDocumentContentProvider;
+    vscode.languages.createDiagnosticCollection = vi.fn(() => ({
+      set: vi.fn(),
+      get: vi.fn(),
+      has: vi.fn(),
+      delete: vi.fn(),
+      clear: vi.fn(),
+      forEach: vi.fn(),
+      dispose: vi.fn()
+    })) as unknown as typeof vscode.languages.createDiagnosticCollection;
+    Object.defineProperty(vscode.window, 'activeTextEditor', { configurable: true, value: undefined });
+    vscode.commands.registerCommand = vi.fn(() => ({
+      dispose: vi.fn()
+    })) as unknown as typeof vscode.commands.registerCommand;
     // Mock the updateWorkspaceFolders method that's called in the index.ts
     vscode.workspace.updateWorkspaceFolders = vi.fn();
     // resetMocks clears the vscode stub, and ChannelDisposalLayer calls dispose() on every cached channel.
@@ -290,23 +322,28 @@ describe('Extension', () => {
     expect(api).toBeDefined();
     expect(api.services).toBeDefined();
     expect(api.services.ConnectionService).toBeDefined();
-    expect(api.services.ProjectService).toBeDefined();
-    const services = api.services.prebuiltServicesDependencies;
-    Context.get(services, ConfigService);
+    expect(api.v2.services.ProjectService).toBeDefined();
+    const services = api.v2.services.prebuiltServicesDependencies;
     Context.get(services, ConnectionService);
+    expect([...services.mapUnsafe.keys()].toSorted()).toEqual(
+      Object.values(publicServiceKeys)
+        .map(key => key.key)
+        .toSorted()
+    );
     const consoleLog = vi.spyOn(console, 'log').mockImplementation(() => undefined);
     Effect.runSync(
       Effect.logInfo('api layer 00D000000000000!api-layer-secret').pipe(
-        Effect.provide(api.services.prebuiltServicesLayer)
+        Effect.provide(api.v2.services.prebuiltServicesLayer)
       )
     );
     expect(String(consoleLog.mock.calls[0][0])).toContain('<REDACTED ACCESS TOKEN>');
     expect(String(consoleLog.mock.calls[0][0])).not.toContain('api-layer-secret');
     consoleLog.mockRestore();
-    const externalSdkContext = await Effect.runPromise(
-      Layer.buildWithScope(api.services.SdkLayerFor(context), Effect.runSync(getExtensionScope()))
+    const sdk = ManagedRuntime.make(
+      api.v2.services.SdkLayerFor(context).pipe(Layer.provide(api.v2.services.prebuiltServicesLayer))
     );
-    expect(externalSdkContext).toBeDefined();
+    await sdk.runPromise(Effect.void);
+    await sdk.dispose();
   });
 
   it('should deactivate successfully', async () => {
@@ -314,9 +351,8 @@ describe('Extension', () => {
     expect(true).toBe(true);
   });
 
-  it('cleans up the runtime and extension scope when activation fails after acquisition', async () => {
+  it('cleans up the V4 owner and allows activation to retry after startup fails', async () => {
     await deactivate();
-    const acquiredScope = Effect.runSync(getExtensionScope());
     vi.mocked(vscode.commands.executeCommand).mockRejectedValue(new Error('activation failed'));
     const context = {
       subscriptions: [],
@@ -333,10 +369,18 @@ describe('Extension', () => {
       }
     } as unknown as ExtensionContext;
 
-    await expect(activate(context)).rejects.toThrow('activation failed');
+    const activationFailure = await activate(context).then(
+      () => undefined,
+      (error: unknown) => error
+    );
+    expect(activationFailure).toBeDefined();
+    expect(
+      activationFailure instanceof AggregateError
+        ? activationFailure.errors.map(String).join('\n')
+        : String(activationFailure)
+    ).toContain('activation failed');
 
     expect(isServicesRuntimeReady()).toBe(false);
-    expect(Effect.runSync(getExtensionScope())).not.toBe(acquiredScope);
     vi.mocked(vscode.commands.executeCommand).mockResolvedValue(undefined);
     await expect(activate(context)).resolves.toBeDefined();
     expect(isServicesRuntimeReady()).toBe(true);

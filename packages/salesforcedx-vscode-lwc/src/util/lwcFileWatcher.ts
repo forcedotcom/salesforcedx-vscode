@@ -18,7 +18,7 @@ import type { URI } from 'vscode-uri';
  */
 export const startLwcFileWatcher = Effect.fn('lwc.watchFileCreates')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fileChangePubSub = yield* api.services.FileChangePubSub;
+  const fileChangePubSub = yield* api.v2.services.FileChangePubSub;
 
   yield* Stream.fromPubSub(fileChangePubSub).pipe(
     Stream.filter(e => e.type === 'create'),

@@ -7,7 +7,7 @@
 
 import type { ReportLineEnding } from './lineEnding';
 import { isNotNull } from 'effect/Predicate';
-import { type TestResult, type ApexTestResultData } from '../tests/types';
+import { type TestResult, type ApexTestResultData } from '../tests/apiTypes';
 
 /** Output format for Markdown/text test reports. */
 export type OutputFormat = 'markdown' | 'text';
@@ -43,6 +43,18 @@ export interface MarkdownTextReporterOptions {
   /** Line ending for report text and embedded error details. Defaults to LF. */
   lineEnding?: ReportLineEnding;
 }
+
+/** Escapes markdown special characters */
+export const escapeMarkdown = (text: string): string => text.replaceAll(/[\\`*_{}[\]()#+\-!]/g, '\\$&');
+
+/** Escapes HTML special characters */
+export const escapeHtml = (text: string): string =>
+  text
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
 
 /** Formats duration in milliseconds to a human-readable string */
 export const formatDuration = (ms: number): string => {

@@ -16,7 +16,7 @@ const TEMPLATE_INFO_FILE = 'template-info.json';
 
 const promptForTemplateName = Effect.fn('promptForAnalyticsTemplateName')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
 
   return yield* Effect.promise(() =>
     vscode.window.showInputBox({
@@ -28,12 +28,14 @@ const promptForTemplateName = Effect.fn('promptForAnalyticsTemplateName')(functi
   );
 });
 
-export const analyticsGenerateTemplate = Effect.fn('analyticsGenerateTemplate')(function* (outputDirParam?: URI) {
+export const analyticsGenerateTemplate = Effect.fn('analyticsGenerateTemplate')(function* (
+  outputDirParam: URI | undefined
+) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
-  const project = yield* api.services.ProjectService.getSfProject();
-  const fsService = yield* api.services.FsService;
+  const promptService = yield* api.v2.services.PromptService;
+  const workspaceInfo = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
+  const project = yield* api.v2.services.ProjectService.use(service => service.getSfProject());
+  const fsService = yield* api.v2.services.FsService;
 
   const templateName = yield* promptForTemplateName();
   const defaultUri = Utils.joinPath(
@@ -51,6 +53,7 @@ export const analyticsGenerateTemplate = Effect.fn('analyticsGenerateTemplate')(
       pickerPlaceHolder: nls.localize('analytics_output_dir_prompt')
     }));
   const templateDirUri = Utils.joinPath(outputDirUri, templateName);
+  const cwd = yield* fsService.uriToPath(workspaceInfo.uri);
 
   yield* Effect.annotateCurrentSpan({
     templateName,
@@ -58,20 +61,16 @@ export const analyticsGenerateTemplate = Effect.fn('analyticsGenerateTemplate')(
   });
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [templateDirUri] });
 
-  const cwd = yield* fsService.uriToPath(workspaceInfo.uri);
-  yield* api.services.TemplateService.create({
-    cwd,
-    templateType: api.services.TemplateType.AnalyticsTemplate,
-    outputdir: outputDirUri,
-    options: {
-      templatename: templateName
-    }
-  }).pipe(
-    promptService.withProgress({
-      title: nls.localize('analytics_generate_template_text'),
-      cancellable: false
+  yield* api.v2.services.TemplateService.use(service =>
+    service.create({
+      cwd,
+      templateType: api.v2.services.TemplateType.AnalyticsTemplate,
+      outputdir: outputDirUri,
+      options: {
+        templatename: templateName
+      }
     })
-  );
+  ).pipe(promptService.withProgress(nls.localize('analytics_generate_template_text')));
 
   yield* fsService.showTextDocument(Utils.joinPath(templateDirUri, TEMPLATE_INFO_FILE));
 });

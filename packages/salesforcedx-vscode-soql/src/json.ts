@@ -7,20 +7,6 @@
 
 import * as Schema from 'effect/Schema';
 
-type Json = string | number | boolean | null | readonly Json[] | JsonObject;
-
-/**
- * JSON object. Values include `undefined` because a list of rows with different keys
- * is typed with `?: undefined` for the keys a row omits. `Schema.Record` does not have a
- * JSON value schema that excludes that and still accepts those rows.
- */
-export type JsonObject = { readonly [key: string]: Json | undefined };
-
-const Json: Schema.Schema<Json> = Schema.suspend(() =>
-  Schema.Union(Schema.String, Schema.JsonNumber, Schema.Boolean, Schema.Null, Schema.Array(Json), JsonObject)
-);
-
-export const JsonObject: Schema.Schema<JsonObject> = Schema.Record({
-  key: Schema.String,
-  value: Schema.UndefinedOr(Json)
-});
+/** JSON object returned by SOQL queries. */
+export const JsonObject = Schema.JsonObject;
+export type JsonObject = Schema.Schema.Type<typeof JsonObject>;

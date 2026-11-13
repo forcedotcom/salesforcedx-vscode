@@ -31,10 +31,10 @@ const formatChanges = (changes: StatusOutputRow[] | undefined, sectionTitle: str
 
 export const viewChangesCommand = Effect.fn('viewChanges')(function* (options: ViewChangesOptions) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelService = yield* api.services.ChannelService;
+  const channelService = yield* api.v2.services.ChannelService;
   const channel = yield* channelService.getChannel;
 
-  const status = yield* api.services.SourceTrackingService.getStatus(options);
+  const status = yield* api.v2.services.SourceTrackingService.use(service => service.getStatus(options));
   const { localChanges: allLocalChanges, remoteChanges: allRemoteChanges, conflicts } = separateChanges(status);
 
   const remoteChanges = options.remote ? allRemoteChanges : undefined;

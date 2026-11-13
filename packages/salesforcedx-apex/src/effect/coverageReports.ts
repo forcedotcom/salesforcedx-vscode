@@ -5,25 +5,25 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { ReportLineEnding } from '../reporters/lineEnding';
-import type { ApexCodeCoverage, ApexCodeCoverageAggregate } from './schema/wire/coverage';
+import type { ReportLineEnding } from '../reporters/lineEnding.js';
+import type { ApexCodeCoverage, ApexCodeCoverageAggregate } from './schema/wire/coverage.js';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import type * as libReport from 'istanbul-lib-report';
 import type * as reports from 'istanbul-reports';
-import { messages } from '../i18n/i18n';
-import { createCoverageMap, type CoverageSource } from '../reporters/coverageMap';
-import { DefaultReportOptions, DefaultWatermarks, type CoverageReporterOptions } from '../reporters/coverageOptions';
-import { ApexReportError, causeMessage } from './errors';
+import { messages } from '../i18n/i18n.js';
+import { createCoverageMap, type CoverageSource } from '../reporters/coverageMap.js';
+import { DefaultReportOptions, DefaultWatermarks, type CoverageReporterOptions } from '../reporters/coverageOptions.js';
+import { ApexReportError, causeMessage } from './errors.js';
 
 /** The host supplies Istanbul and owns its writer, source lookup, and report destination. */
-export class IstanbulReports extends Context.Tag('Apex.IstanbulReports')<
+export class IstanbulReports extends Context.Service<
   IstanbulReports,
   {
     createContext: (options: Omit<libReport.ContextOptions, 'dir'>) => libReport.Context;
     createReport: typeof reports.create;
   }
->() {}
+>()('Apex.IstanbulReports') {}
 
 const coverageError = (cause: unknown): ApexReportError =>
   new ApexReportError({

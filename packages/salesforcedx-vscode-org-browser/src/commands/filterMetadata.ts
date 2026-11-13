@@ -6,7 +6,8 @@
  */
 
 import type { MetadataTypeTreeProvider } from '../tree/metadataTypeTreeProvider';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
+import type { OrgMetadataCatalogService } from '@salesforce/vscode-services/v2';
 import * as Deferred from 'effect/Deferred';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
@@ -14,10 +15,8 @@ import * as Fiber from 'effect/Fiber';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Queue from 'effect/Queue';
 import * as Ref from 'effect/Ref';
-import * as Runtime from 'effect/Runtime';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { OrgMetadataCatalog } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 import { getOrgBrowserRuntime } from '../services/extensionProvider';
@@ -73,7 +72,7 @@ const formatDiscoveryProgress = ({
 const promptRestoredFilterDiscovery = (
   treeProvider: MetadataTypeTreeProvider,
   context: vscode.ExtensionContext,
-  catalog: OrgMetadataCatalog,
+  catalog: OrgMetadataCatalogService,
   orgId: string,
   filter: ParsedFilter,
   requestTreeRefresh: (immediate?: boolean) => void
@@ -168,8 +167,8 @@ export const requestRestoredFilterDiscovery = (
   void getOrgBrowserRuntime().runPromise(
     Effect.gen(function* () {
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
-      const catalog = yield* api.services.OrgMetadataCatalog;
-      const { orgId } = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+      const catalog = yield* api.v2.services.OrgMetadataCatalog;
+      const { orgId } = yield* SubscriptionRef.get(yield* api.v2.services.TargetOrgRef);
       if (!orgId) return;
       yield* promptRestoredFilterDiscovery(treeProvider, context, catalog, orgId, filter, requestTreeRefresh);
     })
@@ -218,9 +217,10 @@ export const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')
   const previousTypeIsRegex = treeProvider.typeIsRegex;
   const previousComponentIsRegex = treeProvider.componentIsRegex;
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const orgMetadataCatalog = yield* api.services.OrgMetadataCatalog;
-  const runtime = yield* Effect.runtime();
-  const run = Runtime.runFork(runtime);
+  const orgMetadataCatalog = yield* api.v2.services.OrgMetadataCatalog;
+  const runtime = getOrgBrowserRuntime();
+  const extensionScope = yield* getExtensionScope();
+  const run = runtime.runFork;
   const queue = yield* Queue.unbounded<string>();
   const deferred = yield* Deferred.make<void>();
   const discoveryPromptOpen = yield* Ref.make(false);
@@ -271,7 +271,7 @@ export const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')
             requestTreeRefresh();
           })
         ),
-        Effect.catchAllCause(error => Effect.logWarning('Full org metadata discovery failed', error))
+        Effect.catchCause(cause => Effect.logWarning('Full org metadata discovery failed', cause))
       )
     );
   };
@@ -279,7 +279,7 @@ export const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')
   const promptFullDiscovery = (value: string) =>
     Effect.gen(function* () {
       if (!value.trim() || !isCompleteSearchTerm(value)) return;
-      const { orgId } = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+      const { orgId } = yield* SubscriptionRef.get(yield* api.v2.services.TargetOrgRef);
       if (!orgId || treeProvider.hasStartedFullDiscovery(orgId) || treeProvider.hasShownDiscoveryOffer()) return;
       const types = (yield* orgMetadataCatalog.getChildren()).filter(
         entry => entry.kind === 'type' && entry.reference.type
@@ -304,7 +304,7 @@ export const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')
     Effect.gen(function* () {
       const canPrompt = yield* Ref.modify(discoveryPromptOpen, open => [!open, true]);
       if (!canPrompt) return;
-      yield* Effect.forkDaemon(promptFullDiscovery(value).pipe(Effect.ensuring(Ref.set(discoveryPromptOpen, false))));
+      runtime.runFork(promptFullDiscovery(value).pipe(Effect.ensuring(Ref.set(discoveryPromptOpen, false))));
     });
 
   const applyFilter = (value: string) =>
@@ -313,7 +313,7 @@ export const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')
       const invalidStructuredSearch = isInvalidStructuredSearchTerm(value);
       const { typeFilter, componentFilter, typeIsRegex, componentIsRegex } = filter;
       treeProvider.setTextFilter(typeFilter, componentFilter, typeIsRegex, componentIsRegex, invalidStructuredSearch);
-      const { orgId } = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+      const { orgId } = yield* SubscriptionRef.get(yield* api.v2.services.TargetOrgRef);
       if (orgId) yield* Effect.promise(() => saveFilterState(context, orgId, filter));
       yield* updateFilterContext(isNotUndefined(typeFilter) || isNotUndefined(componentFilter));
       yield* updateInvalidSearchContext(value);
@@ -323,10 +323,12 @@ export const openFilterTextPicker = Effect.fn('OrgBrowser.openFilterTextPicker')
       yield* requestFullDiscovery(value);
     });
 
-  const liveFilterFiber = yield* Stream.fromQueue(queue).pipe(
-    Stream.debounce(Duration.millis(300)),
-    Stream.runForEach(value => applyFilter(value).pipe(Effect.uninterruptible)),
-    Effect.fork
+  const liveFilterFiber = yield* Effect.forkIn(
+    Stream.fromQueue(queue).pipe(
+      Stream.debounce(Duration.millis(300)),
+      Stream.runForEach(value => applyFilter(value).pipe(Effect.uninterruptible))
+    ),
+    extensionScope
   );
 
   picker.onDidChangeValue(value => run(Queue.offer(queue, value)));

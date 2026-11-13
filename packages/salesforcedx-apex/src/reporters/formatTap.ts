@@ -6,7 +6,7 @@
  */
 
 import type { ReportLineEnding } from './lineEnding';
-import type { TestResult } from '../tests/types';
+import type { TestResult } from '../tests/apiTypes';
 import * as Stream from 'effect/Stream';
 import { buildTapDiagnostics } from './buildTapDiagnostics';
 

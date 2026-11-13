@@ -8,7 +8,6 @@
 import type { DiffFilePair } from '../shared/diff/diffTypes';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { ComponentSet } from '@salesforce/source-deploy-retrieve';
-import * as Chunk from 'effect/Chunk';
 import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
@@ -57,20 +56,17 @@ export const detectConflictsFromTimestamps = Effect.fn('detectConflictsFromTimes
 
   if (operationType === 'retrieve') {
     const retrievePairs = yield* materializeRemoteComponents(componentSet);
-    return yield* retrievePairs.pipe(
-      Stream.fromIterable,
-      Stream.filterEffect(filesAreNotIdentical),
-      Stream.runCollect,
-      Effect.map(Chunk.toArray)
-    );
+    return yield* retrievePairs.pipe(Stream.fromIterable, Stream.filterEffect(filesAreNotIdentical), Stream.runCollect);
   }
 
-  const entries = (yield* api.services.OrgMetadataCatalog.getEntries(
-    projectComponents.map(component => ({
-      type: component.type.name,
-      fullName: component.fullName
-    })),
-    { consistency: 'refresh' }
+  const entries = (yield* api.v2.services.OrgMetadataCatalog.use(service =>
+    service.getEntries(
+      projectComponents.map(component => ({
+        type: component.type.name,
+        fullName: component.fullName
+      })),
+      { consistency: 'refresh' }
+    )
   )).filter(isNotUndefined);
   const potentialConflictKeys = yield* computePotentialConflictKeys(entries);
 
@@ -83,11 +79,5 @@ export const detectConflictsFromTimestamps = Effect.fn('detectConflictsFromTimes
   // materializeRemoteComponents already received the potential-conflict component
   // predicate. Avoid filtering the resulting URIs again as plain strings: Windows
   // paths are case-insensitive and may arrive with different segment casing.
-  const deployDiffering = yield* deployPairs.pipe(
-    Stream.fromIterable,
-    Stream.filterEffect(filesAreNotIdentical),
-    Stream.runCollect
-  );
-
-  return Chunk.toArray(deployDiffering);
+  return yield* deployPairs.pipe(Stream.fromIterable, Stream.filterEffect(filesAreNotIdentical), Stream.runCollect);
 });

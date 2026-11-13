@@ -15,7 +15,7 @@ import * as Fiber from 'effect/Fiber';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { AsyncTestOptionsSchema, runTestAsynchronous } from '../../src/effect';
-import { queueRecordSchema } from '../../src/effect/schema/wire/asyncTests';
+import { queueSchema } from '../../src/effect/schema/wire/asyncTests';
 
 const testRunId = '707000000000001AAA';
 const options = { testLevel: 'RunLocalTests' as const, category: ['Apex', 'Flow'] as const };
@@ -36,8 +36,8 @@ const makeConnection = () => {
   };
   return { tooling, connection: { tooling } as unknown as Connection };
 };
-const queue = (records: { Id: string; Status: string }[]) => ({ done: true, totalSize: records.length, records });
-const drainRun = (connection: Connection, polling: { interval?: Duration.DurationInput } = {}) =>
+const queue = (records: { Id: string; Status: string }[]) => ({ done: true, records });
+const drainRun = (connection: Connection, polling: { interval?: Duration.Input } = {}) =>
   runTestAsynchronous(connection, options, polling).pipe(
     Effect.flatMap(({ stream }) => Stream.runDrain(stream)),
     Effect.scoped
@@ -45,10 +45,10 @@ const drainRun = (connection: Connection, polling: { interval?: Duration.Duratio
 
 describe('Effect asynchronous tests', () => {
   it('validates queued IDs as ApexTestQueueItem IDs', () => {
-    const isValidQueueRecord = Schema.is(queueRecordSchema);
+    const isValidQueue = Schema.is(queueSchema);
 
-    expect(isValidQueueRecord({ Id: '709000000000001AAA', Status: 'Queued' })).toBe(true);
-    expect(isValidQueueRecord({ Id: '01p000000000001AAA', Status: 'Queued' })).toBe(false);
+    expect(isValidQueue({ done: true, records: [{ Id: '709000000000001AAA', Status: 'Queued' }] })).toBe(true);
+    expect(isValidQueue({ done: true, records: [{ Id: '01p000000000001AAA', Status: 'Queued' }] })).toBe(false);
   });
 
   it('decodes comma-separated class and suite IDs as prefixed ID arrays', () => {
@@ -207,7 +207,6 @@ describe('Effect asynchronous tests', () => {
     const { connection, tooling } = makeConnection();
     tooling.query.mockResolvedValueOnce(summary('Processing')).mockResolvedValueOnce({
       done: false,
-      totalSize: 2,
       records: [
         { Id: '709000000000001AAA', Status: 'Queued' },
         { Id: '709000000000002AAA', Status: 'Completed' }
@@ -250,14 +249,15 @@ describe('Effect asynchronous tests', () => {
           Stream.tap(() => Deferred.succeed(polled, undefined)),
           Stream.runDrain,
           Effect.scoped,
-          Effect.fork
+          Effect.forkChild
         );
         yield* Deferred.await(polled);
-        return yield* Fiber.interrupt(fiber);
+        yield* Fiber.interrupt(fiber);
+        return yield* Fiber.await(fiber);
       }).pipe(Effect.scoped)
     );
 
-    expect(Exit.isFailure(exit) && Cause.isInterrupted(exit.cause)).toBe(true);
+    expect(Exit.isFailure(exit) && Cause.hasInterrupts(exit.cause)).toBe(true);
     expect(tooling.update).toHaveBeenCalledWith(
       'ApexTestQueueItem',
       [{ Id: '709000000000001AAA', Status: 'Aborted' }],
@@ -277,15 +277,17 @@ describe('Effect asynchronous tests', () => {
         tooling.request.mockImplementation(() =>
           Effect.runPromise(Deferred.succeed(submitting, undefined).pipe(Effect.andThen(Deferred.await(accepted))))
         );
-        const fiber = yield* runTestAsynchronous(connection, options).pipe(Effect.scoped, Effect.fork);
+        const fiber = yield* runTestAsynchronous(connection, options).pipe(Effect.scoped, Effect.forkChild);
         yield* Deferred.await(submitting);
-        yield* Fiber.interruptFork(fiber);
+        const interruptFiber = yield* Fiber.interrupt(fiber).pipe(Effect.forkChild);
+        yield* Effect.yieldNow;
         yield* Deferred.succeed(accepted, testRunId);
+        yield* Fiber.join(interruptFiber);
         return yield* Fiber.await(fiber);
       })
     );
 
-    expect(Exit.isFailure(exit) && Cause.isInterrupted(exit.cause)).toBe(true);
+    expect(Exit.isFailure(exit) && Cause.hasInterrupts(exit.cause)).toBe(true);
     expect(tooling.update).toHaveBeenCalledWith(
       'ApexTestQueueItem',
       [{ Id: '709000000000001AAA', Status: 'Aborted' }],
@@ -329,7 +331,6 @@ describe('Effect asynchronous tests', () => {
     const { connection, tooling } = makeConnection();
     tooling.query.mockResolvedValueOnce(summary('Processing')).mockResolvedValueOnce({
       done: false,
-      totalSize: 1,
       records: [{ Id: '709000000000001AAA', Status: 'Queued' }],
       nextRecordsUrl: '/next-page'
     });

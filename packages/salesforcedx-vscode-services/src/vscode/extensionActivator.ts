@@ -5,15 +5,14 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import { ProjectService, EditorService } from '@salesforce/vscode-services/v2';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { type URI } from 'vscode-uri';
-import { ProjectService } from '../core/projectService';
-import { EditorService } from './editorService';
-import { ExtensionsService } from './extensionsService';
+import { ExtensionsService } from '../services/extensionsService';
 
 const LWC_EXTENSION_ID = 'salesforce.salesforcedx-vscode-lwc';
 const AURA_EXTENSION_ID = 'salesforce.salesforcedx-vscode-lightning';
@@ -31,8 +30,8 @@ export const watchLwcAuraExtensionActivation = Effect.fn('watchLwcAuraExtensionA
   const extensionsService = yield* ExtensionsService;
 
   // only need to run once per extension, even if subsequent files are opened
-  const activateLwc = yield* Effect.once(activateExtension(LWC_EXTENSION_ID));
-  const activateAura = yield* Effect.once(activateExtension(AURA_EXTENSION_ID));
+  const activateLwc = yield* Effect.cached(activateExtension(LWC_EXTENSION_ID));
+  const activateAura = yield* Effect.cached(activateExtension(AURA_EXTENSION_ID));
 
   const isLwcOrAuraUri = (installed: ReadonlySet<string>) => (uri: URI) =>
     (isLwc(uri) && installed.has(LWC_EXTENSION_ID)) || (isAura(uri) && installed.has(AURA_EXTENSION_ID));
@@ -46,7 +45,9 @@ export const watchLwcAuraExtensionActivation = Effect.fn('watchLwcAuraExtensionA
     Stream.map(editor => editor.document.uri),
     Stream.filterEffect(uri => Effect.map(extensionsService.get, installed => isLwcOrAuraUri(installed)(uri))),
     Stream.filterEffect(uri =>
-      projectService.isInPackageDirectories(uri).pipe(Effect.catchAll(() => Effect.succeed(false)))
+      projectService
+        .isInPackageDirectories(uri)
+        .pipe(Effect.catchTag(['NoWorkspaceOpenError', 'FailedToResolveSfProjectError'], () => Effect.succeed(false)))
     ),
     Stream.tap(uri => (isLwc(uri) ? activateLwc : activateAura)),
     Stream.runDrain

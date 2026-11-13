@@ -5,24 +5,23 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { SalesforceVSCodeServicesApiV2 } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import * as Option from 'effect/Option';
 import * as Schema from 'effect/Schema';
-import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import type { ExtensionContext } from 'vscode';
 import { ExtensionPackageJsonSchema, type ExtensionPackageJson } from './extensionPackageJson';
 import { ExtensionProviderService, getServicesApi } from './extensionProvider';
 
-type Services = SalesforceVSCodeServicesApi['services'];
+type Services = SalesforceVSCodeServicesApiV2['v2']['services'];
 type AllServicesLayer = Layer.Layer<
-  | Layer.Layer.Success<Services['prebuiltServicesLayer']>
-  | Layer.Layer.Success<ReturnType<Services['ExtensionContextServiceLayer']>>
-  | Layer.Layer.Success<ReturnType<Services['SdkLayerFor']>>
-  | Layer.Layer.Success<ReturnType<Services['ChannelServiceLayer']>>
-  | Layer.Layer.Success<Services['ErrorHandlerService']['Default']>
+  | Layer.Success<Services['prebuiltServicesLayer']>
+  | Layer.Success<ReturnType<Services['ExtensionContextServiceLayer']>>
+  | Layer.Success<ReturnType<Services['SdkLayerFor']>>
+  | Layer.Success<ReturnType<Services['ChannelServiceLayer']>>
+  | Layer.Success<Services['ErrorHandlerServiceLayer']>
   | ExtensionProviderService,
-  Effect.Effect.Error<typeof getServicesApi>
+  Effect.Error<typeof getServicesApi>
 >;
 
 const ExtensionProviderServiceLive = Layer.effect(
@@ -30,35 +29,34 @@ const ExtensionProviderServiceLive = Layer.effect(
   Effect.sync(() => ({ getServicesApi }))
 );
 
-export const suppressVersionMismatchWarning = Layer.setVersionMismatchErrorLogLevel(Option.none());
-
 /**
- * Factory for a Layer that provides all services from the SalesforceVSCodeServicesApi.
+ * Factory for a Layer that provides all services from the SalesforceVSCodeServicesApiV2.
  * Pass the ExtensionContext to include a working ExtensionContextServiceLayer.
  *
  * @param context the calling extension's ExtensionContext
  * @param fallbackDisplayName channel name to use if the extension's package.json has no `displayName`
  */
 export const buildAllServicesLayer = (context: ExtensionContext, fallbackDisplayName: string): AllServicesLayer =>
-  Layer.unwrapEffect(
+  Layer.unwrap(
     Effect.gen(function* () {
       const extensionProvider = yield* ExtensionProviderService;
       const api = yield* extensionProvider.getServicesApi;
       const emptyPjson: ExtensionPackageJson = {};
-      const pjson = yield* Schema.decodeUnknown(ExtensionPackageJsonSchema)(context.extension.packageJSON).pipe(
-        Effect.catchAll(() => Effect.succeed(emptyPjson))
+      const pjson = yield* Schema.decodeUnknownEffect(ExtensionPackageJsonSchema)(context.extension.packageJSON).pipe(
+        Effect.catch(() => Effect.succeed(emptyPjson))
       );
-      const channelLayer = api.services.ChannelServiceLayer(pjson.displayName ?? fallbackDisplayName);
-      const errorHandlerWithChannel = Layer.provide(api.services.ErrorHandlerService.Default, channelLayer);
+      const services = api.v2.services;
+      const channelLayer = services.ChannelServiceLayer(pjson.displayName ?? fallbackDisplayName);
+      const errorHandlerWithChannel = Layer.provide(services.ErrorHandlerServiceLayer, channelLayer);
+      const sharedServicesAndSdk = services
+        .SdkLayerFor(context)
+        .pipe(Layer.provideMerge(services.prebuiltServicesLayer));
       return Layer.mergeAll(
-        api.services.prebuiltServicesLayer,
+        sharedServicesAndSdk,
         ExtensionProviderServiceLive,
-        api.services.ExtensionContextServiceLayer(context),
-        api.services.SdkLayerFor(context),
+        services.ExtensionContextServiceLayer(context),
         channelLayer,
-        errorHandlerWithChannel,
-        // Multiple VSIX copies of effect share one Extension Host. Option.none() skips their mismatch WARN; Effect.logWarning is unchanged.
-        suppressVersionMismatchWarning
+        errorHandlerWithChannel
       );
     })
   ).pipe(Layer.provide(ExtensionProviderServiceLive));

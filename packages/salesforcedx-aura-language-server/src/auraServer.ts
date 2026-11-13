@@ -122,7 +122,7 @@ export default class Server {
       // Defer performDelayedInitialization to next tick (like LWC) so the client has time to attach
       // workspace/readFile and workspace/stat handlers before we send any requests.
       Effect.tryPromise({ try: () => this.performDelayedInitialization(), catch: err => ({ err }) }).pipe(
-        Effect.catchAll(({ err }) =>
+        Effect.catch(({ err }) =>
           Effect.sync(() => {
             Logger.error(
               `Aura delayed initialization failed: ${getErrorMessage(err)}`,

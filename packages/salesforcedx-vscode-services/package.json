@@ -29,9 +29,7 @@
   ],
   "dependencies": {
     "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.43",
-    "@effect/opentelemetry": "0.63.0",
-    "@effect/platform": "^0.96.1",
-    "@effect/platform-node-shared": "0.59.0",
+    "@effect/opentelemetry": "^4.1.4",
     "@jsforce/jsforce-node": "^3.10.24",
     "@opentelemetry/api": "1.9.1",
     "@opentelemetry/core": "2.8.0",
@@ -42,24 +40,26 @@
     "@opentelemetry/sdk-trace-base": "2.10.0",
     "@opentelemetry/sdk-trace-node": "2.8.0",
     "@opentelemetry/sdk-trace-web": "2.8.0",
-    "@salesforce/apex-node": "workspace:*",
+    "@salesforce/apex-node": "*",
     "@salesforce/core": "^9.3.6",
     "@salesforce/o11y-reporter": "^1.8.5",
-    "@salesforce/salesforcedx-utils": "workspace:*",
+    "@salesforce/salesforcedx-utils": "*",
     "@salesforce/source-deploy-retrieve": "^13.5.0",
     "@salesforce/source-tracking": "^8.1.7",
     "@salesforce/templates": "^66.19.0",
-    "@salesforce/vscode-i18n": "workspace:*",
+    "@salesforce/vscode-i18n": "*",
+    "@salesforce/vscode-services": "*",
+    "@salesforce/vscode-services-v3-compat": "*",
     "@vscode/extension-telemetry": "^1.0.0",
     "cross-spawn": "7.0.6",
-    "effect": "^3.21.2",
+    "effect": "^4.1.4",
     "jsforce": "^3.10.24",
     "o11y_schema": "^264.89.0",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
     "@jest/globals": "30.4.1",
-    "@salesforce/playwright-vscode-ext": "workspace:*",
+    "@salesforce/playwright-vscode-ext": "*",
     "jest-mock": "30.4.1",
     "memfs": "^4.38.1",
     "svgtofont": "^6.5.2"
@@ -106,6 +106,8 @@
         "build:icons",
         "generate-types",
         "../salesforcedx-apex:compile",
+        "../salesforcedx-vscode-services-types:compile",
+        "../salesforcedx-vscode-services-v3-compat:compile",
         "../salesforcedx-utils:compile",
         "../salesforcedx-vscode-i18n:compile"
       ],
@@ -124,12 +126,9 @@
       ]
     },
     "generate-types": {
-      "command": "node ../salesforcedx-vscode-services-types/scripts/generateEntry.mts && node ../salesforcedx-vscode-services-types/scripts/syncDeps.mts",
-      "files": [
-        "src/**/*.ts",
-        "../salesforcedx-vscode-services-types/scripts/*.mts"
-      ],
-      "output": []
+      "dependencies": [
+        "../salesforcedx-vscode-services-types:generate-src"
+      ]
     },
     "vscode:bundle": {
       "env": {
@@ -145,7 +144,6 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
-        "../../scripts/bundling/process-polyfill.js",
         "../../scripts/bundling/fs-polyfill.js",
         "out/**",
         "node_modules/@salesforce/templates/lib/**",
@@ -170,7 +168,6 @@
         "esbuild.config.mjs",
         "../../scripts/bundling/node.mjs",
         "../../scripts/bundling/web.mjs",
-        "../../scripts/bundling/process-polyfill.js",
         "../../scripts/bundling/fs-polyfill.js",
         "out/**",
         "../../.esbuild-web-extra-settings.json",
@@ -238,6 +235,7 @@
       ],
       "files": [
         "package.json",
+        ".vscodeignore",
         "package.nls*.json",
         "README.md",
         "CHANGELOG.md",

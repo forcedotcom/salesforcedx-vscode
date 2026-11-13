@@ -149,7 +149,7 @@ Inside an `Effect.fn` generator, do not wrap a span in `Effect.gen` just so `.pi
 const persist = Effect.fn('Example.persist')(function* () {
   yield* Effect.gen(function* () {
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    yield* (yield* api.services.SettingsService).setValue('section', 'key', true);
+    yield* api.v2.services.SettingsService.use(settings => settings.setValue('section', 'key', true));
   }).pipe(
     Effect.catchTags({
       MissingSettingsError: error => Effect.logWarning(error.message)
@@ -164,8 +164,9 @@ const persist = Effect.fn('Example.persist')(function* () {
 const persist = Effect.fn('Example.persist')(function* () {
   yield* ExtensionProviderService.pipe(
     Effect.flatMap(provider => provider.getServicesApi),
-    Effect.flatMap(api => api.services.SettingsService),
-    Effect.flatMap(settings => settings.setValue('section', 'key', true)),
+    Effect.flatMap(api =>
+      api.v2.services.SettingsService.use(settings => settings.setValue('section', 'key', true))
+    ),
     Effect.catchTags({
       MissingSettingsError: error => Effect.logWarning(error.message)
     })
@@ -294,7 +295,7 @@ Enabled as `error` for TypeScript files in this monorepo's `eslint.config.mjs`.
 
 ### no-effect-service-promise-return
 
-Disallows methods that return `Promise` on the object returned from the `effect` or `scoped` callback of a class that extends `Effect.Service<…>()(…)`. That includes `async` methods and methods whose return type is inferred as `Promise`. Return an `Effect` instead, for example `Effect.fn`. An `Effect` or `Effect.fn` method stays allowed, and so does a function that returns `Promise` outside an `Effect.Service`.
+V3-only compatibility rule. Disallows methods that return `Promise` on the object returned from the `effect` or `scoped` callback of a class that extends `Effect.Service<…>()(…)`. It applies only to the isolated V3 services compatibility package; first-party Effect 4 services use `Context.Service` and explicit layers.
 
 The rule is type-aware. It reports when a method on that returned object has a call signature whose return type is `Promise` (including a union or intersection that contains `Promise`).
 
@@ -322,7 +323,7 @@ class UserService extends Effect.Service<UserService>()('UserService', {
 }) {}
 ```
 
-This monorepo enables the rule as `error` in `eslint.config.mjs`, in the same two blocks as `local/no-effect-service-accessor-calls`: the Effect-services files list, and the apex / soql / soql-common / soql-model files list.
+The monorepo keeps the rule enabled for its V3 compatibility source. It does not certify Effect 4 `Context.Service` layers; those are covered by TypeScript, Effect LS diagnostics, and V4 negative-control fixtures.
 
 ### notification-slot-matches-package-json
 

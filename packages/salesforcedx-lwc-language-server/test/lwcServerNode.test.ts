@@ -152,7 +152,7 @@ import {
 } from 'vscode-languageserver';
 import { TextDocument } from 'vscode-languageserver-textdocument';
 import { URI } from 'vscode-uri';
-import { type BaseServer, findDynamicContent } from '../src/baseServer';
+import { findDynamicContent, type BaseServer } from '../src/baseServer';
 import Server from '../src/lwcServerNode';
 
 // File paths and URIs

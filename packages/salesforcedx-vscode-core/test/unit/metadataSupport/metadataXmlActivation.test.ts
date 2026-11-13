@@ -6,11 +6,14 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import {
+  ChannelService,
+  ExtensionContextService,
+  SettingsService,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import { ChannelService } from 'salesforcedx-vscode-services/src/vscode/channelService';
-import { ExtensionContextService } from 'salesforcedx-vscode-services/src/vscode/extensionContextService';
-import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
 import { nls } from '../../../src/messages';
@@ -24,15 +27,17 @@ describe('metadata XML extension activation', () => {
         Effect.provide(
           Layer.mergeAll(
             Layer.succeed(ExtensionProviderService, {
-              getServicesApi: Effect.succeed({ services: { ChannelService, ExtensionContextService, SettingsService } })
-            } as unknown as ExtensionProviderService),
-            Layer.succeed(ChannelService, { appendToChannel } as unknown as ChannelService),
+              getServicesApi: Effect.succeed({
+                v2: { services: { ChannelService, ExtensionContextService, SettingsService } }
+              } as unknown as SalesforceVSCodeServicesApiV2)
+            } as unknown as ExtensionProviderService['Service']),
+            Layer.succeed(ChannelService, { appendToChannel } as unknown as ChannelService['Service']),
             Layer.succeed(ExtensionContextService, {
               getContext: Effect.succeed({ extensionUri: URI.file('/extension') })
-            } as unknown as ExtensionContextService),
+            } as unknown as ExtensionContextService['Service']),
             Layer.succeed(SettingsService, {
               getValueOrElse: () => Effect.succeed(true)
-            } as unknown as SettingsService)
+            } as unknown as SettingsService['Service'])
           )
         )
       )

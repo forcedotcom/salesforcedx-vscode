@@ -22,7 +22,7 @@ import { getFullClassName } from '../utils/toolingTestClassHelpers';
  */
 type ClassEntry = {
   fullClassName: string;
-  entries: Array.NonEmptyArray<ToolingTestClass>;
+  entries: Array.NonEmptyReadonlyArray<ToolingTestClass>;
 };
 
 /**
@@ -65,7 +65,7 @@ export const buildNamespacePackageStructure = (
     nsKey: string,
     pkgKey: string,
     fullClassName: string,
-    entries: Array.NonEmptyArray<ToolingTestClass>
+    entries: Array.NonEmptyReadonlyArray<ToolingTestClass>
   ): void => {
     const pkMap = ensureNamespace(nsKey);
     const existing = pkMap.get(pkgKey);
@@ -96,7 +96,7 @@ export const buildNamespacePackageStructure = (
       pkMap.set(
         pkgKey,
         [...byFullName.entries()].flatMap(([fullClassName, entries]) =>
-          Array.isNonEmptyArray(entries) ? [{ fullClassName, entries }] : []
+          Array.isReadonlyArrayNonEmpty(entries) ? [{ fullClassName, entries }] : []
         )
       );
     })
@@ -125,8 +125,10 @@ export const getPackageKeysOrdered = (nsKey: string, packageKeys: string[]): str
  * Type guard: ensures list is non-empty and first entry has non-empty entries,
  * so getPackageLabelAndId's classEntriesList[0].entries[0] is safe.
  */
-export const isNonEmptyClassEntriesList = (list: ClassEntry[] | undefined): list is Array.NonEmptyArray<ClassEntry> =>
-  isNotUndefined(list) && Array.isNonEmptyArray(list) && Array.isNonEmptyArray(list[0].entries);
+export const isNonEmptyClassEntriesList = (
+  list: readonly ClassEntry[] | undefined
+): list is Array.NonEmptyReadonlyArray<ClassEntry> =>
+  isNotUndefined(list) && Array.isReadonlyArrayNonEmpty(list) && Array.isReadonlyArrayNonEmpty(list[0].entries);
 
 /**
  * Resolves package info for an Option-wrapped class id against the id→package map.
@@ -136,7 +138,7 @@ const resolvePackageInfoForClassId = (
   id: Option.Option<string>,
   classIdToPackage: Map<string, ResolvedPackageInfo>
 ): ResolvedPackageInfo | undefined =>
-  Option.getOrUndefined(Option.flatMapNullable(id, classId => classIdToPackage.get(classId)));
+  Option.getOrUndefined(Option.flatMap(id, classId => Option.fromNullishOr(classIdToPackage.get(classId))));
 
 /**
  * Returns the display label and stable ID for a package node in the Test Explorer.
@@ -146,7 +148,7 @@ const resolvePackageInfoForClassId = (
 export const getPackageLabelAndId = (
   nsKey: string,
   pkgKey: string,
-  classEntriesList: Array.NonEmptyArray<ClassEntry>,
+  classEntriesList: Array.NonEmptyReadonlyArray<ClassEntry>,
   classIdToPackage: Map<string, ResolvedPackageInfo>
 ): { packageLabel: string; packageId: string } => {
   if (pkgKey === UNPACKAGED_PACKAGE_KEY) {
@@ -201,10 +203,10 @@ export const getToolingTestMethodPosition = (
  */
 export const createClassAndMethodsFactory = (
   ctx: CreateClassAndMethodsContext
-): ((fullClassName: string, classEntries: Array.NonEmptyArray<ToolingTestClass>) => vscode.TestItem) => {
+): ((fullClassName: string, classEntries: Array.NonEmptyReadonlyArray<ToolingTestClass>) => vscode.TestItem) => {
   const { controller, classItems, methodItems, classResolutions, orgOnlyTag, inWorkspaceTag } = ctx;
 
-  return (fullClassName: string, classEntries: Array.NonEmptyArray<ToolingTestClass>): vscode.TestItem => {
+  return (fullClassName: string, classEntries: Array.NonEmptyReadonlyArray<ToolingTestClass>): vscode.TestItem => {
     const baseClassName = classEntries[0].name;
     const resolution = classResolutions.get(fullClassName);
     const uri = resolution?.uri;

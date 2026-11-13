@@ -32,7 +32,7 @@ import { disposeRuntime, getRuntime } from './services/runtime';
 const capabilitySettingsChanged = (event: vscode.ConfigurationChangeEvent): boolean =>
   event.affectsConfiguration('salesforcedx-vscode-apex.advanced.capabilities');
 
-export const activate = async (context: vscode.ExtensionContext): Promise<ApexVSCodeApi> => {
+export const activate = async (context: vscode.ExtensionContext) => {
   setAllServicesLayer(buildAllServicesLayer(context, nls.localize('channel_name')));
   await getRuntime().runPromise(activateEffect(context));
   return {
@@ -49,9 +49,9 @@ export const activateEffect = Effect.fn('activation:salesforcedx-vscode-apex')(f
 ) {
   // fails with the typed NoWorkspaceOpenError from WorkspaceService when no workspace is open
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+  yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
 
-  const isSalesforceProject = yield* api.services.ProjectService.isSalesforceProject();
+  const isSalesforceProject = yield* api.v2.services.ProjectService.use(service => service.isSalesforceProject());
 
   if (!isSalesforceProject) {
     return;
@@ -114,7 +114,7 @@ export type {
 } from './apexLanguageClient';
 export type { LanguageClientManager } from './languageUtils/languageClientManager';
 
-// Export OAS schema types for other extensions to consume.
+// Export OAS schema types for other extensions to consume
 export type {
   ApexClassOASEligibleRequest,
   ApexClassOASEligibleResponse,

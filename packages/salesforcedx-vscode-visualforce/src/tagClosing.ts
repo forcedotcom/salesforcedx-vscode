@@ -31,7 +31,7 @@ export const activateTagClosing = (
   );
 
   let isEnabled = false;
-  let timeout: Fiber.RuntimeFiber<void> | undefined = void 0;
+  let timeout: Fiber.Fiber<void, never> | undefined = void 0;
 
   const updateEnabledState = () => {
     isEnabled = false;
@@ -58,7 +58,7 @@ export const activateTagClosing = (
       return;
     }
     if (isNotUndefined(timeout)) {
-      timeout.pipe(Fiber.interruptFork, Effect.runSync);
+      timeout.pipe(Fiber.interrupt, Effect.runSync);
     }
     // assertion: we previously checked that changes is not zero-length
     const lastChange = changes.at(-1)!;

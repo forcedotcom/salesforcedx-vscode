@@ -113,12 +113,11 @@
   },
   "dependencies": {
     "@salesforce/salesforcedx-utils": "*",
-    "@effect/platform": "0.96.1",
     "@octokit/core": "^7.0.6",
     "@octokit/graphql": "^9.0.3",
     "@octokit/plugin-paginate-rest": "^14.0.0",
     "@octokit/request-error": "^7.0.2",
     "@octokit/types": "^16.0.0",
-    "effect": "^3.21.2"
+    "effect": "^4.1.4"
   }
 }

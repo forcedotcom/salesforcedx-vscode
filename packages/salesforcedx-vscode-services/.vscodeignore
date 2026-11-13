@@ -25,6 +25,9 @@ esbuild.config.mjs
 jest.config.js
 tsconfig.json
 .eslint.json
+CONTEXT.md
+jest.transformer.cjs
+vitest.config.mts
 
 # unique to this package
 scripts/**

@@ -20,8 +20,11 @@
   "dependencies": {
     "@salesforce/core": "^9.3.0",
     "@salesforce/kit": "^4.0.0",
+    "@types/istanbul-lib-report": "^3.0.3",
+    "@types/istanbul-reports": "^3.0.4",
+    "effect": "^4.1.4",
+    "fast-glob": "^3.3.2",
     "@salesforce/salesforcedx-utils": "*",
-    "effect": "^3.21.2",
     "faye": "1.4.1",
     "istanbul-lib-coverage": "^3.2.2",
     "istanbul-lib-report": "^3.0.1",
@@ -32,8 +35,6 @@
     "@jsforce/jsforce-node": "^3.10.18",
     "@types/node": "^22.15.1",
     "@types/istanbul-lib-coverage": "^2.0.6",
-    "@types/istanbul-lib-report": "^3.0.3",
-    "@types/istanbul-reports": "^3.0.4",
     "@types/sinon": "^17.0.3",
     "prettier": "3.8.3",
     "sinon": "^17.0.1"
@@ -80,18 +81,22 @@
       ]
     },
     "schema:check": {
-      "command": "node scripts/generatePublicApiSchema.mts --check",
+      "command": "node scripts/generatePublicApiSchema.mts --check && node scripts/publicApiSchemaContract.mjs",
       "dependencies": [
         "compile"
       ],
       "files": [
         "scripts/generatePublicApiSchema.mts",
         "schemas/public-api.schema.json",
+        "scripts/publicApiSchemaContract.mjs",
+        "src/**/*.ts",
+        "tsconfig.json",
+        "../../tsconfig.common.json",
         "package.json"
       ]
     },
     "compile": {
-      "command": "tsc --pretty && tsc -p scripts/tsconfig.json",
+      "command": "tsc --pretty && tsc -p scripts/tsconfig.json && node scripts/bundleCommonJs.mjs",
       "clean": "if-file-deleted",
       "dependencies": [
         "../salesforcedx-utils:compile"
@@ -99,8 +104,11 @@
       "files": [
         "src/**/*.ts",
         "scripts/**/*.mts",
+        "scripts/bundleCommonJs.mjs",
+        "src/effect/package.json",
         "scripts/tsconfig.json",
         "../../scripts/tsconfig.native.json",
+        "../../pnpm-lock.yaml",
         "tsconfig.json",
         "../../tsconfig.common.json",
         "package.json"
@@ -147,10 +155,17 @@
         "out/**",
         "package.json",
         "scripts/verify-packed-web-consumer.mjs",
+        "../../test/fixtures/effect-v4/apexV4/**",
+        "../../scripts/packedServicesFixtures.mjs",
         "../../scripts/bundling/*.js",
         "../../scripts/bundling/*.mjs"
       ],
-      "output": []
+      "output": [],
+      "env": {
+        "RUNNER_TEMP": {
+          "external": true
+        }
+      }
     },
     "lint": {
       "command": "eslint --color --cache --cache-location .eslintcache .",
@@ -197,7 +212,7 @@
   },
   "license": "BSD-3-Clause",
   "engines": {
-    "node": ">=22.0.0"
+    "node": ">=22.19.0"
   },
   "publishConfig": {
     "access": "public"

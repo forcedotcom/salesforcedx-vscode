@@ -5,17 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as NodeFileSystem from '@effect/platform-node/NodeFileSystem';
-import * as NodePath from '@effect/platform-node/NodePath';
-import * as FileSystem from '@effect/platform/FileSystem';
+import * as FileSystem from 'effect/FileSystem';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
-import { ArtifactService } from '../src/artifactService';
+import { ArtifactService, ArtifactServiceLayer } from '../src/artifactService';
+import { drivablePlatformLayer } from '../src/platformLayer';
 
 vi.mock('@salesforce/playwright-vscode-ext', () => ({ redactValue: (value: unknown) => value }));
 
-const PlatformLayer = Layer.merge(NodeFileSystem.layer, NodePath.layer);
-const TestLayer = Layer.merge(ArtifactService.Default.pipe(Layer.provide(PlatformLayer)), PlatformLayer);
+const TestLayer = ArtifactServiceLayer.pipe(Layer.provideMerge(drivablePlatformLayer));
 
 describe('ArtifactService', () => {
   test('writes JSONL plus typed finding and summary deliverables', async () => {
@@ -23,7 +21,8 @@ describe('ArtifactService', () => {
       Effect.gen(function* () {
         const fs = yield* FileSystem.FileSystem;
         const root = yield* fs.makeTempDirectoryScoped({ prefix: 'drivable-vscode-artifacts-' });
-        const artifacts = yield* ArtifactService.create(root, 'run-1');
+        const artifactService = yield* ArtifactService;
+        const artifacts = yield* artifactService.create(root, 'run-1');
         const finding = {
           title: 'Misleading URL feedback',
           severity: 'high' as const,

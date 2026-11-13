@@ -7,7 +7,9 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import type { MetadataMember, RetrieveResult } from '@salesforce/source-deploy-retrieve';
 import * as Arr from 'effect/Array';
+import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 import * as Option from 'effect/Option';
 import { isString } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
@@ -25,12 +27,14 @@ const retrieve = Effect.fn('OrgBrowserRetrieveService.retrieve')(function* (
   options?: { progressLocation?: vscode.ProgressLocation }
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channel = yield* api.services.ChannelService;
+  const channel = yield* api.v2.services.ChannelService;
 
-  const result = yield* api.services.MetadataRetrieveService.retrieve(members, {
-    ignoreConflicts: true,
-    progressLocation: options?.progressLocation
-  });
+  const result = yield* api.v2.services.MetadataRetrieveService.use(service =>
+    service.retrieve(members, {
+      ignoreConflicts: true,
+      progressLocation: options?.progressLocation
+    })
+  );
   if (isString(result)) {
     return result;
   }
@@ -45,7 +49,7 @@ const retrieve = Effect.fn('OrgBrowserRetrieveService.retrieve')(function* (
   }
 
   if (openInEditor) {
-    const fsService = yield* api.services.FsService;
+    const fsService = yield* api.v2.services.FsService;
     yield* Option.match(findFirstSuccessfulFile(result), {
       onNone: () => Effect.void,
       onSome: filePath =>
@@ -69,22 +73,16 @@ const retrieve = Effect.fn('OrgBrowserRetrieveService.retrieve')(function* (
 const findFirstSuccessfulFile = (result: RetrieveResult): Option.Option<string> =>
   // for unknown reasons, the filePath is sometimes prefixed with a backslash
   Arr.head(result.getFileResponses()).pipe(
-    Option.flatMap(response => Option.fromNullable(response.filePath)),
+    Option.flatMap(response => Option.fromNullishOr(response.filePath)),
     Option.map(filePath => filePath.replace(/^\\/, '/'))
   );
 
-export class OrgBrowserRetrieveService extends Effect.Service<OrgBrowserRetrieveService>()(
-  'OrgBrowserRetrieveService',
-  {
-    accessors: true,
-    succeed: {
-      /**
-       * Retrieve metadata components and optionally open them in the editor
-       * @param members - Array of MetadataMember to retrieve
-       * @param openInEditor - Whether to open retrieved files in the editor
-       * @returns Effect that resolves to the retrieve result
-       */
-      retrieve
-    }
-  }
-) {}
+export class OrgBrowserRetrieveService extends Context.Service<
+  OrgBrowserRetrieveService,
+  { readonly retrieve: typeof retrieve }
+>()('salesforcedx-vscode-org-browser/OrgBrowserRetrieveService') {}
+
+export const OrgBrowserRetrieveServiceLayer = Layer.succeed(
+  OrgBrowserRetrieveService,
+  OrgBrowserRetrieveService.of({ retrieve })
+);

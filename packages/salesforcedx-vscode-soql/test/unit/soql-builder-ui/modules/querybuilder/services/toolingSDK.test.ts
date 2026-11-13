@@ -38,7 +38,7 @@ const runWithSDK = <A>(layer: Layer.Layer<MessageService>, body: (sdk: ToolingSD
   Effect.runPromise(
     Effect.gen(function* () {
       return yield* ToolingSDK.pipe(Effect.flatMap(body));
-    }).pipe(Effect.provide(Layer.provide(ToolingSDK.Default, layer)))
+    }).pipe(Effect.provide(Layer.provide(ToolingSDK.layer, layer)))
   );
 
 describe('Tooling SDK Service', () => {

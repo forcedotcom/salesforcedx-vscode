@@ -7,10 +7,10 @@
 
 import type { DiffFilePair } from '../shared/diff/diffTypes';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { NonEmptyComponentSet } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as Match from 'effect/Match';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
 import { nls } from '../messages';
 import { getDetectConflictsForDeployAndRetrieve } from '../settings/deployOnSaveSettings';
 import { detectConflictsFromTracking } from './conflictDetection';
@@ -40,7 +40,7 @@ export const detectConflicts = Effect.fn('detectConflicts')(function* (
   }
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+  const orgInfo = yield* SubscriptionRef.get(yield* api.v2.services.TargetOrgRef);
 
   const timestampOperationType = operationType === 'delete' ? 'deploy' : operationType;
   const pairs = yield* orgInfo.tracksSource === true
@@ -94,5 +94,7 @@ export const handleConflictWithRetry = Effect.fn('handleConflictWithRetry')(func
   });
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return result === 'continue' ? yield* options.retryOperation : yield* new api.services.UserCancellationError();
+  return result === 'continue'
+    ? yield* options.retryOperation
+    : yield* new api.v2.services.UserCancellationError({ message: 'User cancelled' });
 });

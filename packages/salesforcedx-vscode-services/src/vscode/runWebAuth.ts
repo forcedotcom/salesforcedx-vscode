@@ -6,26 +6,24 @@
  */
 import * as Effect from 'effect/Effect';
 import { isString } from 'effect/Predicate';
-import * as Rec from 'effect/Record';
+import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 
 export const runWebAuthEffect = Effect.fn('runWebAuthEffect')(function* () {
   // Apply web config from esbuild define if present
   const webConfig = process.env.ESBUILD_WEB_CONFIG;
   if (webConfig && webConfig !== 'undefined' && isString(webConfig)) {
-    const parseConfig = (): Record<string, unknown> | undefined => {
-      const parsed = JSON.parse(webConfig);
-      return parsed && typeof parsed === 'object' ? parsed : undefined;
-    };
-    const configMap = parseConfig();
-
-    if (configMap) {
-      const config = vscode.workspace.getConfiguration();
-      yield* Effect.all(
-        Rec.collect(configMap, (k, v) =>
-          Effect.promise(() => config.update(k, v, vscode.ConfigurationTarget.Workspace))
-        )
-      );
-    }
+    const configMap = yield* Schema.decodeUnknownEffect(
+      Schema.Record(Schema.String, Schema.Unknown).pipe(Schema.fromJsonString)
+    )(webConfig);
+    const config = vscode.workspace.getConfiguration();
+    yield* Effect.forEach(
+      Object.entries(configMap),
+      ([key, value]) =>
+        Effect.promise(() => config.update(key, value, vscode.ConfigurationTarget.Workspace)).pipe(
+          Effect.uninterruptible
+        ),
+      { discard: true }
+    );
   }
 });

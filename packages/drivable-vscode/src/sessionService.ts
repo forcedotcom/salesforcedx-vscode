@@ -5,29 +5,30 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as FileSystem from '@effect/platform/FileSystem';
-import * as Path from '@effect/platform/Path';
 import { _electron as electron, type ConsoleMessage, type ElectronApplication, type Page } from '@playwright/test';
 import { redactValue } from '@salesforce/playwright-vscode-ext';
 import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import { downloadAndUnzipVSCode, SilentReporter } from '@vscode/test-electron';
 import * as Cause from 'effect/Cause';
+import * as Context from 'effect/Context';
 import * as DateTime from 'effect/DateTime';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import * as ExecutionStrategy from 'effect/ExecutionStrategy';
 import * as Exit from 'effect/Exit';
+import * as FileSystem from 'effect/FileSystem';
 import * as Layer from 'effect/Layer';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
+import * as Path from 'effect/Path';
 import { isNull } from 'effect/Predicate';
 import * as Queue from 'effect/Queue';
 import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as Scope from 'effect/Scope';
+import * as Semaphore from 'effect/Semaphore';
 import { randomUUID } from 'node:crypto';
 import { tmpdir } from 'node:os';
-import { ArtifactService } from './artifactService';
+import { ArtifactService, ArtifactServiceLayer } from './artifactService';
 import { consumeConsoleWrites, drainConsoleWrites, type ConsoleWrite } from './consoleWriteQueue';
 import { QUICK_INPUT_WIDGET, WORKBENCH } from './constants';
 import {
@@ -39,7 +40,7 @@ import {
   DrivableVscodeStateError,
   DrivableVscodeTeardownError
 } from './errors';
-import { ExtensionService } from './extensionService';
+import { ExtensionService, ExtensionServiceLayer } from './extensionService';
 import {
   DrivableVscodeObservation,
   DrivableVscodeRendererConsoleEntry,
@@ -50,7 +51,7 @@ import {
   type DrivableVscodeLaunchOptions
 } from './schemas';
 import { userDataTempOptions } from './userDataDirectory';
-import { WorkspaceService } from './workspaceService';
+import { WorkspaceService, WorkspaceServiceLayer } from './workspaceService';
 
 export type DrivableVscodeSession = {
   runId: string;
@@ -96,7 +97,7 @@ type SessionState = {
 const ARIA_SNAPSHOT_LIMIT = 20_000;
 const CLOSE_TIMEOUT = Duration.seconds(5);
 type AriaRole = Parameters<Page['getByRole']>[0];
-const AriaRole = Schema.Literal(
+const AriaRole = Schema.Literals([
   'alert',
   'alertdialog',
   'application',
@@ -179,7 +180,7 @@ const AriaRole = Schema.Literal(
   'tree',
   'treegrid',
   'treeitem'
-);
+]);
 const decodeRole = Schema.decodeUnknownSync(AriaRole);
 const defaultSettings = {
   'files.simpleDialog.enable': true,
@@ -225,7 +226,7 @@ const launchEnvironment = (): Record<string, string> => {
 const teardownFailure = (message: string, cause: unknown) =>
   new DrivableVscodeTeardownError({ message, cause: getErrorMessage(cause) });
 const finalizer = <E>(effect: Effect.Effect<unknown, E>) => effect.pipe(Effect.uninterruptible, Effect.orDie);
-const closeSessionScope = (scope: Scope.CloseableScope, exit: Exit.Exit<unknown, unknown>) =>
+const closeSessionScope = (scope: Scope.Closeable, exit: Exit.Exit<unknown, unknown>) =>
   Scope.close(scope, exit).pipe(
     Effect.uninterruptible,
     Effect.sandbox,
@@ -289,10 +290,10 @@ const executeAction = (page: Page, action: DrivableVscodeAction) =>
     try: () =>
       Match.value(action).pipe(
         Match.when({ kind: 'click' }, value =>
-          roleLocator(page, value.role, value.name, value.exact, Option.fromNullable(value.within)).click()
+          roleLocator(page, value.role, value.name, value.exact, Option.fromUndefinedOr(value.within)).click()
         ),
         Match.when({ kind: 'fill' }, value =>
-          roleLocator(page, value.role, value.name, value.exact, Option.fromNullable(value.within)).fill(value.value)
+          roleLocator(page, value.role, value.name, value.exact, Option.fromUndefinedOr(value.within)).fill(value.value)
         ),
         Match.when({ kind: 'type' }, value => page.keyboard.type(value.text)),
         Match.when({ kind: 'press' }, value => page.keyboard.press(value.key)),
@@ -318,504 +319,518 @@ const executeAction = (page: Page, action: DrivableVscodeAction) =>
       })
   });
 
-export class SessionService extends Effect.Service<SessionService>()('DrivableVscode/SessionService', {
-  accessors: true,
-  dependencies: [
-    ArtifactService.Default,
-    ExtensionService.Default,
-    WorkspaceService.Default,
-    Layer.service(FileSystem.FileSystem),
-    Layer.service(Path.Path)
-  ],
-  effect: Effect.gen(function* () {
-    const fs = yield* FileSystem.FileSystem;
-    const path = yield* Path.Path;
-    const artifactService = yield* ArtifactService;
-    const extensionService = yield* ExtensionService;
-    const workspaceService = yield* WorkspaceService;
-    const launch = Effect.fn('SessionService.launch')(function* (options: DrivableVscodeLaunchOptions = {}) {
-      const repoRoot = options.repoRoot ?? process.cwd();
-      const extensionMode = options.extensionMode ?? 'vsix';
-      const runId = `${DateTime.formatIso(yield* DateTime.now).replaceAll(/[:.]/g, '-')}-${randomUUID().slice(0, 8)}`;
-      const artifactRoot = options.artifactRoot ?? path.join(repoRoot, '.e2e-artifacts', 'drivable-vscode');
-      const artifacts = yield* artifactService.create(artifactRoot, runId);
-      const sessionScope = yield* Scope.make(ExecutionStrategy.sequential);
-      const scoped = Scope.extend(sessionScope);
-      const state = yield* Ref.make<SessionState>({
-        observationSequence: 0,
-        actionSequence: 0,
-        lifecycle: 'open',
-        screenshotSaved: false,
-        closingRecorded: false,
-        consoleListenerRemoved: false,
-        consoleDrained: false,
-        electronClosed: false,
-        userDataRemoved: false,
-        workspaceRemoved: false,
-        scopeClosed: false,
-        videoSaved: false,
-        artifactsFlushed: false,
-        findingCount: 0
-      });
-      const closeSemaphore = yield* Effect.makeSemaphore(1);
-      const runPhase = <K extends keyof Omit<SessionState, 'observationSequence' | 'actionSequence' | 'lifecycle'>>(
-        phase: K,
-        operation: Effect.Effect<void, DrivableVscodeTeardownError>
-      ) =>
-        Ref.get(state).pipe(
-          Effect.flatMap(value =>
-            value[phase]
-              ? Effect.void
-              : operation.pipe(Effect.zipRight(Ref.update(state, next => ({ ...next, [phase]: true }))))
-          )
-        );
-      const removeDirectory = (directory: string, label: string) =>
-        fs
-          .remove(directory, { recursive: true })
-          .pipe(
-            Effect.mapError(
-              cause =>
-                new DrivableVscodeTeardownError({ message: `Failed to remove ${label}`, cause: getErrorMessage(cause) })
-            )
-          );
-      const acquireSession = Effect.fn('SessionService.acquireSession')(function* () {
-        const workspaceDir = yield* scoped(
-          Effect.acquireRelease(workspaceService.create(options.orgAlias), directory =>
-            finalizer(runPhase('workspaceRemoved', removeDirectory(directory, 'disposable workspace')))
-          )
-        );
-        const userDataDir = yield* scoped(
-          Effect.acquireRelease(
-            fs.makeTempDirectory(userDataTempOptions(tmpdir(), process.platform)).pipe(
-              Effect.mapError(
-                cause =>
-                  new DrivableVscodeLaunchError({
-                    message: 'Failed to create VS Code user data directory',
-                    cause: getErrorMessage(cause)
-                  })
-              )
-            ),
-            directory => finalizer(runPhase('userDataRemoved', removeDirectory(directory, 'VS Code user data')))
-          )
-        );
-        const videosDir = path.join(artifacts.artifactDir, 'videos');
-        yield* Effect.all(
-          [
-            fs.makeDirectory(path.join(userDataDir, 'User'), { recursive: true }),
-            fs.makeDirectory(videosDir),
-            ...(extensionMode === 'dev' ? [fs.makeDirectory(path.join(userDataDir, 'extensions'))] : [])
-          ],
-          { concurrency: 'unbounded' }
-        ).pipe(
+const makeSessionService = Effect.gen(function* () {
+  const fs = yield* FileSystem.FileSystem;
+  const path = yield* Path.Path;
+  const artifactService = yield* ArtifactService;
+  const extensionService = yield* ExtensionService;
+  const workspaceService = yield* WorkspaceService;
+  const launch = Effect.fn('SessionService.launch')(function* (options: DrivableVscodeLaunchOptions = {}) {
+    const repoRoot = options.repoRoot ?? process.cwd();
+    const extensionMode = options.extensionMode ?? 'vsix';
+    const runId = `${DateTime.formatIso(yield* DateTime.now).replaceAll(/[:.]/g, '-')}-${randomUUID().slice(0, 8)}`;
+    const artifactRoot = options.artifactRoot ?? path.join(repoRoot, '.e2e-artifacts', 'drivable-vscode');
+    const artifacts = yield* artifactService.create(artifactRoot, runId);
+    const sessionScope = yield* Scope.make('sequential');
+    const scoped = Scope.provide(sessionScope);
+    const state = yield* Ref.make<SessionState>({
+      observationSequence: 0,
+      actionSequence: 0,
+      lifecycle: 'open',
+      screenshotSaved: false,
+      closingRecorded: false,
+      consoleListenerRemoved: false,
+      consoleDrained: false,
+      electronClosed: false,
+      userDataRemoved: false,
+      workspaceRemoved: false,
+      scopeClosed: false,
+      videoSaved: false,
+      artifactsFlushed: false,
+      findingCount: 0
+    });
+    const closeSemaphore = yield* Semaphore.make(1);
+    const runPhase = <K extends keyof Omit<SessionState, 'observationSequence' | 'actionSequence' | 'lifecycle'>>(
+      phase: K,
+      operation: Effect.Effect<void, DrivableVscodeTeardownError>
+    ) =>
+      Ref.get(state).pipe(
+        Effect.flatMap(value =>
+          value[phase]
+            ? Effect.void
+            : operation.pipe(Effect.andThen(Ref.update(state, next => ({ ...next, [phase]: true }))))
+        )
+      );
+    const removeDirectory = (directory: string, label: string) =>
+      fs
+        .remove(directory, { recursive: true })
+        .pipe(
           Effect.mapError(
             cause =>
-              new DrivableVscodeLaunchError({
-                message: 'Failed to prepare VS Code launch directories',
-                cause: getErrorMessage(cause)
-              })
+              new DrivableVscodeTeardownError({ message: `Failed to remove ${label}`, cause: getErrorMessage(cause) })
           )
         );
-        yield* fs
-          .writeFileString(
-            path.join(userDataDir, 'User', 'settings.json'),
-            `${JSON.stringify({ ...defaultSettings, ...options.userSettings }, undefined, 2)}\n`
-          )
-          .pipe(
+    const acquireSession = Effect.fn('SessionService.acquireSession')(function* () {
+      const workspaceDir = yield* scoped(
+        Effect.acquireRelease(workspaceService.create(options.orgAlias), directory =>
+          finalizer(runPhase('workspaceRemoved', removeDirectory(directory, 'disposable workspace')))
+        )
+      );
+      const userDataDir = yield* scoped(
+        Effect.acquireRelease(
+          fs.makeTempDirectory(userDataTempOptions(tmpdir(), process.platform)).pipe(
             Effect.mapError(
               cause =>
                 new DrivableVscodeLaunchError({
-                  message: 'Failed to write VS Code settings',
+                  message: 'Failed to create VS Code user data directory',
                   cause: getErrorMessage(cause)
                 })
             )
-          );
-        const vscodeExecutable =
-          options.vscodeExecutable ??
-          (yield* Effect.tryPromise({
-            try: () =>
-              downloadAndUnzipVSCode({
-                version: process.env.PLAYWRIGHT_VSCODE_VERSION,
-                cachePath: path.join(repoRoot, '.vscode-test'),
-                reporter: new SilentReporter()
-              }),
-            catch: cause =>
-              new DrivableVscodeLaunchError({ message: 'Failed to acquire VS Code', cause: getErrorMessage(cause) })
-          }));
-        const resolved =
-          extensionMode === 'dev'
-            ? {
-                extensions: yield* extensionService.resolveDev(repoRoot),
-                extensionsDir: path.join(userDataDir, 'extensions')
-              }
-            : yield* extensionService.resolveVsix(repoRoot, vscodeExecutable);
-        const launchArgs = [
-          `--user-data-dir=${userDataDir}`,
-          `--extensions-dir=${resolved.extensionsDir}`,
-          ...(extensionMode === 'dev'
-            ? [
-                ...resolved.extensions.map(extension => `--extensionDevelopmentPath=${extension.path}`),
-                '--disable-extensions'
-              ]
-            : []),
-          ...disabledBuiltins,
-          '--disable-updates',
-          '--skip-welcome',
-          '--skip-release-notes',
-          '--disable-gpu-sandbox',
-          '--disable-workspace-trust',
-          '--no-sandbox',
-          workspaceDir
-        ];
-        const app = yield* scoped(
-          Effect.acquireRelease(
-            Effect.tryPromise({
-              try: () =>
-                electron.launch({
-                  executablePath: vscodeExecutable,
-                  args: launchArgs,
-                  env: launchEnvironment(),
-                  timeout: 60_000,
-                  recordVideo: { dir: videosDir, size: { width: 1920, height: 1080 } }
-                }),
-              catch: cause =>
-                new DrivableVscodeLaunchError({ message: 'Failed to launch VS Code', cause: getErrorMessage(cause) })
-            }),
-            acquiredApp => finalizer(runPhase('electronClosed', closeElectron(acquiredApp)))
-          )
-        );
-        const page = yield* Effect.tryPromise({
-          try: async () => {
-            const firstWindow = await app.firstWindow();
-            await firstWindow.waitForLoadState('domcontentloaded');
-            await firstWindow.setViewportSize({ width: 1920, height: 1080 });
-            await firstWindow.waitForSelector(WORKBENCH, { timeout: 60_000 });
-            return firstWindow;
-          },
-          catch: cause =>
+          ),
+          directory => finalizer(runPhase('userDataRemoved', removeDirectory(directory, 'VS Code user data')))
+        )
+      );
+      const videosDir = path.join(artifacts.artifactDir, 'videos');
+      yield* Effect.all(
+        [
+          fs.makeDirectory(path.join(userDataDir, 'User'), { recursive: true }),
+          fs.makeDirectory(videosDir),
+          ...(extensionMode === 'dev' ? [fs.makeDirectory(path.join(userDataDir, 'extensions'))] : [])
+        ],
+        { concurrency: 'unbounded' }
+      ).pipe(
+        Effect.mapError(
+          cause =>
             new DrivableVscodeLaunchError({
-              message: 'VS Code workbench failed to become ready',
+              message: 'Failed to prepare VS Code launch directories',
               cause: getErrorMessage(cause)
             })
-        });
-        const consoleWrites = yield* Queue.unbounded<ConsoleWrite>();
-        const consumeConsole = consumeConsoleWrites(consoleWrites, artifacts.appendRendererConsole);
-        const consoleConsumer = yield* scoped(
-          Effect.acquireRelease(Effect.forkDaemon(consumeConsole), consumer =>
-            finalizer(
-              runPhase(
-                'consoleDrained',
-                drainConsoleWrites(consoleWrites, consumer).pipe(
-                  Effect.mapError(
-                    cause =>
-                      new DrivableVscodeTeardownError({
-                        message: 'Failed to drain renderer console',
-                        cause: getErrorMessage(cause)
-                      })
-                  )
-                )
-              )
-            )
-          )
-        );
-        const recordConsole = (message: ConsoleMessage) => {
-          const entry = Schema.decodeUnknownSync(DrivableVscodeRendererConsoleEntry)(
-            redactValue({
-              capturedAt: new Date().toISOString(),
-              type: message.type(),
-              text: message.text(),
-              location: message.location()
-            })
-          );
-          Queue.unsafeOffer(consoleWrites, { _tag: 'Entry', entry });
-        };
-        const consoleListenerAttached = yield* Ref.make(false);
-        const removeConsoleListener = Ref.modify(
-          consoleListenerAttached,
-          attached => [attached ? Effect.sync(() => page.off('console', recordConsole)) : Effect.void, false] as const
-        ).pipe(Effect.flatten);
-        yield* scoped(
-          Effect.acquireRelease(
-            Effect.sync(() => page.on('console', recordConsole)).pipe(
-              Effect.zipRight(Ref.set(consoleListenerAttached, true))
-            ),
-            () => finalizer(runPhase('consoleListenerRemoved', removeConsoleListener))
-          )
-        );
-        yield* artifacts.writeManifest({
-          runId,
-          objective: options.objective ?? 'Unspecified drivable VS Code objective',
-          mode: extensionMode,
-          startedAt: DateTime.formatIso(yield* DateTime.now),
-          repoRoot,
-          workspaceDir,
-          vscodeExecutable,
-          extensions: resolved.extensions,
-          orgAlias: options.orgAlias,
-          screenshotWarning:
-            'Screenshots and video are not pixel-redacted and may contain secrets displayed by VS Code.'
-        });
-
-        const requireOpen = Ref.get(state).pipe(
-          Effect.filterOrFail(
-            current => current.lifecycle === 'open',
-            current =>
-              new DrivableVscodeStateError({
-                message: `Drivable VS Code session is ${current.lifecycle}`,
-                state: current.lifecycle
-              })
-          )
-        );
-        const observeSession = Effect.fn('SessionService.observe')(function* () {
-          const current = yield* requireOpen;
-          const sequence = current.observationSequence + 1;
-          yield* Ref.set(state, { ...current, observationSequence: sequence });
-          const screenshotPath = path.join(artifacts.screenshotsDir, `${String(sequence).padStart(4, '0')}.png`);
-          const clock = yield* Effect.clock;
-          const observation = yield* Effect.tryPromise({
-            try: async () => {
-              const ariaSnapshot = await page.locator('body').ariaSnapshot();
-              await page.screenshot({ path: screenshotPath });
-              const texts = async (selector: string) =>
-                (await page.locator(selector).allTextContents()).map(text => text.trim()).filter(Boolean);
-              const attribute = async (selector: string, name: string) => {
-                const locator = page.locator(selector).first();
-                return (await locator.count()) > 0 ? ((await locator.getAttribute(name)) ?? undefined) : undefined;
-              };
-              const redacted = redactValue({
-                sequence,
-                capturedAt: DateTime.formatIso(DateTime.unsafeMake(clock.unsafeCurrentTimeMillis())),
-                title: await page.title(),
-                url: page.url(),
-                ariaSnapshot: ariaSnapshot.slice(0, ARIA_SNAPSHOT_LIMIT),
-                ariaSnapshotTruncated: ariaSnapshot.length > ARIA_SNAPSHOT_LIMIT,
-                activeEditor: await attribute(`${WORKBENCH} .editor-instance.active .monaco-editor`, 'data-uri'),
-                tabs: await texts(`${WORKBENCH} .tabs-container .tab`),
-                quickInput: await attribute(`${QUICK_INPUT_WIDGET} input`, 'value'),
-                dialogs: await texts('.monaco-dialog-box'),
-                notifications: await texts(`${WORKBENCH} .notification-list-item`),
-                statusBar: await texts(`${WORKBENCH} .statusbar-item`),
-                screenshotPath
-              });
-              return redacted;
-            },
-            catch: cause =>
-              new DrivableVscodeObservationError({
-                message: 'Failed to capture VS Code observation',
+        )
+      );
+      yield* fs
+        .writeFileString(
+          path.join(userDataDir, 'User', 'settings.json'),
+          `${JSON.stringify({ ...defaultSettings, ...options.userSettings }, undefined, 2)}\n`
+        )
+        .pipe(
+          Effect.mapError(
+            cause =>
+              new DrivableVscodeLaunchError({
+                message: 'Failed to write VS Code settings',
                 cause: getErrorMessage(cause)
               })
-          }).pipe(
-            Effect.flatMap(Schema.decodeUnknown(DrivableVscodeObservation)),
-            Effect.mapError(cause =>
-              Schema.is(DrivableVscodeObservationError)(cause)
-                ? cause
-                : new DrivableVscodeObservationError({
-                    message: 'Captured an invalid VS Code observation',
-                    cause: getErrorMessage(cause)
-                  })
-            )
-          );
-          yield* artifacts.appendAction({ kind: 'observation', ...observation });
-          return observation;
-        });
-        const observe = Effect.suspend(observeSession);
-        const act = Effect.fn('SessionService.act')(function* (action: DrivableVscodeAction) {
-          const current = yield* requireOpen;
-          if (action.observationSequence !== undefined && action.observationSequence !== current.observationSequence) {
-            return yield* new DrivableVscodeStaleObservationError({
-              message: `Stale observation ${action.observationSequence}; latest observation is ${current.observationSequence}`,
-              requestedSequence: action.observationSequence,
-              latestSequence: current.observationSequence
-            });
-          }
-          const actionSequence = current.actionSequence + 1;
-          yield* Ref.set(state, { ...current, actionSequence });
-          const record = {
-            sequence: actionSequence,
-            observationSequence: current.observationSequence,
-            startedAt: DateTime.formatIso(yield* DateTime.now),
-            action
-          };
-          yield* artifacts.appendAction({ kind: 'action-started', ...record });
-          yield* executeAction(page, action).pipe(
-            Effect.tap(() =>
-              artifacts.appendAction({ kind: 'action-succeeded', ...record, completedAt: new Date().toISOString() })
-            ),
-            Effect.tapError(error =>
-              artifacts.appendAction({ kind: 'action-failed', ...record, completedAt: new Date().toISOString(), error })
-            )
-          );
-        });
-        const addFinding = Effect.fn('SessionService.addFinding')(function* (finding: DrivableVscodeFinding) {
-          yield* requireOpen;
-          yield* artifacts.appendFinding(finding);
-          yield* Ref.update(state, current => ({ ...current, findingCount: current.findingCount + 1 }));
-        });
-        const closeSession = Effect.fn('SessionService.close')(function* () {
-          const current = yield* Ref.get(state);
-          if (current.lifecycle === 'closed') return;
-          yield* Ref.update(state, value => ({ ...value, lifecycle: 'closing' as const }));
-          const screenshot = runPhase(
-            'screenshotSaved',
-            Effect.tryPromise({
-              try: () => page.screenshot({ path: path.join(artifacts.screenshotsDir, 'final.png') }),
-              catch: cause =>
-                new DrivableVscodeTeardownError({
-                  message: 'Failed to save final screenshot',
-                  cause: getErrorMessage(cause)
-                })
-            }).pipe(Effect.asVoid)
-          );
-          const closingRecord = runPhase(
-            'closingRecorded',
-            artifacts
-              .appendAction({ kind: 'session-closing', capturedAt: DateTime.formatIso(yield* DateTime.now) })
-              .pipe(
+          )
+        );
+      const vscodeExecutable =
+        options.vscodeExecutable ??
+        (yield* Effect.tryPromise({
+          try: () =>
+            downloadAndUnzipVSCode({
+              version: process.env.PLAYWRIGHT_VSCODE_VERSION,
+              cachePath: path.join(repoRoot, '.vscode-test'),
+              reporter: new SilentReporter()
+            }),
+          catch: cause =>
+            new DrivableVscodeLaunchError({ message: 'Failed to acquire VS Code', cause: getErrorMessage(cause) })
+        }));
+      const resolved =
+        extensionMode === 'dev'
+          ? {
+              extensions: yield* extensionService.resolveDev(repoRoot),
+              extensionsDir: path.join(userDataDir, 'extensions')
+            }
+          : yield* extensionService.resolveVsix(repoRoot, vscodeExecutable);
+      const launchArgs = [
+        `--user-data-dir=${userDataDir}`,
+        `--extensions-dir=${resolved.extensionsDir}`,
+        ...(extensionMode === 'dev'
+          ? [
+              ...resolved.extensions.map(extension => `--extensionDevelopmentPath=${extension.path}`),
+              '--disable-extensions'
+            ]
+          : []),
+        ...disabledBuiltins,
+        '--disable-updates',
+        '--skip-welcome',
+        '--skip-release-notes',
+        '--disable-gpu-sandbox',
+        '--disable-workspace-trust',
+        '--no-sandbox',
+        workspaceDir
+      ];
+      const app = yield* scoped(
+        Effect.acquireRelease(
+          Effect.tryPromise({
+            try: () =>
+              electron.launch({
+                executablePath: vscodeExecutable,
+                args: launchArgs,
+                env: launchEnvironment(),
+                timeout: 60_000,
+                recordVideo: { dir: videosDir, size: { width: 1920, height: 1080 } }
+              }),
+            catch: cause =>
+              new DrivableVscodeLaunchError({ message: 'Failed to launch VS Code', cause: getErrorMessage(cause) })
+          }),
+          acquiredApp => finalizer(runPhase('electronClosed', closeElectron(acquiredApp)))
+        )
+      );
+      const page = yield* Effect.tryPromise({
+        try: async () => {
+          const firstWindow = await app.firstWindow();
+          await firstWindow.waitForLoadState('domcontentloaded');
+          await firstWindow.setViewportSize({ width: 1920, height: 1080 });
+          await firstWindow.waitForSelector(WORKBENCH, { timeout: 60_000 });
+          return firstWindow;
+        },
+        catch: cause =>
+          new DrivableVscodeLaunchError({
+            message: 'VS Code workbench failed to become ready',
+            cause: getErrorMessage(cause)
+          })
+      });
+      const consoleWrites = yield* Queue.unbounded<ConsoleWrite>();
+      const consumeConsole = consumeConsoleWrites(consoleWrites, artifacts.appendRendererConsole);
+      const consoleConsumer = yield* scoped(
+        Effect.acquireRelease(Effect.forkIn(sessionScope)(consumeConsole), consumer =>
+          finalizer(
+            runPhase(
+              'consoleDrained',
+              drainConsoleWrites(consoleWrites, consumer).pipe(
                 Effect.mapError(
                   cause =>
                     new DrivableVscodeTeardownError({
-                      message: 'Failed to record session close',
+                      message: 'Failed to drain renderer console',
                       cause: getErrorMessage(cause)
                     })
                 )
               )
-          );
-          const video = page.video();
-          const videoSave = runPhase(
-            'videoSaved',
-            video
-              ? Effect.tryPromise({
-                  try: () => video.path(),
-                  catch: cause =>
-                    new DrivableVscodeTeardownError({
-                      message: 'Failed to locate session video',
-                      cause: getErrorMessage(cause)
-                    })
-                }).pipe(
-                  Effect.flatMap(videoPath => fs.rename(videoPath, path.join(artifacts.artifactDir, 'session.webm'))),
-                  Effect.mapError(cause =>
-                    Schema.is(DrivableVscodeTeardownError)(cause)
-                      ? cause
-                      : new DrivableVscodeTeardownError({
-                          message: 'Failed to save session video',
-                          cause: getErrorMessage(cause)
-                        })
-                  )
-                )
-              : Effect.void
-          );
-          const evidenceExit = yield* Effect.exit(
-            Effect.all([screenshot, closingRecord], { mode: 'validate', discard: true })
-          );
-          const releaseResources = Effect.all(
-            [
-              runPhase('consoleListenerRemoved', removeConsoleListener),
-              runPhase(
-                'consoleDrained',
-                drainConsoleWrites(consoleWrites, consoleConsumer).pipe(
-                  Effect.mapError(
-                    cause =>
-                      new DrivableVscodeTeardownError({
-                        message: 'Failed to drain renderer console',
-                        cause: getErrorMessage(cause)
-                      })
-                  )
-                )
-              ),
-              runPhase('electronClosed', closeElectron(app)),
-              runPhase('userDataRemoved', removeDirectory(userDataDir, 'VS Code user data')),
-              runPhase('workspaceRemoved', removeDirectory(workspaceDir, 'disposable workspace'))
-            ],
-            { concurrency: 1, mode: 'validate', discard: true }
-          );
-          const releaseExit = yield* Effect.exit(releaseResources);
-          const scopeClose = yield* Effect.exit(runPhase('scopeClosed', closeSessionScope(sessionScope, evidenceExit)));
-          const beforeFinish = yield* Ref.get(state);
-          const phaseFailures = [
-            Exit.match(evidenceExit, { onFailure: Cause.pretty, onSuccess: () => undefined }),
-            Exit.match(releaseExit, { onFailure: Cause.pretty, onSuccess: () => undefined }),
-            Exit.match(scopeClose, { onFailure: Cause.pretty, onSuccess: () => undefined })
-          ].filter((failure): failure is string => failure !== undefined);
-          const limitations = [
-            'Native OS dialogs and external windows are outside Playwright Electron page coverage.',
-            ...phaseFailures
-          ];
-          const finalArtifacts = artifacts
-            .finish({
-              objective: options.objective ?? 'Unspecified drivable VS Code objective',
-              runId,
-              exploredCount: beforeFinish.actionSequence + beforeFinish.observationSequence,
-              actionCount: beforeFinish.actionSequence,
-              observationCount: beforeFinish.observationSequence,
-              findingCount: beforeFinish.findingCount,
-              status: phaseFailures.length === 0 ? 'completed-with-limitations' : 'failed',
-              limitations
+            )
+          )
+        )
+      );
+      const recordConsole = (message: ConsoleMessage) => {
+        const entry = Schema.decodeUnknownSync(DrivableVscodeRendererConsoleEntry)(
+          redactValue({
+            capturedAt: new Date().toISOString(),
+            type: message.type(),
+            text: message.text(),
+            location: message.location()
+          })
+        );
+        Queue.offerUnsafe(consoleWrites, { _tag: 'Entry', entry });
+        Queue.flushUnsafe(consoleWrites);
+      };
+      const consoleListenerAttached = yield* Ref.make(false);
+      const removeConsoleListener = Ref.modify(
+        consoleListenerAttached,
+        attached => [attached ? Effect.sync(() => page.off('console', recordConsole)) : Effect.void, false] as const
+      ).pipe(Effect.flatten);
+      yield* scoped(
+        Effect.acquireRelease(
+          Effect.sync(() => page.on('console', recordConsole)).pipe(
+            Effect.andThen(Ref.set(consoleListenerAttached, true))
+          ),
+          () => finalizer(runPhase('consoleListenerRemoved', removeConsoleListener))
+        )
+      );
+      yield* artifacts.writeManifest({
+        runId,
+        objective: options.objective ?? 'Unspecified drivable VS Code objective',
+        mode: extensionMode,
+        startedAt: DateTime.formatIso(yield* DateTime.now),
+        repoRoot,
+        workspaceDir,
+        vscodeExecutable,
+        extensions: resolved.extensions,
+        orgAlias: options.orgAlias,
+        screenshotWarning: 'Screenshots and video are not pixel-redacted and may contain secrets displayed by VS Code.'
+      });
+
+      const requireOpen = Ref.get(state).pipe(
+        Effect.filterOrFail(
+          current => current.lifecycle === 'open',
+          current =>
+            new DrivableVscodeStateError({
+              message: `Drivable VS Code session is ${current.lifecycle}`,
+              state: current.lifecycle
             })
-            .pipe(
-              Effect.zipRight(
-                runPhase(
-                  'artifactsFlushed',
-                  artifacts.flush.pipe(
-                    Effect.mapError(
-                      cause =>
-                        new DrivableVscodeTeardownError({
-                          message: 'Failed to flush session artifacts',
-                          cause: getErrorMessage(cause)
-                        })
-                    )
-                  )
-                )
-              ),
-              Effect.mapError(
-                cause =>
-                  new DrivableVscodeTeardownError({
-                    message: 'Failed to finish session artifacts',
-                    cause: getErrorMessage(cause)
-                  })
+        )
+      );
+      const observeSession = Effect.fn('SessionService.observe')(function* () {
+        const current = yield* requireOpen;
+        const sequence = current.observationSequence + 1;
+        yield* Ref.set(state, { ...current, observationSequence: sequence });
+        const screenshotPath = path.join(artifacts.screenshotsDir, `${String(sequence).padStart(4, '0')}.png`);
+        const capturedAt = DateTime.formatIso(yield* DateTime.now);
+        const observation = yield* Effect.tryPromise({
+          try: async () => {
+            const ariaSnapshot = await page.locator('body').ariaSnapshot();
+            await page.screenshot({ path: screenshotPath });
+            const texts = async (selector: string) =>
+              (await page.locator(selector).allTextContents()).map(text => text.trim()).filter(Boolean);
+            const attribute = async (selector: string, name: string) => {
+              const locator = page.locator(selector).first();
+              return (await locator.count()) > 0 ? ((await locator.getAttribute(name)) ?? undefined) : undefined;
+            };
+            const redacted = redactValue({
+              sequence,
+              capturedAt,
+              title: await page.title(),
+              url: page.url(),
+              ariaSnapshot: ariaSnapshot.slice(0, ARIA_SNAPSHOT_LIMIT),
+              ariaSnapshotTruncated: ariaSnapshot.length > ARIA_SNAPSHOT_LIMIT,
+              activeEditor: await attribute(`${WORKBENCH} .editor-instance.active .monaco-editor`, 'data-uri'),
+              tabs: await texts(`${WORKBENCH} .tabs-container .tab`),
+              quickInput: await attribute(`${QUICK_INPUT_WIDGET} input`, 'value'),
+              dialogs: await texts('.monaco-dialog-box'),
+              notifications: await texts(`${WORKBENCH} .notification-list-item`),
+              statusBar: await texts(`${WORKBENCH} .statusbar-item`),
+              screenshotPath
+            });
+            return redacted;
+          },
+          catch: cause =>
+            new DrivableVscodeObservationError({
+              message: 'Failed to capture VS Code observation',
+              cause: getErrorMessage(cause)
+            })
+        }).pipe(
+          Effect.flatMap(Schema.decodeUnknownEffect(DrivableVscodeObservation)),
+          Effect.mapError(cause =>
+            Schema.is(DrivableVscodeObservationError)(cause)
+              ? cause
+              : new DrivableVscodeObservationError({
+                  message: 'Captured an invalid VS Code observation',
+                  cause: getErrorMessage(cause)
+                })
+          )
+        );
+        yield* artifacts.appendAction({ kind: 'observation', ...observation });
+        return observation;
+      });
+      const observe = Effect.suspend(observeSession);
+      const act = Effect.fn('SessionService.act')(function* (action: DrivableVscodeAction) {
+        const current = yield* requireOpen;
+        if (action.observationSequence !== undefined && action.observationSequence !== current.observationSequence) {
+          return yield* new DrivableVscodeStaleObservationError({
+            message: `Stale observation ${action.observationSequence}; latest observation is ${current.observationSequence}`,
+            requestedSequence: action.observationSequence,
+            latestSequence: current.observationSequence
+          });
+        }
+        const actionSequence = current.actionSequence + 1;
+        yield* Ref.set(state, { ...current, actionSequence });
+        const startedAt = DateTime.formatIso(yield* DateTime.now);
+        const record = {
+          sequence: actionSequence,
+          observationSequence: current.observationSequence,
+          startedAt,
+          action
+        };
+        yield* artifacts.appendAction({ kind: 'action-started', ...record });
+        yield* executeAction(page, action).pipe(
+          Effect.tap(() =>
+            DateTime.now.pipe(
+              Effect.flatMap(completedAt =>
+                artifacts.appendAction({
+                  kind: 'action-succeeded',
+                  ...record,
+                  completedAt: DateTime.formatIso(completedAt)
+                })
               )
-            );
-          const finishArtifactsExit = yield* Effect.exit(
-            Effect.all([videoSave, finalArtifacts], { mode: 'validate', discard: true })
-          );
-          const failures = [
-            Exit.match(evidenceExit, { onFailure: Cause.pretty, onSuccess: () => undefined }),
-            Exit.match(releaseExit, { onFailure: Cause.pretty, onSuccess: () => undefined }),
-            Exit.match(scopeClose, { onFailure: Cause.pretty, onSuccess: () => undefined }),
-            Exit.match(finishArtifactsExit, { onFailure: Cause.pretty, onSuccess: () => undefined })
-          ].filter((failure): failure is string => failure !== undefined);
-          if (failures.length > 0) {
-            return yield* teardownFailure('Drivable VS Code session teardown failed', failures.join('\n'));
-          }
-          yield* Ref.update(state, value => ({ ...value, lifecycle: 'closed' as const }));
-        });
-        const close = closeSemaphore.withPermits(1)(
-          Effect.suspend(() =>
-            closeSession().pipe(
-              Effect.mapError(error =>
-                Schema.is(DrivableVscodeTeardownError)(error)
-                  ? error
-                  : new DrivableVscodeTeardownError({
-                      message: 'Drivable VS Code session teardown failed',
-                      cause: getErrorMessage(error)
-                    })
+            )
+          ),
+          Effect.tapError(error =>
+            DateTime.now.pipe(
+              Effect.flatMap(completedAt =>
+                artifacts.appendAction({
+                  kind: 'action-failed',
+                  ...record,
+                  completedAt: DateTime.formatIso(completedAt),
+                  error
+                })
               )
             )
           )
         );
-        return {
-          runId,
-          artifactDir: artifacts.artifactDir,
-          workspaceDir,
-          extensions: resolved.extensions,
-          observe,
-          act,
-          addFinding,
-          close
-        } satisfies DrivableVscodeSession;
       });
-      return yield* acquireSession().pipe(
-        Effect.onError(cause => closeSessionScope(sessionScope, Exit.failCause(cause)).pipe(Effect.orDie))
+      const addFinding = Effect.fn('SessionService.addFinding')(function* (finding: DrivableVscodeFinding) {
+        yield* requireOpen;
+        yield* artifacts.appendFinding(finding);
+        yield* Ref.update(state, current => ({ ...current, findingCount: current.findingCount + 1 }));
+      });
+      const closeSession = Effect.fn('SessionService.close')(function* () {
+        const current = yield* Ref.get(state);
+        if (current.lifecycle === 'closed') return;
+        yield* Ref.update(state, value => ({ ...value, lifecycle: 'closing' as const }));
+        const screenshot = runPhase(
+          'screenshotSaved',
+          Effect.tryPromise({
+            try: () => page.screenshot({ path: path.join(artifacts.screenshotsDir, 'final.png') }),
+            catch: cause =>
+              new DrivableVscodeTeardownError({
+                message: 'Failed to save final screenshot',
+                cause: getErrorMessage(cause)
+              })
+          }).pipe(Effect.asVoid)
+        );
+        const closingRecord = runPhase(
+          'closingRecorded',
+          artifacts.appendAction({ kind: 'session-closing', capturedAt: DateTime.formatIso(yield* DateTime.now) }).pipe(
+            Effect.mapError(
+              cause =>
+                new DrivableVscodeTeardownError({
+                  message: 'Failed to record session close',
+                  cause: getErrorMessage(cause)
+                })
+            )
+          )
+        );
+        const video = page.video();
+        const videoSave = runPhase(
+          'videoSaved',
+          video
+            ? Effect.tryPromise({
+                try: () => video.path(),
+                catch: cause =>
+                  new DrivableVscodeTeardownError({
+                    message: 'Failed to locate session video',
+                    cause: getErrorMessage(cause)
+                  })
+              }).pipe(
+                Effect.flatMap(videoPath => fs.rename(videoPath, path.join(artifacts.artifactDir, 'session.webm'))),
+                Effect.mapError(cause =>
+                  Schema.is(DrivableVscodeTeardownError)(cause)
+                    ? cause
+                    : new DrivableVscodeTeardownError({
+                        message: 'Failed to save session video',
+                        cause: getErrorMessage(cause)
+                      })
+                )
+              )
+            : Effect.void
+        );
+        const evidenceExit = yield* Effect.exit(
+          Effect.validate([screenshot, closingRecord], effect => effect, { discard: true })
+        );
+        const releaseResources = Effect.all(
+          [
+            runPhase('consoleListenerRemoved', removeConsoleListener),
+            runPhase(
+              'consoleDrained',
+              drainConsoleWrites(consoleWrites, consoleConsumer).pipe(
+                Effect.mapError(
+                  cause =>
+                    new DrivableVscodeTeardownError({
+                      message: 'Failed to drain renderer console',
+                      cause: getErrorMessage(cause)
+                    })
+                )
+              )
+            ),
+            runPhase('electronClosed', closeElectron(app)),
+            runPhase('userDataRemoved', removeDirectory(userDataDir, 'VS Code user data')),
+            runPhase('workspaceRemoved', removeDirectory(workspaceDir, 'disposable workspace'))
+          ],
+          { concurrency: 1, discard: true }
+        );
+        const releaseExit = yield* Effect.exit(releaseResources);
+        const scopeClose = yield* Effect.exit(runPhase('scopeClosed', closeSessionScope(sessionScope, evidenceExit)));
+        const beforeFinish = yield* Ref.get(state);
+        const phaseFailures = [
+          Exit.match(evidenceExit, { onFailure: Cause.pretty, onSuccess: () => undefined }),
+          Exit.match(releaseExit, { onFailure: Cause.pretty, onSuccess: () => undefined }),
+          Exit.match(scopeClose, { onFailure: Cause.pretty, onSuccess: () => undefined })
+        ].filter((failure): failure is string => failure !== undefined);
+        const limitations = [
+          'Native OS dialogs and external windows are outside Playwright Electron page coverage.',
+          ...phaseFailures
+        ];
+        const finalArtifacts = artifacts
+          .finish({
+            objective: options.objective ?? 'Unspecified drivable VS Code objective',
+            runId,
+            exploredCount: beforeFinish.actionSequence + beforeFinish.observationSequence,
+            actionCount: beforeFinish.actionSequence,
+            observationCount: beforeFinish.observationSequence,
+            findingCount: beforeFinish.findingCount,
+            status: phaseFailures.length === 0 ? 'completed-with-limitations' : 'failed',
+            limitations
+          })
+          .pipe(
+            Effect.andThen(
+              runPhase(
+                'artifactsFlushed',
+                artifacts.flush.pipe(
+                  Effect.mapError(
+                    cause =>
+                      new DrivableVscodeTeardownError({
+                        message: 'Failed to flush session artifacts',
+                        cause: getErrorMessage(cause)
+                      })
+                  )
+                )
+              )
+            ),
+            Effect.mapError(
+              cause =>
+                new DrivableVscodeTeardownError({
+                  message: 'Failed to finish session artifacts',
+                  cause: getErrorMessage(cause)
+                })
+            )
+          );
+        const finishArtifactsExit = yield* Effect.exit(
+          Effect.validate([videoSave, finalArtifacts], effect => effect, { discard: true })
+        );
+        const failures = [
+          Exit.match(evidenceExit, { onFailure: Cause.pretty, onSuccess: () => undefined }),
+          Exit.match(releaseExit, { onFailure: Cause.pretty, onSuccess: () => undefined }),
+          Exit.match(scopeClose, { onFailure: Cause.pretty, onSuccess: () => undefined }),
+          Exit.match(finishArtifactsExit, { onFailure: Cause.pretty, onSuccess: () => undefined })
+        ].filter((failure): failure is string => failure !== undefined);
+        if (failures.length > 0) {
+          return yield* teardownFailure('Drivable VS Code session teardown failed', failures.join('\n'));
+        }
+        yield* Ref.update(state, value => ({ ...value, lifecycle: 'closed' as const }));
+      });
+      const close = closeSemaphore.withPermits(1)(
+        Effect.suspend(() =>
+          closeSession().pipe(
+            Effect.mapError(error =>
+              Schema.is(DrivableVscodeTeardownError)(error)
+                ? error
+                : new DrivableVscodeTeardownError({
+                    message: 'Drivable VS Code session teardown failed',
+                    cause: getErrorMessage(error)
+                  })
+            )
+          )
+        )
       );
+      return {
+        runId,
+        artifactDir: artifacts.artifactDir,
+        workspaceDir,
+        extensions: resolved.extensions,
+        observe,
+        act,
+        addFinding,
+        close
+      } satisfies DrivableVscodeSession;
     });
-    return { launch };
-  })
-}) {}
+    return yield* acquireSession().pipe(
+      Effect.onError(cause => closeSessionScope(sessionScope, Exit.failCause(cause)).pipe(Effect.orDie))
+    );
+  });
+  return { launch };
+});
+
+export class SessionService extends Context.Service<SessionService, Effect.Success<typeof makeSessionService>>()(
+  'DrivableVscode/SessionService'
+) {}
+
+export const SessionServiceLayer = Layer.effect(SessionService, makeSessionService).pipe(
+  Layer.provideMerge(Layer.mergeAll(ArtifactServiceLayer, ExtensionServiceLayer, WorkspaceServiceLayer))
+);

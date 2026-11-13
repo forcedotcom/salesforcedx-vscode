@@ -5,23 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { MarkdownTextReporterOptions } from '../reporters/markdownTextReporter';
+import type { MarkdownTextReporterOptions } from '../reporters/markdownTextReporter.js';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
-import { nls } from '../i18n';
-import { formatJUnitChunks } from '../reporters/formatJUnit';
-import { formatTapChunks } from '../reporters/formatTap';
-import { stringifyTestResultChunks } from '../streaming/testResultStringify';
-import {
-  type OutputDirConfig,
-  ResultFileFormatsSchema,
-  ResultFormatsSchema,
-  type TestResult,
-  type TestRunIdResult
-} from '../tests/types';
-import { FileOutput, FileOutputError } from './fileOutput';
-import { formatMarkdownTextReportStream } from './reporters';
+import { nls } from '../i18n/index.js';
+import { formatJUnitChunks } from '../reporters/formatJUnit.js';
+import { formatTapChunks } from '../reporters/formatTap.js';
+import { stringifyTestResultChunks } from '../streaming/testResultStringify.js';
+import { type OutputDirConfig, type TestResult, type TestRunIdResult } from '../tests/apiTypes.js';
+import { FileOutput, FileOutputError } from './fileOutput.js';
+import { formatMarkdownTextReportStream } from './reporters.js';
+import { ResultFileFormatsSchema, ResultFormatsSchema } from './testTypes.js';
 
 export interface WriteResultFilesOptions extends MarkdownTextReporterOptions {
   /** Write the run ID sidecar when a run ID exists. Defaults to true. */
@@ -31,16 +26,20 @@ export interface WriteResultFilesOptions extends MarkdownTextReporterOptions {
   codeCoverage?: boolean;
 }
 
-const assertResultFormats: Schema.Schema.ToAsserts<typeof ResultFormatsSchema> = Schema.asserts(
-  ResultFormatsSchema.pipe(
-    Schema.annotations({ message: () => ({ message: nls.localize('resultFormatErr'), override: true }) })
-  )
-);
-const assertResultFileFormats: Schema.Schema.ToAsserts<typeof ResultFileFormatsSchema> = Schema.asserts(
-  ResultFileFormatsSchema.pipe(
-    Schema.annotations({ message: () => ({ message: nls.localize('resultFileFormatErr'), override: true }) })
-  )
-);
+const assertResultFormats = (value: unknown): void => {
+  try {
+    Schema.decodeUnknownSync(ResultFormatsSchema)(value);
+  } catch {
+    throw new Error(nls.localize('resultFormatErr'));
+  }
+};
+const assertResultFileFormats = (value: unknown): void => {
+  try {
+    Schema.decodeUnknownSync(ResultFileFormatsSchema)(value);
+  } catch {
+    throw new Error(nls.localize('resultFileFormatErr'));
+  }
+};
 
 const stringifyJsonArrayChunks = function* <A>(values: readonly A[]): Generator<string> {
   yield '[';
@@ -86,7 +85,7 @@ export const writeResultFiles = Effect.fn('Apex.writeResultFiles')(function* (
     options.writeTestRunId !== false && isNotUndefined(testRunId)
       ? yield* fileOutput.writeFile(dirPath, 'test-run-id.txt', Stream.make(testRunId)).pipe(
           Effect.map(path => [path]),
-          Effect.catchAll(error => Effect.logError('Error writing file', { error }).pipe(Effect.as([])))
+          Effect.catch(error => Effect.logError('Error writing file', { error }).pipe(Effect.as([])))
         )
       : [];
 

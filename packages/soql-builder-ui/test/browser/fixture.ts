@@ -35,7 +35,7 @@ export type SoqlBuilderBrowserHarness = {
   readonly mount: (overrides?: StateOverrides) => Promise<void>;
   readonly reconnect: () => Promise<void>;
   readonly recordedActions: () => Promise<readonly SoqlBuilderAction[]>;
-  readonly setDispatchLatency: (latency: Duration.DurationInput) => Promise<void>;
+  readonly setDispatchLatency: (latency: Duration.Input) => Promise<void>;
   readonly stats: () => Promise<FakeSoqlBuilderServiceStats>;
   readonly unmount: () => Promise<void>;
 };
@@ -77,7 +77,7 @@ const mergeState = (base: SoqlBuilderState, overrides: StateOverrides = {}): Soq
   query: { ...base.query, ...overrides.query }
 });
 
-const nextFrame = Effect.async<void>(resume => {
+const nextFrame = Effect.callback<void>(resume => {
   requestAnimationFrame(() => resume(Effect.void));
 });
 

@@ -93,7 +93,7 @@ Via `vscode.extensions.getExtension('salesforce.salesforcedx-vscode-services')`:
 |------|-------|
 | [slds](https://github.com/forcedotcom/salesforcedx-vscode-slds) | No extensionDep, no getExtension. In same extension pack. |
 | [apex-language-support](https://github.com/forcedotcom/apex-language-support) | Experimental. String refs only in tests/comments. |
-| apex-oas (in-repo) | extensionDependency = `salesforcedx-vscode-apex` + `salesforcedx-vscode-services`; no core dep. Reads project/registry/fs via services-extension `api.services.*`. Only cross-extension `.exports` use is apex's `.languageClientManager`. |
+| apex-oas (in-repo) | extensionDependency = `salesforcedx-vscode-apex` + `salesforcedx-vscode-services`; no core dep. Reads project/registry/fs via services-extension `api.v2.services.*`. Only cross-extension `.exports` use is apex's `.languageClientManager`. |
 
 ## In-repo consumers
 

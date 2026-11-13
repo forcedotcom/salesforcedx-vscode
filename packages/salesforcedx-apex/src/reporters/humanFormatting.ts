@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { type CodeCoverageResult } from '../effect/coverageSchemas';
-import { nls } from '../i18n';
-import { type ApexTestResultData, type TestResult } from '../tests/types';
-import { createTable, type Row } from '../utils/table';
-import { formatTestTable } from './testTable';
+import { type CodeCoverageResult } from '../effect/coverageSchemas.js';
+import { nls } from '../i18n/index.js';
+import { type ApexTestResultData, type TestResult } from '../tests/apiTypes.js';
+import { createTable, type Row } from '../utils/createTable.js';
+import { formatTestTable } from './testTable.js';
 
 const UNCOVERED_LINES_ARRAY_LIMIT = 5;
 

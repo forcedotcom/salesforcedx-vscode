@@ -5,14 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { detectConflicts } from '../conflict/conflictFlow';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { NonEmptyComponentSet } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
-import type { NonEmptyComponentSet } from 'salesforcedx-vscode-services';
+import type * as Layer from 'effect/Layer';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
+import { type buildAllServicesLayer } from '../services/extensionProvider';
 import { type CommandKey } from './notificationMode';
 
 type OperationType = 'deploy' | 'retrieve' | 'delete';
+type MetadataServices = Layer.Success<ReturnType<typeof buildAllServicesLayer>>;
+type ConflictDetection = ReturnType<typeof detectConflicts>;
 
 const titleKey = (op: OperationType) =>
   op === 'deploy'
@@ -71,17 +76,26 @@ const titleKey = (op: OperationType) =>
 export const withPreparationProgress =
   // ConflictsE/ConflictsR capture the error and requirements of detectConflictsFn so callers
   // can still catchTag('ConflictsDetectedError', ...) and the runtime requirement is explicit.
-  <ConflictsE = never, ConflictsR = never>(
+  <
+      ConflictsE = Effect.Error<ConflictDetection>,
+      ConflictsR extends MetadataServices = Effect.Services<ConflictDetection>
+    >(
       operationType: OperationType,
       detectConflictsFn?: (cs: NonEmptyComponentSet) => Effect.Effect<void, ConflictsE, ConflictsR>,
       command?: CommandKey
     ) =>
-    <E, R>(prepare: Effect.Effect<NonEmptyComponentSet, E, R>) =>
+    <E, R extends MetadataServices>(prepare: Effect.Effect<NonEmptyComponentSet, E, R>) =>
       Effect.gen(function* () {
         const api = yield* (yield* ExtensionProviderService).getServicesApi;
-        const promptService = yield* api.services.PromptService;
-        const title = nls.localize(titleKey(operationType));
-        const build = (progress: vscode.Progress<{ increment?: number; message?: string }>) =>
+        const promptService = yield* api.v2.services.PromptService;
+        const notificationMode = yield* api.v2.services.NotificationModeService;
+        const progressLocation = command
+          ? yield* notificationMode.getProgressLocation(command)
+          : vscode.ProgressLocation.Notification;
+        return yield* promptService.withCancellableProgressReporting(
+          nls.localize(titleKey(operationType)),
+          progressLocation
+        )(progress =>
           Effect.gen(function* () {
             const cs = yield* prepare;
             if (detectConflictsFn) {
@@ -89,12 +103,6 @@ export const withPreparationProgress =
               yield* detectConflictsFn(cs);
             }
             return cs;
-          });
-        return yield* command
-          ? promptService.withProgressReporting({ command, title, cancellable: true })(build)
-          : promptService.withProgressReporting({
-              location: vscode.ProgressLocation.Notification,
-              title,
-              cancellable: true
-            })(build);
+          })
+        );
       });

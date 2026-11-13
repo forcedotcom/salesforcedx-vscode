@@ -12,7 +12,7 @@ import { createWriteStream } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
 import * as path from 'node:path';
 import { pipeline } from 'node:stream/promises';
-import { FileOutput, FileOutputError } from './fileOutput';
+import { FileOutput, FileOutputError } from './fileOutput.js';
 
 const toFileOutputError = (operation: string, filePath: string, cause: unknown): FileOutputError =>
   new FileOutputError({ operation, path: filePath, message: cause instanceof Error ? cause.message : String(cause) });

@@ -20,7 +20,7 @@
     "@vscode/debugprotocol": "1.68.0",
     "async-lock": "1.4.1",
     "cross-spawn": "7.0.6",
-    "effect": "^3.21.2",
+    "effect": "^4.1.4",
     "faye": "1.4.1",
     "request-light": "^0.8.0",
     "rxjs": "^7.8.2",
@@ -104,7 +104,7 @@
       "output": []
     },
     "check:circular-deps": {
-      "command": "dpdm --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json 'src/**/*.ts'",
+      "command": "dpdm --no-warning --no-tree --exit-code circular:1 --output .circular-deps.json src/index.ts",
       "dependencies": [
         "compile"
       ],

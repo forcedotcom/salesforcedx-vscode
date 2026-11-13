@@ -75,11 +75,11 @@ Effect spans are routed to different Azure Application Insights tables depending
 Node platform can route to **customEvents** table (matching Web) by enabling the `enableCustomEventsFromSpans` flag:
 
 ```typescript
-const config = api.services.getSdkLayerConfigFromContext(context);
+const config = api.v2.services.getSdkLayerConfigFromContext(context);
 config.enableCustomEventsFromSpans = true;  // Routes Node spans to customEvents
 
 const services = AllServicesLayer.pipe(
-  Layer.provide(api.services.SdkLayerFor(config))
+  Layer.provide(api.v2.services.SdkLayerFor(config))
 );
 ```
 
@@ -256,18 +256,19 @@ Each extension should set up its own SDK layer using `SdkLayerFor()`. Here's how
 ```typescript
 import * as Layer from 'effect/Layer';
 import * as Effect from 'effect/Effect';
-import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { SalesforceVSCodeServicesApiV2 } from '@salesforce/vscode-services/v2';
 import * as vscode from 'vscode';
 
 export const AllServicesLayer = Layer.unwrapEffect(
   Effect.gen(function* () {
-    const api = yield* extensionProvider.getServicesApi;
+    const api: SalesforceVSCodeServicesApiV2 = yield* (yield* ExtensionProviderService).getServicesApi;
     const context = vscode.extensions.getExtension(`salesforce.${EXTENSION_NAME}`)?.extensionContext;
-    const config = api.services.getSdkLayerConfigFromContext(context);  // connectionString auto-resolved (otelConnectionString → aiKey → DEFAULT_AI_CONNECTION_STRING)
+    const config = api.v2.services.getSdkLayerConfigFromContext(context);  // connectionString auto-resolved (otelConnectionString → aiKey → DEFAULT_AI_CONNECTION_STRING)
 
     return Layer.mergeAll(
       // ... other service layers ...
-      api.services.SdkLayerFor(config)
+      api.v2.services.SdkLayerFor(config)
       // ... other service layers ...
     );
   })

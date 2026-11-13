@@ -39,7 +39,7 @@ const OrgOpenFailure = Schema.TaggedStruct('OrgOpenFailure', {
   message: Schema.String
 });
 
-const OrgOpenResponse = Schema.Union(OrgOpenSuccess, OrgOpenFailure);
+const OrgOpenResponse = Schema.Union([OrgOpenSuccess, OrgOpenFailure]);
 type OrgOpenResponse = Schema.Schema.Type<typeof OrgOpenResponse>;
 type OrgOpenSuccess = Schema.Schema.Type<typeof OrgOpenSuccess>;
 type OrgOpenFailure = Schema.Schema.Type<typeof OrgOpenFailure>;
@@ -67,17 +67,17 @@ export const orgOpenCommand = Effect.fn('orgOpenCommand')(function* () {
 
   // precondition: getSfProject sets the sf:project_opened context and fails with a typed
   // FailedToResolveSfProjectError (rendered by ErrorHandlerService) when there's no project.
-  yield* api.services.ProjectService.getSfProject();
+  yield* api.v2.services.ProjectService.use(service => service.getSfProject());
 
   // pass --target-org so sf resolves the default org by username rather than the extension-host cwd
   // (simpleExec runs without a workspace cwd). orgDelete uses the same pattern.
-  const orgInfo = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+  const orgInfo = yield* SubscriptionRef.get(yield* api.v2.services.TargetOrgRef);
   const targetOrgArgs = orgInfo.username ? ['--target-org', orgInfo.username] : [];
   if (!orgInfo.username) {
     yield* Effect.log('no target-org username; falling back to sf default-org resolution', { module: 'orgOpen' });
   }
 
-  const terminalService = yield* api.services.TerminalService;
+  const terminalService = yield* api.v2.services.TerminalService;
   // simpleExec injects SF_JSON_TO_STDOUT + FORCE_COLOR=0 for sf commands, keeping the JSON we decode clean.
   const stdout = yield* terminalService.simpleExec({
     executable: 'sf',
@@ -86,7 +86,7 @@ export const orgOpenCommand = Effect.fn('orgOpenCommand')(function* () {
   });
   const response = yield* decodeOrgOpenResponse(stdout);
 
-  const channel = yield* api.services.ChannelService;
+  const channel = yield* api.v2.services.ChannelService;
 
   // both branches share the same channel epilogue (append the message, then reveal the channel);
   // they differ only in the message and the success-only openExternal side effect.

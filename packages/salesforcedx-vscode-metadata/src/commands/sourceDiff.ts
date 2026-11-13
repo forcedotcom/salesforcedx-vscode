@@ -6,11 +6,10 @@
  */
 
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
-
+import type { FsService } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
-import type { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
 import * as vscode from 'vscode';
 import { type URI } from 'vscode-uri';
 import { getConflictStateRef } from '../conflict/conflictTreeProvider';
@@ -26,10 +25,10 @@ const getAllFileUrisFromMaybeDirectory: (
   function* (uri: URI) {
     yield* Effect.annotateCurrentSpan({ uri });
     const api = yield* (yield* ExtensionProviderService).getServicesApi;
-    if (!(yield* api.services.FsService.isDirectory(uri))) {
+    if (!(yield* api.v2.services.FsService.use(service => service.isDirectory(uri)))) {
       return [uri];
     }
-    const childUris = yield* api.services.FsService.readDirectory(uri);
+    const childUris = yield* api.v2.services.FsService.use(service => service.readDirectory(uri));
 
     const subdirFiles = yield* Effect.all(
       childUris.map(child => getAllFileUrisFromMaybeDirectory(child)),
@@ -43,8 +42,8 @@ const getAllFileUrisFromMaybeDirectory: (
 const sourceDiffCoreEffect = Effect.fn('sourceDiffCore')(function* (sourceUri: URI, uris: URI[]) {
   yield* Effect.annotateCurrentSpan({ sourceUri, uris });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fsService = yield* api.services.FsService;
-  const componentSetService = yield* api.services.ComponentSetService;
+  const fsService = yield* api.v2.services.FsService;
+  const componentSetService = yield* api.v2.services.ComponentSetService;
   const allUris = [sourceUri, ...uris];
   const hashableUris = HashSet.fromIterable(allUris.map(fsService.HashableUri.fromUri));
   const componentSet = yield* componentSetService.ensureNonEmptyComponentSet(
@@ -90,7 +89,7 @@ export const sourceDiffCommand = Effect.fn('sourceDiff')(function* (
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const resolvedSourceUri =
     sourceUri ??
-    (yield* api.services.EditorService.getActiveEditorUri().pipe(
+    (yield* api.v2.services.EditorService.use(service => service.getActiveEditorUri()).pipe(
       Effect.withSpan('resolveSourceUri', { attributes: { sourceUri, uris } }),
       Effect.catchTag('NoActiveEditorError', () =>
         Effect.promise(() => vscode.window.showErrorMessage(nls.localize('source_diff_unsupported_type'))).pipe(
@@ -103,7 +102,9 @@ export const sourceDiffCommand = Effect.fn('sourceDiff')(function* (
     return;
   }
 
-  yield* api.services.ProjectService.ensureInPackageDirectories([resolvedSourceUri, ...(uris ?? [])]);
+  yield* api.v2.services.ProjectService.use(service =>
+    service.ensureInPackageDirectories([resolvedSourceUri, ...(uris ?? [])])
+  );
 
   yield* Effect.annotateCurrentSpan({ resolvedSourceUri });
   const resolvedUris = uris?.length ? uris : [resolvedSourceUri];
@@ -114,9 +115,9 @@ export const sourceDiffCommand = Effect.fn('sourceDiff')(function* (
   const expandedSourceUri = expandedUris[0] ?? resolvedSourceUri;
   const remainingExpandedUris = expandedUris.slice(1);
   yield* sourceDiffCoreEffect(expandedSourceUri, remainingExpandedUris).pipe(
-    Effect.catchAll((error: unknown) =>
+    Effect.catch((error: unknown) =>
       Effect.gen(function* () {
-        const channelService = yield* api.services.ChannelService;
+        const channelService = yield* api.v2.services.ChannelService;
         const errorMessage = getMessageFromError(error);
         yield* channelService.appendToChannel(`Diff failed: ${errorMessage}`);
         yield* channelService.getChannel.pipe(Effect.map(channel => channel.show()));

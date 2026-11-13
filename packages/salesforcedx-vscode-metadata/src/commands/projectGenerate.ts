@@ -6,7 +6,7 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import type { ProjectTemplate } from '@salesforce/templates';
+import * as SfTemplates from '@salesforce/templates';
 import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined } from 'effect/Predicate';
@@ -15,7 +15,11 @@ import * as vscode from 'vscode';
 import { URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 
-const isNonEmptyTrimmedString = Schema.is(Schema.NonEmptyTrimmedString);
+type ProjectTemplate = SfTemplates.ProjectTemplate;
+
+const NonEmptyTrimmedString = Schema.String.check(Schema.isPattern(/\S/));
+const isNonEmptyTrimmedString = (value: string | undefined): value is string =>
+  isNotUndefined(value) && Schema.is(NonEmptyTrimmedString)(value.trim());
 
 type ProjectGenerateArgs = {
   readonly projectTemplate?: ProjectTemplate;
@@ -105,11 +109,11 @@ const isProjectTemplateItem = (item: vscode.QuickPickItem): item is ProjectTempl
 
 const promptForTemplate = Effect.fn('projectGenerate.promptForTemplate')(function* (initialTemplate?: ProjectTemplate) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   return yield* (
     isNotUndefined(initialTemplate)
       ? Effect.succeed(initialTemplate)
-      : api.services.TemplateService.getProjectTemplateNames().pipe(
+      : Effect.succeed(SfTemplates.PROJECT_TEMPLATES).pipe(
           Effect.map(buildTemplateItems),
           Effect.flatMap(items => Effect.promise(() => vscode.window.showQuickPick(items))),
           Effect.map(selection =>
@@ -121,7 +125,7 @@ const promptForTemplate = Effect.fn('projectGenerate.promptForTemplate')(functio
 
 const promptForProjectName = Effect.fn('projectGenerate.promptForProjectName')(function* (initialProjectName?: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   return yield* (
     isNonEmptyTrimmedString(initialProjectName)
       ? Effect.succeed(initialProjectName)
@@ -137,7 +141,7 @@ const promptForParentFolder = Effect.fn('projectGenerate.promptForParentFolder')
   initialProjectUri?: string
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   return yield* isNonEmptyTrimmedString(initialProjectUri)
     ? Effect.succeed(URI.file(initialProjectUri))
     : Effect.promise(() =>
@@ -150,15 +154,18 @@ const promptForParentFolder = Effect.fn('projectGenerate.promptForParentFolder')
       ).pipe(Effect.flatMap(promptService.considerEmptySelectionAsCancellation), Effect.map(Arr.headNonEmpty));
 });
 
-export const sfProjectGenerateCommand = Effect.fn('sfProjectGenerateCommand')(function* (args?: ProjectGenerateArgs) {
+export const sfProjectGenerateCommand = Effect.fn('sfProjectGenerateCommand')(function* (
+  args: ProjectGenerateArgs | undefined
+) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fsService = yield* api.services.FsService;
-  const promptService = yield* api.services.PromptService;
+  const fsService = yield* api.v2.services.FsService;
+  const promptService = yield* api.v2.services.PromptService;
 
   const projectTemplate = yield* promptForTemplate(args?.projectTemplate);
   const projectName = yield* promptForProjectName(args?.projectName);
   const parentUri = yield* promptForParentFolder(args?.projectUri);
   const projectDirUri = Utils.joinPath(parentUri, projectName);
+  const cwd = yield* fsService.uriToPath(parentUri);
 
   yield* Effect.annotateCurrentSpan({
     projectTemplate,
@@ -167,17 +174,18 @@ export const sfProjectGenerateCommand = Effect.fn('sfProjectGenerateCommand')(fu
 
   yield* promptService.ensureMetadataOverwriteOrThrow({ uris: [projectDirUri] });
 
-  const parentPath = yield* fsService.uriToPath(parentUri);
-  yield* api.services.TemplateService.create({
-    cwd: parentPath,
-    templateType: api.services.TemplateType.Project,
-    options: {
-      projectname: projectName,
-      template: projectTemplate,
-      defaultpackagedir: 'force-app',
-      manifest: args?.manifest ?? false
-    }
-  }).pipe(promptService.withProgress({ title: nls.localize('project_generate_text'), cancellable: false }));
+  yield* api.v2.services.TemplateService.use(service =>
+    service.create({
+      cwd,
+      templateType: api.v2.services.TemplateType.Project,
+      options: {
+        projectname: projectName,
+        template: projectTemplate,
+        defaultpackagedir: 'force-app',
+        manifest: args?.manifest ?? false
+      }
+    })
+  ).pipe(promptService.withProgress(nls.localize('project_generate_text')));
 
   return yield* Effect.promise(() => vscode.commands.executeCommand('vscode.openFolder', projectDirUri));
 });

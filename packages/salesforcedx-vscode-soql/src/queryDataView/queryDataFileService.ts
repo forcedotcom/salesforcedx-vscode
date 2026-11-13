@@ -7,9 +7,9 @@
 
 import type { JsonObject } from '../json';
 import type { QueryResult } from '../types';
-import { getServicesApi, parseErrorToValidationMessage } from '@salesforce/effect-ext-utils';
+import type { DataProvider } from './dataProviders/iDataProvider';
+import { getServicesApi } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
 import { getDocumentName } from '../commonUtils';
@@ -18,7 +18,6 @@ import { messages } from '../messages/i18n';
 import { getSoqlRuntime } from '../services/extensionProvider';
 import { type SuccessOnlyCommandKey } from '../utils/notificationMode';
 import { CsvDataProvider } from './dataProviders/csvDataProvider';
-import { type DataProvider } from './dataProviders/iDataProvider';
 import { JsonDataProvider } from './dataProviders/jsonDataProvider';
 
 export enum FileFormat {
@@ -43,11 +42,6 @@ const stripTrailingExtension = (base: string, ext: string): string => {
   return base;
 };
 
-const isValidExportResultsFileName = (value: string, extension: string): boolean => {
-  const base = stripTrailingExtension(value, extension);
-  return base.length > 0 && base !== '.' && base !== '..' && !invalidFileNameCharRegExp.test(base);
-};
-
 const getExportFileStemFromDocument = (document: vscode.TextDocument, fileExtension: string): string => {
   let stem = stripTrailingExtension(getDocumentName(document).trim(), fileExtension);
   stem = stripTrailingExtension(stem, 'soql');
@@ -58,15 +52,23 @@ const getExportFileStemFromDocument = (document: vscode.TextDocument, fileExtens
   return `soql-query-results-${timestamp}`;
 };
 
-const validateExportResultsFileNameInput = (value: string, fileExtension: string): string | undefined =>
-  Schema.decodeUnknownEither(
-    Schema.Trim.pipe(
-      Schema.minLength(1, { message: () => nls.localize('soql_export_results_file_name_empty_error') }),
-      Schema.filter(input => isValidExportResultsFileName(input, fileExtension), {
-        message: () => nls.localize('soql_export_results_file_name_format_error')
-      })
-    )
-  )(value).pipe(parseErrorToValidationMessage);
+const validateExportResultsFileNameInput = (value: string, fileExtension: string): string | undefined => {
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return nls.localize('soql_export_results_file_name_empty_error');
+  }
+  const base = stripTrailingExtension(trimmed, fileExtension);
+  if (!base) {
+    return nls.localize('soql_export_results_file_name_format_error');
+  }
+  if (base === '.' || base === '..') {
+    return nls.localize('soql_export_results_file_name_format_error');
+  }
+  if (invalidFileNameCharRegExp.test(base)) {
+    return nls.localize('soql_export_results_file_name_format_error');
+  }
+  return undefined;
+};
 
 const normalizeExportResultsFileBaseName = (value: string, fileExtension: string): string =>
   stripTrailingExtension(value.trim(), fileExtension);
@@ -79,9 +81,9 @@ const writeQueryResultsAndNotify = Effect.fn('queryDataFileService.writeQueryRes
 }) {
   const { fileUri, fileContentString } = params;
   const api = yield* getServicesApi;
-  const notificationMode = yield* api.services.NotificationModeService;
-  yield* api.services.FsService.writeFile(fileUri, fileContentString);
-  const { fsPath } = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+  const notificationMode = yield* api.v2.services.NotificationModeService;
+  yield* api.v2.services.FsService.use(service => service.writeFile(fileUri, fileContentString));
+  const { fsPath } = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
   showFileInExplorer(fileUri, fsPath);
   yield* notificationMode.showSuccessNotification(
     SAVE_COMMAND,
@@ -99,8 +101,8 @@ const saveQueryResultsViaMemfsPrompts = Effect.fn('queryDataFileService.saveQuer
   }) {
     const { queryText, queryData, dataProvider, document } = params;
     const api = yield* getServicesApi;
-    const promptService = yield* api.services.PromptService;
-    const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+    const promptService = yield* api.v2.services.PromptService;
+    const workspaceInfo = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
 
     const defaultStem = getExportFileStemFromDocument(document, dataProvider.fileExtension);
 

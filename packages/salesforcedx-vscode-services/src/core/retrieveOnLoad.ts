@@ -6,24 +6,26 @@
  */
 
 import { type FileResponse, type MetadataMember } from '@salesforce/source-deploy-retrieve';
-import * as Chunk from 'effect/Chunk';
+import {
+  ChannelService,
+  FsService,
+  SettingsService,
+  ComponentSetService,
+  MetadataRegistryService,
+  MetadataRetrieveService,
+  fileResponseHasPath
+} from '@salesforce/vscode-services/v2';
+import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import { isNotUndefined, isString } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
-import { ChannelService } from '../vscode/channelService';
-import { FsService } from '../vscode/fsService';
-import { SettingsService } from '../vscode/settingsService';
-import { ComponentSetService } from './componentSetService';
-import { MetadataRegistryService } from './metadataRegistryService';
-import { MetadataRetrieveService } from './metadataRetrieveService';
-import { fileResponseHasPath } from './sdrGuards';
 
 // exclude apex meta-xml files
 const isNotMatchingContentXmlFile = Effect.fn('isNotMatchingContentXmlFile')(function* (r: FileResponse) {
-  const registry = yield* MetadataRegistryService.getRegistryAccess();
+  const registry = yield* MetadataRegistryService.use(service => service.getRegistryAccess());
   return yield* Effect.succeed(
     isNotUndefined(r.filePath) &&
       !(
@@ -62,7 +64,7 @@ export const filterFileResponses = Effect.fn('filterFileResponses')(function* (f
     Stream.filter(uri => `${Utils.basename(Utils.dirname(uri))}.js` === Utils.basename(uri))
   );
 
-  return yield* Stream.merge(filesToOpen, lwcFiles).pipe(Stream.runCollect, Effect.map(Chunk.toReadonlyArray));
+  return yield* Stream.merge(filesToOpen, lwcFiles).pipe(Stream.runCollect);
 });
 
 /** Parse retrieve on load setting into MetadataMember array */
@@ -82,7 +84,7 @@ export const parseRetrieveOnLoad = (value: string): MetadataMember[] =>
 /** Effect to retrieve metadata on load based on setting */
 export const retrieveOnLoadEffect = Effect.fn('retrieveOnLoadEffect')(
   function* () {
-    const retrieveOnLoadValue = yield* SettingsService.getRetrieveOnLoad();
+    const retrieveOnLoadValue = yield* SettingsService.use(service => service.getRetrieveOnLoad());
 
     if (retrieveOnLoadValue.length === 0) {
       return;
@@ -99,7 +101,7 @@ export const retrieveOnLoadEffect = Effect.fn('retrieveOnLoadEffect')(
       `Retrieving metadata on load: ${members.map(m => `${m.type}:${m.fullName}`).join(', ')}`
     );
 
-    const result = yield* MetadataRetrieveService.retrieve(members, { ignoreConflicts: true });
+    const result = yield* MetadataRetrieveService.use(service => service.retrieve(members, { ignoreConflicts: true }));
 
     const filesToOpen = yield* filterFileResponses(result.getFileResponses().filter(componentSetService.isSDRSuccess));
 
@@ -110,9 +112,11 @@ export const retrieveOnLoadEffect = Effect.fn('retrieveOnLoadEffect')(
     const fsService = yield* FsService;
     yield* Effect.forEach(filesToOpen, uri => fsService.showTextDocument(uri, { preview: false }));
   },
-  Effect.catchAll(error =>
-    Effect.gen(function* () {
-      const errorMessage = nls.localize('retrieve_on_load_failed', String(error));
+  Effect.catchCause(
+    Effect.fnUntraced(function* (cause) {
+      const failure = cause.reasons.find(Cause.isFailReason);
+      if (Cause.hasInterrupts(cause) || Cause.hasDies(cause) || !failure) return yield* Effect.failCause(cause);
+      const errorMessage = nls.localize('retrieve_on_load_failed', String(failure.error));
       yield* (yield* ChannelService).appendToChannel(errorMessage);
       yield* Effect.sync(() => {
         void vscode.window.showErrorMessage(errorMessage);

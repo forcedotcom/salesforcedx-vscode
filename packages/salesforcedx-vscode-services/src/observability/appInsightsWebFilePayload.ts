@@ -8,7 +8,7 @@ import * as Schema from 'effect/Schema';
 
 export const AppInsightsWebFilePayload = Schema.Struct({
   name: Schema.String,
-  eventType: Schema.Literal('event', 'errorEvent'),
-  properties: Schema.Record({ key: Schema.String, value: Schema.UndefinedOr(Schema.String) }),
-  measurements: Schema.Record({ key: Schema.String, value: Schema.Number })
+  eventType: Schema.Literals(['event', 'errorEvent']),
+  properties: Schema.Record(Schema.String, Schema.UndefinedOr(Schema.String)),
+  measurements: Schema.Record(Schema.String, Schema.Number)
 });

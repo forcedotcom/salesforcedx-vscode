@@ -66,13 +66,26 @@ import type * as TestUtils from '../../../src/utils/testUtils';
 import { type TestResult, type TestService } from '@salesforce/apex-node';
 import { TestResultSchema } from '@salesforce/apex-node/effect';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
 import * as Schema from 'effect/Schema';
+import * as Stream from 'effect/Stream';
+import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
 import { URI } from 'vscode-uri';
+import {
+  ChannelService,
+  ConnectionService,
+  FsService,
+  NotificationModeService,
+  OrgMetadataCatalog,
+  QueryService,
+  type DefaultOrgInfoSchema,
+  SettingsService,
+  TargetOrgRef,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 import { ApexTestRunCacheService } from '../../../src/testRunCache/apexTestRunCacheService';
 import { ApexTestExecutionService, type ExecutionContext } from '../../../src/views/apexTestExecutionService';
 import { ApexTestTreeService } from '../../../src/views/apexTestTreeService';
@@ -103,16 +116,11 @@ const makeTestResult = (summary: Partial<TestResult['summary']> = {}): TestResul
   });
 const readFile = vi.fn((_uri: URI) => Effect.succeed(JSON.stringify(makeTestResult())));
 const mockFsService = {
-  createDirectory: () => Effect.void,
+  createDirectory: (_path: string) => Effect.void,
   toUri: (path: string | URI) => Effect.succeed(typeof path === 'string' ? URI.parse(path) : path),
   safeWriteFile: () => Effect.void,
-  readFile: (uri: URI) => readFile(uri),
-  fileOrFolderExists: () => Effect.succeed(false)
+  readFile: (uri: URI) => readFile(uri)
 };
-const FsServiceTag = Context.GenericTag<typeof mockFsService>('FsService');
-const MockFsService = Object.assign(FsServiceTag, {
-  readFile: (uri: URI) => Effect.flatMap(FsServiceTag, fsService => fsService.readFile(uri))
-});
 // Mirror the prior settings-mock defaults through the SettingsService accessor.
 const settingsValues: Record<string, unknown> = {
   'retrieve-test-code-coverage': false,
@@ -121,37 +129,52 @@ const settingsValues: Record<string, unknown> = {
   testSortOrder: 'runtime'
 };
 const mockApi = {
-  services: {
-    ChannelService: Effect.succeed({ appendToChannel }),
-    NotificationModeService: Effect.succeed({ showSuccessNotification, showErrorWithActions }),
-    FsService: MockFsService,
-    // Yielded as an instance (yield* api.services.SettingsService), so wrap in Effect.succeed.
-    SettingsService: Effect.succeed({
-      getValue: (_section: string, key: string, defaultValue: unknown) =>
-        Effect.succeed(key in settingsValues ? settingsValues[key] : defaultValue),
-      getValueOrElse: (_section: string, key: string, defaultValue: unknown) =>
-        Effect.succeed(key in settingsValues ? settingsValues[key] : defaultValue)
-    }),
-    // getConnection is a static accessor (api.services.ConnectionService.getConnection()); the returned
-    // connection is only fed to `new TestService(conn)`, which the module mock intercepts, so a stub is fine.
-    ConnectionService: { getConnection: () => Effect.succeed({}) }
+  v2: {
+    services: {
+      ChannelService,
+      NotificationModeService,
+      FsService,
+      SettingsService,
+      ConnectionService,
+      QueryService,
+      OrgMetadataCatalog,
+      TargetOrgRef
+    }
   }
-};
-const ExtProviderLayer = Layer.mergeAll(
-  Layer.succeed(ExtensionProviderService, {
-    getServicesApi: Effect.succeed(mockApi)
-  } as unknown as ExtensionProviderService),
-  Layer.succeed(FsServiceTag, mockFsService)
+} as unknown as SalesforceVSCodeServicesApiV2;
+const ExtProviderLayer = Layer.succeed(ExtensionProviderService, {
+  getServicesApi: Effect.succeed(mockApi)
+} as unknown as ExtensionProviderService['Service']);
+
+const ServiceValuesLayer = Layer.mergeAll(
+  Layer.succeed(ChannelService, { appendToChannel } as unknown as ChannelService['Service']),
+  Layer.succeed(NotificationModeService, {
+    showSuccessNotification,
+    showErrorWithActions
+  } as unknown as NotificationModeService['Service']),
+  Layer.succeed(FsService, mockFsService as unknown as FsService['Service']),
+  Layer.succeed(SettingsService, {
+    getValue: (_section: string, key: string, defaultValue: unknown) =>
+      Effect.succeed(key in settingsValues ? settingsValues[key] : defaultValue),
+    getValueOrElse: (_section: string, key: string, defaultValue: unknown) =>
+      Effect.succeed(key in settingsValues ? settingsValues[key] : defaultValue)
+  } as unknown as SettingsService['Service']),
+  Layer.succeed(ConnectionService, {
+    getConnection: () => Effect.succeed({})
+  } as unknown as ConnectionService['Service']),
+  Layer.succeed(QueryService, { query: () => Effect.succeed({ totalSize: 0, records: Stream.empty }) } as never),
+  Layer.succeed(OrgMetadataCatalog, {} as never),
+  Layer.effect(TargetOrgRef, SubscriptionRef.make<typeof DefaultOrgInfoSchema.Type>({}))
 );
 
 // Fresh tree + execution service (fresh Refs) per layer build; ExtProviderLayer also stays ambient for the
 // methods that yield ExtensionProviderService at call time.
 const ServicesUnderTest = Layer.mergeAll(
-  ApexTestExecutionService.Default,
-  ApexTestTreeService.Default,
-  ApexTestRunCacheService.Default
+  ApexTestExecutionService.layer,
+  ApexTestTreeService.layer,
+  ApexTestRunCacheService.layer
 );
-const buildLayer = () => Layer.merge(Layer.provide(ServicesUnderTest, ExtProviderLayer), ExtProviderLayer);
+const buildLayer = () => Layer.mergeAll(ServicesUnderTest, ExtProviderLayer, ServiceValuesLayer);
 
 // R is whatever the service methods require (ExecutionService/TreeService/CacheService/ExtensionProvider);
 // buildLayer provides all of them, so erase R to never at the boundary.
@@ -162,6 +185,20 @@ const runExit = <A, E, R>(effect: Effect.Effect<A, E, R>) =>
   Effect.runPromiseExit(
     Effect.provide(effect as Effect.Effect<A, E, never>, buildLayer()) as Effect.Effect<A, E, never>
   );
+
+const executionService = {
+  executeTests: (...args: Parameters<ApexTestExecutionService['Service']['executeTests']>) =>
+    ApexTestExecutionService.use(service => service.executeTests(...args)),
+  debugTests: (...args: Parameters<ApexTestExecutionService['Service']['debugTests']>) =>
+    ApexTestExecutionService.use(service => service.debugTests(...args)),
+  runTests: (...args: Parameters<ApexTestExecutionService['Service']['runTests']>) =>
+    ApexTestExecutionService.use(service => service.runTests(...args)),
+  onResultFileCreate: (...args: Parameters<ApexTestExecutionService['Service']['onResultFileCreate']>) =>
+    ApexTestExecutionService.use(service => service.onResultFileCreate(...args))
+};
+const treeService = {
+  getMethodItems: () => ApexTestTreeService.use(service => service.getMethodItems())
+};
 
 const tag = (id: string): vscode.TestTag => ({ id }) as vscode.TestTag;
 const inWorkspaceTag = tag('in-workspace');
@@ -244,7 +281,7 @@ describe('ApexTestExecutionService', () => {
       const { run } = fakeRun();
       setTestService(makeTestService());
       await runEff(
-        ApexTestExecutionService.executeTests({
+        executionService.executeTests({
           testNames: ['MyClass.testA'],
           outputDir: URI.file('/tmp'),
           codeCoverage: false,
@@ -273,7 +310,7 @@ describe('ApexTestExecutionService', () => {
         })
       );
       return runEff(
-        ApexTestExecutionService.executeTests({
+        executionService.executeTests({
           testNames: ['MyClass.testA'],
           outputDir: URI.file('/tmp'),
           codeCoverage: false,
@@ -306,7 +343,7 @@ describe('ApexTestExecutionService', () => {
       setTestService(makeTestService({ buildAsyncPayload, runTestAsynchronous }));
       const { run } = fakeRun();
       await runEff(
-        ApexTestExecutionService.executeTests({
+        executionService.executeTests({
           testNames: [],
           outputDir: URI.file('/tmp'),
           codeCoverage: false,
@@ -321,6 +358,31 @@ describe('ApexTestExecutionService', () => {
       expect(payload.testLevel).toBe('RunAllTestsInOrg');
     });
 
+    it('marks tests errored when apex-node returns an invalid TestResult', async () => {
+      const method = fakeItem('method:MyClass.testA', 'testA');
+      const { run, errored, end } = fakeRun();
+      setTestService(
+        makeTestService({ runTestAsynchronous: vi.fn().mockResolvedValue({ tests: [], summary: { testsRan: 1 } }) })
+      );
+      const ctx = makeCtx({
+        controller: {
+          items: { forEach: vi.fn() } as unknown as vscode.TestItemCollection,
+          createTestRun: vi.fn(() => run)
+        } as unknown as vscode.TestController
+      });
+      await runEff(
+        executionService.runTests(
+          ctx,
+          { include: [method] } as unknown as vscode.TestRunRequest,
+          cancellationToken,
+          false,
+          'workspace-first'
+        )
+      );
+      expect(errored.map(item => item.test)).toContain(method);
+      expect(end).toHaveBeenCalled();
+    });
+
     it('records lastProcessedResultFile so the watcher dedupes the same URI', async () => {
       const method = fakeItem('method:MyClass.testA', 'testA');
       const { run } = fakeRun();
@@ -332,7 +394,7 @@ describe('ApexTestExecutionService', () => {
       mockReadTestRunIdFile.mockReturnValue(Effect.succeed(testRunId));
       await runEff(
         Effect.gen(function* () {
-          yield* ApexTestExecutionService.executeTests({
+          yield* executionService.executeTests({
             testNames: ['MyClass.testA'],
             outputDir: URI.file('/tmp'),
             codeCoverage: false,
@@ -342,7 +404,7 @@ describe('ApexTestExecutionService', () => {
             runAllTestsInOrg: false
           });
           mockUpdateTestRunResults.mockClear();
-          yield* ApexTestExecutionService.onResultFileCreate(
+          yield* executionService.onResultFileCreate(
             ctx,
             URI.file('/tmp'),
             URI.file(`/tmp/test-result-${testRunId}.json`)
@@ -358,9 +420,9 @@ describe('ApexTestExecutionService', () => {
       const { run } = fakeRun();
       await runEff(
         Effect.gen(function* () {
-          const methods = yield* ApexTestTreeService.getMethodItems();
+          const methods = yield* treeService.getMethodItems();
           methods.set('MyClass.testA', method);
-          yield* ApexTestExecutionService.executeTests({
+          yield* executionService.executeTests({
             testNames: ['MyClass.testA'],
             outputDir: URI.file('/tmp'),
             codeCoverage: false,
@@ -381,7 +443,7 @@ describe('ApexTestExecutionService', () => {
       setTestService(makeTestService({ buildAsyncPayload: vi.fn().mockResolvedValue(undefined) }));
       // Mixed suite+class with no methods -> buildTestPayload reaches the no-payload branch.
       const exit = await runExit(
-        ApexTestExecutionService.executeTests({
+        executionService.executeTests({
           testNames: ['A'],
           outputDir: URI.file('/tmp'),
           codeCoverage: false,
@@ -404,7 +466,7 @@ describe('ApexTestExecutionService', () => {
       const orgOnly = fakeItem('method:OrgOnly.testA', 'testA', { tags: [orgOnlyTag] });
       const { run, errored } = fakeRun();
       (vscode.commands.executeCommand as VitestMock).mockClear();
-      await runEff(ApexTestExecutionService.debugTests(makeCtx(), [orgOnly], run));
+      await runEff(executionService.debugTests(makeCtx(), [orgOnly], run));
       expect(errored.map(e => e.test)).toContain(orgOnly);
       expect(vscode.commands.executeCommand).not.toHaveBeenCalledWith('sf.test.view.debugTests', expect.anything());
     });
@@ -412,7 +474,7 @@ describe('ApexTestExecutionService', () => {
     it('does NOT emit a channel sentinel on the debug path', async () => {
       const cls = fakeItem('class:A', 'A', { tags: [inWorkspaceTag] });
       const { run } = fakeRun();
-      await runEff(ApexTestExecutionService.debugTests(makeCtx(), [cls], run));
+      await runEff(executionService.debugTests(makeCtx(), [cls], run));
       expect(appendToChannel).not.toHaveBeenCalled();
     });
 
@@ -421,7 +483,7 @@ describe('ApexTestExecutionService', () => {
       const { run, errored } = fakeRun();
       (vscode.commands.executeCommand as VitestMock).mockReset();
       (vscode.commands.executeCommand as VitestMock).mockRejectedValue(new Error('dispatch boom'));
-      await runEff(ApexTestExecutionService.debugTests(makeCtx(), [cls], run));
+      await runEff(executionService.debugTests(makeCtx(), [cls], run));
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugTests', {
         classNames: ['A'],
         methodNames: []
@@ -436,7 +498,7 @@ describe('ApexTestExecutionService', () => {
       const { run } = fakeRun();
       (vscode.commands.executeCommand as VitestMock).mockReset();
       (vscode.commands.executeCommand as VitestMock).mockResolvedValue(undefined);
-      await runEff(ApexTestExecutionService.debugTests(makeCtx(), [cls, method], run));
+      await runEff(executionService.debugTests(makeCtx(), [cls, method], run));
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugTests', {
         classNames: ['A'],
         methodNames: []
@@ -454,7 +516,7 @@ describe('ApexTestExecutionService', () => {
       const { run } = fakeRun();
       (vscode.commands.executeCommand as VitestMock).mockReset();
       (vscode.commands.executeCommand as VitestMock).mockResolvedValue(undefined);
-      await runEff(ApexTestExecutionService.debugTests(makeCtx(), [clsA, clsB, methodC], run));
+      await runEff(executionService.debugTests(makeCtx(), [clsA, clsB, methodC], run));
       expect(vscode.commands.executeCommand).toHaveBeenCalledTimes(1);
       expect(vscode.commands.executeCommand).toHaveBeenCalledWith('sf.test.view.debugTests', {
         classNames: ['A', 'B'],
@@ -468,7 +530,7 @@ describe('ApexTestExecutionService', () => {
       const { run, errored } = fakeRun();
       (vscode.commands.executeCommand as VitestMock).mockReset();
       (vscode.commands.executeCommand as VitestMock).mockRejectedValue(new Error('dispatch boom'));
-      await runEff(ApexTestExecutionService.debugTests(makeCtx(), [clsA, methodC], run));
+      await runEff(executionService.debugTests(makeCtx(), [clsA, methodC], run));
       expect(errored.map(e => e.test)).toEqual([clsA, methodC]);
     });
 
@@ -477,7 +539,7 @@ describe('ApexTestExecutionService', () => {
       const { run, errored } = fakeRun();
       (vscode.commands.executeCommand as VitestMock).mockReset();
       (vscode.commands.executeCommand as VitestMock).mockResolvedValue(undefined);
-      await runEff(ApexTestExecutionService.debugTests(makeCtx(), [suite], run));
+      await runEff(executionService.debugTests(makeCtx(), [suite], run));
       expect(errored.map(e => e.test)).toContain(suite);
       expect((errored[0].message as unknown as { message: string }).message).toContain(
         'Test suites cannot be debugged'
@@ -499,7 +561,7 @@ describe('ApexTestExecutionService', () => {
         } as unknown as vscode.TestController
       });
       await runEff(
-        ApexTestExecutionService.runTests(
+        executionService.runTests(
           ctx,
           { include: [method] } as unknown as vscode.TestRunRequest,
           cancellationToken,
@@ -507,59 +569,6 @@ describe('ApexTestExecutionService', () => {
           'workspace-first'
         )
       );
-      expect(errored.map(e => e.test)).toContain(method);
-      expect(end).toHaveBeenCalled();
-    });
-
-    it('rejects an apex-node result that does not match TestResultSchema', async () => {
-      const method = fakeItem('method:MyClass.testA', 'testA');
-      const { run, errored, end } = fakeRun();
-      const runTestAsynchronous = vi.fn().mockResolvedValue({ tests: [], summary: { testsRan: 1 } });
-      setTestService(makeTestService({ runTestAsynchronous }));
-      const ctx = makeCtx({
-        controller: {
-          items: { forEach: vi.fn() } as unknown as vscode.TestItemCollection,
-          createTestRun: vi.fn(() => run)
-        } as unknown as vscode.TestController
-      });
-
-      await runEff(
-        ApexTestExecutionService.runTests(
-          ctx,
-          { include: [method] } as unknown as vscode.TestRunRequest,
-          cancellationToken,
-          false,
-          'workspace-first'
-        )
-      );
-
-      expect(errored.map(e => e.test)).toContain(method);
-      expect(end).toHaveBeenCalled();
-    });
-
-    it('surfaces an invalid TestResult from apex-node via run.errored', async () => {
-      const method = fakeItem('method:MyClass.testA', 'testA');
-      const { run, errored, end } = fakeRun();
-      setTestService(
-        makeTestService({ runTestAsynchronous: vi.fn().mockResolvedValue({ tests: [], summary: { testsRan: 1 } }) })
-      );
-      const ctx = makeCtx({
-        controller: {
-          items: { forEach: vi.fn() } as unknown as vscode.TestItemCollection,
-          createTestRun: vi.fn(() => run)
-        } as unknown as vscode.TestController
-      });
-
-      await runEff(
-        ApexTestExecutionService.runTests(
-          ctx,
-          { include: [method] } as unknown as vscode.TestRunRequest,
-          cancellationToken,
-          false,
-          'workspace-first'
-        )
-      );
-
       expect(errored.map(e => e.test)).toContain(method);
       expect(end).toHaveBeenCalled();
     });
@@ -577,7 +586,7 @@ describe('ApexTestExecutionService', () => {
         } as unknown as vscode.TestController
       });
       await runEff(
-        ApexTestExecutionService.runTests(
+        executionService.runTests(
           ctx,
           { include: [method] } as unknown as vscode.TestRunRequest,
           cancellationToken,
@@ -603,7 +612,7 @@ describe('ApexTestExecutionService', () => {
         } as unknown as vscode.TestController
       });
       await runEff(
-        ApexTestExecutionService.runTests(
+        executionService.runTests(
           ctx,
           { include: [suite] } as unknown as vscode.TestRunRequest,
           cancellationToken,
@@ -630,7 +639,7 @@ describe('ApexTestExecutionService', () => {
         } as unknown as vscode.TestController
       });
       await runEff(
-        ApexTestExecutionService.runTests(
+        executionService.runTests(
           ctx,
           { include: [suite, method] } as unknown as vscode.TestRunRequest,
           cancellationToken,
@@ -656,8 +665,8 @@ describe('ApexTestExecutionService', () => {
       const resultUri = URI.file('/tmp/test-result-default.json');
       await runEff(
         Effect.gen(function* () {
-          yield* ApexTestExecutionService.onResultFileCreate(ctx, dir, resultUri);
-          yield* ApexTestExecutionService.onResultFileCreate(ctx, dir, resultUri);
+          yield* executionService.onResultFileCreate(ctx, dir, resultUri);
+          yield* executionService.onResultFileCreate(ctx, dir, resultUri);
         })
       );
       expect(mockUpdateTestRunResults).toHaveBeenCalledTimes(1);

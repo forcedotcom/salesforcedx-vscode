@@ -6,19 +6,24 @@
  */
 
 import type { Connection } from '@salesforce/core';
-import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { breakpointUtil } from '@salesforce/salesforcedx-apex-replay-debugger';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
+import * as Stream from 'effect/Stream';
 import {
   ConnectionService,
-  FailedToCreateConnectionError
-} from 'salesforcedx-vscode-services/src/core/connectionService';
-import { QueryService } from 'salesforcedx-vscode-services/src/core/queryService';
-import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
-import { PromptService } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
-import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
+  FailedToCreateConnectionError,
+  NotificationModeService,
+  QueryService,
+  SoqlError,
+  TargetOrgRef,
+  type DefaultOrgInfoSchema,
+  type QueryOptions,
+  type QueryPage,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 import * as vscode from 'vscode';
 import { retrieveLineBreakpointInfo } from '../../../src/apexExtension';
 import { checkpointService, sfCreateCheckpointsCommand } from '../../../src/breakpoints/checkpointService';
@@ -36,14 +41,28 @@ describe('checkpoint upload Effects', () => {
   const checkpointUri = 'file:///project/classes/Example.cls';
   const progress = { report: vi.fn<vscode.Progress<{ increment?: number; message?: string }>['report']>() };
   const query = vi.fn();
-  const queryMore = vi.fn();
   const deleteCheckpoint = vi.fn();
   const createCheckpoint = vi.fn();
   const sobject = vi.fn();
-  const connection = { tooling: { query, queryMore, sobject } } as unknown as Connection;
-  const getConnection = vi.fn<ConnectionService['getConnection']>();
+  const connection = { tooling: { query, sobject } } as unknown as Connection;
+  const getConnection = vi.fn<ConnectionService['Service']['getConnection']>();
   let targetOrgRef: SubscriptionRef.SubscriptionRef<typeof DefaultOrgInfoSchema.Type>;
-  let queryService: Effect.Effect<QueryService, FailedToCreateConnectionError, QueryService>;
+  const queryService = {
+    query: <A, E, R>(options: QueryOptions, decodePage: (input: unknown) => Effect.Effect<QueryPage<A>, E, R>) =>
+      Effect.tryPromise({
+        try: () => query(options),
+        catch: error =>
+          new SoqlError({
+            message: error instanceof Error ? error.message : String(error),
+            soql: options.soql,
+            errorCode: 'QUERY_FAILED',
+            statusCode: 500
+          })
+      }).pipe(
+        Effect.flatMap(decodePage),
+        Effect.map(page => ({ totalSize: page.totalSize, records: Stream.fromIterable(page.records ?? []) }))
+      )
+  } as unknown as QueryService['Service'];
 
   const addCheckpoint = (id = 'checkpoint', enabled = true, line = 7) =>
     checkpointService.createCheckpointNode(id, enabled, checkpointUri, 'Example.cls', {
@@ -70,7 +89,6 @@ describe('checkpoint upload Effects', () => {
 
   beforeEach(async () => {
     targetOrgRef = await Effect.runPromise(SubscriptionRef.make<typeof DefaultOrgInfoSchema.Type>({ userId }));
-    queryService = QueryService;
     getConnection.mockImplementation(() => Effect.succeed(connection));
     query.mockResolvedValue({ totalSize: 0, done: true, records: [] });
     deleteCheckpoint.mockResolvedValue({ success: true });
@@ -83,27 +101,30 @@ describe('checkpoint upload Effects', () => {
       task(progress, new vscode.CancellationTokenSource().token)
     );
 
-    const connectionLayer = Layer.succeed(ConnectionService, { getConnection } as unknown as ConnectionService);
+    const connectionLayer = Layer.succeed(ConnectionService, {
+      getConnection
+    } as unknown as ConnectionService['Service']);
     const servicesApi = {
-      services: {
-        ConnectionService,
-        get QueryService() {
-          return queryService;
-        },
-        NotificationModeService,
-        PromptService,
-        TargetOrgRef: () => Effect.succeed(targetOrgRef)
+      v2: {
+        services: {
+          ConnectionService,
+          QueryService,
+          NotificationModeService,
+          TargetOrgRef
+        }
       }
-    } as unknown as SalesforceVSCodeServicesApi;
+    } as unknown as SalesforceVSCodeServicesApiV2;
     setAllServicesLayer(
       Layer.mergeAll(
-        Layer.succeed(ExtensionProviderService, { getServicesApi: Effect.succeed(servicesApi) }),
+        Layer.succeed(ExtensionProviderService, {
+          getServicesApi: Effect.succeed(servicesApi)
+        } as unknown as ExtensionProviderService['Service']),
         connectionLayer,
-        PromptService.Default,
-        QueryService.DefaultWithoutDependencies.pipe(Layer.provide(connectionLayer)),
+        Layer.succeed(QueryService, queryService),
+        Layer.succeed(TargetOrgRef, targetOrgRef),
         Layer.succeed(NotificationModeService, {
           getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification)
-        } as unknown as NotificationModeService)
+        } as unknown as NotificationModeService['Service'])
       ) as unknown as Parameters<typeof setAllServicesLayer>[0]
     );
   });
@@ -122,18 +143,16 @@ describe('checkpoint upload Effects', () => {
     const disabledNode = addCheckpoint('disabled', false);
     query.mockResolvedValue({
       totalSize: 2,
-      done: false,
-      records: [{ Id: 'old-1' }],
-      nextRecordsUrl: '/next-page'
+      done: true,
+      records: [{ Id: 'old-1' }, { Id: 'old-2' }]
     });
-    queryMore.mockResolvedValue({ totalSize: 2, done: true, records: [{ Id: 'old-2' }] });
 
     expect(await upload()).toBe(true);
 
-    expect(query).toHaveBeenCalledWith(`SELECT Id FROM ApexExecutionOverlayAction WHERE ScopeId = '${userId}'`, {
-      scanAll: false
+    expect(query).toHaveBeenCalledWith({
+      soql: `SELECT Id FROM ApexExecutionOverlayAction WHERE ScopeId = '${userId}'`,
+      tooling: true
     });
-    expect(queryMore).toHaveBeenCalledWith('/next-page');
     expect(deleteCheckpoint.mock.calls).toEqual([['old-1'], ['old-2']]);
     expect(sobject.mock.calls.every(([name]) => name === 'ApexExecutionOverlayAction')).toBe(true);
     expect(createCheckpoint).toHaveBeenCalledExactlyOnceWith({
@@ -173,7 +192,7 @@ describe('checkpoint upload Effects', () => {
   it.each([
     { stage: 'initial org check', successfulConnections: 0 },
     { stage: 'clearing checkpoints', successfulConnections: 1 },
-    { stage: 'creating a checkpoint', successfulConnections: 3 }
+    { stage: 'creating a checkpoint', successfulConnections: 2 }
   ])('reports connection failure during $stage', async ({ successfulConnections }) => {
     const node = addCheckpoint();
     Array.from({ length: successfulConnections }).forEach(() =>
@@ -198,43 +217,30 @@ describe('checkpoint upload Effects', () => {
     expect(createCheckpoint).not.toHaveBeenCalled();
   });
 
-  it('reports QueryService acquisition failure without deleting or creating', async () => {
+  it('reports QueryService request failure without deleting or creating', async () => {
     addCheckpoint();
     const error = new FailedToCreateConnectionError({ message: 'query service unavailable' });
-    queryService = Effect.fail(error);
+    query.mockRejectedValue(error);
 
     expect(await upload()).toBe(false);
-    expectError(`${nls.localize('unable_to_query_for_existing_checkpoints')} : ${String(error)}`);
-    expect(query).not.toHaveBeenCalled();
+    expectError(`${nls.localize('unable_to_query_for_existing_checkpoints')} : SoqlError: query service unavailable`);
+    expect(query).toHaveBeenCalledTimes(1);
     expect(deleteCheckpoint).not.toHaveBeenCalled();
     expect(createCheckpoint).not.toHaveBeenCalled();
   });
 
-  it.each(['first page', 'later page'])(
-    'reports a query failure on the %s without deleting or creating',
-    async page => {
-      addCheckpoint();
-      if (page === 'first page') {
-        query.mockRejectedValue(new Error('query failed'));
-      } else {
-        query.mockResolvedValue({
-          totalSize: 2,
-          done: false,
-          records: [{ Id: 'old-1' }],
-          nextRecordsUrl: '/next-page'
-        });
-        queryMore.mockRejectedValue(new Error('query failed'));
-      }
+  it('reports a query failure without deleting or creating', async () => {
+    addCheckpoint();
+    query.mockRejectedValue(new Error('query failed'));
 
-      expect(await upload()).toBe(false);
-      expect(writeToDebuggerOutputWindow).toHaveBeenCalledWith(
-        expect.stringContaining(nls.localize('unable_to_query_for_existing_checkpoints')),
-        'error'
-      );
-      expect(deleteCheckpoint).not.toHaveBeenCalled();
-      expect(createCheckpoint).not.toHaveBeenCalled();
-    }
-  );
+    expect(await upload()).toBe(false);
+    expect(writeToDebuggerOutputWindow).toHaveBeenCalledWith(
+      expect.stringContaining(nls.localize('unable_to_query_for_existing_checkpoints')),
+      'error'
+    );
+    expect(deleteCheckpoint).not.toHaveBeenCalled();
+    expect(createCheckpoint).not.toHaveBeenCalled();
+  });
 
   it('waits for all deletes after a rejection and does not create new checkpoints', async () => {
     addCheckpoint();

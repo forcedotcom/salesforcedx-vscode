@@ -6,10 +6,14 @@
  */
 
 import type { Mock as VitestMock } from 'vitest';
-import { ExtensionNotFoundError, ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, ServicesExtensionNotFoundError } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
-import { SettingsError, SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
+import {
+  FsService,
+  SettingsError,
+  SettingsService,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 import { fail } from 'node:assert';
 import * as cp from 'node:child_process';
 import type * as os from 'node:os';
@@ -43,13 +47,10 @@ vi.mock('vscode', () => ({
 // vi.fn mocks so individual tests can reconfigure the false / error branches via mockReturnValue.
 const mockFileOrFolderExists = vi.fn((_p: string) => Effect.succeed(true));
 const mockGetValue = vi.fn((_section: string, _key: string, defaultValue?: unknown) => Effect.succeed(defaultValue));
-const succeedApi = (): ExtensionProviderService['getServicesApi'] =>
+const succeedApi = (): ExtensionProviderService['Service']['getServicesApi'] =>
   Effect.succeed({
-    services: {
-      FsService: { fileOrFolderExists: mockFileOrFolderExists },
-      SettingsService
-    }
-  }) as unknown as ExtensionProviderService['getServicesApi'];
+    v2: { services: { FsService, SettingsService } }
+  } as unknown as SalesforceVSCodeServicesApiV2);
 const mockGetServicesApi = vi.fn(succeedApi);
 
 const run = <A, E>(effect: Effect.Effect<A, E, ExtensionProviderService | SettingsService | FsService>): Promise<A> =>
@@ -59,12 +60,12 @@ const run = <A, E>(effect: Effect.Effect<A, E, ExtensionProviderService | Settin
         get getServicesApi() {
           return mockGetServicesApi();
         }
-      } as unknown as ExtensionProviderService),
+      } as unknown as ExtensionProviderService['Service']),
       Effect.provideService(
         SettingsService,
-        SettingsService.make({ getValue: mockGetValue, getValueOrElse: mockGetValue } as never)
+        SettingsService.of({ getValue: mockGetValue, getValueOrElse: mockGetValue } as never)
       ),
-      Effect.provideService(FsService, FsService.make({ fileOrFolderExists: mockFileOrFolderExists } as never))
+      Effect.provideService(FsService, FsService.of({ fileOrFolderExists: mockFileOrFolderExists } as never))
     )
   );
 
@@ -157,15 +158,16 @@ describe('Java Requirements Test', () => {
       mockGetValue.mockImplementation((_section, key, defaultValue) =>
         Effect.succeed(key === 'java.home' ? runtimePath : defaultValue)
       );
-      mockGetServicesApi.mockReturnValueOnce(succeedApi()).mockReturnValue(
-        Effect.fail(
-          new ExtensionNotFoundError({
-            extId: 'salesforce.salesforcedx-vscode-services',
-            message: 'Services extension is not installed'
-          })
-        ) as unknown as ExtensionProviderService['getServicesApi']
+      mockGetServicesApi
+        .mockReturnValueOnce(succeedApi())
+        .mockReturnValue(
+          Effect.fail(
+            new ServicesExtensionNotFoundError()
+          ) as unknown as ExtensionProviderService['Service']['getServicesApi']
+        );
+      await expect(run(resolveRequirements().pipe(Effect.flip))).resolves.toBeInstanceOf(
+        ServicesExtensionNotFoundError
       );
-      await expect(run(resolveRequirements().pipe(Effect.flip))).resolves.toBeInstanceOf(ExtensionNotFoundError);
     });
 
     it('Should not support Java 8', async () => {

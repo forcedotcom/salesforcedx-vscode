@@ -5,19 +5,17 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { CallableSchema, ExtensionProviderService, getExtensionExports } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { isString, isUndefined } from 'effect/Predicate';
-import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { type URI, Utils } from 'vscode-uri';
 import { nls } from '../messages';
 
-const XMLExtensionApiSchema = Schema.Struct({
-  addXMLCatalogs: CallableSchema<(catalogs: string[]) => void>(),
-  addXMLFileAssociations: CallableSchema<(fileAssociations: { systemId: string; pattern: string }[]) => void>()
-});
-type XMLExtensionApi = Schema.Schema.Type<typeof XMLExtensionApiSchema>;
+type XMLExtensionApi = {
+  addXMLCatalogs: (catalogs: string[]) => void;
+  addXMLFileAssociations: (fileAssociations: { systemId: string; pattern: string }[]) => void;
+};
 
 const getLocalFilePath = (extensionUri: URI, targetFileNames: string[]): string[] =>
   targetFileNames.map(name => Utils.joinPath(extensionUri, 'resources', 'static', name).toString());
@@ -28,7 +26,7 @@ const getLocalFilePath = (extensionUri: URI, targetFileNames: string[]): string[
  */
 export const activateMetaSupport = Effect.fn('activateMetaSupport')(function* (extensionUri: URI) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channelService = yield* api.services.ChannelService;
+  const channelService = yield* api.v2.services.ChannelService;
 
   // redHatExtension API reference: https://github.com/redhat-developer/vscode-xml/pull/292
   const redHatExtension = vscode.extensions.getExtension<XMLExtensionApi>('redhat.vscode-xml');
@@ -55,23 +53,11 @@ export const activateMetaSupport = Effect.fn('activateMetaSupport')(function* (e
         pattern: '**/*js-meta.xml'
       }
     ];
-    yield* getExtensionExports({ extId: 'redhat.vscode-xml', schema: XMLExtensionApiSchema }).pipe(
-      Effect.flatMap(xmlApi =>
-        Effect.try(() => {
-          xmlApi.addXMLCatalogs(catalogs);
-          xmlApi.addXMLFileAssociations(fileAssociations);
-        })
-      ),
-      Effect.catchTags({
-        ExtensionNotFoundError: () =>
-          channelService.appendToChannel(nls.localize('lightning_lwc_no_redhat_extension_found')),
-        ExtensionActivationError: () =>
-          channelService.appendToChannel(nls.localize('lightning_lwc_fail_redhat_extension')),
-        ParseError: error =>
-          channelService.appendToChannel(`${nls.localize('lightning_lwc_fail_redhat_extension')}: ${error.message}`),
-        UnknownException: () => channelService.appendToChannel(nls.localize('lightning_lwc_fail_redhat_extension'))
-      })
-    );
+    yield* Effect.tryPromise(async () => {
+      const xmlApi = redHatExtension.isActive ? redHatExtension.exports : await redHatExtension.activate();
+      xmlApi.addXMLCatalogs(catalogs);
+      xmlApi.addXMLFileAssociations(fileAssociations);
+    }).pipe(Effect.catch(() => channelService.appendToChannel(nls.localize('lightning_lwc_fail_redhat_extension'))));
   } else if (minor === 15) {
     yield* channelService.appendToChannel(nls.localize('lightning_lwc_redhat_extension_regression'));
   } else {

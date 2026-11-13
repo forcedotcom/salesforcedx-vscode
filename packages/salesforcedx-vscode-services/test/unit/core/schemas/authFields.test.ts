@@ -6,7 +6,7 @@
  */
 
 import * as Option from 'effect/Option';
-import { authFieldsFrom, authFieldsFromConnection, orgIdFromConnection } from '../../../../src/core/schemas/authFields';
+import { authFieldsFrom, authFieldsFromConnection, orgIdFromConnection } from '@salesforce/vscode-services/v2';
 
 const ORG_ID = '00D000000000001';
 

@@ -15,7 +15,7 @@ export const selectApexClasses = Effect.fn('apexTestSuite.selectApexClasses')(fu
   apexClassItems: readonly ApexTestQuickPickItem[]
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   return yield* Effect.promise(() =>
     vscode.window.showQuickPick<ApexTestQuickPickItem>(apexClassItems, { canPickMany: true })
   ).pipe(

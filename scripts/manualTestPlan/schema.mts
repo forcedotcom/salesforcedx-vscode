@@ -17,14 +17,14 @@ const ManualItem = Schema.Struct({
   kind: Schema.Literal('manual'),
   step: Schema.NonEmptyString
 });
-const Item = Schema.Union(WatchVideo, ManualItem);
+const Item = Schema.Union([WatchVideo, ManualItem]);
 export type Item = typeof Item.Type;
 const Nothing = Schema.Struct({ kind: Schema.Literal('nothing') });
 const Checklist = Schema.Struct({
   kind: Schema.Literal('checklist'),
   items: Schema.NonEmptyArray(Item)
 });
-export const Judgment = Schema.Union(Nothing, Checklist);
+export const Judgment = Schema.Union([Nothing, Checklist]);
 export type Judgment = typeof Judgment.Type;
 
 export class CursorRunFailed extends Schema.TaggedError<CursorRunFailed>()('CursorRunFailed', {

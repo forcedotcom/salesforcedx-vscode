@@ -12,9 +12,11 @@ import type { RequestError } from '@octokit/request-error';
 import { type Endpoints } from '@octokit/types';
 import { getErrorMessage } from '@salesforce/salesforcedx-utils';
 import * as Config from 'effect/Config';
+import * as Context from 'effect/Context';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import { isError, isNullable } from 'effect/Predicate';
+import * as Layer from 'effect/Layer';
+import { isError, isNull, isUndefined } from 'effect/Predicate';
 import * as Redacted from 'effect/Redacted';
 import * as Schema from 'effect/Schema';
 
@@ -36,7 +38,6 @@ export type CommitStatus =
 export type CheckRun =
   Endpoints['GET /repos/{owner}/{repo}/commits/{ref}/check-runs']['response']['data']['check_runs'][number];
 export type PullFile = Endpoints['GET /repos/{owner}/{repo}/pulls/{pull_number}/files']['response']['data'][number];
-
 export const WorkflowRunJob = Schema.Struct({
   id: Schema.Number,
   name: Schema.String,
@@ -107,8 +108,8 @@ export class GitHubRequestError extends Schema.TaggedError<GitHubRequestError>()
   retryAfterMillis: Schema.optional(Schema.Number)
 }) {}
 
-const decodeResponse = <A, I, R>(schema: Schema.Schema<A, I, R>, input: unknown, method: string, path: string) =>
-  Schema.decodeUnknown(schema)(input).pipe(
+const decodeResponse = <S extends Schema.Constraint>(schema: S, input: unknown, method: string, path: string) =>
+  Schema.decodeUnknownEffect(schema)(input).pipe(
     Effect.mapError(
       error =>
         new GitHubRequestError({
@@ -203,253 +204,263 @@ const run = <A>(method: string, path: string, request: () => Promise<A>) => {
   );
 };
 
-export class GitHub extends Effect.Service<GitHub>()('GitHub', {
-  accessors: true,
-  effect: Effect.gen(function* () {
-    const token = yield* Config.redacted('IDEE_GH_TOKEN').pipe(Config.orElse(() => Config.redacted('GITHUB_TOKEN')));
-    const octokit = new PaginatedOctokit({
-      auth: Redacted.value(token),
-      userAgent: 'salesforcedx-vscode',
-      request: {
-        timeout: requestTimeout,
-        headers: {
-          accept: 'application/vnd.github+json',
-          'x-github-api-version': '2022-11-28'
-        }
+const makeGitHub = Effect.gen(function* () {
+  const token = yield* Config.Redacted('IDEE_GH_TOKEN').pipe(Config.orElse(() => Config.Redacted('GITHUB_TOKEN')));
+  const octokit = new PaginatedOctokit({
+    auth: Redacted.value(token),
+    userAgent: 'salesforcedx-vscode',
+    request: {
+      timeout: requestTimeout,
+      headers: {
+        accept: 'application/vnd.github+json',
+        'x-github-api-version': '2022-11-28'
       }
-    });
+    }
+  });
 
-    const request = Effect.fn('GitHub.request')(function* (route: string, parameters?: Record<string, unknown>) {
-      const method = route.slice(0, route.indexOf(' '));
-      return yield* run(method, route, () => octokit.request(route, parameters ?? {}).then(response => response.data));
-    });
+  const request = Effect.fn('GitHub.request')(function* (route: string, parameters?: Record<string, unknown>) {
+    const method = route.slice(0, route.indexOf(' '));
+    return yield* run(method, route, () => octokit.request(route, parameters ?? {}).then(response => response.data));
+  });
 
-    const graphql = Effect.fn('GitHub.graphql')(function* (query: string, variables?: Record<string, unknown>) {
-      return yield* run('POST', '/graphql', () => octokit.graphql(query, variables ?? {}));
-    });
+  const graphql = Effect.fn('GitHub.graphql')(function* (query: string, variables?: Record<string, unknown>) {
+    return yield* run('POST', '/graphql', () => octokit.graphql(query, variables ?? {}));
+  });
 
-    const paginate = Effect.fn('GitHub.paginate')(function* <A>(route: string, parameters?: Record<string, unknown>) {
-      return yield* run(route.slice(0, route.indexOf(' ')), route, () =>
-        octokit.paginate<A>(route, { per_page: 100, ...parameters })
-      );
-    });
+  const paginate = Effect.fn('GitHub.paginate')(function* <A>(route: string, parameters?: Record<string, unknown>) {
+    return yield* run(route.slice(0, route.indexOf(' ')), route, () =>
+      octokit.paginate<A>(route, { per_page: 100, ...parameters })
+    );
+  });
 
-    const teamMembership = Effect.fn('GitHub.teamMembership')(function* (org: string, team: string, login: string) {
-      return yield* run('GET', `/orgs/${org}/teams/${team}/memberships/${login}`, () =>
-        octokit
-          .request('GET /orgs/{org}/teams/{team_slug}/memberships/{username}', {
-            org,
-            team_slug: team,
-            username: login
-          })
-          .then(response => response.data)
-      ).pipe(
-        Effect.map(membership => membership.state),
-        Effect.catchTag('GitHubRequestError', error =>
-          error.status === 404 ? Effect.succeed('none') : Effect.fail(error)
-        )
-      );
-    });
+  const teamMembership = Effect.fn('GitHub.teamMembership')(function* (org: string, team: string, login: string) {
+    return yield* run('GET', `/orgs/${org}/teams/${team}/memberships/${login}`, () =>
+      octokit
+        .request('GET /orgs/{org}/teams/{team_slug}/memberships/{username}', {
+          org,
+          team_slug: team,
+          username: login
+        })
+        .then(response => response.data)
+    ).pipe(
+      Effect.map(membership => membership.state),
+      Effect.catchTag('GitHubRequestError', error =>
+        error.status === 404 ? Effect.succeed('none') : Effect.fail(error)
+      )
+    );
+  });
 
-    const pullFiles = Effect.fn('GitHub.pullFiles')(function* (owner: string, repo: string, pullNumber: number) {
-      return yield* run('GET', `/repos/${owner}/${repo}/pulls/${pullNumber}/files`, () =>
-        octokit.paginate('GET /repos/{owner}/{repo}/pulls/{pull_number}/files', {
+  const pullFiles = Effect.fn('GitHub.pullFiles')(function* (owner: string, repo: string, pullNumber: number) {
+    return yield* run('GET', `/repos/${owner}/${repo}/pulls/${pullNumber}/files`, () =>
+      octokit.paginate('GET /repos/{owner}/{repo}/pulls/{pull_number}/files', {
+        owner,
+        repo,
+        pull_number: pullNumber,
+        per_page: 100
+      })
+    );
+  });
+
+  const pullReviews = Effect.fn('GitHub.pullReviews')(function* (owner: string, repo: string, pullNumber: number) {
+    return yield* run('GET', `/repos/${owner}/${repo}/pulls/${pullNumber}/reviews`, () =>
+      octokit.paginate('GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews', {
+        owner,
+        repo,
+        pull_number: pullNumber,
+        per_page: 100
+      })
+    );
+  });
+
+  const checkRuns = Effect.fn('GitHub.checkRuns')(function* (owner: string, repo: string, sha: string) {
+    return yield* run('GET', `/repos/${owner}/${repo}/commits/${sha}/check-runs`, () =>
+      octokit.paginate('GET /repos/{owner}/{repo}/commits/{ref}/check-runs', {
+        owner,
+        repo,
+        ref: sha,
+        per_page: 100
+      })
+    );
+  });
+
+  const workflowRunJobs = Effect.fn('GitHub.workflowRunJobs')(function* (repository: string, runId: string) {
+    const path = `/repos/${repository}/actions/runs/${runId}/jobs`;
+    return yield* run('GET', path, () =>
+      octokit.paginate<unknown>(`GET ${path}`, {
+        per_page: 100
+      })
+    ).pipe(Effect.flatMap(jobs => decodeResponse(Schema.Array(WorkflowRunJob), jobs, 'GET', path)));
+  });
+
+  const combinedStatus = Effect.fn('GitHub.combinedStatus')(function* (owner: string, repo: string, sha: string) {
+    return yield* run('GET', `/repos/${owner}/${repo}/commits/${sha}/status`, () =>
+      octokit
+        .request('GET /repos/{owner}/{repo}/commits/{ref}/status', { owner, repo, ref: sha, per_page: 100 })
+        .then(response => response.data)
+    );
+  });
+
+  /** Latest commit status, workflow run, and non-Actions check per identity on a head SHA. */
+  const headChecks = Effect.fn('GitHub.headChecks')(function* (owner: string, repo: string, sha: string) {
+    const [combined, workflows, runs] = yield* Effect.all(
+      [
+        combinedStatus(owner, repo, sha),
+        paginate<Endpoints['GET /repos/{owner}/{repo}/actions/runs']['response']['data']['workflow_runs'][number]>(
+          'GET /repos/{owner}/{repo}/actions/runs',
+          { owner, repo, head_sha: sha }
+        ),
+        paginate<
+          Endpoints['GET /repos/{owner}/{repo}/commits/{ref}/check-runs']['response']['data']['check_runs'][number]
+        >('GET /repos/{owner}/{repo}/commits/{ref}/check-runs', { owner, repo, ref: sha, filter: 'all' })
+      ],
+      { concurrency: 'unbounded' }
+    );
+    return latestChecks([
+      ...combined.statuses.map(status => ({
+        key: `status:${status.context}`,
+        id: status.id,
+        state: status.state,
+        conclusion: status.state
+      })),
+      ...workflows.map(workflow => ({
+        key: `workflow:${workflow.path}`,
+        id: workflow.id,
+        status: workflow.status ?? undefined,
+        conclusion: workflow.conclusion
+      })),
+      ...runs
+        .filter(checkRun => checkRun.app?.slug !== 'github-actions')
+        .map(checkRun => ({
+          key: `check:${checkRun.app?.id ?? `missing-app-${checkRun.id}`}:${checkRun.name}`,
+          id: checkRun.id,
+          status: isNull(checkRun.app?.id) || isUndefined(checkRun.app?.id) ? 'pending' : checkRun.status,
+          conclusion: checkRun.conclusion
+        }))
+    ]);
+  });
+
+  const createReview = Effect.fn('GitHub.createReview')(function* (
+    owner: string,
+    repo: string,
+    pullNumber: number,
+    headSha: string,
+    event: Endpoints['POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews']['parameters']['event'],
+    body: string
+  ) {
+    yield* run('POST', `/repos/${owner}/${repo}/pulls/${pullNumber}/reviews`, () =>
+      octokit
+        .request('POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews', {
           owner,
           repo,
           pull_number: pullNumber,
-          per_page: 100
+          commit_id: headSha,
+          event,
+          body
         })
-      );
-    });
+        .then(() => undefined)
+    );
+  });
 
-    const pullReviews = Effect.fn('GitHub.pullReviews')(function* (owner: string, repo: string, pullNumber: number) {
-      return yield* run('GET', `/repos/${owner}/${repo}/pulls/${pullNumber}/reviews`, () =>
-        octokit.paginate('GET /repos/{owner}/{repo}/pulls/{pull_number}/reviews', {
+  const dismissReview = Effect.fn('GitHub.dismissReview')(function* (
+    owner: string,
+    repo: string,
+    pullNumber: number,
+    reviewId: number,
+    message: string
+  ) {
+    yield* run('PUT', `/repos/${owner}/${repo}/pulls/${pullNumber}/reviews/${reviewId}/dismissals`, () =>
+      octokit
+        .request('PUT /repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/dismissals', {
           owner,
           repo,
           pull_number: pullNumber,
-          per_page: 100
+          review_id: reviewId,
+          message,
+          event: 'DISMISS'
         })
-      );
-    });
+        .then(() => undefined)
+    );
+  });
 
-    const checkRuns = Effect.fn('GitHub.checkRuns')(function* (owner: string, repo: string, sha: string) {
-      return yield* run('GET', `/repos/${owner}/${repo}/commits/${sha}/check-runs`, () =>
-        octokit.paginate('GET /repos/{owner}/{repo}/commits/{ref}/check-runs', {
+  const pullsForCommit = Effect.fn('GitHub.pullsForCommit')(function* (owner: string, repo: string, sha: string) {
+    return yield* run('GET', `/repos/${owner}/${repo}/commits/${sha}/pulls`, () =>
+      octokit.paginate('GET /repos/{owner}/{repo}/commits/{commit_sha}/pulls', {
+        owner,
+        repo,
+        commit_sha: sha,
+        per_page: 100
+      })
+    );
+  });
+
+  const pullBody = Effect.fn('GitHub.pullBody')(function* (owner: string, repo: string, pullNumber: number) {
+    return yield* run('GET', `/repos/${owner}/${repo}/pulls/${pullNumber}`, () =>
+      octokit
+        .request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
           owner,
           repo,
-          ref: sha,
-          per_page: 100
+          pull_number: pullNumber
         })
-      );
-    });
+        .then(response => response.data.body ?? '')
+    );
+  });
 
-    const workflowRunJobs = Effect.fn('GitHub.workflowRunJobs')(function* (repository: string, runId: string) {
-      const path = `/repos/${repository}/actions/runs/${runId}/jobs`;
-      return yield* run('GET', path, () =>
-        octokit.paginate<unknown>(`GET ${path}`, {
-          per_page: 100
-        })
-      ).pipe(Effect.flatMap(jobs => decodeResponse(Schema.Array(WorkflowRunJob), jobs, 'GET', path)));
-    });
-
-    const combinedStatus = Effect.fn('GitHub.combinedStatus')(function* (owner: string, repo: string, sha: string) {
-      return yield* run('GET', `/repos/${owner}/${repo}/commits/${sha}/status`, () =>
-        octokit
-          .request('GET /repos/{owner}/{repo}/commits/{ref}/status', { owner, repo, ref: sha, per_page: 100 })
-          .then(response => response.data)
-      );
-    });
-
-    /** Latest commit status, workflow run, and non-Actions check per identity on a head SHA. */
-    const headChecks = Effect.fn('GitHub.headChecks')(function* (owner: string, repo: string, sha: string) {
-      const [combined, workflows, runs] = yield* Effect.all(
-        [
-          combinedStatus(owner, repo, sha),
-          paginate<Endpoints['GET /repos/{owner}/{repo}/actions/runs']['response']['data']['workflow_runs'][number]>(
-            'GET /repos/{owner}/{repo}/actions/runs',
-            { owner, repo, head_sha: sha }
-          ),
-          paginate<
-            Endpoints['GET /repos/{owner}/{repo}/commits/{ref}/check-runs']['response']['data']['check_runs'][number]
-          >('GET /repos/{owner}/{repo}/commits/{ref}/check-runs', { owner, repo, ref: sha, filter: 'all' })
-        ],
-        { concurrency: 'unbounded' }
-      );
-      return latestChecks([
-        ...combined.statuses.map(status => ({
-          key: `status:${status.context}`,
-          id: status.id,
-          state: status.state,
-          conclusion: status.state
-        })),
-        ...workflows.map(workflow => ({
-          key: `workflow:${workflow.path}`,
-          id: workflow.id,
-          status: workflow.status ?? undefined,
-          conclusion: workflow.conclusion
-        })),
-        ...runs
-          .filter(checkRun => checkRun.app?.slug !== 'github-actions')
-          .map(checkRun => ({
-            key: `check:${checkRun.app?.id ?? `missing-app-${checkRun.id}`}:${checkRun.name}`,
-            id: checkRun.id,
-            status: isNullable(checkRun.app?.id) ? 'pending' : checkRun.status,
-            conclusion: checkRun.conclusion
-          }))
-      ]);
-    });
-
-    const createReview = Effect.fn('GitHub.createReview')(function* (
-      owner: string,
-      repo: string,
-      pullNumber: number,
-      headSha: string,
-      event: Endpoints['POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews']['parameters']['event'],
-      body: string
-    ) {
-      yield* run('POST', `/repos/${owner}/${repo}/pulls/${pullNumber}/reviews`, () =>
-        octokit
-          .request('POST /repos/{owner}/{repo}/pulls/{pull_number}/reviews', {
-            owner,
-            repo,
-            pull_number: pullNumber,
-            commit_id: headSha,
-            event,
-            body
-          })
-          .then(() => undefined)
-      );
-    });
-
-    const dismissReview = Effect.fn('GitHub.dismissReview')(function* (
-      owner: string,
-      repo: string,
-      pullNumber: number,
-      reviewId: number,
-      message: string
-    ) {
-      yield* run('PUT', `/repos/${owner}/${repo}/pulls/${pullNumber}/reviews/${reviewId}/dismissals`, () =>
-        octokit
-          .request('PUT /repos/{owner}/{repo}/pulls/{pull_number}/reviews/{review_id}/dismissals', {
-            owner,
-            repo,
-            pull_number: pullNumber,
-            review_id: reviewId,
-            message,
-            event: 'DISMISS'
-          })
-          .then(() => undefined)
-      );
-    });
-
-    const pullsForCommit = Effect.fn('GitHub.pullsForCommit')(function* (owner: string, repo: string, sha: string) {
-      return yield* run('GET', `/repos/${owner}/${repo}/commits/${sha}/pulls`, () =>
-        octokit.paginate('GET /repos/{owner}/{repo}/commits/{commit_sha}/pulls', {
+  const updatePullBody = Effect.fn('GitHub.updatePullBody')(function* (
+    owner: string,
+    repo: string,
+    pullNumber: number,
+    body: string
+  ) {
+    yield* run('PATCH', `/repos/${owner}/${repo}/pulls/${pullNumber}`, () =>
+      octokit
+        .request('PATCH /repos/{owner}/{repo}/pulls/{pull_number}', {
           owner,
           repo,
-          commit_sha: sha,
-          per_page: 100
+          pull_number: pullNumber,
+          body
         })
-      );
-    });
+        .then(() => undefined)
+    );
+  });
 
-    const pullBody = Effect.fn('GitHub.pullBody')(function* (owner: string, repo: string, pullNumber: number) {
-      return yield* run('GET', `/repos/${owner}/${repo}/pulls/${pullNumber}`, () =>
-        octokit
-          .request('GET /repos/{owner}/{repo}/pulls/{pull_number}', {
-            owner,
-            repo,
-            pull_number: pullNumber
+  const pullRequest = Effect.fn('GitHub.pullRequest')(function* (owner: string, repo: string, pullNumber: number) {
+    const data = yield* run('POST', '/graphql', () =>
+      octokit.graphql(pullQuery, { owner, name: repo, number: pullNumber })
+    );
+    const decoded = yield* Schema.decodeUnknownEffect(PullRequestQuery)(data).pipe(
+      Effect.mapError(
+        error =>
+          new GitHubRequestError({
+            message: error.message,
+            status: 200,
+            method: 'POST',
+            path: '/graphql'
           })
-          .then(response => response.data.body ?? '')
-      );
-    });
+      )
+    );
+    return decoded.repository?.pullRequest ?? undefined;
+  });
 
-    const updatePullBody = Effect.fn('GitHub.updatePullBody')(function* (
-      owner: string,
-      repo: string,
-      pullNumber: number,
-      body: string
-    ) {
-      yield* run('PATCH', `/repos/${owner}/${repo}/pulls/${pullNumber}`, () =>
-        octokit
-          .request('PATCH /repos/{owner}/{repo}/pulls/{pull_number}', {
-            owner,
-            repo,
-            pull_number: pullNumber,
-            body
-          })
-          .then(() => undefined)
-      );
-    });
+  return {
+    request,
+    graphql,
+    paginate,
+    teamMembership,
+    pullFiles,
+    pullReviews,
+    checkRuns,
+    workflowRunJobs,
+    combinedStatus,
+    headChecks,
+    createReview,
+    dismissReview,
+    pullsForCommit,
+    pullBody,
+    updatePullBody,
+    pullRequest
+  };
+});
 
-    const pullRequest = Effect.fn('GitHub.pullRequest')(function* (owner: string, repo: string, pullNumber: number) {
-      return yield* run('POST', '/graphql', () =>
-        octokit.graphql(pullQuery, { owner, name: repo, number: pullNumber })
-      ).pipe(
-        Effect.flatMap(data => decodeResponse(PullRequestQuery, data, 'POST', '/graphql')),
-        Effect.map(decoded => decoded.repository?.pullRequest ?? undefined)
-      );
-    });
+export class GitHub extends Context.Service<GitHub, Effect.Success<typeof makeGitHub>>()('GitHub') {}
 
-    return {
-      request,
-      graphql,
-      paginate,
-      teamMembership,
-      pullFiles,
-      pullReviews,
-      checkRuns,
-      workflowRunJobs,
-      combinedStatus,
-      headChecks,
-      createReview,
-      dismissReview,
-      pullsForCommit,
-      pullBody,
-      updatePullBody,
-      pullRequest
-    };
-  })
-}) {}
+export const GitHubLayer = Layer.effect(GitHub, makeGitHub);

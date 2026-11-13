@@ -55,7 +55,7 @@ type TelemetryData = { properties?: Record<string, string>; measures?: Record<st
 let capturedOnTelemetry: ((data: TelemetryData) => void) | undefined;
 vi.mock('../../src/apexLanguageClient', () => ({ ApexLanguageClient: vi.fn() }));
 
-import { SettingsService } from 'salesforcedx-vscode-services/src/vscode/settingsService';
+import { SettingsService } from '@salesforce/vscode-services/v2';
 import { ApexLanguageClient } from '../../src/apexLanguageClient';
 import { createLanguageServer } from '../../src/languageServer';
 import { nls } from '../../src/messages';
@@ -93,9 +93,7 @@ describe('languageServer client span', () => {
         ? {
             isActive: true,
             exports: {
-              services: {
-                SettingsService
-              }
+              v2: { services: { SettingsService } }
             }
           }
         : undefined

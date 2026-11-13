@@ -1,0 +1,10 @@
+{
+  "extends": "../../../../tsconfig.common.json",
+  "compilerOptions": {
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noEmit": true
+  },
+  "include": ["index.ts", "bundled.ts", "coreApi.ts", "../provider/index.ts"]
+}

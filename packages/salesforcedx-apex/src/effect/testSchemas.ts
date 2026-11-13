@@ -5,8 +5,19 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as Effect from 'effect/Effect';
+import { isNull } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import { ApexClassIdString, ApexLogIdString } from '../schemas/salesforceId';
+import * as SchemaGetter from 'effect/SchemaGetter';
+import { ApexClassIdString, ApexLogIdString } from './schema/salesforceId.js';
+
+const nullableNumberWithDefaultZero = Schema.NullOr(Schema.Number).pipe(
+  Schema.decodeTo(Schema.Number, {
+    decode: SchemaGetter.transform(value => (isNull(value) ? 0 : value)),
+    encode: SchemaGetter.transform(value => value)
+  }),
+  Schema.withDecodingDefaultType(Effect.succeed(0))
+);
 
 const SyncTestMethodFields = {
   id: ApexClassIdString,
@@ -14,13 +25,19 @@ const SyncTestMethodFields = {
   name: Schema.String,
   namespace: Schema.NullOr(Schema.String),
   seeAllData: Schema.Boolean,
-  time: Schema.optionalWith(Schema.Number, { nullable: true, default: () => 0 })
+  time: nullableNumberWithDefaultZero
 };
 const SyncTestSuccessSchema = Schema.Struct(SyncTestMethodFields);
+const OptionalFailureTextSchema = Schema.NullOr(Schema.String).pipe(
+  Schema.decodeTo(Schema.UndefinedOr(Schema.String), {
+    decode: SchemaGetter.transform(value => (isNull(value) ? undefined : value)),
+    encode: SchemaGetter.transform(value => value ?? null)
+  })
+);
 const SyncTestFailureSchema = Schema.Struct({
   ...SyncTestMethodFields,
-  message: Schema.optionalWith(Schema.String, { nullable: true }),
-  stackTrace: Schema.optionalWith(Schema.String, { nullable: true }),
+  message: Schema.optional(OptionalFailureTextSchema),
+  stackTrace: Schema.optional(OptionalFailureTextSchema),
   type: Schema.String
 });
 
@@ -31,5 +48,5 @@ export const SyncTestResultSchema = Schema.Struct({
   numFailures: Schema.Number,
   numTestsRun: Schema.Number,
   successes: Schema.Array(SyncTestSuccessSchema),
-  totalTime: Schema.optionalWith(Schema.Number, { nullable: true, default: () => 0 })
-}).annotations({ identifier: 'SyncTestResult' });
+  totalTime: nullableNumberWithDefaultZero
+}).annotate({ identifier: 'SyncTestResult' });

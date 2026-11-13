@@ -7,12 +7,10 @@
 
 import { code2ProtocolConverter, ExtensionProviderService, getExtensionScope } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
-import * as ExecutionStrategy from 'effect/ExecutionStrategy';
 import * as Exit from 'effect/Exit';
 import * as Option from 'effect/Option';
-import { isNotNullable, isNotUndefined, isNumber } from 'effect/Predicate';
+import { isNotNullish, isNotUndefined, isNumber } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
-import * as Runtime from 'effect/Runtime';
 import * as Schema from 'effect/Schema';
 import * as Scope from 'effect/Scope';
 import type * as Tracer from 'effect/Tracer';
@@ -73,26 +71,22 @@ const createServer = Effect.fn('apex.lsp.createServer')(
       Effect.mapError(cause => languageClientSetupError('requirements', cause))
     );
 
-    const { enableSemanticErrors, enableCompletionStatistics } =
-      yield* (yield* ExtensionProviderService).getServicesApi.pipe(
-        Effect.flatMap(api =>
-          Effect.flatMap(api.services.SettingsService, settings =>
-            Effect.all({
-              enableSemanticErrors: settings.getValueOrElse(APEX_SETTINGS_SECTION, 'enable-semantic-errors', false),
-              enableCompletionStatistics: settings.getValueOrElse(
-                APEX_SETTINGS_SECTION,
-                'advanced.enable-completion-statistics',
-                false
-              )
-            })
-          )
-        ),
-        Effect.mapError(cause => languageClientSetupError('configuration', cause))
-      );
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const settings = yield* api.v2.services.SettingsService;
+    const { enableSemanticErrors, enableCompletionStatistics } = yield* Effect.all({
+      enableSemanticErrors: settings.getValueOrElse(APEX_SETTINGS_SECTION, 'enable-semantic-errors', false),
+      enableCompletionStatistics: settings.getValueOrElse(
+        APEX_SETTINGS_SECTION,
+        'advanced.enable-completion-statistics',
+        false
+      )
+    }).pipe(Effect.mapError(cause => languageClientSetupError('configuration', cause)));
 
-    const { languageServerDir } = yield* Schema.decodeUnknown(Schema.Struct({ languageServerDir: Schema.String }))(
-      extensionContext.extension.packageJSON
-    ).pipe(Effect.mapError(cause => languageClientSetupError('configuration', cause)));
+    const { languageServerDir } = yield* Schema.decodeUnknownEffect(
+      Schema.Struct({ languageServerDir: Schema.String })
+    )(extensionContext.extension.packageJSON).pipe(
+      Effect.mapError(cause => languageClientSetupError('configuration', cause))
+    );
 
     return yield* Effect.try({
       try: (): Executable => {
@@ -140,7 +134,7 @@ const protocol2CodeConverter = (value: string) => URI.parse(value);
 // One long-lived ROOT span per client lifetime. `apexLSPLog` is high-volume; per ADR-0002 we write
 // attrs onto this single span, not N top-level spans. Held in a Ref<Option> (Effect primitive for
 // shared mutable state) with its child scope so a restart can flush the prior span before the next.
-const clientSpanRef = Option.none<{ scope: Scope.CloseableScope; span: Tracer.Span }>().pipe(Ref.make, Effect.runSync);
+const clientSpanRef = Option.none<{ scope: Scope.Closeable; span: Tracer.Span }>().pipe(Ref.make, Effect.runSync);
 
 // Runs on first activation AND every restart: close the prior child scope (flushes prior span) before
 // forking the next — exactly ONE live client span (ADR-0002). Forked from the extension scope so
@@ -151,8 +145,8 @@ const rotateClientSpan = Effect.fn('apex.lsp.client.rotate')(function* () {
     onNone: () => Effect.void,
     onSome: ({ scope }) => Scope.close(scope, Exit.void)
   });
-  const child = yield* Scope.fork(yield* getExtensionScope(), ExecutionStrategy.sequential);
-  const span = yield* Effect.makeSpanScoped('apex.lsp.client', { root: true }).pipe(Scope.extend(child));
+  const child = yield* Scope.fork(yield* getExtensionScope(), 'sequential');
+  const span = yield* Scope.provide(child)(Effect.makeSpanScoped('apex.lsp.client', { root: true }));
   yield* Ref.set(clientSpanRef, Option.some({ scope: child, span }));
 });
 
@@ -179,12 +173,11 @@ export const createLanguageServer = Effect.fn('apex.lsp.createLanguageServer')(f
   });
 
   yield* rotateClientSpan();
-  const runtime = yield* Effect.runtime();
   yield* Effect.try({
     try: () => {
       client.onTelemetry((data: { properties?: Record<string, string>; measures?: Record<string, number> }) => {
         if (isApexLspTelemetryAllowed(data.properties)) {
-          Runtime.runFork(runtime)(annotateClientSpan({ ...data.properties, ...data.measures }));
+          getRuntime().runFork(annotateClientSpan({ ...data.properties, ...data.measures }));
         }
       });
     },
@@ -263,7 +256,10 @@ const buildClientOptions = Effect.fn('apex.lsp.buildClientOptions')(function* (
 const getNamespaces = Effect.fn('apex.provideCodeLenses.getNamespaces')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const [conn, project] = yield* Effect.all(
-    [api.services.ConnectionService.getConnection(), api.services.ProjectService.getSfProject()],
+    [
+      api.v2.services.ConnectionService.use(service => service.getConnection()),
+      api.v2.services.ProjectService.use(service => service.getSfProject())
+    ],
     { concurrency: 'unbounded' }
   );
   return {
@@ -282,7 +278,7 @@ const provideCodeLenses = async (
     getRuntime().runPromise(getNamespaces()),
     next(document, token)
   ]);
-  const rewritten = isNotNullable(lenses)
+  const rewritten = isNotNullish(lenses)
     ? await Effect.forEach(lenses, rewriteNamespaceLens(nsFromOrg)(nsFromProject)).pipe(getRuntime().runPromise)
     : undefined;
   return rewritten === undefined ? undefined : dropLsAnonymousApexExecuteLenses(rewritten);

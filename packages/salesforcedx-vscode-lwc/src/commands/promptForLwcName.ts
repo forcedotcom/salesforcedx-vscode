@@ -8,16 +8,11 @@
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import { hasFileNameCollision } from '@salesforce/salesforcedx-lightning-lsp-common';
 import * as Effect from 'effect/Effect';
-import * as Either from 'effect/Either';
-import * as ParseResult from 'effect/ParseResult';
 import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
 import { nls } from '../messages';
 
-const LwcComponentNameSchema = Schema.Trim.pipe(
-  Schema.minLength(1, { message: () => nls.localize('lwc_component_name_empty_error') }),
-  Schema.pattern(/^[a-z][A-Za-z0-9_]*$/, { message: () => nls.localize('lwc_component_name_format_error') })
-);
+const LwcComponentNameSchema = Schema.String.check(Schema.isPattern(/^[a-z][A-Za-z0-9_]*$/));
 
 export type PromptForLwcNameOptions = {
   /** Project-wide LWC + Aura component names (lowercase) for cross-bundle collision detection. */
@@ -28,23 +23,20 @@ export type PromptForLwcNameOptions = {
   readonly bundleFileNames?: readonly string[];
 };
 
-export const validateLwcName = (value: string, opts: PromptForLwcNameOptions) =>
-  Schema.decodeUnknownEither(LwcComponentNameSchema)(value).pipe(
-    Either.match({
-      onLeft: ParseResult.TreeFormatter.formatErrorSync,
-      onRight: trimmed => {
-        if (opts.existingNames.has(trimmed.toLowerCase())) return nls.localize('component_input_dup_error');
-        if (opts.bundleFileNames && hasFileNameCollision(opts.bundleFileNames, trimmed)) {
-          return nls.localize('rename_component_input_dup_file_name_error');
-        }
-        return undefined;
-      }
-    })
-  );
+export const validateLwcName = (value: string, opts: PromptForLwcNameOptions): string | undefined => {
+  const trimmed = value.trim();
+  if (!trimmed) return nls.localize('lwc_component_name_empty_error');
+  if (!Schema.is(LwcComponentNameSchema)(trimmed)) return nls.localize('lwc_component_name_format_error');
+  if (opts.existingNames.has(trimmed.toLowerCase())) return nls.localize('component_input_dup_error');
+  if (opts.bundleFileNames && hasFileNameCollision(opts.bundleFileNames, trimmed)) {
+    return nls.localize('rename_component_input_dup_file_name_error');
+  }
+  return undefined;
+};
 
 export const promptForLwcName = Effect.fn('promptForLwcName')(function* (opts: PromptForLwcNameOptions) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   return yield* Effect.promise(() =>
     vscode.window.showInputBox({
       value: opts.initialValue,

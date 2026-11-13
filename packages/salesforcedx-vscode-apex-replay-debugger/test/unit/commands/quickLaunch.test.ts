@@ -6,9 +6,6 @@
  */
 
 import * as Effect from 'effect/Effect';
-import * as Exit from 'effect/Exit';
-import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
-import { PromptService } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
 import type { Mock as VitestMock } from 'vitest';
 import * as vscode from 'vscode';
 
@@ -21,38 +18,10 @@ vi.mock('vscode', async () => ({
 }));
 
 import { launchFromLogFile } from '../../../src/commands/launchFromLogFile';
-import {
-  replayInOrder,
-  reportDebugTestFailure,
-  showDebugTestOutcome,
-  toDebugTargets
-} from '../../../src/commands/quickLaunch';
+import { replayInOrder, showDebugTestOutcome, toDebugTargets } from '../../../src/commands/quickLaunch';
 
 const showSuccessNotification = vi.fn((..._a: unknown[]) => Effect.void);
 const notificationMode = { showSuccessNotification } as unknown as Parameters<typeof showDebugTestOutcome>[0];
-
-describe('reportDebugTestFailure', () => {
-  const runCommand = (work: Effect.Effect<never, Error>) =>
-    work.pipe(Effect.catchAllCause(reportDebugTestFailure), Effect.runPromiseExit);
-
-  it('preserves interruption without showing an error', async () => {
-    const exit = await runCommand(Effect.interrupt);
-    expect(Exit.isInterrupted(exit)).toBe(true);
-    expect(vscode.window.showErrorMessage).not.toHaveBeenCalled();
-  });
-
-  it('still shows unexpected defects', async () => {
-    const exit = await runCommand(Effect.die(new Error('debug boom')));
-    expect(exit).toEqual(Exit.void);
-    expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(expect.stringContaining('debug boom'));
-  });
-
-  it('still shows typed command failures', async () => {
-    const exit = await runCommand(Effect.fail(new Error('debug failed')));
-    expect(exit).toEqual(Exit.void);
-    expect(vscode.window.showErrorMessage).toHaveBeenCalledWith(expect.stringContaining('debug failed'));
-  });
-});
 
 describe('showDebugTestOutcome', () => {
   beforeEach(() => {
@@ -91,15 +60,7 @@ const makeEvent = <T>() => {
 
 const flush = () => new Promise(resolve => setImmediate(resolve));
 
-const runReplay = (logs: Parameters<typeof replayInOrder>[0]) =>
-  Effect.runPromise(
-    replayInOrder(logs).pipe(
-      Effect.provideService(ExtensionProviderService, {
-        getServicesApi: Effect.succeed({ services: { PromptService } } as never)
-      }),
-      Effect.provide(PromptService.Default)
-    )
-  );
+const runReplay = (logs: Parameters<typeof replayInOrder>[0]) => Effect.runPromise(replayInOrder(logs));
 
 describe('replayInOrder', () => {
   const launch = launchFromLogFile as VitestMock;

@@ -48,8 +48,8 @@ const getRawExtensionExports = (extId: string) =>
     )
   );
 
-const decodeExtensionExports = <S extends Schema.Schema.AnyNoContext>(schema: S, exports: unknown) =>
-  Schema.decodeUnknown(Schema.asSchema(schema), { onExcessProperty: 'ignore' })(exports);
+const decodeExtensionExports = <S extends Schema.ConstraintDecoder<unknown, never>>(schema: S, exports: unknown) =>
+  Schema.decodeUnknownEffect(schema, { onExcessProperty: 'ignore' })(exports);
 
 /**
  * Find an installed extension, activate it if needed, and decode its exports
@@ -74,7 +74,7 @@ const decodeExtensionExports = <S extends Schema.Schema.AnyNoContext>(schema: S,
  *
  * const breakpoints = yield* Effect.promise(() => api.getLineBreakpointInfo());
  */
-export const getExtensionExports = <S extends Schema.Schema.AnyNoContext = typeof Schema.Unknown>({
+export const getExtensionExports = <S extends Schema.ConstraintDecoder<unknown, never> = typeof Schema.Unknown>({
   extId,
   // With no schema, the default result is unknown; S is inferred from a supplied schema.
   // eslint-disable-next-line @typescript-eslint/consistent-type-assertions

@@ -5,9 +5,9 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import * as NodeContext from '@effect/platform-node/NodeContext';
-import { GitHub } from '@salesforce/effect-octokit';
-import { ConfigProvider, Effect } from 'effect';
+import * as NodeServices from '@effect/platform-node/NodeServices';
+import { GitHubLayer } from '@salesforce/effect-octokit';
+import { ConfigProvider, Effect, Layer } from 'effect';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
@@ -28,51 +28,47 @@ const repoRoot = join(import.meta.dirname, '..', '..', '..', '..');
 const eventPath = join(mkdtempSync(join(tmpdir(), 'manual-test-plan-event-')), 'event.json');
 writeFileSync(eventPath, JSON.stringify({ pull_request: { number: 12 } }));
 
-const config = ConfigProvider.fromMap(
-  new Map(
-    Object.entries({
-      CI: 'true',
-      IDEE_GH_TOKEN: 'test-token',
-      GITHUB_ACTION: '__run',
-      GITHUB_ACTIONS: 'true',
-      GITHUB_ACTOR: 'octocat',
-      GITHUB_ACTOR_ID: '1',
-      GITHUB_API_URL: 'https://api.github.com',
-      GITHUB_ARTIFACTS: '/tmp/artifacts',
-      GITHUB_ARTIFACTS_LIST: '/tmp/artifacts-list',
-      GITHUB_BASE_REF: 'develop',
-      GITHUB_ENV: '/tmp/env',
-      GITHUB_EVENT_NAME: 'pull_request',
-      GITHUB_EVENT_PATH: eventPath,
-      GITHUB_GRAPHQL_URL: 'https://api.github.com/graphql',
-      GITHUB_JOB: 'body',
-      GITHUB_OUTPUT: '/tmp/output',
-      GITHUB_PATH: '/tmp/path',
-      GITHUB_REPOSITORY: 'forcedotcom/salesforcedx-vscode',
-      GITHUB_REPOSITORY_ID: '2',
-      GITHUB_REPOSITORY_OWNER: 'forcedotcom',
-      GITHUB_REPOSITORY_OWNER_ID: '3',
-      GITHUB_RETENTION_DAYS: '90',
-      GITHUB_RUN_ATTEMPT: '1',
-      GITHUB_RUN_ID: '1658821493',
-      GITHUB_RUN_NUMBER: '4',
-      GITHUB_SERVER_URL: 'https://github.com',
-      GITHUB_SHA: 'abc',
-      GITHUB_STEP_SUMMARY: '/tmp/summary',
-      GITHUB_TRIGGERING_ACTOR: 'octocat',
-      GITHUB_WORKFLOW: 'Manual test plan',
-      GITHUB_WORKFLOW_REF: 'forcedotcom/salesforcedx-vscode/.github/workflows/manual-test-plan.yml@refs/heads/develop',
-      GITHUB_WORKFLOW_SHA: 'def',
-      GITHUB_WORKSPACE: '/tmp/workspace',
-      RUNNER_ARCH: 'ARM64',
-      RUNNER_ENVIRONMENT: 'github-hosted',
-      RUNNER_NAME: 'Hosted Agent',
-      RUNNER_OS: 'Linux',
-      RUNNER_TEMP: '/tmp',
-      RUNNER_TOOL_CACHE: '/tmp/tool-cache'
-    })
-  )
-);
+const config = ConfigProvider.fromEnvRecord({
+  CI: 'true',
+  IDEE_GH_TOKEN: 'test-token',
+  GITHUB_ACTION: '__run',
+  GITHUB_ACTIONS: 'true',
+  GITHUB_ACTOR: 'octocat',
+  GITHUB_ACTOR_ID: '1',
+  GITHUB_API_URL: 'https://api.github.com',
+  GITHUB_ARTIFACTS: '/tmp/artifacts',
+  GITHUB_ARTIFACTS_LIST: '/tmp/artifacts-list',
+  GITHUB_BASE_REF: 'develop',
+  GITHUB_ENV: '/tmp/env',
+  GITHUB_EVENT_NAME: 'pull_request',
+  GITHUB_EVENT_PATH: eventPath,
+  GITHUB_GRAPHQL_URL: 'https://api.github.com/graphql',
+  GITHUB_JOB: 'body',
+  GITHUB_OUTPUT: '/tmp/output',
+  GITHUB_PATH: '/tmp/path',
+  GITHUB_REPOSITORY: 'forcedotcom/salesforcedx-vscode',
+  GITHUB_REPOSITORY_ID: '2',
+  GITHUB_REPOSITORY_OWNER: 'forcedotcom',
+  GITHUB_REPOSITORY_OWNER_ID: '3',
+  GITHUB_RETENTION_DAYS: '90',
+  GITHUB_RUN_ATTEMPT: '1',
+  GITHUB_RUN_ID: '1658821493',
+  GITHUB_RUN_NUMBER: '4',
+  GITHUB_SERVER_URL: 'https://github.com',
+  GITHUB_SHA: 'abc',
+  GITHUB_STEP_SUMMARY: '/tmp/summary',
+  GITHUB_TRIGGERING_ACTOR: 'octocat',
+  GITHUB_WORKFLOW: 'Manual test plan',
+  GITHUB_WORKFLOW_REF: 'forcedotcom/salesforcedx-vscode/.github/workflows/manual-test-plan.yml@refs/heads/develop',
+  GITHUB_WORKFLOW_SHA: 'def',
+  GITHUB_WORKSPACE: '/tmp/workspace',
+  RUNNER_ARCH: 'ARM64',
+  RUNNER_ENVIRONMENT: 'github-hosted',
+  RUNNER_NAME: 'Hosted Agent',
+  RUNNER_OS: 'Linux',
+  RUNNER_TEMP: '/tmp',
+  RUNNER_TOOL_CACHE: '/tmp/tool-cache'
+});
 
 const gitEnv: NodeJS.ProcessEnv = {
   ...process.env,
@@ -122,7 +118,10 @@ const run = (
         state.body = body;
         state.writes.push(body);
       })
-  }).pipe(Effect.provide([NodeContext.layer, GitHub.Default]), Effect.withConfigProvider(config), Effect.runPromise);
+  }).pipe(
+    Effect.provide([NodeServices.layer, GitHubLayer.pipe(Layer.provideMerge(ConfigProvider.layer(config)))]),
+    Effect.runPromise
+  );
 
 const replies =
   (lines: readonly string[]) =>
@@ -173,12 +172,12 @@ test('a real core spec and job pass; a missing job does not', async () => {
   const ok = await judgmentError(repoRoot, {
     kind: 'checklist',
     items: [{ kind: 'watch-video', spec, workflow: 'Core E2E (Playwright)', job: 'e2e-desktop' }]
-  }).pipe(Effect.provide(NodeContext.layer), Effect.runPromise);
+  }).pipe(Effect.provide(NodeServices.layer), Effect.runPromise);
   assert.equal(ok, undefined);
   const missing = await judgmentError(repoRoot, {
     kind: 'checklist',
     items: [{ kind: 'watch-video', spec, workflow: 'Core E2E (Playwright)', job: 'e2e-web' }]
-  }).pipe(Effect.provide(NodeContext.layer), Effect.runPromise);
+  }).pipe(Effect.provide(NodeServices.layer), Effect.runPromise);
   assert.equal(missing, 'job e2e-web is not in Core E2E (Playwright)');
 });
 

@@ -4,11 +4,10 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService, type SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, type SalesforceVSCodeServicesApiV2 } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Fiber from 'effect/Fiber';
-import type { OrgMetadataCatalogEntry } from 'salesforcedx-vscode-services';
-import { OrgMetadataCatalog } from 'salesforcedx-vscode-services/src/orgCatalog/orgMetadataCatalog';
+import { OrgMetadataCatalog, type OrgMetadataCatalogEntry } from '@salesforce/vscode-services/v2';
 import * as vscode from 'vscode';
 import {
   MetadataTypeTreeProvider,
@@ -103,10 +102,10 @@ describe('org request status', () => {
   it('shows and disposes one aggregate status item for overlapping org requests', async () => {
     const provider = new MetadataTypeTreeProvider();
     const first = await Effect.runPromise(
-      provider.trackOrgRequest('Discovering org metadata', Effect.never).pipe(Effect.forkDaemon)
+      provider.trackOrgRequest('Discovering org metadata', Effect.never).pipe(Effect.forkDetach)
     );
     const second = await Effect.runPromise(
-      provider.trackOrgRequest('Discovering org metadata', Effect.never).pipe(Effect.forkDaemon)
+      provider.trackOrgRequest('Discovering org metadata', Effect.never).pipe(Effect.forkDetach)
     );
 
     await Promise.resolve();
@@ -313,13 +312,13 @@ describe('loaded-results global search', () => {
         ] as OrgMetadataCatalogEntry[]);
       return Effect.succeed([] as OrgMetadataCatalogEntry[]);
     });
-    const api = { services: { OrgMetadataCatalog } } as unknown as SalesforceVSCodeServicesApi;
-    const service = { getServicesApi: Effect.succeed(api) };
+    const api = { v2: { services: { OrgMetadataCatalog } } } as unknown as SalesforceVSCodeServicesApiV2;
+    const service = { getServicesApi: Effect.succeed(api) } as unknown as ExtensionProviderService['Service'];
 
     const result = await Effect.runPromise(
       filterTypesWithMatchingComponents([typeNode('CustomObject'), typeNode('ApexClass')], provider).pipe(
         Effect.provideService(ExtensionProviderService, service),
-        Effect.provideService(OrgMetadataCatalog, { getChildren } as unknown as OrgMetadataCatalog)
+        Effect.provideService(OrgMetadataCatalog, { getChildren } as unknown as OrgMetadataCatalog['Service'])
       )
     );
 
@@ -366,13 +365,13 @@ describe('component filtering failures', () => {
             } as OrgMetadataCatalogEntry
           ])
     );
-    const api = { services: { OrgMetadataCatalog } } as unknown as SalesforceVSCodeServicesApi;
-    const service = { getServicesApi: Effect.succeed(api) };
+    const api = { v2: { services: { OrgMetadataCatalog } } } as unknown as SalesforceVSCodeServicesApiV2;
+    const service = { getServicesApi: Effect.succeed(api) } as unknown as ExtensionProviderService['Service'];
 
     const result = await Effect.runPromise(
       filterTypesWithMatchingComponents([apexClass, contentWorkspace], provider).pipe(
         Effect.provideService(ExtensionProviderService, service),
-        Effect.provideService(OrgMetadataCatalog, { getChildren } as unknown as OrgMetadataCatalog)
+        Effect.provideService(OrgMetadataCatalog, { getChildren } as unknown as OrgMetadataCatalog['Service'])
       )
     );
 

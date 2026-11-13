@@ -35,13 +35,14 @@ import { checkForSoonToBeExpiredOrgs } from './util/orgUtil';
 
 /** Initialize org picker and org status bar */
 const initializeStatusBarItems = Effect.gen(function* () {
-  yield* Effect.forkIn(createOrgPicker(), yield* getExtensionScope());
+  const extensionScope = yield* getExtensionScope();
+  yield* Effect.forkIn(createOrgPicker(), extensionScope);
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  yield* api.services.registerCommandWithRuntime(getOrgRuntime())('sf.set.default.org', setDefaultOrg);
+  yield* api.v2.services.registerCommandWithRuntime(getOrgRuntime())('sf.set.default.org', setDefaultOrg);
 
   // alert user about orgs that are expiring soon
-  yield* Effect.forkDaemon(checkForSoonToBeExpiredOrgs());
+  yield* Effect.forkIn(checkForSoonToBeExpiredOrgs(), extensionScope);
 });
 
 export const activate = (extensionContext: vscode.ExtensionContext): Promise<void> => {
@@ -49,13 +50,12 @@ export const activate = (extensionContext: vscode.ExtensionContext): Promise<voi
 
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(extensionContext));
-  return activation().pipe(Scope.extend(extensionScope), getOrgRuntime().runPromise);
+  return getOrgRuntime().runPromise(Scope.provide(extensionScope)(activation()));
 };
 
 const activation = Effect.fn('activation:salesforcedx-vscode-org')(function* () {
-  const registerCommand = (yield* (yield* ExtensionProviderService).getServicesApi).services.registerCommandWithRuntime(
-    getOrgRuntime()
-  );
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const registerCommand = api.v2.services.registerCommandWithRuntime(getOrgRuntime());
   yield* registerCommand('sf.alias.list', aliasListCommand);
   yield* registerCommand('sf.org.create', orgCreateCommand);
   yield* registerCommand('sf.org.delete.default', orgDeleteDefaultCommand);

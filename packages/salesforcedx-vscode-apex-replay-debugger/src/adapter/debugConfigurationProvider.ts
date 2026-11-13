@@ -25,12 +25,9 @@ import { getRuntime } from '../services/runtime';
 const LOG_FILE_PROMPT = '${command:AskForLogFileName}';
 
 // Preserve the manager instance because getStatus reads its state through `this`.
-const languageClientManagerSchema: Schema.Schema<Pick<ApexVSCodeApi['languageClientManager'], 'getStatus'>> =
-  Schema.declare(
-    Schema.is(Schema.Struct({ getStatus: CallableSchema<ApexVSCodeApi['languageClientManager']['getStatus']>() }), {
-      exact: false
-    })
-  );
+const languageClientManagerSchema = Schema.Struct({
+  getStatus: CallableSchema<ApexVSCodeApi['languageClientManager']['getStatus']>()
+}).pipe(Schema.is, Schema.declare<Pick<ApexVSCodeApi['languageClientManager'], 'getStatus'>>);
 
 type SelectedLogFile = {
   readonly contents: string;
@@ -49,7 +46,7 @@ const selectLogFile = Effect.fn('ApexReplayDebugger.selectLogFile')(function* (
   if ((config.logFile ?? LOG_FILE_PROMPT) !== LOG_FILE_PROMPT) return undefined;
 
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   const defaultUri = yield* getDialogStartingPath(extensionContext);
   const fileUris = yield* Effect.promise(() =>
     vscode.window.showOpenDialog({
@@ -62,7 +59,7 @@ const selectLogFile = Effect.fn('ApexReplayDebugger.selectLogFile')(function* (
 
   const filePath = fileUris[0].fsPath;
   yield* Effect.sync(() => updateLastOpened(extensionContext, fileUris[0]));
-  const contents = yield* api.services.FsService.readFile(filePath).pipe(
+  const contents = yield* api.v2.services.FsService.use(service => service.readFile(filePath)).pipe(
     Effect.tapError(error =>
       Effect.logError('Failed to read selected log file', { filePath: error.filePath, cause: error.message })
     )
@@ -107,7 +104,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
       .runPromise(
         selectLogFile(config, this.extensionContext).pipe(
           Effect.flatMap(selectedLogFile => Effect.promise(() => this.asyncDebugConfig(config, selectedLogFile))),
-          Effect.map(Option.fromNullable),
+          Effect.map(Option.fromNullishOr),
           Effect.catchTag('UserCancellationError', () => Effect.succeed(Option.none<vscode.DebugConfiguration>())),
           Effect.map(Option.getOrUndefined)
         )
@@ -207,7 +204,7 @@ export class DebugConfigurationProvider implements vscode.DebugConfigurationProv
  */
 const readLogFile = Effect.fn('ApexReplayDebugger.readLogFile')(function* (filePath: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* api.services.FsService.readFile(filePath);
+  return yield* api.v2.services.FsService.use(service => service.readFile(filePath));
 });
 
 /**
@@ -230,7 +227,7 @@ const resolveHeapDumpResults = (logFileContents: string): Promise<HeapDumpResult
       Effect.succeed<HeapDumpResult[]>([{ heapDumpId: '', error: errorToString(error) }])
     ),
     // Everything else (org/connection resolution failures) keeps the localized org-info label.
-    Effect.catchAll(orgInfoError),
+    Effect.catch(orgInfoError),
     getRuntime().runPromise
   );
 };
@@ -270,8 +267,8 @@ const writeAnonApexFile = Effect.fn('ApexReplayDebugger.writeAnonApexFile')(func
   contents: string
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const uri = yield* api.services.FsService.toUri(filePath);
-  yield* api.services.FsService.safeWriteFile(uri, contents);
+  const uri = yield* api.v2.services.FsService.use(service => service.toUri(filePath));
+  yield* api.v2.services.FsService.use(service => service.safeWriteFile(uri, contents));
   return uri.fsPath;
 });
 
@@ -284,7 +281,9 @@ const findMatchingSourceFile = async (source: string): Promise<SourceMatch | und
       const api = yield* (yield* ExtensionProviderService).getServicesApi;
       const sourceLines = source.trimEnd().split(/\r?\n/);
       for (const candidate of candidates) {
-        const result = yield* Effect.option(api.services.FsService.readFile(candidate.fsPath));
+        const result = yield* Effect.option(
+          api.v2.services.FsService.use(service => service.readFile(candidate.fsPath))
+        );
         if (Option.isNone(result)) {
           continue;
         }

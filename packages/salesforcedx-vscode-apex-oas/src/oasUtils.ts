@@ -8,6 +8,8 @@
 
 import { ExtensionProviderService, getJsonCandidate, identifyJsonTypeInString } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Exit from 'effect/Exit';
+import type * as Layer from 'effect/Layer';
 import { isNotUndefined } from 'effect/Predicate';
 import * as path from 'node:path';
 import type { OpenAPIV3 } from 'openapi-types';
@@ -18,7 +20,36 @@ import { parse as yamlParse } from 'yaml';
 import { OAS_EXTENSION_ID } from './constants';
 import { ApexExtensionUnavailable, InvalidJsonDocument } from './errors';
 import { oasDiagnosticCollection, type ProcessorInputOutput } from './oas/documentProcessorPipeline/processorStep';
+import { type buildAllServicesLayer, getApexOasRuntime } from './services/extensionProvider';
 
+/** Reports a step message into an active progress notification. */
+export type ProgressReporter = (message: string) => Effect.Effect<void>;
+
+/**
+ * Runs `body` inside a non-cancellable VS Code progress notification, giving it a `report` callback to update
+ * the notification message per step. Without this, long operations (e.g. the REST LLM loop) show no sign of
+ * life between the folder prompt and the final toast. The notification closes when the Effect settles.
+ * @param title - The notification title shown for the whole operation.
+ * @param body - Receives `report` and returns the Effect to run; its message updates the notification.
+ * @param location - Where to show the progress (toast vs status bar); defaults to a toast notification.
+ */
+type ApexOasServices = Layer.Success<ReturnType<typeof buildAllServicesLayer>>;
+
+export const withSteppedProgress = <A, E, R extends ApexOasServices>(
+  title: string,
+  body: (report: ProgressReporter) => Effect.Effect<A, E, R>,
+  location: vscode.ProgressLocation = vscode.ProgressLocation.Notification
+) =>
+  Effect.callback<A, E>(resume => {
+    // eslint-disable-next-line local/no-vscode-with-progress -- The V2 PromptService has no non-cancellable progress-reporting operator.
+    const progressTask = vscode.window.withProgress({ location, title, cancellable: false }, async progress => {
+      const report: ProgressReporter = message => Effect.sync(() => progress.report({ message }));
+      const exit = await getApexOasRuntime().runPromise(body(report).pipe(Effect.exit));
+      resume(Exit.isSuccess(exit) ? Effect.succeed(exit.value) : Effect.failCause(exit.cause));
+    });
+    Promise.resolve(progressTask).catch(error => resume(Effect.die(error)));
+    return Effect.void;
+  });
 // REST annotation names that should be present on the class
 export const AA_CLASS_REST_ANNOTATIONS: string[] = ['RestResource'];
 
@@ -65,11 +96,11 @@ export const createProblemTabEntriesForOasDocument = (
  */
 export const checkIfESRIsDecomposed = Effect.fn('ApexOas.checkIfESRIsDecomposed')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const registryAccess = yield* api.services.MetadataRegistryService.getRegistryAccess();
+  const registryAccess = yield* api.v2.services.MetadataRegistryService.use(service => service.getRegistryAccess());
   return yield* Effect.try(() => {
     const esrType = registryAccess.getTypeByName('ExternalServiceRegistration');
     return Boolean(esrType.children) || esrType.strategies?.decomposition === 'topLevel';
-  }).pipe(Effect.catchAll(() => Effect.succeed(false)));
+  }).pipe(Effect.catch(() => Effect.succeed(false)));
 });
 
 /**

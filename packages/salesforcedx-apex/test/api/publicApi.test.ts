@@ -21,33 +21,42 @@ describe('@salesforce/apex-node public API', () => {
     });
   });
 
+  it('exports tight Salesforce ID and coverage constraints', () => {
+    expect(publicSchema.$defs.ApexClassId).toMatchObject({
+      type: 'string',
+      pattern: '^01p[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$'
+    });
+    expect(publicSchema.$defs.ApexTriggerId).toMatchObject({
+      type: 'string',
+      pattern: '^01q[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$'
+    });
+    expect(publicSchema.$defs.AsyncApexJobId).toMatchObject({
+      type: 'string',
+      pattern: '^707[A-Za-z0-9]{12}(?:[A-Za-z0-9]{3})?$'
+    });
+    expect(publicSchema.$defs.CoverageLineCount).toMatchObject({ type: 'integer', minimum: 0 });
+    expect(publicSchema.$defs.ApexCodeCoverageRecord.properties).toMatchObject({
+      ApexTestClassId: { $ref: '#/$defs/ApexClassId' },
+      NumLinesCovered: { $ref: '#/$defs/CoverageLineCount' },
+      NumLinesUncovered: { $ref: '#/$defs/CoverageLineCount' }
+    });
+  });
+
   it('exports the target major-version runtime symbols', () => {
     const coRepoOnlySymbols = new Set(['MarkdownTextFormatTransformer']);
     const supportedSymbols = Object.keys(publicApi).filter(symbol => !coRepoOnlySymbols.has(symbol));
 
     expect(supportedSymbols.sort()).toEqual([
-      'ApexClassId',
-      'ApexLogId',
-      'ApexTestSuiteId',
-      'ApexTriggerId',
       'CancellationTokenSource',
       'CoverageReporter',
       'DefaultReportOptions',
       'DefaultWatermarks',
       'ExecuteService',
+      'HumanReporter',
+      'JUnitReporter',
       'LogService',
-      'ResultFormat',
-      'ResultFormatSchema',
-      'SalesforceId',
-      'TestLevel',
-      'TestLevelSchema',
-      'TestRunId',
-      'TestService',
-      'TraceFlagEntityId',
-      'UserId',
-      'formatHuman',
-      'formatJUnit',
-      'formatTap'
+      'TapReporter',
+      'TestService'
     ]);
   });
 
@@ -62,11 +71,13 @@ describe('@salesforce/apex-node public API', () => {
       'ApexCompileError',
       'ApexDiagnosticSchema',
       'ApexLogBodyFetchError',
+      'ApexLogId',
       'ApexLogListItem',
       'ApexLogQueryError',
       'ApexOperationError',
       'ApexOrgWideCoverageSchema',
       'ApexReportError',
+      'ApexRequestError',
       'ApexResponseDecodeError',
       'ApexRuntimeError',
       'ApexTestResultDataRawSchema',
@@ -74,7 +85,6 @@ describe('@salesforce/apex-node public API', () => {
       'ApexTestResultOutcomeSchema',
       'ApexTestSetupDataSchema',
       'ApexTestSuiteId',
-      'ApexToolingMutationError',
       'ApexTriggerId',
       'AsyncTestOptionsSchema',
       'AsyncTestProgressSchema',
@@ -83,18 +93,15 @@ describe('@salesforce/apex-node public API', () => {
       'BuildAsyncPayloadOptionsSchema',
       'BuildSyncPayloadOptionsSchema',
       'CodeCoverageResultSchema',
-      'CreateDebugLevelSchema',
-      'DebugLevelId',
-      'DebugLevelRecordSchema',
       'DefaultReportOptions',
       'DefaultWatermarks',
       'ExecuteAnonymousOptionsSchema',
       'ExecuteAnonymousOutcomeSchema',
       'FileOutput',
       'FileOutputError',
+      'InvalidSessionError',
       'IstanbulReports',
       'ListLogsOptionsSchema',
-      'LogCategoryLevel',
       'LogStreamEventSchema',
       'PerClassCoverageSchema',
       'QueryPageSchema',
@@ -104,31 +111,16 @@ describe('@salesforce/apex-node public API', () => {
       'TestItemSchema',
       'TestResultRawSchema',
       'TestResultSchema',
+      'TestRunId',
       'TestSuiteMembershipSchema',
       'TestSuiteSchema',
-      'TraceFlagEntityId',
-      'TraceFlagForEntitySchema',
-      'TraceFlagId',
-      'TraceFlagLogType',
-      'TraceFlagRecordSchema',
-      'UpdateDebugLevelSchema',
       'UserId',
       'buildAsyncPayload',
       'buildCoverageMap',
       'buildSuite',
       'buildSyncPayload',
       'causeMessage',
-      'changeTraceFlagDebugLevel',
-      'createDebugLevel',
-      'createRecord',
-      'createTraceFlag',
-      'deleteDebugLevel',
-      'deleteRecord',
-      'deleteTraceFlag',
-      'ensureTraceFlag',
       'executeAnonymous',
-      'extendTraceFlag',
-      'findDebugLevel',
       'formatHumanReport',
       'formatJUnitReport',
       'formatMarkdownTextReport',
@@ -137,25 +129,17 @@ describe('@salesforce/apex-node public API', () => {
       'formatTapReport',
       'generateCoverageReports',
       'getAggregateCodeCoverage',
-      'getDebugLevels',
       'getDiagnostic',
       'getLogBody',
-      'getOrCreateDebugLevel',
       'getOrgWideCoverage',
       'getPerClassCodeCoverage',
       'getTestsInSuite',
-      'getTraceFlagForEntity',
-      'getTraceFlags',
       'listLogs',
       'retrieveAllSuites',
       'runTestAsynchronous',
       'runTestSynchronous',
       'streamLogs',
-      'traceFlagExpirationDate',
       'transformTestResult',
-      'updateDebugLevel',
-      'updateRecord',
-      'updateTraceFlag',
       'writeResultFiles'
     ]);
   });

@@ -11,10 +11,10 @@ import { nls } from '../messages';
 
 export const configListCommand = Effect.fn('configListCommand')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const aggregator = yield* api.services.ConfigService.getConfigAggregator();
+  const aggregator = yield* api.v2.services.ConfigService.use(service => service.getConfigAggregator());
   const configInfo = aggregator.getConfigInfo();
 
-  const channelService = yield* api.services.ChannelService;
+  const channelService = yield* api.v2.services.ChannelService;
 
   const table =
     configInfo.length > 0

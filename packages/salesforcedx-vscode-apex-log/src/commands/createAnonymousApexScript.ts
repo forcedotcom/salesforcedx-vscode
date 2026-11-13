@@ -5,11 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  ExtensionProviderService,
-  LetterStartNamePattern,
-  parseErrorToValidationMessage
-} from '@salesforce/effect-ext-utils';
+import { ExtensionProviderService, LetterStartNameSchema } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import * as String from 'effect/String';
@@ -17,29 +13,28 @@ import * as vscode from 'vscode';
 import { Utils } from 'vscode-uri';
 import { nls } from '../messages';
 
-const ScriptNameSchema = Schema.Trim.pipe(
-  Schema.minLength(1, { message: () => nls.localize('create_script_name_empty_error') }),
-  Schema.pattern(LetterStartNamePattern, { message: () => nls.localize('create_script_name_format_error') })
-);
-
 const promptForScriptName = Effect.fn('promptForScriptName')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
 
   return yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: nls.localize('create_script_name_prompt'),
-      validateInput: (value: string) =>
-        Schema.decodeUnknownEither(ScriptNameSchema)(value).pipe(parseErrorToValidationMessage)
+      validateInput: (value: string) => {
+        const normalized = value.trim();
+        if (!normalized) return nls.localize('create_script_name_empty_error');
+        if (!Schema.is(LetterStartNameSchema)(normalized)) return nls.localize('create_script_name_format_error');
+        return undefined;
+      }
     })
   ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation), Effect.map(String.trim));
 });
 
 export const createAnonymousApexScriptCommand = Effect.fn('ApexLog.Command.createAnonymousApexScript')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fsService = yield* api.services.FsService;
-  const promptService = yield* api.services.PromptService;
-  const workspaceInfo = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+  const fsService = yield* api.v2.services.FsService;
+  const promptService = yield* api.v2.services.PromptService;
+  const workspaceInfo = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
 
   const scriptName = yield* promptForScriptName();
 

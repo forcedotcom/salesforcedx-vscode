@@ -5,12 +5,12 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { ApexTestResultData, TestResult } from '../tests/types';
+import type { ApexTestResultData, TestResult } from '../tests/apiTypes';
 import * as Predicate from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import * as String from 'effect/String';
-import { formatStartTime, msToSecond } from '../utils/dateUtil';
-import { escapeXml, xmlCdata } from './escaping';
+import { formatStartTime, msToSecond } from '../utils/dateUtil.js';
+import { escapeXml, xmlCdata } from './escaping.js';
 
 // CLI currently has spaces in multiples of four for junit format.
 const tab = '    ';
@@ -23,7 +23,7 @@ function* formatJUnitPropertyChunkIterable(testResult: TestResult): Generator<st
   for (const [key, value] of Object.entries(testResult.summary)) {
     if (
       skippedProperties.has(key) ||
-      Predicate.isNullable(value) ||
+      Predicate.isNullish(value) ||
       (Predicate.isString(value) && String.isEmpty(value))
     ) {
       continue;

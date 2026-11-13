@@ -5,19 +5,18 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { ReportLineEnding } from '../reporters/lineEnding';
-import type { MarkdownTextReporterOptions } from '../reporters/markdownTextReporter';
-import type { TestResult } from '../tests/types';
+import type { ReportLineEnding } from '../reporters/lineEnding.js';
+import type { MarkdownTextReporterOptions } from '../reporters/markdownTextReporter.js';
+import type { TestResult } from '../tests/apiTypes.js';
 import * as Cause from 'effect/Cause';
-import * as Chunk from 'effect/Chunk';
 import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import * as Stream from 'effect/Stream';
-import { formatJUnitChunks } from '../reporters/formatJUnit';
-import { formatMarkdownTextChunks } from '../reporters/formatMarkdownText';
-import { formatTapChunks } from '../reporters/formatTap';
-import { formatHuman } from '../reporters/humanFormatting';
-import { ApexReportError, causeMessage } from './errors';
+import { formatJUnitChunks } from '../reporters/formatJUnit.js';
+import { formatMarkdownTextChunks } from '../reporters/formatMarkdownText.js';
+import { formatTapChunks } from '../reporters/formatTap.js';
+import { formatHuman } from '../reporters/humanFormatting.js';
+import { ApexReportError, causeMessage } from './errors.js';
 
 export interface HumanReporterOptions {
   detailedCoverage?: boolean;
@@ -34,8 +33,8 @@ const formatReport = (format: string, render: () => string): Effect.Effect<strin
 
 const collectReportChunks = (format: string, chunks: Stream.Stream<string>): Effect.Effect<string, ApexReportError> =>
   Stream.runCollect(chunks).pipe(
-    Effect.map(Chunk.join('')),
-    Effect.catchAllCause(cause =>
+    Effect.map(values => values.join('')),
+    Effect.catchCause(cause =>
       Effect.fail(
         new ApexReportError({
           format,

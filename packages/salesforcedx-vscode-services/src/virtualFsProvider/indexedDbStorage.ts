@@ -5,14 +5,15 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { fs } from '@salesforce/core/fs';
+import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
-import * as Encoding from 'effect/Encoding';
+import * as Base64 from 'effect/encoding/Base64';
 import * as Layer from 'effect/Layer';
 import { Buffer } from 'node:buffer';
 import { dirname } from 'node:path';
 import * as vscode from 'vscode';
 import { CODE_BUILDER_WEB_SECTION, INSTANCE_URL_KEY } from '../constants';
-import { unknownToErrorCause } from '../core/shared';
+import { unknownToErrorCause } from '../services/errorCause';
 import {
   isSerializedDirectoryWithPath,
   isSerializedFileWithPath,
@@ -36,41 +37,52 @@ const ensureOpenRequestEvent = (event: Event): Event & { target: IDBOpenDBReques
   return event;
 };
 
-export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageService>()('IndexedDBStorageService', {
-  scoped: Effect.gen(function* () {
+export class IndexedDBStorageService extends Context.Service<
+  IndexedDBStorageService,
+  {
+    readonly loadState: () => Effect.Effect<SerializedEntryWithPath[], VirtualFsProviderError>;
+    readonly saveFile: (path: string) => Effect.Effect<IDBValidKey, VirtualFsProviderError>;
+    readonly deleteFile: (path: string) => Effect.Effect<void, VirtualFsProviderError>;
+    readonly loadFile: (path: string) => Effect.Effect<void, VirtualFsProviderError>;
+  }
+>()('salesforcedx-vscode-services/IndexedDBStorageService') {}
+
+export const IndexedDBStorageServiceLayer = Layer.effect(
+  IndexedDBStorageService,
+  Effect.gen(function* () {
     const dbName =
       vscode.workspace.getConfiguration(CODE_BUILDER_WEB_SECTION).get<string>(INSTANCE_URL_KEY)?.trim() ?? 'default';
 
-    const db = yield* Effect.async<IDBDatabase, VirtualFsProviderError>(resume => {
-      const openRequest = indexedDB.open(dbName, DB_VERSION);
+    const db = yield* Effect.acquireRelease(
+      Effect.callback<IDBDatabase, VirtualFsProviderError>(resume => {
+        const openRequest = indexedDB.open(dbName, DB_VERSION);
 
-      openRequest.onupgradeneeded = (event): void => {
-        const dbToUpgrade = ensureOpenRequestEvent(event).target.result;
-        if (!dbToUpgrade.objectStoreNames.contains(STORE_NAME)) {
-          dbToUpgrade.createObjectStore(STORE_NAME);
-        }
-      };
+        openRequest.onupgradeneeded = (event): void => {
+          const dbToUpgrade = ensureOpenRequestEvent(event).target.result;
+          if (!dbToUpgrade.objectStoreNames.contains(STORE_NAME)) {
+            dbToUpgrade.createObjectStore(STORE_NAME);
+          }
+        };
 
-      openRequest.onsuccess = (event: Event): void => {
-        resume(Effect.succeed(ensureOpenRequestEvent(event).target.result));
-      };
+        openRequest.onsuccess = (event: Event): void => {
+          resume(Effect.succeed(ensureOpenRequestEvent(event).target.result));
+        };
 
-      openRequest.onerror = (): void => {
-        resume(
-          Effect.fail(
-            new VirtualFsProviderError({
-              ...unknownToErrorCause(openRequest.error),
-              message: `Failed to open IndexedDB database "${dbName}"`
-            })
-          )
-        );
-      };
-    });
-
-    yield* Effect.addFinalizer(() =>
-      Effect.sync(() => {
-        db.close();
-      })
+        openRequest.onerror = (): void => {
+          resume(
+            Effect.fail(
+              new VirtualFsProviderError({
+                ...unknownToErrorCause(openRequest.error),
+                message: `Failed to open IndexedDB database "${dbName}"`
+              })
+            )
+          );
+        };
+      }),
+      database =>
+        Effect.sync(() => {
+          database.close();
+        })
     );
 
     const withStore = <A>(mode: IDBTransactionMode, f: (store: IDBObjectStore) => IDBRequest<A>) =>
@@ -133,7 +145,7 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
         Effect.asVoid,
         Effect.withSpan('loadFile', { attributes: { path } })
       );
-    return {
+    return IndexedDBStorageService.of({
       /** Load state from IndexedDB into memfs */
       loadState,
       /** Save a file to IndexedDB */
@@ -142,14 +154,14 @@ export class IndexedDBStorageService extends Effect.Service<IndexedDBStorageServ
       deleteFile,
       /** Load a specific file from IndexedDB */
       loadFile
-    };
+    });
   })
-}) {}
+);
 
 // Noop implementation for non-web environments
 const IndexedDBStorageServicesNoop: Layer.Layer<IndexedDBStorageService, never> = Layer.succeed(
   IndexedDBStorageService,
-  new IndexedDBStorageService({
+  IndexedDBStorageService.of({
     loadState: () => Effect.succeed([]),
     saveFile: () => Effect.succeed('foo'),
     deleteFile: () => Effect.void,
@@ -159,9 +171,7 @@ const IndexedDBStorageServicesNoop: Layer.Layer<IndexedDBStorageService, never> 
 
 // Expose a single, memoized layer instance to ensure one shared IndexedDB connection only if web.  Otherwise, use a dummy layer.
 export const IndexedDBStorageServiceShared =
-  process.env.ESBUILD_PLATFORM === 'web'
-    ? IndexedDBStorageService.Default.pipe(Layer.memoize, Layer.unwrapEffect)
-    : IndexedDBStorageServicesNoop;
+  process.env.ESBUILD_PLATFORM === 'web' ? IndexedDBStorageServiceLayer : IndexedDBStorageServicesNoop;
 
 const restoreDirectory = Effect.fn('IndexedDBStorageService.restoreDirectory')(function* (path: string) {
   yield* Effect.try({
@@ -178,7 +188,7 @@ const restoreDirectory = Effect.fn('IndexedDBStorageService.restoreDirectory')(f
 const writeFileWithOrWithoutDir = Effect.fn('IndexedDBStorageService.writeFileWithOrWithoutDir')(function* (
   entry: SerializedFileWithPath
 ) {
-  const data = yield* Encoding.decodeBase64(entry.data).pipe(
+  const data = yield* Effect.fromResult(Base64.decode(entry.data)).pipe(
     Effect.mapError(
       error =>
         new VirtualFsProviderError({
@@ -223,7 +233,7 @@ const buildFileEntry = (path: string): SerializedEntryWithPath => {
       ? { entries: {}, type: vscode.FileType.Directory }
       : {
           // Use base64 to preserve binary data (e.g., git objects)
-          data: Encoding.encodeBase64(fs.readFileSync(path)),
+          data: Base64.encode(fs.readFileSync(path)),
           type: vscode.FileType.File
         })
   };

@@ -6,6 +6,7 @@
  */
 
 import * as Schema from 'effect/Schema';
+import * as Result from 'effect/Result';
 import { QueryPageSchema } from '../../src/effect/schema/queryPage';
 
 const Page = QueryPageSchema(Schema.String);
@@ -24,6 +25,6 @@ describe('query pages', () => {
     { totalSize: 1, done: false },
     { totalSize: 1, done: false, nextRecordsUrl: '' }
   ])('rejects contradictory or missing continuation state: %j', page => {
-    expect(Schema.decodeUnknownEither(Page)(page)).toMatchObject({ _tag: 'Left' });
+    expect(Result.isFailure(Schema.decodeUnknownResult(Page)(page))).toBe(true);
   });
 });

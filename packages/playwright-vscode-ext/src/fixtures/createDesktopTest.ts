@@ -110,7 +110,7 @@ const forceKillProcessGroup = (proc: ChildProcess): void => {
 
 /** Resolve once `proc` exits (via the given event) or after `timeoutMs`, whichever comes first. */
 const awaitProcExit = (proc: ChildProcess, { event, timeoutMs }: { event: 'close' | 'exit'; timeoutMs: number }): Promise<void> =>
-  Effect.async<void>(resume => {
+  Effect.callback<void>(resume => {
     if (isNotNull(proc.exitCode)) {
       resume(Effect.void);
       return;

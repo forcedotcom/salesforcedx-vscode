@@ -8,7 +8,7 @@
 import { type ValidationError, type ValidationState, validateWorkflow } from '@action-validator/core';
 import { Console, Effect, Stream } from 'effect';
 import * as Equivalence from 'effect/Equivalence';
-import { isError, isRecord } from 'effect/Predicate';
+import { isError, isObject } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
 import { globSync, readFileSync } from 'node:fs';
 import { parse as parseYaml } from 'yaml';
@@ -72,7 +72,7 @@ const isStringList = Schema.is(Schema.Array(Schema.String));
 
 const asStringList = (value: unknown): readonly string[] | undefined => (isStringList(value) ? value : undefined);
 
-const sameStrings = Equivalence.array(Equivalence.string);
+const sameStrings = Equivalence.Array(Equivalence.String);
 
 // Required checks must post on every PR, including docs. E2E workflows share one paths-ignore list.
 const REQUIRED_CHECK_WORKFLOWS = [
@@ -104,11 +104,11 @@ const CANONICAL_E2E = E2E_WORKFLOWS[0];
 const TRIGGER_KEYS = ['push', 'pull_request'] as const;
 
 const onMap = (workflow: unknown): Readonly<Record<string, unknown>> | undefined =>
-  isRecord(workflow) && isRecord(workflow.on) ? workflow.on : undefined;
+  isObject(workflow) && isObject(workflow.on) ? workflow.on : undefined;
 
 const pushPathsIgnore = (workflow: unknown): readonly string[] | undefined => {
   const push = onMap(workflow)?.push;
-  return isRecord(push) ? asStringList(push['paths-ignore']) : undefined;
+  return isObject(push) ? asStringList(push['paths-ignore']) : undefined;
 };
 
 const pathsIgnoreLists = (workflow: unknown): readonly (readonly string[] | undefined)[] => {
@@ -117,7 +117,7 @@ const pathsIgnoreLists = (workflow: unknown): readonly (readonly string[] | unde
     ? []
     : TRIGGER_KEYS.flatMap(key => {
         const trigger = on[key];
-        return isRecord(trigger) && Object.hasOwn(trigger, 'paths-ignore')
+        return isObject(trigger) && Object.hasOwn(trigger, 'paths-ignore')
           ? [asStringList(trigger['paths-ignore'])]
           : [];
       });

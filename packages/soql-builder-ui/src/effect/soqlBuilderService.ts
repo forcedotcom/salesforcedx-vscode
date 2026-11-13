@@ -11,12 +11,12 @@ import type * as Effect from 'effect/Effect';
 import type * as Stream from 'effect/Stream';
 
 /** Browser-safe Effect service implemented by the environment that embeds the SOQL Builder UI. */
-export type SoqlBuilderService = {
+type SoqlBuilderServiceShape = {
   readonly initialState: Effect.Effect<SoqlBuilderState, SoqlBuilderServiceError>;
   readonly stateChanges: Stream.Stream<SoqlBuilderState, SoqlBuilderServiceError>;
   readonly dispatch: (action: SoqlBuilderAction) => Effect.Effect<void, SoqlBuilderServiceError>;
 };
 
-export const SoqlBuilderService = Context.GenericTag<SoqlBuilderService>(
+export class SoqlBuilderService extends Context.Service<SoqlBuilderService, SoqlBuilderServiceShape>()(
   '@salesforce/soql-builder-ui/SoqlBuilderService'
-);
+) {}

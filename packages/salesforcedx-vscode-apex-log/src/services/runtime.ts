@@ -11,10 +11,7 @@ import type * as Layer from 'effect/Layer';
 import * as ManagedRuntime from 'effect/ManagedRuntime';
 
 type ServicesLayer = ReturnType<typeof buildAllServicesLayer>;
-type ApexLogRuntime = ManagedRuntime.ManagedRuntime<
-  Layer.Layer.Success<ServicesLayer>,
-  Layer.Layer.Error<ServicesLayer>
->;
+type ApexLogRuntime = ManagedRuntime.ManagedRuntime<Layer.Success<ServicesLayer>, Layer.Error<ServicesLayer>>;
 
 // eslint-disable-next-line functional/no-let -- Module-level mutable; set during activation, read by getRuntime
 let allServicesLayer: ServicesLayer;

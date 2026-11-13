@@ -1,0 +1,14 @@
+false_positive:
+  - id: packages/salesforcedx-apex/src/effect/asyncTests.ts:30a6e62266a749eb786faba61855035d231330e8356c0f6d6a5326350a8d8e07
+    justification: >-
+      This query interpolates `testRunId`, which is decoded from the Salesforce
+      `/runTestsAsynchronous` response using `TestRunId`. That schema only accepts
+      `707` followed by 12 or 15 ASCII alphanumeric characters, so SOQL metacharacters
+      cannot reach the query. The private abort helper receives only that decoded ID.
+  - id: packages/salesforcedx-apex/src/effect/asyncTests.ts:dcbf2d97d750572d905c0fb8502e97b4d93c2ae3d9608d1898c16a39dd68fcb3
+    justification: >-
+      This query interpolates `testRunId`, which is decoded from the Salesforce
+      `/runTestsAsynchronous` response using `TestRunId`. That schema only accepts
+      `707` followed by 12 or 15 ASCII alphanumeric characters, so SOQL metacharacters
+      cannot reach the query. The polling stream closes over that decoded ID.
+not_exploitable: []

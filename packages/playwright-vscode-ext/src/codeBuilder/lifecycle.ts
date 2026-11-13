@@ -15,11 +15,11 @@
  * splitting them would be a fiction the image doesn't support (ADR 0022).
  */
 
-import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
-import * as HttpClient from '@effect/platform/HttpClient';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
-import * as Layer from 'effect/Layer';
+import * as FetchHttpClient from 'effect/http/FetchHttpClient';
+import * as HttpClient from 'effect/http/HttpClient';
+import * as ManagedRuntime from 'effect/ManagedRuntime';
 import * as Schedule from 'effect/Schedule';
 import { bootEnvToDockerArgs, type BootEnv } from './auth';
 import { defaultRunner, type CommandRunner } from './runner';
@@ -88,22 +88,19 @@ export type LifecycleOptions = { runner?: CommandRunner };
  *    fails on 4xx/5xx. A booting server that answers 4xx/5xx is correctly still "not ready".
  */
 const defaultProbe: ReadinessProbe = async url => {
+  const runtime = ManagedRuntime.make(FetchHttpClient.layer);
   try {
-    return await FetchHttpClient.layer.pipe(
-      Layer.toRuntime,
-      Effect.flatMap(runtime =>
-        HttpClient.get(url).pipe(
-          Effect.map(res => res.status < 400),
-          Effect.timeout(Duration.seconds(5)),
-          Effect.provide(runtime),
-          Effect.provideService(FetchHttpClient.RequestInit, { redirect: 'manual' })
-        )
-      ),
-      Effect.scoped,
-      Effect.runPromise
+    return await runtime.runPromise(
+      HttpClient.get(url).pipe(
+        Effect.map(res => res.status < 400),
+        Effect.timeout(Duration.seconds(5)),
+        Effect.provideService(FetchHttpClient.RequestInit, { redirect: 'manual' })
+      )
     );
   } catch {
     return false;
+  } finally {
+    await runtime.dispose();
   }
 };
 

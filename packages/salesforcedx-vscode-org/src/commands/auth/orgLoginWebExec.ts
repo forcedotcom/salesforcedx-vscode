@@ -4,8 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
-
+import { ExtensionProviderService, getExtensionScope, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { identity } from 'effect/Function';
@@ -36,14 +35,17 @@ export const executeOrgLoginWeb = Effect.fn('executeOrgLoginWeb')(function* (par
   readonly notificationCommand: ProgressOnlyCommandKey;
 }) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const channel = yield* api.services.ChannelService;
+  const channel = yield* api.v2.services.ChannelService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
 
   // Code Builder only (gated on CODE_BUILDER_STATE inside the helper). Fork so the modal does not
   // block the login child; forkDaemon keeps it alive independent of this fiber. Best-effort: a
   // rejection from the VS Code message API becomes an Effect.promise defect — catch it explicitly so
   // the swallow is intentional and visible rather than a silent daemon-fiber drop.
-  yield* Effect.forkDaemon(
-    Effect.promise(() => showVerificationCodeIfNeeded()).pipe(Effect.catchAllDefect(() => Effect.void))
+  const extensionScope = yield* getExtensionScope();
+  yield* Effect.forkIn(
+    Effect.promise(() => showVerificationCodeIfNeeded()).pipe(Effect.catchDefect(() => Effect.void)),
+    extensionScope
   );
 
   // Render the port-conflict notification (persistent showErrorMessage + Show Output action) directly,
@@ -67,16 +69,12 @@ export const executeOrgLoginWeb = Effect.fn('executeOrgLoginWeb')(function* (par
     });
   });
 
-  const terminalService = yield* api.services.TerminalService;
-  const promptService = yield* api.services.PromptService;
-  yield* terminalService
+  const progressLocation = yield* notificationMode.getProgressLocation(params.notificationCommand);
+
+  yield* (yield* api.v2.services.TerminalService)
     .simpleExec({ executable: 'sf', args: params.args, parse: identity, timeout: LOGIN_TIMEOUT })
     .pipe(
-      promptService.withProgress({
-        command: params.notificationCommand,
-        title: params.progressMessage,
-        cancellable: true
-      }),
+      (yield* api.v2.services.PromptService).withCancellableProgress(params.progressMessage, progressLocation),
       Effect.flatMap(handleSuccess),
       Effect.catchTag('TerminalServiceError', error =>
         isAuthPortConflictError(error.message)

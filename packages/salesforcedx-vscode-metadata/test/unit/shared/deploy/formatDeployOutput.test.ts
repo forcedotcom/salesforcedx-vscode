@@ -16,37 +16,36 @@ import {
   RequestStatus
 } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
-import type { SalesforceVSCodeServicesApi } from 'salesforcedx-vscode-services';
 import {
   isSDRFailure,
   isSDRSuccess,
   makeFileResponseFailure,
-  toComponentStatusChangeType
-} from 'salesforcedx-vscode-services/src/core/sdrGuards';
+  toComponentStatusChangeType,
+  ComponentSetService,
+  type SalesforceVSCodeServicesApiV2
+} from '@salesforce/vscode-services/v2';
 import { formatDeployOutput } from '../../../../src/shared/deploy/formatDeployOutput';
 
 const classesDir = path.join(path.sep, 'proj', 'force-app', 'main', 'default', 'classes');
 
-const mockExtensionProvider: ExtensionProviderService = {
+const mockExtensionProvider: ExtensionProviderService['Service'] = {
   getServicesApi: Effect.succeed({
-    services: {
-      ComponentSetService: Effect.succeed({
-        isSDRSuccess,
-        isSDRFailure,
-        getComponentState: (component: FileResponseSuccess) => toComponentStatusChangeType(component.state),
-        makeFileResponseFailure
-      })
-    }
-  } as unknown as SalesforceVSCodeServicesApi)
+    v2: { services: { ComponentSetService } }
+  } as unknown as SalesforceVSCodeServicesApiV2)
 };
+const componentSetService = {
+  isSDRSuccess,
+  isSDRFailure,
+  getComponentState: (component: FileResponseSuccess) => toComponentStatusChangeType(component.state),
+  makeFileResponseFailure
+} as ComponentSetService['Service'];
 
 const run = (effect: Effect.Effect<string, unknown, unknown>) =>
   Effect.runPromise(
-    effect.pipe(Effect.provideService(ExtensionProviderService, mockExtensionProvider)) as Effect.Effect<
-      string,
-      never,
-      never
-    >
+    effect.pipe(
+      Effect.provideService(ExtensionProviderService, mockExtensionProvider),
+      Effect.provideService(ComponentSetService, componentSetService)
+    ) as Effect.Effect<string, never, never>
   );
 
 describe('formatDeployOutput', () => {

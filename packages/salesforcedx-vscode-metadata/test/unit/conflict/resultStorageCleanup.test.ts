@@ -6,7 +6,7 @@
  */
 
 import * as HashSet from 'effect/HashSet';
-import { HashableUri } from 'salesforcedx-vscode-services/src/vscode/hashableUri';
+import { HashableUri } from '@salesforce/vscode-services/v2';
 import { URI } from 'vscode-uri';
 import { getStaleUris } from '../../../src/conflict/resultStorageCleanup';
 

@@ -64,12 +64,10 @@ const buildScanConfig = (registryAccess: RegistryAccessLike): ApexLspScanConfig 
 };
 
 /** Builds Apex scan exclusions using the caller's services runtime. */
-export const buildMetadataRegistryScanConfig = getServicesApi.pipe(
-  Effect.flatMap(servicesApi =>
-    servicesApi.services.MetadataRegistryService.getRegistryAccess().pipe(
-      Effect.map(buildScanConfig),
-      Effect.catchAllCause(() => Effect.void)
-    )
-  ),
-  Effect.catchTag('ExtensionNotFoundError', () => Effect.void)
-);
+export const buildMetadataRegistryScanConfig = Effect.gen(function* () {
+  const servicesApi = yield* getServicesApi;
+  return yield* servicesApi.v2.services.MetadataRegistryService.use(service => service.getRegistryAccess()).pipe(
+    Effect.map(buildScanConfig),
+    Effect.catchCause(() => Effect.void)
+  );
+}).pipe(Effect.catchTag('ServicesExtensionNotFoundError', () => Effect.void));

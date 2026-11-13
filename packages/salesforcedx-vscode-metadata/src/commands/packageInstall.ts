@@ -5,19 +5,13 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import {
-  getMessageFromError,
-  ExtensionProviderService,
-  parseErrorToValidationMessage,
-  SalesforceIdSchema
-} from '@salesforce/effect-ext-utils';
+import { getMessageFromError, ExtensionProviderService, SalesforceIdSchema } from '@salesforce/effect-ext-utils';
 import type { PackageInstallRequest as ToolingPackageInstallRequest } from '@salesforce/types/tooling';
 import * as Arr from 'effect/Array';
-import * as Chunk from 'effect/Chunk';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
-import { isRecord, isUndefined } from 'effect/Predicate';
+import { isNotUndefined, isUndefined } from 'effect/Predicate';
 import * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
@@ -29,15 +23,31 @@ import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 
 const COMMAND: ProgressAndSuccessCommandKey = messages.package_install_text;
 
-const PackageIdSchema = SalesforceIdSchema.pipe(
-  Schema.startsWith('04t'),
-  Schema.annotations({ message: () => ({ message: nls.localize('package_install_id_validation'), override: true }) })
-);
+const PackageIdSchema = SalesforceIdSchema.check(Schema.isPattern(/^04t/));
 
 // Live tooling API returns Status as uppercase (e.g. 'SUCCESS'); @salesforce/types' enum casing is wrong.
 // Verified against live record 0HfE2000005KJObKAO; matches @salesforce/packaging which polls on ['SUCCESS','ERROR'].
 type RuntimeInstallStatus = 'IN_PROGRESS' | 'SUCCESS' | 'ERROR' | 'CANCELED' | 'UNKNOWN';
-type PackageInstallRequest = Omit<ToolingPackageInstallRequest, 'Status'> & { Status?: RuntimeInstallStatus };
+type PackageInstallRequest = Pick<ToolingPackageInstallRequest, 'Id'> & {
+  Status?: RuntimeInstallStatus;
+  Errors?: { readonly errors?: readonly { readonly message?: string | undefined }[] | undefined } | null | undefined;
+};
+
+const PackageInstallErrorMessages = Schema.Struct({ message: Schema.optional(Schema.String) }).pipe(
+  Schema.Array,
+  Schema.optional
+);
+
+const PackageInstallRequestRow = Schema.Struct({
+  Id: Schema.String,
+  Status: Schema.optional(Schema.Literals(['IN_PROGRESS', 'SUCCESS', 'ERROR', 'CANCELED', 'UNKNOWN'])),
+  Errors: Schema.Struct({ errors: PackageInstallErrorMessages }).pipe(Schema.NullOr, Schema.optional)
+});
+
+export const decodePackageInstallPage = (input: unknown) =>
+  Schema.decodeUnknownEffect(
+    Schema.Struct({ totalSize: Schema.Number, records: Schema.Array(PackageInstallRequestRow) })
+  )(input);
 
 class PackageInstallFailedError extends Schema.TaggedError<PackageInstallFailedError>()('PackageInstallFailedError', {
   message: Schema.String
@@ -45,13 +55,14 @@ class PackageInstallFailedError extends Schema.TaggedError<PackageInstallFailedE
 
 const gatherPackageId = Effect.fn('packageInstall.gatherPackageId')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   const result = yield* Effect.promise(() =>
     vscode.window.showInputBox({
       prompt: nls.localize('package_install_id_prompt'),
       placeHolder: nls.localize('package_install_id_placeholder'),
       ignoreFocusOut: true,
-      validateInput: value => Schema.decodeUnknownEither(PackageIdSchema)(value).pipe(parseErrorToValidationMessage)
+      validateInput: value =>
+        value === '' || Schema.is(PackageIdSchema)(value) ? undefined : nls.localize('package_install_id_validation')
     })
   );
   return yield* promptService.considerUndefinedAsCancellation(result);
@@ -67,14 +78,14 @@ const gatherInstallationKey = Effect.fn('packageInstall.gatherInstallationKey')(
   );
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   if (isUndefined(result)) {
-    return yield* new api.services.UserCancellationError();
+    return yield* new api.v2.services.UserCancellationError({ message: 'User cancelled' });
   }
   return result.length === 0 ? Option.none<string>() : Option.some(result);
 });
 
 const gatherPollChoice = Effect.fn('packageInstall.gatherPollChoice')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   const yes = nls.localize('package_install_poll_yes');
   const no = nls.localize('package_install_poll_no');
   const choice = yield* Effect.promise(() =>
@@ -88,20 +99,17 @@ const gatherPollChoice = Effect.fn('packageInstall.gatherPollChoice')(function* 
 
 const verifyPackageAvailable = Effect.fn('packageInstall.verifyPackageAvailable')(function* (packageId: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* api.services.QueryService.pipe(
-    Effect.flatMap(queryService =>
-      queryService.query(
-        { soql: `SELECT Id FROM SubscriberPackageVersion WHERE Id ='${packageId}'`, tooling: true },
-        Schema.Struct({ Id: Schema.String })
-      )
-    ),
-    Effect.flatMap(({ records }) => Stream.runCollect(records)),
-    Effect.filterOrFail(
-      chunk => Chunk.size(chunk) > 0,
-      () => new PackageInstallFailedError({ message: nls.localize('package_install_not_found', packageId) })
-    ),
-    Effect.as(packageId)
+  const result = yield* api.v2.services.QueryService.use(service =>
+    service.query({ soql: `SELECT Id FROM SubscriberPackageVersion WHERE Id ='${packageId}'`, tooling: true }, input =>
+      Schema.decodeUnknownEffect(
+        Schema.Struct({ totalSize: Schema.Number, records: Schema.Array(Schema.Struct({ Id: Schema.String })) })
+      )(input)
+    )
   );
+  if (result.totalSize === 0) {
+    return yield* new PackageInstallFailedError({ message: nls.localize('package_install_not_found', packageId) });
+  }
+  return packageId;
 });
 
 const submitInstallRequest = Effect.fn('packageInstall.submitInstallRequest')(function* (params: {
@@ -109,7 +117,7 @@ const submitInstallRequest = Effect.fn('packageInstall.submitInstallRequest')(fu
   readonly installationKey: Option.Option<string>;
 }) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const conn = yield* api.services.ConnectionService.getConnection();
+  const conn = yield* api.v2.services.ConnectionService.use(service => service.getConnection());
   const body = {
     SubscriberPackageVersionKey: params.packageId,
     ApexCompileType: 'all',
@@ -138,32 +146,24 @@ const submitInstallRequest = Effect.fn('packageInstall.submitInstallRequest')(fu
 
 const fetchInstallStatus = Effect.fn('packageInstall.fetchInstallStatus')(function* (requestId: string) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  return yield* api.services.QueryService.pipe(
-    Effect.flatMap(queryService =>
-      queryService.query(
-        { soql: `SELECT Id, Status, Errors FROM PackageInstallRequest WHERE Id = '${requestId}'`, tooling: true },
-        Schema.Unknown.pipe(Schema.filter((value): value is PackageInstallRequest => isRecord(value)))
-      )
-    ),
-    Effect.flatMap(({ records }) => Stream.runCollect(records)),
-    Effect.map(Chunk.toReadonlyArray),
-    Effect.retry({
-      schedule: Schedule.exponential(Duration.seconds(1), 2.0).pipe(
-        Schedule.either(Schedule.spaced(Duration.seconds(30)))
-      ),
-      times: 5
-    }),
-    Effect.map(Arr.head),
-    Effect.filterOrFail(
-      Option.isSome,
-      () => new PackageInstallFailedError({ message: `Request ${requestId} not found` })
-    ),
-    Effect.map(record => record.value)
+  const query = yield* api.v2.services.QueryService.use(service =>
+    service.query(
+      { soql: `SELECT Id, Status, Errors FROM PackageInstallRequest WHERE Id = '${requestId}'`, tooling: true },
+      decodePackageInstallPage
+    )
   );
+  const records = yield* Stream.runCollect(query.records);
+  return yield* Option.match(Arr.head(records), {
+    onNone: () => Effect.fail(new PackageInstallFailedError({ message: `Request ${requestId} not found` })),
+    onSome: Effect.succeed
+  });
 });
 
 const extractErrors = (record: PackageInstallRequest): string => {
-  const errorMessages = (record.Errors?.errors ?? []).map(e => e.message).filter(Str.isNonEmpty);
+  const errorMessages = (record.Errors?.errors ?? [])
+    .map(e => e.message)
+    .filter(isNotUndefined)
+    .filter(Str.isNonEmpty);
   const detail = errorMessages.length === 0 ? 'Unknown error' : errorMessages.join('; ');
   return nls.localize('package_install_failed_message', detail);
 };
@@ -171,12 +171,11 @@ const extractErrors = (record: PackageInstallRequest): string => {
 const isTerminalStatus = (status: PackageInstallRequest['Status']): boolean =>
   status === 'SUCCESS' || status === 'ERROR' || status === 'CANCELED';
 
-const pollSchedule = Schedule.recurUntil((r: PackageInstallRequest) => isTerminalStatus(r.Status)).pipe(
-  Schedule.addDelay(() => Duration.seconds(30))
-);
-
 const pollUntilComplete = Effect.fn('packageInstall.pollUntilComplete')(function* (requestId: string) {
-  const finalRecord = yield* Effect.repeat(fetchInstallStatus(requestId), pollSchedule);
+  const finalRecord = yield* Effect.repeat(fetchInstallStatus(requestId), {
+    schedule: Schedule.spaced(Duration.seconds(30)),
+    until: (record: PackageInstallRequest) => isTerminalStatus(record.Status)
+  });
   return finalRecord.Status === 'SUCCESS'
     ? finalRecord
     : yield* new PackageInstallFailedError({ message: extractErrors(finalRecord) });
@@ -184,17 +183,14 @@ const pollUntilComplete = Effect.fn('packageInstall.pollUntilComplete')(function
 
 export const packageInstallCommand = Effect.fn('packageInstallCommand')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const notificationMode = yield* api.services.NotificationModeService;
+  const promptService = yield* api.v2.services.PromptService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
+  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
 
   const packageId = yield* gatherPackageId().pipe(
     Effect.flatMap(id =>
       verifyPackageAvailable(id).pipe(
-        promptService.withProgress({
-          command: COMMAND,
-          title: nls.localize('package_install_verifying_progress', id),
-          cancellable: false
-        })
+        promptService.withProgress(nls.localize('package_install_verifying_progress', id), progressLocation)
       )
     ),
     Effect.tap(id => Effect.annotateCurrentSpan('packageId', id))
@@ -218,11 +214,10 @@ export const packageInstallCommand = Effect.fn('packageInstallCommand')(function
   }
 
   yield* pollUntilComplete(requestId).pipe(
-    promptService.withProgress({
-      command: COMMAND,
-      title: nls.localize('package_install_polling_progress', packageId),
-      cancellable: true
-    }),
+    promptService.withCancellableProgress(
+      nls.localize('package_install_polling_progress', packageId),
+      progressLocation
+    ),
     Effect.tap(() =>
       notificationMode.showSuccessNotification(COMMAND, nls.localize('package_install_succeeded_message', packageId))
     ),

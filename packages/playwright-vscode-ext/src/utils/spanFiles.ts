@@ -47,6 +47,8 @@ export const waitForSpanRows = async (
   const wait =
     timeoutMs <= 0
       ? readRows.pipe(Effect.filterOrFail(predicate, timeoutError))
-      : attempt.pipe(Effect.timeoutFail({ duration: Duration.millis(timeoutMs), onTimeout: timeoutError }));
+      : attempt.pipe(
+          Effect.timeoutOrElse({ duration: Duration.millis(timeoutMs), orElse: () => Effect.fail(timeoutError()) })
+        );
   return Effect.runPromise(wait);
 };

@@ -9,7 +9,7 @@ VS Code settings read/write. `getValue` and `getValueOrElse` are generic, so yie
 Unset → `T | undefined`.
 
 ```typescript
-const settings = yield* api.services.SettingsService;
+const settings = yield* api.v2.services.SettingsService;
 const value = yield* settings.getValue<string>('section', 'key');
 ```
 
@@ -18,7 +18,7 @@ const value = yield* settings.getValue<string>('section', 'key');
 Unset or `null` → `defaultValue`. Success type is `T`.
 
 ```typescript
-const settings = yield* api.services.SettingsService;
+const settings = yield* api.v2.services.SettingsService;
 const value = yield* settings.getValueOrElse('section', 'key', false);
 ```
 
@@ -27,8 +27,10 @@ const value = yield* settings.getValueOrElse('section', 'key', false);
 Set a setting value (defaults to `ConfigurationTarget.Global`; pass a target to override):
 
 ```typescript
-yield* api.services.SettingsService.setValue('section', 'key', value);
-yield* api.services.SettingsService.setValue('section', 'key', value, vscode.ConfigurationTarget.Workspace);
+yield* api.v2.services.SettingsService.use(service => service.setValue('section', 'key', value));
+yield* api.v2.services.SettingsService.use(service =>
+  service.setValue('section', 'key', value, vscode.ConfigurationTarget.Workspace)
+);
 ```
 
 ### getInstanceUrl
@@ -36,7 +38,7 @@ yield* api.services.SettingsService.setValue('section', 'key', value, vscode.Con
 Get instance URL (web):
 
 ```typescript
-const url = yield* api.services.SettingsService.getInstanceUrl();
+const url = yield* api.v2.services.SettingsService.use(service => service.getInstanceUrl());
 ```
 
 ### getAccessToken
@@ -44,7 +46,7 @@ const url = yield* api.services.SettingsService.getInstanceUrl();
 Web access token as `Redacted.Redacted<string>` (`toString` → `<redacted>`). Unwrap with `Redacted.value` only for the connection cache key / Salesforce Core auth:
 
 ```typescript
-const token = yield* api.services.SettingsService.getAccessToken();
+const token = yield* api.v2.services.SettingsService.use(service => service.getAccessToken());
 ```
 
 ### getApiVersion
@@ -52,7 +54,7 @@ const token = yield* api.services.SettingsService.getAccessToken();
 Get API version (web):
 
 ```typescript
-const version = yield* api.services.SettingsService.getApiVersion();
+const version = yield* api.v2.services.SettingsService.use(service => service.getApiVersion());
 ```
 
 ### setInstanceUrl
@@ -60,7 +62,7 @@ const version = yield* api.services.SettingsService.getApiVersion();
 Set instance URL (web):
 
 ```typescript
-yield* api.services.SettingsService.setInstanceUrl(url);
+yield* api.v2.services.SettingsService.use(service => service.setInstanceUrl(url));
 ```
 
 ### setAccessToken
@@ -68,7 +70,7 @@ yield* api.services.SettingsService.setInstanceUrl(url);
 Set access token (web):
 
 ```typescript
-yield* api.services.SettingsService.setAccessToken(token);
+yield* api.v2.services.SettingsService.use(service => service.setAccessToken(token));
 ```
 
 ### setApiVersion
@@ -76,7 +78,7 @@ yield* api.services.SettingsService.setAccessToken(token);
 Set API version (web):
 
 ```typescript
-yield* api.services.SettingsService.setApiVersion(version);
+yield* api.v2.services.SettingsService.use(service => service.setApiVersion(version));
 ```
 
 ### getRetrieveOnLoad
@@ -84,7 +86,7 @@ yield* api.services.SettingsService.setApiVersion(version);
 Get retrieve on load setting:
 
 ```typescript
-const value = yield* api.services.SettingsService.getRetrieveOnLoad();
+const value = yield* api.v2.services.SettingsService.use(service => service.getRetrieveOnLoad());
 ```
 
 ### getInternalDev
@@ -92,7 +94,7 @@ const value = yield* api.services.SettingsService.getRetrieveOnLoad();
 `salesforcedx-vscode-core.internal-development`. Unset/`null` → `false`.
 
 ```typescript
-const internalDev = yield* api.services.SettingsService.getInternalDev();
+const internalDev = yield* api.v2.services.SettingsService.use(service => service.getInternalDev());
 ```
 
 ## Errors
@@ -104,9 +106,9 @@ const internalDev = yield* api.services.SettingsService.getInternalDev();
 From `salesforcedx-vscode-services`:
 
 ```typescript
-const instanceUrl = yield* api.services.SettingsService.getInstanceUrl();
-const accessToken = yield* api.services.SettingsService.getAccessToken();
-const apiVersion = yield* api.services.SettingsService.getApiVersion();
+const instanceUrl = yield* api.v2.services.SettingsService.use(service => service.getInstanceUrl());
+const accessToken = yield* api.v2.services.SettingsService.use(service => service.getAccessToken());
+const apiVersion = yield* api.v2.services.SettingsService.use(service => service.getApiVersion());
 ```
 
 ## Notes

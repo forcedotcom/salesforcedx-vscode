@@ -5,11 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { isNullable, isString } from 'effect/Predicate';
+import { isNullish, isString } from 'effect/Predicate';
 import { isEmpty } from 'effect/String';
-import { type TestResult } from '../tests/types';
+import { type TestResult } from '../tests/apiTypes.js';
 import { formatStartTime, msToSecond } from '../utils/dateUtil';
-import { escapeXml, xmlCdata } from './escaping';
+import { escapeXml, xmlCdata } from './escaping.js';
 
 // cli currently has spaces in multiples of four for junit format
 const tab = '    ';
@@ -17,23 +17,23 @@ const timeProperties = new Set(['testExecutionTimeInMs', 'testTotalTimeInMs', 'c
 // properties not in cli junit spec
 const skippedProperties = new Set(['skipRate', 'totalLines', 'linesCovered']);
 
-export const formatJUnitProperties = (summary: TestResult['summary']): string =>
+const formatJUnitProperties = (summary: TestResult['summary']): string =>
   `${tab}${tab}<properties>\n${Object.entries(summary)
-    .filter(([key, value]) => !isNullable(value) && !(isString(value) && isEmpty(value)) && !skippedProperties.has(key))
+    .filter(([key, value]) => !isNullish(value) && !(isString(value) && isEmpty(value)) && !skippedProperties.has(key))
     .map(([key, value]) => {
       const name = timeProperties.has(key) ? key.replace('InMs', '') : key;
       const formattedValue = timeProperties.has(key)
-        ? `${msToSecond(value)} s`
+        ? `${msToSecond(typeof value === 'number' ? value : String(value))} s`
         : key === 'outcome' && value === 'Passed'
           ? 'Successful'
           : key === 'testStartTime'
-            ? formatStartTime(value)
+            ? formatStartTime(typeof value === 'string' || typeof value === 'number' ? value : String(value))
             : String(value);
       return `${tab}${tab}${tab}<property name="${escapeXml(name)}" value="${escapeXml(formattedValue)}"/>\n`;
     })
     .join('')}${tab}${tab}</properties>\n`;
 
-export const formatJUnitTestCases = (tests: TestResult['tests']): string =>
+const formatJUnitTestCases = (tests: TestResult['tests']): string =>
   tests
     .map(test => {
       const failure =

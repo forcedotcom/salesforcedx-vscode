@@ -15,44 +15,35 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { URI } from 'vscode-uri';
 import { parseRetrieveOnLoad, filterFileResponses } from '../../../src/core/retrieveOnLoad';
-import { ComponentSetService, type NonEmptyComponentSet } from '../../../src/core/componentSetService';
-import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
+import { FsServiceLayer } from '../../../src/services/fsService';
+import { WebFileSystemProvider } from '../../../src/services/webFileSystemProvider';
 import {
+  ComponentSetService,
+  MetadataRegistryService,
   isSDRSuccess,
   isSDRFailure,
   makeFileResponseFailure,
   toComponentStatusChangeType,
   toRequestStatus
-} from '../../../src/core/sdrGuards';
-import { FsService } from '../../../src/vscode/fsService';
+} from '@salesforce/vscode-services/v2';
 
 /** Create a mock ComponentSetService that only provides the type guards needed for tests */
 const createMockComponentSetService = () =>
-  Layer.succeed(
-    ComponentSetService,
-    new ComponentSetService({
-      getComponentState: (component: FileResponseSuccess) => toComponentStatusChangeType(component.state),
-      isSDRSuccess,
-      isSDRFailure,
-      makeFileResponseFailure,
-      toRequestStatus,
-      ensureNonEmptyComponentSet: () => Effect.succeed({} as NonEmptyComponentSet),
-      getComponentSetFromUris: () => Effect.succeed({} as never),
-      getComponentSetFromManifest: (_manifestUri: URI) => Effect.succeed({} as never),
-      getComponentSetFromProjectDirectories: () => Effect.succeed({} as never)
-    })
-  );
+  Layer.mock(ComponentSetService, {
+    getComponentState: (component: FileResponseSuccess) => toComponentStatusChangeType(component.state),
+    isSDRSuccess,
+    isSDRFailure,
+    makeFileResponseFailure,
+    toRequestStatus
+  });
 
 /** Create a mock MetadataRegistryService with real RegistryAccess (no workspace dependency) */
 const createMockMetadataRegistryService = () => {
   const registryAccess = new RegistryAccess();
-  return Layer.succeed(
-    MetadataRegistryService,
-    new MetadataRegistryService({
-      getRegistry: () => Effect.succeed(registryAccess.getRegistry()),
-      getRegistryAccess: () => Effect.succeed(registryAccess)
-    })
-  );
+  return Layer.mock(MetadataRegistryService, {
+    getRegistry: () => Effect.succeed(registryAccess.getRegistry()),
+    getRegistryAccess: () => Effect.succeed(registryAccess)
+  });
 };
 
 const createFileResponse = (
@@ -129,7 +120,7 @@ describe('filterFileResponses', () => {
   const testLayer = Layer.mergeAll(
     createMockComponentSetService(),
     createMockMetadataRegistryService(),
-    FsService.Default
+    FsServiceLayer.pipe(Layer.provide(Layer.succeed(WebFileSystemProvider, { get: () => undefined })))
   );
 
   it('should include .cls files for ApexClass and not include cls-meta.xml', async () => {

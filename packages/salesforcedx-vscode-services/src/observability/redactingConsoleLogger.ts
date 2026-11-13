@@ -6,25 +6,37 @@
  */
 
 import * as Effect from 'effect/Effect';
-import * as FiberRef from 'effect/FiberRef';
-import * as HashSet from 'effect/HashSet';
+import * as Layer from 'effect/Layer';
 import * as Logger from 'effect/Logger';
+import * as References from 'effect/References';
 import { getServicesRuntime } from '../servicesRuntime';
 import { redactSensitiveData } from './redactSensitiveData';
 
-const redactingConsoleLogger = Logger.stringLogger.pipe(Logger.map(redactSensitiveData), Logger.withConsoleLog);
+const replaceDefaultLogger = (
+  loggers: ReadonlySet<Logger.Logger<unknown, unknown>>,
+  replacement: Logger.Logger<unknown, unknown>
+) => new Set([...loggers].filter(current => current !== Logger.defaultLogger).concat(replacement));
 
-export const redactingConsoleLoggerLayer = Logger.replace(Logger.defaultLogger, redactingConsoleLogger);
+export const makeRedactingConsoleLoggerLayer = (redact: (text: string) => string) => {
+  const logger = Logger.formatSimple.pipe(Logger.map(redact), Logger.withConsoleLog);
+  return Layer.effect(
+    References.CurrentLoggers,
+    References.CurrentLoggers.pipe(Effect.map(loggers => replaceDefaultLogger(loggers, logger)))
+  );
+};
+
+const defaultRedactingLogger = Logger.formatSimple.pipe(Logger.map(redactSensitiveData), Logger.withConsoleLog);
+const replaceDefaultRedactingLogger = (loggers: ReadonlySet<Logger.Logger<unknown, unknown>>) =>
+  replaceDefaultLogger(loggers, defaultRedactingLogger);
+export const redactingConsoleLoggerLayer = makeRedactingConsoleLoggerLayer(redactSensitiveData);
 
 /** Shared runtime so Effect.log hits the redacting logger. Unpublished runtime still uses that logger. */
 export const runOnServicesRuntime = <A, E>(effect: Effect.Effect<A, E, never>) =>
   getServicesRuntime().pipe(
-    Effect.flatMap(runtime => effect.pipe(Effect.provide(runtime))),
+    Effect.flatMap(runtime =>
+      runtime.contextEffect.pipe(Effect.flatMap(context => effect.pipe(Effect.provide(context))))
+    ),
     Effect.catchTag('ServicesRuntimeNotReady', () =>
-      effect.pipe(
-        Effect.locallyWith(FiberRef.currentLoggers, loggers =>
-          loggers.pipe(HashSet.remove(Logger.defaultLogger), HashSet.add(redactingConsoleLogger))
-        )
-      )
+      effect.pipe(Effect.updateService(References.CurrentLoggers, replaceDefaultRedactingLogger))
     )
   );

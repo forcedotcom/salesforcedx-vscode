@@ -5,9 +5,8 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { TestCategory, TestResult, TestResultRaw } from '../tests/types';
-import * as Arr from 'effect/Array';
-import { isNotNullable, isNotUndefined } from 'effect/Predicate';
+import type { TestCategory, TestResult, TestResultRaw } from '../tests/apiTypes.js';
+import { isNotNull, isNotUndefined } from 'effect/Predicate';
 
 export const calculatePercentage = (dividend: number, divisor: number): string =>
   dividend > 0 ? `${((dividend / divisor) * 100).toFixed()}%` : '0%';
@@ -19,7 +18,8 @@ export const computeTestCategory = (testNamespace: string | null): TestCategory 
 
 /** Separates setup methods from tests and includes setup time in the total. */
 export const transformTestResult = (rawResult: TestResultRaw): TestResult => {
-  const [regularTests, setupMethods] = Arr.partition(rawResult.tests, test => test.isTestSetup === true);
+  const regularTests = rawResult.tests.filter(test => test.isTestSetup !== true);
+  const setupMethods = rawResult.tests.filter(test => test.isTestSetup === true);
 
   return {
     summary: {
@@ -30,15 +30,17 @@ export const transformTestResult = (rawResult: TestResultRaw): TestResult => {
     tests: regularTests.map(({ isTestSetup, ...test }) => test),
     setup: setupMethods.map(test => ({
       ...(isNotUndefined(test.id) ? { id: test.id } : {}),
-      ...(isNotNullable(test.stackTrace) ? { stackTrace: test.stackTrace } : {}),
-      ...(isNotNullable(test.message) ? { message: test.message } : {}),
+      ...(isNotNull(test.stackTrace) && isNotUndefined(test.stackTrace) ? { stackTrace: test.stackTrace } : {}),
+      ...(isNotNull(test.message) && isNotUndefined(test.message) ? { message: test.message } : {}),
       ...(isNotUndefined(test.asyncApexJobId) ? { asyncApexJobId: test.asyncApexJobId } : {}),
       methodName: test.methodName,
-      ...(isNotNullable(test.apexLogId) ? { apexLogId: test.apexLogId } : {}),
+      ...(isNotNull(test.apexLogId) && isNotUndefined(test.apexLogId) ? { apexLogId: test.apexLogId } : {}),
       apexClass: {
         ...(isNotUndefined(test.apexClass.id) ? { id: test.apexClass.id } : {}),
         name: test.apexClass.name,
-        ...(isNotNullable(test.apexClass.namespacePrefix) ? { namespacePrefix: test.apexClass.namespacePrefix } : {}),
+        ...(isNotNull(test.apexClass.namespacePrefix) && isNotUndefined(test.apexClass.namespacePrefix)
+          ? { namespacePrefix: test.apexClass.namespacePrefix }
+          : {}),
         fullName: test.apexClass.fullName
       },
       testSetupTime: test.runTime,

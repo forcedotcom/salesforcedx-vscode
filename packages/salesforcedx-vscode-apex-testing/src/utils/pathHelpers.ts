@@ -27,15 +27,15 @@ export class NoDefaultOrgError extends Schema.TaggedError<NoDefaultOrgError>()('
  */
 export const getTestResultsFolder = Effect.fn('pathHelpers.getTestResultsFolder')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const { orgId } = yield* SubscriptionRef.get(yield* api.services.TargetOrgRef());
+  const { orgId } = yield* SubscriptionRef.get(yield* api.v2.services.TargetOrgRef);
   if (!orgId) {
     return yield* new NoDefaultOrgError({ message: 'No default org; cannot resolve apex test results folder.' });
   }
-  const workspace = yield* api.services.WorkspaceService.getWorkspaceInfoOrThrow();
+  const workspace = yield* api.v2.services.WorkspaceService.use(service => service.getWorkspaceInfoOrThrow());
   const folderUri = Utils.joinPath(workspace.uri, STATE_FOLDER, TOOLS, TEST_RESULTS, TEST_TYPE, orgId);
-  yield* api.services.FsService.createDirectory(folderUri).pipe(
+  yield* api.v2.services.FsService.use(service => service.createDirectory(folderUri)).pipe(
     Effect.tapError(error => Effect.logError(error)),
-    Effect.catchAll(() => Effect.void)
+    Effect.catch(() => Effect.void)
   );
   return folderUri;
 });

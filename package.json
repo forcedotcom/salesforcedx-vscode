@@ -25,11 +25,12 @@
     "@commitlint/cli": "^19.8.1",
     "@commitlint/config-conventional": "^19.8.1",
     "@cursor/sdk": "1.0.35",
-    "@effect/eslint-plugin": "0.3.2",
-    "@effect/language-service": "^0.87.2",
-    "@effect/platform": "0.96.1",
-    "@effect/platform-node": "0.106.0",
+    "@effect/eslint-plugin": "^0.3.2",
+    "@effect/language-service": "^0.87.5",
+    "@effect/platform-node": "^4.1.4",
     "@eslint/json": "^0.14.0",
+    "@salesforce/playwright-vscode-ext": "workspace:*",
+    "applicationinsights": "1.8.10",
     "@html-eslint/eslint-plugin": "0.59.0",
     "@html-eslint/parser": "0.59.0",
     "@lwc/engine-dom": "8.26.2",
@@ -42,7 +43,6 @@
     "@salesforce/core": "^9.3.6",
     "@salesforce/dev-config": "^4.3.2",
     "@salesforce/effect-octokit": "workspace:*",
-    "@salesforce/playwright-vscode-ext": "workspace:*",
     "@secretlint/node": "11.7.1",
     "@stylistic/eslint-plugin-ts": "2.13.0",
     "@tony.ganchev/eslint-plugin-header": "3.4.4",
@@ -60,7 +60,6 @@
     "@vscode/test-web": "^0.0.81",
     "@vscode/vsce": "3.5.0",
     "acorn": "8.15.0",
-    "applicationinsights": "1.8.10",
     "assert": "2.1.0",
     "browserify-zlib": "0.2.0",
     "buffer": "6.0.3",
@@ -68,7 +67,8 @@
     "css-tree": "3.2.1",
     "cz-conventional-changelog": "3.3.0",
     "dpdm": "^3.14.0",
-    "effect": "^3.21.2",
+    "dts-bundle-generator": "9.5.1",
+    "effect": "^4.1.4",
     "esbuild": "^0.28.1",
     "esbuild-plugin-copy": "2.1.1",
     "esbuild-plugin-polyfill-node": "0.3.0",
@@ -114,6 +114,7 @@
     "stream-http": "3.2.0",
     "timers-browserify": "2.0.12",
     "ts-jest": "29.4.11",
+    "tsx": "4.22.4",
     "typescript": "6.0.3",
     "typescript-eslint": "^8.67.0",
     "util": "0.12.5",
@@ -139,6 +140,10 @@
     "test:ai-safeguards": "wireit",
     "test:manual-test-plan": "wireit",
     "test:scripts": "wireit",
+    "test:effect-v4-compat": "wireit",
+    "test:effect-v3-bridge": "wireit",
+    "test:foundational-services": "wireit",
+    "test:packed-services": "wireit",
     "test-vsix": "node scripts/installVsixFromBranch.mts code",
     "test:container:local": "wireit",
     "check:links": "find . -name \\*.md -not -path '*/node_modules/*' -print0 | xargs -0 -n1 pnpm exec markdown-link-check --quiet --alive 200,206,429",
@@ -205,6 +210,7 @@
         "./packages/salesforcedx-vscode-services:compile",
         "./packages/salesforcedx-vscode-metadata:compile",
         "./packages/salesforcedx-vscode-services-types:compile",
+        "./packages/salesforcedx-vscode-services-v3-compat:compile",
         "./packages/salesforcedx-vscode-org:compile",
         "./packages/salesforcedx-vscode-org-browser:compile",
         "./packages/drivable-vscode:compile",
@@ -238,6 +244,8 @@
         "./packages/salesforcedx-vscode-soql:lint",
         "./packages/salesforcedx-vscode-visualforce:lint",
         "./packages/salesforcedx-vscode-services:lint",
+        "./packages/salesforcedx-vscode-services-types:lint",
+        "./packages/salesforcedx-vscode-services-v3-compat:lint",
         "./packages/salesforcedx-vscode-metadata:lint",
         "./packages/salesforcedx-vscode-org:lint",
         "./packages/salesforcedx-vscode-org-browser:lint",
@@ -278,6 +286,10 @@
         "test:ai-safeguards",
         "test:manual-test-plan",
         "test:scripts",
+        "test:effect-v4-compat",
+        "test:effect-v3-bridge",
+        "test:foundational-services",
+        "test:packed-services",
         "./packages/eslint-local-rules:test",
         "./packages/salesforcedx-utils:test",
         "./packages/salesforcedx-vscode-i18n:test",
@@ -379,6 +391,96 @@
         ".github/workflows/rerunPushE2E.yml",
         "scripts/tsconfig.json",
         "tsconfig.json"
+      ],
+      "output": []
+    },
+    "test:effect-v4-compat": {
+      "command": "node scripts/test-effect-v4-compat.mjs",
+      "dependencies": [
+        "./packages/salesforcedx-vscode-core:compile"
+      ],
+      "files": [
+        "scripts/test-effect-v4-compat.mjs",
+        "scripts/effect-diagnostics.mjs",
+        "config/effect-diagnostics.json",
+        "tsconfig.common.json",
+        "test/fixtures/effect-v4/**/*.{ts,mjs,json}",
+        "!test/fixtures/effect-v4/**/node_modules/**",
+        "package.json",
+        "pnpm-lock.yaml"
+      ],
+      "output": []
+    },
+    "test:effect-v3-bridge": {
+      "command": "node scripts/test-effect-v3-bridge.mjs",
+      "env": {
+        "RUNNER_TEMP": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "./packages/salesforcedx-vscode-services-types:compile",
+        "./packages/salesforcedx-vscode-services-v3-compat:compile",
+        "./packages/salesforcedx-vscode-services:compile"
+      ],
+      "files": [
+        "scripts/test-effect-v3-bridge.mjs",
+        "scripts/packedServicesFixtures.mjs",
+        "test/fixtures/effect-v4/bridgeHost/*.{ts,mjs,json}",
+        "scripts/bundling/*.{js,mjs}",
+        "test/fixtures/effect-v4/bridgeConsumer/*.{ts,mjs,json}",
+        "test/fixtures/effect-v4/legacyAbi/*.{ts,mjs,json}",
+        "package.json",
+        "pnpm-lock.yaml"
+      ],
+      "output": []
+    },
+    "test:packed-services": {
+      "command": "node scripts/test-packed-services.mjs",
+      "env": {
+        "RUNNER_TEMP": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "./packages/salesforcedx-vscode-services-types:compile"
+      ],
+      "files": [
+        "scripts/test-packed-services.mjs",
+        "scripts/packedServicesFixtures.mjs",
+        "test/fixtures/effect-v4/packedLegacy/*.{ts,json}",
+        "test/fixtures/effect-v4/packedV2/*.{ts,json}",
+        "test/fixtures/effect-v4/packedMixed/*.{ts,json}",
+        "package.json",
+        "pnpm-lock.yaml"
+      ],
+      "output": []
+    },
+    "test:foundational-services": {
+      "command": "node scripts/test-foundational-services.mjs",
+      "env": {
+        "RUNNER_TEMP": {
+          "external": true
+        }
+      },
+      "dependencies": [
+        "./packages/salesforcedx-apex:compile",
+        "./packages/salesforcedx-utils:compile",
+        "./packages/salesforcedx-vscode-i18n:compile",
+        "./packages/salesforcedx-vscode-services-types:compile",
+        "./packages/salesforcedx-vscode-services-v3-compat:compile",
+        "./packages/salesforcedx-vscode-services:compile"
+      ],
+      "files": [
+        "scripts/test-foundational-services.mjs",
+        "scripts/packedServicesFixtures.mjs",
+        "scripts/effect-diagnostics.mjs",
+        "scripts/bundling/*.{js,mjs}",
+        "config/effect-diagnostics.json",
+        "test/fixtures/effect-v4/foundations/**",
+        "test/fixtures/effect-v4/decoderConsumer/**",
+        "package.json",
+        "pnpm-lock.yaml"
       ],
       "output": []
     },
@@ -531,7 +633,7 @@
       "output": []
     },
     "check:scripts": {
-      "command": "tsc --noEmit -p scripts/tsconfig.native.json",
+      "command": "tsc --noEmit -p scripts/tsconfig.native.json && node --check scripts/categoryApprove.mts && node --check scripts/changelogBody/changelogBody.mts && node --check scripts/manualTestPlan/manualTestPlan.mts && node --check test/category-approve.test.mts && node --check scripts/manualTestPlan/test/unit/manualTestPlan.test.mts",
       "dependencies": [
         "./packages/salesforcedx-apex:compile",
         "./packages/salesforcedx-vscode-apex-log:compile",
@@ -601,6 +703,7 @@
         "./packages/salesforcedx-vscode-services:check:effect-diagnostics",
         "./packages/salesforcedx-vscode-metadata:check:effect-diagnostics",
         "./packages/salesforcedx-vscode-services-types:check:effect-diagnostics",
+        "./packages/salesforcedx-vscode-services-v3-compat:check:effect-diagnostics",
         "./packages/salesforcedx-vscode-org:check:effect-diagnostics",
         "./packages/salesforcedx-vscode-org-browser:check:effect-diagnostics",
         "./packages/drivable-vscode:check:effect-diagnostics",

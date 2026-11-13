@@ -46,7 +46,7 @@ import { SCHEME as TRACE_FLAGS_SCHEME, TraceFlagsContentProviderService } from '
 export const activate = async (context: vscode.ExtensionContext): Promise<void> => {
   const extensionScope = Effect.runSync(getExtensionScope());
   setAllServicesLayer(buildAllServicesLayer(context, 'Salesforce Apex Log'));
-  await getRuntime().runPromise(activation(context).pipe(Scope.extend(extensionScope)));
+  await getRuntime().runPromise(Scope.provide(extensionScope)(activation(context)));
 };
 
 export const deactivate = async (): Promise<void> => {
@@ -56,14 +56,12 @@ export const deactivate = async (): Promise<void> => {
 const activation = Effect.fn('activation')(function* (context: vscode.ExtensionContext) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const emptyPjson: ExtensionPackageJson = {};
-  const pjson = yield* Schema.decodeUnknown(ExtensionPackageJsonSchema)(context.extension.packageJSON).pipe(
-    Effect.catchAll(() => Effect.succeed(emptyPjson))
+  const pjson = yield* Schema.decodeUnknownEffect(ExtensionPackageJsonSchema)(context.extension.packageJSON).pipe(
+    Effect.catch(() => Effect.succeed(emptyPjson))
   );
   const displayName = pjson.displayName ?? 'Salesforce Apex Log';
-  yield* api.services.ChannelService.pipe(
-    Effect.flatMap(svc => svc.appendToChannel(`${displayName} extension activating`))
-  );
-  const registerCommand = api.services.registerCommandWithRuntime(getRuntime());
+  yield* api.v2.services.ChannelService.use(service => service.appendToChannel(`${displayName} extension activating`));
+  const registerCommand = api.v2.services.registerCommandWithRuntime(getRuntime());
   const scope = yield* getExtensionScope();
 
   const currentTraceFlagsRef = yield* CurrentTraceFlags;
@@ -71,8 +69,8 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
     [
       // init the traceFlagRef
       Effect.forkIn(
-        api.services.TraceFlagService.getTraceFlags().pipe(
-          Effect.catchAll(() => Effect.succeed([])),
+        api.v2.services.TraceFlagService.use(service => service.getTraceFlags()).pipe(
+          Effect.catch(() => Effect.succeed([])),
           Effect.flatMap(flags => SubscriptionRef.set(currentTraceFlagsRef, flags))
         ),
         scope
@@ -116,25 +114,22 @@ const activation = Effect.fn('activation')(function* (context: vscode.ExtensionC
   context.subscriptions.push(
     vscode.workspace.onDidCloseTextDocument(doc => {
       if (!isAnonApexDoc(doc)) return;
-      void getRuntime().runPromise(api.services.ExecuteAnonymousService.clearDiagnostics(doc.uri));
+      void getRuntime().runPromise(
+        api.v2.services.ExecuteAnonymousService.use(service => service.clearDiagnostics(doc.uri))
+      );
     })
   );
 
-  yield* Effect.all([], { concurrency: 'unbounded' });
-
-  yield* api.services.ChannelService.pipe(
-    Effect.flatMap(svc => svc.appendToChannel(`${displayName} activation complete.`))
-  );
+  yield* api.v2.services.ChannelService.use(service => service.appendToChannel(`${displayName} activation complete.`));
 });
 
 const deactivation = Effect.fn('deactivation')(function* () {
   yield* closeExtensionScope();
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const displayName = yield* api.services.ExtensionContextService.pipe(
-    Effect.flatMap(svc => svc.getDisplayName),
-    Effect.catchAll(() => Effect.succeed('Salesforce Apex Log'))
+  const displayName = yield* api.v2.services.ExtensionContextService.use(service =>
+    service.getDisplayName.pipe(Effect.map(name => name ?? 'Salesforce Apex Log'))
   );
-  yield* api.services.ChannelService.pipe(
-    Effect.flatMap(svc => svc.appendToChannel(`${displayName} extension deactivated!`))
+  yield* api.v2.services.ChannelService.use(service =>
+    service.appendToChannel(`${displayName} extension deactivated!`)
   );
 });

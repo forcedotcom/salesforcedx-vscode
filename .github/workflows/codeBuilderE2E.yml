@@ -5,7 +5,7 @@ name: Code Builder E2E (Playwright)
 # bytes about to ship, not a rebuild) swapped in. Linux-only single job: the code-server runtime is
 # identical regardless of host OS, and containers are Linux (plan §10.3).
 #
-# This workflow DRIVES the repo orchestrator (scripts/codeBuilderLocalE2E.mts, run via
+# This workflow DRIVES the repo orchestrator (scripts/codeBuilderLocalE2E.ts, run via
 # `pnpm test:container:local`) rather than re-implementing the pull → swap → restart → gate →
 # specs pipeline — the orchestrator is the local twin of this job, so the two cannot drift (plan
 # §9.1 "WF drives ORCH", §15). CI does the ghcr `docker login` (its GITHUB_TOKEN) and dev-hub auth;
@@ -90,19 +90,19 @@ jobs:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
 
-      - uses: google/wireit@setup-github-actions-caching/v2
+      - uses: google/wireit@9d7c2e5346f8ef1b1ab6014c4e96c74e234f7ed5 # setup-github-actions-caching/v2
 
       - name: Install dependencies
-        uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
+        uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@f145cdc81bff1b8007b8bed081b665e59163afc2 # main
       - name: Install Salesforce CLI
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        uses: salesforcecli/github-workflows/.github/actions/retry@f145cdc81bff1b8007b8bed081b665e59163afc2 # main
         with:
           max_attempts: 3
           command: npm i -g @salesforce/cli@${{ vars.SF_CLI_VERSION || 'latest' }}
           retry_wait_seconds: 30
 
       - name: Install Playwright chromium
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        uses: salesforcecli/github-workflows/.github/actions/retry@f145cdc81bff1b8007b8bed081b665e59163afc2 # main
         with:
           max_attempts: 3
           command: pnpm exec playwright install chromium --with-deps
@@ -112,7 +112,7 @@ jobs:
       # Actions access grants salesforcedx-vscode read, so no App/PAT/private key is needed. The
       # orchestrator sees CB_SKIP_GHCR_LOGIN and reuses this login instead of doing its own.
       - name: Log in to ghcr.io
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        uses: salesforcecli/github-workflows/.github/actions/retry@f145cdc81bff1b8007b8bed081b665e59163afc2 # main
         with:
           max_attempts: 3
           # GITHUB_ACTOR is a runner-provided default env var, so it's safe to reference in the
@@ -122,7 +122,7 @@ jobs:
           retry_wait_seconds: 30
 
       - name: Auth to dev hub
-        uses: salesforcecli/github-workflows/.github/actions/retry@main
+        uses: salesforcecli/github-workflows/.github/actions/retry@f145cdc81bff1b8007b8bed081b665e59163afc2 # main
         with:
           max_attempts: 3
           command: bash -c 'echo "$SFDX_AUTH_URL" | sf org login sfdx-url --set-default-dev-hub --alias hub --sfdx-url-stdin'

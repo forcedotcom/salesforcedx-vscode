@@ -1,8 +1,8 @@
 ---
 name: effect-best-practices
-description: Enforces Effect-TS patterns for services, errors, layers, atoms, and Effect.pipe composition. Use when writing Effect.Service, Schema.TaggedError, Layer, effect-atom, Effect.fn/`.pipe`, or `yield*` pipelines.
+description: Enforces Effect 4 patterns for services, errors, layers, atoms, and Effect.pipe composition. Use when writing Context.Service, Schema.TaggedError, Layer, effect-atom, Effect.fn/`.pipe`, or `yield*` pipelines.
 review: always
-version: 1.6.1
+version: 2.0.0
 ---
 
 For diff/plan review against these patterns, invoke the `effect-advocate` subagent (`.claude/agents/effect-advocate.md`).
@@ -27,19 +27,19 @@ npx effect-language-service diagnostics --project tsconfig.json
 
 | Category          | DO                                                       | DON'T                                                            |
 | ----------------- | -------------------------------------------------------- | ---------------------------------------------------------------- |
-| Services          | `Effect.Service` with `accessors: true`                  | `Context.Tag` for business logic                                 |
-| Dependencies      | `dependencies: [Dep.Default]` in service                 | Manual `Layer.provide` at usage sites                            |
+| Services          | `Context.Service` with explicit `Layer` composition       | V3 `Effect.Service` / `.Default` in V4 code                      |
+| Dependencies      | Yield dependencies in `Layer.effect`; compose at boundary | Rebuild shared services at call sites                            |
 | Errors            | `Schema.TaggedError` with `message` field                | Plain classes or generic Error                                   |
 | Error Specificity | Split tags when catch arms or field shapes differ; telemetry dimensions are fields on one tag | Extra tags that all print `message` / fire the same span |
-| Error Handling    | `catchTag`/`catchTags`; catch only when needed           | `catchAll`; swallowing; catching "just in case"                  |
-| IDs               | Salesforce record/org: `SalesforceId`/`OrgId` (`core/schemas/salesforceId.ts`). `DefaultOrgInfoSchema.orgId`/`devHubOrgId`: `Schema.optional(OrgId)` like `cliId`. Else `Schema.UUID.pipe(Schema.brand("@App/EntityId"))` | Plain `string`; `getAuthInfoFields().orgId` ad hoc; `optionalWith` as Option on DefaultOrgInfo |
-| Functions         | `Effect.fn` over `Effect.gen`; `.gen` only for shared pipes | Anonymous generators; nested `Effect.gen` to attach recovery; `.gen` for business logic |
+| Error Handling    | `catchTag`/`catchTags`; catch only when needed           | broad `Effect.catch`; swallowing; catching "just in case"        |
+| IDs               | Salesforce record/org: `SalesforceId`/`OrgId` (`core/schemas/salesforceId.ts`). `DefaultOrgInfoSchema.orgId`/`devHubOrgId`: `Schema.optional(OrgId)` like `cliId`. Else `Schema.String.check(Schema.isUUID()).pipe(Schema.brand("@App/EntityId"))` | Plain `string`; `getAuthInfoFields().orgId` ad hoc; `optionalWith` as Option on DefaultOrgInfo |
+| Functions         | `Effect.fn` for reusable traced functions; `Effect.gen` inline | Anonymous reusable generators; nested `Effect.gen` just to attach recovery |
 | Composition       | `.pipe`; `local/inline-single-use-yield-binding` for yielded values; `local/no-standalone-pipeable-value` for Effect/Stream/Schema values. Details: `references/composition-style.md` | — |
 | Params vs deps    | Params = runtime data; dependencies = yield from context | Passing Ref/PubSub/service as params                             |
 | Naming            | `FooCommand` for commands, domain names for helpers      | `FooEffect` suffix (redundant; TS/Effect.fn already convey type) |
 | Logging           | `Effect.log` with structured data                        | `console.log`                                                    |
 | Config            | `Config.*` with validation                               | `process.env` directly (except build-time vars like `ESBUILD_*`) |
-| Time values       | `Duration.seconds(30)`, `Duration.millis(5000)`; params as `Duration.DurationInput`. Enforced by `local/no-raw-duration` for a numeric arg/prop in `Duration` / `DurationInput` position only. `bigint`, template strings, `number` params, and `TIMEOUT_MS` constants stay outside the rule. | Numeric milliseconds as `number` params or `TIMEOUT_MS = 30_000` constants |
+| Time values       | `Duration.seconds(30)`, `Duration.millis(5000)`; use `Duration.Input` for time parameters | Raw numeric milliseconds in Duration positions                   |
 | Options           | `Option.match` with both cases                           | `Option.getOrThrow`                                              |
 | Nullability       | `Option<T>` in domain types                              | `null`/`undefined`                                               |
 | Atoms             | `Atom.make` outside components                           | Creating atoms inside render                                     |
@@ -52,49 +52,36 @@ npx effect-language-service diagnostics --project tsconfig.json
 
 ## Service Definition Pattern
 
-**Always use `Effect.Service`** for business logic services. This provides automatic accessors, built-in `Default` layer, and proper dependency declaration.
+**Use `Context.Service`** for Effect 4 services. Define an explicit `Layer`; yield dependencies in its effect and compose layers at the application boundary.
 
 ```typescript
-import { Effect } from 'effect';
+import * as Context from 'effect/Context';
+import * as Effect from 'effect/Effect';
+import * as Layer from 'effect/Layer';
 
-export class UserService extends Effect.Service<UserService>()('UserService', {
-  accessors: true,
-  dependencies: [UserRepo.Default, CacheService.Default],
-  effect: Effect.gen(function* () {
-    const repo = yield* UserRepo;
-    const cache = yield* CacheService;
+export class UserService extends Context.Service<
+  UserService,
+  { readonly findById: (id: UserId) => Effect.Effect<User, UserNotFoundError> }
+>()('myapp/UserService') {
+  static readonly layer = Layer.effect(
+    UserService,
+    Effect.gen(function* () {
+      const repo = yield* UserRepo;
+      return UserService.of({
+        findById: Effect.fn('UserService.findById')(function* (id: UserId) {
+          return yield* repo.findById(id);
+        })
+      });
+    })
+  ).pipe(Layer.provide(UserRepo.layer));
+}
 
-    const findById = Effect.fn('UserService.findById')(function* (id: UserId) {
-      const cached = yield* cache.get(id);
-      if (Option.isSome(cached)) return cached.value;
-
-      const user = yield* repo.findById(id);
-      yield* cache.set(id, user);
-      return user;
-    });
-
-    const create = Effect.fn('UserService.create')(function* (data: CreateUserInput) {
-      const user = yield* repo.create(data);
-      yield* Effect.log('User created', { userId: user.id });
-      return user;
-    });
-
-    return { findById, create };
-  })
-}) {}
-
-// Usage - dependencies are already wired
-const program = UserService.findById(userId);
-
-// At app root
-const MainLive = Layer.mergeAll(UserService.Default, OtherService.Default);
+const MainLive = Layer.mergeAll(UserService.layer, OtherService.layer);
 ```
 
-**When `Context.Tag` is acceptable:**
+Use `Context.Service` for caller-provided interfaces too when several implementations are valid. Keep construction in the host/test layer; don't add a fake default implementation. `Context.Reference` is for a value-like service with a real default.
 
-- Infrastructure with runtime injection (Cloudflare KV, worker bindings)
-- Factory patterns where resources are provided externally
-- Interfaces with caller-provided implementations — no single canonical one to bundle as `.Default` (e.g. `SoqlBuilderService`, implemented once by the VS Code host and once by a test fake); see `references/service-patterns.md`
+Use `Context.Service` for injectable interfaces, including caller-provided implementations. Keep `Context.Tag` only for third-party tags that must retain that API. See `references/service-patterns.md`.
 
 ### Params vs Dependencies
 
@@ -126,15 +113,13 @@ See `references/service-patterns.md` for detailed patterns.
 
 ```typescript
 import { Schema } from 'effect';
-import { HttpApiSchema } from '@effect/platform';
 
 export class UserNotFoundError extends Schema.TaggedError<UserNotFoundError>()(
   'UserNotFoundError',
   {
     userId: UserId,
     message: Schema.String
-  },
-  HttpApiSchema.annotations({ status: 404 })
+  }
 ) {}
 
 export class UserCreateError extends Schema.TaggedError<UserCreateError>()(
@@ -142,8 +127,7 @@ export class UserCreateError extends Schema.TaggedError<UserCreateError>()(
   {
     message: Schema.String,
     cause: Schema.optional(Schema.String)
-  },
-  HttpApiSchema.annotations({ status: 400 })
+  }
 ) {}
 ```
 
@@ -180,7 +164,7 @@ yield *
 
 Expected skip (missing optional plugin, incompatible version): write nls on the success path (guard / Match branch). `fail`+`catchTag` is for unexpected recovery — a handler that isn't "print this string."
 
-Catch sparingly. No `catchAll` or "swallow to be safe." Use `catchTag`/`catchTags`; log or fail with improved error.
+Catch sparingly. Use `Effect.catch` only for deliberate recovery; use `catchTag`/`catchTags` when the failure is typed.
 
 ### Prefer Explicit Over Generic Errors
 
@@ -188,7 +172,7 @@ Split tags when **catch arms or field shapes** differ — e.g. `message`+`cause`
 
 ### Accumulating Errors Across a Collection
 
-To **continue past failures** instead of short-circuiting on the first, don't hand-roll `Either` + `catchTag` + a re-loop. Use `Effect.partition` (both buckets), `Effect.validateAll` (all-or-nothing), or `Effect.validateFirst`. These recover the typed error channel per item but do NOT capture interruption — so a Cancel still aborts the whole loop.
+To **continue past failures** instead of short-circuiting on the first, don't hand-roll `Result` + `catchTag` + a re-loop. Use `Effect.partition` (both buckets) or `Effect.validate` (all-or-nothing). Use `Effect.firstSuccessOf` to try alternatives until one succeeds. Collection validation does not capture interruption — Cancel still aborts the whole loop.
 
 See `references/error-patterns.md` for the accumulation/interruption nuance, error remapping, and retry patterns.
 
@@ -202,10 +186,10 @@ This repo — Salesforce record/org ids are not UUIDs. Use `SalesforceId`/`OrgId
 import { Schema } from 'effect';
 
 // Entity IDs - always branded
-export const UserId = Schema.UUID.pipe(Schema.brand('@App/UserId'));
+export const UserId = Schema.String.check(Schema.isUUID()).pipe(Schema.brand('@App/UserId'));
 export type UserId = Schema.Schema.Type<typeof UserId>;
 
-export const TenantId = Schema.UUID.pipe(Schema.brand('@App/TenantId'));
+export const TenantId = Schema.String.check(Schema.isUUID()).pipe(Schema.brand('@App/TenantId'));
 export type TenantId = Schema.Schema.Type<typeof TenantId>;
 
 // Domain types - use Schema.Struct
@@ -220,8 +204,8 @@ export type User = Schema.Schema.Type<typeof User>;
 
 // Input types for mutations
 export const CreateUserInput = Schema.Struct({
-  email: Schema.String.pipe(Schema.pattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/)),
-  name: Schema.String.pipe(Schema.minLength(1)),
+  email: Schema.String.pipe(Schema.check(Schema.isPattern(/^[^\s@]+@[^\s@]+\.[^\s@]+$/))),
+  name: Schema.NonEmptyString,
   tenantId: TenantId
 });
 export type CreateUserInput = Schema.Schema.Type<typeof CreateUserInput>;
@@ -234,11 +218,11 @@ export type CreateUserInput = Schema.Schema.Type<typeof CreateUserInput>;
 
 See `references/schema-patterns.md` for transforms and advanced patterns.
 
-## Function Pattern: Prefer Effect.fn over Effect.gen
+## Function Pattern: `Effect.fn` for reusable functions
 
-**Prefer `Effect.fn`** for effectful code. Provides automatic tracing with proper span names. Span name required; enforced by `local/require-effect-fn-span-name`. `Effect.tap` / `*SuccessNotification` middleware before catch middleware: `local/effect-fn-catch-middleware-last` (later catch and non-success guards stay valid). Details: services-extension-consumption Success handling.
+Use `Effect.fn` for reusable traced functions; use `Effect.gen` for inline one-shot programs. Spanned `Effect.fn` requires a name (`local/require-effect-fn-span-name`). `Effect.tap` / `*SuccessNotification` middleware before catch middleware: `local/effect-fn-catch-middleware-last` (later catch and non-success guards stay valid). Details: services-extension-consumption Success handling.
 
-**Use `Effect.gen` only when** you need a shared effect with common `.pipe` attached so multiple consumers don't each pipe the same things — e.g. provided dependencies, common error handlers, retries. (Less common with Runtimes.) Service definition bodies are a valid use (shared wiring).
+Use `Effect.gen` for inline sequencing and service-layer construction. Don't wrap a single `yield*` only to make it pipeable; use the Effect itself or a named helper.
 
 ```typescript
 // CORRECT - Effect.fn with descriptive name
@@ -281,28 +265,32 @@ See `references/composition-style.md`: `.pipe`, `local/inline-single-use-yield-b
 
 ## Layer Composition
 
-**Declare dependencies in the service**, not at usage sites:
+**Declare requirements in the service layer** and provide them at the composition boundary:
 
 ```typescript
-// CORRECT - dependencies in service definition
-export class OrderService extends Effect.Service<OrderService>()('OrderService', {
-  accessors: true,
-  dependencies: [UserService.Default, ProductService.Default, PaymentService.Default],
-  effect: Effect.gen(function* () {
-    const users = yield* UserService;
-    const products = yield* ProductService;
-    const payments = yield* PaymentService;
-    // ...
-  })
-}) {}
+// V4 service; the layer declares dependencies through its Effect requirements.
+export class OrderService extends Context.Service<
+  OrderService,
+  { readonly placeOrder: (input: CreateOrderInput) => Effect.Effect<Order, OrderError> }
+>()('myapp/OrderService') {
+  static readonly layer = Layer.effect(
+    OrderService,
+    Effect.gen(function* () {
+      const users = yield* UserService;
+      const products = yield* ProductService;
+      const payments = yield* PaymentService;
+      return OrderService.of({
+        placeOrder: Effect.fn('OrderService.placeOrder')(function* (input: CreateOrderInput) {
+          const user = yield* users.findById(input.userId);
+          const product = yield* products.findById(input.productId);
+          return yield* payments.placeOrder(user, product, input);
+        })
+      });
+    })
+  ).pipe(Layer.provide(Layer.mergeAll(UserService.layer, ProductService.layer, PaymentService.layer)));
+}
 
-// At app root - simple merge
-const AppLive = Layer.mergeAll(
-  OrderService.Default,
-  // Infrastructure layers (intentionally not in dependencies)
-  DatabaseLive,
-  RedisLive
-);
+const AppLive = Layer.mergeAll(OrderService.layer, DatabaseLive, RedisLive);
 ```
 
 See `references/layer-patterns.md` for testing layers and config-dependent layers.
@@ -313,14 +301,18 @@ Resources created inside an Effect service/layer belong to its scope. Prefer `sc
 `Effect.addFinalizer` or `Effect.acquireRelease`; don't expose `dispose` or delegate cleanup to a host lifecycle.
 
 ```typescript
-export class StatusService extends Effect.Service<StatusService>()('StatusService', {
-  accessors: true,
-  scoped: Effect.gen(function* () {
-    const item = vscode.window.createStatusBarItem();
-    yield* Effect.addFinalizer(() => Effect.sync(() => item.dispose()));
-    return { show: Effect.sync(() => item.show()) };
-  })
-}) {}
+export class StatusService extends Context.Service<StatusService, { readonly show: Effect.Effect<void> }>()(
+  'myapp/StatusService'
+) {
+  static readonly layer = Layer.effect(
+    StatusService,
+    Effect.gen(function* () {
+      const item = vscode.window.createStatusBarItem();
+      yield* Effect.addFinalizer(() => Effect.sync(() => item.dispose()));
+      return StatusService.of({ show: Effect.sync(() => item.show()) });
+    })
+  );
+}
 ```
 
 The layer owner must close its scope. A `ManagedRuntime` owns its layers' scopes; dispose it during extension
@@ -425,11 +417,11 @@ union shape, no exceptions:
 | ---------------------- | -------------------------- |
 | `T \| undefined`       | `isUndefined` / `isNotUndefined` |
 | `T \| null`            | `isNull` / `isNotNull`     |
-| `T \| null \| undefined` | `isNullable` / `isNotNullable` |
+| `T \| null \| undefined` | `isNullish` / `isNotNullish` |
 
 ```typescript
 import * as Schema from 'effect/Schema';
-import { isNotNull, isNotUndefined, isNullable, isUndefined } from 'effect/Predicate';
+import { isNotNull, isNotNullish, isNotUndefined, isNullish, isUndefined } from 'effect/Predicate';
 
 // T | undefined — the common case (Optional<T>, optional props, ?? sources)
 if (isUndefined(maybeValue)) return;
@@ -445,13 +437,12 @@ const match = scriptRegex.exec(html);
 if (isNotNull(match)) { … }
 
 // T | null | undefined — e.g. `exclude?: vscode.GlobPattern | null` (optional AND nullable)
-const arr = isNullable(exclude) ? undefined : [exclude];
+const arr = isNullish(exclude) ? undefined : [exclude];
 ```
 
-Runtime semantics: `isUndefined` is `x === undefined`, `isNull` is `x === null`, `isNullable`
-is either (`node_modules/effect/src/Predicate.ts:611,649,925`). A wider guard than the type
-needs still compiles — it just implies a case the type can't produce, so it reads as a lie
-about the value. Note `typeof x === 'object' && x !== null` object-narrowing stays as-is;
+Runtime semantics: `isUndefined` is `x === undefined`, `isNull` is `x === null`, `isNullish`
+is either. A wider guard than the type needs still compiles — it just implies a case the type
+can't produce, so it reads as a lie about the value. Note `typeof x === 'object' && x !== null` object-narrowing stays as-is;
 that's a structural check, not an emptiness check.
 
 ## Point-free Predicates in Filters
@@ -468,7 +459,7 @@ arr.filter(not(isFlowTest))
 arr.filter(x => !isFlowTest(x))
 ```
 
-Works with any predicate — built-in (`isString`, `isError`, `isNotUndefined`, `isNotNullable`) or
+Works with any predicate — built-in (`isString`, `isError`, `isNotUndefined`, `isNotNullish`) or
 custom. Only the wrapped predicate can be receiver-sensitive: `not(obj.method)`
 detaches the receiver, so verify the impl uses no `this` first (see
 [composition-style](./references/composition-style.md#point-free-terminal-step-safe-only-when-impl-doesnt-use-this)).
@@ -476,19 +467,19 @@ detaches the receiver, so verify the impl uses no `this` first (see
 Keep `!` where the predicate isn't element-level (`!isCollectionType(decl.type)`)
 unless a named element predicate already exists or is worth adding.
 
-## Imports: Prefer Deep Imports from @effect/platform
+## Imports: Prefer Deep Imports from Effect modules
 
-Barrel imports from `@effect/platform` bundle HttpApiSwagger (Swagger UI), which esbuild cannot tree-shake. This bloats web/desktop bundles by ~5.5MB per output and can trigger security scanner false positives (e.g., ClamAV signatures).
+Use deep imports for Effect HTTP modules so bundles include only the implementation used.
 
 **Always import the submodule as a namespace** (the submodule *is* the namespace — it has no self-named export):
 
 ```typescript
 // CORRECT — deep namespace import, tree-shakes unused
-import * as FetchHttpClient from '@effect/platform/FetchHttpClient';
+import * as FetchHttpClient from 'effect/http/FetchHttpClient';
 // use: FetchHttpClient.layer
 
-// WRONG — barrel import drags in HttpApiSwagger
-import { FetchHttpClient } from '@effect/platform';
+// WRONG — import the whole HTTP namespace
+import * as Http from 'effect/http';
 ```
 
 Matches the repo's `import * as Effect from 'effect/Effect'` style. Applies to all `@effect/*` packages. Check import source before committing.
@@ -504,11 +495,14 @@ const orderCounter = Metric.counter('orders_processed');
 yield * Metric.increment(orderCounter);
 
 // Config with validation
+import * as Schema from 'effect/Schema';
+
 const config = Config.all({
-  port: Config.integer('PORT').pipe(Config.withDefault(3000)),
-  apiKey: Config.secret('API_KEY'),
-  maxRetries: Config.integer('MAX_RETRIES').pipe(
-    Config.validate({ message: 'Must be positive', validation: n => n > 0 })
+  port: Config.Int('PORT').pipe(Config.withDefault(3000)),
+  apiKey: Config.Redacted('API_KEY'),
+  maxRetries: Config.schema(
+    Schema.NumberFromString.pipe(Schema.check(Schema.isGreaterThan(0))),
+    'MAX_RETRIES'
   )
 });
 ```
@@ -520,7 +514,7 @@ See `references/observability-patterns.md` for metrics and tracing patterns.
 For detailed patterns, consult these reference files in the `references/` directory:
 
 - `composition-style.md` - `.pipe`; `local/inline-single-use-yield-binding` for single-use yielded values; terminal runner; point-free safety; tap for side effects; Match dispatch; guard clauses; linear body as point-free pipe vs generator; recovery on a subsequence (pipe from the first Effect — not a nested `Effect.gen`)
-- `service-patterns.md` - Service definition, Effect.fn, Context.Tag exceptions
+- `service-patterns.md` - V4 `Context.Service`, Effect.fn, caller-provided interfaces
 - `error-patterns.md` - Schema.TaggedError, error remapping, retry patterns
 - `schema-patterns.md` - Branded types, transforms, Schema.Class
 - `layer-patterns.md` - Dependency composition, testing layers

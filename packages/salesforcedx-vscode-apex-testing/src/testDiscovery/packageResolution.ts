@@ -7,14 +7,16 @@
 
 import { ExtensionProviderService, getMessageFromError } from '@salesforce/effect-ext-utils';
 import * as Array from 'effect/Array';
-import * as Chunk from 'effect/Chunk';
+import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as HashMap from 'effect/HashMap';
 import * as HashSet from 'effect/HashSet';
+import * as Layer from 'effect/Layer';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import { isString } from 'effect/Predicate';
 import * as Ref from 'effect/Ref';
+import * as Result from 'effect/Result';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
@@ -82,7 +84,7 @@ const inClause = (ids: readonly string[]): string => ids.map(id => `'${escapeId(
 const toResolvedFromPackage2 = (pkg: Package2Row): ResolvedPackageInfo => ({
   package2Id: pkg.Id,
   packageName: pkg.Name,
-  containerOptions: pkg.ContainerOptions
+  containerOptions: Option.flatMap(pkg.ContainerOptions, Option.fromNullishOr)
 });
 
 /** ManageableState absent/empty/'unmanaged' ⇒ unpackaged (keep the class out of the single no-namespace package). */
@@ -93,32 +95,48 @@ const isUnpackagedState = (state: Option.Option<string>): boolean =>
       .toLowerCase()
   );
 
-/** Trim + drop empty so `''`/whitespace namespace behaves like `null`/absent (no-namespace bucket). */
+/** Trim and drop empty after callers normalize null/absent to None (no-namespace bucket). */
 const trimmedNamespace = (ns: Option.Option<string>): Option.Option<string> =>
   ns.pipe(
-    Option.map(s => s.trim()),
-    Option.filter(s => s !== '')
+    Option.map(value => value.trim()),
+    Option.filter(value => value !== '')
   );
 
 /** Shared accessor: reach TargetOrgRef ambiently through the Services extension. */
-const getServicesApi = Effect.flatMap(ExtensionProviderService, ext => ext.getServicesApi);
-const getOrgKey = getServicesApi.pipe(
-  Effect.flatMap(api => api.services.TargetOrgRef()),
-  Effect.flatMap(SubscriptionRef.get),
-  Effect.map(info => info.orgId ?? info.username ?? 'unknown')
-);
+const getOrgKey = Effect.gen(function* () {
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const targetOrgRef = yield* api.v2.services.TargetOrgRef;
+  const info = yield* SubscriptionRef.get(targetOrgRef);
+  return info.orgId ?? info.username ?? 'unknown';
+});
 
 /**
  * Run a Tooling SOQL query and decode each row against `schema`, dropping rows that don't decode
  * (filterMap) rather than failing the whole query. `INVALID_TYPE` marks Package2 unavailable; any other
  * query or connection failure is a generic query error so the caller can mark the org and/or fall back.
  */
-const queryDecoded = <A, I>(schema: Schema.Schema<A, I>, soql: string) =>
-  getServicesApi.pipe(
-    Effect.flatMap(api => api.services.QueryService),
-    Effect.flatMap(queryService => queryService.query({ soql, tooling: true }, Schema.Unknown)),
-    Effect.flatMap(({ records }) => Stream.runCollect(records)),
-    Effect.map(chunk => Array.filterMap(Chunk.toReadonlyArray(chunk), row => Schema.decodeUnknownOption(schema)(row))),
+const queryDecoded = <A, I>(schema: Schema.Codec<A, I>, soql: string) =>
+  Effect.gen(function* () {
+    const api = yield* (yield* ExtensionProviderService).getServicesApi;
+    const query = yield* api.v2.services.QueryService.use(service =>
+      service.query({ soql, tooling: true }, input =>
+        Schema.decodeUnknownEffect(
+          Schema.Struct({
+            totalSize: Schema.Number,
+            done: Schema.optional(Schema.Boolean),
+            nextRecordsUrl: Schema.optional(Schema.String),
+            records: Schema.Unknown.pipe(Schema.Array, Schema.optional)
+          })
+        )(input).pipe(
+          Effect.map(page => ({
+            ...page,
+            records: (page.records ?? []).flatMap(row => Option.toArray(Schema.decodeUnknownOption(schema)(row)))
+          }))
+        )
+      )
+    );
+    return yield* Stream.runCollect(query.records);
+  }).pipe(
     Effect.mapError(error =>
       isPackage2UnavailableError(error)
         ? new Package2UnavailableError({ message: getMessageFromError(error) })
@@ -128,7 +146,7 @@ const queryDecoded = <A, I>(schema: Schema.Schema<A, I>, soql: string) =>
 
 /** Query `ids` in IN-clause chunks (bounded concurrency), decode, and flatten to one row list. */
 const batchedQuery = <A, I>(
-  schema: Schema.Schema<A, I>,
+  schema: Schema.Codec<A, I>,
   ids: readonly string[],
   toSoql: (chunk: readonly string[]) => string
 ) =>
@@ -147,9 +165,9 @@ const getUnpackagedApexClassIds = Effect.fn('PackageResolutionService.getUnpacka
       classIds,
       chunk => `SELECT Id, ManageableState FROM ApexClass WHERE Id IN (${inClause(chunk)})`
     ).pipe(
-      Effect.map(Array.filter(row => isUnpackagedState(row.ManageableState))),
+      Effect.map(Array.filter(row => isUnpackagedState(Option.flatMap(row.ManageableState, Option.fromNullishOr)))),
       Effect.map(rows => HashSet.fromIterable(rows.map(row => normalizeId(row.Id)))),
-      Effect.catchAll(() => Effect.succeed(HashSet.empty<string>()))
+      Effect.catch(() => Effect.succeed(HashSet.empty<string>()))
     )
 );
 
@@ -170,40 +188,46 @@ const resolveFromInstalledSubscriberPackages = Effect.fn(
   const rows = yield* queryDecoded(
     InstalledSubscriberPackageRow,
     'SELECT Id, SubscriberPackageId, SubscriberPackage.NamespacePrefix, SubscriberPackage.Name FROM InstalledSubscriberPackage ORDER BY SubscriberPackage.NamespacePrefix'
-  ).pipe(Effect.catchAll(() => Effect.succeed(Array.empty<InstalledSubscriberPackageRow>())));
+  ).pipe(Effect.catch(() => Effect.succeed(Array.empty<InstalledSubscriberPackageRow>())));
 
   const byNamespace = HashMap.fromIterable(
-    Array.filterMap(rows, row =>
-      trimmedNamespace(row.SubscriberPackage.NamespacePrefix).pipe(Option.map(ns => [ns, row] as const))
-    )
+    Array.filterMap(rows, row => {
+      const namespace = Option.flatMap(row.SubscriberPackage.NamespacePrefix, Option.fromNullishOr);
+      return Result.fromOption(trimmedNamespace(namespace).pipe(Option.map(ns => [ns, row] as const)), () => undefined);
+    })
   );
   const noNamespacePackages = rows.filter(row =>
-    trimmedNamespace(row.SubscriberPackage.NamespacePrefix).pipe(Option.isNone)
+    trimmedNamespace(Option.flatMap(row.SubscriberPackage.NamespacePrefix, Option.fromNullishOr)).pipe(Option.isNone)
   );
 
   const entries = [...classIdToNamespace.entries()];
 
   // Namespaced classes: package2Id is the SubscriberPackageId (033); no ContainerOptions from this object.
   const namespaced = Array.filterMap(entries, ([classId, ns]) =>
-    Option.flatMap(ns, prefix => HashMap.get(byNamespace, prefix)).pipe(
-      Option.map(
-        row =>
-          [
-            classId,
-            {
-              package2Id: row.SubscriberPackageId,
-              packageName: row.SubscriberPackage.Name,
-              containerOptions: Option.none<ContainerOption>()
-            }
-          ] as const
-      )
+    Result.fromOption(
+      Option.flatMap(ns, prefix => HashMap.get(byNamespace, prefix)).pipe(
+        Option.map(
+          row =>
+            [
+              classId,
+              {
+                package2Id: row.SubscriberPackageId,
+                packageName: row.SubscriberPackage.Name,
+                containerOptions: Option.none<ContainerOption>()
+              }
+            ] as const
+        )
+      ),
+      () => undefined
     )
   );
 
   // No-namespace classes only resolve when EXACTLY one no-namespace package exists; head gives none otherwise.
   const singleNoNsPackage = noNamespacePackages.length === 1 ? Array.head(noNamespacePackages) : Option.none();
   const noNsClassIds = Option.isSome(singleNoNsPackage)
-    ? Array.filterMap(entries, ([classId, ns]) => (Option.isNone(ns) ? Option.some(classId) : Option.none()))
+    ? Array.filterMap(entries, ([classId, ns]) =>
+        Option.isNone(ns) ? Result.succeed(classId) : Result.fail(undefined)
+      )
     : [];
   const unpackaged = noNsClassIds.length > 0 ? yield* getUnpackagedApexClassIds(noNsClassIds) : HashSet.empty<string>();
   const noNsResolved = Option.match(singleNoNsPackage, {
@@ -211,8 +235,8 @@ const resolveFromInstalledSubscriberPackages = Effect.fn(
     onSome: pkg =>
       Array.filterMap(noNsClassIds, classId =>
         HashSet.has(unpackaged, normalizeId(classId))
-          ? Option.none()
-          : Option.some([
+          ? Result.fail(undefined)
+          : Result.succeed([
               classId,
               {
                 package2Id: pkg.SubscriberPackageId,
@@ -252,8 +276,11 @@ const resolveByMembers = Effect.fn('PackageResolutionService.resolveByMembers')(
 
   return HashMap.fromIterable(
     Array.filterMap(members, member =>
-      HashMap.get(packageBySubscriberId, member.SubscriberPackageId).pipe(
-        Option.map(pkg => [member.SubjectId, toResolvedFromPackage2(pkg)] as const)
+      Result.fromOption(
+        HashMap.get(packageBySubscriberId, member.SubscriberPackageId).pipe(
+          Option.map(pkg => [member.SubjectId, toResolvedFromPackage2(pkg)] as const)
+        ),
+        () => undefined
       )
     )
   );
@@ -286,11 +313,11 @@ const resolveByPackageEnumeration = Effect.fn('PackageResolutionService.resolveB
         Effect.map(members =>
           Array.filterMap(members, member =>
             HashSet.has(requested, member.SubjectId)
-              ? Option.some([member.SubjectId, toResolvedFromPackage2(pkg)] as const)
-              : Option.none()
+              ? Result.succeed([member.SubjectId, toResolvedFromPackage2(pkg)] as const)
+              : Result.fail(undefined)
           )
         ),
-        Effect.catchAll(() => Effect.succeed(Array.empty<readonly [string, ResolvedPackageInfo]>()))
+        Effect.catch(() => Effect.succeed(Array.empty<readonly [string, ResolvedPackageInfo]>()))
       ),
     { concurrency: BATCH_CONCURRENCY }
   ).pipe(Effect.map(Array.flatten), Effect.map(HashMap.fromIterable));
@@ -303,99 +330,104 @@ const resolveByPackageEnumeration = Effect.fn('PackageResolutionService.resolveB
  * per org for the runtime lifetime. Classes not resolvable are omitted (caller treats them as unpackaged
  * or 1GP based on namespace from discovery).
  */
-export class PackageResolutionService extends Effect.Service<PackageResolutionService>()('PackageResolutionService', {
-  accessors: true,
-  dependencies: [],
-  effect: Effect.gen(function* () {
-    const stateRef = yield* Ref.make<ResolutionState>({ byOrg: HashMap.empty(), unavailable: HashSet.empty() });
+const makePackageResolutionService = Effect.gen(function* () {
+  const stateRef = yield* Ref.make<ResolutionState>({ byOrg: HashMap.empty(), unavailable: HashSet.empty() });
 
-    const markUnavailable = (orgKey: string) =>
-      Ref.update(stateRef, state => ({ ...state, unavailable: HashSet.add(state.unavailable, orgKey) }));
+  const markUnavailable = (orgKey: string) =>
+    Ref.update(stateRef, state => ({ ...state, unavailable: HashSet.add(state.unavailable, orgKey) }));
 
-    // Only Package2UnavailableError (INVALID_TYPE) marks the org unavailable; generic query errors don't.
-    const markIfUnavailable = (orgKey: string) => (error: Package2UnavailableError | Package2QueryError) =>
-      Match.value(error).pipe(
-        Match.tag('Package2UnavailableError', () => markUnavailable(orgKey)),
-        Match.orElse(() => Effect.void)
-      );
+  // Only Package2UnavailableError (INVALID_TYPE) marks the org unavailable; generic query errors don't.
+  const markIfUnavailable = (orgKey: string) => (error: Package2UnavailableError | Package2QueryError) =>
+    Match.value(error).pipe(
+      Match.tag('Package2UnavailableError', () => markUnavailable(orgKey)),
+      Match.orElse(() => Effect.void)
+    );
 
-    // Project the org's cache down to just the requested ids as a plain Map (the tree consumers' shape).
-    const projectCache = (
-      orgCache: Option.Option<HashMap.HashMap<string, ResolvedPackageInfo>>,
-      ids: readonly string[]
-    ) =>
-      new Map(
-        Option.match(orgCache, {
-          onNone: () => [],
-          onSome: cache =>
-            Array.filterMap(ids, id => HashMap.get(cache, id).pipe(Option.map(info => [id, info] as const)))
-        })
-      );
-
-    // On primary success, resolve any still-missing ids by enumerating packages; failures there stay best-effort.
-    const augmentUnresolved = Effect.fn('PackageResolutionService.augmentUnresolved')(function* (
-      orgKey: string,
-      validIds: readonly string[],
-      resolved: HashMap.HashMap<string, ResolvedPackageInfo>
-    ) {
-      const unresolved = validIds.filter(id => !HashMap.has(resolved, id));
-      if (unresolved.length === 0) {
-        return resolved;
-      }
-      const extra = yield* resolveByPackageEnumeration(unresolved).pipe(
-        Effect.tapError(markIfUnavailable(orgKey)),
-        Effect.catchAll(() => Effect.succeed(HashMap.empty<string, ResolvedPackageInfo>()))
-      );
-      return HashMap.union(resolved, extra);
-    });
-
-    const resolve = Effect.fn('PackageResolutionService.resolve')(function* (
-      apexClassIds: readonly string[],
-      classIdToNamespace: ReadonlyMap<string, Option.Option<string>> = new Map()
-    ) {
-      const validIds = apexClassIds.filter(id => isString(id) && id.length > 0);
-      if (validIds.length === 0) {
-        return new Map<string, ResolvedPackageInfo>();
-      }
-
-      const orgKey = yield* getOrgKey;
-      const state = yield* Ref.get(stateRef);
-      const orgCache = HashMap.get(state.byOrg, orgKey);
-
-      // Known-unavailable org: serve whatever is cached, never re-query.
-      if (HashSet.has(state.unavailable, orgKey)) {
-        return projectCache(orgCache, validIds);
-      }
-      // Full cache hit for every requested id.
-      if (Option.exists(orgCache, cache => validIds.every(id => HashMap.has(cache, id)))) {
-        return projectCache(orgCache, validIds);
-      }
-
-      const resolved = yield* resolveByMembers(validIds).pipe(
-        Effect.flatMap(members => augmentUnresolved(orgKey, validIds, members)),
-        Effect.tapError(markIfUnavailable(orgKey)),
-        Effect.catchTags({
-          Package2UnavailableError: () => resolveFromInstalledSubscriberPackages(classIdToNamespace),
-          Package2QueryError: () => resolveFromInstalledSubscriberPackages(classIdToNamespace)
-        })
-      );
-
-      yield* Ref.update(stateRef, current => ({
-        ...current,
-        byOrg: HashMap.set(
-          current.byOrg,
-          orgKey,
-          HashMap.union(
-            Option.getOrElse(HashMap.get(current.byOrg, orgKey), () => HashMap.empty<string, ResolvedPackageInfo>()),
-            resolved
+  // Project the org's cache down to just the requested ids as a plain Map (the tree consumers' shape).
+  const projectCache = (
+    orgCache: Option.Option<HashMap.HashMap<string, ResolvedPackageInfo>>,
+    ids: readonly string[]
+  ) =>
+    new Map(
+      Option.match(orgCache, {
+        onNone: () => [],
+        onSome: cache =>
+          Array.filterMap(ids, id =>
+            Result.fromOption(HashMap.get(cache, id).pipe(Option.map(info => [id, info] as const)), () => undefined)
           )
+      })
+    );
+
+  // On primary success, resolve any still-missing ids by enumerating packages; failures there stay best-effort.
+  const augmentUnresolved = Effect.fn('PackageResolutionService.augmentUnresolved')(function* (
+    orgKey: string,
+    validIds: readonly string[],
+    resolved: HashMap.HashMap<string, ResolvedPackageInfo>
+  ) {
+    const unresolved = validIds.filter(id => !HashMap.has(resolved, id));
+    if (unresolved.length === 0) {
+      return resolved;
+    }
+    const extra = yield* resolveByPackageEnumeration(unresolved).pipe(
+      Effect.tapError(markIfUnavailable(orgKey)),
+      Effect.catch(() => Effect.succeed(HashMap.empty<string, ResolvedPackageInfo>()))
+    );
+    return HashMap.union(resolved, extra);
+  });
+
+  const resolve = Effect.fn('PackageResolutionService.resolve')(function* (
+    apexClassIds: readonly string[],
+    classIdToNamespace: ReadonlyMap<string, Option.Option<string>> = new Map()
+  ) {
+    const validIds = apexClassIds.filter(id => isString(id) && id.length > 0);
+    if (validIds.length === 0) {
+      return new Map<string, ResolvedPackageInfo>();
+    }
+
+    const orgKey = yield* getOrgKey;
+    const state = yield* Ref.get(stateRef);
+    const orgCache = HashMap.get(state.byOrg, orgKey);
+
+    // Known-unavailable org: serve whatever is cached, never re-query.
+    if (HashSet.has(state.unavailable, orgKey)) {
+      return projectCache(orgCache, validIds);
+    }
+    // Full cache hit for every requested id.
+    if (Option.exists(orgCache, cache => validIds.every(id => HashMap.has(cache, id)))) {
+      return projectCache(orgCache, validIds);
+    }
+
+    const resolved = yield* resolveByMembers(validIds).pipe(
+      Effect.flatMap(members => augmentUnresolved(orgKey, validIds, members)),
+      Effect.tapError(markIfUnavailable(orgKey)),
+      Effect.catchTags({
+        Package2UnavailableError: () => resolveFromInstalledSubscriberPackages(classIdToNamespace),
+        Package2QueryError: () => resolveFromInstalledSubscriberPackages(classIdToNamespace)
+      })
+    );
+
+    yield* Ref.update(stateRef, current => ({
+      ...current,
+      byOrg: HashMap.set(
+        current.byOrg,
+        orgKey,
+        HashMap.union(
+          Option.getOrElse(HashMap.get(current.byOrg, orgKey), () => HashMap.empty<string, ResolvedPackageInfo>()),
+          resolved
         )
-      }));
+      )
+    }));
 
-      // Scope the returned map to the requested ids (resolved may also carry sibling ids from the subscriber fallback).
-      return projectCache(Option.some(resolved), validIds);
-    });
+    // Scope the returned map to the requested ids (resolved may also carry sibling ids from the subscriber fallback).
+    return projectCache(Option.some(resolved), validIds);
+  });
 
-    return { resolve };
-  })
-}) {}
+  return { resolve };
+});
+
+export class PackageResolutionService extends Context.Service<
+  PackageResolutionService,
+  Effect.Success<typeof makePackageResolutionService>
+>()('PackageResolutionService') {
+  public static readonly layer = Layer.effect(PackageResolutionService, makePackageResolutionService);
+}

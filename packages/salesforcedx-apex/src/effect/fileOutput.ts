@@ -18,7 +18,7 @@ export class FileOutputError extends Schema.TaggedError<FileOutputError>()('File
 }) {}
 
 /** File operations needed by Apex result writers. Hosts provide the implementation for their filesystem. */
-export class FileOutput extends Context.Tag('Apex.FileOutput')<
+export class FileOutput extends Context.Service<
   FileOutput,
   {
     createDirectory: (path: string) => Effect.Effect<void, FileOutputError>;
@@ -28,4 +28,4 @@ export class FileOutput extends Context.Tag('Apex.FileOutput')<
       content: Stream.Stream<string, never, never>
     ) => Effect.Effect<string, FileOutputError>;
   }
->() {}
+>()('Apex.FileOutput') {}

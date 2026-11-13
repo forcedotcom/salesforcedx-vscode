@@ -11,14 +11,16 @@ import { isNotNull } from 'effect/Predicate';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import { identity } from 'effect/Function';
-import * as Schema from 'effect/Schema';
 import * as vscode from 'vscode';
+import {
+  ProjectService,
+  PromptService,
+  TerminalService,
+  UserCancellationError,
+  WorkspaceService
+} from '@salesforce/vscode-services/v2';
 import { orgLogoutAllCommand } from '../../../../src/commands/auth/orgLogout';
 import type * as orgUtil from '../../../../src/util/orgUtil';
-
-// Real UserCancellationError (@salesforce/vscode-services) not constructable under Vitest;
-// local Schema.TaggedError with same _tag works for catchTag matching.
-class UserCancellationError extends Schema.TaggedError<UserCancellationError>()('UserCancellationError', {}) {}
 
 // orgList.ts uses toSorted which trips Vitest transform; command only needs the two helpers it imports.
 vi.mock('../../../../src/orgPicker/orgList', () => ({
@@ -42,29 +44,38 @@ vi.mock('../../../../src/util/orgUtil', async () => {
 type Authorization = { username: string; isScratchOrg?: boolean; isSandbox?: boolean };
 
 const buildServices = (opts: { isProject: boolean; confirm: boolean; simpleExec: VitestMock }) => ({
-  ProjectService: {
+  project: {
     getSfProject: () =>
       opts.isProject ? Effect.succeed({}) : Effect.fail({ _tag: 'FailedToResolveSfProjectError' as const })
   },
-  PromptService: Effect.succeed({
+  prompt: {
     considerEmptySelectionAsCancellation: <T>(value: readonly T[] | undefined) =>
-      value === undefined || value.length === 0 ? Effect.fail(new UserCancellationError()) : Effect.succeed(value),
+      value === undefined || value.length === 0
+        ? Effect.fail(new UserCancellationError({ message: 'User canceled' }))
+        : Effect.succeed(value),
     confirmOrThrow: (_params: { message: string; confirmLabel: string }) =>
-      opts.confirm ? Effect.void : Effect.fail(new UserCancellationError())
-  }),
-  TerminalService: Effect.succeed({ simpleExec: opts.simpleExec }),
-  WorkspaceService: { getWorkspaceInfoOrThrow: () => Effect.succeed({ fsPath: '/workspace' }) },
-  UserCancellationError
+      opts.confirm ? Effect.void : Effect.fail(new UserCancellationError({ message: 'User canceled' }))
+  },
+  terminal: { simpleExec: opts.simpleExec },
+  workspace: { getWorkspaceInfoOrThrow: () => Effect.succeed({ fsPath: '/workspace' }) }
 });
 
-const run = (opts: { isProject: boolean; confirm: boolean }) =>
-  Effect.runPromiseExit(
+const run = (opts: { isProject: boolean; confirm: boolean }) => {
+  const services = buildServices({ ...opts, simpleExec: logoutMock });
+  return Effect.runPromiseExit(
     orgLogoutAllCommand().pipe(
       Effect.provideService(ExtensionProviderService, {
-        getServicesApi: Effect.succeed({ services: buildServices({ ...opts, simpleExec: logoutMock }) })
-      } as unknown as ExtensionProviderService)
+        getServicesApi: Effect.succeed({
+          v2: { services: { ProjectService, PromptService, TerminalService, WorkspaceService, UserCancellationError } }
+        })
+      } as unknown as ExtensionProviderService['Service']),
+      Effect.provideService(ProjectService, services.project as never),
+      Effect.provideService(PromptService, services.prompt as never),
+      Effect.provideService(TerminalService, services.terminal as never),
+      Effect.provideService(WorkspaceService, services.workspace as never)
     ) as Effect.Effect<void, unknown, never>
   );
+};
 
 describe('orgLogoutAllCommand', () => {
   let showQuickPickMock: VitestMockInstance;

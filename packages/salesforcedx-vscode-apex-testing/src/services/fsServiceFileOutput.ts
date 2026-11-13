@@ -6,16 +6,13 @@
  */
 
 import { FileOutputError, type FileOutput } from '@salesforce/apex-node/effect';
-import type { SalesforceVSCodeServicesApi } from '@salesforce/effect-ext-utils';
-import * as Chunk from 'effect/Chunk';
-import type * as Context from 'effect/Context';
+import type { SalesforceVSCodeServicesApiV2 } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
 import * as Stream from 'effect/Stream';
 import { Utils } from 'vscode-uri';
 
-type FsServiceTag = SalesforceVSCodeServicesApi['services']['FsService'];
-type FsService = Context.Tag.Service<FsServiceTag>;
+type FsService = SalesforceVSCodeServicesApiV2['v2']['services']['FsService']['Service'];
 
 const toFileOutputError = (operation: string, path: string, cause: unknown): FileOutputError =>
   new FileOutputError({ operation, path, message: isError(cause) ? cause.message : String(cause) });
@@ -28,7 +25,7 @@ export const fileOutputFromFsService = (fsService: FsService): typeof FileOutput
   writeFile: Effect.fn('ApexTestingFileOutput.writeFile')(
     (directory: string, fileName: string, content: Stream.Stream<string, never, never>) =>
       Stream.runCollect(content).pipe(
-        Effect.map(Chunk.join('')),
+        Effect.map(chunks => chunks.join('')),
         Effect.flatMap(text =>
           fsService.toUri(directory).pipe(
             Effect.map(uri => Utils.joinPath(uri, fileName)),

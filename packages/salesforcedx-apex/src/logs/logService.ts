@@ -14,7 +14,7 @@ import { NodeFileOutput } from '../effect/nodeFileOutput';
 import { nls } from '../i18n';
 import { elapsedTime } from '../utils/elapsedTime';
 import { createFile } from '../utils/fileSystemHandler';
-import { ensureTraceFlags } from '../utils/traceFlags';
+import { TraceFlags } from '../utils/traceFlags';
 import { LISTENER_ABORTED_ERROR_NAME, LOG_TIMER_LENGTH_MINUTES, MAX_NUM_LOGS, STREAMING_LOG_TOPIC } from './constants';
 import { type ApexLogGetOptions, type LogRecord, type LogResult } from './types';
 
@@ -25,13 +25,11 @@ type StreamingLogMessage = {
 
 export class LogService {
   private readonly connection: Connection;
-  private readonly fileOutput: typeof FileOutput.Service;
   private logger!: Logger;
   private logTailer?: (log: string) => void;
 
-  constructor(connection: Connection, fileOutput: typeof FileOutput.Service = NodeFileOutput) {
+  constructor(connection: Connection) {
     this.connection = connection;
-    this.fileOutput = fileOutput;
   }
 
   @elapsedTime()
@@ -61,7 +59,7 @@ export class LogService {
       ).map(async ({ log, logId }) => {
         if (options.outputDir) {
           const logPath = path.join(options.outputDir, `${logId}.log`);
-          await Effect.runPromise(createFile(logPath, log).pipe(Effect.provideService(FileOutput, this.fileOutput)));
+          await Effect.runPromise(createFile(logPath, log).pipe(Effect.provideService(FileOutput, NodeFileOutput)));
           return { log, logPath };
         }
         return { log };
@@ -145,9 +143,9 @@ export class LogService {
     return { completed: false };
   }
 
-  @elapsedTime()
   public async prepareTraceFlag(requestedDebugLevel: string): Promise<void> {
-    await ensureTraceFlags(this.connection, requestedDebugLevel);
+    const flags = new TraceFlags(this.connection);
+    await flags.ensureTraceFlags(requestedDebugLevel);
   }
 
   @elapsedTime()

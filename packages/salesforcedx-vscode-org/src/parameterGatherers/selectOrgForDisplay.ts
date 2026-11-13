@@ -15,7 +15,7 @@ import { getFreshAuthorizations } from '../util/orgUtil';
 /** QuickPick that shows all authenticated orgs for the user to pick one to display info for. */
 export const gatherOrgForDisplay = Effect.fn('SelectOrgForDisplay.gather')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
+  const promptService = yield* api.v2.services.PromptService;
   const { defaultConfig, freshAuthorizations } = yield* getFreshAuthorizations();
 
   const items = buildOrgQuickPickItems(freshAuthorizations, defaultConfig);
@@ -28,7 +28,7 @@ export const gatherOrgForDisplay = Effect.fn('SelectOrgForDisplay.gather')(funct
   ).pipe(Effect.flatMap(promptService.considerUndefinedAsCancellation));
 
   if (!isOrgItem(selection) || !selection.orgUsername) {
-    return yield* new api.services.UserCancellationError({});
+    return yield* new api.v2.services.UserCancellationError({ message: 'User cancelled' });
   }
 
   return { username: selection.orgUsername };

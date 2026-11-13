@@ -4,58 +4,61 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import type {
+  ApexTestProgressReporter,
+  AsyncTestArrayConfiguration,
+  AsyncTestConfiguration,
+  OutputDirConfig,
+  SyncTestConfiguration,
+  TestLevel,
+  TestResult,
+  TestRunIdResult,
+  TestSuiteMembershipRecord
+} from './apiTypes';
 import { type Connection } from '@salesforce/core';
 import { type Duration } from '@salesforce/kit';
 import * as Effect from 'effect/Effect';
-import * as Either from 'effect/Either';
-import * as FiberRef from 'effect/FiberRef';
-import * as HashSet from 'effect/HashSet';
-import * as Logger from 'effect/Logger';
 import * as Option from 'effect/Option';
+import * as Result from 'effect/Result';
 import * as Schema from 'effect/Schema';
 import { FileOutput } from '../effect/fileOutput';
 import { NodeFileOutput } from '../effect/nodeFileOutput';
 import { ApexOperationError, ApexResponseDecodeError } from '../effect/schema/errors';
+import { ApexTestSuiteId } from '../effect/schema/salesforceId';
 import { buildAsyncPayload, buildSyncPayload } from '../effect/testPayloads';
 import { buildSuite, getTestsInSuite, retrieveAllSuites, retrieveSuiteId } from '../effect/testSuites';
-import { type WriteResultFilesOptions, writeResultFiles as writeResultFilesEffect } from '../effect/writeResultFiles';
+import { writeResultFiles as writeResultFilesEffect } from '../effect/writeResultFiles';
 import { nls } from '../i18n';
-import { ApexTestSuiteId } from '../schemas/salesforceId';
 import { elapsedTime } from '../utils/elapsedTime';
+import { HeapMonitor } from '../utils/heapMonitor';
 import { AsyncTests } from './asyncTests';
 import { type CancellationToken } from './cancellation';
 import { formatTestErrors } from './diagnosticUtil';
 import { SyncTests } from './syncTests';
-import {
-  type ApexTestProgressReporter,
-  type AsyncTestArrayConfiguration,
-  type AsyncTestConfiguration,
-  type OutputDirConfig,
-  type SyncTestConfiguration,
-  type TestLevel,
-  type TestResult,
-  type TestRunIdResult,
-  type TestSuiteMembershipRecord
-} from './types';
 
+type WriteTestResultOptions = {
+  format?: 'markdown' | 'text';
+  sortOrder?: 'runtime' | 'coverage' | 'severity';
+  performanceThresholdMs?: number;
+  coverageThresholdPercent?: number;
+  timestamp?: Date;
+  lineEnding?: '\n' | '\r\n';
+  writeTestRunId?: boolean;
+  includeSetup?: boolean;
+};
 /** Keeps typed failures as ordinary Promise rejections for existing class consumers. */
 const runTestServiceOperation = async <A, E extends Error>(operation: Effect.Effect<A, E>): Promise<A> =>
-  Either.getOrThrowWith(await operation.pipe(Effect.either, Effect.runPromise), formatTestErrors);
-
-// Preserve the class API's plain console messages while Effect consumers select their own logger.
-const suiteConsoleLogger = Logger.make(({ message }) => console.log(...(Array.isArray(message) ? message : [message])));
+  Result.getOrThrowWith(await operation.pipe(Effect.result, Effect.runPromise), formatTestErrors);
 
 export class TestService {
   private readonly connection: Connection;
   private readonly asyncService: AsyncTests;
   private readonly syncService: SyncTests;
-  private readonly fileOutput: typeof FileOutput.Service;
 
-  constructor(connection: Connection, fileOutput: typeof FileOutput.Service = NodeFileOutput) {
+  constructor(connection: Connection) {
     this.connection = connection;
-    this.fileOutput = fileOutput;
     this.syncService = new SyncTests(connection);
-    this.asyncService = new AsyncTests(connection, fileOutput);
+    this.asyncService = new AsyncTests(connection, NodeFileOutput);
   }
 
   /**
@@ -76,7 +79,7 @@ export class TestService {
   public async getTestsInSuite(suitename?: string, suiteId?: string): Promise<TestSuiteMembershipRecord[]> {
     const suiteIdLookup: Effect.Effect<Option.Option<string>, ApexOperationError | ApexResponseDecodeError> = suitename
       ? retrieveSuiteId(this.connection, suitename)
-      : Effect.succeed(Option.fromNullable(suiteId));
+      : Effect.succeed(Option.fromNullishOr(suiteId));
     return runTestServiceOperation(
       suiteIdLookup.pipe(
         Effect.flatMap(
@@ -91,7 +94,7 @@ export class TestService {
                 })
               ),
             onSome: id =>
-              Schema.decodeUnknown(ApexTestSuiteId)(id).pipe(
+              Schema.decodeUnknownEffect(ApexTestSuiteId)(id).pipe(
                 Effect.mapError(
                   cause =>
                     new ApexResponseDecodeError({
@@ -116,13 +119,7 @@ export class TestService {
    * @internal Used by the co-repo Apex Testing extension; not part of the supported npm API.
    */
   public async buildSuite(suitename: string, testClasses: string[]): Promise<void> {
-    return runTestServiceOperation(
-      buildSuite(this.connection, suitename, testClasses).pipe(
-        Effect.locallyWith(FiberRef.currentLoggers, loggers =>
-          loggers.pipe(HashSet.remove(Logger.defaultLogger), HashSet.add(suiteConsoleLogger))
-        )
-      )
-    );
+    return runTestServiceOperation(buildSuite(this.connection, suitename, testClasses));
   }
 
   /**
@@ -137,7 +134,12 @@ export class TestService {
     codeCoverage = false,
     token?: CancellationToken
   ): Promise<TestResult | TestRunIdResult> {
-    return this.syncService.runTests(options, codeCoverage, token);
+    HeapMonitor.getInstance().startMonitoring();
+    try {
+      return await this.syncService.runTests(options, codeCoverage, token);
+    } finally {
+      HeapMonitor.getInstance().stopMonitoring();
+    }
   }
 
   /**
@@ -159,7 +161,20 @@ export class TestService {
     timeout?: Duration,
     interval?: Duration
   ): Promise<TestResult | TestRunIdResult> {
-    return this.asyncService.runTests(options, codeCoverage, immediatelyReturn, progress, token, timeout, interval);
+    HeapMonitor.getInstance().startMonitoring();
+    try {
+      return await this.asyncService.runTests(
+        options,
+        codeCoverage,
+        immediatelyReturn,
+        progress,
+        token,
+        timeout,
+        interval
+      );
+    } finally {
+      HeapMonitor.getInstance().stopMonitoring();
+    }
   }
 
   /**
@@ -174,7 +189,12 @@ export class TestService {
     codeCoverage = false,
     token?: CancellationToken
   ): Promise<TestResult> {
-    return this.asyncService.reportAsyncResults(testRunId, codeCoverage, token);
+    HeapMonitor.getInstance().startMonitoring();
+    try {
+      return await this.asyncService.reportAsyncResults(testRunId, codeCoverage, token);
+    } finally {
+      HeapMonitor.getInstance().stopMonitoring();
+    }
   }
 
   /**
@@ -189,13 +209,20 @@ export class TestService {
     result: TestResult | TestRunIdResult,
     outputDirConfig: OutputDirConfig,
     codeCoverage = false,
-    reportOptions: Omit<WriteResultFilesOptions, 'codeCoverage'> = {}
+    reportOptions: Omit<WriteTestResultOptions, 'codeCoverage'> = {}
   ): Promise<string[]> {
-    return runTestServiceOperation(
-      writeResultFilesEffect(result, outputDirConfig, { ...reportOptions, codeCoverage }).pipe(
-        Effect.provideService(FileOutput, this.fileOutput)
-      )
-    );
+    HeapMonitor.getInstance().startMonitoring();
+    HeapMonitor.getInstance().checkHeapSize('testService.writeResultFiles');
+    try {
+      return await runTestServiceOperation(
+        writeResultFilesEffect(result, outputDirConfig, { ...reportOptions, codeCoverage }).pipe(
+          Effect.provideService(FileOutput, NodeFileOutput)
+        )
+      );
+    } finally {
+      HeapMonitor.getInstance().checkHeapSize('testService.writeResultFiles');
+      HeapMonitor.getInstance().stopMonitoring();
+    }
   }
 
   /**

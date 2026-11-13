@@ -7,4 +7,5 @@
 
 import { createDesktopConfig } from '@salesforce/playwright-vscode-ext';
 
-export default createDesktopConfig({ testDir: './specs' });
+// Specs mutate the shared minimal org's trace flags and debug levels; don't run them concurrently.
+export default createDesktopConfig({ testDir: './specs', workers: 1 });

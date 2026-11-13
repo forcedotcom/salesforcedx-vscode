@@ -10,8 +10,7 @@ import * as DateTime from 'effect/DateTime';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Ref from 'effect/Ref';
-import { FsService } from 'salesforcedx-vscode-services/src/vscode/fsService';
-import { HashableUri } from 'salesforcedx-vscode-services/src/vscode/hashableUri';
+import { FsService, HashableUri } from '@salesforce/vscode-services/v2';
 import { URI, Utils } from 'vscode-uri';
 import { buildTimestampIndexFromDir } from '../../../src/conflict/resultStorage';
 
@@ -38,17 +37,14 @@ const fileUri = (name: string) => Utils.joinPath(DIR, `${name}.json`);
  * (required so static accessors delegate into the mock FsService context). */
 const createMockExtensionProvider = () =>
   ({
-    getServicesApi: Effect.succeed({ services: { FsService } })
-  }) as unknown as ExtensionProviderService;
+    getServicesApi: Effect.succeed({ v2: { services: { FsService } } })
+  }) as unknown as ExtensionProviderService['Service'];
 
 /**
  * Build a mock FsService from a files map.
  * deletedRef tracks every path passed to deleteFile.
  */
-const makeMockFs = (
-  files: Record<string, string>,
-  deletedRef: Ref.Ref<string[]>
-): Partial<InstanceType<typeof FsService>> => ({
+const makeMockFs = (files: Record<string, string>, deletedRef: Ref.Ref<string[]>): Partial<FsService['Service']> => ({
   fileOrFolderExists: () => Effect.succeed(true),
   readDirectory: () => Effect.succeed(Object.keys(files).map(k => URI.parse(k))),
   readFile: (uri: string | URI) => {
@@ -63,15 +59,15 @@ const makeMockFs = (
 });
 
 const provideServices =
-  (mockFs: Partial<InstanceType<typeof FsService>>) =>
+  (mockFs: Partial<FsService['Service']>) =>
   <A, E, R>(e: Effect.Effect<A, E, R>) =>
     e.pipe(
       Effect.provideService(ExtensionProviderService, createMockExtensionProvider()),
-      Effect.provideService(FsService, mockFs as InstanceType<typeof FsService>)
+      Effect.provideService(FsService, mockFs as FsService['Service'])
     );
 
 /** Run an effect with mock services. Yields after completion so forkDaemon cleanup can execute. */
-const runWithMocks = <A>(effect: Effect.Effect<A, unknown, unknown>, mockFs: Partial<InstanceType<typeof FsService>>) =>
+const runWithMocks = <A>(effect: Effect.Effect<A, unknown, unknown>, mockFs: Partial<FsService['Service']>) =>
   Effect.runPromise(
     effect.pipe(
       // forkDaemon schedules cleanup outside the main fiber's execution; Effect.yieldNow()

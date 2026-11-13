@@ -12,22 +12,21 @@ import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import { isNotUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import { messages } from '../i18n/i18n';
+import { messages } from '../i18n/i18n.js';
+import { createRecord, queryRecords } from './records.js';
+import { ApexOperationError, ApexResponseDecodeError } from './schema/errors.js';
 import {
   ApexTestSuiteId,
-  SalesforceId,
   type ApexTestSuiteId as ApexTestSuiteIdType,
   type ApexClassId
-} from '../schemas/salesforceId';
-import { createRecord, queryRecords } from './records';
-import { ApexOperationError, ApexResponseDecodeError } from './schema/errors';
-import { TestSuiteMembershipSchema } from './schema/testSuites';
+} from './schema/salesforceId.js';
+import { TestSuiteMembershipSchema } from './schema/testSuites.js';
 import {
   ApexClassIdQueryResponseSchema,
   TestSuiteIdQueryResponseSchema,
   TestSuiteRecordSchema
-} from './schema/wire/testSuites';
-import { parseDottedName } from './testSelection';
+} from './schema/wire/testSuites.js';
+import { parseDottedName } from './testSelection.js';
 
 const quote = (value: string): string => value.replaceAll('\\', '\\\\').replaceAll("'", "\\'");
 
@@ -37,7 +36,7 @@ export const retrieveAllSuites = Effect.fn('Apex.retrieveAllSuites')(function* (
     connection,
     operation: 'retrieveAllSuites',
     soql: 'SELECT id, TestSuiteName FROM ApexTestSuite',
-    recordSchema: TestSuiteRecordSchema,
+    record: TestSuiteRecordSchema,
     tooling: true
   });
 });
@@ -47,7 +46,7 @@ export const retrieveSuiteId = Effect.fn('Apex.retrieveSuiteId')(function* (conn
     connection,
     operation: 'retrieveSuiteId',
     soql: `SELECT id FROM ApexTestSuite WHERE TestSuiteName = '${quote(suiteName)}'`,
-    recordSchema: TestSuiteIdQueryResponseSchema,
+    record: TestSuiteIdQueryResponseSchema,
     tooling: true
   }).pipe(Effect.map(records => Array.head(records).pipe(Option.map(record => record.Id))));
 });
@@ -61,7 +60,7 @@ export const getTestsInSuite = Effect.fn('Apex.getTestsInSuite')(function* (
     connection,
     operation: 'getTestsInSuite',
     soql: `SELECT ApexClassId FROM TestSuiteMembership WHERE ApexTestSuiteId = '${quote(suiteId)}'`,
-    recordSchema: TestSuiteMembershipSchema,
+    record: TestSuiteMembershipSchema,
     tooling: true
   });
 });
@@ -87,8 +86,7 @@ const updateSuiteMembership = Effect.fn('Apex.buildSuite.updateMembership')(func
     fields: {
       ApexClassId: classId,
       ApexTestSuiteId: suiteId
-    },
-    idSchema: SalesforceId
+    }
   }).pipe(Effect.asVoid);
   yield* Effect.annotateCurrentSpan({ membership: 'added' });
 });
@@ -107,14 +105,13 @@ export const buildSuite = Effect.fn('Apex.buildSuite')(function* (
             connection,
             operation: 'buildSuite',
             type: 'ApexTestSuite',
-            fields: { TestSuiteName: suiteName },
-            idSchema: ApexTestSuiteId
+            fields: { TestSuiteName: suiteName }
           }).pipe(Effect.map(record => record.id)),
         onSome: Effect.succeed
       })
     ),
     Effect.flatMap(id =>
-      Schema.decodeUnknown(ApexTestSuiteId)(id).pipe(
+      Schema.decodeUnknownEffect(ApexTestSuiteId)(id).pipe(
         Effect.mapError(
           cause =>
             new ApexResponseDecodeError({
@@ -168,7 +165,7 @@ export const getApexClassIds = Effect.fn('Apex.getApexClassIds')(function* (
         connection,
         operation: 'buildSuite',
         soql: `SELECT Id FROM ApexClass WHERE Name = '${quote(name)}' AND ${namespaceFilter} LIMIT 1`,
-        recordSchema: ApexClassIdQueryResponseSchema,
+        record: ApexClassIdQueryResponseSchema,
         tooling: true
       }).pipe(
         Effect.map(Array.head),

@@ -6,7 +6,7 @@
  */
 
 import { getMessageFromError } from '@salesforce/effect-ext-utils';
-import { isError, isNotUndefined, isRecord, isString } from 'effect/Predicate';
+import { isError, isNotUndefined, isObject, isString } from 'effect/Predicate';
 import { nls } from '../messages';
 
 /** Common Salesforce API / connection error patterns that should be mapped to user-friendly messages */
@@ -48,7 +48,7 @@ const getRawMessage = (error: unknown): string => {
   if (isError(error) || isString(error)) {
     return getMessageFromError(error);
   }
-  if (isRecord(error)) {
+  if (isObject(error)) {
     const msg = getMessageFromObject(error);
     if (isNotUndefined(msg)) {
       return msg;
@@ -57,14 +57,14 @@ const getRawMessage = (error: unknown): string => {
     const body: unknown = Object.getOwnPropertyDescriptor(error, 'body')?.value;
     if (Array.isArray(body) && body.length > 0) {
       const first: unknown = body[0];
-      if (isRecord(first)) {
+      if (isObject(first)) {
         const firstMsg = getMessageFromObject(first);
         if (isNotUndefined(firstMsg)) {
           return firstMsg;
         }
       }
     }
-    if (isRecord(body)) {
+    if (isObject(body)) {
       const bodyMsg = getMessageFromObject(body);
       if (isNotUndefined(bodyMsg)) {
         return bodyMsg;

@@ -1,6 +1,6 @@
 {
   "name": "@salesforce/vscode-services",
-  "version": "68.13.0",
+  "version": "68.13.1",
   "description": "TypeScript type definitions for Salesforce VS Code Services extension API",
   "author": "Salesforce",
   "license": "BSD-3-Clause",
@@ -18,10 +18,21 @@
     ".": {
       "types": "./out/index.d.ts",
       "default": "./out/index.js"
+    },
+    "./v2": {
+      "types": "./out/v2/index.d.ts",
+      "default": "./out/v2/index.js"
+    },
+    "./v2/uriComparison": {
+      "types": "./out/v2/uriComparison.d.cts",
+      "default": "./out/v2/uriComparison.cjs"
     }
   },
   "files": [
-    "out/**",
+    "out/index.*",
+    "out/icons.*",
+    "out/services.d.ts",
+    "out/v2/**",
     "README.md",
     "LICENSE.txt"
   ],
@@ -32,40 +43,83 @@
     "generate-entry": "node scripts/generateEntry.mts",
     "sync-deps": "node scripts/syncDeps.mts",
     "compile": "wireit",
+    "lint": "wireit",
     "clean": "shx rm -rf src out dist node_modules .wireit .eslintcache *.tgz",
     "check:effect-diagnostics": "wireit"
   },
   "wireit": {
     "generate-src": {
       "command": "node scripts/generateEntry.mts && node scripts/syncDeps.mts",
+      "dependencies": [
+        "../salesforcedx-vscode-services-v3-compat:compile"
+      ],
       "files": [
-        "../salesforcedx-vscode-services/src/**/*.ts",
-        "scripts/*.mts"
+        "../salesforcedx-vscode-services/package.json",
+        "legacy/**/*.d.ts",
+        "scripts/*.mts",
+        "v2/icons.ts"
       ],
       "output": [
         "src/index.ts",
-        "src/icons.ts"
+        "src/icons.ts",
+        "src/externalServices.d.ts"
       ]
     },
     "compile": {
-      "command": "tsc --pretty",
+      "dependencies": [
+        "compile:legacy",
+        "compile:v2"
+      ]
+    },
+    "compile:legacy": {
+      "command": "tsc --pretty && dts-bundle-generator --project tsconfig.json --export-referenced-types false --out-file out/services.d.ts src/index.ts && node scripts/writePublicDeclarations.mjs",
       "clean": "if-file-deleted",
       "dependencies": [
-        "generate-src",
-        "../salesforcedx-vscode-services:compile"
+        "generate-src"
       ],
       "files": [
         "src/**/*.ts",
+        "scripts/*.mjs",
         "tsconfig.json",
         "../../tsconfig.common.json",
+        "../../pnpm-lock.yaml",
         "package.json"
       ],
       "output": [
-        "out/**"
+        "out/index.*",
+        "out/icons.*",
+        "out/services.d.ts"
       ]
     },
+    "compile:v2": {
+      "command": "tsc -p v2/tsconfig.json --pretty && shx cp v2/package.json out/v2/package.json",
+      "files": [
+        "v2/**/*.{ts,cts,json}",
+        "../../tsconfig.common.json",
+        "../../pnpm-lock.yaml",
+        "package.json"
+      ],
+      "output": [
+        "out/v2/**"
+      ]
+    },
+    "lint": {
+      "command": "eslint --color src v2 package.json",
+      "dependencies": [
+        "compile",
+        "../eslint-local-rules:compile"
+      ],
+      "files": [
+        "src/**/*.ts",
+        "v2/**/*.{ts,cts,json}",
+        "package.json",
+        "tsconfig.json",
+        "../../eslint.config.mjs"
+      ],
+      "output": []
+    },
     "check:effect-diagnostics": {
-      "command": "node ../../scripts/effect-diagnostics.mjs .",
+      "command": "node ../../scripts/effect-diagnostics.mjs . && node ../../scripts/effect-diagnostics.mjs v2",
       "dependencies": [
         "compile"
       ],
@@ -77,8 +131,9 @@
     }
   },
   "dependencies": {
+    "@effect/opentelemetry": "^4.1.4",
     "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.43",
-    "@effect/opentelemetry": "0.63.0",
+    "@jsforce/jsforce-node": "^3.10.24",
     "@opentelemetry/api": "1.9.1",
     "@opentelemetry/core": "2.8.0",
     "@opentelemetry/exporter-trace-otlp-http": "0.219.0",
@@ -90,12 +145,15 @@
     "@salesforce/core": "^9.3.6",
     "@salesforce/source-deploy-retrieve": "^13.5.0",
     "@salesforce/source-tracking": "^8.1.7",
+    "@salesforce/templates": "^66.19.0",
     "@types/vscode": "^1.129.0",
-    "effect": "^3.21.2",
+    "effect": "^4.1.4",
+    "effect-v3": "npm:effect@^3.21.2",
     "jsforce": "^3.10.24",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
+    "@salesforce/vscode-services-v3-compat": "*",
     "shx": "^0.4.0"
   },
   "engines": {

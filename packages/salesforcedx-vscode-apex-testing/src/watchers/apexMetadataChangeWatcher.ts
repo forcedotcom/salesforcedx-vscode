@@ -6,12 +6,12 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { MetadataChangeEvent } from '@salesforce/vscode-services/v2';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Option from 'effect/Option';
 import * as Ref from 'effect/Ref';
 import * as Stream from 'effect/Stream';
-import type { MetadataChangeEventType } from 'salesforcedx-vscode-services';
 import { IS_TEST_REG_EXP } from '../constants';
 import { type getTestController } from '../views/testController';
 
@@ -21,9 +21,9 @@ const APEX_CHANGE_TYPES = new Set<string>(['created', 'changed', 'deleted']);
 const filterApexTests = Effect.fn('isApexTestFileOrNotPresentLocally', {
   root: true,
   attributes: { telemetryIgnore: true }
-})(function* (e: MetadataChangeEventType) {
+})(function* (e: MetadataChangeEvent) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const fsService = yield* api.services.FsService;
+  const fsService = yield* api.v2.services.FsService;
   if (e.metadataType === 'ApexTestSuite' || e.changeType === 'deleted') return true;
   const fileUri = Option.getOrUndefined(e.fileUri);
   if (!fileUri) return true;
@@ -35,7 +35,7 @@ export const setupApexMetadataChangeWatcher = Effect.fn('apex-testing.watchApexM
   testController: ReturnType<typeof getTestController>
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const notificationService = yield* api.services.MetadataChangeNotificationService;
+  const notificationService = yield* api.v2.services.MetadataChangeNotificationService;
 
   // Accumulate fullName → changeType for all qualifying events (no file I/O)
   const pendingChanges = yield* Ref.make<Map<string, string>>(new Map());

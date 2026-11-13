@@ -5,7 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import type { TestResult } from '../tests/types';
+import type { TestResult } from '../tests/apiTypes';
 
 const stringifyNumberArrayChunks = function* (values: number[]): Generator<string> {
   yield '[';

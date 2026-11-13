@@ -13,12 +13,9 @@ import type { ApexVSCodeApi } from 'salesforcedx-vscode-apex';
 const APEX_EXTENSION_ID = 'salesforce.salesforcedx-vscode-apex';
 
 // Preserve the manager instance because getStatus reads its state through `this`.
-const languageClientManagerSchema: Schema.Schema<Pick<ApexVSCodeApi['languageClientManager'], 'getStatus'>> =
-  Schema.declare(
-    Schema.is(Schema.Struct({ getStatus: CallableSchema<ApexVSCodeApi['languageClientManager']['getStatus']>() }), {
-      exact: false
-    })
-  );
+const languageClientManagerSchema = Schema.Struct({
+  getStatus: CallableSchema<ApexVSCodeApi['languageClientManager']['getStatus']>()
+}).pipe(Schema.is, Schema.declare<Pick<ApexVSCodeApi['languageClientManager'], 'getStatus'>>);
 
 /** On the error channel of exported `getActiveApexExtension`. @ExportTaggedError */
 export class ApexExtensionUnavailable extends Schema.TaggedError<ApexExtensionUnavailable>()(

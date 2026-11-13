@@ -18,7 +18,7 @@ import { getActiveApexExtension } from '../context/apexExtension';
 import { nls } from '../messages';
 import { getRuntime } from '../services/runtime';
 
-type ActiveApexExtension = Effect.Effect.Success<ReturnType<typeof getActiveApexExtension>>;
+type ActiveApexExtension = Effect.Success<ReturnType<typeof getActiveApexExtension>>;
 
 class DebugConfigurationError extends Schema.TaggedError<DebugConfigurationError>()('DebugConfigurationError', {
   message: Schema.String
@@ -49,7 +49,8 @@ const applyDebugConfigDefaults = Effect.fn('ApexDebugger.applyDebugConfigDefault
 );
 
 const readWorkspaceSettings = Effect.fn('ApexDebugger.readWorkspaceSettings')(function* () {
-  const settings = yield* (yield* (yield* ExtensionProviderService).getServicesApi).services.SettingsService;
+  const api = yield* (yield* ExtensionProviderService).getServicesApi;
+  const settings = yield* api.v2.services.SettingsService;
   return yield* Effect.all(
     {
       proxyUrl: settings.getValueOrElse('http', 'proxy', ''),
@@ -74,7 +75,8 @@ const waitForLanguageClientReady = Effect.fn('ApexDebugger.waitForLanguageClient
       ),
       Effect.asVoid,
       Effect.retry({
-        schedule: Schedule.fixed(Duration.millis(100)).pipe(Schedule.intersect(Schedule.recurs(30))),
+        schedule: Schedule.fixed(Duration.millis(100)),
+        times: 30,
         while: error => error._tag === 'LanguageClientNotReady'
       })
     )

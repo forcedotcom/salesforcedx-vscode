@@ -33,7 +33,7 @@ const setGptExtensionVersion = (version: string | undefined): void => {
 
 /** Run `ensureAvailable` with the real LLMService layer provided. */
 const runEnsureAvailable = () =>
-  Effect.runPromiseExit(LLMService.ensureAvailable().pipe(Effect.provide(LLMService.Default)));
+  Effect.runPromiseExit(LLMService.use(service => service.ensureAvailable()).pipe(Effect.provide(LLMService.layer)));
 
 describe('LLMService.ensureAvailable', () => {
   beforeEach(() => {
@@ -68,7 +68,7 @@ describe('LLMService.ensureAvailable', () => {
     const exit = await runEnsureAvailable();
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) {
-      const failure = Exit.causeOption(exit).pipe(Option.flatMap(Cause.failureOption));
+      const failure = Cause.findErrorOption(exit.cause);
       expect(Option.isSome(failure)).toBe(true);
       if (Option.isSome(failure)) {
         const error = failure.value as LLMCallFailed;
@@ -88,7 +88,7 @@ describe('LLMService.ensureAvailable', () => {
     const exit = await runEnsureAvailable();
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) {
-      const failure = Exit.causeOption(exit).pipe(Option.flatMap(Cause.failureOption));
+      const failure = Cause.findErrorOption(exit.cause);
       if (Option.isSome(failure)) {
         const error = failure.value as LLMCallFailed;
         expect(error.message).toContain('4.1.0');
@@ -103,7 +103,7 @@ describe('LLMService.ensureAvailable', () => {
     const exit = await runEnsureAvailable();
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) {
-      const failure = Exit.causeOption(exit).pipe(Option.flatMap(Cause.failureOption));
+      const failure = Cause.findErrorOption(exit.cause);
       if (Option.isSome(failure)) {
         const error = failure.value as LLMCallFailed;
         expect(error.message).not.toMatch(/3\.x/);
@@ -123,14 +123,16 @@ describe('LLMService.callLLM error classification', () => {
   /** Drive the real callLLM through a controllable service-instance callLLM that rejects with `cause`. */
   const runCallLLMRejecting = (cause: Error) => {
     mockGetService.mockResolvedValue({ callLLM: vi.fn().mockRejectedValue(cause) });
-    return Effect.runPromiseExit(LLMService.callLLM('prompt', undefined, 750).pipe(Effect.provide(LLMService.Default)));
+    return Effect.runPromiseExit(
+      LLMService.use(service => service.callLLM('prompt', undefined, 750)).pipe(Effect.provide(LLMService.layer))
+    );
   };
 
   it('maps a ModelApiRequestError connection failure to LLMConnectionFailed with guidance', async () => {
     const exit = await runCallLLMRejecting(new Error('ModelApiRequestError: Connection error.'));
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) {
-      const failure = Exit.causeOption(exit).pipe(Option.flatMap(Cause.failureOption));
+      const failure = Cause.findErrorOption(exit.cause);
       if (Option.isSome(failure)) {
         const error = failure.value as { _tag: string; message: string };
         expect(error._tag).toBe('LLMConnectionFailed');
@@ -144,7 +146,7 @@ describe('LLMService.callLLM error classification', () => {
     const exit = await runCallLLMRejecting(new Error('something else went wrong'));
     expect(Exit.isFailure(exit)).toBe(true);
     if (Exit.isFailure(exit)) {
-      const failure = Exit.causeOption(exit).pipe(Option.flatMap(Cause.failureOption));
+      const failure = Cause.findErrorOption(exit.cause);
       if (Option.isSome(failure)) {
         const error = failure.value as { _tag: string };
         expect(error._tag).toBe('LLMCallFailed');

@@ -6,27 +6,26 @@
  */
 
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import type { ActiveEditorContext } from '@salesforce/vscode-services/v2';
 import * as Effect from 'effect/Effect';
-import * as Option from 'effect/Option';
-import { type EditorService } from 'salesforcedx-vscode-services';
 import { ExecAnonCompileError } from '../errors/commandErrors';
 import { saveExecResult } from '../logs/logStorage';
 import { nls } from '../messages';
 import { getRuntime } from '../services/runtime';
 import { type ProgressAndSuccessCommandKey } from '../utils/notificationMode';
 
-type EditorContext = Effect.Effect.Success<ReturnType<EditorService['getActiveEditorContext']>>;
+type EditorContext = ActiveEditorContext;
 
 const executeAnonymous = Effect.fn('ApexLog.ExecuteAnonymous.executeAnonymous')(function* (context: EditorContext) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  yield* api.services.ExecuteAnonymousService.clearDiagnostics(context.documentUri);
-  const { result, logBody, logId } = yield* api.services.ExecuteAnonymousService.executeAndRetrieveLog(context.text);
+  yield* api.v2.services.ExecuteAnonymousService.use(service => service.clearDiagnostics(context.documentUri));
+  const { result, logBody, logId } = yield* api.v2.services.ExecuteAnonymousService.use(service =>
+    service.executeAndRetrieveLog(context.text)
+  );
   // Compile error: skip log save, fail with a tagged error so the standard command error handler shows the notification
   if (!result.compiled) {
-    yield* api.services.ExecuteAnonymousService.reportExecResult(
-      result,
-      context.documentUri,
-      context.selectionRange?.startLine
+    yield* api.v2.services.ExecuteAnonymousService.use(service =>
+      service.reportExecResult(result, context.documentUri, context.selectionRange?.startLine)
     );
     return yield* new ExecAnonCompileError({
       message: nls.localize(
@@ -38,11 +37,8 @@ const executeAnonymous = Effect.fn('ApexLog.ExecuteAnonymous.executeAnonymous')(
     });
   }
 
-  yield* api.services.ExecuteAnonymousService.reportExecResult(
-    result,
-    context.documentUri,
-    context.selectionRange?.startLine,
-    logBody
+  yield* api.v2.services.ExecuteAnonymousService.use(service =>
+    service.reportExecResult(result, context.documentUri, context.selectionRange?.startLine, logBody)
   );
   const logUri = yield* saveExecResult(context.text, result, logBody, logId);
   return { result, logUri };
@@ -53,34 +49,29 @@ export const executeAnonymousCommand = Effect.fn('ApexLog.Command.executeAnonymo
 ) {
   yield* Effect.annotateCurrentSpan({ selectionOnly });
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const promptService = yield* api.services.PromptService;
-  const notificationMode = yield* api.services.NotificationModeService;
+  const promptService = yield* api.v2.services.PromptService;
+  const notificationMode = yield* api.v2.services.NotificationModeService;
   const command: ProgressAndSuccessCommandKey = selectionOnly
     ? "SFDX: Execute Anonymous Apex with Editor's Selected Text"
     : 'SFDX: Execute Anonymous Apex with Currently Open Editor';
-  // progress dismisses once execution+save resolve; the result notification follows
-  yield* api.services.EditorService.getActiveEditorContext(selectionOnly).pipe(
+  const progressLocation = yield* notificationMode.getProgressLocation(command);
+  // progress dismisses once execution+save resolve; the success toast (with its open-log action) follows
+  yield* api.v2.services.EditorService.use(service => service.getActiveEditorContext(selectionOnly)).pipe(
     Effect.flatMap(executeAnonymous),
-    promptService.withProgress({ command, title: nls.localize('exec_anon_progress_title'), cancellable: false }),
+    promptService.withProgress(nls.localize('exec_anon_progress_title'), progressLocation),
     Effect.tap(({ result, logUri }) => {
-      const openLogActions = Option.match(logUri, {
-        onNone: () => [],
-        onSome: uri => [
-          {
-            label: nls.localize('open_log'),
-            run: () =>
-              getRuntime()
-                .runPromise(api.services.FsService.showTextDocument(uri))
-                .then(() => undefined)
-          }
-        ]
-      });
+      const openLogAction = {
+        label: nls.localize('open_log'),
+        run: () =>
+          getRuntime()
+            .runPromise(api.v2.services.FsService.use(service => service.showTextDocument(logUri)))
+            .then(() => undefined)
+      };
       return result.success
-        ? notificationMode.showSuccessNotification(command, nls.localize('exec_anon_success'), false, openLogActions)
-        : notificationMode.showErrorWithActions(
-            result.exceptionMessage ?? nls.localize('exec_anon_runtime_unknown'),
-            openLogActions
-          );
+        ? notificationMode.showSuccessNotification(command, nls.localize('exec_anon_success'), false, [openLogAction])
+        : notificationMode.showErrorWithActions(result.exceptionMessage ?? nls.localize('exec_anon_runtime_unknown'), [
+            openLogAction
+          ]);
     }),
     Effect.map(({ logUri }) => logUri)
   );

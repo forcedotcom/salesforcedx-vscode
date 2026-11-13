@@ -9,7 +9,6 @@ import { RegistryAccess } from '@salesforce/source-deploy-retrieve';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import { URI } from 'vscode-uri';
-import { MetadataRegistryService } from '../../../src/core/metadataRegistryService';
 import {
   isOrgMetadataComponentReference,
   ORG_METADATA_SCHEME,
@@ -17,8 +16,9 @@ import {
   documentUris,
   documentUri,
   parseDocumentUri,
-  getTypeSuffix
-} from '../../../src/orgCatalog/orgMetadataReference';
+  getTypeSuffix,
+  MetadataRegistryService
+} from '@salesforce/vscode-services/v2';
 
 describe('org metadata document references', () => {
   const registryAccess = new RegistryAccess();

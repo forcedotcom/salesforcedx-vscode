@@ -6,7 +6,6 @@
  */
 
 import * as Effect from 'effect/Effect';
-import * as ExecutionStrategy from 'effect/ExecutionStrategy';
 import * as Exit from 'effect/Exit';
 import * as Queue from 'effect/Queue';
 import * as Schema from 'effect/Schema';
@@ -79,7 +78,7 @@ describe('drivable VS Code contracts', () => {
 
   test('attempts every release when releases fail', async () => {
     const attempted: string[] = [];
-    const release = (name: string) => Effect.sync(() => attempted.push(name)).pipe(Effect.zipRight(Effect.fail(name)));
+    const release = (name: string) => Effect.sync(() => attempted.push(name)).pipe(Effect.andThen(Effect.fail(name)));
     expect(
       Exit.isFailure(
         await Effect.runPromiseExit(releaseAll([release('electron'), release('workspace'), release('listeners')]))
@@ -92,9 +91,9 @@ describe('drivable VS Code contracts', () => {
     const attempted: string[] = [];
     const exit = await Effect.runPromiseExit(
       Effect.gen(function* () {
-        const scope = yield* Scope.make(ExecutionStrategy.sequential);
+        const scope = yield* Scope.make('sequential');
         yield* Effect.forEach(['workspace', 'electron', 'listener'], name =>
-          Scope.addFinalizer(scope, Effect.sync(() => attempted.push(name)).pipe(Effect.zipRight(Effect.die(name))))
+          Scope.addFinalizer(scope, Effect.sync(() => attempted.push(name)).pipe(Effect.andThen(Effect.die(name))))
         );
         yield* Scope.close(scope, Exit.void);
       })
@@ -114,7 +113,7 @@ describe('drivable VS Code contracts', () => {
     await Effect.runPromise(
       Effect.gen(function* () {
         const queue = yield* Queue.unbounded<ConsoleWrite>();
-        const consumer = yield* Effect.fork(
+        const consumer = yield* Effect.forkChild(
           consumeConsoleWrites(queue, value => Effect.sync(() => entries.push(value)))
         );
         yield* Queue.offerAll(queue, [
@@ -122,7 +121,7 @@ describe('drivable VS Code contracts', () => {
           { _tag: 'Entry', entry: entry('second') }
         ]);
         yield* drainConsoleWrites(queue, consumer);
-        expect(yield* Queue.isShutdown(queue)).toBe(true);
+        expect(Queue.offerUnsafe(queue, { _tag: 'Stop' })).toBe(false);
       })
     );
     expect(entries.map(value => value.text)).toEqual(['first', 'second']);

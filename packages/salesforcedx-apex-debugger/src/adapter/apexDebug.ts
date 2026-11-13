@@ -472,7 +472,7 @@ export class ApexDebug extends LoggingDebugSession {
 
   private lock = new AsyncLock({ timeout: DEFAULT_LOCK_TIMEOUT_MS });
 
-  protected idleTimers: Fiber.RuntimeFiber<void>[] = [];
+  protected idleTimers: Fiber.Fiber<void, never>[] = [];
 
   constructor() {
     super('apex-debug-adapter.log');
@@ -511,7 +511,7 @@ export class ApexDebug extends LoggingDebugSession {
     this.sendResponse(response);
   }
 
-  private getSessionIdleTimer(): Fiber.RuntimeFiber<void>[] {
+  private getSessionIdleTimer(): Fiber.Fiber<void, never>[] {
     return [
       Effect.sync(() => {
         this.warnToDebugConsole(
@@ -549,12 +549,12 @@ export class ApexDebug extends LoggingDebugSession {
 
   public clearIdleTimers(): void {
     if (this.idleTimers) {
-      this.idleTimers.forEach(timer => timer.pipe(Fiber.interruptFork, Effect.runSync));
+      this.idleTimers.forEach(timer => timer.pipe(Fiber.interrupt, Effect.runSync));
       this.idleTimers = [];
     }
   }
 
-  public resetIdleTimer(): Fiber.RuntimeFiber<void>[] {
+  public resetIdleTimer(): Fiber.Fiber<void, never>[] {
     this.clearIdleTimers();
     this.idleTimers = this.getSessionIdleTimer();
     return this.idleTimers;

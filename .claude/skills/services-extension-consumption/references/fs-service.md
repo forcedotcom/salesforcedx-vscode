@@ -1,6 +1,6 @@
 # FsService
 
-File ops (desktop + web). Accessor pattern: call methods directly.
+File ops (desktop + web). V2 uses `Context.Service`; call methods through `.use` or yield the service.
 
 ## Methods
 
@@ -9,7 +9,7 @@ File ops (desktop + web). Accessor pattern: call methods directly.
 Read file as string:
 
 ```typescript
-const content = yield * api.services.FsService.readFile(filePath);
+const content = yield* api.v2.services.FsService.use(service => service.readFile(filePath));
 ```
 
 ### writeFile
@@ -17,7 +17,7 @@ const content = yield * api.services.FsService.readFile(filePath);
 Write file, creates dirs if needed:
 
 ```typescript
-yield * api.services.FsService.writeFile(filePath, content);
+yield* api.v2.services.FsService.use(service => service.writeFile(filePath, content));
 ```
 
 ### fileOrFolderExists
@@ -25,7 +25,7 @@ yield * api.services.FsService.writeFile(filePath, content);
 Check if exists:
 
 ```typescript
-const exists = yield * api.services.FsService.fileOrFolderExists(filePath);
+const exists = yield* api.v2.services.FsService.use(service => service.fileOrFolderExists(filePath));
 ```
 
 ### isDirectory
@@ -33,7 +33,7 @@ const exists = yield * api.services.FsService.fileOrFolderExists(filePath);
 Check if directory:
 
 ```typescript
-const isDir = yield * api.services.FsService.isDirectory(path);
+const isDir = yield* api.v2.services.FsService.use(service => service.isDirectory(path));
 ```
 
 ### isFile
@@ -41,7 +41,7 @@ const isDir = yield * api.services.FsService.isDirectory(path);
 Check if file:
 
 ```typescript
-const isFile = yield * api.services.FsService.isFile(path);
+const isFile = yield* api.v2.services.FsService.use(service => service.isFile(path));
 ```
 
 ### createDirectory
@@ -49,7 +49,7 @@ const isFile = yield * api.services.FsService.isFile(path);
 Create directory:
 
 ```typescript
-yield * api.services.FsService.createDirectory(dirPath);
+yield* api.v2.services.FsService.use(service => service.createDirectory(dirPath));
 ```
 
 ### deleteFile
@@ -57,7 +57,7 @@ yield * api.services.FsService.createDirectory(dirPath);
 Delete file:
 
 ```typescript
-yield * api.services.FsService.deleteFile(filePath, options);
+yield* api.v2.services.FsService.use(service => service.deleteFile(filePath, options));
 ```
 
 ### readDirectory
@@ -65,7 +65,7 @@ yield * api.services.FsService.deleteFile(filePath, options);
 Read dir contents:
 
 ```typescript
-const uris = yield * api.services.FsService.readDirectory(dirPath);
+const uris = yield* api.v2.services.FsService.use(service => service.readDirectory(dirPath));
 // Returns: URI[]
 ```
 
@@ -74,7 +74,7 @@ const uris = yield * api.services.FsService.readDirectory(dirPath);
 Read dir contents preserving `FileType` per entry (avoids extra stat calls for recursive traversal):
 
 ```typescript
-const entries = yield * api.services.FsService.readDirectoryWithTypes(dirPath);
+const entries = yield* api.v2.services.FsService.use(service => service.readDirectoryWithTypes(dirPath));
 // Returns: Array<{ uri: URI, type: vscode.FileType }>
 const dirs = entries.filter(e => e.type === vscode.FileType.Directory);
 ```
@@ -84,7 +84,7 @@ const dirs = entries.filter(e => e.type === vscode.FileType.Directory);
 Get file stats:
 
 ```typescript
-const stats = yield * api.services.FsService.stat(filePath);
+const stats = yield* api.v2.services.FsService.use(service => service.stat(filePath));
 ```
 
 ### safeDelete
@@ -92,7 +92,7 @@ const stats = yield * api.services.FsService.stat(filePath);
 Delete ignoring errors:
 
 ```typescript
-yield * api.services.FsService.safeDelete(filePath, options);
+yield* api.v2.services.FsService.use(service => service.safeDelete(filePath, options));
 ```
 
 ### rename
@@ -100,7 +100,7 @@ yield * api.services.FsService.safeDelete(filePath, options);
 Rename file/folder:
 
 ```typescript
-yield * api.services.FsService.rename(oldPath, newPath);
+yield* api.v2.services.FsService.use(service => service.rename(oldPath, newPath));
 ```
 
 ### readJSON
@@ -110,7 +110,7 @@ Read + parse JSON. Two options:
 **Without schema** — raw parse, result is `unknown`:
 
 ```typescript
-const text = yield * api.services.FsService.readFile(filePath);
+const text = yield* api.v2.services.FsService.use(service => service.readFile(filePath));
 const data = JSON.parse(text) as MyType;
 ```
 
@@ -120,10 +120,11 @@ const data = JSON.parse(text) as MyType;
 import * as Schema from 'effect/Schema';
 
 const MyConfigSchema = Schema.Struct({
-  orgs: Schema.Record({ key: Schema.String, value: Schema.String })
+  orgs: Schema.Record(Schema.String, Schema.String)
 });
 
-const data = yield * api.services.FsService.readJSON(filePath, MyConfigSchema);
+const decodeMyConfig = Schema.decodeUnknownEffect(MyConfigSchema);
+const data = yield* api.v2.services.FsService.use(service => service.readJSON(filePath, decodeMyConfig));
 // data is typed as { orgs: Record<string, string> }
 ```
 
@@ -134,7 +135,7 @@ Prefer the schema approach when customers might have corrupted JSON—validation
 Open file in editor:
 
 ```typescript
-const editor = yield * api.services.FsService.showTextDocument(filePath, options);
+const editor = yield* api.v2.services.FsService.use(service => service.showTextDocument(filePath, options));
 // filePath: string | URI
 // options?: vscode.TextDocumentShowOptions
 // Returns: vscode.TextEditor
@@ -145,7 +146,7 @@ const editor = yield * api.services.FsService.showTextDocument(filePath, options
 Convert path to URI:
 
 ```typescript
-const uri = yield * api.services.FsService.toUri(filePath);
+const uri = yield* api.v2.services.FsService.use(service => service.toUri(filePath));
 ```
 
 ### uriToPath
@@ -153,7 +154,7 @@ const uri = yield * api.services.FsService.toUri(filePath);
 Convert URI to path:
 
 ```typescript
-const path = yield * api.services.FsService.uriToPath(uri);
+const path = yield* api.v2.services.FsService.use(service => service.uriToPath(uri));
 ```
 
 ### HashableUri
@@ -164,11 +165,11 @@ Value namespace on the service, not an Effect-returning method. 2 ways to reach:
 
 ```typescript
 // 1. resolved instance:
-const fsService = yield * api.services.FsService;
+const fsService = yield* api.v2.services.FsService;
 const key = fsService.HashableUri.fromUri(uri); // sourceDiff.ts, diffHelpers.ts
 
 // 2. accessor pulls the namespace out:
-const HashableUri = yield * api.services.FsService.HashableUri; // conflictDetection.ts:29
+const HashableUri = yield* api.v2.services.FsService.use(service => service.HashableUri); // conflictDetection.ts:29
 const filter = HashSet.fromIterable(uris.map(HashableUri.fromUri));
 ```
 
@@ -189,13 +190,13 @@ Underlying `URI` via `.uri`. Never deep-import from `salesforcedx-vscode-service
 From `salesforcedx-vscode-metadata`:
 
 ```typescript
-const exists = yield * api.services.FsService.fileOrFolderExists(manifestFileUri);
+const exists = yield* api.v2.services.FsService.use(service => service.fileOrFolderExists(manifestFileUri));
 if (!exists) {
-  yield * api.services.FsService.writeFile(manifestFileUri, packageXML);
+  yield* api.v2.services.FsService.use(service => service.writeFile(manifestFileUri, packageXML));
 }
 
-const childUris = yield * api.services.FsService.readDirectory(uri);
-yield * api.services.FsService.safeDelete(cacheDirUri, { recursive: true });
+const childUris = yield* api.v2.services.FsService.use(service => service.readDirectory(uri));
+yield* api.v2.services.FsService.use(service => service.safeDelete(cacheDirUri, { recursive: true }));
 ```
 
 ## Notes

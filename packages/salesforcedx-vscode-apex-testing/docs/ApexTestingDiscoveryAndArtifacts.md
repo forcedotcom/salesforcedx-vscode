@@ -36,7 +36,7 @@ This note documents how Apex Testing currently handles test discovery data and t
 
 ## Code Coverage Flow
 
-- `CodeCoverageService` — Effect.Service; `Ref<Range[]>` decoration state
+- `CodeCoverageService` — V4 `Context.Service`; `Ref<Range[]>` decoration state
 - reads result files via `FsService` (not `workspace.fs`); `CoverageItem` = `Schema.Struct`
 - pipeline: stat files → filter recent → read+parse (sequential, last-write-wins) → match file → compute line ranges
 - errors caught + user notified (channel if warnings disabled)
