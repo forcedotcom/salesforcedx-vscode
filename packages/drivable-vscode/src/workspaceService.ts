@@ -12,6 +12,7 @@ import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as Schema from 'effect/Schema';
 import { DrivableVscodeWorkspaceError } from './errors';
+import { JsonValue } from './schemas';
 
 export class WorkspaceService extends Effect.Service<WorkspaceService>()('DrivableVscode/WorkspaceService', {
   accessors: true,
@@ -28,6 +29,10 @@ export class WorkspaceService extends Effect.Service<WorkspaceService>()('Drivab
       yield* fs.makeDirectory(path.dirname(filePath), { recursive: true });
       yield* fs.writeFileString(filePath, contents);
     });
+    const writeJsonSeed = (workspaceDir: string, relativePath: string, value: JsonValue) =>
+      Schema.encode(Schema.parseJson(JsonValue, { space: 2 }))(value).pipe(
+        Effect.flatMap(contents => writeSeed(workspaceDir, relativePath, `${contents}\n`))
+      );
     const create = Effect.fn('WorkspaceService.create')(function* (orgAlias?: string) {
       const workspaceDir = yield* fs.makeTempDirectory({ prefix: 'salesforce-drivable-vscode-' }).pipe(
         Effect.mapError(
@@ -45,22 +50,13 @@ export class WorkspaceService extends Effect.Service<WorkspaceService>()('Drivab
         sourceApiVersion: '64.0'
       };
       const writes = [
-        writeSeed(workspaceDir, 'sfdx-project.json', `${JSON.stringify(project, undefined, 2)}\n`),
+        writeJsonSeed(workspaceDir, 'sfdx-project.json', project),
         writeSeed(workspaceDir, '.forceignore', '**/jsconfig.json\n**/.eslintrc.json\n**/__tests__/**\n'),
-        ...(orgAlias
-          ? [
-              writeSeed(
-                workspaceDir,
-                '.sf/config.json',
-                `${JSON.stringify({ 'target-org': orgAlias }, undefined, 2)}\n`
-              )
-            ]
-          : []),
-        writeSeed(
-          workspaceDir,
-          'config/project-scratch-def.json',
-          `${JSON.stringify({ orgName: 'Drivable VS Code', edition: 'Developer' }, undefined, 2)}\n`
-        ),
+        ...(orgAlias ? [writeJsonSeed(workspaceDir, '.sf/config.json', { 'target-org': orgAlias })] : []),
+        writeJsonSeed(workspaceDir, 'config/project-scratch-def.json', {
+          orgName: 'Drivable VS Code',
+          edition: 'Developer'
+        }),
         writeSeed(
           workspaceDir,
           'force-app/main/default/classes/DrivableVscodeController.cls',

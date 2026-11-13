@@ -8,6 +8,7 @@
 import type { GenerationStrategy } from '../generationStrategy';
 import { ExtensionProviderService, annotateRootSpan } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
 import type { ApexClassOASGatherContextResponse } from 'salesforcedx-vscode-apex';
 import { OasGenerationFailed } from '../../../errors';
 import { hasAuraFrameworkCapability } from '../../../oasUtils';
@@ -36,7 +37,7 @@ export const createAuraEnabledStrategy = async (
         catch: cause =>
           new OasGenerationFailed({ message: `Failed to fetch OAS specification from org: ${String(cause)}` })
       });
-      return JSON.stringify(result);
+      return yield* Schema.encode(Schema.parseJson(Schema.Unknown))(result);
     },
     Effect.tap(() =>
       annotateRootSpan({ strategyName: 'AuraEnabled', biddedCallCount: 0, llmCallCount: 0, generationSize: 0 })

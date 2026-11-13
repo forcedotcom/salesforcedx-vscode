@@ -167,12 +167,13 @@ export const registerWorkspaceReadFileHandler = (
 
   client.onRequest<WorkspaceStatParams, WorkspaceStatResult>(WORKSPACE_STAT_REQUEST, params =>
     handleStat(params).pipe(
-      Effect.catchAll(e =>
-        Effect.sync(() => {
-          log.appendLine(
-            `[stat] error uri=${JSON.stringify(params.uri)}: ${getMessageFromError(e) || `(no message) left=${JSON.stringify(e)}`}`
-          );
-          return { error: getMessageFromError(e) || 'Unknown stat error' };
+      Effect.catchAll(
+        Effect.fn('WorkspaceHandler.statError')(function* (e) {
+          const uri = yield* Schema.encode(Schema.parseJson(Schema.Unknown))(params.uri);
+          const message = getMessageFromError(e);
+          const detail = message || `(no message) left=${yield* Schema.encode(Schema.parseJson(Schema.Unknown))(e)}`;
+          yield* logTo(log, `[stat] error uri=${uri}: ${detail}`);
+          return { error: message || 'Unknown stat error' };
         })
       ),
       run

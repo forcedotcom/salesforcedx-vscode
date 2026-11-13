@@ -4,6 +4,7 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
+import * as Schema from 'effect/Schema';
 import { type Location } from 'vscode';
 import { type URI } from 'vscode-uri';
 
@@ -87,18 +88,7 @@ export type TestExecutionInfo = TestCaseInfo | TestFileInfo | TestDirectoryInfo;
 /**
  * Top level Jest output JSON object shape
  */
-export type LwcJestTestResults = {
-  numFailedTestSuites: number;
-  numFailedTests: number;
-  numPassedTestSuites: number;
-  numPassedTests: number;
-  numPendingTestSuites: number;
-  numPendingTests: number;
-  numRuntimeErrorTestSuites: number;
-  numTotalTestSuites: number;
-  numTotalTests: number;
-  testResults: LwcJestTestFileResult[];
-};
+export type LwcJestTestResults = typeof LwcJestTestResultsSchema.Type;
 
 /**
  * Jest Test Assertion Result status.
@@ -106,30 +96,44 @@ export type LwcJestTestResults = {
  * - 'failed' transforms to TestResultStatus.FAILED
  * - All other statuses tranform to TestResultStatus.SKIPPED
  */
-type LwcJestTestResultStatus = 'passed' | 'failed' | 'pending' | 'skipped' | 'todo' | 'disabled';
+const LwcJestTestResultStatusSchema = Schema.Literal('passed', 'failed', 'pending', 'skipped', 'todo', 'disabled');
 
 /** Jest Test File Result */
-export type LwcJestTestFileResult = {
-  status: 'passed' | 'failed';
-  startTime: number;
-  endTime: number;
-  name: string;
-  assertionResults: LwcJestTestAssertionResult[];
-  message?: string; // Runtime error message when test suite fails to run before assertions can be collected
-};
+export type LwcJestTestFileResult = typeof LwcJestTestFileResultSchema.Type;
 
 /**
  * Jest Test Assertion Result
  */
-export type LwcJestTestAssertionResult = {
-  status: LwcJestTestResultStatus;
-  title: string;
-  ancestorTitles: string[];
-  failureMessages: string[];
-  fullName: string;
-  location: {
-    column: number;
-    line: number;
-  };
-  duration?: number;
-};
+const LwcJestTestAssertionResultSchema = Schema.Struct({
+  status: LwcJestTestResultStatusSchema,
+  title: Schema.String,
+  ancestorTitles: Schema.Array(Schema.String).pipe(Schema.mutable),
+  failureMessages: Schema.Array(Schema.String).pipe(Schema.mutable, Schema.NullOr),
+  fullName: Schema.String,
+  location: Schema.Struct({ column: Schema.Number, line: Schema.Number }).pipe(Schema.NullOr, Schema.optional),
+  duration: Schema.optionalWith(Schema.Number, { nullable: true })
+});
+export type LwcJestTestAssertionResult = typeof LwcJestTestAssertionResultSchema.Type;
+
+const LwcJestTestFileResultSchema = Schema.Struct({
+  status: Schema.Literal('passed', 'failed', 'focused', 'skipped'),
+  startTime: Schema.Number,
+  endTime: Schema.Number,
+  name: Schema.String,
+  assertionResults: Schema.Array(LwcJestTestAssertionResultSchema).pipe(Schema.mutable),
+  // Runtime error message when test suite fails to run before assertions can be collected
+  message: Schema.optional(Schema.String)
+});
+
+export const LwcJestTestResultsSchema = Schema.Struct({
+  numFailedTestSuites: Schema.Number,
+  numFailedTests: Schema.Number,
+  numPassedTestSuites: Schema.Number,
+  numPassedTests: Schema.Number,
+  numPendingTestSuites: Schema.Number,
+  numPendingTests: Schema.Number,
+  numRuntimeErrorTestSuites: Schema.Number,
+  numTotalTestSuites: Schema.Number,
+  numTotalTests: Schema.Number,
+  testResults: Schema.Array(LwcJestTestFileResultSchema).pipe(Schema.mutable)
+});

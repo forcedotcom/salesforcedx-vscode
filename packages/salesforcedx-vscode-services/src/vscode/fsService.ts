@@ -236,13 +236,7 @@ export class FsService extends Effect.Service<FsService>()('FsService', {
       readJSON: <A>(filePath: string, schema: S.Schema<A>) =>
         readFile(filePath).pipe(
           Effect.flatMap(text =>
-            Effect.try({
-              try: () => JSON.parse(text),
-              catch: (e: unknown) => new FsServiceError({ ...unknownToErrorCause(e), function: 'readJSON', filePath })
-            })
-          ),
-          Effect.flatMap((obj: unknown) =>
-            S.decodeUnknown(schema)(obj).pipe(
+            S.decodeUnknown(S.parseJson(schema))(text).pipe(
               Effect.mapError(
                 (e: unknown) => new FsServiceError({ ...unknownToErrorCause(e), function: 'readJSON', filePath })
               )

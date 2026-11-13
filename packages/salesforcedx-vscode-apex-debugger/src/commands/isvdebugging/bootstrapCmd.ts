@@ -279,14 +279,19 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
         projectPath
       );
       const salesforceProjectJson = yield* fs.readFile(salesforceProjectJsonUri);
-      const updatedProjectJson = yield* Effect.try({
-        try: () => {
-          const config = JSON.parse(salesforceProjectJson);
-          config.namespace = parseOrgNamespaceQueryResultJson(orgNamespaceInfoResponseJson);
-          return JSON.stringify(config, null, 2);
-        },
-        catch: e => new IsvBootstrapProjectConfigError({ message: getMessageFromError(e) })
+      const projectConfigSchema = Schema.parseJson(Schema.Record({ key: Schema.String, value: Schema.Unknown }), {
+        space: 2
       });
+      const updatedProjectJson = yield* Schema.decodeUnknown(projectConfigSchema)(salesforceProjectJson).pipe(
+        Effect.flatMap(config =>
+          Effect.try(() => ({
+            ...config,
+            namespace: parseOrgNamespaceQueryResultJson(orgNamespaceInfoResponseJson)
+          }))
+        ),
+        Effect.flatMap(Schema.encode(projectConfigSchema)),
+        Effect.mapError(e => new IsvBootstrapProjectConfigError({ message: getMessageFromError(e) }))
+      );
       yield* fs.writeFile(salesforceProjectJsonUri, updatedProjectJson);
 
       // 3a: create package.xml for downloading org apex (safeWriteFile creates the .../isvdebuggermdapitmp parent)
@@ -364,25 +369,21 @@ export const isvDebugBootstrap = Effect.fn('isvDebugBootstrap')(function* () {
       yield* fs.safeWriteFile(
         Utils.joinPath(projectUri, '.vscode', 'launch.json'),
         // mostly duplicated from ApexDebuggerConfigurationProvider to avoid hard dependency from core to debugger module
-        JSON.stringify(
-          {
-            version: '0.2.0',
-            configurations: [
-              {
-                name: 'Launch Apex Debugger',
-                type: 'apex',
-                request: 'launch',
-                userIdFilter: [],
-                requestTypeFilter: [],
-                entryPointFilter: '',
-                salesforceProject: '${workspaceRoot}',
-                connectType: 'ISV_DEBUGGER'
-              }
-            ]
-          },
-          null,
-          2
-        )
+        yield* Schema.encode(Schema.parseJson(Schema.Unknown, { space: 2 }))({
+          version: '0.2.0',
+          configurations: [
+            {
+              name: 'Launch Apex Debugger',
+              type: 'apex',
+              request: 'launch',
+              userIdFilter: [],
+              requestTypeFilter: [],
+              entryPointFilter: '',
+              salesforceProject: '${workspaceRoot}',
+              connectType: 'ISV_DEBUGGER'
+            }
+          ]
+        })
       );
 
       // last step: open the folder in VS Code

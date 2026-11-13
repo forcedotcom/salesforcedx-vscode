@@ -7,6 +7,7 @@
 
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as vscode from 'vscode';
 import { ExtensionsService } from './extensionsService';
@@ -43,10 +44,9 @@ const readSfdxProject = Effect.fn('readSfdxProject')(function* () {
     catch: () => undefined
   }).pipe(Effect.catchAll(() => Effect.void));
   if (!bytes) return undefined;
-  return yield* Effect.try({
-    try: (): { sourceBehaviorOptions?: readonly string[] } => JSON.parse(Buffer.from(bytes).toString('utf8')),
-    catch: () => undefined
-  }).pipe(Effect.catchAll(() => Effect.void));
+  return yield* Schema.decodeUnknown(
+    Schema.parseJson(Schema.Struct({ sourceBehaviorOptions: Schema.optional(Schema.Array(Schema.String)) }))
+  )(Buffer.from(bytes).toString('utf8')).pipe(Effect.catchTag('ParseError', () => Effect.void));
 });
 
 const isEsrDecomposed = Effect.fn('isEsrDecomposed')(function* () {

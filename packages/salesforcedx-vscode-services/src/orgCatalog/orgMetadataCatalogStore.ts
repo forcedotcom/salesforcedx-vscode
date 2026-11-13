@@ -167,8 +167,9 @@ export class OrgMetadataCatalogStore extends Effect.Service<OrgMetadataCatalogSt
         Effect.gen(function* () {
           const snapshotUri = yield* getSnapshotUri(snapshot.orgId);
           const stagingUri = URI.parse(`${snapshotUri.toString()}.__staging__`);
-          const encoded = yield* Schema.encode(OrgMetadataCatalogSnapshotSchema)(snapshot);
-          const content = JSON.stringify(encoded, null, 2);
+          const content = yield* Schema.encode(Schema.parseJson(OrgMetadataCatalogSnapshotSchema, { space: 2 }))(
+            snapshot
+          );
           yield* fsService.safeWriteFile(stagingUri, content);
           yield* fsService.rename(stagingUri.toString(), snapshotUri.toString(), { overwrite: true });
           yield* Effect.annotateCurrentSpan({

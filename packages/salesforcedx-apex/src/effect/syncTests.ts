@@ -124,7 +124,9 @@ export const requestSyncTests = Effect.fn('Apex.requestSyncTests')(function* (
   connection: Connection,
   options: SyncTestConfiguration
 ) {
-  yield* Schema.decodeUnknown(SyncTestConfigurationSchema)(options).pipe(
+  const body = yield* Schema.encode(Schema.parseJson(SyncTestConfigurationSchema), { propertyOrder: 'original' })(
+    options
+  ).pipe(
     Effect.catchTag('ParseError', cause =>
       Effect.fail(new ApexOperationError({ operation, message: getErrorMessage(cause), cause: getErrorMessage(cause) }))
     )
@@ -134,7 +136,7 @@ export const requestSyncTests = Effect.fn('Apex.requestSyncTests')(function* (
       connection.tooling.request<unknown>({
         method: 'POST',
         url: `${connection.tooling._baseUrl()}/runTestsSynchronous`,
-        body: JSON.stringify(options),
+        body,
         headers: { 'content-type': 'application/json' }
       }),
     catch: cause =>

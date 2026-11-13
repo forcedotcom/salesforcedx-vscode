@@ -85,14 +85,15 @@ const revisionFileName = (revision: string | null): string =>
   revision === null ? 'unversioned.json' : `revision-${encodeURIComponent(revision)}.json`;
 
 const serializeManifest = (manifest: SemanticArtifactManifest) =>
-  Effect.try({
-    try: () => JSON.stringify(manifest, null, 2),
-    catch: cause =>
-      new SemanticArtifactSerializationError({
-        message: 'Failed to serialize semantic artifact',
-        cause
-      })
-  });
+  Schema.encode(Schema.parseJson(SemanticArtifactManifestSchema, { space: 2 }))(manifest).pipe(
+    Effect.mapError(
+      cause =>
+        new SemanticArtifactSerializationError({
+          message: 'Failed to serialize semantic artifact',
+          cause
+        })
+    )
+  );
 
 /** Durable, org-isolated storage primitive for opaque semantic projection payloads. */
 export class OrgSemanticArtifactStore extends Effect.Service<OrgSemanticArtifactStore>()('OrgSemanticArtifactStore', {

@@ -12,6 +12,7 @@ import * as Effect from 'effect/Effect';
 import { isError } from 'effect/Predicate';
 import * as Queue from 'effect/Queue';
 import * as Runtime from 'effect/Runtime';
+import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import * as SubscriptionRef from 'effect/SubscriptionRef';
 import * as vscode from 'vscode';
@@ -125,7 +126,9 @@ const handleDeployError = Effect.fn('deployOnSave:handleDeployError')(function* 
     return;
   }
 
-  const errorMessage = isError(err) ? err.message : JSON.stringify(err, null, 2);
+  const errorMessage = isError(err)
+    ? err.message
+    : yield* Schema.encode(Schema.parseJson(Schema.Unknown, { space: 2 }))(err);
 
   if (errorMessage.includes('NoTargetOrgSet') || errorMessage.includes('No default org')) {
     yield* channelService.appendToChannel(nls.localize('deploy_on_save_error_no_target_org'));

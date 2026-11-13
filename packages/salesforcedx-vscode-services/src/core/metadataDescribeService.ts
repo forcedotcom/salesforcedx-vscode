@@ -254,12 +254,22 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
       const body: SObjectBatchRequest = {
         batchRequests: names.map(name => ({ method: 'GET', url: `v${conn.version}/sobjects/${name}/describe` }))
       };
+      const encodedBody = yield* S.encode(S.parseJson(S.Unknown))(body).pipe(
+        Effect.mapError(
+          cause =>
+            new MetadataDescribeError({
+              cause,
+              function: 'describeCustomObjects',
+              message: `Failed to batch describe sobjects: ${getErrorMessage(cause)}`
+            })
+        )
+      );
       return yield* Effect.tryPromise({
         try: () =>
           conn.request<SObjectBatchResponse>({
             method: 'POST',
             url: '/composite/batch',
-            body: JSON.stringify(body),
+            body: encodedBody,
             headers: {
               'User-Agent': 'salesforcedx-extension',
               'Sforce-Call-Options': `client=${SOBJECT_CLIENT_ID}`

@@ -4,22 +4,23 @@
  * Licensed under the BSD 3-Clause license.
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
-import type { LwcJestTestResults } from '../types';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Effect from 'effect/Effect';
+import * as Schema from 'effect/Schema';
 import * as path from 'node:path';
 import * as vscode from 'vscode';
 import { type URI } from 'vscode-uri';
 import { getRuntime } from '../../services/runtime';
 import { lwcTestIndexer } from '../testIndexer/lwcTestIndexer';
+import { LwcJestTestResultsSchema } from '../types';
 
 const updateTestResultsFromTestResultsJson = Effect.fn('updateTestResultsFromTestResultsJson')(function* (
   testResultsUri: URI
 ) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const testResultsContent = yield* api.services.FsService.readFile(testResultsUri.fsPath);
-  // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment -- JSON.parse returns any; shape validated by updateTestResults
-  const testResults: LwcJestTestResults = JSON.parse(testResultsContent);
+  const testResults = yield* api.services.FsService.readFile(testResultsUri).pipe(
+    Effect.flatMap(Schema.decodeUnknown(Schema.parseJson(LwcJestTestResultsSchema)))
+  );
   lwcTestIndexer.updateTestResults(testResults);
 });
 
