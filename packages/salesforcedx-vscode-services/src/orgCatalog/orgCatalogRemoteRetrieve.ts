@@ -152,9 +152,7 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
                 { concurrency: 'unbounded' }
               );
               const artifactFileUris = Arr.dedupe([...fileUris, ...sourceComponentUris.map(HashableUri.fromUri)]);
-              const fileProperties = Array.isArray(result.response.fileProperties)
-                ? result.response.fileProperties
-                : [result.response.fileProperties];
+              const fileProperties = Arr.ensure(result.response.fileProperties);
               const remoteLastModifiedDate = fileProperties.find(
                 property => property?.type === reference.xmlName && property.fullName === reference.fullName
               )?.lastModifiedDate;
@@ -194,9 +192,7 @@ export class OrgCatalogRemoteRetrieve extends Effect.Service<OrgCatalogRemoteRet
               const sourceComponents = [...result.components.getSourceComponents()];
               const responses = result.getFileResponses();
               const stagedFiles = yield* listStagedFiles(stagingUri);
-              const fileProperties = Array.isArray(result.response.fileProperties)
-                ? result.response.fileProperties
-                : [result.response.fileProperties];
+              const fileProperties = Arr.ensure(result.response.fileProperties);
               return yield* Effect.forEach(
                 requests,
                 request =>

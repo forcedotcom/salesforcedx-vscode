@@ -4,6 +4,12 @@ Custom ESLint rules for Salesforce VSCode extensions.
 
 ## Rules
 
+### prefer-effect-array-ensure
+
+Reports `Array.isArray(value) ? value : [value]` and `!Array.isArray(value) ? [value] : value` when the nearest package declares `effect` in dependencies, devDependencies, or peerDependencies. Matches only the same identifier or property-access chain with identifier or literal keys; calls and other potentially side-effectful expressions are excluded.
+
+Use `import * as Arr from 'effect/Array'` and `Arr.ensure(value)`. No autofix. Shape checks, transformed results, element selection, undefined-to-empty fallbacks, and nested-array conversions remain unchanged.
+
 ### no-option-tag
 
 Reports direct `_tag` reads on Effect Options, including computed properties and destructuring. Uses TypeScript declarations to distinguish Effect Options from unrelated tagged unions, including unions with the same `Some`/`None` tags. Requires type information.

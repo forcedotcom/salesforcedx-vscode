@@ -228,7 +228,7 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
           });
         }
       }).pipe(
-        Effect.map(ensureArray),
+        Effect.map(Arr.ensure),
         Effect.tap(items => Effect.annotateCurrentSpan({ resultCount: items.length })),
         Effect.withSpan('listMetadata (API call)'),
         Effect.flatMap(arr => S.decodeUnknown(S.Array(FilePropertiesSchema))(arr)),
@@ -594,5 +594,3 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
     };
   })
 }) {}
-
-const ensureArray = <T>(value: T | T[]): T[] => (Array.isArray(value) ? value : [value]);
