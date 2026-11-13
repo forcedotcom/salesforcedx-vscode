@@ -971,52 +971,6 @@ describe('OrgMetadataCatalog contract', () => {
     ).toHaveLength(1);
   });
 
-  it('reacquires old email inventories and persists the complete dual-folder listing', async () => {
-    const oldEmailInventory = {
-      xmlName: 'EmailTemplate',
-      observedAt: '2026-07-31T12:00:00.000Z',
-      complete: true,
-      folders: [{ fullName: 'Lightning' }],
-      components: [{ fullName: 'Lightning/Template' }]
-    };
-    const catalogSnapshots = new Map<string, OrgMetadataCatalogSnapshot>([
-      [
-        '00D000000000001',
-        {
-          version: 2,
-          orgId: '00D000000000001',
-          writtenAt: oldEmailInventory.observedAt,
-          generation: 1,
-          inventory: [oldEmailInventory],
-          sobjects: { descriptions: [] },
-          tracking: [],
-          metadataTypes: [],
-          metadataListings: []
-        }
-      ]
-    ]);
-    const { layer, mocks } = makeHarness({
-      catalogSnapshots,
-      metadataFoldersByType: { EmailTemplate: [{ fullName: 'Classic' }, { fullName: 'Lightning' }] }
-    });
-
-    const folders = await runWithCatalog(layer, catalog => catalog.getChildren({ type: 'EmailTemplate' }));
-
-    expect(folders.map(folder => folder.name)).toEqual(['Classic', 'Lightning']);
-    expect(mocks.listMetadataFolders).toHaveBeenCalledWith('EmailTemplate', '00D000000000001');
-    expect(catalogSnapshots.get('00D000000000001')?.inventory).toEqual([
-      expect.objectContaining({ xmlName: 'EmailTemplate', emailFolderListingComplete: true, complete: true })
-    ]);
-
-    const restored = makeHarness({ catalogSnapshots });
-    const restoredFolders = await runWithCatalog(restored.layer, catalog =>
-      catalog.getChildren({ type: 'EmailTemplate' })
-    );
-    expect(restoredFolders.map(folder => folder.name)).toEqual(['Classic', 'Lightning']);
-    expect(restored.mocks.listMetadata).not.toHaveBeenCalled();
-    expect(restored.mocks.listMetadataFolders).not.toHaveBeenCalled();
-  });
-
   it('reacquires a persisted SObject description older than Custom Field inventory', async () => {
     const staleDescription = {
       ...emptySObject('Broker__c'),

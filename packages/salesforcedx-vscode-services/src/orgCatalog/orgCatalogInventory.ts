@@ -37,11 +37,7 @@ export const makeOrgCatalogInventory = Effect.gen(function* () {
       const coalesced = yield* state.getInventory(orgId, xmlName);
       if (coalesced?.complete) return coalesced;
       const restored = yield* state.getPersistedInventory(orgId, xmlName);
-      // Older email inventories queried only EmailTemplateFolder, omitting Classic folders.
-      const restoreComplete =
-        isNotUndefined(restored) &&
-        restored.complete !== false &&
-        (xmlName !== 'EmailTemplate' || restored.emailFolderListingComplete === true);
+      const restoreComplete = isNotUndefined(restored) && restored.complete !== false;
       const listOrgComponents = restoreComplete
         ? Effect.succeed({ components: restored.components, folders: restored.folders })
         : Match.value(FOLDERED_METADATA_TYPES.has(xmlName)).pipe(

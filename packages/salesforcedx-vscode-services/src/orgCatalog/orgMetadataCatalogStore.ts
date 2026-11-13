@@ -50,8 +50,6 @@ const PersistedTypeInventorySchema = Schema.Struct({
   xmlName: Schema.String,
   observedAt: Schema.String,
   complete: Schema.optional(Schema.Boolean),
-  /** True only after both Classic and Lightning email folder types have been listed. */
-  emailFolderListingComplete: Schema.optional(Schema.Boolean),
   components: Schema.Array(PersistedListedComponentSchema),
   folders: Schema.Array(PersistedListedComponentSchema)
 });

@@ -53,7 +53,6 @@ const toPersistedInventory = (xmlName: string, value: TypeInventory): PersistedT
   xmlName,
   observedAt: value.observedAt,
   complete: value.complete,
-  ...(xmlName === 'EmailTemplate' && value.complete ? { emailFolderListingComplete: true } : {}),
   components: value.componentIdentityOrder.flatMap(identity =>
     Option.match(HashMap.get(value.components, identity), {
       onNone: () => [],
