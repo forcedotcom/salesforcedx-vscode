@@ -13,7 +13,6 @@ import { formatSyncResults, requestSyncTests } from '../effect/syncTests';
 import { nls } from '../i18n';
 import { getCurrentTime } from '../utils/dateUtil';
 import { elapsedTime } from '../utils/elapsedTime';
-import { HeapMonitor } from '../utils/heapMonitor';
 import { type CancellationToken } from './cancellation';
 import { CodeCoverage } from './codeCoverage';
 import { formatTestErrors } from './diagnosticUtil';
@@ -41,7 +40,6 @@ export class SyncTests {
     codeCoverage = false,
     token?: CancellationToken
   ): Promise<TestResult> {
-    HeapMonitor.getInstance().checkHeapSize('synctests.runTests');
     try {
       const execution = await requestSyncTests(this.connection, options).pipe(Effect.either, Effect.runPromise);
       // Keep Promise rejections free of the Effect runtime's FiberFailure prefix.
@@ -54,24 +52,17 @@ export class SyncTests {
       return await this.formatSyncResults(execution.right, getCurrentTime(), codeCoverage);
     } catch (e) {
       throw formatTestErrors(e);
-    } finally {
-      HeapMonitor.getInstance().checkHeapSize('synctests.runTests');
     }
   }
 
   @elapsedTime()
   public async formatSyncResults(apiTestResult: unknown, startTime: number, codeCoverage = false): Promise<TestResult> {
-    HeapMonitor.getInstance().checkHeapSize('synctests.formatSyncResults');
-    try {
-      const formatted = await formatSyncResults(this.connection, apiTestResult, startTime).pipe(
-        Effect.either,
-        Effect.runPromise
-      );
-      if (Either.isLeft(formatted)) throw new Error(formatted.left.message);
-      return await this.addCodeCoverage(formatted.right, codeCoverage);
-    } finally {
-      HeapMonitor.getInstance().checkHeapSize('synctests.formatSyncResults');
-    }
+    const formatted = await formatSyncResults(this.connection, apiTestResult, startTime).pipe(
+      Effect.either,
+      Effect.runPromise
+    );
+    if (Either.isLeft(formatted)) throw new Error(formatted.left.message);
+    return this.addCodeCoverage(formatted.right, codeCoverage);
   }
 
   // Coverage retrieval retains its existing class implementation until its own migration.

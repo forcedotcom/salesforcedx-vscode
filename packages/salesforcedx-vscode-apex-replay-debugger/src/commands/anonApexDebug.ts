@@ -5,6 +5,7 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
 import { format } from 'node:util';
 import * as vscode from 'vscode';
@@ -87,7 +88,7 @@ const executeAnonApexDebug = Effect.fn('ApexReplayDebugger.executeAnonApexDebug'
 
   const logFilePath = Utils.joinPath(
     yield* api.services.ProjectService.getDebugLogsFolder(),
-    `${getYYYYMMddHHmmssDateFormat(new Date())}.log`
+    `${getYYYYMMddHHmmssDateFormat(yield* DateTime.nowAsDate)}.log`
   );
   const success = yield* launchReplayDebugger(
     logFilePath,
@@ -105,11 +106,9 @@ const COMMAND: ProgressAndSuccessCommandKey = 'Debug Anonymous Apex';
 
 export const anonApexDebugCommand = Effect.fn('ApexReplayDebugger.anonApexDebugCommand')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const notificationMode = yield* api.services.NotificationModeService;
-  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
   const prompts = yield* api.services.PromptService;
   yield* executeAnonApexDebug().pipe(
-    prompts.withProgress(nls.localize('apex_execute_text'), progressLocation),
+    prompts.withProgress({ command: COMMAND, title: nls.localize('apex_execute_text'), cancellable: false }),
     Effect.catchAll(error =>
       Effect.sync(() => {
         void vscode.window.showErrorMessage(nls.localize('apex_execute_debug_failed', String(error)));

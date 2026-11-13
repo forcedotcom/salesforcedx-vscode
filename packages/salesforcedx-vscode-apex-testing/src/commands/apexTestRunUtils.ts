@@ -152,7 +152,7 @@ export const runApexTests = Effect.fn('runApexTests')(function* (options: ApexTe
 
   // Bridge the fiber's interruption (e.g. user clicks Cancel on the progress notification) to a
   // vscode CancellationToken so apex-node stops polling the org server-side, not just the UI.
-  // The interrupt itself raises UserCancellationError via promptService.withCancellableProgress;
+  // The interrupt itself raises UserCancellationError via promptService.withProgress;
   // apex-node never throws on cancel (it returns null once the token is set), so there is no
   // cancellation result to catch here.
   const tokenSource = new CancellationTokenSource();

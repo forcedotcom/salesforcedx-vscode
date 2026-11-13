@@ -100,35 +100,29 @@ export const debuggerStop = Effect.fn('debuggerStop')(function* () {
           )
         );
 
-  yield* Effect.all({
-    progressLocation: notificationMode.getProgressLocation(COMMAND),
-    promptService: api.services.PromptService
-  }).pipe(
-    Effect.flatMap(({ progressLocation, promptService }) =>
-      sessionRecords.pipe(
-        // LIMIT 1 → Array.head is None (nothing to stop) or Some(the session to detach).
-        Effect.flatMap(records =>
-          Option.match(Array.head(records), {
-            onNone: () => Effect.succeed(false as const),
-            onSome: ({ Id }) =>
-              Effect.as(
-                Effect.tryPromise({
-                  try: () => conn.tooling.sobject('ApexDebuggerSession').update({ Id, Status: 'Detach' }),
-                  catch: e => new DebuggerSessionUpdateError({ message: getMessageFromError(e) })
-                }),
-                true as const
-              )
-          })
-        ),
-        Effect.tap(stopped =>
-          notificationMode.showSuccessNotification(
-            COMMAND,
-            nls.localize(stopped ? 'debugger_stop_success_text' : 'debugger_stop_none_found_text'),
-            false
+  const promptService = yield* api.services.PromptService;
+  yield* sessionRecords.pipe(
+    // LIMIT 1 → Array.head is None (nothing to stop) or Some(the session to detach).
+    Effect.flatMap(records =>
+      Option.match(Array.head(records), {
+        onNone: () => Effect.succeed(false as const),
+        onSome: ({ Id }) =>
+          Effect.as(
+            Effect.tryPromise({
+              try: () => conn.tooling.sobject('ApexDebuggerSession').update({ Id, Status: 'Detach' }),
+              catch: e => new DebuggerSessionUpdateError({ message: getMessageFromError(e) })
+            }),
+            true as const
           )
-        ),
-        promptService.withProgress(nls.localize('debugger_stop_text'), progressLocation)
+      })
+    ),
+    Effect.tap(stopped =>
+      notificationMode.showSuccessNotification(
+        COMMAND,
+        nls.localize(stopped ? 'debugger_stop_success_text' : 'debugger_stop_none_found_text'),
+        false
       )
-    )
+    ),
+    promptService.withProgress({ command: COMMAND, title: nls.localize('debugger_stop_text'), cancellable: false })
   );
 });

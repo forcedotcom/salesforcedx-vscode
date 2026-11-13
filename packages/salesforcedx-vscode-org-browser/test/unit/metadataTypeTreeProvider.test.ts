@@ -95,7 +95,7 @@ describe('org request status', () => {
     const provider = new MetadataTypeTreeProvider();
 
     await Effect.runPromise(provider.trackOrgRequest('Discovering org metadata', Effect.void));
-    vi.advanceTimersByTime(300);
+    await vi.advanceTimersByTimeAsync(300);
 
     expect(vscode.window.createStatusBarItem).not.toHaveBeenCalled();
   });
@@ -110,7 +110,7 @@ describe('org request status', () => {
     );
 
     await Promise.resolve();
-    vi.advanceTimersByTime(300);
+    await vi.advanceTimersByTimeAsync(300);
 
     expect(vscode.window.createStatusBarItem).toHaveBeenCalledWith(vscode.StatusBarAlignment.Left, 99);
     expect(statusItem.text).toBe('$(sync~spin) Discovering org metadata (2 requests)');

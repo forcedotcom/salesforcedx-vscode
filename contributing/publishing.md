@@ -28,15 +28,15 @@ References:
 Workflow [`build-github-release.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/build-github-release.yml) builds release VSIXs from promoted prerelease tags. Runs automatically via `promote-to-prerelease.yml`'s `trigger-stable-build` job (pinned to exact nightly just promoted); also supports manual dispatch for hotfixes or re-runs.
 
 Inputs:
-- `startFromRef`: exact tag/branch/SHA; overrides `prereleaseTag` and skips nightly-tag validation. Stable mode versions on its isolated build branch. For an emergency prerelease, the workflow does not update package versions: run `node scripts/update-release-versions.js <version>` on the hotfix source, commit the package and lockfile changes, then provide that commit and the same explicit `releaseVersion`.
+- `startFromRef`: exact tag/branch/SHA; overrides `prereleaseTag` and skips nightly-tag validation. Stable mode versions on its isolated build branch. For an emergency prerelease, the workflow does not update package versions: run `node scripts/updateReleaseVersions.mts <version>` on the hotfix source, commit the package and lockfile changes, then provide that commit and the same explicit `releaseVersion`.
 - `prereleaseTag`: nightly tag published as a prerelease (e.g., `v67.11.1-nightly.develop.20260812`); the promotion workflow supplies it for automatic builds. If omitted during manual dispatch, auto-detection walks `marketplace-prerelease-*` tracking tags newest-first and selects the first version with a matching nightly tag.
 - `releaseVersion`: release version (e.g., `67.12.0`); auto-calculated per mode if empty
 - `emergencyPrerelease`: `true` → emergency-hotfix build path; auto-calculates patch from max(Marketplace, Open VSX) if `releaseVersion` empty
 
 Uses scripts:
-- [`scripts/calculate-release-version.js`](../scripts/calculate-release-version.js) — extract prerelease version, bump minor
-- [`scripts/calculate-prerelease-hotfix-version.js`](../scripts/calculate-prerelease-hotfix-version.js) — query Marketplace/Open VSX, bump patch on max version
-- [`scripts/update-release-versions.js`](../scripts/update-release-versions.js) — update publishable packages' `package.json` + `pnpm-lock.yaml`
+- [`scripts/calculateReleaseVersion.mts`](../scripts/calculateReleaseVersion.mts) — extract prerelease version, bump minor
+- [`scripts/calculatePrereleaseHotfixVersion.mts`](../scripts/calculatePrereleaseHotfixVersion.mts) — query Marketplace/Open VSX, bump patch on max version
+- [`scripts/updateReleaseVersions.mts`](../scripts/updateReleaseVersions.mts) — update publishable packages' `package.json` + `pnpm-lock.yaml`
 
 **Source selection:** `prereleaseTag` accepts nightly-formatted tags only. A tracking tag for a promoted hotfix may have no matching nightly, so auto-detection skips it and may select an older source. Use `startFromRef` for patched non-nightly sources. That path skips normal nightly changelog relabeling; prepare the original release changes plus the fix before building a successor stable candidate.
 
@@ -66,7 +66,7 @@ gh workflow run nightly.yml -f extensions="salesforcedx-vscode-apex,salesforcedx
 gh workflow run nightly.yml -f dry-run=true
 ```
 
-**Extension discovery:** Nightly builds use [`scripts/list-vscode-extensions.js`](../scripts/list-vscode-extensions.js) — scans `packages/` for VS Code extensions:
+**Extension discovery:** Nightly builds use [`scripts/listVscodeExtensions.mts`](../scripts/listVscodeExtensions.mts) — scans `packages/` for VS Code extensions:
 - Filters: `engines.vscode`, `publisher`, `categories`; name starts `salesforcedx-vscode` (includes main bundle)
 - Returns comma-separated list (sorted)
 - Auto-included without workflow changes
@@ -128,7 +128,7 @@ stable registry is independent; neither publisher triggers the other.
 1. A promoted nightly tag exists (see [Pre-release promotion](#nightly-builds--pre-release-promotion)).
 2. The `trigger-stable-build` job automatically builds a stable candidate from that exact nightly.
 3. Download and test the VSIX files from the GitHub pre-release.
-4. Promote the release from pre-release to full release: `gh release edit v67.12.0 --prerelease=false --title "Release 67.12.0 - Tested & Approved" --latest`. This marks the release stable and triggers both [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) and [`publishOpenVSX.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSX.yml) via the `release: types: [released]` event. The title and `--latest` are cosmetic; the stable flag triggers publication.
+4. Promote the release from pre-release to full release: `gh release edit v67.12.0 --prerelease=false --title "Release 67.12.0 - Tested & Approved" --latest`. This marks the release stable and triggers both [`publishVSCode.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishVSCode.yml) and [`publishOpenVSXTrusted.yml`](https://github.com/forcedotcom/salesforcedx-vscode/actions/workflows/publishOpenVSXTrusted.yml) via the `release: types: [released]` event. The title and `--latest` are cosmetic; the stable flag triggers publication.
 5. Use the automatically created runs. For missing or failed runs, dispatch the corresponding publisher manually with the version. Dispatching one does **not** trigger the other; use the hotfix procedure above for stable hotfixes.
 6. Approve marketplace publish gates.
 7. Marketplace updates (usually within minutes).
@@ -186,10 +186,10 @@ Major bumps are aligned with Salesforce Core major version releases (e.g., SF CL
 
 **Step 1: Bump develop branch**
 
-Create a PR that runs [`scripts/update-release-versions.js`](../scripts/update-release-versions.js) to set every publishable package's `package.json` to the **first odd minor** of the new major — e.g. `68.1.0`, not `68.0.0`:
+Create a PR that runs [`scripts/updateReleaseVersions.mts`](../scripts/updateReleaseVersions.mts) to set every publishable package's `package.json` to the **first odd minor** of the new major — e.g. `68.1.0`, not `68.0.0`:
 
 ```bash
-node scripts/update-release-versions.js 68.1.0
+node scripts/updateReleaseVersions.mts 68.1.0
 ```
 
 Nightly's own version-bump logic always enforces an odd minor (see `vscode-publish-extensions.yml`'s `bump-versions` job): if you set the baseline to an even minor like `68.0.0`, the very next nightly run silently corrects it to `68.1.0` on its own anyway. Set it to the odd value directly so the PR's diff matches what actually ships.
@@ -198,7 +198,7 @@ After merge, nightlies build from that baseline and tag `v68.1.0-nightly.develop
 
 **Step 2: Build release with manual override**
 
-The normal auto-calculated stable path (`scripts/calculate-release-version.js`) just increments the prerelease minor by one (`68.1.x` → `68.2.0`), which would skip the actual major version number entirely. To publish the major release as exactly `68.0.0`, after ≥7 days of nightly testing, trigger the release build with a manual version override:
+The normal auto-calculated stable path (`scripts/calculateReleaseVersion.mts`) just increments the prerelease minor by one (`68.1.x` → `68.2.0`), which would skip the actual major version number entirely. To publish the major release as exactly `68.0.0`, after ≥7 days of nightly testing, trigger the release build with a manual version override:
 
 ```bash
 gh workflow run build-github-release.yml \
@@ -286,6 +286,6 @@ SHA256 match. If you were to repackage, the SHA256 would be different.
       - `bugs`: `https://github.com/forcedotcom/salesforcedx-vscode/issues`
       - `repository`: `https://github.com/forcedotcom/salesforcedx-vscode`
    3. Add required scripts — modern packages use wireit (see [Build](../docs/Build.md) and [vsce-direct-use](../docs/adr/0017-vsce-package-directly.md)); legacy need `vscode:prepublish`, `vscode:package:legacy`. All need `vscode:sha256`, `vscode:publish`.
-   4. Ensure `package.json` has `engines.vscode`, `publisher`, `categories` — nightly builds auto-discover via [`scripts/list-vscode-extensions.js`](../scripts/list-vscode-extensions.js) (main bundle first, then alphabetical; no workflow updates needed).
+   4. Ensure `package.json` has `engines.vscode`, `publisher`, `categories` — nightly builds auto-discover via [`scripts/listVscodeExtensions.mts`](../scripts/listVscodeExtensions.mts) (main bundle first, then alphabetical; no workflow updates needed).
 
 [publish_vscode_ext]: https://code.visualstudio.com/docs/extensions/publish-extension

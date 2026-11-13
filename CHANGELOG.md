@@ -1,4 +1,16 @@
-# 68.9.6 - November 11, 2026
+# 68.11.7 - November 18, 2026
+
+## Added
+
+#### salesforcedx-vscode-metadata
+
+- We added the **Vue Internal App** template to **SFDX: Create Project**. The command now loads project templates from `@salesforce/templates`, so new templates appear without a hard-coded list update. ([PR #8561](https://github.com/forcedotcom/salesforcedx-vscode/pull/8561))
+
+## Under the Hood
+
+- We made some under the hood changes. ([PR #8592](https://github.com/forcedotcom/salesforcedx-vscode/pull/8592), [PR #8591](https://github.com/forcedotcom/salesforcedx-vscode/pull/8591), [PR #8537](https://github.com/forcedotcom/salesforcedx-vscode/pull/8537))
+
+# 68.10.0 - November 11, 2026
 
 ## Fixed
 
@@ -8,7 +20,7 @@
 
 ## Under the Hood
 
-- We made some under the hood changes. ([PR #8535](https://github.com/forcedotcom/salesforcedx-vscode/pull/8535), [PR #8496](https://github.com/forcedotcom/salesforcedx-vscode/pull/8496), [PR #8555](https://github.com/forcedotcom/salesforcedx-vscode/pull/8555), [PR #8565](https://github.com/forcedotcom/salesforcedx-vscode/pull/8565))
+- We made some under the hood changes. ([PR #8496](https://github.com/forcedotcom/salesforcedx-vscode/pull/8496), [PR #8535](https://github.com/forcedotcom/salesforcedx-vscode/pull/8535), [PR #8555](https://github.com/forcedotcom/salesforcedx-vscode/pull/8555), [PR #8565](https://github.com/forcedotcom/salesforcedx-vscode/pull/8565))
 
 # 68.8.0 - November 4, 2026
 

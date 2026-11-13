@@ -8,6 +8,7 @@
 import type { ApexLogListItem, ListLogsOptions, TraceFlagItem } from './logTypes';
 import { ExtensionProviderService } from '@salesforce/effect-ext-utils';
 import * as Arr from 'effect/Array';
+import * as DateTime from 'effect/DateTime';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as HashSet from 'effect/HashSet';
@@ -120,7 +121,7 @@ const createCollectionStream = Effect.fn('LogAutoCollect.createCollectionStream'
     const cursor = filtersChanged ? Option.none<LogCursor>() : yield* Ref.get(cursorRef);
     yield* Ref.set(pollFailedRef, false);
     if (!(collectWhileInactive || vscode.window.state.active) || activeItems.length === 0) return Option.none();
-    const lookbackStart = new Date(Date.now() - Duration.toMillis(cursorOverlap)).toISOString();
+    const lookbackStart = (yield* DateTime.now).pipe(DateTime.subtractDuration(cursorOverlap), DateTime.formatIso);
     return Option.some(
       Option.match(cursor, {
         onNone: () => ({ ...filters, orderBy: 'ASC' as const }),

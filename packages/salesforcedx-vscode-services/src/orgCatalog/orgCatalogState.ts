@@ -16,6 +16,7 @@ import type {
 } from './orgCatalogInternalTypes';
 import type { OrgSObjectDescription, OrgSObjectSummary } from './orgMetadataCatalogTypes';
 import * as Arr from 'effect/Array';
+import * as DateTime from 'effect/DateTime';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
@@ -145,7 +146,7 @@ export class OrgCatalogState extends Effect.Service<OrgCatalogState>()('OrgCatal
       const snapshot: OrgMetadataCatalogSnapshot = {
         version: 2,
         orgId,
-        writtenAt: new Date().toISOString(),
+        writtenAt: DateTime.formatIso(yield* DateTime.now),
         generation,
         inventory: pipe(inventory, HashMap.toValues, Arr.sort(byXmlName)),
         sobjects: {

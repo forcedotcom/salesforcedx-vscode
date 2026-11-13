@@ -40,6 +40,12 @@ export const ApexTriggerIdString = prefixedSalesforceIdString('01q', 'ApexTrigge
 export const ApexTriggerId = ApexTriggerIdString.pipe(Schema.brand('@salesforcedx-apex/ApexTriggerId'));
 export type ApexTriggerId = typeof ApexTriggerId.Type;
 
+/** Salesforce IDs that can be traced by a Tooling API TraceFlag. */
+export const TraceFlagEntityId = Schema.Union(UserId, ApexClassId, ApexTriggerId).annotations({
+  identifier: 'TraceFlagEntityId'
+});
+export type TraceFlagEntityId = typeof TraceFlagEntityId.Type;
+
 /** Salesforce Tooling API ApexLog record ID. */
 export const ApexLogIdString = prefixedSalesforceIdString('07L', 'ApexLog');
 export const ApexLogId = ApexLogIdString.pipe(Schema.brand('@salesforcedx-apex/ApexLogId'));

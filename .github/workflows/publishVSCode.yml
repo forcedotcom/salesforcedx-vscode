@@ -23,11 +23,6 @@ on:
         required: false
         default: false
         type: boolean
-      isHotfix:
-        description: 'Test the exact release commit directly before publishing. Use for stable hotfixes built via build-github-release.yml startFromRef, which have no other automated test gate.'
-        required: false
-        default: false
-        type: boolean
 
 jobs:
   prepare-release-metadata:
@@ -103,13 +98,30 @@ jobs:
           fi
           echo "✅ Release $RELEASE_TAG exists"
 
+  # Reads the isHotfix classification build-github-release.yml/build-and-release-patch-branch.yml
+  # persisted on the release (release-metadata.json asset), falling back to a fail-safe "true"
+  # when that metadata is missing/invalid. This is what lets gate-check below run automatically
+  # on the release:released trigger, not just on manual dispatch.
+  classify-release:
+    needs: [prepare-release-metadata]
+    runs-on: ubuntu-latest
+    outputs:
+      is-hotfix: ${{ steps.classify.outputs.is-hotfix }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: classify
+        uses: ./.github/actions/classify-release
+        with:
+          release-tag: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
   # Only needed for stable hotfixes (isHotfix=true): these are built via build-github-release.yml's
   # startFromRef, which never goes through develop's branch protection or any nightly pipeline,
   # so there's no existing signal that the release commit was tested. Skipped for normal releases,
   # which already passed develop's required checks before ever becoming a release tag.
   gate-check:
-    needs: [prepare-release-metadata]
-    if: github.event.inputs.isHotfix == 'true'
+    needs: [prepare-release-metadata, classify-release]
+    if: needs.classify-release.outputs.is-hotfix == 'true'
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -165,13 +177,17 @@ jobs:
           dir: ./extensions
 
   publish:
-    needs: ['ctc-open', 'prepare-release-metadata', 'verify-release', 'gate-check', 'validate-vsix']
-    if: always() && needs.prepare-release-metadata.result == 'success' && needs.verify-release.result == 'success' && needs.validate-vsix.result == 'success' && (needs.gate-check.result == 'success' || needs.gate-check.result == 'skipped') && (inputs.dry-run || needs.ctc-open.result == 'success')
-    uses: salesforcecli/github-workflows/.github/workflows/vscode-publish-release-vsix.yml@main
-    with:
-      release-tag: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
-      dry-run: ${{ inputs.dry-run == true }}
-    secrets: inherit
+    needs: ['ctc-open', 'prepare-release-metadata', 'verify-release', 'classify-release', 'gate-check', 'validate-vsix']
+    if: always() && needs.prepare-release-metadata.result == 'success' && needs.verify-release.result == 'success' && needs.validate-vsix.result == 'success' && needs.classify-release.result == 'success' && (needs.gate-check.result == 'success' || needs.gate-check.result == 'skipped') && (inputs.dry-run || needs.ctc-open.result == 'success')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write # vsce exchanges this job's OIDC token for a Marketplace publishing token
+    steps:
+      - uses: salesforcecli/github-workflows/.github/actions/vscode/publish-release-vsix@main
+        with:
+          release-tag: ${{ needs.prepare-release-metadata.outputs.RELEASE_TAG }}
+          dry-run: ${{ inputs.dry-run == true }}
 
   ctcCloseSuccess:
     needs: [ctc-open, publish]
@@ -227,7 +243,7 @@ jobs:
         if: steps.stable.outputs.is_stable == 'true'
         run: |
           git show "$RELEASE_TAG:packages/salesforcedx-vscode/CHANGELOG.md" > "$RUNNER_TEMP/release-CHANGELOG.md"
-          node scripts/fold-stable-changelog.js \
+          node scripts/foldStableChangelog.mts \
             --changelog CHANGELOG.md \
             --overlay packages/salesforcedx-vscode/CHANGELOG.md \
             --ref "$RELEASE_TAG" \

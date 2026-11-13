@@ -213,7 +213,7 @@ jobs:
 
       - name: Write this week's polished changelog delta
         # Header format (bare "X.Y.Z - Month D, YYYY") must match what
-        # scripts/prepend-release-changelog.js expects to extract a version from.
+        # scripts/prependReleaseChangelog.mts expects to extract a version from.
         id: delta
         env:
           PRERELEASE_VERSION: ${{ steps.version.outputs.version }}
@@ -281,7 +281,7 @@ jobs:
 
       - name: Prepend delta to root CHANGELOG (full history)
         if: steps.delta.outputs.generated == 'true'
-        run: node scripts/prepend-release-changelog.js
+        run: node scripts/prependReleaseChangelog.mts
 
       - name: Commit changelog delta to develop
         if: steps.delta.outputs.generated == 'true'
@@ -306,6 +306,35 @@ jobs:
       dry-run: ${{ inputs.dry-run || false }}
     secrets: inherit
 
+  # Step 4b: Dispatch publishOpenVSXTrusted.yml for this exact nightly. vscode-promote-prerelease.yml
+  # no longer publishes Open VSX at all (PAT-based ovsx leg removed there -- see its header comment),
+  # so this is the only place Open VSX publishing happens for prerelease. Open VSX's
+  # trusted-publisher match keys off the OIDC token's workflow_ref claim -- the top-level workflow
+  # that *initiated* the run, fixed to this file (promote-to-prerelease.yml) for every job that
+  # runs via a `uses:` call, no matter how deeply nested or which repo it lives in. Since stable
+  # releases are published via publishOpenVSXTrusted.yml's own `release` trigger, not this file,
+  # the two channels would get two different workflow_ref values if this called `ovsx publish`
+  # directly -- and Open VSX allows only one trusted-publisher registration per extension.
+  # `gh workflow run` below is a genuinely new, independent run rather than a nested call, so that
+  # run's own workflow_ref is publishOpenVSXTrusted.yml -- the same file stable's `release` event
+  # also triggers directly. Omitting `do-ctc` below leaves it at its default false, correctly
+  # skipping the CTC moratorium check for this nightly -- see publishOpenVSXTrusted.yml for why
+  # that's an explicit opt-in rather than inferred from the tag.
+  trigger-openvsx-publish:
+    needs: [find-nightly, write-changelog, promote]
+    if: always() && needs.promote.result == 'success' && (needs.write-changelog.result == 'success' || needs.write-changelog.result == 'skipped') && inputs.dry-run != true
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+      NIGHTLY_TAG: ${{ needs.find-nightly.outputs.nightly-tag }}
+    steps:
+      - name: Dispatch Open VSX publish for this nightly
+        run: |
+          gh workflow run publishOpenVSXTrusted.yml \
+            --repo "${{ github.repository }}" \
+            --ref develop \
+            -f release-tag="$NIGHTLY_TAG"
+
   # Step 5: Chain the stable candidate off this exact prerelease. build-github-release.yml has no
   # schedule of its own (see that file) -- it only runs from this dispatch or a manual hotfix --
   # so stable is ALWAYS built from the nightly just promoted here, with prereleaseTag pinned
@@ -323,8 +352,8 @@ jobs:
   # nightly. build-github-release.yml's prereleaseTag input requires the
   # vX.Y.Z-nightly.develop.YYYYMMDD shape and would reject it, and even if it didn't, chaining a
   # full stable minor-bump build off a hotfix tag makes no sense: hotfixes publish directly via
-  # publishVSCode.yml/publishOpenVSX.yml with isHotfix=true, they don't go through this
-  # nightly-to-stable promotion chain.
+  # publishVSCode.yml/publishOpenVSXTrusted.yml, which auto-detect isHotfix from the release's
+  # persisted metadata -- they don't go through this nightly-to-stable promotion chain.
   # -- W-24610381
   trigger-stable-build:
     needs: [find-nightly, write-changelog, promote]
@@ -383,6 +412,7 @@ jobs:
         changelog-body,
         write-changelog,
         promote,
+        trigger-openvsx-publish,
         trigger-stable-build,
         mark-release-published
       ]
@@ -412,6 +442,7 @@ jobs:
         changelog-body,
         write-changelog,
         promote,
+        trigger-openvsx-publish,
         trigger-stable-build,
         mark-release-published
       ]

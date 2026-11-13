@@ -6,13 +6,17 @@
  */
 
 import * as Schema from 'effect/Schema';
-import { SalesforceId } from '../../../schemas/salesforceId';
 
-/** A minimal Salesforce query record containing its record ID. */
-export const IdRecordSchema = Schema.Struct({ Id: SalesforceId });
-
-/** Builds the Tooling/REST query response schema for a caller-provided record schema. */
-export const queryRecordsResponseSchema = <A, I, R>(recordSchema: Schema.Schema<A, I, R>) =>
-  Schema.Struct({ records: Schema.Array(recordSchema) });
-
-export const createRecordResponseSchema = Schema.Struct({ id: Schema.String });
+export const RecordSaveResultSchema = <A, I, R>(idSchema: Schema.Schema<A, I, R>) =>
+  Schema.Union(
+    Schema.Struct({
+      success: Schema.Literal(true),
+      id: idSchema,
+      errors: Schema.Array(Schema.Unknown)
+    }),
+    Schema.Struct({
+      success: Schema.Literal(false),
+      id: Schema.optional(Schema.Never),
+      errors: Schema.NonEmptyArray(Schema.Unknown)
+    })
+  );

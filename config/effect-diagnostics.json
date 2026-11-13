@@ -29,6 +29,8 @@
     "missingEffectServiceDependency",
     "nestedEffectGenYield",
     "strictEffectProvide",
-    "newPromise"
+    "newPromise",
+    "globalTimers",
+    "globalDateInEffect"
   ]
 }

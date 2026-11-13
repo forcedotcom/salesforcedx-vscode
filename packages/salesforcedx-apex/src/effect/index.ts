@@ -65,6 +65,9 @@ export { TestSuiteSchema, TestSuiteMembershipSchema } from './schema/testSuites'
 export { retrieveAllSuites, getTestsInSuite, buildSuite } from './testSuites';
 export type { TestSuite, TestSuiteMembership } from './schema/testSuites';
 export { ApexTestSuiteId } from '../schemas/salesforceId';
+export { ApexClassId, ApexTriggerId, SalesforceId, TraceFlagEntityId, UserId } from '../schemas/salesforceId';
+export { DebugLevelId, TraceFlagId } from './schema/salesforceId';
+export { createRecord, deleteRecord, updateRecord } from './records';
 export { AsyncTestOptionsSchema } from './schema/wire/asyncTests';
 export { AsyncTestProgressSchema, AsyncTestResultSchema, AsyncTestRunEventSchema } from './schema/asyncTests';
 export { runTestAsynchronous } from './asyncTests';
@@ -85,3 +88,38 @@ export type { CoverageReportOptions } from './coverageReports';
 export type { CoverageSource } from '../reporters/coverageMap';
 export { DefaultReportOptions, DefaultWatermarks } from '../reporters/coverageOptions';
 export type { CoverageReporterOptions, CoverageReportFormats } from '../reporters/coverageOptions';
+export {
+  getTraceFlags,
+  getTraceFlagForEntity,
+  getDebugLevels,
+  findDebugLevel,
+  createDebugLevel,
+  updateDebugLevel,
+  deleteDebugLevel,
+  getOrCreateDebugLevel,
+  createTraceFlag,
+  updateTraceFlag,
+  deleteTraceFlag,
+  changeTraceFlagDebugLevel,
+  extendTraceFlag,
+  ensureTraceFlag,
+  traceFlagExpirationDate
+} from './traceFlags';
+export type { UpdateTraceFlagOptions, EnsureTraceFlagOptions } from './traceFlags';
+export {
+  TraceFlagLogType,
+  TraceFlagRecordSchema,
+  TraceFlagForEntitySchema,
+  LogCategoryLevel,
+  DebugLevelRecordSchema,
+  CreateDebugLevelSchema,
+  UpdateDebugLevelSchema
+} from './schema/wire/traceFlags';
+export type {
+  TraceFlagRecord,
+  TraceFlagForEntity,
+  DebugLevelRecord,
+  CreateDebugLevel,
+  UpdateDebugLevel
+} from './schema/wire/traceFlags';
+export { ApexToolingMutationError } from './schema/errors';

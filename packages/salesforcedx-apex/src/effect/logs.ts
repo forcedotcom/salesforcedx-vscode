@@ -11,11 +11,11 @@ import * as Chunk from 'effect/Chunk';
 import * as Effect from 'effect/Effect';
 import { pipe } from 'effect/Function';
 import * as Option from 'effect/Option';
-import type { ParseError } from 'effect/ParseResult';
 import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
 import type * as Schedule from 'effect/Schedule';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
+import { queryRecordPages } from './records';
 import { ApexLogBodyFetchError, ApexLogQueryError } from './schema/errors';
 import {
   ListLogsOptionsSchema,
@@ -23,7 +23,7 @@ import {
   type ListLogsOptions,
   type LogStreamEvent as LogStreamEventShape
 } from './schema/logs';
-import { ApexLogPageSchema, type ApexLogListItem } from './schema/wire/logs';
+import { ApexLogListItem } from './schema/wire/logs';
 
 const buildListLogsQuery = (options?: DecodedListLogsOptions): string => {
   const userIds = options?.userIds ?? [];
@@ -44,29 +44,18 @@ const buildListLogsQuery = (options?: DecodedListLogsOptions): string => {
   return `SELECT Id, Application, DurationMilliseconds, LogLength, LogUserId, LogUser.Name, Operation, StartTime, Status FROM ApexLog${where} ORDER BY StartTime ${orderBy}, Id ${orderBy}`;
 };
 
-const streamLogPagesForSoql = (connection: Connection, soql: string) => {
-  const initialNextRecordsUrl: string | undefined = undefined;
-  return Stream.paginateEffect<string | undefined, readonly ApexLogListItem[], ApexLogQueryError | ParseError, never>(
-    initialNextRecordsUrl,
-    nextRecordsUrl =>
-      Effect.tryPromise({
-        try: () =>
-          Promise.resolve(
-            isUndefined(nextRecordsUrl) ? connection.tooling.query(soql) : connection.tooling.queryMore(nextRecordsUrl)
-          ),
-        catch: cause => new ApexLogQueryError({ soql, message: getErrorMessage(cause), cause })
-      }).pipe(
-        Effect.flatMap(Schema.decodeUnknown(ApexLogPageSchema)),
-        Effect.map(
-          page =>
-            [page.records, page.done ? Option.none<string>() : Option.some(page.nextRecordsUrl)] satisfies readonly [
-              readonly ApexLogListItem[],
-              Option.Option<string>
-            ]
-        )
-      )
+const streamLogPagesForSoql = (connection: Connection, soql: string) =>
+  queryRecordPages({
+    connection,
+    operation: 'listLogs',
+    soql,
+    recordSchema: ApexLogListItem,
+    tooling: true
+  }).pipe(
+    Stream.catchTag('ApexQueryRequestError', requestError =>
+      Stream.fail(new ApexLogQueryError({ soql, message: requestError.message, cause: requestError.cause }))
+    )
   );
-};
 
 const streamLogPages = (connection: Connection, options?: ListLogsOptions) =>
   Schema.decodeUnknown(ListLogsOptionsSchema)(options ?? {}).pipe(

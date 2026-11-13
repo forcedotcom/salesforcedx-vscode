@@ -114,17 +114,9 @@ const runBuilderQueryEffect = Effect.fn('SOQLEditor.runBuilderQuery')(function* 
   }
   const queryText = document.getText();
   const api = yield* getServicesApi;
-  const notificationMode = yield* api.services.NotificationModeService;
-  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
-  const queryData = yield* Effect.promise(() =>
-    vscode.window.withProgress(
-      {
-        cancellable: false,
-        location: progressLocation,
-        title: nls.localize('progress_running_query')
-      },
-      () => getSoqlRuntime().runPromise(runQuery(queryText, { maxRows }))
-    )
+  const promptService = yield* api.services.PromptService;
+  const queryData = yield* runQuery(queryText, { maxRows }).pipe(
+    promptService.withProgress({ command: COMMAND, title: nls.localize('progress_running_query'), cancellable: false })
   );
   yield* Effect.promise(() => openQueryDataView(queryData));
   yield* runQueryDone();

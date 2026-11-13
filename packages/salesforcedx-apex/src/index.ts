@@ -18,6 +18,7 @@ export {
   ApexTestSuiteId,
   ApexTriggerId,
   SalesforceId,
+  TraceFlagEntityId,
   TestRunId,
   UserId
 } from './schemas/salesforceId';

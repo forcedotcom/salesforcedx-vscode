@@ -7,7 +7,7 @@
   "repository": {
     "url": "https://github.com/forcedotcom/salesforcedx-vscode"
   },
-  "version": "68.11.5",
+  "version": "68.13.2",
   "publisher": "salesforce",
   "license": "BSD-3-Clause",
   "engines": {
@@ -49,7 +49,7 @@
     "test:desktop:debug": "pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-apex-log test:desktop --debug",
     "test:e2e": "wireit",
     "vscode:package": "wireit",
-    "vscode:publish": "node ../../scripts/publish-vsix.js",
+    "vscode:publish": "node ../../scripts/publishVsix.mts",
     "copy:grammars": "wireit",
     "compile": "wireit",
     "lint": "wireit",

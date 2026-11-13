@@ -34,8 +34,6 @@ const isRunnableTestClass = and(not(isFlowTest), (cls: ToolingTestClass) => (cls
 const selectTests = Effect.fn('apexTestRun.selectTests')(function* () {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
   const promptService = yield* api.services.PromptService;
-  const notificationMode = yield* api.services.NotificationModeService;
-  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
 
   const buildItems = Effect.fn('apexTestRun.selectTests.buildItems')(function* () {
     const suiteAndClassItems = yield* Effect.all(
@@ -87,7 +85,11 @@ const selectTests = Effect.fn('apexTestRun.selectTests')(function* () {
   });
 
   return yield* buildItems().pipe(
-    promptService.withCancellableProgress(nls.localize('retrieving_tests_message'), progressLocation),
+    promptService.withProgress({
+      command: COMMAND,
+      title: nls.localize('retrieving_tests_message'),
+      cancellable: true
+    }),
     Effect.flatMap(items => Effect.promise(() => window.showQuickPick<ApexTestQuickPickItem>(items))),
     Effect.flatMap(selection => promptService.considerUndefinedAsCancellation(selection))
   );
@@ -108,7 +110,6 @@ export const apexTestRun = Effect.fn('apexTestRun')(function* () {
  * Used by the run-tests command palette and the suite-run command. */
 export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selection: ApexTestQuickPickItem) {
   const api = yield* (yield* ExtensionProviderService).getServicesApi;
-  const notificationMode = yield* api.services.NotificationModeService;
   const { promptService, channelService, executionName, appendEnded } = yield* getRunCommandContext();
 
   if (selection.type === 'Suite') {
@@ -129,29 +130,25 @@ export const runSelectedTests = Effect.fn('runSelectedTests')(function* (selecti
     yield* ApexTestRunCacheService.setCachedClassTestParam(selection.fullClassName);
   }
 
-  const progressLocation = yield* notificationMode.getProgressLocation(COMMAND);
-
-  return yield* promptService.withCancellableProgressReporting(
-    executionName,
-    progressLocation
-  )(progress =>
-    runApexTests({
-      payload,
-      outputDir,
-      codeCoverage,
-      concise,
-      telemetryTrigger: 'quickPick',
-      progress
-    }).pipe(
-      Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
-      // Terminal notify on the success value, keyed on the run outcome (undefined result = soft failure:
-      // timeout/no summary). Cancellation stays on the failure channel, so this tap never fires a bogus toast.
-      Effect.tap(() => channelService.showChannel),
-      Effect.tap(({ result, reportUri, outputFormat }) =>
-        showRunOutcomeNotification(COMMAND, executionName, result, reportUri, outputFormat)
-      ),
-      Effect.map(({ result }) => result)
-    )
+  return yield* promptService.withProgressReporting({ command: COMMAND, title: executionName, cancellable: true })(
+    progress =>
+      runApexTests({
+        payload,
+        outputDir,
+        codeCoverage,
+        concise,
+        telemetryTrigger: 'quickPick',
+        progress
+      }).pipe(
+        Effect.tapBoth({ onSuccess: () => appendEnded, onFailure: () => appendEnded }),
+        // Terminal notify on the success value, keyed on the run outcome (undefined result = soft failure:
+        // timeout/no summary). Cancellation stays on the failure channel, so this tap never fires a bogus toast.
+        Effect.tap(() => channelService.showChannel),
+        Effect.tap(({ result, reportUri, outputFormat }) =>
+          showRunOutcomeNotification(COMMAND, executionName, result, reportUri, outputFormat)
+        ),
+        Effect.map(({ result }) => result)
+      )
   );
 });
 

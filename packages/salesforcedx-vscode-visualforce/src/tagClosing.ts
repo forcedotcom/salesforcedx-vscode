@@ -4,6 +4,9 @@
  *  Licensed under the MIT License. See OSSREADME.json in the project root for license information.
  *--------------------------------------------------------------------------------------------*/
 
+import * as Duration from 'effect/Duration';
+import * as Effect from 'effect/Effect';
+import * as Fiber from 'effect/Fiber';
 import { isNotUndefined } from 'effect/Predicate';
 import {
   Disposable,
@@ -28,7 +31,7 @@ export const activateTagClosing = (
   );
 
   let isEnabled = false;
-  let timeout: ReturnType<typeof setTimeout> | undefined = void 0;
+  let timeout: Fiber.RuntimeFiber<void> | undefined = void 0;
 
   const updateEnabledState = () => {
     isEnabled = false;
@@ -55,7 +58,7 @@ export const activateTagClosing = (
       return;
     }
     if (isNotUndefined(timeout)) {
-      clearTimeout(timeout);
+      timeout.pipe(Fiber.interruptFork, Effect.runSync);
     }
     // assertion: we previously checked that changes is not zero-length
     const lastChange = changes.at(-1)!;
@@ -65,7 +68,7 @@ export const activateTagClosing = (
     }
     const rangeStart = lastChange.range.start;
     const version = document.version;
-    timeout = setTimeout(() => {
+    timeout = Effect.sync(() => {
       const position = new Position(rangeStart.line, rangeStart.character + lastChange.text.length);
       tagProvider(document, position).then(text => {
         if (text && isEnabled) {
@@ -85,7 +88,7 @@ export const activateTagClosing = (
         }
       });
       timeout = void 0;
-    }, 100);
+    }).pipe(Effect.delay(Duration.millis(100)), Effect.runFork);
   };
   updateEnabledState();
   window.onDidChangeActiveTextEditor(updateEnabledState, null, disposables);

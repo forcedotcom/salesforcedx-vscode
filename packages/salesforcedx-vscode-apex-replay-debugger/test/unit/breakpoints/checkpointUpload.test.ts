@@ -17,6 +17,7 @@ import {
 } from 'salesforcedx-vscode-services/src/core/connectionService';
 import { QueryService } from 'salesforcedx-vscode-services/src/core/queryService';
 import { NotificationModeService } from 'salesforcedx-vscode-services/src/vscode/notificationModeService';
+import { PromptService } from 'salesforcedx-vscode-services/src/vscode/prompts/promptService';
 import type { DefaultOrgInfoSchema } from 'salesforcedx-vscode-services';
 import * as vscode from 'vscode';
 import { retrieveLineBreakpointInfo } from '../../../src/apexExtension';
@@ -90,6 +91,7 @@ describe('checkpoint upload Effects', () => {
           return queryService;
         },
         NotificationModeService,
+        PromptService,
         TargetOrgRef: () => Effect.succeed(targetOrgRef)
       }
     } as unknown as SalesforceVSCodeServicesApi;
@@ -97,6 +99,7 @@ describe('checkpoint upload Effects', () => {
       Layer.mergeAll(
         Layer.succeed(ExtensionProviderService, { getServicesApi: Effect.succeed(servicesApi) }),
         connectionLayer,
+        PromptService.Default,
         QueryService.DefaultWithoutDependencies.pipe(Layer.provide(connectionLayer)),
         Layer.succeed(NotificationModeService, {
           getProgressLocation: () => Effect.succeed(vscode.ProgressLocation.Notification)

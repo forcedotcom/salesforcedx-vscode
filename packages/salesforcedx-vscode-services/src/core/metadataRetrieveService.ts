@@ -18,17 +18,16 @@ import {
 import * as Arr from 'effect/Array';
 import * as Cause from 'effect/Cause';
 import * as Data from 'effect/Data';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
-import * as Fiber from 'effect/Fiber';
 import * as Option from 'effect/Option';
 import { isUndefined } from 'effect/Predicate';
-import * as Runtime from 'effect/Runtime';
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import { type URI } from 'vscode-uri';
 import { OrgMetadataCatalogRecorder } from '../orgCatalog/orgMetadataCatalogRecorder';
 import { FsService } from '../vscode/fsService';
 import { uriToPath } from '../vscode/paths';
-import { UserCancellationError } from '../vscode/prompts/promptService';
+import { PromptService } from '../vscode/prompts/promptService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { withActiveMetadataOperationPipeline } from './activeMetadataOperationRef';
 import {
@@ -100,6 +99,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
     SourceTrackingService.Default,
     MetadataRegistryService.Default,
     ProjectService.Default,
+    PromptService.Default,
     ConfigService.Default,
     MetadataChangeNotificationService.Default,
     MetadataDescribeService.Default,
@@ -111,6 +111,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
     const connectionService = yield* ConnectionService;
     const sourceTrackingService = yield* SourceTrackingService;
     const projectService = yield* ProjectService;
+    const promptService = yield* PromptService;
     const configService = yield* ConfigService;
     const metadataRegistryService = yield* MetadataRegistryService;
     const notificationService = yield* MetadataChangeNotificationService;
@@ -148,7 +149,7 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
       const event = {
         ...(orgId ? { orgId } : {}),
         operation: 'retrieve',
-        completedAt: new Date().toISOString(),
+        completedAt: DateTime.formatIso(yield* DateTime.now),
         changes: [...changes]
       } as const;
       yield* notificationService.publishOperation(event);
@@ -214,50 +215,30 @@ export class MetadataRetrieveService extends Effect.Service<MetadataRetrieveServ
     ) {
       const output = input.merge ? input.project.getDefaultPackage().fullPath : uriToPath(input.outputPath);
       yield* Effect.annotateCurrentSpan({ output });
-      const runtime = yield* Effect.runtime();
-      const retrieveFiber = yield* Effect.tryPromise({
-        try: async () => {
-          const retrieveOperation = new MetadataApiRetrieve({
+      const retrieveOperation = yield* Effect.try({
+        try: () =>
+          new MetadataApiRetrieve({
             usernameOrConnection: input.connection,
             components: input.componentSet,
             output,
             format: 'source',
             merge: input.merge,
             registry: input.registryAccess
-          });
-
-          const progressLocation = input.progressLocation ?? vscode.ProgressLocation.Notification;
-          const retrieveResult = await vscode.window.withProgress(
-            {
-              location: progressLocation,
-              title: input.title,
-              cancellable: true
-            },
-            async (_, token) => {
-              token.onCancellationRequested(async () => {
-                await retrieveOperation.cancel();
-                await Fiber.interrupt(retrieveFiber).pipe(Runtime.runPromise(runtime));
-              });
-              await retrieveOperation.start();
-              return await retrieveOperation.pollStatus();
-            }
-          );
-          return retrieveResult;
+          }),
+        catch: e => new MetadataRetrieveError(unknownToErrorCause(e))
+      });
+      const retrieveOutcome = yield* Effect.tryPromise({
+        try: async () => {
+          await retrieveOperation.start();
+          return await retrieveOperation.pollStatus();
         },
         catch: e => new MetadataRetrieveError(unknownToErrorCause(e))
       }).pipe(
         Effect.tapError(e => e.pipe(Cause.fail, Effect.logError)),
         Effect.withSpan('retrieve (API call)'),
-        Effect.fork
+        Effect.onInterrupt(() => Effect.promise(() => retrieveOperation.cancel()).pipe(Effect.asVoid)),
+        promptService.withProgress({ title: input.title, location: input.progressLocation, cancellable: true })
       );
-
-      const retrieveOutcome = yield* Effect.matchCauseEffect(Fiber.join(retrieveFiber), {
-        onFailure: cause =>
-          Cause.isInterruptedOnly(cause)
-            ? Effect.fail<UserCancellationError | MetadataRetrieveError>(new UserCancellationError())
-            : Effect.failCause(cause),
-        onSuccess: outcome => Effect.succeed(outcome)
-      });
 
       yield* Effect.annotateCurrentSpan(retrieveSpanAttributes(retrieveOutcome));
       const orgId = input.expectedOrgId ?? Option.getOrUndefined(orgIdFromConnection(input.connection));

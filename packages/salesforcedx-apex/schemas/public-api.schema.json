@@ -1112,6 +1112,281 @@
         }
       },
       "additionalProperties": false
+    },
+    "TraceFlagEntityId": {
+      "anyOf": [
+        {
+          "type": "string",
+          "description": "a string starting with \"005\"",
+          "pattern": "^005",
+          "title": "startsWith(\"005\")",
+          "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+        },
+        {
+          "type": "string",
+          "description": "a string starting with \"01p\"",
+          "pattern": "^01p",
+          "title": "startsWith(\"01p\")",
+          "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+        },
+        {
+          "type": "string",
+          "description": "a string starting with \"01q\"",
+          "pattern": "^01q",
+          "title": "startsWith(\"01q\")",
+          "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+        }
+      ]
+    },
+    "TraceFlagRecord": {
+      "type": "object",
+      "required": ["Id", "LogType"],
+      "properties": {
+        "Id": {
+          "type": "string",
+          "description": "a string starting with \"7tf\"",
+          "pattern": "^7tf",
+          "title": "startsWith(\"7tf\")",
+          "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+        },
+        "LogType": { "type": "string", "enum": ["USER_DEBUG", "DEVELOPER_LOG", "CLASS_TRACING"] },
+        "StartDate": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "ExpirationDate": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "DebugLevelId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "description": "a string starting with \"7dl\"",
+              "pattern": "^7dl",
+              "title": "startsWith(\"7dl\")",
+              "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+            },
+            { "type": "null" }
+          ],
+          "title": "startsWith(\"7dl\")",
+          "description": "a string starting with \"7dl\""
+        },
+        "DebugLevel": {
+          "anyOf": [
+            {
+              "type": "object",
+              "required": [],
+              "properties": { "DeveloperName": { "anyOf": [{ "type": "string" }, { "type": "null" }] } },
+              "additionalProperties": false
+            },
+            { "type": "null" }
+          ]
+        },
+        "TracedEntityId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$",
+              "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+            },
+            { "type": "null" }
+          ],
+          "description": "a string matching the pattern ^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$"
+        }
+      },
+      "additionalProperties": false
+    },
+    "TraceFlagForEntity": {
+      "type": "object",
+      "required": ["Id"],
+      "properties": {
+        "Id": {
+          "type": "string",
+          "description": "a string starting with \"7tf\"",
+          "pattern": "^7tf",
+          "title": "startsWith(\"7tf\")",
+          "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+        },
+        "StartDate": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "ExpirationDate": { "anyOf": [{ "type": "string" }, { "type": "null" }] },
+        "DebugLevelId": {
+          "anyOf": [
+            {
+              "type": "string",
+              "description": "a string starting with \"7dl\"",
+              "pattern": "^7dl",
+              "title": "startsWith(\"7dl\")",
+              "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+            },
+            { "type": "null" }
+          ],
+          "title": "startsWith(\"7dl\")",
+          "description": "a string starting with \"7dl\""
+        },
+        "DebugLevel": {
+          "anyOf": [
+            {
+              "type": "object",
+              "required": [],
+              "properties": { "DeveloperName": { "anyOf": [{ "type": "string" }, { "type": "null" }] } },
+              "additionalProperties": false
+            },
+            { "type": "null" }
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "DebugLevelRecord": {
+      "type": "object",
+      "required": ["Id", "DeveloperName", "MasterLabel", "Language"],
+      "properties": {
+        "Id": {
+          "type": "string",
+          "description": "Salesforce record ID of the DebugLevel.",
+          "pattern": "^7dl",
+          "title": "startsWith(\"7dl\")",
+          "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
+        },
+        "DeveloperName": { "type": "string", "description": "Unique API name for this debug level." },
+        "MasterLabel": { "type": "string", "description": "User-facing label for this debug level." },
+        "Language": {
+          "anyOf": [{ "type": "string" }, { "type": "null" }],
+          "description": "Language of the MasterLabel."
+        },
+        "ApexCode": {
+          "anyOf": [
+            { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+            { "type": "null" }
+          ],
+          "description": "Apex code execution: DML, SOQL/SOSL, triggers, and test methods."
+        },
+        "ApexProfiling": {
+          "anyOf": [
+            { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+            { "type": "null" }
+          ],
+          "description": "Cumulative profiling info: namespace limits, emails sent."
+        },
+        "Callout": {
+          "anyOf": [
+            { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+            { "type": "null" }
+          ],
+          "description": "Request-response XML from external web service and API calls."
+        },
+        "Database": {
+          "anyOf": [
+            { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+            { "type": "null" }
+          ],
+          "description": "DML statements and inline SOQL/SOSL queries."
+        },
+        "Nba": {
+          "anyOf": [
+            { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+            { "type": "null" }
+          ],
+          "description": "Einstein Next Best Action strategy execution."
+        },
+        "System": {
+          "anyOf": [
+            { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+            { "type": "null" }
+          ],
+          "description": "System method calls such as System.debug()."
+        },
+        "Validation": {
+          "anyOf": [
+            { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+            { "type": "null" }
+          ],
+          "description": "Validation rule names and evaluation results."
+        },
+        "Visualforce": {
+          "anyOf": [
+            { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+            { "type": "null" }
+          ],
+          "description": "Visualforce events, view state serialization/deserialization."
+        },
+        "Wave": {
+          "anyOf": [
+            { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+            { "type": "null" }
+          ],
+          "description": "CRM Analytics (Wave) logging."
+        },
+        "Workflow": {
+          "anyOf": [
+            { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+            { "type": "null" }
+          ],
+          "description": "Workflow rules, flows, and process builder actions."
+        }
+      },
+      "additionalProperties": false
+    },
+    "CreateDebugLevel": {
+      "type": "object",
+      "required": ["DeveloperName", "MasterLabel"],
+      "properties": {
+        "ApexCode": { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+        "ApexProfiling": {
+          "type": "string",
+          "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"]
+        },
+        "Callout": { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+        "Database": { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+        "Nba": { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+        "System": { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+        "Validation": {
+          "type": "string",
+          "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"]
+        },
+        "Visualforce": {
+          "type": "string",
+          "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"]
+        },
+        "Wave": { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+        "Workflow": { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+        "DeveloperName": { "type": "string" },
+        "MasterLabel": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "UpdateDebugLevel": {
+      "type": "object",
+      "required": [],
+      "properties": {
+        "ApexCode": { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+        "ApexProfiling": {
+          "type": "string",
+          "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"]
+        },
+        "Callout": { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+        "Database": { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+        "Nba": { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+        "System": { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+        "Validation": {
+          "type": "string",
+          "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"]
+        },
+        "Visualforce": {
+          "type": "string",
+          "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"]
+        },
+        "Wave": { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+        "Workflow": { "type": "string", "enum": ["NONE", "ERROR", "WARN", "INFO", "DEBUG", "FINE", "FINER", "FINEST"] },
+        "DeveloperName": { "type": "string" },
+        "MasterLabel": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "ApexToolingMutationError": {
+      "type": "object",
+      "required": ["operation", "message", "_tag"],
+      "properties": {
+        "operation": { "type": "string" },
+        "message": { "type": "string" },
+        "_tag": { "type": "string", "enum": ["ApexToolingMutationError"] }
+      },
+      "additionalProperties": false
     }
   },
   "anyOf": [
@@ -1176,7 +1451,14 @@
       "allOf": [{ "pattern": "^(?:[A-Za-z0-9]{15}|[A-Za-z0-9]{18})$" }]
     },
     { "$ref": "#/$defs/TestSuite" },
-    { "$ref": "#/$defs/TestSuiteMembership" }
+    { "$ref": "#/$defs/TestSuiteMembership" },
+    { "$ref": "#/$defs/TraceFlagEntityId" },
+    { "$ref": "#/$defs/TraceFlagRecord" },
+    { "$ref": "#/$defs/TraceFlagForEntity" },
+    { "$ref": "#/$defs/DebugLevelRecord" },
+    { "$ref": "#/$defs/CreateDebugLevel" },
+    { "$ref": "#/$defs/UpdateDebugLevel" },
+    { "$ref": "#/$defs/ApexToolingMutationError" }
   ],
   "description": "JSON-representable values accepted or returned by the supported @salesforce/apex-node API.",
   "title": "@salesforce/apex-node public JSON API"

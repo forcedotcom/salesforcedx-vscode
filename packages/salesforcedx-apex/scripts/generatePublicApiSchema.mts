@@ -77,7 +77,14 @@ import {
   SyncTestResultSchema,
   TestItemSchema,
   TestSuiteSchema,
-  TestSuiteMembershipSchema
+  TestSuiteMembershipSchema,
+  TraceFlagEntityId,
+  TraceFlagRecordSchema,
+  TraceFlagForEntitySchema,
+  DebugLevelRecordSchema,
+  CreateDebugLevelSchema,
+  UpdateDebugLevelSchema,
+  ApexToolingMutationError
 } from '../out/src/effect/index.js';
 import {
   ApexTestResultDataSchema,
@@ -282,7 +289,14 @@ const PublicApiSchema = Schema.Union(
   TestRunIdResultSchema,
   ApexTestSuiteId,
   TestSuiteSchema,
-  TestSuiteMembershipSchema
+  TestSuiteMembershipSchema,
+  TraceFlagEntityId,
+  TraceFlagRecordSchema,
+  TraceFlagForEntitySchema,
+  DebugLevelRecordSchema,
+  CreateDebugLevelSchema,
+  UpdateDebugLevelSchema,
+  ApexToolingMutationError
 ).annotations({
   title: '@salesforce/apex-node public JSON API',
   description: 'JSON-representable values accepted or returned by the supported @salesforce/apex-node API.'

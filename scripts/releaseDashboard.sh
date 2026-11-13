@@ -82,7 +82,7 @@ nightly_runs=$(api "repos/$REPO/actions/workflows/nightly.yml/runs?per_page=100"
 promotion_runs=$(api "repos/$REPO/actions/workflows/promote-to-prerelease.yml/runs?per_page=100")
 stable_build_runs=$(api "repos/$REPO/actions/workflows/build-github-release.yml/runs?per_page=100")
 marketplace_runs=$(api "repos/$REPO/actions/workflows/publishVSCode.yml/runs?per_page=100")
-openvsx_runs=$(api "repos/$REPO/actions/workflows/publishOpenVSX.yml/runs?per_page=100")
+openvsx_runs=$(api "repos/$REPO/actions/workflows/publishOpenVSXTrusted.yml/runs?per_page=100")
 develop_sha=$(api "repos/$REPO/branches/develop" | jq -r '.commit.sha')
 develop_checks=$(check_runs_for "$develop_sha")
 develop_e2e_runs=$(api "repos/$REPO/actions/workflows/e2e.yml/runs?branch=develop&per_page=100")
@@ -118,7 +118,7 @@ while IFS= read -r candidate_tracking_tag; do
   tracking_tag=$candidate_tracking_tag
   tracking_version=$candidate_version
   stable_source=$candidate_source
-  expected_stable="v$(node scripts/calculate-release-version.js "$stable_source")"
+  expected_stable="v$(node scripts/calculateReleaseVersion.mts "$stable_source")"
   if git rev-parse --verify --quiet "$expected_stable" >/dev/null; then
     stable_tag_state='already exists'
   else

@@ -15,7 +15,7 @@
     "color": "#ECECEC",
     "theme": "light"
   },
-  "version": "68.11.5",
+  "version": "68.13.2",
   "publisher": "salesforce",
   "o11yUploadEndpoint": "https://794testsite.my.site.com/byolwr/webruntime/log/metrics",
   "enableO11y": "true",
@@ -59,8 +59,8 @@
     "test:web:ui": "DEBUG_MODE=1 pnpm --dir ../.. --filter ./packages/salesforcedx-vscode-visualforce test:web --headed",
     "run:web": "wireit",
     "vscode:package": "wireit",
-    "vscode:publish": "node ../../scripts/publish-vsix.js",
-    "vscode:sha256": "node ../../scripts/generate-sha256.js >> ../../SHA256",
+    "vscode:publish": "node ../../scripts/publishVsix.mts",
+    "vscode:sha256": "node ../../scripts/generateSha256.mts >> ../../SHA256",
     "vscode:package:prerelease": "wireit",
     "check:effect-diagnostics": "wireit"
   },

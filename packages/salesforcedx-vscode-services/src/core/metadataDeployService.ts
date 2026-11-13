@@ -6,17 +6,17 @@
  */
 
 import { ComponentSet, type DeployResult, RequestStatus } from '@salesforce/source-deploy-retrieve';
+import * as DateTime from 'effect/DateTime';
 import * as Effect from 'effect/Effect';
-import * as Fiber from 'effect/Fiber';
 import * as Match from 'effect/Match';
 import * as Option from 'effect/Option';
 import { isNotUndefined, isString, isUndefined } from 'effect/Predicate';
 import * as Schema from 'effect/Schema';
-import * as vscode from 'vscode';
+import type * as vscode from 'vscode';
 import { nls } from '../messages';
 import { OrgMetadataCatalogRecorder } from '../orgCatalog/orgMetadataCatalogRecorder';
 import { FsService } from '../vscode/fsService';
-import { UserCancellationError } from '../vscode/prompts/promptService';
+import { PromptService, UserCancellationError } from '../vscode/prompts/promptService';
 import { WorkspaceService } from '../vscode/workspaceService';
 import { withActiveMetadataOperationPipeline } from './activeMetadataOperationRef';
 import { ConnectionService } from './connectionService';
@@ -33,6 +33,50 @@ export class MetadataDeployError extends Schema.TaggedError<MetadataDeployError>
   cause: Schema.optional(Schema.Unknown)
 }) {}
 
+/** Request cancellation without interrupting polling; return the server's final outcome. */
+export const pollDeploy = Effect.fn('MetadataDeployService.pollDeploy')(function* (
+  startDeploy: () => ReturnType<ComponentSet['deploy']>,
+  token: vscode.CancellationToken
+) {
+  const deployOutcome = yield* Effect.tryPromise({
+    try: async () => {
+      const deployOperation = await startDeploy();
+      // Only send the cancel request to the server — do NOT interrupt the fiber.
+      // pollStatus() resolves with the real outcome so source tracking stays correct,
+      // even if the cancellation request fails or never settles.
+      const requestCancellation = () => {
+        deployOperation.cancel().catch(() => undefined);
+      };
+      const cancellation = token.onCancellationRequested(requestCancellation);
+      if (token.isCancellationRequested) requestCancellation();
+      return await deployOperation.pollStatus().finally(() => cancellation.dispose());
+    },
+    catch: e => {
+      const { cause } = unknownToErrorCause(e);
+      return new MetadataDeployError({
+        message: `Failed to deploy metadata: ${cause.message}`,
+        cause: cause.cause
+      });
+    }
+  }).pipe(Effect.withSpan('deploy (API call)'));
+
+  yield* Effect.annotateCurrentSpan({
+    deployStatus: deployOutcome.response.status,
+    fileResponseCount: deployOutcome.getFileResponses().length
+  });
+
+  // If the server honored the cancel, surface it as UserCancellationError so the
+  // command pipeline silently swallows it (same UX as if cancel arrived in time).
+  if (
+    deployOutcome.response?.status === RequestStatus.Canceled ||
+    deployOutcome.response?.status === RequestStatus.Canceling
+  ) {
+    return yield* new UserCancellationError();
+  }
+
+  return deployOutcome;
+});
+
 export class MetadataDeployService extends Effect.Service<MetadataDeployService>()('MetadataDeployService', {
   accessors: true,
   dependencies: [
@@ -40,6 +84,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
     FsService.Default,
     MetadataChangeNotificationService.Default,
     ProjectService.Default,
+    PromptService.Default,
     WorkspaceService.Default,
     SourceTrackingService.Default,
     MetadataDescribeService.Default,
@@ -51,6 +96,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
     const fsService = yield* FsService;
     const workspaceService = yield* WorkspaceService;
     const projectService = yield* ProjectService;
+    const promptService = yield* PromptService;
     const notificationService = yield* MetadataChangeNotificationService;
     const metadataDescribeService = yield* MetadataDescribeService;
     const catalogRecorder = yield* OrgMetadataCatalogRecorder;
@@ -98,7 +144,7 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       const event = {
         ...(orgId ? { orgId } : {}),
         operation: changes.every(change => change.changeType === 'deleted') ? 'delete' : 'deploy',
-        completedAt: new Date().toISOString(),
+        completedAt: DateTime.formatIso(yield* DateTime.now),
         changes: [...changes]
       } as const;
       yield* notificationService.publishOperation(event);
@@ -124,61 +170,14 @@ export class MetadataDeployService extends Effect.Service<MetadataDeployService>
       const connection = yield* connectionService.getConnection();
       components.projectDirectory = (yield* projectService.getSfProject()).getPath();
 
-      const deployFiber = yield* Effect.fork(
-        Effect.tryPromise({
-          try: async () => {
-            const progressLocation = options?.progressLocation ?? vscode.ProgressLocation.Notification;
-            // Show progress before the initial deploy request: on a busy org that request can take many seconds,
-            // and the user should see "Deploying" immediately.
-            const deployResult = await vscode.window.withProgress(
-              {
-                location: progressLocation,
-                title: getDeployMessage(components),
-                cancellable: true
-              },
-              async (_, token) => {
-                const deployOperation = await components.deploy({
-                  usernameOrConnection: connection
-                });
-                // Only send the cancel request to the server — do NOT interrupt the fiber.
-                // pollStatus() will resolve with Canceled/Canceling if the server honored it,
-                // or Succeeded if the deploy completed before the cancel arrived. Either way
-                // we get the real outcome and can update source tracking correctly.
-                token.onCancellationRequested(() => void deployOperation.cancel());
-                if (token.isCancellationRequested) void deployOperation.cancel();
-                return await deployOperation.pollStatus();
-              }
-            );
-            return deployResult;
-          },
-          catch: e => {
-            const { cause } = unknownToErrorCause(e);
-            return new MetadataDeployError({
-              message: `Failed to deploy metadata: ${cause.message}`,
-              cause: cause.cause
-            });
-          }
-        }).pipe(Effect.withSpan('deploy (API call)'))
-      );
-
-      const deployOutcome = yield* Effect.matchCauseEffect(Fiber.join(deployFiber), {
-        onFailure: cause => Effect.failCause(cause),
-        onSuccess: outcome => Effect.succeed(outcome)
-      });
-
-      yield* Effect.annotateCurrentSpan({
-        deployStatus: deployOutcome.response.status,
-        fileResponseCount: deployOutcome.getFileResponses().length
-      });
-
-      // If the server honored the cancel, surface it as UserCancellationError so the
-      // command pipeline silently swallows it (same UX as if cancel arrived in time).
-      if (
-        deployOutcome.response?.status === RequestStatus.Canceled ||
-        deployOutcome.response?.status === RequestStatus.Canceling
-      ) {
-        return yield* new UserCancellationError();
-      }
+      // Show progress before the initial deploy request: on a busy org that request can take many seconds,
+      // and the user should see "Deploying" immediately.
+      const deployOutcome = yield* promptService.withProgressReporting({
+        title: getDeployMessage(components),
+        location: options?.progressLocation,
+        cancellable: true,
+        interruptOnCancel: false
+      })((_, token) => pollDeploy(() => components.deploy({ usernameOrConnection: connection }), token));
 
       if (
         deployOutcome.response?.status === RequestStatus.Succeeded ||

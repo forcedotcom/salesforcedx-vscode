@@ -50,6 +50,17 @@ jobs:
           node-version: ${{ vars.NODE_VERSION || 'lts/*' }}
           install: 'false'
 
+      - name: Restore release automation
+        env:
+          WORKFLOW_SHA: ${{ github.workflow_sha }}
+        run: |
+          # Historical release branches predate the native TypeScript filenames.
+          # Use this workflow revision's scripts, including their local helpers.
+          mkdir -p scripts
+          for script in updateReleaseVersions.mts releasePackageSelection.mts parsePackageJson.mts concatenateSha256.mts; do
+            git show "$WORKFLOW_SHA:scripts/$script" > "scripts/$script"
+          done
+
       - name: Calculate patch version
         id: calculate-version
         env:
@@ -117,7 +128,7 @@ jobs:
           email: ${{ secrets.IDEE_GH_EMAIL }}
 
       - name: Update package versions
-        run: node scripts/update-release-versions.js ${{ steps.calculate-version.outputs.version }}
+        run: node scripts/updateReleaseVersions.mts ${{ steps.calculate-version.outputs.version }}
 
       - name: Install dependencies from updated pnpm-lock.yaml
         uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
@@ -146,7 +157,7 @@ jobs:
       - name: Generate SHA256 checksums
         run: |
           pnpm vscode:sha256
-          scripts/concatenate-sha256.js
+          node scripts/concatenateSha256.mts
           rm ./SHA256
 
       - name: Create GitHub pre-release
@@ -200,6 +211,30 @@ jobs:
           echo "Pre-release created: $TAG"
           echo "View at: https://github.com/${{ github.repository }}/releases/tag/$TAG"
 
+      - name: Record hotfix classification
+        # Every build from this workflow comes from an untested release-base/* branch, so
+        # isHotfix is unconditionally true here -- publishVSCode.yml/publishOpenVSXTrusted.yml
+        # read this instead of requiring a manual isHotfix=true dispatch input.
+        env:
+          GH_TOKEN: ${{ secrets.IDEE_GH_TOKEN }}
+          TAG: ${{ steps.calculate-version.outputs.tag }}
+          VERSION: ${{ steps.calculate-version.outputs.version }}
+          BRANCH: ${{ github.event.inputs.releaseBranch }}
+        run: |
+          jq -n \
+            --argjson schemaVersion 1 \
+            --argjson isHotfix true \
+            --arg sourceRef "$BRANCH" \
+            --arg version "$VERSION" \
+            --argjson emergencyPrerelease false \
+            '{schemaVersion: $schemaVersion, isHotfix: $isHotfix, sourceRef: $sourceRef, version: $version, emergencyPrerelease: $emergencyPrerelease}' \
+            > release-metadata.json
+
+          echo "Release metadata:"
+          cat release-metadata.json
+
+          gh release upload "$TAG" release-metadata.json
+
   summary:
     needs: build-and-release-patch
     runs-on: ubuntu-latest
@@ -219,10 +254,10 @@ jobs:
           echo "### Next Steps" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "1. **Download and test VSIX files** from the pre-release" >> $GITHUB_STEP_SUMMARY
-          echo "2. **If tests pass**, dispatch BOTH publish workflows (one does not trigger the other) with \`isHotfix=true\`:" >> $GITHUB_STEP_SUMMARY
+          echo "2. **If tests pass**, dispatch BOTH publish workflows (one does not trigger the other) -- the release's hotfix metadata is read automatically, no isHotfix input needed:" >> $GITHUB_STEP_SUMMARY
           echo '   ```bash' >> $GITHUB_STEP_SUMMARY
-          echo "   gh workflow run publishVSCode.yml -f version=$TAG -f isHotfix=true" >> $GITHUB_STEP_SUMMARY
-          echo "   gh workflow run publishOpenVSX.yml -f release-tag=$TAG -f isHotfix=true" >> $GITHUB_STEP_SUMMARY
+          echo "   gh workflow run publishVSCode.yml -f version=$TAG" >> $GITHUB_STEP_SUMMARY
+          echo "   gh workflow run publishOpenVSXTrusted.yml -f release-tag=$TAG -f do-ctc=true" >> $GITHUB_STEP_SUMMARY
           echo '   ```' >> $GITHUB_STEP_SUMMARY
           echo "3. **Cherry-pick fixes to develop** (see release notes for commands)" >> $GITHUB_STEP_SUMMARY
           echo "4. **Delete the release branch** after successful publish:" >> $GITHUB_STEP_SUMMARY
