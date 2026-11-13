@@ -197,6 +197,31 @@ describe('OrgMetadataCatalogRecorder', () => {
     expect(result.queued).toBe(0);
   });
 
+  it('reports a component once, at its first position, when status rows repeat it', async () => {
+    const { layer } = makeHarness();
+
+    const result = await Effect.runPromise(
+      Effect.gen(function* () {
+        const recorder = yield* OrgMetadataCatalogRecorder;
+        const state = yield* OrgCatalogState;
+        const rows = [
+          { origin: 'remote', type: 'ApexClass', fullName: 'Repeated', state: 'modify' },
+          { origin: 'remote', type: 'ApexClass', fullName: 'Other', state: 'modify' },
+          { origin: 'remote', type: 'ApexClass', fullName: 'Repeated', state: 'modify' }
+        ];
+        const changed = yield* recorder.recordTrackingStatus('org-one', rows, []);
+        return { changed, identityOrder: (yield* state.getTracking('org-one')).identityOrder };
+      }).pipe(Effect.provide(layer))
+    );
+
+    const references = [
+      { xmlName: 'ApexClass', fullName: 'Repeated' },
+      { xmlName: 'ApexClass', fullName: 'Other' }
+    ];
+    expect(result.changed).toEqual(references);
+    expect(result.identityOrder).toEqual(references.map(reference => componentIdentity(reference)));
+  });
+
   it('invalidates affected state and publishes an operation before returning', async () => {
     const { catalogChanges, layer } = makeHarness();
 
