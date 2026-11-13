@@ -37,9 +37,9 @@ try {
   const require = createRequire(path.join(directory, 'package.json'));
   const decoderRequire = createRequire(path.join(decoderDirectory, 'package.json'));
   const servicesRequire = createRequire(path.join(directory, 'node_modules/salesforcedx-vscode-services/package.json'));
-  assert.equal(require('effect/package.json').version, '4.0.6');
+  assert.equal(require('effect/package.json').version, '4.1.4');
   assert.equal(require.resolve('effect/Effect'), servicesRequire.resolve('effect/Effect'));
-  assert.equal(decoderRequire('effect/package.json').version, '4.0.6');
+  assert.equal(decoderRequire('effect/package.json').version, '4.1.4');
   assert.notEqual(
     fs.realpathSync(require.resolve('effect/Schema')),
     fs.realpathSync(decoderRequire.resolve('effect/Schema'))
@@ -224,7 +224,7 @@ try {
         files: [`memfs:/fixture/${platform === 'browser' ? 'web' : 'desktop'}-result.cls`],
         orgRefClosed: true,
         callerDecoding: {
-          foreignSchemaRejected: true,
+          foreignSchemaAccepted: true,
           id: '005000000000001',
           label: 'independent:Caller',
           parentSpan: 'packed.readJSON',

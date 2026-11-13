@@ -29,7 +29,7 @@ export type ApexCodeCoverageRecord = typeof ApexCodeCoverageRecordSchema.Type;
 export const ApexCodeCoverageSchema = Schema.Struct({
   done: Schema.Boolean,
   totalSize: Schema.Number,
-  records: Schema.mutable(Schema.Array(ApexCodeCoverageRecordSchema))
+  records: Schema.Array(ApexCodeCoverageRecordSchema).pipe(Schema.mutable)
 }).annotate({ identifier: 'ApexCodeCoverage' });
 export type ApexCodeCoverage = typeof ApexCodeCoverageSchema.Type;
 
@@ -44,14 +44,14 @@ export type ApexCodeCoverageAggregateRecord = typeof ApexCodeCoverageAggregateRe
 export const ApexCodeCoverageAggregateSchema = Schema.Struct({
   done: Schema.Boolean,
   totalSize: Schema.Number,
-  records: Schema.mutable(Schema.Array(ApexCodeCoverageAggregateRecordSchema))
+  records: Schema.Array(ApexCodeCoverageAggregateRecordSchema).pipe(Schema.mutable)
 }).annotate({ identifier: 'ApexCodeCoverageAggregate' });
 export type ApexCodeCoverageAggregate = typeof ApexCodeCoverageAggregateSchema.Type;
 
 export const ApexOrgWideCoverageSchema = Schema.Struct({
   done: Schema.Boolean,
   totalSize: Schema.Number,
-  records: Schema.mutable(Schema.Array(Schema.Struct({ PercentCovered: Schema.String })))
+  records: Schema.Struct({ PercentCovered: Schema.String }).pipe(Schema.Array, Schema.mutable)
 }).annotate({ identifier: 'ApexOrgWideCoverage' });
 export type ApexOrgWideCoverage = typeof ApexOrgWideCoverageSchema.Type;
 

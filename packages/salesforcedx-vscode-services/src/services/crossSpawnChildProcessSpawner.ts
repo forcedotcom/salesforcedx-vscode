@@ -8,9 +8,10 @@ import crossSpawn from 'cross-spawn';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
 import * as PlatformError from 'effect/PlatformError';
-import { isError, isNotNull, isNull } from 'effect/Predicate';
+import { isError, isNotNull, isNull, isUndefined } from 'effect/Predicate';
 import type * as ChildProcess from 'effect/process/ChildProcess';
 import * as ChildProcessSpawner from 'effect/process/ChildProcessSpawner';
+import * as Redacted from 'effect/Redacted';
 import * as Sink from 'effect/Sink';
 import * as Stream from 'effect/Stream';
 import type { Readable } from 'node:stream';
@@ -18,7 +19,12 @@ import type { Readable } from 'node:stream';
 /** Keep PATH and the ambient environment when applying a caller's overlay. */
 export const resolveCommandEnv = (overlay: ChildProcess.CommandOptions['env']): NodeJS.ProcessEnv => ({
   ...process.env,
-  ...overlay
+  ...Object.fromEntries(
+    Object.entries(overlay ?? {}).map(([name, value]) => [
+      name,
+      isUndefined(value) ? undefined : typeof value === 'string' ? value : Redacted.value(value)
+    ])
+  )
 });
 const systemError = (error: unknown, method: string) =>
   PlatformError.systemError({
@@ -36,7 +42,8 @@ const fromReadable = (readable: Readable | null) =>
 const acquireProcess = (command: ChildProcess.StandardCommand) =>
   Effect.try({
     try: () => {
-      const handle = crossSpawn(command.command, [...command.args], {
+      const args = command.args.map(argument => (typeof argument === 'string' ? argument : Redacted.value(argument)));
+      const handle = crossSpawn(command.command, args, {
         stdio: ['ignore', 'pipe', 'pipe'],
         cwd: command.options.cwd,
         env: resolveCommandEnv(command.options.env),

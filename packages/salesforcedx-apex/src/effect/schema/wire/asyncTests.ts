@@ -30,20 +30,16 @@ export const AsyncTestOptionsSchema = Schema.Struct({
   classids: Schema.optional(ApexClassIdsSchema),
   suiteNames: Schema.optional(Schema.String),
   suiteids: Schema.optional(ApexTestSuiteIdsSchema),
-  tests: Schema.optional(
-    Schema.Array(
-      Schema.Struct({
-        className: Schema.optional(Schema.String),
-        classId: Schema.optional(ApexClassId),
-        testMethods: Schema.optional(Schema.Array(Schema.String)),
-        namespace: Schema.optional(Schema.String),
-        category: Schema.optional(testCategorySchema)
-      })
-    )
-  ),
+  tests: Schema.Struct({
+    className: Schema.optional(Schema.String),
+    classId: Schema.optional(ApexClassId),
+    testMethods: Schema.String.pipe(Schema.Array, Schema.optional),
+    namespace: Schema.optional(Schema.String),
+    category: Schema.optional(testCategorySchema)
+  }).pipe(Schema.Array, Schema.optional),
   maxFailedTests: Schema.optional(Schema.Number),
   skipCodeCoverage: Schema.optional(Schema.Boolean),
-  category: Schema.optional(Schema.Array(testCategorySchema))
+  category: testCategorySchema.pipe(Schema.Array, Schema.optional)
 }).annotate({ identifier: 'AsyncTestOptions' });
 export type AsyncTestOptions = typeof AsyncTestOptionsSchema.Type;
 

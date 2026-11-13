@@ -22,12 +22,12 @@ const OptionalLogUserSchema = Schema.NullOr(LogUserSchema).pipe(
 /** ApexLog record from Tooling API query (Id, LogLength, StartTime, Status required per API reference). */
 export const ApexLogListItem = Schema.Struct({
   Id: ApexLogId,
-  Application: Schema.optional(Schema.NullOr(Schema.String)),
-  DurationMilliseconds: Schema.optional(Schema.NullOr(Schema.Number)),
+  Application: Schema.String.pipe(Schema.NullOr, Schema.optional),
+  DurationMilliseconds: Schema.Number.pipe(Schema.NullOr, Schema.optional),
   LogLength: Schema.Number,
-  LogUserId: Schema.optional(Schema.NullOr(UserId)),
+  LogUserId: UserId.pipe(Schema.NullOr, Schema.optional),
   LogUser: Schema.optional(OptionalLogUserSchema),
-  Operation: Schema.optional(Schema.NullOr(Schema.String)),
+  Operation: Schema.String.pipe(Schema.NullOr, Schema.optional),
   StartTime: Schema.String,
   Status: Schema.String
 }).annotate({ identifier: 'ApexLogListItem' });

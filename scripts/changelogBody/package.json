@@ -6,11 +6,11 @@
   },
   "type": "module",
   "overrides": {
-    "@effect/platform-node-shared": "4.0.6"
+    "@effect/platform-node-shared": "4.1.4"
   },
   "dependencies": {
     "@cursor/sdk": "1.0.40",
-    "@effect/platform-node": "^4.0.6",
-    "effect": "^4.0.6"
+    "@effect/platform-node": "^4.1.4",
+    "effect": "^4.1.4"
   }
 }

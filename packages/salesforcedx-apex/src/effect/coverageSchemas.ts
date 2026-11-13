@@ -42,7 +42,7 @@ export const CodeCoverageResultSchema = Schema.Struct({
 export type CodeCoverageResult = Mutable<typeof CodeCoverageResultSchema.Type>;
 
 export const AggregateCodeCoverageResultSchema = Schema.Struct({
-  codeCoverageResults: Schema.mutable(Schema.Array(CodeCoverageResultSchema)),
+  codeCoverageResults: Schema.Array(CodeCoverageResultSchema).pipe(Schema.mutable),
   totalLines: CoverageLineCountSchema,
   coveredLines: CoverageLineCountSchema
 }).annotate({ identifier: 'AggregateCodeCoverageResult' });

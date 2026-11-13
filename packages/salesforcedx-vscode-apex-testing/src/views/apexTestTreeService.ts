@@ -1104,7 +1104,7 @@ const makeApexTestTreeService = Effect.gen(function* () {
                     records: Schema.Array(
                       Schema.Struct({
                         Name: Schema.String,
-                        NamespacePrefix: Schema.optional(Schema.NullOr(Schema.String))
+                        NamespacePrefix: Schema.String.pipe(Schema.NullOr, Schema.optional)
                       })
                     )
                   })

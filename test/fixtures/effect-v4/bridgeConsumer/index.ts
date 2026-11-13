@@ -19,7 +19,7 @@ const requireConsumer = createRequire(import.meta.url);
 const requireHost = createRequire(new URL('../bridgeHost/package.json', import.meta.url));
 const requireCompat = createRequire(requireHost.resolve('@salesforce/vscode-services-v3-compat'));
 assert.equal(requireConsumer('effect/package.json').version, '3.21.2');
-assert.equal(requireHost('effect/package.json').version, '4.0.6');
+assert.equal(requireHost('effect/package.json').version, '4.1.4');
 assert.equal(requireCompat('effect/package.json').version, '3.21.2');
 assert.notEqual(requireConsumer.resolve('effect/Effect'), requireCompat.resolve('effect/Effect'));
 // Core 8 does not export its package.json subpath; inspect the installed manifest beside its public entry.

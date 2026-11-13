@@ -3,7 +3,7 @@
 Run `pnpm test:effect-v4-compat` from repository root. Also runs in root `test` / pre-push / CI.
 
 - Provider and consumer each install their own locked **3.21.2** (`npm ci`), matching inspected Einstein `main` `eb3355df087303eeebca510e91d480ae884b6d57`. No shared/symlinked node_modules; checks physical resolution.
-- V4 host independently installs `effect`, `@effect/platform-node`, `@effect/opentelemetry` **4.0.6**; verifies each resolves the same major/version. Does not change first-party production resolution yet.
+- V4 host independently installs `effect`, `@effect/platform-node`, `@effect/opentelemetry` **4.1.4**; verifies each resolves the same major/version. Does not change first-party production resolution yet.
 - Frozen V3 accessor/Context/Layer/ref/alias/config protocol compiles and runs across installations. These are contract fixtures, not claims that live V4 adapters or real Salesforce auth are implemented; W-24615046 replaces fixture provisioning with adapter integration.
 - V4 positive `Context.Service`/Layer program typechecks and bundles for Node and browser. V3 bundles retain both independent installations and exclude V4. Bundles execute under Node; real browser/desktop E2E runs in GitHub CI.
 - V4 negative inputs must report `floatingEffect`, `anyUnknownInErrorContext` and `runEffectInsideEffect`; repository diagnostic wrapper must exit 1. Intentional negative files are not application source.
@@ -49,18 +49,19 @@ The published subset contains no private-package or V3 companion-library imports
 Full internal V3 ABI probes use the existing private compatibility package. V4 keys
 remain canonical; neither public endpoint constructs a live graph.
 
-Two physical Effect 4.0.6 copies fail when one decodes the other's schema. V2
-query/JSON APIs therefore accept caller-owned decoder functions, not Schema objects.
-Query's callback decodes the whole page so nested issue paths and transforms stay
-inside the caller's schema graph. Caller errors and requirements are preserved;
-JSON wraps only typed decoder failures in its existing filesystem error contract.
+Two independent physical Effect 4.1.4 copies are installed in the packed fixture.
+The foundation gate verifies that V4 can decode a schema created by the other copy.
+V2 query/JSON APIs still accept caller-owned decoder functions so whole-page
+decoding, nested issue paths, transforms, typed errors, and caller requirements
+remain under the caller's control. JSON wraps only typed decoder failures in its
+existing filesystem error contract.
 
 The foundation gate also installs `decoderConsumer` independently and verifies
 different physical paths and live Schema modules. Consumer/provider Node and
 browser-target bundles are built separately. The real Fs/Query graph exercises
 branded/transformed values, required services, typed errors, defects, full-page
 schema paths, acquisition timing, lazy replay, tracing and interruption finalizers.
-Raw foreign-schema decoding remains a failing negative control. Browser bundles
+Raw foreign-schema decoding is a positive control for V4 copy portability. Browser bundles
 execute under Node/jsdom, not VS Code E2E; the harness restores browser-installed
 globals and retains Node's real process for nonzero failure status.
 

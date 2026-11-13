@@ -10,7 +10,7 @@
     "@salesforce/apex-node": "file:./apex.tgz",
     "@salesforce/salesforcedx-utils": "file:./utils.tgz",
     "@types/node": "24.19.2",
-    "effect": "^4.0.6",
+    "effect": "^4.1.4",
     "node": "22.19.0",
     "typescript": "6.0.3"
   }

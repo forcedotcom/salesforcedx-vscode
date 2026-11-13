@@ -125,7 +125,7 @@ const queryDecoded = <A, I>(schema: Schema.Codec<A, I>, soql: string) =>
             totalSize: Schema.Number,
             done: Schema.optional(Schema.Boolean),
             nextRecordsUrl: Schema.optional(Schema.String),
-            records: Schema.optional(Schema.Array(Schema.Unknown))
+            records: Schema.Unknown.pipe(Schema.Array, Schema.optional)
           })
         )(input).pipe(
           Effect.map(page => ({

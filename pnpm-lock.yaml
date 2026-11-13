@@ -164,7 +164,7 @@ settings:
 
 overrides:
   '@azure/monitor-opentelemetry-exporter': 1.0.0-beta.47
-  '@effect/platform-node@4.0.6>@effect/platform-node-shared': 4.0.6
+  '@effect/platform-node@4.1.4>@effect/platform-node-shared': 4.1.4
   '@vscode/test-web>playwright': ^1.64.1
   '@vscode/test-web>@playwright/browser-chromium': ^1.64.1
   jest: 30.4.2
@@ -221,11 +221,11 @@ importers:
         specifier: ^0.3.2
         version: 0.3.2
       '@effect/language-service':
-        specifier: ^0.87.2
-        version: 0.87.2
+        specifier: ^0.87.5
+        version: 0.87.5
       '@effect/platform-node':
-        specifier: ^4.0.6
-        version: 4.0.6(effect@4.0.6)(redis@6.3.1(@opentelemetry/api@1.9.1))
+        specifier: ^4.1.4
+        version: 4.1.4(effect@4.1.4)(redis@6.3.1(@opentelemetry/api@1.9.1))
       '@eslint/json':
         specifier: ^0.14.0
         version: 0.14.0
@@ -347,8 +347,8 @@ importers:
         specifier: 9.5.1
         version: 9.5.1
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       esbuild:
         specifier: ^0.28.1
         version: 0.28.2
@@ -512,8 +512,8 @@ importers:
   packages/drivable-vscode:
     dependencies:
       '@effect/platform-node':
-        specifier: ^4.0.6
-        version: 4.0.6(effect@4.0.6)(redis@6.3.1(@opentelemetry/api@1.9.1))
+        specifier: ^4.1.4
+        version: 4.1.4(effect@4.1.4)(redis@6.3.1(@opentelemetry/api@1.9.1))
       '@modelcontextprotocol/sdk':
         specifier: 1.32.0
         version: 1.32.0(supports-color@8.1.1)(zod@4.6.1)
@@ -530,8 +530,8 @@ importers:
         specifier: 3.1.0
         version: 3.1.0(supports-color@8.1.1)
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
 
   packages/effect-ext-utils:
     dependencies:
@@ -539,8 +539,8 @@ importers:
         specifier: ^1.90.0
         version: 1.90.0
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
@@ -570,8 +570,8 @@ importers:
         specifier: '*'
         version: link:../salesforcedx-utils
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
 
   packages/eslint-local-rules:
     dependencies:
@@ -631,8 +631,8 @@ importers:
         specifier: ^0.0.81
         version: 0.0.81(supports-color@8.1.1)
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       jsonc-parser:
         specifier: ^3.3.1
         version: 3.3.1
@@ -655,8 +655,8 @@ importers:
         specifier: ^3.0.4
         version: 3.0.4
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       fast-glob:
         specifier: ^3.3.2
         version: 3.3.3
@@ -719,8 +719,8 @@ importers:
         specifier: 7.0.6
         version: 7.0.6
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       faye:
         specifier: 1.4.1
         version: 1.4.1
@@ -756,8 +756,8 @@ importers:
         specifier: 1.68.0
         version: 1.68.0
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
@@ -790,8 +790,8 @@ importers:
         specifier: ^6.0.0
         version: 6.2.0
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       line-column:
         specifier: ^1.0.2
         version: 1.0.2
@@ -823,8 +823,8 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       ejs:
         specifier: ^3.1.10
         version: 3.1.10
@@ -905,8 +905,8 @@ importers:
         specifier: ^0.7.6
         version: 0.7.6
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       ejs:
         specifier: ^3.1.10
         version: 3.1.10
@@ -994,8 +994,8 @@ importers:
         specifier: '*'
         version: link:../salesforcedx-vscode-services-types
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       find-java-home:
         specifier: 1.2.2
         version: 1.2.2
@@ -1034,8 +1034,8 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       sanitize-filename:
         specifier: ^1.6.1
         version: 1.6.4
@@ -1074,8 +1074,8 @@ importers:
         specifier: '*'
         version: link:../salesforcedx-vscode-services-types
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
@@ -1114,8 +1114,8 @@ importers:
         specifier: 1.22.6
         version: 1.22.6(encoding@0.1.13)
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       ejs:
         specifier: 3.1.10
         version: 3.1.10
@@ -1172,8 +1172,8 @@ importers:
         specifier: '*'
         version: link:../salesforcedx-vscode-services-types
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       salesforcedx-vscode-apex-log:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-apex-log
@@ -1221,8 +1221,8 @@ importers:
         specifier: '*'
         version: link:../salesforcedx-vscode-services-types
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
@@ -1258,8 +1258,8 @@ importers:
         specifier: '*'
         version: link:../salesforcedx-vscode-services-types
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       fast-xml-parser:
         specifier: ^5.7.1
         version: 5.11.2
@@ -1312,8 +1312,8 @@ importers:
         specifier: 1.8.10
         version: 1.8.10
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       vscode-html-languageservice:
         specifier: ^5.5.1
         version: 5.6.2
@@ -1343,8 +1343,8 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       jest-editor-support:
         specifier: 31.1.2
         version: 31.1.2(supports-color@8.1.1)
@@ -1398,8 +1398,8 @@ importers:
         specifier: '*'
         version: link:../salesforcedx-vscode-services-types
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
@@ -1432,8 +1432,8 @@ importers:
         specifier: '*'
         version: link:../salesforcedx-vscode-services-types
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       vscode-uri:
         specifier: ^3.0.8
         version: 3.2.0
@@ -1460,8 +1460,8 @@ importers:
         specifier: '*'
         version: link:../salesforcedx-vscode-services-types
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       vscode-uri:
         specifier: ^3.1.0
         version: 3.2.0
@@ -1485,8 +1485,8 @@ importers:
         specifier: 1.0.0-beta.47
         version: 1.0.0-beta.47(supports-color@8.1.1)
       '@effect/opentelemetry':
-        specifier: ^4.0.6
-        version: 4.0.6(@opentelemetry/api-logs@0.219.0)(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.11.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@4.0.6)
+        specifier: ^4.1.4
+        version: 4.1.4(@opentelemetry/api-logs@0.219.0)(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.11.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@4.1.4)
       '@jsforce/jsforce-node':
         specifier: ^3.10.24
         version: 3.10.29
@@ -1554,8 +1554,8 @@ importers:
         specifier: 7.0.6
         version: 7.0.6
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       jsforce:
         specifier: ^3.10.24
         version: 3.10.25(@types/node@24.19.2)
@@ -1588,8 +1588,8 @@ importers:
         specifier: 1.0.0-beta.47
         version: 1.0.0-beta.47(supports-color@8.1.1)
       '@effect/opentelemetry':
-        specifier: ^4.0.6
-        version: 4.0.6(@opentelemetry/api-logs@0.219.0)(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@4.0.6)
+        specifier: ^4.1.4
+        version: 4.1.4(@opentelemetry/api-logs@0.219.0)(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@4.1.4)
       '@jsforce/jsforce-node':
         specifier: ^3.10.24
         version: 3.10.29
@@ -1633,8 +1633,8 @@ importers:
         specifier: ^1.129.0
         version: 1.140.0
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       effect-v3:
         specifier: npm:effect@^3.21.2
         version: effect@3.21.2
@@ -1721,8 +1721,8 @@ importers:
         specifier: ^2.2.0
         version: 2.2.0
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       papaparse:
         specifier: ^5.3.0
         version: 5.7.0
@@ -1806,8 +1806,8 @@ importers:
         specifier: workspace:*
         version: link:../salesforcedx-vscode-i18n
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       vscode-css-languageservice:
         specifier: ^6.3.7
         version: 6.3.10
@@ -1837,8 +1837,8 @@ importers:
         specifier: ^2.5.1
         version: 2.5.1(@vscode/codicons@0.0.45)
       effect:
-        specifier: ^4.0.6
-        version: 4.0.6
+        specifier: ^4.1.4
+        version: 4.1.4
       lit:
         specifier: 3.3.3
         version: 3.3.3
@@ -2545,8 +2545,8 @@ packages:
   '@effect/eslint-plugin@0.3.2':
     resolution: {integrity: sha512-c4Vs9t3r54A4Zpl+wo8+PGzZz3JWYsip41H+UrebRLjQ2Hk/ap63IeCgN/HWcYtxtyhRopjp7gW9nOQ2Snbl+g==}
 
-  '@effect/language-service@0.87.2':
-    resolution: {integrity: sha512-CfiSoaVQO8pZgaMZGw5VvMvRGybsJ2LaSDoLYaqiVGvo/YYPYVR2GzUKY0h1NtIweq/+SQ5XLrvtzPIttWQ0GQ==}
+  '@effect/language-service@0.87.5':
+    resolution: {integrity: sha512-np/zJgk71/PyHxtoqyUKLYcpQhoRBI+L6+1Z0ILk35JSQ/lvXzwlwOwddYZLDkeC4bdF2ukKekqKlla/F88R5w==}
     hasBin: true
 
   '@effect/opentelemetry@0.63.0':
@@ -2563,9 +2563,9 @@ packages:
       '@opentelemetry/semantic-conventions': ^1.33.0
       effect: ^3.21.0
 
-  '@effect/opentelemetry@4.0.6':
-    resolution: {integrity: sha512-xhLR1EN4ZNaKM7Bx59SCFiRNduFzgH8LZXDrCpPN8MpQ93V0GQcFHTBah5T3EXO2v+5HTEacdTgetIA0Creqvw==}
-    engines: {node: '>=18.0.0'}
+  '@effect/opentelemetry@4.1.4':
+    resolution: {integrity: sha512-VJnookNrIWk0ZHl51DYMTRHXZrogR13kSSOJzcDxGhyUNDHvgWg217OY4R6bOrtdgM3mrPQiLRGNZ0a7bGyAJg==}
+    engines: {node: '>=22.19.0'}
     peerDependencies:
       '@opentelemetry/api': '>=1.9.0 <2.0.0'
       '@opentelemetry/api-logs': '>=0.203.0 <0.300.0'
@@ -2576,7 +2576,7 @@ packages:
       '@opentelemetry/sdk-trace-node': '>=2.0.0 <3.0.0'
       '@opentelemetry/sdk-trace-web': '>=2.0.0 <3.0.0'
       '@opentelemetry/semantic-conventions': '>=1.33.0 <2.0.0'
-      effect: ^4.0.6
+      effect: ^4.1.4
     peerDependenciesMeta:
       '@opentelemetry/api':
         optional: true
@@ -2595,18 +2595,18 @@ packages:
       '@opentelemetry/sdk-trace-web':
         optional: true
 
-  '@effect/platform-node-shared@4.0.6':
-    resolution: {integrity: sha512-0PhyC4uG30xGtsajnxjkcBWfTjNRzUh4ZKl1Kvo/MNyCTb+W2O+fBzf7wCRCoqt+nLudiq4V7vX40Q8XIBuMaQ==}
-    engines: {node: '>=18.0.0'}
+  '@effect/platform-node-shared@4.1.4':
+    resolution: {integrity: sha512-DWdfphHGOFJNj/mYadgpT3jIm8aRXDcPrQiGXFBH4p2H4XmA7iYMrPsI8NxVgZ7kNX0q1+FGJZJama0tINHRAg==}
+    engines: {node: '>=22.19.0'}
     peerDependencies:
-      effect: ^4.0.6
+      effect: ^4.1.4
 
-  '@effect/platform-node@4.0.6':
-    resolution: {integrity: sha512-gXvGHAy0/8PZbWvMMguloDUyeSP+rzYEo3FSEqUuGduxo9ORcGioDxPI+GOLCIFfam7VuNkmSUxBOiRMIrMrBw==}
-    engines: {node: '>=18.0.0'}
+  '@effect/platform-node@4.1.4':
+    resolution: {integrity: sha512-h7QExTPq/RfYtHP/8tMlgfBvqYsuJKhxfkU6w0+NaF/ihqQ8Y3GH9t28ltupQjoqMM7P6W5gy8rOji7F0qVrmg==}
+    engines: {node: '>=22.19.0'}
     peerDependencies:
-      effect: ^4.0.6
-      redis: '>=5.0.0 <7.0.0'
+      effect: ^4.1.4
+      redis: '>=5.1.0 <7.0.0'
 
   '@effect/platform@0.96.1':
     resolution: {integrity: sha512-cjB1QZZYEP8JXCFNGvBLVi0T6YUBQTmOVEUA3SDbiQ6RUO+p6CE3eyD2vMWmrz5nE8yY5QSAuOV9v0boEcUv+A==}
@@ -6965,8 +6965,8 @@ packages:
   effect@3.21.2:
     resolution: {integrity: sha512-rXd2FGDM8KdjSIrc+mqEELo7ScW7xTVxEf1iInmPSpIde9/nyGuFM710cjTo7/EreGXiUX2MOonPpprbz2XHCg==}
 
-  effect@4.0.6:
-    resolution: {integrity: sha512-Tc3mkzuLR6t6P9dhLt0D2GrxYtmU5td4XEJEiXCmILz53IRIfJyHsKZWjTA3xEjiwpNTtXBgI4iqYPxMztBDrw==}
+  effect@4.1.4:
+    resolution: {integrity: sha512-Tgrv/9FN+TZYyOn8XSli+fVqAfwDrDAkiX5Uu9vztINb675VTQdhD0gWI5Kzvhlh9QqzjZvw72iugqw5pwoghQ==}
 
   ejs@3.1.10:
     resolution: {integrity: sha512-UeJmFfOrAQS8OJWPZ4qtgHyWExa088/MtK5UEyoJGFH67cDEXkZSviOiKRCZ4Xij0zxI3JECgYs3oKx+AizQBA==}
@@ -11373,8 +11373,8 @@ packages:
     resolution: {integrity: sha512-usz3OVQBeh1LxNn0DzU0voLXMgn5CU/WUdpBsY6Ti5afNao+vTkmn4H/NxoXolc10cOqe2+YIG0Hspq2rsl64w==}
     engines: {node: '>=22.19.0'}
 
-  undici@8.12.3:
-    resolution: {integrity: sha512-+fdndUTwBP86cVjihTp21hZHo7d6oj1c/47XPA3lL8mM0XHs+C4EkcjmgRsFnFk2f/UONGDy9ItBItmXsLOQHw==}
+  undici@8.12.4:
+    resolution: {integrity: sha512-8Mx+uNKKER2bA4AdtedkqRbwUCIJFr2nJckXRe5yrDqzePqwLP7VNcctN8/XdmDSbF7mS+jJKIszlL+vbam1VA==}
     engines: {node: '>=22.19.0'}
 
   unicorn-magic@0.1.0:
@@ -12970,7 +12970,7 @@ snapshots:
       '@dprint/typescript': 0.91.8
       prettier-linter-helpers: 1.0.1
 
-  '@effect/language-service@0.87.2': {}
+  '@effect/language-service@0.87.5': {}
 
   '@effect/opentelemetry@0.63.0(@effect/platform@0.96.1(effect@3.21.2))(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.221.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@3.21.2)':
     dependencies:
@@ -12985,10 +12985,10 @@ snapshots:
       '@opentelemetry/semantic-conventions': 1.43.0
       effect: 3.21.2
 
-  '@effect/opentelemetry@4.0.6(@opentelemetry/api-logs@0.219.0)(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.11.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@4.0.6)':
+  '@effect/opentelemetry@4.1.4(@opentelemetry/api-logs@0.219.0)(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.11.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@4.1.4)':
     dependencies:
       '@opentelemetry/semantic-conventions': 1.43.0
-      effect: 4.0.6
+      effect: 4.1.4
     optionalDependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/api-logs': 0.219.0
@@ -12999,10 +12999,10 @@ snapshots:
       '@opentelemetry/sdk-trace-node': 2.8.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-trace-web': 2.8.0(@opentelemetry/api@1.9.1)
 
-  '@effect/opentelemetry@4.0.6(@opentelemetry/api-logs@0.219.0)(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@4.0.6)':
+  '@effect/opentelemetry@4.1.4(@opentelemetry/api-logs@0.219.0)(@opentelemetry/api@1.9.1)(@opentelemetry/resources@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-logs@0.219.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-metrics@2.12.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-base@2.10.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-node@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/sdk-trace-web@2.8.0(@opentelemetry/api@1.9.1))(@opentelemetry/semantic-conventions@1.43.0)(effect@4.1.4)':
     dependencies:
       '@opentelemetry/semantic-conventions': 1.43.0
-      effect: 4.0.6
+      effect: 4.1.4
     optionalDependencies:
       '@opentelemetry/api': 1.9.1
       '@opentelemetry/api-logs': 0.219.0
@@ -13013,21 +13013,21 @@ snapshots:
       '@opentelemetry/sdk-trace-node': 2.8.0(@opentelemetry/api@1.9.1)
       '@opentelemetry/sdk-trace-web': 2.8.0(@opentelemetry/api@1.9.1)
 
-  '@effect/platform-node-shared@4.0.6(effect@4.0.6)':
+  '@effect/platform-node-shared@4.1.4(effect@4.1.4)':
     dependencies:
       '@types/ws': 8.18.2
-      effect: 4.0.6
+      effect: 4.1.4
       ws: 8.22.1
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
 
-  '@effect/platform-node@4.0.6(effect@4.0.6)(redis@6.3.1(@opentelemetry/api@1.9.1))':
+  '@effect/platform-node@4.1.4(effect@4.1.4)(redis@6.3.1(@opentelemetry/api@1.9.1))':
     dependencies:
-      '@effect/platform-node-shared': 4.0.6(effect@4.0.6)
-      effect: 4.0.6
+      '@effect/platform-node-shared': 4.1.4(effect@4.1.4)
+      effect: 4.1.4
       redis: 6.3.1(@opentelemetry/api@1.9.1)
-      undici: 8.12.3
+      undici: 8.12.4
     transitivePeerDependencies:
       - bufferutil
       - utf-8-validate
@@ -17794,7 +17794,7 @@ snapshots:
       '@standard-schema/spec': 1.1.0
       fast-check: 3.23.2
 
-  effect@4.0.6: {}
+  effect@4.1.4: {}
 
   ejs@3.1.10:
     dependencies:
@@ -23245,7 +23245,7 @@ snapshots:
 
   undici@8.12.1: {}
 
-  undici@8.12.3: {}
+  undici@8.12.4: {}
 
   unicorn-magic@0.1.0: {}
 

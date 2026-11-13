@@ -6,7 +6,7 @@ services consumer moved to V4.
 ## Entries and runtime ownership
 
 - `@salesforce/apex-node`: unchanged CommonJS Promise/class API and declaration paths.
-- `/effect`: native ESM, installed Effect **4.0.6**, V4 Effects/schemas/tagged errors.
+- `/effect`: native ESM, installed Effect **4.1.4**, V4 Effects/schemas/tagged errors.
 - `compile` runs TypeScript, copies the Effect-directory ESM marker, then bundles
   the root as CommonJS with V4 included. Other packages, including the SDK,
   stay external. `keepNames` preserves the constructor names read by timing logs.

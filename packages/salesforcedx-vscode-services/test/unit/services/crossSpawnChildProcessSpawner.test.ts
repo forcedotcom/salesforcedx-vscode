@@ -8,6 +8,7 @@ import crossSpawn from 'cross-spawn';
 import * as Duration from 'effect/Duration';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
+import * as Redacted from 'effect/Redacted';
 import * as ChildProcess from 'effect/process/ChildProcess';
 import { ChildProcessSpawner } from 'effect/process/ChildProcessSpawner';
 import * as Stream from 'effect/Stream';
@@ -43,6 +44,38 @@ it('merges ambient env and caller overlay without losing PATH', () => {
   expect(env).toMatchObject({ PROCESS_TEST_PARENT: 'override', SF_JSON_TO_STDOUT: 'true' });
   expect(env.PATH).toBe(process.env.PATH);
   expect(resolveCommandEnv(undefined).PROCESS_TEST_PARENT).toBe('parent');
+});
+
+it('reveals redacted argv and env values only at the native spawn boundary', async () => {
+  const secretArgument = Redacted.make('argument-secret');
+  const secretEnvironment = Redacted.make('environment-secret');
+  const { handle, stdout, stderr } = native();
+  const spawned = Promise.withResolvers<void>();
+  vi.mocked(crossSpawn).mockImplementationOnce(() => {
+    spawned.resolve();
+    return handle;
+  });
+  const running = Effect.runPromise(
+    spawn(ChildProcess.make('sf', ['--token', secretArgument], { env: { TOKEN: secretEnvironment } })).pipe(
+      Effect.flatMap(child => child.exitCode),
+      Effect.scoped,
+      Effect.provide(CrossSpawnChildProcessSpawnerLayer)
+    )
+  );
+  await spawned.promise;
+  await setImmediate();
+  expect(crossSpawn).toHaveBeenCalledWith(
+    'sf',
+    ['--token', 'argument-secret'],
+    expect.objectContaining({ env: expect.objectContaining({ TOKEN: 'environment-secret' }) })
+  );
+  handle.emit('spawn');
+  stdout.end();
+  stderr.end();
+  handle.emit('close', 0, null);
+  await expect(running).resolves.toBe(0);
+  expect(String(secretArgument)).toBe('<redacted>');
+  expect(String(secretEnvironment)).toBe('<redacted>');
 });
 
 it.each([

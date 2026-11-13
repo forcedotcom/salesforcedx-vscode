@@ -12,7 +12,7 @@ import { ApexLogListItem } from './wire/logs.js';
 
 export const ListLogsOptionsSchema = Schema.Struct({
   /** Filter to logs for these users; pass one ID for a single user. */
-  userIds: Schema.optional(Schema.mutable(Schema.Array(UserId))),
+  userIds: Schema.Array(UserId).pipe(Schema.mutable, Schema.optional),
   /** Filter to logs whose Operation contains this string (e.g. 'executeAnonymous'). */
   operationContains: Schema.optional(Schema.String),
   /** Inclusive ISO StartTime lower bound. */

@@ -80,11 +80,11 @@ console.log(
 );
 
 const requireV4 = createRequire(path.join(fixtures, 'v4/package.json'));
-assert.equal(requireV4('effect/package.json').version, '4.0.6');
+assert.equal(requireV4('effect/package.json').version, '4.1.4');
 for (const packageName of ['@effect/platform-node', '@effect/opentelemetry']) {
-  assert.equal(requireV4(`${packageName}/package.json`).version, '4.0.6');
+  assert.equal(requireV4(`${packageName}/package.json`).version, '4.1.4');
   const packageRequire = createRequire(requireV4.resolve(`${packageName}/package.json`));
-  assert.equal(packageRequire('effect/package.json').version, '4.0.6');
+  assert.equal(packageRequire('effect/package.json').version, '4.1.4');
 }
 const invalid = spawnSync(
   process.execPath,

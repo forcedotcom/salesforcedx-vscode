@@ -45,7 +45,7 @@ const toolingRecords = <A, I>(soql: string, schema: Schema.Codec<A, I>) =>
             totalSize: Schema.Number,
             done: Schema.optional(Schema.Boolean),
             nextRecordsUrl: Schema.optional(Schema.String),
-            records: Schema.optional(Schema.Array(Schema.Unknown))
+            records: Schema.Unknown.pipe(Schema.Array, Schema.optional)
           })
         )(input).pipe(
           Effect.map(page => ({

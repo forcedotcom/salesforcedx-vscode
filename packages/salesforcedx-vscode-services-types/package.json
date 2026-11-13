@@ -131,7 +131,7 @@
     }
   },
   "dependencies": {
-    "@effect/opentelemetry": "^4.0.6",
+    "@effect/opentelemetry": "^4.1.4",
     "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.43",
     "@jsforce/jsforce-node": "^3.10.24",
     "@opentelemetry/api": "1.9.1",
@@ -147,7 +147,7 @@
     "@salesforce/source-tracking": "^8.1.7",
     "@salesforce/templates": "^66.19.0",
     "@types/vscode": "^1.129.0",
-    "effect": "^4.0.6",
+    "effect": "^4.1.4",
     "effect-v3": "npm:effect@^3.21.2",
     "jsforce": "^3.10.24",
     "vscode-uri": "^3.1.0"

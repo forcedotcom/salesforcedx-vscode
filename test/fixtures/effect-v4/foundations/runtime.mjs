@@ -43,10 +43,8 @@ const aliases = await runtime.runPromise(
   AliasService.use(service => service.getAliasesFromUsername('user@example.com'))
 );
 const files = await runtime.runPromise(FsService.use(service => service.findFiles('**/*.cls')));
-let foreignSchemaRejected = false;
-try { Schema.decodeUnknownSync(caller.ForeignIdSchema)('005000000000001'); }
-catch (error) { foreignSchemaRejected = error.message === 'Sync adapter can only throw schema errors'; }
-if (!foreignSchemaRejected) throw new Error('Foreign-schema negative control no longer reproduces the parser-copy failure');
+const foreignSchemaAccepted = Schema.decodeUnknownSync(caller.ForeignIdSchema)('005000000000001') === '005000000000001';
+if (!foreignSchemaAccepted) throw new Error('Effect 4.1.4 must decode a schema from an independently installed copy');
 const originalRead = workspace.fs.readFile;
 workspace.fs.readFile = uri => uri.path === '/fixture/caller.json'
   ? Promise.resolve(new TextEncoder().encode('{"Id":"005000000000001","Username":"Caller"}')) : originalRead(uri);
@@ -57,7 +55,7 @@ try {
   ));
   const failure = await runtime.runPromise(FsService.use(service => service.readJSON('memfs:/fixture/caller.json', caller.rejectPage)).pipe(Effect.flip));
   const defect = await runtime.runPromiseExit(FsService.use(service => service.readJSON('memfs:/fixture/caller.json', caller.dieJSON)));
-  callerDecoding = { foreignSchemaRejected, id: decoded.Id, label: decoded.label, parentSpan: Option.getOrUndefined(decoded.parentSpan),
+  callerDecoding = { foreignSchemaAccepted, id: decoded.Id, label: decoded.label, parentSpan: Option.getOrUndefined(decoded.parentSpan),
     typedErrorIdentity: failure.cause === caller.rejection,
     defectIdentity: Exit.isFailure(defect) && defect.cause.reasons.some(reason => reason._tag === 'Die' && reason.defect === caller.defect) };
 } finally { workspace.fs.readFile = originalRead; }

@@ -31,7 +31,7 @@
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/salesforcedx-lightning-lsp-common": "workspace:*",
     "@salesforce/vscode-i18n": "workspace:*",
-    "effect": "^4.0.6",
+    "effect": "^4.1.4",
     "jest-editor-support": "31.1.2",
     "jest-regex-util": "^24.9.0",
     "vscode-languageclient": "^9.0.1",

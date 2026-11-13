@@ -6,7 +6,7 @@ that W-24615069 folded into the production services provider.
 ## Provider boundary
 
 V4 implementations live in `salesforcedx-vscode-services/src/services` and compile
-with the production provider against `effect: 4.0.6`. Canonical keys/errors remain
+with the production provider against `effect: 4.1.4`. Canonical keys/errors remain
 in `@salesforce/vscode-services/v2`; genuine V3 proxies remain in the isolated
 `salesforcedx-vscode-services-v3-compat` package. The temporary V4 compiler/fixture
 package was removed by W-24615069.
