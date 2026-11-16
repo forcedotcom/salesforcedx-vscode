@@ -113,7 +113,7 @@ describe('GitHub', () => {
     expect(pull?.body).toBe('manual plan');
   });
 
-  it('decodes workflow runs, job attempts, and workflow artifacts', async () => {
+  it('reads workflow runs, job attempts, and workflow artifacts', async () => {
     const urls: string[] = [];
     globalThis.fetch = async input => {
       const url = String(input);
@@ -156,9 +156,9 @@ describe('GitHub', () => {
     };
     const [runs, jobs, artifacts] = await run(
       Effect.all([
-        GitHub.workflowRuns('o/r', 'head'),
+        GitHub.workflowRuns({ owner: 'o', repo: 'r', head_sha: 'head' }),
         GitHub.workflowRunJobs('o/r', '12', 'all'),
-        GitHub.workflowRunArtifacts('o/r', '12')
+        GitHub.workflowRunArtifacts({ owner: 'o', repo: 'r', run_id: 12 })
       ])
     );
     expect(runs[0]?.head_sha).toBe('head');

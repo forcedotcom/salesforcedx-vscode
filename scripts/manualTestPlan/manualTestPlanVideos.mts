@@ -12,7 +12,9 @@ import {
   GitHub,
   readCompletedChecksEvent,
   readSynchronizeEvent,
-  readWorkflowDispatchEvent
+  readWorkflowDispatchEvent,
+  WorkflowArtifact,
+  WorkflowRun
 } from '@salesforce/effect-octokit';
 import { Config, Effect, Option, Redacted, Schema } from 'effect';
 import { execFile } from 'node:child_process';
@@ -225,7 +227,12 @@ export const updateManualTestPlanVideos = Effect.fn('manualTestPlanVideos.update
     })
   );
   if (targets.length === 0) return;
-  const runs = yield* GitHub.workflowRuns(repository, input.sha);
+  const runs = yield* GitHub.pipe(
+    Effect.flatMap(github =>
+      github.paginate<unknown>('GET /repos/{owner}/{repo}/actions/runs', { owner, repo, head_sha: input.sha })
+    ),
+    Effect.flatMap(Schema.decodeUnknown(Schema.Array(WorkflowRun)))
+  );
   const fs = yield* FileSystem.FileSystem;
   const dir = yield* fs.makeTempDirectoryScoped({ prefix: 'manual-test-plan-videos-' });
   const rows = yield* Effect.forEach(
@@ -247,7 +254,9 @@ export const updateManualTestPlanVideos = Effect.fn('manualTestPlanVideos.update
       const lanes = targetLanes(workflow, target);
       if (lanes.length === 0) yield* warning(`No artifact targets: ${target.workflow} / ${target.job}`);
       const jobs = yield* GitHub.workflowRunJobs(repository, String(run.id), 'all');
-      const artifacts = yield* GitHub.workflowRunArtifacts(repository, String(run.id));
+      const artifacts = yield* GitHub.workflowRunArtifacts({ owner, repo, run_id: run.id }).pipe(
+        Effect.flatMap(Schema.decodeUnknown(Schema.Array(WorkflowArtifact)))
+      );
       return yield* Effect.forEach(
         lanes,
         Effect.fn('manualTestPlanVideos.lane')(function* (lane) {

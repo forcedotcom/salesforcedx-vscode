@@ -6,6 +6,7 @@
  */
 import { type Connection } from '@salesforce/core';
 import { type Duration } from '@salesforce/kit';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
 import * as Either from 'effect/Either';
 import * as FiberRef from 'effect/FiberRef';
@@ -43,7 +44,7 @@ const runTestServiceOperation = async <A, E extends Error>(operation: Effect.Eff
   Either.getOrThrowWith(await operation.pipe(Effect.either, Effect.runPromise), formatTestErrors);
 
 // Preserve the class API's plain console messages while Effect consumers select their own logger.
-const suiteConsoleLogger = Logger.make(({ message }) => console.log(...(Array.isArray(message) ? message : [message])));
+const suiteConsoleLogger = Logger.make(({ message }) => console.log(...Arr.ensure(message)));
 
 export class TestService {
   private readonly connection: Connection;

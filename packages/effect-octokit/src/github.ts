@@ -323,20 +323,35 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
       ).pipe(Effect.flatMap(jobs => decodeResponse(Schema.Array(WorkflowRunJob), jobs, 'GET', path)));
     });
 
-    const workflowRuns = Effect.fn('GitHub.workflowRuns')(function* (repository: string, headSha: string) {
-      const path = `/repos/${repository}/actions/runs`;
-      return yield* run('GET', path, () =>
-        octokit.paginate<unknown>(`GET ${path}`, { head_sha: headSha, per_page: 100 })
-      ).pipe(Effect.flatMap(runs => decodeResponse(Schema.Array(WorkflowRun), runs, 'GET', path)));
+    const workflowRuns = Effect.fn('GitHub.workflowRuns')(function* (
+      parameters: Endpoints['GET /repos/{owner}/{repo}/actions/runs']['parameters']
+    ) {
+      return yield* run('GET', `/repos/${parameters.owner}/${parameters.repo}/actions/runs`, () =>
+        octokit
+          .request('GET /repos/{owner}/{repo}/actions/runs', parameters)
+          .then(response => response.data.workflow_runs)
+      );
+    });
+
+    const workflowRun = Effect.fn('GitHub.workflowRun')(function* (
+      parameters: Endpoints['GET /repos/{owner}/{repo}/actions/runs/{run_id}']['parameters']
+    ) {
+      return yield* run('GET', `/repos/${parameters.owner}/${parameters.repo}/actions/runs/${parameters.run_id}`, () =>
+        octokit.request('GET /repos/{owner}/{repo}/actions/runs/{run_id}', parameters).then(response => response.data)
+      );
     });
 
     const workflowRunArtifacts = Effect.fn('GitHub.workflowRunArtifacts')(function* (
-      repository: string,
-      runId: string
+      parameters: Endpoints['GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts']['parameters']
     ) {
-      const path = `/repos/${repository}/actions/runs/${runId}/artifacts`;
-      return yield* run('GET', path, () => octokit.paginate<unknown>(`GET ${path}`, { per_page: 100 })).pipe(
-        Effect.flatMap(artifacts => decodeResponse(Schema.Array(WorkflowArtifact), artifacts, 'GET', path))
+      return yield* run(
+        'GET',
+        `/repos/${parameters.owner}/${parameters.repo}/actions/runs/${parameters.run_id}/artifacts`,
+        () =>
+          octokit.paginate('GET /repos/{owner}/{repo}/actions/runs/{run_id}/artifacts', {
+            per_page: 100,
+            ...parameters
+          })
       );
     });
 
@@ -490,6 +505,7 @@ export class GitHub extends Effect.Service<GitHub>()('GitHub', {
       checkRuns,
       workflowRunJobs,
       workflowRuns,
+      workflowRun,
       workflowRunArtifacts,
       combinedStatus,
       headChecks,

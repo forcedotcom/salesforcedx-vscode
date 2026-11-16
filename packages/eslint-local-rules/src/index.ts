@@ -48,6 +48,7 @@ import { packageJsonNoServicesDependency } from './packageJsonNoServicesDependen
 import { packageJsonRequireRootInstall } from './packageJsonRequireRootInstall';
 import { packageJsonSalesforceDepVersions } from './packageJsonSalesforceDepVersions';
 import { packageJsonViewRefs } from './packageJsonViewRefs';
+import { preferEffectArrayEnsure } from './preferEffectArrayEnsure';
 import { queryBuilderHtmlI18nKeys } from './queryBuilderHtmlI18nKeys';
 import { requireEffectFnSpanName } from './requireEffectFnSpanName';
 import { vscodeignoreContributesConflict } from './vscodeignoreContributesConflict';
@@ -86,6 +87,7 @@ const plugin: TSESLint.FlatConfig.Plugin = {
     'no-schema-is-throw-guard': noSchemaIsThrowGuard,
     'no-standalone-pipeable-value': noStandalonePipeableValue,
     'no-unused-i18n-messages': noUnusedI18nMessages,
+    'prefer-effect-array-ensure': preferEffectArrayEnsure,
     'query-builder-html-i18n-keys': queryBuilderHtmlI18nKeys,
     'no-vscode-message-literals': noVscodeMessageLiterals,
     'no-vscode-progress-title-literals': noVscodeProgressTitleLiterals,
