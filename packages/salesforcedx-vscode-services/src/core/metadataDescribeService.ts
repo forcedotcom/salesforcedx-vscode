@@ -534,6 +534,19 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
         .pipe(Effect.tap(result => recorder.recordMetadataListing(orgId, type, folder, result)));
     });
 
+    /** Lists folders containing a metadata type, combining Classic and Lightning email folders. */
+    const listMetadataFolders = Effect.fn('MetadataDescribeService.listMetadataFolders')(function* (
+      type: string,
+      expectedOrgId?: string
+    ) {
+      const orgId = yield* resolveOrgId(expectedOrgId);
+      return yield* Effect.forEach(
+        type === 'EmailTemplate' ? ['EmailFolder', 'EmailTemplateFolder'] : [`${type}Folder`],
+        folderType => listMetadata(folderType, undefined, orgId),
+        { concurrency: 'unbounded' }
+      ).pipe(Effect.map(Arr.flatten), Effect.map(Arr.dedupeWith(FilePropertiesByFullName)));
+    });
+
     const listMetadataCached = Effect.fn('MetadataDescribeService.listMetadataCached')(function* (
       type: string,
       folder?: string,
@@ -569,6 +582,8 @@ export class MetadataDescribeService extends Effect.Service<MetadataDescribeServ
        * Results are cached per-org by type+folder key (TTL 5 min).
        */
       listMetadata,
+      /** Lists and deduplicates folders for a foldered metadata type using the per-type listMetadata caches. */
+      listMetadataFolders,
       /**
        * Peeks at the cached listMetadata result for a given type and optional folder
        * without triggering a fetch. Returns Option.none() if not in cache.
