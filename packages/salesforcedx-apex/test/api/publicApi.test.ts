@@ -96,6 +96,7 @@ describe('@salesforce/apex-node public API', () => {
       'ListLogsOptionsSchema',
       'LogCategoryLevel',
       'LogStreamEventSchema',
+      'PartialResultFilesError',
       'PerClassCoverageSchema',
       'QueryPageSchema',
       'SalesforceId',

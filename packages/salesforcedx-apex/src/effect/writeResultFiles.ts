@@ -5,8 +5,11 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import type { ApexReportError } from './errors';
 import type { MarkdownTextReporterOptions } from '../reporters/markdownTextReporter';
+import * as Arr from 'effect/Array';
 import * as Effect from 'effect/Effect';
+import * as Ref from 'effect/Ref';
 import * as Schema from 'effect/Schema';
 import * as Stream from 'effect/Stream';
 import { nls } from '../i18n';
@@ -20,7 +23,7 @@ import {
   type TestResult,
   type TestRunIdResult
 } from '../tests/types';
-import { FileOutput, FileOutputError } from './fileOutput';
+import { FileOutput, FileOutputError, PartialResultFilesError } from './fileOutput';
 import { formatMarkdownTextReportStream } from './reporters';
 
 export interface WriteResultFilesOptions extends MarkdownTextReporterOptions {
@@ -68,8 +71,7 @@ const fileNameForResultFormat = (format: string, fileId: string): string | undef
   }
 };
 
-/** Writes requested test result files through the caller's file output implementation. */
-export const writeResultFiles = Effect.fn('Apex.writeResultFiles')(function* (
+const writeFiles = Effect.fn('Apex.writeResultFiles.writeFiles')(function* (
   result: TestResult | TestRunIdResult,
   outputDirConfig: OutputDirConfig,
   options: WriteResultFilesOptions = {}
@@ -77,20 +79,17 @@ export const writeResultFiles = Effect.fn('Apex.writeResultFiles')(function* (
   const fileOutput = yield* FileOutput;
   const { dirPath, resultFormats, fileInfos } = outputDirConfig;
   assertResultFormats(resultFormats);
+  const testResult = 'summary' in result ? result : undefined;
+  if (resultFormats && testResult) assertResultFileFormats(resultFormats);
   yield* fileOutput.createDirectory(dirPath);
 
-  const testResult = 'summary' in result ? result : undefined;
   const testRunId = 'summary' in result ? result.summary.testRunId : result.testRunId;
   const fileId = testRunId || 'default';
   const testRunIdFiles =
     options.writeTestRunId !== false && isNotUndefined(testRunId)
-      ? yield* fileOutput.writeFile(dirPath, 'test-run-id.txt', Stream.make(testRunId)).pipe(
-          Effect.map(path => [path]),
-          Effect.catchAll(error => Effect.logError('Error writing file', { error }).pipe(Effect.as([])))
-        )
+      ? yield* fileOutput.writeFile(dirPath, 'test-run-id.txt', Stream.make(testRunId)).pipe(Effect.map(path => [path]))
       : [];
 
-  if (resultFormats && testResult) assertResultFileFormats(resultFormats);
   const resultFiles = yield* Effect.forEach(
     resultFormats && testResult ? resultFormats.map(format => ({ format, testResult })) : [],
     Effect.fn('Apex.writeResultFiles.writeReport')(function* ({ format, testResult }) {
@@ -160,6 +159,34 @@ export const writeResultFiles = Effect.fn('Apex.writeResultFiles')(function* (
     : [];
 
   return [...testRunIdFiles, ...resultFiles, ...coverageFiles, ...infoFiles];
+});
+
+/** Writes results in order, preserving complete output and reporting committed paths on failure. */
+export const writeResultFiles = Effect.fn('Apex.writeResultFiles')(function* (
+  result: TestResult | TestRunIdResult,
+  outputDirConfig: OutputDirConfig,
+  options: WriteResultFilesOptions = {}
+) {
+  const fileOutput = yield* FileOutput;
+  const writtenFiles = yield* Ref.make<readonly string[]>([]);
+  const onFailure = (cause: FileOutputError | ApexReportError) =>
+    Ref.get(writtenFiles).pipe(
+      Effect.flatMap(paths =>
+        Effect.fail(
+          Arr.isNonEmptyReadonlyArray(paths)
+            ? new PartialResultFilesError({ writtenFiles: paths, message: cause.message, cause })
+            : cause
+        )
+      )
+    );
+  return yield* writeFiles(result, outputDirConfig, options).pipe(
+    Effect.provideService(FileOutput, {
+      ...fileOutput,
+      writeFile: (...args) =>
+        fileOutput.writeFile(...args).pipe(Effect.tap(path => Ref.update(writtenFiles, paths => [...paths, path])))
+    }),
+    Effect.catchTags({ FileOutputError: onFailure, ApexReportError: onFailure })
+  );
 });
 
 const isNotUndefined = <A>(value: A | undefined): value is A => value !== undefined;
