@@ -9,12 +9,20 @@ import * as Context from 'effect/Context';
 import type * as Effect from 'effect/Effect';
 import * as Schema from 'effect/Schema';
 import type * as Stream from 'effect/Stream';
+import { ApexReportError } from './errors';
 
 export class FileOutputError extends Schema.TaggedError<FileOutputError>()('FileOutputError', {
   operation: Schema.String,
   path: Schema.String,
   message: Schema.String,
   cause: Schema.optional(Schema.String)
+}) {}
+
+/** A result-file operation failed after committing complete files. */
+export class PartialResultFilesError extends Schema.TaggedError<PartialResultFilesError>()('PartialResultFilesError', {
+  writtenFiles: Schema.NonEmptyArray(Schema.String),
+  message: Schema.String,
+  cause: Schema.Union(FileOutputError, ApexReportError)
 }) {}
 
 /** File operations needed by Apex result writers. Hosts provide the implementation for their filesystem. */

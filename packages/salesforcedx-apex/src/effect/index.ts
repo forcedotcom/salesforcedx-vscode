@@ -49,7 +49,7 @@ export {
   ApexRuntimeError
 } from './schema/errors';
 export { ApexReportError, causeMessage } from './errors';
-export { FileOutput, FileOutputError } from './fileOutput';
+export { FileOutput, FileOutputError, PartialResultFilesError } from './fileOutput';
 export { writeResultFiles } from './writeResultFiles';
 export type { WriteResultFilesOptions } from './writeResultFiles';
 export { listLogs, getLogBody, streamLogs } from './logs';
