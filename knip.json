@@ -16,7 +16,7 @@
   "tags": ["-ExportTaggedError"],
   "workspaces": {
     ".": {
-      "entry": ["scripts/category-approve.mts"]
+      "entry": ["scripts/categoryApprove.mts"]
     },
     "packages/salesforcedx-vscode-soql": {
       "entry": ["src/index.ts", "src/soql-builder-ui/index.ts", "src/soql-builder-ui/modules/querybuilder/app/app.ts"]

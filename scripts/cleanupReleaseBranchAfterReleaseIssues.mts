@@ -1,9 +1,16 @@
 #!/usr/bin/env node
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 
-const { execSync } = require('child_process');
+import { execSync } from 'node:child_process';
+import { logger } from './loggerUtil.mts';
+import { checkBaseBranch, checkVSCodeVersion } from './validationUtils.mts';
+
 const REPO_ORIGIN = 'git@github.com:forcedotcom/salesforcedx-vscode.git';
-const { checkBaseBranch, checkVSCodeVersion } = require('./validation-utils');
-const logger = require('./logger-util');
 
 // Exit on error
 process.on('uncaughtException', err => {
@@ -25,7 +32,7 @@ logger.header('\nReset release branch head back to what is on remote');
 execSync(`git reset --hard origin/${releaseBranchName}`, { stdio: 'inherit' });
 
 logger.header('\nRemove all local untracked file changes in the project');
-execSync(`git clean -xfd`, { stdio: 'inherit' });
+execSync('git clean -xfd', { stdio: 'inherit' });
 
 const releaseTag = `v${nextVersion}`;
 const isReleaseTagPresent = execSync(`git tag -l "${releaseTag}"`, { encoding: 'utf8' }).trim();

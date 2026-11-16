@@ -1,9 +1,15 @@
 #!/usr/bin/env node
+/*
+ * Copyright (c) 2026, salesforce.com, inc.
+ * All rights reserved.
+ * Licensed under the BSD 3-Clause license.
+ * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
 
 /**
  * Extract extension names from VSIX filenames in a directory.
  *
- * Usage: node scripts/parse-extension-names.js <directory>
+ * Usage: node scripts/parseExtensionNames.mts <directory>
  *
  * VSIX files follow the naming convention: <extension-name>-<semver>.vsix
  * For example: salesforcedx-vscode-apex-log-66.5.2.vsix → salesforcedx-vscode-apex-log
@@ -11,12 +17,11 @@
  * Outputs a comma-separated list of unique extension names to stdout.
  */
 
-const fs = require('fs');
-const path = require('path');
+import fs from 'node:fs';
 
 const dir = process.argv[2];
 if (!dir) {
-  console.error('Usage: node parse-extension-names.js <directory>');
+  console.error('Usage: node parseExtensionNames.mts <directory>');
   process.exit(1);
 }
 
@@ -33,7 +38,7 @@ const names = [
       .filter(filename => filename.endsWith('.vsix'))
       .map(filename => filename.replace(VSIX_VERSION_SUFFIX, ''))
   )
-].sort();
+].toSorted();
 
 if (names.length === 0) {
   console.error(`No .vsix files found in ${dir}`);

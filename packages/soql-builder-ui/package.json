@@ -117,7 +117,7 @@
         "browserBundleOptions.mjs",
         "../../scripts/bundling/*.{js,mjs}",
         "test/**/*.test.mjs",
-        "../../scripts/release-package-selection.js",
+        "../../scripts/releasePackageSelection.mts",
         "package.json"
       ],
       "output": []

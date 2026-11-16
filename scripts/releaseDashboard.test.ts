@@ -41,7 +41,7 @@ const runDashboard = (runs: unknown, releases: unknown, trackingTags = '', check
 };
 
 // Bash and jq subprocess startup can exceed Vitest's 5s default on Windows runners.
-describe('releaseDashboard', { timeout: 15_000 }, () => {
+describe('releaseDashboard', { timeout: 30_000 }, () => {
   it('identifies a failed nightly as the prerequisite blocker', () => {
     const { result, summary } = runDashboard(
       {

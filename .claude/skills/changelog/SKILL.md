@@ -8,7 +8,7 @@ review: never
 
 Improve the automated changelog delta committed to `develop` by `promote-to-prerelease.yml`.
 
-Scope: polish at `packages/salesforcedx-vscode/CHANGELOG.md` (per-package `CHANGELOG.md` files scoped to their own packages, out of scope). Root `CHANGELOG.md` is auto-maintained: `promote-to-prerelease.yml` prepends each week's delta, then stable builds later fold those sections into one stable release section via `fold-stable-changelog.js` — do not edit root manually.
+Scope: polish at `packages/salesforcedx-vscode/CHANGELOG.md` (per-package `CHANGELOG.md` files scoped to their own packages, out of scope). Root `CHANGELOG.md` is auto-maintained: `promote-to-prerelease.yml` prepends each week's delta, then stable builds later fold those sections into one stable release section via `foldStableChangelog.mts` — do not edit root manually.
 
 ## When to use
 
@@ -151,12 +151,12 @@ Use these `chore:` subjects for polish commits on `develop`:
 
 1. **compute-changelog-range** (promote-to-prerelease.yml): Outputs `fromRef` = newest `marketplace-prerelease-*` tag (set by last week's promote run) or latest stable `v*` tag (correct fallback before any tracking tag exists). Empty `fromRef` (identical to this week's nightly commit — a manual re-run or hotfix) skips changelog-body instead of feeding it an identical range.
 2. **changelog-body** (reusable workflow `.github/workflows/changelog-body.yml`): Calls Cursor-backed AI (guided by `.cursor/skills/changelog-judgment/SKILL.md`) to produce polished, customer-facing markdown body from commits in range `(fromRef, toRef]`. Already removes GUS refs, rewrites sentences ("We added/fixed/improved..."), dedupes multi-package PRs, consolidates Under-the-Hood. Returns `body` output.
-3. **write-changelog** (promote-to-prerelease.yml): Writes header `# <version> - <date>` + body to `packages/salesforcedx-vscode/CHANGELOG.md`. Runs `scripts/prepend-release-changelog.js` to prepend same content to root `CHANGELOG.md`. Both labeled with **prerelease** version (e.g. `67.17.9`). Committed to `develop`.
+3. **write-changelog** (promote-to-prerelease.yml): Writes header `# <version> - <date>` + body to `packages/salesforcedx-vscode/CHANGELOG.md`. Runs `scripts/prependReleaseChangelog.mts` to prepend same content to root `CHANGELOG.md`. Both labeled with **prerelease** version (e.g. `67.17.9`). Committed to `develop`.
 4. **Polish (optional)** (`develop`, this skill): Human review/touch-up before next `build-github-release.yml` run. Model-generated body is typically ready, but catch edge cases/errors using Rules 1–5 as checklist. **Note:** polish edits to package CHANGELOG.md are picked up by the stable build (via --overlay); edits to root are not auto-synced (folding process replaces root sections).
-5. **Fold to stable** (`build-github-release.yml`, Wednesday 7 AM UTC): For stable builds (skips emergency pre-releases): pulls develop's root CHANGELOG.md, overlays package CHANGELOG.md polish from step 4, folds every prerelease section it contains into one stable section (`fold-stable-changelog.js`), bakes into stable VSIX (package CHANGELOG.md).
+5. **Fold to stable** (`build-github-release.yml`, Wednesday 7 AM UTC): For stable builds (skips emergency pre-releases): pulls develop's root CHANGELOG.md, overlays package CHANGELOG.md polish from step 4, folds every prerelease section it contains into one stable section (`foldStableChangelog.mts`), bakes into stable VSIX (package CHANGELOG.md).
 6. **Fold history** (`publishVSCode.yml`, on final stable publish): For stable releases (skips pre-release tags): folds develop's root CHANGELOG.md, so history matches shipped stable version; commits only root CHANGELOG.md to develop (no longer touches package changelog).
 
-`prepend-release-changelog.js` validates structure (version format, file existence, non-empty), runs idempotent (skips if already in root), reports errors (ENOSPC, EACCES, missing files). `fold-stable-changelog.js` (run by build-github-release.yml and publishVSCode.yml) is also idempotent: no-op if root already starts with the stable version (pre-prepared branches), or if no prerelease sections fold into it (hotfixes of stable releases).
+`prependReleaseChangelog.mts` validates structure (version format, file existence, non-empty), runs idempotent (skips if already in root), reports errors (ENOSPC, EACCES, missing files). `foldStableChangelog.mts` (run by build-github-release.yml and publishVSCode.yml) is also idempotent: no-op if root already starts with the stable version (pre-prepared branches), or if no prerelease sections fold into it (hotfixes of stable releases).
 
 ### Commit details
 
