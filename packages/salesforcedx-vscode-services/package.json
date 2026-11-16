@@ -44,7 +44,7 @@
     "@salesforce/core": "^9.3.6",
     "@salesforce/o11y-reporter": "^1.8.5",
     "@salesforce/salesforcedx-utils": "*",
-    "@salesforce/source-deploy-retrieve": "^13.5.0",
+    "@salesforce/source-deploy-retrieve": "^13.11.1",
     "@salesforce/source-tracking": "^8.1.7",
     "@salesforce/templates": "^66.19.0",
     "@salesforce/vscode-i18n": "*",
@@ -53,7 +53,7 @@
     "@vscode/extension-telemetry": "^1.0.0",
     "cross-spawn": "7.0.6",
     "effect": "^4.1.4",
-    "jsforce": "^3.10.24",
+    "jsforce": "^3.10.26",
     "o11y_schema": "^264.89.0",
     "vscode-uri": "^3.1.0"
   },

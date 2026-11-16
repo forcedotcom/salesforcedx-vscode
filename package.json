@@ -13,7 +13,7 @@
     "@salesforce/effect-ext-utils": "workspace:*",
     "@salesforce/o11y-reporter": "^1.8.5",
     "@salesforce/salesforcedx-utils": "workspace:*",
-    "jsforce": "^3.10.24",
+    "jsforce": "^3.10.26",
     "memfs": "^4.32.0",
     "semver": "^7.5.4",
     "url": "0.11.4"

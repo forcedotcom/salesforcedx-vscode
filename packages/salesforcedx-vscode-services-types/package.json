@@ -143,13 +143,13 @@
     "@opentelemetry/sdk-trace-node": "2.8.0",
     "@opentelemetry/sdk-trace-web": "2.8.0",
     "@salesforce/core": "^9.3.6",
-    "@salesforce/source-deploy-retrieve": "^13.5.0",
+    "@salesforce/source-deploy-retrieve": "^13.11.1",
     "@salesforce/source-tracking": "^8.1.7",
     "@salesforce/templates": "^66.19.0",
     "@types/vscode": "^1.129.0",
     "effect": "^4.1.4",
     "effect-v3": "npm:effect@^3.21.2",
-    "jsforce": "^3.10.24",
+    "jsforce": "^3.10.26",
     "vscode-uri": "^3.1.0"
   },
   "devDependencies": {
