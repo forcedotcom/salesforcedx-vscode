@@ -14,6 +14,7 @@ import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
+import { OpenCodeRunFailed } from '../../../shared/openCode.mts';
 import {
   judgmentError,
   manualTestPlanProgram,
@@ -21,7 +22,6 @@ import {
   spliceManualTestPlan,
   type PromptInput
 } from '../../manualTestPlan.mts';
-import { CursorRunFailed } from '../../schema.mts';
 
 const repoRoot = join(import.meta.dirname, '..', '..', '..', '..');
 
@@ -97,7 +97,7 @@ const initRepo = (skill: boolean) => {
   git(remote, ['init', '--bare', '-b', 'develop']);
   git(cwd, ['init', '-b', 'develop']);
   if (skill) {
-    const skillDir = join(cwd, '.cursor', 'skills', 'manual-test-plan-judgment');
+    const skillDir = join(cwd, '.opencode', 'skills', 'manual-test-plan-judgment');
     mkdirSync(skillDir, { recursive: true });
     writeFileSync(join(skillDir, 'SKILL.md'), 'reply with json\n');
   }
@@ -110,7 +110,7 @@ const initRepo = (skill: boolean) => {
 
 const run = (
   cwd: string,
-  prompt: (input: PromptInput) => Effect.Effect<string, CursorRunFailed>,
+  prompt: (input: PromptInput) => Effect.Effect<string, OpenCodeRunFailed>,
   state: { body: string; writes: string[] }
 ) =>
   manualTestPlanProgram({
@@ -126,7 +126,7 @@ const run = (
 
 const replies =
   (lines: readonly string[]) =>
-  (input: PromptInput): Effect.Effect<string, CursorRunFailed> => {
+  (input: PromptInput): Effect.Effect<string, OpenCodeRunFailed> => {
     const index = input.correction === undefined ? 0 : 1;
     return Effect.succeed(lines[index] ?? '');
   };
@@ -226,14 +226,14 @@ test('inherited pre-push Git variables cannot redirect fixture Git commands', ()
   assert.equal(execFileSync('git', ['status', '--porcelain'], { cwd: hookRepo, env: gitEnv, encoding: 'utf8' }), '');
 });
 
-test('a cursor failure does not retry', async () => {
+test('an OpenCode failure does not retry', async () => {
   const calls = { n: 0 };
   const state: { body: string; writes: string[] } = { body: '## Summary\n\nkept\n', writes: [] };
   const outcome = await run(
     initRepo(true),
     () => {
       calls.n += 1;
-      return Effect.fail(new CursorRunFailed({ status: 'error', message: 'boom' }));
+      return Effect.fail(new OpenCodeRunFailed({ message: 'boom' }));
     },
     state
   );
@@ -261,13 +261,15 @@ test('schema and watch-video failures retry once', async () => {
   assert.deepEqual(stuck.writes, []);
 });
 
-test('workflow uses the actions token and skips when the cursor key is empty', () => {
+test('workflow uses the actions token and skips when the OpenCode key is empty', () => {
   const workflow = readFileSync(join(repoRoot, '.github', 'workflows', 'manual-test-plan.yml'), 'utf8');
   assert.match(workflow, /types: \[opened, synchronize\]/);
   assert.match(workflow, /group: manual-test-plan-\$\{\{ github\.event\.pull_request\.number \}\}/);
   assert.match(workflow, /cancel-in-progress: false/);
   assert.match(workflow, /if: needs\.secret\.outputs\.has_key == 'true'/);
   assert.match(workflow, /has_key=false/);
+  assert.match(workflow, /OPENCODE_API_KEY: \$\{\{ secrets\.OPENCODE_API_KEY \}\}/);
+  assert.match(workflow, /OPENCODE_MODELS: \$\{\{ vars\.OPENCODE_MODELS \}\}/);
   assert.match(workflow, /GITHUB_TOKEN: \$\{\{ github\.token \}\}/);
   assert.match(workflow, /GITHUB_EVENT_PATH: \$\{\{ github\.event_path \}\}/);
   assert.match(workflow, /GITHUB_REPOSITORY: \$\{\{ github\.repository \}\}/);

@@ -1,8 +1,8 @@
 ---
 name: changelog-judgment
 description: Turn changelog facts into changelog sections JSON. The changelog body script is the only caller.
-review: never
-disable-model-invocation: true
+metadata:
+  opencode/autoinvoke: false
 ---
 
 # Changelog judgment

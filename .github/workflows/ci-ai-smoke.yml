@@ -1,0 +1,38 @@
+name: CI AI smoke
+on:
+  pull_request:
+    paths:
+      - 'scripts/changelogBody/**'
+      - 'scripts/manualTestPlan/**'
+      - 'scripts/categoryApprove.mts'
+      - 'scripts/shared/openCode.mts'
+      - 'scripts/shared/category*.mts'
+      - 'test/ci-ai*.mts'
+      - 'test/ciAiFixtures.mts'
+      - '.opencode/skills/changelog-judgment/**'
+      - '.opencode/skills/manual-test-plan-judgment/**'
+      - '.github/actions/setup-opencode/**'
+      - '.github/workflows/changelog-body.yml'
+      - '.github/workflows/manual-test-plan.yml'
+      - '.github/workflows/categoryApprove.yml'
+      - '.github/workflows/ci-ai-smoke.yml'
+      - 'package.json'
+      - 'pnpm-lock.yaml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-pnpm
+        with:
+          node-version: 24
+      - uses: ./.github/actions/setup-opencode
+      - run: pnpm --filter @salesforce/effect-octokit compile
+      - run: pnpm test:ci-ai
+      - run: pnpm test:ai-safeguards
+      - run: pnpm test:manual-test-plan
+      - run: node --test test/ci-ai-smoke.test.mts

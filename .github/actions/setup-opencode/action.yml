@@ -1,0 +1,7 @@
+name: Setup OpenCode
+description: Install the OpenCode V2 CLI used by CI judgment scripts
+runs:
+  using: composite
+  steps:
+    - shell: bash
+      run: npm install --global @opencode/cli@2.2.5

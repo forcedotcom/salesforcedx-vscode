@@ -14,17 +14,17 @@ concurrency:
 
 jobs:
   secret:
-    name: Cursor API key
+    name: OpenCode API key
     runs-on: ubuntu-latest
     outputs:
       has_key: ${{ steps.check.outputs.has_key }}
     steps:
-      - name: Check IDEE_CURSOR_API_KEY
+      - name: Check OPENCODE_API_KEY
         id: check
         env:
-          IDEE_CURSOR_API_KEY: ${{ secrets.IDEE_CURSOR_API_KEY }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
         run: |
-          if [ -n "$IDEE_CURSOR_API_KEY" ]; then
+          if [ -n "$OPENCODE_API_KEY" ]; then
             echo "has_key=true" >> "$GITHUB_OUTPUT"
           else
             echo "has_key=false" >> "$GITHUB_OUTPUT"
@@ -46,9 +46,11 @@ jobs:
           node-version: 24
       - name: Compile effect-octokit
         run: pnpm --filter @salesforce/effect-octokit compile
+      - uses: ./.github/actions/setup-opencode
       - name: Write manual test plan
         env:
-          CURSOR_API_KEY: ${{ secrets.IDEE_CURSOR_API_KEY }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          OPENCODE_MODELS: ${{ vars.OPENCODE_MODELS }}
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_EVENT_PATH: ${{ github.event_path }}
           GITHUB_REPOSITORY: ${{ github.repository }}

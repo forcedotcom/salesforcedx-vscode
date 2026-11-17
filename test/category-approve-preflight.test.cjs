@@ -225,7 +225,7 @@ test(
   }
 );
 
-test('workflow runs trusted approver when develop does not yet contain the preflight helper', async () => {
+test('workflow fails closed when develop does not contain the preflight helper', async () => {
   const workflow = parse(readFileSync(join(__dirname, '../.github/workflows/categoryApprove.yml'), 'utf8'));
   const script = workflow.jobs['category-approve'].steps.find(step => step.id === 'preflight').with.script;
   const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
@@ -233,7 +233,6 @@ test('workflow runs trusted approver when develop does not yet contain the prefl
   const absent = moduleName => {
     if (moduleName === 'node:fs') {
       return {
-        existsSync: () => false,
         writeFileSync: (path, contents) => {
           assert.equal(path, '/runner/category-approve-event.json');
           assert.deepEqual(JSON.parse(contents), context.payload);
@@ -242,38 +241,32 @@ test('workflow runs trusted approver when develop does not yet contain the prefl
     }
     throw new Error(`unexpected require ${moduleName}`);
   };
-  assert.equal(await run(absent, { env: { RUNNER_TEMP: '/runner' } }, {}, context), true);
+  await assert.rejects(run(absent, { env: { RUNNER_TEMP: '/runner' } }, {}, context), /unexpected require/);
 });
 
-for (const filename of ['categoryApprove.ts', 'category-approve.mts', 'categoryApprove.mts']) {
-  test(`workflow runs trusted ${filename} approver from the PR working directory`, t => {
-    const directory = mkdtempSync(join(tmpdir(), 'category-approve-workflow-'));
-    t.after(() => rmSync(directory, { recursive: true, force: true }));
-    const scripts = join(directory, 'trusted-approver', 'scripts');
-    mkdirSync(scripts, { recursive: true });
-    writeFileSync(
-      join(scripts, 'categoryApprove.ts'),
-      'console.log("trusted categoryApprove.ts"); console.log(process.env.GITHUB_EVENT_PATH);\n'
-    );
-    if (filename !== 'categoryApprove.ts') {
-      writeFileSync(
-        join(scripts, 'category-approve.mts'),
-        'console.log("trusted category-approve.mts"); console.log(process.env.GITHUB_EVENT_PATH);\n'
-      );
-    }
-    if (filename === 'categoryApprove.mts') {
-      writeFileSync(
-        join(scripts, 'categoryApprove.mts'),
-        'console.log("trusted categoryApprove.mts"); console.log(process.env.GITHUB_EVENT_PATH);\n'
-      );
-    }
-    const workflow = parse(readFileSync(join(__dirname, '../.github/workflows/categoryApprove.yml'), 'utf8'));
-    const script = workflow.jobs['category-approve'].steps.find(step => step.name === 'Decide and approve').run;
-    const output = execFileSync('bash', ['-e', '-o', 'pipefail', '-c', script], {
-      cwd: join(__dirname, '..'),
-      env: { ...process.env, RUNNER_TEMP: directory, GITHUB_EVENT_PATH: '/unscoped/event.json' },
-      encoding: 'utf8'
-    });
-    assert.equal(output.trim(), `trusted ${filename}\n${directory}/category-approve-event.json`);
+test('workflow runs only trusted categoryApprove.mts from the PR working directory', t => {
+  const directory = mkdtempSync(join(tmpdir(), 'category-approve-workflow-'));
+  t.after(() => rmSync(directory, { recursive: true, force: true }));
+  const scripts = join(directory, 'trusted-approver', 'scripts');
+  mkdirSync(scripts, { recursive: true });
+  writeFileSync(
+    join(scripts, 'categoryApprove.ts'),
+    'console.log("trusted categoryApprove.ts"); console.log(process.env.GITHUB_EVENT_PATH);\n'
+  );
+  writeFileSync(
+    join(scripts, 'category-approve.mts'),
+    'console.log("trusted category-approve.mts"); console.log(process.env.GITHUB_EVENT_PATH);\n'
+  );
+  writeFileSync(
+    join(scripts, 'categoryApprove.mts'),
+    'console.log("trusted categoryApprove.mts"); console.log(process.env.GITHUB_EVENT_PATH);\n'
+  );
+  const workflow = parse(readFileSync(join(__dirname, '../.github/workflows/categoryApprove.yml'), 'utf8'));
+  const script = workflow.jobs['category-approve'].steps.find(step => step.name === 'Decide and approve').run;
+  const output = execFileSync('bash', ['-e', '-o', 'pipefail', '-c', script], {
+    cwd: join(__dirname, '..'),
+    env: { ...process.env, RUNNER_TEMP: directory, GITHUB_EVENT_PATH: '/unscoped/event.json' },
+    encoding: 'utf8'
   });
-}
+  assert.equal(output.trim(), `trusted categoryApprove.mts\n${directory}/category-approve-event.json`);
+});
