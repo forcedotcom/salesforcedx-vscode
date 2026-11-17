@@ -49,24 +49,24 @@ const openArchive = Effect.fn('playwrightVideos.openArchive')(function* (bytes: 
   });
 });
 
-const withArchive = Effect.fn('playwrightVideos.withArchive')(function* <A>(
-  bytes: Buffer,
+const withArchive = <A,>(
   use: (archive: yauzl.ZipFile, entries: readonly yauzl.Entry[]) => Effect.Effect<A, VideoArchiveError>
-) {
-  return yield* Effect.acquireUseRelease(
-    openArchive(bytes),
-    current =>
-      Effect.tryPromise({
-        try: async () => {
-          const entries: yauzl.Entry[] = [];
-          for await (const entry of current.eachEntry()) entries.push(entry);
-          return entries;
-        },
-        catch: cause => new VideoArchiveError({ message: `Cannot read ZIP entries: ${getErrorMessage(cause)}` })
-      }).pipe(Effect.flatMap(entries => use(current, entries))),
-    current => Effect.sync(() => current.close())
-  );
-});
+) =>
+  Effect.fn('playwrightVideos.withArchive')(function* (bytes: Buffer) {
+    return yield* Effect.acquireUseRelease(
+      openArchive(bytes),
+      current =>
+        Effect.tryPromise({
+          try: async () => {
+            const entries: yauzl.Entry[] = [];
+            for await (const entry of current.eachEntry()) entries.push(entry);
+            return entries;
+          },
+          catch: cause => new VideoArchiveError({ message: `Cannot read ZIP entries: ${getErrorMessage(cause)}` })
+        }).pipe(Effect.flatMap(entries => use(current, entries))),
+      current => Effect.sync(() => current.close())
+    );
+  });
 
 const readEntry = Effect.fn('playwrightVideos.readEntry')(function* (archive: yauzl.ZipFile, entry: yauzl.Entry) {
   return yield* Effect.tryPromise({
@@ -87,11 +87,7 @@ const readMember = (archive: yauzl.ZipFile, entries: readonly yauzl.Entry[], nam
     : readEntry(archive, entry);
 };
 
-const decodeUtf8 = (bytes: Buffer) =>
-  Effect.try({
-    try: () => new TextDecoder('utf-8', { fatal: true }).decode(bytes),
-    catch: cause => new VideoArchiveError({ message: `Invalid UTF-8: ${getErrorMessage(cause)}` })
-  });
+const decodeUtf8 = (bytes: Buffer) => Effect.sync(() => bytes.toString('utf8'));
 
 const parseJson = <A, I>(bytes: Buffer, schema: Schema.Schema<A, I>) =>
   decodeUtf8(bytes).pipe(
@@ -104,7 +100,8 @@ const readReportTests = Effect.fn('playwrightVideos.readReportTests')(function* 
   spec: string,
   sha: string
 ) {
-  const match = yield* withArchive(report, (archive, entries) => readMember(archive, entries, 'index.html')).pipe(
+  const match = yield* Effect.succeed(report).pipe(
+    Effect.flatMap(withArchive((archive, entries) => readMember(archive, entries, 'index.html'))),
     Effect.flatMap(decodeUtf8),
     Effect.map(html => /id="playwrightReportBase64"[^>]*>\s*data:application\/zip;base64,([A-Za-z0-9+/=]+)/.exec(html))
   );
@@ -112,7 +109,8 @@ const readReportTests = Effect.fn('playwrightVideos.readReportTests')(function* 
     return yield* new VideoArchiveError({ message: 'Missing or invalid Playwright report metadata' });
   }
   const metadata = Buffer.from(match[1], 'base64');
-  const summary = yield* withArchive(metadata, (archive, entries) => readMember(archive, entries, 'report.json')).pipe(
+  const summary = yield* Effect.succeed(metadata).pipe(
+    Effect.flatMap(withArchive((archive, entries) => readMember(archive, entries, 'report.json'))),
     Effect.flatMap(bytes => parseJson(bytes, ReportSummary))
   );
   if (summary.metadata.ci.commitHash !== sha) {
@@ -127,9 +125,8 @@ const readReportTests = Effect.fn('playwrightVideos.readReportTests')(function* 
   ) {
     return [];
   }
-  return yield* withArchive(metadata, (archive, entries) =>
-    readMember(archive, entries, `${matchingFile.fileId}.json`)
-  ).pipe(
+  return yield* Effect.succeed(metadata).pipe(
+    Effect.flatMap(withArchive((archive, entries) => readMember(archive, entries, `${matchingFile.fileId}.json`))),
     Effect.flatMap(bytes => parseJson(bytes, PlaywrightFile)),
     Effect.map(data => data.tests)
   );
@@ -173,21 +170,25 @@ const collectVideos = Effect.fn('playwrightVideos.collectVideos')(function* (
   );
   const fileSystem = yield* FileSystem.FileSystem;
   const report = yield* fileSystem.readFile(pair.report);
-  const digests = yield* withArchive(Buffer.from(report), (archive, entries) => {
-    const entriesByName = new Map(entries.map(entry => [entry.fileName, entry] as const));
-    const selectedEntries = selectedWithPaths.map(attachment => entriesByName.get(attachment.path));
-    if (selectedEntries.includes(undefined)) {
-      return Effect.fail(new VideoArchiveError({ message: 'Missing Playwright report video' }));
-    }
-    const resolvedEntries = selectedEntries.filter((entry): entry is yauzl.Entry => entry !== undefined);
-    return Effect.forEach(resolvedEntries, entry =>
-      readEntry(archive, entry).pipe(Effect.map(content => createHash('sha256').update(content).digest('hex')))
-    );
-  });
+  const digests = yield* Effect.succeed(Buffer.from(report)).pipe(
+    Effect.flatMap(
+      withArchive((archive, entries) => {
+        const entriesByName = new Map(entries.map(entry => [entry.fileName, entry] as const));
+        const selectedEntries = selectedWithPaths.map(attachment => entriesByName.get(attachment.path));
+        if (selectedEntries.includes(undefined)) {
+          return Effect.fail(new VideoArchiveError({ message: 'Missing Playwright report video' }));
+        }
+        const resolvedEntries = selectedEntries.filter((entry): entry is yauzl.Entry => entry !== undefined);
+        return Effect.forEach(resolvedEntries, entry =>
+          readEntry(archive, entry).pipe(Effect.map(content => createHash('sha256').update(content).digest('hex')))
+        );
+      })
+    )
+  );
   const wanted = new Set(digests);
   const results = yield* fileSystem.readFile(pair.results);
-  const byDigest = yield* withArchive(Buffer.from(results), (archive, entries) =>
-    readMatchingVideos(archive, entries, wanted)
+  const byDigest = yield* Effect.succeed(Buffer.from(results)).pipe(
+    Effect.flatMap(withArchive((archive, entries) => readMatchingVideos(archive, entries, wanted)))
   );
   return yield* Effect.forEach(selectedWithPaths, (attachment, index) => {
     const digest = digests[index];

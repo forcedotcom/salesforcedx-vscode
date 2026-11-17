@@ -36,7 +36,7 @@ import {
   videosEnd,
   videosStart
 } from './videoManifest.mts';
-import { jobArtifact, latestTargetRun, targetLanes, Workflow } from './videoTargets.mts';
+import { jobArtifact, targetLanes, Workflow } from './videoTargets.mts';
 
 const updaterPath = '.github/workflows/manual-test-plan-videos.yml';
 const exec = promisify(execFile);
@@ -193,6 +193,25 @@ const publish = Effect.fn('manualTestPlanVideos.publish')(function* (input: {
 const markdownText = (text: string) => text.replaceAll(/[\\`*_{}[\]<>!#]/g, '\\$&').replaceAll(/[\r\n]/g, ' ');
 const warning = (message: string) => Effect.logWarning('manual test plan videos', { message });
 
+class NoVideoCandidate extends Schema.TaggedError<NoVideoCandidate>()('NoVideoCandidate', {
+  message: Schema.String
+}) {}
+
+const firstVideo = <A, E, R>(candidates: Iterable<Effect.Effect<readonly A[], E, R>>) => {
+  const attempts = Array.from(candidates, candidate =>
+    candidate.pipe(
+      Effect.flatMap(videos =>
+        videos.length === 0
+          ? Effect.fail(new NoVideoCandidate({ message: 'Candidate has no matching video' }))
+          : Effect.succeed(videos)
+      )
+    )
+  );
+  return Effect.firstSuccessOf(
+    attempts.length === 0 ? [Effect.fail(new NoVideoCandidate({ message: 'No candidates' }))] : attempts
+  );
+};
+
 export const updateManualTestPlanVideos = Effect.fn('manualTestPlanVideos.update')(function* (
   input: typeof VideoUpdate.Type,
   deps?: { readonly collect?: typeof collect; readonly publish?: typeof publish }
@@ -227,84 +246,105 @@ export const updateManualTestPlanVideos = Effect.fn('manualTestPlanVideos.update
     })
   );
   if (targets.length === 0) return;
-  const runs = yield* GitHub.pipe(
+  const commits = yield* GitHub.pipe(
     Effect.flatMap(github =>
-      github.paginate<unknown>('GET /repos/{owner}/{repo}/actions/runs', { owner, repo, head_sha: input.sha })
+      github.paginate<unknown>('GET /repos/{owner}/{repo}/pulls/{pull_number}/commits', {
+        owner,
+        repo,
+        pull_number: input.pr
+      })
     ),
-    Effect.flatMap(Schema.decodeUnknown(Schema.Array(WorkflowRun)))
+    Effect.flatMap(Schema.decodeUnknown(Schema.Array(Schema.Struct({ sha: Schema.String }))))
   );
+  const shas = [...new Set([input.sha, ...commits.toReversed().map(commit => commit.sha)])];
+  const pullFiles = yield* GitHub.pullFiles(owner, repo, input.pr);
+  const changedFiles = new Set(pullFiles.map(file => file.filename));
   const fs = yield* FileSystem.FileSystem;
   const dir = yield* fs.makeTempDirectoryScoped({ prefix: 'manual-test-plan-videos-' });
   const rows = yield* Effect.forEach(
     targets,
     Effect.fn('manualTestPlanVideos.target')(function* (target) {
-      const run = latestTargetRun(runs, input.sha, target.workflow);
-      if (
-        run?.status !== 'completed' ||
-        run.conclusion !== 'success' ||
-        !/^\.github\/workflows\/[\w-]+\.ya?ml$/.test(run.path)
-      ) {
-        yield* warning(`No successful current-SHA run: ${target.workflow}`);
-        return [];
-      }
-      const workflow = yield* fs.readFileString(run.path).pipe(
-        Effect.flatMap(text => Effect.try((): unknown => parse(text))),
-        Effect.flatMap(Schema.decodeUnknown(Workflow))
+      const runVideos = Effect.fn('manualTestPlanVideos.run')(function* (sha: string, run: WorkflowRun) {
+        if (!/^\.github\/workflows\/[\w-]+\.ya?ml$/.test(run.path)) return [];
+        if (sha !== input.sha && changedFiles.has(run.path)) return [];
+        const workflow = yield* fs.readFileString(run.path).pipe(
+          Effect.flatMap(text => Effect.try((): unknown => parse(text))),
+          Effect.flatMap(Schema.decodeUnknown(Workflow))
+        );
+        const lanes = targetLanes(workflow, target);
+        if (lanes.length === 0) yield* warning(`No artifact targets: ${target.workflow} / ${target.job}`);
+        const jobs = yield* GitHub.workflowRunJobs(repository, String(run.id), 'all');
+        const artifacts = yield* GitHub.workflowRunArtifacts({ owner, repo, run_id: run.id }).pipe(
+          Effect.flatMap(Schema.decodeUnknown(Schema.Array(WorkflowArtifact)))
+        );
+        return yield* Effect.forEach(
+          lanes,
+          Effect.fn('manualTestPlanVideos.lane')(function* (lane) {
+            const attempts = jobs
+              .filter(candidate => candidate.name === lane.name)
+              .toSorted((a, b) => (a.started_at ?? '').localeCompare(b.started_at ?? '') || a.id - b.id);
+            const job = attempts.at(-1);
+            if (job?.conclusion !== 'success') return [];
+            const pairs = attempts.flatMap(attempt => {
+              const report = jobArtifact(artifacts, lane.report, sha, attempt);
+              const results = jobArtifact(artifacts, lane.results, sha, attempt);
+              return report === undefined || results === undefined ? [] : [{ report: report.id, results: results.id }];
+            });
+            if (pairs.length !== attempts.length)
+              yield* warning(`Missing artifacts: ${target.workflow} / ${lane.name}`);
+            if (
+              pairs.length === 0 ||
+              jobArtifact(artifacts, lane.report, sha, job) === undefined ||
+              jobArtifact(artifacts, lane.results, sha, job) === undefined
+            ) {
+              return [];
+            }
+            return yield* (deps?.collect ?? collect)({
+              repository,
+              pairs,
+              spec: target.spec,
+              sha,
+              dir
+            }).pipe(
+              Effect.catchTags({
+                CommandFailed: error => warning(error.message).pipe(Effect.as([])),
+                VideoArchiveError: error => warning(error.message).pipe(Effect.as([]))
+              }),
+              Effect.map(videos =>
+                videos.map(video => ({
+                  ...video,
+                  spec: target.spec,
+                  workflow: target.workflow,
+                  lane: lane.name,
+                  sha,
+                  run: run.id,
+                  attempt: run.run_attempt,
+                  job: job.id,
+                  artifacts: pairs
+                }))
+              )
+            );
+          })
+        ).pipe(Effect.map(result => result.flat()));
+      });
+      const shaVideos = Effect.fn('manualTestPlanVideos.sha')(function* (sha: string) {
+        if (sha !== input.sha && changedFiles.has(target.spec)) return [];
+        const runs = yield* GitHub.pipe(
+          Effect.flatMap(github =>
+            github.paginate<unknown>('GET /repos/{owner}/{repo}/actions/runs', { owner, repo, head_sha: sha })
+          ),
+          Effect.flatMap(Schema.decodeUnknown(Schema.Array(WorkflowRun)))
+        );
+        const matchingRuns = runs
+          .filter(run => run.name === target.workflow && run.status === 'completed' && run.conclusion === 'success')
+          .toSorted((a, b) => b.id - a.id);
+        return yield* firstVideo(matchingRuns.map(run => runVideos(sha, run)));
+      });
+      return yield* firstVideo(shas.map(sha => shaVideos(sha))).pipe(
+        Effect.catchTag('NoVideoCandidate', () =>
+          warning(`Missing successful video in PR commit history: ${target.spec}`).pipe(Effect.as([]))
+        )
       );
-      const lanes = targetLanes(workflow, target);
-      if (lanes.length === 0) yield* warning(`No artifact targets: ${target.workflow} / ${target.job}`);
-      const jobs = yield* GitHub.workflowRunJobs(repository, String(run.id), 'all');
-      const artifacts = yield* GitHub.workflowRunArtifacts({ owner, repo, run_id: run.id }).pipe(
-        Effect.flatMap(Schema.decodeUnknown(Schema.Array(WorkflowArtifact)))
-      );
-      return yield* Effect.forEach(
-        lanes,
-        Effect.fn('manualTestPlanVideos.lane')(function* (lane) {
-          const attempts = jobs
-            .filter(candidate => candidate.name === lane.name)
-            .toSorted((a, b) => (a.started_at ?? '').localeCompare(b.started_at ?? '') || a.id - b.id);
-          const job = attempts.at(-1);
-          if (job?.conclusion !== 'success') return [];
-          const pairs = attempts.flatMap(attempt => {
-            const report = jobArtifact(artifacts, lane.report, input.sha, attempt);
-            const results = jobArtifact(artifacts, lane.results, input.sha, attempt);
-            return report === undefined || results === undefined ? [] : [{ report: report.id, results: results.id }];
-          });
-          if (pairs.length !== attempts.length) {
-            yield* warning(`Missing artifacts: ${target.workflow} / ${lane.name}`);
-          }
-          if (
-            pairs.length === 0 ||
-            jobArtifact(artifacts, lane.report, input.sha, job) === undefined ||
-            jobArtifact(artifacts, lane.results, input.sha, job) === undefined
-          ) {
-            return [];
-          }
-          const videos = yield* (deps?.collect ?? collect)({
-            repository,
-            pairs,
-            spec: target.spec,
-            sha: input.sha,
-            dir
-          }).pipe(
-            Effect.catchTags({
-              CommandFailed: error => warning(error.message).pipe(Effect.as([])),
-              VideoArchiveError: error => warning(error.message).pipe(Effect.as([]))
-            })
-          );
-          if (videos.length === 0) yield* warning(`Missing successful video: ${target.spec} / ${lane.name}`);
-          return videos.map(video => ({
-            ...video,
-            spec: target.spec,
-            workflow: target.workflow,
-            lane: lane.name,
-            run: run.id,
-            attempt: run.run_attempt,
-            job: job.id,
-            artifacts: pairs
-          }));
-        })
-      ).pipe(Effect.map(result => result.flat()));
     })
   ).pipe(Effect.map(result => result.flat()));
   if (rows.length === 0) return;
@@ -323,7 +363,7 @@ export const updateManualTestPlanVideos = Effect.fn('manualTestPlanVideos.update
   const section = `${videosStart}\n${state}\n\n## Playwright videos\n\n${rows
     .map(
       row =>
-        `**${markdownText(row.spec)}** — ${markdownText(row.workflow)} / ${markdownText(row.lane)} / ${markdownText(row.project)} / ${markdownText(row.title)} (attempt ${row.retry + 1}; [run ${row.run}](https://github.com/${repository}/actions/runs/${row.run}))\n\n![](${row.path})`
+        `**${markdownText(row.spec)}** — ${markdownText(row.workflow)} / ${markdownText(row.lane)} / ${markdownText(row.project)} / ${markdownText(row.title)} (commit ${row.sha.slice(0, 7)}; attempt ${row.retry + 1}; [run ${row.run}](https://github.com/${repository}/actions/runs/${row.run}))\n\n![](${row.path})`
     )
     .join('\n\n')}\n${videosEnd}`;
   yield* (deps?.publish ?? publish)({

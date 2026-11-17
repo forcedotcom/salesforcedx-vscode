@@ -56,11 +56,11 @@ const plan = renderManualTestPlan(
   'head'
 );
 const initialBody = `${checklist}${plan}\n`;
-const run = (id: number, name = target.workflow, path = 'apexLogE2E.yml') => ({
+const run = (id: number, name = target.workflow, path = 'apexLogE2E.yml', sha = 'head') => ({
   id,
   name,
   path: `.github/workflows/${path}`,
-  head_sha: 'head',
+  head_sha: sha,
   status: 'completed',
   conclusion: 'success',
   run_attempt: 1
@@ -72,12 +72,12 @@ const job = (id: number, name: string) => ({
   started_at: '2026-11-01T00:00:00Z',
   completed_at: '2026-11-01T01:00:00Z'
 });
-const artifact = (id: number, name: string) => ({
+const artifact = (id: number, name: string, sha = 'head') => ({
   id,
   name,
   expired: false,
   created_at: '2026-11-01T00:59:00Z',
-  workflow_run: { head_sha: 'head' }
+  workflow_run: { head_sha: sha }
 });
 
 const fixture = () => ({
@@ -101,6 +101,9 @@ const fixture = () => ({
     job(1, 'e2e-web'),
     ...['org-wide', 'class-scoped', 'ride-along'].map((lane, i) => job(i + 2, `e2e-web (${lane})`))
   ],
+  commitShas: ['head'],
+  collectedShas: new Array<string>(),
+  changedFiles: new Array<string>(),
   writes: new Array<string>(),
   downloads: new Array<number>(),
   publishes: new Array<string>(),
@@ -141,6 +144,8 @@ const withGitHub = async <A, E>(state: ReturnType<typeof fixture>, program: Effe
         state.writes.push(changed.body);
         return {};
       }
+      if (path.endsWith('/pulls/8497/commits')) return state.commitShas.map(sha => ({ sha }));
+      if (path.endsWith('/pulls/8497/files')) return state.changedFiles.map(filename => ({ filename }));
       if (path.endsWith('/commits/head/pulls') || path.endsWith('/commits/old/pulls')) return [{ number: 8497 }];
       if (path.endsWith('/status')) return { statuses: [{ id: 1, context: 'external-status', state: state.status }] };
       if (path.endsWith('/check-runs'))
@@ -157,8 +162,9 @@ const withGitHub = async <A, E>(state: ReturnType<typeof fixture>, program: Effe
           ]
         };
       if (path.endsWith('/actions/runs')) {
-        assert.equal(url.searchParams.get('head_sha'), 'head');
-        return { total_count: state.runs.length, workflow_runs: state.runs };
+        const sha = url.searchParams.get('head_sha');
+        const workflowRuns = state.runs.filter(run => run.head_sha === sha);
+        return { total_count: workflowRuns.length, workflow_runs: workflowRuns };
       }
       if (path.endsWith('/artifacts')) return { total_count: state.artifacts.length, artifacts: state.artifacts };
       if (path.endsWith('/jobs')) return { total_count: state.jobs.length, jobs: state.jobs };
@@ -186,6 +192,13 @@ const withGitHub = async <A, E>(state: ReturnType<typeof fixture>, program: Effe
   }
 };
 
+const withSingleTarget = (state: ReturnType<typeof fixture>) => {
+  state.body = `${checklist}${renderManualTestPlan(
+    { kind: 'checklist', items: [{ ...target, kind: 'watch-video' }] },
+    'head'
+  )}\n`;
+};
+
 test('streams artifact bytes to disk through the local Octokit client', async t => {
   const directory = mkdtempSync(join(tmpdir(), 'manual-test-plan-artifact-'));
   t.after(() => rmSync(directory, { recursive: true, force: true }));
@@ -210,7 +223,12 @@ test('streams artifact bytes to disk through the local Octokit client', async t 
   }
 });
 
-const update = (state: ReturnType<typeof fixture>, clear = false, duringCollect?: () => void) =>
+const update = (
+  state: ReturnType<typeof fixture>,
+  clear = false,
+  duringCollect?: () => void,
+  hasVideo: (sha: string) => boolean = () => true
+) =>
   withGitHub(
     state,
     updateManualTestPlanVideos(
@@ -219,10 +237,18 @@ const update = (state: ReturnType<typeof fixture>, clear = false, duringCollect?
         collect: input =>
           Effect.sync(() => {
             duringCollect?.();
+            state.collectedShas.push(input.sha);
             state.downloads.push(...input.pairs.map(pair => pair.results));
-            return [
-              { path: `${input.dir}/${input.pairs[0].results}.webm`, title: 'test', project: 'chromium', retry: 1 }
-            ];
+            return hasVideo(input.sha)
+              ? [
+                  {
+                    path: `${input.dir}/${input.pairs[0].results}.webm`,
+                    title: 'test',
+                    project: 'chromium',
+                    retry: 1
+                  }
+                ]
+              : [];
           }),
         publish: input =>
           Effect.sync(() => {
@@ -268,6 +294,60 @@ test('one all-green batch contains both #8497 targets and successful matrix lane
   assert.match(state.body, /runApexTestsCommandPalette\.headless\.spec\.ts/);
   for (const lane of ['org-wide', 'class-scoped', 'ride-along']) assert.ok(state.body.includes(`e2e-web (${lane})`));
   assert.ok(state.body.endsWith(videosEnd));
+});
+
+test('falls back to the newest earlier PR commit that has the target video', async () => {
+  const state = fixture();
+  withSingleTarget(state);
+  state.commitShas = ['oldest', 'older', 'newer', 'head'];
+  state.runs.push(run(5, target.workflow, 'apexLogE2E.yml', 'older'));
+  state.runs.push(run(6, target.workflow, 'apexLogE2E.yml', 'newer'));
+  state.artifacts.push(
+    artifact(30, 'playwright-report-apex-log-web', 'older'),
+    artifact(31, 'playwright-test-results-apex-log-web', 'older'),
+    artifact(32, 'playwright-report-apex-log-web', 'newer'),
+    artifact(33, 'playwright-test-results-apex-log-web', 'newer')
+  );
+
+  await update(state, false, undefined, sha => sha === 'older');
+
+  assert.deepEqual(state.collectedShas, ['head', 'newer', 'older']);
+  assert.equal(state.publishes.length, 1);
+  assert.match(state.body, /commit older/);
+});
+
+test('does not use an earlier video when the PR changes the target spec', async () => {
+  const state = fixture();
+  withSingleTarget(state);
+  state.commitShas = ['older', 'head'];
+  state.changedFiles = [target.spec];
+  state.runs.push(run(5, target.workflow, 'apexLogE2E.yml', 'older'));
+  state.artifacts.push(
+    artifact(30, 'playwright-report-apex-log-web', 'older'),
+    artifact(31, 'playwright-test-results-apex-log-web', 'older')
+  );
+
+  await update(state, false, undefined, sha => sha === 'older');
+
+  assert.deepEqual(state.collectedShas, ['head']);
+  assert.equal(state.publishes.length, 0);
+});
+
+test('does not use an earlier video when the PR changes the target workflow', async () => {
+  const state = fixture();
+  withSingleTarget(state);
+  state.commitShas = ['older', 'head'];
+  state.changedFiles = ['.github/workflows/apexLogE2E.yml'];
+  state.runs.push(run(5, target.workflow, 'apexLogE2E.yml', 'older'));
+  state.artifacts.push(
+    artifact(30, 'playwright-report-apex-log-web', 'older'),
+    artifact(31, 'playwright-test-results-apex-log-web', 'older')
+  );
+
+  await update(state, false, undefined, sha => sha === 'older');
+
+  assert.deepEqual(state.collectedShas, ['head']);
+  assert.equal(state.publishes.length, 0);
 });
 
 test('pending then out-of-order green completions publish once, reruns replace without duplicates', async () => {
