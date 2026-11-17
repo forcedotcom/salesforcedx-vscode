@@ -24,7 +24,7 @@ import {
   executeCommandWithCommandPalette,
   isDesktop,
   QUICK_INPUT_WIDGET,
-  saveScreenshot,
+  startVideoRecording,
   verifyCommandExists,
   waitForVSCodeWorkbench
 } from '@salesforce/playwright-vscode-ext';
@@ -33,7 +33,7 @@ import packageNls from '../../../package.nls.json';
 
 (isDesktop() ? test : test.skip.bind(test))(
   'ISV Debugger Bootstrap: command available; forceide prompt cancels cleanly',
-  async ({ page }) => {
+  async ({ page }, testInfo) => {
     test.setTimeout(60_000);
 
     await test.step('reach non-project workspace palette state', async () => {
@@ -44,22 +44,28 @@ import packageNls from '../../../package.nls.json';
       await closeWelcomeTabs(page);
       await ensureSecondarySideBarHidden(page);
       await expect(page.getByRole('tree', { name: /Files Explorer/i })).toBeVisible({ timeout: 30_000 });
-      await saveScreenshot(page, 'isvBootstrap.01-non-project-workspace.png');
     });
 
-    await test.step('verify ISV bootstrap command available', async () => {
-      await verifyCommandExists(page, packageNls.isv_bootstrap_command_text, 60_000);
-    });
+    const videoName = [testInfo.project.name, ...testInfo.titlePath, 'bootstrap-cancel', `retry-${testInfo.retry}`]
+      .join('-')
+      .replaceAll(/[^a-zA-Z0-9._-]+/g, '-')
+      .replaceAll(/^-+|-+$/g, '');
+    const stopRecording = await startVideoRecording(page, testInfo, videoName);
+    try {
+      await test.step('verify ISV bootstrap command available', async () => {
+        await verifyCommandExists(page, packageNls.isv_bootstrap_command_text, 60_000);
+      });
 
-    await test.step('run command, then cancel at the forceide:// prompt', async () => {
-      await executeCommandWithCommandPalette(page, packageNls.isv_bootstrap_command_text);
-      const quickInput = page.locator(QUICK_INPUT_WIDGET);
-      await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
-      await saveScreenshot(page, 'isvBootstrap.02-forceide-prompt.png');
-      // Esc cancels the gatherer → UserCancellationError, silently swallowed by registerCommandWithRuntime.
-      await page.keyboard.press('Escape');
-      await expect(quickInput).not.toBeVisible({ timeout: 10_000 });
-      await saveScreenshot(page, 'isvBootstrap.03-cancelled.png');
-    });
+      await test.step('run command, then cancel at the forceide:// prompt', async () => {
+        await executeCommandWithCommandPalette(page, packageNls.isv_bootstrap_command_text);
+        const quickInput = page.locator(QUICK_INPUT_WIDGET);
+        await quickInput.waitFor({ state: 'visible', timeout: 30_000 });
+        // Esc cancels the gatherer → UserCancellationError, silently swallowed by registerCommandWithRuntime.
+        await page.keyboard.press('Escape');
+        await expect(quickInput).not.toBeVisible({ timeout: 10_000 });
+      });
+    } finally {
+      await stopRecording();
+    }
   }
 );
