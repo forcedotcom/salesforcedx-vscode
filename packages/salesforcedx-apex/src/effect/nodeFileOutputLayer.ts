@@ -12,6 +12,7 @@ import * as NodePath from '@effect/platform-node/NodePath';
 import * as Context from 'effect/Context';
 import * as Effect from 'effect/Effect';
 import * as Layer from 'effect/Layer';
+import { Buffer } from 'node:buffer';
 import { FileOutputLayer, makeFileOutput } from './nodeFileOutput';
 
 /** Node defaults for Effect Platform filesystem services. */
@@ -24,5 +25,6 @@ export const NodeFileOutputLayer = FileOutputLayer.pipe(Layer.provideMerge(NodeF
 const nodeServices = NodeFileOutputPlatformLayer.pipe(Layer.build, Effect.scoped, Effect.runSync);
 export const NodeFileOutput = makeFileOutput(
   Context.get(nodeServices, FileSystem.FileSystem),
-  Context.get(nodeServices, Path.Path)
+  Context.get(nodeServices, Path.Path),
+  text => Buffer.from(text, 'utf8')
 );

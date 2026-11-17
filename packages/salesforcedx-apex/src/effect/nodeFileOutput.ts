@@ -12,14 +12,17 @@ import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
 import * as Stream from 'effect/Stream';
-import { Buffer } from 'node:buffer';
 import { causeMessage } from './errors';
 import { FileOutput, FileOutputError } from './fileOutput';
 
 const toFileOutputError = (operation: string, filePath: string, cause: unknown): FileOutputError =>
   new FileOutputError({ operation, path: filePath, message: causeMessage(cause), cause: causeMessage(cause) });
 
-export const makeFileOutput = (fileSystem: FileSystem.FileSystem, path: Path.Path): typeof FileOutput.Service => ({
+export const makeFileOutput = (
+  fileSystem: FileSystem.FileSystem,
+  path: Path.Path,
+  encode: (text: string) => Uint8Array = text => new TextEncoder().encode(text)
+): typeof FileOutput.Service => ({
   createDirectory: Effect.fn('NodeFileOutput.createDirectory')((directory: string) =>
     fileSystem
       .makeDirectory(directory, { recursive: true })
@@ -31,10 +34,11 @@ export const makeFileOutput = (fileSystem: FileSystem.FileSystem, path: Path.Pat
     content: Stream.Stream<string>
   ) {
     const filePath = path.join(directory, fileName);
-    const write = Stream.run(
-      Stream.encodeText(content).pipe(Stream.map(chunk => Buffer.from(chunk))),
-      fileSystem.sink(filePath)
-    ).pipe(Effect.mapError(error => toFileOutputError('writeFile', filePath, error)));
+    const write = content.pipe(
+      Stream.map(encode),
+      Stream.run(fileSystem.sink(filePath)),
+      Effect.mapError(error => toFileOutputError('writeFile', filePath, error))
+    );
     return yield* write.pipe(
       Effect.onExit(exit =>
         Exit.isSuccess(exit)
