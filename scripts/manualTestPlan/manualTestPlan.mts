@@ -5,21 +5,20 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
-import { Agent, type ToolName } from '@cursor/sdk';
 import * as Command from '@effect/platform/Command';
 import * as FileSystem from '@effect/platform/FileSystem';
 import * as Path from '@effect/platform/Path';
 import * as NodeContext from '@effect/platform-node/NodeContext';
 import { actionsEnvironment, GitHub, readPullRequestEvent } from '@salesforce/effect-octokit';
-import { Config, Effect, Either, Exit, Layer, Logger, Option, pipe, Redacted, Schema, Stream } from 'effect';
+import { Effect, Either, Exit, Layer, Logger, Option, pipe, Schema, Stream } from 'effect';
 import { pathToFileURL } from 'node:url';
-import { CommandFailed, CursorRunFailed, InvalidBaseRef, Judgment, type Item } from './schema.mts';
+import { openCodePrompt } from './openCodePrompt.mts';
+import { CommandFailed, InvalidBaseRef, Judgment, type Item } from './schema.mts';
 
 const skillPath = '.cursor/skills/manual-test-plan-judgment/SKILL.md';
 const startMarker = '<!-- manual-test-plan -->';
 const endMarker = '<!-- /manual-test-plan -->';
 const excludedWorkflows = new Set(['e2e.yml', 'playwrightE2EFullSuite.yml', 'rerunPushE2E.yml']);
-const tools: ToolName[] = ['read', 'grep', 'glob', 'ls'];
 // Git hooks export these for their own worktree. This script's git calls use
 // an explicit cwd and must not inherit another worktree's repository or index.
 const gitLocalEnv = {
@@ -43,11 +42,9 @@ const gitLocalEnv = {
 type Outcome = { readonly edited: boolean };
 export type PromptInput = { readonly skill: string; readonly diff: string; readonly correction?: string };
 type Attempt =
-  | { readonly _tag: 'cursor'; readonly message: string }
+  | { readonly _tag: 'opencode'; readonly message: string }
   | { readonly _tag: 'retry'; readonly text: string; readonly error: string }
   | { readonly _tag: 'ok'; readonly judgment: typeof Judgment.Type };
-
-const messageOf = (error: unknown, fallback: string) => (error instanceof Error ? error.message : fallback);
 
 const baseRefOk = (ref: string) => /^[A-Za-z0-9._/-]+$/.test(ref) && !ref.split('/').includes('..');
 
@@ -184,38 +181,6 @@ export const judgmentError = Effect.fn('manualTestPlan.judgmentError')(function*
   return messages.length === 0 ? undefined : messages.join('\n');
 });
 
-const finishedText = (run: {
-  readonly status: string;
-  readonly result?: string;
-  readonly error?: { readonly message: string };
-}) =>
-  run.status === 'finished'
-    ? Option.match(Option.fromNullable(run.result), {
-        onNone: () =>
-          Effect.fail(new CursorRunFailed({ status: run.status, message: 'Cursor run finished without text' })),
-        onSome: Effect.succeed
-      })
-    : Effect.fail(
-        new CursorRunFailed({ status: run.status, message: run.error?.message ?? `Cursor run ${run.status}` })
-      );
-
-const cursorPrompt = Effect.fn('manualTestPlan.cursorPrompt')(function* (cwd: string, input: PromptInput) {
-  const apiKey = yield* Config.redacted('CURSOR_API_KEY').pipe(
-    Effect.mapError(error => new CursorRunFailed({ status: 'config', message: error.message }))
-  );
-  const correction = input.correction === undefined ? '' : `\n\nPrevious reply failed validation:\n${input.correction}`;
-  return yield* Effect.tryPromise({
-    try: () =>
-      Agent.prompt(`${input.skill}\n\nDiff:\n${input.diff}${correction}`, {
-        apiKey: Redacted.value(apiKey),
-        model: { id: 'auto' },
-        tools,
-        local: { cwd }
-      }),
-    catch: error => new CursorRunFailed({ status: 'startup', message: messageOf(error, 'Cursor SDK failed to start') })
-  }).pipe(Effect.flatMap(finishedText));
-});
-
 const readPrBody = Effect.fn('manualTestPlan.readPrBody')(function* (owner: string, repo: string, pr: number) {
   return yield* GitHub.pullBody(owner, repo, pr);
 });
@@ -235,14 +200,14 @@ const skip = (reason: string, message: string) =>
   );
 
 const attempt = Effect.fn('manualTestPlan.attempt')(function* (
-  prompt: (input: PromptInput) => Effect.Effect<string, CursorRunFailed>,
+  prompt: (input: PromptInput) => ReturnType<typeof openCodePrompt>,
   skill: string,
   diff: string,
   cwd: string,
   correction: string | undefined
 ) {
   const text = yield* prompt({ skill, diff, ...(correction === undefined ? {} : { correction }) }).pipe(Effect.either);
-  if (Either.isLeft(text)) return { _tag: 'cursor', message: text.left.message } satisfies Attempt;
+  if (Either.isLeft(text)) return { _tag: 'opencode', message: text.left.message } satisfies Attempt;
   const decoded = yield* Schema.decodeUnknown(Schema.parseJson(Judgment))(text.right).pipe(Effect.either);
   if (Either.isLeft(decoded))
     return {
@@ -258,7 +223,7 @@ const attempt = Effect.fn('manualTestPlan.attempt')(function* (
 
 export type ManualTestPlanDeps = {
   readonly cwd?: string;
-  readonly prompt?: (input: PromptInput) => Effect.Effect<string, CursorRunFailed>;
+  readonly prompt?: (input: PromptInput) => ReturnType<typeof openCodePrompt>;
   readonly readBody?: (pr: number) => Effect.Effect<string>;
   readonly writeBody?: (pr: number, body: string) => Effect.Effect<void>;
 };
@@ -280,7 +245,7 @@ export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(functio
   const skill = yield* git(cwd, ['show', `origin/${base}:${skillPath}`]).pipe(Effect.option);
   if (Option.isNone(skill)) return yield* skip('missing-skill', `origin/${base}:${skillPath} is missing`);
   const diff = yield* git(cwd, ['diff', `origin/${base}...HEAD`]);
-  const prompt = deps?.prompt ?? ((input: PromptInput) => cursorPrompt(cwd, input));
+  const prompt = deps?.prompt ?? ((input: PromptInput) => openCodePrompt(cwd, input));
   const judged = yield* attempt(prompt, skill.value, diff, cwd, undefined).pipe(
     Effect.flatMap(first =>
       first._tag === 'retry'
@@ -288,7 +253,7 @@ export const manualTestPlanProgram = Effect.fn('manualTestPlan.program')(functio
         : Effect.succeed(first)
     )
   );
-  if (judged._tag === 'cursor') return yield* skip('cursor', judged.message);
+  if (judged._tag === 'opencode') return yield* skip('opencode', judged.message);
   if (judged._tag === 'retry') return yield* skip('schema', judged.error);
   const block = renderManualTestPlan(judged.judgment);
   const current = yield* deps?.readBody === undefined ? readPrBody(env.owner, env.repo, pr) : deps.readBody(pr);
