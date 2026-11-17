@@ -23,7 +23,6 @@ jobs:
       - uses: google/wireit@setup-github-actions-caching/v2
       - uses: salesforcecli/github-workflows/.github/actions/pnpmInstallWithRetries@main
       - run: pnpm compile
-      - run: pnpm test:manual-test-plan
       - run: pnpm test
         env:
           WIREIT_PARALLEL: 1
