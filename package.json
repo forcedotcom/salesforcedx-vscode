@@ -276,7 +276,6 @@
       "dependencies": [
         "check:extension-launch",
         "test:ai-safeguards",
-        "test:manual-test-plan",
         "test:scripts",
         "./packages/eslint-local-rules:test",
         "./packages/salesforcedx-utils:test",
