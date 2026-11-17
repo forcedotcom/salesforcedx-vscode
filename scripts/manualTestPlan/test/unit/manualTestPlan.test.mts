@@ -10,7 +10,7 @@ import { GitHub } from '@salesforce/effect-octokit';
 import { ConfigProvider, Effect, Schema } from 'effect';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -349,10 +349,10 @@ test('authentication and budget failures stop; exhausted transient failures retu
 
 test('OpenCode subprocess receives isolated read-only configuration, stdin prompt, and no GitHub token', async () => {
   const bin = mkdtempSync(join(tmpdir(), 'manual-plan-opencode-bin-'));
-  const executable = join(bin, 'opencode');
+  const executable = join(bin, 'opencode.cjs');
   writeFileSync(
     executable,
-    `#!${process.execPath}
+    `
 const fs = require('node:fs');
 const config = JSON.parse(fs.readFileSync(process.env.OPENCODE_CONFIG_DIR + '/opencode.json', 'utf8'));
 const prompt = fs.readFileSync(0, 'utf8');
@@ -366,12 +366,18 @@ process.stdout.write(JSON.stringify({type:'text',part:{messageID:'result',text:J
 })}}) + '\\n');
 `
   );
-  chmodSync(executable, 0o755);
-  const result = await openCodePrompt(repoRoot, {
-    skill: 'judge this diff',
-    diff: '+change',
-    correction: 'invalid JSON'
-  }).pipe(
+  const result = await openCodePrompt(
+    repoRoot,
+    {
+      skill: 'judge this diff',
+      diff: '+change',
+      correction: 'invalid JSON'
+    },
+    {
+      executable: process.execPath,
+      prefixArgs: [executable]
+    }
+  ).pipe(
     Effect.provide(NodeContext.layer),
     Effect.withConfigProvider(
       ConfigProvider.fromMap(

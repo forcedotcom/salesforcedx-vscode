@@ -84,7 +84,11 @@ export const promptWithModels = Effect.fn('manualTestPlan.promptWithModels')(fun
 });
 
 export const openCodePrompt = Effect.fn('manualTestPlan.openCodePrompt')(
-  function* (cwd: string, input: PromptInput) {
+  function* (
+    cwd: string,
+    input: PromptInput,
+    cli: { readonly executable: string; readonly prefixArgs?: readonly string[] } = { executable: 'opencode' }
+  ) {
     const [apiKey, models, pathEnv] = yield* Effect.all([
       Config.redacted('OPENCODE_API_KEY'),
       Config.string('OPENCODE_MODELS').pipe(Effect.flatMap(Schema.decodeUnknown(ModelList))),
@@ -131,7 +135,8 @@ export const openCodePrompt = Effect.fn('manualTestPlan.openCodePrompt')(
     };
     return yield* promptWithModels(models, model =>
       Command.make(
-        'opencode',
+        cli.executable,
+        ...(cli.prefixArgs ?? []),
         'run',
         '--standalone',
         '--format',
