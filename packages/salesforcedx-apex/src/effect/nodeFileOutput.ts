@@ -34,12 +34,10 @@ export const makeFileOutput = (
     content: Stream.Stream<string>
   ) {
     const filePath = path.join(directory, fileName);
-    const write = content.pipe(
+    return yield* content.pipe(
       Stream.map(encode),
       Stream.run(fileSystem.sink(filePath)),
-      Effect.mapError(error => toFileOutputError('writeFile', filePath, error))
-    );
-    return yield* write.pipe(
+      Effect.mapError(error => toFileOutputError('writeFile', filePath, error)),
       Effect.onExit(exit =>
         Exit.isSuccess(exit)
           ? Effect.void
@@ -57,13 +55,11 @@ export const makeFileOutput = (
 
 /** Effect Platform-backed file output; failed or interrupted writes remove partial output. */
 export const NodeFileOutput = {
-  createDirectory: Effect.fn('NodeFileOutput.createDirectory')((directory: string) =>
-    Effect.gen(function* () {
-      const fileSystem = yield* FileSystem.FileSystem;
-      const path = yield* Path.Path;
-      return yield* makeFileOutput(fileSystem, path).createDirectory(directory);
-    })
-  ),
+  createDirectory: Effect.fn('NodeFileOutput.createDirectory')(function* (directory: string) {
+    const fileSystem = yield* FileSystem.FileSystem;
+    const path = yield* Path.Path;
+    return yield* makeFileOutput(fileSystem, path).createDirectory(directory);
+  }),
   writeFile: Effect.fn('NodeFileOutput.writeFile')(function* (
     directory: string,
     fileName: string,
