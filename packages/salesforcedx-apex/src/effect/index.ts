@@ -50,6 +50,8 @@ export {
 } from './schema/errors';
 export { ApexReportError, causeMessage } from './errors';
 export { FileOutput, FileOutputError, PartialResultFilesError } from './fileOutput';
+export { NodeFileOutput, FileOutputLayer } from './nodeFileOutput';
+export { NodeFileOutputLayer } from './nodeFileOutputLayer';
 export { writeResultFiles } from './writeResultFiles';
 export type { WriteResultFilesOptions } from './writeResultFiles';
 export { listLogs, getLogBody, streamLogs } from './logs';

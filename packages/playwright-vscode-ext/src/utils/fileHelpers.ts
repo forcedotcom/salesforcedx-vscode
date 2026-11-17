@@ -141,6 +141,8 @@ export const createApexClass = async (page: Page, className: string, content?: s
     await page.keyboard.press('Delete');
     // insertText, not type: per-key typing drops characters on Windows and deploys invalid Apex.
     await page.keyboard.insertText(content);
+    // Monaco renders only visible lines; reveal the first-line marker after inserting a long class.
+    await page.keyboard.press('Control+Home');
     const marker =
       content
         .split('\n')

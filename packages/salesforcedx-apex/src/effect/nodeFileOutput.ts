@@ -5,53 +5,25 @@
  * For full license text, see LICENSE.txt file in the repo root or https://opensource.org/licenses/BSD-3-Clause
  */
 
+import * as FileSystem from '@effect/platform/FileSystem';
+import * as Path from '@effect/platform/Path';
 import * as Cause from 'effect/Cause';
 import * as Effect from 'effect/Effect';
 import * as Exit from 'effect/Exit';
 import * as Layer from 'effect/Layer';
-import * as Schema from 'effect/Schema';
-import * as Sink from 'effect/Sink';
 import * as Stream from 'effect/Stream';
 import { Buffer } from 'node:buffer';
-import { randomBytes } from 'node:crypto';
-import { promises as fs } from 'node:fs';
-import type { FileHandle } from 'node:fs/promises';
-import * as path from 'node:path';
 import { causeMessage } from './errors';
 import { FileOutput, FileOutputError } from './fileOutput';
 
 const toFileOutputError = (operation: string, filePath: string, cause: unknown): FileOutputError =>
   new FileOutputError({ operation, path: filePath, message: causeMessage(cause), cause: causeMessage(cause) });
 
-const fileOperation = <A>(operation: string, filePath: string, run: () => Promise<A>) =>
-  Effect.tryPromise({ try: run, catch: cause => toFileOutputError(operation, filePath, cause) });
-
-const writeChunk = Effect.fn('NodeFileOutput.writeChunk')(function* (
-  file: FileHandle,
-  filePath: string,
-  chunk: string
-) {
-  const bytes = Buffer.from(chunk, 'utf8');
-  yield* Effect.iterate(0, {
-    while: offset => offset < bytes.length,
-    body: offset =>
-      fileOperation('writeFile', filePath, () => file.write(bytes, offset, bytes.length - offset)).pipe(
-        Effect.uninterruptible,
-        Effect.flatMap(({ bytesWritten }) =>
-          bytesWritten > 0
-            ? Effect.succeed(offset + bytesWritten)
-            : Effect.fail(
-                new FileOutputError({ operation: 'writeFile', path: filePath, message: 'File write made no progress' })
-              )
-        )
-      )
-  });
-});
-
-/** Node-shaped filesystem contract, including web memfs substitution: see Apex ADR 0003. */
-export const NodeFileOutput: typeof FileOutput.Service = {
+export const makeFileOutput = (fileSystem: FileSystem.FileSystem, path: Path.Path): typeof FileOutput.Service => ({
   createDirectory: Effect.fn('NodeFileOutput.createDirectory')((directory: string) =>
-    fileOperation('createDirectory', directory, () => fs.mkdir(directory, { recursive: true })).pipe(Effect.asVoid)
+    fileSystem
+      .makeDirectory(directory, { recursive: true })
+      .pipe(Effect.mapError(error => toFileOutputError('createDirectory', directory, error)))
   ),
   writeFile: Effect.fn('NodeFileOutput.writeFile')(function* (
     directory: string,
@@ -59,45 +31,52 @@ export const NodeFileOutput: typeof FileOutput.Service = {
     content: Stream.Stream<string>
   ) {
     const filePath = path.join(directory, fileName);
-    const stagedPath = path.join(path.dirname(filePath), `.apex-result-${randomBytes(16).toString('hex')}`);
-    return yield* Effect.acquireUseRelease(
-      fileOperation('open', filePath, () => fs.open(stagedPath, 'wx')),
-      file =>
-        content.pipe(
-          // Batch small formatter fragments with bounded buffering and stream backpressure.
-          Stream.transduce(
-            Sink.foldWeighted({
-              initial: '',
-              maxCost: 64 * 1024,
-              cost: (_: string, chunk: string) => Buffer.byteLength(chunk, 'utf8'),
-              body: (buffer, chunk) => buffer + chunk
-            })
-          ),
-          Stream.runForEach(chunk => writeChunk(file, filePath, chunk)),
-          Effect.zipRight(fileOperation('close', filePath, () => file.close())),
-          Effect.zipRight(
-            fileOperation('rename', filePath, () => fs.rename(stagedPath, filePath)).pipe(Effect.uninterruptible)
-          ),
-          Effect.as(filePath)
-        ),
-      (file, exit) =>
-        // close is idempotent; this also covers interruption immediately after open.
-        fileOperation('close', filePath, () => file.close()).pipe(
-          Effect.orDie,
-          Effect.ensuring(
-            Exit.isSuccess(exit)
-              ? Effect.void
-              : fileOperation('removeTempFile', filePath, () => fs.rm(stagedPath, { force: true })).pipe(Effect.orDie)
-          )
-        )
-    ).pipe(
-      Effect.catchAllCause(cause => {
-        if (Cause.isInterrupted(cause)) return Effect.failCause(cause);
-        const error = Cause.squash(cause);
-        return Effect.fail(Schema.is(FileOutputError)(error) ? error : toFileOutputError('writeFile', filePath, error));
-      })
+    const write = Stream.run(
+      Stream.encodeText(content).pipe(Stream.map(chunk => Buffer.from(chunk))),
+      fileSystem.sink(filePath)
+    ).pipe(Effect.mapError(error => toFileOutputError('writeFile', filePath, error)));
+    return yield* write.pipe(
+      Effect.onExit(exit =>
+        Exit.isSuccess(exit)
+          ? Effect.void
+          : fileSystem.remove(filePath, { force: true }).pipe(Effect.catchAll(() => Effect.void))
+      ),
+      Effect.catchAllCause(cause =>
+        Cause.isInterrupted(cause)
+          ? Effect.failCause(cause)
+          : Effect.fail(toFileOutputError('writeFile', filePath, Cause.squash(cause)))
+      ),
+      Effect.as(filePath)
     );
+  })
+});
+
+/** Effect Platform-backed file output; failed or interrupted writes remove partial output. */
+export const NodeFileOutput = {
+  createDirectory: Effect.fn('NodeFileOutput.createDirectory')((directory: string) =>
+    Effect.gen(function* () {
+      const fileSystem = yield* FileSystem.FileSystem;
+      const path = yield* Path.Path;
+      return yield* makeFileOutput(fileSystem, path).createDirectory(directory);
+    })
+  ),
+  writeFile: Effect.fn('NodeFileOutput.writeFile')(function* (
+    directory: string,
+    fileName: string,
+    content: Stream.Stream<string>
+  ) {
+    const fileSystem = yield* FileSystem.FileSystem;
+    const path = yield* Path.Path;
+    return yield* makeFileOutput(fileSystem, path).writeFile(directory, fileName, content);
   })
 };
 
-export const NodeFileOutputLayer = Layer.succeed(FileOutput, NodeFileOutput);
+/** FileOutput implementation layer; callers provide Effect Platform FileSystem and Path services. */
+export const FileOutputLayer = Layer.effect(
+  FileOutput,
+  Effect.gen(function* () {
+    const fileSystem = yield* FileSystem.FileSystem;
+    const path = yield* Path.Path;
+    return makeFileOutput(fileSystem, path);
+  })
+);

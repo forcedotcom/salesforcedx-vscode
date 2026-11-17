@@ -14,6 +14,7 @@ import * as Fiber from 'effect/Fiber';
 import * as Stream from 'effect/Stream';
 import { FileOutput, FileOutputError } from '../../src/effect/fileOutput';
 import { writeResultFiles } from '../../src/effect/writeResultFiles';
+import { NodeFileOutputPlatformLayer } from '../../src/effect/nodeFileOutputLayer';
 import { successResult } from '../reporters/testResults';
 
 const createMemoryFileOutput = (files: Map<string, string>): typeof FileOutput.Service => ({
@@ -42,6 +43,7 @@ describe('Effect writeResultFiles', () => {
 
     const written = await Effect.runPromise(
       writeResultFiles(result, { dirPath: '/reports', resultFormats: ['json'] }, { codeCoverage: true }).pipe(
+        Effect.provide(NodeFileOutputPlatformLayer),
         Effect.provideService(FileOutput, fileOutput)
       )
     );
@@ -71,6 +73,7 @@ describe('Effect writeResultFiles', () => {
 
     await Effect.runPromise(
       writeResultFiles(result, { dirPath: '/reports', resultFormats: ['json'] }, { includeSetup: true }).pipe(
+        Effect.provide(NodeFileOutputPlatformLayer),
         Effect.provideService(FileOutput, createMemoryFileOutput(files))
       )
     );
@@ -86,6 +89,7 @@ describe('Effect writeResultFiles', () => {
     );
     const result = await Effect.runPromise(
       writeResultFiles(successResult, { dirPath: '/reports', resultFormats: ['json'] }).pipe(
+        Effect.provide(NodeFileOutputPlatformLayer),
         Effect.provideService(FileOutput, { createDirectory: () => Effect.void, writeFile }),
         Effect.either
       )
@@ -108,6 +112,7 @@ describe('Effect writeResultFiles', () => {
           { filename: 'not-started.txt', content: 'later' }
         ]
       }).pipe(
+        Effect.provide(NodeFileOutputPlatformLayer),
         Effect.provideService(FileOutput, {
           ...memory,
           writeFile: (directory, fileName, content) =>
@@ -137,7 +142,11 @@ describe('Effect writeResultFiles', () => {
       writeResultFiles(successResult, {
         dirPath: '/reports',
         fileInfos: [{ filename: 'circular.json', content: circular }]
-      }).pipe(Effect.provideService(FileOutput, createMemoryFileOutput(files)), Effect.either)
+      }).pipe(
+        Effect.provide(NodeFileOutputPlatformLayer),
+        Effect.provideService(FileOutput, createMemoryFileOutput(files)),
+        Effect.either
+      )
     );
 
     expect(result).toMatchObject({
@@ -161,6 +170,7 @@ describe('Effect writeResultFiles', () => {
           resultFormats: ['json'],
           fileInfos: [{ filename: 'not-started.txt', content: 'later' }]
         }).pipe(
+          Effect.provide(NodeFileOutputPlatformLayer),
           Effect.provideService(FileOutput, {
             ...memory,
             writeFile: (directory, fileName, content) =>

@@ -393,7 +393,7 @@ try {
     error =>
       error._tag === 'PartialResultFilesError' &&
       error.cause._tag === 'FileOutputError' &&
-      error.cause.operation === 'open' &&
+      error.cause.operation === 'writeFile' &&
       JSON.stringify(error.writtenFiles) === JSON.stringify(['/partial/test-run-id.txt'])
   );
   assert.deepEqual(Array.from(await nodeApi.list('/partial')), ['test-run-id.txt']);
