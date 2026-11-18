@@ -30,7 +30,7 @@
   "dependencies": {
     "@azure/monitor-opentelemetry-exporter": "^1.0.0-beta.43",
     "@effect/opentelemetry": "0.63.0",
-    "@effect/platform": "^0.96.1",
+    "@effect/platform": "^0.97.1",
     "@effect/platform-node-shared": "0.59.0",
     "@jsforce/jsforce-node": "^3.10.24",
     "@opentelemetry/api": "1.9.1",
