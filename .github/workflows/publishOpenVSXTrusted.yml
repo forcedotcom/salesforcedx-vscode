@@ -23,9 +23,11 @@ run-name: "Open VSX: ${{ inputs.release-tag || github.event.release.tag_name }}"
 # which channel it's publishing. promote-to-prerelease.yml, the only prerelease caller, leaves
 # do-ctc at its default (false).
 #
-# Deliberately has no `environment: publish` (unlike the stable `prepare-release-metadata` this
-# replaced): that environment has a required-reviewers protection rule, which would turn every
-# automated weekly prerelease dispatch into one requiring manual approval.
+# `prepare` itself has no `environment: publish` (unlike the stable `prepare-release-metadata`
+# this replaced) because it runs for both channels -- a GitHub Environment can't be applied
+# conditionally to a single job. The required-reviewers approval gate instead lives on
+# approve-stable-publish below, scoped to the stable channel only, so the automated weekly
+# prerelease dispatch still skips approval while stable releases still wait for it.
 
 on:
   release:
@@ -135,9 +137,21 @@ jobs:
     uses: salesforcecli/github-workflows/.github/workflows/ctcOpen.yml@main
     secrets: inherit
 
+  # Required-reviewers approval gate for the stable channel only -- same stable-vs-prerelease
+  # condition as ctc-open above, so the weekly automated prerelease dispatch still sails through
+  # ungated while every stable release (auto `release` event or a manual do-ctc:true dispatch)
+  # pauses for approval before publish, matching publishVSCode.yml's prepare-release-metadata.
+  approve-stable-publish:
+    needs: [prepare]
+    if: always() && needs.prepare.result == 'success' && (github.event_name == 'release' || inputs.do-ctc == true)
+    runs-on: ubuntu-latest
+    environment: publish
+    steps:
+      - run: echo "Approved stable Open VSX publish for ${{ needs.prepare.outputs.release-tag }}"
+
   publish:
-    needs: [prepare, gate-check, ctc-open]
-    if: always() && needs.prepare.result == 'success' && (needs.gate-check.result == 'success' || needs.gate-check.result == 'skipped') && (needs.ctc-open.result == 'success' || needs.ctc-open.result == 'skipped')
+    needs: [prepare, gate-check, ctc-open, approve-stable-publish]
+    if: always() && needs.prepare.result == 'success' && (needs.gate-check.result == 'success' || needs.gate-check.result == 'skipped') && (needs.ctc-open.result == 'success' || needs.ctc-open.result == 'skipped') && (needs.approve-stable-publish.result == 'success' || needs.approve-stable-publish.result == 'skipped')
     permissions:
       contents: read
       id-token: write
